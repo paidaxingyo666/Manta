@@ -994,6 +994,15 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '  },',
     '  };',
     '};',
+    '',
+    '// Why: OpenCode also resolves plugins through the module default export, and that',
+    '// loader rejects the module unless the default exposes `server()` ("must default',
+    '// export an object with server()"). `setup()` does not satisfy it. Keep the named',
+    '// export so the factory-based loader still finds the same instance.',
+    'export default {',
+    '  id: "orca-opencode-status",',
+    '  server: OrcaOpenCodeStatusPlugin,',
+    '};',
     ''
   ].join('\n')
 }
