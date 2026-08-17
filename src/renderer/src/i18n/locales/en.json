@@ -113,7 +113,9 @@
       "issue": "Issue",
       "mr": "MR",
       "port": "Port",
-      "pr": "PR"
+      "pr": "PR",
+      "task": "Task",
+      "automation": "Run"
     },
     "linearIssue": {
       "createLabel": "Create worktree from Linear issue {{value0}}: {{value1}}",
