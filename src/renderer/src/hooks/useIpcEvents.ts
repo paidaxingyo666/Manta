@@ -85,12 +85,12 @@ import {
   hydrateBrowserDrivers,
   setDriverForBrowserPage
 } from '@/lib/pane-manager/browser-mobile-driver-state'
-import { destroyPersistentWebview } from '@/components/browser-pane/webview-registry'
-import { rememberLiveBrowserUrl } from '@/components/browser-pane/browser-runtime'
+import { destroyPersistentWebview } from '@/components/browser-pane/host-guest/webview-registry'
+import { rememberLiveBrowserUrl } from '@/components/browser-pane/describe-page/live-browser-url-registry'
 import {
   acquireBrowserAutomationVisibility,
   releaseBrowserAutomationVisibility
-} from '@/components/browser-pane/browser-automation-visibility'
+} from '@/components/browser-pane/host-guest/browser-automation-visibility'
 import { attachMobileMarkdownBridge } from '@/runtime/mobile-markdown-bridge'
 import { closeMobileSessionTabInStore } from '@/runtime/mobile-session-tab-close'
 import { createWorktreeChangeRefreshQueue } from './worktree-change-refresh-queue'

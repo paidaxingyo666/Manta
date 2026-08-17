@@ -130,7 +130,7 @@ import { useShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
 import {
   ORCA_BROWSER_FOCUS_REQUEST_EVENT,
   queueBrowserFocusRequest
-} from '@/components/browser-pane/browser-focus'
+} from '@/components/browser-pane/host-guest/browser-focus'
 import { RepoBadgeMark } from '@/components/repo/RepoBadgeLabel'
 import { buildSidebarHostOptions } from '@/components/sidebar/sidebar-host-options'
 import { getPaletteHostBadge, type PaletteHostBadge } from '@/components/cmd-j/palette-host-badge'

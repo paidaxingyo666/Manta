@@ -14773,7 +14773,8 @@
             "a6914ee43f": "Take back",
             "f4ecd61552": "This tab is being controlled from your phone. Take back to use it on desktop.",
             "d9768ec642": "Browser input is paused",
-            "20539eca03": "Mobile is driving this browser"
+            "20539eca03": "Mobile is driving this browser",
+            "7c31b0da94": "Couldn't take back this tab. Check the phone session, then try again."
           },
           "BrowserPane": {
             "1ded0d3168": "Copy Screenshot",
@@ -14910,6 +14911,35 @@
               "bar": {
                 "suggestions": {
                   "87fcdd0da9": "{{value0}} Search"
+                }
+              }
+            }
+          },
+          "annotate": {
+            "use": {
+              "browser": {
+                "page": {
+                  "grab": {
+                    "annotations": {
+                      "0c7b9b2b7a": "Copied",
+                      "c937229f19": "Screenshotted",
+                      "1f5cb19034": "Annotation added"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "navigate": {
+            "use": {
+              "browser": {
+                "page": {
+                  "navigation": {
+                    "downloads": {
+                      "8683b84b9e": "Browser page is not ready for file drops.",
+                      "22272f2784": "Drop files over the browser page, not the toolbar."
+                    }
+                  }
                 }
               }
             }
