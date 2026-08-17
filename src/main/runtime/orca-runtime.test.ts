@@ -34942,6 +34942,114 @@ describe('OrcaRuntimeService', () => {
     expect(replacementCleanup).toHaveBeenCalledTimes(1)
   })
 
+  it('releases an owned subscription only while its registration still owns the id', async () => {
+    const runtime = createRuntime()
+    const oldCleanup = vi.fn()
+    const replacementCleanup = vi.fn()
+
+    const oldRegistration = runtime.registerOwnedSubscriptionCleanup(
+      'terminal:owned',
+      oldCleanup,
+      'conn-old'
+    )
+
+    runtime.registerOwnedSubscriptionCleanup('terminal:owned', replacementCleanup, 'conn-new')
+    expect(oldCleanup).toHaveBeenCalledTimes(1)
+
+    // The stale registration must not reach the replacement that now owns the id.
+    oldRegistration.releaseIfCurrent()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(replacementCleanup).not.toHaveBeenCalled()
+  })
+
+  it('releases an owned subscription when the registration is still current', async () => {
+    const runtime = createRuntime()
+    const cleanup = vi.fn()
+
+    const registration = runtime.registerOwnedSubscriptionCleanup('terminal:live', cleanup, 'conn')
+    registration.releaseIfCurrent()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(cleanup).toHaveBeenCalledTimes(1)
+    // A second release is a no-op: the registration no longer owns the id.
+    registration.releaseIfCurrent()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(cleanup).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses an unsubscribe from a connection that no longer owns the subscription', async () => {
+    const runtime = createRuntime()
+    const oldCleanup = vi.fn()
+    const replacementCleanup = vi.fn()
+
+    runtime.registerSubscriptionCleanup('terminal:unsub', oldCleanup, 'conn-old')
+    runtime.registerSubscriptionCleanup('terminal:unsub', replacementCleanup, 'conn-new')
+
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal:unsub', 'conn-old')).toBe(false)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(replacementCleanup).not.toHaveBeenCalled()
+
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal:unsub', 'conn-new')).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(replacementCleanup).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports an unregistered subscription as gone rather than refused', async () => {
+    const runtime = createRuntime()
+
+    // Why it matters: a client retrying on `false` would otherwise chase a dead id.
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal:missing', 'conn-a')).toBe(true)
+  })
+
+  it('reports a refusal even when a sibling id was merely absent', async () => {
+    const runtime = createRuntime()
+    const bareCleanup = vi.fn()
+    const compositeCleanup = vi.fn()
+
+    // A clientless stream registers under the bare id; a client-scoped one under the composite.
+    runtime.registerSubscriptionCleanup('terminal-1', bareCleanup, 'conn-a')
+    runtime.registerSubscriptionCleanup('terminal-1:phone-1', compositeCleanup, 'conn-b')
+
+    // conn-a owns the bare id but not the composite: one genuine teardown, one refusal.
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal-1', 'conn-a')).toBe(true)
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal-1:phone-1', 'conn-a')).toBe(
+      false
+    )
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(bareCleanup).toHaveBeenCalledTimes(1)
+    expect(compositeCleanup).not.toHaveBeenCalled()
+  })
+
+  // Why: the lease-only branch's unguarded compensating handleMobileUnsubscribe is only
+  // safe while a viewport-less subscribe cannot yield to the macrotask queue. Pin it so
+  // adding an await to that path fails here instead of silently killing a live lease.
+  it('settles a viewport-less mobile subscribe without leaving the microtask queue', async () => {
+    const runtime = createRuntime()
+    let settled = false
+
+    void runtime.handleMobileSubscribe('pty-lease', 'phone-1', undefined).then(() => {
+      settled = true
+    })
+    // Drain microtasks only: any real await on this path leaves this unsettled.
+    for (let i = 0; i < 50; i += 1) {
+      await Promise.resolve()
+    }
+
+    expect(settled).toBe(true)
+  })
+
+  it('tears down unconditionally for in-process callers that have no connection', async () => {
+    const runtime = createRuntime()
+    const cleanup = vi.fn()
+
+    runtime.registerSubscriptionCleanup('terminal:inproc', cleanup, 'conn-owner')
+    expect(runtime.cleanupSubscriptionIfOwnedByConnection('terminal:inproc', undefined)).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(cleanup).toHaveBeenCalledTimes(1)
+  })
+
   it('does not deliver or accept browser screencast frames before ready', async () => {
     const runtime = createRuntime()
     const done = deferred<void>()

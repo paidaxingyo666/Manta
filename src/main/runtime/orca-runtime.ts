@@ -1754,6 +1754,13 @@ export type RuntimePtyDataAdmission = Readonly<{
   completion: Promise<void>
 }>
 
+// Why: a subscription id is stable across reconnects, so holding the string is not
+// proof of ownership. This handle is the only safe way to tear down a registration.
+export type SubscriptionRegistration = Readonly<{
+  /** Tears down only if this registration still owns the id; otherwise a no-op. */
+  releaseIfCurrent: () => void
+}>
+
 export type RuntimeTerminalDataMeta = Readonly<{
   seq?: number
   rawLength?: number
@@ -13936,7 +13943,9 @@ export class OrcaRuntimeService {
       // Why: the stable id is about to belong to a newer connection; detach
       // the old owner before its asynchronous cleanup can overlap the rebind.
       this.removeSubscriptionConnectionIndex(subscriptionId)
-      this.cleanupSubscription(subscriptionId)
+      // Why: evict by the owner we captured, never by the key — a keyed evict
+      // would resolve to whoever holds the id at call time.
+      this.cleanupOwnedSubscription(subscriptionId, existing)
     }
     this.subscriptionCleanups.set(subscriptionId, cleanup)
     if (connectionId) {
@@ -13950,10 +13959,65 @@ export class OrcaRuntimeService {
     }
   }
 
+  // Why: teardown keyed only by a string tears down whoever owns that key *now*.
+  // A mobile reconnect rebinds the stable `${terminal}:${clientId}` id, so a late
+  // teardown from the dead connection would kill the replacement stream (STA-4510).
+  // Callers that own a registration must go through this handle instead.
+  registerOwnedSubscriptionCleanup(
+    subscriptionId: string,
+    cleanup: () => void | Promise<void>,
+    connectionId?: string
+  ): SubscriptionRegistration {
+    this.registerSubscriptionCleanup(subscriptionId, cleanup, connectionId)
+    return {
+      releaseIfCurrent: () => this.cleanupOwnedSubscription(subscriptionId, cleanup)
+    }
+  }
+
   cleanupSubscription(subscriptionId: string): void {
     void this.cleanupSubscriptionAndWait(subscriptionId).catch((error) => {
       console.error(`[runtime] subscription cleanup failed for ${subscriptionId}:`, error)
     })
+  }
+
+  // Why: a client-supplied unsubscribe names a stable id it may no longer own — a
+  // reconnect or make-before-break migration rebinds that id to a newer connection,
+  // and honoring the stale message would kill the live stream (STA-4510).
+  // Returns whether the subscription was actually torn down.
+  cleanupSubscriptionIfOwnedByConnection(
+    subscriptionId: string,
+    connectionId: string | undefined
+  ): boolean {
+    // Why: an absent connectionId means a connection-less caller — the local
+    // unix-socket dispatch path, gated by the 0o600 metadata token. That tier keeps
+    // unconditional teardown authority; this guard scopes socket clients only.
+    if (!connectionId) {
+      this.cleanupSubscription(subscriptionId)
+      return true
+    }
+    // Why: an id with no registration is already gone, not a refusal. Reporting
+    // false there would tell a retrying client to keep chasing a dead id.
+    if (!this.subscriptionCleanups.has(subscriptionId)) {
+      return true
+    }
+    if (this.subscriptionConnectionByEntry.get(subscriptionId) !== connectionId) {
+      return false
+    }
+    this.cleanupSubscription(subscriptionId)
+    return true
+  }
+
+  private cleanupOwnedSubscription(
+    subscriptionId: string,
+    expectedCleanup: () => void | Promise<void>
+  ): void {
+    // Why: the ownership check is synchronous and cleanupSubscriptionAndWait re-reads
+    // the map before its first await, so nothing can rebind in between. Delegating
+    // preserves the in-flight join, the retain-on-failure, and the retry contract.
+    if (this.subscriptionCleanups.get(subscriptionId) !== expectedCleanup) {
+      return
+    }
+    this.cleanupSubscription(subscriptionId)
   }
 
   retrySubscriptionCleanupAfter(
