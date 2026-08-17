@@ -6465,7 +6465,8 @@ describe('OrcaRuntimeService', () => {
           worktreeId: `${TEST_REPO_ID}::/remote/feature`
         }
       ]),
-      shutdown: vi.fn().mockResolvedValue(undefined)
+      shutdown: vi.fn().mockResolvedValue(undefined),
+      deleteWorktreeHistory: vi.fn().mockResolvedValue(undefined)
     }
     const runtime = new OrcaRuntimeService(remoteStore as never, undefined, {
       getSshProvider: () => ptyProvider as never
@@ -6481,6 +6482,9 @@ describe('OrcaRuntimeService', () => {
     expect(ptyProvider.shutdown).toHaveBeenCalledWith(
       'pty-remote',
       expect.objectContaining({ immediate: true })
+    )
+    expect(ptyProvider.deleteWorktreeHistory).toHaveBeenCalledWith(
+      `${TEST_REPO_ID}::/remote/feature`
     )
     expect(ptyProvider.shutdown.mock.invocationCallOrder[0]).toBeLessThan(
       gitProvider.removeWorktree.mock.invocationCallOrder[0]
@@ -33158,7 +33162,7 @@ describe('OrcaRuntimeService', () => {
     expect(spawn).not.toHaveBeenCalled()
   })
 
-  it('uses POSIX quoting for mobile agent launch commands in WSL project runtimes', async () => {
+  it('uses portable Unix quoting for mobile agent launch commands in WSL project runtimes', async () => {
     await withPlatform('win32', async () => {
       const spawn = vi.fn().mockResolvedValue({ id: 'pty-agent' })
       const runtime = new OrcaRuntimeService({
@@ -33196,7 +33200,7 @@ describe('OrcaRuntimeService', () => {
 
       expect(spawn).toHaveBeenCalledWith(
         expect.objectContaining({
-          command: "command-code --profile mobile '--note' 'can'\\''t'",
+          command: `command-code --profile mobile '--note' 'can'"'"'t'`,
           cwd: TEST_WORKTREE_PATH,
           worktreeId: TEST_WORKTREE_ID
         })
@@ -48433,6 +48437,145 @@ describe('OrcaRuntimeService', () => {
     } finally {
       await rm(parentDir, { recursive: true, force: true })
     }
+  })
+
+  it('routes already-missing SSH runtime history cleanup through the PTY owner', async () => {
+    const repo = {
+      id: 'repo-runtime-ssh',
+      path: '/remote/repo',
+      displayName: 'ssh',
+      badgeColor: 'blue',
+      addedAt: 1,
+      connectionId: 'ssh-1'
+    }
+    const worktreeId = `${repo.id}::/remote/already-deleted`
+    const metaById: Record<string, WorktreeMeta> = {
+      [worktreeId]: makeWorktreeMeta({ hostId: 'ssh:ssh-1', orcaCreationSource: 'ssh' })
+    }
+    const removeWorktreeMeta = vi.fn((id: string) => {
+      delete metaById[id]
+    })
+    const runtimeStore = {
+      ...store,
+      getRepos: () => [repo],
+      getRepo: (id: string) => (id === repo.id ? repo : undefined),
+      getAllWorktreeMeta: () => metaById,
+      getWorktreeMeta: (id: string) => metaById[id],
+      removeWorktreeMeta
+    }
+    const gitProvider = {
+      listWorktrees: vi.fn().mockResolvedValue([
+        {
+          path: repo.path,
+          head: 'main',
+          branch: 'refs/heads/main',
+          isBare: false,
+          isMainWorktree: true
+        }
+      ])
+    }
+    const fsProvider = {
+      stat: vi.fn().mockRejectedValue(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    }
+    const deleteWorktreeHistory = vi.fn().mockResolvedValue(undefined)
+    const ptyProvider = { deleteWorktreeHistory } as never
+    registerSshGitProvider(repo.connectionId, gitProvider as never)
+    registerSshFilesystemProvider(repo.connectionId, fsProvider as never)
+    const runtime = new OrcaRuntimeService(runtimeStore as never, undefined, {
+      getSshProvider: () => ptyProvider
+    })
+
+    try {
+      await expect(runtime.removeManagedWorktree(`id:${worktreeId}`)).resolves.toEqual({})
+    } finally {
+      unregisterSshGitProvider(repo.connectionId)
+      unregisterSshFilesystemProvider(repo.connectionId)
+    }
+
+    expect(deleteWorktreeHistory).toHaveBeenCalledWith(worktreeId)
+    expect(deleteWorktreeHistory.mock.invocationCallOrder[0]).toBeLessThan(
+      removeWorktreeMeta.mock.invocationCallOrder[0]
+    )
+    expect(removeWorktreeMeta).toHaveBeenCalledWith(worktreeId, 'ssh:ssh-1')
+  })
+
+  it('routes SSH runtime orphan-directory history cleanup through the PTY owner', async () => {
+    const repo = {
+      id: 'repo-runtime-ssh',
+      path: '/remote/repo',
+      displayName: 'ssh',
+      badgeColor: 'blue',
+      addedAt: 1,
+      connectionId: 'ssh-1'
+    }
+    const worktreePath = '/remote/orphan'
+    const worktreeId = `${repo.id}::${worktreePath}`
+    const metaById: Record<string, WorktreeMeta> = {
+      [worktreeId]: makeWorktreeMeta({
+        hostId: 'ssh:ssh-1',
+        orcaCreatedAt: Date.now(),
+        orcaCreationSource: 'ssh'
+      })
+    }
+    const removeWorktreeMeta = vi.fn((id: string) => {
+      delete metaById[id]
+    })
+    const runtimeStore = {
+      ...store,
+      getRepos: () => [repo],
+      getRepo: (id: string) => (id === repo.id ? repo : undefined),
+      getAllWorktreeMeta: () => metaById,
+      getWorktreeMeta: (id: string) => metaById[id],
+      removeWorktreeMeta
+    }
+    const gitProvider = {
+      listWorktrees: vi.fn().mockResolvedValue([
+        {
+          path: repo.path,
+          head: 'main',
+          branch: 'refs/heads/main',
+          isBare: false,
+          isMainWorktree: true
+        }
+      ])
+    }
+    const fsProvider = {
+      lstat: vi.fn(async (path: string) => ({
+        type: path === `${worktreePath}/.git` ? 'file' : 'directory'
+      })),
+      readFile: vi.fn(async (path: string) => ({
+        isBinary: false,
+        content:
+          path === `${worktreePath}/.git`
+            ? `gitdir: ${repo.path}/.git/worktrees/orphan\n`
+            : `${worktreePath}/.git\n`
+      })),
+      deletePath: vi.fn().mockResolvedValue(undefined)
+    }
+    const deleteWorktreeHistory = vi.fn().mockResolvedValue(undefined)
+    const ptyProvider = {
+      listProcesses: vi.fn().mockResolvedValue([]),
+      shutdown: vi.fn().mockResolvedValue(undefined),
+      deleteWorktreeHistory
+    }
+    registerSshGitProvider(repo.connectionId, gitProvider as never)
+    registerSshFilesystemProvider(repo.connectionId, fsProvider as never)
+    const runtime = new OrcaRuntimeService(runtimeStore as never, undefined, {
+      getSshProvider: () => ptyProvider as never
+    })
+
+    try {
+      await expect(runtime.removeManagedWorktree(`id:${worktreeId}`, true)).resolves.toEqual({})
+    } finally {
+      unregisterSshGitProvider(repo.connectionId)
+      unregisterSshFilesystemProvider(repo.connectionId)
+    }
+
+    expect(fsProvider.deletePath).toHaveBeenCalledWith(worktreePath, true)
+    expect(deleteWorktreeHistory).toHaveBeenCalledWith(worktreeId)
+    expect(deleteWorktreeHistory.mock.invocationCallOrder[0]).toBeLessThan(
+      removeWorktreeMeta.mock.invocationCallOrder[0]
+    )
   })
 
   it('force-removes a legacy Orca-created runtime orphaned worktree directory after Git tracking is gone', async () => {
