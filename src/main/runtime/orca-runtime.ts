@@ -11806,7 +11806,9 @@ export class OrcaRuntimeService {
       (previous.payload.agentType ?? null) !== (payload.agentType ?? null) ||
       (previous.payload.toolName ?? null) !== (payload.toolName ?? null) ||
       (previous.payload.interactivePrompt ?? null) !== (payload.interactivePrompt ?? null) ||
-      (previous.payload.interrupted ?? false) !== (payload.interrupted ?? false)
+      (previous.payload.interrupted ?? false) !== (payload.interrupted ?? false) ||
+      (previous.payload.turnCompletedAt ?? null) !== (payload.turnCompletedAt ?? null) ||
+      (previous.payload.lastAssistantMessage ?? null) !== (payload.lastAssistantMessage ?? null)
     )
   }
 
@@ -32428,6 +32430,31 @@ export class OrcaRuntimeService {
         : livePty
           ? this.issuePtyHandle(livePty)
           : null
+      const projectedAgentStatus =
+        agentStatus ??
+        this.buildPtyMobileAgentStatus(
+          mobileStatusPty,
+          tab,
+          terminalHandle,
+          retainedAgentStatus,
+          getHookRowsForPane
+        )
+      const projectedStatusEntry = projectedAgentStatus.agentStatus as
+        | (AgentStatusEntry & { turnCompletedAt?: number })
+        | undefined
+      const { turnCompletedAt: projectedTurnCompletedAt, ...clientStatusFields } =
+        projectedStatusEntry ?? {}
+      const clientAgentStatus = projectedStatusEntry
+        ? { agentStatus: clientStatusFields as AgentStatusEntry }
+        : {}
+      const rawTurnCompletedAt =
+        hookAgentStatus?.live?.payload.turnCompletedAt ??
+        this.getHookAgentRowForPane(getHookRowsForPane(paneKey)).live?.payload.turnCompletedAt ??
+        projectedTurnCompletedAt
+      const turnCompletedAt =
+        typeof rawTurnCompletedAt === 'number' && Number.isFinite(rawTurnCompletedAt)
+          ? rawTurnCompletedAt
+          : undefined
       tabs.push({
         type: 'terminal',
         id: tab.id,
@@ -32437,14 +32464,8 @@ export class OrcaRuntimeService {
         ...(tab.ptyId ? { ptyId: tab.ptyId } : {}),
         ...(tab.terminalTheme ? { terminalTheme: tab.terminalTheme } : {}),
         ...(launchAgent ? { launchAgent } : {}),
-        ...(agentStatus ??
-          this.buildPtyMobileAgentStatus(
-            mobileStatusPty,
-            tab,
-            terminalHandle,
-            retainedAgentStatus,
-            getHookRowsForPane
-          )),
+        ...clientAgentStatus,
+        ...(turnCompletedAt !== undefined ? { turnCompletedAt } : {}),
         ...(tab.parentLayout ? { parentLayout: tab.parentLayout } : {}),
         ...(tab.startupCwd ? { startupCwd: tab.startupCwd } : {}),
         ...(tab.color != null ? { color: tab.color } : {}),

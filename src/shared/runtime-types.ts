@@ -181,6 +181,8 @@ export type RuntimeMobileSessionTerminalTab = {
   ptyId?: string | null
   terminalTheme?: RuntimeMobileTerminalTheme
   agentStatus?: AgentStatusEntry | null
+  /** Event-only lead-turn end time for paired clients; never persisted in AgentStatusEntry. */
+  turnCompletedAt?: number
   launchAgent?: TuiAgent
   startupCwd?: string
   parentLayout?: TerminalLayoutSnapshot
