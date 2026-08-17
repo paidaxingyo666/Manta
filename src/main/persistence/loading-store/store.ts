@@ -227,6 +227,7 @@ import {
 import {
   normalizeLoadedOnboardingState,
   normalizeNotificationSettings,
+  persistedNotificationSettingsRepaired,
   readDeprecatedExperimentFlag,
   readLegacySidekickFlag,
   resolveSetupGuideSidebarDismissedOnLoad
@@ -1152,6 +1153,19 @@ export class Store {
         ) {
           this.loadNeedsSave = true
         }
+        const normalizedNotifications = normalizeNotificationSettings(
+          parsed.settings?.notifications
+        )
+        // Why: a type-flipped notification field is repaired in memory only; without a dirty mark the
+        // bad value stays on disk and the repair reruns on every launch.
+        if (
+          persistedNotificationSettingsRepaired(
+            parsed.settings?.notifications,
+            normalizedNotifications
+          )
+        ) {
+          this.loadNeedsSave = true
+        }
         const normalizedSourceControlGroupOrder = normalizeSourceControlGroupOrder(
           parsed.settings?.sourceControlGroupOrder
         )
@@ -1259,7 +1273,7 @@ export class Store {
             openInApplications: normalizeOpenInApplications(parsed.settings?.openInApplications, {
               seedDefaults: true
             }),
-            notifications: normalizeNotificationSettings(parsed.settings?.notifications),
+            notifications: normalizedNotifications,
             sourceControlAi: migratedSourceControlAi,
             sourceControlGroupOrder: normalizedSourceControlGroupOrder,
             // Why: rollback builds still read commitMessageAi, so refresh the legacy projection from sourceControlAi for compat.
@@ -1376,6 +1390,20 @@ export class Store {
             ) {
               this.loadNeedsSave = true
             }
+            const rawExplorerView = parsed.ui?.rightSidebarExplorerView
+            const rightSidebarExplorerView = normalizeRightSidebarExplorerView(
+              rawExplorerView,
+              parsed.ui?.rightSidebarTab
+            )
+            // Why: without a dirty mark the legacy "Search tab, no explorer view" repair stays
+            // in memory only, so a profile that never writes again redoes it on every launch.
+            if (
+              rawExplorerView === undefined
+                ? rightSidebarExplorerView !== defaults.ui.rightSidebarExplorerView
+                : rawExplorerView !== rightSidebarExplorerView
+            ) {
+              this.loadNeedsSave = true
+            }
             const setupGuideSidebarDismissed = resolveSetupGuideSidebarDismissedOnLoad(
               parsed.ui?.setupGuideSidebarDismissed,
               normalizedOnboarding
@@ -1415,10 +1443,7 @@ export class Store {
               rightSidebarTab: normalizeRightSidebarTab(parsed.ui?.rightSidebarTab),
               // Why here and not in getPersistedUI: only the raw payload still shows the legacy
               // "Search tab, no explorer view" shape — the defaults spread above fills in 'files'.
-              rightSidebarExplorerView: normalizeRightSidebarExplorerView(
-                parsed.ui?.rightSidebarExplorerView,
-                parsed.ui?.rightSidebarTab
-              ),
+              rightSidebarExplorerView,
               setupGuideSidebarDismissed,
               usagePercentageDisplayChangeNoticeDismissed,
               setupGuideBrowserMilestoneMigrated:
@@ -2068,8 +2093,11 @@ export class Store {
     return this.getProjectHostOperations().getRepo(id)
   }
 
-  setResolvedRepoGitUsername(id: string, username: string): boolean {
-    return this.getProjectHostOperations().setResolvedRepoGitUsername(id, username)
+  setResolvedRepoGitUsername(
+    target: Pick<Repo, 'id' | 'connectionId' | 'executionHostId'>,
+    username: string
+  ): boolean {
+    return this.getProjectHostOperations().setResolvedRepoGitUsername(target, username)
   }
 
   private projectGroupOperations: ProjectGroupPersistenceOperations | null = null
