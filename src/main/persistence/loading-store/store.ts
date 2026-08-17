@@ -108,6 +108,7 @@ import {
 } from '../../../shared/automation-run-retention'
 import { pruneWorkspaceSessionBrowserHistory } from '../../../shared/workspace-session-browser-history'
 import { normalizeRetirableGeneratedName } from '../../worktree-name-retirement'
+import { recordRetirementNamespaceRegistry } from '../../worktree-retirement-namespace'
 import {
   addRetiredNames,
   clampExhaustedTiers,
@@ -3456,7 +3457,11 @@ export class Store {
       return false
     }
     this.state.retiredWorktreeNamesByNamespace ??= {}
-    this.state.retiredWorktreeNamesByNamespace[namespaceKey] = next
+    recordRetirementNamespaceRegistry(
+      this.state.retiredWorktreeNamesByNamespace,
+      namespaceKey,
+      next
+    )
     this.scheduleSave()
     return true
   }
