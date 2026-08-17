@@ -37148,6 +37148,45 @@ describe('OrcaRuntimeService', () => {
     expect(summary).toMatchObject({ hasHostSidebarActivity: true, status: 'working' })
   })
 
+  it('suppresses restored-unconfirmed hook rows from worktree.ps', async () => {
+    const leafId = '33333333-3333-4333-8333-333333333333'
+    const now = Date.now()
+    const runtime = new OrcaRuntimeService(store, undefined, {
+      getAgentStatusSnapshot: () => [
+        {
+          paneKey: `tab-1:${leafId}`,
+          worktreeId: TEST_WORKTREE_ID,
+          tabId: 'tab-1',
+          state: 'working',
+          prompt: 'may have finished offline',
+          agentType: 'claude',
+          connectionId: null,
+          receivedAt: now,
+          stateStartedAt: now - 100,
+          restoredUnconfirmed: true
+        }
+      ]
+    })
+    runtime.attachWindow(1)
+    runtime.syncWindowGraph(1, {
+      tabs: [
+        {
+          tabId: 'tab-1',
+          worktreeId: TEST_WORKTREE_ID,
+          title: 'Claude',
+          activeLeafId: leafId,
+          layout: null
+        }
+      ],
+      leaves: []
+    })
+
+    const { worktrees } = await runtime.getWorktreePs()
+    const summary = worktrees.find((worktree) => worktree.worktreeId === TEST_WORKTREE_ID)
+
+    expect(summary).toMatchObject({ hasHostSidebarActivity: false, status: 'inactive', agents: [] })
+  })
+
   it('uses mirrored tab ownership after a workspace rename instead of stale hook attribution', async () => {
     const renamedPath = '/tmp/worktree-renamed'
     const renamedWorktreeId = `${TEST_REPO_ID}::${renamedPath}`

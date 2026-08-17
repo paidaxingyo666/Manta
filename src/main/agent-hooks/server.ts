@@ -32,6 +32,7 @@ import {
   resolveCachedClaudeCompactOwnership,
   resolveHookSource,
   preparePendingGrokResultDiscovery,
+  seedClaudeLeadTurnFromPersistedStatus,
   seedClaudeSubagentRosterFromSnapshots,
   seedCodexStateFromSnapshot,
   warnOnHookEnvOrVersionMismatch,
@@ -40,6 +41,7 @@ import {
   type HookListenerState
 } from '../../shared/agent-hook-listener'
 import {
+  claudeTeammateIdMatchesName,
   claudeRosterHasRestoredSnapshotSubagent,
   claudeRosterHasWorkingSubagent,
   claudeRosterToSnapshots
@@ -94,6 +96,8 @@ type EnrichedAgentHookEventPayload = AgentHookEventPayload & {
   restoredUnconfirmed?: true
   /** User-hidden resume identity retained solely for destructive liveness checks. */
   retainedForLiveness?: true
+  /** Persisted proof that a lead boundary was held working only by child agents. */
+  claudeLeadBoundaryChildOnly?: true
 }
 
 type NormalizedLocalHook = {
@@ -329,7 +333,9 @@ function sanitizeHydratedEntry(
     compactTrigger,
     toolUseId: typeof record.toolUseId === 'string' ? record.toolUseId : undefined,
     toolAgentId: typeof record.toolAgentId === 'string' ? record.toolAgentId : undefined,
+    teammateName: typeof record.teammateName === 'string' ? record.teammateName : undefined,
     toolAgentType: typeof record.toolAgentType === 'string' ? record.toolAgentType : undefined,
+    claudeLeadBoundaryChildOnly: record.claudeLeadBoundaryChildOnly === true ? true : undefined,
     providerSession,
     providerSessionOnly: providerSessionOnly ? true : undefined,
     retainedForLiveness: retainedForLiveness ? true : undefined,
@@ -468,6 +474,44 @@ function paneCacheKeyMatchesTab(key: string, tabId: string): boolean {
   return paneCacheKeyTabId(key) === tabId
 }
 
+function attachClaudeChildOnlyBoundary(
+  previous: EnrichedAgentHookEventPayload | undefined,
+  next: AgentHookEventPayload
+): AgentHookEventPayload & { claudeLeadBoundaryChildOnly?: true } {
+  const establishesBoundary =
+    next.payload.agentType === 'claude' &&
+    (next.hookEventName === 'Stop' || next.hookEventName === 'StopFailure') &&
+    !next.toolAgentId &&
+    next.payload.state === 'working' &&
+    next.payload.subagents?.some((subagent) => subagent.state === 'working') === true &&
+    next.claudeRunningNonAgentTask === false
+  const carriesBoundary =
+    previous?.claudeLeadBoundaryChildOnly === true &&
+    next.payload.agentType === 'claude' &&
+    next.claudeRunningNonAgentTask === false &&
+    (next.toolAgentId !== undefined ||
+      next.hookEventName === 'SubagentStart' ||
+      next.hookEventName === 'SubagentStop' ||
+      next.hookEventName === 'TeammateIdle')
+  return establishesBoundary || carriesBoundary
+    ? { ...next, claudeLeadBoundaryChildOnly: true }
+    : next
+}
+
+function invalidateClaudeChildOnlyBoundary(
+  previous: EnrichedAgentHookEventPayload | undefined,
+  next: AgentHookEventPayload
+): EnrichedAgentHookEventPayload | undefined {
+  if (
+    previous?.claudeLeadBoundaryChildOnly !== true ||
+    attachClaudeChildOnlyBoundary(previous, next).claudeLeadBoundaryChildOnly === true
+  ) {
+    return previous
+  }
+  const { claudeLeadBoundaryChildOnly: _boundary, ...withoutBoundary } = previous
+  return withoutBoundary
+}
+
 function shouldKeepClaudePermissionVisible(
   previous: EnrichedAgentHookEventPayload | undefined,
   next: AgentHookEventPayload
@@ -487,6 +531,9 @@ function shouldKeepClaudePermissionVisible(
   if (next.hasExplicitPrompt === true) {
     return false
   }
+  if (isClaudePermissionOwningChildEnding(previous, next)) {
+    return false
+  }
   if (isClaudePermissionResumingApprovedTool(previous, next)) {
     return false
   }
@@ -495,6 +542,24 @@ function shouldKeepClaudePermissionVisible(
     return false
   }
   return true
+}
+
+function isClaudePermissionOwningChildEnding(
+  previous: EnrichedAgentHookEventPayload,
+  next: AgentHookEventPayload
+): boolean {
+  const ownerId = previous.toolAgentId?.trim()
+  if (!ownerId) {
+    return false
+  }
+  if (next.hookEventName === 'SubagentStop') {
+    return ownerId === next.toolAgentId?.trim()
+  }
+  return (
+    next.hookEventName === 'TeammateIdle' &&
+    next.teammateName !== undefined &&
+    claudeTeammateIdMatchesName(ownerId, next.teammateName)
+  )
 }
 
 function isClaudePermissionResumingApprovedTool(
@@ -1150,7 +1215,7 @@ export class AgentHookServer {
       // Why: the prompt boundary is authoritative even when text is unchanged; its next OSC working row must not inherit the prior cron/background turn stamp.
       this.activeHookTurnCompletedAtByPaneKey.delete(payload.paneKey)
     }
-    const previous = this.state.lastStatusByPaneKey.get(payload.paneKey) as
+    let previous = this.state.lastStatusByPaneKey.get(payload.paneKey) as
       | EnrichedAgentHookEventPayload
       | undefined
     const connectionClearWatermark = payload.connectionId
@@ -1215,6 +1280,17 @@ export class AgentHookServer {
               : stateReconciledPayload.payload
           }
         : stateReconciledPayload
+    const boundaryReconciledPrevious = invalidateClaudeChildOnlyBoundary(
+      previous,
+      rootContextPreservingPayload
+    )
+    if (boundaryReconciledPrevious !== previous) {
+      previous = boundaryReconciledPrevious
+      if (previous) {
+        this.state.lastStatusByPaneKey.set(previous.paneKey, previous)
+        this.scheduleStatusPersist()
+      }
+    }
     const identity = resolveAgentStatusIdentity({
       existing: previous
         ? {
@@ -1247,6 +1323,7 @@ export class AgentHookServer {
             }
           }
     const effectivePayload = attachClaudePermissionToolUseId(previous, identityResolvedPayload)
+    const boundaryAwarePayload = attachClaudeChildOnlyBoundary(previous, effectivePayload)
     if (previous && shouldKeepClaudePermissionVisible(previous, effectivePayload)) {
       return previous
     }
@@ -1287,7 +1364,7 @@ export class AgentHookServer {
     if (!identity.inheritedFromActivePane) {
       this.maybeTrackAgentPromptSent(effectivePayload, previous)
     }
-    const cachedPayload = resolveCachedClaudeCompactOwnership(previous, effectivePayload)
+    const cachedPayload = resolveCachedClaudeCompactOwnership(previous, boundaryAwarePayload)
     const enriched = this.attachStatusTiming(cachedPayload, now)
     if (
       typeof enriched.payload.turnCompletedAt === 'number' &&
@@ -1858,6 +1935,14 @@ export class AgentHookServer {
     const previous = this.state.lastStatusByPaneKey.get(paneKey) as
       | EnrichedAgentHookEventPayload
       | undefined
+    if (
+      previous?.claudeLeadBoundaryChildOnly === true &&
+      previous.payload.agentType === 'claude' &&
+      event.payload.agentType === 'claude'
+    ) {
+      // Why: OSC has no child identity or lead boundary, so it cannot replace a persisted child-only proof before the lifecycle hook arrives.
+      return
+    }
     const preserveActiveTurnStamp =
       previous?.payload.turnCompletedAt !== undefined &&
       previous.payload.turnCompletedAt === this.activeHookTurnCompletedAtByPaneKey.get(paneKey)
@@ -1916,6 +2001,7 @@ export class AgentHookServer {
       compactTrigger?: unknown
       toolUseId?: string
       toolAgentId?: string
+      teammateName?: string
       toolAgentType?: string
       providerSession?: unknown
       providerSessionOnly?: unknown
@@ -2007,6 +2093,10 @@ export class AgentHookServer {
       typeof envelope.toolAgentId === 'string' && envelope.toolAgentId.trim().length > 0
         ? envelope.toolAgentId.trim()
         : undefined
+    const teammateName =
+      typeof envelope.teammateName === 'string' && envelope.teammateName.trim().length > 0
+        ? envelope.teammateName.trim()
+        : undefined
     const toolAgentType =
       typeof envelope.toolAgentType === 'string' && envelope.toolAgentType.trim().length > 0
         ? envelope.toolAgentType.trim()
@@ -2093,6 +2183,7 @@ export class AgentHookServer {
       compactTrigger,
       toolUseId,
       toolAgentId,
+      teammateName,
       toolAgentType,
       providerSession,
       providerSessionOnly: envelope.providerSessionOnly === true ? true : undefined,
@@ -2718,12 +2809,17 @@ export class AgentHookServer {
         // Why: restore live child hierarchy immediately; provider-specific reconciliation reaps stale seeds.
         if (entry.payload.agentType === 'codex') {
           seedCodexStateFromSnapshot(this.state, resolvedPaneKey, entry.payload)
-        } else if (entry.payload.agentType === 'claude' && entry.payload.subagents) {
-          seedClaudeSubagentRosterFromSnapshots(
-            this.state,
-            resolvedPaneKey,
-            entry.payload.subagents
-          )
+        } else if (entry.payload.agentType === 'claude') {
+          seedClaudeLeadTurnFromPersistedStatus(this.state, resolvedPaneKey, entry, {
+            childOnlyBoundary: entry.claudeLeadBoundaryChildOnly === true
+          })
+          if (entry.payload.subagents) {
+            seedClaudeSubagentRosterFromSnapshots(
+              this.state,
+              resolvedPaneKey,
+              entry.payload.subagents
+            )
+          }
         }
         hydrated += 1
       } else {
@@ -2819,6 +2915,8 @@ export class AgentHookServer {
       if (!isValidPaneKey(paneKey)) {
         continue
       }
+      const enrichedPayload = payload as EnrichedAgentHookEventPayload
+      const childOnlyBoundary = enrichedPayload.claudeLeadBoundaryChildOnly === true
       const {
         claudeRunningNonAgentTask: _claudeRunningNonAgentTask,
         promptInteractionKey: _promptInteractionKey,
@@ -2826,12 +2924,13 @@ export class AgentHookServer {
         restoredUnconfirmed: _restoredUnconfirmed,
         launchToken,
         ...persistedPayload
-      } = payload as EnrichedAgentHookEventPayload
+      } = enrichedPayload
       const launchTokenHash = launchToken?.trim()
         ? createHash('sha256').update(launchToken.trim()).digest('hex')
         : this.hydratedLaunchTokenHashByPaneKey.get(paneKey)
       entries[paneKey] = {
         ...persistedPayload,
+        ...(childOnlyBoundary ? { claudeLeadBoundaryChildOnly: true } : {}),
         ...(launchTokenHash ? { launchTokenHash } : {})
       }
       const commitment = this.toAuthorityEvidence(payload, launchTokenHash)

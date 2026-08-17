@@ -19801,7 +19801,6 @@ export class OrcaRuntimeService {
         interrupted: boolean
         stateStartedAt: number
         updatedAt: number
-        restoredUnconfirmed?: boolean
       }
     >()
     for (const snapshot of this.latestAgentStatusByPaneKey.values()) {
@@ -19824,6 +19823,10 @@ export class OrcaRuntimeService {
       })
     }
     for (const entry of this.getAgentStatusSnapshotFn?.() ?? []) {
+      // Why: old mobile clients ignore this provenance bit, so publishing the row would turn an explicitly unconfirmed restore into fresh activity under version skew.
+      if (entry.restoredUnconfirmed === true) {
+        continue
+      }
       const existing = rowSources.get(entry.paneKey)
       // Why: hook rows win ties, but an older cached hook must not replace a
       // fresh OSC status and make a running mobile workspace look inactive.
@@ -19846,8 +19849,7 @@ export class OrcaRuntimeService {
         toolInput: entry.toolInput ?? null,
         interrupted: entry.interrupted ?? false,
         stateStartedAt: entry.stateStartedAt,
-        updatedAt: entry.receivedAt,
-        ...(entry.restoredUnconfirmed ? { restoredUnconfirmed: true } : {})
+        updatedAt: entry.receivedAt
       })
     }
     if (rowSources.size === 0) {
@@ -19911,8 +19913,7 @@ export class OrcaRuntimeService {
         toolInput: src.toolInput,
         interrupted: src.interrupted,
         stateStartedAt: src.stateStartedAt,
-        updatedAt: src.updatedAt,
-        ...(src.restoredUnconfirmed ? { restoredUnconfirmed: true } : {})
+        updatedAt: src.updatedAt
       }
       // Why: SSH/runtime projections can spell an equivalent path differently;
       // bucket by the canonical summary id so mobile keeps the agent activity.

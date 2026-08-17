@@ -1587,7 +1587,9 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
         })
         return
       }
-      maybeAutoRenameBranchOnFirstWorkFromHook({ paneKey, tabId, worktreeId, payload, isReplay })
+      if (!restoredUnconfirmed) {
+        maybeAutoRenameBranchOnFirstWorkFromHook({ paneKey, tabId, worktreeId, payload, isReplay })
+      }
       const orchestration = runtime?.getAgentStatusOrchestrationContextForPaneKey(paneKey)
       const terminalHandle = runtime?.getAgentStatusTerminalHandleForPaneKey(paneKey)
       const suppressSyntheticCodexAutoApprovalTitle =
@@ -2847,6 +2849,10 @@ void app.whenReady().then(async () => {
   // v0 plugin event seams: agent status (hook pipeline tap) + worktree
   // lifecycle (runtime tap). Server-side filtered per plugin subscription.
   agentHookServer.subscribeEnrichedStatus((enriched) => {
+    // Why: plugins may automate on `working`; restored rows are historical claims, not fresh activity.
+    if (enriched.restoredUnconfirmed) {
+      return
+    }
     pluginService?.emitEvent('agent.status.changed', {
       worktreeId: enriched.worktreeId ?? null,
       paneKey: enriched.paneKey,
