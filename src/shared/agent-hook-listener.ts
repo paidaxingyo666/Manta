@@ -76,6 +76,7 @@ import {
   resolveGrokSessionsDir
 } from './grok-session-paths'
 import { sweepStaleAgentHookEndpointTemps } from './agent-hook-endpoint-temp-cleanup'
+import { classifyTruncatedHookRequest } from './agent-hook-transport-interference'
 import { assertJsonTextStructureWithinLimits } from './json-text-structure-limit'
 
 /** Maximum request body size accepted by the listener (1 MB). */
@@ -534,12 +535,20 @@ export function readRequestBody(req: IncomingMessage): Promise<unknown> {
         settleReject(error)
       }
     }
+    // Why (#11217): a body cut short of its own Content-Length is the fingerprint of an IDS
+    // resetting the connection mid-inspection. Classify on every path that ends the request without
+    // 'end' — a peer RST surfaces as 'error' (ECONNRESET) and only a local destroy reaches 'close' first.
+    const settleUnfinished = (fallback: Error): void => {
+      settleReject(
+        classifyTruncatedHookRequest(req.headers['content-length'], byteLength) ?? fallback
+      )
+    }
     const onError = (err: Error): void => {
-      settleReject(err)
+      settleUnfinished(err)
     }
     // Why: req.destroy() (slowloris timer) emits 'close' but not 'end'/'error'; without this the promise never settles and buffers leak.
     const onClose = (): void => {
-      settleReject(new Error('aborted'))
+      settleUnfinished(new Error('aborted'))
     }
     req.on('data', onData)
     req.on('end', onEnd)

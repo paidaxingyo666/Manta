@@ -999,6 +999,12 @@ function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServices {
         return
       }
       logStartupMilestone('startup-service-start', { service: 'agent-hook-server' })
+      // Why (#11217): the hook listener fails open on every request error, so an IDS resetting
+      // loopback POSTs mid-body stops agent status for every runtime with no symptom but staleness.
+      // Log + telemetry (the daemon_start_failed pattern) so it is diagnosable without a packet capture.
+      agentHookServer.setTransportInterferenceListener((report) => {
+        track('agent_hook_transport_blocked', { count: report.count })
+      })
       await agentHookServer.start({
         env: app.isPackaged ? 'production' : 'development',
         // Why: hooks source this endpoint file at invocation time so old PTY env reaches the current process after restart; dev namespaces it (worktrees share `orca-dev`).

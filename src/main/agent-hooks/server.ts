@@ -41,6 +41,12 @@ import {
   type HookListenerState
 } from '../../shared/agent-hook-listener'
 import {
+  createHookTransportInterferenceTracker,
+  describeHookTransportInterference,
+  isHookRequestTruncatedError,
+  type HookTransportInterferenceReport
+} from '../../shared/agent-hook-transport-interference'
+import {
   claudeTeammateIdMatchesName,
   claudeRosterHasRestoredSnapshotSubagent,
   claudeRosterHasWorkingSubagent,
@@ -683,6 +689,11 @@ export class AgentHookServer {
   private endpointFileWritten = false
   // Why: per-instance (not module-level) so tests can spin up multiple servers without state cross-contamination.
   private state: HookListenerState = createHookListenerState()
+  private onTransportInterference: ((report: HookTransportInterferenceReport) => void) | null = null
+  private transportInterference = createHookTransportInterferenceTracker((report) => {
+    console.warn(describeHookTransportInterference(report))
+    this.onTransportInterference?.(report)
+  })
   // Why: hydrated rows give UI continuity but aren't evidence of live agent work in this runtime.
   private runtimeObservedStatusPaneKeys = new Set<string>()
   private hydratedAuthorityCommitments: readonly AgentHookAuthorityEvidence[] = Object.freeze([])
@@ -706,6 +717,17 @@ export class AgentHookServer {
   private connectionTimestampWatermarkById = new Map<string, number>()
   // Why: skip disk writes when the JSON exactly matches the last write; guards against re-firing trailing timers when nothing changed.
   private lastWrittenJson: string | null = null
+
+  /**
+   * Notified once per process when repeated hook POSTs are cut off mid-body (#11217).
+   * Why: the listener fails open on every request error, so without this the only symptom is
+   * agent status quietly going stale — for every runtime at once, since they share this transport.
+   */
+  setTransportInterferenceListener(
+    listener: ((report: HookTransportInterferenceReport) => void) | null
+  ): void {
+    this.onTransportInterference = listener
+  }
 
   setListener(listener: ((payload: EnrichedAgentHookEventPayload) => void) | null): void {
     this.onAgentStatus = listener
@@ -2251,13 +2273,16 @@ export class AgentHookServer {
       }
 
       // Why: bound request time so a stalled client can't hold a socket open (slowloris).
+      // Why: track our own destroy so the slowloris cap can't be misread as outside interference.
+      let destroyedBySlowlorisCap = false
       req.setTimeout(HOOK_REQUEST_SLOWLORIS_MS, () => {
+        destroyedBySlowlorisCap = true
         req.destroy()
       })
 
+      const pathname = new URL(req.url ?? '/', 'http://127.0.0.1').pathname
       try {
         const body = await readRequestBody(req)
-        const pathname = new URL(req.url ?? '/', 'http://127.0.0.1').pathname
         if (pathname === CLAUDE_STATUSLINE_PATHNAME) {
           const statusLineEvent = parseClaudeStatusLineBody(body)
           if (statusLineEvent) {
@@ -2296,7 +2321,13 @@ export class AgentHookServer {
 
         res.writeHead(204)
         res.end()
-      } catch {
+      } catch (error) {
+        // Why (#11217): an authenticated POST whose body dies short of its own Content-Length was cut
+        // by something on the loopback path, not by a bad payload. Fail open as before, but count it —
+        // this is the one failure mode that silently stops status for every runtime at once.
+        if (isHookRequestTruncatedError(error) && !destroyedBySlowlorisCap) {
+          this.transportInterference.record({ source: resolveHookSource(pathname) ?? null, error })
+        }
         // Why: fail open — return success on malformed payloads so a broken hook never blocks the agent.
         res.writeHead(204)
         res.end()
