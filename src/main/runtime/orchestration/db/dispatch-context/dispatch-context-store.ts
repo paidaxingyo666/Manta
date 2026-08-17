@@ -1,8 +1,40 @@
 import type { DispatchContextRow } from '../../types'
 import { OrchestrationError } from '../../orchestration-error'
+import { parsePaneKey } from '../../../../../shared/stable-pane-id'
 import { CURRENT_CONTRACT_VERSION } from '../contract-constants'
 import { generateId } from '../generated-id'
+import { DISPATCH_PANE_KEY_MATCH_SUFFIX_SQL, paneKeyMatchSuffix } from '../pane-key-match'
 import type { OrchestrationDb } from '../orchestration-db'
+
+export const DISPATCH_CONTEXT_CLAIM_SQL = `INSERT INTO dispatch_contexts (
+  id, run_id, task_id, contract_version, launch_token_hash,
+  assignee_handle, assignee_pane_key, process_incarnation,
+  status, failure_count, dispatched_at
+)
+SELECT ?, run_id, id, ?, ?, ?, ?, ?, 'dispatched', ?, datetime('now')
+FROM tasks
+WHERE id = ? AND status = 'ready'
+  AND NOT EXISTS (
+    SELECT 1 FROM dispatch_contexts active
+    WHERE active.assignee_handle = ?
+      AND active.status IN ('pending', 'dispatched')
+  )
+  AND (
+    ? IS NULL OR NOT EXISTS (
+      SELECT 1 FROM dispatch_contexts active
+      WHERE active.assignee_pane_key = ?
+        AND active.status IN ('pending', 'dispatched')
+    )
+  )
+  AND (
+    ? IS NULL OR NOT EXISTS (
+      SELECT 1 FROM dispatch_contexts active
+      WHERE active.assignee_pane_key IS NOT NULL
+        AND active.status IN ('pending', 'dispatched')
+        AND instr(active.assignee_pane_key, ':') > 1
+        AND ${DISPATCH_PANE_KEY_MATCH_SUFFIX_SQL} = ?
+    )
+  )`
 
 export function createDispatchContext(
   this: OrchestrationDb,
@@ -36,33 +68,52 @@ export function createDispatchContext(
     .get(taskId) as { max_failures: number | null } | undefined
   const priorFailures = prior?.max_failures ?? 0
 
+  const paneSuffix =
+    assigneePaneKey && parsePaneKey(assigneePaneKey) ? paneKeyMatchSuffix(assigneePaneKey) : null
   const id = generateId('ctx')
-  this.db
-    .prepare(
-      `INSERT INTO dispatch_contexts (
-         id, run_id, task_id, contract_version, launch_token_hash,
-         assignee_handle, assignee_pane_key, process_incarnation,
-         status, failure_count, dispatched_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'dispatched', ?, datetime('now'))`
-    )
-    .run(
-      id,
-      task.run_id,
-      taskId,
-      CURRENT_CONTRACT_VERSION,
-      launchTokenHash ?? null,
-      assigneeHandle,
-      assigneePaneKey ?? null,
-      processIncarnation ?? null,
-      priorFailures
-    )
-  this.hasAnyDispatchContextsCache = true
-
-  this.db.prepare("UPDATE tasks SET status = 'dispatched' WHERE id = ?").run(taskId)
-
-  return this.db
-    .prepare('SELECT * FROM dispatch_contexts WHERE id = ?')
-    .get(id) as DispatchContextRow
+  this.db.exec('SAVEPOINT create_dispatch_context')
+  try {
+    const inserted = this.db
+      .prepare(DISPATCH_CONTEXT_CLAIM_SQL)
+      .run(
+        id,
+        CURRENT_CONTRACT_VERSION,
+        launchTokenHash ?? null,
+        assigneeHandle,
+        assigneePaneKey ?? null,
+        processIncarnation ?? null,
+        priorFailures,
+        taskId,
+        assigneeHandle,
+        assigneePaneKey ?? null,
+        assigneePaneKey ?? null,
+        paneSuffix,
+        paneSuffix
+      )
+    if (inserted.changes !== 1) {
+      const current = this.getTask(taskId)
+      const occupied = this.findActiveDispatchForAssignee(assigneeHandle, assigneePaneKey)
+      if (current?.status === 'ready' && occupied) {
+        throw new Error(
+          `Terminal ${assigneeHandle} already has an active dispatch (${occupied.id} for task ${occupied.task_id})`
+        )
+      }
+      throw new Error(
+        `Task ${taskId} is ${current?.status ?? 'missing'}; only ready tasks can be dispatched`
+      )
+    }
+    this.db.prepare("UPDATE tasks SET status = 'dispatched' WHERE id = ?").run(taskId)
+    const dispatch = this.db
+      .prepare('SELECT * FROM dispatch_contexts WHERE id = ?')
+      .get(id) as DispatchContextRow
+    this.db.exec('RELEASE create_dispatch_context')
+    this.hasAnyDispatchContextsCache = true
+    return dispatch
+  } catch (error) {
+    this.db.exec('ROLLBACK TO create_dispatch_context')
+    this.db.exec('RELEASE create_dispatch_context')
+    throw error
+  }
 }
 
 export function getDispatchContext(

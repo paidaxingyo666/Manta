@@ -190,28 +190,6 @@ export function listTasksWithDispatch(
   })[]
 }
 
-export function updateTaskStatus(
-  this: OrchestrationDb,
-  id: string,
-  status: TaskStatus,
-  result?: string
-): TaskRow | undefined {
-  const completedAt =
-    status === 'completed' || status === 'failed' ? new Date().toISOString() : null
-  this.db
-    .prepare(
-      'UPDATE tasks SET status = ?, result = COALESCE(?, result), completed_at = COALESCE(?, completed_at) WHERE id = ?'
-    )
-    .run(status, result ?? null, completedAt, id)
-
-  if (status === 'completed') {
-    this.promoteReadyTasks(id)
-    this.completeActiveDispatchForTask(id)
-  }
-
-  return this.getTask(id)
-}
-
 // Why: runs in the status-update transaction, so a completed task never leaves its ready children unpromoted.
 export function promoteReadyTasks(this: OrchestrationDb, completedTaskId: string): void {
   const candidates = this.db
@@ -239,7 +217,6 @@ export type TaskStoreMethods = {
   getTask: typeof getTask
   listTasks: typeof listTasks
   listTasksWithDispatch: typeof listTasksWithDispatch
-  updateTaskStatus: typeof updateTaskStatus
   promoteReadyTasks: typeof promoteReadyTasks
 }
 
@@ -249,7 +226,6 @@ export function attachTaskStore(ctor: { prototype: object }): void {
     getTask,
     listTasks,
     listTasksWithDispatch,
-    updateTaskStatus,
     promoteReadyTasks
   })
 }

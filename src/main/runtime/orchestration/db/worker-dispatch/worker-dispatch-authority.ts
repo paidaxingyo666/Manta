@@ -21,7 +21,6 @@ export function prepareStartingWorkerAuthority(
     terminalOwnership?: 'created' | 'external'
   }
 ): string {
-  const capability = `dcap_${randomBytes(32).toString('base64url')}`
   this.db.exec('BEGIN IMMEDIATE')
   try {
     // Why: read inside the transaction so the guarded UPDATEs below cannot lose a race with a concurrent state change.
@@ -43,6 +42,13 @@ export function prepareStartingWorkerAuthority(
         `Dispatch ${params.dispatchId} already has a different launch-token commitment.`
       )
     }
+    const existing = this.findActiveDispatchForAssignee(params.handle, params.paneKey)
+    if (existing && existing.id !== params.dispatchId) {
+      throw new Error(
+        `Terminal ${params.handle} already has an active dispatch (${existing.id} for task ${existing.task_id})`
+      )
+    }
+    const capability = `dcap_${randomBytes(32).toString('base64url')}`
     const contextUpdate = this.db
       .prepare(
         `UPDATE dispatch_contexts

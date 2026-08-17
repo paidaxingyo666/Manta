@@ -44,6 +44,7 @@ import { attachMigrateLegacyContractStorage } from './schema/migrate-legacy-cont
 import { attachSchemaMigrate } from './schema/migrate'
 import { attachSchemaColumnProbes } from './schema/schema-column-probes'
 import { attachTaskStore } from './tasks/task-store'
+import { attachTaskStatusTransition } from './tasks/task-status-transition'
 import { attachFederatedWorkerStartReconcile } from './worker-dispatch/federated-worker-start-reconcile'
 import { attachWorkerDispatchAbandon } from './worker-dispatch/worker-dispatch-abandon'
 import { attachWorkerDispatchAuthority } from './worker-dispatch/worker-dispatch-authority'
@@ -88,6 +89,7 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachForeignDirectMailboxRouting(ctor)
   attachQuestionThreads(ctor)
   attachTaskStore(ctor)
+  attachTaskStatusTransition(ctor)
   attachWorkerDispatchStart(ctor)
   attachWorkerDispatchStage(ctor)
   attachWorkerDispatchAuthority(ctor)

@@ -1,6 +1,8 @@
-import type { TaskStatus, DispatchStatus, DispatchContextRow } from '../../types'
+import type { TaskStatus, DispatchContextRow } from '../../types'
+import { OrchestrationError } from '../../orchestration-error'
 import { DISPATCH_CIRCUIT_BREAK_FAILURES } from './dispatch-circuit-breaker'
 import type { OrchestrationDb } from '../orchestration-db'
+import { getActiveDispatchForTask } from './task-dispatch-reconciliation'
 
 const FAIL_DISPATCH_SAVEPOINT = 'fail_dispatch'
 
@@ -13,15 +15,28 @@ export function completeDispatch(this: OrchestrationDb, ctxId: string): void {
     .run(ctxId)
 }
 
-export function completeActiveDispatchForTask(this: OrchestrationDb, taskId: string): void {
-  const active = this.db
+export function settleActiveDispatchesForTask(
+  db: OrchestrationDb,
+  taskId: string,
+  status: 'completed' | 'failed',
+  failure?: string
+): void {
+  db.db
     .prepare(
-      "SELECT * FROM dispatch_contexts WHERE task_id = ? AND status IN ('pending', 'dispatched') ORDER BY rowid DESC LIMIT 1"
+      `UPDATE dispatch_contexts
+       SET status = ?, completed_at = COALESCE(completed_at, datetime('now')),
+           last_failure = CASE
+             WHEN ? = 'failed' THEN COALESCE(?, last_failure, 'Task marked failed')
+             ELSE last_failure
+           END,
+           capability_revoked_at = COALESCE(capability_revoked_at, datetime('now'))
+       WHERE task_id = ? AND status IN ('pending', 'dispatched')`
     )
-    .get(taskId) as DispatchContextRow | undefined
-  if (active) {
-    this.completeDispatch(active.id)
-  }
+    .run(status, status, failure ?? null, taskId)
+}
+
+export function completeActiveDispatchesForTask(this: OrchestrationDb, taskId: string): void {
+  settleActiveDispatchesForTask(this, taskId, 'completed')
 }
 
 export function failActiveDispatchForTask(
@@ -29,11 +44,7 @@ export function failActiveDispatchForTask(
   taskId: string,
   error: string
 ): DispatchContextRow | undefined {
-  const active = this.db
-    .prepare(
-      "SELECT * FROM dispatch_contexts WHERE task_id = ? AND status IN ('pending', 'dispatched') ORDER BY rowid DESC LIMIT 1"
-    )
-    .get(taskId) as DispatchContextRow | undefined
+  const active = getActiveDispatchForTask(this, taskId)
   return active ? this.failDispatch(active.id, error) : undefined
 }
 
@@ -65,42 +76,68 @@ export function getStaleDispatches(
 export function failDispatch(
   this: OrchestrationDb,
   ctxId: string,
-  error: string
+  error: string,
+  options: { workerProcessExited?: boolean } = {}
 ): DispatchContextRow | undefined {
   this.db.exec(`SAVEPOINT ${FAIL_DISPATCH_SAVEPOINT}`)
   try {
-    const ctx = this.db.prepare('SELECT * FROM dispatch_contexts WHERE id = ?').get(ctxId) as
-      | DispatchContextRow
-      | undefined
-    if (!ctx || (ctx.status !== 'pending' && ctx.status !== 'dispatched')) {
-      this.db.exec(`RELEASE ${FAIL_DISPATCH_SAVEPOINT}`)
-      return ctx
-    }
-
-    const newFailureCount = ctx.failure_count + 1
-    const newStatus: DispatchStatus =
-      newFailureCount >= DISPATCH_CIRCUIT_BREAK_FAILURES ? 'circuit_broken' : 'failed'
     const result = this.db
       .prepare(
         `UPDATE dispatch_contexts
-         SET status = ?, failure_count = ?, last_failure = ?,
+         SET status = CASE WHEN failure_count + 1 >= ? THEN 'circuit_broken' ELSE 'failed' END,
+             failure_count = failure_count + 1, last_failure = ?,
              completed_at = COALESCE(completed_at, datetime('now')),
              capability_revoked_at = COALESCE(capability_revoked_at, datetime('now'))
-         WHERE id = ? AND status IN ('pending', 'dispatched')`
+         WHERE id = ? AND status IN ('pending', 'dispatched')
+           AND (? = 1 OR NOT EXISTS (
+             SELECT 1 FROM worker_dispatches worker
+             WHERE worker.dispatch_id = dispatch_contexts.id
+               AND worker.state NOT IN ('failed', 'succeeded', 'stopped', 'abandoned')
+           ))`
       )
-      .run(newStatus, newFailureCount, error, ctxId)
-    if (result.changes !== 1) {
+      .run(DISPATCH_CIRCUIT_BREAK_FAILURES, error, ctxId, options.workerProcessExited ? 1 : 0)
+    const ctx = this.db.prepare('SELECT * FROM dispatch_contexts WHERE id = ?').get(ctxId) as
+      | DispatchContextRow
+      | undefined
+    const worker = this.getWorkerDispatch(ctxId)
+    if (result.changes !== 1 || !ctx) {
+      if (
+        ctx &&
+        worker &&
+        !['failed', 'succeeded', 'stopped', 'abandoned'].includes(worker.state) &&
+        !options.workerProcessExited
+      ) {
+        throw new OrchestrationError(
+          'task_not_startable',
+          `Dispatch ${ctxId} has an active supervised worker; stop it or settle its report first.`,
+          { dispatchId: ctxId }
+        )
+      }
       this.db.exec(`RELEASE ${FAIL_DISPATCH_SAVEPOINT}`)
-      return this.db.prepare('SELECT * FROM dispatch_contexts WHERE id = ?').get(ctxId) as
-        | DispatchContextRow
-        | undefined
+      return ctx
+    }
+    if (worker && options.workerProcessExited) {
+      this.db
+        .prepare(
+          `UPDATE worker_dispatches
+           SET state = 'failed', stage = 'process_exited', last_error = ?, updated_at = datetime('now')
+           WHERE dispatch_id = ?
+             AND state NOT IN ('failed', 'succeeded', 'stopped', 'abandoned')`
+        )
+        .run(error, ctxId)
     }
 
     // Why: back to 'ready' not 'pending' — 'pending' would strand it since promoteReadyTasks only runs when a dep completes.
-    const taskStatus: TaskStatus = newStatus === 'circuit_broken' ? 'failed' : 'ready'
+    const taskStatus: TaskStatus = ctx.status === 'circuit_broken' ? 'failed' : 'ready'
     // Why: the status guard keeps a late failure from reopening a task that already completed or was retried elsewhere.
     this.db
-      .prepare("UPDATE tasks SET status = ? WHERE id = ? AND status IN ('dispatched', 'blocked')")
+      .prepare(
+        `UPDATE tasks SET status = ?
+         WHERE id = ? AND status = 'dispatched' AND NOT EXISTS (
+           SELECT 1 FROM dispatch_contexts
+           WHERE task_id = tasks.id AND status IN ('pending', 'dispatched')
+         )`
+      )
       .run(taskStatus, ctx.task_id)
     this.db.exec(`RELEASE ${FAIL_DISPATCH_SAVEPOINT}`)
     return this.db.prepare('SELECT * FROM dispatch_contexts WHERE id = ?').get(ctxId) as
@@ -115,7 +152,7 @@ export function failDispatch(
 
 export type DispatchCompletionMethods = {
   completeDispatch: typeof completeDispatch
-  completeActiveDispatchForTask: typeof completeActiveDispatchForTask
+  completeActiveDispatchesForTask: typeof completeActiveDispatchesForTask
   failActiveDispatchForTask: typeof failActiveDispatchForTask
   recordHeartbeat: typeof recordHeartbeat
   getStaleDispatches: typeof getStaleDispatches
@@ -125,7 +162,7 @@ export type DispatchCompletionMethods = {
 export function attachDispatchCompletion(ctor: { prototype: object }): void {
   Object.assign(ctor.prototype, {
     completeDispatch,
-    completeActiveDispatchForTask,
+    completeActiveDispatchesForTask,
     failActiveDispatchForTask,
     recordHeartbeat,
     getStaleDispatches,

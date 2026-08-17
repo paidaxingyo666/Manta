@@ -64,7 +64,10 @@ export function convertLifecycleMessageToRejection(
   reason: string
 ): MessageRow | undefined {
   const message = this.getMessageById(messageId)
-  if (!message || (message.type !== 'worker_done' && message.type !== 'heartbeat')) {
+  if (
+    !message ||
+    !['worker_done', 'heartbeat', 'escalation', 'decision_gate'].includes(message.type)
+  ) {
     return message
   }
 
@@ -75,7 +78,8 @@ export function convertLifecycleMessageToRejection(
   this.db
     .prepare(
       `UPDATE messages
-       SET priority = 'high', subject = ?, body = ?, payload = ?
+       SET type = CASE WHEN type IN ('escalation', 'decision_gate') THEN 'status' ELSE type END,
+           priority = 'high', subject = ?, body = ?, payload = ?
        WHERE id = ?`
     )
     .run(`Rejected ${message.type}: ${message.subject}`, body, payload, messageId)

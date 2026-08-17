@@ -7,6 +7,7 @@ import type {
 import { OrchestrationError } from '../../orchestration-error'
 import { DISPATCH_CIRCUIT_BREAK_FAILURES } from '../dispatch-context/dispatch-circuit-breaker'
 import type { OrchestrationDb } from '../orchestration-db'
+import { reconcileTaskAfterDispatchInterruption } from '../dispatch-context/task-dispatch-reconciliation'
 
 export function listLegacyWorkerTerminalRecoveryRows(
   this: OrchestrationDb
@@ -59,11 +60,16 @@ export function reconcileMissingWorkerTerminal(
         .run(dispatchStatus, failureCount, reason, dispatchId)
       if (!stopWasPending) {
         const taskStatus: TaskStatus = dispatchStatus === 'circuit_broken' ? 'failed' : 'ready'
+        reconcileTaskAfterDispatchInterruption(this, dispatch.task_id, dispatchId)
         this.db
           .prepare(
             `UPDATE tasks
              SET status = ?, completed_at = CASE WHEN ? = 'failed' THEN datetime('now') ELSE NULL END
-             WHERE id = ? AND status IN ('dispatched', 'blocked')`
+             WHERE id = ? AND status IN ('dispatched', 'blocked')
+               AND NOT EXISTS (
+                 SELECT 1 FROM dispatch_contexts
+                 WHERE task_id = tasks.id AND status IN ('pending', 'dispatched')
+               )`
           )
           .run(taskStatus, taskStatus, dispatch.task_id)
       }

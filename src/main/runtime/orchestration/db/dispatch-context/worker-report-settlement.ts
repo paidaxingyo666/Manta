@@ -1,5 +1,7 @@
 import type { WorkerReportOutcome, WorkerReportSettlement } from '../../types'
 import type { OrchestrationDb } from '../orchestration-db'
+import { settleActiveDispatchesForTask } from './dispatch-completion'
+import { getActiveDispatchForTask } from './task-dispatch-reconciliation'
 
 export function settleWorkerReport(
   this: OrchestrationDb,
@@ -62,14 +64,39 @@ export function settleWorkerReportInTransaction(
       reason: `inactive dispatch ${params.dispatchId}: it or task ${params.taskId} is already settled.`
     }
   }
-  const latest = this.getDispatchContext(params.taskId)
-  if (latest?.id !== params.dispatchId) {
+  const conflictingWorker = this.db
+    .prepare(
+      `SELECT active.id
+       FROM dispatch_contexts active
+       JOIN worker_dispatches worker ON worker.dispatch_id = active.id
+       WHERE active.task_id = ? AND active.id != ?
+         AND active.status IN ('pending', 'dispatched')
+         AND worker.state NOT IN ('failed', 'succeeded', 'stopped', 'abandoned')
+       ORDER BY active.rowid DESC LIMIT 1`
+    )
+    .get(params.taskId, params.dispatchId) as { id: string } | undefined
+  if (conflictingWorker) {
+    return {
+      action: 'rejected',
+      code: 'inactive_dispatch',
+      reason: `Task ${params.taskId} still has active supervised Dispatch ${conflictingWorker.id}; stop or settle it before completing ${params.dispatchId}.`
+    }
+  }
+  const reportingWorker = this.getWorkerDispatch(params.dispatchId)
+  const latest = getActiveDispatchForTask(this, params.taskId)
+  if (!reportingWorker && latest?.id !== params.dispatchId) {
     return {
       action: 'rejected',
       code: 'stale_dispatch',
       reason: `Dispatch ${params.dispatchId} is not the current dispatch for task ${params.taskId}.`
     }
   }
+  const siblingDispatchIds = this.db
+    .prepare(
+      `SELECT id FROM dispatch_contexts
+       WHERE task_id = ? AND id != ? AND status IN ('pending', 'dispatched')`
+    )
+    .all(params.taskId, params.dispatchId) as { id: string }[]
 
   this.db.exec('SAVEPOINT settle_worker_report')
   const dispatchUpdate = this.db
@@ -104,7 +131,16 @@ export function settleWorkerReportInTransaction(
        WHERE dispatch_id = ? AND state = 'ready'`
     )
     .run(params.outcome === 'succeeded' ? 'succeeded' : 'failed', params.dispatchId)
+  settleActiveDispatchesForTask(
+    this,
+    params.taskId,
+    expectedDispatchStatus,
+    params.outcome === 'failed' ? params.result : undefined
+  )
   this.closeQuestionsForDispatch(params.dispatchId)
+  for (const sibling of siblingDispatchIds) {
+    this.closeQuestionsForDispatch(sibling.id)
+  }
   if (params.outcome === 'succeeded') {
     this.promoteReadyTasks(params.taskId)
   }

@@ -5,6 +5,7 @@ import {
   type ContextOnlyDispatchReleaseResult
 } from '../../context-only-dispatch-release'
 import type { OrchestrationDb } from '../orchestration-db'
+import { reconcileTaskAfterDispatchInterruption } from '../dispatch-context/task-dispatch-reconciliation'
 
 export function abandonWorkerDispatch(
   this: OrchestrationDb,
@@ -23,12 +24,7 @@ export function abandonWorkerDispatch(
       throw new OrchestrationError('dispatch_not_found', `Dispatch ${dispatchId} was not found.`)
     }
     if (!worker) {
-      const released = releaseContextOnlyDispatch(
-        this.db,
-        dispatch,
-        this.getDispatchContext(dispatch.task_id)?.id,
-        'abandoned'
-      )
+      const released = releaseContextOnlyDispatch(this.db, dispatch, 'abandoned')
       if (!released.alreadySettled) {
         this.closeQuestionsForDispatch(dispatchId)
       }
@@ -65,7 +61,7 @@ export function abandonWorkerDispatch(
          WHERE id = ?`
       )
       .run(dispatchId)
-    this.db.prepare("UPDATE tasks SET status = 'blocked' WHERE id = ?").run(dispatch.task_id)
+    reconcileTaskAfterDispatchInterruption(this, dispatch.task_id, dispatchId)
     this.closeQuestionsForDispatch(dispatchId)
     this.db.exec('COMMIT')
     return {

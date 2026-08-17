@@ -1,6 +1,7 @@
 import type { WorkerDispatchRow } from '../../types'
 import { OrchestrationError } from '../../orchestration-error'
 import type { OrchestrationDb } from '../orchestration-db'
+import { reconcileTaskAfterDispatchInterruption } from '../dispatch-context/task-dispatch-reconciliation'
 
 export function reconcileFederatedWorkerStart(
   this: OrchestrationDb,
@@ -87,9 +88,15 @@ export function reconcileFederatedWorkerStart(
            WHERE id = ? AND status IN ('pending', 'dispatched')`
         )
         .run(reason, params.dispatchId)
+      reconcileTaskAfterDispatchInterruption(this, dispatch.task_id, params.dispatchId)
       this.db
         .prepare(
-          "UPDATE tasks SET status = 'failed', completed_at = datetime('now') WHERE id = ? AND status IN ('blocked', 'dispatched')"
+          `UPDATE tasks SET status = 'failed', completed_at = datetime('now')
+           WHERE id = ? AND status IN ('blocked', 'dispatched')
+             AND NOT EXISTS (
+               SELECT 1 FROM dispatch_contexts
+               WHERE task_id = tasks.id AND status IN ('pending', 'dispatched')
+             )`
         )
         .run(dispatch.task_id)
       this.closeQuestionsForDispatch(params.dispatchId)

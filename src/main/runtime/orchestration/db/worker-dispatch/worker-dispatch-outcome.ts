@@ -62,7 +62,13 @@ export function failWorkerStart(
       )
       .run(stage, reason, dispatchId)
     this.db
-      .prepare("UPDATE tasks SET status = 'failed', completed_at = datetime('now') WHERE id = ?")
+      .prepare(
+        `UPDATE tasks SET status = 'failed', completed_at = datetime('now')
+         WHERE id = ? AND NOT EXISTS (
+           SELECT 1 FROM dispatch_contexts
+           WHERE task_id = tasks.id AND status IN ('pending', 'dispatched')
+         )`
+      )
       .run(dispatch.task_id)
     this.closeQuestionsForDispatch(dispatchId)
     this.db.exec('COMMIT')

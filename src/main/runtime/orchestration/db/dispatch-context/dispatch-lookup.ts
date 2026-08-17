@@ -1,6 +1,10 @@
 import { parsePaneKey } from '../../../../../shared/stable-pane-id'
 import type { DispatchContextRow } from '../../types'
-import { DISPATCH_PANE_KEY_MATCH_SUFFIX_SQL, paneKeyMatchSuffix } from '../pane-key-match'
+import {
+  DISPATCH_PANE_KEY_MATCH_SUFFIX_SQL,
+  isEquivalentPaneKey,
+  paneKeyMatchSuffix
+} from '../pane-key-match'
 import type { OrchestrationDb } from '../orchestration-db'
 
 export function getActiveDispatchForTerminal(
@@ -31,6 +35,34 @@ export function getActiveDispatchForIdentity(
   paneKey?: string
 ): DispatchContextRow | undefined {
   return this.findActiveDispatchForAssignee(handle, paneKey)
+}
+
+export function isDispatchMessageSender(
+  this: OrchestrationDb,
+  params: {
+    dispatchId: string
+    handle: string
+    paneKey?: string | null
+    allowCanonicalDispatchHandle?: boolean
+  }
+): boolean {
+  const dispatch = this.getDispatchContextById(params.dispatchId)
+  if (!dispatch || !['pending', 'dispatched'].includes(dispatch.status)) {
+    return false
+  }
+  if (params.allowCanonicalDispatchHandle && params.handle === `dispatch:${dispatch.id}`) {
+    return true
+  }
+  if (
+    params.paneKey &&
+    dispatch.assignee_pane_key &&
+    isEquivalentPaneKey(dispatch.assignee_pane_key, params.paneKey)
+  ) {
+    return true
+  }
+  return (
+    params.handle === dispatch.assignee_handle && (!params.paneKey || !dispatch.assignee_pane_key)
+  )
 }
 
 export function findActiveDispatchForAssignee(
@@ -93,6 +125,7 @@ export type DispatchLookupMethods = {
   getActiveDispatchForTerminal: typeof getActiveDispatchForTerminal
   hasAnyDispatchContexts: typeof hasAnyDispatchContexts
   getActiveDispatchForIdentity: typeof getActiveDispatchForIdentity
+  isDispatchMessageSender: typeof isDispatchMessageSender
   findActiveDispatchForAssignee: typeof findActiveDispatchForAssignee
   getLatestDispatchForTerminal: typeof getLatestDispatchForTerminal
 }
@@ -102,6 +135,7 @@ export function attachDispatchLookup(ctor: { prototype: object }): void {
     getActiveDispatchForTerminal,
     hasAnyDispatchContexts,
     getActiveDispatchForIdentity,
+    isDispatchMessageSender,
     findActiveDispatchForAssignee,
     getLatestDispatchForTerminal
   })
