@@ -166,6 +166,16 @@ function resetPlatform(): void {
   }
 }
 
+function acknowledgeAgentPromptSubmit(
+  runtime: OrcaRuntimeService,
+  ptyId: string,
+  data: string
+): void {
+  if (data === '\r') {
+    runtime.onPtyData(ptyId, '\x1b]0;Codex working\x07', Date.now())
+  }
+}
+
 const electronMocks = vi.hoisted(() => {
   type Listener = (...args: unknown[]) => void
   const listeners = new Map<string, Set<Listener>>()
@@ -16762,6 +16772,7 @@ describe('OrcaRuntimeService', () => {
         spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
         write: (_ptyId, data) => {
           writes.push(data)
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -16828,6 +16839,7 @@ describe('OrcaRuntimeService', () => {
               } else {
                 prematureEnters += 1
               }
+              acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
             }
             return true
           },
@@ -16876,6 +16888,7 @@ describe('OrcaRuntimeService', () => {
         spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
         write: (_ptyId, data) => {
           writes.push(data)
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -16913,6 +16926,7 @@ describe('OrcaRuntimeService', () => {
               runtime.onPtyData('pty-bg', '\x1b[?25hcomposer rendered', Date.now())
             }, 1_200)
           }
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -16945,6 +16959,7 @@ describe('OrcaRuntimeService', () => {
         spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
         write: (_ptyId, data) => {
           writes.push(data)
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -16983,6 +16998,7 @@ describe('OrcaRuntimeService', () => {
               runtime.onPtyData('pty-bg', 'final slow composer frame', Date.now())
             }, 8_100)
           }
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -17024,6 +17040,7 @@ describe('OrcaRuntimeService', () => {
               )
             }
           }
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,
@@ -17054,6 +17071,7 @@ describe('OrcaRuntimeService', () => {
         spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
         write: (_ptyId, data) => {
           writes.push(data)
+          acknowledgeAgentPromptSubmit(runtime, 'pty-bg', data)
           return true
         },
         kill: () => true,

@@ -3,6 +3,7 @@
 /* eslint-disable no-control-regex -- Why: terminal normalization must strip ANSI and OSC control sequences from PTY output before returning bounded text to agents. */
 import {
   detectAgentStatusFromTitle,
+  extractLastOscTitle,
   isClaudeManagementTitle,
   isCursorNativeAgentTitle,
   isOpenCodeNativeTitle,
@@ -100,6 +101,10 @@ import {
   AGENT_PROMPT_SUBMIT_DELAY_MS,
   buildAgentPromptPasteBytes
 } from '../../shared/agent-prompt-injection'
+import {
+  type AgentPromptActivity,
+  verifyAgentPromptSubmission
+} from './agent-prompt-submission-verification'
 import {
   awaitWindowsHostGitEnvironmentReady,
   gitExecFileAsync,
@@ -1483,6 +1488,14 @@ type RuntimePtyWorktreeRecord = {
   tailWaitState?: TerminalTailWaitState
 }
 
+type TerminalAgentStatusSnapshot = {
+  waitText: string
+  waitBlockedAt: number | null
+  title: string | null
+  titleStatus: AgentStatus | null
+  titleStatusIsLive: boolean
+}
+
 type TerminalCreateOptions = {
   command?: string
   claudeAgentTeamsSourceCommand?: string
@@ -1962,6 +1975,67 @@ const AGENT_PROMPT_RENDER_TIMEOUT_MS = 8000
 const AGENT_PROMPT_RENDER_QUIET_MS = 1500
 // Why: Claude and Codex emit show-cursor after accepting bracketed paste.
 const AGENT_PROMPT_RENDER_MARKER = '\x1b[?25h'
+
+function assertAgentPromptRequestActive(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new Error('request_aborted')
+  }
+}
+
+async function waitForAgentPromptPromise<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) {
+    return await promise
+  }
+  assertAgentPromptRequestActive(signal)
+  return await new Promise<T>((resolve, reject) => {
+    let settled = false
+    const finish = (result: { value: T } | { error: unknown }): void => {
+      if (settled) {
+        return
+      }
+      settled = true
+      signal.removeEventListener('abort', onAbort)
+      if ('error' in result) {
+        reject(result.error)
+      } else {
+        resolve(result.value)
+      }
+    }
+    const onAbort = (): void => finish({ error: new Error('request_aborted') })
+    signal.addEventListener('abort', onAbort, { once: true })
+    if (signal.aborted) {
+      onAbort()
+      return
+    }
+    promise.then(
+      (value) => finish({ value }),
+      (error: unknown) => finish({ error })
+    )
+  })
+}
+
+async function waitForAgentPromptDelay(delayMs: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+    return
+  }
+  assertAgentPromptRequestActive(signal)
+  await new Promise<void>((resolve, reject) => {
+    const onAbort = (): void => {
+      clearTimeout(timer)
+      reject(new Error('request_aborted'))
+    }
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, delayMs)
+    signal.addEventListener('abort', onAbort, { once: true })
+    if (signal.aborted) {
+      onAbort()
+    }
+  })
+}
+
 const MOBILE_TERMINAL_SURFACE_TIMEOUT_MS = 10_000
 // Why: the split already failed; the caller waits on this teardown only to learn whether the
 // fallback kill is needed, so keep it short — an unreachable host must not stall the rejection.
@@ -3136,6 +3210,13 @@ export class OrcaRuntimeService {
   private titleObservationSequence = 0
   private headlessTerminals = new Map<string, RuntimeHeadlessTerminal>()
   private ptyOutputSequenceById = new Map<string, number>()
+  private agentPromptLifecycleByPtyId = new Map<
+    string,
+    { status: AgentStatus | null; workingSequence: number; updatedAt: number }
+  >()
+  private agentPromptPermissionSequenceByPtyId = new Map<string, number>()
+  private agentPromptExplicitStatusFloorByPtyId = new Map<string, number>()
+  private agentPromptSubmissionTailByPtyId = new Map<string, Promise<void>>()
   private providerSequenceInitializedPtys = new Set<string>()
   private providerSequenceOffsetByPtyId = new Map<string, number>()
   private providerSnapshotPreferredPtys = new Set<string>()
@@ -10957,6 +11038,11 @@ export class OrcaRuntimeService {
         // bell — the chunk's agentStatus:set events must reach the renderer
         // before its pty:sideEffect batch.
         retainedAgentStatusChanged = this.emitTerminalAgentStatusEvents(ptyId, agentStatusChunk)
+        const lastPayloadTitleOffset =
+          agentStatusChunk.lastPayloadCleanOffset === null
+            ? null
+            : (previousTitleScanTail?.length ?? 0) + agentStatusChunk.lastPayloadCleanOffset
+        this.restoreAgentPromptLifecycleByteOrder(ptyId, titleInput, lastPayloadTitleOffset)
       } finally {
         // Why: flushed in the finally so a throwing tracker callback cannot
         // strand this chunk's facts to be emitted under the next chunk's seq.
@@ -11052,6 +11138,7 @@ export class OrcaRuntimeService {
     }
     if (tailGainedNewerBlockedReason(previousWaitState, nextWaitState, state.appended)) {
       pty.waitBlockedAt = at
+      this.recordAgentPromptPermissionObservation(ptyId)
     }
     state.lastAt = at
     state.lastWaitState = nextWaitState
@@ -11518,6 +11605,7 @@ export class OrcaRuntimeService {
     const identityOnlyTitle = this.isLiveCursorNativeTitle(rawTitle, meta)
     const recordedTitle = identityOnlyTitle ? null : normalizedTitle
     const agentStatus = identityOnlyTitle ? null : detectAgentStatusFromTitle(rawTitle)
+    this.recordAgentPromptLifecycleState(ptyId, agentStatus)
     let ptyRecordChanged = false
     const pty = this.ptysById.get(ptyId)
     if (pty) {
@@ -11633,6 +11721,9 @@ export class OrcaRuntimeService {
     this.oscTitleScanTailByPtyId.delete(ptyId)
     this.osc7ScanTailByPtyId.delete(ptyId)
     this.agentStatusOscProcessorsByPtyId.delete(ptyId)
+    this.agentPromptLifecycleByPtyId.delete(ptyId)
+    this.agentPromptPermissionSequenceByPtyId.delete(ptyId)
+    this.clearWaitBlockedCheckState(ptyId)
     const pty = this.ptysById.get(ptyId)
     if (pty) {
       pty.lastOscTitle = null
@@ -11646,13 +11737,18 @@ export class OrcaRuntimeService {
       pty.lastAgentStatusRichInvalidatedAtEpochMs = Date.now()
       pty.managementTitle = null
       pty.managementTitleAt = null
+      pty.waitBlockedAt = null
+      pty.tailWaitState = undefined
     }
     for (const leaf of this.getLeavesForPty(ptyId)) {
       leaf.lastOscTitle = null
       leaf.lastOscTitleAt = null
       leaf.lastAgentStatus = null
       leaf.lastAgentStatusObservedLive = false
+      leaf.waitBlockedAt = null
+      leaf.tailWaitState = undefined
     }
+    this.primeWaitBlockedBaselineFromSeededTail(ptyId)
     this.clearAgentRowSnapshotsForPty(ptyId)
   }
 
@@ -11791,6 +11887,10 @@ export class OrcaRuntimeService {
     }
     let retainedChanged = false
     for (const payload of chunk.payloads) {
+      this.recordAgentPromptLifecycleState(
+        ptyId,
+        mapExplicitAgentStateToRuntimeTerminalStatus(payload.state)
+      )
       for (const target of targets.values()) {
         retainedChanged =
           this.retainAgentRowSnapshot(
@@ -11876,6 +11976,64 @@ export class OrcaRuntimeService {
     return this.ptyOutputSequenceById.get(ptyId) ?? 0
   }
 
+  private recordAgentPromptLifecycleState(ptyId: string, status: AgentStatus | null): void {
+    if (status === 'permission') {
+      this.recordAgentPromptPermissionObservation(ptyId)
+    }
+    const current = this.agentPromptLifecycleByPtyId.get(ptyId)
+    const updatedAt = Date.now()
+    if (!current) {
+      this.agentPromptLifecycleByPtyId.set(ptyId, {
+        status,
+        workingSequence: status === 'working' ? 1 : 0,
+        updatedAt
+      })
+      return
+    }
+    this.agentPromptLifecycleByPtyId.set(ptyId, {
+      status,
+      workingSequence:
+        current.workingSequence + (status === 'working' && current.status !== 'working' ? 1 : 0),
+      updatedAt
+    })
+  }
+
+  private recordAgentPromptPermissionObservation(ptyId: string): void {
+    this.agentPromptPermissionSequenceByPtyId.set(
+      ptyId,
+      (this.agentPromptPermissionSequenceByPtyId.get(ptyId) ?? 0) + 1
+    )
+  }
+
+  private restoreAgentPromptLifecycleByteOrder(
+    ptyId: string,
+    titleInput: string,
+    lastPayloadTitleOffset: number | null
+  ): void {
+    if (lastPayloadTitleOffset === null) {
+      return
+    }
+    const titleRange = findLastCompleteOscTitleRange(titleInput)
+    if (!titleRange || titleRange.end <= lastPayloadTitleOffset) {
+      return
+    }
+    const title = extractLastOscTitle(titleInput)
+    if (title === null) {
+      return
+    }
+    const status = detectAgentStatusFromTitle(title)
+    const current = this.agentPromptLifecycleByPtyId.get(ptyId)
+    if (!current || current.status === status) {
+      return
+    }
+    this.agentPromptLifecycleByPtyId.set(ptyId, {
+      status,
+      workingSequence:
+        current.workingSequence + (status === 'working' && current.status !== 'working' ? 1 : 0),
+      updatedAt: Date.now()
+    })
+  }
+
   private getPtyLifecycleGeneration(ptyId: string): number {
     const existing = this.ptyLifecycleGenerationById.get(ptyId)
     if (existing !== undefined) {
@@ -11888,6 +12046,9 @@ export class OrcaRuntimeService {
 
   private advancePtyLifecycleGeneration(ptyId: string): void {
     this.ptyLifecycleGenerationById.set(ptyId, this.nextPtyLifecycleGeneration++)
+    this.agentPromptLifecycleByPtyId.delete(ptyId)
+    this.agentPromptPermissionSequenceByPtyId.delete(ptyId)
+    this.agentPromptExplicitStatusFloorByPtyId.set(ptyId, Date.now())
     this.legacyWorkerRecoveredPtys.delete(ptyId)
     // Why: a respawn under the same session id needs its own subscriber-driven attach.
     this.subscriberDrivenProviderAttachesByPtyId.delete(ptyId)
@@ -11940,6 +12101,7 @@ export class OrcaRuntimeService {
       if (pty) {
         pty.wslDistro = null
       }
+      // Why: raced post-spawn bytes may already contain the replacement's permission state.
       if (replacesExistingRuntimeGeneration && postSpawnSequence === 0) {
         this.resetTrackedTerminalStateForProviderGeneration(ptyId)
       }
@@ -14819,6 +14981,7 @@ export class OrcaRuntimeService {
     this.providerBufferAcquisitionsByPtyId.delete(ptyId)
     this.providerVisibleStateByPtyId.delete(ptyId)
     this.providerVisibleRetryAtByPtyId.delete(ptyId)
+    this.agentPromptExplicitStatusFloorByPtyId.delete(ptyId)
     this.agentStatusOscProcessorsByPtyId.delete(ptyId)
     this.terminalSpawnCommandsByPtyId.delete(ptyId)
     this.disposePtyTitleTracker(ptyId)
@@ -17950,17 +18113,33 @@ export class OrcaRuntimeService {
     options: {
       beforeWrite?: (ptyId: string) => void | Promise<void>
       suffixFailureError?: string
+      signal?: AbortSignal
     } = {}
   ): Promise<RuntimeTerminalSend> {
     const payload = buildAgentPromptPasteBytes(prompt)
-    const bytesWritten = Buffer.byteLength(`${payload}${AGENT_PROMPT_SUBMIT}`, 'utf8')
     const pty = this.getLivePtyForHandle(handle)
     if (pty) {
       if (!pty.pty.connected) {
         throw new Error('terminal_not_writable')
       }
       await assertTerminalInputWithinLimitWithYield(payload)
-      await this.writeTerminalAgentPrompt(pty.pty.ptyId, payload, options)
+      const generation = this.getPtyLifecycleGeneration(pty.pty.ptyId)
+      const submits = await this.serializeAgentPromptSubmission(
+        pty.pty.ptyId,
+        generation,
+        async () => {
+          this.assertLiveTerminalHandleTargetsPty(handle, pty.pty.ptyId)
+          this.assertAgentPromptGeneration(pty.pty.ptyId, generation)
+          return await this.writeTerminalAgentPrompt(
+            handle,
+            pty.pty.ptyId,
+            generation,
+            payload,
+            options
+          )
+        }
+      )
+      const bytesWritten = Buffer.byteLength(payload, 'utf8') + submits
       return { handle, accepted: true, bytesWritten }
     }
 
@@ -17974,7 +18153,13 @@ export class OrcaRuntimeService {
     if (await this.isLeafPtyProvenAbsent(leaf.ptyId)) {
       throw new Error('terminal_not_writable')
     }
-    await this.writeTerminalAgentPrompt(leaf.ptyId, payload, options)
+    const generation = this.getPtyLifecycleGeneration(leaf.ptyId)
+    const submits = await this.serializeAgentPromptSubmission(leaf.ptyId, generation, async () => {
+      this.assertLiveTerminalHandleTargetsPty(handle, leaf.ptyId!)
+      this.assertAgentPromptGeneration(leaf.ptyId!, generation)
+      return await this.writeTerminalAgentPrompt(handle, leaf.ptyId!, generation, payload, options)
+    })
+    const bytesWritten = Buffer.byteLength(payload, 'utf8') + submits
     return { handle, accepted: true, bytesWritten }
   }
 
@@ -17982,21 +18167,10 @@ export class OrcaRuntimeService {
     const ptyId = this.getTerminalAgentStatusPtyId(handle)
     const terminal = this.getTerminalAgentStatusSnapshot(handle, ptyId)
     const explicitStatus = this.getFreshExplicitAgentStatusForHandle(handle)
-    const blockedByWaitText = detectTerminalWaitBlockedReason(terminal.waitText)
-    const liveTitleClearsBlockedText =
-      terminal.titleStatusIsLive &&
-      terminal.titleStatus !== null &&
-      terminal.titleStatus !== 'permission' &&
-      !isOpenCodeNativeTitle(terminal.title)
-    if (terminal.titleStatus === 'permission' && terminal.titleStatusIsLive) {
-      return { handle, isRunningAgent: true, status: 'permission' }
-    }
+    const lifecycle = this.agentPromptLifecycleByPtyId.get(ptyId)
     if (
-      blockedByWaitText &&
-      !liveTitleClearsBlockedText &&
-      (!explicitStatus ||
-        explicitStatus.status === 'permission' ||
-        (terminal.waitBlockedAt !== null && terminal.waitBlockedAt >= explicitStatus.updatedAt))
+      (terminal.titleStatus === 'permission' && terminal.titleStatusIsLive) ||
+      this.hasAuthoritativeTerminalWaitPermission(terminal, explicitStatus, lifecycle)
     ) {
       return { handle, isRunningAgent: true, status: 'permission' }
     }
@@ -18066,13 +18240,7 @@ export class OrcaRuntimeService {
   private getTerminalAgentStatusSnapshot(
     handle: string,
     expectedPtyId: string
-  ): {
-    waitText: string
-    waitBlockedAt: number | null
-    title: string | null
-    titleStatus: AgentStatus | null
-    titleStatusIsLive: boolean
-  } {
+  ): TerminalAgentStatusSnapshot {
     const pty = this.getLivePtyForHandle(handle)
     if (pty) {
       if (!pty.pty.connected || pty.pty.ptyId !== expectedPtyId) {
@@ -18129,6 +18297,36 @@ export class OrcaRuntimeService {
       titleStatus: title ? detectAgentStatusFromTitle(title.title) : leaf.lastAgentStatus,
       titleStatusIsLive: (title?.updatedAt ?? 0) > 0
     }
+  }
+
+  private hasAuthoritativeTerminalWaitPermission(
+    terminal: TerminalAgentStatusSnapshot,
+    explicitStatus: { status: AgentStatus; updatedAt: number } | null,
+    lifecycle: { status: AgentStatus | null; updatedAt: number } | null | undefined
+  ): boolean {
+    const blockedByWaitText = detectTerminalWaitBlockedReason(terminal.waitText)
+    if (!blockedByWaitText) {
+      return false
+    }
+    const liveTitleClearsBlockedText =
+      terminal.titleStatusIsLive &&
+      terminal.titleStatus !== null &&
+      terminal.titleStatus !== 'permission' &&
+      !isOpenCodeNativeTitle(terminal.title)
+    if (liveTitleClearsBlockedText && lifecycle?.status !== terminal.titleStatus) {
+      return false
+    }
+    const newestPermissionAt = Math.max(
+      explicitStatus?.status === 'permission' ? explicitStatus.updatedAt : -1,
+      lifecycle?.status === 'permission' ? lifecycle.updatedAt : -1,
+      terminal.waitBlockedAt ?? -1
+    )
+    const newestClearAt = Math.max(
+      explicitStatus && explicitStatus.status !== 'permission' ? explicitStatus.updatedAt : -1,
+      lifecycle?.status && lifecycle.status !== 'permission' ? lifecycle.updatedAt : -1
+    )
+    // Equal wall-clock observations fail closed because their raw intra-chunk order is unknown.
+    return newestPermissionAt >= 0 && newestPermissionAt >= newestClearAt
   }
 
   private async terminalHasShellForegroundProcess(handle: string, ptyId: string): Promise<boolean> {
@@ -18530,13 +18728,20 @@ export class OrcaRuntimeService {
   }
 
   private async writeTerminalAgentPrompt(
+    handle: string,
     ptyId: string,
+    generation: number,
     pastePayload: string,
     options: {
       beforeWrite?: (ptyId: string) => void | Promise<void>
       suffixFailureError?: string
+      signal?: AbortSignal
     } = {}
-  ): Promise<void> {
+  ): Promise<number> {
+    assertAgentPromptRequestActive(options.signal)
+    this.assertAgentPromptGeneration(ptyId, generation)
+    const permissionBaseline = this.getAgentPromptActivity(handle, ptyId)
+    this.assertAgentPromptPermissionSafe(permissionBaseline, permissionBaseline)
     const renderGate = this.createAgentPromptRenderGate(ptyId)
     let wrotePasteBytes = false
     let completedPaste = false
@@ -18545,7 +18750,15 @@ export class OrcaRuntimeService {
       let chunk = chunks.next()
       while (!chunk.done) {
         const nextChunk = chunks.next()
+        assertAgentPromptRequestActive(options.signal)
+        this.assertAgentPromptGeneration(ptyId, generation)
         await options.beforeWrite?.(ptyId)
+        assertAgentPromptRequestActive(options.signal)
+        this.assertAgentPromptGeneration(ptyId, generation)
+        this.assertAgentPromptPermissionSafe(
+          permissionBaseline,
+          this.getAgentPromptActivity(handle, ptyId)
+        )
         if (nextChunk.done) {
           renderGate?.arm()
         }
@@ -18561,7 +18774,11 @@ export class OrcaRuntimeService {
       }
       completedPaste = true
     } catch (error) {
-      if (wrotePasteBytes && !completedPaste) {
+      if (
+        wrotePasteBytes &&
+        !completedPaste &&
+        this.getPtyLifecycleGeneration(ptyId) === generation
+      ) {
         this.ptyController?.write(ptyId, AGENT_PROMPT_BRACKETED_PASTE_END)
       }
       renderGate?.dispose()
@@ -18569,11 +18786,16 @@ export class OrcaRuntimeService {
     }
 
     if (renderGate) {
-      await renderGate.wait()
-      renderGate.dispose()
+      try {
+        await waitForAgentPromptPromise(renderGate.wait(), options.signal)
+      } finally {
+        renderGate.dispose()
+      }
     } else {
-      await new Promise((resolve) => setTimeout(resolve, AGENT_PROMPT_SUBMIT_DELAY_MS))
+      await waitForAgentPromptDelay(AGENT_PROMPT_SUBMIT_DELAY_MS, options.signal)
     }
+    assertAgentPromptRequestActive(options.signal)
+    this.assertAgentPromptGeneration(ptyId, generation)
     try {
       await options.beforeWrite?.(ptyId)
     } catch (error) {
@@ -18582,9 +18804,92 @@ export class OrcaRuntimeService {
       }
       throw error
     }
+    assertAgentPromptRequestActive(options.signal)
+    this.assertAgentPromptGeneration(ptyId, generation)
+    const baseline = this.getAgentPromptActivity(handle, ptyId)
+    this.assertAgentPromptPermissionSafe(permissionBaseline, baseline)
     const suffixWrote = this.ptyController?.write(ptyId, AGENT_PROMPT_SUBMIT) ?? false
     if (!suffixWrote) {
       throw new Error(options.suffixFailureError ?? 'terminal_not_writable')
+    }
+    await verifyAgentPromptSubmission({
+      baseline,
+      readActivity: () => this.getAgentPromptActivity(handle, ptyId),
+      signal: options.signal
+    })
+    return 1
+  }
+
+  private async serializeAgentPromptSubmission<T>(
+    ptyId: string,
+    generation: number,
+    submit: () => Promise<T>
+  ): Promise<T> {
+    const queueKey = `${ptyId}\u0000${generation}`
+    const previous = this.agentPromptSubmissionTailByPtyId.get(queueKey) ?? Promise.resolve()
+    const submission = previous.catch(() => undefined).then(submit)
+    const tail = submission.then(
+      () => undefined,
+      () => undefined
+    )
+    this.agentPromptSubmissionTailByPtyId.set(queueKey, tail)
+    try {
+      return await submission
+    } finally {
+      if (this.agentPromptSubmissionTailByPtyId.get(queueKey) === tail) {
+        this.agentPromptSubmissionTailByPtyId.delete(queueKey)
+      }
+    }
+  }
+
+  private getAgentPromptActivity(handle: string, ptyId: string): AgentPromptActivity {
+    this.assertLiveTerminalHandleTargetsPty(handle, ptyId)
+    const explicitCandidate = this.getFreshExplicitAgentStatusForHandle(handle)
+    const explicitFloor = this.agentPromptExplicitStatusFloorByPtyId.get(ptyId)
+    const explicit =
+      explicitCandidate &&
+      (explicitFloor === undefined || explicitCandidate.updatedAt > explicitFloor)
+        ? explicitCandidate
+        : null
+    const lifecycle = this.agentPromptLifecycleByPtyId.get(ptyId)
+    const ptyStatus =
+      lifecycle || explicitFloor === undefined
+        ? (this.ptysById.get(ptyId)?.lastAgentStatus ?? null)
+        : null
+    const lifecycleIsNewer =
+      lifecycle &&
+      (!explicit ||
+        lifecycle.updatedAt > explicit.updatedAt ||
+        (lifecycle.updatedAt === explicit.updatedAt && lifecycle.status === 'permission'))
+    const terminal = this.getTerminalAgentStatusSnapshot(handle, ptyId)
+    const status = this.hasAuthoritativeTerminalWaitPermission(terminal, explicit, lifecycle)
+      ? 'permission'
+      : lifecycleIsNewer
+        ? lifecycle.status
+        : (explicit?.status ?? ptyStatus ?? null)
+    return {
+      generation: this.getPtyLifecycleGeneration(ptyId),
+      permissionSequence: this.agentPromptPermissionSequenceByPtyId.get(ptyId) ?? 0,
+      workingSequence: lifecycle?.workingSequence ?? 0,
+      status
+    }
+  }
+
+  private assertAgentPromptPermissionSafe(
+    baseline: AgentPromptActivity,
+    current: AgentPromptActivity
+  ): void {
+    if (
+      current.status === 'permission' ||
+      current.permissionSequence > baseline.permissionSequence
+    ) {
+      throw new Error('agent_prompt_blocked')
+    }
+  }
+
+  private assertAgentPromptGeneration(ptyId: string, expected: number): void {
+    if (this.getPtyLifecycleGeneration(ptyId) !== expected) {
+      throw new Error('terminal_handle_stale')
     }
   }
 
@@ -37277,7 +37582,7 @@ export class OrcaRuntimeService {
 const WAIT_BLOCKED_CHECK_MIN_INTERVAL_MS = 50
 // Why: chunks that could complete an actionable prompt bypass the throttle so blocked stamps stay immediate; scanned over the new chunk + short carry, never the whole window.
 const WAIT_BLOCKED_KEYWORD_PATTERN =
-  /press enter|press t to trust|do you trust|trust this|trusted workspace|update available|choose working directory|codex just got an upgrade|hooks need review/
+  /press enter|press t to trust|do you trust|trust this|trusted workspace|permission required|requires permission|allow once|allow always|update available|choose working directory|codex just got an upgrade|hooks need review/
 const WAIT_BLOCKED_KEYWORD_CARRY_CHARS = 31
 const MAX_TAIL_LINES = 2000
 const MAX_TAIL_CHARS = 256 * 1024
@@ -39358,6 +39663,45 @@ function isTerminalSendSettlementAgent(
   agent: TuiAgent | null | undefined
 ): agent is 'claude' | 'codex' {
   return agent === 'claude' || agent === 'codex'
+}
+
+function findLastCompleteOscTitleRange(data: string): { start: number; end: number } | null {
+  // Why: one forward cursor keeps hostile unterminated OSC output linear-time.
+  let last: { start: number; end: number } | null = null
+  let searchFrom = 0
+  while (searchFrom < data.length) {
+    const start = data.indexOf('\x1b]', searchFrom)
+    if (start === -1) {
+      break
+    }
+    const command = data[start + 2]
+    if ((command !== '0' && command !== '1' && command !== '2') || data[start + 3] !== ';') {
+      searchFrom = start + 2
+      continue
+    }
+    let cursor = start + 4
+    for (; cursor < data.length; cursor += 1) {
+      if (data[cursor] === '\x07') {
+        last = { start, end: cursor + 1 }
+        searchFrom = cursor + 1
+        break
+      }
+      if (data[cursor] !== '\x1b') {
+        continue
+      }
+      if (data[cursor + 1] === '\\') {
+        last = { start, end: cursor + 2 }
+        searchFrom = cursor + 2
+      } else {
+        searchFrom = cursor
+      }
+      break
+    }
+    if (cursor === data.length) {
+      break
+    }
+  }
+  return last
 }
 
 function terminalTitleBlocksExplicitAgentStatus(title: string | null): boolean {
