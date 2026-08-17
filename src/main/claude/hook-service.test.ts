@@ -34,14 +34,28 @@ function hasManagedCommand(hook: TestHook, matcher: (command: string | undefined
 }
 
 describe('getWindowsManagedLifecycleHook', () => {
-  it('resolves the managed script from the runtime Windows profile', () => {
+  it('resolves the managed script from the runtime Windows profile, as a single command string', () => {
     const scriptPath = 'C:\\Users\\%name%\\a^b&c\\.orca\\agent-hooks\\claude-hook.cmd'
     const hook = getWindowsManagedLifecycleHook(scriptPath)
 
-    expect(hook.args?.[0]).toBe('--headless')
-    expect(hook.args?.[1]).toMatch(/\\System32\\cmd\.exe$/i)
-    expect(hook.args?.at(-1)).toBe('%USERPROFILE%\\.orca\\agent-hooks\\claude-hook.cmd')
-    expect(hook.args).not.toContain(scriptPath)
+    expect(hook.args).toBeUndefined()
+    expect(hook.command).toMatch(
+      /\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden /
+    )
+    expect(hook.command).not.toContain(scriptPath)
+    // Why: Git Bash/MSYS mangles backslash paths and slash-prefixed switches.
+    expect(hook.command.replace(/-EncodedCommand \S+$/, '')).not.toMatch(/\\| \/[a-zA-Z]+( |$)/)
+
+    const encoded = hook.command.match(/-EncodedCommand (\S+)$/)?.[1]
+    const decoded = Buffer.from(encoded ?? '', 'base64').toString('utf16le')
+    expect(decoded).toContain('$env:USERPROFILE')
+    expect(decoded).toContain('.orca\\agent-hooks\\claude-hook.cmd')
+  })
+
+  it('is still recognized as managed by createManagedCommandMatcher (#14825)', () => {
+    const scriptPath = 'C:\\Users\\alice\\.orca\\agent-hooks\\claude-hook.cmd'
+    const hook = getWindowsManagedLifecycleHook(scriptPath)
+    expect(isClaudeManagedCommand(hook.command)).toBe(true)
   })
 })
 
@@ -199,9 +213,17 @@ describe('ClaudeHookService.install', () => {
       expect(hasManagedCommand(legacy.hooks.StopFailure[0].hooks[0], isClaudeManagedCommand)).toBe(
         true
       )
-      expect(
-        readFileSync(join(tmpHome, '.orca', 'agent-hooks', CLAUDE_SCRIPT_FILE_NAME), 'utf-8')
-      ).toContain('DEVIN_PROJECT_DIR')
+      const managedScript = readFileSync(
+        join(tmpHome, '.orca', 'agent-hooks', CLAUDE_SCRIPT_FILE_NAME),
+        'utf-8'
+      )
+      expect(managedScript).toContain('DEVIN_PROJECT_DIR')
+      // Why: guard and Devin-skip paths must still return neutral JSON (#14818).
+      expect(managedScript).toMatch(
+        process.platform === 'win32'
+          ? /^@echo off\r\nsetlocal\r\necho \{\}\r\n/
+          : /^#!\/bin\/sh\nprintf "\{\}\\n"\n/
+      )
     } finally {
       vi.unstubAllEnvs()
       rmSync(tmpHome, { recursive: true, force: true })
@@ -255,7 +277,12 @@ describe('ClaudeHookService.install', () => {
       mkdirSync(join(tmpHome, '.claude'), { recursive: true })
       writeFileSync(
         settingsPath,
-        JSON.stringify({ statusLine: { type: 'command', command: '/usr/local/bin/my-statusline' } })
+        JSON.stringify({
+          statusLine: {
+            type: 'command',
+            command: '/usr/local/bin/my-statusline'
+          }
+        })
       )
 
       expect(new ClaudeHookService().install().state).toBe('installed')
@@ -339,7 +366,7 @@ describe('ClaudeHookService.install', () => {
   })
 
   it.skipIf(process.platform !== 'win32')(
-    'runs portable managed hooks through headless exec form',
+    'runs portable managed hooks through a single headless command string',
     () => {
       const tmpHome = mkdtempSync(join(tmpdir(), 'orca claude home with spaces '))
       vi.stubEnv('HOME', tmpHome)
@@ -351,24 +378,20 @@ describe('ClaudeHookService.install', () => {
           readFileSync(join(tmpHome, '.claude', 'settings.json'), 'utf-8')
         ) as { hooks: Record<string, { hooks: TestHook[] }[]> }
 
-        const system32 = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')
         const scriptPath = join(tmpHome, '.orca', 'agent-hooks', CLAUDE_SCRIPT_FILE_NAME)
-        const runtimeScriptPath = join(
-          '%USERPROFILE%',
-          '.orca',
-          'agent-hooks',
-          CLAUDE_SCRIPT_FILE_NAME
-        )
 
         for (const eventName of ['UserPromptSubmit', 'Stop', 'StopFailure']) {
           const hook = settings.hooks[eventName]?.[0]?.hooks?.[0]
-          expect(hook).toEqual({
-            type: 'command',
-            command: join(system32, 'conhost.exe'),
-            args: ['--headless', join(system32, 'cmd.exe'), '/d', '/c', runtimeScriptPath],
-            timeout: 10
-          })
-          expect(hook.args).not.toContain(scriptPath)
+          expect(hook?.args).toBeUndefined()
+          expect(hook?.command).toMatch(
+            /\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden /
+          )
+          expect(hook?.command).not.toContain(scriptPath)
+
+          const encoded = hook?.command.match(/-EncodedCommand (\S+)$/)?.[1]
+          const decoded = Buffer.from(encoded ?? '', 'base64').toString('utf16le')
+          expect(decoded).toContain('$env:USERPROFILE')
+          expect(decoded).toContain(`.orca\\agent-hooks\\${CLAUDE_SCRIPT_FILE_NAME}`)
         }
       } finally {
         vi.unstubAllEnvs()
@@ -393,6 +416,8 @@ describe('ClaudeHookService.install', () => {
         expect(script).toContain('--data-urlencode "payload@-"')
         expect(script).toContain('/hook/claude')
         expect(script).not.toMatch(/Invoke-WebRequest/i)
+        // Why: guard and Devin-skip paths must still return neutral JSON (#14818).
+        expect(script.split('\r\n')[2]).toBe('echo {}')
       } finally {
         vi.unstubAllEnvs()
         rmSync(tmpHome, { recursive: true, force: true })
@@ -436,6 +461,10 @@ describe('ClaudeHookService.installRemote', () => {
     const script = fs.files.get('/home/dev/.orca/agent-hooks/claude-hook.sh')
     expect(script).toContain('#!/bin/sh')
     expect(script).toContain('DEVIN_PROJECT_DIR')
+    // Why: remote guard paths must still return neutral JSON (#14818).
+    expect(script!.indexOf('printf "{}\\n"')).toBe(
+      script!.indexOf('#!/bin/sh') + '#!/bin/sh\n'.length
+    )
     // Why: payload is piped to curl via stdin (`payload@-`) so it never lands
     // on the curl command line (EDR oversized-command-line false positive),
     // matching the Windows curl.exe hook post.

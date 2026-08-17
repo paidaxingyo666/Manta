@@ -71,7 +71,10 @@ describe('readHooksJsonWithRaw', () => {
     for (const contents of [`\uFEFF\uFEFF${body}`, ` \uFEFF${body}`, `{\uFEFF"hooks": {}}`]) {
       writeFileSync(configPath, contents, 'utf-8')
 
-      expect(readHooksJsonWithRaw(configPath)).toEqual({ raw: contents, config: null })
+      expect(readHooksJsonWithRaw(configPath)).toEqual({
+        raw: contents,
+        config: null
+      })
     }
   })
 
@@ -82,7 +85,10 @@ describe('readHooksJsonWithRaw', () => {
   it('keeps the raw bytes when the contents are not a JSON object', () => {
     writeFileSync(configPath, 'not json\n', 'utf-8')
 
-    expect(readHooksJsonWithRaw(configPath)).toEqual({ raw: 'not json\n', config: null })
+    expect(readHooksJsonWithRaw(configPath)).toEqual({
+      raw: 'not json\n',
+      config: null
+    })
   })
 })
 
@@ -95,7 +101,9 @@ describe('writeHooksJson', () => {
     writeHooksJson(configPath, { hooks: { Stop: [] } })
 
     expect(lstatSync(configPath).isSymbolicLink()).toBe(true)
-    expect(JSON.parse(readFileSync(targetPath, 'utf-8'))).toEqual({ hooks: { Stop: [] } })
+    expect(JSON.parse(readFileSync(targetPath, 'utf-8'))).toEqual({
+      hooks: { Stop: [] }
+    })
   })
 
   it('does not replace a dangling hook config symlink', () => {
@@ -182,9 +190,15 @@ describe('writeHooksJson', () => {
   })
 
   it('updates the .bak file to the previous version on each write', () => {
-    const v1: HooksConfig = { hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v1' }] }] } }
-    const v2: HooksConfig = { hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v2' }] }] } }
-    const v3: HooksConfig = { hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v3' }] }] } }
+    const v1: HooksConfig = {
+      hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v1' }] }] }
+    }
+    const v2: HooksConfig = {
+      hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v2' }] }] }
+    }
+    const v3: HooksConfig = {
+      hooks: { Stop: [{ hooks: [{ type: 'command', command: 'v3' }] }] }
+    }
 
     writeHooksJson(configPath, v1)
     writeHooksJson(configPath, v2)
@@ -310,7 +324,10 @@ describe('removeManagedCommands', () => {
       [
         {
           hooks: [
-            { type: 'command', command: '/bin/sh "/path/agent-hooks/copilot-hook.sh"' },
+            {
+              type: 'command',
+              command: '/bin/sh "/path/agent-hooks/copilot-hook.sh"'
+            },
             { type: 'command', command: 'echo keep me' }
           ]
         }
@@ -381,7 +398,14 @@ describe('hookDefinitionHasManagedCommand', () => {
     ).toBe(true)
     expect(
       hookDefinitionHasManagedCommand(
-        { hooks: [{ type: 'command', command: '/bin/sh "/path/agent-hooks/copilot-hook.sh"' }] },
+        {
+          hooks: [
+            {
+              type: 'command',
+              command: '/bin/sh "/path/agent-hooks/copilot-hook.sh"'
+            }
+          ]
+        },
         match
       )
     ).toBe(true)
@@ -539,7 +563,7 @@ describe('wrapPosixHookCommand', () => {
 })
 
 const qualifiedWindowsPowerShellCommand =
-  /^[A-Za-z]:\/[^"]*\/System32\/WindowsPowerShell\/v1\.0\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand \S+$/
+  /^[A-Za-z]:\/[^"]*\/System32\/WindowsPowerShell\/v1\.0\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand \S+$/
 
 function decodeWindowsHookCommand(command: string): string {
   const encodedCommand = command.match(/ -EncodedCommand (\S+)$/)?.[1]
@@ -549,7 +573,8 @@ function decodeWindowsHookCommand(command: string): string {
 
 function expectedDecodedWindowsHookCommand(scriptPath: string): string {
   const quoted = `'${scriptPath.replaceAll("'", "''")}'`
-  return `if (Test-Path -LiteralPath ${quoted} -PathType Leaf) { & ${quoted}; exit $LASTEXITCODE }; [Console]::In.ReadToEnd() | Out-Null; exit 0`
+  // Why: PowerShell progress CLIXML corrupts consumers that merge stderr into JSON stdout.
+  return `$ProgressPreference='SilentlyContinue'; if (Test-Path -LiteralPath ${quoted} -PathType Leaf) { & ${quoted}; exit $LASTEXITCODE }; [Console]::In.ReadToEnd() | Out-Null; exit 0`
 }
 
 describe('wrapWindowsHookCommand', () => {
@@ -725,10 +750,31 @@ describe('wrapRuntimeHomeHookCommand', () => {
       process.platform === 'win32'
         ? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git', 'bin', 'bash.exe')
         : '/bin/sh'
-    const result = spawnSync(shell, ['-c', command], { input: Buffer.alloc(1_000_000, 'x') })
+    const result = spawnSync(shell, ['-c', command], {
+      input: Buffer.alloc(1_000_000, 'x')
+    })
 
     expect(result.error).toBeUndefined()
     expect(result.status).toBe(0)
+  })
+
+  it('emits neutral JSON when a lifecycle script is missing', () => {
+    const shell =
+      process.platform === 'win32'
+        ? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git', 'bin', 'bash.exe')
+        : '/bin/sh'
+    const result = spawnSync(
+      shell,
+      ['-c', wrapRuntimeHomeHookCommand('missing-orca-hook', { neutralJsonWhenMissing: true })],
+      {
+        env: { ...process.env, HOME: tmpDir.replaceAll('\\', '/') },
+        input: Buffer.alloc(1_000_000, 'x')
+      }
+    )
+
+    expect(result.error).toBeUndefined()
+    expect(result.status, result.stderr.toString()).toBe(0)
+    expect(JSON.parse(result.stdout.toString().trim())).toEqual({})
   })
 })
 

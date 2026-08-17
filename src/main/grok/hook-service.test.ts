@@ -23,7 +23,7 @@ import { POSIX_HOOK_STDIN_READER } from '../agent-hooks/hook-stdin-contract'
 
 const GROK_SCRIPT_FILE_NAME = process.platform === 'win32' ? 'grok-hook.cmd' : 'grok-hook.sh'
 const WINDOWS_POWERSHELL_LAUNCHER =
-  /^[A-Za-z]:\/[^"]*\/System32\/WindowsPowerShell\/v1\.0\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand \S+$/
+  /^[A-Za-z]:\/[^"]*\/System32\/WindowsPowerShell\/v1\.0\/powershell\.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand \S+$/
 
 type WindowsGrokHookRun = {
   status: number | null
@@ -343,7 +343,11 @@ describe('GrokHookService', () => {
       `${JSON.stringify(
         {
           hooks: {
-            Notification: [{ hooks: [{ type: 'command', command: '/usr/local/bin/user-hook' }] }]
+            Notification: [
+              {
+                hooks: [{ type: 'command', command: '/usr/local/bin/user-hook' }]
+              }
+            ]
           }
         },
         null,
