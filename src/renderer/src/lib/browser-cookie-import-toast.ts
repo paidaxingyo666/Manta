@@ -3,8 +3,41 @@ import type { BrowserCookieImportSummary } from '../../../shared/browser-workspa
 import { translate } from '@/i18n/i18n'
 
 type CookieImportWarning = NonNullable<BrowserCookieImportSummary['warning']>
+type CookieImportWarningCode = CookieImportWarning['code']
+type UndecryptableReason = Extract<CookieImportWarning, { code: 'cookies-undecryptable' }>['reason']
+
+// Why: the summary is cast, not decoded, on the way off the runtime RPC wire, so a newer host can
+// send a code/reason this build has never heard of. The Record keys are the union itself, so a new
+// member fails typecheck here instead of silently falling out of the switch (#14683 follow-up).
+const HANDLED_WARNING_CODES: Record<CookieImportWarningCode, true> = {
+  'restart-fallback-unavailable': true,
+  'cookies-undecryptable': true
+}
+
+const HANDLED_UNDECRYPTABLE_REASONS: Record<UndecryptableReason, true> = {
+  'app-bound-encryption': true,
+  'linux-keyring-unavailable': true,
+  unknown: true
+}
+
+// Why: typeof first — hasOwn coerces its key, so a host that widened `reason` to an array would
+// send ['unknown'], pass a hasOwn-only guard, then fall straight back out of the switch.
+function isHandledWarningCode(code: unknown): code is CookieImportWarningCode {
+  return typeof code === 'string' && Object.hasOwn(HANDLED_WARNING_CODES, code)
+}
+
+function isHandledUndecryptableReason(reason: unknown): reason is UndecryptableReason {
+  return typeof reason === 'string' && Object.hasOwn(HANDLED_UNDECRYPTABLE_REASONS, reason)
+}
 
 function formatCookieImportWarning(warning: CookieImportWarning): string {
+  const code: unknown = warning.code
+  if (!isHandledWarningCode(code)) {
+    return translate(
+      'auto.lib.browser.cookie.import.toast.unrecognizedWarning',
+      'The cookie import finished with a warning this version of Orca does not recognize. Update Orca to see the details, then check this profile before relying on its cookies.'
+    )
+  }
   switch (warning.code) {
     case 'restart-fallback-unavailable':
       return warning.loadedCookies === 0
@@ -21,7 +54,15 @@ function formatCookieImportWarning(warning: CookieImportWarning): string {
               value1: warning.loadedCookies + warning.failedCookies
             }
           )
-    case 'cookies-undecryptable':
+    case 'cookies-undecryptable': {
+      const reason: unknown = warning.reason
+      if (!isHandledUndecryptableReason(reason)) {
+        return translate(
+          'auto.lib.browser.cookie.import.toast.undecryptableUnrecognizedReason',
+          '{{value0}} cookies could not be decrypted and were skipped for a reason this version of Orca does not recognize. Update Orca to see the details, then try the import again.',
+          { value0: warning.failedCookies }
+        )
+      }
       switch (warning.reason) {
         case 'app-bound-encryption':
           return warning.otherFailedCookies
@@ -54,6 +95,7 @@ function formatCookieImportWarning(warning: CookieImportWarning): string {
             { value0: warning.failedCookies }
           )
       }
+    }
   }
 }
 
