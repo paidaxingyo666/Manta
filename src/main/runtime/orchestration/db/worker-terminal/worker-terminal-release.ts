@@ -64,10 +64,7 @@ export function requestWorkerTerminalRelease(
       this.db.exec('COMMIT')
       return { disposition: 'retained', resource, reason: 'ownership_transferred' }
     }
-    if (
-      resource.release_state === 'unknown' ||
-      (resource.release_state === 'retained' && resource.retained_reason === 'user_requested')
-    ) {
+    if (resource.release_state === 'retained' && resource.retained_reason === 'user_requested') {
       this.db.prepare('DELETE FROM worker_terminal_archives WHERE dispatch_id = ?').run(dispatchId)
     }
     this.db

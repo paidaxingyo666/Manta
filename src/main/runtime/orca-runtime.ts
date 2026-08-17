@@ -665,6 +665,12 @@ import {
 } from './mobile-session-terminal-retirement'
 import { retireTerminalSurfaceFromPersistence } from './mobile-session-terminal-persistence-retirement'
 import {
+  NO_OBSERVING_PROVIDER_REASON,
+  SSH_EXIT_UNCONFIRMED_REASON,
+  SSH_PROVIDER_UNREGISTERED_REASON,
+  type PtyLivenessVerdict
+} from '../../shared/pty-liveness-verdict'
+import {
   advanceTerminalTopologyRevision,
   hasHostAuthoritativeTerminalMembership
 } from './workspace-session-terminal-membership-authority'
@@ -1568,6 +1574,14 @@ function isAgentSessionOperationOutcomeUnknown(error: unknown): boolean {
   )
 }
 
+// Orphaned verdicts are bounded; active PTYs retain theirs until new evidence resolves them.
+const MAX_TRACKED_PTY_LIVENESS_VERDICTS = 256
+
+type TrackedPtyLivenessVerdict = {
+  verdict: PtyLivenessVerdict
+  observedAt: number
+}
+
 const AGENT_SESSION_OPERATION_PER_CLIENT_LIMIT = 512
 const AGENT_SESSION_OPERATION_GLOBAL_LIMIT = 4_096
 
@@ -1865,7 +1879,7 @@ type RuntimePtyController = {
    *  False on doubt (absent session, SSH-scoped id, non-daemon provider). */
   attach?(ptyId: string): Promise<boolean>
   kill(ptyId: string): boolean
-  retireRejectedPty?(ptyId: string): void
+  retireRejectedPty?(ptyId: string, stopConfirmed: boolean): void
   stopAndWait?(
     ptyId: string,
     opts?: { keepHistory?: boolean; deadlineMs?: number }
@@ -3206,6 +3220,12 @@ export class OrcaRuntimeService {
   // iterates them all. Listeners are cleaned up via subscriptionCleanups.
   private notificationListeners = new Set<(event: MobileNotificationEvent) => void>()
   private ptysById = new Map<string, RuntimePtyWorktreeRecord>()
+  // Why a separate map: `connected` is a wire field that any inventory gap
+  // clears, so it cannot distinguish an observed exit from lost contact. This
+  // records the last liveness verdict we actually earned, and outlives the pty
+  // record so a close/stop receipt can still say the stop was unconfirmed.
+  private ptyLivenessVerdictByPtyId = new Map<string, TrackedPtyLivenessVerdict>()
+  private ptyLivenessObservationSequence = 0
   private readonly pairedRendererSessionOwnedPtyIds = new Set<string>()
   private wslDistroByPtyId = new Map<string, string>()
   private titleObservationSequence = 0
@@ -10579,6 +10599,7 @@ export class OrcaRuntimeService {
     incarnationId?: PtyIncarnationId,
     options: { awaitsRegistration?: boolean } = {}
   ): void {
+    this.forgetPtyLivenessVerdict(ptyId)
     if (options.awaitsRegistration !== false) {
       // Why: surface absence cannot distinguish an in-flight admission from a completed headless lifecycle.
       this.pendingPtyRegistrationIncarnations.set(ptyId, incarnationId ?? null)
@@ -10612,6 +10633,7 @@ export class OrcaRuntimeService {
     isWsl?: boolean
   ): void {
     this.assertPtyDidNotExitBeforeRegistration(ptyId, binding?.incarnationId)
+    this.forgetPtyLivenessVerdict(ptyId)
     this.spawnPublishedPtys.add(ptyId)
     // Why: record the renderer pane identity at spawn time so a stalled graph
     // sync can't hide that a live PTY already backs a pending mobile create.
@@ -14906,14 +14928,25 @@ export class OrcaRuntimeService {
     }
   }
 
-  onPtyExit(ptyId: string, exitCode: number, exitIncarnationId?: PtyIncarnationId): void {
+  onPtyExit(
+    ptyId: string,
+    exitCode: number,
+    exitIncarnationId?: PtyIncarnationId,
+    options?: { hostExitConfirmed?: boolean }
+  ): void {
     const pty = this.ptysById.get(ptyId)
     if (exitIncarnationId && pty?.incarnationId && exitIncarnationId !== pty.incarnationId) {
       return
     }
     const preservesAbnormalSshSurface =
-      this.isSshOwnedPtyId(ptyId) && pty?.connectionId != null && exitCode < 0
+      this.isSshOwnedPtyId(ptyId) &&
+      pty?.connectionId != null &&
+      exitCode < 0 &&
+      options?.hostExitConfirmed !== true
     if (preservesAbnormalSshSurface) {
+      if (this.getPtyLivenessVerdict(ptyId)?.status !== 'unverifiable') {
+        this.markPtyLivenessUnverifiable(ptyId, SSH_EXIT_UNCONFIRMED_REASON)
+      }
       this.restoredOrchestrationAuthorityByPtyId.delete(ptyId)
     } else {
       this.retirePtyAgentLaunchAuthority(ptyId)
@@ -15047,6 +15080,11 @@ export class OrcaRuntimeService {
       this.setPairedRendererSessionOwnership(pty.ptyId, false)
       pty.disconnectedAt = Date.now()
       pty.lastExitCode = exitCode
+      if (exitCode >= 0 || options?.hostExitConfirmed === true) {
+        // A real wait status from the owning host is the death certificate; the
+        // synthetic -1 we emit on a failed/unroutable stop is not.
+        this.forgetPtyLivenessVerdict(ptyId)
+      }
       // Why: the exited process's live frames say nothing about a replacement.
       // A same-id respawn makes the leaf writable again before any new title,
       // so leaving this true would let push delivery type into the new process
@@ -16929,17 +16967,17 @@ export class OrcaRuntimeService {
   async inspectTerminalProcessIncarnationLiveness(
     processIncarnation: string,
     serializedHostScope: string | null
-  ): Promise<'live' | 'dead' | 'unknown'> {
+  ): Promise<'live' | 'exited' | 'unverifiable'> {
     const hostScope = parseWorkerTerminalHostScope(serializedHostScope)
     if (!hostScope || !this.ptyController?.listProcesses) {
-      return 'unknown'
+      return 'unverifiable'
     }
     const listed = await withTimeoutResult(
       this.ptyController.listProcesses(hostScope.kind === 'ssh' ? hostScope.targetId : null),
       PTY_CONTROLLER_LIST_TIMEOUT_MS
     )
     if (!listed.ok) {
-      return 'unknown'
+      return 'unverifiable'
     }
     return classifyWorkerTerminalProcessIncarnation(processIncarnation, listed.value)
   }
@@ -17785,6 +17823,68 @@ export class OrcaRuntimeService {
     }
     // Why: legacy providers may omit process incarnation; retain the prior restart-degraded fence.
     return `${this.runtimeId}:${record.ptyId}:${record.ptyGeneration}`
+  }
+
+  /**
+   * Records that we lost contact with a PTY's owning host. Callers must never
+   * read this as an exit: a detached relay PTY is designed to outlive the
+   * provider that addressed it.
+   */
+  markPtyLivenessUnverifiable(ptyId: string, reason: string): void {
+    this.rememberPtyLivenessVerdict(ptyId, { status: 'unverifiable', reason })
+  }
+
+  markPtyLivenessLive(ptyId: string): void {
+    this.rememberPtyLivenessVerdict(ptyId, { status: 'live', ptyIds: [ptyId] })
+  }
+
+  /** Null when nothing has been observed either way, so callers keep their own default. */
+  getPtyLivenessVerdict(ptyId: string): PtyLivenessVerdict | null {
+    return this.ptyLivenessVerdictByPtyId.get(ptyId)?.verdict ?? null
+  }
+
+  getTerminalLivenessVerdict(handle: string): PtyLivenessVerdict | null {
+    const record = this.getLivePtyForHandle(handle)?.record ?? this.handles.get(handle)
+    return record?.ptyId ? this.getPtyLivenessVerdict(record.ptyId) : null
+  }
+
+  private rememberPtyLivenessVerdict(ptyId: string, verdict: PtyLivenessVerdict): void {
+    if (verdict.status === 'exited') {
+      // An earned death certificate ends the question; nothing left to remember.
+      this.ptyLivenessVerdictByPtyId.delete(ptyId)
+      return
+    }
+    this.ptyLivenessVerdictByPtyId.delete(ptyId)
+    this.ptyLivenessObservationSequence += 1
+    this.ptyLivenessVerdictByPtyId.set(ptyId, {
+      verdict,
+      observedAt: this.ptyLivenessObservationSequence
+    })
+    while (this.ptyLivenessVerdictByPtyId.size > MAX_TRACKED_PTY_LIVENESS_VERDICTS) {
+      let oldestOrphaned: string | null = null
+      for (const candidate of this.ptyLivenessVerdictByPtyId.keys()) {
+        if (
+          !this.ptysById.has(candidate) &&
+          !this.handleByPtyId.has(candidate) &&
+          !this.leafExistsForPty(candidate)
+        ) {
+          oldestOrphaned = candidate
+          break
+        }
+      }
+      if (!oldestOrphaned) {
+        return
+      }
+      this.ptyLivenessVerdictByPtyId.delete(oldestOrphaned)
+    }
+  }
+
+  private forgetPtyLivenessVerdict(ptyId: string, observedNoLaterThan?: number): void {
+    const tracked = this.ptyLivenessVerdictByPtyId.get(ptyId)
+    if (observedNoLaterThan !== undefined && tracked && tracked.observedAt > observedNoLaterThan) {
+      return
+    }
+    this.ptyLivenessVerdictByPtyId.delete(ptyId)
   }
 
   getExactWorkerProviderSession(
@@ -28845,13 +28945,34 @@ export class OrcaRuntimeService {
     let addressedPtyStopped = false
     const deadlineMs = Date.now() + EXPLICIT_TERMINAL_CLOSE_STOP_TIMEOUT_MS
     for (const ptyId of ptyIds) {
-      let verifiedStopped = false
-      try {
-        verifiedStopped = (await this.ptyController?.stopAndWait?.(ptyId, { deadlineMs })) ?? false
-      } catch {
-        // Why: verified teardown is preferred, but its transport failure must not suppress the legacy provider kill.
+      let stopped = false
+      if (this.ptyController?.stopAndWait) {
+        try {
+          stopped = await this.ptyController.stopAndWait(ptyId, { deadlineMs })
+        } catch (error) {
+          this.markPtyLivenessUnverifiable(
+            ptyId,
+            error instanceof Error ? error.message : String(error)
+          )
+        }
+        if (!stopped) {
+          const verdict = this.getPtyLivenessVerdict(ptyId)
+          const providerAlreadyRetiredPty =
+            verdict?.status === 'unverifiable' &&
+            verdict.reason === SSH_PROVIDER_UNREGISTERED_REASON
+          if (!providerAlreadyRetiredPty) {
+            this.ptyController.kill(ptyId)
+            if (!verdict || verdict.status === 'live') {
+              this.markPtyLivenessUnverifiable(
+                ptyId,
+                'a follow-up stop was issued but its outcome could not be verified'
+              )
+            }
+          }
+        }
+      } else {
+        stopped = this.ptyController?.kill(ptyId) ?? false
       }
-      const stopped = verifiedStopped || (this.ptyController?.kill(ptyId) ?? false)
       if (ptyId === addressedPtyId) {
         addressedPtyStopped = stopped
       }
@@ -29053,15 +29174,15 @@ export class OrcaRuntimeService {
           this.notifier.closeTerminal?.(tabId)
         }
         const ptyKilled = await this.stopExplicitlyClosedTabPtys(ptyIdsToKill, pty.pty.ptyId)
-        return { handle, tabId, ptyKilled }
+        return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
       }
       if (siblingCount <= 1 && !surface && pty.pty.tabId && this.notifier?.closeTerminalTab) {
         const ptyIdsToKill = this.getPtyIdsForExplicitTabClose(pty.pty.worktreeId, tabId)
         await this.notifier.closeTerminalTab(tabId, { localPtyTeardownOwnedExternally: true })
         const ptyKilled = await this.stopExplicitlyClosedTabPtys(ptyIdsToKill, pty.pty.ptyId)
-        return { handle, tabId, ptyKilled }
+        return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
       }
-      const ptyKilled = this.ptyController?.kill(pty.pty.ptyId) ?? false
+      const ptyKilled = await this.stopExplicitlyClosedTabPtys([pty.pty.ptyId], pty.pty.ptyId)
       if (!ptyKilled || siblingCount <= 1) {
         if (surface) {
           // Why: paired viewers keep ended streams mounted until the HUB publishes removal, so explicit close uses the durable host-tab transaction instead of viewer-local exit handling.
@@ -29077,7 +29198,7 @@ export class OrcaRuntimeService {
           this.notifier?.closeTerminal(tabId)
         }
       }
-      return { handle, tabId, ptyKilled }
+      return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
     }
     this.assertGraphReady()
     const { leaf } = this.getLiveLeafForHandle(handle)
@@ -29100,7 +29221,36 @@ export class OrcaRuntimeService {
     if (siblingCount > 1 ? !ptyKilled : !this.notifier?.closeTerminalTab) {
       this.notifier?.closeTerminal(leaf.tabId, leaf.paneRuntimeId)
     }
-    return { handle, tabId: leaf.tabId, ptyKilled }
+    return this.describeTerminalClose(handle, leaf.tabId, leaf.ptyId ?? null, ptyKilled)
+  }
+
+  /**
+   * A close receipt must not read as a kill nobody performed: when the stop was
+   * not confirmed, the receipt carries why so the CLI and callers can say so.
+   */
+  private describeTerminalClose(
+    handle: string,
+    tabId: string,
+    ptyId: string | null,
+    ptyKilled: boolean
+  ): RuntimeTerminalClose {
+    if (ptyKilled || !ptyId) {
+      return { handle, tabId, ptyKilled }
+    }
+    const verdict = this.getPtyLivenessVerdict(ptyId)
+    if (verdict?.status === 'unverifiable') {
+      return {
+        handle,
+        tabId,
+        ptyKilled,
+        ptyStopVerdict: 'unverifiable',
+        ptyStopReason: verdict.reason
+      }
+    }
+    if (verdict?.status === 'live') {
+      return { handle, tabId, ptyKilled, ptyStopVerdict: 'live' }
+    }
+    return { handle, tabId, ptyKilled }
   }
 
   async closeTerminalTab(handle: string): Promise<RuntimeTerminalClose> {
@@ -29331,7 +29481,7 @@ export class OrcaRuntimeService {
         }
       }
       try {
-        this.ptyController.retireRejectedPty?.(result.id)
+        this.ptyController.retireRejectedPty?.(result.id, stopped)
       } catch {
         // Best-effort cleanup; preserve the original split authority error.
       }
@@ -31651,6 +31801,7 @@ export class OrcaRuntimeService {
     }
     const inventoryGeneration = this.ptyControllerInventorySequence + 1
     this.ptyControllerInventorySequence = inventoryGeneration
+    const livenessObservationAtStart = this.ptyLivenessObservationSequence
     const providerKey = typeof connectionId === 'string' ? `ssh:${connectionId}` : 'local'
     if (connectionId === undefined) {
       this.ptyControllerAggregateInventoryGeneration = inventoryGeneration
@@ -31760,6 +31911,8 @@ export class OrcaRuntimeService {
     const allLivePtyIds = new Set(sessions.map((session) => session.id))
     const selectedLivePtyIds = new Set<string>()
     for (const session of sessions) {
+      // The owning inventory positively observed this PTY again; prior lost-contact doubt is stale.
+      this.forgetPtyLivenessVerdict(session.id, livenessObservationAtStart)
       const sessionConnectionId =
         parseAppSshPtyId(session.id)?.connectionId ??
         (typeof connectionId === 'string' ? connectionId : null)
@@ -31862,7 +32015,18 @@ export class OrcaRuntimeService {
         continue
       }
       if (!allLivePtyIds.has(pty.ptyId) && !this.leafExistsForPty(pty.ptyId)) {
-        if (this.ptyController.hasPty?.(pty.ptyId) === true) {
+        const currentVerdict = this.ptyLivenessVerdictByPtyId.get(pty.ptyId)
+        if (
+          currentVerdict &&
+          currentVerdict.observedAt > livenessObservationAtStart &&
+          currentVerdict.verdict.status === 'unverifiable'
+        ) {
+          pty.connected = false
+          pty.disconnectedAt ??= Date.now()
+          continue
+        }
+        const observed = this.ptyController.hasPty?.(pty.ptyId)
+        if (observed === true) {
           // Why: an SSH spawn can become addressable before an overlapping relay list includes it.
           allLivePtyIds.add(pty.ptyId)
           if (
@@ -31873,10 +32037,19 @@ export class OrcaRuntimeService {
           }
           pty.connected = true
           pty.disconnectedAt = null
+          this.forgetPtyLivenessVerdict(pty.ptyId)
           continue
         }
         pty.connected = false
         pty.disconnectedAt ??= Date.now()
+        // Why: this list only enumerates registered providers, so a dropped relay
+        // clears `connected` for every one of its PTYs at once. Only `false` here
+        // is an observed absence; `null` means no provider could be asked.
+        if (observed === false) {
+          this.forgetPtyLivenessVerdict(pty.ptyId)
+        } else if (observed === null) {
+          this.markPtyLivenessUnverifiable(pty.ptyId, NO_OBSERVING_PROVIDER_REASON)
+        }
       }
     }
     this.pruneDisconnectedPtyRecords()
@@ -31958,6 +32131,7 @@ export class OrcaRuntimeService {
         if (pty) {
           pty.connected = true
           pty.disconnectedAt = null
+          this.forgetPtyLivenessVerdict(ptyId)
           this.refreshPtyForegroundAgent(ptyId)
         }
       } else if (pty && !this.leafExistsForPty(ptyId)) {
