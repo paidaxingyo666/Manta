@@ -957,6 +957,9 @@
       "useLargeTextControlPaste": {
         "pasteTooLarge": "Paste is too large."
       },
+      "useInstalledAgentSkills": {
+        "unreadableSkillSource": "A skill folder did not respond, so this status may be incomplete."
+      },
       "useMacosTccPromptNotice": {
         "title": "Seeing “Orca would like to access…” prompts?",
         "description": "Permission messages from macOS may appear when an agent or terminal tool running in Orca attempts to access protected files. Grant Full Disk Access in Settings to reduce these prompts.",
