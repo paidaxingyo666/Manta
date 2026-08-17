@@ -5021,6 +5021,9 @@ const api = {
     retirePaneAuthority: (paneKey: string): void => {
       ipcRenderer.send('agentStatus:retirePaneAuthority', paneKey)
     },
+    restorePaneAuthority: (paneKey: string): void => {
+      ipcRenderer.send('agentStatus:restorePaneAuthority', paneKey)
+    },
     transferPaneAuthority: (args: {
       fromPaneKey: string
       toPaneKey: string
