@@ -1594,7 +1594,6 @@
         "c57873d721": "Pull request merged",
         "a63b3c159c": "This will update the pull request on GitHub.",
         "eec3706a6a": "{{value0}} PR #{{value1}}?",
-        "b8c6cbb8c4": "Failed to {{value0}} PR",
         "710e47aa06": "Pull request reopened",
         "7aa3b5f706": "Pull request closed",
         "3d77438c92": "This will reopen the pull request on GitHub.",
@@ -1692,7 +1691,13 @@
         "checkActionRequiredHint": "This check needs a manual action on GitHub (for example, approving the workflow run) before merging is unblocked.",
         "6b1d5ee3e4": "No inline details are available for this check.",
         "e04c027d98": "Failed to load check details.",
-        "5df7c41d2a": "Retry"
+        "5df7c41d2a": "Retry",
+        "77482513f8": "Close",
+        "2f5195c6a0": "Reopen",
+        "4b8ae7303f": "Failed to load diff.",
+        "closePullRequestFailed": "Failed to close pull request",
+        "reopenPullRequestFailed": "Failed to reopen pull request",
+        "diffLoadTimedOut": "Timed out loading this diff."
       },
       "QuickOpen": {
         "1dbd3f59ff": "Move",

@@ -1442,7 +1442,6 @@
         "c57873d721": "PR이 병합되었습니다",
         "a63b3c159c": "그러면 GitHub의 PR이 업데이트됩니다.",
         "eec3706a6a": "{{value0}} PR #{{value1}}?",
-        "b8c6cbb8c4": "PR {{value0}}에 실패했습니다.",
         "710e47aa06": "PR이 다시 열렸습니다",
         "7aa3b5f706": "PR이 종료되었습니다.",
         "3d77438c92": "그러면 GitHub에서 PR이 다시 열립니다.",
@@ -1541,7 +1540,13 @@
         "dd5d9a4f17": "{{value0}}에 업데이트됨",
         "71a3c0f9d2": "워크스페이스 시작",
         "filesUnavailable": "변경된 파일을 불러오지 못했습니다.",
-        "filesRetry": "Retry"
+        "filesRetry": "Retry",
+        "77482513f8": "닫기",
+        "2f5195c6a0": "다시 열기",
+        "4b8ae7303f": "차이를 불러오지 못했습니다.",
+        "closePullRequestFailed": "PR을 닫지 못했습니다.",
+        "reopenPullRequestFailed": "PR을 다시 열지 못했습니다.",
+        "diffLoadTimedOut": "이 diff를 불러오는 데 시간이 초과되었습니다."
       },
       "QuickOpen": {
         "1dbd3f59ff": "이동",

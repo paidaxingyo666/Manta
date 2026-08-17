@@ -1440,7 +1440,6 @@
         "c57873d721": "PR がマージされました",
         "a63b3c159c": "これにより、GitHub 上の PR が更新されます。",
         "eec3706a6a": "{{value0}} PR #{{value1}}?",
-        "b8c6cbb8c4": "{{value0}} PR に失敗しました",
         "710e47aa06": "PR が再オープンされました",
         "7aa3b5f706": "PR がクローズされました",
         "3d77438c92": "これにより、GitHub で PR が再開されます。",
@@ -1539,7 +1538,13 @@
         "dd5d9a4f17": "{{value0}}に更新",
         "71a3c0f9d2": "ワークスペースを開始",
         "filesUnavailable": "変更されたファイルを読み込めませんでした。",
-        "filesRetry": "再試行"
+        "filesRetry": "再試行",
+        "77482513f8": "クローズ",
+        "2f5195c6a0": "再オープン",
+        "4b8ae7303f": "差分の読み込みに失敗しました。",
+        "closePullRequestFailed": "PR のクローズに失敗しました",
+        "reopenPullRequestFailed": "PR の再オープンに失敗しました",
+        "diffLoadTimedOut": "この差分の読み込みがタイムアウトしました。"
       },
       "QuickOpen": {
         "1dbd3f59ff": "移動",
