@@ -3288,7 +3288,9 @@
             "antigravityUsageDetails": "打开 Antigravity 使用详情",
             "grokUsageAria": "打开 Grok 使用详情",
             "grokUsageMenu": "Grok 使用情况",
-            "floatingTerminalNewActivity": "{{label}}，有新活动"
+            "floatingTerminalNewActivity": "{{label}}，有新活动",
+            "codexSignInSuccess": "已登录 Codex",
+            "codexSignInError": "Codex 登录失败，请重试。"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "连接账户",
@@ -5335,6 +5337,7 @@
           "codexSystemDefaultNeedsSignIn": "未找到 {{value0}} 的 Codex 登录信息。",
           "codexConfigSyncMissingSource": "由于缺少 {{value0}}，Codex 仍在使用上次同步的设置。请恢复该文件以恢复同步。",
           "codexConfigSyncBlankSource": "由于 {{value0}} 为空，Codex 仍在使用上次同步的设置。同步文件夹完成下载前出现这种情况是正常的。",
+          "codexConfigSyncManagedHomeUnavailable": "Orca 暂时无法读取此账户的 Codex 文件，因此设置可能尚未同步。这通常会自行恢复——防病毒软件或备份工具可能只是短暂锁定了这些文件。",
           "codexConfigSyncUnreadableSource": "由于无法读取 {{value0}}，Codex 仍在使用上次同步的设置。请检查该文件的权限。"
         },
         "AdvancedPane": {
