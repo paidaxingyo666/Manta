@@ -34,7 +34,7 @@ import {
   createSetupRunnerScriptMock,
   getEffectiveHooksFromConfigMock,
   getDefaultTabsLaunchMock,
-  parseOrcaYamlMock,
+  parseMantaYamlMock,
   shouldRunSetupForCreateMock,
   buildPosixRunnerScriptMock,
   buildWindowsRunnerScriptMock,
@@ -100,7 +100,7 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
     getEffectiveHooksMock,
     getEffectiveHooksFromConfigMock,
     getDefaultTabsLaunchMock,
-    parseOrcaYamlMock,
+    parseMantaYamlMock,
     createIssueCommandRunnerScriptMock,
     createSetupRunnerScriptMock,
     buildPosixRunnerScriptMock,
@@ -226,7 +226,7 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
   getEffectiveHooksMock.mockReturnValue(null)
   getEffectiveHooksFromConfigMock.mockImplementation(() => getEffectiveHooksMock())
   getDefaultTabsLaunchMock.mockReturnValue(undefined)
-  parseOrcaYamlMock.mockReturnValue(null)
+  parseMantaYamlMock.mockReturnValue(null)
   shouldRunSetupForCreateMock.mockReturnValue(false)
   buildPosixRunnerScriptMock.mockImplementation(
     (script: string) => `#!/usr/bin/env bash\nset -e\n${script.replace(/\r\n/g, '\n')}\n`
@@ -235,25 +235,25 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
   resolveSetupRunnerShellMock.mockReturnValue(undefined)
   getSetupRunnerEnvVarsMock.mockImplementation(
     (repoArg: { path: string }, worktreePath: string) => ({
-      ORCA_ROOT_PATH: repoArg.path,
-      ORCA_WORKTREE_PATH: worktreePath,
-      ORCA_WORKSPACE_NAME: worktreePath.split('/').at(-1) ?? '',
+      MANTA_ROOT_PATH: repoArg.path,
+      MANTA_WORKTREE_PATH: worktreePath,
+      MANTA_WORKSPACE_NAME: worktreePath.split('/').at(-1) ?? '',
       CONDUCTOR_ROOT_PATH: repoArg.path,
       GHOSTX_ROOT_PATH: repoArg.path
     })
   )
   createSetupRunnerScriptMock.mockReturnValue({
-    runnerScriptPath: '/workspace/repo/.git/orca/setup-runner.sh',
+    runnerScriptPath: '/workspace/repo/.git/manta/setup-runner.sh',
     envVars: {
-      ORCA_ROOT_PATH: '/workspace/repo',
-      ORCA_WORKTREE_PATH: '/workspace/improve-dashboard'
+      MANTA_ROOT_PATH: '/workspace/repo',
+      MANTA_WORKTREE_PATH: '/workspace/improve-dashboard'
     }
   })
   createIssueCommandRunnerScriptMock.mockReturnValue({
-    runnerScriptPath: '/workspace/repo/.git/orca/issue-command-runner.sh',
+    runnerScriptPath: '/workspace/repo/.git/manta/issue-command-runner.sh',
     envVars: {
-      ORCA_ROOT_PATH: '/workspace/repo',
-      ORCA_WORKTREE_PATH: '/workspace/improve-dashboard'
+      MANTA_ROOT_PATH: '/workspace/repo',
+      MANTA_WORKTREE_PATH: '/workspace/improve-dashboard'
     }
   })
   computeWorktreePathMock.mockImplementation(

@@ -109,7 +109,7 @@ export function searchWorktrees(
     return results
   }
 
-  // Support "repo/worktree" composite queries (e.g. "orca/main") so users can
+  // Support "repo/worktree" composite queries (e.g. "manta/main") so users can
   // narrow by repo and worktree in a single token. Worktrees are identified by
   // their branch name here, so the right-hand side is matched against the
   // branch. We split on the FIRST slash only — branch names themselves contain

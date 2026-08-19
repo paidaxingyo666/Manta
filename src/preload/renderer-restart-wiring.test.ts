@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ORCA_RENDERER_UNLOAD_PREVENTED_EVENT } from '../shared/renderer-shutdown-events'
+import { MANTA_RENDERER_UNLOAD_PREVENTED_EVENT } from '../shared/renderer-shutdown-events'
 import {
-  ORCA_APP_RESTART_ABORTED_EVENT,
-  ORCA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT
+  MANTA_APP_RESTART_ABORTED_EVENT,
+  MANTA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT
 } from '../shared/updater-renderer-events'
 import {
   prepareAndInvokeUpdaterInstall,
@@ -23,8 +23,8 @@ describe('renderer restart wiring', () => {
         return ipcRenderer
       })
     } as unknown as Parameters<typeof registerRendererRestartIpcRelays>[0]
-    eventTarget.addEventListener(ORCA_RENDERER_UNLOAD_PREVENTED_EVENT, unloadPrevented)
-    eventTarget.addEventListener(ORCA_APP_RESTART_ABORTED_EVENT, restartAborted)
+    eventTarget.addEventListener(MANTA_RENDERER_UNLOAD_PREVENTED_EVENT, unloadPrevented)
+    eventTarget.addEventListener(MANTA_APP_RESTART_ABORTED_EVENT, restartAborted)
 
     registerRendererRestartIpcRelays(ipcRenderer, eventTarget, { handleStatus, abort })
     listeners.get('updater:status')?.({}, { state: 'error', message: 'install failed' })
@@ -42,7 +42,7 @@ describe('renderer restart wiring', () => {
   it('marks preparation before invoking main and aborts on IPC failure', async () => {
     const eventTarget = new EventTarget()
     const calls: string[] = []
-    eventTarget.addEventListener(ORCA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, () => {
+    eventTarget.addEventListener(MANTA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, () => {
       calls.push('prepared')
     })
     const relay = {

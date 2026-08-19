@@ -16,9 +16,9 @@ import { getZshShellReadyRcfileContent } from './local-pty-shell-ready-wrapper-g
 restoreUserDataPathAfterEach()
 
 describe('shell-ready wrapper root resolution', () => {
-  // Why: daemon-entry fork is plain Node (no electron), so the wrapper root resolves from ORCA_USER_DATA_PATH, not app.getPath.
-  it('resolves the wrapper root from ORCA_USER_DATA_PATH', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'orca-userdata-env-'))
+  // Why: daemon-entry fork is plain Node (no electron), so the wrapper root resolves from MANTA_USER_DATA_PATH, not app.getPath.
+  it('resolves the wrapper root from MANTA_USER_DATA_PATH', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'manta-userdata-env-'))
     try {
       setTestUserDataPath(root)
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
@@ -50,7 +50,7 @@ function runInteractiveBashRcfile(
       env: {
         ...process.env,
         HOME: tempDir,
-        ORCA_SHELL_READY_MARKER: '1',
+        MANTA_SHELL_READY_MARKER: '1',
         TERM: process.env.TERM || 'xterm'
       },
       timeout: 5000
@@ -88,32 +88,32 @@ function expectBashOsc133Lifecycle(output: string): void {
 }
 
 function expectZdotdirSourceContext(content: string, fileName: '.zprofile' | '.zshrc' | '.zlogin') {
-  expect(content).toContain('export ZDOTDIR="$_orca_home"')
-  expect(content).toContain(`source "$_orca_home/${fileName}"`)
-  expect(content).toContain('export ZDOTDIR="$_orca_wrapper_zdotdir"')
+  expect(content).toContain('export ZDOTDIR="$_manta_home"')
+  expect(content).toContain(`source "$_manta_home/${fileName}"`)
+  expect(content).toContain('export ZDOTDIR="$_manta_wrapper_zdotdir"')
 }
 
 function expectFinalZdotdirRestoreContext(content: string) {
-  expect(content).toContain("after Orca's last wrapper file has loaded")
-  expect(content).toContain('export ZDOTDIR="$_orca_home"')
+  expect(content).toContain("after Manta's last wrapper file has loaded")
+  expect(content).toContain('export ZDOTDIR="$_manta_home"')
 }
 
 describePosix('local PTY shell-ready launch config', () => {
   let userDataPath: string
-  let previousOrcaOrigZdotdir: string | undefined
+  let previousMantaOrigZdotdir: string | undefined
 
   beforeEach(() => {
-    previousOrcaOrigZdotdir = process.env.ORCA_ORIG_ZDOTDIR
-    delete process.env.ORCA_ORIG_ZDOTDIR
+    previousMantaOrigZdotdir = process.env.MANTA_ORIG_ZDOTDIR
+    delete process.env.MANTA_ORIG_ZDOTDIR
     userDataPath = mkdtempSync(join(tmpdir(), 'local-pty-shell-ready-test-'))
     setTestUserDataPath(userDataPath)
   })
 
   afterEach(() => {
-    if (previousOrcaOrigZdotdir === undefined) {
-      delete process.env.ORCA_ORIG_ZDOTDIR
+    if (previousMantaOrigZdotdir === undefined) {
+      delete process.env.MANTA_ORIG_ZDOTDIR
     } else {
-      process.env.ORCA_ORIG_ZDOTDIR = previousOrcaOrigZdotdir
+      process.env.MANTA_ORIG_ZDOTDIR = previousMantaOrigZdotdir
     }
     rmSync(userDataPath, { recursive: true, force: true })
     vi.restoreAllMocks()
@@ -127,13 +127,13 @@ describePosix('local PTY shell-ready launch config', () => {
     const config = getShellReadyLaunchConfig('/opt/homebrew/bin/fish')
 
     expect(config.supportsReadyMarker).toBe(true)
-    expect(config.env).toEqual({ ORCA_SHELL_READY_MARKER: '1' })
+    expect(config.env).toEqual({ MANTA_SHELL_READY_MARKER: '1' })
     expect(config.args?.slice(0, 2)).toEqual(['-l', '-C'])
     const init = config.args?.[2] ?? ''
     expect(init).toContain('--on-event fish_prompt')
     // Why `builtin`: a user-defined printf function would swallow the marker.
-    expect(init).toContain('builtin printf "\\033]777;orca-shell-ready\\007"')
-    expect(init).toContain('functions -e __orca_shell_ready_marker')
+    expect(init).toContain('builtin printf "\\033]777;manta-shell-ready\\007"')
+    expect(init).toContain('functions -e __manta_shell_ready_marker')
   })
 
   it('keeps markerless fish spawns unwrapped', async () => {
@@ -144,17 +144,17 @@ describePosix('local PTY shell-ready launch config', () => {
     expect(config).toEqual({ args: null, env: {}, supportsReadyMarker: false })
   })
 
-  it('falls back to HOME for ORCA_ORIG_ZDOTDIR when inherited ZDOTDIR points at a wrapper dir', async () => {
-    // Why: mirrors the daemon path — guards the same zsh recursion loop for renderer/local PTYs spawned inside an Orca terminal.
+  it('falls back to HOME for MANTA_ORIG_ZDOTDIR when inherited ZDOTDIR points at a wrapper dir', async () => {
+    // Why: mirrors the daemon path — guards the same zsh recursion loop for renderer/local PTYs spawned inside a Manta terminal.
     const previousZdotdir = process.env.ZDOTDIR
     const previousHome = process.env.HOME
-    process.env.ZDOTDIR = '/some/other/orca/shell-ready/zsh'
+    process.env.ZDOTDIR = '/some/other/manta/shell-ready/zsh'
     process.env.HOME = '/Users/alice'
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice')
-      expect(config.env.ORCA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -169,18 +169,18 @@ describePosix('local PTY shell-ready launch config', () => {
     }
   })
 
-  it('uses inherited ORCA_ORIG_ZDOTDIR when ZDOTDIR is an Orca wrapper dir', async () => {
+  it('uses inherited MANTA_ORIG_ZDOTDIR when ZDOTDIR is a Manta wrapper dir', async () => {
     const previousZdotdir = process.env.ZDOTDIR
-    const previousOrigZdotdir = process.env.ORCA_ORIG_ZDOTDIR
+    const previousOrigZdotdir = process.env.MANTA_ORIG_ZDOTDIR
     const previousHome = process.env.HOME
-    process.env.ZDOTDIR = '/some/other/orca/shell-ready/zsh'
-    process.env.ORCA_ORIG_ZDOTDIR = '/Users/alice/.config/zsh'
+    process.env.ZDOTDIR = '/some/other/manta/shell-ready/zsh'
+    process.env.MANTA_ORIG_ZDOTDIR = '/Users/alice/.config/zsh'
     process.env.HOME = '/Users/alice'
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice/.config/zsh')
-      expect(config.env.ORCA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice/.config/zsh')
+      expect(config.env.MANTA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -188,9 +188,9 @@ describePosix('local PTY shell-ready launch config', () => {
         process.env.ZDOTDIR = previousZdotdir
       }
       if (previousOrigZdotdir === undefined) {
-        delete process.env.ORCA_ORIG_ZDOTDIR
+        delete process.env.MANTA_ORIG_ZDOTDIR
       } else {
-        process.env.ORCA_ORIG_ZDOTDIR = previousOrigZdotdir
+        process.env.MANTA_ORIG_ZDOTDIR = previousOrigZdotdir
       }
       if (previousHome === undefined) {
         delete process.env.HOME
@@ -200,18 +200,18 @@ describePosix('local PTY shell-ready launch config', () => {
     }
   })
 
-  it('falls back to HOME when inherited ORCA_ORIG_ZDOTDIR points at a wrapper dir', async () => {
+  it('falls back to HOME when inherited MANTA_ORIG_ZDOTDIR points at a wrapper dir', async () => {
     const previousZdotdir = process.env.ZDOTDIR
-    const previousOrigZdotdir = process.env.ORCA_ORIG_ZDOTDIR
+    const previousOrigZdotdir = process.env.MANTA_ORIG_ZDOTDIR
     const previousHome = process.env.HOME
     delete process.env.ZDOTDIR
-    process.env.ORCA_ORIG_ZDOTDIR = '/some/other/orca/shell-ready/zsh'
+    process.env.MANTA_ORIG_ZDOTDIR = '/some/other/manta/shell-ready/zsh'
     process.env.HOME = '/Users/alice'
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice')
-      expect(config.env.ORCA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ZSHENV_SOURCE_DIR).toBe('/Users/alice')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -219,9 +219,9 @@ describePosix('local PTY shell-ready launch config', () => {
         process.env.ZDOTDIR = previousZdotdir
       }
       if (previousOrigZdotdir === undefined) {
-        delete process.env.ORCA_ORIG_ZDOTDIR
+        delete process.env.MANTA_ORIG_ZDOTDIR
       } else {
-        process.env.ORCA_ORIG_ZDOTDIR = previousOrigZdotdir
+        process.env.MANTA_ORIG_ZDOTDIR = previousOrigZdotdir
       }
       if (previousHome === undefined) {
         delete process.env.HOME
@@ -231,7 +231,7 @@ describePosix('local PTY shell-ready launch config', () => {
     }
   })
 
-  it('writes zsh wrappers that guard against ORCA_ORIG_ZDOTDIR self-loops', async () => {
+  it('writes zsh wrappers that guard against MANTA_ORIG_ZDOTDIR self-loops', async () => {
     const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
 
     getShellReadyLaunchConfig('/bin/zsh')
@@ -240,10 +240,10 @@ describePosix('local PTY shell-ready launch config', () => {
     const zprofile = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zprofile'), 'utf8')
     const zshrc = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zshrc'), 'utf8')
     const zlogin = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zlogin'), 'utf8')
-    expect(zshenv).toContain('_orca_user_zdotdir="${_orca_spawn_orig_zdotdir:-$HOME}"')
-    expect(zshenv).toContain('printf "\\033]777;orca-shell-start:%s\\007" "$$"')
-    expect(zshenv).toContain('*/shell-ready/zsh) _orca_user_zdotdir="$HOME" ;;')
-    expect(zshenv).toContain('""|*/shell-ready/zsh) export ORCA_ORIG_ZDOTDIR="$HOME" ;;')
+    expect(zshenv).toContain('_manta_user_zdotdir="${_manta_spawn_orig_zdotdir:-$HOME}"')
+    expect(zshenv).toContain('printf "\\033]777;manta-shell-start:%s\\007" "$$"')
+    expect(zshenv).toContain('*/shell-ready/zsh) _manta_user_zdotdir="$HOME" ;;')
+    expect(zshenv).toContain('""|*/shell-ready/zsh) export MANTA_ORIG_ZDOTDIR="$HOME" ;;')
     expectZdotdirSourceContext(zprofile, '.zprofile')
     expectZdotdirSourceContext(zshrc, '.zshrc')
     expectZdotdirSourceContext(zlogin, '.zlogin')
@@ -257,13 +257,13 @@ describePosix('local PTY shell-ready launch config', () => {
     getShellReadyLaunchConfig('/bin/zsh')
 
     const zlogin = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zlogin'), 'utf8')
-    expect(zlogin).toContain('zle -N zle-line-init __orca_prompt_mark')
-    expect(zlogin).toContain('__orca_prev_line_init_fn="${widgets[zle-line-init]#user:}"')
-    expect(zlogin).toContain('printf "\\033]777;orca-shell-ready\\007"')
+    expect(zlogin).toContain('zle -N zle-line-init __manta_prompt_mark')
+    expect(zlogin).toContain('__manta_prev_line_init_fn="${widgets[zle-line-init]#user:}"')
+    expect(zlogin).toContain('printf "\\033]777;manta-shell-ready\\007"')
     // Why: add-zle-hook-widget aborts its chain on a non-zero earlier hook (e.g. oh-my-zsh vi-mode); don't register the marker through it.
     expect(zlogin).not.toContain('add-zle-hook-widget line-init')
     // Why: re-source guard — skip re-capturing when already the bound widget so the prior chain survives a second source.
-    expect(zlogin).toContain('== "user:__orca_prompt_mark"')
+    expect(zlogin).toContain('== "user:__manta_prompt_mark"')
   })
 
   it('writes wrappers without restoring Pi/OMP homes after user startup files', async () => {
@@ -275,38 +275,38 @@ describePosix('local PTY shell-ready launch config', () => {
     const zlogin = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zlogin'), 'utf8')
     const bashRc = getBashShellReadyRcfileContent()
     const restoreLine =
-      '[[ -n "${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${ORCA_OPENCODE_CONFIG_DIR}"'
+      '[[ -n "${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${MANTA_OPENCODE_CONFIG_DIR}"'
     const mimoRestoreLine =
-      '[[ -n "${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ORCA_MIMOCODE_HOME}"'
+      '[[ -n "${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${MANTA_MIMOCODE_HOME}"'
     const codexRestoreLine =
-      '[[ -n "${ORCA_CODEX_HOME:-}" ]] && export CODEX_HOME="${ORCA_CODEX_HOME}"'
-    const agentTeamsPathRestoreLine = '[[ -n "${ORCA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0'
-    const ompWrapperLine = 'command omp --extension "${ORCA_OMP_STATUS_EXTENSION}" "$@"'
+      '[[ -n "${MANTA_CODEX_HOME:-}" ]] && export CODEX_HOME="${MANTA_CODEX_HOME}"'
+    const agentTeamsPathRestoreLine = '[[ -n "${MANTA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0'
+    const ompWrapperLine = 'command omp --extension "${MANTA_OMP_STATUS_EXTENSION}" "$@"'
     expect(zshrc).toContain(restoreLine)
     expect(zlogin).toContain(restoreLine)
     expect(bashRc).toContain(restoreLine)
     expect(zshrc).toContain(mimoRestoreLine)
     expect(zlogin).toContain(mimoRestoreLine)
     expect(bashRc).toContain(mimoRestoreLine)
-    expect(zshrc).not.toContain('ORCA_PI_CODING_AGENT_DIR')
-    expect(zlogin).not.toContain('ORCA_PI_CODING_AGENT_DIR')
-    expect(bashRc).not.toContain('ORCA_PI_CODING_AGENT_DIR')
+    expect(zshrc).not.toContain('MANTA_PI_CODING_AGENT_DIR')
+    expect(zlogin).not.toContain('MANTA_PI_CODING_AGENT_DIR')
+    expect(bashRc).not.toContain('MANTA_PI_CODING_AGENT_DIR')
     expect(zshrc).toContain(codexRestoreLine)
     expect(zlogin).toContain(codexRestoreLine)
     expect(zshrc).toContain(agentTeamsPathRestoreLine)
     expect(zlogin).toContain(agentTeamsPathRestoreLine)
     expect(bashRc).toContain(agentTeamsPathRestoreLine)
     expect(bashRc).toContain(codexRestoreLine)
-    expect(zshrc).not.toContain('ORCA_OMP_CODING_AGENT_DIR')
-    expect(zlogin).not.toContain('ORCA_OMP_CODING_AGENT_DIR')
-    expect(bashRc).not.toContain('ORCA_OMP_CODING_AGENT_DIR')
+    expect(zshrc).not.toContain('MANTA_OMP_CODING_AGENT_DIR')
+    expect(zlogin).not.toContain('MANTA_OMP_CODING_AGENT_DIR')
+    expect(bashRc).not.toContain('MANTA_OMP_CODING_AGENT_DIR')
     expect(zshrc).toContain(ompWrapperLine)
     expect(zlogin).toContain(ompWrapperLine)
     expect(bashRc).toContain(ompWrapperLine)
     for (const wrapperFile of [zshrc, zlogin, bashRc]) {
       expect(wrapperFile).not.toContain('prime-agent()')
-      expect(wrapperFile).not.toContain('__orca_prime_agent')
-      expect(wrapperFile).not.toContain('ORCA_PRIME_AGENT_STATUS_EXTENSION')
+      expect(wrapperFile).not.toContain('__manta_prime_agent')
+      expect(wrapperFile).not.toContain('MANTA_PRIME_AGENT_STATUS_EXTENSION')
       expect(wrapperFile).not.toContain('command prime-agent --extension')
     }
   })
@@ -319,11 +319,11 @@ describePosix('local PTY shell-ready launch config', () => {
     // The exact escape sequences terminal-command-lifecycle parses (133;D = finished, 133;C = start).
     expect(bashRc).toContain('printf "\\033]133;D;%s\\007"')
     expect(bashRc).toContain('printf "\\033]133;C\\007"')
-    expect(bashRc).toContain('[[ -z "${__orca_in_command:-}" ]] || return 0')
-    expect(bashRc).toContain('__orca_prepend_prompt_command "__orca_osc133_precmd"')
+    expect(bashRc).toContain('[[ -z "${__manta_in_command:-}" ]] || return 0')
+    expect(bashRc).toContain('__manta_prepend_prompt_command "__manta_osc133_precmd"')
     // DEBUG is armed after setup; lastIndexOf skips the dispatcher's conditional re-arm.
-    expect(bashRc.lastIndexOf("trap '__orca_osc133_preexec' DEBUG")).toBeGreaterThan(
-      bashRc.indexOf('if [[ "${ORCA_SHELL_READY_MARKER:-0}" == "1" ]]; then')
+    expect(bashRc.lastIndexOf("trap '__manta_osc133_preexec' DEBUG")).toBeGreaterThan(
+      bashRc.indexOf('if [[ "${MANTA_SHELL_READY_MARKER:-0}" == "1" ]]; then')
     )
     // Sanity: zsh wrapper emits the same markers — both branches must stay in sync.
     expect(zshRc).toContain('printf "\\033]133;D;%s\\007"')
@@ -337,10 +337,10 @@ describePosix('local PTY shell-ready launch config', () => {
   })
 
   itWithBash('emits lifecycle for foreground text ending like an internal hook', () => {
-    const input = 'echo user:__orca_osc133_prompt_done\nfalse\nexit 0\n'
+    const input = 'echo user:__manta_osc133_prompt_done\nfalse\nexit 0\n'
     const output = runInteractiveBashRcfile(getBashShellReadyRcfileContent(), userDataPath, input)
 
-    expect(output).toContain('user:__orca_osc133_prompt_done')
+    expect(output).toContain('user:__manta_osc133_prompt_done')
     expectBashOsc133Lifecycle(output)
   })
 
@@ -360,8 +360,8 @@ describePosix('local PTY shell-ready launch config', () => {
       expect(output).toContain('PROMPT_HOOK')
       expect(output).toContain('USER_DEBUG_AFTER')
       expect(output).toContain('USER_DEBUG_AFTER:<printf "PROMPT_HOOK\\n">')
-      expect(output).not.toContain('USER_DEBUG_AFTER:<(( __orca_exit_code == 0 ))>')
-      expect(output).not.toContain('USER_DEBUG_AFTER:<__orca_restore_prompt_status')
+      expect(output).not.toContain('USER_DEBUG_AFTER:<(( __manta_exit_code == 0 ))>')
+      expect(output).not.toContain('USER_DEBUG_AFTER:<__manta_restore_prompt_status')
       expectBashOsc133Lifecycle(output)
     }
   )
@@ -409,14 +409,14 @@ describePosix('local PTY shell-ready launch config', () => {
     expectBashOsc133Lifecycle(output)
   })
 
-  it('preserves a real inherited ZDOTDIR as ORCA_ORIG_ZDOTDIR', async () => {
+  it('preserves a real inherited ZDOTDIR as MANTA_ORIG_ZDOTDIR', async () => {
     const previousZdotdir = process.env.ZDOTDIR
     process.env.ZDOTDIR = '/Users/alice/.config/zsh'
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice/.config/zsh')
-      expect(config.env.ORCA_ZSHENV_SOURCE_DIR).toBe('/Users/alice/.config/zsh')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice/.config/zsh')
+      expect(config.env.MANTA_ZSHENV_SOURCE_DIR).toBe('/Users/alice/.config/zsh')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -429,12 +429,12 @@ describePosix('local PTY shell-ready launch config', () => {
   it('rejects inherited ZDOTDIR ending in /shell-ready/zsh even with a trailing slash', async () => {
     const previousZdotdir = process.env.ZDOTDIR
     const previousHome = process.env.HOME
-    process.env.ZDOTDIR = '/some/other/orca/shell-ready/zsh/'
+    process.env.ZDOTDIR = '/some/other/manta/shell-ready/zsh/'
     process.env.HOME = '/Users/alice'
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -457,7 +457,7 @@ describePosix('local PTY shell-ready launch config', () => {
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -478,7 +478,7 @@ describePosix('local PTY shell-ready launch config', () => {
     try {
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
-      expect(config.env.ORCA_ORIG_ZDOTDIR).toBe('/Users/alice/shell-ready/zsh-custom')
+      expect(config.env.MANTA_ORIG_ZDOTDIR).toBe('/Users/alice/shell-ready/zsh-custom')
     } finally {
       if (previousZdotdir === undefined) {
         delete process.env.ZDOTDIR
@@ -497,17 +497,17 @@ describePosix('local PTY shell-ready launch config', () => {
     const zshenv = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zshenv'), 'utf8')
 
     expect(zshenv).toContain('unset ZDOTDIR')
-    expect(zshenv).toContain('_orca_zshenv_source_dir="${ORCA_ZSHENV_SOURCE_DIR:-$HOME}"')
-    expect(zshenv).toContain('source "${_orca_zshenv_path}"')
-    expect(zshenv).toContain('_orca_discovered_zdotdir="${ZDOTDIR:-}"')
+    expect(zshenv).toContain('_manta_zshenv_source_dir="${MANTA_ZSHENV_SOURCE_DIR:-$HOME}"')
+    expect(zshenv).toContain('source "${_manta_zshenv_path}"')
+    expect(zshenv).toContain('_manta_discovered_zdotdir="${ZDOTDIR:-}"')
     expect(zshenv).toContain(
-      'export ORCA_ORIG_ZDOTDIR="${_orca_discovered_zdotdir:-${_orca_user_zdotdir:-$HOME}}"'
+      'export MANTA_ORIG_ZDOTDIR="${_manta_discovered_zdotdir:-${_manta_user_zdotdir:-$HOME}}"'
     )
     expect(zshenv).toContain('export ZDOTDIR=')
   })
 
-  it('preserves spawn-env ORCA_ORIG_ZDOTDIR as fallback when discovery yields nothing', async () => {
-    // Why: if user .zshenv returns early or doesn't set ZDOTDIR, fall back to spawn-env ORCA_ORIG_ZDOTDIR, then HOME.
+  it('preserves spawn-env MANTA_ORIG_ZDOTDIR as fallback when discovery yields nothing', async () => {
+    // Why: if user .zshenv returns early or doesn't set ZDOTDIR, fall back to spawn-env MANTA_ORIG_ZDOTDIR, then HOME.
     const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
 
     getShellReadyLaunchConfig('/bin/zsh')
@@ -515,10 +515,10 @@ describePosix('local PTY shell-ready launch config', () => {
     const zshenv = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zshenv'), 'utf8')
 
     // Save spawn-env value before sourcing user .zshenv
-    expect(zshenv).toContain('_orca_spawn_orig_zdotdir="${ORCA_ORIG_ZDOTDIR:-}"')
+    expect(zshenv).toContain('_manta_spawn_orig_zdotdir="${MANTA_ORIG_ZDOTDIR:-}"')
 
     // Fallback chain: discovered → normalized spawn-env path → HOME
-    expect(zshenv).toContain('${_orca_discovered_zdotdir:-${_orca_user_zdotdir:-$HOME}}')
+    expect(zshenv).toContain('${_manta_discovered_zdotdir:-${_manta_user_zdotdir:-$HOME}}')
   })
 
   it('restores wrapper ZDOTDIR from the runtime sourced path, not the baked literal', async () => {
@@ -530,23 +530,23 @@ describePosix('local PTY shell-ready launch config', () => {
     const zshenv = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zshenv'), 'utf8')
 
     // Why: derive wrapper dir from %x, not env $ZDOTDIR — zsh corrupts non-ASCII usernames in its 0x84-0x9D token range.
-    expect(zshenv).toContain('_orca_wrapper_zdotdir_self="${${(%):-%x}:h}"')
+    expect(zshenv).toContain('_manta_wrapper_zdotdir_self="${${(%):-%x}:h}"')
     // Keep $ZDOTDIR only as a fallback when %x yields nothing; the final restore re-validates with -f, so no stat here.
     expect(zshenv).toContain(
-      'if [[ -z "${_orca_wrapper_zdotdir_self:-}" ]]; then\n' +
-        '  _orca_wrapper_zdotdir_self="${ZDOTDIR:-}"\n' +
+      'if [[ -z "${_manta_wrapper_zdotdir_self:-}" ]]; then\n' +
+        '  _manta_wrapper_zdotdir_self="${ZDOTDIR:-}"\n' +
         'fi'
     )
     // Trust the runtime path only when it still holds a wrapper .zshenv; else fall back to the generation-time literal.
     expect(zshenv).toContain(
-      'if [[ -n "${_orca_wrapper_zdotdir_self:-}" && -f "${_orca_wrapper_zdotdir_self:-}/.zshenv" ]]; then\n' +
-        '  export ZDOTDIR="${_orca_wrapper_zdotdir_self:-}"\n' +
+      'if [[ -n "${_manta_wrapper_zdotdir_self:-}" && -f "${_manta_wrapper_zdotdir_self:-}/.zshenv" ]]; then\n' +
+        '  export ZDOTDIR="${_manta_wrapper_zdotdir_self:-}"\n' +
         'else\n' +
         `  export ZDOTDIR='${join(userDataPath, 'shell-ready', 'zsh')}'\n` +
         'fi'
     )
     // Capture must happen before the wrapper unsets ZDOTDIR to source user files.
-    expect(zshenv.indexOf('_orca_wrapper_zdotdir_self="${${(%):-%x}:h}"')).toBeLessThan(
+    expect(zshenv.indexOf('_manta_wrapper_zdotdir_self="${${(%):-%x}:h}"')).toBeLessThan(
       zshenv.indexOf('unset ZDOTDIR')
     )
   })

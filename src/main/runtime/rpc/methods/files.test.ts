@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from '../dispatcher'
 import type { RpcRequest } from '../core'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { FILE_METHODS } from './files'
 
 function makeRequest(method: string, params?: unknown): RpcRequest {
@@ -19,7 +19,7 @@ describe('file RPC methods', () => {
         totalCount: 0,
         truncated: false
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(makeRequest('files.list', { worktree: 'id:wt-1' }))
@@ -40,7 +40,7 @@ describe('file RPC methods', () => {
         kind: 'markdown',
         opened: true
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -63,7 +63,7 @@ describe('file RPC methods', () => {
         kind: 'markdown',
         opened: true
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -88,7 +88,7 @@ describe('file RPC methods', () => {
         resolvedPath: '/home/me',
         entries: [{ name: 'project', isDirectory: true, isSymlink: false }]
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(makeRequest('files.browseServerDir', { path: '~' }))
@@ -116,7 +116,7 @@ describe('file RPC methods', () => {
         registerSubscriptionCleanup: vi.fn().mockImplementation((id, cleanup) => {
           cleanups.set(id, cleanup)
         })
-      } as unknown as OrcaRuntimeService
+      } as unknown as MantaRuntimeService
       const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
       const replies: unknown[] = []
 
@@ -202,7 +202,7 @@ describe('file RPC methods', () => {
         cleanups.delete(id)
         cleanup?.()
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
     const replies: { result?: { type?: string; message?: string } }[] = []
 
@@ -253,7 +253,7 @@ describe('file RPC methods', () => {
       cleanupSubscription: vi.fn((id) => {
         void Promise.resolve(cleanups.get(id)?.())
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
     const abortController = new AbortController()
     const replies: unknown[] = []
@@ -288,7 +288,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       cleanupSubscriptionAndWait: vi.fn().mockRejectedValue(cleanupError)
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -311,7 +311,7 @@ describe('file RPC methods', () => {
         truncated: false,
         byteLength: 10
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -335,7 +335,7 @@ describe('file RPC methods', () => {
         truncated: false,
         byteLength: 2
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -359,7 +359,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeTerminalArtifactFile: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     await dispatcher.dispatch(
@@ -389,7 +389,7 @@ describe('file RPC methods', () => {
         isImage: true,
         mimeType: 'image/png'
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -411,7 +411,7 @@ describe('file RPC methods', () => {
         bytesRead: 3,
         eof: true
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -434,7 +434,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       readFileExplorerDir: vi.fn().mockResolvedValue([{ name: 'src', isDirectory: true }])
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -452,7 +452,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFile: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -475,7 +475,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -498,7 +498,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64Chunk: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -527,7 +527,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFile: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(makeRequest('files.write', params))
@@ -540,7 +540,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFile: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -555,7 +555,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -589,7 +589,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(makeRequest('files.writeBase64', params))
@@ -602,7 +602,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64Chunk: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -663,7 +663,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       writeFileExplorerFileBase64Chunk: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(makeRequest('files.writeBase64Chunk', params))
@@ -676,20 +676,20 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       commitFileExplorerUpload: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
       makeRequest('files.commitUpload', {
         worktree: 'id:wt-1',
-        tempRelativePath: 'assets/.logo.png.orca-upload-a',
+        tempRelativePath: 'assets/.logo.png.manta-upload-a',
         finalRelativePath: 'assets/logo.png'
       })
     )
 
     expect(runtime.commitFileExplorerUpload).toHaveBeenCalledWith(
       'id:wt-1',
-      'assets/.logo.png.orca-upload-a',
+      'assets/.logo.png.manta-upload-a',
       'assets/logo.png'
     )
     expect(response).toMatchObject({ ok: true, result: { ok: true } })
@@ -699,7 +699,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       renameFileExplorerPath: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -718,7 +718,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       copyFileExplorerPath: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -737,7 +737,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       deleteFileExplorerPath: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     await dispatcher.dispatch(
@@ -755,7 +755,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       deleteFileExplorerPath: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -788,7 +788,7 @@ describe('file RPC methods', () => {
         totalMatches: 0,
         truncated: false
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -816,7 +816,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       listRuntimeFiles: vi.fn().mockResolvedValue(['src/index.ts'])
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -843,7 +843,7 @@ describe('file RPC methods', () => {
           name: 'readme'
         }
       ])
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(
@@ -858,7 +858,7 @@ describe('file RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       statRuntimeFile: vi.fn().mockResolvedValue({ size: 12, isDirectory: false, mtime: 1 })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: FILE_METHODS })
 
     const response = await dispatcher.dispatch(

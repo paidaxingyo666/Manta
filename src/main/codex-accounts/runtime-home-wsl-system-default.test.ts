@@ -90,7 +90,7 @@ describe('CodexRuntimeHomeService', () => {
       wslHome,
       '.local',
       'share',
-      'orca',
+      'manta',
       'codex-runtime-home',
       'home',
       'auth.json'
@@ -104,7 +104,7 @@ describe('CodexRuntimeHomeService', () => {
             managedHomePath: ubuntuHomePath,
             managedHomeRuntime: 'wsl',
             wslDistro: 'Ubuntu',
-            wslLinuxHomePath: '/home/alice/.local/share/orca/codex-accounts/ubuntu/home',
+            wslLinuxHomePath: '/home/alice/.local/share/manta/codex-accounts/ubuntu/home',
             providerAccountId: 'acct-ubuntu',
             workspaceLabel: null,
             workspaceAccountId: 'acct-ubuntu',
@@ -118,7 +118,7 @@ describe('CodexRuntimeHomeService', () => {
             managedHomePath: debianHomePath,
             managedHomeRuntime: 'wsl',
             wslDistro: 'Debian',
-            wslLinuxHomePath: '/home/alice/.local/share/orca/codex-accounts/debian/home',
+            wslLinuxHomePath: '/home/alice/.local/share/manta/codex-accounts/debian/home',
             providerAccountId: 'acct-debian',
             workspaceLabel: null,
             workspaceAccountId: 'acct-debian',
@@ -139,7 +139,7 @@ describe('CodexRuntimeHomeService', () => {
       const service = new CodexRuntimeHomeService(store as never)
 
       expect(service.prepareForRateLimitFetch({ runtime: 'wsl', wslDistro: null })).toBe(
-        join(wslHome, '.local', 'share', 'orca', 'codex-runtime-home', 'home')
+        join(wslHome, '.local', 'share', 'manta', 'codex-runtime-home', 'home')
       )
       expect(readFileSync(runtimeAuthPath, 'utf-8')).toBe(ubuntuAuth)
     } finally {
@@ -177,7 +177,7 @@ describe('CodexRuntimeHomeService', () => {
             managedHomePath,
             managedHomeRuntime: 'wsl',
             wslDistro: 'Ubuntu',
-            wslLinuxHomePath: '/home/alice/.local/share/orca/codex-accounts/wsl-account/home',
+            wslLinuxHomePath: '/home/alice/.local/share/manta/codex-accounts/wsl-account/home',
             providerAccountId: 'acct-wsl',
             workspaceLabel: null,
             workspaceAccountId: 'acct-wsl',
@@ -251,7 +251,7 @@ describe('CodexRuntimeHomeService', () => {
         wslHome,
         '.local',
         'share',
-        'orca',
+        'manta',
         'codex-runtime-home',
         'home'
       )
@@ -289,7 +289,7 @@ describe('CodexRuntimeHomeService', () => {
       wslHome,
       '.local',
       'share',
-      'orca',
+      'manta',
       'codex-runtime-home',
       'home'
     )

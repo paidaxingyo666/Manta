@@ -1,4 +1,4 @@
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import {
   configureGoldenStubAgent,
   getGoldenStubAgentLaunchEnv,
@@ -26,39 +26,39 @@ function buildSplitMarkerEcho(prefix: string, suffix: string): { command: string
   return { command, marker: `${prefix}${suffix}` }
 }
 
-test('opens a clean live shell after an agent exits', async ({ orcaPage }) => {
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  await configureGoldenStubAgent(orcaPage)
-  await launchGoldenStubAgentFromNewTab(orcaPage)
+test('opens a clean live shell after an agent exits', async ({ mantaPage }) => {
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
+  await configureGoldenStubAgent(mantaPage)
+  await launchGoldenStubAgentFromNewTab(mantaPage)
 
-  await orcaPage.keyboard.type('exit')
-  await orcaPage.keyboard.press('Enter')
-  await waitForTerminalOutput(orcaPage, GOLDEN_STUB_EXIT_MARKER, 15_000)
+  await mantaPage.keyboard.type('exit')
+  await mantaPage.keyboard.press('Enter')
+  await waitForTerminalOutput(mantaPage, GOLDEN_STUB_EXIT_MARKER, 15_000)
 
-  const tabsBeforeShell = await orcaPage.locator('[data-testid="sortable-tab"]').count()
-  await orcaPage.getByRole('button', { name: 'New tab' }).click({ force: true })
-  await orcaPage
+  const tabsBeforeShell = await mantaPage.locator('[data-testid="sortable-tab"]').count()
+  await mantaPage.getByRole('button', { name: 'New tab' }).click({ force: true })
+  await mantaPage
     .getByRole('menuitem', { name: /New Terminal/i })
     .first()
     .click({ force: true })
-  await expect(orcaPage.locator('[data-testid="sortable-tab"]')).toHaveCount(tabsBeforeShell + 1)
-  const shellPtyId = await waitForActivePanePtyId(orcaPage)
+  await expect(mantaPage.locator('[data-testid="sortable-tab"]')).toHaveCount(tabsBeforeShell + 1)
+  const shellPtyId = await waitForActivePanePtyId(mantaPage)
   // Why: a bound ptyId only means the pane exists; the renderer transport can
   // still drop keystrokes until it connects, which would strand the markers.
-  expect(await waitForRestoredTerminalInputReady(orcaPage, shellPtyId)).toBe(true)
+  expect(await waitForRestoredTerminalInputReady(mantaPage, shellPtyId)).toBe(true)
 
   const afterAgent = buildSplitMarkerEcho('after-', 'agent')
-  await focusActiveTerminalInput(orcaPage)
-  await orcaPage.keyboard.type(afterAgent.command)
-  await orcaPage.keyboard.press('Enter')
-  await waitForTerminalOutput(orcaPage, afterAgent.marker, 15_000)
+  await focusActiveTerminalInput(mantaPage)
+  await mantaPage.keyboard.type(afterAgent.command)
+  await mantaPage.keyboard.press('Enter')
+  await waitForTerminalOutput(mantaPage, afterAgent.marker, 15_000)
 
   const afterShiftEnter = buildSplitMarkerEcho('after-shift-', 'enter')
-  await orcaPage.keyboard.press('Shift+Enter')
-  await orcaPage.keyboard.type(afterShiftEnter.command)
-  await orcaPage.keyboard.press('Enter')
-  await waitForTerminalOutput(orcaPage, afterShiftEnter.marker, 15_000)
-  await expect(orcaPage.locator('[data-testid="sortable-tab"]')).toHaveCount(tabsBeforeShell + 1)
+  await mantaPage.keyboard.press('Shift+Enter')
+  await mantaPage.keyboard.type(afterShiftEnter.command)
+  await mantaPage.keyboard.press('Enter')
+  await waitForTerminalOutput(mantaPage, afterShiftEnter.marker, 15_000)
+  await expect(mantaPage.locator('[data-testid="sortable-tab"]')).toHaveCount(tabsBeforeShell + 1)
 })

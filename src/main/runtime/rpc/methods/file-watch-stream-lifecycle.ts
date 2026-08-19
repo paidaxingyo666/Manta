@@ -1,9 +1,9 @@
 import { isWatcherProcessFailure } from '../../../ipc/parcel-watcher-process-failure'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { createFileWatchEventBatcher } from './file-watch-event-batcher'
 
 export async function runFileWatchStream(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   worktree: string
   connectionId?: string
   signal?: AbortSignal

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ORCHESTRATION_WORKER_READ_SOURCES } from '../../../../shared/orchestration-worker-output'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import type { RemoteDispatchAttachmentRow } from '../../orchestration/types'
 import { defineMethod, type RpcMethod } from '../core'
@@ -158,7 +158,7 @@ export const ORCHESTRATION_FEDERATION_CONTROL_METHODS: RpcMethod[] = [
 ]
 
 function requireHomeAttachment(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   dispatchId: string,
   callerFingerprint: string | undefined
 ): RemoteDispatchAttachmentRow {
@@ -172,7 +172,7 @@ function requireHomeAttachment(
   return attachment
 }
 
-async function inspectRemoteAttachment(runtime: OrcaRuntimeService, dispatchId: string) {
+async function inspectRemoteAttachment(runtime: MantaRuntimeService, dispatchId: string) {
   const db = runtime.getOrchestrationDb()
   const attachment = db.getRemoteDispatchAttachment(dispatchId)
   if (!attachment?.terminal_handle) {

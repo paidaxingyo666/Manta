@@ -6,8 +6,8 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Worker } from 'node:worker_threads'
 
-const INTERNAL_ENV = 'ORCA_PACKAGED_WATCHDOG_SMOKE_INTERNAL'
-const ASAR_ENV = 'ORCA_PACKAGED_WATCHDOG_SMOKE_ASAR'
+const INTERNAL_ENV = 'MANTA_PACKAGED_WATCHDOG_SMOKE_INTERNAL'
+const ASAR_ENV = 'MANTA_PACKAGED_WATCHDOG_SMOKE_ASAR'
 const TIMEOUT_MS = 100
 const CHECK_INTERVAL_MS = 20
 const POLL_TIMEOUT_MS = 5_000
@@ -23,7 +23,7 @@ function readAppDirArg(argv) {
     return explicit.slice('--app-dir='.length)
   }
   if (process.platform === 'darwin') {
-    return 'dist/mac-arm64/Orca.app'
+    return 'dist/mac-arm64/Manta.app'
   }
   if (process.platform === 'win32') {
     return 'dist/win-unpacked'
@@ -81,7 +81,7 @@ async function runInternal() {
     throw new Error(`Missing ${ASAR_ENV}`)
   }
   const { app } = await import('electron')
-  const tempRoot = mkdtempSync(join(tmpdir(), 'orca-packaged-watchdog-smoke-'))
+  const tempRoot = mkdtempSync(join(tmpdir(), 'manta-packaged-watchdog-smoke-'))
   const markerPath = join(tempRoot, 'main-thread-hang.json')
   const entryPath = join(appAsar, 'out', 'main', 'main-thread-hang-watchdog-entry.js')
   let worker
@@ -123,11 +123,11 @@ function runSmoke() {
   }
   const require = createRequire(import.meta.url)
   const executable = require('electron')
-  const launcherDir = mkdtempSync(join(tmpdir(), 'orca-packaged-watchdog-launcher-'))
+  const launcherDir = mkdtempSync(join(tmpdir(), 'manta-packaged-watchdog-launcher-'))
   const launcherPath = join(launcherDir, 'main.cjs')
   writeFileSync(
     join(launcherDir, 'package.json'),
-    JSON.stringify({ name: 'orca-packaged-watchdog-smoke', main: 'main.cjs' })
+    JSON.stringify({ name: 'manta-packaged-watchdog-smoke', main: 'main.cjs' })
   )
   writeFileSync(
     launcherPath,

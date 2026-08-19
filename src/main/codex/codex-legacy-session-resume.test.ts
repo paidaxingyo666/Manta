@@ -24,7 +24,7 @@ describe('prepareLegacySharedCodexSessionResume', () => {
   let rolloutPath: string
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'orca-legacy-codex-resume-'))
+    root = mkdtempSync(join(tmpdir(), 'manta-legacy-codex-resume-'))
     legacyHome = join(root, 'codex-runtime-home', 'home')
     systemHome = join(root, 'real-codex-home')
     rolloutPath = join(
@@ -177,7 +177,7 @@ describe('per-account resume repin', () => {
   )
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'orca-codex-account-repin-'))
+    root = mkdtempSync(join(tmpdir(), 'manta-codex-account-repin-'))
     peerHome = join(root, 'codex-accounts', '11111111-aaaa-4aaa-8aaa-111111111111', 'home')
     selectedHome = join(root, 'codex-accounts', '99999999-bbbb-4bbb-8bbb-999999999999', 'home')
     recordedRolloutPath = join(selectedHome, rolloutRelativePath)

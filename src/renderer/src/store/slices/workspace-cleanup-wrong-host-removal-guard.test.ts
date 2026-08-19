@@ -29,7 +29,7 @@ const HOST_A_HOST_ID: ExecutionHostId = 'local'
 const HOST_B_HOST_ID: ExecutionHostId = 'ssh:ssh-1'
 const HOST_COLLISION_MESSAGE = 'Error: this workspace exists on multiple hosts at the same path'
 const HOST_UNRESOLVED_MESSAGE =
-  'Orca cannot tell which host owns this workspace. Refresh projects and review it again.'
+  'Manta cannot tell which host owns this workspace. Refresh projects and review it again.'
 
 const mockApi = {
   worktrees: {

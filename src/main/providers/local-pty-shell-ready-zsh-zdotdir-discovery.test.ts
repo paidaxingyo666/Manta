@@ -20,8 +20,8 @@ describePosix('live zsh subprocess tests', () => {
     let userDataPath: string
 
     beforeEach(async () => {
-      testHome = mkdtempSync(join(tmpdir(), 'orca-zsh-test-home-'))
-      userDataPath = mkdtempSync(join(tmpdir(), 'orca-zsh-test-userdata-'))
+      testHome = mkdtempSync(join(tmpdir(), 'manta-zsh-test-home-'))
+      userDataPath = mkdtempSync(join(tmpdir(), 'manta-zsh-test-userdata-'))
       setTestUserDataPath(userDataPath)
     })
 
@@ -48,7 +48,7 @@ path=(/custom/bin $path)
 `
       )
 
-      // Generate the Orca wrapper
+      // Generate the Manta wrapper
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
 
@@ -59,15 +59,15 @@ path=(/custom/bin $path)
         PATH: '/usr/bin:/bin'
       }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
-      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Orca wrapper dir
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
+      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Manta wrapper dir
 
       const result = spawnSync(
         'zsh',
         [
           '-i',
           '-c',
-          'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}" && echo "PATH_HAS_CUSTOM=${PATH%%:*}"'
+          'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}" && echo "PATH_HAS_CUSTOM=${PATH%%:*}"'
         ],
         {
           env: cleanEnv as NodeJS.ProcessEnv,
@@ -77,7 +77,7 @@ path=(/custom/bin $path)
 
       expect(result.status).toBe(0)
       const output = result.stdout
-      expect(output).toContain(`ORCA_ORIG_ZDOTDIR=${xdgZshDir}`)
+      expect(output).toContain(`MANTA_ORIG_ZDOTDIR=${xdgZshDir}`)
       expect(output).toContain('PATH_HAS_CUSTOM=/custom/bin')
     })
 
@@ -97,7 +97,7 @@ path=(/custom/bin $path)
           PATH: '/usr/bin:/bin'
         }
         delete cleanEnv.ZDOTDIR
-        delete cleanEnv.ORCA_ORIG_ZDOTDIR
+        delete cleanEnv.MANTA_ORIG_ZDOTDIR
         delete cleanEnv.USER_ZSHRC_LOADED
         cleanEnv.ZDOTDIR = join(movedUserData, 'shell-ready', 'zsh')
 
@@ -144,7 +144,7 @@ path=(/custom/bin $path)
           PATH: '/usr/bin:/bin'
         }
         delete cleanEnv.ZDOTDIR
-        delete cleanEnv.ORCA_ORIG_ZDOTDIR
+        delete cleanEnv.MANTA_ORIG_ZDOTDIR
         delete cleanEnv.USER_ZSHRC_LOADED
         cleanEnv.ZDOTDIR = join(nonAsciiUserData, 'shell-ready', 'zsh')
 
@@ -175,7 +175,7 @@ path=(/custom/bin $path)
         `typeset -U path
 path=(/env/bin $path)
 export MY_VAR=from-zshenv
-orca_zshenv_func() { echo "from-zshenv-function"; }
+manta_zshenv_func() { echo "from-zshenv-function"; }
 export ZDOTDIR="$HOME/.config/zsh"
 `
       )
@@ -189,7 +189,7 @@ export ZDOTDIR="$HOME/.config/zsh"
         PATH: '/usr/bin:/bin'
       }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       delete cleanEnv.MY_VAR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
@@ -197,7 +197,7 @@ export ZDOTDIR="$HOME/.config/zsh"
         'zsh',
         [
           '-c',
-          'echo "PATH_HEAD=${PATH%%:*}" && echo "MY_VAR=${MY_VAR:-unset}" && orca_zshenv_func'
+          'echo "PATH_HEAD=${PATH%%:*}" && echo "MY_VAR=${MY_VAR:-unset}" && manta_zshenv_func'
         ],
         {
           env: cleanEnv as NodeJS.ProcessEnv,
@@ -235,7 +235,7 @@ export ZDOTDIR="$HOME/.config/zsh"
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
       const result = spawnSync(
@@ -272,15 +272,15 @@ export ZDOTDIR="$HOME/.config/zsh"
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
 
-      // Build clean env: use wrapper ZDOTDIR but let wrapper discover ORCA_ORIG_ZDOTDIR at runtime
+      // Build clean env: use wrapper ZDOTDIR but let wrapper discover MANTA_ORIG_ZDOTDIR at runtime
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
-      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Orca wrapper dir
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
+      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Manta wrapper dir
 
       const result = spawnSync(
         'zsh',
-        ['-c', 'echo "survived" && echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'],
+        ['-c', 'echo "survived" && echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'],
         {
           env: cleanEnv as NodeJS.ProcessEnv,
           encoding: 'utf8'
@@ -290,7 +290,7 @@ export ZDOTDIR="$HOME/.config/zsh"
       expect(result.status).toBe(0)
       expect(result.stdout).toContain('survived')
       // ZDOTDIR discovery yields nothing (early return before export), fallback to HOME
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('falls back to HOME when user .zshenv does not set ZDOTDIR', async () => {
@@ -305,19 +305,19 @@ export MY_VAR=foo
       const { getShellReadyLaunchConfig } = await importFreshLocalPtyShellReady()
       const config = getShellReadyLaunchConfig('/bin/zsh')
 
-      // Build clean env: use wrapper ZDOTDIR but let wrapper discover ORCA_ORIG_ZDOTDIR at runtime
+      // Build clean env: use wrapper ZDOTDIR but let wrapper discover MANTA_ORIG_ZDOTDIR at runtime
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
-      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Orca wrapper dir
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
+      cleanEnv.ZDOTDIR = config.env.ZDOTDIR // Point to Manta wrapper dir
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
   })
 })

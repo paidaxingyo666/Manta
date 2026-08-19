@@ -1,4 +1,4 @@
-import type { OrcaHooks } from '../../shared/orca-yaml-hook-types'
+import type { MantaHooks } from '../../shared/manta-yaml-hook-types'
 import type { PublicKnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import type { EphemeralVmRecipeDoctorResult } from '../../shared/ephemeral-vm-recipes'
 import type { EphemeralVmRecipeResultWarning } from '../../shared/ephemeral-vm-recipe-diagnostics'
@@ -8,8 +8,8 @@ export type EphemeralVmApi = {
   listRecipes: (args: { repoId: string }) => Promise<{
     status: 'ok' | 'error'
     repoPath: string | null
-    recipes: OrcaHooks['environmentRecipes']
-    diagnostics: NonNullable<OrcaHooks['environmentRecipeDiagnostics']>
+    recipes: MantaHooks['environmentRecipes']
+    diagnostics: NonNullable<MantaHooks['environmentRecipeDiagnostics']>
     message?: string
   }>
   listRecipeCatalog: () => Promise<
@@ -17,8 +17,8 @@ export type EphemeralVmApi = {
       repoId: string
       repoName: string
       repoPath: string
-      recipes: NonNullable<OrcaHooks['environmentRecipes']>
-      diagnostics: NonNullable<OrcaHooks['environmentRecipeDiagnostics']>
+      recipes: NonNullable<MantaHooks['environmentRecipes']>
+      diagnostics: NonNullable<MantaHooks['environmentRecipeDiagnostics']>
     }[]
   >
   doctor: (args: { repoId: string; recipeId: string }) => Promise<EphemeralVmRecipeDoctorResult>
@@ -34,7 +34,7 @@ export type EphemeralVmApi = {
   }) => Promise<
     | {
         ok: true
-        connectionType: 'orca-server'
+        connectionType: 'manta-server'
         runtime: EphemeralVmRuntimeRecord
         environment: PublicKnownRuntimeEnvironment
         stderr: string

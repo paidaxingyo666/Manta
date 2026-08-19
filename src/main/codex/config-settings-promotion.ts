@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path'
 import { readAgentStateFileSync } from '../agent-state-file-reader'
 import { writeFileAtomically } from '../codex-accounts/fs-utils'
 import { parseWslUncPath } from '../../shared/wsl-paths'
-import { getOrcaManagedCodexHomePath, getSystemCodexHomePath } from './codex-home-paths'
+import { getMantaManagedCodexHomePath, getSystemCodexHomePath } from './codex-home-paths'
 import {
   createTomlLineScanState,
   getTomlTableHeader,
@@ -156,11 +156,11 @@ function readPromotedSettingValues(configPath: string): Map<string, TopLevelSett
 
 /**
  * Records the promotable settings the runtime config.toml holds after a mirror, so the next
- * promotion can tell "value Orca mirrored" from "value Codex wrote for the user".
+ * promotion can tell "value Manta mirrored" from "value Codex wrote for the user".
  * Call after a successful mirror only — advancing past an unpromoted change strands it forever.
  */
 export function snapshotCodexRuntimeSettingsBaseline(
-  runtimeHomePath = getOrcaManagedCodexHomePath(),
+  runtimeHomePath = getMantaManagedCodexHomePath(),
   conflicts: ReadonlyMap<string, CodexSettingsConflict> = new Map()
 ): void {
   try {
@@ -193,7 +193,7 @@ export type CodexSettingsPromotionPlan = {
 
 function getHostPromotionHomes(): CodexSettingsPromotionHomes {
   return {
-    runtimeHomePath: getOrcaManagedCodexHomePath(),
+    runtimeHomePath: getMantaManagedCodexHomePath(),
     systemHomePath: getSystemCodexHomePath()
   }
 }

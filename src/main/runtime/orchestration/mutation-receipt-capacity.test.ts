@@ -84,7 +84,7 @@ describe('mutation receipt capacity schema', () => {
   })
 
   it('migrates a populated v25 database and tracks writes from older connections', () => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-mutation-receipt-migration-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'manta-mutation-receipt-migration-'))
     const dbPath = join(tempDir, 'orchestration.db')
     db = new OrchestrationDb(dbPath)
     insertReceipts(sqliteFor(db), 20, 'completed')
@@ -145,7 +145,7 @@ describe('mutation receipt capacity schema', () => {
   })
 
   it('keeps the row limit exact across independent database connections', () => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-mutation-receipt-concurrency-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'manta-mutation-receipt-concurrency-'))
     const dbPath = join(tempDir, 'orchestration.db')
     db = new OrchestrationDb(dbPath)
     secondDb = new OrchestrationDb(dbPath)

@@ -1,7 +1,7 @@
 /**
- * Zustand store inspection helpers for Orca E2E tests.
+ * Zustand store inspection helpers for Manta E2E tests.
  *
- * Why: In dev mode, Orca exposes `window.__store` (the Zustand useAppStore).
+ * Why: In dev mode, Manta exposes `window.__store` (the Zustand useAppStore).
  * Reading store state gives tests reliable access to app state without
  * fragile DOM scraping.
  */

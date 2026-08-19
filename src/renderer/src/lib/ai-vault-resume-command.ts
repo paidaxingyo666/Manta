@@ -70,7 +70,7 @@ export function buildAiVaultResumeCopyCommandForWorktree(args: AiVaultResumeWork
   }
   const shell = resolveAiVaultResumeShell(args)
   const separator = commandSeparator(shell)
-  const clearHomes = ['CODEX_HOME', 'ORCA_CODEX_HOME']
+  const clearHomes = ['CODEX_HOME', 'MANTA_CODEX_HOME']
     .map((name) => clearEnvCommand(name, shell))
     .join(separator)
   return `${clearHomes}${separator}${command}`

@@ -11,22 +11,22 @@ export function getRequiredReleaseAssetNames(tag) {
     'latest-linux-arm64.yml',
     'latest-mac.yml',
     'latest.yml',
-    'orca-linux.AppImage',
-    'orca-linux-arm64.AppImage',
-    `orca-ide_${version}_amd64.deb`,
-    `orca-ide_${version}_arm64.deb`,
-    `orca-ide-${version}.x86_64.rpm`,
-    `orca-ide-${version}.aarch64.rpm`,
-    'orca-windows-setup.exe',
-    'orca-windows-setup.exe.blockmap',
-    `Orca-${version}-mac.zip`,
-    `Orca-${version}-mac.zip.blockmap`,
-    `Orca-${version}-arm64-mac.zip`,
-    `Orca-${version}-arm64-mac.zip.blockmap`,
-    'orca-macos-x64.dmg',
-    'orca-macos-x64.dmg.blockmap',
-    'orca-macos-arm64.dmg',
-    'orca-macos-arm64.dmg.blockmap'
+    'manta-linux.AppImage',
+    'manta-linux-arm64.AppImage',
+    `manta-ide_${version}_amd64.deb`,
+    `manta-ide_${version}_arm64.deb`,
+    `manta-ide-${version}.x86_64.rpm`,
+    `manta-ide-${version}.aarch64.rpm`,
+    'manta-windows-setup.exe',
+    'manta-windows-setup.exe.blockmap',
+    `Manta-${version}-mac.zip`,
+    `Manta-${version}-mac.zip.blockmap`,
+    `Manta-${version}-arm64-mac.zip`,
+    `Manta-${version}-arm64-mac.zip.blockmap`,
+    'manta-macos-x64.dmg',
+    'manta-macos-x64.dmg.blockmap',
+    'manta-macos-arm64.dmg',
+    'manta-macos-arm64.dmg.blockmap'
   ]
 }
 
@@ -150,7 +150,7 @@ async function main() {
   if (!token) {
     throw new Error('GH_TOKEN or GITHUB_TOKEN must be set')
   }
-  const repo = process.env.GITHUB_REPOSITORY || 'stablyai/orca'
+  const repo = process.env.GITHUB_REPOSITORY || 'stablyai/manta'
   const result = await verifyRequiredReleaseAssets({ repo, tag, token })
   console.log(`Verified ${result.checked.length} required release assets for ${repo}@${tag}`)
 }

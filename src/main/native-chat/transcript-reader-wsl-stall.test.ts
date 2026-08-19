@@ -14,7 +14,7 @@ import { readNativeChatTranscript } from './transcript-reader'
 import { WSL_TRANSCRIPT_FS_EXACT_TIMEOUT_MS } from './wsl-transcript-fs-gate'
 
 const SLOW_MESSAGE =
-  'WSL transcript files are temporarily unavailable because filesystem access is taking too long. Try again shortly or restart Orca if the issue continues.'
+  'WSL transcript files are temporarily unavailable because filesystem access is taking too long. Try again shortly or restart Manta if the issue continues.'
 
 const LINE = JSON.stringify({
   type: 'user',

@@ -21,16 +21,16 @@ export type CustomCodexHomeOverrideForLaunch =
 /** True when the user points Codex outside its standard native home. */
 export function hasCustomCodexHomeOverride(env: NodeJS.ProcessEnv = process.env): boolean {
   const codexHome = env.CODEX_HOME?.trim()
-  const orcaCodexHome = env.ORCA_CODEX_HOME?.trim()
+  const mantaCodexHome = env.MANTA_CODEX_HOME?.trim()
   const normalizedCodexHome = codexHome ? normalizePathForComparison(codexHome) : undefined
-  const normalizedOrcaCodexHome = orcaCodexHome
-    ? normalizePathForComparison(orcaCodexHome)
+  const normalizedMantaCodexHome = mantaCodexHome
+    ? normalizePathForComparison(mantaCodexHome)
     : undefined
   // Why: phase 1 owns only ~/.codex and can clean that path on downgrade. A
-  // custom home needs cross-home ownership tracking before Orca may mutate it.
+  // custom home needs cross-home ownership tracking before Manta may mutate it.
   return Boolean(
     normalizedCodexHome &&
-    normalizedCodexHome !== normalizedOrcaCodexHome &&
+    normalizedCodexHome !== normalizedMantaCodexHome &&
     normalizedCodexHome !== normalizePathForComparison(getSystemCodexHomePath())
   )
 }
@@ -45,7 +45,7 @@ export function getCustomCodexHomeOverrideForLaunch(
   const effectiveEnv = launchEnv
     ? {
         CODEX_HOME: getLaunchEnvValue(launchEnv, 'CODEX_HOME'),
-        ORCA_CODEX_HOME: getLaunchEnvValue(launchEnv, 'ORCA_CODEX_HOME')
+        MANTA_CODEX_HOME: getLaunchEnvValue(launchEnv, 'MANTA_CODEX_HOME')
       }
     : process.env
   if (hasCustomCodexHomeOverride(effectiveEnv)) {
@@ -115,7 +115,7 @@ export function shellStartupCodexHomeOverrideContextsEqual(
 
 function getLaunchEnvValue(
   launchEnv: NodeJS.ProcessEnv,
-  key: 'CODEX_HOME' | 'ORCA_CODEX_HOME' | 'HOME' | 'SHELL' | 'XDG_CONFIG_HOME'
+  key: 'CODEX_HOME' | 'MANTA_CODEX_HOME' | 'HOME' | 'SHELL' | 'XDG_CONFIG_HOME'
 ): string | undefined {
   return Object.hasOwn(launchEnv, key) ? launchEnv[key] : process.env[key]
 }

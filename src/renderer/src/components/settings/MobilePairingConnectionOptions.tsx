@@ -51,10 +51,10 @@ export function MobilePairingConnectionOptions({
   relayMintFailed?: boolean
   relayMintRetrying?: boolean
 }): React.JSX.Element {
-  const authStatus = useAppStore((state) => state.orcaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.orcaProfileConnecting)
-  const connect = useAppStore((state) => state.connectCurrentOrcaProfile)
-  const fetchAuthStatus = useAppStore((state) => state.fetchOrcaProfileAuthStatus)
+  const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
+  const connecting = useAppStore((state) => state.mantaProfileConnecting)
+  const connect = useAppStore((state) => state.connectCurrentMantaProfile)
+  const fetchAuthStatus = useAppStore((state) => state.fetchMantaProfileAuthStatus)
   const [relayStatus, setRelayStatus] = useState<MobileRelayStatus>('offline')
   const signedIn = authStatus?.state === 'connected'
   const reconnectRequired = authStatus?.state === 'reconnect-required'
@@ -145,13 +145,13 @@ export function MobilePairingConnectionOptions({
           onSelect={() => onChange('automatic')}
           title={translate(
             'auto.components.settings.MobilePairingConnectionOptions.anywhereTitle',
-            'Orca Relay'
+            'Manta Relay'
           )}
           description={
             relayUnavailable
               ? translate(
                   'auto.components.settings.MobilePairingConnectionOptions.relayUnavailable',
-                  'Orca Relay isn’t available in this build. Use LAN.'
+                  'Manta Relay isn’t available in this build. Use LAN.'
                 )
               : translate(
                   'auto.components.settings.MobilePairingConnectionOptions.anywhereDescription',

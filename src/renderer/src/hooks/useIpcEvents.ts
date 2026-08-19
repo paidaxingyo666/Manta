@@ -1245,7 +1245,7 @@ export function useIpcEvents(): void {
             id: 'unpaired-device-auth-failure',
             description: translate(
               'auto.hooks.useIpcEvents.11992d0337',
-              'If this was your phone or another Orca client, re-pair it from Settings → Mobile.'
+              'If this was your phone or another Manta client, re-pair it from Settings → Mobile.'
             ),
             // Why: main emits this recovery path once per session, so it must remain visible until acted on or dismissed.
             duration: Infinity,
@@ -2182,7 +2182,7 @@ export function useIpcEvents(): void {
       })
     )
 
-    // Why: `orca tab switch --focus` must NOT call setActiveWorktree — a global focus from one agent's parallel-worktree switch would steal the user's view.
+    // Why: `manta tab switch --focus` must NOT call setActiveWorktree — a global focus from one agent's parallel-worktree switch would steal the user's view.
     // focusBrowserTabInWorktree updates per-worktree state in place; globals flip only when the user is already on the targeted worktree.
     unsubs.push(
       window.api.browser.onPaneFocus(({ worktreeId, browserPageId }) => {
@@ -2200,7 +2200,7 @@ export function useIpcEvents(): void {
     )
 
     unsubs.push(
-      window.api.browser.onOpenLinkInOrcaTab(({ browserPageId, url }) => {
+      window.api.browser.onOpenLinkInMantaTab(({ browserPageId, url }) => {
         const store = useAppStore.getState()
         const sourcePage = Object.values(store.browserPagesByWorkspace)
           .flat()
@@ -2211,7 +2211,7 @@ export function useIpcEvents(): void {
         if (getRuntimeEnvironmentIdForWorktree(store, sourcePage.worktreeId)) {
           return
         }
-        // Why: only the renderer owns Orca's tab model, so main delegates link-open here.
+        // Why: only the renderer owns Manta's tab model, so main delegates link-open here.
         store.createBrowserTab(sourcePage.worktreeId, url, { title: url })
       })
     )
@@ -2301,7 +2301,7 @@ export function useIpcEvents(): void {
         // Why: watcher may detect a helper while a simulator tab is already mounted; push stream info so the pane updates without re-attach.
         window.setTimeout(() => {
           window.dispatchEvent(
-            new CustomEvent('orca:emulator-auto-attach', {
+            new CustomEvent('manta:emulator-auto-attach', {
               detail: { worktreeId, info }
             })
           )

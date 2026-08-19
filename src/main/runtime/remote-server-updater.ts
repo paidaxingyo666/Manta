@@ -12,7 +12,7 @@ type RemoteServerUpdaterAdapter = {
 }
 
 const unavailableSnapshot = (runtimeId: string): RemoteServerUpdaterSnapshot => ({
-  appVersion: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
+  appVersion: process.env.MANTA_APP_VERSION ?? '0.0.0-dev',
   runtimeId,
   support: {
     installMode: 'unsupported-headless-serve',

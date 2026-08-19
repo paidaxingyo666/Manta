@@ -70,7 +70,7 @@ describe('STA-4228 keep-history stop bounds only the caller wait on the final ch
   let subprocesses: ReturnType<typeof createMockSubprocess>[]
 
   beforeEach(async () => {
-    dir = mkdtempSync(join(tmpdir(), 'orca-final-checkpoint-deadline-'))
+    dir = mkdtempSync(join(tmpdir(), 'manta-final-checkpoint-deadline-'))
     subprocesses = []
     const log: DaemonFileLog = { log: () => {}, close: () => {} }
     server = new DaemonServer({

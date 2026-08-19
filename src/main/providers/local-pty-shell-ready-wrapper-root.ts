@@ -5,11 +5,11 @@
 import { tmpdir } from 'node:os'
 import { existsSync } from 'node:fs'
 
-export const SHELL_READY_MARKER_ESCAPED = '\\033]777;orca-shell-ready\\007'
+export const SHELL_READY_MARKER_ESCAPED = '\\033]777;manta-shell-ready\\007'
 
 export function getShellReadyWrapperRoot(): string {
-  // Why: bundled into the daemon fork (no electron), so read ORCA_USER_DATA_PATH rather than electron's userData; main and the fork both set it to the same path.
-  const userDataPath = process.env.ORCA_USER_DATA_PATH ?? tmpdir()
+  // Why: bundled into the daemon fork (no electron), so read MANTA_USER_DATA_PATH rather than electron's userData; main and the fork both set it to the same path.
+  const userDataPath = process.env.MANTA_USER_DATA_PATH ?? tmpdir()
   return `${userDataPath}/shell-ready`
 }
 

@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs'
 import path from 'node:path'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   cleanupGoldenWorktree,
   createGoldenWorktree,
@@ -13,40 +13,40 @@ import {
 import { waitForSessionReady } from './helpers/store'
 
 test('@golden opens an unstaged file diff from Source Control', async ({
-  orcaPage,
+  mantaPage,
   testRepoPath,
   registerPostElectronShutdownCleanup
 }) => {
   const fixture = createGoldenWorktree(testRepoPath, 'open-diff')
   registerPostElectronShutdownCleanup(async () => cleanupGoldenWorktree(testRepoPath, fixture))
 
-  await waitForSessionReady(orcaPage)
-  await openGoldenSourceControl(orcaPage, testRepoPath, fixture)
+  await waitForSessionReady(mantaPage)
+  await openGoldenSourceControl(mantaPage, testRepoPath, fixture)
   seedGoldenSourceEdit(fixture.worktreePath)
 
-  const changedFile = orcaPage
+  const changedFile = mantaPage
     .locator('[data-testid="source-control-entry"]')
     .filter({ hasText: path.basename(GOLDEN_CHANGED_PATH) })
   await expect(changedFile).toBeVisible({ timeout: 15_000 })
   await changedFile.click()
 
-  await expect(orcaPage.locator('.monaco-diff-editor')).toBeVisible({ timeout: 20_000 })
+  await expect(mantaPage.locator('.monaco-diff-editor')).toBeVisible({ timeout: 20_000 })
   await expect(
-    orcaPage
+    mantaPage
       .locator('.original-in-monaco-diff-editor .view-line')
       .filter({ hasText: GOLDEN_REMOVED_LINE })
   ).toBeVisible()
   await expect(
-    orcaPage
+    mantaPage
       .locator('.modified-in-monaco-diff-editor .view-line')
       .filter({ hasText: GOLDEN_ADDED_LINE })
   ).toBeVisible()
-  await expect(orcaPage.locator('.editor-header-path').first()).toHaveAttribute(
+  await expect(mantaPage.locator('.editor-header-path').first()).toHaveAttribute(
     'title',
     `${realpathSync(path.join(fixture.worktreePath, GOLDEN_CHANGED_PATH))} (diff)`
   )
 
-  const probe = orcaPage.getByRole('button', { name: /Source Control/ })
+  const probe = mantaPage.getByRole('button', { name: /Source Control/ })
   await probe.focus()
   await expect(probe).toBeFocused()
 })

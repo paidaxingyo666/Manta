@@ -47,7 +47,7 @@ export const KO_PHRASE_FIXES_ROUND5 = [
     whenEnIncludes: 'actionable issues'
   },
   { pattern: /설정 > 통합/g, replacement: '설정 > 연동', whenEnIncludes: 'Integrations' },
-  { pattern: /Orca 기술/g, replacement: 'Orca 스킬', whenEnIncludes: 'Orca skill' },
+  { pattern: /Manta 기술/g, replacement: 'Manta 스킬', whenEnIncludes: 'Manta skill' },
   { pattern: /확인하다 #/g, replacement: '체크 #', whenEnIncludes: 'check #' },
   { pattern: /제출하다\./g, replacement: '제출.', whenEnIncludes: 'to submit.' },
   { pattern: /추적하다/g, replacement: '추적', whenEnIncludes: 'trace' },

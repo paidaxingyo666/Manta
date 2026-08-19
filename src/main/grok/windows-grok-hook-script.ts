@@ -9,14 +9,14 @@ export const GROK_HOME_ENVELOPE_MAX_LENGTH = 4096
 
 const WINDOWS_GROK_HOOK_POST_COMMAND = buildWindowsAgentHookPostCommand('grok', [
   // Why: attach grokHome before payload@- without string-replacing the shared template.
-  '  --data-urlencode "grokHome=%ORCA_GROK_HOME%" ^'
+  '  --data-urlencode "grokHome=%MANTA_GROK_HOME%" ^'
 ])
 
 /**
  * Windows `grok-hook.cmd` body.
  *
  * Why (#9358 / #9941): cmd expands `%VAR:~n,m%` at parse time. When `GROK_HOME`
- * is unset (the default outside an Orca-managed terminal), length/trailing
+ * is unset (the default outside a Manta-managed terminal), length/trailing
  * guards become a syntax error and every Grok hook event fails with exit 255.
  *
  * - Guard substring ops behind `if defined` + goto (not a parenthesized block).
@@ -30,17 +30,17 @@ export function buildWindowsGrokHookScript(): string {
     // value on the curl line is then eaten as a delayed reference — silently mangling
     // paneKey and dropping worktreeId. `!` is legal in a Windows path.
     'setlocal DisableDelayedExpansion',
-    'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
+    'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
     ...buildWindowsHookEnvironmentGuardLines(),
-    'set "ORCA_GROK_HOME="',
-    'if not defined GROK_HOME goto :orca_grok_home_ready',
-    `if not "%GROK_HOME:~${GROK_HOME_ENVELOPE_MAX_LENGTH},1%"=="" goto :orca_grok_home_ready`,
-    'set "ORCA_GROK_HOME=%GROK_HOME%"',
-    'if not defined ORCA_GROK_HOME goto :orca_grok_home_ready',
-    'if "%ORCA_GROK_HOME:~-1%"=="\\" set "ORCA_GROK_HOME=%ORCA_GROK_HOME%."',
+    'set "MANTA_GROK_HOME="',
+    'if not defined GROK_HOME goto :manta_grok_home_ready',
+    `if not "%GROK_HOME:~${GROK_HOME_ENVELOPE_MAX_LENGTH},1%"=="" goto :manta_grok_home_ready`,
+    'set "MANTA_GROK_HOME=%GROK_HOME%"',
+    'if not defined MANTA_GROK_HOME goto :manta_grok_home_ready',
+    'if "%MANTA_GROK_HOME:~-1%"=="\\" set "MANTA_GROK_HOME=%MANTA_GROK_HOME%."',
     // Why: the trailing-backslash safety sentinel counts toward the relay envelope.
-    `if not "%ORCA_GROK_HOME:~${GROK_HOME_ENVELOPE_MAX_LENGTH},1%"=="" set "ORCA_GROK_HOME="`,
-    ':orca_grok_home_ready',
+    `if not "%MANTA_GROK_HOME:~${GROK_HOME_ENVELOPE_MAX_LENGTH},1%"=="" set "MANTA_GROK_HOME="`,
+    ':manta_grok_home_ready',
     WINDOWS_GROK_HOOK_POST_COMMAND,
     'exit /b 0',
     ...buildWindowsHookStdinDrainEpilogue(),

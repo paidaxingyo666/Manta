@@ -2,14 +2,14 @@ import { spawnSync } from 'node:child_process'
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { test as base, expect } from './helpers/orca-app'
+import { test as base, expect } from './helpers/manta-app'
 import { waitForActivePaneHookDescriptor, waitForActivePanePtyId } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { RuntimeClient } from '../../src/cli/runtime-client'
 import Database from '../../src/main/sqlite/sync-database'
 import type { RuntimeTerminalListResult, RuntimeTerminalRead } from '../../src/shared/runtime-types'
 
-const fakeCliDir = mkdtempSync(path.join(os.tmpdir(), 'orca-e2e-settlement-release-'))
+const fakeCliDir = mkdtempSync(path.join(os.tmpdir(), 'manta-e2e-settlement-release-'))
 const cliLedgerPath = path.join(fakeCliDir, 'cli.jsonl')
 const cliEntry = path.join(process.cwd(), 'out', 'cli', 'index.js')
 const fakeCodexSource = `
@@ -25,12 +25,12 @@ process.stdin.on('data', (chunk) => {
     acknowledged = true
     process.stdout.write('ACK\\n')
   }
-  const encoded = input.match(/ORCA_E2E_WORKER_DONE:([A-Za-z0-9+/=]+)/)?.[1]
+  const encoded = input.match(/MANTA_E2E_WORKER_DONE:([A-Za-z0-9+/=]+)/)?.[1]
   if (!encoded || !capability) return
   const request = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'))
   const args = [
     'orchestration', 'send',
-    '--from', request.mismatch ? 'term_foreign' : process.env.ORCA_TERMINAL_HANDLE,
+    '--from', request.mismatch ? 'term_foreign' : process.env.MANTA_TERMINAL_HANDLE,
     '--dispatch-capability', capability,
     '--to', request.coordinator,
     '--type', 'worker_done',
@@ -41,12 +41,12 @@ process.stdin.on('data', (chunk) => {
     '--outcome', 'succeeded',
     '--json'
   ]
-  const result = spawnSync(process.execPath, [process.env.ORCA_E2E_CLI_ENTRY, ...args], {
+  const result = spawnSync(process.execPath, [process.env.MANTA_E2E_CLI_ENTRY, ...args], {
     env: process.env,
     encoding: 'utf8'
   })
   appendFileSync(
-    process.env.ORCA_E2E_CLI_LEDGER,
+    process.env.MANTA_E2E_CLI_LEDGER,
     JSON.stringify({ mismatch: request.mismatch, args, status: result.status, stdout: result.stdout, stderr: result.stderr }) + '\\n'
   )
 })
@@ -70,8 +70,8 @@ const test = base.extend({
   launchEnv: [
     {
       PATH: `${fakeCliDir}${path.delimiter}${process.env.PATH ?? ''}`,
-      ORCA_E2E_CLI_ENTRY: cliEntry,
-      ORCA_E2E_CLI_LEDGER: cliLedgerPath
+      MANTA_E2E_CLI_ENTRY: cliEntry,
+      MANTA_E2E_CLI_LEDGER: cliLedgerPath
     },
     { option: true }
   ]
@@ -96,7 +96,7 @@ function readCliLedger(): CliLedgerEntry[] {
 
 function invokeCompiledCli(userDataDir: string, args: string[]) {
   return spawnSync(process.execPath, [cliEntry, ...args], {
-    env: { ...process.env, ORCA_USER_DATA_PATH: userDataDir, ORCA_DEV_CLI_INVOCATION: '1' },
+    env: { ...process.env, MANTA_USER_DATA_PATH: userDataDir, MANTA_DEV_CLI_INVOCATION: '1' },
     encoding: 'utf8'
   })
 }
@@ -115,16 +115,16 @@ test.afterAll(() => {
 })
 
 test('compiled CLI rejects false completion then reconciles the dead retained worker', async ({
-  orcaPage,
+  mantaPage,
   electronApp
 }) => {
   test.setTimeout(180_000)
   rmSync(cliLedgerPath, { force: true })
-  await waitForSessionReady(orcaPage)
-  const worktreeId = await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  await waitForActivePanePtyId(orcaPage)
-  const coordinatorPane = await waitForActivePaneHookDescriptor(orcaPage)
+  await waitForSessionReady(mantaPage)
+  const worktreeId = await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
+  await waitForActivePanePtyId(mantaPage)
+  const coordinatorPane = await waitForActivePaneHookDescriptor(mantaPage)
   const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
   const client = new RuntimeClient(userDataDir, 30_000, null, null)
   const coordinator = await client.call<{ terminal: { handle: string } }>('terminal.resolvePane', {
@@ -195,7 +195,7 @@ test('compiled CLI rejects false completion then reconciles the dead retained wo
   }
   await client.call('terminal.send', {
     terminal: workerHandle,
-    text: `ORCA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: true })}`,
+    text: `MANTA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: true })}`,
     enter: true
   })
   await expect.poll(() => readCliLedger()).toHaveLength(1)
@@ -213,7 +213,7 @@ test('compiled CLI rejects false completion then reconciles the dead retained wo
 
   await client.call('terminal.send', {
     terminal: workerHandle,
-    text: `ORCA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: false })}`,
+    text: `MANTA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: false })}`,
     enter: true
   })
   await expect.poll(() => readCliLedger()).toHaveLength(2)

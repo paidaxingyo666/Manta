@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 const {
   callMock,
   runtimeClientConstructorMock,
-  serveOrcaAppMock,
+  serveMantaAppMock,
   getDefaultUserDataPathMock,
   addEnvironmentFromPairingCodeMock,
   listEnvironmentsMock,
@@ -12,8 +12,8 @@ const {
 } = vi.hoisted(() => ({
   callMock: vi.fn(),
   runtimeClientConstructorMock: vi.fn(),
-  serveOrcaAppMock: vi.fn(),
-  getDefaultUserDataPathMock: vi.fn(() => '/tmp/orca-user-data'),
+  serveMantaAppMock: vi.fn(),
+  getDefaultUserDataPathMock: vi.fn(() => '/tmp/manta-user-data'),
   addEnvironmentFromPairingCodeMock: vi.fn(),
   listEnvironmentsMock: vi.fn(),
   spawnMock: vi.fn()
@@ -24,7 +24,7 @@ vi.mock('./runtime-client', async () => {
   return createRuntimeClientModuleMock({
     callMock,
     runtimeClientConstructorMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock
   })
 })
@@ -45,10 +45,10 @@ import { main } from './index'
 import { okFixture, queueFixtures } from './test-fixtures'
 import { useWorktreeAwarenessEnvironment } from './index-test-harness'
 
-describe('orca cli worktree awareness', () => {
+describe('manta cli worktree awareness', () => {
   useWorktreeAwarenessEnvironment({
     callMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock,
     addEnvironmentFromPairingCodeMock,
     listEnvironmentsMock,
@@ -81,13 +81,13 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_project_list', {
         projects: [
           {
-            id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            id: 'github:stablyai/manta',
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             providerIdentity: {
               provider: 'github',
               owner: 'stablyai',
-              repo: 'orca'
+              repo: 'manta'
             },
             sourceRepoIds: ['repo-1'],
             createdAt: 1,
@@ -110,11 +110,11 @@ describe('orca cli worktree awareness', () => {
         setups: [
           {
             id: 'setup-local',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'local',
             repoId: 'repo-local',
-            path: '/tmp/orca',
-            displayName: 'Orca',
+            path: '/tmp/manta',
+            displayName: 'Manta',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -122,11 +122,11 @@ describe('orca cli worktree awareness', () => {
           },
           {
             id: 'setup-remote',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: 'repo-remote',
-            path: '/srv/orca',
-            displayName: 'Orca',
+            path: '/srv/manta',
+            displayName: 'Manta',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -138,7 +138,7 @@ describe('orca cli worktree awareness', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await main(
-      ['project', 'setups', '--project', 'github:stablyai/orca', '--host', 'runtime:gpu'],
+      ['project', 'setups', '--project', 'github:stablyai/manta', '--host', 'runtime:gpu'],
       '/tmp/repo'
     )
 
@@ -153,8 +153,8 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_project_setup', {
         result: {
           project: {
-            id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            id: 'github:stablyai/manta',
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             sourceRepoIds: ['repo-1'],
             createdAt: 1,
@@ -162,11 +162,11 @@ describe('orca cli worktree awareness', () => {
           },
           setup: {
             id: 'setup-local',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'local',
             repoId: 'repo-1',
-            path: path.resolve('/tmp/orca'),
-            displayName: 'Orca',
+            path: path.resolve('/tmp/manta'),
+            displayName: 'Manta',
             setupState: 'ready',
             setupMethod: 'imported-existing-folder',
             createdAt: 1,
@@ -174,8 +174,8 @@ describe('orca cli worktree awareness', () => {
           },
           repo: {
             id: 'repo-1',
-            path: path.resolve('/tmp/orca'),
-            displayName: 'Orca',
+            path: path.resolve('/tmp/manta'),
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             addedAt: 1
           }
@@ -189,7 +189,7 @@ describe('orca cli worktree awareness', () => {
         'project',
         'setup-existing-folder',
         '--project',
-        'github:stablyai/orca',
+        'github:stablyai/manta',
         '--host',
         'local',
         '--path',
@@ -197,18 +197,18 @@ describe('orca cli worktree awareness', () => {
         '--kind',
         'git',
         '--display-name',
-        'Orca',
+        'Manta',
         '--json'
       ],
-      '/tmp/orca/worktrees/feature'
+      '/tmp/manta/worktrees/feature'
     )
 
     expect(callMock).toHaveBeenCalledWith('projectHostSetup.setupExistingFolder', {
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'local',
-      path: path.resolve('/tmp/orca/worktrees'),
+      path: path.resolve('/tmp/manta/worktrees'),
       kind: 'git',
-      displayName: 'Orca'
+      displayName: 'Manta'
     })
   })
 
@@ -222,11 +222,11 @@ describe('orca cli worktree awareness', () => {
         'project',
         'setup-existing-folder',
         '--project',
-        'github:stablyai/orca',
+        'github:stablyai/manta',
         '--host',
         'runtime:gpu',
         '--path',
-        './orca',
+        './manta',
         '--pairing-code',
         'remote-runtime',
         '--json'
@@ -268,7 +268,7 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_repo_add', {
         repo: {
           id: 'repo-1',
-          path: '/srv/orca/web',
+          path: '/srv/manta/web',
           displayName: 'web'
         }
       })
@@ -276,12 +276,12 @@ describe('orca cli worktree awareness', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await main(
-      ['repo', 'add', '--path', '/srv/orca/web', '--pairing-code', 'remote-runtime', '--json'],
+      ['repo', 'add', '--path', '/srv/manta/web', '--pairing-code', 'remote-runtime', '--json'],
       '/tmp/repo'
     )
 
     expect(callMock).toHaveBeenCalledWith('repo.add', {
-      path: '/srv/orca/web'
+      path: '/srv/manta/web'
     })
   })
 
@@ -317,8 +317,8 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_project_setup_update', {
         result: {
           project: {
-            id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            id: 'github:stablyai/manta',
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -326,10 +326,10 @@ describe('orca cli worktree awareness', () => {
           },
           setup: {
             id: 'setup-gpu',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: '',
-            path: '/srv/orca',
+            path: '/srv/manta',
             displayName: 'GPU VM',
             setupState: 'ready',
             setupMethod: 'imported-existing-folder',
@@ -350,7 +350,7 @@ describe('orca cli worktree awareness', () => {
         '--display-name',
         'GPU VM',
         '--path',
-        '/srv/orca',
+        '/srv/manta',
         '--worktree-base-path',
         '../worktrees',
         '--state',
@@ -366,7 +366,7 @@ describe('orca cli worktree awareness', () => {
       setupId: 'setup-gpu',
       updates: {
         displayName: 'GPU VM',
-        path: path.resolve('/tmp/repo', '/srv/orca'),
+        path: path.resolve('/tmp/repo', '/srv/manta'),
         worktreeBasePath: '../worktrees',
         gitUsername: undefined,
         kind: undefined,
@@ -382,8 +382,8 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_project_setup_create', {
         result: {
           project: {
-            id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            id: 'github:stablyai/manta',
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -391,7 +391,7 @@ describe('orca cli worktree awareness', () => {
           },
           setup: {
             id: 'setup-gpu',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: '',
             path: '',
@@ -411,7 +411,7 @@ describe('orca cli worktree awareness', () => {
         'project',
         'setup-create',
         '--project',
-        'github:stablyai/orca',
+        'github:stablyai/manta',
         '--host',
         'runtime:gpu',
         '--setup-id',
@@ -428,7 +428,7 @@ describe('orca cli worktree awareness', () => {
     )
 
     expect(callMock).toHaveBeenCalledWith('projectHostSetup.create', {
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:gpu',
       setupId: 'setup-gpu',
       path: undefined,
@@ -447,8 +447,8 @@ describe('orca cli worktree awareness', () => {
       okFixture('req_project_setup_delete', {
         result: {
           project: {
-            id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            id: 'github:stablyai/manta',
+            displayName: 'Manta',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -456,10 +456,10 @@ describe('orca cli worktree awareness', () => {
           },
           setup: {
             id: 'setup-gpu',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: '',
-            path: '/srv/orca',
+            path: '/srv/manta',
             displayName: 'GPU VM',
             setupState: 'ready',
             setupMethod: 'imported-existing-folder',

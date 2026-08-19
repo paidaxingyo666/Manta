@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { RuntimeTerminalWait } from '../../../shared/runtime-types'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import type { RpcRequest } from './core'
 import { RpcDispatcher } from './dispatcher'
 import { TERMINAL_METHODS } from './methods/terminal'
@@ -40,7 +40,7 @@ describe('terminal lease-only subscription', () => {
         cleanups.delete(id)
       }),
       waitForTerminal: vi.fn(() => new Promise<RuntimeTerminalWait>(() => {}))
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: TERMINAL_METHODS })
 
     const dispatchPromise = dispatcher.dispatchStreaming(

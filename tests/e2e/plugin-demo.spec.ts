@@ -1,5 +1,5 @@
 /**
- * Invariant: the documented hello-orca plugin stays inert before visible
+ * Invariant: the documented hello-manta plugin stays inert before visible
  * consent, then its panel, worker command, and event subscription all work.
  */
 
@@ -7,7 +7,7 @@ import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 
 async function openPluginSettings(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -32,11 +32,11 @@ async function openDemoPanel(page: Page): Promise<void> {
       state.toggleRightSidebar()
     }
   })
-  const panelButton = page.getByRole('button', { name: 'Hello Orca', exact: true })
+  const panelButton = page.getByRole('button', { name: 'Hello Manta', exact: true })
   await expect(panelButton).toBeVisible({ timeout: 15_000 })
   await panelButton.click()
-  const frame = page.frameLocator('iframe[title="Hello Orca"]')
-  await expect(frame.getByRole('heading', { name: 'Hello Orca 👋' })).toBeVisible()
+  const frame = page.frameLocator('iframe[title="Hello Manta"]')
+  await expect(frame.getByRole('heading', { name: 'Hello Manta 👋' })).toBeVisible()
   await expect(frame.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute(
     'content',
     /default-src 'none'/
@@ -68,16 +68,16 @@ async function createWorktree(page: Page, name: string): Promise<string> {
   }, name)
 }
 
-test('runs hello-orca panel, command, and event behind visible consent', async ({ orcaPage }) => {
-  const tempRoot = await mkdtemp(join(tmpdir(), 'orca-hello-plugin-e2e-'))
-  const pluginRoot = join(tempRoot, 'hello-orca')
+test('runs hello-manta panel, command, and event behind visible consent', async ({ mantaPage }) => {
+  const tempRoot = await mkdtemp(join(tmpdir(), 'manta-hello-plugin-e2e-'))
+  const pluginRoot = join(tempRoot, 'hello-manta')
   let createdWorktreeId: string | null = null
-  await cp(join(process.cwd(), 'examples', 'plugins', 'hello-orca'), pluginRoot, {
+  await cp(join(process.cwd(), 'examples', 'plugins', 'hello-manta'), pluginRoot, {
     recursive: true
   })
 
   try {
-    const installed = await orcaPage.evaluate(async (sourcePath) => {
+    const installed = await mantaPage.evaluate(async (sourcePath) => {
       const settings = await window.api.settings.set({ pluginSystemEnabled: true })
       window.__store?.setState({ settings })
       const result = await window.api.plugins.install({ kind: 'local-path', path: sourcePath })
@@ -106,12 +106,12 @@ test('runs hello-orca panel, command, and event behind visible consent', async (
     expect(installed.status).toBe('pending')
     expect(installed.blocked).toBe(true)
 
-    await openPluginSettings(orcaPage)
-    await orcaPage.getByRole('tab', { name: /^Installed/ }).click()
-    const row = orcaPage.locator(`[data-plugin-key="${installed.pluginKey}"]`)
+    await openPluginSettings(mantaPage)
+    await mantaPage.getByRole('tab', { name: /^Installed/ }).click()
+    const row = mantaPage.locator(`[data-plugin-key="${installed.pluginKey}"]`)
     await expect(row).toContainText('Needs review')
     await row.getByRole('button', { name: 'Review & enable' }).click()
-    const consent = orcaPage.getByRole('dialog', { name: 'Review permissions' })
+    const consent = mantaPage.getByRole('dialog', { name: 'Review permissions' })
     await expect(consent).toBeVisible()
     await expect(consent).toContainText('Local folder')
     await expect(consent).toContainText('full access to your files, network, and other processes')
@@ -120,7 +120,7 @@ test('runs hello-orca panel, command, and event behind visible consent', async (
     await expect(consent).toBeHidden()
     await expect(row).toContainText('Enabled')
 
-    const commandResults = await orcaPage.evaluate(async (pluginKey) => {
+    const commandResults = await mantaPage.evaluate(async (pluginKey) => {
       const first = await window.api.plugins.invokeCommand({
         pluginKey,
         commandId: 'hello-ping',
@@ -136,28 +136,28 @@ test('runs hello-orca panel, command, and event behind visible consent', async (
     expect(commandResults.first).toEqual({ pong: true, count: 1, args: { source: 'e2e' } })
     expect(commandResults.second).toEqual({ pong: true, count: 2, args: { source: 'e2e' } })
 
-    await orcaPage.evaluate(async (sourcePath) => {
+    await mantaPage.evaluate(async (sourcePath) => {
       const settings = await window.api.settings.set({ devPluginPaths: [sourcePath] })
       window.__store?.setState({ settings })
       await window.api.plugins.refresh()
     }, pluginRoot)
 
-    await openDemoPanel(orcaPage)
+    await openDemoPanel(mantaPage)
 
     const panelPath = join(pluginRoot, 'panel.html')
     const panelHtml = await readFile(panelPath, 'utf8')
-    await writeFile(panelPath, panelHtml.replace('Hello Orca 👋', 'Hello Orca reloaded'))
+    await writeFile(panelPath, panelHtml.replace('Hello Manta 👋', 'Hello Manta reloaded'))
     await expect(
-      orcaPage.frameLocator('iframe[title="Hello Orca"]').getByRole('heading', {
-        name: 'Hello Orca reloaded'
+      mantaPage.frameLocator('iframe[title="Hello Manta"]').getByRole('heading', {
+        name: 'Hello Manta reloaded'
       })
     ).toBeVisible({ timeout: 15_000 })
 
-    createdWorktreeId = await createWorktree(orcaPage, `plugin-event-${Date.now()}`)
+    createdWorktreeId = await createWorktree(mantaPage, `plugin-event-${Date.now()}`)
     await expect
       .poll(
         () =>
-          orcaPage.evaluate(
+          mantaPage.evaluate(
             async ({ pluginKey, worktreeId }) =>
               (await window.api.plugins.getLogs({ pluginKey })).some(
                 (entry) =>
@@ -170,7 +170,7 @@ test('runs hello-orca panel, command, and event behind visible consent', async (
       .toBe(true)
   } finally {
     if (createdWorktreeId) {
-      await orcaPage
+      await mantaPage
         .evaluate(async (worktreeId) => {
           await window.__store?.getState().removeWorktree(worktreeId, true)
         }, createdWorktreeId)

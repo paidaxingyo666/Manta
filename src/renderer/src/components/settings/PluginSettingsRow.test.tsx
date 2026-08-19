@@ -20,11 +20,11 @@ vi.mock('../ui/dropdown-menu', () => ({
 }))
 
 const plugin: PluginHostListEntry = {
-  pluginKey: 'stablyai.orca-skills',
+  pluginKey: 'paidaxingyo666.manta-skills',
   consentFingerprint: 'sha256-consent',
-  name: 'Orca Skills',
+  name: 'Manta Skills',
   version: '1.0.0',
-  publisher: 'stablyai',
+  publisher: 'paidaxingyo666',
   status: 'disabled',
   needsReconsent: false,
   isDev: false,
@@ -37,11 +37,11 @@ const plugin: PluginHostListEntry = {
   restarts: 0,
   blockedByKillList: {
     reason: 'A vulnerable release was revoked',
-    advisoryUrl: 'https://onorca.dev/advisories/orca-skills'
+    advisoryUrl: 'https://manta.sh.cn/advisories/manta-skills'
   },
   source: {
     kind: 'bundled',
-    reference: 'bundled:stablyai.orca-skills',
+    reference: 'bundled:paidaxingyo666.manta-skills',
     resolvedCommit: null,
     contentHash: 'sha256-content'
   }
@@ -78,7 +78,7 @@ describe('PluginSettingsRow', () => {
     expect(container.textContent).toContain('View advisory')
     expect(container.textContent).not.toContain('Remove')
     expect(
-      container.querySelector<HTMLButtonElement>('[aria-label="Enable Orca Skills"]')?.disabled
+      container.querySelector<HTMLButtonElement>('[aria-label="Enable Manta Skills"]')?.disabled
     ).toBe(true)
     act(() => root.unmount())
   })

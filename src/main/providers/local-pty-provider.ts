@@ -2,7 +2,7 @@
 import { basename, delimiter, win32 as pathWin32 } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import {
-  ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
+  MANTA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
   resolveWindowsShellLaunchArgs
 } from './windows-shell-args'
 import {
@@ -63,7 +63,7 @@ import { canConfirmAgentFromConsolePresence } from './windows-console-foreground
 import { forceKillPosixPtyProcessGroups } from '../pty/posix-pty-process-groups'
 import { shouldUseShellReadyStartupDelivery } from '../../shared/codex-startup-delivery'
 import { assertSafeAgentStartupCwd, resolveSafePtyDefaultCwd } from './pty-default-cwd'
-import { ORCA_HERMES_STARTUP_QUERY_ENV } from '../../shared/hermes-startup-query'
+import { MANTA_HERMES_STARTUP_QUERY_ENV } from '../../shared/hermes-startup-query'
 import { PhysicalExitTracker } from '../../shared/physical-exit-tracker'
 import { mergeGitConfigEnvProtocol } from '../../shared/git-credential-prompt-env'
 import { PtyStartupIngress, type PtyIngressEmission } from '../../shared/pty-startup-ingress'
@@ -90,10 +90,10 @@ import {
 } from '../../shared/windows-environment-expansion'
 
 const PANE_IDENTITY_ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN'
+  'MANTA_PANE_KEY',
+  'MANTA_TAB_ID',
+  'MANTA_WORKTREE_ID',
+  'MANTA_AGENT_LAUNCH_TOKEN'
 ] as const
 
 let ptyCounter = 0
@@ -178,7 +178,7 @@ function promoteAgentTeamsShimPath(
   env: Record<string, string>,
   requestedPath: string | undefined
 ): void {
-  if (!env.ORCA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
+  if (!env.MANTA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
     return
   }
   const normalizedRequestedPath =
@@ -688,13 +688,13 @@ export class LocalPtyProvider implements IPtyProvider {
       ...mergeGitConfigEnvProtocol(stripInheritedBuildModeEnv(process.env), args.env),
       TERM: 'xterm-256color',
       COLORTERM: 'truecolor',
-      TERM_PROGRAM: 'Orca',
+      TERM_PROGRAM: 'Manta',
       // Why: TUIs feature-gate on TERM_PROGRAM_VERSION; the fallback keeps tests and non-Electron runs working.
-      TERM_PROGRAM_VERSION: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
-      // Why: supports-hyperlinks rejects TERM_PROGRAM=Orca, so tools drop OSC 8 links; force it since xterm.js parses them.
+      TERM_PROGRAM_VERSION: process.env.MANTA_APP_VERSION ?? '0.0.0-dev',
+      // Why: supports-hyperlinks rejects TERM_PROGRAM=Manta, so tools drop OSC 8 links; force it since xterm.js parses them.
       FORCE_HYPERLINK: '1'
     } as Record<string, string>
-    // Why: Orca can be launched from an Orca terminal; pane identity belongs to the child PTY, not the parent shell.
+    // Why: Manta can be launched from a Manta terminal; pane identity belongs to the child PTY, not the parent shell.
     removeUnspecifiedPaneIdentityEnv(spawnEnv, args.env)
     removeAppImageRuntimeEnv(spawnEnv)
     removeInheritedNoColor(spawnEnv)
@@ -742,12 +742,12 @@ export class LocalPtyProvider implements IPtyProvider {
         if (codexHomeWslInfo) {
           if (launchWslDistro && launchWslDistro !== codexHomeWslInfo.distro) {
             delete finalEnv.CODEX_HOME
-            delete finalEnv.ORCA_CODEX_HOME
+            delete finalEnv.MANTA_CODEX_HOME
           } else {
             finalEnv.CODEX_HOME = codexHomeWslInfo.linuxPath
-            finalEnv.ORCA_CODEX_HOME = codexHomeWslInfo.linuxPath
+            finalEnv.MANTA_CODEX_HOME = codexHomeWslInfo.linuxPath
             // Why: wsl.exe only imports non-default env vars named in WSLENV.
-            addWslEnvKeys(finalEnv, ['CODEX_HOME', 'ORCA_CODEX_HOME'])
+            addWslEnvKeys(finalEnv, ['CODEX_HOME', 'MANTA_CODEX_HOME'])
             if (!launchWslDistro) {
               const resolved = resolveWindowsShellLaunchArgs(shellPath, cwd, defaultCwd, {
                 distro: codexHomeWslInfo.distro
@@ -760,35 +760,35 @@ export class LocalPtyProvider implements IPtyProvider {
             }
           }
         } else if (isHostCodexHomeForWsl(finalEnv.CODEX_HOME)) {
-          // Why: Orca's Codex home is host-local; WSL Codex must use its Linux-side ~/.codex, not a Windows path.
+          // Why: Manta's Codex home is host-local; WSL Codex must use its Linux-side ~/.codex, not a Windows path.
           delete finalEnv.CODEX_HOME
-          delete finalEnv.ORCA_CODEX_HOME
+          delete finalEnv.MANTA_CODEX_HOME
         } else if (finalEnv.CODEX_HOME) {
-          addWslEnvKeys(finalEnv, ['CODEX_HOME', 'ORCA_CODEX_HOME'])
+          addWslEnvKeys(finalEnv, ['CODEX_HOME', 'MANTA_CODEX_HOME'])
         }
         if (finalEnv.CLAUDE_CONFIG_DIR) {
           // Why: managed WSL Claude passes a Linux CLAUDE_CONFIG_DIR through wsl.exe; non-default vars need WSLENV import.
           addWslEnvKeys(finalEnv, ['CLAUDE_CONFIG_DIR'])
         }
-        if (finalEnv[ORCA_HERMES_STARTUP_QUERY_ENV] !== undefined) {
+        if (finalEnv[MANTA_HERMES_STARTUP_QUERY_ENV] !== undefined) {
           // Why: wsl.exe drops custom Windows env vars; the startup wrapper needs this imported inside WSL.
-          addWslEnvKeys(finalEnv, [ORCA_HERMES_STARTUP_QUERY_ENV])
+          addWslEnvKeys(finalEnv, [MANTA_HERMES_STARTUP_QUERY_ENV])
         }
       } else if (codexHomeWslInfo || isWslCodexHomeForHost(finalEnv.CODEX_HOME)) {
-        // Why: WSL Codex homes are Linux paths Windows can't use; also drop ORCA_CODEX_HOME (shell-ready restores CODEX_HOME from it).
+        // Why: WSL Codex homes are Linux paths Windows can't use; also drop MANTA_CODEX_HOME (shell-ready restores CODEX_HOME from it).
         delete finalEnv.CODEX_HOME
-        delete finalEnv.ORCA_CODEX_HOME
+        delete finalEnv.MANTA_CODEX_HOME
       }
 
       const shellBasename = pathWin32.basename(shellPath).toLowerCase()
-      const codexLaunchPreflightCommand = finalEnv.ORCA_CODEX_LAUNCH_PREFLIGHT
+      const codexLaunchPreflightCommand = finalEnv.MANTA_CODEX_LAUNCH_PREFLIGHT
       if (
         codexLaunchPreflightCommand &&
         (shellBasename === 'cmd.exe' || isWindowsGitBashShellPath(shellPath))
       ) {
         if (shellBasename === 'cmd.exe') {
           // Why: node-pty backslash-escapes argv quotes; expand the quote inside cmd.exe instead.
-          finalEnv[ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV] = '"'
+          finalEnv[MANTA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV] = '"'
         }
         const resolved = resolveWindowsShellLaunchArgs(
           shellPath,
@@ -815,11 +815,11 @@ export class LocalPtyProvider implements IPtyProvider {
     if (!wslInfo && process.platform !== 'win32') {
       // Why: OpenCode/Codex PATH restoration and OMP's status wrapper need shell-ready code after user startup files run.
       const needsNoMarkerWrapper =
-        finalEnv.ORCA_OPENCODE_CONFIG_DIR ||
-        finalEnv.ORCA_MIMOCODE_HOME ||
-        finalEnv.ORCA_OMP_STATUS_EXTENSION ||
-        finalEnv.ORCA_CODEX_HOME ||
-        finalEnv.ORCA_AGENT_TEAMS_SHIM_DIR
+        finalEnv.MANTA_OPENCODE_CONFIG_DIR ||
+        finalEnv.MANTA_MIMOCODE_HOME ||
+        finalEnv.MANTA_OMP_STATUS_EXTENSION ||
+        finalEnv.MANTA_CODEX_HOME ||
+        finalEnv.MANTA_AGENT_TEAMS_SHIM_DIR
       const isCodexStartupCommand = startupAgentRecognition?.agent === 'codex'
       let shellLaunch: ReturnType<typeof getShellReadyLaunchConfig> | null = null
       if (args.command && isCodexStartupCommand) {
@@ -933,8 +933,8 @@ export class LocalPtyProvider implements IPtyProvider {
       ptyAgentSessionIds.add(id)
     }
     ptyShellName.set(id, getSpawnedShellName(shellPath))
-    if (finalEnv.ORCA_TERMINAL_HANDLE) {
-      ptyTerminalHandle.set(id, finalEnv.ORCA_TERMINAL_HANDLE)
+    if (finalEnv.MANTA_TERMINAL_HANDLE) {
+      ptyTerminalHandle.set(id, finalEnv.MANTA_TERMINAL_HANDLE)
     }
     if (args.worktreeId) {
       ptyWorktreeId.set(id, args.worktreeId)

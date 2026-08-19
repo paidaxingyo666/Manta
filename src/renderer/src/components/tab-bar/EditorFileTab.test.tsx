@@ -201,7 +201,7 @@ vi.mock('../right-sidebar/status-display', () => ({
 }))
 
 vi.mock('./SortableTab', () => ({
-  CLOSE_ALL_CONTEXT_MENUS_EVENT: 'orca-close-all-context-menus'
+  CLOSE_ALL_CONTEXT_MENUS_EVENT: 'manta-close-all-context-menus'
 }))
 
 vi.mock('./drop-indicator', () => ({

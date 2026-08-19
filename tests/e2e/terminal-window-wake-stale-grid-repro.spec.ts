@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { waitForActivePanePtyId, waitForActiveTerminalManager } from './helpers/terminal'
 import { waitForPtyShellEcho } from './terminal-pty-readiness'
@@ -30,38 +30,38 @@ function chooseStaleGrid(current: Grid): Grid {
 
 test.describe('terminal window-wake stale grid repro', () => {
   test('window focus heals a local PTY whose applied grid drifted from xterm', async ({
-    orcaPage
+    mantaPage
   }) => {
     test.setTimeout(120_000)
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    const ptyId = await waitForActivePanePtyId(orcaPage)
-    await waitForPtyShellEcho(orcaPage, ptyId, 15_000)
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await waitForPtyShellEcho(mantaPage, ptyId, 15_000)
 
-    const baseline = await readGridSnapshot(orcaPage, ptyId)
+    const baseline = await readGridSnapshot(mantaPage, ptyId)
     expect(baseline.xterm).not.toBeNull()
     expect(baseline.applied).toEqual(baseline.xterm)
     const staleGrid = chooseStaleGrid(baseline.xterm!)
 
     // Why: model the field state directly—xterm is fitted, but the idle PTY
     // still has an older grid and produces no output that could self-heal it.
-    await orcaPage.evaluate(({ id, grid }) => window.api.pty.resize(id, grid.cols, grid.rows), {
+    await mantaPage.evaluate(({ id, grid }) => window.api.pty.resize(id, grid.cols, grid.rows), {
       id: ptyId,
       grid: staleGrid
     })
     await expect
-      .poll(async () => (await readGridSnapshot(orcaPage, ptyId)).applied, { timeout: 10_000 })
+      .poll(async () => (await readGridSnapshot(mantaPage, ptyId)).applied, { timeout: 10_000 })
       .toEqual(staleGrid)
-    expect((await readGridSnapshot(orcaPage, ptyId)).xterm).toEqual(baseline.xterm)
+    expect((await readGridSnapshot(mantaPage, ptyId)).xterm).toEqual(baseline.xterm)
 
-    await orcaPage.evaluate(() => window.dispatchEvent(new Event('focus')))
+    await mantaPage.evaluate(() => window.dispatchEvent(new Event('focus')))
 
     await expect
       .poll(
         async () => {
-          const snapshot = await readGridSnapshot(orcaPage, ptyId)
+          const snapshot = await readGridSnapshot(mantaPage, ptyId)
           return snapshot.applied && snapshot.xterm ? snapshot : null
         },
         { timeout: 10_000, message: 'Window focus should converge the local PTY to xterm' }

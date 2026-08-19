@@ -9,7 +9,7 @@ import {
   startDockerSshRelayTarget,
   type DockerSshRelayTarget
 } from './helpers/docker-ssh-relay-target'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   getTerminalContent,
@@ -18,8 +18,8 @@ import {
   waitForActiveTerminalManager
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const REMOTE_IMAGE_PATH = '/tmp/orca-ssh-external-preview.png'
+const RUN_DOCKER_SSH = process.env.MANTA_E2E_SSH_DOCKER === '1'
+const REMOTE_IMAGE_PATH = '/tmp/manta-ssh-external-preview.png'
 const IMAGE_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4AWN8z8DwnwEJMDGgAcICAO2mBAXmO4drAAAAAElFTkSuQmCC'
 
@@ -103,11 +103,11 @@ async function activateTerminalLink(page: Page, probe: LinkProbe, text: string):
 }
 
 test.describe('SSH external image preview', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set MANTA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'The disposable SSH host uses POSIX tooling.')
 
   test('opens an image outside the worktree from a terminal link', async ({
-    orcaPage,
+    mantaPage,
     registerPostElectronShutdownCleanup
   }, testInfo) => {
     test.slow()
@@ -122,48 +122,48 @@ test.describe('SSH external image preview', () => {
         `printf '%s' ${shellQuote(IMAGE_BASE64)} | base64 -d > ${shellQuote(REMOTE_IMAGE_PATH)}`
       )
 
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      const remote = await connectDockerSshRelayTarget(orcaPage, target, {
+      await waitForSessionReady(mantaPage)
+      await waitForActiveWorktree(mantaPage)
+      const remote = await connectDockerSshRelayTarget(mantaPage, target, {
         remotePath: DOCKER_SSH_RELAY_REMOTE_REPO_PATH
       })
-      await ensureTerminalVisible(orcaPage, 45_000)
-      await waitForActiveTerminalManager(orcaPage, 60_000)
-      const ptyId = await waitForActivePanePtyId(orcaPage, 60_000)
+      await ensureTerminalVisible(mantaPage, 45_000)
+      await waitForActiveTerminalManager(mantaPage, 60_000)
+      const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
       const readyMarker = `SSH_PREVIEW_READY_${Date.now()}`
       const encodedReadyMarker = Buffer.from(readyMarker).toString('base64')
       await sendToTerminal(
-        orcaPage,
+        mantaPage,
         ptyId,
         `printf '%s' ${shellQuote(encodedReadyMarker)} | base64 -d; printf '\\n'\r`
       )
       await expect
-        .poll(() => getTerminalContent(orcaPage, 30_000), {
+        .poll(() => getTerminalContent(mantaPage, 30_000), {
           timeout: 15_000,
           message: 'SSH terminal did not execute the readiness marker'
         })
         .toContain(readyMarker)
 
-      await sendToTerminal(orcaPage, ptyId, `printf '%s\\n' ${shellQuote(REMOTE_IMAGE_PATH)}\r`)
+      await sendToTerminal(mantaPage, ptyId, `printf '%s\\n' ${shellQuote(REMOTE_IMAGE_PATH)}\r`)
       await expect
-        .poll(() => getTerminalContent(orcaPage, 30_000), {
+        .poll(() => getTerminalContent(mantaPage, 30_000), {
           timeout: 15_000,
           message: 'External image path did not reach the SSH terminal'
         })
         .toContain(REMOTE_IMAGE_PATH)
 
-      const probe = await findTerminalLink(orcaPage, REMOTE_IMAGE_PATH)
-      await activateTerminalLink(orcaPage, probe, REMOTE_IMAGE_PATH)
+      const probe = await findTerminalLink(mantaPage, REMOTE_IMAGE_PATH)
+      await activateTerminalLink(mantaPage, probe, REMOTE_IMAGE_PATH)
 
-      const preview = orcaPage.locator(`img[alt="${REMOTE_IMAGE_PATH.split('/').at(-1)}"]`)
+      const preview = mantaPage.locator(`img[alt="${REMOTE_IMAGE_PATH.split('/').at(-1)}"]`)
       await expect(preview).toBeVisible({ timeout: 30_000 })
       expect(await preview.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBe(
         2
       )
       expect(await preview.getAttribute('src')).toBe(`data:image/png;base64,${IMAGE_BASE64}`)
-      await expect(orcaPage.getByText('Unable to load file', { exact: true })).toHaveCount(0)
+      await expect(mantaPage.getByText('Unable to load file', { exact: true })).toHaveCount(0)
 
-      const state = await orcaPage.evaluate((filePath) => {
+      const state = await mantaPage.evaluate((filePath) => {
         const file = window.__store?.getState().openFiles.find((item) => item.filePath === filePath)
         return file
           ? {
@@ -185,7 +185,7 @@ test.describe('SSH external image preview', () => {
         createHash('sha256').update(Buffer.from(IMAGE_BASE64, 'base64')).digest('hex')
       )
       await testInfo.attach('ssh-external-image-preview', {
-        body: await orcaPage.screenshot(),
+        body: await mantaPage.screenshot(),
         contentType: 'image/png'
       })
     } finally {

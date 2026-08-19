@@ -1,14 +1,14 @@
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import type { OrchestrationDb } from '../../orchestration/db'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import type { FederatedDispatchRow, WorkerDispatchRow } from '../../orchestration/types'
 
 export async function inspectWorkerTerminal(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   db: OrchestrationDb,
   dispatchId: string
 ): Promise<{
-  terminal: Awaited<ReturnType<OrcaRuntimeService['showTerminal']>> | null
+  terminal: Awaited<ReturnType<MantaRuntimeService['showTerminal']>> | null
   exact: boolean
   status: 'unattached' | 'missing' | 'identity_changed' | 'running' | 'exited'
 }> {
@@ -42,21 +42,21 @@ export function exposeWorker(worker: WorkerDispatchRow) {
 }
 
 export function resolvePinnedFederatedServer(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   federated: FederatedDispatchRow
 ) {
   const server = runtime.resolveOrchestrationWorkerServer(federated.environment_id)
   if (server.peerFingerprint !== federated.peer_fingerprint) {
     throw new OrchestrationError(
       'peer_changed',
-      `Saved environment ${federated.environment_name} now identifies a different Orca server.`
+      `Saved environment ${federated.environment_name} now identifies a different Manta server.`
     )
   }
   return server
 }
 
 export async function callFederatedWorkerShow(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   federated: FederatedDispatchRow
 ): Promise<{
   runtimeEpoch: string

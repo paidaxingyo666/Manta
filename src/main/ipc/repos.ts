@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import { z } from 'zod'
 import type { Store } from '../persistence'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import type { FolderWorkspace } from '../../shared/folder-workspace-types'
 import type {
   NestedRepoScanResult,
@@ -763,7 +763,7 @@ type ActiveRemoteCloneMetadata = {
   controller: AbortController
 }
 
-type RepoRemoteClientNotifier = Pick<OrcaRuntimeService, 'notifyReposChangedForRemoteClients'>
+type RepoRemoteClientNotifier = Pick<MantaRuntimeService, 'notifyReposChangedForRemoteClients'>
 
 // Why: notifyReposChanged is module-level and cannot close over a handler argument (#11994).
 let repoRemoteClientNotifier: RepoRemoteClientNotifier | null = null
@@ -1107,7 +1107,7 @@ async function isGitAvailable(): Promise<boolean> {
 }
 
 function getDefaultCreateProjectParent(): string {
-  return join(homedir(), 'orca', 'projects')
+  return join(homedir(), 'manta', 'projects')
 }
 
 function markCloneAbortCleanupPending(metadata: ActiveCloneMetadata): void {
@@ -1884,7 +1884,7 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
     }
   )
 
-  // Create a repo/folder from scratch (orca#763); git repos need an empty initial commit so HEAD has a branch ref for worktrees.
+  // Create a repo/folder from scratch (manta#763); git repos need an empty initial commit so HEAD has a branch ref for worktrees.
   ipcMain.handle(
     'repos:create',
     async (
@@ -1924,7 +1924,7 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
       let createdDir = false
       let targetExists = false
       try {
-        // Why: the default parent (~/orca/projects) may not exist on a fresh install; create only the parent before probing the target.
+        // Why: the default parent (~/manta/projects) may not exist on a fresh install; create only the parent before probing the target.
         await mkdir(parentPath, { recursive: true })
         await access(targetPath)
         targetExists = true

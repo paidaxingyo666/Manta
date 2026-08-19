@@ -74,7 +74,7 @@ async function loadClientModule() {
 function macOSProviderCapabilities() {
   return {
     platform: 'darwin',
-    provider: 'orca-computer-use-macos',
+    provider: 'manta-computer-use-macos',
     providerVersion: '1.0.0',
     protocolVersion: 1,
     supports: {
@@ -95,7 +95,7 @@ describe('MacOSNativeProviderClient paste validation', () => {
     providers.length = 0
     mkdtempSyncMock.mockImplementation((prefix: string) => `${prefix}${sockets.length}`)
     resolveMacOSComputerUseExecutablePathMock.mockReturnValue(
-      '/Applications/Orca Computer Use.app/Contents/MacOS/orca-computer-use-macos'
+      '/Applications/Manta Computer Use.app/Contents/MacOS/manta-computer-use-macos'
     )
     spawnMock.mockImplementation(() => {
       const provider = new FakeProvider()

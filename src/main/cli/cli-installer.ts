@@ -28,9 +28,9 @@ import {
 } from './windows-user-path-registry'
 
 const execFileAsync = promisify(execFile)
-const DEFAULT_MAC_COMMAND_PATH = '/usr/local/bin/orca'
-const DEV_COMMAND_NAME = 'orca-dev'
-const LEGACY_LINUX_COMMAND_NAME = 'orca'
+const DEFAULT_MAC_COMMAND_PATH = '/usr/local/bin/manta'
+const DEV_COMMAND_NAME = 'manta-dev'
+const LEGACY_LINUX_COMMAND_NAME = 'manta'
 const DEV_LAUNCHER_DIR = ['cli', 'bin']
 const WINDOWS_PATH_WRITE_TIMEOUT_MS = 5_000
 
@@ -87,8 +87,8 @@ export class CliInstaller {
       // Why: development builds must not claim the production shell command.
       return DEV_COMMAND_NAME
     }
-    // Why: packaged Linux uses `orca-ide` to avoid shadowing GNOME Orca's /usr/bin/orca.
-    return this.platform === 'linux' ? LINUX_CLI_COMMAND_NAME : 'orca'
+    // Why: packaged Linux uses `manta-ide` to avoid shadowing GNOME Orca's /usr/bin/orca.
+    return this.platform === 'linux' ? LINUX_CLI_COMMAND_NAME : 'manta'
   }
 
   constructor(options: CliInstallerOptions = {}) {
@@ -105,12 +105,12 @@ export class CliInstaller {
       join(this.homePath, 'AppData', 'Local')
     this.processPathEnv = options.processPathEnv ?? process.env.PATH ?? process.env.Path ?? null
     this.commandPathOverride =
-      options.commandPathOverride ?? process.env.ORCA_CLI_INSTALL_PATH ?? null
+      options.commandPathOverride ?? process.env.MANTA_CLI_INSTALL_PATH ?? null
     // Why: resolved once here (getStatus is hot); /usr/local/bin is absent on Apple Silicon, so fall back to user-writable ~/.local/bin.
     const candidateMacPath = options.defaultMacCommandPath ?? DEFAULT_MAC_COMMAND_PATH
     this.macCommandPath = existsSync(dirname(candidateMacPath))
       ? candidateMacPath
-      : join(this.homePath, '.local', 'bin', 'orca')
+      : join(this.homePath, '.local', 'bin', 'manta')
     this.privilegedRunner = options.privilegedRunner ?? runMacPrivilegedCommand
     this.userPathReader = options.userPathReader ?? readWindowsUserPathRegistry
     this.userPathMutationReader =
@@ -150,7 +150,7 @@ export class CliInstaller {
         this.isLinuxAppImage() && this.appImagePath
           ? `The AppImage file at ${this.appImagePath} is missing. Move it back or re-run CLI registration from the current AppImage location.`
           : this.isPackaged
-            ? 'The bundled CLI launcher is missing from this Orca build.'
+            ? 'The bundled CLI launcher is missing from this Manta build.'
             : 'Development mode uses a generated launcher for validation only.'
       return {
         platform: this.platform,
@@ -186,7 +186,7 @@ export class CliInstaller {
       throw new Error(status.detail ?? 'CLI registration is unavailable on this build.')
     }
     if (status.state === 'conflict') {
-      throw new Error(`Refusing to replace non-Orca command at ${status.commandPath}.`)
+      throw new Error(`Refusing to replace non-Manta command at ${status.commandPath}.`)
     }
 
     // eslint-disable-next-line unicorn/prefer-ternary -- Why: the install path performs async side effects and is easier to audit as an explicit branch than as an awaited ternary.
@@ -197,7 +197,7 @@ export class CliInstaller {
       await this.installAppImageWrapper(status.commandPath, status.launcherPath)
       await this.removeLegacyLinuxCommandIfManaged(status.launcherPath)
     } else if (this.isWindowsPackagedBundledCommand(status.commandPath, status.launcherPath)) {
-      // Why: packaged Windows already ships resources/bin/orca.exe; registration only owns the PATH entry.
+      // Why: packaged Windows already ships resources/bin/manta.exe; registration only owns the PATH entry.
     } else {
       // Why: the Windows wrapper dir is user-writable (%LOCALAPPDATA%), so mkdir here can't hit EACCES.
       await mkdir(dirname(status.commandPath), { recursive: true })
@@ -226,10 +226,10 @@ export class CliInstaller {
       return status
     }
     if (status.state === 'conflict') {
-      throw new Error(`Refusing to remove non-Orca command at ${status.commandPath}.`)
+      throw new Error(`Refusing to remove non-Manta command at ${status.commandPath}.`)
     }
     if (status.state === 'stale') {
-      throw new Error(`Refusing to remove a command not owned by Orca at ${status.commandPath}.`)
+      throw new Error(`Refusing to remove a command not owned by Manta at ${status.commandPath}.`)
     }
 
     if (status.installMethod === 'symlink') {
@@ -308,7 +308,7 @@ export class CliInstaller {
       const status = await this.inspectSymlink(commandPath, launcherPath)
       if (status.state !== 'not_installed') {
         if (reachedDefaultCommandPath && !isDefaultCommandPath && status.state === 'conflict') {
-          // Why: a non-Orca command after an empty default slot can be shadowed by installing there; no user file replaced.
+          // Why: a non-Manta command after an empty default slot can be shadowed by installing there; no user file replaced.
           continue
         }
         // Why: PATH lookup is first-match-wins; return the command the shell will actually run, preserving shadowing conflicts.
@@ -340,7 +340,13 @@ export class CliInstaller {
         return join(this.homePath, '.local', 'bin', DEV_COMMAND_NAME)
       }
       if (this.platform === 'win32') {
-        return join(this.localAppDataPath, 'Programs', 'Orca Dev', 'bin', `${DEV_COMMAND_NAME}.cmd`)
+        return join(
+          this.localAppDataPath,
+          'Programs',
+          'Manta Dev',
+          'bin',
+          `${DEV_COMMAND_NAME}.cmd`
+        )
       }
     }
 
@@ -350,7 +356,7 @@ export class CliInstaller {
 
     if (this.platform === 'linux') {
       // Why: Linux lacks a privileged global command flow; ~/.local/bin is the least-surprising user-scoped dir.
-      // Why `orca-ide`: GNOME Orca ships /usr/bin/orca, so avoid shadowing that screen reader.
+      // Why `manta-ide`: GNOME Orca ships /usr/bin/orca, so avoid shadowing that screen reader.
       return join(this.homePath, '.local', 'bin', LINUX_CLI_COMMAND_NAME)
     }
 
@@ -440,7 +446,7 @@ export class CliInstaller {
         return
       }
 
-      // Why: after the Linux command rename, the old `orca` symlink would keep shadowing GNOME Orca.
+      // Why: after the Linux command rename, the old `manta` symlink would keep shadowing GNOME Orca.
       await unlink(legacyCommandPath)
     } catch (error) {
       if (isMissingError(error)) {
@@ -467,7 +473,7 @@ export class CliInstaller {
     }
 
     // Why: AppImage upgrades can strand a legacy symlink into a now-gone FUSE mount that isn't a sibling of the stable path.
-    return /(?:^|[/\\])resources[/\\]bin[/\\]orca$/.test(resolvedTarget)
+    return /(?:^|[/\\])resources[/\\]bin[/\\]manta$/.test(resolvedTarget)
   }
 
   private async installWindowsWrapper(commandPath: string, launcherPath: string): Promise<void> {
@@ -497,7 +503,7 @@ export class CliInstaller {
           supported: true,
           state: 'conflict',
           currentTarget: null,
-          detail: `${commandPath} exists but is not an Orca launcher script.`
+          detail: `${commandPath} exists but is not a Manta launcher script.`
         })
       }
 
@@ -524,7 +530,7 @@ export class CliInstaller {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from the terminal.`
+          detail: `Register ${commandPath} to use Manta from the terminal.`
         })
       }
       throw error
@@ -549,7 +555,7 @@ export class CliInstaller {
               supported: true,
               state: 'stale',
               currentTarget: managedTarget,
-              detail: `${commandPath} contains an older Orca launcher.`
+              detail: `${commandPath} contains an older Manta launcher.`
             })
           }
         }
@@ -561,7 +567,7 @@ export class CliInstaller {
           supported: true,
           state: 'conflict',
           currentTarget: null,
-          detail: `${commandPath} exists but is not an Orca symlink.`
+          detail: `${commandPath} exists but is not a Manta symlink.`
         })
       }
 
@@ -581,8 +587,8 @@ export class CliInstaller {
         detail: isInstalled
           ? `Registered at ${commandPath}.`
           : isManagedStaleTarget
-            ? `${commandPath} points to an older Orca launcher.`
-            : `${commandPath} points to a non-Orca launcher.`
+            ? `${commandPath} points to an older Manta launcher.`
+            : `${commandPath} points to a non-Manta launcher.`
       })
     } catch (error) {
       if (isMissingError(error)) {
@@ -593,7 +599,7 @@ export class CliInstaller {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from the terminal.`
+          detail: `Register ${commandPath} to use Manta from the terminal.`
         })
       }
       throw error
@@ -616,7 +622,7 @@ export class CliInstaller {
     }
 
     if (this.platform === 'darwin') {
-      // Why: reclaim symlinks to an older Orca.app launcher, but never replace arbitrary user-owned symlinks.
+      // Why: reclaim symlinks to an older Manta.app launcher, but never replace arbitrary user-owned symlinks.
       return /(?:^|[/\\])[^/\\]+\.app[/\\]Contents[/\\]Resources[/\\]bin[/\\][^/\\]+$/.test(
         resolvedTarget
       )
@@ -641,7 +647,7 @@ export class CliInstaller {
     const siblingDevUserDataPath = `${packagedUserDataPath}-dev`
     const siblingDevLauncherDir = resolve(siblingDevUserDataPath, ...DEV_LAUNCHER_DIR)
 
-    // Why: dev builds generate launchers under the sibling `*-dev` profile; packaged Orca must reclaim that command.
+    // Why: dev builds generate launchers under the sibling `*-dev` profile; packaged Manta must reclaim that command.
     return (
       basename(siblingDevUserDataPath) === `${basename(packagedUserDataPath)}-dev` &&
       isPathInsideOrEqual(siblingDevLauncherDir, resolvedTarget)
@@ -679,7 +685,7 @@ export class CliInstaller {
           supported: true,
           state: 'conflict',
           currentTarget: null,
-          detail: `${commandPath} exists but is not an Orca launcher script.`
+          detail: `${commandPath} exists but is not a Manta launcher script.`
         })
       }
 
@@ -718,7 +724,7 @@ export class CliInstaller {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from Command Prompt or PowerShell.`
+          detail: `Register ${commandPath} to use Manta from Command Prompt or PowerShell.`
         })
       }
       throw error
@@ -791,7 +797,7 @@ export class CliInstaller {
         pathConfigured,
         state: 'not_installed',
         currentTarget: null,
-        detail: `Register ${status.commandPath} to use Orca from Command Prompt or PowerShell.`
+        detail: `Register ${status.commandPath} to use Manta from Command Prompt or PowerShell.`
       }
     }
 
@@ -802,7 +808,7 @@ export class CliInstaller {
         pathConfigured,
         detail:
           pathProbe.detail ??
-          'The Orca launcher exists, but Orca could not check your Windows user PATH.'
+          'The Manta launcher exists, but Manta could not check your Windows user PATH.'
       }
     }
 
@@ -890,8 +896,8 @@ export class CliInstaller {
       }
       const guidance =
         action === 'add'
-          ? `Add this folder to your PATH manually: ${pathDirectory}. Or run Orca as an administrator and try again.`
-          : `Remove this folder from your PATH manually: ${pathDirectory}. Or run Orca as an administrator and try again.`
+          ? `Add this folder to your PATH manually: ${pathDirectory}. Or run Manta as an administrator and try again.`
+          : `Remove this folder from your PATH manually: ${pathDirectory}. Or run Manta as an administrator and try again.`
       throw new Error(
         `Windows blocked updating your user PATH (access denied). This usually means your PATH environment variable is managed by Group Policy or your organization's device management. ${guidance}`,
         { cause: error }
@@ -932,8 +938,8 @@ async function ensureDevLauncher(args: {
     mode: args.platform === 'win32' ? undefined : 0o755
   })
   if (args.commandName === DEV_COMMAND_NAME && args.platform !== 'win32') {
-    // Why: dev PTYs prepend this dir to PATH, so keep a local `orca` alias without claiming the global command.
-    await writeFile(join(dirname(launcherPath), 'orca'), content, {
+    // Why: dev PTYs prepend this dir to PATH, so keep a local `manta` alias without claiming the global command.
+    await writeFile(join(dirname(launcherPath), 'manta'), content, {
       encoding: 'utf8',
       mode: 0o755
     })
@@ -950,13 +956,13 @@ function buildUnixDevLauncher(
 set -euo pipefail
 ELECTRON=${quoteShell(execPathValue)}
 CLI=${quoteShell(cliEntryPath)}
-export ORCA_USER_DATA_PATH=${quoteShell(userDataPath)}
-if [ -z "\${ORCA_APP_EXECUTABLE:-}" ]; then
-  export ORCA_APP_EXECUTABLE="$ELECTRON"
-  export ORCA_APP_EXECUTABLE_NEEDS_APP_ROOT=1
+export MANTA_USER_DATA_PATH=${quoteShell(userDataPath)}
+if [ -z "\${MANTA_APP_EXECUTABLE:-}" ]; then
+  export MANTA_APP_EXECUTABLE="$ELECTRON"
+  export MANTA_APP_EXECUTABLE_NEEDS_APP_ROOT=1
 fi
-export ORCA_NODE_OPTIONS="\${NODE_OPTIONS-}"
-export ORCA_NODE_REPL_EXTERNAL_MODULE="\${NODE_REPL_EXTERNAL_MODULE-}"
+export MANTA_NODE_OPTIONS="\${NODE_OPTIONS-}"
+export MANTA_NODE_REPL_EXTERNAL_MODULE="\${NODE_REPL_EXTERNAL_MODULE-}"
 unset NODE_OPTIONS
 unset NODE_REPL_EXTERNAL_MODULE
 ELECTRON_RUN_AS_NODE=1 exec "$ELECTRON" "$CLI" "$@"
@@ -972,13 +978,13 @@ function buildWindowsDevLauncher(
 setlocal
 set "ELECTRON=${escapeWindowsBatchValue(execPathValue)}"
 set "CLI=${escapeWindowsBatchValue(cliEntryPath)}"
-set "ORCA_USER_DATA_PATH=${escapeWindowsBatchValue(userDataPath)}"
-if not defined ORCA_APP_EXECUTABLE (
-  set "ORCA_APP_EXECUTABLE=%ELECTRON%"
-  set "ORCA_APP_EXECUTABLE_NEEDS_APP_ROOT=1"
+set "MANTA_USER_DATA_PATH=${escapeWindowsBatchValue(userDataPath)}"
+if not defined MANTA_APP_EXECUTABLE (
+  set "MANTA_APP_EXECUTABLE=%ELECTRON%"
+  set "MANTA_APP_EXECUTABLE_NEEDS_APP_ROOT=1"
 )
-set "ORCA_NODE_OPTIONS=%NODE_OPTIONS%"
-set "ORCA_NODE_REPL_EXTERNAL_MODULE=%NODE_REPL_EXTERNAL_MODULE%"
+set "MANTA_NODE_OPTIONS=%NODE_OPTIONS%"
+set "MANTA_NODE_REPL_EXTERNAL_MODULE=%NODE_REPL_EXTERNAL_MODULE%"
 set NODE_OPTIONS=
 set NODE_REPL_EXTERNAL_MODULE=
 set ELECTRON_RUN_AS_NODE=1
@@ -989,15 +995,15 @@ set ELECTRON_RUN_AS_NODE=1
 function buildWindowsForwarder(launcherPath: string): string {
   return `@echo off
 setlocal
-set "ORCA_LAUNCHER=${escapeWindowsBatchValue(launcherPath)}"
-"%ORCA_LAUNCHER%" %*
+set "MANTA_LAUNCHER=${escapeWindowsBatchValue(launcherPath)}"
+"%MANTA_LAUNCHER%" %*
 `
 }
 
 function extractManagedUnixLauncherTarget(content: string): string | null {
   if (
     !content.includes('ELECTRON_RUN_AS_NODE=1') ||
-    !content.includes('ORCA_NODE_OPTIONS') ||
+    !content.includes('MANTA_NODE_OPTIONS') ||
     !content.includes('NODE_REPL_EXTERNAL_MODULE')
   ) {
     return null
@@ -1008,7 +1014,7 @@ function extractManagedUnixLauncherTarget(content: string): string | null {
     return null
   }
 
-  // Why: only Orca's compiled CLI entrypoints count as managed; arbitrary Electron-launching scripts stay conflicts.
+  // Why: only Manta's compiled CLI entrypoints count as managed; arbitrary Electron-launching scripts stay conflicts.
   return /(?:^|[/\\])(?:out|app\.asar\.unpacked[/\\]out)[/\\]cli[/\\]index\.js$/.test(cliPath)
     ? cliPath
     : null

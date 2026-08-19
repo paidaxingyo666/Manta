@@ -8,8 +8,8 @@ import {
 } from './relay-host-proof'
 
 const encoder = new TextEncoder()
-const HOST_PROOF_DOMAIN = 'orca-relay-host-proof/v1'
-const CHALLENGE_DOMAIN = 'orca-relay-host-challenge/v1'
+const HOST_PROOF_DOMAIN = 'manta-relay-host-proof/v1'
+const CHALLENGE_DOMAIN = 'manta-relay-host-challenge/v1'
 const CLOCK_SKEW_MS = 30_000
 
 function concat(parts: readonly Uint8Array[]): Uint8Array {
@@ -90,7 +90,7 @@ function buildChallengeFixture(options: {
   const relayKeys = nacl.box.keyPair()
   const nonce = randomBytes(24)
   const secret = randomBytes(32)
-  const origin = 'https://c2.relay.onorca.dev'
+  const origin = 'https://c2.relay.manta.sh.cn'
   const relayHostId = 'host-abc123'
   const challengeId = 'challenge-skew'
   const transcript = buildTranscript({

@@ -1,10 +1,10 @@
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 
 const AGENT_STATUS_RECHECK_INTERVAL_MS = 150
 const AGENT_STATUS_RECHECK_TIMEOUT_MS = 1_050
 
 type AssertTerminalAgentSendableOptions = {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   handle: string
   assertWritable: () => void
 }

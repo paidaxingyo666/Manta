@@ -36,7 +36,7 @@ function artifact(slug: string, title: string): ArtifactListItem {
       byteSize: 1200,
       deletedAt: null
     },
-    shareUrl: `https://share.onorca.dev/a/${slug}`
+    shareUrl: `https://share.manta.sh.cn/a/${slug}`
   }
 }
 
@@ -73,7 +73,7 @@ describe('ArtifactCollection', () => {
     expect(collection).toHaveClass('lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)]')
     expect(collection).not.toHaveClass('rounded-md')
     expect(collection?.children[1]?.tagName).toBe('SECTION')
-    expect(screen.getByText('Preview https://share.onorca.dev/a/first')).toBeInTheDocument()
+    expect(screen.getByText('Preview https://share.manta.sh.cn/a/first')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('option', { name: /Second artifact/ }))
     expect(selectArtifact).toHaveBeenCalledWith('second')
@@ -114,7 +114,7 @@ describe('ArtifactCollection', () => {
     await userEvent.type(screen.getByPlaceholderText('Search artifacts'), 'second')
     expect(screen.getAllByRole('option')).toHaveLength(1)
     expect(screen.getByRole('option', { name: /Second artifact/ })).toBeInTheDocument()
-    expect(screen.getByText('Preview https://share.onorca.dev/a/first')).toBeInTheDocument()
+    expect(screen.getByText('Preview https://share.manta.sh.cn/a/first')).toBeInTheDocument()
 
     await userEvent.clear(screen.getByPlaceholderText('Search artifacts'))
     await userEvent.type(screen.getByPlaceholderText('Search artifacts'), 'nothing')
@@ -126,7 +126,7 @@ describe('ArtifactCollection', () => {
     const items = [artifact('first', 'First artifact')]
     renderCollection(items)
 
-    expect(screen.getByText('https://share.onorca.dev/a/first')).toBeInTheDocument()
+    expect(screen.getByText('https://share.manta.sh.cn/a/first')).toBeInTheDocument()
     expect(screen.getByText(/Link expires/)).toBeInTheDocument()
   })
 })

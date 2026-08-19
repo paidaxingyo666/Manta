@@ -830,7 +830,7 @@ export function gitOptionalLocksDisabledEnv(
 export { appendGitConfigEnv }
 
 /**
- * Pin Orca-spawned git to untranslated English output so stderr/progress parsers
+ * Pin Manta-spawned git to untranslated English output so stderr/progress parsers
  * work under any user locale (issue #7808). Terminal git is untouched.
  */
 export function untranslatedGitOutputEnv(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
@@ -1604,7 +1604,7 @@ async function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 function defaultGhExecTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env.ORCA_GH_EXEC_TIMEOUT_MS
+  const raw = env.MANTA_GH_EXEC_TIMEOUT_MS
   if (!raw) {
     return DEFAULT_GH_EXEC_TIMEOUT_MS
   }
@@ -1944,7 +1944,7 @@ export function wslAwareSpawn(
 
 /**
  * Translate absolute Linux paths in git output back to Windows UNC paths.
- * Why: git-in-WSL emits Linux-native paths, but Orca reads files via Node fs, which needs Windows UNC.
+ * Why: git-in-WSL emits Linux-native paths, but Manta reads files via Node fs, which needs Windows UNC.
  */
 export function translateWslOutputPaths(
   output: string,

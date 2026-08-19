@@ -31,7 +31,7 @@ export const CJK_LATIN_SPACED_TERMS = [
   'Gemini',
   'Kimi',
   'OpenCode',
-  'Orca',
+  'Manta',
   'Cursor',
   'Bitbucket',
   'Tailscale',

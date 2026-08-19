@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   appendNormalizedToTailBuffer,
   appendNormalizedToMultilineTailBufferUnwindowed
-} from './orca-runtime'
+} from './manta-runtime'
 
 // Differential guard for the windowed redraw tail path: the public
 // appendNormalizedToTailBuffer routes vertical-control chunks through a

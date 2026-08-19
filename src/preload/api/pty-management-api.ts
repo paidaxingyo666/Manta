@@ -12,7 +12,7 @@ export type PtyManagementSession = {
   protocolVersion: number
 }
 
-// 'severed': macOS can no longer attribute daemon terminals to Orca, so Accessibility/
+// 'severed': macOS can no longer attribute daemon terminals to Manta, so Accessibility/
 // Automation grants silently stop applying until the daemon is restarted (STA-3491).
 export type PtyManagementMacTccAttributionHealth = 'intact' | 'severed' | 'unknown'
 

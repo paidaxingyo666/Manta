@@ -70,24 +70,24 @@ const GUIDANCE_BY_ERROR_CLASS: Readonly<
   permission_denied: {
     key: 'runtimeRpc.startupFailure.guidance.permissionDenied',
     fallback:
-      "Orca couldn't write its runtime file. Check permissions on Orca's data folder, then restart."
+      "Manta couldn't write its runtime file. Check permissions on Manta's data folder, then restart."
   },
   storage_unavailable: {
     key: 'runtimeRpc.startupFailure.guidance.storageUnavailable',
-    fallback: 'Your disk may be full or read-only. Free up space, then restart Orca.'
+    fallback: 'Your disk may be full or read-only. Free up space, then restart Manta.'
   },
   invalid_path: {
     key: 'runtimeRpc.startupFailure.guidance.invalidPath',
     fallback:
-      "Orca's data folder may be missing, moved, or at a path that is too long. Restore it or use a shorter path, then restart Orca."
+      "Manta's data folder may be missing, moved, or at a path that is too long. Restore it or use a shorter path, then restart Manta."
   },
   address_in_use: {
     key: 'runtimeRpc.startupFailure.guidance.addressInUse',
-    fallback: 'Another process may be holding the port. Restart Orca to try again.'
+    fallback: 'Another process may be holding the port. Restart Manta to try again.'
   },
   unknown: {
     key: 'runtimeRpc.startupFailure.guidance.unknown',
-    fallback: 'Restart Orca to try again.'
+    fallback: 'Restart Manta to try again.'
   }
 }
 
@@ -100,14 +100,14 @@ function createRuntimeRpcStartupFailureDialogOptions(error: unknown): MessageBox
     defaultId: 0,
     cancelId: 0,
     noLink: true,
-    title: translateMain('runtimeRpc.startupFailure.title', 'Orca CLI unavailable'),
+    title: translateMain('runtimeRpc.startupFailure.title', 'Manta CLI unavailable'),
     message: translateMain(
       'runtimeRpc.startupFailure.message',
-      "Orca couldn't start its local command transport."
+      "Manta couldn't start its local command transport."
     ),
     detail: translateMain(
       'runtimeRpc.startupFailure.detail',
-      'Orca will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}',
+      'Manta will continue to work, but commands such as manta status, manta terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}',
       { cause, guidance: translateMain(key, fallback) }
     )
   }

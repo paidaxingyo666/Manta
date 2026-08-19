@@ -14,16 +14,16 @@ let userDataDir: string
 let previousUserDataPath: string | undefined
 
 beforeEach(() => {
-  userDataDir = mkdtempSync(join(tmpdir(), 'orca-trust-ledger-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  userDataDir = mkdtempSync(join(tmpdir(), 'manta-trust-ledger-'))
+  previousUserDataPath = process.env.MANTA_USER_DATA_PATH
+  process.env.MANTA_USER_DATA_PATH = userDataDir
 })
 
 afterEach(() => {
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.MANTA_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.MANTA_USER_DATA_PATH = previousUserDataPath
   }
   rmSync(userDataDir, { recursive: true, force: true })
 })
@@ -65,10 +65,10 @@ describe('codex trust grant ledger', () => {
   })
 
   it('treats Windows path-case variants as the same home', () => {
-    const home = 'C:\\Users\\Alice\\AppData\\Roaming\\orca\\codex-runtime-home\\home'
+    const home = 'C:\\Users\\Alice\\AppData\\Roaming\\manta\\codex-runtime-home\\home'
     writeCodexTrustGrantLedgerHome(home, { binary: null, entries: {} })
     expect(
-      readCodexTrustGrantLedgerHome('c:/users/alice/appdata/roaming/orca/codex-runtime-home/home')
+      readCodexTrustGrantLedgerHome('c:/users/alice/appdata/roaming/manta/codex-runtime-home/home')
     ).not.toBeNull()
   })
 

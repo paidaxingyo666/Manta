@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { openFileExplorer } from './helpers/file-explorer'
 import {
   createRuntimeDesktopPairingOffer,
@@ -12,7 +12,7 @@ import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } fro
 const FIXTURE_NAME = 'paired-html-focus.html'
 
 test('keeps remote HTML preview placement and focuses it only after a click', async ({
-  orcaPage,
+  mantaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(240_000)
@@ -20,11 +20,11 @@ test('keeps remote HTML preview placement and focuses it only after a click', as
     path.join(testRepoPath, FIXTURE_NAME),
     '<!doctype html><html><body><h1>paired html focus</h1></body></html>\n'
   )
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
 
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   let client: PairedElectronClient | null = null
   try {
     client = await launchPairedElectronClient(offer, testInfo, 'Remote HTML focus')

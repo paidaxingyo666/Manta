@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   splitActiveTerminalPane,
   waitForActiveTerminalManager,
@@ -100,26 +100,26 @@ async function renderInactiveCursor(
 }
 
 test.describe('Terminal inactive cursor rendering', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    await waitForPaneCount(orcaPage, 1, 30_000)
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
+    await waitForPaneCount(mantaPage, 1, 30_000)
   })
 
-  test('keeps an unfocused prompt cursor rendered as one block outline', async ({ orcaPage }) => {
-    await splitActiveTerminalPane(orcaPage, 'vertical')
-    await waitForPaneCount(orcaPage, 2)
-    await placeInactiveCursorAtPrompt(orcaPage)
+  test('keeps an unfocused prompt cursor rendered as one block outline', async ({ mantaPage }) => {
+    await splitActiveTerminalPane(mantaPage, 'vertical')
+    await waitForPaneCount(mantaPage, 2)
+    await placeInactiveCursorAtPrompt(mantaPage)
 
-    const fixedBehavior = await renderInactiveCursor(orcaPage)
+    const fixedBehavior = await renderInactiveCursor(mantaPage)
     expect(fixedBehavior.terminalFocused).toBe(false)
     expect(fixedBehavior.cursorStyle).toBe('block')
     expect(fixedBehavior.cursorInactiveStyle).toBe('outline')
     expect(fixedBehavior.cursorClassName).toMatch(/xterm-cursor-outline|canvas renderer: outline/)
 
-    const oldBehavior = await renderInactiveCursor(orcaPage, 'outline')
+    const oldBehavior = await renderInactiveCursor(mantaPage, 'outline')
     expect(oldBehavior.terminalFocused).toBe(false)
     expect(oldBehavior.cursorStyle).toBe('block')
     expect(oldBehavior.cursorInactiveStyle).toBe('outline')

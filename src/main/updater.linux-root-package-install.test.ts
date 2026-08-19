@@ -57,17 +57,17 @@ type StagedLinuxPackages = {
  * updater. Returns the actual digests for the download events.
  */
 function stageLinuxUpdateCache(): StagedLinuxPackages {
-  const cacheRoot = mkdtempSync(join(tmpdir(), 'orca-updater-cache-'))
-  const pendingDir = join(cacheRoot, 'orca-updater', 'pending')
+  const cacheRoot = mkdtempSync(join(tmpdir(), 'manta-updater-cache-'))
+  const pendingDir = join(cacheRoot, 'manta-updater', 'pending')
   mkdirSync(pendingDir, { recursive: true })
   const stagePackage = (fileName: string): { path: string; sha512: string } => {
     const packagePath = join(pendingDir, fileName)
-    const bytes = Buffer.from(`orca test package ${fileName}`)
+    const bytes = Buffer.from(`manta test package ${fileName}`)
     writeFileSync(packagePath, bytes)
     return { path: packagePath, sha512: createHash('sha512').update(bytes).digest('base64') }
   }
-  const deb = stagePackage('orca-ide_1.0.61_amd64.deb')
-  const rpm = stagePackage('orca-ide-1.0.61.x86_64.rpm')
+  const deb = stagePackage('manta-ide_1.0.61_amd64.deb')
+  const rpm = stagePackage('manta-ide-1.0.61.x86_64.rpm')
   return {
     cacheRoot,
     debPath: deb.path,
@@ -156,14 +156,14 @@ describe('updater', () => {
     const downloadedEvent = (overrides?: Record<string, unknown>): Record<string, unknown> => ({
       version: '1.0.61',
       downloadedFile: staged.debPath,
-      files: [{ url: 'orca-ide_1.0.61_amd64.deb', sha512: staged.debSha512 }],
+      files: [{ url: 'manta-ide_1.0.61_amd64.deb', sha512: staged.debSha512 }],
       ...overrides
     })
 
     const rpmDownloadedEvent = (): Record<string, unknown> =>
       downloadedEvent({
         downloadedFile: staged.rpmPath,
-        files: [{ url: 'orca-ide-1.0.61.x86_64.rpm', sha512: staged.rpmSha512 }]
+        files: [{ url: 'manta-ide-1.0.61.x86_64.rpm', sha512: staged.rpmSha512 }]
       })
 
     const startUpdater = async (
@@ -304,7 +304,7 @@ describe('updater', () => {
       // Release metadata without a digest must not enable cached-package recovery.
       await reachDownloaded(
         updater,
-        downloadedEvent({ files: [{ url: 'orca-ide_1.0.61_amd64.deb' }] })
+        downloadedEvent({ files: [{ url: 'manta-ide_1.0.61_amd64.deb' }] })
       )
       autoUpdaterMock.quitAndInstall.mockImplementation(() => {
         autoUpdaterMock.emit('error', new Error(EXIT_127))
@@ -340,7 +340,7 @@ describe('updater', () => {
       expect(autoUpdaterMock.quitAndInstall).not.toHaveBeenCalled()
       expect(send).toHaveBeenCalledWith('updater:status', {
         state: 'error',
-        message: 'Could not restart to install the update. Quit and reopen Orca, then try again.'
+        message: 'Could not restart to install the update. Quit and reopen Manta, then try again.'
       })
       expect(updater.isQuittingForUpdate()).toBe(false)
     })
@@ -440,7 +440,7 @@ describe('updater', () => {
       expect(send).toHaveBeenCalledWith('updater:status', {
         state: 'error',
         message:
-          'The downloaded package no longer matches the verified release, so Orca will not hand it to a package manager. Download the update again, or get it from the official release page.'
+          'The downloaded package no longer matches the verified release, so Manta will not hand it to a package manager. Download the update again, or get it from the official release page.'
       })
       expect(recordUpdaterLifecycleMock).toHaveBeenCalledWith(
         'linux_package_revalidation_failed',
@@ -466,7 +466,7 @@ describe('updater', () => {
       expect(send).toHaveBeenCalledWith('updater:status', {
         state: 'error',
         message:
-          'The downloaded package no longer matches the verified release, so Orca will not hand it to a package manager. Download the update again, or get it from the official release page.'
+          'The downloaded package no longer matches the verified release, so Manta will not hand it to a package manager. Download the update again, or get it from the official release page.'
       })
       expect(send).toHaveBeenCalledWith('updater:quitAndInstallAborted')
       expect(recordUpdaterLifecycleMock).toHaveBeenCalledWith(
@@ -549,7 +549,7 @@ describe('updater', () => {
       expect(lastStatus(send)).toEqual({
         state: 'error',
         message:
-          'Orca could not read the downloaded package. Download the update again, or get it from the official release page.',
+          'Manta could not read the downloaded package. Download the update again, or get it from the official release page.',
         recovery: {
           kind: 'linux-package-install',
           packageType: 'deb',
@@ -576,7 +576,7 @@ describe('updater', () => {
       expect(lastStatus(send)).toMatchObject({
         state: 'error',
         message:
-          'Orca could not read the downloaded package. Download the update again, or get it from the official release page.'
+          'Manta could not read the downloaded package. Download the update again, or get it from the official release page.'
       })
 
       updater.quitAndInstall()

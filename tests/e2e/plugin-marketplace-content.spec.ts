@@ -10,9 +10,9 @@ import { tmpdir } from 'node:os'
 import { join, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
-import type { Page, TestInfo } from '@stablyai/playwright-test'
-import { expect, test } from '@stablyai/playwright-test'
-import { createRestartSession } from './helpers/orca-restart'
+import type { Page, TestInfo } from '@paidaxingyo666/playwright-test'
+import { expect, test } from '@paidaxingyo666/playwright-test'
+import { createRestartSession } from './helpers/manta-restart'
 
 const execFileAsync = promisify(execFile)
 
@@ -48,9 +48,9 @@ async function commitRepository(
     repository,
     [
       '-c',
-      'user.name=Orca Test',
+      'user.name=Manta Test',
       '-c',
-      'user.email=orca-test@example.invalid',
+      'user.email=manta-test@example.invalid',
       'commit',
       '--quiet',
       '-m',
@@ -85,7 +85,7 @@ async function configureFixtureGit(home: string, repositories: string): Promise<
   }
   const repositoryBaseUrl = pathToFileURL(`${repositories}${sep}`).href
   const entries = [
-    [`url.${repositoryBaseUrl}.insteadOf`, 'https://github.com/stablyai/'],
+    [`url.${repositoryBaseUrl}.insteadOf`, 'https://github.com/paidaxingyo666/'],
     ['protocol.file.allow', 'always'],
     ['commit.gpgSign', 'false'],
     ['tag.gpgSign', 'false'],
@@ -98,7 +98,7 @@ async function configureFixtureGit(home: string, repositories: string): Promise<
 }
 
 async function createMarketplaceFixture(): Promise<MarketplaceFixture> {
-  const root = await mkdtemp(join(tmpdir(), 'orca-marketplace-e2e-'))
+  const root = await mkdtemp(join(tmpdir(), 'manta-marketplace-e2e-'))
   const repositories = join(root, 'repositories')
   const home = join(root, 'home')
   await mkdir(repositories, { recursive: true })
@@ -106,40 +106,40 @@ async function createMarketplaceFixture(): Promise<MarketplaceFixture> {
   const gitEnvironment = await configureFixtureGit(home, repositories)
   await copyLaunchPlugin(
     repositories,
-    'orca-portuguese',
-    'stablyai.orca-portuguese',
+    'manta-portuguese',
+    'paidaxingyo666.manta-portuguese',
     gitEnvironment
   )
   await copyLaunchPlugin(
     repositories,
-    'orca-multipass-recipes',
-    'stablyai.orca-multipass-recipes',
+    'manta-multipass-recipes',
+    'paidaxingyo666.manta-multipass-recipes',
     gitEnvironment
   )
   await copyLaunchPlugin(
     repositories,
-    'orca-navigation-shortcuts',
-    'stablyai.orca-navigation-shortcuts',
+    'manta-navigation-shortcuts',
+    'paidaxingyo666.manta-navigation-shortcuts',
     gitEnvironment
   )
 
-  const marketplaceRepository = join(repositories, 'orca-plugins.git')
+  const marketplaceRepository = join(repositories, 'manta-plugins.git')
   await mkdir(marketplaceRepository, { recursive: true })
   await writeFile(
-    join(marketplaceRepository, 'orca-marketplace.json'),
+    join(marketplaceRepository, 'manta-marketplace.json'),
     `${JSON.stringify(
       {
-        name: 'Orca Plugins',
-        owner: 'stablyai',
+        name: 'Manta Plugins',
+        owner: 'paidaxingyo666',
         plugins: [
-          ['stablyai.orca-portuguese', 'orca-portuguese', 'languages'],
-          ['stablyai.orca-multipass-recipes', 'orca-multipass-recipes', 'vm-recipes'],
-          ['stablyai.orca-navigation-shortcuts', 'orca-navigation-shortcuts', 'keybindings']
+          ['paidaxingyo666.manta-portuguese', 'manta-portuguese', 'languages'],
+          ['paidaxingyo666.manta-multipass-recipes', 'manta-multipass-recipes', 'vm-recipes'],
+          ['paidaxingyo666.manta-navigation-shortcuts', 'manta-navigation-shortcuts', 'keybindings']
         ].map(([id, repository, category]) => ({
           id,
           source: {
             kind: 'git',
-            url: `https://github.com/stablyai/${repository}.git`,
+            url: `https://github.com/paidaxingyo666/${repository}.git`,
             ref: 'v1.0.0'
           },
           categories: [category]
@@ -180,7 +180,7 @@ async function installMarketplacePluginThroughUi(
   await expect(listing).toBeVisible()
   await listing.getByRole('button', { name: 'Install' }).click()
   const preview = page.getByRole('dialog', { name: pluginName })
-  await expect(preview).toContainText('Official · stablyai')
+  await expect(preview).toContainText('Official · paidaxingyo666')
   await preview.getByRole('button', { name: 'Install plugin' }).click()
   const consent = page.getByRole('dialog', { name: consentDialogName })
   await expect(consent).toBeVisible()
@@ -204,7 +204,7 @@ async function enableInstalledPluginThroughUi(
 }
 
 async function applyInstalledLanguage(page: Page): Promise<void> {
-  const languageId = 'plugin:stablyai.orca-portuguese/pt-BR'
+  const languageId = 'plugin:paidaxingyo666.manta-portuguese/pt-BR'
   await page.evaluate(() => {
     const state = window.__store?.getState()
     if (!state) {
@@ -215,7 +215,9 @@ async function applyInstalledLanguage(page: Page): Promise<void> {
   await expect(page.locator('[data-settings-section="appearance"]')).toBeVisible()
   await page.evaluate(() => window.__store?.setState({ settingsSearchQuery: 'Language' }))
   await page.getByRole('combobox', { name: 'Language' }).click()
-  await page.getByRole('option', { name: 'pt-BR — stablyai.orca-portuguese', exact: true }).click()
+  await page
+    .getByRole('option', { name: 'pt-BR — paidaxingyo666.manta-portuguese', exact: true })
+    .click()
   await expect
     .poll(() => page.evaluate(() => window.__store?.getState().settings?.uiLanguage))
     .toBe(languageId)
@@ -239,10 +241,13 @@ async function runMarketplaceJourney(page: Page): Promise<void> {
     .toMatchObject({
       sources: [expect.objectContaining({ official: true, stale: false })],
       listings: expect.arrayContaining([
-        expect.objectContaining({ pluginKey: 'stablyai.orca-portuguese', official: true }),
-        expect.objectContaining({ pluginKey: 'stablyai.orca-multipass-recipes', official: true }),
+        expect.objectContaining({ pluginKey: 'paidaxingyo666.manta-portuguese', official: true }),
         expect.objectContaining({
-          pluginKey: 'stablyai.orca-navigation-shortcuts',
+          pluginKey: 'paidaxingyo666.manta-multipass-recipes',
+          official: true
+        }),
+        expect.objectContaining({
+          pluginKey: 'paidaxingyo666.manta-navigation-shortcuts',
           official: true
         })
       ])
@@ -250,19 +255,19 @@ async function runMarketplaceJourney(page: Page): Promise<void> {
 
   await installMarketplacePluginThroughUi(
     page,
-    'stablyai.orca-portuguese',
+    'paidaxingyo666.manta-portuguese',
     'Português do Brasil',
     'Review plugin'
   )
   await installMarketplacePluginThroughUi(
     page,
-    'stablyai.orca-multipass-recipes',
+    'paidaxingyo666.manta-multipass-recipes',
     'Multipass VM Recipes',
     'Review plugin content'
   )
   await enableInstalledPluginThroughUi(
     page,
-    'stablyai.orca-navigation-shortcuts',
+    'paidaxingyo666.manta-navigation-shortcuts',
     'Review plugin content'
   )
 

@@ -52,7 +52,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
       `& { $PSNativeCommandArgumentPassing = 'Legacy'; wsl.exe -d 'Ubuntu' -- sh -c 'eval \\"\`printf %s ${encoded} | base64 -d\`\\"' } # Runs: ${skillCommand}`
     )
     expect(decodeWslLoginShellScript(setupCommand)).toContain(
-      'exec "$_orca_wsl_shell" -ilc \'npx skills add orchestration --global\''
+      'exec "$_manta_wsl_shell" -ilc \'npx skills add orchestration --global\''
     )
   })
 
@@ -70,7 +70,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     expect(setupCommand).toContain("wsl.exe -d 'Ubuntu'")
     expect(setupCommand).not.toContain('where.exe npx')
     expect(decodeWslLoginShellScript(setupCommand)).toContain(
-      'exec "$_orca_wsl_shell" -ilc \'npx skills add orchestration --global\''
+      'exec "$_manta_wsl_shell" -ilc \'npx skills add orchestration --global\''
     )
   })
 
@@ -84,7 +84,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     const setupCommand = buildSkillSetupTerminalCommand(command, 'powershell.exe', runtime, 'win32')
 
     expect(decodeWslLoginShellScript(setupCommand)).toContain(
-      'exec "$_orca_wsl_shell" -ilc \'npx skills update orchestration --global\''
+      'exec "$_manta_wsl_shell" -ilc \'npx skills update orchestration --global\''
     )
   })
 
@@ -102,7 +102,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   it.skipIf(process.platform === 'win32')(
     'runs skill commands with npx from the configured WSL login-shell PATH',
     () => {
-      const root = mkdtempSync(join(tmpdir(), 'orca-wsl-skill-command-'))
+      const root = mkdtempSync(join(tmpdir(), 'manta-wsl-skill-command-'))
       const tools = join(root, 'tools')
       const npxBin = join(root, 'npx-bin')
       const loginShell = join(root, 'zsh')
@@ -110,11 +110,11 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
       mkdirSync(npxBin)
       writeFileSync(
         join(tools, 'getent'),
-        '#!/bin/sh\nprintf \'%s\\n\' "user:x:1000:1000::/home/user:$ORCA_TEST_LOGIN_SHELL"\n'
+        '#!/bin/sh\nprintf \'%s\\n\' "user:x:1000:1000::/home/user:$MANTA_TEST_LOGIN_SHELL"\n'
       )
       writeFileSync(
         loginShell,
-        '#!/bin/sh\nexport PATH="$ORCA_TEST_NPX_BIN:/usr/bin:/bin"\nexec /bin/sh -c "$2"\n'
+        '#!/bin/sh\nexport PATH="$MANTA_TEST_NPX_BIN:/usr/bin:/bin"\nexec /bin/sh -c "$2"\n'
       )
       writeFileSync(
         join(npxBin, 'npx'),
@@ -141,8 +141,8 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
             env: {
               ...process.env,
               PATH: `${tools}:/usr/bin:/bin`,
-              ORCA_TEST_LOGIN_SHELL: loginShell,
-              ORCA_TEST_NPX_BIN: npxBin
+              MANTA_TEST_LOGIN_SHELL: loginShell,
+              MANTA_TEST_NPX_BIN: npxBin
             }
           })
         ).toBe('skills update orchestration --global:terminal-input')
@@ -153,7 +153,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   )
 
   it('preflights npx before Windows-host skill installs', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration'])
 
     expect(
       buildSkillCommandForRuntime(
@@ -168,7 +168,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   })
 
   it('treats missing runtime as a preflighted Windows host fallback for skill installs', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration'])
 
     expect(buildSkillCommandForRuntime(installCommand, undefined, 'win32')).toBe(
       `${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`
@@ -191,10 +191,10 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   })
 
   it('treats missing runtime as a preflighted Windows host fallback for skill updates', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli'])
 
     expect(
-      buildSkillCommandForRuntime('npx skills update orca-cli --global', undefined, 'win32')
+      buildSkillCommandForRuntime('npx skills update manta-cli --global', undefined, 'win32')
     ).toBe(`${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`)
   })
 
@@ -292,7 +292,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     try {
       const copied = buildSkillCommandForRuntime(installCommand, windowsHost, 'win32')
       expect(copied).toBe(installCommand)
-      // Orca forces its own setup terminal to powershell.exe, where cmd.exe works.
+      // Manta forces its own setup terminal to powershell.exe, where cmd.exe works.
       expect(buildSkillSetupTerminalCommand(copied, 'powershell.exe', undefined, 'win32')).toBe(
         `${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`
       )
@@ -324,7 +324,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     }
   })
 
-  it('adapts bare WSL setup commands to the shell that Orca created', () => {
+  it('adapts bare WSL setup commands to the shell that Manta created', () => {
     const runtime = { runtime: 'wsl', wslDistro: 'Ubuntu', label: 'WSL Ubuntu' } as const
     const skillCommand = 'npx skills add orchestration --global'
     const copiedCommand = buildSkillCommandForRuntime(skillCommand, runtime, 'win32')
@@ -389,19 +389,19 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   it('does not wrap unrelated Windows host commands', () => {
     expect(
       buildSkillCommandForRuntime(
-        'orca skills list',
+        'manta skills list',
         {
           runtime: 'host',
           label: 'Windows'
         },
         'win32'
       )
-    ).toBe('orca skills list')
+    ).toBe('manta skills list')
   })
 
   it('emits a cmd.exe payload that cannot break its own if/else block', () => {
     const wrapped = buildSkillCommandForRuntime(
-      buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration']),
+      buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration']),
       { runtime: 'host', label: 'Windows' },
       'win32'
     )

@@ -40,7 +40,7 @@ import {
   toggleSetMember
 } from './workspace-cleanup-selection-model'
 
-/** One filterable list of every workspace Orca knows about. */
+/** One filterable list of every workspace Manta knows about. */
 export default function WorkspaceCleanupDialog(): React.JSX.Element | null {
   const lifecycle = useWorkspaceCleanupDialogLifecycle()
   if (!lifecycle.mountedContent) {

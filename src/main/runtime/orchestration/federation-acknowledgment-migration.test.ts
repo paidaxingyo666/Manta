@@ -18,7 +18,7 @@ describe('federation acknowledgment migration', () => {
   })
 
   it('adds a zeroed durable acknowledgment watermark to v26 dispatches', () => {
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-federation-ack-migration-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'manta-federation-ack-migration-'))
     const dbPath = join(tempDir, 'orchestration.db')
     db = new OrchestrationDb(dbPath)
     db.close()

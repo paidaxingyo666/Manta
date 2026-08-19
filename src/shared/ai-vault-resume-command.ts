@@ -128,7 +128,7 @@ export function realHomeCodexResumeEnvDeletion(
   if (session.agent !== 'codex' || session.codexHome !== null) {
     return {}
   }
-  return { envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME'] }
+  return { envToDelete: ['CODEX_HOME', 'MANTA_CODEX_HOME'] }
 }
 
 function defaultAiVaultResumeCommandBase(agent: AiVaultAgent): string {

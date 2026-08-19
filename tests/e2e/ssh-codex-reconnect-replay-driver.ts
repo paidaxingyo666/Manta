@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import type { Page } from '@stablyai/playwright-test'
-import { expect } from './helpers/orca-app'
+import { expect } from './helpers/manta-app'
 import {
   DOCKER_SSH_RELAY_REMOTE_REPO_PATH,
   type DockerSshRelayTarget
@@ -142,12 +142,12 @@ export async function installPtyReplayProbe(page: Page): Promise<void> {
       throw new Error('PTY replay API unavailable')
     }
     const holder = window as unknown as {
-      __orcaSshCodexReplayProbe?: {
+      __mantaSshCodexReplayProbe?: {
         payloads: { id: string; length: number; preview: string }[]
         dispose: () => void
       }
     }
-    holder.__orcaSshCodexReplayProbe?.dispose()
+    holder.__mantaSshCodexReplayProbe?.dispose()
     const payloads: { id: string; length: number; preview: string }[] = []
     const dispose = api.onReplay(({ id, data }) => {
       payloads.push({
@@ -156,7 +156,7 @@ export async function installPtyReplayProbe(page: Page): Promise<void> {
         preview: data.slice(-400)
       })
     })
-    holder.__orcaSshCodexReplayProbe = { payloads, dispose }
+    holder.__mantaSshCodexReplayProbe = { payloads, dispose }
   })
 }
 
@@ -186,11 +186,11 @@ export async function readReplayProbeSnapshot(page: Page): Promise<Record<string
   return page.evaluate(() => {
     const probe = (
       window as unknown as {
-        __orcaSshCodexReplayProbe?: {
+        __mantaSshCodexReplayProbe?: {
           payloads: { id: string; length: number; preview: string }[]
         }
       }
-    ).__orcaSshCodexReplayProbe
+    ).__mantaSshCodexReplayProbe
     return {
       replayCount: probe?.payloads.length ?? 0,
       replayPayloads: probe?.payloads.slice(-8) ?? []

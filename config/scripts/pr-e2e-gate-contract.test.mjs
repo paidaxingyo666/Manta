@@ -128,7 +128,7 @@ describe('PR E2E gate contract', () => {
   it('scopes the VM rollback oracle to the PR range and recipe schema authorities', () => {
     expect(rollbackStep.run).toContain('--merge-base "$BASE_SHA" "$HEAD_SHA"')
     expect(rollbackStep.run).toContain('src/shared/ephemeral-vm-recipes.ts')
-    expect(rollbackStep.run).toContain('src/shared/orca-yaml-hook-types.ts')
-    expect(filterStep.run).toContain('ephemeral-vm-recipes|orca-yaml-hook-types')
+    expect(rollbackStep.run).toContain('src/shared/manta-yaml-hook-types.ts')
+    expect(filterStep.run).toContain('ephemeral-vm-recipes|manta-yaml-hook-types')
   })
 })

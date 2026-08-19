@@ -6,7 +6,7 @@ import { parseWorkspaceSession } from '../../src/shared/workspace-session-schema
 import type { TerminalTab } from '../../src/shared/terminal-tab-types'
 import type { Worktree } from '../../src/shared/worktree/types'
 import { OrchestrationDb } from '../../src/main/runtime/orchestration/db'
-import { OrcaRuntimeService } from '../../src/main/runtime/orca-runtime'
+import { MantaRuntimeService } from '../../src/main/runtime/manta-runtime'
 import type { RpcContext } from '../../src/main/runtime/rpc/core'
 import { ORCHESTRATION_METHODS } from '../../src/main/runtime/rpc/methods/orchestration'
 import { closeTerminalTab } from '@/components/terminal/terminal-tab-actions'
@@ -236,7 +236,7 @@ function orchestrationMethod(name: string) {
 
 async function releaseCompletedWorker(terminalState: 'running' | 'exited'): Promise<void> {
   const db = new OrchestrationDb(':memory:')
-  const runtime = new OrcaRuntimeService()
+  const runtime = new MantaRuntimeService()
   runtime.setOrchestrationDb(db)
   const coordinatorPaneKey = 'coordinator-tab:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   const run = db.createRun({
@@ -281,7 +281,7 @@ async function releaseCompletedWorker(terminalState: 'running' | 'exited'): Prom
     status: 'running',
     exitCode: null
   })
-  vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
+  vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('manta')
   vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
     handle: TERMINAL_HANDLE,
     accepted: true,
@@ -397,7 +397,7 @@ describe('completed background-worker retirement resume matrix', () => {
       ownedRecord
     )
 
-    // Case 2: the renderer boundary used by an explicit Orca close retires the exact authority.
+    // Case 2: the renderer boundary used by an explicit Manta close retires the exact authority.
     seedWorkspace()
     recordCompletedWorker()
     closeTerminalTab(ORIGINAL_TAB_ID, {

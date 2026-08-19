@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from '../dispatcher'
 import type { RpcRequest } from '../core'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { FILE_METHODS } from './files'
 
 function makeRequest(method: string, params?: unknown): RpcRequest {
@@ -18,7 +18,7 @@ describe('files.resolveTerminalPath RPC', () => {
         exists: true,
         isDirectory: false
       })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     return { runtime, dispatcher: new RpcDispatcher({ runtime, methods: FILE_METHODS }) }
   }
 

@@ -39,7 +39,7 @@ async function fixture(
     state: string
   }) => Promise<void>
 ) {
-  const root = await mkdtemp(join(tmpdir(), 'orca-relay-skill-test-'))
+  const root = await mkdtemp(join(tmpdir(), 'manta-relay-skill-test-'))
   roots.push(root)
   const home = join(root, 'home')
   const state = join(root, 'state')
@@ -151,7 +151,7 @@ describe('SkillInstallHandler', () => {
         hostIdentity: 'ssh-host',
         fileModes: input.archive.manifest.files
       }
-      const extractionPath = join(input.home, '.agents', 'skills', '.orca-skill-extract-crashed')
+      const extractionPath = join(input.home, '.agents', 'skills', '.manta-skill-extract-crashed')
       const journal: SkillInstallJournalV1 = {
         schemaVersion: 1,
         operation: 'install',
@@ -162,13 +162,13 @@ describe('SkillInstallHandler', () => {
           input.home,
           '.agents',
           'skills',
-          `.${input.archive.manifest.name}.orca-staging-crashed`
+          `.${input.archive.manifest.name}.manta-staging-crashed`
         ),
         backupPath: join(
           input.home,
           '.agents',
           'skills',
-          `.${input.archive.manifest.name}.orca-backup-crashed`
+          `.${input.archive.manifest.name}.manta-backup-crashed`
         ),
         backupDigest: null,
         stagingFileModes: input.archive.manifest.files,

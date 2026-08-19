@@ -96,7 +96,7 @@ function gcScanRoot(
 }
 
 /** Run background GC to prune history directories for worktrees that are no
- *  longer in Orca's known live-worktree set. */
+ *  longer in Manta's known live-worktree set. */
 export function runHistoryGc(liveWorktreeIds: Set<string>): void {
   try {
     // Why: finish tombstones left by quit mid-rm before scanning live worktree hashes.

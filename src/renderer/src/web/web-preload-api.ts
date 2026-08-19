@@ -58,9 +58,9 @@ import {
   ONBOARDING_FLOW_VERSION
 } from '../../../shared/constants'
 import {
-  createDefaultLocalOrcaProfile,
-  DEFAULT_LOCAL_ORCA_PROFILE_ID
-} from '../../../shared/orca-profiles'
+  createDefaultLocalMantaProfile,
+  DEFAULT_LOCAL_MANTA_PROFILE_ID
+} from '../../../shared/manta-profiles'
 import { legacyBaseRefSearchResult } from '../../../shared/base-ref-search-result'
 import { EMPTY_PTY_MAIN_DELIVERY_DIAGNOSTICS } from '../../../shared/pty-delivery-diagnostics'
 import { createE2EConfig } from '../../../shared/e2e-config'
@@ -161,19 +161,19 @@ import {
 import { createWebFileMutationMethods } from './web-file-mutation-methods'
 import { mergeWorkspaceCleanupUIState } from '../../../shared/workspace-cleanup-ui-state'
 
-const SETTINGS_STORAGE_KEY = 'orca.web.settings.v1'
-const UI_STORAGE_KEY = 'orca.web.ui.v1'
-const SESSION_STORAGE_KEY = 'orca.web.workspaceSession.v1'
-const ONBOARDING_STORAGE_KEY = 'orca.web.onboarding.v1'
-const GITHUB_CACHE_STORAGE_KEY = 'orca.web.githubCache.v1'
-const KEYBINDINGS_STORAGE_KEY = 'orca.web.keybindings.v1'
+const SETTINGS_STORAGE_KEY = 'manta.web.settings.v1'
+const UI_STORAGE_KEY = 'manta.web.ui.v1'
+const SESSION_STORAGE_KEY = 'manta.web.workspaceSession.v1'
+const ONBOARDING_STORAGE_KEY = 'manta.web.onboarding.v1'
+const GITHUB_CACHE_STORAGE_KEY = 'manta.web.githubCache.v1'
+const KEYBINDINGS_STORAGE_KEY = 'manta.web.keybindings.v1'
 // Why: paired web clients lack Electron env/preload state; the E2E build gate keeps URL overrides out of releases.
 const webE2EExposeStore = String(import.meta.env.VITE_EXPOSE_STORE) === 'true'
 const webE2EQuery = webE2EExposeStore ? new URLSearchParams(window.location.search) : null
 const webE2EConfig = createE2EConfig({
   exposeStore: webE2EExposeStore,
-  terminalParkingDelayMs: Number(webE2EQuery?.get('orcaE2ETerminalParkingDelayMs')) || null,
-  terminalRetentionLimit: Number(webE2EQuery?.get('orcaE2ETerminalRetentionLimit')) || null
+  terminalParkingDelayMs: Number(webE2EQuery?.get('mantaE2ETerminalParkingDelayMs')) || null,
+  terminalRetentionLimit: Number(webE2EQuery?.get('mantaE2ETerminalRetentionLimit')) || null
 })
 // Why: paired clients need parity for large dev sessions; the runtime default stays capped for lower-level RPC callers.
 const WEB_RUNTIME_WORKTREE_LIST_LIMIT = 10_000
@@ -516,8 +516,8 @@ const webKeybindingListeners = new Set<(snapshot: KeybindingFileSnapshot) => voi
 
 export function installWebPreloadApi(): void {
   activeEnvironment = readStoredWebRuntimeEnvironment()
-  const webWindow = window as unknown as { __ORCA_WEB_CLIENT__?: boolean }
-  webWindow.__ORCA_WEB_CLIENT__ = true
+  const webWindow = window as unknown as { __MANTA_WEB_CLIENT__?: boolean }
+  webWindow.__MANTA_WEB_CLIENT__ = true
   window.electron = createFallbackProxy(['electron']) as Window['electron']
   window.api = withFallback(createWebPreloadApi(), []) as PreloadApi
 }
@@ -543,20 +543,20 @@ async function writeWebClipboardText(text: string): Promise<void> {
 }
 
 function createWebPreloadApi(): Partial<PreloadApi> {
-  const webOrcaProfileAuthStatus = () =>
+  const webMantaProfileAuthStatus = () =>
     Promise.resolve({
-      activeProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
+      activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,
       configured: false,
       state: 'unconfigured' as const,
       persistence: 'none' as const,
-      setupMessage: 'Orca Cloud sign-in is not available in the browser fallback.'
+      setupMessage: 'Manta Cloud sign-in is not available in the browser fallback.'
     })
 
   return {
     app: {
       getIdentity: () =>
         Promise.resolve({
-          name: 'Orca',
+          name: 'Manta',
           isDev: false,
           devLabel: null,
           devBranch: null,
@@ -605,7 +605,7 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       complete: () => Promise.resolve(),
       disable: () => Promise.resolve(),
       openWeb: () => Promise.resolve(),
-      starOrca: () => Promise.resolve(false),
+      starManta: () => Promise.resolve(false),
       forceShow: () => Promise.resolve(),
       agentValueMoment: () => Promise.resolve({ status: 'skipped' }),
       showAgentValueMoment: () => Promise.resolve(),
@@ -636,23 +636,23 @@ function createWebPreloadApi(): Partial<PreloadApi> {
         }),
       onAdvertisedUrlChanged: () => noopUnsubscribe
     },
-    orcaProfiles: {
+    mantaProfiles: {
       list: () =>
         Promise.resolve({
-          activeProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
-          profiles: [createDefaultLocalOrcaProfile(0)],
+          activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,
+          profiles: [createDefaultLocalMantaProfile(0)],
           multiProfileUi: false
         }),
-      authStatus: webOrcaProfileAuthStatus,
+      authStatus: webMantaProfileAuthStatus,
       createLocal: () =>
         Promise.resolve({
-          activeProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
-          profiles: [createDefaultLocalOrcaProfile(0)],
-          profile: createDefaultLocalOrcaProfile(0)
+          activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,
+          profiles: [createDefaultLocalMantaProfile(0)],
+          profile: createDefaultLocalMantaProfile(0)
         }),
       createCloudLinked: async () => ({
         status: 'unconfigured',
-        auth: await webOrcaProfileAuthStatus()
+        auth: await webMantaProfileAuthStatus()
       }),
       switchProfile: () => Promise.resolve({ status: 'already-active' }),
       transferProject: (args) =>
@@ -666,21 +666,26 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       findProjectProfiles: async () => ({ projects: [] }),
       connectCurrent: async () => ({
         status: 'unconfigured',
-        auth: await webOrcaProfileAuthStatus()
+        auth: await webMantaProfileAuthStatus()
       }),
       refreshAuth: async () => ({
         status: 'unconfigured',
-        auth: await webOrcaProfileAuthStatus()
+        auth: await webMantaProfileAuthStatus()
       }),
+      applyCloudEndpoints: async () => {
+        // Why: the web client cannot restart the desktop app; endpoints are a
+        // desktop-only setting.
+        throw new Error('Self-hosted endpoints can only be changed in the desktop app.')
+      },
       signOutCurrent: async () => ({
         status: 'signed-out',
-        auth: await webOrcaProfileAuthStatus(),
-        activeProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
-        profiles: [createDefaultLocalOrcaProfile(0)]
+        auth: await webMantaProfileAuthStatus(),
+        activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,
+        profiles: [createDefaultLocalMantaProfile(0)]
       }),
       selectOrg: async () => ({
         status: 'unconfigured',
-        auth: await webOrcaProfileAuthStatus()
+        auth: await webMantaProfileAuthStatus()
       }),
       orgMembersList: async () => ({ status: 'unconfigured' }),
       orgMemberInvite: async () => ({ status: 'unconfigured' }),
@@ -1445,7 +1450,7 @@ function createRuntimeEnvironmentsApi(): NonNullable<Partial<PreloadApi>['runtim
     addFromPairingCode: async ({ name, pairingCode }) => {
       const offer = parseWebPairingInput(pairingCode)
       if (!offer) {
-        throw new Error('Invalid Orca pairing code.')
+        throw new Error('Invalid Manta pairing code.')
       }
       const previousEnvironment = activeEnvironment
       closeActiveRuntimeClients()
@@ -1518,7 +1523,7 @@ function createRuntimeEnvironmentsApi(): NonNullable<Partial<PreloadApi>['runtim
           kind: 'host-unreachable',
           message: translate(
             'auto.web.webPreloadApi.remotePairingUnreachable',
-            'Cannot reach Orca at {{endpoint}}.',
+            'Cannot reach Manta at {{endpoint}}.',
             { endpoint: parsed.value.displayEndpoint }
           )
         }
@@ -1544,7 +1549,7 @@ function createRuntimeEnvironmentsApi(): NonNullable<Partial<PreloadApi>['runtim
           kind: 'environment-save-failed',
           message: translate(
             'auto.web.webPreloadApi.remotePairingSaveFailed',
-            'Orca verified the host but could not save it. Check browser storage and try again.'
+            'Manta verified the host but could not save it. Check browser storage and try again.'
           )
         }
       }
@@ -2355,7 +2360,7 @@ function createBrowserApi(): NonNullable<Partial<PreloadApi>['browser']> {
     onNavigationUpdate: () => noopUnsubscribe,
     onActivateView: () => noopUnsubscribe,
     onPaneFocus: () => noopUnsubscribe,
-    onOpenLinkInOrcaTab: () => noopUnsubscribe,
+    onOpenLinkInMantaTab: () => noopUnsubscribe,
     cancelDownload: () => Promise.resolve(false),
     setGrabMode: () =>
       Promise.resolve({
@@ -2531,8 +2536,8 @@ function createGitHubApi(): WebGitHubApi {
         args
       ),
     onWorkItemMutated: () => noopUnsubscribe,
-    checkOrcaStarred: () => Promise.resolve(null),
-    starOrca: () => Promise.resolve(false),
+    checkMantaStarred: () => Promise.resolve(null),
+    starManta: () => Promise.resolve(false),
     rateLimit: (args) =>
       route<WebGitHubResult<'rateLimit'>>(GITHUB_WEB_RPC_METHODS.rateLimit, args),
     diagnoseAuth: () =>
@@ -2993,7 +2998,7 @@ function createPreflightApi(): NonNullable<Partial<PreloadApi>['preflight']> {
 function createCliApi(): NonNullable<Partial<PreloadApi>['cli']> {
   const status = {
     platform: getBrowserPlatform(),
-    commandName: getBrowserPlatform() === 'linux' ? 'orca-ide' : 'orca',
+    commandName: getBrowserPlatform() === 'linux' ? 'manta-ide' : 'manta',
     commandPath: null,
     pathDirectory: null,
     pathConfigured: false,
@@ -3003,7 +3008,7 @@ function createCliApi(): NonNullable<Partial<PreloadApi>['cli']> {
     state: 'unsupported',
     currentTarget: null,
     unsupportedReason: 'launch_mode_unavailable',
-    detail: 'CLI registration is managed on the Orca server, not in the web browser.'
+    detail: 'CLI registration is managed on the Manta server, not in the web browser.'
   } as const
   return {
     getInstallStatus: () => Promise.resolve(status),
@@ -3037,7 +3042,7 @@ function createAgentHooksApi(): NonNullable<Partial<PreloadApi>['agentHooks']> {
       state: 'not_installed',
       configPath: '',
       managedHooksPresent: false,
-      detail: 'Agent hook status is only available on the Orca server.'
+      detail: 'Agent hook status is only available on the Manta server.'
     } as const)
   return {
     claudeStatus: () => status('claude'),
@@ -3104,7 +3109,7 @@ function createComputerUsePermissionsApi(): NonNullable<
         helperAppPath: null,
         openedSettings: false,
         launchedHelper: false,
-        nextStep: 'Computer-use permissions are managed on the Orca server.'
+        nextStep: 'Computer-use permissions are managed on the Manta server.'
       })),
     reset: () =>
       Promise.resolve({
@@ -3764,13 +3769,13 @@ function resolveEnvironment(selector: string): StoredWebRuntimeEnvironment {
   if (environment.compatibleEnvironmentIds?.includes(selector)) {
     return environment
   }
-  throw new Error(`Unknown Orca runtime environment: ${selector}`)
+  throw new Error(`Unknown Manta runtime environment: ${selector}`)
 }
 
 function requireActiveEnvironment(): StoredWebRuntimeEnvironment {
   activeEnvironment = activeEnvironment ?? readStoredWebRuntimeEnvironment()
   if (!activeEnvironment) {
-    throw new Error('Pair this web client with an Orca server first.')
+    throw new Error('Pair this web client with a Manta server first.')
   }
   return activeEnvironment
 }
@@ -3782,7 +3787,7 @@ function requireActiveEnvironmentOrNull(): StoredWebRuntimeEnvironment | null {
 
 function assertActiveEnvironment(environmentId: string): void {
   if (requireActiveEnvironment().id !== environmentId) {
-    throw new Error('The paired Orca server changed while the request was in progress.')
+    throw new Error('The paired Manta server changed while the request was in progress.')
   }
 }
 
@@ -4057,7 +4062,7 @@ function getStoredOnboarding(): OnboardingState {
     return closed
   }
   const closed = closeWebOnboarding(getDefaultOnboardingState())
-  // Why: paired clients already have an Orca server; skip desktop first-run onboarding that would probe browser-local tools.
+  // Why: paired clients already have a Manta server; skip desktop first-run onboarding that would probe browser-local tools.
   writeJson(ONBOARDING_STORAGE_KEY, closed)
   return closed
 }
@@ -4358,7 +4363,7 @@ function toLegacyDetectedWorktreeResult(
     source: 'session-fallback',
     worktrees: worktrees.map((worktree) => ({
       ...worktree,
-      ownership: 'orca-managed',
+      ownership: 'manta-managed',
       selectedCheckout: false,
       visible: true
     }))

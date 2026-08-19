@@ -1,13 +1,13 @@
 // Where in-box hook clients find this relay's loopback hook server: endpoint-directory naming
 // policy (per-user $HOME default, sibling-of-socket layout, Windows named-pipe path flattening) and
-// the ORCA_AGENT_HOOK_* env vars injected into relay-spawned PTYs. IO-free.
+// the MANTA_AGENT_HOOK_* env vars injected into relay-spawned PTYs. IO-free.
 import { basename, dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 
-import { ORCA_HOOK_PROTOCOL_VERSION } from '../shared/agent-hook-types'
+import { MANTA_HOOK_PROTOCOL_VERSION } from '../shared/agent-hook-types'
 
 // Why: relay's userData equivalent under $HOME so each user on a shared dev box gets their own 0o700 dir.
-const RELAY_HOOKS_DIR_NAME = '.orca-relay'
+const RELAY_HOOKS_DIR_NAME = '.manta-relay'
 const RELAY_HOOKS_SUBDIR = 'agent-hooks'
 
 export function defaultEndpointDir(): string {
@@ -46,13 +46,13 @@ export function buildRelayHookPtyEnv(coordinates: {
     return {}
   }
   const env: Record<string, string> = {
-    ORCA_AGENT_HOOK_PORT: String(coordinates.port),
-    ORCA_AGENT_HOOK_TOKEN: coordinates.token,
-    ORCA_AGENT_HOOK_ENV: coordinates.env,
-    ORCA_AGENT_HOOK_VERSION: ORCA_HOOK_PROTOCOL_VERSION
+    MANTA_AGENT_HOOK_PORT: String(coordinates.port),
+    MANTA_AGENT_HOOK_TOKEN: coordinates.token,
+    MANTA_AGENT_HOOK_ENV: coordinates.env,
+    MANTA_AGENT_HOOK_VERSION: MANTA_HOOK_PROTOCOL_VERSION
   }
   if (coordinates.endpointFileWritten) {
-    env.ORCA_AGENT_HOOK_ENDPOINT = coordinates.endpointFilePath
+    env.MANTA_AGENT_HOOK_ENDPOINT = coordinates.endpointFilePath
   }
   return env
 }

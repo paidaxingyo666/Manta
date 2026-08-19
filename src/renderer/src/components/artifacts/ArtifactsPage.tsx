@@ -15,10 +15,10 @@ const LOCAL_RUNTIME = { kind: 'local' } as const
 
 export default function ArtifactsPage(): React.JSX.Element {
   const closePage = useAppStore((state) => state.closeArtifactsPage)
-  const authStatus = useAppStore((state) => state.orcaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.orcaProfileConnecting)
-  const connect = useAppStore((state) => state.connectCurrentOrcaProfile)
-  const refreshAuth = useAppStore((state) => state.refreshCurrentOrcaProfileAuth)
+  const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
+  const connecting = useAppStore((state) => state.mantaProfileConnecting)
+  const connect = useAppStore((state) => state.connectCurrentMantaProfile)
+  const refreshAuth = useAppStore((state) => state.refreshCurrentMantaProfileAuth)
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
   const settings = useAppStore((state) => state.settings)
@@ -32,7 +32,7 @@ export default function ArtifactsPage(): React.JSX.Element {
   const signedIn = authStatus?.state === 'connected'
   const needsReconnect = authStatus?.state === 'reconnect-required'
   const openAccountSettings = (): void => {
-    openSettingsTarget({ pane: 'orca-account', repoId: null })
+    openSettingsTarget({ pane: 'manta-account', repoId: null })
     openSettingsPage()
   }
   const {
@@ -90,7 +90,7 @@ export default function ArtifactsPage(): React.JSX.Element {
       return
     }
     const requestedAccountIsCurrent = (): boolean =>
-      artifactAccountIdentity(useAppStore.getState().orcaProfileAuthStatus) === requestedIdentity
+      artifactAccountIdentity(useAppStore.getState().mantaProfileAuthStatus) === requestedIdentity
     const name = item.artifact.title || item.artifact.originalFileName || item.artifact.slug
     if (!settings?.skipDeleteArtifactConfirm) {
       const accepted = await confirm({
@@ -245,7 +245,7 @@ export default function ArtifactsPage(): React.JSX.Element {
                 {needsReconnect
                   ? translate(
                       'auto.components.artifacts.ArtifactsPage.reconnectHeading',
-                      'Sign in to Orca again'
+                      'Sign in to Manta again'
                     )
                   : translate(
                       'auto.components.artifacts.ArtifactsPage.signInHeading',
@@ -260,7 +260,7 @@ export default function ArtifactsPage(): React.JSX.Element {
                     )
                   : translate(
                       'auto.components.artifacts.ArtifactsPage.signInCopy',
-                      'Use your Orca account to upload artifacts and manage their public links.'
+                      'Use your Manta account to upload artifacts and manage their public links.'
                     )}
               </p>
             </div>
@@ -275,7 +275,7 @@ export default function ArtifactsPage(): React.JSX.Element {
                       )
                     : translate(
                         'auto.components.artifacts.ArtifactsPage.signIn',
-                        'Sign in to Orca'
+                        'Sign in to Manta'
                       )}
               </Button>
             ) : (
@@ -283,7 +283,7 @@ export default function ArtifactsPage(): React.JSX.Element {
                 <p className="max-w-sm text-xs leading-5 text-muted-foreground">
                   {translate(
                     'auto.components.artifacts.ArtifactsPage.unconfiguredCopy',
-                    'Orca account sign-in is not configured on this machine yet.'
+                    'Manta account sign-in is not configured on this machine yet.'
                   )}
                 </p>
                 <Button variant="outline" size="sm" onClick={openAccountSettings}>

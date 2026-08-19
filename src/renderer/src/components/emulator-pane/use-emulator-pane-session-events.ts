@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { EmulatorPaneSession, SimulatorDeviceRow } from './emulator-pane-types'
 
-export const EMULATOR_LOCAL_SHUTDOWN_EVENT = 'orca:emulator-shutdown'
+export const EMULATOR_LOCAL_SHUTDOWN_EVENT = 'manta:emulator-shutdown'
 
 type UseEmulatorPaneSessionEventsArgs = {
   worktreeId: string
@@ -31,8 +31,8 @@ export function useEmulatorPaneSessionEvents({
       applySession(detail.info, true)
       void refreshDevices(detail.info.deviceUdid || detail.info.device)
     }
-    window.addEventListener('orca:emulator-auto-attach', onAuto)
-    return () => window.removeEventListener('orca:emulator-auto-attach', onAuto)
+    window.addEventListener('manta:emulator-auto-attach', onAuto)
+    return () => window.removeEventListener('manta:emulator-auto-attach', onAuto)
   }, [applySession, refreshDevices, worktreeId])
 
   useEffect(() => {

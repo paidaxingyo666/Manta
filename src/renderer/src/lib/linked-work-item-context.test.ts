@@ -28,10 +28,10 @@ const LINEAR_ITEM = {
   }
 }
 const PRODUCT_WORKFLOW_PHRASES = [
-  'orca linear',
+  'manta linear',
   'meta.partial',
   'install',
-  'enable it from Orca Settings',
+  'enable it from Manta Settings',
   'Before planning or editing',
   'Full Linear context was not loaded',
   'linear-tickets completion flow',

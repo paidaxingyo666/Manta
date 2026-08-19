@@ -6,7 +6,7 @@ import {
   writeFileAtomically,
   writeFileAtomicallyIfUnchanged
 } from '../codex-accounts/fs-utils'
-import { getOrcaManagedCodexHomePath, getSystemCodexHomePath } from './codex-home-paths'
+import { getMantaManagedCodexHomePath, getSystemCodexHomePath } from './codex-home-paths'
 import { rewriteRelativePathConfigValues } from './codex-config-path-reference-rewrite'
 import { normalizeDeprecatedCodexHookFeatureFlag } from './config-toml-deprecated-hook-flag'
 import { parseWslUncPath } from '../../shared/wsl-paths'
@@ -33,12 +33,12 @@ import {
 
 export function syncSystemConfigIntoManagedCodexHome(
   homes: CodexSettingsPromotionHomes = {
-    runtimeHomePath: getOrcaManagedCodexHomePath(),
+    runtimeHomePath: getMantaManagedCodexHomePath(),
     systemHomePath: getSystemCodexHomePath()
   }
 ): void {
   // Why: the mirror overwrites runtime settings from ~/.codex, so changes the
-  // user made inside Orca-launched Codex (/model, /approvals) must be written
+  // user made inside Manta-launched Codex (/model, /approvals) must be written
   // back to ~/.codex first or this very pass silently reverts them.
   const promotionPlan = promoteCodexRuntimeSettingsToSystem(homes)
   if (!promotionPlan) {
@@ -82,7 +82,7 @@ export function syncSystemConfigIntoManagedCodexHome(
     return
   }
   // Why: the baseline advances only after a successful mirror; recording an
-  // unpromoted runtime change as Orca-written would strand it forever.
+  // unpromoted runtime change as Manta-written would strand it forever.
   snapshotCodexRuntimeSettingsBaseline(
     homes.runtimeHomePath,
     new Map(
@@ -99,7 +99,7 @@ export function syncSystemConfigIntoManagedCodexHome(
  */
 export function syncSystemConfigIntoLegacySharedCodexHome(
   homes: CodexSettingsPromotionHomes = {
-    runtimeHomePath: getOrcaManagedCodexHomePath(),
+    runtimeHomePath: getMantaManagedCodexHomePath(),
     systemHomePath: getSystemCodexHomePath()
   }
 ): void {
@@ -222,7 +222,7 @@ function mergeSystemCodexConfigIntoRuntime(runtimeConfig: string, systemConfig: 
       .map((section) => getTomlSectionHeaderKey(section.header))
   )
   // Why: ordinary Codex settings should mirror ~/.codex exactly; runtime hook
-  // trust and project trust are written under Orca's managed CODEX_HOME and
+  // trust and project trust are written under Manta's managed CODEX_HOME and
   // must survive the copy unless the user explicitly revoked project trust in
   // the system config.
   return joinTomlBlocks([

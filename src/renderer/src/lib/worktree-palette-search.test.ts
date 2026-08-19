@@ -36,8 +36,8 @@ const repoMap = new Map<string, Repo>([
     'repo-1',
     {
       id: 'repo-1',
-      path: '/repo/orca',
-      displayName: 'stablyai/orca',
+      path: '/repo/manta',
+      displayName: 'stablyai/manta',
       badgeColor: '#22c55e',
       addedAt: 0
     }
@@ -176,7 +176,7 @@ describe('worktree-palette-search', () => {
       branch: undefined as unknown as string
     })
 
-    expect(() => searchWorktrees([cleared], 'orca/jump', repoMap, null, null)).not.toThrow()
+    expect(() => searchWorktrees([cleared], 'manta/jump', repoMap, null, null)).not.toThrow()
   })
 
   it('still lists a branch-less row on the empty query, which renders every row', () => {
@@ -230,7 +230,7 @@ describe('worktree-palette-search', () => {
       'quick jump',
       repoMap,
       {
-        '/repo/orca::feature/palette-refresh': {
+        '/repo/manta::feature/palette-refresh': {
           data: {
             number: 426,
             title: 'Refresh the worktree quick jump palette'
@@ -254,7 +254,7 @@ describe('worktree-palette-search', () => {
       number: 17,
       title: 'Reuse checks tab review metadata',
       state: 'open',
-      url: 'https://gitlab.com/acme/orca/-/merge_requests/17',
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/17',
       status: 'success',
       updatedAt: '2026-07-12T00:00:00Z',
       mergeable: 'MERGEABLE'
@@ -299,7 +299,7 @@ describe('worktree-palette-search', () => {
       number: 17,
       title: 'Current merge request',
       state: 'open',
-      url: 'https://gitlab.com/acme/orca/-/merge_requests/17',
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/17',
       status: 'success',
       updatedAt: '2026-07-12T00:00:00Z',
       mergeable: 'MERGEABLE'
@@ -316,7 +316,7 @@ describe('worktree-palette-search', () => {
         'stale github title',
         repoMap,
         {
-          '/repo/orca::feature/palette-refresh': {
+          '/repo/manta::feature/palette-refresh': {
             data: { number: 99, title: 'Stale GitHub title' }
           }
         },
@@ -333,7 +333,7 @@ describe('worktree-palette-search', () => {
 
   it('does not search stale GitHub metadata while a linked non-GitHub review is loading', () => {
     const stalePRCache = {
-      '/repo/orca::feature/palette-refresh': {
+      '/repo/manta::feature/palette-refresh': {
         data: { number: 99, title: 'Stale GitHub title' }
       }
     }
@@ -378,7 +378,7 @@ describe('worktree-palette-search', () => {
       number: 17,
       title: 'Remote-only merge request',
       state: 'open',
-      url: 'https://gitlab.com/acme/orca/-/merge_requests/17',
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/17',
       status: 'success',
       updatedAt: '2026-07-12T00:00:00Z',
       mergeable: 'MERGEABLE'
@@ -404,7 +404,7 @@ describe('worktree-palette-search', () => {
       number: 42,
       title: 'GitHub pull request',
       state: 'open',
-      url: 'https://github.com/acme/orca/pull/42',
+      url: 'https://github.com/acme/manta/pull/42',
       status: 'success',
       updatedAt: '2026-07-12T00:00:00Z',
       mergeable: 'MERGEABLE'
@@ -414,7 +414,7 @@ describe('worktree-palette-search', () => {
       number: 17,
       title: 'GitLab merge request',
       state: 'open',
-      url: 'https://gitlab.com/acme/orca/-/merge_requests/17',
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/17',
       status: 'success',
       updatedAt: '2026-07-12T00:00:00Z',
       mergeable: 'MERGEABLE'
@@ -478,7 +478,7 @@ describe('worktree-palette-search', () => {
       })
     ]
 
-    const results = searchWorktrees(worktrees, 'orca', repoMap, null, null)
+    const results = searchWorktrees(worktrees, 'manta', repoMap, null, null)
 
     // All three match on the repo name, order preserved from input
     expect(results).toHaveLength(3)
@@ -501,12 +501,12 @@ describe('worktree-palette-search', () => {
       })
     ]
 
-    const results = searchWorktrees(worktrees, 'orca/main', repoMap, null, null)
+    const results = searchWorktrees(worktrees, 'manta/main', repoMap, null, null)
 
     expect(results).toHaveLength(1)
     expect(results[0].worktreeId).toBe('wt-main')
     expect(results[0].matchedField).toBe('branch')
-    expect(results[0].repoRange).toEqual({ start: 9, end: 13 })
+    expect(results[0].repoRange).toEqual({ start: 9, end: 14 })
     expect(results[0].branchRange).toEqual({ start: 0, end: 4 })
   })
 
@@ -547,7 +547,7 @@ describe('worktree-palette-search', () => {
         makeWorktree({ id: 'wt-issue', linkedIssue: 14198 }),
         makeWorktree({ id: 'wt-other', linkedIssue: 7, displayName: 'github.com' })
       ],
-      'https://github.com/stablyai/orca/issues/14198',
+      'https://github.com/stablyai/manta/issues/14198',
       repoMap,
       null,
       null
@@ -577,12 +577,12 @@ describe('worktree-palette-search', () => {
             type: 'pr',
             number: 12789,
             title: 'Perf',
-            url: 'https://github.com/stablyai/orca/pull/12789'
+            url: 'https://github.com/stablyai/manta/pull/12789'
           }
         }),
         makeWorktree({ id: 'wt-issue', linkedIssue: 12789 })
       ],
-      'https://github.com/stablyai/orca/pull/12789',
+      'https://github.com/stablyai/manta/pull/12789',
       repoMap,
       null,
       null

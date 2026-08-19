@@ -163,7 +163,7 @@ function addLifecycleRejectionMarker(payload: string | null, code: string, reaso
   }
   return JSON.stringify({
     ...parsed,
-    _orcaLifecycleRejection: { code, reason }
+    _mantaLifecycleRejection: { code, reason }
   })
 }
 
@@ -173,7 +173,7 @@ function hasLifecycleRejectionMarker(payload: string | null): boolean {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       return false
     }
-    const marker = (value as Record<string, unknown>)._orcaLifecycleRejection
+    const marker = (value as Record<string, unknown>)._mantaLifecycleRejection
     return Boolean(
       marker &&
       typeof marker === 'object' &&
@@ -315,7 +315,7 @@ const SCHEMA_VERSION = 28
 
 function hardenOrchestrationDatabaseFiles(dbPath: (string & {}) | ':memory:'): void {
   if (dbPath === ':memory:' || process.platform === 'win32') {
-    // Why: Windows protects these files through Orca's current-user-only userData DACL; POSIX mode bits are inert there.
+    // Why: Windows protects these files through Manta's current-user-only userData DACL; POSIX mode bits are inert there.
     return
   }
   for (const path of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
@@ -2505,7 +2505,7 @@ export class OrchestrationDb {
           'This adopted Run still has live legacy work. Its attested coordinator may rebind it, or a current coordinator may explicitly use run-use --takeover-legacy.',
           {
             effectsApplied: false,
-            recoveryCommand: `orca orchestration run-use --id ${params.runId} --takeover-legacy`
+            recoveryCommand: `manta orchestration run-use --id ${params.runId} --takeover-legacy`
           }
         )
       }
@@ -3713,7 +3713,7 @@ export class OrchestrationDb {
     }
 
     const originalBody = message.body ? `\n\nOriginal body:\n${message.body}` : ''
-    const body = `Orca rejected this ${message.type}: ${reason}${originalBody}`
+    const body = `Manta rejected this ${message.type}: ${reason}${originalBody}`
     const payload = addLifecycleRejectionMarker(message.payload, code, reason)
     // Why: rejected lifecycle signals stay auditable but must not reach read paths as actionable completion/liveness events.
     this.db

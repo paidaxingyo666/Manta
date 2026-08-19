@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Locator, Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 function runGit(repoPath: string, args: string[]): void {
@@ -147,28 +147,28 @@ async function expectSettingsCommandValue(
 }
 
 test.describe('Setup script import prompt', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
   })
 
-  test('imports Superset local overlays through the prompt UI', async ({ orcaPage }, testInfo) => {
+  test('imports Superset local overlays through the prompt UI', async ({ mantaPage }, testInfo) => {
     const repoPath = createSupersetSetupRepo(testInfo.outputPath('superset-setup-repo'))
-    const repoId = await addAndActivateRepo(orcaPage, repoPath)
+    const repoId = await addAndActivateRepo(mantaPage, repoPath)
 
     await expect(
-      orcaPage.getByText(
+      mantaPage.getByText(
         /Found a setup command in\s*Superset \(\.superset\/config\.json \+1\)\. Save it to run for new worktrees\./
       )
     ).toBeVisible({ timeout: 15_000 })
 
-    await orcaPage.getByRole('button', { name: 'Save local setup' }).click()
+    await mantaPage.getByRole('button', { name: 'Save local setup' }).click()
 
     await expect(
-      orcaPage.getByText('2 unsupported fields skipped. Saved the setup command.')
+      mantaPage.getByText('2 unsupported fields skipped. Saved the setup command.')
     ).toBeVisible()
 
-    const localCommands = await openImportedSetupSettingsFromToast(orcaPage, repoId)
+    const localCommands = await openImportedSetupSettingsFromToast(mantaPage, repoId)
     await expectSettingsCommandValue(
       localCommands,
       'Setup Script',
@@ -181,23 +181,23 @@ test.describe('Setup script import prompt', () => {
     )
   })
 
-  test('imports cmux setup commands through the prompt UI', async ({ orcaPage }, testInfo) => {
+  test('imports cmux setup commands through the prompt UI', async ({ mantaPage }, testInfo) => {
     const repoPath = createCmuxSetupRepo(testInfo.outputPath('cmux-setup-repo'))
-    const repoId = await addAndActivateRepo(orcaPage, repoPath)
+    const repoId = await addAndActivateRepo(mantaPage, repoPath)
 
     await expect(
-      orcaPage.getByText(
+      mantaPage.getByText(
         /Found a setup command in\s*cmux \(\.cmux\/cmux\.json\)\. Save it to run for new worktrees\./
       )
     ).toBeVisible({ timeout: 15_000 })
 
-    await orcaPage.getByRole('button', { name: 'Save local setup' }).click()
+    await mantaPage.getByRole('button', { name: 'Save local setup' }).click()
 
     await expect(
-      orcaPage.getByRole('button', { name: "project's settings", exact: true })
+      mantaPage.getByRole('button', { name: "project's settings", exact: true })
     ).toBeVisible()
 
-    const repoSettings = await openRepoSettings(orcaPage, repoId)
+    const repoSettings = await openRepoSettings(mantaPage, repoId)
     await expectSettingsCommandValue(repoSettings, 'Setup Script', './scripts/setup.sh')
     await expectSettingsCommandValue(repoSettings, 'Archive Script', '')
   })

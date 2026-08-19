@@ -7,7 +7,7 @@ import {
   isQualifiedPluginKey,
   parsePluginManifest,
   qualifiedPluginKey,
-  satisfiesOrcaEngineRange,
+  satisfiesMantaEngineRange,
   type PluginManifest
 } from '../../shared/plugins/plugin-manifest'
 import {
@@ -107,11 +107,11 @@ async function readManifestDir(
   }
   const manifest = parsed.manifest
   const pluginKey = qualifiedPluginKey(manifest)
-  if (!satisfiesOrcaEngineRange(hostVersion, manifest.engines.orca)) {
+  if (!satisfiesMantaEngineRange(hostVersion, manifest.engines.manta)) {
     return {
       pluginKey,
       rootDir,
-      error: `requires Orca ${manifest.engines.orca} (this is ${hostVersion})`,
+      error: `requires Manta ${manifest.engines.manta} (this is ${hostVersion})`,
       isDev
     }
   }

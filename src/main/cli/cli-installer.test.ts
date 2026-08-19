@@ -36,12 +36,12 @@ describe('CliInstaller', () => {
     'creates a dev launcher and installs a macOS symlink in the requested path',
     async () => {
       const fixture = await makeFixture()
-      const installPath = join(fixture.root, 'bin', 'orca')
+      const installPath = join(fixture.root, 'bin', 'manta')
       const installer = new CliInstaller({
         platform: 'darwin',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Manta.app/Contents/MacOS/Manta',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         processPathEnv: join(fixture.root, 'bin')
@@ -49,7 +49,7 @@ describe('CliInstaller', () => {
 
       const initial = await installer.getStatus()
       expect(initial.state).toBe('not_installed')
-      expect(initial.launcherPath).toContain(join('userData', 'cli', 'bin', 'orca'))
+      expect(initial.launcherPath).toContain(join('userData', 'cli', 'bin', 'manta'))
 
       const installed = await installer.install()
       expect(installed.state).toBe('installed')
@@ -57,8 +57,8 @@ describe('CliInstaller', () => {
 
       const launcherContent = await readFile(installed.launcherPath as string, 'utf8')
       expect(launcherContent).toContain('ELECTRON_RUN_AS_NODE=1 exec "$ELECTRON" "$CLI" "$@"')
-      expect(launcherContent).toContain(`export ORCA_USER_DATA_PATH='${fixture.userDataPath}'`)
-      expect(launcherContent).toContain('export ORCA_APP_EXECUTABLE="$ELECTRON"')
+      expect(launcherContent).toContain(`export MANTA_USER_DATA_PATH='${fixture.userDataPath}'`)
+      expect(launcherContent).toContain('export MANTA_APP_EXECUTABLE="$ELECTRON"')
       expect(launcherContent).toContain(join(fixture.appPath, 'out', 'cli', 'index.js'))
 
       const removed = await installer.remove()
@@ -71,12 +71,12 @@ describe('CliInstaller', () => {
     'creates a linux symlink under the requested path and warns when PATH is missing',
     async () => {
       const fixture = await makeFixture()
-      const installPath = join(fixture.root, '.local', 'bin', 'orca-ide')
+      const installPath = join(fixture.root, '.local', 'bin', 'manta-ide')
       const installer = new CliInstaller({
         platform: 'linux',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/opt/Orca/orca-ide',
+        execPath: '/opt/Manta/manta-ide',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         processPathEnv: '/usr/bin'
@@ -84,13 +84,13 @@ describe('CliInstaller', () => {
 
       const installed = await installer.install()
       expect(installed.state).toBe('installed')
-      expect(installed.commandName).toBe('orca-ide')
+      expect(installed.commandName).toBe('manta-ide')
       expect(installed.pathConfigured).toBe(false)
       expect(installed.detail).toContain('.local')
 
       const launcherContent = await readFile(installed.launcherPath as string, 'utf8')
       expect(launcherContent).toContain('ELECTRON_RUN_AS_NODE=1 exec "$ELECTRON" "$CLI" "$@"')
-      expect(launcherContent).toContain(`export ORCA_USER_DATA_PATH='${fixture.userDataPath}'`)
+      expect(launcherContent).toContain(`export MANTA_USER_DATA_PATH='${fixture.userDataPath}'`)
 
       const removed = await installer.remove()
       expect(removed.state).toBe('not_installed')
@@ -98,9 +98,9 @@ describe('CliInstaller', () => {
   )
 
   // Why: dev installs are useful for validation, but they must not replace the
-  // packaged `orca` / `orca-ide` commands developers rely on day to day.
+  // packaged `manta` / `manta-ide` commands developers rely on day to day.
   it.skipIf(process.platform === 'win32')(
-    'uses a separate orca-dev command for default development installs',
+    'uses a separate manta-dev command for default development installs',
     async () => {
       const fixture = await makeFixture()
       const homePath = join(fixture.root, 'home')
@@ -109,7 +109,7 @@ describe('CliInstaller', () => {
         platform: 'linux',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/opt/Orca/orca-ide',
+        execPath: '/opt/Manta/manta-ide',
         appPath: fixture.appPath,
         homePath,
         processPathEnv: commandDir
@@ -117,12 +117,12 @@ describe('CliInstaller', () => {
 
       const installed = await installer.install()
       expect(installed.state).toBe('installed')
-      expect(installed.commandName).toBe('orca-dev')
-      expect(installed.commandPath).toBe(join(commandDir, 'orca-dev'))
-      expect(installed.launcherPath).toBe(join(fixture.userDataPath, 'cli', 'bin', 'orca-dev'))
+      expect(installed.commandName).toBe('manta-dev')
+      expect(installed.commandPath).toBe(join(commandDir, 'manta-dev'))
+      expect(installed.launcherPath).toBe(join(fixture.userDataPath, 'cli', 'bin', 'manta-dev'))
       await expect(readlink(installed.commandPath as string)).resolves.toBe(installed.launcherPath)
       await expect(
-        readFile(join(fixture.userDataPath, 'cli', 'bin', 'orca'), 'utf8')
+        readFile(join(fixture.userDataPath, 'cli', 'bin', 'manta'), 'utf8')
       ).resolves.toBe(await readFile(installed.launcherPath as string, 'utf8'))
     }
   )
@@ -134,8 +134,8 @@ describe('CliInstaller', () => {
     async () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, '.local', 'bin')
-      const installPath = join(commandDir, 'orca-ide')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const installPath = join(commandDir, 'manta-ide')
+      const appImagePath = join(fixture.root, 'Manta.AppImage')
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', {
         encoding: 'utf8',
         mode: 0o755
@@ -159,7 +159,7 @@ describe('CliInstaller', () => {
       const installed = await installer.install()
       expect(installed).toMatchObject({
         state: 'installed',
-        commandName: 'orca-ide',
+        commandName: 'manta-ide',
         installMethod: 'wrapper',
         launcherPath: appImagePath,
         currentTarget: appImagePath,
@@ -184,9 +184,9 @@ describe('CliInstaller', () => {
     async () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, '.local', 'bin')
-      const installPath = join(commandDir, 'orca-ide')
-      const oldAppImagePath = join(fixture.root, 'Old-Orca.AppImage')
-      const newAppImagePath = join(fixture.root, 'Orca.AppImage')
+      const installPath = join(commandDir, 'manta-ide')
+      const oldAppImagePath = join(fixture.root, 'Old-Manta.AppImage')
+      const newAppImagePath = join(fixture.root, 'Manta.AppImage')
       await mkdir(commandDir, { recursive: true })
       await writeFile(installPath, buildAppImageCliWrapper(oldAppImagePath), {
         encoding: 'utf8',
@@ -219,17 +219,17 @@ describe('CliInstaller', () => {
   )
 
   // Why: Linux renamed the public command to avoid shadowing GNOME Orca, so
-  // upgrading must clean up only the old symlink owned by prior Orca installs.
+  // upgrading must clean up only the old symlink owned by prior Manta installs.
   it.skipIf(process.platform === 'win32')(
-    'removes the old managed linux orca symlink when installing orca-ide',
+    'removes the old managed linux manta symlink when installing manta-ide',
     async () => {
       const fixture = await makeFixture()
       const homePath = join(fixture.root, 'home')
       const commandDir = join(homePath, '.local', 'bin')
       const resourcesPath = join(fixture.root, 'resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca-ide')
-      const oldLauncherPath = join(resourcesPath, 'bin', 'orca')
-      const legacyCommandPath = join(commandDir, 'orca')
+      const launcherPath = join(resourcesPath, 'bin', 'manta-ide')
+      const oldLauncherPath = join(resourcesPath, 'bin', 'manta')
+      const legacyCommandPath = join(commandDir, 'manta')
       await mkdir(commandDir, { recursive: true })
       await mkdir(join(resourcesPath, 'bin'), { recursive: true })
       await writeFile(launcherPath, '#!/usr/bin/env bash\n', 'utf8')
@@ -245,25 +245,28 @@ describe('CliInstaller', () => {
       })
 
       const installed = await installer.install()
-      expect(installed.commandPath).toBe(join(commandDir, 'orca-ide'))
+      expect(installed.commandPath).toBe(join(commandDir, 'manta-ide'))
       await expect(lstat(legacyCommandPath)).rejects.toMatchObject({ code: 'ENOENT' })
     }
   )
 
   it.skipIf(process.platform === 'win32')(
-    'removes a legacy linux orca symlink when installing an AppImage wrapper',
+    'removes a legacy linux manta symlink when installing an AppImage wrapper',
     async () => {
       const fixture = await makeFixture()
       const homePath = join(fixture.root, 'home')
       const commandDir = join(homePath, '.local', 'bin')
-      const legacyCommandPath = join(commandDir, 'orca')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const legacyCommandPath = join(commandDir, 'manta')
+      const appImagePath = join(fixture.root, 'Manta.AppImage')
       await mkdir(commandDir, { recursive: true })
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', {
         encoding: 'utf8',
         mode: 0o755
       })
-      await symlink(join('/tmp', '.mount_Orca1234', 'resources', 'bin', 'orca'), legacyCommandPath)
+      await symlink(
+        join('/tmp', '.mount_Manta1234', 'resources', 'bin', 'manta'),
+        legacyCommandPath
+      )
 
       const installer = new CliInstaller({
         platform: 'linux',
@@ -274,7 +277,7 @@ describe('CliInstaller', () => {
       })
 
       const installed = await installer.install()
-      expect(installed.commandPath).toBe(join(commandDir, 'orca-ide'))
+      expect(installed.commandPath).toBe(join(commandDir, 'manta-ide'))
       await expect(lstat(legacyCommandPath)).rejects.toMatchObject({ code: 'ENOENT' })
     }
   )
@@ -289,13 +292,13 @@ describe('CliInstaller', () => {
       await mkdir(protectedDir)
       await chmod(protectedDir, 0o500)
 
-      const installPath = join(protectedDir, 'bin', 'orca')
+      const installPath = join(protectedDir, 'bin', 'manta')
       const privilegedCommands: string[] = []
       const installer = new CliInstaller({
         platform: 'darwin',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Manta.app/Contents/MacOS/Manta',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         privilegedRunner: async (command: string) => {

@@ -119,8 +119,8 @@ function installApi(previewInstall: ReturnType<typeof vi.fn>) {
 }
 
 async function inspectSkill(expectedDescription = 'A private skill'): Promise<void> {
-  fireEvent.change(screen.getByLabelText('Orca skill link'), {
-    target: { value: 'https://app.orca.dev/skills/share/share_1' }
+  fireEvent.change(screen.getByLabelText('Manta skill link'), {
+    target: { value: 'https://app.manta.dev/skills/share/share_1' }
   })
   fireEvent.click(screen.getByRole('button', { name: 'Inspect skill' }))
   await screen.findByText(expectedDescription)
@@ -162,7 +162,7 @@ describe('SkillInstallDialog', () => {
 
     await inspectSkill(sharedVersion.description)
     expect(screen.getByRole('button', { name: new RegExp(longName) })).toBeTruthy()
-    expect(screen.queryByText(/Published by Orca user/)).toBeNull()
+    expect(screen.queryByText(/Published by Manta user/)).toBeNull()
     expect(
       screen.getByText(
         (_, element) =>
@@ -415,7 +415,7 @@ describe('SkillInstallDialog', () => {
     })
     render(<SkillInstallDialog open onOpenChange={onOpenChange} />)
 
-    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Orca skill link' }))
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Manta skill link' }))
     // Why: the submit sits in the footer beside Close, so Enter in the field is
     // the keyboard path rather than tabbing past the back-out action.
     const footerButtons = screen
@@ -426,8 +426,8 @@ describe('SkillInstallDialog', () => {
       'Inspect skill'
     ])
     await user.type(
-      screen.getByRole('textbox', { name: 'Orca skill link' }),
-      'https://app.orca.dev/skills/share/share_1'
+      screen.getByRole('textbox', { name: 'Manta skill link' }),
+      'https://app.manta.dev/skills/share/share_1'
     )
     await user.keyboard('{Enter}')
     await screen.findByText('A private skill')
@@ -443,8 +443,8 @@ describe('SkillInstallDialog', () => {
     Object.defineProperty(window, 'api', { configurable: true, value: { skills } })
     render(<SkillInstallDialog open onOpenChange={() => undefined} />)
 
-    fireEvent.change(screen.getByLabelText('Orca skill link'), {
-      target: { value: 'https://app.orca.dev/skills/share/share_1' }
+    fireEvent.change(screen.getByLabelText('Manta skill link'), {
+      target: { value: 'https://app.manta.dev/skills/share/share_1' }
     })
     fireEvent.click(screen.getByRole('button', { name: 'Inspect skill' }))
 
@@ -586,7 +586,7 @@ describe('SkillInstallDialog', () => {
   it('surfaces capability loss after preview selection without attempting installation', async () => {
     const previewInstall = vi.fn().mockResolvedValue({
       status: 'unsupported',
-      message: 'Update the selected Orca host to install shared skills.'
+      message: 'Update the selected Manta host to install shared skills.'
     })
     const skills = installApi(previewInstall)
     Object.defineProperty(window, 'api', { configurable: true, value: { skills } })
@@ -596,7 +596,7 @@ describe('SkillInstallDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Install skill' }))
 
     expect((await screen.findByRole('alert')).textContent).toContain(
-      'Update the selected Orca host'
+      'Update the selected Manta host'
     )
     expect(skills.installShare).not.toHaveBeenCalled()
   })
@@ -615,7 +615,7 @@ describe('SkillInstallDialog', () => {
     const skills = installApi(previewInstall)
     Object.defineProperty(window, 'api', { configurable: true, value: { skills } })
     const changed = vi.fn()
-    window.addEventListener('orca:installed-agent-skills-changed', changed)
+    window.addEventListener('manta:installed-agent-skills-changed', changed)
     render(<SkillInstallDialog open onOpenChange={() => undefined} />)
     await inspectSkill()
 
@@ -623,7 +623,7 @@ describe('SkillInstallDialog', () => {
 
     await screen.findByText('Installed and verified.')
     expect(changed).toHaveBeenCalledOnce()
-    window.removeEventListener('orca:installed-agent-skills-changed', changed)
+    window.removeEventListener('manta:installed-agent-skills-changed', changed)
   })
 
   it('cancels an active destination-owned install and renders the structured result', async () => {

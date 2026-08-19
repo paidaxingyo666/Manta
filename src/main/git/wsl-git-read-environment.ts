@@ -6,7 +6,7 @@ import {
 
 export type WslGitReadEnvironment = { gitPath: string; home: string; path: string }
 
-const PROBE_MARKER = 'ORCA_WSL_GIT_READ_ENV_V1'
+const PROBE_MARKER = 'MANTA_WSL_GIT_READ_ENV_V1'
 const PROBE_TIMEOUT_MS = 10_000
 const PROBE_MAX_BUFFER = 64 * 1024
 const TRANSIENT_PROBE_RETRY_MS = 30_000
@@ -43,10 +43,10 @@ function parseProbe(stdout: string): WslGitReadEnvironment | null {
 
 function probeWslGitReadEnvironment(distro: string): Promise<ProbeOutcome> {
   const probeCommand = [
-    '_orca_git_path=$(command -v git 2>/dev/null || true)',
-    'case "$_orca_git_path" in /*) [ -x "$_orca_git_path" ] || exit 127 ;; *) exit 127 ;; esac',
+    '_manta_git_path=$(command -v git 2>/dev/null || true)',
+    'case "$_manta_git_path" in /*) [ -x "$_manta_git_path" ] || exit 127 ;; *) exit 127 ;; esac',
     'if [ -n "${XDG_CONFIG_HOME:-}" ] || [ -n "${LD_LIBRARY_PATH:-}" ] || env | grep -q \'^GIT_\'; then exit 78; fi',
-    `printf '\\0${PROBE_MARKER}\\0%s\\0%s\\0%s\\0' "$PATH" "$_orca_git_path" "$HOME"`
+    `printf '\\0${PROBE_MARKER}\\0%s\\0%s\\0%s\\0' "$PATH" "$_manta_git_path" "$HOME"`
   ].join('\n')
   const script = escapeWslShCommandForWindows(buildWslLoginShellCommand(probeCommand))
   return new Promise((resolve) => {

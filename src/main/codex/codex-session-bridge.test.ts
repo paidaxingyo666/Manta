@@ -137,7 +137,11 @@ function expectResourceLinked(targetPath: string, sourcePath: string): void {
 function writeLegacyCopyMarker(relativePath: string, sourcePath: string, targetPath: string): void {
   const sourceStat = lstatSync(sourcePath)
   const targetStat = lstatSync(targetPath)
-  const markerPath = join(getRuntimeCodexHomePath(), '.orca-session-copies', `${relativePath}.json`)
+  const markerPath = join(
+    getRuntimeCodexHomePath(),
+    '.manta-session-copies',
+    `${relativePath}.json`
+  )
   mkdirSync(dirname(markerPath), { recursive: true })
   writeFileSync(
     markerPath,
@@ -160,10 +164,10 @@ beforeEach(() => {
   fsMockState.failLink = false
   fsMockState.failSymlink = false
   fsMockState.fakeSymlinks.clear()
-  fakeHomeDir = mkdtempSync(join(tmpdir(), 'orca-codex-session-home-'))
-  userDataDir = mkdtempSync(join(tmpdir(), 'orca-codex-session-user-data-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  fakeHomeDir = mkdtempSync(join(tmpdir(), 'manta-codex-session-home-'))
+  userDataDir = mkdtempSync(join(tmpdir(), 'manta-codex-session-user-data-'))
+  previousUserDataPath = process.env.MANTA_USER_DATA_PATH
+  process.env.MANTA_USER_DATA_PATH = userDataDir
   homedirMock.mockReturnValue(fakeHomeDir)
   mkdirSync(getSystemCodexHomePath(), { recursive: true })
 })
@@ -172,9 +176,9 @@ afterEach(() => {
   rmSync(fakeHomeDir, { recursive: true, force: true })
   rmSync(userDataDir, { recursive: true, force: true })
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.MANTA_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.MANTA_USER_DATA_PATH = previousUserDataPath
   }
   vi.clearAllMocks()
 })

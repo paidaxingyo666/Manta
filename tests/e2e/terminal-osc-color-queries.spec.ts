@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   waitForActivePaneHookDescriptor,
   waitForActivePanePtyId,
@@ -56,24 +56,24 @@ async function injectPtyOutput(page: Page, paneKey: string, data: string): Promi
 
 test('answers OSC foreground and background color queries from the active terminal theme', async ({
   electronApp,
-  orcaPage
+  mantaPage
 }) => {
   await installTerminalPtyWriteSpy(electronApp)
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
-  await waitForActiveTerminalManager(orcaPage, 30_000)
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
+  await waitForActiveTerminalManager(mantaPage, 30_000)
 
-  const ptyId = await waitForActivePanePtyId(orcaPage)
-  const { paneKey } = await waitForActivePaneHookDescriptor(orcaPage)
-  await waitForTerminalPtyDataInjector(orcaPage, paneKey)
-  await setActiveTerminalTheme(orcaPage, {
+  const ptyId = await waitForActivePanePtyId(mantaPage)
+  const { paneKey } = await waitForActivePaneHookDescriptor(mantaPage)
+  await waitForTerminalPtyDataInjector(mantaPage, paneKey)
+  await setActiveTerminalTheme(mantaPage, {
     foreground: '#2e3434',
     background: 'rgba(255, 255, 255, 1)'
   })
   await clearTerminalPtyWriteLog(electronApp)
 
-  const injected = await injectPtyOutput(orcaPage, paneKey, '\x1b]10;?\x1b\\\x1b]11;?\x1b\\')
+  const injected = await injectPtyOutput(mantaPage, paneKey, '\x1b]10;?\x1b\\\x1b]11;?\x1b\\')
 
   expect(injected).toBe(true)
   await expect

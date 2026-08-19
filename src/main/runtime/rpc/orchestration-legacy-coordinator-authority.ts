@@ -1,4 +1,7 @@
-import type { OrcaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../orca-runtime'
+import type {
+  MantaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../manta-runtime'
 import type { OrchestrationDb } from '../orchestration/db'
 import type { LegacyCompatibilityPrincipalRow } from '../orchestration/types'
 import type { LegacyCoordinatorAuthorityProof, RpcRequest } from './core'
@@ -13,7 +16,7 @@ import {
 } from './orchestration-legacy-process-identity'
 
 export class LegacyCoordinatorAuthority {
-  constructor(private readonly runtime: OrcaRuntimeService) {}
+  constructor(private readonly runtime: MantaRuntimeService) {}
 
   resolve(
     request: RpcRequest,

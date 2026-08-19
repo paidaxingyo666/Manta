@@ -29,7 +29,7 @@ describe('DashboardHostBadge', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('SSH host · openclaw')
   })
 
-  it('distinguishes paired Orca hosts and omits local hosts', () => {
+  it('distinguishes paired Manta hosts and omits local hosts', () => {
     const { rerender } = render(
       <TooltipProvider>
         <DashboardHostBadge
@@ -40,7 +40,7 @@ describe('DashboardHostBadge', () => {
       </TooltipProvider>
     )
 
-    const badge = screen.getByLabelText('Remote Orca host · Build Mac')
+    const badge = screen.getByLabelText('Remote Manta host · Build Mac')
     expect(badge).toHaveAttribute('data-dashboard-host-badge', 'remote')
     expect(badge.querySelector('.lucide-server')).toBeInTheDocument()
 

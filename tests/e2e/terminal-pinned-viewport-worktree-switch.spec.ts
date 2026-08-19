@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import {
   ensureTerminalVisible,
   getAllWorktreeIds,
@@ -39,7 +39,7 @@ await writeStdout('PINNED_VIEWPORT_SWITCH_${runId}_DONE\\n')
 async function closeFeatureTips(page: Page): Promise<void> {
   await page.evaluate(() => {
     const store = window.__store
-    store?.getState().markFeatureTipsSeen(['orca-cli', 'cmd-j-palette', 'voice-dictation'])
+    store?.getState().markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
     if (store?.getState().activeModal === 'feature-tips') {
       store.getState().closeModal()
     }
@@ -120,13 +120,13 @@ async function sampleTerminalViewportDuringReturn(
 
 test.describe('Terminal pinned viewport worktree switch', () => {
   test('does not jump or flash when returning to a viewport pinned just above bottom', async ({
-    orcaPage,
+    mantaPage,
     testRepoPath
   }) => {
-    await waitForSessionReady(orcaPage)
-    await closeFeatureTips(orcaPage)
-    const firstWorktreeId = await waitForActiveWorktree(orcaPage)
-    const secondWorktreeId = (await getAllWorktreeIds(orcaPage)).find(
+    await waitForSessionReady(mantaPage)
+    await closeFeatureTips(mantaPage)
+    const firstWorktreeId = await waitForActiveWorktree(mantaPage)
+    const secondWorktreeId = (await getAllWorktreeIds(mantaPage)).find(
       (id) => id !== firstWorktreeId
     )
     test.skip(!secondWorktreeId, 'pinned viewport repro needs the seeded secondary worktree')
@@ -134,34 +134,34 @@ test.describe('Terminal pinned viewport worktree switch', () => {
       return
     }
 
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    const ptyId = await waitForActivePanePtyId(orcaPage)
-    await waitForPtyShellEcho(orcaPage, ptyId, 15_000)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await waitForPtyShellEcho(mantaPage, ptyId, 15_000)
     const runId = randomUUID()
-    const scriptPath = path.join(testRepoPath, `.orca-pinned-viewport-${runId}.mjs`)
+    const scriptPath = path.join(testRepoPath, `.manta-pinned-viewport-${runId}.mjs`)
     writeFileSync(scriptPath, scrollbackFixtureScript(runId))
 
     try {
-      await sendToTerminal(orcaPage, ptyId, `${nodeTerminalCommand([scriptPath])}\r`)
+      await sendToTerminal(mantaPage, ptyId, `${nodeTerminalCommand([scriptPath])}\r`)
       await expect
-        .poll(() => getTerminalContent(orcaPage, 30_000), {
+        .poll(() => getTerminalContent(mantaPage, 30_000), {
           timeout: 10_000,
           message: 'pinned viewport fixture did not reach terminal scrollback'
         })
         .toContain(`PINNED_VIEWPORT_SWITCH_${runId}_DONE`)
 
-      const pinned = await pinActiveTerminalNearBottom(orcaPage)
+      const pinned = await pinActiveTerminalNearBottom(mantaPage)
       expect(pinned.baseY).toBeGreaterThan(20)
-      await orcaPage.waitForTimeout(50)
-      await switchToWorktree(orcaPage, secondWorktreeId)
-      await waitForActiveTerminalManager(orcaPage, 30_000)
-      await orcaPage.waitForTimeout(250)
+      await mantaPage.waitForTimeout(50)
+      await switchToWorktree(mantaPage, secondWorktreeId)
+      await waitForActiveTerminalManager(mantaPage, 30_000)
+      await mantaPage.waitForTimeout(250)
 
-      const samplesPromise = sampleTerminalViewportDuringReturn(orcaPage, pinned.tabId, 450)
-      await switchToWorktree(orcaPage, firstWorktreeId)
-      await ensureTerminalVisible(orcaPage)
-      await waitForActiveTerminalManager(orcaPage, 30_000)
+      const samplesPromise = sampleTerminalViewportDuringReturn(mantaPage, pinned.tabId, 450)
+      await switchToWorktree(mantaPage, firstWorktreeId)
+      await ensureTerminalVisible(mantaPage)
+      await waitForActiveTerminalManager(mantaPage, 30_000)
       const samples = await samplesPromise
       expect(samples.length).toBeGreaterThan(0)
       expect(samples.filter((sample) => sample.viewportY <= 1)).toEqual([])

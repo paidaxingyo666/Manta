@@ -108,7 +108,7 @@ describe('fish startup shell dialect', () => {
       shell: 'fish'
     })
 
-    expect(plan?.launchCommand).toBe('pi; set -e ORCA_PI_PREFILL')
-    expect(plan?.env?.ORCA_PI_PREFILL).toBe('hello')
+    expect(plan?.launchCommand).toBe('pi; set -e MANTA_PI_PREFILL')
+    expect(plan?.env?.MANTA_PI_PREFILL).toBe('hello')
   })
 })

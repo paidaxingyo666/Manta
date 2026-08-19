@@ -97,7 +97,7 @@ describe('WSL direct Git reads', () => {
     expect(execFileMock).toHaveBeenCalledTimes(1)
     completeProbe?.(
       null,
-      'profile banner\n\0ORCA_WSL_GIT_READ_ENV_V1\0/home/user/bin:/usr/bin\0/home/user/bin/git\0/home/user\0',
+      'profile banner\n\0MANTA_WSL_GIT_READ_ENV_V1\0/home/user/bin:/usr/bin\0/home/user/bin/git\0/home/user\0',
       ''
     )
 
@@ -131,7 +131,7 @@ describe('WSL direct Git reads', () => {
         queueMicrotask(() =>
           callback?.(
             null,
-            `\0ORCA_WSL_GIT_READ_ENV_V1\0${LOGIN_ENVIRONMENT.path}\0${LOGIN_ENVIRONMENT.gitPath}\0${LOGIN_ENVIRONMENT.home}\0`,
+            `\0MANTA_WSL_GIT_READ_ENV_V1\0${LOGIN_ENVIRONMENT.path}\0${LOGIN_ENVIRONMENT.gitPath}\0${LOGIN_ENVIRONMENT.home}\0`,
             ''
           )
         )
@@ -184,7 +184,7 @@ describe('WSL direct Git reads', () => {
       let completeProbe: ((error: Error | null, stdout: string, stderr: string) => void) | undefined
       execFileMock.mockImplementation((_command, args, _options, callback) => {
         const child = createMockChild()
-        if ((args as string[])[5]?.includes('ORCA_WSL_GIT_READ_ENV_V1')) {
+        if ((args as string[])[5]?.includes('MANTA_WSL_GIT_READ_ENV_V1')) {
           completeProbe = callback
         } else {
           queueMicrotask(() => callback?.(null, 'ok', ''))
@@ -203,7 +203,7 @@ describe('WSL direct Git reads', () => {
       expect(execFileMock.mock.calls[1]?.[1]?.slice(3, 5)).toEqual(['sh', '-lc'])
       completeProbe?.(
         null,
-        `\0ORCA_WSL_GIT_READ_ENV_V1\0${LOGIN_ENVIRONMENT.path}\0${LOGIN_ENVIRONMENT.gitPath}\0${LOGIN_ENVIRONMENT.home}\0`,
+        `\0MANTA_WSL_GIT_READ_ENV_V1\0${LOGIN_ENVIRONMENT.path}\0${LOGIN_ENVIRONMENT.gitPath}\0${LOGIN_ENVIRONMENT.home}\0`,
         ''
       )
       await Promise.resolve()

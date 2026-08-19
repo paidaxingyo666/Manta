@@ -216,13 +216,13 @@ describe('registerWorktreeHandlers', () => {
     expect(forceDeleteLocalBranchMock).not.toHaveBeenCalled()
   })
 
-  it('removes an unused Orca-created fork remote after deleting its worktree', async () => {
+  it('removes an unused Manta-created fork remote after deleting its worktree', async () => {
     mockKnownFeatureWorktree()
     removeWorktreeMock.mockResolvedValue(undefined)
     const pushTarget = {
-      remoteName: 'pr-contributor-orca',
+      remoteName: 'pr-contributor-manta',
       branchName: 'feature/from-fork',
-      remoteUrl: 'https://github.com/contributor/orca.git',
+      remoteUrl: 'https://github.com/contributor/manta.git',
       remoteCreated: true
     }
     store.getWorktreeMeta.mockReturnValue(makeWorktreeMeta({ pushTarget }))
@@ -234,7 +234,7 @@ describe('registerWorktreeHandlers', () => {
         throw new Error('no branch config')
       }
       if (args[0] === 'remote' && args[1] === 'get-url') {
-        return { stdout: 'https://github.com/contributor/orca.git\n', stderr: '' }
+        return { stdout: 'https://github.com/contributor/manta.git\n', stderr: '' }
       }
       return { stdout: '', stderr: '' }
     })
@@ -243,18 +243,21 @@ describe('registerWorktreeHandlers', () => {
       worktreeId: 'repo-1::/workspace/feature-wt'
     })
 
-    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-orca'], {
-      cwd: '/workspace/repo'
-    })
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      ['remote', 'remove', 'pr-contributor-manta'],
+      {
+        cwd: '/workspace/repo'
+      }
+    )
   })
 
-  it('keeps an Orca-created fork remote while another worktree still uses it', async () => {
+  it('keeps a Manta-created fork remote while another worktree still uses it', async () => {
     mockKnownFeatureWorktree()
     removeWorktreeMock.mockResolvedValue(undefined)
     const pushTarget = {
-      remoteName: 'pr-contributor-orca',
+      remoteName: 'pr-contributor-manta',
       branchName: 'feature/from-fork',
-      remoteUrl: 'https://github.com/contributor/orca.git',
+      remoteUrl: 'https://github.com/contributor/manta.git',
       remoteCreated: true
     }
     store.getWorktreeMeta.mockReturnValue(makeWorktreeMeta({ pushTarget }))
@@ -273,7 +276,7 @@ describe('registerWorktreeHandlers', () => {
     })
 
     expect(gitExecFileAsyncMock).not.toHaveBeenCalledWith(
-      ['remote', 'remove', 'pr-contributor-orca'],
+      ['remote', 'remove', 'pr-contributor-manta'],
       expect.any(Object)
     )
   })
@@ -282,9 +285,9 @@ describe('registerWorktreeHandlers', () => {
     mockKnownFeatureWorktree()
     removeWorktreeMock.mockResolvedValue(undefined)
     const pushTarget = {
-      remoteName: 'pr-contributor-orca',
+      remoteName: 'pr-contributor-manta',
       branchName: 'feature/from-fork',
-      remoteUrl: 'https://github.com/contributor/orca.git',
+      remoteUrl: 'https://github.com/contributor/manta.git',
       remoteCreated: true
     }
     store.getWorktreeMeta.mockReturnValue(makeWorktreeMeta({ pushTarget }))
@@ -302,7 +305,7 @@ describe('registerWorktreeHandlers', () => {
         throw new Error('no branch config')
       }
       if (args[0] === 'remote' && args[1] === 'get-url') {
-        return { stdout: 'https://github.com/contributor/orca.git\n', stderr: '' }
+        return { stdout: 'https://github.com/contributor/manta.git\n', stderr: '' }
       }
       return { stdout: '', stderr: '' }
     })
@@ -311,8 +314,11 @@ describe('registerWorktreeHandlers', () => {
       worktreeId: 'repo-1::/workspace/feature-wt'
     })
 
-    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-orca'], {
-      cwd: '/workspace/repo'
-    })
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      ['remote', 'remove', 'pr-contributor-manta'],
+      {
+        cwd: '/workspace/repo'
+      }
+    )
   })
 })

@@ -3,14 +3,14 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:f
 import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 
 const execFileAsync = promisify(execFile)
-const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'orca-terminal-send-agent-prompt-'))
+const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'manta-terminal-send-agent-prompt-'))
 const fixtureBin = path.join(fixtureRoot, 'bin')
 const fixtureReport = path.join(fixtureRoot, 'report.json')
-const fixtureMarker = `ORCA_TERMINAL_SEND_E2E_${process.pid}`
+const fixtureMarker = `MANTA_TERMINAL_SEND_E2E_${process.pid}`
 const fixtureScript = path.join(process.cwd(), 'tests', 'tools', 'repro-terminal-send-submit.mjs')
 const fakeCodex = path.join(fixtureBin, process.platform === 'win32' ? 'codex.cmd' : 'codex')
 
@@ -18,8 +18,8 @@ mkdirSync(fixtureBin)
 writeFileSync(
   fakeCodex,
   process.platform === 'win32'
-    ? `@echo off\r\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "%ORCA_FAKE_AGENT_REPORT%" --marker "%ORCA_FAKE_AGENT_MARKER%" --allow-unframed-paste\r\n`
-    : `#!/usr/bin/env sh\nexec "${process.execPath}" "${fixtureScript}" --fake-agent --report "$ORCA_FAKE_AGENT_REPORT" --marker "$ORCA_FAKE_AGENT_MARKER"\n`,
+    ? `@echo off\r\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "%MANTA_FAKE_AGENT_REPORT%" --marker "%MANTA_FAKE_AGENT_MARKER%" --allow-unframed-paste\r\n`
+    : `#!/usr/bin/env sh\nexec "${process.execPath}" "${fixtureScript}" --fake-agent --report "$MANTA_FAKE_AGENT_REPORT" --marker "$MANTA_FAKE_AGENT_MARKER"\n`,
   'utf8'
 )
 if (process.platform !== 'win32') {
@@ -27,10 +27,10 @@ if (process.platform !== 'win32') {
 }
 
 test.use({
-  orcaAppExtraEnv: {
+  mantaAppExtraEnv: {
     PATH: `${fixtureBin}${path.delimiter}${process.env.PATH ?? ''}`,
-    ORCA_FAKE_AGENT_REPORT: fixtureReport,
-    ORCA_FAKE_AGENT_MARKER: fixtureMarker
+    MANTA_FAKE_AGENT_REPORT: fixtureReport,
+    MANTA_FAKE_AGENT_MARKER: fixtureMarker
   }
 })
 
@@ -40,11 +40,11 @@ test.afterAll(() => {
 
 test('CLI text plus Enter waits for a slow agent composer before submitting', async ({
   electronApp,
-  orcaPage,
+  mantaPage,
   testRepoPath
 }) => {
   test.setTimeout(90_000)
-  await waitForSessionReady(orcaPage)
+  await waitForSessionReady(mantaPage)
   const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
   const repoRoot = process.cwd()
   let stdout = ''
@@ -54,7 +54,7 @@ test('CLI text plus Enter waits for a slow agent composer before submitting', as
       [
         path.join(repoRoot, 'tests', 'tools', 'repro-terminal-send-submit.mjs'),
         '--cli',
-        path.join(repoRoot, 'config', 'scripts', 'orca-dev.mjs'),
+        path.join(repoRoot, 'config', 'scripts', 'manta-dev.mjs'),
         '--worktree',
         testRepoPath,
         '--agent-command',
@@ -67,7 +67,7 @@ test('CLI text plus Enter waits for a slow agent composer before submitting', as
       ],
       {
         cwd: repoRoot,
-        env: { ...process.env, ORCA_DEV_USER_DATA_PATH: userDataDir },
+        env: { ...process.env, MANTA_DEV_USER_DATA_PATH: userDataDir },
         timeout: 60_000
       }
     )

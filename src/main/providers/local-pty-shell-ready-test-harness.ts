@@ -2,18 +2,18 @@ import { afterEach, describe, vi } from 'vitest'
 import { spawnSync } from 'node:child_process'
 import type * as LocalPtyShellReadyModule from './local-pty-shell-ready'
 
-// Why: can't import electron (bundled into the plain-node daemon-entry fork), so tests set the wrapper root via ORCA_USER_DATA_PATH instead of mocking app.
+// Why: can't import electron (bundled into the plain-node daemon-entry fork), so tests set the wrapper root via MANTA_USER_DATA_PATH instead of mocking app.
 export function setTestUserDataPath(path: string): void {
-  process.env.ORCA_USER_DATA_PATH = path
+  process.env.MANTA_USER_DATA_PATH = path
 }
 
 export function restoreUserDataPathAfterEach(): void {
-  const original = process.env.ORCA_USER_DATA_PATH
+  const original = process.env.MANTA_USER_DATA_PATH
   afterEach(() => {
     if (original === undefined) {
-      delete process.env.ORCA_USER_DATA_PATH
+      delete process.env.MANTA_USER_DATA_PATH
     } else {
-      process.env.ORCA_USER_DATA_PATH = original
+      process.env.MANTA_USER_DATA_PATH = original
     }
   })
 }

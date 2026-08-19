@@ -43,7 +43,7 @@ export function AutomationsSettingsPane({
           <p className="text-xs leading-relaxed text-muted-foreground">
             {translate(
               'auto.components.settings.automations.howItWorksDescription',
-              'Schedule agent work once, then let Orca create each run and keep its results together.'
+              'Schedule agent work once, then let Manta create each run and keep its results together.'
             )}
           </p>
         </div>
@@ -76,7 +76,7 @@ export function AutomationsSettingsPane({
               <p className="text-sm font-medium">
                 {translate(
                   'auto.components.settings.automations.runStepTitle',
-                  'Orca starts each run'
+                  'Manta starts each run'
                 )}
               </p>
               <p className="text-xs leading-relaxed text-muted-foreground">

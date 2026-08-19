@@ -91,7 +91,7 @@ describe('shared agent-hook-listener', () => {
   })
 
   it('reads Antigravity user requests from the transcript', () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), 'orca-antigravity-prompt-'))
+    const tmpDir = mkdtempSync(join(tmpdir(), 'manta-antigravity-prompt-'))
     const transcriptPath = join(tmpDir, 'transcript.jsonl')
     try {
       writeFileSync(
@@ -128,7 +128,7 @@ describe('shared agent-hook-listener', () => {
 
   it('reads newline-heavy Antigravity user requests without wrapper regex matching', () => {
     const matchSpy = vi.spyOn(String.prototype, 'match')
-    const tmpDir = mkdtempSync(join(tmpdir(), 'orca-antigravity-large-prompt-'))
+    const tmpDir = mkdtempSync(join(tmpdir(), 'manta-antigravity-large-prompt-'))
     const transcriptPath = join(tmpDir, 'transcript.jsonl')
     const requestText = 'Fix the failing test\n'.repeat(300)
     try {
@@ -168,7 +168,7 @@ describe('shared agent-hook-listener', () => {
   })
 
   it('keeps the cached Antigravity prompt instead of rescanning the transcript', () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), 'orca-antigravity-cached-prompt-'))
+    const tmpDir = mkdtempSync(join(tmpdir(), 'manta-antigravity-cached-prompt-'))
     const transcriptPath = join(tmpDir, 'transcript.jsonl')
     try {
       writeFileSync(
@@ -300,7 +300,7 @@ describe('shared agent-hook-listener', () => {
   })
 
   it('normalizes Antigravity Stop hooks and reads final text from the transcript', () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), 'orca-antigravity-transcript-'))
+    const tmpDir = mkdtempSync(join(tmpdir(), 'manta-antigravity-transcript-'))
     const transcriptPath = join(tmpDir, 'transcript.jsonl')
     try {
       writeFileSync(

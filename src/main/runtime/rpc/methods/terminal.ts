@@ -8,7 +8,7 @@ import {
   type RpcAnyMethod
 } from '../core'
 import { OptionalFiniteNumber, OptionalString, requiredString } from '../schemas'
-import type { DriverState, OrcaRuntimeService } from '../../orca-runtime'
+import type { DriverState, MantaRuntimeService } from '../../manta-runtime'
 import {
   TerminalStreamOpcode,
   decodeTerminalStreamJson,
@@ -282,7 +282,7 @@ function createTerminalOutputBatcher(onFlush: (data: string, meta?: TerminalOutp
 }
 
 function isTerminalInputLockedForClient(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   client: TerminalViewportClient | undefined
 ): boolean {
@@ -327,7 +327,7 @@ function isTerminalStreamInputRejection(error: unknown): boolean {
 }
 
 async function sendTerminalStreamInput(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   args: {
     terminal: string
     text: string
@@ -365,7 +365,7 @@ async function sendTerminalStreamInput(
 }
 
 type MobileInputFloorClaimHolder = {
-  current: ReturnType<OrcaRuntimeService['beginMobileInputFloor']>
+  current: ReturnType<MantaRuntimeService['beginMobileInputFloor']>
 }
 
 async function commitMobileInputFloorClaim(claim: MobileInputFloorClaimHolder): Promise<void> {
@@ -400,7 +400,7 @@ function isTerminalSendGuardNotWritable(error: unknown): boolean {
 }
 
 function assertTerminalSendExactPtyBinding(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   handle: string,
   expectedPtyId: string | undefined
 ): void {
@@ -598,7 +598,7 @@ function requestedSnapshotScrollbackCandidates(requestedRows: number | undefined
 }
 
 async function serializeBudgetedRequestedSnapshot(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   scrollbackRows: number | undefined
 ): Promise<SerializedSnapshot> {
@@ -681,7 +681,7 @@ function sendSnapshotFrames(
 }
 
 async function serializeBudgetedMobileSnapshot(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   isMobile: boolean
 ): Promise<SerializedSnapshot> {
@@ -717,7 +717,7 @@ async function serializeBudgetedMobileSnapshot(
 }
 
 async function serializeStableMobileRendererSnapshot(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string
 ): Promise<SerializedSnapshot> {
   const candidates = [MOBILE_SUBSCRIBE_SCROLLBACK_ROWS, 500, 250, 100, 25, 0]
@@ -755,7 +755,7 @@ async function serializeStableMobileRendererSnapshot(
 
 // Why: mobile xterm can't rewrap the HARD newlines baked into a restored snapshot, so a real reflow re-serializes and replays the FULL buffer at the new cols.
 async function sendMobileResizeRestream(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   sendFrame: (opcode: TerminalStreamOpcode, payload?: Uint8Array<ArrayBufferLike>) => void,
   event: { cols: number; rows: number; displayMode: string; reason: string; seq?: number },
@@ -790,7 +790,7 @@ async function sendMobileResizeRestream(
 }
 
 async function updateViewportForClient(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   subscriptionKey: string,
   client: TerminalViewportClient,

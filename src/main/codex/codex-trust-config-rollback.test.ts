@@ -23,7 +23,7 @@ afterEach(() => {
 })
 
 function tempConfigPath(): string {
-  const root = mkdtempSync(join(tmpdir(), 'orca-codex-rollback-'))
+  const root = mkdtempSync(join(tmpdir(), 'manta-codex-rollback-'))
   roots.push(root)
   return join(root, 'config.toml')
 }

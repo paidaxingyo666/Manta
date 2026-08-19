@@ -292,8 +292,8 @@ describe('RelayAiVaultServiceClient', () => {
   })
 
   it('resolves the sidecar beside each bundled relay', () => {
-    expect(relayAiVaultServiceEntryPath('/opt/orca/relay')).toBe(
-      '/opt/orca/relay/relay-ai-vault-service.js'
+    expect(relayAiVaultServiceEntryPath('/opt/manta/relay')).toBe(
+      '/opt/manta/relay/relay-ai-vault-service.js'
     )
   })
 })

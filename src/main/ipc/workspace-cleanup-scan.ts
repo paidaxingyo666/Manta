@@ -209,7 +209,7 @@ async function scanRepoWorkspaces(
     WORKTREE_SCAN_CONCURRENCY,
     async (worktree) => {
       throwIfWorkspaceCleanupScanAborted(signal)
-      // Why: externally-created worktrees can miss Orca activity stamps; local
+      // Why: externally-created worktrees can miss Manta activity stamps; local
       // filesystem metadata is a conservative guard before suggesting deletion.
       const persistedActivityWorktree = resolvePersistedWorkspaceCleanupActivityWorktree(worktree)
       const persistedActivityIsRecent = !isWorkspaceInactiveForCleanup(

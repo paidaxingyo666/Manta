@@ -399,7 +399,7 @@ export const createWorkspaceCleanupSlice: StateCreator<AppState, [], [], Workspa
           displayName: candidate.displayName,
           message: translate(
             'auto.store.slices.workspace.cleanup.hostUnresolved',
-            'Orca cannot tell which host owns this workspace. Refresh projects and review it again.'
+            'Manta cannot tell which host owns this workspace. Refresh projects and review it again.'
           )
         })
         continue
@@ -1101,7 +1101,7 @@ async function preflightWorkspaceCleanupCandidates(
                   )
                 : translate(
                     'auto.store.slices.workspace.cleanup.hostUnresolved',
-                    'Orca cannot tell which host owns this workspace. Refresh projects and review it again.'
+                    'Manta cannot tell which host owns this workspace. Refresh projects and review it again.'
                   )
           }
         }

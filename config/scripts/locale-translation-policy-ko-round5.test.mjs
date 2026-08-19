@@ -41,11 +41,11 @@ describe('locale-translation-policy ko round 5', () => {
     expect(
       repairTranslatedValue({
         key: 'auto.components.settings.general.search.244e3fb4c8',
-        enValue: 'Install the Orca skill so agents know to use the Orca CLI.',
-        localeValue: '에이전트가 Orca CLI 사용 방법을 알 수 있도록 Orca 기술을 설치합니다.',
+        enValue: 'Install the Manta skill so agents know to use the Manta CLI.',
+        localeValue: '에이전트가 Manta CLI 사용 방법을 알 수 있도록 Manta 기술을 설치합니다.',
         locale: 'ko'
       })
-    ).toBe('에이전트가 Orca CLI를 사용하도록 Orca 스킬을 설치하세요.')
+    ).toBe('에이전트가 Manta CLI를 사용하도록 Manta 스킬을 설치하세요.')
     expect(
       repairTranslatedValue({
         key: 'auto.components.editor.MarkdownPreview.322afab6ff',

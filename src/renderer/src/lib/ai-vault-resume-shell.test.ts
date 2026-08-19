@@ -114,7 +114,7 @@ describe('copied real-home Codex resume command', () => {
         })
       )
     ).toBe(
-      "set -e CODEX_HOME; set -e ORCA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
+      "set -e CODEX_HOME; set -e MANTA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
     )
   })
 
@@ -130,7 +130,7 @@ describe('copied real-home Codex resume command', () => {
         })
       )
     ).toBe(
-      "unset CODEX_HOME; unset ORCA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
+      "unset CODEX_HOME; unset MANTA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
     )
   })
 
@@ -144,7 +144,7 @@ describe('copied real-home Codex resume command', () => {
         })
       )
     ).toBe(
-      "unset CODEX_HOME; unset ORCA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
+      "unset CODEX_HOME; unset MANTA_CODEX_HOME; cd '/home/alice/repo' && codex 'resume' 'session one'"
     )
   })
 })

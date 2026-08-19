@@ -13,7 +13,7 @@ vi.mock('@/lib/react-error-boundary-reporting', () => ({
   reportReactErrorBoundaryCrash: reportCrashMock
 }))
 
-const RELOAD_GUARD_KEY = 'orca:lazy-chunk-reload-attempted'
+const RELOAD_GUARD_KEY = 'manta:lazy-chunk-reload-attempted'
 const LANDED_RELOAD_GUARD_VALUE = 'doc-before-the-reload'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true

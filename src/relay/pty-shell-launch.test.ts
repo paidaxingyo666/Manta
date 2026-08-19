@@ -59,14 +59,14 @@ function expectBashOsc133Lifecycle(output: string): void {
 }
 
 function expectZdotdirSourceContext(content: string, fileName: '.zprofile' | '.zshrc' | '.zlogin') {
-  expect(content).toContain('export ZDOTDIR="$_orca_home"')
-  expect(content).toContain(`source "$_orca_home/${fileName}"`)
-  expect(content).toContain('export ZDOTDIR="$_orca_wrapper_zdotdir"')
+  expect(content).toContain('export ZDOTDIR="$_manta_home"')
+  expect(content).toContain(`source "$_manta_home/${fileName}"`)
+  expect(content).toContain('export ZDOTDIR="$_manta_wrapper_zdotdir"')
 }
 
 function expectFinalZdotdirRestoreContext(content: string) {
-  expect(content).toContain("after Orca's last wrapper file has loaded")
-  expect(content).toContain('export ZDOTDIR="$_orca_home"')
+  expect(content).toContain("after Manta's last wrapper file has loaded")
+  expect(content).toContain('export ZDOTDIR="$_manta_home"')
 }
 
 describe('getRelayShellLaunchConfig', () => {
@@ -85,23 +85,23 @@ describe('getRelayShellLaunchConfig', () => {
     () => {
       const config = getRelayShellLaunchConfig('/bin/zsh', {
         HOME: homeDir,
-        ORCA_OPENCODE_CONFIG_DIR: '/tmp/orca-opencode-overlay'
+        MANTA_OPENCODE_CONFIG_DIR: '/tmp/manta-opencode-overlay'
       })
-      const zshRoot = join(homeDir, '.orca-relay', 'shell-ready', 'zsh')
+      const zshRoot = join(homeDir, '.manta-relay', 'shell-ready', 'zsh')
 
       expect(config.args).toEqual(['-l'])
       expect(config.env.ZDOTDIR).toBe(zshRoot)
       expect(readFileSync(join(zshRoot, '.zshenv'), 'utf8')).toContain(
-        'export ORCA_USER_ZDOTDIR="${ZDOTDIR:-${ORCA_ORIG_ZDOTDIR:-$HOME}}"'
+        'export MANTA_USER_ZDOTDIR="${ZDOTDIR:-${MANTA_ORIG_ZDOTDIR:-$HOME}}"'
       )
       expect(readFileSync(join(zshRoot, '.zprofile'), 'utf8')).toContain(
-        '_orca_home="${ORCA_USER_ZDOTDIR:-${ORCA_ORIG_ZDOTDIR:-$HOME}}"'
+        '_manta_home="${MANTA_USER_ZDOTDIR:-${MANTA_ORIG_ZDOTDIR:-$HOME}}"'
       )
       const zprofile = readFileSync(join(zshRoot, '.zprofile'), 'utf8')
       const zshrc = readFileSync(join(zshRoot, '.zshrc'), 'utf8')
       const zlogin = readFileSync(join(zshRoot, '.zlogin'), 'utf8')
-      expect(zshrc).toContain('_orca_home="${ORCA_USER_ZDOTDIR:-${ORCA_ORIG_ZDOTDIR:-$HOME}}"')
-      expect(zlogin).toContain('_orca_home="${ORCA_USER_ZDOTDIR:-${ORCA_ORIG_ZDOTDIR:-$HOME}}"')
+      expect(zshrc).toContain('_manta_home="${MANTA_USER_ZDOTDIR:-${MANTA_ORIG_ZDOTDIR:-$HOME}}"')
+      expect(zlogin).toContain('_manta_home="${MANTA_USER_ZDOTDIR:-${MANTA_ORIG_ZDOTDIR:-$HOME}}"')
       expectZdotdirSourceContext(zprofile, '.zprofile')
       expectZdotdirSourceContext(zshrc, '.zshrc')
       expectZdotdirSourceContext(zlogin, '.zlogin')
@@ -137,17 +137,17 @@ describe('getRelayShellLaunchConfig', () => {
   })
 
   it.skipIf(process.platform === 'win32')('rewrites stale persistent wrapper files', () => {
-    const zshRoot = join(homeDir, '.orca-relay', 'shell-ready', 'zsh')
+    const zshRoot = join(homeDir, '.manta-relay', 'shell-ready', 'zsh')
     mkdirSync(zshRoot, { recursive: true })
     writeFileSync(join(zshRoot, '.zshenv'), '# stale relay wrapper\n')
 
     getRelayShellLaunchConfig('/bin/zsh', {
       HOME: homeDir,
-      ORCA_OPENCODE_CONFIG_DIR: '/tmp/orca-opencode-overlay'
+      MANTA_OPENCODE_CONFIG_DIR: '/tmp/manta-opencode-overlay'
     })
 
     expect(readFileSync(join(zshRoot, '.zshenv'), 'utf8')).toContain(
-      'export ORCA_USER_ZDOTDIR="${ZDOTDIR:-${ORCA_ORIG_ZDOTDIR:-$HOME}}"'
+      'export MANTA_USER_ZDOTDIR="${ZDOTDIR:-${MANTA_ORIG_ZDOTDIR:-$HOME}}"'
     )
   })
 
@@ -156,15 +156,15 @@ describe('getRelayShellLaunchConfig', () => {
     () => {
       const config = getRelayShellLaunchConfig('/bin/zsh', {
         HOME: homeDir,
-        ORCA_MIMOCODE_HOME: '/tmp/orca-mimocode-overlay'
+        MANTA_MIMOCODE_HOME: '/tmp/manta-mimocode-overlay'
       })
-      const zshRoot = join(homeDir, '.orca-relay', 'shell-ready', 'zsh')
+      const zshRoot = join(homeDir, '.manta-relay', 'shell-ready', 'zsh')
       const zshrc = readFileSync(join(zshRoot, '.zshrc'), 'utf8')
 
       expect(config.args).toEqual(['-l'])
       expect(config.env.ZDOTDIR).toBe(zshRoot)
       expect(zshrc).toContain(
-        '[[ -n "${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ORCA_MIMOCODE_HOME}"'
+        '[[ -n "${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${MANTA_MIMOCODE_HOME}"'
       )
     }
   )
@@ -173,7 +173,7 @@ describe('getRelayShellLaunchConfig', () => {
     'wraps bash even without overlay env for OSC 133 lifecycle markers',
     () => {
       const config = getRelayShellLaunchConfig('/bin/bash', { HOME: homeDir })
-      const rcfile = join(homeDir, '.orca-relay', 'shell-ready', 'bash', 'rcfile')
+      const rcfile = join(homeDir, '.manta-relay', 'shell-ready', 'bash', 'rcfile')
       const bashRc = readFileSync(rcfile, 'utf8')
 
       expect(config.args).toEqual(['--rcfile', rcfile])
@@ -189,20 +189,20 @@ describe('getRelayShellLaunchConfig', () => {
       const config = getRelayShellLaunchConfig('/bin/zsh', { HOME: homeDir }, 'linux', {
         emitReadyMarker: true
       })
-      const zshRoot = join(homeDir, '.orca-relay', 'shell-ready', 'zsh')
+      const zshRoot = join(homeDir, '.manta-relay', 'shell-ready', 'zsh')
       const zlogin = readFileSync(join(zshRoot, '.zlogin'), 'utf8')
 
       expect(config.args).toEqual(['-l'])
       expect(config.env.ZDOTDIR).toBe(zshRoot)
-      expect(config.env.ORCA_SHELL_READY_MARKER).toBe('1')
+      expect(config.env.MANTA_SHELL_READY_MARKER).toBe('1')
       expect(readFileSync(join(zshRoot, '.zshenv'), 'utf8')).toContain(
-        'printf "\\033]777;orca-shell-start:%s\\007" "$$"'
+        'printf "\\033]777;manta-shell-start:%s\\007" "$$"'
       )
       expect(readFileSync(join(zshRoot, '.zshenv'), 'utf8')).toContain(
-        'unset ORCA_SHELL_STARTUP_IDENTITY'
+        'unset MANTA_SHELL_STARTUP_IDENTITY'
       )
-      expect(zlogin).toContain('zle -N zle-line-init __orca_prompt_mark')
-      expect(zlogin).toContain('printf "\\033]777;orca-shell-ready\\007"')
+      expect(zlogin).toContain('zle -N zle-line-init __manta_prompt_mark')
+      expect(zlogin).toContain('printf "\\033]777;manta-shell-ready\\007"')
     }
   )
 
@@ -214,11 +214,11 @@ describe('getRelayShellLaunchConfig', () => {
       })
       const bashRc = readFileSync(config.args[1] as string, 'utf8')
 
-      expect(config.env.ORCA_SHELL_READY_MARKER).toBe('1')
-      expect(bashRc).toContain('printf "\\033]777;orca-shell-start:%s\\007" "$$"')
-      expect(bashRc).toContain('unset ORCA_SHELL_STARTUP_IDENTITY')
-      expect(bashRc).toContain('__orca_append_prompt_command "__orca_prompt_mark"')
-      expect(bashRc).toContain('printf "\\033]777;orca-shell-ready\\007"')
+      expect(config.env.MANTA_SHELL_READY_MARKER).toBe('1')
+      expect(bashRc).toContain('printf "\\033]777;manta-shell-start:%s\\007" "$$"')
+      expect(bashRc).toContain('unset MANTA_SHELL_STARTUP_IDENTITY')
+      expect(bashRc).toContain('__manta_append_prompt_command "__manta_prompt_mark"')
+      expect(bashRc).toContain('printf "\\033]777;manta-shell-ready\\007"')
     }
   )
 
@@ -229,9 +229,9 @@ describe('getRelayShellLaunchConfig', () => {
         emitStartupIdentity: true
       })
 
-      expect(config.env.ZDOTDIR).toBe(join(homeDir, '.orca-relay', 'shell-ready', 'zsh'))
-      expect(config.env.ORCA_SHELL_STARTUP_IDENTITY).toBe('1')
-      expect(config.env.ORCA_SHELL_READY_MARKER).toBeUndefined()
+      expect(config.env.ZDOTDIR).toBe(join(homeDir, '.manta-relay', 'shell-ready', 'zsh'))
+      expect(config.env.MANTA_SHELL_STARTUP_IDENTITY).toBe('1')
+      expect(config.env.MANTA_SHELL_READY_MARKER).toBeUndefined()
     }
   )
 
@@ -240,16 +240,16 @@ describe('getRelayShellLaunchConfig', () => {
     const bashRc = readFileSync(config.args[1] as string, 'utf8')
     const output = runInteractiveBashRcfile(config.args[1] as string, homeDir)
 
-    expect(bashRc).toContain('[[ -z "${__orca_in_command:-}" ]] || return 0')
+    expect(bashRc).toContain('[[ -z "${__manta_in_command:-}" ]] || return 0')
     expectBashOsc133Lifecycle(output)
   })
 
   itWithBash('emits lifecycle for foreground text ending like an internal hook', () => {
     const config = getRelayShellLaunchConfig('/bin/bash', { HOME: homeDir })
-    const input = 'echo user:__orca_osc133_prompt_done\nfalse\nexit 0\n'
+    const input = 'echo user:__manta_osc133_prompt_done\nfalse\nexit 0\n'
     const output = runInteractiveBashRcfile(config.args[1] as string, homeDir, input)
 
-    expect(output).toContain('user:__orca_osc133_prompt_done')
+    expect(output).toContain('user:__manta_osc133_prompt_done')
     expectBashOsc133Lifecycle(output)
   })
 
@@ -267,8 +267,8 @@ describe('getRelayShellLaunchConfig', () => {
     expect(output).toContain('PROMPT_HOOK')
     expect(output).toContain('USER_DEBUG_AFTER')
     expect(output).toContain('USER_DEBUG_AFTER:<printf "PROMPT_HOOK\\n">')
-    expect(output).not.toContain('USER_DEBUG_AFTER:<(( __orca_exit_code == 0 ))>')
-    expect(output).not.toContain('USER_DEBUG_AFTER:<__orca_restore_prompt_status')
+    expect(output).not.toContain('USER_DEBUG_AFTER:<(( __manta_exit_code == 0 ))>')
+    expect(output).not.toContain('USER_DEBUG_AFTER:<__manta_restore_prompt_status')
     expectBashOsc133Lifecycle(output)
   })
 
@@ -305,7 +305,7 @@ describe('getRelayShellLaunchConfig', () => {
 
   // Why: RHEL-family /etc/bashrc prepends "history -a; " to PROMPT_COMMAND
   // outside its BASHRCSOURCED guard (repeated across re-sources), so the value
-  // Orca inherits ends in a ";"+whitespace separator. Prepend/append must not
+  // Manta inherits ends in a ";"+whitespace separator. Prepend/append must not
   // splice an empty command (";;") that breaks the prompt with a syntax error.
   itWithBash('normalizes an inherited PROMPT_COMMAND ending in a separator', () => {
     writeFileSync(

@@ -1,9 +1,9 @@
 import type { AgentStatusIpcPayload } from '../../shared/agent-status-types'
 import { isValidTerminalTabId } from '../../shared/terminal-tab-id'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 
 export type AgentStatusRuntimeEnrichment = Pick<
-  OrcaRuntimeService,
+  MantaRuntimeService,
   'getAgentStatusTerminalHandleForPaneKey' | 'getAgentStatusOrchestrationContextForPaneKey'
 >
 

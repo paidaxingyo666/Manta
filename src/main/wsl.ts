@@ -21,8 +21,8 @@ export type WslPathInfo = {
   linuxPath: string
 }
 
-const WSL_DIRECTORY_EXISTS_MARKER = '__ORCA_DIRECTORY_EXISTS__'
-const WSL_DIRECTORY_MISSING_MARKER = '__ORCA_DIRECTORY_MISSING__'
+const WSL_DIRECTORY_EXISTS_MARKER = '__MANTA_DIRECTORY_EXISTS__'
+const WSL_DIRECTORY_MISSING_MARKER = '__MANTA_DIRECTORY_MISSING__'
 
 function getWslDirectoryProbeArgs(info: WslPathInfo): string[] {
   return [
@@ -124,7 +124,7 @@ export function wslUncDirectoryExistsAsync(uncPath: string): Promise<boolean | n
  * Why: WSL hook/setup environments may need both the worktree UNC path
  * (\\wsl.localhost\...) and regular Windows install paths (C:\Users\...)
  * translated before passing them to bash. Leaving drive paths untouched
- * breaks scripts that read ORCA_ROOT_PATH or similar env vars inside WSL.
+ * breaks scripts that read MANTA_ROOT_PATH or similar env vars inside WSL.
  */
 export function toLinuxPath(windowsPath: string): string {
   const info = parseWslPath(windowsPath)
@@ -260,7 +260,7 @@ export function hasCachedWslDistros(): boolean {
 
 // Why: report the last observed answer even once it is stale. An empty list is a real
 // probe result, so it must keep driving the `wsl-distro-missing` repair prompt; going
-// null instead fails open and silently spawns `wsl.exe -d <distro>` for a distro Orca
+// null instead fails open and silently spawns `wsl.exe -d <distro>` for a distro Manta
 // last saw was absent. Staleness self-corrects — `listWslDistros` re-probes after the
 // retry window and a distro installed since clears the prompt on its own.
 export function getCachedWslDistros(): string[] | null {
@@ -275,7 +275,7 @@ export function getDefaultWslDistro(): string | null {
  * Get the home directory for a WSL distro, returned as a Windows UNC path.
  * Result is cached per distro for the process lifetime.
  *
- * Why: worktrees for WSL repos are created under ~/orca/workspaces inside
+ * Why: worktrees for WSL repos are created under ~/manta/workspaces inside
  * the WSL filesystem, mirroring the Windows workspace layout. We need the
  * WSL user's $HOME to compute that path.
  */

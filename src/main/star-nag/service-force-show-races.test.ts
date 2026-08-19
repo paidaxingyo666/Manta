@@ -17,8 +17,8 @@ const mocks = vi.hoisted(() => ({
   browserWindowMock: {
     getAllWindows: vi.fn<() => TestWindow[]>(() => [])
   },
-  checkOrcaStarredMock: vi.fn(),
-  starOrcaMock: vi.fn(),
+  checkMantaStarredMock: vi.fn(),
+  starMantaMock: vi.fn(),
   trackMock: vi.fn(),
   getCohortAtEmitMock: vi.fn(() => ({ nth_repo_added: 3 })),
   ipcMainHandleMock: vi.fn()
@@ -33,8 +33,8 @@ vi.mock('electron', () => ({
 }))
 
 vi.mock('../github/client', () => ({
-  checkOrcaStarred: mocks.checkOrcaStarredMock,
-  starOrca: mocks.starOrcaMock
+  checkMantaStarred: mocks.checkMantaStarredMock,
+  starManta: mocks.starMantaMock
 }))
 
 vi.mock('../telemetry/client', () => ({
@@ -45,7 +45,7 @@ vi.mock('../telemetry/cohort-classifier', () => ({
   getCohortAtEmit: mocks.getCohortAtEmitMock
 }))
 
-const { browserWindowMock, checkOrcaStarredMock } = mocks
+const { browserWindowMock, checkMantaStarredMock } = mocks
 const getIpcHandler = createIpcHandlerLookup(mocks.ipcMainHandleMock)
 
 describe('StarNagService', () => {
@@ -133,7 +133,7 @@ describe('StarNagService', () => {
     const window = createWindow()
     browserWindowMock.getAllWindows.mockReturnValue([window])
     const deferredStarCheck = createDeferred<boolean | null>()
-    checkOrcaStarredMock.mockReturnValue(deferredStarCheck.promise)
+    checkMantaStarredMock.mockReturnValue(deferredStarCheck.promise)
     const { service, emitAgentStarted } = createHarness()
 
     service.start()
@@ -162,7 +162,7 @@ describe('StarNagService', () => {
     const window = createWindow()
     browserWindowMock.getAllWindows.mockReturnValue([window])
     const firstStarCheck = createDeferred<boolean | null>()
-    checkOrcaStarredMock.mockReturnValueOnce(firstStarCheck.promise).mockResolvedValue(null)
+    checkMantaStarredMock.mockReturnValueOnce(firstStarCheck.promise).mockResolvedValue(null)
     const { service, emitAgentStarted } = createHarness()
 
     service.start()
@@ -205,7 +205,7 @@ describe('StarNagService', () => {
     const window = createWindow()
     browserWindowMock.getAllWindows.mockReturnValue([window])
     const deferredStarCheck = createDeferred<boolean | null>()
-    checkOrcaStarredMock.mockReturnValue(deferredStarCheck.promise)
+    checkMantaStarredMock.mockReturnValue(deferredStarCheck.promise)
     const { service, emitAgentStarted, ui } = createHarness()
 
     service.start()
@@ -226,7 +226,7 @@ describe('StarNagService', () => {
     const window = createWindow()
     browserWindowMock.getAllWindows.mockReturnValue([window])
     const deferredStarCheck = createDeferred<boolean | null>()
-    checkOrcaStarredMock.mockReturnValue(deferredStarCheck.promise)
+    checkMantaStarredMock.mockReturnValue(deferredStarCheck.promise)
     const { service, emitAgentStarted } = createHarness()
 
     service.start()

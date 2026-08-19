@@ -25,7 +25,7 @@ function getDiagLogPath(): string {
     try {
       _diagLog = join(app.getPath('userData'), 'cookie-import-diag.log')
     } catch {
-      _diagLog = join(tmpdir(), 'orca-cookie-import-diag.log')
+      _diagLog = join(tmpdir(), 'manta-cookie-import-diag.log')
     }
   }
   return _diagLog
@@ -1347,7 +1347,7 @@ async function importCookiesFromFirefox(
 ): Promise<BrowserCookieImportResult> {
   diag(`importCookiesFromFirefox: partition="${targetPartition}"`)
 
-  const tmpDir = mkdtempSync(join(tmpdir(), 'orca-cookie-import-'))
+  const tmpDir = mkdtempSync(join(tmpdir(), 'manta-cookie-import-'))
   const tmpCookiesPath = join(tmpDir, 'cookies.sqlite')
 
   try {
@@ -1469,7 +1469,7 @@ async function importCookiesFromSafari(
       return {
         ok: false,
         reason:
-          'macOS denied access to Safari cookies. Grant Full Disk Access to Orca in System Settings → Privacy & Security → Full Disk Access.'
+          'macOS denied access to Safari cookies. Grant Full Disk Access to Manta in System Settings → Privacy & Security → Full Disk Access.'
       }
     }
     return { ok: false, reason: 'Could not read Safari cookies.' }
@@ -1620,7 +1620,7 @@ export async function importCookiesFromBrowser(
     let colList: string | null = null
     let placeholders: string | null = null
     if (stagingAvailable) {
-      // Why: the staged file is Orca's own partition DB, also named "Cookies", so the same
+      // Why: the staged file is Manta's own partition DB, also named "Cookies", so the same
       // transient AV handle can make opening it throw — degrade instead of killing the import.
       try {
         stagingDb = new DatabaseSync(stagingCookiesPath)

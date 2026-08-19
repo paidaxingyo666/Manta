@@ -382,7 +382,7 @@ export default function BrowserAddressBar({
         <PopoverTrigger asChild>
           <form
             ref={setAddressBarFormRef}
-            data-orca-browser-address-bar-overlay={overlay ? 'true' : undefined}
+            data-manta-browser-address-bar-overlay={overlay ? 'true' : undefined}
             className={cn(
               'flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-1 shadow-sm',
               // Why: the toolbar row is the positioned ancestor, so the overlay
@@ -410,7 +410,7 @@ export default function BrowserAddressBar({
               onFocus={handleFocus}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
-              data-orca-browser-address-bar="true"
+              data-manta-browser-address-bar="true"
               className="h-auto border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
               spellCheck={false}
               autoCapitalize="none"

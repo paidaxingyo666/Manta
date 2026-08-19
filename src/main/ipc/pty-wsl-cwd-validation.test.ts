@@ -37,7 +37,7 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
-vi.mock('../cli/linux-terminal-orca-cli-shim', () =>
+vi.mock('../cli/linux-terminal-manta-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
 vi.mock('../memory/pty-registry', () =>
@@ -330,7 +330,7 @@ describe('registerPtyHandlers', () => {
   it('spawns a plain POSIX login shell and queues startup commands for the live session', async () => {
     const originalPlatform = process.platform
     const originalHome = process.env.HOME
-    const originalOrcaOrigZdotdir = process.env.ORCA_ORIG_ZDOTDIR
+    const originalMantaOrigZdotdir = process.env.MANTA_ORIG_ZDOTDIR
     const originalShell = process.env.SHELL
     const originalZdotdir = process.env.ZDOTDIR
 
@@ -340,7 +340,7 @@ describe('registerPtyHandlers', () => {
     })
     // Why: this test simulates macOS even when Vitest runs on a Windows host.
     process.env.HOME = '/Users/test'
-    delete process.env.ORCA_ORIG_ZDOTDIR
+    delete process.env.MANTA_ORIG_ZDOTDIR
     process.env.SHELL = '/bin/zsh'
     delete process.env.ZDOTDIR
 
@@ -351,8 +351,8 @@ describe('registerPtyHandlers', () => {
       })
       expect(shell).toBe('/bin/zsh')
       expect(args).toEqual(['-l'])
-      expect(options.env.ZDOTDIR).toBe('/tmp/orca-user-data/shell-ready/zsh')
-      expect(options.env.ORCA_ORIG_ZDOTDIR).toBe(process.env.HOME)
+      expect(options.env.ZDOTDIR).toBe('/tmp/manta-user-data/shell-ready/zsh')
+      expect(options.env.MANTA_ORIG_ZDOTDIR).toBe(process.env.HOME)
     } finally {
       Object.defineProperty(process, 'platform', {
         configurable: true,
@@ -363,10 +363,10 @@ describe('registerPtyHandlers', () => {
       } else {
         process.env.HOME = originalHome
       }
-      if (originalOrcaOrigZdotdir === undefined) {
-        delete process.env.ORCA_ORIG_ZDOTDIR
+      if (originalMantaOrigZdotdir === undefined) {
+        delete process.env.MANTA_ORIG_ZDOTDIR
       } else {
-        process.env.ORCA_ORIG_ZDOTDIR = originalOrcaOrigZdotdir
+        process.env.MANTA_ORIG_ZDOTDIR = originalMantaOrigZdotdir
       }
       if (originalShell === undefined) {
         delete process.env.SHELL

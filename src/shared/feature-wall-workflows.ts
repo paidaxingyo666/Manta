@@ -27,10 +27,10 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     id: 'workspaces',
     title: 'Workspaces',
     meta: 'Isolated work · Context kept together',
-    lede: 'Orca splits each task into an isolated workspace so agents can run in parallel.',
+    lede: 'Manta splits each task into an isolated workspace so agents can run in parallel.',
     primaryTileId: 'tile-01',
     relatedTileIds: ['tile-10'],
-    docsUrl: 'https://www.onorca.dev/docs/model/worktrees'
+    docsUrl: 'https://www.manta.sh.cn/docs/model/worktrees'
   },
   {
     id: 'tasks',
@@ -39,25 +39,25 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Start work directly from GitHub or Linear.',
     primaryTileId: 'tile-03',
     relatedTileIds: [],
-    docsUrl: 'https://www.onorca.dev/docs/review/linear'
+    docsUrl: 'https://www.manta.sh.cn/docs/review/linear'
   },
   {
     id: 'agents-orchestration',
     title: 'Agents',
-    meta: 'Agents · Usage · Orca CLI',
-    lede: 'Run several agents at once, track their progress, and let automation drive Orca when it helps.',
+    meta: 'Agents · Usage · Manta CLI',
+    lede: 'Run several agents at once, track their progress, and let automation drive Manta when it helps.',
     primaryTileId: 'tile-04',
     relatedTileIds: ['tile-11', 'tile-09'],
-    docsUrl: 'https://www.onorca.dev/docs/agents/supported'
+    docsUrl: 'https://www.manta.sh.cn/docs/agents/supported'
   },
   {
     id: 'workbench',
     title: 'Workbench',
     meta: 'Terminal · Editor · Browser · Files',
-    lede: 'Bring your terminal setup into Orca, then split panes to keep servers, tests, logs, and agents running side by side.',
+    lede: 'Bring your terminal setup into Manta, then split panes to keep servers, tests, logs, and agents running side by side.',
     primaryTileId: 'tile-02',
     relatedTileIds: ['tile-07', 'tile-05', 'tile-12'],
-    docsUrl: 'https://www.onorca.dev/docs/terminal'
+    docsUrl: 'https://www.manta.sh.cn/docs/terminal'
   },
   {
     id: 'review',
@@ -66,7 +66,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Review what changed, leave focused feedback, and send it back to the agent.',
     primaryTileId: 'tile-08',
     relatedTileIds: [],
-    docsUrl: 'https://www.onorca.dev/docs/review/annotate-ai-diff'
+    docsUrl: 'https://www.manta.sh.cn/docs/review/annotate-ai-diff'
   }
 ] as const
 

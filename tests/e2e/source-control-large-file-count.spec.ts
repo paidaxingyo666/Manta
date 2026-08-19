@@ -13,12 +13,12 @@
  *   - heap growth      JS heap across repeated poll cycles (leak signal)
  *
  * Run a single scenario at a custom scale:
- *   ORCA_LARGE_FILE_COUNT=9500 npx playwright test \
+ *   MANTA_LARGE_FILE_COUNT=9500 npx playwright test \
  *     tests/e2e/source-control-large-file-count.spec.ts \
  *     --config tests/playwright.config.ts --project electron-headless
  */
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 import {
   createLargeFileCountRepo,
@@ -55,8 +55,8 @@ type LoadMeasurement = {
   cycleMaxLagMs: number[]
 }
 
-async function addAndActivateRepo(orcaPage: Page, repoPath: string): Promise<string> {
-  const repoId = await orcaPage.evaluate(async (pathToRepo: string) => {
+async function addAndActivateRepo(mantaPage: Page, repoPath: string): Promise<string> {
+  const repoId = await mantaPage.evaluate(async (pathToRepo: string) => {
     const store = window.__store
     if (!store) {
       throw new Error('window.__store is not available')
@@ -73,7 +73,7 @@ async function addAndActivateRepo(orcaPage: Page, repoPath: string): Promise<str
   await expect
     .poll(
       () =>
-        orcaPage.evaluate(async (targetRepoId: string) => {
+        mantaPage.evaluate(async (targetRepoId: string) => {
           const store = window.__store
           if (!store) {
             return 0
@@ -85,7 +85,7 @@ async function addAndActivateRepo(orcaPage: Page, repoPath: string): Promise<str
     )
     .toBeGreaterThan(0)
 
-  const worktreeId = await orcaPage.evaluate(
+  const worktreeId = await mantaPage.evaluate(
     ({ targetRepoId, pathToRepo }) => {
       const store = window.__store
       if (!store) {
@@ -110,24 +110,24 @@ async function addAndActivateRepo(orcaPage: Page, repoPath: string): Promise<str
   // assert the user-visible panel before timing its render. Clicking the
   // already-active activity button races the first cold status scan and tests
   // Playwright's two-frame actionability window instead of panel readiness.
-  const sourceControlButton = orcaPage.getByRole('button', { name: /^Source Control/ })
+  const sourceControlButton = mantaPage.getByRole('button', { name: /^Source Control/ })
   await expect(sourceControlButton).toBeVisible()
   await expect
-    .poll(() => orcaPage.evaluate(() => window.__store?.getState().rightSidebarTab))
+    .poll(() => mantaPage.evaluate(() => window.__store?.getState().rightSidebarTab))
     .toBe('source-control')
-  await expect(orcaPage.getByRole('button', { name: 'Filter files by name' })).toBeVisible()
+  await expect(mantaPage.getByRole('button', { name: 'Filter files by name' })).toBeVisible()
 
   return worktreeId
 }
 
 async function unregisterLargeFileCountRepos(
-  orcaPage: Page,
+  mantaPage: Page,
   repoPaths: readonly string[]
 ): Promise<void> {
   // Why: remove disposable projects through the product so their terminals
   // and watcher subscriptions begin shutting down before Electron teardown.
   for (const repoPath of repoPaths) {
-    await orcaPage.evaluate(async (pathToRepo) => {
+    await mantaPage.evaluate(async (pathToRepo) => {
       const store = window.__store
       const repo = store?.getState().repos.find((entry) => entry.path === pathToRepo)
       if (repo) {
@@ -144,10 +144,10 @@ async function unregisterLargeFileCountRepos(
  * dedupes.
  */
 async function measureSourceControlLoad(
-  orcaPage: Page,
+  mantaPage: Page,
   args: { worktreeId: string; repoPath: string; expectedRows: number; pollCycles: number }
 ): Promise<LoadMeasurement> {
-  return await orcaPage.evaluate(async ({ worktreeId, repoPath, expectedRows, pollCycles }) => {
+  return await mantaPage.evaluate(async ({ worktreeId, repoPath, expectedRows, pollCycles }) => {
     const store = window.__store
     if (!store) {
       throw new Error('window.__store is not available')
@@ -265,16 +265,16 @@ test.describe('Source Control large file count (#8013)', () => {
   test.use({ seedTestRepo: false })
 
   test('a large untracked set under the status cap stays responsive', async ({
-    orcaPage,
+    mantaPage,
     electronApp,
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const untrackedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '950')
-    // Why: ORCA_LARGE_FILE_BYTES gives untracked files realistic sizes so the
+    const untrackedFiles = Number(process.env.MANTA_LARGE_FILE_COUNT ?? '950')
+    // Why: MANTA_LARGE_FILE_BYTES gives untracked files realistic sizes so the
     // per-poll line-stat reads (cache-capped at 2,048 entries) become visible
     // in rescanMs instead of hiding behind ~30-byte fixture files.
-    const untrackedFileBytes = Number(process.env.ORCA_LARGE_FILE_BYTES ?? '0')
+    const untrackedFileBytes = Number(process.env.MANTA_LARGE_FILE_BYTES ?? '0')
     const fixture = createLargeFileCountRepo({
       trackedFiles: 100,
       untrackedFiles,
@@ -282,10 +282,10 @@ test.describe('Source Control large file count (#8013)', () => {
     })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {
-      await waitForSessionReady(orcaPage)
-      const worktreeId = await addAndActivateRepo(orcaPage, fixture.repoPath)
+      await waitForSessionReady(mantaPage)
+      const worktreeId = await addAndActivateRepo(mantaPage, fixture.repoPath)
       const workingSetBeforeMb = await readRendererWorkingSetMb(electronApp)
-      const measurement = await measureSourceControlLoad(orcaPage, {
+      const measurement = await measureSourceControlLoad(mantaPage, {
         worktreeId,
         repoPath: fixture.repoPath,
         expectedRows: untrackedFiles,
@@ -312,24 +312,24 @@ test.describe('Source Control large file count (#8013)', () => {
         )
       }
     } finally {
-      await unregisterLargeFileCountRepos(orcaPage, [fixture.repoPath])
+      await unregisterLargeFileCountRepos(mantaPage, [fixture.repoPath])
     }
   })
 
   test('a large modified set under the status cap stays responsive', async ({
-    orcaPage,
+    mantaPage,
     electronApp,
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const modifiedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '750')
+    const modifiedFiles = Number(process.env.MANTA_LARGE_FILE_COUNT ?? '750')
     const fixture = createLargeFileCountRepo({ trackedFiles: modifiedFiles, modifiedFiles })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {
-      await waitForSessionReady(orcaPage)
-      const worktreeId = await addAndActivateRepo(orcaPage, fixture.repoPath)
+      await waitForSessionReady(mantaPage)
+      const worktreeId = await addAndActivateRepo(mantaPage, fixture.repoPath)
       const workingSetBeforeMb = await readRendererWorkingSetMb(electronApp)
-      const measurement = await measureSourceControlLoad(orcaPage, {
+      const measurement = await measureSourceControlLoad(mantaPage, {
         worktreeId,
         repoPath: fixture.repoPath,
         expectedRows: modifiedFiles,
@@ -347,12 +347,12 @@ test.describe('Source Control large file count (#8013)', () => {
       expect(measurement.renderedRows).toBeLessThan(MAX_MOUNTED_ROWS)
       expect(measurement.maxLagMs).toBeLessThan(MAX_EVENT_LOOP_LAG_MS)
     } finally {
-      await unregisterLargeFileCountRepos(orcaPage, [fixture.repoPath])
+      await unregisterLargeFileCountRepos(mantaPage, [fixture.repoPath])
     }
   })
 
   test('a change set over the status cap degrades to the too-many-changes state', async ({
-    orcaPage,
+    mantaPage,
     electronApp,
     registerPostElectronShutdownCleanup
   }) => {
@@ -361,8 +361,8 @@ test.describe('Source Control large file count (#8013)', () => {
     const fixture = createLargeFileCountRepo({ untrackedFiles })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {
-      await waitForSessionReady(orcaPage)
-      await orcaPage.evaluate(() => {
+      await waitForSessionReady(mantaPage)
+      await mantaPage.evaluate(() => {
         const probe = { lastTick: performance.now(), maxLagMs: 0, timer: 0 }
         probe.timer = window.setInterval(() => {
           const now = performance.now()
@@ -376,9 +376,9 @@ test.describe('Source Control large file count (#8013)', () => {
         ).__sourceControlActivationLagProbe = probe
       })
       const activationStart = performance.now()
-      const worktreeId = await addAndActivateRepo(orcaPage, fixture.repoPath)
+      const worktreeId = await addAndActivateRepo(mantaPage, fixture.repoPath)
       const activationMs = performance.now() - activationStart
-      const activationMaxLagMs = await orcaPage.evaluate(() => {
+      const activationMaxLagMs = await mantaPage.evaluate(() => {
         const target = window as unknown as {
           __sourceControlActivationLagProbe?: {
             maxLagMs: number
@@ -397,7 +397,7 @@ test.describe('Source Control large file count (#8013)', () => {
         `[large-file-count] initial-activation ${JSON.stringify({ activationMs, activationMaxLagMs })}`
       )
       const workingSetBeforeMb = await readRendererWorkingSetMb(electronApp)
-      const measurement = await measureSourceControlLoad(orcaPage, {
+      const measurement = await measureSourceControlLoad(mantaPage, {
         worktreeId,
         repoPath: fixture.repoPath,
         // The capped payload still carries DEFAULT_GIT_STATUS_LIMIT entries;
@@ -411,12 +411,12 @@ test.describe('Source Control large file count (#8013)', () => {
         rendererWorkingSetMb: { before: workingSetBeforeMb, after: workingSetAfterMb }
       })
 
-      const tooManyChangesBanner = orcaPage.getByText('Too many changes detected.', {
+      const tooManyChangesBanner = mantaPage.getByText('Too many changes detected.', {
         exact: false
       })
       await expect(tooManyChangesBanner).toBeVisible()
-      if (process.env.ORCA_LARGE_FILE_SCREENSHOT_PATH) {
-        await orcaPage.screenshot({ path: process.env.ORCA_LARGE_FILE_SCREENSHOT_PATH })
+      if (process.env.MANTA_LARGE_FILE_SCREENSHOT_PATH) {
+        await mantaPage.screenshot({ path: process.env.MANTA_LARGE_FILE_SCREENSHOT_PATH })
       }
 
       expect(measurement.didHitLimit).toBe(true)
@@ -428,7 +428,7 @@ test.describe('Source Control large file count (#8013)', () => {
 
       // Why: didHitLimit must park the worktree in the huge-status state so
       // background polling stops re-running tens-of-seconds git scans.
-      const hugeState = await orcaPage.evaluate(
+      const hugeState = await mantaPage.evaluate(
         (wId) => window.__store?.getState().gitStatusHugeByWorktree?.[wId] ?? null,
         worktreeId
       )
@@ -438,23 +438,23 @@ test.describe('Source Control large file count (#8013)', () => {
       // explicit recovery path after the underlying change count drops.
       removeLargeFileCountUntrackedTree(fixture.repoPath)
       await expect(tooManyChangesBanner).toBeVisible()
-      await orcaPage.getByRole('button', { name: 'Retry' }).click()
+      await mantaPage.getByRole('button', { name: 'Retry' }).click()
       await expect(tooManyChangesBanner).not.toBeVisible()
       await expect
         .poll(() =>
-          orcaPage.evaluate(
+          mantaPage.evaluate(
             (wId) => window.__store?.getState().gitStatusHugeByWorktree?.[wId] ?? null,
             worktreeId
           )
         )
         .toBeNull()
     } finally {
-      await unregisterLargeFileCountRepos(orcaPage, [fixture.repoPath])
+      await unregisterLargeFileCountRepos(mantaPage, [fixture.repoPath])
     }
   })
 
   test('untracked line-stat cache stays effective up to the status cap', async ({
-    orcaPage,
+    mantaPage,
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
@@ -476,11 +476,11 @@ test.describe('Source Control large file count (#8013)', () => {
       })
       const largeRepoPath = largeRepo.repoPath
       registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(largeRepoPath))
-      await waitForSessionReady(orcaPage)
+      await waitForSessionReady(mantaPage)
 
       const warmRescanPerFileMs = async (repoPath: string, files: number): Promise<number> => {
-        const worktreeId = await addAndActivateRepo(orcaPage, repoPath)
-        const measurement = await measureSourceControlLoad(orcaPage, {
+        const worktreeId = await addAndActivateRepo(mantaPage, repoPath)
+        const measurement = await measureSourceControlLoad(mantaPage, {
           worktreeId,
           repoPath,
           expectedRows: files,
@@ -496,7 +496,7 @@ test.describe('Source Control large file count (#8013)', () => {
       )
       expect(largePerFileMs).toBeLessThan(smallPerFileMs * 2)
     } finally {
-      await unregisterLargeFileCountRepos(orcaPage, [
+      await unregisterLargeFileCountRepos(mantaPage, [
         smallRepo.repoPath,
         ...(largeRepo ? [largeRepo.repoPath] : [])
       ])
@@ -504,19 +504,19 @@ test.describe('Source Control large file count (#8013)', () => {
   })
 
   test('a large clean repo (tracked files only) loads instantly', async ({
-    orcaPage,
+    mantaPage,
     electronApp,
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const trackedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '15000')
+    const trackedFiles = Number(process.env.MANTA_LARGE_FILE_COUNT ?? '15000')
     const fixture = createLargeFileCountRepo({ trackedFiles })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {
-      await waitForSessionReady(orcaPage)
-      const worktreeId = await addAndActivateRepo(orcaPage, fixture.repoPath)
+      await waitForSessionReady(mantaPage)
+      const worktreeId = await addAndActivateRepo(mantaPage, fixture.repoPath)
       const workingSetBeforeMb = await readRendererWorkingSetMb(electronApp)
-      const measurement = await measureSourceControlLoad(orcaPage, {
+      const measurement = await measureSourceControlLoad(mantaPage, {
         worktreeId,
         repoPath: fixture.repoPath,
         expectedRows: 0,
@@ -531,7 +531,7 @@ test.describe('Source Control large file count (#8013)', () => {
       expect(measurement.entryCount).toBe(0)
       expect(measurement.maxLagMs).toBeLessThan(MAX_EVENT_LOOP_LAG_MS)
     } finally {
-      await unregisterLargeFileCountRepos(orcaPage, [fixture.repoPath])
+      await unregisterLargeFileCountRepos(mantaPage, [fixture.repoPath])
     }
   })
 })

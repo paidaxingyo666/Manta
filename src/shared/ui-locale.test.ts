@@ -65,8 +65,8 @@ describe('ui-locale', () => {
   })
 
   it('preserves a selected plugin language bundle id', () => {
-    expect(resolveUiLocale('plugin:orca-samples.portuguese/pt-BR')).toBe(
-      'plugin:orca-samples.portuguese/pt-BR'
+    expect(resolveUiLocale('plugin:manta-samples.portuguese/pt-BR')).toBe(
+      'plugin:manta-samples.portuguese/pt-BR'
     )
   })
 

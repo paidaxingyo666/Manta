@@ -27,16 +27,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-internal static class OrcaRemoteCliLauncher
+internal static class MantaRemoteCliLauncher
 {
     private static int Main(string[] args)
     {
         try
         {
-            string nodePath = RequireEnvironmentVariable("ORCA_RELAY_NODE_PATH");
-            string relayDirectory = RequireEnvironmentVariable("ORCA_RELAY_DIR");
-            string socketPath = RequireEnvironmentVariable("ORCA_RELAY_SOCKET_PATH");
-            string credentialFile = Environment.GetEnvironmentVariable("ORCA_RELAY_CREDENTIAL_FILE");
+            string nodePath = RequireEnvironmentVariable("MANTA_RELAY_NODE_PATH");
+            string relayDirectory = RequireEnvironmentVariable("MANTA_RELAY_DIR");
+            string socketPath = RequireEnvironmentVariable("MANTA_RELAY_SOCKET_PATH");
+            string credentialFile = Environment.GetEnvironmentVariable("MANTA_RELAY_CREDENTIAL_FILE");
             if (String.IsNullOrEmpty(credentialFile))
             {
                 credentialFile = socketPath + ".credential";
@@ -45,12 +45,12 @@ internal static class OrcaRemoteCliLauncher
 
             if (!File.Exists(nodePath))
             {
-                Console.Error.WriteLine("Orca SSH CLI bridge cannot find Node.js at \"{0}\"", nodePath);
+                Console.Error.WriteLine("Manta SSH CLI bridge cannot find Node.js at \"{0}\"", nodePath);
                 return 1;
             }
             if (!File.Exists(relayPath))
             {
-                Console.Error.WriteLine("Orca SSH CLI bridge cannot find the relay at \"{0}\"", relayPath);
+                Console.Error.WriteLine("Manta SSH CLI bridge cannot find the relay at \"{0}\"", relayPath);
                 return 1;
             }
 
@@ -69,7 +69,7 @@ internal static class OrcaRemoteCliLauncher
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine("Unable to start the Orca SSH CLI bridge: {0}", error.Message);
+            Console.Error.WriteLine("Unable to start the Manta SSH CLI bridge: {0}", error.Message);
             return 1;
         }
     }
@@ -92,7 +92,7 @@ internal static class OrcaRemoteCliLauncher
         AppendArgument(commandLine, socketPath);
         AppendArgument(commandLine, "--credential-file");
         AppendArgument(commandLine, credentialFile);
-        AppendArgument(commandLine, "--orca-cli");
+        AppendArgument(commandLine, "--manta-cli");
         foreach (string arg in args)
         {
             AppendArgument(commandLine, arg);
@@ -181,12 +181,12 @@ function createWindowsLauncherCompileCommand(
       '$windowsDirectory = if ($env:WINDIR) { $env:WINDIR } else { $env:SystemRoot }',
       `$compilerCandidates = @((Join-Path $windowsDirectory 'Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe'), (Join-Path $windowsDirectory 'Microsoft.NET\\Framework\\v4.0.30319\\csc.exe'))`,
       '$compiler = $compilerCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1',
-      "if (-not $compiler) { Write-Error 'Unable to find the .NET Framework C# compiler required for the Orca SSH CLI launcher.'; exit 1 }",
+      "if (-not $compiler) { Write-Error 'Unable to find the .NET Framework C# compiler required for the Manta SSH CLI launcher.'; exit 1 }",
       `& $compiler ${compilerArgs}`,
       'if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }',
-      `if (-not (Test-Path -LiteralPath ${powerShellLiteral(launcherPath)} -PathType Leaf)) { Write-Error 'The Orca SSH CLI launcher compiler produced no executable.'; exit 1 }`,
+      `if (-not (Test-Path -LiteralPath ${powerShellLiteral(launcherPath)} -PathType Leaf)) { Write-Error 'The Manta SSH CLI launcher compiler produced no executable.'; exit 1 }`,
       // Why: remove the legacy %* bridge only after a successful compile, so a
-      // host missing csc.exe keeps its existing CLI (orca.exe shadows orca.cmd).
+      // host missing csc.exe keeps its existing CLI (manta.exe shadows manta.cmd).
       `Remove-Item -LiteralPath ${powerShellLiteral(legacyShimPath)} -Force -ErrorAction SilentlyContinue`,
       `Remove-Item -LiteralPath ${powerShellLiteral(sourcePath)} -Force`
     ].join('; ')
@@ -195,11 +195,11 @@ function createWindowsLauncherCompileCommand(
 
 export function createRemoteCliInstallPlan(env: RemoteCliInstallEnv): RemoteCliInstallPlan {
   if (isWindowsRemoteHost(env.hostPlatform)) {
-    const launcherFileName = 'orca.exe'
-    const sourceFileName = 'orca-launcher.cs'
+    const launcherFileName = 'manta.exe'
+    const sourceFileName = 'manta-launcher.cs'
     const launcherPath = joinRemotePath(env.hostPlatform, env.binDir, launcherFileName)
     const sourcePath = joinRemotePath(env.hostPlatform, env.binDir, sourceFileName)
-    const legacyShimPath = joinRemotePath(env.hostPlatform, env.binDir, 'orca.cmd')
+    const legacyShimPath = joinRemotePath(env.hostPlatform, env.binDir, 'manta.cmd')
     const binDir = joinRemotePath(env.hostPlatform, env.binDir)
     return {
       launcherPath,
@@ -219,7 +219,7 @@ export function createRemoteCliInstallPlan(env: RemoteCliInstallEnv): RemoteCliI
     }
   }
 
-  const launcherPath = joinRemotePath(env.hostPlatform, env.binDir, 'orca')
+  const launcherPath = joinRemotePath(env.hostPlatform, env.binDir, 'manta')
   return {
     launcherPath,
     files: [
@@ -228,15 +228,15 @@ export function createRemoteCliInstallPlan(env: RemoteCliInstallEnv): RemoteCliI
         contents: [
           '#!/usr/bin/env sh',
           'set -eu',
-          `ORCA_RELAY_NODE_PATH=\${ORCA_RELAY_NODE_PATH:-${quoteSh(env.nodePath)}}`,
-          `ORCA_RELAY_DIR=\${ORCA_RELAY_DIR:-${quoteSh(env.relayDir)}}`,
-          `ORCA_RELAY_SOCKET_PATH=\${ORCA_RELAY_SOCKET_PATH:-${quoteSh(env.sockPath)}}`,
-          `ORCA_RELAY_CREDENTIAL_FILE=\${ORCA_RELAY_CREDENTIAL_FILE:-${quoteSh(env.credentialFile ?? `${env.sockPath}.credential`)}}`,
-          'if [ ! -S "$ORCA_RELAY_SOCKET_PATH" ]; then',
-          '  echo "Orca SSH CLI bridge cannot find the relay socket: $ORCA_RELAY_SOCKET_PATH" >&2',
+          `MANTA_RELAY_NODE_PATH=\${MANTA_RELAY_NODE_PATH:-${quoteSh(env.nodePath)}}`,
+          `MANTA_RELAY_DIR=\${MANTA_RELAY_DIR:-${quoteSh(env.relayDir)}}`,
+          `MANTA_RELAY_SOCKET_PATH=\${MANTA_RELAY_SOCKET_PATH:-${quoteSh(env.sockPath)}}`,
+          `MANTA_RELAY_CREDENTIAL_FILE=\${MANTA_RELAY_CREDENTIAL_FILE:-${quoteSh(env.credentialFile ?? `${env.sockPath}.credential`)}}`,
+          'if [ ! -S "$MANTA_RELAY_SOCKET_PATH" ]; then',
+          '  echo "Manta SSH CLI bridge cannot find the relay socket: $MANTA_RELAY_SOCKET_PATH" >&2',
           '  exit 1',
           'fi',
-          'exec "$ORCA_RELAY_NODE_PATH" "$ORCA_RELAY_DIR/relay.js" --sock-path "$ORCA_RELAY_SOCKET_PATH" --credential-file "$ORCA_RELAY_CREDENTIAL_FILE" --orca-cli "$@"',
+          'exec "$MANTA_RELAY_NODE_PATH" "$MANTA_RELAY_DIR/relay.js" --sock-path "$MANTA_RELAY_SOCKET_PATH" --credential-file "$MANTA_RELAY_CREDENTIAL_FILE" --manta-cli "$@"',
           ''
         ].join('\n')
       }

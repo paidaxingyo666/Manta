@@ -63,12 +63,12 @@ export async function shellScriptTest(
     const env: Record<string, string> = {
       ...config.env,
       // Why: these examples inspect startup-file discovery, not the PTY-owner protocol stream.
-      ORCA_SHELL_STARTUP_IDENTITY: '0',
+      MANTA_SHELL_STARTUP_IDENTITY: '0',
       // Why: the framework creates user startup files under testHome after
       // computing the wrapper config; route wrapper discovery to that fixture.
       HOME: testHome,
-      ORCA_ORIG_ZDOTDIR: testHome,
-      ORCA_ZSHENV_SOURCE_DIR: testHome
+      MANTA_ORIG_ZDOTDIR: testHome,
+      MANTA_ZSHENV_SOURCE_DIR: testHome
     }
 
     const spawnOptions = {
@@ -114,7 +114,7 @@ export async function shellScriptTest(
 }
 
 const TEMP_PATH_PATTERN =
-  /\/(?:var\/folders|tmp)\/[^\s]+?\/(?:shell-test|orca|shell-ready)-[a-z]+-[a-z0-9-]+/g
+  /\/(?:var\/folders|tmp)\/[^\s]+?\/(?:shell-test|manta|shell-ready)-[a-z]+-[a-z0-9-]+/g
 const PID_PATTERN = /\bpid:\s*\d+/gi
 
 function normalizeOutput(

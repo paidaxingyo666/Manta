@@ -1,4 +1,4 @@
-// Per-step copy for the workbench tile in the Explore Orca modal. Mirrors
+// Per-step copy for the workbench tile in the Explore Manta modal. Mirrors
 // agents-orchestration-steps.ts so the rail / body code can render both the
 // same way.
 
@@ -25,14 +25,14 @@ export const WORKBENCH_STEPS: readonly WorkbenchStep[] = [
     id: 'editor',
     name: 'Editor',
     subtitle: 'Editor',
-    description: 'Use our Notion-style markdown editor to write notes without leaving Orca.'
+    description: 'Use our Notion-style markdown editor to write notes without leaving Manta.'
   },
   {
     id: 'browser',
     name: 'Browser',
     subtitle: 'Browser',
     description:
-      "Run your app in Orca's browser, send selected UI elements to agents, and let your agents interact with your webpage."
+      "Run your app in Manta's browser, send selected UI elements to agents, and let your agents interact with your webpage."
   }
 ] as const
 

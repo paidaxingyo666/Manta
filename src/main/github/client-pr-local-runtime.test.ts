@@ -161,7 +161,7 @@ describe('GitHub PR local runtime routing', () => {
 
   it('routes PR details and mutations through the selected WSL distro', async () => {
     const localGitOptions = { wslDistro: 'Ubuntu' }
-    const prRepo = { owner: 'acme', repo: 'orca' }
+    const prRepo = { owner: 'acme', repo: 'manta' }
     rateLimitGuardMock.mockReturnValue({
       blocked: true,
       remaining: 0,
@@ -170,7 +170,7 @@ describe('GitHub PR local runtime routing', () => {
     })
     getOwnerRepoMock.mockResolvedValue(prRepo)
     ghExecFileAsyncMock.mockImplementation(async (args: string[]) => {
-      const endpoint = args.find((arg) => arg.startsWith('repos/acme/orca/')) ?? ''
+      const endpoint = args.find((arg) => arg.startsWith('repos/acme/manta/')) ?? ''
       const query = args.find((arg) => arg.startsWith('query=')) ?? ''
 
       if (args[0] === 'pr' && args[1] === 'view') {
@@ -190,7 +190,7 @@ describe('GitHub PR local runtime routing', () => {
             number: 7,
             title: 'PR',
             state: 'OPEN',
-            url: 'https://github.com/acme/orca/pull/7',
+            url: 'https://github.com/acme/manta/pull/7',
             statusCheckRollup: [],
             updatedAt: '2026-04-01T00:00:00Z',
             isDraft: false,
@@ -234,7 +234,7 @@ describe('GitHub PR local runtime routing', () => {
           stdout: JSON.stringify({ id: 13, node_id: 'PRRC_inline_13', user: null, body: 'Inline' })
         }
       }
-      if (args.length === 2 && endpoint === 'repos/acme/orca/pulls/7') {
+      if (args.length === 2 && endpoint === 'repos/acme/manta/pulls/7') {
         return {
           stdout: JSON.stringify({
             number: 7,
@@ -315,7 +315,7 @@ describe('GitHub PR local runtime routing', () => {
   })
 
   it('never falls through to the default gh host for an unresolved SSH repository', async () => {
-    const legacyRepo = { owner: 'team', repo: 'orca' }
+    const legacyRepo = { owner: 'team', repo: 'manta' }
     getOwnerRepoMock.mockResolvedValue(null)
     getEnterpriseGitHubRepoSlugMock.mockResolvedValue(null)
 
@@ -358,7 +358,7 @@ describe('GitHub PR local runtime routing', () => {
   })
 
   it('refuses unresolved local PR mutations instead of using ambient gh defaults', async () => {
-    const legacyRepo = { owner: 'team', repo: 'orca' }
+    const legacyRepo = { owner: 'team', repo: 'manta' }
     getOwnerRepoMock.mockResolvedValue(null)
     getEnterpriseGitHubRepoSlugMock.mockResolvedValue(null)
 
@@ -385,13 +385,13 @@ describe('GitHub PR local runtime routing', () => {
   it('preserves a ported GHES host in SSH-backed review reads and mutations', async () => {
     const enterpriseRepo = {
       owner: 'team',
-      repo: 'orca',
+      repo: 'manta',
       host: 'github.acme-corp.com:8443'
     }
     getOwnerRepoMock.mockResolvedValue(null)
     getEnterpriseGitHubRepoSlugMock.mockResolvedValue(enterpriseRepo)
     ghExecFileAsyncMock.mockImplementation(async (args: string[]) => {
-      const endpoint = args.find((arg) => arg.startsWith('repos/team/orca/')) ?? ''
+      const endpoint = args.find((arg) => arg.startsWith('repos/team/manta/')) ?? ''
       const query = args.find((arg) => arg.startsWith('query=')) ?? ''
       if (args[0] === 'pr' && args[1] === 'checks') {
         return { stdout: '[]' }
@@ -411,7 +411,7 @@ describe('GitHub PR local runtime routing', () => {
             number: 7,
             title: 'Enterprise PR',
             state: 'OPEN',
-            url: 'https://github.acme-corp.com:8443/team/orca/pull/7',
+            url: 'https://github.acme-corp.com:8443/team/manta/pull/7',
             labels: [],
             updatedAt: '2026-07-16T00:00:00Z',
             author: { login: 'pr-author' },
@@ -449,7 +449,7 @@ describe('GitHub PR local runtime routing', () => {
                 name: 'lint',
                 status: 'completed',
                 conclusion: 'failure',
-                details_url: 'https://github.acme-corp.com:8443/team/orca/actions/runs/77/job/88'
+                details_url: 'https://github.acme-corp.com:8443/team/manta/actions/runs/77/job/88'
               }
             ]
           })
@@ -468,7 +468,7 @@ describe('GitHub PR local runtime routing', () => {
             name: 'lint',
             status: 'completed',
             conclusion: 'failure',
-            details_url: 'https://github.acme-corp.com:8443/team/orca/actions/runs/77/job/88',
+            details_url: 'https://github.acme-corp.com:8443/team/manta/actions/runs/77/job/88',
             output: { title: 'Lint failed', summary: 'One error' }
           })
         }
@@ -476,7 +476,7 @@ describe('GitHub PR local runtime routing', () => {
       if (endpoint.endsWith('/check-runs/88/annotations?per_page=20')) {
         return { stdout: '[]' }
       }
-      if (args.length === 2 && endpoint === 'repos/team/orca/pulls/7') {
+      if (args.length === 2 && endpoint === 'repos/team/manta/pulls/7') {
         return {
           stdout: JSON.stringify({
             number: 7,
@@ -501,7 +501,7 @@ describe('GitHub PR local runtime routing', () => {
       getWorkItemByOwnerRepo('/remote/repo', enterpriseRepo, 7, 'pr', 'ssh-1')
     ).resolves.toMatchObject({ number: 7, title: 'Enterprise PR' })
     await expect(
-      getWorkItemByOwnerRepo('/remote/repo', { owner: 'team', repo: 'orca' }, 7, 'pr', 'ssh-1')
+      getWorkItemByOwnerRepo('/remote/repo', { owner: 'team', repo: 'manta' }, 7, 'pr', 'ssh-1')
     ).resolves.toMatchObject({ number: 7, title: 'Enterprise PR' })
     await expect(
       getPRComments('/remote/repo', 7, { prRepo: enterpriseRepo }, 'ssh-1')
@@ -584,12 +584,12 @@ describe('GitHub PR local runtime routing', () => {
     )
     // The runner host-qualifies argv at spawn time from options.host, so the
     // mocked call sees the unqualified --repo plus the host in exec options.
-    expect(prViewCall?.[0]).toEqual(expect.arrayContaining(['--repo', 'team/orca']))
+    expect(prViewCall?.[0]).toEqual(expect.arrayContaining(['--repo', 'team/manta']))
     expect(prViewCall?.[1]).toEqual({ host: 'github.acme-corp.com:8443' })
     const prCalls = ghExecFileAsyncMock.mock.calls.filter(([args]) => args[0] === 'pr')
     expect(
       prCalls.every(
-        ([args]) => args.includes('--repo') && args[args.indexOf('--repo') + 1] === 'team/orca'
+        ([args]) => args.includes('--repo') && args[args.indexOf('--repo') + 1] === 'team/manta'
       )
     ).toBe(true)
     const apiCalls = ghExecFileAsyncMock.mock.calls.filter(([args]) => args[0] === 'api')

@@ -855,15 +855,15 @@ function TerminalPane(
         return openLinksInAppPreferencePromiseRef.current
       }
       const preferencePromise = (async () => {
-        const openInOrca = await requestLinkRoutingPreference({
+        const openInManta = await requestLinkRoutingPreference({
           openLinksInAppDefault: settingsRef.current?.openLinksInApp === true,
           url
         })
         await updateSettings({
-          openLinksInApp: openInOrca,
+          openLinksInApp: openInManta,
           openLinksInAppPreferencePrompted: true
         })
-        return openInOrca
+        return openInManta
       })()
       openLinksInAppPreferencePromiseRef.current = preferencePromise
       void preferencePromise.finally(() => {
@@ -1419,7 +1419,7 @@ function TerminalPane(
     // Why: host-owned split layouts (web / remote-server) arrive via snapshot, so the reconciler materializes their panes; local tabs split directly.
     if (
       !isHostAuthoritativeLayout({
-        isWebClient: !!(globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__,
+        isWebClient: !!(globalThis as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__,
         ptyIdsByLeafId: restoredLayout.ptyIdsByLeafId
       })
     ) {
@@ -1693,7 +1693,7 @@ function TerminalPane(
     macOptionAsAltRef,
     paneKittyKeyboardModesRef,
     keybindings,
-    terminalShortcutPolicy: settings?.terminalShortcutPolicy ?? 'orca-first'
+    terminalShortcutPolicy: settings?.terminalShortcutPolicy ?? 'manta-first'
   })
 
   useTerminalPaneGlobalEffects({
@@ -1718,7 +1718,7 @@ function TerminalPane(
 
   useEffect(() => {
     if (
-      !(globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ ||
+      !(globalThis as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__ ||
       !isVisible ||
       !isActive
     ) {
@@ -2871,9 +2871,9 @@ function TerminalPane(
     // Why: split dividers overdraw into the pane, so overflow:hidden clips that pseudo-element paint at the terminal body.
     overflow: 'hidden',
     ...hiddenStartupStyle,
-    ['--orca-terminal-divider-color' as string]:
+    ['--manta-terminal-divider-color' as string]:
       effectiveAppearance?.dividerColor ?? DEFAULT_TERMINAL_DIVIDER_DARK,
-    ['--orca-terminal-divider-color-strong' as string]: normalizeColor(
+    ['--manta-terminal-divider-color-strong' as string]: normalizeColor(
       effectiveAppearance?.dividerColor,
       DEFAULT_TERMINAL_DIVIDER_DARK
     )

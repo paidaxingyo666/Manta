@@ -60,9 +60,9 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useAppStore } from '@/store'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
-import { ORCA_BROWSER_BLANK_URL, ORCA_BROWSER_PARTITION } from '../../../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL, MANTA_BROWSER_PARTITION } from '../../../../shared/constants'
 import { BROWSER_CERTIFICATE_TRUST_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
-import { getOrcaProfileBrowserDefaultPartition } from '../../../../shared/orca-profiles'
+import { getMantaProfileBrowserDefaultPartition } from '../../../../shared/manta-profiles'
 import type {
   BrowserCertificateProceedResult,
   BrowserLoadError,
@@ -142,7 +142,7 @@ import {
 } from './remote-browser-keyboard'
 import {
   consumeBrowserFocusRequest,
-  ORCA_BROWSER_FOCUS_REQUEST_EVENT,
+  MANTA_BROWSER_FOCUS_REQUEST_EVENT,
   type BrowserFocusRequestDetail
 } from './browser-focus'
 import {
@@ -579,15 +579,15 @@ function buildLoadError(event: {
 }
 
 function toDisplayUrl(url: string): string {
-  return url === ORCA_BROWSER_BLANK_URL ? 'about:blank' : redactKagiSessionToken(url)
+  return url === MANTA_BROWSER_BLANK_URL ? 'about:blank' : redactKagiSessionToken(url)
 }
 
 function getBrowserDisplayTitle(title: string | null | undefined, url: string): string {
   if (
     url === 'about:blank' ||
-    url === ORCA_BROWSER_BLANK_URL ||
+    url === MANTA_BROWSER_BLANK_URL ||
     title === 'about:blank' ||
-    title === ORCA_BROWSER_BLANK_URL ||
+    title === MANTA_BROWSER_BLANK_URL ||
     !title
   ) {
     return 'New Tab'
@@ -1501,9 +1501,9 @@ function RemoteBrowserPagePane({
       const target = imageRef.current ?? remoteViewportRef.current
       target?.focus()
     }
-    window.addEventListener(ORCA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
+    window.addEventListener(MANTA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
     return () =>
-      window.removeEventListener(ORCA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
+      window.removeEventListener(MANTA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
   }, [browserTab.id, isActive])
 
   const runRemoteNavigation = useCallback(
@@ -1989,7 +1989,7 @@ function RemoteBrowserPagePane({
   const showRemoteFailureOverlay =
     Boolean(browserTab.loadError) &&
     remoteFailureUrl !== 'about:blank' &&
-    remoteFailureUrl !== ORCA_BROWSER_BLANK_URL
+    remoteFailureUrl !== MANTA_BROWSER_BLANK_URL
 
   // Why: markup snapshots the displayed screencast <img> (no injection), so it works on remote panes even though element-grab doesn't.
   const markup = useMarkupMode({
@@ -2054,7 +2054,7 @@ function RemoteBrowserPagePane({
                     >
                       {translate(
                         'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
-                        'Open Link In Orca Browser'
+                        'Open Link In Manta Browser'
                       )}
                     </button>
                     <button
@@ -2657,9 +2657,9 @@ function BrowserPagePane({
   const createBrowserTab = useAppStore((s) => s.createBrowserTab)
   const consumeAddressBarFocusRequest = useAppStore((s) => s.consumeAddressBarFocusRequest)
   const browserSessionProfiles = useAppStore((s) => s.browserSessionProfiles)
-  const activeOrcaProfileId = useAppStore((s) => s.activeOrcaProfileId)
-  const fallbackBrowserPartition = activeOrcaProfileId
-    ? getOrcaProfileBrowserDefaultPartition(activeOrcaProfileId)
+  const activeMantaProfileId = useAppStore((s) => s.activeMantaProfileId)
+  const fallbackBrowserPartition = activeMantaProfileId
+    ? getMantaProfileBrowserDefaultPartition(activeMantaProfileId)
     : null
   const defaultSessionProfile = browserSessionProfiles.find((p) => p.id === 'default') ?? null
   const sessionProfile = sessionProfileId
@@ -2670,7 +2670,7 @@ function BrowserPagePane({
     sessionProfile?.partition ??
     defaultSessionProfile?.partition ??
     fallbackBrowserPartition ??
-    ORCA_BROWSER_PARTITION
+    MANTA_BROWSER_PARTITION
   const browserSessionImportState = useAppStore((s) => s.browserSessionImportState)
   const clearBrowserSessionImportState = useAppStore((s) => s.clearBrowserSessionImportState)
   const showBrowserZoomFeedback = useCallback((level: number): void => {
@@ -3165,9 +3165,9 @@ function BrowserPagePane({
       focusWebviewNow()
     }
     // Why: an already-active page never remounts, so listen for the event to consume the durable focus request immediately.
-    window.addEventListener(ORCA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
+    window.addEventListener(MANTA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
     return () =>
-      window.removeEventListener(ORCA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
+      window.removeEventListener(MANTA_BROWSER_FOCUS_REQUEST_EVENT, handleBrowserFocusRequest)
   }, [browserTab.id, focusAddressBarNow, focusWebviewNow, isActive])
 
   // Cmd/Ctrl+F — find in page (renderer path: focus on browser chrome)
@@ -3677,7 +3677,7 @@ function BrowserPagePane({
         setAddressBarValue(toDisplayUrl(browserModelUrl))
       }
       onSetUrlRef.current(browserTab.id, browserModelUrl)
-      if (keepAddressBarFocusRef.current && currentUrl === ORCA_BROWSER_BLANK_URL) {
+      if (keepAddressBarFocusRef.current && currentUrl === MANTA_BROWSER_BLANK_URL) {
         focusAddressBarNow()
       } else {
         keepAddressBarFocusRef.current = false
@@ -3862,8 +3862,8 @@ function BrowserPagePane({
     if (needsInitialNavigation) {
       // Why: set src only after listeners attach so a fast localhost failure isn't missed; only non-blank tabs show the loading indicator.
       const initialUrl =
-        normalizeBrowserNavigationUrl(initialBrowserUrlRef.current) ?? ORCA_BROWSER_BLANK_URL
-      trackNextLoadingEventRef.current = initialUrl !== ORCA_BROWSER_BLANK_URL
+        normalizeBrowserNavigationUrl(initialBrowserUrlRef.current) ?? MANTA_BROWSER_BLANK_URL
+      trackNextLoadingEventRef.current = initialUrl !== MANTA_BROWSER_BLANK_URL
       lastKnownWebviewUrlRef.current = initialUrl
       webview.src = initialUrl
     } else if (isPaintableRef.current) {
@@ -3993,11 +3993,11 @@ function BrowserPagePane({
       webview.src !== normalizedUrl &&
       declaredSrc !== normalizedUrl
     ) {
-      // Why: browserTab.url changes are Orca-driven navigations; gate did-start-loading so only real navigations show loading UI.
-      trackNextLoadingEventRef.current = normalizedUrl !== ORCA_BROWSER_BLANK_URL
+      // Why: browserTab.url changes are Manta-driven navigations; gate did-start-loading so only real navigations show loading UI.
+      trackNextLoadingEventRef.current = normalizedUrl !== MANTA_BROWSER_BLANK_URL
       lastKnownWebviewUrlRef.current = normalizedUrl
       webview.src = normalizedUrl
-      if (normalizedUrl !== ORCA_BROWSER_BLANK_URL) {
+      if (normalizedUrl !== MANTA_BROWSER_BLANK_URL) {
         keepAddressBarFocusRef.current = false
         if (document.activeElement === addressBarInputRef.current) {
           focusWebviewNow()
@@ -4434,13 +4434,13 @@ function BrowserPagePane({
         if (!webview) {
           return
         }
-        trackNextLoadingEventRef.current = targetUrl !== ORCA_BROWSER_BLANK_URL
+        trackNextLoadingEventRef.current = targetUrl !== MANTA_BROWSER_BLANK_URL
         lastKnownWebviewUrlRef.current = normalizedBrowserModelUrl
         recoveryNavigationValidationRef.current = recoveryLoadError
           ? { committed: false, started: false, targetUrl: normalizedBrowserModelUrl }
           : null
         webview.src = targetUrl
-        if (targetUrl !== ORCA_BROWSER_BLANK_URL) {
+        if (targetUrl !== MANTA_BROWSER_BLANK_URL) {
           focusWebviewNow()
         }
       }
@@ -4527,7 +4527,7 @@ function BrowserPagePane({
   }
 
   // Why: a blank tab reads as 'about:blank' or the resolved data: URL, so match both to keep the "New Browser Tab" overlay visible.
-  const isBlankTab = browserTab.url === 'about:blank' || browserTab.url === ORCA_BROWSER_BLANK_URL
+  const isBlankTab = browserTab.url === 'about:blank' || browserTab.url === MANTA_BROWSER_BLANK_URL
   // Why: synchronous webview URL access blocks render; navigation handlers update this cache before their store writes can re-render the pane.
   const liveBrowserUrl = getLiveBrowserUrl(browserTab.id) ?? browserTab.url
   const externalUrl = getOpenableExternalUrl(liveBrowserUrl)
@@ -4709,7 +4709,7 @@ function BrowserPagePane({
                     >
                       {translate(
                         'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
-                        'Open Link In Orca Browser'
+                        'Open Link In Manta Browser'
                       )}
                     </button>
                     <button

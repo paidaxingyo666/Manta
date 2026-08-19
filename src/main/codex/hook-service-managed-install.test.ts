@@ -48,7 +48,7 @@ function localManagedCodexEvents(): string[] {
 }
 
 describe('CodexHookService', () => {
-  it('installs PermissionRequest with trust so Codex approval prompts reach Orca', () => {
+  it('installs PermissionRequest with trust so Codex approval prompts reach Manta', () => {
     const systemCodexHome = join(homes.tmpHome, '.codex')
     mkdirSync(systemCodexHome, { recursive: true })
     writeFileSync(
@@ -84,7 +84,7 @@ describe('CodexHookService', () => {
 
     const perAccountHome = join(homes.userDataDir, 'codex-accounts', 'account-1', 'home')
     mkdirSync(perAccountHome, { recursive: true })
-    writeFileSync(join(perAccountHome, '.orca-managed-home'), 'account-1\n', 'utf-8')
+    writeFileSync(join(perAccountHome, '.manta-managed-home'), 'account-1\n', 'utf-8')
 
     const status = new CodexHookService().install(perAccountHome)
     expect(status.state).toBe('installed')
@@ -139,7 +139,7 @@ describe('CodexHookService', () => {
   it.skipIf(process.platform !== 'win32')(
     'wraps the managed hook command when the profile path contains a space (#6078)',
     () => {
-      const spaceHome = join(tmpdir(), 'orca home with spaces')
+      const spaceHome = join(tmpdir(), 'manta home with spaces')
       mkdirSync(spaceHome, { recursive: true })
       homedirMock.mockReturnValue(spaceHome)
       try {
@@ -169,7 +169,7 @@ describe('CodexHookService', () => {
   it.skipIf(process.platform !== 'win32')(
     'keeps the encoded launcher when the profile path contains cmd metacharacters',
     () => {
-      const metacharHome = join(tmpdir(), 'orca %ORCA_TEST% ^ home')
+      const metacharHome = join(tmpdir(), 'manta %MANTA_TEST% ^ home')
       mkdirSync(metacharHome, { recursive: true })
       homedirMock.mockReturnValue(metacharHome)
       try {
@@ -211,7 +211,7 @@ describe('CodexHookService', () => {
       // Why: the temp home is normally cmd-safe; guard so a runner whose tmpdir
       // holds an exotic character still asserts the correct (fallback) branch.
       const command = hooksConfig.hooks.Stop?.[0]?.hooks?.[0]?.command ?? ''
-      const cmdSafe = /^[A-Za-z0-9_.:\\~-]+$/.test(join(homes.tmpHome, '.orca', 'agent-hooks'))
+      const cmdSafe = /^[A-Za-z0-9_.:\\~-]+$/.test(join(homes.tmpHome, '.manta', 'agent-hooks'))
       if (cmdSafe) {
         expect(command).not.toMatch(/powershell/i)
         expect(command).toMatch(/\\agent-hooks\\codex-hook\.cmd$/)
@@ -228,7 +228,7 @@ describe('CodexHookService', () => {
     'posts hook payloads via the curl-based managed script preserving UTF-8 and spaced metadata',
     async () => {
       new CodexHookService().install()
-      const scriptPath = join(homedir(), '.orca', 'agent-hooks', 'codex-hook.cmd')
+      const scriptPath = join(homedir(), '.manta', 'agent-hooks', 'codex-hook.cmd')
       expect(existsSync(scriptPath)).toBe(true)
 
       // Why: resolve when the listener has fully read the hook POST. spawnSync
@@ -253,25 +253,25 @@ describe('CodexHookService', () => {
 
       try {
         const payload = JSON.stringify({ prompt: '你好世界', hook_event_name: 'UserPromptSubmit' })
-        // Why: this suite may run inside an Orca-launched terminal whose env
-        // already carries ORCA_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
+        // Why: this suite may run inside a Manta-launched terminal whose env
+        // already carries MANTA_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
         // script sources that endpoint file, so leave it out or the hook posts
-        // to the live Orca instead of this test's listener.
+        // to the live Manta instead of this test's listener.
         const cleanEnv = { ...process.env }
         for (const key of Object.keys(cleanEnv)) {
-          if (key.startsWith('ORCA_')) {
+          if (key.startsWith('MANTA_')) {
             delete cleanEnv[key]
           }
         }
         const child = spawn('cmd.exe', ['/d', '/c', scriptPath], {
           env: {
             ...cleanEnv,
-            ORCA_AGENT_HOOK_PORT: String(port),
-            ORCA_AGENT_HOOK_TOKEN: 'tok123',
-            ORCA_PANE_KEY: '42:leaf-abc',
-            ORCA_TAB_ID: '42',
-            ORCA_WORKTREE_ID: 'C:\\work trees\\my repo & co',
-            ORCA_AGENT_HOOK_VERSION: '1'
+            MANTA_AGENT_HOOK_PORT: String(port),
+            MANTA_AGENT_HOOK_TOKEN: 'tok123',
+            MANTA_PANE_KEY: '42:leaf-abc',
+            MANTA_TAB_ID: '42',
+            MANTA_WORKTREE_ID: 'C:\\work trees\\my repo & co',
+            MANTA_AGENT_HOOK_VERSION: '1'
           }
         })
         child.stdin.end(payload)
@@ -280,7 +280,7 @@ describe('CodexHookService', () => {
 
         const received = await receivedPromise
         const params = new URLSearchParams(received.body)
-        expect(received.headers['x-orca-agent-hook-token']).toBe('tok123')
+        expect(received.headers['x-manta-agent-hook-token']).toBe('tok123')
         expect(params.get('paneKey')).toBe('42:leaf-abc')
         expect(params.get('worktreeId')).toBe('C:\\work trees\\my repo & co')
         expect(JSON.parse(params.get('payload') ?? '{}').prompt).toBe('你好世界')
@@ -290,15 +290,15 @@ describe('CodexHookService', () => {
     }
   )
 
-  it('keeps hooks isolated by Orca userData instead of mutating system ~/.codex', () => {
+  it('keeps hooks isolated by Manta userData instead of mutating system ~/.codex', () => {
     const systemCodexHome = join(homes.tmpHome, '.codex')
     const systemHooksPath = join(systemCodexHome, 'hooks.json')
     const existingSystemHooks = '{"hooks":{"Stop":[{"hooks":[{"command":"user-hook"}]}]}}\n'
     mkdirSync(systemCodexHome, { recursive: true })
     writeFileSync(systemHooksPath, existingSystemHooks, 'utf-8')
 
-    const devUserDataDir = mkdtempSync(join(tmpdir(), 'orca-dev-codex-user-data-'))
-    const prodUserDataDir = mkdtempSync(join(tmpdir(), 'orca-prod-codex-user-data-'))
+    const devUserDataDir = mkdtempSync(join(tmpdir(), 'manta-dev-codex-user-data-'))
+    const prodUserDataDir = mkdtempSync(join(tmpdir(), 'manta-prod-codex-user-data-'))
     try {
       getPathMock.mockImplementation((name: string) => {
         if (name === 'userData') {
@@ -306,7 +306,7 @@ describe('CodexHookService', () => {
         }
         throw new Error(`unexpected app.getPath(${name})`)
       })
-      process.env.ORCA_USER_DATA_PATH = devUserDataDir
+      process.env.MANTA_USER_DATA_PATH = devUserDataDir
       expect(new CodexHookService().install().state).toBe('installed')
 
       getPathMock.mockImplementation((name: string) => {
@@ -315,7 +315,7 @@ describe('CodexHookService', () => {
         }
         throw new Error(`unexpected app.getPath(${name})`)
       })
-      process.env.ORCA_USER_DATA_PATH = prodUserDataDir
+      process.env.MANTA_USER_DATA_PATH = prodUserDataDir
       expect(new CodexHookService().install().state).toBe('installed')
 
       const devHooksPath = join(devUserDataDir, 'codex-runtime-home', 'home', 'hooks.json')
@@ -350,7 +350,7 @@ describe('CodexHookService', () => {
       ).toBe(true)
       expect(readFileSync(systemHooksPath, 'utf-8')).toBe(existingSystemHooks)
     } finally {
-      process.env.ORCA_USER_DATA_PATH = homes.userDataDir
+      process.env.MANTA_USER_DATA_PATH = homes.userDataDir
       rmSync(devUserDataDir, { recursive: true, force: true })
       rmSync(prodUserDataDir, { recursive: true, force: true })
     }

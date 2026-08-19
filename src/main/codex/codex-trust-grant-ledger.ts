@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { getOrcaManagedCodexHomePath } from './codex-home-paths'
+import { getMantaManagedCodexHomePath } from './codex-home-paths'
 import { normalizeCodexProjectPathForLookup } from './config-toml-trust'
 
 // Why: a grant session blocks launch prep, so it must not run on every pane
@@ -33,7 +33,7 @@ type CodexTrustGrantLedgerFile = {
 }
 
 export function getCodexTrustGrantLedgerPath(): string {
-  return join(dirname(getOrcaManagedCodexHomePath()), 'trust-grant-ledger.json')
+  return join(dirname(getMantaManagedCodexHomePath()), 'trust-grant-ledger.json')
 }
 
 export function getCodexTrustGrantHomeKey(runtimeHomePath: string): string {

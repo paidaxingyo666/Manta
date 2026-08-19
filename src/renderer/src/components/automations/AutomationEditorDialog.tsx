@@ -7,7 +7,7 @@ import type {
   AutomationWorkspaceMode
 } from '../../../../shared/automations-types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
-import type { OrcaHooks } from '../../../../shared/orca-yaml-hook-types'
+import type { MantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import type { ProjectHostSetup } from '../../../../shared/project-types'
 import type { Repo } from '../../../../shared/repo-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
@@ -50,7 +50,7 @@ export type AutomationDraft = {
   scheduleWarning: string | null
 }
 
-export type AutomationCreateTarget = 'orca' | 'hermes'
+export type AutomationCreateTarget = 'manta' | 'hermes'
 
 type AutomationEditorDialogProps = {
   open: boolean
@@ -61,7 +61,7 @@ type AutomationEditorDialogProps = {
   createTarget: AutomationCreateTarget
   repos: readonly Repo[]
   projectHostSetups: readonly ProjectHostSetup[]
-  automationYamlHooksByRepoKey: Record<string, OrcaHooks | null>
+  automationYamlHooksByRepoKey: Record<string, MantaHooks | null>
   getAutomationHooksCacheKey: (repoId: string) => string
   repoMap: Map<string, Repo>
   worktrees: Worktree[]

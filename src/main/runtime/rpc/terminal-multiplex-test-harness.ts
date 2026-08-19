@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { RpcDispatcher } from './dispatcher'
 import type { RpcRequest } from './core'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import { TERMINAL_METHODS } from './methods/terminal'
 import type { RuntimeTerminalWait } from '../../../shared/runtime-types'
 import {
@@ -14,7 +14,7 @@ import {
 export const SET_OUTPUT_PAUSED_OPCODE = 16 as TerminalStreamOpcode
 export const WRITE_UNAVAILABLE_OPCODE = 17 as TerminalStreamOpcode
 
-export function stubRuntime(overrides: Partial<OrcaRuntimeService> = {}): OrcaRuntimeService {
+export function stubRuntime(overrides: Partial<MantaRuntimeService> = {}): MantaRuntimeService {
   const serializeAuthoritativeTerminalBuffer =
     overrides.serializeAuthoritativeTerminalBuffer ??
     ((ptyId: string, opts?: { scrollbackRows?: number }) =>
@@ -39,7 +39,7 @@ export function stubRuntime(overrides: Partial<OrcaRuntimeService> = {}): OrcaRu
     serializeAuthoritativeTerminalBuffer,
     getPtyOutputSequence: vi.fn().mockReturnValue(0),
     ...overrides
-  } as OrcaRuntimeService
+  } as MantaRuntimeService
 }
 
 export function makeRequest(method: string, params?: unknown): RpcRequest {
@@ -47,7 +47,7 @@ export function makeRequest(method: string, params?: unknown): RpcRequest {
 }
 
 export function startDesktopMultiplexSubscribe(
-  overrides: Partial<OrcaRuntimeService> = {},
+  overrides: Partial<MantaRuntimeService> = {},
   trace?: string[],
   sendBinaryOverride?: (bytes: Uint8Array<ArrayBufferLike>) => boolean | void
 ) {

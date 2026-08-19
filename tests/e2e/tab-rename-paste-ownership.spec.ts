@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   getActiveTabId,
   getActiveWorktreeId,
@@ -47,37 +47,37 @@ function tabLocatorByTitle(page: Page, title: string): ReturnType<Page['locator'
 test.describe('tab rename paste ownership', () => {
   test('keyboard paste into rename textbox does not also write to the active terminal', async ({
     electronApp,
-    orcaPage
+    mantaPage
   }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
     await installTerminalPtyWriteSpy(electronApp)
 
-    const worktreeId = (await getActiveWorktreeId(orcaPage))!
-    const originalTitle = await getActiveTabTitle(orcaPage, worktreeId)
-    const renameInput = orcaPage.getByRole('textbox', {
+    const worktreeId = (await getActiveWorktreeId(mantaPage))!
+    const originalTitle = await getActiveTabTitle(mantaPage, worktreeId)
+    const renameInput = mantaPage.getByRole('textbox', {
       name: `Rename tab ${originalTitle}`,
       exact: true
     })
 
-    await tabLocatorByTitle(orcaPage, originalTitle).dblclick()
+    await tabLocatorByTitle(mantaPage, originalTitle).dblclick()
     await expect(renameInput).toBeVisible()
     await renameInput.fill('')
 
-    const payload = `ORCA_E2E_TEXTBOX_PASTE_${randomUUID()}`
-    await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
+    const payload = `MANTA_E2E_TEXTBOX_PASTE_${randomUUID()}`
+    await mantaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
     await clearTerminalPtyWriteLog(electronApp)
     await expect(renameInput).toBeFocused()
 
-    await orcaPage.keyboard.press(editablePasteChord())
+    await mantaPage.keyboard.press(editablePasteChord())
 
     await expect(renameInput).toHaveValue(payload)
     expect(countOccurrences(await renameInput.inputValue(), payload)).toBe(1)
     expect((await readTerminalPtyWrites(electronApp)).join('')).not.toContain(payload)
 
     await renameInput.press('Escape')
-    await expect(tabLocatorByTitle(orcaPage, originalTitle)).toBeVisible()
+    await expect(tabLocatorByTitle(mantaPage, originalTitle)).toBeVisible()
   })
 })

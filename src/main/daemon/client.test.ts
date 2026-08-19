@@ -163,9 +163,9 @@ describe('DaemonClient', () => {
         pid: 123,
         startedAtMs: 456,
         launchNonce: 'launch-a',
-        entryPath: '/Applications/Orca.app/Contents/Resources/daemon-entry.js',
+        entryPath: '/Applications/Manta.app/Contents/Resources/daemon-entry.js',
         appVersion: '1.2.3',
-        spawnerExecPath: '/Applications/Orca.app/Contents/MacOS/Orca'
+        spawnerExecPath: '/Applications/Manta.app/Contents/MacOS/Manta'
       }
       await startMockDaemon({ helloIdentity: () => identity })
 
@@ -446,7 +446,7 @@ describe('DaemonClient', () => {
       await client.ensureConnected()
 
       await expect(client.request('listSessions', undefined)).rejects.toThrow(
-        "Daemon's node-pty install is gone (worktree deleted?). Restart Orca. node-pty: posix_spawn failed: ENOENT"
+        "Daemon's node-pty install is gone (worktree deleted?). Restart Manta. node-pty: posix_spawn failed: ENOENT"
       )
     })
   })

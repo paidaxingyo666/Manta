@@ -18,7 +18,7 @@ describe('browser notice formatting', () => {
         permission: 'media',
         origin: 'https://example.com'
       })
-    ).toBe('https://example.com asked for camera or microphone access, and Orca denied it.')
+    ).toBe('https://example.com asked for camera or microphone access, and Manta denied it.')
   })
 
   it('formats popup outcomes', () => {
@@ -26,9 +26,9 @@ describe('browser notice formatting', () => {
       formatPopupNotice({
         browserPageId: 'browser-1',
         origin: 'https://example.com',
-        action: 'opened-in-orca'
+        action: 'opened-in-manta'
       })
-    ).toBe('https://example.com opened a new page in Orca.')
+    ).toBe('https://example.com opened a new page in Manta.')
 
     expect(
       formatPopupNotice({
@@ -44,7 +44,7 @@ describe('browser notice formatting', () => {
         origin: 'unknown',
         action: 'blocked'
       })
-    ).toBe('A site tried to open a popup Orca does not support here.')
+    ).toBe('A site tried to open a popup Manta does not support here.')
   })
 
   it('formats download completion and byte counts', () => {
@@ -146,10 +146,10 @@ describe('browser notice formatting', () => {
       "The certificate for localhost:3443 isn't valid at the current date and time."
     )
     expect(formatLoadFailureDescription(loadError(-202), meta)).toBe(
-      "Orca doesn't trust the authority that issued the certificate for localhost:3443."
+      "Manta doesn't trust the authority that issued the certificate for localhost:3443."
     )
     expect(formatLoadFailureDescription(loadError(-208), meta)).toBe(
-      "Orca couldn't verify the certificate for localhost:3443."
+      "Manta couldn't verify the certificate for localhost:3443."
     )
     expect(isCertificateLoadError(loadError(-219))).toBe(true)
     expect(isCertificateLoadError(loadError(-215))).toBe(false)

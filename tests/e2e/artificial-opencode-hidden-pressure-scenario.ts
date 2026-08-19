@@ -110,7 +110,7 @@ export async function runHiddenRealPtyPressureScenario<
   pressureStartDelayMs,
   testInfo,
   testRepoPath,
-  orcaPage
+  mantaPage
 }: {
   deps: HiddenPressureDeps<TMeasurement, TDebug, TScheduler, TMainPressure, TAckGate>
   annotationSuffix?: string
@@ -120,11 +120,11 @@ export async function runHiddenRealPtyPressureScenario<
   pressureStartDelayMs: number
   testInfo: TestInfo
   testRepoPath: string
-  orcaPage: Page
+  mantaPage: Page
 }): Promise<void> {
-  await waitForSessionReady(orcaPage)
-  const firstWorktreeId = await waitForActiveWorktree(orcaPage)
-  const allWorktreeIds = await getAllWorktreeIds(orcaPage)
+  await waitForSessionReady(mantaPage)
+  const firstWorktreeId = await waitForActiveWorktree(mantaPage)
+  const allWorktreeIds = await getAllWorktreeIds(mantaPage)
   const secondWorktreeId = allWorktreeIds.find((id) => id !== firstWorktreeId)
   expect(Boolean(secondWorktreeId), 'OpenCode hidden PTY pressure needs a second worktree').toBe(
     true
@@ -133,52 +133,52 @@ export async function runHiddenRealPtyPressureScenario<
     return
   }
 
-  await switchToWorktree(orcaPage, secondWorktreeId)
-  const hiddenPanes = await deps.ensureActiveWorktreePaneLoad(orcaPage, hiddenPaneCount)
+  await switchToWorktree(mantaPage, secondWorktreeId)
+  const hiddenPanes = await deps.ensureActiveWorktreePaneLoad(mantaPage, hiddenPaneCount)
 
   const runId = randomUUID()
   const typingScriptPath = path.join(
     testRepoPath,
-    `.orca-opencode-hidden-pressure-typing-${runId}.mjs`
+    `.manta-opencode-hidden-pressure-typing-${runId}.mjs`
   )
   const pressureScriptPath = path.join(
     testRepoPath,
-    `.orca-opencode-hidden-pressure-load-${runId}.mjs`
+    `.manta-opencode-hidden-pressure-load-${runId}.mjs`
   )
   deps.writeInteractivePromptScript(typingScriptPath, runId)
   writePressureOutputScript(pressureScriptPath, runId, pressureOutputMode)
 
-  await deps.resetTerminalPtyOutputDebug(orcaPage)
+  await deps.resetTerminalPtyOutputDebug(mantaPage)
   await deps.holdTerminalAckGate(
-    orcaPage,
+    mantaPage,
     hiddenPanes.map((pane) => pane.ptyId)
   )
   try {
     await startHiddenPressureCommands({
       hiddenPanes,
-      orcaPage,
+      mantaPage,
       pressureOutputChars,
       pressureScriptPath,
       pressureStartDelayMs
     })
-    await switchToTypingWorkspace(orcaPage, firstWorktreeId)
-    const typingPtyId = await waitForActivePanePtyId(orcaPage)
+    await switchToTypingWorkspace(mantaPage, firstWorktreeId)
+    const typingPtyId = await waitForActivePanePtyId(mantaPage)
 
     // Why: under the Phase-4 hidden-delivery gate the hidden panes' bytes are
     // dropped in main after model ingestion, so renderer-delivery pressure
     // never builds. Wait for the gate to drop at least one pane's worth of
     // output instead of the old 2 MB ACK-backpressure target.
-    await waitForMainHiddenDeliveryDrops(orcaPage, deps, pressureOutputChars)
+    await waitForMainHiddenDeliveryDrops(mantaPage, deps, pressureOutputChars)
     const measurement = await deps.measureTypingDuringLoad(
-      orcaPage,
+      mantaPage,
       typingScriptPath,
       typingPtyId,
       runId
     )
-    const debug = await deps.readTerminalPtyOutputDebug(orcaPage)
-    const scheduler = await deps.readTerminalOutputSchedulerDebug(orcaPage)
-    const mainPressure = await deps.readMainPtyPressureDebug(orcaPage)
-    const ackGate = await deps.readTerminalAckGateDebug(orcaPage)
+    const debug = await deps.readTerminalPtyOutputDebug(mantaPage)
+    const scheduler = await deps.readTerminalOutputSchedulerDebug(mantaPage)
+    const mainPressure = await deps.readMainPtyPressureDebug(mantaPage)
+    const ackGate = await deps.readTerminalAckGateDebug(mantaPage)
     deps.annotateTypingMeasurement(
       testInfo,
       `opencode-hidden-real-pty-pressure-typing${annotationSuffix ?? ''}`,
@@ -214,9 +214,9 @@ export async function runHiddenRealPtyPressureScenario<
     expect(measurement.worstLatencyMs).toBeLessThan(3_000)
     expect(measurement.maxTimerDriftMs).toBeLessThan(MAX_HIDDEN_PRESSURE_TIMER_DRIFT_MS)
 
-    await deps.releaseTerminalAckGate(orcaPage)
+    await deps.releaseTerminalAckGate(mantaPage)
     const restoreLatencyMs = await measureHiddenOutputRestoreLatency(
-      orcaPage,
+      mantaPage,
       secondWorktreeId,
       runId
     )
@@ -236,7 +236,7 @@ export async function runHiddenRealPtyPressureScenario<
       deps,
       firstWorktreeId,
       hiddenPanes,
-      orcaPage,
+      mantaPage,
       pressureScriptPath,
       secondWorktreeId,
       typingScriptPath
@@ -248,27 +248,27 @@ export async function runHiddenRealPtyPressureScenario<
 // gate drops hidden bytes in main, so renderer-delivery pressure never builds;
 // readiness is the gate reporting one pane's worth of dropped output.
 async function waitForMainHiddenDeliveryDrops<TMainPressure extends HiddenPressureMainSnapshot>(
-  orcaPage: Page,
+  mantaPage: Page,
   deps: { readMainPtyPressureDebug: (page: Page) => Promise<TMainPressure | null> },
   pressureOutputChars: number
 ): Promise<void> {
   await expect
     .poll(
-      async () => (await deps.readMainPtyPressureDebug(orcaPage))?.hiddenDeliveryDroppedChars ?? 0,
+      async () => (await deps.readMainPtyPressureDebug(mantaPage))?.hiddenDeliveryDroppedChars ?? 0,
       { timeout: 30_000, message: 'Main hidden-delivery gate did not drop hidden PTY output' }
     )
     .toBeGreaterThanOrEqual(pressureOutputChars)
 }
 
 async function measureHiddenOutputRestoreLatency(
-  orcaPage: Page,
+  mantaPage: Page,
   worktreeId: string,
   runId: string
 ): Promise<number> {
   const restoreStart = performance.now()
-  await switchToWorktree(orcaPage, worktreeId)
+  await switchToWorktree(mantaPage, worktreeId)
   await expect
-    .poll(() => getTerminalContent(orcaPage, 20_000), {
+    .poll(() => getTerminalContent(mantaPage, 20_000), {
       timeout: 20_000,
       message: 'Hidden PTY output was not restored from main buffer on return'
     })
@@ -278,13 +278,13 @@ async function measureHiddenOutputRestoreLatency(
 
 async function startHiddenPressureCommands({
   hiddenPanes,
-  orcaPage,
+  mantaPage,
   pressureOutputChars,
   pressureScriptPath,
   pressureStartDelayMs
 }: {
   hiddenPanes: HiddenPressurePane[]
-  orcaPage: Page
+  mantaPage: Page
   pressureOutputChars: number
   pressureScriptPath: string
   pressureStartDelayMs: number
@@ -292,7 +292,7 @@ async function startHiddenPressureCommands({
   await Promise.all(
     hiddenPanes.map((pane, paneIndex) =>
       sendToTerminal(
-        orcaPage,
+        mantaPage,
         pane.ptyId,
         `node ${JSON.stringify(pressureScriptPath)} ${paneIndex} ${pressureOutputChars} ${pressureStartDelayMs}\r`
       )
@@ -300,11 +300,11 @@ async function startHiddenPressureCommands({
   )
 }
 
-async function switchToTypingWorkspace(orcaPage: Page, worktreeId: string): Promise<void> {
-  await switchToWorktree(orcaPage, worktreeId)
-  await expect.poll(() => getActiveWorktreeId(orcaPage), { timeout: 10_000 }).toBe(worktreeId)
-  await ensureTerminalVisible(orcaPage)
-  await waitForActiveTerminalManager(orcaPage, 30_000)
+async function switchToTypingWorkspace(mantaPage: Page, worktreeId: string): Promise<void> {
+  await switchToWorktree(mantaPage, worktreeId)
+  await expect.poll(() => getActiveWorktreeId(mantaPage), { timeout: 10_000 }).toBe(worktreeId)
+  await ensureTerminalVisible(mantaPage)
+  await waitForActiveTerminalManager(mantaPage, 30_000)
 }
 
 async function cleanupHiddenPressureScenario<
@@ -317,7 +317,7 @@ async function cleanupHiddenPressureScenario<
   deps,
   firstWorktreeId,
   hiddenPanes,
-  orcaPage,
+  mantaPage,
   pressureScriptPath,
   secondWorktreeId,
   typingScriptPath
@@ -325,19 +325,19 @@ async function cleanupHiddenPressureScenario<
   deps: HiddenPressureDeps<TMeasurement, TDebug, TScheduler, TMainPressure, TAckGate>
   firstWorktreeId: string
   hiddenPanes: HiddenPressurePane[]
-  orcaPage: Page
+  mantaPage: Page
   pressureScriptPath: string
   secondWorktreeId: string
   typingScriptPath: string
 }): Promise<void> {
-  await deps.releaseTerminalAckGate(orcaPage)
-  await switchToWorktree(orcaPage, firstWorktreeId).catch(() => undefined)
-  await waitForActivePanePtyId(orcaPage)
-    .then((ptyId) => sendToTerminal(orcaPage, ptyId, '\x03'))
+  await deps.releaseTerminalAckGate(mantaPage)
+  await switchToWorktree(mantaPage, firstWorktreeId).catch(() => undefined)
+  await waitForActivePanePtyId(mantaPage)
+    .then((ptyId) => sendToTerminal(mantaPage, ptyId, '\x03'))
     .catch(() => undefined)
-  await switchToWorktree(orcaPage, secondWorktreeId).catch(() => undefined)
+  await switchToWorktree(mantaPage, secondWorktreeId).catch(() => undefined)
   await Promise.all(
-    hiddenPanes.map((pane) => sendToTerminal(orcaPage, pane.ptyId, '\x03').catch(() => undefined))
+    hiddenPanes.map((pane) => sendToTerminal(mantaPage, pane.ptyId, '\x03').catch(() => undefined))
   )
   rmSync(typingScriptPath, { force: true })
   rmSync(pressureScriptPath, { force: true })

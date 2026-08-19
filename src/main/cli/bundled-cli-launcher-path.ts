@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
-// Why `orca-ide` on Linux: GNOME Orca ships /usr/bin/orca, so the CLI never claims that name.
-export const LINUX_CLI_COMMAND_NAME = 'orca-ide'
+// Why `manta-ide` on Linux: GNOME Orca ships /usr/bin/orca, so the CLI never claims that name.
+export const LINUX_CLI_COMMAND_NAME = 'manta-ide'
 
 /** Absolute path of the CLI launcher this app ships in its own resources bundle.
  *  Lives apart from cli-installer so callers that only need the path (PTY env
@@ -11,13 +11,13 @@ export function getBundledLauncherPath(
   resourcesPath: string
 ): string | null {
   if (platform === 'darwin') {
-    return join(resourcesPath, 'bin', 'orca')
+    return join(resourcesPath, 'bin', 'manta')
   }
   if (platform === 'linux') {
     return join(resourcesPath, 'bin', LINUX_CLI_COMMAND_NAME)
   }
   if (platform === 'win32') {
-    return join(resourcesPath, 'bin', 'orca.exe')
+    return join(resourcesPath, 'bin', 'manta.exe')
   }
   return null
 }

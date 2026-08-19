@@ -23,7 +23,7 @@ function identity(bytes: Buffer) {
 
 describe('SkillUploadSessionService', () => {
   it('removes abandoned staging bytes when a runtime starts a fresh service', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     const uploads = join(root, 'uploads')
     await mkdir(uploads)
@@ -36,7 +36,7 @@ describe('SkillUploadSessionService', () => {
   })
 
   it('accepts monotonic chunks, acknowledges identical retries, and transfers ownership', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     const service = new SkillUploadSessionService(join(root, 'uploads'))
     const bytes = Buffer.from('immutable skill package')
@@ -71,7 +71,7 @@ describe('SkillUploadSessionService', () => {
   })
 
   it('resumes an idempotent transfer without allocating another session', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     const service = new SkillUploadSessionService(join(root, 'uploads'))
     const bytes = Buffer.from('resumable package')
@@ -95,7 +95,7 @@ describe('SkillUploadSessionService', () => {
   })
 
   it('removes an abandoned upload when its idle lifetime expires', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     const uploads = join(root, 'uploads')
     const service = new SkillUploadSessionService(uploads, { idleMs: 20 })
@@ -109,7 +109,7 @@ describe('SkillUploadSessionService', () => {
   })
 
   it('keeps a taken archive until its new owner cleans it', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     vi.useFakeTimers()
     try {
@@ -139,7 +139,7 @@ describe('SkillUploadSessionService', () => {
   })
 
   it('rejects gaps, changed retries, and an archive hash mismatch', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-upload-session-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-upload-session-'))
     roots.push(root)
     const service = new SkillUploadSessionService(join(root, 'uploads'))
     const bytes = Buffer.from('package')

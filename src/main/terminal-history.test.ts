@@ -453,7 +453,7 @@ describe('terminal-history', () => {
       try {
         parseWslPathMock.mockReturnValue({ distro: 'Ubuntu', linuxPath: '/home/user/project' })
         toLinuxPathMock.mockReturnValue(
-          '/mnt/c/Users/user/AppData/Roaming/Orca/terminal-history-wsl/Ubuntu/abc123/bash_history'
+          '/mnt/c/Users/user/AppData/Roaming/Manta/terminal-history-wsl/Ubuntu/abc123/bash_history'
         )
         mkdirSyncMock.mockReturnValue(undefined)
         existsSyncMock.mockReturnValue(true)
@@ -510,7 +510,7 @@ describe('terminal-history', () => {
         toLinuxPathMock.mockImplementation((p: string) => p.replace(/^C:\\/i, '/mnt/c/'))
         mkdirSyncMock.mockReturnValue(undefined)
         existsSyncMock.mockReturnValue(true)
-        getPathMock.mockReturnValue('C:\\Users\\alice\\AppData\\Roaming\\Orca')
+        getPathMock.mockReturnValue('C:\\Users\\alice\\AppData\\Roaming\\Manta')
 
         const env: Record<string, string> = {}
         const result = injectHistoryEnv(env, 'repo-1::C:\\repo', '/bin/bash', 'C:\\repo', {

@@ -33,7 +33,7 @@ async function renderLine(overrides: RenderOverrides = {}): Promise<HTMLDivEleme
   await act(async () => {
     root.render(
       <NewExternalWorktreesInboxLine
-        repoDisplayName="orca"
+        repoDisplayName="manta"
         inboxCount={overrides.inboxCount ?? 24}
         pending={overrides.pending ?? false}
         error={overrides.error ?? null}
@@ -79,7 +79,7 @@ describe('NewExternalWorktreesInboxLine', () => {
 
     const review = getReviewButton(container)
     expect(review).not.toBeNull()
-    expect(review?.getAttribute('aria-label')).toBe('Review 24 hidden worktrees in orca')
+    expect(review?.getAttribute('aria-label')).toBe('Review 24 hidden worktrees in manta')
 
     await act(async () => {
       review?.click()
@@ -93,7 +93,7 @@ describe('NewExternalWorktreesInboxLine', () => {
     expect(container.textContent).toContain('hidden worktree')
     expect(container.textContent).not.toContain('hidden worktrees')
     expect(getReviewButton(container)?.getAttribute('aria-label')).toBe(
-      'Review 1 hidden worktree in orca'
+      'Review 1 hidden worktree in manta'
     )
   })
 
@@ -103,7 +103,7 @@ describe('NewExternalWorktreesInboxLine', () => {
     const container = await renderLine({ onReview, onSuppress })
 
     const suppressButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Hide external worktrees permanently for orca"]'
+      'button[aria-label="Hide external worktrees permanently for manta"]'
     )
     expect(suppressButton).not.toBeNull()
     expect(suppressButton?.className).toContain('can-hover:group-hover:opacity-100')
@@ -124,7 +124,7 @@ describe('NewExternalWorktreesInboxLine', () => {
     expect(getReviewButton(container)?.disabled).toBe(true)
     expect(
       container.querySelector<HTMLButtonElement>(
-        'button[aria-label="Hide external worktrees permanently for orca"]'
+        'button[aria-label="Hide external worktrees permanently for manta"]'
       )?.disabled
     ).toBe(true)
     expect(container.querySelector('section')?.getAttribute('aria-busy')).toBe('true')

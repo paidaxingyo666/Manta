@@ -38,7 +38,7 @@ export const CLAUDE_EVENTS = [
   { eventName: 'UserPromptSubmit', definition: { hooks: [{ type: 'command', command: '' }] } },
   { eventName: 'Stop', definition: { hooks: [{ type: 'command', command: '' }] } },
   // Why: OpenClaude skips normal Stop hooks after API/model errors and emits
-  // StopFailure instead; without this hook Orca leaves the turn spinning.
+  // StopFailure instead; without this hook Manta leaves the turn spinning.
   { eventName: 'StopFailure', definition: { hooks: [{ type: 'command', command: '' }] } },
   // Why: subagent/teammate lifecycle feeds the sidebar's child rows and keeps
   // a pane 'working' while background children outlive the lead's turn.
@@ -130,7 +130,7 @@ export function getWindowsManagedLifecycleHook(scriptPath: string): HookCommandC
   const system32 = win32.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')
   const runtimeScriptPath = win32.join(
     '%USERPROFILE%',
-    '.orca',
+    '.manta',
     'agent-hooks',
     win32.basename(scriptPath)
   )

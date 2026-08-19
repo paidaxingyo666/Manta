@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 import type { GlobalSettings } from '../../src/shared/global-settings-types'
 
@@ -29,14 +29,14 @@ async function openNotificationSettings(
 }
 
 test.describe('Notification settings', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
   })
 
-  test('can be toggled from settings and disables child controls', async ({ orcaPage }) => {
-    await openNotificationSettings(orcaPage)
+  test('can be toggled from settings and disables child controls', async ({ mantaPage }) => {
+    await openNotificationSettings(mantaPage)
 
-    const notificationsSection = orcaPage.locator('[data-settings-section="notifications"]')
+    const notificationsSection = mantaPage.locator('[data-settings-section="notifications"]')
     const enableNotificationsSwitch = notificationsSection.getByRole('switch', {
       name: 'Enable Notifications'
     })
@@ -60,7 +60,7 @@ test.describe('Notification settings', () => {
     await agentTaskCompleteSwitch.click()
     await expect(agentTaskCompleteSwitch).toHaveAttribute('aria-checked', 'false')
     await expect
-      .poll(async () => (await getSettings(orcaPage)).notifications.agentTaskComplete, {
+      .poll(async () => (await getSettings(mantaPage)).notifications.agentTaskComplete, {
         timeout: 5_000,
         message: 'agent task-complete notification setting did not persist after disabling'
       })
@@ -73,7 +73,7 @@ test.describe('Notification settings', () => {
     await expect(suppressWhileFocusedSwitch).toBeDisabled()
     await expect(sendTestButton).toBeDisabled()
     await expect
-      .poll(async () => (await getSettings(orcaPage)).notifications.enabled, {
+      .poll(async () => (await getSettings(mantaPage)).notifications.enabled, {
         timeout: 5_000,
         message: 'master notification setting did not persist after disabling'
       })
@@ -83,7 +83,7 @@ test.describe('Notification settings', () => {
     await agentTaskCompleteSwitch.click()
     await expect
       .poll(async () => {
-        const settings = await getSettings(orcaPage)
+        const settings = await getSettings(mantaPage)
         return {
           enabled: settings.notifications.enabled,
           agentTaskComplete: settings.notifications.agentTaskComplete

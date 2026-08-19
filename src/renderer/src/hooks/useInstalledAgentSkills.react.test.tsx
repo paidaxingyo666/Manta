@@ -67,7 +67,7 @@ function deferred<T>(): {
   return { promise, resolve, reject }
 }
 
-const LINEAR_AGENT_SKILL_NAMES = ['orca-linear', 'linear-tickets'] as const
+const LINEAR_AGENT_SKILL_NAMES = ['manta-linear', 'linear-tickets'] as const
 
 const projectWslRuntime: ProjectExecutionRuntimeResolution = {
   status: 'resolved',
@@ -298,7 +298,7 @@ describe('useInstalledAgentSkill', () => {
     const discover = vi
       .fn<(target?: SkillDiscoveryTarget) => Promise<SkillDiscoveryResult>>()
       .mockReturnValueOnce(firstScan.promise)
-      .mockResolvedValue(discoveryResult([skill({ name: 'orca-linear' })]))
+      .mockResolvedValue(discoveryResult([skill({ name: 'manta-linear' })]))
     Object.defineProperty(window, 'api', {
       configurable: true,
       value: { skills: { discover } }
@@ -307,7 +307,7 @@ describe('useInstalledAgentSkill', () => {
     await renderProbe()
     expect(latestState?.settled).toBe(false)
 
-    firstScan.resolve(discoveryResult([skill({ name: 'orca-linear' })]))
+    firstScan.resolve(discoveryResult([skill({ name: 'manta-linear' })]))
     await act(async () => {
       await firstScan.promise
     })
@@ -336,7 +336,7 @@ describe('useInstalledAgentSkill', () => {
     nowSpy.mockReturnValue(startedAt)
     const discover = vi
       .fn<(target?: SkillDiscoveryTarget) => Promise<SkillDiscoveryResult>>()
-      .mockResolvedValue(discoveryResult([skill({ name: 'orca-linear' })]))
+      .mockResolvedValue(discoveryResult([skill({ name: 'manta-linear' })]))
     Object.defineProperty(window, 'api', {
       configurable: true,
       value: { skills: { discover } }
@@ -360,7 +360,7 @@ describe('useInstalledAgentSkill', () => {
   it('reuses cached discovery when another surface finishes re-checking', async () => {
     const discover = vi
       .fn<(target?: SkillDiscoveryTarget) => Promise<SkillDiscoveryResult>>()
-      .mockResolvedValue(discoveryResult([skill({ name: 'orca-linear' })]))
+      .mockResolvedValue(discoveryResult([skill({ name: 'manta-linear' })]))
     Object.defineProperty(window, 'api', {
       configurable: true,
       value: { skills: { discover } }
@@ -394,7 +394,7 @@ describe('useInstalledAgentSkill', () => {
     })
 
     await renderProbe()
-    firstScan.resolve(discoveryResult([skill({ name: 'orca-linear' })]))
+    firstScan.resolve(discoveryResult([skill({ name: 'manta-linear' })]))
     await act(async () => {
       await firstScan.promise
     })
@@ -414,7 +414,7 @@ describe('useInstalledAgentSkill', () => {
     await flushMicrotasks()
     expect(latestState?.loading).toBe(false)
 
-    forcedScan.resolve(discoveryResult([skill({ name: 'orca-linear' })]))
+    forcedScan.resolve(discoveryResult([skill({ name: 'manta-linear' })]))
     await act(async () => {
       await forcedScan.promise
     })
@@ -434,7 +434,7 @@ describe('useInstalledAgentSkill', () => {
     })
 
     await renderProbe()
-    hostScan.resolve(discoveryResult([skill({ name: 'orca-linear' })]))
+    hostScan.resolve(discoveryResult([skill({ name: 'manta-linear' })]))
     await act(async () => {
       await hostScan.promise
     })

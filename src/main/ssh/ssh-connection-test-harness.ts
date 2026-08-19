@@ -27,7 +27,7 @@ export type Ssh2ModuleMock = {
 export type SystemSshBinaryModuleMock = { findSystemSsh: typeof findSystemSshMock }
 
 export type SystemFallbackModuleMock = {
-  getOrcaControlSocketPath: typeof getOrcaControlSocketPathMock
+  getMantaControlSocketPath: typeof getMantaControlSocketPathMock
   spawnSystemSsh: typeof spawnSystemSshMock
   spawnSystemSshCommand: typeof spawnSystemSshCommandMock
   downloadFileViaSystemSsh: typeof downloadFileViaSystemSshMock
@@ -63,7 +63,7 @@ export const ssh2Mock = {
 }
 
 export const findSystemSshMock = vi.fn<() => string | null>()
-export const getOrcaControlSocketPathMock =
+export const getMantaControlSocketPathMock =
   vi.fn<(target: SshTarget, options?: SystemSshBuildArgsOptions) => string | null>()
 export const removeControlSocketPathMock = vi.fn<(socketPath: string) => void>()
 export const spawnSystemSshMock =
@@ -205,7 +205,7 @@ export function createSystemSshBinaryModule(): SystemSshBinaryModuleMock {
 
 export function createSystemFallbackModule(): SystemFallbackModuleMock {
   return {
-    getOrcaControlSocketPath: getOrcaControlSocketPathMock,
+    getMantaControlSocketPath: getMantaControlSocketPathMock,
     spawnSystemSsh: spawnSystemSshMock,
     spawnSystemSshCommand: spawnSystemSshCommandMock,
     downloadFileViaSystemSsh: downloadFileViaSystemSshMock,
@@ -242,8 +242,8 @@ export function resetSshConnectionMocks(): void {
   ssh2Mock.sftpBehavior = 'callback'
   pendingSftpCallback = null
   ssh2Mock.notifyClientCreated = undefined
-  getOrcaControlSocketPathMock.mockReset()
-  getOrcaControlSocketPathMock.mockReturnValue(null)
+  getMantaControlSocketPathMock.mockReset()
+  getMantaControlSocketPathMock.mockReturnValue(null)
   removeControlSocketPathMock.mockReset()
   spawnSystemSshMock.mockReset()
   spawnSystemSshMock.mockImplementation(() => createSystemSshProcess())

@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import type { Page } from '@stablyai/playwright-test'
 import type { TerminalPaneLayoutNode } from '../../src/shared/terminal-tab-types'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
@@ -211,20 +211,20 @@ async function getSmartSortScenarioReadiness(
 }
 
 test.describe('Worktree Smart Sort', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
   })
 
   test('renders attention-needed worktrees above finished agents in Smart mode', async ({
-    orcaPage
+    mantaPage
   }) => {
-    const scenario = await seedSmartSortScenario(orcaPage)
+    const scenario = await seedSmartSortScenario(mantaPage)
     const { blockedId, doneId } = scenario
 
     await expect
-      .poll(() => getSmartSortScenarioReadiness(orcaPage, scenario), {
+      .poll(() => getSmartSortScenarioReadiness(mantaPage, scenario), {
         timeout: 8_000,
         message: 'Smart sort scenario did not seed live PTYs and fresh agent statuses'
       })
@@ -237,13 +237,13 @@ test.describe('Worktree Smart Sort', () => {
       })
 
     await expect
-      .poll(async () => (await getVisibleWorktreeIdsByTop(orcaPage)).slice(0, 2), {
+      .poll(async () => (await getVisibleWorktreeIdsByTop(mantaPage)).slice(0, 2), {
         timeout: 12_000,
         message: 'Smart sort did not promote the blocked worktree in the visible sidebar'
       })
       .toEqual([blockedId, doneId])
 
-    await expect(worktreeRow(orcaPage, blockedId)).toBeVisible()
-    await expect(worktreeRow(orcaPage, doneId)).toBeVisible()
+    await expect(worktreeRow(mantaPage, blockedId)).toBeVisible()
+    await expect(worktreeRow(mantaPage, doneId)).toBeVisible()
   })
 })

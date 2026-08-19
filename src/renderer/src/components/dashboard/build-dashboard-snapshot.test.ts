@@ -336,7 +336,7 @@ describe('buildDashboardSnapshot', () => {
     expect(unnamed.cards[0].conversationName).toBeUndefined()
   })
 
-  // Why: `orca terminal rename --title` is unbounded, and the main-process
+  // Why: `manta terminal rename --title` is unbounded, and the main-process
   // validator drops any card whose label exceeds the shared bound.
   it('truncates labels to the length the snapshot validator accepts', () => {
     const snapshot = buildDashboardSnapshot(

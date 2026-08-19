@@ -90,12 +90,12 @@ describe('rich markdown details keyboard behavior', () => {
     [
       'text toggle',
       '<details><summary>Toggle</summary><p></p></details>',
-      '<details class="orca-details">\n<summary>Toggle</summary>\n\n\n\n</details>'
+      '<details class="manta-details">\n<summary>Toggle</summary>\n\n\n\n</details>'
     ],
     [
       'heading toggle',
-      '<details data-orca-toggle="heading-1"><summary>Toggle</summary><p></p></details>',
-      '<details class="orca-details" data-orca-toggle="heading-1">\n<summary>Toggle</summary>\n\n\n\n</details>'
+      '<details data-manta-toggle="heading-1"><summary>Toggle</summary><p></p></details>',
+      '<details class="manta-details" data-manta-toggle="heading-1">\n<summary>Toggle</summary>\n\n\n\n</details>'
     ]
   ])('moves backspace from an empty %s body to the summary', (_name, content, expected) => {
     const editor = createEditor(content)
@@ -147,7 +147,7 @@ describe('rich markdown details keyboard behavior', () => {
     ['text toggle', '<details><summary>Toggle</summary><p></p></details>'],
     [
       'heading toggle',
-      '<details data-orca-toggle="heading-1"><summary>Toggle</summary><p></p></details>'
+      '<details data-manta-toggle="heading-1"><summary>Toggle</summary><p></p></details>'
     ]
   ])('exits an empty %s body on Enter', (_name, content) => {
     const editor = createEditor(content)

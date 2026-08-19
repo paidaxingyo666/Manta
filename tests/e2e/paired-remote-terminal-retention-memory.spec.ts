@@ -1,4 +1,4 @@
-import { test } from './helpers/orca-app'
+import { test } from './helpers/manta-app'
 import {
   createRuntimeDesktopPairingOffer,
   launchPairedWebClient
@@ -7,10 +7,10 @@ import { runPairedTerminalParkingOracle } from './helpers/paired-terminal-parkin
 
 test('ordinary-parks paired terminals and restores authoritative host scrollback @headful', async ({
   electronApp,
-  orcaPage
+  mantaPage
 }) => {
   test.setTimeout(240_000)
-  const seed = await orcaPage.evaluate(() => {
+  const seed = await mantaPage.evaluate(() => {
     const state = window.__store?.getState()
     const worktrees = state?.allWorktrees() ?? []
     const active = worktrees.find((worktree) => worktree.id === state?.activeWorktreeId)
@@ -19,7 +19,7 @@ test('ordinary-parks paired terminals and restores authoritative host scrollback
     }
     return { activeWorktreeId: active.id, repoId: active.repoId }
   })
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   const client = await launchPairedWebClient(electronApp, offer, {
     terminalParkingDelayMs: 100
   })
@@ -30,7 +30,7 @@ test('ordinary-parks paired terminals and restores authoritative host scrollback
         fallbackWorktreeId: seed.activeWorktreeId,
         repoId: seed.repoId
       },
-      { hostPage: orcaPage }
+      { hostPage: mantaPage }
     )
   } finally {
     await client.dispose()

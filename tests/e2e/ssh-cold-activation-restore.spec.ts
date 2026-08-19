@@ -1,5 +1,5 @@
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   focusActiveTerminalInput,
@@ -14,9 +14,9 @@ import {
   type DockerSshRelayTarget
 } from './helpers/docker-ssh-relay-target'
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
-import { createRestartSession } from './helpers/orca-restart'
+import { createRestartSession } from './helpers/manta-restart'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.MANTA_E2E_SSH_DOCKER === '1'
 const TAB_COUNT = 6
 
 test.use({ seedTestRepo: false })
@@ -64,28 +64,28 @@ function readRemoteProof(target: DockerSshRelayTarget, path: string): string | n
 }
 
 test.describe('SSH cold activation restore', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set MANTA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH restore uses POSIX SSH tooling.')
 
   test('eagerly remounts every restored remote terminal after renderer reload', async ({
-    orcaPage
+    mantaPage
   }, testInfo) => {
     test.setTimeout(240_000)
     let target: DockerSshRelayTarget | null = null
     try {
       target = startDockerSshRelayTarget(testInfo)
-      await waitForSessionReady(orcaPage)
-      const remote = await connectDockerSshRelayTarget(orcaPage, target)
+      await waitForSessionReady(mantaPage)
+      const remote = await connectDockerSshRelayTarget(mantaPage, target)
       await expect
-        .poll(() => waitForActiveWorktree(orcaPage), { timeout: 30_000 })
+        .poll(() => waitForActiveWorktree(mantaPage), { timeout: 30_000 })
         .toBe(remote.worktreeId)
-      await waitForActiveTerminalManager(orcaPage, 60_000)
-      await waitForActivePanePtyId(orcaPage, 60_000)
+      await waitForActiveTerminalManager(mantaPage, 60_000)
+      await waitForActivePanePtyId(mantaPage, 60_000)
 
-      while ((await readRemoteTerminalTabs(orcaPage, remote.worktreeId)).length < TAB_COUNT) {
-        await createRemoteTerminalTab(orcaPage, remote.worktreeId)
+      while ((await readRemoteTerminalTabs(mantaPage, remote.worktreeId)).length < TAB_COUNT) {
+        await createRemoteTerminalTab(mantaPage, remote.worktreeId)
       }
-      const beforeReload = await readRemoteTerminalTabs(orcaPage, remote.worktreeId)
+      const beforeReload = await readRemoteTerminalTabs(mantaPage, remote.worktreeId)
       expect(beforeReload).toHaveLength(TAB_COUNT)
       expect(new Set(beforeReload.map((tab) => tab.ptyId)).size).toBe(TAB_COUNT)
       expect(beforeReload.every((tab) => tab.ptyId !== null)).toBe(true)
@@ -93,7 +93,7 @@ test.describe('SSH cold activation restore', () => {
       await expect
         .poll(
           () =>
-            orcaPage.evaluate(
+            mantaPage.evaluate(
               async ({ targetId, worktreePath }) => {
                 const snapshot = await window.api.remoteWorkspace.get({ targetId })
                 return (
@@ -109,11 +109,11 @@ test.describe('SSH cold activation restore', () => {
         )
         .toEqual(beforeReload.map((tab) => tab.id))
 
-      await orcaPage.evaluate(() => window.dispatchEvent(new Event('beforeunload')))
+      await mantaPage.evaluate(() => window.dispatchEvent(new Event('beforeunload')))
       await expect
         .poll(
           () =>
-            orcaPage.evaluate(
+            mantaPage.evaluate(
               async ({ targetId, worktreeId, expectedTabIds }) => {
                 const session = await window.api.session.get()
                 const persistedTabIds = new Set(
@@ -134,15 +134,15 @@ test.describe('SSH cold activation restore', () => {
         )
         .toBe(true)
 
-      await orcaPage.reload()
-      await waitForSessionReady(orcaPage, 60_000)
+      await mantaPage.reload()
+      await waitForSessionReady(mantaPage, 60_000)
       await expect
-        .poll(() => waitForActiveWorktree(orcaPage), { timeout: 60_000 })
+        .poll(() => waitForActiveWorktree(mantaPage), { timeout: 60_000 })
         .toBe(remote.worktreeId)
       await expect
         .poll(
           () =>
-            orcaPage.evaluate(
+            mantaPage.evaluate(
               (targetId) => window.__store?.getState().sshConnectionStates.get(targetId)?.status,
               remote.targetId
             ),
@@ -154,7 +154,7 @@ test.describe('SSH cold activation restore', () => {
       await expect
         .poll(
           () =>
-            orcaPage.evaluate(
+            mantaPage.evaluate(
               (ids) => ids.filter((tabId) => window.__paneManagers?.has(tabId)).sort(),
               expectedTabIds
             ),
@@ -162,13 +162,13 @@ test.describe('SSH cold activation restore', () => {
         )
         .toEqual(expectedTabIds)
       expect(
-        await orcaPage.evaluate(
+        await mantaPage.evaluate(
           (ids) =>
             ids.filter((tabId) => window.__terminalParkingDebug?.parkedTabIds().includes(tabId)),
           expectedTabIds
         )
       ).toEqual([])
-      const afterReload = await readRemoteTerminalTabs(orcaPage, remote.worktreeId)
+      const afterReload = await readRemoteTerminalTabs(mantaPage, remote.worktreeId)
       expect(afterReload.map((tab) => tab.id).sort()).toEqual(expectedTabIds)
       expect(afterReload.map((tab) => tab.ptyId).sort()).toEqual(
         beforeReload.map((tab) => tab.ptyId).sort()
@@ -178,13 +178,13 @@ test.describe('SSH cold activation restore', () => {
       if (!firstTabId) {
         throw new Error('Restored SSH tabs disappeared')
       }
-      await orcaPage.getByRole('button', { name: /^Terminal 1 Close tab Terminal 1/ }).click()
+      await mantaPage.getByRole('button', { name: /^Terminal 1 Close tab Terminal 1/ }).click()
       await expect
-        .poll(() => orcaPage.evaluate(() => window.__store?.getState().activeTabId ?? null), {
+        .poll(() => mantaPage.evaluate(() => window.__store?.getState().activeTabId ?? null), {
           timeout: 10_000
         })
         .toBe(firstTabId)
-      await orcaPage.evaluate((tabId) => {
+      await mantaPage.evaluate((tabId) => {
         const manager = window.__paneManagers?.get(tabId)
         const pane = manager?.getActivePane?.() ?? manager?.getPanes?.()[0]
         if (!pane) {
@@ -195,12 +195,12 @@ test.describe('SSH cold activation restore', () => {
       }, firstTabId)
 
       const marker = `SSH_RESTORE_OK_${Date.now()}`
-      const proofFile = '/tmp/orca-ssh-restore-proof'
-      await focusActiveTerminalInput(orcaPage)
-      await orcaPage.keyboard.type(`printf '${marker}' > ${proofFile} && printf '${marker}\\n'`)
-      await orcaPage.keyboard.press('Enter')
+      const proofFile = '/tmp/manta-ssh-restore-proof'
+      await focusActiveTerminalInput(mantaPage)
+      await mantaPage.keyboard.type(`printf '${marker}' > ${proofFile} && printf '${marker}\\n'`)
+      await mantaPage.keyboard.press('Enter')
       await expect(
-        orcaPage.locator(
+        mantaPage.locator(
           `[data-terminal-tab-id=${JSON.stringify(firstTabId)}] .xterm-accessibility-tree`
         )
       ).toContainText(marker, { timeout: 30_000 })
@@ -229,12 +229,12 @@ test.describe('SSH cold activation restore', () => {
       await waitForActiveTerminalManager(firstLaunch.page, 60_000)
       const firstPtyId = await waitForActivePanePtyId(firstLaunch.page, 60_000)
       const token = `SSH_PROCESS_RESTART_${Date.now()}`
-      const beforeProofPath = `/tmp/orca-ssh-restart-before-${Date.now()}`
-      const afterProofPath = `/tmp/orca-ssh-restart-after-${Date.now()}`
+      const beforeProofPath = `/tmp/manta-ssh-restart-before-${Date.now()}`
+      const afterProofPath = `/tmp/manta-ssh-restart-after-${Date.now()}`
 
       await focusActiveTerminalInput(firstLaunch.page)
       await firstLaunch.page.keyboard.type(
-        `export ORCA_RESTART_TOKEN=${token}; cd /tmp; (while :; do sleep 60; done) & export ORCA_BG_PID=$!; printf '%s|%s|%s|%s\\n' "$$" "$ORCA_BG_PID" "$ORCA_RESTART_TOKEN" "$PWD" > ${beforeProofPath}`
+        `export MANTA_RESTART_TOKEN=${token}; cd /tmp; (while :; do sleep 60; done) & export MANTA_BG_PID=$!; printf '%s|%s|%s|%s\\n' "$$" "$MANTA_BG_PID" "$MANTA_RESTART_TOKEN" "$PWD" > ${beforeProofPath}`
       )
       await firstLaunch.page.keyboard.press('Enter')
       await expect.poll(() => readRemoteProof(target!, beforeProofPath)).not.toBeNull()
@@ -288,7 +288,7 @@ test.describe('SSH cold activation restore', () => {
       const restoredMarker = `SSH_OWNER_RESTORED_${Date.now()}`
       await focusActiveTerminalInput(secondLaunch.page)
       await secondLaunch.page.keyboard.type(
-        `printf '%s|%s|%s|%s\\n' "$$" "$ORCA_BG_PID" "$ORCA_RESTART_TOKEN" "$PWD" > ${afterProofPath}; printf '${restoredMarker}\\n'`
+        `printf '%s|%s|%s|%s\\n' "$$" "$MANTA_BG_PID" "$MANTA_RESTART_TOKEN" "$PWD" > ${afterProofPath}; printf '${restoredMarker}\\n'`
       )
       await secondLaunch.page.keyboard.press('Enter')
       await expect(

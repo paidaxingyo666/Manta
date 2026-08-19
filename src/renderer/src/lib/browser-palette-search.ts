@@ -1,4 +1,4 @@
-import { ORCA_BROWSER_BLANK_URL } from '../../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../../shared/constants'
 import type { BrowserPage, BrowserWorkspace } from '../../../shared/browser-workspace-types'
 import type { Worktree } from '../../../shared/worktree/types'
 import { isClipboardTextByteLengthOverLimit } from '../../../shared/clipboard-text'
@@ -49,7 +49,7 @@ function compareText(a: string, b: string): number {
 }
 
 export function isBlankBrowserUrl(url: string): boolean {
-  return url === 'about:blank' || url === ORCA_BROWSER_BLANK_URL
+  return url === 'about:blank' || url === MANTA_BROWSER_BLANK_URL
 }
 
 export function formatBrowserPaletteUrl(url: string): string {
@@ -153,7 +153,7 @@ export function searchBrowserPages(
         worktreeRange: null,
         // Why: empty-query browser ordering is intentionally deterministic and
         // context-first. The palette should not invent hidden browser recency
-        // semantics until Orca explicitly tracks them in state.
+        // semantics until Manta explicitly tracks them in state.
         score: entry.isCurrentPage
           ? -2
           : entry.isCurrentWorktree

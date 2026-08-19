@@ -114,10 +114,10 @@ export function AutomationEditorDialogHeader({
               size="sm"
               className="grid grid-cols-2"
             >
-              <ToggleGroupItem value="orca" className={modeToggleItemClassName}>
+              <ToggleGroupItem value="manta" className={modeToggleItemClassName}>
                 {translate(
                   'auto.components.automations.AutomationEditorDialogHeader.6f309eef8d',
-                  'Orca'
+                  'Manta'
                 )}
               </ToggleGroupItem>
               <ToggleGroupItem value="hermes" className={modeToggleItemClassName}>

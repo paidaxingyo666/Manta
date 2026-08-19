@@ -26,12 +26,12 @@ vi.mock('./github-api-repository', async (importOriginal) =>
   )
 )
 
-import { checkOrcaStarred } from './client'
+import { checkMantaStarred } from './client'
 import { resetOriginRepositoryCache } from './client-test-harness'
 
 const { execFileAsyncMock, acquireMock, releaseMock } = clientMocks
 
-describe('checkOrcaStarred', () => {
+describe('checkMantaStarred', () => {
   beforeEach(() => {
     resetOriginRepositoryCache()
     execFileAsyncMock.mockReset()
@@ -43,11 +43,11 @@ describe('checkOrcaStarred', () => {
   it('returns true only for an included successful GitHub response', async () => {
     execFileAsyncMock.mockResolvedValueOnce({ stdout: 'HTTP/2.0 204 No Content\r\n', stderr: '' })
 
-    await expect(checkOrcaStarred()).resolves.toBe(true)
+    await expect(checkMantaStarred()).resolves.toBe(true)
 
     expect(execFileAsyncMock).toHaveBeenCalledWith(
       'gh',
-      ['api', '--include', 'user/starred/stablyai/orca'],
+      ['api', '--include', 'user/starred/stablyai/manta'],
       { encoding: 'utf-8' }
     )
   })
@@ -55,18 +55,18 @@ describe('checkOrcaStarred', () => {
   it('returns true for an HTTP 200 starred response', async () => {
     execFileAsyncMock.mockResolvedValueOnce({ stdout: 'HTTP/2.0 200 OK\r\n', stderr: '' })
 
-    await expect(checkOrcaStarred()).resolves.toBe(true)
+    await expect(checkMantaStarred()).resolves.toBe(true)
   })
 
   it('returns false for GitHub 404 not starred responses', async () => {
     execFileAsyncMock.mockRejectedValueOnce(new Error('HTTP 404: Not Found'))
 
-    await expect(checkOrcaStarred()).resolves.toBe(false)
+    await expect(checkMantaStarred()).resolves.toBe(false)
   })
 
   it('returns null when gh exits successfully without response headers', async () => {
     execFileAsyncMock.mockResolvedValueOnce({ stdout: '', stderr: '' })
 
-    await expect(checkOrcaStarred()).resolves.toBe(null)
+    await expect(checkMantaStarred()).resolves.toBe(null)
   })
 })

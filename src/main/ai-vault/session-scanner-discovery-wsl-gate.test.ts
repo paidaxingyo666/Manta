@@ -18,7 +18,7 @@ import {
 import { discoverFiles, walkSessionFiles } from './session-scanner-discovery'
 
 const SLOW_MESSAGE =
-  'WSL transcript files are temporarily unavailable because filesystem access is taking too long. Try again shortly or restart Orca if the issue continues.'
+  'WSL transcript files are temporarily unavailable because filesystem access is taking too long. Try again shortly or restart Manta if the issue continues.'
 
 function dirent(name: string): Dirent {
   return { name, isDirectory: () => false, isFile: () => true } as Dirent

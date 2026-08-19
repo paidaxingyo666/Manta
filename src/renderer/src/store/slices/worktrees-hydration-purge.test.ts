@@ -62,16 +62,16 @@ describe('fetchAllWorktrees hydration-time purge (design §4.4)', () => {
       const store = createTestStore()
       const sshRepo = {
         id: 'repo-ssh',
-        path: '/home/orca/repo',
+        path: '/home/manta/repo',
         displayName: 'SSH Repo',
         badgeColor: '#000',
         addedAt: 0,
         connectionId: 'ssh-1'
       }
       const queued = makeWorktree({
-        id: 'repo-ssh::/home/orca/queued',
+        id: 'repo-ssh::/home/manta/queued',
         repoId: 'repo-ssh',
-        path: '/home/orca/queued',
+        path: '/home/manta/queued',
         displayName: 'queued'
       })
       listKnownForExecutionHostMock.mockResolvedValueOnce({
@@ -694,7 +694,7 @@ describe('fetchAllWorktrees hydration-time purge (design §4.4)', () => {
         ]
       },
       browserTabsByWorktree: {
-        [FLOATING_TERMINAL_WORKTREE_ID]: [{ id: 'floating-browser', url: 'https://orca.test' }]
+        [FLOATING_TERMINAL_WORKTREE_ID]: [{ id: 'floating-browser', url: 'https://manta.test' }]
       },
       activeBrowserTabIdByWorktree: {
         [FLOATING_TERMINAL_WORKTREE_ID]: 'floating-browser'
@@ -753,7 +753,7 @@ describe('fetchAllWorktrees hydration-time purge (design §4.4)', () => {
       ]
     })
     expect(store.getState().browserTabsByWorktree[FLOATING_TERMINAL_WORKTREE_ID]).toEqual([
-      { id: 'floating-browser', url: 'https://orca.test' }
+      { id: 'floating-browser', url: 'https://manta.test' }
     ])
     expect(store.getState().openFiles).toEqual([floatingFile])
     expect(store.getState().activeFileIdByWorktree[FLOATING_TERMINAL_WORKTREE_ID]).toBe(

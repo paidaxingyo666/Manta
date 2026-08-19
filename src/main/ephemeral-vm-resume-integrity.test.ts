@@ -34,9 +34,9 @@ describe('getProvisionedRootResumeIntegrityError', () => {
       schemaVersion: 2,
       checkoutMode: 'provisioned-root',
       connection: {
-        type: 'orca-server',
+        type: 'manta-server',
         pairingCode: 'pairing-code',
-        projectRoot: '/workspace/orca'
+        projectRoot: '/workspace/manta'
       }
     }
 
@@ -52,14 +52,14 @@ function provisionedSshResult(target: Partial<RecipeSshTarget> = {}): EphemeralV
     checkoutMode: 'provisioned-root',
     connection: {
       type: 'ssh',
-      projectRoot: '/workspace/orca',
+      projectRoot: '/workspace/manta',
       target: {
         label: 'VM',
         host: 'host',
         port: 22,
-        username: 'orca',
-        identityFile: '/keys/orca',
-        identityAgent: '/agents/orca',
+        username: 'manta',
+        identityFile: '/keys/manta',
+        identityAgent: '/agents/manta',
         ...target
       }
     }

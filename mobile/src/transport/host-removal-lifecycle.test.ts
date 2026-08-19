@@ -86,6 +86,8 @@ describe('host removal lifecycle', () => {
     // clearWatermark is fire-and-forget; let its microtask land.
     await Promise.resolve()
 
-    expect(asyncStorage.removeItem).toHaveBeenCalledWith('orca:mobileNotificationsWatermark:host-1')
+    expect(asyncStorage.removeItem).toHaveBeenCalledWith(
+      'manta:mobileNotificationsWatermark:host-1'
+    )
   })
 })

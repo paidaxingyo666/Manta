@@ -28,7 +28,7 @@ afterEach(() => {
 
 describe('AgentHookServer ingestTerminalStatus', () => {
   // Why: the OSC 9999 payload cannot carry a provider session, so letting it overwrite the row
-  // erased the session id from persisted rows and from headless `orca serve` — which serves these
+  // erased the session id from persisted rows and from headless `manta serve` — which serves these
   // rows straight to mobile — leaving Chat UI with no transcript to subscribe to (#10630).
   it('keeps the cached provider session when an OSC status completes the turn', () => {
     const server = new AgentHookServer()

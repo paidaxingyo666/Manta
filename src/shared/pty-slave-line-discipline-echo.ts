@@ -3,7 +3,7 @@ import { execFile, type ExecFileException } from 'node:child_process'
 // Why this exists: a startup color reply is written to the PTY master, and a POSIX
 // line discipline in ECHO copies it straight back out as visible junk (#12112).
 // Whether that will happen is readable state on the slave, not something that has to
-// be inferred from the bytes that come back — so Orca asks instead of guessing.
+// be inferred from the bytes that come back — so Manta asks instead of guessing.
 
 /** `unknown` means "could not be determined", never "assume quiet". */
 export type PtySlaveLineDisciplineEcho = 'echoing' | 'quiet' | 'unknown'

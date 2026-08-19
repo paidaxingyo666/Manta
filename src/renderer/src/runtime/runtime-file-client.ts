@@ -155,7 +155,7 @@ type RuntimeFileWatchEvent =
 const REMOTE_UPLOAD_BASE64_CHUNK_CHARS = 512 * 1024
 const REMOTE_DOWNLOAD_CHUNK_BYTES = 384 * 1024
 const REMOTE_DOWNLOAD_UPDATE_REQUIRED_MESSAGE =
-  'Remote file download requires a newer Orca server. Update the headless server and try again.'
+  'Remote file download requires a newer Manta server. Update the headless server and try again.'
 
 type RemoteFileDownloadArgs = NonNullable<ReturnType<typeof getRemoteFileArgs>>
 type RuntimeFileMutationTarget = { kind: 'environment'; environmentId: string }
@@ -749,7 +749,7 @@ export async function importExternalPathsToRuntime(
     } catch (error) {
       if (createdDirectoryImportRoot) {
         // Why: match local directory imports by removing the no-clobber root
-        // Orca created when a nested runtime upload fails halfway through.
+        // Manta created when a nested runtime upload fails halfway through.
         assertImportSessionCurrent()
         await callRuntimeFileMutation(
           target,
@@ -888,7 +888,7 @@ function makeRuntimeUploadTempPath(relativePath: string): string {
   const dir = slashIndex === -1 ? '' : normalized.slice(0, slashIndex + 1)
   const leaf = slashIndex === -1 ? normalized : normalized.slice(slashIndex + 1)
   const nonce = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
-  return `${dir}.${leaf}.orca-upload-${nonce}`
+  return `${dir}.${leaf}.manta-upload-${nonce}`
 }
 
 async function ensureRuntimeDirectory(
@@ -1214,7 +1214,7 @@ function closeSharedRuntimeFileWatch(key: string, shared: SharedRuntimeFileWatch
 }
 
 function isWebRuntimeFileWatchSharedSocket(): boolean {
-  return Boolean((globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__)
+  return Boolean((globalThis as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__)
 }
 
 function unwatchSharedRuntimeFileWatch(shared: SharedRuntimeFileWatch): void {

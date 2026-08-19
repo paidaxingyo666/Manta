@@ -12,7 +12,7 @@ function makeSyntheticInventory() {
   return {
     appDir: 'C:\\App',
     unpackedRoot,
-    hostExe: { name: 'Orca.exe', ...f('C:\\App\\Orca.exe') },
+    hostExe: { name: 'Manta.exe', ...f('C:\\App\\Manta.exe') },
     runtimeData: [
       { name: 'icudtl.dat', ...f('C:\\App\\icudtl.dat') },
       { name: 'snapshot_blob.bin', ...f('C:\\App\\snapshot_blob.bin') },
@@ -97,7 +97,7 @@ function run() {
     const plan = resolveTierFileSet(inv, tier)
     check(`${tier}: no warnings`, plan.warnings.length === 0)
     const dests = plan.ops.map((o) => o.destRel)
-    check(`${tier}: has exe`, dests.includes('Orca.exe'))
+    check(`${tier}: has exe`, dests.includes('Manta.exe'))
     check(`${tier}: has icu`, dests.includes('icudtl.dat'))
     // destRel mirrors the full win-unpacked layout so the require-closure and
     // node-pty native resolution work verbatim from the copy.
@@ -122,29 +122,32 @@ function run() {
   check('missing node-pty warns', resolveTierFileSet(brokenInv, 'full').warnings.length > 0)
 
   // ── Module-path filter ──────────────────────────────────────────────
-  const appDir = 'C:\\Users\\me\\AppData\\Local\\Programs\\orca'
+  const appDir = 'C:\\Users\\me\\AppData\\Local\\Programs\\manta'
   const modules = [
-    'C:\\Users\\me\\AppData\\Local\\Programs\\orca\\Orca.exe',
+    'C:\\Users\\me\\AppData\\Local\\Programs\\manta\\Manta.exe',
     'C:\\Windows\\System32\\kernel32.dll',
-    'C:\\Users\\me\\AppData\\Local\\orca-daemon-host\\Orca.exe'
+    'C:\\Users\\me\\AppData\\Local\\manta-daemon-host\\Manta.exe'
   ]
   const resident = findAppDirResidentModules(modules, appDir)
   check('detects app-dir module', resident.length === 1)
-  check('detects the right module', resident[0].toLowerCase().includes('programs\\orca\\orca.exe'))
-  // Sibling-prefix must NOT match (C:\...\orca vs C:\...\orca-daemon-host).
+  check(
+    'detects the right module',
+    resident[0].toLowerCase().includes('programs\\manta\\manta.exe')
+  )
+  // Sibling-prefix must NOT match (C:\...\manta vs C:\...\manta-daemon-host).
   check(
     'sibling prefix not matched',
-    findAppDirResidentModules(['C:\\a\\orca-daemon-host\\x.dll'], 'C:\\a\\orca').length === 0
+    findAppDirResidentModules(['C:\\a\\manta-daemon-host\\x.dll'], 'C:\\a\\manta').length === 0
   )
   // Forward/back-slash + case normalization.
   check(
     'slash + case normalized',
-    findAppDirResidentModules(['c:/a/ORCA/x.dll'], 'C:\\A\\orca').length === 1
+    findAppDirResidentModules(['c:/a/MANTA/x.dll'], 'C:\\A\\manta').length === 1
   )
   check(
     'relocated host has zero app-dir modules',
     findAppDirResidentModules(
-      ['C:\\work\\daemon-host\\Orca.exe', 'C:\\Windows\\System32\\ntdll.dll'],
+      ['C:\\work\\daemon-host\\Manta.exe', 'C:\\Windows\\System32\\ntdll.dll'],
       appDir
     ).length === 0
   )

@@ -3,9 +3,9 @@ import {
   getEphemeralVmRecipeCheckoutModeError,
   getEphemeralVmRecipeResultSchemaVersion
 } from './ephemeral-vm-recipe-checkout-mode'
-import type { OrcaVmRecipe } from './orca-yaml-hook-types'
+import type { MantaVmRecipe } from './manta-yaml-hook-types'
 
-const defaultRecipe: OrcaVmRecipe = {
+const defaultRecipe: MantaVmRecipe = {
   id: 'cloud-sandbox',
   name: 'Cloud Sandbox',
   create: './create.sh'
@@ -17,7 +17,7 @@ describe('ephemeral VM recipe checkout mode', () => {
     expect(
       getEphemeralVmRecipeCheckoutModeError(defaultRecipe, {
         schemaVersion: 1,
-        pairingCode: 'orca://pair?code=test',
+        pairingCode: 'manta://pair?code=test',
         projectRoot: '/workspace/repo'
       })
     ).toBeNull()
@@ -27,7 +27,7 @@ describe('ephemeral VM recipe checkout mode', () => {
     const provisionedRootResult = {
       schemaVersion: 2 as const,
       checkoutMode: 'provisioned-root' as const,
-      pairingCode: 'orca://pair?code=test',
+      pairingCode: 'manta://pair?code=test',
       projectRoot: '/workspace/repo'
     }
     expect(getEphemeralVmRecipeCheckoutModeError(defaultRecipe, provisionedRootResult)).toBe(

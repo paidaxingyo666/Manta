@@ -55,7 +55,7 @@ export function resolveRemoteCliHandle(
   env: Record<string, string>,
   flagName: string
 ): string {
-  return optionalRemoteCliString(flags, flagName) ?? env.ORCA_TERMINAL_HANDLE ?? 'unknown'
+  return optionalRemoteCliString(flags, flagName) ?? env.MANTA_TERMINAL_HANDLE ?? 'unknown'
 }
 
 export function requiredRemoteCliString(

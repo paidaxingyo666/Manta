@@ -3,8 +3,8 @@ import type { useAppStore } from '@/store'
 import type { OpenFile } from '@/store/slices/editor'
 import {
   getOpenFilesForExternalFileChange,
-  ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
-  ORCA_EDITOR_FILE_SAVED_EVENT,
+  MANTA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
+  MANTA_EDITOR_FILE_SAVED_EVENT,
   type EditorFileSavedDetail,
   type EditorPathMutationTarget
 } from './editor-autosave'
@@ -111,9 +111,9 @@ export function useEditorPanelExternalContentEvents({
         invalidateDiffContent(invalidatedDiffFileIds)
       }
     }
-    window.addEventListener(ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
+    window.addEventListener(MANTA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
     return () =>
-      window.removeEventListener(ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
+      window.removeEventListener(MANTA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
   }, [
     activeContentFileIdRef,
     editorViewModeRef,
@@ -153,8 +153,8 @@ export function useEditorPanelExternalContentEvents({
         return { ...prev, [file.id]: { ...existing, modifiedContent: detail.content } }
       })
     }
-    window.addEventListener(ORCA_EDITOR_FILE_SAVED_EVENT, handler as EventListener)
-    return () => window.removeEventListener(ORCA_EDITOR_FILE_SAVED_EVENT, handler as EventListener)
+    window.addEventListener(MANTA_EDITOR_FILE_SAVED_EVENT, handler as EventListener)
+    return () => window.removeEventListener(MANTA_EDITOR_FILE_SAVED_EVENT, handler as EventListener)
   }, [openFilesRef, setDiffContents, setFileContents])
 }
 

@@ -12,7 +12,7 @@ afterEach(async () => {
 
 describe('skill install lock', () => {
   it('reclaims a fresh lock whose process was killed', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-lock-test-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skill-lock-test-'))
     roots.push(root)
     const lockPath = skillInstallLockPath(join(root, 'state'), join(root, 'skills', 'alpha'))
     await mkdir(dirname(lockPath), { recursive: true })

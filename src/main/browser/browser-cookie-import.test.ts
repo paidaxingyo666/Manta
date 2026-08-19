@@ -179,7 +179,7 @@ describe('importCookiesFromFile', () => {
   let cookiesSetMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'orca-cookie-test-'))
+    tmpDir = mkdtempSync(join(tmpdir(), 'manta-cookie-test-'))
     cookiesGetMock = vi.fn().mockResolvedValue([])
     cookiesRemoveMock = vi.fn().mockResolvedValue(undefined)
     cookiesSetMock = vi.fn().mockResolvedValue(undefined)
@@ -403,7 +403,7 @@ describe('importCookiesFromBrowser Safari', () => {
   let cookiesSetMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'orca-safari-cookie-test-'))
+    tmpDir = mkdtempSync(join(tmpdir(), 'manta-safari-cookie-test-'))
     cookiesSetMock = vi.fn().mockResolvedValue(undefined)
     sessionFromPartitionMock.mockReset()
     sessionFromPartitionMock.mockReturnValue({
@@ -442,7 +442,7 @@ describe('importCookiesFromBrowser Chromium', () => {
   let setUserAgentMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'orca-chromium-cookie-test-'))
+    tmpDir = mkdtempSync(join(tmpdir(), 'manta-chromium-cookie-test-'))
     cookiesSetMock = vi.fn().mockResolvedValue(undefined)
     cookiesRemoveMock = vi.fn().mockResolvedValue(undefined)
     cookiesFlushStoreMock = vi.fn().mockResolvedValue(undefined)

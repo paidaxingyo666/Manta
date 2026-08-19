@@ -1,12 +1,12 @@
 import { app, session } from 'electron'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
-import { ORCA_BROWSER_PARTITION } from '../../shared/constants'
+import { MANTA_BROWSER_PARTITION } from '../../shared/constants'
 import {
-  DEFAULT_LOCAL_ORCA_PROFILE_ID,
-  getOrcaProfileBrowserDefaultPartition,
-  getOrcaProfileBrowserSessionPartition
-} from '../../shared/orca-profiles'
+  DEFAULT_LOCAL_MANTA_PROFILE_ID,
+  getMantaProfileBrowserDefaultPartition,
+  getMantaProfileBrowserSessionPartition
+} from '../../shared/manta-profiles'
 import type {
   BrowserSessionProfile,
   BrowserSessionProfileCreateOptions,
@@ -32,7 +32,7 @@ import { isValidPersistedBrowserSessionProfile } from './browser-session-persist
 import { clearBrowserSessionUserAgentMode } from './browser-session-user-agent-mode'
 
 export type BrowserSessionRegistryProfileOptions = {
-  orcaProfileId: string
+  mantaProfileId: string
   profileDirectory: string
 }
 
@@ -40,18 +40,18 @@ export type BrowserSessionRegistryProfileOptions = {
 
 class BrowserSessionRegistry {
   private readonly profiles = new Map<string, BrowserSessionProfile>()
-  private activeOrcaProfileId = DEFAULT_LOCAL_ORCA_PROFILE_ID
+  private activeMantaProfileId = DEFAULT_LOCAL_MANTA_PROFILE_ID
   private metadataPathOverride: string | null = null
-  private defaultPartition = ORCA_BROWSER_PARTITION
+  private defaultPartition = MANTA_BROWSER_PARTITION
 
   constructor() {
     this.resetDefaultProfile()
   }
 
-  configureForOrcaProfile(options: BrowserSessionRegistryProfileOptions): void {
-    this.activeOrcaProfileId = options.orcaProfileId
+  configureForMantaProfile(options: BrowserSessionRegistryProfileOptions): void {
+    this.activeMantaProfileId = options.mantaProfileId
     this.metadataPathOverride = join(options.profileDirectory, BROWSER_SESSION_META_FILE_NAME)
-    this.defaultPartition = getOrcaProfileBrowserDefaultPartition(options.orcaProfileId)
+    this.defaultPartition = getMantaProfileBrowserDefaultPartition(options.mantaProfileId)
     this.profiles.clear()
     this.resetDefaultProfile()
   }
@@ -121,7 +121,7 @@ class BrowserSessionRegistry {
     applyPendingBrowserCookieImports({
       resolveMetadataPath: () => this.metadataPath,
       defaultPartition: this.defaultPartition,
-      activeOrcaProfileId: this.activeOrcaProfileId
+      activeMantaProfileId: this.activeMantaProfileId
     })
   }
 
@@ -171,7 +171,7 @@ class BrowserSessionRegistry {
 
   resolveKnownPartition(profileId: string | null | undefined): string | null {
     if (!profileId) {
-      // Why: use the active Orca profile's default partition, not the legacy constant, or profiles resolve local-default's cookie jar.
+      // Why: use the active Manta profile's default partition, not the legacy constant, or profiles resolve local-default's cookie jar.
       return this.defaultPartition
     }
     return this.profiles.get(profileId)?.partition ?? null
@@ -193,7 +193,7 @@ class BrowserSessionRegistry {
     }
     const id = randomUUID()
     // Why: deterministic partition-from-id lets main rebuild the allowlist on restart without a separate partition→profile map.
-    const partition = getOrcaProfileBrowserSessionPartition(this.activeOrcaProfileId, id)
+    const partition = getMantaProfileBrowserSessionPartition(this.activeMantaProfileId, id)
     const profile: BrowserSessionProfile = {
       id,
       scope,
@@ -281,7 +281,7 @@ class BrowserSessionRegistry {
 
   hydrateFromPersisted(profiles: BrowserSessionProfile[]): void {
     for (const profile of profiles) {
-      if (!isValidPersistedBrowserSessionProfile(profile, this.activeOrcaProfileId)) {
+      if (!isValidPersistedBrowserSessionProfile(profile, this.activeMantaProfileId)) {
         continue
       }
       this.profiles.set(profile.id, profile)

@@ -22,7 +22,7 @@ import { wrapShellSpawnForMacosTccAttribution } from '../providers/macos-tcc-log
 import { signalPosixPtyForegroundGroup } from '../pty/posix-pty-foreground-group'
 import { readPtsName } from '../pty/node-pty-pts-name'
 import {
-  ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
+  MANTA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
   resolveWindowsShellLaunchArgs
 } from '../providers/windows-shell-args'
 import {
@@ -49,7 +49,7 @@ import {
 } from '../../shared/git-credential-prompt-env'
 import { TERMINAL_GIT_CREDENTIAL_GUARD_POLICY_ENV } from '../../shared/terminal-git-credential-guard'
 import { resolveWslSessionContext } from './wsl-session-context'
-import { addOrcaWslInteropEnv } from '../pty/wsl-orca-env'
+import { addMantaWslInteropEnv } from '../pty/wsl-manta-env'
 import {
   POWERLEVEL10K_WIZARD_DISABLE_ENV,
   seedPowerlevel10kWizardEnv
@@ -73,7 +73,7 @@ import { TerminalAttachCanceledError } from './daemon-errors'
 import { parsePtySessionId } from './pty-session-id'
 import { getAgentForegroundContextPaths } from '../providers/agent-foreground-context-paths'
 import { assertSafeAgentStartupCwd, resolveSafePtyDefaultCwd } from '../providers/pty-default-cwd'
-import { ORCA_HERMES_STARTUP_QUERY_ENV } from '../../shared/hermes-startup-query'
+import { MANTA_HERMES_STARTUP_QUERY_ENV } from '../../shared/hermes-startup-query'
 import type { TuiAgent } from '../../shared/tui-agent'
 import {
   expandWindowsEnvironmentVariables,
@@ -83,10 +83,10 @@ import { forceKillPosixPtyProcessGroups } from '../pty/posix-pty-process-groups'
 import { readPtySlavePath } from '../../shared/pty-slave-line-discipline-echo'
 
 const PANE_IDENTITY_ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN'
+  'MANTA_PANE_KEY',
+  'MANTA_TAB_ID',
+  'MANTA_WORKTREE_ID',
+  'MANTA_AGENT_LAUNCH_TOKEN'
 ] as const
 const WINDOWS_PATH_ENV_KEY_RE = /^path$/i
 const FOREGROUND_AGENT_CACHE_TTL_MS = 1000
@@ -146,16 +146,16 @@ function deleteRequestedDaemonEnvKeys(
   keys: readonly string[] | undefined
 ): void {
   // Why: the persistent daemon's inherited env can differ from Electron's.
-  // Compare ownership here so real-home routing neither leaks an Orca overlay
+  // Compare ownership here so real-home routing neither leaks a Manta overlay
   // nor deletes a user-owned CODEX_HOME chosen by the daemon's host context.
-  const deleteOrcaOwnedCodexHome =
-    keys?.includes('ORCA_CODEX_HOME') === true &&
-    env.ORCA_CODEX_HOME !== undefined &&
-    env.CODEX_HOME === env.ORCA_CODEX_HOME
+  const deleteMantaOwnedCodexHome =
+    keys?.includes('MANTA_CODEX_HOME') === true &&
+    env.MANTA_CODEX_HOME !== undefined &&
+    env.CODEX_HOME === env.MANTA_CODEX_HOME
   for (const key of keys ?? []) {
     delete env[key]
   }
-  if (deleteOrcaOwnedCodexHome) {
+  if (deleteMantaOwnedCodexHome) {
     delete env.CODEX_HOME
   }
 }
@@ -218,7 +218,7 @@ function promoteAgentTeamsShimPath(
   env: Record<string, string>,
   requestedPath: string | undefined
 ): void {
-  if (!env.ORCA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
+  if (!env.MANTA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
     return
   }
   const normalizedRequestedPath =
@@ -242,9 +242,12 @@ function removeInheritedDevAgentHookEndpoint(
   env: Record<string, string>,
   explicitEnv: Record<string, string> | undefined
 ): void {
-  if (explicitEnv?.ORCA_AGENT_HOOK_ENV === 'development' && !explicitEnv.ORCA_AGENT_HOOK_ENDPOINT) {
+  if (
+    explicitEnv?.MANTA_AGENT_HOOK_ENV === 'development' &&
+    !explicitEnv.MANTA_AGENT_HOOK_ENDPOINT
+  ) {
     // Why: strip only stale inherited endpoints; a fresh explicit one is needed by hooks that scrub token-like env vars before exec.
-    delete env.ORCA_AGENT_HOOK_ENDPOINT
+    delete env.MANTA_AGENT_HOOK_ENDPOINT
   }
 }
 
@@ -257,12 +260,12 @@ function removeInheritedElectronRunAsNode(env: Record<string, string>): void {
 }
 
 function daemonEnvironmentDiagSuffix(): string {
-  const orca = process.env.ORCA_APP_VERSION?.trim() || '0.0.0-dev'
+  const manta = process.env.MANTA_APP_VERSION?.trim() || '0.0.0-dev'
   const systemVersion =
     (process as NodeJS.Process & { getSystemVersion?: () => string }).getSystemVersion?.() ||
     release()
   const platform = `${process.platform} ${systemVersion}`
-  return ` (orca: ${orca}, arch: ${process.arch}, platform: ${platform})`
+  return ` (manta: ${manta}, arch: ${process.arch}, platform: ${platform})`
 }
 
 /**
@@ -274,7 +277,7 @@ function formatMissingDaemonPathError(kind: 'helper' | 'cwd', path: string): Dae
   const missingTarget = kind === 'helper' ? 'node-pty install' : 'working directory'
   const diag = daemonEnvironmentDiagSuffix()
   return new DaemonProtocolError(
-    `Daemon's ${missingTarget} is gone (worktree deleted?). Restart Orca. node-pty: ${step} failed: ENOENT (errno 2, No such file or directory) - ${detailName}='${path}'${diag}`
+    `Daemon's ${missingTarget} is gone (worktree deleted?). Restart Manta. node-pty: ${step} failed: ENOENT (errno 2, No such file or directory) - ${detailName}='${path}'${diag}`
   )
 }
 
@@ -296,7 +299,7 @@ function isExistingDirectory(path: string | undefined): path is string {
  * Moves the daemon process to a stable cwd after its original cwd disappears.
  */
 function repairDaemonCwd(): string | null {
-  const candidates = [process.env.ORCA_USER_DATA_PATH]
+  const candidates = [process.env.MANTA_USER_DATA_PATH]
   try {
     candidates.push(getDefaultCwd())
   } catch {
@@ -439,8 +442,8 @@ function formatPtySpawnError(err: unknown, shellPath: string, spawnCwd: string):
  * Runs one short native PTY spawn probe (spawn `/bin/sh -c 'exit 0'`).
  */
 function runSinglePtySpawnHealthProbe(): Promise<void> {
-  const cwd = isExistingDirectory(process.env.ORCA_USER_DATA_PATH)
-    ? process.env.ORCA_USER_DATA_PATH
+  const cwd = isExistingDirectory(process.env.MANTA_USER_DATA_PATH)
+    ? process.env.MANTA_USER_DATA_PATH
     : getDefaultCwd()
 
   let proc: pty.IPty
@@ -639,10 +642,10 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
     ...mergeGitConfigEnvProtocol(stripInheritedBuildModeEnv(process.env), opts.env),
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
-    TERM_PROGRAM: 'Orca',
-    // Why: TUIs feature-gate on TERM_PROGRAM_VERSION; ORCA_APP_VERSION is inherited from the forking main process.
-    TERM_PROGRAM_VERSION: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
-    // Why: `supports-hyperlinks` gates OSC 8 on a TERM_PROGRAM allowlist excluding Orca; force it since xterm.js parses OSC 8 for clickable links.
+    TERM_PROGRAM: 'Manta',
+    // Why: TUIs feature-gate on TERM_PROGRAM_VERSION; MANTA_APP_VERSION is inherited from the forking main process.
+    TERM_PROGRAM_VERSION: process.env.MANTA_APP_VERSION ?? '0.0.0-dev',
+    // Why: `supports-hyperlinks` gates OSC 8 on a TERM_PROGRAM allowlist excluding Manta; force it since xterm.js parses OSC 8 for clickable links.
     FORCE_HYPERLINK: '1'
   } as Record<string, string>
   // Why: an older client may not ask a newly upgraded daemon to delete inherited shim state.
@@ -710,10 +713,10 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
     }
     if (
       pathWin32.basename(shellPath).toLowerCase() === 'cmd.exe' &&
-      env.ORCA_CODEX_LAUNCH_PREFLIGHT
+      env.MANTA_CODEX_LAUNCH_PREFLIGHT
     ) {
       // Why: node-pty backslash-escapes argv quotes; expand the quote inside cmd.exe instead.
-      env[ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV] = '"'
+      env[MANTA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV] = '"'
     }
     // Why: a bare `pwsh.exe` resolves to the Store App Execution Alias stub whose launch fails with ERROR_ACCESS_DENIED (5).
     windowsFallbackAttempts = buildWindowsPowerShellSpawnAttempts({
@@ -737,7 +740,7 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
         getDefaultCwd(),
         resolvedWslContext,
         opts.command,
-        env.ORCA_CODEX_LAUNCH_PREFLIGHT
+        env.MANTA_CODEX_LAUNCH_PREFLIGHT
       )
       shellArgs = resolved.shellArgs
       spawnCwd = resolved.effectiveCwd
@@ -754,12 +757,12 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
         const launchWslDistro = resolvedWslContext?.distro
         if (launchWslDistro && launchWslDistro !== codexHomeWslInfo.distro) {
           delete env.CODEX_HOME
-          delete env.ORCA_CODEX_HOME
+          delete env.MANTA_CODEX_HOME
         } else {
           env.CODEX_HOME = codexHomeWslInfo.linuxPath
-          env.ORCA_CODEX_HOME = codexHomeWslInfo.linuxPath
+          env.MANTA_CODEX_HOME = codexHomeWslInfo.linuxPath
           // Why: wsl.exe only imports non-default env vars named in WSLENV.
-          addWslEnvKeys(env, ['CODEX_HOME', 'ORCA_CODEX_HOME'])
+          addWslEnvKeys(env, ['CODEX_HOME', 'MANTA_CODEX_HOME'])
           if (!launchWslDistro) {
             const resolved = resolveWindowsShellLaunchArgs(
               shellPath,
@@ -769,7 +772,7 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
                 distro: codexHomeWslInfo.distro
               },
               opts.command,
-              env.ORCA_CODEX_LAUNCH_PREFLIGHT
+              env.MANTA_CODEX_LAUNCH_PREFLIGHT
             )
             shellArgs = resolved.shellArgs
             spawnCwd = resolved.effectiveCwd
@@ -781,25 +784,25 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
       } else if (isHostCodexHomeForWsl(env.CODEX_HOME)) {
         // Why: host-local Codex home is unusable in WSL; let WSL Codex use its Linux-side ~/.codex.
         delete env.CODEX_HOME
-        delete env.ORCA_CODEX_HOME
+        delete env.MANTA_CODEX_HOME
       } else if (env.CODEX_HOME) {
-        addWslEnvKeys(env, ['CODEX_HOME', 'ORCA_CODEX_HOME'])
+        addWslEnvKeys(env, ['CODEX_HOME', 'MANTA_CODEX_HOME'])
       }
       if (env.CLAUDE_CONFIG_DIR) {
         // Why: non-default env vars need WSLENV import to cross Windows wsl.exe into the Linux side.
         addWslEnvKeys(env, ['CLAUDE_CONFIG_DIR'])
       }
-      if (env[ORCA_HERMES_STARTUP_QUERY_ENV] !== undefined) {
+      if (env[MANTA_HERMES_STARTUP_QUERY_ENV] !== undefined) {
         // Why: wsl.exe drops custom Windows env vars unless named in WSLENV.
-        addWslEnvKeys(env, [ORCA_HERMES_STARTUP_QUERY_ENV])
+        addWslEnvKeys(env, [MANTA_HERMES_STARTUP_QUERY_ENV])
       }
     } else if (codexHomeWslInfo || isWslCodexHomeForHost(env.CODEX_HOME)) {
-      // Why: WSL Codex homes are Linux paths; also drop ORCA_CODEX_HOME since shell-ready restores CODEX_HOME from it.
+      // Why: WSL Codex homes are Linux paths; also drop MANTA_CODEX_HOME since shell-ready restores CODEX_HOME from it.
       delete env.CODEX_HOME
-      delete env.ORCA_CODEX_HOME
+      delete env.MANTA_CODEX_HOME
     }
     if (pathWin32.basename(shellPath).toLowerCase() === 'wsl.exe') {
-      addOrcaWslInteropEnv(env)
+      addMantaWslInteropEnv(env)
     }
   } else {
     // Why: relay-side launch modes can ask for host defaults to stay scrubbed
@@ -832,11 +835,11 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
       shellLaunch = getShellReadyLaunchConfig(shellPath)
     } else {
       shellLaunch =
-        env.ORCA_OPENCODE_CONFIG_DIR ||
-        env.ORCA_MIMOCODE_HOME ||
-        env.ORCA_OMP_STATUS_EXTENSION ||
-        env.ORCA_CODEX_HOME ||
-        env.ORCA_AGENT_TEAMS_SHIM_DIR
+        env.MANTA_OPENCODE_CONFIG_DIR ||
+        env.MANTA_MIMOCODE_HOME ||
+        env.MANTA_OMP_STATUS_EXTENSION ||
+        env.MANTA_CODEX_HOME ||
+        env.MANTA_AGENT_TEAMS_SHIM_DIR
           ? getMarkerlessShellLaunchConfig(shellPath)
           : null
     }

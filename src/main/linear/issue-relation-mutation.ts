@@ -12,7 +12,7 @@ type RelationMutationResponse = {
 }
 
 const CREATE_RELATION_MUTATION = `
-  mutation OrcaLinearCreateIssueRelation($input: IssueRelationCreateInput!) {
+  mutation MantaLinearCreateIssueRelation($input: IssueRelationCreateInput!) {
     issueRelationCreate(input: $input) {
       success
       issueRelation {
@@ -26,7 +26,7 @@ const CREATE_RELATION_MUTATION = `
 `
 
 const DELETE_RELATION_MUTATION = `
-  mutation OrcaLinearDeleteIssueRelation($id: String!) {
+  mutation MantaLinearDeleteIssueRelation($id: String!) {
     issueRelationDelete(id: $id) { success }
   }
 `

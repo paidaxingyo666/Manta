@@ -163,7 +163,7 @@ function candidateBindings(actionId: KeybindingActionId, binding: string): strin
   )
 }
 
-/** Finds Orca bindings intercepted by Mission Control. */
+/** Finds Manta bindings intercepted by Mission Control. */
 export function findMacSystemHotkeyConflicts(
   definitions: readonly KeybindingDefinition[],
   platform: NodeJS.Platform,

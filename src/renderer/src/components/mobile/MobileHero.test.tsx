@@ -167,7 +167,7 @@ describe('HeroFlow height', () => {
     expect(notice).toHaveTextContent('Use LAN')
     expect(screen.getByText('No pairing code available')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Generate code' })).not.toBeInTheDocument()
-    expect(screen.getByText('Orca Relay is in beta.')).toBeInTheDocument()
+    expect(screen.getByText('Manta Relay is in beta.')).toBeInTheDocument()
   })
 
   it('explains an empty QR frame when no code has been generated yet', () => {
@@ -203,11 +203,11 @@ describe('HeroFlow height', () => {
       relayMintFailure: {
         code: 'relay_provider_unavailable',
         stage: 'provider_missing',
-        message: 'Orca Relay is not available on this desktop'
+        message: 'Manta Relay is not available on this desktop'
       }
     })
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Orca Relay isn’t available on this desktop'
+      'Manta Relay isn’t available on this desktop'
     )
     expect(screen.queryByRole('button', { name: 'Retry Relay' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Use LAN' })).toBeEnabled()
@@ -221,7 +221,7 @@ describe('HeroFlow height', () => {
   it('shows an encoder error while keeping the copy fallback enabled', () => {
     renderFlow(1, {
       pairingQrError: true,
-      pairingUrl: 'orca://pair?code=copy-fallback'
+      pairingUrl: 'manta://pair?code=copy-fallback'
     })
 
     expect(screen.getByRole('alert')).toHaveTextContent('couldn’t be rendered as a QR code')
@@ -265,7 +265,7 @@ describe('HeroFlow height', () => {
       <MobileHeroPairingStep
         {...props}
         pairQrDataUrl="data:image/png;base64,qr"
-        pairingUrl="orca://pair#ready"
+        pairingUrl="manta://pair#ready"
         relayMintFailure={null}
       />
     )
@@ -307,7 +307,7 @@ describe('HeroFlow height', () => {
       <MobileHeroPairingStep
         {...props}
         pairQrDataUrl="data:image/png;base64,qr"
-        pairingUrl="orca://pair#ready"
+        pairingUrl="manta://pair#ready"
         pairLoading={false}
       />
     )
@@ -315,7 +315,7 @@ describe('HeroFlow height', () => {
     expect(refresh).toHaveFocus()
   })
 
-  it('demotes the network address picker to a disclosure on Orca Relay', async () => {
+  it('demotes the network address picker to a disclosure on Manta Relay', async () => {
     const props: React.ComponentProps<typeof MobileHeroPairingStep> = {
       pairQrDataUrl: null,
       pairingUrl: null,
@@ -358,7 +358,7 @@ describe('HeroFlow height', () => {
     expect(screen.getByRole('button', { name: 'Refresh network interfaces' })).toBeVisible()
   })
 
-  it('keeps a custom address visible on Orca Relay', () => {
+  it('keeps a custom address visible on Manta Relay', () => {
     const address = 'host.example:6768'
     const props: React.ComponentProps<typeof MobileHeroPairingStep> = {
       pairQrDataUrl: null,

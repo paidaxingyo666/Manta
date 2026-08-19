@@ -44,7 +44,7 @@ export const MobileRelayCredentialBundleSchema = z
 export type MobileRelayCredentialBundle = z.infer<typeof MobileRelayCredentialBundleSchema>
 
 function credentialKey(hostId: string): string {
-  return `orca.mobile-relay.credentials.${hostId}`
+  return `manta.mobile-relay.credentials.${hostId}`
 }
 
 export function promotePairingJournalCredential(args: {
@@ -105,6 +105,6 @@ export async function deleteMobileRelayCredentialBundle(hostId: string): Promise
 
 function requireNativeSecretStore(): void {
   if (Platform.OS === 'web') {
-    throw new Error('Orca Relay credentials require a native secret store')
+    throw new Error('Manta Relay credentials require a native secret store')
   }
 }

@@ -11,11 +11,11 @@ const mocks = vi.hoisted(() => ({
   fetchAuthStatus: vi.fn(),
   openArtifactsPage: vi.fn(),
   state: {
-    orcaProfileAuthStatus: {
+    mantaProfileAuthStatus: {
       configured: true,
       state: 'connected'
     } as Record<string, unknown> | null,
-    orcaProfileConnecting: false,
+    mantaProfileConnecting: false,
     isWebClient: false
   }
 }))
@@ -32,8 +32,8 @@ vi.mock('@/store', () => ({
   useAppStore: (selector: (state: Record<string, unknown>) => unknown) =>
     selector({
       ...mocks.state,
-      connectCurrentOrcaProfile: mocks.connect,
-      fetchOrcaProfileAuthStatus: mocks.fetchAuthStatus,
+      connectCurrentMantaProfile: mocks.connect,
+      fetchMantaProfileAuthStatus: mocks.fetchAuthStatus,
       openArtifactsPage: mocks.openArtifactsPage
     })
 }))
@@ -45,8 +45,8 @@ describe('ArtifactsSettingsPane', () => {
     mocks.connect.mockReset()
     mocks.fetchAuthStatus.mockReset()
     mocks.openArtifactsPage.mockReset()
-    mocks.state.orcaProfileAuthStatus = { configured: true, state: 'connected' }
-    mocks.state.orcaProfileConnecting = false
+    mocks.state.mantaProfileAuthStatus = { configured: true, state: 'connected' }
+    mocks.state.mantaProfileConnecting = false
     mocks.state.isWebClient = false
   })
 
@@ -71,36 +71,36 @@ describe('ArtifactsSettingsPane', () => {
     expect(
       screen.getByText('After publishing, copy the link and send it to your team.')
     ).toBeInTheDocument()
-    expect(screen.getByText('Manage it in Orca')).toBeInTheDocument()
+    expect(screen.getByText('Manage it in Manta')).toBeInTheDocument()
     expect(
       screen.getByText('Preview, copy, and manage links shared through your account.')
     ).toBeInTheDocument()
     expect(
       screen.queryByText('Uploads require sign-in; public links do not.')
     ).not.toBeInTheDocument()
-    expect(screen.queryByText('Orca account')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Sign in to Orca' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Manta account')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sign in to Manta' })).not.toBeInTheDocument()
   })
 
   it('offers sign in for a local profile', async () => {
     const user = userEvent.setup()
-    mocks.state.orcaProfileAuthStatus = { configured: true, state: 'local' }
+    mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
     render(<ArtifactsSettingsPane settings={getDefaultSettings('/tmp')} updateSettings={vi.fn()} />)
 
     expect(screen.getByText('Sign in to share artifacts')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Sign in to Orca' }))
+    await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
     expect(mocks.connect).toHaveBeenCalledOnce()
   })
 
   it('shows reconnect and connecting states', () => {
-    mocks.state.orcaProfileAuthStatus = { configured: true, state: 'reconnect-required' }
+    mocks.state.mantaProfileAuthStatus = { configured: true, state: 'reconnect-required' }
     const { rerender } = render(
       <ArtifactsSettingsPane settings={getDefaultSettings('/tmp')} updateSettings={vi.fn()} />
     )
 
     expect(screen.getByRole('button', { name: 'Sign in again' })).toBeEnabled()
 
-    mocks.state.orcaProfileConnecting = true
+    mocks.state.mantaProfileConnecting = true
     rerender(
       <ArtifactsSettingsPane settings={getDefaultSettings('/tmp')} updateSettings={vi.fn()} />
     )
@@ -108,11 +108,11 @@ describe('ArtifactsSettingsPane', () => {
   })
 
   it('loads missing account status and disables sign in until configured', () => {
-    mocks.state.orcaProfileAuthStatus = null
+    mocks.state.mantaProfileAuthStatus = null
     render(<ArtifactsSettingsPane settings={getDefaultSettings('/tmp')} updateSettings={vi.fn()} />)
 
     expect(mocks.fetchAuthStatus).toHaveBeenCalledOnce()
-    expect(screen.getByRole('button', { name: 'Sign in to Orca' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Sign in to Manta' })).toBeDisabled()
   })
 
   it('controls only sidebar visibility and always allows opening Artifacts', async () => {
@@ -130,7 +130,7 @@ describe('ArtifactsSettingsPane', () => {
     await user.click(toggle)
     expect(updateSettings).toHaveBeenCalledWith({ showArtifactsButton: true })
 
-    expect(screen.queryByText(/orca artifacts share/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/manta artifacts share/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy command' })).not.toBeInTheDocument()
 
     const openButton = screen.getByRole('button', { name: /Open Artifacts/ })
@@ -221,7 +221,7 @@ describe('ArtifactsSettingsPane', () => {
     render(<ArtifactsSettingsPane settings={getDefaultSettings('/tmp')} updateSettings={vi.fn()} />)
 
     expect(
-      screen.getByText(/Open Settings → Artifacts in the Orca desktop app on the host device/)
+      screen.getByText(/Open Settings → Artifacts in the Manta desktop app on the host device/)
     ).toBeInTheDocument()
   })
 })

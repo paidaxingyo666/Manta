@@ -50,30 +50,30 @@ describe('normalizeRetirableGeneratedName', () => {
 
 describe('extractBucketLeafCandidates', () => {
   it('takes everything past the encoded parent as the leaf', () => {
-    expect(extractBucketLeafCandidates(`-w-orca-${FIRST}`, ['-w-orca'])).toEqual([FIRST])
+    expect(extractBucketLeafCandidates(`-w-manta-${FIRST}`, ['-w-manta'])).toEqual([FIRST])
   })
 
   it('does not treat the parent directory as a leaf when the workspace name is numeric', () => {
-    // Real data: `-Users-x-orca-workspaces-orca-7474` must not retire `orca`, which is in the pool.
-    expect(extractBucketLeafCandidates('-w-workspaces-orca-7474', ['-w-workspaces-orca'])).toEqual([
-      '7474'
-    ])
+    // Real data: `-Users-x-manta-workspaces-manta-7474` must not retire `manta`, which is in the pool.
+    expect(
+      extractBucketLeafCandidates('-w-workspaces-manta-7474', ['-w-workspaces-manta'])
+    ).toEqual(['7474'])
   })
 
   it('offers the first segment too, so an agent run in a subdirectory still retires the leaf', () => {
-    expect(extractBucketLeafCandidates(`-w-orca-${FIRST}-packages-api`, ['-w-orca'])).toEqual([
+    expect(extractBucketLeafCandidates(`-w-manta-${FIRST}-packages-api`, ['-w-manta'])).toEqual([
       `${FIRST}-packages-api`,
       FIRST
     ])
   })
 
   it('rejects a sibling directory that shares the parent prefix', () => {
-    expect(extractBucketLeafCandidates(`-w-orcadyne-${FIRST}`, ['-w-orca'])).toEqual([])
-    expect(extractBucketLeafCandidates(`-w-orca-secret-${FIRST}`, ['-w-orca-fix'])).toEqual([])
+    expect(extractBucketLeafCandidates(`-w-mantadyne-${FIRST}`, ['-w-manta'])).toEqual([])
+    expect(extractBucketLeafCandidates(`-w-manta-secret-${FIRST}`, ['-w-manta-fix'])).toEqual([])
   })
 
   it('yields nothing for the parent bucket itself', () => {
-    expect(extractBucketLeafCandidates('-w-orca', ['-w-orca'])).toEqual([])
+    expect(extractBucketLeafCandidates('-w-manta', ['-w-manta'])).toEqual([])
   })
 })
 
@@ -97,7 +97,7 @@ describe('discoverRetiredWorktreeNames', () => {
     buckets: readonly string[],
     run: (home: string) => Promise<void>
   ): Promise<void> {
-    const home = await mkdtemp(join(tmpdir(), 'orca-retirement-home-'))
+    const home = await mkdtemp(join(tmpdir(), 'manta-retirement-home-'))
     try {
       for (const bucket of buckets) {
         await mkdir(join(home, '.claude', 'projects', bucket), { recursive: true })
@@ -109,9 +109,9 @@ describe('discoverRetiredWorktreeNames', () => {
   }
 
   it('matches a plain POSIX workspace root', async () => {
-    await withFakeHome([`-Users-ada-orca-workspaces-orca-${FIRST}`], async (home) => {
+    await withFakeHome([`-Users-ada-manta-workspaces-manta-${FIRST}`], async (home) => {
       const retired = await discoverRetiredWorktreeNames({
-        workspaceRoots: ['/Users/ada/orca/workspaces/orca'],
+        workspaceRoots: ['/Users/ada/manta/workspaces/manta'],
         home,
         env: {}
       })
@@ -132,9 +132,9 @@ describe('discoverRetiredWorktreeNames', () => {
   })
 
   it('matches a dot-directory root, where the separator run encodes to two dashes', async () => {
-    await withFakeHome([`-Users-ada--orca-worktrees-${FIRST}`], async (home) => {
+    await withFakeHome([`-Users-ada--manta-worktrees-${FIRST}`], async (home) => {
       const retired = await discoverRetiredWorktreeNames({
-        workspaceRoots: ['/Users/ada/.orca/worktrees'],
+        workspaceRoots: ['/Users/ada/.manta/worktrees'],
         home,
         env: {}
       })
@@ -143,11 +143,11 @@ describe('discoverRetiredWorktreeNames', () => {
   })
 
   it('matches a Windows drive root', async () => {
-    // `getDefaultWorkspaceDir` returns `C:\Users\<user>\orca\workspaces` on Windows, so an encoder
+    // `getDefaultWorkspaceDir` returns `C:\Users\<user>\manta\workspaces` on Windows, so an encoder
     // that collapsed `:\` rejected every bucket on that platform by default.
-    await withFakeHome([`C--Users-ada-orca-workspaces-${FIRST}`], async (home) => {
+    await withFakeHome([`C--Users-ada-manta-workspaces-${FIRST}`], async (home) => {
       const retired = await discoverRetiredWorktreeNames({
-        workspaceRoots: ['C:\\Users\\ada\\orca\\workspaces'],
+        workspaceRoots: ['C:\\Users\\ada\\manta\\workspaces'],
         home,
         env: {}
       })
@@ -156,9 +156,9 @@ describe('discoverRetiredWorktreeNames', () => {
   })
 
   it('matches a WSL UNC root', async () => {
-    await withFakeHome([`--wsl--Ubuntu-home-ada-orca-workspaces-${FIRST}`], async (home) => {
+    await withFakeHome([`--wsl--Ubuntu-home-ada-manta-workspaces-${FIRST}`], async (home) => {
       const retired = await discoverRetiredWorktreeNames({
-        workspaceRoots: ['\\\\wsl$\\Ubuntu\\home\\ada\\orca\\workspaces'],
+        workspaceRoots: ['\\\\wsl$\\Ubuntu\\home\\ada\\manta\\workspaces'],
         home,
         env: {}
       })
@@ -168,10 +168,13 @@ describe('discoverRetiredWorktreeNames', () => {
 
   it('ignores buckets belonging to a sibling root with the same prefix', async () => {
     await withFakeHome(
-      [`-Users-ada-orca-workspaces-orcadyne-${FIRST}`, `-Users-ada-orca-workspaces-orca-${SECOND}`],
+      [
+        `-Users-ada-manta-workspaces-mantadyne-${FIRST}`,
+        `-Users-ada-manta-workspaces-manta-${SECOND}`
+      ],
       async (home) => {
         const retired = await discoverRetiredWorktreeNames({
-          workspaceRoots: ['/Users/ada/orca/workspaces/orca'],
+          workspaceRoots: ['/Users/ada/manta/workspaces/manta'],
           home,
           env: {}
         })
@@ -181,7 +184,7 @@ describe('discoverRetiredWorktreeNames', () => {
   })
 
   it('reads buckets from CLAUDE_CONFIG_DIR when it is set', async () => {
-    const configDir = await mkdtemp(join(tmpdir(), 'orca-retirement-config-'))
+    const configDir = await mkdtemp(join(tmpdir(), 'manta-retirement-config-'))
     await withFakeHome([`-Users-ada-w-${SECOND}`], async (home) => {
       try {
         await mkdir(join(configDir, 'projects', `-Users-ada-w-${FIRST}`), { recursive: true })
@@ -199,7 +202,7 @@ describe('discoverRetiredWorktreeNames', () => {
   })
 
   it('retires live workspace directories alongside surviving buckets', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-retirement-roots-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-retirement-roots-'))
     await withFakeHome([], async (home) => {
       try {
         await mkdir(join(root, SECOND), { recursive: true })
@@ -291,7 +294,7 @@ describe('getRetiredNameRegistryForRepo', () => {
 
 describe('ensureRetiredWorktreeNamesBackfilled', () => {
   it('awaits the historical workspace scan before returning names to a client', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-retirement-backfill-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-retirement-backfill-'))
     const workspaceRoot = join(root, 'workspaces')
     await mkdir(join(workspaceRoot, FIRST), { recursive: true })
     const merged: { repoId: string; names: string[] }[] = []

@@ -1,6 +1,6 @@
 import type { FeatureInteractionId } from '../../../shared/feature-interactions'
 import { isBrowserPaneUiRuntimeRpcParams } from '../../../shared/runtime-rpc-feature-interaction-source'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 
 export function getRuntimeFeatureInteractionId(
   method: string,
@@ -39,7 +39,7 @@ export function getRuntimeFeatureInteractionId(
 }
 
 export function recordRuntimeFeatureInteraction(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   method: string,
   result: unknown,
   alreadyRecorded?: Set<FeatureInteractionId>,

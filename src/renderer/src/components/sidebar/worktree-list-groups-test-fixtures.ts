@@ -7,8 +7,8 @@ export const LOCAL_HOST_LABEL = getExecutionHostLabel('local')
 
 export const repo: Repo = {
   id: 'repo-1',
-  path: '/tmp/orca',
-  displayName: 'orca',
+  path: '/tmp/manta',
+  displayName: 'manta',
   badgeColor: '#000000',
   addedAt: 0
 }
@@ -16,7 +16,7 @@ export const repo: Repo = {
 export const worktree: Worktree = {
   id: 'wt-1',
   repoId: repo.id,
-  path: '/tmp/orca-feature',
+  path: '/tmp/manta-feature',
   branch: 'refs/heads/feature/super-critical',
   head: 'abc123',
   isBare: false,
@@ -37,8 +37,8 @@ export const repoMap = new Map([[repo.id, repo]])
 
 export const remoteRepo: Repo = {
   id: 'repo-remote',
-  path: '/home/alice/orca',
-  displayName: 'orca',
+  path: '/home/alice/manta',
+  displayName: 'manta',
   badgeColor: '#111111',
   addedAt: 1,
   connectionId: 'gpu-vm'
@@ -48,13 +48,13 @@ export const remoteWorktree: Worktree = {
   ...worktree,
   id: 'wt-remote',
   repoId: remoteRepo.id,
-  path: '/home/alice/orca-feature',
+  path: '/home/alice/manta-feature',
   displayName: 'remote feature'
 }
 
 export const project: Project = {
-  id: 'github:stablyai/orca',
-  displayName: 'Orca',
+  id: 'github:stablyai/manta',
+  displayName: 'Manta',
   badgeColor: '#737373',
   sourceRepoIds: [repo.id, remoteRepo.id],
   createdAt: 1,

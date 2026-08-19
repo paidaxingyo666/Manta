@@ -18,7 +18,7 @@ export async function getCliStatus(
       runtime: {
         // Why: distinguishing "never started" from "was running but died"
         // gives the user a better signal about what happened. If the metadata
-        // file exists, Orca was running at some point.
+        // file exists, Manta was running at some point.
         state: metadata ? 'stale_bootstrap' : 'not_running',
         reachable: false,
         runtimeId: null

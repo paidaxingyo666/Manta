@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { ChevronLeft, Globe } from 'lucide-react-native'
 import Svg, { Path } from 'react-native-svg'
 import Constants from 'expo-constants'
-import { OrcaLogo } from '../src/components/OrcaLogo'
+import { MantaLogo } from '../src/components/MantaLogo'
 import { colors, spacing, typography } from '../src/theme/mobile-theme'
 
 // Why: read version + native build identifier from expo-constants at
@@ -50,26 +50,26 @@ export default function AboutScreen() {
       </View>
 
       <View style={styles.brand}>
-        <OrcaLogo size={28} />
-        <Text style={styles.brandName}>Orca</Text>
+        <MantaLogo size={28} />
+        <Text style={styles.brandName}>Manta</Text>
         <Text style={styles.brandSub}>Open-source agent IDE for 100x builders</Text>
       </View>
 
       <View style={styles.section}>
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://onOrca.dev')}
+          onPress={() => void Linking.openURL('https://manta.sh.cn')}
         >
           <Globe size={16} color={colors.textSecondary} />
-          <Text style={styles.rowValue}>onOrca.dev</Text>
+          <Text style={styles.rowValue}>manta.sh.cn</Text>
         </Pressable>
         <View style={styles.separator} />
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://github.com/stablyai/orca')}
+          onPress={() => void Linking.openURL('https://github.com/stablyai/manta')}
         >
           <GithubIcon />
-          <Text style={styles.rowValue}>stablyai/orca</Text>
+          <Text style={styles.rowValue}>stablyai/manta</Text>
         </Pressable>
         <View style={styles.separator} />
         <Pressable

@@ -42,7 +42,7 @@ describe('AntigravityHookService', () => {
   let homeDir: string
 
   beforeEach(() => {
-    homeDir = mkdtempSync(join(tmpdir(), 'orca-antigravity-home-'))
+    homeDir = mkdtempSync(join(tmpdir(), 'manta-antigravity-home-'))
     homedirMock.mockReturnValue(homeDir)
   })
 
@@ -61,40 +61,42 @@ describe('AntigravityHookService', () => {
     const config = JSON.parse(
       readFileSync(join(homeDir, '.gemini', 'config', 'hooks.json'), 'utf8')
     ) as {
-      'orca-status': Record<
+      'manta-status': Record<
         string,
         { matcher?: string; command?: string; hooks?: { command: string }[] }[]
       >
     }
-    expect(Object.keys(config['orca-status']).sort()).toEqual(
+    expect(Object.keys(config['manta-status']).sort()).toEqual(
       ['PostInvocation', 'PostToolUse', 'PreInvocation', 'Stop'].sort()
     )
-    expect(config['orca-status'].PreToolUse).toBeUndefined()
-    expect(config['orca-status'].PostToolUse[0].matcher).toBe('*')
-    expect(config['orca-status'].PreInvocation[0].command).toContain(
+    expect(config['manta-status'].PreToolUse).toBeUndefined()
+    expect(config['manta-status'].PostToolUse[0].matcher).toBe('*')
+    expect(config['manta-status'].PreInvocation[0].command).toContain(
       ANTIGRAVITY_PRE_INVOCATION_COMMAND
     )
     if (process.platform === 'win32') {
-      expect(config['orca-status'].PreInvocation[0].command).not.toContain('ORCA_ANTIGRAVITY_EVENT')
-    } else {
-      expect(config['orca-status'].PreInvocation[0].command).toContain(
-        "ORCA_ANTIGRAVITY_EVENT='PreInvocation'"
+      expect(config['manta-status'].PreInvocation[0].command).not.toContain(
+        'MANTA_ANTIGRAVITY_EVENT'
       )
-      expect(config['orca-status'].Stop[0].command).toContain("ORCA_ANTIGRAVITY_EVENT='Stop'")
+    } else {
+      expect(config['manta-status'].PreInvocation[0].command).toContain(
+        "MANTA_ANTIGRAVITY_EVENT='PreInvocation'"
+      )
+      expect(config['manta-status'].Stop[0].command).toContain("MANTA_ANTIGRAVITY_EVENT='Stop'")
     }
 
     const script = readFileSync(
-      join(homeDir, '.orca', 'agent-hooks', ANTIGRAVITY_SCRIPT_FILE_NAME),
+      join(homeDir, '.manta', 'agent-hooks', ANTIGRAVITY_SCRIPT_FILE_NAME),
       'utf8'
     )
     expect(script).toContain('/hook/antigravity')
     if (process.platform === 'win32') {
       expect(script).toContain('%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe')
-      expect(script).toContain('hook_event_name=$env:ORCA_ANTIGRAVITY_EVENT')
+      expect(script).toContain('hook_event_name=$env:MANTA_ANTIGRAVITY_EVENT')
       expect(script).toContain('[string]::IsNullOrWhiteSpace($inputData)) { @{} }')
       expect(script).not.toContain('[string]::IsNullOrWhiteSpace($inputData)) { exit 0 }')
     } else {
-      expect(script).toContain('hook_event_name=${ORCA_ANTIGRAVITY_EVENT}')
+      expect(script).toContain('hook_event_name=${MANTA_ANTIGRAVITY_EVENT}')
       expect(script).toContain(`payload=$(${POSIX_HOOK_STDIN_READER})`)
       expect(script).toContain("payload='{}'")
       expect(script).not.toContain('if [ -z "$payload" ]; then\n  exit 0\nfi')
@@ -112,7 +114,7 @@ describe('AntigravityHookService', () => {
       const configPath = join(homeDir, '.gemini', 'config', 'hooks.json')
       const staleScriptPath = join(
         homeDir,
-        '.orca',
+        '.manta',
         'agent-hooks',
         'antigravity-hook.cmd'
       ).replaceAll('/', '\\')
@@ -121,14 +123,14 @@ describe('AntigravityHookService', () => {
         configPath,
         `${JSON.stringify(
           {
-            'orca-status': {
+            'manta-status': {
               PreToolUse: [
                 {
                   matcher: '*',
                   hooks: [
                     {
                       type: 'command',
-                      command: `cmd /d /s /c "set "ORCA_ANTIGRAVITY_EVENT=PreToolUse" && call "${staleScriptPath}""`
+                      command: `cmd /d /s /c "set "MANTA_ANTIGRAVITY_EVENT=PreToolUse" && call "${staleScriptPath}""`
                     }
                   ]
                 }
@@ -150,12 +152,12 @@ describe('AntigravityHookService', () => {
       expect(status.state).toBe('installed')
 
       const config = JSON.parse(readFileSync(configPath, 'utf8')) as {
-        'orca-status': Record<
+        'manta-status': Record<
           string,
           { matcher?: string; command?: string; hooks?: { command: string }[] }[]
         >
       }
-      expect(config['orca-status'].PreToolUse).toBeUndefined()
+      expect(config['manta-status'].PreToolUse).toBeUndefined()
 
       const expectedWrappers = {
         PreInvocation: 'antigravity-pre-invocation.cmd',
@@ -164,31 +166,34 @@ describe('AntigravityHookService', () => {
         PostToolUse: 'antigravity-post-tool-use.cmd'
       }
       for (const [eventName, wrapperFileName] of Object.entries(expectedWrappers)) {
-        const definition = config['orca-status'][eventName][0]
+        const definition = config['manta-status'][eventName][0]
         const command =
           eventName === 'PostToolUse' ? definition.hooks?.[0]?.command : definition.command
         expect(createManagedCommandMatcher(wrapperFileName)(command)).toBe(true)
         expect(command).not.toContain('cmd /d /s /c')
-        expect(command).not.toContain('ORCA_ANTIGRAVITY_EVENT')
+        expect(command).not.toContain('MANTA_ANTIGRAVITY_EVENT')
 
-        const wrapper = readFileSync(join(homeDir, '.orca', 'agent-hooks', wrapperFileName), 'utf8')
-        expect(wrapper).toContain(`set "ORCA_ANTIGRAVITY_EVENT=${eventName}"`)
-        expect(wrapper).toContain('call "%ORCA_ANTIGRAVITY_CORE%"')
+        const wrapper = readFileSync(
+          join(homeDir, '.manta', 'agent-hooks', wrapperFileName),
+          'utf8'
+        )
+        expect(wrapper).toContain(`set "MANTA_ANTIGRAVITY_EVENT=${eventName}"`)
+        expect(wrapper).toContain('call "%MANTA_ANTIGRAVITY_CORE%"')
       }
 
       const script = readFileSync(
-        join(homeDir, '.orca', 'agent-hooks', 'antigravity-hook.cmd'),
+        join(homeDir, '.manta', 'agent-hooks', 'antigravity-hook.cmd'),
         'utf8'
       )
       expect(script).toContain('/hook/antigravity')
       expect(script).toContain('%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe')
-      expect(script).toContain('hook_event_name=$env:ORCA_ANTIGRAVITY_EVENT')
+      expect(script).toContain('hook_event_name=$env:MANTA_ANTIGRAVITY_EVENT')
       expect(script).toContain('[string]::IsNullOrWhiteSpace($inputData)) { @{} }')
       expect(script).not.toContain('[string]::IsNullOrWhiteSpace($inputData)) { exit 0 }')
     })
   })
 
-  it('preserves user-authored hook bundles and entries in Orca bundle', () => {
+  it('preserves user-authored hook bundles and entries in Manta bundle', () => {
     const configPath = join(homeDir, '.gemini', 'config', 'hooks.json')
     mkdirSync(dirname(configPath), { recursive: true })
     writeFileSync(
@@ -198,8 +203,8 @@ describe('AntigravityHookService', () => {
           'user-hook': {
             PreInvocation: [{ type: 'command', command: '/usr/local/bin/user-hook' }]
           },
-          'orca-status': {
-            PreInvocation: [{ type: 'command', command: '/usr/local/bin/orca-extra' }]
+          'manta-status': {
+            PreInvocation: [{ type: 'command', command: '/usr/local/bin/manta-extra' }]
           }
         },
         null,
@@ -211,11 +216,11 @@ describe('AntigravityHookService', () => {
 
     const config = JSON.parse(readFileSync(configPath, 'utf8')) as {
       'user-hook': { PreInvocation: { command: string }[] }
-      'orca-status': { PreInvocation: { command: string }[] }
+      'manta-status': { PreInvocation: { command: string }[] }
     }
     expect(config['user-hook'].PreInvocation[0].command).toBe('/usr/local/bin/user-hook')
-    const commands = config['orca-status'].PreInvocation.map((entry) => entry.command)
-    expect(commands).toContain('/usr/local/bin/orca-extra')
+    const commands = config['manta-status'].PreInvocation.map((entry) => entry.command)
+    expect(commands).toContain('/usr/local/bin/manta-extra')
     expect(commands.some((command) => command.includes(ANTIGRAVITY_PRE_INVOCATION_COMMAND))).toBe(
       true
     )
@@ -228,7 +233,7 @@ describe('AntigravityHookService', () => {
       configPath,
       `${JSON.stringify(
         {
-          'orca-status': {
+          'manta-status': {
             OldEvent: [
               {
                 type: 'command',
@@ -251,16 +256,16 @@ describe('AntigravityHookService', () => {
     new AntigravityHookService().install()
 
     const config = JSON.parse(readFileSync(configPath, 'utf8')) as {
-      'orca-status': Record<string, { command?: string; hooks?: { command: string }[] }[]>
+      'manta-status': Record<string, { command?: string; hooks?: { command: string }[] }[]>
     }
-    expect(config['orca-status'].OldEvent).toBeUndefined()
-    expect(config['orca-status'].PreToolUse).toBeUndefined()
-    const commands = config['orca-status'].PostToolUse.flatMap((definition) =>
+    expect(config['manta-status'].OldEvent).toBeUndefined()
+    expect(config['manta-status'].PreToolUse).toBeUndefined()
+    const commands = config['manta-status'].PostToolUse.flatMap((definition) =>
       (definition.hooks ?? []).map((hook) => hook.command)
     )
     expect(commands).toHaveLength(1)
     expect(commands[0]).toContain(
-      join(homeDir, '.orca', 'agent-hooks', ANTIGRAVITY_POST_TOOL_USE_COMMAND)
+      join(homeDir, '.manta', 'agent-hooks', ANTIGRAVITY_POST_TOOL_USE_COMMAND)
     )
   })
 })

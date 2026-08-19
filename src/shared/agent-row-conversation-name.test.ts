@@ -48,26 +48,26 @@ describe('getAgentRowConversationName', () => {
 
   it('rejects spinner+cwd titles instead of surfacing paths as names', () => {
     expect(
-      getAgentRowConversationName(makeTab({ title: '⠋ ~/orca/workspaces' }), 'codex', false)
+      getAgentRowConversationName(makeTab({ title: '⠋ ~/manta/workspaces' }), 'codex', false)
     ).toBeNull()
     expect(
       getAgentRowConversationName(makeTab({ title: '/Users/dev/repo' }), 'codex', false)
     ).toBeNull()
     expect(
-      getAgentRowConversationName(makeTab({ title: 'C:\\repos\\orca' }), 'codex', false)
+      getAgentRowConversationName(makeTab({ title: 'C:\\repos\\manta' }), 'codex', false)
     ).toBeNull()
     expect(
-      getAgentRowConversationName(makeTab({ title: 'orca/workspaces' }), 'codex', false)
+      getAgentRowConversationName(makeTab({ title: 'manta/workspaces' }), 'codex', false)
     ).toBeNull()
     expect(
       getAgentRowConversationName(
-        makeTab({ title: '\\\\wsl.localhost\\Ubuntu\\home\\dev\\orca' }),
+        makeTab({ title: '\\\\wsl.localhost\\Ubuntu\\home\\dev\\manta' }),
         'codex',
         false
       )
     ).toBeNull()
     expect(
-      getAgentRowConversationName(makeTab({ title: 'repos\\orca' }), 'codex', false)
+      getAgentRowConversationName(makeTab({ title: 'repos\\manta' }), 'codex', false)
     ).toBeNull()
   })
 
@@ -105,7 +105,7 @@ describe('getAgentRowConversationName', () => {
       getAgentRowConversationName(makeTab({ title: '✦ Gemini CLI' }), 'gemini', false)
     ).toBeNull()
     expect(
-      getAgentRowConversationName(makeTab({ title: '◇ Ready (orca)' }), 'gemini', false)
+      getAgentRowConversationName(makeTab({ title: '◇ Ready (manta)' }), 'gemini', false)
     ).toBeNull()
     expect(
       getAgentRowConversationName(makeTab({ title: 'claude agents' }), 'claude', false)

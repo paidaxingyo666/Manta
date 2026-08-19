@@ -30,7 +30,7 @@ function canonicalizeIfPresent(candidatePath: string): string {
 }
 
 /**
- * Proves a host managed home is an Orca-owned account directory and cannot
+ * Proves a host managed home is a Manta-owned account directory and cannot
  * resolve into the user's real CODEX_HOME before callers write launch state.
  */
 export function assertOwnedHostCodexManagedHomePath({
@@ -77,12 +77,12 @@ export function assertOwnedHostCodexManagedHomePath({
     )
   }
 
-  const markerPath = join(canonicalCandidate, '.orca-managed-home')
+  const markerPath = join(canonicalCandidate, '.manta-managed-home')
   let markerIsRegularFile: boolean
   try {
     markerIsRegularFile = lstatSync(markerPath).isFile()
   } catch (error) {
-    throw new Error('Managed Codex home is missing Orca ownership marker.', { cause: error })
+    throw new Error('Managed Codex home is missing Manta ownership marker.', { cause: error })
   }
   if (!markerIsRegularFile) {
     throw new Error('Managed Codex home ownership marker is not a regular file.')

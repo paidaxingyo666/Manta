@@ -69,7 +69,7 @@ export function resolveTerminalKeyboardShortcutAction(
   layoutCharacterForCode: Parameters<typeof resolveTerminalShortcutAction>[8],
   getWindowsShiftEnterEncoding: Parameters<typeof resolveTerminalShortcutAction>[9],
   isWindowsTerminalHost: NonNullable<Parameters<typeof resolveTerminalShortcutAction>[10]>,
-  terminalShortcutPolicy: Parameters<typeof resolveTerminalShortcutAction>[11] = 'orca-first',
+  terminalShortcutPolicy: Parameters<typeof resolveTerminalShortcutAction>[11] = 'manta-first',
   hasCtrlEnterCsiUAuthority?: Parameters<typeof resolveTerminalShortcutAction>[12]
 ): ReturnType<typeof resolveTerminalShortcutAction> {
   // Why: keep the host callback required at the production boundary so a
@@ -190,7 +190,7 @@ export function matchFileSearchShortcut(
   e: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'shiftKey' | 'altKey' | 'repeat'>,
   platform: KeybindingPlatform,
   keybindings?: KeybindingOverrides,
-  terminalShortcutPolicy: TerminalShortcutPolicy = 'orca-first'
+  terminalShortcutPolicy: TerminalShortcutPolicy = 'manta-first'
 ): boolean {
   if (e.repeat) {
     return false
@@ -235,7 +235,7 @@ type KeyboardHandlersDeps = {
 /**
  * Installs terminal-pane shortcuts on the tab keyboard scope.
  * Uses the shared shortcut policy before forwarding unmatched input to xterm
- * so configurable Orca actions remain consistent across local and SSH panes.
+ * so configurable Manta actions remain consistent across local and SSH panes.
  */
 export function useTerminalKeyboardShortcuts({
   tabId,
@@ -264,7 +264,7 @@ export function useTerminalKeyboardShortcuts({
   macOptionAsAltRef,
   paneKittyKeyboardModesRef,
   keybindings,
-  terminalShortcutPolicy = 'orca-first'
+  terminalShortcutPolicy = 'manta-first'
 }: KeyboardHandlersDeps): void {
   useEffect(() => {
     if (!isActive) {

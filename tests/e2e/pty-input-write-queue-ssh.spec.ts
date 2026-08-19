@@ -1,4 +1,4 @@
-import { test } from './helpers/orca-app'
+import { test } from './helpers/manta-app'
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 import {
   cleanupDockerSshRelayTarget,
@@ -13,7 +13,7 @@ import {
 } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.MANTA_E2E_SSH_DOCKER === '1'
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`
@@ -38,27 +38,27 @@ function remoteOscQueryScript(runId: string): string {
 }
 
 test.describe('PTY input write queue over SSH', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
+  test.skip(!RUN_DOCKER_SSH, 'Set MANTA_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
   test.skip(process.platform === 'win32', 'Docker SSH E2E uses POSIX ssh tooling.')
 
   test('returns an xterm OSC query reply through the live SSH PTY', async ({
-    orcaPage
+    mantaPage
   }, testInfo) => {
     test.slow()
     let target: DockerSshRelayTarget | null = null
     try {
       target = startDockerSshRelayTarget(testInfo)
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      await connectDockerSshRelayTarget(orcaPage, target)
-      await ensureTerminalVisible(orcaPage, 45_000)
-      await waitForActiveTerminalManager(orcaPage, 60_000)
-      const ptyId = await waitForActivePanePtyId(orcaPage, 60_000)
+      await waitForSessionReady(mantaPage)
+      await waitForActiveWorktree(mantaPage)
+      await connectDockerSshRelayTarget(mantaPage, target)
+      await ensureTerminalVisible(mantaPage, 45_000)
+      await waitForActiveTerminalManager(mantaPage, 60_000)
+      const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
       const runId = String(Date.now())
 
-      await execInTerminal(orcaPage, ptyId, `node -e ${shellQuote(remoteOscQueryScript(runId))}`)
-      await waitForTerminalOutput(orcaPage, `REMOTE_OSC_READY_${runId}`, 30_000, 80_000)
-      await waitForTerminalOutput(orcaPage, `REMOTE_OSC_REPLY_${runId}`, 30_000, 80_000)
+      await execInTerminal(mantaPage, ptyId, `node -e ${shellQuote(remoteOscQueryScript(runId))}`)
+      await waitForTerminalOutput(mantaPage, `REMOTE_OSC_READY_${runId}`, 30_000, 80_000)
+      await waitForTerminalOutput(mantaPage, `REMOTE_OSC_REPLY_${runId}`, 30_000, 80_000)
     } finally {
       cleanupDockerSshRelayTarget(target)
     }

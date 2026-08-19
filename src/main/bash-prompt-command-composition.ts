@@ -1,179 +1,179 @@
-export const BASH_PROMPT_COMMAND_COMPOSITION_BLOCK = `__orca_normalize_prompt_command_part() {
-  local __orca_value="$1" __orca_output_name="$2" __orca_character __orca_chunk
-  local __orca_value_length=\${#1} __orca_suffix_length=0 __orca_backslash_length=0
-  local __orca_output_length __orca_scan_start
-  while (( __orca_value_length - __orca_suffix_length >= 1024 )); do
-    __orca_scan_start=$(( __orca_value_length - __orca_suffix_length - 1024 ))
-    __orca_chunk="\${__orca_value:__orca_scan_start:1024}"
-    case "$__orca_chunk" in
+export const BASH_PROMPT_COMMAND_COMPOSITION_BLOCK = `__manta_normalize_prompt_command_part() {
+  local __manta_value="$1" __manta_output_name="$2" __manta_character __manta_chunk
+  local __manta_value_length=\${#1} __manta_suffix_length=0 __manta_backslash_length=0
+  local __manta_output_length __manta_scan_start
+  while (( __manta_value_length - __manta_suffix_length >= 1024 )); do
+    __manta_scan_start=$(( __manta_value_length - __manta_suffix_length - 1024 ))
+    __manta_chunk="\${__manta_value:__manta_scan_start:1024}"
+    case "$__manta_chunk" in
       *[!$' \\t\\n;']*) break ;;
-      *) __orca_suffix_length=$(( __orca_suffix_length + 1024 )) ;;
+      *) __manta_suffix_length=$(( __manta_suffix_length + 1024 )) ;;
     esac
   done
-  while (( __orca_suffix_length < __orca_value_length )); do
-    __orca_character="\${__orca_value: -__orca_suffix_length - 1:1}"
-    case "$__orca_character" in
-      ' '|$'\\t'|$'\\n'|';') __orca_suffix_length=$(( __orca_suffix_length + 1 )) ;;
+  while (( __manta_suffix_length < __manta_value_length )); do
+    __manta_character="\${__manta_value: -__manta_suffix_length - 1:1}"
+    case "$__manta_character" in
+      ' '|$'\\t'|$'\\n'|';') __manta_suffix_length=$(( __manta_suffix_length + 1 )) ;;
       *) break ;;
     esac
   done
-  __orca_output_length=$(( \${#__orca_value} - __orca_suffix_length ))
-  while (( __orca_output_length - __orca_backslash_length >= 1024 )); do
-    __orca_scan_start=$(( __orca_output_length - __orca_backslash_length - 1024 ))
-    __orca_chunk="\${__orca_value:__orca_scan_start:1024}"
-    case "$__orca_chunk" in
+  __manta_output_length=$(( \${#__manta_value} - __manta_suffix_length ))
+  while (( __manta_output_length - __manta_backslash_length >= 1024 )); do
+    __manta_scan_start=$(( __manta_output_length - __manta_backslash_length - 1024 ))
+    __manta_chunk="\${__manta_value:__manta_scan_start:1024}"
+    case "$__manta_chunk" in
       *[!\\\\]*) break ;;
-      *) __orca_backslash_length=$(( __orca_backslash_length + 1024 )) ;;
+      *) __manta_backslash_length=$(( __manta_backslash_length + 1024 )) ;;
     esac
   done
-  while (( __orca_backslash_length < __orca_output_length )); do
-    __orca_character="\${__orca_value:__orca_output_length - __orca_backslash_length - 1:1}"
-    [[ "$__orca_character" == '\\' ]] || break
-    __orca_backslash_length=$(( __orca_backslash_length + 1 ))
+  while (( __manta_backslash_length < __manta_output_length )); do
+    __manta_character="\${__manta_value:__manta_output_length - __manta_backslash_length - 1:1}"
+    [[ "$__manta_character" == '\\' ]] || break
+    __manta_backslash_length=$(( __manta_backslash_length + 1 ))
   done
   # Preserve the first separator when an odd backslash run escapes it.
-  if (( __orca_suffix_length > 0 && __orca_backslash_length % 2 == 1 )); then
-    __orca_suffix_length=$(( __orca_suffix_length - 1 ))
-    __orca_backslash_length=0
+  if (( __manta_suffix_length > 0 && __manta_backslash_length % 2 == 1 )); then
+    __manta_suffix_length=$(( __manta_suffix_length - 1 ))
+    __manta_backslash_length=0
   fi
-  __orca_output_length=$(( \${#__orca_value} - __orca_suffix_length ))
-  __orca_value="\${__orca_value:0:__orca_output_length}"
+  __manta_output_length=$(( \${#__manta_value} - __manta_suffix_length ))
+  __manta_value="\${__manta_value:0:__manta_output_length}"
   # Bash 4.4-5.0 scalar prompt evaluation preserves an odd terminal backslash.
-  if (( __orca_suffix_length == 0 && ((BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 4) || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] == 0)) && __orca_backslash_length % 2 == 1 )); then
-    __orca_value="$__orca_value\\\\"
+  if (( __manta_suffix_length == 0 && ((BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 4) || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] == 0)) && __manta_backslash_length % 2 == 1 )); then
+    __manta_value="$__manta_value\\\\"
   fi
-  printf -v "$__orca_output_name" '%s' "$__orca_value"
+  printf -v "$__manta_output_name" '%s' "$__manta_value"
 }
-__orca_restore_prompt_status() {
+__manta_restore_prompt_status() {
   return "$1"
 }
-__orca_update_user_debug_trap() {
-  local __orca_debug_trap_spec="$1" __orca_unchanged_debug_trap_spec="$2"
-  local __orca_debug_trap_command
-  [[ "$__orca_debug_trap_spec" != "$__orca_unchanged_debug_trap_spec" ]] || return 0
-  [[ "$__orca_debug_trap_spec" != "trap -- '__orca_osc133_preexec' DEBUG" ]] || return 0
-  if [[ -z "$__orca_debug_trap_spec" ]]; then
-    __orca_user_debug_trap=""
-    unset __orca_chained_debug_trap
+__manta_update_user_debug_trap() {
+  local __manta_debug_trap_spec="$1" __manta_unchanged_debug_trap_spec="$2"
+  local __manta_debug_trap_command
+  [[ "$__manta_debug_trap_spec" != "$__manta_unchanged_debug_trap_spec" ]] || return 0
+  [[ "$__manta_debug_trap_spec" != "trap -- '__manta_osc133_preexec' DEBUG" ]] || return 0
+  if [[ -z "$__manta_debug_trap_spec" ]]; then
+    __manta_user_debug_trap=""
+    unset __manta_chained_debug_trap
     return 0
   fi
-  __orca_debug_trap_command="\${__orca_debug_trap_spec#trap -- }"
-  __orca_debug_trap_command="\${__orca_debug_trap_command% DEBUG}"
-  eval "__orca_user_debug_trap=$__orca_debug_trap_command"
-  unset __orca_chained_debug_trap
+  __manta_debug_trap_command="\${__manta_debug_trap_spec#trap -- }"
+  __manta_debug_trap_command="\${__manta_debug_trap_command% DEBUG}"
+  eval "__manta_user_debug_trap=$__manta_debug_trap_command"
+  unset __manta_chained_debug_trap
 }
-__orca_run_user_debug_trap() {
-  if [[ -n "\${__orca_user_debug_trap:-}" ]]; then
-    eval "$__orca_user_debug_trap" || true
+__manta_run_user_debug_trap() {
+  if [[ -n "\${__manta_user_debug_trap:-}" ]]; then
+    eval "$__manta_user_debug_trap" || true
   fi
 }
-__orca_adopt_outer_debug_trap() {
-  local __orca_debug_trap_spec="\${__orca_outer_debug_trap_spec:-}"
-  unset __orca_outer_debug_trap_spec
-  __orca_update_user_debug_trap "$__orca_debug_trap_spec" "trap -- '__orca_osc133_preexec' DEBUG"
+__manta_adopt_outer_debug_trap() {
+  local __manta_debug_trap_spec="\${__manta_outer_debug_trap_spec:-}"
+  unset __manta_outer_debug_trap_spec
+  __manta_update_user_debug_trap "$__manta_debug_trap_spec" "trap -- '__manta_osc133_preexec' DEBUG"
 }
-__orca_run_prompt_command_array() {
-  local __orca_exit_code="\${__orca_prompt_status:-$?}" __orca_prompt_part __orca_prompt_index __orca_user_count
-  local __orca_suffix_part
-  local __orca_final_prompt_command
-  local __orca_in_prompt_dispatch=1 __orca_dispatching_user_prompt_command=""
-  unset __orca_prompt_status
-  __orca_adopt_outer_debug_trap
-  trap '__orca_osc133_preexec' DEBUG
-  for __orca_prompt_part in "\${__orca_prompt_command_prefix[@]+"\${__orca_prompt_command_prefix[@]}"}"; do
-    if (( __orca_exit_code == 0 )); then
-      eval "$__orca_prompt_part"
+__manta_run_prompt_command_array() {
+  local __manta_exit_code="\${__manta_prompt_status:-$?}" __manta_prompt_part __manta_prompt_index __manta_user_count
+  local __manta_suffix_part
+  local __manta_final_prompt_command
+  local __manta_in_prompt_dispatch=1 __manta_dispatching_user_prompt_command=""
+  unset __manta_prompt_status
+  __manta_adopt_outer_debug_trap
+  trap '__manta_osc133_preexec' DEBUG
+  for __manta_prompt_part in "\${__manta_prompt_command_prefix[@]+"\${__manta_prompt_command_prefix[@]}"}"; do
+    if (( __manta_exit_code == 0 )); then
+      eval "$__manta_prompt_part"
     else
-      __orca_restore_prompt_status "$__orca_exit_code" || eval "$__orca_prompt_part"
+      __manta_restore_prompt_status "$__manta_exit_code" || eval "$__manta_prompt_part"
     fi
   done
-  __orca_user_count=0
-  for __orca_prompt_part in "\${__orca_prompt_command_array[@]+"\${__orca_prompt_command_array[@]}"}"; do
-    __orca_user_count=$(( __orca_user_count + 1 ))
+  __manta_user_count=0
+  for __manta_prompt_part in "\${__manta_prompt_command_array[@]+"\${__manta_prompt_command_array[@]}"}"; do
+    __manta_user_count=$(( __manta_user_count + 1 ))
   done
-  for (( __orca_prompt_index = 0; __orca_prompt_index + 1 < __orca_user_count; __orca_prompt_index++ )); do
-    __orca_prompt_part="\${__orca_prompt_command_array[__orca_prompt_index]}"
-    __orca_dispatching_user_prompt_command=1
-    if (( __orca_exit_code == 0 )); then
-      eval "$__orca_prompt_part"
+  for (( __manta_prompt_index = 0; __manta_prompt_index + 1 < __manta_user_count; __manta_prompt_index++ )); do
+    __manta_prompt_part="\${__manta_prompt_command_array[__manta_prompt_index]}"
+    __manta_dispatching_user_prompt_command=1
+    if (( __manta_exit_code == 0 )); then
+      eval "$__manta_prompt_part"
     else
-      __orca_restore_prompt_status "$__orca_exit_code" || eval "$__orca_prompt_part"
+      __manta_restore_prompt_status "$__manta_exit_code" || eval "$__manta_prompt_part"
     fi
-    __orca_dispatching_user_prompt_command=""
+    __manta_dispatching_user_prompt_command=""
   done
-  if (( __orca_user_count > 0 )); then
-    __orca_prompt_part="\${__orca_prompt_command_array[__orca_user_count - 1]}"
-    # Why: keep the final user hook and Orca suffixes in one status-preserving eval.
-    __orca_final_prompt_command='eval "$__orca_prompt_part"'
-    for __orca_suffix_part in "\${__orca_prompt_command_suffix[@]+"\${__orca_prompt_command_suffix[@]}"}"; do
-      __orca_final_prompt_command+=$'\\n'"$__orca_suffix_part"
+  if (( __manta_user_count > 0 )); then
+    __manta_prompt_part="\${__manta_prompt_command_array[__manta_user_count - 1]}"
+    # Why: keep the final user hook and Manta suffixes in one status-preserving eval.
+    __manta_final_prompt_command='eval "$__manta_prompt_part"'
+    for __manta_suffix_part in "\${__manta_prompt_command_suffix[@]+"\${__manta_prompt_command_suffix[@]}"}"; do
+      __manta_final_prompt_command+=$'\\n'"$__manta_suffix_part"
     done
-    __orca_dispatching_user_prompt_command=1
-    if (( __orca_exit_code == 0 )); then
-      eval "$__orca_final_prompt_command"
+    __manta_dispatching_user_prompt_command=1
+    if (( __manta_exit_code == 0 )); then
+      eval "$__manta_final_prompt_command"
     else
-      __orca_restore_prompt_status "$__orca_exit_code" || eval "$__orca_final_prompt_command"
+      __manta_restore_prompt_status "$__manta_exit_code" || eval "$__manta_final_prompt_command"
     fi
-    __orca_dispatching_user_prompt_command=""
+    __manta_dispatching_user_prompt_command=""
   else
-    for __orca_prompt_part in "\${__orca_prompt_command_suffix[@]+"\${__orca_prompt_command_suffix[@]}"}"; do
-      if (( __orca_exit_code == 0 )); then
-        eval "$__orca_prompt_part"
+    for __manta_prompt_part in "\${__manta_prompt_command_suffix[@]+"\${__manta_prompt_command_suffix[@]}"}"; do
+      if (( __manta_exit_code == 0 )); then
+        eval "$__manta_prompt_part"
       else
-        __orca_restore_prompt_status "$__orca_exit_code" || eval "$__orca_prompt_part"
+        __manta_restore_prompt_status "$__manta_exit_code" || eval "$__manta_prompt_part"
       fi
     done
   fi
-  return "$__orca_exit_code"
+  return "$__manta_exit_code"
 }
-__orca_finish_legacy_prompt_dispatch() {
-  local __orca_suffix_part
-  if [[ -n "\${__orca_in_prompt_command:-}" ]]; then
-    for __orca_suffix_part in "\${__orca_prompt_command_suffix[@]+"\${__orca_prompt_command_suffix[@]}"}"; do
-      eval "$__orca_suffix_part"
+__manta_finish_legacy_prompt_dispatch() {
+  local __manta_suffix_part
+  if [[ -n "\${__manta_in_prompt_command:-}" ]]; then
+    for __manta_suffix_part in "\${__manta_prompt_command_suffix[@]+"\${__manta_prompt_command_suffix[@]}"}"; do
+      eval "$__manta_suffix_part"
     done
   fi
-  trap '__orca_osc133_preexec' DEBUG
-  unset __orca_in_legacy_prompt_wrapper
+  trap '__manta_osc133_preexec' DEBUG
+  unset __manta_in_legacy_prompt_wrapper
 }
-__orca_normalize_prompt_command() {
-  [[ -z "\${__orca_prompt_command_normalized:-}" ]] || return 0
-  local __orca_prompt_part
-  local -a __orca_normalized=()
-  for __orca_prompt_part in "\${PROMPT_COMMAND[@]+"\${PROMPT_COMMAND[@]}"}"; do
-    __orca_normalize_prompt_command_part "$__orca_prompt_part" __orca_prompt_part
-    [[ -n "$__orca_prompt_part" ]] && __orca_normalized+=("$__orca_prompt_part")
+__manta_normalize_prompt_command() {
+  [[ -z "\${__manta_prompt_command_normalized:-}" ]] || return 0
+  local __manta_prompt_part
+  local -a __manta_normalized=()
+  for __manta_prompt_part in "\${PROMPT_COMMAND[@]+"\${PROMPT_COMMAND[@]}"}"; do
+    __manta_normalize_prompt_command_part "$__manta_prompt_part" __manta_prompt_part
+    [[ -n "$__manta_prompt_part" ]] && __manta_normalized+=("$__manta_prompt_part")
   done
-  __orca_prompt_command_normalized=1
+  __manta_prompt_command_normalized=1
   if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1) )); then
-    PROMPT_COMMAND=("\${__orca_normalized[@]+"\${__orca_normalized[@]}"}")
+    PROMPT_COMMAND=("\${__manta_normalized[@]+"\${__manta_normalized[@]}"}")
   else
-    __orca_prompt_command_array=("\${__orca_normalized[@]+"\${__orca_normalized[@]}"}")
-    __orca_prompt_command_prefix=()
-    __orca_prompt_command_suffix=()
+    __manta_prompt_command_array=("\${__manta_normalized[@]+"\${__manta_normalized[@]}"}")
+    __manta_prompt_command_prefix=()
+    __manta_prompt_command_suffix=()
     unset PROMPT_COMMAND
     # Why: PID scope distinguishes legacy prompt dispatch from ordinary user command text.
-    __orca_prompt_status_variable="__orca_prompt_status_$$"
-    __orca_prompt_status_capture_command="$__orca_prompt_status_variable=\\$?"
-    __orca_prompt_status_value="\\\${$__orca_prompt_status_variable}"
-    PROMPT_COMMAND="$__orca_prompt_status_capture_command; __orca_prompt_status=$__orca_prompt_status_value"'; __orca_prompt_had_functrace=""; if [[ -o functrace ]]; then __orca_prompt_had_functrace=1; set +T; fi; __orca_outer_debug_trap_spec="$(trap -p DEBUG)"; [[ -z "$__orca_prompt_had_functrace" ]] || set -T; unset __orca_prompt_had_functrace; __orca_run_prompt_command_array; __orca_finish_legacy_prompt_dispatch'
+    __manta_prompt_status_variable="__manta_prompt_status_$$"
+    __manta_prompt_status_capture_command="$__manta_prompt_status_variable=\\$?"
+    __manta_prompt_status_value="\\\${$__manta_prompt_status_variable}"
+    PROMPT_COMMAND="$__manta_prompt_status_capture_command; __manta_prompt_status=$__manta_prompt_status_value"'; __manta_prompt_had_functrace=""; if [[ -o functrace ]]; then __manta_prompt_had_functrace=1; set +T; fi; __manta_outer_debug_trap_spec="$(trap -p DEBUG)"; [[ -z "$__manta_prompt_had_functrace" ]] || set -T; unset __manta_prompt_had_functrace; __manta_run_prompt_command_array; __manta_finish_legacy_prompt_dispatch'
   fi
 }
-__orca_prepend_prompt_command() {
+__manta_prepend_prompt_command() {
   local command="$1"
-  __orca_normalize_prompt_command
+  __manta_normalize_prompt_command
   if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1) )); then
     PROMPT_COMMAND=("$command" "\${PROMPT_COMMAND[@]+"\${PROMPT_COMMAND[@]}"}")
   else
-    __orca_prompt_command_prefix=("$command" "\${__orca_prompt_command_prefix[@]+"\${__orca_prompt_command_prefix[@]}"}")
+    __manta_prompt_command_prefix=("$command" "\${__manta_prompt_command_prefix[@]+"\${__manta_prompt_command_prefix[@]}"}")
   fi
 }
-__orca_append_prompt_command() {
+__manta_append_prompt_command() {
   local command="$1"
-  __orca_normalize_prompt_command
+  __manta_normalize_prompt_command
   if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1) )); then
     PROMPT_COMMAND+=("$command")
   else
-    __orca_prompt_command_suffix+=("$command")
+    __manta_prompt_command_suffix+=("$command")
   fi
 }`

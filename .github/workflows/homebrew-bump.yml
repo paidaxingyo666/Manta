@@ -1,19 +1,19 @@
 name: Homebrew Cask Bump
 
-# Why: keep the stablyai/homebrew-orca tap in sync with GitHub Releases.
+# Why: keep the paidaxingyo666/homebrew-manta tap in sync with GitHub Releases.
 # Triggers:
 #   - workflow_call → release-cut.yml finished publishing a stable tag
 #   - workflow_dispatch → manual backfill for a specific tag
 #
-# The job computes the sha256 of orca-macos-arm64.dmg + orca-macos-x64.dmg
+# The job computes the sha256 of manta-macos-arm64.dmg + manta-macos-x64.dmg
 # from the release, templates the channel-specific cask in this repo with the
-# new version and hashes, then PRs the result into stablyai/homebrew-orca.
-# Stable tags update Casks/orca.rb; RC tags update Casks/orca@rc.rb.
+# new version and hashes, then PRs the result into paidaxingyo666/homebrew-manta.
+# Stable tags update Casks/manta.rb; RC tags update Casks/manta@rc.rb.
 #
 # Why no `release.published` trigger: other products shipped from this repo
 # (e.g. mobile under `mobile-v*`) also publish GitHub Releases. A blanket
 # `release.published` trigger would fire this workflow for any of them and
-# attempt to download `orca-macos-*.dmg` from a non-desktop release, at
+# attempt to download `manta-macos-*.dmg` from a non-desktop release, at
 # best 404ing and at worst (if the filter were weaker) rewriting the cask
 # to a non-desktop version. The tap is only ever bumped by the desktop
 # release pipeline calling this workflow directly.
@@ -43,7 +43,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout orca
+      - name: Checkout manta
         uses: actions/checkout@v6
 
       - name: Resolve tag and version
@@ -70,11 +70,11 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
-            token="orca@rc"
-            branch_token="orca-rc"
+            token="manta@rc"
+            branch_token="manta-rc"
           elif [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            token="orca"
-            branch_token="orca"
+            token="manta"
+            branch_token="manta"
           else
             echo "::error::Unsupported desktop tag shape: $TAG" >&2
             exit 1
@@ -101,11 +101,11 @@ jobs:
           mkdir -p dmgs
           gh release download "$TAG" \
             --repo "${{ github.repository }}" \
-            --pattern 'orca-macos-arm64.dmg' \
-            --pattern 'orca-macos-x64.dmg' \
+            --pattern 'manta-macos-arm64.dmg' \
+            --pattern 'manta-macos-x64.dmg' \
             --dir dmgs
-          arm=$(sha256sum dmgs/orca-macos-arm64.dmg | awk '{print $1}')
-          intel=$(sha256sum dmgs/orca-macos-x64.dmg  | awk '{print $1}')
+          arm=$(sha256sum dmgs/manta-macos-arm64.dmg | awk '{print $1}')
+          intel=$(sha256sum dmgs/manta-macos-x64.dmg  | awk '{print $1}')
           echo "arm=$arm"     >>"$GITHUB_OUTPUT"
           echo "intel=$intel" >>"$GITHUB_OUTPUT"
 
@@ -134,7 +134,7 @@ jobs:
 
       # Why: reuse the existing buf0-bot GitHub App (also used by
       # track-community-prs.yaml) instead of minting a new PAT. The app is
-      # installed org-wide, so it has access to stablyai/homebrew-orca
+      # installed org-wide, so it has access to paidaxingyo666/homebrew-manta
       # automatically. GITHUB_TOKEN cannot push cross-repo; a short-lived
       # installation token can.
       - name: Generate buf0-bot token
@@ -144,12 +144,12 @@ jobs:
           app-id: 2590194
           private-key: ${{ secrets.BUFO_BOT_PRIVATE_KEY }}
           owner: stablyai
-          repositories: homebrew-orca
+          repositories: homebrew-manta
 
       - name: Checkout tap
         uses: actions/checkout@v6
         with:
-          repository: stablyai/homebrew-orca
+          repository: paidaxingyo666/homebrew-manta
           path: tap
           token: ${{ steps.app-token.outputs.token }}
 

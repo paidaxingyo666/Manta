@@ -2,13 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RpcContext } from '../core'
 import { createOrchestrationRpcHarness } from './orchestration-rpc-test-harness'
 import type { OrchestrationDb } from '../../orchestration/db'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 
 describe('orchestration RPC methods', () => {
   const h = createOrchestrationRpcHarness()
   const { coordinatorPaneKey, findMethod } = h
   let db: OrchestrationDb
-  let runtime: OrcaRuntimeService
+  let runtime: MantaRuntimeService
   let ctx: RpcContext
 
   function setup(withBoundRun = true): void {
@@ -332,14 +332,14 @@ describe('orchestration RPC methods', () => {
 
       expect(send).toHaveBeenCalledWith(
         'term_a',
-        expect.stringContaining('orca-dev orchestration send')
+        expect.stringContaining('manta-dev orchestration send')
       )
     })
 
     it('uses the target pane CLI command for the returned preamble', async () => {
       setup()
       const task = db.createTask({ spec: 'work' })
-      vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca-ide')
+      vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('manta-ide')
 
       const result = (await call('orchestration.dispatch', {
         task: task.id,
@@ -348,8 +348,8 @@ describe('orchestration RPC methods', () => {
       })) as { preamble: string }
 
       expect(runtime.getTerminalOrchestrationCliCommand).toHaveBeenCalledWith('term_wsl')
-      expect(result.preamble).toContain('orca-ide orchestration send')
-      expect(result.preamble).not.toMatch(/(^|\s)orca orchestration/m)
+      expect(result.preamble).toContain('manta-ide orchestration send')
+      expect(result.preamble).not.toMatch(/(^|\s)manta orchestration/m)
     })
 
     it('injects preamble through the agent prompt path instead of raw terminal send', async () => {

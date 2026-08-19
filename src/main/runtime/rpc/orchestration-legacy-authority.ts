@@ -5,7 +5,10 @@ import type {
   LegacyPrincipalRole
 } from '../orchestration/types'
 import { OrchestrationError } from '../orchestration/orchestration-error'
-import type { OrcaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../orca-runtime'
+import type {
+  MantaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../manta-runtime'
 import { LEGACY_CONTRACT_VERSION } from '../orchestration/db'
 import type { RpcRequest } from './core'
 import {
@@ -23,7 +26,7 @@ export type LegacyPrincipalCandidate = {
 }
 
 export function resolveAttestedLegacyPrincipal(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   evidence?: OrchestrationCompatibilityEvidence
   candidate: LegacyPrincipalCandidate
   authority?: OrchestrationCompatibilityCallerAuthority
@@ -42,7 +45,7 @@ export function resolveAttestedLegacyPrincipal(args: {
 }
 
 export function verifyAttestedLegacyCandidate(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   evidence?: OrchestrationCompatibilityEvidence
   candidate: LegacyPrincipalCandidate
 }) {
@@ -69,7 +72,7 @@ export function verifyAttestedLegacyCandidate(args: {
 }
 
 export class LegacyCompatibilityAuthority {
-  constructor(private readonly runtime: OrcaRuntimeService) {}
+  constructor(private readonly runtime: MantaRuntimeService) {}
 
   resolveWorkerDispatch(
     request: RpcRequest,

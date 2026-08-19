@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { MantaRuntimeService } from '../../manta-runtime'
 import { SettingsUpdate } from './client-ui-schemas'
 
-function runtimeWithSharing(artifactSharingEnabled: unknown): OrcaRuntimeService {
-  return new OrcaRuntimeService({
+function runtimeWithSharing(artifactSharingEnabled: unknown): MantaRuntimeService {
+  return new MantaRuntimeService({
     getSettings: () => ({ ...getDefaultSettings('/tmp'), artifactSharingEnabled })
   } as never)
 }

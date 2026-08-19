@@ -23,7 +23,7 @@ const temporaryDirectories = []
 const execFileAsync = promisify(execFile)
 
 async function createFixture() {
-  const root = await mkdtemp(path.join(tmpdir(), 'orca-bundled-skill-guides-'))
+  const root = await mkdtemp(path.join(tmpdir(), 'manta-bundled-skill-guides-'))
   temporaryDirectories.push(root)
   await Promise.all([
     cp(path.join(projectDir, 'skill-guides'), path.join(root, 'skill-guides'), {
@@ -74,49 +74,49 @@ describe('bundled skill guide generator', () => {
 
   it('keeps pre-guide fallback useful and read-only for every converted domain', async () => {
     const expectedFallbackCommands = {
-      'computer-use': ['ORCA computer capabilities --json', 'ORCA computer list-apps --json'],
-      'linear-tickets': ['ORCA linear --help', 'ORCA linear issue --current --full --json'],
-      'orca-emulator': ['ORCA emulator list --json'],
-      'orca-emulator-android': ['ORCA emulator devices --json'],
-      'orca-linear': ['ORCA linear --help', 'ORCA linear issue --current --full --json'],
-      'orca-per-workspace-env': ['ORCA vm recipe doctor <recipe-id> --repo-path <repo> --json'],
-      orchestration: ['ORCA orchestration task-list --json', 'ORCA terminal list --json']
+      'computer-use': ['MANTA computer capabilities --json', 'MANTA computer list-apps --json'],
+      'linear-tickets': ['MANTA linear --help', 'MANTA linear issue --current --full --json'],
+      'manta-emulator': ['MANTA emulator list --json'],
+      'manta-emulator-android': ['MANTA emulator devices --json'],
+      'manta-linear': ['MANTA linear --help', 'MANTA linear issue --current --full --json'],
+      'manta-per-workspace-env': ['MANTA vm recipe doctor <recipe-id> --repo-path <repo> --json'],
+      orchestration: ['MANTA orchestration task-list --json', 'MANTA terminal list --json']
     }
 
     for (const [name, commands] of Object.entries(expectedFallbackCommands)) {
       const stub = await readFile(path.join(projectDir, 'skill-stubs', `${name}.md`), 'utf8')
-      const fallback = stub.split('## If an older Orca does not recognize `skills get`')[1]
+      const fallback = stub.split('## If an older Manta does not recognize `skills get`')[1]
 
       expect(fallback, name).toBeDefined()
       for (const command of commands) {
         expect(fallback, name).toContain(command)
       }
-      expect(fallback, name).not.toContain('ORCA worktree ps --json')
+      expect(fallback, name).not.toContain('MANTA worktree ps --json')
     }
   })
 
   it('uses the exported recipe id variable in per-workspace environment examples', async () => {
     const source = await readFile(
-      path.join(projectDir, 'skill-guides', 'orca-per-workspace-env.md'),
+      path.join(projectDir, 'skill-guides', 'manta-per-workspace-env.md'),
       'utf8'
     )
 
-    expect(source).toContain('ORCA_RECIPE_ID')
-    expect(source).not.toContain('ORCA_VM_RECIPE_ID')
+    expect(source).toContain('MANTA_RECIPE_ID')
+    expect(source).not.toContain('MANTA_VM_RECIPE_ID')
     expect(source).toContain('recipe_id="${recipe_id//./-}"')
-    expect(source).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 6))')
-    expect(source).toContain('name="orca-${recipe_id:0:max_recipe_id_length}-${instance_id}"')
+    expect(source).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 7))')
+    expect(source).toContain('name="manta-${recipe_id:0:max_recipe_id_length}-${instance_id}"')
   })
 
   it.skipIf(process.platform === 'win32')(
     'keeps Vercel sandbox names valid while preserving the instance suffix',
     async () => {
       const source = await readFile(
-        path.join(projectDir, 'skill-guides', 'orca-per-workspace-env.md'),
+        path.join(projectDir, 'skill-guides', 'manta-per-workspace-env.md'),
         'utf8'
       )
-      const startMarker = 'recipe_id="${ORCA_RECIPE_ID:-vercel-sandbox}"'
-      const endMarker = 'name="orca-${recipe_id:0:max_recipe_id_length}-${instance_id}"'
+      const startMarker = 'recipe_id="${MANTA_RECIPE_ID:-vercel-sandbox}"'
+      const endMarker = 'name="manta-${recipe_id:0:max_recipe_id_length}-${instance_id}"'
       const start = source.indexOf(startMarker)
       const endStart = source.indexOf(endMarker, start)
       expect(start).toBeGreaterThanOrEqual(0)
@@ -125,11 +125,11 @@ describe('bundled skill guide generator', () => {
       const renderName = async (recipeId, instanceId) =>
         (
           await execFileAsync('bash', ['-u', '-c', script], {
-            env: { ...process.env, ORCA_RECIPE_ID: recipeId, ORCA_VM_INSTANCE_ID: instanceId }
+            env: { ...process.env, MANTA_RECIPE_ID: recipeId, MANTA_VM_INSTANCE_ID: instanceId }
           })
         ).stdout
 
-      const instanceId = 'orca-123e4567-e89b-12d3-a456-426614174000'
+      const instanceId = 'manta-123e4567-e89b-12d3-a456-426614174000'
       const dotted = await renderName('provider.cloud_sandbox', instanceId)
       const maximum = await renderName(`a${'.'.repeat(63)}`, instanceId)
       const longInstanceId = 'i'.repeat(100)
@@ -138,7 +138,7 @@ describe('bundled skill guide generator', () => {
         longInstanceId
       )
 
-      expect(dotted).toBe(`orca-provider-cloud_sandbox-${instanceId}`)
+      expect(dotted).toBe(`manta-provider-cloud_sandbox-${instanceId}`)
       expect(maximum).toMatch(/^[a-zA-Z0-9_-]{1,128}$/u)
       expect(capped).toHaveLength(128)
       expect(capped.endsWith(`-${longInstanceId}`)).toBe(true)
@@ -164,19 +164,19 @@ describe('bundled skill guide generator', () => {
   })
 
   it('keeps CLI guide examples safe across shells and Linux command names', async () => {
-    for (const name of ['orca-cli', 'computer-use', 'orca-emulator', 'orca-emulator-android']) {
+    for (const name of ['manta-cli', 'computer-use', 'manta-emulator', 'manta-emulator-android']) {
       const source = await readFile(path.join(projectDir, 'skill-guides', `${name}.md`), 'utf8')
 
-      expect(source).toContain('ORCA_CLI_COMMAND')
-      expect(source).toContain('orca-dev')
-      expect(source).toContain('orca-ide')
+      expect(source).toContain('MANTA_CLI_COMMAND')
+      expect(source).toContain('manta-dev')
+      expect(source).toContain('manta-ide')
       expect(source).toContain('PowerShell')
       expect(source).toContain('cmd.exe')
-      expect(source).toMatch(/^ORCA .+--json$/mu)
+      expect(source).toMatch(/^MANTA .+--json$/mu)
       // Why: bare command lines can launch GNOME Orca, while shell variables make
       // the same guide unusable from PowerShell and cmd.exe.
-      expect(source).not.toMatch(/^orca /mu)
-      expect(source).not.toMatch(/\$ORCA(?:_|\b)/u)
+      expect(source).not.toMatch(/^manta /mu)
+      expect(source).not.toMatch(/\$MANTA(?:_|\b)/u)
     }
   })
 

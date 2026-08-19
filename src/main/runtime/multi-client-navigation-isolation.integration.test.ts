@@ -6,9 +6,9 @@ import WebSocket from 'ws'
 import { parsePairingCode } from '../../shared/pairing'
 import type { RuntimeMobileSessionTabsResult } from '../../shared/runtime-types'
 import type { PersistedMobileClientTabSelections } from '../../shared/persisted-state-types'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { decrypt, deriveSharedKey, encrypt, generateKeyPair } from './rpc/e2ee-crypto'
-import { OrcaRuntimeRpcServer } from './runtime-rpc'
+import { MantaRuntimeRpcServer } from './runtime-rpc'
 
 const REPO_ID = 'repo-1'
 const worktreeId = (name: string): string => `${REPO_ID}::/tmp/${name}`
@@ -195,7 +195,7 @@ function snapshotVersion(response: Record<string, unknown>): number {
   return (response.result as RuntimeMobileSessionTabsResult | undefined)?.snapshotVersion ?? -1
 }
 
-function seedSessionTabs(runtime: OrcaRuntimeService): void {
+function seedSessionTabs(runtime: MantaRuntimeService): void {
   const tabs = ['host-tab', 'client-a-tab', 'client-a2-tab', 'client-b-tab'].map((id, index) => ({
     type: 'terminal' as const,
     id,
@@ -233,7 +233,7 @@ function seedSessionTabs(runtime: OrcaRuntimeService): void {
 }
 
 describe('paired runtime navigation isolation', () => {
-  const servers: OrcaRuntimeRpcServer[] = []
+  const servers: MantaRuntimeRpcServer[] = []
   const sessions: PairedSession[] = []
   const readers: ResponseReader[] = []
 
@@ -255,7 +255,7 @@ describe('paired runtime navigation isolation', () => {
     const focusTerminal = vi.fn((nextTabId: string) => {
       hostSelections.tabId = nextTabId
     })
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     runtime.setNotifier({
       worktreesChanged: vi.fn(),
       reposChanged: vi.fn(),
@@ -274,9 +274,9 @@ describe('paired runtime navigation isolation', () => {
     runtime.markGraphReady(1)
     seedSessionTabs(runtime)
 
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
-      userDataPath: mkdtempSync(join(tmpdir(), 'orca-navigation-isolation-')),
+      userDataPath: mkdtempSync(join(tmpdir(), 'manta-navigation-isolation-')),
       enableWebSocket: true,
       wsPort: 0
     })
@@ -683,7 +683,7 @@ describe('paired runtime navigation isolation', () => {
       }
     })
 
-    const first = new OrcaRuntimeService(makeStoreWithSelections() as never)
+    const first = new MantaRuntimeService(makeStoreWithSelections() as never)
     first.attachWindow(1)
     first.markGraphReady(1)
     seedSessionTabs(first)
@@ -694,7 +694,7 @@ describe('paired runtime navigation isolation', () => {
     })
     expect(persisted.state['device-a']?.[SESSION_WORKTREE_ID]?.activeTabId).toBe('client-a-tab')
 
-    const restarted = new OrcaRuntimeService(makeStoreWithSelections() as never)
+    const restarted = new MantaRuntimeService(makeStoreWithSelections() as never)
     restarted.attachWindow(1)
     restarted.markGraphReady(1)
     seedSessionTabs(restarted)

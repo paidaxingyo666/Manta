@@ -123,7 +123,7 @@ import { subscribeCmdJRowIndexJump } from '@/lib/cmd-j-row-index-jump'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
 import { useShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
 import {
-  ORCA_BROWSER_FOCUS_REQUEST_EVENT,
+  MANTA_BROWSER_FOCUS_REQUEST_EVENT,
   queueBrowserFocusRequest
 } from '@/components/browser-pane/browser-focus'
 import { RepoBadgeMark } from '@/components/repo/RepoBadgeLabel'
@@ -2194,7 +2194,7 @@ function WorktreeJumpPaletteContent({
       previousBrowserFocusTargetRef.current =
         activeTabType === 'browser' &&
         document.activeElement instanceof HTMLElement &&
-        document.activeElement.closest('[data-orca-browser-address-bar="true"]')
+        document.activeElement.closest('[data-manta-browser-address-bar="true"]')
           ? 'address-bar'
           : 'webview'
       // Why: same timing constraint — capture pre-dialog focus now so Escape can restore the exact input (not document.body).
@@ -2310,7 +2310,7 @@ function WorktreeJumpPaletteContent({
     (detail: { pageId: string; target: 'webview' | 'address-bar' }) => {
       queueBrowserFocusRequest(detail)
       window.dispatchEvent(
-        new CustomEvent(ORCA_BROWSER_FOCUS_REQUEST_EVENT, {
+        new CustomEvent(MANTA_BROWSER_FOCUS_REQUEST_EVENT, {
           detail
         })
       )
@@ -2889,7 +2889,7 @@ function WorktreeJumpPaletteContent({
       ),
       subtitle: translate(
         'auto.components.WorktreeJumpPalette.f7fda8d562',
-        'Create a worktree or open a tab in Orca to get started.'
+        'Create a worktree or open a tab in Manta to get started.'
       )
     }
   })()

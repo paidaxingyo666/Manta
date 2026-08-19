@@ -2,11 +2,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from './dispatcher'
 import type { RpcRequest } from './core'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import { TERMINAL_METHODS } from './methods/terminal'
 import type { RuntimeTerminalWait } from '../../../shared/runtime-types'
 
-function stubRuntime(overrides: Partial<OrcaRuntimeService> = {}): OrcaRuntimeService {
+function stubRuntime(overrides: Partial<MantaRuntimeService> = {}): MantaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
     registerRemoteTerminalViewSubscriber: () => () => {},
@@ -19,7 +19,7 @@ function stubRuntime(overrides: Partial<OrcaRuntimeService> = {}): OrcaRuntimeSe
     serializeRendererTerminalBuffer: async () => null,
     hasHeadlessTerminalState: () => true,
     ...overrides
-  } as OrcaRuntimeService
+  } as MantaRuntimeService
 }
 
 const makeRequest = (method: string, params?: unknown): RpcRequest => ({

@@ -37,9 +37,9 @@ describe('worktree RPC schemas', () => {
       provider: 'jira',
       type: 'issue',
       number: 0,
-      title: ' ORCA-123 Link Jira ',
-      url: ' https://company.atlassian.net/browse/ORCA-123 ',
-      jiraIdentifier: ' ORCA-123 '
+      title: ' MANTA-123 Link Jira ',
+      url: ' https://company.atlassian.net/browse/MANTA-123 ',
+      jiraIdentifier: ' MANTA-123 '
     }
     const linkedTaskSourceContext = {
       kind: 'task-source',
@@ -50,7 +50,7 @@ describe('worktree RPC schemas', () => {
         provider: 'jira',
         siteId: 'site-1',
         siteUrl: 'https://company.atlassian.net',
-        projectKey: 'ORCA'
+        projectKey: 'MANTA'
       }
     }
     const parsed = WorktreeCreate.parse({
@@ -62,8 +62,8 @@ describe('worktree RPC schemas', () => {
 
     expect(parsed.linkedWorkItem).toMatchObject({
       provider: 'jira',
-      title: 'ORCA-123 Link Jira',
-      jiraIdentifier: 'ORCA-123'
+      title: 'MANTA-123 Link Jira',
+      jiraIdentifier: 'MANTA-123'
     })
     expect(parsed.linkedTaskSourceContext).toMatchObject({
       provider: 'jira',

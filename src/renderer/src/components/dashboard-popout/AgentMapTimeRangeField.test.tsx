@@ -70,7 +70,7 @@ function card(overrides: Partial<DashboardCard> & { paneKey: string }): Dashboar
     worktreeId: `worktree-${overrides.paneKey}`,
     tabId: 'tab-1',
     leafId: `leaf-${overrides.paneKey}`,
-    repoName: 'Orca',
+    repoName: 'Manta',
     worktreeName: overrides.paneKey,
     startedAt: NOW - MINUTE,
     finishedAt: null,

@@ -38,11 +38,15 @@ function itWindows(name, test) {
 
 describe('Windows CLI launcher', () => {
   itCrossHost('fails closed when the Windows launcher cannot be compiled on this host', () => {
-    const outputRoot = mkdtempSync(join(tmpdir(), 'orca cross-host launcher '))
+    const outputRoot = mkdtempSync(join(tmpdir(), 'manta cross-host launcher '))
     try {
       const result = spawnSync(
         process.execPath,
-        ['config/scripts/build-windows-cli-launcher.mjs', '--output', join(outputRoot, 'orca.exe')],
+        [
+          'config/scripts/build-windows-cli-launcher.mjs',
+          '--output',
+          join(outputRoot, 'manta.exe')
+        ],
         { cwd: projectRoot, encoding: 'utf8' }
       )
 
@@ -56,9 +60,9 @@ describe('Windows CLI launcher', () => {
 
   itCrossHost('never materializes the child environment block from ProcessStartInfo', () => {
     // Why: both ProcessStartInfo env properties copy the process block into a case-insensitive
-    // dictionary that throws when the inherited block holds PATH and Path (stablyai/orca#12046).
+    // dictionary that throws when the inherited block holds PATH and Path (stablyai/manta#12046).
     const source = readFileSync(
-      join(projectRoot, 'native', 'windows-cli-launcher', 'OrcaCliLauncher.cs'),
+      join(projectRoot, 'native', 'windows-cli-launcher', 'MantaCliLauncher.cs'),
       'utf8'
     )
     const code = source.replace(/^\s*\/\/.*$/gm, '')
@@ -69,21 +73,21 @@ describe('Windows CLI launcher', () => {
   })
 
   itWindows('preserves a multiline argument from PowerShell through the native launcher', () => {
-    const appRoot = mkdtempSync(join(tmpdir(), 'orca cli launcher '))
+    const appRoot = mkdtempSync(join(tmpdir(), 'manta cli launcher '))
     try {
       const resourcesPath = join(appRoot, 'resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca.exe')
+      const launcherPath = join(resourcesPath, 'bin', 'manta.exe')
       const cliPath = join(resourcesPath, 'app.asar.unpacked', 'out', 'cli', 'index.js')
       mkdirSync(join(resourcesPath, 'bin'), { recursive: true })
       mkdirSync(dirname(cliPath), { recursive: true })
-      copyFileSync(process.execPath, join(appRoot, 'Orca.exe'))
+      copyFileSync(process.execPath, join(appRoot, 'Manta.exe'))
       writeFileSync(
         cliPath,
         `process.stdout.write(JSON.stringify({
   argv: process.argv.slice(2),
   electronRunAsNode: process.env.ELECTRON_RUN_AS_NODE,
   nodeOptions: process.env.NODE_OPTIONS ?? null,
-  orcaNodeOptions: process.env.ORCA_NODE_OPTIONS ?? null
+  mantaNodeOptions: process.env.MANTA_NODE_OPTIONS ?? null
 }))\n`,
         'utf8'
       )
@@ -102,15 +106,15 @@ describe('Windows CLI launcher', () => {
           '-NoProfile',
           '-NonInteractive',
           '-Command',
-          '& $env:ORCA_TEST_LAUNCHER orchestration send --body $env:ORCA_TEST_BODY --json'
+          '& $env:MANTA_TEST_LAUNCHER orchestration send --body $env:MANTA_TEST_BODY --json'
         ],
         {
           encoding: 'utf8',
           env: {
             ...process.env,
             NODE_OPTIONS: '--no-warnings',
-            ORCA_TEST_BODY: body,
-            ORCA_TEST_LAUNCHER: launcherPath
+            MANTA_TEST_BODY: body,
+            MANTA_TEST_LAUNCHER: launcherPath
           }
         }
       )
@@ -120,7 +124,7 @@ describe('Windows CLI launcher', () => {
         argv: ['orchestration', 'send', '--body', body, '--json'],
         electronRunAsNode: '1',
         nodeOptions: null,
-        orcaNodeOptions: '--no-warnings'
+        mantaNodeOptions: '--no-warnings'
       })
     } finally {
       removeFixtureTree(appRoot)
@@ -128,10 +132,10 @@ describe('Windows CLI launcher', () => {
   })
 
   itWindows('survives an inherited environment block containing PATH and Path', () => {
-    const appRoot = mkdtempSync(join(tmpdir(), 'orca duplicate path launcher '))
+    const appRoot = mkdtempSync(join(tmpdir(), 'manta duplicate path launcher '))
     try {
       const resourcesPath = join(appRoot, 'resources')
-      const launcherPath = join(resourcesPath, 'bin', 'orca.exe')
+      const launcherPath = join(resourcesPath, 'bin', 'manta.exe')
       const cliPath = join(resourcesPath, 'app.asar.unpacked', 'out', 'cli', 'index.js')
       const outputPath = join(appRoot, 'child-result.json')
       const harnessSourcePath = join(
@@ -144,10 +148,10 @@ describe('Windows CLI launcher', () => {
       const harnessPath = join(appRoot, 'DuplicatePathLauncher.exe')
       mkdirSync(dirname(launcherPath), { recursive: true })
       mkdirSync(dirname(cliPath), { recursive: true })
-      copyFileSync(process.execPath, join(appRoot, 'Orca.exe'))
+      copyFileSync(process.execPath, join(appRoot, 'Manta.exe'))
       writeFileSync(
         cliPath,
-        `require('node:fs').writeFileSync(process.env.ORCA_TEST_OUTPUT, JSON.stringify({
+        `require('node:fs').writeFileSync(process.env.MANTA_TEST_OUTPUT, JSON.stringify({
   electronRunAsNode: process.env.ELECTRON_RUN_AS_NODE,
   pathKeys: Object.keys(process.env).filter((key) => key.toLowerCase() === 'path')
 }))\n`,

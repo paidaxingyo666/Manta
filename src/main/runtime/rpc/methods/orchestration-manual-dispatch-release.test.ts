@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { MantaRuntimeService } from '../../manta-runtime'
 import { OrchestrationDb } from '../../orchestration/db'
 import { ORCHESTRATION_METHODS } from './orchestration'
 
@@ -10,12 +10,12 @@ const SUPERVISED = 'term_supervised'
 
 describe('manual Dispatch release', () => {
   let db: OrchestrationDb
-  let runtime: OrcaRuntimeService
+  let runtime: MantaRuntimeService
   let runId: string
 
   beforeEach(() => {
     db = new OrchestrationDb(':memory:')
-    runtime = new OrcaRuntimeService()
+    runtime = new MantaRuntimeService()
     runtime.setOrchestrationDb(db)
     vi.spyOn(runtime, 'getTerminalPaneKey').mockImplementation((handle) => paneKey(handle))
     vi.spyOn(runtime, 'getTerminalProcessIncarnation').mockImplementation(

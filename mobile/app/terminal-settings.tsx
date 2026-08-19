@@ -275,8 +275,8 @@ export default function TerminalSettingsScreen() {
       >
         <Text style={styles.groupHeading}>WHEN YOU LEAVE THE APP</Text>
         <Text style={styles.groupDescription}>
-          While you&apos;re using a terminal on your phone, Orca shrinks it to fit your screen. When
-          you close the app or switch away, this controls whether it stays at phone size (so
+          While you&apos;re using a terminal on your phone, Manta shrinks it to fit your screen.
+          When you close the app or switch away, this controls whether it stays at phone size (so
           interactive CLI tools don&apos;t reflow) or resizes back to your desktop. You can always
           use Restore this terminal or Restore all terminals on the banner to resize manually.
         </Text>

@@ -71,9 +71,9 @@ describe('terminal freeze report', () => {
     installTerminalFreezeReport()
     const installed = (
       globalThis.window as unknown as {
-        __orcaTerminalFreezeReport?: () => Promise<unknown>
+        __mantaTerminalFreezeReport?: () => Promise<unknown>
       }
-    ).__orcaTerminalFreezeReport
+    ).__mantaTerminalFreezeReport
     expect(installed).toBe(buildTerminalFreezeReport)
   })
 })

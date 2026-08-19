@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Terminal E2E helpers for agent-browser + CDP testing against a running Orca
+ * Terminal E2E helpers for agent-browser + CDP testing against a running Manta
  * dev build. Encapsulates patterns discovered during manual terminal testing:
  *
  *   - CDP key events do NOT work with xterm.js (canvas-based renderer)
@@ -10,9 +10,9 @@
  *   - The visible terminal's PTY ID must be discovered (not guessed)
  *
  * Usage:
- *   import { OrcaTerminal } from './terminal-e2e-helpers.mjs'
+ *   import { MantaTerminal } from './terminal-e2e-helpers.mjs'
  *
- *   const term = new OrcaTerminal(9444)       // CDP port
+ *   const term = new MantaTerminal(9444)       // CDP port
  *   await term.connect()
  *   const ptyId = await term.discoverActivePtyId()
  *   await term.send(ptyId, 'echo hello\r')
@@ -52,8 +52,8 @@ function evalInRenderer(port, js) {
   return ab(port, ['eval', js])
 }
 
-export class OrcaTerminal {
-  /** @param {number} cdpPort — the --remote-debugging-port used when launching Orca */
+export class MantaTerminal {
+  /** @param {number} cdpPort — the --remote-debugging-port used when launching Manta */
   constructor(cdpPort) {
     this.port = cdpPort
   }
@@ -140,7 +140,7 @@ export class OrcaTerminal {
    * @param {number} maxId — highest PTY ID to probe
    * @param {string} screenshotPath — where to save the screenshot
    */
-  probePtyIdWithScreenshot(maxId = 10, screenshotPath = tempScreenshotPath('orca-pty-probe.png')) {
+  probePtyIdWithScreenshot(maxId = 10, screenshotPath = tempScreenshotPath('manta-pty-probe.png')) {
     for (let i = 1; i <= maxId; i++) {
       evalInRenderer(this.port, `window.api.pty.write('${i}', '\\x03\\x15echo PTY_ID_${i}\\r')`)
     }
@@ -182,18 +182,18 @@ export class OrcaTerminal {
   }
 
   /**
-   * Take a screenshot of the Orca window.
+   * Take a screenshot of the Manta window.
    *
    * @param {string} path — output file path
    * @returns {string} the screenshot path
    */
-  screenshot(path = tempScreenshotPath('orca-terminal.png')) {
+  screenshot(path = tempScreenshotPath('manta-terminal.png')) {
     ab(this.port, ['screenshot', path])
     return path
   }
 
   /**
-   * Open a new terminal tab in Orca.
+   * Open a new terminal tab in Manta.
    * @returns {void}
    */
   newTerminal() {
@@ -211,7 +211,7 @@ export class OrcaTerminal {
     this.exec(ptyId, 'echo __LANG__=$LANG')
     sleep(1_000)
     // Screenshot and return for inspection
-    return this.screenshot(tempScreenshotPath('orca-lang-check.png'))
+    return this.screenshot(tempScreenshotPath('manta-lang-check.png'))
   }
 }
 
@@ -225,8 +225,8 @@ if (process.argv[1]?.endsWith('terminal-e2e-helpers.mjs')) {
   const port = portIdx !== -1 ? Number(args[portIdx + 1]) : 9444
   const command = cmdIdx !== -1 ? args[cmdIdx + 1] : null
 
-  const term = new OrcaTerminal(port)
-  console.log('Connecting to Orca on CDP port', port, '...')
+  const term = new MantaTerminal(port)
+  console.log('Connecting to Manta on CDP port', port, '...')
   term.connect()
   console.log('Connected.')
 

@@ -7,13 +7,13 @@ vi.mock('../runtime-client', async () => {
     readonly isRemote: boolean
     call = callMock
     getCliStatus = vi.fn()
-    openOrca = vi.fn()
+    openManta = vi.fn()
 
     constructor(
       _userDataPath?: string,
       _requestTimeoutMs?: number,
-      remotePairingCode = process.env.ORCA_PAIRING_CODE ?? null,
-      environmentSelector = process.env.ORCA_ENVIRONMENT ?? null
+      remotePairingCode = process.env.MANTA_PAIRING_CODE ?? null,
+      environmentSelector = process.env.MANTA_ENVIRONMENT ?? null
     ) {
       this.isRemote = Boolean(remotePairingCode || environmentSelector)
     }
@@ -34,20 +34,20 @@ vi.mock('../runtime-client', async () => {
 import { main } from '../index'
 import { okFixture, queueFixtures } from '../test-fixtures'
 
-describe('orca linear CLI handlers', () => {
+describe('manta linear CLI handlers', () => {
   const originalEnv = { ...process.env }
 
   beforeEach(() => {
     vi.restoreAllMocks()
     callMock.mockReset()
     process.env = { ...originalEnv }
-    // Why: these tests can run inside an Orca-managed terminal, which exports
+    // Why: these tests can run inside a Manta-managed terminal, which exports
     // real worktree/terminal/pairing env hints; clear them so handler context
     // assertions stay deterministic.
-    delete process.env.ORCA_WORKTREE_ID
-    delete process.env.ORCA_TERMINAL_HANDLE
-    delete process.env.ORCA_PAIRING_CODE
-    delete process.env.ORCA_ENVIRONMENT
+    delete process.env.MANTA_WORKTREE_ID
+    delete process.env.MANTA_TERMINAL_HANDLE
+    delete process.env.MANTA_PAIRING_CODE
+    delete process.env.MANTA_ENVIRONMENT
     process.exitCode = undefined
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -139,9 +139,9 @@ describe('orca linear CLI handlers', () => {
   })
 
   it('passes verified current-context hints without resolving cwd for remote runtimes', async () => {
-    process.env.ORCA_TERMINAL_HANDLE = 'term_123'
-    process.env.ORCA_WORKTREE_ID = 'repo::/srv/app'
-    process.env.ORCA_PAIRING_CODE = 'orca://pair?payload=bad'
+    process.env.MANTA_TERMINAL_HANDLE = 'term_123'
+    process.env.MANTA_WORKTREE_ID = 'repo::/srv/app'
+    process.env.MANTA_PAIRING_CODE = 'manta://pair?payload=bad'
     queueFixtures(callMock, okFixture('req_linear', issueResult()))
 
     await main(['linear', 'issue', '--current', '--comments', '--json'], '/client/repo')

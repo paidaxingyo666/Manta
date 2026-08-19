@@ -145,7 +145,7 @@ type ManagedPty = {
   disposed?: boolean
   /** True once external cleanup observers have been notified. */
   exitListenerNotified?: boolean
-  /** Renderer-supplied paneKey (ORCA_PANE_KEY); captured so exit observers can evict per-pane cache state. */
+  /** Renderer-supplied paneKey (MANTA_PANE_KEY); captured so exit observers can evict per-pane cache state. */
   paneKey?: string
   tabId?: string
   /** Attach-only identity metadata (RPC). Separate from paneKey/tabId, which also drive shell env/revive hooks. */
@@ -570,7 +570,7 @@ export class PtyHandler {
   }
 
   /** Register an env augmenter merged into every spawn env *after* process.env and renderer env.
-   *  Used by the relay-hook server to inject ORCA_AGENT_HOOK_* coords: evaluated per spawn (not captured once), so a late or restarted hook-server bind still reaches the next PTY. */
+   *  Used by the relay-hook server to inject MANTA_AGENT_HOOK_* coords: evaluated per spawn (not captured once), so a late or restarted hook-server bind still reaches the next PTY. */
   addEnvAugmenter(augmenter: PtyEnvAugmenter): () => void {
     this.envAugmenters.push(augmenter)
     return () => {
@@ -598,9 +598,9 @@ export class PtyHandler {
         ...stripInheritedBuildModeEnv(process.env),
         TERM: 'xterm-256color',
         COLORTERM: 'truecolor',
-        TERM_PROGRAM: 'Orca',
+        TERM_PROGRAM: 'Manta',
         TERM_PROGRAM_VERSION:
-          rendererEnv?.ORCA_APP_VERSION || process.env.ORCA_APP_VERSION || '0.0.0-dev',
+          rendererEnv?.MANTA_APP_VERSION || process.env.MANTA_APP_VERSION || '0.0.0-dev',
         FORCE_HYPERLINK: '1'
       },
       rendererEnv
@@ -1387,7 +1387,7 @@ export class PtyHandler {
     context?: RequestContext
   ): Promise<RelayAgentSessionCreateResult> {
     const env = params.env as Record<string, string> | undefined
-    const worktreeId = env?.ORCA_WORKTREE_ID
+    const worktreeId = env?.MANTA_WORKTREE_ID
     const worktreePath = worktreeId ? splitWorktreeId(worktreeId)?.worktreePath : undefined
     const cwd = typeof params.cwd === 'string' ? params.cwd : resolveDefaultCwd()
     const finishCreation = this.beginPtyCreation([worktreePath, cwd])
@@ -1510,10 +1510,10 @@ export class PtyHandler {
     } while (this.ptys.has(id) || this.pendingReviveIds.has(id))
 
     // Why: augmenter values override renderer env so remote paths and hook coords win over local userData.
-    const paneKey = typeof env?.ORCA_PANE_KEY === 'string' ? env.ORCA_PANE_KEY : undefined
+    const paneKey = typeof env?.MANTA_PANE_KEY === 'string' ? env.MANTA_PANE_KEY : undefined
     // Why: kept so a restarted runtime can re-adopt this PTY under its original handle (survives revive).
     const terminalHandle =
-      typeof env?.ORCA_TERMINAL_HANDLE === 'string' ? env.ORCA_TERMINAL_HANDLE : undefined
+      typeof env?.MANTA_TERMINAL_HANDLE === 'string' ? env.MANTA_TERMINAL_HANDLE : undefined
     const command = typeof params.command === 'string' ? params.command : undefined
     const launchAgent = isTuiAgent(params.launchAgent) ? params.launchAgent : undefined
     const terminalWindowsWslDistro =
@@ -1547,7 +1547,7 @@ export class PtyHandler {
       emitStartupIdentity: shouldEmitShellReadyMarker
     })
     const rendererShellReadySupported =
-      !shouldProviderDeliverCommand && shellLaunch.env.ORCA_SHELL_READY_MARKER === '1'
+      !shouldProviderDeliverCommand && shellLaunch.env.MANTA_SHELL_READY_MARKER === '1'
 
     if (context?.signal?.aborted || context?.isStale()) {
       // Why: cancellation remains side-effect-free until the exact native spawn seam.
@@ -1567,11 +1567,11 @@ export class PtyHandler {
         cols,
         rows,
         cwd,
-        // Why: relay shells inherit process.env; don't let an ambient Orca marker enable shell-ready unless requested.
+        // Why: relay shells inherit process.env; don't let an ambient Manta marker enable shell-ready unless requested.
         env: {
           ...spawnEnv,
-          ORCA_SHELL_READY_MARKER: '0',
-          ORCA_SHELL_STARTUP_IDENTITY: '0',
+          MANTA_SHELL_READY_MARKER: '0',
+          MANTA_SHELL_STARTUP_IDENTITY: '0',
           ...shellLaunch.env
         }
       })
@@ -1586,12 +1586,13 @@ export class PtyHandler {
     onPhysicalSpawnCommitted?.()
 
     // Why: capture paneKey so the exit listener can evict per-pane caches without a separate ptyId→paneKey map.
-    const tabId = typeof env?.ORCA_TAB_ID === 'string' ? env.ORCA_TAB_ID : undefined
+    const tabId = typeof env?.MANTA_TAB_ID === 'string' ? env.MANTA_TAB_ID : undefined
     const attachIdentity = {
       paneKey: typeof params.paneKey === 'string' ? params.paneKey : paneKey,
       tabId: typeof params.tabId === 'string' ? params.tabId : tabId
     }
-    const worktreeId = typeof env?.ORCA_WORKTREE_ID === 'string' ? env.ORCA_WORKTREE_ID : undefined
+    const worktreeId =
+      typeof env?.MANTA_WORKTREE_ID === 'string' ? env.MANTA_WORKTREE_ID : undefined
     const startupIngressIntent =
       params.startupIngressVersion === PTY_STARTUP_INGRESS_VERSION
         ? parsePtyStartupIngressIntent(params.startupIngress)
@@ -1628,9 +1629,9 @@ export class PtyHandler {
               command: shouldProviderDeliverCommand ? managedStartupCommand : null,
               providerDelivery: shouldProviderDeliverCommand,
               delivered: false,
-              waitForShellReady: shellLaunch.env.ORCA_SHELL_READY_MARKER === '1',
+              waitForShellReady: shellLaunch.env.MANTA_SHELL_READY_MARKER === '1',
               outputScanState:
-                shellLaunch.env.ORCA_SHELL_READY_MARKER === '1'
+                shellLaunch.env.MANTA_SHELL_READY_MARKER === '1'
                   ? createShellStartupOutputScanState()
                   : null,
               shellPid: null,
@@ -2073,19 +2074,19 @@ export class PtyHandler {
     if (!ptyMod) {
       return
     }
-    // Why: pane identity comes from the serialized entry (not env) since hook scripts exit without ORCA_PANE_KEY.
+    // Why: pane identity comes from the serialized entry (not env) since hook scripts exit without MANTA_PANE_KEY.
     const revivedEnv: Record<string, string> = {}
     if (entry.paneKey) {
-      revivedEnv.ORCA_PANE_KEY = entry.paneKey
+      revivedEnv.MANTA_PANE_KEY = entry.paneKey
     }
     if (entry.tabId) {
-      revivedEnv.ORCA_TAB_ID = entry.tabId
+      revivedEnv.MANTA_TAB_ID = entry.tabId
     }
     if (entry.worktreeId) {
-      revivedEnv.ORCA_WORKTREE_ID = entry.worktreeId
+      revivedEnv.MANTA_WORKTREE_ID = entry.worktreeId
     }
     if (entry.terminalHandle) {
-      revivedEnv.ORCA_TERMINAL_HANDLE = entry.terminalHandle
+      revivedEnv.MANTA_TERMINAL_HANDLE = entry.terminalHandle
     }
     const explicitTerm =
       typeof entry.explicitTerm === 'string' && entry.explicitTerm.length > 0
@@ -2116,8 +2117,8 @@ export class PtyHandler {
       // Why: no provider-delivered command is waiting for a ready marker.
       env: {
         ...spawnEnv,
-        ORCA_SHELL_READY_MARKER: '0',
-        ORCA_SHELL_STARTUP_IDENTITY: '0',
+        MANTA_SHELL_READY_MARKER: '0',
+        MANTA_SHELL_STARTUP_IDENTITY: '0',
         ...shellLaunch.env
       }
     })

@@ -56,9 +56,9 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     linearIssue,
     handleEditIssue,
     handleEditComment,
-    handleOpenGitHubIssueInOrca,
-    handleOpenLinearIssueInOrca,
-    handleOpenReviewInOrca,
+    handleOpenGitHubIssueInManta,
+    handleOpenLinearIssueInManta,
+    handleOpenReviewInManta,
     handleOpenAutomation,
     handleOpenAutomationRun,
     hasExplicitLinkedReview,
@@ -163,15 +163,15 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
             // plug force-open the wider title card and race it closed (#9304), so let this title hover own its state.
             onEditIssue={affiliateListMode ? undefined : handleEditIssue}
             onEditComment={affiliateListMode ? undefined : handleEditComment}
-            onOpenGitHubIssueInOrca={
+            onOpenGitHubIssueInManta={
               metaIssue && 'url' in metaIssue && metaIssue.url
-                ? handleOpenGitHubIssueInOrca
+                ? handleOpenGitHubIssueInManta
                 : undefined
             }
-            onOpenLinearIssueInOrca={linearIssue?.url ? handleOpenLinearIssueInOrca : undefined}
-            onOpenReviewInOrca={
+            onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
+            onOpenReviewInManta={
               metaReview?.url && metaReview.provider === 'github'
-                ? handleOpenReviewInOrca
+                ? handleOpenReviewInManta
                 : undefined
             }
             onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
@@ -230,12 +230,14 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
         hoverControl={detailsHoverControl}
         onEditIssue={affiliateListMode ? undefined : handleEditIssue}
         onEditComment={affiliateListMode ? undefined : handleEditComment}
-        onOpenGitHubIssueInOrca={
-          metaIssue && 'url' in metaIssue && metaIssue.url ? handleOpenGitHubIssueInOrca : undefined
+        onOpenGitHubIssueInManta={
+          metaIssue && 'url' in metaIssue && metaIssue.url
+            ? handleOpenGitHubIssueInManta
+            : undefined
         }
-        onOpenLinearIssueInOrca={linearIssue?.url ? handleOpenLinearIssueInOrca : undefined}
-        onOpenReviewInOrca={
-          metaReview?.url && metaReview.provider === 'github' ? handleOpenReviewInOrca : undefined
+        onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
+        onOpenReviewInManta={
+          metaReview?.url && metaReview.provider === 'github' ? handleOpenReviewInManta : undefined
         }
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
         onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}

@@ -14,11 +14,11 @@ import {
 import { createHash } from 'node:crypto'
 import { mirrorEntry, safeRemoveTree } from '../pty/overlay-mirror'
 
-const ORCA_OPENCODE_PLUGIN_FILE = 'orca-opencode-status.js'
+const MANTA_OPENCODE_PLUGIN_FILE = 'manta-opencode-status.js'
 const OPENCODE_LEGACY_HOOKS_DIR = 'opencode-hooks'
 const OPENCODE_OVERLAY_DIR = 'opencode-config-overlays'
 const OPENCODE_SHARED_CONFIG_DIR = 'shared'
-const OPENCODE_OVERLAY_MANIFEST_FILE = '.orca-opencode-overlay-manifest.json'
+const OPENCODE_OVERLAY_MANIFEST_FILE = '.manta-opencode-overlay-manifest.json'
 
 type OpenCodeOverlayManifest = {
   topLevelEntries: string[]
@@ -45,13 +45,13 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '// Why: process-lifetime guard so a recurring parse error on a malformed',
     "// endpoint file does not spam OpenCode's stderr once per hook post.",
     '// This guard lives inside the plugin source because the plugin runs in',
-    "// OpenCode's Node process (not Orca's) and has no access to server.ts's",
+    "// OpenCode's Node process (not Manta's) and has no access to server.ts's",
     '// equivalent warnedVersions / warnedEnvs Sets.',
     'let warnedBadEndpoint = false;',
     '',
     '// Why: message.part.updated can fire many times per second during a',
     '// streaming assistant reply, and each post() calls resolveHookCoords()',
-    '// which reads the endpoint file. The file only changes on Orca restart',
+    '// which reads the endpoint file. The file only changes on Manta restart',
     '// (rare), so a stat+mtime check is substantially cheaper than a full',
     '// readFileSync+parse on every streamed part. On stat error we fall',
     '// through to parse so the fail-open behavior is preserved.',
@@ -59,14 +59,14 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     'let cachedEndpointValues = null;',
     '',
     'function readEndpointFile() {',
-    '  const path = process.env.ORCA_AGENT_HOOK_ENDPOINT;',
+    '  const path = process.env.MANTA_AGENT_HOOK_ENDPOINT;',
     '  if (!path) return null;',
     '  try {',
     '    const fs = require("fs");',
     '    try {',
     '      const stat = fs.statSync(path);',
     '      // Why: cache key combines mtime + size + inode. renameSync (used by',
-    '      // writeEndpointFile on the Orca side) allocates a fresh inode on',
+    '      // writeEndpointFile on the Manta side) allocates a fresh inode on',
     '      // POSIX and a new Windows file ID on NTFS, so ino changes on every',
     '      // legitimate rewrite even when mtimeMs resolution is coarse and size',
     '      // happens to match.',
@@ -80,7 +80,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '        // Why: Windows endpoint.cmd uses `set KEY=VALUE`; Unix endpoint.env',
     '        // uses `KEY=VALUE`. Making `set ` optional lets the same parser',
     '        // handle both without platform detection in the plugin. Allow',
-    '        // digits in the key for forward-compat with future ORCA_AGENT_HOOK_*',
+    '        // digits in the key for forward-compat with future MANTA_AGENT_HOOK_*',
     '        // names that may contain numerics, and strip a trailing CR so',
     '        // mixed-EOL files with lone `\\r` do not leak CR into the value.',
     '        const m = line.match(/^(?:set\\s+)?([A-Z0-9_]+)=(.*)$/);',
@@ -106,7 +106,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '    // pre-install case; stay silent for it.',
     '    if (err && err.code !== "ENOENT" && !warnedBadEndpoint) {',
     '      warnedBadEndpoint = true;',
-    '      console.warn("[orca-hook] failed to parse endpoint file:", err.message);',
+    '      console.warn("[manta-hook] failed to parse endpoint file:", err.message);',
     '    }',
     '    return null;',
     '  }',
@@ -114,17 +114,17 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '',
     'function resolveHookCoords() {',
     '  // Why: prefer the on-disk endpoint file over process.env because env was',
-    '  // frozen when OpenCode was fork()ed — stale after an Orca restart. The',
-    '  // file is rewritten on every Orca start(), so sourcing it per post lets',
+    '  // frozen when OpenCode was fork()ed — stale after a Manta restart. The',
+    '  // file is rewritten on every Manta start(), so sourcing it per post lets',
     '  // a long-running OpenCode session reach the current server. Falls back',
-    '  // to process.env when the file is absent (first-run / pre-endpoint-file / Orca',
+    '  // to process.env when the file is absent (first-run / pre-endpoint-file / Manta',
     '  // never started writing the file).',
     '  const fileEnv = readEndpointFile() || {};',
     '  return {',
-    '    port: fileEnv.ORCA_AGENT_HOOK_PORT || process.env.ORCA_AGENT_HOOK_PORT,',
-    '    token: fileEnv.ORCA_AGENT_HOOK_TOKEN || process.env.ORCA_AGENT_HOOK_TOKEN,',
-    '    env: fileEnv.ORCA_AGENT_HOOK_ENV || process.env.ORCA_AGENT_HOOK_ENV || "",',
-    '    version: fileEnv.ORCA_AGENT_HOOK_VERSION || process.env.ORCA_AGENT_HOOK_VERSION || "",',
+    '    port: fileEnv.MANTA_AGENT_HOOK_PORT || process.env.MANTA_AGENT_HOOK_PORT,',
+    '    token: fileEnv.MANTA_AGENT_HOOK_TOKEN || process.env.MANTA_AGENT_HOOK_TOKEN,',
+    '    env: fileEnv.MANTA_AGENT_HOOK_ENV || process.env.MANTA_AGENT_HOOK_ENV || "",',
+    '    version: fileEnv.MANTA_AGENT_HOOK_VERSION || process.env.MANTA_AGENT_HOOK_VERSION || "",',
     '  };',
     '}',
     '',
@@ -173,7 +173,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '',
     '// Why: message.part.updated re-sends the FULL accumulated text of the part',
     '// after every streamed append, so posting each event forwards O(n^2) bytes',
-    '// per turn through Orca (loopback HTTP -> main JSON parse -> status compare',
+    '// per turn through Manta (loopback HTTP -> main JSON parse -> status compare',
     '// -> IPC -> renderer store update -> React commit). On Windows that flood',
     '// saturated both event loops and froze the whole UI a few seconds into a',
     '// streaming reply. The dashboard only needs a bounded preview at a human',
@@ -261,7 +261,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '',
     '// Why: oh-my-opencode style tools spawn child sessions that emit their',
     '// own session.idle / message events. Those child completions must not',
-    '// flip the root Orca pane to done or overwrite the parent turn preview.',
+    '// flip the root Manta pane to done or overwrite the parent turn preview.',
     '// Resolve the full parentID chain so descendant attention can be attributed',
     '// to the root while child completion and previews remain non-authoritative.',
     'async function resolveRootSessionID(client, sessionID) {',
@@ -372,18 +372,18 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '',
     'async function post(hookEventName, extraProperties) {',
     '  // Why: resolve coords per post — the endpoint file may have been',
-    '  // rewritten by a newer Orca since the last call. Pane/tab/worktree IDs',
+    '  // rewritten by a newer Manta since the last call. Pane/tab/worktree IDs',
     '  // stay on process.env because they are per-PTY (stable for the life of',
-    '  // the OpenCode process), not per-Orca-instance.',
+    '  // the OpenCode process), not per-Manta-instance.',
     '  const coords = resolveHookCoords();',
-    '  const paneKey = process.env.ORCA_PANE_KEY;',
+    '  const paneKey = process.env.MANTA_PANE_KEY;',
     '  if (!coords.port || !coords.token || !paneKey) return false;',
     `  const url = \`http://127.0.0.1:\${coords.port}${hookPathname}\`;`,
     '  const body = JSON.stringify({',
     '    paneKey,',
-    '    launchToken: process.env.ORCA_AGENT_LAUNCH_TOKEN || "",',
-    '    tabId: process.env.ORCA_TAB_ID || "",',
-    '    worktreeId: process.env.ORCA_WORKTREE_ID || "",',
+    '    launchToken: process.env.MANTA_AGENT_LAUNCH_TOKEN || "",',
+    '    tabId: process.env.MANTA_TAB_ID || "",',
+    '    worktreeId: process.env.MANTA_WORKTREE_ID || "",',
     '    env: coords.env,',
     '    version: coords.version,',
     '    payload: { hook_event_name: hookEventName, ...(extraProperties || {}) },',
@@ -396,7 +396,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '      method: "POST",',
     '      headers: {',
     '        "Content-Type": "application/json",',
-    '        "X-Orca-Agent-Hook-Token": coords.token,',
+    '        "X-Manta-Agent-Hook-Token": coords.token,',
     '      },',
     '      body,',
     '      signal: controller.signal,',
@@ -404,7 +404,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '    return response.ok;',
     '  } catch {',
     '    // Why: OpenCode session events must never fail the agent run just',
-    '    // because Orca is unavailable or the local loopback request failed.',
+    '    // because Manta is unavailable or the local loopback request failed.',
     '    return false;',
     '  } finally {',
     '    clearTimeout(timeout);',
@@ -810,7 +810,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '// plugin factory with undefined during startup, which makes the',
     '// destructuring form throw synchronously and crash OpenCode with an opaque',
     '// UnknownError before any event is ever dispatched.',
-    'export const OrcaOpenCodeStatusPlugin = async (_ctx) => {',
+    'export const MantaOpenCodeStatusPlugin = async (_ctx) => {',
     '  const client = _ctx?.client;',
     '  const factoryID = ++nextFactoryID;',
     '  activeFactoryIDs.add(factoryID);',
@@ -972,7 +972,7 @@ export function getOpenCodeFamilyPluginSource(hookPathname: string): string {
     '          );',
     '        } else {',
     '          // Why: Instance disposal can happen while the PTY stays alive;',
-    '          // publish a final idle so Orca does not retain a dead owner.',
+    '          // publish a final idle so Manta does not retain a dead owner.',
     '          if (!deliveredStatusKey.startsWith("idle:") || ownsDeliveredMessagePart) {',
     '            await setStatus(',
     '              "idle",',
@@ -1006,7 +1006,7 @@ export class OpenCodeHookService {
 
   buildPtyEnv(ptyId: string, existingConfigDir?: string | undefined): Record<string, string> {
     if (!isUsableId(ptyId)) {
-      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Orca status plugin is forfeited.
+      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Manta status plugin is forfeited.
       return existingConfigDir ? { OPENCODE_CONFIG_DIR: existingConfigDir } : {}
     }
 
@@ -1078,17 +1078,17 @@ export class OpenCodeHookService {
 
     const overlayPluginsDir = join(overlayDir, 'plugins')
     for (const entryName of manifest.pluginEntries) {
-      if (entryName === ORCA_OPENCODE_PLUGIN_FILE) {
+      if (entryName === MANTA_OPENCODE_PLUGIN_FILE) {
         continue
       }
       safeRemoveTree(join(overlayPluginsDir, entryName))
     }
   }
 
-  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Orca can drop a sibling plugin file.
+  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Manta can drop a sibling plugin file.
   private mirrorUserConfig(sourceDir: string, overlayDir: string): void {
     const previousManifest = this.readOverlayManifest(overlayDir)
-    // Why: overlays persist across terminals; remove only Orca-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
+    // Why: overlays persist across terminals; remove only Manta-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
     this.clearManifestEntries(overlayDir, previousManifest)
 
     const nextManifest: OpenCodeOverlayManifest = { topLevelEntries: [], pluginEntries: [] }
@@ -1115,8 +1115,8 @@ export class OpenCodeHookService {
           const overlayPluginsDir = join(overlayDir, 'plugins')
           mkdirSync(overlayPluginsDir, { recursive: true })
           for (const pluginEntry of readdirSync(resolvedSource, { withFileTypes: true })) {
-            // Why: skip a user plugin sharing Orca's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
-            if (pluginEntry.name === ORCA_OPENCODE_PLUGIN_FILE) {
+            // Why: skip a user plugin sharing Manta's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
+            if (pluginEntry.name === MANTA_OPENCODE_PLUGIN_FILE) {
               continue
             }
             mirrorEntry(
@@ -1140,7 +1140,7 @@ export class OpenCodeHookService {
   private writePluginIntoOverlay(overlayDir: string): void {
     const pluginsDir = join(overlayDir, 'plugins')
     mkdirSync(pluginsDir, { recursive: true })
-    const pluginPath = join(pluginsDir, ORCA_OPENCODE_PLUGIN_FILE)
+    const pluginPath = join(pluginsDir, MANTA_OPENCODE_PLUGIN_FILE)
     try {
       unlinkSync(pluginPath)
     } catch {
@@ -1154,7 +1154,7 @@ export class OpenCodeHookService {
     const pluginsDir = join(configDir, 'plugins')
     try {
       mkdirSync(pluginsDir, { recursive: true })
-      writeFileSync(join(pluginsDir, ORCA_OPENCODE_PLUGIN_FILE), getOpenCodePluginSource())
+      writeFileSync(join(pluginsDir, MANTA_OPENCODE_PLUGIN_FILE), getOpenCodePluginSource())
     } catch {
       // Why: userData can be locked on Windows (EPERM/EBUSY); plugin is non-critical, so spawn without it.
       return null

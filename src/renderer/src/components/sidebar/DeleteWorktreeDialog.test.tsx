@@ -242,7 +242,7 @@ describe('DeleteWorktreeDialog lineage copy', () => {
     const { default: DeleteWorktreeDialog } = await import('./DeleteWorktreeDialog')
     const markup = renderToStaticMarkup(<DeleteWorktreeDialog />)
 
-    expect(markup).toContain('from Orca. The project folder on disk will not be deleted.')
+    expect(markup).toContain('from Manta. The project folder on disk will not be deleted.')
     expect(markup).not.toContain('including uncommitted or untracked files')
   })
 

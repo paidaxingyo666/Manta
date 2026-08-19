@@ -29,7 +29,7 @@ async function reloadStore() {
 async function createStore(persisted: Record<string, unknown> = {}) {
   mkdirSync(testState.dir, { recursive: true })
   writeFileSync(
-    join(testState.dir, 'orca-data.json'),
+    join(testState.dir, 'manta-data.json'),
     JSON.stringify({ ...getDefaultPersistedState(testState.dir), ...persisted }),
     'utf-8'
   )
@@ -37,7 +37,7 @@ async function createStore(persisted: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-  testState.dir = mkdtempSync(join(tmpdir(), 'orca-worktree-name-retirement-'))
+  testState.dir = mkdtempSync(join(tmpdir(), 'manta-worktree-name-retirement-'))
 })
 
 afterEach(() => {
@@ -284,7 +284,7 @@ describe('worktree name retirement registry', () => {
 
   it('drops names a persisted watermark already covers', async () => {
     const store = await createStore({
-      retiredWorktreeNamesByRepo: { [REPO]: { exhaustedTiers: 2, names: ['nautilus', 'orca-2'] } }
+      retiredWorktreeNamesByRepo: { [REPO]: { exhaustedTiers: 2, names: ['nautilus', 'manta-2'] } }
     })
 
     expect(store.getRetiredWorktreeNameRegistry(REPO)).toEqual({ exhaustedTiers: 2, names: [] })

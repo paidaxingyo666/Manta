@@ -37,7 +37,7 @@ export function SkillShareLinkInputForm({
       <Label htmlFor="skill-share-link">
         {translate(
           'auto.components.skills.SkillInstallReviewContent.93eb0fe8c7',
-          'Orca skill link'
+          'Manta skill link'
         )}
       </Label>
       <Input
@@ -46,7 +46,7 @@ export function SkillShareLinkInputForm({
         onChange={(event) => onLinkChange(event.target.value)}
         placeholder={translate(
           'auto.components.skills.SkillInstallReviewContent.66cff7a804',
-          'https://app.orca.dev/skills/share/…'
+          'https://app.manta.dev/skills/share/…'
         )}
         className="font-mono text-xs"
         autoFocus
@@ -169,7 +169,10 @@ export function SkillInstallReview({
             )}
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            {translate('auto.components.skills.SkillInstallReviewContent.2a31912f14', 'Orca found')}{' '}
+            {translate(
+              'auto.components.skills.SkillInstallReviewContent.2a31912f14',
+              'Manta found'
+            )}{' '}
             {result?.conflict?.kind ||
               destinationPreview?.currentState ||
               translate(

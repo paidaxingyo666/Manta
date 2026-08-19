@@ -22,28 +22,28 @@ import { SHELL_READY_MARKER } from './daemon-shell-ready-marker'
 import { getDaemonBashShellReadyRcfileContent } from './daemon-bash-shell-ready-rcfile'
 import { getDaemonZshShellReadyRcfileContent } from './daemon-zsh-shell-ready-rcfile'
 
-const ORCA_USER_DATA_PATH_ENV = 'ORCA_USER_DATA_PATH'
+const MANTA_USER_DATA_PATH_ENV = 'MANTA_USER_DATA_PATH'
 
 let didEnsureShellReadyWrappers = false
 
 function getShellReadyWrapperRoot(): string {
-  const userDataPath = process.env[ORCA_USER_DATA_PATH_ENV]
-  // Why: older/test launchers may not seed ORCA_USER_DATA_PATH. Keep a
+  const userDataPath = process.env[MANTA_USER_DATA_PATH_ENV]
+  // Why: older/test launchers may not seed MANTA_USER_DATA_PATH. Keep a
   // fallback so daemon startup does not fail before the parent can be fixed.
-  return join(userDataPath || tmpdir(), userDataPath ? 'shell-ready' : 'orca-shell-ready')
+  return join(userDataPath || tmpdir(), userDataPath ? 'shell-ready' : 'manta-shell-ready')
 }
 
 // Why: if our own process inherited ZDOTDIR from a parent shell that was
-// itself an Orca PTY (e.g. the user launched Orca from a terminal inside a
-// running Orca), that ZDOTDIR points at an Orca shell-ready wrapper dir.
-// Propagating it as the new PTY's ORCA_ORIG_ZDOTDIR makes the wrapper's
-// `source "$ORCA_ORIG_ZDOTDIR/.zshenv"` line source itself recursively —
+// itself a Manta PTY (e.g. the user launched Manta from a terminal inside a
+// running Manta), that ZDOTDIR points at a Manta shell-ready wrapper dir.
+// Propagating it as the new PTY's MANTA_ORIG_ZDOTDIR makes the wrapper's
+// `source "$MANTA_ORIG_ZDOTDIR/.zshenv"` line source itself recursively —
 // zsh gives "job table full or recursion limit exceeded" and the shell
 // never reaches a usable prompt.
 //
-// Any path component ending in `/shell-ready/zsh` is an Orca wrapper dir
+// Any path component ending in `/shell-ready/zsh` is a Manta wrapper dir
 // (regardless of whether it came from this daemon's userData, a packaged
-// Orca, or a different dev build). Treat it as if ZDOTDIR were unset so the
+// Manta, or a different dev build). Treat it as if ZDOTDIR were unset so the
 // caller falls back to HOME for the user's real config root.
 function normalizeOriginalZdotdirCandidate(value: string | undefined): string | null {
   if (!value) {
@@ -64,7 +64,7 @@ function normalizeOriginalZdotdirCandidate(value: string | undefined): string | 
 function resolveOriginalZdotdir(): string {
   return (
     normalizeOriginalZdotdirCandidate(process.env.ZDOTDIR) ||
-    normalizeOriginalZdotdirCandidate(process.env.ORCA_ORIG_ZDOTDIR) ||
+    normalizeOriginalZdotdirCandidate(process.env.MANTA_ORIG_ZDOTDIR) ||
     process.env.HOME ||
     ''
   )
@@ -102,25 +102,25 @@ function ensureShellReadyWrappers(): void {
   const bashDir = join(root, 'bash')
 
   const zshEnv = getZshEnvTemplate(zshDir, 'daemon')
-  const zshProfile = `# Orca daemon zsh shell-ready wrapper
+  const zshProfile = `# Manta daemon zsh shell-ready wrapper
 ${getZshStartupFileSourceBlock({ fileName: '.zprofile' })}
 `
   const zshRc = getDaemonZshShellReadyRcfileContent()
-  const zshLogin = `# Orca daemon zsh shell-ready wrapper
+  const zshLogin = `# Manta daemon zsh shell-ready wrapper
 ${getZshStartupFileSourceBlock({ fileName: '.zlogin', interactiveOnly: true })}
-__orca_restore_agent_teams_path() {
-  [[ -n "\${ORCA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
+__manta_restore_agent_teams_path() {
+  [[ -n "\${MANTA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
   case "$PATH" in
-    "\${ORCA_AGENT_TEAMS_SHIM_DIR}"|"\${ORCA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
+    "\${MANTA_AGENT_TEAMS_SHIM_DIR}"|"\${MANTA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
   esac
-  export PATH="\${ORCA_AGENT_TEAMS_SHIM_DIR}:$PATH"
+  export PATH="\${MANTA_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
-__orca_restore_agent_teams_path
+__manta_restore_agent_teams_path
 # Why: .zlogin is the final login startup file before the prompt is shown.
-[[ -n "\${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${ORCA_OPENCODE_CONFIG_DIR}"
-[[ -n "\${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${ORCA_MIMOCODE_HOME}"
+[[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
+[[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
 ${getPosixOmpShellWrapper()}
-[[ -n "\${ORCA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${ORCA_CODEX_HOME}"
+[[ -n "\${MANTA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${MANTA_CODEX_HOME}"
 ${getPosixCodexShellLaunchPreflight()}
 ${getZshShellReadyMarkerRegistrationBlock(SHELL_READY_MARKER)}
 ${getZshFinalZdotdirRestoreBlock()}
@@ -159,7 +159,7 @@ ${getZshFinalZdotdirRestoreBlock()}
 
 export function resolvePtyShellPath(env: Record<string, string>): string {
   if (process.platform === 'win32') {
-    return env.ORCA_TERMINAL_WINDOWS_SHELL || 'powershell.exe'
+    return env.MANTA_TERMINAL_WINDOWS_SHELL || 'powershell.exe'
   }
   return env.SHELL || process.env.SHELL || '/bin/zsh'
 }
@@ -196,11 +196,11 @@ function getWrappedShellLaunchConfig(
     return {
       args: ['-l'],
       env: {
-        ORCA_ORIG_ZDOTDIR: resolveOriginalZdotdir(),
-        ORCA_ZSHENV_SOURCE_DIR: resolveOriginalZshenvSourceDir(),
+        MANTA_ORIG_ZDOTDIR: resolveOriginalZdotdir(),
+        MANTA_ZSHENV_SOURCE_DIR: resolveOriginalZshenvSourceDir(),
         ZDOTDIR: join(root, 'zsh'),
-        ORCA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
-        ORCA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
+        MANTA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
+        MANTA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
       },
       supportsReadyMarker: options.emitReadyMarker
     }
@@ -212,8 +212,8 @@ function getWrappedShellLaunchConfig(
     return {
       args: ['--rcfile', join(root, 'bash', 'rcfile')],
       env: {
-        ORCA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
-        ORCA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
+        MANTA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
+        MANTA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
       },
       supportsReadyMarker: options.emitReadyMarker
     }
@@ -240,7 +240,7 @@ function getWrappedShellLaunchConfig(
         '-C',
         `${getFishShellReadyInitCommand(SHELL_READY_MARKER)}\n${getFishCodexShellLaunchPreflight()}`
       ],
-      env: { ORCA_SHELL_READY_MARKER: '1' },
+      env: { MANTA_SHELL_READY_MARKER: '1' },
       supportsReadyMarker: true
     }
   }

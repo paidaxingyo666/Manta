@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { GlobalSettings } from '../global-settings-types'
 import type { Repo } from '../repo-types'
 import type { Worktree } from './types'
-import { buildKnownOrcaWorkspaceLayouts, classifyWorktreeOwnership } from './ownership'
+import { buildKnownMantaWorkspaceLayouts, classifyWorktreeOwnership } from './ownership'
 
 function makeRepo(overrides: Partial<Repo> = {}): Repo {
   return {
@@ -35,11 +35,11 @@ describe('repo-specific worktree ownership layouts', () => {
     const repoA = makeRepo({ path: '/projects/a/repo', worktreeBasePath: '../worktrees' })
     const repoB = makeRepo({ path: '/projects/b/repo', worktreeBasePath: '../worktrees' })
 
-    expect(buildKnownOrcaWorkspaceLayouts(settings, repoA)[0]).toEqual({
+    expect(buildKnownMantaWorkspaceLayouts(settings, repoA)[0]).toEqual({
       path: '/projects/a/worktrees',
       nestWorkspaces: true
     })
-    expect(buildKnownOrcaWorkspaceLayouts(settings, repoB)[0]).toEqual({
+    expect(buildKnownMantaWorkspaceLayouts(settings, repoB)[0]).toEqual({
       path: '/projects/b/worktrees',
       nestWorkspaces: true
     })
@@ -48,7 +48,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo: repoA,
         settings,
         worktree: makeWorktree('/projects/a/worktrees/repo/feature'),
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repoA)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repoA)
       })
     ).toBe('external')
     expect(
@@ -56,7 +56,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo: repoB,
         settings,
         worktree: makeWorktree('/projects/a/worktrees/repo/feature'),
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repoB)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repoB)
       })
     ).toBe('external')
   })
@@ -73,7 +73,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo,
         settings,
         worktree: makeWorktree('C:\\projects\\App\\worktrees\\repo\\Feature'),
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repo)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repo)
       })
     ).toBe('external')
   })
@@ -83,12 +83,12 @@ describe('repo-specific worktree ownership layouts', () => {
     const relativeSettings = makeSettings({ workspaceDir: '../worktrees' })
     const absoluteSettings = makeSettings({ workspaceDir: '/local/worktrees' })
 
-    expect(buildKnownOrcaWorkspaceLayouts(relativeSettings, repo)[0]).toEqual({
+    expect(buildKnownMantaWorkspaceLayouts(relativeSettings, repo)[0]).toEqual({
       path: '/remote/worktrees',
       nestWorkspaces: true
     })
     expect(
-      buildKnownOrcaWorkspaceLayouts(absoluteSettings, repo).some(
+      buildKnownMantaWorkspaceLayouts(absoluteSettings, repo).some(
         (layout) => layout.path === '/local/worktrees'
       )
     ).toBe(false)

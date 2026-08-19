@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 const {
   callMock,
   runtimeClientConstructorMock,
-  serveOrcaAppMock,
+  serveMantaAppMock,
   getDefaultUserDataPathMock,
   addEnvironmentFromPairingCodeMock,
   listEnvironmentsMock,
@@ -11,8 +11,8 @@ const {
 } = vi.hoisted(() => ({
   callMock: vi.fn(),
   runtimeClientConstructorMock: vi.fn(),
-  serveOrcaAppMock: vi.fn(),
-  getDefaultUserDataPathMock: vi.fn(() => '/tmp/orca-user-data'),
+  serveMantaAppMock: vi.fn(),
+  getDefaultUserDataPathMock: vi.fn(() => '/tmp/manta-user-data'),
   addEnvironmentFromPairingCodeMock: vi.fn(),
   listEnvironmentsMock: vi.fn(),
   spawnMock: vi.fn()
@@ -23,7 +23,7 @@ vi.mock('./runtime-client', async () => {
   return createRuntimeClientModuleMock({
     callMock,
     runtimeClientConstructorMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock
   })
 })
@@ -43,10 +43,10 @@ vi.mock('child_process', async () => {
 import { main } from './index'
 import { useWorktreeAwarenessEnvironment } from './index-test-harness'
 
-describe('orca cli worktree awareness', () => {
+describe('manta cli worktree awareness', () => {
   useWorktreeAwarenessEnvironment({
     callMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock,
     addEnvironmentFromPairingCodeMock,
     listEnvironmentsMock,
@@ -54,15 +54,15 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('starts a foreground headless server through `serve`', async () => {
-    serveOrcaAppMock.mockResolvedValue(0)
-    process.env.ORCA_ENVIRONMENT = 'stale-env'
+    serveMantaAppMock.mockResolvedValue(0)
+    process.env.MANTA_ENVIRONMENT = 'stale-env'
 
     await main(
       ['serve', '--json', '--port', '6768', '--pairing-address', '100.64.1.20', '--no-pairing'],
       '/tmp/repo'
     )
 
-    expect(serveOrcaAppMock).toHaveBeenCalledWith({
+    expect(serveMantaAppMock).toHaveBeenCalledWith({
       json: true,
       port: '6768',
       pairingAddress: '100.64.1.20',
@@ -74,14 +74,14 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('starts a foreground headless server with mobile pairing enabled', async () => {
-    serveOrcaAppMock.mockResolvedValue(0)
+    serveMantaAppMock.mockResolvedValue(0)
 
     await main(
       ['serve', '--pairing-address', '100.64.1.20', '--mobile-pairing', '--json'],
       '/tmp/repo'
     )
 
-    expect(serveOrcaAppMock).toHaveBeenCalledWith({
+    expect(serveMantaAppMock).toHaveBeenCalledWith({
       json: true,
       port: null,
       pairingAddress: '100.64.1.20',
@@ -93,7 +93,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('starts a recipe JSON headless server for VM recipes', async () => {
-    serveOrcaAppMock.mockResolvedValue(0)
+    serveMantaAppMock.mockResolvedValue(0)
 
     await main(
       [
@@ -107,7 +107,7 @@ describe('orca cli worktree awareness', () => {
       '/tmp/repo'
     )
 
-    expect(serveOrcaAppMock).toHaveBeenCalledWith({
+    expect(serveMantaAppMock).toHaveBeenCalledWith({
       json: false,
       port: null,
       pairingAddress: 'wss://sandbox.example.com',
@@ -125,7 +125,7 @@ describe('orca cli worktree awareness', () => {
 
     await main(['serve', '--recipe-json'], '/tmp/repo')
 
-    expect(serveOrcaAppMock).not.toHaveBeenCalled()
+    expect(serveMantaAppMock).not.toHaveBeenCalled()
     expect([...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')).toContain(
       'Recipe JSON output requires --project-root.'
     )
@@ -144,7 +144,7 @@ describe('orca cli worktree awareness', () => {
       '/tmp/repo'
     )
 
-    expect(serveOrcaAppMock).not.toHaveBeenCalled()
+    expect(serveMantaAppMock).not.toHaveBeenCalled()
     expect([...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')).toContain(
       'Recipe JSON output requires runtime pairing; remove --mobile-pairing.'
     )
@@ -160,7 +160,7 @@ describe('orca cli worktree awareness', () => {
 
     await main(['serve', '--mobile-pairing', '--no-pairing', '--json'], '/tmp/repo')
 
-    expect(serveOrcaAppMock).not.toHaveBeenCalled()
+    expect(serveMantaAppMock).not.toHaveBeenCalled()
     expect([...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')).toContain(
       'Use either --mobile-pairing or --no-pairing, not both.'
     )
@@ -176,7 +176,7 @@ describe('orca cli worktree awareness', () => {
 
     await main(['serve', '--port', 'not-a-port', '--json'], '/tmp/repo')
 
-    expect(serveOrcaAppMock).not.toHaveBeenCalled()
+    expect(serveMantaAppMock).not.toHaveBeenCalled()
     expect([...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')).toContain(
       'Invalid --port value: not-a-port'
     )
@@ -192,7 +192,7 @@ describe('orca cli worktree awareness', () => {
 
     await main(['serve', '--port', '--json'], '/tmp/repo')
 
-    expect(serveOrcaAppMock).not.toHaveBeenCalled()
+    expect(serveMantaAppMock).not.toHaveBeenCalled()
     expect([...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')).toContain(
       'Missing value for --port.'
     )

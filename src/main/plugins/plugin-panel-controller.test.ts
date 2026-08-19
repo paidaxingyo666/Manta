@@ -14,19 +14,19 @@ afterEach(async () => {
 })
 
 async function createPlugin(): Promise<ValidDiscoveredPlugin> {
-  const rootDir = await mkdtemp(join(tmpdir(), 'orca-plugin-panel-controller-'))
+  const rootDir = await mkdtemp(join(tmpdir(), 'manta-plugin-panel-controller-'))
   roots.push(rootDir)
   await writeFile(join(rootDir, 'panel.html'), '<h1>Panel</h1>')
   return {
-    pluginKey: 'orca-samples.demo',
+    pluginKey: 'manta-samples.demo',
     rootDir,
     manifest: pluginManifestSchema.parse({
       manifestVersion: 1,
       id: 'demo',
-      publisher: 'orca-samples',
+      publisher: 'manta-samples',
       name: 'Demo',
       version: '1.0.0',
-      engines: { orca: '>=1.0.0' },
+      engines: { manta: '>=1.0.0' },
       pluginApi: 1,
       contributes: {
         panels: [{ id: 'dashboard', title: 'Dashboard', entry: 'panel.html' }],
@@ -57,7 +57,7 @@ describe('PluginPanelController identity binding', () => {
     await expect(
       controller.execute('runtime:one', {
         sessionToken: entry!.sessionToken,
-        pluginId: 'orca-samples.other',
+        pluginId: 'manta-samples.other',
         action: 'notifications.show',
         params: { title: 'Hello' }
       })

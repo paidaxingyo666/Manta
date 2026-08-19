@@ -2,7 +2,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { shell, webContents } from 'electron'
-import { ORCA_BROWSER_BLANK_URL } from '../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../shared/constants'
 import {
   normalizeBrowserNavigationUrl,
   normalizeExternalBrowserUrl,
@@ -93,7 +93,7 @@ function releaseAutomationVisibilityToken(renderer: Electron.WebContents, token:
   renderer
     .executeJavaScript(
       `(function() {
-        var bridge = window.__orcaBrowserAutomationVisibility;
+        var bridge = window.__mantaBrowserAutomationVisibility;
         if (!bridge || typeof bridge.release !== 'function') return false;
         return bridge.release(${JSON.stringify(token)});
       })()`
@@ -562,7 +562,7 @@ export class BrowserManager {
                 ${JSON.stringify(prev?.targetBrowserPageId)} &&
               typeof state.setActiveBrowserPage === 'function'
             ) {
-              // Why: Orca remembers the last browser workspace/page even when
+              // Why: Manta remembers the last browser workspace/page even when
               // the user is currently in terminal/editor view. Screenshot prep
               // temporarily switches that hidden browser selection state, so
               // restore it independently of the visible tab type.
@@ -601,7 +601,7 @@ export class BrowserManager {
     const acquirePromise = renderer
       .executeJavaScript(
         `(async function() {
-            var bridge = window.__orcaBrowserAutomationVisibility;
+            var bridge = window.__mantaBrowserAutomationVisibility;
             if (!bridge || typeof bridge.acquire !== 'function') return null;
             return await bridge.acquire(${JSON.stringify(browserPageId)});
           })()`
@@ -633,10 +633,10 @@ export class BrowserManager {
     if (inheritedOwnerContext) {
       this.popupOwnerContextByGuestId.set(guest.id, inheritedOwnerContext)
     }
-    // Why: only the primary embedded browser converts new-tab clicks to Orca tabs; OAuth child windows keep native link behavior.
+    // Why: only the primary embedded browser converts new-tab clicks to Manta tabs; OAuth child windows keep native link behavior.
     const clickedLinkFrameName = inheritedOwnerContext
       ? null
-      : `__orca_clicked_link_foreground_${randomUUID()}`
+      : `__manta_clicked_link_foreground_${randomUUID()}`
     if (clickedLinkFrameName) {
       this.clickedLinkFrameNameByGuestId.set(guest.id, clickedLinkFrameName)
     }
@@ -686,7 +686,7 @@ export class BrowserManager {
       if (!clickedLinkRoutingActive || frame.isDestroyed()) {
         return
       }
-      const name = `__orca_clicked_link_iframe_foreground_${randomUUID()}`
+      const name = `__manta_clicked_link_iframe_foreground_${randomUUID()}`
       iframeFrameNameByFrame.set(frame, name)
       iframeFrameByFrameName.set(name, frame)
       // Why: child-frame tokens live in the page world, so consume after one trusted click and replace before the next.
@@ -744,10 +744,10 @@ export class BrowserManager {
       }
 
       if (isClickedLink) {
-        if (browserTabId && browserUrl && this.openLinkInOrcaTab(browserTabId, browserUrl)) {
+        if (browserTabId && browserUrl && this.openLinkInMantaTab(browserTabId, browserUrl)) {
           this.forwardOrQueuePopupEvent(guest.id, {
             origin: safeOrigin(browserUrl),
-            action: 'opened-in-orca'
+            action: 'opened-in-manta'
           })
         }
         // Why: a recognized gesture must never fall through to a native popup if its renderer vanished mid-click.
@@ -755,13 +755,13 @@ export class BrowserManager {
       }
 
       // Why: file URLs are fine for in-pane previews, but must not spawn native child windows targeting local paths.
-      const canOpenAsChild = Boolean(externalUrl || browserUrl === ORCA_BROWSER_BLANK_URL)
+      const canOpenAsChild = Boolean(externalUrl || browserUrl === MANTA_BROWSER_BLANK_URL)
       if (browserTabId && canOpenAsChild) {
         // Why: OAuth may request size/position, but content must not create deceptive or inescapable native chrome.
         return {
           action: 'allow',
           overrideBrowserWindowOptions: SAFE_POPUP_WINDOW_OPTIONS,
-          // Why: default child windows lack an address bar; host in an Orca origin-bar window so the destination is verifiable.
+          // Why: default child windows lack an address bar; host in a Manta origin-bar window so the destination is verifiable.
           createWindow: (options: PopupChildWindowOptions) =>
             this.createPopupChildWindowWithOriginBar(guest, url, options)
         }
@@ -1072,7 +1072,7 @@ export class BrowserManager {
     )
     this.forwardOrQueuePopupEvent(openerGuest.id, {
       origin: safeOrigin(targetUrl),
-      action: 'opened-in-orca'
+      action: 'opened-in-manta'
     })
     // Why: match Electron's child-window lifecycle so closing the owning tab doesn't orphan session-bearing popups.
     const closePopupWithOpener = (): void => popup.close()
@@ -1248,7 +1248,7 @@ export class BrowserManager {
     this.annotationViewportBridgeOpsByTabId.delete(browserTabId)
   }
 
-  // Why: headless orca serve has no <webview> window; back pages with offscreen WebContents and skip the webview-only setup.
+  // Why: headless manta serve has no <webview> window; back pages with offscreen WebContents and skip the webview-only setup.
   registerOffscreenGuest({
     browserPageId,
     worktreeId,
@@ -1291,7 +1291,7 @@ export class BrowserManager {
     // Cancel all active grab ops before tearing down registrations
     this.grabSessionController.cancelAll('evicted')
     for (const downloadId of this.downloadsById.keys()) {
-      this.cancelDownloadInternal(downloadId, 'Orca is shutting down.')
+      this.cancelDownloadInternal(downloadId, 'Manta is shutting down.')
     }
     browserDownloadDestinationReservations.clear()
     for (const browserTabId of this.webContentsIdByTabId.keys()) {
@@ -1589,7 +1589,7 @@ export class BrowserManager {
     return true
   }
 
-  // Why: guests are isolated from Orca's preload bridge, so main owns the devtools escape hatch after a tab→guest lookup.
+  // Why: guests are isolated from Manta's preload bridge, so main owns the devtools escape hatch after a tab→guest lookup.
   async openDevTools(browserTabId: string): Promise<boolean> {
     const webContentsId = this.webContentsIdByTabId.get(browserTabId)
     if (!webContentsId) {
@@ -2222,17 +2222,17 @@ export class BrowserManager {
     })
   }
 
-  private openLinkInOrcaTab(browserTabId: string, rawUrl: string): boolean {
+  private openLinkInMantaTab(browserTabId: string, rawUrl: string): boolean {
     const renderer = this.resolveRendererForBrowserTab(browserTabId)
     if (!renderer) {
       return false
     }
     const normalizedUrl = normalizeBrowserNavigationUrl(rawUrl)
-    if (!normalizedUrl || normalizedUrl === ORCA_BROWSER_BLANK_URL) {
+    if (!normalizedUrl || normalizedUrl === MANTA_BROWSER_BLANK_URL) {
       return false
     }
-    // Why: only the renderer owns Orca's worktree/tab model; main forwards a validated URL, never letting guest content mutate it.
-    renderer.send('browser:open-link-in-orca-tab', {
+    // Why: only the renderer owns Manta's worktree/tab model; main forwards a validated URL, never letting guest content mutate it.
+    renderer.send('browser:open-link-in-manta-tab', {
       browserPageId: browserTabId,
       url: normalizedUrl
     })

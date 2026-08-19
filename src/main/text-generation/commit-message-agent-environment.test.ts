@@ -25,12 +25,12 @@ afterEach(() => {
 
 function makeHome(): string {
   Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
-  const dir = mkdtempSync(join(tmpdir(), 'orca-commit-env-'))
+  const dir = mkdtempSync(join(tmpdir(), 'manta-commit-env-'))
   tempDirs.push(dir)
   process.env.HOME = dir
   process.env.SHELL = '/bin/zsh'
-  delete process.env.ORCA_OPENCODE_SOURCE_CONFIG_DIR
-  delete process.env.ORCA_PI_SOURCE_AGENT_DIR
+  delete process.env.MANTA_OPENCODE_SOURCE_CONFIG_DIR
+  delete process.env.MANTA_PI_SOURCE_AGENT_DIR
   return dir
 }
 
@@ -51,8 +51,8 @@ describe('prepareLocalCommitMessageAgentEnv', () => {
   })
 
   it('prefers the original OpenCode config root over inherited PTY overlays', async () => {
-    process.env.OPENCODE_CONFIG_DIR = '/tmp/orca-opencode-overlay'
-    process.env.ORCA_OPENCODE_SOURCE_CONFIG_DIR = '/Users/tester/company/opencode'
+    process.env.OPENCODE_CONFIG_DIR = '/tmp/manta-opencode-overlay'
+    process.env.MANTA_OPENCODE_SOURCE_CONFIG_DIR = '/Users/tester/company/opencode'
 
     const result = await prepareLocalCommitMessageAgentEnv('opencode', undefined)
 
@@ -80,8 +80,8 @@ describe('prepareLocalCommitMessageAgentEnv', () => {
   })
 
   it('prefers the original Pi agent root over inherited PTY overlays', async () => {
-    process.env.PI_CODING_AGENT_DIR = '/tmp/orca-pi-overlay'
-    process.env.ORCA_PI_SOURCE_AGENT_DIR = '/Users/tester/.pi/agent'
+    process.env.PI_CODING_AGENT_DIR = '/tmp/manta-pi-overlay'
+    process.env.MANTA_PI_SOURCE_AGENT_DIR = '/Users/tester/.pi/agent'
 
     const result = await prepareLocalCommitMessageAgentEnv('pi', undefined)
 
@@ -113,20 +113,20 @@ describe('prepareLocalCommitMessageAgentEnv', () => {
   it('sets CODEX_HOME for host managed Codex accounts', async () => {
     const result = await prepareLocalCommitMessageAgentEnv('codex', {
       prepareForCodexLaunch: () =>
-        'C:\\Users\\tester\\AppData\\Roaming\\Orca\\codex-accounts\\a\\home'
+        'C:\\Users\\tester\\AppData\\Roaming\\Manta\\codex-accounts\\a\\home'
     })
 
     expect(result).toEqual({
       ok: true,
       env: expect.objectContaining({
-        CODEX_HOME: 'C:\\Users\\tester\\AppData\\Roaming\\Orca\\codex-accounts\\a\\home'
+        CODEX_HOME: 'C:\\Users\\tester\\AppData\\Roaming\\Manta\\codex-accounts\\a\\home'
       })
     })
   })
 
-  it('strips a nested-Orca CODEX_HOME override when the launch resolves to the real home', async () => {
+  it('strips a nested-Manta CODEX_HOME override when the launch resolves to the real home', async () => {
     process.env.CODEX_HOME = '/managed/runtime/home'
-    process.env.ORCA_CODEX_HOME = '/managed/runtime/home'
+    process.env.MANTA_CODEX_HOME = '/managed/runtime/home'
 
     const result = await prepareLocalCommitMessageAgentEnv('codex', {
       prepareForCodexLaunch: () => null
@@ -136,12 +136,12 @@ describe('prepareLocalCommitMessageAgentEnv', () => {
     const env = (result as { ok: true; env?: NodeJS.ProcessEnv }).env
     expect(env).toBeDefined()
     expect(env?.CODEX_HOME).toBeUndefined()
-    expect(env?.ORCA_CODEX_HOME).toBeUndefined()
+    expect(env?.MANTA_CODEX_HOME).toBeUndefined()
   })
 
   it('preserves a user-owned CODEX_HOME when the launch resolves to the real home', async () => {
     process.env.CODEX_HOME = '/home/me/.config/codex'
-    delete process.env.ORCA_CODEX_HOME
+    delete process.env.MANTA_CODEX_HOME
 
     const result = await prepareLocalCommitMessageAgentEnv('codex', {
       prepareForCodexLaunch: () => null
@@ -157,7 +157,7 @@ describe('prepareLocalCommitMessageAgentEnv', () => {
 
     const result = await prepareLocalCommitMessageAgentEnv('codex', {
       prepareForCodexLaunch: () =>
-        '\\\\wsl.localhost\\Ubuntu\\home\\tester\\.local\\share\\orca\\codex-accounts\\a\\home'
+        '\\\\wsl.localhost\\Ubuntu\\home\\tester\\.local\\share\\manta\\codex-accounts\\a\\home'
     })
 
     expect(result).toEqual({ ok: true })

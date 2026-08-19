@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { waitForActivePaneHookDescriptor, waitForActiveTerminalManager } from './helpers/terminal'
 import type { GlobalSettings } from '../../src/shared/global-settings-types'
@@ -94,21 +94,21 @@ function claudeTranscriptLines(args: {
 
 test.describe('Native chat first-flush transcript race (#8401)', () => {
   test('stays in loading (never errors) until a not-yet-flushed transcript appears, then hydrates live', async ({
-    orcaPage
+    mantaPage
   }, testInfo) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
 
-    const descriptor = await waitForActivePaneHookDescriptor(orcaPage)
+    const descriptor = await waitForActivePaneHookDescriptor(mantaPage)
     const [tabId] = descriptor.paneKey.split(':')
     const sessionId = `e2e-first-flush-${randomUUID()}`
 
     // Why: a real Claude Code session flushes its first JSONL line up to
     // minutes after launch (#8401) — this directory intentionally has no file
     // yet when the pane resolves its providerSession.
-    const scratchDir = mkdtempSync(path.join(os.tmpdir(), 'orca-e2e-native-chat-'))
+    const scratchDir = mkdtempSync(path.join(os.tmpdir(), 'manta-e2e-native-chat-'))
     const transcriptPath = path.join(scratchDir, `${sessionId}.jsonl`)
 
     const screenshotDir = path.join(
@@ -123,39 +123,39 @@ test.describe('Native chat first-flush transcript race (#8401)', () => {
     })
 
     try {
-      await enableNativeChatSetting(orcaPage)
-      await seedClaudeProviderSession(orcaPage, {
+      await enableNativeChatSetting(mantaPage)
+      await seedClaudeProviderSession(mantaPage, {
         paneKey: descriptor.paneKey,
         worktreeId: descriptor.worktreeId,
         sessionId,
         transcriptPath
       })
-      await toggleTerminalTabToChatView(orcaPage, { tabId, worktreeId: descriptor.worktreeId })
+      await toggleTerminalTabToChatView(mantaPage, { tabId, worktreeId: descriptor.worktreeId })
 
-      await expect(orcaPage.locator('[data-native-chat-root="true"]')).toBeVisible({
+      await expect(mantaPage.locator('[data-native-chat-root="true"]')).toBeVisible({
         timeout: 15_000
       })
-      await expect(orcaPage.getByText(LOADING_TITLE)).toBeVisible({ timeout: 10_000 })
-      await expect(orcaPage.getByText(ERROR_TITLE)).toHaveCount(0)
-      await orcaPage.screenshot({
+      await expect(mantaPage.getByText(LOADING_TITLE)).toBeVisible({ timeout: 10_000 })
+      await expect(mantaPage.getByText(ERROR_TITLE)).toHaveCount(0)
+      await mantaPage.screenshot({
         path: path.join(screenshotDir, '01-loading-no-error.png')
       })
 
       // Why: a short real delay proves the first readSession attempt already
       // hit the not-yet-flushed file (returning notFound) and the renderer's
       // backoff retry — not a lucky first read — is what picks it up below.
-      await orcaPage.waitForTimeout(1_500)
-      await expect(orcaPage.getByText(ERROR_TITLE)).toHaveCount(0)
+      await mantaPage.waitForTimeout(1_500)
+      await expect(mantaPage.getByText(ERROR_TITLE)).toHaveCount(0)
 
       const userText = 'Explain the native chat first-flush race fix for #8401'
       const assistantText =
         'The main process now retries a not-yet-flushed transcript instead of caching a permanent miss.'
       writeFileSync(transcriptPath, claudeTranscriptLines({ sessionId, userText, assistantText }))
 
-      await expect(orcaPage.getByText(userText)).toBeVisible({ timeout: 30_000 })
-      await expect(orcaPage.getByText(assistantText)).toBeVisible({ timeout: 30_000 })
-      await expect(orcaPage.getByText(ERROR_TITLE)).toHaveCount(0)
-      await orcaPage.screenshot({
+      await expect(mantaPage.getByText(userText)).toBeVisible({ timeout: 30_000 })
+      await expect(mantaPage.getByText(assistantText)).toBeVisible({ timeout: 30_000 })
+      await expect(mantaPage.getByText(ERROR_TITLE)).toHaveCount(0)
+      await mantaPage.screenshot({
         path: path.join(screenshotDir, '02-hydrated.png')
       })
     } finally {

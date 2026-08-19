@@ -28,7 +28,8 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
           '  if (!process.env.PRIME_AGENT_INTERNAL_DAEMON_WORKER) return'
         ]
       : []
-  const ownerEnv = kind === 'prime-agent' ? 'ORCA_PRIME_AGENT_STATUS_OWNED' : 'ORCA_PI_STATUS_OWNED'
+  const ownerEnv =
+    kind === 'prime-agent' ? 'MANTA_PRIME_AGENT_STATUS_OWNED' : 'MANTA_PI_STATUS_OWNED'
 
   return [
     '// Why: pi assistant messages carry content as an array of parts',

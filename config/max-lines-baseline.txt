@@ -60,11 +60,11 @@ inline src/main/rate-limits/claude-fetcher.ts
 inline src/main/rate-limits/claude-pty.ts
 inline src/main/rate-limits/codex-fetcher.ts
 inline src/main/rate-limits/service.ts
-inline src/main/runtime/orca-runtime-browser.ts
-inline src/main/runtime/orca-runtime-files.ts
-inline src/main/runtime/orca-runtime-git.ts
-inline src/main/runtime/orca-runtime.test.ts
-inline src/main/runtime/orca-runtime.ts
+inline src/main/runtime/manta-runtime-browser.ts
+inline src/main/runtime/manta-runtime-files.ts
+inline src/main/runtime/manta-runtime-git.ts
+inline src/main/runtime/manta-runtime.test.ts
+inline src/main/runtime/manta-runtime.ts
 inline src/main/runtime/orchestration/db.ts
 inline src/main/runtime/rpc/methods/orchestration.ts
 inline src/main/runtime/rpc/methods/terminal.ts

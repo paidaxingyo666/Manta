@@ -18,12 +18,12 @@ export function buildSshPtySpawnEnv(args: {
           ? `${args.remoteCliBridgeEnv.binDir}${pathDelimiter}${pathValue}`
           : args.remoteCliBridgeEnv.binDir
     }
-    merged.ORCA_REMOTE_CLI_BIN_DIR = args.remoteCliBridgeEnv.binDir
-    merged.ORCA_RELAY_DIR = args.remoteCliBridgeEnv.relayDir
-    merged.ORCA_RELAY_NODE_PATH = args.remoteCliBridgeEnv.nodePath
-    merged.ORCA_RELAY_SOCKET_PATH = args.remoteCliBridgeEnv.sockPath
+    merged.MANTA_REMOTE_CLI_BIN_DIR = args.remoteCliBridgeEnv.binDir
+    merged.MANTA_RELAY_DIR = args.remoteCliBridgeEnv.relayDir
+    merged.MANTA_RELAY_NODE_PATH = args.remoteCliBridgeEnv.nodePath
+    merged.MANTA_RELAY_SOCKET_PATH = args.remoteCliBridgeEnv.sockPath
     if (args.remoteCliBridgeEnv.credentialFile) {
-      merged.ORCA_RELAY_CREDENTIAL_FILE = args.remoteCliBridgeEnv.credentialFile
+      merged.MANTA_RELAY_CREDENTIAL_FILE = args.remoteCliBridgeEnv.credentialFile
     }
   }
   // Why: match local/daemon precedence—managed defaults cannot restore explicitly removed values.

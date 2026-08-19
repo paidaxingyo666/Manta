@@ -99,32 +99,32 @@ describe('new-workspace-composer-repo', () => {
   })
 
   describe('resolveComposerActiveRepoId', () => {
-    const localOrca = makeRepo('local-orca', { upstream: { owner: 'stablyai', repo: 'orca' } })
-    const runtimeOrca = makeRepo('runtime-orca', {
-      connectionId: 'runtime-ssh-orca-1',
-      upstream: { owner: 'stablyai', repo: 'orca' }
+    const localManta = makeRepo('local-manta', { upstream: { owner: 'stablyai', repo: 'manta' } })
+    const runtimeManta = makeRepo('runtime-manta', {
+      connectionId: 'runtime-ssh-manta-1',
+      upstream: { owner: 'stablyai', repo: 'manta' }
     })
     const otherProject = makeRepo('noqa', { upstream: { owner: 'stablyai', repo: 'noqa' } })
-    const repos = [otherProject, localOrca, runtimeOrca]
+    const repos = [otherProject, localManta, runtimeManta]
     const eligibleRepos = getComposerEligibleRepos(repos)
 
     it('maps an active runtime-owned SSH repo to its local same-project sibling', () => {
-      expect(resolveComposerActiveRepoId(repos, eligibleRepos, 'runtime-orca')).toBe('local-orca')
+      expect(resolveComposerActiveRepoId(repos, eligibleRepos, 'runtime-manta')).toBe('local-manta')
     })
 
     it('leaves a normal active repo unchanged', () => {
-      expect(resolveComposerActiveRepoId(repos, eligibleRepos, 'local-orca')).toBe('local-orca')
+      expect(resolveComposerActiveRepoId(repos, eligibleRepos, 'local-manta')).toBe('local-manta')
     })
 
     it('keeps the runtime repo id when no same-project sibling is eligible', () => {
-      const onlyRuntime = [runtimeOrca]
+      const onlyRuntime = [runtimeManta]
       expect(
         resolveComposerActiveRepoId(
           onlyRuntime,
           getComposerEligibleRepos(onlyRuntime),
-          'runtime-orca'
+          'runtime-manta'
         )
-      ).toBe('runtime-orca')
+      ).toBe('runtime-manta')
     })
 
     it('passes through null/undefined active repo', () => {

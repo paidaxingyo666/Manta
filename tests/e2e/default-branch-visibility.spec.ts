@@ -5,7 +5,7 @@
  */
 
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { worktreeRow } from './worktree-row-locators'
 
@@ -91,22 +91,22 @@ async function seedSidebarVisibilityScenario(page: Page): Promise<SidebarVisibil
 }
 
 test.describe('Default branch visibility', () => {
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
   })
 
   test('keeps the default branch visible when sleeping workspaces are hidden', async ({
-    orcaPage
+    mantaPage
   }) => {
-    const { defaultBranchId, featureId } = await seedSidebarVisibilityScenario(orcaPage)
-    const defaultBranchRow = worktreeRow(orcaPage, defaultBranchId)
-    const featureRow = worktreeRow(orcaPage, featureId)
+    const { defaultBranchId, featureId } = await seedSidebarVisibilityScenario(mantaPage)
+    const defaultBranchRow = worktreeRow(mantaPage, defaultBranchId)
+    const featureRow = worktreeRow(mantaPage, featureId)
 
     // Poll rather than set once: hydration can land after the seed and reset the filters.
     await expect
       .poll(() =>
-        orcaPage.evaluate(
+        mantaPage.evaluate(
           ({ defaultBranchId, featureId }) => {
             const state = window.__store?.getState()
             state?.setShowSleepingWorkspaces(false)
@@ -143,20 +143,20 @@ test.describe('Default branch visibility', () => {
     await expect(featureRow).toHaveCount(0)
 
     // Opting out of the exemption is the only way back to the pre-#8873 sweep.
-    await orcaPage.evaluate(() => {
+    await mantaPage.evaluate(() => {
       window.__store?.getState().setAlwaysShowDefaultBranchWorkspace(false)
     })
 
     await expect(defaultBranchRow).toHaveCount(0)
 
-    await orcaPage.evaluate(() => {
+    await mantaPage.evaluate(() => {
       window.__store?.getState().setAlwaysShowDefaultBranchWorkspace(true)
     })
 
     await expect(defaultBranchRow).toBeVisible()
 
     // The explicit hide filter still outranks the exemption.
-    await orcaPage.evaluate(() => {
+    await mantaPage.evaluate(() => {
       window.__store?.getState().setHideDefaultBranchWorkspace(true)
     })
 

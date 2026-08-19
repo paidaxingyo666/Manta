@@ -23,19 +23,19 @@ beforeEach(() => {
 describe('plugin consent IPC schema', () => {
   it('requires the fingerprint reviewed by the caller', () => {
     expect(() =>
-      parsePluginConsentArgs({ pluginKey: 'orca-samples.demo', decision: 'approve' })
+      parsePluginConsentArgs({ pluginKey: 'manta-samples.demo', decision: 'approve' })
     ).toThrow()
   })
 
   it('accepts an explicit reviewed fingerprint', () => {
     expect(
       parsePluginConsentArgs({
-        pluginKey: 'orca-samples.demo',
+        pluginKey: 'manta-samples.demo',
         reviewedFingerprint: 'sha256-reviewed',
         decision: 'approve'
       })
     ).toEqual({
-      pluginKey: 'orca-samples.demo',
+      pluginKey: 'manta-samples.demo',
       reviewedFingerprint: 'sha256-reviewed',
       decision: 'approve'
     })
@@ -101,27 +101,27 @@ describe('plugin removal authority', () => {
   it('allows installed rows but refuses dev overrides and unknown keys', () => {
     const service = {
       getDiscovered: () => [
-        { pluginKey: 'orca-samples.installed', isDev: false },
-        { pluginKey: 'orca-samples.dev', isDev: true }
+        { pluginKey: 'manta-samples.installed', isDev: false },
+        { pluginKey: 'manta-samples.dev', isDev: true }
       ]
     } as unknown as PluginService
 
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.installed')).toBe(true)
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.dev')).toBe(false)
-    expect(canRemoveInstalledPlugin(service, 'orca-samples.unknown')).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'manta-samples.installed')).toBe(true)
+    expect(canRemoveInstalledPlugin(service, 'manta-samples.dev')).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'manta-samples.unknown')).toBe(false)
   })
 
   it('refuses bundled installs because startup would restore them', () => {
     const service = {
-      getDiscovered: () => [{ pluginKey: 'stablyai.orca-theme', isDev: false }]
+      getDiscovered: () => [{ pluginKey: 'paidaxingyo666.manta-theme', isDev: false }]
     } as unknown as PluginService
     const lock = {
       version: 1,
       plugins: {
-        'stablyai.orca-theme': {
-          pluginKey: 'stablyai.orca-theme',
+        'paidaxingyo666.manta-theme': {
+          pluginKey: 'paidaxingyo666.manta-theme',
           version: '1.0.0',
-          source: { kind: 'bundled', bundleId: 'stablyai.orca-theme' },
+          source: { kind: 'bundled', bundleId: 'paidaxingyo666.manta-theme' },
           resolvedCommit: null,
           contentHash: 'a'.repeat(64),
           consentFingerprint: 'reviewed',
@@ -130,7 +130,7 @@ describe('plugin removal authority', () => {
       }
     } satisfies PluginLockfile
 
-    expect(canRemoveInstalledPlugin(service, 'stablyai.orca-theme', lock)).toBe(false)
+    expect(canRemoveInstalledPlugin(service, 'paidaxingyo666.manta-theme', lock)).toBe(false)
   })
 })
 

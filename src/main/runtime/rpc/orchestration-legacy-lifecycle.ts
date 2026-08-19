@@ -1,5 +1,5 @@
 import type { RpcRequest } from './core'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import type { MessageType } from '../orchestration/db'
 import { OrchestrationError } from '../orchestration/orchestration-error'
 import type { LegacyCompatibilityAuthority } from './orchestration-legacy-authority'
@@ -13,7 +13,7 @@ import {
 } from './orchestration-legacy-operation'
 
 export async function handleLegacyLifecycleSend(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   authority: LegacyCompatibilityAuthority
   request: RpcRequest
   params: LegacySendParams

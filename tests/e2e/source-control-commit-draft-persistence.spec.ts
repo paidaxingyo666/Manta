@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 import { openSourceControlForWorktree } from './helpers/worktree-registration'
 
@@ -49,7 +49,7 @@ function cleanupWorktree(repoPath: string, worktreePath: string, branchName: str
 
 test.describe('Source Control commit draft persistence', () => {
   test('preserves a typed draft when the sidebar tab remounts', async ({
-    orcaPage,
+    mantaPage,
     testRepoPath
   }) => {
     let firstWorktree: E2eWorktree | null = null
@@ -58,35 +58,35 @@ test.describe('Source Control commit draft persistence', () => {
     try {
       firstWorktree = createWorktreeWithStagedChange(testRepoPath)
       secondWorktree = createWorktreeWithStagedChange(testRepoPath)
-      await waitForSessionReady(orcaPage)
-      await openSourceControlForWorktree(orcaPage, testRepoPath, firstWorktree.worktreePath)
+      await waitForSessionReady(mantaPage)
+      await openSourceControlForWorktree(mantaPage, testRepoPath, firstWorktree.worktreePath)
 
-      const textarea = orcaPage.getByRole('textbox', { name: 'Commit message' })
+      const textarea = mantaPage.getByRole('textbox', { name: 'Commit message' })
       await expect(textarea).toBeVisible({ timeout: 10_000 })
 
       const draft = 'fix: keep draft after leaving Source Control'
       await textarea.fill(draft)
       await expect(textarea).toHaveValue(draft)
 
-      await orcaPage.evaluate(() => {
+      await mantaPage.evaluate(() => {
         const state = window.__store?.getState()
         state?.setRightSidebarTab('explorer')
       })
       await expect
         .poll(
-          async () => orcaPage.evaluate(() => window.__store?.getState().rightSidebarTab ?? null),
+          async () => mantaPage.evaluate(() => window.__store?.getState().rightSidebarTab ?? null),
           { timeout: 5_000 }
         )
         .toBe('explorer')
       await expect(textarea).toBeHidden()
 
-      await orcaPage.evaluate(() => {
+      await mantaPage.evaluate(() => {
         const state = window.__store?.getState()
         state?.setRightSidebarTab('source-control')
       })
       await expect
         .poll(
-          async () => orcaPage.evaluate(() => window.__store?.getState().rightSidebarTab ?? null),
+          async () => mantaPage.evaluate(() => window.__store?.getState().rightSidebarTab ?? null),
           { timeout: 5_000 }
         )
         .toBe('source-control')
@@ -94,11 +94,11 @@ test.describe('Source Control commit draft persistence', () => {
       await expect(textarea).toBeVisible({ timeout: 10_000 })
       await expect(textarea).toHaveValue(draft)
 
-      await openSourceControlForWorktree(orcaPage, testRepoPath, secondWorktree.worktreePath)
+      await openSourceControlForWorktree(mantaPage, testRepoPath, secondWorktree.worktreePath)
       await expect(textarea).toBeVisible({ timeout: 10_000 })
       await expect(textarea).toHaveValue('')
 
-      await openSourceControlForWorktree(orcaPage, testRepoPath, firstWorktree.worktreePath)
+      await openSourceControlForWorktree(mantaPage, testRepoPath, firstWorktree.worktreePath)
       await expect(textarea).toBeVisible({ timeout: 10_000 })
       await expect(textarea).toHaveValue(draft)
     } finally {

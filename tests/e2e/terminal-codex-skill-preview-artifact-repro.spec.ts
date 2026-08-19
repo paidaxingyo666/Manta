@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import type { ElectronApplication, Page, TestInfo } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { removeWorktreeViaStore } from './helpers/dead-terminal'
 import {
   ensureTerminalVisible,
@@ -17,20 +17,21 @@ import {
 } from './helpers/terminal'
 import { compareTerminalScreenshots } from './terminal-screenshot-diff'
 
-const RUN_REPRO = process.env.ORCA_E2E_CODEX_SKILL_PREVIEW_REPRO === '1'
-const EXPECT_NO_ARTIFACTS = process.env.ORCA_E2E_EXPECT_NO_CODEX_SKILL_PREVIEW_ARTIFACTS === '1'
+const RUN_REPRO = process.env.MANTA_E2E_CODEX_SKILL_PREVIEW_REPRO === '1'
+const EXPECT_NO_ARTIFACTS = process.env.MANTA_E2E_EXPECT_NO_CODEX_SKILL_PREVIEW_ARTIFACTS === '1'
 const FULLSCREEN_MIN_SIZE = { width: 1200, height: 760 }
 const MIN_REPRO_DIFF_RATIO = 0.006
 const MAX_CLEAN_DIFF_RATIO = 0.0015
-const ORCA_REPO_PATH = realpathSync(process.cwd())
+const MANTA_REPO_PATH = realpathSync(process.cwd())
 const ARTIFACT_DIR = path.join(process.cwd(), '.tmp', 'codex-skill-preview-real-flow')
 
 const CODEX_READY_RE = /Ask Codex|OpenAI Codex/i
 const CODEX_TRUST_PROMPT_RE =
   /Do you trust|trust this folder|Trust this|Working with untrusted contents/i
 const CODEX_UPDATE_PROMPT_RE = /update available|install update|Skip for now|Skip until next/i
-const CODEX_SKILL_PREVIEW_RE = /Press enter to insert|esc to close|electron|orca-cli|orca-emulator/i
-const SETUP_PANE_ACTIVITY_RE = /install-orca-skills|pnpm|Progress:|Packages:|Lockfile/i
+const CODEX_SKILL_PREVIEW_RE =
+  /Press enter to insert|esc to close|electron|manta-cli|manta-emulator/i
+const SETUP_PANE_ACTIVITY_RE = /install-manta-skills|pnpm|Progress:|Packages:|Lockfile/i
 const CLEAN_SKILL_ROW_RE = /^  [A-Za-z][A-Za-z0-9 .-]{1,32}\s+\[Skill\]\s/
 const CODEX_READY_SETTLE_MS = 3_500
 const SETUP_CHANGES_AFTER_PREVIEW = 3
@@ -105,7 +106,7 @@ async function setStableFullscreenWindow(
   await page.waitForTimeout(1_200)
 }
 
-async function addRealOrcaRepo(page: Page, repoPath: string): Promise<string> {
+async function addRealMantaRepo(page: Page, repoPath: string): Promise<string> {
   return page.evaluate(async (repoPath) => {
     await window.api.repos.add({ path: repoPath }).catch((error: unknown) => {
       if (!/already|exists|duplicate/i.test(String(error))) {
@@ -121,7 +122,7 @@ async function addRealOrcaRepo(page: Page, repoPath: string): Promise<string> {
     await state.fetchRepos()
     const repo = store.getState().repos.find((candidate) => candidate.path === repoPath)
     if (!repo) {
-      throw new Error(`Real Orca repo did not load: ${repoPath}`)
+      throw new Error(`Real Manta repo did not load: ${repoPath}`)
     }
 
     await store.getState().updateRepo(repo.id, {
@@ -139,7 +140,7 @@ async function addRealOrcaRepo(page: Page, repoPath: string): Promise<string> {
       (candidate) => candidate.path === repoPath
     )
     if (!worktree) {
-      throw new Error(`Real Orca worktree did not load: ${repoPath}`)
+      throw new Error(`Real Manta worktree did not load: ${repoPath}`)
     }
 
     nextState.updateSettings({
@@ -198,7 +199,7 @@ async function createWorkspaceThroughComposer(page: Page, workspaceName: string)
         }, workspaceName),
       {
         timeout: 60_000,
-        message: `Workspace ${workspaceName} did not appear in the real Orca repo`
+        message: `Workspace ${workspaceName} did not appear in the real Manta repo`
       }
     )
     .not.toBeNull()
@@ -219,7 +220,7 @@ async function createWorkspaceThroughComposer(page: Page, workspaceName: string)
   await expect
     .poll(() => getActiveWorktreeId(page), {
       timeout: 30_000,
-      message: 'Created real Orca workspace did not become active'
+      message: 'Created real Manta workspace did not become active'
     })
     .toBe(createdId)
   expect(createdId).not.toBe(previousWorktreeId)
@@ -565,83 +566,83 @@ test.describe('Codex skill preview terminal artifact repro @headful', () => {
 
   const createdWorktreeIds: string[] = []
 
-  test.skip(!RUN_REPRO, 'Set ORCA_E2E_CODEX_SKILL_PREVIEW_REPRO=1 to run this repro.')
+  test.skip(!RUN_REPRO, 'Set MANTA_E2E_CODEX_SKILL_PREVIEW_REPRO=1 to run this repro.')
 
-  test.afterEach(async ({ orcaPage }) => {
+  test.afterEach(async ({ mantaPage }) => {
     for (const id of createdWorktreeIds) {
-      await removeWorktreeViaStore(orcaPage, id)
+      await removeWorktreeViaStore(mantaPage, id)
     }
     createdWorktreeIds.length = 0
   })
 
-  test('captures the real Orca repo setup-split Codex skill preview overpaint before any click', async ({
+  test('captures the real Manta repo setup-split Codex skill preview overpaint before any click', async ({
     electronApp,
-    orcaPage
+    mantaPage
   }, testInfo) => {
     test.setTimeout(240_000)
     test.skip(process.platform === 'win32', 'Codex skill preview repro uses POSIX shell commands')
 
-    await setStableFullscreenWindow(electronApp, orcaPage)
-    await waitForSessionReady(orcaPage)
-    await addRealOrcaRepo(orcaPage, ORCA_REPO_PATH)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await setStableFullscreenWindow(electronApp, mantaPage)
+    await waitForSessionReady(mantaPage)
+    await addRealMantaRepo(mantaPage, MANTA_REPO_PATH)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
 
     const workspaceName = `codex-skill-preview-${Date.now()}`
-    const worktreeId = await createWorkspaceThroughComposer(orcaPage, workspaceName)
+    const worktreeId = await createWorkspaceThroughComposer(mantaPage, workspaceName)
     createdWorktreeIds.push(worktreeId)
 
-    await ensureTerminalVisible(orcaPage, 30_000)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    await waitForPaneCount(orcaPage, 2, 60_000)
-    await waitForPaneIdentitySnapshot(orcaPage, 2)
-    const webglActive = await forceTerminalWebgl(orcaPage)
+    await ensureTerminalVisible(mantaPage, 30_000)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
+    await waitForPaneCount(mantaPage, 2, 60_000)
+    await waitForPaneIdentitySnapshot(mantaPage, 2)
+    const webglActive = await forceTerminalWebgl(mantaPage)
     test.skip(!webglActive, 'Codex skill preview artifact repro needs WebGL rendering')
 
-    const leftPane = await focusLeftTerminalPane(orcaPage)
-    const rightPane = await getRightTerminalPane(orcaPage)
+    const leftPane = await focusLeftTerminalPane(mantaPage)
+    const rightPane = await getRightTerminalPane(mantaPage)
     expect(leftPane.hasWebgl).toBe(true)
     expect(rightPane.hasWebgl).toBe(true)
     expect(leftPane.proposed).toEqual({ cols: leftPane.cols, rows: leftPane.rows })
     expect(leftPane.appliedPtySize).toEqual({ cols: leftPane.cols, rows: leftPane.rows })
     expect(leftPane.isUserScrolling).toBe(false)
     await waitForPaneContent(
-      orcaPage,
+      mantaPage,
       rightPane.tabId,
       rightPane.ptyId,
       SETUP_PANE_ACTIVITY_RE,
       60_000
     )
-    await dismissCodexPromptsIfPresent(orcaPage, leftPane)
-    await waitForPaneContent(orcaPage, leftPane.tabId, leftPane.ptyId, CODEX_READY_RE, 60_000)
+    await dismissCodexPromptsIfPresent(mantaPage, leftPane)
+    await waitForPaneContent(mantaPage, leftPane.tabId, leftPane.ptyId, CODEX_READY_RE, 60_000)
     await waitForPaneContent(
-      orcaPage,
+      mantaPage,
       leftPane.tabId,
       leftPane.ptyId,
       /usage limit reset|YOLO mode|permissions/i,
       15_000
     )
-    await orcaPage.waitForTimeout(CODEX_READY_SETTLE_MS)
-    await waitForPaneVisibleContentChanges(orcaPage, rightPane, 1, 8_000)
+    await mantaPage.waitForTimeout(CODEX_READY_SETTLE_MS)
+    await waitForPaneVisibleContentChanges(mantaPage, rightPane, 1, 8_000)
 
-    await focusLeftTerminalPane(orcaPage)
-    await orcaPage.keyboard.type('test $e', { delay: 70 })
+    await focusLeftTerminalPane(mantaPage)
+    await mantaPage.keyboard.type('test $e', { delay: 70 })
     await waitForPaneContent(
-      orcaPage,
+      mantaPage,
       leftPane.tabId,
       leftPane.ptyId,
       CODEX_SKILL_PREVIEW_RE,
       30_000
     )
     const setupChangesAfterPreview = await waitForPaneVisibleContentChanges(
-      orcaPage,
+      mantaPage,
       rightPane,
       SETUP_CHANGES_AFTER_PREVIEW,
       12_000
     )
 
-    const evidence = await captureClickEvidence(orcaPage, leftPane, testInfo)
+    const evidence = await captureClickEvidence(mantaPage, leftPane, testInfo)
     const overpaintedSkillRows = getOverpaintedSkillRows(evidence.beforeContent)
     const detectedArtifact =
       overpaintedSkillRows.length >= 2 || evidence.diffRatio >= MIN_REPRO_DIFF_RATIO
@@ -654,7 +655,7 @@ test.describe('Codex skill preview terminal artifact repro @headful', () => {
         leftPane: evidence.leftPane,
         setupChangesAfterPreview,
         overpaintedSkillRows,
-        repoPath: ORCA_REPO_PATH
+        repoPath: MANTA_REPO_PATH
       })
     })
 

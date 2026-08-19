@@ -27,7 +27,7 @@ describe('normalizeAiVaultScopeForContext', () => {
     expect(
       normalizeAiVaultScopeForContext({
         scope: 'workspace',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: null
       })
     ).toBe('all')
@@ -37,7 +37,7 @@ describe('normalizeAiVaultScopeForContext', () => {
     expect(
       normalizeAiVaultScopeForContext({
         scope: 'project',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo'
       })
     ).toBe('project')
@@ -57,7 +57,7 @@ describe('shouldRestoreDefaultAiVaultScope', () => {
     expect(
       shouldRestoreDefaultAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         userChangedScope: false
       })
@@ -68,7 +68,7 @@ describe('shouldRestoreDefaultAiVaultScope', () => {
     expect(
       shouldRestoreDefaultAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: null,
         userChangedScope: false
       })
@@ -79,7 +79,7 @@ describe('shouldRestoreDefaultAiVaultScope', () => {
     expect(
       shouldRestoreDefaultAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         userChangedScope: true
       })
@@ -100,7 +100,7 @@ describe('shouldRestoreDefaultAiVaultScope', () => {
     expect(
       shouldRestoreDefaultAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         userChangedScope: false,
         defaultScope: 'project'
@@ -114,7 +114,7 @@ describe('getRestorableAiVaultScope', () => {
     expect(
       getRestorableAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         preferredScope: 'workspace',
         userChangedScope: false
@@ -126,7 +126,7 @@ describe('getRestorableAiVaultScope', () => {
     expect(
       getRestorableAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         preferredScope: 'project',
         userChangedScope: true
@@ -138,7 +138,7 @@ describe('getRestorableAiVaultScope', () => {
     expect(
       getRestorableAiVaultScope({
         scope: 'all',
-        activeProjectKey: 'project:orca',
+        activeProjectKey: 'project:manta',
         activeWorktreePath: '/repo',
         preferredScope: 'all',
         userChangedScope: true

@@ -3,9 +3,9 @@ import { defineMethod, type RpcMethod } from '../core'
 import { OptionalBoolean, OptionalString, requiredString } from '../schemas'
 import { ORCHESTRATION_RUN_PAGE_LIMIT } from '../../../../shared/orchestration-run-pagination'
 import type {
-  OrcaRuntimeService,
+  MantaRuntimeService,
   OrchestrationCompatibilityCallerAuthority
-} from '../../orca-runtime'
+} from '../../manta-runtime'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import { assertCallerHandleMatchesEvidence } from './orchestration-run-scope'
 
@@ -28,7 +28,7 @@ const RunListParams = z.object({
 const RunShowParams = z.object({ id: requiredString('Missing --id'), from: OptionalString })
 
 function requireCallerPane(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   handle: string,
   callerAuthority?: OrchestrationCompatibilityCallerAuthority
 ): string {
@@ -39,7 +39,7 @@ function requireCallerPane(
   if (!paneKey) {
     throw new OrchestrationError(
       'stable_pane_required',
-      'The coordinator terminal has no stable pane identity. Run this command inside a live Orca terminal.'
+      'The coordinator terminal has no stable pane identity. Run this command inside a live Manta terminal.'
     )
   }
   return paneKey

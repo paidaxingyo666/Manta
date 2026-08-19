@@ -1,13 +1,13 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
-const repository = process.env.GITHUB_REPOSITORY ?? 'stablyai/orca'
+const repository = process.env.GITHUB_REPOSITORY ?? 'paidaxingyo666/Manta'
 const token = process.env.GITHUB_TOKEN
 const outputPath = process.env.DOWNLOADS_BADGE_PATH ?? 'docs/assets/readme-downloads.svg'
 
 const headers = {
   Accept: 'application/vnd.github+json',
-  'User-Agent': 'orca-readme-downloads-badge',
+  'User-Agent': 'manta-readme-downloads-badge',
   'X-GitHub-Api-Version': '2022-11-28'
 }
 

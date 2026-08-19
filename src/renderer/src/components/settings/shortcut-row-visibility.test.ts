@@ -22,7 +22,7 @@ describe('buildShortcutRowVisibility', () => {
       groups: [creationGroup()],
       keybindings: {},
       conflictByAction: new Map(),
-      terminalShortcutPolicy: 'orca-first',
+      terminalShortcutPolicy: 'manta-first',
       platform: 'darwin',
       managedBrowserCreationEnabled: false,
       mobileEmulatorCreationEnabled: false,

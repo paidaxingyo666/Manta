@@ -154,7 +154,7 @@ describe('tui agent startup plans', () => {
     expect(plan?.launchCommand).not.toContain(prompt)
     expect(plan?.followupPrompt).toBeNull()
     expect(plan?.launchConfig.agentCommand).toBe('hermes --tui')
-    expect(plan?.env?.ORCA_HERMES_STARTUP_QUERY).toBe(prompt)
+    expect(plan?.env?.MANTA_HERMES_STARTUP_QUERY).toBe(prompt)
     const script =
       testCase.shell === 'posix'
         ? unwrapPosixShellScript(plan?.launchCommand)
@@ -162,16 +162,16 @@ describe('tui agent startup plans', () => {
     expect(script).toContain("'hermes' 'chat'")
     expect(script).toContain('--query=')
     expect(testCase.shell === 'posix' ? plan?.launchCommand : script).toContain(
-      'ORCA_HERMES_STARTUP_QUERY'
+      'MANTA_HERMES_STARTUP_QUERY'
     )
     expect(script).toContain("'--yolo' '--tui'")
     expect(script).toContain(
       testCase.shell === 'posix'
-        ? '--query=${__orca_hermes_startup_query}'
-        : 'Remove-Item Env:ORCA_HERMES_STARTUP_QUERY'
+        ? '--query=${__manta_hermes_startup_query}'
+        : 'Remove-Item Env:MANTA_HERMES_STARTUP_QUERY'
     )
     if (testCase.shell === 'posix') {
-      expect(plan?.launchCommand).toContain('unset ORCA_HERMES_STARTUP_QUERY')
+      expect(plan?.launchCommand).toContain('unset MANTA_HERMES_STARTUP_QUERY')
     }
   })
 
@@ -200,7 +200,7 @@ describe('tui agent startup plans', () => {
 
     const script = unwrapPosixShellScript(plan?.launchCommand)
     expect(script).toContain("'--provider' 'anthropic' '--yolo' '--tui'")
-    expect(plan?.env?.ORCA_HERMES_STARTUP_QUERY).toBe('run privately')
+    expect(plan?.env?.MANTA_HERMES_STARTUP_QUERY).toBe('run privately')
   })
 
   it.each([
@@ -251,7 +251,7 @@ describe('tui agent startup plans', () => {
     expect(unwrapPosixShellScript(plan?.launchCommand)).toContain("'--profile' 'chat'")
   })
 
-  it('keeps Orca ownership of the Hermes startup query and TUI mode', () => {
+  it('keeps Manta ownership of the Hermes startup query and TUI mode', () => {
     const plan = buildAgentStartupPlan({
       agent: 'hermes',
       prompt: 'automation prompt',
@@ -265,7 +265,7 @@ describe('tui agent startup plans', () => {
     expect(script).not.toContain('override')
     expect(script).not.toContain("'--cli'")
     expect(script.match(/'--tui'/g)).toHaveLength(1)
-    expect(plan?.env?.ORCA_HERMES_STARTUP_QUERY).toBe('automation prompt')
+    expect(plan?.env?.MANTA_HERMES_STARTUP_QUERY).toBe('automation prompt')
   })
 
   it('preserves wrapper tokens before the Hermes executable', () => {
@@ -365,7 +365,7 @@ describe('tui agent startup plans', () => {
       })
 
       expect(plan?.launchCommand).not.toContain(prompt)
-      expect(plan?.env?.ORCA_HERMES_STARTUP_QUERY).toBe(prompt)
+      expect(plan?.env?.MANTA_HERMES_STARTUP_QUERY).toBe(prompt)
     }
   )
 
@@ -379,7 +379,7 @@ describe('tui agent startup plans', () => {
     })
 
     expect(unwrapPowerShellScript(plan?.launchCommand)).toContain(
-      "& 'hermes' 'chat' \"--query=$orcaHermesNativeQuery\" '--tui'"
+      "& 'hermes' 'chat' \"--query=$mantaHermesNativeQuery\" '--tui'"
     )
   })
 
@@ -407,7 +407,7 @@ describe('tui agent startup plans', () => {
     expect(plan?.followupPrompt).toBeNull()
   })
 
-  it('does not launch Codex with the Orca profile when agent status hooks are enabled', () => {
+  it('does not launch Codex with the Manta profile when agent status hooks are enabled', () => {
     const plan = buildAgentStartupPlan({
       agent: 'codex',
       prompt: 'fix it',
@@ -437,7 +437,7 @@ describe('tui agent startup plans', () => {
     })
   })
 
-  it('launches Claude without Orca settings injection', () => {
+  it('launches Claude without Manta settings injection', () => {
     const plan = buildAgentStartupPlan({
       agent: 'claude',
       prompt: 'fix it',
@@ -449,7 +449,7 @@ describe('tui agent startup plans', () => {
     expect(plan?.launchCommand).not.toContain('--settings')
   })
 
-  it('uses the Linux Orca CLI command for Claude Agent Teams launches', () => {
+  it('uses the Linux Manta CLI command for Claude Agent Teams launches', () => {
     const plan = buildAgentStartupPlan({
       agent: 'claude-agent-teams',
       prompt: '',
@@ -458,13 +458,13 @@ describe('tui agent startup plans', () => {
       allowEmptyPromptLaunch: true
     })
 
-    expect(plan?.launchCommand).toBe('orca-ide claude-teams')
+    expect(plan?.launchCommand).toBe('manta-ide claude-teams')
   })
 
-  it('uses the plain orca shim for Claude Agent Teams on Linux SSH remotes', () => {
-    // Why: the SSH relay deploys the CLI shim as `orca` (not the local-only
-    // `orca-ide` GNOME-screen-reader workaround), so a remote launch must not
-    // emit `orca-ide claude-teams` — that name is not on the remote PATH and
+  it('uses the plain manta shim for Claude Agent Teams on Linux SSH remotes', () => {
+    // Why: the SSH relay deploys the CLI shim as `manta` (not the local-only
+    // `manta-ide` GNOME-screen-reader workaround), so a remote launch must not
+    // emit `manta-ide claude-teams` — that name is not on the remote PATH and
     // `claude-teams` is rejected by the relay's CLI switch (issue #6500).
     const plan = buildAgentStartupPlan({
       agent: 'claude-agent-teams',
@@ -475,11 +475,11 @@ describe('tui agent startup plans', () => {
       allowEmptyPromptLaunch: true
     })
 
-    expect(plan?.launchCommand).toBe('orca claude-teams')
+    expect(plan?.launchCommand).toBe('manta claude-teams')
   })
 
-  it('keeps the Windows orca.cmd shim for Claude Agent Teams on SSH remotes', () => {
-    // Why: the Windows remote shim is also `orca.cmd`, matching the local
+  it('keeps the Windows manta.cmd shim for Claude Agent Teams on SSH remotes', () => {
+    // Why: the Windows remote shim is also `manta.cmd`, matching the local
     // win32 override, so remoteness must not alter the Windows command.
     const plan = buildAgentStartupPlan({
       agent: 'claude-agent-teams',
@@ -490,11 +490,11 @@ describe('tui agent startup plans', () => {
       allowEmptyPromptLaunch: true
     })
 
-    expect(plan?.launchCommand).toBe('orca.cmd claude-teams')
+    expect(plan?.launchCommand).toBe('manta.cmd claude-teams')
   })
 
-  it('keeps the Linux orca-ide wrapper for local (non-remote) Claude Agent Teams', () => {
-    // Why: the `orca-ide` rename is still required for a local Linux desktop
+  it('keeps the Linux manta-ide wrapper for local (non-remote) Claude Agent Teams', () => {
+    // Why: the `manta-ide` rename is still required for a local Linux desktop
     // install (avoids shadowing the GNOME Orca screen reader), so an explicit
     // isRemote:false must preserve it.
     const plan = buildAgentStartupPlan({
@@ -506,7 +506,7 @@ describe('tui agent startup plans', () => {
       allowEmptyPromptLaunch: true
     })
 
-    expect(plan?.launchCommand).toBe('orca-ide claude-teams')
+    expect(plan?.launchCommand).toBe('manta-ide claude-teams')
   })
 
   it('launches OpenClaude as a distinct argv agent', () => {
@@ -827,7 +827,7 @@ describe('tui agent startup plans', () => {
         cmdOverrides: {},
         platform: 'win32'
       })?.launchCommand
-    ).toBe('pi; Remove-Item Env:ORCA_PI_PREFILL -ErrorAction SilentlyContinue')
+    ).toBe('pi; Remove-Item Env:MANTA_PI_PREFILL -ErrorAction SilentlyContinue')
 
     expect(
       buildAgentDraftLaunchPlan({
@@ -837,12 +837,12 @@ describe('tui agent startup plans', () => {
         platform: 'win32',
         shell: 'cmd'
       })?.launchCommand
-    ).toBe('pi & set "ORCA_PI_PREFILL="')
+    ).toBe('pi & set "MANTA_PI_PREFILL="')
   })
 
-  it('returns an OMP draft plan with ORCA_OMP_PREFILL (OMP-scoped, not Pi-shared)', () => {
+  it('returns an OMP draft plan with MANTA_OMP_PREFILL (OMP-scoped, not Pi-shared)', () => {
     // Why: OMP owns its own managed prefill extension and env var.
-    // orca-prefill.ts reads ORCA_OMP_PREFILL for OMP launches — see
+    // manta-prefill.ts reads MANTA_OMP_PREFILL for OMP launches — see
     // src/main/pi/titlebar-extension-service.ts — so a draft plan for OMP
     // MUST emit that name. A regression here would either silently drop the
     // draft (Pi var ignored by OMP) or honor a stale Pi-PTY draft.
@@ -854,9 +854,9 @@ describe('tui agent startup plans', () => {
     })
 
     expect(plan).not.toBeNull()
-    expect(plan?.env).toEqual({ ORCA_OMP_PREFILL: 'fix the omp regression' })
+    expect(plan?.env).toEqual({ MANTA_OMP_PREFILL: 'fix the omp regression' })
     expect(plan?.expectedProcess).toBe('omp')
-    expect(plan?.launchCommand).toBe('omp; unset ORCA_OMP_PREFILL')
+    expect(plan?.launchCommand).toBe('omp; unset MANTA_OMP_PREFILL')
   })
 
   it('returns null for oversized Windows flag drafts so callers paste after ready', () => {
@@ -907,15 +907,15 @@ describe('tui agent startup plans', () => {
       agent: 'pi',
       draft: 'prefill text',
       cmdOverrides: {},
-      agentEnv: { ORCA_AGENT_MODE: 'managed' },
+      agentEnv: { MANTA_AGENT_MODE: 'managed' },
       platform: 'linux'
     })
 
-    expect(plan?.env).toEqual({ ORCA_AGENT_MODE: 'managed', ORCA_PI_PREFILL: 'prefill text' })
+    expect(plan?.env).toEqual({ MANTA_AGENT_MODE: 'managed', MANTA_PI_PREFILL: 'prefill text' })
     expect(plan?.launchConfig).toEqual({
       agentCommand: 'pi',
       agentArgs: '',
-      agentEnv: { ORCA_AGENT_MODE: 'managed' }
+      agentEnv: { MANTA_AGENT_MODE: 'managed' }
     })
   })
 

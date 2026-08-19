@@ -20,8 +20,8 @@ describePosix('live zsh subprocess tests', () => {
     let userDataPath: string
 
     beforeEach(async () => {
-      testHome = mkdtempSync(join(tmpdir(), 'orca-zsh-edge-'))
-      userDataPath = mkdtempSync(join(tmpdir(), 'orca-zsh-userdata-'))
+      testHome = mkdtempSync(join(tmpdir(), 'manta-zsh-edge-'))
+      userDataPath = mkdtempSync(join(tmpdir(), 'manta-zsh-userdata-'))
       setTestUserDataPath(userDataPath)
     })
 
@@ -45,16 +45,16 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${xdgZshDir}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${xdgZshDir}`)
     })
 
     it('preserves ZDOTDIR with spaces in path', async () => {
@@ -67,16 +67,16 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${spacePath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${spacePath}`)
     })
 
     it('falls back when .zshenv has syntax error', async () => {
@@ -87,17 +87,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Syntax error causes discovery to fail, falls back to HOME
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('handles framework pattern with ${ZDOTDIR:-$HOME}', async () => {
@@ -111,17 +111,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Framework pattern defaults to HOME when ZDOTDIR unset
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('captures last ZDOTDIR value when set multiple times', async () => {
@@ -140,16 +140,16 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${lastPath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${lastPath}`)
     })
 
     it('handles conditional ZDOTDIR based on environment', async () => {
@@ -169,31 +169,31 @@ describePosix('live zsh subprocess tests', () => {
       // Test without SSH_CONNECTION
       let cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       delete cleanEnv.SSH_CONNECTION
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      let result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      let result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${localPath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${localPath}`)
 
       // Test with SSH_CONNECTION
       cleanEnv = { ...process.env, HOME: testHome, SSH_CONNECTION: '10.0.0.1 12345 10.0.0.2 22' }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${remotePath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${remotePath}`)
     })
 
     it('preserves explicit ZDOTDIR="$HOME" from user .zshenv', async () => {
@@ -204,16 +204,16 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('falls back when discovered ZDOTDIR does not exist', async () => {
@@ -225,17 +225,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Validation rejects non-existent path, falls back to HOME
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('does not source /.zshenv when HOME is empty', async () => {
@@ -246,7 +246,7 @@ describePosix('live zsh subprocess tests', () => {
       const zshenv = readFileSync(join(userDataPath, 'shell-ready', 'zsh', '.zshenv'), 'utf8')
 
       // Verify wrapper checks the resolved source root is non-empty before sourcing
-      expect(zshenv).toContain('if [[ -n "${_orca_zshenv_source_dir:-}"')
+      expect(zshenv).toContain('if [[ -n "${_manta_zshenv_source_dir:-}"')
     })
 
     it('handles ZDOTDIR with single quote in path', async () => {
@@ -259,16 +259,16 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${quotePath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${quotePath}`)
     })
 
     it('does not evaluate command substitution in ZDOTDIR', async () => {
@@ -282,17 +282,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Should contain the safe path, not any command-substituted value
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${safePath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${safePath}`)
     })
 
     it('handles whitespace-only ZDOTDIR (tabs and newlines)', async () => {
@@ -303,17 +303,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Whitespace-only should be normalized to empty, fall back to HOME
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${testHome}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${testHome}`)
     })
 
     it('handles ZDOTDIR with multiple trailing slashes', async () => {
@@ -326,17 +326,17 @@ describePosix('live zsh subprocess tests', () => {
 
       const cleanEnv: Record<string, string | undefined> = { ...process.env, HOME: testHome }
       delete cleanEnv.ZDOTDIR
-      delete cleanEnv.ORCA_ORIG_ZDOTDIR
+      delete cleanEnv.MANTA_ORIG_ZDOTDIR
       cleanEnv.ZDOTDIR = config.env.ZDOTDIR
 
-      const result = spawnSync('zsh', ['-c', 'echo "ORCA_ORIG_ZDOTDIR=${ORCA_ORIG_ZDOTDIR}"'], {
+      const result = spawnSync('zsh', ['-c', 'echo "MANTA_ORIG_ZDOTDIR=${MANTA_ORIG_ZDOTDIR}"'], {
         env: cleanEnv as NodeJS.ProcessEnv,
         encoding: 'utf8'
       })
 
       expect(result.status).toBe(0)
       // Should normalize to path without trailing slashes
-      expect(result.stdout).toContain(`ORCA_ORIG_ZDOTDIR=${cleanPath}`)
+      expect(result.stdout).toContain(`MANTA_ORIG_ZDOTDIR=${cleanPath}`)
     })
   })
 })

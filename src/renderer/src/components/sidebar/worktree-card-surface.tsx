@@ -50,10 +50,10 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
     handleRenameTitle,
     handleEditIssue,
     handleEditComment,
-    handleOpenGitHubIssueInOrca,
+    handleOpenGitHubIssueInManta,
     linearIssue,
-    handleOpenLinearIssueInOrca,
-    handleOpenReviewInOrca,
+    handleOpenLinearIssueInManta,
+    handleOpenReviewInManta,
     handleOpenAutomation,
     handleOpenAutomationRun,
     hasExplicitLinkedReview,
@@ -94,14 +94,16 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
         onRenameWorkspaceTitle={affiliateListMode ? undefined : handleRenameTitle}
         onEditIssue={affiliateListMode ? undefined : handleEditIssue}
         onEditComment={affiliateListMode ? undefined : handleEditComment}
-        onOpenGitHubIssueInOrca={
+        onOpenGitHubIssueInManta={
           hoverIssue && 'url' in hoverIssue && hoverIssue.url
-            ? handleOpenGitHubIssueInOrca
+            ? handleOpenGitHubIssueInManta
             : undefined
         }
-        onOpenLinearIssueInOrca={linearIssue?.url ? handleOpenLinearIssueInOrca : undefined}
-        onOpenReviewInOrca={
-          hoverReview?.url && hoverReview.provider === 'github' ? handleOpenReviewInOrca : undefined
+        onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
+        onOpenReviewInManta={
+          hoverReview?.url && hoverReview.provider === 'github'
+            ? handleOpenReviewInManta
+            : undefined
         }
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
         onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}

@@ -105,7 +105,7 @@ function restoreMovedFileWithoutOverwrite(sourcePath: string, targetPath: string
 }
 
 function getGuardedOperationHeldPath(targetPath: string): string {
-  return `${targetPath}.orca-guarded`
+  return `${targetPath}.manta-guarded`
 }
 
 function recoverInterruptedGuardedOperation(heldPath: string, targetPath: string): void {

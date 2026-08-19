@@ -12,7 +12,7 @@ afterEach(async () => {
 })
 
 async function tempPluginsDir(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'orca-plugin-discovery-'))
+  const root = await mkdtemp(join(tmpdir(), 'manta-plugin-discovery-'))
   roots.push(root)
   return root
 }
@@ -20,20 +20,20 @@ async function tempPluginsDir(): Promise<string> {
 describe('installed plugin discovery identity', () => {
   it('keeps the install directory identity when a manifest is invalid or mismatched', async () => {
     const pluginsDir = await tempPluginsDir()
-    const installedKey = 'orca-samples.expected'
+    const installedKey = 'manta-samples.expected'
     const hash = 'a'.repeat(64)
     const versionDir = join(pluginsDir, installedKey, hash)
     await mkdir(versionDir, { recursive: true })
     await writeFile(join(pluginsDir, installedKey, 'current'), hash)
     await writeFile(
-      join(versionDir, 'orca-plugin.json'),
+      join(versionDir, 'manta-plugin.json'),
       JSON.stringify({
         manifestVersion: 1,
         id: 'different',
-        publisher: 'orca-samples',
+        publisher: 'manta-samples',
         name: 'Different',
         version: '1.0.0',
-        engines: { orca: '>=1.0.0' },
+        engines: { manta: '>=1.0.0' },
         pluginApi: 1,
         contributes: { panels: [], commands: [], events: [] },
         capabilities: []
@@ -49,7 +49,7 @@ describe('installed plugin discovery identity', () => {
 
   it('keeps a removable qualified identity when the current pointer is missing', async () => {
     const pluginsDir = await tempPluginsDir()
-    const installedKey = 'orca-samples.broken'
+    const installedKey = 'manta-samples.broken'
     await mkdir(join(pluginsDir, installedKey), { recursive: true })
 
     const [plugin] = await discoverPlugins({ pluginsDir, devPluginPaths: [], hostVersion: '1.4.0' })
@@ -60,7 +60,7 @@ describe('installed plugin discovery identity', () => {
 
   it('rejects an oversized current pointer without an unbounded startup read', async () => {
     const pluginsDir = await tempPluginsDir()
-    const installedKey = 'orca-samples.broken'
+    const installedKey = 'manta-samples.broken'
     const pluginDir = join(pluginsDir, installedKey)
     await mkdir(pluginDir, { recursive: true })
     const pointer = join(pluginDir, 'current')
@@ -80,14 +80,14 @@ describe('instructional plugin discovery identity', () => {
     const devRoot = await tempPluginsDir()
     await mkdir(join(devRoot, 'recipes'))
     await writeFile(
-      join(devRoot, 'orca-plugin.json'),
+      join(devRoot, 'manta-plugin.json'),
       JSON.stringify({
         manifestVersion: 1,
         id: 'recipes',
-        publisher: 'orca-samples',
+        publisher: 'manta-samples',
         name: 'Recipes',
         version: '1.0.0',
-        engines: { orca: '>=1.0.0' },
+        engines: { manta: '>=1.0.0' },
         pluginApi: 1,
         contributes: { vmRecipes: [{ path: 'recipes/cloud.json' }] },
         capabilities: []

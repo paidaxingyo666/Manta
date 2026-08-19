@@ -6,8 +6,8 @@ Last updated: 2026-08-12.
 
 Implementation baselines captured by this checklist update:
 
-- Orca implementation: `skills-share` through `607e31dd04`; no PR.
-- Orca Cloud: bundle smoke PR `#329` merged as `eddb144afe`; generation-aware recovery PR `#330`
+- Manta implementation: `skills-share` through `607e31dd04`; no PR.
+- Manta Cloud: bundle smoke PR `#329` merged as `eddb144afe`; generation-aware recovery PR `#330`
   merged as `8045c85dad`; encrypted physical-host credential PR `#336` merged as `8fce3298ef`;
   kill-switch discovery PR `#342` merged as `c2bef2ff20fb`.
   Windows device-name validation PR `#343` merged as `dbb14a658cbc`; explicit disabled production
@@ -60,21 +60,21 @@ Validated so far:
   legacy fields changed. Skill RPC methods and capabilities are additive and capability-gated;
   the cross-platform review found production paths use host path APIs and platform checks, with
   POSIX-only literals confined to tests or WSL guest execution.
-- Final bearer-link changes pass 143 Orca Cloud API tests with one opt-in skip; 58 focused Orca
+- Final bearer-link changes pass 143 Manta Cloud API tests with one opt-in skip; 58 focused Manta
   tests; four mixed-version wire tests; desktop/node/web typecheck; localization catalog,
   extraction, and coverage; changed-code quality; max-lines; and diff checks.
 - The final Cloud change passed PR run `31564069382` and merged-`main` run `31564235724`, including
   the full monorepo build, lint, typecheck, tests, Terraform format, and Terraform validation.
 - The opt-in desktop staging harness now publishes a bearer share without retired audience fields;
-  Node typecheck and Playwright test discovery pass without starting Orca or a browser login flow.
+  Node typecheck and Playwright test discovery pass without starting Manta or a browser login flow.
 - Local Node and web typechecks, changed-code quality gates, 94 skill-domain files with 770 tests
-  passed and 3 skipped, 134 Orca Cloud API tests with one opt-in integration skip, the full Cloud
+  passed and 3 skipped, 134 Manta Cloud API tests with one opt-in integration skip, the full Cloud
   monorepo test/typecheck/lint/build gates, and isolated Terraform formatting and validation.
-- Final Orca validation passed repository-wide lint, all Node/CLI/web typechecks, the production
+- Final Manta validation passed repository-wide lint, all Node/CLI/web typechecks, the production
   desktop/native build, the Node 18 Relay bundle contract, 78 focused skill files with 557 tests
   passed and 10 platform skips, and the mixed-version wire suite. The full repository run passed
   49,977 tests with 112 skips; its three environment/timeout failures passed as a 124-test rerun
-  after removing Orca-injected Git config variables and rerunning the slow macOS PTY case.
+  after removing Manta-injected Git config variables and rerunning the slow macOS PTY case.
 - Skill sharing and installation renderer copy now passes the localization catalog, extraction,
   and coverage gates without a max-lines exception.
 - Remote upload sessions actively expire abandoned bytes after their bounded idle lifetime, and
@@ -84,7 +84,7 @@ Validated so far:
   five-minute transfer timeout. Focused coverage proves queued work never starts, pending request
   admission is released, late responses are ignored, one-shot sockets close, and unrelated cached
   or shared-control requests survive; 84 transport/service tests and Node typecheck passed.
-- Standalone and bundled package names reject Windows reserved device names in both Orca and Cloud,
+- Standalone and bundled package names reject Windows reserved device names in both Manta and Cloud,
   preventing a package published on macOS/Linux from failing only when installed on Windows.
 - Identical archives are deduplicated only within an owner tenant. PostgreSQL object identity and
   tenant-hashed GCS keys prevent cross-tenant existence or finalization-timing disclosure.
@@ -95,7 +95,7 @@ Validated so far:
   platform skips remained. Commit `97b831dd17` made Windows recovery assertions path-semantic and
   time-deterministic. Commit `44d1266641` fixed WSL alias reconciliation after proving native UNC
   `lstat` can miss an existing distro symlink; WSL now inspects the alias in-distro and creates new
-  aliases with `ln -sT`. The checkout remained clean and no `orca-skill-*` directory remained in
+  aliases with `ln -sT`. The checkout remained clean and no `manta-skill-*` directory remained in
   WSL `/tmp`.
 - Native Windows transaction validation passed all 21 cases at `6d3ce582aa`, including a real
   canonical install beyond `MAX_PATH` while the host's `LongPathsEnabled` policy remained disabled.
@@ -114,7 +114,7 @@ Validated so far:
 - The exact x64 Electron directory package at `f1dccb4f42` passed its after-pack ABI scan for all
   18 bundled native binaries, then loaded packaged `node-pty` and spawned `/bin/sh` inside an
   Ubuntu 20.04/glibc 2.31 container. The physical run corrected the gate to use Linux's actual
-  `orca-ide` executable and `resources/node_modules` layout. A native ARM64 package built from
+  `manta-ide` executable and `resources/node_modules` layout. A native ARM64 package built from
   exact commit `abe92d565b` on an isolated `aarch64` GCE host then passed the same 18-binary
   Ubuntu 20.04/glibc 2.31 ABI gate and packaged `node-pty` load/spawn smoke. The ARM64 VM had no
   service account or scopes; its auto-delete boot disk was verified absent, and its local Git
@@ -125,13 +125,13 @@ Validated so far:
   worktree, and remote plain-folder scopes, including client-mediated upload, unchanged preview,
   managed-install listing, safe removal, and remote-target Cloud authorization.
 - Real paired-runtime installation passed from an isolated Electron client to both a headed
-  desktop host and headless `orca serve` host. The host owned global and Git-worktree installs;
+  desktop host and headless `manta serve` host. The host owned global and Git-worktree installs;
   the headed host also owned a plain-folder install. The client's home remained untouched.
-- A fresh post-resilience E2E run passed all three headed paired-runtime, headless `orca serve`,
+- A fresh post-resilience E2E run passed all three headed paired-runtime, headless `manta serve`,
   and Docker SSH journeys. Focused failure injection also proves invalid gzip classification,
   old-version preservation after `EACCES` and `ENOSPC`, bounded recovery from a lost final install
   response, and validated structured SSH failure data without arbitrary error-data disclosure.
-- Isolated staging bucket, IAM, `orca_skills` database and principal, enabled secret version, 11
+- Isolated staging bucket, IAM, `manta_skills` database and principal, enabled secret version, 11
   log metrics, four alerts, and one dashboard in `onorca-cloud-staging`. The complete targeted
   skill-infrastructure plan is zero-diff at Cloud `41ef335`.
 - PostgreSQL migration startup is serialized by a transaction-scoped advisory lock. Transactional
@@ -265,7 +265,7 @@ Validated so far:
   no-service-account Ubuntu 20.04/glibc 2.31 VM then passed the browser-free SSH staging lifecycle
   in 31.3 seconds: publish v1, host-owned install with exact digest, v2 update, managed-install
   verification, rollback, revocation with installed-copy preservation, local removal, and Cloud
-  package deletion. The remote install, Orca SSH target, encrypted credential artifact, one-time
+  package deletion. The remote install, Manta SSH target, encrypted credential artifact, one-time
   keys, and VM were removed. Guarded sleep `31604391897` passed; independent reads verified SQL
   `NEVER`/`STOPPED` and C1/C2/C3 target zero, stable, and reached. Production was untouched.
 - Guarded wake `31634214856` restored the two configured cells at Cloud `dfb8359ff5`. An isolated
@@ -277,7 +277,7 @@ Validated so far:
   and one-time keys were removed. Guarded sleep `31635145830` passed; independent reads verified
   SQL `NEVER`/`STOPPED`, all three MIGs stable and reached at zero with no active actions, and
   API/Auth/Relay minimum scale zero. Production was untouched.
-- Guarded wake `31605729090` restored the same configured topology. An isolated headless Orca host
+- Guarded wake `31605729090` restored the same configured topology. An isolated headless Manta host
   with a separate home/profile then passed the full paired-runtime staging lifecycle in 12.5
   seconds, proving host-owned install, update, managed-install state, rollback, revocation
   preservation, removal, and Cloud deletion without local fallback. The paired environment,
@@ -323,14 +323,14 @@ does not mean the surrounding phase is complete.
 ## Definition of done
 
 - [x] A user can select one or many private local skills, publish one immutable Skill Bundle, and
-      receive one durable Orca share URL.
+      receive one durable Manta share URL.
 - [x] Anyone with an active unlisted link can inspect a bundle without signing in, choose all or a
       subset of its skills, and install them globally or into a Git worktree or plain folder
       workspace.
-- [x] Installation works on local macOS, Linux, native Windows, WSL, paired Orca runtimes, and
+- [x] Installation works on local macOS, Linux, native Windows, WSL, paired Manta runtimes, and
       supported SSH targets.
 - [x] The portable archive root conforms to Agent Plugins 1.0.0 for skills-only packages and keeps
-      Orca integrity metadata in `dev.orca.skill-sharing/manifest.json`.
+      Manta integrity metadata in `dev.manta.skill-sharing/manifest.json`.
 - [x] One canonical `.agents/skills/<skill-name>` copy is installed for each selected skill;
       provider-specific placements are reconciled for explicitly selected agents, defaulting to
       detected agents when no selection is supplied.
@@ -357,8 +357,8 @@ does not mean the surrounding phase is complete.
 - [x] Record `vercel-labs/skills` as a behavioral reference only.
 - [x] Record upstream baseline commit `c6f69c631292444cc541ac6d91e2226b0ff247da`.
 - [x] Decide not to copy upstream source, tests, fixtures, registry data, or path tables.
-- [x] Decide Orca will not depend on the upstream CLI or an unsupported programmatic API.
-- [x] Decide V1 accepts Orca package sources only; Git, npm, and community registries remain with
+- [x] Decide Manta will not depend on the upstream CLI or an unsupported programmatic API.
+- [x] Decide V1 accepts Manta package sources only; Git, npm, and community registries remain with
       existing tools.
 - [x] Decide every Skill Bundle share is unlisted and reachable only through its durable link; do
       not add search, browsing, organization-library, marketplace, or contained-skill indexes.
@@ -366,7 +366,7 @@ does not mean the surrounding phase is complete.
       as the portable-format reference.
 - [x] Decide to implement from the specification without copying its CC BY prose or vendoring its
       Apache-licensed schemas.
-- [x] Treat the archive as a Skill Bundle, not an Orca plugin product or executable plugin runtime.
+- [x] Treat the archive as a Skill Bundle, not a Manta plugin product or executable plugin runtime.
 - [x] Limit V1 bundles to skills; exclude MCP servers, hooks, processes, connectors, and
       permissions.
 - [ ] Review the architecture decision record covering the reference-only boundary with
@@ -380,7 +380,7 @@ does not mean the surrounding phase is complete.
 ### Product semantics
 
 - [x] Confirm private means unlisted and protected by an unpredictable revocable bearer link, not
-      end-to-end encryption from Orca Cloud operators.
+      end-to-end encryption from Manta Cloud operators.
 - [x] Confirm a published immutable version persists until package or version deletion; it has no
       age-based object expiry.
 - [x] Confirm an unfinished upload grant expires after 15 minutes and its quarantine object is
@@ -434,14 +434,14 @@ does not mean the surrounding phase is complete.
 ### Bundle contract replacement
 
 - [x] Replace the unpublished single-skill envelope with root `plugin.json`, `skills/<name>/`, and
-      `dev.orca.skill-sharing/manifest.json`; do not add an outer `bundle/` directory.
+      `dev.manta.skill-sharing/manifest.json`; do not add an outer `bundle/` directory.
 - [x] Define `SkillBundleManifestV1` with stable package/version identity, bundle metadata, ordered
       skill entries, per-skill identity and file lists, globally unique archive paths, and a bundle
       digest.
 - [x] Validate Agent Plugins 1.0.0 `plugin.json` fields from independently authored local rules;
       never fetch a schema during loading.
 - [x] Create fresh staging roots and reject unknown, malformed, or conflicting imported
-      `dev.orca.skill-sharing` namespaces without overwriting them. The extractor now exclusively
+      `dev.manta.skill-sharing` namespaces without overwriting them. The extractor now exclusively
       creates its staging root, preserves a pre-existing namespace on conflict, rejects unknown
       top-level extension entries, and removes only staging it created.
 - [x] Keep the detailed manifest inside the archive for export, remote/SSH transport, and offline
@@ -538,7 +538,7 @@ does not mean the surrounding phase is complete.
 - [x] Reject duplicate normalized skill names and preserve selection across search/filter changes
       in the caller. The picker keeps hidden selections, unions explicit filtered selection, and
       disables a second same-name source before review.
-- [x] Generate deterministic `plugin.json`, `skills/`, and Orca extension metadata.
+- [x] Generate deterministic `plugin.json`, `skills/`, and Manta extension metadata.
 - [x] Bind the share review to every staged skill digest and the final bundle digest.
 
 ### Bounded extraction
@@ -552,7 +552,7 @@ does not mean the surrounding phase is complete.
 - [x] Convert manifest paths with the destination runtime's path APIs.
 - [x] Re-observe extracted `skill/` and compare every file identity and package digest.
 - [x] Delete partial extraction bytes on cancellation or failure.
-- [x] Validate the portable root, Orca extension namespace, bundle manifest, and every selected
+- [x] Validate the portable root, Manta extension namespace, bundle manifest, and every selected
       `skills/<name>` subtree before destination mutation.
 - [x] Extract selected skill subtrees without requiring installation of unselected skills.
 
@@ -610,7 +610,7 @@ does not mean the surrounding phase is complete.
 - [x] Bound lock wait time and return a retryable busy result.
 - [x] Stream ingress to an owner-private bounded temporary file and hash it while downloading.
 - [x] Require HTTPS whenever the configured Cloud endpoint uses HTTPS.
-- [x] Allow only configured Orca skill-bucket origins and reject credential-bearing cross-host
+- [x] Allow only configured Manta skill-bucket origins and reject credential-bearing cross-host
       redirects.
 - [x] Check expected compressed bytes, archive SHA-256, package digest, cancellation, grant expiry,
       and disconnects.
@@ -621,9 +621,9 @@ does not mean the surrounding phase is complete.
 - [x] Add `src/main/skills/skill-install-planner.ts`.
 - [x] Classify missing canonical destinations as installable.
 - [x] Classify an identical requested digest as unchanged and continue placement repair.
-- [x] Permit clean updates only when installed bytes still match Orca provenance.
+- [x] Permit clean updates only when installed bytes still match Manta provenance.
 - [x] Return a modified conflict when installed bytes drift from their receipt.
-- [x] Return an unowned conflict when a destination exists without Orca provenance.
+- [x] Return an unowned conflict when a destination exists without Manta provenance.
 - [x] Return topology conflicts for files, external links, broken links, and name collisions.
 - [x] Classify every requested provider placement independently.
 - [x] Repeat current-state inspection immediately before commit and invalidate stale previews.
@@ -678,7 +678,7 @@ does not mean the surrounding phase is complete.
 ### Provider registry
 
 - [x] Add `src/main/skills/skill-provider-destinations.ts`.
-- [x] Add data-only records for Orca agent ID, canonical-root support, global/project resolvers,
+- [x] Add data-only records for Manta agent ID, canonical-root support, global/project resolvers,
       detection evidence, and platform alias support.
 - [x] Populate only provider paths independently verified from official documentation and real
       installations.
@@ -702,7 +702,7 @@ does not mean the surrounding phase is complete.
       denied and policy allows it.
 - [x] Record each canonical copy, provider alias, junction, or independent-copy topology.
 - [x] Reconcile placements idempotently after install and update.
-- [x] Repair broken Orca-owned aliases.
+- [x] Repair broken Manta-owned aliases.
 - [x] Leave unowned or modified provider placements untouched unless explicitly replaced.
 - [x] Preserve canonical success when a provider placement fails and make coverage retryable.
 
@@ -733,7 +733,7 @@ does not mean the surrounding phase is complete.
 - [x] Observe the canonical destination and every receipt-owned placement before mutation.
 - [x] Remove only aliases or junctions that still target the recorded canonical path.
 - [x] Remove independent copies only when they match their receipt unless discard is explicit.
-- [x] Remove the canonical copy only when Orca owns it, it is unmodified, and no retained receipt
+- [x] Remove the canonical copy only when Manta owns it, it is unmodified, and no retained receipt
       depends on it.
 - [x] Publish provenance changes durably before completing removal.
 - [x] Leave changed or unowned paths intact and report exactly what remains.
@@ -759,13 +759,13 @@ does not mean the surrounding phase is complete.
 
 - [x] Inspect the active `onorca-cloud` project read-only and record the existing Cloud Run, GCS,
       Cloud SQL, IAM, and enabled-service baseline.
-- [x] Locate the authoritative Orca Cloud Terraform worktree, state, modules, and deployment
+- [x] Locate the authoritative Manta Cloud Terraform worktree, state, modules, and deployment
       pipeline.
 - [x] Confirm or create a separate staging GCP project before exercising new lifecycle and IAM
       behavior.
 - [x] Confirm production names and quotas, including availability of
       `onorca-cloud-skill-packages`. A read-only 2026-08-12 check returned `404` for the global
-      bucket name, found no production `orca_skills` database or skill-database secret collision,
+      bucket name, found no production `manta_skills` database or skill-database secret collision,
       and confirmed the intended existing API service and runtime identity. Cloud Run exposes a
       1,000-job regional quota and 180 job runs per minute, while V1 reuses the existing API at a
       20-instance ceiling and existing Cloud SQL instance; no quota increase is required.
@@ -783,7 +783,7 @@ does not mean the surrounding phase is complete.
 - [x] Configure seven-day soft delete.
 - [x] Keep object versioning disabled and record object generations in PostgreSQL.
 - [x] Add a one-day deletion lifecycle for `uploads/` quarantine objects only.
-- [x] Add exact approved production and development Orca origins to CORS; never use `*`.
+- [x] Add exact approved production and development Manta origins to CORS; never use `*`.
 - [x] Allow only required signed POST upload and GET/HEAD download behavior and response headers.
 - [x] Keep the bucket off public custom domains.
 - [x] Define immutable final keys as
@@ -793,13 +793,13 @@ does not mean the surrounding phase is complete.
 
 ### Database and secret
 
-- [x] Declare database `orca_skills` on existing regional PostgreSQL 17 instance
+- [x] Declare database `manta_skills` on existing regional PostgreSQL 17 instance
       `orca-cloud-auth-db`.
-- [x] Declare dedicated principal `orca_skills_app` with access only to `orca_skills`.
+- [x] Declare dedicated principal `manta_skills_app` with access only to `manta_skills`.
 - [x] Store its connection URL in Secret Manager as `orca-cloud-skills-database-url`.
 - [x] Attach the existing Cloud SQL instance to `orca-cloud-api` without replacing the service.
 - [x] Inject only the skill database secret into the API service.
-- [x] Verify backups and point-in-time recovery cover the new database. `orca_skills` shares the
+- [x] Verify backups and point-in-time recovery cover the new database. `manta_skills` shares the
       Terraform-managed Cloud SQL instance whose live staging and production settings both have
       backups, replication-log archiving, seven retained backups, and seven-day PITR enabled.
 
@@ -833,7 +833,7 @@ does not mean the surrounding phase is complete.
 - [x] Define criteria for splitting finalization into a worker service if it harms existing API
       traffic.
 - [x] Make immutable API candidates atomically replace the complete Terraform-owned literal
-      environment and the exact `ORCA_SKILLS_DATABASE_URL` Secret Manager reference.
+      environment and the exact `MANTA_SKILLS_DATABASE_URL` Secret Manager reference.
 - [x] Reject serving or candidate drift in the runtime service account, Cloud SQL attachment,
       scaling, CPU, memory, volumes, mounts, ports, and probes before moving traffic.
 - [x] Keep all four skill controls explicit in both deploy workflows. Staging changed to `true`
@@ -962,7 +962,7 @@ does not mean the surrounding phase is complete.
 - [x] Test malformed, oversized, and resource-exhausting archives during finalization.
 - [x] Test finalization semaphore saturation and retry behavior.
 - [x] Test concurrent idempotent mutations and partial database/GCS failures.
-- [x] Test tenant-scoped deduplication without cross-tenant timing or response disclosure. Orca
+- [x] Test tenant-scoped deduplication without cross-tenant timing or response disclosure. Manta
       Cloud `ddbd4e2` proves identical archives use distinct tenant-hashed GCS keys and independent
       PostgreSQL object identities.
 - [x] Test quota and rate limits.
@@ -989,7 +989,7 @@ does not mean the surrounding phase is complete.
 - [x] Accept optional release label and notes.
 - [x] Package the exact previewed bytes and invalidate preview after source drift.
 - [x] Show bounded upload and finalization progress with cancellation.
-- [x] Return a copyable durable Orca URL after publication.
+- [x] Return a copyable durable Manta URL after publication.
 - [x] Remove access editing from the bearer-share workflow; keep version publishing, revoke, and
       package deletion actions.
 - [x] Make clear that unsharing blocks future installs but does not remove installed copies.
@@ -1039,7 +1039,7 @@ does not mean the surrounding phase is complete.
 
 - [x] Show installed package/version identity and update availability.
 - [x] Offer clean update, modified-copy choices, prior-version rollback, and safe local removal.
-- [x] Show whether a package came from Orca Cloud and its accessible version history.
+- [x] Show whether a package came from Manta Cloud and its accessible version history.
 - [x] Refresh discovery and installation state after local or remote actions.
 - [x] Keep Cloud deletion, share revocation, and local removal clearly separate.
 - [x] Add installed-bundle update, rollback, install-on-another-machine, inspect, and remove actions.
@@ -1091,7 +1091,7 @@ does not mean the surrounding phase is complete.
 
 ### Direct and client-mediated transfer
 
-- [x] Prefer destination-runtime direct download when it can reach approved Orca Cloud storage.
+- [x] Prefer destination-runtime direct download when it can reach approved Manta Cloud storage.
 - [x] Verify origin, redirects, generation, byte count, archive hash, and package digest on the
       destination runtime.
 - [x] Fall back to authenticated client-mediated chunk transfer when the host cannot reach GCS.
@@ -1102,7 +1102,7 @@ does not mean the surrounding phase is complete.
       transfer before retrying so a consumed upload is never reused.
 - [x] Run the real Electron client against a paired desktop host for global, Git-worktree, and
       plain-folder install, unchanged preview, inventory, and removal.
-- [x] Run the same contract against a paired headless `orca serve` host for global and
+- [x] Run the same contract against a paired headless `manta serve` host for global and
       Git-worktree install, unchanged preview, inventory, and removal.
 - [x] Verify paired installation creates files only in host-owned roots and never falls back to the
       client's isolated home.
@@ -1127,17 +1127,17 @@ does not mean the surrounding phase is complete.
 
 ## 10. Validate native Windows and WSL on `windows 2`
 
-The connected Orca environment `windows 2` was reachable on 2026-08-11 and ran Orca `1.4.180` with
+The connected Manta environment `windows 2` was reachable on 2026-08-11 and ran Manta `1.4.180` with
 runtime ID `68b5e70d-baaf-40a5-b384-be09cc088880`. Validation used the isolated checkout
-`C:\Users\neil\orca\skills-share-validation` and WSL distro `Ubuntu-24.04`; no production skill
+`C:\Users\neil\manta\skills-share-validation` and WSL distro `Ubuntu-24.04`; no production skill
 directory was used for destructive failure injection.
 
 The final combined run used workspace `skills-share-staging-validation` at
-`C:\Users\neil\orca\workspaces\orca\skills-share-staging-validation` on branch
-`OrcaWin/skills-share-staging-validation`. At `44d1266641`, native-Windows, real-process, and real
+`C:\Users\neil\manta\workspaces\manta\skills-share-staging-validation` on branch
+`MantaWin/skills-share-staging-validation`. At `44d1266641`, native-Windows, real-process, and real
 WSL coverage ran together: 67 files passed, 449 tests passed, and 17 intentional platform skips
 remained. The Windows checkout was clean afterward, and WSL `/tmp` contained no remaining
-`orca-skill-*` directory.
+`manta-skill-*` directory.
 
 The 2026-08-11 host inventory recorded Windows 11 Pro `10.0.26200` build `26200`, x64, healthy
 NTFS, Windows Defender, `LongPathsEnabled=0`, no Developer Mode registry grant, and an expected
@@ -1145,9 +1145,9 @@ NTFS, Windows Defender, `LongPathsEnabled=0`, no Developer Mode registry grant, 
 is `C:\Users\neil` and the temp root is under that profile. WSL `2.7.11.0` uses kernel
 `6.18.33.2-microsoft-standard-WSL2`; its only installed distro is the running default
 `Ubuntu-24.04` WSL2 instance, with default user `neil`, home `/home/neil`, x86_64, and an ext-family
-distro filesystem. No standalone Orca CLI is installed inside that distro; WSL skill operations
-are owned by the connected Windows Orca runtime. A reproducible second-distro setup is
-`wsl --install -d Debian --no-launch`, followed by first launch and an isolated Orca test user/home
+distro filesystem. No standalone Manta CLI is installed inside that distro; WSL skill operations
+are owned by the connected Windows Manta runtime. A reproducible second-distro setup is
+`wsl --install -d Debian --no-launch`, followed by first launch and an isolated Manta test user/home
 record before the multi-distro gate.
 
 At commit `1e2d2e806f`, the opt-in real-Windows workspace harness created an actual Git linked
@@ -1156,7 +1156,7 @@ non-ASCII characters. It installed globally and into both workspace kinds throug
 then removed the complete fixture tree. The full native `src/main/skills` slice passed 284 tests
 with 21 intentional platform skips across 43 files, and the Node typecheck passed. Two discovery
 fixtures uncovered by that run now use Windows junctions instead of privileged directory symlinks,
-matching Orca's supported Windows placement topology.
+matching Manta's supported Windows placement topology.
 
 At commit `cdafe43542`, the opt-in WSL semantics harness used real provider detection and installed
 through the selected distro after converting UNC verification paths to distro-native paths. The
@@ -1184,19 +1184,19 @@ residual follow-up work.
 
 ### Host preparation
 
-- [x] Confirm `windows 2` is saved and reachable through `orca environment list` and
-      `orca status --environment "windows 2" --json`.
+- [x] Confirm `windows 2` is saved and reachable through `manta environment list` and
+      `manta status --environment "windows 2" --json`.
 - [x] Confirm the host provides both a native Git checkout and a native plain folder workspace.
 - [x] Record Windows edition/build, architecture, filesystem type, long-path policy, current user
       home, temp root, antivirus status, and developer-mode/symlink policy without collecting
       secrets.
 - [x] Discover installed WSL version and distros, each distro's running state, default user, home,
-      filesystem, and Orca host support.
+      filesystem, and Manta host support.
 - [x] Ensure at least two WSL distros are available or record a reproducible second-distro setup
       for the multi-distro test.
 - [x] Create isolated test skills and destination roots under explicit test workspaces; never use
       production user skill directories for destructive failure injection.
-- [x] Record exact Orca client/server versions and capabilities with each test run.
+- [x] Record exact Manta client/server versions and capabilities with each test run.
 
 ### Native Windows package and destination tests
 
@@ -1213,7 +1213,7 @@ residual follow-up work.
 - [x] Test junction creation succeeds for a detected provider.
 - [x] Force junction denial and verify an independently copied, digest-verified fallback.
 - [x] Test an unowned junction, external link, broken junction, and provider parent that is already
-      linked. All four real NTFS junction cases passed on `windows 2` at `c7c8a2e32d`; Orca repairs
+      linked. All four real NTFS junction cases passed on `windows 2` at `c7c8a2e32d`; Manta repairs
       only its receipt-owned broken junction and preserves unowned links.
 - [x] Test copy-fallback drift during update and removal. Real Windows coverage at `b4f5b6c119`
       proves a locally modified independent copy is skipped during reconciliation and refused
@@ -1279,13 +1279,13 @@ residual follow-up work.
       live WSL-to-staging journey as duplicate release evidence on 2026-08-12; physical
       disconnect/cancellation injection remains open, and a second distro is post-launch.
 - [x] Temporary local test installations, workspaces, and packages are removed through verified,
-      recoverable cleanup. The final checkout was clean and WSL `/tmp` had no `orca-skill-*` debris.
+      recoverable cleanup. The final checkout was clean and WSL `/tmp` had no `manta-skill-*` debris.
 
 ## 11. Implement and validate SSH targets
 
-The 2026-08-11 live Orca inventory contained only the connected `windows 2` environment and no
+The 2026-08-11 live Manta inventory contained only the connected `windows 2` environment and no
 non-local worktree or repository. Later staging journeys registered disposable Ubuntu 20.04 and
-native macOS ARM64 hosts directly through Orca's SSH provider and removed them afterward. A
+native macOS ARM64 hosts directly through Manta's SSH provider and removed them afterward. A
 supported Windows SSH target remains required for its platform-specific gate.
 
 The Docker-backed Linux SSH harness exercises the production Electron → SSH provider → relay →
@@ -1339,10 +1339,10 @@ native macOS ARM64; supported Windows remains open.
       alerts.
 - [x] Add signed-policy/URL generation and IAM Credentials failure alerts. Grant-signing failures
       are mapped to a stable application category so the alert does not depend on project-wide
-      Data Access audit logging; evidence is in Orca Cloud `69b388e`.
+      Data Access audit logging; evidence is in Manta Cloud `69b388e`.
 - [ ] Add budget alerts for GCS storage/egress, Cloud Run growth, and Cloud SQL storage.
 
-Dashboard evidence in Orca Cloud `41ef335` and `f67ee2c`: upload-grant, finalize, share, and
+Dashboard evidence in Manta Cloud `41ef335` and `f67ee2c`: upload-grant, finalize, share, and
 download-grant success; bounded security failures; Cloud Run CPU, memory, instances, and latency;
 GCS bytes and object count; and Cloud SQL connections, disk use, p99 skill-principal query latency,
 and skill-database transaction rate. Cloud PR `#344` passed both required checks and merged as
@@ -1406,7 +1406,7 @@ disconnect boundaries remain separate gates below.
 - [x] Test malicious redirects, DNS/host confusion, expired grants, mismatched generations, and
       oversized streaming bodies. Exact HTTPS origins, manual same-origin redirects, URL
       credentials, suffix/port confusion, streamed byte bounds, expiry-before-fetch, and immutable
-      GCS generation pinning are covered in Orca `534abb8908` and Orca Cloud `81a581d`.
+      GCS generation pinning are covered in Manta `534abb8908` and Manta Cloud `81a581d`.
 - [x] Test archive and filesystem race conditions, including source drift and destination changes
       after preview. Package creation re-observes staged bytes, and install commit re-observes the
       locked canonical destination before its first destructive rename.
@@ -1434,7 +1434,7 @@ disconnect boundaries remain separate gates below.
 - [ ] Test canonical/provider paths as regular files, directories, aliases, junctions, external
       links, and broken links. Deterministic native coverage now preserves canonical regular-file
       name collisions, unowned provider files/directories, external and broken unowned links,
-      Orca-owned broken-link repair, aliases, and verified copy fallback. Physical Windows
+      Manta-owned broken-link repair, aliases, and verified copy fallback. Physical Windows
       junction coverage remains open.
 - [ ] Test concurrent desktop, headless runtime, CLI, SSH, and recovery attempts.
       The shared transaction core now serializes two simultaneous installs into one installed and
@@ -1459,7 +1459,7 @@ disconnect boundaries remain separate gates below.
       floor. The exact x64 directory package passed its 18-binary ABI scan and packaged
       `node-pty` load/spawn smoke inside Ubuntu 20.04 at `f1dccb4f42`. The exact ARM64 directory
       package at `abe92d565b` passed the same 18-binary floor scan and emitted
-      `orca-node-pty-floor-ok` from an ARM64 Ubuntu 20.04 container on native `aarch64` hardware.
+      `manta-node-pty-floor-ok` from an ARM64 Ubuntu 20.04 container on native `aarch64` hardware.
 - [x] Run native Windows and WSL scenarios on `windows 2`.
 - [x] Run local and remote Git worktrees and plain folder workspaces. Native Windows covered a
       linked worktree and folder; paired desktop and Docker SSH covered host-owned worktrees and
@@ -1480,7 +1480,7 @@ disconnect boundaries remain separate gates below.
       skill.
 - [ ] Share on machine A, install into a folder workspace on a connected runtime, and discover it
       only in that workspace.
-- [x] Modify installed bytes, publish an update, and prove Orca refuses silent replacement. The
+- [x] Modify installed bytes, publish an update, and prove Manta refuses silent replacement. The
       browser-free macOS staging lifecycle preserved the modified v1 copy before applying v2 only
       after the explicit test decision.
 - [ ] Disconnect during commit, reconnect, recover, and prove either the old or new version is
@@ -1497,7 +1497,7 @@ disconnect boundaries remain separate gates below.
 
 ### CI and test evidence
 
-- [x] Add deterministic fixtures authored for Orca without copying upstream fixtures.
+- [x] Add deterministic fixtures authored for Manta without copying upstream fixtures.
 - [x] Add failure-injection hooks available only to tests/development harnesses.
 - [x] Add a CLI-only developer harness for local and remote integration tests.
 - [x] Keep CI commands compatible with macOS, Linux, Windows PowerShell/cmd, and WSL.
@@ -1534,7 +1534,7 @@ disconnect boundaries remain separate gates below.
       duplicate evidence rather than a launch gate.
 - [x] Give the live staging E2E an owner-private persisted test profile or a short-lived
       non-interactive test credential so reruns do not open PKCE login tabs or copy a user's
-      primary Orca session.
+      primary Manta session.
 - [x] Verify staging application logs contain only route templates, method, status, duration, and
       standard process metadata, with zero credential or private-content matches. Exclude per-link
       Cloud Run platform request logs through Terraform and verify zero are retained.
@@ -1579,7 +1579,7 @@ disconnect boundaries remain separate gates below.
 - [ ] Verify upload, download, and remote-install kill switches independently.
 - [ ] Review error budgets, cost, authorization denials, saturation, orphan counts, and support
       signals. The hardened production revision has zero post-deploy error logs. All eight skill
-      alerts route to the enabled dedicated `Orca skill sharing alerts` channel, and aggregate
+      alerts route to the enabled dedicated `Manta skill sharing alerts` channel, and aggregate
       monitor execution `orca-cloud-skill-storage-monitor-lfd26` passed on the serving API digest
       with zero overdue objects. Sustained-usage review remains post-launch.
 
@@ -1646,15 +1646,15 @@ disconnect boundaries remain separate gates below.
       semantics before enabling policy-driven installs. The admin guide explicitly leaves legal
       retention and ownership-transfer approval as human release gates.
 
-## 16. Agent and Orca CLI publishing
+## 16. Agent and Manta CLI publishing
 
 - [x] Add a separate `agentSkillSharingEnabled` capability that defaults off and accepts only an
       exact persisted `true` value. Manual desktop publishing remains independent.
 - [x] Let only the local desktop Settings → Share Skills switch grant the capability. Runtime
       `settings.get` exposes a fail-closed read-only projection; `settings.update`, paired web,
       mobile, agents, and the CLI cannot enable it.
-- [x] Add `orca skills installed --json` with discovery IDs and names but no local filesystem paths.
-- [x] Add `orca skills share` with repeated explicit `--skill` selectors, a required bundle name,
+- [x] Add `manta skills installed --json` with discovery IDs and names but no local filesystem paths.
+- [x] Add `manta skills share` with repeated explicit `--skill` selectors, a required bundle name,
       one unlisted link for multi-skill bundles, and no `--all` or arbitrary-path input.
 - [x] Resolve exact discovery IDs before unambiguous names; fail missing, ambiguous, and duplicate
       bundle-folder names with actionable errors.

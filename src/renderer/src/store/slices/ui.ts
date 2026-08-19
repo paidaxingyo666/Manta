@@ -9,7 +9,7 @@ import {
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import type { JiraIssue } from '../../../../shared/jira-types'
 import type { LinearIssue } from '../../../../shared/linear/issue-types'
-import type { PersistedTrustedOrcaHooks } from '../../../../shared/orca-yaml-hook-types'
+import type { PersistedTrustedMantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import type { PersistedUIState } from '../../../../shared/persisted-ui-state-types'
 import type { CustomPet } from '../../../../shared/pet-types'
 import type { TaskProvider } from '../../../../shared/task-providers'
@@ -104,7 +104,7 @@ import {
 import { clampMarkdownTocPanelWidth } from '../../../../shared/markdown-toc-panel-width'
 import { clampCombinedDiffFileTreeWidth } from '../../../../shared/combined-diff-file-tree-width'
 import { normalizeKagiSessionLink } from '../../../../shared/browser-url'
-import type { OrcaHookScriptKind } from '../../lib/orca-hook-trust'
+import type { MantaHookScriptKind } from '../../lib/manta-hook-trust'
 import {
   isSettingsNavigationTarget,
   type SettingsNavigationTarget
@@ -320,7 +320,7 @@ const VALID_LINEAR_MODES = new Set<NonNullable<TaskResumeState['linearMode']>>([
   'issues',
   'projects',
   'views',
-  'in-orca'
+  'in-manta'
 ])
 const VALID_JIRA_PRESETS = new Set<NonNullable<TaskResumeState['jiraPreset']>>([
   'assigned',
@@ -375,26 +375,26 @@ function sanitizePersistedRepoIds(value: unknown): string[] {
   return value.filter((repoId): repoId is string => typeof repoId === 'string')
 }
 
-function sanitizeTrustedOrcaHooks(trust: unknown): PersistedTrustedOrcaHooks {
+function sanitizeTrustedMantaHooks(trust: unknown): PersistedTrustedMantaHooks {
   if (!isPlainPersistedRecord(trust)) {
     return {}
   }
-  const next: PersistedTrustedOrcaHooks = {}
+  const next: PersistedTrustedMantaHooks = {}
   for (const [repoId, entry] of Object.entries(trust)) {
     if (!isSafePersistedRecordKey(repoId) || !isPlainPersistedRecord(entry)) {
       continue
     }
-    next[repoId] = entry as PersistedTrustedOrcaHooks[string]
+    next[repoId] = entry as PersistedTrustedMantaHooks[string]
   }
   return next
 }
 
-function filterTrustedOrcaHooksToValidRepos(
+function filterTrustedMantaHooksToValidRepos(
   trust: unknown,
   validRepoIds: Set<string>
-): PersistedTrustedOrcaHooks {
-  const sanitized = sanitizeTrustedOrcaHooks(trust)
-  const next: PersistedTrustedOrcaHooks = {}
+): PersistedTrustedMantaHooks {
+  const sanitized = sanitizeTrustedMantaHooks(trust)
+  const next: PersistedTrustedMantaHooks = {}
   for (const [repoId, entry] of Object.entries(sanitized)) {
     if (validRepoIds.has(repoId)) {
       next[repoId] = entry
@@ -403,15 +403,15 @@ function filterTrustedOrcaHooksToValidRepos(
   return next
 }
 
-function hydrateTrustedOrcaHooks(
+function hydrateTrustedMantaHooks(
   trust: unknown,
   validRepoIds: Set<string>
-): PersistedTrustedOrcaHooks {
-  const sanitized = sanitizeTrustedOrcaHooks(trust)
+): PersistedTrustedMantaHooks {
+  const sanitized = sanitizeTrustedMantaHooks(trust)
   if (validRepoIds.size === 0) {
     return sanitized
   }
-  return filterTrustedOrcaHooksToValidRepos(sanitized, validRepoIds)
+  return filterTrustedMantaHooksToValidRepos(sanitized, validRepoIds)
 }
 
 function isSafePersistedRecordKey(key: string): boolean {
@@ -814,7 +814,7 @@ export type UISlice = {
     | 'feature-wall'
     | 'feature-tips'
     | 'new-workspace-composer'
-    | 'confirm-orca-yaml-hooks'
+    | 'confirm-manta-yaml-hooks'
   modalData: Record<string, unknown>
   openModal: (modal: UISlice['activeModal'], data?: Record<string, unknown>) => void
   closeModal: () => void
@@ -852,14 +852,14 @@ export type UISlice = {
   completeContextualTour: (id?: ContextualTourId) => void
   cancelContextualTour: (id?: ContextualTourId) => void
   markContextualToursSeen: (ids: ContextualTourId[]) => void
-  trustedOrcaHooks: PersistedTrustedOrcaHooks
-  markOrcaHookScriptConfirmed: (
+  trustedMantaHooks: PersistedTrustedMantaHooks
+  markMantaHookScriptConfirmed: (
     repoId: string,
-    kind: OrcaHookScriptKind,
+    kind: MantaHookScriptKind,
     contentHash: string
   ) => void
-  markOrcaHookRepoAlwaysTrusted: (repoId: string) => void
-  clearOrcaHookTrustForRepo: (repoId: string) => void
+  markMantaHookRepoAlwaysTrusted: (repoId: string) => void
+  clearMantaHookTrustForRepo: (repoId: string) => void
   setupScriptPromptDismissedRepoIds: readonly string[]
   dismissSetupScriptPrompt: (repoHostIdentity: string) => void
   setupGuideSidebarDismissed: boolean
@@ -1921,10 +1921,10 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
       }
       return { contextualToursSeenIds: next }
     }),
-  trustedOrcaHooks: {},
-  markOrcaHookScriptConfirmed: (repoId, kind, contentHash) =>
+  trustedMantaHooks: {},
+  markMantaHookScriptConfirmed: (repoId, kind, contentHash) =>
     set((s) => {
-      const existing = s.trustedOrcaHooks[repoId]
+      const existing = s.trustedMantaHooks[repoId]
       const currentEntry = existing?.[kind]
       if (currentEntry?.contentHash === contentHash) {
         return s
@@ -1933,35 +1933,35 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
         ...existing,
         [kind]: { contentHash, approvedAt: Date.now() }
       }
-      const next = { ...s.trustedOrcaHooks, [repoId]: nextRepo }
-      window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-      return { trustedOrcaHooks: next }
+      const next = { ...s.trustedMantaHooks, [repoId]: nextRepo }
+      window.api.ui.set({ trustedMantaHooks: next }).catch(console.error)
+      return { trustedMantaHooks: next }
     }),
-  markOrcaHookRepoAlwaysTrusted: (repoId) =>
+  markMantaHookRepoAlwaysTrusted: (repoId) =>
     set((s) => {
-      const existing = s.trustedOrcaHooks[repoId]
+      const existing = s.trustedMantaHooks[repoId]
       if (existing?.all) {
         return s
       }
       const next = {
-        ...s.trustedOrcaHooks,
+        ...s.trustedMantaHooks,
         [repoId]: {
           ...existing,
           all: { approvedAt: Date.now() }
         }
       }
-      window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-      return { trustedOrcaHooks: next }
+      window.api.ui.set({ trustedMantaHooks: next }).catch(console.error)
+      return { trustedMantaHooks: next }
     }),
-  clearOrcaHookTrustForRepo: (repoId) =>
+  clearMantaHookTrustForRepo: (repoId) =>
     set((s) => {
-      if (!(repoId in s.trustedOrcaHooks)) {
+      if (!(repoId in s.trustedMantaHooks)) {
         return s
       }
-      const next = { ...s.trustedOrcaHooks }
+      const next = { ...s.trustedMantaHooks }
       delete next[repoId]
-      window.api.ui.set({ trustedOrcaHooks: next }).catch(console.error)
-      return { trustedOrcaHooks: next }
+      window.api.ui.set({ trustedMantaHooks: next }).catch(console.error)
+      return { trustedMantaHooks: next }
     }),
   setupScriptPromptDismissedRepoIds: [],
   dismissSetupScriptPrompt: (repoHostIdentity) =>
@@ -2590,7 +2590,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
           typeof ui.contextualToursAutoEligible === 'boolean'
             ? ui.contextualToursAutoEligible
             : null,
-        trustedOrcaHooks: hydrateTrustedOrcaHooks(ui.trustedOrcaHooks, validRepoIds),
+        trustedMantaHooks: hydrateTrustedMantaHooks(ui.trustedMantaHooks, validRepoIds),
         setupScriptPromptDismissedRepoIds:
           validRepoHostIdentities.size === 0
             ? sanitizeSetupScriptPromptDismissals(ui.setupScriptPromptDismissedRepoIds)

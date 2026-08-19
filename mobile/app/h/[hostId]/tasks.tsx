@@ -110,7 +110,7 @@ import { WORKTREE_CREATE_TIMEOUT_MS } from '../../../src/tasks/workspace-create-
 import {
   isSetupHookTrusted,
   normalizeSetupHookTrust,
-  trustedOrcaHooksWithSetupApproval,
+  trustedMantaHooksWithSetupApproval,
   wasSetupHookPreviouslyApproved
 } from '../../../src/tasks/setup-hook-trust'
 import { colors, radii, spacing, typography } from '../../../src/theme/mobile-theme'
@@ -153,7 +153,7 @@ import type {
   GitHubOwnerRepo,
   ProviderCheckSummary
 } from '../../../../src/shared/github/pull-request-types'
-import type { PersistedTrustedOrcaHooks } from '../../../../src/shared/orca-yaml-hook-types'
+import type { PersistedTrustedMantaHooks } from '../../../../src/shared/manta-yaml-hook-types'
 import type { BaseRefSearchResult } from '../../../../src/shared/repo-types'
 import type { TuiAgent } from '../../../../src/shared/tui-agent'
 import type { SparsePreset } from '../../../../src/shared/worktree/create-types'
@@ -648,7 +648,7 @@ type WorkspaceCreateArgs = {
   sparseCheckoutOverride?: { directories: string[]; presetId?: string }
 }
 
-type OrcaYamlTrustPrompt = WorkspaceCreateArgs & {
+type MantaYamlTrustPrompt = WorkspaceCreateArgs & {
   repoId: string
   repoName: string
   scriptContent: string
@@ -676,7 +676,7 @@ function workspaceAgentIconId(agent: WorkspaceAgentChoice): string {
   return agent === 'blank' ? '__blank__' : agent
 }
 
-type ProjectRepoNotInOrcaPrompt = {
+type ProjectRepoNotInMantaPrompt = {
   owner: string
   repo: string
   url: string | null
@@ -2017,8 +2017,8 @@ function getRepoBadgeColor(repo: RepoSummary | undefined, fallbackName: string):
 }
 
 function setupSourceLabel(source: string | null): string {
-  if (source === 'orca.yaml') {
-    return 'orca.yaml'
+  if (source === 'manta.yaml') {
+    return 'manta.yaml'
   }
   if (source === 'legacy') {
     return 'local hooks'
@@ -2276,8 +2276,10 @@ export default function MobileTasksScreen() {
   const [linearSubIssueTitle, setLinearSubIssueTitle] = useState('')
   const [taskStateHydrated, setTaskStateHydrated] = useState(false)
   const [runtimeTaskSettings, setRuntimeTaskSettings] = useState<RuntimeTaskSettings>({})
-  const [trustedOrcaHooks, setTrustedOrcaHooks] = useState<PersistedTrustedOrcaHooks>({})
-  const [orcaYamlTrustPrompt, setOrcaYamlTrustPrompt] = useState<OrcaYamlTrustPrompt | null>(null)
+  const [trustedMantaHooks, setTrustedMantaHooks] = useState<PersistedTrustedMantaHooks>({})
+  const [mantaYamlTrustPrompt, setMantaYamlTrustPrompt] = useState<MantaYamlTrustPrompt | null>(
+    null
+  )
   const [githubProjectSettings, setGithubProjectSettings] = useState<GitHubProjectSettings>(
     EMPTY_GITHUB_PROJECT_SETTINGS
   )
@@ -2333,8 +2335,8 @@ export default function MobileTasksScreen() {
   const [projectIssueTypesLoading, setProjectIssueTypesLoading] = useState(false)
   const [projectIssueTypesError, setProjectIssueTypesError] = useState('')
   const [projectMutating, setProjectMutating] = useState(false)
-  const [projectRepoNotInOrca, setProjectRepoNotInOrca] =
-    useState<ProjectRepoNotInOrcaPrompt | null>(null)
+  const [projectRepoNotInManta, setProjectRepoNotInManta] =
+    useState<ProjectRepoNotInMantaPrompt | null>(null)
   // Why: project detail text inputs rerender this screen while comments stay
   // unchanged; keep grouping out of the typing path.
   const projectDetailCommentGroups = useMemo(
@@ -2752,19 +2754,19 @@ export default function MobileTasksScreen() {
       if (!client) {
         return
       }
-      const next = trustedOrcaHooksWithSetupApproval({
-        trust: trustedOrcaHooks,
+      const next = trustedMantaHooksWithSetupApproval({
+        trust: trustedMantaHooks,
         repoId,
         contentHash,
         alwaysTrust
       })
-      const response = await client.sendRequest('ui.set', { trustedOrcaHooks: next })
+      const response = await client.sendRequest('ui.set', { trustedMantaHooks: next })
       if (!isSuccess(response)) {
         throw new Error(response.error.message)
       }
-      setTrustedOrcaHooks(next)
+      setTrustedMantaHooks(next)
     },
-    [client, trustedOrcaHooks]
+    [client, trustedMantaHooks]
   )
 
   const resetWorkspaceCreateState = useCallback((): void => {
@@ -2798,7 +2800,7 @@ export default function MobileTasksScreen() {
     setShowWorkspaceBaseBranchPicker(false)
     setShowWorkspaceSparsePicker(false)
     setSetupPrompt(null)
-    setOrcaYamlTrustPrompt(null)
+    setMantaYamlTrustPrompt(null)
   }, [])
 
   useEffect(() => {
@@ -2807,8 +2809,8 @@ export default function MobileTasksScreen() {
       defaultRepoSelectionRef.current = null
       repoSelectionHydratedRef.current = false
       setRuntimeTaskSettings({})
-      setTrustedOrcaHooks({})
-      setOrcaYamlTrustPrompt(null)
+      setTrustedMantaHooks({})
+      setMantaYamlTrustPrompt(null)
       setGithubProjectHiddenFieldIdsByView({})
       setTaskStateHydrated(false)
       setTasksSupportState({ kind: 'unknown', client: null })
@@ -2836,7 +2838,7 @@ export default function MobileTasksScreen() {
       setPendingGitHubProjectViewSelection(null)
       setActionItem(null)
       setProjectRowItem(null)
-      setProjectRepoNotInOrca(null)
+      setProjectRepoNotInManta(null)
       setDetailPayload(null)
       setProjectRowDetail(null)
       setShowCreateTask(false)
@@ -2878,7 +2880,7 @@ export default function MobileTasksScreen() {
     setPendingGitHubProjectViewSelection(null)
     setActionItem(null)
     setProjectRowItem(null)
-    setProjectRepoNotInOrca(null)
+    setProjectRepoNotInManta(null)
     setDetailPayload(null)
     setProjectRowDetail(null)
     setShowCreateTask(false)
@@ -2931,7 +2933,7 @@ export default function MobileTasksScreen() {
         setPendingGitHubProjectViewSelection(null)
         setActionItem(null)
         setProjectRowItem(null)
-        setProjectRepoNotInOrca(null)
+        setProjectRepoNotInManta(null)
         setDetailPayload(null)
         setProjectRowDetail(null)
         setShowCreateTask(false)
@@ -2943,7 +2945,7 @@ export default function MobileTasksScreen() {
         setMergeMethodTaskItem(null)
         setMergeMethodProjectRow(null)
         resetWorkspaceCreateState()
-        setError('Update Orca desktop to use Tasks on mobile.')
+        setError('Update Manta desktop to use Tasks on mobile.')
         setTaskStateHydrated(false)
         return
       }
@@ -2970,12 +2972,12 @@ export default function MobileTasksScreen() {
             uiResponse.result as {
               ui?: {
                 taskResumeState?: TaskResumeState
-                trustedOrcaHooks?: PersistedTrustedOrcaHooks
+                trustedMantaHooks?: PersistedTrustedMantaHooks
               }
             }
           ).ui
         : null
-      setTrustedOrcaHooks(uiState?.trustedOrcaHooks ?? {})
+      setTrustedMantaHooks(uiState?.trustedMantaHooks ?? {})
       const resume = uiState?.taskResumeState ?? {}
       taskResumeRef.current = resume
       setGithubProjectHiddenFieldIdsByView(resume.githubProjectHiddenFieldIdsByView ?? {})
@@ -3804,7 +3806,7 @@ export default function MobileTasksScreen() {
           return
         }
         if (explicitView && explicitView.layout !== 'TABLE_LAYOUT') {
-          throw new Error("Orca doesn't support this GitHub Project layout yet.")
+          throw new Error("Manta doesn't support this GitHub Project layout yet.")
         }
         if (!explicitView && !rememberedView) {
           // Why: desktop asks which Project view to open the first time a project
@@ -4879,7 +4881,7 @@ export default function MobileTasksScreen() {
     setWorkspaceSparseSaving(false)
     setWorkspaceAgentOverridden(false)
     setWorkspaceAgent(null)
-    setOrcaYamlTrustPrompt(null)
+    setMantaYamlTrustPrompt(null)
     setShowWorkspaceAgentPicker(false)
     setShowWorkspaceCreateRepoPicker(false)
     setShowWorkspaceAdvanced(false)
@@ -5468,16 +5470,16 @@ export default function MobileTasksScreen() {
           setupResolution.setupTrust &&
           setupResolution.setupTrust.contentHash !== approvedSetupContentHash &&
           !isSetupHookTrusted(
-            trustedOrcaHooks,
+            trustedMantaHooks,
             targetRepo.id,
             setupResolution.setupTrust.contentHash
           )
         ) {
-          // Why: desktop prompts before running repo-owned orca.yaml hooks. Mobile
+          // Why: desktop prompts before running repo-owned manta.yaml hooks. Mobile
           // stores the same trust hash in persisted UI state so either surface can
           // approve the script version for future workspace creates.
           setSetupPrompt(null)
-          setOrcaYamlTrustPrompt({
+          setMantaYamlTrustPrompt({
             item,
             ...(repoIdOverride ? { repoIdOverride } : {}),
             setupOverride: 'run',
@@ -5491,7 +5493,7 @@ export default function MobileTasksScreen() {
             repoName: targetRepo.displayName,
             scriptContent: setupResolution.setupTrust.scriptContent,
             contentHash: setupResolution.setupTrust.contentHash,
-            previouslyApproved: wasSetupHookPreviouslyApproved(trustedOrcaHooks, targetRepo.id)
+            previouslyApproved: wasSetupHookPreviouslyApproved(trustedMantaHooks, targetRepo.id)
           })
           return
         }
@@ -5634,7 +5636,7 @@ export default function MobileTasksScreen() {
       runtimeTaskSettings,
       taskStateHydrated,
       tasksSupported,
-      trustedOrcaHooks,
+      trustedMantaHooks,
       workspaceDetectedAgentIds
     ]
   )
@@ -5647,12 +5649,12 @@ export default function MobileTasksScreen() {
       const kind = projectRowType(row)
       const repo = findProjectRowRepo(row)
       if (!kind || !row.content.number || !row.content.url) {
-        setError('Add the project item repository to Orca before creating a workspace.')
+        setError('Add the project item repository to Manta before creating a workspace.')
         return
       }
       if (!repo) {
         const slug = splitRepositorySlug(row.content.repository)
-        setProjectRepoNotInOrca({
+        setProjectRepoNotInManta({
           owner: slug?.owner ?? 'Unknown',
           repo: slug?.repo ?? row.content.repository ?? 'repository',
           url: row.content.url ?? null
@@ -9221,7 +9223,7 @@ export default function MobileTasksScreen() {
       {!tasksSupported ? (
         tasksUnsupported ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>Update Orca desktop</Text>
+            <Text style={styles.emptyText}>Update Manta desktop</Text>
             <Text style={styles.centeredHint}>
               This mobile Tasks view needs a newer desktop runtime.
             </Text>
@@ -10309,7 +10311,7 @@ export default function MobileTasksScreen() {
         onSelect={(viewId) => {
           const view = githubProjectViews.find((candidate) => candidate.id === viewId)
           if (view && view.layout !== 'TABLE_LAYOUT') {
-            setGithubProjectError("Orca doesn't support this GitHub Project layout yet.")
+            setGithubProjectError("Manta doesn't support this GitHub Project layout yet.")
             return
           }
           if (pendingGitHubProjectViewSelection) {
@@ -11473,20 +11475,20 @@ export default function MobileTasksScreen() {
       </BottomDrawer>
 
       <BottomDrawer
-        visible={taskUiReady && orcaYamlTrustPrompt != null}
-        onClose={() => setOrcaYamlTrustPrompt(null)}
+        visible={taskUiReady && mantaYamlTrustPrompt != null}
+        onClose={() => setMantaYamlTrustPrompt(null)}
         zIndex={TASK_SECONDARY_DRAWER_Z_INDEX + 1}
       >
-        {orcaYamlTrustPrompt ? (
+        {mantaYamlTrustPrompt ? (
           <View>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>
-                {orcaYamlTrustPrompt.previouslyApproved
-                  ? `${orcaYamlTrustPrompt.repoName}'s setup script changed`
-                  : `Run setup from ${orcaYamlTrustPrompt.repoName}?`}
+                {mantaYamlTrustPrompt.previouslyApproved
+                  ? `${mantaYamlTrustPrompt.repoName}'s setup script changed`
+                  : `Run setup from ${mantaYamlTrustPrompt.repoName}?`}
               </Text>
               <Text style={styles.sheetSubtitle}>
-                This repository's orca.yaml runs on your machine before the workspace starts. Only
+                This repository's manta.yaml runs on your machine before the workspace starts. Only
                 run it if you trust this repository.
               </Text>
             </View>
@@ -11494,36 +11496,36 @@ export default function MobileTasksScreen() {
             <View style={styles.setupPromptBox}>
               <View style={styles.detailSectionHeader}>
                 <Text style={styles.detailSectionTitle}>
-                  {orcaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
+                  {mantaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
                 </Text>
               </View>
-              <Text style={styles.setupPromptCommand}>{orcaYamlTrustPrompt.scriptContent}</Text>
+              <Text style={styles.setupPromptCommand}>{mantaYamlTrustPrompt.scriptContent}</Text>
             </View>
 
             <View style={styles.actionGroup}>
               <Pressable
                 style={styles.actionRow}
-                disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+                disabled={creatingKey === mantaYamlTrustPrompt.item.key}
                 onPress={() =>
                   void (async () => {
                     try {
                       await persistSetupHookTrust(
-                        orcaYamlTrustPrompt.repoId,
-                        orcaYamlTrustPrompt.contentHash,
+                        mantaYamlTrustPrompt.repoId,
+                        mantaYamlTrustPrompt.contentHash,
                         false
                       )
-                      setOrcaYamlTrustPrompt(null)
+                      setMantaYamlTrustPrompt(null)
                       await createWorkspace(
-                        orcaYamlTrustPrompt.item,
-                        orcaYamlTrustPrompt.repoIdOverride,
+                        mantaYamlTrustPrompt.item,
+                        mantaYamlTrustPrompt.repoIdOverride,
                         'run',
-                        orcaYamlTrustPrompt.agentOverride,
-                        orcaYamlTrustPrompt.workspaceNameOverride,
-                        orcaYamlTrustPrompt.noteOverride,
-                        orcaYamlTrustPrompt.baseBranchOverride,
-                        orcaYamlTrustPrompt.branchNameOverride,
-                        orcaYamlTrustPrompt.sparseCheckoutOverride,
-                        orcaYamlTrustPrompt.contentHash
+                        mantaYamlTrustPrompt.agentOverride,
+                        mantaYamlTrustPrompt.workspaceNameOverride,
+                        mantaYamlTrustPrompt.noteOverride,
+                        mantaYamlTrustPrompt.baseBranchOverride,
+                        mantaYamlTrustPrompt.branchNameOverride,
+                        mantaYamlTrustPrompt.sparseCheckoutOverride,
+                        mantaYamlTrustPrompt.contentHash
                       )
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to trust setup script.')
@@ -11537,27 +11539,27 @@ export default function MobileTasksScreen() {
               <View style={styles.actionSeparator} />
               <Pressable
                 style={styles.actionRow}
-                disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+                disabled={creatingKey === mantaYamlTrustPrompt.item.key}
                 onPress={() =>
                   void (async () => {
                     try {
                       await persistSetupHookTrust(
-                        orcaYamlTrustPrompt.repoId,
-                        orcaYamlTrustPrompt.contentHash,
+                        mantaYamlTrustPrompt.repoId,
+                        mantaYamlTrustPrompt.contentHash,
                         true
                       )
-                      setOrcaYamlTrustPrompt(null)
+                      setMantaYamlTrustPrompt(null)
                       await createWorkspace(
-                        orcaYamlTrustPrompt.item,
-                        orcaYamlTrustPrompt.repoIdOverride,
+                        mantaYamlTrustPrompt.item,
+                        mantaYamlTrustPrompt.repoIdOverride,
                         'run',
-                        orcaYamlTrustPrompt.agentOverride,
-                        orcaYamlTrustPrompt.workspaceNameOverride,
-                        orcaYamlTrustPrompt.noteOverride,
-                        orcaYamlTrustPrompt.baseBranchOverride,
-                        orcaYamlTrustPrompt.branchNameOverride,
-                        orcaYamlTrustPrompt.sparseCheckoutOverride,
-                        orcaYamlTrustPrompt.contentHash
+                        mantaYamlTrustPrompt.agentOverride,
+                        mantaYamlTrustPrompt.workspaceNameOverride,
+                        mantaYamlTrustPrompt.noteOverride,
+                        mantaYamlTrustPrompt.baseBranchOverride,
+                        mantaYamlTrustPrompt.branchNameOverride,
+                        mantaYamlTrustPrompt.sparseCheckoutOverride,
+                        mantaYamlTrustPrompt.contentHash
                       )
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to trust setup script.')
@@ -11571,10 +11573,10 @@ export default function MobileTasksScreen() {
               <View style={styles.actionSeparator} />
               <Pressable
                 style={styles.actionRow}
-                disabled={creatingKey === orcaYamlTrustPrompt.item.key}
+                disabled={creatingKey === mantaYamlTrustPrompt.item.key}
                 onPress={() => {
-                  const prompt = orcaYamlTrustPrompt
-                  setOrcaYamlTrustPrompt(null)
+                  const prompt = mantaYamlTrustPrompt
+                  setMantaYamlTrustPrompt(null)
                   void createWorkspace(
                     prompt.item,
                     prompt.repoIdOverride,
@@ -11597,28 +11599,28 @@ export default function MobileTasksScreen() {
       </BottomDrawer>
 
       <BottomDrawer
-        visible={taskUiReady && projectRepoNotInOrca != null}
+        visible={taskUiReady && projectRepoNotInManta != null}
         onClose={() => {
-          setProjectRepoNotInOrca(null)
+          setProjectRepoNotInManta(null)
         }}
       >
-        {projectRepoNotInOrca ? (
+        {projectRepoNotInManta ? (
           <View>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Repository not in Orca</Text>
+              <Text style={styles.sheetTitle}>Repository not in Manta</Text>
               <Text style={styles.sheetSubtitle}>
-                {projectRepoNotInOrca.owner}/{projectRepoNotInOrca.repo} is not added to Orca. Add
-                this repository from the desktop app, then refresh mobile Tasks.
+                {projectRepoNotInManta.owner}/{projectRepoNotInManta.repo} is not added to Manta.
+                Add this repository from the desktop app, then refresh mobile Tasks.
               </Text>
             </View>
 
             <View style={styles.actionGroup}>
-              {projectRepoNotInOrca.url ? (
+              {projectRepoNotInManta.url ? (
                 <Pressable
                   style={styles.actionRow}
                   onPress={() => {
-                    if (projectRepoNotInOrca.url) {
-                      void Linking.openURL(projectRepoNotInOrca.url)
+                    if (projectRepoNotInManta.url) {
+                      void Linking.openURL(projectRepoNotInManta.url)
                     }
                   }}
                 >
@@ -11626,20 +11628,20 @@ export default function MobileTasksScreen() {
                   <Text style={styles.actionText}>Open in GitHub</Text>
                 </Pressable>
               ) : null}
-              {projectRepoNotInOrca.url ? <View style={styles.actionSeparator} /> : null}
+              {projectRepoNotInManta.url ? <View style={styles.actionSeparator} /> : null}
               <Pressable
                 style={styles.actionRow}
                 onPress={() =>
                   void copyTextToClipboard(
-                    `project-repo:${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`,
-                    `${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`
+                    `project-repo:${projectRepoNotInManta.owner}/${projectRepoNotInManta.repo}`,
+                    `${projectRepoNotInManta.owner}/${projectRepoNotInManta.repo}`
                   )
                 }
               >
                 <Copy size={16} color={colors.textPrimary} />
                 <Text style={styles.actionText}>
                   {copiedLinkKey ===
-                  `project-repo:${projectRepoNotInOrca.owner}/${projectRepoNotInOrca.repo}`
+                  `project-repo:${projectRepoNotInManta.owner}/${projectRepoNotInManta.repo}`
                     ? 'Copied'
                     : 'Copy repository'}
                 </Text>
@@ -12675,7 +12677,7 @@ export default function MobileTasksScreen() {
                   </Pressable>
                   {!projectRowHostedRepo ? (
                     <Text style={styles.emptyInlineText}>
-                      Merge requires this repository in Orca.
+                      Merge requires this repository in Manta.
                     </Text>
                   ) : null}
                 </>

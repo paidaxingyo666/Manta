@@ -9,11 +9,11 @@ import {
 function cliStatus(overrides: Partial<CliInstallStatus> = {}): CliInstallStatus {
   return {
     platform: 'darwin',
-    commandName: 'orca',
-    commandPath: '/usr/local/bin/orca',
+    commandName: 'manta',
+    commandPath: '/usr/local/bin/manta',
     pathDirectory: '/usr/local/bin',
     pathConfigured: true,
-    launcherPath: '/Applications/Orca.app/Contents/MacOS/orca',
+    launcherPath: '/Applications/Manta.app/Contents/MacOS/manta',
     installMethod: 'symlink',
     supported: true,
     state: 'installed',

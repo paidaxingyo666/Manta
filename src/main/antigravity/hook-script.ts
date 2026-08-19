@@ -10,12 +10,12 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     return [
       '@echo off',
       'setlocal',
-      'if /I "%ORCA_ANTIGRAVITY_EVENT%"=="Stop" (',
+      'if /I "%MANTA_ANTIGRAVITY_EVENT%"=="Stop" (',
       '  echo {"decision":""}',
       ') else (',
       '  echo {}',
       ')',
-      'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
+      'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
       buildWindowsAntigravityHookPostCommand(),
       'exit /b 0',
@@ -26,7 +26,7 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
 
   return [
     '#!/bin/sh',
-    'case "$ORCA_ANTIGRAVITY_EVENT" in',
+    'case "$MANTA_ANTIGRAVITY_EVENT" in',
     '  Stop)',
     '    printf \'{"decision":""}\\n\'',
     '    ;;',
@@ -40,27 +40,27 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     // Why: some Antigravity events arrive without stdin but still need a
     // status post, so the shared capture maps empty input to an object.
     ...buildPosixHookPayloadCapture('empty-object'),
-    'if [ -n "$ORCA_AGENT_HOOK_ENDPOINT" ] && [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ]; then',
-    '  . "$ORCA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
+    'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
+    '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    'if [ -z "$ORCA_AGENT_HOOK_PORT" ] || [ -z "$ORCA_AGENT_HOOK_TOKEN" ] || [ -z "$ORCA_PANE_KEY" ]; then',
+    'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
     '  exit 0',
     'fi',
     // Timeout caps best-effort hook posts if the local listener stalls.
     // Why: pipe payload to curl's stdin (`payload@-`) instead of an inline
     // `payload=$VALUE` arg, so tens-of-KB tool output stays off the curl
     // command line (EDR command-line false positives). Wire body is identical.
-    'printf \'%s\' "$payload" | curl -sS -X POST "http://127.0.0.1:${ORCA_AGENT_HOOK_PORT}/hook/antigravity" \\',
+    'printf \'%s\' "$payload" | curl -sS -X POST "http://127.0.0.1:${MANTA_AGENT_HOOK_PORT}/hook/antigravity" \\',
     '  --connect-timeout 0.5 --max-time 1.5 \\',
     '  -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '  -H "X-Orca-Agent-Hook-Token: ${ORCA_AGENT_HOOK_TOKEN}" \\',
-    '  --data-urlencode "paneKey=${ORCA_PANE_KEY}" \\',
-    '  --data-urlencode "tabId=${ORCA_TAB_ID}" \\',
-    '  --data-urlencode "launchToken=${ORCA_AGENT_LAUNCH_TOKEN}" \\',
-    '  --data-urlencode "worktreeId=${ORCA_WORKTREE_ID}" \\',
-    '  --data-urlencode "env=${ORCA_AGENT_HOOK_ENV}" \\',
-    '  --data-urlencode "version=${ORCA_AGENT_HOOK_VERSION}" \\',
-    '  --data-urlencode "hook_event_name=${ORCA_ANTIGRAVITY_EVENT}" \\',
+    '  -H "X-Manta-Agent-Hook-Token: ${MANTA_AGENT_HOOK_TOKEN}" \\',
+    '  --data-urlencode "paneKey=${MANTA_PANE_KEY}" \\',
+    '  --data-urlencode "tabId=${MANTA_TAB_ID}" \\',
+    '  --data-urlencode "launchToken=${MANTA_AGENT_LAUNCH_TOKEN}" \\',
+    '  --data-urlencode "worktreeId=${MANTA_WORKTREE_ID}" \\',
+    '  --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
+    '  --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
+    '  --data-urlencode "hook_event_name=${MANTA_ANTIGRAVITY_EVENT}" \\',
     '  --data-urlencode "payload@-" >/dev/null 2>&1 || true',
     'exit 0',
     ''
@@ -71,13 +71,13 @@ export function getWindowsWrapperScript(eventName: string): string {
   return [
     '@echo off',
     'setlocal',
-    `set "ORCA_ANTIGRAVITY_EVENT=${eventName}"`,
-    'set "ORCA_ANTIGRAVITY_CORE=%~dp0antigravity-hook.cmd"',
-    'if exist "%ORCA_ANTIGRAVITY_CORE%" (',
-    '  call "%ORCA_ANTIGRAVITY_CORE%"',
+    `set "MANTA_ANTIGRAVITY_EVENT=${eventName}"`,
+    'set "MANTA_ANTIGRAVITY_CORE=%~dp0antigravity-hook.cmd"',
+    'if exist "%MANTA_ANTIGRAVITY_CORE%" (',
+    '  call "%MANTA_ANTIGRAVITY_CORE%"',
     '  exit /b 0',
     ')',
-    'if /I "%ORCA_ANTIGRAVITY_EVENT%"=="Stop" (',
+    'if /I "%MANTA_ANTIGRAVITY_EVENT%"=="Stop" (',
     '  echo {"decision":""}',
     ') else (',
     '  echo {}',
@@ -94,5 +94,5 @@ function buildWindowsAntigravityHookPostCommand(): string {
   // Why: Antigravity hooks are best-effort status updates; do not let a stalled
   // local listener hold the agent process open. Qualify PowerShell so a
   // worktree-local powershell.exe cannot hijack hook payloads.
-  return `"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "$utf8=[System.Text.UTF8Encoding]::new($false); [Console]::InputEncoding=$utf8; [Console]::OutputEncoding=$utf8; $inputData=[Console]::In.ReadToEnd(); try { $payload=if ([string]::IsNullOrWhiteSpace($inputData)) { @{} } else { $inputData | ConvertFrom-Json }; $body=@{ paneKey=$env:ORCA_PANE_KEY; launchToken=$env:ORCA_AGENT_LAUNCH_TOKEN; tabId=$env:ORCA_TAB_ID; worktreeId=$env:ORCA_WORKTREE_ID; env=$env:ORCA_AGENT_HOOK_ENV; version=$env:ORCA_AGENT_HOOK_VERSION; hook_event_name=$env:ORCA_ANTIGRAVITY_EVENT; payload=$payload } | ConvertTo-Json -Depth 100 -Compress; $bodyBytes=$utf8.GetBytes($body); Invoke-WebRequest -UseBasicParsing -Method Post -Uri ('http://127.0.0.1:' + $env:ORCA_AGENT_HOOK_PORT + '/hook/antigravity') -ContentType 'application/json; charset=utf-8' -Headers @{ 'X-Orca-Agent-Hook-Token'=$env:ORCA_AGENT_HOOK_TOKEN } -Body $bodyBytes -TimeoutSec 2 | Out-Null } catch {}"`
+  return `"%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "$utf8=[System.Text.UTF8Encoding]::new($false); [Console]::InputEncoding=$utf8; [Console]::OutputEncoding=$utf8; $inputData=[Console]::In.ReadToEnd(); try { $payload=if ([string]::IsNullOrWhiteSpace($inputData)) { @{} } else { $inputData | ConvertFrom-Json }; $body=@{ paneKey=$env:MANTA_PANE_KEY; launchToken=$env:MANTA_AGENT_LAUNCH_TOKEN; tabId=$env:MANTA_TAB_ID; worktreeId=$env:MANTA_WORKTREE_ID; env=$env:MANTA_AGENT_HOOK_ENV; version=$env:MANTA_AGENT_HOOK_VERSION; hook_event_name=$env:MANTA_ANTIGRAVITY_EVENT; payload=$payload } | ConvertTo-Json -Depth 100 -Compress; $bodyBytes=$utf8.GetBytes($body); Invoke-WebRequest -UseBasicParsing -Method Post -Uri ('http://127.0.0.1:' + $env:MANTA_AGENT_HOOK_PORT + '/hook/antigravity') -ContentType 'application/json; charset=utf-8' -Headers @{ 'X-Manta-Agent-Hook-Token'=$env:MANTA_AGENT_HOOK_TOKEN } -Body $bodyBytes -TimeoutSec 2 | Out-Null } catch {}"`
 }

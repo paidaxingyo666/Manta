@@ -1,13 +1,13 @@
 // Relay-side adapter for the shared agent-hook listener: hosts a loopback HTTP server and
 // forwards each parsed payload via a callback so `relay.ts` re-emits it as an `agent.hook`
 // JSON-RPC notification over the SSH channel. Replay cache is bounded one-entry-per-paneKey: a
-// reattaching Orca only needs each pane's current status, never its history, and the bound keeps a
+// reattaching Manta only needs each pane's current status, never its history, and the bound keeps a
 // long-lived relay from growing with every event.
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 
-import { ORCA_HOOK_PROTOCOL_VERSION } from '../shared/agent-hook-types'
+import { MANTA_HOOK_PROTOCOL_VERSION } from '../shared/agent-hook-types'
 import {
   clearAllListenerCaches,
   clearPaneCacheState,
@@ -37,7 +37,7 @@ export type RelayHookForward = (envelope: AgentHookRelayEnvelope) => void
 const MAX_CACHED_PANES = 256
 
 export type RelayHookServerOptions = {
-  /** Where to put endpoint.env / endpoint.cmd. Defaults to `$HOME/.orca-relay/agent-hooks`. */
+  /** Where to put endpoint.env / endpoint.cmd. Defaults to `$HOME/.manta-relay/agent-hooks`. */
   endpointDir?: string
   /** Env tag forwarded into hook payloads. Defaults to "remote", which main excludes from dev-vs-prod mismatch warnings. */
   env?: string
@@ -154,7 +154,7 @@ export class RelayAgentHookServer {
       port: this.port,
       token: this.token,
       env: this.env,
-      version: ORCA_HOOK_PROTOCOL_VERSION
+      version: MANTA_HOOK_PROTOCOL_VERSION
     })
     return this.endpointFileWritten
   }
@@ -220,7 +220,7 @@ export class RelayAgentHookServer {
       res.end()
       return
     }
-    if (req.headers['x-orca-agent-hook-token'] !== this.token) {
+    if (req.headers['x-manta-agent-hook-token'] !== this.token) {
       res.writeHead(403)
       res.end()
       return

@@ -169,9 +169,9 @@ describe('registerWorktreeHandlers', () => {
       repoId: 'repo-1',
       name: 'wsl-fork',
       pushTarget: {
-        remoteName: 'pr-contributor-orca',
+        remoteName: 'pr-contributor-manta',
         branchName: 'contributor/wsl-fork',
-        remoteUrl: 'git@github.com:contributor/orca.git'
+        remoteUrl: 'git@github.com:contributor/manta.git'
       }
     })
 
@@ -180,19 +180,19 @@ describe('registerWorktreeHandlers', () => {
       { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
-      ['remote', 'add', 'pr-contributor-orca', 'git@github.com:contributor/orca.git'],
+      ['remote', 'add', 'pr-contributor-manta', 'git@github.com:contributor/manta.git'],
       { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
       [
         'fetch',
-        'pr-contributor-orca',
-        '+refs/heads/contributor/wsl-fork:refs/remotes/pr-contributor-orca/contributor/wsl-fork'
+        'pr-contributor-manta',
+        '+refs/heads/contributor/wsl-fork:refs/remotes/pr-contributor-manta/contributor/wsl-fork'
       ],
       { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
-      ['branch', '--set-upstream-to', 'pr-contributor-orca/contributor/wsl-fork', 'wsl-fork'],
+      ['branch', '--set-upstream-to', 'pr-contributor-manta/contributor/wsl-fork', 'wsl-fork'],
       { cwd: '/workspace/wsl-fork', wslDistro: 'Ubuntu' }
     )
   })

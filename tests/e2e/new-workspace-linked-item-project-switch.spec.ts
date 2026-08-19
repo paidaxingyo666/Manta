@@ -17,7 +17,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import type { LinkedWorkItemSummary } from '../../src/renderer/src/lib/new-workspace'
 import type { TaskSourceContext } from '../../src/shared/task-source-context'
@@ -113,23 +113,23 @@ test.describe('New workspace composer linked item across project switches', () =
   let tempRoot: string
   let secondRepoPath: string
 
-  test.beforeEach(async ({ orcaPage }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    tempRoot = mkdtempSync(path.join(os.tmpdir(), 'orca-e2e-linked-item-'))
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    tempRoot = mkdtempSync(path.join(os.tmpdir(), 'manta-e2e-linked-item-'))
     secondRepoPath = path.join(tempRoot, SECOND_PROJECT_NAME)
     createGitRepo(secondRepoPath)
-    await addSecondProject(orcaPage, secondRepoPath)
+    await addSecondProject(mantaPage, secondRepoPath)
   })
 
   test.afterEach(() => {
     rmSync(tempRoot, { recursive: true, force: true })
   })
 
-  test('keeps a Jira issue linked when the project changes', async ({ orcaPage }) => {
-    const jiraSourceContext = await getJiraSourceContext(orcaPage)
+  test('keeps a Jira issue linked when the project changes', async ({ mantaPage }) => {
+    const jiraSourceContext = await getJiraSourceContext(mantaPage)
     await openComposerWithLinkedWorkItem(
-      orcaPage,
+      mantaPage,
       {
         type: 'issue',
         provider: 'jira',
@@ -142,19 +142,19 @@ test.describe('New workspace composer linked item across project switches', () =
       jiraSourceContext
     )
 
-    const composer = orcaPage.getByRole('dialog')
+    const composer = mantaPage.getByRole('dialog')
     await expect(composer).toBeVisible()
     const sourcePill = composer.locator('[data-workspace-source-pill="true"]')
     await expect(sourcePill).toContainText('RDG-344 Migrate homepage from NuxtJS to NextJS')
 
-    await switchComposerProject(orcaPage, SECOND_PROJECT_NAME)
+    await switchComposerProject(mantaPage, SECOND_PROJECT_NAME)
 
     await expect(sourcePill).toContainText('RDG-344 Migrate homepage from NuxtJS to NextJS')
   })
 
-  test('clears a repo-scoped GitHub issue when the project changes', async ({ orcaPage }) => {
+  test('clears a repo-scoped GitHub issue when the project changes', async ({ mantaPage }) => {
     await openComposerWithLinkedWorkItem(
-      orcaPage,
+      mantaPage,
       {
         type: 'issue',
         provider: 'github',
@@ -165,12 +165,12 @@ test.describe('New workspace composer linked item across project switches', () =
       'fix-crash-on-launch'
     )
 
-    const composer = orcaPage.getByRole('dialog')
+    const composer = mantaPage.getByRole('dialog')
     await expect(composer).toBeVisible()
     const sourcePill = composer.locator('[data-workspace-source-pill="true"]')
     await expect(sourcePill).toContainText('#41 Fix crash on launch')
 
-    await switchComposerProject(orcaPage, SECOND_PROJECT_NAME)
+    await switchComposerProject(mantaPage, SECOND_PROJECT_NAME)
 
     await expect(sourcePill).toHaveCount(0)
   })

@@ -514,10 +514,10 @@ describe('renderer startup runtime routing', () => {
       'return\n      }\n      window.api.app.stageBeforeUnloadSync({\n        sessions: sessionSnapshots'
     )
     expect(source).toContain(
-      'window.addEventListener(ORCA_APP_RESTART_ABORTED_EVENT, shutdownCheckpoint.reset)'
+      'window.addEventListener(MANTA_APP_RESTART_ABORTED_EVENT, shutdownCheckpoint.reset)'
     )
     expect(source).toContain(
-      'window.addEventListener(ORCA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.reset)'
+      'window.addEventListener(MANTA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.reset)'
     )
     expect(source).toContain("window.addEventListener('beforeunload', persistBeforeUnload)")
     expect(source.match(/window\.addEventListener\('beforeunload'/g) ?? []).toHaveLength(1)

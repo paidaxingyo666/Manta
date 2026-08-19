@@ -15,7 +15,7 @@ afterEach(async () => {
 })
 
 async function userDataPath(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'orca-bundle-ssh-client-test-'))
+  const root = await mkdtemp(join(tmpdir(), 'manta-bundle-ssh-client-test-'))
   roots.push(root)
   return root
 }

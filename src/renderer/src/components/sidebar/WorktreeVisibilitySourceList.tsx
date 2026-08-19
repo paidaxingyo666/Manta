@@ -194,7 +194,7 @@ export default function WorktreeVisibilitySourceList({
   const sourceCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const worktree of worktrees) {
-      if (worktree.selectedCheckout || worktree.ownership === 'orca-managed') {
+      if (worktree.selectedCheckout || worktree.ownership === 'manta-managed') {
         continue
       }
       const key = sourceMatchKey(worktree.visibilitySource ?? classify(worktree.path))

@@ -70,7 +70,7 @@ export function renderServeReadiness(
   }
   if (output.mode === 'json') {
     return JSON.stringify({
-      type: 'orca_server_ready',
+      type: 'manta_server_ready',
       schemaVersion: 1,
       runtimeId: readiness.runtimeId,
       endpoint: readiness.boundEndpoint,
@@ -85,7 +85,7 @@ export function renderServeReadiness(
 
 function renderHumanReadiness(readiness: ServeReadiness): string {
   const lines = [
-    'Orca server ready',
+    'Manta server ready',
     `Bound endpoint: ${readiness.boundEndpoint ?? 'websocket unavailable'}`,
     `Advertised endpoint: ${readiness.advertisedEndpoint ?? 'unavailable'}`
   ]

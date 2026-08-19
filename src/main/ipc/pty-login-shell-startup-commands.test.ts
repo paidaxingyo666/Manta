@@ -38,7 +38,7 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
-vi.mock('../cli/linux-terminal-orca-cli-shim', () =>
+vi.mock('../cli/linux-terminal-manta-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
 vi.mock('../memory/pty-registry', () =>
@@ -60,7 +60,7 @@ describe('registerPtyHandlers', () => {
   posixOnlyIt('wraps macOS spawns in login(1) with SHELL restored by the trampoline', async () => {
     const originalShell = process.env.SHELL
     // Re-enable the TCC login wrapper the suite-level beforeEach disables.
-    delete process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
+    delete process.env.MANTA_DISABLE_MACOS_LOGIN_SHELL
     process.env.SHELL = '/bin/zsh'
     loginPreflightExecFileMock.mockImplementation(
       (
@@ -69,7 +69,7 @@ describe('registerPtyHandlers', () => {
         _options: unknown,
         callback: (error: Error | null, stdout: string, stderr: string) => void
       ) => {
-        callback(null, 'ORCA_LOGIN_PREFLIGHT_OK', '')
+        callback(null, 'MANTA_LOGIN_PREFLIGHT_OK', '')
         return { stdin: { end: vi.fn() } }
       }
     )
@@ -87,7 +87,7 @@ describe('registerPtyHandlers', () => {
         '-p',
         '-c',
         'export SHELL="$1"; shift; exec -l -- "$@"',
-        'orca-tcc-login',
+        'manta-tcc-login',
         '/bin/zsh',
         '/bin/zsh',
         '-l'
@@ -96,7 +96,7 @@ describe('registerPtyHandlers', () => {
       expect(options.env.SHELL).toBe('/bin/zsh')
     } finally {
       resetMacosLoginShellPreflightForTests()
-      process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL = '1'
+      process.env.MANTA_DISABLE_MACOS_LOGIN_SHELL = '1'
       if (originalShell === undefined) {
         delete process.env.SHELL
       } else {
@@ -118,10 +118,10 @@ describe('registerPtyHandlers', () => {
       const [shell, args, options] = await spawnAndGetCall({ cwd: '/tmp' })
       expect(shell).toBe('/bin/zsh')
       expect(args).toEqual(['-l'])
-      expect(options.env.OPENCODE_CONFIG_DIR).toBe('/tmp/orca-opencode-config')
-      expect(options.env.ORCA_OPENCODE_CONFIG_DIR).toBe('/tmp/orca-opencode-config')
-      expect(options.env.ZDOTDIR).toBe('/tmp/orca-user-data/shell-ready/zsh')
-      expect(options.env.ORCA_SHELL_READY_MARKER).toBe('0')
+      expect(options.env.OPENCODE_CONFIG_DIR).toBe('/tmp/manta-opencode-config')
+      expect(options.env.MANTA_OPENCODE_CONFIG_DIR).toBe('/tmp/manta-opencode-config')
+      expect(options.env.ZDOTDIR).toBe('/tmp/manta-user-data/shell-ready/zsh')
+      expect(options.env.MANTA_SHELL_READY_MARKER).toBe('0')
     } finally {
       Object.defineProperty(process, 'platform', {
         configurable: true,
@@ -144,9 +144,9 @@ describe('registerPtyHandlers', () => {
     })
     process.env.SHELL = '/bin/zsh'
     openCodeBuildPtyEnvMock.mockImplementationOnce(() => ({
-      ORCA_OPENCODE_HOOK_PORT: '4567',
-      ORCA_OPENCODE_HOOK_TOKEN: 'opencode-token',
-      ORCA_OPENCODE_PTY_ID: 'test-pty'
+      MANTA_OPENCODE_HOOK_PORT: '4567',
+      MANTA_OPENCODE_HOOK_TOKEN: 'opencode-token',
+      MANTA_OPENCODE_PTY_ID: 'test-pty'
     }))
 
     try {
@@ -157,12 +157,12 @@ describe('registerPtyHandlers', () => {
       expect(shell).toBe('/bin/zsh')
       expect(args).toEqual(['-l'])
       expect(options.env.OPENCODE_CONFIG_DIR).toBeUndefined()
-      expect(options.env.ORCA_OPENCODE_CONFIG_DIR).toBeUndefined()
+      expect(options.env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
       expect(options.env.PI_CODING_AGENT_DIR).toBe('/tmp/user-pi-agent')
-      expect(options.env.ORCA_PI_CODING_AGENT_DIR).toBeUndefined()
-      expect(options.env.ORCA_PI_SOURCE_AGENT_DIR).toBe('/tmp/user-pi-agent')
-      expect(options.env.ZDOTDIR).toBe('/tmp/orca-user-data/shell-ready/zsh')
-      expect(options.env.ORCA_SHELL_READY_MARKER).toBe('0')
+      expect(options.env.MANTA_PI_CODING_AGENT_DIR).toBeUndefined()
+      expect(options.env.MANTA_PI_SOURCE_AGENT_DIR).toBe('/tmp/user-pi-agent')
+      expect(options.env.ZDOTDIR).toBe('/tmp/manta-user-data/shell-ready/zsh')
+      expect(options.env.MANTA_SHELL_READY_MARKER).toBe('0')
     } finally {
       Object.defineProperty(process, 'platform', {
         configurable: true,
@@ -252,7 +252,7 @@ describe('registerPtyHandlers', () => {
         })
 
         const [, , options] = spawnMock.mock.calls[0]!
-        expect(options.env.ORCA_SHELL_READY_MARKER).toBe('0')
+        expect(options.env.MANTA_SHELL_READY_MARKER).toBe('0')
 
         await Promise.resolve()
         vi.advanceTimersByTime(49)
@@ -284,7 +284,7 @@ describe('registerPtyHandlers', () => {
       })
 
       const [, , options] = spawnMock.mock.calls[0]!
-      expect(options.env.ORCA_SHELL_READY_MARKER).toBe('1')
+      expect(options.env.MANTA_SHELL_READY_MARKER).toBe('1')
       expect(mockProc.proc.write).not.toHaveBeenCalled()
 
       mockProc.emitData('last login: today\r\n')
@@ -292,7 +292,7 @@ describe('registerPtyHandlers', () => {
       await Promise.resolve()
       expect(mockProc.proc.write).not.toHaveBeenCalled()
 
-      mockProc.emitData('\x1b]777;orca-shell-ready\x07')
+      mockProc.emitData('\x1b]777;manta-shell-ready\x07')
       await Promise.resolve()
       vi.advanceTimersByTime(50)
       await Promise.resolve()
@@ -322,7 +322,7 @@ describe('registerPtyHandlers', () => {
           startupCommandDelivery: 'shell-ready'
         })
 
-        mockProc.emitData('\x1b]777;orca-shell-ready\x07\r\nuser@host % ')
+        mockProc.emitData('\x1b]777;manta-shell-ready\x07\r\nuser@host % ')
         await Promise.resolve()
         vi.advanceTimersByTime(29)
         await Promise.resolve()
@@ -351,10 +351,10 @@ describe('registerPtyHandlers', () => {
       })
 
       const [, , options] = spawnMock.mock.calls[0]!
-      expect(options.env.ORCA_SHELL_READY_MARKER).toBe('1')
+      expect(options.env.MANTA_SHELL_READY_MARKER).toBe('1')
       expect(mockProc.proc.write).not.toHaveBeenCalled()
 
-      mockProc.emitData('\x1b]777;orca-shell-ready\x07')
+      mockProc.emitData('\x1b]777;manta-shell-ready\x07')
       await Promise.resolve()
       vi.runAllTimers()
       await Promise.resolve()

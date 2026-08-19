@@ -36,75 +36,75 @@ describe('resolveRepoBackedProjectDialogState', () => {
 
 describe('resolveMissingRepoProjectDialogState', () => {
   it('clears fallback dialogs while the slug index is rebuilding', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'manta' } }
+    const repoNotInManta = { owner: 'stablyai', repo: 'manta', url: null }
 
     expect(
       resolveMissingRepoProjectDialogState({
         slugIndexReady: false,
         slugDialog,
-        repoNotInOrca,
+        repoNotInManta,
         lookupSlug: () => [{ id: 'repo-1' }],
         selectedRepoIds: new Set(['repo-1'])
       })
-    ).toEqual({ slugDialog: null, repoNotInOrca: null })
+    ).toEqual({ slugDialog: null, repoNotInManta: null })
   })
 
   it('clears slug fallback dialogs once the repo slug resolves', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'other', repo: 'tool', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'manta' } }
+    const repoNotInManta = { owner: 'other', repo: 'tool', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
-      lookupSlug: (slug) => (slug === 'stablyai/orca' ? [{ id: 'repo-1' }] : []),
+      repoNotInManta,
+      lookupSlug: (slug) => (slug === 'stablyai/manta' ? [{ id: 'repo-1' }] : []),
       selectedRepoIds: new Set(['repo-1'])
     })
 
     expect(result.slugDialog).toBeNull()
-    expect(result.repoNotInOrca).toBe(repoNotInOrca)
+    expect(result.repoNotInManta).toBe(repoNotInManta)
   })
 
-  it('clears repo-not-in-orca dialogs once the repo slug resolves', () => {
+  it('clears repo-not-in-manta dialogs once the repo slug resolves', () => {
     const slugDialog = { origin: { owner: 'other', repo: 'tool' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const repoNotInManta = { owner: 'stablyai', repo: 'manta', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
-      lookupSlug: (slug) => (slug === 'stablyai/orca' ? [{ id: 'repo-1' }] : []),
+      repoNotInManta,
+      lookupSlug: (slug) => (slug === 'stablyai/manta' ? [{ id: 'repo-1' }] : []),
       selectedRepoIds: new Set(['repo-1'])
     })
 
     expect(result.slugDialog).toBe(slugDialog)
-    expect(result.repoNotInOrca).toBeNull()
+    expect(result.repoNotInManta).toBeNull()
   })
 
   it('clears fallback dialogs when the repo is globally known but not selected', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'manta' } }
+    const repoNotInManta = { owner: 'stablyai', repo: 'manta', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInManta,
       lookupSlug: () => [{ id: 'repo-2' }],
       selectedRepoIds: new Set(['repo-1'])
     })
 
-    expect(result).toEqual({ slugDialog: null, repoNotInOrca: null })
+    expect(result).toEqual({ slugDialog: null, repoNotInManta: null })
   })
 
   it('keeps missing-repo fallback dialogs when there are no global matches', () => {
-    const slugDialog = { origin: { owner: 'stablyai', repo: 'orca' } }
-    const repoNotInOrca = { owner: 'stablyai', repo: 'orca', url: null }
+    const slugDialog = { origin: { owner: 'stablyai', repo: 'manta' } }
+    const repoNotInManta = { owner: 'stablyai', repo: 'manta', url: null }
     const result = resolveMissingRepoProjectDialogState({
       slugIndexReady: true,
       slugDialog,
-      repoNotInOrca,
+      repoNotInManta,
       lookupSlug: () => [],
       selectedRepoIds: new Set(['repo-1'])
     })
 
-    expect(result).toEqual({ slugDialog, repoNotInOrca })
+    expect(result).toEqual({ slugDialog, repoNotInManta })
   })
 })

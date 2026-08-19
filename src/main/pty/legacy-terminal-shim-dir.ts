@@ -10,23 +10,23 @@ import {
   renderLegacyTerminalWindowsPowerShellTombstone
 } from './legacy-terminal-windows-tombstone'
 
-const LEGACY_TERMINAL_ATTRIBUTION_ENABLE_ENV_KEY = 'ORCA_ENABLE_GIT_ATTRIBUTION'
-const LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY = 'ORCA_ATTRIBUTION_BYPASS'
+const LEGACY_TERMINAL_ATTRIBUTION_ENABLE_ENV_KEY = 'MANTA_ENABLE_GIT_ATTRIBUTION'
+const LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY = 'MANTA_ATTRIBUTION_BYPASS'
 
-const LEGACY_SHIM_ROOT_DIR = 'orca-terminal-attribution'
+const LEGACY_SHIM_ROOT_DIR = 'manta-terminal-attribution'
 // Why: must differ from the retired shim's own '7'. A rolled-back build compares this marker and
 // skips rewriting its wrappers when it matches, which would leave our tombstones in place while
 // its attribution toggle claimed to be on.
 const LEGACY_SHIM_VERSION = '7-neutralized'
 const NEUTRALIZATION_RETRY_DELAYS_MS = [1_000, 5_000, 15_000, 30_000]
 export const LEGACY_TERMINAL_SHIM_ENV_KEYS = [
-  'ORCA_ENABLE_GIT_ATTRIBUTION',
-  'ORCA_GIT_COMMIT_TRAILER',
-  'ORCA_GH_PR_FOOTER',
-  'ORCA_GH_ISSUE_FOOTER',
-  'ORCA_ATTRIBUTION_SHIM_DIR',
-  'ORCA_REAL_GIT',
-  'ORCA_REAL_GH',
+  'MANTA_ENABLE_GIT_ATTRIBUTION',
+  'MANTA_GIT_COMMIT_TRAILER',
+  'MANTA_GH_PR_FOOTER',
+  'MANTA_GH_ISSUE_FOOTER',
+  'MANTA_ATTRIBUTION_SHIM_DIR',
+  'MANTA_REAL_GIT',
+  'MANTA_REAL_GH',
   LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY
 ] as const
 export const LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS = [
@@ -126,7 +126,7 @@ function writeNeutralWrappers(rootDir: string): void {
 }
 
 function writeFileAtomically(filePath: string, contents: string, mode: number): void {
-  const temporaryPath = `${filePath}.orca-neutralizing-${process.pid}`
+  const temporaryPath = `${filePath}.manta-neutralizing-${process.pid}`
   try {
     rmSync(temporaryPath, { force: true, recursive: true })
     writeFileSync(temporaryPath, contents, { encoding: 'utf8', flag: 'wx', mode })
@@ -166,8 +166,8 @@ function pathEntrySpellings(dir: string, windows: boolean): string[] {
 // pass-through tombstone, and the tombstone excludes its own directory by -ef, so the lookup still
 // reaches the real git.
 export function isLegacyTerminalShimPathEntry(entry: string): boolean {
-  // Why `windows` unconditionally here: this classifier only ever matches Orca's own
-  // `orca-terminal-attribution/{posix,win32}` layout, and a Windows PATH can reach it through the
+  // Why `windows` unconditionally here: this classifier only ever matches Manta's own
+  // `manta-terminal-attribution/{posix,win32}` layout, and a Windows PATH can reach it through the
   // remote env, so both slash styles must be understood regardless of the local platform.
   const normalized = stripTrailingSeparators(entry.replaceAll('\\', '/'), true).toLowerCase()
   return (
@@ -205,10 +205,10 @@ export function stripLegacyTerminalShimEnv(
   const legacyKeySet = new Set(
     LEGACY_TERMINAL_SHIM_ENV_KEYS.map((key) => (windows ? key.toLowerCase() : key))
   )
-  const shimDirKey = 'ORCA_ATTRIBUTION_SHIM_DIR'.toLowerCase()
+  const shimDirKey = 'MANTA_ATTRIBUTION_SHIM_DIR'.toLowerCase()
   const explicitShimDirs = Object.entries(env)
     .filter(([key]) =>
-      windows ? key.toLowerCase() === shimDirKey : key === 'ORCA_ATTRIBUTION_SHIM_DIR'
+      windows ? key.toLowerCase() === shimDirKey : key === 'MANTA_ATTRIBUTION_SHIM_DIR'
     )
     .map(([, value]) => value)
     .filter(Boolean)

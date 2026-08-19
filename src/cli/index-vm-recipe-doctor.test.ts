@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 const {
   callMock,
   runtimeClientConstructorMock,
-  serveOrcaAppMock,
+  serveMantaAppMock,
   getDefaultUserDataPathMock,
   addEnvironmentFromPairingCodeMock,
   listEnvironmentsMock,
@@ -14,8 +14,8 @@ const {
 } = vi.hoisted(() => ({
   callMock: vi.fn(),
   runtimeClientConstructorMock: vi.fn(),
-  serveOrcaAppMock: vi.fn(),
-  getDefaultUserDataPathMock: vi.fn(() => '/tmp/orca-user-data'),
+  serveMantaAppMock: vi.fn(),
+  getDefaultUserDataPathMock: vi.fn(() => '/tmp/manta-user-data'),
   addEnvironmentFromPairingCodeMock: vi.fn(),
   listEnvironmentsMock: vi.fn(),
   spawnMock: vi.fn()
@@ -26,7 +26,7 @@ vi.mock('./runtime-client', async () => {
   return createRuntimeClientModuleMock({
     callMock,
     runtimeClientConstructorMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock
   })
 })
@@ -47,10 +47,10 @@ import { main } from './index'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../shared/pairing'
 import { useWorktreeAwarenessEnvironment } from './index-test-harness'
 
-describe('orca cli worktree awareness', () => {
+describe('manta cli worktree awareness', () => {
   useWorktreeAwarenessEnvironment({
     callMock,
-    serveOrcaAppMock,
+    serveMantaAppMock,
     getDefaultUserDataPathMock,
     addEnvironmentFromPairingCodeMock,
     listEnvironmentsMock,
@@ -58,23 +58,23 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('runs vm recipe doctor locally without contacting the app runtime', async () => {
-    const repoPath = mkdtempSync(path.join(tmpdir(), 'orca-vm-doctor-'))
+    const repoPath = mkdtempSync(path.join(tmpdir(), 'manta-vm-doctor-'))
     try {
-      mkdirSync(path.join(repoPath, 'scripts', 'orca-vm'), { recursive: true })
-      const startScript = path.join(repoPath, 'scripts', 'orca-vm', 'start.sh')
-      const cleanupScript = path.join(repoPath, 'scripts', 'orca-vm', 'cleanup.sh')
+      mkdirSync(path.join(repoPath, 'scripts', 'manta-vm'), { recursive: true })
+      const startScript = path.join(repoPath, 'scripts', 'manta-vm', 'start.sh')
+      const cleanupScript = path.join(repoPath, 'scripts', 'manta-vm', 'cleanup.sh')
       writeFileSync(startScript, '#!/bin/sh\n')
       writeFileSync(cleanupScript, '#!/bin/sh\n')
       chmodSync(startScript, 0o755)
       chmodSync(cleanupScript, 0o755)
       writeFileSync(
-        path.join(repoPath, 'orca.yaml'),
+        path.join(repoPath, 'manta.yaml'),
         [
           'environmentRecipes:',
           '  - id: cloud-sandbox',
           '    name: Cloud Sandbox',
-          '    create: ./scripts/orca-vm/start.sh',
-          '    destroy: ./scripts/orca-vm/cleanup.sh'
+          '    create: ./scripts/manta-vm/start.sh',
+          '    destroy: ./scripts/manta-vm/cleanup.sh'
         ].join('\n')
       )
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -91,7 +91,7 @@ describe('orca cli worktree awareness', () => {
       expect(output.ok).toBe(true)
       expect(output.checks).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ id: 'orca_yaml.parse', status: 'pass' }),
+          expect.objectContaining({ id: 'manta_yaml.parse', status: 'pass' }),
           expect.objectContaining({ id: 'recipe.exists', status: 'pass' }),
           expect.objectContaining({ id: 'recipe.create', status: 'pass' }),
           expect.objectContaining({ id: 'recipe.destroy', status: 'pass' })
@@ -104,17 +104,17 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('warns when vm recipe doctor finds no cleanup hook', async () => {
-    const repoPath = mkdtempSync(path.join(tmpdir(), 'orca-vm-doctor-'))
+    const repoPath = mkdtempSync(path.join(tmpdir(), 'manta-vm-doctor-'))
     try {
-      mkdirSync(path.join(repoPath, 'scripts', 'orca-vm'), { recursive: true })
-      writeFileSync(path.join(repoPath, 'scripts', 'orca-vm', 'start.sh'), '#!/bin/sh\n')
+      mkdirSync(path.join(repoPath, 'scripts', 'manta-vm'), { recursive: true })
+      writeFileSync(path.join(repoPath, 'scripts', 'manta-vm', 'start.sh'), '#!/bin/sh\n')
       writeFileSync(
-        path.join(repoPath, 'orca.yaml'),
+        path.join(repoPath, 'manta.yaml'),
         [
           'environmentRecipes:',
           '  - id: manual-sandbox',
           '    name: Manual Sandbox',
-          '    create: ./scripts/orca-vm/start.sh'
+          '    create: ./scripts/manta-vm/start.sh'
         ].join('\n')
       )
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -142,7 +142,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('runs vm recipe doctor provision mode and invokes cleanup', async () => {
-    const repoPath = mkdtempSync(path.join(tmpdir(), 'orca-vm-doctor-provision-'))
+    const repoPath = mkdtempSync(path.join(tmpdir(), 'manta-vm-doctor-provision-'))
     const pairingCode = encodePairingOffer({
       v: PAIRING_OFFER_VERSION,
       endpoint: 'ws://sandbox.example.com:6767',
@@ -150,9 +150,9 @@ describe('orca cli worktree awareness', () => {
       publicKeyB64: 'public-key'
     })
     try {
-      mkdirSync(path.join(repoPath, 'scripts', 'orca-vm'), { recursive: true })
+      mkdirSync(path.join(repoPath, 'scripts', 'manta-vm'), { recursive: true })
       writeFileSync(
-        path.join(repoPath, 'scripts', 'orca-vm', 'start.js'),
+        path.join(repoPath, 'scripts', 'manta-vm', 'start.js'),
         [
           'console.log(JSON.stringify({',
           '  schemaVersion: 1,',
@@ -162,7 +162,7 @@ describe('orca cli worktree awareness', () => {
         ].join('\n')
       )
       writeFileSync(
-        path.join(repoPath, 'scripts', 'orca-vm', 'cleanup.js'),
+        path.join(repoPath, 'scripts', 'manta-vm', 'cleanup.js'),
         [
           "const fs = require('fs')",
           "const input = fs.readFileSync(0, 'utf8')",
@@ -171,13 +171,13 @@ describe('orca cli worktree awareness', () => {
         ].join('\n')
       )
       writeFileSync(
-        path.join(repoPath, 'orca.yaml'),
+        path.join(repoPath, 'manta.yaml'),
         [
           'environmentRecipes:',
           '  - id: cloud-sandbox',
           '    name: Cloud Sandbox',
-          `    create: ${JSON.stringify(`${process.execPath} ./scripts/orca-vm/start.js`)}`,
-          `    destroy: ${JSON.stringify(`${process.execPath} ./scripts/orca-vm/cleanup.js`)}`
+          `    create: ${JSON.stringify(`${process.execPath} ./scripts/manta-vm/start.js`)}`,
+          `    destroy: ${JSON.stringify(`${process.execPath} ./scripts/manta-vm/cleanup.js`)}`
         ].join('\n')
       )
       const { EventEmitter } = await import('node:events')
@@ -265,17 +265,17 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('returns the full create transcript when provision fails so the agent can self-diagnose', async () => {
-    const repoPath = mkdtempSync(path.join(tmpdir(), 'orca-vm-doctor-provision-fail-'))
+    const repoPath = mkdtempSync(path.join(tmpdir(), 'manta-vm-doctor-provision-fail-'))
     try {
-      mkdirSync(path.join(repoPath, 'scripts', 'orca-vm'), { recursive: true })
-      writeFileSync(path.join(repoPath, 'scripts', 'orca-vm', 'start.js'), 'process.exit(0)')
+      mkdirSync(path.join(repoPath, 'scripts', 'manta-vm'), { recursive: true })
+      writeFileSync(path.join(repoPath, 'scripts', 'manta-vm', 'start.js'), 'process.exit(0)')
       writeFileSync(
-        path.join(repoPath, 'orca.yaml'),
+        path.join(repoPath, 'manta.yaml'),
         [
           'environmentRecipes:',
           '  - id: cloud-sandbox',
           '    name: Cloud Sandbox',
-          `    create: ${JSON.stringify(`${process.execPath} ./scripts/orca-vm/start.js`)}`,
+          `    create: ${JSON.stringify(`${process.execPath} ./scripts/manta-vm/start.js`)}`,
           '    destroy: none'
         ].join('\n')
       )

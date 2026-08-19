@@ -129,9 +129,9 @@ describe('getRenderedSetupScriptPromptState', () => {
   it('does not reuse a matching repo id from a different host', () => {
     expect(
       getRenderedSetupScriptPromptState({
-        promptState: prompt('repo-orca', 'local'),
-        activeRepoId: 'repo-orca',
-        activeRepoHostIdentity: repoIdentity('repo-orca', 'runtime:windows'),
+        promptState: prompt('repo-manta', 'local'),
+        activeRepoId: 'repo-manta',
+        activeRepoHostIdentity: repoIdentity('repo-manta', 'runtime:windows'),
         lastVisiblePrompt: null
       })
     ).toBeNull()
@@ -153,16 +153,16 @@ describe('getRenderedSetupScriptPromptState', () => {
 
 describe('markSetupScriptPromptSaved', () => {
   it('does not apply a completed save to the same repo id on another host', () => {
-    const remote = prompt('repo-orca', 'runtime:windows')
+    const remote = prompt('repo-manta', 'runtime:windows')
 
-    expect(markSetupScriptPromptSaved(remote, repoIdentity('repo-orca', 'local'))).toBe(remote)
+    expect(markSetupScriptPromptSaved(remote, repoIdentity('repo-manta', 'local'))).toBe(remote)
   })
 
   it('marks the prompt for the saved host effective', () => {
     expect(
       markSetupScriptPromptSaved(
-        prompt('repo-orca', 'runtime:windows'),
-        repoIdentity('repo-orca', 'runtime:windows')
+        prompt('repo-manta', 'runtime:windows'),
+        repoIdentity('repo-manta', 'runtime:windows')
       )
     ).toMatchObject({ hasEffectiveSetup: true })
   })

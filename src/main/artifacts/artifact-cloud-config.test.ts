@@ -6,25 +6,25 @@ import {
 
 describe('resolveArtifactCloudApiUrl', () => {
   it('uses the first-party production origin by default', () => {
-    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.onorca.dev')
+    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.manta.sh.cn')
   })
 
   it('allows loopback HTTP only in development', () => {
     expect(
       resolveArtifactCloudApiUrl(
         undefined,
-        { ORCA_ARTIFACTS_API_URL: 'http://127.0.0.1:45961' },
+        { MANTA_ARTIFACTS_API_URL: 'http://127.0.0.1:45961' },
         false
       )
     ).toBe('http://127.0.0.1:45961')
     expect(() => resolveArtifactCloudApiUrl('http://127.0.0.1:45961', {}, true)).toThrow(/HTTPS/)
   })
 
-  it('rejects origins that could receive an Orca access token', () => {
+  it('rejects origins that could receive a Manta access token', () => {
     expect(() => resolveArtifactCloudApiUrl('https://example.com', {}, false)).toThrow(
-      /onorca\.dev/
+      /manta\.sh\.cn/
     )
-    expect(() => resolveArtifactCloudApiUrl('https://share.onorca.dev/path', {}, false)).toThrow(
+    expect(() => resolveArtifactCloudApiUrl('https://share.manta.sh.cn/path', {}, false)).toThrow(
       /origin/
     )
   })

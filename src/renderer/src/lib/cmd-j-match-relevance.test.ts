@@ -12,7 +12,7 @@ function makeWorktree(overrides: Partial<Worktree> = {}): Worktree {
   return {
     id: 'wt-1',
     repoId: 'repo-1',
-    path: '/repos/orca/perf',
+    path: '/repos/manta/perf',
     branch: 'perf/renderer-store',
     displayName: 'perf-diff-tighten',
     lastActivityAt: 0,
@@ -42,7 +42,7 @@ function makeOpenTab(
     secondaryRange: null,
     worktreeName: 'docs-update',
     worktreeRange: null,
-    repoName: 'orca',
+    repoName: 'manta',
     repoRange: null,
     ...overrides
   }
@@ -106,10 +106,10 @@ describe('scorePaletteRelevance', () => {
   it('takes the best field when several matched', () => {
     expect(
       scorePaletteRelevance([
-        { text: 'orca', range: { start: 0, end: 4 }, tier: 2 },
-        { text: 'orca-main', range: { start: 0, end: 4 }, tier: 0 }
+        { text: 'manta', range: { start: 0, end: 4 }, tier: 2 },
+        { text: 'manta-main', range: { start: 0, end: 4 }, tier: 0 }
       ])
-    ).toBe(scorePaletteRelevance([{ text: 'orca-main', range: { start: 0, end: 4 }, tier: 0 }]))
+    ).toBe(scorePaletteRelevance([{ text: 'manta-main', range: { start: 0, end: 4 }, tier: 0 }]))
   })
 })
 
@@ -121,7 +121,7 @@ describe('getWorktreeMatchRelevance', () => {
         displayNameRange: { start: 0, end: 4 }
       }),
       makeWorktree(),
-      'orca'
+      'manta'
     )
     const wordStart = getWorktreeMatchRelevance(
       makeMatch({
@@ -129,7 +129,7 @@ describe('getWorktreeMatchRelevance', () => {
         displayNameRange: { start: 24, end: 28 }
       }),
       makeWorktree({ displayName: 'improve-agent-dashboard-performance' }),
-      'orca'
+      'manta'
     )
     expect(prefix).toBeLessThan(wordStart)
   })
@@ -138,7 +138,7 @@ describe('getWorktreeMatchRelevance', () => {
     const branch = getWorktreeMatchRelevance(
       makeMatch({ matchedField: 'branch', branchRange: { start: 0, end: 4 } }),
       makeWorktree(),
-      'orca'
+      'manta'
     )
     const displayName = getWorktreeMatchRelevance(
       makeMatch({
@@ -146,7 +146,7 @@ describe('getWorktreeMatchRelevance', () => {
         displayNameRange: { start: 12, end: 16 }
       }),
       makeWorktree({ displayName: 'superperfxperf' }),
-      'orca'
+      'manta'
     )
     const comment = getWorktreeMatchRelevance(
       makeMatch({
@@ -158,7 +158,7 @@ describe('getWorktreeMatchRelevance', () => {
         }
       }),
       makeWorktree(),
-      'orca'
+      'manta'
     )
     expect(displayName).toBeLessThan(branch)
     expect(branch).toBeLessThan(comment)
@@ -172,7 +172,7 @@ describe('getWorktreeMatchRelevance', () => {
           displayNameRange: { start: 0, end: 4 }
         }),
         makeWorktree({ displayName: undefined }),
-        'orca'
+        'manta'
       )
     ).toBeLessThan(NO_MATCH_RELEVANCE)
   })
@@ -187,7 +187,7 @@ describe('getOpenTabMatchRelevance', () => {
           displayNameRange: { start: 0, end: 4 }
         }),
         makeWorktree(),
-        'orca'
+        'manta'
       )
     )
   })
@@ -202,7 +202,7 @@ describe('getOpenTabMatchRelevance', () => {
           displayNameRange: { start: 24, end: 28 }
         }),
         makeWorktree({ displayName: 'improve-agent-dashboard-performance' }),
-        'orca'
+        'manta'
       )
     )
   })

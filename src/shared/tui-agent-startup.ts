@@ -52,8 +52,8 @@ export function buildAgentStartupPlan(args: {
   agentEnv?: Record<string, string> | null
   sessionOptions?: Record<string, SessionOptionValue>
   sessionOptionsOverrideAgentArgs?: boolean
-  /** Why: SSH remotes deploy the CLI shim as plain `orca`, so the Linux-only
-   * `orca-ide` rename must be skipped for remote launches. */
+  /** Why: SSH remotes deploy the CLI shim as plain `manta`, so the Linux-only
+   * `manta-ide` rename must be skipped for remote launches. */
   isRemote?: boolean
 }): AgentStartupPlan | null {
   const { agent, prompt, cmdOverrides, platform, allowEmptyPromptLaunch = false } = args
@@ -139,7 +139,7 @@ export function buildAgentStartupPlan(args: {
     }
     return {
       agent,
-      // Why: Hermes owns readiness and submission for `chat --query`; Orca
+      // Why: Hermes owns readiness and submission for `chat --query`; Manta
       // only bounds and quotes the native invocation before starting the TUI.
       launchCommand: queryPlan.command,
       expectedProcess: config.expectedProcess,
@@ -196,7 +196,7 @@ export function buildAgentResumeStartupPlan(args: {
   agentCommand?: string | null
   ompResumeFilePath?: string | null
   sessionOptions?: Record<string, SessionOptionValue>
-  /** Why: see buildAgentStartupPlan — remote launches use the plain `orca` shim. */
+  /** Why: see buildAgentStartupPlan — remote launches use the plain `manta` shim. */
   isRemote?: boolean
 }): AgentStartupPlan | null {
   const argv = getAgentResumeArgv(args.agent, args.providerSession, args.ompResumeFilePath)
@@ -252,7 +252,7 @@ export function buildAgentDraftLaunchPlan(args: {
   agentArgs?: string | null
   agentEnv?: Record<string, string> | null
   sessionOptions?: Record<string, SessionOptionValue>
-  /** Why: see buildAgentStartupPlan — remote launches use the plain `orca` shim. */
+  /** Why: see buildAgentStartupPlan — remote launches use the plain `manta` shim. */
   isRemote?: boolean
 }): AgentDraftLaunchPlan | null {
   const { agent, draft, cmdOverrides, platform } = args

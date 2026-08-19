@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { z } from 'zod'
 import type { Store } from '../persistence'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import type {
   PluginPanelActionOutcome,
   PluginPanelEntry
@@ -94,7 +94,7 @@ function rendererPanelOwner(webContentsId: number): string {
 export function registerPluginHandlers(
   store: Store,
   pluginService: PluginService,
-  runtime: OrcaRuntimeService | null,
+  runtime: MantaRuntimeService | null,
   marketplaceServices?: PluginMarketplaceHandlerServices
 ): void {
   // The runtime IS the delegate: the structural PluginRuntimeDelegate type

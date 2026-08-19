@@ -3,7 +3,7 @@
  * actually closes, and Cmd+W raises exactly one dialog (the pane path delegates the
  * last-pane close to closeTerminalTab instead of probing a second time).
  */
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import type { Page } from '@stablyai/playwright-test'
 import {
   waitForSessionReady,
@@ -54,48 +54,48 @@ async function startBusyTerminal(page: Page): Promise<string> {
 
 test.describe.configure({ mode: 'serial' })
 
-test('middle-clicking a busy tab prompts, and cancelling keeps the tab', async ({ orcaPage }) => {
+test('middle-clicking a busy tab prompts, and cancelling keeps the tab', async ({ mantaPage }) => {
   test.setTimeout(120_000)
-  const busyTabId = await startBusyTerminal(orcaPage)
-  const busyTab = orcaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
-  const tabsBefore = await orcaPage.locator(SORTABLE_TAB).count()
+  const busyTabId = await startBusyTerminal(mantaPage)
+  const busyTab = mantaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
+  const tabsBefore = await mantaPage.locator(SORTABLE_TAB).count()
 
   await busyTab.click({ button: 'middle' })
 
-  await expect(closeDialogTitle(orcaPage)).toBeVisible({ timeout: 15_000 })
-  await orcaPage.getByRole('button', { name: /^Cancel$/ }).click()
-  await expect(closeDialogTitle(orcaPage)).toBeHidden()
+  await expect(closeDialogTitle(mantaPage)).toBeVisible({ timeout: 15_000 })
+  await mantaPage.getByRole('button', { name: /^Cancel$/ }).click()
+  await expect(closeDialogTitle(mantaPage)).toBeHidden()
   await expect(busyTab).toBeVisible()
-  expect(await orcaPage.locator(SORTABLE_TAB).count()).toBe(tabsBefore)
+  expect(await mantaPage.locator(SORTABLE_TAB).count()).toBe(tabsBefore)
 })
 
-test('confirming the X-button prompt closes the busy tab', async ({ orcaPage }) => {
+test('confirming the X-button prompt closes the busy tab', async ({ mantaPage }) => {
   test.setTimeout(120_000)
-  const busyTabId = await startBusyTerminal(orcaPage)
-  const busyTab = orcaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
+  const busyTabId = await startBusyTerminal(mantaPage)
+  const busyTab = mantaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
 
   await busyTab.hover()
   await busyTab.getByRole('button', { name: /^Close tab /i }).click()
-  await expect(closeDialogTitle(orcaPage)).toBeVisible({ timeout: 15_000 })
-  await orcaPage.getByRole('button', { name: /^Stop and Close$/ }).click()
+  await expect(closeDialogTitle(mantaPage)).toBeVisible({ timeout: 15_000 })
+  await mantaPage.getByRole('button', { name: /^Stop and Close$/ }).click()
 
   await expect(busyTab).toHaveCount(0, { timeout: 15_000 })
-  await expect(closeDialogTitle(orcaPage)).toBeHidden()
+  await expect(closeDialogTitle(mantaPage)).toBeHidden()
 })
 
-test('Cmd+W on a busy single-pane tab raises exactly one dialog', async ({ orcaPage }) => {
+test('Cmd+W on a busy single-pane tab raises exactly one dialog', async ({ mantaPage }) => {
   test.setTimeout(120_000)
-  const busyTabId = await startBusyTerminal(orcaPage)
-  const busyTab = orcaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
+  const busyTabId = await startBusyTerminal(mantaPage)
+  const busyTab = mantaPage.locator(`${SORTABLE_TAB}[data-tab-id="${busyTabId}"]`).first()
 
-  await focusActiveTerminalInput(orcaPage)
-  await orcaPage.keyboard.press(process.platform === 'darwin' ? 'Meta+w' : 'Control+w')
-  await expect(closeDialogTitle(orcaPage)).toBeVisible({ timeout: 15_000 })
-  await orcaPage.getByRole('button', { name: /^Stop and Close$/ }).click()
+  await focusActiveTerminalInput(mantaPage)
+  await mantaPage.keyboard.press(process.platform === 'darwin' ? 'Meta+w' : 'Control+w')
+  await expect(closeDialogTitle(mantaPage)).toBeVisible({ timeout: 15_000 })
+  await mantaPage.getByRole('button', { name: /^Stop and Close$/ }).click()
 
   await expect(busyTab).toHaveCount(0, { timeout: 15_000 })
   // Why: the pane used to probe and prompt on its own before delegating to
   // closeTerminalTab, which now prompts too — a second dialog would mean a double prompt.
-  await orcaPage.waitForTimeout(1_500)
-  await expect(closeDialogTitle(orcaPage)).toBeHidden()
+  await mantaPage.waitForTimeout(1_500)
+  await expect(closeDialogTitle(mantaPage)).toBeHidden()
 })

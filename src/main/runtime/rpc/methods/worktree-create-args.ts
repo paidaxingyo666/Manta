@@ -1,9 +1,9 @@
 import type { z } from 'zod'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import type { WorktreeCreate } from './worktree-schemas'
 
 type WorktreeCreateParams = z.infer<typeof WorktreeCreate>
-type ManagedWorktreeCreateArgs = Parameters<OrcaRuntimeService['createManagedWorktree']>[0]
+type ManagedWorktreeCreateArgs = Parameters<MantaRuntimeService['createManagedWorktree']>[0]
 type CreateProvenance = Pick<
   ManagedWorktreeCreateArgs,
   'automationProvenance' | 'cliProvenance' | 'creatorProvenance'

@@ -23,12 +23,12 @@ export function getBrowserLinkRoutingDescription(
   if (modifierInverts) {
     return translate(
       'auto.components.settings.BrowserLinkRoutingSetting.descriptionBase',
-      "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor."
+      "Open http(s) links in Manta's built-in browser — from the terminal, markdown, and the editor."
     )
   }
   return translate(
     'auto.components.settings.BrowserLinkRoutingSetting.description',
-    "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
+    "Open http(s) links in Manta's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
     { shortcut: getBrowserLinkRoutingShortcutLabel(platform) }
   )
 }
@@ -46,13 +46,13 @@ export function getLinkRoutingModifierTitle(openLinksInApp: boolean): string {
         'Hold Shift to open in your web browser'
       )
     : translate(
-        'auto.components.settings.BrowserLinkRoutingModifierSetting.titleOrca',
-        'Hold Shift to open in Orca'
+        'auto.components.settings.BrowserLinkRoutingModifierSetting.titleManta',
+        'Hold Shift to open in Manta'
       )
 }
 
-// Why: the Orca branch is enabled-state copy — with the toggle off the chord
-// still lands on the system browser, so it must not promise Orca in present tense.
+// Why: the Manta branch is enabled-state copy — with the toggle off the chord
+// still lands on the system browser, so it must not promise Manta in present tense.
 export function getLinkRoutingModifierDescription({
   openLinksInApp,
   isMac
@@ -64,12 +64,12 @@ export function getLinkRoutingModifierDescription({
   return openLinksInApp
     ? translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionSystem',
-        'Links open in Orca, so {{chord}}+click sends one to your system browser instead.',
+        'Links open in Manta, so {{chord}}+click sends one to your system browser instead.',
         { chord }
       )
     : translate(
-        'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionOrca',
-        "Links open in your system browser. When enabled, {{chord}}+click opens one in Orca's built-in browser instead.",
+        'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionManta',
+        "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead.",
         { chord }
       )
 }

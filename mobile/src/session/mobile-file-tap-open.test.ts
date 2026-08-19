@@ -213,7 +213,7 @@ describe('openMobileFileTap', () => {
       client,
       hostId: 'host-1',
       worktreeId: 'wt-1',
-      worktreeName: 'Orca',
+      worktreeName: 'Manta',
       pathText: 'src/index.ts:120:7',
       line: 120,
       column: 7,
@@ -238,7 +238,7 @@ describe('openMobileFileTap', () => {
         relativePath: 'src/index.ts',
         line: '120',
         column: '7',
-        worktreeName: 'Orca'
+        worktreeName: 'Manta'
       })
     })
     expect(triggerOpenFeedback).toHaveBeenCalledTimes(1)

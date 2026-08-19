@@ -35,7 +35,7 @@ function installModuleMocks(
   const sessionFromPartitionMock = vi.fn((partition: string) => ({
     partition,
     setUserAgent: vi.fn(),
-    getUserAgent: vi.fn(() => 'Mozilla/5.0 Electron/31 Orca'),
+    getUserAgent: vi.fn(() => 'Mozilla/5.0 Electron/31 Manta'),
     setPermissionRequestHandler: vi.fn(),
     setPermissionCheckHandler: vi.fn(),
     setDevicePermissionHandler: vi.fn(),
@@ -156,13 +156,13 @@ describe('BrowserSessionRegistry persistence', () => {
     const written = JSON.parse(fsState.files.get(META_PATH) ?? '{}')
     expect(written.pendingCookieDbPath).toBeNull()
     expect(written.pendingCookieImports).toEqual({})
-    expect(fsState.present.has('/user-data/Partitions/orca-browser/Cookies')).toBe(true)
+    expect(fsState.present.has('/user-data/Partitions/manta-browser/Cookies')).toBe(true)
   })
 
   it('replays pending cookies into an existing Network database', async () => {
     const stagedPath = '/staged/network-import'
-    const networkPath = '/user-data/Partitions/orca-browser/Network/Cookies'
-    const legacyPath = '/user-data/Partitions/orca-browser/Cookies'
+    const networkPath = '/user-data/Partitions/manta-browser/Network/Cookies'
+    const legacyPath = '/user-data/Partitions/manta-browser/Cookies'
     const fsState = createFsState()
     seedMeta(fsState, {
       defaultSource: null,
@@ -184,15 +184,15 @@ describe('BrowserSessionRegistry persistence', () => {
     expect(fsState.present.has(legacyPath)).toBe(false)
   })
 
-  it('persists new browser session profiles under the active Orca profile directory', async () => {
+  it('persists new browser session profiles under the active Manta profile directory', async () => {
     const fsState = createFsState()
     const profileMetaPath = '/user-data/profiles/local-work/browser-session-meta.json'
 
     installModuleMocks(fsState)
     const { browserSessionRegistry } = await import('./browser-session-registry')
 
-    browserSessionRegistry.configureForOrcaProfile({
-      orcaProfileId: 'local-work',
+    browserSessionRegistry.configureForMantaProfile({
+      mantaProfileId: 'local-work',
       profileDirectory: '/user-data/profiles/local-work'
     })
     const profile = browserSessionRegistry.createProfile('isolated', 'Work Browser', {
@@ -218,8 +218,8 @@ describe('BrowserSessionRegistry persistence', () => {
     browserSessionRegistry.createProfile('isolated', 'Default identity')
 
     const profileSession = sessionFromPartitionMock.mock.results.at(-1)?.value
-    expect(profileSession.setUserAgent).toHaveBeenCalledWith('Mozilla/5.0 Orca')
-    expect(setupClientHintsOverrideMock).toHaveBeenCalledWith(profileSession, 'Mozilla/5.0 Orca')
+    expect(profileSession.setUserAgent).toHaveBeenCalledWith('Mozilla/5.0 Manta')
+    expect(setupClientHintsOverrideMock).toHaveBeenCalledWith(profileSession, 'Mozilla/5.0 Manta')
   })
 
   it('leaves UA and client hints untouched for native-mode profiles', async () => {
@@ -250,22 +250,22 @@ describe('BrowserSessionRegistry persistence', () => {
     installModuleMocks(fsState)
     const { browserSessionRegistry } = await import('./browser-session-registry')
 
-    browserSessionRegistry.setPendingCookieImport('persist:orca-browser', '/staged/default')
+    browserSessionRegistry.setPendingCookieImport('persist:manta-browser', '/staged/default')
     browserSessionRegistry.setPendingCookieImport(
-      'persist:orca-browser-session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'persist:manta-browser-session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       '/staged/imported'
     )
 
     const written = JSON.parse(fsState.files.get(META_PATH) ?? '{}')
     expect(written.pendingCookieDbPath).toBe('/staged/default')
     expect(written.pendingCookieImports).toEqual({
-      'persist:orca-browser': '/staged/default',
-      'persist:orca-browser-session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa': '/staged/imported'
+      'persist:manta-browser': '/staged/default',
+      'persist:manta-browser-session-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa': '/staged/imported'
     })
   })
 
   it('clears only the requested partition and unlinks its staged database files', async () => {
-    const otherPartition = 'persist:orca-browser-session-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+    const otherPartition = 'persist:manta-browser-session-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
     const fsState = createFsState()
     seedMeta(fsState, {
       defaultSource: null,
@@ -273,7 +273,7 @@ describe('BrowserSessionRegistry persistence', () => {
       userAgentByPartition: {},
       pendingCookieDbPath: '/staged/default',
       pendingCookieImports: {
-        'persist:orca-browser': '/staged/default',
+        'persist:manta-browser': '/staged/default',
         [otherPartition]: '/staged/other'
       },
       profiles: []
@@ -291,7 +291,7 @@ describe('BrowserSessionRegistry persistence', () => {
     browserSessionRegistry.clearPendingCookieImport(otherPartition)
 
     const written = JSON.parse(fsState.files.get(META_PATH) ?? '{}')
-    expect(written.pendingCookieImports).toEqual({ 'persist:orca-browser': '/staged/default' })
+    expect(written.pendingCookieImports).toEqual({ 'persist:manta-browser': '/staged/default' })
     // Why: the default partition still has a staged replay, so the legacy pointer must survive.
     expect(written.pendingCookieDbPath).toBe('/staged/default')
     for (const suffix of ['', '-wal', '-shm']) {
@@ -301,7 +301,7 @@ describe('BrowserSessionRegistry persistence', () => {
   })
 
   it('drops the legacy pointer when the default partition is the one cleared', async () => {
-    const otherPartition = 'persist:orca-browser-session-cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+    const otherPartition = 'persist:manta-browser-session-cccccccc-cccc-4ccc-8ccc-cccccccccccc'
     const fsState = createFsState()
     seedMeta(fsState, {
       defaultSource: null,
@@ -309,7 +309,7 @@ describe('BrowserSessionRegistry persistence', () => {
       userAgentByPartition: {},
       pendingCookieDbPath: '/staged/default',
       pendingCookieImports: {
-        'persist:orca-browser': '/staged/default',
+        'persist:manta-browser': '/staged/default',
         [otherPartition]: '/staged/other'
       },
       profiles: []
@@ -318,7 +318,7 @@ describe('BrowserSessionRegistry persistence', () => {
     installModuleMocks(fsState)
     const { browserSessionRegistry } = await import('./browser-session-registry')
 
-    browserSessionRegistry.clearPendingCookieImport('persist:orca-browser')
+    browserSessionRegistry.clearPendingCookieImport('persist:manta-browser')
 
     const written = JSON.parse(fsState.files.get(META_PATH) ?? '{}')
     expect(written.pendingCookieImports).toEqual({ [otherPartition]: '/staged/other' })
@@ -332,7 +332,7 @@ describe('BrowserSessionRegistry persistence', () => {
       userAgent: null,
       userAgentByPartition: {},
       pendingCookieDbPath: '/staged/default',
-      pendingCookieImports: { 'persist:orca-browser': '/staged/default' },
+      pendingCookieImports: { 'persist:manta-browser': '/staged/default' },
       profiles: []
     })
     fsState.files.set('/staged/default', 'db')
@@ -342,7 +342,7 @@ describe('BrowserSessionRegistry persistence', () => {
     const { browserSessionRegistry } = await import('./browser-session-registry')
     const metaBefore = fsState.files.get(META_PATH)
 
-    browserSessionRegistry.clearPendingCookieImport('persist:orca-browser-session-unknown')
+    browserSessionRegistry.clearPendingCookieImport('persist:manta-browser-session-unknown')
 
     // Why: an absent key must not rewrite meta or touch another partition's staged file.
     expect(fsState.files.get(META_PATH)).toBe(metaBefore)
@@ -353,7 +353,7 @@ describe('BrowserSessionRegistry persistence', () => {
   // (fork imports as a broken Chrome/1.x, Chrome imports as a valid version).
   // Neither may ever be applied again — the engine-derived UA is the only one.
   it('ignores legacy persisted UAs, valid or broken, and applies the engine UA', async () => {
-    const importedPartition = 'persist:orca-browser-session-11111111-1111-4111-8111-111111111111'
+    const importedPartition = 'persist:manta-browser-session-11111111-1111-4111-8111-111111111111'
     const brokenUa =
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/1.158.1 Safari/537.36'
     const validUa = 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36'
@@ -362,7 +362,7 @@ describe('BrowserSessionRegistry persistence', () => {
       defaultSource: { browserFamily: 'arc', importedAt: 1 },
       userAgent: brokenUa,
       userAgentByPartition: {
-        'persist:orca-browser': brokenUa,
+        'persist:manta-browser': brokenUa,
         [importedPartition]: validUa
       },
       pendingCookieDbPath: null,
@@ -388,9 +388,9 @@ describe('BrowserSessionRegistry persistence', () => {
     )
     expect(appliedUas).not.toContain(brokenUa)
     expect(appliedUas).not.toContain(validUa)
-    // Why: every non-native profile falls to Orca's own cleaned engine UA.
+    // Why: every non-native profile falls to Manta's own cleaned engine UA.
     expect(appliedUas.length).toBeGreaterThan(0)
-    expect(appliedUas.every((ua) => ua === 'Mozilla/5.0 Orca')).toBe(true)
+    expect(appliedUas.every((ua) => ua === 'Mozilla/5.0 Manta')).toBe(true)
     expect(
       setupClientHintsOverrideMock.mock.calls.every(
         (c: unknown[]) => c[1] !== brokenUa && c[1] !== validUa
@@ -399,7 +399,7 @@ describe('BrowserSessionRegistry persistence', () => {
   })
 
   it('never applies a legacy persisted UA to a native-mode profile', async () => {
-    const importedPartition = 'persist:orca-browser-session-11111111-1111-4111-8111-111111111111'
+    const importedPartition = 'persist:manta-browser-session-11111111-1111-4111-8111-111111111111'
     const importedUa = 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36'
     const fsState = createFsState()
     seedMeta(fsState, {
@@ -440,7 +440,7 @@ describe('BrowserSessionRegistry persistence', () => {
   })
 
   it('preserves native mode across hydration when no source UA was imported', async () => {
-    const importedPartition = 'persist:orca-browser-session-12121212-1212-4121-8121-121212121212'
+    const importedPartition = 'persist:manta-browser-session-12121212-1212-4121-8121-121212121212'
     const fsState = createFsState()
     seedMeta(fsState, {
       defaultSource: null,
@@ -504,7 +504,7 @@ describe('BrowserSessionRegistry persistence', () => {
     browserSessionRegistry.initializeBrowserSessionsFromPersistedState()
 
     const defaultSessions = sessionFromPartitionMock.mock.results
-      .filter((_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:orca-browser')
+      .filter((_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:manta-browser')
       .map((r) => r.value)
     expect(defaultSessions.length).toBeGreaterThan(0)
     const defaultSession = defaultSessions[0]
@@ -636,7 +636,7 @@ describe('BrowserSessionRegistry persistence', () => {
     browserSessionRegistry.initializeBrowserSessionsFromPersistedState()
 
     const defaultSessions = sessionFromPartitionMock.mock.results
-      .filter((_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:orca-browser')
+      .filter((_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:manta-browser')
       .map((r) => r.value)
     const policySessions = defaultSessions.filter(
       (s) => s.setPermissionRequestHandler.mock.calls.length > 0
@@ -681,7 +681,7 @@ describe('BrowserSessionRegistry persistence', () => {
     browserSessionRegistry.initializeBrowserSessionsFromPersistedState()
 
     const defaultSession = sessionFromPartitionMock.mock.results.find(
-      (_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:orca-browser'
+      (_, idx) => sessionFromPartitionMock.mock.calls[idx]?.[0] === 'persist:manta-browser'
     )?.value
     const requestHandler = defaultSession.setPermissionRequestHandler.mock.calls[0][0]
     const guestWc = { id: 403, getURL: vi.fn(() => 'https://example.com/camera') }
@@ -698,7 +698,7 @@ describe('BrowserSessionRegistry persistence', () => {
   })
 
   it('keeps failed partition replay pending and removes unrelated missing entries', async () => {
-    const importedPartition = 'persist:orca-browser-session-22222222-2222-4222-8222-222222222222'
+    const importedPartition = 'persist:manta-browser-session-22222222-2222-4222-8222-222222222222'
     const fsState = createFsState()
     seedMeta(fsState, {
       defaultSource: null,
@@ -707,7 +707,7 @@ describe('BrowserSessionRegistry persistence', () => {
       pendingCookieDbPath: null,
       pendingCookieImports: {
         [importedPartition]: '/staged/imported',
-        'persist:orca-browser': '/staged/missing'
+        'persist:manta-browser': '/staged/missing'
       },
       profiles: [
         {

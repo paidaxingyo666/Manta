@@ -19,7 +19,7 @@ afterEach(async () => {
 })
 
 async function makeWorkspaceDir(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'orca-omp-subagents-'))
+  const root = await mkdtemp(join(tmpdir(), 'manta-omp-subagents-'))
   tempRoots.push(root)
   return root
 }

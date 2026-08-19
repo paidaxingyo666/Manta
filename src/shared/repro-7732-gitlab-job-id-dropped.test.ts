@@ -14,7 +14,7 @@ describe('#7732 GitLab pipeline job -> check row mapping', () => {
     name: 'Purchase API Component Tests',
     stage: 'Component Tests',
     status: 'failed',
-    webUrl: 'https://gitlab.com/acme/orca/-/jobs/42',
+    webUrl: 'https://gitlab.com/acme/manta/-/jobs/42',
     duration: 31
   }
 

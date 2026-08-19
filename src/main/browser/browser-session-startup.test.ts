@@ -1,24 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 function installRegistryMock(): {
-  configureForOrcaProfileMock: ReturnType<typeof vi.fn>
+  configureForMantaProfileMock: ReturnType<typeof vi.fn>
   applyPendingCookieImportMock: ReturnType<typeof vi.fn>
   initializeBrowserSessionsFromPersistedStateMock: ReturnType<typeof vi.fn>
 } {
-  const configureForOrcaProfileMock = vi.fn()
+  const configureForMantaProfileMock = vi.fn()
   const applyPendingCookieImportMock = vi.fn()
   const initializeBrowserSessionsFromPersistedStateMock = vi.fn()
 
   vi.doMock('./browser-session-registry', () => ({
     browserSessionRegistry: {
-      configureForOrcaProfile: configureForOrcaProfileMock,
+      configureForMantaProfile: configureForMantaProfileMock,
       applyPendingCookieImport: applyPendingCookieImportMock,
       initializeBrowserSessionsFromPersistedState: initializeBrowserSessionsFromPersistedStateMock
     }
   }))
 
   return {
-    configureForOrcaProfileMock,
+    configureForMantaProfileMock,
     applyPendingCookieImportMock,
     initializeBrowserSessionsFromPersistedStateMock
   }
@@ -44,24 +44,24 @@ describe('initializeBrowserSessionsForApp', () => {
     )
   })
 
-  it('configures the active Orca profile before replaying browser sessions', async () => {
+  it('configures the active Manta profile before replaying browser sessions', async () => {
     const {
-      configureForOrcaProfileMock,
+      configureForMantaProfileMock,
       applyPendingCookieImportMock,
       initializeBrowserSessionsFromPersistedStateMock
     } = installRegistryMock()
     const { initializeBrowserSessionsForApp } = await import('./browser-session-startup')
 
     initializeBrowserSessionsForApp({
-      orcaProfileId: 'local-work',
+      mantaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
 
-    expect(configureForOrcaProfileMock).toHaveBeenCalledWith({
-      orcaProfileId: 'local-work',
+    expect(configureForMantaProfileMock).toHaveBeenCalledWith({
+      mantaProfileId: 'local-work',
       profileDirectory: '/profiles/local-work'
     })
-    expect(configureForOrcaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(configureForMantaProfileMock.mock.invocationCallOrder[0]).toBeLessThan(
       applyPendingCookieImportMock.mock.invocationCallOrder[0]
     )
     expect(applyPendingCookieImportMock.mock.invocationCallOrder[0]).toBeLessThan(

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import type { AutomationWorkspaceMode } from '../../../../shared/automations-types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
-import type { OrcaHooks } from '../../../../shared/orca-yaml-hook-types'
+import type { MantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import type { ProjectHostSetup } from '../../../../shared/project-types'
 import type { Repo } from '../../../../shared/repo-types'
 import type { Worktree } from '../../../../shared/worktree/types'
@@ -31,7 +31,7 @@ type AutomationEditorDialogFooterProps = {
   canSave: boolean
   repos: readonly Repo[]
   projectHostSetups: readonly ProjectHostSetup[]
-  automationYamlHooksByRepoKey: Record<string, OrcaHooks | null>
+  automationYamlHooksByRepoKey: Record<string, MantaHooks | null>
   getAutomationHooksCacheKey: (repoId: string) => string
   repoMap: Map<string, Repo>
   worktrees: Worktree[]
@@ -196,7 +196,7 @@ export function AutomationEditorDialogFooter({
         {isHermesTarget ? scheduleField : null}
       </div>
 
-      {/* Why: Hermes uses one compact footer row, while Orca adds agent,
+      {/* Why: Hermes uses one compact footer row, while Manta adds agent,
           session, schedule, and missed-run controls. Animate that row so
           switching the target changes the dialog height smoothly. */}
       <div
@@ -250,7 +250,7 @@ export function AutomationEditorDialogFooter({
               switch is a per-automation preference, not a peer of the compact
               column pickers, so it reads cleaner spanning the dialog. */}
           <AutomationSetupDecisionField
-            createTarget={isHermesTarget ? 'hermes' : 'orca'}
+            createTarget={isHermesTarget ? 'hermes' : 'manta'}
             draft={draft}
             repos={repos}
             projectHostSetups={projectHostSetups}

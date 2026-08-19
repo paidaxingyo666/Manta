@@ -31,13 +31,13 @@ describe('web before-unload persistence', () => {
       ui: { activeView: 'settings' }
     })
 
-    expect(JSON.parse(storage.getItem('orca.web.workspaceSession.v1') ?? '{}')).toMatchObject({
+    expect(JSON.parse(storage.getItem('manta.web.workspaceSession.v1') ?? '{}')).toMatchObject({
       activeWorktreeId: 'local-worktree'
     })
     expect(
-      JSON.parse(storage.getItem('orca.web.workspaceSession.v1.runtime:web-env-1') ?? '{}')
+      JSON.parse(storage.getItem('manta.web.workspaceSession.v1.runtime:web-env-1') ?? '{}')
     ).toMatchObject({ activeWorktreeId: 'remote-worktree' })
-    expect(JSON.parse(storage.getItem('orca.web.ui.v1') ?? '{}')).toMatchObject({
+    expect(JSON.parse(storage.getItem('manta.web.ui.v1') ?? '{}')).toMatchObject({
       activeView: 'settings'
     })
   })
@@ -74,7 +74,7 @@ describe('web UI preload API', () => {
 
   it('keeps explicit local right sidebar visibility over the legacy default', async () => {
     const { api, storage } = await installApi('Linux')
-    storage.setItem('orca.web.ui.v1', JSON.stringify({ rightSidebarOpen: true }))
+    storage.setItem('manta.web.ui.v1', JSON.stringify({ rightSidebarOpen: true }))
 
     const ui = await api.ui.get()
 
@@ -150,7 +150,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({ worktreeCardProperties: ['status', 'pr'] })
     )
     const { installWebPreloadApi } = await import('./web-preload-api')
@@ -220,7 +220,7 @@ describe('web UI preload API', () => {
     })
     await first
 
-    const stored = JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}') as {
+    const stored = JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}') as {
       featureInteractions?: FeatureInteractionState
     }
     expect(stored.featureInteractions?.tasks).toEqual({
@@ -255,7 +255,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({
         featureInteractions: {
           tasks: { firstInteractedAt: 50, interactionCount: 3 }
@@ -266,7 +266,7 @@ describe('web UI preload API', () => {
     installWebPreloadApi()
 
     const ui = await globals.window.api.ui.get()
-    const stored = JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}') as {
+    const stored = JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}') as {
       featureInteractions?: FeatureInteractionState
     }
 
@@ -322,7 +322,7 @@ describe('web UI preload API', () => {
     await expect(globals.window.api.ui.recordFeatureInteraction('tasks')).resolves.toMatchObject({
       hideWorkspacesFromOtherDevices: true
     })
-    expect(JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}')).toMatchObject({
+    expect(JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}')).toMatchObject({
       hideWorkspacesFromOtherDevices: true
     })
   })
@@ -350,7 +350,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({
         contextualToursSeenIds: ['tasks', 'browser']
       })
@@ -359,7 +359,7 @@ describe('web UI preload API', () => {
     installWebPreloadApi()
 
     const ui = await globals.window.api.ui.get()
-    const stored = JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}') as {
+    const stored = JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}') as {
       contextualToursSeenIds?: string[]
     }
 
@@ -388,7 +388,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({ osc52ClipboardDefaultOnNoticePending: true })
     )
     const { installWebPreloadApi } = await import('./web-preload-api')
@@ -421,7 +421,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({ osc52ClipboardDefaultOnNoticePending: true })
     )
     const { installWebPreloadApi } = await import('./web-preload-api')
@@ -450,7 +450,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({
         featureInteractionTelemetryBuckets: { tasks: 'count_1000_plus' }
       })
@@ -462,7 +462,7 @@ describe('web UI preload API', () => {
       featureInteractionTelemetryBuckets: { tasks: 'count_500_999' }
     } as never)
     const ui = await globals.window.api.ui.get()
-    const stored = JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}') as Record<
+    const stored = JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}') as Record<
       string,
       unknown
     >
@@ -494,7 +494,7 @@ describe('web UI preload API', () => {
     const globals = installBrowserGlobals('Linux')
     writeStoredRuntimeEnvironment(globals.storage)
     globals.storage.setItem(
-      'orca.web.ui.v1',
+      'manta.web.ui.v1',
       JSON.stringify({
         contextualToursSeenIds: ['tasks']
       })
@@ -503,7 +503,7 @@ describe('web UI preload API', () => {
     installWebPreloadApi()
 
     const ui = await globals.window.api.ui.recordFeatureInteraction('tasks')
-    const stored = JSON.parse(globals.storage.getItem('orca.web.ui.v1') ?? '{}') as {
+    const stored = JSON.parse(globals.storage.getItem('manta.web.ui.v1') ?? '{}') as {
       contextualToursSeenIds?: string[]
     }
 
@@ -549,7 +549,7 @@ describe('web UI preload API', () => {
               ok: true,
               result: {
                 platform: 'darwin',
-                helperAppPath: '/Applications/Orca Computer Use.app',
+                helperAppPath: '/Applications/Manta Computer Use.app',
                 helperUnavailableReason: null,
                 permissions: [
                   { id: 'accessibility', status: 'granted' },
@@ -565,7 +565,7 @@ describe('web UI preload API', () => {
               ok: true,
               result: {
                 platform: 'darwin',
-                helperAppPath: '/Applications/Orca Computer Use.app',
+                helperAppPath: '/Applications/Manta Computer Use.app',
                 permissionId:
                   params && typeof params === 'object' ? (params as { id?: string }).id : undefined,
                 openedSettings: true,

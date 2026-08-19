@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import type { Store } from '../persistence'
 import type { IPtyProvider } from '../providers/types'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import { listRegisteredPtys } from '../memory/pty-registry'
 import { getSshPtyProvider } from './pty'
 import {
@@ -30,7 +30,7 @@ import {
 export { scanWorkspaceCleanup }
 
 type WorkspaceCleanupHandlerDeps = {
-  runtime?: OrcaRuntimeService
+  runtime?: MantaRuntimeService
   getLocalPtyProvider?: () => IPtyProvider
 }
 

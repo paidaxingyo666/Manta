@@ -39,7 +39,7 @@ describe('MobileRelayE2eeLink', () => {
     const onError = vi.fn()
     new MobileRelayE2eeLink({
       endpoint: {
-        cellUrl: 'https://relay-c1.onorca.dev',
+        cellUrl: 'https://relay-c1.manta.sh.cn',
         relayHostId: 'AbCdEf0123_-xyZ9'
       },
       credential: 'credential',

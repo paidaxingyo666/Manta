@@ -29,7 +29,7 @@ describe('resolvePairConfirmRouteState', () => {
   })
 
   it('accepts a full pairing URL', () => {
-    expect(resolvePairConfirmRouteState(`orca://pair#${encodeOffer(offer)}`)).toEqual({
+    expect(resolvePairConfirmRouteState(`manta://pair#${encodeOffer(offer)}`)).toEqual({
       kind: 'ready',
       offer,
       errorMessage: ''

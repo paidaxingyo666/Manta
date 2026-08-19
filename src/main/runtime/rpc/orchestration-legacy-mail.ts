@@ -1,5 +1,5 @@
 import type { RpcRequest } from './core'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import { OrchestrationError } from '../orchestration/orchestration-error'
 import { formatMessageBanner } from '../orchestration/formatter'
 import { ORCHESTRATION_MESSAGE_WAIT_DEFAULT_TIMEOUT_MS } from '../../../shared/orchestration-message-wait-timeout'
@@ -15,7 +15,7 @@ import {
 } from './orchestration-legacy-operation'
 
 export async function handleLegacyCheck(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   authority: LegacyCompatibilityAuthority
   request: RpcRequest
   params: LegacyCheckParams
@@ -102,7 +102,11 @@ export async function handleLegacyCheck(args: {
               authority: formattingAuthority,
               supportedActionHints: readOnly
                 ? []
-                : supportedLegacyHints(message, principal, params.compatibilityCliCommand ?? 'orca')
+                : supportedLegacyHints(
+                    message,
+                    principal,
+                    params.compatibilityCliCommand ?? 'manta'
+                  )
             })
           )
           .join('\n\n')
@@ -111,8 +115,8 @@ export async function handleLegacyCheck(args: {
     principal.role === 'coordinator' && db.hasPendingCurrentDelivery(principal.run_id)
       ? {
           runId: principal.run_id,
-          checkCommand: `${params.compatibilityCliCommand ?? 'orca'} orchestration check --run ${principal.run_id}`,
-          ackCommand: `${params.compatibilityCliCommand ?? 'orca'} orchestration check --run ${principal.run_id} --ack <delivery-id>`
+          checkCommand: `${params.compatibilityCliCommand ?? 'manta'} orchestration check --run ${principal.run_id}`,
+          ackCommand: `${params.compatibilityCliCommand ?? 'manta'} orchestration check --run ${principal.run_id} --ack <delivery-id>`
         }
       : undefined
   return {
@@ -134,7 +138,7 @@ export async function handleLegacyCheck(args: {
 }
 
 export async function handleLegacyReply(args: {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   authority: LegacyCompatibilityAuthority
   request: RpcRequest
   params: LegacyReplyParams

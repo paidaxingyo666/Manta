@@ -28,21 +28,21 @@ export function buildGuestOverlayScript(action: GuestScriptAction): string {
   }
 }
 
-// arm: install the overlay + hover tracking; state lives on window.__orcaGrab so finalize/teardown can reach it.
+// arm: install the overlay + hover tracking; state lives on window.__mantaGrab so finalize/teardown can reach it.
 const ARM_SCRIPT = `(function() {
   'use strict';
 
   // Why: always tear down any pre-existing state before arming. A malicious
-  // guest page could predefine window.__orcaGrab with a fake extractPayload
+  // guest page could predefine window.__mantaGrab with a fake extractPayload
   // function. By tearing down unconditionally we ensure our freshly installed
   // extraction logic is the only code that runs.
-  if (window.__orcaGrab) {
+  if (window.__mantaGrab) {
     try {
-      if (typeof window.__orcaGrab.cleanup === 'function') {
-        window.__orcaGrab.cleanup();
+      if (typeof window.__mantaGrab.cleanup === 'function') {
+        window.__mantaGrab.cleanup();
       }
     } catch(e) {}
-    delete window.__orcaGrab;
+    delete window.__mantaGrab;
   }
 
   // --- Budget constants (mirrored from shared types) ---
@@ -722,7 +722,7 @@ const ARM_SCRIPT = `(function() {
   // selection click. The overlay uses elementFromPoint (with itself temporarily
   // hidden) to identify the element underneath the pointer.
   var host = document.createElement('div');
-  host.id = '__orca-grab-host';
+  host.id = '__manta-grab-host';
   host.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2147483647;pointer-events:all;cursor:crosshair;';
   document.documentElement.appendChild(host);
 
@@ -799,7 +799,7 @@ const ARM_SCRIPT = `(function() {
   host.addEventListener('mousemove', onPointerMove);
 
   // Store state for awaitClick/finalize/teardown access
-  window.__orcaGrab = {
+  window.__mantaGrab = {
     host: host,
     extractPayload: extractPayload,
     getCurrentElement: function() { return currentEl; },
@@ -815,7 +815,7 @@ const ARM_SCRIPT = `(function() {
     cleanup: function() {
       host.removeEventListener('mousemove', onPointerMove);
       try { host.remove(); } catch(e) {}
-      delete window.__orcaGrab;
+      delete window.__mantaGrab;
     }
   };
 
@@ -834,7 +834,7 @@ const AWAIT_CLICK_SCRIPT = `(async function() {
   // Electron always unwraps it to the resolved payload.
   return await new Promise(function(resolve, reject) {
     'use strict';
-    var grab = window.__orcaGrab;
+    var grab = window.__mantaGrab;
     if (!grab) {
       reject(new Error('Grab not armed'));
       return;
@@ -890,7 +890,7 @@ const AWAIT_CLICK_SCRIPT = `(async function() {
       var payload = extractSelectedPayload(el);
       if (!payload) return;
       grab.freezeHighlight();
-      resolve({ __orcaContextMenu: true, payload: payload });
+      resolve({ __mantaContextMenu: true, payload: payload });
     }
 
     grab.host.addEventListener('click', onClick, true);
@@ -903,14 +903,14 @@ const AWAIT_CLICK_SCRIPT = `(async function() {
       grab.cleanup();
       // Why: teardown cancellation is a normal user flow; resolving a marker
       // avoids a noisy guest-console Error while main still treats it as cancel.
-      resolve({ __orcaCancelled: true });
+      resolve({ __mantaCancelled: true });
     };
   });
 })()`
 
 const FINALIZE_SCRIPT = `(function() {
   'use strict';
-  var grab = window.__orcaGrab;
+  var grab = window.__mantaGrab;
   if (!grab) return null;
   var el = grab.getCurrentElement();
   if (!el) return null;
@@ -928,7 +928,7 @@ const FINALIZE_SCRIPT = `(function() {
 // extractHover: read payload but keep overlay/listeners active so the user can keep picking (C/S shortcut copy, no click).
 const EXTRACT_HOVER_SCRIPT = `(function() {
   'use strict';
-  var grab = window.__orcaGrab;
+  var grab = window.__mantaGrab;
   if (!grab) return null;
   var el = grab.getCurrentElement();
   if (!el) return null;
@@ -941,10 +941,10 @@ const EXTRACT_HOVER_SCRIPT = `(function() {
 
 const TEARDOWN_SCRIPT = `(function() {
   'use strict';
-  var grab = window.__orcaGrab;
+  var grab = window.__mantaGrab;
   if (!grab) return true;
   // If there's an active awaitClick Promise, cancel it: cancelAwait resolves
-  // it with the __orcaCancelled marker so the executeJavaScript call in main
+  // it with the __mantaCancelled marker so the executeJavaScript call in main
   // settles the grab op as a cancellation.
   if (grab.cancelAwait) {
     grab.cancelAwait();

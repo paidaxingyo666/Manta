@@ -52,7 +52,7 @@ describe('RelayAgentHookServer Codex subagent transcript polling', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': token
+          'X-Manta-Agent-Hook-Token': token
         },
         body: JSON.stringify({
           paneKey: PANE_KEY,

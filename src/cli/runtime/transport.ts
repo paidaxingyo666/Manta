@@ -25,7 +25,7 @@ export async function sendRequest<TResult>(
       reject(
         new RuntimeClientError(
           'runtime_unavailable',
-          'No compatible transport found in Orca runtime metadata.'
+          'No compatible transport found in Manta runtime metadata.'
         )
       )
       return
@@ -44,7 +44,7 @@ export async function sendRequest<TResult>(
       reject(
         new RuntimeClientError(
           'runtime_timeout',
-          'Timed out waiting for the Orca runtime to respond.'
+          'Timed out waiting for the Manta runtime to respond.'
         )
       )
     }, timeoutMs)
@@ -71,7 +71,7 @@ export async function sendRequest<TResult>(
         ok: false,
         error: new RuntimeClientError(
           'runtime_unavailable',
-          'Could not connect to the running Orca app. Restart Orca and try again.'
+          'Could not connect to the running Manta app. Restart Manta and try again.'
         )
       })
     })
@@ -84,7 +84,7 @@ export async function sendRequest<TResult>(
         ok: false,
         error: new RuntimeClientError(
           'runtime_unavailable',
-          'The Orca runtime closed the connection before responding. Restart Orca and try again.'
+          'The Manta runtime closed the connection before responding. Restart Manta and try again.'
         )
       })
     })
@@ -112,14 +112,14 @@ export async function sendRequest<TResult>(
             ok: false,
             error: new RuntimeClientError(
               'invalid_runtime_response',
-              'The Orca runtime returned an invalid response frame.'
+              'The Manta runtime returned an invalid response frame.'
             )
           })
           return
         }
 
         // Fast-path: ignore keepalives without running the full schema.
-        // setTimeout().refresh() is stable since Node 10 (Orca ships on
+        // setTimeout().refresh() is stable since Node 10 (Manta ships on
         // Node 20+ via Electron and the standalone CLI targets the same
         // major). See §7 risk #9.
         if (isKeepaliveFrame(raw)) {
@@ -129,7 +129,7 @@ export async function sendRequest<TResult>(
         }
 
         // Why: validate the envelope shape (id, ok, result/error, _meta) at
-        // the decode boundary so version skew between the CLI and the Orca
+        // the decode boundary so version skew between the CLI and the Manta
         // main runtime surfaces as a single invalid_runtime_response instead
         // of a downstream mis-typed field access. `result` is left as
         // unknown — the TResult generic is the caller's responsibility.
@@ -139,7 +139,7 @@ export async function sendRequest<TResult>(
             ok: false,
             error: new RuntimeClientError(
               'invalid_runtime_response',
-              'The Orca runtime returned an invalid response frame.'
+              'The Manta runtime returned an invalid response frame.'
             )
           })
           return
@@ -160,7 +160,7 @@ export async function sendRequest<TResult>(
             ok: false,
             error: new RuntimeClientError(
               'invalid_runtime_response',
-              'The Orca runtime returned a mismatched response id.'
+              'The Manta runtime returned a mismatched response id.'
             )
           })
           return
@@ -170,7 +170,7 @@ export async function sendRequest<TResult>(
             ok: false,
             error: new RuntimeClientError(
               'runtime_unavailable',
-              'The Orca runtime changed while the request was in flight. Retry the command.'
+              'The Manta runtime changed while the request was in flight. Retry the command.'
             )
           })
           return

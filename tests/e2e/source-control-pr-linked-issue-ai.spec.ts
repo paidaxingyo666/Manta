@@ -1,7 +1,7 @@
 import { rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   createBranchCommit,
   openSourceControl,
@@ -35,9 +35,9 @@ test.describe('Source Control AI pull request linkedIssue', () => {
       expected: 'empty'
     }
   ]) {
-    test(`${label} the pull-request recipe`, async ({ orcaPage }) => {
-      await waitForSessionReady(orcaPage)
-      const { prWorktreeId, prWorktreePath, primaryBranch } = await seedCreatePrComposer(orcaPage)
+    test(`${label} the pull-request recipe`, async ({ mantaPage }) => {
+      await waitForSessionReady(mantaPage)
+      const { prWorktreeId, prWorktreePath, primaryBranch } = await seedCreatePrComposer(mantaPage)
       createBranchCommit(prWorktreePath)
 
       const generatorPath = path.join(
@@ -47,7 +47,7 @@ test.describe('Source Control AI pull request linkedIssue', () => {
       writeLinkedIssuePrEchoGenerator(generatorPath, primaryBranch)
 
       try {
-        await orcaPage.evaluate(
+        await mantaPage.evaluate(
           async ({ generatorPath, linkedIssue, worktreeId }) => {
             const store = window.__store
             if (!store) {
@@ -67,7 +67,7 @@ test.describe('Source Control AI pull request linkedIssue', () => {
                 actions: {
                   pullRequest: {
                     agentId: 'custom' as const,
-                    commandInputTemplate: 'ORCA_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
+                    commandInputTemplate: 'MANTA_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
                   }
                 }
               }
@@ -76,12 +76,12 @@ test.describe('Source Control AI pull request linkedIssue', () => {
           { generatorPath, linkedIssue, worktreeId: prWorktreeId }
         )
 
-        await openSourceControl(orcaPage, prWorktreeId)
+        await openSourceControl(mantaPage, prWorktreeId)
 
-        const title = orcaPage.getByRole('textbox', { name: 'Pull request title' })
+        const title = mantaPage.getByRole('textbox', { name: 'Pull request title' })
         await expect(title).toBeVisible({ timeout: 10_000 })
 
-        const generate = orcaPage.getByRole('button', {
+        const generate = mantaPage.getByRole('button', {
           name: 'Generate pull request details with AI'
         })
         await expect(generate).toBeEnabled()

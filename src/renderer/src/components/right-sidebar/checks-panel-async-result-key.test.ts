@@ -78,11 +78,11 @@ describe('shouldCommitChecksPanelAsyncResult', () => {
       shouldCommitChecksPanelAsyncResult(
         checksPanelAsyncResultKey('repo-id', 'feature/test', 12, {
           owner: 'upstream',
-          repo: 'orca'
+          repo: 'manta'
         }),
         checksPanelAsyncResultKey('repo-id', 'feature/test', 12, {
           owner: 'fork',
-          repo: 'orca'
+          repo: 'manta'
         })
       )
     ).toBe(false)

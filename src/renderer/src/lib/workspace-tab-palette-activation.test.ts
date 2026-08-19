@@ -104,7 +104,7 @@ function makeResult(
     contentType: 'terminal',
     title: 'Terminal',
     secondaryText: '',
-    repoName: 'repo/orca',
+    repoName: 'repo/manta',
     worktreeName: 'Palette Worktree',
     titleRange: null,
     secondaryRange: null,

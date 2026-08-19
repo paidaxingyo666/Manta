@@ -102,9 +102,9 @@ describe('createPtySubprocess', () => {
         rows: 24,
         cwd: 'C:\\repo',
         env: {
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test',
-          ORCA_PATH_ROOT: 'C:\\Users\\orca\\AppData\\Local',
-          PATH: '%orca_path_root%\\agy\\bin;C:\\Windows'
+          MANTA_AGENT_TEAMS_TEAM_ID: 'team-test',
+          MANTA_PATH_ROOT: 'C:\\Users\\manta\\AppData\\Local',
+          PATH: '%manta_path_root%\\agy\\bin;C:\\Windows'
         }
       })
     } finally {
@@ -114,21 +114,21 @@ describe('createPtySubprocess', () => {
     }
 
     expect(spawnMock.mock.calls.at(-1)?.[2].env.PATH).toBe(
-      'C:\\Users\\orca\\AppData\\Local\\agy\\bin;C:\\Windows'
+      'C:\\Users\\manta\\AppData\\Local\\agy\\bin;C:\\Windows'
     )
   })
 
-  it('does not inherit parent Orca pane identity when caller omits pane env', async () => {
+  it('does not inherit parent Manta pane identity when caller omits pane env', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const saved = {
-      ORCA_PANE_KEY: process.env.ORCA_PANE_KEY,
-      ORCA_TAB_ID: process.env.ORCA_TAB_ID,
-      ORCA_WORKTREE_ID: process.env.ORCA_WORKTREE_ID
+      MANTA_PANE_KEY: process.env.MANTA_PANE_KEY,
+      MANTA_TAB_ID: process.env.MANTA_TAB_ID,
+      MANTA_WORKTREE_ID: process.env.MANTA_WORKTREE_ID
     }
-    process.env.ORCA_PANE_KEY = 'parent-tab:parent-leaf'
-    process.env.ORCA_TAB_ID = 'parent-tab'
-    process.env.ORCA_WORKTREE_ID = 'parent-worktree'
+    process.env.MANTA_PANE_KEY = 'parent-tab:parent-leaf'
+    process.env.MANTA_TAB_ID = 'parent-tab'
+    process.env.MANTA_WORKTREE_ID = 'parent-worktree'
 
     try {
       await createPtySubprocess({ sessionId: 'test', cols: 80, rows: 24 })
@@ -143,22 +143,22 @@ describe('createPtySubprocess', () => {
     }
 
     const env = spawnMock.mock.calls.at(-1)?.[2].env
-    expect(env.ORCA_PANE_KEY).toBeUndefined()
-    expect(env.ORCA_TAB_ID).toBeUndefined()
-    expect(env.ORCA_WORKTREE_ID).toBeUndefined()
+    expect(env.MANTA_PANE_KEY).toBeUndefined()
+    expect(env.MANTA_TAB_ID).toBeUndefined()
+    expect(env.MANTA_WORKTREE_ID).toBeUndefined()
   })
 
-  it('preserves explicit child Orca pane identity over parent env', async () => {
+  it('preserves explicit child Manta pane identity over parent env', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const saved = {
-      ORCA_PANE_KEY: process.env.ORCA_PANE_KEY,
-      ORCA_TAB_ID: process.env.ORCA_TAB_ID,
-      ORCA_WORKTREE_ID: process.env.ORCA_WORKTREE_ID
+      MANTA_PANE_KEY: process.env.MANTA_PANE_KEY,
+      MANTA_TAB_ID: process.env.MANTA_TAB_ID,
+      MANTA_WORKTREE_ID: process.env.MANTA_WORKTREE_ID
     }
-    process.env.ORCA_PANE_KEY = 'parent-tab:parent-leaf'
-    process.env.ORCA_TAB_ID = 'parent-tab'
-    process.env.ORCA_WORKTREE_ID = 'parent-worktree'
+    process.env.MANTA_PANE_KEY = 'parent-tab:parent-leaf'
+    process.env.MANTA_TAB_ID = 'parent-tab'
+    process.env.MANTA_WORKTREE_ID = 'parent-worktree'
 
     try {
       await createPtySubprocess({
@@ -166,9 +166,9 @@ describe('createPtySubprocess', () => {
         cols: 80,
         rows: 24,
         env: {
-          ORCA_PANE_KEY: 'child-tab:child-leaf',
-          ORCA_TAB_ID: 'child-tab',
-          ORCA_WORKTREE_ID: 'child-worktree'
+          MANTA_PANE_KEY: 'child-tab:child-leaf',
+          MANTA_TAB_ID: 'child-tab',
+          MANTA_WORKTREE_ID: 'child-worktree'
         }
       })
     } finally {
@@ -182,9 +182,9 @@ describe('createPtySubprocess', () => {
     }
 
     const env = spawnMock.mock.calls.at(-1)?.[2].env
-    expect(env.ORCA_PANE_KEY).toBe('child-tab:child-leaf')
-    expect(env.ORCA_TAB_ID).toBe('child-tab')
-    expect(env.ORCA_WORKTREE_ID).toBe('child-worktree')
+    expect(env.MANTA_PANE_KEY).toBe('child-tab:child-leaf')
+    expect(env.MANTA_TAB_ID).toBe('child-tab')
+    expect(env.MANTA_WORKTREE_ID).toBe('child-worktree')
   })
 
   it('does not inherit ELECTRON_RUN_AS_NODE from the daemon process env', async () => {
@@ -215,9 +215,9 @@ describe('createPtySubprocess', () => {
     const saved = Object.fromEntries(
       [...LEGACY_TERMINAL_SHIM_ENV_KEYS, 'PATH'].map((key) => [key, process.env[key]])
     )
-    process.env.ORCA_ENABLE_GIT_ATTRIBUTION = '1'
-    process.env.ORCA_ATTRIBUTION_SHIM_DIR = '/tmp/orca-terminal-attribution/posix'
-    process.env.PATH = `/tmp/orca-terminal-attribution/posix${delimiter}/usr/bin`
+    process.env.MANTA_ENABLE_GIT_ATTRIBUTION = '1'
+    process.env.MANTA_ATTRIBUTION_SHIM_DIR = '/tmp/manta-terminal-attribution/posix'
+    process.env.PATH = `/tmp/manta-terminal-attribution/posix${delimiter}/usr/bin`
 
     try {
       await createPtySubprocess({ sessionId: 'test', cols: 80, rows: 24 })
@@ -239,8 +239,8 @@ describe('createPtySubprocess', () => {
   })
 
   it('does not inherit NODE_ENV from the daemon process env', async () => {
-    // Why: a dev-mode Orca forks the daemon with NODE_ENV=development; leaking
-    // Orca's build mode into user shells breaks `next build` and Vitest.
+    // Why: a dev-mode Manta forks the daemon with NODE_ENV=development; leaking
+    // Manta's build mode into user shells breaks `next build` and Vitest.
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const previous = process.env.NODE_ENV
@@ -303,15 +303,15 @@ describe('createPtySubprocess', () => {
       LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH
     }
     Object.defineProperty(process, 'platform', { value: 'linux' })
-    process.env.APPIMAGE = '/data/apps/orca.appimage'
-    process.env.APPDIR = '/tmp/.mount_orca123'
-    process.env.ARGV0 = '/data/apps/orca.appimage'
+    process.env.APPIMAGE = '/data/apps/manta.appimage'
+    process.env.APPDIR = '/tmp/.mount_manta123'
+    process.env.ARGV0 = '/data/apps/manta.appimage'
     process.env.OWD = '/home/user/project'
-    process.env.APPIMAGE_LIBRARY_PATH = '/tmp/.mount_orca123/usr/lib'
-    process.env.PATH = ['/tmp/.mount_orca123', '/tmp/.mount_orca123/usr/sbin', '/usr/bin'].join(
+    process.env.APPIMAGE_LIBRARY_PATH = '/tmp/.mount_manta123/usr/lib'
+    process.env.PATH = ['/tmp/.mount_manta123', '/tmp/.mount_manta123/usr/sbin', '/usr/bin'].join(
       delimiter
     )
-    process.env.LD_LIBRARY_PATH = ['/tmp/.mount_orca123/usr/lib', '/opt/audio/lib'].join(delimiter)
+    process.env.LD_LIBRARY_PATH = ['/tmp/.mount_manta123/usr/lib', '/opt/audio/lib'].join(delimiter)
 
     try {
       await createPtySubprocess({ sessionId: 'test', cols: 80, rows: 24 })
@@ -341,8 +341,8 @@ describe('createPtySubprocess', () => {
   it('does not inherit parent agent hook endpoint for development hook env', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
-    const previousEndpoint = process.env.ORCA_AGENT_HOOK_ENDPOINT
-    process.env.ORCA_AGENT_HOOK_ENDPOINT = '/tmp/stale-endpoint.env'
+    const previousEndpoint = process.env.MANTA_AGENT_HOOK_ENDPOINT
+    process.env.MANTA_AGENT_HOOK_ENDPOINT = '/tmp/stale-endpoint.env'
 
     try {
       await createPtySubprocess({
@@ -350,32 +350,32 @@ describe('createPtySubprocess', () => {
         cols: 80,
         rows: 24,
         env: {
-          ORCA_AGENT_HOOK_ENV: 'development',
-          ORCA_AGENT_HOOK_PORT: '1234',
-          ORCA_AGENT_HOOK_TOKEN: 'token',
-          ORCA_AGENT_HOOK_VERSION: '1'
+          MANTA_AGENT_HOOK_ENV: 'development',
+          MANTA_AGENT_HOOK_PORT: '1234',
+          MANTA_AGENT_HOOK_TOKEN: 'token',
+          MANTA_AGENT_HOOK_VERSION: '1'
         }
       })
     } finally {
       if (previousEndpoint === undefined) {
-        delete process.env.ORCA_AGENT_HOOK_ENDPOINT
+        delete process.env.MANTA_AGENT_HOOK_ENDPOINT
       } else {
-        process.env.ORCA_AGENT_HOOK_ENDPOINT = previousEndpoint
+        process.env.MANTA_AGENT_HOOK_ENDPOINT = previousEndpoint
       }
     }
 
     const env = spawnMock.mock.calls.at(-1)?.[2].env
-    expect(env.ORCA_AGENT_HOOK_ENDPOINT).toBeUndefined()
-    expect(env.ORCA_AGENT_HOOK_ENV).toBe('development')
-    expect(env.ORCA_AGENT_HOOK_PORT).toBe('1234')
-    expect(env.ORCA_AGENT_HOOK_TOKEN).toBe('token')
+    expect(env.MANTA_AGENT_HOOK_ENDPOINT).toBeUndefined()
+    expect(env.MANTA_AGENT_HOOK_ENV).toBe('development')
+    expect(env.MANTA_AGENT_HOOK_PORT).toBe('1234')
+    expect(env.MANTA_AGENT_HOOK_TOKEN).toBe('token')
   })
 
   it('preserves explicit development agent hook endpoint files', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
-    const previousEndpoint = process.env.ORCA_AGENT_HOOK_ENDPOINT
-    process.env.ORCA_AGENT_HOOK_ENDPOINT = '/tmp/stale-endpoint.env'
+    const previousEndpoint = process.env.MANTA_AGENT_HOOK_ENDPOINT
+    process.env.MANTA_AGENT_HOOK_ENDPOINT = '/tmp/stale-endpoint.env'
 
     try {
       await createPtySubprocess({
@@ -383,26 +383,26 @@ describe('createPtySubprocess', () => {
         cols: 80,
         rows: 24,
         env: {
-          ORCA_AGENT_HOOK_ENV: 'development',
-          ORCA_AGENT_HOOK_PORT: '1234',
-          ORCA_AGENT_HOOK_TOKEN: 'token',
-          ORCA_AGENT_HOOK_VERSION: '1',
-          ORCA_AGENT_HOOK_ENDPOINT: '/tmp/fresh-endpoint.env'
+          MANTA_AGENT_HOOK_ENV: 'development',
+          MANTA_AGENT_HOOK_PORT: '1234',
+          MANTA_AGENT_HOOK_TOKEN: 'token',
+          MANTA_AGENT_HOOK_VERSION: '1',
+          MANTA_AGENT_HOOK_ENDPOINT: '/tmp/fresh-endpoint.env'
         }
       })
     } finally {
       if (previousEndpoint === undefined) {
-        delete process.env.ORCA_AGENT_HOOK_ENDPOINT
+        delete process.env.MANTA_AGENT_HOOK_ENDPOINT
       } else {
-        process.env.ORCA_AGENT_HOOK_ENDPOINT = previousEndpoint
+        process.env.MANTA_AGENT_HOOK_ENDPOINT = previousEndpoint
       }
     }
 
     const env = spawnMock.mock.calls.at(-1)?.[2].env
-    expect(env.ORCA_AGENT_HOOK_ENDPOINT).toBe('/tmp/fresh-endpoint.env')
-    expect(env.ORCA_AGENT_HOOK_ENV).toBe('development')
-    expect(env.ORCA_AGENT_HOOK_PORT).toBe('1234')
-    expect(env.ORCA_AGENT_HOOK_TOKEN).toBe('token')
+    expect(env.MANTA_AGENT_HOOK_ENDPOINT).toBe('/tmp/fresh-endpoint.env')
+    expect(env.MANTA_AGENT_HOOK_ENV).toBe('development')
+    expect(env.MANTA_AGENT_HOOK_PORT).toBe('1234')
+    expect(env.MANTA_AGENT_HOOK_TOKEN).toBe('token')
   })
 
   it('passes custom env to spawned process', async () => {
@@ -432,8 +432,8 @@ describe('createPtySubprocess', () => {
       env: {
         SHELL: '/bin/bash',
         TERM: 'screen-256color',
-        PATH: '/tmp/orca-agent-teams-bin:/usr/bin',
-        ORCA_AGENT_TEAMS_TEAM_ID: 'team-test'
+        PATH: '/tmp/manta-agent-teams-bin:/usr/bin',
+        MANTA_AGENT_TEAMS_TEAM_ID: 'team-test'
       },
       envToDelete: ['TERM_PROGRAM']
     })
@@ -441,7 +441,7 @@ describe('createPtySubprocess', () => {
     const lastCall = spawnMock.mock.calls.at(-1)!
     expect(lastCall[2].name).toBe('screen-256color')
     expect(lastCall[2].env.TERM).toBe('screen-256color')
-    expect(lastCall[2].env.PATH.split(':')[0]).toBe('/tmp/orca-agent-teams-bin')
+    expect(lastCall[2].env.PATH.split(':')[0]).toBe('/tmp/manta-agent-teams-bin')
     expect(lastCall[2].env.TERM_PROGRAM).toBeUndefined()
   })
 
@@ -459,8 +459,8 @@ describe('createPtySubprocess', () => {
         // Why: buildPtyHostEnv collapses Windows PATH onto one spelling before the daemon wire;
         // the daemon then spreads its own block underneath and can re-mint the other one.
         env: {
-          Path: '/tmp/orca-agent-teams-bin:/usr/bin',
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test'
+          Path: '/tmp/manta-agent-teams-bin:/usr/bin',
+          MANTA_AGENT_TEAMS_TEAM_ID: 'team-test'
         }
       })
     } finally {
@@ -471,7 +471,7 @@ describe('createPtySubprocess', () => {
 
     const env = spawnMock.mock.calls.at(-1)![2].env
     expect(Object.keys(env).filter((key) => /^path$/i.test(key))).toEqual(['Path'])
-    expect(env.Path.split(':')[0]).toBe('/tmp/orca-agent-teams-bin')
+    expect(env.Path.split(':')[0]).toBe('/tmp/manta-agent-teams-bin')
   })
 
   it('keeps the daemon `PATH` block when the requested env has no path key', async () => {

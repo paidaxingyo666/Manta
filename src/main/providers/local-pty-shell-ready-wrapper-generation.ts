@@ -1,5 +1,5 @@
 /**
- * Generates the zsh ZDOTDIR tree and bash rcfile Orca launches shells with.
+ * Generates the zsh ZDOTDIR tree and bash rcfile Manta launches shells with.
  *
  * Why: the wrappers emit an OSC 777 marker after startup files finish, which the
  * readiness scanner watches for before a startup command is written.
@@ -23,44 +23,44 @@ import {
 let didEnsureShellReadyWrappers = false
 
 export function getZshShellReadyRcfileContent(): string {
-  return `# Orca zsh shell-ready wrapper
+  return `# Manta zsh shell-ready wrapper
 ${getZshStartupFileSourceBlock({
   fileName: '.zshrc',
   interactiveOnly: true,
   skipWhenHomeIsCurrentZdotdir: true
 })}
-__orca_restore_agent_teams_path() {
-  [[ -n "\${ORCA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
+__manta_restore_agent_teams_path() {
+  [[ -n "\${MANTA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
   case "$PATH" in
-    "\${ORCA_AGENT_TEAMS_SHIM_DIR}"|"\${ORCA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
+    "\${MANTA_AGENT_TEAMS_SHIM_DIR}"|"\${MANTA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
   esac
-  export PATH="\${ORCA_AGENT_TEAMS_SHIM_DIR}:$PATH"
+  export PATH="\${MANTA_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
-[[ ! -o login ]] && __orca_restore_agent_teams_path
+[[ ! -o login ]] && __manta_restore_agent_teams_path
 if [[ ! -o login ]]; then
   # Why: ~/.zshrc can export the user's default OpenCode config after spawn.
-  [[ -n "\${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${ORCA_OPENCODE_CONFIG_DIR}"
-[[ -n "\${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${ORCA_MIMOCODE_HOME}"
+  [[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
+[[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
   ${getPosixOmpShellWrapper()}
-  # Why: Codex must keep using Orca's runtime CODEX_HOME after rc files.
-  [[ -n "\${ORCA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${ORCA_CODEX_HOME}"
+  # Why: Codex must keep using Manta's runtime CODEX_HOME after rc files.
+  [[ -n "\${MANTA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${MANTA_CODEX_HOME}"
   ${getPosixCodexShellLaunchPreflight()}
 fi
-__orca_osc133_precmd() {
+__manta_osc133_precmd() {
   local exit_code=$?
-  if [[ -n "\${__orca_in_command:-}" ]]; then
+  if [[ -n "\${__manta_in_command:-}" ]]; then
     printf "\\033]133;D;%s\\007" "$exit_code"
-    unset __orca_in_command
+    unset __manta_in_command
   fi
   printf "\\033]133;A\\007"
 }
-__orca_osc133_preexec() {
+__manta_osc133_preexec() {
   printf "\\033]133;C\\007"
-  __orca_in_command=1
+  __manta_in_command=1
 }
-# Why: prepend so Orca captures $? before user prompt hooks can overwrite it.
-precmd_functions=(__orca_osc133_precmd \${precmd_functions[@]})
-preexec_functions=(__orca_osc133_preexec \${preexec_functions[@]})
+# Why: prepend so Manta captures $? before user prompt hooks can overwrite it.
+precmd_functions=(__manta_osc133_precmd \${precmd_functions[@]})
+preexec_functions=(__manta_osc133_preexec \${preexec_functions[@]})
 if [[ ! -o login ]]; then
 ${getZshFinalZdotdirRestoreBlock()}
 fi
@@ -77,25 +77,25 @@ export function ensureShellReadyWrappersAt(root = getShellReadyWrapperRoot()): v
   const bashDir = `${root}/bash`
 
   const zshEnv = getZshEnvTemplate(zshDir)
-  const zshProfile = `# Orca zsh shell-ready wrapper
+  const zshProfile = `# Manta zsh shell-ready wrapper
 ${getZshStartupFileSourceBlock({ fileName: '.zprofile' })}
 `
   const zshRc = getZshShellReadyRcfileContent()
-  const zshLogin = `# Orca zsh shell-ready wrapper
+  const zshLogin = `# Manta zsh shell-ready wrapper
 ${getZshStartupFileSourceBlock({ fileName: '.zlogin', interactiveOnly: true })}
-__orca_restore_agent_teams_path() {
-  [[ -n "\${ORCA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
+__manta_restore_agent_teams_path() {
+  [[ -n "\${MANTA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0
   case "$PATH" in
-    "\${ORCA_AGENT_TEAMS_SHIM_DIR}"|"\${ORCA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
+    "\${MANTA_AGENT_TEAMS_SHIM_DIR}"|"\${MANTA_AGENT_TEAMS_SHIM_DIR}:"*) return 0 ;;
   esac
-  export PATH="\${ORCA_AGENT_TEAMS_SHIM_DIR}:$PATH"
+  export PATH="\${MANTA_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
-__orca_restore_agent_teams_path
+__manta_restore_agent_teams_path
 # Why: .zlogin is the final login startup file before the prompt is shown.
-[[ -n "\${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${ORCA_OPENCODE_CONFIG_DIR}"
-[[ -n "\${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${ORCA_MIMOCODE_HOME}"
+[[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
+[[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
 ${getPosixOmpShellWrapper()}
-[[ -n "\${ORCA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${ORCA_CODEX_HOME}"
+[[ -n "\${MANTA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${MANTA_CODEX_HOME}"
 ${getPosixCodexShellLaunchPreflight()}
 ${getZshShellReadyMarkerRegistrationBlock(SHELL_READY_MARKER_ESCAPED)}
 ${getZshFinalZdotdirRestoreBlock()}

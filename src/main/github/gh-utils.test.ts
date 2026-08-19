@@ -63,45 +63,45 @@ describe('github owner/repo resolution', () => {
       owner: 'acme',
       repo: 'widgets'
     })
-    expect(parseGitHubOwnerRepo('git@github.com:stablyai/orca.git')).toEqual({
+    expect(parseGitHubOwnerRepo('git@github.com:stablyai/manta.git')).toEqual({
       owner: 'stablyai',
-      repo: 'orca'
+      repo: 'manta'
     })
     expect(parseGitHubOwnerRepo('git@github.com:TheBoredTeam/boring.notch.git')).toEqual({
       owner: 'TheBoredTeam',
       repo: 'boring.notch'
     })
-    expect(parseGitHubOwnerRepo('ssh://git@github.com/stablyai/orca.git')).toEqual({
+    expect(parseGitHubOwnerRepo('ssh://git@github.com/stablyai/manta.git')).toEqual({
       owner: 'stablyai',
-      repo: 'orca'
+      repo: 'manta'
     })
-    expect(parseGitHubOwnerRepo('ssh://git@ssh.github.com:443/stablyai/orca.git')).toEqual({
+    expect(parseGitHubOwnerRepo('ssh://git@ssh.github.com:443/stablyai/manta.git')).toEqual({
       owner: 'stablyai',
-      repo: 'orca'
+      repo: 'manta'
     })
-    expect(parseGitHubOwnerRepo('git@example.com:stablyai/orca.git')).toBeNull()
+    expect(parseGitHubOwnerRepo('git@example.com:stablyai/manta.git')).toBeNull()
   })
 
   it('parses GitHub Enterprise host identity', () => {
-    expect(parseGitHubRemoteIdentity('https://ghe.acme.internal/acme/orca.git')).toEqual({
+    expect(parseGitHubRemoteIdentity('https://ghe.acme.internal/acme/manta.git')).toEqual({
       host: 'ghe.acme.internal',
       owner: 'acme',
-      repo: 'orca'
+      repo: 'manta'
     })
-    expect(parseGitHubRemoteIdentity('git@ghe.acme.internal:acme/orca.git')).toEqual({
+    expect(parseGitHubRemoteIdentity('git@ghe.acme.internal:acme/manta.git')).toEqual({
       host: 'ghe.acme.internal',
       owner: 'acme',
-      repo: 'orca'
+      repo: 'manta'
     })
-    expect(parseGitHubOwnerRepo('https://ghe.acme.internal/acme/orca.git')).toBeNull()
+    expect(parseGitHubOwnerRepo('https://ghe.acme.internal/acme/manta.git')).toBeNull()
   })
 
   it('prefers upstream for PR owner/repo resolution (#7331)', async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:stablyai/orca.git\n'
+      stdout: 'git@github.com:stablyai/manta.git\n'
     })
 
-    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'stablyai', repo: 'orca' })
+    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'stablyai', repo: 'manta' })
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'get-url', 'upstream'], {
       cwd: '/repo',
       timeout: 30_000
@@ -124,10 +124,10 @@ describe('github owner/repo resolution', () => {
 
   it('prefers upstream for issue owner/repo resolution', async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:stablyai/orca.git\n'
+      stdout: 'git@github.com:stablyai/manta.git\n'
     })
 
-    await expect(getIssueOwnerRepo('/repo')).resolves.toEqual({ owner: 'stablyai', repo: 'orca' })
+    await expect(getIssueOwnerRepo('/repo')).resolves.toEqual({ owner: 'stablyai', repo: 'manta' })
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'get-url', 'upstream'], {
       cwd: '/repo',
       timeout: 30_000
@@ -136,10 +136,10 @@ describe('github owner/repo resolution', () => {
 
   it('falls back to origin when upstream is missing or non-GitHub', async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/orca.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/manta.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/manta.git\n' })
 
-    await expect(getIssueOwnerRepo('/repo')).resolves.toEqual({ owner: 'fork', repo: 'orca' })
+    await expect(getIssueOwnerRepo('/repo')).resolves.toEqual({ owner: 'fork', repo: 'manta' })
     expect(gitExecFileAsyncMock).toHaveBeenNthCalledWith(1, ['remote', 'get-url', 'upstream'], {
       cwd: '/repo',
       timeout: 30_000
@@ -152,16 +152,16 @@ describe('github owner/repo resolution', () => {
 
   it('does not mix origin and upstream cache entries for the same repo path', async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/orca.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@github.com:stablyai/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/manta.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:stablyai/manta.git\n' })
 
     await expect(getOwnerRepoForRemote('/repo', 'origin')).resolves.toEqual({
       owner: 'fork',
-      repo: 'orca'
+      repo: 'manta'
     })
     await expect(getOwnerRepoForRemote('/repo', 'upstream')).resolves.toEqual({
       owner: 'stablyai',
-      repo: 'orca'
+      repo: 'manta'
     })
   })
 
@@ -196,21 +196,21 @@ describe('github owner/repo resolution', () => {
         if (args[2] === 'upstream') {
           throw new Error("fatal: No such remote 'upstream'")
         }
-        return { stdout: 'git@github.com:stablyai/orca.git\n', stderr: '' }
+        return { stdout: 'git@github.com:stablyai/manta.git\n', stderr: '' }
       })
     }
     getSshGitProviderMock.mockReturnValue(sshProvider)
 
-    await expect(getOwnerRepo('/home/user/orca', 'openclaw-2')).resolves.toEqual({
+    await expect(getOwnerRepo('/home/user/manta', 'openclaw-2')).resolves.toEqual({
       owner: 'stablyai',
-      repo: 'orca'
+      repo: 'manta'
     })
 
     expect(gitExecFileAsyncMock).not.toHaveBeenCalled()
     expect(getSshGitProviderMock).toHaveBeenCalledWith('openclaw-2')
     expect(sshProvider.exec).toHaveBeenCalledWith(
       ['remote', 'get-url', 'origin'],
-      '/home/user/orca',
+      '/home/user/manta',
       {
         signal: expect.any(AbortSignal)
       }
@@ -219,13 +219,16 @@ describe('github owner/repo resolution', () => {
 
   it('keeps local and SSH owner/repo cache entries separate for the same path', async () => {
     const sshProvider = {
-      exec: vi.fn().mockResolvedValue({ stdout: 'git@github.com:remote/orca.git\n', stderr: '' })
+      exec: vi.fn().mockResolvedValue({ stdout: 'git@github.com:remote/manta.git\n', stderr: '' })
     }
-    gitExecFileAsyncMock.mockResolvedValueOnce({ stdout: 'git@github.com:local/orca.git\n' })
+    gitExecFileAsyncMock.mockResolvedValueOnce({ stdout: 'git@github.com:local/manta.git\n' })
     getSshGitProviderMock.mockReturnValue(sshProvider)
 
-    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'local', repo: 'orca' })
-    await expect(getOwnerRepo('/repo', 'ssh-1')).resolves.toEqual({ owner: 'remote', repo: 'orca' })
+    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'local', repo: 'manta' })
+    await expect(getOwnerRepo('/repo', 'ssh-1')).resolves.toEqual({
+      owner: 'remote',
+      repo: 'manta'
+    })
   })
 
   it('keeps local host and local WSL owner/repo cache entries separate for the same path', async () => {
@@ -236,20 +239,20 @@ describe('github owner/repo resolution', () => {
         }
         return {
           stdout: options.wslDistro
-            ? 'git@github.com:wsl/orca.git\n'
-            : 'git@github.com:host/orca.git\n'
+            ? 'git@github.com:wsl/manta.git\n'
+            : 'git@github.com:host/manta.git\n'
         }
       }
     )
 
-    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'host', repo: 'orca' })
+    await expect(getOwnerRepo('/repo')).resolves.toEqual({ owner: 'host', repo: 'manta' })
     await expect(getOwnerRepo('/repo', null, { wslDistro: 'Ubuntu' })).resolves.toEqual({
       owner: 'wsl',
-      repo: 'orca'
+      repo: 'manta'
     })
     await expect(getOwnerRepo('/repo', null, { wslDistro: 'Ubuntu' })).resolves.toEqual({
       owner: 'wsl',
-      repo: 'orca'
+      repo: 'manta'
     })
 
     // 2 runtimes x (1 upstream miss + 1 origin hit); repeat WSL call is cached.
@@ -270,9 +273,9 @@ describe('github owner/repo resolution', () => {
     try {
       nowSpy.mockReturnValue(1_000)
       gitExecFileAsyncMock.mockResolvedValueOnce({
-        stdout: 'git@github.com:stablyai/orca.git\n'
+        stdout: 'git@github.com:stablyai/manta.git\n'
       })
-      await expect(getOwnerRepo('/repo-a')).resolves.toEqual({ owner: 'stablyai', repo: 'orca' })
+      await expect(getOwnerRepo('/repo-a')).resolves.toEqual({ owner: 'stablyai', repo: 'manta' })
       expect(_getOwnerRepoCacheSize()).toBe(1)
 
       nowSpy.mockReturnValue(32_000)
@@ -290,23 +293,23 @@ describe('github owner/repo resolution', () => {
 
   it('resolves PR candidates as upstream then origin and de-dupes matching slugs', async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@github.com:Acme/Orca.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@github.com:acme/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:Acme/Manta.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:acme/manta.git\n' })
 
     await expect(resolvePRRepositoryCandidates('/repo')).resolves.toEqual({
-      candidates: [{ owner: 'Acme', repo: 'Orca' }],
-      headRepo: { owner: 'acme', repo: 'orca' }
+      candidates: [{ owner: 'Acme', repo: 'Manta' }],
+      headRepo: { owner: 'acme', repo: 'manta' }
     })
   })
 
   it('ignores non-GitHub upstream while keeping origin as the head repo', async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@example.com:Acme/Orca.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@example.com:Acme/Manta.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:fork/manta.git\n' })
 
     await expect(resolvePRRepositoryCandidates('/repo')).resolves.toEqual({
-      candidates: [{ owner: 'fork', repo: 'orca' }],
-      headRepo: { owner: 'fork', repo: 'orca' }
+      candidates: [{ owner: 'fork', repo: 'manta' }],
+      headRepo: { owner: 'fork', repo: 'manta' }
     })
   })
 
@@ -314,16 +317,16 @@ describe('github owner/repo resolution', () => {
     vi.useFakeTimers()
     try {
       gitExecFileAsyncMock
-        .mockResolvedValueOnce({ stdout: 'git@github.com:old/orca.git\n' })
-        .mockResolvedValueOnce({ stdout: 'git@github.com:new/orca.git\n' })
+        .mockResolvedValueOnce({ stdout: 'git@github.com:old/manta.git\n' })
+        .mockResolvedValueOnce({ stdout: 'git@github.com:new/manta.git\n' })
 
       await expect(getOwnerRepoForRemote('/repo', 'origin')).resolves.toEqual({
         owner: 'old',
-        repo: 'orca'
+        repo: 'manta'
       })
       await expect(getOwnerRepoForRemote('/repo', 'origin')).resolves.toEqual({
         owner: 'old',
-        repo: 'orca'
+        repo: 'manta'
       })
       expect(gitExecFileAsyncMock).toHaveBeenCalledTimes(1)
 
@@ -331,7 +334,7 @@ describe('github owner/repo resolution', () => {
 
       await expect(getOwnerRepoForRemote('/repo', 'origin')).resolves.toEqual({
         owner: 'new',
-        repo: 'orca'
+        repo: 'manta'
       })
       expect(gitExecFileAsyncMock).toHaveBeenCalledTimes(2)
     } finally {
@@ -340,7 +343,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('keeps local missing-remote probes cached beyond the short positive TTL', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     await writeFile(join(repoPath, '.git', 'config'), '[core]\n\trepositoryformatversion = 0\n')
     vi.useFakeTimers()
@@ -360,7 +363,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('treats stderr-only missing-remote errors as stable negatives', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     await writeFile(join(repoPath, '.git', 'config'), '[core]\n\trepositoryformatversion = 0\n')
     vi.useFakeTimers()
@@ -383,7 +386,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('does not apply the long negative TTL when git remote get-url fails transiently', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     await writeFile(join(repoPath, '.git', 'config'), '[core]\n\trepositoryformatversion = 0\n')
     try {
@@ -403,7 +406,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('invalidates a cached local missing remote when git config changes', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const configPath = join(repoPath, '.git', 'config')
     await writeFile(configPath, '[core]\n\trepositoryformatversion = 0\n')
@@ -433,7 +436,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('invalidates a cached local missing remote when an included git config changes', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const includedConfigPath = join(repoPath, 'remote.inc')
     await writeFile(
@@ -467,7 +470,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('tracks included git config paths with inline comments', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const includedConfigPath = join(repoPath, 'remote-with-comment.inc')
     await writeFile(
@@ -501,7 +504,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('tracks included git config paths when section headers have inline comments', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const includedConfigPath = join(repoPath, 'section-comment.inc')
     await writeFile(
@@ -535,7 +538,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('tracks quoted included git config paths with inline comments', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const includedConfigPath = join(repoPath, 'quoted-comment.inc')
     await writeFile(
@@ -569,7 +572,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('tracks quoted included git config paths with comment characters in the path', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     await mkdir(join(repoPath, '.git'))
     const includeDir = join(repoPath, 'include # hash')
     await mkdir(includeDir)
@@ -605,7 +608,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('includes per-worktree git config in local config signatures', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     const gitDir = join(repoPath, '.git')
     await mkdir(gitDir)
     await writeFile(join(gitDir, 'config'), '[core]\n\trepositoryformatversion = 0\n')
@@ -631,7 +634,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('includes linked worktree config in local config signatures', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     const commonGitDir = join(repoPath, 'common-git')
     const worktreeGitDir = join(commonGitDir, 'worktrees', 'feature')
     const worktreePath = join(repoPath, 'feature-worktree')
@@ -662,7 +665,7 @@ describe('github owner/repo resolution', () => {
   })
 
   it('tracks includeIf paths with comment markers inside quoted section headers', async () => {
-    const repoPath = await mkdtemp(join(tmpdir(), 'orca-gh-utils-'))
+    const repoPath = await mkdtemp(join(tmpdir(), 'manta-gh-utils-'))
     const gitDir = join(repoPath, '.git')
     const includedDir = join(repoPath, 'Work #1')
     const includedConfigPath = join(includedDir, 'included.gitconfig')
@@ -707,33 +710,33 @@ describe('resolveIssueSource', () => {
 
   it("'auto' + upstream exists → upstream, fellBack=false", async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:stablyai/orca.git\n'
+      stdout: 'git@github.com:stablyai/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', 'auto')).resolves.toEqual({
-      source: { owner: 'stablyai', repo: 'orca' },
+      source: { owner: 'stablyai', repo: 'manta' },
       fellBack: false
     })
   })
 
   it("'auto' + no upstream → origin, fellBack=false", async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/orca.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@github.com:solo/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/manta.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:solo/manta.git\n' })
 
     await expect(resolveIssueSource('/repo', 'auto')).resolves.toEqual({
-      source: { owner: 'solo', repo: 'orca' },
+      source: { owner: 'solo', repo: 'manta' },
       fellBack: false
     })
   })
 
   it("'upstream' + upstream exists → upstream, fellBack=false", async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:stablyai/orca.git\n'
+      stdout: 'git@github.com:stablyai/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', 'upstream')).resolves.toEqual({
-      source: { owner: 'stablyai', repo: 'orca' },
+      source: { owner: 'stablyai', repo: 'manta' },
       fellBack: false
     })
   })
@@ -742,10 +745,10 @@ describe('resolveIssueSource', () => {
     // No upstream remote configured — the first call fails.
     gitExecFileAsyncMock
       .mockRejectedValueOnce(new Error('fatal: No such remote'))
-      .mockResolvedValueOnce({ stdout: 'git@github.com:solo/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@github.com:solo/manta.git\n' })
 
     await expect(resolveIssueSource('/repo', 'upstream')).resolves.toEqual({
-      source: { owner: 'solo', repo: 'orca' },
+      source: { owner: 'solo', repo: 'manta' },
       fellBack: true
     })
   })
@@ -753,11 +756,11 @@ describe('resolveIssueSource', () => {
   it("'origin' + upstream exists → origin (ignores upstream), fellBack=false", async () => {
     // Only one gh call should happen — origin. Upstream is never consulted.
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:fork/orca.git\n'
+      stdout: 'git@github.com:fork/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', 'origin')).resolves.toEqual({
-      source: { owner: 'fork', repo: 'orca' },
+      source: { owner: 'fork', repo: 'manta' },
       fellBack: false
     })
     expect(gitExecFileAsyncMock).toHaveBeenCalledTimes(1)
@@ -769,22 +772,22 @@ describe('resolveIssueSource', () => {
 
   it("'origin' + no upstream → origin, fellBack=false", async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:solo/orca.git\n'
+      stdout: 'git@github.com:solo/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', 'origin')).resolves.toEqual({
-      source: { owner: 'solo', repo: 'orca' },
+      source: { owner: 'solo', repo: 'manta' },
       fellBack: false
     })
   })
 
   it('undefined preference is treated identically to auto', async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@github.com:stablyai/orca.git\n'
+      stdout: 'git@github.com:stablyai/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', undefined)).resolves.toEqual({
-      source: { owner: 'stablyai', repo: 'orca' },
+      source: { owner: 'stablyai', repo: 'manta' },
       fellBack: false
     })
   })
@@ -798,7 +801,7 @@ describe('gh error classification', () => {
   // per-repo selector to an origin fork that has issues disabled.
   it('classifies "has disabled issues" stderr as issues_disabled', () => {
     const stderr =
-      "Command failed: gh issue list --limit 36 --json number,title,state --repo brennanb2025/orca --state open\nthe 'brennanb2025/orca' repository has disabled issues"
+      "Command failed: gh issue list --limit 36 --json number,title,state --repo brennanb2025/manta --state open\nthe 'brennanb2025/manta' repository has disabled issues"
     expect(classifyGhError(stderr)).toEqual({
       type: 'issues_disabled',
       message: 'Issues are disabled on this repository.'

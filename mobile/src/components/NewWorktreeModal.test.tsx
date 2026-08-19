@@ -52,10 +52,10 @@ const LOCAL_HOST_LABEL = getLocalExecutionHostLabel('darwin')
 const repos = [
   {
     id: 'repo-1',
-    displayName: 'orca',
-    path: '/src/orca',
+    displayName: 'manta',
+    path: '/src/manta',
     kind: 'git',
-    upstream: { owner: 'stablyai', repo: 'orca' }
+    upstream: { owner: 'stablyai', repo: 'manta' }
   }
 ]
 
@@ -109,10 +109,10 @@ describe('NewWorktreeModal project targets', () => {
 
     expect(sendRequest).toHaveBeenCalledWith('repo.list')
     expect(pickerItems(renderer, 'Project')).toEqual([
-      expect.objectContaining({ label: 'orca', detail: 'stablyai/orca' })
+      expect.objectContaining({ label: 'manta', detail: 'stablyai/manta' })
     ])
     expect(pickerItems(renderer, 'Run on')).toEqual([
-      expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/orca' })
+      expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/manta' })
     ])
   })
 
@@ -121,11 +121,11 @@ describe('NewWorktreeModal project targets', () => {
       ...repos,
       {
         id: 'repo-2',
-        displayName: 'orca',
-        path: '/home/dev/orca',
+        displayName: 'manta',
+        path: '/home/dev/manta',
         connectionId: 'build-server',
         kind: 'git',
-        upstream: { owner: 'stablyai', repo: 'orca' }
+        upstream: { owner: 'stablyai', repo: 'manta' }
       }
     ]
     const client = {
@@ -154,13 +154,13 @@ describe('NewWorktreeModal project targets', () => {
     })
 
     expect(pickerItems(renderer, 'Project')).toEqual([
-      expect.objectContaining({ label: 'orca', detail: 'stablyai/orca' })
+      expect.objectContaining({ label: 'manta', detail: 'stablyai/manta' })
     ])
     expect(pickerItems(renderer, 'Run on')).toEqual([
-      expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/orca' }),
+      expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/manta' }),
       expect.objectContaining({
         label: 'SSH · build-server',
-        detail: '/home/dev/orca'
+        detail: '/home/dev/manta'
       })
     ])
   })

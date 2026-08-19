@@ -85,7 +85,7 @@ export class SkillInstallHandler {
     } = {}
   ) {
     this.homeDirectory = options.homeDirectory ?? homedir()
-    this.stateDirectory = options.stateDirectory ?? join(this.homeDirectory, '.orca')
+    this.stateDirectory = options.stateDirectory ?? join(this.homeDirectory, '.manta')
     this.uploads = new SkillUploadSessionService(
       join(this.stateDirectory, 'skill-installs', 'remote-uploads')
     )

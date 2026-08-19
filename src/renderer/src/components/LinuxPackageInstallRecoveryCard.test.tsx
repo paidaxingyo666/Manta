@@ -5,14 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LinuxPackageInstallRecovery } from '../../../shared/update-status-types'
 import { LinuxPackageInstallRecoveryCard } from './LinuxPackageInstallRecoveryCard'
 
-const RELEASE_URL = 'https://github.com/stablyai/orca/releases/tag/v1.4.200'
+const RELEASE_URL = 'https://github.com/paidaxingyo666/Manta/releases/tag/v1.4.200'
 const DIAGNOSTIC = 'pkexec: no polkit authentication agent found'
-const INSTALL_COMMAND = 'sudo apt-get install -y /tmp/orca-updates/orca_1.4.200_amd64.deb'
-const PACKAGE_FILE_NAME = 'orca_1.4.200_amd64.deb'
-const SUMMARY = 'Orca downloaded the update but could not install the system package automatically.'
+const INSTALL_COMMAND = 'sudo apt-get install -y /tmp/manta-updates/manta_1.4.200_amd64.deb'
+const PACKAGE_FILE_NAME = 'manta_1.4.200_amd64.deb'
+const SUMMARY =
+  'Manta downloaded the update but could not install the system package automatically.'
 const COPIED_NOTE =
   `Command copied. Run it in a system terminal to install ${PACKAGE_FILE_NAME}, ` +
-  'then quit and reopen Orca.'
+  'then quit and reopen Manta.'
 const INSTRUCTIONS = {
   ok: true as const,
   command: INSTALL_COMMAND,
@@ -148,9 +149,9 @@ describe('LinuxPackageInstallRecoveryCard copy', () => {
     expect(screen.getByText('Automatic Install Failed')).toBeTruthy()
     expect(screen.getByText(SUMMARY)).toBeTruthy()
     expect(
-      screen.getByText(/a system terminal on the computer where Orca is installed/)
+      screen.getByText(/a system terminal on the computer where Manta is installed/)
     ).toBeTruthy()
-    expect(screen.getByText(/quit and reopen Orca to run the new version/)).toBeTruthy()
+    expect(screen.getByText(/quit and reopen Manta to run the new version/)).toBeTruthy()
 
     expect(button('Copy Install Command')).toBeTruthy()
     expect(button('Try Automatic Install Again')).toBeTruthy()
@@ -437,10 +438,10 @@ describe('LinuxPackageInstallRecoveryCard details', () => {
     fireEvent.click(button('Show details'))
 
     // Why: the digest check is a point-in-time claim, not a standing guarantee about the file.
-    const detail = screen.getByText(/Orca checks the downloaded file against the release metadata/)
+    const detail = screen.getByText(/Manta checks the downloaded file against the release metadata/)
     expect(detail.textContent).toContain('at the moment it builds this command')
     expect(detail.textContent).toContain(
-      'The system package itself is not signature-checked, and Orca cannot vouch for the file ' +
+      'The system package itself is not signature-checked, and Manta cannot vouch for the file ' +
         'after that point.'
     )
   })

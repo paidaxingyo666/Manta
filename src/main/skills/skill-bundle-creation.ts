@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import {
   AGENT_PLUGIN_MANIFEST_PATH,
   AGENT_PLUGIN_SCHEMA_V1,
-  ORCA_SKILL_BUNDLE_MANIFEST_PATH,
+  MANTA_SKILL_BUNDLE_MANIFEST_PATH,
   computeSkillBundleDigest,
   parseAgentPluginManifest,
   parseSkillBundleManifest,
@@ -161,7 +161,7 @@ async function createSkillBundleArchiveUnobserved(
     foldedNames.add(foldedName)
   }
   await dependencies.afterSourcesObserved?.()
-  const workDirectory = await mkdtemp(join(tmpdir(), 'orca-skill-bundle-'))
+  const workDirectory = await mkdtemp(join(tmpdir(), 'manta-skill-bundle-'))
   const skillsRoot = join(workDirectory, 'skills')
   const verificationDirectory = join(workDirectory, 'verification')
   const temporaryArchive = `${input.archivePath}.${process.pid}.${randomUUID()}.tmp`
@@ -204,7 +204,7 @@ async function createSkillBundleArchiveUnobserved(
         bytes: pluginBytes
       },
       {
-        path: ORCA_SKILL_BUNDLE_MANIFEST_PATH,
+        path: MANTA_SKILL_BUNDLE_MANIFEST_PATH,
         size: manifestBytes.length,
         executable: false,
         bytes: manifestBytes

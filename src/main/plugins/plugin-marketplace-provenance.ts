@@ -20,7 +20,7 @@ export function validateMarketplaceProvenance(
   for (const entry of fetched.marketplace.plugins) {
     if (isReservedPluginIdentity(entry.id) && !isOfficialOrganizationGitSource(entry.source.url)) {
       throw new Error(
-        `reserved plugin identity ${entry.id} must resolve to the stablyai organization`
+        `reserved plugin identity ${entry.id} must resolve to the paidaxingyo666 organization`
       )
     }
   }

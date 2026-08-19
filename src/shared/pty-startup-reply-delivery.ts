@@ -2,10 +2,10 @@ import type { PtyOwnerBackend } from './pty-owner-backend'
 import type { PtySlaveEchoProbe } from './pty-slave-line-discipline-echo'
 
 // Why this module exists: a startup color reply is written to the PTY master, so
-// whatever line discipline sits between Orca and the querying program can echo it
+// whatever line discipline sits between Manta and the querying program can echo it
 // straight back out as ordinary output (#12112). ConPTY echoes it with the ESC
 // bytes stripped; a POSIX tty echoes it while the querying program is still cooked.
-// A program that queries before clearing ECHO loses that race if Orca answers
+// A program that queries before clearing ECHO loses that race if Manta answers
 // inside the query's own turn, so on POSIX the write waits until the slave's ECHO
 // bit is observably clear, and recognized echo shapes cover what remains.
 //
@@ -201,7 +201,7 @@ export class PtyStartupReplyDelivery {
       return false
     }
     if (!defersWrite(this.ownerBackend)) {
-      // Why: ConPTY answers the query itself unless Orca beats it in this turn.
+      // Why: ConPTY answers the query itself unless Manta beats it in this turn.
       return this.writeReply(reply)
     }
     if (this.pendingWrites.length >= MAX_TRACKED_REPLIES) {
@@ -283,7 +283,7 @@ export class PtyStartupReplyDelivery {
 
   /**
    * Why poll rather than write on the first turn: one deferred turn cannot prove the
-   * querying program left cooked mode, and the leak happens precisely because Orca
+   * querying program left cooked mode, and the leak happens precisely because Manta
    * answered before it got there. Waiting costs the program nothing it is not already
    * spending — it is blocked on this reply either way.
    */

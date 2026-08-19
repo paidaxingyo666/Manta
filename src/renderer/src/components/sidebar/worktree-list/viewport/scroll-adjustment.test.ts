@@ -18,7 +18,7 @@ import type { Row } from '../grouping/row-types'
 const repo: Repo = {
   id: 'repo-1',
   path: '/repo',
-  displayName: 'orca',
+  displayName: 'manta',
   badgeColor: '#000',
   addedAt: 1
 }

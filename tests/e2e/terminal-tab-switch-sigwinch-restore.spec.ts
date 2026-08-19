@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { stageNodeScriptForTerminal } from './helpers/run-node-script-in-terminal'
 import {
   ensureTerminalVisible,
@@ -58,7 +58,7 @@ function buildSigwinchResetProbeCommand(): string {
     'setInterval(()=>{},1000)'
   ].join(';')
   // Why: delivered via a temp file — `node -e` quoting is not PowerShell-safe (#8521).
-  return stageNodeScriptForTerminal(script, { prefix: 'orca-sigwinch-probe' }).command
+  return stageNodeScriptForTerminal(script, { prefix: 'manta-sigwinch-probe' }).command
 }
 
 function buildSigwinchResetProbeSnapshot(label: string): string {
@@ -214,67 +214,67 @@ async function setHiddenSnapshotOverride(
 
 test.describe('Terminal tab switch SIGWINCH restore', () => {
   test('keeps an alternate-screen Codex viewport after hidden snapshot replay', async ({
-    orcaPage
+    mantaPage
   }) => {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
-    await ensureTerminalVisible(orcaPage)
-    await waitForActiveTerminalManager(orcaPage, 30_000)
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+    await ensureTerminalVisible(mantaPage)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
 
-    const shellTabId = (await getActiveTabId(orcaPage))!
+    const shellTabId = (await getActiveTabId(mantaPage))!
     const agentTabId = await createAgentMarkedTerminalTab(
-      orcaPage,
+      mantaPage,
       'codex',
       buildSigwinchResetProbeCommand()
     )
-    await waitForActiveTerminalManager(orcaPage, 30_000)
-    await waitForPanePtyIdOnTab(orcaPage, agentTabId)
+    await waitForActiveTerminalManager(mantaPage, 30_000)
+    await waitForPanePtyIdOnTab(mantaPage, agentTabId)
     await expect
-      .poll(() => getTerminalContent(orcaPage, 8_000), {
+      .poll(() => getTerminalContent(mantaPage, 8_000), {
         timeout: 10_000,
         message: 'SIGWINCH probe TUI did not paint its initial scrolled page'
       })
       .toContain(`VISIBLE_BEFORE_SWITCH page=${SIGWINCH_PROBE_PAGE}`)
-    const paneIdentity = await readPaneIdentityOnTab(orcaPage, agentTabId)
-    await sendToTerminal(orcaPage, paneIdentity.ptyId, 'ARM_SIGWINCH_PROBE\n')
+    const paneIdentity = await readPaneIdentityOnTab(mantaPage, agentTabId)
+    await sendToTerminal(mantaPage, paneIdentity.ptyId, 'ARM_SIGWINCH_PROBE\n')
     await expect
-      .poll(() => getTerminalContent(orcaPage, 8_000), {
+      .poll(() => getTerminalContent(mantaPage, 8_000), {
         timeout: 10_000,
         message: 'SIGWINCH probe TUI did not arm after startup settled'
       })
       .toContain(`ARMED_BEFORE_SWITCH page=${SIGWINCH_PROBE_PAGE}`)
-    await orcaPage.waitForTimeout(1_200)
-    const armedContentAfterSettle = await getTerminalContent(orcaPage, 8_000)
+    await mantaPage.waitForTimeout(1_200)
+    const armedContentAfterSettle = await getTerminalContent(mantaPage, 8_000)
     expect(armedContentAfterSettle).not.toContain('TOP_AFTER_SIGWINCH page=0')
     const paneKey = `${agentTabId}:${paneIdentity.leafId}`
 
-    await activateTerminalTab(orcaPage, shellTabId)
+    await activateTerminalTab(mantaPage, shellTabId)
     const hiddenFrame = ['\x1b[?2026h', 'hidden probe frame', '\x1b[?2026l'].join('\r\n')
-    await resetHiddenOutputDebug(orcaPage)
-    await injectPaneData(orcaPage, paneKey, hiddenFrame, {
+    await resetHiddenOutputDebug(mantaPage)
+    await injectPaneData(mantaPage, paneKey, hiddenFrame, {
       seq: hiddenFrame.length,
       rawLength: hiddenFrame.length
     })
 
     await expect
-      .poll(async () => (await readHiddenOutputDebug(orcaPage))?.hiddenRendererSkipCount ?? 0, {
+      .poll(async () => (await readHiddenOutputDebug(mantaPage))?.hiddenRendererSkipCount ?? 0, {
         timeout: 5_000,
         message: 'Codex probe hidden output did not take the skipped renderer path'
       })
       .toBeGreaterThan(0)
-    await setHiddenSnapshotOverride(orcaPage, paneIdentity.ptyId, {
+    await setHiddenSnapshotOverride(mantaPage, paneIdentity.ptyId, {
       data: buildSigwinchResetProbeSnapshot('RESTORED_SNAPSHOT'),
       cols: paneIdentity.cols,
       rows: paneIdentity.rows,
       seq: hiddenFrame.length
     })
 
-    await activateTerminalTab(orcaPage, agentTabId)
+    await activateTerminalTab(mantaPage, agentTabId)
 
     await expect
       .poll(
         async () => {
-          const content = await getTerminalContent(orcaPage, 8_000)
+          const content = await getTerminalContent(mantaPage, 8_000)
           if (content.includes('TOP_AFTER_SIGWINCH page=0')) {
             return 'top'
           }
@@ -288,8 +288,8 @@ test.describe('Terminal tab switch SIGWINCH restore', () => {
         }
       )
       .toBe('snapshot')
-    await orcaPage.waitForTimeout(1_200)
-    const contentAfterSettle = await getTerminalContent(orcaPage, 8_000)
+    await mantaPage.waitForTimeout(1_200)
+    const contentAfterSettle = await getTerminalContent(mantaPage, 8_000)
     expect(contentAfterSettle).toContain(`RESTORED_SNAPSHOT page=${SIGWINCH_PROBE_PAGE}`)
     expect(contentAfterSettle).not.toContain('TOP_AFTER_SIGWINCH page=0')
   })

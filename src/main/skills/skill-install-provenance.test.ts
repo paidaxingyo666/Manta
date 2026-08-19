@@ -8,7 +8,7 @@ describe('managed skill install receipts', () => {
   let root = ''
 
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), 'orca-skill-receipts-test-'))
+    root = await mkdtemp(join(tmpdir(), 'manta-skill-receipts-test-'))
   })
 
   afterEach(async () => {

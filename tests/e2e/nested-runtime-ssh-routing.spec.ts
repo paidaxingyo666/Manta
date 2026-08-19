@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test as base } from './helpers/orca-app'
+import { expect, test as base } from './helpers/manta-app'
 import {
   cleanupDockerSshRelayTarget,
   dockerSshRelayRepoSentinel,
@@ -46,7 +46,7 @@ import {
 import { worktreeRow, worktreeRowSurface } from './worktree-row-locators'
 
 const isDockerNestedRuntimeRun =
-  process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1' && process.env.ORCA_E2E_WEB_CLIENT === '1'
+  process.env.MANTA_E2E_NESTED_RUNTIME_SSH === '1' && process.env.MANTA_E2E_WEB_CLIENT === '1'
 
 const test = base.extend<{ proxyJumpFixture: NestedRuntimeProxyJumpFixture | null }>({
   // oxlint-disable-next-line no-empty-pattern -- Playwright fixture callbacks require object destructuring here.
@@ -62,16 +62,16 @@ const test = base.extend<{ proxyJumpFixture: NestedRuntimeProxyJumpFixture | nul
       fixture.dispose()
     }
   },
-  orcaAppExtraEnv: async ({ proxyJumpFixture }, provideFixture) => {
+  mantaAppExtraEnv: async ({ proxyJumpFixture }, provideFixture) => {
     await provideFixture(
-      proxyJumpFixture ? { ORCA_SYSTEM_SSH_PATH: proxyJumpFixture.wrapperPath } : {}
+      proxyJumpFixture ? { MANTA_SYSTEM_SSH_PATH: proxyJumpFixture.wrapperPath } : {}
     )
   }
 })
 
 test.skip(
   !isDockerNestedRuntimeRun,
-  'Run with ORCA_E2E_NESTED_RUNTIME_SSH=1 and ORCA_E2E_WEB_CLIENT=1'
+  'Run with MANTA_E2E_NESTED_RUNTIME_SSH=1 and MANTA_E2E_WEB_CLIENT=1'
 )
 test.skip(process.platform === 'win32', 'ProxyJump fixture requires POSIX OpenSSH tooling')
 
@@ -82,7 +82,7 @@ async function installProxyJumpFixture(
 ): Promise<void> {
   fixture.writeConfig(
     [
-      'Host orca-e2e-jump',
+      'Host manta-e2e-jump',
       '  HostName 127.0.0.1',
       `  Port ${jump.port}`,
       '  User root',
@@ -91,13 +91,13 @@ async function installProxyJumpFixture(
       '  StrictHostKeyChecking no',
       '  UserKnownHostsFile /dev/null',
       '',
-      'Host orca-e2e-destination',
+      'Host manta-e2e-destination',
       `  HostName ${destination.containerIp}`,
       '  Port 22',
       '  User root',
       `  IdentityFile ${destination.identityFile}`,
       '  IdentitiesOnly yes',
-      '  ProxyJump orca-e2e-jump',
+      '  ProxyJump manta-e2e-jump',
       '  StrictHostKeyChecking no',
       '  UserKnownHostsFile /dev/null',
       ''
@@ -501,7 +501,7 @@ async function activatePairedTerminalTab(
 test.describe.configure({ mode: 'serial' })
 
 test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', async ({
-  orcaPage,
+  mantaPage,
   electronApp,
   proxyJumpFixture
 }, testInfo) => {
@@ -519,12 +519,12 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
     sshTarget = startDockerSshRelayTarget(testInfo)
     proxyJumpHost = startDockerSshRelayTarget(testInfo)
     proxyJumpDestination = startDockerSshRelayTarget(testInfo)
-    const remote = await connectDockerSshRelayTarget(orcaPage, sshTarget)
+    const remote = await connectDockerSshRelayTarget(mantaPage, sshTarget)
     await installProxyJumpFixture(proxyJumpFixture, proxyJumpDestination, proxyJumpHost)
-    const proxyJumpRemote = await connectDockerSshRelayTarget(orcaPage, proxyJumpDestination, {
+    const proxyJumpRemote = await connectDockerSshRelayTarget(mantaPage, proxyJumpDestination, {
       viaProxyJump: true
     })
-    const localRepoId = await orcaPage.evaluate(() => {
+    const localRepoId = await mantaPage.evaluate(() => {
       const repo = window.__store?.getState().repos.find((candidate) => !candidate.connectionId)
       if (!repo) {
         throw new Error('HUB local repo is unavailable')
@@ -533,22 +533,22 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
     })
 
     const hubLocalWorktreeId = await assertHubTerminal(
-      orcaPage,
+      mantaPage,
       localRepoId,
       `HUB_DESKTOP_LOCAL_${Date.now()}`
     )
     const hubSshWorktreeId = await assertHubTerminal(
-      orcaPage,
+      mantaPage,
       remote.repoId,
       `HUB_DESKTOP_SSH_${Date.now()}`
     )
     const hubProxyJumpWorktreeId = await assertHubTerminal(
-      orcaPage,
+      mantaPage,
       proxyJumpRemote.repoId,
       `HUB_DESKTOP_PROXY_JUMP_${Date.now()}`
     )
 
-    const webOffer = await createRuntimeDesktopPairingOffer(orcaPage)
+    const webOffer = await createRuntimeDesktopPairingOffer(mantaPage)
     webClient = await launchPairedWebClient(electronApp, webOffer)
     await assertWebTerminal(webClient.page, hubLocalWorktreeId, `HUB_WEB_LOCAL_${Date.now()}`)
     await assertPairedWebLocalFilesystemMutations(webClient.page, hubLocalWorktreeId)
@@ -565,7 +565,7 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
       proxyJumpDestination
     )
 
-    const offerA = await createRuntimeDesktopPairingOffer(orcaPage)
+    const offerA = await createRuntimeDesktopPairingOffer(mantaPage)
     clientA = await launchPairedElectronClient(offerA, testInfo, 'Nested SSH HUB A')
 
     const localRoute = await assertInteractiveTerminal(
@@ -640,7 +640,7 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
       }
     })
 
-    const offerB = await createRuntimeDesktopPairingOffer(orcaPage)
+    const offerB = await createRuntimeDesktopPairingOffer(mantaPage)
     clientB = await launchPairedElectronClient(offerB, testInfo, 'Nested SSH HUB B')
     const secondLocalRoute = await assertInteractiveTerminal(
       clientB,
@@ -700,9 +700,9 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
     expect(reloadedSshRoute.localSshTargetIds).toEqual([])
     expect(reloadedSshRoute.runtimeOwnerEnvironmentId).toBe(clientA.environmentId)
 
-    await disconnectDockerSshRelayTarget(orcaPage, remote.targetId)
+    await disconnectDockerSshRelayTarget(mantaPage, remote.targetId)
     await assertRuntimeSshStatus(clientA, remote.targetId, 'disconnected')
-    await reconnectDisconnectedDockerSshRelayTarget(orcaPage, remote.targetId)
+    await reconnectDisconnectedDockerSshRelayTarget(mantaPage, remote.targetId)
     await assertRuntimeSshStatus(clientA, remote.targetId, 'connected')
     const reconnectedSshRoute = await assertInteractiveTerminal(
       clientA,
@@ -713,7 +713,7 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
     expect(reconnectedSshRoute.localSshTargetIds).toEqual([])
 
     await restartProxyJumpDetachedRelay(
-      orcaPage,
+      mantaPage,
       { label: 'direct', target: sshTarget, targetId: remote.targetId },
       {
         label: 'ProxyJump',
@@ -760,7 +760,7 @@ test('routes HUB desktop, web, and two paired desktops through HUB-owned SSH', a
     await assertRuntimeTerminalClose(clientA, convergedRelayRouteOnA.ptyId)
     await assertPairedPtyAbsent(clientB, restartedRelayRouteOnB.ptyId)
 
-    const rePairOffer = await createRuntimeDesktopPairingOffer(orcaPage)
+    const rePairOffer = await createRuntimeDesktopPairingOffer(mantaPage)
     await rePairPairedElectronClient(clientA, rePairOffer, 'Nested SSH HUB A re-paired')
     await assertRuntimeSshStatus(clientA, remote.targetId, 'connected')
     const rePairedSshRoute = await assertInteractiveTerminal(

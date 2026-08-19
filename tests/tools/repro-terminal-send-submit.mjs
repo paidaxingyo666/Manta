@@ -73,7 +73,7 @@ function runCommand(command, args, options = {}) {
   })
 }
 
-async function callOrca(cli, args, cwd) {
+async function callManta(cli, args, cwd) {
   const command = cli.endsWith('.mjs') ? process.execPath : cli
   const prefixArgs = cli.endsWith('.mjs') ? [cli] : []
   const { stdout } = await runCommand(command, [...prefixArgs, ...args, '--json'], { cwd })
@@ -98,7 +98,7 @@ async function readReport(reportPath, timeoutMs) {
 
 async function closeTerminal(cli, handle, cwd) {
   try {
-    await callOrca(cli, ['terminal', 'close', '--terminal', handle], cwd)
+    await callManta(cli, ['terminal', 'close', '--terminal', handle], cwd)
   } catch {
     // Best-effort fixture cleanup.
   }
@@ -108,7 +108,7 @@ async function waitForWorktreeSelector(cli, repoId, cwd) {
   const deadline = Date.now() + 10_000
   const expectedPath = path.resolve(cwd)
   while (Date.now() < deadline) {
-    const listed = await callOrca(cli, ['worktree', 'list', '--repo', `id:${repoId}`], cwd)
+    const listed = await callManta(cli, ['worktree', 'list', '--repo', `id:${repoId}`], cwd)
     const worktree = listed.worktrees?.find((candidate) => {
       const candidatePath = path.resolve(candidate.path)
       return process.platform === 'win32'
@@ -139,12 +139,12 @@ async function createFakeCodexCommand(tempDir, args) {
 }
 
 async function parentMain() {
-  const cli = argValue('cli', process.env.ORCA_REPRO_CLI ?? 'orca')
+  const cli = argValue('cli', process.env.MANTA_REPRO_CLI ?? 'manta')
   const cwd = path.resolve(argValue('worktree', process.cwd()))
   const timeoutMs = parsePositiveInteger('timeout-ms', DEFAULT_TIMEOUT_MS)
-  const tempDir = path.join(tmpdir(), `orca-terminal-send-submit-${process.pid}-${Date.now()}`)
+  const tempDir = path.join(tmpdir(), `manta-terminal-send-submit-${process.pid}-${Date.now()}`)
   const reportPath = path.resolve(argValue('report', path.join(tempDir, 'report.json')))
-  const marker = argValue('marker', `ORCA_TERMINAL_SEND_${process.pid}_${Date.now()}`)
+  const marker = argValue('marker', `MANTA_TERMINAL_SEND_${process.pid}_${Date.now()}`)
   const prompt = `${marker} ${'slow composer payload '.repeat(24)}`
   await mkdir(tempDir, { recursive: true })
 
@@ -160,13 +160,13 @@ async function parentMain() {
       String(timeoutMs),
       ...(process.platform === 'win32' ? ['--allow-unframed-paste'] : [])
     ]))
-  const added = await callOrca(cli, ['repo', 'add', '--path', cwd], cwd)
+  const added = await callManta(cli, ['repo', 'add', '--path', cwd], cwd)
   const repoId = added.repo?.id
   if (!repoId) {
     throw new Error('repo add returned no id')
   }
   const worktreeSelector = await waitForWorktreeSelector(cli, repoId, cwd)
-  const created = await callOrca(
+  const created = await callManta(
     cli,
     [
       'terminal',
@@ -186,12 +186,12 @@ async function parentMain() {
   }
 
   try {
-    await callOrca(
+    await callManta(
       cli,
       ['terminal', 'wait', '--terminal', handle, '--for', 'tui-idle', '--timeout-ms', '10000'],
       cwd
     )
-    await callOrca(
+    await callManta(
       cli,
       ['terminal', 'send', '--terminal', handle, '--text', prompt, '--enter'],
       cwd
@@ -200,7 +200,7 @@ async function parentMain() {
     let rescueSent = false
     if (!report) {
       rescueSent = true
-      await callOrca(cli, ['terminal', 'send', '--terminal', handle, '--enter'], cwd)
+      await callManta(cli, ['terminal', 'send', '--terminal', handle, '--enter'], cwd)
       report = await readReport(reportPath, timeoutMs)
     }
     if (!report) {
@@ -263,7 +263,7 @@ async function fakeAgentMain() {
       receivedBytes: Buffer.byteLength(input, 'utf8')
     }
     await writeFile(reportPath, JSON.stringify(report, null, 2))
-    process.stdout.write(`\nORCA_TERMINAL_SEND_REPORT ${report.contractOk ? 'ok' : 'rescued'}\n`)
+    process.stdout.write(`\nMANTA_TERMINAL_SEND_REPORT ${report.contractOk ? 'ok' : 'rescued'}\n`)
     process.exit(report.contractOk ? 0 : 7)
   }
 

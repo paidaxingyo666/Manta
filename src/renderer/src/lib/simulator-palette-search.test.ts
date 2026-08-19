@@ -166,7 +166,7 @@ describe('simulator-palette-search', () => {
       {
         tab: makeTab({ label: 'Phone Preview' }),
         worktree: makeWorktree({ displayName: 'Checkout Flow' }),
-        repoName: 'orca/mobile-client',
+        repoName: 'manta/mobile-client',
         worktreeSortIndex: 1,
         isCurrentTab: false,
         isCurrentWorktree: false
@@ -177,7 +177,7 @@ describe('simulator-palette-search', () => {
       start: 0,
       end: 8
     })
-    expect(searchSimulatorTabs(entries, 'client')[0]?.repoRange).toEqual({ start: 12, end: 18 })
+    expect(searchSimulatorTabs(entries, 'client')[0]?.repoRange).toEqual({ start: 13, end: 19 })
   })
 
   it('marks the current simulator tab from the active unified group', () => {
@@ -233,7 +233,7 @@ describe('simulator-palette-search', () => {
           displayName: undefined as unknown as string,
           branch: 'refs/heads/feature/mobile-emulator'
         }),
-        repoName: 'orca',
+        repoName: 'manta',
         worktreeSortIndex: 0,
         isCurrentTab: false,
         isCurrentWorktree: false
@@ -255,7 +255,7 @@ describe('simulator-palette-search', () => {
           branch: undefined as unknown as string,
           path: '/repos/design-review'
         }),
-        repoName: 'orca',
+        repoName: 'manta',
         worktreeSortIndex: 0,
         isCurrentTab: false,
         isCurrentWorktree: false

@@ -3,7 +3,7 @@
 export type StatsEventType =
   | 'agent_start' // agent PTY detected via OSC title
   | 'agent_stop' // agent PTY exited or went idle
-  | 'pr_created' // PR opened from an Orca worktree
+  | 'pr_created' // PR opened from a Manta worktree
 
 export type StatsEvent = {
   type: StatsEventType

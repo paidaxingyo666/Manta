@@ -3,7 +3,7 @@ import { existsSyncMock, accessSyncMock, spawnMock } from './pty-ipc-mock-regist
 import { posixOnlyIt, makeDeferred } from './pty-ipc-test-constants'
 import { setupPtyIpcSuite } from './pty-ipc-test-harness'
 import { isHiddenRendererPty } from './pty-hidden-delivery-gate'
-import { OrcaRuntimeService } from '../runtime/orca-runtime'
+import { MantaRuntimeService } from '../runtime/manta-runtime'
 import { registerPtyHandlers } from './pty'
 
 vi.mock('electron', () => import('./pty-ipc-mock-registry').then((m) => m.electronModuleMock()))
@@ -34,7 +34,7 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
-vi.mock('../cli/linux-terminal-orca-cli-shim', () =>
+vi.mock('../cli/linux-terminal-manta-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
 vi.mock('../memory/pty-registry', () =>
@@ -195,7 +195,7 @@ describe('registerPtyHandlers', () => {
     it('answers DA1 from the model on the first chunk of a hidden-at-spawn PTY', async () => {
       // End-to-end through a REAL runtime: spawn-marked → first chunk dropped → emulator parses query → replies; main answers, the renderer never saw the bytes.
       const daemon = installObservableDaemonTestProvider()
-      const runtime = new OrcaRuntimeService({
+      const runtime = new MantaRuntimeService({
         getRepo: () => undefined,
         getRepos: () => [],
         addRepo: () => {},
@@ -411,9 +411,9 @@ describe('registerPtyHandlers', () => {
         expect.objectContaining({
           cwd: '/tmp',
           env: expect.objectContaining({
-            ORCA_OPENCODE_CONFIG_DIR: '/tmp/orca-opencode-config',
-            ORCA_SHELL_READY_MARKER: '0',
-            ZDOTDIR: '/tmp/orca-user-data/shell-ready/zsh'
+            MANTA_OPENCODE_CONFIG_DIR: '/tmp/manta-opencode-config',
+            MANTA_SHELL_READY_MARKER: '0',
+            ZDOTDIR: '/tmp/manta-user-data/shell-ready/zsh'
           })
         })
       )

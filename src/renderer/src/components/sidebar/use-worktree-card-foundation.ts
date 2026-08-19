@@ -172,7 +172,7 @@ export function useWorktreeCardFoundation({
   const runtimeHostLabel = runtimeHostId
     ? (getHostDisplayLabelOverrides(settings).get(runtimeHostId) ?? runtimeEnvironmentName)
     : null
-  // Why: runtime ("Orca server") hosts get the same disconnected dimming as SSH when their environment has no live status.
+  // Why: runtime ("Manta server") hosts get the same disconnected dimming as SSH when their environment has no live status.
   const isRuntimeDisconnected = useAppStore((s) => {
     if (!runtimeOwnerEnvironmentId) {
       return false

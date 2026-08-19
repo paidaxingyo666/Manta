@@ -12,8 +12,8 @@ vi.mock('./client', () => ({
 import { resolveGitHubPrStartPoint } from './pr-start-point'
 import { reviewHeadRemoteRefComponent } from '../../shared/review-head-tracking-ref'
 
-const ORIGIN_URL = 'git@github.com:acme/orca.git'
-const durablePrLocalRef = `refs/orca/pull/${reviewHeadRemoteRefComponent('origin', ORIGIN_URL)}/42`
+const ORIGIN_URL = 'git@github.com:acme/manta.git'
+const durablePrLocalRef = `refs/manta/pull/${reviewHeadRemoteRefComponent('origin', ORIGIN_URL)}/42`
 const durablePrRev = `${durablePrLocalRef}^{commit}`
 
 describe('resolveGitHubPrStartPoint compare base', () => {

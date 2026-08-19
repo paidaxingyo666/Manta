@@ -283,7 +283,7 @@ export async function launchWorkItemDirect(args: LaunchWorkItemDirectArgs): Prom
         launchPlatform,
         nativeChatTranscriptIsLocalReadable:
           isNativeChatTranscriptLocalReadable(launchConnectionId),
-        // Why: SSH hosts run the plain `orca` shim, so the Linux-only `orca-ide`
+        // Why: SSH hosts run the plain `manta` shim, so the Linux-only `manta-ide`
         // rename must not be applied for remote launches.
         isRemote: typeof launchConnectionId === 'string'
       }))

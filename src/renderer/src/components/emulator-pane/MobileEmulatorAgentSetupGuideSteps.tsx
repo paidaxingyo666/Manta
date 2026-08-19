@@ -1,11 +1,11 @@
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store'
-import { ORCA_CLI_SKILL_INSTALL_COMMAND } from '@/lib/agent-feature-install-commands'
+import { MANTA_CLI_SKILL_INSTALL_COMMAND } from '@/lib/agent-feature-install-commands'
 import { useActiveProjectSkillRuntime } from '@/hooks/useActiveProjectSkillRuntime'
 import {
   AGENT_SKILL_CLI_PREREQUISITE_NOTICE,
-  ensureOrcaCliAvailableForAgentSkillTerminal
+  ensureMantaCliAvailableForAgentSkillTerminal
 } from '@/lib/agent-skill-cli-prerequisite'
 import { AgentSkillSetupPanel } from '../settings/AgentSkillSetupPanel'
 import { buildSkillCommandForRuntime } from '../settings/CliSkillRuntimeSetup'
@@ -32,8 +32,8 @@ export function MobileEmulatorAgentSetupGuideSteps({
   const activeSkillRuntime = useActiveProjectSkillRuntime()
   // Why: skill detection here scans the local host only, so keep building host
   // commands; routing them to a WSL runtime would install where we never look.
-  const skillInstallCommand = buildSkillCommandForRuntime(ORCA_CLI_SKILL_INSTALL_COMMAND)
-  const terminalWorktreeId = `mobile-emulator-${worktreeId}-orca-cli-skill-terminal`
+  const skillInstallCommand = buildSkillCommandForRuntime(MANTA_CLI_SKILL_INSTALL_COMMAND)
+  const terminalWorktreeId = `mobile-emulator-${worktreeId}-manta-cli-skill-terminal`
   const showSkillPreInstallNotice = shouldShowMobileEmulatorSkillPreInstallNotice({
     cliEnabled: setup.cliEnabled,
     cliSkillInstalled: setup.cliSkillInstalled
@@ -54,13 +54,13 @@ export function MobileEmulatorAgentSetupGuideSteps({
           <p className="text-sm font-medium">
             {translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.9b49d892e3',
-              'Enable Orca CLI'
+              'Enable Manta CLI'
             )}
           </p>
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.3d8dc52c93',
-              'Registers the orca command for emulator control in agent shells.'
+              'Registers the manta command for emulator control in agent shells.'
             )}
           </p>
           {setup.cliInstallStatus?.commandPath && setup.cliEnabled ? (
@@ -83,7 +83,7 @@ export function MobileEmulatorAgentSetupGuideSteps({
             <p className="text-[11px] leading-snug text-muted-foreground">
               {translate(
                 'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.3d34423e88',
-                'Registering the Orca CLI'
+                'Registering the Manta CLI'
               )}{' '}
               {setup.cliInstallStatus?.commandPath ? (
                 <code className="rounded bg-muted px-1 py-0.5">
@@ -140,7 +140,7 @@ export function MobileEmulatorAgentSetupGuideSteps({
           <p className="text-sm font-medium">
             {translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.21f5687c07',
-              'Orca CLI skill'
+              'Manta CLI skill'
             )}
           </p>
           <AgentSkillSetupPanel
@@ -149,20 +149,20 @@ export function MobileEmulatorAgentSetupGuideSteps({
             className="min-w-0"
             title={translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.21f5687c07',
-              'Orca CLI skill'
+              'Manta CLI skill'
             )}
             description={translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.64fb057667',
-              'Teaches agents the orca emulator commands for this worktree.'
+              'Teaches agents the manta emulator commands for this worktree.'
             )}
             command={skillInstallCommand}
             terminalTitle={translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.5c59ea96ca',
-              'Mobile emulator Orca CLI skill setup'
+              'Mobile emulator Manta CLI skill setup'
             )}
             terminalAriaLabel={translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.bff5341ac3',
-              'Mobile emulator Orca CLI skill install terminal'
+              'Mobile emulator Manta CLI skill install terminal'
             )}
             terminalWorktreeId={terminalWorktreeId}
             terminalShellOverride={activeSkillRuntime.terminalShellOverride}
@@ -177,11 +177,11 @@ export function MobileEmulatorAgentSetupGuideSteps({
             }
             openingHint={translate(
               'auto.components.emulator.pane.MobileEmulatorAgentSetupGuideSteps.3941719a56',
-              'Checking Orca CLI before opening skill setup.'
+              'Checking Manta CLI before opening skill setup.'
             )}
             onBeforeOpenTerminal={async () => {
               recordFeatureInteraction('mobile-emulator-agent-setup')
-              await ensureOrcaCliAvailableForAgentSkillTerminal()
+              await ensureMantaCliAvailableForAgentSkillTerminal()
             }}
             onRecheck={() => {
               recordFeatureInteraction('mobile-emulator-agent-setup')

@@ -42,7 +42,7 @@ describe('CodexRuntimeHomeService', () => {
     teardownRuntimeHomeTest()
   })
 
-  it('returns the Orca-managed runtime home for Codex launch and rate-limit preparation', async () => {
+  it('returns the Manta-managed runtime home for Codex launch and rate-limit preparation', async () => {
     const markerPath = join(
       testState.userDataDir,
       'codex-session-backfill',
@@ -170,15 +170,15 @@ describe('CodexRuntimeHomeService', () => {
       )
     }
     const previousCodexHome = process.env.CODEX_HOME
-    const previousOrcaCodexHome = process.env.ORCA_CODEX_HOME
+    const previousMantaCodexHome = process.env.MANTA_CODEX_HOME
     process.env.CODEX_HOME = getRuntimeCodexHomePath()
-    process.env.ORCA_CODEX_HOME = getRuntimeCodexHomePath()
+    process.env.MANTA_CODEX_HOME = getRuntimeCodexHomePath()
     try {
       // Background fetchers prefer ambient CODEX_HOME when passed null, so an
-      // explicit path proves nested Orca launches cannot poll the managed home.
+      // explicit path proves nested Manta launches cannot poll the managed home.
       expect(service.prepareForRateLimitFetch()).toBe(getSystemCodexHomePath())
       process.env.CODEX_HOME = getSystemCodexHomePath()
-      delete process.env.ORCA_CODEX_HOME
+      delete process.env.MANTA_CODEX_HOME
       expect(service.isHostSystemDefaultRealHome()).toBe(true)
       process.env.CODEX_HOME = join(testState.fakeHomeDir, 'user-owned-codex-home')
       expect(service.isHostSystemDefaultRealHome()).toBe(false)
@@ -189,10 +189,10 @@ describe('CodexRuntimeHomeService', () => {
       } else {
         process.env.CODEX_HOME = previousCodexHome
       }
-      if (previousOrcaCodexHome === undefined) {
-        delete process.env.ORCA_CODEX_HOME
+      if (previousMantaCodexHome === undefined) {
+        delete process.env.MANTA_CODEX_HOME
       } else {
-        process.env.ORCA_CODEX_HOME = previousOrcaCodexHome
+        process.env.MANTA_CODEX_HOME = previousMantaCodexHome
       }
     }
   })
@@ -254,7 +254,7 @@ describe('CodexRuntimeHomeService', () => {
     }
   })
 
-  it('resolves only Orca-owned homes used by live retained host shells', async () => {
+  it('resolves only Manta-owned homes used by live retained host shells', async () => {
     const accountHome = createManagedAuth(
       testState.userDataDir,
       'account-1',
@@ -262,7 +262,7 @@ describe('CodexRuntimeHomeService', () => {
     )
     const unownedHome = join(testState.fakeHomeDir, 'unowned-codex-home')
     mkdirSync(unownedHome, { recursive: true })
-    writeFileSync(join(unownedHome, '.orca-managed-home'), 'account-2\n', 'utf-8')
+    writeFileSync(join(unownedHome, '.manta-managed-home'), 'account-2\n', 'utf-8')
     writePaneRegistry({
       'shared-pane': { selectionKey: 'host', accountId: null, homeRoute: 'shared-home' },
       'account-pane': { selectionKey: 'host', accountId: 'account-1', homeRoute: 'account-home' },

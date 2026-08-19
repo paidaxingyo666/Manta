@@ -105,8 +105,8 @@ export const AGENT_KIND_VALUES = [
 export const agentKindSchema = z.enum(AGENT_KIND_VALUES)
 export type AgentKind = z.infer<typeof agentKindSchema>
 
-// Small set: only failures Orca's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
-// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Orca. See telemetry-plan.md §Defer per-incident error fields.
+// Small set: only failures Manta's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
+// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Manta. See telemetry-plan.md §Defer per-incident error fields.
 export const errorClassSchema = z.enum(['binary_not_found', 'paste_readiness_timeout', 'unknown'])
 export type ErrorClass = z.infer<typeof errorClassSchema>
 
@@ -232,7 +232,7 @@ export const featureWallExitActionSchema = z.enum(FEATURE_WALL_EXIT_ACTIONS)
 export const optInViaSchema = z.enum(['first_launch_banner', 'settings'])
 export type OptInVia = z.infer<typeof optInViaSchema>
 
-// Whitelist of settings emittable on `settings_changed`. `orca_channel` (build-time, not user-togglable) is absent.
+// Whitelist of settings emittable on `settings_changed`. `manta_channel` (build-time, not user-togglable) is absent.
 // The telemetry opt-in toggle is also absent — it fires dedicated `telemetry_opted_in/out` events; listing it would double-fire.
 type BooleanGlobalSettingsKey = {
   // Why: new toggles may be optional for legacy-settings compat but are still boolean once defaulted.
@@ -294,7 +294,7 @@ const repoAddedSchema = z
   })
   .strict()
 
-const appStarredOrcaSchema = z
+const appStarredMantaSchema = z
   .object({
     source: appStarSourceSchema,
     nth_repo_added: nthRepoAddedSchema
@@ -455,7 +455,7 @@ const daemonAuditEligibilitySchema = z.discriminatedUnion('exact_incarnation', [
 ])
 
 // Rollout signal for granting Codex hook trust via codex app-server RPCs
-// instead of Orca's self-computed trusted_hash. `fallback`/`verify_failed`
+// instead of Manta's self-computed trusted_hash. `fallback`/`verify_failed`
 // spikes mean the RPC lane is not taking; steady-state ledger skips are not
 // reported (they would only measure launch volume). `lane` attributes the
 // grant surface (real ~/.codex vs managed home); `error_class`/`verify_class`
@@ -538,22 +538,22 @@ const nativeChatSkillDiscoverySchema = z
 const telemetryOptedInSchema = z.object({ via: optInViaSchema }).strict()
 const telemetryOptedOutSchema = z.object({ via: optInViaSchema }).strict()
 
-const orcaCliFeatureTipSourceSchema = z.enum(['app_open', 'manual'])
-const orcaCliFeatureTipShownSchema = z
+const mantaCliFeatureTipSourceSchema = z.enum(['app_open', 'manual'])
+const mantaCliFeatureTipShownSchema = z
   .object({
-    source: orcaCliFeatureTipSourceSchema,
+    source: mantaCliFeatureTipSourceSchema,
     nth_repo_added: nthRepoAddedSchema
   })
   .strict()
-const orcaCliFeatureTipSetupClickedSchema = z
+const mantaCliFeatureTipSetupClickedSchema = z
   .object({
-    source: orcaCliFeatureTipSourceSchema,
+    source: mantaCliFeatureTipSourceSchema,
     nth_repo_added: nthRepoAddedSchema
   })
   .strict()
-const orcaCliFeatureTipSetupResultSchema = z
+const mantaCliFeatureTipSetupResultSchema = z
   .object({
-    source: orcaCliFeatureTipSourceSchema,
+    source: mantaCliFeatureTipSourceSchema,
     result: z.enum(['installed', 'needs_attention', 'dev_preview', 'failed']),
     nth_repo_added: nthRepoAddedSchema
   })
@@ -561,13 +561,13 @@ const orcaCliFeatureTipSetupResultSchema = z
 
 const cmdJPaletteFeatureTipShownSchema = z
   .object({
-    source: orcaCliFeatureTipSourceSchema,
+    source: mantaCliFeatureTipSourceSchema,
     nth_repo_added: nthRepoAddedSchema
   })
   .strict()
 const cmdJPaletteFeatureTipAcknowledgedSchema = z
   .object({
-    source: orcaCliFeatureTipSourceSchema,
+    source: mantaCliFeatureTipSourceSchema,
     nth_repo_added: nthRepoAddedSchema
   })
   .strict()
@@ -1423,7 +1423,7 @@ const directSshReconnectOperationSchema = z
 // Versioning: breaking changes (rename/re-mean/remove a key) need a new event name; in-place edits blend pre/post rows unmixably. Additive-optional fields are safe.
 export const eventSchemas = {
   app_opened: appOpenedSchema,
-  app_starred_orca: appStarredOrcaSchema,
+  app_starred_manta: appStarredMantaSchema,
   star_nag_outcome: starNagOutcomeEventSchema,
   feature_interaction_usage_bucket_reached: featureInteractionUsageBucketReachedSchema,
 
@@ -1466,9 +1466,9 @@ export const eventSchemas = {
   telemetry_opted_in: telemetryOptedInSchema,
   telemetry_opted_out: telemetryOptedOutSchema,
 
-  orca_cli_feature_tip_shown: orcaCliFeatureTipShownSchema,
-  orca_cli_feature_tip_setup_clicked: orcaCliFeatureTipSetupClickedSchema,
-  orca_cli_feature_tip_setup_result: orcaCliFeatureTipSetupResultSchema,
+  manta_cli_feature_tip_shown: mantaCliFeatureTipShownSchema,
+  manta_cli_feature_tip_setup_clicked: mantaCliFeatureTipSetupClickedSchema,
+  manta_cli_feature_tip_setup_result: mantaCliFeatureTipSetupResultSchema,
   cmd_j_palette_feature_tip_shown: cmdJPaletteFeatureTipShownSchema,
   cmd_j_palette_feature_tip_acknowledged: cmdJPaletteFeatureTipAcknowledgedSchema,
 
@@ -1553,7 +1553,7 @@ const COHORT_EXTENDED_SET = eventsWithShapeKey('nth_repo_added')
 // Compile-time roster guarding the runtime injection set against silent schema drift.
 type _CohortExtendedRoster =
   | 'app_opened'
-  | 'app_starred_orca'
+  | 'app_starred_manta'
   | 'star_nag_outcome'
   | 'feature_interaction_usage_bucket_reached'
   | 'repo_added'
@@ -1570,9 +1570,9 @@ type _CohortExtendedRoster =
   | 'agent_started'
   | 'agent_prompt_sent'
   | 'agent_error'
-  | 'orca_cli_feature_tip_shown'
-  | 'orca_cli_feature_tip_setup_clicked'
-  | 'orca_cli_feature_tip_setup_result'
+  | 'manta_cli_feature_tip_shown'
+  | 'manta_cli_feature_tip_setup_clicked'
+  | 'manta_cli_feature_tip_setup_result'
   | 'cmd_j_palette_feature_tip_shown'
   | 'cmd_j_palette_feature_tip_acknowledged'
 // Why: strict empty payloads infer a string index signature; ignore index-only keys so they aren't pulled into keyed rosters.
@@ -1644,7 +1644,7 @@ export const commonPropsSchema = z
     // `.min(1)`: an empty install_id/session_id would collapse unrelated events into one synthetic user/session, corrupting analytics.
     install_id: z.string().min(1).max(64),
     session_id: z.string().min(1).max(64),
-    orca_channel: z.enum(['stable', 'rc'])
+    manta_channel: z.enum(['stable', 'rc'])
   })
   .strict()
 export type CommonProps = z.infer<typeof commonPropsSchema>

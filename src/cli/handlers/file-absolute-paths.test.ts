@@ -7,7 +7,7 @@ vi.mock('../runtime-client', () => {
     readonly isRemote = false
     call = callMock
     getCliStatus = vi.fn()
-    openOrca = vi.fn()
+    openManta = vi.fn()
   }
 
   class RuntimeClientError extends Error {
@@ -44,14 +44,14 @@ describe('absolute file CLI paths', () => {
   })
 
   it('reproduces the issue positional WSL command without invalid_relative_path', async () => {
-    const issuePath = '/root/orca/workspaces/xxx/xxx/xxx.ts'
+    const issuePath = '/root/manta/workspaces/xxx/xxx/xxx.ts'
     callMock.mockImplementation(async (method: string, params: { relativePath?: string }) => {
       if (method === 'worktree.list') {
-        return worktreeListFixture([buildWorktree('/root/orca/workspaces/xxx', 'feature')])
+        return worktreeListFixture([buildWorktree('/root/manta/workspaces/xxx', 'feature')])
       }
       if (method === 'worktree.show') {
         return okFixture('req_show', {
-          worktree: buildWorktree('/root/orca/workspaces/xxx', 'feature')
+          worktree: buildWorktree('/root/manta/workspaces/xxx', 'feature')
         })
       }
       if (method === 'files.open' && params.relativePath?.startsWith('/')) {
@@ -65,15 +65,15 @@ describe('absolute file CLI paths', () => {
       })
     })
 
-    await main(['file', 'open', issuePath], '/root/orca/workspaces/xxx')
+    await main(['file', 'open', issuePath], '/root/manta/workspaces/xxx')
 
     expect(process.exitCode).toBeUndefined()
     expect(callMock).toHaveBeenNthCalledWith(1, 'worktree.list', { limit: 10_000 })
     expect(callMock).toHaveBeenNthCalledWith(2, 'worktree.show', {
-      worktree: 'id:repo::/root/orca/workspaces/xxx'
+      worktree: 'id:repo::/root/manta/workspaces/xxx'
     })
     expect(callMock).toHaveBeenNthCalledWith(3, 'files.open', {
-      worktree: 'id:repo::/root/orca/workspaces/xxx',
+      worktree: 'id:repo::/root/manta/workspaces/xxx',
       relativePath: 'xxx/xxx.ts'
     })
   })

@@ -54,7 +54,7 @@ export function useMobileNativeChatMessageSend(args: {
    *  session-option effects against the newly active tab. */
   commandSendRef: MutableRefObject<(command: string) => void>
   captureSendOrigin: (text: string) => MobileNativeChatSendOrigin | null
-  /** Launch-context text Orca parked on the agent's TUI input line, or null. Read
+  /** Launch-context text Manta parked on the agent's TUI input line, or null. Read
    *  at send time so the pre-clear can be sized to every line it occupies. */
   readSeededLaunchDraftSeed: () => MobileNativeChatLaunchDraftSeed | null
   clearDraftForSend: (origin: MobileNativeChatSendOrigin, text: string) => void
@@ -127,7 +127,7 @@ export function useMobileNativeChatMessageSend(args: {
         clearDraftForSend(origin, text)
       }
       // Why: a parked launch draft is routinely multi-line, and one Ctrl+U clears
-      // only one logical line. Size the clear to the text Orca injected, with
+      // only one logical line. Size the clear to the text Manta injected, with
       // slack — the user can also have typed into the TUI line directly, so that
       // line count is a lower bound. Mobile cannot read the agent's screen, so
       // there is no empty-line observable to confirm against here; the upper

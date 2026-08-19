@@ -1,4 +1,4 @@
-export const MANUAL_TERMINAL_WORKTREE_PARK_EVENT = 'orca-manual-terminal-worktree-park'
+export const MANUAL_TERMINAL_WORKTREE_PARK_EVENT = 'manta-manual-terminal-worktree-park'
 
 export type ManualTerminalWorktreeParkDetail = {
   worktreeId: string

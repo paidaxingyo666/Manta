@@ -20,17 +20,17 @@ export function escapeWslShCommandForWindows(command: string): string {
 export function buildWslLoginShellCommand(command: string): string {
   const quotedCommand = quotePosixShell(command)
   return [
-    '_orca_wsl_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)',
-    'if [ -z "$_orca_wsl_shell" ] || [ ! -x "$_orca_wsl_shell" ]; then',
-    '  _orca_wsl_shell="${SHELL:-/bin/bash}"',
+    '_manta_wsl_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)',
+    'if [ -z "$_manta_wsl_shell" ] || [ ! -x "$_manta_wsl_shell" ]; then',
+    '  _manta_wsl_shell="${SHELL:-/bin/bash}"',
     'fi',
-    'if [ -z "$_orca_wsl_shell" ] || [ ! -x "$_orca_wsl_shell" ]; then',
-    '  _orca_wsl_shell=/bin/sh',
+    'if [ -z "$_manta_wsl_shell" ] || [ ! -x "$_manta_wsl_shell" ]; then',
+    '  _manta_wsl_shell=/bin/sh',
     'fi',
-    '_orca_wsl_shell_name=$(basename "$_orca_wsl_shell" | tr "[:upper:]" "[:lower:]")',
-    'case "$_orca_wsl_shell_name" in',
-    `  sh|dash) exec "$_orca_wsl_shell" -lc ${quotedCommand} ;;`,
-    `  bash|zsh|ksh|mksh|ash) exec "$_orca_wsl_shell" -ilc ${quotedCommand} ;;`,
+    '_manta_wsl_shell_name=$(basename "$_manta_wsl_shell" | tr "[:upper:]" "[:lower:]")',
+    'case "$_manta_wsl_shell_name" in',
+    `  sh|dash) exec "$_manta_wsl_shell" -lc ${quotedCommand} ;;`,
+    `  bash|zsh|ksh|mksh|ash) exec "$_manta_wsl_shell" -ilc ${quotedCommand} ;;`,
     `  *) exec /bin/sh -lc ${quotedCommand} ;;`,
     'esac'
   ].join('\n')
@@ -38,30 +38,30 @@ export function buildWslLoginShellCommand(command: string): string {
 
 export function buildWslInteractiveLoginShellCommand(): string {
   return [
-    '_orca_wsl_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)',
-    'if [ -z "$_orca_wsl_shell" ] || [ ! -x "$_orca_wsl_shell" ]; then',
-    '  _orca_wsl_shell="${SHELL:-/bin/bash}"',
+    '_manta_wsl_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)',
+    'if [ -z "$_manta_wsl_shell" ] || [ ! -x "$_manta_wsl_shell" ]; then',
+    '  _manta_wsl_shell="${SHELL:-/bin/bash}"',
     'fi',
-    'if [ -z "$_orca_wsl_shell" ] || [ ! -x "$_orca_wsl_shell" ]; then',
-    '  _orca_wsl_shell=/bin/sh',
+    'if [ -z "$_manta_wsl_shell" ] || [ ! -x "$_manta_wsl_shell" ]; then',
+    '  _manta_wsl_shell=/bin/sh',
     'fi',
-    '_orca_shell_ready_root=""',
-    'if [ -n "${ORCA_USER_DATA_PATH:-}" ]; then',
-    '  _orca_shell_ready_root="${ORCA_USER_DATA_PATH%/}/shell-ready"',
+    '_manta_shell_ready_root=""',
+    'if [ -n "${MANTA_USER_DATA_PATH:-}" ]; then',
+    '  _manta_shell_ready_root="${MANTA_USER_DATA_PATH%/}/shell-ready"',
     'fi',
-    '_orca_wsl_shell_name=$(basename "$_orca_wsl_shell" | tr "[:upper:]" "[:lower:]")',
-    'case "$_orca_wsl_shell_name" in',
+    '_manta_wsl_shell_name=$(basename "$_manta_wsl_shell" | tr "[:upper:]" "[:lower:]")',
+    'case "$_manta_wsl_shell_name" in',
     '  bash)',
-    '    if [ -n "${_orca_shell_ready_root:-}" ] && [ -f "${_orca_shell_ready_root}/bash/rcfile" ]; then',
-    '      exec "$_orca_wsl_shell" --rcfile "${_orca_shell_ready_root}/bash/rcfile"',
+    '    if [ -n "${_manta_shell_ready_root:-}" ] && [ -f "${_manta_shell_ready_root}/bash/rcfile" ]; then',
+    '      exec "$_manta_wsl_shell" --rcfile "${_manta_shell_ready_root}/bash/rcfile"',
     '    fi',
     '    ;;',
     '  zsh)',
-    '    if [ -n "${_orca_shell_ready_root:-}" ] && [ -d "${_orca_shell_ready_root}/zsh" ]; then',
-    '      export ZDOTDIR="${_orca_shell_ready_root}/zsh"',
+    '    if [ -n "${_manta_shell_ready_root:-}" ] && [ -d "${_manta_shell_ready_root}/zsh" ]; then',
+    '      export ZDOTDIR="${_manta_shell_ready_root}/zsh"',
     '    fi',
     '    ;;',
     'esac',
-    'exec "$_orca_wsl_shell" -l'
+    'exec "$_manta_wsl_shell" -l'
   ].join('\n')
 }

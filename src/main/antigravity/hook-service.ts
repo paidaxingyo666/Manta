@@ -50,7 +50,7 @@ function getManagedCommand(scriptPath: string, event: AntigravityEvent): string 
   if (process.platform === 'win32') {
     return wrapWindowsCmdHookCommand(getWindowsWrapperScriptPath(event))
   }
-  return wrapPosixHookCommand(scriptPath, { ORCA_ANTIGRAVITY_EVENT: event.eventName })
+  return wrapPosixHookCommand(scriptPath, { MANTA_ANTIGRAVITY_EVENT: event.eventName })
 }
 
 export class AntigravityHookService {
@@ -159,7 +159,7 @@ export class AntigravityHookService {
   async installRemote(sftp: SFTPWrapper, remoteHome: string): Promise<AgentHookInstallStatus> {
     const home = remoteHome.replace(/\/$/, '')
     const remoteConfigPath = `${home}/.gemini/config/hooks.json`
-    const remoteScriptPath = `${home}/.orca/agent-hooks/antigravity-hook.sh`
+    const remoteScriptPath = `${home}/.manta/agent-hooks/antigravity-hook.sh`
     try {
       const config = await readHooksJsonRemote(sftp, remoteConfigPath)
       if (!config) {
@@ -175,7 +175,7 @@ export class AntigravityHookService {
       buildInstalledConfig(
         config,
         (event) =>
-          wrapPosixHookCommand(remoteScriptPath, { ORCA_ANTIGRAVITY_EVENT: event.eventName }),
+          wrapPosixHookCommand(remoteScriptPath, { MANTA_ANTIGRAVITY_EVENT: event.eventName }),
         createAntigravityManagedCommandMatcher()
       )
       await writeManagedScriptRemote(sftp, remoteScriptPath, getManagedScript('posix'))

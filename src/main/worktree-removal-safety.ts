@@ -14,24 +14,24 @@ import {
 
 type PathOps = typeof posix
 
-const ORCA_CREATION_SOURCES = new Set<NonNullable<WorktreeMeta['orcaCreationSource']>>([
+const MANTA_CREATION_SOURCES = new Set<NonNullable<WorktreeMeta['mantaCreationSource']>>([
   'desktop',
   'runtime',
   'cli',
   'ssh'
 ])
-const ORCA_OWNED_PROVENANCE_META_KEYS = [
-  'orcaCreatedAt',
-  'orcaCreationSource',
-  'orcaCreationWorkspaceLayout',
+const MANTA_OWNED_PROVENANCE_META_KEYS = [
+  'mantaCreatedAt',
+  'mantaCreationSource',
+  'mantaCreationWorkspaceLayout',
   'automationProvenance',
   'cliProvenance',
   'creatorProvenance'
 ] as const
-type UnregisteredOrcaCleanupMeta = Pick<
+type UnregisteredMantaCleanupMeta = Pick<
   WorktreeMeta,
-  | 'orcaCreatedAt'
-  | 'orcaCreationSource'
+  | 'mantaCreatedAt'
+  | 'mantaCreationSource'
   | 'createdAt'
   | 'createdWithAgent'
   | 'pushTarget'
@@ -173,24 +173,24 @@ export async function canSafelyRemoveOrphanedWorktreeDirectory(
   })
 }
 
-export function canCleanupUnregisteredOrcaWorktreeDirectory(args: {
-  meta: UnregisteredOrcaCleanupMeta | null | undefined
+export function canCleanupUnregisteredMantaWorktreeDirectory(args: {
+  meta: UnregisteredMantaCleanupMeta | null | undefined
 }): boolean {
-  if (hasCurrentOrcaCreationProvenance(args.meta)) {
+  if (hasCurrentMantaCreationProvenance(args.meta)) {
     return true
   }
 
-  if (hasLegacyOrcaCreationEvidence(args.meta)) {
+  if (hasLegacyMantaCreationEvidence(args.meta)) {
     return true
   }
 
   // Why: path shape alone is not authority; users can create plain Git
-  // worktrees inside Orca's workspace directory too.
+  // worktrees inside Manta's workspace directory too.
   return false
 }
 
-export async function canCleanupUnregisteredOrcaLeftoverDirectory(args: {
-  meta: UnregisteredOrcaCleanupMeta | null | undefined
+export async function canCleanupUnregisteredMantaLeftoverDirectory(args: {
+  meta: UnregisteredMantaCleanupMeta | null | undefined
   worktreePath: string
   runtimeWorktreePath: string
   repo: Pick<Repo, 'path'>
@@ -202,8 +202,8 @@ export async function canCleanupUnregisteredOrcaLeftoverDirectory(args: {
   // Why: this recovery state has already lost the worktree .git marker, so the
   // existing .git-file orphan proof cannot establish ownership.
   // Why: without a surviving .git file, path shape alone is too weak to prove
-  // ownership for recursive deletion; require persisted Orca-created evidence.
-  if (!hasCurrentOrcaCreationProvenance(args.meta) && !hasLegacyOrcaCreationEvidence(args.meta)) {
+  // ownership for recursive deletion; require persisted Manta-created evidence.
+  if (!hasCurrentMantaCreationProvenance(args.meta) && !hasLegacyMantaCreationEvidence(args.meta)) {
     return false
   }
 
@@ -235,18 +235,18 @@ export async function canCleanupUnregisteredOrcaLeftoverDirectory(args: {
   return !(await args.isGitRepository(args.runtimeWorktreePath))
 }
 
-function hasCurrentOrcaCreationProvenance(
-  meta: Pick<WorktreeMeta, 'orcaCreatedAt' | 'orcaCreationSource'> | null | undefined
+function hasCurrentMantaCreationProvenance(
+  meta: Pick<WorktreeMeta, 'mantaCreatedAt' | 'mantaCreationSource'> | null | undefined
 ): boolean {
   return (
-    typeof meta?.orcaCreatedAt === 'number' &&
-    !!meta.orcaCreationSource &&
-    ORCA_CREATION_SOURCES.has(meta.orcaCreationSource)
+    typeof meta?.mantaCreatedAt === 'number' &&
+    !!meta.mantaCreationSource &&
+    MANTA_CREATION_SOURCES.has(meta.mantaCreationSource)
   )
 }
 
-function hasLegacyOrcaCreationEvidence(
-  meta: UnregisteredOrcaCleanupMeta | null | undefined
+function hasLegacyMantaCreationEvidence(
+  meta: UnregisteredMantaCleanupMeta | null | undefined
 ): boolean {
   return Boolean(
     meta?.createdAt ||
@@ -258,11 +258,11 @@ function hasLegacyOrcaCreationEvidence(
   )
 }
 
-export function stripOrcaProvenanceMetaUpdates(
+export function stripMantaProvenanceMetaUpdates(
   updates: Partial<WorktreeMeta> | null | undefined
 ): Partial<WorktreeMeta> {
   const sanitized = { ...updates }
-  for (const key of ORCA_OWNED_PROVENANCE_META_KEYS) {
+  for (const key of MANTA_OWNED_PROVENANCE_META_KEYS) {
     delete sanitized[key]
   }
   return sanitized

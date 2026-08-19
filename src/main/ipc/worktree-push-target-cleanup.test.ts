@@ -11,8 +11,8 @@ import {
 type ExecMock = Mock<GitRemoteExec>
 
 const REPO_PATH = '/repo-root'
-const FORK_URL = 'git@github.com:contributor/orca.git'
-const FORK_REMOTE = 'pr-contributor-orca'
+const FORK_URL = 'git@github.com:contributor/manta.git'
+const FORK_REMOTE = 'pr-contributor-manta'
 
 function forkTarget(overrides: Partial<GitPushTarget> = {}): GitPushTarget {
   return {
@@ -69,7 +69,7 @@ function removeCalls(exec: ExecMock): string[][] {
 }
 
 describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
-  it('removes an Orca-created fork remote that nothing else uses', async () => {
+  it('removes a Manta-created fork remote that nothing else uses', async () => {
     const exec = makeExec()
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
@@ -81,7 +81,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
     expect(removeCalls(exec)).toEqual([['remote', 'remove', FORK_REMOTE]])
   })
 
-  it('keeps a remote Orca did not create (remoteCreated falsy)', async () => {
+  it('keeps a remote Manta did not create (remoteCreated falsy)', async () => {
     const exec = makeExec()
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
@@ -147,7 +147,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
         // Same fork URL (https form), different sanitized remote name.
         'repo-1::/wt/b': forkTarget({
           remoteName: 'fork-2',
-          remoteUrl: 'https://github.com/contributor/orca.git'
+          remoteUrl: 'https://github.com/contributor/manta.git'
         })
       }),
       exec
@@ -214,7 +214,7 @@ describe('cleanupUnusedWorktreePushTargetRemoteWithExec', () => {
   })
 
   it('keeps the remote when its URL no longer matches the fork (repurposed by the user)', async () => {
-    const exec = makeExec({ getUrl: 'git@github.com:someone-else/orca.git' })
+    const exec = makeExec({ getUrl: 'git@github.com:someone-else/manta.git' })
     await cleanupUnusedWorktreePushTargetRemoteWithExec(
       REPO_PATH,
       'repo-1::/wt/a',
@@ -242,8 +242,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('matches SSH and HTTPS forms of the same GitHub fork', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:contributor/orca.git',
-        'https://github.com/contributor/orca.git'
+        'git@github.com:contributor/manta.git',
+        'https://github.com/contributor/manta.git'
       )
     ).toBe(true)
   })
@@ -251,8 +251,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('is case-insensitive on owner/repo', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:Contributor/Orca.git',
-        'git@github.com:contributor/orca.git'
+        'git@github.com:Contributor/Manta.git',
+        'git@github.com:contributor/manta.git'
       )
     ).toBe(true)
   })
@@ -260,8 +260,8 @@ describe('sameGitHubRemoteUrl', () => {
   it('does not match different forks', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@github.com:contributor/orca.git',
-        'git@github.com:someone-else/orca.git'
+        'git@github.com:contributor/manta.git',
+        'git@github.com:someone-else/manta.git'
       )
     ).toBe(false)
   })
@@ -269,14 +269,14 @@ describe('sameGitHubRemoteUrl', () => {
   it('falls back to exact equality for non-GitHub hosts', () => {
     expect(
       sameGitHubRemoteUrl(
-        'git@gitlab.com:contributor/orca.git',
-        'git@gitlab.com:contributor/orca.git'
+        'git@gitlab.com:contributor/manta.git',
+        'git@gitlab.com:contributor/manta.git'
       )
     ).toBe(true)
     expect(
       sameGitHubRemoteUrl(
-        'git@gitlab.com:contributor/orca.git',
-        'https://gitlab.com/contributor/orca.git'
+        'git@gitlab.com:contributor/manta.git',
+        'https://gitlab.com/contributor/manta.git'
       )
     ).toBe(false)
   })

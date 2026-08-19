@@ -27,48 +27,48 @@ beforeEach(() => {
 describe('repo slice runtime project groups', () => {
   it('keeps runtime copies of a grouped canonical project in the same project group', async () => {
     const gitRemoteIdentity = {
-      canonicalKey: 'github.com/stablyai/orca',
+      canonicalKey: 'github.com/stablyai/manta',
       remoteName: 'origin',
-      remoteUrl: 'https://github.com/stablyai/orca.git'
+      remoteUrl: 'https://github.com/stablyai/manta.git'
     }
-    const localOrca: Repo = {
-      id: 'local-orca',
-      path: '/Users/alice/stably/orca',
-      displayName: 'orca',
+    const localManta: Repo = {
+      id: 'local-manta',
+      path: '/Users/alice/stably/manta',
+      displayName: 'manta',
       badgeColor: '#000',
       addedAt: 1,
       executionHostId: 'local',
       gitRemoteIdentity,
-      projectGroupId: 'group-orca'
+      projectGroupId: 'group-manta'
     }
-    const runtimeOrca: Repo = {
-      id: 'runtime-orca',
-      path: '/vercel/sandbox/orca',
-      displayName: 'orca',
+    const runtimeManta: Repo = {
+      id: 'runtime-manta',
+      path: '/vercel/sandbox/manta',
+      displayName: 'manta',
       badgeColor: '#111',
       addedAt: 2,
       gitRemoteIdentity
     }
     runtimeEnvironmentCall.mockResolvedValue({
-      id: 'rpc-runtime-orca',
+      id: 'rpc-runtime-manta',
       ok: true,
-      result: { repos: [runtimeOrca] },
+      result: { repos: [runtimeManta] },
       _meta: { runtimeId: 'runtime-remote' }
     })
     const store = createTestStore()
     store.setState({
       settings: { activeRuntimeEnvironmentId: 'env-1' } as never,
-      repos: [localOrca]
+      repos: [localManta]
     })
 
     await store.getState().fetchRepos()
 
     expect(store.getState().repos).toEqual([
-      localOrca,
+      localManta,
       {
-        ...runtimeOrca,
+        ...runtimeManta,
         executionHostId: 'runtime:env-1',
-        projectGroupId: 'group-orca'
+        projectGroupId: 'group-manta'
       }
     ])
   })

@@ -27,12 +27,12 @@ import { fileURLToPath } from 'node:url'
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url))
 
-const ROUNDS = Number(process.env.ORCA_CLI_DEFER_BENCH_ROUNDS ?? '30')
-const WARMUP = Number(process.env.ORCA_CLI_DEFER_BENCH_WARMUP ?? '3')
+const ROUNDS = Number(process.env.MANTA_CLI_DEFER_BENCH_ROUNDS ?? '30')
+const WARMUP = Number(process.env.MANTA_CLI_DEFER_BENCH_WARMUP ?? '3')
 
 for (const [name, value] of [
-  ['ORCA_CLI_DEFER_BENCH_ROUNDS', ROUNDS],
-  ['ORCA_CLI_DEFER_BENCH_WARMUP', WARMUP]
+  ['MANTA_CLI_DEFER_BENCH_ROUNDS', ROUNDS],
+  ['MANTA_CLI_DEFER_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)
@@ -40,7 +40,7 @@ for (const [name, value] of [
 }
 if (ROUNDS % 2 !== 0) {
   // Why: arms alternate which one leads; an odd count biases one arm.
-  throw new Error(`ORCA_CLI_DEFER_BENCH_ROUNDS must be even, received ${ROUNDS}`)
+  throw new Error(`MANTA_CLI_DEFER_BENCH_ROUNDS must be even, received ${ROUNDS}`)
 }
 
 const TOUCHED = [
@@ -195,17 +195,17 @@ try {
 
   // Each case is (label, argv, env). The runtime-dependent ones point at an
   // empty user-data dir so both arms get the same deterministic answer.
-  const isolated = { ORCA_USER_DATA_PATH: userDataPath }
+  const isolated = { MANTA_USER_DATA_PATH: userDataPath }
   /** @type {Array<[string, string[], Record<string, string>]>} */
   const cases = [
-    ['orca --help', ['--help'], {}],
-    ['orca help worktree', ['help', 'worktree'], {}],
-    ['orca (no args)', [], {}],
+    ['manta --help', ['--help'], {}],
+    ['manta help worktree', ['help', 'worktree'], {}],
+    ['manta (no args)', [], {}],
     ['unknown command', ['no-such-command'], {}],
     ['unknown flag', ['worktree', 'list', '--nope'], {}],
-    ['orca agent-context --json', ['agent-context', '--json'], {}],
-    ['orca status --json', ['status', '--json'], isolated],
-    ['orca worktree list --json', ['worktree', 'list', '--json'], isolated]
+    ['manta agent-context --json', ['agent-context', '--json'], {}],
+    ['manta status --json', ['status', '--json'], isolated],
+    ['manta worktree list --json', ['worktree', 'list', '--json'], isolated]
   ]
 
   // Why: a semantically broken arm that prints nothing would look fastest.

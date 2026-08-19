@@ -34,7 +34,7 @@ export function showDeveloperPermissionRequestNotice(
       {
         description: translate(
           'auto.components.settings.DeveloperPermissionsPane.localNetworkPromptGuidance',
-          'If prompted, choose Allow. If no prompt appears, open System Settings and enable Orca under Privacy & Security → Local Network.'
+          'If prompted, choose Allow. If no prompt appears, open System Settings and enable Manta under Privacy & Security → Local Network.'
         ),
         action: {
           label: translate(

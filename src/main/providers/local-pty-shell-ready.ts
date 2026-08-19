@@ -2,7 +2,7 @@
  * Shell-ready launch configuration for local PTYs.
  *
  * Why: startup commands must wait until the shell has fully initialized. Picks the args/env
- * that point each shell at its Orca wrapper (which emits the OSC 777 marker the scanner detects).
+ * that point each shell at its Manta wrapper (which emits the OSC 777 marker the scanner detects).
  */
 import { basename, win32 as pathWin32 } from 'node:path'
 import {
@@ -25,7 +25,7 @@ export {
 } from '../shell-ready-marker-scanner'
 export type { ShellReadyScanResult, ShellReadyScanState } from '../shell-ready-marker-scanner'
 
-// Why: an Orca wrapper ZDOTDIR recurses; treat it as unset and fall back to HOME.
+// Why: a Manta wrapper ZDOTDIR recurses; treat it as unset and fall back to HOME.
 function normalizeOriginalZdotdirCandidate(value: string | undefined): string | null {
   if (!value) {
     return null
@@ -41,7 +41,7 @@ function normalizeOriginalZdotdirCandidate(value: string | undefined): string | 
 function resolveOriginalZdotdir(): string {
   return (
     normalizeOriginalZdotdirCandidate(process.env.ZDOTDIR) ||
-    normalizeOriginalZdotdirCandidate(process.env.ORCA_ORIG_ZDOTDIR) ||
+    normalizeOriginalZdotdirCandidate(process.env.MANTA_ORIG_ZDOTDIR) ||
     process.env.HOME ||
     ''
   )
@@ -68,11 +68,11 @@ function getWrappedShellLaunchConfig(
     return {
       args: ['-l'],
       env: {
-        ORCA_ORIG_ZDOTDIR: resolveOriginalZdotdir(),
-        ORCA_ZSHENV_SOURCE_DIR: resolveOriginalZshenvSourceDir(),
+        MANTA_ORIG_ZDOTDIR: resolveOriginalZdotdir(),
+        MANTA_ZSHENV_SOURCE_DIR: resolveOriginalZshenvSourceDir(),
         ZDOTDIR: `${getShellReadyWrapperRoot()}/zsh`,
-        ORCA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
-        ORCA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
+        MANTA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
+        MANTA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
       },
       supportsReadyMarker: options.emitReadyMarker
     }
@@ -83,8 +83,8 @@ function getWrappedShellLaunchConfig(
     return {
       args: ['--rcfile', `${getShellReadyWrapperRoot()}/bash/rcfile`],
       env: {
-        ORCA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
-        ORCA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
+        MANTA_SHELL_READY_MARKER: options.emitReadyMarker ? '1' : '0',
+        MANTA_SHELL_STARTUP_IDENTITY: options.emitReadyMarker ? '1' : '0'
       },
       supportsReadyMarker: options.emitReadyMarker
     }
@@ -111,7 +111,7 @@ function getWrappedShellLaunchConfig(
         '-C',
         `${getFishShellReadyInitCommand(SHELL_READY_MARKER_ESCAPED)}\n${getFishCodexShellLaunchPreflight()}`
       ],
-      env: { ORCA_SHELL_READY_MARKER: '1' },
+      env: { MANTA_SHELL_READY_MARKER: '1' },
       supportsReadyMarker: true
     }
   }

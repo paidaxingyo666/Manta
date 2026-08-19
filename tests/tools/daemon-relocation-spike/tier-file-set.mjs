@@ -17,7 +17,7 @@ export const GPU_DLLS = new Set([
 
 // Each tier declares which top-level DLLs to include. The exe, runtime data
 // blobs, daemon bundle, and node-pty are in every tier — they are the
-// irreducible core (Orca.exe needs icu + snapshots even as node; the daemon
+// irreducible core (Manta.exe needs icu + snapshots even as node; the daemon
 // needs its bundle; node-pty needs its native + conpty runtime).
 export const TIER_DEFINITIONS = {
   full: { label: 'TIER_FULL_RUNTIME', dlls: 'all' },
@@ -85,8 +85,8 @@ export function resolveTierFileSet(inv, tier) {
     })
   }
 
-  // Core: exe + runtime data blobs live next to Orca.exe in win-unpacked.
-  addFile(inv.hostExe, 'Orca.exe')
+  // Core: exe + runtime data blobs live next to Manta.exe in win-unpacked.
+  addFile(inv.hostExe, 'Manta.exe')
   for (const entry of inv.runtimeData) {
     addFile(entry, entry.name)
   }

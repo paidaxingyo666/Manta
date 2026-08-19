@@ -1,6 +1,6 @@
 # Remote wire compatibility
 
-Orca's remote-server feature pairs a desktop client to a remote Orca runtime, and
+Manta's remote-server feature pairs a desktop client to a remote Manta runtime, and
 users update the two independently. **Mixed versions are the normal state**, not an
 edge case. This page is the contract for changing anything a paired client and host
 exchange: the runtime RPC envelope, the terminal binary stream, and the content

@@ -216,7 +216,7 @@ describe('connectPanePty', () => {
       expect.objectContaining({
         source: 'agent-task-complete',
         worktreeId: 'wt-1',
-        repoLabel: 'orca',
+        repoLabel: 'manta',
         worktreeLabel: 'feat/notis',
         hasMultipleActiveRepos: true,
         terminalTitle: '* Claude done',

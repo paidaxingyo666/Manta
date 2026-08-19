@@ -4,29 +4,29 @@ import { GLOBAL_FLAGS } from '../args'
 export const AGENT_HOOK_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['agent', 'hooks', 'prepare-codex'],
-    summary: 'Repair Orca-managed Codex hook trust before a shell launch',
-    usage: 'orca agent hooks prepare-codex',
+    summary: 'Repair Manta-managed Codex hook trust before a shell launch',
+    usage: 'manta agent hooks prepare-codex',
     allowedFlags: [...GLOBAL_FLAGS]
   },
   {
     path: ['agent', 'hooks', 'status'],
-    summary: 'Show whether Orca-managed agent status hooks are enabled',
-    usage: 'orca agent hooks status [--json]',
+    summary: 'Show whether Manta-managed agent status hooks are enabled',
+    usage: 'manta agent hooks status [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
-    examples: ['orca agent hooks status', 'orca agent hooks status --json']
+    examples: ['manta agent hooks status', 'manta agent hooks status --json']
   },
   {
     path: ['agent', 'hooks', 'off'],
-    summary: 'Disable Orca-managed agent status hooks and remove local hook entries',
-    usage: 'orca agent hooks off [--json]',
+    summary: 'Disable Manta-managed agent status hooks and remove local hook entries',
+    usage: 'manta agent hooks off [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
-    examples: ['orca agent hooks off']
+    examples: ['manta agent hooks off']
   },
   {
     path: ['agent', 'hooks', 'on'],
-    summary: 'Enable Orca-managed agent status hooks',
-    usage: 'orca agent hooks on [--json]',
+    summary: 'Enable Manta-managed agent status hooks',
+    usage: 'manta agent hooks on [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
-    examples: ['orca agent hooks on']
+    examples: ['manta agent hooks on']
   }
 ]

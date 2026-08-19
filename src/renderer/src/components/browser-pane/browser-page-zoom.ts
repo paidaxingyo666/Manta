@@ -14,7 +14,7 @@ export {
   type BrowserPageZoomDirection
 } from '../../../../shared/browser-page-zoom'
 
-export const ORCA_BROWSER_PAGE_ZOOM_EVENT = 'orca:browser-page-zoom'
+export const MANTA_BROWSER_PAGE_ZOOM_EVENT = 'manta:browser-page-zoom'
 
 export type BrowserPageZoomEventDetail = {
   browserPageId: string
@@ -113,6 +113,6 @@ export function addBrowserPageZoomEventListener(
   const listener = (event: Event): void => {
     callback((event as CustomEvent<BrowserPageZoomEventDetail>).detail)
   }
-  window.addEventListener(ORCA_BROWSER_PAGE_ZOOM_EVENT, listener)
-  return () => window.removeEventListener(ORCA_BROWSER_PAGE_ZOOM_EVENT, listener)
+  window.addEventListener(MANTA_BROWSER_PAGE_ZOOM_EVENT, listener)
+  return () => window.removeEventListener(MANTA_BROWSER_PAGE_ZOOM_EVENT, listener)
 }

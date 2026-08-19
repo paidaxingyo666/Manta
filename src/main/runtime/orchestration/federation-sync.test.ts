@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from '../orca-runtime'
+import { MantaRuntimeService } from '../manta-runtime'
 import { OrchestrationDb } from './db'
 import {
   acquireFederationAckLease,
@@ -38,7 +38,7 @@ function createIdleSyncHarness() {
         federated.to_home_acknowledged_sequence = params.sequence
       }
     }) as never
-  const runtime = new OrcaRuntimeService()
+  const runtime = new MantaRuntimeService()
   runtime.setOrchestrationDb(createDb())
   vi.spyOn(runtime, 'resolveOrchestrationWorkerServer').mockReturnValue({
     peerFingerprint: federated.peer_fingerprint
@@ -152,7 +152,7 @@ describe('federation relay acknowledgments', () => {
     })
     let pulled = [relayItem(1)]
     let rejectAck = true
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     runtime.setOrchestrationDb(db)
     vi.spyOn(runtime, 'resolveOrchestrationWorkerServer').mockReturnValue({
       peerFingerprint: 'windows_peer_fingerprint'
@@ -245,7 +245,7 @@ describe('federation relay acknowledgments', () => {
       to_home_acknowledged_sequence: 0
     }
     let pendingToWorker = [{ sequence: 1 }]
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     runtime.setOrchestrationDb({
       getFederatedDispatch: () => federated,
       getDispatchContextById: () => ({ run_id: 'run_home', task_id: 'task_home' }),
@@ -467,7 +467,7 @@ describe('federation relay acknowledgments', () => {
   })
 
   it('matches checkpoints only to their exact remote identity and never moves backward', () => {
-    const runtime = {} as OrcaRuntimeService
+    const runtime = {} as MantaRuntimeService
     const identity: FederationAckIdentity = {
       environmentId: 'environment_windows',
       peerFingerprint: 'windows_peer_fingerprint',
@@ -499,7 +499,7 @@ describe('federation relay acknowledgments', () => {
   })
 
   it('fences delayed writes after runtime reset', () => {
-    const runtime = {} as OrcaRuntimeService
+    const runtime = {} as MantaRuntimeService
     const identity: FederationAckIdentity = {
       environmentId: 'environment_windows',
       peerFingerprint: 'windows_peer_fingerprint',
