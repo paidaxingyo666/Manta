@@ -3,7 +3,7 @@
     "appearance": {
       "language": {
         "title": "Idioma",
-        "description": "Escolha o idioma usado na interface do Orca.",
+        "description": "Escolha o idioma usado na interface do Manta.",
         "system": "Sistema",
         "english": "Inglês",
         "chinese": "Chinês simplificado",
@@ -27,10 +27,10 @@
     "paste": "Colar"
   },
   "tray": {
-    "openOrca": "Abrir o Orca",
+    "openManta": "Abrir o Manta",
     "quit": "Encerrar",
     "minimizeNotice": {
-      "body": "O Orca continua em execução na bandeja do sistema"
+      "body": "O Manta continua em execução na bandeja do sistema"
     }
   }
 }

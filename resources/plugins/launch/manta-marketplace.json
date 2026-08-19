@@ -1,0 +1,36 @@
+{
+  "name": "Manta Official Plugins",
+  "owner": "paidaxingyo666",
+  "plugins": [
+    {
+      "id": "paidaxingyo666.manta-portuguese",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/paidaxingyo666/manta-portuguese.git",
+        "ref": "v1.0.0"
+      },
+      "description": "Brazilian Portuguese translations for common Manta navigation.",
+      "categories": ["languages", "official"]
+    },
+    {
+      "id": "paidaxingyo666.manta-multipass-recipes",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/paidaxingyo666/manta-multipass-recipes.git",
+        "ref": "v1.0.0"
+      },
+      "description": "A reviewed starter lifecycle for disposable Multipass workspaces.",
+      "categories": ["vm-recipes", "official"]
+    },
+    {
+      "id": "paidaxingyo666.manta-navigation-shortcuts",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/paidaxingyo666/manta-navigation-shortcuts.git",
+        "ref": "v1.0.0"
+      },
+      "description": "Command aliases and optional shortcuts for frequent Manta views.",
+      "categories": ["keybindings", "official"]
+    }
+  ]
+}

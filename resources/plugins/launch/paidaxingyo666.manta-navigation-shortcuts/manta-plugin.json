@@ -1,12 +1,12 @@
 {
   "manifestVersion": 1,
-  "id": "orca-navigation-shortcuts",
-  "publisher": "stablyai",
-  "name": "Orca Navigation Shortcuts",
+  "id": "manta-navigation-shortcuts",
+  "publisher": "paidaxingyo666",
+  "name": "Manta Navigation Shortcuts",
   "version": "1.0.0",
-  "description": "Command aliases and optional shortcuts for frequent Orca views.",
-  "repository": "https://github.com/stablyai/orca-navigation-shortcuts",
-  "engines": { "orca": ">=1.4.0" },
+  "description": "Command aliases and optional shortcuts for frequent Manta views.",
+  "repository": "https://github.com/paidaxingyo666/manta-navigation-shortcuts",
+  "engines": { "manta": ">=1.4.0" },
   "pluginApi": 1,
   "contributes": {
     "commands": [

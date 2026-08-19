@@ -1,0 +1,15 @@
+{
+  "manifestVersion": 1,
+  "id": "manta-portuguese",
+  "publisher": "paidaxingyo666",
+  "name": "Português do Brasil",
+  "version": "1.0.0",
+  "description": "Brazilian Portuguese translations for common Manta navigation.",
+  "repository": "https://github.com/paidaxingyo666/manta-portuguese",
+  "engines": { "manta": ">=1.4.0" },
+  "pluginApi": 1,
+  "contributes": {
+    "languagePacks": [{ "locale": "pt-BR", "path": "locales/pt-BR.json" }]
+  },
+  "capabilities": []
+}

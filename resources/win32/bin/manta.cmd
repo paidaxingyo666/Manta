@@ -1,10 +1,10 @@
 @echo off
 setlocal
 set "SCRIPT_DIR=%~dp0"
-set "LAUNCHER=%SCRIPT_DIR%orca.exe"
+set "LAUNCHER=%SCRIPT_DIR%manta.exe"
 
 if not exist "%LAUNCHER%" (
-  echo Unable to locate the native Orca CLI launcher at "%LAUNCHER%" 1>&2
+  echo Unable to locate the native Manta CLI launcher at "%LAUNCHER%" 1>&2
   exit /b 1
 )
 
@@ -17,5 +17,5 @@ if /I "%~1"=="orchestration" if /I "%~2"=="reply" goto :unsafe_body
 exit /b %ERRORLEVEL%
 
 :unsafe_body
-echo orca.cmd cannot safely forward orchestration message bodies. Use "%LAUNCHER%" instead. 1>&2
+echo manta.cmd cannot safely forward orchestration message bodies. Use "%LAUNCHER%" instead. 1>&2
 exit /b 2

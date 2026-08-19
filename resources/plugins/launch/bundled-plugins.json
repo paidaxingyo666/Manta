@@ -2,9 +2,9 @@
   "version": 1,
   "plugins": [
     {
-      "pluginKey": "stablyai.orca-navigation-shortcuts",
-      "path": "stablyai.orca-navigation-shortcuts",
-      "contentHash": "ce3a146bae9e121a18cb86a710973422be749a25da5a1c21a8911e2e98cc3a77"
+      "pluginKey": "paidaxingyo666.manta-navigation-shortcuts",
+      "path": "paidaxingyo666.manta-navigation-shortcuts",
+      "contentHash": "d5b2e4e4eecb9ab78670cb91750e4a168d95329443d5b99b9f3759726e3172ca"
     }
   ]
 }

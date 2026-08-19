@@ -14,19 +14,19 @@ function app_realpath() {
 
 APP_PATH="$(app_realpath "${BASH_SOURCE[0]}")"
 if [ -z "$APP_PATH" ]; then
-	echo "Unable to determine Orca.app path from symlink: ${BASH_SOURCE[0]}"
+	echo "Unable to determine Manta.app path from symlink: ${BASH_SOURCE[0]}"
 	exit 1
 fi
 
 CONTENTS="$APP_PATH/Contents"
-ELECTRON="$CONTENTS/MacOS/Orca"
-# Why: Orca packages the CLI entrypoint outside app.asar so the public shell
+ELECTRON="$CONTENTS/MacOS/Manta"
+# Why: Manta packages the CLI entrypoint outside app.asar so the public shell
 # command can execute it directly with ELECTRON_RUN_AS_NODE, mirroring VS Code's
 # launcher model instead of requiring a separate npm-distributed binary.
 CLI="$CONTENTS/Resources/app.asar.unpacked/out/cli/index.js"
 
-export ORCA_NODE_OPTIONS="${NODE_OPTIONS-}"
-export ORCA_NODE_REPL_EXTERNAL_MODULE="${NODE_REPL_EXTERNAL_MODULE-}"
+export MANTA_NODE_OPTIONS="${NODE_OPTIONS-}"
+export MANTA_NODE_REPL_EXTERNAL_MODULE="${NODE_REPL_EXTERNAL_MODULE-}"
 unset NODE_OPTIONS
 unset NODE_REPL_EXTERNAL_MODULE
 
