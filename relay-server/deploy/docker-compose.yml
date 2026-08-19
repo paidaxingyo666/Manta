@@ -1,0 +1,105 @@
+# Self-hosted Manta relay with automatic HTTPS.
+#
+# Phones force wss:// and Android will not trust a private CA, so a real
+# certificate is mandatory. Caddy obtains one from Let's Encrypt automatically —
+# point an A/AAAA record at this host first, then:
+#
+#   cp .env.example .env && $EDITOR .env
+#   docker compose up -d
+services:
+  relay:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Must equal the origin clients dial; it is signed into every challenge.
+      MANTA_RELAY_PUBLIC_URL: "https://${RELAY_DOMAIN:?set RELAY_DOMAIN}:${RELAY_PORT:?set RELAY_PORT}"
+      MANTA_RELAY_DATA_DIR: /var/lib/manta-relay
+      # Caddy sits on the compose bridge network, so its address is the only one
+      # allowed to speak for a client. Without this every phone shares one
+      # rate-limit bucket — the proxy's.
+      MANTA_RELAY_TRUSTED_PROXIES: "private"
+      # Fail to start rather than expose an open enrolment endpoint.
+      MANTA_RELAY_ENROLLMENT_SECRET: "${MANTA_RELAY_ENROLLMENT_SECRET:?set MANTA_RELAY_ENROLLMENT_SECRET}"
+      # Guarded like the others. Left to env_file alone, an empty value starts
+      # cleanly with a random secret that changes on every restart — and since
+      # rebuilding is how you deploy updates, that is every deploy.
+      MANTA_RELAY_TOKEN_SECRET: "${MANTA_RELAY_TOKEN_SECRET:?set MANTA_RELAY_TOKEN_SECRET — openssl rand -base64 32}"
+    volumes:
+      - relay-state:/var/lib/manta-relay
+    # Nothing outside the state volume is ever written.
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Not published on the host: Caddy is the only way in.
+    expose:
+      - "8787"
+    # Long enough for the drain window plus the state flush. The default is 10s,
+    # which SIGKILLs the relay mid-drain.
+    stop_grace_period: 30s
+    # Why relay depends on caddy and not the other way round: compose stops
+    # services in reverse start order, so this makes the relay stop *first* —
+    # while Caddy is still up to carry its 4503 frames to the phones. With the
+    # dependency inverted, the proxy disappears first and every phone sees an
+    # unexplained transport failure instead.
+    depends_on:
+      - caddy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+    # Unbounded json-file logging is the default, and this is a long-running
+    # unattended service on a 45 GB disk.
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    # No swap on this box, so an unbounded container is a whole-machine event
+    # rather than one dead service.
+    mem_limit: 512m
+    pids_limit: 512
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      # Only the non-standard TLS port. No cleartext listener: the provider
+      # hijacks HTTP by Host header on every port while the domain is unfiled.
+      - "${RELAY_PORT:?set RELAY_PORT}:9443"
+    environment:
+      RELAY_DOMAIN: "${RELAY_DOMAIN:?set RELAY_DOMAIN}"
+      RELAY_PORT: "${RELAY_PORT:?set RELAY_PORT}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Pinned certificate; see the comment in Caddyfile.
+      - ./certs:/certs:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    # This is the process that parses a stranger's TLS, so it should not be the
+    # least confined thing on the box. NET_BIND_SERVICE is the only capability
+    # it needs; /data and /config stay writable as named volumes.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    mem_limit: 256m
+    pids_limit: 256
+
+volumes:
+  relay-state:
+  caddy-data:
+  caddy-config:

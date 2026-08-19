@@ -1,0 +1,9 @@
+node_modules
+dist
+*.log
+# The filled-in environment file holds the token secret. It sits inside the
+# build context, and anything in the context can end up in an image layer.
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
+.git
