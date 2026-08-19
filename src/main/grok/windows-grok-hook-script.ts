@@ -16,11 +16,12 @@ const WINDOWS_GROK_HOOK_POST_COMMAND = buildWindowsAgentHookPostCommand('grok', 
  * Windows `grok-hook.cmd` body.
  *
  * Why (#9358 / #9941): cmd expands `%VAR:~n,m%` at parse time. When `GROK_HOME`
- * is unset (the default outside a Manta-managed terminal), length/trailing
+ * is unset (the default outside an Manta-managed terminal), length/trailing
  * guards become a syntax error and every Grok hook event fails with exit 255.
  *
  * - Guard substring ops behind `if defined` + goto (not a parenthesized block).
  * - Reject oversized values before copying them onto a cmd input line.
+ * - Strip `"` before the value reaches an `if` operand or the curl argument.
  */
 export function buildWindowsGrokHookScript(): string {
   return [
@@ -35,7 +36,10 @@ export function buildWindowsGrokHookScript(): string {
     'set "MANTA_GROK_HOME="',
     'if not defined GROK_HOME goto :manta_grok_home_ready',
     `if not "%GROK_HOME:~${GROK_HOME_ENVELOPE_MAX_LENGTH},1%"=="" goto :manta_grok_home_ready`,
-    'set "MANTA_GROK_HOME=%GROK_HOME%"',
+    // Why (#14221): `setx GROK_HOME "C:\path\"` stores a literal trailing quote, which
+    // unbalances the trailing-backslash `if` below (exit 255) and truncates the curl
+    // argument. `"` is illegal in a Windows path, so strip it rather than preserve it.
+    'set "MANTA_GROK_HOME=%GROK_HOME:"=%"',
     'if not defined MANTA_GROK_HOME goto :manta_grok_home_ready',
     'if "%MANTA_GROK_HOME:~-1%"=="\\" set "MANTA_GROK_HOME=%MANTA_GROK_HOME%."',
     // Why: the trailing-backslash safety sentinel counts toward the relay envelope.

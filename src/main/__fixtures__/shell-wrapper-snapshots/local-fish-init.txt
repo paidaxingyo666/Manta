@@ -1,0 +1,10 @@
+function __manta_shell_ready_marker --on-event fish_prompt
+  builtin printf "\033]777;manta-shell-ready\007"
+  functions -e __manta_shell_ready_marker
+end
+if test -n "$MANTA_CODEX_LAUNCH_PREFLIGHT"; and test (type -t codex 2>/dev/null) = file
+  function codex
+    command "$MANTA_CODEX_LAUNCH_PREFLIGHT" agent hooks prepare-codex >/dev/null 2>&1; or true
+    command codex $argv
+  end
+end

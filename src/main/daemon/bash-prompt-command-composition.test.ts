@@ -29,7 +29,7 @@ function runInteractiveBash(
     {
       input,
       encoding: 'utf8',
-      env: { ...process.env, HOME: tempHome, MANTA_SHELL_READY_MARKER: '1', TERM: 'xterm' },
+      env: { ...process.env, HOME: tempHome, MANTA_SHELL_FEATURES: 'ready', TERM: 'xterm' },
       timeout: 5000
     }
   )

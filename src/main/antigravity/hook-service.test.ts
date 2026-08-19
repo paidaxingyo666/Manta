@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -25,6 +26,11 @@ const ANTIGRAVITY_PRE_INVOCATION_COMMAND =
   process.platform === 'win32' ? 'antigravity-pre-invocation.cmd' : 'antigravity-hook.sh'
 const ANTIGRAVITY_POST_TOOL_USE_COMMAND =
   process.platform === 'win32' ? 'antigravity-post-tool-use.cmd' : 'antigravity-hook.sh'
+const ANTIGRAVITY_PRE_TOOL_USE_COMMAND =
+  process.platform === 'win32' ? 'antigravity-pre-tool-use.cmd' : 'antigravity-hook.sh'
+// Why: the gate decision Manta is allowed to emit — "allow" would auto-approve every observed tool call.
+const PRE_TOOL_USE_DECISION = '{"decision":"ask"}'
+const POLICY_OVERRIDING_DECISIONS = ['allow', 'deny', 'force_ask', 'deny_unless_prior_grant']
 
 function withPlatform<T>(platform: NodeJS.Platform, run: () => T): T {
   const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
@@ -67,9 +73,12 @@ describe('AntigravityHookService', () => {
       >
     }
     expect(Object.keys(config['manta-status']).sort()).toEqual(
-      ['PostInvocation', 'PostToolUse', 'PreInvocation', 'Stop'].sort()
+      ['PostInvocation', 'PostToolUse', 'PreInvocation', 'PreToolUse', 'Stop'].sort()
     )
-    expect(config['manta-status'].PreToolUse).toBeUndefined()
+    expect(config['manta-status'].PreToolUse[0].matcher).toBe('*')
+    expect(config['manta-status'].PreToolUse[0].hooks?.[0]?.command).toContain(
+      ANTIGRAVITY_PRE_TOOL_USE_COMMAND
+    )
     expect(config['manta-status'].PostToolUse[0].matcher).toBe('*')
     expect(config['manta-status'].PreInvocation[0].command).toContain(
       ANTIGRAVITY_PRE_INVOCATION_COMMAND
@@ -107,9 +116,85 @@ describe('AntigravityHookService', () => {
       expect(script).not.toContain('--data-urlencode "payload=${payload}"')
     }
     expect(script).toContain('{"decision":""}')
+    expect(script).toContain(PRE_TOOL_USE_DECISION)
+    for (const decision of POLICY_OVERRIDING_DECISIONS) {
+      expect(script).not.toContain(`{"decision":"${decision}"}`)
+    }
   })
 
-  it('installs Windows event wrappers without nested cmd quoting and removes stale PreToolUse hooks', () => {
+  it.skipIf(process.platform === 'win32')(
+    'answers the PreToolUse gate with ask so the hook never decides tool permissions',
+    () => {
+      new AntigravityHookService().install()
+
+      const result = spawnSync(
+        '/bin/sh',
+        [join(homeDir, '.manta', 'agent-hooks', 'antigravity-hook.sh')],
+        {
+          env: {
+            ...process.env,
+            MANTA_ANTIGRAVITY_EVENT: 'PreToolUse',
+            MANTA_AGENT_HOOK_ENDPOINT: '',
+            MANTA_AGENT_HOOK_PORT: '',
+            MANTA_AGENT_HOOK_TOKEN: '',
+            MANTA_PANE_KEY: ''
+          },
+          input: '{"toolCall":{"name":"run_command","args":{"CommandLine":"ls"}}}',
+          encoding: 'utf8'
+        }
+      )
+
+      expect(result.status).toBe(0)
+      // Why: Antigravity reads silence/`{}` on PreToolUse as a deny (#2426), so the exact payload is the contract.
+      expect(result.stdout).toBe(`${PRE_TOOL_USE_DECISION}\n`)
+    }
+  )
+
+  it.skipIf(process.platform === 'win32')(
+    'keeps answering the PreToolUse gate when the managed script is missing',
+    () => {
+      new AntigravityHookService().install()
+      rmSync(join(homeDir, '.manta', 'agent-hooks'), { recursive: true, force: true })
+
+      const config = JSON.parse(
+        readFileSync(join(homeDir, '.gemini', 'config', 'hooks.json'), 'utf8')
+      ) as { 'manta-status': Record<string, { hooks?: { command: string }[] }[]> }
+      const command = config['manta-status'].PreToolUse[0].hooks?.[0]?.command
+
+      const result = spawnSync('/bin/sh', ['-c', command!], {
+        input: '{"toolCall":{"name":"run_command"}}',
+        encoding: 'utf8'
+      })
+
+      // Why: hooks.json lives in ~/.gemini and outlives ~/.manta, so a swept script must not deny every tool call.
+      expect(result.status).toBe(0)
+      expect(result.stdout).toBe(`${PRE_TOOL_USE_DECISION}\n`)
+    }
+  )
+
+  it.skipIf(process.platform === 'win32')(
+    'leaves non-gate Antigravity events silent when the managed script is missing',
+    () => {
+      new AntigravityHookService().install()
+      rmSync(join(homeDir, '.manta', 'agent-hooks'), { recursive: true, force: true })
+
+      const config = JSON.parse(
+        readFileSync(join(homeDir, '.gemini', 'config', 'hooks.json'), 'utf8')
+      ) as {
+        'manta-status': Record<string, { command?: string; hooks?: { command: string }[] }[]>
+      }
+      const postToolUse = config['manta-status'].PostToolUse[0].hooks?.[0]?.command
+      const preInvocation = config['manta-status'].PreInvocation[0].command
+
+      for (const command of [postToolUse, preInvocation]) {
+        const result = spawnSync('/bin/sh', ['-c', command!], { input: '{}', encoding: 'utf8' })
+        expect(result.status).toBe(0)
+        expect(result.stdout).toBe('')
+      }
+    }
+  )
+
+  it('installs Windows event wrappers without nested cmd quoting and replaces stale PreToolUse hooks', () => {
     withPlatform('win32', () => {
       const configPath = join(homeDir, '.gemini', 'config', 'hooks.json')
       const staleScriptPath = join(
@@ -157,18 +242,20 @@ describe('AntigravityHookService', () => {
           { matcher?: string; command?: string; hooks?: { command: string }[] }[]
         >
       }
-      expect(config['manta-status'].PreToolUse).toBeUndefined()
+      expect(config['manta-status'].PreToolUse).toHaveLength(1)
 
       const expectedWrappers = {
         PreInvocation: 'antigravity-pre-invocation.cmd',
         PostInvocation: 'antigravity-post-invocation.cmd',
         Stop: 'antigravity-stop.cmd',
+        PreToolUse: 'antigravity-pre-tool-use.cmd',
         PostToolUse: 'antigravity-post-tool-use.cmd'
       }
       for (const [eventName, wrapperFileName] of Object.entries(expectedWrappers)) {
         const definition = config['manta-status'][eventName][0]
-        const command =
-          eventName === 'PostToolUse' ? definition.hooks?.[0]?.command : definition.command
+        const command = ['PreToolUse', 'PostToolUse'].includes(eventName)
+          ? definition.hooks?.[0]?.command
+          : definition.command
         expect(createManagedCommandMatcher(wrapperFileName)(command)).toBe(true)
         expect(command).not.toContain('cmd /d /s /c')
         expect(command).not.toContain('MANTA_ANTIGRAVITY_EVENT')
@@ -179,6 +266,13 @@ describe('AntigravityHookService', () => {
         )
         expect(wrapper).toContain(`set "MANTA_ANTIGRAVITY_EVENT=${eventName}"`)
         expect(wrapper).toContain('call "%MANTA_ANTIGRAVITY_CORE%"')
+        // Why: the wrapper is the stdin owner when the core script is gone, so it must answer the gate itself.
+        if (eventName === 'PreToolUse') {
+          expect(wrapper).toContain(`echo ${PRE_TOOL_USE_DECISION}`)
+        }
+        for (const decision of POLICY_OVERRIDING_DECISIONS) {
+          expect(wrapper).not.toContain(`{"decision":"${decision}"}`)
+        }
       }
 
       const script = readFileSync(
@@ -259,7 +353,15 @@ describe('AntigravityHookService', () => {
       'manta-status': Record<string, { command?: string; hooks?: { command: string }[] }[]>
     }
     expect(config['manta-status'].OldEvent).toBeUndefined()
-    expect(config['manta-status'].PreToolUse).toBeUndefined()
+    // Why: the pre-a480e6b7 PreToolUse entry pointed at a script with no gate branch; it must be replaced, not kept.
+    const preToolCommands = config['manta-status'].PreToolUse.flatMap((definition) =>
+      (definition.hooks ?? []).map((hook) => hook.command)
+    )
+    expect(preToolCommands).toHaveLength(1)
+    expect(preToolCommands[0]).toContain(
+      join(homeDir, '.manta', 'agent-hooks', ANTIGRAVITY_PRE_TOOL_USE_COMMAND)
+    )
+    expect(preToolCommands[0]).not.toContain('/tmp/old/agent-hooks/antigravity-hook.sh')
     const commands = config['manta-status'].PostToolUse.flatMap((definition) =>
       (definition.hooks ?? []).map((hook) => hook.command)
     )

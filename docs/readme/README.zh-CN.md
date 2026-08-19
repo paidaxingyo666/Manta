@@ -3,7 +3,7 @@
 </h1>
 
 > **Manta** 是 [Orca](https://github.com/stablyai/orca)（MIT，© Lovecast Inc.）的深度改造 fork，已独立更名与改造。
-> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建，或使用上游 Orca 的发行版。
+> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建，或使用上游 Manta 的发行版。
 > 文中链接指向 `manta.sh.cn`，相关服务尚未部署。
 
 <p align="center">
@@ -11,7 +11,7 @@
   <a href="https://github.com/stablyai/orca/releases"><img src="../assets/readme-downloads.svg" alt="所有版本的总下载量" /></a>
   <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="许可证: MIT" />
   <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="加入 Manta Discord" /></a>
-  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="在 X 上关注 Manta" /></a>
+  <a href="https://x.com/manta_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="在 X 上关注 Manta" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="支持的平台：macOS、Windows 和 Linux" />
 </p>
 
@@ -238,10 +238,11 @@ yay -S stably-manta-bin
 ## 社区与支持
 
 - **Discord:** 加入 **[Discord](https://discord.gg/fzjDKHxv8Q)** 社区。
-- **Twitter / X:** 关注 **[@orca_build](https://x.com/orca_build)（上游 Orca 官方账号）** 获取更新和公告。
-- **微信:** 扫码加入 Manta 社区微信第 7 群。
+- **Twitter / X:** 关注 **[@manta_build](https://x.com/manta_build)（上游 Manta 官方账号）** 获取更新和公告。
+- **微信:** 扫码加入上游社区微信第 7 群。如果第 7 群已满，请使用第 8 群。
 
-  <img src="../assets/wechat-qr-group7.jpg" alt="Manta 社区微信第 7 群二维码" width="160" />
+  <img src="../assets/wechat-qr-group7.jpg" alt="上游社区微信第 7 群二维码" width="160" />&nbsp;&nbsp;
+  <img src="../assets/wechat-qr-group8.jpg" alt="上游社区微信第 8 群二维码" width="160" />
 
 - **反馈与想法:** 我们发布很快。缺少什么功能？[提交功能请求](https://github.com/paidaxingyo666/Manta/issues)。
 - **隐私:** 查看[隐私与遥测文档](https://www.manta.sh.cn/docs/telemetry)，了解 Manta 收集哪些匿名使用数据以及如何退出。

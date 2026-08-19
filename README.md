@@ -3,15 +3,15 @@
 </h1>
 
 > **Manta** is a deep fork of [Orca](https://github.com/stablyai/orca) (MIT, © Lovecast Inc.), rebranded and reworked independently.
-> Standalone Manta builds are not published yet — build from source, or use the upstream Orca releases.
+> Standalone Manta builds are not published yet — build from source, or use the upstream Manta releases.
 > Links point at `manta.sh.cn`; those services are not deployed yet.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub stars" /></a>
-  <a href="https://github.com/stablyai/orca/releases"><img src="docs/assets/readme-downloads.svg" title="upstream Orca downloads" alt="Total downloads across all releases" /></a>
+  <a href="https://github.com/stablyai/orca/releases"><img src="docs/assets/readme-downloads.svg" title="upstream Manta downloads" alt="Total downloads across all releases" /></a>
   <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="License: MIT" />
-  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="Join the upstream Orca Discord" /></a>
-  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="Follow Orca (upstream) on X" /></a>
+  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="Join the upstream Manta Discord" /></a>
+  <a href="https://x.com/manta_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="Follow Manta (upstream) on X" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="Supported platforms: macOS, Windows, and Linux" />
 </p>
 
@@ -240,11 +240,12 @@ Pair with your desktop app to monitor and steer your agents from your phone.
 
 ## Community &amp; Support
 
-- **Discord:** Join the upstream Orca community on **[Discord](https://discord.gg/fzjDKHxv8Q)**.
-- **Twitter / X:** Follow **[@orca_build](https://x.com/orca_build) (upstream Orca account)** for updates and announcements.
-- **WeChat:** Scan to join the Manta community WeChat group 7.
+- **Discord:** Join the upstream Manta community on **[Discord](https://discord.gg/fzjDKHxv8Q)**.
+- **Twitter / X:** Follow **[@manta_build](https://x.com/manta_build) (upstream Manta account)** for updates and announcements.
+- **WeChat:** Scan to join the upstream community WeChat group 7. If it is full, use group 8.
 
-  <img src="docs/assets/wechat-qr-group7.jpg" alt="WeChat group 7 QR code for the Manta community" width="160" />
+  <img src="docs/assets/wechat-qr-group7.jpg" alt="WeChat group 7 QR code for the upstream community" width="160" />&nbsp;&nbsp;
+  <img src="docs/assets/wechat-qr-group8.jpg" alt="WeChat group 8 QR code for the upstream community" width="160" />
 
 - **Feedback &amp; Ideas:** We ship fast. Missing something? [Request a new feature](https://github.com/paidaxingyo666/Manta/issues).
 - **Privacy:** See the [privacy &amp; telemetry docs](https://www.manta.sh.cn/docs/telemetry) for what anonymous usage data Manta collects and how to opt out.

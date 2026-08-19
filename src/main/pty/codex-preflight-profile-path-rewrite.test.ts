@@ -72,8 +72,8 @@ function launchCodexThroughRcfile(fixture: Fixture, preflightValue: string): voi
       PATH: ['/usr/bin', '/bin', '/usr/sbin', '/sbin'].join(delimiter),
       TERM: 'dumb',
       SHELL: '/bin/bash',
-      MANTA_SHELL_READY_MARKER: '0',
-      MANTA_SHELL_STARTUP_IDENTITY: '0',
+      // Why no MANTA_SHELL_FEATURES: absent means no features, so the rcfile
+      // emits neither the identity nor the readiness marker into stdout.
       MANTA_CODEX_HOME: join(fixture.root, 'codex-home'),
       MANTA_CODEX_LAUNCH_PREFLIGHT: preflightValue
     }

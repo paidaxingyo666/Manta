@@ -179,6 +179,7 @@ $MouseEvents = @{
     MiddleDown = 0x0020
     MiddleUp = 0x0040
     Wheel = 0x0800
+    HorizontalWheel = 0x01000
 }
 
 function Write-MantaJson($Payload) {
@@ -1235,16 +1236,22 @@ function Invoke-MantaOperation($Operation) {
         }
         "scroll" {
             $delta = 120 * [int][Math]::Ceiling((Get-MantaPositiveNumber $Operation.pages "pages"))
-            if ($Operation.direction -eq "down" -or $Operation.direction -eq "right") {
+            $mouseEvent = $MouseEvents.Wheel
+            if ($Operation.direction -eq "down") {
                 $delta = -1 * $delta
-            } elseif ($Operation.direction -ne "up" -and $Operation.direction -ne "left") {
+            } elseif ($Operation.direction -eq "left") {
+                $mouseEvent = $MouseEvents.HorizontalWheel
+                $delta = -1 * $delta
+            } elseif ($Operation.direction -eq "right") {
+                $mouseEvent = $MouseEvents.HorizontalWheel
+            } elseif ($Operation.direction -ne "up") {
                 throw "unsupported scroll direction: $($Operation.direction)"
             }
             $point = Get-MantaElementScreenPoint $element
             if ($null -eq $point) { $point = Get-MantaScreenPoint $Operation $windowFrame }
             [void][MantaDesktopWin32]::SetForegroundWindow($handle)
             [void][MantaDesktopWin32]::SetCursorPos([int]$point.x, [int]$point.y)
-            [MantaDesktopWin32]::mouse_event($MouseEvents.Wheel, 0, 0, $delta, [UIntPtr]::Zero)
+            [MantaDesktopWin32]::mouse_event($mouseEvent, 0, 0, $delta, [UIntPtr]::Zero)
             $action = [pscustomobject]@{ path = "synthetic"; actionName = "scroll"; fallbackReason = $null }
         }
         "drag" {

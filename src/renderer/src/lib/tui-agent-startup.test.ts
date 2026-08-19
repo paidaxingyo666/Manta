@@ -352,7 +352,7 @@ describe('buildAgentDraftLaunchPlan', () => {
       })
     ).toEqual({
       agent: 'pi',
-      launchCommand: 'pi; unset MANTA_PI_PREFILL',
+      launchCommand: `pi; command test -n "$fish_pid" && set --erase -g MANTA_PI_PREFILL; command test -z "$fish_pid" && unset MANTA_PI_PREFILL; true`,
       expectedProcess: 'pi',
       env: { MANTA_PI_PREFILL: 'https://github.com/acme/repo/issues/42' },
       launchConfig: emptyLaunchConfig('pi')

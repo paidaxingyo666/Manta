@@ -7,12 +7,19 @@
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
 import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
 import { getPosixCodexShellLaunchPreflight } from '../pty/codex-shell-launch-preflight'
-import { SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
-import { SHELL_READY_MARKER_ESCAPED } from './local-pty-shell-ready-wrapper-root'
+import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
+import { SHELL_READY_MARKER_ESCAPED } from './local-pty-shell-ready-marker'
 
 export function getBashShellReadyRcfileContent(): string {
   return `# Manta bash shell-ready wrapper
+${BASH_FEATURE_CHANNEL_BLOCK}
 ${SHELL_STARTUP_IDENTITY_MARKER_BLOCK}
+# Why a plain variable: the channel is consumed and destroyed in these first
+# lines, so nothing this shell later spawns can see or inherit the selection.
+__manta_ready_marker=""
+__manta_has_feature ready && __manta_ready_marker=1
+unset _manta_shell_features
+unset -f __manta_has_feature
 [[ -f /etc/profile ]] && source /etc/profile
 if [[ -f "$HOME/.bash_profile" ]]; then
   source "$HOME/.bash_profile"
@@ -107,7 +114,7 @@ ${BASH_PROMPT_COMMAND_COMPOSITION_BLOCK}
 __manta_prepend_prompt_command "__manta_osc133_precmd"
 # Why: append the marker through PROMPT_COMMAND so it fires after the login
 # startup files have rebuilt the prompt, without re-running user rc files.
-if [[ "\${MANTA_SHELL_READY_MARKER:-0}" == "1" ]]; then
+if [[ -n "$__manta_ready_marker" ]]; then
   __manta_prompt_mark() {
     printf "${SHELL_READY_MARKER_ESCAPED}"
   }

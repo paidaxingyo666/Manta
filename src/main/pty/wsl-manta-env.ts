@@ -8,6 +8,7 @@ import {
   SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV,
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV
 } from '../../shared/setup-agent-sequencing'
+import { getShellReadyWrapperRoot } from '../providers/local-pty-shell-ready-wrapper-root'
 
 const WSLENV_ENTRY_SEPARATOR = ':'
 
@@ -61,6 +62,11 @@ export function addWorktreeSetupWslInteropEnv(env: Record<string, string | undef
 }
 
 export function addMantaWslInteropEnv(env: Record<string, string>): void {
+  // Why set here: every WSL spawn path funnels through this helper, and the
+  // in-guest login script needs the resolved wrapper root. Windows/WSL wrappers
+  // are always the local file set -- windows-shell-args.ts is shared by the
+  // in-process provider and the daemon spawner, so both resolve the same tree.
+  env.MANTA_SHELL_READY_ROOT = getShellReadyWrapperRoot()
   // Why: the endpoint is a Windows path (/p-translated so the guest reads it
   // via /mnt/c) until the WSL hook relay reports the guest home — then it is
   // already a guest-side POSIX path and must cross untranslated.
@@ -76,6 +82,9 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
   const passthroughEntries = [
     'MANTA_TERMINAL_HANDLE/u',
     'MANTA_USER_DATA_PATH/p',
+    // Why /p: the guest reads the content-addressed wrapper tree through /mnt/c,
+    // and it cannot derive the hash segment from MANTA_USER_DATA_PATH alone.
+    'MANTA_SHELL_READY_ROOT/p',
     'MANTA_CLI_COMMAND/u',
     'MANTA_PANE_KEY/u',
     'MANTA_TAB_ID/u',

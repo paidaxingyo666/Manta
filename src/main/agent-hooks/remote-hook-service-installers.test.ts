@@ -343,14 +343,20 @@ describe('remote hook service installers', () => {
       expect(command).toContain('/home/dev/.manta/agent-hooks/antigravity-hook.sh')
       expect(command).toContain(`MANTA_ANTIGRAVITY_EVENT='${eventName}'`)
     }
-    expect(antigravityConfig['manta-status'].PreToolUse).toBeUndefined()
-    for (const eventName of ['PostToolUse']) {
+    for (const eventName of ['PreToolUse', 'PostToolUse']) {
       const definition = antigravityConfig['manta-status'][eventName]?.[0]
       const command = definition?.hooks?.[0]?.command
       expect(definition?.matcher).toBe('*')
       expect(command).toContain('/home/dev/.manta/agent-hooks/antigravity-hook.sh')
       expect(command).toContain(`MANTA_ANTIGRAVITY_EVENT='${eventName}'`)
     }
+    // Why: #2426 was an SSH report — a remote host missing the script must still answer the gate, not deny every tool.
+    expect(antigravityConfig['manta-status'].PreToolUse[0].hooks?.[0]?.command).toContain(
+      `printf '%s\\n' '{"decision":"ask"}'`
+    )
+    expect(antigravityConfig['manta-status'].PostToolUse[0].hooks?.[0]?.command).not.toContain(
+      '{"decision"'
+    )
 
     const ampPlugin = amp.fs.files.get('/home/dev/.config/amp/plugins/manta-agent-status.ts')
     expect(ampPlugin).toContain('/hook/amp')
@@ -531,7 +537,7 @@ describe('remote hook service installers', () => {
     }
   })
 
-  it('removes stale remote Antigravity PreToolUse hooks while installing SSH hooks', async () => {
+  it('replaces stale remote Antigravity PreToolUse hooks while installing SSH hooks', async () => {
     const { sftp, fs } = createFakeSftp()
     fs.files.set(
       '/home/dev/.gemini/config/hooks.json',
@@ -572,7 +578,12 @@ describe('remote hook service installers', () => {
     const config = JSON.parse(fs.files.get('/home/dev/.gemini/config/hooks.json')!) as {
       'manta-status': Record<string, { hooks?: { command: string }[] }[]>
     }
-    expect(config['manta-status'].PreToolUse).toBeUndefined()
+    const preToolCommands = config['manta-status'].PreToolUse.flatMap((definition) =>
+      (definition.hooks ?? []).map((hook) => hook.command)
+    )
+    expect(preToolCommands).toHaveLength(1)
+    expect(preToolCommands[0]).toContain('/home/dev/.manta/agent-hooks/antigravity-hook.sh')
+    expect(preToolCommands).not.toContain('/tmp/old/agent-hooks/antigravity-hook.sh')
     const postToolCommands = config['manta-status'].PostToolUse.flatMap((definition) =>
       (definition.hooks ?? []).map((hook) => hook.command)
     )

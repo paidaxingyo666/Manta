@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { isAbsolute } from 'node:path'
+import { getShellReadyWrapperRoot } from '../providers/local-pty-shell-ready-wrapper-root'
 import {
   SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV,
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV
@@ -15,7 +17,23 @@ describe('addMantaWslInteropEnv', () => {
 
     addMantaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe('MANTA_TERMINAL_HANDLE/u')
+    expect(env.WSLENV).toBe('MANTA_TERMINAL_HANDLE/u:MANTA_SHELL_READY_ROOT/p')
+  })
+
+  // Why this is published at all: the wrapper tree is content-addressed, so the
+  // in-guest login script cannot rebuild its path from MANTA_USER_DATA_PATH -- it
+  // cannot derive the hash segment. Without this the guest finds no wrapper and
+  // every WSL pane launches unwrapped: no ready marker, so every startup command
+  // waits out the full readiness timeout.
+  it('publishes the resolved wrapper root path-translated for the guest', () => {
+    const env: Record<string, string> = {}
+
+    addMantaWslInteropEnv(env)
+
+    expect(env.MANTA_SHELL_READY_ROOT).toBe(getShellReadyWrapperRoot())
+    expect(isAbsolute(env.MANTA_SHELL_READY_ROOT as string)).toBe(true)
+    // /p, not /u: the guest reads a Windows path through /mnt/c.
+    expect(env.WSLENV?.split(':')).toContain('MANTA_SHELL_READY_ROOT/p')
   })
 
   it('imports setup-gated startup env into WSL without path translation', () => {
@@ -27,6 +45,7 @@ describe('addMantaWslInteropEnv', () => {
     addMantaWslInteropEnv(env)
 
     expect(env.WSLENV?.split(':')).toEqual([
+      'MANTA_SHELL_READY_ROOT/p',
       `${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}/u`,
       `${SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV}/u`
     ])
@@ -39,7 +58,7 @@ describe('addMantaWslInteropEnv', () => {
 
     addMantaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe('FOO/u:MANTA_TERMINAL_HANDLE/u:BAR/p')
+    expect(env.WSLENV).toBe('FOO/u:MANTA_TERMINAL_HANDLE/u:BAR/p:MANTA_SHELL_READY_ROOT/p')
   })
 
   it('marks OMP status and hook env for Windows to WSL import', () => {
@@ -179,7 +198,7 @@ describe('addMantaWslInteropEnv', () => {
 
     addMantaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe('MANTA_WORKSPACE_NAME/u')
+    expect(env.WSLENV).toBe('MANTA_SHELL_READY_ROOT/p:MANTA_WORKSPACE_NAME/u')
   })
 
   it('does not register setup vars that are absent from the env', () => {
@@ -187,7 +206,7 @@ describe('addMantaWslInteropEnv', () => {
 
     addMantaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe('MANTA_TERMINAL_HANDLE/u')
+    expect(env.WSLENV).toBe('MANTA_TERMINAL_HANDLE/u:MANTA_SHELL_READY_ROOT/p')
   })
 
   it('marks the WSL hook relay version for import on relay spawn envs', () => {
@@ -195,7 +214,7 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_WSL_HOOK_RELAY_VERSION: '0.1.0+abc'
     }
     addMantaWslInteropEnv(env)
-    expect(env.WSLENV).toBe('MANTA_WSL_HOOK_RELAY_VERSION/u')
+    expect(env.WSLENV).toBe('MANTA_SHELL_READY_ROOT/p:MANTA_WSL_HOOK_RELAY_VERSION/u')
   })
 
   it('crosses a guest-side OpenCode config overlay untranslated (/u)', () => {

@@ -26,7 +26,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
       'Passes all following arguments through to Claude Code after enabling Agent Teams native panes.',
-      'Must be run from inside a Manta terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Manta splits.'
+      'Must be run from inside an Manta terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Manta splits.'
     ],
     examples: ['manta claude-teams', 'manta claude-teams --resume <session-id>']
   },
@@ -111,6 +111,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
       'By default, Manta records the new worktree as a child of the caller context when it can infer one from the Manta terminal or current directory.',
       'If --repo is omitted, Manta infers the repo from the current Manta-managed worktree.',
       'Use --project with --host to create on a ready project host setup without spelling the backing repo id.',
+      '--host runtime:<environment-id> creates on that paired Manta server; use the id from `manta environment list`, not the environment name.',
       'For related work, use the inferred parent or pass --parent-worktree active, folder:<id>, or worktree:<worktreeId> to make the relationship explicit. Worktree ids are the full <repo-id>::<path> values returned by `manta worktree list --json`.',
       'Use --no-parent when the new worktree should be independent of the current context.',
       '--no-parent only affects Manta lineage; omit --base-branch to use the repo default base, or pass the default base ref explicitly for independent top-level work.',
@@ -124,7 +125,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     examples: [
       'manta worktree create --name agent-task --agent codex --prompt "hi" --json',
       'manta worktree create --repo id:<repoId> --name related-task --json',
-      'manta worktree create --project github:stablyai/manta --host runtime:gpu --name benchmark --json',
+      'manta worktree create --project github:stablyai/manta --host runtime:03ef704c-b180-4b10-998d-e28fbd5de9a3 --name benchmark --json',
       'manta worktree create --repo id:<repoId> --name linear-task --linear-issue https://linear.app/stably/issue/STA-335/test-issue --json',
       'manta worktree create --repo id:<repoId> --name agent-task --agent codex --prompt "hi" --json',
       'manta worktree create --repo id:<repoId> --name folder-child --parent-worktree folder:<folderId> --json',
@@ -196,17 +197,23 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['terminal', 'read'],
     summary: 'Read bounded terminal output',
-    usage: 'manta terminal read [--terminal <handle>] [--cursor <n>] [--limit <n>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'terminal', 'cursor', 'limit'],
+    usage:
+      'manta terminal read [--terminal <handle>] [--cursor <n>] [--limit <n>] [--screen] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'terminal', 'cursor', 'limit', 'screen'],
     notes: [
       'Omit --terminal to target the active terminal in the current worktree.',
+      'By default this returns accumulated terminal output with escape sequences stripped, not the rendered screen. Any program that repaints a line — shells, progress bars, TUIs — comes back as stacked fragments, so one `clear` keystroke by keystroke reads as `cclclecleaclear`, and spaces a prompt draws by moving the cursor are absent.',
+      'Use --screen to read what the terminal actually renders. Prefer it whenever the answer depends on how output looks rather than what was emitted over time; the default is unsuitable for verifying rendered output.',
+      'The result reports source: stream or screen, so a caller can tell which question was answered. A --screen read falls back to source: stream when no rendered state exists rather than passing the stream off as a screen.',
+      '--screen and --cursor are mutually exclusive: a screen read is the current frame and has no history to page.',
       'Use --cursor with the nextCursor value from a previous read to get only new output since that read.',
       'Use --limit to request more retained lines for long agent responses; output reports oldestCursor when older lines were dropped.',
       'Useful for capturing the response to a command: read before sending, then read --cursor <prev> after waiting.'
     ],
     examples: [
       'manta terminal read --json',
-      'manta terminal read --terminal term_abc123 --cursor 42 --limit 1000 --json'
+      'manta terminal read --terminal term_abc123 --cursor 42 --limit 1000 --json',
+      'manta terminal read --terminal term_abc123 --screen --json'
     ]
   },
   {
