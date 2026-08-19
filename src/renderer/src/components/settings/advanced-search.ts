@@ -1,10 +1,12 @@
 import type { SettingsSearchEntry } from './settings-search'
+import { getMantaCloudEndpointsSearchEntries } from './manta-cloud-endpoints-search'
 import { getAdvancedNetworkSearchEntries } from './advanced-network-search'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 
 export const getAdvancedPaneSearchEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
+  ...getMantaCloudEndpointsSearchEntries(),
   ...getAdvancedNetworkSearchEntries(),
   {
     title: translate(

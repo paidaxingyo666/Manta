@@ -6,6 +6,7 @@ import { Button } from '../ui/button'
 import { Label } from '../ui/label'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { AdvancedNetworkSettingsSection } from './AdvancedNetworkSettingsSection'
+import { MantaCloudEndpointsSection } from './MantaCloudEndpointsSection'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader, SettingsSwitch } from './SettingsFormControls'
 import { getAdvancedPaneSearchEntries, getAdvancedSearchEntry } from './advanced-search'
@@ -114,7 +115,7 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
                 <p className="text-xs text-muted-foreground">
                   {translate(
                     'auto.components.settings.AdvancedPane.87a2cb2ac8',
-                    'Orca applies this networking mode at startup.'
+                    'Manta applies this networking mode at startup.'
                   )}
                 </p>
               </div>
@@ -146,6 +147,17 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
           )}
         />
         <AdvancedNetworkSettingsSection settings={settings} updateSettings={updateSettings} />
+      </section>
+
+      <section className="space-y-3">
+        <SettingsSubsectionHeader
+          title={translate('auto.components.settings.AdvancedPane.mantaCloud', 'Manta Cloud')}
+          description={translate(
+            'auto.components.settings.AdvancedPane.mantaCloudDescription',
+            'Use a self-hosted sign-in and relay server instead of the official one.'
+          )}
+        />
+        <MantaCloudEndpointsSection settings={settings} />
       </section>
     </div>
   )
