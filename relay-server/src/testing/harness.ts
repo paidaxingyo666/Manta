@@ -47,6 +47,7 @@ export function testConfig(port: number, overrides: Partial<RelayConfig> = {}): 
     logLevel: 'error',
     trustedProxies: '',
     metricsToken: null,
+    tlsCertPath: null,
     expectedClientId: null,
     enrollmentSecret: null,
     user: TEST_USER,

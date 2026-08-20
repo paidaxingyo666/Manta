@@ -7,6 +7,7 @@
  *   GET  /v1/regions           intentionally 404 — see below
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { json, readJson } from '../shared/http-json.js'
 import {
   CLOSE_CODES,
   RELAY_HOST_ID_PATTERN,
@@ -29,50 +30,6 @@ export type DirectorOptions = {
   metrics: Metrics
   /** /v1/resolve has no bearer at all, so the limiter is its only gate. */
   limiter: RateLimiter
-}
-
-const MAX_BODY_BYTES = 16 * 1024
-
-async function readJson(request: IncomingMessage): Promise<Record<string, unknown> | null> {
-  const chunks: Buffer[] = []
-  let size = 0
-  try {
-    for await (const chunk of request) {
-      size += (chunk as Buffer).byteLength
-      if (size > MAX_BODY_BYTES) {
-        // Stop reading rather than keep buffering. Destroying the request makes
-        // the async iterator reject, which is why this whole loop is guarded:
-        // an oversize body is a bad request, not a 500.
-        request.destroy()
-        return null
-      }
-      chunks.push(chunk as Buffer)
-    }
-  } catch {
-    return null
-  }
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>
-  } catch {
-    return null
-  }
-}
-
-function json(
-  response: ServerResponse,
-  status: number,
-  body: unknown,
-  extraHeaders?: Record<string, string>
-): void {
-  const payload = JSON.stringify(body)
-  response.writeHead(status, {
-    'content-type': 'application/json',
-    'content-length': Buffer.byteLength(payload),
-    'cache-control': 'no-store',
-    'x-content-type-options': 'nosniff',
-    ...extraHeaders
-  })
-  response.end(payload)
 }
 
 export class RelayDirector {

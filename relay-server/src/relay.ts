@@ -25,6 +25,7 @@ import { Metrics } from './metrics.js'
 import { RateLimiter } from './shared/rate-limit.js'
 import { clientAddress, parseTrustedProxies, rateLimitKey } from './shared/client-ip.js'
 import { CLOSE_CODES } from './shared/protocol.js'
+import { startCertificateWatch } from './shared/certificate-expiry.js'
 
 /** How long a lingering socket may delay shutdown before it is cut. */
 const LINGER_MS = 1_000
@@ -261,6 +262,8 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     }
   })
 
+  const stopCertificateWatch = startCertificateWatch(config.tlsCertPath, metrics, logger)
+
   const sweeper = setInterval(() => {
     const now = Date.now()
     store.sweep(now)
@@ -298,6 +301,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       }
       shuttingDown = true
       clearInterval(sweeper)
+      stopCertificateWatch()
       const graceMs = config.shutdownGraceMs
       logger.info('relay.draining', { reason, graceMs })
       // Commit state before anything that can be made to hang. A rotation the

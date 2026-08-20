@@ -72,25 +72,34 @@ Put a TLS terminator in front of it. If you use something other than Caddy, set
 
 ## Point the desktop at it
 
-Settings → Advanced → Manta Cloud endpoints:
+Settings → Advanced → Manta Cloud → **Self-hosted server** → **Configure endpoints**:
 
-- API base URL: `https://relay.example.com`
-- Relay director URL: `https://relay.example.com`
-- Client ID: `manta-desktop`
+| Field | Value |
+| --- | --- |
+| Sign-in server | `https://relay.example.com` |
+| Relay address | `https://relay.example.com` |
+| OAuth client ID | `manta-desktop` |
+| Enrolment secret | the value of `MANTA_RELAY_ENROLLMENT_SECRET` |
 
-The app signs out and relaunches when you change these, which is deliberate: a
-session issued by one deployment is meaningless to another.
+Include the port if the relay is not on 443 — the origin is signed into every
+host challenge byte for byte, so `https://host` and `https://host:9443` are
+different identities and a mismatch fails the proof with nothing useful on
+either side.
 
-Signing in opens a browser page that asks for the enrolment secret — the value
-of `MANTA_RELAY_ENROLLMENT_SECRET`. Paste it once per desktop.
+Applying signs the app out and relaunches it, which is deliberate: a session
+issued by one deployment is meaningless to another.
 
-That page exists because `/authorize` is the one endpoint that mints authority
-out of nothing, and it is reachable by anyone who can open the origin. A
-stranger with a session cannot take over a host — the host proof needs the
-desktop's secret key — but they can read the configured identity, occupy the
-session table until the real desktop is evicted, and open a control leg, which
-is the doorway to every other authenticated surface. So the relay refuses to
-start on a public origin without a secret set.
+**No browser opens.** With a secret configured the desktop exchanges it for a
+session directly. The authorization-code flow exists for a hosted service with
+a real identity provider and a human to sign in; a single-user self-hosted relay
+has neither, so bouncing a code through the browser would prove nothing the
+secret has not already proven — and it would put the secret in a URL, which is
+where browser history and proxy logs keep things. The code flow still works and
+is used whenever no secret is set.
+
+The saved secret is never rendered back into the settings field. Leaving it
+blank means "unchanged"; clearing every field returns the app to the official
+endpoints.
 
 ## Configuration
 
@@ -98,11 +107,12 @@ start on a public origin without a secret set.
 | --- | --- | --- |
 | `MANTA_RELAY_PUBLIC_URL` | — | **Required.** Bare origin, no path. Signed into every challenge. |
 | `MANTA_RELAY_TOKEN_SECRET` | random | Set it. Without it every restart mints a new one, breaking relay tokens until they refresh. |
-| `MANTA_RELAY_ENROLLMENT_SECRET` | — | **Required unless the origin is loopback.** Pasted once in the browser to connect a desktop. |
+| `MANTA_RELAY_ENROLLMENT_SECRET` | — | **Required unless the origin is loopback.** The desktop sends it in the session-exchange body. |
 | `MANTA_RELAY_DATA_DIR` | — | Set it. Without it, credentials are memory-only and every phone re-pairs after a restart. |
 | `MANTA_RELAY_TRUSTED_PROXIES` | `` | Who may set `X-Forwarded-For`. `loopback`, `private`, `docker`, or a CIDR list. |
 | `MANTA_RELAY_METRICS_TOKEN` | — | Bearer token for `/metrics`. Unset means the endpoint 404s. |
 | `MANTA_RELAY_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`. |
+| `MANTA_RELAY_TLS_CERT_PATH` | — | Certificate to watch. Only useful where the proxy cannot renew on its own. |
 | `MANTA_RELAY_ORG_ID` | `` | Leave empty unless the desktop profile genuinely has an org — compared byte for byte in the proof. |
 | `MANTA_RELAY_MAX_DEVICES` | `16` | Phones per desktop. |
 | `MANTA_RELAY_MAX_SESSIONS` | `64` | Desktops on this cell. |
@@ -173,6 +183,23 @@ for. `/v1/regions` returns 404 on purpose so the desktop skips region probing.
 Because the E2EE layer requires exact frame ordering with no reorder buffer, a
 future multi-instance setup needs per-connection stickiness; you cannot simply
 put two of these behind a round-robin.
+
+### When the proxy cannot renew
+
+Automatic renewal needs port 80 or 443. If those are unavailable — a mainland
+Chinese host serving an unfiled domain has both hijacked, for instance — the
+certificate has a fixed end date and no automatic path past it, and nothing in
+the stack notices until it lapses.
+
+Two things make that survivable. Pin the certificate in the Caddyfile with
+`tls <cert> <key>` so Caddy stops retrying a challenge it cannot win, and set
+`MANTA_RELAY_TLS_CERT_PATH` so the relay reports the remaining days as
+`manta_relay_certificate_expires_in_days` and logs `tls.certificate_expiring`
+under 30 days. Serving TLS on a non-standard port is enough to avoid a
+Host-header filter, which inspects cleartext HTTP on every port but leaves TLS
+alone; it does not help with issuance, which still needs 80 or 443. The durable
+fixes are to resolve whatever blocks those ports, or to move issuance to a
+DNS-01 challenge.
 
 Known gaps, honestly:
 

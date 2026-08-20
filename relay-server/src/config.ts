@@ -156,6 +156,11 @@ export function loadConfig() {
     trustedProxies: text('MANTA_RELAY_TRUSTED_PROXIES', ''),
     /** Guards /metrics. Without it the endpoint is not served at all. */
     metricsToken: process.env.MANTA_RELAY_METRICS_TOKEN?.trim() || null,
+    /**
+     * Certificate the reverse proxy serves, if the relay should watch its
+     * expiry. Only worth setting where renewal is not automatic.
+     */
+    tlsCertPath: process.env.MANTA_RELAY_TLS_CERT_PATH?.trim() || null,
     /** Rejects an authorize call from an unexpected client build when set. */
     expectedClientId: process.env.MANTA_RELAY_CLIENT_ID?.trim() || null,
     /** Required to enrol a desktop; mandatory on a non-loopback origin. */

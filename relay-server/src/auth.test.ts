@@ -91,3 +91,46 @@ describe('enrolment secret', () => {
     expect(session.accessToken).toBeTruthy()
   })
 })
+
+describe('direct grant', () => {
+  it('issues a session from the secret alone, with no browser round trip', async () => {
+    // The code flow exists for a hosted service with a real identity provider.
+    // A single-user self-hosted relay has nobody to authenticate, so bouncing a
+    // code through the browser proves nothing the secret has not already proven.
+    current = await startTestRelay(() => ({ enrollmentSecret: 'open-sesame' }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ enrollmentSecret: 'open-sesame' })
+    })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({
+      capabilities: { flags: { 'relay.use': true } }
+    })
+  })
+
+  it('still refuses a direct grant with the wrong secret', async () => {
+    current = await startTestRelay(() => ({ enrollmentSecret: 'open-sesame' }))
+    for (const body of [{}, { enrollmentSecret: 'wrong' }]) {
+      const response = await httpFetch(`${current.origin}/v1/desktop/auth/session`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      expect(response.status).toBe(401)
+    }
+  })
+
+  it('refuses a direct grant when no secret is configured', async () => {
+    // Otherwise a relay with no secret would hand sessions to anyone who
+    // simply omitted the code — the opposite of what omitting it should mean.
+    current = await startTestRelay()
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({})
+    })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'direct_grant_unavailable' })
+  })
+})

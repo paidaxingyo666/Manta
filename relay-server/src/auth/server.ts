@@ -14,6 +14,7 @@
  */
 import { randomUUID, timingSafeEqual } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { json, readJson } from '../shared/http-json.js'
 import { RELAY_HOST_ID_PATTERN } from '../shared/protocol.js'
 import { rateLimitKey } from '../shared/client-ip.js'
 import { issueRelayToken } from '../shared/relay-token.js'
@@ -53,53 +54,9 @@ export type AuthOptions = {
    */
   enrollmentSecret?: string
 }
-
-const MAX_BODY_BYTES = 16 * 1024
 const CODE_TTL_MS = 5 * 60_000
 /** An unredeemed code is a pending grant; a few is normal, thousands is abuse. */
 const MAX_PENDING_CODES = 32
-
-function json(
-  response: ServerResponse,
-  status: number,
-  body: unknown,
-  extraHeaders?: Record<string, string>
-): void {
-  const payload = JSON.stringify(body)
-  response.writeHead(status, {
-    'content-type': 'application/json',
-    'content-length': Buffer.byteLength(payload),
-    'cache-control': 'no-store',
-    'x-content-type-options': 'nosniff',
-    ...extraHeaders
-  })
-  response.end(payload)
-}
-
-async function readJson(request: IncomingMessage): Promise<Record<string, unknown> | null> {
-  const chunks: Buffer[] = []
-  let size = 0
-  try {
-    for await (const chunk of request) {
-      size += (chunk as Buffer).byteLength
-      if (size > MAX_BODY_BYTES) {
-        // Stop reading rather than keep buffering. Destroying the request makes
-        // the async iterator reject, which is why this whole loop is guarded:
-        // an oversize body is a bad request, not a 500.
-        request.destroy()
-        return null
-      }
-      chunks.push(chunk as Buffer)
-    }
-  } catch {
-    return null
-  }
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>
-  } catch {
-    return null
-  }
-}
 
 function constantTimeEqual(a: string, b: string): boolean {
   const left = Buffer.from(a, 'utf8')
@@ -231,8 +188,30 @@ export class RelayAuthServer {
           return true
         }
       }
-      const code = String(body?.code ?? '')
       const now = Date.now()
+      const code = String(body?.code ?? '')
+      // Direct grant: no authorization code, no browser.
+      //
+      // The code flow exists for a hosted service with a real identity
+      // provider and a human to authenticate. A single-user self-hosted relay
+      // has neither — /authorize would just bounce a code back through the
+      // browser immediately. The enrolment secret is the credential either
+      // way, so skipping the round trip removes a step without removing a
+      // check, and no code ever transits a browser or a loopback listener.
+      //
+      // Only offered when a secret is configured: without one there would be
+      // nothing left to prove.
+      if (!code) {
+        if (!enrollmentSecret) {
+          json(response, 400, { error: 'direct_grant_unavailable' })
+          return true
+        }
+        const tokens = this.options.sessions.create(this.options.sessionTtlMs, now)
+        logger.info('auth.session.granted', { clientIp, grant: 'direct' })
+        metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.', { grant: 'direct' })
+        json(response, 200, sessionBody(this.options.user, tokens))
+        return true
+      }
       this.sweepCodes(now)
       const record = this.codes.get(code)
       if (!record || record.expiresAt <= now) {
@@ -245,8 +224,8 @@ export class RelayAuthServer {
       }
       this.codes.delete(code)
       const tokens = this.options.sessions.create(this.options.sessionTtlMs, now)
-      logger.info('auth.session.granted', { clientIp })
-      metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.')
+      logger.info('auth.session.granted', { clientIp, grant: 'code' })
+      metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.', { grant: 'code' })
       json(response, 200, sessionBody(this.options.user, tokens))
       return true
     }
