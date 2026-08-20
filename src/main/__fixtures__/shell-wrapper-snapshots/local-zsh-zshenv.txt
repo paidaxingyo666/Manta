@@ -1,119 +1,65 @@
 # Manta zsh shell-ready wrapper
-typeset -ga _manta_shell_features
-_manta_shell_features=(${(s:,:)${MANTA_SHELL_FEATURES:-}})
-builtin unset MANTA_SHELL_FEATURES
-__manta_has_feature() { (( ${_manta_shell_features[(Ie)$1]} )) }
-__manta_has_feature identity && printf "\033]777;manta-shell-start:%s\007" "$$"
-__manta_resolve_user_config_dir() {
-  typeset -g _manta_resolved_config_dir="${1:-}"
-  while [[ "$_manta_resolved_config_dir" == */ ]]; do _manta_resolved_config_dir="${_manta_resolved_config_dir%/}"; done
-  if [[ -z "$_manta_resolved_config_dir" || -f "$_manta_resolved_config_dir/.manta-shell-wrapper" || "$_manta_resolved_config_dir" == */shell-ready/zsh ]]; then
-    _manta_resolved_config_dir="$HOME"
-  fi
-}
-# Why stricter for an inherited value: Manta can be launched from a terminal that
-# already pointed ZDOTDIR at its own wrapper dir, and a directory holding no zsh
-# startup file at all is not the user's config root whoever wrote it.
-__manta_resolve_inherited_config_dir() {
-  __manta_resolve_user_config_dir "${1:-}"
-  [[ "$_manta_resolved_config_dir" == "$HOME" ]] && return 0
+__manta_usable_zdotdir() {
+  [[ -n "${1:-}" ]] || return 1
+  # Manta's own dir, by marker file or by the shape older builds wrote.
+  [[ "$1" != */shell-ready/zsh ]] || return 1
+  [[ ! -f "$1/.manta-shell-wrapper" ]] || return 1
+  # A directory holding no zsh startup file at all is not a config root,
+  # whoever wrote it — and a stale value pointing at one would stop zsh from
+  # ever reading the user's real .zshenv.
   local _manta_startup_file
   for _manta_startup_file in .zshenv .zshrc .zprofile .zlogin; do
-    [[ -r "$_manta_resolved_config_dir/$_manta_startup_file" ]] && return 0
+    [[ -r "$1/$_manta_startup_file" ]] && return 0
   done
-  _manta_resolved_config_dir="$HOME"
+  return 1
 }
-# Why: capture the runtime wrapper dir before it is unset below. On WSL this
-# file is generated with a Windows path but sourced via /mnt/c, so the baked
-# literal is unusable there and ZDOTDIR must be restored from this value.
-# Derive it from the file being sourced (%x, zsh's internal script name) rather
-# than the env-imported $ZDOTDIR: zsh corrupts environment values whose UTF-8
-# bytes fall in its 0x84-0x9D token range (e.g. a non-ASCII Windows username
-# such as a Korean login), which would make the self-check below fail and fall
-# back to the unusable baked literal, so the user's .zshrc never loads (#8003).
-# %x is not subject to that corruption; keep $ZDOTDIR as a fallback for the
-# rare shell where %x prompt expansion yields nothing.
-_manta_wrapper_zdotdir_self="${${(%):-%x}:h}"
-if [[ -z "${_manta_wrapper_zdotdir_self:-}" ]]; then
-  _manta_wrapper_zdotdir_self="${ZDOTDIR:-}"
-fi
-while [[ "${_manta_wrapper_zdotdir_self:-}" == */ ]]; do
-  _manta_wrapper_zdotdir_self="${_manta_wrapper_zdotdir_self%/}"
-done
-_manta_zshenv_path=""
-
-# Normalize fallback and source roots before reading user .zshenv so nested
-# Manta PTYs never source another Manta wrapper recursively.
-__manta_resolve_inherited_config_dir "${MANTA_ORIG_ZDOTDIR:-$HOME}"
-_manta_user_zdotdir="$_manta_resolved_config_dir"
-__manta_resolve_inherited_config_dir "${MANTA_ZSHENV_SOURCE_DIR:-$HOME}"
-_manta_zshenv_source_dir="$_manta_resolved_config_dir"
-unset MANTA_ZSHENV_SOURCE_DIR
-
-# Why: source at wrapper top level, not in a function/subshell, so .zshenv
-# exports, functions, path/fpath typesets, and zsh options keep normal scope.
-unset ZDOTDIR
-if [[ -n "${_manta_zshenv_source_dir:-}" && -f "${_manta_zshenv_source_dir}/.zshenv" ]]; then
-  _manta_zshenv_path="${_manta_zshenv_source_dir}/.zshenv"
-fi
-if [[ -n "${_manta_zshenv_path:-}" ]]; then
-  source "${_manta_zshenv_path}"
-fi
-
-_manta_discovered_zdotdir="${ZDOTDIR:-}"
-
-while [[ "${_manta_discovered_zdotdir}" == */ ]]; do
-  _manta_discovered_zdotdir="${_manta_discovered_zdotdir%/}"
-done
-
-case "${_manta_discovered_zdotdir}" in
-  *[![:space:]]*) ;;
-  *) _manta_discovered_zdotdir="" ;;
-esac
-
-if [[ -n "${_manta_discovered_zdotdir}" && ! -d "${_manta_discovered_zdotdir}" ]]; then
-  [[ "${MANTA_DEBUG:-0}" == "1" ]] && echo "[manta-shell-ready] Discovered ZDOTDIR '${_manta_discovered_zdotdir}' does not exist, falling back" >&2
-  _manta_discovered_zdotdir=""
-fi
-
-# Why only the ownership check here: a ZDOTDIR the user's own .zshenv just
-# exported is the user's by construction, whatever it happens to contain.
-__manta_resolve_user_config_dir "${_manta_discovered_zdotdir:-${_manta_user_zdotdir:-$HOME}}"
-export MANTA_ORIG_ZDOTDIR="$_manta_resolved_config_dir"
-unset _manta_user_zdotdir _manta_zshenv_source_dir _manta_discovered_zdotdir
-
-if [[ -n "${_manta_zshenv_path:-}" ]] && [[ -o ksharrays || -o shwordsplit || -o shglob ]] 2>/dev/null; then
-  case "$(emulate 2>/dev/null)" in
-    sh|ksh)
-      export ZDOTDIR="$MANTA_ORIG_ZDOTDIR"
-      # Why unset: an MANTA_HISTFILE no wrapper file will ever consume is
-      # inherited by everything this pane spawns, including a nested Manta.
-      builtin unset MANTA_HISTFILE _manta_shell_features _manta_home _manta_resolved_config_dir _manta_wrapper_zdotdir_self
-      unfunction __manta_shell_epilogue __manta_has_feature __manta_resolve_user_config_dir __manta_resolve_inherited_config_dir 2>/dev/null
-      return 0
-      ;;
-  esac
-fi
-unset _manta_zshenv_path
-
-# Why: use :- after user .zshenv — a pathological unset under set -u must not
-# abort the wrapper; empty falls through to the baked-literal branch.
-if [[ -n "${_manta_wrapper_zdotdir_self:-}" && -f "${_manta_wrapper_zdotdir_self:-}/.zshenv" ]]; then
-  export ZDOTDIR="${_manta_wrapper_zdotdir_self:-}"
+if __manta_usable_zdotdir "${MANTA_ORIG_ZDOTDIR:-}"; then
+  builtin export ZDOTDIR="$MANTA_ORIG_ZDOTDIR"
 else
-  export ZDOTDIR='<WRAPPER_ROOT>/zsh'
+  builtin unset ZDOTDIR
 fi
-unset _manta_wrapper_zdotdir_self
-
-__manta_shell_epilogue() {
+builtin unset MANTA_ORIG_ZDOTDIR MANTA_ZSHENV_SOURCE_DIR
+builtin unfunction __manta_usable_zdotdir
+builtin typeset -ga _manta_shell_features
+_manta_shell_features=(${(s:,:)${MANTA_SHELL_FEATURES:-}})
+builtin unset MANTA_SHELL_FEATURES
+# Why MANTA_HISTFILE is consumed HERE and not in the deferred hook: a user config
+# that replaces precmd_functions wholesale drops the hook, and an exported value
+# nothing will ever consume is then inherited by every child of this pane,
+# including a nested Manta (#11146). Captured non-exported, it cannot escape.
+builtin typeset -g _manta_histfile="${MANTA_HISTFILE:-}"
+builtin unset MANTA_HISTFILE
+__manta_has_feature() { (( ${_manta_shell_features[(Ie)$1]} )) }
+__manta_has_feature identity && printf "\033]777;manta-shell-start:%s\007" "$$"
+__manta_osc133_precmd() {
+  local exit_code=$?
+  if [[ -n "${__manta_in_command:-}" ]]; then
+    builtin printf "\033]133;D;%s\007" "$exit_code"
+    builtin unset __manta_in_command
+  fi
+  builtin printf "\033]133;A\007"
+}
+__manta_osc133_preexec() {
+  builtin printf "\033]133;C\007"
+  # Why typeset -g: a plain assignment here creates a global inside a function,
+  # which prints a warning above every command under warn_create_global.
+  builtin typeset -g __manta_in_command=1
+}
+__manta_deferred_init() {
   # Why first: this body runs after the user's own config, so it would otherwise
   # inherit whatever options that config left set. Under NO_UNSET an unset
-  # precmd_functions is a fatal error that returns from the whole epilogue
-  # (skipping the ready widget and the ZDOTDIR restore), and KSH_ARRAYS makes
-  # the 1-based feature lookup drop the first selected feature.
-  emulate -L zsh
-  (( $+_manta_epilogue_done )) && return 0
-  typeset -g _manta_epilogue_done=1
+  # precmd_functions is fatal, and KSH_ARRAYS makes the 1-based feature lookup
+  # drop whichever feature is listed first.
+  builtin emulate -L zsh
+  (( $+_manta_deferred_init_done )) && return 0
+  builtin typeset -g _manta_deferred_init_done=1
+  builtin typeset -g precmd_functions
+  if __manta_has_feature markers; then
+    precmd_functions=(${precmd_functions:/__manta_deferred_init/__manta_osc133_precmd})
+    preexec_functions=(__manta_osc133_preexec ${preexec_functions[@]})
+  else
+    precmd_functions=(${precmd_functions:#__manta_deferred_init})
+  fi
   if __manta_has_feature overlay; then
     # Why: ~/.zshrc can export the user's default OpenCode config after spawn.
     __manta_restore_agent_teams_path() {
@@ -166,35 +112,8 @@ __manta_shell_epilogue() {
     fi
     unset __manta_codex_binary
   fi
-  if [[ -n "${MANTA_HISTFILE:-}" ]]; then
-    HISTFILE="$MANTA_HISTFILE"
-    builtin unset MANTA_HISTFILE
-  elif [[ "${HISTFILE:-}" == "$ZDOTDIR/.zsh_history" ]]; then
-    # Why also when Manta injected nothing: /etc/zshrc derived this from Manta's
-    # wrapper ZDOTDIR, so history would accumulate INSIDE the wrapper dir and the
-    # user's real history would be invisible — the plain #11044 bug, with no
-    # per-worktree scoping involved. Matching the exact clobbered value means a
-    # HISTFILE the user set deliberately is never touched.
-    HISTFILE="${MANTA_ORIG_ZDOTDIR:-$HOME}/.zsh_history"
-  fi
-  if __manta_has_feature markers; then
-    __manta_osc133_precmd() {
-      local exit_code=$?
-      if [[ -n "${__manta_in_command:-}" ]]; then
-        printf "\033]133;D;%s\007" "$exit_code"
-        unset __manta_in_command
-      fi
-      printf "\033]133;A\007"
-    }
-    __manta_osc133_preexec() {
-      printf "\033]133;C\007"
-      # Why typeset -g: a plain assignment here creates a global inside a function,
-      # which prints a warning above every command under warn_create_global.
-      typeset -g __manta_in_command=1
-    }
-    # Why: prepend so Manta captures $? before user prompt hooks can overwrite it.
-    precmd_functions=(__manta_osc133_precmd ${precmd_functions[@]})
-    preexec_functions=(__manta_osc133_preexec ${preexec_functions[@]})
+  if [[ -n "${_manta_histfile:-}" ]]; then
+    HISTFILE="$_manta_histfile"
   fi
   if __manta_has_feature ready; then
     # Why: capture the prior zle-line-init so the marker chains to it. On a
@@ -220,11 +139,17 @@ __manta_shell_epilogue() {
     }
     zle -N zle-line-init __manta_prompt_mark
   fi
-  __manta_resolve_user_config_dir "${MANTA_ORIG_ZDOTDIR:-$HOME}"
-  # Why: after Manta's last wrapper file has loaded, the interactive shell should
-  # expose the same ZDOTDIR a normal zsh startup would expose.
-  export ZDOTDIR="$_manta_resolved_config_dir"
-  unset _manta_home _manta_resolved_config_dir
-  unset _manta_shell_features
-  unfunction __manta_shell_epilogue __manta_has_feature __manta_resolve_user_config_dir __manta_resolve_inherited_config_dir
+  # Why called here: we were appended during this prompt's own precmd sweep, so
+  # the permanent hook has not run yet and the first prompt would lose its mark.
+  __manta_has_feature markers && __manta_osc133_precmd
+  builtin unset _manta_shell_features _manta_histfile
+  builtin unfunction __manta_deferred_init __manta_has_feature
+}
+{
+  builtin typeset _manta_user_zshenv="${ZDOTDIR-$HOME}/.zshenv"
+  [[ ! -r "$_manta_user_zshenv" ]] || builtin source -- "$_manta_user_zshenv"
+} always {
+  builtin unset _manta_user_zshenv
+  builtin typeset -ag precmd_functions
+  (( ${precmd_functions[(Ie)__manta_deferred_init]} )) || precmd_functions+=(__manta_deferred_init)
 }

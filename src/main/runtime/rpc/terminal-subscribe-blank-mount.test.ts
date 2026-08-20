@@ -10,6 +10,7 @@ import type { RuntimeTerminalWait } from '../../../shared/runtime-types'
 function stubRuntime(overrides: Partial<MantaRuntimeService> = {}): MantaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
+    subscribeToPtyExit: vi.fn(() => vi.fn()),
     registerRemoteTerminalViewSubscriber: () => () => {},
     requestRendererTerminalTabMount: () => false,
     getRendererTerminalSerializerGenerationForHandle: () => 0,

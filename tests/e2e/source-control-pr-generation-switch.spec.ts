@@ -401,9 +401,11 @@ test.describe('Source Control AI PR generation worktree switching', () => {
     await installDelayedCommitMessageGenerator(mantaPage, generatorScriptPath, callLogPath)
 
     await openSourceControl(mantaPage, commitWorktreeId)
-    await expect(mantaPage.getByText('e2e-commit-message-generation.txt')).toBeVisible({
-      timeout: 10_000
-    })
+    await expect(
+      mantaPage
+        .getByTestId('source-control-entry')
+        .getByText('e2e-commit-message-generation.txt', { exact: true })
+    ).toBeVisible({ timeout: 10_000 })
     const generate = mantaPage.getByRole('button', {
       name: 'Generate commit message with AI'
     })

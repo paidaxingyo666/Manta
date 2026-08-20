@@ -100,10 +100,12 @@ describe('AntigravityHookService', () => {
     )
     expect(script).toContain('/hook/antigravity')
     if (process.platform === 'win32') {
-      expect(script).toContain('%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe')
-      expect(script).toContain('hook_event_name=$env:MANTA_ANTIGRAVITY_EVENT')
-      expect(script).toContain('[string]::IsNullOrWhiteSpace($inputData)) { @{} }')
-      expect(script).not.toContain('[string]::IsNullOrWhiteSpace($inputData)) { exit 0 }')
+      expect(script).not.toContain('powershell.exe')
+      expect(script).toContain('%SystemRoot%\\System32\\curl.exe')
+      expect(script).toContain('hook_event_name=%MANTA_ANTIGRAVITY_EVENT%')
+      expect(script).toContain('--data-urlencode "payload@-"')
+      // Why (#9358/#9941): delayed expansion eats `!` out of percent-expanded curl args.
+      expect(script).toContain('setlocal DisableDelayedExpansion')
     } else {
       expect(script).toContain('hook_event_name=${MANTA_ANTIGRAVITY_EVENT}')
       expect(script).toContain(`payload=$(${POSIX_HOOK_STDIN_READER})`)
@@ -280,10 +282,10 @@ describe('AntigravityHookService', () => {
         'utf8'
       )
       expect(script).toContain('/hook/antigravity')
-      expect(script).toContain('%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe')
-      expect(script).toContain('hook_event_name=$env:MANTA_ANTIGRAVITY_EVENT')
-      expect(script).toContain('[string]::IsNullOrWhiteSpace($inputData)) { @{} }')
-      expect(script).not.toContain('[string]::IsNullOrWhiteSpace($inputData)) { exit 0 }')
+      expect(script).not.toContain('powershell.exe')
+      expect(script).toContain('%SystemRoot%\\System32\\curl.exe')
+      expect(script).toContain('hook_event_name=%MANTA_ANTIGRAVITY_EVENT%')
+      expect(script).toContain('setlocal DisableDelayedExpansion')
     })
   })
 

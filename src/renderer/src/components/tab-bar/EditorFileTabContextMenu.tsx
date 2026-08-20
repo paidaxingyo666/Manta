@@ -32,9 +32,11 @@ const isMac = navigator.userAgent.includes('Mac')
 const isLinux = navigator.userAgent.includes('Linux')
 
 /** Platform-appropriate label: macOS → Finder, Windows → File Explorer, Linux → Files */
-const revealLabel = isMac
-  ? 'Reveal in Finder'
-  : isLinux
+function revealLabel(): string {
+  if (isMac) {
+    return translate('auto.components.tab.bar.EditorFileTabContextMenu.6ffb7f7bce', 'Reveal in Finder')
+  }
+  return isLinux
     ? translate(
         'auto.components.tab.bar.EditorFileTabContextMenu.fe23001e60',
         'Open Containing Folder'
@@ -43,6 +45,7 @@ const revealLabel = isMac
         'auto.components.tab.bar.EditorFileTabContextMenu.3da91e073d',
         'Reveal in File Explorer'
       )
+}
 
 type EditorFileTabContextMenuProps = {
   open: boolean
@@ -255,7 +258,7 @@ export function EditorFileTabContextMenu({
           }}
         >
           <ExternalLink className="size-3.5" />
-          {revealLabel}
+          {revealLabel()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

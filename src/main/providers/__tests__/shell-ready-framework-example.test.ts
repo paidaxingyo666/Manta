@@ -85,8 +85,7 @@ EOF
     )
 
     expect(stdout).toMatchInlineSnapshot(`
-      "MANTA_ORIG_ZDOTDIR=<HOME>
-      ZDOTDIR=<HOME>/.config/zsh-remote
+      "ZDOTDIR=<HOME>/.config/zsh-remote
       "
     `)
   })

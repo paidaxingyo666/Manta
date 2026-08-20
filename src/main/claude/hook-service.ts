@@ -72,6 +72,11 @@ function getManagedScript(
       // Why (#11549): the env guards must outrank the Devin skip — the Devin skip parks in more.com,
       // and outside a Manta pane the caller can abandon stdin, so more.com never returns.
       ...buildWindowsHookEnvironmentGuardLines(),
+      // Why: a backgrounded session runs in a daemon worker that inherited the dispatching
+      // pane's env, so MANTA_PANE_KEY names a pane this session does not run in (#9236).
+      // Why exit, not the drain label: the drain parks in more.com and a worker is outside
+      // a Manta pane — the abandoned-stdin hang #11549 guards against.
+      'if not "%CLAUDE_JOB_DIR%"=="" exit /b 0',
       ...(options.skipWhenDevinImportsClaude
         ? [
             // Why: Devin imports .claude hooks by default; skip Manta's managed hook there so status posts stay attributed to Devin.
@@ -99,6 +104,11 @@ function getManagedScript(
           'fi'
         ]
       : []),
+    // Why: a backgrounded session runs in a daemon worker that inherited the dispatching
+    // pane's env, so MANTA_PANE_KEY names a pane this session does not run in (#9236).
+    'if [ -n "$CLAUDE_JOB_DIR" ]; then',
+    '  exit 0',
+    'fi',
     // Why: refresh endpoint coordinates for PTYs surviving a Manta restart.
     // Why: suppress parse errors so they neither leak nor trip outer set -e.
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',

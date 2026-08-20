@@ -52,7 +52,7 @@ on:
         # than the one the workflow file itself is read from — normally leave the
         # picker on main and name your branch here, so a stale copy of this
         # workflow on an old branch is not what runs.
-        description: 'Branch, tag, or SHA to build — must live in stablyai/orca; PR refs are refused (default: the branch selected above)'
+        description: 'Branch, tag, or SHA to build — must live in paidaxingyo666/Manta; PR refs are refused (default: the branch selected above)'
         required: false
         default: ''
         type: string
@@ -83,7 +83,7 @@ env:
 
 jobs:
   build-adhoc-mac:
-    if: github.repository == 'stablyai/orca'
+    if: github.repository == 'paidaxingyo666/Manta'
     # Why an environment: it gives the signing/notary/App secrets somewhere to
     # live that a stale copy of this workflow on an old branch cannot reach.
     # Referencing it is a no-op until repo settings give it teeth; the intended
@@ -92,6 +92,11 @@ jobs:
     # HOURLY_RELEASE_APP_PRIVATE_KEY into it, then pin its deployment branch
     # policy to main so only main's copy of this file can read them.
     environment: adhoc-mac-build
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.adhoc.outputs.version }}
+      head_sha: ${{ steps.adhoc.outputs.head_sha }}
+      published: ${{ steps.publish_live.outcome == 'success' && 'true' || 'false' }}
     runs-on: blacksmith-6vcpu-macos-15
     # Why 150: it must exceed the worst case the retry budgets below can produce
     # (install 3x10 + publish 2x45 = 120, plus ~25 for checkout/build/verify), or
@@ -117,7 +122,7 @@ jobs:
           set -euo pipefail
           case "$REQUESTED_REF" in
             refs/pull/*|pull/*)
-              echo "::error::Refusing to build PR ref '$REQUESTED_REF': this workflow signs with release credentials, so it only builds branches, tags, or commits of stablyai/orca. Push the code to a branch of this repo instead."
+              echo "::error::Refusing to build PR ref '$REQUESTED_REF': this workflow signs with release credentials, so it only builds branches, tags, or commits of paidaxingyo666/Manta. Push the code to a branch of this repo instead."
               exit 1
               ;;
           esac
@@ -137,7 +142,7 @@ jobs:
             sha=""
           done
           if [[ -z "$sha" ]]; then
-            echo "::error::'$REQUESTED_REF' does not resolve to a branch, tag, or commit of stablyai/orca."
+            echo "::error::'$REQUESTED_REF' does not resolve to a branch, tag, or commit of paidaxingyo666/Manta."
             exit 1
           fi
           # The object resolving locally is not proof a branch or tag reaches
@@ -145,7 +150,7 @@ jobs:
           # GitHub serves PR-only commits by SHA. Reachability is the actual
           # trust test.
           if [[ -z "$(git -C "$scratch" for-each-ref --contains "$sha" refs/heads refs/tags | head -1)" ]]; then
-            echo "::error::Commit $REQUESTED_REF is not reachable from any branch or tag of stablyai/orca; refusing to build it with release credentials."
+            echo "::error::Commit $REQUESTED_REF is not reachable from any branch or tag of paidaxingyo666/Manta; refusing to build it with release credentials."
             exit 1
           fi
           echo "Vetted $REQUESTED_REF -> $sha"
@@ -160,7 +165,7 @@ jobs:
           # applies main's current copy of this file to an arbitrary branch.
           ref: ${{ steps.vetted.outputs.sha }}
           fetch-depth: 0
-          # This job only reads stablyai/orca and never pushes; every write goes
+          # This job only reads paidaxingyo666/Manta and never pushes; every write goes
           # to the adhoc repo through a minted App token passed by env. Not
           # persisting the checkout credential shrinks the blast radius if a build
           # step is compromised (zizmor: artipacked).
@@ -246,7 +251,7 @@ jobs:
           # Why: adhoc builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted branch artifacts.
-          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.onmanta.dev/diagnostics/token
 
       # Why the token is minted here and not at the top: installation tokens live
       # one hour, everything before this point writes nothing, and the notary round
@@ -290,15 +295,22 @@ jobs:
             --repo "$ADHOC_REPO" \
             --title "$NAME" \
             --draft \
-            --notes "Adhoc macOS dev build of \`$REF\` at commit \`$short_sha\`.
+            --notes "Adhoc macOS and Windows dev build of \`$REF\` at commit \`$short_sha\`.
 
-          Built from [\`stablyai/orca@$short_sha\`](https://github.com/stablyai/orca/commit/$SHA), cut by @$ACTOR.
+          Built from [\`paidaxingyo666/Manta@$short_sha\`](https://github.com/paidaxingyo666/Manta/commit/$SHA), cut by @$ACTOR.
 
           **Unlanded and unvetted.** This is somebody's branch, not main. No tests
-          ran. Signed and notarized like a release, so it installs through Manta's
-          in-app updater and opens without a Gatekeeper prompt — but the branch may
-          never merge, and this build is deleted after $ADHOC_RETAIN_DAYS days."
+          ran. The macOS build is signed and notarized like a release, so it installs
+          through Manta's in-app updater and opens without a Gatekeeper prompt — but the
+          branch may never merge, and this build is deleted after $ADHOC_RETAIN_DAYS days.
+
+          **Windows builds are unsigned.** They install and update normally once you
+          are on one, but a signed Stable or RC build cannot install one through the
+          in-app updater — download \`manta-windows-setup.exe\` below and run it once
+          (SmartScreen will warn about an unknown publisher). Every later switch,
+          including back to Stable, works in-app from there."
           echo "tag=$TAG" >>"$GITHUB_OUTPUT"
+
 
       - name: Publish adhoc macOS artifacts
         uses: nick-fields/retry@v4
@@ -416,3 +428,27 @@ jobs:
             gh release delete "$tag" --repo "$ADHOC_REPO" --yes --cleanup-tag || \
               echo "::warning::Could not prune $tag"
           done <<<"$stale"
+
+  # Why this runs after the mac leg rather than beside it: the tag and version
+  # are computed inside that job, so until it has run nothing else can name the
+  # release to upload into. The cost is small enough not to matter — the Windows
+  # leg measures ~7.5 min (install 2m45, build 35s, NSIS package 3m) against a
+  # ~9.5 min mac run, which keeps a adhoc run far inside its interval.
+  #
+  # Why `./` rather than a pinned `@main`: `uses:` resolves against the ref this
+  # file itself came from, which for an ordinary dispatch is main. Someone who
+  # deliberately points the Actions "Use workflow from" picker at a branch
+  # already gets that branch's copy of this entire file, so this follows the same
+  # rule instead of inventing a second one.
+  build-adhoc-win:
+    needs: build-adhoc-mac
+    # Only once the mac release is actually live: there is no release to upload
+    # into otherwise, and the Windows workflow refuses to create one.
+    if: needs.build-adhoc-mac.outputs.published == 'true'
+    uses: ./.github/workflows/dev-channel-win-build.yml
+    secrets: inherit
+    with:
+      channel: adhoc
+      tag: ${{ needs.build-adhoc-mac.outputs.tag }}
+      ref: ${{ needs.build-adhoc-mac.outputs.head_sha }}
+      version: ${{ needs.build-adhoc-mac.outputs.version }}

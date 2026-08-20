@@ -2949,7 +2949,8 @@
             "fdd29eb669": "Fijar pestaña",
             "8e9d603a09": "Desanclar pestaña",
             "fe23001e60": "Abrir carpeta contenedora",
-            "3da91e073d": "Mostrar en el Explorador de archivos"
+            "3da91e073d": "Mostrar en el Explorador de archivos",
+            "6ffb7f7bce": "Mostrar en Finder"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Ajustes de Agents…",
@@ -5085,6 +5086,12 @@
           "9f2d4c8b17": "Ocultar worktrees externos permanentemente para {{value0}}",
           "5e1b8d3f62": "Ocultar worktrees externos permanentemente",
           "c3e8a1f4b2": "No volver a mostrar"
+        },
+        "NoticeHostGlyph": {
+          "hostDisconnected": "{{hostName}} está desconectado",
+          "sshHostProject": "Proyecto en el host SSH {{hostName}}",
+          "localHostProject": "Proyecto en este host",
+          "runtimeHostProject": "Proyecto en {{hostName}}"
         },
         "newExternalWorktreesInboxActions": {
           "a11c2f6d89": "No se pudieron mantener ocultos los worktrees externos. Inténtalo de nuevo.",

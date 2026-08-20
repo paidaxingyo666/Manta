@@ -3,7 +3,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
-import { SESSION_RESTORED_BANNER_TEXT, SessionRestoredBanner } from './SessionRestoredBanner'
+import { sessionRestoredBannerText, SessionRestoredBanner } from './SessionRestoredBanner'
 
 const mountedRoots: Root[] = []
 
@@ -33,7 +33,7 @@ describe('SessionRestoredBanner', () => {
   it('renders the exact restored-session marker when visible', async () => {
     const container = await renderBanner(true)
 
-    expect(container.textContent).toBe(SESSION_RESTORED_BANNER_TEXT)
+    expect(container.textContent).toBe(sessionRestoredBannerText())
     expect(container.querySelector('.session-restored-banner')).not.toBeNull()
   })
 

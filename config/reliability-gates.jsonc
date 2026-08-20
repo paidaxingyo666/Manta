@@ -30,8 +30,8 @@
       "coverageNotes": "A pinned exact-source harness runs the pre-#14352 reader and lifecycle service against baseline, affected-main, candidate, and fix-reverted stores. Platform-neutral tests cover store compatibility, user-cancellable cleanup, branch/ref adoption, and resume ownership integrity. The direct-SSH provisioned-root Electron journey remains the live transport and destroy proof; this desktop sidecar is not mobile-facing and changes no RPC or remote wire payload.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4274",
-        "https://github.com/stablyai/orca/pull/14352",
-        "https://github.com/stablyai/orca/issues/13044"
+        "https://github.com/paidaxingyo666/Manta/pull/14352",
+        "https://github.com/paidaxingyo666/Manta/issues/13044"
       ],
       "invariant": "A sidecar written by the new build cannot make the previous production build lose otherwise compatible VM runtimes. Downgrade lifecycle writes remain authoritative after re-upgrade, provisioned-root metadata remains recoverable, and corrupt or future feature metadata is preserved without poisoning the rollback-readable v1 store. Destroy attempts have no automatic wall-clock cutoff; a user stop terminates the process tree, retains cleanup ownership, and permits a fresh retry. Provider failure retains the SSH/project context needed for safe cleanup. Unrecoverable recipe context releases only the hidden SSH registration while preserving lifecycle/provider metadata. Provisioned-root create receives the source ref's pinned commit, adoption verifies the requested branch/ref, and resume preserves the connection mode plus stable SSH ownership identity while allowing endpoint rotation.",
       "oracle": "Write one ordinary schema-v1 runtime and one provisioned-root runtime. Require the exact pre-#14352 reader to return both, run the old destroy lifecycle against the projected provisioned record, then require the candidate to retain the cleaned state while restoring schema-v2 and checkout-mode metadata. The same old reader must reject affected-main and fix-reverted bytes. Malformed, oversized, unknown-record, and future-version feature sidecars must leave rollback-compatible records accessible and must not be overwritten during compatible lifecycle mutations. Require destroy to have no implicit deadline, stop a hung destroy through the public desktop action, require cleanup_failed plus a fresh successful retry, prove provider or project-host rollback failure retains every ownership record required to retry, and prove missing recipe context cannot leave an unremovable hidden SSH registration. Supply the source ref's captured commit to create, reject a provisioned checkout on the wrong branch/ref, and reject a resume that changes connection mode or SSH ownership.",
@@ -245,13 +245,13 @@
       "coveredProviders": ["local", "local-daemon", "ssh-relay", "paired-runtime"],
       "coverageNotes": "Real macOS node-pty integration covers zsh 5.9 .zshenv/.zprofile and bash 3.2 profile replacement shells, including exec -a names, same-shell and child-process silent reads, a blocking zle-line-init hook, non-shell readline replacements, and a non-shell image renamed zsh. A real Fish PTY proves marker stripping is byte-exact and does not render bracketed-paste control text. Ubuntu 20.04/Bash 5.0 and Ubuntu 24.04/Bash 5.2 containers cover scalar and array PROMPT_COMMAND composition, including real zoxide on 24.04. Deterministic owner contracts cover local, daemon, and SSH relay identity/readiness composition plus provider-owned delivery; explicit terminal-paste remains renderer-owned. Live isolated journeys cover a macOS headed desktop owner with paired web client, headless manta serve with paired web client, and a Docker Linux OpenSSH/Bash target with one readiness-time reconnect. Linux desktop, WSL/Windows, live zsh-over-SSH, and physical remote hosts remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/13767",
+        "https://github.com/paidaxingyo666/Manta/issues/13767",
         "https://linear.app/stably/issue/STA-4067",
         "https://linear.app/stably/issue/STA-4068",
-        "https://github.com/stablyai/orca/pull/14161",
-        "https://github.com/stablyai/orca/issues/14448",
+        "https://github.com/paidaxingyo666/Manta/pull/14161",
+        "https://github.com/paidaxingyo666/Manta/issues/14448",
         "https://linear.app/stably/issue/STA-4292",
-        "https://github.com/stablyai/orca/pull/14451"
+        "https://github.com/paidaxingyo666/Manta/pull/14451"
       ],
       "invariant": "Shell startup scanning preserves every non-Manta output byte in order across arbitrary PTY chunk boundaries. Bash scalar and supported array PROMPT_COMMAND values preserve user bytes, hook order, and foreground exit status while emitting exactly one OSC 133 A/C/D lifecycle without syntax errors. Before user startup files run, the wrapper publishes its shell PID. If a later exec discards the ready marker, proof-based recovery releases queued startup input only after the launched shell's actual executable image with that exact PID owns the PTY foreground, emits its post-hook line-editor enable sequence, and exposes zle/readline termios; startup reads, line-init hooks, child foreground processes, and non-shell readline replacements cannot trigger that proof. The existing bounded compatibility timeout may enqueue input without proof, but must not publish readiness, lose or duplicate that input across reconnect, or execute it before the replacement shell can accept it.",
       "oracle": "Split Fish output immediately after the ready marker and after the following ESC introducer; local and daemon owners must emit the exact ESC [ ? 2004 h bytes and headless xterm must not render literal control text. Run the real generated wrappers under node-pty with disposable zsh, bash, and Fish startup files. Exercise Bash scalar and array PROMPT_COMMAND values with empty, repeated, escaped, whitespace, control-byte, odd-backslash, status-mutating, DEBUG-trap, zoxide, and RHEL-style hooks; require exact A,C,D:0,A,C,D:1,A,C ordering and byte preservation. Plain and exec -a replacement shells must receive one queued command at their first completed line editor without waiting for the 15-second timeout. The identical oracle must time out without the startup identity and prompt fallback. Same-shell reads, child-process reads, a blocking zle-line-init hook, sqlite3, and sqlite3 renamed zsh must not trigger prompt fallback. Relay owner coverage must use the same lossless scanner composition and release through the same prompt contract.",
@@ -444,8 +444,8 @@
       "coveredProviders": ["local", "ssh", "paired-runtime"],
       "coverageNotes": "Deterministic store/controller tests cover local, direct-SSH, paired-runtime identity, folder workspaces, queue quiescence, stale route and connection-generation rejection, authoritative active-workspace projection, owner-derived IDs, drafts and editor maps, tab/group placement, exact watch replacement, change/delete/rename correlation, explicit save, autosave, collision refusal without activation reconciliation, provenance, and restart hot-exit persistence. Live headed/headless paired-runtime and post-establish Electron IPC remain uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11304",
-        "https://github.com/stablyai/orca/pull/11369"
+        "https://github.com/paidaxingyo666/Manta/issues/11304",
+        "https://github.com/paidaxingyo666/Manta/pull/11369"
       ],
       "invariant": "A restored absolute path owned by a same-host sibling workspace cannot read, save, watch, or persist until old saves drain, the exact route and host generations are revalidated, and one authoritative activation transaction installs the sibling owner, target projection, editor state, reconciliation, and first-activation terminal preparation; collisions and stale routes fail before activation preparation or reconciliation.",
       "oracle": "Hold an old-owner save in flight, start migration, then remove the sibling, change a folder root, or reconnect SSH and require owner migration to fail closed after quiescence. On a stable route require one coherent target-workspace projection, first-activation terminal generation preparation, destination authority for explicit save and autosave, exact watch replacement, destination-only change/delete/rename handling, owner-derived state rekeys, and hot-exit restart ownership. Seed an invalid destination tab/group model before a collision and require the target projection to remain byte-identical.",
@@ -539,8 +539,8 @@
       "coveredProviders": ["local-daemon"],
       "coverageNotes": "A deterministic fake clock covers short-burst recovery, sustained session death, pending-timer and in-flight-probe suspension, event-trigger preemption, resolver corroboration, and shutdown cancellation. The production-only watch remains behind the macOS GUI launch flag; SSH/headless, WSL, Linux, Windows, mobile, and relay paths are unaffected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11749",
-        "https://github.com/stablyai/orca/issues/7936"
+        "https://github.com/paidaxingyo666/Manta/issues/11749",
+        "https://github.com/paidaxingyo666/Manta/issues/7936"
       ],
       "invariant": "A GUI-spawned macOS daemon may retire for PAM rejections only after it previously accepted login wrapping, receives three conclusive rejections spanning at least one uninterrupted 120-second observation window, and observes explicitly unhealthy in-process resolver state. A conclusive acceptance or a sleep/App Nap-sized gap before or during a probe resets the rejection window to the periodic cadence, and client or PTY activity cannot shorten its scheduled backoff.",
       "oracle": "Arm the watch with an accepted probe, inject three rejections over 20 seconds plus unhealthy resolver state, then inject client and PTY activity and require zero resolver reads, zero retirement calls, and exactly four probes until the 120-second boundary. Return acceptance at that boundary and require the daemon to survive. Jump wall time by one hour while a timer is pending and while a PAM probe promise is unresolved; require rejection evidence to restart after wake, zero probes for the next 119,999 milliseconds, and recovery without retirement in both cases. Repeatedly delay timers beyond the suspension threshold for one hour and require the periodic probe bound, one live timer, and zero resolver or retirement calls. Separately keep rejecting through an uninterrupted boundary and require one retirement, while healthy or unknown resolver state suppresses it and stop aborts an in-flight resolver check.",
@@ -615,8 +615,8 @@
       "coveredProviders": ["ssh2", "system-ssh"],
       "coverageNotes": "Deterministic fake-clock coverage proves inactivity cancellation, active-transfer renewal, sticky suspend replay before metadata, failure-isolated lifecycle fanout, committed-quit bridge disposal, timer cleanup, and listener cleanup. A real Docker SSH relay previously proved active and stalled transfer behavior; physical sleep/wake and Windows/Linux clients remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11362",
-        "https://github.com/stablyai/orca/pull/11364"
+        "https://github.com/paidaxingyo666/Manta/issues/11362",
+        "https://github.com/paidaxingyo666/Manta/pull/11364"
       ],
       "invariant": "A non-empty SSH file stream that produces no valid frame for 30 seconds must cancel at its authoritative stream reader and release all local lifecycle state. System suspend is sticky across metadata and subscription races, resume grants every still-live stream one fresh inactivity window, one failing consumer cannot block the others, and the sole Electron bridge survives a vetoed before-quit without retaining a per-stream Electron listener.",
       "oracle": "Publish suspend before stream metadata resolves, jump wall time by one hour, and require the late-subscribing stream to remain pending until resume grants a fresh 30-second window. Deliver a valid final chunk and end frame, require exact content, then publish another resume and require zero timers, multiplexer listeners, or renewed work; separately require stalled cancellation at 30 seconds, atomic state replay, failure-isolated fanout, and bridge disposal only after the committed will-quit gate.",
@@ -715,8 +715,8 @@
       "coveredProviders": ["ssh2", "system-ssh"],
       "coverageNotes": "Deterministic unit, exact POSIX shell, native ARM macOS PowerShell 7.6.4, and real ssh2 SFTP-wire tests cover lock ordering, concurrent-install loss, fixed-slot ownership identity, payload-only promotion, bounded stale-stage reclamation, installed-fast-path draining, joined cancellation teardown, cross-version isolation, split-SFTP redirection, and system-SSH bypass. A throwaway linux-arm64 Docker sshd reached through a non-loopback LAN address covers live bytes-in-flight SFTP cancellation, injected unconfirmed cancellation, immediate retry against a real Git repository, fixed-slot recovery behind unclaimable entries, and real version-GC filtering with 15,197 unrelated names.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/9828",
-        "https://github.com/stablyai/orca/pull/10207"
+        "https://github.com/paidaxingyo666/Manta/issues/9828",
+        "https://github.com/paidaxingyo666/Manta/pull/10207"
       ],
       "invariant": "A first-install relay transfer must complete in an attempt-owned fixed staging slot before acquiring the shared version install lock. Reservation, promotion, confirmed cleanup, and stale recovery must reject path replacement, persisted-identity mismatch, POSIX symlinks, and Windows reparse points. Recovery examines only eight fixed slot/claim/delete names and removes at most one stale valid stage per call; eight unclaimable states fail with an explicit manual-recovery message. Split-SFTP hosts must prove the stage identity on the exact transfer session, only payload contents may be promoted under the shared lock, and cancellation must boundedly join SFTP, stream, local file-handle, and transfer settlement.",
       "oracle": "Pause a real ssh2 SFTP relay.js write after one remotely acknowledged chunk, prove the remote file is partial, abort the live transfer, and require no shared .install-lock, leaked local descriptor, or foreign-process termination. Separately inject two unconfirmed cancellations, require an independent deployment to install, launch, answer relay RPC, and read a real repository HEAD. Replace one retained fixed slot with an old-mtime same-owner directory while preserving the original, add a fixed-slot POSIX symlink, and require installed-path recovery to skip both while reclaiming a valid stale slot behind them. Add 15,197 unrelated relay-shaped names and run the real version GC, requiring bounded stdout and no removal. Unit and wire contracts cover exact POSIX and native PowerShell 0/1/7/8/9+ quota behavior, no-follow identity fencing, payload symlink/reparse rejection, one-item repeated draining, zero lock acquisition before upload settlement, joined transfer/channel teardown including never-settling failures, SFTP redirection, package.json namespace ownership, promotion only after the lock, cross-version isolation, and system-SSH behavior.",
@@ -864,7 +864,7 @@
       "coveredPlatforms": ["ios", "macos"],
       "coveredProviders": ["provider-independent"],
       "coverageNotes": "A deterministic React lifecycle test proves callback churn cannot restart an in-flight drawer close, and an iOS 26.5 simulator run covers Edit Host plus confirmed host removal. Android native-modal behavior remains a live-test gap.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/issues/8791"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/issues/8791"],
       "invariant": "Once a bottom drawer begins closing, unrelated parent rerenders must not replace its completion callback or restart the native hide animation. The drawer must unmount once and deliver the latest after-close action exactly once.",
       "oracle": "Render one drawer, begin closing it, rerender with new parent callbacks before completion, and require every MountedBottomDrawer frame to retain one onHidden identity. Trigger that completion barrier repeatedly, then require the drawer's null render to commit before only the latest after-close callback runs exactly once.",
       "commands": [
@@ -945,7 +945,7 @@
       "coveredProviders": ["lan", "tailscale", "cloud-relay"],
       "coverageNotes": "Deterministic TypeScript tests cover shared close-code policy, foreground retry timers, continuous-outage escalation, persistent pairing-rejection escalation, direct-winner cancellation, credential-gated Relay presentation, and concurrent LAN/Tailscale authentication. Physical iOS/Android radios, GFE, and production relay recovery remain live-test gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca-cloud/pull/96",
+        "https://github.com/stablyai/manta-cloud/pull/96",
         "https://linear.app/stably/issue/STA-4587",
         "https://linear.app/stably/issue/STA-4681"
       ],
@@ -1249,7 +1249,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["cloud-relay"],
       "coverageNotes": "Deterministic main-process tests cover duplicate drain notifications, full-jitter backoff, Retry-After during initial setup and drain recovery, successful recovery, and broker-close cleanup. Packaged desktop, mixed-version fleets, GFE, and production Cloud SQL remain live-test gaps.",
-      "motivatingLinks": ["https://github.com/stablyai/orca-cloud/actions/runs/30223521062"],
+      "motivatingLinks": ["https://github.com/stablyai/manta-cloud/actions/runs/30223521062"],
       "invariant": "One relay host may have at most one assignment attempt or retry timer per recovery path. Sustained director failure must increase the retry window up to five minutes, a bounded Retry-After must be respected during initial setup and drain recovery, shutdown must cancel pending work, and recovery must activate the authoritative assigned origin.",
       "oracle": "Inject duplicate drain events, deterministic randomness, fake time, repeated assignment failures, a 30-second Retry-After during initial setup and drain recovery, broker close, and eventual director recovery. Count every assignment call, require 500 ms then 1,000 ms retry windows, reject duplicate fanout, require no pre-hint retry or post-close work, and prove the recovered cell becomes authoritative.",
       "commands": [
@@ -1339,7 +1339,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "ssh"],
       "coverageNotes": "Local deterministic evidence covers git-common classification, desktop watcher debounce counts, non-overlapping poller semantics, macOS native-watch fallback, preload cleanup, Source Control active-visible repo filtering, the direct SSH five-slot fair scheduler, timeout barrier, aggregate privacy schema, coordinator-to-renderer telemetry wiring, host-catalog provenance rejection, and process generation-scope rollover across sibling targets. A macOS Electron client completed a direct SSH disconnect/reconnect against an ephemeral Linux Docker target with exact host/authority hydration and remote proof-file verification. Linux/Windows desktop clients, multi-target live fanout, paired-client, and WSL runs remain gaps.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/7086"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/7086"],
       "invariant": "Index-only Git activity below the common Git directory must not emit worktrees:changed, invalidate worktree caches, or trigger fetchWorktrees fanout; structural add/remove/HEAD/gitdir/locked/config.worktree changes must still refresh worktrees and nudge Source Control; external head moves (commit, amend, reset) must reach background worktree rows through spawn-free metadata reads, never through structural fanout. Direct SSH reconnect discovery must stay host- and authority-qualified, reject contradictory main-catalog provenance without returning rows, admit at most five locally unsettled provider calls, retain a retrying timeout barrier, and emit one identifier-free aggregate product event per target operation. A process generation-scope rollover revokes every direct SSH target and old-scope provider request, not only the target whose counter exhausted.",
       "oracle": "Classify exact git-common paths as structural, status-only, or ignored; count notifications from debounced watcher events; force the Linux/Windows poll path to emit allowlisted leaf events, detect linked HEAD rewrites independent of entry-directory mtime, and surface in-place index rewrites via the backstop re-stat; diff head identities from metadata-file reads and notify only real head moves; assert Source Control subscribes to both structural and status-only signals with active-repo and visibility filters. For direct SSH, reject catalog rows whose explicit and legacy host provenance contradict, roll one exhausted target into a fresh process generation scope while invalidating sibling target tokens, count locally unsettled attempts and round-robin admissions, keep lineage blocked through the first timeout retry, distinguish timeout/rejection/cancel/stale results, and reject telemetry properties carrying target, repo, host, path, label, user, request, lease, terminal, or raw-error data.",
       "commands": [
@@ -1578,7 +1578,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "manta-server"],
       "coverageNotes": "A real two-client integration harness pairs two authenticated devices to one MantaRuntimeService over WebSockets with E2EE and drives worktree.create through the real RPC dispatcher, in both headed-notifier and headless manta-serve shapes. The headless case is a modeled `manta serve` runtime shape — no notifier, no attached window — not a CLI bootstrap, and the in-process reveal non-regression calls createManagedWorktree directly. A headed Electron journey runs the desktop app as the remote server with two independently paired web clients in separate partitions and asserts each client's rendered active worktree. Windows and Linux are covered by the platform-neutral contract only; the reported field topology was a Windows server with mixed-OS clients.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/issues/11027"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/issues/11027"],
       "invariant": "View intent belongs to the connection that requested it. With no explicit navigation target, a workspace create arriving over a paired desktop/web client connection activates only that caller; it must not emit an activateWorktree client event to sibling connections or drive the host renderer. An explicit navigation of host/clients/all remains an allowed, tested follow intent. Shared model state — repo/worktree catalogs, terminals, agent output — must keep propagating to every client unchanged. In-process and CLI creates keep notifying the host and all clients so a headless server's only viewer still gets its reveal.",
       "oracle": "notifyActivateWorktree takes its navigation target as a required parameter, so a create call site that forgets to forward it is a compile error rather than a silent fallback to broadcasting — mutation testing confirmed all six call sites (folder, git, and remote/SSH branches, startup and no-startup each) are killed by typecheck. Behaviorally: two paired clients subscribe to runtime.clientEvents. Client A creates a workspace with activate:true; a reposChanged fence emitted after the create must be the next frame each client sees, proving no activation frame was interleaved, while worktreesChanged still arrives on both streams. The host notifier's activateWorktree is asserted not called and the host's mirrored selection is unchanged. Repeated ordinary worktree.activate calls by A are the negative control. The same file asserts the in-process create still reaches host and clients, headed and headless. The Electron journey asserts the observer's data-rendered-active-worktree-id is unchanged while the created workspace still appears in its sidebar.",
       "commands": [
@@ -1696,8 +1696,8 @@
       "coveredProviders": ["local", "daemon", "ssh"],
       "coverageNotes": "Deterministic unit coverage exercises activation gating, single-instance ownership, quit policy, local/remote CLI status, headless binding persistence, local daemon identity, SSH identity transfer, the promoted renderer's agent-resume accounting, and the macOS serve update handoff from staged installer through atomic bundle replacement and target-version readiness. A macOS Electron journey covers headless promotion and persistent PTY identity. A disposable locally signed Electron canary exercised real ShipIt and a temporary LaunchAgent with the compiled production supervisor; full packaged Manta and Linux/Windows serve updates remain uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/8457",
-        "https://github.com/stablyai/orca/issues/9563"
+        "https://github.com/paidaxingyo666/Manta/issues/8457",
+        "https://github.com/paidaxingyo666/Manta/issues/9563"
       ],
       "invariant": "A safely promotable headless serve process is the single app owner. Desktop activation preserves its daemon-backed sessions. On macOS, a CLI-supervised serve update keeps the node-mode parent alive across ShipIt's atomic bundle swap, restarts with the original serve arguments only after the target bundle is present, and clears handoff state only after that target version reports runtime readiness. Unsupported or failed handoffs leave the current serving owner intact or recover it once without an install retry loop.",
       "oracle": "Unit tests coalesce early activation, preserve daemon and SSH identity, and reproduce the update race with a staged target, old serving child, persistent CLI parent, atomic .app replacement, and replacement readiness message. They assert the parent does not exit for launchd to respawn the old app, the native updater does not launch an interactive GUI, the replacement version is verified before handoff completion, mismatches become durable failures without retries, and unsupported/preflight-failed installs do not invoke native quit or PTY cleanup. A joined lock-owner/activation/hydration contract asserts that a forced relaunch opens exactly one window and that the renderer promoted inside the serve process launches zero agent resumes, creates no replacement tab or startup command, and leaves every surviving session record untouched. The Electron journey independently verifies headless promotion retains owner/runtime/daemon/PTY identity and terminal I/O.",
@@ -1904,9 +1904,9 @@
       "coveredProviders": ["local", "daemon", "paired-runtime"],
       "coverageNotes": "Deterministic lifecycle, IPC, window-notification, and runtime ownership tests cover generation replacement, stale callbacks, same-frame old-document publication, blocked external navigation, cancelled renderer navigation, concurrent provisional starts, process loss, timeout cleanup, headless fallback, and competing windows. Isolated macOS Electron validation covers cancelled navigation, forced renderer recovery, and headless serve promotion with live daemon-backed PTY identity and I/O. Linux, Windows, WSL, SSH promotion, and mixed-version desktop/server live runs remain uncollected; the renderer generation stays local to Electron IPC and does not change the remote wire.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/14066",
+        "https://github.com/paidaxingyo666/Manta/issues/14066",
         "https://linear.app/stably/issue/STA-4016",
-        "https://github.com/stablyai/orca/pull/14070"
+        "https://github.com/paidaxingyo666/Manta/pull/14070"
       ],
       "invariant": "Every genuine renderer graph reload revision settles exactly once, while a blocked external navigation that preserves the current document never starts a revision. A cancelled renderer-document navigation restores authority only when that same renderer survived; cancellation after an earlier document committed remains fenced until publication or timeout. Replacing a reload cancels only the prior revision; its timer and callbacks cannot settle a newer revision. A desktop reload succeeds only from a publication carrying a new renderer-document generation, while a failed headless promotion may recover only from its originating window. Timeout, renderer loss, and close reach a terminal graph state, and successful desktop publication permanently retires headless sentinel fallback until a new headless runtime is established.",
       "oracle": "Start a blocked external main-frame navigation and require the current renderer graph and notification path to remain authoritative. Start a same-renderer navigation, cancel it before commit, and require the renderer canary and ready authority to survive; coalesce overlapping provisional starts into one fence, and keep an earlier committed reload fenced if a later navigation is cancelled. Drive two genuine reloads half a timeout apart and require the first deadline to leave the second revision reloading while the second deadline alone makes it unavailable. During the second revision publish from the prior renderer document through the still-current main frame and require rejection without graph mutation or timeout cancellation. Restore headless authority after failed promotion, publish from a competing window, and require rejection while the sentinel remains authoritative. Then force a real renderer crash and separately promote an isolated headless serve owner; require runtime graph readiness, stable runtime/main/daemon/PTY identities, recovered visible terminal output, and post-recovery input/output.",
@@ -2079,8 +2079,8 @@
       "coveredProviders": ["remote-runtime"],
       "coverageNotes": "Deterministic transport tests cover listener-before-probe ownership, first- and later-socket shared cadence, responsive and unresponsive cleanup, pause/resume, connection caps, pre-auth expiry, and close/error races. Headed paired-runtime and headless serve validation passed on macOS; live Linux and Windows heartbeat evidence remains uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11298",
-        "https://github.com/stablyai/orca/pull/11300"
+        "https://github.com/paidaxingyo666/Manta/issues/11298",
+        "https://github.com/paidaxingyo666/Manta/pull/11300"
       ],
       "invariant": "Every accepted runtime socket installs message, pong, close, and error ownership before any heartbeat probe. With uninterrupted timer delivery, the first socket that arms an idle heartbeat is probed immediately and an unresponsive socket is reaped within one interval. Later sockets join the existing shared cadence without another timer or immediate sweep and are reaped within two intervals. Responsive sockets survive, pause recovery grants a fresh probe, and close or error-to-close releases connection listeners and timers.",
       "oracle": "With one fake clock and exact socket identities, accept the first socket at 0 ms and require an immediate owned probe plus reaping at 100 ms when unresponsive. Keep a responsive first socket, accept an unresponsive later socket at 50 ms, require the same shared timer, its first probe at 100 ms, no early reap, and termination at 200 ms. Inject synchronous message, pong, close, and error events, then require exact heartbeat membership and zero retained timers/listeners after final close. Production transport tests independently cover real socket round trips, pre-auth and capacity bounds, revocation, shutdown, and half-open cleanup.",
@@ -2296,7 +2296,7 @@
       "coverageNotes": "A headed macOS desktop host and separate paired Electron client exercise a real mirrored terminal link, owner-asserted host browser creation, exact host/client page identity, rendered DOM, explicit browser-tab activation, client external-browser suppression, exact host/client close convergence, and continued original-PTY liveness. Unit contracts cover OSC, WebLinksAddon, click fallback, explicit System Browser routing, failed creation, incapable runtimes, and unchanged direct SSH behavior.",
       "motivatingLinks": [
         "https://stablygroup.slack.com/archives/C0AK2T3JEF4/p1786567689897109",
-        "https://github.com/stablyai/orca/issues/12418"
+        "https://github.com/paidaxingyo666/Manta/issues/12418"
       ],
       "invariant": "Selecting Manta Browser for an HTTP link in a runtime-owned terminal creates exactly one browser page on that owning runtime and exactly one mirrored client browser workspace, with matching remote page identity and no client external-browser call. Explicit System Browser remains client-owned, direct SSH remains system-browser-only, and unknown or mismatched owners fail closed.",
       "oracle": "Use the focused routing contracts as the byte-identical baseline/candidate oracle. Require runtime OSC, WebLinksAddon, click fallback, action-menu, and modifier paths to target the exact owner without client fallback, while direct SSH and generic remote document links stay external. Separately run one byte-identical headed paired Electron journey on the candidate and with only runtime browser registration disabled. Require one new host browser tab, one new client mirror with exact page identity, rendered fixture DOM, explicit browser-tab activation, zero client shell.openExternal calls, exact close convergence, unchanged terminal counts, and continued output on the original PTY.",
@@ -2432,8 +2432,8 @@
         "https://linear.app/stably/issue/STA-4025/p1-browser-create-reports-success-when-tab-reconcile-fails-after-pr",
         "https://linear.app/stably/issue/STA-4063/p1-paired-html-preview-rejects-outside-cleanup-after-pr-13909",
         "https://linear.app/stably/issue/STA-4231/p1-owner-pinned-paired-browser-create-can-time-out-after-host-tab",
-        "https://github.com/stablyai/orca/pull/14363",
-        "https://github.com/stablyai/orca/pull/13876"
+        "https://github.com/paidaxingyo666/Manta/pull/14363",
+        "https://github.com/paidaxingyo666/Manta/pull/13876"
       ],
       "invariant": "Opening one HTML preview from a paired client succeeds only after exactly one browser page on the worktree-owning runtime materializes as exactly one client browser workspace and unified tab in the requested group. Owner-pinned creation returns the canonical host page identity before navigation readiness; delayed navigation cannot turn a created page into an unidentifiable failure or a duplicate retry. Capability rejection before host mutation must preserve the original error, issue no RPC, surface a failure toast, and remove only a caller-declared newly-created empty split. Post-create reconciliation failure requires exact rollback; ambiguous rollback rejects without local fallback. Preview focus and close preserve the source editor and terminal.",
       "oracle": "Run one unchanged contract oracle for direct create and side-preview callers with absent status, unknown capabilities, and a mixed-version host. Require the original unsupported error or visible toast, zero RPCs, and no retained new split. Run it on the scan target, latest main, candidate, and candidate with the cleanup boundary disabled. In headed paired Electron, arm capability rejection after the caller preflight, invoke the visible HTML side-preview action, require the failure toast, and compare exact host/client browser, editor, terminal, and group inventories to baseline. Hold a real navigation response beyond the 15-second client deadline after host creation; require the first RPC to return the exact host inventory page ID, one host page, and no retry. Repeat reconciliation faults against headless serve. Retain the separate exact-page reconciliation rollback oracle.",
@@ -2798,7 +2798,7 @@
       "coveredProviders": ["remote-runtime"],
       "coverageNotes": "Deterministic fake-clock tests cover counted backoff, in-flight ownership and handoff, cancellation, supersession, transient and permanent failures, late stale rejection, silent hosts, flapping streams, viewport restarts, stale events, budget exhaustion, and manual recovery. A headless paired-runtime journey drops the real runtime connection, proves the bounded retry state and visible Reconnect control, reconnects the same host, and requires a newly painted frame. Headed paired-server, Windows, sleep/wake, and real network-partition evidence remain uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/12787",
+        "https://github.com/paidaxingyo666/Manta/pull/12787",
         "https://linear.app/stably/issue/STA-3483"
       ],
       "invariant": "A current remote browser stream that closes must retry transient failures on one counted, capped backoff chain. Cancellation, pane or runtime supersession, missing pages, and permanent failures stop that chain without stale state mutation. A stream that stays healthy refills the budget; a silent or flapping stream cannot retry forever. Exhaustion and every non-retrying failure leave an actionable Reconnect control, and manual reconnect creates a fresh stream without resurrecting stale subscriptions.",
@@ -2909,7 +2909,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local"],
       "coverageNotes": "Focused tests and real-Monaco 9/50 MiB performance and undo-retention benchmarks are platform-independent. Local macOS Electron evidence opens a synthetic 9 MiB transcript through Agent Session History at fixed 900x720 viewport, 13px font, 1x zoom, and asserts the full 9 MiB model length loaded as a font-metric-independent containment check (word-wrap pixel geometry varies ~10% across runners, so a generous content-height floor is only a collapsed/truncated-render smoke check), then verifies three five-second-cadence watcher appends with Find open and closed. Live Windows/Linux evidence remains uncollected.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/8432"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/8432"],
       "invariant": "Append-only external file growth changes only Monaco's model suffix, retaining the viewport, selection, Find state, and renderer liveness above the append point; read-only live tails do not create undo history, while editable external updates remain undoable and arbitrary rewrites continue to replace the model content.",
       "oracle": "Focused tests assert one post-mount content owner, actual outer lifecycle remount ordering across retained path models, exact end-of-model suffix edits with one model read, no-op equality, full replacement for non-appends, and real-Monaco undo behavior for read-only live tails versus editable files. With Node forced GC, real-Monaco benchmarks alternate 30 suffix and 30 replacement samples after five warmups on fresh equivalent models at 9 and 50 MiB, then compare exact Monaco undo-service and ArrayBuffer retention after five 10 MiB appends. The Electron scenario alternates an e2e-only legacy setValue red control and the fixed watcher append from restored equivalent model/geometry at the measured legacy-failure cadence, asserting that the control disrupts anchor state while the fixed path preserves visible ranges, selection, complete Find state, scroll offset, non-undoability, renderer survival, and forced-GC heap/native-memory budgets.",
       "commands": [
@@ -3070,10 +3070,10 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS evidence over the reconcile guards that exist on main@1282f5c2d. Broader targeted-hasPty resume paths, no-hot listing counts, and live Electron survival arrive with the pending reliability stack.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/6773",
-        "https://github.com/stablyai/orca/pull/6514",
-        "https://github.com/stablyai/orca/pull/6796",
-        "https://github.com/stablyai/orca/pull/6801"
+        "https://github.com/paidaxingyo666/Manta/issues/6773",
+        "https://github.com/paidaxingyo666/Manta/pull/6514",
+        "https://github.com/paidaxingyo666/Manta/pull/6796",
+        "https://github.com/paidaxingyo666/Manta/pull/6801"
       ],
       "invariant": "A local or daemon liveness snapshot requested before a pane binds a PTY cannot prove that newer binding dead or route it through exit teardown.",
       "oracle": "The decision layer rejects reconciliation when ptyBoundAt is greater than or equal to snapshotRequestedAt, still reconciles genuinely absent older local ids, and treats rejected provider listing as unknown.",
@@ -3152,8 +3152,8 @@
       "coveredProviders": ["local-daemon"],
       "coverageNotes": "Provider-independent unit tests cover persisted replay, state-boundary authority transfer, remote-runtime mirroring, rootless layouts, repeated leaf ids, metadata repair, and 12,000 nested duplicate leaves. A two-launch macOS Electron journey covers a real surviving local-daemon PTY, persisted duplicate ownership, synchronized streaming output, and tab hide/reveal. Live Linux, Windows, SSH, WSL, and remote-runtime restore journeys remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11757",
-        "https://github.com/stablyai/orca/pull/11726"
+        "https://github.com/paidaxingyo666/Manta/issues/11757",
+        "https://github.com/paidaxingyo666/Manta/pull/11726"
       ],
       "invariant": "Within one terminal tab, each PTY has at most one layout leaf, pane manager surface, and xterm renderer owner. Restore and remote mirroring must normalize duplicate ownership before replay while retaining active-leaf focus, scrollback, pane authority, agent metadata, and distinct sibling PTYs.",
       "oracle": "Launch Manta with a real daemon PTY running a synchronized full-screen stream, close the desktop client without killing the daemon process, seed the persisted tab layout with two leaves bound to that PTY, and relaunch. Hide the restored tab behind a sibling and reveal it, then require the stream to remain visible with exactly one manager pane, one xterm DOM node, one root leaf, one PTY binding, and one unique PTY. Unit contracts require the same one-owner result through persisted replay, store hydration, remote mirroring, rootless and repeated-leaf layouts, and deeply nested input.",
@@ -3273,7 +3273,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "daemon", "ssh"],
       "coverageNotes": "Local macOS deterministic evidence covers the renderer snapshot/coordinator, exact local and SSH-shaped PTY request settlement, active-last and pinned terminal-tab routing, component-unmount continuation, and the existing current/legacy daemon management contract. Windows Electron process absence, live SSH/WSL behavior, and remote-runtime/mobile host completion remain explicit gaps.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/issues/8001"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/issues/8001"],
       "invariant": "Every terminal surface confirmed in the invoking renderer is force-closed exactly once after daemon management settles, later-created surfaces and non-terminal tabs survive, and exact shutdown requests are limited to deduplicated current non-runtime PTY bindings of the confirmed surfaces.",
       "oracle": "Snapshot terminal entity IDs before the first await; mutate ownership, active selection, bindings, and tab presence while daemon management is pending and between bounded close batches; then assert only the immutable targets disappear from both terminal stores, active targets close last with valid editor/browser/deactivated post-state, every captured exact PTY promise settles before callbacks, and no provider inventory sweep or late-tab kill occurs.",
       "commands": [
@@ -3382,9 +3382,9 @@
       "coveredProviders": ["local", "daemon", "ssh", "runtime"],
       "coverageNotes": "Live macOS Electron tests prove exact local PTY disappearance after parked-tab close and detached-pgid descendant death after agent close. Deterministic tests cover final-pane CLI close durability, persisted-empty restart suppression, same-incarnation handle continuity, replacement and hard graph-loss stale fencing, preallocated-handle supersession, daemon and SSH routing, local/daemon pending-snapshot ownership across natural exit, stale-root descendant-signal suppression, graceful-to-immediate kill upgrades, duplicate-kill completion sharing, locale-stable bounded/fresh/coalesced process-table reads, deadline-safe successor scans, cycle-safe linear descendant traversal, target-only escalation indexing, 32-wide bulk teardown, source-scan timestamp identity, same-second PID ambiguity, ordinary runtime close ownership, unified-only hydration, split ownership, pane detach transfer, restart alias hydration, and late-hook suppression; live Linux, Windows, WSL, SSH, and remote-runtime process evidence remains pending.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/8628",
-        "https://github.com/stablyai/orca/pull/8706",
-        "https://github.com/stablyai/orca/issues/14524"
+        "https://github.com/paidaxingyo666/Manta/pull/8628",
+        "https://github.com/paidaxingyo666/Manta/pull/8706",
+        "https://github.com/paidaxingyo666/Manta/issues/14524"
       ],
       "invariant": "Close permanently removes the owned provider session, agent descendants, persisted tab/layout authority, and resume authority even when no TerminalPane is mounted; final-pane CLI close does not acknowledge before durable tab retirement, and a persisted explicit-empty state prevents initial-tab fallback from repopulating the workspace after reload or restart. A handle remains valid while the same provider-attested PTY incarnation survives renderer reload or re-key, and becomes stale without adopting a replacement incarnation. A terminating id remains reserved through natural exit, duplicate callers await the same completion, and immediate teardown upgrades any graceful request without signalling a recycled PID or a descendant tree after root ownership is lost; process-table work is locale-stable, bounded, fresh for each post-start request, same-turn coalesced, and begins within the requesting caller's deadline, including bulk worktree cleanup; detach and park preserve ownership; aliases prevent a detached agent's immutable physical pane key from being retired with its former tab.",
       "oracle": "Capture exact tab, pane, PTY, handle, incarnation, and persisted layout identities. Final-pane terminal.close must kill the exact PTY once, invoke one durability-acknowledged tab retirement, stay pending until the persisted row is removed, and never fall back to the fire-and-forget pane event; reload/restart must keep the explicitly emptied worktree at zero terminal tabs and provider sessions. Reloading the renderer with the same tab/pane/PTY/incarnation must keep the handle readable; changing only the incarnation behind the same PTY id, losing the authoritative graph, or superseding the renderer handle with a preallocated handle must reject the old handle with terminal_handle_stale. Parked-close tests prove the exact PTY disappears; descendant/process tests keep natural exits reserved, upgrade teardown safely, bound/coalesce process-table work, and protect recycled identities.",
@@ -3631,11 +3631,11 @@
       "coveredProviders": ["daemon", "runtime"],
       "coverageNotes": "Recorded native Windows evidence covers the v21/v22/v23/v24/v25 named-pipe matrix. The deterministic daemon harness covers capable and legacy paired-runtime request shapes against live v25/v26 PTYs in separate worktrees, plus an unrelated control. Host/renderer tests cover old servers, missing liveness, stale publications, reused claims, split parents, explicit user intent, cross-profile isolation, remote runtime clients, SSH-provider routing, and WSL boundaries. A headed host paired to a separate live client, headless serve parity, Linux, SSH, and WSL remain explicit gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/9749",
-        "https://github.com/stablyai/orca/issues/9949",
-        "https://github.com/stablyai/orca/issues/8871",
-        "https://github.com/stablyai/orca/issues/9138",
-        "https://github.com/stablyai/orca/issues/9229"
+        "https://github.com/paidaxingyo666/Manta/issues/9749",
+        "https://github.com/paidaxingyo666/Manta/issues/9949",
+        "https://github.com/paidaxingyo666/Manta/issues/8871",
+        "https://github.com/paidaxingyo666/Manta/issues/9138",
+        "https://github.com/paidaxingyo666/Manta/issues/9229"
       ],
       "invariant": "Reconnect, replay, or lifecycle observations from a viewer that negotiated explicit close intent must never kill a live PTY. A capable reasonless close must keep and republish; a legacy paired viewer must retain current-main behavior because its intentional close and cleanup echo are wire-identical. Lifecycle close requires the exact observed publication, terminal, environment, and authoritative liveness, never signals a process, and leaves renderer-owned or partial-split retirement to its owner. Legacy daemon hello and warm reattachment remain non-destructive.",
       "oracle": "Start isolated v25 and v26 daemon generations with one capable-viewer PTY and one legacy-viewer PTY per generation in four target worktrees plus an unaddressed control PTY in a fifth worktree. Route them through the production desktop scanner, runtime, RPC dispatcher, renderer-close relay, and daemon router. First issue sequential reasonless closes from an authenticated capable connection and require refusal, snapshot republish, zero shutdown calls, exact process survival, and post-close I/O. Then issue the byte-identical requests without the negotiated capability and require current-main behavior: two ordered immediate shutdowns, session-killed events, and exact root/descendant death, while capable and control PTYs survive. An observer lists all targets before, between, and after while issuing zero closes. Unit contracts also require in-process reasonless refusal, legacy runtime/mobile compatibility, explicit user closes, encrypted client-auth advertisement, and old-server lifecycle calls never to fall back.",
@@ -3800,7 +3800,7 @@
           "command": "pnpm exec playwright test tests/e2e/daemon-generation-legacy-close-safety.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 6.6,
-          "summary": "Current-head capability-gated oracle passed in E2E run https://github.com/stablyai/orca/actions/runs/30250731941/job/89928386794: capable v25/v26 roots and descendants survived with snapshot republish and post-close I/O, byte-identical legacy closes retained current-main shutdown behavior, and the unrelated fifth-worktree control survived."
+          "summary": "Current-head capability-gated oracle passed in E2E run https://github.com/paidaxingyo666/Manta/actions/runs/30250731941/job/89928386794: capable v25/v26 roots and descendants survived with snapshot republish and post-close I/O, byte-identical legacy closes retained current-main shutdown behavior, and the unrelated fifth-worktree control survived."
         },
         {
           "date": "2026-07-21",
@@ -3856,9 +3856,9 @@
       "coveredProviders": ["local", "ssh", "remote-runtime"],
       "coverageNotes": "Local macOS evidence covers the shared missing-dir fallback policy, main pty:spawn recovery and metadata, no-flag and reattach strictness, renderer IPC flag routing, SSH-tagged and remote-runtime omission, and the visibility-gated terminal notice. Daemon shares the same pre-provider main cwd decision but lacks a live daemon-provider run; WSL UNC paths are exempt from the probe by design and lack a live run; Linux/Windows and mobile/API strictness are gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7239",
-        "https://github.com/stablyai/orca/pull/7750",
-        "https://github.com/stablyai/orca/pull/7678"
+        "https://github.com/paidaxingyo666/Manta/issues/7239",
+        "https://github.com/paidaxingyo666/Manta/pull/7750",
+        "https://github.com/paidaxingyo666/Manta/pull/7678"
       ],
       "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics.",
       "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path.",
@@ -4002,9 +4002,9 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS execution of the generated Pi/OMP extension plus the shared hook normalizer. WSL fallback behavior is covered with mocked native-fetch failure and Windows curl handoff. Daemon PTYs use the same generated extension without a distinct delivery path. SSH/relay ingest uses the shared normalizer, but no live remote Pi process is exercised.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7791",
-        "https://github.com/stablyai/orca/pull/7802",
-        "https://github.com/stablyai/orca/pull/7838"
+        "https://github.com/paidaxingyo666/Manta/issues/7791",
+        "https://github.com/paidaxingyo666/Manta/pull/7802",
+        "https://github.com/paidaxingyo666/Manta/pull/7838"
       ],
       "invariant": "Manta status reporting must return synchronously from every Pi/OMP extension handler, retain at most one active request and one latest pending snapshot, and abandon stalled loopback delivery within one second. A Pi session_shutdown event cannot mark a turn done because Pi also emits it for reload, new, resume, and fork while the PTY remains alive; only agent_end proves turn completion, while real process exit is cleared by PTY teardown.",
       "oracle": "Execute the generated extension with a fetch that remains pending and assert the Pi handler returns before delivery; emit three statuses during the stall and assert exactly one request is active and only the latest pending status is sent next; advance fake time by one second and assert the active signal aborts and the latest status proceeds. Through the shared normalizer, assert session_shutdown yields no status while agent_end still yields done.",
@@ -4093,8 +4093,8 @@
       "coveredProviders": ["local", "ssh"],
       "coverageNotes": "Deterministic listener, loopback HTTP, relay-restart, persisted-restore, and fake-SSH transport contracts run on macOS. Claude Code 2.1.220 captures prove manual PreCompact starts a new prompt UUID and exact PreCompact/PostCompact pairs share it. The shared Node paths are platform-independent; live Linux, Windows, WSL, and paired-runtime journeys remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11352",
-        "https://github.com/stablyai/orca/pull/11353"
+        "https://github.com/paidaxingyo666/Manta/issues/11352",
+        "https://github.com/paidaxingyo666/Manta/pull/11353"
       ],
       "invariant": "A Claude manual PreCompact may replace only a current Claude row from the same receiving connection and provider session; a manual PostCompact may mark done only when the current authoritative row is its exact manual PreCompact generation, including provider prompt UUID. Missing identity is never a wildcard; later cross-provider work, replay, duplication, pane or tab retirement, and server stop invalidate completion. Automatic Claude and Kimi completion remain fail-closed until their hooks expose independently proven generation identity.",
       "oracle": "Run one byte-identical state-machine oracle plus local HTTP, relay-restart, SSH, and persisted-restore streams using Claude's observed different prior-turn and compact prompt UUIDs. Require matching manual completion to emit done while wrong or absent prompt UUID, session-presence mismatch, wrong source or connection, stale replay and duplicate delivery, later Codex work, automatic completion, and lifecycle cleanup cannot retire the current row. Assert both emitted event order and the authoritative lastStatusByPaneKey snapshot.",
@@ -4205,7 +4205,7 @@
       "coverageNotes": "A deterministic Windows-mode renderer oracle keeps an active WSL project and explicit-local Floating Workspace mounted together with disjoint agent inventories, then independently asserts discovery and launch authority. A headed physical Windows 2 journey with real Ubuntu WSL2 independently verified the rendered inventory and native PowerShell launch; SSH and paired-runtime behavior retain their existing contract coverage.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4027/p1-floating-workspace-agent-detection-still-uses-active-wsl-project",
-        "https://github.com/stablyai/orca/pull/13995"
+        "https://github.com/paidaxingyo666/Manta/pull/13995"
       ],
       "invariant": "Every agent launch surface must advertise the provider set detected on its explicit execution authority and launch on that same authority; a local Floating Workspace must never inherit an unrelated active project's WSL, SSH, or paired-runtime context.",
       "oracle": "Model an active WSL project and a native-Windows Floating Workspace with WSL-only Claude and host-only Codex. Keep both detection consumers mounted, require their advertised sets to stay disjoint through refresh, require the legacy active-project inventory to remain unchanged, then independently assert the Floating launch call and PTY transport select local IPC with no WSL project runtime.",
@@ -4335,12 +4335,12 @@
       "coveredProviders": ["local", "daemon", "remote-runtime"],
       "coverageNotes": "Renderer ownership/dedupe contracts cover provider-session claims. Local and daemon attach-only contracts prove an existing stable-pane owner is adopted without provider creation, while remote-runtime transport contracts preserve adopted ownership through cancellation. The Electron oracle covers a local macOS runtime and daemon with real agent, Setup, and unrelated-canary processes; SSH, WSL, paired-server, Linux, and Windows remain contract-only or unrun.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6800",
-        "https://github.com/stablyai/orca/pull/5240",
-        "https://github.com/stablyai/orca/pull/6411",
-        "https://github.com/stablyai/orca/pull/6833",
-        "https://github.com/stablyai/orca/pull/11789",
-        "https://github.com/stablyai/orca/pull/11819"
+        "https://github.com/paidaxingyo666/Manta/pull/6800",
+        "https://github.com/paidaxingyo666/Manta/pull/5240",
+        "https://github.com/paidaxingyo666/Manta/pull/6411",
+        "https://github.com/paidaxingyo666/Manta/pull/6833",
+        "https://github.com/paidaxingyo666/Manta/pull/11789",
+        "https://github.com/paidaxingyo666/Manta/pull/11819"
       ],
       "invariant": "Workspace activation, launch, restore, sleep, hibernate, dedupe, clearing, mount, remount, and reconnect code must not replay or resume a provider session id already owned, queued, pending, live, or durably bound to a host PTY in that workspace. A renderer with missing projection state must adopt the exact runtime-owned PTY for the original tab and leaf rather than create a replacement.",
       "oracle": "Renderer-state tests assert provider-session ownership across preserved and queued panes. Main/provider contracts assert atomic attach-only adoption, stable host/worktree/tab/leaf identity, no fresh spawn on adoption, and safe paired-runtime cancellation. The Electron oracle creates inactive runtime-owned Codex and Setup PTYs plus an unrelated canary, seeds an exact resumable provider session, removes only the target renderer projections, and activates the workspace. It requires byte-stable handle, PTY, incarnation, tab, leaf, process PID, renderer graph, persisted binding, runtime id, graph epoch, and daemon PID across first mount and reload; PID-specific DOM keyboard I/O must remain live with one launch, zero resume argv, zero signals, zero interruption text, and no canary mutation.",
@@ -4494,12 +4494,12 @@
       "coveredProviders": ["local", "daemon", "ssh", "wsl", "remote-runtime"],
       "coverageNotes": "Deterministic macOS tests cover controller claims, daemon and SSH/relay operation replay, mixed-version selection, runtime ownership, exact provisional handoff, durable terminal retirement, two independent viewer mirrors, guarded adoption of legacy live PTYs, and completion classification when either the outer remote transport or authoritative host/provider process inspection becomes unreachable. The adoption harness models v1.4.150 agent/setup/shell tabs, current-generation restart and reconnect, exact handle/incarnation/worktree/host checks, topology CAS, competing clients, split-pane/group restoration, WSL ownership, and SSH owner rejection. The secondary parity repro runs independent clients against one headless remote Manta runtime over encrypted pairing and a real daemon-backed PTY, with tokened fixture-process identity separated from unrelated Codex app-server startup probes. The automated primary topology runs an isolated headed macOS Manta desktop server plus a separate paired web client and proves viewer-local fresh/resume focus, exact legacy placement, writable PTYs, unrelated-terminal survival, and host/client cleanup. SSH coverage is provider/relay contract and fault-injection coverage only; it does not substitute for paired-server coverage. Live Windows, Linux, WSL, SSH, and physical paired-Linux hosts remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/8878",
-        "https://github.com/stablyai/orca/issues/9151",
-        "https://github.com/stablyai/orca/issues/9352",
-        "https://github.com/stablyai/orca/pull/9687",
-        "https://github.com/stablyai/orca/issues/10192",
-        "https://github.com/stablyai/orca/pull/10193"
+        "https://github.com/paidaxingyo666/Manta/issues/8878",
+        "https://github.com/paidaxingyo666/Manta/issues/9151",
+        "https://github.com/paidaxingyo666/Manta/issues/9352",
+        "https://github.com/paidaxingyo666/Manta/pull/9687",
+        "https://github.com/paidaxingyo666/Manta/issues/10192",
+        "https://github.com/paidaxingyo666/Manta/pull/10193"
       ],
       "invariant": "For every claim-capable execution route, one provider-session identity has at most one live PTY owner and one canonical host surface across concurrent clients, retries, reconnects, and stale publications. For paired structured fresh and resume requests, the authenticated owning runtime creates in background without a renderer window; activate=true focuses the exact requested leaf only on the requesting viewer, while activate=false changes no viewer focus. A live orphan may be adopted only when the controller proves its exact handle and incarnation, its worktree and host owner match, no competing visual owner exists, and a host topology CAS wins. A viewer may classify completion only from successful host/provider inspection or explicit lifecycle evidence; transport, handle, or provider unavailability remains unknown and breaks any consecutive-idle proof. A physical exit retires that exact incarnation durably so stale client state and host restart cannot recreate it. Mixed-version routes select the unchanged legacy request before any authority side effect or execution-owner-local filesystem access.",
       "oracle": "Race independent clients and repeated operation IDs, then assert one physical spawn and one canonical PTY/surface; inject exit-before-reply, provider disconnect, conflicting claim scope, old daemon/relay capabilities, reused handles, stale incarnations, owner mismatch, and topology revision conflict; assert safe adoption or explicit failure without a second spawn or wrong-process attachment. Run fresh/resume with activate true/false against an isolated headed desktop host and a separate paired client, then against isolated headless serve: assert host presentation stays background, only the requesting viewer focuses the exact leaf, inactive calls preserve client/DOM focus, a same-version publication replay cannot lose focus intent, and sibling-first split publication cannot consume exact-leaf intent. Restore legacy split panes and groups beside a newer host-owned tab, preserving exact predecessor/new/successor order, output, input, resize, titles, tab/leaf identity, active group, and multi-client convergence. For completion, drive a known running agent through outer transport loss, authoritative provider rejection, reconnect, explicit stop, real exit status, and successful hook completion; assert unavailable evidence never dispatches completion and two fresh authoritative idle samples are required after the gap. After exact exit, assert terminal and tab listings omit the surface, a stale publication cannot restore it, restart cannot resurrect it, exact tokened fixture PIDs are dead, and unrelated tabs/processes survive until scoped cleanup.",
@@ -4870,7 +4870,7 @@
       "coveredProviders": ["local", "remote-runtime", "ssh", "wsl"],
       "coverageNotes": "Platform-neutral deterministic tests separate the durable Active Server preference from per-client connection, selected-workspace, browser-session, Add Project, and execution-host routing. The composed regression models Local desktop -> connect/navigate Windows 2 -> reveal a local terminal -> restart. Multi-client browser host overrides, multi-server profile caches, generic settings IPC rejection, local and remote workspace ownership, Add Project eligibility/owner capture/stale-result fencing, host-qualified group/folder/worktree identity, and restart reset of transient routing are covered. A visible macOS Manta desktop server plus separate paired Electron and web clients prove selected-runtime Add Project operations and disabled creation when the only listed host is blocked or unavailable; headless-server parity also passed. Live Linux, Windows, WSL, and SSH Add Project journeys remain uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/9687",
+        "https://github.com/paidaxingyo666/Manta/pull/9687",
         "https://linear.app/stably/issue/STA-4024/p1-paired-web-add-project-enables-unavailable-host-fallback-after-pr"
       ],
       "invariant": "Only an explicit user change in Settings > Remote Manta Servers > Advanced > Active Server may mutate activeRuntimeEnvironmentId. Connecting, pairing, disconnecting, selecting or revealing a workspace or terminal, browser/mobile handoff, remote navigation, and reconnect must use transient or target-owner routing and must never rewrite the durable preference. Every Add Project selected host must satisfy canSelectAddRepoHost; paired web has no local filesystem fallback, so no valid host means Browse, Clone, and Create remain disabled. Every operation stays on the host selected when it began, even if preference or catalog state changes. Generic settings mutation cannot bypass the dedicated preference IPC.",
@@ -5203,13 +5203,13 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS evidence on main@1282f5c2d, including #7192's runtime-mirror geometry authority slice. Deterministic provider-contract coverage now includes settled window-wake reassertion and SSH relay applied-size readback. Live shell-visible SSH/remote geometry and Windows ConPTY readback remain non-blocking gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6644",
-        "https://github.com/stablyai/orca/pull/6649",
-        "https://github.com/stablyai/orca/pull/6725",
-        "https://github.com/stablyai/orca/pull/6785",
-        "https://github.com/stablyai/orca/pull/6853",
-        "https://github.com/stablyai/orca/pull/6939",
-        "https://github.com/stablyai/orca/pull/7192"
+        "https://github.com/paidaxingyo666/Manta/pull/6644",
+        "https://github.com/paidaxingyo666/Manta/pull/6649",
+        "https://github.com/paidaxingyo666/Manta/pull/6725",
+        "https://github.com/paidaxingyo666/Manta/pull/6785",
+        "https://github.com/paidaxingyo666/Manta/pull/6853",
+        "https://github.com/paidaxingyo666/Manta/pull/6939",
+        "https://github.com/paidaxingyo666/Manta/pull/7192"
       ],
       "invariant": "A visible desktop-owned terminal cannot trust 0x0, stale requested size, or renderer-only size; xterm, fit/proposed size, applied PTY size, shell-visible size, and the runtime mirror's parse dimensions must converge or enter explicit degraded state, and mirror resize reflow must stay ordered with queued output writes.",
       "oracle": "The current executable slice uses deterministic frame schedulers and fake providers to force 0x0 first fit, delayed layout settle, dropped resize/readback drift, hidden-to-visible activation, and window wake. It asserts the renderer forwards a usable size, pty:getSize reports applied rather than merely requested size where available, visibility resume reasserts real drift without hot listSessions, one settled wake produces one geometry-only readback, and SSH relay readback is authoritative with bounded fallback. Shell-visible stty/echo-wrap convergence remains a live-gate follow-up.",
@@ -5340,9 +5340,9 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS evidence over the WebGL/link/search containment suites on main@1282f5c2d, adopting the #6949 atlas-recovery rename and #7133's reveal hardening tests. Core addon-load throw containment and live typed-input survival arrive with #7004 and a live follow-up.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6852",
-        "https://github.com/stablyai/orca/pull/6872",
-        "https://github.com/stablyai/orca/pull/6855"
+        "https://github.com/paidaxingyo666/Manta/pull/6852",
+        "https://github.com/paidaxingyo666/Manta/pull/6872",
+        "https://github.com/paidaxingyo666/Manta/pull/6855"
       ],
       "invariant": "Search, link, WebGL, decoration, input-protocol, or keyboard-navigation errors must not unmount the terminal surface, crash React/window, break focus, or stop PTY input/output.",
       "oracle": "The current executable slice injects a core addon load throw and asserts pane opening continues through later addons, covers link provider throws as pane-scoped no-link results, covers search decoration positive-integer failures as false results instead of renderer crashes, and covers WebGL attach/refresh/recovery containment. Focused typed input echo after addon failure still needs a live/component follow-up.",
@@ -5539,8 +5539,8 @@
       "coveredProviders": ["local", "daemon"],
       "coverageNotes": "Unit coverage proves provider-independent ordering for any PaneManager. Live Electron coverage exercises a local PTY through the daemon on macOS; SSH, WSL, remote-runtime, Linux, and Windows remain unproved for this exact race.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/11753",
-        "https://github.com/stablyai/orca/pull/11915"
+        "https://github.com/paidaxingyo666/Manta/issues/11753",
+        "https://github.com/paidaxingyo666/Manta/pull/11915"
       ],
       "invariant": "When output is queued during a focus or visibility transition, Manta records the pre-flush viewport intent before xterm parses backlog writes, so a follow-output terminal stays at the bottom and a pinned terminal keeps its prior position.",
       "oracle": "Unit tests require exactly one intent sync before each queued-output flush. The Electron test injects a transient top-of-buffer xterm wobble during refocus and requires every presented scrollbar frame, including the final rendered output, to remain at the bottom.",
@@ -5632,9 +5632,9 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/5356",
-        "https://github.com/stablyai/orca/pull/5234",
-        "https://github.com/stablyai/orca/pull/5240"
+        "https://github.com/paidaxingyo666/Manta/issues/5356",
+        "https://github.com/paidaxingyo666/Manta/pull/5234",
+        "https://github.com/paidaxingyo666/Manta/pull/5240"
       ],
       "invariant": "Startup and restore fixes must preserve or explicitly recover sessions from the last affected production persisted-state schema, not only from state written by current code.",
       "oracle": "Boot current Manta against immutable copied user-data fixtures from affected versions and reject blank replacement panes, duplicate resume tabs, silent session loss, or works-only-after-current-write behavior.",
@@ -5688,10 +5688,10 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap on main. The live Electron Playwright slice exists only on the pending reliability stack. It registers here with its owning split PR.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6801",
-        "https://github.com/stablyai/orca/pull/6842",
-        "https://github.com/stablyai/orca/pull/6939",
-        "https://github.com/stablyai/orca/pull/6989"
+        "https://github.com/paidaxingyo666/Manta/pull/6801",
+        "https://github.com/paidaxingyo666/Manta/pull/6842",
+        "https://github.com/paidaxingyo666/Manta/pull/6939",
+        "https://github.com/paidaxingyo666/Manta/pull/6989"
       ],
       "invariant": "An active local Electron terminal has one active PTY id listed exactly once, accepts real keyboard input through focused xterm, renders process output visibly, keeps the same live PTY across repeated workspace hide/restore cycles, applies an actual size change, and removes the old PTY from liveness state after exit.",
       "oracle": "A deterministic raw-mode probe prints a ready marker, ordered key markers from real keyboard input, the active PTY id appears exactly once in pty:listSessions, remains bound to the same PTY id across two worktree switch-away/switch-back cycles, accepts more keyboard input after each restore, changes pty:getSize after viewport resize, prints the same process-visible size, and prints an exit marker; after shell exit, pty:listSessions no longer contains the old id.",
@@ -5747,8 +5747,8 @@
       "coveredProviders": ["daemon"],
       "coverageNotes": "A packaged Windows CI run force-kills the launched instance's real Electron main without tree-killing, then proves the same scoped daemon and interactive PowerShell survive, no FailFast event is observed, and relaunch input reaches the same shell. Focused cross-platform unit tests fail closed on unavailable event-log or PID-liveness evidence, stale or ambiguous daemon identity, and incomplete reattach assertions.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7742",
-        "https://github.com/stablyai/orca/pull/9311"
+        "https://github.com/paidaxingyo666/Manta/issues/7742",
+        "https://github.com/paidaxingyo666/Manta/pull/9311"
       ],
       "invariant": "On packaged Windows, abrupt death of Manta's Electron main process must not terminate or replace the userData-scoped terminal daemon or its live ConPTY shell, and a relaunch must adopt that exact daemon and route terminal input to that exact surviving shell without a PowerShell 0xE9 FailFast.",
       "oracle": "Resolve the launched instance's real main PID from inside Electron, force-kill only that PID, require it to die, require one command-line-scoped daemon PID and the stamped interactive shell PID to remain live, relaunch with persisted state, require the daemon PID to remain identical, read the exact shell PID and a per-shell environment sentinel back through the exact restored tab, then require a successful Windows Application event-log query with zero matching pwsh FailFast events across the full crash-to-input window.",
@@ -5840,13 +5840,13 @@
       "coveredProviders": ["daemon"],
       "coverageNotes": "Issue #8048 now has deterministic wrapper and cold-restore re-anchor tests plus a Windows PR-CI harness that drives the built daemon through 25 real ConPTY workspace-close races while an unrelated witness PTY stays alive. Keyboard reset, CJK repaint, WSL, and full visible Electron coverage remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6541",
-        "https://github.com/stablyai/orca/pull/6858",
-        "https://github.com/stablyai/orca/pull/6876",
-        "https://github.com/stablyai/orca/pull/6968",
-        "https://github.com/stablyai/orca/pull/6970",
-        "https://github.com/stablyai/orca/pull/6999",
-        "https://github.com/stablyai/orca/issues/8048"
+        "https://github.com/paidaxingyo666/Manta/pull/6541",
+        "https://github.com/paidaxingyo666/Manta/pull/6858",
+        "https://github.com/paidaxingyo666/Manta/pull/6876",
+        "https://github.com/paidaxingyo666/Manta/pull/6968",
+        "https://github.com/paidaxingyo666/Manta/pull/6970",
+        "https://github.com/paidaxingyo666/Manta/pull/6999",
+        "https://github.com/paidaxingyo666/Manta/issues/8048"
       ],
       "invariant": "Windows local and daemon terminals must spawn with the intended shell, survive overlapping graceful/forced workspace teardown without affecting unrelated PTYs, retain recovered scrollback across the fresh daemon's first checkpoint, accept normal Enter/Backspace/Arrow input after agent or TUI exit, render cursor/CJK/wide-glyph redraws without stale cells, and converge to nonzero applied size.",
       "oracle": "The issue #8048 slice asserts one node-pty ConPTY close for a graceful-then-force sequence, atomically seeds recovered history before fresh shell output and re-anchoring, preserves recovery after seed failure plus adapter restart, and runs 25 built-daemon close races while checking victim session/PID reaping, a stable daemon PID, and a live witness PTY. A broader Windows live gate still needs shell input, resize, cursor, and CJK/wide-glyph pixel evidence.",
@@ -5938,9 +5938,9 @@
       "coveredProviders": ["daemon"],
       "coverageNotes": "Deterministic main-process tests cover byte-bounded cache eviction and ACK release, one-at-a-time replay admission, a fixed per-turn replay budget within one large output record, UTF-16 boundary preservation, and checkpoint-only restore bypass while another replay is paused. The same HistoryReader path carries WSL context, but live WSL and cross-platform startup-scale runs remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/9971",
-        "https://github.com/stablyai/orca/pull/9990",
-        "https://github.com/stablyai/orca/issues/9441"
+        "https://github.com/paidaxingyo666/Manta/issues/9971",
+        "https://github.com/paidaxingyo666/Manta/pull/9990",
+        "https://github.com/paidaxingyo666/Manta/issues/9441"
       ],
       "invariant": "Cold restore must reproduce persisted terminal output while admitting at most one scratch-emulator replay, yielding after at most 64 Ki UTF-16 code units or 1,024 replay operations, keeping sticky restore payloads within 16 MiB, and allowing header-only checkpoint restores to bypass the replay queue.",
       "oracle": "Pause setImmediate during two single-batch restores larger than one replay slice and require exactly one admitted yield at a time, preserved text across a surrogate-pair slice boundary, and a concurrent header-only checkpoint restore to finish without consuming a replay slot. Cache tests require least-recently-used eviction, rejection of one oversized payload, and zero retained cache bytes after renderer ACK.",
@@ -6039,8 +6039,8 @@
       "coveredProviders": ["paired-runtime"],
       "coverageNotes": "Deterministic headed macOS runs launch an isolated Manta desktop server and a separate paired web client. A byte-identical headless run uses an isolated `manta serve` host. Both create six real paired host PTYs with bounded high-output scrollback, prove sustained output while all six client xterms are warm-mounted but hidden causes zero renderer scheduler work, then drive 180 timed real-PTY spinner frames through a second production `session.tabs.subscribeAll` transport and the real Zustand store. Each worktree must publish and apply only its exact initial-working and final-idle titles. Both topologies ordinary-park five xterms without enabling the lossy retention budget, assert bounded cells/heap/timer lag, then restore the bounded authoritative tail exactly once on the original PTY including output produced while parked and continued input/output. The headed oracle additionally keeps every remote target workspace and terminal unmounted in the host renderer before and after client recovery. Production-parity React contracts reproduce and remove the independent cold-park watcher/title feedback loop, including memo-cache discard, StrictMode cleanup replay, detached split-PTY replacement, and the zero-park fast path. A deterministic cross-boundary contract drives 24 real PTY trackers in distinct worktrees through 2,880 decorative spinner and bare-native redraw chunks and counts host publications, serialized bytes, renderer apply calls, and store mutations while preserving exact per-PTY raw chunks and per-worktree semantic transitions. Fake-clock continuation beyond the 30-minute stale boundary requires one deduplicated refresh per worktree every 15 minutes, globally spaced by at least 50 ms, with every mirrored working status still fresh. Exact-identical Pi plus rotating normalized Pi/Grok frames renew coarse working/permission state; rich prompt/tool/question fields retain their original 30-minute lease, and `stateStartedAt`/acknowledgement identity remain stable across title/hook source swaps. A separate headed desktop-client journey relaunches the host main process while retaining the daemon and a daemon-backgrounded PTY, then requires first-observation foreground sync and continued input/output on the same PTY. Unit coverage keeps layout versions out of snapshot output high-waters when a restored snapshot has no output sequence and retries an existing subscriber only after authoritative provider inventory proves the retained PTY exists. Separate headed/headless ACK-starvation tests recover one stalled stream without replacing its PTY. A headed output-drop oracle proves a successful snapshot probe cannot certify a stale live stream when the authoritative PTY sequence advanced beyond the client high-water. Unit coverage requires an unsequenced client to establish a first-probe baseline, remain attached at the same sequence, and recover only after a later probe advances. A capability-disabled run proves legacy hosts retain the prior lossy limit/TTL fallback. Unit tests cover exact-owner capability routing, raw-stream release, singleton side-effect facts with timed handoff cleanup, 64 simultaneous synthetic-title sources with zero decorative client events after convergence, per-client late-subscribe recovery, semantic bell/title transitions, local animation-frame preservation, legacy no-output-pause delivery gating with exact snapshot restore, provider-authoritative snapshots, 128 active streams plus retry after a 129th-stream capacity rejection, capacity-pressure backoff, full split-leaf remint reconciliation, truncation, and manual-disconnect queue fencing. Linux, Windows, live SSH, and production-scale paired hosts remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/8652",
-        "https://github.com/stablyai/orca/pull/10625"
+        "https://github.com/paidaxingyo666/Manta/issues/8652",
+        "https://github.com/paidaxingyo666/Manta/pull/10625"
       ],
       "invariant": "A host advertising terminal.paired-parking.v1 keeps the PTY and bounded authoritative history alive while an ordinary hidden-view park destroys the client xterm and releases its raw per-PTY stream. Reveal must restore up to the requested 5,000 rows, parked-time side effects/output, the same PTY identity, and continued input/output. Parked watcher synchronization compares parking semantics rather than fresh object identity, owns setup and cleanup across StrictMode replay, reconciles real PTY/layout changes, and performs no terminal-state scan when nothing is parked. After a host main-process relaunch, unknown local delivery-sync state must not be treated as proof that a surviving daemon PTY is already foregrounded. If subscription precedes provider readiness, authoritative inventory must reconsider that existing subscriber without spawning, resizing, or changing reconnect state. A snapshot without an output high-water must keep it unknown rather than borrowing a layout version that can suppress newer live output. Hosts without the capability must gate hidden raw output before xterm scheduling and repaint from the authoritative snapshot on reveal while retaining the existing limit/TTL force-parking fallback. After the first semantic title state, decorative spinner frequency must add zero paired client-event frames and zero full session-tabs work between status-freshness leases regardless of hidden worktree count. Continuous working or permission evidence may refresh each affected worktree once per 15 minutes through one globally spaced FIFO so current and legacy viewers do not decay before 30 minutes; sibling PTYs share that worktree refresh, while local title animation, raw output, and semantic title, status, bell, completion, and query facts remain intact. A paired terminal stream whose delivery credits stop progressing must replace only that stream; command silence first probes authoritative state and replaces the stream if the probe times out or proves the PTY advanced beyond the client's delivered output sequence. When no comparable delivery high-water exists, the first sequenced probe establishes a baseline and only later advancement proves staleness. A same-sequence snapshot remains valid proof of a responsive silent command. A successful status probe may replace a pre-ready shared-control socket without rejecting or duplicating calls already waiting for that transport. Manual disconnect must retain pairing while preventing queued or passive calls and subscriptions from recreating transport until explicit Connect.",
       "oracle": "Run one byte-identical six-terminal oracle against an isolated headed desktop host and an isolated headless `manta serve` host. Stage at least 1,000,000 xterm cells, hide all six warm managers, emit an initial working title followed by 30 timed real-PTY spinner frames and a final idle title per worktree, and observe a second real session-tabs subscription plus the production renderer store. Require exactly two transport envelopes and two title mutations per worktree, no decorative title crossing either boundary, and positive decoded-envelope bytes. Enable ordinary parking with the lossy retention budget disabled, require exactly one mounted manager and five parked tabs, at most 45% retained cells, no more than 16 MiB heap growth, and under 500 ms timer drift. In headed mode, require the host renderer to remain on its original workspace with zero target terminal managers mounted throughout client park, reveal, and live I/O. While a tab is parked, require authoritative terminal.read to observe new PTY output; reveal it and require the original PTY, a marker within the requested 5,000-row history, the parked marker, and post-reveal input/output. Drive 24 real PTY title trackers in distinct worktrees through 40 decorative spinner frames each, then 40 spinner frames alternating with Cursor's bare native identity redraw, using fake clocks. Require all 2,880 raw chunks exactly and zero host session-tabs publications, serialized bytes, renderer apply calls, and renderer store mutations. Continue decorative evidence beyond 30 minutes, require exactly one refresh per worktree per 15-minute lease through a FIFO spaced by at least 50 ms, and require all 24 viewer statuses to remain working and fresh; then require one exact semantic idle transition and one visible-output chunk per PTY. Require ordinary and interior-Braille title changes to publish. Drive 64 host PTYs through ten 80 ms synthetic title frames, require zero paired client events after the first frame per PTY while all 640 local frames remain observable, attach a late client and require one current frame per PTY, then require semantic bell and idle transitions on both clients. Reconstruct a legacy subscribed stream with no outputPause capability, hide a chatty pane, require no hidden xterm writes, reveal it, and require one authoritative snapshot plus continued live output. Drop and acknowledge output only for one original paired-client stream, prove the fixture process consumed input while the host model advanced and the client stayed stale, then require the command snapshot probe to replace that stream, repaint exact fixture output, preserve authoritative PTY identity and target-tab cardinality, and resume live I/O. For a client without a delivered sequence, require the first numeric probe to establish a baseline without replacement, a same-sequence probe to remain attached, and a later advanced probe to replace only that stream. Withhold the first encrypted shared-control ready frame, start one RPC, trigger a status-probe refresh, and require two connections, one host delivery, successful response, and zero retained request bytes. Admit 128 active streams, reject the 129th as retryable, release one stream, then require the retry to attach and publish a snapshot without multiplying retained subscribers. Disable terminal.paired-parking.v1 and require the same oracle to fail before parking, while the legacy limit-one fallback separately passes. Also preserve truncated first paint, ACK-starved same-PTY recovery, responsive silent-command snapshot probes, dead-stream probe timeout recovery, and queued manual-disconnect fencing.",
@@ -6571,11 +6571,11 @@
       "coveredProviders": ["local", "ssh", "remote-runtime"],
       "coverageNotes": "Platform-neutral unit coverage proves the Resource Manager closed badge performs one readiness seed, coalesces unknown spawn signals, skips known-session reattach signals, installs no interval, and re-reads only once per explicit daemon-management kill/restart. AI Vault tab-title sync uses bounded exact identities on the transcript-owning local, SSH, or runtime host and has no access to broad listing; unsupported older hosts retain persisted titles without fallback scans. WSL path translation still needs a Windows integration oracle.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7002",
-        "https://github.com/stablyai/orca/pull/6858",
-        "https://github.com/stablyai/orca/issues/9386",
-        "https://github.com/stablyai/orca/pull/9387",
-        "https://github.com/stablyai/orca/pull/12778"
+        "https://github.com/paidaxingyo666/Manta/pull/7002",
+        "https://github.com/paidaxingyo666/Manta/pull/6858",
+        "https://github.com/paidaxingyo666/Manta/issues/9386",
+        "https://github.com/paidaxingyo666/Manta/pull/9387",
+        "https://github.com/paidaxingyo666/Manta/pull/12778"
       ],
       "invariant": "Typing, focus, terminal switch, workspace switch, visibility resume, resize, render, per-pane liveness, and tab-title synchronization must not call global pty:listSessions or aiVault.listSessions; they must use targeted APIs or cached provider-owned state.",
       "oracle": "The current executable slice asserts targeted visibility/first-input liveness, resize re-assertion after visibility resume, light tab/active-state resume, SSH/remote skip behavior, and a closed Resource Manager budget of one readiness seed plus one coalesced inventory read only for unknown spawn IDs. AI Vault title sync deterministically accepts only resolveSessionTitles, batches at most 64 exact identities, serializes worker work, routes requests to the transcript-owning local/SSH/runtime host, and proves zero broad scans for unsupported hosts. The full hot-path oracle still needs instrumentation around raw focus, split focus, workspace switch, render ticks, and high-session PTY fixtures.",
@@ -6732,8 +6732,8 @@
       "coveredProviders": [],
       "coverageNotes": "Renderer unit coverage proves replay-guard lost-completion and certified-wedge events carry correlatable tab, worktree, durable leaf, pane, and redacted PTY identity without exposing path-bearing values. Full provider lifecycle attribution and diagnostics-bundle artifact proof remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6800",
-        "https://github.com/stablyai/orca/issues/6773"
+        "https://github.com/paidaxingyo666/Manta/pull/6800",
+        "https://github.com/paidaxingyo666/Manta/issues/6773"
       ],
       "invariant": "Terminal lifecycle anomalies around reattach, restore, replay wedges, provider ownership, stale liveness, and fallback routing must leave compact, deduped, privacy-safe breadcrumbs in crash diagnostics so future reports can be attributed from evidence. Replay anomalies must distinguish pane managers and PTYs without recording path-bearing worktree or session identities.",
       "oracle": "Drop a replay write completion while allowing its FIFO probe to parse, then require the lost-completion breadcrumb to include pane ID, stable hashes for tab/worktree/leaf identity, and a path-redacted PTY ID. Existing wedge tests require both lost-completion and certified-dead paths to record their distinct event names. Full pane transition traces and diagnostics-bundle artifact proof remain follow-ups.",
@@ -6815,10 +6815,10 @@
       "coveredProviders": ["ssh"],
       "coverageNotes": "Local macOS evidence covers main-process pending-output and projection-admission caps, runtime path-provenance history reuse, saturated-tail wait detection, direct-SSH source retention/accounting, always-on V1 negotiation with legacy peer fallback, exact provider-generation pause ownership, renderer exit/data ordering, decoder input bounds, bounded reconnect scheduling, and WSL stdio transport settlement through deterministic unit contracts. A joined main/runtime oracle exercises renderer-sourced headed semantics and headless-model snapshot semantics without launching a live paired server. Separately, a macOS-hosted Docker OpenSSH run exercises only the deployed Linux relay and direct SSH provider with an exact 256 KiB source-credit plateau, concurrent PTY typing, fixed-size filesystem frames, Git churn, and owner-lease reconnect. Neither deterministic topology labels nor Docker SSH constitute live headed desktop, headless manta serve, or physical WSL evidence; local/daemon, prior-version daemons, Windows named pipes/ConPTY, folder workspaces, and mixed-version clients also remain uncovered.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6836",
-        "https://github.com/stablyai/orca/pull/6858",
-        "https://github.com/stablyai/orca/pull/7002",
-        "https://github.com/stablyai/orca/pull/7054"
+        "https://github.com/paidaxingyo666/Manta/pull/6836",
+        "https://github.com/paidaxingyo666/Manta/pull/6858",
+        "https://github.com/paidaxingyo666/Manta/pull/7002",
+        "https://github.com/paidaxingyo666/Manta/pull/7054"
       ],
       "invariant": "High-volume terminal output must stay bounded across daemon socket writes, SSH relay writer/decoder/source retention/reconnect, main model and projection admission, runtime metadata, detectors, and tail checks, main-to-renderer in-flight bytes, renderer scheduler queues, and hidden-output restore without starving focused input. Every new SSH session offers V1 and every same-build relay supports it; legacy delivery is reachable only when capability negotiation proves the peer cannot use V1. Negotiated SSH spans remain exact and contiguous through activation, exit, cancellation, recovery, desktop projection, and required remote replacement; provisional activation data cannot project, reconnect may release it only into the exact attempt's private recovery quarantine after contract validation, and exit seals that quarantine against later same-token frames until ordered admission or exact cancellation proof. Reconnect checkpoint capture freezes exact provider-generation/PTy admission, cancels queued old work, and waits for the running raw completion before exposing its accepted checkpoint; timeout or failure detaches only that PTy's old model, makes the checkpoint unavailable, and releases the bounded fence without closing the shared provider, while the same failure outside an active exact migration remains generation-fatal and overlapping reconnects preserve any earlier outstanding fence. Pending renderer projection IDs are capped and compacted across split remainders, exit preparation owns its renderer fence through finalization, exit-time cancellation transfers published projections before proof commit, generation close fences late proof while draining exact projection waiters, closed-generation identity compacts without weakening stale rejection, canceled source-delivery retirement retains at most one ordered token per PTY, and pause/resume targets only the exact provider generation. Additional subscribers cannot stall the owner, while the required legacy primary retains backpressure.",
       "oracle": "The current executable slice injects main-process renderer backlog pressure, then asserts unchanged path-provenance history reuse for pathless output, ordinary terminal-wait detection without a joined-tail allocation and with full prompt-family continuity, per-PTY and total pending-output caps, a 1,024-ID projection cap with split-remainder compaction, preserved sequenced-tail metadata, active-pending protection ahead of background trimming, exact provider-generation pause ownership, renderer exit/data ordering, and ACK-gated in-flight bounds. The negotiation seam proves every initial connection and reconnect offers V1, the same-build relay advertises V1 without launch flags, old clients remain token-free, and method-not-found peers fall back without installing source ACK publication. The joined source-intake/multiplex oracle blocks renderer or headless serialization, admits one snapshot-covered span and one trailing span, requires replacement reservation only after the authoritative sequence is known, advances upstream ACK eligibility exactly to the covered boundary after SnapshotEnd, and delivers then ACKs the trailing span through the ordinary live path without cancellation. Source-range ledger and multiplex seams additionally require cumulative byte ACK 40 then 100 for one 100-byte frame to release exact byte credit without early source settlement, admit a contiguous higher-generation recovered token while the prior token remains unsettled, and reject stale stream or source generations without releasing in-flight byte credit. Replacement reservation rolls back every earlier span on a later failure, commit requires the exact frozen transfer states, and an authoritatively reclaimed covered span rejects commit without local trim authority while rollback removes the reservation idempotently. The exit-deadline oracle publishes a source-backed desktop projection, advances a fake clock to cancellation, and requires one projection transfer, proof commit, preparation, and final exit with no provider close, retained obligation, duplicate finalization, or process-lifetime cancellation tombstone; a second controlled proof remains pending across generation close and must never publish final exit, while both paths release the renderer preparation lease exactly once. The model-migration oracle accepts span A, blocks span B's raw emulator completion, begins disconnect migration, and proves no checkpoint or reconnect attach can remain at A; releasing B advances the exact checkpoint to B and projects B once. Its fake-clock arm reaches the 10-second deadline, requires checkpoint-unavailable, one exact model reset, zero retained admission charge and timers, and no effect from late raw settlement. Its two-PTY failure arm rejects one running raw callback under an active exact migration and requires one checkpoint-unavailable result, one model reset, zero provider closes, retained sibling checkpoint and transport liveness, zero charges and timers, and an unaffected other generation; a non-migrating sibling oracle still requires generation close. The intake additionally closes 2,048 sequential provider generations into one exact range, rejects stale events across that range, and preserves an out-of-order live gap until its own close. Direct-SSH contracts additionally prove activation-response settlement before the first source frame, claim-gated projection under same-decoder-turn response/data delivery, exact early-ACK reservation through send settlement or same-token retry, recovery completion visible before lease-held frames transfers those frames only into the private quarantine and admits no output until exact checkpoint-to-recoveryEnd coverage, invalid-checkpoint restore retention through response settlement followed by fresh-token retry and one live source frame, isolated saturated-subscriber eviction with healthy owner liveness, preserved legacy-primary backpressure, one-write ownership across write(false)/drain, control selection ahead of queued ordinary PTY input with FIFO lanes and bounded fairness, liveness rebasing, failed-exit retention through late ACK or exact recovery, response-settlement cancellation authority, token-scoped exit cancellation, exact checkpoint-to-recoveryEnd continuity, stale-owner one-shot retry, no physical PTY teardown on recovery failure, exact provider-generation closure and once-only cleanup when recovery cancellation publication or proof rejects, 16 MiB-plus-1 MiB decoder caps, charged per-PTY/session retention budgets, and eight-wide isolated reattach. The live Electron perf oracle adds hidden-output floods, renderer scheduler queue depth, dropped-output-zero normal scenarios, and active key latency budgets before promotion.",
@@ -7418,10 +7418,10 @@
       "coveredProviders": ["daemon", "local"],
       "coverageNotes": "Deterministic provider contracts cover complete, incomplete, conflicting, refused, and identity-invalidated owner inventories; degraded fallback/current/legacy routing; repeated stale-binding classification; and fresh-session reattach without local fallback during unresolved ownership. Main IPC contracts cover exact persisted-binding retirement and one fresh replacement after confirmed absence. Live Linux, Windows, WSL, SSH, paired-runtime, and packaged-upgrade journeys remain uncollected.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6830",
-        "https://github.com/stablyai/orca/pull/6866",
-        "https://github.com/stablyai/orca/pull/7002",
-        "https://github.com/stablyai/orca/pull/12776"
+        "https://github.com/paidaxingyo666/Manta/pull/6830",
+        "https://github.com/paidaxingyo666/Manta/pull/6866",
+        "https://github.com/paidaxingyo666/Manta/pull/7002",
+        "https://github.com/paidaxingyo666/Manta/pull/12776"
       ],
       "invariant": "Daemon startup reconciliation must preserve valid live daemon sessions and reap only true orphans. A persisted binding stays fail-closed while any possible owner is incomplete, conflicting, refusing attach, or identity-invalidated, but complete authoritative absence from every configured provider must retire that exact stale binding and let retry or reopen converge without attaching it through local fallback or duplicating a PTY.",
       "oracle": "Hold exact fallback, current-daemon, and legacy-daemon inventories behind controlled promises. No attach may settle or dispatch until every provider answers. Complete zero-candidate inventories must report SessionNotFound; incomplete, duplicate, refused, and identity-invalidated attempts must remain owner-unverified. In degraded mode, repeated stale attempts scan each eligible provider once per attempt and dispatch no attach, then one explicit fresh spawn and exact reattach use only the recorded fresh route. Main IPC must compare-and-swap retire only the matching persisted PTY/incarnation, emit one synthetic exit, and create one different fresh PTY.",
@@ -7527,8 +7527,8 @@
       "coveredProviders": ["local", "daemon", "ssh"],
       "coverageNotes": "A real daemon server over a local socket proves a fresh adapter can kill a live session before any prior client operation. Main-process tests prove renderer IPC, runtime kill, and runtime exact-stop wait for the provider swap and issue zero shutdowns to the fallback provider, while SSH spawn and kill bypass the local barrier. The same shared logic runs on Linux and Windows; live platform runs remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7742",
-        "https://github.com/stablyai/orca/pull/7836"
+        "https://github.com/paidaxingyo666/Manta/issues/7742",
+        "https://github.com/paidaxingyo666/Manta/pull/7836"
       ],
       "invariant": "A local PTY shutdown requested during desktop cold start must resolve its provider only after daemon startup settles, and a fresh daemon adapter must connect before issuing the destructive request; a fallback provider must never falsely acknowledge shutdown while the restored daemon session remains live, and SSH shutdown must not wait on local startup.",
       "oracle": "Hold the desktop provider-startup promise unresolved, request shutdown through renderer IPC and both runtime-controller entry points, install the daemon provider, and assert the fallback receives zero shutdowns while the daemon receives exactly the requested kill; prove the provider gate opens as soon as daemon authority settles even while optional hook startup remains unresolved, and prove an SSH spawn and kill complete without touching either local barrier. Separately, spawn a session through one adapter, kill it through a fresh unconnected adapter, and assert the daemon no longer lists it.",
@@ -7733,12 +7733,12 @@
       "coveredProviders": ["ssh", "remote-runtime"],
       "coverageNotes": "Deterministic renderer coverage proves startup publishes the state returned by ssh.connect, retained native and runtime SSH payloads are admitted through production routes only with valid complete authority, stale cleanup cannot unregister a replacement runtime terminal, direct SSH Git and folder panes clear and retry by exact authority, one authority chain stops after two automatic attempts even when each timeout exceeds the rolling window, rejected acknowledgements mutate no store maps, and one shared exact attempt admits every concurrent split-pane spawn and reattach while preserving the first PTY as the tab fallback. A later sibling failure rotates the tab once, stale callbacks from the prior attempt mutate no state, split remount activity suppression is counted per leaf, primary PTY exit promotes a bound survivor or preserves an empty continuation gap for a late sibling, and primary, non-primary, or null-PTY detach preserves exact authority on both resulting tabs. Intentional pane disposal cancels its settlement timer without breaking StrictMode remount timeout ownership. Target snapshot hydration/reconnect preserves sibling SSH/local/WSL/runtime state, and a mounted remote-runtime terminal survives repeated transport partitions without changing PTY identity. A real encrypted-WebSocket oracle proves a successful reachability probe can replace a pre-ready shared-control socket without rejecting or duplicating the waiting RPC. Direct SSH coordinator tests cover immediate terminal finalization, hydration correction, damping, bounded retry, and telemetry non-interference. Client/server heartbeat tests cover timer suspension, socket generations fence stale callbacks, cold restored-terminal attachment retries, cached pixels remain unhealthy until authoritative replay, automatic retries stop after one minute, manual reconnect preserves the PTY, and pane closure releases recovery UI state. Current macOS Electron journeys against an ephemeral Linux Docker SSH target cover exact-authority repo/worktree hydration, live terminal recovery after disconnect/reconnect, and eager six-terminal remount after renderer reload. A Windows remote-runtime smoke covers reachability and PTY round-trip. Multi-target live fanout, paired-close, WSL, and patched live partition journeys remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6951",
-        "https://github.com/stablyai/orca/pull/6955",
-        "https://github.com/stablyai/orca/pull/6979",
-        "https://github.com/stablyai/orca/pull/7009",
-        "https://github.com/stablyai/orca/pull/8597",
-        "https://github.com/stablyai/orca/issues/11541"
+        "https://github.com/paidaxingyo666/Manta/pull/6951",
+        "https://github.com/paidaxingyo666/Manta/pull/6955",
+        "https://github.com/paidaxingyo666/Manta/pull/6979",
+        "https://github.com/paidaxingyo666/Manta/pull/7009",
+        "https://github.com/paidaxingyo666/Manta/pull/8597",
+        "https://github.com/paidaxingyo666/Manta/issues/11541"
       ],
       "invariant": "SSH, WSL, and remote-runtime restore paths must treat provider listing failures and unknown liveness as unknown, not dead, while still avoiding duplicate spawn and clearing expired relay leases exactly once. Direct SSH reconnect must atomically clear only exact-target live PTY bindings, preserve relay identity, retry Git and folder panes without paired close or provider shutdown, and allow at most two automatic attempts in one authority chain even when each settlement exceeds the rolling window. A rejected acknowledgement mutates no store map. A successful exact split-pane spawn or reattach must retain that attempt as shared live authority until sibling leaves settle; the first success cannot consume sibling authority, a sibling failure can start at most one second tab-wide attempt, and prior-attempt callbacks become inert after rotation. Once the retry budget is exhausted, a failure cannot start attempt three or revoke attempt-two authority from siblings that may still settle. Primary PTY exit must promote a bound survivor or preserve exact authority through an empty activation gap, and split detach must project that authority to both resulting tabs. Hydrated PTY hints cannot supersede a current exact-attempt owner, and target snapshot hydration/reconnect cannot reset sibling SSH, local, WSL, or runtime-owned state. Every restored remote terminal must preserve its provider PTY identity, including the authoritative incarnation returned by a successful session-ID reattach. After a recoverable partition the same authenticated runtime must reattach the same PTY, reject detached input, apply the latest viewport, and report healthy only after authoritative replay. A successful one-shot reachability probe may replace a pre-ready shared-control socket, but waiting RPCs must continue onto the replacement under their original deadline without duplicate host delivery or retained request bytes. Automatic PTY recovery stops after one bounded minute without a fatal terminal error; a manual reconnect starts a newly fenced epoch against the same PTY, and closed panes retain no recovery UI state. One capability-gated terminal-create mutation must produce at most one host PTY across an unknown response outcome, remain manually retryable after cutoff, and never let a stale completion replace a newer pane lifecycle. Reconnect must alternate exact activation with authoritative inventory so neither a stale activation response nor an activation failure can strand or retire a pane, and activating a parked surface whose persisted binding was already retired must respawn it rather than report a changed owner after signalling its exit.",
       "oracle": "Deterministic tests cover bounded stale-handle replacement, suspended heartbeat clocks, cold and established subscription failure, ten partition/recovery cycles, automatic-recovery cutoff, manual reconnect, and exact direct SSH binding recovery. They assert one atomic store publication clears only exact-target PTY indexes, null-PTY activation remains unchanged, relay identity survives, Git and folder panes retry symmetrically, another target/local/WSL/runtime panes remain byte-identical through target snapshot hydration and reconnect, only an accepted exact failure or timeout starts the second attempt, two 31-second timeouts cannot start a third settlement-triggered attempt, rejected stale/mismatched acknowledgements preserve every store map, and concurrent split-pane spawn and reattach callbacks both commit under the same attempt ID after the first success replaces pending state with live shared authority. A sibling failure revokes that shared authority and starts exactly one second attempt; duplicate failures and late first-attempt PTY callbacks preserve the second attempt and every state map. Attempt-two failure retains continuation authority for later siblings, primary exit promotes a bound survivor or preserves the lease until a late sibling binds, and primary plus non-primary detach retain exact authority and history on both resulting tabs. Both remount callbacks consume split-count activity suppression, intentional dispose emits no failure/timeout, and a same-attempt StrictMode remount still owns one timeout. Hydration clears an untrusted PTY hint without clearing its current pending owner, healthy current-authority bindings suppress correction, hydration finalizes once, and reconnect emits no paired close lifecycle. A provider-level session-ID reattach returns an incarnation, then a legacy exit without an incarnation must resolve to that returned identity rather than minting a fallback identity. The shared-control oracle withholds the first encrypted ready frame, starts one RPC, triggers the successful-probe refresh, then requires exactly two client connections, one host request, a successful response, zero pending calls, and zero retained request bytes. Tests also assert one unsubscribe per remote-runtime epoch, observable recovery phases, stable PTY identity, resumed snapshot/output/input, no healthy state before replay, no retry or input after cutoff, a new manual epoch against the same PTY, quiet recovery UI with an explicit Reconnect action, pane-close state cleanup, one stable create mutation id, old-runtime no-retry behavior, cross-process PTY adoption, and bounded in-flight coordination.",
@@ -8271,7 +8271,7 @@
       "coverageNotes": "One end-to-end contract runs the real dispatcher, renderer multiplexer, remote transport, and pty-connection together and requires the tab remount, so the signal is proven past the transport callback it used to die behind. Focused contracts cover capability negotiation, legacy binary subscriptions, stream-id reuse, pane lifecycle reuse, the one-shot JSON fallback, and main refusing to answer liveness for a `remote:` id. Live headed/headless paired-runtime and mixed installed releases remain uncollected.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-2830",
-        "https://github.com/stablyai/orca/issues/11124"
+        "https://github.com/paidaxingyo666/Manta/issues/11124"
       ],
       "invariant": "When a paired-runtime client accepts terminal input locally but the authoritative host rejects the PTY write, a capability-compatible stream must notify only that current pane generation and that notification must end in an actual tab remount — no local liveness probe may veto it, because main owns no registry entry for a `remote:` id and must answer unknown for one. A host must never send the new opcode to a legacy or un-negotiated client, and a late rejection must never recover a replacement stream or pane lifecycle.",
       "oracle": "Wire the real dispatcher to the real renderer multiplexer, remote transport, and pty-connection over one bridged subscription; type into the pane, reject the authoritative runtime send before any process write, and require both the WriteUnavailable frame and a remountTerminalTabForRecovery call — repeated for every answer main can produce for a `remote:` id (fabricated dead, unknown, thrown). Separately: require one frame only for a capability-declaring client by driving an un-negotiated legacy binary subscriber first and a capable one second on the same runtime, so the capable frame proves the rejection had already been processed for both. Reuse the stream id before releasing a held rejection and require no signal; replace the stream or detach and reattach the same handle before releasing held failures and require no stale recovery. Require pty:hasPty to answer null for a `remote:` id without consulting the local provider.",
@@ -8391,10 +8391,10 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6801",
-        "https://github.com/stablyai/orca/pull/6830",
-        "https://github.com/stablyai/orca/pull/6866",
-        "https://github.com/stablyai/orca/pull/6951"
+        "https://github.com/paidaxingyo666/Manta/pull/6801",
+        "https://github.com/paidaxingyo666/Manta/pull/6830",
+        "https://github.com/paidaxingyo666/Manta/pull/6866",
+        "https://github.com/paidaxingyo666/Manta/pull/6951"
       ],
       "invariant": "WSL terminal restore must preserve Windows-host and Linux-guest path/cwd identity, shell launch args, startup command delivery, provider liveness semantics, and saved session ownership without being treated as ordinary local Windows ConPTY or generic SSH.",
       "oracle": "No executable slice yet. Promotion needs a Windows provider contract plus one focused live WSL smoke proving cwd/path mapping, shell echo, startup command delivery, targeted liveness unknown handling, and restore without duplicate panes or destructive false-dead cleanup.",
@@ -8450,9 +8450,9 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap on main. The replay FIFO/burst coalescing product change and its tests exist only on the pending reliability stack; main still uses a single pendingReplayData slot. It registers here with its owning split PR.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7012",
-        "https://github.com/stablyai/orca/pull/7054",
-        "https://github.com/stablyai/orca/pull/6949"
+        "https://github.com/paidaxingyo666/Manta/pull/7012",
+        "https://github.com/paidaxingyo666/Manta/pull/7054",
+        "https://github.com/paidaxingyo666/Manta/pull/6949"
       ],
       "invariant": "Multiple replay notifications, metadata-only eager replays, hidden-output restores, and WebGL recovery must preserve FIFO ordering, apply clear-before-replay only when intended, and never overlay stale bytes on newer terminal output.",
       "oracle": "The current executable slice injects overlapping replay notifications while async replay drains and asserts pre-parse coalescing, in-flight replay preservation, FIFO draining after xterm parsing starts, and bounded burst-tail coalescing. Metadata-only replay, hidden output chunks, live output interleaving, clear semantics, and stale-overlap checks remain promotion-scope gaps.",
@@ -8510,10 +8510,10 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS and containerized Linux evidence, deterministic renderer-unit coverage for the Linux/Sogou candidate-key policy including the legacy orphaned-keyup fallback, Electron/CDP live-PTY Sogou-style repros, and macOS renderer/main slices for Preview kitty commits and layout-native Option input. The Option slice covers complete CSI-u flag fields including lock state, repeat/release event types, authoritative committed associated text, native dead-key release suppression, functional-versus-printable numpad codes, press-pinned release identity, live keyup modifiers, pending-layout text fallback, atomic layout refresh, rapid in-focus input-source changes, stable native layout characters, and both native/web preload fallbacks. Snapshot flag provenance keeps a proven 0, a proven non-zero, and an absent field distinct from daemon through the sequenced remote SnapshotStart frame. Real Linux/Sogou OS IME automation, Windows ConPTY post-agent reset, and the CJK/Vietnamese/Arabic matrix remain registered gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6699",
-        "https://github.com/stablyai/orca/pull/6682",
-        "https://github.com/stablyai/orca/pull/6513",
-        "https://github.com/stablyai/orca/pull/6999"
+        "https://github.com/paidaxingyo666/Manta/pull/6699",
+        "https://github.com/paidaxingyo666/Manta/pull/6682",
+        "https://github.com/paidaxingyo666/Manta/pull/6513",
+        "https://github.com/paidaxingyo666/Manta/pull/6999"
       ],
       "invariant": "Composition, native text forwarding, synthetic input, paste, and platform keyboard bypass paths must not send preedit/control bytes before commit and must commit text exactly once to the intended PTY. Layout-native Option text must preserve negotiated CSI-u alternate/associated fields and lock modifiers, distinguish repeat from press, and resolve releases with the press's primary identity plus the actual keyup modifiers without exposing a partial or stale layout refresh. An in-focus macOS input-source change must invalidate both renderer authorities before the next key can use the old source. When the snapshot source proves kitty state, macOS Preview commits must use the application's effective flags after the sequenced snapshot and every proven replay/live transition, and a claimed press delivered under report_event_types must produce exactly one matching release regardless of whether keyup arrives before or after insertText and regardless of xterm's defensive internal reset.",
       "oracle": "Exact outbound bytes from the REAL native-text forwarder behind installPreviewImeBridge after initial snapshot restore, replacement resync, live transitions, and both keydown->insertText->keyup and keydown->keyup->insertText orderings; a wiring-only mock is supporting evidence, not the oracle. The current renderer-unit slice asserts native text commits route to the intended PTY once, composition/preedit bookkeeping does not leak premature text, input-source classification handles synthetic/native paths, paste/runtime forwarding avoids duplicate terminal payloads for covered fixtures, and Linux/Sogou candidate Space/digit selectors do not leak keydown/keypress/keyup while ordinary and long-held letter-to-digit typing remains available. A main/preload/renderer notification chain proves every live window invalidates immediately, the old native read settles before a coalesced refresh signal, and older refreshes are generation-fenced. The Electron/CDP live-PTY repro verifies Sogou-style Space and digit selectors submit only the committed Chinese text, while the legacy orphaned-letter-keyup sequence sends no selector byte to the PTY. Real legacy IME commit preservation and the full CJK/Vietnamese/Arabic/JIS-yen matrix run in follow-up platform soak where automation is possible.",
@@ -8919,8 +8919,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6999",
-        "https://github.com/stablyai/orca/pull/6858"
+        "https://github.com/paidaxingyo666/Manta/pull/6999",
+        "https://github.com/paidaxingyo666/Manta/pull/6858"
       ],
       "invariant": "After an agent or TUI exits on Windows ConPTY, ordinary Enter, Backspace, Arrow, paste, and printable keys must be delivered as standard shell input, not stale Kitty/CSI-u or application-mode bytes.",
       "oracle": "A Windows gate records PTY input bytes before and after agent/TUI exit, submits real shell commands, and proves standard keys work without protocol leakage.",
@@ -8977,8 +8977,8 @@
       "coveredProviders": [],
       "coverageNotes": "Deterministic main/renderer tests run on macOS and exercise simulated Windows plus POSIX/Linux process-confirmation behavior. They cover exact local-ConPTY membership, detached-child rejection, SSH and paired-runtime host-platform routing including legacy runtime PTY IDs, active-PTY ownership after worktree host changes, Windows-to-WSL routing, unknown-metadata fallback, production handler composition, KKP authorization on every host, process-confirmed Droid routing and launch-triggered confirmation, typed-alias and forged-OSC isolation, shells without OSC 133, split/detach ownership with preserved shell classification, stale PTY exit/rebind rejection, command-generation revocation, daemon v21 warm-reattach identity, unavailable inspection, and lazy subprocess/RPC callback counts. A live linux-arm64 Docker target additionally proved real relay deployment, SSH PTY host detection, and exact inactive/active KKP bytes. The Electron byte test runs only on Windows; live Windows evidence remains uncollected. Test failures report exact expected bytes; no product telemetry or raw terminal logging is added.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7620",
-        "https://github.com/stablyai/orca/pull/7668"
+        "https://github.com/paidaxingyo666/Manta/issues/7620",
+        "https://github.com/paidaxingyo666/Manta/pull/7668"
       ],
       "invariant": "Shift+Enter key recognition follows the client OS, while emitted bytes follow the active application and PTY host: active Kitty keyboard protocol authorizes CSI-u on every host; otherwise Windows hosts use Esc+CR except when allowlisted Droid ownership or fresh routing-trusted Droid process evidence authorizes CSI-u, and non-Windows hosts use Esc+CR. The active SSH connection, remote-runtime PTY owner, or live local session outranks later worktree ownership changes, and missing host-platform metadata falls back to the client. Every new command and PTY replacement revokes stale agent routing until current evidence settles; split or reused panes cannot inherit sibling or prior-PTY authority; unrelated keys perform no host, agent, protocol, or ConPTY lookup.",
       "oracle": "Renderer tests assert exact bytes across client/PTY-host combinations, including Kitty keyboard protocol active and inactive on Windows and non-Windows hosts, and prove SSH identity, the environment encoded in an active remote-runtime PTY id, and live local-session identity outrank current worktree ownership, while unavailable platform metadata falls back to the client. A live linux-arm64 SSH PTY independently captured Esc+CR with KKP inactive and CSI-u with KKP active. Fresh Windows process evidence authorizes Droid bytes only after a recognized global candidate is intersected with the exact ConPTY console process list; detached descendants, helper failure/timeout/root-only fallback, stale PTY exit/rebind results, typed text, and hook/OSC output fail closed. A new OSC 133;C immediately publishes a routing-neutral generation, including during D-to-C races. In cmd.exe/Git Bash/custom shells without OSC 133, accepted inferred commands start the same fresh generation; accepted submit/interrupt, title exit, focus, and visibility revoke trusted Droid bytes while one bounded confirmation runs. Detach preserves the live PTY's source shell override so WSL/native classification cannot change with the current default. Ordinary fast shell commands use cached/no-scan paths; routing-relevant confirmation bypasses cached process snapshots and keeps the bounded three-read ladder. Daemon protocol v21 persists only an allowlisted launchAgent; warm reattach uses it as a display/confirmation hint and restores routing only after current process proof. The Windows Electron test focuses the real xterm textarea and records exact renderer-to-main PTY writes.",
@@ -9251,7 +9251,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "daemon"],
       "coverageNotes": "Runtime and provider-contract tests on macOS cover exact-PTY authorization, verified managed-Claude launch identity, local/daemon fresh confirmation, exact ConPTY membership, and unsupported-provider fail-closed behavior. Physical Windows, live Linux, SSH, WSL, and remote-runtime validation remain explicit gaps; providers without confirmation preserve conservative refusal when no verified launch identity exists.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/issues/8303"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/issues/8303"],
       "invariant": "A guarded note send writes only to the exact PTY binding checked by the guard and only while permission/wait evidence allows input; a generic busy title requires independent agent identity from the title, a verified managed launch bound to the current PTY incarnation, or the foreground process; fresh hook state conflicting with an ordinary shell foreground requires fresh provider confirmation of a recognized agent in that PTY.",
       "oracle": "A quarter-circle Claude task title authorizes without a provider lookup only on the exact PTY incarnation carrying verified managed-Claude launch identity; the same title in a bare pane, with an unverified launch hint, or after PTY incarnation replacement is refused while current Claude activity remains a working signal. Fresh explicit state plus ordinary PowerShell plus confirmed recognized agent is sendable on the same PTY. Confirmed shell/non-agent, unavailable confirmation, PTY exit, handle rebind, or a callback PTY mismatch returns a refusal or not-writable result and writes zero bytes.",
       "commands": [
@@ -9416,7 +9416,7 @@
       "coverageNotes": "Source-built macOS and physical Windows Electron journeys cover the public CLI through RPC, runtime identity, real PTY/ConPTY writes, and a delayed fake Codex composer. Focused units cover CLI intent, fresh Claude/Codex foreground identity, framing bytes, stale-agent shell fallback, and exact legacy behavior for every other configured agent. SSH, daemon, and remote-runtime remain explicit gaps.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4328",
-        "https://github.com/stablyai/orca/issues/14525"
+        "https://github.com/paidaxingyo666/Manta/issues/14525"
       ],
       "invariant": "A public CLI send containing non-empty text plus Enter and no interrupt identifies agent-prompt intent. The owning runtime uses bracketed-paste and settled submit only when a fresh foreground-process read positively identifies the exact target as Claude or Codex on a desktop call; every other agent, stale agent metadata over a shell, text-only input, bare Enter, interrupts, mobile input, query replies, and older clients keep the direct terminal contract.",
       "oracle": "Launch a bare fake Codex through the real Electron PTY and delay its composer render for 1,200 ms, beyond the legacy generic 500 ms gap. Send a 557-byte prompt with the public CLI and require the marker, zero premature Enter, no rescue Enter, and one submission. POSIX child stdin must retain one bracketed-paste frame; Windows ConPTY consumes that control frame, so runtime tests require the frame at the PTY write boundary while the Windows child requires the exact prompt. The same harness against the installed pre-fix runtime must record one premature Enter and require one bare rescue Enter. Focused units require CLI intent only for text plus Enter, settlement only for freshly identified Claude/Codex, the legacy platform delay for every other configured agent, stale Codex launch identity over a shell to fall back, no wrapper polling, and byte-for-byte direct delivery for non-targets.",
@@ -9554,9 +9554,9 @@
       "coveredProviders": ["local"],
       "coverageNotes": "Local macOS evidence covers the runtime PTY write contract, live Codex orchestration, a dev-runtime CLI repro, and Claude and Codex composer traces. The render gate stays on the PTY-owning runtime, so paired and SSH callers use the same provider write/output path without a wire change. SSH, daemon, remote-runtime, Linux, and Windows live journeys remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/7226",
-        "https://github.com/stablyai/orca/issues/13821",
-        "https://github.com/stablyai/orca/issues/14347"
+        "https://github.com/paidaxingyo666/Manta/issues/7226",
+        "https://github.com/paidaxingyo666/Manta/issues/13821",
+        "https://github.com/paidaxingyo666/Manta/issues/14347"
       ],
       "invariant": "Injected orchestration task prompts for recognized agent CLIs must send the prompt body inside one bracketed-paste frame, sanitize embedded ESC bytes, preserve chunk boundaries without losing the frame, and submit exactly once only after the agent can accept Enter. Claude and Codex must emit a post-paste composer marker and then settle, or reach the bounded fallback first; every other agent retains the platform delay.",
       "oracle": "Runtime tests assert the exact PTY write sequence, failure cleanup, Claude/Codex marker-gated multi-frame renders, and the legacy platform delay for every other configured agent. The candidate resets settlement on later frames, gives a late marker a fresh bounded window, and still submits once at the hard deadline if output never settles. Orchestration tests assert dispatch/coordinator use the agent prompt path; the live CLI harness covers long Codex-like framing.",
@@ -9716,7 +9716,7 @@
       "coverageNotes": "A deterministic isolated runtime/SQLite/RPC harness covers Run and Dispatch ownership, exact handle and remint-stable pane recipients, fixed Delivery replay and acknowledgment, restart, concurrent pollers, filtered waiters, and built-CLI parity with direct DB state. Schema v28 durably records every coordinator handle through SQLite triggers, backfills current handles on open, recreates routing triggers after old table rebuilds, and atomically canonicalizes coordinator-addressed inserts to run:<id>. A 125-row oracle and 151-row reconciliation suite cover paged old-handle backlogs, commit-without-notify recovery, duplicate Dispatch owners, cancellation, and lifecycle fencing. Federation tests use real databases, dropped acknowledgments, restart/reconnect, and protocol v1/v2 peers; duplicate read rows do not wake again. Daemon and SSH pointer settlement is deterministic, with SSH bounded at 60 seconds beyond the 20-second mux health window. No RPC parameter, stream opcode, or published payload changed. Live headed/headless paired-runtime, physical SSH, WSL, Linux, and Windows acceptance remain gaps.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4325",
-        "https://github.com/stablyai/orca/issues/14522",
+        "https://github.com/paidaxingyo666/Manta/issues/14522",
         "internal incident evidence: improve-vps-setup, 2026-08-10"
       ],
       "invariant": "Each message has one stable row ID and authoritative recipient; coordinator-addressed current-delivery inserts are atomically owned by run:<id>. Pointer staging may set delivered_at but never consumes mail. Each Run consumer generation has at most one outstanding Delivery with a fixed ID and fixed message IDs; ordinary checks replay it until an explicit matching acknowledgment marks exactly those rows read. Rebinding fences the old generation, notification types/counts correspond to unread rows retrievable under the same authority, and federation replay imports each stable message identity once without re-waking an already-read duplicate.",
@@ -9948,9 +9948,9 @@
       "coveredProviders": ["local", "daemon", "ssh"],
       "coverageNotes": "A deterministic service-state-machine oracle now models a current-contract worker and coordinator whose renderer graph identities disappear across an app/runtime update. It exercises the production verifier with restored PTY and hydrated hook commitments, proves authenticated completion replay across a fresh runtime, explicit takeover, ordinary mail routing, remote-attachment process fencing, retained Task/Dispatch/terminal identity, and unchanged fixture marker bytes, and rejects foreign pane evidence. Other deterministic units cover authority-aware legacy formatting, exact legacy worker identity planning, local worker presentation, retained-output reads after adoption, reveal-failure warnings, stable-pane Run/Dispatch routing, creator pane/process/Run-generation fencing, indexed retained-Run lookup scaling, the SSH in-process CLI fallback, exact legacy Task/Dispatch/report-receipt verification, JSON rejection envelopes, and capability-negotiated Run-home settlement. The federation oracle drops the first terminal ACK, restarts Run-home twice, verifies replay through the existing polling path and the persisted acknowledgment watermark, races identical reports, accepts preexisting same-outcome ACK batches, rejects conflicting batches, and covers protocol v1/v2 completion across independently updated peers. A migration unit upgrades a v26 database with a zeroed watermark without replaying older migrations. Three isolated macOS Electron journeys launch fake Codex workers through the real RPC path. Distinct installed A/B artifacts plus live SSH, WSL, folder, Linux, and Windows cutover journeys remain explicit gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/11107#discussion_r3663321387",
-        "https://github.com/stablyai/orca/issues/13858",
-        "https://github.com/stablyai/orca/pull/14105",
+        "https://github.com/paidaxingyo666/Manta/pull/11107#discussion_r3663321387",
+        "https://github.com/paidaxingyo666/Manta/issues/13858",
+        "https://github.com/paidaxingyo666/Manta/pull/14105",
         "https://linear.app/stably/issue/STA-4020",
         "https://linear.app/stably/issue/STA-4021",
         "https://linear.app/stably/issue/STA-4022"
@@ -10373,8 +10373,8 @@
       "coveredProviders": ["local"],
       "coverageNotes": "Deterministic runtime tests cover both release verbs, durable outcomes, repeat and cross-verb idempotency, superseded Task ownership, unrelated and supervised Dispatch isolation, and unknown ids. An isolated Electron journey drives the real app runtime and proves both releases preserve the exact PTY incarnation and allow immediate same-pane redispatch.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/13005",
-        "https://github.com/stablyai/orca/pull/13250"
+        "https://github.com/paidaxingyo666/Manta/issues/13005",
+        "https://github.com/paidaxingyo666/Manta/pull/13250"
       ],
       "invariant": "A live Dispatch created by orchestration dispatch can be stopped or abandoned even though it has no supervised worker row. Release must durably record the requested outcome, revoke lifecycle authority, close questions, free the exact assignee identity, and block only the Task whose current Dispatch was released. It must never close the unsupervised terminal process, disturb unrelated or supervised workers, or let a repeat or opposite verb rewrite the persisted outcome.",
       "oracle": "Create manual, unrelated, and supervised Dispatches through production runtime methods. Require dispatch-show to return the manual id while no worker row exists, then release it and require failed status with exact stopped or abandoned provenance, completion and revocation timestamps, one status notification, zero terminal closes, and immediate redispatch to the same terminal. Repeat through the opposite verb and require the first durable outcome. Create two active contexts for one Task through an explicit ready override, release the older context, and require only its identity to unlock while the newer context and Task remain dispatched. In an isolated Electron runtime, repeat both verbs against one real pane and require the same PTY/incarnation to survive before a third dispatch succeeds.",
@@ -10495,8 +10495,8 @@
       "coveredProviders": ["local", "ssh"],
       "coverageNotes": "Deterministic service tests cover release-versus-reuse ordering, transactional retain and takeover cancellation, exact host/pane/process identity, dead external/user-owned/transferred/stopped/abandoned reconciliation, conservative unknown provider and legacy metadata handling, immutable transcript and bounded terminal archives, mutation restart, reset cleanup, replay idempotency, and 50-resource accounting. A macOS Electron journey invokes the freshly compiled worker-release CLI after the worker process disappears, then independently checks released SQLite state and coordinator liveness. Injected inventories cover local and SSH provider routing; live SSH, WSL, Windows, paired-runtime, and provider-close lost-ack journeys remain explicit gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/12355",
-        "https://github.com/stablyai/orca/issues/13860",
+        "https://github.com/paidaxingyo666/Manta/pull/12355",
+        "https://github.com/paidaxingyo666/Manta/issues/13860",
         "STA-905",
         "STA-3932"
       ],
@@ -10650,9 +10650,9 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6876",
-        "https://github.com/stablyai/orca/pull/6968",
-        "https://github.com/stablyai/orca/pull/6970"
+        "https://github.com/paidaxingyo666/Manta/pull/6876",
+        "https://github.com/paidaxingyo666/Manta/pull/6968",
+        "https://github.com/paidaxingyo666/Manta/pull/6970"
       ],
       "invariant": "Windows terminal repaint must not leave stale cells, clipped wide glyphs, or hidden cursor state after CJK, emoji, or cursor-rewrite output.",
       "oracle": "A Windows gate combines xterm buffer assertions with bounded screenshot/canvas evidence for representative CJK, emoji, and rewrite sequences.",
@@ -10705,8 +10705,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6541",
-        "https://github.com/stablyai/orca/pull/6858"
+        "https://github.com/paidaxingyo666/Manta/pull/6541",
+        "https://github.com/paidaxingyo666/Manta/pull/6858"
       ],
       "invariant": "Windows local and daemon terminals must resolve equivalent shell paths, args, cwd, env, startup command delivery, and fallback behavior for PowerShell 5/7, cmd, Git Bash, WSL, and missing pwsh.",
       "oracle": "Provider-contract fixtures compare resolved command descriptors and live shell markers for supported Windows shells across local and daemon providers.",
@@ -10761,8 +10761,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7002",
-        "https://github.com/stablyai/orca/pull/6858"
+        "https://github.com/paidaxingyo666/Manta/pull/7002",
+        "https://github.com/paidaxingyo666/Manta/pull/6858"
       ],
       "invariant": "Terminal typing, paste, resize, and output rendering must stay within latency and throughput budgets under realistic active and hidden-output load.",
       "oracle": "Perf artifacts record median/p95/max key latency, event-loop delay, renderer CPU, output bytes/sec, resize count, hidden restore latency, queue depth, and dropped-output counts.",
@@ -10811,8 +10811,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap on main. The daemon batcher write(false)/drain contracts exist only on the pending reliability stack. It registers here with its owning split PR.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6836",
-        "https://github.com/stablyai/orca/pull/6858"
+        "https://github.com/paidaxingyo666/Manta/pull/6836",
+        "https://github.com/paidaxingyo666/Manta/pull/6858"
       ],
       "invariant": "Daemon terminal output floods must pause when socket writes return false, resume on drain, keep buffered bytes bounded, and not starve focused input.",
       "oracle": "The current executable slice injects a slow socket and asserts write(false)/drain ordering, bounded queued daemon stream bytes, close/error listener cleanup, newest-tail preservation under sustained pressure, and flush-immediate cross-session priority ahead of unrelated background backlog on drain. Active input latency remains part of the broader perf gate.",
@@ -10869,7 +10869,7 @@
       "coveredPlatforms": [],
       "coveredProviders": [],
       "coverageNotes": "Registered gap on main. The boot-hydration counters and their tests exist only on the pending reliability stack. It registers here with its owning split PR.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/7002"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/7002"],
       "invariant": "Terminal typing, focus, resize, tab/workspace switch, and agent/session restore must not trigger unbounded store projection, git status, provider listing, or per-pane polling work.",
       "oracle": "The current executable slice instruments boot-time local PTY registry hydration with repo counts, local-vs-remote repo skips, worktree enumeration counts, adapter/session listing counts, registration/skipped-session counts, duration, and failure phase. The broader oracle still needs instrumentation that counts store selector recomputes, git status requests, provider listings, and session scans during scripted hot interactions with many worktrees and terminal panes.",
       "commands": [],
@@ -10924,11 +10924,11 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS evidence over the merged #7133/#7173 restore and hidden-output ordering tests on main@1282f5c2d. The dirty-state exactness contract, normal-buffer clear semantics, and metadata-only replay remain pending-stack work.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7173",
-        "https://github.com/stablyai/orca/pull/7133",
-        "https://github.com/stablyai/orca/pull/7012",
-        "https://github.com/stablyai/orca/pull/7054",
-        "https://github.com/stablyai/orca/pull/6949"
+        "https://github.com/paidaxingyo666/Manta/pull/7173",
+        "https://github.com/paidaxingyo666/Manta/pull/7133",
+        "https://github.com/paidaxingyo666/Manta/pull/7012",
+        "https://github.com/paidaxingyo666/Manta/pull/7054",
+        "https://github.com/paidaxingyo666/Manta/pull/6949"
       ],
       "invariant": "Hidden-output restore, snapshot replay, metadata-only replay, and clear-before-replay must preserve order and never overlay stale bytes on newer live terminal output; restoring a snapshot onto an already-dirty pane must yield a buffer exactly equal to the snapshot frame.",
       "oracle": "Apply snapshots onto adversarially dirty pane states (already on the alternate screen, stale content occupying cells the new frame leaves blank, scrollback present, wide glyphs, revived sessions with restarted PTY seq counters) and assert exact buffer equality with the snapshot frame; fault injection interleaves hidden chunks, live output, metadata-only replay, and clear-before-replay, then asserts ordered terminal buffer content, clear decisions, and replay diagnostics. Marker-presence checks are not acceptable evidence on restore paths.",
@@ -11024,7 +11024,7 @@
       "coveredPlatforms": [],
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/6949"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/6949"],
       "invariant": "Startup OSC 10/11 color queries are answered out of band at startup only, never leak into shell/provider output streams, and ordinary runtime OSC color queries remain renderer-handled.",
       "oracle": "A provider-contract fixture records startup query replies, shell-visible bytes, renderer-visible bytes, and later runtime OSC behavior to prove no query leakage or color deadlock.",
       "commands": [],
@@ -11057,7 +11057,7 @@
     },
     {
       "id": "terminal-input.cooked-reply-queue",
-      "title": "Cooked-echo-safe terminal reply backlog stays bounded without evicting ordinary input",
+      "title": "Terminal query replies stay atomic and bounded without evicting ordinary input",
       "maturity": "experimental",
       "protection": "partial",
       "owner": "terminal-runtime",
@@ -11066,6 +11066,7 @@
         "desktop terminal input",
         "OSC 10/11 replies",
         "mode-2031 replies",
+        "DA1 and CPR replies",
         "local PTY",
         "daemon and SSH PTYs"
       ],
@@ -11073,15 +11074,17 @@
       "providers": ["local", "daemon", "ssh"],
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "ssh"],
-      "coverageNotes": "Deterministic renderer and IPC-transport tests prove count and text ceilings, oldest-reply shedding, explicit query-reply source routing, ordinary-input preservation, one-reply-per-write delivery, real xterm OSC reply generation, drain-failure containment, and clear/reuse generation fencing. Live macOS Electron tests cover local PTY OSC replies and interactive typing; a macOS-hosted Docker OpenSSH test proves a real Linux SSH process receives xterm's OSC reply through the same queue. No live daemon, WSL, physical Linux/Windows client, or mixed-version run is registered.",
+      "coverageNotes": "Deterministic renderer and IPC-transport tests prove count and text ceilings, oldest-reply shedding, explicit query-reply source routing, ordinary-input preservation, one-reply-per-write delivery for OSC, DA1, and CPR replies, real xterm OSC reply generation, drain-failure containment, and clear/reuse generation fencing. Remote-runtime tests preserve separate query-reply writes across pending input, async validation, and viewport-claim buffering. Host-contract tests prove a later DA1/CPR reply cannot overtake a deferred OSC reply, including a coalesced legacy-client payload. Live macOS Electron tests cover local PTY OSC replies and interactive typing; a macOS-hosted Docker OpenSSH test proves an upstream-node-pty Linux relay keeps OSC/DA1 replies out of the next fish child's stdin. No live daemon, paired-runtime, WSL, physical Linux/Windows client, or binary mixed-version run is registered.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/13137",
-        "https://github.com/stablyai/orca/issues/7329"
+        "https://github.com/paidaxingyo666/Manta/issues/13137",
+        "https://github.com/paidaxingyo666/Manta/issues/7329",
+        "https://github.com/paidaxingyo666/Manta/issues/13892"
       ],
-      "invariant": "The desktop PTY input queue retains at most 64 explicitly sourced pending cooked-echo-safe replies and 4096 UTF-16 code units. Overflow removes the oldest pending query-reply entries, never ordinary input or reply-shaped bytes from the ordinary path, so later user input has a finite reply backlog; every retained reply reaches the established provider path as one atomic write. Drain failures settle without an unhandled rejection and cannot clear a newer queue generation.",
-      "oracle": "Synchronously enqueue 10,000 cooked-echo-safe query replies before the scheduled drain and assert that only the initial immediate reply and newest 64 pending replies are written, each as one provider write, before a trailing keystroke. Repeat behind 10,000 ordinary inputs and through the real IPC transport, requiring ordinary and reply-shaped ordinary-path bytes to survive while only the newest 64 explicit replies remain. Exercise the text ceiling, real xterm OSC 10/11 generation, provider-write failure, rejected yield, and clear/reuse generation fencing.",
+      "invariant": "The desktop PTY input queue retains at most 64 explicitly sourced pending terminal query replies and 4096 UTF-16 code units. Every retained reply reaches the provider as one atomic write, and the host writes each reply the moment it accepts it, so replies reach the PTY in the order they were produced with no queue that could reorder them. A reply's own echo is contained on the output side by projecting its known echo shapes; the ESC-initial verbatim shape is matched only when complete, never held as a partial, so a query torn at its own ESC is still answered. Overflow removes only the oldest query replies, never ordinary input except the documented modified-F3/CPR byte collision, and drain failures cannot clear a newer queue generation.",
+      "oracle": "Synchronously enqueue separate 10,000-entry OSC and DA1 reply floods before the scheduled drain and assert that only the initial immediate reply and newest 64 pending replies are written, each as one provider write, before a trailing keystroke. At the host boundary, defer an OSC reply and assert that separate or legacy-coalesced DA1/CPR replies flush after it in observed query order. At the remote-runtime boundary, preserve separate writes around pending ordinary input, async validation, and viewport-claim buffering. Repeat behind 10,000 ordinary inputs and exercise the text ceiling, real xterm generation, provider-write failure, rejected yield, and clear/reuse generation fencing.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-input-write-queue.test.ts src/renderer/src/components/terminal-pane/pty-transport-input-write.test.ts src/shared/terminal-query-reply.test.ts src/shared/pty-startup-ingress-live-query-reply.test.ts",
+        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-batching.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-query-reply-immediate.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-transport-input-coalescing.test.ts",
         "pnpm exec playwright test tests/e2e/terminal-osc-color-queries.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec playwright test tests/e2e/terminal-typing-latency.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "MANTA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
@@ -11089,6 +11092,9 @@
       "testFiles": [
         "src/renderer/src/components/terminal-pane/pty-input-write-queue.test.ts",
         "src/renderer/src/components/terminal-pane/pty-transport-input-write.test.ts",
+        "src/renderer/src/components/terminal-pane/remote-runtime-pty-batching.test.ts",
+        "src/renderer/src/components/terminal-pane/remote-runtime-pty-query-reply-immediate.test.ts",
+        "src/renderer/src/components/terminal-pane/remote-runtime-pty-transport-input-coalescing.test.ts",
         "src/shared/terminal-query-reply.test.ts",
         "src/shared/pty-startup-ingress-live-query-reply.test.ts",
         "tests/e2e/terminal-osc-color-queries.spec.ts",
@@ -11104,7 +11110,7 @@
             "reply-shaped bytes from the ordinary input path never enter the shed-able reply budget",
             "reply count and text overflow remove only the oldest pending replies",
             "real xterm OSC 10/11 query handlers remain subject to the same retention ceiling",
-            "retained cooked-echo-safe replies stay one provider write each",
+            "retained OSC, DA1, and CPR replies stay one provider write each and both OSC and DA1 floods remain bounded",
             "provider-write and yield failures settle without unhandled rejection, repeated same-generation admission, or stale-generation clearing",
             "clear releases saturated reply accounting and fences in-flight validation before later input"
           ]
@@ -11117,9 +11123,28 @@
           ]
         },
         {
+          "file": "src/renderer/src/components/terminal-pane/remote-runtime-pty-batching.test.ts",
+          "assertions": [
+            "a validation barrier runs after earlier deferred input and before later input"
+          ]
+        },
+        {
+          "file": "src/renderer/src/components/terminal-pane/remote-runtime-pty-query-reply-immediate.test.ts",
+          "assertions": [
+            "pending ordinary input and asynchronously validated paste stay ahead of but separate from an immediate query reply"
+          ]
+        },
+        {
+          "file": "src/renderer/src/components/terminal-pane/remote-runtime-pty-transport-input-coalescing.test.ts",
+          "assertions": [
+            "viewport-claim buffering replays ordinary input, a query reply, and later ordinary input as three ordered stream frames",
+            "a 10,000-reply viewport-claim flood retains and replays only the newest 64 query replies"
+          ]
+        },
+        {
           "file": "src/shared/terminal-query-reply.test.ts",
           "assertions": [
-            "only complete cooked-echo-risk replies are classified and consecutive replies extract losslessly"
+            "only complete query replies are classified and consecutive mixed reply kinds extract losslessly"
           ]
         },
         {
@@ -11143,7 +11168,8 @@
         {
           "file": "tests/e2e/pty-input-write-queue-ssh.spec.ts",
           "assertions": [
-            "a real Linux SSH process emits an OSC query and receives xterm's synthetic reply through the live PTY queue"
+            "a real Linux SSH process emits an OSC query and receives xterm's synthetic reply through the live PTY queue",
+            "an upstream-node-pty Linux relay has no echoState export and keeps OSC/DA1 reply bytes out of the next fish child stdin"
           ]
         }
       ],
@@ -11183,6 +11209,15 @@
           "result": "passed",
           "durationSeconds": 36.8,
           "summary": "A real Linux process behind Docker OpenSSH emitted an OSC 10 query and observed xterm's synthetic RGB reply after it traversed the live renderer queue, Electron IPC, SSH provider, and relay PTY."
+        },
+        {
+          "date": "2026-08-14",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "result": "passed",
+          "durationSeconds": 36.9,
+          "summary": "Run with SKIP_BUILD=1 against the existing e2e bundle. Both Docker OpenSSH Electron tests passed: the live OSC query returned its RGB reply, and an upstream-node-pty Linux ARM64 relay without echoState kept OSC/DA1 bytes out of the next fish 4.8.1 child's stdin."
         }
       ],
       "runtimeBudget": {
@@ -11191,7 +11226,7 @@
       },
       "flakeHistory": {
         "status": "unknown",
-        "evidence": "Ten consecutive local unit-gate runs passed 1,380 tests in 29.57 seconds total with no fixed timing sleeps. The exact Docker SSH OSC oracle passed three consecutive runs before extraction into its dedicated spec and then passed the registered dedicated command once. CI and the normal soak window are not yet available."
+        "evidence": "Ten consecutive local unit-gate runs passed 1,380 tests in 29.57 seconds total with no fixed timing sleeps. The exact Docker SSH OSC oracle passed three consecutive runs before extraction and then passed both registered full-spec runs. The upstream-node-pty fish handoff oracle passed three local runs, including the final post-rebase run. CI and the normal soak window are not yet available."
       },
       "redGreenEvidence": {
         "status": "partial",
@@ -11199,7 +11234,7 @@
       },
       "performanceBudget": {
         "required": true,
-        "evidence": "Pending cooked replies are capped at 64 and 4096 UTF-16 code units. Explicit source routing and separate sequence-merged FIFOs keep ordinary input out of the fixed-size reply store; oldest-reply eviction uses an amortized O(1) head advance without scanning ordinary input, consumed prefixes compact at a fixed threshold, and drain coalescing reads the stored classification without repeated reply-regex scans. A synchronous flood forwards only the immediate first and newest 64 replies before the trailing key. Ten complete gate runs, including two 10,000-entry flood shapes each, finished in 29.57 seconds with zero failures. The change adds no polling, timers, listeners, subprocesses, or network retries."
+        "evidence": "Pending query replies are capped at 64 and 4096 UTF-16 code units. Explicit source routing and separate sequence-merged FIFOs keep ordinary input out of the fixed-size reply store; oldest-reply eviction uses an amortized O(1) head advance without scanning ordinary input, consumed prefixes compact at a fixed threshold, and drain coalescing reads the stored classification without repeated reply-regex scans. Separate synchronous OSC and DA1 floods forward only the immediate first and newest 64 replies before the trailing key, and the remote-runtime viewport-claim buffer likewise retains only the newest 64 query segments while coalescing adjacent ordinary input. The sync ECHO probe removes an `stty` subprocess from the common quiet-query path and the fallback adds no polling beyond the existing bounded ECHO probe."
       },
       "promotionCriteria": [
         "Run the gate on Windows and Linux CI.",
@@ -11208,10 +11243,9 @@
         "Accumulate the normal soak window with zero unexplained flakes."
       ],
       "knownGaps": [
-        "No live daemon, WSL, physical Linux/Windows client, mixed-version, or network-fault run is registered.",
-        "The remote-runtime transport has a separate immediate-input queue and is unaffected by this gate.",
+        "No live daemon, paired-runtime, WSL, physical Linux/Windows client, mixed-version, or network-fault run is registered.",
         "Ordinary-input queue growth predates this change and is outside this reply-only gate.",
-        "Reply overload intentionally sheds the oldest synthetic replies; live application behavior under a pathological query flood is not measured."
+        "Reply overload intentionally sheds the oldest synthetic replies; the modified-F3/CPR byte collision shares that budget, and live application behavior under a pathological query flood is not measured."
       ],
       "demotionRule": "Keep experimental or revert if ordinary input is evicted, pending replies exceed either ceiling, retained replies are coalesced, a trailing key sits behind more than the bounded reply window, or the gate develops unexplained flakes."
     },
@@ -11235,8 +11269,8 @@
       "coveredProviders": [],
       "coverageNotes": "Deterministic local tests execute the exact injected mobile replay/generation gate, the React Native query classifier, stale-subscription sender, server-side single-responder election, query-reply RPC semantics, and live-output capture during async mobile fit. The provider write path is shared, but no live iOS/Android, SSH, WSL, or multi-device run is registered yet.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/8128",
-        "https://github.com/stablyai/orca/pull/8206"
+        "https://github.com/paidaxingyo666/Manta/issues/8128",
+        "https://github.com/paidaxingyo666/Manta/pull/8206"
       ],
       "invariant": "Snapshot and replacement-terminal replay answer no terminal queries; every live query delivered to subscribed mobile views has at most one current responder; a live query queued behind replay is answered after the replay boundary; terminal-generated replies never transfer the user-input floor.",
       "oracle": "The injected gate emits zero replies during replay, exactly one after its live boundary, and ignores a superseded generation; native routing rejects ordinary input; the sender rejects disconnected or unsubscribed handles; runtime election accepts only the earliest active mobile subscriber and promotes its survivor; terminal.send writes only validated query grammar without mobileTookFloor; legacy binary subscribe captures a query while phone-fit is still pending and emits it after the snapshot.",
@@ -11369,9 +11403,9 @@
       "coveredProviders": ["remote-runtime"],
       "coverageNotes": "Local macOS evidence covers runtime-RPC stream budgets, paired-renderer parse/discard credit, and negotiated host-side suppression for hidden paired desktop panes. Deferred credit is shared by local and remote transports, batches ACKs at 192 KiB or 4 ms, grows per-stream windows from 512 KiB to 2 MiB and aggregate windows from 2 MiB to 8 MiB, bounds queued output to 256 KiB per stream, and caps each multiplex connection at 32 active or pending streams for an 8 MiB aggregate pending-output ceiling. Deterministic tests cover replay ordering, stale generations, malformed frames, hidden panes, queue eviction, disposal, send/recovery failure, repeated pending-slot replacement, reconnect, mixed-version pause negotiation, and round-robin fairness. The opt-in benchmark covers 1/20/100 ms RTT and 1/4/8 viewers, exact protocol-frame allocations, scheduler CPU, and measured @xterm/headless parser CPU/retained heap. Live Android restore evidence, browser/WebGL parser measurements, and legacy JSON subscribe parity remain required.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/6951",
-        "https://github.com/stablyai/orca/pull/6955",
-        "https://github.com/stablyai/orca/pull/7009"
+        "https://github.com/paidaxingyo666/Manta/pull/6951",
+        "https://github.com/paidaxingyo666/Manta/pull/6955",
+        "https://github.com/paidaxingyo666/Manta/pull/7009"
       ],
       "invariant": "Runtime and mobile terminal subscriptions must cap initial snapshots, live output buffered while snapshots load, chunk sizes, batches, and aggregate in-flight credit. ACK means the renderer parsed the bytes or intentionally discarded them; receipt-time ACK is forbidden. A capability-negotiated hidden paired desktop stream must deliver zero raw output frames after host model ingestion, preserve side-effect facts, and restore from one authoritative snapshot before exact live output resumes. Every replay, stale-generation, malformed-frame, hidden-pane, eviction, disposal, error, and reconnect path must settle credit exactly once so streams neither leak memory nor stall. A terminal covered by native chat must restore from fresh scrollback when revealed, while preserving output order, input locks, resize/driver events, fairness, and safe mixed-version fallback.",
       "oracle": "Assert mobile initial snapshots downgrade until they fit <=512KB, requested binary snapshots downgrade until they fit <=2MB, live output queued while snapshots load stays <=256KB per stream, large output splits into <=48KB frames, and output bursts coalesce. Pause three negotiated paired desktop streams, sustain output, and assert zero renderer frames; reveal one and assert one authoritative snapshot followed by exact live bytes with no loss or duplication. Prove old clients continue receiving output and new clients never send pause to old hosts. Feed paired output through the xterm parse callback and prove ACK is deferred until parse or intentional discard, then inject stale generation, malformed/transformed frames, replay failure, queue eviction, hidden panes, pane disposal, ACK send failure, recovery serialization failure, and reconnect races; assert ordered replay and exactly-once credit settlement. Fill the aggregate window across bulk and interactive streams, ACK once, and prove round-robin progress. Run the opt-in 64 MiB/viewer RTT matrix and enforce bounded 8 MiB aggregate in-flight memory, >7 MiB/s/viewer at 100 ms RTT, and <200 ms completion spread. JSON fallback parity and live Android scrollback restoration remain explicit gaps.",
@@ -11597,8 +11631,8 @@
       "coveredProviders": [],
       "coverageNotes": "Local macOS evidence over #7148's width-parity oracle on main@1282f5c2d. A broader byte corpus, a shared parser-construction assertion over terminal-unicode-provider.ts/pane-terminal-options.ts, and recorded agent-session corpora remain gaps.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7148",
-        "https://github.com/stablyai/orca/pull/7133"
+        "https://github.com/paidaxingyo666/Manta/pull/7148",
+        "https://github.com/paidaxingyo666/Manta/pull/7133"
       ],
       "invariant": "The main-process headless terminal mirror and the renderer xterm must parse identical byte streams into cell-identical buffers (unicode width tables, joining behavior, modes, and addon-visible semantics), so snapshots, restores, reads, and mobile streams never encode a frame the renderer would not have produced.",
       "oracle": "Feed identical byte corpora (emoji/ZWJ/wide glyphs, positioned overwrites after wide characters, alternate-screen transitions, wrapped lines) to both parser configurations and assert cell-identical visible buffers; both parsers must be constructed from one shared configuration module so one-sided drift fails the gate.",
@@ -11669,8 +11703,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; the anomaly-breadcrumb machinery exists in this branch but no convergence probe is implemented.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7133",
-        "https://github.com/stablyai/orca/pull/7054"
+        "https://github.com/paidaxingyo666/Manta/pull/7133",
+        "https://github.com/paidaxingyo666/Manta/pull/7054"
       ],
       "invariant": "After every hidden-to-visible reveal settles — whether or not a restore was triggered — the renderer buffer must converge with the current main-mirror state; divergence is recorded as a compact, content-free terminal_lifecycle_anomaly breadcrumb and counted in telemetry instead of failing silently. Restore-scoped checking is insufficient: #7173's frozen-output variant restores faithfully and then silently drops later hidden output, so it never triggers another restore.",
       "oracle": "Deterministic tests inject forced divergence in both shapes — stale bytes written after a faithful restore, and a frozen pane whose reveal triggers no restore — and assert exactly one deduped breadcrumb with row-hash evidence and no terminal content; the production probe is a bounded row-hash sample comparison against current mirror rows that runs once per reveal with no polling and a strict time budget.",
@@ -11727,9 +11761,9 @@
       "coveredProviders": ["local"],
       "coverageNotes": "Deterministic renderer contracts require foreground renderer-risk, synchronized, hidden, and alternate-screen PTY output to stay on pane-local repaint paths without a global atlas reset. Separate contracts preserve explicit paste, reveal, visibility-resume, system-resume, and confirmed-desync recovery. A macOS Electron run verifies that a document visibility cycle preserves real WebGL atlases and terminal pixels; the candidate has not been rerun against an isolated live paired server.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7054",
-        "https://github.com/stablyai/orca/pull/7604",
-        "https://github.com/stablyai/orca/issues/12094"
+        "https://github.com/paidaxingyo666/Manta/pull/7054",
+        "https://github.com/paidaxingyo666/Manta/pull/7604",
+        "https://github.com/paidaxingyo666/Manta/issues/12094"
       ],
       "invariant": "Ordinary PTY output must never clear the shared WebGL glyph atlas, including synchronized frames, hidden output, renderer-risk glyphs, and alternate-screen entry, redraw, or exit. Affected visible panes still receive pane-local refresh after parsing. Explicit paste, reveal, visibility-resume, system-resume, context-loss, and confirmed-desync recovery remain available and may reset visible renderers.",
       "oracle": "Parse foreground renderer-risk, synchronized, hidden, and alternate-screen PTY output and require pane-local refresh where needed with zero calls to shared reset-and-refresh recovery. Require the atlas-recovery module to expose only explicit lifecycle entry points, then verify paste and tab reveal still perform their recovery bursts. Dispatch a visible document visibilitychange and require atlas-preserving wake recovery; register one visible manager and 64 hidden managers and require heavy recovery to reset and refresh only the visible manager. Separately, drive an Electron visibility cycle with two real WebGL panes, require zero atlas clears, and retain at least 85% of each pane's baseline ink pixels.",
@@ -11865,7 +11899,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": [],
       "coverageNotes": "A deterministic macOS Electron test uses two real WebGL terminals with distinct atlas populations, attaches one renderer to the other's atlas, and compares its pixels before and after rendering. Provider paths are unaffected because atlas ownership is renderer-local; Linux and Windows GPU evidence remains pending.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/8899"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/8899"],
       "invariant": "Whenever GlyphRenderer attaches a different shared atlas, every cached glyph vertex is rebuilt before the next draw even if the old and new atlases have the same clear-model generation.",
       "oracle": "Render terminal A and capture its non-empty canvas, populate terminal B with a distinct atlas, attach A's glyph renderer to B's atlas without changing A's buffer, render A again, and require byte-equivalent visible pixels. Also require the atlas identities to differ so the test cannot pass without exercising the transition.",
       "commands": [
@@ -11940,8 +11974,8 @@
       "coveredProviders": [],
       "coverageNotes": "Registered gap only; the live repro harness with a refresh-repair oracle exists but is not productized into the release-blocking terminal-rendering-golden suite.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/7133",
-        "https://github.com/stablyai/orca/pull/7054"
+        "https://github.com/paidaxingyo666/Manta/pull/7133",
+        "https://github.com/paidaxingyo666/Manta/pull/7054"
       ],
       "invariant": "After any reveal, restore, or wake, the pixels a pane displays must equal what a forced full model-invalidating repaint would draw from the buffer; a material refresh-repair diff means stale rendering escaped, whatever the mechanism.",
       "oracle": "Screenshot the revealed pane, force a model-invalidating full repaint, screenshot again, and assert the bounded pixel diff is immaterial; pair with a JS-level render-model-vs-buffer comparison. Compositor screenshots only, because WebGL canvas readback is blank with preserveDrawingBuffer disabled.",
@@ -11998,8 +12032,8 @@
         // #5787 introduced the renderer-reload delivery-accounting path this gate hardens;
         // kept for lineage, not the primary motivation. THIS fix is motivated by the
         // v1.4.131 three-frozen-panes incident (see coverageNotes).
-        "https://github.com/stablyai/orca/pull/5787",
-        "https://github.com/stablyai/orca/pull/8034"
+        "https://github.com/paidaxingyo666/Manta/pull/5787",
+        "https://github.com/paidaxingyo666/Manta/pull/8034"
       ],
       "invariant": "After a renderer lifecycle reset (main-frame did-start-navigation / render-process-gone / destroyed), no surviving PTY remains delivery-gated by pre-reset unacked bytes: main's in-flight counters and pending backlog equal the true state of the new page (zero in-flight, zero pending). Delivery then resumes only once the reloaded page's pty:data dispatcher re-registers and signals pty:rendererDispatcherReady; during the boot window before that handshake main holds all sends (data accrues losslessly in the capped pending backlog) so bytes cannot be dropped into a listener-less page and re-pin the gate. The hold itself cannot become a permanent freeze: a one-shot ~10s watchdog armed on each reset force-opens the gate (incrementing rendererDispatcherReadyForcedCount) if the handshake is lost, and the real handshake or a re-registration cancels it. The reset fires only for a new-document main-frame navigation: did-start-navigation carries exact frame and same-document details, so overlapping subframe or in-page navigation never clears accounting or holds the gate on the still-alive page. If a renderer lifecycle edge is otherwise missed, a backstop still recovers: because the handshake is one-shot per page load, receiving pty:rendererDispatcherReady while the gate is already open proves a reset was missed (or the watchdog force-opened the gate), so the handler reconciles by clearing the stale accounting before re-opening. The renderer sends that handshake exactly once per page load, after its pty:data listener registers.",
       "oracle": "Ingest more than 512 KB of PTY output with no renderer ACKs and assert the per-PTY gate closes (sends stop at the 512 KB high-water, remainder accrues as pending). Fire the registered main-frame did-start-navigation listener and assert rendererInFlightChars and pendingChars are zero and the new diagnostics record the reset (rendererLifecycleResetCount 1, lastLifecycleResetClearedChars 512 KB). Then, before any dispatcher-ready handshake, ingest another chunk and assert it is NOT sent and NOT counted in-flight (held for the boot window, accruing in pending). Finally fire the pty:rendererDispatcherReady handshake and assert the held chunk is delivered to the renderer. Counters-zero without proving both the boot-window hold and that delivery resumes is insufficient. Additional cases prove the boot-window hold also covers the interactive direct-send fast path (input-primed keystroke echo is held, not sent, until the handshake) and that the self-heal watchdog force-opens the gate (rendererDispatcherReadyForcedCount 1) when no handshake arrives, while a timely handshake cancels the watchdog and leaves no orphaned timer. A further case opens the new page with a main-frame navigation and dispatcher handshake, then fires an overlapping subframe navigation and asserts the gate stays ready, the reset count stays at exactly one, and fresh output delivers without the watchdog — proving an iframe cannot reclose the live page. A backstop case saturates the gate, then fires pty:rendererDispatcherReady while the gate is still open (ready true) with no preceding reset — modeling a missed lifecycle edge — and asserts the handler reconciles: in-flight and pending clear, rendererLifecycleResetCount increments, and fresh output flows immediately (a straggler ACK is clamped and cannot underflow). A renderer-side case (pty-dispatcher-pi-routing.test.ts) asserts ensurePtyDispatcher() sends pty:rendererDispatcherReady exactly once across two attach calls — proving the send fires (it is optional-chained) and the one-shot guard holds.",
@@ -12097,9 +12131,9 @@
       "coveredProviders": ["local", "remote-runtime", "ssh"],
       "coverageNotes": "Deterministic tests cover one shared healthy child per runtime process plus at most four bounded fault-quarantine children, native desktop, paired-runtime, and WSL snapshot processes sharing the same eight-physical-child reservation with typed serialized event-driven capacity recovery, including recursive re-wait when crash recovery reclaims an announced slot, one quarantine attempt per watch lifetime, generation-scoped cancellation, bounded termination with removable deadline waiters, replacement-crawl errors that cannot be blessed by a late readiness ack, pre-ready paired-web cancellation registered before an unbounded capacity wait, already-resolved and late physical-exit retry of a rejected paired-web teardown, physical desktop-install and local/SSH PTY teardown, stale-generation rejection, per-child stat bounds, final-overflow RPC delivery, and renderer eviction before terminal callbacks can retry. Destructive local and SSH removal fences both ID-derived and resolved-cwd terminal roots, including sibling-root/cwd combinations with reverse admission rollback, closes descendant relay watches before parent deletion, enumerates authoritative provider/cwd ownership, falls back to daemon spawn cwd before OSC 7, and keeps daemon/relay immediate shutdown pending until native exit or a bounded fail-closed error; a dead relay PID discovered during attach also settles concurrent shutdown before its stale entry is reaped, while Windows runtime watcher deadlines retain one removable physical-close waiter, treat Node's error-close path as positive physical-exit proof, and clear root ownership on late close. The relay policy test maps a standard repository's base, Git common directory, and worktree roots to one healthy supervisor, then proves a shared-child failure recovers those roots in separate quarantine supervisors with overflow and resumed events. Abortable capacity, quarantine, runtime-root, relay, SSH, and relay pre-install setup waits attach one reaction to each shared promise and explicitly remove 10,000 cancelled caller closures while one anchor remains. Built-entry macOS harnesses kill the desktop/runtime and SSH relay watcher children, then require automatic resubscription and later events while the host process and relay PTY survive. SSH bundles the child boundary beside relay.js, requires both artifacts for install completeness, and preserves registration-owned same-root cancellation.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/5308",
-        "https://github.com/stablyai/orca/issues/7547",
-        "https://github.com/stablyai/orca/issues/8212"
+        "https://github.com/paidaxingyo666/Manta/issues/5308",
+        "https://github.com/paidaxingyo666/Manta/issues/7547",
+        "https://github.com/paidaxingyo666/Manta/issues/8212"
       ],
       "invariant": "Local runtime and SSH relay roots share one watcher child per host process while healthy and use at most four quarantine children after shard failure; native desktop, paired-runtime, and direct WSL snapshot children consume the same process-wide eight-child reservation and retry transient exhaustion without permanently disabling a root. Cancellation remains owned by its child generation and settles only after acknowledgement or bounded physical exit; paired-web retains cleanup ownership and can cancel before readiness even while capacity is exhausted, retries a failed unwatch after already-resolved or late physical exit without duplicating stream termination, replacements never overlap a still-retiring generation, and aborted or timed-out callers detach immediately even while queued behind same-root relay teardown. Destructive local and SSH cleanup holds one containment-aware watcher/terminal removal fence through descendant watcher and PTY physical exit plus parent Git/filesystem deletion; daemon and relay kill requests retain ownership until the actual subprocess exit callback or an equivalent positive dead-PID proof and propagate rejected signals or a bounded failure otherwise. A crash-fused shared shard moves affected roots into the bounded quarantine pool, a second fused quarantine ends those watch lifetimes, interrupted setup emits overflow after recovery, metadata work stays bounded, and the SSH relay, PTYs, Git, and other filesystem operations never load the watcher native addon or share its fault boundary.",
       "oracle": "Fill the global watcher-child reservation, require native desktop, paired-runtime, and WSL setup to retain typed transient capacity and retry after one serialized release, then cancel pending desktop and paired-client watches and require no retry. Hold one live anchor while aborting 10,000 callers at the capacity, quarantine-assignment, runtime-root, relay-setup, and SSH-registration layers; require exactly one explicit waiter and one base-promise reaction to remain, then zero after settlement. Hold an old relay unsubscribe, queue one same-root setup leader and one anchor, then abort 10,000 joiners; require every cancellation to settle before teardown releases, exactly one anchor waiter, and only one later physical install. Advance the former paired-web callback deadline while capacity remains full, require cancellation ownership to stay live, publish the server token before ready, and require files.unwatch to abort setup before a later slot release can install a native root. Reject the first ready-watch unwatch with a physical-exit promise, resolve that exit later, and require a fresh physical unwatch attempt, registry release, and exactly one stream end. Fill one healthy shared child with multiple roots, map a standard SSH repository's base, Git common directory, and worktree roots to one relay supervisor, then inject IPC disconnect-before-exit, queued and active cancellation, operations during termination, kill-without-exit, repeated unkillable generations, initial and recovery timeouts, and shard failure. During local and SSH deletion, attempt a late terminal spawn whose worktree identity and cwd name different roots, enumerate a non-prefix remote PTY by authoritative worktree ownership, withhold daemon/relay exit callbacks, make attach positively prove a concurrent-shutdown PID dead, and make the provider unavailable; require every acquired admission to roll back on rejection, dead-PID proof to settle physical exit before reaping, timeout to retain ownership, and Git/filesystem deletion never to start. Require bounded watcher process count, physical-exit settlement, healthy-root recovery, stale-generation rejection, overflow plus later events, and fail-closed destructive cleanup. Verify relay build hashes and remote install probes require both relay.js and relay-watcher.js. Launch the built relay with a real PTY and Parcel watch, kill only the watcher child, and require the same relay PID and PTY to answer before a replacement child delivers overflow and a post-crash event.",
@@ -12932,7 +12966,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "ssh"],
       "coverageNotes": "Deterministic macOS contract evidence covers opaque local- and SSH-shaped terminal ids, one bounded worktree listing, mismatch rejection, and the main/relay host-call adapter matrix. It does not launch a live PTY or provision a relay-hosted plugin.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/8549"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/8549"],
       "invariant": "terminal.sendText accepts only an explicit provider-owned terminal id present in one bounded inventory of the worktree resolved immediately before the send; an absent id causes zero send calls, and relay callers cannot supply their own capability grants or transport classification.",
       "oracle": "Resolve the active worktree once, list that worktree with the v0 terminal cap once, and assert zero sendTerminal calls for a mismatched opaque id versus exactly one send for matching local- and SSH-shaped ids; then run the same permission and schema cases through desktop-main and registered relay panel/worker adapters and compare error codes.",
       "commands": [
@@ -13154,8 +13188,8 @@
       "coveredProviders": ["paired-runtime"],
       "coverageNotes": "Loads the real host RPC methods, the real RpcDispatcher, and the real renderer terminal multiplexer from two builds (current working tree and the newest release tag) and drives them against each other over an in-process transport that reproduces production frame routing, including the host-side decode that silently drops unknown opcodes. Covers the terminal stream only; the session-tab sync channel, agent-session publications, file/Git RPCs, mobile E2EE framing, and the relay transport are uncovered.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/pull/12641",
-        "https://github.com/stablyai/orca/pull/12655"
+        "https://github.com/paidaxingyo666/Manta/pull/12641",
+        "https://github.com/paidaxingyo666/Manta/pull/12655"
       ],
       "invariant": "A client and a server built from different releases must complete subscribe, input delivery to the process, hide/reveal buffer snapshot, transport drop, and resubscribe with no frame refused by the receiving build's decoder, the same negotiated capabilities, and the same published snapshot content — so a new optional field stays safe, a new opcode is only sent after negotiation, and a change in what the host publishes is visible before release.",
       "oracle": "Run one fixed journey per pairing (old client/new server, new client/old server, and current/current as control) and assert the recorded step list, the exact named frame sequence, both subscribed events with their negotiated capabilities, the exact input texts the host wrote to the PTY before and after reconnect, the rendered snapshot and live-output content, and an empty set of decoder-rejected frames in either direction. Missing host runtime methods are reported by name so a harness gap can never be read as a wire incompatibility.",
@@ -13234,7 +13268,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "wsl"],
       "coverageNotes": "A deterministic injected claimant and clock cover exits before and after the former ten-second classification boundary, exact spawn/poll/backoff counts, transient exit and spawn-error recovery, owner-lock reacquisition, WSL routing, and cleanup. Live Windows, WSL, and paired-runtime-host process evidence remains uncollected.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/releases/tag/v1.4.177-rc.0"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/releases/tag/v1.4.177-rc.0"],
       "invariant": "One authoritative Codex state DB backfill supervisor spawns at most five claimants regardless of process lifetime, retains at most one child and one timer, rejects later automatic restarts after claimant exhaustion, and bounds pre-claim coordinator failures to five triggers while transient claimant and owner-lock failures can recover within those budgets.",
       "oracle": "Use an injected process and clock to exit every claimant at 10,001ms without waiting. Permanent failure must give up after five spawns and exits with exactly 15 poll timers and four backoffs, no live child or pending timer, and no safety-fuse abort; repeated triggers must reuse the exhausted result with zero new lock or runner calls. Separately fail twice at 10,001ms and complete on the third claimant, recover from a first-spawn error on attempt two, reacquire after a transient owner-lock failure, and cap permanent lock-root failures at five attempts across six triggers.",
       "commands": [
@@ -13309,7 +13343,7 @@
       "coveredProviders": ["local-daemon"],
       "coverageNotes": "An Ubuntu 26.04 amd64 container extracts the packaged AppImage into disposable HOME and XDG directories, leaves APPDIR unset to preserve extracted-AppRun direct serve mode, waits for structured serve readiness, then exercises terminal-style foreground-process-group SIGINT and the documented systemd KillMode=mixed main-PID SIGTERM in separate containers. Local evidence runs under Rosetta on an arm64 Docker host; native amd64 PR CI repeats the same foreground AppRun identity contract.",
       "motivatingLinks": [
-        "https://github.com/stablyai/orca/issues/14109",
+        "https://github.com/paidaxingyo666/Manta/issues/14109",
         "https://linear.app/stably/issue/STA-4051"
       ],
       "invariant": "After packaged foreground headless serve publishes structured readiness, one SIGINT or SIGTERM exits successfully without an Electron fatal trap or core evidence, releases the exact listener and owned Xvfb/process tree, and leaves an unrelated process identity untouched.",
@@ -13428,7 +13462,7 @@
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["ssh"],
       "coverageNotes": "A real Node 18 process loads every platform's built companion and runs the bundled Codex and Claude installers against an isolated temporary home. The six artifacts share one platform-neutral source bundle; live SSH transport and physical remote hosts remain uncollected.",
-      "motivatingLinks": ["https://github.com/stablyai/orca/pull/12617"],
+      "motivatingLinks": ["https://github.com/paidaxingyo666/Manta/pull/12617"],
       "invariant": "Every managed-hook companion shipped for Node 18 must load before agent installers execute, and importing desktop-only state inspection must not make unrelated remote installers depend on node:sqlite.",
       "oracle": "Build all relay artifacts, require each managed-hook-runtime.js in a real Node 18 process, assert its installer export, then install only Codex and Claude into a fresh temporary home. Require two successful installer results, executable hook scripts, and both agent configs to reference their managed scripts without touching the user's home.",
       "commands": [
@@ -13512,7 +13546,7 @@
       "coverageNotes": "A real daemon server and adapter on macOS cover per-session isolation, same-session deadlines, post-deadline commit, aggregate overlay admission, and live-window fallback. The provider-neutral adapter has no new path or wire assumptions; a live Linux SSH-relay journey covers the unchanged remote consumer, while live Linux daemon, Windows, WSL, and paired-runtime-host journeys remain gaps.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4173",
-        "https://github.com/stablyai/orca/pull/14346"
+        "https://github.com/paidaxingyo666/Manta/pull/14346"
       ],
       "invariant": "A stalled durable-history checkpoint may delay only its own daemon session. Warm reattach and deep snapshots degrade to the live window after five seconds, non-final background checkpoints defer after fifteen seconds, same-session writes remain serialized, non-final running plus queued work stays bounded to three per session, overlay compacts stay bounded to four across sessions, and final sleep or disconnect checkpoints remain deadline-free.",
       "oracle": "Park one session inside the real history checkpoint write, then require an unrelated warm reattach to return within two seconds with its own output while the first write remains parked. Require the stalled session to return its live window after the overlay deadline and later commit the abandoned write. Park four distinct overlay compacts, require a fifth reattach to return its live window without starting another compact, and require fast non-final RPC rejection plus both deadlines to leave diagnostic breadcrumbs.",

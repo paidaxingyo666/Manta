@@ -2961,7 +2961,8 @@
             "fdd29eb669": "固定标签",
             "8e9d603a09": "取消固定标签",
             "fe23001e60": "打开所在文件夹",
-            "3da91e073d": "在文件资源管理器中显示"
+            "3da91e073d": "在文件资源管理器中显示",
+            "6ffb7f7bce": "在访达中显示"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "智能体设置...",
@@ -5097,6 +5098,12 @@
           "9f2d4c8b17": "永久隐藏 {{value0}} 的外部工作树",
           "5e1b8d3f62": "永久隐藏外部工作树",
           "c3e8a1f4b2": "不再显示"
+        },
+        "NoticeHostGlyph": {
+          "hostDisconnected": "{{hostName}} 已断开连接",
+          "sshHostProject": "SSH 主机 {{hostName}} 上的项目",
+          "localHostProject": "此主机上的项目",
+          "runtimeHostProject": "{{hostName}} 上的项目"
         },
         "newExternalWorktreesInboxActions": {
           "a11c2f6d89": "无法保持外部工作树隐藏。请重试。",

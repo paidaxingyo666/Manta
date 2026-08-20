@@ -2949,7 +2949,8 @@
             "fdd29eb669": "ピンタブ",
             "8e9d603a09": "タブの固定を解除する",
             "fe23001e60": "含まれるフォルダを開く",
-            "3da91e073d": "エクスプローラーで表示"
+            "3da91e073d": "エクスプローラーで表示",
+            "6ffb7f7bce": "Finder で表示"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent 設定…",
@@ -5085,6 +5086,12 @@
           "9f2d4c8b17": "{{value0}} の外部ワークツリーを完全に非表示にする",
           "5e1b8d3f62": "外部ワークツリーを完全に非表示にする",
           "c3e8a1f4b2": "今後表示しない"
+        },
+        "NoticeHostGlyph": {
+          "hostDisconnected": "{{hostName}} が切断されました",
+          "sshHostProject": "SSH ホスト {{hostName}} 上のプロジェクト",
+          "localHostProject": "このホスト上のプロジェクト",
+          "runtimeHostProject": "{{hostName}} 上のプロジェクト"
         },
         "newExternalWorktreesInboxActions": {
           "a11c2f6d89": "外部ワークツリーを非表示のままにできませんでした。もう一度お試しください。",

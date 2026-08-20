@@ -1,14 +1,20 @@
 import type { SessionRestoredBannerReason } from './session-restored-banner-pane-state'
 import { translate } from '@/i18n/i18n'
 
-export const SESSION_RESTORED_BANNER_TEXT = translate(
-  'auto.components.terminal.pane.SessionRestoredBanner.f4d06c346b',
-  '--- session restored ---'
-)
-export const SESSION_RESUME_UNAVAILABLE_BANNER_TEXT = translate(
-  'auto.components.terminal.pane.SessionRestoredBanner.139e3d1083',
-  '--- previous session unavailable, started fresh ---'
-)
+// Read at use, not at import: translating here would freeze the banner in
+// whichever language happened to be active when this module first loaded.
+export function sessionRestoredBannerText(): string {
+  return translate(
+    'auto.components.terminal.pane.SessionRestoredBanner.f4d06c346b',
+    '--- session restored ---'
+  )
+}
+export function sessionResumeUnavailableBannerText(): string {
+  return translate(
+    'auto.components.terminal.pane.SessionRestoredBanner.139e3d1083',
+    '--- previous session unavailable, started fresh ---'
+  )
+}
 
 type SessionRestoredBannerProps = {
   visible: boolean
@@ -26,8 +32,8 @@ export function SessionRestoredBanner({
   return (
     <div className="session-restored-banner">
       {reason === 'resume-unavailable'
-        ? SESSION_RESUME_UNAVAILABLE_BANNER_TEXT
-        : SESSION_RESTORED_BANNER_TEXT}
+        ? sessionResumeUnavailableBannerText()
+        : sessionRestoredBannerText()}
     </div>
   )
 }

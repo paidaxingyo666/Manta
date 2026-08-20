@@ -30,6 +30,9 @@ Skills:
   skills install            Install bundled Manta skills globally via the community skills CLI
   skills update             Update already-installed Manta skills via the community skills CLI
 
+Hosts:
+  host list                 List targetable machines and how to name each one
+
 Environments:
   environment add           Save a remote Manta runtime from a pairing code
   environment list          List saved remote Manta runtimes
@@ -225,6 +228,7 @@ Common Commands:
   manta agent-context [--json]
   manta account add [--agent claude|codex] [--json]
   manta account list [--json]
+  manta host list [--json]
   manta environment add --name <name> --pairing-code <code> [--json]
   manta environment list [--json]
   manta environment show --environment <selector> [--json]
