@@ -1,171 +1,31 @@
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
-export type TerminalAccessoryKey = {
-  id: string
-  label: string
-  bytes: string
-  accessibilityLabel?: string
-  repeatable?: boolean
-}
-
-export type TerminalShortcutModifier = 'ctrl' | 'alt' | 'shift'
-
-export type TerminalShortcutBinding = {
-  key: string
-  modifiers: TerminalShortcutModifier[]
-}
-
-export type TerminalShortcutBuildResult = {
-  label: string
-  bytes: string
-  accessibilityLabel: string
-}
-
-export type TerminalShortcutSpecialKey = {
-  id: string
-  label: string
-  accessibilityLabel: string
-}
-
-const ESC = '\x1b'
-
-const MODIFIER_LABELS: Record<TerminalShortcutModifier, string> = {
-  ctrl: 'Ctrl',
-  alt: 'Alt',
-  shift: 'Shift'
-}
-
-const MODIFIER_ORDER: TerminalShortcutModifier[] = ['ctrl', 'alt', 'shift']
-
-const SHIFTED_PRINTABLE: Record<string, string> = {
-  '`': '~',
-  '1': '!',
-  '2': '@',
-  '3': '#',
-  '4': '$',
-  '5': '%',
-  '6': '^',
-  '7': '&',
-  '8': '*',
-  '9': '(',
-  '0': ')',
-  '-': '_',
-  '=': '+',
-  '[': '{',
-  ']': '}',
-  '\\': '|',
-  ';': ':',
-  "'": '"',
-  ',': '<',
-  '.': '>',
-  '/': '?'
-}
-
-const CTRL_PRINTABLE_BYTES: Record<string, string> = {
-  ' ': '\x00',
-  '@': '\x00',
-  '`': '\x00',
-  '[': '\x1b',
-  '{': '\x1b',
-  '\\': '\x1c',
-  '|': '\x1c',
-  ']': '\x1d',
-  '}': '\x1d',
-  '^': '\x1e',
-  '~': '\x1e',
-  _: '\x1f',
-  '?': '\x7f'
-}
-
-const SPECIAL_KEY_LABELS: Record<string, string> = {
-  escape: 'Esc',
-  tab: 'Tab',
-  enter: 'Enter',
-  backspace: '⌫',
-  delete: 'Del',
-  insert: 'Ins',
-  arrowUp: '↑',
-  arrowDown: '↓',
-  arrowLeft: '←',
-  arrowRight: '→',
-  home: 'Home',
-  end: 'End',
-  pageUp: 'PgUp',
-  pageDown: 'PgDn',
-  space: 'Space',
-  f1: 'F1',
-  f2: 'F2',
-  f3: 'F3',
-  f4: 'F4',
-  f5: 'F5',
-  f6: 'F6',
-  f7: 'F7',
-  f8: 'F8',
-  f9: 'F9',
-  f10: 'F10',
-  f11: 'F11',
-  f12: 'F12'
-}
-
-const SPECIAL_KEY_ACCESSIBILITY_LABELS: Record<string, string> = {
-  escape: 'Escape',
-  tab: 'Tab',
-  enter: 'Enter',
-  backspace: 'Backspace',
-  delete: 'Forward delete',
-  insert: 'Insert',
-  arrowUp: 'Arrow up',
-  arrowDown: 'Arrow down',
-  arrowLeft: 'Arrow left',
-  arrowRight: 'Arrow right',
-  home: 'Home',
-  end: 'End',
-  pageUp: 'Page up',
-  pageDown: 'Page down',
-  space: 'Space',
-  f1: 'F1',
-  f2: 'F2',
-  f3: 'F3',
-  f4: 'F4',
-  f5: 'F5',
-  f6: 'F6',
-  f7: 'F7',
-  f8: 'F8',
-  f9: 'F9',
-  f10: 'F10',
-  f11: 'F11',
-  f12: 'F12'
-}
-
-const CSI_FINAL_SPECIAL_KEYS: Record<string, string> = {
-  arrowUp: 'A',
-  arrowDown: 'B',
-  arrowRight: 'C',
-  arrowLeft: 'D',
-  home: 'H',
-  end: 'F',
-  f1: 'P',
-  f2: 'Q',
-  f3: 'R',
-  f4: 'S'
-}
-
-const SS3_BASE_SPECIAL_KEYS = new Set(['f1', 'f2', 'f3', 'f4'])
-
-const CSI_TILDE_SPECIAL_KEYS: Record<string, number> = {
-  insert: 2,
-  delete: 3,
-  pageUp: 5,
-  pageDown: 6,
-  f5: 15,
-  f6: 17,
-  f7: 18,
-  f8: 19,
-  f9: 20,
-  f10: 21,
-  f11: 23,
-  f12: 24
-}
+import {
+  CSI_FINAL_SPECIAL_KEYS,
+  CSI_TILDE_SPECIAL_KEYS,
+  CTRL_PRINTABLE_BYTES,
+  ESC,
+  MODIFIER_LABELS,
+  MODIFIER_ORDER,
+  SHIFTED_PRINTABLE,
+  SPECIAL_KEY_ACCESSIBILITY_LABELS,
+  SPECIAL_KEY_LABELS,
+  SS3_BASE_SPECIAL_KEYS
+} from './terminal-key-encoding-tables'
+export type {
+  TerminalAccessoryKey,
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier,
+  TerminalShortcutSpecialKey
+} from './terminal-shortcut-types'
+import type {
+  TerminalAccessoryKey,
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier,
+  TerminalShortcutSpecialKey
+} from './terminal-shortcut-types'
 
 export const TERMINAL_SHORTCUT_SPECIAL_KEYS: TerminalShortcutSpecialKey[] = [
   'escape',
