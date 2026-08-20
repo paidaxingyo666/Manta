@@ -11,7 +11,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "format": "oxfmt --write .",
-    "lint": "oxlint && pnpm run audit:code-quality:native && pnpm run audit:code-quality:type-aware && pnpm run check:reliability-gates && pnpm run check:max-lines-ratchet && pnpm run verify:bundled-skill-guides && pnpm run verify:skill-bundle-manifest && pnpm run verify:localization-catalog && pnpm run verify:localization-extraction && pnpm run verify:localization-coverage",
+    "lint": "oxlint && pnpm run audit:code-quality:native && pnpm run audit:code-quality:type-aware && pnpm run check:reliability-gates && pnpm run check:max-lines-ratchet && pnpm run verify:bundled-skill-guides && pnpm run verify:skill-bundle-manifest && pnpm run verify:localization-catalog && pnpm run verify:localization-extraction && pnpm run verify:localization-coverage && pnpm run verify:localization-catalog:mobile && pnpm run verify:localization-extraction:mobile && pnpm run verify:localization-coverage:mobile",
     "audit:code-quality": "pnpm run audit:code-quality:native && pnpm run audit:code-quality:type-aware && pnpm run audit:react-doctor",
     "audit:code-quality:native": "oxlint --config config/oxlint-code-quality-native-plugins.json src config tests mobile --deny-warnings",
     "audit:code-quality:type-aware": "oxlint --type-aware --config config/oxlint-code-quality-type-aware.json src config tests --deny-warnings",
@@ -133,7 +133,10 @@
     "test:e2e:remote-bulk-open-freeze": "pnpm run ensure:electron-runtime && pnpm exec playwright test tests/e2e/remote-session-bulk-open-freeze-repro.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
     "test:e2e:ssh-docker-bulk-open-freeze": "node config/scripts/run-ssh-docker-bulk-open-freeze-e2e.mjs",
     "repro:live-remote-bulk-open-freeze": "node config/scripts/live-remote-bulk-open-freeze-repro.mjs",
-    "repro:live-remote-realistic-freeze": "node config/scripts/live-remote-realistic-freeze-repro.mjs"
+    "repro:live-remote-realistic-freeze": "node config/scripts/live-remote-realistic-freeze-repro.mjs",
+    "verify:localization-catalog:mobile": "node config/scripts/verify-localization-catalog.mjs --target mobile",
+    "verify:localization-extraction:mobile": "node config/scripts/verify-localization-extraction.mjs --target mobile",
+    "verify:localization-coverage:mobile": "node config/scripts/audit-localization-coverage.mjs --check --source-root mobile --extra-copy-rules"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

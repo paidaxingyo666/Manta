@@ -95,6 +95,17 @@ jobs:
       - name: Verify localization coverage
         run: pnpm run verify:localization-coverage
 
+      # The mobile app ships its own catalog, so it needs the same three gates
+      # against its own tree — the renderer ones never look at mobile/.
+      - name: Verify mobile localization catalog
+        run: pnpm run verify:localization-catalog:mobile
+
+      - name: Verify mobile localization extraction
+        run: pnpm run verify:localization-extraction:mobile
+
+      - name: Verify mobile localization coverage
+        run: pnpm run verify:localization-coverage:mobile
+
       # Why: project-owned type declarations must live in .ts so tsc
       # actually checks them. TypeScript's skipLibCheck: true (inherited
       # from @electron-toolkit/tsconfig) silently widens unresolved names

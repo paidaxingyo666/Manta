@@ -13,8 +13,18 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts']
 const SKIP_PATH_PARTS = new Set(['.git', 'dist', 'node_modules', 'out', '__snapshots__', 'assets'])
 const LOCALIZATION_FUNCTION_NAMES = new Set(['t', 'translate', 'translateMain'])
 const PLACEHOLDER_RE = /\{\{[^}]+\}\}/g
-const LOCALES_RELATIVE_DIR = path.join('src', 'renderer', 'src', 'i18n', 'locales')
-const SOURCE_RELATIVE_ROOTS = [path.join('src', 'renderer', 'src'), path.join('src', 'main')]
+// Parameterised so the mobile app's catalog gets the same reference and
+// locale-parity checks; a second copy of this script would drift from the first.
+const TARGETS = {
+  renderer: {
+    locales: path.join('src', 'renderer', 'src', 'i18n', 'locales'),
+    sourceRoots: [path.join('src', 'renderer', 'src'), path.join('src', 'main')]
+  },
+  mobile: {
+    locales: path.join('mobile', 'src', 'i18n', 'locales'),
+    sourceRoots: [path.join('mobile', 'src'), path.join('mobile', 'app')]
+  }
+}
 
 function normalizePath(root, filePath) {
   return path.relative(root, filePath).split(path.sep).join('/')
@@ -55,6 +65,20 @@ async function collectSourceFiles(root, dir) {
   }
 
   return files
+}
+
+// i18next resolves `key` to `key_one` / `key_other` from the `count` option, so
+// a plural set satisfies a reference to the bare key.
+const PLURAL_SUFFIX_RE = /_(zero|one|two|few|many|other)$/
+
+function withPluralBaseKeys(keys) {
+  const out = new Set(keys)
+  for (const key of keys) {
+    if (PLURAL_SUFFIX_RE.test(key)) {
+      out.add(key.replace(PLURAL_SUFFIX_RE, ''))
+    }
+  }
+  return out
 }
 
 function flattenCatalogKeys(value, prefix = '') {
@@ -395,6 +419,7 @@ function parseArgs(argv) {
   }
   return {
     fix: argv.includes('--fix'),
+    target: argv.includes('--target') ? argv[argv.indexOf('--target') + 1] : 'renderer',
     pluginCatalogs
   }
 }
@@ -435,7 +460,14 @@ async function reportPluginCatalog(root, catalog, pluginCatalogPath) {
 }
 
 export async function main(root = process.cwd(), options = parseArgs(process.argv.slice(2))) {
-  const localesDir = path.join(root, LOCALES_RELATIVE_DIR)
+  const target = TARGETS[options.target ?? 'renderer']
+  if (!target) {
+    console.error(
+      `Unknown target '${options.target}'. Expected one of: ${Object.keys(TARGETS).join(', ')}`
+    )
+    return 1
+  }
+  const localesDir = path.join(root, target.locales)
   const catalogPath = path.join(localesDir, 'en.json')
   const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'))
   const pluginCatalogs = options.pluginCatalogs ?? []
@@ -452,8 +484,8 @@ export async function main(root = process.cwd(), options = parseArgs(process.arg
     }
     return 0
   }
-  let catalogKeys = new Set(flattenCatalogKeys(catalog))
-  const sourceRoots = SOURCE_RELATIVE_ROOTS.map((sourceRoot) => path.join(root, sourceRoot))
+  let catalogKeys = withPluralBaseKeys(flattenCatalogKeys(catalog))
+  const sourceRoots = target.sourceRoots.map((sourceRoot) => path.join(root, sourceRoot))
   const references = []
 
   for (const sourceRoot of sourceRoots) {
@@ -471,7 +503,7 @@ export async function main(root = process.cwd(), options = parseArgs(process.arg
     if (options.fix && missingFallbacks.length === 0) {
       const added = applyMissingEnglishEntries(catalog, missing)
       await fs.writeFile(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8')
-      catalogKeys = new Set(flattenCatalogKeys(catalog))
+      catalogKeys = withPluralBaseKeys(flattenCatalogKeys(catalog))
       console.log(`Added ${added} missing localization key(s) to en.json.`)
     } else {
       if (options.fix && missingFallbacks.length > 0) {
@@ -480,7 +512,7 @@ export async function main(root = process.cwd(), options = parseArgs(process.arg
         console.error(formatMissingReferences(missingFallbacks))
         return 1
       }
-      console.error('Localization keys are missing from src/renderer/src/i18n/locales/en.json.')
+      console.error(`Localization keys are missing from ${target.locales}/en.json.`)
       console.error('')
       console.error(formatMissingReferences(missing))
       console.error('')
@@ -491,7 +523,7 @@ export async function main(root = process.cwd(), options = parseArgs(process.arg
 
   const remainingMissing = references.filter((reference) => !catalogKeys.has(reference.key))
   if (remainingMissing.length > 0) {
-    console.error('Localization keys are missing from src/renderer/src/i18n/locales/en.json.')
+    console.error(`Localization keys are missing from ${target.locales}/en.json.`)
     console.error('')
     console.error(formatMissingReferences(remainingMissing))
     return 1
