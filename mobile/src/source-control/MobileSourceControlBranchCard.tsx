@@ -54,26 +54,14 @@ export function MobileSourceControlBranchCard({
       </View>
       <View style={styles.countRow}>
         <Text style={styles.countText}>
-          {unstagedCount}{' '}
-          {translate(
-            'auto.mobile.src.source.control.MobileSourceControlBranchCard.49ca409103',
-            'changed'
-          )}
+          {unstagedCount} {translate('m.MobileSourceControlBranchCard.49ca409103', 'changed')}
         </Text>
         <Text style={styles.countText}>
-          {stagedCount}{' '}
-          {translate(
-            'auto.mobile.src.source.control.MobileSourceControlBranchCard.4171943d38',
-            'staged'
-          )}
+          {stagedCount} {translate('m.MobileSourceControlBranchCard.4171943d38', 'staged')}
         </Text>
         {branchCount > 0 ? (
           <Text style={styles.countText}>
-            {branchCount}{' '}
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlBranchCard.15f8914df7',
-              'on branch'
-            )}
+            {branchCount} {translate('m.MobileSourceControlBranchCard.15f8914df7', 'on branch')}
           </Text>
         ) : null}
       </View>

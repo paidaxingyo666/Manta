@@ -25,10 +25,7 @@ export async function requestMobileCommitMessage(
   if (!result || typeof result !== 'object') {
     return {
       success: false,
-      error: translate(
-        'auto.mobile.src.source.control.mobile.commit.message.ai.714ed51860',
-        'Failed to generate commit message'
-      )
+      error: translate('m.mobile.commit.message.ai.714ed51860', 'Failed to generate commit message')
     }
   }
   if (result.success === true && typeof result.message === 'string' && result.message.length > 0) {

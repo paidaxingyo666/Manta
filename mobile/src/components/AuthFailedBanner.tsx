@@ -21,7 +21,7 @@ export function AuthFailedBanner({
     <View style={styles.banner}>
       <Text style={styles.text}>
         {translate(
-          'auto.mobile.src.components.AuthFailedBanner.22b7ca421f',
+          'm.AuthFailedBanner.22b7ca421f',
           'Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.'
         )}{' '}
       </Text>
@@ -29,18 +29,18 @@ export function AuthFailedBanner({
         {canRetry && (
           <Pressable style={styles.action} onPress={onRetry}>
             <Text style={styles.actionText}>
-              {translate('auto.mobile.src.components.AuthFailedBanner.ba389e71e9', 'Retry')}
+              {translate('m.AuthFailedBanner.ba389e71e9', 'Retry')}
             </Text>
           </Pressable>
         )}
         <Pressable style={styles.action} onPress={onRepair}>
           <Text style={styles.actionText}>
-            {translate('auto.mobile.src.components.AuthFailedBanner.2aea91f056', 'Re-pair')}
+            {translate('m.AuthFailedBanner.2aea91f056', 'Re-pair')}
           </Text>
         </Pressable>
         <Pressable style={styles.action} onPress={onRemove}>
           <Text style={[styles.actionText, { color: colors.statusRed }]}>
-            {translate('auto.mobile.src.components.AuthFailedBanner.abe30d9dde', 'Remove')}
+            {translate('m.AuthFailedBanner.abe30d9dde', 'Remove')}
           </Text>
         </Pressable>
       </View>

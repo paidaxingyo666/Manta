@@ -83,7 +83,7 @@ export const RateLimitRuntimeTargetSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.10884c74dd',
+          'm.accounts.snapshot.10884c74dd',
           'Host rate-limit targets cannot name a WSL distro'
         ),
         path: ['wslDistro']
@@ -97,7 +97,7 @@ export const RateLimitRuntimeTargetSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.66534ee9f4',
+          'm.accounts.snapshot.66534ee9f4',
           'WSL rate-limit targets require an exact distro'
         ),
         path: ['wslDistro']
@@ -145,7 +145,7 @@ const CodexAccountSummarySchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.39989a7f2a',
+          'm.accounts.snapshot.39989a7f2a',
           'Host Codex accounts cannot name a WSL distro'
         ),
         path: ['wslDistro']
@@ -159,7 +159,7 @@ const CodexAccountSummarySchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.f795e4b34f',
+          'm.accounts.snapshot.f795e4b34f',
           'WSL Codex accounts require an exact distro'
         ),
         path: ['wslDistro']
@@ -202,7 +202,7 @@ export const AccountsSnapshotSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.3967e8ed07',
+          'm.accounts.snapshot.3967e8ed07',
           'Claude limits use the wrong provider identity'
         ),
         path: ['rateLimits', 'claude', 'provider']
@@ -212,7 +212,7 @@ export const AccountsSnapshotSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.components.accounts.snapshot.37c91810fe',
+          'm.accounts.snapshot.37c91810fe',
           'Codex limits use the wrong provider identity'
         ),
         path: ['rateLimits', 'codex', 'provider']
@@ -223,7 +223,7 @@ export const AccountsSnapshotSchema = z
         context.addIssue({
           code: 'custom',
           message: translate(
-            'auto.mobile.src.components.accounts.snapshot.e0d2cb1b80',
+            'm.accounts.snapshot.e0d2cb1b80',
             'Inactive Claude limits use the wrong provider identity'
           ),
           path: ['rateLimits', 'inactiveClaudeAccounts', index, 'rateLimits', 'provider']
@@ -235,7 +235,7 @@ export const AccountsSnapshotSchema = z
         context.addIssue({
           code: 'custom',
           message: translate(
-            'auto.mobile.src.components.accounts.snapshot.0a40a0d179',
+            'm.accounts.snapshot.0a40a0d179',
             'Inactive Codex limits use the wrong provider identity'
           ),
           path: ['rateLimits', 'inactiveCodexAccounts', index, 'rateLimits', 'provider']

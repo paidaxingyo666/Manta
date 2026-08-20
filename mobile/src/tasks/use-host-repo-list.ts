@@ -105,7 +105,7 @@ export function useHostRepoList<Repo>(
             error:
               err instanceof Error
                 ? err.message
-                : translate('auto.mobile.src.tasks.use.host.repo.list.905c2ef6f0', 'Unknown error')
+                : translate('m.use.host.repo.list.905c2ef6f0', 'Unknown error')
           })
         }
         throw err

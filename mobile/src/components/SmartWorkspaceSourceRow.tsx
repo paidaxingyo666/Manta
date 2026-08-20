@@ -22,28 +22,18 @@ function resolveRowContent(row: SourceRow): RowContent {
     case 'use-name':
       return {
         icon: <Sparkles size={16} color={colors.textSecondary} />,
-        title: translate(
-          'auto.mobile.src.components.SmartWorkspaceSourceRow.b8ad93d4e4',
-          'Use "{{value0}}"',
-          { value0: row.name }
-        ),
-        subtitle: translate(
-          'auto.mobile.src.components.SmartWorkspaceSourceRow.67b72c4984',
-          'Name this workspace'
-        )
+        title: translate('m.SmartWorkspaceSourceRow.b8ad93d4e4', 'Use "{{value0}}"', {
+          value0: row.name
+        }),
+        subtitle: translate('m.SmartWorkspaceSourceRow.67b72c4984', 'Name this workspace')
       }
     case 'create-branch':
       return {
         icon: <GitBranch size={16} color={colors.accentBlue} />,
-        title: translate(
-          'auto.mobile.src.components.SmartWorkspaceSourceRow.7434979ca9',
-          'Create branch "{{value0}}"',
-          { value0: row.name }
-        ),
-        subtitle: translate(
-          'auto.mobile.src.components.SmartWorkspaceSourceRow.cd32bcd37a',
-          'New branch'
-        )
+        title: translate('m.SmartWorkspaceSourceRow.7434979ca9', 'Create branch "{{value0}}"', {
+          value0: row.name
+        }),
+        subtitle: translate('m.SmartWorkspaceSourceRow.cd32bcd37a', 'New branch')
       }
     case 'github':
       return {

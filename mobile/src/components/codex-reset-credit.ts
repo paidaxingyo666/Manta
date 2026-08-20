@@ -91,45 +91,27 @@ export function getCodexResetCreditOutcomeCopy(outcome: CodexResetCreditOutcome)
   switch (outcome) {
     case 'reset':
       return {
-        title: translate(
-          'auto.mobile.src.components.codex.reset.credit.42226215e4',
-          'Rate limits reset'
-        ),
-        message: translate(
-          'auto.mobile.src.components.codex.reset.credit.dea1d56b5c',
-          'Codex usage has been refreshed.'
-        )
+        title: translate('m.codex.reset.credit.42226215e4', 'Rate limits reset'),
+        message: translate('m.codex.reset.credit.dea1d56b5c', 'Codex usage has been refreshed.')
       }
     case 'alreadyRedeemed':
       return {
-        title: translate(
-          'auto.mobile.src.components.codex.reset.credit.f5bde1d0f8',
-          'Reset already applied'
-        ),
-        message: translate(
-          'auto.mobile.src.components.codex.reset.credit.dea1d56b5c',
-          'Codex usage has been refreshed.'
-        )
+        title: translate('m.codex.reset.credit.f5bde1d0f8', 'Reset already applied'),
+        message: translate('m.codex.reset.credit.dea1d56b5c', 'Codex usage has been refreshed.')
       }
     case 'nothingToReset':
       return {
-        title: translate(
-          'auto.mobile.src.components.codex.reset.credit.24c11abaec',
-          'Nothing to reset'
-        ),
+        title: translate('m.codex.reset.credit.24c11abaec', 'Nothing to reset'),
         message: translate(
-          'auto.mobile.src.components.codex.reset.credit.526f977cea',
+          'm.codex.reset.credit.526f977cea',
           'No eligible Codex rate-limit window is exhausted.'
         )
       }
     case 'noCredit':
       return {
-        title: translate(
-          'auto.mobile.src.components.codex.reset.credit.ffe82b01d7',
-          'No reset available'
-        ),
+        title: translate('m.codex.reset.credit.ffe82b01d7', 'No reset available'),
         message: translate(
-          'auto.mobile.src.components.codex.reset.credit.cc5cb2769f',
+          'm.codex.reset.credit.cc5cb2769f',
           'This account has no earned reset credits available.'
         )
       }

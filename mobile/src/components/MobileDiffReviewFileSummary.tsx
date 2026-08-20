@@ -67,11 +67,9 @@ export function MobileDiffReviewFileSummary({
           <Text style={styles.fileMeta} numberOfLines={1}>
             {mobileReviewScopeLabel(item)}
             {item.oldPath
-              ? translate(
-                  'auto.mobile.src.components.MobileDiffReviewFileSummary.4ea7bacdf4',
-                  ' from {{value0}}',
-                  { value0: item.oldPath }
-                )
+              ? translate('m.MobileDiffReviewFileSummary.4ea7bacdf4', ' from {{value0}}', {
+                  value0: item.oldPath
+                })
               : ''}
           </Text>
         </View>
@@ -82,18 +80,12 @@ export function MobileDiffReviewFileSummary({
         </Text>
         {item.isReviewed ? (
           <Text style={styles.reviewedPill}>
-            {translate(
-              'auto.mobile.src.components.MobileDiffReviewFileSummary.4c6781140f',
-              'Reviewed'
-            )}
+            {translate('m.MobileDiffReviewFileSummary.4c6781140f', 'Reviewed')}
           </Text>
         ) : null}
         {item.changedSinceReview ? (
           <Text style={styles.stalePill}>
-            {translate(
-              'auto.mobile.src.components.MobileDiffReviewFileSummary.715ff9cedd',
-              'Changed'
-            )}
+            {translate('m.MobileDiffReviewFileSummary.715ff9cedd', 'Changed')}
           </Text>
         ) : null}
         {item.noteCount > 0 ? (
@@ -103,11 +95,7 @@ export function MobileDiffReviewFileSummary({
         ) : null}
         {item.staleNoteCount > 0 ? (
           <Text style={styles.staleText}>
-            {item.staleNoteCount}{' '}
-            {translate(
-              'auto.mobile.src.components.MobileDiffReviewFileSummary.db301c5173',
-              'stale'
-            )}
+            {item.staleNoteCount} {translate('m.MobileDiffReviewFileSummary.db301c5173', 'stale')}
           </Text>
         ) : null}
       </View>
@@ -126,10 +114,7 @@ export function MobileDiffReviewFileSummary({
               </Text>
               {staleCommentIds.has(note.id) ? (
                 <Text style={styles.staleText}>
-                  {translate(
-                    'auto.mobile.src.components.MobileDiffReviewFileSummary.3e9a9b32ee',
-                    'Stale'
-                  )}
+                  {translate('m.MobileDiffReviewFileSummary.3e9a9b32ee', 'Stale')}
                 </Text>
               ) : null}
             </Pressable>
@@ -146,7 +131,7 @@ export function MobileDiffReviewFileSummary({
         >
           <ArrowUp size={14} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.hunkButtonText}>
-            {translate('auto.mobile.src.components.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
+            {translate('m.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
           </Text>
         </Pressable>
         <Pressable
@@ -158,7 +143,7 @@ export function MobileDiffReviewFileSummary({
         >
           <ArrowDown size={14} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.hunkButtonText}>
-            {translate('auto.mobile.src.components.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
+            {translate('m.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
           </Text>
         </Pressable>
       </View>

@@ -1,2019 +1,1898 @@
 {
-  "auto": {
+  "m": {
+    "host": {
+      "list": {
+        "action": {
+          "sheet": {
+            "actions": {
+              "d380ec81a0": "Remove",
+              "9c12136964": "Edit host",
+              "57290dfe4b": "Disconnect"
+            }
+          }
+        }
+      },
+      "workspace": {
+        "list": {
+          "states": {
+            "5c9a3d6268": "No worktrees",
+            "3d19717048": "No worktrees match filters",
+            "4b6ffdb276": "No matching worktrees",
+            "26afe48a65": "worktree.ps failed ({{value0}}) — retrying automatically",
+            "9f6f3e7d1c": "Could not load workspaces from this host"
+          }
+        }
+      },
+      "endpoint": {
+        "1e0b960a94": "Port must be 1–65535.",
+        "7519b0e044": "Missing hostname.",
+        "0ac871ced3": "Not a valid address.",
+        "ea572d0df4": "Not a valid hostname.",
+        "7d7f763de8": "Host must not include a path or query.",
+        "1d030015d1": "Use ws:// or wss:// (or host:port).",
+        "cfce487cfa": "Enter a host address."
+      }
+    },
     "mobile": {
-      "src": {
+      "workspace": {
+        "statuses": {
+          "cd6c22dfea": "Todo",
+          "85679374e3": "In progress",
+          "9a0f28ceab": "In review",
+          "1257848b64": "Done"
+        }
+      },
+      "relay": {
         "host": {
-          "list": {
+          "overlay": {
+            "97129930cc": "Expected exactly one endpoint for configured relay metadata",
+            "7becc2880a": "Relay host identity mismatch",
+            "0a36dc1b70": "Relay identity and endpoint must coexist"
+          }
+        }
+      },
+      "smart": {
+        "source": {
+          "modes": {
+            "2303084a84": "All",
+            "279e22747c": "Closed",
+            "b0a1529ab3": "Merged",
+            "74645d977f": "Open",
+            "fcd871a51c": "Name",
+            "79f98b1f11": "Branch",
+            "24441a2f23": "GitLab",
+            "8fa1fe641f": "Linear",
+            "7cb8a31492": "GitHub",
+            "d0641cca38": "Smart"
+          }
+        }
+      },
+      "commit": {
+        "message": {
+          "ai": {
+            "714ed51860": "Failed to generate commit message"
+          }
+        }
+      },
+      "create": {
+        "pr": {
+          "action": {
+            "80306aa921": "Review creation unavailable for this provider",
+            "44690a13a8": "Checking review status…",
+            "c2806418a8": "Review status unavailable",
+            "e8de8f3a86": "Create Pull Request"
+          }
+        }
+      },
+      "hosted": {
+        "review": {
+          "create": {
+            "intent": {
+              "f1f8607904": "Branch changed while preparing the pull request.",
+              "cc083a8547": "Could not generate a commit message. Add one in Source Control, then retry.",
+              "c75b247e46": "Resolve or stage changes before creating a pull request.",
+              "ebde696cbe": "Resolve conflicts before creating a pull request."
+            }
+          },
+          "service": {
+            "41ec824f11": "Push failed. Resolve the push error, then try again.",
+            "f13c7f799c": "Failed to create pull request"
+          },
+          "git": {
+            "preparation": {
+              "5f8b294bce": "Commit failed"
+            }
+          }
+        }
+      },
+      "source": {
+        "control": {
+          "actions": {
+            "863b36001e": "Commits",
+            "6ce7379d43": "Switch branch",
+            "9ed8a4d7d4": "Rebase onto base",
+            "aff30f4611": "Publish Branch",
+            "ddb96ca5ef": "Fetch",
+            "fcfab9104c": "Push & Create PR",
+            "220b608641": "Create PR",
+            "645c339d48": "Commit & Sync",
+            "e29538cd3a": "Commit & Push",
+            "fd2ae6e099": "Commit",
+            "7e9ff9a63a": "Fast-forward",
+            "6b59363e25": "Fast-forward ({{value0}})",
+            "3741e930c8": "Sync",
+            "c2b72fb417": "Sync (↓{{value0}} ↑{{value1}})",
+            "d29181a724": "Pull",
+            "4a36a2e93d": "Pull ({{value0}})",
+            "7816735a4c": "Push",
+            "dc5665ae76": "Push ({{value0}})"
+          }
+        }
+      },
+      "pr": {
+        "link": {
+          "0c8879a6f0": "Failed to update linked review",
+          "0fcf97ca15": "Failed to update linked pull request"
+        }
+      },
+      "bulk": {
+        "close": {
+          "sheet": {
+            "actions": {
+              "7d96f188ad": "Close"
+            }
+          }
+        }
+      },
+      "diff": {
+        "review": {
+          "loaders": {
+            "c8436e26c4": "Update Manta desktop to review changes on mobile.",
+            "45200a7b83": "Committed changes response was invalid",
+            "68bce95b7c": "Committed changes failed"
+          },
+          "queue": {
+            "84a5f8aba0": "Committed on branch",
+            "1499f32fd6": "Unstaged",
+            "b1e9ce286e": "Staged"
+          }
+        }
+      },
+      "native": {
+        "chat": {
+          "permission": {
+            "2c73270f9a": "Permission requested",
+            "ceabbaf629": "Allow always",
+            "dc405d2023": "Deny",
+            "b23a6139b2": {
+              "3ad0e3": "Allow",
+              "19efa8": "Allow {{value0}}?"
+            }
+          },
+          "toggle": {
             "action": {
-              "sheet": {
-                "actions": {
-                  "d380ec81a0": "Remove",
-                  "9c12136964": "Edit host",
-                  "57290dfe4b": "Disconnect"
-                }
-              }
+              "1a6063ae20": "Switch to chat view",
+              "76a2ac32a6": "Switch to terminal view"
+            }
+          }
+        }
+      },
+      "terminal": {
+        "action": {
+          "sheet": {
+            "actions": {
+              "937d975bac": "Close",
+              "e6ce1536cc": "Clear Terminal",
+              "db014329a6": "Rename",
+              "e74d91fe61": "Switch to Phone",
+              "d176f3200b": "Switch to Desktop"
             }
           }
         },
-        "worktree": {
-          "host": {
-            "workspace": {
-              "list": {
-                "states": {
-                  "5c9a3d6268": "No worktrees",
-                  "3d19717048": "No worktrees match filters",
-                  "4b6ffdb276": "No matching worktrees",
-                  "26afe48a65": "worktree.ps failed ({{value0}}) — retrying automatically",
-                  "9f6f3e7d1c": "Could not load workspaces from this host"
-                }
-              }
-            }
-          },
-          "mobile": {
-            "workspace": {
-              "statuses": {
-                "cd6c22dfea": "Todo",
-                "85679374e3": "In progress",
-                "9a0f28ceab": "In review",
-                "1257848b64": "Done"
-              }
-            }
-          },
-          "workspace": {
-            "list": {
-              "picker": {
-                "options": {
-                  "d4173f4bae": "PR Status",
-                  "057d8da776": "Repository",
-                  "a0166ed3f7": "Status",
-                  "22addae6ca": "No Grouping",
-                  "cb54ef416b": "Server order",
-                  "172192615e": "Manual",
-                  "c87d5b3f15": "Repository, then workspace name",
-                  "bf91f59896": "Repo",
-                  "7a0926f2a2": "Most recent output first",
-                  "db127de800": "Recent",
-                  "05a18882b1": "Alphabetical by name",
-                  "b50aa4cb12": "Name",
-                  "45c98be3a6": "Agents that need attention, then recent activity",
-                  "ea011082cd": "Agent activity"
-                }
-              }
-            }
+        "viewport": {
+          "resubscribe": {
+            "de66d5312b": "Couldn't fit the terminal to this screen"
+          }
+        }
+      },
+      "tab": {
+        "close": {
+          "selection": {
+            "417f514e07": "Close Tabs to the Right",
+            "fe28cadb0a": "Close Tabs to the Left",
+            "5f17f23257": "Close Other Tabs"
+          }
+        }
+      },
+      "file": {
+        "explorer": {
+          "row": {
+            "9b441d1365": "Unavailable on mobile",
+            "0866286006": "Retry",
+            "759b201be3": "Unable to load folder",
+            "b76418c615": "Loading..."
           }
         },
-        "transport": {
-          "connection": {
-            "health": {
-              "ebf49ea8c1": "Can't connect",
-              "6003e0c413": "Can't reach desktop",
-              "1ba6b526a9": "Disconnected",
-              "dd4b030f53": "Connecting via Relay…",
-              "da16e47b5f": "Can't connect via Relay",
-              "8e01ac6dae": "Connected",
-              "d01be348a0": "Pairing invalid — re-pair with your desktop",
-              "23ec1a2728": "Connecting…",
-              "29b9a9719b": "Reconnecting…"
-            }
+        "preview": {
+          "request": {
+            "91859e0a0a": "File changed on desktop. Reload preview before saving"
           },
-          "host": {
-            "endpoint": {
-              "1e0b960a94": "Port must be 1–65535.",
-              "7519b0e044": "Missing hostname.",
-              "0ac871ced3": "Not a valid address.",
-              "ea572d0df4": "Not a valid hostname.",
-              "7d7f763de8": "Host must not include a path or query.",
-              "1d030015d1": "Use ws:// or wss:// (or host:port).",
-              "cfce487cfa": "Enter a host address."
-            },
-            "entry": {
-              "opener": {}
-            }
+          "response": {
+            "9db82be07d": "Unable to load preview",
+            "263fc80f06": "File not found",
+            "5fec217cca": "Unable to reach the desktop filesystem",
+            "92d183bd91": "Reload preview before saving",
+            "50500520fd": "File too large for mobile preview",
+            "51f5380805": "Binary preview unavailable"
           },
-          "mobile": {
-            "relay": {
-              "host": {
-                "overlay": {
-                  "97129930cc": "Expected exactly one endpoint for configured relay metadata",
-                  "7becc2880a": "Relay host identity mismatch",
-                  "0a36dc1b70": "Relay identity and endpoint must coexist"
-                }
-              },
-              "recovery": {
-                "log": {}
-              }
-            }
-          },
-          "direct": {
-            "probe": {
-              "connection": {
-                "log": {}
-              }
+          "route": {
+            "dadd2587a5": "Unable to load preview"
+          }
+        }
+      },
+      "onboarding": {
+        "4c5336d71f": "Manta"
+      }
+    },
+    "workspace": {
+      "list": {
+        "picker": {
+          "options": {
+            "d4173f4bae": "PR Status",
+            "057d8da776": "Repository",
+            "a0166ed3f7": "Status",
+            "22addae6ca": "No Grouping",
+            "cb54ef416b": "Server order",
+            "172192615e": "Manual",
+            "c87d5b3f15": "Repository, then workspace name",
+            "bf91f59896": "Repo",
+            "7a0926f2a2": "Most recent output first",
+            "db127de800": "Recent",
+            "05a18882b1": "Alphabetical by name",
+            "b50aa4cb12": "Name",
+            "45c98be3a6": "Agents that need attention, then recent activity",
+            "ea011082cd": "Agent activity"
+          }
+        }
+      }
+    },
+    "connection": {
+      "health": {
+        "ebf49ea8c1": "Can't connect",
+        "6003e0c413": "Can't reach desktop",
+        "1ba6b526a9": "Disconnected",
+        "dd4b030f53": "Connecting via Relay…",
+        "da16e47b5f": "Can't connect via Relay",
+        "8e01ac6dae": "Connected",
+        "d01be348a0": "Pairing invalid — re-pair with your desktop",
+        "23ec1a2728": "Connecting…",
+        "29b9a9719b": "Reconnecting…"
+      },
+      "log": {
+        "3ce523c653": "No paired hosts.",
+        "157f65530a": "No connection events yet this session. Events appear as the app dials this host.",
+        "1a265761bf": "Copy diagnostics",
+        "0d8cbd791b": "Copied",
+        "9aee626b28": " · attempt {{value0}}",
+        "c78dc5ccfb": "Connection log"
+      }
+    },
+    "terminal": {
+      "webview": {
+        "engine": {
+          "error": {
+            "state": {
+              "5270410350": "Reload",
+              "a76b283f38": "Terminal failed to load"
             }
           }
-        },
-        "terminal": {
-          "terminal": {
-            "webview": {
-              "engine": {
-                "error": {
-                  "state": {
-                    "5270410350": "Reload",
-                    "a76b283f38": "Terminal failed to load"
-                  }
-                }
-              }
-            },
-            "accessory": {
-              "keys": {
-                "97a2894f73": "Space",
-                "f4a168e733": "Enter",
-                "84ce4a500c": "Tab",
-                "8c77ba5145": "Escape",
-                "a7bfddd855": "Shift Tab",
-                "e9344f8a27": "Backspace",
-                "7cd80393da": "Forward delete",
-                "230262f136": "Arrow Up",
-                "bd5b32eea9": "Arrow Down",
-                "4621886af3": "Arrow Left",
-                "bf959218ed": "Arrow Right",
-                "0331e84333": "Interrupt terminal",
-                "3c13e73de4": "Send EOF",
-                "12a6a3f286": "Clear screen",
-                "86a59f3660": "Suspend process",
-                "99cbc77f8a": "Reverse search",
-                "08a169fd03": "Start of line",
-                "d155ad54ef": "End of line",
-                "05df6a7dd9": "Delete word backward",
-                "1eb5ac7433": "Clear line before cursor"
-              }
-            }
+        }
+      },
+      "accessory": {
+        "keys": {
+          "97a2894f73": "Space",
+          "f4a168e733": "Enter",
+          "84ce4a500c": "Tab",
+          "8c77ba5145": "Escape",
+          "a7bfddd855": "Shift Tab",
+          "e9344f8a27": "Backspace",
+          "7cd80393da": "Forward delete",
+          "230262f136": "Arrow Up",
+          "bd5b32eea9": "Arrow Down",
+          "4621886af3": "Arrow Left",
+          "bf959218ed": "Arrow Right",
+          "0331e84333": "Interrupt terminal",
+          "3c13e73de4": "Send EOF",
+          "12a6a3f286": "Clear screen",
+          "86a59f3660": "Suspend process",
+          "99cbc77f8a": "Reverse search",
+          "08a169fd03": "Start of line",
+          "d155ad54ef": "End of line",
+          "05df6a7dd9": "Delete word backward",
+          "1eb5ac7433": "Clear line before cursor"
+        }
+      },
+      "settings": {
+        "95f01e00e2": "Terminal text size",
+        "9cddb95e6a": "Restore {{value0}}",
+        "ac4e08885f": "Off",
+        "a91e66a47a": "On",
+        "d7c277cabd": "KEYBOARD INPUT",
+        "41c2fa2d3e": "Text size",
+        "392fab3532": "TEXT SIZE",
+        "5369adc998": "No paired desktops yet. Pair one to control terminal behavior.",
+        "7fdbe05077": "WHEN YOU LEAVE THE APP",
+        "9098f96768": "Terminal",
+        "d7e9dd546e": "Autocomplete & autocorrect",
+        "f4f7e6d042": "Enable phone-style autocomplete, autocorrect, and spelling suggestions in the terminal command bar. Off by default so the keyboard never rewrites commands, flags, or paths. Direct keyboard input (when keys go straight to the terminal) always sends raw keystrokes, so suggestions don't apply there.",
+        "b147ed5e18": "Scale the terminal text. Smaller sizes fit more columns with side margins; larger sizes show fewer columns — drag sideways to pan. You can also pinch to zoom in the terminal itself, which updates this setting. Per-device display only; doesn't change the desktop terminal.",
+        "5185d36d47": "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore this terminal or Restore all terminals on the banner to resize manually.",
+        "ad4f6a76dd": "After 30 minutes",
+        "a761169918": "After 5 minutes",
+        "80118eb022": "After 1 minute",
+        "aba5507191": "Keep at phone size (default)",
+        "ef92abff6e": "Largest (200%)",
+        "b409fcd6d6": "Larger (150%)",
+        "1ea3fa201c": "Large (125%)",
+        "d0e28eb0a6": "Default (100%)",
+        "080b3ca143": "Smaller (75%)",
+        "862a2e3353": "Smallest (50%)"
+      }
+    },
+    "sparse": {
+      "preset": {
+        "draft": {
+          "4e02cc9c37": "Use repo-relative directories, not root, absolute paths, or parent segments.",
+          "33458abe81": "Add at least one directory."
+        }
+      }
+    },
+    "use": {
+      "host": {
+        "repo": {
+          "list": {
+            "905c2ef6f0": "Unknown error"
           }
-        },
-        "tasks": {
-          "sparse": {
-            "preset": {
-              "draft": {
-                "4e02cc9c37": "Use repo-relative directories, not root, absolute paths, or parent segments.",
-                "33458abe81": "Add at least one directory."
-              }
-            }
-          },
-          "mobile": {
-            "smart": {
-              "source": {
-                "modes": {
-                  "2303084a84": "All",
-                  "279e22747c": "Closed",
-                  "b0a1529ab3": "Merged",
-                  "74645d977f": "Open",
-                  "fcd871a51c": "Name",
-                  "79f98b1f11": "Branch",
-                  "24441a2f23": "GitLab",
-                  "8fa1fe641f": "Linear",
-                  "7cb8a31492": "GitHub",
-                  "d0641cca38": "Smart"
-                }
-              }
-            }
-          },
-          "use": {
-            "host": {
-              "repo": {
-                "list": {
-                  "905c2ef6f0": "Unknown error"
-                }
-              }
-            }
-          }
-        },
-        "storage": {
-          "codex": {
-            "reset": {
-              "attempt": {
-                "journal": {
-                  "7c254252ac": "WSL reset scopes require an exact distro",
-                  "4c93c1a711": "Host reset scopes cannot name a WSL distro"
-                }
-              }
-            }
-          }
-        },
+        }
+      },
+      "mobile": {
         "source": {
           "control": {
-            "MobileBranchDiffPreviewDrawer": {
-              "0a05486f61": "Diff truncated for mobile preview.",
-              "9998f95c16": "Unable to Load Diff",
-              "23a1a340ef": "Committed on branch",
-              "ea5ca6f964": "{{value0}}..HEAD"
+            "loaders": {
+              "2979415ed1": "Update Manta desktop to use Source Control on mobile.",
+              "bf43cc1511": "Unable to resolve the base branch for comparison.",
+              "e63543ccea": "Waiting for desktop...",
+              "70866f1cd8": "Connecting to desktop..."
             },
-            "MobileCommitFailurePanel": {
-              "3f67db6ee8": "Show details",
-              "7b2b0ff9f2": "Hide details",
-              "f916c423a3": "Fix",
-              "aab7681cb3": "Commit failed.",
-              "1e8978aed2": "Commit failed"
-            },
-            "MobileGitHistoryList": {
-              "7dc0c76755": "No commits.",
-              "41bdc2a206": "Retry",
-              "932946bcf5": "Waiting for desktop...",
-              "cb46c1e3eb": "No file changes"
-            },
-            "MobileSourceControlBranchCard": {
-              "15f8914df7": "on branch",
-              "4171943d38": "staged",
-              "49ca409103": "changed"
-            },
-            "MobileSourceControlContent": {
-              "b93458b765": "Commit message",
-              "d97e76a715": "No staged files",
-              "c8aa93afd1": "Working tree is clean.",
-              "f3daa0029b": "No local changes",
-              "0c75e88b60": "Unstage All",
-              "f6908a03c5": "Stage All",
-              "a3f4d32439": "Reconnecting to desktop..."
-            },
-            "MobileSourceControlFileRows": {
-              "429975939a": "Committed changes unavailable.",
-              "b591c5c028": "Loading committed changes...",
-              "9bf0bc8e42": "Committed on Branch",
-              "6affcc87b5": "Unresolved conflict",
-              "4b2aa967fe": "from"
-            },
-            "MobileSourceControlHeader": {
-              "3e303cced7": "Source Control"
-            },
-            "MobileSourceControlModals": {
-              "e04f3405ee": "Pull Request Created",
-              "9fd503168a": "Switch Branch",
-              "3a1edc1216": "Discard changes to \"{{value0}}\"? This cannot be undone.",
-              "ec8328b4c0": "Discard Change",
-              "ee9e97d02d": "Source Control",
-              "f38a7042c6": {
-                "b451aa": "Open it in your browser?",
-                "25031a": "Open it in your browser?\n\n{{value0}}"
-              },
-              "daddec884e": "current"
-            },
-            "MobileSourceControlPanel": {
-              "760815df5f": "Retry",
-              "4a571203d0": "Unable to Load",
-              "520503d3c5": "Source Control Unavailable"
-            },
-            "MobileSourceControlPrChip": {
-              "435987497e": "Create pull request",
-              "c6837f6503": "Loading pull request…"
-            },
-            "mobile": {
-              "branch": {
-                "compare": {}
-              },
-              "commit": {
-                "message": {
-                  "ai": {
-                    "714ed51860": "Failed to generate commit message"
-                  }
-                }
-              },
-              "create": {
-                "pr": {
-                  "action": {
-                    "80306aa921": "Review creation unavailable for this provider",
-                    "44690a13a8": "Checking review status…",
-                    "c2806418a8": "Review status unavailable",
-                    "e8de8f3a86": "Create Pull Request"
-                  }
-                }
-              },
-              "hosted": {
-                "review": {
-                  "create": {
-                    "intent": {
-                      "f1f8607904": "Branch changed while preparing the pull request.",
-                      "cc083a8547": "Could not generate a commit message. Add one in Source Control, then retry.",
-                      "c75b247e46": "Resolve or stage changes before creating a pull request.",
-                      "ebde696cbe": "Resolve conflicts before creating a pull request."
-                    }
-                  },
-                  "service": {
-                    "41ec824f11": "Push failed. Resolve the push error, then try again.",
-                    "f13c7f799c": "Failed to create pull request"
-                  },
-                  "git": {
-                    "preparation": {
-                      "5f8b294bce": "Commit failed"
-                    }
-                  }
-                }
-              },
-              "source": {
-                "control": {
-                  "actions": {
-                    "863b36001e": "Commits",
-                    "6ce7379d43": "Switch branch",
-                    "9ed8a4d7d4": "Rebase onto base",
-                    "aff30f4611": "Publish Branch",
-                    "ddb96ca5ef": "Fetch",
-                    "fcfab9104c": "Push & Create PR",
-                    "220b608641": "Create PR",
-                    "645c339d48": "Commit & Sync",
-                    "e29538cd3a": "Commit & Push",
-                    "fd2ae6e099": "Commit",
-                    "7e9ff9a63a": "Fast-forward",
-                    "6b59363e25": "Fast-forward ({{value0}})",
-                    "3741e930c8": "Sync",
-                    "c2b72fb417": "Sync (↓{{value0}} ↑{{value1}})",
-                    "d29181a724": "Pull",
-                    "4a36a2e93d": "Pull ({{value0}})",
-                    "7816735a4c": "Push",
-                    "dc5665ae76": "Push ({{value0}})"
-                  }
-                }
-              },
-              "pr": {
-                "link": {
-                  "0c8879a6f0": "Failed to update linked review",
-                  "0fcf97ca15": "Failed to update linked pull request"
-                }
+            "commit": {
+              "runners": {
+                "701ad7afef": "Commit failed"
               }
             },
-            "use": {
-              "mobile": {
-                "source": {
-                  "control": {
-                    "loaders": {
-                      "2979415ed1": "Update Manta desktop to use Source Control on mobile.",
-                      "bf43cc1511": "Unable to resolve the base branch for comparison.",
-                      "e63543ccea": "Waiting for desktop...",
-                      "70866f1cd8": "Connecting to desktop..."
-                    },
-                    "commit": {
-                      "runners": {
-                        "701ad7afef": "Commit failed"
-                      }
-                    },
-                    "openers": {
-                      "ce788bc1c9": "Unable to load committed diff"
-                    }
-                  }
-                }
+            "openers": {
+              "ce788bc1c9": "Unable to load committed diff"
+            }
+          }
+        },
+        "attachment": {
+          "input": {
+            "lease": {
+              "gate": {
+                "2eae67a9db": "Attach failed (reconnecting)"
               }
             }
           }
         },
-        "session": {
-          "MobileAgentWorkingIndicator": {
-            "d043f1f9a0": "Agent is working"
-          },
-          "MobileBrowserTabActionSheet": {
-            "bc29c5cca4": "Close",
-            "f317af1a27": "Reload",
-            "9b884ed916": "Forward",
-            "48a92edf21": "Back",
-            "199c2d6421": "Browser"
-          },
-          "MobileMarkdownReader": {
-            "8bf6d6eed7": "Save",
-            "7ae18d2fd5": "Discard",
-            "e0abdc7458": "Refresh",
-            "fd282649f1": "Copy",
-            "7fa363bb8e": "Retry",
-            "f1ac00d444": "Changed on desktop",
-            "d37923f4f6": "Read only"
-          },
-          "MobileNativeChatAsk": {
-            "1306c1e552": "Next",
-            "cbdbc2503b": "Submit",
-            "cb171a270a": "Cancel",
-            "ee779fedbd": "Type your answer",
-            "6e21b85794": "Other…",
-            "6aa4aab4b2": "Step {{value0}}"
-          },
-          "MobileNativeChatMessage": {
-            "6b0db92a6c": "more tool calls",
-            "5df068822d": "{{value0}} tool {{value1}}",
-            "58bde2fc06": "image",
-            "e88fa76bb4": "Result"
-          },
-          "MobileNativeChatQuestion": {
-            "a6c3892e34": "Type your reply…",
-            "6d27956f85": "Or type a reply…",
-            "b00d711570": "Submit"
-          },
-          "MobileNativeChatSessionOptionPickers": {
-            "ecdc66f24d": "Sent to the agent — not confirmed",
-            "0878f79a86": "Select {{value0}}",
-            "4a170ffab9": "Select model"
-          },
-          "MobileNativeChatSessionOptionRows": {
-            "581e7fea5e": "Off",
-            "c2d79886a9": "On",
-            "5c67474f2f": "Current value unknown — pick On or Off",
-            "60862cacc1": "Choose in agent picker…",
-            "7b2744302b": "Toggle {{value0}}"
-          },
-          "MobileNativeChatView": {
-            "e79c8354d9": "Message, @files, /commands",
-            "017c833ec1": "Waiting for terminal…",
-            "805480a4a1": "Reconnecting…",
-            "5fcfefb9aa": "Stop",
-            "2779d38b74": "Tools",
-            "1e0304cc51": "Collapse",
-            "01ec655ba2": "Load earlier messages"
-          },
-          "MobileSessionHeaderMoreActionsSheet": {
-            "bbcc22954a": "Checks",
-            "e91f015acc": "Agent History"
-          },
-          "QuickCommandEditorForm": {
-            "1973055270": "Label",
-            "9abf0dd1c0": "Add Quick Command",
-            "4990252681": "Save",
-            "cfd31efc92": "Cancel",
-            "9c1d1f87e4": "Project",
-            "b29057ca1c": "Global",
-            "255984f0ba": "Scope",
-            "8807475f6c": "Submit immediately instead of only inserting text.",
-            "4bd5144a2f": "Append Enter",
-            "32c24e1c38": "Advanced",
-            "5858a0a2a6": "Supports skills, file paths, and built-in commands.",
-            "606c52f1c9": "npm run dev",
-            "8ffb968ee4": "Ask the agent to investigate this workspace",
-            "d96528c298": "Command Text",
-            "bf9d7606a7": "Prompt",
-            "f43f688fae": "Choose agent",
-            "b61e388b60": "Agent",
-            "010e356a06": "Action",
-            "a5cab8c6d5": "Start dev server",
-            "0902b0f020": "Agent Prompt",
-            "f71933f074": "Terminal Command"
-          },
-          "QuickCommandsList": {
-            "26ac6d7f47": "Quick command limit reached",
-            "2e659657de": "New quick command",
-            "616a7d788f": "Global",
-            "d327b572b9": "This project",
-            "b2d8e370de": "No matching quick commands.",
-            "586660565c": "No quick commands yet.",
-            "325cecdaaf": "Search quick commands..."
-          },
-          "QuickCommandsSheet": {
-            "73b91478d0": "Save terminal commands or agent prompts for quick access.",
-            "f260e877b2": "This quick command will be removed from your saved list.",
-            "cbba692ebb": "Delete \"{{value0}}\"?",
-            "bd752eba44": "Quick Commands",
-            "d6bbe93e7e": "Choose Agent",
-            "49bc604177": "Add Quick Command",
-            "81a695ae36": "Edit Quick Command"
-          },
-          "github": {
-            "pr": {
-              "mutations": {
-                "833feff7b9": "Failed to update review thread.",
-                "b2ca03ab48": "Failed to update title.",
-                "eb7b22550f": "Request failed: {{value0}}"
-              },
-              "rpc": {
-                "70faee796e": "Request failed: {{value0}}"
-              }
-            }
-          },
-          "mobile": {
-            "bulk": {
-              "close": {
-                "sheet": {
-                  "actions": {
-                    "7d96f188ad": "Close"
-                  }
-                }
-              }
+        "diff": {
+          "review": {
+            "controller": {
+              "02d13aa100": "Waiting for desktop...",
+              "1e45fd876b": "Missing worktree",
+              "d729880698": "Unable to load review"
             },
             "diff": {
-              "review": {
-                "loaders": {
-                  "c8436e26c4": "Update Manta desktop to review changes on mobile.",
-                  "45200a7b83": "Committed changes response was invalid",
-                  "68bce95b7c": "Committed changes failed"
-                },
-                "queue": {
-                  "84a5f8aba0": "Committed on branch",
-                  "1499f32fd6": "Unstaged",
-                  "b1e9ce286e": "Staged"
-                }
+              "loading": {
+                "979f32deb0": "Waiting for desktop...",
+                "c3f749c536": "Unable to load diff"
               }
             },
-            "native": {
-              "chat": {
-                "permission": {
-                  "2c73270f9a": "Permission requested",
-                  "ceabbaf629": "Allow always",
-                  "dc405d2023": "Deny",
-                  "b23a6139b2": {
-                    "3ad0e3": "Allow",
-                    "19efa8": "Allow {{value0}}?"
-                  }
-                },
-                "toggle": {
-                  "action": {
-                    "1a6063ae20": "Switch to chat view",
-                    "76a2ac32a6": "Switch to terminal view"
-                  }
-                }
-              }
-            },
-            "terminal": {
-              "action": {
-                "sheet": {
-                  "actions": {
-                    "937d975bac": "Close",
-                    "e6ce1536cc": "Clear Terminal",
-                    "db014329a6": "Rename",
-                    "e74d91fe61": "Switch to Phone",
-                    "d176f3200b": "Switch to Desktop"
-                  }
-                }
-              },
-              "viewport": {
-                "resubscribe": {
-                  "de66d5312b": "Couldn't fit the terminal to this screen"
-                }
-              }
-            },
-            "tab": {
-              "close": {
-                "selection": {
-                  "417f514e07": "Close Tabs to the Right",
-                  "fe28cadb0a": "Close Tabs to the Left",
-                  "5f17f23257": "Close Other Tabs"
-                }
-              }
-            }
-          },
-          "use": {
-            "mobile": {
-              "attachment": {
-                "input": {
-                  "lease": {
-                    "gate": {
-                      "2eae67a9db": "Attach failed (reconnecting)"
-                    }
-                  }
-                }
-              },
-              "diff": {
-                "review": {
-                  "controller": {
-                    "02d13aa100": "Waiting for desktop...",
-                    "1e45fd876b": "Missing worktree",
-                    "d729880698": "Unable to load review"
-                  },
-                  "diff": {
-                    "loading": {
-                      "979f32deb0": "Waiting for desktop...",
-                      "c3f749c536": "Unable to load diff"
-                    }
-                  },
-                  "send": {
-                    "actions": {
-                      "bcc1edd25f": "Unable to load agent sessions"
-                    }
-                  }
-                }
-              },
-              "image": {
-                "attachment": {
-                  "3524b83abd": "Attach failed",
-                  "849600ec04": "Image too large to attach",
-                  "25d19dd487": "Photo permission denied",
-                  "b6efaa94dd": "Attach failed (disconnected)"
-                }
-              },
-              "native": {
-                "chat": {
-                  "image": {
-                    "attachments": {
-                      "26536a0cb0": "Attach failed",
-                      "f988cd21c5": "Image too large to attach",
-                      "8dd92621ac": "Photo permission denied",
-                      "29cd4ef611": "Attach failed (disconnected)"
-                    }
-                  }
-                }
-              },
-              "pr": {
-                "actions": {
-                  "01a9dd9c0e": "Not connected"
-                }
-              },
-              "terminal": {
-                "paste": {
-                  "c1e4d031ec": "Paste failed",
-                  "e5d865b17a": "Image too large to paste",
-                  "806d2c697d": "Paste failed (disconnected)",
-                  "1338fc5288": "Paste too large (max 256 KiB)"
-                }
-              }
-            }
-          },
-          "MobileTerminalLiveInputStatus": {
-            "ec87f139b7": "Tap to show keyboard",
-            "aae3384704": "Uploading image to host",
-            "85aee3eea3": "Preparing microphone",
-            "ffe7662360": "Transcribing on desktop",
-            "1865e8a27a": "Tap mic to stop",
-            "91ba33a4aa": "Live input",
-            "fcc1860f91": "Starting mic",
-            "43b48ff5fa": "Processing",
-            "cba1909d50": "Listening"
-          }
-        },
-        "onboarding": {
-          "MobileOnboardingPage": {
-            "28fdd43cf6": "Not now",
-            "40cf41e250": "Enable notifications",
-            "f5b1768ae4": "Keep terminal",
-            "2a882f4986": "Use Chat UI",
-            "def1eabfa5": "Get notified on this device when an agent needs your input or finishes a task.",
-            "755f145478": "Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.",
-            "3a676018db": "Stay updated while away",
-            "a3d2f11cf8": "How should sessions open?"
-          },
-          "legacy": {
-            "notification": {
-              "opt": {
-                "in": {
-                  "destination": {}
-                }
+            "send": {
+              "actions": {
+                "bcc1edd25f": "Unable to load agent sessions"
               }
             }
           }
         },
-        "files": {
-          "MobileFileExplorerPanel": {
-            "09a641d5f9": "No files found",
-            "2d2d213ae8": "Retry",
-            "528997afc8": "- Showing first 5000",
-            "f288e834ba": "Files"
-          },
-          "MobileFilePreviewBody": {
-            "d14ff7e198": "Empty file",
-            "cea65a249a": "Retry"
-          },
-          "MobileFilePreviewScreen": {
-            "b8b5edd90b": "Unable to load preview",
-            "f643b9935b": "File",
-            "efa10b0260": "Preview",
-            "bd76a56e52": "Unsaved edits will be lost.",
-            "93debd0de1": "Discard changes?",
-            "22a9f89ade": "Loading preview...",
-            "302163baef": "Waiting for desktop..."
-          },
-          "MobileFilePreviewSourceText": {
-            "0047302216": "Preview truncated. File size:"
-          },
-          "mobile": {
-            "file": {
-              "explorer": {
-                "row": {
-                  "9b441d1365": "Unavailable on mobile",
-                  "0866286006": "Retry",
-                  "759b201be3": "Unable to load folder",
-                  "b76418c615": "Loading..."
-                }
-              },
-              "preview": {
-                "request": {
-                  "91859e0a0a": "File changed on desktop. Reload preview before saving"
-                },
-                "response": {
-                  "9db82be07d": "Unable to load preview",
-                  "263fc80f06": "File not found",
-                  "5fec217cca": "Unable to reach the desktop filesystem",
-                  "92d183bd91": "Reload preview before saving",
-                  "50500520fd": "File too large for mobile preview",
-                  "51f5380805": "Binary preview unavailable"
-                },
-                "route": {
-                  "dadd2587a5": "Unable to load preview"
-                }
-              }
-            }
-          }
-        },
-        "components": {
-          "AuthFailedBanner": {
-            "abe30d9dde": "Remove",
-            "2aea91f056": "Re-pair",
-            "ba389e71e9": "Retry",
-            "22b7ca421f": "Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop."
-          },
-          "CodexResetCreditAction": {
-            "d8bace2f0f": "Use reset",
-            "2cde746d0d": "Resetting…",
-            "c00ff47761": "Earned Codex rate-limit reset"
-          },
-          "CustomKeyModal": {
-            "fe0f6a9228": "Add Shortcut",
-            "37b52874f6": "Press Enter",
-            "0a215cf434": "e.g. pnpm build",
-            "6195a4f11e": "Command",
-            "774269273e": "e.g. Build",
-            "ce433ebd89": "Label",
-            "9dd5728085": "Add",
-            "192ac18ada": "More keys — Tab, arrows, F1–F12…",
-            "425075d432": "Key",
-            "f63415bfef": "Modifiers",
-            "c3b609d0ac": "Show, hide, or reorder shortcut keys",
-            "045b0b8e97": "Manage Shortcuts",
-            "23e46586f7": "Send custom text command",
-            "7cd04fd54b": "Text Macro",
-            "63bcc340e3": "Build Ctrl, Alt, and Shift key chords",
-            "2ebfc65454": "Shortcut Combo",
-            "acc57404c5": "Pick a key",
-            "5b029b4c49": "Function",
-            "0a58036543": "Navigation",
-            "d51ba74b66": "Editing",
-            "0e5f660272": "Shift",
-            "333faa20ee": "Alt",
-            "3992c2101a": "Ctrl"
-          },
-          "DragReorderList": {
-            "b861e19c2d": "Move down",
-            "79ee03d78a": "Move up"
-          },
-          "MobileDictationSetupSheet": {
-            "a09dec50ce": "Download",
-            "375f2e9b3d": "Use",
-            "ae2f2cc127": "In use",
-            "a9fec85af0": "Set up on desktop",
-            "0fdd00661b": "API key set",
-            "3c6fcf7dba": "· extracting…",
-            "6e1fd0429b": "OpenAI API",
-            "4c977cfe71": "Recommended",
-            "e96c05d3ff": "Dictation enabled",
-            "0f96051cb5": "Download a model and enable dictation on your desktop — all from here.",
-            "d778451cee": "Set up voice dictation"
-          },
-          "MobileDiffReviewBody": {
-            "196c031931": "Retry",
-            "5ba30b368d": "Diff truncated for mobile preview.",
-            "7ba47f20f3": "Loading diff...",
-            "2aedb02be8": "Try a different review filter.",
-            "dfe44c788a": "No Reviewable Changes",
-            "7b9b086d5d": "Unable to Load Review",
-            "afe74af652": "Review Unavailable",
-            "3a7d07fc96": "Loading review...",
-            "3e96692d6c": "Select a file to review.",
-            "126e672f04": "This file was deleted. Add a file note or mark it reviewed.",
-            "61e41a6d8b": "This diff is too large for the mobile preview.",
-            "15d3872219": "This file cannot be rendered as text on mobile.",
-            "45a8e6d5ca": "Diff Unavailable",
-            "f52bfb25be": "Deleted File",
-            "06b13f6828": "Diff Too Large",
-            "0a4bbf6913": "Binary Diff"
-          },
-          "MobileDiffReviewDrawers": {
-            "be82c13305": "Send Notes",
-            "6b58620851": "Stage Reviewed",
-            "5a7dd35bb7": "reviewed,",
-            "76eee4075f": "Review Complete",
-            "96cfded20f": "Save",
-            "f9b4e81fd2": "Delete",
-            "da5c2e1037": "Review note",
-            "2b81315e3d": "File note",
-            "62531e9326": "Line {{value0}}",
-            "4aa499fc3e": "Add Note",
-            "bd7f2108fc": "Edit Note",
-            "4323ecdb70": "Open in Session",
-            "9433a2e312": "Mark Unreviewed",
-            "f5848bd976": "Stage Reviewed Files",
-            "00c9fda7a7": "Clear Sent Notes",
-            "6dba03733e": "Send Unsent Notes",
-            "48682ededf": "Copy Notes",
-            "aa58d9c0d7": "New Agent Session",
-            "6a3716a622": "Discard changes to \"{{value0}}\"? This cannot be undone.",
-            "d55f01e697": "Discard File",
-            "fd30ae34a4": "{{value0}} reviewed unstaged files can be staged",
-            "a0254e034c": "Review Actions"
-          },
-          "MobileDiffReviewFileSummary": {
-            "3745bb8fe6": "Hunk",
-            "3e9a9b32ee": "Stale",
-            "db301c5173": "stale",
-            "715ff9cedd": "Changed",
-            "4c6781140f": "Reviewed",
-            "4ea7bacdf4": " from {{value0}}"
-          },
-          "MobileDiffReviewFooter": {
-            "80b1849676": "Mark Reviewed",
-            "8146d03e39": "Reviewed",
-            "bd18444a9d": "Note",
-            "94bfeaf090": "Discard",
-            "bf9f285bf1": "Unstage",
-            "2623350c05": "Stage"
-          },
-          "MobileDiffReviewHeader": {
-            "afe6a05fe9": "All",
-            "022200a6f3": "reviewed",
-            "d6521a2df5": "Changes"
-          },
-          "MobileHomeQuickActions": {
-            "a71b5def9e": "Create Workspace On",
-            "2dd1e74623": "New Workspace",
-            "59cfb6c319": "Pair Desktop",
-            "5d6f0d5506": "Quick Actions"
-          },
-          "MobileHtmlPreview": {
-            "1dd27d1956": "Source",
-            "6ef51f0562": "Preview"
-          },
-          "MobileMarkdown": {
-            "cb032ab166": "[x]",
-            "9228cc8353": "{{value0}} more columns",
-            "26687ede29": "{{value0}} more rows",
-            "7d36e16e08": "Open image",
-            "a22b42f760": "image"
-          },
-          "MobilePRSidebar": {
-            "be28b32b73": "Retry",
-            "f9908dd9fd": "Loading pull request…",
-            "50beb30d6c": "Not permitted — your GitHub account is not connected.",
-            "9df0caaa0e": "Something went wrong."
-          },
-          "MobileWorkspaceNameInput": {
-            "5083197ad5": "Workspace name"
-          },
-          "NewWorktreeModal": {
-            "5442bc67b1": "Agent",
-            "07abe6788b": "Run on",
-            "28c9634f55": "Project",
-            "52a6d084dc": "Create worktree",
-            "8a9197a7a9": "Connect target",
-            "a1b2e6ce4c": "Run setup command",
-            "b191daf935": "Skip",
-            "d2a6322022": "Run",
-            "f1c9144d48": "HOOKS",
-            "2c40d1cbfe": "MANTA.YAML",
-            "d1c6e46d31": "Setup script",
-            "6f2f2092d5": "Write a note",
-            "2cc02a28d4": "Note",
-            "013a3be8ad": "Advanced",
-            "7e8fbb7a16": "Connect target first",
-            "3bddecbdf9": "Connect",
-            "a2ba0ebe73": "Connecting...",
-            "02690f5980": "Remote repository",
-            "24d0c3cf77": "SSH Connection",
-            "1054d2ae92": "Workspace name",
-            "cb29993224": "Name or 'Create From'",
-            "47a5edf943": "No projects found",
-            "1588fda823": "Failed to connect to SSH repository.",
-            "1a58be27e1": "Failed to read SSH connection state."
-          },
-          "NewWorktreeProjectTargetFields": {
-            "797094e99c": "Select a run target",
-            "3b08602805": "Run on",
-            "56fd896dbf": "Select a project",
-            "364a10619b": "Project"
-          },
-          "ProtocolBlockScreen": {
-            "900fceb931": "Back to hosts",
-            "8776701afd": "Open GitHub Releases",
-            "a31839553b": "Open App Store",
-            "d990a3a921": "Already updated? Go back to Hosts and refresh the connection. If this message stays, remove this host and pair it again.",
-            "09c9f2cce4": "This paired desktop app is too old for your current Manta Mobile app. Update Manta on your computer, then try this host again.",
-            "938a1a102b": "This desktop needs a newer Manta Mobile app. Update Manta Mobile from {{value0}}, then try this host again.",
-            "0b8f38e4de": "Update Manta on your computer",
-            "682bbfb813": "Update Manta Mobile"
-          },
-          "SetupHookTrustDrawer": {
-            "3def439a17": "Don't run",
-            "854491abb2": "Always trust and run",
-            "c0e0ace4b0": "Run hooks",
-            "9bb8f1626f": "Setup script",
-            "8315ed1a92": "New setup script",
-            "3fce3cbaa8": "This repository's manta.yaml runs before the workspace starts. Only run it if you trust this repository.",
-            "4923252ebf": "Run setup from {{value0}}?",
-            "7a043eaa04": "{{value0}}'s setup script changed"
-          },
-          "SmartWorkspaceAdvancedFields": {
-            "935335d212": "Reuse branch “",
-            "2e49b532ce": "Derived from name",
-            "0804d94c43": "Branch name",
-            "309ff35d45": "Workspace name",
-            "8ee790c3a4": "Name"
-          },
-          "SmartWorkspaceSourceDrawer": {
-            "a8eb2a26fd": "Type a name or search a source",
-            "a8d3d7ff0b": "Type a workspace name in the field below.",
-            "4234b3bdce": "No results found.",
-            "2db388fb01": "This SSH repo needs a GitHub remote to list issues and PRs.",
-            "dac35958b2": "Connect the repository to search sources.",
-            "4e42fd4474": "Switch to",
-            "87c5ca6ae6": "Cancel",
-            "db63c6e582": "This item lives in",
-            "03acecfbb2": "Done",
-            "e62b83862e": "Name or 'Create From'"
-          },
-          "SmartWorkspaceSourceField": {
-            "1c7abc63cd": "Type a name or search a source",
-            "78c976b8b3": "[Optional]"
-          },
-          "SmartWorkspaceSourceRow": {
-            "cd32bcd37a": "New branch",
-            "7434979ca9": "Create branch \"{{value0}}\"",
-            "67b72c4984": "Name this workspace",
-            "b8ad93d4e4": "Use \"{{value0}}\""
-          },
-          "TerminalShortcutSettings": {
-            "0a024192a9": "Create key combo or text macro",
-            "77eeb84341": "Add Custom Shortcut…",
-            "03090ca212": "No custom shortcuts defined yet.",
-            "106c56af09": "CUSTOM SHORTCUTS",
-            "fd8cafae33": "Show every built-in shortcut key in the original order",
-            "3f4aa252c0": "Reset Defaults",
-            "39d99de238": "Toggle keys to show or hide them, and hold the grip to drag a key into the order you want on the terminal shortcut bar.",
-            "bb5647a2e9": "SHORTCUT BAR"
-          },
-          "TextInputModal": {
-            "34e60eed01": "Cancel"
-          },
-          "VoiceModelList": {
-            "128acde662": "Use",
-            "920fafb3ba": "In use",
-            "8f6c8e1a20": "Set up on desktop",
-            "2674d17a69": "API key set",
-            "078e664084": "Recommended"
-          },
-          "WorkspaceDetailPlaceholder": {
-            "eaaca53384": "Pick a workspace from the sidebar to open its terminal here.",
-            "a9ee4cc7a1": "No workspace open"
-          },
-          "WorktreeListRow": {
-            "24b73ac9de": "children",
-            "ba02d07cf8": "child",
-            "9422156692": "Child",
-            "b90db856e1": "Folder"
-          },
-          "accounts": {
-            "snapshot": {
-              "0a40a0d179": "Inactive Codex limits use the wrong provider identity",
-              "e0d2cb1b80": "Inactive Claude limits use the wrong provider identity",
-              "37c91810fe": "Codex limits use the wrong provider identity",
-              "3967e8ed07": "Claude limits use the wrong provider identity",
-              "f795e4b34f": "WSL Codex accounts require an exact distro",
-              "39989a7f2a": "Host Codex accounts cannot name a WSL distro",
-              "66534ee9f4": "WSL rate-limit targets require an exact distro",
-              "10884c74dd": "Host rate-limit targets cannot name a WSL distro"
-            }
-          },
-          "codex": {
-            "reset": {
-              "credit": {
-                "cc5cb2769f": "This account has no earned reset credits available.",
-                "ffe82b01d7": "No reset available",
-                "526f977cea": "No eligible Codex rate-limit window is exhausted.",
-                "24c11abaec": "Nothing to reset",
-                "dea1d56b5c": "Codex usage has been refreshed.",
-                "f5bde1d0f8": "Reset already applied",
-                "42226215e4": "Rate limits reset"
-              }
-            }
-          },
-          "new": {
-            "workspace": {
-              "project": {
-                "targets": {
-                  "d75f083bed": "Remote · {{value0}}",
-                  "f238c6255a": "SSH · {{value0}}",
-                  "779bae104b": "This computer"
-                }
-              }
-            },
-            "worktree": {
-              "agent": {
-                "selection": {
-                  "f38095bad3": "Blank Terminal"
-                }
-              }
-            }
-          },
-          "use": {
-            "codex": {
-              "reset": {
-                "credit": {
-                  "action": {
-                    "e610f14b9f": "This spends one earned reset for {{value0}} and immediately resets eligible rate-limit windows.",
-                    "1333daf5e9": "Use a rate-limit reset?",
-                    "4ca21e5dbc": "Could not reset rate limits",
-                    "ae28bb640b": "The account or reset offer changed before the host contacted Codex. Review the updated details, then confirm again.{{value0}}",
-                    "e034060288": "Reset details changed"
-                  }
-                }
-              }
-            }
-          },
-          "pr": {
-            "sidebar": {
-              "MermaidDiagram": {
-                "5ba6e6ad8e": "mermaid"
-              },
-              "MobileLinkPrForm": {
-                "90f2dc7750": "Link pull request",
-                "5332c9cbc4": "Link #{{value0}}",
-                "e6d07b4dd8": "#123 or https://github.com/owner/repo/pull/123",
-                "0f6c09a375": "PR number or GitHub URL",
-                "64b5ae218a": "Cancel",
-                "7fc66c2fd9": "Link existing pull request"
-              },
-              "MobilePrViewPanel": {
-                "2c83633f59": "Current branch unavailable.",
-                "fecbe9eaeb": "Hosted review panel unavailable for this provider."
-              },
-              "PRActionsSection": {
-                "9cee22e82f": "Unlink",
-                "cd12f36e83": "Reopen",
-                "80bd5bbae6": "Close",
-                "025ebe4500": "Off",
-                "a128380b90": "On",
-                "d09f750889": "Auto-merge when ready",
-                "f31892b220": "Merge pull request",
-                "dd786a68a5": "#{{value0}} will be reopened.",
-                "a025d18cbf": "Reopen pull request?",
-                "6ffee73e0a": "#{{value0}} will be closed without merging.",
-                "d36423d95e": "Close pull request?",
-                "ccdb8763e7": "This will merge #{{value0}} into its base branch.",
-                "ff49401d68": "Merge pull request?"
-              },
-              "PRCheckDetail": {
-                "aba886cf7a": "Showing first 100 jobs",
-                "1d6fea641a": "Showing first 20 annotations",
-                "c7542a3d88": "Annotations",
-                "c496c7d2f0": "No details available."
-              },
-              "PRChecksSection": {
-                "4220bbc33f": "Fix",
-                "b7aee3cc29": "Inspect details or start an AI fix pass.",
-                "df5a325c3c": "failing check",
-                "8726729fc3": "Checks"
-              },
-              "PRCommentCard": {
-                "5bc0381ef0": "This permanently deletes the comment on GitHub.",
-                "c46785afdf": "Delete comment?",
-                "a78a7ab1e9": "Write a reply…",
-                "ee8c9b0b63": "Resolve",
-                "03a5d77bee": "Unresolve",
-                "e2274ea0af": "Delete",
-                "c12d554f42": "Edit",
-                "45a827f616": "Reply",
-                "067c1a9f64": "Edit comment…",
-                "0bf8177c2a": "resolved",
-                "3904d344e6": ":L{{value0}}"
-              },
-              "PRCommentComposer": {
-                "11732797fe": "Cancel"
-              },
-              "PRCommentsSection": {
-                "76d07d0b8c": "by",
-                "4c78c7b55f": "comment",
-                "9514e1f710": "thread",
-                "2e0f427685": "Resolved",
-                "d8cadfab1d": "Add a comment…",
-                "57fbb91a1e": " of {{value0}}",
-                "a5fb2d4b6e": "more",
-                "374d1a8a08": "Show",
-                "c57f1e6617": "No comments yet.",
-                "15575e7e07": "Could not load comments. Tap refresh to try again.",
-                "fe5d1368ed": "Comments",
-                "bdd7d0b5bb": "No description provided.",
-                "84ed9e79c2": "Could not load description. Tap refresh to try again.",
-                "e9592a7109": "Description"
-              },
-              "PRConflictingFilesSection": {
-                "ceb7ab5c67": "Resolve conflicts with AI",
-                "c3659c167b": "Conflicting files",
-                "2ae2d49587": "Copy commands",
-                "ec4e7a9758": "Copied",
-                "dfd365f26c": "Run from this worktree",
-                "ed0bf9798a": "This branch has conflicts that must be resolved",
-                "f77b02610a": "behind (base commit:",
-                "9936c08744": "commit",
-                "0e748c1c6d": "Conflicts",
-                "a05ef6245f": "Conflict file details are unavailable"
-              },
-              "PRReviewersSection": {
-                "8c14e85fe2": "No reviewers requested",
-                "4f951ce00a": "Could not load reviewers. Tap refresh to try again.",
-                "472af70c24": "Loading reviewers…",
-                "7d7dae0045": "Reviewers"
-              },
-              "PRSidebarHeader": {
-                "a01982ac1f": "Save",
-                "52004b2f8c": "Cancel"
-              },
-              "PrSidebarCreateEmptyState": {
-                "78d5fd366a": "Link an existing PR",
-                "491af4a385": "The current branch is not linked to an open PR.",
-                "0a6a6ccd75": "{{value0}} is not linked to an open PR.",
-                "99a7fe79db": "Refresh to check again, or create a new PR for this branch.",
-                "1b605a13e6": "No open pull request",
-                "237c52b8f0": "Linked PR #{{value0}} unavailable",
-                "e6413e8953": "Create PR",
-                "4d20d570a5": "Pull request"
-              },
-              "ReviewerPickerDrawer": {
-                "e8e60b33bc": "No matching people",
-                "35ef9dfb20": "Search people",
-                "2b7e31a36e": "Reviewers",
-                "755b3e33d2": "Failed to load people"
-              },
-              "pr": {
-                "checks": {
-                  "presentation": {
-                    "fc87834cbf": "Reviewed",
-                    "344836f6d3": "Pending",
-                    "76601c7a9f": "Dismissed",
-                    "6c5d1aa61c": "Commented",
-                    "ae38fce3e6": "Changes requested",
-                    "225a06d7c9": "Approved",
-                    "8422a39fd0": "No checks"
-                  }
-                },
-                "comment": {
-                  "audience": {
-                    "labels": {
-                      "92606cad19": "Bots",
-                      "0964119c2c": "Humans",
-                      "8fabd9b4d4": "All"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "MobileRichMarkdownEditor": {
-            "b0b327b090": "Code block",
-            "8758a483e2": "Inline code",
-            "7d3dcdfd44": "Image",
-            "78b02d6409": "Link",
-            "750393eed3": "Quote",
-            "8cf9508628": "Checklist",
-            "ffbf532ba2": "Numbered list",
-            "84ac880fd0": "Bullet list",
-            "c307647887": "Strike",
-            "cf0a148dc5": "Italic",
-            "4dc5087c78": "Bold",
-            "aa920b1281": "H3",
-            "4f4fb498bc": "H2",
-            "4e4c3e5c6e": "H1",
-            "dcf876bee3": "Body"
-          },
-          "MobileHostCard": {
-            "ed956cf562": "Unlock your phone, then tap to retry",
-            "6bb2cc40c6": "Tap to re-pair with your desktop",
-            "fa4cf14def": "Update desktop Manta and sign in to connect from anywhere",
-            "6afb830179": "Pairing temporarily unavailable",
-            "7d7a9a4f62": "Pairing invalid"
-          },
-          "WorktreeAgentSummary": {
-            "500d1acf5b": "{{value0}} agents"
-          }
-        },
-        "browser": {
-          "MobileBrowserAddressField": {
-            "22601c078b": "URL"
-          },
-          "MobileBrowserKeyRow": {},
-          "MobileBrowserPane": {
-            "8371afb0eb": "Type on page…",
-            "e3c7ac5a87": "OK",
-            "45711f1d50": "Cancel",
-            "cf59e404bc": "Browser Dialog",
-            "195080774d": "Reload",
-            "f9830183d5": "Forward",
-            "6bf3c4656f": "Back"
-          },
-          "MobileBrowserPointerModifiers": {
-            "1936cb6053": "Shift",
-            "7cff3b4086": "Alt",
-            "12a5bc4ad4": "Ctrl",
-            "216f31a789": "Cmd"
-          },
-          "MobileBrowserViewModeSwitch": {
-            "789254cd81": "Mobile",
-            "dd3b9447eb": "Web"
-          }
-        },
-        "agent": {
-          "history": {
-            "MobileAgentSessionHistoryList": {
-              "7f5faff873": "current worktree",
-              "b4bec2cb77": "messages",
-              "7d95e41a14": "message"
-            },
-            "MobileAgentSessionHistoryPanel": {
-              "2fff2aa6b2": "No past agent sessions in this scope.",
-              "5fcef8f07b": "No sessions match your search.",
-              "2a48123bc9": "No agent sessions",
-              "94da199071": "skipped",
-              "5820d160a5": "transcripts",
-              "ddb3315bf5": "transcript",
-              "51cef69b11": "Search sessions, repo:, path:",
-              "ece2f4dedf": "Retry",
-              "205877f249": "Unable to Load",
-              "1c6ecaac69": "Update Manta on this host to browse agent session history.",
-              "c9196c1d89": "Agent Session History Unavailable",
-              "cf628e5d91": "Agent Session History",
-              "adc3dfc6d1": "All",
-              "76181e3ffa": "Project",
-              "d24e997219": "Workspace"
-            },
-            "use": {
-              "mobile": {
-                "agent": {
-                  "history": {
-                    "state": {
-                      "9d287af4e4": "Waiting for host…"
-                    }
-                  }
-                }
-              }
-            },
-            "worktree": {
-              "navigation": {
-                "actions": {
-                  "02ed3a5367": "Agent Session History",
-                  "5e3cb104b0": "Source Control"
-                }
-              }
-            }
-          }
-        },
-        "diagnostics": {
-          "troubleshoot": {
-            "common": {
-              "issues": {
-                "8cb84f5d74": "Other VPN Interference",
-                "9e08e7e2d6": "Tailscale Host Unreachable",
-                "004de673b0": "Connection Timeout",
-                "3040fff325": "Desktop App Not Running",
-                "6a6637882b": "Firewall Blocking Port 6768",
-                "bee667fbf1": "Different WiFi Networks",
-                "309d528256": "Disable that VPN or enable split tunneling / \"Allow LAN\".",
-                "9fe597b620": "Non-Tailscale VPNs can route local traffic through a remote server.",
-                "3f17ae0507": "Update the Tailscale app — recent releases fix reconnect bugs.",
-                "8f429e95d4": "Check the desktop is awake and shows as connected in your tailnet.",
-                "ae6327f577": "iOS/Android can silently wedge the tunnel: toggle Tailscale off and back on in the Tailscale app.",
-                "4fa10bd283": "Host addresses like 100.x.x.x or *.ts.net connect through Tailscale — keep it ON.",
-                "4bdb4db8ac": "Restart both apps if timeouts persist.",
-                "82f4b5177a": "Go back to the host list and tap your host to retry.",
-                "b865b352b1": "Check WiFi signal strength on your phone.",
-                "9de3f44ca8": "After an update, you may need to re-pair via QR code.",
-                "185ef474dc": "Try restarting Manta — the companion server starts on launch.",
-                "17a9bbbfb4": "Manta must be open on your desktop to accept connections.",
-                "aed0bc9e02": "Corporate/school networks may block P2P — try a personal hotspot.",
-                "e34d738343": "Linux: sudo ufw allow 6768",
-                "b69fc16e2a": "Windows: Defender Firewall → Allow app — enable Manta for Private networks.",
-                "82218b4673": "macOS: System Settings → Network → Firewall — allow Manta.",
-                "8c42fc3507": "Try reconnecting WiFi on both devices.",
-                "87abb70237": "Ethernet and WiFi must share the same subnet.",
-                "0c558ad505": "Both devices must be on the same LAN (unless connected through Tailscale)."
-              }
-            }
-          }
-        }
-      },
-      "scripts": {
-        "mock": {
-          "server": {
-            "account": {
-              "state": {
-                "b6d12a8a4d": "No managed Codex account selected"
-              }
-            },
-            "native": {
-              "chat": {
-                "scenario": {
-                  "3d0cb0b62e": "Claude Code"
-                }
-              }
-            },
-            "session": {
-              "tabs": {
-                "fixture": {
-                  "843194f996": "zsh"
-                }
-              }
-            },
-            "terminal": {
-              "fixtures": {
-                "fc2f70424d": "zsh",
-                "8f249d8343": "Claude — auth refactor"
-              }
-            },
-            "5865219c37": "Invalid public key",
-            "f9ad9c5d7f": "Expected e2ee_hello",
-            "75675aee69": "Invalid JSON"
-          }
-        },
-        "repro": {
-          "terminal": {
-            "colors": {}
-          }
-        },
-        "test": {
-          "subscribe": {
-            "1b18317ab3": "mobile-stream-repro"
-          }
-        }
-      },
-      "app": {
-        "about": {
-          "a4139d5f69": "@orca_build",
-          "8830283fd4": "stablyai/manta",
-          "45de7268e5": "manta.sh.cn",
-          "c117fccf80": "Open-source agent IDE for 100x builders",
-          "eadba12858": "Manta",
-          "a81a8e76d8": "About"
-        },
-        "browser": {
-          "settings": {
-            "c1dc8b0975": "Open terminal links",
-            "2ba554fba7": "Choose where HTTP(S) links tapped in terminal output open.",
-            "821ed56937": "LINKS",
-            "189c0c35a9": "Browser",
-            "5a3e904671": "Open in Safari, Chrome, or another browser on this phone.",
-            "848a3a5e01": "Phone browser",
-            "678f6766a4": "Open in the streamed browser from your paired desktop.",
-            "2307073d4f": "Manta browser on desktop"
-          }
-        },
-        "connection": {
-          "log": {
-            "3ce523c653": "No paired hosts.",
-            "157f65530a": "No connection events yet this session. Events appear as the app dials this host.",
-            "1a265761bf": "Copy diagnostics",
-            "0d8cbd791b": "Copied",
-            "9aee626b28": " · attempt {{value0}}",
-            "c78dc5ccfb": "Connection log"
-          }
-        },
-        "index": {
-          "a3cfae357a": "Remove \"{{value0}}\"? You can re-pair later.",
-          "c8e253dc76": "Remove Host",
-          "267203af46": "7d",
-          "fcaaa4c805": "5h",
-          "20e2e26d8c": "System default",
-          "557a47bcbe": "Account usage",
-          "cbbc34848b": "Tasks",
-          "44e6505b65": "Resume",
-          "18b828cf5b": "Please try again.",
-          "b10d78d179": "Could not check pairing",
-          "f3542b6e7a": "Desktops",
-          "4cf927c2bb": "PRs created",
-          "e2e27dc946": "Agent time",
-          "a8515b5dc4": "Agents spawned",
-          "f62e59845a": "Welcome back",
-          "f4795d1407": "How it works",
-          "956aabb1b3": "Pair Desktop",
-          "bf2694d8a7": "Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.",
-          "f2f89ea971": "Connect your desktop",
-          "8a7cdca657": "Manta",
-          "53b5a5229a": "Could not remove host",
-          "d7fb33f5cb": "No task sources connected",
-          "aea01b53db": "You're connected",
-          "6cac1b9d8b": "Scan the code",
-          "813580ddc9": "Open Manta desktop"
-        },
-        "mobile": {
-          "onboarding": {
-            "4c5336d71f": "Manta"
+        "image": {
+          "attachment": {
+            "3524b83abd": "Attach failed",
+            "849600ec04": "Image too large to attach",
+            "25d19dd487": "Photo permission denied",
+            "b6efaa94dd": "Attach failed (disconnected)"
           }
         },
         "native": {
           "chat": {
-            "settings": {
-              "a74c9d48cc": "Off",
-              "3977004baf": "On",
-              "2eeb654168": "Open sessions in Chat UI",
-              "b16ffa3c6e": "Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.",
-              "47b9a4b22a": "DEFAULT VIEW",
-              "6a8d3d4f8f": "Chat UI"
+            "image": {
+              "attachments": {
+                "26536a0cb0": "Attach failed",
+                "f988cd21c5": "Image too large to attach",
+                "8dd92621ac": "Photo permission denied",
+                "29cd4ef611": "Attach failed (disconnected)"
+              }
             }
           }
         },
-        "notifications": {
-          "c7b96a0c60": "Open Settings",
-          "6975ae4fc2": "Agent notifications",
-          "1888d0bc3c": "Notifications",
-          "7550338ceb": "Get notified on this device when an agent needs your input or finishes a task.",
-          "bb35911528": "Notifications are disabled in system settings."
-        },
-        "pair": {
-          "confirm": {
-            "b0a88a1442": "Back to home",
-            "dabe16ab3a": "Pairing log",
-            "cc3644325c": "Connecting…",
-            "819d527c3f": "Cancel",
-            "57e34e4490": "Pair",
-            "dcb7d9f315": "You opened a pairing link from your desktop. Confirm to add it to your hosts.",
-            "ca6b89f947": "Pair with this desktop?",
-            "61ff783a52": "error"
-          },
-          "scan": {
-            "51255b690c": "manta://pair?code=... or paste the code",
-            "1be3090595": "Copy the code shown under the QR on your computer.",
-            "925154ee14": "Paste pairing code",
-            "43faab50dc": "Paste code instead",
-            "fc2ea5de3e": "Try Again",
-            "1bf9fb6718": "Pairing log",
-            "4f71d92c45": "Connecting…",
-            "53f7e4633e": "Or paste pairing code",
-            "75316896eb": "Scan the QR code",
-            "98f769b1da": "Go to Settings → Mobile",
-            "a00f504310": "Open Manta on your computer",
-            "c2f0e05c79": "Open Settings",
-            "49ccfaed6d": "Continue",
-            "6fa9f873ff": "Enable camera access in Settings, or paste the pairing code instead.",
-            "876382ef1d": "Scan the QR code from Manta on your desktop, or paste the pairing code instead.",
-            "b01906a180": "Camera Access Disabled",
-            "d153ad4648": "Pair with desktop"
-          },
-          "008841f9f3": "Back to home",
-          "79013fce2c": "Missing pairing code"
-        },
-        "settings": {
-          "1099866233": "Retry",
-          "7053da9ce5": "Support",
-          "ee3b9f51f7": "Privacy Policy",
-          "92240ca699": "Couldn't check cleanup status on this device. Retry to be safe.",
-          "5a1f890fc5": "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
-          "2beba1aee9": "Cleanup still couldn't be confirmed. Try again later.",
-          "045ad69df0": "Pairing credential cleanup",
-          "1042ddb555": "About",
-          "d1a8a93194": "Troubleshooting",
-          "8bc411d126": "Notifications",
-          "ae6df46648": "Voice",
-          "b6d00cec3b": "Browser",
-          "f9a07be163": "Chat UI",
-          "425c962726": "Terminal",
-          "d1c3a08e29": "Settings"
+        "pr": {
+          "actions": {
+            "01a9dd9c0e": "Not connected"
+          }
         },
         "terminal": {
-          "settings": {
-            "95f01e00e2": "Terminal text size",
-            "9cddb95e6a": "Restore {{value0}}",
-            "ac4e08885f": "Off",
-            "a91e66a47a": "On",
-            "d7c277cabd": "KEYBOARD INPUT",
-            "41c2fa2d3e": "Text size",
-            "392fab3532": "TEXT SIZE",
-            "5369adc998": "No paired desktops yet. Pair one to control terminal behavior.",
-            "7fdbe05077": "WHEN YOU LEAVE THE APP",
-            "9098f96768": "Terminal",
-            "d7e9dd546e": "Autocomplete & autocorrect",
-            "f4f7e6d042": "Enable phone-style autocomplete, autocorrect, and spelling suggestions in the terminal command bar. Off by default so the keyboard never rewrites commands, flags, or paths. Direct keyboard input (when keys go straight to the terminal) always sends raw keystrokes, so suggestions don't apply there.",
-            "b147ed5e18": "Scale the terminal text. Smaller sizes fit more columns with side margins; larger sizes show fewer columns — drag sideways to pan. You can also pinch to zoom in the terminal itself, which updates this setting. Per-device display only; doesn't change the desktop terminal.",
-            "5185d36d47": "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore this terminal or Restore all terminals on the banner to resize manually.",
-            "ad4f6a76dd": "After 30 minutes",
-            "a761169918": "After 5 minutes",
-            "80118eb022": "After 1 minute",
-            "aba5507191": "Keep at phone size (default)",
-            "ef92abff6e": "Largest (200%)",
-            "b409fcd6d6": "Larger (150%)",
-            "1ea3fa201c": "Large (125%)",
-            "d0e28eb0a6": "Default (100%)",
-            "080b3ca143": "Smaller (75%)",
-            "862a2e3353": "Smallest (50%)"
+          "paste": {
+            "c1e4d031ec": "Paste failed",
+            "e5d865b17a": "Image too large to paste",
+            "806d2c697d": "Paste failed (disconnected)",
+            "1338fc5288": "Paste too large (max 256 KiB)"
           }
         },
-        "troubleshoot": {
-          "d89f2f9bbd": "Common issues",
-          "6f024bb4ae": "View connection log",
-          "e71414eafc": "Run diagnostics",
-          "0790b66aca": "Run again",
-          "750b3cfa37": "Running…",
-          "0c81261ae3": "Troubleshooting",
-          "f2c3857280": "Platform",
-          "21ef75f0f3": "Hosts",
-          "de003da9ea": "Internet",
-          "fc87d4676b": "Paired hosts"
-        },
-        "voice": {
-          "settings": {
-            "0beb7ba66f": "Speech Model",
-            "9fe0492be7": "SPEECH MODEL",
-            "bb05560461": "Toggle: press once to start, again to stop. Hold: dictate while held.",
-            "261e33b845": "Dictation Mode",
-            "e20d603180": "Dictate text into any focused pane on your desktop.",
-            "db7bf75951": "Enable Voice Dictation",
-            "2f87394b1c": "DICTATION",
-            "15b9dfdf5d": "Failed to load voice settings.",
-            "a49af08edd": "Connect to a desktop to manage voice settings.",
-            "a529906cda": "Voice",
-            "858525ff0d": "Hold",
-            "cb11e9d147": "Toggle",
-            "274e79be5b": "None selected"
+        "agent": {
+          "history": {
+            "state": {
+              "9d287af4e4": "Waiting for host…"
+            }
           }
-        },
-        "h": {
-          "layout": {
-            "7ceda7cfcf": "Pull Request",
-            "01c108c5c2": "Changes",
-            "6adb9b8189": "Agent Session History",
-            "319ab14fcb": "Source Control",
-            "c2dc55fe2e": "Terminal",
-            "6137d5f7ea": "Tasks",
-            "295637a5f9": "Accounts",
-            "d3370f3d6f": "Edit host",
-            "7aca81e533": "Host"
-          },
-          "hostId": {
-            "accounts": {
-              "957454fe14": "Add or re-authenticate accounts from desktop Settings → Accounts.",
-              "cf4378bf56": "Loading accounts…",
-              "68019c3b7f": "host",
-              "2e13c71608": "Connecting to",
-              "5e1789fe9f": "Accounts",
-              "d3ca1c406b": "7d",
-              "6269cdf1fc": "5h",
-              "ae32572698": "Use the agent's own login",
-              "baea3d33ad": "System default",
-              "e535428048": "Could not switch account"
-            },
-            "edit": {
-              "0e51843adf": "Connects to",
-              "758a659e2f": "Accepts IP, host:port, or ws:// / wss://. Missing port defaults to the current port (or 6768).",
-              "90c9ad7f91": "Address",
-              "8c771c1b5b": "Host name",
-              "c0b8f02d08": "Name",
-              "2b2b56b6cb": "Change the display name or connection address. Address edits only switch where this phone connects — they do not re-pair. Use this when the same desktop is reachable at a different IP (for example home LAN vs Tailscale).",
-              "2d2dcd79c4": "Go back",
-              "38e846c36f": "Save",
-              "34a2121e56": "Edit host"
-            },
-            "index": {
-              "3055838788": "Hide default branch",
-              "1db32a2799": "Remove \"{{value0}}\"? You can re-pair later.",
-              "b6776c9891": "Remove Host",
-              "3c26b0ed7f": "Delete",
-              "edbd394091": "Sleep",
-              "8d080869d1": "Cancel",
-              "64c3d5c303": "Delete \"",
-              "b021e95cd2": "Delete Worktree",
-              "68236e60f1": "Repositories",
-              "d70faddef4": "Hide sleeping",
-              "6ddf01d8c1": "Workspaces",
-              "e4861c90c8": "Clear filters",
-              "4bc8c9f6fe": "Filter",
-              "7d559d8c19": "Group By",
-              "845b15b213": "Sort By",
-              "4e1194291f": "Search worktrees…",
-              "b14c7e89dd": "PR",
-              "0b319420ff": "Repo",
-              "1805187d69": "Status",
-              "999e4d9525": "Group",
-              "d85142e8e8": "Reconnect",
-              "dc676c5d54": "Host",
-              "407050f322": "Please try again.",
-              "3ff3938f5e": "Could not remove host",
-              "a95081bc58": "Recent",
-              "27072045b5": "Pin",
-              "76066c8aff": "Unpin"
-            },
-            "tasks": {
-              "1262746690": "Remote repository",
-              "6614e9b864": "Update Item",
-              "b12358de98": "Merge Pull Request",
-              "711e331043": "Merge Request",
-              "97bec2fda2": "Choose how this pull request should be merged.",
-              "0316f0659d": "Choose how this merge request should be merged.",
-              "6b1e55d747": "Merge method",
-              "643c1e0332": "Change status",
-              "15cec74be7": "Merge merge request",
-              "42702c04ca": "GitHub reports merge conflicts.",
-              "30f30656e9": "Merge pull request",
-              "bd6efe9dde": "Copy GitHub link",
-              "c43f5c54e5": "Copied",
-              "b52e1248b3": "Copy Linear link",
-              "d783b7fb2b": "Create Workspace",
-              "7ed22602e7": "Creating...",
-              "0fb53b901e": "No comments.",
-              "01798c4ff8": "Discussion",
-              "cf5b6cd55c": "Add sub-issue",
-              "1ba0002b22": "Sub-issue title",
-              "733c49ee24": "Open",
-              "f0c2a7e0b9": "No sub-issues.",
-              "a73061648e": "None",
-              "c886a93e4f": "Sub-issues",
-              "faeba98b3a": "No pipeline runs for this MR.",
-              "adee4199a7": "{{value0}} jobs",
-              "89ab9d6324": "Pipeline",
-              "5cba08de45": "File contents unavailable.",
-              "8e1dffe0a2": "Binary file.",
-              "0ed35b1167": "Mark viewed",
-              "d7521a61c2": "Mark unviewed",
-              "3d8b3c8896": "View",
-              "fd0aff3906": "Hide",
-              "5a1334b828": "Changed files",
-              "0ade0ec326": "No checks found.",
-              "1e1bbda073": "Rerun all",
-              "8e98409094": "Rerun failed",
-              "aee93a0684": "Refresh",
-              "5e56d3dd98": "Checks",
-              "2a83e35426": "Request review",
-              "593778f6a7": "Request reviewers",
-              "936a69c8ab": "No reviewer suggestions found.",
-              "45efa99b1a": "Loading reviewers...",
-              "89f038b270": "No reviewers requested.",
-              "84354849b4": "Reviewers",
-              "150447f1f6": "Update assignees",
-              "5ff03f2b54": "Remove usernames, comma separated",
-              "2bda2dac44": "Add usernames, comma separated",
-              "fbe1f46e84": "No assignable users found for this repository.",
-              "817e16216e": "Loading assignees...",
-              "a0bd27b1de": "Assignees",
-              "2bd3b109f8": "Update labels",
-              "832bb443ac": "Remove labels, comma separated",
-              "07227f6aa3": "Add labels, comma separated",
-              "c920eee494": "No labels in this repository.",
-              "bd87e0349f": "Loading labels...",
-              "1a11cb6c10": "Labels",
-              "38ecea93a4": "Save title",
-              "e9bd9ec727": "Title",
-              "6e65c44219": "Save description",
-              "c57d82a7b7": "Description",
-              "88ce4b1bbf": "Project",
-              "6f7452906d": "Assignee",
-              "15ae8aef22": "Status",
-              "a36f9052f5": "Type",
-              "62e4e4fab6": "Merge requires this repository in Manta.",
-              "f5b7df9238": "Close item",
-              "bde826cb6c": "Reopen item",
-              "8ca7f70cf2": "Open in GitHub",
-              "7e7816b5ce": "Workspaces can only be created from GitHub issues and pull requests.",
-              "3151cad2a8": "Delete",
-              "0614a095ba": "Edit",
-              "d8cc91fe24": "Reply",
-              "4638e5d620": "Resolve thread",
-              "a84735398a": "Reopen thread",
-              "16fee5cb7d": "Cancel",
-              "c7158b292f": "Save",
-              "9683022203": "Edit comment",
-              "cf57cc3c02": "Show",
-              "52fd613db0": "{{value0}} comments",
-              "364aac3cc7": "by",
-              "a71fb209e4": "comment",
-              "4f9ae79c6d": "thread",
-              "6267438140": "Resolved",
-              "18a48f936d": "Clear field",
-              "6a40f49194": "Save field",
-              "e60ce46b41": "Text",
-              "d633598c54": "Number",
-              "2ae972cc96": "YYYY-MM-DD",
-              "a9c15e3103": "Current & upcoming",
-              "1dabaa2f96": "Completed",
-              "097429f0fc": "No iterations available.",
-              "255d57b1db": "Project fields",
-              "de9e1030f7": "Clear type",
-              "e43106b8ae": "No issue types configured for this repository.",
-              "c36deb9937": "Loading issue types...",
-              "234befedac": "No type",
-              "d58b83808f": "Issue type",
-              "367621449b": "Project item",
-              "8c666876cf": "Draft issue",
-              "c5c83a9af1": "Issue",
-              "05ac26f906": "Pull request",
-              "fdacd01fb3": "GitHub Project ·",
-              "7864fc2cd3": "Copy repository",
-              "79f69cf413": "is not added to Manta. Add this repository from the desktop app, then refresh mobile Tasks.",
-              "ffc86dd787": "Repository not in Manta",
-              "78dc8d99b5": "Don't run",
-              "965cfe1733": "Always trust and run",
-              "9be7d57af4": "Run hooks",
-              "5cfbadc7ae": "Setup script",
-              "bed7484165": "New setup script",
-              "0067e101da": "This repository's manta.yaml runs on your machine before the workspace starts. Only run it if you trust this repository.",
-              "33f3eab28c": "Run setup from {{value0}}?",
-              "41eb5d08a7": "{{value0}}'s setup script changed",
-              "c5dd55b98b": "Skip setup and create",
-              "6f4021e6d8": "Run setup and create",
-              "caf1f1c3f9": "requires a setup choice before creating this workspace.",
-              "374a5075f8": "Run Setup Script?",
-              "a63af13a45": "{{value0}} directories",
-              "0efb8013dd": "1 directory",
-              "83698fde61": "src/renderer packages/ui",
-              "721916c122": "Directories",
-              "a21f24f4c3": "Renderer UI",
-              "edd08de8b9": "Name",
-              "6a5da1393a": "Edit Sparse Preset",
-              "9ba7ca6a72": "New Sparse Preset",
-              "ebe80a094f": "New preset",
-              "9b7f0e1623": "Use the whole repository",
-              "d1fa8d8e8a": "Full checkout",
-              "eb18fa747a": "Sparse Checkout",
-              "88aaeedd17": "Branch name:",
-              "bb07dce495": "No branches match.",
-              "6a31586256": "Use this repository's configured base",
-              "b498493084": "Default branch",
-              "c30f76dfa0": "Search branches",
-              "3b40072a71": "Pick an existing branch or ref.",
-              "beaa1f0dc2": "Start From",
-              "c03eedc8a5": "Agent",
-              "4414bc388e": "Repository",
-              "49639216d6": "Connect Repository",
-              "a6154f9f64": "Detecting agents...",
-              "e05fff6416": "Repository not found.",
-              "ea42a21b65": "Add a Git repository before creating a Linear workspace.",
-              "6b511d62d0": "Create from",
-              "9da82058be": "Start from",
-              "f0f0ead5de": "Advanced",
-              "4913f49b39": "Connect repository first",
-              "e544525736": "[Optional]",
-              "9ebfab9a70": "Workspace Name",
-              "783ad5427a": "Connect",
-              "1c8722f002": "Connecting...",
-              "85c9744a6b": "SSH Connection",
-              "983b6e3640": "Select a repository",
-              "507596eec6": "Create Workspace In",
-              "f1a69ad283": "Your key is encrypted via the host OS keychain and stored locally.",
-              "295ff95fd8": "Linear Settings / Security / New API key",
-              "082a072613": "lin_api_...",
-              "6b8bc8c9ef": "Personal API key",
-              "e84004bc3e": "Paste a Personal API key to browse issues from that workspace.",
-              "8db3078a5f": "Connect Linear workspace",
-              "5e0d4fdecc": "Linear Team",
-              "c1226d9507": "Create Issue",
-              "72746911a7": "Add context",
-              "771910d3dd": "Task title",
-              "19b172b893": "Origin",
-              "085f4e942e": "Upstream",
-              "d17c947e0d": "File in",
-              "dd4dd63252": "Issue source",
-              "73305d5fbc": "Team",
-              "657573dc0e": "Create an issue in the selected Linear team.",
-              "57dc834a8b": "Create an issue in the selected repository.",
-              "4d3967f940": "New",
-              "4282de9552": "Sort Tasks",
-              "2618a68b59": "Display Properties",
-              "b24b2505c1": "Order Linear Issues",
-              "e308c78c55": "Group Linear Issues",
-              "e7dfe89092": "Linear View",
-              "1a949e24c0": "No states available",
-              "fe64212bb8": "Loading states...",
-              "91b66f2f68": "Linear issue",
-              "c70d4be654": "Change Status",
-              "744206341a": "All teams",
-              "50be798fe0": "Choose which teams appear in Tasks.",
-              "667355c0eb": "Linear Teams",
-              "dcda24ae8b": "Linear Workspace",
-              "8e7463ff62": "Linear Filter",
-              "93df023405": "GitLab Filter",
-              "ae82372398": "GitLab View",
-              "110c5ad109": "Hidden from cards",
-              "a7446db2ee": "Shown on cards",
-              "9ceb4d4b21": "This view has no extra fields to show.",
-              "dd8868208f": "Choose which Project fields appear on item cards.",
-              "92a294030c": "Project Fields",
-              "4dc29412da": "Project Sort",
-              "13fbcd4b05": "Project View",
-              "e0ab14d2ec": "Choose Project View",
-              "4733fde938": "No more projects.",
-              "1c7f22dda1": "No matching projects.",
-              "c89600e769": "Browse all",
-              "d8102406ce": "Browse all (loading...)",
-              "ef498b3039": "Pin",
-              "77660c76bc": "Recent",
-              "e965618993": "Remove",
-              "467ef86c50": "Pinned",
-              "d0373e626d": "Tap to retry.",
-              "75b3ba7a55": "No projects loaded",
-              "f6caefe6f0": "Use Add by URL to reach missing projects.",
-              "c7ccaf191d": "Some organizations didn't load ({{value0}}).",
-              "ad38a607a6": "Couldn't load projects from {{value0}}.",
-              "db9fa0d7d1": "Add",
-              "8bb2d58e71": "Adding...",
-              "4326f401b2": "Add by URL or owner/number",
-              "80182538b7": "Search projects",
-              "e9ef3b053f": "Choose a project view for the Tasks page.",
-              "e291bf21dd": "GitHub Projects",
-              "e64ab47a47": "Loads older results",
-              "711ea5b96d": "Loaded",
-              "2bcd15ef19": "Jump to a loaded or available result page.",
-              "669b20d479": "GitHub Pages",
-              "e3577861c3": "Issues",
-              "b10fa24be3": "Pull Requests",
-              "2e410a19af": "GitHub View",
-              "0be8e1a894": "Querying",
-              "6b995d38c5": "No alternate issue sources available.",
-              "2c65b26ef1": "Choose whether each repository queries and creates work from upstream or origin.",
-              "6aaadd7285": "GitHub Issue Sources",
-              "1688454ca7": "All repositories",
-              "79cf65e9fa": "Choose which repositories to query.",
-              "a4c5842b9c": "Repositories",
-              "2409df9415": "Task Source",
-              "d914d311ea": "into",
-              "5a0d82fa5a": "Items",
-              "5c76505007": "No project items",
-              "17b0e864d5": "Browse projects",
-              "52a44bc039": "Choose a GitHub project",
-              "210a7848ff": "Connect Linear",
-              "e360d80713": "Browse and start work on your assigned Linear issues directly from Tasks.",
-              "2fda0f4da8": "Connect your Linear account",
-              "27bde2bf6c": "This mobile Tasks view needs a newer desktop runtime.",
-              "d2f46b812e": "Update Manta desktop",
-              "2909172f4f": "Sub-issue data is unavailable for your token.",
-              "c85d1b19c4": "Retry",
-              "682ce152d6": "Retrying...",
-              "f75002b096": "Couldn't load issues from",
-              "3e537de5df": ". Using origin.",
-              "38c9336758": "Preferred issue source upstream is unavailable for",
-              "ed61fb8b63": "Search {{value0}} tasks...",
-              "473b2b2807": "Search project view...",
-              "f3958ba4ea": "Sort:",
-              "9e23121b07": "Display",
-              "a166aa9578": "Order:",
-              "7f859ab9ca": "Group:",
-              "b8b23d4005": "My Todos",
-              "7f18577bdf": "Project MRs",
-              "fc70101ee7": "Fields:",
-              "76c0041b44": "Source:",
-              "fd3792748f": "Tasks",
-              "f90aaca3ed": "All workspaces",
-              "1ecfa2eb62": "View order",
-              "fc8e00d799": "Add a comment",
-              "586fb25e03": "Open a shell",
-              "ae64bd16d3": "Comment on line",
-              "fd22280789": "Add review comment",
-              "978d06c3da": "diff lines.",
-              "8c6d399553": "of",
-              "98eaa94b14": "Showing first",
-              "4f60b77ecb": "No text changes found.",
-              "eda57a4655": {
-                "214538": "Page {{value0}}",
-                "2283a9": "Page {{value0}} of {{value1}}",
-                "fb0627": "Page"
-              },
-              "ffde92a257": "Group by repository, then newest activity",
-              "e396dc7b91": "Newest activity first",
-              "e37bad9e9e": "Updated",
-              "9dc97b7c46": "Pending GitLab todos",
-              "08dad860f5": "Merge requests and issues by repository",
-              "55e8f0f221": "Review requests assigned to you",
-              "a31d90dd7e": "Needs review",
-              "41c6f687f9": "Pull requests authored by you",
-              "0e2b5a540e": "Mine",
-              "e2af88aadb": "Open pull requests",
-              "f74971febc": "Open issues assigned to you",
-              "35e7949626": "Assigned to me",
-              "e0767b497c": "Open GitHub issues",
-              "40d8fbad4a": "GitHub Projects views",
-              "2c1f90ca13": "Projects",
-              "454d34f456": "GitHub pull requests",
-              "5e3fb77dd8": "PRs",
-              "3c02bc9b07": "GitHub issues",
-              "212212945a": "Priority",
-              "929c42a79b": "Identifier",
-              "0ddf93cd70": "No grouping",
-              "24ac7a19dd": "Grouped columns",
-              "ba80138de0": "Board",
-              "e8601451af": "Compact issue rows",
-              "b48817d5a9": "List",
-              "096f1e9798": "Recently completed issues",
-              "9110e576a8": "Issues created by you",
-              "a3f8fe1681": "Created",
-              "78db01c922": "Issues assigned to you",
-              "a4ffb4ee71": "My Issues",
-              "fe44fbb901": "Open issues across connected workspaces",
-              "80817ce75f": "All",
-              "4afbbaed03": "Any GitLab state",
-              "9b963af4f7": "Closed issues and merge requests",
-              "069be2492c": "Closed",
-              "7cce2f6a06": "Merged merge requests",
-              "1adaee9dc5": "Merged",
-              "0e6dc1103b": "Open issues and merge requests",
-              "2fd235a0b0": "Assigned and team issues",
-              "47fef27ba3": "Linear",
-              "7013e8ca3f": "Issues and merge requests",
-              "05a5ce3bd3": "GitLab",
-              "9a89d8a794": "Issues and pull requests",
-              "81c733b110": "GitHub",
-              "b862e0e556": "No Linear tasks",
-              "89fb848688": "No GitLab tasks",
-              "85a194d9e6": "No GitHub tasks",
-              "38291ebaa5": "No matching tasks",
-              "43d60ddc79": "Connect to a host to load tasks",
-              "8a7c831c1d": "Choose project",
-              "aeac94e98a": "1 team",
-              "e54d4a0b70": "Workspace",
-              "0e2b97419a": "Fields",
-              "ab3102f723": "asc",
-              "d881447de0": "desc",
-              "ceb85019a0": "{{value0}} repos",
-              "741999e374": "All repos",
-              "c97d88e507": "{{value0}} sources",
-              "c7c8a82c20": "Select target",
-              "391d118765": "\"{{value0}}\" already exists.",
-              "8c1857dafe": "Name must be 80 characters or fewer.",
-              "453d473ddb": "Name is required.",
-              "04952594ab": {
-                "70f132": "fields",
-                "a38e31": "{{value0}}/{{value1}} fields"
-              },
-              "ef7fa30ea8": {
-                "462938": "teams",
-                "36939c": "{{value0}} teams"
-              },
-              "017800c553": "Merge",
-              "4cd77a3e30": "Default",
-              "3f1f686c4b": "{{value0}} · Default",
-              "74c50ae0bf": "Unsupported layout on mobile",
-              "eac3fd864c": "View #{{value0}}",
-              "caf6cd559a": "Sort ascending",
-              "70dfd9fbef": "Currently {{value0}} · tap for {{value1}}",
-              "3fe6566a6c": "Uses GitHub rank order",
-              "a0e54c9934": "Uses {{value0}} {{value1}}",
-              "78272920be": "Failed to connect to SSH repository.",
-              "0b24cac278": "Failed to read SSH connection state.",
-              "6cdb51c354": "Failed to load GitLab tasks",
-              "06dfeb18e2": "Failed to load GitHub tasks"
-            },
-            "session": {
-              "worktreeId": {
-                "8f7e0514ae": "Remove",
-                "44b5afaa7f": "Remove this custom shortcut?",
-                "295a82ca28": "Shortcut",
-                "3ca49855db": "https://example.com",
-                "65a6cea15c": "Enter a URL, or leave blank for a new tab.",
-                "b4a3a64a43": "New Browser",
-                "a60f1627e9": "Terminal name",
-                "80a8bc0fbc": "Rename Terminal",
-                "81a869a91f": "Replace the phone draft with the latest desktop file?",
-                "b4c492a050": "Discard Changes",
-                "a6c9f79254": "Discard & Leave",
-                "232b53aca1": "Copy All & Leave",
-                "9278e425a3": "Copy or discard phone drafts before leaving.",
-                "dbc4374db6": "Unsaved markdown changes",
-                "6ba1410af3": "Refresh",
-                "59a7a08ee4": "File",
-                "6bbf73240c": "Copy Path",
-                "0f2f9c84e5": "Markdown",
-                "d442e87c8d": "Terminal",
-                "fd50e2b5c9": "Copy Notes",
-                "f92a3a2108": "Choose an agent session for the current notes.",
-                "7816120bb0": "Send Review Notes",
-                "73f5cfed83": "Markdown Note",
-                "bcbf07819a": "Browser",
-                "fbde4b425c": "New Tab",
-                "5cdc347a0d": "Type a command…",
-                "5037f8c2db": "Paste",
-                "f14ae8d9fd": "Retry",
-                "d447fa8c0f": "Loading terminal",
-                "d1d5a995dd": "Terminal is taking longer than expected",
-                "21d8c24b45": "Create Tab",
-                "4b662fd6b5": "Creating...",
-                "5dbe1f32cd": "No tabs in this session",
-                "e60d7f23b6": "Checking desktop capabilities — try again in a moment",
-                "528352d03e": "Desktop update required for quick commands",
-                "9ba57da339": "Agent Presets Unavailable",
-                "c812e187d6": "No Enabled Agents",
-                "a547885f43": "Detecting Agents",
-                "1a0af43c68": "Browser page is not available yet.",
-                "c5d273023f": "Desktop update required for mobile browser streaming",
-                "ea472ad53f": "Edit this quick command before running it",
-                "39c53677ab": "Couldn't send notes",
-                "e0127c0749": "Notes sent",
-                "0589af040a": "Selection cleared (scrolled out of buffer)",
-                "ff4ac128b0": "Couldn't copy",
-                "03a999d86d": "Copied",
-                "9b7df64511": "Couldn't clear terminal",
-                "f2173a95a7": "Terminal cleared",
-                "e76f29736f": "Input too large (max 256 KiB)",
-                "9cae6a7f4c": "Open Manta on the host to wake sleeping agents.",
-                "2670eea578": "Saved",
-                "5c8a3179db": "Couldn't copy notes",
-                "765dba3163": "Notes copied",
-                "4c360ea739": "Failed to delete note",
-                "c9adeb8139": "Failed to save note",
-                "4d7d1880f9": "Note added",
-                "12548ed01b": "Couldn't load markdown",
-                "c87b285cb3": "Send",
-                "8bb984f167": "Copy",
-                "a34c28c593": "{{value0}} review {{value1}}",
-                "6e387bdc73": "No review notes",
-                "6cdae0c3b4": "Save note",
-                "009398e286": "Cancel",
-                "bc2736872c": "Add review note",
-                "93a3e51407": "Line",
-                "4ba45b196f": "{{value0}} — tap to retry",
-                "fb82b8a66c": "{{value0}} tabs",
-                "291c4edd48": "1 tab",
-                "bc570e2e5a": "Loading tabs"
-              }
+        }
+      },
+      "codex": {
+        "reset": {
+          "credit": {
+            "action": {
+              "e610f14b9f": "This spends one earned reset for {{value0}} and immediately resets eligible rate-limit windows.",
+              "1333daf5e9": "Use a rate-limit reset?",
+              "4ca21e5dbc": "Could not reset rate limits",
+              "ae28bb640b": "The account or reset offer changed before the host contacted Codex. Review the updated details, then confirm again.{{value0}}",
+              "e034060288": "Reset details changed"
             }
           }
         }
       }
+    },
+    "codex": {
+      "reset": {
+        "attempt": {
+          "journal": {
+            "7c254252ac": "WSL reset scopes require an exact distro",
+            "4c93c1a711": "Host reset scopes cannot name a WSL distro"
+          }
+        },
+        "credit": {
+          "cc5cb2769f": "This account has no earned reset credits available.",
+          "ffe82b01d7": "No reset available",
+          "526f977cea": "No eligible Codex rate-limit window is exhausted.",
+          "24c11abaec": "Nothing to reset",
+          "dea1d56b5c": "Codex usage has been refreshed.",
+          "f5bde1d0f8": "Reset already applied",
+          "42226215e4": "Rate limits reset"
+        }
+      }
+    },
+    "MobileBranchDiffPreviewDrawer": {
+      "0a05486f61": "Diff truncated for mobile preview.",
+      "9998f95c16": "Unable to Load Diff",
+      "23a1a340ef": "Committed on branch",
+      "ea5ca6f964": "{{value0}}..HEAD"
+    },
+    "MobileCommitFailurePanel": {
+      "3f67db6ee8": "Show details",
+      "7b2b0ff9f2": "Hide details",
+      "f916c423a3": "Fix",
+      "aab7681cb3": "Commit failed.",
+      "1e8978aed2": "Commit failed"
+    },
+    "MobileGitHistoryList": {
+      "7dc0c76755": "No commits.",
+      "41bdc2a206": "Retry",
+      "932946bcf5": "Waiting for desktop...",
+      "cb46c1e3eb": "No file changes"
+    },
+    "MobileSourceControlBranchCard": {
+      "15f8914df7": "on branch",
+      "4171943d38": "staged",
+      "49ca409103": "changed"
+    },
+    "MobileSourceControlContent": {
+      "b93458b765": "Commit message",
+      "d97e76a715": "No staged files",
+      "c8aa93afd1": "Working tree is clean.",
+      "f3daa0029b": "No local changes",
+      "0c75e88b60": "Unstage All",
+      "f6908a03c5": "Stage All",
+      "a3f4d32439": "Reconnecting to desktop..."
+    },
+    "MobileSourceControlFileRows": {
+      "429975939a": "Committed changes unavailable.",
+      "b591c5c028": "Loading committed changes...",
+      "9bf0bc8e42": "Committed on Branch",
+      "6affcc87b5": "Unresolved conflict",
+      "4b2aa967fe": "from"
+    },
+    "MobileSourceControlHeader": {
+      "3e303cced7": "Source Control"
+    },
+    "MobileSourceControlModals": {
+      "e04f3405ee": "Pull Request Created",
+      "9fd503168a": "Switch Branch",
+      "3a1edc1216": "Discard changes to \"{{value0}}\"? This cannot be undone.",
+      "ec8328b4c0": "Discard Change",
+      "ee9e97d02d": "Source Control",
+      "f38a7042c6": {
+        "b451aa": "Open it in your browser?",
+        "25031a": "Open it in your browser?\n\n{{value0}}"
+      },
+      "daddec884e": "current"
+    },
+    "MobileSourceControlPanel": {
+      "760815df5f": "Retry",
+      "4a571203d0": "Unable to Load",
+      "520503d3c5": "Source Control Unavailable"
+    },
+    "MobileSourceControlPrChip": {
+      "435987497e": "Create pull request",
+      "c6837f6503": "Loading pull request…"
+    },
+    "MobileAgentWorkingIndicator": {
+      "d043f1f9a0": "Agent is working"
+    },
+    "MobileBrowserTabActionSheet": {
+      "bc29c5cca4": "Close",
+      "f317af1a27": "Reload",
+      "9b884ed916": "Forward",
+      "48a92edf21": "Back",
+      "199c2d6421": "Browser"
+    },
+    "MobileMarkdownReader": {
+      "8bf6d6eed7": "Save",
+      "7ae18d2fd5": "Discard",
+      "e0abdc7458": "Refresh",
+      "fd282649f1": "Copy",
+      "7fa363bb8e": "Retry",
+      "f1ac00d444": "Changed on desktop",
+      "d37923f4f6": "Read only"
+    },
+    "MobileNativeChatAsk": {
+      "1306c1e552": "Next",
+      "cbdbc2503b": "Submit",
+      "cb171a270a": "Cancel",
+      "ee779fedbd": "Type your answer",
+      "6e21b85794": "Other…",
+      "6aa4aab4b2": "Step {{value0}}"
+    },
+    "MobileNativeChatMessage": {
+      "6b0db92a6c": "more tool calls",
+      "5df068822d": "{{value0}} tool {{value1}}",
+      "58bde2fc06": "image",
+      "e88fa76bb4": "Result"
+    },
+    "MobileNativeChatQuestion": {
+      "a6c3892e34": "Type your reply…",
+      "6d27956f85": "Or type a reply…",
+      "b00d711570": "Submit"
+    },
+    "MobileNativeChatSessionOptionPickers": {
+      "ecdc66f24d": "Sent to the agent — not confirmed",
+      "0878f79a86": "Select {{value0}}",
+      "4a170ffab9": "Select model"
+    },
+    "MobileNativeChatSessionOptionRows": {
+      "581e7fea5e": "Off",
+      "c2d79886a9": "On",
+      "5c67474f2f": "Current value unknown — pick On or Off",
+      "60862cacc1": "Choose in agent picker…",
+      "7b2744302b": "Toggle {{value0}}"
+    },
+    "MobileNativeChatView": {
+      "e79c8354d9": "Message, @files, /commands",
+      "017c833ec1": "Waiting for terminal…",
+      "805480a4a1": "Reconnecting…",
+      "5fcfefb9aa": "Stop",
+      "2779d38b74": "Tools",
+      "1e0304cc51": "Collapse",
+      "01ec655ba2": "Load earlier messages"
+    },
+    "MobileSessionHeaderMoreActionsSheet": {
+      "bbcc22954a": "Checks",
+      "e91f015acc": "Agent History"
+    },
+    "QuickCommandEditorForm": {
+      "1973055270": "Label",
+      "9abf0dd1c0": "Add Quick Command",
+      "4990252681": "Save",
+      "cfd31efc92": "Cancel",
+      "9c1d1f87e4": "Project",
+      "b29057ca1c": "Global",
+      "255984f0ba": "Scope",
+      "8807475f6c": "Submit immediately instead of only inserting text.",
+      "4bd5144a2f": "Append Enter",
+      "32c24e1c38": "Advanced",
+      "5858a0a2a6": "Supports skills, file paths, and built-in commands.",
+      "606c52f1c9": "npm run dev",
+      "8ffb968ee4": "Ask the agent to investigate this workspace",
+      "d96528c298": "Command Text",
+      "bf9d7606a7": "Prompt",
+      "f43f688fae": "Choose agent",
+      "b61e388b60": "Agent",
+      "010e356a06": "Action",
+      "a5cab8c6d5": "Start dev server",
+      "0902b0f020": "Agent Prompt",
+      "f71933f074": "Terminal Command"
+    },
+    "QuickCommandsList": {
+      "26ac6d7f47": "Quick command limit reached",
+      "2e659657de": "New quick command",
+      "616a7d788f": "Global",
+      "d327b572b9": "This project",
+      "b2d8e370de": "No matching quick commands.",
+      "586660565c": "No quick commands yet.",
+      "325cecdaaf": "Search quick commands..."
+    },
+    "QuickCommandsSheet": {
+      "73b91478d0": "Save terminal commands or agent prompts for quick access.",
+      "f260e877b2": "This quick command will be removed from your saved list.",
+      "cbba692ebb": "Delete \"{{value0}}\"?",
+      "bd752eba44": "Quick Commands",
+      "d6bbe93e7e": "Choose Agent",
+      "49bc604177": "Add Quick Command",
+      "81a695ae36": "Edit Quick Command"
+    },
+    "github": {
+      "pr": {
+        "mutations": {
+          "833feff7b9": "Failed to update review thread.",
+          "b2ca03ab48": "Failed to update title.",
+          "eb7b22550f": "Request failed: {{value0}}"
+        },
+        "rpc": {
+          "70faee796e": "Request failed: {{value0}}"
+        }
+      }
+    },
+    "MobileTerminalLiveInputStatus": {
+      "ec87f139b7": "Tap to show keyboard",
+      "aae3384704": "Uploading image to host",
+      "85aee3eea3": "Preparing microphone",
+      "ffe7662360": "Transcribing on desktop",
+      "1865e8a27a": "Tap mic to stop",
+      "91ba33a4aa": "Live input",
+      "fcc1860f91": "Starting mic",
+      "43b48ff5fa": "Processing",
+      "cba1909d50": "Listening"
+    },
+    "MobileOnboardingPage": {
+      "28fdd43cf6": "Not now",
+      "40cf41e250": "Enable notifications",
+      "f5b1768ae4": "Keep terminal",
+      "2a882f4986": "Use Chat UI",
+      "def1eabfa5": "Get notified on this device when an agent needs your input or finishes a task.",
+      "755f145478": "Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.",
+      "3a676018db": "Stay updated while away",
+      "a3d2f11cf8": "How should sessions open?"
+    },
+    "MobileFileExplorerPanel": {
+      "09a641d5f9": "No files found",
+      "2d2d213ae8": "Retry",
+      "528997afc8": "- Showing first 5000",
+      "f288e834ba": "Files"
+    },
+    "MobileFilePreviewBody": {
+      "d14ff7e198": "Empty file",
+      "cea65a249a": "Retry"
+    },
+    "MobileFilePreviewScreen": {
+      "b8b5edd90b": "Unable to load preview",
+      "f643b9935b": "File",
+      "efa10b0260": "Preview",
+      "bd76a56e52": "Unsaved edits will be lost.",
+      "93debd0de1": "Discard changes?",
+      "22a9f89ade": "Loading preview...",
+      "302163baef": "Waiting for desktop..."
+    },
+    "MobileFilePreviewSourceText": {
+      "0047302216": "Preview truncated. File size:"
+    },
+    "AuthFailedBanner": {
+      "abe30d9dde": "Remove",
+      "2aea91f056": "Re-pair",
+      "ba389e71e9": "Retry",
+      "22b7ca421f": "Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop."
+    },
+    "CodexResetCreditAction": {
+      "d8bace2f0f": "Use reset",
+      "2cde746d0d": "Resetting…",
+      "c00ff47761": "Earned Codex rate-limit reset"
+    },
+    "CustomKeyModal": {
+      "fe0f6a9228": "Add Shortcut",
+      "37b52874f6": "Press Enter",
+      "0a215cf434": "e.g. pnpm build",
+      "6195a4f11e": "Command",
+      "774269273e": "e.g. Build",
+      "ce433ebd89": "Label",
+      "9dd5728085": "Add",
+      "192ac18ada": "More keys — Tab, arrows, F1–F12…",
+      "425075d432": "Key",
+      "f63415bfef": "Modifiers",
+      "c3b609d0ac": "Show, hide, or reorder shortcut keys",
+      "045b0b8e97": "Manage Shortcuts",
+      "23e46586f7": "Send custom text command",
+      "7cd04fd54b": "Text Macro",
+      "63bcc340e3": "Build Ctrl, Alt, and Shift key chords",
+      "2ebfc65454": "Shortcut Combo",
+      "acc57404c5": "Pick a key",
+      "5b029b4c49": "Function",
+      "0a58036543": "Navigation",
+      "d51ba74b66": "Editing",
+      "0e5f660272": "Shift",
+      "333faa20ee": "Alt",
+      "3992c2101a": "Ctrl"
+    },
+    "DragReorderList": {
+      "b861e19c2d": "Move down",
+      "79ee03d78a": "Move up"
+    },
+    "MobileDictationSetupSheet": {
+      "a09dec50ce": "Download",
+      "375f2e9b3d": "Use",
+      "ae2f2cc127": "In use",
+      "a9fec85af0": "Set up on desktop",
+      "0fdd00661b": "API key set",
+      "3c6fcf7dba": "· extracting…",
+      "6e1fd0429b": "OpenAI API",
+      "4c977cfe71": "Recommended",
+      "e96c05d3ff": "Dictation enabled",
+      "0f96051cb5": "Download a model and enable dictation on your desktop — all from here.",
+      "d778451cee": "Set up voice dictation"
+    },
+    "MobileDiffReviewBody": {
+      "196c031931": "Retry",
+      "5ba30b368d": "Diff truncated for mobile preview.",
+      "7ba47f20f3": "Loading diff...",
+      "2aedb02be8": "Try a different review filter.",
+      "dfe44c788a": "No Reviewable Changes",
+      "7b9b086d5d": "Unable to Load Review",
+      "afe74af652": "Review Unavailable",
+      "3a7d07fc96": "Loading review...",
+      "3e96692d6c": "Select a file to review.",
+      "126e672f04": "This file was deleted. Add a file note or mark it reviewed.",
+      "61e41a6d8b": "This diff is too large for the mobile preview.",
+      "15d3872219": "This file cannot be rendered as text on mobile.",
+      "45a8e6d5ca": "Diff Unavailable",
+      "f52bfb25be": "Deleted File",
+      "06b13f6828": "Diff Too Large",
+      "0a4bbf6913": "Binary Diff"
+    },
+    "MobileDiffReviewDrawers": {
+      "be82c13305": "Send Notes",
+      "6b58620851": "Stage Reviewed",
+      "5a7dd35bb7": "reviewed,",
+      "76eee4075f": "Review Complete",
+      "96cfded20f": "Save",
+      "f9b4e81fd2": "Delete",
+      "da5c2e1037": "Review note",
+      "2b81315e3d": "File note",
+      "62531e9326": "Line {{value0}}",
+      "4aa499fc3e": "Add Note",
+      "bd7f2108fc": "Edit Note",
+      "4323ecdb70": "Open in Session",
+      "9433a2e312": "Mark Unreviewed",
+      "f5848bd976": "Stage Reviewed Files",
+      "00c9fda7a7": "Clear Sent Notes",
+      "6dba03733e": "Send Unsent Notes",
+      "48682ededf": "Copy Notes",
+      "aa58d9c0d7": "New Agent Session",
+      "6a3716a622": "Discard changes to \"{{value0}}\"? This cannot be undone.",
+      "d55f01e697": "Discard File",
+      "fd30ae34a4": "{{value0}} reviewed unstaged files can be staged",
+      "a0254e034c": "Review Actions"
+    },
+    "MobileDiffReviewFileSummary": {
+      "3745bb8fe6": "Hunk",
+      "3e9a9b32ee": "Stale",
+      "db301c5173": "stale",
+      "715ff9cedd": "Changed",
+      "4c6781140f": "Reviewed",
+      "4ea7bacdf4": " from {{value0}}"
+    },
+    "MobileDiffReviewFooter": {
+      "80b1849676": "Mark Reviewed",
+      "8146d03e39": "Reviewed",
+      "bd18444a9d": "Note",
+      "94bfeaf090": "Discard",
+      "bf9f285bf1": "Unstage",
+      "2623350c05": "Stage"
+    },
+    "MobileDiffReviewHeader": {
+      "afe6a05fe9": "All",
+      "022200a6f3": "reviewed",
+      "d6521a2df5": "Changes"
+    },
+    "MobileHomeQuickActions": {
+      "a71b5def9e": "Create Workspace On",
+      "2dd1e74623": "New Workspace",
+      "59cfb6c319": "Pair Desktop",
+      "5d6f0d5506": "Quick Actions"
+    },
+    "MobileHtmlPreview": {
+      "1dd27d1956": "Source",
+      "6ef51f0562": "Preview"
+    },
+    "MobileMarkdown": {
+      "cb032ab166": "[x]",
+      "9228cc8353": "{{value0}} more columns",
+      "26687ede29": "{{value0}} more rows",
+      "7d36e16e08": "Open image",
+      "a22b42f760": "image"
+    },
+    "MobilePRSidebar": {
+      "be28b32b73": "Retry",
+      "f9908dd9fd": "Loading pull request…",
+      "50beb30d6c": "Not permitted — your GitHub account is not connected.",
+      "9df0caaa0e": "Something went wrong."
+    },
+    "MobileWorkspaceNameInput": {
+      "5083197ad5": "Workspace name"
+    },
+    "NewWorktreeModal": {
+      "5442bc67b1": "Agent",
+      "07abe6788b": "Run on",
+      "28c9634f55": "Project",
+      "52a6d084dc": "Create worktree",
+      "8a9197a7a9": "Connect target",
+      "a1b2e6ce4c": "Run setup command",
+      "b191daf935": "Skip",
+      "d2a6322022": "Run",
+      "f1c9144d48": "HOOKS",
+      "2c40d1cbfe": "MANTA.YAML",
+      "d1c6e46d31": "Setup script",
+      "6f2f2092d5": "Write a note",
+      "2cc02a28d4": "Note",
+      "013a3be8ad": "Advanced",
+      "7e8fbb7a16": "Connect target first",
+      "3bddecbdf9": "Connect",
+      "a2ba0ebe73": "Connecting...",
+      "02690f5980": "Remote repository",
+      "24d0c3cf77": "SSH Connection",
+      "1054d2ae92": "Workspace name",
+      "cb29993224": "Name or 'Create From'",
+      "47a5edf943": "No projects found",
+      "1588fda823": "Failed to connect to SSH repository.",
+      "1a58be27e1": "Failed to read SSH connection state."
+    },
+    "NewWorktreeProjectTargetFields": {
+      "797094e99c": "Select a run target",
+      "3b08602805": "Run on",
+      "56fd896dbf": "Select a project",
+      "364a10619b": "Project"
+    },
+    "ProtocolBlockScreen": {
+      "900fceb931": "Back to hosts",
+      "8776701afd": "Open GitHub Releases",
+      "a31839553b": "Open App Store",
+      "d990a3a921": "Already updated? Go back to Hosts and refresh the connection. If this message stays, remove this host and pair it again.",
+      "09c9f2cce4": "This paired desktop app is too old for your current Manta Mobile app. Update Manta on your computer, then try this host again.",
+      "938a1a102b": "This desktop needs a newer Manta Mobile app. Update Manta Mobile from {{value0}}, then try this host again.",
+      "0b8f38e4de": "Update Manta on your computer",
+      "682bbfb813": "Update Manta Mobile"
+    },
+    "SetupHookTrustDrawer": {
+      "3def439a17": "Don't run",
+      "854491abb2": "Always trust and run",
+      "c0e0ace4b0": "Run hooks",
+      "9bb8f1626f": "Setup script",
+      "8315ed1a92": "New setup script",
+      "3fce3cbaa8": "This repository's manta.yaml runs before the workspace starts. Only run it if you trust this repository.",
+      "4923252ebf": "Run setup from {{value0}}?",
+      "7a043eaa04": "{{value0}}'s setup script changed"
+    },
+    "SmartWorkspaceAdvancedFields": {
+      "935335d212": "Reuse branch “",
+      "2e49b532ce": "Derived from name",
+      "0804d94c43": "Branch name",
+      "309ff35d45": "Workspace name",
+      "8ee790c3a4": "Name"
+    },
+    "SmartWorkspaceSourceDrawer": {
+      "a8eb2a26fd": "Type a name or search a source",
+      "a8d3d7ff0b": "Type a workspace name in the field below.",
+      "4234b3bdce": "No results found.",
+      "2db388fb01": "This SSH repo needs a GitHub remote to list issues and PRs.",
+      "dac35958b2": "Connect the repository to search sources.",
+      "4e42fd4474": "Switch to",
+      "87c5ca6ae6": "Cancel",
+      "db63c6e582": "This item lives in",
+      "03acecfbb2": "Done",
+      "e62b83862e": "Name or 'Create From'"
+    },
+    "SmartWorkspaceSourceField": {
+      "1c7abc63cd": "Type a name or search a source",
+      "78c976b8b3": "[Optional]"
+    },
+    "SmartWorkspaceSourceRow": {
+      "cd32bcd37a": "New branch",
+      "7434979ca9": "Create branch \"{{value0}}\"",
+      "67b72c4984": "Name this workspace",
+      "b8ad93d4e4": "Use \"{{value0}}\""
+    },
+    "TerminalShortcutSettings": {
+      "0a024192a9": "Create key combo or text macro",
+      "77eeb84341": "Add Custom Shortcut…",
+      "03090ca212": "No custom shortcuts defined yet.",
+      "106c56af09": "CUSTOM SHORTCUTS",
+      "fd8cafae33": "Show every built-in shortcut key in the original order",
+      "3f4aa252c0": "Reset Defaults",
+      "39d99de238": "Toggle keys to show or hide them, and hold the grip to drag a key into the order you want on the terminal shortcut bar.",
+      "bb5647a2e9": "SHORTCUT BAR"
+    },
+    "TextInputModal": {
+      "34e60eed01": "Cancel"
+    },
+    "VoiceModelList": {
+      "128acde662": "Use",
+      "920fafb3ba": "In use",
+      "8f6c8e1a20": "Set up on desktop",
+      "2674d17a69": "API key set",
+      "078e664084": "Recommended"
+    },
+    "WorkspaceDetailPlaceholder": {
+      "eaaca53384": "Pick a workspace from the sidebar to open its terminal here.",
+      "a9ee4cc7a1": "No workspace open"
+    },
+    "WorktreeListRow": {
+      "24b73ac9de": "children",
+      "ba02d07cf8": "child",
+      "9422156692": "Child",
+      "b90db856e1": "Folder"
+    },
+    "accounts": {
+      "snapshot": {
+        "0a40a0d179": "Inactive Codex limits use the wrong provider identity",
+        "e0d2cb1b80": "Inactive Claude limits use the wrong provider identity",
+        "37c91810fe": "Codex limits use the wrong provider identity",
+        "3967e8ed07": "Claude limits use the wrong provider identity",
+        "f795e4b34f": "WSL Codex accounts require an exact distro",
+        "39989a7f2a": "Host Codex accounts cannot name a WSL distro",
+        "66534ee9f4": "WSL rate-limit targets require an exact distro",
+        "10884c74dd": "Host rate-limit targets cannot name a WSL distro"
+      },
+      "957454fe14": "Add or re-authenticate accounts from desktop Settings → Accounts.",
+      "cf4378bf56": "Loading accounts…",
+      "68019c3b7f": "host",
+      "2e13c71608": "Connecting to",
+      "5e1789fe9f": "Accounts",
+      "d3ca1c406b": "7d",
+      "6269cdf1fc": "5h",
+      "ae32572698": "Use the agent's own login",
+      "baea3d33ad": "System default",
+      "e535428048": "Could not switch account"
+    },
+    "new": {
+      "workspace": {
+        "project": {
+          "targets": {
+            "d75f083bed": "Remote · {{value0}}",
+            "f238c6255a": "SSH · {{value0}}",
+            "779bae104b": "This computer"
+          }
+        }
+      },
+      "worktree": {
+        "agent": {
+          "selection": {
+            "f38095bad3": "Blank Terminal"
+          }
+        }
+      }
+    },
+    "MermaidDiagram": {
+      "5ba6e6ad8e": "mermaid"
+    },
+    "MobileLinkPrForm": {
+      "90f2dc7750": "Link pull request",
+      "5332c9cbc4": "Link #{{value0}}",
+      "e6d07b4dd8": "#123 or https://github.com/owner/repo/pull/123",
+      "0f6c09a375": "PR number or GitHub URL",
+      "64b5ae218a": "Cancel",
+      "7fc66c2fd9": "Link existing pull request"
+    },
+    "MobilePrViewPanel": {
+      "2c83633f59": "Current branch unavailable.",
+      "fecbe9eaeb": "Hosted review panel unavailable for this provider."
+    },
+    "PRActionsSection": {
+      "9cee22e82f": "Unlink",
+      "cd12f36e83": "Reopen",
+      "80bd5bbae6": "Close",
+      "025ebe4500": "Off",
+      "a128380b90": "On",
+      "d09f750889": "Auto-merge when ready",
+      "f31892b220": "Merge pull request",
+      "dd786a68a5": "#{{value0}} will be reopened.",
+      "a025d18cbf": "Reopen pull request?",
+      "6ffee73e0a": "#{{value0}} will be closed without merging.",
+      "d36423d95e": "Close pull request?",
+      "ccdb8763e7": "This will merge #{{value0}} into its base branch.",
+      "ff49401d68": "Merge pull request?"
+    },
+    "PRCheckDetail": {
+      "aba886cf7a": "Showing first 100 jobs",
+      "1d6fea641a": "Showing first 20 annotations",
+      "c7542a3d88": "Annotations",
+      "c496c7d2f0": "No details available."
+    },
+    "PRChecksSection": {
+      "4220bbc33f": "Fix",
+      "b7aee3cc29": "Inspect details or start an AI fix pass.",
+      "df5a325c3c": "failing check",
+      "8726729fc3": "Checks"
+    },
+    "PRCommentCard": {
+      "5bc0381ef0": "This permanently deletes the comment on GitHub.",
+      "c46785afdf": "Delete comment?",
+      "a78a7ab1e9": "Write a reply…",
+      "ee8c9b0b63": "Resolve",
+      "03a5d77bee": "Unresolve",
+      "e2274ea0af": "Delete",
+      "c12d554f42": "Edit",
+      "45a827f616": "Reply",
+      "067c1a9f64": "Edit comment…",
+      "0bf8177c2a": "resolved",
+      "3904d344e6": ":L{{value0}}"
+    },
+    "PRCommentComposer": {
+      "11732797fe": "Cancel"
+    },
+    "PRCommentsSection": {
+      "76d07d0b8c": "by",
+      "4c78c7b55f": "comment",
+      "9514e1f710": "thread",
+      "2e0f427685": "Resolved",
+      "d8cadfab1d": "Add a comment…",
+      "57fbb91a1e": " of {{value0}}",
+      "a5fb2d4b6e": "more",
+      "374d1a8a08": "Show",
+      "c57f1e6617": "No comments yet.",
+      "15575e7e07": "Could not load comments. Tap refresh to try again.",
+      "fe5d1368ed": "Comments",
+      "bdd7d0b5bb": "No description provided.",
+      "84ed9e79c2": "Could not load description. Tap refresh to try again.",
+      "e9592a7109": "Description"
+    },
+    "PRConflictingFilesSection": {
+      "ceb7ab5c67": "Resolve conflicts with AI",
+      "c3659c167b": "Conflicting files",
+      "2ae2d49587": "Copy commands",
+      "ec4e7a9758": "Copied",
+      "dfd365f26c": "Run from this worktree",
+      "ed0bf9798a": "This branch has conflicts that must be resolved",
+      "f77b02610a": "behind (base commit:",
+      "9936c08744": "commit",
+      "0e748c1c6d": "Conflicts",
+      "a05ef6245f": "Conflict file details are unavailable"
+    },
+    "PRReviewersSection": {
+      "8c14e85fe2": "No reviewers requested",
+      "4f951ce00a": "Could not load reviewers. Tap refresh to try again.",
+      "472af70c24": "Loading reviewers…",
+      "7d7dae0045": "Reviewers"
+    },
+    "PRSidebarHeader": {
+      "a01982ac1f": "Save",
+      "52004b2f8c": "Cancel"
+    },
+    "PrSidebarCreateEmptyState": {
+      "78d5fd366a": "Link an existing PR",
+      "491af4a385": "The current branch is not linked to an open PR.",
+      "0a6a6ccd75": "{{value0}} is not linked to an open PR.",
+      "99a7fe79db": "Refresh to check again, or create a new PR for this branch.",
+      "1b605a13e6": "No open pull request",
+      "237c52b8f0": "Linked PR #{{value0}} unavailable",
+      "e6413e8953": "Create PR",
+      "4d20d570a5": "Pull request"
+    },
+    "ReviewerPickerDrawer": {
+      "e8e60b33bc": "No matching people",
+      "35ef9dfb20": "Search people",
+      "2b7e31a36e": "Reviewers",
+      "755b3e33d2": "Failed to load people"
+    },
+    "pr": {
+      "checks": {
+        "presentation": {
+          "fc87834cbf": "Reviewed",
+          "344836f6d3": "Pending",
+          "76601c7a9f": "Dismissed",
+          "6c5d1aa61c": "Commented",
+          "ae38fce3e6": "Changes requested",
+          "225a06d7c9": "Approved",
+          "8422a39fd0": "No checks"
+        }
+      },
+      "comment": {
+        "audience": {
+          "labels": {
+            "92606cad19": "Bots",
+            "0964119c2c": "Humans",
+            "8fabd9b4d4": "All"
+          }
+        }
+      }
+    },
+    "MobileRichMarkdownEditor": {
+      "b0b327b090": "Code block",
+      "8758a483e2": "Inline code",
+      "7d3dcdfd44": "Image",
+      "78b02d6409": "Link",
+      "750393eed3": "Quote",
+      "8cf9508628": "Checklist",
+      "ffbf532ba2": "Numbered list",
+      "84ac880fd0": "Bullet list",
+      "c307647887": "Strike",
+      "cf0a148dc5": "Italic",
+      "4dc5087c78": "Bold",
+      "aa920b1281": "H3",
+      "4f4fb498bc": "H2",
+      "4e4c3e5c6e": "H1",
+      "dcf876bee3": "Body"
+    },
+    "MobileHostCard": {
+      "ed956cf562": "Unlock your phone, then tap to retry",
+      "6bb2cc40c6": "Tap to re-pair with your desktop",
+      "fa4cf14def": "Update desktop Manta and sign in to connect from anywhere",
+      "6afb830179": "Pairing temporarily unavailable",
+      "7d7a9a4f62": "Pairing invalid"
+    },
+    "WorktreeAgentSummary": {
+      "500d1acf5b": "{{value0}} agents"
+    },
+    "MobileBrowserAddressField": {
+      "22601c078b": "URL"
+    },
+    "MobileBrowserPane": {
+      "8371afb0eb": "Type on page…",
+      "e3c7ac5a87": "OK",
+      "45711f1d50": "Cancel",
+      "cf59e404bc": "Browser Dialog",
+      "195080774d": "Reload",
+      "f9830183d5": "Forward",
+      "6bf3c4656f": "Back"
+    },
+    "MobileBrowserPointerModifiers": {
+      "1936cb6053": "Shift",
+      "7cff3b4086": "Alt",
+      "12a5bc4ad4": "Ctrl",
+      "216f31a789": "Cmd"
+    },
+    "MobileBrowserViewModeSwitch": {
+      "789254cd81": "Mobile",
+      "dd3b9447eb": "Web"
+    },
+    "MobileAgentSessionHistoryList": {
+      "7f5faff873": "current worktree",
+      "b4bec2cb77": "messages",
+      "7d95e41a14": "message"
+    },
+    "MobileAgentSessionHistoryPanel": {
+      "2fff2aa6b2": "No past agent sessions in this scope.",
+      "5fcef8f07b": "No sessions match your search.",
+      "2a48123bc9": "No agent sessions",
+      "94da199071": "skipped",
+      "5820d160a5": "transcripts",
+      "ddb3315bf5": "transcript",
+      "51cef69b11": "Search sessions, repo:, path:",
+      "ece2f4dedf": "Retry",
+      "205877f249": "Unable to Load",
+      "1c6ecaac69": "Update Manta on this host to browse agent session history.",
+      "c9196c1d89": "Agent Session History Unavailable",
+      "cf628e5d91": "Agent Session History",
+      "adc3dfc6d1": "All",
+      "76181e3ffa": "Project",
+      "d24e997219": "Workspace"
+    },
+    "worktree": {
+      "navigation": {
+        "actions": {
+          "02ed3a5367": "Agent Session History",
+          "5e3cb104b0": "Source Control"
+        }
+      }
+    },
+    "troubleshoot": {
+      "common": {
+        "issues": {
+          "8cb84f5d74": "Other VPN Interference",
+          "9e08e7e2d6": "Tailscale Host Unreachable",
+          "004de673b0": "Connection Timeout",
+          "3040fff325": "Desktop App Not Running",
+          "6a6637882b": "Firewall Blocking Port 6768",
+          "bee667fbf1": "Different WiFi Networks",
+          "309d528256": "Disable that VPN or enable split tunneling / \"Allow LAN\".",
+          "9fe597b620": "Non-Tailscale VPNs can route local traffic through a remote server.",
+          "3f17ae0507": "Update the Tailscale app — recent releases fix reconnect bugs.",
+          "8f429e95d4": "Check the desktop is awake and shows as connected in your tailnet.",
+          "ae6327f577": "iOS/Android can silently wedge the tunnel: toggle Tailscale off and back on in the Tailscale app.",
+          "4fa10bd283": "Host addresses like 100.x.x.x or *.ts.net connect through Tailscale — keep it ON.",
+          "4bdb4db8ac": "Restart both apps if timeouts persist.",
+          "82f4b5177a": "Go back to the host list and tap your host to retry.",
+          "b865b352b1": "Check WiFi signal strength on your phone.",
+          "9de3f44ca8": "After an update, you may need to re-pair via QR code.",
+          "185ef474dc": "Try restarting Manta — the companion server starts on launch.",
+          "17a9bbbfb4": "Manta must be open on your desktop to accept connections.",
+          "aed0bc9e02": "Corporate/school networks may block P2P — try a personal hotspot.",
+          "e34d738343": "Linux: sudo ufw allow 6768",
+          "b69fc16e2a": "Windows: Defender Firewall → Allow app — enable Manta for Private networks.",
+          "82218b4673": "macOS: System Settings → Network → Firewall — allow Manta.",
+          "8c42fc3507": "Try reconnecting WiFi on both devices.",
+          "87abb70237": "Ethernet and WiFi must share the same subnet.",
+          "0c558ad505": "Both devices must be on the same LAN (unless connected through Tailscale)."
+        }
+      },
+      "d89f2f9bbd": "Common issues",
+      "6f024bb4ae": "View connection log",
+      "e71414eafc": "Run diagnostics",
+      "0790b66aca": "Run again",
+      "750b3cfa37": "Running…",
+      "0c81261ae3": "Troubleshooting",
+      "f2c3857280": "Platform",
+      "21ef75f0f3": "Hosts",
+      "de003da9ea": "Internet",
+      "fc87d4676b": "Paired hosts"
+    },
+    "mock": {
+      "server": {
+        "account": {
+          "state": {
+            "b6d12a8a4d": "No managed Codex account selected"
+          }
+        },
+        "native": {
+          "chat": {
+            "scenario": {
+              "3d0cb0b62e": "Claude Code"
+            }
+          }
+        },
+        "session": {
+          "tabs": {
+            "fixture": {
+              "843194f996": "zsh"
+            }
+          }
+        },
+        "terminal": {
+          "fixtures": {
+            "fc2f70424d": "zsh",
+            "8f249d8343": "Claude — auth refactor"
+          }
+        },
+        "5865219c37": "Invalid public key",
+        "f9ad9c5d7f": "Expected e2ee_hello",
+        "75675aee69": "Invalid JSON"
+      }
+    },
+    "test": {
+      "subscribe": {
+        "1b18317ab3": "mobile-stream-repro"
+      }
+    },
+    "about": {
+      "a4139d5f69": "@orca_build",
+      "8830283fd4": "stablyai/manta",
+      "45de7268e5": "manta.sh.cn",
+      "c117fccf80": "Open-source agent IDE for 100x builders",
+      "eadba12858": "Manta",
+      "a81a8e76d8": "About"
+    },
+    "browser": {
+      "settings": {
+        "c1dc8b0975": "Open terminal links",
+        "2ba554fba7": "Choose where HTTP(S) links tapped in terminal output open.",
+        "821ed56937": "LINKS",
+        "189c0c35a9": "Browser",
+        "5a3e904671": "Open in Safari, Chrome, or another browser on this phone.",
+        "848a3a5e01": "Phone browser",
+        "678f6766a4": "Open in the streamed browser from your paired desktop.",
+        "2307073d4f": "Manta browser on desktop"
+      }
+    },
+    "index": {
+      "a3cfae357a": "Remove \"{{value0}}\"? You can re-pair later.",
+      "c8e253dc76": "Remove Host",
+      "267203af46": "7d",
+      "fcaaa4c805": "5h",
+      "20e2e26d8c": "System default",
+      "557a47bcbe": "Account usage",
+      "cbbc34848b": "Tasks",
+      "44e6505b65": "Resume",
+      "18b828cf5b": "Please try again.",
+      "b10d78d179": "Could not check pairing",
+      "f3542b6e7a": "Desktops",
+      "4cf927c2bb": "PRs created",
+      "e2e27dc946": "Agent time",
+      "a8515b5dc4": "Agents spawned",
+      "f62e59845a": "Welcome back",
+      "f4795d1407": "How it works",
+      "956aabb1b3": "Pair Desktop",
+      "bf2694d8a7": "Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.",
+      "f2f89ea971": "Connect your desktop",
+      "8a7cdca657": "Manta",
+      "53b5a5229a": "Could not remove host",
+      "d7fb33f5cb": "No task sources connected",
+      "aea01b53db": "You're connected",
+      "6cac1b9d8b": "Scan the code",
+      "813580ddc9": "Open Manta desktop",
+      "3055838788": "Hide default branch",
+      "1db32a2799": "Remove \"{{value0}}\"? You can re-pair later.",
+      "b6776c9891": "Remove Host",
+      "3c26b0ed7f": "Delete",
+      "edbd394091": "Sleep",
+      "8d080869d1": "Cancel",
+      "64c3d5c303": "Delete \"",
+      "b021e95cd2": "Delete Worktree",
+      "68236e60f1": "Repositories",
+      "d70faddef4": "Hide sleeping",
+      "6ddf01d8c1": "Workspaces",
+      "e4861c90c8": "Clear filters",
+      "4bc8c9f6fe": "Filter",
+      "7d559d8c19": "Group By",
+      "845b15b213": "Sort By",
+      "4e1194291f": "Search worktrees…",
+      "b14c7e89dd": "PR",
+      "0b319420ff": "Repo",
+      "1805187d69": "Status",
+      "999e4d9525": "Group",
+      "d85142e8e8": "Reconnect",
+      "dc676c5d54": "Host",
+      "407050f322": "Please try again.",
+      "3ff3938f5e": "Could not remove host",
+      "a95081bc58": "Recent",
+      "27072045b5": "Pin",
+      "76066c8aff": "Unpin"
+    },
+    "native": {
+      "chat": {
+        "settings": {
+          "a74c9d48cc": "Off",
+          "3977004baf": "On",
+          "2eeb654168": "Open sessions in Chat UI",
+          "b16ffa3c6e": "Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.",
+          "47b9a4b22a": "DEFAULT VIEW",
+          "6a8d3d4f8f": "Chat UI"
+        }
+      }
+    },
+    "notifications": {
+      "c7b96a0c60": "Open Settings",
+      "6975ae4fc2": "Agent notifications",
+      "1888d0bc3c": "Notifications",
+      "7550338ceb": "Get notified on this device when an agent needs your input or finishes a task.",
+      "bb35911528": "Notifications are disabled in system settings."
+    },
+    "pair": {
+      "confirm": {
+        "b0a88a1442": "Back to home",
+        "dabe16ab3a": "Pairing log",
+        "cc3644325c": "Connecting…",
+        "819d527c3f": "Cancel",
+        "57e34e4490": "Pair",
+        "dcb7d9f315": "You opened a pairing link from your desktop. Confirm to add it to your hosts.",
+        "ca6b89f947": "Pair with this desktop?",
+        "61ff783a52": "error"
+      },
+      "scan": {
+        "51255b690c": "manta://pair?code=... or paste the code",
+        "1be3090595": "Copy the code shown under the QR on your computer.",
+        "925154ee14": "Paste pairing code",
+        "43faab50dc": "Paste code instead",
+        "fc2ea5de3e": "Try Again",
+        "1bf9fb6718": "Pairing log",
+        "4f71d92c45": "Connecting…",
+        "53f7e4633e": "Or paste pairing code",
+        "75316896eb": "Scan the QR code",
+        "98f769b1da": "Go to Settings → Mobile",
+        "a00f504310": "Open Manta on your computer",
+        "c2f0e05c79": "Open Settings",
+        "49ccfaed6d": "Continue",
+        "6fa9f873ff": "Enable camera access in Settings, or paste the pairing code instead.",
+        "876382ef1d": "Scan the QR code from Manta on your desktop, or paste the pairing code instead.",
+        "b01906a180": "Camera Access Disabled",
+        "d153ad4648": "Pair with desktop"
+      },
+      "008841f9f3": "Back to home",
+      "79013fce2c": "Missing pairing code"
+    },
+    "settings": {
+      "1099866233": "Retry",
+      "7053da9ce5": "Support",
+      "ee3b9f51f7": "Privacy Policy",
+      "92240ca699": "Couldn't check cleanup status on this device. Retry to be safe.",
+      "5a1f890fc5": "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
+      "2beba1aee9": "Cleanup still couldn't be confirmed. Try again later.",
+      "045ad69df0": "Pairing credential cleanup",
+      "1042ddb555": "About",
+      "d1a8a93194": "Troubleshooting",
+      "8bc411d126": "Notifications",
+      "ae6df46648": "Voice",
+      "b6d00cec3b": "Browser",
+      "f9a07be163": "Chat UI",
+      "425c962726": "Terminal",
+      "d1c3a08e29": "Settings"
+    },
+    "voice": {
+      "settings": {
+        "0beb7ba66f": "Speech Model",
+        "9fe0492be7": "SPEECH MODEL",
+        "bb05560461": "Toggle: press once to start, again to stop. Hold: dictate while held.",
+        "261e33b845": "Dictation Mode",
+        "e20d603180": "Dictate text into any focused pane on your desktop.",
+        "db7bf75951": "Enable Voice Dictation",
+        "2f87394b1c": "DICTATION",
+        "15b9dfdf5d": "Failed to load voice settings.",
+        "a49af08edd": "Connect to a desktop to manage voice settings.",
+        "a529906cda": "Voice",
+        "858525ff0d": "Hold",
+        "cb11e9d147": "Toggle",
+        "274e79be5b": "None selected"
+      }
+    },
+    "layout": {
+      "7ceda7cfcf": "Pull Request",
+      "01c108c5c2": "Changes",
+      "6adb9b8189": "Agent Session History",
+      "319ab14fcb": "Source Control",
+      "c2dc55fe2e": "Terminal",
+      "6137d5f7ea": "Tasks",
+      "295637a5f9": "Accounts",
+      "d3370f3d6f": "Edit host",
+      "7aca81e533": "Host"
+    },
+    "edit": {
+      "0e51843adf": "Connects to",
+      "758a659e2f": "Accepts IP, host:port, or ws:// / wss://. Missing port defaults to the current port (or 6768).",
+      "90c9ad7f91": "Address",
+      "8c771c1b5b": "Host name",
+      "c0b8f02d08": "Name",
+      "2b2b56b6cb": "Change the display name or connection address. Address edits only switch where this phone connects — they do not re-pair. Use this when the same desktop is reachable at a different IP (for example home LAN vs Tailscale).",
+      "2d2dcd79c4": "Go back",
+      "38e846c36f": "Save",
+      "34a2121e56": "Edit host"
+    },
+    "tasks": {
+      "1262746690": "Remote repository",
+      "6614e9b864": "Update Item",
+      "b12358de98": "Merge Pull Request",
+      "711e331043": "Merge Request",
+      "97bec2fda2": "Choose how this pull request should be merged.",
+      "0316f0659d": "Choose how this merge request should be merged.",
+      "6b1e55d747": "Merge method",
+      "643c1e0332": "Change status",
+      "15cec74be7": "Merge merge request",
+      "42702c04ca": "GitHub reports merge conflicts.",
+      "30f30656e9": "Merge pull request",
+      "bd6efe9dde": "Copy GitHub link",
+      "c43f5c54e5": "Copied",
+      "b52e1248b3": "Copy Linear link",
+      "d783b7fb2b": "Create Workspace",
+      "7ed22602e7": "Creating...",
+      "0fb53b901e": "No comments.",
+      "01798c4ff8": "Discussion",
+      "cf5b6cd55c": "Add sub-issue",
+      "1ba0002b22": "Sub-issue title",
+      "733c49ee24": "Open",
+      "f0c2a7e0b9": "No sub-issues.",
+      "a73061648e": "None",
+      "c886a93e4f": "Sub-issues",
+      "faeba98b3a": "No pipeline runs for this MR.",
+      "adee4199a7": "{{value0}} jobs",
+      "89ab9d6324": "Pipeline",
+      "5cba08de45": "File contents unavailable.",
+      "8e1dffe0a2": "Binary file.",
+      "0ed35b1167": "Mark viewed",
+      "d7521a61c2": "Mark unviewed",
+      "3d8b3c8896": "View",
+      "fd0aff3906": "Hide",
+      "5a1334b828": "Changed files",
+      "0ade0ec326": "No checks found.",
+      "1e1bbda073": "Rerun all",
+      "8e98409094": "Rerun failed",
+      "aee93a0684": "Refresh",
+      "5e56d3dd98": "Checks",
+      "2a83e35426": "Request review",
+      "593778f6a7": "Request reviewers",
+      "936a69c8ab": "No reviewer suggestions found.",
+      "45efa99b1a": "Loading reviewers...",
+      "89f038b270": "No reviewers requested.",
+      "84354849b4": "Reviewers",
+      "150447f1f6": "Update assignees",
+      "5ff03f2b54": "Remove usernames, comma separated",
+      "2bda2dac44": "Add usernames, comma separated",
+      "fbe1f46e84": "No assignable users found for this repository.",
+      "817e16216e": "Loading assignees...",
+      "a0bd27b1de": "Assignees",
+      "2bd3b109f8": "Update labels",
+      "832bb443ac": "Remove labels, comma separated",
+      "07227f6aa3": "Add labels, comma separated",
+      "c920eee494": "No labels in this repository.",
+      "bd87e0349f": "Loading labels...",
+      "1a11cb6c10": "Labels",
+      "38ecea93a4": "Save title",
+      "e9bd9ec727": "Title",
+      "6e65c44219": "Save description",
+      "c57d82a7b7": "Description",
+      "88ce4b1bbf": "Project",
+      "6f7452906d": "Assignee",
+      "15ae8aef22": "Status",
+      "a36f9052f5": "Type",
+      "62e4e4fab6": "Merge requires this repository in Manta.",
+      "f5b7df9238": "Close item",
+      "bde826cb6c": "Reopen item",
+      "8ca7f70cf2": "Open in GitHub",
+      "7e7816b5ce": "Workspaces can only be created from GitHub issues and pull requests.",
+      "3151cad2a8": "Delete",
+      "0614a095ba": "Edit",
+      "d8cc91fe24": "Reply",
+      "4638e5d620": "Resolve thread",
+      "a84735398a": "Reopen thread",
+      "16fee5cb7d": "Cancel",
+      "c7158b292f": "Save",
+      "9683022203": "Edit comment",
+      "cf57cc3c02": "Show",
+      "52fd613db0": "{{value0}} comments",
+      "364aac3cc7": "by",
+      "a71fb209e4": "comment",
+      "4f9ae79c6d": "thread",
+      "6267438140": "Resolved",
+      "18a48f936d": "Clear field",
+      "6a40f49194": "Save field",
+      "e60ce46b41": "Text",
+      "d633598c54": "Number",
+      "2ae972cc96": "YYYY-MM-DD",
+      "a9c15e3103": "Current & upcoming",
+      "1dabaa2f96": "Completed",
+      "097429f0fc": "No iterations available.",
+      "255d57b1db": "Project fields",
+      "de9e1030f7": "Clear type",
+      "e43106b8ae": "No issue types configured for this repository.",
+      "c36deb9937": "Loading issue types...",
+      "234befedac": "No type",
+      "d58b83808f": "Issue type",
+      "367621449b": "Project item",
+      "8c666876cf": "Draft issue",
+      "c5c83a9af1": "Issue",
+      "05ac26f906": "Pull request",
+      "fdacd01fb3": "GitHub Project ·",
+      "7864fc2cd3": "Copy repository",
+      "79f69cf413": "is not added to Manta. Add this repository from the desktop app, then refresh mobile Tasks.",
+      "ffc86dd787": "Repository not in Manta",
+      "78dc8d99b5": "Don't run",
+      "965cfe1733": "Always trust and run",
+      "9be7d57af4": "Run hooks",
+      "5cfbadc7ae": "Setup script",
+      "bed7484165": "New setup script",
+      "0067e101da": "This repository's manta.yaml runs on your machine before the workspace starts. Only run it if you trust this repository.",
+      "33f3eab28c": "Run setup from {{value0}}?",
+      "41eb5d08a7": "{{value0}}'s setup script changed",
+      "c5dd55b98b": "Skip setup and create",
+      "6f4021e6d8": "Run setup and create",
+      "caf1f1c3f9": "requires a setup choice before creating this workspace.",
+      "374a5075f8": "Run Setup Script?",
+      "a63af13a45": "{{value0}} directories",
+      "0efb8013dd": "1 directory",
+      "83698fde61": "src/renderer packages/ui",
+      "721916c122": "Directories",
+      "a21f24f4c3": "Renderer UI",
+      "edd08de8b9": "Name",
+      "6a5da1393a": "Edit Sparse Preset",
+      "9ba7ca6a72": "New Sparse Preset",
+      "ebe80a094f": "New preset",
+      "9b7f0e1623": "Use the whole repository",
+      "d1fa8d8e8a": "Full checkout",
+      "eb18fa747a": "Sparse Checkout",
+      "88aaeedd17": "Branch name:",
+      "bb07dce495": "No branches match.",
+      "6a31586256": "Use this repository's configured base",
+      "b498493084": "Default branch",
+      "c30f76dfa0": "Search branches",
+      "3b40072a71": "Pick an existing branch or ref.",
+      "beaa1f0dc2": "Start From",
+      "c03eedc8a5": "Agent",
+      "4414bc388e": "Repository",
+      "49639216d6": "Connect Repository",
+      "a6154f9f64": "Detecting agents...",
+      "e05fff6416": "Repository not found.",
+      "ea42a21b65": "Add a Git repository before creating a Linear workspace.",
+      "6b511d62d0": "Create from",
+      "9da82058be": "Start from",
+      "f0f0ead5de": "Advanced",
+      "4913f49b39": "Connect repository first",
+      "e544525736": "[Optional]",
+      "9ebfab9a70": "Workspace Name",
+      "783ad5427a": "Connect",
+      "1c8722f002": "Connecting...",
+      "85c9744a6b": "SSH Connection",
+      "983b6e3640": "Select a repository",
+      "507596eec6": "Create Workspace In",
+      "f1a69ad283": "Your key is encrypted via the host OS keychain and stored locally.",
+      "295ff95fd8": "Linear Settings / Security / New API key",
+      "082a072613": "lin_api_...",
+      "6b8bc8c9ef": "Personal API key",
+      "e84004bc3e": "Paste a Personal API key to browse issues from that workspace.",
+      "8db3078a5f": "Connect Linear workspace",
+      "5e0d4fdecc": "Linear Team",
+      "c1226d9507": "Create Issue",
+      "72746911a7": "Add context",
+      "771910d3dd": "Task title",
+      "19b172b893": "Origin",
+      "085f4e942e": "Upstream",
+      "d17c947e0d": "File in",
+      "dd4dd63252": "Issue source",
+      "73305d5fbc": "Team",
+      "657573dc0e": "Create an issue in the selected Linear team.",
+      "57dc834a8b": "Create an issue in the selected repository.",
+      "4d3967f940": "New",
+      "4282de9552": "Sort Tasks",
+      "2618a68b59": "Display Properties",
+      "b24b2505c1": "Order Linear Issues",
+      "e308c78c55": "Group Linear Issues",
+      "e7dfe89092": "Linear View",
+      "1a949e24c0": "No states available",
+      "fe64212bb8": "Loading states...",
+      "91b66f2f68": "Linear issue",
+      "c70d4be654": "Change Status",
+      "744206341a": "All teams",
+      "50be798fe0": "Choose which teams appear in Tasks.",
+      "667355c0eb": "Linear Teams",
+      "dcda24ae8b": "Linear Workspace",
+      "8e7463ff62": "Linear Filter",
+      "93df023405": "GitLab Filter",
+      "ae82372398": "GitLab View",
+      "110c5ad109": "Hidden from cards",
+      "a7446db2ee": "Shown on cards",
+      "9ceb4d4b21": "This view has no extra fields to show.",
+      "dd8868208f": "Choose which Project fields appear on item cards.",
+      "92a294030c": "Project Fields",
+      "4dc29412da": "Project Sort",
+      "13fbcd4b05": "Project View",
+      "e0ab14d2ec": "Choose Project View",
+      "4733fde938": "No more projects.",
+      "1c7f22dda1": "No matching projects.",
+      "c89600e769": "Browse all",
+      "d8102406ce": "Browse all (loading...)",
+      "ef498b3039": "Pin",
+      "77660c76bc": "Recent",
+      "e965618993": "Remove",
+      "467ef86c50": "Pinned",
+      "d0373e626d": "Tap to retry.",
+      "75b3ba7a55": "No projects loaded",
+      "f6caefe6f0": "Use Add by URL to reach missing projects.",
+      "c7ccaf191d": "Some organizations didn't load ({{value0}}).",
+      "ad38a607a6": "Couldn't load projects from {{value0}}.",
+      "db9fa0d7d1": "Add",
+      "8bb2d58e71": "Adding...",
+      "4326f401b2": "Add by URL or owner/number",
+      "80182538b7": "Search projects",
+      "e9ef3b053f": "Choose a project view for the Tasks page.",
+      "e291bf21dd": "GitHub Projects",
+      "e64ab47a47": "Loads older results",
+      "711ea5b96d": "Loaded",
+      "2bcd15ef19": "Jump to a loaded or available result page.",
+      "669b20d479": "GitHub Pages",
+      "e3577861c3": "Issues",
+      "b10fa24be3": "Pull Requests",
+      "2e410a19af": "GitHub View",
+      "0be8e1a894": "Querying",
+      "6b995d38c5": "No alternate issue sources available.",
+      "2c65b26ef1": "Choose whether each repository queries and creates work from upstream or origin.",
+      "6aaadd7285": "GitHub Issue Sources",
+      "1688454ca7": "All repositories",
+      "79cf65e9fa": "Choose which repositories to query.",
+      "a4c5842b9c": "Repositories",
+      "2409df9415": "Task Source",
+      "d914d311ea": "into",
+      "5a0d82fa5a": "Items",
+      "5c76505007": "No project items",
+      "17b0e864d5": "Browse projects",
+      "52a44bc039": "Choose a GitHub project",
+      "210a7848ff": "Connect Linear",
+      "e360d80713": "Browse and start work on your assigned Linear issues directly from Tasks.",
+      "2fda0f4da8": "Connect your Linear account",
+      "27bde2bf6c": "This mobile Tasks view needs a newer desktop runtime.",
+      "d2f46b812e": "Update Manta desktop",
+      "2909172f4f": "Sub-issue data is unavailable for your token.",
+      "c85d1b19c4": "Retry",
+      "682ce152d6": "Retrying...",
+      "f75002b096": "Couldn't load issues from",
+      "3e537de5df": ". Using origin.",
+      "38c9336758": "Preferred issue source upstream is unavailable for",
+      "ed61fb8b63": "Search {{value0}} tasks...",
+      "473b2b2807": "Search project view...",
+      "f3958ba4ea": "Sort:",
+      "9e23121b07": "Display",
+      "a166aa9578": "Order:",
+      "7f859ab9ca": "Group:",
+      "b8b23d4005": "My Todos",
+      "7f18577bdf": "Project MRs",
+      "fc70101ee7": "Fields:",
+      "76c0041b44": "Source:",
+      "fd3792748f": "Tasks",
+      "f90aaca3ed": "All workspaces",
+      "1ecfa2eb62": "View order",
+      "fc8e00d799": "Add a comment",
+      "586fb25e03": "Open a shell",
+      "ae64bd16d3": "Comment on line",
+      "fd22280789": "Add review comment",
+      "978d06c3da": "diff lines.",
+      "8c6d399553": "of",
+      "98eaa94b14": "Showing first",
+      "4f60b77ecb": "No text changes found.",
+      "eda57a4655": {
+        "214538": "Page {{value0}}",
+        "2283a9": "Page {{value0}} of {{value1}}",
+        "fb0627": "Page"
+      },
+      "ffde92a257": "Group by repository, then newest activity",
+      "e396dc7b91": "Newest activity first",
+      "e37bad9e9e": "Updated",
+      "9dc97b7c46": "Pending GitLab todos",
+      "08dad860f5": "Merge requests and issues by repository",
+      "55e8f0f221": "Review requests assigned to you",
+      "a31d90dd7e": "Needs review",
+      "41c6f687f9": "Pull requests authored by you",
+      "0e2b5a540e": "Mine",
+      "e2af88aadb": "Open pull requests",
+      "f74971febc": "Open issues assigned to you",
+      "35e7949626": "Assigned to me",
+      "e0767b497c": "Open GitHub issues",
+      "40d8fbad4a": "GitHub Projects views",
+      "2c1f90ca13": "Projects",
+      "454d34f456": "GitHub pull requests",
+      "5e3fb77dd8": "PRs",
+      "3c02bc9b07": "GitHub issues",
+      "212212945a": "Priority",
+      "929c42a79b": "Identifier",
+      "0ddf93cd70": "No grouping",
+      "24ac7a19dd": "Grouped columns",
+      "ba80138de0": "Board",
+      "e8601451af": "Compact issue rows",
+      "b48817d5a9": "List",
+      "096f1e9798": "Recently completed issues",
+      "9110e576a8": "Issues created by you",
+      "a3f8fe1681": "Created",
+      "78db01c922": "Issues assigned to you",
+      "a4ffb4ee71": "My Issues",
+      "fe44fbb901": "Open issues across connected workspaces",
+      "80817ce75f": "All",
+      "4afbbaed03": "Any GitLab state",
+      "9b963af4f7": "Closed issues and merge requests",
+      "069be2492c": "Closed",
+      "7cce2f6a06": "Merged merge requests",
+      "1adaee9dc5": "Merged",
+      "0e6dc1103b": "Open issues and merge requests",
+      "2fd235a0b0": "Assigned and team issues",
+      "47fef27ba3": "Linear",
+      "7013e8ca3f": "Issues and merge requests",
+      "05a5ce3bd3": "GitLab",
+      "9a89d8a794": "Issues and pull requests",
+      "81c733b110": "GitHub",
+      "b862e0e556": "No Linear tasks",
+      "89fb848688": "No GitLab tasks",
+      "85a194d9e6": "No GitHub tasks",
+      "38291ebaa5": "No matching tasks",
+      "43d60ddc79": "Connect to a host to load tasks",
+      "8a7c831c1d": "Choose project",
+      "aeac94e98a": "1 team",
+      "e54d4a0b70": "Workspace",
+      "0e2b97419a": "Fields",
+      "ab3102f723": "asc",
+      "d881447de0": "desc",
+      "ceb85019a0": "{{value0}} repos",
+      "741999e374": "All repos",
+      "c97d88e507": "{{value0}} sources",
+      "c7c8a82c20": "Select target",
+      "391d118765": "\"{{value0}}\" already exists.",
+      "8c1857dafe": "Name must be 80 characters or fewer.",
+      "453d473ddb": "Name is required.",
+      "04952594ab": {
+        "70f132": "fields",
+        "a38e31": "{{value0}}/{{value1}} fields"
+      },
+      "ef7fa30ea8": {
+        "462938": "teams",
+        "36939c": "{{value0}} teams"
+      },
+      "017800c553": "Merge",
+      "4cd77a3e30": "Default",
+      "3f1f686c4b": "{{value0}} · Default",
+      "74c50ae0bf": "Unsupported layout on mobile",
+      "eac3fd864c": "View #{{value0}}",
+      "caf6cd559a": "Sort ascending",
+      "70dfd9fbef": "Currently {{value0}} · tap for {{value1}}",
+      "3fe6566a6c": "Uses GitHub rank order",
+      "a0e54c9934": "Uses {{value0}} {{value1}}",
+      "78272920be": "Failed to connect to SSH repository.",
+      "0b24cac278": "Failed to read SSH connection state.",
+      "6cdb51c354": "Failed to load GitLab tasks",
+      "06dfeb18e2": "Failed to load GitHub tasks"
+    },
+    "worktreeId": {
+      "8f7e0514ae": "Remove",
+      "44b5afaa7f": "Remove this custom shortcut?",
+      "295a82ca28": "Shortcut",
+      "3ca49855db": "https://example.com",
+      "65a6cea15c": "Enter a URL, or leave blank for a new tab.",
+      "b4a3a64a43": "New Browser",
+      "a60f1627e9": "Terminal name",
+      "80a8bc0fbc": "Rename Terminal",
+      "81a869a91f": "Replace the phone draft with the latest desktop file?",
+      "b4c492a050": "Discard Changes",
+      "a6c9f79254": "Discard & Leave",
+      "232b53aca1": "Copy All & Leave",
+      "9278e425a3": "Copy or discard phone drafts before leaving.",
+      "dbc4374db6": "Unsaved markdown changes",
+      "6ba1410af3": "Refresh",
+      "59a7a08ee4": "File",
+      "6bbf73240c": "Copy Path",
+      "0f2f9c84e5": "Markdown",
+      "d442e87c8d": "Terminal",
+      "fd50e2b5c9": "Copy Notes",
+      "f92a3a2108": "Choose an agent session for the current notes.",
+      "7816120bb0": "Send Review Notes",
+      "73f5cfed83": "Markdown Note",
+      "bcbf07819a": "Browser",
+      "fbde4b425c": "New Tab",
+      "5cdc347a0d": "Type a command…",
+      "5037f8c2db": "Paste",
+      "f14ae8d9fd": "Retry",
+      "d447fa8c0f": "Loading terminal",
+      "d1d5a995dd": "Terminal is taking longer than expected",
+      "21d8c24b45": "Create Tab",
+      "4b662fd6b5": "Creating...",
+      "5dbe1f32cd": "No tabs in this session",
+      "e60d7f23b6": "Checking desktop capabilities — try again in a moment",
+      "528352d03e": "Desktop update required for quick commands",
+      "9ba57da339": "Agent Presets Unavailable",
+      "c812e187d6": "No Enabled Agents",
+      "a547885f43": "Detecting Agents",
+      "1a0af43c68": "Browser page is not available yet.",
+      "c5d273023f": "Desktop update required for mobile browser streaming",
+      "ea472ad53f": "Edit this quick command before running it",
+      "39c53677ab": "Couldn't send notes",
+      "e0127c0749": "Notes sent",
+      "0589af040a": "Selection cleared (scrolled out of buffer)",
+      "ff4ac128b0": "Couldn't copy",
+      "03a999d86d": "Copied",
+      "9b7df64511": "Couldn't clear terminal",
+      "f2173a95a7": "Terminal cleared",
+      "e76f29736f": "Input too large (max 256 KiB)",
+      "9cae6a7f4c": "Open Manta on the host to wake sleeping agents.",
+      "2670eea578": "Saved",
+      "5c8a3179db": "Couldn't copy notes",
+      "765dba3163": "Notes copied",
+      "4c360ea739": "Failed to delete note",
+      "c9adeb8139": "Failed to save note",
+      "4d7d1880f9": "Note added",
+      "12548ed01b": "Couldn't load markdown",
+      "c87b285cb3": "Send",
+      "8bb984f167": "Copy",
+      "a34c28c593": "{{value0}} review {{value1}}",
+      "6e387bdc73": "No review notes",
+      "6cdae0c3b4": "Save note",
+      "009398e286": "Cancel",
+      "bc2736872c": "Add review note",
+      "93a3e51407": "Line",
+      "4ba45b196f": "{{value0}} — tap to retry",
+      "fb82b8a66c": "{{value0}} tabs",
+      "291c4edd48": "1 tab",
+      "bc570e2e5a": "Loading tabs"
     }
   },
   "mobile": {

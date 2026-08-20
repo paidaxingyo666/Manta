@@ -32,11 +32,9 @@ async function sendRaw(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.session.github.pr.mutations.eb7b22550f',
-              'Request failed: {{value0}}',
-              { value0: method }
-            )
+          : translate('m.github.pr.mutations.eb7b22550f', 'Request failed: {{value0}}', {
+              value0: method
+            })
     }
   }
 }
@@ -88,11 +86,9 @@ async function sendGithubPrMutation(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.session.github.pr.mutations.eb7b22550f',
-              'Request failed: {{value0}}',
-              { value0: method }
-            )
+          : translate('m.github.pr.mutations.eb7b22550f', 'Request failed: {{value0}}', {
+              value0: method
+            })
     }
   }
 }
@@ -135,10 +131,7 @@ export async function fetchUpdatePRTitle(
   if (response.result !== true) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.session.github.pr.mutations.b2ca03ab48',
-        'Failed to update title.'
-      )
+      error: translate('m.github.pr.mutations.b2ca03ab48', 'Failed to update title.')
     }
   }
   return { ok: true }
@@ -302,10 +295,7 @@ export async function fetchResolveReviewThread(
   if (response.result !== true) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.session.github.pr.mutations.833feff7b9',
-        'Failed to update review thread.'
-      )
+      error: translate('m.github.pr.mutations.833feff7b9', 'Failed to update review thread.')
     }
   }
   return { ok: true }

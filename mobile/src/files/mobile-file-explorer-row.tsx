@@ -31,7 +31,7 @@ export function MobileFileExplorerRow(props: Props) {
         <View style={styles.chevronSpacer} />
         <ActivityIndicator size="small" color={colors.textSecondary} />
         <Text style={styles.inlineStatusText}>
-          {translate('auto.mobile.src.files.mobile.file.explorer.row.b76418c615', 'Loading...')}
+          {translate('m.mobile.file.explorer.row.b76418c615', 'Loading...')}
         </Text>
       </View>
     )
@@ -43,10 +43,7 @@ export function MobileFileExplorerRow(props: Props) {
         <View style={styles.chevronSpacer} />
         <Text style={styles.inlineErrorText} numberOfLines={1}>
           {item.message ||
-            translate(
-              'auto.mobile.src.files.mobile.file.explorer.row.759b201be3',
-              'Unable to load folder'
-            )}
+            translate('m.mobile.file.explorer.row.759b201be3', 'Unable to load folder')}
         </Text>
         <Pressable
           style={({ pressed }) => [styles.inlineRetryButton, pressed && styles.rowPressed]}
@@ -57,7 +54,7 @@ export function MobileFileExplorerRow(props: Props) {
           accessibilityLabel={`Retry loading ${item.relativePath}`}
         >
           <Text style={styles.inlineRetryText}>
-            {translate('auto.mobile.src.files.mobile.file.explorer.row.0866286006', 'Retry')}
+            {translate('m.mobile.file.explorer.row.0866286006', 'Retry')}
           </Text>
         </Pressable>
       </View>
@@ -149,10 +146,7 @@ function TreeRow(props: {
         </Text>
         {disabled ? (
           <Text style={styles.rowMeta}>
-            {translate(
-              'auto.mobile.src.files.mobile.file.explorer.row.9b441d1365',
-              'Unavailable on mobile'
-            )}
+            {translate('m.mobile.file.explorer.row.9b441d1365', 'Unavailable on mobile')}
           </Text>
         ) : null}
       </View>

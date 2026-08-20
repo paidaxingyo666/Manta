@@ -158,10 +158,7 @@ function PRTitle({
             accessibilityLabel="Cancel editing title"
           >
             <Text style={composerStyles.cancelText}>
-              {translate(
-                'auto.mobile.src.components.pr.sidebar.PRSidebarHeader.52004b2f8c',
-                'Cancel'
-              )}
+              {translate('m.PRSidebarHeader.52004b2f8c', 'Cancel')}
             </Text>
           </Pressable>
           <Pressable
@@ -175,10 +172,7 @@ function PRTitle({
               <ActivityIndicator size="small" color={colors.bgBase} />
             ) : (
               <Text style={composerStyles.submitText}>
-                {translate(
-                  'auto.mobile.src.components.pr.sidebar.PRSidebarHeader.a01982ac1f',
-                  'Save'
-                )}
+                {translate('m.PRSidebarHeader.a01982ac1f', 'Save')}
               </Text>
             )}
           </Pressable>

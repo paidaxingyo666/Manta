@@ -101,7 +101,7 @@ async function ensureLocalChangesCommitted(
     return {
       ok: false,
       error: translate(
-        'auto.mobile.src.source.control.mobile.hosted.review.create.intent.ebde696cbe',
+        'm.mobile.hosted.review.create.intent.ebde696cbe',
         'Resolve conflicts before creating a pull request.'
       ),
       committed: false,
@@ -135,7 +135,7 @@ async function ensureLocalChangesCommitted(
       return {
         ok: false,
         error: translate(
-          'auto.mobile.src.source.control.mobile.hosted.review.create.intent.f1f8607904',
+          'm.mobile.hosted.review.create.intent.f1f8607904',
           'Branch changed while preparing the pull request.'
         ),
         committed: false,
@@ -149,7 +149,7 @@ async function ensureLocalChangesCommitted(
     return {
       ok: false,
       error: translate(
-        'auto.mobile.src.source.control.mobile.hosted.review.create.intent.c75b247e46',
+        'm.mobile.hosted.review.create.intent.c75b247e46',
         'Resolve or stage changes before creating a pull request.'
       ),
       committed: false,
@@ -165,7 +165,7 @@ async function ensureLocalChangesCommitted(
       return {
         ok: false,
         error: translate(
-          'auto.mobile.src.source.control.mobile.hosted.review.create.intent.cc083a8547',
+          'm.mobile.hosted.review.create.intent.cc083a8547',
           'Could not generate a commit message. Add one in Source Control, then retry.'
         ),
         committed: false,
@@ -194,7 +194,7 @@ async function ensureLocalChangesCommitted(
     return {
       ok: false,
       error: translate(
-        'auto.mobile.src.source.control.mobile.hosted.review.create.intent.f1f8607904',
+        'm.mobile.hosted.review.create.intent.f1f8607904',
         'Branch changed while preparing the pull request.'
       ),
       committed: true,
@@ -216,7 +216,7 @@ export async function prepareMobileHostedReviewCreateIntent(
       ok: false,
       error: initialStatus.ok
         ? translate(
-            'auto.mobile.src.source.control.mobile.hosted.review.create.intent.f1f8607904',
+            'm.mobile.hosted.review.create.intent.f1f8607904',
             'Branch changed while preparing the pull request.'
           )
         : initialStatus.error,
@@ -262,7 +262,7 @@ export async function prepareMobileHostedReviewCreateIntent(
       return {
         ok: false,
         error: translate(
-          'auto.mobile.src.source.control.mobile.hosted.review.create.intent.f1f8607904',
+          'm.mobile.hosted.review.create.intent.f1f8607904',
           'Branch changed while preparing the pull request.'
         ),
         committed: committed.committed,

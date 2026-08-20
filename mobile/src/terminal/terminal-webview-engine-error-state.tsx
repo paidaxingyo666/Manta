@@ -82,10 +82,7 @@ export function TerminalWebViewEngineErrorOverlay({
   return (
     <View style={styles.errorOverlay}>
       <Text style={styles.errorTitle}>
-        {translate(
-          'auto.mobile.src.terminal.terminal.webview.engine.error.state.a76b283f38',
-          'Terminal failed to load'
-        )}
+        {translate('m.terminal.webview.engine.error.state.a76b283f38', 'Terminal failed to load')}
       </Text>
       <Text style={styles.errorDetail} numberOfLines={4}>
         {message}
@@ -93,10 +90,7 @@ export function TerminalWebViewEngineErrorOverlay({
       <Pressable accessibilityRole="button" style={styles.reloadButton} onPress={onReload}>
         <RefreshCw size={16} color={colors.terminalBg} />
         <Text style={styles.reloadButtonText}>
-          {translate(
-            'auto.mobile.src.terminal.terminal.webview.engine.error.state.5270410350',
-            'Reload'
-          )}
+          {translate('m.terminal.webview.engine.error.state.5270410350', 'Reload')}
         </Text>
       </Pressable>
     </View>

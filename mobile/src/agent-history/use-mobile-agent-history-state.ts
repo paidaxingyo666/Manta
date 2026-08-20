@@ -84,7 +84,7 @@ export function useMobileAgentHistoryState(params: MobileAgentHistoryStateParams
               : {
                   kind: 'error',
                   message: translate(
-                    'auto.mobile.src.agent.history.use.mobile.agent.history.state.9d287af4e4',
+                    'm.use.mobile.agent.history.state.9d287af4e4',
                     'Waiting for host…'
                   )
                 }

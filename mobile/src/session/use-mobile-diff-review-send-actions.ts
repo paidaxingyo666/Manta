@@ -144,7 +144,7 @@ export function useMobileDiffReviewSendActions(input: SendActionsInput) {
           err instanceof Error
             ? err.message
             : translate(
-                'auto.mobile.src.session.use.mobile.diff.review.send.actions.bcc1edd25f',
+                'm.use.mobile.diff.review.send.actions.bcc1edd25f',
                 'Unable to load agent sessions'
               ),
         terminals: []

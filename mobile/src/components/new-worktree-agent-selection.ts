@@ -21,10 +21,7 @@ export const NEW_WORKTREE_AGENT_OPTIONS: NewWorktreeAgentOption[] = MOBILE_AGENT
 export const newWorktreeBlankAgent = localizedConstant(
   (): NewWorktreeAgentOption => ({
     id: '__blank__',
-    label: translate(
-      'auto.mobile.src.components.new.worktree.agent.selection.f38095bad3',
-      'Blank Terminal'
-    )
+    label: translate('m.new.worktree.agent.selection.f38095bad3', 'Blank Terminal')
   })
 )
 

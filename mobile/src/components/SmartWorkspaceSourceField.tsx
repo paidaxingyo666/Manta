@@ -64,10 +64,7 @@ export function SmartWorkspaceSourceField({
       <Text style={styles.label}>
         {label}{' '}
         <Text style={styles.labelHint}>
-          {translate(
-            'auto.mobile.src.components.SmartWorkspaceSourceField.78c976b8b3',
-            '[Optional]'
-          )}
+          {translate('m.SmartWorkspaceSourceField.78c976b8b3', '[Optional]')}
         </Text>
       </Text>
       {selection ? (
@@ -99,7 +96,7 @@ export function SmartWorkspaceSourceField({
           onFocus={openDrawer}
           editable={!disabled && interactive}
           placeholder={translate(
-            'auto.mobile.src.components.SmartWorkspaceSourceField.1c7abc63cd',
+            'm.SmartWorkspaceSourceField.1c7abc63cd',
             'Type a name or search a source'
           )}
           placeholderTextColor={colors.textMuted}

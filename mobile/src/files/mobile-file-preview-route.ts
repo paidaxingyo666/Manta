@@ -66,20 +66,14 @@ export function normalizeMobileFilePreviewRouteParams(
   if (!hostId || !worktreeId) {
     return {
       ok: false,
-      message: translate(
-        'auto.mobile.src.files.mobile.file.preview.route.dadd2587a5',
-        'Unable to load preview'
-      )
+      message: translate('m.mobile.file.preview.route.dadd2587a5', 'Unable to load preview')
     }
   }
   if (source === 'terminalArtifact') {
     if (!absolutePath || !grantId) {
       return {
         ok: false,
-        message: translate(
-          'auto.mobile.src.files.mobile.file.preview.route.dadd2587a5',
-          'Unable to load preview'
-        )
+        message: translate('m.mobile.file.preview.route.dadd2587a5', 'Unable to load preview')
       }
     }
     return {
@@ -105,10 +99,7 @@ export function normalizeMobileFilePreviewRouteParams(
   if (!relativePath) {
     return {
       ok: false,
-      message: translate(
-        'auto.mobile.src.files.mobile.file.preview.route.dadd2587a5',
-        'Unable to load preview'
-      )
+      message: translate('m.mobile.file.preview.route.dadd2587a5', 'Unable to load preview')
     }
   }
   return {

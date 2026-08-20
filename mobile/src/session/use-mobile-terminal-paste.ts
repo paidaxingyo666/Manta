@@ -140,10 +140,7 @@ export function useMobileTerminalPaste({
         // eslint-disable-next-line no-console
         console.warn('[mobile-clip] paste oversized', { wrappedBytes })
         showToast(
-          translate(
-            'auto.mobile.src.session.use.mobile.terminal.paste.1338fc5288',
-            'Paste too large (max 256 KiB)'
-          ),
+          translate('m.use.mobile.terminal.paste.1338fc5288', 'Paste too large (max 256 KiB)'),
           1500
         )
         return
@@ -180,25 +177,16 @@ export function useMobileTerminalPaste({
       console.warn('[mobile-clip] paste failed', { name: err.name, message: err.message })
       if (isDisconnected) {
         showToast(
-          translate(
-            'auto.mobile.src.session.use.mobile.terminal.paste.806d2c697d',
-            'Paste failed (disconnected)'
-          ),
+          translate('m.use.mobile.terminal.paste.806d2c697d', 'Paste failed (disconnected)'),
           1500
         )
       } else if (err.message === 'Clipboard image is too large') {
         showToast(
-          translate(
-            'auto.mobile.src.session.use.mobile.terminal.paste.e5d865b17a',
-            'Image too large to paste'
-          ),
+          translate('m.use.mobile.terminal.paste.e5d865b17a', 'Image too large to paste'),
           1500
         )
       } else {
-        showToast(
-          translate('auto.mobile.src.session.use.mobile.terminal.paste.c1e4d031ec', 'Paste failed'),
-          1500
-        )
+        showToast(translate('m.use.mobile.terminal.paste.c1e4d031ec', 'Paste failed'), 1500)
       }
     }
   }, [

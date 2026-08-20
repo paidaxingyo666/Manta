@@ -176,7 +176,7 @@ export default function AccountsScreen() {
         const res = await client.sendRequest(method, params)
         if (!res.ok) {
           Alert.alert(
-            translate('auto.mobile.app.h.hostId.accounts.e535428048', 'Could not switch account'),
+            translate('m.accounts.e535428048', 'Could not switch account'),
             res.error.message
           )
         } else {
@@ -187,7 +187,7 @@ export default function AccountsScreen() {
         }
       } catch (e) {
         Alert.alert(
-          translate('auto.mobile.app.h.hostId.accounts.e535428048', 'Could not switch account'),
+          translate('m.accounts.e535428048', 'Could not switch account'),
           e instanceof Error ? e.message : String(e)
         )
       } finally {
@@ -226,13 +226,10 @@ export default function AccountsScreen() {
           >
             <View style={styles.rowMain}>
               <Text style={styles.rowTitle}>
-                {translate('auto.mobile.app.h.hostId.accounts.baea3d33ad', 'System default')}
+                {translate('m.accounts.baea3d33ad', 'System default')}
               </Text>
               <Text style={styles.rowSubtitle}>
-                {translate(
-                  'auto.mobile.app.h.hostId.accounts.ae32572698',
-                  "Use the agent's own login"
-                )}
+                {translate('m.accounts.ae32572698', "Use the agent's own login")}
               </Text>
               {/* Why: when system default is the active selection, activeUsage
                   holds the system-default login's rate limits — surface them
@@ -240,14 +237,14 @@ export default function AccountsScreen() {
               {activeAccountId === null && hasActiveProviderUsage(activeUsage) ? (
                 <View style={styles.usageRow}>
                   <UsageBar
-                    label={translate('auto.mobile.app.h.hostId.accounts.6269cdf1fc', '5h')}
+                    label={translate('m.accounts.6269cdf1fc', '5h')}
                     usedPercent={activeSessionBar.usedPercent}
                     unavailable={activeSessionBar.unavailable}
                     loading={activeSessionBar.loading}
                     resetText={getWindowResetLabel(activeUsage, 'session', now)}
                   />
                   <UsageBar
-                    label={translate('auto.mobile.app.h.hostId.accounts.d3ca1c406b', '7d')}
+                    label={translate('m.accounts.d3ca1c406b', '7d')}
                     usedPercent={activeWeeklyBar.usedPercent}
                     unavailable={activeWeeklyBar.unavailable}
                     loading={activeWeeklyBar.loading}
@@ -295,14 +292,14 @@ export default function AccountsScreen() {
                     </Text>
                     <View style={styles.usageRow}>
                       <UsageBar
-                        label={translate('auto.mobile.app.h.hostId.accounts.6269cdf1fc', '5h')}
+                        label={translate('m.accounts.6269cdf1fc', '5h')}
                         usedPercent={sessionBar.usedPercent}
                         unavailable={sessionBar.unavailable}
                         loading={sessionBar.loading}
                         resetText={getWindowResetLabel(usage, 'session', now)}
                       />
                       <UsageBar
-                        label={translate('auto.mobile.app.h.hostId.accounts.d3ca1c406b', '7d')}
+                        label={translate('m.accounts.d3ca1c406b', '7d')}
                         usedPercent={weeklyBar.usedPercent}
                         unavailable={weeklyBar.unavailable}
                         loading={weeklyBar.loading}
@@ -347,9 +344,7 @@ export default function AccountsScreen() {
           <ChevronLeft size={22} color={colors.textPrimary} />
         </Pressable>
         <View style={styles.titleWrap}>
-          <Text style={styles.heading}>
-            {translate('auto.mobile.app.h.hostId.accounts.5e1789fe9f', 'Accounts')}
-          </Text>
+          <Text style={styles.heading}>{translate('m.accounts.5e1789fe9f', 'Accounts')}</Text>
           {hostName ? (
             <Text style={styles.subheading} numberOfLines={1}>
               {hostName}
@@ -383,8 +378,8 @@ export default function AccountsScreen() {
           <View style={styles.placeholder}>
             <ActivityIndicator color={colors.textSecondary} />
             <Text style={styles.placeholderText}>
-              {translate('auto.mobile.app.h.hostId.accounts.2e13c71608', 'Connecting to')}{' '}
-              {hostName || translate('auto.mobile.app.h.hostId.accounts.68019c3b7f', 'host')}…
+              {translate('m.accounts.2e13c71608', 'Connecting to')}{' '}
+              {hostName || translate('m.accounts.68019c3b7f', 'host')}…
             </Text>
           </View>
         ) : error && !snapshot ? (
@@ -395,7 +390,7 @@ export default function AccountsScreen() {
           <View style={styles.placeholder}>
             <ActivityIndicator color={colors.textSecondary} />
             <Text style={styles.placeholderText}>
-              {translate('auto.mobile.app.h.hostId.accounts.cf4378bf56', 'Loading accounts…')}
+              {translate('m.accounts.cf4378bf56', 'Loading accounts…')}
             </Text>
           </View>
         ) : (
@@ -406,7 +401,7 @@ export default function AccountsScreen() {
               <User size={14} color={colors.textMuted} />
               <Text style={styles.footerHintText}>
                 {translate(
-                  'auto.mobile.app.h.hostId.accounts.957454fe14',
+                  'm.accounts.957454fe14',
                   'Add or re-authenticate accounts from desktop Settings → Accounts.'
                 )}{' '}
               </Text>

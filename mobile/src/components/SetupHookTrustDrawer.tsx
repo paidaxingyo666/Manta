@@ -42,19 +42,17 @@ export function SetupHookTrustDrawer({
             <Text style={styles.title}>
               {prompt.previouslyApproved
                 ? translate(
-                    'auto.mobile.src.components.SetupHookTrustDrawer.7a043eaa04',
+                    'm.SetupHookTrustDrawer.7a043eaa04',
                     "{{value0}}'s setup script changed",
                     { value0: prompt.repoName }
                   )
-                : translate(
-                    'auto.mobile.src.components.SetupHookTrustDrawer.4923252ebf',
-                    'Run setup from {{value0}}?',
-                    { value0: prompt.repoName }
-                  )}
+                : translate('m.SetupHookTrustDrawer.4923252ebf', 'Run setup from {{value0}}?', {
+                    value0: prompt.repoName
+                  })}
             </Text>
             <Text style={styles.subtitle}>
               {translate(
-                'auto.mobile.src.components.SetupHookTrustDrawer.3fce3cbaa8',
+                'm.SetupHookTrustDrawer.3fce3cbaa8',
                 "This repository's manta.yaml runs before the workspace starts. Only run it if you trust this repository."
               )}{' '}
             </Text>
@@ -63,14 +61,8 @@ export function SetupHookTrustDrawer({
           <View style={styles.trustScriptBox}>
             <Text style={styles.trustScriptLabel}>
               {prompt.previouslyApproved
-                ? translate(
-                    'auto.mobile.src.components.SetupHookTrustDrawer.8315ed1a92',
-                    'New setup script'
-                  )
-                : translate(
-                    'auto.mobile.src.components.SetupHookTrustDrawer.9bb8f1626f',
-                    'Setup script'
-                  )}
+                ? translate('m.SetupHookTrustDrawer.8315ed1a92', 'New setup script')
+                : translate('m.SetupHookTrustDrawer.9bb8f1626f', 'Setup script')}
             </Text>
             <Text style={styles.trustScriptText}>{prompt.scriptContent}</Text>
           </View>
@@ -79,29 +71,20 @@ export function SetupHookTrustDrawer({
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onRunOnce}>
               <Check size={16} color={colors.textPrimary} />
               <Text style={styles.trustActionText}>
-                {translate(
-                  'auto.mobile.src.components.SetupHookTrustDrawer.c0e0ace4b0',
-                  'Run hooks'
-                )}
+                {translate('m.SetupHookTrustDrawer.c0e0ace4b0', 'Run hooks')}
               </Text>
             </Pressable>
             <View style={styles.trustActionSeparator} />
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onAlwaysTrust}>
               <Check size={16} color={colors.textPrimary} />
               <Text style={styles.trustActionText}>
-                {translate(
-                  'auto.mobile.src.components.SetupHookTrustDrawer.854491abb2',
-                  'Always trust and run'
-                )}
+                {translate('m.SetupHookTrustDrawer.854491abb2', 'Always trust and run')}
               </Text>
             </Pressable>
             <View style={styles.trustActionSeparator} />
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onDontRun}>
               <Text style={styles.trustActionText}>
-                {translate(
-                  'auto.mobile.src.components.SetupHookTrustDrawer.3def439a17',
-                  "Don't run"
-                )}
+                {translate('m.SetupHookTrustDrawer.3def439a17', "Don't run")}
               </Text>
             </Pressable>
           </View>

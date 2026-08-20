@@ -15,12 +15,12 @@ const viewModes = localizedConstant(
   (): { id: MobileBrowserViewMode; label: string; icon: LucideIcon }[] => [
     {
       id: 'web',
-      label: translate('auto.mobile.src.browser.MobileBrowserViewModeSwitch.dd3b9447eb', 'Web'),
+      label: translate('m.MobileBrowserViewModeSwitch.dd3b9447eb', 'Web'),
       icon: Monitor
     },
     {
       id: 'mobile',
-      label: translate('auto.mobile.src.browser.MobileBrowserViewModeSwitch.789254cd81', 'Mobile'),
+      label: translate('m.MobileBrowserViewModeSwitch.789254cd81', 'Mobile'),
       icon: Smartphone
     }
   ]

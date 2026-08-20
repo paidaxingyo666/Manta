@@ -42,7 +42,7 @@ export function parseSparsePresetDirectories(value: string): SparsePresetDirecto
     return {
       directories: [],
       error: translate(
-        'auto.mobile.src.tasks.sparse.preset.draft.4e02cc9c37',
+        'm.sparse.preset.draft.4e02cc9c37',
         'Use repo-relative directories, not root, absolute paths, or parent segments.'
       )
     }
@@ -53,10 +53,7 @@ export function parseSparsePresetDirectories(value: string): SparsePresetDirecto
   if (directories.length === 0) {
     return {
       directories,
-      error: translate(
-        'auto.mobile.src.tasks.sparse.preset.draft.33458abe81',
-        'Add at least one directory.'
-      )
+      error: translate('m.sparse.preset.draft.33458abe81', 'Add at least one directory.')
     }
   }
 
@@ -64,7 +61,7 @@ export function parseSparsePresetDirectories(value: string): SparsePresetDirecto
     return {
       directories: [],
       error: translate(
-        'auto.mobile.src.tasks.sparse.preset.draft.4e02cc9c37',
+        'm.sparse.preset.draft.4e02cc9c37',
         'Use repo-relative directories, not root, absolute paths, or parent segments.'
       )
     }

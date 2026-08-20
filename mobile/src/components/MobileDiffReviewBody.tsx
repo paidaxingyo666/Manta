@@ -43,10 +43,7 @@ export function MobileDiffReviewBody({
   if (screenState.kind === 'loading') {
     return (
       <CenteredState
-        text={translate(
-          'auto.mobile.src.components.MobileDiffReviewBody.3a7d07fc96',
-          'Loading review...'
-        )}
+        text={translate('m.MobileDiffReviewBody.3a7d07fc96', 'Loading review...')}
         busy
       />
     )
@@ -56,14 +53,8 @@ export function MobileDiffReviewBody({
       <CenteredState
         title={
           screenState.kind === 'unavailable'
-            ? translate(
-                'auto.mobile.src.components.MobileDiffReviewBody.afe74af652',
-                'Review Unavailable'
-              )
-            : translate(
-                'auto.mobile.src.components.MobileDiffReviewBody.7b9b086d5d',
-                'Unable to Load Review'
-              )
+            ? translate('m.MobileDiffReviewBody.afe74af652', 'Review Unavailable')
+            : translate('m.MobileDiffReviewBody.7b9b086d5d', 'Unable to Load Review')
         }
         text={screenState.message}
         onRetry={onRetry}
@@ -73,24 +64,15 @@ export function MobileDiffReviewBody({
   if (filteredCount === 0) {
     return (
       <CenteredState
-        title={translate(
-          'auto.mobile.src.components.MobileDiffReviewBody.dfe44c788a',
-          'No Reviewable Changes'
-        )}
-        text={translate(
-          'auto.mobile.src.components.MobileDiffReviewBody.2aedb02be8',
-          'Try a different review filter.'
-        )}
+        title={translate('m.MobileDiffReviewBody.dfe44c788a', 'No Reviewable Changes')}
+        text={translate('m.MobileDiffReviewBody.2aedb02be8', 'Try a different review filter.')}
       />
     )
   }
   if (diffState.kind === 'loading') {
     return (
       <CenteredState
-        text={translate(
-          'auto.mobile.src.components.MobileDiffReviewBody.7ba47f20f3',
-          'Loading diff...'
-        )}
+        text={translate('m.MobileDiffReviewBody.7ba47f20f3', 'Loading diff...')}
         busy
         muted
       />
@@ -131,10 +113,7 @@ export function MobileDiffReviewBody({
       ListFooterComponent={
         diffState.truncated ? (
           <Text style={styles.truncatedText}>
-            {translate(
-              'auto.mobile.src.components.MobileDiffReviewBody.5ba30b368d',
-              'Diff truncated for mobile preview.'
-            )}
+            {translate('m.MobileDiffReviewBody.5ba30b368d', 'Diff truncated for mobile preview.')}
           </Text>
         ) : null
       }
@@ -151,37 +130,31 @@ function DiffUnavailableState({
 }) {
   const title =
     diffState.kind === 'binary'
-      ? translate('auto.mobile.src.components.MobileDiffReviewBody.0a4bbf6913', 'Binary Diff')
+      ? translate('m.MobileDiffReviewBody.0a4bbf6913', 'Binary Diff')
       : diffState.kind === 'too-large'
-        ? translate('auto.mobile.src.components.MobileDiffReviewBody.06b13f6828', 'Diff Too Large')
+        ? translate('m.MobileDiffReviewBody.06b13f6828', 'Diff Too Large')
         : diffState.kind === 'deleted'
-          ? translate('auto.mobile.src.components.MobileDiffReviewBody.f52bfb25be', 'Deleted File')
-          : translate(
-              'auto.mobile.src.components.MobileDiffReviewBody.45a8e6d5ca',
-              'Diff Unavailable'
-            )
+          ? translate('m.MobileDiffReviewBody.f52bfb25be', 'Deleted File')
+          : translate('m.MobileDiffReviewBody.45a8e6d5ca', 'Diff Unavailable')
   const text =
     diffState.kind === 'binary'
       ? translate(
-          'auto.mobile.src.components.MobileDiffReviewBody.15d3872219',
+          'm.MobileDiffReviewBody.15d3872219',
           'This file cannot be rendered as text on mobile.'
         )
       : diffState.kind === 'too-large'
         ? translate(
-            'auto.mobile.src.components.MobileDiffReviewBody.61e41a6d8b',
+            'm.MobileDiffReviewBody.61e41a6d8b',
             'This diff is too large for the mobile preview.'
           )
         : diffState.kind === 'deleted'
           ? translate(
-              'auto.mobile.src.components.MobileDiffReviewBody.126e672f04',
+              'm.MobileDiffReviewBody.126e672f04',
               'This file was deleted. Add a file note or mark it reviewed.'
             )
           : diffState.kind === 'error'
             ? diffState.message
-            : translate(
-                'auto.mobile.src.components.MobileDiffReviewBody.3e96692d6c',
-                'Select a file to review.'
-              )
+            : translate('m.MobileDiffReviewBody.3e96692d6c', 'Select a file to review.')
   return <CenteredState title={title} text={text} onRetry={onRetry} />
 }
 
@@ -214,7 +187,7 @@ function CenteredState({
         >
           <RefreshCw size={14} color={colors.textPrimary} strokeWidth={2.2} />
           <Text style={styles.retryText}>
-            {translate('auto.mobile.src.components.MobileDiffReviewBody.196c031931', 'Retry')}
+            {translate('m.MobileDiffReviewBody.196c031931', 'Retry')}
           </Text>
         </Pressable>
       ) : null}

@@ -1063,21 +1063,21 @@ export function MobileBrowserPane({
       <View style={styles.toolbar}>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoBack}
-          label={translate('auto.mobile.src.browser.MobileBrowserPane.6bf3c4656f', 'Back')}
+          label={translate('m.MobileBrowserPane.6bf3c4656f', 'Back')}
           onPress={goBack}
         >
           <ChevronLeft size={15} color={buttonColor(!controlsDisabled && tab.canGoBack)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoForward}
-          label={translate('auto.mobile.src.browser.MobileBrowserPane.f9830183d5', 'Forward')}
+          label={translate('m.MobileBrowserPane.f9830183d5', 'Forward')}
           onPress={goForward}
         >
           <ChevronRight size={15} color={buttonColor(!controlsDisabled && tab.canGoForward)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled}
-          label={translate('auto.mobile.src.browser.MobileBrowserPane.195080774d', 'Reload')}
+          label={translate('m.MobileBrowserPane.195080774d', 'Reload')}
           onPress={reloadPage}
         >
           <RefreshCw size={15} color={buttonColor(!controlsDisabled)} />
@@ -1200,10 +1200,7 @@ export function MobileBrowserPane({
           <View style={styles.dialogOverlay}>
             <View style={styles.dialogCard}>
               <Text style={styles.dialogTitle}>
-                {translate(
-                  'auto.mobile.src.browser.MobileBrowserPane.cf59e404bc',
-                  'Browser Dialog'
-                )}
+                {translate('m.MobileBrowserPane.cf59e404bc', 'Browser Dialog')}
               </Text>
               <Text style={styles.dialogMessage}>{dialog.message}</Text>
               <View style={styles.dialogActions}>
@@ -1216,7 +1213,7 @@ export function MobileBrowserPane({
                     onPress={() => void sendDialogCommand('browser.dialogDismiss')}
                   >
                     <Text style={styles.dialogButtonText}>
-                      {translate('auto.mobile.src.browser.MobileBrowserPane.45711f1d50', 'Cancel')}
+                      {translate('m.MobileBrowserPane.45711f1d50', 'Cancel')}
                     </Text>
                   </Pressable>
                 ) : null}
@@ -1229,7 +1226,7 @@ export function MobileBrowserPane({
                   onPress={() => void sendDialogCommand('browser.dialogAccept')}
                 >
                   <Text style={[styles.dialogButtonText, styles.dialogButtonPrimaryText]}>
-                    {translate('auto.mobile.src.browser.MobileBrowserPane.e3c7ac5a87', 'OK')}
+                    {translate('m.MobileBrowserPane.e3c7ac5a87', 'OK')}
                   </Text>
                 </Pressable>
               </View>
@@ -1258,10 +1255,7 @@ export function MobileBrowserPane({
             style={styles.keyboardInput}
             value={keyboardValue}
             onChangeText={setKeyboardValue}
-            placeholder={translate(
-              'auto.mobile.src.browser.MobileBrowserPane.8371afb0eb',
-              'Type on page…'
-            )}
+            placeholder={translate('m.MobileBrowserPane.8371afb0eb', 'Type on page…')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}

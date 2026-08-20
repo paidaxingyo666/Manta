@@ -42,10 +42,7 @@ export function getHostListActionSheetActions(args: {
     ...(isLive
       ? [
           {
-            label: translate(
-              'auto.mobile.src.host.list.action.sheet.actions.57290dfe4b',
-              'Disconnect'
-            ),
+            label: translate('m.host.list.action.sheet.actions.57290dfe4b', 'Disconnect'),
             icon: PowerOff,
             onPress: () => {
               args.onDismiss()
@@ -55,7 +52,7 @@ export function getHostListActionSheetActions(args: {
         ]
       : []),
     {
-      label: translate('auto.mobile.src.host.list.action.sheet.actions.9c12136964', 'Edit host'),
+      label: translate('m.host.list.action.sheet.actions.9c12136964', 'Edit host'),
       icon: Edit3,
       closeBeforePress: true,
       onPress: () => {
@@ -64,7 +61,7 @@ export function getHostListActionSheetActions(args: {
       }
     },
     {
-      label: translate('auto.mobile.src.host.list.action.sheet.actions.d380ec81a0', 'Remove'),
+      label: translate('m.host.list.action.sheet.actions.d380ec81a0', 'Remove'),
       destructive: true,
       closeBeforePress: true,
       onPress: () => {

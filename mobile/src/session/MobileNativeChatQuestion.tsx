@@ -120,7 +120,7 @@ export function MobileNativeChatQuestion({ question, onAnswer }: Props): React.J
           disabled={!canSubmitMulti}
         >
           <Text style={[styles.submitText, !canSubmitMulti && styles.submitTextDisabled]}>
-            {translate('auto.mobile.src.session.MobileNativeChatQuestion.b00d711570', 'Submit')}
+            {translate('m.MobileNativeChatQuestion.b00d711570', 'Submit')}
             {selected.length > 0 ? ` (${selected.length})` : ''}
           </Text>
         </Pressable>
@@ -133,14 +133,8 @@ export function MobileNativeChatQuestion({ question, onAnswer }: Props): React.J
           onChangeText={setFreeText}
           placeholder={
             hasOptions
-              ? translate(
-                  'auto.mobile.src.session.MobileNativeChatQuestion.6d27956f85',
-                  'Or type a reply…'
-                )
-              : translate(
-                  'auto.mobile.src.session.MobileNativeChatQuestion.a6c3892e34',
-                  'Type your reply…'
-                )
+              ? translate('m.MobileNativeChatQuestion.6d27956f85', 'Or type a reply…')
+              : translate('m.MobileNativeChatQuestion.a6c3892e34', 'Type your reply…')
           }
           placeholderTextColor={colors.textMuted}
           selectionColor={colors.accentBlue}

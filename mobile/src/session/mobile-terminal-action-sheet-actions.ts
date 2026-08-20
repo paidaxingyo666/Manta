@@ -47,14 +47,8 @@ export function getMobileTerminalActionSheetActions<
     }),
     {
       label: phoneMode
-        ? translate(
-            'auto.mobile.src.session.mobile.terminal.action.sheet.actions.d176f3200b',
-            'Switch to Desktop'
-          )
-        : translate(
-            'auto.mobile.src.session.mobile.terminal.action.sheet.actions.e74d91fe61',
-            'Switch to Phone'
-          ),
+        ? translate('m.mobile.terminal.action.sheet.actions.d176f3200b', 'Switch to Desktop')
+        : translate('m.mobile.terminal.action.sheet.actions.e74d91fe61', 'Switch to Phone'),
       icon: phoneMode ? Monitor : Smartphone,
       onPress: () => {
         args.onDismiss()
@@ -62,20 +56,14 @@ export function getMobileTerminalActionSheetActions<
       }
     },
     {
-      label: translate(
-        'auto.mobile.src.session.mobile.terminal.action.sheet.actions.db014329a6',
-        'Rename'
-      ),
+      label: translate('m.mobile.terminal.action.sheet.actions.db014329a6', 'Rename'),
       closeBeforePress: true,
       onPress: () => {
         args.onRename(target)
       }
     },
     {
-      label: translate(
-        'auto.mobile.src.session.mobile.terminal.action.sheet.actions.e6ce1536cc',
-        'Clear Terminal'
-      ),
+      label: translate('m.mobile.terminal.action.sheet.actions.e6ce1536cc', 'Clear Terminal'),
       icon: Eraser,
       onPress: () => {
         args.onDismiss()
@@ -83,10 +71,7 @@ export function getMobileTerminalActionSheetActions<
       }
     },
     {
-      label: translate(
-        'auto.mobile.src.session.mobile.terminal.action.sheet.actions.937d975bac',
-        'Close'
-      ),
+      label: translate('m.mobile.terminal.action.sheet.actions.937d975bac', 'Close'),
       destructive: true,
       onPress: () => {
         args.onDismiss()

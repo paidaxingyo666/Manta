@@ -108,89 +108,77 @@ type ToolbarItem = {
 const toolbarItems = localizedConstant((): ToolbarItem[] => [
   {
     command: 'paragraph',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.dcf876bee3', 'Body'),
+    label: translate('m.MobileRichMarkdownEditor.dcf876bee3', 'Body'),
     icon: Pilcrow
   },
   {
     command: 'heading1',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4e4c3e5c6e', 'H1'),
+    label: translate('m.MobileRichMarkdownEditor.4e4c3e5c6e', 'H1'),
     icon: Heading1
   },
   {
     command: 'heading2',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4f4fb498bc', 'H2'),
+    label: translate('m.MobileRichMarkdownEditor.4f4fb498bc', 'H2'),
     icon: Heading2
   },
   {
     command: 'heading3',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.aa920b1281', 'H3'),
+    label: translate('m.MobileRichMarkdownEditor.aa920b1281', 'H3'),
     icon: Heading3
   },
   {
     command: 'bold',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4dc5087c78', 'Bold'),
+    label: translate('m.MobileRichMarkdownEditor.4dc5087c78', 'Bold'),
     icon: Bold
   },
   {
     command: 'italic',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.cf0a148dc5', 'Italic'),
+    label: translate('m.MobileRichMarkdownEditor.cf0a148dc5', 'Italic'),
     icon: Italic
   },
   {
     command: 'strike',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.c307647887', 'Strike'),
+    label: translate('m.MobileRichMarkdownEditor.c307647887', 'Strike'),
     icon: Strikethrough
   },
   {
     command: 'bulletList',
-    label: translate(
-      'auto.mobile.src.components.MobileRichMarkdownEditor.84ac880fd0',
-      'Bullet list'
-    ),
+    label: translate('m.MobileRichMarkdownEditor.84ac880fd0', 'Bullet list'),
     icon: List
   },
   {
     command: 'orderedList',
-    label: translate(
-      'auto.mobile.src.components.MobileRichMarkdownEditor.ffbf532ba2',
-      'Numbered list'
-    ),
+    label: translate('m.MobileRichMarkdownEditor.ffbf532ba2', 'Numbered list'),
     icon: ListOrdered
   },
   {
     command: 'taskList',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.8cf9508628', 'Checklist'),
+    label: translate('m.MobileRichMarkdownEditor.8cf9508628', 'Checklist'),
     icon: ListTodo
   },
   {
     command: 'quote',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.750393eed3', 'Quote'),
+    label: translate('m.MobileRichMarkdownEditor.750393eed3', 'Quote'),
     icon: Quote
   },
   {
     command: 'link',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.78b02d6409', 'Link'),
+    label: translate('m.MobileRichMarkdownEditor.78b02d6409', 'Link'),
     icon: Link
   },
   {
     command: 'image',
-    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.7d3dcdfd44', 'Image'),
+    label: translate('m.MobileRichMarkdownEditor.7d3dcdfd44', 'Image'),
     icon: ImageIcon
   },
   {
     command: 'inlineCode',
-    label: translate(
-      'auto.mobile.src.components.MobileRichMarkdownEditor.8758a483e2',
-      'Inline code'
-    ),
+    label: translate('m.MobileRichMarkdownEditor.8758a483e2', 'Inline code'),
     icon: Code2
   },
   {
     command: 'codeBlock',
-    label: translate(
-      'auto.mobile.src.components.MobileRichMarkdownEditor.b0b327b090',
-      'Code block'
-    ),
+    label: translate('m.MobileRichMarkdownEditor.b0b327b090', 'Code block'),
     icon: FileCode2
   }
 ])

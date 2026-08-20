@@ -38,7 +38,7 @@ export function MobileFilePreviewBody({ preview, ...options }: Props) {
         <Text style={styles.errorText}>{preview.message}</Text>
         <Pressable style={styles.retryButton} onPress={options.onRetry}>
           <Text style={styles.retryText}>
-            {translate('auto.mobile.src.files.MobileFilePreviewBody.cea65a249a', 'Retry')}
+            {translate('m.MobileFilePreviewBody.cea65a249a', 'Retry')}
           </Text>
         </Pressable>
       </View>
@@ -50,7 +50,7 @@ export function MobileFilePreviewBody({ preview, ...options }: Props) {
     ) : (
       <View style={styles.state}>
         <Text style={styles.stateText}>
-          {translate('auto.mobile.src.files.MobileFilePreviewBody.d14ff7e198', 'Empty file')}
+          {translate('m.MobileFilePreviewBody.d14ff7e198', 'Empty file')}
         </Text>
       </View>
     )

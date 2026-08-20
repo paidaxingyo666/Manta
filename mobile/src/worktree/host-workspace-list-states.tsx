@@ -25,13 +25,13 @@ export function HostWorkspaceListStates(
       <View style={styles.centered}>
         <Text style={styles.emptyText}>
           {translate(
-            'auto.mobile.src.worktree.host.workspace.list.states.9f6f3e7d1c',
+            'm.host.workspace.list.states.9f6f3e7d1c',
             'Could not load workspaces from this host'
           )}
         </Text>
         <Text style={styles.catalogErrorDetail}>
           {translate(
-            'auto.mobile.src.worktree.host.workspace.list.states.26afe48a65',
+            'm.host.workspace.list.states.26afe48a65',
             'worktree.ps failed ({{value0}}) — retrying automatically',
             { value0: props.catalogError }
           )}
@@ -44,19 +44,10 @@ export function HostWorkspaceListStates(
       <View style={styles.centered}>
         <Text style={styles.emptyText}>
           {props.search
-            ? translate(
-                'auto.mobile.src.worktree.host.workspace.list.states.4b6ffdb276',
-                'No matching worktrees'
-              )
+            ? translate('m.host.workspace.list.states.4b6ffdb276', 'No matching worktrees')
             : props.activeFilterCount > 0
-              ? translate(
-                  'auto.mobile.src.worktree.host.workspace.list.states.3d19717048',
-                  'No worktrees match filters'
-                )
-              : translate(
-                  'auto.mobile.src.worktree.host.workspace.list.states.5c9a3d6268',
-                  'No worktrees'
-                )}
+              ? translate('m.host.workspace.list.states.3d19717048', 'No worktrees match filters')
+              : translate('m.host.workspace.list.states.5c9a3d6268', 'No worktrees')}
         </Text>
       </View>
     )

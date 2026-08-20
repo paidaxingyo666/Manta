@@ -70,35 +70,26 @@ export function PRReviewersSection({ details, actions, client, worktreeId }: Pro
 
   return (
     <PRSection
-      title={translate(
-        'auto.mobile.src.components.pr.sidebar.PRReviewersSection.7d7dae0045',
-        'Reviewers'
-      )}
+      title={translate('m.PRReviewersSection.7d7dae0045', 'Reviewers')}
       trailing={addButton}
     >
       {loadingDetails ? (
         <View style={styles.reviewersStatus}>
           <ActivityIndicator color={colors.textSecondary} />
           <Text style={styles.emptyText}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.PRReviewersSection.472af70c24',
-              'Loading reviewers…'
-            )}
+            {translate('m.PRReviewersSection.472af70c24', 'Loading reviewers…')}
           </Text>
         </View>
       ) : detailsFailed ? (
         <Text style={styles.emptyText}>
           {translate(
-            'auto.mobile.src.components.pr.sidebar.PRReviewersSection.4f951ce00a',
+            'm.PRReviewersSection.4f951ce00a',
             'Could not load reviewers. Tap refresh to try again.'
           )}
         </Text>
       ) : rows.length === 0 ? (
         <Text style={styles.emptyText}>
-          {translate(
-            'auto.mobile.src.components.pr.sidebar.PRReviewersSection.8c14e85fe2',
-            'No reviewers requested'
-          )}
+          {translate('m.PRReviewersSection.8c14e85fe2', 'No reviewers requested')}
         </Text>
       ) : (
         rows.map((row) => {

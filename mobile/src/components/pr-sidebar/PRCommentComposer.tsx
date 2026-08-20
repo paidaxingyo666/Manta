@@ -71,10 +71,7 @@ export function PRCommentComposer({
             accessibilityLabel="Cancel"
           >
             <Text style={styles.cancelText}>
-              {translate(
-                'auto.mobile.src.components.pr.sidebar.PRCommentComposer.11732797fe',
-                'Cancel'
-              )}
+              {translate('m.PRCommentComposer.11732797fe', 'Cancel')}
             </Text>
           </Pressable>
         ) : null}

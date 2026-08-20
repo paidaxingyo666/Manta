@@ -181,7 +181,7 @@ export function useMobileNativeChatImageAttachments({
         if (connStateRef.current !== 'connected') {
           showToast(
             translate(
-              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.29cd4ef611',
+              'm.use.mobile.native.chat.image.attachments.29cd4ef611',
               'Attach failed (disconnected)'
             ),
             1500
@@ -191,7 +191,7 @@ export function useMobileNativeChatImageAttachments({
         if (uploadError instanceof ImageLibraryPermissionError) {
           showToast(
             translate(
-              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.8dd92621ac',
+              'm.use.mobile.native.chat.image.attachments.8dd92621ac',
               'Photo permission denied'
             ),
             1500
@@ -201,7 +201,7 @@ export function useMobileNativeChatImageAttachments({
         if (message === CLIPBOARD_IMAGE_TOO_LARGE_ERROR) {
           showToast(
             translate(
-              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.f988cd21c5',
+              'm.use.mobile.native.chat.image.attachments.f988cd21c5',
               'Image too large to attach'
             ),
             1500
@@ -209,10 +209,7 @@ export function useMobileNativeChatImageAttachments({
           return
         }
         showToast(
-          translate(
-            'auto.mobile.src.session.use.mobile.native.chat.image.attachments.26536a0cb0',
-            'Attach failed'
-          ),
+          translate('m.use.mobile.native.chat.image.attachments.26536a0cb0', 'Attach failed'),
           1500
         )
       }

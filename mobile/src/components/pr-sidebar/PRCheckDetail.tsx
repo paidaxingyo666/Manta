@@ -35,10 +35,7 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
     return (
       <View style={styles.checkDetailArea}>
         <Text style={styles.checkDetailText}>
-          {translate(
-            'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c496c7d2f0',
-            'No details available.'
-          )}
+          {translate('m.PRCheckDetail.c496c7d2f0', 'No details available.')}
         </Text>
       </View>
     )
@@ -54,10 +51,7 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
     <View style={styles.checkDetailArea}>
       {isEmpty ? (
         <Text style={styles.checkDetailText}>
-          {translate(
-            'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c496c7d2f0',
-            'No details available.'
-          )}
+          {translate('m.PRCheckDetail.c496c7d2f0', 'No details available.')}
         </Text>
       ) : (
         <>
@@ -69,10 +63,7 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
           {content.annotations.length > 0 ? (
             <View style={styles.checkDetailGroup}>
               <Text style={styles.checkDetailGroupLabel}>
-                {translate(
-                  'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c7542a3d88',
-                  'Annotations'
-                )}
+                {translate('m.PRCheckDetail.c7542a3d88', 'Annotations')}
               </Text>
               {content.annotations.map((annotation, index) => (
                 <View key={index}>
@@ -88,10 +79,7 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
               ))}
               {content.annotationsTruncated ? (
                 <Text style={styles.checkDetailText}>
-                  {translate(
-                    'auto.mobile.src.components.pr.sidebar.PRCheckDetail.1d6fea641a',
-                    'Showing first 20 annotations'
-                  )}
+                  {translate('m.PRCheckDetail.1d6fea641a', 'Showing first 20 annotations')}
                 </Text>
               ) : null}
             </View>
@@ -104,10 +92,7 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
               ))}
               {content.jobsTruncated ? (
                 <Text style={styles.checkDetailText}>
-                  {translate(
-                    'auto.mobile.src.components.pr.sidebar.PRCheckDetail.aba886cf7a',
-                    'Showing first 100 jobs'
-                  )}
+                  {translate('m.PRCheckDetail.aba886cf7a', 'Showing first 100 jobs')}
                 </Text>
               ) : null}
             </View>

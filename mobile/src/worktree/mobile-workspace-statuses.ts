@@ -9,31 +9,25 @@ export const defaultMobileWorkspaceStatuses = localizedConstant(
     [
       {
         id: 'completed',
-        label: translate('auto.mobile.src.worktree.mobile.workspace.statuses.1257848b64', 'Done'),
+        label: translate('m.mobile.workspace.statuses.1257848b64', 'Done'),
         color: 'conductor-done',
         icon: 'conductor-done'
       },
       {
         id: 'in-review',
-        label: translate(
-          'auto.mobile.src.worktree.mobile.workspace.statuses.9a0f28ceab',
-          'In review'
-        ),
+        label: translate('m.mobile.workspace.statuses.9a0f28ceab', 'In review'),
         color: 'conductor-review',
         icon: 'conductor-review'
       },
       {
         id: DEFAULT_MOBILE_WORKSPACE_STATUS_ID,
-        label: translate(
-          'auto.mobile.src.worktree.mobile.workspace.statuses.85679374e3',
-          'In progress'
-        ),
+        label: translate('m.mobile.workspace.statuses.85679374e3', 'In progress'),
         color: 'conductor-progress',
         icon: 'conductor-progress'
       },
       {
         id: 'todo',
-        label: translate('auto.mobile.src.worktree.mobile.workspace.statuses.cd6c22dfea', 'Todo'),
+        label: translate('m.mobile.workspace.statuses.cd6c22dfea', 'Todo'),
         color: 'neutral',
         icon: 'circle'
       }

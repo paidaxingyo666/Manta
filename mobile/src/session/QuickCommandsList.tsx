@@ -60,10 +60,7 @@ export function QuickCommandsList({
             style={styles.searchInput}
             value={query}
             onChangeText={onQueryChange}
-            placeholder={translate(
-              'auto.mobile.src.session.QuickCommandsList.325cecdaaf',
-              'Search quick commands...'
-            )}
+            placeholder={translate('m.QuickCommandsList.325cecdaaf', 'Search quick commands...')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -82,25 +79,19 @@ export function QuickCommandsList({
 
       {!loading && totalCount === 0 ? (
         <Text style={styles.empty}>
-          {translate(
-            'auto.mobile.src.session.QuickCommandsList.586660565c',
-            'No quick commands yet.'
-          )}
+          {translate('m.QuickCommandsList.586660565c', 'No quick commands yet.')}
         </Text>
       ) : null}
 
       {!loading && totalCount > 0 && !hasVisible ? (
         <Text style={styles.empty}>
-          {translate(
-            'auto.mobile.src.session.QuickCommandsList.b2d8e370de',
-            'No matching quick commands.'
-          )}
+          {translate('m.QuickCommandsList.b2d8e370de', 'No matching quick commands.')}
         </Text>
       ) : null}
 
       {repoCommands.length > 0 ? (
         <QuickCommandGroup
-          label={translate('auto.mobile.src.session.QuickCommandsList.d327b572b9', 'This project')}
+          label={translate('m.QuickCommandsList.d327b572b9', 'This project')}
           commands={repoCommands}
           onLaunch={onLaunch}
           onEdit={onEdit}
@@ -111,7 +102,7 @@ export function QuickCommandsList({
 
       {globalCommands.length > 0 ? (
         <QuickCommandGroup
-          label={translate('auto.mobile.src.session.QuickCommandsList.616a7d788f', 'Global')}
+          label={translate('m.QuickCommandsList.616a7d788f', 'Global')}
           commands={globalCommands}
           onLaunch={onLaunch}
           onEdit={onEdit}
@@ -133,11 +124,8 @@ export function QuickCommandsList({
         <Plus size={18} color={colors.textSecondary} />
         <Text style={styles.addText}>
           {canAdd
-            ? translate('auto.mobile.src.session.QuickCommandsList.2e659657de', 'New quick command')
-            : translate(
-                'auto.mobile.src.session.QuickCommandsList.26ac6d7f47',
-                'Quick command limit reached'
-              )}
+            ? translate('m.QuickCommandsList.2e659657de', 'New quick command')
+            : translate('m.QuickCommandsList.26ac6d7f47', 'Quick command limit reached')}
         </Text>
       </Pressable>
     </View>

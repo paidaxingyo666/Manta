@@ -81,9 +81,7 @@ function ToolLine({
 }): React.JSX.Element {
   const [expanded, setExpanded] = useState(defaultExpanded)
   const { call, result } = pair
-  const name = call
-    ? call.name
-    : translate('auto.mobile.src.session.MobileNativeChatMessage.e88fa76bb4', 'Result')
+  const name = call ? call.name : translate('m.MobileNativeChatMessage.e88fa76bb4', 'Result')
   const inputDisplay = call ? createToolInputDisplay(call.input) : null
   const preview = inputDisplay?.label ?? result?.output.split('\n')[0]?.slice(0, 80) ?? ''
   // Why: collapsed tool rows are the common path; defer bounded diff parsing
@@ -180,7 +178,7 @@ function Prose({
         {block.alt ??
           block.path ??
           block.url ??
-          translate('auto.mobile.src.session.MobileNativeChatMessage.58bde2fc06', 'image')}
+          translate('m.MobileNativeChatMessage.58bde2fc06', 'image')}
       </Text>
     )
   }
@@ -224,11 +222,10 @@ function ToolRun({
           <Text style={styles.toolRunCount}>{callCount}×</Text>
           <Text style={styles.toolRunLabel} numberOfLines={1}>
             {summary ||
-              translate(
-                'auto.mobile.src.session.MobileNativeChatMessage.5df068822d',
-                '{{value0}} tool {{value1}}',
-                { value0: callCount, value1: callCount === 1 ? 'call' : 'calls' }
-              )}
+              translate('m.MobileNativeChatMessage.5df068822d', '{{value0}} tool {{value1}}', {
+                value0: callCount,
+                value1: callCount === 1 ? 'call' : 'calls'
+              })}
           </Text>
         </Pressable>
         {trailing}
@@ -247,10 +244,7 @@ function ToolRun({
           {callCount > pairs.length ? (
             <Text style={styles.toolPreview}>
               … {callCount - pairs.length}{' '}
-              {translate(
-                'auto.mobile.src.session.MobileNativeChatMessage.6b0db92a6c',
-                'more tool calls'
-              )}
+              {translate('m.MobileNativeChatMessage.6b0db92a6c', 'more tool calls')}
             </Text>
           ) : null}
         </View>

@@ -60,10 +60,7 @@ export function previewError(message: string): MobileFilePreviewResult {
   if (normalized === 'binary_file' || normalized.includes('binary_file')) {
     return {
       status: 'error',
-      message: translate(
-        'auto.mobile.src.files.mobile.file.preview.response.51f5380805',
-        'Binary preview unavailable'
-      ),
+      message: translate('m.mobile.file.preview.response.51f5380805', 'Binary preview unavailable'),
       reconnect: false
     }
   }
@@ -71,7 +68,7 @@ export function previewError(message: string): MobileFilePreviewResult {
     return {
       status: 'error',
       message: translate(
-        'auto.mobile.src.files.mobile.file.preview.response.50500520fd',
+        'm.mobile.file.preview.response.50500520fd',
         'File too large for mobile preview'
       ),
       reconnect: false
@@ -81,7 +78,7 @@ export function previewError(message: string): MobileFilePreviewResult {
     return {
       status: 'error',
       message: translate(
-        'auto.mobile.src.files.mobile.file.preview.response.92d183bd91',
+        'm.mobile.file.preview.response.92d183bd91',
         'Reload preview before saving'
       ),
       reconnect: false
@@ -96,7 +93,7 @@ export function previewError(message: string): MobileFilePreviewResult {
     return {
       status: 'error',
       message: translate(
-        'auto.mobile.src.files.mobile.file.preview.response.5fec217cca',
+        'm.mobile.file.preview.response.5fec217cca',
         'Unable to reach the desktop filesystem'
       ),
       reconnect: true
@@ -110,19 +107,13 @@ export function previewError(message: string): MobileFilePreviewResult {
   ) {
     return {
       status: 'error',
-      message: translate(
-        'auto.mobile.src.files.mobile.file.preview.response.263fc80f06',
-        'File not found'
-      ),
+      message: translate('m.mobile.file.preview.response.263fc80f06', 'File not found'),
       reconnect: false
     }
   }
   return {
     status: 'error',
-    message: translate(
-      'auto.mobile.src.files.mobile.file.preview.response.9db82be07d',
-      'Unable to load preview'
-    ),
+    message: translate('m.mobile.file.preview.response.9db82be07d', 'Unable to load preview'),
     reconnect: false
   }
 }

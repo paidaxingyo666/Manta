@@ -48,10 +48,7 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
     <View>
       <View style={styles.headingRow}>
         <Text style={styles.heading}>
-          {translate(
-            'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.7fc66c2fd9',
-            'Link existing pull request'
-          )}
+          {translate('m.MobileLinkPrForm.7fc66c2fd9', 'Link existing pull request')}
         </Text>
         <Pressable
           onPress={onCancel}
@@ -61,25 +58,19 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
           hitSlop={8}
         >
           <Text style={styles.cancelText}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.64b5ae218a',
-              'Cancel'
-            )}
+            {translate('m.MobileLinkPrForm.64b5ae218a', 'Cancel')}
           </Text>
         </Pressable>
       </View>
       <Text style={styles.label}>
-        {translate(
-          'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.0f6c09a375',
-          'PR number or GitHub URL'
-        )}
+        {translate('m.MobileLinkPrForm.0f6c09a375', 'PR number or GitHub URL')}
       </Text>
       <TextInput
         style={styles.input}
         value={input}
         onChangeText={setInput}
         placeholder={translate(
-          'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.e6d07b4dd8',
+          'm.MobileLinkPrForm.e6d07b4dd8',
           '#123 or https://github.com/owner/repo/pull/123'
         )}
         placeholderTextColor={colors.textMuted}
@@ -102,15 +93,8 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
         ) : (
           <Text style={styles.submitText}>
             {parsed
-              ? translate(
-                  'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.5332c9cbc4',
-                  'Link #{{value0}}',
-                  { value0: parsed }
-                )
-              : translate(
-                  'auto.mobile.src.components.pr.sidebar.MobileLinkPrForm.90f2dc7750',
-                  'Link pull request'
-                )}
+              ? translate('m.MobileLinkPrForm.5332c9cbc4', 'Link #{{value0}}', { value0: parsed })
+              : translate('m.MobileLinkPrForm.90f2dc7750', 'Link pull request')}
           </Text>
         )}
       </Pressable>

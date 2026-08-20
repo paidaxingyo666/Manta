@@ -48,7 +48,7 @@ export function useMobileDiffReviewDiffLoading(input: DiffLoadingInput): ReviewD
           kind: 'error',
           itemKey,
           message: translate(
-            'auto.mobile.src.session.use.mobile.diff.review.diff.loading.979f32deb0',
+            'm.use.mobile.diff.review.diff.loading.979f32deb0',
             'Waiting for desktop...'
           )
         })
@@ -79,7 +79,7 @@ export function useMobileDiffReviewDiffLoading(input: DiffLoadingInput): ReviewD
                 err instanceof Error
                   ? err.message
                   : translate(
-                      'auto.mobile.src.session.use.mobile.diff.review.diff.loading.c3f749c536',
+                      'm.use.mobile.diff.review.diff.loading.c3f749c536',
                       'Unable to load diff'
                     )
             })

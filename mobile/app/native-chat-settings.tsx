@@ -25,7 +25,7 @@ export default function NativeChatSettingsScreen() {
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.heading}>
-          {translate('auto.mobile.app.native.chat.settings.6a8d3d4f8f', 'Chat UI')}
+          {translate('m.native.chat.settings.6a8d3d4f8f', 'Chat UI')}
         </Text>
       </View>
 
@@ -34,11 +34,11 @@ export default function NativeChatSettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.groupHeading}>
-          {translate('auto.mobile.app.native.chat.settings.47b9a4b22a', 'DEFAULT VIEW')}
+          {translate('m.native.chat.settings.47b9a4b22a', 'DEFAULT VIEW')}
         </Text>
         <Text style={styles.groupDescription}>
           {translate(
-            'auto.mobile.app.native.chat.settings.b16ffa3c6e',
+            'm.native.chat.settings.b16ffa3c6e',
             'Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.'
           )}{' '}
         </Text>
@@ -46,15 +46,12 @@ export default function NativeChatSettingsScreen() {
           <View style={styles.row}>
             <View style={styles.rowContent}>
               <Text style={styles.rowLabel}>
-                {translate(
-                  'auto.mobile.app.native.chat.settings.2eeb654168',
-                  'Open sessions in Chat UI'
-                )}
+                {translate('m.native.chat.settings.2eeb654168', 'Open sessions in Chat UI')}
               </Text>
               <Text style={styles.rowSublabel}>
                 {chatDefault
-                  ? translate('auto.mobile.app.native.chat.settings.3977004baf', 'On')
-                  : translate('auto.mobile.app.native.chat.settings.a74c9d48cc', 'Off')}
+                  ? translate('m.native.chat.settings.3977004baf', 'On')
+                  : translate('m.native.chat.settings.a74c9d48cc', 'Off')}
               </Text>
             </View>
             <Switch

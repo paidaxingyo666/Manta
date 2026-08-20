@@ -12,14 +12,11 @@ export function WorkspaceDetailPlaceholder() {
         <SquareTerminal size={28} color={colors.textMuted} />
       </View>
       <Text style={styles.title}>
-        {translate(
-          'auto.mobile.src.components.WorkspaceDetailPlaceholder.a9ee4cc7a1',
-          'No workspace open'
-        )}
+        {translate('m.WorkspaceDetailPlaceholder.a9ee4cc7a1', 'No workspace open')}
       </Text>
       <Text style={styles.body}>
         {translate(
-          'auto.mobile.src.components.WorkspaceDetailPlaceholder.eaaca53384',
+          'm.WorkspaceDetailPlaceholder.eaaca53384',
           'Pick a workspace from the sidebar to open its terminal here.'
         )}
       </Text>

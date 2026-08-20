@@ -145,9 +145,7 @@ function MobileOnboardingFlow({
     <SafeAreaView style={styles.container}>
       <View style={styles.brandRow}>
         <MantaLogo size={22} />
-        <Text style={styles.brandName}>
-          {translate('auto.mobile.app.mobile.onboarding.4c5336d71f', 'Manta')}
-        </Text>
+        <Text style={styles.brandName}>{translate('m.mobile.onboarding.4c5336d71f', 'Manta')}</Text>
         {steps.length > 1 ? (
           <View
             accessible

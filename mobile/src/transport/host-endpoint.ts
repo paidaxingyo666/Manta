@@ -110,10 +110,7 @@ export function normalizeHostEndpoint(
   if (!trimmed) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.cfce487cfa',
-        'Enter a host address.'
-      )
+      error: translate('m.host.endpoint.cfce487cfa', 'Enter a host address.')
     }
   }
 
@@ -143,20 +140,14 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   if (explicitPort.kind === 'invalid') {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.1e0b960a94',
-        'Port must be 1–65535.'
-      )
+      error: translate('m.host.endpoint.1e0b960a94', 'Port must be 1–65535.')
     }
   }
   const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//.exec(input)?.[1]?.toLowerCase()
   if (scheme !== 'ws' && scheme !== 'wss') {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.1d030015d1',
-        'Use ws:// or wss:// (or host:port).'
-      )
+      error: translate('m.host.endpoint.1d030015d1', 'Use ws:// or wss:// (or host:port).')
     }
   }
 
@@ -164,16 +155,13 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   if (rawAuthority.hasUserInfo) {
     return {
       ok: false,
-      error: translate('auto.mobile.src.transport.host.endpoint.0ac871ced3', 'Not a valid address.')
+      error: translate('m.host.endpoint.0ac871ced3', 'Not a valid address.')
     }
   }
   if (rawAuthority.hasPathOrQuery) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.7d7f763de8',
-        'Host must not include a path or query.'
-      )
+      error: translate('m.host.endpoint.7d7f763de8', 'Host must not include a path or query.')
     }
   }
   if (
@@ -182,10 +170,7 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   ) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.ea572d0df4',
-        'Not a valid hostname.'
-      )
+      error: translate('m.host.endpoint.ea572d0df4', 'Not a valid hostname.')
     }
   }
 
@@ -195,23 +180,20 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   } catch {
     return {
       ok: false,
-      error: translate('auto.mobile.src.transport.host.endpoint.0ac871ced3', 'Not a valid address.')
+      error: translate('m.host.endpoint.0ac871ced3', 'Not a valid address.')
     }
   }
 
   if (url.protocol !== 'ws:' && url.protocol !== 'wss:') {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.1d030015d1',
-        'Use ws:// or wss:// (or host:port).'
-      )
+      error: translate('m.host.endpoint.1d030015d1', 'Use ws:// or wss:// (or host:port).')
     }
   }
   if (!url.hostname) {
     return {
       ok: false,
-      error: translate('auto.mobile.src.transport.host.endpoint.7519b0e044', 'Missing hostname.')
+      error: translate('m.host.endpoint.7519b0e044', 'Missing hostname.')
     }
   }
 
@@ -221,16 +203,13 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   if (url.username || url.password) {
     return {
       ok: false,
-      error: translate('auto.mobile.src.transport.host.endpoint.0ac871ced3', 'Not a valid address.')
+      error: translate('m.host.endpoint.0ac871ced3', 'Not a valid address.')
     }
   }
   if ((url.pathname && url.pathname !== '/') || url.search || url.hash) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.7d7f763de8',
-        'Host must not include a path or query.'
-      )
+      error: translate('m.host.endpoint.7d7f763de8', 'Host must not include a path or query.')
     }
   }
 
@@ -240,10 +219,7 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   if (rawAuthority.hostname && isCanonicalIpv4(hostname) && rawAuthority.hostname !== hostname) {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.ea572d0df4',
-        'Not a valid hostname.'
-      )
+      error: translate('m.host.endpoint.ea572d0df4', 'Not a valid hostname.')
     }
   }
   const hostError = validateHostname(hostname)
@@ -257,10 +233,7 @@ function normalizeSchemeUrl(input: string, fallbackPort: string): NormalizeHostE
   if (resolvedPort.kind === 'invalid') {
     return {
       ok: false,
-      error: translate(
-        'auto.mobile.src.transport.host.endpoint.1e0b960a94',
-        'Port must be 1–65535.'
-      )
+      error: translate('m.host.endpoint.1e0b960a94', 'Port must be 1–65535.')
     }
   }
   const port = resolvedPort.kind === 'valid' ? resolvedPort.port : fallbackPort
@@ -309,10 +282,7 @@ function normalizeHostPort(
     if (close <= 1) {
       return {
         ok: false,
-        error: translate(
-          'auto.mobile.src.transport.host.endpoint.0ac871ced3',
-          'Not a valid address.'
-        )
+        error: translate('m.host.endpoint.0ac871ced3', 'Not a valid address.')
       }
     }
     host = input.slice(1, close)
@@ -322,10 +292,7 @@ function normalizeHostPort(
     } else if (rest.length > 0) {
       return {
         ok: false,
-        error: translate(
-          'auto.mobile.src.transport.host.endpoint.0ac871ced3',
-          'Not a valid address.'
-        )
+        error: translate('m.host.endpoint.0ac871ced3', 'Not a valid address.')
       }
     }
   } else {
@@ -344,7 +311,7 @@ function normalizeHostPort(
   if (!host) {
     return {
       ok: false,
-      error: translate('auto.mobile.src.transport.host.endpoint.7519b0e044', 'Missing hostname.')
+      error: translate('m.host.endpoint.7519b0e044', 'Missing hostname.')
     }
   }
 
@@ -360,10 +327,7 @@ function normalizeHostPort(
     if (!isValidPort(port)) {
       return {
         ok: false,
-        error: translate(
-          'auto.mobile.src.transport.host.endpoint.1e0b960a94',
-          'Port must be 1–65535.'
-        )
+        error: translate('m.host.endpoint.1e0b960a94', 'Port must be 1–65535.')
       }
     }
   }

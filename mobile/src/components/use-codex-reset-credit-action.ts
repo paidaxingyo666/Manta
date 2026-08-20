@@ -73,12 +73,9 @@ export function useCodexResetCreditAction({
             ? '\n\nThis phone could not clear the discarded retry record. Retrying it is safe, but the record must be cleared before a new reset can be confirmed for this account.'
             : ''
           Alert.alert(
+            translate('m.use.codex.reset.credit.action.e034060288', 'Reset details changed'),
             translate(
-              'auto.mobile.src.components.use.codex.reset.credit.action.e034060288',
-              'Reset details changed'
-            ),
-            translate(
-              'auto.mobile.src.components.use.codex.reset.credit.action.ae28bb640b',
+              'm.use.codex.reset.credit.action.ae28bb640b',
               'The account or reset offer changed before the host contacted Codex. Review the updated details, then confirm again.{{value0}}',
               { value0: cleanupWarning }
             )
@@ -92,10 +89,7 @@ export function useCodexResetCreditAction({
         Alert.alert(copy.title, `${copy.message}${cleanupWarning}`)
       } catch (error) {
         Alert.alert(
-          translate(
-            'auto.mobile.src.components.use.codex.reset.credit.action.4ca21e5dbc',
-            'Could not reset rate limits'
-          ),
+          translate('m.use.codex.reset.credit.action.4ca21e5dbc', 'Could not reset rate limits'),
           error instanceof Error ? error.message : String(error)
         )
       } finally {
@@ -113,12 +107,9 @@ export function useCodexResetCreditAction({
     const confirmedScope = resetScope
     const confirmedLabel = describeScope(snapshot, confirmedScope)
     Alert.alert(
+      translate('m.use.codex.reset.credit.action.1333daf5e9', 'Use a rate-limit reset?'),
       translate(
-        'auto.mobile.src.components.use.codex.reset.credit.action.1333daf5e9',
-        'Use a rate-limit reset?'
-      ),
-      translate(
-        'auto.mobile.src.components.use.codex.reset.credit.action.e610f14b9f',
+        'm.use.codex.reset.credit.action.e610f14b9f',
         'This spends one earned reset for {{value0}} and immediately resets eligible rate-limit windows.',
         { value0: confirmedLabel }
       ),

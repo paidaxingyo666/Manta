@@ -27,7 +27,7 @@ export const MobileRelayHostOverlaySchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.transport.mobile.relay.host.overlay.0a36dc1b70',
+          'm.mobile.relay.host.overlay.0a36dc1b70',
           'Relay identity and endpoint must coexist'
         )
       })
@@ -37,10 +37,7 @@ export const MobileRelayHostOverlaySchema = z
       context.addIssue({
         code: 'custom',
         path: ['relayHostId'],
-        message: translate(
-          'auto.mobile.src.transport.mobile.relay.host.overlay.7becc2880a',
-          'Relay host identity mismatch'
-        )
+        message: translate('m.mobile.relay.host.overlay.7becc2880a', 'Relay host identity mismatch')
       })
     }
     const relayEndpointCount = overlay.endpoints.filter(({ kind }) => kind === 'relay').length
@@ -49,7 +46,7 @@ export const MobileRelayHostOverlaySchema = z
         code: 'custom',
         path: ['endpoints'],
         message: translate(
-          'auto.mobile.src.transport.mobile.relay.host.overlay.97129930cc',
+          'm.mobile.relay.host.overlay.97129930cc',
           'Expected exactly one endpoint for configured relay metadata'
         )
       })

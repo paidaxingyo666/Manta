@@ -226,7 +226,7 @@ export function runTerminalViewportFitPass(args: TerminalViewportFitPassArgs): v
     if (budget.shouldAnnounceExhaustion(handle)) {
       args.showToast(
         translate(
-          'auto.mobile.src.session.mobile.terminal.viewport.resubscribe.de66d5312b',
+          'm.mobile.terminal.viewport.resubscribe.de66d5312b',
           "Couldn't fit the terminal to this screen"
         ),
         4000

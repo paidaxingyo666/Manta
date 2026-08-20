@@ -174,11 +174,9 @@ export function DescriptorRows({
   if (descriptor.action?.type === 'toggle-command') {
     return (
       <ActionRow
-        label={translate(
-          'auto.mobile.src.session.MobileNativeChatSessionOptionRows.7b2744302b',
-          'Toggle {{value0}}',
-          { value0: descriptor.label.toLowerCase() }
-        )}
+        label={translate('m.MobileNativeChatSessionOptionRows.7b2744302b', 'Toggle {{value0}}', {
+          value0: descriptor.label.toLowerCase()
+        })}
         disabled={locked}
         grouped={grouped}
         onPress={onInvokeAction}
@@ -190,7 +188,7 @@ export function DescriptorRows({
     return (
       <ActionRow
         label={translate(
-          'auto.mobile.src.session.MobileNativeChatSessionOptionRows.60862cacc1',
+          'm.MobileNativeChatSessionOptionRows.60862cacc1',
           'Choose in agent picker…'
         )}
         disabled={locked}
@@ -207,16 +205,13 @@ export function DescriptorRows({
         {current === undefined ? (
           <SessionOptionCaption>
             {translate(
-              'auto.mobile.src.session.MobileNativeChatSessionOptionRows.5c67474f2f',
+              'm.MobileNativeChatSessionOptionRows.5c67474f2f',
               'Current value unknown — pick On or Off'
             )}
           </SessionOptionCaption>
         ) : null}
         <ChoiceRow
-          label={translate(
-            'auto.mobile.src.session.MobileNativeChatSessionOptionRows.c2d79886a9',
-            'On'
-          )}
+          label={translate('m.MobileNativeChatSessionOptionRows.c2d79886a9', 'On')}
           selected={current === true}
           disabled={locked}
           grouped={grouped}
@@ -224,10 +219,7 @@ export function DescriptorRows({
           onPress={() => onSetOption(true)}
         />
         <ChoiceRow
-          label={translate(
-            'auto.mobile.src.session.MobileNativeChatSessionOptionRows.581e7fea5e',
-            'Off'
-          )}
+          label={translate('m.MobileNativeChatSessionOptionRows.581e7fea5e', 'Off')}
           selected={current === false}
           disabled={locked}
           grouped={grouped}

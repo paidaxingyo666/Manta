@@ -225,7 +225,7 @@ async function verifyTerminalArtifactBaseContent(
       error: {
         status: 'error',
         message: translate(
-          'auto.mobile.src.files.mobile.file.preview.request.91859e0a0a',
+          'm.mobile.file.preview.request.91859e0a0a',
           'File changed on desktop. Reload preview before saving'
         ),
         reconnect: false

@@ -7,24 +7,15 @@ export const prCommentAudienceFilters = localizedConstant(
     [
       {
         value: 'all',
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.8fabd9b4d4',
-          'All'
-        )
+        label: translate('m.pr.comment.audience.labels.8fabd9b4d4', 'All')
       },
       {
         value: 'human',
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.0964119c2c',
-          'Humans'
-        )
+        label: translate('m.pr.comment.audience.labels.0964119c2c', 'Humans')
       },
       {
         value: 'bot',
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.92606cad19',
-          'Bots'
-        )
+        label: translate('m.pr.comment.audience.labels.92606cad19', 'Bots')
       }
     ] satisfies { value: PRCommentAudienceFilter; label: string }[]
 )

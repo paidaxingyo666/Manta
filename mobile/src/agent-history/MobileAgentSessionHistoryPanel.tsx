@@ -48,24 +48,15 @@ export type MobileAgentSessionHistoryPanelProps = {
 const scopeTabs = localizedConstant((): { scope: AiVaultScope; label: string }[] => [
   {
     scope: 'workspace',
-    label: translate(
-      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.d24e997219',
-      'Workspace'
-    )
+    label: translate('m.MobileAgentSessionHistoryPanel.d24e997219', 'Workspace')
   },
   {
     scope: 'project',
-    label: translate(
-      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.76181e3ffa',
-      'Project'
-    )
+    label: translate('m.MobileAgentSessionHistoryPanel.76181e3ffa', 'Project')
   },
   {
     scope: 'all',
-    label: translate(
-      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.adc3dfc6d1',
-      'All'
-    )
+    label: translate('m.MobileAgentSessionHistoryPanel.adc3dfc6d1', 'All')
   }
 ])
 
@@ -274,7 +265,7 @@ export function MobileAgentSessionHistoryPanel({
           <View style={styles.titleBlock}>
             <Text style={styles.title} numberOfLines={1}>
               {translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.cf628e5d91',
+                'm.MobileAgentSessionHistoryPanel.cf628e5d91',
                 'Agent Session History'
               )}{' '}
             </Text>
@@ -301,13 +292,13 @@ export function MobileAgentSessionHistoryPanel({
         <View style={styles.state}>
           <Text style={styles.stateTitle}>
             {translate(
-              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.c9196c1d89',
+              'm.MobileAgentSessionHistoryPanel.c9196c1d89',
               'Agent Session History Unavailable'
             )}
           </Text>
           <Text style={styles.stateText}>
             {translate(
-              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.1c6ecaac69',
+              'm.MobileAgentSessionHistoryPanel.1c6ecaac69',
               'Update Manta on this host to browse agent session history.'
             )}{' '}
           </Text>
@@ -315,18 +306,12 @@ export function MobileAgentSessionHistoryPanel({
       ) : screenState.kind === 'error' ? (
         <View style={styles.state}>
           <Text style={styles.stateTitle}>
-            {translate(
-              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.205877f249',
-              'Unable to Load'
-            )}
+            {translate('m.MobileAgentSessionHistoryPanel.205877f249', 'Unable to Load')}
           </Text>
           <Text style={styles.stateText}>{screenState.message}</Text>
           <Pressable style={styles.retryButton} onPress={retry}>
             <Text style={styles.retryText}>
-              {translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.ece2f4dedf',
-                'Retry'
-              )}
+              {translate('m.MobileAgentSessionHistoryPanel.ece2f4dedf', 'Retry')}
             </Text>
           </Pressable>
         </View>
@@ -354,7 +339,7 @@ export function MobileAgentSessionHistoryPanel({
               value={query}
               onChangeText={setQuery}
               placeholder={translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.51cef69b11',
+                'm.MobileAgentSessionHistoryPanel.51cef69b11',
                 'Search sessions, repo:, path:'
               )}
               placeholderTextColor={colors.textMuted}
@@ -367,18 +352,9 @@ export function MobileAgentSessionHistoryPanel({
               <Text style={styles.noticeText}>
                 {issues.length}{' '}
                 {issues.length === 1
-                  ? translate(
-                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.ddb3315bf5',
-                      'transcript'
-                    )
-                  : translate(
-                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.5820d160a5',
-                      'transcripts'
-                    )}{' '}
-                {translate(
-                  'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.94da199071',
-                  'skipped'
-                )}{' '}
+                  ? translate('m.MobileAgentSessionHistoryPanel.ddb3315bf5', 'transcript')
+                  : translate('m.MobileAgentSessionHistoryPanel.5820d160a5', 'transcripts')}{' '}
+                {translate('m.MobileAgentSessionHistoryPanel.94da199071', 'skipped')}{' '}
               </Text>
             </View>
           ) : null}
@@ -390,19 +366,16 @@ export function MobileAgentSessionHistoryPanel({
           {sections.length === 0 ? (
             <View style={styles.state}>
               <Text style={styles.stateTitle}>
-                {translate(
-                  'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.2a48123bc9',
-                  'No agent sessions'
-                )}
+                {translate('m.MobileAgentSessionHistoryPanel.2a48123bc9', 'No agent sessions')}
               </Text>
               <Text style={styles.stateText}>
                 {query
                   ? translate(
-                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.5fcef8f07b',
+                      'm.MobileAgentSessionHistoryPanel.5fcef8f07b',
                       'No sessions match your search.'
                     )
                   : translate(
-                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.2fff2aa6b2',
+                      'm.MobileAgentSessionHistoryPanel.2fff2aa6b2',
                       'No past agent sessions in this scope.'
                     )}
               </Text>

@@ -84,10 +84,7 @@ export function MobileSourceControlContent({ state }: Props) {
         <View style={styles.reconnectBanner}>
           <ActivityIndicator size="small" color={colors.statusAmber} />
           <Text style={styles.reconnectBannerText}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlContent.a3f4d32439',
-              'Reconnecting to desktop...'
-            )}
+            {translate('m.MobileSourceControlContent.a3f4d32439', 'Reconnecting to desktop...')}
           </Text>
         </View>
       ) : null}
@@ -121,10 +118,7 @@ export function MobileSourceControlContent({ state }: Props) {
               <Plus size={15} color={colors.textPrimary} strokeWidth={2.2} />
             )}
             <Text style={styles.bulkButtonText}>
-              {translate(
-                'auto.mobile.src.source.control.MobileSourceControlContent.f6908a03c5',
-                'Stage All'
-              )}
+              {translate('m.MobileSourceControlContent.f6908a03c5', 'Stage All')}
             </Text>
           </Pressable>
           <Pressable
@@ -142,10 +136,7 @@ export function MobileSourceControlContent({ state }: Props) {
               <Minus size={15} color={colors.textPrimary} strokeWidth={2.2} />
             )}
             <Text style={styles.bulkButtonText}>
-              {translate(
-                'auto.mobile.src.source.control.MobileSourceControlContent.0c75e88b60',
-                'Unstage All'
-              )}
+              {translate('m.MobileSourceControlContent.0c75e88b60', 'Unstage All')}
             </Text>
           </Pressable>
           <Pressable
@@ -167,16 +158,10 @@ export function MobileSourceControlContent({ state }: Props) {
       {!hasVisibleChanges ? (
         <View style={styles.state}>
           <Text style={styles.stateTitle}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlContent.f3daa0029b',
-              'No local changes'
-            )}
+            {translate('m.MobileSourceControlContent.f3daa0029b', 'No local changes')}
           </Text>
           <Text style={styles.stateText}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlContent.c8aa93afd1',
-              'Working tree is clean.'
-            )}
+            {translate('m.MobileSourceControlContent.c8aa93afd1', 'Working tree is clean.')}
           </Text>
         </View>
       ) : sections.length === 0 ? (
@@ -228,10 +213,7 @@ export function MobileSourceControlContent({ state }: Props) {
               accessibilityLabel="Commit message disabled. No staged files."
             >
               <Text style={styles.commitInputDisabledText}>
-                {translate(
-                  'auto.mobile.src.source.control.MobileSourceControlContent.d97e76a715',
-                  'No staged files'
-                )}
+                {translate('m.MobileSourceControlContent.d97e76a715', 'No staged files')}
               </Text>
             </View>
           ) : (
@@ -239,10 +221,7 @@ export function MobileSourceControlContent({ state }: Props) {
               style={styles.commitInput}
               value={commitMessage}
               onChangeText={setCommitMessage}
-              placeholder={translate(
-                'auto.mobile.src.source.control.MobileSourceControlContent.b93458b765',
-                'Commit message'
-              )}
+              placeholder={translate('m.MobileSourceControlContent.b93458b765', 'Commit message')}
               placeholderTextColor={colors.textMuted}
               editable={busyAction === null && openingPath === null && openingBranchPath === null}
               returnKeyType="done"

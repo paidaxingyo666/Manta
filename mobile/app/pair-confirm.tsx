@@ -46,7 +46,7 @@ export default function PairConfirmScreen() {
   const offer = routeState.offer
   const resolvedStatus =
     status === 'awaiting-confirm' && routeState.kind === 'error'
-      ? translate('auto.mobile.app.pair.confirm.61ff783a52', 'error')
+      ? translate('m.pair.confirm.61ff783a52', 'error')
       : status
   const resolvedErrorMessage =
     status === 'awaiting-confirm' && routeState.kind === 'error'
@@ -154,23 +154,23 @@ export default function PairConfirmScreen() {
         {offer && resolvedStatus === 'awaiting-confirm' && (
           <>
             <Text style={styles.title}>
-              {translate('auto.mobile.app.pair.confirm.ca6b89f947', 'Pair with this desktop?')}
+              {translate('m.pair.confirm.ca6b89f947', 'Pair with this desktop?')}
             </Text>
             <Text style={styles.subtitle}>
               {translate(
-                'auto.mobile.app.pair.confirm.dcb7d9f315',
+                'm.pair.confirm.dcb7d9f315',
                 'You opened a pairing link from your desktop. Confirm to add it to your hosts.'
               )}{' '}
             </Text>
             <View style={styles.actionStack}>
               <Pressable style={styles.primaryButton} onPress={() => void confirm()}>
                 <Text style={styles.primaryButtonText}>
-                  {translate('auto.mobile.app.pair.confirm.57e34e4490', 'Pair')}
+                  {translate('m.pair.confirm.57e34e4490', 'Pair')}
                 </Text>
               </Pressable>
               <Pressable style={styles.secondaryButton} onPress={cancel}>
                 <Text style={styles.secondaryButtonText}>
-                  {translate('auto.mobile.app.pair.confirm.819d527c3f', 'Cancel')}
+                  {translate('m.pair.confirm.819d527c3f', 'Cancel')}
                 </Text>
               </Pressable>
             </View>
@@ -181,12 +181,12 @@ export default function PairConfirmScreen() {
           <>
             <ActivityIndicator size="large" color={colors.textSecondary} />
             <Text style={styles.connectingText}>
-              {translate('auto.mobile.app.pair.confirm.cc3644325c', 'Connecting…')}
+              {translate('m.pair.confirm.cc3644325c', 'Connecting…')}
             </Text>
             <View style={styles.logSlot}>
               <ConnectionLog
                 entries={logs}
-                title={translate('auto.mobile.app.pair.confirm.dabe16ab3a', 'Pairing log')}
+                title={translate('m.pair.confirm.dabe16ab3a', 'Pairing log')}
               />
             </View>
           </>
@@ -199,14 +199,14 @@ export default function PairConfirmScreen() {
               <View style={styles.logSlot}>
                 <ConnectionLog
                   entries={logs}
-                  title={translate('auto.mobile.app.pair.confirm.dabe16ab3a', 'Pairing log')}
+                  title={translate('m.pair.confirm.dabe16ab3a', 'Pairing log')}
                 />
               </View>
             )}
             <View style={styles.actionStack}>
               <Pressable style={styles.primaryButton} onPress={cancel}>
                 <Text style={styles.primaryButtonText}>
-                  {translate('auto.mobile.app.pair.confirm.b0a88a1442', 'Back to home')}
+                  {translate('m.pair.confirm.b0a88a1442', 'Back to home')}
                 </Text>
               </Pressable>
             </View>

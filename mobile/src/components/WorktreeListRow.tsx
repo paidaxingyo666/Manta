@@ -132,7 +132,7 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
           {isFolderWorkspace && (
             <View style={styles.folderBadge}>
               <Text style={styles.folderBadgeText}>
-                {translate('auto.mobile.src.components.WorktreeListRow.b90db856e1', 'Folder')}
+                {translate('m.WorktreeListRow.b90db856e1', 'Folder')}
               </Text>
             </View>
           )}
@@ -149,7 +149,7 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
             <View style={styles.childBadge}>
               <GitBranch size={10} color={colors.textMuted} />
               <Text style={styles.childBadgeText}>
-                {translate('auto.mobile.src.components.WorktreeListRow.9422156692', 'Child')}
+                {translate('m.WorktreeListRow.9422156692', 'Child')}
               </Text>
             </View>
           )}
@@ -190,8 +190,8 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
             <Text style={styles.lineageToggleText}>
               {lineageChildCount}{' '}
               {lineageChildCount === 1
-                ? translate('auto.mobile.src.components.WorktreeListRow.ba02d07cf8', 'child')
-                : translate('auto.mobile.src.components.WorktreeListRow.24b73ac9de', 'children')}
+                ? translate('m.WorktreeListRow.ba02d07cf8', 'child')
+                : translate('m.WorktreeListRow.24b73ac9de', 'children')}
             </Text>
           </Pressable>
         ) : null}

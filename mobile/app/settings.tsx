@@ -100,9 +100,7 @@ export default function SettingsScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>
-          {translate('auto.mobile.app.settings.d1c3a08e29', 'Settings')}
-        </Text>
+        <Text style={styles.heading}>{translate('m.settings.d1c3a08e29', 'Settings')}</Text>
       </View>
 
       <ScrollView
@@ -115,9 +113,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/terminal-settings')}
           >
             <TerminalIcon size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.425c962726', 'Terminal')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.425c962726', 'Terminal')}</Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.separator} />
@@ -126,9 +122,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/native-chat-settings')}
           >
             <MessageSquare size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.f9a07be163', 'Chat UI')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.f9a07be163', 'Chat UI')}</Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.separator} />
@@ -137,9 +131,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/browser-settings')}
           >
             <Globe size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.b6d00cec3b', 'Browser')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.b6d00cec3b', 'Browser')}</Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.separator} />
@@ -148,9 +140,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/voice-settings')}
           >
             <Mic size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.ae6df46648', 'Voice')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.ae6df46648', 'Voice')}</Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.separator} />
@@ -160,7 +150,7 @@ export default function SettingsScreen() {
           >
             <Bell size={16} color={colors.textSecondary} />
             <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.8bc411d126', 'Notifications')}
+              {translate('m.settings.8bc411d126', 'Notifications')}
             </Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
@@ -182,7 +172,7 @@ export default function SettingsScreen() {
           >
             <Wrench size={16} color={colors.textSecondary} />
             <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.d1a8a93194', 'Troubleshooting')}
+              {translate('m.settings.d1a8a93194', 'Troubleshooting')}
             </Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
@@ -192,9 +182,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/about')}
           >
             <Info size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.1042ddb555', 'About')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.1042ddb555', 'About')}</Text>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
         </View>
@@ -205,17 +193,17 @@ export default function SettingsScreen() {
               <KeyRound size={16} color={colors.statusAmber} />
               <View style={styles.credentialCleanupCopy}>
                 <Text style={styles.credentialCleanupTitle}>
-                  {translate('auto.mobile.app.settings.045ad69df0', 'Pairing credential cleanup')}
+                  {translate('m.settings.045ad69df0', 'Pairing credential cleanup')}
                 </Text>
                 <Text accessibilityLiveRegion="polite" style={styles.rowHint}>
                   {credentialRetryFailed
                     ? translate(
-                        'auto.mobile.app.settings.2beba1aee9',
+                        'm.settings.2beba1aee9',
                         "Cleanup still couldn't be confirmed. Try again later."
                       )
                     : pendingCredentialCount > 0
                       ? translate(
-                          'auto.mobile.app.settings.5a1f890fc5',
+                          'm.settings.5a1f890fc5',
                           "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
                           {
                             value0: pendingCredentialCount,
@@ -223,7 +211,7 @@ export default function SettingsScreen() {
                           }
                         )
                       : translate(
-                          'auto.mobile.app.settings.92240ca699',
+                          'm.settings.92240ca699',
                           "Couldn't check cleanup status on this device. Retry to be safe."
                         )}
                 </Text>
@@ -247,7 +235,7 @@ export default function SettingsScreen() {
                   <ActivityIndicator size="small" color={colors.textSecondary} />
                 ) : (
                   <Text style={styles.retryButtonText}>
-                    {translate('auto.mobile.app.settings.1099866233', 'Retry')}
+                    {translate('m.settings.1099866233', 'Retry')}
                   </Text>
                 )}
               </Pressable>
@@ -262,7 +250,7 @@ export default function SettingsScreen() {
           >
             <Shield size={16} color={colors.textSecondary} />
             <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.ee3b9f51f7', 'Privacy Policy')}
+              {translate('m.settings.ee3b9f51f7', 'Privacy Policy')}
             </Text>
           </Pressable>
           <View style={styles.separator} />
@@ -271,9 +259,7 @@ export default function SettingsScreen() {
             onPress={() => void Linking.openURL('https://github.com/stablyai/manta/issues')}
           >
             <LifeBuoy size={16} color={colors.textSecondary} />
-            <Text style={styles.rowLabel}>
-              {translate('auto.mobile.app.settings.7053da9ce5', 'Support')}
-            </Text>
+            <Text style={styles.rowLabel}>{translate('m.settings.7053da9ce5', 'Support')}</Text>
           </Pressable>
         </View>
       </ScrollView>

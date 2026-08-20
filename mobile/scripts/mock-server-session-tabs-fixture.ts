@@ -40,7 +40,7 @@ function createMockSessionTabs(worktreeId: string): RuntimeMobileSessionTabsResu
       {
         type: 'terminal',
         id: SURFACE_TAB_ID,
-        title: translate('auto.mobile.scripts.mock.server.session.tabs.fixture.843194f996', 'zsh'),
+        title: translate('m.mock.server.session.tabs.fixture.843194f996', 'zsh'),
         parentTabId: PARENT_TAB_ID,
         leafId: LEAF_ID,
         status: 'ready',

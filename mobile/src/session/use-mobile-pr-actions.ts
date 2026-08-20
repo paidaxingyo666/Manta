@@ -150,7 +150,7 @@ export function useMobilePrActions(input: PrActionsInput) {
 function noopMutations(): PrActionMutations {
   const fail = async () => ({
     ok: false as const,
-    error: translate('auto.mobile.src.session.use.mobile.pr.actions.01a9dd9c0e', 'Not connected')
+    error: translate('m.use.mobile.pr.actions.01a9dd9c0e', 'Not connected')
   })
   return {
     mergePR: fail,

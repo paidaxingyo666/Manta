@@ -80,10 +80,7 @@ export function createCloseWithBulkActions(
 ) {
   return (target: MobileSessionTab | null, dismiss: () => void): ActionSheetAction[] => [
     {
-      label: translate(
-        'auto.mobile.src.session.mobile.bulk.close.sheet.actions.7d96f188ad',
-        'Close'
-      ),
+      label: translate('m.mobile.bulk.close.sheet.actions.7d96f188ad', 'Close'),
       destructive: true,
       onPress: () => {
         dismiss()

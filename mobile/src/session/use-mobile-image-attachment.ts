@@ -75,41 +75,26 @@ export function useMobileImageAttachment({
         onError()
         if (connState !== 'connected') {
           showToast(
-            translate(
-              'auto.mobile.src.session.use.mobile.image.attachment.b6efaa94dd',
-              'Attach failed (disconnected)'
-            ),
+            translate('m.use.mobile.image.attachment.b6efaa94dd', 'Attach failed (disconnected)'),
             1500
           )
           return
         }
         if (error instanceof ImageLibraryPermissionError) {
           showToast(
-            translate(
-              'auto.mobile.src.session.use.mobile.image.attachment.25d19dd487',
-              'Photo permission denied'
-            ),
+            translate('m.use.mobile.image.attachment.25d19dd487', 'Photo permission denied'),
             1500
           )
           return
         }
         if (getErrorMessage(error) === 'Clipboard image is too large') {
           showToast(
-            translate(
-              'auto.mobile.src.session.use.mobile.image.attachment.849600ec04',
-              'Image too large to attach'
-            ),
+            translate('m.use.mobile.image.attachment.849600ec04', 'Image too large to attach'),
             1500
           )
           return
         }
-        showToast(
-          translate(
-            'auto.mobile.src.session.use.mobile.image.attachment.3524b83abd',
-            'Attach failed'
-          ),
-          1500
-        )
+        showToast(translate('m.use.mobile.image.attachment.3524b83abd', 'Attach failed'), 1500)
       } finally {
         setIsAttaching(false)
       }

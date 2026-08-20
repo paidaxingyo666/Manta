@@ -30,10 +30,7 @@ export function MobileAgentWorkingIndicator(): React.JSX.Element {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>
-        {translate(
-          'auto.mobile.src.session.MobileAgentWorkingIndicator.d043f1f9a0',
-          'Agent is working'
-        )}
+        {translate('m.MobileAgentWorkingIndicator.d043f1f9a0', 'Agent is working')}
       </Text>
       <View style={styles.dots}>
         {dots.map((dot, i) => (

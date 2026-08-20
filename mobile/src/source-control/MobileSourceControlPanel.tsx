@@ -247,14 +247,8 @@ export function MobileSourceControlPanel({
       <View style={styles.state}>
         <Text style={styles.stateTitle}>
           {screenState.kind === 'unavailable'
-            ? translate(
-                'auto.mobile.src.source.control.MobileSourceControlPanel.520503d3c5',
-                'Source Control Unavailable'
-              )
-            : translate(
-                'auto.mobile.src.source.control.MobileSourceControlPanel.4a571203d0',
-                'Unable to Load'
-              )}
+            ? translate('m.MobileSourceControlPanel.520503d3c5', 'Source Control Unavailable')
+            : translate('m.MobileSourceControlPanel.4a571203d0', 'Unable to Load')}
         </Text>
         <Text style={styles.stateText}>{screenState.message}</Text>
         {screenState.kind === 'error' ? (
@@ -270,10 +264,7 @@ export function MobileSourceControlPanel({
             }}
           >
             <Text style={styles.retryText}>
-              {translate(
-                'auto.mobile.src.source.control.MobileSourceControlPanel.760815df5f',
-                'Retry'
-              )}
+              {translate('m.MobileSourceControlPanel.760815df5f', 'Retry')}
             </Text>
           </Pressable>
         ) : null}

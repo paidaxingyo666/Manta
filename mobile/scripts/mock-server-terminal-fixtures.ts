@@ -27,17 +27,14 @@ export function createMockTerminals(worktreeId?: string) {
     {
       handle: 'term-1',
       worktreeId: resolvedWorktreeId,
-      title: translate(
-        'auto.mobile.scripts.mock.server.terminal.fixtures.8f249d8343',
-        'Claude — auth refactor'
-      ),
+      title: translate('m.mock.server.terminal.fixtures.8f249d8343', 'Claude — auth refactor'),
       isActive: true,
       hasRunningProcess: true
     },
     {
       handle: 'term-2',
       worktreeId: resolvedWorktreeId,
-      title: translate('auto.mobile.scripts.mock.server.terminal.fixtures.fc2f70424d', 'zsh'),
+      title: translate('m.mock.server.terminal.fixtures.fc2f70424d', 'zsh'),
       isActive: false,
       hasRunningProcess: false
     }

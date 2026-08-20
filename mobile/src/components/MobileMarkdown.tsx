@@ -107,7 +107,7 @@ function renderInline(text: string, onOpenFile?: (pathText: string) => void): Re
     if (image) {
       parts.push(
         <Text key={key} style={styles.link} onPress={() => openMarkdownHref(image[2]!, onOpenFile)}>
-          {image[1] || translate('auto.mobile.src.components.MobileMarkdown.a22b42f760', 'image')}
+          {image[1] || translate('m.MobileMarkdown.a22b42f760', 'image')}
         </Text>
       )
     } else if (link) {
@@ -236,8 +236,7 @@ function MobileMarkdownInner({ content, fallback = '', textScale = 1, onOpenFile
               onPress={() => openMarkdownHref(block.url, onOpenFile)}
             >
               <Text style={styles.link}>
-                {block.alt ||
-                  translate('auto.mobile.src.components.MobileMarkdown.7d36e16e08', 'Open image')}
+                {block.alt || translate('m.MobileMarkdown.7d36e16e08', 'Open image')}
               </Text>
               <Text style={styles.imageCaption} numberOfLines={1}>
                 {block.url}
@@ -272,19 +271,15 @@ function MobileMarkdownInner({ content, fallback = '', textScale = 1, onOpenFile
                 {hiddenRows > 0 || hiddenColumns > 0 ? (
                   <Text style={styles.tableTruncated}>
                     {hiddenRows > 0
-                      ? translate(
-                          'auto.mobile.src.components.MobileMarkdown.26687ede29',
-                          '{{value0}} more rows',
-                          { value0: hiddenRows }
-                        )
+                      ? translate('m.MobileMarkdown.26687ede29', '{{value0}} more rows', {
+                          value0: hiddenRows
+                        })
                       : ''}
                     {hiddenRows > 0 && hiddenColumns > 0 ? ' · ' : ''}
                     {hiddenColumns > 0
-                      ? translate(
-                          'auto.mobile.src.components.MobileMarkdown.9228cc8353',
-                          '{{value0}} more columns',
-                          { value0: hiddenColumns }
-                        )
+                      ? translate('m.MobileMarkdown.9228cc8353', '{{value0}} more columns', {
+                          value0: hiddenColumns
+                        })
                       : ''}
                   </Text>
                 ) : null}
@@ -303,7 +298,7 @@ function MobileMarkdownInner({ content, fallback = '', textScale = 1, onOpenFile
                         ? `${itemIndex + 1}.`
                         : '-'
                       : item.checked
-                        ? translate('auto.mobile.src.components.MobileMarkdown.cb032ab166', '[x]')
+                        ? translate('m.MobileMarkdown.cb032ab166', '[x]')
                         : '[ ]'}
                   </Text>
                   <Text style={[styles.listText, listScale]}>

@@ -47,16 +47,14 @@ export default function AboutScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>{translate('auto.mobile.app.about.a81a8e76d8', 'About')}</Text>
+        <Text style={styles.heading}>{translate('m.about.a81a8e76d8', 'About')}</Text>
       </View>
 
       <View style={styles.brand}>
         <MantaLogo size={28} />
-        <Text style={styles.brandName}>
-          {translate('auto.mobile.app.about.eadba12858', 'Manta')}
-        </Text>
+        <Text style={styles.brandName}>{translate('m.about.eadba12858', 'Manta')}</Text>
         <Text style={styles.brandSub}>
-          {translate('auto.mobile.app.about.c117fccf80', 'Open-source agent IDE for 100x builders')}
+          {translate('m.about.c117fccf80', 'Open-source agent IDE for 100x builders')}
         </Text>
       </View>
 
@@ -66,9 +64,7 @@ export default function AboutScreen() {
           onPress={() => void Linking.openURL('https://manta.sh.cn')}
         >
           <Globe size={16} color={colors.textSecondary} />
-          <Text style={styles.rowValue}>
-            {translate('auto.mobile.app.about.45de7268e5', 'manta.sh.cn')}
-          </Text>
+          <Text style={styles.rowValue}>{translate('m.about.45de7268e5', 'manta.sh.cn')}</Text>
         </Pressable>
         <View style={styles.separator} />
         <Pressable
@@ -76,9 +72,7 @@ export default function AboutScreen() {
           onPress={() => void Linking.openURL('https://github.com/stablyai/manta')}
         >
           <GithubIcon />
-          <Text style={styles.rowValue}>
-            {translate('auto.mobile.app.about.8830283fd4', 'stablyai/manta')}
-          </Text>
+          <Text style={styles.rowValue}>{translate('m.about.8830283fd4', 'stablyai/manta')}</Text>
         </Pressable>
         <View style={styles.separator} />
         <Pressable
@@ -86,9 +80,7 @@ export default function AboutScreen() {
           onPress={() => void Linking.openURL('https://x.com/orca_build')}
         >
           <XIcon />
-          <Text style={styles.rowValue}>
-            {translate('auto.mobile.app.about.a4139d5f69', '@orca_build')}
-          </Text>
+          <Text style={styles.rowValue}>{translate('m.about.a4139d5f69', '@orca_build')}</Text>
         </Pressable>
       </View>
 

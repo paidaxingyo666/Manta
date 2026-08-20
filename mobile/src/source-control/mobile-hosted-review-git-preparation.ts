@@ -68,10 +68,7 @@ export async function commitMobileHostedReviewStagedChanges(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.source.control.mobile.hosted.review.git.preparation.5f8b294bce',
-              'Commit failed'
-            )
+          : translate('m.mobile.hosted.review.git.preparation.5f8b294bce', 'Commit failed')
     }
   }
 }

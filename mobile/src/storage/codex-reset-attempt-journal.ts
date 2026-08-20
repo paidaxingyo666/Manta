@@ -25,7 +25,7 @@ export const CodexResetCreditExpectedScopeSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.storage.codex.reset.attempt.journal.4c93c1a711',
+          'm.codex.reset.attempt.journal.4c93c1a711',
           'Host reset scopes cannot name a WSL distro'
         ),
         path: ['target', 'wslDistro']
@@ -38,7 +38,7 @@ export const CodexResetCreditExpectedScopeSchema = z
       context.addIssue({
         code: 'custom',
         message: translate(
-          'auto.mobile.src.storage.codex.reset.attempt.journal.7c254252ac',
+          'm.codex.reset.attempt.journal.7c254252ac',
           'WSL reset scopes require an exact distro'
         ),
         path: ['target', 'wslDistro']

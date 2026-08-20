@@ -33,10 +33,7 @@ export function MobileWorkspaceNameInput({
   return (
     <TextInput
       ref={inputRef}
-      placeholder={translate(
-        'auto.mobile.src.components.MobileWorkspaceNameInput.5083197ad5',
-        'Workspace name'
-      )}
+      placeholder={translate('m.MobileWorkspaceNameInput.5083197ad5', 'Workspace name')}
       autoCapitalize="none"
       autoCorrect={false}
       showSoftInputOnFocus

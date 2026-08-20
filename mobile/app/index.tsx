@@ -618,13 +618,11 @@ export default function HomeScreen() {
         <ListTodo size={18} color={colors.textSecondary} />
       </View>
       <View style={styles.taskHomeMain}>
-        <Text style={styles.taskHomeTitle}>
-          {translate('auto.mobile.app.index.cbbc34848b', 'Tasks')}
-        </Text>
+        <Text style={styles.taskHomeTitle}>{translate('m.index.cbbc34848b', 'Tasks')}</Text>
         <Text style={styles.taskHomeSubtitle} numberOfLines={1}>
           {primaryTaskProviders.length > 0
             ? primaryTaskProviders.map((provider) => TASK_PROVIDER_LABELS[provider]).join(' · ')
-            : translate('auto.mobile.app.index.d7fb33f5cb', 'No task sources connected')}
+            : translate('m.index.d7fb33f5cb', 'No task sources connected')}
         </Text>
       </View>
       <View style={styles.taskHomeTrailing}>
@@ -671,8 +669,8 @@ export default function HomeScreen() {
       // Why: ConfirmModal closes on confirm; re-open for retry so the failure isn't silent.
       setConfirmRemove(hostToRemove)
       Alert.alert(
-        translate('auto.mobile.app.index.53b5a5229a', 'Could not remove host'),
-        translate('auto.mobile.app.index.18b828cf5b', 'Please try again.')
+        translate('m.index.53b5a5229a', 'Could not remove host'),
+        translate('m.index.18b828cf5b', 'Please try again.')
       )
     }
   }
@@ -685,9 +683,7 @@ export default function HomeScreen() {
           <View style={styles.logoMark}>
             <MantaLogo size={18} />
           </View>
-          <Text style={styles.brandName}>
-            {translate('auto.mobile.app.index.8a7cdca657', 'Manta')}
-          </Text>
+          <Text style={styles.brandName}>{translate('m.index.8a7cdca657', 'Manta')}</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
@@ -708,25 +704,25 @@ export default function HomeScreen() {
         >
           <View style={styles.emptyHero}>
             <Text style={styles.emptyTitle}>
-              {translate('auto.mobile.app.index.f2f89ea971', 'Connect your desktop')}
+              {translate('m.index.f2f89ea971', 'Connect your desktop')}
             </Text>
             <Text style={styles.emptyBody}>
               {translate(
-                'auto.mobile.app.index.bf2694d8a7',
+                'm.index.bf2694d8a7',
                 'Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.'
               )}{' '}
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => router.push('/pair-scan')}>
               <QrCode size={17} color={colors.bgBase} />
               <Text style={styles.primaryButtonText}>
-                {translate('auto.mobile.app.index.956aabb1b3', 'Pair Desktop')}
+                {translate('m.index.956aabb1b3', 'Pair Desktop')}
               </Text>
             </Pressable>
           </View>
 
           <View style={styles.stepsSection}>
             <Text style={styles.sectionHeading}>
-              {translate('auto.mobile.app.index.f4795d1407', 'How it works')}
+              {translate('m.index.f4795d1407', 'How it works')}
             </Text>
             {onboardingStepCatalog().map((step, i) => (
               <View key={step.title} style={[styles.stepRow, i > 0 && styles.stepRowBorder]}>
@@ -756,7 +752,7 @@ export default function HomeScreen() {
             <View>
               <View style={styles.hero}>
                 <Text style={styles.heroTitle}>
-                  {translate('auto.mobile.app.index.f62e59845a', 'Welcome back')}
+                  {translate('m.index.f62e59845a', 'Welcome back')}
                 </Text>
               </View>
 
@@ -767,26 +763,26 @@ export default function HomeScreen() {
                       {stats.totalAgentsSpawned.toLocaleString()}
                     </Text>
                     <Text style={styles.statLabel}>
-                      {translate('auto.mobile.app.index.a8515b5dc4', 'Agents spawned')}
+                      {translate('m.index.a8515b5dc4', 'Agents spawned')}
                     </Text>
                   </View>
                   <View style={styles.statCard}>
                     <Text style={styles.statValue}>{formatDuration(stats.totalAgentTimeMs)}</Text>
                     <Text style={styles.statLabel}>
-                      {translate('auto.mobile.app.index.e2e27dc946', 'Agent time')}
+                      {translate('m.index.e2e27dc946', 'Agent time')}
                     </Text>
                   </View>
                   <View style={styles.statCard}>
                     <Text style={styles.statValue}>{stats.totalPRsCreated.toLocaleString()}</Text>
                     <Text style={styles.statLabel}>
-                      {translate('auto.mobile.app.index.4cf927c2bb', 'PRs created')}
+                      {translate('m.index.4cf927c2bb', 'PRs created')}
                     </Text>
                   </View>
                 </View>
               )}
 
               <Text style={styles.sectionHeading}>
-                {translate('auto.mobile.app.index.f3542b6e7a', 'Desktops')}
+                {translate('m.index.f3542b6e7a', 'Desktops')}
               </Text>
             </View>
           }
@@ -823,8 +819,8 @@ export default function HomeScreen() {
                       .then(setHostCatalog)
                       .catch(() =>
                         Alert.alert(
-                          translate('auto.mobile.app.index.b10d78d179', 'Could not check pairing'),
-                          translate('auto.mobile.app.index.18b828cf5b', 'Please try again.')
+                          translate('m.index.b10d78d179', 'Could not check pairing'),
+                          translate('m.index.18b828cf5b', 'Please try again.')
                         )
                       )
                   } else {
@@ -855,7 +851,7 @@ export default function HomeScreen() {
               {resumeCard ? (
                 <>
                   <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>
-                    {translate('auto.mobile.app.index.44e6505b65', 'Resume')}
+                    {translate('m.index.44e6505b65', 'Resume')}
                   </Text>
                   <Pressable
                     disabled={!resumeCard.actionable}
@@ -892,7 +888,7 @@ export default function HomeScreen() {
                 </>
               ) : null}
               <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>
-                {translate('auto.mobile.app.index.cbbc34848b', 'Tasks')}
+                {translate('m.index.cbbc34848b', 'Tasks')}
               </Text>
               {renderTaskHomeCard()}
 
@@ -907,7 +903,7 @@ export default function HomeScreen() {
               {accountsHosts.length > 0 ? (
                 <>
                   <Text style={[styles.sectionHeading, { marginTop: spacing.xl }]}>
-                    {translate('auto.mobile.app.index.557a47bcbe', 'Account usage')}{' '}
+                    {translate('m.index.557a47bcbe', 'Account usage')}{' '}
                   </Text>
                   {accountsHosts.map(({ host, snapshot }) => {
                     const claudeActiveId = snapshot.claude.activeAccountId
@@ -956,17 +952,17 @@ export default function HomeScreen() {
                               <View style={styles.accountsInfo}>
                                 <Text style={styles.accountsEmail} numberOfLines={1}>
                                   {active?.email ??
-                                    translate('auto.mobile.app.index.20e2e26d8c', 'System default')}
+                                    translate('m.index.20e2e26d8c', 'System default')}
                                 </Text>
                                 <View style={styles.accountsBars}>
                                   <UsageBar
-                                    label={translate('auto.mobile.app.index.fcaaa4c805', '5h')}
+                                    label={translate('m.index.fcaaa4c805', '5h')}
                                     usedPercent={sessionBar.usedPercent}
                                     unavailable={sessionBar.unavailable}
                                     loading={sessionBar.loading}
                                   />
                                   <UsageBar
-                                    label={translate('auto.mobile.app.index.267203af46', '7d')}
+                                    label={translate('m.index.267203af46', '7d')}
                                     usedPercent={weeklyBar.usedPercent}
                                     unavailable={weeklyBar.unavailable}
                                     loading={weeklyBar.loading}
@@ -1014,12 +1010,10 @@ export default function HomeScreen() {
 
       <ConfirmModal
         visible={confirmRemove != null}
-        title={translate('auto.mobile.app.index.c8e253dc76', 'Remove Host')}
-        message={translate(
-          'auto.mobile.app.index.a3cfae357a',
-          'Remove "{{value0}}"? You can re-pair later.',
-          { value0: confirmRemove?.name }
-        )}
+        title={translate('m.index.c8e253dc76', 'Remove Host')}
+        message={translate('m.index.a3cfae357a', 'Remove "{{value0}}"? You can re-pair later.', {
+          value0: confirmRemove?.name
+        })}
         confirmLabel="Remove"
         destructive
         onConfirm={() => void handleRemove()}
@@ -1035,15 +1029,15 @@ function CardGap() {
 
 const onboardingStepCatalog = localizedConstant(() => [
   {
-    title: translate('auto.mobile.app.index.813580ddc9', 'Open Manta desktop'),
+    title: translate('m.index.813580ddc9', 'Open Manta desktop'),
     desc: 'Go to Settings → Mobile and generate a pairing QR code.'
   },
   {
-    title: translate('auto.mobile.app.index.6cac1b9d8b', 'Scan the code'),
+    title: translate('m.index.6cac1b9d8b', 'Scan the code'),
     desc: 'Tap the button above to open the scanner. Point at the QR code on your screen.'
   },
   {
-    title: translate('auto.mobile.app.index.aea01b53db', "You're connected"),
+    title: translate('m.index.aea01b53db', "You're connected"),
     desc: 'Your desktop will appear here. Everything is encrypted end-to-end.'
   }
 ])

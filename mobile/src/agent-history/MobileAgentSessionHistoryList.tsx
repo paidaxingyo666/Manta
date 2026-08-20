@@ -132,22 +132,13 @@ function AgentHistoryCardRow({
         <Text style={styles.cardMetaText}>
           {card.messageCount}{' '}
           {card.messageCount === 1
-            ? translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.7d95e41a14',
-                'message'
-              )
-            : translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.b4bec2cb77',
-                'messages'
-              )}
+            ? translate('m.MobileAgentSessionHistoryList.7d95e41a14', 'message')
+            : translate('m.MobileAgentSessionHistoryList.b4bec2cb77', 'messages')}
         </Text>
         {showCurrentWorktreeBadge && card.isCurrentWorktree ? (
           <View style={styles.currentBadge}>
             <Text style={styles.currentBadgeText}>
-              {translate(
-                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.7f5faff873',
-                'current worktree'
-              )}
+              {translate('m.MobileAgentSessionHistoryList.7f5faff873', 'current worktree')}
             </Text>
           </View>
         ) : null}

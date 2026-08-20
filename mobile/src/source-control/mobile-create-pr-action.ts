@@ -32,10 +32,7 @@ const BUSY_ACTIONS = new Set(['create-pr', 'push-create-pr'])
 function hiddenAction(onPress: () => void): MobileCreatePrAction {
   return {
     visible: false,
-    label: translate(
-      'auto.mobile.src.source.control.mobile.create.pr.action.e8de8f3a86',
-      'Create Pull Request'
-    ),
+    label: translate('m.mobile.create.pr.action.e8de8f3a86', 'Create Pull Request'),
     disabled: true,
     loading: false,
     pushFirst: false,
@@ -56,10 +53,7 @@ export function buildMobileCreatePrAction({
   if (eligibilityState.kind === 'error') {
     return {
       visible: true,
-      label: translate(
-        'auto.mobile.src.source.control.mobile.create.pr.action.c2806418a8',
-        'Review status unavailable'
-      ),
+      label: translate('m.mobile.create.pr.action.c2806418a8', 'Review status unavailable'),
       disabled: true,
       loading: false,
       pushFirst: false,
@@ -70,10 +64,7 @@ export function buildMobileCreatePrAction({
   if (!eligibility) {
     return {
       visible: true,
-      label: translate(
-        'auto.mobile.src.source.control.mobile.create.pr.action.44690a13a8',
-        'Checking review status…'
-      ),
+      label: translate('m.mobile.create.pr.action.44690a13a8', 'Checking review status…'),
       disabled: true,
       loading: true,
       pushFirst: false,
@@ -87,7 +78,7 @@ export function buildMobileCreatePrAction({
     return {
       visible: true,
       label: translate(
-        'auto.mobile.src.source.control.mobile.create.pr.action.80306aa921',
+        'm.mobile.create.pr.action.80306aa921',
         'Review creation unavailable for this provider'
       ),
       disabled: true,

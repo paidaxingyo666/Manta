@@ -67,10 +67,7 @@ async function setLinkedPr(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.source.control.mobile.pr.link.0fcf97ca15',
-              'Failed to update linked pull request'
-            )
+          : translate('m.mobile.pr.link.0fcf97ca15', 'Failed to update linked pull request')
     }
   }
 }
@@ -108,10 +105,7 @@ export async function linkMobileHostedReview(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.source.control.mobile.pr.link.0c8879a6f0',
-              'Failed to update linked review'
-            )
+          : translate('m.mobile.pr.link.0c8879a6f0', 'Failed to update linked review')
     }
   }
 }

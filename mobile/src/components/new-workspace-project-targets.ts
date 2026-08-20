@@ -71,31 +71,24 @@ export function getNewWorkspaceRunTarget(
   const hostLabel = getExecutionHostLabel(hostId)
   if (host?.kind === 'ssh') {
     return {
-      label: translate(
-        'auto.mobile.src.components.new.workspace.project.targets.f238c6255a',
-        'SSH · {{value0}}',
-        { value0: hostLabel }
-      ),
+      label: translate('m.new.workspace.project.targets.f238c6255a', 'SSH · {{value0}}', {
+        value0: hostLabel
+      }),
       detail: repo.path
     }
   }
   if (host?.kind === 'runtime') {
     return {
-      label: translate(
-        'auto.mobile.src.components.new.workspace.project.targets.d75f083bed',
-        'Remote · {{value0}}',
-        { value0: hostLabel }
-      ),
+      label: translate('m.new.workspace.project.targets.d75f083bed', 'Remote · {{value0}}', {
+        value0: hostLabel
+      }),
       detail: repo.path
     }
   }
   return {
     label: localPlatform
       ? getLocalExecutionHostLabel(localPlatform)
-      : translate(
-          'auto.mobile.src.components.new.workspace.project.targets.779bae104b',
-          'This computer'
-        ),
+      : translate('m.new.workspace.project.targets.779bae104b', 'This computer'),
     detail: repo.path
   }
 }

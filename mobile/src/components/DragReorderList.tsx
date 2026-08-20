@@ -302,11 +302,11 @@ function DragReorderRow({
           accessibilityActions={[
             {
               name: 'moveUp',
-              label: translate('auto.mobile.src.components.DragReorderList.79ee03d78a', 'Move up')
+              label: translate('m.DragReorderList.79ee03d78a', 'Move up')
             },
             {
               name: 'moveDown',
-              label: translate('auto.mobile.src.components.DragReorderList.b861e19c2d', 'Move down')
+              label: translate('m.DragReorderList.b861e19c2d', 'Move down')
             }
           ]}
           onAccessibilityAction={(event) => {

@@ -32,15 +32,10 @@ export function MobileBranchDiffPreviewDrawer({ branchDiffPreview, onClose }: Pr
           </Text>
           <Text style={styles.diffDrawerMeta} numberOfLines={1}>
             {branchDiffPreview.kind === 'ready'
-              ? translate(
-                  'auto.mobile.src.source.control.MobileBranchDiffPreviewDrawer.ea5ca6f964',
-                  '{{value0}}..HEAD',
-                  { value0: branchDiffPreview.summary.baseRef }
-                )
-              : translate(
-                  'auto.mobile.src.source.control.MobileBranchDiffPreviewDrawer.23a1a340ef',
-                  'Committed on branch'
-                )}
+              ? translate('m.MobileBranchDiffPreviewDrawer.ea5ca6f964', '{{value0}}..HEAD', {
+                  value0: branchDiffPreview.summary.baseRef
+                })
+              : translate('m.MobileBranchDiffPreviewDrawer.23a1a340ef', 'Committed on branch')}
           </Text>
         </View>
         <Pressable
@@ -59,10 +54,7 @@ export function MobileBranchDiffPreviewDrawer({ branchDiffPreview, onClose }: Pr
       ) : branchDiffPreview.kind === 'error' ? (
         <View style={styles.diffState}>
           <Text style={styles.stateTitle}>
-            {translate(
-              'auto.mobile.src.source.control.MobileBranchDiffPreviewDrawer.9998f95c16',
-              'Unable to Load Diff'
-            )}
+            {translate('m.MobileBranchDiffPreviewDrawer.9998f95c16', 'Unable to Load Diff')}
           </Text>
           <Text style={styles.stateText}>{branchDiffPreview.message}</Text>
         </View>
@@ -71,7 +63,7 @@ export function MobileBranchDiffPreviewDrawer({ branchDiffPreview, onClose }: Pr
           {branchDiffPreview.truncated ? (
             <Text style={styles.diffTruncatedText}>
               {translate(
-                'auto.mobile.src.source.control.MobileBranchDiffPreviewDrawer.0a05486f61',
+                'm.MobileBranchDiffPreviewDrawer.0a05486f61',
                 'Diff truncated for mobile preview.'
               )}
             </Text>

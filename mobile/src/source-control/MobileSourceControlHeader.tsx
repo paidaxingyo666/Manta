@@ -41,10 +41,7 @@ export function MobileSourceControlHeader({
       </Pressable>
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
-          {translate(
-            'auto.mobile.src.source.control.MobileSourceControlHeader.3e303cced7',
-            'Source Control'
-          )}{' '}
+          {translate('m.MobileSourceControlHeader.3e303cced7', 'Source Control')}{' '}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
           {worktreeLabel}

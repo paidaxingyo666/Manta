@@ -97,7 +97,7 @@ export default function ConnectionLogScreen() {
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.heading}>
-          {translate('auto.mobile.app.connection.log.c78dc5ccfb', 'Connection log')}
+          {translate('m.connection.log.c78dc5ccfb', 'Connection log')}
         </Text>
       </View>
 
@@ -127,7 +127,7 @@ export default function ConnectionLogScreen() {
               {state}
               {state === 'connected' ? ` · ${mobileConnectionPathLabel(activePath)}` : ''}
               {reconnectAttempts > 0
-                ? translate('auto.mobile.app.connection.log.9aee626b28', ' · attempt {{value0}}', {
+                ? translate('m.connection.log.9aee626b28', ' · attempt {{value0}}', {
                     value0: reconnectAttempts
                   })
                 : ''}
@@ -140,8 +140,8 @@ export default function ConnectionLogScreen() {
               )}
               <Text style={styles.copyButtonText}>
                 {copied
-                  ? translate('auto.mobile.app.connection.log.0d8cbd791b', 'Copied')
-                  : translate('auto.mobile.app.connection.log.1a265761bf', 'Copy diagnostics')}
+                  ? translate('m.connection.log.0d8cbd791b', 'Copied')
+                  : translate('m.connection.log.1a265761bf', 'Copy diagnostics')}
               </Text>
             </Pressable>
           </View>
@@ -150,7 +150,7 @@ export default function ConnectionLogScreen() {
           ) : (
             <Text style={styles.emptyText}>
               {translate(
-                'auto.mobile.app.connection.log.157f65530a',
+                'm.connection.log.157f65530a',
                 'No connection events yet this session. Events appear as the app dials this host.'
               )}{' '}
             </Text>
@@ -158,7 +158,7 @@ export default function ConnectionLogScreen() {
         </>
       ) : (
         <Text style={styles.emptyText}>
-          {translate('auto.mobile.app.connection.log.3ce523c653', 'No paired hosts.')}
+          {translate('m.connection.log.3ce523c653', 'No paired hosts.')}
         </Text>
       )}
     </View>

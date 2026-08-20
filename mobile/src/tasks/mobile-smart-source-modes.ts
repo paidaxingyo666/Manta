@@ -20,32 +20,32 @@ export type SmartModeOption = {
 export const smartModeOptions = localizedConstant((): readonly SmartModeOption[] => [
   {
     id: 'smart',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.d0641cca38', 'Smart'),
+    label: translate('m.mobile.smart.source.modes.d0641cca38', 'Smart'),
     icon: { type: 'lucide', name: 'sparkles' }
   },
   {
     id: 'github',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.7cb8a31492', 'GitHub'),
+    label: translate('m.mobile.smart.source.modes.7cb8a31492', 'GitHub'),
     icon: { type: 'provider', provider: 'github' }
   },
   {
     id: 'linear',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.8fa1fe641f', 'Linear'),
+    label: translate('m.mobile.smart.source.modes.8fa1fe641f', 'Linear'),
     icon: { type: 'provider', provider: 'linear' }
   },
   {
     id: 'gitlab',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.24441a2f23', 'GitLab'),
+    label: translate('m.mobile.smart.source.modes.24441a2f23', 'GitLab'),
     icon: { type: 'provider', provider: 'gitlab' }
   },
   {
     id: 'branches',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.79f98b1f11', 'Branch'),
+    label: translate('m.mobile.smart.source.modes.79f98b1f11', 'Branch'),
     icon: { type: 'lucide', name: 'git-branch' }
   },
   {
     id: 'text',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.fcd871a51c', 'Name'),
+    label: translate('m.mobile.smart.source.modes.fcd871a51c', 'Name'),
     icon: { type: 'lucide', name: 'case-sensitive' }
   }
 ])
@@ -114,19 +114,19 @@ export type MrStateFilterOption = { id: MrStateFilter; label: string }
 export const mrStateFilterOptions = localizedConstant((): readonly MrStateFilterOption[] => [
   {
     id: 'opened',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.74645d977f', 'Open')
+    label: translate('m.mobile.smart.source.modes.74645d977f', 'Open')
   },
   {
     id: 'merged',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.b0a1529ab3', 'Merged')
+    label: translate('m.mobile.smart.source.modes.b0a1529ab3', 'Merged')
   },
   {
     id: 'closed',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.279e22747c', 'Closed')
+    label: translate('m.mobile.smart.source.modes.279e22747c', 'Closed')
   },
   {
     id: 'all',
-    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.2303084a84', 'All')
+    label: translate('m.mobile.smart.source.modes.2303084a84', 'All')
   }
 ])
 

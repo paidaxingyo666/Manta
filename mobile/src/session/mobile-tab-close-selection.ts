@@ -7,24 +7,15 @@ export const bulkTabCloseActions = localizedConstant(
   (): { mode: BulkTabCloseMode; label: string }[] => [
     {
       mode: 'others',
-      label: translate(
-        'auto.mobile.src.session.mobile.tab.close.selection.5f17f23257',
-        'Close Other Tabs'
-      )
+      label: translate('m.mobile.tab.close.selection.5f17f23257', 'Close Other Tabs')
     },
     {
       mode: 'left',
-      label: translate(
-        'auto.mobile.src.session.mobile.tab.close.selection.fe28cadb0a',
-        'Close Tabs to the Left'
-      )
+      label: translate('m.mobile.tab.close.selection.fe28cadb0a', 'Close Tabs to the Left')
     },
     {
       mode: 'right',
-      label: translate(
-        'auto.mobile.src.session.mobile.tab.close.selection.417f514e07',
-        'Close Tabs to the Right'
-      )
+      label: translate('m.mobile.tab.close.selection.417f514e07', 'Close Tabs to the Right')
     }
   ]
 )

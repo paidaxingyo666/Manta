@@ -162,10 +162,7 @@ export function PrSidebarCreateEmptyState({
         <View style={styles.headerTitle}>
           <GitPullRequestArrow size={14} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.headerLabel}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.4d20d570a5',
-              'Pull request'
-            )}
+            {translate('m.PrSidebarCreateEmptyState.4d20d570a5', 'Pull request')}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -191,10 +188,7 @@ export function PrSidebarCreateEmptyState({
               <GitPullRequestArrow size={14} color={colors.bgBase} strokeWidth={2.2} />
             )}
             <Text style={styles.createButtonText}>
-              {translate(
-                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.e6413e8953',
-                'Create PR'
-              )}
+              {translate('m.PrSidebarCreateEmptyState.e6413e8953', 'Create PR')}
             </Text>
           </Pressable>
         </View>
@@ -203,29 +197,26 @@ export function PrSidebarCreateEmptyState({
         <Text style={styles.bodyTitle}>
           {orphanLinkedPR
             ? translate(
-                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.237c52b8f0',
+                'm.PrSidebarCreateEmptyState.237c52b8f0',
                 'Linked PR #{{value0}} unavailable',
                 { value0: orphanLinkedPR }
               )
-            : translate(
-                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.1b605a13e6',
-                'No open pull request'
-              )}
+            : translate('m.PrSidebarCreateEmptyState.1b605a13e6', 'No open pull request')}
         </Text>
         <Text style={styles.bodyText}>
           {orphanLinkedPR
             ? translate(
-                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.99a7fe79db',
+                'm.PrSidebarCreateEmptyState.99a7fe79db',
                 'Refresh to check again, or create a new PR for this branch.'
               )
             : gitBranch
               ? translate(
-                  'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.0a6a6ccd75',
+                  'm.PrSidebarCreateEmptyState.0a6a6ccd75',
                   '{{value0}} is not linked to an open PR.',
                   { value0: gitBranch }
                 )
               : translate(
-                  'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.491af4a385',
+                  'm.PrSidebarCreateEmptyState.491af4a385',
                   'The current branch is not linked to an open PR.'
                 )}
         </Text>
@@ -256,10 +247,7 @@ export function PrSidebarCreateEmptyState({
             strokeWidth={2.2}
           />
           <Text style={styles.linkButtonText}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.78d5fd366a',
-              'Link an existing PR'
-            )}
+            {translate('m.PrSidebarCreateEmptyState.78d5fd366a', 'Link an existing PR')}
           </Text>
         </Pressable>
       </View>

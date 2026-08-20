@@ -70,7 +70,7 @@ export function MobileHomeQuickActions(props: Props) {
   return (
     <>
       <Text style={styles.sectionHeading}>
-        {translate('auto.mobile.src.components.MobileHomeQuickActions.5d6f0d5506', 'Quick Actions')}
+        {translate('m.MobileHomeQuickActions.5d6f0d5506', 'Quick Actions')}
       </Text>
       <View style={styles.quickActions}>
         <Pressable
@@ -82,10 +82,7 @@ export function MobileHomeQuickActions(props: Props) {
             <QrCode size={16} color={colors.textSecondary} />
           </View>
           <Text style={styles.quickActionLabel}>
-            {translate(
-              'auto.mobile.src.components.MobileHomeQuickActions.59cfb6c319',
-              'Pair Desktop'
-            )}
+            {translate('m.MobileHomeQuickActions.59cfb6c319', 'Pair Desktop')}
           </Text>
         </Pressable>
         <Pressable
@@ -103,19 +100,13 @@ export function MobileHomeQuickActions(props: Props) {
             <Plus size={16} color={colors.textSecondary} />
           </View>
           <Text style={styles.quickActionLabel}>
-            {translate(
-              'auto.mobile.src.components.MobileHomeQuickActions.2dd1e74623',
-              'New Workspace'
-            )}
+            {translate('m.MobileHomeQuickActions.2dd1e74623', 'New Workspace')}
           </Text>
         </Pressable>
       </View>
       <PickerModal
         visible={hostPickerVisible}
-        title={translate(
-          'auto.mobile.src.components.MobileHomeQuickActions.a71b5def9e',
-          'Create Workspace On'
-        )}
+        title={translate('m.MobileHomeQuickActions.a71b5def9e', 'Create Workspace On')}
         options={hostPickerOptions(props.connectedHosts)}
         selected=""
         onSelect={handleHostSelect}

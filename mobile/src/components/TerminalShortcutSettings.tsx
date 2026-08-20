@@ -224,14 +224,11 @@ export function TerminalShortcutSettings({
   return (
     <>
       <Text style={[styles.groupHeading, styles.groupTopGap]}>
-        {translate(
-          'auto.mobile.src.components.TerminalShortcutSettings.bb5647a2e9',
-          'SHORTCUT BAR'
-        )}
+        {translate('m.TerminalShortcutSettings.bb5647a2e9', 'SHORTCUT BAR')}
       </Text>
       <Text style={styles.groupDescription}>
         {translate(
-          'auto.mobile.src.components.TerminalShortcutSettings.39d99de238',
+          'm.TerminalShortcutSettings.39d99de238',
           'Toggle keys to show or hide them, and hold the grip to drag a key into the order you want on the terminal shortcut bar.'
         )}{' '}
       </Text>
@@ -259,14 +256,11 @@ export function TerminalShortcutSettings({
         >
           <View style={styles.rowContent}>
             <Text style={styles.rowLabel}>
-              {translate(
-                'auto.mobile.src.components.TerminalShortcutSettings.3f4aa252c0',
-                'Reset Defaults'
-              )}
+              {translate('m.TerminalShortcutSettings.3f4aa252c0', 'Reset Defaults')}
             </Text>
             <Text style={styles.rowSublabel}>
               {translate(
-                'auto.mobile.src.components.TerminalShortcutSettings.fd8cafae33',
+                'm.TerminalShortcutSettings.fd8cafae33',
                 'Show every built-in shortcut key in the original order'
               )}{' '}
             </Text>
@@ -275,10 +269,7 @@ export function TerminalShortcutSettings({
       </View>
 
       <Text style={[styles.groupHeading, styles.groupTopGap]}>
-        {translate(
-          'auto.mobile.src.components.TerminalShortcutSettings.106c56af09',
-          'CUSTOM SHORTCUTS'
-        )}
+        {translate('m.TerminalShortcutSettings.106c56af09', 'CUSTOM SHORTCUTS')}
       </Text>
       <View style={[styles.section, styles.sectionTopGap]}>
         {customKeys.length === 0 ? (
@@ -286,7 +277,7 @@ export function TerminalShortcutSettings({
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
                 {translate(
-                  'auto.mobile.src.components.TerminalShortcutSettings.03090ca212',
+                  'm.TerminalShortcutSettings.03090ca212',
                   'No custom shortcuts defined yet.'
                 )}
               </Text>
@@ -333,16 +324,10 @@ export function TerminalShortcutSettings({
         >
           <View style={styles.rowContent}>
             <Text style={styles.rowLabel}>
-              {translate(
-                'auto.mobile.src.components.TerminalShortcutSettings.77eeb84341',
-                'Add Custom Shortcut…'
-              )}
+              {translate('m.TerminalShortcutSettings.77eeb84341', 'Add Custom Shortcut…')}
             </Text>
             <Text style={styles.rowSublabel}>
-              {translate(
-                'auto.mobile.src.components.TerminalShortcutSettings.0a024192a9',
-                'Create key combo or text macro'
-              )}
+              {translate('m.TerminalShortcutSettings.0a024192a9', 'Create key combo or text macro')}
             </Text>
           </View>
           <ChevronRight size={16} color={colors.textMuted} />

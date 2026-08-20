@@ -29,7 +29,7 @@ export function MobileSessionHeaderMoreActionsSheet({
           ? [
               {
                 label: translate(
-                  'auto.mobile.src.session.MobileSessionHeaderMoreActionsSheet.e91f015acc',
+                  'm.MobileSessionHeaderMoreActionsSheet.e91f015acc',
                   'Agent History'
                 ),
                 hint: 'Browse and resume agent sessions',
@@ -47,10 +47,7 @@ export function MobileSessionHeaderMoreActionsSheet({
         ...(showChecks
           ? [
               {
-                label: translate(
-                  'auto.mobile.src.session.MobileSessionHeaderMoreActionsSheet.bbcc22954a',
-                  'Checks'
-                ),
+                label: translate('m.MobileSessionHeaderMoreActionsSheet.bbcc22954a', 'Checks'),
                 hint: 'Open pull request checks',
                 icon: ListChecks,
                 onPress: onOpenChecks

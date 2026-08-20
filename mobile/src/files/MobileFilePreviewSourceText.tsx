@@ -62,10 +62,7 @@ export function MobileFilePreviewSourceText({
 export function MobileFilePreviewTruncatedNote({ byteLength }: { byteLength: number }) {
   return (
     <Text style={styles.truncatedNote}>
-      {translate(
-        'auto.mobile.src.files.MobileFilePreviewSourceText.0047302216',
-        'Preview truncated. File size:'
-      )}{' '}
+      {translate('m.MobileFilePreviewSourceText.0047302216', 'Preview truncated. File size:')}{' '}
       {formatPreviewByteLength(byteLength)}.
     </Text>
   )

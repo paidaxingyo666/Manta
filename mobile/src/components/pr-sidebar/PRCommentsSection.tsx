@@ -122,18 +122,13 @@ export function PRCommentsSection({
 
   return (
     <>
-      <PRSection
-        title={translate(
-          'auto.mobile.src.components.pr.sidebar.PRCommentsSection.e9592a7109',
-          'Description'
-        )}
-      >
+      <PRSection title={translate('m.PRCommentsSection.e9592a7109', 'Description')}>
         {loadingDetails ? (
           <ActivityIndicator color={colors.textSecondary} />
         ) : detailsFailed ? (
           <Text style={styles.noDescription}>
             {translate(
-              'auto.mobile.src.components.pr.sidebar.PRCommentsSection.84ed9e79c2',
+              'm.PRCommentsSection.84ed9e79c2',
               'Could not load description. Tap refresh to try again.'
             )}{' '}
           </Text>
@@ -141,19 +136,13 @@ export function PRCommentsSection({
           <CommentMarkdown content={body} variant="document" />
         ) : (
           <Text style={styles.noDescription}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.PRCommentsSection.bdd7d0b5bb',
-              'No description provided.'
-            )}
+            {translate('m.PRCommentsSection.bdd7d0b5bb', 'No description provided.')}
           </Text>
         )}
       </PRSection>
 
       <PRSection
-        title={translate(
-          'auto.mobile.src.components.pr.sidebar.PRCommentsSection.fe5d1368ed',
-          'Comments'
-        )}
+        title={translate('m.PRCommentsSection.fe5d1368ed', 'Comments')}
         trailing={
           comments.length > 0 ? (
             <View style={styles.countChip}>
@@ -167,7 +156,7 @@ export function PRCommentsSection({
         ) : detailsFailed ? (
           <Text style={styles.empty}>
             {translate(
-              'auto.mobile.src.components.pr.sidebar.PRCommentsSection.15575e7e07',
+              'm.PRCommentsSection.15575e7e07',
               'Could not load comments. Tap refresh to try again.'
             )}
           </Text>
@@ -175,10 +164,7 @@ export function PRCommentsSection({
           <View style={styles.list}>
             {comments.length === 0 ? (
               <Text style={styles.empty}>
-                {translate(
-                  'auto.mobile.src.components.pr.sidebar.PRCommentsSection.c57f1e6617',
-                  'No comments yet.'
-                )}
+                {translate('m.PRCommentsSection.c57f1e6617', 'No comments yet.')}
               </Text>
             ) : (
               <>
@@ -227,21 +213,13 @@ export function PRCommentsSection({
                         accessibilityRole="button"
                       >
                         <Text style={styles.showMoreText}>
-                          {translate(
-                            'auto.mobile.src.components.pr.sidebar.PRCommentsSection.374d1a8a08',
-                            'Show'
-                          )}{' '}
+                          {translate('m.PRCommentsSection.374d1a8a08', 'Show')}{' '}
                           {Math.min(remaining, COMMENT_PAGE)}{' '}
-                          {translate(
-                            'auto.mobile.src.components.pr.sidebar.PRCommentsSection.a5fb2d4b6e',
-                            'more'
-                          )}{' '}
+                          {translate('m.PRCommentsSection.a5fb2d4b6e', 'more')}{' '}
                           {remaining > COMMENT_PAGE
-                            ? translate(
-                                'auto.mobile.src.components.pr.sidebar.PRCommentsSection.57fbb91a1e',
-                                ' of {{value0}}',
-                                { value0: remaining }
-                              )
+                            ? translate('m.PRCommentsSection.57fbb91a1e', ' of {{value0}}', {
+                                value0: remaining
+                              })
                             : ''}
                         </Text>
                       </Pressable>
@@ -254,10 +232,7 @@ export function PRCommentsSection({
             {canComment && actions ? (
               <View style={styles.rootComposer}>
                 <PRCommentComposer
-                  placeholder={translate(
-                    'auto.mobile.src.components.pr.sidebar.PRCommentsSection.d8cadfab1d',
-                    'Add a comment…'
-                  )}
+                  placeholder={translate('m.PRCommentsSection.d8cadfab1d', 'Add a comment…')}
                   submitLabel="Comment"
                   submitting={actions.isRootBusy}
                   onSubmit={actions.addRootComment}
@@ -306,21 +281,11 @@ function CommentGroupView({
       >
         <Chevron size={14} color={colors.textSecondary} strokeWidth={2.2} />
         <Text style={styles.resolvedHeaderText} numberOfLines={1}>
-          {translate(
-            'auto.mobile.src.components.pr.sidebar.PRCommentsSection.2e0f427685',
-            'Resolved'
-          )}{' '}
+          {translate('m.PRCommentsSection.2e0f427685', 'Resolved')}{' '}
           {group.kind === 'thread'
-            ? translate(
-                'auto.mobile.src.components.pr.sidebar.PRCommentsSection.9514e1f710',
-                'thread'
-              )
-            : translate(
-                'auto.mobile.src.components.pr.sidebar.PRCommentsSection.4c78c7b55f',
-                'comment'
-              )}{' '}
-          {translate('auto.mobile.src.components.pr.sidebar.PRCommentsSection.76d07d0b8c', 'by')}{' '}
-          {root.author}
+            ? translate('m.PRCommentsSection.9514e1f710', 'thread')
+            : translate('m.PRCommentsSection.4c78c7b55f', 'comment')}{' '}
+          {translate('m.PRCommentsSection.76d07d0b8c', 'by')} {root.author}
           {count > 1 ? ` (${count})` : ''}
         </Text>
       </Pressable>

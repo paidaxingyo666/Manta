@@ -84,10 +84,7 @@ export function summarizePRChecks(checks: readonly PRCheckDetail[]): PRChecksSum
       pending: 0,
       failed: 0,
       outcome: 'none',
-      label: translate(
-        'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.8422a39fd0',
-        'No checks'
-      )
+      label: translate('m.pr.checks.presentation.8422a39fd0', 'No checks')
     }
   }
   // Counts and the worst-case rollup come from the shared summarizer; only the label wording is mobile's.
@@ -214,59 +211,38 @@ function reviewStateLabel(state: string | null | undefined): {
   switch (state) {
     case 'APPROVED':
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.225a06d7c9',
-          'Approved'
-        ),
+        label: translate('m.pr.checks.presentation.225a06d7c9', 'Approved'),
         token: 'statusGreen'
       }
     case 'CHANGES_REQUESTED':
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.ae38fce3e6',
-          'Changes requested'
-        ),
+        label: translate('m.pr.checks.presentation.ae38fce3e6', 'Changes requested'),
         token: 'statusRed'
       }
     case 'COMMENTED':
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.6c5d1aa61c',
-          'Commented'
-        ),
+        label: translate('m.pr.checks.presentation.6c5d1aa61c', 'Commented'),
         token: 'textSecondary'
       }
     case 'DISMISSED':
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.76601c7a9f',
-          'Dismissed'
-        ),
+        label: translate('m.pr.checks.presentation.76601c7a9f', 'Dismissed'),
         token: 'textSecondary'
       }
     case 'PENDING':
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.344836f6d3',
-          'Pending'
-        ),
+        label: translate('m.pr.checks.presentation.344836f6d3', 'Pending'),
         token: 'statusAmber'
       }
     case null:
     case undefined:
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.fc87834cbf',
-          'Reviewed'
-        ),
+        label: translate('m.pr.checks.presentation.fc87834cbf', 'Reviewed'),
         token: 'textSecondary'
       }
     default:
       return {
-        label: translate(
-          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.fc87834cbf',
-          'Reviewed'
-        ),
+        label: translate('m.pr.checks.presentation.fc87834cbf', 'Reviewed'),
         token: 'textSecondary'
       }
   }

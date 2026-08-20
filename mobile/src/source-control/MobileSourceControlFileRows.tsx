@@ -67,18 +67,11 @@ export function makeRenderFileRow(
           </Text>
           {item.oldPath ? (
             <Text style={styles.fileMeta} numberOfLines={1}>
-              {translate(
-                'auto.mobile.src.source.control.MobileSourceControlFileRows.4b2aa967fe',
-                'from'
-              )}{' '}
-              {item.oldPath}
+              {translate('m.MobileSourceControlFileRows.4b2aa967fe', 'from')} {item.oldPath}
             </Text>
           ) : item.conflictStatus === 'unresolved' ? (
             <Text style={styles.fileMeta} numberOfLines={1}>
-              {translate(
-                'auto.mobile.src.source.control.MobileSourceControlFileRows.6affcc87b5',
-                'Unresolved conflict'
-              )}{' '}
+              {translate('m.MobileSourceControlFileRows.6affcc87b5', 'Unresolved conflict')}{' '}
             </Text>
           ) : null}
         </View>
@@ -178,10 +171,7 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
       <View style={styles.sectionHeader}>
         <View style={styles.branchSectionTitleBlock}>
           <Text style={styles.sectionTitle}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlFileRows.9bf0bc8e42',
-              'Committed on Branch'
-            )}
+            {translate('m.MobileSourceControlFileRows.9bf0bc8e42', 'Committed on Branch')}
           </Text>
           {branchCompareSummaryText ? (
             <Text style={styles.branchSectionSubtitle} numberOfLines={1}>
@@ -195,10 +185,7 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
         <View style={styles.branchStateRow}>
           <ActivityIndicator size="small" color={colors.textSecondary} />
           <Text style={styles.branchStateText}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlFileRows.b591c5c028',
-              'Loading committed changes...'
-            )}
+            {translate('m.MobileSourceControlFileRows.b591c5c028', 'Loading committed changes...')}
           </Text>
         </View>
       ) : branchCompareState.kind === 'error' ? (
@@ -210,7 +197,7 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
           <Text style={styles.branchStateText}>
             {branchCompareResult.summary.errorMessage ??
               translate(
-                'auto.mobile.src.source.control.MobileSourceControlFileRows.429975939a',
+                'm.MobileSourceControlFileRows.429975939a',
                 'Committed changes unavailable.'
               )}
           </Text>

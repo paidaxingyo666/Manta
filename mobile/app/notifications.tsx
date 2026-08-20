@@ -70,12 +70,9 @@ export default function NotificationsScreen() {
   const switchEnabled = pushEnabled && permissionState.granted
   const notificationsBlocked = permissionState.status === 'denied'
   const hint = notificationsBlocked
-    ? translate(
-        'auto.mobile.app.notifications.bb35911528',
-        'Notifications are disabled in system settings.'
-      )
+    ? translate('m.notifications.bb35911528', 'Notifications are disabled in system settings.')
     : translate(
-        'auto.mobile.app.notifications.7550338ceb',
+        'm.notifications.7550338ceb',
         'Get notified on this device when an agent needs your input or finishes a task.'
       )
 
@@ -86,14 +83,14 @@ export default function NotificationsScreen() {
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.heading}>
-          {translate('auto.mobile.app.notifications.1888d0bc3c', 'Notifications')}
+          {translate('m.notifications.1888d0bc3c', 'Notifications')}
         </Text>
       </View>
 
       <View style={styles.section}>
         <View style={styles.row}>
           <Text style={styles.rowLabel}>
-            {translate('auto.mobile.app.notifications.6975ae4fc2', 'Agent notifications')}
+            {translate('m.notifications.6975ae4fc2', 'Agent notifications')}
           </Text>
           <Switch
             value={switchEnabled}
@@ -113,7 +110,7 @@ export default function NotificationsScreen() {
             onPress={() => void Linking.openSettings()}
           >
             <Text style={styles.settingsButtonText}>
-              {translate('auto.mobile.app.notifications.c7b96a0c60', 'Open Settings')}
+              {translate('m.notifications.c7b96a0c60', 'Open Settings')}
             </Text>
           </Pressable>
         )}

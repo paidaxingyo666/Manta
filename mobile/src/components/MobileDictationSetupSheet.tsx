@@ -131,14 +131,11 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
           a nested capped ScrollView cut off the lower controls. */}
       <View>
         <Text style={styles.heading}>
-          {translate(
-            'auto.mobile.src.components.MobileDictationSetupSheet.d778451cee',
-            'Set up voice dictation'
-          )}
+          {translate('m.MobileDictationSetupSheet.d778451cee', 'Set up voice dictation')}
         </Text>
         <Text style={styles.subtitle}>
           {translate(
-            'auto.mobile.src.components.MobileDictationSetupSheet.0f96051cb5',
+            'm.MobileDictationSetupSheet.0f96051cb5',
             'Download a model and enable dictation on your desktop — all from here.'
           )}{' '}
         </Text>
@@ -151,10 +148,7 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
           <>
             <View style={styles.enableRow}>
               <Text style={styles.enableLabel}>
-                {translate(
-                  'auto.mobile.src.components.MobileDictationSetupSheet.e96c05d3ff',
-                  'Dictation enabled'
-                )}
+                {translate('m.MobileDictationSetupSheet.e96c05d3ff', 'Dictation enabled')}
               </Text>
               <Switch value={setup.enabled} onValueChange={(v) => void handleToggleEnabled(v)} />
             </View>
@@ -170,51 +164,33 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                       <Text style={styles.modelLabel}>{model.label}</Text>
                       {model.recommended ? (
                         <Text style={styles.recommended}>
-                          {translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.4c977cfe71',
-                            'Recommended'
-                          )}
+                          {translate('m.MobileDictationSetupSheet.4c977cfe71', 'Recommended')}
                         </Text>
                       ) : null}
                     </View>
                     <Text style={styles.modelMeta}>
                       {model.provider === 'openai'
-                        ? translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.6e1fd0429b',
-                            'OpenAI API'
-                          )
+                        ? translate('m.MobileDictationSetupSheet.6e1fd0429b', 'OpenAI API')
                         : formatSize(model.sizeBytes)}
                       {inFlight && model.progress != null
                         ? ` · ${Math.round(model.progress * 100)}%`
                         : model.status === 'extracting'
-                          ? translate(
-                              'auto.mobile.src.components.MobileDictationSetupSheet.3c6fcf7dba',
-                              '· extracting…'
-                            )
+                          ? translate('m.MobileDictationSetupSheet.3c6fcf7dba', '· extracting…')
                           : ''}
                     </Text>
                   </View>
                   {model.provider === 'openai' ? (
                     <Text style={styles.modelStateText}>
                       {model.status === 'ready'
-                        ? translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.0fdd00661b',
-                            'API key set'
-                          )
-                        : translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.a9fec85af0',
-                            'Set up on desktop'
-                          )}
+                        ? translate('m.MobileDictationSetupSheet.0fdd00661b', 'API key set')
+                        : translate('m.MobileDictationSetupSheet.a9fec85af0', 'Set up on desktop')}
                     </Text>
                   ) : model.status === 'ready' ? (
                     isSelected ? (
                       <View style={styles.selectedTag}>
                         <Check size={14} color={colors.statusGreen} strokeWidth={2.4} />
                         <Text style={styles.selectedText}>
-                          {translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.ae2f2cc127',
-                            'In use'
-                          )}
+                          {translate('m.MobileDictationSetupSheet.ae2f2cc127', 'In use')}
                         </Text>
                       </View>
                     ) : (
@@ -227,10 +203,7 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                         onPress={() => void handleUseModel(model)}
                       >
                         <Text style={styles.actionText}>
-                          {translate(
-                            'auto.mobile.src.components.MobileDictationSetupSheet.375f2e9b3d',
-                            'Use'
-                          )}
+                          {translate('m.MobileDictationSetupSheet.375f2e9b3d', 'Use')}
                         </Text>
                       </Pressable>
                     )
@@ -251,10 +224,7 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                         <>
                           <Download size={13} color={colors.textSecondary} strokeWidth={2.2} />
                           <Text style={styles.actionText}>
-                            {translate(
-                              'auto.mobile.src.components.MobileDictationSetupSheet.a09dec50ce',
-                              'Download'
-                            )}
+                            {translate('m.MobileDictationSetupSheet.a09dec50ce', 'Download')}
                           </Text>
                         </>
                       )}

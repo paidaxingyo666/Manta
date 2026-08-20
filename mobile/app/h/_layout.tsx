@@ -42,41 +42,41 @@ function HostStack({ animation }: { animation: 'none' | 'default' }) {
     >
       <Stack.Screen
         name="[hostId]/index"
-        options={{ title: translate('auto.mobile.app.h.layout.7aca81e533', 'Host') }}
+        options={{ title: translate('m.layout.7aca81e533', 'Host') }}
       />
       <Stack.Screen
         name="[hostId]/edit"
-        options={{ title: translate('auto.mobile.app.h.layout.d3370f3d6f', 'Edit host') }}
+        options={{ title: translate('m.layout.d3370f3d6f', 'Edit host') }}
       />
       <Stack.Screen
         name="[hostId]/accounts"
-        options={{ title: translate('auto.mobile.app.h.layout.295637a5f9', 'Accounts') }}
+        options={{ title: translate('m.layout.295637a5f9', 'Accounts') }}
       />
       <Stack.Screen
         name="[hostId]/tasks"
-        options={{ title: translate('auto.mobile.app.h.layout.6137d5f7ea', 'Tasks') }}
+        options={{ title: translate('m.layout.6137d5f7ea', 'Tasks') }}
       />
       <Stack.Screen
         name="[hostId]/session/[worktreeId]"
-        options={{ title: translate('auto.mobile.app.h.layout.c2dc55fe2e', 'Terminal') }}
+        options={{ title: translate('m.layout.c2dc55fe2e', 'Terminal') }}
       />
       <Stack.Screen
         name="[hostId]/source-control/[worktreeId]"
-        options={{ title: translate('auto.mobile.app.h.layout.319ab14fcb', 'Source Control') }}
+        options={{ title: translate('m.layout.319ab14fcb', 'Source Control') }}
       />
       <Stack.Screen
         name="[hostId]/agent-history/[worktreeId]"
         options={{
-          title: translate('auto.mobile.app.h.layout.6adb9b8189', 'Agent Session History')
+          title: translate('m.layout.6adb9b8189', 'Agent Session History')
         }}
       />
       <Stack.Screen
         name="[hostId]/review/[worktreeId]"
-        options={{ title: translate('auto.mobile.app.h.layout.01c108c5c2', 'Changes') }}
+        options={{ title: translate('m.layout.01c108c5c2', 'Changes') }}
       />
       <Stack.Screen
         name="[hostId]/pr/[worktreeId]"
-        options={{ title: translate('auto.mobile.app.h.layout.7ceda7cfcf', 'Pull Request') }}
+        options={{ title: translate('m.layout.7ceda7cfcf', 'Pull Request') }}
       />
     </Stack>
   )

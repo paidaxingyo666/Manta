@@ -84,10 +84,7 @@ export function buildMobileSourceControlActions(
 
   return [
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.fd2ae6e099',
-        'Commit'
-      ),
+      label: translate('m.mobile.source.control.actions.fd2ae6e099', 'Commit'),
       iconKey: 'commit',
       disabled: busy || !!commitHint,
       hint: commitHint,
@@ -96,10 +93,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.commit
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.e29538cd3a',
-        'Commit & Push'
-      ),
+      label: translate('m.mobile.source.control.actions.e29538cd3a', 'Commit & Push'),
       iconKey: 'push',
       disabled: busy || !!commitHint || !upstreamKnown || !hasUpstream,
       hint: commitHint ?? remoteHint,
@@ -108,10 +102,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.commitPush
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.645c339d48',
-        'Commit & Sync'
-      ),
+      label: translate('m.mobile.source.control.actions.645c339d48', 'Commit & Sync'),
       iconKey: 'sync',
       disabled: busy || !!commitHint || !upstreamKnown || !hasUpstream || behind === 0,
       hint:
@@ -128,15 +119,10 @@ export function buildMobileSourceControlActions(
     {
       label:
         ahead > 0
-          ? translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.dc5665ae76',
-              'Push ({{value0}})',
-              { value0: ahead }
-            )
-          : translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.7816735a4c',
-              'Push'
-            ),
+          ? translate('m.mobile.source.control.actions.dc5665ae76', 'Push ({{value0}})', {
+              value0: ahead
+            })
+          : translate('m.mobile.source.control.actions.7816735a4c', 'Push'),
       iconKey: 'push',
       disabled: busy || !upstreamKnown || !hasUpstream || ahead === 0,
       hint: !hasUpstream ? remoteHint : ahead === 0 ? 'Nothing to push' : undefined,
@@ -145,10 +131,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.push
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.220b608641',
-        'Create PR'
-      ),
+      label: translate('m.mobile.source.control.actions.220b608641', 'Create PR'),
       iconKey: 'pr',
       disabled: busy || !args.prAvailable,
       hint: prHint,
@@ -157,10 +140,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.createPr
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.fcfab9104c',
-        'Push & Create PR'
-      ),
+      label: translate('m.mobile.source.control.actions.fcfab9104c', 'Push & Create PR'),
       iconKey: 'pr',
       disabled: busy || !upstreamKnown || !hasUpstream || ahead === 0 || !args.prAvailable,
       hint: prHint ?? (!hasUpstream ? remoteHint : undefined),
@@ -171,15 +151,10 @@ export function buildMobileSourceControlActions(
     {
       label:
         behind > 0
-          ? translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.4a36a2e93d',
-              'Pull ({{value0}})',
-              { value0: behind }
-            )
-          : translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.d29181a724',
-              'Pull'
-            ),
+          ? translate('m.mobile.source.control.actions.4a36a2e93d', 'Pull ({{value0}})', {
+              value0: behind
+            })
+          : translate('m.mobile.source.control.actions.d29181a724', 'Pull'),
       iconKey: 'pull',
       disabled: busy || !upstreamKnown || !hasUpstream || behind === 0,
       hint: !hasUpstream ? remoteHint : behind === 0 ? 'Nothing to pull' : undefined,
@@ -191,14 +166,11 @@ export function buildMobileSourceControlActions(
       label:
         ahead > 0 || behind > 0
           ? translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.c2b72fb417',
+              'm.mobile.source.control.actions.c2b72fb417',
               'Sync (↓{{value0}} ↑{{value1}})',
               { value0: behind, value1: ahead }
             )
-          : translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.3741e930c8',
-              'Sync'
-            ),
+          : translate('m.mobile.source.control.actions.3741e930c8', 'Sync'),
       iconKey: 'sync',
       disabled: busy || !upstreamKnown || !hasUpstream || (ahead === 0 && behind === 0),
       hint:
@@ -212,10 +184,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.sync
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.ddb96ca5ef',
-        'Fetch'
-      ),
+      label: translate('m.mobile.source.control.actions.ddb96ca5ef', 'Fetch'),
       iconKey: 'fetch',
       disabled: busy,
       loading: args.busyAction === 'fetch',
@@ -223,10 +192,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.fetch
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.aff30f4611',
-        'Publish Branch'
-      ),
+      label: translate('m.mobile.source.control.actions.aff30f4611', 'Publish Branch'),
       iconKey: 'publish',
       disabled: busy || !upstreamKnown || hasUpstream,
       hint: !upstreamKnown
@@ -241,15 +207,10 @@ export function buildMobileSourceControlActions(
     {
       label:
         behind > 0
-          ? translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.6b59363e25',
-              'Fast-forward ({{value0}})',
-              { value0: behind }
-            )
-          : translate(
-              'auto.mobile.src.source.control.mobile.source.control.actions.7e9ff9a63a',
-              'Fast-forward'
-            ),
+          ? translate('m.mobile.source.control.actions.6b59363e25', 'Fast-forward ({{value0}})', {
+              value0: behind
+            })
+          : translate('m.mobile.source.control.actions.7e9ff9a63a', 'Fast-forward'),
       iconKey: 'pull',
       disabled: busy || !upstreamKnown || !hasUpstream || behind === 0 || ahead > 0,
       hint: !hasUpstream
@@ -264,10 +225,7 @@ export function buildMobileSourceControlActions(
       onPress: handlers.fastForward
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.9ed8a4d7d4',
-        'Rebase onto base'
-      ),
+      label: translate('m.mobile.source.control.actions.9ed8a4d7d4', 'Rebase onto base'),
       iconKey: 'branch',
       disabled: busy,
       loading: args.busyAction === 'rebase',
@@ -275,20 +233,14 @@ export function buildMobileSourceControlActions(
       onPress: handlers.rebase
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.6ce7379d43',
-        'Switch branch'
-      ),
+      label: translate('m.mobile.source.control.actions.6ce7379d43', 'Switch branch'),
       iconKey: 'branch',
       disabled: busy,
       skipAutoClose: true,
       onPress: handlers.checkout
     },
     {
-      label: translate(
-        'auto.mobile.src.source.control.mobile.source.control.actions.863b36001e',
-        'Commits'
-      ),
+      label: translate('m.mobile.source.control.actions.863b36001e', 'Commits'),
       iconKey: 'history',
       disabled: busy,
       onPress: handlers.history

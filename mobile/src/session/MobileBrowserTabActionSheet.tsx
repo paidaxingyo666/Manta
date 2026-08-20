@@ -25,16 +25,13 @@ export function MobileBrowserTabActionSheet(props: {
       title={
         target
           ? getMobileSessionTabTitle(target)
-          : translate('auto.mobile.src.session.MobileBrowserTabActionSheet.199c2d6421', 'Browser')
+          : translate('m.MobileBrowserTabActionSheet.199c2d6421', 'Browser')
       }
       actions={[
         ...(target?.canGoBack
           ? [
               {
-                label: translate(
-                  'auto.mobile.src.session.MobileBrowserTabActionSheet.48a92edf21',
-                  'Back'
-                ),
+                label: translate('m.MobileBrowserTabActionSheet.48a92edf21', 'Back'),
                 icon: ChevronLeft,
                 onPress: () => {
                   const current = target
@@ -49,10 +46,7 @@ export function MobileBrowserTabActionSheet(props: {
         ...(target?.canGoForward
           ? [
               {
-                label: translate(
-                  'auto.mobile.src.session.MobileBrowserTabActionSheet.9b884ed916',
-                  'Forward'
-                ),
+                label: translate('m.MobileBrowserTabActionSheet.9b884ed916', 'Forward'),
                 icon: ChevronRight,
                 onPress: () => {
                   const current = target
@@ -65,10 +59,7 @@ export function MobileBrowserTabActionSheet(props: {
             ]
           : []),
         {
-          label: translate(
-            'auto.mobile.src.session.MobileBrowserTabActionSheet.f317af1a27',
-            'Reload'
-          ),
+          label: translate('m.MobileBrowserTabActionSheet.f317af1a27', 'Reload'),
           icon: RefreshCw,
           onPress: () => {
             const current = target
@@ -79,10 +70,7 @@ export function MobileBrowserTabActionSheet(props: {
           }
         },
         {
-          label: translate(
-            'auto.mobile.src.session.MobileBrowserTabActionSheet.bc29c5cca4',
-            'Close'
-          ),
+          label: translate('m.MobileBrowserTabActionSheet.bc29c5cca4', 'Close'),
           destructive: true,
           onPress: () => {
             const current = target

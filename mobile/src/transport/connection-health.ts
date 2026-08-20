@@ -67,7 +67,7 @@ export function classifyConnection(args: {
     return {
       kind: 'auth-failed',
       label: translate(
-        'auto.mobile.src.transport.connection.health.d01be348a0',
+        'm.connection.health.d01be348a0',
         'Pairing invalid — re-pair with your desktop'
       )
     }
@@ -76,7 +76,7 @@ export function classifyConnection(args: {
   if (state === 'connected') {
     return {
       kind: 'normal',
-      label: translate('auto.mobile.src.transport.connection.health.8e01ac6dae', 'Connected')
+      label: translate('m.connection.health.8e01ac6dae', 'Connected')
     }
   }
 
@@ -85,37 +85,28 @@ export function classifyConnection(args: {
       if (lastConnectedAt == null) {
         return {
           kind: 'unreachable',
-          label: translate(
-            'auto.mobile.src.transport.connection.health.da16e47b5f',
-            "Can't connect via Relay"
-          ),
+          label: translate('m.connection.health.da16e47b5f', "Can't connect via Relay"),
           reason: 'never-connected'
         }
       }
       if (now - lastConnectedAt >= STALE_SINCE_LAST_CONNECT_MS) {
         return {
           kind: 'unreachable',
-          label: translate(
-            'auto.mobile.src.transport.connection.health.da16e47b5f',
-            "Can't connect via Relay"
-          ),
+          label: translate('m.connection.health.da16e47b5f', "Can't connect via Relay"),
           reason: 'stale'
         }
       }
     }
     return {
       kind: 'normal',
-      label: translate(
-        'auto.mobile.src.transport.connection.health.dd4b030f53',
-        'Connecting via Relay…'
-      )
+      label: translate('m.connection.health.dd4b030f53', 'Connecting via Relay…')
     }
   }
 
   if (state === 'disconnected') {
     return {
       kind: 'normal',
-      label: translate('auto.mobile.src.transport.connection.health.1ba6b526a9', 'Disconnected')
+      label: translate('m.connection.health.1ba6b526a9', 'Disconnected')
     }
   }
 
@@ -127,10 +118,7 @@ export function classifyConnection(args: {
     if (lastConnectedAt == null) {
       return {
         kind: 'unreachable',
-        label: translate(
-          'auto.mobile.src.transport.connection.health.6003e0c413',
-          "Can't reach desktop"
-        ),
+        label: translate('m.connection.health.6003e0c413', "Can't reach desktop"),
         reason: 'never-connected',
         hint
       }
@@ -138,10 +126,7 @@ export function classifyConnection(args: {
     if (now - lastConnectedAt >= STALE_SINCE_LAST_CONNECT_MS) {
       return {
         kind: 'unreachable',
-        label: translate(
-          'auto.mobile.src.transport.connection.health.6003e0c413',
-          "Can't reach desktop"
-        ),
+        label: translate('m.connection.health.6003e0c413', "Can't reach desktop"),
         reason: 'stale',
         hint
       }
@@ -151,7 +136,7 @@ export function classifyConnection(args: {
   if (reconnectAttempts >= WARNING_ATTEMPTS) {
     return {
       kind: 'warning',
-      label: translate('auto.mobile.src.transport.connection.health.ebf49ea8c1', "Can't connect"),
+      label: translate('m.connection.health.ebf49ea8c1', "Can't connect"),
       hint
     }
   }
@@ -160,8 +145,8 @@ export function classifyConnection(args: {
     kind: 'normal',
     label:
       state === 'reconnecting'
-        ? translate('auto.mobile.src.transport.connection.health.29b9a9719b', 'Reconnecting…')
-        : translate('auto.mobile.src.transport.connection.health.23ec1a2728', 'Connecting…')
+        ? translate('m.connection.health.29b9a9719b', 'Reconnecting…')
+        : translate('m.connection.health.23ec1a2728', 'Connecting…')
   }
 }
 

@@ -114,7 +114,7 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
             return {
               kind: 'error',
               message: translate(
-                'auto.mobile.src.source.control.use.mobile.source.control.loaders.bf43cc1511',
+                'm.use.mobile.source.control.loaders.bf43cc1511',
                 'Unable to resolve the base branch for comparison.'
               )
             }
@@ -190,11 +190,11 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
               message:
                 connState === 'connected'
                   ? translate(
-                      'auto.mobile.src.source.control.use.mobile.source.control.loaders.70866f1cd8',
+                      'm.use.mobile.source.control.loaders.70866f1cd8',
                       'Connecting to desktop...'
                     )
                   : translate(
-                      'auto.mobile.src.source.control.use.mobile.source.control.loaders.e63543ccea',
+                      'm.use.mobile.source.control.loaders.e63543ccea',
                       'Waiting for desktop...'
                     )
             })
@@ -229,7 +229,7 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
               setScreenState({
                 kind: 'unavailable',
                 message: translate(
-                  'auto.mobile.src.source.control.use.mobile.source.control.loaders.2979415ed1',
+                  'm.use.mobile.source.control.loaders.2979415ed1',
                   'Update Manta desktop to use Source Control on mobile.'
                 )
               })

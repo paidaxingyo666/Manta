@@ -22,10 +22,7 @@ export function NewWorktreeProjectTargetFields({
     <>
       <View style={styles.field}>
         <Text style={styles.label}>
-          {translate(
-            'auto.mobile.src.components.NewWorktreeProjectTargetFields.364a10619b',
-            'Project'
-          )}
+          {translate('m.NewWorktreeProjectTargetFields.364a10619b', 'Project')}
         </Text>
         <Pressable style={styles.fieldButton} onPress={onOpenProject}>
           {projectBadgeColor ? (
@@ -34,7 +31,7 @@ export function NewWorktreeProjectTargetFields({
           <SelectionCopy
             selection={project}
             placeholder={translate(
-              'auto.mobile.src.components.NewWorktreeProjectTargetFields.56fd896dbf',
+              'm.NewWorktreeProjectTargetFields.56fd896dbf',
               'Select a project'
             )}
           />
@@ -44,17 +41,14 @@ export function NewWorktreeProjectTargetFields({
 
       <View style={styles.field}>
         <Text style={styles.label}>
-          {translate(
-            'auto.mobile.src.components.NewWorktreeProjectTargetFields.3b08602805',
-            'Run on'
-          )}
+          {translate('m.NewWorktreeProjectTargetFields.3b08602805', 'Run on')}
         </Text>
         <Pressable style={styles.fieldButton} onPress={onOpenRunTarget}>
           <Monitor size={14} color={colors.textMuted} />
           <SelectionCopy
             selection={runTarget}
             placeholder={translate(
-              'auto.mobile.src.components.NewWorktreeProjectTargetFields.797094e99c',
+              'm.NewWorktreeProjectTargetFields.797094e99c',
               'Select a run target'
             )}
           />

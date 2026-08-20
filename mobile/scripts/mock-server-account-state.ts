@@ -100,7 +100,7 @@ function codexLimitsFor(accountId: string | null) {
       rateLimitResetCredits: { availableCount: 0, totalEarnedCount: 0, nextExpiresAt: null },
       updatedAt: fixtureStartedAt,
       error: translate(
-        'auto.mobile.scripts.mock.server.account.state.b6d12a8a4d',
+        'm.mock.server.account.state.b6d12a8a4d',
         'No managed Codex account selected'
       ),
       status: 'unavailable' as const

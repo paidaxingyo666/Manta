@@ -16,17 +16,17 @@ import { localizedConstant } from '../src/i18n/localized-constant'
 const linkModeOptions = localizedConstant((): PickerOption<MobileTerminalLinkOpenMode>[] => [
   {
     value: 'manta-browser',
-    label: translate('auto.mobile.app.browser.settings.2307073d4f', 'Manta browser on desktop'),
+    label: translate('m.browser.settings.2307073d4f', 'Manta browser on desktop'),
     subtitle: translate(
-      'auto.mobile.app.browser.settings.678f6766a4',
+      'm.browser.settings.678f6766a4',
       'Open in the streamed browser from your paired desktop.'
     )
   },
   {
     value: 'phone-browser',
-    label: translate('auto.mobile.app.browser.settings.848a3a5e01', 'Phone browser'),
+    label: translate('m.browser.settings.848a3a5e01', 'Phone browser'),
     subtitle: translate(
-      'auto.mobile.app.browser.settings.5a3e904671',
+      'm.browser.settings.5a3e904671',
       'Open in Safari, Chrome, or another browser on this phone.'
     )
   }
@@ -59,18 +59,16 @@ export default function BrowserSettingsScreen(): React.JSX.Element {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>
-          {translate('auto.mobile.app.browser.settings.189c0c35a9', 'Browser')}
-        </Text>
+        <Text style={styles.heading}>{translate('m.browser.settings.189c0c35a9', 'Browser')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.groupHeading}>
-          {translate('auto.mobile.app.browser.settings.821ed56937', 'LINKS')}
+          {translate('m.browser.settings.821ed56937', 'LINKS')}
         </Text>
         <Text style={styles.groupDescription}>
           {translate(
-            'auto.mobile.app.browser.settings.2ba554fba7',
+            'm.browser.settings.2ba554fba7',
             'Choose where HTTP(S) links tapped in terminal output open.'
           )}{' '}
         </Text>
@@ -82,7 +80,7 @@ export default function BrowserSettingsScreen(): React.JSX.Element {
             <Globe size={16} color={colors.textSecondary} />
             <View style={styles.rowContent}>
               <Text style={styles.rowLabel}>
-                {translate('auto.mobile.app.browser.settings.c1dc8b0975', 'Open terminal links')}
+                {translate('m.browser.settings.c1dc8b0975', 'Open terminal links')}
               </Text>
               <Text style={styles.rowSublabel}>{linkModeLabel(linkMode)}</Text>
             </View>
@@ -93,7 +91,7 @@ export default function BrowserSettingsScreen(): React.JSX.Element {
 
       <PickerModal<MobileTerminalLinkOpenMode>
         visible={pickerOpen}
-        title={translate('auto.mobile.app.browser.settings.c1dc8b0975', 'Open terminal links')}
+        title={translate('m.browser.settings.c1dc8b0975', 'Open terminal links')}
         options={linkModeOptions()}
         selected={linkMode}
         onSelect={selectLinkMode}

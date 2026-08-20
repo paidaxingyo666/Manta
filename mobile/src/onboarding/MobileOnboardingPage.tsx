@@ -49,23 +49,17 @@ export function MobileOnboardingPage({
         </View>
         <Text style={styles.title}>
           {isSessionView
-            ? translate(
-                'auto.mobile.src.onboarding.MobileOnboardingPage.a3d2f11cf8',
-                'How should sessions open?'
-              )
-            : translate(
-                'auto.mobile.src.onboarding.MobileOnboardingPage.3a676018db',
-                'Stay updated while away'
-              )}
+            ? translate('m.MobileOnboardingPage.a3d2f11cf8', 'How should sessions open?')
+            : translate('m.MobileOnboardingPage.3a676018db', 'Stay updated while away')}
         </Text>
         <Text style={styles.body}>
           {isSessionView
             ? translate(
-                'auto.mobile.src.onboarding.MobileOnboardingPage.755f145478',
+                'm.MobileOnboardingPage.755f145478',
                 'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
               )
             : translate(
-                'auto.mobile.src.onboarding.MobileOnboardingPage.def1eabfa5',
+                'm.MobileOnboardingPage.def1eabfa5',
                 'Get notified on this device when an agent needs your input or finishes a task.'
               )}
         </Text>
@@ -103,10 +97,7 @@ function SessionViewChoices({
   return (
     <>
       <ChoiceButton
-        label={translate(
-          'auto.mobile.src.onboarding.MobileOnboardingPage.2a882f4986',
-          'Use Chat UI'
-        )}
+        label={translate('m.MobileOnboardingPage.2a882f4986', 'Use Chat UI')}
         accessibilityLabel="Open sessions in Chat UI"
         primary
         busy={busyChoice === 'chat'}
@@ -114,10 +105,7 @@ function SessionViewChoices({
         onPress={() => onChoice('chat')}
       />
       <ChoiceButton
-        label={translate(
-          'auto.mobile.src.onboarding.MobileOnboardingPage.f5b1768ae4',
-          'Keep terminal'
-        )}
+        label={translate('m.MobileOnboardingPage.f5b1768ae4', 'Keep terminal')}
         accessibilityLabel="Open sessions in the terminal"
         busy={busyChoice === 'terminal'}
         disabled={disabled}
@@ -139,10 +127,7 @@ function NotificationChoices({
   return (
     <>
       <ChoiceButton
-        label={translate(
-          'auto.mobile.src.onboarding.MobileOnboardingPage.40cf41e250',
-          'Enable notifications'
-        )}
+        label={translate('m.MobileOnboardingPage.40cf41e250', 'Enable notifications')}
         accessibilityLabel="Enable agent notifications"
         primary
         busy={busyChoice === 'enable'}
@@ -150,7 +135,7 @@ function NotificationChoices({
         onPress={() => onChoice('enable')}
       />
       <ChoiceButton
-        label={translate('auto.mobile.src.onboarding.MobileOnboardingPage.28fdd43cf6', 'Not now')}
+        label={translate('m.MobileOnboardingPage.28fdd43cf6', 'Not now')}
         accessibilityLabel="Skip notifications for now"
         busy={busyChoice === 'skip'}
         disabled={disabled}

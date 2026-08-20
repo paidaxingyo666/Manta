@@ -66,7 +66,7 @@ export function useMobileSourceControlCommitRunners(params: Params) {
               err instanceof Error
                 ? err.message
                 : translate(
-                    'auto.mobile.src.source.control.use.mobile.source.control.commit.runners.701ad7afef',
+                    'm.use.mobile.source.control.commit.runners.701ad7afef',
                     'Commit failed'
                   ),
             commitMessage: message,

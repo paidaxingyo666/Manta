@@ -28,7 +28,7 @@ export function MobileHtmlPreview({ html, renderSource }: Props) {
         >
           <Eye size={13} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.toggleText}>
-            {translate('auto.mobile.src.components.MobileHtmlPreview.6ef51f0562', 'Preview')}
+            {translate('m.MobileHtmlPreview.6ef51f0562', 'Preview')}
           </Text>
         </Pressable>
         <Pressable
@@ -38,7 +38,7 @@ export function MobileHtmlPreview({ html, renderSource }: Props) {
         >
           <Code size={13} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.toggleText}>
-            {translate('auto.mobile.src.components.MobileHtmlPreview.1dd27d1956', 'Source')}
+            {translate('m.MobileHtmlPreview.1dd27d1956', 'Source')}
           </Text>
         </Pressable>
       </View>

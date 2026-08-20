@@ -117,11 +117,9 @@ export function MobileNativeChatAsk({ prompt, onAnswer, onCancel }: Props): Reac
             >
               <Text style={[styles.tabText, i === index && styles.tabTextActive]} numberOfLines={1}>
                 {qq.header ||
-                  translate(
-                    'auto.mobile.src.session.MobileNativeChatAsk.6aa4aab4b2',
-                    'Step {{value0}}',
-                    { value0: i + 1 }
-                  )}
+                  translate('m.MobileNativeChatAsk.6aa4aab4b2', 'Step {{value0}}', {
+                    value0: i + 1
+                  })}
               </Text>
               {isAnswered(i) ? (
                 <Check size={11} color={colors.statusGreen} strokeWidth={3} />
@@ -144,7 +142,7 @@ export function MobileNativeChatAsk({ prompt, onAnswer, onCancel }: Props): Reac
           />
         ))}
         <OptionRow
-          label={translate('auto.mobile.src.session.MobileNativeChatAsk.6e21b85794', 'Other…')}
+          label={translate('m.MobileNativeChatAsk.6e21b85794', 'Other…')}
           selected={otherSelected}
           multi={q.multiSelect}
           onPress={() => toggle(index, OTHER, q.multiSelect)}
@@ -154,10 +152,7 @@ export function MobileNativeChatAsk({ prompt, onAnswer, onCancel }: Props): Reac
             style={styles.input}
             value={otherText[index]}
             onChangeText={(v) => setOther(index, v)}
-            placeholder={translate(
-              'auto.mobile.src.session.MobileNativeChatAsk.ee779fedbd',
-              'Type your answer'
-            )}
+            placeholder={translate('m.MobileNativeChatAsk.ee779fedbd', 'Type your answer')}
             placeholderTextColor={colors.textMuted}
             multiline
             autoFocus
@@ -184,7 +179,7 @@ export function MobileNativeChatAsk({ prompt, onAnswer, onCancel }: Props): Reac
           hitSlop={8}
         >
           <Text style={styles.cancelText}>
-            {translate('auto.mobile.src.session.MobileNativeChatAsk.cb171a270a', 'Cancel')}
+            {translate('m.MobileNativeChatAsk.cb171a270a', 'Cancel')}
           </Text>
         </Pressable>
         {total > 1 ? (
@@ -199,8 +194,8 @@ export function MobileNativeChatAsk({ prompt, onAnswer, onCancel }: Props): Reac
         >
           <Text style={[styles.nextText, !canAdvance && styles.nextTextDisabled]}>
             {isLast
-              ? translate('auto.mobile.src.session.MobileNativeChatAsk.cbdbc2503b', 'Submit')
-              : translate('auto.mobile.src.session.MobileNativeChatAsk.1306c1e552', 'Next')}
+              ? translate('m.MobileNativeChatAsk.cbdbc2503b', 'Submit')
+              : translate('m.MobileNativeChatAsk.1306c1e552', 'Next')}
           </Text>
         </Pressable>
       </View>

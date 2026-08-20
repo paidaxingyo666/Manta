@@ -186,8 +186,8 @@ function statusEntryToQueueItem(
     title: entry.path,
     subtitle:
       scope === 'staged'
-        ? translate('auto.mobile.src.session.mobile.diff.review.queue.b1e9ce286e', 'Staged')
-        : translate('auto.mobile.src.session.mobile.diff.review.queue.1499f32fd6', 'Unstaged'),
+        ? translate('m.mobile.diff.review.queue.b1e9ce286e', 'Staged')
+        : translate('m.mobile.diff.review.queue.1499f32fd6', 'Unstaged'),
     added: entry.added,
     removed: entry.removed,
     canStage: isMobileGitStageableEntry(entry),
@@ -222,10 +222,7 @@ function branchEntryToQueueItem(
     oldPath: entry.oldPath,
     status: entry.status,
     title: entry.path,
-    subtitle: translate(
-      'auto.mobile.src.session.mobile.diff.review.queue.84a5f8aba0',
-      'Committed on branch'
-    ),
+    subtitle: translate('m.mobile.diff.review.queue.84a5f8aba0', 'Committed on branch'),
     added: entry.added,
     removed: entry.removed,
     canStage: false,

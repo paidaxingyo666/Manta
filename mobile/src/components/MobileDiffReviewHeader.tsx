@@ -56,10 +56,7 @@ export function MobileDiffReviewHeader({
         </Pressable>
         <View style={styles.titleBlock}>
           <Text style={styles.title} numberOfLines={1}>
-            {translate(
-              'auto.mobile.src.components.MobileDiffReviewHeader.d6521a2df5',
-              'Changes'
-            )}{' '}
+            {translate('m.MobileDiffReviewHeader.d6521a2df5', 'Changes')}{' '}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {worktreeLabel}
@@ -87,10 +84,7 @@ export function MobileDiffReviewHeader({
       <View style={styles.progressRow}>
         <Text style={styles.progressText}>
           {reviewedCount}/{queueLength}{' '}
-          {translate(
-            'auto.mobile.src.components.MobileDiffReviewHeader.022200a6f3',
-            'reviewed'
-          )}{' '}
+          {translate('m.MobileDiffReviewHeader.022200a6f3', 'reviewed')}{' '}
         </Text>
         <Text style={styles.progressText}>
           {mobileReviewCountLabel(unsentCount, 'unsent note', 'unsent notes')}
@@ -116,7 +110,7 @@ export function MobileDiffReviewHeader({
           >
             <Text style={[styles.filterText, filter === item && styles.filterTextActive]}>
               {item === 'all'
-                ? translate('auto.mobile.src.components.MobileDiffReviewHeader.afe6a05fe9', 'All')
+                ? translate('m.MobileDiffReviewHeader.afe6a05fe9', 'All')
                 : item[0]?.toUpperCase() + item.slice(1)}
             </Text>
           </Pressable>

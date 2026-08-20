@@ -48,7 +48,7 @@ export function MobileDiffReviewFooter({
           >
             <Plus size={14} color={colors.textSecondary} strokeWidth={2.2} />
             <Text style={styles.secondaryButtonText}>
-              {translate('auto.mobile.src.components.MobileDiffReviewFooter.2623350c05', 'Stage')}
+              {translate('m.MobileDiffReviewFooter.2623350c05', 'Stage')}
             </Text>
           </Pressable>
         ) : null}
@@ -62,7 +62,7 @@ export function MobileDiffReviewFooter({
           >
             <Undo2 size={14} color={colors.textSecondary} strokeWidth={2.2} />
             <Text style={styles.secondaryButtonText}>
-              {translate('auto.mobile.src.components.MobileDiffReviewFooter.bf9f285bf1', 'Unstage')}
+              {translate('m.MobileDiffReviewFooter.bf9f285bf1', 'Unstage')}
             </Text>
           </Pressable>
         ) : null}
@@ -76,7 +76,7 @@ export function MobileDiffReviewFooter({
           >
             <Trash2 size={14} color={colors.statusRed} strokeWidth={2.2} />
             <Text style={styles.destructiveText}>
-              {translate('auto.mobile.src.components.MobileDiffReviewFooter.94bfeaf090', 'Discard')}
+              {translate('m.MobileDiffReviewFooter.94bfeaf090', 'Discard')}
             </Text>
           </Pressable>
         ) : null}
@@ -98,7 +98,7 @@ export function MobileDiffReviewFooter({
         >
           <FileText size={14} color={colors.textSecondary} strokeWidth={2.2} />
           <Text style={styles.footerButtonText}>
-            {translate('auto.mobile.src.components.MobileDiffReviewFooter.bd18444a9d', 'Note')}
+            {translate('m.MobileDiffReviewFooter.bd18444a9d', 'Note')}
           </Text>
         </Pressable>
         <Pressable
@@ -114,14 +114,8 @@ export function MobileDiffReviewFooter({
           <Check size={14} color={colors.bgBase} strokeWidth={2.2} />
           <Text style={styles.primaryButtonText}>
             {item.isReviewed
-              ? translate(
-                  'auto.mobile.src.components.MobileDiffReviewFooter.8146d03e39',
-                  'Reviewed'
-                )
-              : translate(
-                  'auto.mobile.src.components.MobileDiffReviewFooter.80b1849676',
-                  'Mark Reviewed'
-                )}
+              ? translate('m.MobileDiffReviewFooter.8146d03e39', 'Reviewed')
+              : translate('m.MobileDiffReviewFooter.80b1849676', 'Mark Reviewed')}
           </Text>
         </Pressable>
         <Pressable

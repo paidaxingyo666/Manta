@@ -310,15 +310,12 @@ export function MobileFileExplorerPanel(props: {
       )}
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
-          {translate('auto.mobile.src.files.MobileFileExplorerPanel.f288e834ba', 'Files')}{' '}
+          {translate('m.MobileFileExplorerPanel.f288e834ba', 'Files')}{' '}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
           {worktreeLabel}
           {legacyListTruncated
-            ? translate(
-                'auto.mobile.src.files.MobileFileExplorerPanel.528997afc8',
-                '- Showing first 5000'
-              )
+            ? translate('m.MobileFileExplorerPanel.528997afc8', '- Showing first 5000')
             : ''}
         </Text>
       </View>
@@ -342,14 +339,14 @@ export function MobileFileExplorerPanel(props: {
         }
       >
         <Text style={styles.retryText}>
-          {translate('auto.mobile.src.files.MobileFileExplorerPanel.2d2d213ae8', 'Retry')}
+          {translate('m.MobileFileExplorerPanel.2d2d213ae8', 'Retry')}
         </Text>
       </Pressable>
     </View>
   ) : rows.length === 0 ? (
     <View style={styles.state}>
       <Text style={styles.emptyText}>
-        {translate('auto.mobile.src.files.MobileFileExplorerPanel.09a641d5f9', 'No files found')}
+        {translate('m.MobileFileExplorerPanel.09a641d5f9', 'No files found')}
       </Text>
     </View>
   ) : (

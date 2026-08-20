@@ -163,18 +163,12 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
                   <ActivityIndicator size="small" color={colors.textSecondary} />
                 ) : (
                   <Text style={styles.empty}>
-                    {translate(
-                      'auto.mobile.src.source.control.MobileGitHistoryList.932946bcf5',
-                      'Waiting for desktop...'
-                    )}
+                    {translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')}
                   </Text>
                 )
               ) : files.length === 0 ? (
                 <Text style={styles.empty}>
-                  {translate(
-                    'auto.mobile.src.source.control.MobileGitHistoryList.cb46c1e3eb',
-                    'No file changes'
-                  )}
+                  {translate('m.MobileGitHistoryList.cb46c1e3eb', 'No file changes')}
                 </Text>
               ) : (
                 files.map((file) => (
@@ -204,15 +198,12 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
       <View style={styles.state}>
         <Text style={styles.stateText}>
           {view.kind === 'waiting'
-            ? translate(
-                'auto.mobile.src.source.control.MobileGitHistoryList.932946bcf5',
-                'Waiting for desktop...'
-              )
+            ? translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')
             : view.message}
         </Text>
         <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
           <Text style={styles.retryText}>
-            {translate('auto.mobile.src.source.control.MobileGitHistoryList.41bdc2a206', 'Retry')}
+            {translate('m.MobileGitHistoryList.41bdc2a206', 'Retry')}
           </Text>
         </Pressable>
       </View>
@@ -229,10 +220,7 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
     return (
       <View style={styles.state}>
         <Text style={styles.stateText}>
-          {translate(
-            'auto.mobile.src.source.control.MobileGitHistoryList.7dc0c76755',
-            'No commits.'
-          )}
+          {translate('m.MobileGitHistoryList.7dc0c76755', 'No commits.')}
         </Text>
       </View>
     )

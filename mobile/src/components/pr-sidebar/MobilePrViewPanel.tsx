@@ -42,17 +42,14 @@ export function MobilePrViewPanelBody({
       ? ({
           kind: 'blocked',
           message: translate(
-            'auto.mobile.src.components.pr.sidebar.MobilePrViewPanel.fecbe9eaeb',
+            'm.MobilePrViewPanel.fecbe9eaeb',
             'Hosted review panel unavailable for this provider.'
           )
         } as const)
       : branch === null
         ? ({
             kind: 'error',
-            message: translate(
-              'auto.mobile.src.components.pr.sidebar.MobilePrViewPanel.2c83633f59',
-              'Current branch unavailable.'
-            )
+            message: translate('m.MobilePrViewPanel.2c83633f59', 'Current branch unavailable.')
           } as const)
         : controller.prSidebarState
 

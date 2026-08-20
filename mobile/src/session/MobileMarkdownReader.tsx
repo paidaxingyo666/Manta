@@ -55,7 +55,7 @@ export function MobileMarkdownReader({
         <Pressable style={styles.markdownRefreshButton} onPress={onRefresh}>
           <RefreshCw size={14} color={colors.textPrimary} />
           <Text style={styles.markdownRefreshText}>
-            {translate('auto.mobile.src.session.MobileMarkdownReader.7fa363bb8e', 'Retry')}
+            {translate('m.MobileMarkdownReader.7fa363bb8e', 'Retry')}
           </Text>
         </Pressable>
       </View>
@@ -65,9 +65,9 @@ export function MobileMarkdownReader({
   const statusText = doc.saveError
     ? doc.saveError
     : doc.readOnlyReason
-      ? translate('auto.mobile.src.session.MobileMarkdownReader.d37923f4f6', 'Read only')
+      ? translate('m.MobileMarkdownReader.d37923f4f6', 'Read only')
       : doc.stale
-        ? translate('auto.mobile.src.session.MobileMarkdownReader.f1ac00d444', 'Changed on desktop')
+        ? translate('m.MobileMarkdownReader.f1ac00d444', 'Changed on desktop')
         : null
   const showRefresh = Boolean((doc.stale && !doc.isDirty) || !doc.editable)
   const showCopy = Boolean(doc.saveError || !doc.editable)
@@ -137,7 +137,7 @@ export function MobileMarkdownReader({
             {showCopy ? (
               <Pressable style={styles.markdownFloatingButton} onPress={onCopy}>
                 <Text style={styles.markdownFloatingButtonText}>
-                  {translate('auto.mobile.src.session.MobileMarkdownReader.fd282649f1', 'Copy')}
+                  {translate('m.MobileMarkdownReader.fd282649f1', 'Copy')}
                 </Text>
               </Pressable>
             ) : null}
@@ -145,14 +145,14 @@ export function MobileMarkdownReader({
               <Pressable style={styles.markdownFloatingButton} onPress={onRefresh}>
                 <RefreshCw size={13} color={colors.textPrimary} />
                 <Text style={styles.markdownFloatingButtonText}>
-                  {translate('auto.mobile.src.session.MobileMarkdownReader.e0abdc7458', 'Refresh')}
+                  {translate('m.MobileMarkdownReader.e0abdc7458', 'Refresh')}
                 </Text>
               </Pressable>
             ) : null}
             {doc.isDirty ? (
               <Pressable style={styles.markdownFloatingButton} onPress={onDiscard}>
                 <Text style={styles.markdownFloatingButtonText}>
-                  {translate('auto.mobile.src.session.MobileMarkdownReader.7ae18d2fd5', 'Discard')}
+                  {translate('m.MobileMarkdownReader.7ae18d2fd5', 'Discard')}
                 </Text>
               </Pressable>
             ) : null}
@@ -170,7 +170,7 @@ export function MobileMarkdownReader({
                   <ActivityIndicator size="small" color={colors.textPrimary} />
                 ) : (
                   <Text style={styles.markdownFloatingButtonText}>
-                    {translate('auto.mobile.src.session.MobileMarkdownReader.8bf6d6eed7', 'Save')}
+                    {translate('m.MobileMarkdownReader.8bf6d6eed7', 'Save')}
                   </Text>
                 )}
               </Pressable>

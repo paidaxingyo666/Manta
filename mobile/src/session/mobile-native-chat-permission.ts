@@ -49,25 +49,17 @@ export function parseApprovalFromStatus(
   }
   const summary = (approval as { summary?: unknown }).summary
   return {
-    title: translate(
-      'auto.mobile.src.session.mobile.native.chat.permission.b23a6139b2.19efa8',
-      'Allow {{value0}}?',
-      { value0: tool }
-    ),
+    title: translate('m.mobile.native.chat.permission.b23a6139b2.19efa8', 'Allow {{value0}}?', {
+      value0: tool
+    }),
     detail: typeof summary === 'string' && summary.length > 0 ? summary : undefined,
     options: [
       {
-        label: translate(
-          'auto.mobile.src.session.mobile.native.chat.permission.b23a6139b2.3ad0e3',
-          'Allow'
-        ),
+        label: translate('m.mobile.native.chat.permission.b23a6139b2.3ad0e3', 'Allow'),
         send: '1'
       },
       {
-        label: translate(
-          'auto.mobile.src.session.mobile.native.chat.permission.dc405d2023',
-          'Deny'
-        ),
+        label: translate('m.mobile.native.chat.permission.dc405d2023', 'Deny'),
         send: ESCAPE
       }
     ]
@@ -142,10 +134,7 @@ function buildNumberedPermission(
   detail: string | undefined
 ): MobileChatPermission {
   return {
-    title: translate(
-      'auto.mobile.src.session.mobile.native.chat.permission.2c73270f9a',
-      'Permission requested'
-    ),
+    title: translate('m.mobile.native.chat.permission.2c73270f9a', 'Permission requested'),
     detail,
     options: options.map((opt) => ({ label: shortLabel(opt.text), send: opt.num }))
   }
@@ -189,32 +178,23 @@ export function detectAgentPermission(input: PermissionInput): MobileChatPermiss
   // doesn't understand.
   const options: MobileChatPermission['options'] = [
     {
-      label: translate(
-        'auto.mobile.src.session.mobile.native.chat.permission.b23a6139b2.3ad0e3',
-        'Allow'
-      ),
+      label: translate('m.mobile.native.chat.permission.b23a6139b2.3ad0e3', 'Allow'),
       send: 'y'
     },
     {
-      label: translate('auto.mobile.src.session.mobile.native.chat.permission.dc405d2023', 'Deny'),
+      label: translate('m.mobile.native.chat.permission.dc405d2023', 'Deny'),
       send: 'n'
     }
   ]
   if (isAlwaysLabel(text)) {
     options.splice(1, 0, {
-      label: translate(
-        'auto.mobile.src.session.mobile.native.chat.permission.ceabbaf629',
-        'Allow always'
-      ),
+      label: translate('m.mobile.native.chat.permission.ceabbaf629', 'Allow always'),
       send: 'a'
     })
   }
 
   return {
-    title: translate(
-      'auto.mobile.src.session.mobile.native.chat.permission.2c73270f9a',
-      'Permission requested'
-    ),
+    title: translate('m.mobile.native.chat.permission.2c73270f9a', 'Permission requested'),
     detail,
     options
   }

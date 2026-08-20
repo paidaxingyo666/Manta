@@ -64,10 +64,7 @@ export function ReviewerPickerDrawer({
         if (!cancelled) {
           setLoad({
             status: 'error',
-            message: translate(
-              'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.755b3e33d2',
-              'Failed to load people'
-            )
+            message: translate('m.ReviewerPickerDrawer.755b3e33d2', 'Failed to load people')
           })
         }
       })
@@ -99,19 +96,13 @@ export function ReviewerPickerDrawer({
   return (
     <BottomDrawer visible={visible} onClose={onClose} dragContentToDismiss={false}>
       <Text style={styles.pickerTitle}>
-        {translate(
-          'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.2b7e31a36e',
-          'Reviewers'
-        )}
+        {translate('m.ReviewerPickerDrawer.2b7e31a36e', 'Reviewers')}
       </Text>
       <TextInput
         style={styles.pickerSearch}
         value={query}
         onChangeText={setQuery}
-        placeholder={translate(
-          'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.35ef9dfb20',
-          'Search people'
-        )}
+        placeholder={translate('m.ReviewerPickerDrawer.35ef9dfb20', 'Search people')}
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         autoCorrect={false}
@@ -127,10 +118,7 @@ export function ReviewerPickerDrawer({
       ) : ordered.length === 0 ? (
         <View style={styles.pickerStateArea}>
           <Text style={styles.emptyText}>
-            {translate(
-              'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.e8e60b33bc',
-              'No matching people'
-            )}
+            {translate('m.ReviewerPickerDrawer.e8e60b33bc', 'No matching people')}
           </Text>
         </View>
       ) : (

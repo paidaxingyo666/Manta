@@ -92,7 +92,7 @@ export function TextInputModal({
           onPress={onCancel}
         >
           <Text style={styles.cancelText}>
-            {translate('auto.mobile.src.components.TextInputModal.34e60eed01', 'Cancel')}
+            {translate('m.TextInputModal.34e60eed01', 'Cancel')}
           </Text>
         </Pressable>
         <Pressable

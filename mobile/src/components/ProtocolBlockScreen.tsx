@@ -17,49 +17,37 @@ export function ProtocolBlockScreen({ verdict }: Props) {
   const mobileUpdateTarget =
     Platform.OS === 'ios'
       ? {
-          label: translate(
-            'auto.mobile.src.components.ProtocolBlockScreen.a31839553b',
-            'Open App Store'
-          ),
+          label: translate('m.ProtocolBlockScreen.a31839553b', 'Open App Store'),
           url: IOS_APP_STORE_URL,
           storeName: 'the App Store'
         }
       : {
-          label: translate(
-            'auto.mobile.src.components.ProtocolBlockScreen.8776701afd',
-            'Open GitHub Releases'
-          ),
+          label: translate('m.ProtocolBlockScreen.8776701afd', 'Open GitHub Releases'),
           url: RELEASES_URL,
           storeName: 'GitHub Releases'
         }
   const primaryAction = isMobileTooOld
     ? { label: mobileUpdateTarget.label, url: mobileUpdateTarget.url }
     : {
-        label: translate(
-          'auto.mobile.src.components.ProtocolBlockScreen.8776701afd',
-          'Open GitHub Releases'
-        ),
+        label: translate('m.ProtocolBlockScreen.8776701afd', 'Open GitHub Releases'),
         url: RELEASES_URL
       }
 
   const title = isMobileTooOld
-    ? translate('auto.mobile.src.components.ProtocolBlockScreen.682bbfb813', 'Update Manta Mobile')
-    : translate(
-        'auto.mobile.src.components.ProtocolBlockScreen.0b8f38e4de',
-        'Update Manta on your computer'
-      )
+    ? translate('m.ProtocolBlockScreen.682bbfb813', 'Update Manta Mobile')
+    : translate('m.ProtocolBlockScreen.0b8f38e4de', 'Update Manta on your computer')
   const body = isMobileTooOld
     ? translate(
-        'auto.mobile.src.components.ProtocolBlockScreen.938a1a102b',
+        'm.ProtocolBlockScreen.938a1a102b',
         'This desktop needs a newer Manta Mobile app. Update Manta Mobile from {{value0}}, then try this host again.',
         { value0: mobileUpdateTarget.storeName }
       )
     : translate(
-        'auto.mobile.src.components.ProtocolBlockScreen.09c9f2cce4',
+        'm.ProtocolBlockScreen.09c9f2cce4',
         'This paired desktop app is too old for your current Manta Mobile app. Update Manta on your computer, then try this host again.'
       )
   const recoveryNote = translate(
-    'auto.mobile.src.components.ProtocolBlockScreen.d990a3a921',
+    'm.ProtocolBlockScreen.d990a3a921',
     'Already updated? Go back to Hosts and refresh the connection. If this message stays, remove this host and pair it again.'
   )
 
@@ -85,10 +73,7 @@ export function ProtocolBlockScreen({ verdict }: Props) {
           }}
         >
           <Text style={styles.secondaryButtonText}>
-            {translate(
-              'auto.mobile.src.components.ProtocolBlockScreen.900fceb931',
-              'Back to hosts'
-            )}
+            {translate('m.ProtocolBlockScreen.900fceb931', 'Back to hosts')}
           </Text>
         </Pressable>
         <Text style={styles.recoveryNote}>{recoveryNote}</Text>

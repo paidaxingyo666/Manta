@@ -34,16 +34,16 @@ function keySegment(value) {
 // the same wrong text. Suffix every member of a colliding group rather than
 // letting one keep the base key: the winner would otherwise be decided by
 // source order and shift whenever the file is edited.
-function disambiguateKeys(entries) {
+function disambiguateKeys(entries, keyStyle) {
   const fallbacksByBase = new Map()
   for (const { candidate, translation } of entries) {
-    const base = keyForCandidate(candidate)
+    const base = keyForCandidate(candidate, keyStyle)
     const seen = fallbacksByBase.get(base) ?? new Set()
     seen.add(translation.fallback)
     fallbacksByBase.set(base, seen)
   }
   return (candidate, fallback) => {
-    const base = keyForCandidate(candidate)
+    const base = keyForCandidate(candidate, keyStyle)
     if ((fallbacksByBase.get(base)?.size ?? 0) < 2) {
       return base
     }
@@ -51,14 +51,25 @@ function disambiguateKeys(entries) {
   }
 }
 
-function keyForCandidate(candidate) {
+// Why the mobile tree gets a shorter shape: the key is the longest part of a
+// `translate()` call, and a long one pushes the call past the formatter's line
+// width, which then splits it across three lines. Multiplied over a thousand
+// call sites that is thousands of lines, and it pushed fifteen files past
+// their max-lines ratchet. The hash already carries the full path, so the
+// readable segment only has to disambiguate for a human reading a diff — the
+// file's own name does that.
+function keyForCandidate(candidate, keyStyle = 'path') {
+  const source = `${candidate.filePath}:${candidate.text}`
+  const hash = createHash('sha1').update(source).digest('hex').slice(0, 10)
+  if (keyStyle === 'short') {
+    const basename = candidate.filePath.split('/').at(-1) ?? candidate.filePath
+    return `m.${keySegment(basename)}.${hash}`
+  }
   // Strip whichever tree the file came from so keys read as a path inside it,
   // and so an identical string in both apps does not collide on one key.
   const withoutPrefix = candidate.filePath
     .replace(/^src\/renderer\/src\//, '')
     .replace(/^mobile\//, 'mobile.')
-  const source = `${candidate.filePath}:${candidate.text}`
-  const hash = createHash('sha1').update(source).digest('hex').slice(0, 10)
   return `auto.${keySegment(withoutPrefix)}.${hash}`
 }
 
@@ -274,7 +285,7 @@ function applyReplacements(filePath, sourceText, candidates, catalog, skipped, s
     .filter((entry) => entry.translation !== null)
     .sort((left, right) => right.candidate.start - left.candidate.start)
 
-  const keyFor = disambiguateKeys(replacements)
+  const keyFor = disambiguateKeys(replacements, options.keyStyle)
   let nextSource = sourceText
   for (const { candidate, translation } of replacements) {
     const key = keyFor(candidate, translation.fallback)
@@ -356,7 +367,8 @@ const TARGETS = {
     },
     catalog: path.join('mobile', 'src', 'i18n', 'locales', 'en.json'),
     i18nSpecifier: relativeI18nSpecifier(path.join('mobile', 'src', 'i18n', 'i18n')),
-    extraCopyRules: true
+    extraCopyRules: true,
+    keyStyle: 'short'
   }
 }
 
@@ -375,7 +387,8 @@ export async function main(root = process.cwd(), argv = process.argv.slice(2)) {
 
   for (const filePath of files) {
     count += await localizeFile(root, filePath, catalog, skipped, target.i18nSpecifier, {
-      extraCopyRules: target.extraCopyRules === true
+      extraCopyRules: target.extraCopyRules === true,
+      keyStyle: target.keyStyle ?? 'path'
     })
   }
 

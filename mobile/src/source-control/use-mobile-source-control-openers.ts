@@ -275,7 +275,7 @@ export function useMobileSourceControlOpeners(params: Params) {
             err instanceof Error
               ? err.message
               : translate(
-                  'auto.mobile.src.source.control.use.mobile.source.control.openers.ce788bc1c9',
+                  'm.use.mobile.source.control.openers.ce788bc1c9',
                   'Unable to load committed diff'
                 )
         })

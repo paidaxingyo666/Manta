@@ -28,14 +28,8 @@ export function getMobileNativeChatToggleActions(args: {
   return [
     {
       label: isChat
-        ? translate(
-            'auto.mobile.src.session.mobile.native.chat.toggle.action.76a2ac32a6',
-            'Switch to terminal view'
-          )
-        : translate(
-            'auto.mobile.src.session.mobile.native.chat.toggle.action.1a6063ae20',
-            'Switch to chat view'
-          ),
+        ? translate('m.mobile.native.chat.toggle.action.76a2ac32a6', 'Switch to terminal view')
+        : translate('m.mobile.native.chat.toggle.action.1a6063ae20', 'Switch to chat view'),
       icon: isChat ? SquareTerminal : MessageSquare,
       onPress: () => {
         onClose()

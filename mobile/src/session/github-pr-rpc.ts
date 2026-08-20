@@ -106,11 +106,9 @@ async function sendGithubPrRead<T>(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.session.github.pr.rpc.70faee796e',
-              'Request failed: {{value0}}',
-              { value0: method }
-            )
+          : translate('m.github.pr.rpc.70faee796e', 'Request failed: {{value0}}', {
+              value0: method
+            })
     }
   }
 }

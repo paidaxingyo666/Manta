@@ -33,16 +33,16 @@ const shortcutModifierCatalog = localizedConstant(
   (): { id: TerminalShortcutModifier; label: string; glyph?: string }[] => [
     {
       id: 'ctrl',
-      label: translate('auto.mobile.src.components.CustomKeyModal.3992c2101a', 'Ctrl')
+      label: translate('m.CustomKeyModal.3992c2101a', 'Ctrl')
     },
     {
       id: 'alt',
-      label: translate('auto.mobile.src.components.CustomKeyModal.333faa20ee', 'Alt'),
+      label: translate('m.CustomKeyModal.333faa20ee', 'Alt'),
       glyph: '⌥'
     },
     {
       id: 'shift',
-      label: translate('auto.mobile.src.components.CustomKeyModal.0e5f660272', 'Shift')
+      label: translate('m.CustomKeyModal.0e5f660272', 'Shift')
     }
   ]
 )
@@ -52,17 +52,17 @@ const shortcutModifierCatalog = localizedConstant(
 const specialKeyGroups = localizedConstant(
   (): { title: string; ids: string[]; columns: number }[] => [
     {
-      title: translate('auto.mobile.src.components.CustomKeyModal.d51ba74b66', 'Editing'),
+      title: translate('m.CustomKeyModal.d51ba74b66', 'Editing'),
       ids: ['escape', 'tab', 'enter', 'backspace', 'delete', 'insert', 'space'],
       columns: 4
     },
     {
-      title: translate('auto.mobile.src.components.CustomKeyModal.0a58036543', 'Navigation'),
+      title: translate('m.CustomKeyModal.0a58036543', 'Navigation'),
       ids: ['arrowUp', 'arrowDown', 'arrowLeft', 'arrowRight', 'home', 'end', 'pageUp', 'pageDown'],
       columns: 4
     },
     {
-      title: translate('auto.mobile.src.components.CustomKeyModal.5b029b4c49', 'Function'),
+      title: translate('m.CustomKeyModal.5b029b4c49', 'Function'),
       ids: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12'],
       columns: 6
     }
@@ -214,14 +214,10 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
           <View style={styles.backSpacer} />
         )}
         <Text style={styles.title}>
-          {step === 'choose-type' &&
-            translate('auto.mobile.src.components.CustomKeyModal.fe0f6a9228', 'Add Shortcut')}
-          {step === 'shortcut-combo' &&
-            translate('auto.mobile.src.components.CustomKeyModal.2ebfc65454', 'Shortcut Combo')}
-          {step === 'special-keys' &&
-            translate('auto.mobile.src.components.CustomKeyModal.acc57404c5', 'Pick a key')}
-          {step === 'text-macro' &&
-            translate('auto.mobile.src.components.CustomKeyModal.7cd04fd54b', 'Text Macro')}
+          {step === 'choose-type' && translate('m.CustomKeyModal.fe0f6a9228', 'Add Shortcut')}
+          {step === 'shortcut-combo' && translate('m.CustomKeyModal.2ebfc65454', 'Shortcut Combo')}
+          {step === 'special-keys' && translate('m.CustomKeyModal.acc57404c5', 'Pick a key')}
+          {step === 'text-macro' && translate('m.CustomKeyModal.7cd04fd54b', 'Text Macro')}
         </Text>
         <View style={styles.backSpacer} />
       </View>
@@ -233,13 +229,10 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
             onPress={() => setStep('shortcut-combo')}
           >
             <Text style={styles.rowLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.2ebfc65454', 'Shortcut Combo')}
+              {translate('m.CustomKeyModal.2ebfc65454', 'Shortcut Combo')}
             </Text>
             <Text style={styles.rowHint}>
-              {translate(
-                'auto.mobile.src.components.CustomKeyModal.63bcc340e3',
-                'Build Ctrl, Alt, and Shift key chords'
-              )}
+              {translate('m.CustomKeyModal.63bcc340e3', 'Build Ctrl, Alt, and Shift key chords')}
             </Text>
           </Pressable>
           <View style={styles.separator} />
@@ -248,13 +241,10 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
             onPress={() => setStep('text-macro')}
           >
             <Text style={styles.rowLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.7cd04fd54b', 'Text Macro')}
+              {translate('m.CustomKeyModal.7cd04fd54b', 'Text Macro')}
             </Text>
             <Text style={styles.rowHint}>
-              {translate(
-                'auto.mobile.src.components.CustomKeyModal.23e46586f7',
-                'Send custom text command'
-              )}
+              {translate('m.CustomKeyModal.23e46586f7', 'Send custom text command')}
             </Text>
           </Pressable>
           {onManageShortcuts ? (
@@ -265,16 +255,10 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
                 onPress={onManageShortcuts}
               >
                 <Text style={styles.rowLabel}>
-                  {translate(
-                    'auto.mobile.src.components.CustomKeyModal.045b0b8e97',
-                    'Manage Shortcuts'
-                  )}
+                  {translate('m.CustomKeyModal.045b0b8e97', 'Manage Shortcuts')}
                 </Text>
                 <Text style={styles.rowHint}>
-                  {translate(
-                    'auto.mobile.src.components.CustomKeyModal.c3b609d0ac',
-                    'Show, hide, or reorder shortcut keys'
-                  )}
+                  {translate('m.CustomKeyModal.c3b609d0ac', 'Show, hide, or reorder shortcut keys')}
                 </Text>
               </Pressable>
             </>
@@ -303,7 +287,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
 
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.f63415bfef', 'Modifiers')}
+              {translate('m.CustomKeyModal.f63415bfef', 'Modifiers')}
             </Text>
             <View style={styles.mods}>
               {shortcutModifierCatalog().map((modifier) => {
@@ -336,7 +320,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
 
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.425075d432', 'Key')}
+              {translate('m.CustomKeyModal.425075d432', 'Key')}
             </Text>
             <TextInput
               style={styles.keyInput}
@@ -353,10 +337,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
               onPress={() => setStep('special-keys')}
             >
               <Text style={styles.moreLinkText}>
-                {translate(
-                  'auto.mobile.src.components.CustomKeyModal.192ac18ada',
-                  'More keys — Tab, arrows, F1–F12…'
-                )}
+                {translate('m.CustomKeyModal.192ac18ada', 'More keys — Tab, arrows, F1–F12…')}
               </Text>
             </Pressable>
           </View>
@@ -369,7 +350,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
             <Text
               style={[styles.saveButtonText, !shortcutPreview && styles.saveButtonTextDisabled]}
             >
-              {translate('auto.mobile.src.components.CustomKeyModal.9dd5728085', 'Add')}{' '}
+              {translate('m.CustomKeyModal.9dd5728085', 'Add')}{' '}
             </Text>
           </Pressable>
         </View>
@@ -417,38 +398,32 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
         <View style={styles.group}>
           <View style={styles.macroForm}>
             <Text style={styles.fieldLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.ce433ebd89', 'Label')}
+              {translate('m.CustomKeyModal.ce433ebd89', 'Label')}
             </Text>
             <TextInput
               style={styles.fieldInput}
               value={macroLabel}
               onChangeText={setMacroLabel}
-              placeholder={translate(
-                'auto.mobile.src.components.CustomKeyModal.774269273e',
-                'e.g. Build'
-              )}
+              placeholder={translate('m.CustomKeyModal.774269273e', 'e.g. Build')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
             />
             <Text style={styles.fieldLabel}>
-              {translate('auto.mobile.src.components.CustomKeyModal.6195a4f11e', 'Command')}
+              {translate('m.CustomKeyModal.6195a4f11e', 'Command')}
             </Text>
             <TextInput
               style={styles.fieldInput}
               value={macroText}
               onChangeText={setMacroText}
-              placeholder={translate(
-                'auto.mobile.src.components.CustomKeyModal.0a215cf434',
-                'e.g. pnpm build'
-              )}
+              placeholder={translate('m.CustomKeyModal.0a215cf434', 'e.g. pnpm build')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
             />
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>
-                {translate('auto.mobile.src.components.CustomKeyModal.37b52874f6', 'Press Enter')}
+                {translate('m.CustomKeyModal.37b52874f6', 'Press Enter')}
               </Text>
               <Switch
                 value={macroEnter}
@@ -465,10 +440,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
               <Text
                 style={[styles.saveButtonText, !macroText.trim() && styles.saveButtonTextDisabled]}
               >
-                {translate(
-                  'auto.mobile.src.components.CustomKeyModal.fe0f6a9228',
-                  'Add Shortcut'
-                )}{' '}
+                {translate('m.CustomKeyModal.fe0f6a9228', 'Add Shortcut')}{' '}
               </Text>
             </Pressable>
           </View>

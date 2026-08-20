@@ -62,7 +62,7 @@ export async function loadMobileDiffReviewBranchCompare(
       : {
           result: null,
           error: translate(
-            'auto.mobile.src.session.mobile.diff.review.loaders.45200a7b83',
+            'm.mobile.diff.review.loaders.45200a7b83',
             'Committed changes response was invalid'
           )
         }
@@ -72,10 +72,7 @@ export async function loadMobileDiffReviewBranchCompare(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.session.mobile.diff.review.loaders.68bce95b7c',
-              'Committed changes failed'
-            )
+          : translate('m.mobile.diff.review.loaders.68bce95b7c', 'Committed changes failed')
     }
   }
 }
@@ -90,7 +87,7 @@ export async function loadMobileDiffReviewSnapshot(
       return {
         kind: 'unavailable',
         message: translate(
-          'auto.mobile.src.session.mobile.diff.review.loaders.c8436e26c4',
+          'm.mobile.diff.review.loaders.c8436e26c4',
           'Update Manta desktop to review changes on mobile.'
         )
       }

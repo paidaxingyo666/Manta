@@ -25,10 +25,7 @@ export function CodexResetCreditAction({
           <Text style={styles.title}>{summary.availabilityLabel}</Text>
           <Text style={styles.subtitle}>
             {[summary.expiryLabel, scopeLabel].filter(Boolean).join(' · ') ||
-              translate(
-                'auto.mobile.src.components.CodexResetCreditAction.c00ff47761',
-                'Earned Codex rate-limit reset'
-              )}
+              translate('m.CodexResetCreditAction.c00ff47761', 'Earned Codex rate-limit reset')}
           </Text>
         </View>
         <Pressable
@@ -56,14 +53,8 @@ export function CodexResetCreditAction({
           )}
           <Text style={styles.buttonText}>
             {busy
-              ? translate(
-                  'auto.mobile.src.components.CodexResetCreditAction.2cde746d0d',
-                  'Resetting…'
-                )
-              : translate(
-                  'auto.mobile.src.components.CodexResetCreditAction.d8bace2f0f',
-                  'Use reset'
-                )}
+              ? translate('m.CodexResetCreditAction.2cde746d0d', 'Resetting…')
+              : translate('m.CodexResetCreditAction.d8bace2f0f', 'Use reset')}
           </Text>
         </Pressable>
       </View>

@@ -113,12 +113,9 @@ export function MobileNativeChatSessionOptionPickers({
               </Pressable>
               <Text style={styles.sheetTitle}>
                 {modelView
-                  ? translate(
-                      'auto.mobile.src.session.MobileNativeChatSessionOptionPickers.4a170ffab9',
-                      'Select model'
-                    )
+                  ? translate('m.MobileNativeChatSessionOptionPickers.4a170ffab9', 'Select model')
                   : translate(
-                      'auto.mobile.src.session.MobileNativeChatSessionOptionPickers.0878f79a86',
+                      'm.MobileNativeChatSessionOptionPickers.0878f79a86',
                       'Select {{value0}}',
                       { value0: activeDescriptor.label.toLowerCase() }
                     )}
@@ -132,7 +129,7 @@ export function MobileNativeChatSessionOptionPickers({
             {activeDescriptor.valueSource === 'dispatched' ? (
               <SessionOptionCaption>
                 {translate(
-                  'auto.mobile.src.session.MobileNativeChatSessionOptionPickers.ecdc66f24d',
+                  'm.MobileNativeChatSessionOptionPickers.ecdc66f24d',
                   'Sent to the agent — not confirmed'
                 )}
               </SessionOptionCaption>

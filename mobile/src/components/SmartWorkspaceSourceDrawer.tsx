@@ -198,17 +198,11 @@ export function SmartWorkspaceSourceDrawer({
       <View style={styles.root}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {translate(
-              'auto.mobile.src.components.SmartWorkspaceSourceDrawer.e62b83862e',
-              "Name or 'Create From'"
-            )}
+            {translate('m.SmartWorkspaceSourceDrawer.e62b83862e', "Name or 'Create From'")}
           </Text>
           <Pressable onPress={onClose} hitSlop={8}>
             <Text style={styles.done}>
-              {translate(
-                'auto.mobile.src.components.SmartWorkspaceSourceDrawer.03acecfbb2',
-                'Done'
-              )}
+              {translate('m.SmartWorkspaceSourceDrawer.03acecfbb2', 'Done')}
             </Text>
           </Pressable>
         </View>
@@ -217,19 +211,13 @@ export function SmartWorkspaceSourceDrawer({
           {crossRepoPrompt ? (
             <View style={styles.crossRepo}>
               <Text style={styles.crossRepoText}>
-                {translate(
-                  'auto.mobile.src.components.SmartWorkspaceSourceDrawer.db63c6e582',
-                  'This item lives in'
-                )}{' '}
+                {translate('m.SmartWorkspaceSourceDrawer.db63c6e582', 'This item lives in')}{' '}
                 {crossRepoPrompt.link.slug.owner}/{crossRepoPrompt.link.slug.repo}.
               </Text>
               <View style={styles.crossRepoActions}>
                 <Pressable style={styles.crossRepoDismiss} onPress={dismissCrossRepoPrompt}>
                   <Text style={styles.crossRepoDismissText}>
-                    {translate(
-                      'auto.mobile.src.components.SmartWorkspaceSourceDrawer.87c5ca6ae6',
-                      'Cancel'
-                    )}
+                    {translate('m.SmartWorkspaceSourceDrawer.87c5ca6ae6', 'Cancel')}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -237,10 +225,7 @@ export function SmartWorkspaceSourceDrawer({
                   onPress={() => void handleAcceptCrossRepo()}
                 >
                   <Text style={styles.crossRepoSwitchText}>
-                    {translate(
-                      'auto.mobile.src.components.SmartWorkspaceSourceDrawer.4e42fd4474',
-                      'Switch to'
-                    )}{' '}
+                    {translate('m.SmartWorkspaceSourceDrawer.4e42fd4474', 'Switch to')}{' '}
                     {crossRepoPrompt.matchingRepo.displayName}
                   </Text>
                 </Pressable>
@@ -251,14 +236,14 @@ export function SmartWorkspaceSourceDrawer({
           {!sshReady && effectiveMode !== 'text' && effectiveMode !== 'linear' ? (
             <Text style={styles.notice}>
               {translate(
-                'auto.mobile.src.components.SmartWorkspaceSourceDrawer.dac35958b2',
+                'm.SmartWorkspaceSourceDrawer.dac35958b2',
                 'Connect the repository to search sources.'
               )}
             </Text>
           ) : needsGitHubRemote ? (
             <Text style={styles.notice}>
               {translate(
-                'auto.mobile.src.components.SmartWorkspaceSourceDrawer.2db388fb01',
+                'm.SmartWorkspaceSourceDrawer.2db388fb01',
                 'This SSH repo needs a GitHub remote to list issues and PRs.'
               )}{' '}
             </Text>
@@ -282,15 +267,12 @@ export function SmartWorkspaceSourceDrawer({
               ) : showEmpty ? (
                 <Text style={styles.empty}>
                   {emptyHint ||
-                    translate(
-                      'auto.mobile.src.components.SmartWorkspaceSourceDrawer.4234b3bdce',
-                      'No results found.'
-                    )}
+                    translate('m.SmartWorkspaceSourceDrawer.4234b3bdce', 'No results found.')}
                 </Text>
               ) : rows.length === 0 && effectiveMode === 'text' ? (
                 <Text style={styles.empty}>
                   {translate(
-                    'auto.mobile.src.components.SmartWorkspaceSourceDrawer.a8d3d7ff0b',
+                    'm.SmartWorkspaceSourceDrawer.a8d3d7ff0b',
                     'Type a workspace name in the field below.'
                   )}
                 </Text>
@@ -347,7 +329,7 @@ export function SmartWorkspaceSourceDrawer({
             value={composer.name}
             onChangeText={composer.setName}
             placeholder={translate(
-              'auto.mobile.src.components.SmartWorkspaceSourceDrawer.a8eb2a26fd',
+              'm.SmartWorkspaceSourceDrawer.a8eb2a26fd',
               'Type a name or search a source'
             )}
             placeholderTextColor={colors.textMuted}

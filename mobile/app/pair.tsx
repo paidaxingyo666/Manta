@@ -47,11 +47,11 @@ export default function PairRedirectScreen() {
       {missingCode ? (
         <>
           <Text style={styles.errorText}>
-            {translate('auto.mobile.app.pair.79013fce2c', 'Missing pairing code')}
+            {translate('m.pair.79013fce2c', 'Missing pairing code')}
           </Text>
           <Pressable style={styles.primaryButton} onPress={goHome}>
             <Text style={styles.primaryButtonText}>
-              {translate('auto.mobile.app.pair.008841f9f3', 'Back to home')}
+              {translate('m.pair.008841f9f3', 'Back to home')}
             </Text>
           </Pressable>
         </>

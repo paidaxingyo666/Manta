@@ -63,7 +63,7 @@ export function useMobileAttachmentInputLeaseGate({
       }
       showToast(
         translate(
-          'auto.mobile.src.session.use.mobile.attachment.input.lease.gate.2eae67a9db',
+          'm.use.mobile.attachment.input.lease.gate.2eae67a9db',
           'Attach failed (reconnecting)'
         ),
         1500

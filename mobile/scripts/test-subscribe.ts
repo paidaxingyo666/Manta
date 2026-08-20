@@ -160,7 +160,7 @@ async function chooseTerminal(ws: WebSocket, worktree: string): Promise<string> 
 
   const created = await send(ws, 'terminal.create', {
     worktree,
-    title: translate('auto.mobile.scripts.test.subscribe.1b18317ab3', 'mobile-stream-repro')
+    title: translate('m.test.subscribe.1b18317ab3', 'mobile-stream-repro')
   })
   if (!created.ok) {
     throw new Error(`terminal.create failed: ${formatResponse(created)}`)

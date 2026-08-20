@@ -225,17 +225,17 @@ export default function PairScanScreen() {
         <View style={styles.centered}>
           <Text style={styles.title}>
             {canAskAgain
-              ? translate('auto.mobile.app.pair.scan.d153ad4648', 'Pair with desktop')
-              : translate('auto.mobile.app.pair.scan.b01906a180', 'Camera Access Disabled')}
+              ? translate('m.pair.scan.d153ad4648', 'Pair with desktop')
+              : translate('m.pair.scan.b01906a180', 'Camera Access Disabled')}
           </Text>
           <Text style={styles.subtitle}>
             {canAskAgain
               ? translate(
-                  'auto.mobile.app.pair.scan.876382ef1d',
+                  'm.pair.scan.876382ef1d',
                   'Scan the QR code from Manta on your desktop, or paste the pairing code instead.'
                 )
               : translate(
-                  'auto.mobile.app.pair.scan.6fa9f873ff',
+                  'm.pair.scan.6fa9f873ff',
                   'Enable camera access in Settings, or paste the pairing code instead.'
                 )}
           </Text>
@@ -246,8 +246,8 @@ export default function PairScanScreen() {
             {canAskAgain && <QrCode size={16} color={colors.bgBase} />}
             <Text style={styles.primaryButtonText}>
               {canAskAgain
-                ? translate('auto.mobile.app.pair.scan.49ccfaed6d', 'Continue')
-                : translate('auto.mobile.app.pair.scan.c2f0e05c79', 'Open Settings')}
+                ? translate('m.pair.scan.49ccfaed6d', 'Continue')
+                : translate('m.pair.scan.c2f0e05c79', 'Open Settings')}
             </Text>
           </Pressable>
           <Pressable
@@ -256,19 +256,19 @@ export default function PairScanScreen() {
           >
             <ClipboardIcon size={16} color={colors.textSecondary} />
             <Text style={styles.pasteButtonText}>
-              {translate('auto.mobile.app.pair.scan.43faab50dc', 'Paste code instead')}
+              {translate('m.pair.scan.43faab50dc', 'Paste code instead')}
             </Text>
           </Pressable>
         </View>
         <TextInputModal
           visible={pasteVisible}
-          title={translate('auto.mobile.app.pair.scan.925154ee14', 'Paste pairing code')}
+          title={translate('m.pair.scan.925154ee14', 'Paste pairing code')}
           message={translate(
-            'auto.mobile.app.pair.scan.1be3090595',
+            'm.pair.scan.1be3090595',
             'Copy the code shown under the QR on your computer.'
           )}
           placeholder={translate(
-            'auto.mobile.app.pair.scan.51255b690c',
+            'm.pair.scan.51255b690c',
             'manta://pair?code=... or paste the code'
           )}
           onSubmit={handlePasteSubmit}
@@ -287,16 +287,10 @@ export default function PairScanScreen() {
       <View style={styles.steps}>
         <Step
           number={1}
-          text={translate('auto.mobile.app.pair.scan.a00f504310', 'Open Manta on your computer')}
+          text={translate('m.pair.scan.a00f504310', 'Open Manta on your computer')}
         />
-        <Step
-          number={2}
-          text={translate('auto.mobile.app.pair.scan.98f769b1da', 'Go to Settings → Mobile')}
-        />
-        <Step
-          number={3}
-          text={translate('auto.mobile.app.pair.scan.75316896eb', 'Scan the QR code')}
-        />
+        <Step number={2} text={translate('m.pair.scan.98f769b1da', 'Go to Settings → Mobile')} />
+        <Step number={3} text={translate('m.pair.scan.75316896eb', 'Scan the QR code')} />
       </View>
 
       {status === 'scanning' && (
@@ -331,7 +325,7 @@ export default function PairScanScreen() {
           >
             <ClipboardIcon size={16} color={colors.textSecondary} />
             <Text style={styles.pasteButtonText}>
-              {translate('auto.mobile.app.pair.scan.53f7e4633e', 'Or paste pairing code')}
+              {translate('m.pair.scan.53f7e4633e', 'Or paste pairing code')}
             </Text>
           </Pressable>
         </>
@@ -341,12 +335,12 @@ export default function PairScanScreen() {
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.textSecondary} />
           <Text style={styles.connectingText}>
-            {translate('auto.mobile.app.pair.scan.4f71d92c45', 'Connecting…')}
+            {translate('m.pair.scan.4f71d92c45', 'Connecting…')}
           </Text>
           <View style={styles.logSlot}>
             <ConnectionLog
               entries={logs}
-              title={translate('auto.mobile.app.pair.scan.1bf9fb6718', 'Pairing log')}
+              title={translate('m.pair.scan.1bf9fb6718', 'Pairing log')}
             />
           </View>
         </View>
@@ -359,14 +353,14 @@ export default function PairScanScreen() {
             <View style={styles.logSlot}>
               <ConnectionLog
                 entries={logs}
-                title={translate('auto.mobile.app.pair.scan.1bf9fb6718', 'Pairing log')}
+                title={translate('m.pair.scan.1bf9fb6718', 'Pairing log')}
               />
             </View>
           )}
           <View style={styles.errorActions}>
             <Pressable style={styles.primaryButton} onPress={retry}>
               <Text style={styles.primaryButtonText}>
-                {translate('auto.mobile.app.pair.scan.fc2ea5de3e', 'Try Again')}
+                {translate('m.pair.scan.fc2ea5de3e', 'Try Again')}
               </Text>
             </Pressable>
             <Pressable
@@ -380,7 +374,7 @@ export default function PairScanScreen() {
               }}
             >
               <Text style={styles.secondaryButtonText}>
-                {translate('auto.mobile.app.pair.scan.43faab50dc', 'Paste code instead')}
+                {translate('m.pair.scan.43faab50dc', 'Paste code instead')}
               </Text>
             </Pressable>
           </View>
@@ -389,15 +383,12 @@ export default function PairScanScreen() {
 
       <TextInputModal
         visible={pasteVisible}
-        title={translate('auto.mobile.app.pair.scan.925154ee14', 'Paste pairing code')}
+        title={translate('m.pair.scan.925154ee14', 'Paste pairing code')}
         message={translate(
-          'auto.mobile.app.pair.scan.1be3090595',
+          'm.pair.scan.1be3090595',
           'Copy the code shown under the QR on your computer.'
         )}
-        placeholder={translate(
-          'auto.mobile.app.pair.scan.51255b690c',
-          'manta://pair?code=... or paste the code'
-        )}
+        placeholder={translate('m.pair.scan.51255b690c', 'manta://pair?code=... or paste the code')}
         onSubmit={handlePasteSubmit}
         onCancel={() => setPasteVisible(false)}
       />

@@ -70,10 +70,7 @@ export function VoiceModelList({
                   </Text>
                   {model.recommended ? (
                     <Text style={styles.recommended}>
-                      {translate(
-                        'auto.mobile.src.components.VoiceModelList.078e664084',
-                        'Recommended'
-                      )}
+                      {translate('m.VoiceModelList.078e664084', 'Recommended')}
                     </Text>
                   ) : null}
                 </View>
@@ -82,14 +79,8 @@ export function VoiceModelList({
               {model.provider === 'openai' ? (
                 <Text style={styles.modelStateText}>
                   {model.status === 'ready'
-                    ? translate(
-                        'auto.mobile.src.components.VoiceModelList.2674d17a69',
-                        'API key set'
-                      )
-                    : translate(
-                        'auto.mobile.src.components.VoiceModelList.8f6c8e1a20',
-                        'Set up on desktop'
-                      )}
+                    ? translate('m.VoiceModelList.2674d17a69', 'API key set')
+                    : translate('m.VoiceModelList.8f6c8e1a20', 'Set up on desktop')}
                 </Text>
               ) : model.status === 'ready' ? (
                 <View style={styles.readyActions}>
@@ -97,10 +88,7 @@ export function VoiceModelList({
                     <View style={styles.selectedTag}>
                       <Check size={14} color={colors.statusGreen} strokeWidth={2.4} />
                       <Text style={styles.selectedText}>
-                        {translate(
-                          'auto.mobile.src.components.VoiceModelList.920fafb3ba',
-                          'In use'
-                        )}
+                        {translate('m.VoiceModelList.920fafb3ba', 'In use')}
                       </Text>
                     </View>
                   ) : (
@@ -116,7 +104,7 @@ export function VoiceModelList({
                         <ActivityIndicator size="small" color={colors.textSecondary} />
                       ) : (
                         <Text style={styles.actionText}>
-                          {translate('auto.mobile.src.components.VoiceModelList.128acde662', 'Use')}
+                          {translate('m.VoiceModelList.128acde662', 'Use')}
                         </Text>
                       )}
                     </Pressable>

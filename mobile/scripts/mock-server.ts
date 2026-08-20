@@ -46,7 +46,7 @@ wss.on('connection', (ws) => {
         ws.send(
           JSON.stringify({
             type: 'e2ee_error',
-            message: translate('auto.mobile.scripts.mock.server.75675aee69', 'Invalid JSON')
+            message: translate('m.mock.server.75675aee69', 'Invalid JSON')
           })
         )
         ws.close()
@@ -57,7 +57,7 @@ wss.on('connection', (ws) => {
         ws.send(
           JSON.stringify({
             type: 'e2ee_error',
-            message: translate('auto.mobile.scripts.mock.server.f9ad9c5d7f', 'Expected e2ee_hello')
+            message: translate('m.mock.server.f9ad9c5d7f', 'Expected e2ee_hello')
           })
         )
         ws.close()
@@ -69,7 +69,7 @@ wss.on('connection', (ws) => {
         ws.send(
           JSON.stringify({
             type: 'e2ee_error',
-            message: translate('auto.mobile.scripts.mock.server.5865219c37', 'Invalid public key')
+            message: translate('m.mock.server.5865219c37', 'Invalid public key')
           })
         )
         ws.close()

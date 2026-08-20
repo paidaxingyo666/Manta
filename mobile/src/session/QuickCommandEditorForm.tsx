@@ -53,14 +53,8 @@ function ActionToggle({
           >
             <Text style={[styles.toggleText, selected && styles.toggleTextSelected]}>
               {action === 'terminal-command'
-                ? translate(
-                    'auto.mobile.src.session.QuickCommandEditorForm.f71933f074',
-                    'Terminal Command'
-                  )
-                : translate(
-                    'auto.mobile.src.session.QuickCommandEditorForm.0902b0f020',
-                    'Agent Prompt'
-                  )}
+                ? translate('m.QuickCommandEditorForm.f71933f074', 'Terminal Command')
+                : translate('m.QuickCommandEditorForm.0902b0f020', 'Agent Prompt')}
             </Text>
           </Pressable>
         )
@@ -90,16 +84,13 @@ export function QuickCommandEditorForm({
     <View style={styles.form}>
       <View style={styles.field}>
         <Text style={styles.label}>
-          {translate('auto.mobile.src.session.QuickCommandEditorForm.1973055270', 'Label')}
+          {translate('m.QuickCommandEditorForm.1973055270', 'Label')}
         </Text>
         <TextInput
           style={styles.input}
           value={draft.label}
           onChangeText={(label) => onChange({ label })}
-          placeholder={translate(
-            'auto.mobile.src.session.QuickCommandEditorForm.a5cab8c6d5',
-            'Start dev server'
-          )}
+          placeholder={translate('m.QuickCommandEditorForm.a5cab8c6d5', 'Start dev server')}
           placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
@@ -109,7 +100,7 @@ export function QuickCommandEditorForm({
 
       <View style={styles.field}>
         <Text style={styles.label}>
-          {translate('auto.mobile.src.session.QuickCommandEditorForm.010e356a06', 'Action')}
+          {translate('m.QuickCommandEditorForm.010e356a06', 'Action')}
         </Text>
         <ActionToggle value={draft.action} onChange={(action) => onChange({ action })} />
       </View>
@@ -117,7 +108,7 @@ export function QuickCommandEditorForm({
       {isAgent ? (
         <View style={styles.field}>
           <Text style={styles.label}>
-            {translate('auto.mobile.src.session.QuickCommandEditorForm.b61e388b60', 'Agent')}
+            {translate('m.QuickCommandEditorForm.b61e388b60', 'Agent')}
           </Text>
           <Pressable
             style={({ pressed }) => [styles.select, pressed && styles.pressed]}
@@ -131,10 +122,7 @@ export function QuickCommandEditorForm({
               </View>
             ) : (
               <Text style={styles.selectPlaceholder}>
-                {translate(
-                  'auto.mobile.src.session.QuickCommandEditorForm.f43f688fae',
-                  'Choose agent'
-                )}
+                {translate('m.QuickCommandEditorForm.f43f688fae', 'Choose agent')}
               </Text>
             )}
             <ChevronDown size={16} color={colors.textMuted} />
@@ -145,11 +133,8 @@ export function QuickCommandEditorForm({
       <View style={styles.field}>
         <Text style={styles.label}>
           {isAgent
-            ? translate('auto.mobile.src.session.QuickCommandEditorForm.bf9d7606a7', 'Prompt')
-            : translate(
-                'auto.mobile.src.session.QuickCommandEditorForm.d96528c298',
-                'Command Text'
-              )}
+            ? translate('m.QuickCommandEditorForm.bf9d7606a7', 'Prompt')
+            : translate('m.QuickCommandEditorForm.d96528c298', 'Command Text')}
         </Text>
         <TextInput
           style={[styles.input, styles.textarea, !isAgent && styles.mono]}
@@ -158,13 +143,10 @@ export function QuickCommandEditorForm({
           placeholder={
             isAgent
               ? translate(
-                  'auto.mobile.src.session.QuickCommandEditorForm.8ffb968ee4',
+                  'm.QuickCommandEditorForm.8ffb968ee4',
                   'Ask the agent to investigate this workspace'
                 )
-              : translate(
-                  'auto.mobile.src.session.QuickCommandEditorForm.606c52f1c9',
-                  'npm run dev'
-                )
+              : translate('m.QuickCommandEditorForm.606c52f1c9', 'npm run dev')
           }
           placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
@@ -177,7 +159,7 @@ export function QuickCommandEditorForm({
         {isAgent ? (
           <Text style={styles.hint}>
             {translate(
-              'auto.mobile.src.session.QuickCommandEditorForm.5858a0a2a6',
+              'm.QuickCommandEditorForm.5858a0a2a6',
               'Supports skills, file paths, and built-in commands.'
             )}
           </Text>
@@ -197,7 +179,7 @@ export function QuickCommandEditorForm({
             <ChevronRight size={16} color={colors.textSecondary} />
           )}
           <Text style={styles.advancedText}>
-            {translate('auto.mobile.src.session.QuickCommandEditorForm.32c24e1c38', 'Advanced')}
+            {translate('m.QuickCommandEditorForm.32c24e1c38', 'Advanced')}
           </Text>
         </Pressable>
 
@@ -207,14 +189,11 @@ export function QuickCommandEditorForm({
               <View style={styles.switchRow}>
                 <View style={styles.switchText}>
                   <Text style={styles.switchTitle}>
-                    {translate(
-                      'auto.mobile.src.session.QuickCommandEditorForm.4bd5144a2f',
-                      'Append Enter'
-                    )}
+                    {translate('m.QuickCommandEditorForm.4bd5144a2f', 'Append Enter')}
                   </Text>
                   <Text style={styles.switchDesc}>
                     {translate(
-                      'auto.mobile.src.session.QuickCommandEditorForm.8807475f6c',
+                      'm.QuickCommandEditorForm.8807475f6c',
                       'Submit immediately instead of only inserting text.'
                     )}{' '}
                   </Text>
@@ -230,7 +209,7 @@ export function QuickCommandEditorForm({
 
             <View style={styles.field}>
               <Text style={styles.label}>
-                {translate('auto.mobile.src.session.QuickCommandEditorForm.255984f0ba', 'Scope')}
+                {translate('m.QuickCommandEditorForm.255984f0ba', 'Scope')}
               </Text>
               <View style={styles.toggleGroup}>
                 {(['global', 'repo'] as const).map((scopeType) => {
@@ -259,14 +238,8 @@ export function QuickCommandEditorForm({
                     >
                       <Text style={[styles.toggleText, selected && styles.toggleTextSelected]}>
                         {scopeType === 'global'
-                          ? translate(
-                              'auto.mobile.src.session.QuickCommandEditorForm.b29057ca1c',
-                              'Global'
-                            )
-                          : translate(
-                              'auto.mobile.src.session.QuickCommandEditorForm.9c1d1f87e4',
-                              'Project'
-                            )}
+                          ? translate('m.QuickCommandEditorForm.b29057ca1c', 'Global')
+                          : translate('m.QuickCommandEditorForm.9c1d1f87e4', 'Project')}
                       </Text>
                     </Pressable>
                   )
@@ -289,7 +262,7 @@ export function QuickCommandEditorForm({
           accessibilityRole="button"
         >
           <Text style={styles.cancelText}>
-            {translate('auto.mobile.src.session.QuickCommandEditorForm.cfd31efc92', 'Cancel')}
+            {translate('m.QuickCommandEditorForm.cfd31efc92', 'Cancel')}
           </Text>
         </Pressable>
         <Pressable
@@ -300,11 +273,8 @@ export function QuickCommandEditorForm({
         >
           <Text style={[styles.saveText, !canSave && styles.saveTextDisabled]}>
             {mode === 'edit'
-              ? translate('auto.mobile.src.session.QuickCommandEditorForm.4990252681', 'Save')
-              : translate(
-                  'auto.mobile.src.session.QuickCommandEditorForm.9abf0dd1c0',
-                  'Add Quick Command'
-                )}
+              ? translate('m.QuickCommandEditorForm.4990252681', 'Save')
+              : translate('m.QuickCommandEditorForm.9abf0dd1c0', 'Add Quick Command')}
           </Text>
         </Pressable>
       </View>

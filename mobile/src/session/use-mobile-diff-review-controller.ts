@@ -78,10 +78,7 @@ export function useMobileDiffReviewController(input: ControllerInput) {
     if (!worktreeId) {
       setScreenState({
         kind: 'error',
-        message: translate(
-          'auto.mobile.src.session.use.mobile.diff.review.controller.1e45fd876b',
-          'Missing worktree'
-        )
+        message: translate('m.use.mobile.diff.review.controller.1e45fd876b', 'Missing worktree')
       })
       return
     }
@@ -94,7 +91,7 @@ export function useMobileDiffReviewController(input: ControllerInput) {
         keepReady({
           kind: 'error',
           message: translate(
-            'auto.mobile.src.session.use.mobile.diff.review.controller.02d13aa100',
+            'm.use.mobile.diff.review.controller.02d13aa100',
             'Waiting for desktop...'
           )
         })
@@ -120,7 +117,7 @@ export function useMobileDiffReviewController(input: ControllerInput) {
               err instanceof Error
                 ? err.message
                 : translate(
-                    'auto.mobile.src.session.use.mobile.diff.review.controller.d729880698',
+                    'm.use.mobile.diff.review.controller.d729880698',
                     'Unable to load review'
                   )
           })

@@ -37,19 +37,13 @@ export function MobileSourceControlPrChip({ summary, onPress }: Props) {
         <>
           <ActivityIndicator size="small" color={colors.textSecondary} />
           <Text style={hubStyles.chipMutedText} numberOfLines={1}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlPrChip.c6837f6503',
-              'Loading pull request…'
-            )}{' '}
+            {translate('m.MobileSourceControlPrChip.c6837f6503', 'Loading pull request…')}{' '}
           </Text>
         </>
       ) : summary.kind === 'none' ? (
         <>
           <Text style={hubStyles.chipCreateText}>
-            {translate(
-              'auto.mobile.src.source.control.MobileSourceControlPrChip.435987497e',
-              'Create pull request'
-            )}
+            {translate('m.MobileSourceControlPrChip.435987497e', 'Create pull request')}
           </Text>
           <View style={hubStyles.chipSpacer} />
           <ChevronRight size={16} color={colors.textMuted} strokeWidth={2.1} />

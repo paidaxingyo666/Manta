@@ -22,10 +22,7 @@ type Args = {
 export function buildWorktreeNavigationActions(args: Args): ActionSheetAction[] {
   const actions: ActionSheetAction[] = [
     {
-      label: translate(
-        'auto.mobile.src.agent.history.worktree.navigation.actions.5e3cb104b0',
-        'Source Control'
-      ),
+      label: translate('m.worktree.navigation.actions.5e3cb104b0', 'Source Control'),
       icon: GitBranch,
       onPress: () => {
         const params = new URLSearchParams({ name: args.worktreeName, origin: 'host' })
@@ -38,10 +35,7 @@ export function buildWorktreeNavigationActions(args: Args): ActionSheetAction[] 
   ]
   if (args.hostCapabilities.includes(MOBILE_AI_VAULT_CAPABILITY)) {
     actions.push({
-      label: translate(
-        'auto.mobile.src.agent.history.worktree.navigation.actions.02ed3a5367',
-        'Agent Session History'
-      ),
+      label: translate('m.worktree.navigation.actions.02ed3a5367', 'Agent Session History'),
       renderIcon: () =>
         MobileAgentSessionHistoryIcon({ size: 16, color: colors.textSecondary, strokeWidth: 2 }),
       onPress: () => {

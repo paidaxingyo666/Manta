@@ -41,10 +41,7 @@ export function MobileBrowserAddressField({
         keyboardType={Platform.OS === 'ios' ? 'url' : 'default'}
         numberOfLines={1}
         returnKeyType="go"
-        placeholder={translate(
-          'auto.mobile.src.browser.MobileBrowserAddressField.22601c078b',
-          'URL'
-        )}
+        placeholder={translate('m.MobileBrowserAddressField.22601c078b', 'URL')}
         placeholderTextColor={colors.textMuted}
         editable={!disabled}
       />

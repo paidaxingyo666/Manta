@@ -19,11 +19,9 @@ type Props = {
 export function WorktreeAgentSummary({ agents, expanded, now, onToggle }: Props) {
   const visibleAgents = agents.slice(0, MAX_VISIBLE_AGENTS)
   const hiddenCount = agents.length - visibleAgents.length
-  const subject = translate(
-    'auto.mobile.src.components.WorktreeAgentSummary.500d1acf5b',
-    '{{value0}} agents',
-    { value0: agents.length }
-  )
+  const subject = translate('m.WorktreeAgentSummary.500d1acf5b', '{{value0}} agents', {
+    value0: agents.length
+  })
 
   return (
     <Pressable

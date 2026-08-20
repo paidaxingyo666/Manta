@@ -9,19 +9,19 @@ const browserPointerModifiers = localizedConstant(
   (): { id: BrowserPointerModifier; label: string }[] => [
     {
       id: 'cmd',
-      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.216f31a789', 'Cmd')
+      label: translate('m.MobileBrowserPointerModifiers.216f31a789', 'Cmd')
     },
     {
       id: 'ctrl',
-      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.12a5bc4ad4', 'Ctrl')
+      label: translate('m.MobileBrowserPointerModifiers.12a5bc4ad4', 'Ctrl')
     },
     {
       id: 'alt',
-      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.7cff3b4086', 'Alt')
+      label: translate('m.MobileBrowserPointerModifiers.7cff3b4086', 'Alt')
     },
     {
       id: 'shift',
-      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.1936cb6053', 'Shift')
+      label: translate('m.MobileBrowserPointerModifiers.1936cb6053', 'Shift')
     }
   ]
 )

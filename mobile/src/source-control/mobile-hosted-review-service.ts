@@ -183,7 +183,7 @@ async function pushMobileBranchBeforeCreate(
       return {
         ok: false,
         error: translate(
-          'auto.mobile.src.source.control.mobile.hosted.review.service.41ec824f11',
+          'm.mobile.hosted.review.service.41ec824f11',
           'Push failed. Resolve the push error, then try again.'
         )
       }
@@ -193,7 +193,7 @@ async function pushMobileBranchBeforeCreate(
     return {
       ok: false,
       error: translate(
-        'auto.mobile.src.source.control.mobile.hosted.review.service.41ec824f11',
+        'm.mobile.hosted.review.service.41ec824f11',
         'Push failed. Resolve the push error, then try again.'
       )
     }
@@ -296,10 +296,7 @@ export async function createMobileHostedReview(
       error:
         err instanceof Error
           ? err.message
-          : translate(
-              'auto.mobile.src.source.control.mobile.hosted.review.service.f13c7f799c',
-              'Failed to create pull request'
-            )
+          : translate('m.mobile.hosted.review.service.f13c7f799c', 'Failed to create pull request')
     }
   }
 }

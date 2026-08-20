@@ -98,19 +98,19 @@ export default function TroubleshootScreen() {
       results.push(
         hosts.length > 0
           ? {
-              label: translate('auto.mobile.app.troubleshoot.fc87d4676b', 'Paired hosts'),
+              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
               status: 'pass',
               detail: `${hosts.length} paired`
             }
           : {
-              label: translate('auto.mobile.app.troubleshoot.fc87d4676b', 'Paired hosts'),
+              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
               status: 'fail',
               detail: 'None — scan a QR to pair'
             }
       )
     } catch {
       results.push({
-        label: translate('auto.mobile.app.troubleshoot.fc87d4676b', 'Paired hosts'),
+        label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
         status: 'warn',
         detail: 'Could not read host data'
       })
@@ -132,7 +132,7 @@ export default function TroubleshootScreen() {
       return
     }
     results.push({
-      label: translate('auto.mobile.app.troubleshoot.de003da9ea', 'Internet'),
+      label: translate('m.troubleshoot.de003da9ea', 'Internet'),
       status:
         internet.status === 'online' ? 'pass' : internet.status === 'offline' ? 'fail' : 'warn',
       detail:
@@ -180,7 +180,7 @@ export default function TroubleshootScreen() {
       }
     } catch {
       results.push({
-        label: translate('auto.mobile.app.troubleshoot.21ef75f0f3', 'Hosts'),
+        label: translate('m.troubleshoot.21ef75f0f3', 'Hosts'),
         status: 'warn',
         detail: 'Could not test'
       })
@@ -191,7 +191,7 @@ export default function TroubleshootScreen() {
     }
 
     results.push({
-      label: translate('auto.mobile.app.troubleshoot.f2c3857280', 'Platform'),
+      label: translate('m.troubleshoot.f2c3857280', 'Platform'),
       status: 'pass',
       detail: `${Platform.OS} ${Platform.Version ?? ''}`
     })
@@ -210,7 +210,7 @@ export default function TroubleshootScreen() {
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.heading}>
-          {translate('auto.mobile.app.troubleshoot.0c81261ae3', 'Troubleshooting')}
+          {translate('m.troubleshoot.0c81261ae3', 'Troubleshooting')}
         </Text>
       </View>
 
@@ -235,10 +235,10 @@ export default function TroubleshootScreen() {
           )}
           <Text style={styles.diagnosticButtonLabel}>
             {diagnosticStatus === 'running'
-              ? translate('auto.mobile.app.troubleshoot.750b3cfa37', 'Running…')
+              ? translate('m.troubleshoot.750b3cfa37', 'Running…')
               : diagnosticStatus === 'done'
-                ? translate('auto.mobile.app.troubleshoot.0790b66aca', 'Run again')
-                : translate('auto.mobile.app.troubleshoot.e71414eafc', 'Run diagnostics')}
+                ? translate('m.troubleshoot.0790b66aca', 'Run again')
+                : translate('m.troubleshoot.e71414eafc', 'Run diagnostics')}
           </Text>
         </Pressable>
 
@@ -251,7 +251,7 @@ export default function TroubleshootScreen() {
         >
           <ScrollText size={16} color={colors.textPrimary} />
           <Text style={styles.diagnosticButtonLabel}>
-            {translate('auto.mobile.app.troubleshoot.6f024bb4ae', 'View connection log')}
+            {translate('m.troubleshoot.6f024bb4ae', 'View connection log')}
           </Text>
         </Pressable>
 
@@ -275,7 +275,7 @@ export default function TroubleshootScreen() {
         )}
 
         <Text style={styles.sectionHeading}>
-          {translate('auto.mobile.app.troubleshoot.d89f2f9bbd', 'Common issues')}
+          {translate('m.troubleshoot.d89f2f9bbd', 'Common issues')}
         </Text>
 
         <View style={styles.section}>
