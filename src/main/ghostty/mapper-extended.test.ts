@@ -90,9 +90,9 @@ describe('mapGhosttyToManta — window-padding', () => {
     expect(result.unsupportedKeys).toEqual([])
   })
 
-  it('rounds odd-sum dual-value padding to the integer used for fitting', () => {
+  it('preserves odd-sum dual-value padding as a fractional average', () => {
     const result = mapGhosttyToManta({ 'window-padding-x': '1,2' })
-    expect(result.diff).toEqual({ terminalPaddingX: 2 })
+    expect(result.diff).toEqual({ terminalPaddingX: 1.5 })
     expect(result.unsupportedKeys).toEqual([])
   })
 
