@@ -21,6 +21,7 @@ import { fetchWorktreeLinkedPR } from '../../source-control/mobile-pr-link'
 import { openMobilePrUrl } from '../mobile-pr-url'
 import { MobileLinkPrForm } from './MobileLinkPrForm'
 import { prCreateEmptyStateStyles as styles } from './pr-create-empty-state-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   client: RpcClient | null
@@ -160,7 +161,12 @@ export function PrSidebarCreateEmptyState({
       <View style={styles.header}>
         <View style={styles.headerTitle}>
           <GitPullRequestArrow size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.headerLabel}>Pull request</Text>
+          <Text style={styles.headerLabel}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.4d20d570a5',
+              'Pull request'
+            )}
+          </Text>
         </View>
         <View style={styles.headerActions}>
           <Pressable
@@ -184,20 +190,44 @@ export function PrSidebarCreateEmptyState({
             ) : (
               <GitPullRequestArrow size={14} color={colors.bgBase} strokeWidth={2.2} />
             )}
-            <Text style={styles.createButtonText}>Create PR</Text>
+            <Text style={styles.createButtonText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.e6413e8953',
+                'Create PR'
+              )}
+            </Text>
           </Pressable>
         </View>
       </View>
       <View style={styles.body}>
         <Text style={styles.bodyTitle}>
-          {orphanLinkedPR ? `Linked PR #${orphanLinkedPR} unavailable` : 'No open pull request'}
+          {orphanLinkedPR
+            ? translate(
+                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.237c52b8f0',
+                'Linked PR #{{value0}} unavailable',
+                { value0: orphanLinkedPR }
+              )
+            : translate(
+                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.1b605a13e6',
+                'No open pull request'
+              )}
         </Text>
         <Text style={styles.bodyText}>
           {orphanLinkedPR
-            ? 'Refresh to check again, or create a new PR for this branch.'
+            ? translate(
+                'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.99a7fe79db',
+                'Refresh to check again, or create a new PR for this branch.'
+              )
             : gitBranch
-              ? `${gitBranch} is not linked to an open PR.`
-              : 'The current branch is not linked to an open PR.'}
+              ? translate(
+                  'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.0a6a6ccd75',
+                  '{{value0}} is not linked to an open PR.',
+                  { value0: gitBranch }
+                )
+              : translate(
+                  'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.491af4a385',
+                  'The current branch is not linked to an open PR.'
+                )}
         </Text>
         {commitFailureRecovery ? (
           <MobileCommitFailurePanel
@@ -225,7 +255,12 @@ export function PrSidebarCreateEmptyState({
             color={client ? colors.textSecondary : colors.textMuted}
             strokeWidth={2.2}
           />
-          <Text style={styles.linkButtonText}>Link an existing PR</Text>
+          <Text style={styles.linkButtonText}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PrSidebarCreateEmptyState.78d5fd366a',
+              'Link an existing PR'
+            )}
+          </Text>
         </Pressable>
       </View>
     </View>

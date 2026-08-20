@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native'
 import { ChevronLeft, ExternalLink, RefreshCw, X } from 'lucide-react-native'
 import { colors } from '../theme/mobile-theme'
 import { styles } from './mobile-source-control-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   embedded: boolean
@@ -40,7 +41,10 @@ export function MobileSourceControlHeader({
       </Pressable>
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
-          Source Control
+          {translate(
+            'auto.mobile.src.source.control.MobileSourceControlHeader.3e303cced7',
+            'Source Control'
+          )}{' '}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
           {worktreeLabel}

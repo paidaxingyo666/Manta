@@ -27,6 +27,7 @@ import type {
 } from './mobile-diff-review-screen-model'
 import { useMobileDiffReviewInteractions } from './use-mobile-diff-review-interactions'
 import { useMobilePrSidebarController } from './use-mobile-pr-sidebar-controller'
+import { translate } from '../i18n/i18n'
 
 type ControllerInput = {
   client: RpcClient | null
@@ -75,7 +76,13 @@ export function useMobileDiffReviewController(input: ControllerInput) {
     loadGenerationRef.current = generation
     const isCurrent = () => generation === loadGenerationRef.current
     if (!worktreeId) {
-      setScreenState({ kind: 'error', message: 'Missing worktree' })
+      setScreenState({
+        kind: 'error',
+        message: translate(
+          'auto.mobile.src.session.use.mobile.diff.review.controller.1e45fd876b',
+          'Missing worktree'
+        )
+      })
       return
     }
     // Why (F10): a loaded review outlives a blip — the waiting state is for a screen with nothing
@@ -83,7 +90,15 @@ export function useMobileDiffReviewController(input: ControllerInput) {
     const keepReady = (fallback: ReviewScreenState) => (prev: ReviewScreenState) =>
       prev.kind === 'ready' ? prev : fallback
     if (!client || connState !== 'connected') {
-      setScreenState(keepReady({ kind: 'error', message: 'Waiting for desktop...' }))
+      setScreenState(
+        keepReady({
+          kind: 'error',
+          message: translate(
+            'auto.mobile.src.session.use.mobile.diff.review.controller.02d13aa100',
+            'Waiting for desktop...'
+          )
+        })
+      )
       return
     }
     setScreenState(keepReady({ kind: 'loading' }))
@@ -101,7 +116,13 @@ export function useMobileDiffReviewController(input: ControllerInput) {
         setScreenState(
           keepReady({
             kind: 'error',
-            message: err instanceof Error ? err.message : 'Unable to load review'
+            message:
+              err instanceof Error
+                ? err.message
+                : translate(
+                    'auto.mobile.src.session.use.mobile.diff.review.controller.d729880698',
+                    'Unable to load review'
+                  )
           })
         )
       }

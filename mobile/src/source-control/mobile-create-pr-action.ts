@@ -2,6 +2,7 @@ import type { HostedReviewCreationEligibility } from '../../../src/shared/hosted
 import { supportsHostedReviewCreation } from '../../../src/shared/hosted-review-creation-providers'
 import { hostedReviewCopy } from './hosted-review-copy'
 import { getMobilePrCreateBlockMessage } from './mobile-pr-create'
+import { translate } from '../i18n/i18n'
 
 export type MobileCreatePrEligibilityState =
   | { kind: 'idle' }
@@ -31,7 +32,10 @@ const BUSY_ACTIONS = new Set(['create-pr', 'push-create-pr'])
 function hiddenAction(onPress: () => void): MobileCreatePrAction {
   return {
     visible: false,
-    label: 'Create Pull Request',
+    label: translate(
+      'auto.mobile.src.source.control.mobile.create.pr.action.e8de8f3a86',
+      'Create Pull Request'
+    ),
     disabled: true,
     loading: false,
     pushFirst: false,
@@ -52,7 +56,10 @@ export function buildMobileCreatePrAction({
   if (eligibilityState.kind === 'error') {
     return {
       visible: true,
-      label: 'Review status unavailable',
+      label: translate(
+        'auto.mobile.src.source.control.mobile.create.pr.action.c2806418a8',
+        'Review status unavailable'
+      ),
       disabled: true,
       loading: false,
       pushFirst: false,
@@ -63,7 +70,10 @@ export function buildMobileCreatePrAction({
   if (!eligibility) {
     return {
       visible: true,
-      label: 'Checking review status…',
+      label: translate(
+        'auto.mobile.src.source.control.mobile.create.pr.action.44690a13a8',
+        'Checking review status…'
+      ),
       disabled: true,
       loading: true,
       pushFirst: false,
@@ -76,7 +86,10 @@ export function buildMobileCreatePrAction({
   if (!supportsHostedReviewCreation(eligibility.provider)) {
     return {
       visible: true,
-      label: 'Review creation unavailable for this provider',
+      label: translate(
+        'auto.mobile.src.source.control.mobile.create.pr.action.80306aa921',
+        'Review creation unavailable for this provider'
+      ),
       disabled: true,
       loading: false,
       pushFirst: false,

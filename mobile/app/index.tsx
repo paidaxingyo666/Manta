@@ -79,6 +79,8 @@ import {
 import { hostRouteWithNotice } from '../src/host-route-notice'
 import { hostNewWorktreeRoute } from '../src/host-route-action-state'
 import { hostEndpointLabel } from '../src/transport/host-endpoint-label'
+import { translate } from '../src/i18n/i18n'
+import { localizedConstant } from '../src/i18n/localized-constant'
 
 type HomeTaskSettings = {
   visibleTaskProviders?: unknown
@@ -616,11 +618,13 @@ export default function HomeScreen() {
         <ListTodo size={18} color={colors.textSecondary} />
       </View>
       <View style={styles.taskHomeMain}>
-        <Text style={styles.taskHomeTitle}>Tasks</Text>
+        <Text style={styles.taskHomeTitle}>
+          {translate('auto.mobile.app.index.cbbc34848b', 'Tasks')}
+        </Text>
         <Text style={styles.taskHomeSubtitle} numberOfLines={1}>
           {primaryTaskProviders.length > 0
             ? primaryTaskProviders.map((provider) => TASK_PROVIDER_LABELS[provider]).join(' · ')
-            : 'No task sources connected'}
+            : translate('auto.mobile.app.index.d7fb33f5cb', 'No task sources connected')}
         </Text>
       </View>
       <View style={styles.taskHomeTrailing}>
@@ -666,7 +670,10 @@ export default function HomeScreen() {
     } catch {
       // Why: ConfirmModal closes on confirm; re-open for retry so the failure isn't silent.
       setConfirmRemove(hostToRemove)
-      Alert.alert('Could not remove host', 'Please try again.')
+      Alert.alert(
+        translate('auto.mobile.app.index.53b5a5229a', 'Could not remove host'),
+        translate('auto.mobile.app.index.18b828cf5b', 'Please try again.')
+      )
     }
   }
 
@@ -678,7 +685,9 @@ export default function HomeScreen() {
           <View style={styles.logoMark}>
             <MantaLogo size={18} />
           </View>
-          <Text style={styles.brandName}>Manta</Text>
+          <Text style={styles.brandName}>
+            {translate('auto.mobile.app.index.8a7cdca657', 'Manta')}
+          </Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
@@ -698,20 +707,28 @@ export default function HomeScreen() {
           ]}
         >
           <View style={styles.emptyHero}>
-            <Text style={styles.emptyTitle}>Connect your desktop</Text>
+            <Text style={styles.emptyTitle}>
+              {translate('auto.mobile.app.index.f2f89ea971', 'Connect your desktop')}
+            </Text>
             <Text style={styles.emptyBody}>
-              Pair with Manta on your computer to check on your agents, jump into any terminal, and
-              drive work from your phone.
+              {translate(
+                'auto.mobile.app.index.bf2694d8a7',
+                'Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.'
+              )}{' '}
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => router.push('/pair-scan')}>
               <QrCode size={17} color={colors.bgBase} />
-              <Text style={styles.primaryButtonText}>Pair Desktop</Text>
+              <Text style={styles.primaryButtonText}>
+                {translate('auto.mobile.app.index.956aabb1b3', 'Pair Desktop')}
+              </Text>
             </Pressable>
           </View>
 
           <View style={styles.stepsSection}>
-            <Text style={styles.sectionHeading}>How it works</Text>
-            {ONBOARDING_STEPS.map((step, i) => (
+            <Text style={styles.sectionHeading}>
+              {translate('auto.mobile.app.index.f4795d1407', 'How it works')}
+            </Text>
+            {onboardingStepCatalog().map((step, i) => (
               <View key={step.title} style={[styles.stepRow, i > 0 && styles.stepRowBorder]}>
                 <View style={styles.stepNum}>
                   <Text style={styles.stepNumText}>{i + 1}</Text>
@@ -738,7 +755,9 @@ export default function HomeScreen() {
           ListHeaderComponent={
             <View>
               <View style={styles.hero}>
-                <Text style={styles.heroTitle}>Welcome back</Text>
+                <Text style={styles.heroTitle}>
+                  {translate('auto.mobile.app.index.f62e59845a', 'Welcome back')}
+                </Text>
               </View>
 
               {stats && (
@@ -747,20 +766,28 @@ export default function HomeScreen() {
                     <Text style={styles.statValue}>
                       {stats.totalAgentsSpawned.toLocaleString()}
                     </Text>
-                    <Text style={styles.statLabel}>Agents spawned</Text>
+                    <Text style={styles.statLabel}>
+                      {translate('auto.mobile.app.index.a8515b5dc4', 'Agents spawned')}
+                    </Text>
                   </View>
                   <View style={styles.statCard}>
                     <Text style={styles.statValue}>{formatDuration(stats.totalAgentTimeMs)}</Text>
-                    <Text style={styles.statLabel}>Agent time</Text>
+                    <Text style={styles.statLabel}>
+                      {translate('auto.mobile.app.index.e2e27dc946', 'Agent time')}
+                    </Text>
                   </View>
                   <View style={styles.statCard}>
                     <Text style={styles.statValue}>{stats.totalPRsCreated.toLocaleString()}</Text>
-                    <Text style={styles.statLabel}>PRs created</Text>
+                    <Text style={styles.statLabel}>
+                      {translate('auto.mobile.app.index.4cf927c2bb', 'PRs created')}
+                    </Text>
                   </View>
                 </View>
               )}
 
-              <Text style={styles.sectionHeading}>Desktops</Text>
+              <Text style={styles.sectionHeading}>
+                {translate('auto.mobile.app.index.f3542b6e7a', 'Desktops')}
+              </Text>
             </View>
           }
           ItemSeparatorComponent={CardGap}
@@ -794,7 +821,12 @@ export default function HomeScreen() {
                   } else if (item.credentialStatus === 'temporarily-unavailable') {
                     void loadHostCatalog()
                       .then(setHostCatalog)
-                      .catch(() => Alert.alert('Could not check pairing', 'Please try again.'))
+                      .catch(() =>
+                        Alert.alert(
+                          translate('auto.mobile.app.index.b10d78d179', 'Could not check pairing'),
+                          translate('auto.mobile.app.index.18b828cf5b', 'Please try again.')
+                        )
+                      )
                   } else {
                     router.push(`/h/${item.id}`)
                   }
@@ -822,7 +854,9 @@ export default function HomeScreen() {
               {/* ─── Resume card ─── */}
               {resumeCard ? (
                 <>
-                  <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>Resume</Text>
+                  <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>
+                    {translate('auto.mobile.app.index.44e6505b65', 'Resume')}
+                  </Text>
                   <Pressable
                     disabled={!resumeCard.actionable}
                     style={({ pressed }) => [
@@ -857,7 +891,9 @@ export default function HomeScreen() {
                   </Pressable>
                 </>
               ) : null}
-              <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>Tasks</Text>
+              <Text style={[styles.sectionHeading, styles.sectionHeadingTightTop]}>
+                {translate('auto.mobile.app.index.cbbc34848b', 'Tasks')}
+              </Text>
               {renderTaskHomeCard()}
 
               {/* ─── Quick actions ─── */}
@@ -871,7 +907,7 @@ export default function HomeScreen() {
               {accountsHosts.length > 0 ? (
                 <>
                   <Text style={[styles.sectionHeading, { marginTop: spacing.xl }]}>
-                    Account usage
+                    {translate('auto.mobile.app.index.557a47bcbe', 'Account usage')}{' '}
                   </Text>
                   {accountsHosts.map(({ host, snapshot }) => {
                     const claudeActiveId = snapshot.claude.activeAccountId
@@ -919,17 +955,18 @@ export default function HomeScreen() {
                               </View>
                               <View style={styles.accountsInfo}>
                                 <Text style={styles.accountsEmail} numberOfLines={1}>
-                                  {active?.email ?? 'System default'}
+                                  {active?.email ??
+                                    translate('auto.mobile.app.index.20e2e26d8c', 'System default')}
                                 </Text>
                                 <View style={styles.accountsBars}>
                                   <UsageBar
-                                    label="5h"
+                                    label={translate('auto.mobile.app.index.fcaaa4c805', '5h')}
                                     usedPercent={sessionBar.usedPercent}
                                     unavailable={sessionBar.unavailable}
                                     loading={sessionBar.loading}
                                   />
                                   <UsageBar
-                                    label="7d"
+                                    label={translate('auto.mobile.app.index.267203af46', '7d')}
                                     usedPercent={weeklyBar.usedPercent}
                                     unavailable={weeklyBar.unavailable}
                                     loading={weeklyBar.loading}
@@ -977,8 +1014,12 @@ export default function HomeScreen() {
 
       <ConfirmModal
         visible={confirmRemove != null}
-        title="Remove Host"
-        message={`Remove "${confirmRemove?.name}"? You can re-pair later.`}
+        title={translate('auto.mobile.app.index.c8e253dc76', 'Remove Host')}
+        message={translate(
+          'auto.mobile.app.index.a3cfae357a',
+          'Remove "{{value0}}"? You can re-pair later.',
+          { value0: confirmRemove?.name }
+        )}
         confirmLabel="Remove"
         destructive
         onConfirm={() => void handleRemove()}
@@ -992,20 +1033,20 @@ function CardGap() {
   return <View style={styles.cardGap} />
 }
 
-const ONBOARDING_STEPS = [
+const onboardingStepCatalog = localizedConstant(() => [
   {
-    title: 'Open Manta desktop',
+    title: translate('auto.mobile.app.index.813580ddc9', 'Open Manta desktop'),
     desc: 'Go to Settings → Mobile and generate a pairing QR code.'
   },
   {
-    title: 'Scan the code',
+    title: translate('auto.mobile.app.index.6cac1b9d8b', 'Scan the code'),
     desc: 'Tap the button above to open the scanner. Point at the QR code on your screen.'
   },
   {
-    title: "You're connected",
+    title: translate('auto.mobile.app.index.aea01b53db', "You're connected"),
     desc: 'Your desktop will appear here. Everything is encrypted end-to-end.'
   }
-]
+])
 
 const styles = StyleSheet.create({
   container: {

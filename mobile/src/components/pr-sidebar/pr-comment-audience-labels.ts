@@ -1,10 +1,33 @@
 import type { PRCommentAudienceFilter } from '../../../../src/shared/pr-comment-audience'
+import { localizedConstant } from '../../i18n/localized-constant'
+import { translate } from '../../i18n/i18n'
 
-export const PR_COMMENT_AUDIENCE_FILTERS = [
-  { value: 'all', label: 'All' },
-  { value: 'human', label: 'Humans' },
-  { value: 'bot', label: 'Bots' }
-] satisfies { value: PRCommentAudienceFilter; label: string }[]
+export const prCommentAudienceFilters = localizedConstant(
+  () =>
+    [
+      {
+        value: 'all',
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.8fabd9b4d4',
+          'All'
+        )
+      },
+      {
+        value: 'human',
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.0964119c2c',
+          'Humans'
+        )
+      },
+      {
+        value: 'bot',
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.comment.audience.labels.92606cad19',
+          'Bots'
+        )
+      }
+    ] satisfies { value: PRCommentAudienceFilter; label: string }[]
+)
 
 export function getPRCommentAudienceEmptyLabel(filter: PRCommentAudienceFilter): string {
   switch (filter) {

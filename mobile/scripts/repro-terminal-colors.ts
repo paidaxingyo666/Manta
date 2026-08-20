@@ -146,7 +146,7 @@ async function ensureSecondHandle(ws: WebSocket, handleA: string): Promise<strin
 
   const created = await send(ws, 'terminal.create', {
     worktree: worktreeSelector,
-    title: 'color-repro-switch-target'
+    title: 'color-repro-switch-target' // i18n-exempt: repro fixture id, never rendered
   })
   if (!created.ok) {
     throw new Error(`terminal.create failed: ${formatError(created)}`)

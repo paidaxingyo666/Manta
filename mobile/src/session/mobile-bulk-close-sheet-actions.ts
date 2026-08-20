@@ -1,10 +1,11 @@
 import type { MarkdownDocState, MobileSessionTab } from './mobile-session-route-types'
 import type { ActionSheetAction } from '../components/ActionSheetModal'
 import {
-  BULK_TAB_CLOSE_ACTIONS,
+  bulkTabCloseActions,
   selectBulkCloseTabs,
   type BulkTabCloseMode
 } from './mobile-tab-close-selection'
+import { translate } from '../i18n/i18n'
 
 /** Session-route state the bulk close orchestration reads and drives. */
 type BulkCloseSheetDeps = {
@@ -56,16 +57,16 @@ export function createBulkCloseSheetActions(deps: BulkCloseSheetDeps) {
     if (!anchor) {
       return []
     }
-    return BULK_TAB_CLOSE_ACTIONS.filter(
-      ({ mode }) => selectClosable(anchor.id, mode).length > 0
-    ).map(({ mode, label }) => ({
-      label,
-      destructive: true,
-      onPress: () => {
-        dismiss()
-        void bulkClose(anchor, mode)
-      }
-    }))
+    return bulkTabCloseActions()
+      .filter(({ mode }) => selectClosable(anchor.id, mode).length > 0)
+      .map(({ mode, label }) => ({
+        label,
+        destructive: true,
+        onPress: () => {
+          dismiss()
+          void bulkClose(anchor, mode)
+        }
+      }))
   }
 }
 
@@ -79,7 +80,10 @@ export function createCloseWithBulkActions(
 ) {
   return (target: MobileSessionTab | null, dismiss: () => void): ActionSheetAction[] => [
     {
-      label: 'Close',
+      label: translate(
+        'auto.mobile.src.session.mobile.bulk.close.sheet.actions.7d96f188ad',
+        'Close'
+      ),
       destructive: true,
       onPress: () => {
         dismiss()

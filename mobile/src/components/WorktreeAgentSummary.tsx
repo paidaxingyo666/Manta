@@ -5,6 +5,7 @@ import { colors, radii, spacing } from '../theme/mobile-theme'
 import { agentDotState } from '../worktree/agent-row-display'
 import { AgentStateDot } from './AgentStateDot'
 import { MobileAgentIcon } from './MobileAgentIcon'
+import { translate } from '../i18n/i18n'
 
 const MAX_VISIBLE_AGENTS = 3
 
@@ -18,7 +19,11 @@ type Props = {
 export function WorktreeAgentSummary({ agents, expanded, now, onToggle }: Props) {
   const visibleAgents = agents.slice(0, MAX_VISIBLE_AGENTS)
   const hiddenCount = agents.length - visibleAgents.length
-  const subject = `${agents.length} agents`
+  const subject = translate(
+    'auto.mobile.src.components.WorktreeAgentSummary.500d1acf5b',
+    '{{value0}} agents',
+    { value0: agents.length }
+  )
 
   return (
     <Pressable

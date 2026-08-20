@@ -1,23 +1,49 @@
 import type { WorkspaceStatusDefinition } from '../../../src/shared/worktree/types'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 export const DEFAULT_MOBILE_WORKSPACE_STATUS_ID = 'in-progress'
 
-export const DEFAULT_MOBILE_WORKSPACE_STATUSES = [
-  { id: 'completed', label: 'Done', color: 'conductor-done', icon: 'conductor-done' },
-  { id: 'in-review', label: 'In review', color: 'conductor-review', icon: 'conductor-review' },
-  {
-    id: DEFAULT_MOBILE_WORKSPACE_STATUS_ID,
-    label: 'In progress',
-    color: 'conductor-progress',
-    icon: 'conductor-progress'
-  },
-  { id: 'todo', label: 'Todo', color: 'neutral', icon: 'circle' }
-] as const satisfies readonly WorkspaceStatusDefinition[]
+export const defaultMobileWorkspaceStatuses = localizedConstant(
+  () =>
+    [
+      {
+        id: 'completed',
+        label: translate('auto.mobile.src.worktree.mobile.workspace.statuses.1257848b64', 'Done'),
+        color: 'conductor-done',
+        icon: 'conductor-done'
+      },
+      {
+        id: 'in-review',
+        label: translate(
+          'auto.mobile.src.worktree.mobile.workspace.statuses.9a0f28ceab',
+          'In review'
+        ),
+        color: 'conductor-review',
+        icon: 'conductor-review'
+      },
+      {
+        id: DEFAULT_MOBILE_WORKSPACE_STATUS_ID,
+        label: translate(
+          'auto.mobile.src.worktree.mobile.workspace.statuses.85679374e3',
+          'In progress'
+        ),
+        color: 'conductor-progress',
+        icon: 'conductor-progress'
+      },
+      {
+        id: 'todo',
+        label: translate('auto.mobile.src.worktree.mobile.workspace.statuses.cd6c22dfea', 'Todo'),
+        color: 'neutral',
+        icon: 'circle'
+      }
+    ] as const satisfies readonly WorkspaceStatusDefinition[]
+)
 
 export function coerceMobileWorkspaceStatuses(
   statuses: readonly WorkspaceStatusDefinition[]
 ): readonly WorkspaceStatusDefinition[] {
-  return statuses.length > 0 ? statuses : DEFAULT_MOBILE_WORKSPACE_STATUSES
+  return statuses.length > 0 ? statuses : defaultMobileWorkspaceStatuses()
 }
 
 export function getMobileWorkspaceStatus(

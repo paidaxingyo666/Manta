@@ -9,6 +9,7 @@ import {
   type CheckOutcome as SharedCheckOutcome
 } from '../../../../src/shared/provider-check-summary'
 import { prStateToken } from '../pr-state-token'
+import { translate } from '../../i18n/i18n'
 
 // Pure presentation logic for the PR sidebar's checks + state badge. No React /
 // native imports so it is unit-testable under the node Vitest config (KTD5).
@@ -77,7 +78,17 @@ const OUTCOME_BY_STATE: Record<ProviderCheckSummary['state'], CheckOutcome | 'no
 
 export function summarizePRChecks(checks: readonly PRCheckDetail[]): PRChecksSummary {
   if (checks.length === 0) {
-    return { total: 0, passed: 0, pending: 0, failed: 0, outcome: 'none', label: 'No checks' }
+    return {
+      total: 0,
+      passed: 0,
+      pending: 0,
+      failed: 0,
+      outcome: 'none',
+      label: translate(
+        'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.8422a39fd0',
+        'No checks'
+      )
+    }
   }
   // Counts and the worst-case rollup come from the shared summarizer; only the label wording is mobile's.
   const { total, passed, pending, failed, neutral, state } = summarizeProviderChecks(checks)
@@ -202,20 +213,62 @@ function reviewStateLabel(state: string | null | undefined): {
 } {
   switch (state) {
     case 'APPROVED':
-      return { label: 'Approved', token: 'statusGreen' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.225a06d7c9',
+          'Approved'
+        ),
+        token: 'statusGreen'
+      }
     case 'CHANGES_REQUESTED':
-      return { label: 'Changes requested', token: 'statusRed' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.ae38fce3e6',
+          'Changes requested'
+        ),
+        token: 'statusRed'
+      }
     case 'COMMENTED':
-      return { label: 'Commented', token: 'textSecondary' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.6c5d1aa61c',
+          'Commented'
+        ),
+        token: 'textSecondary'
+      }
     case 'DISMISSED':
-      return { label: 'Dismissed', token: 'textSecondary' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.76601c7a9f',
+          'Dismissed'
+        ),
+        token: 'textSecondary'
+      }
     case 'PENDING':
-      return { label: 'Pending', token: 'statusAmber' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.344836f6d3',
+          'Pending'
+        ),
+        token: 'statusAmber'
+      }
     case null:
     case undefined:
-      return { label: 'Reviewed', token: 'textSecondary' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.fc87834cbf',
+          'Reviewed'
+        ),
+        token: 'textSecondary'
+      }
     default:
-      return { label: 'Reviewed', token: 'textSecondary' }
+      return {
+        label: translate(
+          'auto.mobile.src.components.pr.sidebar.pr.checks.presentation.fc87834cbf',
+          'Reviewed'
+        ),
+        token: 'textSecondary'
+      }
   }
 }
 

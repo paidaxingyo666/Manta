@@ -14,6 +14,7 @@ import {
   type MobileSpeechModel,
   type MobileSpeechSetup
 } from '../dictation/mobile-dictation-setup'
+import { translate } from '../i18n/i18n'
 
 const POLL_INTERVAL_MS = 1500
 
@@ -129,9 +130,17 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
       {/* Why: BottomDrawer already scrolls its children in a keyboard-aware container;
           a nested capped ScrollView cut off the lower controls. */}
       <View>
-        <Text style={styles.heading}>Set up voice dictation</Text>
+        <Text style={styles.heading}>
+          {translate(
+            'auto.mobile.src.components.MobileDictationSetupSheet.d778451cee',
+            'Set up voice dictation'
+          )}
+        </Text>
         <Text style={styles.subtitle}>
-          Download a model and enable dictation on your desktop — all from here.
+          {translate(
+            'auto.mobile.src.components.MobileDictationSetupSheet.0f96051cb5',
+            'Download a model and enable dictation on your desktop — all from here.'
+          )}{' '}
         </Text>
 
         {setup === null ? (
@@ -141,7 +150,12 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
         ) : (
           <>
             <View style={styles.enableRow}>
-              <Text style={styles.enableLabel}>Dictation enabled</Text>
+              <Text style={styles.enableLabel}>
+                {translate(
+                  'auto.mobile.src.components.MobileDictationSetupSheet.e96c05d3ff',
+                  'Dictation enabled'
+                )}
+              </Text>
               <Switch value={setup.enabled} onValueChange={(v) => void handleToggleEnabled(v)} />
             </View>
 
@@ -155,27 +169,53 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                     <View style={styles.modelTitleRow}>
                       <Text style={styles.modelLabel}>{model.label}</Text>
                       {model.recommended ? (
-                        <Text style={styles.recommended}>Recommended</Text>
+                        <Text style={styles.recommended}>
+                          {translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.4c977cfe71',
+                            'Recommended'
+                          )}
+                        </Text>
                       ) : null}
                     </View>
                     <Text style={styles.modelMeta}>
-                      {model.provider === 'openai' ? 'OpenAI API' : formatSize(model.sizeBytes)}
+                      {model.provider === 'openai'
+                        ? translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.6e1fd0429b',
+                            'OpenAI API'
+                          )
+                        : formatSize(model.sizeBytes)}
                       {inFlight && model.progress != null
                         ? ` · ${Math.round(model.progress * 100)}%`
                         : model.status === 'extracting'
-                          ? ' · extracting…'
+                          ? translate(
+                              'auto.mobile.src.components.MobileDictationSetupSheet.3c6fcf7dba',
+                              '· extracting…'
+                            )
                           : ''}
                     </Text>
                   </View>
                   {model.provider === 'openai' ? (
                     <Text style={styles.modelStateText}>
-                      {model.status === 'ready' ? 'API key set' : 'Set up on desktop'}
+                      {model.status === 'ready'
+                        ? translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.0fdd00661b',
+                            'API key set'
+                          )
+                        : translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.a9fec85af0',
+                            'Set up on desktop'
+                          )}
                     </Text>
                   ) : model.status === 'ready' ? (
                     isSelected ? (
                       <View style={styles.selectedTag}>
                         <Check size={14} color={colors.statusGreen} strokeWidth={2.4} />
-                        <Text style={styles.selectedText}>In use</Text>
+                        <Text style={styles.selectedText}>
+                          {translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.ae2f2cc127',
+                            'In use'
+                          )}
+                        </Text>
                       </View>
                     ) : (
                       <Pressable
@@ -186,7 +226,12 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                         disabled={rowBusy}
                         onPress={() => void handleUseModel(model)}
                       >
-                        <Text style={styles.actionText}>Use</Text>
+                        <Text style={styles.actionText}>
+                          {translate(
+                            'auto.mobile.src.components.MobileDictationSetupSheet.375f2e9b3d',
+                            'Use'
+                          )}
+                        </Text>
                       </Pressable>
                     )
                   ) : inFlight ? (
@@ -205,7 +250,12 @@ export function MobileDictationSetupSheet({ visible, client, onClose, onReady }:
                       ) : (
                         <>
                           <Download size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                          <Text style={styles.actionText}>Download</Text>
+                          <Text style={styles.actionText}>
+                            {translate(
+                              'auto.mobile.src.components.MobileDictationSetupSheet.a09dec50ce',
+                              'Download'
+                            )}
+                          </Text>
                         </>
                       )}
                     </Pressable>

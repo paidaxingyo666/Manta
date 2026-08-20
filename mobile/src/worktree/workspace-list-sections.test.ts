@@ -8,7 +8,7 @@ import {
   getWorktreeStatus,
   sortWorktrees
 } from './workspace-list-sections'
-import { DEFAULT_MOBILE_WORKSPACE_STATUSES } from './mobile-workspace-statuses'
+import { defaultMobileWorkspaceStatuses } from './mobile-workspace-statuses'
 
 function worktree(overrides: Partial<Worktree> = {}): Worktree {
   const worktreePath = join('/tmp', 'manta', 'worktrees', 'feature')
@@ -263,7 +263,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections[0]?.data.map((worktree) => worktree.worktreeId)).toEqual([
@@ -309,7 +309,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections.flatMap((section) => section.data.map((item) => item.worktreeId))).toEqual([
@@ -495,7 +495,7 @@ describe('buildSections', () => {
       'repo',
       new Set(),
       new Map([['manta', 'repo-1']]),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections[0]?.data.map((item) => item.worktreeId)).toEqual(['parent', 'child', 'active'])
@@ -637,7 +637,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections.map((section) => ({ key: section.key, title: section.title }))).toEqual([
@@ -685,7 +685,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(withoutSectionListKeys(sections)).toEqual([
@@ -716,7 +716,7 @@ describe('buildSections', () => {
       'none',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections.map((section) => section.key)).toEqual(['all'])
@@ -747,7 +747,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES
+      defaultMobileWorkspaceStatuses()
     )
 
     expect(sections[0]?.data.map((worktree) => worktree.worktreeId)).toEqual(['parent', 'child'])
@@ -775,7 +775,7 @@ describe('buildSections', () => {
       'workspaceStatus',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES,
+      defaultMobileWorkspaceStatuses(),
       new Set(['workspace-lineage:parent'])
     )
 

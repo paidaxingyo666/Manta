@@ -5,6 +5,7 @@ import type { MobileDiffReviewQueueFilter } from '../session/mobile-diff-review-
 import { REVIEW_FILTERS, mobileReviewCountLabel } from '../session/mobile-diff-review-screen-model'
 import { shouldShowTrigger } from './mobile-pr-sidebar-presentation'
 import { mobileDiffReviewStyles as styles } from './mobile-diff-review-screen-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   filter: MobileDiffReviewQueueFilter
@@ -55,7 +56,10 @@ export function MobileDiffReviewHeader({
         </Pressable>
         <View style={styles.titleBlock}>
           <Text style={styles.title} numberOfLines={1}>
-            Changes
+            {translate(
+              'auto.mobile.src.components.MobileDiffReviewHeader.d6521a2df5',
+              'Changes'
+            )}{' '}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {worktreeLabel}
@@ -82,7 +86,11 @@ export function MobileDiffReviewHeader({
       </View>
       <View style={styles.progressRow}>
         <Text style={styles.progressText}>
-          {reviewedCount}/{queueLength} reviewed
+          {reviewedCount}/{queueLength}{' '}
+          {translate(
+            'auto.mobile.src.components.MobileDiffReviewHeader.022200a6f3',
+            'reviewed'
+          )}{' '}
         </Text>
         <Text style={styles.progressText}>
           {mobileReviewCountLabel(unsentCount, 'unsent note', 'unsent notes')}
@@ -107,7 +115,9 @@ export function MobileDiffReviewHeader({
             accessibilityLabel={`Show ${item} review files`}
           >
             <Text style={[styles.filterText, filter === item && styles.filterTextActive]}>
-              {item === 'all' ? 'All' : item[0]?.toUpperCase() + item.slice(1)}
+              {item === 'all'
+                ? translate('auto.mobile.src.components.MobileDiffReviewHeader.afe6a05fe9', 'All')
+                : item[0]?.toUpperCase() + item.slice(1)}
             </Text>
           </Pressable>
         )}

@@ -1,5 +1,6 @@
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
+import { translate } from '../i18n/i18n'
 
 // Mirrors the host GenerateCommitMessageResult (src/main/text-generation/
 // commit-message-text-generation.ts) — a single resolved result, not a stream.
@@ -22,7 +23,13 @@ export async function requestMobileCommitMessage(
   }
   const result = (response as RpcSuccess).result as MobileGenerateCommitMessageResult | undefined
   if (!result || typeof result !== 'object') {
-    return { success: false, error: 'Failed to generate commit message' }
+    return {
+      success: false,
+      error: translate(
+        'auto.mobile.src.source.control.mobile.commit.message.ai.714ed51860',
+        'Failed to generate commit message'
+      )
+    }
   }
   if (result.success === true && typeof result.message === 'string' && result.message.length > 0) {
     return { success: true, message: result.message }

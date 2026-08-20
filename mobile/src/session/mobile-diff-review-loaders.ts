@@ -23,6 +23,7 @@ import type { RpcClient } from '../transport/rpc-client'
 import type { MobileDiffReviewQueueItem } from './mobile-diff-review-queue'
 import type { ReviewDiffState, ReviewScreenState } from './mobile-diff-review-screen-model'
 import { reviewDescriptorFromItem } from './mobile-diff-review-screen-model'
+import { translate } from '../i18n/i18n'
 
 type BranchCompareLoadResult = {
   result: MobileGitBranchCompareResult | null
@@ -58,9 +59,24 @@ export async function loadMobileDiffReviewBranchCompare(
     const parsed = readMobileBranchCompareResult(response.result)
     return parsed
       ? { result: parsed }
-      : { result: null, error: 'Committed changes response was invalid' }
+      : {
+          result: null,
+          error: translate(
+            'auto.mobile.src.session.mobile.diff.review.loaders.45200a7b83',
+            'Committed changes response was invalid'
+          )
+        }
   } catch (err) {
-    return { result: null, error: err instanceof Error ? err.message : 'Committed changes failed' }
+    return {
+      result: null,
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.session.mobile.diff.review.loaders.68bce95b7c',
+              'Committed changes failed'
+            )
+    }
   }
 }
 
@@ -71,7 +87,13 @@ export async function loadMobileDiffReviewSnapshot(
   const statusResponse = await client.sendRequest('git.status', { worktree: `id:${worktreeId}` })
   if (!statusResponse.ok) {
     if (isMobileGitUnavailable(statusResponse.error?.code, statusResponse.error?.message)) {
-      return { kind: 'unavailable', message: 'Update Manta desktop to review changes on mobile.' }
+      return {
+        kind: 'unavailable',
+        message: translate(
+          'auto.mobile.src.session.mobile.diff.review.loaders.c8436e26c4',
+          'Update Manta desktop to review changes on mobile.'
+        )
+      }
     }
     throw new Error(statusResponse.error?.message || 'Unable to load changes')
   }

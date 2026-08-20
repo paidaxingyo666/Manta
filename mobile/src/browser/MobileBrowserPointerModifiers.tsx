@@ -1,14 +1,30 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 export type BrowserPointerModifier = 'cmd' | 'ctrl' | 'alt' | 'shift'
 
-const BROWSER_POINTER_MODIFIERS: { id: BrowserPointerModifier; label: string }[] = [
-  { id: 'cmd', label: 'Cmd' },
-  { id: 'ctrl', label: 'Ctrl' },
-  { id: 'alt', label: 'Alt' },
-  { id: 'shift', label: 'Shift' }
-]
+const browserPointerModifiers = localizedConstant(
+  (): { id: BrowserPointerModifier; label: string }[] => [
+    {
+      id: 'cmd',
+      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.216f31a789', 'Cmd')
+    },
+    {
+      id: 'ctrl',
+      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.12a5bc4ad4', 'Ctrl')
+    },
+    {
+      id: 'alt',
+      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.7cff3b4086', 'Alt')
+    },
+    {
+      id: 'shift',
+      label: translate('auto.mobile.src.browser.MobileBrowserPointerModifiers.1936cb6053', 'Shift')
+    }
+  ]
+)
 
 type Props = {
   disabled: boolean
@@ -23,7 +39,7 @@ export function MobileBrowserPointerModifiers({
 }: Props): React.JSX.Element {
   return (
     <View style={styles.modifierRow}>
-      {BROWSER_POINTER_MODIFIERS.map((modifier) => {
+      {browserPointerModifiers().map((modifier) => {
         const selected = selectedModifiers.includes(modifier.id)
         return (
           <Pressable

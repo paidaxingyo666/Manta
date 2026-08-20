@@ -36,6 +36,8 @@ import {
 } from './agent-history-resume-target'
 import { buildMobileAgentHistoryResumeActionState } from './agent-history-session-card'
 import { styles } from './agent-history-styles'
+import { translate } from '../i18n/i18n'
+import { localizedConstant } from '../i18n/localized-constant'
 
 export type MobileAgentSessionHistoryPanelProps = {
   hostId: string
@@ -43,11 +45,29 @@ export type MobileAgentSessionHistoryPanelProps = {
   name?: string
 }
 
-const SCOPE_TABS: { scope: AiVaultScope; label: string }[] = [
-  { scope: 'workspace', label: 'Workspace' },
-  { scope: 'project', label: 'Project' },
-  { scope: 'all', label: 'All' }
-]
+const scopeTabs = localizedConstant((): { scope: AiVaultScope; label: string }[] => [
+  {
+    scope: 'workspace',
+    label: translate(
+      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.d24e997219',
+      'Workspace'
+    )
+  },
+  {
+    scope: 'project',
+    label: translate(
+      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.76181e3ffa',
+      'Project'
+    )
+  },
+  {
+    scope: 'all',
+    label: translate(
+      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.adc3dfc6d1',
+      'All'
+    )
+  }
+])
 
 export function MobileAgentSessionHistoryPanel({
   hostId,
@@ -253,7 +273,10 @@ export function MobileAgentSessionHistoryPanel({
           </Pressable>
           <View style={styles.titleBlock}>
             <Text style={styles.title} numberOfLines={1}>
-              Agent Session History
+              {translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.cf628e5d91',
+                'Agent Session History'
+              )}{' '}
             </Text>
             <Text style={styles.meta} numberOfLines={1}>
               {worktreeLabel}
@@ -276,23 +299,41 @@ export function MobileAgentSessionHistoryPanel({
         </View>
       ) : screenState.kind === 'unsupported' ? (
         <View style={styles.state}>
-          <Text style={styles.stateTitle}>Agent Session History Unavailable</Text>
+          <Text style={styles.stateTitle}>
+            {translate(
+              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.c9196c1d89',
+              'Agent Session History Unavailable'
+            )}
+          </Text>
           <Text style={styles.stateText}>
-            Update Manta on this host to browse agent session history.
+            {translate(
+              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.1c6ecaac69',
+              'Update Manta on this host to browse agent session history.'
+            )}{' '}
           </Text>
         </View>
       ) : screenState.kind === 'error' ? (
         <View style={styles.state}>
-          <Text style={styles.stateTitle}>Unable to Load</Text>
+          <Text style={styles.stateTitle}>
+            {translate(
+              'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.205877f249',
+              'Unable to Load'
+            )}
+          </Text>
           <Text style={styles.stateText}>{screenState.message}</Text>
           <Pressable style={styles.retryButton} onPress={retry}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>
+              {translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.ece2f4dedf',
+                'Retry'
+              )}
+            </Text>
           </Pressable>
         </View>
       ) : (
         <>
           <View style={styles.scopeTabs}>
-            {SCOPE_TABS.map((tab) => {
+            {scopeTabs().map((tab) => {
               const active = scope === tab.scope
               return (
                 <Pressable
@@ -312,7 +353,10 @@ export function MobileAgentSessionHistoryPanel({
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
-              placeholder="Search sessions, repo:, path:"
+              placeholder={translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.51cef69b11',
+                'Search sessions, repo:, path:'
+              )}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -321,7 +365,20 @@ export function MobileAgentSessionHistoryPanel({
           {issues.length > 0 ? (
             <View style={styles.noticeBanner}>
               <Text style={styles.noticeText}>
-                {issues.length} {issues.length === 1 ? 'transcript' : 'transcripts'} skipped
+                {issues.length}{' '}
+                {issues.length === 1
+                  ? translate(
+                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.ddb3315bf5',
+                      'transcript'
+                    )
+                  : translate(
+                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.5820d160a5',
+                      'transcripts'
+                    )}{' '}
+                {translate(
+                  'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.94da199071',
+                  'skipped'
+                )}{' '}
               </Text>
             </View>
           ) : null}
@@ -332,9 +389,22 @@ export function MobileAgentSessionHistoryPanel({
           ) : null}
           {sections.length === 0 ? (
             <View style={styles.state}>
-              <Text style={styles.stateTitle}>No agent sessions</Text>
+              <Text style={styles.stateTitle}>
+                {translate(
+                  'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.2a48123bc9',
+                  'No agent sessions'
+                )}
+              </Text>
               <Text style={styles.stateText}>
-                {query ? 'No sessions match your search.' : 'No past agent sessions in this scope.'}
+                {query
+                  ? translate(
+                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.5fcef8f07b',
+                      'No sessions match your search.'
+                    )
+                  : translate(
+                      'auto.mobile.src.agent.history.MobileAgentSessionHistoryPanel.2fff2aa6b2',
+                      'No past agent sessions in this scope.'
+                    )}
               </Text>
             </View>
           ) : (

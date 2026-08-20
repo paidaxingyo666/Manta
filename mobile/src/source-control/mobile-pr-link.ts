@@ -1,6 +1,7 @@
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
 import type { HostedReviewProvider } from '../../../src/shared/hosted-review'
+import { translate } from '../i18n/i18n'
 
 // Link / unlink review metadata via worktree.set (the same path desktop uses).
 // GitHub's existing manual link flow writes linkedPR; hosted-review creation maps
@@ -63,7 +64,13 @@ async function setLinkedPr(
     // to the `{ ok:false, error }` outcome the link flow surfaces.
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Failed to update linked pull request'
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.source.control.mobile.pr.link.0fcf97ca15',
+              'Failed to update linked pull request'
+            )
     }
   }
 }
@@ -98,7 +105,13 @@ export async function linkMobileHostedReview(
     // surface a non-fatal refresh problem instead of losing the created URL.
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Failed to update linked review'
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.source.control.mobile.pr.link.0c8879a6f0',
+              'Failed to update linked review'
+            )
     }
   }
 }

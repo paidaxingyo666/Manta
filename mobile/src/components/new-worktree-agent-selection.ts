@@ -2,6 +2,8 @@ import type { TuiAgent } from '../../../src/shared/tui-agent'
 import { MOBILE_AGENT_CATALOG } from '../tasks/mobile-agent-catalog'
 import { isMobileTuiAgentEnabled } from '../tasks/mobile-tui-agents'
 import { pickWorkspaceAgent } from '../tasks/workspace-agent-selection'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 export type NewWorktreeRuntimeSettings = {
   defaultTuiAgent?: TuiAgent | 'blank' | null
@@ -16,16 +18,21 @@ export type NewWorktreeAgentOption = {
 
 export const NEW_WORKTREE_AGENT_OPTIONS: NewWorktreeAgentOption[] = MOBILE_AGENT_CATALOG
 
-export const NEW_WORKTREE_BLANK_AGENT: NewWorktreeAgentOption = {
-  id: '__blank__',
-  label: 'Blank Terminal'
-}
+export const newWorktreeBlankAgent = localizedConstant(
+  (): NewWorktreeAgentOption => ({
+    id: '__blank__',
+    label: translate(
+      'auto.mobile.src.components.new.worktree.agent.selection.f38095bad3',
+      'Blank Terminal'
+    )
+  })
+)
 
 export function newWorktreeAgentOptionFor(id: string | null | undefined): NewWorktreeAgentOption {
   if (id === 'blank' || id === '__blank__') {
-    return NEW_WORKTREE_BLANK_AGENT
+    return newWorktreeBlankAgent()
   }
-  return NEW_WORKTREE_AGENT_OPTIONS.find((agent) => agent.id === id) ?? NEW_WORKTREE_BLANK_AGENT
+  return NEW_WORKTREE_AGENT_OPTIONS.find((agent) => agent.id === id) ?? newWorktreeBlankAgent()
 }
 
 export function pickPreferredNewWorktreeAgent(

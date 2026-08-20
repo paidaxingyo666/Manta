@@ -11,6 +11,7 @@ import {
   mockScenarioSummary,
   type RpcRequest
 } from './mock-server-rpc-handlers'
+import { translate } from '../src/i18n/i18n'
 
 const PORT = Number(process.env.PORT) || 6768
 const AUTH_TOKEN = 'mock-device-token'
@@ -42,20 +43,35 @@ wss.on('connection', (ws) => {
       try {
         hello = JSON.parse(msg)
       } catch {
-        ws.send(JSON.stringify({ type: 'e2ee_error', message: 'Invalid JSON' }))
+        ws.send(
+          JSON.stringify({
+            type: 'e2ee_error',
+            message: translate('auto.mobile.scripts.mock.server.75675aee69', 'Invalid JSON')
+          })
+        )
         ws.close()
         return
       }
 
       if (hello.type !== 'e2ee_hello' || !hello.publicKeyB64) {
-        ws.send(JSON.stringify({ type: 'e2ee_error', message: 'Expected e2ee_hello' }))
+        ws.send(
+          JSON.stringify({
+            type: 'e2ee_error',
+            message: translate('auto.mobile.scripts.mock.server.f9ad9c5d7f', 'Expected e2ee_hello')
+          })
+        )
         ws.close()
         return
       }
 
       const clientPublicKey = Uint8Array.from(Buffer.from(hello.publicKeyB64, 'base64'))
       if (clientPublicKey.length !== 32) {
-        ws.send(JSON.stringify({ type: 'e2ee_error', message: 'Invalid public key' }))
+        ws.send(
+          JSON.stringify({
+            type: 'e2ee_error',
+            message: translate('auto.mobile.scripts.mock.server.5865219c37', 'Invalid public key')
+          })
+        )
         ws.close()
         return
       }

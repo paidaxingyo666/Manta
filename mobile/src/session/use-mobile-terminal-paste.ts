@@ -11,6 +11,7 @@ import {
   saveMobileClipboardImageAsTempFile,
   type MobileClipboardImageResizer
 } from './mobile-clipboard-image'
+import { translate } from '../i18n/i18n'
 
 const CLIPBOARD_IMAGE_DATA_URL_PREFIX_RE = /^data:image\/[a-z0-9.+-]+;base64,/i
 
@@ -138,7 +139,13 @@ export function useMobileTerminalPaste({
         onError()
         // eslint-disable-next-line no-console
         console.warn('[mobile-clip] paste oversized', { wrappedBytes })
-        showToast('Paste too large (max 256 KiB)', 1500)
+        showToast(
+          translate(
+            'auto.mobile.src.session.use.mobile.terminal.paste.1338fc5288',
+            'Paste too large (max 256 KiB)'
+          ),
+          1500
+        )
         return
       }
       // Why: paste lives in the accessory row and must not overtake pending IME text.
@@ -172,11 +179,26 @@ export function useMobileTerminalPaste({
       // eslint-disable-next-line no-console
       console.warn('[mobile-clip] paste failed', { name: err.name, message: err.message })
       if (isDisconnected) {
-        showToast('Paste failed (disconnected)', 1500)
+        showToast(
+          translate(
+            'auto.mobile.src.session.use.mobile.terminal.paste.806d2c697d',
+            'Paste failed (disconnected)'
+          ),
+          1500
+        )
       } else if (err.message === 'Clipboard image is too large') {
-        showToast('Image too large to paste', 1500)
+        showToast(
+          translate(
+            'auto.mobile.src.session.use.mobile.terminal.paste.e5d865b17a',
+            'Image too large to paste'
+          ),
+          1500
+        )
       } else {
-        showToast('Paste failed', 1500)
+        showToast(
+          translate('auto.mobile.src.session.use.mobile.terminal.paste.c1e4d031ec', 'Paste failed'),
+          1500
+        )
       }
     }
   }, [

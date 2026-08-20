@@ -2,6 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { RotateCcw } from 'lucide-react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { CodexResetCreditSummary } from './codex-reset-credit'
+import { translate } from '../i18n/i18n'
 
 export function CodexResetCreditAction({
   summary,
@@ -24,7 +25,10 @@ export function CodexResetCreditAction({
           <Text style={styles.title}>{summary.availabilityLabel}</Text>
           <Text style={styles.subtitle}>
             {[summary.expiryLabel, scopeLabel].filter(Boolean).join(' · ') ||
-              'Earned Codex rate-limit reset'}
+              translate(
+                'auto.mobile.src.components.CodexResetCreditAction.c00ff47761',
+                'Earned Codex rate-limit reset'
+              )}
           </Text>
         </View>
         <Pressable
@@ -50,7 +54,17 @@ export function CodexResetCreditAction({
           ) : (
             <RotateCcw size={14} color={colors.textPrimary} />
           )}
-          <Text style={styles.buttonText}>{busy ? 'Resetting…' : 'Use reset'}</Text>
+          <Text style={styles.buttonText}>
+            {busy
+              ? translate(
+                  'auto.mobile.src.components.CodexResetCreditAction.2cde746d0d',
+                  'Resetting…'
+                )
+              : translate(
+                  'auto.mobile.src.components.CodexResetCreditAction.d8bace2f0f',
+                  'Use reset'
+                )}
+          </Text>
         </Pressable>
       </View>
     </>

@@ -20,6 +20,7 @@ import { PRSection } from './PRSection'
 import { PRCheckDetailView, type DetailEntry } from './PRCheckDetail'
 import { mobilePrSidebarStyles as styles } from './mobile-pr-sidebar-styles'
 import { prAiTriageStyles as triageStyles } from './pr-ai-triage-styles'
+import { translate } from '../../i18n/i18n'
 
 // Launches the "Fix checks with AI" agent. Absent for display-only usages.
 export type PrChecksTriage = {
@@ -133,7 +134,10 @@ export function PRChecksSection({ checks, client, worktreeId, prRepo, actions, t
 
   return (
     <PRSection
-      title="Checks"
+      title={translate(
+        'auto.mobile.src.components.pr.sidebar.PRChecksSection.8726729fc3',
+        'Checks'
+      )}
       trailing={
         <>
           <Text
@@ -169,10 +173,18 @@ export function PRChecksSection({ checks, client, worktreeId, prRepo, actions, t
         <View style={triageStyles.triageStrip}>
           <View style={triageStyles.triageStripText}>
             <Text style={triageStyles.triageStripTitle} numberOfLines={1}>
-              {summary.failed} failing check{summary.failed === 1 ? '' : 's'}
+              {summary.failed}{' '}
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRChecksSection.df5a325c3c',
+                'failing check'
+              )}
+              {summary.failed === 1 ? '' : 's'}
             </Text>
             <Text style={triageStyles.triageStripSubtitle} numberOfLines={1}>
-              Inspect details or start an AI fix pass.
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRChecksSection.b7aee3cc29',
+                'Inspect details or start an AI fix pass.'
+              )}{' '}
             </Text>
           </View>
           <Pressable
@@ -187,7 +199,9 @@ export function PRChecksSection({ checks, client, worktreeId, prRepo, actions, t
             ) : (
               <Sparkles size={13} color={colors.textSecondary} strokeWidth={2.2} />
             )}
-            <Text style={triageStyles.triageStripButtonText}>Fix</Text>
+            <Text style={triageStyles.triageStripButtonText}>
+              {translate('auto.mobile.src.components.pr.sidebar.PRChecksSection.4220bbc33f', 'Fix')}
+            </Text>
           </Pressable>
         </View>
       ) : null}

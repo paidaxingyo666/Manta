@@ -4,6 +4,7 @@ import {
   selectHostWorkspaceListState,
   type HostWorkspaceListStateInput
 } from './host-workspace-list-state'
+import { translate } from '../i18n/i18n'
 
 export function HostWorkspaceListStates(
   props: HostWorkspaceListStateInput & {
@@ -22,9 +23,18 @@ export function HostWorkspaceListStates(
   if (state === 'catalog-error') {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyText}>Could not load workspaces from this host</Text>
+        <Text style={styles.emptyText}>
+          {translate(
+            'auto.mobile.src.worktree.host.workspace.list.states.9f6f3e7d1c',
+            'Could not load workspaces from this host'
+          )}
+        </Text>
         <Text style={styles.catalogErrorDetail}>
-          {`worktree.ps failed (${props.catalogError}) — retrying automatically`}
+          {translate(
+            'auto.mobile.src.worktree.host.workspace.list.states.26afe48a65',
+            'worktree.ps failed ({{value0}}) — retrying automatically',
+            { value0: props.catalogError }
+          )}
         </Text>
       </View>
     )
@@ -34,10 +44,19 @@ export function HostWorkspaceListStates(
       <View style={styles.centered}>
         <Text style={styles.emptyText}>
           {props.search
-            ? 'No matching worktrees'
+            ? translate(
+                'auto.mobile.src.worktree.host.workspace.list.states.4b6ffdb276',
+                'No matching worktrees'
+              )
             : props.activeFilterCount > 0
-              ? 'No worktrees match filters'
-              : 'No worktrees'}
+              ? translate(
+                  'auto.mobile.src.worktree.host.workspace.list.states.3d19717048',
+                  'No worktrees match filters'
+                )
+              : translate(
+                  'auto.mobile.src.worktree.host.workspace.list.states.5c9a3d6268',
+                  'No worktrees'
+                )}
         </Text>
       </View>
     )

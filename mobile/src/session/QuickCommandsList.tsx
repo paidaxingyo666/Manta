@@ -7,6 +7,7 @@ import type { TerminalQuickCommand } from '../../../src/shared/terminal-quick-co
 import type { TuiAgent } from '../../../src/shared/tui-agent'
 import { supportsTerminalAgentQuickCommand } from '../terminal/quick-commands'
 import { QuickCommandRow } from './QuickCommandRow'
+import { translate } from '../i18n/i18n'
 
 export const QUICK_COMMAND_SUPPORTED_AGENTS = MOBILE_AGENT_CATALOG.filter((entry) =>
   supportsTerminalAgentQuickCommand(entry.id)
@@ -59,7 +60,10 @@ export function QuickCommandsList({
             style={styles.searchInput}
             value={query}
             onChangeText={onQueryChange}
-            placeholder="Search quick commands..."
+            placeholder={translate(
+              'auto.mobile.src.session.QuickCommandsList.325cecdaaf',
+              'Search quick commands...'
+            )}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -77,16 +81,26 @@ export function QuickCommandsList({
       ) : null}
 
       {!loading && totalCount === 0 ? (
-        <Text style={styles.empty}>No quick commands yet.</Text>
+        <Text style={styles.empty}>
+          {translate(
+            'auto.mobile.src.session.QuickCommandsList.586660565c',
+            'No quick commands yet.'
+          )}
+        </Text>
       ) : null}
 
       {!loading && totalCount > 0 && !hasVisible ? (
-        <Text style={styles.empty}>No matching quick commands.</Text>
+        <Text style={styles.empty}>
+          {translate(
+            'auto.mobile.src.session.QuickCommandsList.b2d8e370de',
+            'No matching quick commands.'
+          )}
+        </Text>
       ) : null}
 
       {repoCommands.length > 0 ? (
         <QuickCommandGroup
-          label="This project"
+          label={translate('auto.mobile.src.session.QuickCommandsList.d327b572b9', 'This project')}
           commands={repoCommands}
           onLaunch={onLaunch}
           onEdit={onEdit}
@@ -97,7 +111,7 @@ export function QuickCommandsList({
 
       {globalCommands.length > 0 ? (
         <QuickCommandGroup
-          label="Global"
+          label={translate('auto.mobile.src.session.QuickCommandsList.616a7d788f', 'Global')}
           commands={globalCommands}
           onLaunch={onLaunch}
           onEdit={onEdit}
@@ -118,7 +132,12 @@ export function QuickCommandsList({
       >
         <Plus size={18} color={colors.textSecondary} />
         <Text style={styles.addText}>
-          {canAdd ? 'New quick command' : 'Quick command limit reached'}
+          {canAdd
+            ? translate('auto.mobile.src.session.QuickCommandsList.2e659657de', 'New quick command')
+            : translate(
+                'auto.mobile.src.session.QuickCommandsList.26ac6d7f47',
+                'Quick command limit reached'
+              )}
         </Text>
       </Pressable>
     </View>

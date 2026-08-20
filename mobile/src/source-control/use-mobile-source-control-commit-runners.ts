@@ -5,6 +5,7 @@ import type {
   MobileCommitFailureRecovery,
   RecordMobileCommitFailure
 } from './mobile-commit-failure-recovery'
+import { translate } from '../i18n/i18n'
 
 type GitStep = { method: string; params?: Record<string, unknown> }
 type SendGitRequest = <T>(method: string, params?: Record<string, unknown>) => Promise<T>
@@ -61,7 +62,13 @@ export function useMobileSourceControlCommitRunners(params: Params) {
           await sendCommitRequest(message)
         } catch (err) {
           recordCommitFailure({
-            error: err instanceof Error ? err.message : 'Commit failed',
+            error:
+              err instanceof Error
+                ? err.message
+                : translate(
+                    'auto.mobile.src.source.control.use.mobile.source.control.commit.runners.701ad7afef',
+                    'Commit failed'
+                  ),
             commitMessage: message,
             stagedEntries
           })

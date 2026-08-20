@@ -1,3 +1,4 @@
+import { translate } from '../src/i18n/i18n'
 export const FAKE_SCROLLBACK = [
   '$ claude "refactor the auth module to use JWT tokens"',
   '',
@@ -26,14 +27,17 @@ export function createMockTerminals(worktreeId?: string) {
     {
       handle: 'term-1',
       worktreeId: resolvedWorktreeId,
-      title: 'Claude — auth refactor',
+      title: translate(
+        'auto.mobile.scripts.mock.server.terminal.fixtures.8f249d8343',
+        'Claude — auth refactor'
+      ),
       isActive: true,
       hasRunningProcess: true
     },
     {
       handle: 'term-2',
       worktreeId: resolvedWorktreeId,
-      title: 'zsh',
+      title: translate('auto.mobile.scripts.mock.server.terminal.fixtures.fc2f70424d', 'zsh'),
       isActive: false,
       hasRunningProcess: false
     }

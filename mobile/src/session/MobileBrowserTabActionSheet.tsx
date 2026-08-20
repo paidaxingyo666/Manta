@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react-native'
 import type { MobileSessionTab } from './mobile-session-route-types'
 import { ActionSheetModal, type ActionSheetAction } from '../components/ActionSheetModal'
 import { getMobileSessionTabTitle } from './mobile-terminal-tab-agent'
+import { translate } from '../i18n/i18n'
 
 type BrowserTab = Extract<MobileSessionTab, { type: 'browser' }>
 export type MobileBrowserNavigationMethod = 'browser.back' | 'browser.forward' | 'browser.reload'
@@ -21,12 +22,19 @@ export function MobileBrowserTabActionSheet(props: {
   return (
     <ActionSheetModal
       visible={target != null}
-      title={target ? getMobileSessionTabTitle(target) : 'Browser'}
+      title={
+        target
+          ? getMobileSessionTabTitle(target)
+          : translate('auto.mobile.src.session.MobileBrowserTabActionSheet.199c2d6421', 'Browser')
+      }
       actions={[
         ...(target?.canGoBack
           ? [
               {
-                label: 'Back',
+                label: translate(
+                  'auto.mobile.src.session.MobileBrowserTabActionSheet.48a92edf21',
+                  'Back'
+                ),
                 icon: ChevronLeft,
                 onPress: () => {
                   const current = target
@@ -41,7 +49,10 @@ export function MobileBrowserTabActionSheet(props: {
         ...(target?.canGoForward
           ? [
               {
-                label: 'Forward',
+                label: translate(
+                  'auto.mobile.src.session.MobileBrowserTabActionSheet.9b884ed916',
+                  'Forward'
+                ),
                 icon: ChevronRight,
                 onPress: () => {
                   const current = target
@@ -54,7 +65,10 @@ export function MobileBrowserTabActionSheet(props: {
             ]
           : []),
         {
-          label: 'Reload',
+          label: translate(
+            'auto.mobile.src.session.MobileBrowserTabActionSheet.f317af1a27',
+            'Reload'
+          ),
           icon: RefreshCw,
           onPress: () => {
             const current = target
@@ -65,7 +79,10 @@ export function MobileBrowserTabActionSheet(props: {
           }
         },
         {
-          label: 'Close',
+          label: translate(
+            'auto.mobile.src.session.MobileBrowserTabActionSheet.bc29c5cca4',
+            'Close'
+          ),
           destructive: true,
           onPress: () => {
             const current = target

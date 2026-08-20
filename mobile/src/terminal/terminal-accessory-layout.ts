@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { TERMINAL_ACCESSORY_KEYS, type TerminalAccessoryKey } from './terminal-accessory-keys'
+import { terminalAccessoryKeys, type TerminalAccessoryKey } from './terminal-accessory-keys'
 
 export const TERMINAL_ACCESSORY_LAYOUT_STORAGE_KEY = 'manta:terminal-accessory-layout'
 
@@ -14,7 +14,7 @@ export type TerminalAccessoryLayoutPreference = TerminalAccessoryLayout & {
 }
 
 function builtInIds(): string[] {
-  return TERMINAL_ACCESSORY_KEYS.map((key) => key.id)
+  return terminalAccessoryKeys().map((key) => key.id)
 }
 
 function defaultPreference(ids = builtInIds()): TerminalAccessoryLayoutPreference {
@@ -205,7 +205,7 @@ export function reorderTerminalAccessoryBuiltInIds(
 export function getVisibleTerminalAccessoryKeys(
   visibleBuiltInIds: string[]
 ): TerminalAccessoryKey[] {
-  const byId = new Map(TERMINAL_ACCESSORY_KEYS.map((key) => [key.id, key]))
+  const byId = new Map(terminalAccessoryKeys().map((key) => [key.id, key]))
   return dedupeKnownIds(visibleBuiltInIds, new Set(byId.keys())).flatMap((id) => {
     const key = byId.get(id)
     return key ? [key] : []

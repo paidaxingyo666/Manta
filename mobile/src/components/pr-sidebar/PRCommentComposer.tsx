@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import { colors } from '../../theme/mobile-theme'
 import { isSubmittableCommentBody } from '../../session/pr-comment-actions'
 import { prCommentComposerStyles as styles } from './pr-comment-composer-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   // Plain-text composer shared by the reply affordance, the root-comment box, and
@@ -69,7 +70,12 @@ export function PRCommentComposer({
             accessibilityRole="button"
             accessibilityLabel="Cancel"
           >
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRCommentComposer.11732797fe',
+                'Cancel'
+              )}
+            </Text>
           </Pressable>
         ) : null}
         <Pressable

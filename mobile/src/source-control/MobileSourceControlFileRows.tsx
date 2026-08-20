@@ -7,6 +7,7 @@ import { formatMobileBranchEntryMeta } from './mobile-branch-entry-format'
 import { statusColor, type MobileGitStatusEntryView } from './mobile-source-control-screen-state'
 import type { MobileSourceControlState } from './use-mobile-source-control-state'
 import { styles } from './mobile-source-control-styles'
+import { translate } from '../i18n/i18n'
 
 type RowState = Pick<
   MobileSourceControlState,
@@ -66,11 +67,18 @@ export function makeRenderFileRow(
           </Text>
           {item.oldPath ? (
             <Text style={styles.fileMeta} numberOfLines={1}>
-              from {item.oldPath}
+              {translate(
+                'auto.mobile.src.source.control.MobileSourceControlFileRows.4b2aa967fe',
+                'from'
+              )}{' '}
+              {item.oldPath}
             </Text>
           ) : item.conflictStatus === 'unresolved' ? (
             <Text style={styles.fileMeta} numberOfLines={1}>
-              Unresolved conflict
+              {translate(
+                'auto.mobile.src.source.control.MobileSourceControlFileRows.6affcc87b5',
+                'Unresolved conflict'
+              )}{' '}
             </Text>
           ) : null}
         </View>
@@ -169,7 +177,12 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
     <View style={styles.branchCompareBlock}>
       <View style={styles.sectionHeader}>
         <View style={styles.branchSectionTitleBlock}>
-          <Text style={styles.sectionTitle}>Committed on Branch</Text>
+          <Text style={styles.sectionTitle}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlFileRows.9bf0bc8e42',
+              'Committed on Branch'
+            )}
+          </Text>
           {branchCompareSummaryText ? (
             <Text style={styles.branchSectionSubtitle} numberOfLines={1}>
               {branchCompareSummaryText}
@@ -181,7 +194,12 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
       {branchCompareState.kind === 'loading' ? (
         <View style={styles.branchStateRow}>
           <ActivityIndicator size="small" color={colors.textSecondary} />
-          <Text style={styles.branchStateText}>Loading committed changes...</Text>
+          <Text style={styles.branchStateText}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlFileRows.b591c5c028',
+              'Loading committed changes...'
+            )}
+          </Text>
         </View>
       ) : branchCompareState.kind === 'error' ? (
         <View style={styles.branchStateRow}>
@@ -190,7 +208,11 @@ export function BranchCompareFooter({ state }: { state: FooterState }) {
       ) : branchCompareResult && branchCompareResult.summary.status !== 'ready' ? (
         <View style={styles.branchStateRow}>
           <Text style={styles.branchStateText}>
-            {branchCompareResult.summary.errorMessage ?? 'Committed changes unavailable.'}
+            {branchCompareResult.summary.errorMessage ??
+              translate(
+                'auto.mobile.src.source.control.MobileSourceControlFileRows.429975939a',
+                'Committed changes unavailable.'
+              )}
           </Text>
         </View>
       ) : (

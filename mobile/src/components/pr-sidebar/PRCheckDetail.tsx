@@ -3,6 +3,7 @@ import { colors } from '../../theme/mobile-theme'
 import type { PRCheckRunDetails } from '../../../../src/shared/github/check-types'
 import { presentCheckDetail, type CheckDetailJob } from './pr-check-detail-content'
 import { mobilePrSidebarStyles as styles } from './mobile-pr-sidebar-styles'
+import { translate } from '../../i18n/i18n'
 
 // Per-check lazily-fetched detail. `loading`/`error` track the in-flight fetch;
 // `details` (once set) is the cache so collapse/re-expand never re-fetches.
@@ -33,7 +34,12 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
   if (!entry.details) {
     return (
       <View style={styles.checkDetailArea}>
-        <Text style={styles.checkDetailText}>No details available.</Text>
+        <Text style={styles.checkDetailText}>
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c496c7d2f0',
+            'No details available.'
+          )}
+        </Text>
       </View>
     )
   }
@@ -47,7 +53,12 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
   return (
     <View style={styles.checkDetailArea}>
       {isEmpty ? (
-        <Text style={styles.checkDetailText}>No details available.</Text>
+        <Text style={styles.checkDetailText}>
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c496c7d2f0',
+            'No details available.'
+          )}
+        </Text>
       ) : (
         <>
           {content.summaryLines.map((line, index) => (
@@ -57,7 +68,12 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
           ))}
           {content.annotations.length > 0 ? (
             <View style={styles.checkDetailGroup}>
-              <Text style={styles.checkDetailGroupLabel}>Annotations</Text>
+              <Text style={styles.checkDetailGroupLabel}>
+                {translate(
+                  'auto.mobile.src.components.pr.sidebar.PRCheckDetail.c7542a3d88',
+                  'Annotations'
+                )}
+              </Text>
               {content.annotations.map((annotation, index) => (
                 <View key={index}>
                   <Text style={styles.checkDetailLocator} numberOfLines={1}>
@@ -71,7 +87,12 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
                 </View>
               ))}
               {content.annotationsTruncated ? (
-                <Text style={styles.checkDetailText}>Showing first 20 annotations</Text>
+                <Text style={styles.checkDetailText}>
+                  {translate(
+                    'auto.mobile.src.components.pr.sidebar.PRCheckDetail.1d6fea641a',
+                    'Showing first 20 annotations'
+                  )}
+                </Text>
               ) : null}
             </View>
           ) : null}
@@ -82,7 +103,12 @@ export function PRCheckDetailView({ entry }: { entry: DetailEntry | undefined })
                 <JobRow key={index} job={job} />
               ))}
               {content.jobsTruncated ? (
-                <Text style={styles.checkDetailText}>Showing first 100 jobs</Text>
+                <Text style={styles.checkDetailText}>
+                  {translate(
+                    'auto.mobile.src.components.pr.sidebar.PRCheckDetail.aba886cf7a',
+                    'Showing first 100 jobs'
+                  )}
+                </Text>
               ) : null}
             </View>
           ) : null}

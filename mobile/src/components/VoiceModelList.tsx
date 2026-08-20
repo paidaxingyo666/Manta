@@ -6,6 +6,7 @@ import {
   type MobileSpeechModel,
   type MobileSpeechSetup
 } from '../dictation/mobile-dictation-setup'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   setup: MobileSpeechSetup
@@ -67,20 +68,40 @@ export function VoiceModelList({
                   <Text style={styles.modelLabel} numberOfLines={1}>
                     {model.label}
                   </Text>
-                  {model.recommended ? <Text style={styles.recommended}>Recommended</Text> : null}
+                  {model.recommended ? (
+                    <Text style={styles.recommended}>
+                      {translate(
+                        'auto.mobile.src.components.VoiceModelList.078e664084',
+                        'Recommended'
+                      )}
+                    </Text>
+                  ) : null}
                 </View>
                 <Text style={styles.modelMeta}>{modelMeta(model)}</Text>
               </View>
               {model.provider === 'openai' ? (
                 <Text style={styles.modelStateText}>
-                  {model.status === 'ready' ? 'API key set' : 'Set up on desktop'}
+                  {model.status === 'ready'
+                    ? translate(
+                        'auto.mobile.src.components.VoiceModelList.2674d17a69',
+                        'API key set'
+                      )
+                    : translate(
+                        'auto.mobile.src.components.VoiceModelList.8f6c8e1a20',
+                        'Set up on desktop'
+                      )}
                 </Text>
               ) : model.status === 'ready' ? (
                 <View style={styles.readyActions}>
                   {isSelected ? (
                     <View style={styles.selectedTag}>
                       <Check size={14} color={colors.statusGreen} strokeWidth={2.4} />
-                      <Text style={styles.selectedText}>In use</Text>
+                      <Text style={styles.selectedText}>
+                        {translate(
+                          'auto.mobile.src.components.VoiceModelList.920fafb3ba',
+                          'In use'
+                        )}
+                      </Text>
                     </View>
                   ) : (
                     <Pressable
@@ -94,7 +115,9 @@ export function VoiceModelList({
                       {selectBusy ? (
                         <ActivityIndicator size="small" color={colors.textSecondary} />
                       ) : (
-                        <Text style={styles.actionText}>Use</Text>
+                        <Text style={styles.actionText}>
+                          {translate('auto.mobile.src.components.VoiceModelList.128acde662', 'Use')}
+                        </Text>
                       )}
                     </Pressable>
                   )}

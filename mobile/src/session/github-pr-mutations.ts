@@ -1,6 +1,7 @@
 import type { GitHubPRMergeMethod } from '../../../src/shared/github/pull-request-types'
 import type { RpcClient } from '../transport/rpc-client'
 import { buildGithubPrParams, githubPrRepoSlugParam, type GitHubPrRepoSlug } from './github-pr-rpc'
+import { translate } from '../i18n/i18n'
 
 // Mutation wrappers for the github.* PR surface, split out so github-pr-rpc.ts
 // stays under the max-lines budget. They mirror the read wrappers' shape but
@@ -26,7 +27,17 @@ async function sendRaw(
     }
     return { ok: true, result: response.result }
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : `Request failed: ${method}` }
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.session.github.pr.mutations.eb7b22550f',
+              'Request failed: {{value0}}',
+              { value0: method }
+            )
+    }
   }
 }
 
@@ -72,7 +83,17 @@ async function sendGithubPrMutation(
   } catch (err) {
     // Why: a transport drop must not escape as an unhandled rejection — normalize
     // to the `{ ok:false, error }` outcome the action engine routes on.
-    return { ok: false, error: err instanceof Error ? err.message : `Request failed: ${method}` }
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.session.github.pr.mutations.eb7b22550f',
+              'Request failed: {{value0}}',
+              { value0: method }
+            )
+    }
   }
 }
 
@@ -112,7 +133,13 @@ export async function fetchUpdatePRTitle(
   // Why: the host returns a bare `true` on success; a missing/undefined result is
   // not a confirmed success, so require an explicit `=== true` rather than `!== false`.
   if (response.result !== true) {
-    return { ok: false, error: 'Failed to update title.' }
+    return {
+      ok: false,
+      error: translate(
+        'auto.mobile.src.session.github.pr.mutations.b2ca03ab48',
+        'Failed to update title.'
+      )
+    }
   }
   return { ok: true }
 }
@@ -273,7 +300,13 @@ export async function fetchResolveReviewThread(
   // Why: the host returns a bare `true` on success; a missing/undefined result is
   // not a confirmed success, so require an explicit `=== true` rather than `!== false`.
   if (response.result !== true) {
-    return { ok: false, error: 'Failed to update review thread.' }
+    return {
+      ok: false,
+      error: translate(
+        'auto.mobile.src.session.github.pr.mutations.833feff7b9',
+        'Failed to update review thread.'
+      )
+    }
   }
   return { ok: true }
 }

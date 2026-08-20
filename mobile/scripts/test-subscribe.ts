@@ -10,6 +10,7 @@
  */
 import nacl from 'tweetnacl'
 import WebSocket from 'ws'
+import { translate } from '../src/i18n/i18n'
 
 const WS_URL = process.env.MANTA_MOBILE_WS_URL ?? 'ws://127.0.0.1:6768'
 const token = process.argv[2]
@@ -159,7 +160,7 @@ async function chooseTerminal(ws: WebSocket, worktree: string): Promise<string> 
 
   const created = await send(ws, 'terminal.create', {
     worktree,
-    title: 'mobile-stream-repro'
+    title: translate('auto.mobile.scripts.test.subscribe.1b18317ab3', 'mobile-stream-repro')
   })
   if (!created.ok) {
     throw new Error(`terminal.create failed: ${formatResponse(created)}`)

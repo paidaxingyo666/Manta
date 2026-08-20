@@ -22,6 +22,7 @@ import {
   orderedKeysFromDragReorderPositions,
   type DragReorderPositions
 } from './drag-reorder-positions'
+import { translate } from '../i18n/i18n'
 
 const ROW_SPRING = { damping: 28, stiffness: 350 }
 const LONG_PRESS_ACTIVATION_MS = 200
@@ -299,8 +300,14 @@ function DragReorderRow({
           accessibilityLabel="Drag to reorder"
           accessibilityHint="Use the move up and move down actions to reorder without dragging"
           accessibilityActions={[
-            { name: 'moveUp', label: 'Move up' },
-            { name: 'moveDown', label: 'Move down' }
+            {
+              name: 'moveUp',
+              label: translate('auto.mobile.src.components.DragReorderList.79ee03d78a', 'Move up')
+            },
+            {
+              name: 'moveDown',
+              label: translate('auto.mobile.src.components.DragReorderList.b861e19c2d', 'Move down')
+            }
           ]}
           onAccessibilityAction={(event) => {
             if (event.nativeEvent.actionName === 'moveUp') {

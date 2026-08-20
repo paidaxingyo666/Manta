@@ -2,6 +2,7 @@ import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
 import { readMobileGitStatusResult } from '../session/mobile-diff-review-rpc'
 import type { MobileGitStatusResult } from './mobile-git-status'
+import { translate } from '../i18n/i18n'
 
 export type MobileHostedReviewStatusReadResult =
   | { ok: true; status: MobileGitStatusResult | null }
@@ -62,6 +63,15 @@ export async function commitMobileHostedReviewStagedChanges(
     }
     return { ok: true }
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Commit failed' }
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.source.control.mobile.hosted.review.git.preparation.5f8b294bce',
+              'Commit failed'
+            )
+    }
   }
 }

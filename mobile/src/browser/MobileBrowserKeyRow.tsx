@@ -23,6 +23,7 @@ export function MobileBrowserKeyRow({ disabled, onKeypress }: Props): React.JSX.
           onPress={() => onKeypress(key)}
         >
           <Text style={[styles.keyButtonText, disabled && styles.disabledText]}>
+            {/* i18n-exempt: keycaps */}
             {key === 'Backspace' ? '⌫' : key === 'Escape' ? 'Esc' : key}
           </Text>
         </Pressable>

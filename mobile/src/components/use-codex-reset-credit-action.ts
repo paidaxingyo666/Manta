@@ -10,6 +10,7 @@ import {
   requestCodexResetCredit
 } from './codex-reset-credit'
 import { useCodexResetCreditCapability } from './codex-reset-credit-capability'
+import { translate } from '../i18n/i18n'
 
 function describeScope(snapshot: AccountsSnapshot, scope: CodexResetCreditExpectedScope): string {
   const account = snapshot.codex.accounts.find((candidate) => candidate.id === scope.accountId)
@@ -72,8 +73,15 @@ export function useCodexResetCreditAction({
             ? '\n\nThis phone could not clear the discarded retry record. Retrying it is safe, but the record must be cleared before a new reset can be confirmed for this account.'
             : ''
           Alert.alert(
-            'Reset details changed',
-            `The account or reset offer changed before the host contacted Codex. Review the updated details, then confirm again.${cleanupWarning}`
+            translate(
+              'auto.mobile.src.components.use.codex.reset.credit.action.e034060288',
+              'Reset details changed'
+            ),
+            translate(
+              'auto.mobile.src.components.use.codex.reset.credit.action.ae28bb640b',
+              'The account or reset offer changed before the host contacted Codex. Review the updated details, then confirm again.{{value0}}',
+              { value0: cleanupWarning }
+            )
           )
           return
         }
@@ -84,7 +92,10 @@ export function useCodexResetCreditAction({
         Alert.alert(copy.title, `${copy.message}${cleanupWarning}`)
       } catch (error) {
         Alert.alert(
-          'Could not reset rate limits',
+          translate(
+            'auto.mobile.src.components.use.codex.reset.credit.action.4ca21e5dbc',
+            'Could not reset rate limits'
+          ),
           error instanceof Error ? error.message : String(error)
         )
       } finally {
@@ -102,8 +113,15 @@ export function useCodexResetCreditAction({
     const confirmedScope = resetScope
     const confirmedLabel = describeScope(snapshot, confirmedScope)
     Alert.alert(
-      'Use a rate-limit reset?',
-      `This spends one earned reset for ${confirmedLabel} and immediately resets eligible rate-limit windows.`,
+      translate(
+        'auto.mobile.src.components.use.codex.reset.credit.action.1333daf5e9',
+        'Use a rate-limit reset?'
+      ),
+      translate(
+        'auto.mobile.src.components.use.codex.reset.credit.action.e610f14b9f',
+        'This spends one earned reset for {{value0}} and immediately resets eligible rate-limit windows.',
+        { value0: confirmedLabel }
+      ),
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Use reset', onPress: () => void consume(confirmedScope) }

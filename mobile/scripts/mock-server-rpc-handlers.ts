@@ -25,6 +25,7 @@ let fakeWorktrees = createMockWorktrees(FAKE_REPOS, MOCK_WORKTREE_COUNT)
 
 // Mutable quick-command list so the mobile Quick Commands sheet can add/edit/
 // delete against the mock the same way it does a paired desktop.
+// i18n-exempt: mock fixture data, never rendered by the shipped app
 let fakeQuickCommands: TerminalQuickCommand[] = [
   {
     id: 'qc-codex-review',

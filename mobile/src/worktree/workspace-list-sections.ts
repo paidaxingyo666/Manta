@@ -1,6 +1,6 @@
 import type { WorkspaceStatusDefinition } from '../../../src/shared/worktree/types'
 import {
-  DEFAULT_MOBILE_WORKSPACE_STATUSES,
+  defaultMobileWorkspaceStatuses,
   coerceMobileWorkspaceStatuses,
   getMobileWorkspaceStatus,
   getMobileWorkspaceStatusGroupKey
@@ -127,7 +127,7 @@ export function buildSections(
   groupMode: MobileGroupMode,
   pinnedIds: Set<string>,
   repoIdsByName: ReadonlyMap<string, string> = new Map(),
-  workspaceStatuses: readonly WorkspaceStatusDefinition[] = DEFAULT_MOBILE_WORKSPACE_STATUSES,
+  workspaceStatuses: readonly WorkspaceStatusDefinition[] = defaultMobileWorkspaceStatuses(),
   collapsedGroups: ReadonlySet<string> = new Set()
 ): Section[] {
   const filtered = filterWorktrees(worktrees, filters, search)

@@ -34,6 +34,8 @@ import {
   buildMobileRichMarkdownEditorHtml,
   escapeInjectedJavaScriptString
 } from './mobile-rich-markdown-editor-html'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 const EDITOR_DOCUMENT_ORIGIN = 'https://manta-mobile-editor.invalid'
 const EDITOR_DOCUMENT_URL = `${EDITOR_DOCUMENT_ORIGIN}/rich-markdown-editor`
@@ -103,23 +105,95 @@ type ToolbarItem = {
   icon: ComponentType<{ size?: number; color?: string }>
 }
 
-const TOOLBAR_ITEMS: ToolbarItem[] = [
-  { command: 'paragraph', label: 'Body', icon: Pilcrow },
-  { command: 'heading1', label: 'H1', icon: Heading1 },
-  { command: 'heading2', label: 'H2', icon: Heading2 },
-  { command: 'heading3', label: 'H3', icon: Heading3 },
-  { command: 'bold', label: 'Bold', icon: Bold },
-  { command: 'italic', label: 'Italic', icon: Italic },
-  { command: 'strike', label: 'Strike', icon: Strikethrough },
-  { command: 'bulletList', label: 'Bullet list', icon: List },
-  { command: 'orderedList', label: 'Numbered list', icon: ListOrdered },
-  { command: 'taskList', label: 'Checklist', icon: ListTodo },
-  { command: 'quote', label: 'Quote', icon: Quote },
-  { command: 'link', label: 'Link', icon: Link },
-  { command: 'image', label: 'Image', icon: ImageIcon },
-  { command: 'inlineCode', label: 'Inline code', icon: Code2 },
-  { command: 'codeBlock', label: 'Code block', icon: FileCode2 }
-]
+const toolbarItems = localizedConstant((): ToolbarItem[] => [
+  {
+    command: 'paragraph',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.dcf876bee3', 'Body'),
+    icon: Pilcrow
+  },
+  {
+    command: 'heading1',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4e4c3e5c6e', 'H1'),
+    icon: Heading1
+  },
+  {
+    command: 'heading2',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4f4fb498bc', 'H2'),
+    icon: Heading2
+  },
+  {
+    command: 'heading3',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.aa920b1281', 'H3'),
+    icon: Heading3
+  },
+  {
+    command: 'bold',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.4dc5087c78', 'Bold'),
+    icon: Bold
+  },
+  {
+    command: 'italic',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.cf0a148dc5', 'Italic'),
+    icon: Italic
+  },
+  {
+    command: 'strike',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.c307647887', 'Strike'),
+    icon: Strikethrough
+  },
+  {
+    command: 'bulletList',
+    label: translate(
+      'auto.mobile.src.components.MobileRichMarkdownEditor.84ac880fd0',
+      'Bullet list'
+    ),
+    icon: List
+  },
+  {
+    command: 'orderedList',
+    label: translate(
+      'auto.mobile.src.components.MobileRichMarkdownEditor.ffbf532ba2',
+      'Numbered list'
+    ),
+    icon: ListOrdered
+  },
+  {
+    command: 'taskList',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.8cf9508628', 'Checklist'),
+    icon: ListTodo
+  },
+  {
+    command: 'quote',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.750393eed3', 'Quote'),
+    icon: Quote
+  },
+  {
+    command: 'link',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.78b02d6409', 'Link'),
+    icon: Link
+  },
+  {
+    command: 'image',
+    label: translate('auto.mobile.src.components.MobileRichMarkdownEditor.7d3dcdfd44', 'Image'),
+    icon: ImageIcon
+  },
+  {
+    command: 'inlineCode',
+    label: translate(
+      'auto.mobile.src.components.MobileRichMarkdownEditor.8758a483e2',
+      'Inline code'
+    ),
+    icon: Code2
+  },
+  {
+    command: 'codeBlock',
+    label: translate(
+      'auto.mobile.src.components.MobileRichMarkdownEditor.b0b327b090',
+      'Code block'
+    ),
+    icon: FileCode2
+  }
+])
 
 function MobileRichMarkdownEditorInner(
   { content, editable, onChange, onKeyboardInsetChange }: Props,
@@ -257,7 +331,7 @@ function MobileRichMarkdownEditorInner(
           contentContainerStyle={styles.toolbarContent}
           keyboardShouldPersistTaps="handled"
         >
-          {TOOLBAR_ITEMS.map((item) => {
+          {toolbarItems().map((item) => {
             const Icon = item.icon
             return (
               <Pressable

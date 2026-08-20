@@ -31,6 +31,7 @@ import {
   acquireMobileNativeChatTerminalWrite,
   releaseMobileNativeChatTerminalWrite
 } from './mobile-native-chat-terminal-write-lock'
+import { translate } from '../i18n/i18n'
 
 type CurrentRef<T> = { readonly current: T }
 type ShowToast = (message: string, durationMs?: number) => void
@@ -178,18 +179,42 @@ export function useMobileNativeChatImageAttachments({
         const message = uploadError instanceof Error ? uploadError.message : String(uploadError)
         onError?.()
         if (connStateRef.current !== 'connected') {
-          showToast('Attach failed (disconnected)', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.29cd4ef611',
+              'Attach failed (disconnected)'
+            ),
+            1500
+          )
           return
         }
         if (uploadError instanceof ImageLibraryPermissionError) {
-          showToast('Photo permission denied', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.8dd92621ac',
+              'Photo permission denied'
+            ),
+            1500
+          )
           return
         }
         if (message === CLIPBOARD_IMAGE_TOO_LARGE_ERROR) {
-          showToast('Image too large to attach', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.native.chat.image.attachments.f988cd21c5',
+              'Image too large to attach'
+            ),
+            1500
+          )
           return
         }
-        showToast('Attach failed', 1500)
+        showToast(
+          translate(
+            'auto.mobile.src.session.use.mobile.native.chat.image.attachments.26536a0cb0',
+            'Attach failed'
+          ),
+          1500
+        )
       }
     },
     [

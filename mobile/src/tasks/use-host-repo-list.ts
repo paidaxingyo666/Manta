@@ -13,6 +13,7 @@ import {
   needsHostRepoListFetch,
   type HostRepoListState
 } from './host-repo-list'
+import { translate } from '../i18n/i18n'
 
 export type HostRepoListResource<Repo> = {
   state: HostRepoListState<Repo>
@@ -101,7 +102,10 @@ export function useHostRepoList<Repo>(
         if (boundKeyRef.current === requestKey && requestIdRef.current === requestId) {
           dispatch({
             type: 'failed',
-            error: err instanceof Error ? err.message : 'Unknown error'
+            error:
+              err instanceof Error
+                ? err.message
+                : translate('auto.mobile.src.tasks.use.host.repo.list.905c2ef6f0', 'Unknown error')
           })
         }
         throw err

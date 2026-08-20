@@ -28,13 +28,18 @@ import {
   type MobileSpeechModel,
   type MobileSpeechSetup
 } from '../src/dictation/mobile-dictation-setup'
+import { translate } from '../src/i18n/i18n'
+import { localizedConstant } from '../src/i18n/localized-constant'
 
 const POLL_INTERVAL_MS = 1500
 
-const DICTATION_MODES = [
-  { value: 'toggle', label: 'Toggle' },
-  { value: 'hold', label: 'Hold' }
-] as const
+const dictationModes = localizedConstant(
+  () =>
+    [
+      { value: 'toggle', label: translate('auto.mobile.app.voice.settings.cb11e9d147', 'Toggle') },
+      { value: 'hold', label: translate('auto.mobile.app.voice.settings.858525ff0d', 'Hold') }
+    ] as const
+)
 
 type ModelBusyAction = { modelId: string; type: 'download' | 'select' | 'delete' }
 
@@ -187,7 +192,8 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
 
   const enabled = setup?.enabled ?? false
   const selectedModel = setup?.models.find((m) => m.id === setup.selectedModelId)
-  const selectedModelLabel = selectedModel?.label ?? 'None selected'
+  const selectedModelLabel =
+    selectedModel?.label ?? translate('auto.mobile.app.voice.settings.274e79be5b', 'None selected')
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
@@ -195,12 +201,19 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Voice</Text>
+        <Text style={styles.heading}>
+          {translate('auto.mobile.app.voice.settings.a529906cda', 'Voice')}
+        </Text>
       </View>
 
       {!client ? (
         <View style={[styles.section, styles.sectionTopGap]}>
-          <Text style={styles.emptyText}>Connect to a desktop to manage voice settings.</Text>
+          <Text style={styles.emptyText}>
+            {translate(
+              'auto.mobile.app.voice.settings.a49af08edd',
+              'Connect to a desktop to manage voice settings.'
+            )}
+          </Text>
         </View>
       ) : loading && setup === null ? (
         <View style={styles.loading}>
@@ -208,20 +221,33 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
         </View>
       ) : setup === null ? (
         <View style={[styles.section, styles.sectionTopGap]}>
-          <Text style={styles.errorText}>{error ?? 'Failed to load voice settings.'}</Text>
+          <Text style={styles.errorText}>
+            {error ??
+              translate(
+                'auto.mobile.app.voice.settings.15b9dfdf5d',
+                'Failed to load voice settings.'
+              )}
+          </Text>
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.groupHeading}>DICTATION</Text>
+          <Text style={styles.groupHeading}>
+            {translate('auto.mobile.app.voice.settings.2f87394b1c', 'DICTATION')}
+          </Text>
           <View style={[styles.section, styles.sectionTopGap]}>
             <View style={styles.row}>
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Enable Voice Dictation</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('auto.mobile.app.voice.settings.db7bf75951', 'Enable Voice Dictation')}
+                </Text>
                 <Text style={styles.rowSublabel}>
-                  Dictate text into any focused pane on your desktop.
+                  {translate(
+                    'auto.mobile.app.voice.settings.e20d603180',
+                    'Dictate text into any focused pane on your desktop.'
+                  )}{' '}
                 </Text>
               </View>
               <Switch
@@ -239,13 +265,18 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
               pointerEvents={enabled ? 'auto' : 'none'}
             >
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Dictation Mode</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('auto.mobile.app.voice.settings.261e33b845', 'Dictation Mode')}
+                </Text>
                 <Text style={styles.rowSublabel}>
-                  Toggle: press once to start, again to stop. Hold: dictate while held.
+                  {translate(
+                    'auto.mobile.app.voice.settings.bb05560461',
+                    'Toggle: press once to start, again to stop. Hold: dictate while held.'
+                  )}{' '}
                 </Text>
               </View>
               <View style={styles.segmented}>
-                {DICTATION_MODES.map((mode) => {
+                {dictationModes().map((mode) => {
                   const active = setup.dictationMode === mode.value
                   return (
                     <Pressable
@@ -263,7 +294,9 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
             </View>
           </View>
 
-          <Text style={[styles.groupHeading, styles.inputGroupGap]}>SPEECH MODEL</Text>
+          <Text style={[styles.groupHeading, styles.inputGroupGap]}>
+            {translate('auto.mobile.app.voice.settings.9fe0492be7', 'SPEECH MODEL')}
+          </Text>
           <View style={[styles.section, styles.sectionTopGap]}>
             <Pressable
               style={({ pressed }) => [
@@ -275,7 +308,9 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
               onPress={() => setModelDrawerOpen(true)}
             >
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Speech Model</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('auto.mobile.app.voice.settings.0beb7ba66f', 'Speech Model')}
+                </Text>
                 <Text style={styles.rowSublabel} numberOfLines={1}>
                   {selectedModelLabel}
                 </Text>
@@ -289,7 +324,9 @@ export default function VoiceSettingsScreen(): React.JSX.Element {
       )}
 
       <BottomDrawer visible={modelDrawerOpen} onClose={() => setModelDrawerOpen(false)}>
-        <Text style={styles.drawerTitle}>Speech Model</Text>
+        <Text style={styles.drawerTitle}>
+          {translate('auto.mobile.app.voice.settings.0beb7ba66f', 'Speech Model')}
+        </Text>
         {setup ? (
           <VoiceModelList
             setup={setup}

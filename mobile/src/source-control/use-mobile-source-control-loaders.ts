@@ -18,6 +18,7 @@ import {
   type ScreenState,
   type StatusLoadInFlight
 } from './mobile-source-control-screen-state'
+import { translate } from '../i18n/i18n'
 
 type Params = {
   client: RpcClient | null
@@ -112,7 +113,10 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
             }
             return {
               kind: 'error',
-              message: 'Unable to resolve the base branch for comparison.'
+              message: translate(
+                'auto.mobile.src.source.control.use.mobile.source.control.loaders.bf43cc1511',
+                'Unable to resolve the base branch for comparison.'
+              )
             }
           })
           return false
@@ -184,7 +188,15 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
             setScreenState({
               kind: 'error',
               message:
-                connState === 'connected' ? 'Connecting to desktop...' : 'Waiting for desktop...'
+                connState === 'connected'
+                  ? translate(
+                      'auto.mobile.src.source.control.use.mobile.source.control.loaders.70866f1cd8',
+                      'Connecting to desktop...'
+                    )
+                  : translate(
+                      'auto.mobile.src.source.control.use.mobile.source.control.loaders.e63543ccea',
+                      'Waiting for desktop...'
+                    )
             })
           }
           return false
@@ -216,7 +228,10 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
             if (isMobileGitUnavailable(response.error?.code, response.error?.message)) {
               setScreenState({
                 kind: 'unavailable',
-                message: 'Update Manta desktop to use Source Control on mobile.'
+                message: translate(
+                  'auto.mobile.src.source.control.use.mobile.source.control.loaders.2979415ed1',
+                  'Update Manta desktop to use Source Control on mobile.'
+                )
               })
               return false
             }

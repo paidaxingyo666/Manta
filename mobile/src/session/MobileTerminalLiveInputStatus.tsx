@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import { colors, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 type DictationStatus = {
   readonly isStarting: boolean
@@ -19,21 +20,43 @@ export function MobileTerminalLiveInputStatus({
   liveInputText
 }: MobileTerminalLiveInputStatusProps) {
   const title = dictation.isRecording
-    ? 'Listening'
+    ? translate('auto.mobile.src.session.MobileTerminalLiveInputStatus.cba1909d50', 'Listening')
     : dictation.isProcessing
-      ? 'Processing'
+      ? translate('auto.mobile.src.session.MobileTerminalLiveInputStatus.43b48ff5fa', 'Processing')
       : dictation.isStarting
-        ? 'Starting mic'
-        : 'Live input'
+        ? translate(
+            'auto.mobile.src.session.MobileTerminalLiveInputStatus.fcc1860f91',
+            'Starting mic'
+          )
+        : translate(
+            'auto.mobile.src.session.MobileTerminalLiveInputStatus.91ba33a4aa',
+            'Live input'
+          )
   const detail = dictation.isRecording
-    ? 'Tap mic to stop'
+    ? translate(
+        'auto.mobile.src.session.MobileTerminalLiveInputStatus.1865e8a27a',
+        'Tap mic to stop'
+      )
     : dictation.isProcessing
-      ? 'Transcribing on desktop'
+      ? translate(
+          'auto.mobile.src.session.MobileTerminalLiveInputStatus.ffe7662360',
+          'Transcribing on desktop'
+        )
       : dictation.isStarting
-        ? 'Preparing microphone'
+        ? translate(
+            'auto.mobile.src.session.MobileTerminalLiveInputStatus.85aee3eea3',
+            'Preparing microphone'
+          )
         : isAttaching
-          ? 'Uploading image to host'
-          : liveInputText || 'Tap to show keyboard'
+          ? translate(
+              'auto.mobile.src.session.MobileTerminalLiveInputStatus.aae3384704',
+              'Uploading image to host'
+            )
+          : liveInputText ||
+            translate(
+              'auto.mobile.src.session.MobileTerminalLiveInputStatus.ec87f139b7',
+              'Tap to show keyboard'
+            )
 
   return (
     <View style={styles.status}>

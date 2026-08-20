@@ -10,6 +10,7 @@ import { getPRReviewerRows } from './pr-checks-presentation'
 import { ReviewerPickerDrawer } from './ReviewerPickerDrawer'
 import { PRSection } from './PRSection'
 import { mobilePrSidebarStyles as styles } from './mobile-pr-sidebar-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   details: GitHubWorkItemDetails | null
@@ -68,16 +69,37 @@ export function PRReviewersSection({ details, actions, client, worktreeId }: Pro
   )
 
   return (
-    <PRSection title="Reviewers" trailing={addButton}>
+    <PRSection
+      title={translate(
+        'auto.mobile.src.components.pr.sidebar.PRReviewersSection.7d7dae0045',
+        'Reviewers'
+      )}
+      trailing={addButton}
+    >
       {loadingDetails ? (
         <View style={styles.reviewersStatus}>
           <ActivityIndicator color={colors.textSecondary} />
-          <Text style={styles.emptyText}>Loading reviewers…</Text>
+          <Text style={styles.emptyText}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PRReviewersSection.472af70c24',
+              'Loading reviewers…'
+            )}
+          </Text>
         </View>
       ) : detailsFailed ? (
-        <Text style={styles.emptyText}>Could not load reviewers. Tap refresh to try again.</Text>
+        <Text style={styles.emptyText}>
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRReviewersSection.4f951ce00a',
+            'Could not load reviewers. Tap refresh to try again.'
+          )}
+        </Text>
       ) : rows.length === 0 ? (
-        <Text style={styles.emptyText}>No reviewers requested</Text>
+        <Text style={styles.emptyText}>
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRReviewersSection.8c14e85fe2',
+            'No reviewers requested'
+          )}
+        </Text>
       ) : (
         rows.map((row) => {
           const busy = actions.isBusy({ kind: 'reviewer', login: row.login })

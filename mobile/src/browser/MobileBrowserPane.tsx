@@ -55,6 +55,7 @@ import {
 import { displayBrowserUrl, normalizeBrowserUrl } from './browser-url'
 import { MobileBrowserAddressField } from './MobileBrowserAddressField'
 import { resolveMobileBrowserAddressSync } from './mobile-browser-address-sync'
+import { translate } from '../i18n/i18n'
 
 export type MobileBrowserTab = {
   type: 'browser'
@@ -1062,21 +1063,21 @@ export function MobileBrowserPane({
       <View style={styles.toolbar}>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoBack}
-          label="Back"
+          label={translate('auto.mobile.src.browser.MobileBrowserPane.6bf3c4656f', 'Back')}
           onPress={goBack}
         >
           <ChevronLeft size={15} color={buttonColor(!controlsDisabled && tab.canGoBack)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoForward}
-          label="Forward"
+          label={translate('auto.mobile.src.browser.MobileBrowserPane.f9830183d5', 'Forward')}
           onPress={goForward}
         >
           <ChevronRight size={15} color={buttonColor(!controlsDisabled && tab.canGoForward)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled}
-          label="Reload"
+          label={translate('auto.mobile.src.browser.MobileBrowserPane.195080774d', 'Reload')}
           onPress={reloadPage}
         >
           <RefreshCw size={15} color={buttonColor(!controlsDisabled)} />
@@ -1198,7 +1199,12 @@ export function MobileBrowserPane({
         {dialog ? (
           <View style={styles.dialogOverlay}>
             <View style={styles.dialogCard}>
-              <Text style={styles.dialogTitle}>Browser Dialog</Text>
+              <Text style={styles.dialogTitle}>
+                {translate(
+                  'auto.mobile.src.browser.MobileBrowserPane.cf59e404bc',
+                  'Browser Dialog'
+                )}
+              </Text>
               <Text style={styles.dialogMessage}>{dialog.message}</Text>
               <View style={styles.dialogActions}>
                 {dialog.dialogType !== 'alert' ? (
@@ -1209,7 +1215,9 @@ export function MobileBrowserPane({
                     ]}
                     onPress={() => void sendDialogCommand('browser.dialogDismiss')}
                   >
-                    <Text style={styles.dialogButtonText}>Cancel</Text>
+                    <Text style={styles.dialogButtonText}>
+                      {translate('auto.mobile.src.browser.MobileBrowserPane.45711f1d50', 'Cancel')}
+                    </Text>
                   </Pressable>
                 ) : null}
                 <Pressable
@@ -1220,7 +1228,9 @@ export function MobileBrowserPane({
                   ]}
                   onPress={() => void sendDialogCommand('browser.dialogAccept')}
                 >
-                  <Text style={[styles.dialogButtonText, styles.dialogButtonPrimaryText]}>OK</Text>
+                  <Text style={[styles.dialogButtonText, styles.dialogButtonPrimaryText]}>
+                    {translate('auto.mobile.src.browser.MobileBrowserPane.e3c7ac5a87', 'OK')}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -1248,7 +1258,10 @@ export function MobileBrowserPane({
             style={styles.keyboardInput}
             value={keyboardValue}
             onChangeText={setKeyboardValue}
-            placeholder="Type on page…"
+            placeholder={translate(
+              'auto.mobile.src.browser.MobileBrowserPane.8371afb0eb',
+              'Type on page…'
+            )}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}

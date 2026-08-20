@@ -37,7 +37,7 @@ import type { SshConnectionState } from '../../../src/shared/ssh-types'
 import { getProjectIdentityKey } from '../../../src/shared/project-host-setup-projection'
 import {
   NEW_WORKTREE_AGENT_OPTIONS as AGENT_OPTIONS,
-  NEW_WORKTREE_BLANK_AGENT as BLANK_TERMINAL,
+  newWorktreeBlankAgent as BLANK_TERMINAL,
   pickPreferredNewWorktreeAgent,
   resolveNewWorktreeAgentSelection,
   type NewWorktreeAgentOption as AgentOption
@@ -73,6 +73,7 @@ import {
   buildNewWorkspaceRunTargetOptions,
   getNewWorkspaceRunTarget
 } from './new-workspace-project-targets'
+import { translate } from '../i18n/i18n'
 
 type Repo = Pick<SharedRepo, 'id' | 'displayName' | 'path'> &
   Partial<
@@ -451,7 +452,13 @@ function NewWorktreeModalContent({
           setSshState({
             targetId: selectedRepoConnectionId,
             status: 'error',
-            error: err instanceof Error ? err.message : 'Failed to read SSH connection state.',
+            error:
+              err instanceof Error
+                ? err.message
+                : translate(
+                    'auto.mobile.src.components.NewWorktreeModal.1a58be27e1',
+                    'Failed to read SSH connection state.'
+                  ),
             reconnectAttempt: 0
           })
         }
@@ -575,7 +582,13 @@ function NewWorktreeModalContent({
       setSshState({
         targetId: selectedRepoConnectionId,
         status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to connect to SSH repository.',
+        error:
+          err instanceof Error
+            ? err.message
+            : translate(
+                'auto.mobile.src.components.NewWorktreeModal.1588fda823',
+                'Failed to connect to SSH repository.'
+              ),
         reconnectAttempt: 0
       })
     } finally {
@@ -722,7 +735,7 @@ function NewWorktreeModalContent({
             detectedAgentIds.has(agent.id) &&
             isMobileTuiAgentEnabled(agent.id, runtimeSettings?.disabledTuiAgents)
         )
-  const pickerAgentOptions = [...visibleAgentOptions, BLANK_TERMINAL]
+  const pickerAgentOptions = [...visibleAgentOptions, BLANK_TERMINAL()]
   const projectPickerItems = useMemo(() => buildNewWorkspaceProjectOptions(repos), [repos])
   const selectedProjectId = selectedRepo ? getProjectIdentityKey(selectedRepo) : null
   const selectedProject =
@@ -821,7 +834,9 @@ function NewWorktreeModalContent({
     >
       <BottomDrawer visible={formSheetVisible} interactive={formSheetInteractive} onClose={onClose}>
         <View style={styles.header}>
-          <Text style={styles.title}>Create worktree</Text>
+          <Text style={styles.title}>
+            {translate('auto.mobile.src.components.NewWorktreeModal.52a6d084dc', 'Create worktree')}
+          </Text>
         </View>
 
         {loading ? (
@@ -830,7 +845,12 @@ function NewWorktreeModalContent({
           </View>
         ) : repos.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.emptyText}>No projects found</Text>
+            <Text style={styles.emptyText}>
+              {translate(
+                'auto.mobile.src.components.NewWorktreeModal.47a5edf943',
+                'No projects found'
+              )}
+            </Text>
           </View>
         ) : (
           <>
@@ -850,7 +870,17 @@ function NewWorktreeModalContent({
 
             <SmartWorkspaceSourceField
               composer={composer}
-              label={selectedRepoIsGit ? "Name or 'Create From'" : 'Workspace name'}
+              label={
+                selectedRepoIsGit
+                  ? translate(
+                      'auto.mobile.src.components.NewWorktreeModal.cb29993224',
+                      "Name or 'Create From'"
+                    )
+                  : translate(
+                      'auto.mobile.src.components.NewWorktreeModal.1054d2ae92',
+                      'Workspace name'
+                    )
+              }
               disabled={sshGate.requiresConnection}
               interactive={formSheetInteractive}
               onBeforeOpen={() => setError('')}
@@ -863,7 +893,12 @@ function NewWorktreeModalContent({
 
             {selectedRepoConnectionId ? (
               <View style={styles.field}>
-                <Text style={styles.label}>SSH Connection</Text>
+                <Text style={styles.label}>
+                  {translate(
+                    'auto.mobile.src.components.NewWorktreeModal.24d0c3cf77',
+                    'SSH Connection'
+                  )}
+                </Text>
                 <View style={styles.sshBox}>
                   <View style={styles.sshRow}>
                     <View
@@ -878,7 +913,11 @@ function NewWorktreeModalContent({
                     />
                     <View style={styles.sshCopy}>
                       <Text style={styles.sshTitle} numberOfLines={1}>
-                        {selectedRepo?.displayName ?? 'Remote repository'}
+                        {selectedRepo?.displayName ??
+                          translate(
+                            'auto.mobile.src.components.NewWorktreeModal.02690f5980',
+                            'Remote repository'
+                          )}
                       </Text>
                       <Text style={styles.sshSubtitle}>
                         {workspaceSshStatusLabel(sshGate.status)}
@@ -894,7 +933,15 @@ function NewWorktreeModalContent({
                         onPress={() => void connectSelectedSshRepo()}
                       >
                         <Text style={styles.sshConnectText}>
-                          {sshGate.connectInProgress ? 'Connecting...' : 'Connect'}
+                          {sshGate.connectInProgress
+                            ? translate(
+                                'auto.mobile.src.components.NewWorktreeModal.a2ba0ebe73',
+                                'Connecting...'
+                              )
+                            : translate(
+                                'auto.mobile.src.components.NewWorktreeModal.3bddecbdf9',
+                                'Connect'
+                              )}
                         </Text>
                       </Pressable>
                     )}
@@ -905,7 +952,9 @@ function NewWorktreeModalContent({
             ) : null}
 
             <View style={styles.field}>
-              <Text style={styles.label}>Agent</Text>
+              <Text style={styles.label}>
+                {translate('auto.mobile.src.components.NewWorktreeModal.5442bc67b1', 'Agent')}
+              </Text>
               <Pressable
                 style={[styles.fieldButton, sshGate.requiresConnection && styles.disabled]}
                 disabled={sshGate.requiresConnection}
@@ -916,14 +965,21 @@ function NewWorktreeModalContent({
               >
                 <MobileAgentIcon agentId={selectedAgent.id} size={16} />
                 <Text style={styles.fieldButtonText} numberOfLines={1}>
-                  {sshGate.requiresConnection ? 'Connect target first' : selectedAgent.label}
+                  {sshGate.requiresConnection
+                    ? translate(
+                        'auto.mobile.src.components.NewWorktreeModal.7e8fbb7a16',
+                        'Connect target first'
+                      )
+                    : selectedAgent.label}
                 </Text>
                 <ChevronDown size={14} color={colors.textMuted} />
               </Pressable>
             </View>
 
             <Pressable style={styles.advancedToggle} onPress={() => setShowAdvanced(!showAdvanced)}>
-              <Text style={styles.advancedText}>Advanced</Text>
+              <Text style={styles.advancedText}>
+                {translate('auto.mobile.src.components.NewWorktreeModal.013a3be8ad', 'Advanced')}
+              </Text>
               {showAdvanced ? (
                 <ChevronUp size={14} color={colors.textSecondary} />
               ) : (
@@ -939,12 +995,17 @@ function NewWorktreeModalContent({
                 />
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Note</Text>
+                  <Text style={styles.label}>
+                    {translate('auto.mobile.src.components.NewWorktreeModal.2cc02a28d4', 'Note')}
+                  </Text>
                   <TextInput
                     style={styles.input}
                     value={note}
                     onChangeText={setNote}
-                    placeholder="Write a note"
+                    placeholder={translate(
+                      'auto.mobile.src.components.NewWorktreeModal.6f2f2092d5',
+                      'Write a note'
+                    )}
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -954,11 +1015,24 @@ function NewWorktreeModalContent({
                 {setupCommand ? (
                   <View style={styles.field}>
                     <View style={styles.setupHeader}>
-                      <Text style={styles.label}>Setup script</Text>
+                      <Text style={styles.label}>
+                        {translate(
+                          'auto.mobile.src.components.NewWorktreeModal.d1c6e46d31',
+                          'Setup script'
+                        )}
+                      </Text>
                       {setupSource && (
                         <View style={styles.sourceBadge}>
                           <Text style={styles.sourceBadgeText}>
-                            {setupSource === 'manta.yaml' ? 'MANTA.YAML' : 'HOOKS'}
+                            {setupSource === 'manta.yaml'
+                              ? translate(
+                                  'auto.mobile.src.components.NewWorktreeModal.2c40d1cbfe',
+                                  'MANTA.YAML'
+                                )
+                              : translate(
+                                  'auto.mobile.src.components.NewWorktreeModal.f1c9144d48',
+                                  'HOOKS'
+                                )}
                           </Text>
                         </View>
                       )}
@@ -973,7 +1047,12 @@ function NewWorktreeModalContent({
                             ]}
                             onPress={() => setSetupDecisionChoice('run')}
                           >
-                            <Text style={styles.setupChoiceText}>Run</Text>
+                            <Text style={styles.setupChoiceText}>
+                              {translate(
+                                'auto.mobile.src.components.NewWorktreeModal.d2a6322022',
+                                'Run'
+                              )}
+                            </Text>
                           </Pressable>
                           <Pressable
                             style={[
@@ -982,12 +1061,22 @@ function NewWorktreeModalContent({
                             ]}
                             onPress={() => setSetupDecisionChoice('skip')}
                           >
-                            <Text style={styles.setupChoiceText}>Skip</Text>
+                            <Text style={styles.setupChoiceText}>
+                              {translate(
+                                'auto.mobile.src.components.NewWorktreeModal.b191daf935',
+                                'Skip'
+                              )}
+                            </Text>
                           </Pressable>
                         </View>
                       ) : (
                         <View style={styles.setupToggleRow}>
-                          <Text style={styles.setupToggleLabel}>Run setup command</Text>
+                          <Text style={styles.setupToggleLabel}>
+                            {translate(
+                              'auto.mobile.src.components.NewWorktreeModal.a1b2e6ce4c',
+                              'Run setup command'
+                            )}
+                          </Text>
                           <Switch
                             value={runSetup}
                             onValueChange={setRunSetup}
@@ -1018,7 +1107,15 @@ function NewWorktreeModalContent({
                   <ActivityIndicator size="small" color={colors.bgBase} />
                 ) : (
                   <Text style={styles.createText}>
-                    {sshGate.requiresConnection ? 'Connect target' : 'Create worktree'}
+                    {sshGate.requiresConnection
+                      ? translate(
+                          'auto.mobile.src.components.NewWorktreeModal.8a9197a7a9',
+                          'Connect target'
+                        )
+                      : translate(
+                          'auto.mobile.src.components.NewWorktreeModal.52a6d084dc',
+                          'Create worktree'
+                        )}
                   </Text>
                 )}
               </Pressable>
@@ -1048,7 +1145,7 @@ function NewWorktreeModalContent({
 
       <PickerListDrawer
         visible={visible && drawerView === 'project'}
-        title="Project"
+        title={translate('auto.mobile.src.components.NewWorktreeModal.28c9634f55', 'Project')}
         items={projectPickerItems}
         selectedId={selectedProjectId ?? ''}
         onSelect={(item) => handleRepoSelected(item.repo)}
@@ -1060,7 +1157,7 @@ function NewWorktreeModalContent({
 
       <PickerListDrawer
         visible={visible && drawerView === 'runTarget'}
-        title="Run on"
+        title={translate('auto.mobile.src.components.NewWorktreeModal.07abe6788b', 'Run on')}
         items={runTargetPickerItems}
         selectedId={selectedRepo?.id ?? ''}
         onSelect={(item) => handleRepoSelected(item.repo)}
@@ -1070,7 +1167,7 @@ function NewWorktreeModalContent({
 
       <PickerListDrawer
         visible={visible && drawerView === 'agent'}
-        title="Agent"
+        title={translate('auto.mobile.src.components.NewWorktreeModal.5442bc67b1', 'Agent')}
         items={pickerAgentOptions}
         selectedId={selectedAgent.id}
         onSelect={(agent) => {

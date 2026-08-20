@@ -10,6 +10,7 @@ import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
 import { hostedReviewCopy } from './hosted-review-copy'
 import { linkMobileHostedReview } from './mobile-pr-link'
+import { translate } from '../i18n/i18n'
 
 // The mobile worktree id is `${repoId}::${path}`; hosted-review RPCs expect the
 // repo selector separately, matching the desktop/runtime hosted-review service.
@@ -179,11 +180,23 @@ async function pushMobileBranchBeforeCreate(
   try {
     const response = await client.sendRequest('git.push', { worktree: `id:${worktreeId}` })
     if (!response.ok) {
-      return { ok: false, error: 'Push failed. Resolve the push error, then try again.' }
+      return {
+        ok: false,
+        error: translate(
+          'auto.mobile.src.source.control.mobile.hosted.review.service.41ec824f11',
+          'Push failed. Resolve the push error, then try again.'
+        )
+      }
     }
     return { ok: true }
   } catch {
-    return { ok: false, error: 'Push failed. Resolve the push error, then try again.' }
+    return {
+      ok: false,
+      error: translate(
+        'auto.mobile.src.source.control.mobile.hosted.review.service.41ec824f11',
+        'Push failed. Resolve the push error, then try again.'
+      )
+    }
   }
 }
 
@@ -280,7 +293,13 @@ export async function createMobileHostedReview(
     // as form errors instead of escaping as unhandled promise rejections.
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Failed to create pull request'
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.source.control.mobile.hosted.review.service.f13c7f799c',
+              'Failed to create pull request'
+            )
     }
   }
 }

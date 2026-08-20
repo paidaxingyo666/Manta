@@ -26,6 +26,7 @@ import {
   shouldKeepDirtyDraftOnPreviewLoadResult
 } from './mobile-file-preview-editability'
 import { filePreviewStyles as styles } from './mobile-file-preview-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   route: MobileFilePreviewRouteState
@@ -37,7 +38,15 @@ export function MobileFilePreviewScreen({ route }: Props) {
   const { client, state: connState } = useHostClient(previewParams?.hostId)
   const forceReconnect = useForceReconnect()
   const [preview, setPreview] = useState<MobileFilePreviewResult>(() =>
-    route.ok ? { status: 'loading', message: 'Loading preview...' } : previewError(route.message)
+    route.ok
+      ? {
+          status: 'loading',
+          message: translate(
+            'auto.mobile.src.files.MobileFilePreviewScreen.22a9f89ade',
+            'Loading preview...'
+          )
+        }
+      : previewError(route.message)
   )
   const [draftContent, setDraftContent] = useState('')
   const [savedContent, setSavedContent] = useState('')
@@ -99,11 +108,24 @@ export function MobileFilePreviewScreen({ route }: Props) {
         setSaveError('Waiting for desktop...')
         return
       }
-      setPreview({ status: 'waiting', message: 'Waiting for desktop...', reconnect: true })
+      setPreview({
+        status: 'waiting',
+        message: translate(
+          'auto.mobile.src.files.MobileFilePreviewScreen.302163baef',
+          'Waiting for desktop...'
+        ),
+        reconnect: true
+      })
       return
     }
     if (!preserveDirtyDraft) {
-      setPreview({ status: 'loading', message: 'Loading preview...' })
+      setPreview({
+        status: 'loading',
+        message: translate(
+          'auto.mobile.src.files.MobileFilePreviewScreen.22a9f89ade',
+          'Loading preview...'
+        )
+      })
     }
     setSaveError('')
     try {
@@ -179,7 +201,9 @@ export function MobileFilePreviewScreen({ route }: Props) {
     previewParams?.worktreeName,
     previewParams?.worktreeId ?? ''
   )
-  const meta = previewParams ? `${worktreeLabel} - ${displayPath}` : 'Preview'
+  const meta = previewParams
+    ? `${worktreeLabel} - ${displayPath}`
+    : translate('auto.mobile.src.files.MobileFilePreviewScreen.efa10b0260', 'Preview')
   const isEditableTerminalArtifact =
     previewSource?.source === 'terminalArtifact' &&
     isEditableMobileTerminalArtifactPreview(preview, previewSource.readOnly === true)
@@ -224,10 +248,17 @@ export function MobileFilePreviewScreen({ route }: Props) {
       router.back()
       return true
     }
-    Alert.alert('Discard changes?', 'Unsaved edits will be lost.', [
-      { text: 'Stay', style: 'cancel' },
-      { text: 'Discard', style: 'destructive', onPress: () => router.back() }
-    ])
+    Alert.alert(
+      translate('auto.mobile.src.files.MobileFilePreviewScreen.93debd0de1', 'Discard changes?'),
+      translate(
+        'auto.mobile.src.files.MobileFilePreviewScreen.bd76a56e52',
+        'Unsaved edits will be lost.'
+      ),
+      [
+        { text: 'Stay', style: 'cancel' },
+        { text: 'Discard', style: 'destructive', onPress: () => router.back() }
+      ]
+    )
     return true
   }, [hasUnsavedTerminalArtifactDraft, router])
 
@@ -250,7 +281,8 @@ export function MobileFilePreviewScreen({ route }: Props) {
           </Pressable>
           <View style={styles.titleBlock}>
             <Text style={styles.title} numberOfLines={1}>
-              {title || 'Preview'}
+              {title ||
+                translate('auto.mobile.src.files.MobileFilePreviewScreen.efa10b0260', 'Preview')}
             </Text>
             <Text style={styles.meta} numberOfLines={1}>
               {meta}
@@ -271,7 +303,9 @@ export function MobileFilePreviewScreen({ route }: Props) {
       <MobileFilePreviewBody
         preview={preview}
         relativePath={displayPath}
-        title={title || 'File'}
+        title={
+          title || translate('auto.mobile.src.files.MobileFilePreviewScreen.f643b9935b', 'File')
+        }
         editable={isEditableTerminalArtifact}
         draftContent={draftContent}
         saveError={saveError}
@@ -280,7 +314,14 @@ export function MobileFilePreviewScreen({ route }: Props) {
         imageHeight={Math.max(240, height - 160)}
         onDraftChange={setDraftContent}
         onImageError={() =>
-          setPreview({ status: 'error', message: 'Unable to load preview', reconnect: false })
+          setPreview({
+            status: 'error',
+            message: translate(
+              'auto.mobile.src.files.MobileFilePreviewScreen.b8b5edd90b',
+              'Unable to load preview'
+            ),
+            reconnect: false
+          })
         }
         onRetry={retry}
       />

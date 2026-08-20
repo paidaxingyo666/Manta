@@ -6,6 +6,7 @@ import type { RpcClient } from '../../transport/rpc-client'
 import type { MobileGitStatusResult } from '../../source-control/mobile-git-status'
 import type { MobilePrSidebarController } from '../../session/use-mobile-pr-sidebar-controller'
 import { MobilePRSidebar } from '../MobilePRSidebar'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   client: RpcClient | null
@@ -40,12 +41,18 @@ export function MobilePrViewPanelBody({
     : !isGithubRepo
       ? ({
           kind: 'blocked',
-          message: 'Hosted review panel unavailable for this provider.'
+          message: translate(
+            'auto.mobile.src.components.pr.sidebar.MobilePrViewPanel.fecbe9eaeb',
+            'Hosted review panel unavailable for this provider.'
+          )
         } as const)
       : branch === null
         ? ({
             kind: 'error',
-            message: 'Current branch unavailable.'
+            message: translate(
+              'auto.mobile.src.components.pr.sidebar.MobilePrViewPanel.2c83633f59',
+              'Current branch unavailable.'
+            )
           } as const)
         : controller.prSidebarState
 

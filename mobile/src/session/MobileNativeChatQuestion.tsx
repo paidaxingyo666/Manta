@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { ArrowUp, Check, CircleHelp } from 'lucide-react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { formatQuestionAnswer, type MobileChatQuestion } from './mobile-native-chat-question'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   question: MobileChatQuestion
@@ -119,7 +120,8 @@ export function MobileNativeChatQuestion({ question, onAnswer }: Props): React.J
           disabled={!canSubmitMulti}
         >
           <Text style={[styles.submitText, !canSubmitMulti && styles.submitTextDisabled]}>
-            Submit{selected.length > 0 ? ` (${selected.length})` : ''}
+            {translate('auto.mobile.src.session.MobileNativeChatQuestion.b00d711570', 'Submit')}
+            {selected.length > 0 ? ` (${selected.length})` : ''}
           </Text>
         </Pressable>
       ) : null}
@@ -129,7 +131,17 @@ export function MobileNativeChatQuestion({ question, onAnswer }: Props): React.J
           style={styles.freeInput}
           value={freeText}
           onChangeText={setFreeText}
-          placeholder={hasOptions ? 'Or type a reply…' : 'Type your reply…'}
+          placeholder={
+            hasOptions
+              ? translate(
+                  'auto.mobile.src.session.MobileNativeChatQuestion.6d27956f85',
+                  'Or type a reply…'
+                )
+              : translate(
+                  'auto.mobile.src.session.MobileNativeChatQuestion.a6c3892e34',
+                  'Type your reply…'
+                )
+          }
           placeholderTextColor={colors.textMuted}
           selectionColor={colors.accentBlue}
           onSubmitEditing={submitFreeText}

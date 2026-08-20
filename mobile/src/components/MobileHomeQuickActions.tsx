@@ -5,6 +5,7 @@ import type { HostProfile } from '../transport/types'
 import { hostEndpointLabel } from '../transport/host-endpoint-label'
 import { colors, radii, spacing } from '../theme/mobile-theme'
 import { PickerModal } from './PickerModal'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   connectedHosts: HostProfile[]
@@ -68,7 +69,9 @@ export function MobileHomeQuickActions(props: Props) {
 
   return (
     <>
-      <Text style={styles.sectionHeading}>Quick Actions</Text>
+      <Text style={styles.sectionHeading}>
+        {translate('auto.mobile.src.components.MobileHomeQuickActions.5d6f0d5506', 'Quick Actions')}
+      </Text>
       <View style={styles.quickActions}>
         <Pressable
           accessibilityRole="button"
@@ -78,7 +81,12 @@ export function MobileHomeQuickActions(props: Props) {
           <View style={styles.quickActionIcon}>
             <QrCode size={16} color={colors.textSecondary} />
           </View>
-          <Text style={styles.quickActionLabel}>Pair Desktop</Text>
+          <Text style={styles.quickActionLabel}>
+            {translate(
+              'auto.mobile.src.components.MobileHomeQuickActions.59cfb6c319',
+              'Pair Desktop'
+            )}
+          </Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -94,12 +102,20 @@ export function MobileHomeQuickActions(props: Props) {
           <View style={styles.quickActionIcon}>
             <Plus size={16} color={colors.textSecondary} />
           </View>
-          <Text style={styles.quickActionLabel}>New Workspace</Text>
+          <Text style={styles.quickActionLabel}>
+            {translate(
+              'auto.mobile.src.components.MobileHomeQuickActions.2dd1e74623',
+              'New Workspace'
+            )}
+          </Text>
         </Pressable>
       </View>
       <PickerModal
         visible={hostPickerVisible}
-        title="Create Workspace On"
+        title={translate(
+          'auto.mobile.src.components.MobileHomeQuickActions.a71b5def9e',
+          'Create Workspace On'
+        )}
         options={hostPickerOptions(props.connectedHosts)}
         selected=""
         onSelect={handleHostSelect}

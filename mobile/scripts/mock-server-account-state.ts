@@ -2,6 +2,7 @@ import {
   buildCodexResetCreditExpectedScope,
   type CodexResetCreditExpectedScope
 } from '../../src/shared/codex-reset-credit-scope'
+import { translate } from '../src/i18n/i18n'
 
 type MockCodexUsage = {
   availableResetCredits: number
@@ -98,7 +99,10 @@ function codexLimitsFor(accountId: string | null) {
       weekly: null,
       rateLimitResetCredits: { availableCount: 0, totalEarnedCount: 0, nextExpiresAt: null },
       updatedAt: fixtureStartedAt,
-      error: 'No managed Codex account selected',
+      error: translate(
+        'auto.mobile.scripts.mock.server.account.state.b6d12a8a4d',
+        'No managed Codex account selected'
+      ),
       status: 'unavailable' as const
     }
   }

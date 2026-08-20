@@ -13,6 +13,7 @@ import {
   getNotificationPermissionState,
   type NotificationPermissionState
 } from '../src/notifications/mobile-notifications'
+import { translate } from '../src/i18n/i18n'
 
 const DEFAULT_PERMISSION_STATE: NotificationPermissionState = {
   granted: false,
@@ -69,8 +70,14 @@ export default function NotificationsScreen() {
   const switchEnabled = pushEnabled && permissionState.granted
   const notificationsBlocked = permissionState.status === 'denied'
   const hint = notificationsBlocked
-    ? 'Notifications are disabled in system settings.'
-    : 'Get notified on this device when an agent needs your input or finishes a task.'
+    ? translate(
+        'auto.mobile.app.notifications.bb35911528',
+        'Notifications are disabled in system settings.'
+      )
+    : translate(
+        'auto.mobile.app.notifications.7550338ceb',
+        'Get notified on this device when an agent needs your input or finishes a task.'
+      )
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
@@ -78,12 +85,16 @@ export default function NotificationsScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Notifications</Text>
+        <Text style={styles.heading}>
+          {translate('auto.mobile.app.notifications.1888d0bc3c', 'Notifications')}
+        </Text>
       </View>
 
       <View style={styles.section}>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Agent notifications</Text>
+          <Text style={styles.rowLabel}>
+            {translate('auto.mobile.app.notifications.6975ae4fc2', 'Agent notifications')}
+          </Text>
           <Switch
             value={switchEnabled}
             disabled={notificationsBlocked}
@@ -101,7 +112,9 @@ export default function NotificationsScreen() {
             ]}
             onPress={() => void Linking.openSettings()}
           >
-            <Text style={styles.settingsButtonText}>Open Settings</Text>
+            <Text style={styles.settingsButtonText}>
+              {translate('auto.mobile.app.notifications.c7b96a0c60', 'Open Settings')}
+            </Text>
           </Pressable>
         )}
       </View>

@@ -12,6 +12,7 @@ import { colors } from '../theme/mobile-theme'
 import { statusColor } from '../components/pr-sidebar/pr-sidebar-status-color'
 import { hubStyles } from './mobile-source-control-hub-styles'
 import type { MobilePrChipRollup, MobilePrChipSummary } from './mobile-pr-chip-summary'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   summary: MobilePrChipSummary
@@ -36,12 +37,20 @@ export function MobileSourceControlPrChip({ summary, onPress }: Props) {
         <>
           <ActivityIndicator size="small" color={colors.textSecondary} />
           <Text style={hubStyles.chipMutedText} numberOfLines={1}>
-            Loading pull request…
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlPrChip.c6837f6503',
+              'Loading pull request…'
+            )}{' '}
           </Text>
         </>
       ) : summary.kind === 'none' ? (
         <>
-          <Text style={hubStyles.chipCreateText}>Create pull request</Text>
+          <Text style={hubStyles.chipCreateText}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlPrChip.435987497e',
+              'Create pull request'
+            )}
+          </Text>
           <View style={hubStyles.chipSpacer} />
           <ChevronRight size={16} color={colors.textMuted} strokeWidth={2.1} />
         </>

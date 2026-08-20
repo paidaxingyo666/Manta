@@ -13,6 +13,7 @@ import { CommentMarkdown } from './CommentMarkdown'
 import { PRCommentComposer } from './PRCommentComposer'
 import { formatPrCommentRelativeTime } from '../../../../src/shared/pr-comment-time'
 import { prCommentsStyles as styles } from './pr-comments-styles'
+import { translate } from '../../i18n/i18n'
 
 export type PRCommentRepoSlug = { owner: string; repo: string; host?: string }
 
@@ -76,7 +77,7 @@ export const PRCommentCard = memo(function PRCommentCard({
   const [editOpen, setEditOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const fileLabel = comment.path
-    ? `${comment.path.split('/').pop()}${comment.line ? `:L${comment.line}` : ''}`
+    ? `${comment.path.split('/').pop()}${comment.line ? translate('auto.mobile.src.components.pr.sidebar.PRCommentCard.3904d344e6', ':L{{value0}}', { value0: comment.line }) : ''}`
     : null
   const canResolve = actions ? isResolvableComment(comment) : false
   const resolveBusy =
@@ -134,7 +135,12 @@ export const PRCommentCard = memo(function PRCommentCard({
         ) : null}
         {comment.isResolved ? (
           <View style={styles.resolvedChip}>
-            <Text style={styles.resolvedChipText}>resolved</Text>
+            <Text style={styles.resolvedChipText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRCommentCard.0bf8177c2a',
+                'resolved'
+              )}
+            </Text>
           </View>
         ) : null}
         {comment.url ? (
@@ -152,7 +158,10 @@ export const PRCommentCard = memo(function PRCommentCard({
       {editOpen && actions ? (
         <View style={styles.composer}>
           <PRCommentComposer
-            placeholder="Edit comment…"
+            placeholder={translate(
+              'auto.mobile.src.components.pr.sidebar.PRCommentCard.067c1a9f64',
+              'Edit comment…'
+            )}
             submitLabel="Save"
             submitting={editBusy}
             initialBody={comment.body}
@@ -178,7 +187,9 @@ export const PRCommentCard = memo(function PRCommentCard({
             accessibilityLabel="Reply to comment"
           >
             <CornerDownRight size={13} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.actionButtonText}>Reply</Text>
+            <Text style={styles.actionButtonText}>
+              {translate('auto.mobile.src.components.pr.sidebar.PRCommentCard.45a827f616', 'Reply')}
+            </Text>
           </Pressable>
           {canMutate ? (
             <Pressable
@@ -194,7 +205,12 @@ export const PRCommentCard = memo(function PRCommentCard({
               accessibilityLabel="Edit comment"
             >
               <Pencil size={13} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.actionButtonText}>Edit</Text>
+              <Text style={styles.actionButtonText}>
+                {translate(
+                  'auto.mobile.src.components.pr.sidebar.PRCommentCard.c12d554f42',
+                  'Edit'
+                )}
+              </Text>
             </Pressable>
           ) : null}
           {canMutate ? (
@@ -207,7 +223,14 @@ export const PRCommentCard = memo(function PRCommentCard({
               accessibilityLabel="Delete comment"
             >
               <Trash2 size={13} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.actionButtonText}>{deleteBusy ? '…' : 'Delete'}</Text>
+              <Text style={styles.actionButtonText}>
+                {deleteBusy
+                  ? '…'
+                  : translate(
+                      'auto.mobile.src.components.pr.sidebar.PRCommentCard.e2274ea0af',
+                      'Delete'
+                    )}
+              </Text>
             </Pressable>
           ) : null}
           {canResolve ? (
@@ -225,7 +248,17 @@ export const PRCommentCard = memo(function PRCommentCard({
                 <Check size={13} color={colors.textSecondary} strokeWidth={2.2} />
               )}
               <Text style={styles.actionButtonText}>
-                {resolveBusy ? '…' : comment.isResolved ? 'Unresolve' : 'Resolve'}
+                {resolveBusy
+                  ? '…'
+                  : comment.isResolved
+                    ? translate(
+                        'auto.mobile.src.components.pr.sidebar.PRCommentCard.03a5d77bee',
+                        'Unresolve'
+                      )
+                    : translate(
+                        'auto.mobile.src.components.pr.sidebar.PRCommentCard.ee8c9b0b63',
+                        'Resolve'
+                      )}
               </Text>
             </Pressable>
           ) : null}
@@ -234,7 +267,10 @@ export const PRCommentCard = memo(function PRCommentCard({
       {replyOpen && !editOpen && actions ? (
         <View style={styles.composer}>
           <PRCommentComposer
-            placeholder="Write a reply…"
+            placeholder={translate(
+              'auto.mobile.src.components.pr.sidebar.PRCommentCard.a78a7ab1e9',
+              'Write a reply…'
+            )}
             submitLabel="Reply"
             submitting={replyBusy}
             onSubmit={submitReply}
@@ -246,8 +282,14 @@ export const PRCommentCard = memo(function PRCommentCard({
       {actions ? (
         <ConfirmModal
           visible={confirmDelete}
-          title="Delete comment?"
-          message="This permanently deletes the comment on GitHub."
+          title={translate(
+            'auto.mobile.src.components.pr.sidebar.PRCommentCard.c46785afdf',
+            'Delete comment?'
+          )}
+          message={translate(
+            'auto.mobile.src.components.pr.sidebar.PRCommentCard.5bc0381ef0',
+            'This permanently deletes the comment on GitHub.'
+          )}
           confirmLabel="Delete"
           destructive
           onConfirm={() => void actions.deleteComment(comment.id)}

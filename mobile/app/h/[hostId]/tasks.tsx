@@ -163,6 +163,8 @@ import {
   githubProjectHost,
   githubProjectIdentityKey as githubProjectKey
 } from '../../../../src/shared/github/project-identity'
+import { translate } from '../../../src/i18n/i18n'
+import { localizedConstant } from '../../../src/i18n/localized-constant'
 
 type RepoSummary = {
   id: string
@@ -686,11 +688,11 @@ type TaskListEntry =
   | { type: 'section'; key: string; label: string; color: string }
   | { type: 'item'; key: string; item: TaskItem }
 
-const PROVIDER_OPTIONS: PickerOption<TaskProvider>[] = [
+const providerOptionCatalog = localizedConstant((): PickerOption<TaskProvider>[] => [
   {
     value: 'github',
-    label: 'GitHub',
-    subtitle: 'Issues and pull requests',
+    label: translate('auto.mobile.app.h.hostId.tasks.81c733b110', 'GitHub'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.9a89d8a794', 'Issues and pull requests'),
     renderIcon: (selected) => (
       <TaskProviderLogo
         provider="github"
@@ -701,8 +703,8 @@ const PROVIDER_OPTIONS: PickerOption<TaskProvider>[] = [
   },
   {
     value: 'gitlab',
-    label: 'GitLab',
-    subtitle: 'Issues and merge requests',
+    label: translate('auto.mobile.app.h.hostId.tasks.05a5ce3bd3', 'GitLab'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.7013e8ca3f', 'Issues and merge requests'),
     renderIcon: (selected) => (
       <TaskProviderLogo
         provider="gitlab"
@@ -713,8 +715,8 @@ const PROVIDER_OPTIONS: PickerOption<TaskProvider>[] = [
   },
   {
     value: 'linear',
-    label: 'Linear',
-    subtitle: 'Assigned and team issues',
+    label: translate('auto.mobile.app.h.hostId.tasks.47fef27ba3', 'Linear'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.2fd235a0b0', 'Assigned and team issues'),
     renderIcon: (selected) => (
       <TaskProviderLogo
         provider="linear"
@@ -723,26 +725,75 @@ const PROVIDER_OPTIONS: PickerOption<TaskProvider>[] = [
       />
     )
   }
-]
+])
 
-const GITLAB_FILTER_OPTIONS: PickerOption<GitLabFilter>[] = [
-  { value: 'opened', label: 'Open', subtitle: 'Open issues and merge requests' },
-  { value: 'merged', label: 'Merged', subtitle: 'Merged merge requests' },
-  { value: 'closed', label: 'Closed', subtitle: 'Closed issues and merge requests' },
-  { value: 'all', label: 'All', subtitle: 'Any GitLab state' }
-]
+const gitlabFilterOptions = localizedConstant((): PickerOption<GitLabFilter>[] => [
+  {
+    value: 'opened',
+    label: translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.0e6dc1103b',
+      'Open issues and merge requests'
+    )
+  },
+  {
+    value: 'merged',
+    label: translate('auto.mobile.app.h.hostId.tasks.1adaee9dc5', 'Merged'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.7cce2f6a06', 'Merged merge requests')
+  },
+  {
+    value: 'closed',
+    label: translate('auto.mobile.app.h.hostId.tasks.069be2492c', 'Closed'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.9b963af4f7',
+      'Closed issues and merge requests'
+    )
+  },
+  {
+    value: 'all',
+    label: translate('auto.mobile.app.h.hostId.tasks.80817ce75f', 'All'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.4afbbaed03', 'Any GitLab state')
+  }
+])
 
-const LINEAR_FILTER_OPTIONS: PickerOption<LinearFilter>[] = [
-  { value: 'all', label: 'All', subtitle: 'Open issues across connected workspaces' },
-  { value: 'assigned', label: 'My Issues', subtitle: 'Issues assigned to you' },
-  { value: 'created', label: 'Created', subtitle: 'Issues created by you' },
-  { value: 'completed', label: 'Completed', subtitle: 'Recently completed issues' }
-]
+const linearFilterOptions = localizedConstant((): PickerOption<LinearFilter>[] => [
+  {
+    value: 'all',
+    label: translate('auto.mobile.app.h.hostId.tasks.80817ce75f', 'All'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.fe44fbb901',
+      'Open issues across connected workspaces'
+    )
+  },
+  {
+    value: 'assigned',
+    label: translate('auto.mobile.app.h.hostId.tasks.a4ffb4ee71', 'My Issues'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.78db01c922', 'Issues assigned to you')
+  },
+  {
+    value: 'created',
+    label: translate('auto.mobile.app.h.hostId.tasks.a3f8fe1681', 'Created'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.9110e576a8', 'Issues created by you')
+  },
+  {
+    value: 'completed',
+    label: translate('auto.mobile.app.h.hostId.tasks.1dabaa2f96', 'Completed'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.096f1e9798', 'Recently completed issues')
+  }
+])
 
-const LINEAR_VIEW_OPTIONS: PickerOption<LinearViewMode>[] = [
-  { value: 'list', label: 'List', subtitle: 'Compact issue rows' },
-  { value: 'board', label: 'Board', subtitle: 'Grouped columns' }
-]
+const linearViewOptions = localizedConstant((): PickerOption<LinearViewMode>[] => [
+  {
+    value: 'list',
+    label: translate('auto.mobile.app.h.hostId.tasks.b48817d5a9', 'List'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.e8601451af', 'Compact issue rows')
+  },
+  {
+    value: 'board',
+    label: translate('auto.mobile.app.h.hostId.tasks.ba80138de0', 'Board'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.24ac7a19dd', 'Grouped columns')
+  }
+])
 
 function taskWorkspaceFallback(item: ActionableTaskItem): string {
   if (item.provider === 'github' || item.provider === 'gitlab') {
@@ -769,28 +820,31 @@ const COMMENT_REACTION_EMOJI: Record<
   eyes: 'eyes'
 }
 
-const LINEAR_GROUP_OPTIONS: PickerOption<LinearGroupBy>[] = [
-  { value: 'none', label: 'No grouping' },
-  { value: 'status', label: 'Status' },
-  { value: 'assignee', label: 'Assignee' },
-  { value: 'priority', label: 'Priority' },
-  { value: 'team', label: 'Team' }
-]
+const linearGroupOptions = localizedConstant((): PickerOption<LinearGroupBy>[] => [
+  { value: 'none', label: translate('auto.mobile.app.h.hostId.tasks.0ddf93cd70', 'No grouping') },
+  { value: 'status', label: translate('auto.mobile.app.h.hostId.tasks.15ae8aef22', 'Status') },
+  { value: 'assignee', label: translate('auto.mobile.app.h.hostId.tasks.6f7452906d', 'Assignee') },
+  { value: 'priority', label: translate('auto.mobile.app.h.hostId.tasks.212212945a', 'Priority') },
+  { value: 'team', label: translate('auto.mobile.app.h.hostId.tasks.73305d5fbc', 'Team') }
+])
 
-const LINEAR_ORDER_OPTIONS: PickerOption<LinearOrderBy>[] = [
-  { value: 'priority', label: 'Priority' },
-  { value: 'updated', label: 'Updated' },
-  { value: 'identifier', label: 'Identifier' }
-]
+const linearOrderOptions = localizedConstant((): PickerOption<LinearOrderBy>[] => [
+  { value: 'priority', label: translate('auto.mobile.app.h.hostId.tasks.212212945a', 'Priority') },
+  { value: 'updated', label: translate('auto.mobile.app.h.hostId.tasks.e37bad9e9e', 'Updated') },
+  {
+    value: 'identifier',
+    label: translate('auto.mobile.app.h.hostId.tasks.929c42a79b', 'Identifier')
+  }
+])
 
-const LINEAR_DISPLAY_OPTIONS: PickerOption<LinearDisplayProperty>[] = [
-  { value: 'state', label: 'Status' },
-  { value: 'priority', label: 'Priority' },
-  { value: 'assignee', label: 'Assignee' },
-  { value: 'team', label: 'Team' },
-  { value: 'labels', label: 'Labels' },
-  { value: 'updated', label: 'Updated' }
-]
+const linearDisplayOptions = localizedConstant((): PickerOption<LinearDisplayProperty>[] => [
+  { value: 'state', label: translate('auto.mobile.app.h.hostId.tasks.15ae8aef22', 'Status') },
+  { value: 'priority', label: translate('auto.mobile.app.h.hostId.tasks.212212945a', 'Priority') },
+  { value: 'assignee', label: translate('auto.mobile.app.h.hostId.tasks.6f7452906d', 'Assignee') },
+  { value: 'team', label: translate('auto.mobile.app.h.hostId.tasks.73305d5fbc', 'Team') },
+  { value: 'labels', label: translate('auto.mobile.app.h.hostId.tasks.1a11cb6c10', 'Labels') },
+  { value: 'updated', label: translate('auto.mobile.app.h.hostId.tasks.e37bad9e9e', 'Updated') }
+])
 
 const DEFAULT_LINEAR_DISPLAY_PROPERTIES: LinearDisplayProperty[] = [
   'state',
@@ -801,36 +855,92 @@ const DEFAULT_LINEAR_DISPLAY_PROPERTIES: LinearDisplayProperty[] = [
   'updated'
 ]
 
-const GITHUB_KIND_OPTIONS: PickerOption<GitHubMode>[] = [
-  { value: 'issues', label: 'Issues', subtitle: 'GitHub issues' },
-  { value: 'prs', label: 'PRs', subtitle: 'GitHub pull requests' },
-  { value: 'project', label: 'Projects', subtitle: 'GitHub Projects views' }
-]
+const githubKindOptions = localizedConstant((): PickerOption<GitHubMode>[] => [
+  {
+    value: 'issues',
+    label: translate('auto.mobile.app.h.hostId.tasks.e3577861c3', 'Issues'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.3c02bc9b07', 'GitHub issues')
+  },
+  {
+    value: 'prs',
+    label: translate('auto.mobile.app.h.hostId.tasks.5e3fb77dd8', 'PRs'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.454d34f456', 'GitHub pull requests')
+  },
+  {
+    value: 'project',
+    label: translate('auto.mobile.app.h.hostId.tasks.2c1f90ca13', 'Projects'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.40d8fbad4a', 'GitHub Projects views')
+  }
+])
 
-const ISSUE_PRESETS: PickerOption<GitHubPreset>[] = [
-  { value: 'issues', label: 'Open', subtitle: 'Open GitHub issues' },
-  { value: 'my-issues', label: 'Assigned to me', subtitle: 'Open issues assigned to you' }
-]
+const issuePresets = localizedConstant((): PickerOption<GitHubPreset>[] => [
+  {
+    value: 'issues',
+    label: translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.e0767b497c', 'Open GitHub issues')
+  },
+  {
+    value: 'my-issues',
+    label: translate('auto.mobile.app.h.hostId.tasks.35e7949626', 'Assigned to me'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.f74971febc', 'Open issues assigned to you')
+  }
+])
 
-const PR_PRESETS: PickerOption<GitHubPreset>[] = [
-  { value: 'prs', label: 'Open', subtitle: 'Open pull requests' },
-  { value: 'my-prs', label: 'Mine', subtitle: 'Pull requests authored by you' },
-  { value: 'review', label: 'Needs review', subtitle: 'Review requests assigned to you' }
-]
+const prPresets = localizedConstant((): PickerOption<GitHubPreset>[] => [
+  {
+    value: 'prs',
+    label: translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.e2af88aadb', 'Open pull requests')
+  },
+  {
+    value: 'my-prs',
+    label: translate('auto.mobile.app.h.hostId.tasks.0e2b5a540e', 'Mine'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.41c6f687f9',
+      'Pull requests authored by you'
+    )
+  },
+  {
+    value: 'review',
+    label: translate('auto.mobile.app.h.hostId.tasks.a31d90dd7e', 'Needs review'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.55e8f0f221',
+      'Review requests assigned to you'
+    )
+  }
+])
 
-const GITLAB_VIEW_OPTIONS: PickerOption<GitLabView>[] = [
-  { value: 'project', label: 'Project MRs', subtitle: 'Merge requests and issues by repository' },
-  { value: 'todos', label: 'My Todos', subtitle: 'Pending GitLab todos' }
-]
+const gitlabViewOptions = localizedConstant((): PickerOption<GitLabView>[] => [
+  {
+    value: 'project',
+    label: translate('auto.mobile.app.h.hostId.tasks.7f18577bdf', 'Project MRs'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.08dad860f5',
+      'Merge requests and issues by repository'
+    )
+  },
+  {
+    value: 'todos',
+    label: translate('auto.mobile.app.h.hostId.tasks.b8b23d4005', 'My Todos'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.9dc97b7c46', 'Pending GitLab todos')
+  }
+])
 
-const SORT_OPTIONS: PickerOption<TaskSort>[] = [
-  { value: 'updated', label: 'Updated', subtitle: 'Newest activity first' },
+const sortOptions = localizedConstant((): PickerOption<TaskSort>[] => [
+  {
+    value: 'updated',
+    label: translate('auto.mobile.app.h.hostId.tasks.e37bad9e9e', 'Updated'),
+    subtitle: translate('auto.mobile.app.h.hostId.tasks.e396dc7b91', 'Newest activity first')
+  },
   {
     value: 'repository',
-    label: 'Repository',
-    subtitle: 'Group by repository, then newest activity'
+    label: translate('auto.mobile.app.h.hostId.tasks.4414bc388e', 'Repository'),
+    subtitle: translate(
+      'auto.mobile.app.h.hostId.tasks.ffde92a257',
+      'Group by repository, then newest activity'
+    )
   }
-]
+])
 
 type ProjectSortOverride = { fieldId: string; direction: GitHubProjectSortDirection }
 type ProjectListEntry =
@@ -1464,7 +1574,11 @@ function getLinearIssueGroup(
   if (groupBy === 'team') {
     return { key: `team:${issue.team.id}`, label: issue.team.name, color: issue.state.color }
   }
-  return { key: 'all', label: 'Issues', color: colors.accentBlue }
+  return {
+    key: 'all',
+    label: translate('auto.mobile.app.h.hostId.tasks.e3577861c3', 'Issues'),
+    color: colors.accentBlue
+  }
 }
 
 function groupLinearIssues(
@@ -1474,7 +1588,14 @@ function groupLinearIssues(
 ): LinearIssueSection[] {
   const sorted = [...issues].sort((a, b) => compareLinearIssues(a, b, orderBy))
   if (groupBy === 'none') {
-    return [{ key: 'all', label: 'Issues', color: colors.accentBlue, issues: sorted }]
+    return [
+      {
+        key: 'all',
+        label: translate('auto.mobile.app.h.hostId.tasks.e3577861c3', 'Issues'),
+        color: colors.accentBlue,
+        issues: sorted
+      }
+    ]
   }
   const sections = new Map<
     string,
@@ -1919,14 +2040,22 @@ function GitHubPrFileDiff({
   const hiddenDiffLineCount = Math.max(0, diffPreview.totalLineCount - visibleDiffLines.length)
 
   if (diffPreview.totalLineCount === 0) {
-    return <Text style={styles.detailMuted}>No text changes found.</Text>
+    return (
+      <Text style={styles.detailMuted}>
+        {translate('auto.mobile.app.h.hostId.tasks.4f60b77ecb', 'No text changes found.')}
+      </Text>
+    )
   }
 
   return (
     <View style={styles.fileDiff}>
       {hiddenDiffLineCount > 0 ? (
         <Text style={styles.detailMuted}>
-          Showing first {MAX_RENDERED_PR_DIFF_LINES} of {diffPreview.totalLineCount} diff lines.
+          {translate('auto.mobile.app.h.hostId.tasks.98eaa94b14', 'Showing first')}{' '}
+          {MAX_RENDERED_PR_DIFF_LINES}{' '}
+          {translate('auto.mobile.app.h.hostId.tasks.8c6d399553', 'of')}{' '}
+          {diffPreview.totalLineCount}{' '}
+          {translate('auto.mobile.app.h.hostId.tasks.978d06c3da', 'diff lines.')}{' '}
         </Text>
       ) : null}
       {visibleDiffLines.map((line) => {
@@ -1970,7 +2099,10 @@ function GitHubPrFileDiff({
                   style={[styles.input, styles.replyInput]}
                   value={commentDrafts[draftKey] ?? ''}
                   onChangeText={(next) => onCommentDraftChange(draftKey, next)}
-                  placeholder="Add review comment"
+                  placeholder={translate(
+                    'auto.mobile.app.h.hostId.tasks.fd22280789',
+                    'Add review comment'
+                  )}
                   placeholderTextColor={colors.textMuted}
                   multiline
                   textAlignVertical="top"
@@ -1980,7 +2112,10 @@ function GitHubPrFileDiff({
                   disabled={disabled || !(commentDrafts[draftKey] ?? '').trim()}
                   onPress={() => onSubmitComment(commentLine)}
                 >
-                  <Text style={styles.inlineSaveText}>Comment on line {commentLine}</Text>
+                  <Text style={styles.inlineSaveText}>
+                    {translate('auto.mobile.app.h.hostId.tasks.ae64bd16d3', 'Comment on line')}{' '}
+                    {commentLine}
+                  </Text>
                 </Pressable>
               </>
             ) : null}
@@ -3186,7 +3321,13 @@ export default function MobileTasksScreen() {
             return {
               items: [] as Array<Extract<TaskItem, { provider: 'github' }>>,
               repoId: repo.id,
-              error: err instanceof Error ? err.message : 'Failed to load GitHub tasks'
+              error:
+                err instanceof Error
+                  ? err.message
+                  : translate(
+                      'auto.mobile.app.h.hostId.tasks.06dfeb18e2',
+                      'Failed to load GitHub tasks'
+                    )
             }
           }
         }
@@ -3385,7 +3526,13 @@ export default function MobileTasksScreen() {
                 console.warn(`[mobile tasks] failed to fetch ${provider} work items`, repo.id, err)
                 return {
                   items: [] as TaskItem[],
-                  error: err instanceof Error ? err.message : 'Failed to load GitLab tasks'
+                  error:
+                    err instanceof Error
+                      ? err.message
+                      : translate(
+                          'auto.mobile.app.h.hostId.tasks.6cdb51c354',
+                          'Failed to load GitLab tasks'
+                        )
                 }
               }
             }
@@ -4811,11 +4958,16 @@ export default function MobileTasksScreen() {
       : null
   const workspaceSparseDraftError =
     workspaceSparseDraft && workspaceSparseDraftName.length === 0
-      ? 'Name is required.'
+      ? translate('auto.mobile.app.h.hostId.tasks.453d473ddb', 'Name is required.')
       : workspaceSparseDraftName.length > 80
-        ? 'Name must be 80 characters or fewer.'
+        ? translate(
+            'auto.mobile.app.h.hostId.tasks.8c1857dafe',
+            'Name must be 80 characters or fewer.'
+          )
         : workspaceSparseDraftNameCollision
-          ? `"${workspaceSparseDraftNameCollision.name}" already exists.`
+          ? translate('auto.mobile.app.h.hostId.tasks.391d118765', '"{{value0}}" already exists.', {
+              value0: workspaceSparseDraftNameCollision.name
+            })
           : (workspaceSparseDraftParsed?.error ?? null)
   const canSaveWorkspaceSparseDraft =
     workspaceSparseDraft !== null &&
@@ -4855,7 +5007,7 @@ export default function MobileTasksScreen() {
       {
         value: 'blank' as const,
         label: workspaceAgentLabel('blank'),
-        subtitle: 'Open a shell',
+        subtitle: translate('auto.mobile.app.h.hostId.tasks.586fb25e03', 'Open a shell'),
         renderIcon: () => <MobileAgentIcon agentId="__blank__" size={18} />
       }
     ]
@@ -5199,7 +5351,13 @@ export default function MobileTasksScreen() {
           setWorkspaceSshState({
             targetId: workspaceCreateTargetConnectionId,
             status: 'error',
-            error: err instanceof Error ? err.message : 'Failed to read SSH connection state.',
+            error:
+              err instanceof Error
+                ? err.message
+                : translate(
+                    'auto.mobile.app.h.hostId.tasks.0b24cac278',
+                    'Failed to read SSH connection state.'
+                  ),
             reconnectAttempt: 0
           })
         }
@@ -5243,7 +5401,13 @@ export default function MobileTasksScreen() {
       setWorkspaceSshState({
         targetId: workspaceCreateTargetConnectionId,
         status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to connect to SSH repository.',
+        error:
+          err instanceof Error
+            ? err.message
+            : translate(
+                'auto.mobile.app.h.hostId.tasks.78272920be',
+                'Failed to connect to SSH repository.'
+              ),
         reconnectAttempt: 0
       })
     } finally {
@@ -8170,7 +8334,7 @@ export default function MobileTasksScreen() {
           style={[styles.input, styles.commentInput, styles.commentComposerInput]}
           value={args.value}
           onChangeText={args.onChangeText}
-          placeholder="Add a comment"
+          placeholder={translate('auto.mobile.app.h.hostId.tasks.fc8e00d799', 'Add a comment')}
           placeholderTextColor={colors.textMuted}
           editable={!args.disabled}
           multiline
@@ -8232,7 +8396,9 @@ export default function MobileTasksScreen() {
                   onPress={() => void toggleGitHubReviewThread(actionItem, comment)}
                 >
                   <Text style={styles.inlineSaveText}>
-                    {comment.isResolved ? 'Reopen thread' : 'Resolve thread'}
+                    {comment.isResolved
+                      ? translate('auto.mobile.app.h.hostId.tasks.a84735398a', 'Reopen thread')
+                      : translate('auto.mobile.app.h.hostId.tasks.4638e5d620', 'Resolve thread')}
                   </Text>
                 </Pressable>
               ) : null}
@@ -8245,7 +8411,7 @@ export default function MobileTasksScreen() {
                     [String(comment.id)]: next
                   }))
                 }
-                placeholder="Reply"
+                placeholder={translate('auto.mobile.app.h.hostId.tasks.d8cc91fe24', 'Reply')}
                 placeholderTextColor={colors.textMuted}
                 multiline
                 textAlignVertical="top"
@@ -8255,7 +8421,9 @@ export default function MobileTasksScreen() {
                 disabled={mutatingStatus || !(itemReplyDrafts[String(comment.id)] ?? '').trim()}
                 onPress={() => void replyToGitHubComment(actionItem, comment)}
               >
-                <Text style={styles.inlineSaveText}>Reply</Text>
+                <Text style={styles.inlineSaveText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.d8cc91fe24', 'Reply')}
+                </Text>
               </Pressable>
             </>
           ) : null}
@@ -8285,9 +8453,19 @@ export default function MobileTasksScreen() {
           }
         >
           <Text style={styles.resolvedCommentTitle} numberOfLines={1}>
-            Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by {commentAuthor(root)}
+            {translate('auto.mobile.app.h.hostId.tasks.6267438140', 'Resolved')}{' '}
+            {group.kind === 'thread'
+              ? translate('auto.mobile.app.h.hostId.tasks.4f9ae79c6d', 'thread')
+              : translate('auto.mobile.app.h.hostId.tasks.a71fb209e4', 'comment')}{' '}
+            {translate('auto.mobile.app.h.hostId.tasks.364aac3cc7', 'by')} {commentAuthor(root)}
           </Text>
-          <Text style={styles.detailSectionMeta}>{count > 1 ? `${count} comments` : 'Show'}</Text>
+          <Text style={styles.detailSectionMeta}>
+            {count > 1
+              ? translate('auto.mobile.app.h.hostId.tasks.52fd613db0', '{{value0}} comments', {
+                  value0: count
+                })
+              : translate('auto.mobile.app.h.hostId.tasks.cf57cc3c02', 'Show')}
+          </Text>
         </Pressable>
       )
     }
@@ -8333,14 +8511,20 @@ export default function MobileTasksScreen() {
       : (linearTeams.find((team) => team.id === createTeamId) ?? linearTeams[0] ?? null)
   const selectedCreateTargetLabel =
     provider === 'github' || provider === 'gitlab'
-      ? ((selectedCreateTarget as RepoSummary | null)?.displayName ?? 'Select target')
-      : ((selectedCreateTarget as LinearTeam | null)?.name ?? 'Select target')
+      ? ((selectedCreateTarget as RepoSummary | null)?.displayName ??
+        translate('auto.mobile.app.h.hostId.tasks.c7c8a82c20', 'Select target'))
+      : ((selectedCreateTarget as LinearTeam | null)?.name ??
+        translate('auto.mobile.app.h.hostId.tasks.c7c8a82c20', 'Select target'))
   const providerLabel =
-    provider === 'github' ? 'GitHub' : provider === 'gitlab' ? 'GitLab' : 'Linear'
+    provider === 'github'
+      ? translate('auto.mobile.app.h.hostId.tasks.81c733b110', 'GitHub')
+      : provider === 'gitlab'
+        ? translate('auto.mobile.app.h.hostId.tasks.05a5ce3bd3', 'GitLab')
+        : translate('auto.mobile.app.h.hostId.tasks.47fef27ba3', 'Linear')
   const showHeaderCreateTask =
     provider === 'linear' || (provider === 'github' && githubMode === 'items')
   const providerOptions = useMemo(
-    () => PROVIDER_OPTIONS.filter((option) => visibleProviders.includes(option.value)),
+    () => providerOptionCatalog().filter((option) => visibleProviders.includes(option.value)),
     [visibleProviders]
   )
   const selectedCreateRepo =
@@ -8372,13 +8556,17 @@ export default function MobileTasksScreen() {
             ? githubIssueSourceRows[0]!.sources.prs
             : githubIssueSourceRows[0]!.sources.upstreamCandidate
         )
-      : `${githubIssueSourceRows.length} sources`
+      : translate('auto.mobile.app.h.hostId.tasks.c97d88e507', '{{value0}} sources', {
+          value0: githubIssueSourceRows.length
+        })
   const repoPickerLabel =
     selectedRepoIds.size === 0 || selectedHostedRepos.length === hostedRepos.length
-      ? 'All repos'
+      ? translate('auto.mobile.app.h.hostId.tasks.741999e374', 'All repos')
       : selectedHostedRepos.length === 1
         ? selectedHostedRepos[0]!.displayName
-        : `${selectedHostedRepos.length} repos`
+        : translate('auto.mobile.app.h.hostId.tasks.ceb85019a0', '{{value0}} repos', {
+            value0: selectedHostedRepos.length
+          })
   const repoPickerSelectedRepo =
     selectedRepoIds.size > 0 && selectedHostedRepos.length === 1 ? selectedHostedRepos[0]! : null
   const workspaceRepoOptions = useMemo<PickerOption<string>[]>(
@@ -8428,7 +8616,9 @@ export default function MobileTasksScreen() {
     }
     return entries
   }, [reposById, sortedItems, taskSort])
-  const sortLabel = SORT_OPTIONS.find((option) => option.value === taskSort)?.label ?? 'Updated'
+  const sortLabel =
+    sortOptions().find((option) => option.value === taskSort)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.e37bad9e9e', 'Updated')
   const githubProjectFields = githubProjectTable?.selectedView.fields ?? []
   const githubProjectViewSort = githubProjectTable?.selectedView.sortByFields?.[0] ?? null
   const githubProjectSortField = githubProjectSortOverride
@@ -8437,20 +8627,30 @@ export default function MobileTasksScreen() {
   const githubProjectSortDirection =
     githubProjectSortOverride?.direction ?? githubProjectViewSort?.direction ?? null
   const githubProjectSortLabel = githubProjectSortField
-    ? `${githubProjectSortField.name} ${githubProjectSortDirection === 'DESC' ? 'desc' : 'asc'}`
-    : 'View order'
+    ? `${githubProjectSortField.name} ${githubProjectSortDirection === 'DESC' ? translate('auto.mobile.app.h.hostId.tasks.d881447de0', 'desc') : translate('auto.mobile.app.h.hostId.tasks.ab3102f723', 'asc')}`
+    : translate('auto.mobile.app.h.hostId.tasks.1ecfa2eb62', 'View order')
   const githubProjectFieldsLabel =
     githubProjectAvailableSummaryFields.length > 0
-      ? `${githubProjectSummaryFields.length}/${githubProjectAvailableSummaryFields.length} fields`
-      : 'Fields'
+      ? translate(
+          'auto.mobile.app.h.hostId.tasks.04952594ab.a38e31',
+          '{{value0}}/{{value1}} fields',
+          {
+            value0: githubProjectSummaryFields.length,
+            value1: githubProjectAvailableSummaryFields.length
+          }
+        )
+      : translate('auto.mobile.app.h.hostId.tasks.0e2b97419a', 'Fields')
   const githubProjectSortOptions = useMemo<PickerOption<string>[]>(
     () => [
       {
         value: PROJECT_VIEW_DEFAULT_SORT,
-        label: 'View order',
+        label: translate('auto.mobile.app.h.hostId.tasks.1ecfa2eb62', 'View order'),
         subtitle: githubProjectViewSort
-          ? `Uses ${githubProjectViewSort.field.name} ${githubProjectViewSort.direction.toLowerCase()}`
-          : 'Uses GitHub rank order'
+          ? translate('auto.mobile.app.h.hostId.tasks.a0e54c9934', 'Uses {{value0}} {{value1}}', {
+              value0: githubProjectViewSort.field.name,
+              value1: githubProjectViewSort.direction.toLowerCase()
+            })
+          : translate('auto.mobile.app.h.hostId.tasks.3fe6566a6c', 'Uses GitHub rank order')
       },
       ...githubProjectFields.map((field) => {
         const active = githubProjectSortOverride?.fieldId === field.id
@@ -8460,8 +8660,12 @@ export default function MobileTasksScreen() {
           value: field.id,
           label: field.name,
           subtitle: active
-            ? `Currently ${githubProjectSortOverride.direction.toLowerCase()} · tap for ${nextDirection}`
-            : 'Sort ascending'
+            ? translate(
+                'auto.mobile.app.h.hostId.tasks.70dfd9fbef',
+                'Currently {{value0}} · tap for {{value1}}',
+                { value0: githubProjectSortOverride.direction.toLowerCase(), value1: nextDirection }
+              )
+            : translate('auto.mobile.app.h.hostId.tasks.caf6cd559a', 'Sort ascending')
         }
       })
     ],
@@ -8473,44 +8677,67 @@ export default function MobileTasksScreen() {
         value: view.id,
         label: view.name,
         subtitle:
-          view.layout === 'TABLE_LAYOUT' ? `View #${view.number}` : 'Unsupported layout on mobile',
+          view.layout === 'TABLE_LAYOUT'
+            ? translate('auto.mobile.app.h.hostId.tasks.eac3fd864c', 'View #{{value0}}', {
+                value0: view.number
+              })
+            : translate(
+                'auto.mobile.app.h.hostId.tasks.74c50ae0bf',
+                'Unsupported layout on mobile'
+              ),
         disabled: view.layout !== 'TABLE_LAYOUT'
       })),
     [githubProjectViews]
   )
-  const githubPresetOptions = githubKind === 'prs' ? PR_PRESETS : ISSUE_PRESETS
+  const githubPresetOptions = githubKind === 'prs' ? prPresets() : issuePresets()
   const githubPresetPickerOptions = useMemo(
     () =>
       githubPresetOptions.map((option) =>
         option.value === defaultGitHubPreset
-          ? { ...option, subtitle: option.subtitle ? `${option.subtitle} · Default` : 'Default' }
+          ? {
+              ...option,
+              subtitle: option.subtitle
+                ? translate('auto.mobile.app.h.hostId.tasks.3f1f686c4b', '{{value0}} · Default', {
+                    value0: option.subtitle
+                  })
+                : translate('auto.mobile.app.h.hostId.tasks.4cd77a3e30', 'Default')
+            }
           : option
       ),
     [defaultGitHubPreset, githubPresetOptions]
   )
   const githubPresetLabel =
-    githubPresetOptions.find((preset) => preset.value === githubPreset)?.label ?? 'Open'
+    githubPresetOptions.find((preset) => preset.value === githubPreset)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open')
   const gitlabFilterLabel =
-    GITLAB_FILTER_OPTIONS.find((filter) => filter.value === gitlabFilter)?.label ?? 'Open'
+    gitlabFilterOptions().find((filter) => filter.value === gitlabFilter)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open')
   const linearFilterLabel =
-    LINEAR_FILTER_OPTIONS.find((filter) => filter.value === linearFilter)?.label ?? 'All'
+    linearFilterOptions().find((filter) => filter.value === linearFilter)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.80817ce75f', 'All')
   const linearViewLabel =
-    LINEAR_VIEW_OPTIONS.find((option) => option.value === linearViewMode)?.label ?? 'List'
+    linearViewOptions().find((option) => option.value === linearViewMode)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.b48817d5a9', 'List')
   const linearGroupLabel =
-    LINEAR_GROUP_OPTIONS.find((option) => option.value === linearGroupBy)?.label ?? 'No grouping'
+    linearGroupOptions().find((option) => option.value === linearGroupBy)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.0ddf93cd70', 'No grouping')
   const linearOrderLabel =
-    LINEAR_ORDER_OPTIONS.find((option) => option.value === linearOrderBy)?.label ?? 'Priority'
+    linearOrderOptions().find((option) => option.value === linearOrderBy)?.label ??
+    translate('auto.mobile.app.h.hostId.tasks.212212945a', 'Priority')
   const linearWorkspaceLabel =
     selectedLinearWorkspaceId === 'all'
-      ? 'All workspaces'
+      ? translate('auto.mobile.app.h.hostId.tasks.f90aaca3ed', 'All workspaces')
       : (linearWorkspaces.find((workspace) => workspace.id === selectedLinearWorkspaceId)
           ?.organizationName ??
         linearWorkspaces.find((workspace) => workspace.id === selectedLinearWorkspaceId)
           ?.displayName ??
-        'Workspace')
+        translate('auto.mobile.app.h.hostId.tasks.e54d4a0b70', 'Workspace'))
   const linearWorkspaceOptions = useMemo<PickerOption<string>[]>(
     () => [
-      { value: 'all', label: 'All workspaces' },
+      {
+        value: 'all',
+        label: translate('auto.mobile.app.h.hostId.tasks.f90aaca3ed', 'All workspaces')
+      },
       ...linearWorkspaces.map((workspace) => ({
         value: workspace.id,
         label: workspace.organizationName ?? workspace.displayName ?? workspace.id
@@ -8520,10 +8747,13 @@ export default function MobileTasksScreen() {
   )
   const linearTeamLabel =
     selectedLinearTeamIds.size === 0 || selectedLinearTeamIds.size === linearTeams.length
-      ? 'All teams'
+      ? translate('auto.mobile.app.h.hostId.tasks.744206341a', 'All teams')
       : selectedLinearTeamIds.size === 1
-        ? (linearTeams.find((team) => selectedLinearTeamIds.has(team.id))?.name ?? '1 team')
-        : `${selectedLinearTeamIds.size} teams`
+        ? (linearTeams.find((team) => selectedLinearTeamIds.has(team.id))?.name ??
+          translate('auto.mobile.app.h.hostId.tasks.aeac94e98a', '1 team'))
+        : translate('auto.mobile.app.h.hostId.tasks.ef7fa30ea8.36939c', '{{value0}} teams', {
+            value0: selectedLinearTeamIds.size
+          })
   const effectiveLinearDisplayProperties = useMemo(() => {
     const next = new Set(linearDisplayProperties)
     if (linearGroupBy === 'status') {
@@ -8588,12 +8818,16 @@ export default function MobileTasksScreen() {
     [linearGroupBy, linearIssuesForView, linearOrderBy]
   )
   const githubModeLabel =
-    githubMode === 'project' ? 'Projects' : githubKind === 'prs' ? 'PRs' : 'Issues'
+    githubMode === 'project'
+      ? translate('auto.mobile.app.h.hostId.tasks.2c1f90ca13', 'Projects')
+      : githubKind === 'prs'
+        ? translate('auto.mobile.app.h.hostId.tasks.5e3fb77dd8', 'PRs')
+        : translate('auto.mobile.app.h.hostId.tasks.e3577861c3', 'Issues')
   const activeProjectLabel = githubProjectTable
     ? githubProjectTable.project.title
     : activeGitHubProject
       ? `${activeGitHubProject.owner} #${activeGitHubProject.number}`
-      : 'Choose project'
+      : translate('auto.mobile.app.h.hostId.tasks.8a7c831c1d', 'Choose project')
   const selectedGitHubProjectViewUrl = githubProjectTable
     ? `${githubProjectTable.project.url}/views/${githubProjectTable.selectedView.number}`
     : null
@@ -8682,14 +8916,14 @@ export default function MobileTasksScreen() {
   })
   const emptyLabel =
     connState !== 'connected'
-      ? 'Connect to a host to load tasks'
+      ? translate('auto.mobile.app.h.hostId.tasks.43d60ddc79', 'Connect to a host to load tasks')
       : query
-        ? 'No matching tasks'
+        ? translate('auto.mobile.app.h.hostId.tasks.38291ebaa5', 'No matching tasks')
         : provider === 'github'
-          ? 'No GitHub tasks'
+          ? translate('auto.mobile.app.h.hostId.tasks.85a194d9e6', 'No GitHub tasks')
           : provider === 'gitlab'
-            ? 'No GitLab tasks'
-            : 'No Linear tasks'
+            ? translate('auto.mobile.app.h.hostId.tasks.89fb848688', 'No GitLab tasks')
+            : translate('auto.mobile.app.h.hostId.tasks.b862e0e556', 'No Linear tasks')
   const isGithubProjectSearch = provider === 'github' && githubMode === 'project'
 
   return (
@@ -8701,7 +8935,9 @@ export default function MobileTasksScreen() {
           </Pressable>
           <View style={styles.titleWrap}>
             <StatusDot state={connState} verdict={headerVerdict} />
-            <Text style={styles.title}>Tasks</Text>
+            <Text style={styles.title}>
+              {translate('auto.mobile.app.h.hostId.tasks.fd3792748f', 'Tasks')}
+            </Text>
           </View>
           <Pressable
             style={styles.iconButton}
@@ -8832,7 +9068,8 @@ export default function MobileTasksScreen() {
                       }}
                     >
                       <Text style={styles.segmentSecondaryText}>
-                        Source: {githubIssueSourceLabel}
+                        {translate('auto.mobile.app.h.hostId.tasks.76c0041b44', 'Source:')}{' '}
+                        {githubIssueSourceLabel}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -8879,7 +9116,8 @@ export default function MobileTasksScreen() {
                       }}
                     >
                       <Text style={styles.segmentSecondaryText}>
-                        Sort: {githubProjectSortLabel}
+                        {translate('auto.mobile.app.h.hostId.tasks.f3958ba4ea', 'Sort:')}{' '}
+                        {githubProjectSortLabel}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -8895,7 +9133,8 @@ export default function MobileTasksScreen() {
                       }}
                     >
                       <Text style={styles.segmentSecondaryText}>
-                        Fields: {githubProjectFieldsLabel}
+                        {translate('auto.mobile.app.h.hostId.tasks.fc70101ee7', 'Fields:')}{' '}
+                        {githubProjectFieldsLabel}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -8940,7 +9179,9 @@ export default function MobileTasksScreen() {
                 }}
               >
                 <Text style={styles.segmentSecondaryText}>
-                  {gitlabView === 'project' ? 'Project MRs' : 'My Todos'}
+                  {gitlabView === 'project'
+                    ? translate('auto.mobile.app.h.hostId.tasks.7f18577bdf', 'Project MRs')
+                    : translate('auto.mobile.app.h.hostId.tasks.b8b23d4005', 'My Todos')}
                 </Text>
               </Pressable>
               {gitlabView === 'project' && (
@@ -9022,7 +9263,10 @@ export default function MobileTasksScreen() {
                   setShowLinearGroupPicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Group: {linearGroupLabel}</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.7f859ab9ca', 'Group:')}{' '}
+                  {linearGroupLabel}
+                </Text>
               </Pressable>
               <Pressable
                 style={styles.segmentButton}
@@ -9034,7 +9278,10 @@ export default function MobileTasksScreen() {
                   setShowLinearOrderPicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Order: {linearOrderLabel}</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.a166aa9578', 'Order:')}{' '}
+                  {linearOrderLabel}
+                </Text>
               </Pressable>
               <Pressable
                 style={styles.segmentButton}
@@ -9046,7 +9293,9 @@ export default function MobileTasksScreen() {
                   setShowLinearDisplayPicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Display</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.9e23121b07', 'Display')}
+                </Text>
               </Pressable>
             </>
           )}
@@ -9063,7 +9312,9 @@ export default function MobileTasksScreen() {
               }}
             >
               <GitBranch size={14} color={colors.textSecondary} />
-              <Text style={styles.segmentSecondaryText}>Sort: {sortLabel}</Text>
+              <Text style={styles.segmentSecondaryText}>
+                {translate('auto.mobile.app.h.hostId.tasks.f3958ba4ea', 'Sort:')} {sortLabel}
+              </Text>
             </Pressable>
           ) : null}
         </ScrollView>
@@ -9076,8 +9327,12 @@ export default function MobileTasksScreen() {
               onChangeText={isGithubProjectSearch ? setGithubProjectSearch : setQuery}
               placeholder={
                 isGithubProjectSearch
-                  ? 'Search project view...'
-                  : `Search ${providerLabel} tasks...`
+                  ? translate('auto.mobile.app.h.hostId.tasks.473b2b2807', 'Search project view...')
+                  : translate(
+                      'auto.mobile.app.h.hostId.tasks.ed61fb8b63',
+                      'Search {{value0}} tasks...',
+                      { value0: providerLabel }
+                    )
               }
               // Why: GitHub items seed the field with a preset query, so a bare
               // value.length check would always show clear. Project mode shows clear
@@ -9165,8 +9420,12 @@ export default function MobileTasksScreen() {
               style={styles.sourceNoticeBanner}
             >
               <Text style={styles.sourceNoticeText}>
-                Preferred issue source upstream is unavailable for {fallback.repoLabel}. Using
-                origin.
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.38c9336758',
+                  'Preferred issue source upstream is unavailable for'
+                )}{' '}
+                {fallback.repoLabel}
+                {translate('auto.mobile.app.h.hostId.tasks.3e537de5df', '. Using origin.')}{' '}
               </Text>
             </View>
           ))
@@ -9182,7 +9441,10 @@ export default function MobileTasksScreen() {
               >
                 <View style={styles.sourceErrorCopy}>
                   <Text style={styles.sourceErrorText}>
-                    Couldn't load issues from{' '}
+                    {translate(
+                      'auto.mobile.app.h.hostId.tasks.f75002b096',
+                      "Couldn't load issues from"
+                    )}{' '}
                     <Text style={styles.sourceErrorSlug}>
                       {sourceError.source.owner}/{sourceError.source.repo}
                     </Text>
@@ -9200,7 +9462,9 @@ export default function MobileTasksScreen() {
                   onPress={() => void retryGitHubIssueSourceFetch(sourceError.repoPath)}
                 >
                   <Text style={styles.sourceErrorRetryText}>
-                    {isRetrying ? 'Retrying...' : 'Retry'}
+                    {isRetrying
+                      ? translate('auto.mobile.app.h.hostId.tasks.682ce152d6', 'Retrying...')
+                      : translate('auto.mobile.app.h.hostId.tasks.c85d1b19c4', 'Retry')}
                   </Text>
                 </Pressable>
               </View>
@@ -9215,7 +9479,10 @@ export default function MobileTasksScreen() {
         <View style={styles.projectDataNotice}>
           <AlertTriangle size={15} color={colors.statusAmber} />
           <Text style={styles.projectDataNoticeText}>
-            Sub-issue data is unavailable for your token.
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.2909172f4f',
+              'Sub-issue data is unavailable for your token.'
+            )}{' '}
           </Text>
         </View>
       ) : null}
@@ -9223,9 +9490,14 @@ export default function MobileTasksScreen() {
       {!tasksSupported ? (
         tasksUnsupported ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>Update Manta desktop</Text>
+            <Text style={styles.emptyText}>
+              {translate('auto.mobile.app.h.hostId.tasks.d2f46b812e', 'Update Manta desktop')}
+            </Text>
             <Text style={styles.centeredHint}>
-              This mobile Tasks view needs a newer desktop runtime.
+              {translate(
+                'auto.mobile.app.h.hostId.tasks.27bde2bf6c',
+                'This mobile Tasks view needs a newer desktop runtime.'
+              )}{' '}
             </Text>
           </View>
         ) : (
@@ -9236,9 +9508,14 @@ export default function MobileTasksScreen() {
       ) : provider === 'linear' && !linearConnected ? (
         <View style={styles.centered}>
           <TaskProviderLogo provider="linear" size={32} color={colors.textSecondary} />
-          <Text style={styles.emptyText}>Connect your Linear account</Text>
+          <Text style={styles.emptyText}>
+            {translate('auto.mobile.app.h.hostId.tasks.2fda0f4da8', 'Connect your Linear account')}
+          </Text>
           <Text style={styles.centeredHint}>
-            Browse and start work on your assigned Linear issues directly from Tasks.
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.e360d80713',
+              'Browse and start work on your assigned Linear issues directly from Tasks.'
+            )}{' '}
           </Text>
           <Pressable
             style={[styles.targetButton, styles.centerActionButton]}
@@ -9253,7 +9530,9 @@ export default function MobileTasksScreen() {
               setShowLinearConnect(true)
             }}
           >
-            <Text style={styles.targetButtonText}>Connect Linear</Text>
+            <Text style={styles.targetButtonText}>
+              {translate('auto.mobile.app.h.hostId.tasks.210a7848ff', 'Connect Linear')}
+            </Text>
           </Pressable>
         </View>
       ) : provider === 'github' && githubMode === 'project' ? (
@@ -9263,7 +9542,9 @@ export default function MobileTasksScreen() {
           </View>
         ) : !activeGitHubProject ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>Choose a GitHub project</Text>
+            <Text style={styles.emptyText}>
+              {translate('auto.mobile.app.h.hostId.tasks.52a44bc039', 'Choose a GitHub project')}
+            </Text>
             <Pressable
               style={[styles.targetButton, styles.centerActionButton]}
               disabled={!taskUiReady}
@@ -9274,7 +9555,9 @@ export default function MobileTasksScreen() {
                 setShowGitHubProjectPicker(true)
               }}
             >
-              <Text style={styles.targetButtonText}>Browse projects</Text>
+              <Text style={styles.targetButtonText}>
+                {translate('auto.mobile.app.h.hostId.tasks.17b0e864d5', 'Browse projects')}
+              </Text>
             </Pressable>
           </View>
         ) : githubProjectError ? (
@@ -9287,7 +9570,9 @@ export default function MobileTasksScreen() {
           </View>
         ) : !githubProjectTable || visibleGitHubProjectRows.length === 0 ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>No project items</Text>
+            <Text style={styles.emptyText}>
+              {translate('auto.mobile.app.h.hostId.tasks.5c76505007', 'No project items')}
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -9322,7 +9607,8 @@ export default function MobileTasksScreen() {
                       style={entry.collapsed ? styles.projectGroupChevronCollapsed : undefined}
                     />
                     <Text style={styles.projectGroupTitle} numberOfLines={1}>
-                      {entry.group.label || 'Items'}
+                      {entry.group.label ||
+                        translate('auto.mobile.app.h.hostId.tasks.5a0d82fa5a', 'Items')}
                     </Text>
                     <Text style={styles.projectGroupMeta}>{projectGroupMeta(entry.group)}</Text>
                   </Pressable>
@@ -9362,10 +9648,13 @@ export default function MobileTasksScreen() {
                       />
                       <Text style={styles.subtitle} numberOfLines={1}>
                         {row.itemType === 'PULL_REQUEST'
-                          ? 'Pull request'
+                          ? translate('auto.mobile.app.h.hostId.tasks.05ac26f906', 'Pull request')
                           : row.itemType === 'ISSUE'
-                            ? 'Issue'
-                            : 'Project item'}{' '}
+                            ? translate('auto.mobile.app.h.hostId.tasks.c5c83a9af1', 'Issue')
+                            : translate(
+                                'auto.mobile.app.h.hostId.tasks.367621449b',
+                                'Project item'
+                              )}{' '}
                         · {row.content.repository ?? githubProjectTable.project.title}
                         {row.content.number ? ` #${row.content.number}` : ''}
                       </Text>
@@ -9391,7 +9680,11 @@ export default function MobileTasksScreen() {
                         {githubProjectSummaryFields.length > 4 ? (
                           <View style={styles.projectFieldPill}>
                             <Text style={styles.projectFieldPillText}>
-                              +{githubProjectSummaryFields.length - 4} fields
+                              +{githubProjectSummaryFields.length - 4}{' '}
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.04952594ab.70f132',
+                                'fields'
+                              )}{' '}
                             </Text>
                           </View>
                         ) : null}
@@ -9641,8 +9934,16 @@ export default function MobileTasksScreen() {
                 >
                   <Text style={styles.paginationLabel}>
                     {githubTotalCount === null
-                      ? `Page ${githubCurrentPage + 1}`
-                      : `Page ${githubCurrentPage + 1} of ${githubTotalPages}`}
+                      ? translate(
+                          'auto.mobile.app.h.hostId.tasks.eda57a4655.214538',
+                          'Page {{value0}}',
+                          { value0: githubCurrentPage + 1 }
+                        )
+                      : translate(
+                          'auto.mobile.app.h.hostId.tasks.eda57a4655.2283a9',
+                          'Page {{value0}} of {{value1}}',
+                          { value0: githubCurrentPage + 1, value1: githubTotalPages }
+                        )}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -9733,7 +10034,8 @@ export default function MobileTasksScreen() {
                         {branchSummary.head}
                       </Text>
                       <Text style={styles.branchMetaBase} numberOfLines={1}>
-                        into {branchSummary.base}
+                        {translate('auto.mobile.app.h.hostId.tasks.d914d311ea', 'into')}{' '}
+                        {branchSummary.base}
                       </Text>
                     </View>
                   ) : null}
@@ -9802,7 +10104,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showProviderPicker}
-        title="Task Source"
+        title={translate('auto.mobile.app.h.hostId.tasks.2409df9415', 'Task Source')}
         options={providerOptions}
         selected={provider}
         onSelect={(next) => {
@@ -9849,8 +10151,15 @@ export default function MobileTasksScreen() {
         onClose={() => setShowRepoPicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Repositories</Text>
-          <Text style={styles.sheetSubtitle}>Choose which repositories to query.</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.a4c5842b9c', 'Repositories')}
+          </Text>
+          <Text style={styles.sheetSubtitle}>
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.79cf65e9fa',
+              'Choose which repositories to query.'
+            )}
+          </Text>
         </View>
 
         <View style={styles.repoPickerGroup}>
@@ -9863,7 +10172,9 @@ export default function MobileTasksScreen() {
             }}
           >
             <View style={styles.repoPickerTextWrap}>
-              <Text style={styles.repoPickerTitle}>All repositories</Text>
+              <Text style={styles.repoPickerTitle}>
+                {translate('auto.mobile.app.h.hostId.tasks.1688454ca7', 'All repositories')}
+              </Text>
               <Text style={styles.repoPickerSubtitle}>{repositoryCount(hostedRepos.length)}</Text>
             </View>
             {selectedRepoIds.size === 0 ? <Check size={15} color={colors.textPrimary} /> : null}
@@ -9905,16 +10216,26 @@ export default function MobileTasksScreen() {
         onClose={() => setShowGitHubIssueSourcePicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>GitHub Issue Sources</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.6aaadd7285', 'GitHub Issue Sources')}
+          </Text>
           <Text style={styles.sheetSubtitle}>
-            Choose whether each repository queries and creates work from upstream or origin.
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.2c65b26ef1',
+              'Choose whether each repository queries and creates work from upstream or origin.'
+            )}{' '}
           </Text>
         </View>
 
         <View style={styles.repoPickerGroup}>
           {githubIssueSourceRows.length === 0 ? (
             <View style={styles.drawerLoadingRow}>
-              <Text style={styles.detailMuted}>No alternate issue sources available.</Text>
+              <Text style={styles.detailMuted}>
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.6b995d38c5',
+                  'No alternate issue sources available.'
+                )}
+              </Text>
             </View>
           ) : (
             githubIssueSourceRows.map(({ repo, sources }, index) => {
@@ -9931,7 +10252,7 @@ export default function MobileTasksScreen() {
                         {repo.displayName}
                       </Text>
                       <Text style={styles.issueSourceHint} numberOfLines={2}>
-                        Querying{' '}
+                        {translate('auto.mobile.app.h.hostId.tasks.0be8e1a894', 'Querying')}{' '}
                         {issueSourceSlug(
                           selectedPreference === 'origin' ? sources.prs : sources.upstreamCandidate
                         )}
@@ -9960,7 +10281,9 @@ export default function MobileTasksScreen() {
                                 selected && styles.issueSourceSegmentTextActive
                               ]}
                             >
-                              {preference === 'upstream' ? 'Upstream' : 'Origin'}
+                              {preference === 'upstream'
+                                ? translate('auto.mobile.app.h.hostId.tasks.085f4e942e', 'Upstream')
+                                : translate('auto.mobile.app.h.hostId.tasks.19b172b893', 'Origin')}
                             </Text>
                             <Text style={styles.issueSourceSlug} numberOfLines={1}>
                               {slug}
@@ -9979,8 +10302,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitHubKindPicker}
-        title="GitHub View"
-        options={GITHUB_KIND_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.2e410a19af', 'GitHub View')}
+        options={githubKindOptions()}
         selected={githubMode === 'project' ? 'project' : githubKind}
         onSelect={(kind) => {
           if (kind === 'project') {
@@ -10007,7 +10330,11 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitHubPresetPicker}
-        title={githubKind === 'prs' ? 'Pull Requests' : 'Issues'}
+        title={
+          githubKind === 'prs'
+            ? translate('auto.mobile.app.h.hostId.tasks.b10fa24be3', 'Pull Requests')
+            : translate('auto.mobile.app.h.hostId.tasks.e3577861c3', 'Issues')
+        }
         options={githubPresetPickerOptions}
         selected={githubPreset}
         onSelect={(preset) => {
@@ -10031,8 +10358,15 @@ export default function MobileTasksScreen() {
         onClose={() => setShowGitHubPagePicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>GitHub Pages</Text>
-          <Text style={styles.sheetSubtitle}>Jump to a loaded or available result page.</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.669b20d479', 'GitHub Pages')}
+          </Text>
+          <Text style={styles.sheetSubtitle}>
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.2bcd15ef19',
+              'Jump to a loaded or available result page.'
+            )}
+          </Text>
         </View>
         <ScrollView style={styles.pagePickerList}>
           {githubPagePickerPages.map((index) => {
@@ -10049,9 +10383,17 @@ export default function MobileTasksScreen() {
                 }}
               >
                 <View style={styles.pickerRowContent}>
-                  <Text style={styles.pickerRowLabel}>Page {index + 1}</Text>
+                  <Text style={styles.pickerRowLabel}>
+                    {translate('auto.mobile.app.h.hostId.tasks.eda57a4655.fb0627', 'Page')}{' '}
+                    {index + 1}
+                  </Text>
                   <Text style={styles.pickerRowSubtitle}>
-                    {loaded ? 'Loaded' : 'Loads older results'}
+                    {loaded
+                      ? translate('auto.mobile.app.h.hostId.tasks.711ea5b96d', 'Loaded')
+                      : translate(
+                          'auto.mobile.app.h.hostId.tasks.e64ab47a47',
+                          'Loads older results'
+                        )}
                   </Text>
                 </View>
                 {selected ? <Check size={16} color={colors.textPrimary} /> : null}
@@ -10066,8 +10408,15 @@ export default function MobileTasksScreen() {
         onClose={() => setShowGitHubProjectPicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>GitHub Projects</Text>
-          <Text style={styles.sheetSubtitle}>Choose a project view for the Tasks page.</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.e291bf21dd', 'GitHub Projects')}
+          </Text>
+          <Text style={styles.sheetSubtitle}>
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.e9ef3b053f',
+              'Choose a project view for the Tasks page.'
+            )}
+          </Text>
         </View>
 
         <View style={styles.projectPickerControls}>
@@ -10075,7 +10424,7 @@ export default function MobileTasksScreen() {
             style={styles.input}
             value={githubProjectPickerSearch}
             onChangeText={setGithubProjectPickerSearch}
-            placeholder="Search projects"
+            placeholder={translate('auto.mobile.app.h.hostId.tasks.80182538b7', 'Search projects')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -10089,7 +10438,10 @@ export default function MobileTasksScreen() {
                 setGithubProjectPasteError('')
               }}
               onSubmitEditing={() => void resolveGitHubProjectFromInput()}
-              placeholder="Add by URL or owner/number"
+              placeholder={translate(
+                'auto.mobile.app.h.hostId.tasks.4326f401b2',
+                'Add by URL or owner/number'
+              )}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -10100,7 +10452,9 @@ export default function MobileTasksScreen() {
               onPress={() => void resolveGitHubProjectFromInput()}
             >
               <Text style={styles.inlineSaveText}>
-                {githubProjectPasteBusy ? 'Adding...' : 'Add'}
+                {githubProjectPasteBusy
+                  ? translate('auto.mobile.app.h.hostId.tasks.8bb2d58e71', 'Adding...')
+                  : translate('auto.mobile.app.h.hostId.tasks.db9fa0d7d1', 'Add')}
               </Text>
             </Pressable>
           </View>
@@ -10118,11 +10472,22 @@ export default function MobileTasksScreen() {
               <Text style={styles.projectWarningTitle}>
                 {githubProjectPartialFailures.length === 1 &&
                 githubProjectPartialFailures[0]!.owner !== '*'
-                  ? `Couldn't load projects from ${githubProjectPartialFailures[0]!.owner}.`
-                  : `Some organizations didn't load (${githubProjectPartialFailures.length}).`}
+                  ? translate(
+                      'auto.mobile.app.h.hostId.tasks.ad38a607a6',
+                      "Couldn't load projects from {{value0}}.",
+                      { value0: githubProjectPartialFailures[0]!.owner }
+                    )
+                  : translate(
+                      'auto.mobile.app.h.hostId.tasks.c7ccaf191d',
+                      "Some organizations didn't load ({{value0}}).",
+                      { value0: githubProjectPartialFailures.length }
+                    )}
               </Text>
               <Text style={styles.projectWarningText}>
-                Use Add by URL to reach missing projects.
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.f6caefe6f0',
+                  'Use Add by URL to reach missing projects.'
+                )}{' '}
               </Text>
               <Text style={styles.projectWarningText} numberOfLines={2}>
                 {githubProjectPartialFailures
@@ -10155,15 +10520,21 @@ export default function MobileTasksScreen() {
               }
             >
               <View style={styles.repoPickerTextWrap}>
-                <Text style={styles.repoPickerTitle}>No projects loaded</Text>
-                <Text style={styles.repoPickerSubtitle}>Tap to retry.</Text>
+                <Text style={styles.repoPickerTitle}>
+                  {translate('auto.mobile.app.h.hostId.tasks.75b3ba7a55', 'No projects loaded')}
+                </Text>
+                <Text style={styles.repoPickerSubtitle}>
+                  {translate('auto.mobile.app.h.hostId.tasks.d0373e626d', 'Tap to retry.')}
+                </Text>
               </View>
             </Pressable>
           ) : (
             <>
               {pinnedGitHubProjects.length > 0 ? (
                 <>
-                  <Text style={styles.linearStatesTitle}>Pinned</Text>
+                  <Text style={styles.linearStatesTitle}>
+                    {translate('auto.mobile.app.h.hostId.tasks.467ef86c50', 'Pinned')}
+                  </Text>
                   {pinnedGitHubProjects.map((project, index) => {
                     const key = githubProjectKey(project)
                     const selected =
@@ -10198,7 +10569,9 @@ export default function MobileTasksScreen() {
                               })
                             }}
                           >
-                            <Text style={styles.inlineSaveText}>Remove</Text>
+                            <Text style={styles.inlineSaveText}>
+                              {translate('auto.mobile.app.h.hostId.tasks.e965618993', 'Remove')}
+                            </Text>
                           </Pressable>
                           {selected ? <Check size={15} color={colors.textPrimary} /> : null}
                         </Pressable>
@@ -10210,7 +10583,9 @@ export default function MobileTasksScreen() {
 
               {recentGitHubProjects.length > 0 ? (
                 <>
-                  <Text style={styles.linearStatesTitle}>Recent</Text>
+                  <Text style={styles.linearStatesTitle}>
+                    {translate('auto.mobile.app.h.hostId.tasks.77660c76bc', 'Recent')}
+                  </Text>
                   {recentGitHubProjects.map((project, index) => {
                     const key = githubProjectKey(project)
                     const selected =
@@ -10251,7 +10626,9 @@ export default function MobileTasksScreen() {
                                 })
                               }}
                             >
-                              <Text style={styles.inlineSaveText}>Pin</Text>
+                              <Text style={styles.inlineSaveText}>
+                                {translate('auto.mobile.app.h.hostId.tasks.ef498b3039', 'Pin')}
+                              </Text>
                             </Pressable>
                           ) : null}
                           {selected ? <Check size={15} color={colors.textPrimary} /> : null}
@@ -10263,11 +10640,21 @@ export default function MobileTasksScreen() {
               ) : null}
 
               <Text style={styles.linearStatesTitle}>
-                {githubProjectLoading ? 'Browse all (loading...)' : 'Browse all'}
+                {githubProjectLoading
+                  ? translate(
+                      'auto.mobile.app.h.hostId.tasks.d8102406ce',
+                      'Browse all (loading...)'
+                    )
+                  : translate('auto.mobile.app.h.hostId.tasks.c89600e769', 'Browse all')}
               </Text>
               {browseGitHubProjects.length === 0 ? (
                 <Text style={styles.emptyInlineText}>
-                  {githubProjectPickerSearch.trim() ? 'No matching projects.' : 'No more projects.'}
+                  {githubProjectPickerSearch.trim()
+                    ? translate(
+                        'auto.mobile.app.h.hostId.tasks.1c7f22dda1',
+                        'No matching projects.'
+                      )
+                    : translate('auto.mobile.app.h.hostId.tasks.4733fde938', 'No more projects.')}
                 </Text>
               ) : (
                 browseGitHubProjects.map((project, index) => {
@@ -10305,7 +10692,11 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitHubProjectViewPicker}
-        title={pendingGitHubProjectViewSelection ? 'Choose Project View' : 'Project View'}
+        title={
+          pendingGitHubProjectViewSelection
+            ? translate('auto.mobile.app.h.hostId.tasks.e0ab14d2ec', 'Choose Project View')
+            : translate('auto.mobile.app.h.hostId.tasks.13fbcd4b05', 'Project View')
+        }
         options={githubProjectViewOptions}
         selected={pendingGitHubProjectViewSelection ? '' : (activeGitHubProjectViewId ?? '')}
         onSelect={(viewId) => {
@@ -10334,7 +10725,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitHubProjectSortPicker}
-        title="Project Sort"
+        title={translate('auto.mobile.app.h.hostId.tasks.4dc29412da', 'Project Sort')}
         options={githubProjectSortOptions}
         selected={githubProjectSortOverride?.fieldId ?? PROJECT_VIEW_DEFAULT_SORT}
         onSelect={(fieldId) => {
@@ -10360,14 +10751,24 @@ export default function MobileTasksScreen() {
         onClose={() => setShowGitHubProjectFieldsPicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Project Fields</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.92a294030c', 'Project Fields')}
+          </Text>
           <Text style={styles.sheetSubtitle}>
-            Choose which Project fields appear on item cards.
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.dd8868208f',
+              'Choose which Project fields appear on item cards.'
+            )}{' '}
           </Text>
         </View>
         <View style={styles.repoPickerGroup}>
           {githubProjectAvailableSummaryFields.length === 0 ? (
-            <Text style={styles.repoPickerSubtitle}>This view has no extra fields to show.</Text>
+            <Text style={styles.repoPickerSubtitle}>
+              {translate(
+                'auto.mobile.app.h.hostId.tasks.9ceb4d4b21',
+                'This view has no extra fields to show.'
+              )}
+            </Text>
           ) : (
             githubProjectAvailableSummaryFields.map((field, index) => {
               const visible = !githubProjectHiddenFieldIds.has(field.id)
@@ -10383,7 +10784,12 @@ export default function MobileTasksScreen() {
                         {field.name}
                       </Text>
                       <Text style={styles.repoPickerSubtitle} numberOfLines={1}>
-                        {visible ? 'Shown on cards' : 'Hidden from cards'}
+                        {visible
+                          ? translate('auto.mobile.app.h.hostId.tasks.a7446db2ee', 'Shown on cards')
+                          : translate(
+                              'auto.mobile.app.h.hostId.tasks.110c5ad109',
+                              'Hidden from cards'
+                            )}
                       </Text>
                     </View>
                     {visible ? <Check size={15} color={colors.textPrimary} /> : null}
@@ -10397,8 +10803,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitLabViewPicker}
-        title="GitLab View"
-        options={GITLAB_VIEW_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.ae82372398', 'GitLab View')}
+        options={gitlabViewOptions()}
         selected={gitlabView}
         onSelect={(view) => {
           setGitlabView(view)
@@ -10415,8 +10821,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showGitLabFilterPicker}
-        title="GitLab Filter"
-        options={GITLAB_FILTER_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.93df023405', 'GitLab Filter')}
+        options={gitlabFilterOptions()}
         selected={gitlabFilter}
         onSelect={setGitlabFilter}
         onClose={() => setShowGitLabFilterPicker(false)}
@@ -10424,8 +10830,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showLinearFilterPicker}
-        title="Linear Filter"
-        options={LINEAR_FILTER_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.8e7463ff62', 'Linear Filter')}
+        options={linearFilterOptions()}
         selected={linearFilter}
         onSelect={(filter) => {
           setLinearFilter(filter)
@@ -10438,7 +10844,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showLinearWorkspacePicker}
-        title="Linear Workspace"
+        title={translate('auto.mobile.app.h.hostId.tasks.dcda24ae8b', 'Linear Workspace')}
         options={linearWorkspaceOptions}
         selected={selectedLinearWorkspaceId ?? ''}
         onSelect={(workspaceId) => {
@@ -10461,8 +10867,15 @@ export default function MobileTasksScreen() {
         onClose={() => setShowLinearTeamPicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Linear Teams</Text>
-          <Text style={styles.sheetSubtitle}>Choose which teams appear in Tasks.</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.667355c0eb', 'Linear Teams')}
+          </Text>
+          <Text style={styles.sheetSubtitle}>
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.50be798fe0',
+              'Choose which teams appear in Tasks.'
+            )}
+          </Text>
         </View>
         <View style={styles.repoPickerGroup}>
           <Pressable
@@ -10474,8 +10887,13 @@ export default function MobileTasksScreen() {
             }}
           >
             <View style={styles.repoPickerTextWrap}>
-              <Text style={styles.repoPickerTitle}>All teams</Text>
-              <Text style={styles.repoPickerSubtitle}>{linearTeams.length} teams</Text>
+              <Text style={styles.repoPickerTitle}>
+                {translate('auto.mobile.app.h.hostId.tasks.744206341a', 'All teams')}
+              </Text>
+              <Text style={styles.repoPickerSubtitle}>
+                {linearTeams.length}{' '}
+                {translate('auto.mobile.app.h.hostId.tasks.ef7fa30ea8.462938', 'teams')}
+              </Text>
             </View>
             {selectedLinearTeamIds.size === linearTeams.length ? (
               <Check size={15} color={colors.textPrimary} />
@@ -10525,19 +10943,26 @@ export default function MobileTasksScreen() {
         zIndex={TASK_SECONDARY_DRAWER_Z_INDEX}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Change Status</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.c70d4be654', 'Change Status')}
+          </Text>
           <Text style={styles.sheetSubtitle}>
-            {linearStatusPickerItem?.source.identifier ?? 'Linear issue'}
+            {linearStatusPickerItem?.source.identifier ??
+              translate('auto.mobile.app.h.hostId.tasks.91b66f2f68', 'Linear issue')}
           </Text>
         </View>
         <View style={styles.repoPickerGroup}>
           {linearStatesLoading ? (
             <View style={styles.detailLoadingInline}>
               <ActivityIndicator size="small" color={colors.textSecondary} />
-              <Text style={styles.detailMuted}>Loading states...</Text>
+              <Text style={styles.detailMuted}>
+                {translate('auto.mobile.app.h.hostId.tasks.fe64212bb8', 'Loading states...')}
+              </Text>
             </View>
           ) : linearStates.length === 0 ? (
-            <Text style={styles.emptyInlineText}>No states available</Text>
+            <Text style={styles.emptyInlineText}>
+              {translate('auto.mobile.app.h.hostId.tasks.1a949e24c0', 'No states available')}
+            </Text>
           ) : (
             linearStates.map((state, index) => {
               const selected =
@@ -10583,8 +11008,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showLinearViewPicker}
-        title="Linear View"
-        options={LINEAR_VIEW_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.e7dfe89092', 'Linear View')}
+        options={linearViewOptions()}
         selected={linearViewMode}
         onSelect={setLinearViewMode}
         onClose={() => setShowLinearViewPicker(false)}
@@ -10592,8 +11017,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showLinearGroupPicker}
-        title="Group Linear Issues"
-        options={LINEAR_GROUP_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.e308c78c55', 'Group Linear Issues')}
+        options={linearGroupOptions()}
         selected={linearGroupBy}
         onSelect={setLinearGroupBy}
         onClose={() => setShowLinearGroupPicker(false)}
@@ -10601,8 +11026,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showLinearOrderPicker}
-        title="Order Linear Issues"
-        options={LINEAR_ORDER_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.b24b2505c1', 'Order Linear Issues')}
+        options={linearOrderOptions()}
         selected={linearOrderBy}
         onSelect={setLinearOrderBy}
         onClose={() => setShowLinearOrderPicker(false)}
@@ -10613,10 +11038,12 @@ export default function MobileTasksScreen() {
         onClose={() => setShowLinearDisplayPicker(false)}
       >
         <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Display Properties</Text>
+          <Text style={styles.sheetTitle}>
+            {translate('auto.mobile.app.h.hostId.tasks.2618a68b59', 'Display Properties')}
+          </Text>
         </View>
         <View style={styles.repoPickerGroup}>
-          {LINEAR_DISPLAY_OPTIONS.map((property, index) => {
+          {linearDisplayOptions().map((property, index) => {
             const selected = effectiveLinearDisplayProperties.has(property.value)
             return (
               <View key={property.value}>
@@ -10651,8 +11078,8 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showSortPicker}
-        title="Sort Tasks"
-        options={SORT_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.tasks.4282de9552', 'Sort Tasks')}
+        options={sortOptions()}
         selected={taskSort}
         onSelect={setTaskSort}
         onClose={() => setShowSortPicker(false)}
@@ -10668,18 +11095,29 @@ export default function MobileTasksScreen() {
         <View style={styles.sheetHeader}>
           <View style={styles.sheetTitleRow}>
             <TaskProviderLogo provider={provider} size={16} color={colors.textPrimary} />
-            <Text style={styles.sheetTitle}>New {providerLabel} Issue</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('auto.mobile.app.h.hostId.tasks.4d3967f940', 'New')} {providerLabel}{' '}
+              {translate('auto.mobile.app.h.hostId.tasks.c5c83a9af1', 'Issue')}
+            </Text>
           </View>
           <Text style={styles.sheetSubtitle}>
             {provider === 'github' || provider === 'gitlab'
-              ? 'Create an issue in the selected repository.'
-              : 'Create an issue in the selected Linear team.'}
+              ? translate(
+                  'auto.mobile.app.h.hostId.tasks.57dc834a8b',
+                  'Create an issue in the selected repository.'
+                )
+              : translate(
+                  'auto.mobile.app.h.hostId.tasks.657573dc0e',
+                  'Create an issue in the selected Linear team.'
+                )}
           </Text>
         </View>
 
         <View style={styles.createForm}>
           <Text style={styles.fieldLabel}>
-            {provider === 'github' || provider === 'gitlab' ? 'Repository' : 'Team'}
+            {provider === 'github' || provider === 'gitlab'
+              ? translate('auto.mobile.app.h.hostId.tasks.4414bc388e', 'Repository')
+              : translate('auto.mobile.app.h.hostId.tasks.73305d5fbc', 'Team')}
           </Text>
           <Pressable
             style={styles.targetButton}
@@ -10716,9 +11154,11 @@ export default function MobileTasksScreen() {
           selectedCreateRepo &&
           hasGitHubIssueSourceChoice(selectedCreateGitHubSources) ? (
             <View style={styles.issueSourceBox}>
-              <Text style={styles.fieldLabel}>Issue source</Text>
+              <Text style={styles.fieldLabel}>
+                {translate('auto.mobile.app.h.hostId.tasks.dd4dd63252', 'Issue source')}
+              </Text>
               <Text style={styles.issueSourceHint} numberOfLines={2}>
-                File in{' '}
+                {translate('auto.mobile.app.h.hostId.tasks.d17c947e0d', 'File in')}{' '}
                 {selectedCreateIssuePreference === 'origin'
                   ? issueSourceSlug(selectedCreateGitHubSources?.prs)
                   : issueSourceSlug(selectedCreateGitHubSources?.upstreamCandidate)}
@@ -10748,7 +11188,9 @@ export default function MobileTasksScreen() {
                           selected && styles.issueSourceSegmentTextActive
                         ]}
                       >
-                        {preference === 'upstream' ? 'Upstream' : 'Origin'}
+                        {preference === 'upstream'
+                          ? translate('auto.mobile.app.h.hostId.tasks.085f4e942e', 'Upstream')
+                          : translate('auto.mobile.app.h.hostId.tasks.19b172b893', 'Origin')}
                       </Text>
                       <Text style={styles.issueSourceSlug} numberOfLines={1}>
                         {slug}
@@ -10760,23 +11202,27 @@ export default function MobileTasksScreen() {
             </View>
           ) : null}
 
-          <Text style={styles.fieldLabel}>Title</Text>
+          <Text style={styles.fieldLabel}>
+            {translate('auto.mobile.app.h.hostId.tasks.e9bd9ec727', 'Title')}
+          </Text>
           <TextInput
             style={styles.input}
             value={createTitle}
             onChangeText={setCreateTitle}
-            placeholder="Task title"
+            placeholder={translate('auto.mobile.app.h.hostId.tasks.771910d3dd', 'Task title')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="sentences"
             returnKeyType="next"
           />
 
-          <Text style={styles.fieldLabel}>Description</Text>
+          <Text style={styles.fieldLabel}>
+            {translate('auto.mobile.app.h.hostId.tasks.c57d82a7b7', 'Description')}
+          </Text>
           <TextInput
             style={[styles.input, styles.bodyInput]}
             value={createBody}
             onChangeText={setCreateBody}
-            placeholder="Add context"
+            placeholder={translate('auto.mobile.app.h.hostId.tasks.72746911a7', 'Add context')}
             placeholderTextColor={colors.textMuted}
             multiline
             textAlignVertical="top"
@@ -10793,7 +11239,9 @@ export default function MobileTasksScreen() {
             {creatingTask ? (
               <ActivityIndicator size="small" color={colors.bgBase} />
             ) : (
-              <Text style={styles.createButtonText}>Create Issue</Text>
+              <Text style={styles.createButtonText}>
+                {translate('auto.mobile.app.h.hostId.tasks.c1226d9507', 'Create Issue')}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -10801,7 +11249,11 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && showCreateTask && showCreateTargetPicker}
-        title={provider === 'linear' ? 'Linear Team' : 'Repository'}
+        title={
+          provider === 'linear'
+            ? translate('auto.mobile.app.h.hostId.tasks.5e0d4fdecc', 'Linear Team')
+            : translate('auto.mobile.app.h.hostId.tasks.4414bc388e', 'Repository')
+        }
         options={createTargetOptions}
         selected={
           provider === 'github' || provider === 'gitlab'
@@ -10829,14 +11281,21 @@ export default function MobileTasksScreen() {
         <View style={styles.sheetHeader}>
           <View style={styles.sheetTitleRow}>
             <TaskProviderLogo provider="linear" size={16} color={colors.textPrimary} />
-            <Text style={styles.sheetTitle}>Connect Linear workspace</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('auto.mobile.app.h.hostId.tasks.8db3078a5f', 'Connect Linear workspace')}
+            </Text>
           </View>
           <Text style={styles.sheetSubtitle}>
-            Paste a Personal API key to browse issues from that workspace.
+            {translate(
+              'auto.mobile.app.h.hostId.tasks.e84004bc3e',
+              'Paste a Personal API key to browse issues from that workspace.'
+            )}{' '}
           </Text>
         </View>
         <View style={styles.createForm}>
-          <Text style={styles.fieldLabel}>Personal API key</Text>
+          <Text style={styles.fieldLabel}>
+            {translate('auto.mobile.app.h.hostId.tasks.6b8bc8c9ef', 'Personal API key')}
+          </Text>
           <TextInput
             style={styles.input}
             value={linearApiKeyDraft}
@@ -10847,7 +11306,7 @@ export default function MobileTasksScreen() {
                 setLinearConnectError('')
               }
             }}
-            placeholder="lin_api_..."
+            placeholder={translate('auto.mobile.app.h.hostId.tasks.082a072613', 'lin_api_...')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -10863,12 +11322,20 @@ export default function MobileTasksScreen() {
             onPress={() => void Linking.openURL('https://linear.app/settings/account/security')}
           >
             <ExternalLink size={13} color={colors.textSecondary} />
-            <Text style={styles.inlineTextLinkText}>Linear Settings / Security / New API key</Text>
+            <Text style={styles.inlineTextLinkText}>
+              {translate(
+                'auto.mobile.app.h.hostId.tasks.295ff95fd8',
+                'Linear Settings / Security / New API key'
+              )}
+            </Text>
           </Pressable>
           <View style={styles.securityHintRow}>
             <Lock size={13} color={colors.textMuted} />
             <Text style={styles.securityHintText}>
-              Your key is encrypted via the host OS keychain and stored locally.
+              {translate(
+                'auto.mobile.app.h.hostId.tasks.f1a69ad283',
+                'Your key is encrypted via the host OS keychain and stored locally.'
+              )}{' '}
             </Text>
           </View>
           <Pressable
@@ -10883,7 +11350,9 @@ export default function MobileTasksScreen() {
             {linearConnectState === 'connecting' ? (
               <ActivityIndicator size="small" color={colors.bgBase} />
             ) : (
-              <Text style={styles.createButtonText}>Connect</Text>
+              <Text style={styles.createButtonText}>
+                {translate('auto.mobile.app.h.hostId.tasks.783ad5427a', 'Connect')}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -10891,7 +11360,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && workspaceRepoPickerItem != null}
-        title="Create Workspace In"
+        title={translate('auto.mobile.app.h.hostId.tasks.507596eec6', 'Create Workspace In')}
         options={workspaceRepoOptions}
         selected={workspaceRepos[0]?.id ?? ''}
         onSelect={(repoId) => {
@@ -10912,7 +11381,9 @@ export default function MobileTasksScreen() {
         {workspaceCreateDraft ? (
           <View>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Create Workspace</Text>
+              <Text style={styles.sheetTitle}>
+                {translate('auto.mobile.app.h.hostId.tasks.d783b7fb2b', 'Create Workspace')}
+              </Text>
               <Text style={styles.sheetSubtitle} numberOfLines={2}>
                 {workspaceCreateDraft.item.title}
               </Text>
@@ -10920,7 +11391,9 @@ export default function MobileTasksScreen() {
 
             <View style={styles.workspaceCreateForm}>
               <View style={styles.workspaceCreateField}>
-                <Text style={styles.workspaceCreateLabel}>Repository</Text>
+                <Text style={styles.workspaceCreateLabel}>
+                  {translate('auto.mobile.app.h.hostId.tasks.4414bc388e', 'Repository')}
+                </Text>
                 <Pressable
                   style={styles.fieldButton}
                   disabled={!workspaceCreateCanPickRepo}
@@ -10946,7 +11419,8 @@ export default function MobileTasksScreen() {
                     ]}
                     numberOfLines={1}
                   >
-                    {workspaceCreateTargetRepo?.displayName ?? 'Select a repository'}
+                    {workspaceCreateTargetRepo?.displayName ??
+                      translate('auto.mobile.app.h.hostId.tasks.983b6e3640', 'Select a repository')}
                   </Text>
                   {workspaceCreateCanPickRepo ? (
                     <ChevronDown size={14} color={colors.textMuted} />
@@ -10956,7 +11430,9 @@ export default function MobileTasksScreen() {
 
               {workspaceCreateTargetConnectionId ? (
                 <View style={styles.workspaceCreateField}>
-                  <Text style={styles.workspaceCreateLabel}>SSH Connection</Text>
+                  <Text style={styles.workspaceCreateLabel}>
+                    {translate('auto.mobile.app.h.hostId.tasks.85c9744a6b', 'SSH Connection')}
+                  </Text>
                   <View style={styles.sshConnectCard}>
                     <View style={styles.sshStatusRow}>
                       <View
@@ -10971,7 +11447,11 @@ export default function MobileTasksScreen() {
                       />
                       <View style={styles.sshStatusCopy}>
                         <Text style={styles.sshStatusTitle} numberOfLines={1}>
-                          {workspaceCreateTargetRepo?.displayName ?? 'Remote repository'}
+                          {workspaceCreateTargetRepo?.displayName ??
+                            translate(
+                              'auto.mobile.app.h.hostId.tasks.1262746690',
+                              'Remote repository'
+                            )}
                         </Text>
                         <Text style={styles.detailMuted}>
                           {workspaceSshStatusLabel(workspaceCreateSshStatus)}
@@ -10989,7 +11469,12 @@ export default function MobileTasksScreen() {
                           onPress={() => void connectWorkspaceSshRepo()}
                         >
                           <Text style={styles.inlineSaveText}>
-                            {workspaceCreateSshConnectInProgress ? 'Connecting...' : 'Connect'}
+                            {workspaceCreateSshConnectInProgress
+                              ? translate(
+                                  'auto.mobile.app.h.hostId.tasks.1c8722f002',
+                                  'Connecting...'
+                                )
+                              : translate('auto.mobile.app.h.hostId.tasks.783ad5427a', 'Connect')}
                           </Text>
                         </Pressable>
                       )}
@@ -11003,7 +11488,10 @@ export default function MobileTasksScreen() {
 
               <View style={styles.workspaceCreateField}>
                 <Text style={styles.workspaceCreateLabel}>
-                  Workspace Name <Text style={styles.workspaceCreateLabelHint}>[Optional]</Text>
+                  {translate('auto.mobile.app.h.hostId.tasks.9ebfab9a70', 'Workspace Name')}{' '}
+                  <Text style={styles.workspaceCreateLabelHint}>
+                    {translate('auto.mobile.app.h.hostId.tasks.e544525736', '[Optional]')}
+                  </Text>
                 </Text>
                 <MobileWorkspaceNameInput
                   style={styles.input}
@@ -11015,7 +11503,9 @@ export default function MobileTasksScreen() {
               </View>
 
               <View style={styles.workspaceCreateField}>
-                <Text style={styles.workspaceCreateLabel}>Agent</Text>
+                <Text style={styles.workspaceCreateLabel}>
+                  {translate('auto.mobile.app.h.hostId.tasks.c03eedc8a5', 'Agent')}
+                </Text>
                 <Pressable
                   style={[
                     styles.fieldButton,
@@ -11030,9 +11520,15 @@ export default function MobileTasksScreen() {
                   />
                   <Text style={styles.fieldButtonText} numberOfLines={1}>
                     {workspaceCreateRequiresSshConnection
-                      ? 'Connect repository first'
+                      ? translate(
+                          'auto.mobile.app.h.hostId.tasks.4913f49b39',
+                          'Connect repository first'
+                        )
                       : workspaceAgentDetectionPending
-                        ? 'Detecting agents...'
+                        ? translate(
+                            'auto.mobile.app.h.hostId.tasks.a6154f9f64',
+                            'Detecting agents...'
+                          )
                         : workspaceAgentLabel(resolvedWorkspaceAgent)}
                   </Text>
                   <ChevronDown size={14} color={colors.textMuted} />
@@ -11043,7 +11539,9 @@ export default function MobileTasksScreen() {
                 style={styles.workspaceAdvancedToggle}
                 onPress={() => setShowWorkspaceAdvanced((current) => !current)}
               >
-                <Text style={styles.workspaceAdvancedText}>Advanced</Text>
+                <Text style={styles.workspaceAdvancedText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.f0f0ead5de', 'Advanced')}
+                </Text>
                 {showWorkspaceAdvanced ? (
                   <ChevronUp size={14} color={colors.textSecondary} />
                 ) : (
@@ -11053,7 +11551,9 @@ export default function MobileTasksScreen() {
 
               {showWorkspaceAdvanced ? (
                 <View style={styles.workspaceCreateField}>
-                  <Text style={styles.workspaceCreateLabel}>Start from</Text>
+                  <Text style={styles.workspaceCreateLabel}>
+                    {translate('auto.mobile.app.h.hostId.tasks.9da82058be', 'Start from')}
+                  </Text>
                   <Pressable
                     style={styles.fieldButton}
                     onPress={() => {
@@ -11063,13 +11563,15 @@ export default function MobileTasksScreen() {
                   >
                     <GitBranch size={14} color={colors.textMuted} />
                     <Text style={styles.fieldButtonText} numberOfLines={1}>
-                      {workspaceBaseBranch?.refName ?? 'Default branch'}
+                      {workspaceBaseBranch?.refName ??
+                        translate('auto.mobile.app.h.hostId.tasks.b498493084', 'Default branch')}
                     </Text>
                     <ChevronDown size={14} color={colors.textMuted} />
                   </Pressable>
                   {workspaceBaseBranch ? (
                     <Text style={styles.detailMuted} numberOfLines={1}>
-                      Create from {workspaceBaseBranch.refName}
+                      {translate('auto.mobile.app.h.hostId.tasks.6b511d62d0', 'Create from')}{' '}
+                      {workspaceBaseBranch.refName}
                     </Text>
                   ) : null}
                 </View>
@@ -11079,8 +11581,11 @@ export default function MobileTasksScreen() {
             {workspaceCreateTargetRepo ? null : (
               <Text style={styles.detailError}>
                 {workspaceCreateDraft.item.provider === 'linear'
-                  ? 'Add a Git repository before creating a Linear workspace.'
-                  : 'Repository not found.'}
+                  ? translate(
+                      'auto.mobile.app.h.hostId.tasks.ea42a21b65',
+                      'Add a Git repository before creating a Linear workspace.'
+                    )
+                  : translate('auto.mobile.app.h.hostId.tasks.e05fff6416', 'Repository not found.')}
               </Text>
             )}
 
@@ -11125,10 +11630,19 @@ export default function MobileTasksScreen() {
                 ) : (
                   <Text style={styles.createButtonText}>
                     {workspaceAgentDetectionPending
-                      ? 'Detecting agents...'
+                      ? translate(
+                          'auto.mobile.app.h.hostId.tasks.a6154f9f64',
+                          'Detecting agents...'
+                        )
                       : workspaceCreateRequiresSshConnection
-                        ? 'Connect Repository'
-                        : 'Create Workspace'}
+                        ? translate(
+                            'auto.mobile.app.h.hostId.tasks.49639216d6',
+                            'Connect Repository'
+                          )
+                        : translate(
+                            'auto.mobile.app.h.hostId.tasks.d783b7fb2b',
+                            'Create Workspace'
+                          )}
                   </Text>
                 )}
               </Pressable>
@@ -11139,7 +11653,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && workspaceCreateDraft != null && showWorkspaceCreateRepoPicker}
-        title="Repository"
+        title={translate('auto.mobile.app.h.hostId.tasks.4414bc388e', 'Repository')}
         options={workspaceRepoOptions}
         selected={workspaceCreateTargetRepo?.id ?? ''}
         onSelect={(repoId) => {
@@ -11154,7 +11668,7 @@ export default function MobileTasksScreen() {
 
       <PickerModal
         visible={taskUiReady && workspaceCreateDraft != null && showWorkspaceAgentPicker}
-        title="Agent"
+        title={translate('auto.mobile.app.h.hostId.tasks.c03eedc8a5', 'Agent')}
         options={workspaceAgentOptions}
         selected={resolvedWorkspaceAgent}
         onSelect={(agent) => {
@@ -11173,15 +11687,25 @@ export default function MobileTasksScreen() {
       >
         <View>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Start From</Text>
-            <Text style={styles.sheetSubtitle}>Pick an existing branch or ref.</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('auto.mobile.app.h.hostId.tasks.beaa1f0dc2', 'Start From')}
+            </Text>
+            <Text style={styles.sheetSubtitle}>
+              {translate(
+                'auto.mobile.app.h.hostId.tasks.3b40072a71',
+                'Pick an existing branch or ref.'
+              )}
+            </Text>
           </View>
           <View style={styles.detailGroup}>
             <TextInput
               style={styles.input}
               value={workspaceBaseBranchQuery}
               onChangeText={setWorkspaceBaseBranchQuery}
-              placeholder="Search branches"
+              placeholder={translate(
+                'auto.mobile.app.h.hostId.tasks.c30f76dfa0',
+                'Search branches'
+              )}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -11198,8 +11722,15 @@ export default function MobileTasksScreen() {
                 ) : null}
               </View>
               <View style={styles.pickerContent}>
-                <Text style={styles.pickerLabel}>Default branch</Text>
-                <Text style={styles.pickerSubtitle}>Use this repository's configured base</Text>
+                <Text style={styles.pickerLabel}>
+                  {translate('auto.mobile.app.h.hostId.tasks.b498493084', 'Default branch')}
+                </Text>
+                <Text style={styles.pickerSubtitle}>
+                  {translate(
+                    'auto.mobile.app.h.hostId.tasks.6a31586256',
+                    "Use this repository's configured base"
+                  )}
+                </Text>
               </View>
             </Pressable>
             {workspaceBaseBranchLoading ? (
@@ -11209,7 +11740,9 @@ export default function MobileTasksScreen() {
             ) : workspaceBaseBranchError ? (
               <Text style={styles.detailError}>{workspaceBaseBranchError}</Text>
             ) : workspaceBaseBranchQuery.trim() && workspaceBaseBranchResults.length === 0 ? (
-              <Text style={styles.detailMuted}>No branches match.</Text>
+              <Text style={styles.detailMuted}>
+                {translate('auto.mobile.app.h.hostId.tasks.bb07dce495', 'No branches match.')}
+              </Text>
             ) : null}
             {workspaceBaseBranchResults.map((branch) => (
               <View key={`${branch.refName}:${branch.localBranchName}`}>
@@ -11231,7 +11764,8 @@ export default function MobileTasksScreen() {
                     </Text>
                     {branch.localBranchName !== branch.refName ? (
                       <Text style={styles.pickerSubtitle} numberOfLines={1}>
-                        Branch name: {branch.localBranchName}
+                        {translate('auto.mobile.app.h.hostId.tasks.88aaeedd17', 'Branch name:')}{' '}
+                        {branch.localBranchName}
                       </Text>
                     ) : null}
                   </View>
@@ -11249,7 +11783,9 @@ export default function MobileTasksScreen() {
       >
         <View>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Sparse Checkout</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('auto.mobile.app.h.hostId.tasks.eb18fa747a', 'Sparse Checkout')}
+            </Text>
           </View>
           <View style={styles.detailGroup}>
             <Pressable
@@ -11265,8 +11801,15 @@ export default function MobileTasksScreen() {
                 ) : null}
               </View>
               <View style={styles.pickerContent}>
-                <Text style={styles.pickerLabel}>Full checkout</Text>
-                <Text style={styles.pickerSubtitle}>Use the whole repository</Text>
+                <Text style={styles.pickerLabel}>
+                  {translate('auto.mobile.app.h.hostId.tasks.d1fa8d8e8a', 'Full checkout')}
+                </Text>
+                <Text style={styles.pickerSubtitle}>
+                  {translate(
+                    'auto.mobile.app.h.hostId.tasks.9b7f0e1623',
+                    'Use the whole repository'
+                  )}
+                </Text>
               </View>
             </Pressable>
             {workspaceSparsePresets.map((preset) => (
@@ -11316,7 +11859,9 @@ export default function MobileTasksScreen() {
             disabled={!workspaceSparsePresetsLoaded || workspaceSparsePresetsLoading}
             onPress={startNewWorkspaceSparsePreset}
           >
-            <Text style={styles.inlineSaveText}>New preset</Text>
+            <Text style={styles.inlineSaveText}>
+              {translate('auto.mobile.app.h.hostId.tasks.ebe80a094f', 'New preset')}
+            </Text>
           </Pressable>
         </View>
       </BottomDrawer>
@@ -11334,19 +11879,26 @@ export default function MobileTasksScreen() {
           <View>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>
-                {workspaceSparseDraft.mode === 'new' ? 'New Sparse Preset' : 'Edit Sparse Preset'}
+                {workspaceSparseDraft.mode === 'new'
+                  ? translate('auto.mobile.app.h.hostId.tasks.9ba7ca6a72', 'New Sparse Preset')
+                  : translate('auto.mobile.app.h.hostId.tasks.6a5da1393a', 'Edit Sparse Preset')}
               </Text>
             </View>
             <View style={styles.detailGroup}>
               <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>Name</Text>
+                <Text style={styles.detailSectionTitle}>
+                  {translate('auto.mobile.app.h.hostId.tasks.edd08de8b9', 'Name')}
+                </Text>
                 <TextInput
                   style={styles.input}
                   value={workspaceSparseDraft.name}
                   onChangeText={(name) =>
                     setWorkspaceSparseDraft({ ...workspaceSparseDraft, name })
                   }
-                  placeholder="Renderer UI"
+                  placeholder={translate(
+                    'auto.mobile.app.h.hostId.tasks.a21f24f4c3',
+                    'Renderer UI'
+                  )}
                   placeholderTextColor={colors.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -11354,14 +11906,19 @@ export default function MobileTasksScreen() {
                 />
               </View>
               <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>Directories</Text>
+                <Text style={styles.detailSectionTitle}>
+                  {translate('auto.mobile.app.h.hostId.tasks.721916c122', 'Directories')}
+                </Text>
                 <TextInput
                   style={[styles.input, styles.bodyInput, styles.monoInput]}
                   value={workspaceSparseDraft.directoriesText}
                   onChangeText={(directoriesText) =>
                     setWorkspaceSparseDraft({ ...workspaceSparseDraft, directoriesText })
                   }
-                  placeholder={'src/renderer\npackages/ui'}
+                  placeholder={translate(
+                    'auto.mobile.app.h.hostId.tasks.83698fde61',
+                    'src/renderer packages/ui'
+                  )}
                   placeholderTextColor={colors.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -11372,8 +11929,12 @@ export default function MobileTasksScreen() {
               <Text style={workspaceSparseDraftError ? styles.detailError : styles.detailMuted}>
                 {workspaceSparseDraftError ??
                   (workspaceSparseDraftParsed?.directories.length === 1
-                    ? '1 directory'
-                    : `${workspaceSparseDraftParsed?.directories.length ?? 0} directories`)}
+                    ? translate('auto.mobile.app.h.hostId.tasks.0efb8013dd', '1 directory')
+                    : translate(
+                        'auto.mobile.app.h.hostId.tasks.a63af13a45',
+                        '{{value0}} directories',
+                        { value0: workspaceSparseDraftParsed?.directories.length ?? 0 }
+                      ))}
               </Text>
             </View>
             <View style={styles.drawerActionRow}>
@@ -11382,7 +11943,9 @@ export default function MobileTasksScreen() {
                 disabled={workspaceSparseSaving}
                 onPress={() => setWorkspaceSparseDraft(null)}
               >
-                <Text style={styles.secondaryActionText}>Cancel</Text>
+                <Text style={styles.secondaryActionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.16fee5cb7d', 'Cancel')}
+                </Text>
               </Pressable>
               <Pressable
                 style={[
@@ -11395,7 +11958,9 @@ export default function MobileTasksScreen() {
                 {workspaceSparseSaving ? (
                   <ActivityIndicator size="small" color={colors.bgBase} />
                 ) : null}
-                <Text style={styles.primaryActionText}>Save</Text>
+                <Text style={styles.primaryActionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.c7158b292f', 'Save')}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -11410,9 +11975,15 @@ export default function MobileTasksScreen() {
         {setupPrompt ? (
           <View>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Run Setup Script?</Text>
+              <Text style={styles.sheetTitle}>
+                {translate('auto.mobile.app.h.hostId.tasks.374a5075f8', 'Run Setup Script?')}
+              </Text>
               <Text style={styles.sheetSubtitle}>
-                {setupPrompt.repoName} requires a setup choice before creating this workspace.
+                {setupPrompt.repoName}{' '}
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.caf1f1c3f9',
+                  'requires a setup choice before creating this workspace.'
+                )}{' '}
               </Text>
             </View>
 
@@ -11445,7 +12016,12 @@ export default function MobileTasksScreen() {
               >
                 <Check size={16} color={colors.textPrimary} />
                 <Text style={styles.actionText}>
-                  {creatingKey === setupPrompt.item.key ? 'Creating...' : 'Run setup and create'}
+                  {creatingKey === setupPrompt.item.key
+                    ? translate('auto.mobile.app.h.hostId.tasks.7ed22602e7', 'Creating...')
+                    : translate(
+                        'auto.mobile.app.h.hostId.tasks.6f4021e6d8',
+                        'Run setup and create'
+                      )}
                 </Text>
               </Pressable>
               <View style={styles.actionSeparator} />
@@ -11467,7 +12043,9 @@ export default function MobileTasksScreen() {
                 }
               >
                 <X size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Skip setup and create</Text>
+                <Text style={styles.actionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.c5dd55b98b', 'Skip setup and create')}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -11484,19 +12062,31 @@ export default function MobileTasksScreen() {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>
                 {mantaYamlTrustPrompt.previouslyApproved
-                  ? `${mantaYamlTrustPrompt.repoName}'s setup script changed`
-                  : `Run setup from ${mantaYamlTrustPrompt.repoName}?`}
+                  ? translate(
+                      'auto.mobile.app.h.hostId.tasks.41eb5d08a7',
+                      "{{value0}}'s setup script changed",
+                      { value0: mantaYamlTrustPrompt.repoName }
+                    )
+                  : translate(
+                      'auto.mobile.app.h.hostId.tasks.33f3eab28c',
+                      'Run setup from {{value0}}?',
+                      { value0: mantaYamlTrustPrompt.repoName }
+                    )}
               </Text>
               <Text style={styles.sheetSubtitle}>
-                This repository's manta.yaml runs on your machine before the workspace starts. Only
-                run it if you trust this repository.
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.0067e101da',
+                  "This repository's manta.yaml runs on your machine before the workspace starts. Only run it if you trust this repository."
+                )}{' '}
               </Text>
             </View>
 
             <View style={styles.setupPromptBox}>
               <View style={styles.detailSectionHeader}>
                 <Text style={styles.detailSectionTitle}>
-                  {mantaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
+                  {mantaYamlTrustPrompt.previouslyApproved
+                    ? translate('auto.mobile.app.h.hostId.tasks.bed7484165', 'New setup script')
+                    : translate('auto.mobile.app.h.hostId.tasks.5cfbadc7ae', 'Setup script')}
                 </Text>
               </View>
               <Text style={styles.setupPromptCommand}>{mantaYamlTrustPrompt.scriptContent}</Text>
@@ -11534,7 +12124,9 @@ export default function MobileTasksScreen() {
                 }
               >
                 <Check size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Run hooks</Text>
+                <Text style={styles.actionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.9be7d57af4', 'Run hooks')}
+                </Text>
               </Pressable>
               <View style={styles.actionSeparator} />
               <Pressable
@@ -11568,7 +12160,9 @@ export default function MobileTasksScreen() {
                 }
               >
                 <Check size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Always trust and run</Text>
+                <Text style={styles.actionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.965cfe1733', 'Always trust and run')}
+                </Text>
               </Pressable>
               <View style={styles.actionSeparator} />
               <Pressable
@@ -11591,7 +12185,9 @@ export default function MobileTasksScreen() {
                 }}
               >
                 <X size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Don't run</Text>
+                <Text style={styles.actionText}>
+                  {translate('auto.mobile.app.h.hostId.tasks.78dc8d99b5', "Don't run")}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -11607,10 +12203,15 @@ export default function MobileTasksScreen() {
         {projectRepoNotInManta ? (
           <View>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Repository not in Manta</Text>
+              <Text style={styles.sheetTitle}>
+                {translate('auto.mobile.app.h.hostId.tasks.ffc86dd787', 'Repository not in Manta')}
+              </Text>
               <Text style={styles.sheetSubtitle}>
-                {projectRepoNotInManta.owner}/{projectRepoNotInManta.repo} is not added to Manta.
-                Add this repository from the desktop app, then refresh mobile Tasks.
+                {projectRepoNotInManta.owner}/{projectRepoNotInManta.repo}{' '}
+                {translate(
+                  'auto.mobile.app.h.hostId.tasks.79f69cf413',
+                  'is not added to Manta. Add this repository from the desktop app, then refresh mobile Tasks.'
+                )}{' '}
               </Text>
             </View>
 
@@ -11625,7 +12226,9 @@ export default function MobileTasksScreen() {
                   }}
                 >
                   <ExternalLink size={16} color={colors.textPrimary} />
-                  <Text style={styles.actionText}>Open in GitHub</Text>
+                  <Text style={styles.actionText}>
+                    {translate('auto.mobile.app.h.hostId.tasks.8ca7f70cf2', 'Open in GitHub')}
+                  </Text>
                 </Pressable>
               ) : null}
               {projectRepoNotInManta.url ? <View style={styles.actionSeparator} /> : null}
@@ -11642,8 +12245,8 @@ export default function MobileTasksScreen() {
                 <Text style={styles.actionText}>
                   {copiedLinkKey ===
                   `project-repo:${projectRepoNotInManta.owner}/${projectRepoNotInManta.repo}`
-                    ? 'Copied'
-                    : 'Copy repository'}
+                    ? translate('auto.mobile.app.h.hostId.tasks.c43f5c54e5', 'Copied')
+                    : translate('auto.mobile.app.h.hostId.tasks.7864fc2cd3', 'Copy repository')}
                 </Text>
               </Pressable>
             </View>
@@ -11665,7 +12268,8 @@ export default function MobileTasksScreen() {
                 </Text>
               </View>
               <Text style={styles.sheetSubtitle}>
-                GitHub Project · {projectRowItem.content.repository ?? activeProjectLabel}
+                {translate('auto.mobile.app.h.hostId.tasks.fdacd01fb3', 'GitHub Project ·')}{' '}
+                {projectRowItem.content.repository ?? activeProjectLabel}
                 {projectRowItem.content.number ? ` #${projectRowItem.content.number}` : ''}
               </Text>
             </View>
@@ -11673,19 +12277,23 @@ export default function MobileTasksScreen() {
             <View style={styles.detailGroup}>
               <View style={styles.detailMetaGrid}>
                 <View style={styles.detailMetaItem}>
-                  <Text style={styles.detailMetaLabel}>Type</Text>
+                  <Text style={styles.detailMetaLabel}>
+                    {translate('auto.mobile.app.h.hostId.tasks.a36f9052f5', 'Type')}
+                  </Text>
                   <Text style={styles.detailMetaValue}>
                     {projectRowItem.itemType === 'PULL_REQUEST'
-                      ? 'Pull request'
+                      ? translate('auto.mobile.app.h.hostId.tasks.05ac26f906', 'Pull request')
                       : projectRowItem.itemType === 'ISSUE'
-                        ? 'Issue'
+                        ? translate('auto.mobile.app.h.hostId.tasks.c5c83a9af1', 'Issue')
                         : projectRowItem.itemType === 'DRAFT_ISSUE'
-                          ? 'Draft issue'
-                          : 'Project item'}
+                          ? translate('auto.mobile.app.h.hostId.tasks.8c666876cf', 'Draft issue')
+                          : translate('auto.mobile.app.h.hostId.tasks.367621449b', 'Project item')}
                   </Text>
                 </View>
                 <View style={styles.detailMetaItem}>
-                  <Text style={styles.detailMetaLabel}>Status</Text>
+                  <Text style={styles.detailMetaLabel}>
+                    {translate('auto.mobile.app.h.hostId.tasks.15ae8aef22', 'Status')}
+                  </Text>
                   <Text style={styles.detailMetaValue}>
                     {projectRowStatusLabel(projectRowItem)}
                   </Text>
@@ -11712,21 +12320,32 @@ export default function MobileTasksScreen() {
               {SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowItem.itemType === 'ISSUE' ? (
                 <View style={styles.detailSection}>
                   <View style={styles.detailSectionHeader}>
-                    <Text style={styles.detailSectionTitle}>Issue type</Text>
+                    <Text style={styles.detailSectionTitle}>
+                      {translate('auto.mobile.app.h.hostId.tasks.d58b83808f', 'Issue type')}
+                    </Text>
                     <Text style={styles.detailSectionMeta}>
-                      {projectRowItem.content.issueType?.name ?? 'No type'}
+                      {projectRowItem.content.issueType?.name ??
+                        translate('auto.mobile.app.h.hostId.tasks.234befedac', 'No type')}
                     </Text>
                   </View>
                   {projectIssueTypesLoading ? (
                     <View style={styles.detailLoadingInline}>
                       <ActivityIndicator size="small" color={colors.textSecondary} />
-                      <Text style={styles.detailMuted}>Loading issue types...</Text>
+                      <Text style={styles.detailMuted}>
+                        {translate(
+                          'auto.mobile.app.h.hostId.tasks.c36deb9937',
+                          'Loading issue types...'
+                        )}
+                      </Text>
                     </View>
                   ) : projectIssueTypesError ? (
                     <Text style={styles.detailError}>{projectIssueTypesError}</Text>
                   ) : projectIssueTypes.length === 0 ? (
                     <Text style={styles.detailMuted}>
-                      No issue types configured for this repository.
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.e43106b8ae',
+                        'No issue types configured for this repository.'
+                      )}{' '}
                     </Text>
                   ) : (
                     <View style={styles.chipRow}>
@@ -11762,7 +12381,9 @@ export default function MobileTasksScreen() {
                           disabled={projectMutating}
                           onPress={() => void mutateProjectRowIssueType(projectRowItem, null)}
                         >
-                          <Text style={styles.detailChipText}>Clear type</Text>
+                          <Text style={styles.detailChipText}>
+                            {translate('auto.mobile.app.h.hostId.tasks.de9e1030f7', 'Clear type')}
+                          </Text>
                         </Pressable>
                       ) : null}
                     </View>
@@ -11772,7 +12393,9 @@ export default function MobileTasksScreen() {
               {SHOW_MOBILE_PROJECT_METADATA_EDITORS &&
               editableProjectFields(githubProjectTable).length > 0 ? (
                 <View style={styles.detailSection}>
-                  <Text style={styles.detailSectionTitle}>Project fields</Text>
+                  <Text style={styles.detailSectionTitle}>
+                    {translate('auto.mobile.app.h.hostId.tasks.255d57b1db', 'Project fields')}
+                  </Text>
                   {editableProjectFields(githubProjectTable).map((field) => {
                     const currentLabel = projectFieldValueLabel(projectRowItem, field)
                     const draftValue = projectFieldDrafts[field.id] ?? ''
@@ -11847,7 +12470,12 @@ export default function MobileTasksScreen() {
                         ) : field.dataType === 'ITERATION' && field.kind === 'iteration' ? (
                           <View style={styles.projectIterationList}>
                             {field.iterations.length === 0 ? (
-                              <Text style={styles.detailMuted}>No iterations available.</Text>
+                              <Text style={styles.detailMuted}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.097429f0fc',
+                                  'No iterations available.'
+                                )}
+                              </Text>
                             ) : (
                               field.iterations.map((iteration) => {
                                 const fieldValue = projectRowItem.fieldValuesByFieldId?.[field.id]
@@ -11870,8 +12498,16 @@ export default function MobileTasksScreen() {
                                     <View style={styles.projectIterationCopy}>
                                       <Text style={styles.actionText}>{iteration.title}</Text>
                                       <Text style={styles.detailMuted}>
-                                        {iteration.completed ? 'Completed' : 'Current & upcoming'} ·{' '}
-                                        {iteration.startDate} · {iteration.duration}d
+                                        {iteration.completed
+                                          ? translate(
+                                              'auto.mobile.app.h.hostId.tasks.1dabaa2f96',
+                                              'Completed'
+                                            )
+                                          : translate(
+                                              'auto.mobile.app.h.hostId.tasks.a9c15e3103',
+                                              'Current & upcoming'
+                                            )}{' '}
+                                        · {iteration.startDate} · {iteration.duration}d
                                       </Text>
                                     </View>
                                     {selected ? (
@@ -11895,10 +12531,16 @@ export default function MobileTasksScreen() {
                               }
                               placeholder={
                                 field.dataType === 'DATE'
-                                  ? 'YYYY-MM-DD'
+                                  ? translate(
+                                      'auto.mobile.app.h.hostId.tasks.2ae972cc96',
+                                      'YYYY-MM-DD'
+                                    )
                                   : field.dataType === 'NUMBER'
-                                    ? 'Number'
-                                    : 'Text'
+                                    ? translate(
+                                        'auto.mobile.app.h.hostId.tasks.d633598c54',
+                                        'Number'
+                                      )
+                                    : translate('auto.mobile.app.h.hostId.tasks.e60ce46b41', 'Text')
                               }
                               placeholderTextColor={colors.textMuted}
                               keyboardType={field.dataType === 'NUMBER' ? 'numeric' : 'default'}
@@ -11909,7 +12551,12 @@ export default function MobileTasksScreen() {
                               disabled={projectMutating}
                               onPress={saveTextField}
                             >
-                              <Text style={styles.inlineSaveText}>Save field</Text>
+                              <Text style={styles.inlineSaveText}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.6a40f49194',
+                                  'Save field'
+                                )}
+                              </Text>
                             </Pressable>
                           </>
                         )}
@@ -11918,7 +12565,9 @@ export default function MobileTasksScreen() {
                           disabled={projectMutating || currentLabel === 'Empty'}
                           onPress={() => void mutateProjectRowField(projectRowItem, field, null)}
                         >
-                          <Text style={styles.inlineSaveText}>Clear field</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate('auto.mobile.app.h.hostId.tasks.18a48f936d', 'Clear field')}
+                          </Text>
                         </Pressable>
                       </View>
                     )
@@ -11928,23 +12577,35 @@ export default function MobileTasksScreen() {
               {SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
                 <View style={styles.detailSection}>
                   <View style={styles.detailSectionHeader}>
-                    <Text style={styles.detailSectionTitle}>Labels</Text>
+                    <Text style={styles.detailSectionTitle}>
+                      {translate('auto.mobile.app.h.hostId.tasks.1a11cb6c10', 'Labels')}
+                    </Text>
                     <Text style={styles.detailSectionMeta}>
                       {(projectRowDetail?.provider === 'github'
                         ? projectRowDetail.labels
                         : projectRowItem.content.labels.map((label) => label.name)
-                      ).length || 'None'}
+                      ).length || translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                     </Text>
                   </View>
                   {projectLabelsLoading ? (
                     <View style={styles.detailLoadingInline}>
                       <ActivityIndicator size="small" color={colors.textSecondary} />
-                      <Text style={styles.detailMuted}>Loading labels...</Text>
+                      <Text style={styles.detailMuted}>
+                        {translate(
+                          'auto.mobile.app.h.hostId.tasks.bd87e0349f',
+                          'Loading labels...'
+                        )}
+                      </Text>
                     </View>
                   ) : projectLabelsError ? (
                     <Text style={styles.detailError}>{projectLabelsError}</Text>
                   ) : projectAvailableLabels.length === 0 ? (
-                    <Text style={styles.detailMuted}>No labels in this repository.</Text>
+                    <Text style={styles.detailMuted}>
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.c920eee494',
+                        'No labels in this repository.'
+                      )}
+                    </Text>
                   ) : (
                     <View style={styles.chipRow}>
                       {[
@@ -11989,24 +12650,34 @@ export default function MobileTasksScreen() {
               {SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
                 <View style={styles.detailSection}>
                   <View style={styles.detailSectionHeader}>
-                    <Text style={styles.detailSectionTitle}>Assignees</Text>
+                    <Text style={styles.detailSectionTitle}>
+                      {translate('auto.mobile.app.h.hostId.tasks.a0bd27b1de', 'Assignees')}
+                    </Text>
                     <Text style={styles.detailSectionMeta}>
                       {(projectRowDetail?.provider === 'github'
                         ? projectRowDetail.assignees
                         : projectRowItem.content.assignees.map((assignee) => assignee.login)
-                      ).length || 'None'}
+                      ).length || translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                     </Text>
                   </View>
                   {projectAssignableUsersLoading ? (
                     <View style={styles.detailLoadingInline}>
                       <ActivityIndicator size="small" color={colors.textSecondary} />
-                      <Text style={styles.detailMuted}>Loading assignees...</Text>
+                      <Text style={styles.detailMuted}>
+                        {translate(
+                          'auto.mobile.app.h.hostId.tasks.817e16216e',
+                          'Loading assignees...'
+                        )}
+                      </Text>
                     </View>
                   ) : projectAssignableUsersError ? (
                     <Text style={styles.detailError}>{projectAssignableUsersError}</Text>
                   ) : projectAssignableUsers.length === 0 ? (
                     <Text style={styles.detailMuted}>
-                      No assignable users found for this repository.
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.fbe1f46e84',
+                        'No assignable users found for this repository.'
+                      )}{' '}
                     </Text>
                   ) : (
                     <View style={styles.chipRow}>
@@ -12069,12 +12740,17 @@ export default function MobileTasksScreen() {
                   {SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
                     <>
                       <View style={styles.detailSection}>
-                        <Text style={styles.detailSectionTitle}>Title</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.e9bd9ec727', 'Title')}
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={projectTitleDraft}
                           onChangeText={setProjectTitleDraft}
-                          placeholder="Title"
+                          placeholder={translate(
+                            'auto.mobile.app.h.hostId.tasks.e9bd9ec727',
+                            'Title'
+                          )}
                           placeholderTextColor={colors.textMuted}
                         />
                         <Pressable
@@ -12089,16 +12765,23 @@ export default function MobileTasksScreen() {
                             })
                           }
                         >
-                          <Text style={styles.inlineSaveText}>Save title</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate('auto.mobile.app.h.hostId.tasks.38ecea93a4', 'Save title')}
+                          </Text>
                         </Pressable>
                       </View>
                       <View style={styles.detailSection}>
-                        <Text style={styles.detailSectionTitle}>Description</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.c57d82a7b7', 'Description')}
+                        </Text>
                         <TextInput
                           style={[styles.input, styles.bodyInput]}
                           value={projectBodyDraft}
                           onChangeText={setProjectBodyDraft}
-                          placeholder="Description"
+                          placeholder={translate(
+                            'auto.mobile.app.h.hostId.tasks.c57d82a7b7',
+                            'Description'
+                          )}
                           placeholderTextColor={colors.textMuted}
                           multiline
                           textAlignVertical="top"
@@ -12118,7 +12801,12 @@ export default function MobileTasksScreen() {
                             })
                           }
                         >
-                          <Text style={styles.inlineSaveText}>Save description</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.6e65c44219',
+                              'Save description'
+                            )}
+                          </Text>
                         </Pressable>
                         <MobileMarkdown content={projectBodyDraft} fallback="No description." />
                       </View>
@@ -12126,11 +12814,15 @@ export default function MobileTasksScreen() {
                   ) : (
                     <>
                       <View style={styles.detailSection}>
-                        <Text style={styles.detailSectionTitle}>Title</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.e9bd9ec727', 'Title')}
+                        </Text>
                         <Text style={styles.detailLine}>{projectRowItem.content.title}</Text>
                       </View>
                       <View style={styles.detailSection}>
-                        <Text style={styles.detailSectionTitle}>Description</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.c57d82a7b7', 'Description')}
+                        </Text>
                         <MobileMarkdown content={projectBodyDraft} fallback="No description." />
                       </View>
                     </>
@@ -12142,13 +12834,20 @@ export default function MobileTasksScreen() {
                     <>
                       <View style={styles.detailSection}>
                         <View style={styles.detailSectionHeader}>
-                          <Text style={styles.detailSectionTitle}>Reviewers</Text>
+                          <Text style={styles.detailSectionTitle}>
+                            {translate('auto.mobile.app.h.hostId.tasks.84354849b4', 'Reviewers')}
+                          </Text>
                           <Text style={styles.detailSectionMeta}>
                             {getGitHubReviewSummary(projectRowDetail)}
                           </Text>
                         </View>
                         {getGitHubReviewerRows(projectRowDetail).length === 0 ? (
-                          <Text style={styles.detailMuted}>No reviewers requested.</Text>
+                          <Text style={styles.detailMuted}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.89f038b270',
+                              'No reviewers requested.'
+                            )}
+                          </Text>
                         ) : (
                           getGitHubReviewerRows(projectRowDetail).map((reviewer) => (
                             <View key={reviewer.login} style={styles.reviewerRow}>
@@ -12174,12 +12873,22 @@ export default function MobileTasksScreen() {
                         {projectAssignableUsersLoading ? (
                           <View style={styles.detailLoadingInline}>
                             <ActivityIndicator size="small" color={colors.textSecondary} />
-                            <Text style={styles.detailMuted}>Loading reviewers...</Text>
+                            <Text style={styles.detailMuted}>
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.45efa99b1a',
+                                'Loading reviewers...'
+                              )}
+                            </Text>
                           </View>
                         ) : projectAssignableUsersError ? (
                           <Text style={styles.detailError}>{projectAssignableUsersError}</Text>
                         ) : projectReviewerCandidates.length === 0 ? (
-                          <Text style={styles.detailMuted}>No reviewer suggestions found.</Text>
+                          <Text style={styles.detailMuted}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.936a69c8ab',
+                              'No reviewer suggestions found.'
+                            )}
+                          </Text>
                         ) : (
                           <View style={styles.chipRow}>
                             {projectReviewerCandidates.map((user) => {
@@ -12213,7 +12922,10 @@ export default function MobileTasksScreen() {
                           style={styles.input}
                           value={projectReviewersDraft}
                           onChangeText={setProjectReviewersDraft}
-                          placeholder="Request reviewers"
+                          placeholder={translate(
+                            'auto.mobile.app.h.hostId.tasks.593778f6a7',
+                            'Request reviewers'
+                          )}
                           placeholderTextColor={colors.textMuted}
                           autoCapitalize="none"
                         />
@@ -12224,21 +12936,33 @@ export default function MobileTasksScreen() {
                           }
                           onPress={() => void requestProjectGitHubReviewers(projectRowItem)}
                         >
-                          <Text style={styles.inlineSaveText}>Request review</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.2a83e35426',
+                              'Request review'
+                            )}
+                          </Text>
                         </Pressable>
                       </View>
 
                       {projectRowType(projectRowItem) === 'pr' ? (
                         <View style={styles.detailSection}>
                           <View style={styles.detailSectionHeader}>
-                            <Text style={styles.detailSectionTitle}>Checks</Text>
+                            <Text style={styles.detailSectionTitle}>
+                              {translate('auto.mobile.app.h.hostId.tasks.5e56d3dd98', 'Checks')}
+                            </Text>
                             <View style={styles.inlineActionRow}>
                               <Pressable
                                 style={styles.inlineSaveButtonCompact}
                                 disabled={projectMutating}
                                 onPress={() => void refreshProjectGitHubChecks(projectRowItem)}
                               >
-                                <Text style={styles.inlineSaveText}>Refresh</Text>
+                                <Text style={styles.inlineSaveText}>
+                                  {translate(
+                                    'auto.mobile.app.h.hostId.tasks.aee93a0684',
+                                    'Refresh'
+                                  )}
+                                </Text>
                               </Pressable>
                               <Pressable
                                 style={styles.inlineSaveButtonCompact}
@@ -12248,19 +12972,34 @@ export default function MobileTasksScreen() {
                                 }
                                 onPress={() => void rerunProjectGitHubChecks(projectRowItem, true)}
                               >
-                                <Text style={styles.inlineSaveText}>Rerun failed</Text>
+                                <Text style={styles.inlineSaveText}>
+                                  {translate(
+                                    'auto.mobile.app.h.hostId.tasks.8e98409094',
+                                    'Rerun failed'
+                                  )}
+                                </Text>
                               </Pressable>
                               <Pressable
                                 style={styles.inlineSaveButtonCompact}
                                 disabled={projectMutating || projectRowDetail.checks.length === 0}
                                 onPress={() => void rerunProjectGitHubChecks(projectRowItem, false)}
                               >
-                                <Text style={styles.inlineSaveText}>Rerun all</Text>
+                                <Text style={styles.inlineSaveText}>
+                                  {translate(
+                                    'auto.mobile.app.h.hostId.tasks.1e1bbda073',
+                                    'Rerun all'
+                                  )}
+                                </Text>
                               </Pressable>
                             </View>
                           </View>
                           {projectRowDetail.checks.length === 0 ? (
-                            <Text style={styles.detailMuted}>No checks found.</Text>
+                            <Text style={styles.detailMuted}>
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.0ade0ec326',
+                                'No checks found.'
+                              )}
+                            </Text>
                           ) : (
                             projectRowDetail.checks.map((check) => (
                               <Pressable
@@ -12287,7 +13026,12 @@ export default function MobileTasksScreen() {
 
                       {projectRowDetail.files.length > 0 ? (
                         <View style={styles.detailSection}>
-                          <Text style={styles.detailSectionTitle}>Changed files</Text>
+                          <Text style={styles.detailSectionTitle}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.5a1334b828',
+                              'Changed files'
+                            )}
+                          </Text>
                           {projectRowDetail.files.map((file) => (
                             <View key={file.path} style={styles.fileCard}>
                               <Pressable
@@ -12305,7 +13049,12 @@ export default function MobileTasksScreen() {
                                     : ''}
                                 </Text>
                                 <Text style={styles.detailSectionMeta}>
-                                  {expandedPrFilePath === file.path ? 'Hide' : 'View'}
+                                  {expandedPrFilePath === file.path
+                                    ? translate('auto.mobile.app.h.hostId.tasks.fd0aff3906', 'Hide')
+                                    : translate(
+                                        'auto.mobile.app.h.hostId.tasks.3d8b3c8896',
+                                        'View'
+                                      )}
                                 </Text>
                               </Pressable>
                               <Pressable
@@ -12317,8 +13066,14 @@ export default function MobileTasksScreen() {
                               >
                                 <Text style={styles.inlineSaveText}>
                                   {file.viewerViewedState === 'VIEWED'
-                                    ? 'Mark unviewed'
-                                    : 'Mark viewed'}
+                                    ? translate(
+                                        'auto.mobile.app.h.hostId.tasks.d7521a61c2',
+                                        'Mark unviewed'
+                                      )
+                                    : translate(
+                                        'auto.mobile.app.h.hostId.tasks.0ed35b1167',
+                                        'Mark viewed'
+                                      )}
                                 </Text>
                               </Pressable>
                               {expandedPrFilePath === file.path ? (
@@ -12327,7 +13082,12 @@ export default function MobileTasksScreen() {
                                     <ActivityIndicator size="small" color={colors.textSecondary} />
                                   ) : prFileContents[file.path]?.originalIsBinary ||
                                     prFileContents[file.path]?.modifiedIsBinary ? (
-                                    <Text style={styles.detailMuted}>Binary file.</Text>
+                                    <Text style={styles.detailMuted}>
+                                      {translate(
+                                        'auto.mobile.app.h.hostId.tasks.8e1dffe0a2',
+                                        'Binary file.'
+                                      )}
+                                    </Text>
                                   ) : prFileContents[file.path] ? (
                                     <GitHubPrFileDiff
                                       filePath={file.path}
@@ -12350,7 +13110,10 @@ export default function MobileTasksScreen() {
                                     />
                                   ) : (
                                     <Text style={styles.detailMuted}>
-                                      File contents unavailable.
+                                      {translate(
+                                        'auto.mobile.app.h.hostId.tasks.5cba08de45',
+                                        'File contents unavailable.'
+                                      )}{' '}
                                     </Text>
                                   )}
                                 </View>
@@ -12364,13 +13127,17 @@ export default function MobileTasksScreen() {
                   {projectRowDetail?.provider === 'github' ? (
                     <View style={styles.detailSection}>
                       <View style={styles.detailSectionHeader}>
-                        <Text style={styles.detailSectionTitle}>Discussion</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.01798c4ff8', 'Discussion')}
+                        </Text>
                         <Text style={styles.detailSectionMeta}>
                           {discussionSummary(projectRowDetail.comments.length)}
                         </Text>
                       </View>
                       {projectRowDetail.comments.length === 0 ? (
-                        <Text style={styles.detailMuted}>No comments.</Text>
+                        <Text style={styles.detailMuted}>
+                          {translate('auto.mobile.app.h.hostId.tasks.0fb53b901e', 'No comments.')}
+                        </Text>
                       ) : (
                         projectDetailCommentGroups.map((group) => {
                           const groupId = detailCommentGroupId(group)
@@ -12393,11 +13160,33 @@ export default function MobileTasksScreen() {
                                 }
                               >
                                 <Text style={styles.resolvedCommentTitle} numberOfLines={1}>
-                                  Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by{' '}
+                                  {translate(
+                                    'auto.mobile.app.h.hostId.tasks.6267438140',
+                                    'Resolved'
+                                  )}{' '}
+                                  {group.kind === 'thread'
+                                    ? translate(
+                                        'auto.mobile.app.h.hostId.tasks.4f9ae79c6d',
+                                        'thread'
+                                      )
+                                    : translate(
+                                        'auto.mobile.app.h.hostId.tasks.a71fb209e4',
+                                        'comment'
+                                      )}{' '}
+                                  {translate('auto.mobile.app.h.hostId.tasks.364aac3cc7', 'by')}{' '}
                                   {commentAuthor(root)}
                                 </Text>
                                 <Text style={styles.detailSectionMeta}>
-                                  {count > 1 ? `${count} comments` : 'Show'}
+                                  {count > 1
+                                    ? translate(
+                                        'auto.mobile.app.h.hostId.tasks.52fd613db0',
+                                        '{{value0}} comments',
+                                        { value0: count }
+                                      )
+                                    : translate(
+                                        'auto.mobile.app.h.hostId.tasks.cf57cc3c02',
+                                        'Show'
+                                      )}
                                 </Text>
                               </Pressable>
                             )
@@ -12435,7 +13224,10 @@ export default function MobileTasksScreen() {
                                       style={[styles.input, styles.commentInput]}
                                       value={projectEditingCommentDraft}
                                       onChangeText={setProjectEditingCommentDraft}
-                                      placeholder="Edit comment"
+                                      placeholder={translate(
+                                        'auto.mobile.app.h.hostId.tasks.9683022203',
+                                        'Edit comment'
+                                      )}
                                       placeholderTextColor={colors.textMuted}
                                       multiline
                                       textAlignVertical="top"
@@ -12451,7 +13243,12 @@ export default function MobileTasksScreen() {
                                           void updateProjectRowComment(projectRowItem, comment)
                                         }
                                       >
-                                        <Text style={styles.inlineSaveText}>Save</Text>
+                                        <Text style={styles.inlineSaveText}>
+                                          {translate(
+                                            'auto.mobile.app.h.hostId.tasks.c7158b292f',
+                                            'Save'
+                                          )}
+                                        </Text>
                                       </Pressable>
                                       <Pressable
                                         style={styles.inlineSaveButtonCompact}
@@ -12461,7 +13258,12 @@ export default function MobileTasksScreen() {
                                           setProjectEditingCommentDraft('')
                                         }}
                                       >
-                                        <Text style={styles.inlineSaveText}>Cancel</Text>
+                                        <Text style={styles.inlineSaveText}>
+                                          {translate(
+                                            'auto.mobile.app.h.hostId.tasks.16fee5cb7d',
+                                            'Cancel'
+                                          )}
+                                        </Text>
                                       </Pressable>
                                     </View>
                                   </>
@@ -12485,8 +13287,14 @@ export default function MobileTasksScreen() {
                                           >
                                             <Text style={styles.inlineSaveText}>
                                               {comment.isResolved
-                                                ? 'Reopen thread'
-                                                : 'Resolve thread'}
+                                                ? translate(
+                                                    'auto.mobile.app.h.hostId.tasks.a84735398a',
+                                                    'Reopen thread'
+                                                  )
+                                                : translate(
+                                                    'auto.mobile.app.h.hostId.tasks.4638e5d620',
+                                                    'Resolve thread'
+                                                  )}
                                             </Text>
                                           </Pressable>
                                         ) : null}
@@ -12499,7 +13307,10 @@ export default function MobileTasksScreen() {
                                               [commentId]: next
                                             }))
                                           }
-                                          placeholder="Reply"
+                                          placeholder={translate(
+                                            'auto.mobile.app.h.hostId.tasks.d8cc91fe24',
+                                            'Reply'
+                                          )}
                                           placeholderTextColor={colors.textMuted}
                                           multiline
                                           textAlignVertical="top"
@@ -12517,7 +13328,12 @@ export default function MobileTasksScreen() {
                                             )
                                           }
                                         >
-                                          <Text style={styles.inlineSaveText}>Reply</Text>
+                                          <Text style={styles.inlineSaveText}>
+                                            {translate(
+                                              'auto.mobile.app.h.hostId.tasks.d8cc91fe24',
+                                              'Reply'
+                                            )}
+                                          </Text>
                                         </Pressable>
                                         <Pressable
                                           style={styles.inlineSaveButtonCompact}
@@ -12527,7 +13343,12 @@ export default function MobileTasksScreen() {
                                             setProjectEditingCommentDraft(comment.body)
                                           }}
                                         >
-                                          <Text style={styles.inlineSaveText}>Edit</Text>
+                                          <Text style={styles.inlineSaveText}>
+                                            {translate(
+                                              'auto.mobile.app.h.hostId.tasks.0614a095ba',
+                                              'Edit'
+                                            )}
+                                          </Text>
                                         </Pressable>
                                         <Pressable
                                           style={styles.inlineSaveButtonCompact}
@@ -12536,7 +13357,12 @@ export default function MobileTasksScreen() {
                                             void deleteProjectRowComment(projectRowItem, comment)
                                           }
                                         >
-                                          <Text style={styles.inlineDeleteText}>Delete</Text>
+                                          <Text style={styles.inlineDeleteText}>
+                                            {translate(
+                                              'auto.mobile.app.h.hostId.tasks.3151cad2a8',
+                                              'Delete'
+                                            )}
+                                          </Text>
                                         </Pressable>
                                       </View>
                                     ) : null}
@@ -12580,11 +13406,16 @@ export default function MobileTasksScreen() {
                   onPress={() => void createWorkspaceFromProjectRow(projectRowItem)}
                 >
                   <Plus size={16} color={colors.textPrimary} />
-                  <Text style={styles.actionText}>Create Workspace</Text>
+                  <Text style={styles.actionText}>
+                    {translate('auto.mobile.app.h.hostId.tasks.d783b7fb2b', 'Create Workspace')}
+                  </Text>
                 </Pressable>
               ) : (
                 <Text style={styles.emptyInlineText}>
-                  Workspaces can only be created from GitHub issues and pull requests.
+                  {translate(
+                    'auto.mobile.app.h.hostId.tasks.7e7816b5ce',
+                    'Workspaces can only be created from GitHub issues and pull requests.'
+                  )}{' '}
                 </Text>
               )}
 
@@ -12602,7 +13433,9 @@ export default function MobileTasksScreen() {
                     }}
                   >
                     <ExternalLink size={16} color={colors.textPrimary} />
-                    <Text style={styles.actionText}>Open in GitHub</Text>
+                    <Text style={styles.actionText}>
+                      {translate('auto.mobile.app.h.hostId.tasks.8ca7f70cf2', 'Open in GitHub')}
+                    </Text>
                   </Pressable>
                   <View style={styles.actionSeparator} />
                   <Pressable
@@ -12619,8 +13452,11 @@ export default function MobileTasksScreen() {
                     <Copy size={16} color={colors.textPrimary} />
                     <Text style={styles.actionText}>
                       {copiedLinkKey === `github-project:${projectRowItem.id}`
-                        ? 'Copied'
-                        : 'Copy GitHub link'}
+                        ? translate('auto.mobile.app.h.hostId.tasks.c43f5c54e5', 'Copied')
+                        : translate(
+                            'auto.mobile.app.h.hostId.tasks.bd6efe9dde',
+                            'Copy GitHub link'
+                          )}
                     </Text>
                   </Pressable>
                 </>
@@ -12657,7 +13493,9 @@ export default function MobileTasksScreen() {
                       <X size={16} color={colors.textPrimary} />
                     )}
                     <Text style={styles.actionText}>
-                      {projectRowItem.content.state === 'CLOSED' ? 'Reopen item' : 'Close item'}
+                      {projectRowItem.content.state === 'CLOSED'
+                        ? translate('auto.mobile.app.h.hostId.tasks.bde826cb6c', 'Reopen item')
+                        : translate('auto.mobile.app.h.hostId.tasks.f5b7df9238', 'Close item')}
                     </Text>
                   </Pressable>
                 </>
@@ -12673,11 +13511,16 @@ export default function MobileTasksScreen() {
                     onPress={() => setMergeMethodProjectRow(projectRowItem)}
                   >
                     <GitBranch size={16} color={colors.textPrimary} />
-                    <Text style={styles.actionText}>Merge pull request</Text>
+                    <Text style={styles.actionText}>
+                      {translate('auto.mobile.app.h.hostId.tasks.30f30656e9', 'Merge pull request')}
+                    </Text>
                   </Pressable>
                   {!projectRowHostedRepo ? (
                     <Text style={styles.emptyInlineText}>
-                      Merge requires this repository in Manta.
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.62e4e4fab6',
+                        'Merge requires this repository in Manta.'
+                      )}{' '}
                     </Text>
                   ) : null}
                 </>
@@ -12728,29 +13571,39 @@ export default function MobileTasksScreen() {
                 <>
                   <View style={styles.detailMetaGrid}>
                     <View style={styles.detailMetaItem}>
-                      <Text style={styles.detailMetaLabel}>Type</Text>
+                      <Text style={styles.detailMetaLabel}>
+                        {translate('auto.mobile.app.h.hostId.tasks.a36f9052f5', 'Type')}
+                      </Text>
                       <Text style={styles.detailMetaValue}>{taskKindLabel(actionItem)}</Text>
                     </View>
                     <View style={styles.detailMetaItem}>
-                      <Text style={styles.detailMetaLabel}>Status</Text>
+                      <Text style={styles.detailMetaLabel}>
+                        {translate('auto.mobile.app.h.hostId.tasks.15ae8aef22', 'Status')}
+                      </Text>
                       <Text style={styles.detailMetaValue}>{actionItem.status}</Text>
                     </View>
                     {detailPayload.provider === 'linear' && detailPayload.assignee ? (
                       <View style={styles.detailMetaItem}>
-                        <Text style={styles.detailMetaLabel}>Assignee</Text>
+                        <Text style={styles.detailMetaLabel}>
+                          {translate('auto.mobile.app.h.hostId.tasks.6f7452906d', 'Assignee')}
+                        </Text>
                         <Text style={styles.detailMetaValue}>{detailPayload.assignee}</Text>
                       </View>
                     ) : null}
                     {detailPayload.provider === 'linear' && detailPayload.project ? (
                       <View style={styles.detailMetaItem}>
-                        <Text style={styles.detailMetaLabel}>Project</Text>
+                        <Text style={styles.detailMetaLabel}>
+                          {translate('auto.mobile.app.h.hostId.tasks.88ce4b1bbf', 'Project')}
+                        </Text>
                         <Text style={styles.detailMetaValue}>{detailPayload.project.name}</Text>
                       </View>
                     ) : null}
                     {(detailPayload.provider === 'github' || detailPayload.provider === 'gitlab') &&
                     detailPayload.assignees.length > 0 ? (
                       <View style={styles.detailMetaItem}>
-                        <Text style={styles.detailMetaLabel}>Assignees</Text>
+                        <Text style={styles.detailMetaLabel}>
+                          {translate('auto.mobile.app.h.hostId.tasks.a0bd27b1de', 'Assignees')}
+                        </Text>
                         <Text style={styles.detailMetaValue}>
                           {detailPayload.assignees.join(', ')}
                         </Text>
@@ -12769,7 +13622,9 @@ export default function MobileTasksScreen() {
                   ) : null}
 
                   <View style={styles.detailSection}>
-                    <Text style={styles.detailSectionTitle}>Description</Text>
+                    <Text style={styles.detailSectionTitle}>
+                      {translate('auto.mobile.app.h.hostId.tasks.c57d82a7b7', 'Description')}
+                    </Text>
                     {SHOW_MOBILE_DETAIL_METADATA_EDITORS &&
                     ((actionItem.provider === 'github' &&
                       detailPayload.provider === 'github' &&
@@ -12783,7 +13638,10 @@ export default function MobileTasksScreen() {
                           style={[styles.input, styles.bodyInput]}
                           value={itemBodyDraft}
                           onChangeText={setItemBodyDraft}
-                          placeholder="Description"
+                          placeholder={translate(
+                            'auto.mobile.app.h.hostId.tasks.c57d82a7b7',
+                            'Description'
+                          )}
                           placeholderTextColor={colors.textMuted}
                           multiline
                           textAlignVertical="top"
@@ -12821,7 +13679,12 @@ export default function MobileTasksScreen() {
                             }
                           }}
                         >
-                          <Text style={styles.inlineSaveText}>Save description</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.6e65c44219',
+                              'Save description'
+                            )}
+                          </Text>
                         </Pressable>
                         <MobileMarkdown content={itemBodyDraft} fallback="No description." />
                       </>
@@ -12846,12 +13709,17 @@ export default function MobileTasksScreen() {
                       detailPayload.provider === 'gitlab')) ? (
                     <>
                       <View style={styles.detailSection}>
-                        <Text style={styles.detailSectionTitle}>Title</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.e9bd9ec727', 'Title')}
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={itemTitleDraft}
                           onChangeText={setItemTitleDraft}
-                          placeholder="Title"
+                          placeholder={translate(
+                            'auto.mobile.app.h.hostId.tasks.e9bd9ec727',
+                            'Title'
+                          )}
                           placeholderTextColor={colors.textMuted}
                         />
                         <Pressable
@@ -12884,27 +13752,42 @@ export default function MobileTasksScreen() {
                             }
                           }}
                         >
-                          <Text style={styles.inlineSaveText}>Save title</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate('auto.mobile.app.h.hostId.tasks.38ecea93a4', 'Save title')}
+                          </Text>
                         </Pressable>
                       </View>
 
                       <View style={styles.detailSection}>
                         <View style={styles.detailSectionHeader}>
-                          <Text style={styles.detailSectionTitle}>Labels</Text>
+                          <Text style={styles.detailSectionTitle}>
+                            {translate('auto.mobile.app.h.hostId.tasks.1a11cb6c10', 'Labels')}
+                          </Text>
                           <Text style={styles.detailSectionMeta}>
-                            {detailPayload.labels.length || 'None'}
+                            {detailPayload.labels.length ||
+                              translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                           </Text>
                         </View>
                         {actionItem.provider === 'github' ? (
                           itemLabelsLoading ? (
                             <View style={styles.detailLoadingInline}>
                               <ActivityIndicator size="small" color={colors.textSecondary} />
-                              <Text style={styles.detailMuted}>Loading labels...</Text>
+                              <Text style={styles.detailMuted}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.bd87e0349f',
+                                  'Loading labels...'
+                                )}
+                              </Text>
                             </View>
                           ) : itemLabelsError ? (
                             <Text style={styles.detailError}>{itemLabelsError}</Text>
                           ) : itemAvailableLabels.length === 0 ? (
-                            <Text style={styles.detailMuted}>No labels in this repository.</Text>
+                            <Text style={styles.detailMuted}>
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.c920eee494',
+                                'No labels in this repository.'
+                              )}
+                            </Text>
                           ) : (
                             <View style={styles.chipRow}>
                               {[...new Set([...itemAvailableLabels, ...detailPayload.labels])].map(
@@ -12945,7 +13828,10 @@ export default function MobileTasksScreen() {
                               style={styles.input}
                               value={itemAddLabelsDraft}
                               onChangeText={setItemAddLabelsDraft}
-                              placeholder="Add labels, comma separated"
+                              placeholder={translate(
+                                'auto.mobile.app.h.hostId.tasks.07227f6aa3',
+                                'Add labels, comma separated'
+                              )}
                               placeholderTextColor={colors.textMuted}
                               autoCapitalize="none"
                             />
@@ -12953,7 +13839,10 @@ export default function MobileTasksScreen() {
                               style={[styles.input, styles.stackedInput]}
                               value={itemRemoveLabelsDraft}
                               onChangeText={setItemRemoveLabelsDraft}
-                              placeholder="Remove labels, comma separated"
+                              placeholder={translate(
+                                'auto.mobile.app.h.hostId.tasks.832bb443ac',
+                                'Remove labels, comma separated'
+                              )}
                               placeholderTextColor={colors.textMuted}
                               autoCapitalize="none"
                             />
@@ -12971,7 +13860,12 @@ export default function MobileTasksScreen() {
                                 })
                               }
                             >
-                              <Text style={styles.inlineSaveText}>Update labels</Text>
+                              <Text style={styles.inlineSaveText}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.2bd3b109f8',
+                                  'Update labels'
+                                )}
+                              </Text>
                             </Pressable>
                           </>
                         )}
@@ -12979,22 +13873,33 @@ export default function MobileTasksScreen() {
 
                       <View style={styles.detailSection}>
                         <View style={styles.detailSectionHeader}>
-                          <Text style={styles.detailSectionTitle}>Assignees</Text>
+                          <Text style={styles.detailSectionTitle}>
+                            {translate('auto.mobile.app.h.hostId.tasks.a0bd27b1de', 'Assignees')}
+                          </Text>
                           <Text style={styles.detailSectionMeta}>
-                            {detailPayload.assignees.length || 'None'}
+                            {detailPayload.assignees.length ||
+                              translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                           </Text>
                         </View>
                         {actionItem.provider === 'github' ? (
                           itemAssignableUsersLoading ? (
                             <View style={styles.detailLoadingInline}>
                               <ActivityIndicator size="small" color={colors.textSecondary} />
-                              <Text style={styles.detailMuted}>Loading assignees...</Text>
+                              <Text style={styles.detailMuted}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.817e16216e',
+                                  'Loading assignees...'
+                                )}
+                              </Text>
                             </View>
                           ) : itemAssignableUsersError ? (
                             <Text style={styles.detailError}>{itemAssignableUsersError}</Text>
                           ) : itemAssignableUsers.length === 0 ? (
                             <Text style={styles.detailMuted}>
-                              No assignable users found for this repository.
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.fbe1f46e84',
+                                'No assignable users found for this repository.'
+                              )}{' '}
                             </Text>
                           ) : (
                             <View style={styles.chipRow}>
@@ -13045,7 +13950,10 @@ export default function MobileTasksScreen() {
                               style={styles.input}
                               value={itemAddAssigneesDraft}
                               onChangeText={setItemAddAssigneesDraft}
-                              placeholder="Add usernames, comma separated"
+                              placeholder={translate(
+                                'auto.mobile.app.h.hostId.tasks.2bda2dac44',
+                                'Add usernames, comma separated'
+                              )}
                               placeholderTextColor={colors.textMuted}
                               autoCapitalize="none"
                             />
@@ -13053,7 +13961,10 @@ export default function MobileTasksScreen() {
                               style={[styles.input, styles.stackedInput]}
                               value={itemRemoveAssigneesDraft}
                               onChangeText={setItemRemoveAssigneesDraft}
-                              placeholder="Remove usernames, comma separated"
+                              placeholder={translate(
+                                'auto.mobile.app.h.hostId.tasks.5ff03f2b54',
+                                'Remove usernames, comma separated'
+                              )}
                               placeholderTextColor={colors.textMuted}
                               autoCapitalize="none"
                             />
@@ -13071,7 +13982,12 @@ export default function MobileTasksScreen() {
                                 })
                               }
                             >
-                              <Text style={styles.inlineSaveText}>Update assignees</Text>
+                              <Text style={styles.inlineSaveText}>
+                                {translate(
+                                  'auto.mobile.app.h.hostId.tasks.150447f1f6',
+                                  'Update assignees'
+                                )}
+                              </Text>
                             </Pressable>
                           </>
                         ) : null}
@@ -13084,7 +14000,9 @@ export default function MobileTasksScreen() {
                   actionItem.source.type === 'pr' ? (
                     <View style={styles.detailSection}>
                       <View style={styles.detailSectionHeader}>
-                        <Text style={styles.detailSectionTitle}>Reviewers</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.84354849b4', 'Reviewers')}
+                        </Text>
                         {detailPayload.provider === 'github' ? (
                           <Text style={styles.detailSectionMeta}>
                             {getGitHubReviewSummary(detailPayload)}
@@ -13093,7 +14011,12 @@ export default function MobileTasksScreen() {
                       </View>
                       {detailPayload.provider === 'github' ? (
                         getGitHubReviewerRows(detailPayload).length === 0 ? (
-                          <Text style={styles.detailMuted}>No reviewers requested.</Text>
+                          <Text style={styles.detailMuted}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.89f038b270',
+                              'No reviewers requested.'
+                            )}
+                          </Text>
                         ) : (
                           getGitHubReviewerRows(detailPayload).map((reviewer) => (
                             <View key={reviewer.login} style={styles.reviewerRow}>
@@ -13120,12 +14043,22 @@ export default function MobileTasksScreen() {
                       {itemAssignableUsersLoading ? (
                         <View style={styles.detailLoadingInline}>
                           <ActivityIndicator size="small" color={colors.textSecondary} />
-                          <Text style={styles.detailMuted}>Loading reviewers...</Text>
+                          <Text style={styles.detailMuted}>
+                            {translate(
+                              'auto.mobile.app.h.hostId.tasks.45efa99b1a',
+                              'Loading reviewers...'
+                            )}
+                          </Text>
                         </View>
                       ) : itemAssignableUsersError ? (
                         <Text style={styles.detailError}>{itemAssignableUsersError}</Text>
                       ) : itemReviewerCandidates.length === 0 ? (
-                        <Text style={styles.detailMuted}>No reviewer suggestions found.</Text>
+                        <Text style={styles.detailMuted}>
+                          {translate(
+                            'auto.mobile.app.h.hostId.tasks.936a69c8ab',
+                            'No reviewer suggestions found.'
+                          )}
+                        </Text>
                       ) : (
                         <View style={styles.chipRow}>
                           {itemReviewerCandidates.map((user) => {
@@ -13157,7 +14090,10 @@ export default function MobileTasksScreen() {
                         style={styles.input}
                         value={itemReviewersDraft}
                         onChangeText={setItemReviewersDraft}
-                        placeholder="Request reviewers"
+                        placeholder={translate(
+                          'auto.mobile.app.h.hostId.tasks.593778f6a7',
+                          'Request reviewers'
+                        )}
                         placeholderTextColor={colors.textMuted}
                         autoCapitalize="none"
                       />
@@ -13168,7 +14104,9 @@ export default function MobileTasksScreen() {
                         }
                         onPress={() => void requestGitHubReviewers(actionItem)}
                       >
-                        <Text style={styles.inlineSaveText}>Request review</Text>
+                        <Text style={styles.inlineSaveText}>
+                          {translate('auto.mobile.app.h.hostId.tasks.2a83e35426', 'Request review')}
+                        </Text>
                       </Pressable>
                     </View>
                   ) : null}
@@ -13179,14 +14117,18 @@ export default function MobileTasksScreen() {
                   actionItem.source.type === 'pr' ? (
                     <View style={styles.detailSection}>
                       <View style={styles.detailSectionHeader}>
-                        <Text style={styles.detailSectionTitle}>Checks</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.5e56d3dd98', 'Checks')}
+                        </Text>
                         <View style={styles.inlineActionRow}>
                           <Pressable
                             style={styles.inlineSaveButtonCompact}
                             disabled={mutatingStatus}
                             onPress={() => void refreshGitHubChecks(actionItem)}
                           >
-                            <Text style={styles.inlineSaveText}>Refresh</Text>
+                            <Text style={styles.inlineSaveText}>
+                              {translate('auto.mobile.app.h.hostId.tasks.aee93a0684', 'Refresh')}
+                            </Text>
                           </Pressable>
                           <Pressable
                             style={styles.inlineSaveButtonCompact}
@@ -13195,19 +14137,31 @@ export default function MobileTasksScreen() {
                             }
                             onPress={() => void rerunGitHubChecks(actionItem, true)}
                           >
-                            <Text style={styles.inlineSaveText}>Rerun failed</Text>
+                            <Text style={styles.inlineSaveText}>
+                              {translate(
+                                'auto.mobile.app.h.hostId.tasks.8e98409094',
+                                'Rerun failed'
+                              )}
+                            </Text>
                           </Pressable>
                           <Pressable
                             style={styles.inlineSaveButtonCompact}
                             disabled={mutatingStatus || detailPayload.checks.length === 0}
                             onPress={() => void rerunGitHubChecks(actionItem, false)}
                           >
-                            <Text style={styles.inlineSaveText}>Rerun all</Text>
+                            <Text style={styles.inlineSaveText}>
+                              {translate('auto.mobile.app.h.hostId.tasks.1e1bbda073', 'Rerun all')}
+                            </Text>
                           </Pressable>
                         </View>
                       </View>
                       {detailPayload.checks.length === 0 ? (
-                        <Text style={styles.detailMuted}>No checks found.</Text>
+                        <Text style={styles.detailMuted}>
+                          {translate(
+                            'auto.mobile.app.h.hostId.tasks.0ade0ec326',
+                            'No checks found.'
+                          )}
+                        </Text>
                       ) : (
                         detailPayload.checks.map((check) => (
                           <Pressable
@@ -13236,7 +14190,9 @@ export default function MobileTasksScreen() {
                   detailPayload.provider === 'github' &&
                   detailPayload.files.length > 0 ? (
                     <View style={styles.detailSection}>
-                      <Text style={styles.detailSectionTitle}>Changed files</Text>
+                      <Text style={styles.detailSectionTitle}>
+                        {translate('auto.mobile.app.h.hostId.tasks.5a1334b828', 'Changed files')}
+                      </Text>
                       {detailPayload.files.map((file) =>
                         actionItem.provider === 'github' && actionItem.source.type === 'pr' ? (
                           <View key={file.path} style={styles.fileCard}>
@@ -13253,7 +14209,9 @@ export default function MobileTasksScreen() {
                                   : ''}
                               </Text>
                               <Text style={styles.detailSectionMeta}>
-                                {expandedPrFilePath === file.path ? 'Hide' : 'View'}
+                                {expandedPrFilePath === file.path
+                                  ? translate('auto.mobile.app.h.hostId.tasks.fd0aff3906', 'Hide')
+                                  : translate('auto.mobile.app.h.hostId.tasks.3d8b3c8896', 'View')}
                               </Text>
                             </Pressable>
                             <Pressable
@@ -13263,8 +14221,14 @@ export default function MobileTasksScreen() {
                             >
                               <Text style={styles.inlineSaveText}>
                                 {file.viewerViewedState === 'VIEWED'
-                                  ? 'Mark unviewed'
-                                  : 'Mark viewed'}
+                                  ? translate(
+                                      'auto.mobile.app.h.hostId.tasks.d7521a61c2',
+                                      'Mark unviewed'
+                                    )
+                                  : translate(
+                                      'auto.mobile.app.h.hostId.tasks.0ed35b1167',
+                                      'Mark viewed'
+                                    )}
                               </Text>
                             </Pressable>
                             {expandedPrFilePath === file.path ? (
@@ -13273,7 +14237,12 @@ export default function MobileTasksScreen() {
                                   <ActivityIndicator size="small" color={colors.textSecondary} />
                                 ) : prFileContents[file.path]?.originalIsBinary ||
                                   prFileContents[file.path]?.modifiedIsBinary ? (
-                                  <Text style={styles.detailMuted}>Binary file.</Text>
+                                  <Text style={styles.detailMuted}>
+                                    {translate(
+                                      'auto.mobile.app.h.hostId.tasks.8e1dffe0a2',
+                                      'Binary file.'
+                                    )}
+                                  </Text>
                                 ) : prFileContents[file.path] ? (
                                   <GitHubPrFileDiff
                                     filePath={file.path}
@@ -13291,7 +14260,12 @@ export default function MobileTasksScreen() {
                                     }
                                   />
                                 ) : (
-                                  <Text style={styles.detailMuted}>File contents unavailable.</Text>
+                                  <Text style={styles.detailMuted}>
+                                    {translate(
+                                      'auto.mobile.app.h.hostId.tasks.5cba08de45',
+                                      'File contents unavailable.'
+                                    )}{' '}
+                                  </Text>
                                 )}
                               </View>
                             ) : null}
@@ -13315,15 +14289,26 @@ export default function MobileTasksScreen() {
                   actionItem.source.type === 'mr' ? (
                     <View style={styles.detailSection}>
                       <View style={styles.detailSectionHeader}>
-                        <Text style={styles.detailSectionTitle}>Pipeline</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.89ab9d6324', 'Pipeline')}
+                        </Text>
                         <Text style={styles.detailSectionMeta}>
                           {detailPayload.pipelineJobs.length
-                            ? `${detailPayload.pipelineJobs.length} jobs`
-                            : 'None'}
+                            ? translate(
+                                'auto.mobile.app.h.hostId.tasks.adee4199a7',
+                                '{{value0}} jobs',
+                                { value0: detailPayload.pipelineJobs.length }
+                              )
+                            : translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                         </Text>
                       </View>
                       {detailPayload.pipelineJobs.length === 0 ? (
-                        <Text style={styles.detailMuted}>No pipeline runs for this MR.</Text>
+                        <Text style={styles.detailMuted}>
+                          {translate(
+                            'auto.mobile.app.h.hostId.tasks.faeba98b3a',
+                            'No pipeline runs for this MR.'
+                          )}
+                        </Text>
                       ) : (
                         detailPayload.pipelineJobs.map((job) => {
                           const duration = formatDurationSeconds(job.duration)
@@ -13366,13 +14351,18 @@ export default function MobileTasksScreen() {
                   actionItem.provider === 'linear' ? (
                     <View style={styles.detailSection}>
                       <View style={styles.detailSectionHeader}>
-                        <Text style={styles.detailSectionTitle}>Sub-issues</Text>
+                        <Text style={styles.detailSectionTitle}>
+                          {translate('auto.mobile.app.h.hostId.tasks.c886a93e4f', 'Sub-issues')}
+                        </Text>
                         <Text style={styles.detailSectionMeta}>
-                          {detailPayload.children.length || 'None'}
+                          {detailPayload.children.length ||
+                            translate('auto.mobile.app.h.hostId.tasks.a73061648e', 'None')}
                         </Text>
                       </View>
                       {detailPayload.children.length === 0 ? (
-                        <Text style={styles.detailMuted}>No sub-issues.</Text>
+                        <Text style={styles.detailMuted}>
+                          {translate('auto.mobile.app.h.hostId.tasks.f0c2a7e0b9', 'No sub-issues.')}
+                        </Text>
                       ) : (
                         detailPayload.children.map((child) => (
                           <Pressable
@@ -13386,7 +14376,9 @@ export default function MobileTasksScreen() {
                             <Text style={styles.detailLine}>
                               {child.identifier} · {child.title}
                             </Text>
-                            <Text style={styles.detailSectionMeta}>Open</Text>
+                            <Text style={styles.detailSectionMeta}>
+                              {translate('auto.mobile.app.h.hostId.tasks.733c49ee24', 'Open')}
+                            </Text>
                           </Pressable>
                         ))
                       )}
@@ -13394,7 +14386,10 @@ export default function MobileTasksScreen() {
                         style={[styles.input, styles.stackedInput]}
                         value={linearSubIssueTitle}
                         onChangeText={setLinearSubIssueTitle}
-                        placeholder="Sub-issue title"
+                        placeholder={translate(
+                          'auto.mobile.app.h.hostId.tasks.1ba0002b22',
+                          'Sub-issue title'
+                        )}
                         placeholderTextColor={colors.textMuted}
                       />
                       <Pressable
@@ -13402,20 +14397,26 @@ export default function MobileTasksScreen() {
                         disabled={mutatingStatus || linearSubIssueTitle.trim().length === 0}
                         onPress={() => void createLinearSubIssue(actionItem)}
                       >
-                        <Text style={styles.inlineSaveText}>Add sub-issue</Text>
+                        <Text style={styles.inlineSaveText}>
+                          {translate('auto.mobile.app.h.hostId.tasks.cf5b6cd55c', 'Add sub-issue')}
+                        </Text>
                       </Pressable>
                     </View>
                   ) : null}
 
                   <View style={styles.detailSection}>
                     <View style={styles.detailSectionHeader}>
-                      <Text style={styles.detailSectionTitle}>Discussion</Text>
+                      <Text style={styles.detailSectionTitle}>
+                        {translate('auto.mobile.app.h.hostId.tasks.01798c4ff8', 'Discussion')}
+                      </Text>
                       <Text style={styles.detailSectionMeta}>
                         {discussionSummary(detailPayload.comments.length)}
                       </Text>
                     </View>
                     {detailPayload.comments.length === 0 ? (
-                      <Text style={styles.detailMuted}>No comments.</Text>
+                      <Text style={styles.detailMuted}>
+                        {translate('auto.mobile.app.h.hostId.tasks.0fb53b901e', 'No comments.')}
+                      </Text>
                     ) : (
                       detailCommentGroups.map(renderDetailCommentGroup)
                     )}
@@ -13455,7 +14456,9 @@ export default function MobileTasksScreen() {
               >
                 <Plus size={16} color={colors.textPrimary} />
                 <Text style={styles.actionText}>
-                  {creatingKey === actionItem.key ? 'Creating...' : 'Create Workspace'}
+                  {creatingKey === actionItem.key
+                    ? translate('auto.mobile.app.h.hostId.tasks.7ed22602e7', 'Creating...')
+                    : translate('auto.mobile.app.h.hostId.tasks.d783b7fb2b', 'Create Workspace')}
                 </Text>
               </Pressable>
 
@@ -13483,8 +14486,11 @@ export default function MobileTasksScreen() {
                     <Copy size={16} color={colors.textPrimary} />
                     <Text style={styles.actionText}>
                       {copiedLinkKey === `linear-url:${actionItem.key}`
-                        ? 'Copied'
-                        : 'Copy Linear link'}
+                        ? translate('auto.mobile.app.h.hostId.tasks.c43f5c54e5', 'Copied')
+                        : translate(
+                            'auto.mobile.app.h.hostId.tasks.b52e1248b3',
+                            'Copy Linear link'
+                          )}
                     </Text>
                   </Pressable>
                 </>
@@ -13501,7 +14507,12 @@ export default function MobileTasksScreen() {
                   >
                     <Copy size={16} color={colors.textPrimary} />
                     <Text style={styles.actionText}>
-                      {copiedLinkKey === `task:${actionItem.key}` ? 'Copied' : 'Copy GitHub link'}
+                      {copiedLinkKey === `task:${actionItem.key}`
+                        ? translate('auto.mobile.app.h.hostId.tasks.c43f5c54e5', 'Copied')
+                        : translate(
+                            'auto.mobile.app.h.hostId.tasks.bd6efe9dde',
+                            'Copy GitHub link'
+                          )}
                     </Text>
                   </Pressable>
                 </>
@@ -13547,10 +14558,17 @@ export default function MobileTasksScreen() {
                     }
                   >
                     <GitBranch size={16} color={colors.textPrimary} />
-                    <Text style={styles.actionText}>Merge pull request</Text>
+                    <Text style={styles.actionText}>
+                      {translate('auto.mobile.app.h.hostId.tasks.30f30656e9', 'Merge pull request')}
+                    </Text>
                   </Pressable>
                   {isGitHubPrMergeBlocked(actionItem) ? (
-                    <Text style={styles.emptyInlineText}>GitHub reports merge conflicts.</Text>
+                    <Text style={styles.emptyInlineText}>
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.42702c04ca',
+                        'GitHub reports merge conflicts.'
+                      )}
+                    </Text>
                   ) : null}
                 </>
               ) : null}
@@ -13597,7 +14615,12 @@ export default function MobileTasksScreen() {
                     }
                   >
                     <GitBranch size={16} color={colors.textPrimary} />
-                    <Text style={styles.actionText}>Merge merge request</Text>
+                    <Text style={styles.actionText}>
+                      {translate(
+                        'auto.mobile.app.h.hostId.tasks.15cec74be7',
+                        'Merge merge request'
+                      )}
+                    </Text>
                   </Pressable>
                 </>
               ) : null}
@@ -13615,7 +14638,9 @@ export default function MobileTasksScreen() {
                     }}
                   >
                     <GitBranch size={16} color={colors.textPrimary} />
-                    <Text style={styles.actionText}>Change status</Text>
+                    <Text style={styles.actionText}>
+                      {translate('auto.mobile.app.h.hostId.tasks.643c1e0332', 'Change status')}
+                    </Text>
                   </Pressable>
                 </>
               ) : null}
@@ -13626,8 +14651,11 @@ export default function MobileTasksScreen() {
 
       <ActionSheetModal
         visible={taskUiReady && mergeMethodProjectRow != null}
-        title="Merge method"
-        message="Choose how this pull request should be merged."
+        title={translate('auto.mobile.app.h.hostId.tasks.6b1e55d747', 'Merge method')}
+        message={translate(
+          'auto.mobile.app.h.hostId.tasks.97bec2fda2',
+          'Choose how this pull request should be merged.'
+        )}
         actions={
           mergeMethodProjectRow
             ? (['squash', 'merge', 'rebase'] as const).map((method) => ({
@@ -13643,11 +14671,17 @@ export default function MobileTasksScreen() {
       />
       <ActionSheetModal
         visible={taskUiReady && mergeMethodTaskItem != null}
-        title="Merge method"
+        title={translate('auto.mobile.app.h.hostId.tasks.6b1e55d747', 'Merge method')}
         message={
           mergeMethodTaskItem?.provider === 'gitlab'
-            ? 'Choose how this merge request should be merged.'
-            : 'Choose how this pull request should be merged.'
+            ? translate(
+                'auto.mobile.app.h.hostId.tasks.0316f0659d',
+                'Choose how this merge request should be merged.'
+              )
+            : translate(
+                'auto.mobile.app.h.hostId.tasks.97bec2fda2',
+                'Choose how this pull request should be merged.'
+              )
         }
         actions={
           mergeMethodTaskItem
@@ -13657,7 +14691,7 @@ export default function MobileTasksScreen() {
               ).map((method) => ({
                 label:
                   mergeMethodTaskItem.provider === 'gitlab' && method === 'merge'
-                    ? 'Merge'
+                    ? translate('auto.mobile.app.h.hostId.tasks.017800c553', 'Merge')
                     : getHostedReviewMergeMethodLabel(method),
                 icon: GitBranch,
                 onPress: () => {
@@ -13672,7 +14706,9 @@ export default function MobileTasksScreen() {
       <ConfirmModal
         visible={taskUiReady && pendingHostedMerge != null}
         title={
-          pendingHostedMerge?.item.provider === 'gitlab' ? 'Merge Request' : 'Merge Pull Request'
+          pendingHostedMerge?.item.provider === 'gitlab'
+            ? translate('auto.mobile.app.h.hostId.tasks.711e331043', 'Merge Request')
+            : translate('auto.mobile.app.h.hostId.tasks.b12358de98', 'Merge Pull Request')
         }
         message={pendingHostedMerge ? getHostedMergeConfirmMessage(pendingHostedMerge) : undefined}
         confirmLabel={
@@ -13688,7 +14724,7 @@ export default function MobileTasksScreen() {
       />
       <ConfirmModal
         visible={taskUiReady && pendingProjectGitHubMerge != null}
-        title="Merge Pull Request"
+        title={translate('auto.mobile.app.h.hostId.tasks.b12358de98', 'Merge Pull Request')}
         message={
           pendingProjectGitHubMerge
             ? getProjectGitHubMergeConfirmMessage(pendingProjectGitHubMerge)
@@ -13715,7 +14751,7 @@ export default function MobileTasksScreen() {
         title={
           pendingHostedStateChange
             ? getHostedStateConfirmTitle(pendingHostedStateChange)
-            : 'Update Item'
+            : translate('auto.mobile.app.h.hostId.tasks.6614e9b864', 'Update Item')
         }
         message={
           pendingHostedStateChange

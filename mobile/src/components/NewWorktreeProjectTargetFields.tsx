@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native'
 import { ChevronDown, Monitor } from 'lucide-react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 type Selection = { label: string; detail?: string }
 
@@ -20,21 +21,43 @@ export function NewWorktreeProjectTargetFields({
   return (
     <>
       <View style={styles.field}>
-        <Text style={styles.label}>Project</Text>
+        <Text style={styles.label}>
+          {translate(
+            'auto.mobile.src.components.NewWorktreeProjectTargetFields.364a10619b',
+            'Project'
+          )}
+        </Text>
         <Pressable style={styles.fieldButton} onPress={onOpenProject}>
           {projectBadgeColor ? (
             <View style={[styles.projectDot, { backgroundColor: projectBadgeColor }]} />
           ) : null}
-          <SelectionCopy selection={project} placeholder="Select a project" />
+          <SelectionCopy
+            selection={project}
+            placeholder={translate(
+              'auto.mobile.src.components.NewWorktreeProjectTargetFields.56fd896dbf',
+              'Select a project'
+            )}
+          />
           <ChevronDown size={14} color={colors.textMuted} />
         </Pressable>
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Run on</Text>
+        <Text style={styles.label}>
+          {translate(
+            'auto.mobile.src.components.NewWorktreeProjectTargetFields.3b08602805',
+            'Run on'
+          )}
+        </Text>
         <Pressable style={styles.fieldButton} onPress={onOpenRunTarget}>
           <Monitor size={14} color={colors.textMuted} />
-          <SelectionCopy selection={runTarget} placeholder="Select a run target" />
+          <SelectionCopy
+            selection={runTarget}
+            placeholder={translate(
+              'auto.mobile.src.components.NewWorktreeProjectTargetFields.797094e99c',
+              'Select a run target'
+            )}
+          />
           <ChevronDown size={14} color={colors.textMuted} />
         </Pressable>
       </View>

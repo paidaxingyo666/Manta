@@ -103,7 +103,7 @@ describe('mobile session startup', () => {
       startupEffect.indexOf('await ensureSessionTabs()')
     )
     expect(startupEffect).toContain('headlessActivationNeedsHostRenderer(response.result)')
-    expect(startupEffect).toContain("showToast('Open Manta on the host to wake sleeping agents.'")
+    expect(startupEffect).toContain('"Open Manta on the host to wake sleeping agents."')
   })
 
   it('fails runtime capability gates closed before probing a replacement client', () => {
@@ -174,16 +174,14 @@ describe('mobile session startup', () => {
   })
 
   it('keeps dynamic agent rows above fixed New Tab actions', () => {
-    const newTabActions = sliceBetween('title="New Tab"', 'onClose={() => setShowCreateTabDrawer')
+    const newTabActions = sliceBetween('"New Tab"', 'onClose={() => setShowCreateTabDrawer')
 
     expect(newTabActions.indexOf('...createTabAgentActions')).toBeLessThan(
-      newTabActions.indexOf("label: 'Terminal'")
+      newTabActions.indexOf('"Terminal"')
     )
-    expect(newTabActions.indexOf("label: 'Terminal'")).toBeLessThan(
-      newTabActions.indexOf("label: 'Browser'")
-    )
-    expect(newTabActions.indexOf("label: 'Browser'")).toBeLessThan(
-      newTabActions.indexOf("label: 'Markdown Note'")
+    expect(newTabActions.indexOf('"Terminal"')).toBeLessThan(newTabActions.indexOf('"Browser"'))
+    expect(newTabActions.indexOf('"Browser"')).toBeLessThan(
+      newTabActions.indexOf('"Markdown Note"')
     )
   })
 

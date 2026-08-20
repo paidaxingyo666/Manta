@@ -6,6 +6,7 @@
 // unit-tested directly; AccountUsage.tsx re-exports them alongside the
 // UsageBar component.
 import { formatResetCountdown } from '../../../src/shared/rate-limit-reset-format'
+import { translate } from '../i18n/i18n'
 import type {
   AccountsSnapshot,
   InactiveAccountUsage,
@@ -108,7 +109,11 @@ export function getWindowResetLabel(
   if (resetsAt == null) {
     return null
   }
-  return formatResetCountdown(resetsAt - now)
+  return formatResetCountdown(resetsAt - now, {
+    now: translate('mobile.accounts.reset.now', 'Resets now'),
+    inDuration: (duration) =>
+      translate('mobile.accounts.reset.in', 'Resets in {{duration}}', { duration })
+  })
 }
 
 // Why: the usage UI must render for the system-default login, not only for

@@ -8,6 +8,7 @@ import { PRSection } from './PRSection'
 import { resolveConflictDisplay } from './pr-conflict-presentation'
 import { prConflictStyles as styles } from './pr-conflict-styles'
 import { prAiTriageStyles as triageStyles } from './pr-ai-triage-styles'
+import { translate } from '../../i18n/i18n'
 
 // Launches the "Resolve conflicts with AI" agent. Absent for display-only usages.
 export type PrConflictsTriage = {
@@ -44,7 +45,10 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
   if (!conflict) {
     return null
   }
-  let noticeBody = 'Conflict file details are unavailable'
+  let noticeBody = translate(
+    'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.a05ef6245f',
+    'Conflict file details are unavailable'
+  )
   if (isRefreshing) {
     noticeBody = 'Refreshing conflict details…'
   } else if (conflict.localMergeClean) {
@@ -72,22 +76,46 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
   }
 
   return (
-    <PRSection title="Conflicts">
+    <PRSection
+      title={translate(
+        'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.0e748c1c6d',
+        'Conflicts'
+      )}
+    >
       {conflict.commitsBehind !== null && conflict.baseCommit !== null ? (
         <Text style={styles.meta}>
-          {conflict.commitsBehind} commit{conflict.commitsBehind === 1 ? '' : 's'} behind (base
-          commit: <Text style={styles.metaMono}>{conflict.baseCommit}</Text>)
+          {conflict.commitsBehind}{' '}
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.9936c08744',
+            'commit'
+          )}
+          {conflict.commitsBehind === 1 ? '' : 's'}{' '}
+          {translate(
+            'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.f77b02610a',
+            'behind (base commit:'
+          )}{' '}
+          <Text style={styles.metaMono}>{conflict.baseCommit}</Text>)
         </Text>
       ) : null}
 
       {conflict.fileDetailsUnavailable ? (
         <View>
-          <Text style={styles.noticeTitle}>This branch has conflicts that must be resolved</Text>
+          <Text style={styles.noticeTitle}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.ed0bf9798a',
+              'This branch has conflicts that must be resolved'
+            )}
+          </Text>
           <Text style={styles.noticeBody}>{noticeBody}</Text>
           {conflict.mergeabilityRefreshCommands ? (
             <View style={styles.commandBox}>
               <View style={styles.commandHeader}>
-                <Text style={styles.commandLabel}>Run from this worktree</Text>
+                <Text style={styles.commandLabel}>
+                  {translate(
+                    'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.dfd365f26c',
+                    'Run from this worktree'
+                  )}
+                </Text>
                 <Pressable
                   style={({ pressed }) => [
                     styles.copyCommandButton,
@@ -103,7 +131,15 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
                     <Copy size={13} color={colors.textPrimary} strokeWidth={2.2} />
                   )}
                   <Text style={styles.copyCommandText}>
-                    {commandsCopied ? 'Copied' : 'Copy commands'}
+                    {commandsCopied
+                      ? translate(
+                          'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.ec4e7a9758',
+                          'Copied'
+                        )
+                      : translate(
+                          'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.2ae2d49587',
+                          'Copy commands'
+                        )}
                   </Text>
                 </Pressable>
               </View>
@@ -117,7 +153,12 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
         <View>
           <View style={styles.filesHeader}>
             <FileWarning size={14} color={colors.textSecondary} strokeWidth={2} />
-            <Text style={styles.filesHeaderText}>Conflicting files</Text>
+            <Text style={styles.filesHeaderText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.c3659c167b',
+                'Conflicting files'
+              )}
+            </Text>
           </View>
           <ScrollView
             style={styles.fileList}
@@ -153,7 +194,12 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
             ) : (
               <Sparkles size={14} color={colors.textSecondary} strokeWidth={2.2} />
             )}
-            <Text style={triageStyles.triageButtonText}>Resolve conflicts with AI</Text>
+            <Text style={triageStyles.triageButtonText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRConflictingFilesSection.ceb7ab5c67',
+                'Resolve conflicts with AI'
+              )}
+            </Text>
           </Pressable>
           {triage.error ? <Text style={triageStyles.triageError}>{triage.error}</Text> : null}
         </View>

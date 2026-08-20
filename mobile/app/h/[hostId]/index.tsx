@@ -93,12 +93,13 @@ import { WorktreeCatalogSnapshotClient } from '../../../src/worktree/worktree-ca
 import { HostWorkspaceListStates } from '../../../src/worktree/host-workspace-list-states'
 import { repoColor } from '../../../src/worktree/repo-color'
 import {
-  WORKSPACE_GROUP_OPTIONS as GROUP_OPTIONS,
-  WORKSPACE_SORT_OPTIONS as SORT_OPTIONS
+  workspaceGroupOptions as GROUP_OPTIONS,
+  workspaceSortOptions as sortOptions
 } from '../../../src/worktree/workspace-list-picker-options'
 import type { RepoSummary } from '../../../src/worktree/host-worktree-rpc-types'
 import type { WorkspaceStatusDefinition } from '../../../../src/shared/worktree/types'
-import { DEFAULT_MOBILE_WORKSPACE_STATUSES } from '../../../src/worktree/mobile-workspace-statuses'
+import { defaultMobileWorkspaceStatuses } from '../../../src/worktree/mobile-workspace-statuses'
+import { translate } from '../../../src/i18n/i18n'
 
 function isErrorVerdict(v: ConnectionVerdict): boolean {
   return v.kind === 'warning' || v.kind === 'unreachable' || v.kind === 'auth-failed'
@@ -177,7 +178,7 @@ export function HostScreen({
   })
   const [groupMode, setGroupMode] = useState<MobileGroupMode>('repo')
   const [workspaceStatuses, setWorkspaceStatuses] = useState<readonly WorkspaceStatusDefinition[]>(
-    DEFAULT_MOBILE_WORKSPACE_STATUSES
+    defaultMobileWorkspaceStatuses()
   )
   // displayName → repo id: filters key on repo id, but section headers/rows key on displayName, so bridge the two.
   const [repoIdsByName, setRepoIdsByName] = useState<Map<string, string>>(new Map())
@@ -207,7 +208,7 @@ export function HostScreen({
     alwaysShowDefaultBranch: true,
     filterRepoIds: [],
     collapsedGroups: [],
-    workspaceStatuses: DEFAULT_MOBILE_WORKSPACE_STATUSES
+    workspaceStatuses: defaultMobileWorkspaceStatuses()
   })
 
   useEffect(() => {
@@ -643,7 +644,10 @@ export function HostScreen({
     } catch {
       // Why: removal can fail while still paired; re-open confirm (ConfirmModal closes on confirm).
       setConfirmRemoveHost(true)
-      Alert.alert('Could not remove host', 'Please try again.')
+      Alert.alert(
+        translate('auto.mobile.app.h.hostId.index.3ff3938f5e', 'Could not remove host'),
+        translate('auto.mobile.app.h.hostId.index.407050f322', 'Please try again.')
+      )
     }
   }, [hostId, leaveHost, forgetHostClient])
 
@@ -733,7 +737,8 @@ export function HostScreen({
     return count
   }, [filters])
   const selectedSortLabel =
-    SORT_OPTIONS.find((option) => option.value === sortMode)?.label ?? 'Recent'
+    sortOptions().find((option) => option.value === sortMode)?.label ??
+    translate('auto.mobile.app.h.hostId.index.a95081bc58', 'Recent')
 
   const handleGroupChange = useCallback(
     (value: MobileGroupMode) => {
@@ -827,7 +832,7 @@ export function HostScreen({
                 <View style={styles.hostIdentity}>
                   <StatusDot state={connState} verdict={headerVerdict} />
                   <Text style={styles.hostNameText} numberOfLines={1}>
-                    {hostName || 'Host'}
+                    {hostName || translate('auto.mobile.app.h.hostId.index.dc676c5d54', 'Host')}
                   </Text>
                 </View>
                 {connState !== 'connected' &&
@@ -845,7 +850,9 @@ export function HostScreen({
                         onPress={() => void forceReconnectHost(hostId!)}
                         hitSlop={8}
                       >
-                        <Text style={styles.reconnectButtonText}>Reconnect</Text>
+                        <Text style={styles.reconnectButtonText}>
+                          {translate('auto.mobile.app.h.hostId.index.d85142e8e8', 'Reconnect')}
+                        </Text>
                       </Pressable>
                     )
                   })()}
@@ -908,7 +915,8 @@ export function HostScreen({
                   ]}
                   numberOfLines={1}
                 >
-                  Filter{activeFilterCount > 0 ? ` ${activeFilterCount}` : ''}
+                  {translate('auto.mobile.app.h.hostId.index.4bc8c9f6fe', 'Filter')}
+                  {activeFilterCount > 0 ? ` ${activeFilterCount}` : ''}
                 </Text>
               </Pressable>
 
@@ -933,12 +941,12 @@ export function HostScreen({
                 <Layers size={14} color={colors.textSecondary} />
                 <Text style={styles.sortLabel} numberOfLines={1}>
                   {groupMode === 'none'
-                    ? 'Group'
+                    ? translate('auto.mobile.app.h.hostId.index.999e4d9525', 'Group')
                     : groupMode === 'workspaceStatus'
-                      ? 'Status'
+                      ? translate('auto.mobile.app.h.hostId.index.1805187d69', 'Status')
                       : groupMode === 'repo'
-                        ? 'Repo'
-                        : 'PR'}
+                        ? translate('auto.mobile.app.h.hostId.index.0b319420ff', 'Repo')
+                        : translate('auto.mobile.app.h.hostId.index.b14c7e89dd', 'PR')}
                 </Text>
               </Pressable>
             </View>
@@ -1040,7 +1048,8 @@ export function HostScreen({
                   activeFilterCount > 0 && styles.filterChipTextActive
                 ]}
               >
-                Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                {translate('auto.mobile.app.h.hostId.index.4bc8c9f6fe', 'Filter')}
+                {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
               </Text>
             </Pressable>
 
@@ -1055,12 +1064,12 @@ export function HostScreen({
               <Layers size={14} color={colors.textSecondary} />
               <Text style={styles.sortLabel} numberOfLines={1}>
                 {groupMode === 'none'
-                  ? 'Group'
+                  ? translate('auto.mobile.app.h.hostId.index.999e4d9525', 'Group')
                   : groupMode === 'workspaceStatus'
-                    ? 'Status'
+                    ? translate('auto.mobile.app.h.hostId.index.1805187d69', 'Status')
                     : groupMode === 'repo'
-                      ? 'Repo'
-                      : 'PR'}
+                      ? translate('auto.mobile.app.h.hostId.index.0b319420ff', 'Repo')
+                      : translate('auto.mobile.app.h.hostId.index.b14c7e89dd', 'PR')}
               </Text>
             </Pressable>
 
@@ -1123,7 +1132,10 @@ export function HostScreen({
           <MobileSearchField
             value={search}
             onChangeText={setSearch}
-            placeholder="Search worktrees…"
+            placeholder={translate(
+              'auto.mobile.app.h.hostId.index.4e1194291f',
+              'Search worktrees…'
+            )}
             autoFocus
             // Why: new key per open remounts the focus effect across rapid toggles so the keyboard reappears.
             focusKey={showSearch}
@@ -1228,8 +1240,8 @@ export function HostScreen({
 
       <PickerModal
         visible={showSortPicker}
-        title="Sort By"
-        options={SORT_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.index.845b15b213', 'Sort By')}
+        options={sortOptions()}
         selected={sortMode}
         onSelect={handleSortChange}
         onClose={() => setShowSortPicker(false)}
@@ -1237,8 +1249,8 @@ export function HostScreen({
 
       <PickerModal
         visible={showGroupPicker}
-        title="Group By"
-        options={GROUP_OPTIONS}
+        title={translate('auto.mobile.app.h.hostId.index.7d559d8c19', 'Group By')}
+        options={GROUP_OPTIONS()}
         selected={groupMode}
         onSelect={handleGroupChange}
         onClose={() => setShowGroupPicker(false)}
@@ -1246,30 +1258,42 @@ export function HostScreen({
 
       <BottomDrawer visible={showFilterModal} onClose={() => setShowFilterModal(false)}>
         <View style={styles.filterModalHeader}>
-          <Text style={styles.filterModalTitle}>Filter</Text>
+          <Text style={styles.filterModalTitle}>
+            {translate('auto.mobile.app.h.hostId.index.4bc8c9f6fe', 'Filter')}
+          </Text>
           {activeFilterCount > 0 && (
             <Pressable onPress={clearFilters}>
-              <Text style={styles.clearFiltersText}>Clear filters</Text>
+              <Text style={styles.clearFiltersText}>
+                {translate('auto.mobile.app.h.hostId.index.e4861c90c8', 'Clear filters')}
+              </Text>
             </Pressable>
           )}
         </View>
 
-        <Text style={styles.filterSectionLabel}>Workspaces</Text>
+        <Text style={styles.filterSectionLabel}>
+          {translate('auto.mobile.app.h.hostId.index.6ddf01d8c1', 'Workspaces')}
+        </Text>
         <View style={styles.filterGroup}>
           <Pressable style={styles.filterRow} onPress={toggleHideSleeping}>
-            <Text style={styles.filterRowText}>Hide sleeping</Text>
+            <Text style={styles.filterRowText}>
+              {translate('auto.mobile.app.h.hostId.index.d70faddef4', 'Hide sleeping')}
+            </Text>
             {filters.hideSleeping && <Check size={14} color={colors.textPrimary} />}
           </Pressable>
           <View style={styles.filterSeparator} />
           <Pressable style={styles.filterRow} onPress={toggleHideDefaultBranch}>
-            <Text style={styles.filterRowText}>Hide default branch</Text>
+            <Text style={styles.filterRowText}>
+              {translate('auto.mobile.app.h.hostId.index.3055838788', 'Hide default branch')}
+            </Text>
             {filters.hideDefaultBranch && <Check size={14} color={colors.textPrimary} />}
           </Pressable>
         </View>
 
         {uniqueRepos.length > 1 && (
           <>
-            <Text style={styles.filterSectionLabel}>Repositories</Text>
+            <Text style={styles.filterSectionLabel}>
+              {translate('auto.mobile.app.h.hostId.index.68236e60f1', 'Repositories')}
+            </Text>
             <View style={styles.filterGroup}>
               {uniqueRepos.map((repo, i) => (
                 <View key={repo.id}>
@@ -1301,9 +1325,12 @@ export function HostScreen({
         {confirmDelete ? (
           <View>
             <View style={styles.confirmContent}>
-              <Text style={styles.confirmTitle}>Delete Worktree</Text>
+              <Text style={styles.confirmTitle}>
+                {translate('auto.mobile.app.h.hostId.index.b021e95cd2', 'Delete Worktree')}
+              </Text>
               <Text style={styles.confirmMessage}>
-                Delete "{confirmDelete.displayName || confirmDelete.repo}" ({confirmDelete.branch})?
+                {translate('auto.mobile.app.h.hostId.index.64c3d5c303', 'Delete "')}
+                {confirmDelete.displayName || confirmDelete.repo}" ({confirmDelete.branch})?
               </Text>
             </View>
             <View style={styles.confirmButtons}>
@@ -1315,7 +1342,9 @@ export function HostScreen({
                 ]}
                 onPress={() => setConfirmDelete(null)}
               >
-                <Text style={styles.confirmBtnCancelText}>Cancel</Text>
+                <Text style={styles.confirmBtnCancelText}>
+                  {translate('auto.mobile.app.h.hostId.index.8d080869d1', 'Cancel')}
+                </Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
@@ -1331,7 +1360,9 @@ export function HostScreen({
                   setActionTarget(null)
                 }}
               >
-                <Text style={styles.confirmBtnDestructiveText}>Delete</Text>
+                <Text style={styles.confirmBtnDestructiveText}>
+                  {translate('auto.mobile.app.h.hostId.index.3c26b0ed7f', 'Delete')}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -1351,7 +1382,7 @@ export function HostScreen({
                       onDone: () => setActionTarget(null)
                     }),
                     {
-                      label: 'Sleep',
+                      label: translate('auto.mobile.app.h.hostId.index.edbd394091', 'Sleep'),
                       icon: Moon,
                       onPress: () => {
                         if (client) {
@@ -1366,14 +1397,16 @@ export function HostScreen({
                       }
                     },
                     {
-                      label: isWorktreePinned(actionTarget, pinnedIds) ? 'Unpin' : 'Pin',
+                      label: isWorktreePinned(actionTarget, pinnedIds)
+                        ? translate('auto.mobile.app.h.hostId.index.76066c8aff', 'Unpin')
+                        : translate('auto.mobile.app.h.hostId.index.27072045b5', 'Pin'),
                       onPress: () => {
                         togglePin(actionTarget.worktreeId)
                         setActionTarget(null)
                       }
                     },
                     {
-                      label: 'Delete',
+                      label: translate('auto.mobile.app.h.hostId.index.3c26b0ed7f', 'Delete'),
                       destructive: true,
                       onPress: () => setConfirmDelete(actionTarget)
                     }
@@ -1387,8 +1420,12 @@ export function HostScreen({
       {/* Host remove confirmation */}
       <ConfirmModal
         visible={confirmRemoveHost}
-        title="Remove Host"
-        message={`Remove "${hostName}"? You can re-pair later.`}
+        title={translate('auto.mobile.app.h.hostId.index.b6776c9891', 'Remove Host')}
+        message={translate(
+          'auto.mobile.app.h.hostId.index.1db32a2799',
+          'Remove "{{value0}}"? You can re-pair later.',
+          { value0: hostName }
+        )}
         confirmLabel="Remove"
         destructive
         onConfirm={() => void handleRemoveHost()}

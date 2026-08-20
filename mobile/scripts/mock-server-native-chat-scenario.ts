@@ -8,6 +8,7 @@ import type {
   RuntimeMobileSessionTerminalClientTab
 } from '../../src/shared/runtime-types'
 import type { RpcRequest, RpcResponse } from './mock-server-rpc-handlers'
+import { translate } from '../src/i18n/i18n'
 
 // Why: native chat needs a live agent tab, an empty-but-subscribed transcript,
 // and a terminal send path whose acceptance can be flipped mid-session.
@@ -56,7 +57,10 @@ function buildTab(): RuntimeMobileSessionTerminalClientTab {
   return {
     type: 'terminal',
     id: TAB_ID,
-    title: 'Claude Code',
+    title: translate(
+      'auto.mobile.scripts.mock.server.native.chat.scenario.3d0cb0b62e',
+      'Claude Code'
+    ),
     parentTabId: TAB_ID,
     leafId: 'leaf-1',
     ptyId: 'pty-1',
@@ -194,7 +198,10 @@ export function handleMockNativeChatRequest(
       const entry = (handle: string) => ({
         handle,
         worktreeId,
-        title: 'Claude Code',
+        title: translate(
+          'auto.mobile.scripts.mock.server.native.chat.scenario.3d0cb0b62e',
+          'Claude Code'
+        ),
         isActive: true,
         hasRunningProcess: true
       })

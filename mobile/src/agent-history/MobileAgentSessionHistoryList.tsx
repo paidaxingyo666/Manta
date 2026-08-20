@@ -8,6 +8,7 @@ import type { AiVaultSession } from '../../../src/shared/ai-vault-types'
 import type { MobileAgentHistorySection } from './agent-history-sections'
 import type { MobileAgentHistoryCard } from './agent-history-session-card'
 import { styles } from './agent-history-styles'
+import { translate } from '../i18n/i18n'
 
 // Lazy-render at most this many preview turns when a card is tapped — the
 // scanner already bounds preview text, but rendering them only on tap keeps the
@@ -129,11 +130,25 @@ function AgentHistoryCardRow({
       <View style={styles.cardMetaRow}>
         <Text style={styles.cardMetaText}>{card.agentLabel}</Text>
         <Text style={styles.cardMetaText}>
-          {card.messageCount} {card.messageCount === 1 ? 'message' : 'messages'}
+          {card.messageCount}{' '}
+          {card.messageCount === 1
+            ? translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.7d95e41a14',
+                'message'
+              )
+            : translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.b4bec2cb77',
+                'messages'
+              )}
         </Text>
         {showCurrentWorktreeBadge && card.isCurrentWorktree ? (
           <View style={styles.currentBadge}>
-            <Text style={styles.currentBadgeText}>current worktree</Text>
+            <Text style={styles.currentBadgeText}>
+              {translate(
+                'auto.mobile.src.agent.history.MobileAgentSessionHistoryList.7f5faff873',
+                'current worktree'
+              )}
+            </Text>
           </View>
         ) : null}
         {session && onResume ? (

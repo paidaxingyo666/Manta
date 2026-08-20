@@ -26,6 +26,7 @@ import { PRReviewersSection } from './pr-sidebar/PRReviewersSection'
 import { PRChecksSection } from './pr-sidebar/PRChecksSection'
 import { PRCommentsSection } from './pr-sidebar/PRCommentsSection'
 import { PrSidebarCreateEmptyState } from './pr-sidebar/PrSidebarCreateEmptyState'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   state: PrSidebarState
@@ -166,12 +167,23 @@ function PrSidebarContent({
     return (
       <View style={styles.stateArea}>
         <ActivityIndicator color={colors.textSecondary} />
-        <Text style={styles.stateText}>Loading pull request…</Text>
+        <Text style={styles.stateText}>
+          {translate(
+            'auto.mobile.src.components.MobilePRSidebar.f9908dd9fd',
+            'Loading pull request…'
+          )}
+        </Text>
       </View>
     )
   }
   if (branch === 'error') {
-    const message = state.kind === 'error' ? state.message : 'Something went wrong.'
+    const message =
+      state.kind === 'error'
+        ? state.message
+        : translate(
+            'auto.mobile.src.components.MobilePRSidebar.9df0caaa0e',
+            'Something went wrong.'
+          )
     return (
       <View style={styles.stateArea}>
         <Text style={styles.stateText}>{message}</Text>
@@ -182,7 +194,9 @@ function PrSidebarContent({
           accessibilityLabel="Retry loading pull request"
         >
           <RotateCw size={14} color={colors.textPrimary} strokeWidth={2.2} />
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>
+            {translate('auto.mobile.src.components.MobilePRSidebar.be28b32b73', 'Retry')}
+          </Text>
         </Pressable>
       </View>
     )
@@ -194,7 +208,10 @@ function PrSidebarContent({
       actions.blocked ??
       (state.kind === 'blocked'
         ? state.message
-        : 'Not permitted — your GitHub account is not connected.')
+        : translate(
+            'auto.mobile.src.components.MobilePRSidebar.50beb30d6c',
+            'Not permitted — your GitHub account is not connected.'
+          ))
     return (
       <View style={styles.stateArea}>
         <Text style={styles.blockedText}>{message}</Text>

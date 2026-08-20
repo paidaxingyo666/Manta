@@ -7,6 +7,7 @@ import {
   pickMobileImage,
   type MobileImageSource
 } from './mobile-image-source-picker'
+import { translate } from '../i18n/i18n'
 
 type CurrentRef<T> = {
   readonly current: T
@@ -73,18 +74,42 @@ export function useMobileImageAttachment({
       } catch (error) {
         onError()
         if (connState !== 'connected') {
-          showToast('Attach failed (disconnected)', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.image.attachment.b6efaa94dd',
+              'Attach failed (disconnected)'
+            ),
+            1500
+          )
           return
         }
         if (error instanceof ImageLibraryPermissionError) {
-          showToast('Photo permission denied', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.image.attachment.25d19dd487',
+              'Photo permission denied'
+            ),
+            1500
+          )
           return
         }
         if (getErrorMessage(error) === 'Clipboard image is too large') {
-          showToast('Image too large to attach', 1500)
+          showToast(
+            translate(
+              'auto.mobile.src.session.use.mobile.image.attachment.849600ec04',
+              'Image too large to attach'
+            ),
+            1500
+          )
           return
         }
-        showToast('Attach failed', 1500)
+        showToast(
+          translate(
+            'auto.mobile.src.session.use.mobile.image.attachment.3524b83abd',
+            'Attach failed'
+          ),
+          1500
+        )
       } finally {
         setIsAttaching(false)
       }

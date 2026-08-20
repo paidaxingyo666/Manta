@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { colors, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 // Why: auth-failed is no longer necessarily terminal (issue #5200) — a
 // transient rejection can latch it even though the desktop still lists this
@@ -19,19 +20,28 @@ export function AuthFailedBanner({
   return (
     <View style={styles.banner}>
       <Text style={styles.text}>
-        Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.
+        {translate(
+          'auto.mobile.src.components.AuthFailedBanner.22b7ca421f',
+          'Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.'
+        )}{' '}
       </Text>
       <View style={styles.actions}>
         {canRetry && (
           <Pressable style={styles.action} onPress={onRetry}>
-            <Text style={styles.actionText}>Retry</Text>
+            <Text style={styles.actionText}>
+              {translate('auto.mobile.src.components.AuthFailedBanner.ba389e71e9', 'Retry')}
+            </Text>
           </Pressable>
         )}
         <Pressable style={styles.action} onPress={onRepair}>
-          <Text style={styles.actionText}>Re-pair</Text>
+          <Text style={styles.actionText}>
+            {translate('auto.mobile.src.components.AuthFailedBanner.2aea91f056', 'Re-pair')}
+          </Text>
         </Pressable>
         <Pressable style={styles.action} onPress={onRemove}>
-          <Text style={[styles.actionText, { color: colors.statusRed }]}>Remove</Text>
+          <Text style={[styles.actionText, { color: colors.statusRed }]}>
+            {translate('auto.mobile.src.components.AuthFailedBanner.abe30d9dde', 'Remove')}
+          </Text>
         </Pressable>
       </View>
     </View>

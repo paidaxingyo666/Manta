@@ -13,6 +13,7 @@ import {
 } from './mobile-diff-review-rpc'
 import { healMobileNativeChatStaleInput } from './mobile-native-chat-stale-input'
 import type { ReviewScreenState, SendSheetState } from './mobile-diff-review-screen-model'
+import { translate } from '../i18n/i18n'
 
 type SendActionsInput = {
   client: RpcClient | null
@@ -139,7 +140,13 @@ export function useMobileDiffReviewSendActions(input: SendActionsInput) {
     } catch (err) {
       setSendSheet({
         kind: 'error',
-        message: err instanceof Error ? err.message : 'Unable to load agent sessions',
+        message:
+          err instanceof Error
+            ? err.message
+            : translate(
+                'auto.mobile.src.session.use.mobile.diff.review.send.actions.bcc1edd25f',
+                'Unable to load agent sessions'
+              ),
         terminals: []
       })
     }

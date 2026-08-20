@@ -16,7 +16,7 @@ import { CustomKeyModal, loadCustomKeys, saveCustomKeys, type CustomKey } from '
 import { DragReorderList } from './DragReorderList'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import {
-  TERMINAL_ACCESSORY_KEYS,
+  terminalAccessoryKeys,
   type TerminalAccessoryKey
 } from '../terminal/terminal-accessory-keys'
 import {
@@ -27,6 +27,7 @@ import {
   setTerminalAccessoryBuiltInVisible,
   type TerminalAccessoryLayout
 } from '../terminal/terminal-accessory-layout'
+import { translate } from '../i18n/i18n'
 
 // Why: DragReorderList absolutely positions rows, so every row in a
 // reorderable section must share one fixed height.
@@ -213,7 +214,7 @@ export function TerminalShortcutSettings({
     [shortcutLayout.visibleBuiltInIds]
   )
   const orderedAccessoryKeys = useMemo(() => {
-    const byId = new Map(TERMINAL_ACCESSORY_KEYS.map((key) => [key.id, key]))
+    const byId = new Map(terminalAccessoryKeys().map((key) => [key.id, key]))
     return shortcutLayout.orderedBuiltInIds.flatMap((id) => {
       const key = byId.get(id)
       return key ? [key] : []
@@ -222,10 +223,17 @@ export function TerminalShortcutSettings({
 
   return (
     <>
-      <Text style={[styles.groupHeading, styles.groupTopGap]}>SHORTCUT BAR</Text>
+      <Text style={[styles.groupHeading, styles.groupTopGap]}>
+        {translate(
+          'auto.mobile.src.components.TerminalShortcutSettings.bb5647a2e9',
+          'SHORTCUT BAR'
+        )}
+      </Text>
       <Text style={styles.groupDescription}>
-        Toggle keys to show or hide them, and hold the grip to drag a key into the order you want on
-        the terminal shortcut bar.
+        {translate(
+          'auto.mobile.src.components.TerminalShortcutSettings.39d99de238',
+          'Toggle keys to show or hide them, and hold the grip to drag a key into the order you want on the terminal shortcut bar.'
+        )}{' '}
       </Text>
       <View style={[styles.section, styles.sectionTopGap]}>
         <DragReorderList
@@ -250,20 +258,38 @@ export function TerminalShortcutSettings({
           onPress={resetBuiltInKeys}
         >
           <View style={styles.rowContent}>
-            <Text style={styles.rowLabel}>Reset Defaults</Text>
+            <Text style={styles.rowLabel}>
+              {translate(
+                'auto.mobile.src.components.TerminalShortcutSettings.3f4aa252c0',
+                'Reset Defaults'
+              )}
+            </Text>
             <Text style={styles.rowSublabel}>
-              Show every built-in shortcut key in the original order
+              {translate(
+                'auto.mobile.src.components.TerminalShortcutSettings.fd8cafae33',
+                'Show every built-in shortcut key in the original order'
+              )}{' '}
             </Text>
           </View>
         </Pressable>
       </View>
 
-      <Text style={[styles.groupHeading, styles.groupTopGap]}>CUSTOM SHORTCUTS</Text>
+      <Text style={[styles.groupHeading, styles.groupTopGap]}>
+        {translate(
+          'auto.mobile.src.components.TerminalShortcutSettings.106c56af09',
+          'CUSTOM SHORTCUTS'
+        )}
+      </Text>
       <View style={[styles.section, styles.sectionTopGap]}>
         {customKeys.length === 0 ? (
           <>
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No custom shortcuts defined yet.</Text>
+              <Text style={styles.emptyText}>
+                {translate(
+                  'auto.mobile.src.components.TerminalShortcutSettings.03090ca212',
+                  'No custom shortcuts defined yet.'
+                )}
+              </Text>
             </View>
             <View style={styles.separator} />
           </>
@@ -306,8 +332,18 @@ export function TerminalShortcutSettings({
           onPress={() => setShowCustomKeyModal(true)}
         >
           <View style={styles.rowContent}>
-            <Text style={styles.rowLabel}>Add Custom Shortcut…</Text>
-            <Text style={styles.rowSublabel}>Create key combo or text macro</Text>
+            <Text style={styles.rowLabel}>
+              {translate(
+                'auto.mobile.src.components.TerminalShortcutSettings.77eeb84341',
+                'Add Custom Shortcut…'
+              )}
+            </Text>
+            <Text style={styles.rowSublabel}>
+              {translate(
+                'auto.mobile.src.components.TerminalShortcutSettings.0a024192a9',
+                'Create key combo or text macro'
+              )}
+            </Text>
           </View>
           <ChevronRight size={16} color={colors.textMuted} />
         </Pressable>

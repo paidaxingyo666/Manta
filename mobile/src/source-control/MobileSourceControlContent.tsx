@@ -16,6 +16,7 @@ import { makeRenderFileRow, BranchCompareFooter } from './MobileSourceControlFil
 import type { MobileSourceControlState } from './use-mobile-source-control-state'
 import { styles } from './mobile-source-control-styles'
 import { hubStyles } from './mobile-source-control-hub-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   state: MobileSourceControlState
@@ -82,7 +83,12 @@ export function MobileSourceControlContent({ state }: Props) {
         // Surface the reconnect state where the user is looking.
         <View style={styles.reconnectBanner}>
           <ActivityIndicator size="small" color={colors.statusAmber} />
-          <Text style={styles.reconnectBannerText}>Reconnecting to desktop...</Text>
+          <Text style={styles.reconnectBannerText}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlContent.a3f4d32439',
+              'Reconnecting to desktop...'
+            )}
+          </Text>
         </View>
       ) : null}
       <View style={hubStyles.changesControls}>
@@ -114,7 +120,12 @@ export function MobileSourceControlContent({ state }: Props) {
             ) : (
               <Plus size={15} color={colors.textPrimary} strokeWidth={2.2} />
             )}
-            <Text style={styles.bulkButtonText}>Stage All</Text>
+            <Text style={styles.bulkButtonText}>
+              {translate(
+                'auto.mobile.src.source.control.MobileSourceControlContent.f6908a03c5',
+                'Stage All'
+              )}
+            </Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [
@@ -130,7 +141,12 @@ export function MobileSourceControlContent({ state }: Props) {
             ) : (
               <Minus size={15} color={colors.textPrimary} strokeWidth={2.2} />
             )}
-            <Text style={styles.bulkButtonText}>Unstage All</Text>
+            <Text style={styles.bulkButtonText}>
+              {translate(
+                'auto.mobile.src.source.control.MobileSourceControlContent.0c75e88b60',
+                'Unstage All'
+              )}
+            </Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [
@@ -150,8 +166,18 @@ export function MobileSourceControlContent({ state }: Props) {
 
       {!hasVisibleChanges ? (
         <View style={styles.state}>
-          <Text style={styles.stateTitle}>No local changes</Text>
-          <Text style={styles.stateText}>Working tree is clean.</Text>
+          <Text style={styles.stateTitle}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlContent.f3daa0029b',
+              'No local changes'
+            )}
+          </Text>
+          <Text style={styles.stateText}>
+            {translate(
+              'auto.mobile.src.source.control.MobileSourceControlContent.c8aa93afd1',
+              'Working tree is clean.'
+            )}
+          </Text>
         </View>
       ) : sections.length === 0 ? (
         // Why: RN SectionList with empty `sections` often skips ListFooterComponent,
@@ -201,14 +227,22 @@ export function MobileSourceControlContent({ state }: Props) {
               accessibilityState={{ disabled: true }}
               accessibilityLabel="Commit message disabled. No staged files."
             >
-              <Text style={styles.commitInputDisabledText}>No staged files</Text>
+              <Text style={styles.commitInputDisabledText}>
+                {translate(
+                  'auto.mobile.src.source.control.MobileSourceControlContent.d97e76a715',
+                  'No staged files'
+                )}
+              </Text>
             </View>
           ) : (
             <TextInput
               style={styles.commitInput}
               value={commitMessage}
               onChangeText={setCommitMessage}
-              placeholder="Commit message"
+              placeholder={translate(
+                'auto.mobile.src.source.control.MobileSourceControlContent.b93458b765',
+                'Commit message'
+              )}
               placeholderTextColor={colors.textMuted}
               editable={busyAction === null && openingPath === null && openingBranchPath === null}
               returnKeyType="done"

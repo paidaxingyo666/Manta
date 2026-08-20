@@ -3,6 +3,7 @@ import { CaseSensitive, GitBranch, Sparkles } from 'lucide-react-native'
 import type { SmartWorkspaceSourceRow as SourceRow } from '../../../src/shared/new-workspace/smart-workspace-source-results'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { TaskProviderLogo } from './TaskProviderLogo'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   row: SourceRow
@@ -21,14 +22,28 @@ function resolveRowContent(row: SourceRow): RowContent {
     case 'use-name':
       return {
         icon: <Sparkles size={16} color={colors.textSecondary} />,
-        title: `Use "${row.name}"`,
-        subtitle: 'Name this workspace'
+        title: translate(
+          'auto.mobile.src.components.SmartWorkspaceSourceRow.b8ad93d4e4',
+          'Use "{{value0}}"',
+          { value0: row.name }
+        ),
+        subtitle: translate(
+          'auto.mobile.src.components.SmartWorkspaceSourceRow.67b72c4984',
+          'Name this workspace'
+        )
       }
     case 'create-branch':
       return {
         icon: <GitBranch size={16} color={colors.accentBlue} />,
-        title: `Create branch "${row.name}"`,
-        subtitle: 'New branch'
+        title: translate(
+          'auto.mobile.src.components.SmartWorkspaceSourceRow.7434979ca9',
+          'Create branch "{{value0}}"',
+          { value0: row.name }
+        ),
+        subtitle: translate(
+          'auto.mobile.src.components.SmartWorkspaceSourceRow.cd32bcd37a',
+          'New branch'
+        )
       }
     case 'github':
       return {

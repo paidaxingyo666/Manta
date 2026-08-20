@@ -13,6 +13,7 @@ import type { MobileDiffReviewQueueItem } from '../session/mobile-diff-review-qu
 import type { GitMutationMethod } from '../session/mobile-diff-review-screen-model'
 import { colors, spacing } from '../theme/mobile-theme'
 import { mobileDiffReviewStyles as styles } from './mobile-diff-review-screen-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   busyAction: string | null
@@ -46,7 +47,9 @@ export function MobileDiffReviewFooter({
             accessibilityLabel="Stage file"
           >
             <Plus size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.secondaryButtonText}>Stage</Text>
+            <Text style={styles.secondaryButtonText}>
+              {translate('auto.mobile.src.components.MobileDiffReviewFooter.2623350c05', 'Stage')}
+            </Text>
           </Pressable>
         ) : null}
         {item.canUnstage ? (
@@ -58,7 +61,9 @@ export function MobileDiffReviewFooter({
             accessibilityLabel="Unstage file"
           >
             <Undo2 size={14} color={colors.textSecondary} strokeWidth={2.2} />
-            <Text style={styles.secondaryButtonText}>Unstage</Text>
+            <Text style={styles.secondaryButtonText}>
+              {translate('auto.mobile.src.components.MobileDiffReviewFooter.bf9f285bf1', 'Unstage')}
+            </Text>
           </Pressable>
         ) : null}
         {item.canDiscard ? (
@@ -70,7 +75,9 @@ export function MobileDiffReviewFooter({
             accessibilityLabel="Discard file"
           >
             <Trash2 size={14} color={colors.statusRed} strokeWidth={2.2} />
-            <Text style={styles.destructiveText}>Discard</Text>
+            <Text style={styles.destructiveText}>
+              {translate('auto.mobile.src.components.MobileDiffReviewFooter.94bfeaf090', 'Discard')}
+            </Text>
           </Pressable>
         ) : null}
       </View>
@@ -90,7 +97,9 @@ export function MobileDiffReviewFooter({
           accessibilityLabel="Add file note"
         >
           <FileText size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.footerButtonText}>Note</Text>
+          <Text style={styles.footerButtonText}>
+            {translate('auto.mobile.src.components.MobileDiffReviewFooter.bd18444a9d', 'Note')}
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
@@ -104,7 +113,15 @@ export function MobileDiffReviewFooter({
         >
           <Check size={14} color={colors.bgBase} strokeWidth={2.2} />
           <Text style={styles.primaryButtonText}>
-            {item.isReviewed ? 'Reviewed' : 'Mark Reviewed'}
+            {item.isReviewed
+              ? translate(
+                  'auto.mobile.src.components.MobileDiffReviewFooter.8146d03e39',
+                  'Reviewed'
+                )
+              : translate(
+                  'auto.mobile.src.components.MobileDiffReviewFooter.80b1849676',
+                  'Mark Reviewed'
+                )}
           </Text>
         </Pressable>
         <Pressable

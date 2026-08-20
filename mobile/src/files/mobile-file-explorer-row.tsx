@@ -12,6 +12,7 @@ import { colors, spacing } from '../theme/mobile-theme'
 import { type FileExplorerRow, isMarkdownPath, type TreeNode } from './file-tree'
 import { fileExplorerStyles as styles } from './mobile-file-explorer-styles'
 import { canPreviewMobileFileRow } from './mobile-file-preview-navigation'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   item: FileExplorerRow
@@ -29,7 +30,9 @@ export function MobileFileExplorerRow(props: Props) {
       <View style={[styles.inlineStatusRow, { paddingLeft: spacing.lg + item.depth * 18 }]}>
         <View style={styles.chevronSpacer} />
         <ActivityIndicator size="small" color={colors.textSecondary} />
-        <Text style={styles.inlineStatusText}>Loading...</Text>
+        <Text style={styles.inlineStatusText}>
+          {translate('auto.mobile.src.files.mobile.file.explorer.row.b76418c615', 'Loading...')}
+        </Text>
       </View>
     )
   }
@@ -39,7 +42,11 @@ export function MobileFileExplorerRow(props: Props) {
       <View style={[styles.inlineStatusRow, { paddingLeft: spacing.lg + item.depth * 18 }]}>
         <View style={styles.chevronSpacer} />
         <Text style={styles.inlineErrorText} numberOfLines={1}>
-          {item.message || 'Unable to load folder'}
+          {item.message ||
+            translate(
+              'auto.mobile.src.files.mobile.file.explorer.row.759b201be3',
+              'Unable to load folder'
+            )}
         </Text>
         <Pressable
           style={({ pressed }) => [styles.inlineRetryButton, pressed && styles.rowPressed]}
@@ -49,7 +56,9 @@ export function MobileFileExplorerRow(props: Props) {
           }}
           accessibilityLabel={`Retry loading ${item.relativePath}`}
         >
-          <Text style={styles.inlineRetryText}>Retry</Text>
+          <Text style={styles.inlineRetryText}>
+            {translate('auto.mobile.src.files.mobile.file.explorer.row.0866286006', 'Retry')}
+          </Text>
         </Pressable>
       </View>
     )
@@ -138,7 +147,14 @@ function TreeRow(props: {
         <Text style={[styles.rowTitle, disabled && styles.rowTitleDisabled]} numberOfLines={1}>
           {item.name}
         </Text>
-        {disabled ? <Text style={styles.rowMeta}>Unavailable on mobile</Text> : null}
+        {disabled ? (
+          <Text style={styles.rowMeta}>
+            {translate(
+              'auto.mobile.src.files.mobile.file.explorer.row.9b441d1365',
+              'Unavailable on mobile'
+            )}
+          </Text>
+        ) : null}
       </View>
     </Pressable>
   )

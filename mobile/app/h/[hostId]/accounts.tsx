@@ -34,6 +34,7 @@ import {
 } from '../../../src/components/codex-reset-credit'
 import { CodexResetCreditAction } from '../../../src/components/CodexResetCreditAction'
 import { useCodexResetCreditAction } from '../../../src/components/use-codex-reset-credit-action'
+import { translate } from '../../../src/i18n/i18n'
 
 export default function AccountsScreen() {
   const router = useRouter()
@@ -174,7 +175,10 @@ export default function AccountsScreen() {
           codexTarget?.runtime === 'wsl' ? { accountId, target: codexTarget } : { accountId }
         const res = await client.sendRequest(method, params)
         if (!res.ok) {
-          Alert.alert('Could not switch account', res.error.message)
+          Alert.alert(
+            translate('auto.mobile.app.h.hostId.accounts.e535428048', 'Could not switch account'),
+            res.error.message
+          )
         } else {
           // Why: optimistic refresh — the streaming subscription will also
           // emit, but a one-shot keeps the UI responsive even if the stream
@@ -182,7 +186,10 @@ export default function AccountsScreen() {
           await refresh()
         }
       } catch (e) {
-        Alert.alert('Could not switch account', e instanceof Error ? e.message : String(e))
+        Alert.alert(
+          translate('auto.mobile.app.h.hostId.accounts.e535428048', 'Could not switch account'),
+          e instanceof Error ? e.message : String(e)
+        )
       } finally {
         setBusyAccountId(null)
       }
@@ -218,22 +225,29 @@ export default function AccountsScreen() {
             disabled={busyAccountId !== null || resettingCodex || connState !== 'connected'}
           >
             <View style={styles.rowMain}>
-              <Text style={styles.rowTitle}>System default</Text>
-              <Text style={styles.rowSubtitle}>Use the agent's own login</Text>
+              <Text style={styles.rowTitle}>
+                {translate('auto.mobile.app.h.hostId.accounts.baea3d33ad', 'System default')}
+              </Text>
+              <Text style={styles.rowSubtitle}>
+                {translate(
+                  'auto.mobile.app.h.hostId.accounts.ae32572698',
+                  "Use the agent's own login"
+                )}
+              </Text>
               {/* Why: when system default is the active selection, activeUsage
                   holds the system-default login's rate limits — surface them
                   here so non-managed users still see their usage. */}
               {activeAccountId === null && hasActiveProviderUsage(activeUsage) ? (
                 <View style={styles.usageRow}>
                   <UsageBar
-                    label="5h"
+                    label={translate('auto.mobile.app.h.hostId.accounts.6269cdf1fc', '5h')}
                     usedPercent={activeSessionBar.usedPercent}
                     unavailable={activeSessionBar.unavailable}
                     loading={activeSessionBar.loading}
                     resetText={getWindowResetLabel(activeUsage, 'session', now)}
                   />
                   <UsageBar
-                    label="7d"
+                    label={translate('auto.mobile.app.h.hostId.accounts.d3ca1c406b', '7d')}
                     usedPercent={activeWeeklyBar.usedPercent}
                     unavailable={activeWeeklyBar.unavailable}
                     loading={activeWeeklyBar.loading}
@@ -281,14 +295,14 @@ export default function AccountsScreen() {
                     </Text>
                     <View style={styles.usageRow}>
                       <UsageBar
-                        label="5h"
+                        label={translate('auto.mobile.app.h.hostId.accounts.6269cdf1fc', '5h')}
                         usedPercent={sessionBar.usedPercent}
                         unavailable={sessionBar.unavailable}
                         loading={sessionBar.loading}
                         resetText={getWindowResetLabel(usage, 'session', now)}
                       />
                       <UsageBar
-                        label="7d"
+                        label={translate('auto.mobile.app.h.hostId.accounts.d3ca1c406b', '7d')}
                         usedPercent={weeklyBar.usedPercent}
                         unavailable={weeklyBar.unavailable}
                         loading={weeklyBar.loading}
@@ -333,7 +347,9 @@ export default function AccountsScreen() {
           <ChevronLeft size={22} color={colors.textPrimary} />
         </Pressable>
         <View style={styles.titleWrap}>
-          <Text style={styles.heading}>Accounts</Text>
+          <Text style={styles.heading}>
+            {translate('auto.mobile.app.h.hostId.accounts.5e1789fe9f', 'Accounts')}
+          </Text>
           {hostName ? (
             <Text style={styles.subheading} numberOfLines={1}>
               {hostName}
@@ -366,7 +382,10 @@ export default function AccountsScreen() {
         {connState !== 'connected' && !snapshot ? (
           <View style={styles.placeholder}>
             <ActivityIndicator color={colors.textSecondary} />
-            <Text style={styles.placeholderText}>Connecting to {hostName || 'host'}…</Text>
+            <Text style={styles.placeholderText}>
+              {translate('auto.mobile.app.h.hostId.accounts.2e13c71608', 'Connecting to')}{' '}
+              {hostName || translate('auto.mobile.app.h.hostId.accounts.68019c3b7f', 'host')}…
+            </Text>
           </View>
         ) : error && !snapshot ? (
           <View style={styles.placeholder}>
@@ -375,7 +394,9 @@ export default function AccountsScreen() {
         ) : !snapshot ? (
           <View style={styles.placeholder}>
             <ActivityIndicator color={colors.textSecondary} />
-            <Text style={styles.placeholderText}>Loading accounts…</Text>
+            <Text style={styles.placeholderText}>
+              {translate('auto.mobile.app.h.hostId.accounts.cf4378bf56', 'Loading accounts…')}
+            </Text>
           </View>
         ) : (
           <>
@@ -384,7 +405,10 @@ export default function AccountsScreen() {
             <View style={styles.footerHint}>
               <User size={14} color={colors.textMuted} />
               <Text style={styles.footerHintText}>
-                Add or re-authenticate accounts from desktop Settings → Accounts.
+                {translate(
+                  'auto.mobile.app.h.hostId.accounts.957454fe14',
+                  'Add or re-authenticate accounts from desktop Settings → Accounts.'
+                )}{' '}
               </Text>
             </View>
           </>

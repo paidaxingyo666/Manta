@@ -17,6 +17,7 @@ import {
   readPRForBranch,
   readWorkItemDetails
 } from './github-pr-parsers'
+import { translate } from '../i18n/i18n'
 
 // Re-export the defensive parsers so consumers (and tests) have a single entry
 // point for the github.* PR RPC surface.
@@ -100,7 +101,17 @@ async function sendGithubPrRead<T>(
   } catch (err) {
     // Why: a transport drop or a parser throw must not escape as an unhandled
     // rejection — normalize to the `{ ok:false, error }` contract callers expect.
-    return { ok: false, error: err instanceof Error ? err.message : `Request failed: ${method}` }
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : translate(
+              'auto.mobile.src.session.github.pr.rpc.70faee796e',
+              'Request failed: {{value0}}',
+              { value0: method }
+            )
+    }
   }
 }
 

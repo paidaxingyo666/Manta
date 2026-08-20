@@ -10,6 +10,7 @@ import { ConfirmModal } from '../ConfirmModal'
 import { canShowMobilePRAutoMergeControl } from './pr-auto-merge-availability'
 import { resolveMobilePrMergeMethod, resolvePrActionAvailability } from './pr-actions-state'
 import { prActionsStyles as styles } from './pr-actions-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   pr: PRInfo
@@ -74,21 +75,42 @@ export function PRActionsSection({ pr, actions, client, worktreeId, onUnlinked }
   const confirmCopy = (): { title: string; message: string; confirmLabel: string } => {
     if (confirm?.kind === 'merge') {
       return {
-        title: 'Merge pull request?',
-        message: `This will merge #${pr.number} into its base branch.`,
+        title: translate(
+          'auto.mobile.src.components.pr.sidebar.PRActionsSection.ff49401d68',
+          'Merge pull request?'
+        ),
+        message: translate(
+          'auto.mobile.src.components.pr.sidebar.PRActionsSection.ccdb8763e7',
+          'This will merge #{{value0}} into its base branch.',
+          { value0: pr.number }
+        ),
         confirmLabel: 'Merge'
       }
     }
     if (confirm?.kind === 'state' && confirm.state === 'closed') {
       return {
-        title: 'Close pull request?',
-        message: `#${pr.number} will be closed without merging.`,
+        title: translate(
+          'auto.mobile.src.components.pr.sidebar.PRActionsSection.d36423d95e',
+          'Close pull request?'
+        ),
+        message: translate(
+          'auto.mobile.src.components.pr.sidebar.PRActionsSection.6ffee73e0a',
+          '#{{value0}} will be closed without merging.',
+          { value0: pr.number }
+        ),
         confirmLabel: 'Close'
       }
     }
     return {
-      title: 'Reopen pull request?',
-      message: `#${pr.number} will be reopened.`,
+      title: translate(
+        'auto.mobile.src.components.pr.sidebar.PRActionsSection.a025d18cbf',
+        'Reopen pull request?'
+      ),
+      message: translate(
+        'auto.mobile.src.components.pr.sidebar.PRActionsSection.dd786a68a5',
+        '#{{value0}} will be reopened.',
+        { value0: pr.number }
+      ),
       confirmLabel: 'Reopen'
     }
   }
@@ -131,14 +153,22 @@ export function PRActionsSection({ pr, actions, client, worktreeId, onUnlinked }
             <GitMerge size={16} color={colors.onMergeGreen} strokeWidth={2.2} />
           )}
           <Text style={[styles.actionButtonText, styles.actionButtonTextMerge]}>
-            Merge pull request
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PRActionsSection.f31892b220',
+              'Merge pull request'
+            )}{' '}
           </Text>
         </Pressable>
       ) : null}
 
       {showAutoMerge ? (
         <View style={styles.toggleRow}>
-          <Text style={styles.toggleLabel}>Auto-merge when ready</Text>
+          <Text style={styles.toggleLabel}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.PRActionsSection.d09f750889',
+              'Auto-merge when ready'
+            )}
+          </Text>
           <Pressable
             style={[styles.togglePill, autoMerge && styles.togglePillOn]}
             onPress={() => {
@@ -154,7 +184,15 @@ export function PRActionsSection({ pr, actions, client, worktreeId, onUnlinked }
               <ActivityIndicator color={colors.textSecondary} />
             ) : (
               <Text style={[styles.togglePillText, autoMerge && styles.togglePillTextOn]}>
-                {autoMerge ? 'On' : 'Off'}
+                {autoMerge
+                  ? translate(
+                      'auto.mobile.src.components.pr.sidebar.PRActionsSection.a128380b90',
+                      'On'
+                    )
+                  : translate(
+                      'auto.mobile.src.components.pr.sidebar.PRActionsSection.025ebe4500',
+                      'Off'
+                    )}
               </Text>
             )}
           </Pressable>
@@ -185,7 +223,15 @@ export function PRActionsSection({ pr, actions, client, worktreeId, onUnlinked }
                   avail.canClose && styles.actionButtonDestructiveText
                 ]}
               >
-                {avail.canClose ? 'Close' : 'Reopen'}
+                {avail.canClose
+                  ? translate(
+                      'auto.mobile.src.components.pr.sidebar.PRActionsSection.80bd5bbae6',
+                      'Close'
+                    )
+                  : translate(
+                      'auto.mobile.src.components.pr.sidebar.PRActionsSection.cd12f36e83',
+                      'Reopen'
+                    )}
               </Text>
             </Pressable>
           ) : null}
@@ -206,7 +252,12 @@ export function PRActionsSection({ pr, actions, client, worktreeId, onUnlinked }
               ) : (
                 <Link2Off size={16} color={colors.textSecondary} strokeWidth={2.2} />
               )}
-              <Text style={styles.actionButtonText}>Unlink</Text>
+              <Text style={styles.actionButtonText}>
+                {translate(
+                  'auto.mobile.src.components.pr.sidebar.PRActionsSection.9cee22e82f',
+                  'Unlink'
+                )}
+              </Text>
             </Pressable>
           ) : null}
         </View>

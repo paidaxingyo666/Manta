@@ -12,6 +12,7 @@ import {
 } from './markdown-floating-actions-layout'
 import type { MarkdownDocState } from './mobile-session-route-types'
 import { styles } from './mobile-session-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   documentId: string
@@ -53,7 +54,9 @@ export function MobileMarkdownReader({
         <Text style={styles.markdownError}>{doc.message}</Text>
         <Pressable style={styles.markdownRefreshButton} onPress={onRefresh}>
           <RefreshCw size={14} color={colors.textPrimary} />
-          <Text style={styles.markdownRefreshText}>Retry</Text>
+          <Text style={styles.markdownRefreshText}>
+            {translate('auto.mobile.src.session.MobileMarkdownReader.7fa363bb8e', 'Retry')}
+          </Text>
         </Pressable>
       </View>
     )
@@ -62,9 +65,9 @@ export function MobileMarkdownReader({
   const statusText = doc.saveError
     ? doc.saveError
     : doc.readOnlyReason
-      ? 'Read only'
+      ? translate('auto.mobile.src.session.MobileMarkdownReader.d37923f4f6', 'Read only')
       : doc.stale
-        ? 'Changed on desktop'
+        ? translate('auto.mobile.src.session.MobileMarkdownReader.f1ac00d444', 'Changed on desktop')
         : null
   const showRefresh = Boolean((doc.stale && !doc.isDirty) || !doc.editable)
   const showCopy = Boolean(doc.saveError || !doc.editable)
@@ -133,18 +136,24 @@ export function MobileMarkdownReader({
             ) : null}
             {showCopy ? (
               <Pressable style={styles.markdownFloatingButton} onPress={onCopy}>
-                <Text style={styles.markdownFloatingButtonText}>Copy</Text>
+                <Text style={styles.markdownFloatingButtonText}>
+                  {translate('auto.mobile.src.session.MobileMarkdownReader.fd282649f1', 'Copy')}
+                </Text>
               </Pressable>
             ) : null}
             {showRefresh ? (
               <Pressable style={styles.markdownFloatingButton} onPress={onRefresh}>
                 <RefreshCw size={13} color={colors.textPrimary} />
-                <Text style={styles.markdownFloatingButtonText}>Refresh</Text>
+                <Text style={styles.markdownFloatingButtonText}>
+                  {translate('auto.mobile.src.session.MobileMarkdownReader.e0abdc7458', 'Refresh')}
+                </Text>
               </Pressable>
             ) : null}
             {doc.isDirty ? (
               <Pressable style={styles.markdownFloatingButton} onPress={onDiscard}>
-                <Text style={styles.markdownFloatingButtonText}>Discard</Text>
+                <Text style={styles.markdownFloatingButtonText}>
+                  {translate('auto.mobile.src.session.MobileMarkdownReader.7ae18d2fd5', 'Discard')}
+                </Text>
               </Pressable>
             ) : null}
             {showSave ? (
@@ -160,7 +169,9 @@ export function MobileMarkdownReader({
                 {doc.saving ? (
                   <ActivityIndicator size="small" color={colors.textPrimary} />
                 ) : (
-                  <Text style={styles.markdownFloatingButtonText}>Save</Text>
+                  <Text style={styles.markdownFloatingButtonText}>
+                    {translate('auto.mobile.src.session.MobileMarkdownReader.8bf6d6eed7', 'Save')}
+                  </Text>
                 )}
               </Pressable>
             ) : null}

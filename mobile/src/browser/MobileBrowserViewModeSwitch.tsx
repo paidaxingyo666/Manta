@@ -2,6 +2,8 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { Monitor, Smartphone, type LucideIcon } from 'lucide-react-native'
 import { colors, radii } from '../theme/mobile-theme'
 import type { MobileBrowserViewMode } from './browser-screencast-request'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   disabled: boolean
@@ -9,10 +11,20 @@ type Props = {
   onChange: (mode: MobileBrowserViewMode) => void
 }
 
-const VIEW_MODES: { id: MobileBrowserViewMode; label: string; icon: LucideIcon }[] = [
-  { id: 'web', label: 'Web', icon: Monitor },
-  { id: 'mobile', label: 'Mobile', icon: Smartphone }
-]
+const viewModes = localizedConstant(
+  (): { id: MobileBrowserViewMode; label: string; icon: LucideIcon }[] => [
+    {
+      id: 'web',
+      label: translate('auto.mobile.src.browser.MobileBrowserViewModeSwitch.dd3b9447eb', 'Web'),
+      icon: Monitor
+    },
+    {
+      id: 'mobile',
+      label: translate('auto.mobile.src.browser.MobileBrowserViewModeSwitch.789254cd81', 'Mobile'),
+      icon: Smartphone
+    }
+  ]
+)
 
 export function MobileBrowserViewModeSwitch({
   disabled,
@@ -21,7 +33,7 @@ export function MobileBrowserViewModeSwitch({
 }: Props): React.JSX.Element {
   return (
     <View style={styles.switch}>
-      {VIEW_MODES.map((mode) => (
+      {viewModes().map((mode) => (
         <ViewModeButton
           key={mode.id}
           Icon={mode.icon}

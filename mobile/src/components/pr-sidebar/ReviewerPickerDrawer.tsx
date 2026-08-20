@@ -7,6 +7,7 @@ import type { RpcClient } from '../../transport/rpc-client'
 import { fetchAssignableUsers } from '../../session/github-pr-rpc'
 import { BottomDrawer } from '../BottomDrawer'
 import { mobilePrSidebarStyles as styles } from './mobile-pr-sidebar-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   visible: boolean
@@ -61,7 +62,13 @@ export function ReviewerPickerDrawer({
       })
       .catch(() => {
         if (!cancelled) {
-          setLoad({ status: 'error', message: 'Failed to load people' })
+          setLoad({
+            status: 'error',
+            message: translate(
+              'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.755b3e33d2',
+              'Failed to load people'
+            )
+          })
         }
       })
     return () => {
@@ -91,12 +98,20 @@ export function ReviewerPickerDrawer({
 
   return (
     <BottomDrawer visible={visible} onClose={onClose} dragContentToDismiss={false}>
-      <Text style={styles.pickerTitle}>Reviewers</Text>
+      <Text style={styles.pickerTitle}>
+        {translate(
+          'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.2b7e31a36e',
+          'Reviewers'
+        )}
+      </Text>
       <TextInput
         style={styles.pickerSearch}
         value={query}
         onChangeText={setQuery}
-        placeholder="Search people"
+        placeholder={translate(
+          'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.35ef9dfb20',
+          'Search people'
+        )}
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         autoCorrect={false}
@@ -111,7 +126,12 @@ export function ReviewerPickerDrawer({
         </View>
       ) : ordered.length === 0 ? (
         <View style={styles.pickerStateArea}>
-          <Text style={styles.emptyText}>No matching people</Text>
+          <Text style={styles.emptyText}>
+            {translate(
+              'auto.mobile.src.components.pr.sidebar.ReviewerPickerDrawer.e8e60b33bc',
+              'No matching people'
+            )}
+          </Text>
         </View>
       ) : (
         <View style={styles.pickerList}>

@@ -2,6 +2,7 @@ import { ListChecks } from 'lucide-react-native'
 import { MobileAgentSessionHistoryIcon } from '../agent-history/MobileAgentSessionHistoryIcon'
 import { ActionSheetModal } from '../components/ActionSheetModal'
 import { colors } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   visible: boolean
@@ -27,7 +28,10 @@ export function MobileSessionHeaderMoreActionsSheet({
         ...(showAgentSessionHistory
           ? [
               {
-                label: 'Agent History',
+                label: translate(
+                  'auto.mobile.src.session.MobileSessionHeaderMoreActionsSheet.e91f015acc',
+                  'Agent History'
+                ),
                 hint: 'Browse and resume agent sessions',
                 renderIcon: () => (
                   <MobileAgentSessionHistoryIcon
@@ -43,7 +47,10 @@ export function MobileSessionHeaderMoreActionsSheet({
         ...(showChecks
           ? [
               {
-                label: 'Checks',
+                label: translate(
+                  'auto.mobile.src.session.MobileSessionHeaderMoreActionsSheet.bbcc22954a',
+                  'Checks'
+                ),
                 hint: 'Open pull request checks',
                 icon: ListChecks,
                 onPress: onOpenChecks

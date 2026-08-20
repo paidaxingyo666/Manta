@@ -5,6 +5,7 @@ import { formatPreviewByteLength } from './mobile-file-preview-request'
 import { scrollOffsetForPreviewLine } from './mobile-file-preview-line-column'
 import { buildMobileFilePreviewSyntax } from './mobile-file-preview-syntax'
 import { filePreviewStyles as styles } from './mobile-file-preview-styles'
+import { translate } from '../i18n/i18n'
 
 export function MobileFilePreviewSourceText({
   relativePath,
@@ -61,7 +62,11 @@ export function MobileFilePreviewSourceText({
 export function MobileFilePreviewTruncatedNote({ byteLength }: { byteLength: number }) {
   return (
     <Text style={styles.truncatedNote}>
-      Preview truncated. File size: {formatPreviewByteLength(byteLength)}.
+      {translate(
+        'auto.mobile.src.files.MobileFilePreviewSourceText.0047302216',
+        'Preview truncated. File size:'
+      )}{' '}
+      {formatPreviewByteLength(byteLength)}.
     </Text>
   )
 }

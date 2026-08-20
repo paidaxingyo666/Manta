@@ -24,6 +24,7 @@ import type {
   MobileBranchCompareState,
   MobileBranchDiffPreviewState
 } from './mobile-source-control-screen-state'
+import { translate } from '../i18n/i18n'
 
 type Params = {
   client: RpcClient | null
@@ -270,7 +271,13 @@ export function useMobileSourceControlOpeners(params: Params) {
         setBranchDiffPreview({
           kind: 'error',
           entry,
-          message: err instanceof Error ? err.message : 'Unable to load committed diff'
+          message:
+            err instanceof Error
+              ? err.message
+              : translate(
+                  'auto.mobile.src.source.control.use.mobile.source.control.openers.ce788bc1c9',
+                  'Unable to load committed diff'
+                )
         })
       } finally {
         if (openingBranchPathRef.current === entry.path) {

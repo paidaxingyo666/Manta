@@ -19,6 +19,7 @@ import { displayHostEndpoint } from '../../../src/transport/host-endpoint'
 import { resolveHostEndpointEdit } from '../../../src/transport/host-endpoint-edit'
 import { useForceReconnect, usePrimeHosts } from '../../../src/transport/client-context'
 import type { HostProfile } from '../../../src/transport/types'
+import { translate } from '../../../src/i18n/i18n'
 
 export default function EditHostScreen() {
   const router = useRouter()
@@ -152,7 +153,9 @@ export default function EditHostScreen() {
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Edit host</Text>
+        <Text style={styles.heading}>
+          {translate('auto.mobile.app.h.hostId.edit.34a2121e56', 'Edit host')}
+        </Text>
         <Pressable
           style={({ pressed }) => [
             styles.saveButton,
@@ -166,7 +169,9 @@ export default function EditHostScreen() {
           {saving ? (
             <ActivityIndicator size="small" color={colors.bgBase} />
           ) : (
-            <Text style={styles.saveButtonText}>Save</Text>
+            <Text style={styles.saveButtonText}>
+              {translate('auto.mobile.app.h.hostId.edit.38e846c36f', 'Save')}
+            </Text>
           )}
         </Pressable>
       </View>
@@ -175,7 +180,9 @@ export default function EditHostScreen() {
         <View style={styles.errorState}>
           <Text style={styles.errorText}>{loadError}</Text>
           <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
-            <Text style={styles.secondaryButtonText}>Go back</Text>
+            <Text style={styles.secondaryButtonText}>
+              {translate('auto.mobile.app.h.hostId.edit.2d2dcd79c4', 'Go back')}
+            </Text>
           </Pressable>
         </View>
       ) : !host ? (
@@ -192,12 +199,15 @@ export default function EditHostScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <Text style={styles.help}>
-              Change the display name or connection address. Address edits only switch where this
-              phone connects — they do not re-pair. Use this when the same desktop is reachable at a
-              different IP (for example home LAN vs Tailscale).
+              {translate(
+                'auto.mobile.app.h.hostId.edit.2b2b56b6cb',
+                'Change the display name or connection address. Address edits only switch where this phone connects — they do not re-pair. Use this when the same desktop is reachable at a different IP (for example home LAN vs Tailscale).'
+              )}{' '}
             </Text>
 
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>
+              {translate('auto.mobile.app.h.hostId.edit.c0b8f02d08', 'Name')}
+            </Text>
             <TextInput
               style={styles.input}
               accessibilityLabel="Name"
@@ -206,14 +216,16 @@ export default function EditHostScreen() {
                 setName(value)
                 setSaveError(null)
               }}
-              placeholder="Host name"
+              placeholder={translate('auto.mobile.app.h.hostId.edit.8c771c1b5b', 'Host name')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
             />
 
-            <Text style={styles.label}>Address</Text>
+            <Text style={styles.label}>
+              {translate('auto.mobile.app.h.hostId.edit.90c9ad7f91', 'Address')}
+            </Text>
             <TextInput
               style={styles.input}
               accessibilityLabel="Address"
@@ -236,13 +248,16 @@ export default function EditHostScreen() {
               }}
             />
             <Text style={styles.hint}>
-              Accepts IP, host:port, or ws:// / wss://. Missing port defaults to the current port
-              (or 6768).
+              {translate(
+                'auto.mobile.app.h.hostId.edit.758a659e2f',
+                'Accepts IP, host:port, or ws:// / wss://. Missing port defaults to the current port (or 6768).'
+              )}{' '}
             </Text>
 
             {endpointEdit == null ? null : endpointEdit.kind !== 'invalid' ? (
               <Text style={styles.preview} numberOfLines={2}>
-                Connects to {endpointEdit.endpoint}
+                {translate('auto.mobile.app.h.hostId.edit.0e51843adf', 'Connects to')}{' '}
+                {endpointEdit.endpoint}
               </Text>
             ) : address.trim().length > 0 ? (
               <Text style={styles.previewError}>{endpointEdit.error}</Text>

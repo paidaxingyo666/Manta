@@ -4,6 +4,7 @@ import type { MobileOnboardingStep } from './mobile-onboarding-plan'
 import { mobileOnboardingStyles as styles } from './mobile-onboarding-styles'
 import type { MobileSessionView } from '../storage/session-view-preferences'
 import { colors } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 export type NotificationOnboardingChoice = 'enable' | 'skip'
 export type MobileOnboardingBusyChoice = MobileSessionView | NotificationOnboardingChoice | null
@@ -47,12 +48,26 @@ export function MobileOnboardingPage({
           )}
         </View>
         <Text style={styles.title}>
-          {isSessionView ? 'How should sessions open?' : 'Stay updated while away'}
+          {isSessionView
+            ? translate(
+                'auto.mobile.src.onboarding.MobileOnboardingPage.a3d2f11cf8',
+                'How should sessions open?'
+              )
+            : translate(
+                'auto.mobile.src.onboarding.MobileOnboardingPage.3a676018db',
+                'Stay updated while away'
+              )}
         </Text>
         <Text style={styles.body}>
           {isSessionView
-            ? 'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
-            : 'Get notified on this device when an agent needs your input or finishes a task.'}
+            ? translate(
+                'auto.mobile.src.onboarding.MobileOnboardingPage.755f145478',
+                'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
+              )
+            : translate(
+                'auto.mobile.src.onboarding.MobileOnboardingPage.def1eabfa5',
+                'Get notified on this device when an agent needs your input or finishes a task.'
+              )}
         </Text>
       </View>
 
@@ -88,7 +103,10 @@ function SessionViewChoices({
   return (
     <>
       <ChoiceButton
-        label="Use Chat UI"
+        label={translate(
+          'auto.mobile.src.onboarding.MobileOnboardingPage.2a882f4986',
+          'Use Chat UI'
+        )}
         accessibilityLabel="Open sessions in Chat UI"
         primary
         busy={busyChoice === 'chat'}
@@ -96,7 +114,10 @@ function SessionViewChoices({
         onPress={() => onChoice('chat')}
       />
       <ChoiceButton
-        label="Keep terminal"
+        label={translate(
+          'auto.mobile.src.onboarding.MobileOnboardingPage.f5b1768ae4',
+          'Keep terminal'
+        )}
         accessibilityLabel="Open sessions in the terminal"
         busy={busyChoice === 'terminal'}
         disabled={disabled}
@@ -118,7 +139,10 @@ function NotificationChoices({
   return (
     <>
       <ChoiceButton
-        label="Enable notifications"
+        label={translate(
+          'auto.mobile.src.onboarding.MobileOnboardingPage.40cf41e250',
+          'Enable notifications'
+        )}
         accessibilityLabel="Enable agent notifications"
         primary
         busy={busyChoice === 'enable'}
@@ -126,7 +150,7 @@ function NotificationChoices({
         onPress={() => onChoice('enable')}
       />
       <ChoiceButton
-        label="Not now"
+        label={translate('auto.mobile.src.onboarding.MobileOnboardingPage.28fdd43cf6', 'Not now')}
         accessibilityLabel="Skip notifications for now"
         busy={busyChoice === 'skip'}
         disabled={disabled}

@@ -11,6 +11,7 @@ import { canEditPRTitle } from '../../session/pr-title-edit'
 import { openMobilePrUrl } from '../mobile-pr-url'
 import { mobilePrSidebarStyles as styles } from './mobile-pr-sidebar-styles'
 import { prCommentComposerStyles as composerStyles } from './pr-comment-composer-styles'
+import { translate } from '../../i18n/i18n'
 
 type Props = {
   pr: PRInfo
@@ -156,7 +157,12 @@ function PRTitle({
             accessibilityRole="button"
             accessibilityLabel="Cancel editing title"
           >
-            <Text style={composerStyles.cancelText}>Cancel</Text>
+            <Text style={composerStyles.cancelText}>
+              {translate(
+                'auto.mobile.src.components.pr.sidebar.PRSidebarHeader.52004b2f8c',
+                'Cancel'
+              )}
+            </Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [composerStyles.submit, pressed && composerStyles.pressed]}
@@ -168,7 +174,12 @@ function PRTitle({
             {titleAction.saving ? (
               <ActivityIndicator size="small" color={colors.bgBase} />
             ) : (
-              <Text style={composerStyles.submitText}>Save</Text>
+              <Text style={composerStyles.submitText}>
+                {translate(
+                  'auto.mobile.src.components.pr.sidebar.PRSidebarHeader.a01982ac1f',
+                  'Save'
+                )}
+              </Text>
             )}
           </Pressable>
         </View>

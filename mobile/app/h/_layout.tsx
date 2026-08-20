@@ -12,6 +12,7 @@ import {
 } from '../../src/storage/preferences'
 import { HostProtocolGate } from '../../src/components/HostProtocolGate'
 import { HostScreen } from './[hostId]/index'
+import { translate } from '../../src/i18n/i18n'
 
 // Keep at least this much room for the detail pane when resizing the sidebar.
 const MIN_DETAIL_WIDTH = 320
@@ -39,21 +40,44 @@ function HostStack({ animation }: { animation: 'none' | 'default' }) {
         animation
       }}
     >
-      <Stack.Screen name="[hostId]/index" options={{ title: 'Host' }} />
-      <Stack.Screen name="[hostId]/edit" options={{ title: 'Edit host' }} />
-      <Stack.Screen name="[hostId]/accounts" options={{ title: 'Accounts' }} />
-      <Stack.Screen name="[hostId]/tasks" options={{ title: 'Tasks' }} />
-      <Stack.Screen name="[hostId]/session/[worktreeId]" options={{ title: 'Terminal' }} />
+      <Stack.Screen
+        name="[hostId]/index"
+        options={{ title: translate('auto.mobile.app.h.layout.7aca81e533', 'Host') }}
+      />
+      <Stack.Screen
+        name="[hostId]/edit"
+        options={{ title: translate('auto.mobile.app.h.layout.d3370f3d6f', 'Edit host') }}
+      />
+      <Stack.Screen
+        name="[hostId]/accounts"
+        options={{ title: translate('auto.mobile.app.h.layout.295637a5f9', 'Accounts') }}
+      />
+      <Stack.Screen
+        name="[hostId]/tasks"
+        options={{ title: translate('auto.mobile.app.h.layout.6137d5f7ea', 'Tasks') }}
+      />
+      <Stack.Screen
+        name="[hostId]/session/[worktreeId]"
+        options={{ title: translate('auto.mobile.app.h.layout.c2dc55fe2e', 'Terminal') }}
+      />
       <Stack.Screen
         name="[hostId]/source-control/[worktreeId]"
-        options={{ title: 'Source Control' }}
+        options={{ title: translate('auto.mobile.app.h.layout.319ab14fcb', 'Source Control') }}
       />
       <Stack.Screen
         name="[hostId]/agent-history/[worktreeId]"
-        options={{ title: 'Agent Session History' }}
+        options={{
+          title: translate('auto.mobile.app.h.layout.6adb9b8189', 'Agent Session History')
+        }}
       />
-      <Stack.Screen name="[hostId]/review/[worktreeId]" options={{ title: 'Changes' }} />
-      <Stack.Screen name="[hostId]/pr/[worktreeId]" options={{ title: 'Pull Request' }} />
+      <Stack.Screen
+        name="[hostId]/review/[worktreeId]"
+        options={{ title: translate('auto.mobile.app.h.layout.01c108c5c2', 'Changes') }}
+      />
+      <Stack.Screen
+        name="[hostId]/pr/[worktreeId]"
+        options={{ title: translate('auto.mobile.app.h.layout.7ceda7cfcf', 'Pull Request') }}
+      />
     </Stack>
   )
 }

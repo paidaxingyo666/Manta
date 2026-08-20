@@ -24,6 +24,8 @@ import {
   saveTerminalAutocompleteEnabled,
   saveTerminalTextScale
 } from '../src/storage/preferences'
+import { translate } from '../src/i18n/i18n'
+import { localizedConstant } from '../src/i18n/localized-constant'
 
 type RestoreValue = 'indefinite' | '60s' | '5m' | '30m'
 
@@ -31,35 +33,82 @@ type TextSizeValue = 'smallest' | 'smaller' | 'default' | 'large' | 'larger' | '
 
 // scale = baseline zoom the terminal WebView applies on top of fit-to-width.
 // Keep in sync with TERMINAL_TEXT_SCALES; pinch-to-zoom snaps to these values.
-const TEXT_SIZE_OPTIONS: (PickerOption<TextSizeValue> & { scale: number })[] = [
-  { value: 'smallest', label: 'Smallest (50%)', scale: 0.5 },
-  { value: 'smaller', label: 'Smaller (75%)', scale: 0.75 },
-  { value: 'default', label: 'Default (100%)', scale: 1 },
-  { value: 'large', label: 'Large (125%)', scale: 1.25 },
-  { value: 'larger', label: 'Larger (150%)', scale: 1.5 },
-  { value: 'largest', label: 'Largest (200%)', scale: 2 }
-]
+const textSizeOptions = localizedConstant(
+  (): (PickerOption<TextSizeValue> & { scale: number })[] => [
+    {
+      value: 'smallest',
+      label: translate('auto.mobile.app.terminal.settings.862a2e3353', 'Smallest (50%)'),
+      scale: 0.5
+    },
+    {
+      value: 'smaller',
+      label: translate('auto.mobile.app.terminal.settings.080b3ca143', 'Smaller (75%)'),
+      scale: 0.75
+    },
+    {
+      value: 'default',
+      label: translate('auto.mobile.app.terminal.settings.d0e28eb0a6', 'Default (100%)'),
+      scale: 1
+    },
+    {
+      value: 'large',
+      label: translate('auto.mobile.app.terminal.settings.1ea3fa201c', 'Large (125%)'),
+      scale: 1.25
+    },
+    {
+      value: 'larger',
+      label: translate('auto.mobile.app.terminal.settings.b409fcd6d6', 'Larger (150%)'),
+      scale: 1.5
+    },
+    {
+      value: 'largest',
+      label: translate('auto.mobile.app.terminal.settings.ef92abff6e', 'Largest (200%)'),
+      scale: 2
+    }
+  ]
+)
 
 function textSizeValueFromScale(scale: number): TextSizeValue {
-  return TEXT_SIZE_OPTIONS.find((o) => o.scale === scale)?.value ?? 'default'
+  return textSizeOptions().find((o) => o.scale === scale)?.value ?? 'default'
 }
 
 function textSizeSummary(scale: number): string {
-  return (TEXT_SIZE_OPTIONS.find((o) => o.scale === scale) ?? TEXT_SIZE_OPTIONS[0]!).label
+  return (textSizeOptions().find((o) => o.scale === scale) ?? textSizeOptions()[0]!).label
 }
 
-const AUTO_RESTORE_FIT_OPTIONS: (PickerOption<RestoreValue> & { ms: number | null })[] = [
-  { value: 'indefinite', label: 'Keep at phone size (default)', ms: null },
-  { value: '60s', label: 'After 1 minute', ms: 60_000 },
-  { value: '5m', label: 'After 5 minutes', ms: 5 * 60_000 },
-  { value: '30m', label: 'After 30 minutes', ms: 30 * 60_000 }
-]
+const autoRestoreFitOptions = localizedConstant(
+  (): (PickerOption<RestoreValue> & { ms: number | null })[] => [
+    {
+      value: 'indefinite',
+      label: translate(
+        'auto.mobile.app.terminal.settings.aba5507191',
+        'Keep at phone size (default)'
+      ),
+      ms: null
+    },
+    {
+      value: '60s',
+      label: translate('auto.mobile.app.terminal.settings.80118eb022', 'After 1 minute'),
+      ms: 60_000
+    },
+    {
+      value: '5m',
+      label: translate('auto.mobile.app.terminal.settings.a761169918', 'After 5 minutes'),
+      ms: 5 * 60_000
+    },
+    {
+      value: '30m',
+      label: translate('auto.mobile.app.terminal.settings.ad4f6a76dd', 'After 30 minutes'),
+      ms: 30 * 60_000
+    }
+  ]
+)
 
 function valueFromMs(ms: number | null | undefined): RestoreValue {
   if (ms == null) {
     return 'indefinite'
   }
-  const exact = AUTO_RESTORE_FIT_OPTIONS.find((o) => o.ms === ms)
+  const exact = autoRestoreFitOptions().find((o) => o.ms === ms)
   if (exact) {
     return exact.value
   }
@@ -67,9 +116,9 @@ function valueFromMs(ms: number | null | undefined): RestoreValue {
   // or server-side clamp). Snap to the closest finite preset so the
   // picker's selected radio agrees with the row sublabel rendered by
   // autoRestoreSummary ("After Xs").
-  let closest: (typeof AUTO_RESTORE_FIT_OPTIONS)[number] | null = null
+  let closest: ReturnType<typeof autoRestoreFitOptions>[number] | null = null
   let bestDelta = Infinity
-  for (const opt of AUTO_RESTORE_FIT_OPTIONS) {
+  for (const opt of autoRestoreFitOptions()) {
     if (opt.ms == null) {
       continue
     }
@@ -87,9 +136,9 @@ function autoRestoreSummary(ms: number | null | undefined): string {
     return '…'
   }
   if (ms === null) {
-    return AUTO_RESTORE_FIT_OPTIONS[0]!.label
+    return autoRestoreFitOptions()[0]!.label
   }
-  const exact = AUTO_RESTORE_FIT_OPTIONS.find((o) => o.ms === ms)
+  const exact = autoRestoreFitOptions().find((o) => o.ms === ms)
   return exact ? exact.label : `After ${Math.round(ms / 1000)}s`
 }
 
@@ -148,7 +197,7 @@ export default function TerminalSettingsScreen() {
     void loadTerminalTextScale().then(setTextScale)
   }, [])
   const selectTextSize = useCallback((value: TextSizeValue) => {
-    const opt = TEXT_SIZE_OPTIONS.find((o) => o.value === value)
+    const opt = textSizeOptions().find((o) => o.value === value)
     if (!opt) {
       return
     }
@@ -211,7 +260,7 @@ export default function TerminalSettingsScreen() {
     if (!client) {
       return
     }
-    const opt = AUTO_RESTORE_FIT_OPTIONS.find((o) => o.value === value)
+    const opt = autoRestoreFitOptions().find((o) => o.value === value)
     if (!opt) {
       return
     }
@@ -260,7 +309,9 @@ export default function TerminalSettingsScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Terminal</Text>
+        <Text style={styles.heading}>
+          {translate('auto.mobile.app.terminal.settings.9098f96768', 'Terminal')}
+        </Text>
       </View>
 
       <Animated.ScrollView
@@ -273,18 +324,23 @@ export default function TerminalSettingsScreen() {
           scrollContentHeight.value = height
         }}
       >
-        <Text style={styles.groupHeading}>WHEN YOU LEAVE THE APP</Text>
+        <Text style={styles.groupHeading}>
+          {translate('auto.mobile.app.terminal.settings.7fdbe05077', 'WHEN YOU LEAVE THE APP')}
+        </Text>
         <Text style={styles.groupDescription}>
-          While you&apos;re using a terminal on your phone, Manta shrinks it to fit your screen.
-          When you close the app or switch away, this controls whether it stays at phone size (so
-          interactive CLI tools don&apos;t reflow) or resizes back to your desktop. You can always
-          use Restore this terminal or Restore all terminals on the banner to resize manually.
+          {translate(
+            'auto.mobile.app.terminal.settings.5185d36d47',
+            "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore this terminal or Restore all terminals on the banner to resize manually."
+          )}{' '}
         </Text>
 
         {hosts.length === 0 ? (
           <View style={[styles.section, styles.sectionTopGap]}>
             <Text style={styles.emptyText}>
-              No paired desktops yet. Pair one to control terminal behavior.
+              {translate(
+                'auto.mobile.app.terminal.settings.5369adc998',
+                'No paired desktops yet. Pair one to control terminal behavior.'
+              )}{' '}
             </Text>
           </View>
         ) : (
@@ -306,12 +362,14 @@ export default function TerminalSettingsScreen() {
           </View>
         )}
 
-        <Text style={[styles.groupHeading, styles.inputGroupGap]}>TEXT SIZE</Text>
+        <Text style={[styles.groupHeading, styles.inputGroupGap]}>
+          {translate('auto.mobile.app.terminal.settings.392fab3532', 'TEXT SIZE')}
+        </Text>
         <Text style={styles.groupDescription}>
-          Scale the terminal text. Smaller sizes fit more columns with side margins; larger sizes
-          show fewer columns — drag sideways to pan. You can also pinch to zoom in the terminal
-          itself, which updates this setting. Per-device display only; doesn&apos;t change the
-          desktop terminal.
+          {translate(
+            'auto.mobile.app.terminal.settings.b147ed5e18',
+            "Scale the terminal text. Smaller sizes fit more columns with side margins; larger sizes show fewer columns — drag sideways to pan. You can also pinch to zoom in the terminal itself, which updates this setting. Per-device display only; doesn't change the desktop terminal."
+          )}{' '}
         </Text>
         <View style={[styles.section, styles.sectionTopGap]}>
           <Pressable
@@ -320,25 +378,38 @@ export default function TerminalSettingsScreen() {
           >
             <Type size={16} color={colors.textSecondary} />
             <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Text size</Text>
+              <Text style={styles.rowLabel}>
+                {translate('auto.mobile.app.terminal.settings.41c2fa2d3e', 'Text size')}
+              </Text>
               <Text style={styles.rowSublabel}>{textSizeSummary(textScale)}</Text>
             </View>
             <ChevronRight size={16} color={colors.textMuted} />
           </Pressable>
         </View>
 
-        <Text style={[styles.groupHeading, styles.inputGroupGap]}>KEYBOARD INPUT</Text>
+        <Text style={[styles.groupHeading, styles.inputGroupGap]}>
+          {translate('auto.mobile.app.terminal.settings.d7c277cabd', 'KEYBOARD INPUT')}
+        </Text>
         <Text style={styles.groupDescription}>
-          Enable phone-style autocomplete, autocorrect, and spelling suggestions in the terminal
-          command bar. Off by default so the keyboard never rewrites commands, flags, or paths.
-          Direct keyboard input (when keys go straight to the terminal) always sends raw keystrokes,
-          so suggestions don&apos;t apply there.
+          {translate(
+            'auto.mobile.app.terminal.settings.f4f7e6d042',
+            "Enable phone-style autocomplete, autocorrect, and spelling suggestions in the terminal command bar. Off by default so the keyboard never rewrites commands, flags, or paths. Direct keyboard input (when keys go straight to the terminal) always sends raw keystrokes, so suggestions don't apply there."
+          )}{' '}
         </Text>
         <View style={[styles.section, styles.sectionTopGap]}>
           <View style={styles.row}>
             <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Autocomplete &amp; autocorrect</Text>
-              <Text style={styles.rowSublabel}>{autocompleteEnabled ? 'On' : 'Off'}</Text>
+              <Text style={styles.rowLabel}>
+                {translate(
+                  'auto.mobile.app.terminal.settings.d7e9dd546e',
+                  'Autocomplete & autocorrect'
+                )}
+              </Text>
+              <Text style={styles.rowSublabel}>
+                {autocompleteEnabled
+                  ? translate('auto.mobile.app.terminal.settings.a91e66a47a', 'On')
+                  : translate('auto.mobile.app.terminal.settings.ac4e08885f', 'Off')}
+              </Text>
             </View>
             <Switch
               value={autocompleteEnabled}
@@ -359,8 +430,14 @@ export default function TerminalSettingsScreen() {
 
       <PickerModal<RestoreValue>
         visible={pickerHost != null}
-        title={pickerHost ? `Restore ${pickerHost.name}` : ''}
-        options={AUTO_RESTORE_FIT_OPTIONS}
+        title={
+          pickerHost
+            ? translate('auto.mobile.app.terminal.settings.9cddb95e6a', 'Restore {{value0}}', {
+                value0: pickerHost.name
+              })
+            : ''
+        }
+        options={autoRestoreFitOptions()}
         selected={valueFromMs(pickerHost ? hostMs[pickerHost.id] : null)}
         onSelect={(v) => {
           if (pickerHost) {
@@ -372,8 +449,8 @@ export default function TerminalSettingsScreen() {
 
       <PickerModal<TextSizeValue>
         visible={textSizePickerOpen}
-        title="Terminal text size"
-        options={TEXT_SIZE_OPTIONS}
+        title={translate('auto.mobile.app.terminal.settings.95f01e00e2', 'Terminal text size')}
+        options={textSizeOptions()}
         selected={textSizeValueFromScale(textScale)}
         onSelect={selectTextSize}
         onClose={() => setTextSizePickerOpen(false)}

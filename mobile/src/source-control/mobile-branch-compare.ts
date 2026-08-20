@@ -29,6 +29,7 @@ export function buildMobileBranchCompareSection<TEntry extends MobileGitBranchCh
     return null
   }
   return {
+    // i18n-exempt: section identity; the header copy lives in MobileSourceControlFileRows
     title: 'Committed on Branch',
     data: [...entries].sort(compareBranchEntries)
   }

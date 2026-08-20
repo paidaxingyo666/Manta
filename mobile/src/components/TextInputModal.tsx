@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { colors, spacing, radii, typography } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   visible: boolean
@@ -90,7 +91,9 @@ export function TextInputModal({
           style={({ pressed }) => [styles.cancelButton, pressed && styles.buttonPressed]}
           onPress={onCancel}
         >
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText}>
+            {translate('auto.mobile.src.components.TextInputModal.34e60eed01', 'Cancel')}
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [

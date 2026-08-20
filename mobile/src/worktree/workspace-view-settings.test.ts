@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_MOBILE_WORKSPACE_STATUSES } from './mobile-workspace-statuses'
+import { defaultMobileWorkspaceStatuses } from './mobile-workspace-statuses'
 import {
   applyDesktopViewSettings,
   groupModeFromDesktop,
@@ -16,7 +16,7 @@ const base: MobileViewState = {
   hideDefaultBranch: false,
   filterRepoIds: [],
   collapsedGroups: [],
-  workspaceStatuses: DEFAULT_MOBILE_WORKSPACE_STATUSES
+  workspaceStatuses: defaultMobileWorkspaceStatuses()
 }
 
 describe('group mode mapping', () => {
@@ -64,7 +64,7 @@ describe('applyDesktopViewSettings', () => {
   it('keeps renderable workspace statuses when desktop sends an empty catalog', () => {
     const next = applyDesktopViewSettings(base, { workspaceStatuses: [] })
 
-    expect(next.workspaceStatuses).toBe(DEFAULT_MOBILE_WORKSPACE_STATUSES)
+    expect(next.workspaceStatuses).toBe(defaultMobileWorkspaceStatuses())
   })
 
   it('ignores desktop workspace host scope so mobile always shows all hosts', () => {

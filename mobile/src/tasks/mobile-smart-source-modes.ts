@@ -1,4 +1,6 @@
 import type { MrStateFilter, SmartNameMode } from './mobile-composer-source-types'
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 
 // Icon each tab renders: lucide glyphs for the neutral modes, the inline brand
 // SVGs (TaskProviderLogo) for the provider modes since lucide dropped its brand
@@ -15,14 +17,38 @@ export type SmartModeOption = {
 
 // Order + labels + icons mirror desktop getSmartWorkspaceNameModes():
 // Smart · GitHub · Linear · GitLab · Branch · Name.
-export const SMART_MODE_OPTIONS: readonly SmartModeOption[] = [
-  { id: 'smart', label: 'Smart', icon: { type: 'lucide', name: 'sparkles' } },
-  { id: 'github', label: 'GitHub', icon: { type: 'provider', provider: 'github' } },
-  { id: 'linear', label: 'Linear', icon: { type: 'provider', provider: 'linear' } },
-  { id: 'gitlab', label: 'GitLab', icon: { type: 'provider', provider: 'gitlab' } },
-  { id: 'branches', label: 'Branch', icon: { type: 'lucide', name: 'git-branch' } },
-  { id: 'text', label: 'Name', icon: { type: 'lucide', name: 'case-sensitive' } }
-]
+export const smartModeOptions = localizedConstant((): readonly SmartModeOption[] => [
+  {
+    id: 'smart',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.d0641cca38', 'Smart'),
+    icon: { type: 'lucide', name: 'sparkles' }
+  },
+  {
+    id: 'github',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.7cb8a31492', 'GitHub'),
+    icon: { type: 'provider', provider: 'github' }
+  },
+  {
+    id: 'linear',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.8fa1fe641f', 'Linear'),
+    icon: { type: 'provider', provider: 'linear' }
+  },
+  {
+    id: 'gitlab',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.24441a2f23', 'GitLab'),
+    icon: { type: 'provider', provider: 'gitlab' }
+  },
+  {
+    id: 'branches',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.79f98b1f11', 'Branch'),
+    icon: { type: 'lucide', name: 'git-branch' }
+  },
+  {
+    id: 'text',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.fcd871a51c', 'Name'),
+    icon: { type: 'lucide', name: 'case-sensitive' }
+  }
+])
 
 export type SmartModeAvailabilityInput = {
   textOnly: boolean
@@ -41,22 +67,24 @@ export function resolveAvailableSmartModes(input: SmartModeAvailabilityInput): S
   if (input.textOnly) {
     return ['text']
   }
-  return SMART_MODE_OPTIONS.filter((option) => {
-    switch (option.id) {
-      case 'smart':
-        return input.tasksSupported
-      case 'github':
-        return input.tasksSupported && input.hasRepo && input.githubAvailable
-      case 'gitlab':
-        return input.tasksSupported && input.hasRepo && input.gitlabAvailable
-      case 'linear':
-        return input.tasksSupported && input.linearAvailable
-      case 'branches':
-        return input.hasRepo
-      case 'text':
-        return true
-    }
-  }).map((option) => option.id)
+  return smartModeOptions()
+    .filter((option) => {
+      switch (option.id) {
+        case 'smart':
+          return input.tasksSupported
+        case 'github':
+          return input.tasksSupported && input.hasRepo && input.githubAvailable
+        case 'gitlab':
+          return input.tasksSupported && input.hasRepo && input.gitlabAvailable
+        case 'linear':
+          return input.tasksSupported && input.linearAvailable
+        case 'branches':
+          return input.hasRepo
+        case 'text':
+          return true
+      }
+    })
+    .map((option) => option.id)
 }
 
 // Default mode when the picker opens: 'smart' for a git repo when search is
@@ -83,11 +111,23 @@ export function normalizeSmartMode(
 export type MrStateFilterOption = { id: MrStateFilter; label: string }
 
 // Desktop getMrStateFilters(): Open · Merged · Closed · All, default 'opened'.
-export const MR_STATE_FILTER_OPTIONS: readonly MrStateFilterOption[] = [
-  { id: 'opened', label: 'Open' },
-  { id: 'merged', label: 'Merged' },
-  { id: 'closed', label: 'Closed' },
-  { id: 'all', label: 'All' }
-]
+export const mrStateFilterOptions = localizedConstant((): readonly MrStateFilterOption[] => [
+  {
+    id: 'opened',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.74645d977f', 'Open')
+  },
+  {
+    id: 'merged',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.b0a1529ab3', 'Merged')
+  },
+  {
+    id: 'closed',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.279e22747c', 'Closed')
+  },
+  {
+    id: 'all',
+    label: translate('auto.mobile.src.tasks.mobile.smart.source.modes.2303084a84', 'All')
+  }
+])
 
 export const DEFAULT_MR_STATE_FILTER: MrStateFilter = 'opened'

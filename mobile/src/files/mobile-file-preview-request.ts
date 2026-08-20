@@ -11,6 +11,7 @@ import {
   type MobileTerminalArtifactPreviewSource,
   type TerminalArtifactRetryOptions
 } from './mobile-terminal-artifact-grant-refresh'
+import { translate } from '../i18n/i18n'
 
 export {
   formatPreviewByteLength,
@@ -223,7 +224,10 @@ async function verifyTerminalArtifactBaseContent(
       status: 'error',
       error: {
         status: 'error',
-        message: 'File changed on desktop. Reload preview before saving',
+        message: translate(
+          'auto.mobile.src.files.mobile.file.preview.request.91859e0a0a',
+          'File changed on desktop. Reload preview before saving'
+        ),
         reconnect: false
       }
     }

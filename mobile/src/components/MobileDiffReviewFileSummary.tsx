@@ -10,6 +10,7 @@ import {
   type ReviewDiffState
 } from '../session/mobile-diff-review-screen-model'
 import { mobileDiffReviewStyles as styles } from './mobile-diff-review-screen-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   currentIndex: number
@@ -65,7 +66,13 @@ export function MobileDiffReviewFileSummary({
           </Text>
           <Text style={styles.fileMeta} numberOfLines={1}>
             {mobileReviewScopeLabel(item)}
-            {item.oldPath ? ` from ${item.oldPath}` : ''}
+            {item.oldPath
+              ? translate(
+                  'auto.mobile.src.components.MobileDiffReviewFileSummary.4ea7bacdf4',
+                  ' from {{value0}}',
+                  { value0: item.oldPath }
+                )
+              : ''}
           </Text>
         </View>
       </View>
@@ -73,15 +80,35 @@ export function MobileDiffReviewFileSummary({
         <Text style={styles.fileMeta}>
           {currentIndex + 1}/{filteredCount}
         </Text>
-        {item.isReviewed ? <Text style={styles.reviewedPill}>Reviewed</Text> : null}
-        {item.changedSinceReview ? <Text style={styles.stalePill}>Changed</Text> : null}
+        {item.isReviewed ? (
+          <Text style={styles.reviewedPill}>
+            {translate(
+              'auto.mobile.src.components.MobileDiffReviewFileSummary.4c6781140f',
+              'Reviewed'
+            )}
+          </Text>
+        ) : null}
+        {item.changedSinceReview ? (
+          <Text style={styles.stalePill}>
+            {translate(
+              'auto.mobile.src.components.MobileDiffReviewFileSummary.715ff9cedd',
+              'Changed'
+            )}
+          </Text>
+        ) : null}
         {item.noteCount > 0 ? (
           <Text style={styles.fileMeta}>
             {mobileReviewCountLabel(item.noteCount, 'note', 'notes')}
           </Text>
         ) : null}
         {item.staleNoteCount > 0 ? (
-          <Text style={styles.staleText}>{item.staleNoteCount} stale</Text>
+          <Text style={styles.staleText}>
+            {item.staleNoteCount}{' '}
+            {translate(
+              'auto.mobile.src.components.MobileDiffReviewFileSummary.db301c5173',
+              'stale'
+            )}
+          </Text>
         ) : null}
       </View>
       {fileNotes.length > 0 ? (
@@ -97,7 +124,14 @@ export function MobileDiffReviewFileSummary({
               <Text style={styles.fileNoteText} numberOfLines={2}>
                 {note.body}
               </Text>
-              {staleCommentIds.has(note.id) ? <Text style={styles.staleText}>Stale</Text> : null}
+              {staleCommentIds.has(note.id) ? (
+                <Text style={styles.staleText}>
+                  {translate(
+                    'auto.mobile.src.components.MobileDiffReviewFileSummary.3e9a9b32ee',
+                    'Stale'
+                  )}
+                </Text>
+              ) : null}
             </Pressable>
           ))}
         </View>
@@ -111,7 +145,9 @@ export function MobileDiffReviewFileSummary({
           accessibilityLabel="Previous hunk"
         >
           <ArrowUp size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.hunkButtonText}>Hunk</Text>
+          <Text style={styles.hunkButtonText}>
+            {translate('auto.mobile.src.components.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.hunkButton, pressed && styles.hunkButtonPressed]}
@@ -121,7 +157,9 @@ export function MobileDiffReviewFileSummary({
           accessibilityLabel="Next hunk"
         >
           <ArrowDown size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.hunkButtonText}>Hunk</Text>
+          <Text style={styles.hunkButtonText}>
+            {translate('auto.mobile.src.components.MobileDiffReviewFileSummary.3745bb8fe6', 'Hunk')}
+          </Text>
         </Pressable>
       </View>
     </View>

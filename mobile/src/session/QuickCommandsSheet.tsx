@@ -19,6 +19,7 @@ import {
   quickCommandToDraft,
   type QuickCommandDraft
 } from './quick-command-draft'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   visible: boolean
@@ -104,8 +105,13 @@ export function QuickCommandsSheet({
     // Why: quick commands sync with desktop, so an accidental one-tap delete
     // removes shared data rather than only dismissing a local row.
     Alert.alert(
-      `Delete "${command.label || 'Untitled'}"?`,
-      'This quick command will be removed from your saved list.',
+      translate('auto.mobile.src.session.QuickCommandsSheet.cbba692ebb', 'Delete "{{value0}}"?', {
+        value0: command.label || 'Untitled'
+      }),
+      translate(
+        'auto.mobile.src.session.QuickCommandsSheet.f260e877b2',
+        'This quick command will be removed from your saved list.'
+      ),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -145,11 +151,11 @@ export function QuickCommandsSheet({
   const title =
     view === 'editor'
       ? draft?.id
-        ? 'Edit Quick Command'
-        : 'Add Quick Command'
+        ? translate('auto.mobile.src.session.QuickCommandsSheet.81a695ae36', 'Edit Quick Command')
+        : translate('auto.mobile.src.session.QuickCommandsSheet.49bc604177', 'Add Quick Command')
       : view === 'agent'
-        ? 'Choose Agent'
-        : 'Quick Commands'
+        ? translate('auto.mobile.src.session.QuickCommandsSheet.d6bbe93e7e', 'Choose Agent')
+        : translate('auto.mobile.src.session.QuickCommandsSheet.bd752eba44', 'Quick Commands')
 
   return (
     <BottomDrawer visible={visible} onClose={onClose}>
@@ -172,7 +178,10 @@ export function QuickCommandsSheet({
       {view === 'editor' && draft ? (
         <View style={styles.editorDesc}>
           <Text style={styles.descText}>
-            Save terminal commands or agent prompts for quick access.
+            {translate(
+              'auto.mobile.src.session.QuickCommandsSheet.73b91478d0',
+              'Save terminal commands or agent prompts for quick access.'
+            )}{' '}
           </Text>
         </View>
       ) : null}

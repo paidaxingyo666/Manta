@@ -302,6 +302,7 @@ import type {
   TerminalGestureInputBucket,
   TerminalGestureInputQueue
 } from '../../../../src/session/mobile-session-route-types'
+import { translate } from '../../../../src/i18n/i18n'
 
 const TERMINAL_KEYBOARD_DISMISS_ACTION_SHEET_FALLBACK_MS = 450
 
@@ -388,7 +389,10 @@ function DiffLineRow({
             <View key={comment.id} style={styles.diffCommentCard}>
               <View style={styles.diffCommentHeader}>
                 <MessageSquare size={12} color={colors.textMuted} strokeWidth={2.2} />
-                <Text style={styles.diffCommentMeta}>Line {comment.lineNumber}</Text>
+                <Text style={styles.diffCommentMeta}>
+                  {translate('auto.mobile.app.h.hostId.session.worktreeId.93a3e51407', 'Line')}{' '}
+                  {comment.lineNumber}
+                </Text>
                 <Pressable
                   style={styles.diffCommentDeleteButton}
                   disabled={commentsBusy}
@@ -409,7 +413,10 @@ function DiffLineRow({
             style={[styles.textInput, styles.diffCommentInput]}
             value={commentDraft}
             onChangeText={onDraftChange}
-            placeholder="Add review note"
+            placeholder={translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.bc2736872c',
+              'Add review note'
+            )}
             placeholderTextColor={colors.textMuted}
             editable={!commentsBusy}
             multiline
@@ -422,7 +429,9 @@ function DiffLineRow({
               disabled={commentsBusy}
               onPress={onCancelComment}
             >
-              <Text style={styles.diffCommentSecondaryText}>Cancel</Text>
+              <Text style={styles.diffCommentSecondaryText}>
+                {translate('auto.mobile.app.h.hostId.session.worktreeId.009398e286', 'Cancel')}
+              </Text>
             </Pressable>
             <Pressable
               style={[
@@ -436,7 +445,9 @@ function DiffLineRow({
                 }
               }}
             >
-              <Text style={styles.diffCommentPrimaryText}>Save note</Text>
+              <Text style={styles.diffCommentPrimaryText}>
+                {translate('auto.mobile.app.h.hostId.session.worktreeId.6cdae0c3b4', 'Save note')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -614,8 +625,15 @@ function FileReader({
               <MessageSquare size={14} color={colors.textSecondary} strokeWidth={2.2} />
               <Text style={styles.diffNotesTitle}>
                 {commentCount === 0
-                  ? 'No review notes'
-                  : `${commentCount} review ${commentCount === 1 ? 'note' : 'notes'}`}
+                  ? translate(
+                      'auto.mobile.app.h.hostId.session.worktreeId.6e387bdc73',
+                      'No review notes'
+                    )
+                  : translate(
+                      'auto.mobile.app.h.hostId.session.worktreeId.a34c28c593',
+                      '{{value0}} review {{value1}}',
+                      { value0: commentCount, value1: commentCount === 1 ? 'note' : 'notes' }
+                    )}
               </Text>
             </View>
             <View style={styles.diffNotesActions}>
@@ -629,7 +647,9 @@ function FileReader({
                 accessibilityLabel="Copy review notes"
               >
                 <Copy size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Copy</Text>
+                <Text style={styles.diffNotesActionText}>
+                  {translate('auto.mobile.app.h.hostId.session.worktreeId.8bb984f167', 'Copy')}
+                </Text>
               </Pressable>
               <Pressable
                 style={[
@@ -641,7 +661,9 @@ function FileReader({
                 accessibilityLabel="Send review notes to AI"
               >
                 <Send size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Send</Text>
+                <Text style={styles.diffNotesActionText}>
+                  {translate('auto.mobile.app.h.hostId.session.worktreeId.c87b285cb3', 'Send')}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -1908,7 +1930,10 @@ export default function SessionScreen() {
         setMarkdownDocs((prev) =>
           new Map(prev).set(tab.id, {
             status: 'error',
-            message: "Couldn't load markdown"
+            message: translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.12548ed01b',
+              "Couldn't load markdown"
+            )
           })
         )
       }
@@ -2010,12 +2035,20 @@ export default function SessionScreen() {
       try {
         await persistDiffComments(result.comments)
         triggerSuccess()
-        showToast('Note added')
+        showToast(translate('auto.mobile.app.h.hostId.session.worktreeId.4d7d1880f9', 'Note added'))
         return true
       } catch (err) {
         setDiffComments(previous)
         triggerError()
-        showToast(err instanceof Error ? err.message : 'Failed to save note', 1600)
+        showToast(
+          err instanceof Error
+            ? err.message
+            : translate(
+                'auto.mobile.app.h.hostId.session.worktreeId.c9adeb8139',
+                'Failed to save note'
+              ),
+          1600
+        )
         return false
       } finally {
         setDiffCommentBusy(false)
@@ -2042,7 +2075,15 @@ export default function SessionScreen() {
       } catch (err) {
         setDiffComments(previous)
         triggerError()
-        showToast(err instanceof Error ? err.message : 'Failed to delete note', 1600)
+        showToast(
+          err instanceof Error
+            ? err.message
+            : translate(
+                'auto.mobile.app.h.hostId.session.worktreeId.4c360ea739',
+                'Failed to delete note'
+              ),
+          1600
+        )
       } finally {
         setDiffCommentBusy(false)
       }
@@ -2058,10 +2099,13 @@ export default function SessionScreen() {
     try {
       await Clipboard.setStringAsync(formatDiffComments(comments))
       triggerSuccess()
-      showToast('Notes copied')
+      showToast(translate('auto.mobile.app.h.hostId.session.worktreeId.765dba3163', 'Notes copied'))
     } catch {
       triggerError()
-      showToast("Couldn't copy notes", 1600)
+      showToast(
+        translate('auto.mobile.app.h.hostId.session.worktreeId.5c8a3179db', "Couldn't copy notes"),
+        1600
+      )
     }
   }, [showToast])
 
@@ -2121,7 +2165,7 @@ export default function SessionScreen() {
       }
       await Clipboard.setStringAsync(current.localContent)
       triggerSuccess()
-      showToast('Copied')
+      showToast(translate('auto.mobile.app.h.hostId.session.worktreeId.03a999d86d', 'Copied'))
     },
     [markdownDocs, showToast]
   )
@@ -2240,7 +2284,7 @@ export default function SessionScreen() {
         )
         markdownSaveSeqRef.current.delete(tab.id)
         triggerSuccess()
-        showToast('Saved')
+        showToast(translate('auto.mobile.app.h.hostId.session.worktreeId.2670eea578', 'Saved'))
       } catch (error) {
         triggerError()
         const message = error instanceof Error ? error.message : 'Save failed'
@@ -2658,7 +2702,13 @@ export default function SessionScreen() {
     void (async () => {
       const reportActivationOutcome = (response: RpcSuccess | null): void => {
         if (!disposed && response && headlessActivationNeedsHostRenderer(response.result)) {
-          showToast('Open Manta on the host to wake sleeping agents.', 3000)
+          showToast(
+            translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.9cae6a7f4c',
+              'Open Manta on the host to wake sleeping agents.'
+            ),
+            3000
+          )
         }
       }
       if (client && created !== '1' && !isFloatingWorkspaceRoute) {
@@ -3021,7 +3071,13 @@ export default function SessionScreen() {
       }
       if (!isTerminalLiveInputWithinByteLimit(text)) {
         triggerError()
-        showToast('Input too large (max 256 KiB)', 1500)
+        showToast(
+          translate(
+            'auto.mobile.app.h.hostId.session.worktreeId.e76f29736f',
+            'Input too large (max 256 KiB)'
+          ),
+          1500
+        )
         return false
       }
       const rpc = clientRef.current
@@ -3393,9 +3449,17 @@ export default function SessionScreen() {
       await client.sendRequest('terminal.clearBuffer', {
         terminal: target.handle
       })
-      showToast('Terminal cleared')
+      showToast(
+        translate('auto.mobile.app.h.hostId.session.worktreeId.f2173a95a7', 'Terminal cleared')
+      )
     } catch {
-      showToast("Couldn't clear terminal", 1500)
+      showToast(
+        translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.9b7df64511',
+          "Couldn't clear terminal"
+        ),
+        1500
+      )
     }
   }
 
@@ -3476,7 +3540,7 @@ export default function SessionScreen() {
         triggerSuccess()
         // Why: Android 13+ shows its own system copy toast; iOS shows none, so only iOS needs our in-app toast.
         if (Platform.OS === 'ios') {
-          showToast('Copied')
+          showToast(translate('auto.mobile.app.h.hostId.session.worktreeId.03a999d86d', 'Copied'))
         }
         terminalRefs.current.get(handle)?.cancelSelect()
       } catch (e) {
@@ -3487,7 +3551,10 @@ export default function SessionScreen() {
           name: err.name,
           message: err.message
         })
-        showToast("Couldn't copy", 1500)
+        showToast(
+          translate('auto.mobile.app.h.hostId.session.worktreeId.ff4ac128b0', "Couldn't copy"),
+          1500
+        )
       }
     },
     [showToast]
@@ -3500,7 +3567,13 @@ export default function SessionScreen() {
       }
       // eslint-disable-next-line no-console
       console.warn('[mobile-clip] selection evicted')
-      showToast('Selection cleared (scrolled out of buffer)', 1500)
+      showToast(
+        translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.0589af040a',
+          'Selection cleared (scrolled out of buffer)'
+        ),
+        1500
+      )
       setSelectModeActive(false)
     },
     [showToast]
@@ -3785,14 +3858,25 @@ export default function SessionScreen() {
                   throw new Error('Terminal input is locked by another client.')
                 }
                 triggerSuccess()
-                showToast(options.successToast ?? 'Notes sent')
+                showToast(
+                  options.successToast ??
+                    translate(
+                      'auto.mobile.app.h.hostId.session.worktreeId.e0127c0749',
+                      'Notes sent'
+                    )
+                )
                 options.onPromptSent?.()
               })
               .catch((err) => {
                 triggerError()
                 showToast(
                   options.errorToast ??
-                    (err instanceof Error ? err.message : "Couldn't send notes"),
+                    (err instanceof Error
+                      ? err.message
+                      : translate(
+                          'auto.mobile.app.h.hostId.session.worktreeId.39c53677ab',
+                          "Couldn't send notes"
+                        )),
                   1800
                 )
               })
@@ -3844,7 +3928,13 @@ export default function SessionScreen() {
     const launch = buildMobileQuickCommandLaunch(command)
     if (!launch) {
       triggerError()
-      showToast('Edit this quick command before running it', 1800)
+      showToast(
+        translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.ea472ad53f',
+          'Edit this quick command before running it'
+        ),
+        1800
+      )
       return false
     }
     const label = command.label.trim() || 'Quick command'
@@ -3908,7 +3998,13 @@ export default function SessionScreen() {
     }
     // Why: read via ref so a tap before the capability probe resolves (or a stale callback) still sees the live value.
     if (browserScreencastSupportedRef.current !== true) {
-      showToast('Desktop update required for mobile browser streaming', 1600)
+      showToast(
+        translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.c5d273023f',
+          'Desktop update required for mobile browser streaming'
+        ),
+        1600
+      )
       return false
     }
     const url = normalizeBrowserUrl(rawUrl)
@@ -3961,7 +4057,13 @@ export default function SessionScreen() {
     method: 'browser.back' | 'browser.forward' | 'browser.reload'
   ) {
     if (!client || !tab.browserPageId) {
-      showToast('Browser page is not available yet.', 1500)
+      showToast(
+        translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.1a0af43c68',
+          'Browser page is not available yet.'
+        ),
+        1500
+      )
       return
     }
     try {
@@ -4194,12 +4296,18 @@ export default function SessionScreen() {
   const terminalSummary =
     connState === 'connected'
       ? showLoadingState
-        ? 'Loading tabs'
+        ? translate('auto.mobile.app.h.hostId.session.worktreeId.bc570e2e5a', 'Loading tabs')
         : visibleTabs.length === 1
-          ? '1 tab'
-          : `${visibleTabs.length} tabs`
+          ? translate('auto.mobile.app.h.hostId.session.worktreeId.291c4edd48', '1 tab')
+          : translate('auto.mobile.app.h.hostId.session.worktreeId.fb82b8a66c', '{{value0}} tabs', {
+              value0: visibleTabs.length
+            })
       : showConnectionRetry
-        ? `${verdictDisplayLabel(connectionVerdict)} — tap to retry`
+        ? translate(
+            'auto.mobile.app.h.hostId.session.worktreeId.4ba45b196f',
+            '{{value0}} — tap to retry',
+            { value0: verdictDisplayLabel(connectionVerdict) }
+          )
         : MOBILE_SESSION_STATUS_LABELS[connState]
 
   // Why: iOS keyboard height includes the home-indicator inset; Android IME height does not.
@@ -4222,7 +4330,10 @@ export default function SessionScreen() {
     createTabAgentLoadState === 'loading'
       ? [
           {
-            label: 'Detecting Agents',
+            label: translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.a547885f43',
+              'Detecting Agents'
+            ),
             icon: Bot,
             disabled: true,
             loading: true,
@@ -4241,7 +4352,10 @@ export default function SessionScreen() {
         : createTabAgentLoadState === 'loaded'
           ? [
               {
-                label: 'No Enabled Agents',
+                label: translate(
+                  'auto.mobile.app.h.hostId.session.worktreeId.c812e187d6',
+                  'No Enabled Agents'
+                ),
                 icon: Bot,
                 disabled: true,
                 onPress: () => {}
@@ -4250,7 +4364,10 @@ export default function SessionScreen() {
           : createTabAgentLoadState === 'error'
             ? [
                 {
-                  label: 'Agent Presets Unavailable',
+                  label: translate(
+                    'auto.mobile.app.h.hostId.session.worktreeId.9ba57da339',
+                    'Agent Presets Unavailable'
+                  ),
                   hint: 'Check the host connection',
                   icon: Bot,
                   disabled: true,
@@ -4264,7 +4381,10 @@ export default function SessionScreen() {
       : createTabAgentLoadState === 'loading'
         ? [
             {
-              label: 'Detecting Agents',
+              label: translate(
+                'auto.mobile.app.h.hostId.session.worktreeId.a547885f43',
+                'Detecting Agents'
+              ),
               icon: Bot,
               disabled: true,
               loading: true,
@@ -4291,7 +4411,10 @@ export default function SessionScreen() {
           : createTabAgentLoadState === 'loaded'
             ? [
                 {
-                  label: 'No Enabled Agents',
+                  label: translate(
+                    'auto.mobile.app.h.hostId.session.worktreeId.c812e187d6',
+                    'No Enabled Agents'
+                  ),
                   icon: Bot,
                   disabled: true,
                   onPress: () => {}
@@ -4300,7 +4423,10 @@ export default function SessionScreen() {
             : createTabAgentLoadState === 'error'
               ? [
                   {
-                    label: 'Agent Presets Unavailable',
+                    label: translate(
+                      'auto.mobile.app.h.hostId.session.worktreeId.9ba57da339',
+                      'Agent Presets Unavailable'
+                    ),
                     hint: 'Copy notes instead',
                     icon: Bot,
                     disabled: true,
@@ -4366,7 +4492,8 @@ export default function SessionScreen() {
 
             <View style={styles.sessionTitleBlock}>
               <Text style={styles.sessionTitle} numberOfLines={1}>
-                {worktreeName || 'Terminal'}
+                {worktreeName ||
+                  translate('auto.mobile.app.h.hostId.session.worktreeId.d442e87c8d', 'Terminal')}
               </Text>
               <Pressable
                 style={styles.sessionMetaRow}
@@ -4511,8 +4638,14 @@ export default function SessionScreen() {
                   }
                   showToast(
                     quickCommandsSupported === false
-                      ? 'Desktop update required for quick commands'
-                      : 'Checking desktop capabilities — try again in a moment',
+                      ? translate(
+                          'auto.mobile.app.h.hostId.session.worktreeId.528352d03e',
+                          'Desktop update required for quick commands'
+                        )
+                      : translate(
+                          'auto.mobile.app.h.hostId.session.worktreeId.e60d7f23b6',
+                          'Checking desktop capabilities — try again in a moment'
+                        ),
                     1600
                   )
                 }}
@@ -4545,7 +4678,12 @@ export default function SessionScreen() {
               </View>
             ) : showEmptyState ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No tabs in this session</Text>
+                <Text style={styles.emptyText}>
+                  {translate(
+                    'auto.mobile.app.h.hostId.session.worktreeId.5dbe1f32cd',
+                    'No tabs in this session'
+                  )}
+                </Text>
                 {createError ? <Text style={styles.createError}>{createError}</Text> : null}
                 <View style={styles.emptyActions}>
                   <Pressable
@@ -4560,7 +4698,15 @@ export default function SessionScreen() {
                     }}
                   >
                     <Text style={styles.createButtonText}>
-                      {createTabBusy ? 'Creating...' : 'Create Tab'}
+                      {createTabBusy
+                        ? translate(
+                            'auto.mobile.app.h.hostId.session.worktreeId.4b662fd6b5',
+                            'Creating...'
+                          )
+                        : translate(
+                            'auto.mobile.app.h.hostId.session.worktreeId.21d8c24b45',
+                            'Create Tab'
+                          )}
                     </Text>
                   </Pressable>
                 </View>
@@ -4587,7 +4733,10 @@ export default function SessionScreen() {
               <View style={styles.markdownFrame}>
                 <FileReader
                   doc={fileDocs.get(activeFileTab.id)}
-                  title={activeFileTab.title || 'File'}
+                  title={
+                    activeFileTab.title ||
+                    translate('auto.mobile.app.h.hostId.session.worktreeId.59a7a08ee4', 'File')
+                  }
                   relativePath={activeFileTab.relativePath}
                   language={activeFileTab.language}
                   diffCommentActions={
@@ -4635,8 +4784,15 @@ export default function SessionScreen() {
                 )}
                 <Text style={styles.emptyText}>
                   {isPendingTerminalRecoveryParked
-                    ? 'Terminal is taking longer than expected'
-                    : activePendingTerminalTab.title || 'Loading terminal'}
+                    ? translate(
+                        'auto.mobile.app.h.hostId.session.worktreeId.d1d5a995dd',
+                        'Terminal is taking longer than expected'
+                      )
+                    : activePendingTerminalTab.title ||
+                      translate(
+                        'auto.mobile.app.h.hostId.session.worktreeId.d447fa8c0f',
+                        'Loading terminal'
+                      )}
                 </Text>
                 {isPendingTerminalRecoveryParked && (
                   <Pressable
@@ -4648,7 +4804,9 @@ export default function SessionScreen() {
                     ]}
                     onPress={() => void retryPendingTerminalRecovery()}
                   >
-                    <Text style={styles.createButtonText}>Retry</Text>
+                    <Text style={styles.createButtonText}>
+                      {translate('auto.mobile.app.h.hostId.session.worktreeId.f14ae8d9fd', 'Retry')}
+                    </Text>
                   </Pressable>
                 )}
               </View>
@@ -4830,7 +4988,10 @@ export default function SessionScreen() {
                             !canSend && styles.accessoryKeyTextDisabled
                           ]}
                         >
-                          Paste
+                          {translate(
+                            'auto.mobile.app.h.hostId.session.worktreeId.5037f8c2db',
+                            'Paste'
+                          )}{' '}
                         </Text>
                       </Pressable>
                     )}
@@ -4992,7 +5153,10 @@ export default function SessionScreen() {
                       value={input}
                       // Why: iOS kills active dictation/IME if JS writes a value differing from native text; store raw, normalize at send.
                       onChangeText={setInput}
-                      placeholder="Type a command…"
+                      placeholder={translate(
+                        'auto.mobile.app.h.hostId.session.worktreeId.5cdc347a0d',
+                        'Type a command…'
+                      )}
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="none"
                       autoCorrect={autocompleteEnabled}
@@ -5076,11 +5240,11 @@ export default function SessionScreen() {
 
       <ActionSheetModal
         visible={showCreateTabDrawer}
-        title="New Tab"
+        title={translate('auto.mobile.app.h.hostId.session.worktreeId.fbde4b425c', 'New Tab')}
         actions={[
           ...createTabAgentActions,
           {
-            label: 'Terminal',
+            label: translate('auto.mobile.app.h.hostId.session.worktreeId.d442e87c8d', 'Terminal'),
             icon: SquareTerminal,
             onPress: () => {
               setShowCreateTabDrawer(false)
@@ -5094,7 +5258,10 @@ export default function SessionScreen() {
             ? []
             : [
                 {
-                  label: 'Browser',
+                  label: translate(
+                    'auto.mobile.app.h.hostId.session.worktreeId.bcbf07819a',
+                    'Browser'
+                  ),
                   icon: Globe,
                   closeBeforePress: true,
                   onPress: () => {
@@ -5106,7 +5273,10 @@ export default function SessionScreen() {
                   }
                 },
                 {
-                  label: 'Markdown Note',
+                  label: translate(
+                    'auto.mobile.app.h.hostId.session.worktreeId.73f5cfed83',
+                    'Markdown Note'
+                  ),
                   icon: FileText,
                   onPress: () => {
                     setShowCreateTabDrawer(false)
@@ -5120,12 +5290,21 @@ export default function SessionScreen() {
 
       <ActionSheetModal
         visible={pendingDiffNotesDelivery !== null}
-        title="Send Review Notes"
-        message="Choose an agent session for the current notes."
+        title={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.7816120bb0',
+          'Send Review Notes'
+        )}
+        message={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.f92a3a2108',
+          'Choose an agent session for the current notes.'
+        )}
         actions={[
           ...sendDiffNotesAgentActions,
           {
-            label: 'Copy Notes',
+            label: translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.fd50e2b5c9',
+              'Copy Notes'
+            ),
             icon: Copy,
             onPress: () => {
               const delivery = pendingDiffNotesDelivery
@@ -5150,7 +5329,10 @@ export default function SessionScreen() {
 
       <ActionSheetModal
         visible={actionTarget != null}
-        title={actionTarget?.title || 'Terminal'}
+        title={
+          actionTarget?.title ||
+          translate('auto.mobile.app.h.hostId.session.worktreeId.d442e87c8d', 'Terminal')
+        }
         actions={getMobileTerminalActionSheetActions({
           target: actionTarget,
           tabs: sessionTabs.filter((tab) => tab.type === 'terminal'),
@@ -5170,10 +5352,13 @@ export default function SessionScreen() {
       />
       <ActionSheetModal
         visible={markdownActionTarget != null}
-        title={markdownActionTarget?.title || 'Markdown'}
+        title={
+          markdownActionTarget?.title ||
+          translate('auto.mobile.app.h.hostId.session.worktreeId.0f2f9c84e5', 'Markdown')
+        }
         actions={[
           {
-            label: 'Refresh',
+            label: translate('auto.mobile.app.h.hostId.session.worktreeId.6ba1410af3', 'Refresh'),
             icon: RefreshCw,
             // Why: dirty refresh opens ConfirmModal; wait for this sheet's native
             // Modal to unmount first (same dual-Modal race as tab Rename, #10331).
@@ -5186,7 +5371,7 @@ export default function SessionScreen() {
             }
           },
           {
-            label: 'Copy Path',
+            label: translate('auto.mobile.app.h.hostId.session.worktreeId.6bbf73240c', 'Copy Path'),
             icon: FileText,
             onPress: () => {
               const target = markdownActionTarget
@@ -5203,10 +5388,13 @@ export default function SessionScreen() {
       />
       <ActionSheetModal
         visible={fileActionTarget != null}
-        title={fileActionTarget?.title || 'File'}
+        title={
+          fileActionTarget?.title ||
+          translate('auto.mobile.app.h.hostId.session.worktreeId.59a7a08ee4', 'File')
+        }
         actions={[
           {
-            label: 'Refresh',
+            label: translate('auto.mobile.app.h.hostId.session.worktreeId.6ba1410af3', 'Refresh'),
             icon: RefreshCw,
             onPress: () => {
               const target = fileActionTarget
@@ -5229,11 +5417,20 @@ export default function SessionScreen() {
       />
       <ActionSheetModal
         visible={leaveDrafts != null}
-        title="Unsaved markdown changes"
-        message="Copy or discard phone drafts before leaving."
+        title={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.dbc4374db6',
+          'Unsaved markdown changes'
+        )}
+        message={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.9278e425a3',
+          'Copy or discard phone drafts before leaving.'
+        )}
         actions={[
           {
-            label: 'Copy All & Leave',
+            label: translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.232b53aca1',
+              'Copy All & Leave'
+            ),
             icon: FileText,
             onPress: () => {
               const drafts = leaveDrafts ?? []
@@ -5252,7 +5449,10 @@ export default function SessionScreen() {
             }
           },
           {
-            label: 'Discard & Leave',
+            label: translate(
+              'auto.mobile.app.h.hostId.session.worktreeId.a6c9f79254',
+              'Discard & Leave'
+            ),
             destructive: true,
             onPress: () => {
               setLeaveDrafts(null)
@@ -5264,8 +5464,14 @@ export default function SessionScreen() {
       />
       <ConfirmModal
         visible={discardMarkdownTarget != null}
-        title="Discard Changes"
-        message="Replace the phone draft with the latest desktop file?"
+        title={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.b4c492a050',
+          'Discard Changes'
+        )}
+        message={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.81a869a91f',
+          'Replace the phone draft with the latest desktop file?'
+        )}
         confirmLabel="Discard"
         destructive
         onConfirm={confirmDiscardMarkdown}
@@ -5273,18 +5479,30 @@ export default function SessionScreen() {
       />
       <TextInputModal
         visible={renameTarget != null}
-        title="Rename Terminal"
+        title={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.80a8bc0fbc',
+          'Rename Terminal'
+        )}
         defaultValue={renameTarget?.title || 'Terminal'}
-        placeholder="Terminal name"
+        placeholder={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.a60f1627e9',
+          'Terminal name'
+        )}
         onSubmit={(value) => void handleRenameTerminal(value)}
         onCancel={() => setRenameTarget(null)}
       />
       <TextInputModal
         visible={showCreateBrowserModal}
-        title="New Browser"
-        message="Enter a URL, or leave blank for a new tab."
+        title={translate('auto.mobile.app.h.hostId.session.worktreeId.b4a3a64a43', 'New Browser')}
+        message={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.65a6cea15c',
+          'Enter a URL, or leave blank for a new tab.'
+        )}
         defaultValue=""
-        placeholder="https://example.com"
+        placeholder={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.3ca49855db',
+          'https://example.com'
+        )}
         submitLabel="Open"
         allowEmpty
         selectTextOnFocus
@@ -5312,11 +5530,17 @@ export default function SessionScreen() {
       />
       <ActionSheetModal
         visible={deleteKeyTarget != null}
-        title={deleteKeyTarget?.label ?? 'Shortcut'}
-        message="Remove this custom shortcut?"
+        title={
+          deleteKeyTarget?.label ??
+          translate('auto.mobile.app.h.hostId.session.worktreeId.295a82ca28', 'Shortcut')
+        }
+        message={translate(
+          'auto.mobile.app.h.hostId.session.worktreeId.44b5afaa7f',
+          'Remove this custom shortcut?'
+        )}
         actions={[
           {
-            label: 'Remove',
+            label: translate('auto.mobile.app.h.hostId.session.worktreeId.8f7e0514ae', 'Remove'),
             destructive: true,
             onPress: () => {
               if (deleteKeyTarget) {

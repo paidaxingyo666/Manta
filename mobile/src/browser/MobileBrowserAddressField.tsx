@@ -1,6 +1,7 @@
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { compactMobileBrowserFileAddress } from './browser-url'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   disabled: boolean
@@ -40,7 +41,10 @@ export function MobileBrowserAddressField({
         keyboardType={Platform.OS === 'ios' ? 'url' : 'default'}
         numberOfLines={1}
         returnKeyType="go"
-        placeholder="URL"
+        placeholder={translate(
+          'auto.mobile.src.browser.MobileBrowserAddressField.22601c078b',
+          'URL'
+        )}
         placeholderTextColor={colors.textMuted}
         editable={!disabled}
       />

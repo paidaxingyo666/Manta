@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { RuntimeMobileSessionTabsResult } from '../../src/shared/runtime-types'
 import type { RpcRequest, RpcResponse } from './mock-server-rpc-handlers'
+import { translate } from '../src/i18n/i18n'
 
 // Why: the client's snapshot-acceptance gate keys on the publisher epoch, so it
 // must stay stable for the process and change on restart like a real publisher —
@@ -39,7 +40,7 @@ function createMockSessionTabs(worktreeId: string): RuntimeMobileSessionTabsResu
       {
         type: 'terminal',
         id: SURFACE_TAB_ID,
-        title: 'zsh',
+        title: translate('auto.mobile.scripts.mock.server.session.tabs.fixture.843194f996', 'zsh'),
         parentTabId: PARENT_TAB_ID,
         leafId: LEAF_ID,
         status: 'ready',

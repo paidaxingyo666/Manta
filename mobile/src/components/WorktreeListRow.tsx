@@ -9,6 +9,7 @@ import { AgentSpinner } from './AgentSpinner'
 import { MobileRepoIcon } from './MobileRepoIcon'
 import { WorktreeAgentList } from './WorktreeAgentList'
 import { WorktreeMetaGlyphs, prStateColor } from './WorktreeMetaGlyphs'
+import { translate } from '../i18n/i18n'
 
 // Strip the refs/heads/ prefix for display, matching the desktop sidebar
 // (WorktreeCardHelpers.formatBranchName).
@@ -130,7 +131,9 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
           )}
           {isFolderWorkspace && (
             <View style={styles.folderBadge}>
-              <Text style={styles.folderBadgeText}>Folder</Text>
+              <Text style={styles.folderBadgeText}>
+                {translate('auto.mobile.src.components.WorktreeListRow.b90db856e1', 'Folder')}
+              </Text>
             </View>
           )}
           <WorktreeMetaGlyphs
@@ -145,7 +148,9 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
           {lineageDepth > 0 && (
             <View style={styles.childBadge}>
               <GitBranch size={10} color={colors.textMuted} />
-              <Text style={styles.childBadgeText}>Child</Text>
+              <Text style={styles.childBadgeText}>
+                {translate('auto.mobile.src.components.WorktreeListRow.9422156692', 'Child')}
+              </Text>
             </View>
           )}
           {/* Repo glyph+name only when not already grouped under this repo;
@@ -183,7 +188,10 @@ function WorktreeListRowComponent<T extends WorktreeListRowItem>({
             )}
             <GitBranch size={12} color={colors.textSecondary} />
             <Text style={styles.lineageToggleText}>
-              {lineageChildCount} {lineageChildCount === 1 ? 'child' : 'children'}
+              {lineageChildCount}{' '}
+              {lineageChildCount === 1
+                ? translate('auto.mobile.src.components.WorktreeListRow.ba02d07cf8', 'child')
+                : translate('auto.mobile.src.components.WorktreeListRow.24b73ac9de', 'children')}
             </Text>
           </Pressable>
         ) : null}

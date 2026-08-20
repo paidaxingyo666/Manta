@@ -1,11 +1,33 @@
+import { localizedConstant } from '../i18n/localized-constant'
+import { translate } from '../i18n/i18n'
 export type BulkTabCloseMode = 'others' | 'left' | 'right'
 
 /** Long-press sheet entries, in display order. */
-export const BULK_TAB_CLOSE_ACTIONS: { mode: BulkTabCloseMode; label: string }[] = [
-  { mode: 'others', label: 'Close Other Tabs' },
-  { mode: 'left', label: 'Close Tabs to the Left' },
-  { mode: 'right', label: 'Close Tabs to the Right' }
-]
+export const bulkTabCloseActions = localizedConstant(
+  (): { mode: BulkTabCloseMode; label: string }[] => [
+    {
+      mode: 'others',
+      label: translate(
+        'auto.mobile.src.session.mobile.tab.close.selection.5f17f23257',
+        'Close Other Tabs'
+      )
+    },
+    {
+      mode: 'left',
+      label: translate(
+        'auto.mobile.src.session.mobile.tab.close.selection.fe28cadb0a',
+        'Close Tabs to the Left'
+      )
+    },
+    {
+      mode: 'right',
+      label: translate(
+        'auto.mobile.src.session.mobile.tab.close.selection.417f514e07',
+        'Close Tabs to the Right'
+      )
+    }
+  ]
+)
 
 type BulkClosableTab = {
   id: string
