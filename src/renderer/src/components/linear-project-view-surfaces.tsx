@@ -376,7 +376,7 @@ export function LinearProjectTable({
                         onUseProjectIssues(project)
                       }}
                       aria-label={translate(
-                        'auto.components.linear.project.view.surfaces.7616c986c6',
+                        'auto.components.linear.project.view.surfaces.7616c986c6.ac1f4e',
                         'Open {{value0}} issues',
                         { value0: project.name }
                       )}
@@ -399,7 +399,7 @@ export function LinearProjectTable({
                       onOpenProject(project)
                     }}
                     aria-label={translate(
-                      'auto.components.linear.project.view.surfaces.7616c986c6',
+                      'auto.components.linear.project.view.surfaces.7616c986c6.5eb5e9',
                       'Open {{value0}} in Linear',
                       { value0: project.name }
                     )}
@@ -549,7 +549,7 @@ export function LinearCustomViewTable({
                       onOpenView(view)
                     }}
                     aria-label={translate(
-                      'auto.components.linear.project.view.surfaces.7616c986c6',
+                      'auto.components.linear.project.view.surfaces.7616c986c6.5eb5e9',
                       'Open {{value0}} in Linear',
                       { value0: view.name }
                     )}

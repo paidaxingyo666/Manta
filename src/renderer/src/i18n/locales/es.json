@@ -959,7 +959,6 @@
         "58c73cb0d8": "No se pudo actualizar la descripción.",
         "5221548274": "Descripción actualizada.",
         "06c06e58ba": "Mostrar más líneas abajo",
-        "307c98e8e3": "Mostrar {{value0}} más líneas arriba",
         "5664681624": "Mostrar más líneas arriba",
         "b1574e8ac2": "Restablecer contexto de código",
         "d43736d09c": "Controles de contexto de código",
@@ -1049,7 +1048,11 @@
           "activity": "Actividad",
           "noActivity": "Sin actividad aún."
         },
-        "checkActionRequiredHint": "Esta verificación necesita una acción manual en GitHub (por ejemplo, aprobar la ejecución del workflow) antes de que se desbloquee la fusión."
+        "checkActionRequiredHint": "Esta verificación necesita una acción manual en GitHub (por ejemplo, aprobar la ejecución del workflow) antes de que se desbloquee la fusión.",
+        "307c98e8e3": {
+          "24fdee": "Mostrar {{value0}} más líneas arriba",
+          "752457": "Mostrar {{value0}} líneas más abajo"
+        }
       },
       "GitLabItemDialog": {
         "65e784c1f1": "Reabrir",
@@ -2394,7 +2397,6 @@
               "ee3d2caabd": "Issues",
               "5f79bc76b0": "Volver a proyectos",
               "aac9a4afc6": "Abrir en Linear",
-              "7616c986c6": "Abrir issues de {{value0}}",
               "93e1f6bfca": "Cargando",
               "98730088a6": ". Busca o abre Linear para ver el conjunto completo.",
               "06b887d622": "Mostrando primero",
@@ -2412,7 +2414,11 @@
               "df4bd63c1d": "No asignado",
               "30402d2c6e": "Intenta buscar o actualizar.",
               "a2f31c4cd6": "No se encontraron proyectos de Linear",
-              "c9b6e9f90d": "No se pueden cargar proyectos de Linear"
+              "c9b6e9f90d": "No se pueden cargar proyectos de Linear",
+              "7616c986c6": {
+                "ac1f4e": "Abrir issues de {{value0}}",
+                "5eb5e9": "Abrir {{value0}} en Linear"
+              }
             }
           }
         },
@@ -2808,14 +2814,17 @@
               "handler": {
                 "1e072f611e": "No se pudo subir {{value0}} {{value1}}.",
                 "53f015fd85": "Se omitió {{value0}} symlink{{value1}}.",
-                "29c031b49a": "Subiendo {{value0}} archivo{{value1}} al host…",
                 "0c77693641": "El worktree no está listo; inténtalo de nuevo en un momento.",
                 "ce8248b835": "Ruta del worktree no disponible.",
                 "internalTooManyPaths": "El drop contiene demasiadas rutas para pegarlas de forma segura en el terminal.",
                 "internalPathsTooLarge": "La lista de rutas del drop es demasiado grande para pegarla de forma segura en el terminal.",
                 "b4cf68e889": "Se omitió {{value0}} {{value1}}.",
                 "writeTimeout": "Se canceló el drop de archivos: el terminal no aceptó la ruta antes del tiempo límite de seguridad.",
-                "writeRejected": "Se canceló el drop de archivos: el terminal no pudo aceptar la ruta."
+                "writeRejected": "Se canceló el drop de archivos: el terminal no pudo aceptar la ruta.",
+                "29c031b49a": {
+                  "e09913": "Subiendo {{value0}} archivo{{value1}} al host…",
+                  "ac0575": "Subiendo {{value0}} archivo{{value1}} al remoto…"
+                }
               }
             }
           },
@@ -2872,6 +2881,10 @@
             "retryingBody": "Manta will retry for up to one minute. This terminal will resume if the connection returns.",
             "disconnectedBody": "Automatic retries stopped. Reconnect to resume this terminal session.",
             "reconnectButton": "Reconnect"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- sesión restaurada ---",
+            "139e3d1083": "--- sesión anterior no disponible, se inició una nueva ---"
           }
         }
       },
@@ -2934,7 +2947,9 @@
             "1d04b1630b": "Dividir hacia abajo",
             "6b3efb106e": "Dividir hacia arriba",
             "fdd29eb669": "Fijar pestaña",
-            "8e9d603a09": "Desanclar pestaña"
+            "8e9d603a09": "Desanclar pestaña",
+            "fe23001e60": "Abrir carpeta contenedora",
+            "3da91e073d": "Mostrar en el Explorador de archivos"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Ajustes de Agents…",
@@ -3312,8 +3327,11 @@
             "2837dc7c72": "cancelando",
             "0583c806ac": "No se ha escaneado el uso de disco del espacio de trabajo.",
             "39786e3b73": "Escaneando tamaños de espacios de trabajo.",
-            "bef4dc0457": "{{value0}} recuperable · {{value1}} no disponible",
-            "3d8d47ce77": "{{value0}} · último resultado mantenido"
+            "3d8d47ce77": "{{value0}} · último resultado mantenido",
+            "bef4dc0457": {
+              "02d421": "{{value0}} recuperable · {{value1}} no disponible",
+              "db101b": "{{value0}} recuperable · {{value1}} espacios de trabajo"
+            }
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "Falló la eliminación forzada",
@@ -4033,7 +4051,7 @@
           "007651bdf9": "Navega hasta un directorio y haz clic en Seleccionar para elegirlo.",
           "dd3ff65486": "Explorar el sistema de archivos remoto",
           "36d427bb66": "Agregar proyecto en host SSH",
-          "35831a7312": "Agregando...",
+          "35831a7312": "Añadiendo...",
           "lockedDescription": "Introduce la ruta a un repositorio Git en {{value0}}.",
           "lockedDisconnected": "{{value0}} está desconectado.",
           "93e0221434": "Conectar"
@@ -4368,7 +4386,6 @@
           "7bada3b1ab": "Ordenar por",
           "dc0bb670bc": "Agrupar por",
           "9919ae1082": "Opciones de espacio de trabajo",
-          "bc96dbd041": "Opciones de espacio de trabajo ({{value0}})",
           "af9249c505": "Actividad más reciente en el espacio de trabajo",
           "b451c8b162": "Reciente",
           "6664282a7b": "Arrastra proyectos para organizarlos",
@@ -4413,7 +4430,11 @@
           "65a9820bd1": "Estados de Agents",
           "219ebf1961": "Nombre de rama",
           "folderPathIdentity": "Rama / ruta de carpeta",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "bc96dbd041": {
+            "5de9a9": "Opciones de espacio de trabajo ({{value0}})",
+            "d8404d": "Opciones del espacio de trabajo ({{value0}} activos)"
+          }
         },
         "SshTargetRow": {
           "4677394048": "Conectando…",
@@ -4435,13 +4456,16 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "Agregar estado",
           "054cb50df7": "Quitar {{value0}}",
-          "b45b350eb0": "Mover {{value0}} a la izquierda",
           "8ce44af9a8": "Cambiar nombre {{value0}}",
           "395e541d5d": "Estados",
           "34f03eb0de": "Ajustes del tablero",
           "26cbc92150": "Ajustes del tablero de espacios de trabajo",
           "87d24a0c2f": "Sincronizar tablero y estado de issue",
-          "4c2eaa78cc": "Al mover un espacio de trabajo vinculado, se actualiza el estado de su issue de Linear cuando existe un estado de workflow coincidente."
+          "4c2eaa78cc": "Al mover un espacio de trabajo vinculado, se actualiza el estado de su issue de Linear cuando existe un estado de workflow coincidente.",
+          "b45b350eb0": {
+            "9bb3fd": "Mover {{value0}} a la izquierda",
+            "a4b8c6": "Mover {{value0}} a la derecha"
+          }
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "Vacío",
@@ -4449,11 +4473,14 @@
           "2df01a03ff": "No hay coincidencias"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "Establecer color de {{value0}} en {{value1}}",
           "8be427206b": "Icono",
           "2ac106f6b2": "Color",
           "74b1413279": "Apariencia",
-          "ccbd1e2c69": "Personaliza la apariencia de {{value0}}"
+          "ccbd1e2c69": "Personaliza la apariencia de {{value0}}",
+          "514be2f569": {
+            "a9ca01": "Establecer color de {{value0}} en {{value1}}",
+            "dd358d": "Establecer el icono de {{value0}} en {{value1}}"
+          }
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}} ya existe.",
@@ -5353,7 +5380,9 @@
           "8b7a8df299": "Workarounds de bajo nivel para troubleshooting de soporte.",
           "8d8d8ac599": "Compatibilidad",
           "network": "Red",
-          "networkDescription": "Enrutamiento de red a nivel de aplicación para proxies y entornos corporativos."
+          "networkDescription": "Enrutamiento de red a nivel de aplicación para proxies y entornos corporativos.",
+          "mantaCloud": "Manta Cloud",
+          "mantaCloudDescription": "Usa un servidor de inicio de sesión y retransmisión autoalojado en lugar del oficial."
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL predeterminado",
@@ -6559,7 +6588,6 @@
           "waitForSetupBeforeAgentHelp": "Activa esto cuando la configuración instale dependencias, servidores MCP o archivos de configuración que el agente necesite durante el inicio."
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "Usar {{value0}} como color del repositorio",
           "fde066a63b": "Las cargas PNG deben tener un tamaño de 256 KB o menos.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
@@ -6581,7 +6609,11 @@
           "868c5c9b56": "No se pudo importar el icono del repositorio",
           "emojiTooLongForRepoIcon": "Este emoji no se puede usar como icono del repositorio.",
           "currentEmojiSelection": "Actual: {{value0}}",
-          "searchEmojiPlaceholder": "Buscar emoji"
+          "searchEmojiPlaceholder": "Buscar emoji",
+          "2b7d27b93c": {
+            "cd676f": "Usar {{value0}} como color del repositorio",
+            "59fda8": "Usar el icono del repositorio {{value0}}"
+          }
         },
         "RepositoryPane": {
           "15a99d9b9f": "Las rutas relativas se resuelven desde la raíz de este proyecto.",
@@ -6624,7 +6656,6 @@
           "cloneDestinationPlaceholder": "/destino/en/host",
           "setupKindGit": "Repositorio Git",
           "setupKindFolder": "Carpeta",
-          "settingUpHost": "Importando...",
           "setupHost": "Importar",
           "cloningHost": "Clonando...",
           "cloneHost": "Clonar",
@@ -6659,7 +6690,11 @@
           "show": "Mostrar",
           "hide": "Ocultar",
           "externalWorktreesGlobal": "Valor global predeterminado: {{value0}}",
-          "useGlobal": "Usar valor global"
+          "useGlobal": "Usar valor global",
+          "settingUpHost": {
+            "b7353a": "Importando...",
+            "268c06": "Añadiendo..."
+          }
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "Plantilla de comando",
@@ -10152,6 +10187,9 @@
           "saveFailed": "No se pudieron guardar los valores predeterminados de visibilidad.",
           "updateServer": "Actualiza este servidor para configurar los valores predeterminados de las fuentes.",
           "updateServerDefaults": "Actualiza este servidor para configurar los valores predeterminados de visibilidad."
+        },
+        "MantaCloudEndpointsSection": {
+          "enrollmentSaved": "Guardado: escribe para reemplazar"
         }
       },
       "right": {
@@ -12926,12 +12964,12 @@
           "13822cdfda": "Texto sin formato"
         },
         "RichMarkdownDocLinkMenu": {
-          "e17b987473": "↑↓ navegar  ↵ seleccionar  esc descartar",
           "90c5f0e1e4": "de",
           "2aaf7d9678": "Mostrando",
           "63ced7cb9b": "No se encontraron documentos",
           "0e8489bc11": "Enlaces a documentos Markdown",
-          "142a7d51cd": "documento"
+          "142a7d51cd": "documento",
+          "b0f0efcfce": "↑↓ navegar  ↵ seleccionar  esc descartar"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "Reintentar",

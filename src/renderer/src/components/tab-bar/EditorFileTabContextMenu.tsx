@@ -35,8 +35,14 @@ const isLinux = navigator.userAgent.includes('Linux')
 const revealLabel = isMac
   ? 'Reveal in Finder'
   : isLinux
-    ? 'Open Containing Folder'
-    : 'Reveal in File Explorer'
+    ? translate(
+        'auto.components.tab.bar.EditorFileTabContextMenu.fe23001e60',
+        'Open Containing Folder'
+      )
+    : translate(
+        'auto.components.tab.bar.EditorFileTabContextMenu.3da91e073d',
+        'Reveal in File Explorer'
+      )
 
 type EditorFileTabContextMenuProps = {
   open: boolean

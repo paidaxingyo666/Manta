@@ -63,7 +63,7 @@ export function WorkspaceSpaceCompactPanel({
                     )
                   : analysis.unavailableWorktreeCount > 0
                     ? translate(
-                        'auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457',
+                        'auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457.02d421',
                         '{{value0}} reclaimable · {{value1}} unavailable',
                         {
                           value0: formatBytes(analysis.reclaimableBytes),
@@ -71,7 +71,7 @@ export function WorkspaceSpaceCompactPanel({
                         }
                       )
                     : translate(
-                        'auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457',
+                        'auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457.db101b',
                         '{{value0}} reclaimable · {{value1}} workspaces',
                         {
                           value0: formatBytes(analysis.reclaimableBytes),

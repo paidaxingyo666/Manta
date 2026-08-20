@@ -29,7 +29,7 @@ export function RepositoryIconColorSection({
             type="button"
             onClick={() => onBadgeColorChange(color)}
             aria-label={translate(
-              'auto.components.settings.RepositoryIconPicker.2b7d27b93c',
+              'auto.components.settings.RepositoryIconPicker.2b7d27b93c.cd676f',
               'Use {{value0}} repo color',
               { value0: color }
             )}

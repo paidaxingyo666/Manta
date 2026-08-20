@@ -149,7 +149,7 @@ export default function WorkspaceKanbanSettingsMenu({
                     disabled={index === 0}
                     onClick={() => onMoveStatus(status.id, -1)}
                     aria-label={translate(
-                      'auto.components.sidebar.WorkspaceKanbanSettingsMenu.b45b350eb0',
+                      'auto.components.sidebar.WorkspaceKanbanSettingsMenu.b45b350eb0.9bb3fd',
                       'Move {{value0}} left',
                       { value0: status.label }
                     )}
@@ -164,7 +164,7 @@ export default function WorkspaceKanbanSettingsMenu({
                     disabled={index === workspaceStatuses.length - 1}
                     onClick={() => onMoveStatus(status.id, 1)}
                     aria-label={translate(
-                      'auto.components.sidebar.WorkspaceKanbanSettingsMenu.b45b350eb0',
+                      'auto.components.sidebar.WorkspaceKanbanSettingsMenu.b45b350eb0.a4b8c6',
                       'Move {{value0}} right',
                       { value0: status.label }
                     )}

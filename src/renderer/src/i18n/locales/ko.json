@@ -961,7 +961,6 @@
         "58c73cb0d8": "설명을 업데이트하지 못했습니다.",
         "5221548274": "설명이 업데이트되었습니다.",
         "06c06e58ba": "아래에 더 많은 줄 표시",
-        "307c98e8e3": "위에 {{value0}}줄 더 표시",
         "5664681624": "위에 줄 더 표시",
         "b1574e8ac2": "코드 컨텍스트 재설정",
         "d43736d09c": "코드 컨텍스트 컨트롤",
@@ -1051,7 +1050,11 @@
           "activity": "활동",
           "noActivity": "아직 활동이 없습니다."
         },
-        "checkActionRequiredHint": "머지가 해제되려면 이 검사에 대해 GitHub에서 수동 작업(예: 워크플로우 실행 승인)이 필요합니다."
+        "checkActionRequiredHint": "머지가 해제되려면 이 검사에 대해 GitHub에서 수동 작업(예: 워크플로우 실행 승인)이 필요합니다.",
+        "307c98e8e3": {
+          "24fdee": "위에 {{value0}}줄 더 표시",
+          "752457": "아래에 {{value0}}줄 더 표시"
+        }
       },
       "GitLabItemDialog": {
         "65e784c1f1": "다시 열기",
@@ -2396,7 +2399,6 @@
               "ee3d2caabd": "이슈",
               "5f79bc76b0": "프로젝트로 돌아가기",
               "aac9a4afc6": "Linear에서 열기",
-              "7616c986c6": "열린 이슈 {{value0}}개",
               "93e1f6bfca": "로드 중",
               "98730088a6": ". 전체 세트를 보려면 Linear를 검색하거나 엽니다.",
               "06b887d622": "처음 표시",
@@ -2414,7 +2416,11 @@
               "df4bd63c1d": "할당되지 않음",
               "30402d2c6e": "검색하거나 새로고침해 보세요.",
               "a2f31c4cd6": "Linear 프로젝트를 찾을 수 없습니다.",
-              "c9b6e9f90d": "Linear 프로젝트를 로드할 수 없습니다."
+              "c9b6e9f90d": "Linear 프로젝트를 로드할 수 없습니다.",
+              "7616c986c6": {
+                "ac1f4e": "열린 이슈 {{value0}}개",
+                "5eb5e9": "Linear에서 {{value0}} 열기"
+              }
             }
           }
         },
@@ -2810,14 +2816,17 @@
               "handler": {
                 "1e072f611e": "{{value0}} {{value1}}을(를) 업로드하지 못했습니다.",
                 "53f015fd85": "{{value0}} 심볼릭 링크{{value1}}을 건너뛰었습니다.",
-                "29c031b49a": "{{value0}} 파일{{value1}}을 런타임에 업로드하는 중…",
                 "0c77693641": "Worktree가 준비되지 않았습니다. 잠시 후에 다시 시도하세요.",
                 "ce8248b835": "작업 트리 경로를 사용할 수 없습니다.",
                 "internalTooManyPaths": "터미널에 안전하게 붙여넣기에는 드롭된 경로가 너무 많습니다.",
                 "internalPathsTooLarge": "터미널에 안전하게 붙여넣기에는 경로 목록이 너무 큽니다.",
                 "b4cf68e889": "{{value0}} {{value1}}을(를) 건너뛰었습니다.",
                 "writeTimeout": "파일 드롭이 취소되었습니다. 안전 시간 제한 전에 터미널이 경로를 받지 않았습니다.",
-                "writeRejected": "파일 드롭이 취소되었습니다. 터미널이 경로를 받을 수 없습니다."
+                "writeRejected": "파일 드롭이 취소되었습니다. 터미널이 경로를 받을 수 없습니다.",
+                "29c031b49a": {
+                  "e09913": "{{value0}} 파일{{value1}}을 런타임에 업로드하는 중…",
+                  "ac0575": "원격으로 파일 {{value0}}개{{value1}} 업로드 중…"
+                }
               }
             }
           },
@@ -2874,6 +2883,10 @@
             "retryingBody": "Manta는 최대 1분간 재시도합니다. 연결이 복원되면 이 터미널이 재개됩니다.",
             "disconnectedBody": "자동 재시도가 중지되었습니다. 이 터미널 세션을 재개하려면 다시 연결하세요.",
             "reconnectButton": "다시 연결"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- 세션이 복원되었습니다 ---",
+            "139e3d1083": "--- 이전 세션을 사용할 수 없어 새로 시작했습니다 ---"
           }
         }
       },
@@ -2936,7 +2949,9 @@
             "1d04b1630b": "아래로 분할",
             "6b3efb106e": "위로 분할",
             "fdd29eb669": "탭 고정",
-            "8e9d603a09": "탭 고정 해제"
+            "8e9d603a09": "탭 고정 해제",
+            "fe23001e60": "상위 폴더 열기",
+            "3da91e073d": "파일 탐색기에서 보기"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent 설정…",
@@ -3314,8 +3329,11 @@
             "2837dc7c72": "취소 중",
             "0583c806ac": "워크스페이스 디스크 사용량은 스캔되지 않습니다.",
             "39786e3b73": "워크스페이스 크기를 스캔하는 중입니다.",
-            "bef4dc0457": "{{value0}} 회수 가능 · {{value1}} 사용 불가",
-            "3d8d47ce77": "{{value0}} · 마지막 결과가 유지됨"
+            "3d8d47ce77": "{{value0}} · 마지막 결과가 유지됨",
+            "bef4dc0457": {
+              "02d421": "{{value0}} 회수 가능 · {{value1}} 사용 불가",
+              "db101b": "{{value0}} 회수 가능 · 작업 공간 {{value1}}개"
+            }
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "강제 삭제 실패",
@@ -4351,7 +4369,6 @@
           "7bada3b1ab": "정렬 기준",
           "dc0bb670bc": "그룹화 기준",
           "9919ae1082": "워크스페이스 옵션",
-          "bc96dbd041": "워크스페이스 옵션({{value0}})",
           "af9249c505": "가장 최근의 워크스페이스 활동",
           "b451c8b162": "최근",
           "6664282a7b": "프로젝트를 드래그하여 정렬하세요.",
@@ -4396,7 +4413,11 @@
           "219ebf1961": "브랜치 이름",
           "automation": "자동화",
           "folderPathIdentity": "브랜치 / 폴더 경로",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "bc96dbd041": {
+            "5de9a9": "워크스페이스 옵션({{value0}})",
+            "d8404d": "작업 공간 옵션(활성 {{value0}}개)"
+          }
         },
         "SshTargetRow": {
           "4677394048": "연결 중…",
@@ -4418,13 +4439,16 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "상태 추가",
           "054cb50df7": "{{value0}} 제거",
-          "b45b350eb0": "{{value0}} 왼쪽으로 이동",
           "8ce44af9a8": "{{value0}} 이름 바꾸기",
           "395e541d5d": "상태",
           "34f03eb0de": "보드 설정",
           "26cbc92150": "워크스페이스 보드 설정",
           "87d24a0c2f": "보드와 이슈 상태 동기화",
-          "4c2eaa78cc": "연결된 워크스페이스를 이동하면 일치하는 워크플로 상태가 있을 때 Linear 이슈 상태가 업데이트됩니다."
+          "4c2eaa78cc": "연결된 워크스페이스를 이동하면 일치하는 워크플로 상태가 있을 때 Linear 이슈 상태가 업데이트됩니다.",
+          "b45b350eb0": {
+            "9bb3fd": "{{value0}} 왼쪽으로 이동",
+            "a4b8c6": "{{value0}} 오른쪽으로 이동"
+          }
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "비어 있음",
@@ -4432,11 +4456,14 @@
           "2df01a03ff": "일치하는 항목 없음"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "{{value0}} 색상을 {{value1}}로 설정",
           "8be427206b": "아이콘",
           "2ac106f6b2": "색상",
           "74b1413279": "외관",
-          "ccbd1e2c69": "{{value0}} 모양 맞춤설정"
+          "ccbd1e2c69": "{{value0}} 모양 맞춤설정",
+          "514be2f569": {
+            "a9ca01": "{{value0}} 색상을 {{value1}}로 설정",
+            "dd358d": "{{value0}} 아이콘을 {{value1}}(으)로 설정"
+          }
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}}이(가) 이미 있습니다.",
@@ -5340,7 +5367,9 @@
           "8b7a8df299": "지원 문제 해결을 위한 낮은 수준의 해결 방법입니다.",
           "8d8d8ac599": "호환성",
           "network": "네트워크",
-          "networkDescription": "프록시 및 기업 환경을 위한 앱 수준 네트워크 라우팅."
+          "networkDescription": "프록시 및 기업 환경을 위한 앱 수준 네트워크 라우팅.",
+          "mantaCloud": "Manta Cloud",
+          "mantaCloudDescription": "공식 서버 대신 자체 호스팅한 로그인 및 릴레이 서버를 사용합니다."
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL 기본값",
@@ -6546,7 +6575,6 @@
           "waitForSetupBeforeAgentHelp": "설치 프로그램이 시작 중에 agent에 필요한 종속성, MCP 서버 또는 구성 파일을 설치할 때 이 기능을 켜십시오."
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "{{value0}} repo 색상 사용",
           "fde066a63b": "PNG 업로드는 256KB 이하여야 합니다.",
           "cc1286e263": "파비콘",
           "03ca1a4e9b": "example.com",
@@ -6568,7 +6596,11 @@
           "868c5c9b56": "repo 아이콘을 가져오지 못했습니다.",
           "emojiTooLongForRepoIcon": "이 이모티콘은 repo 아이콘으로 사용할 수 없습니다.",
           "currentEmojiSelection": "현재: {{value0}}",
-          "searchEmojiPlaceholder": "이모티콘 검색"
+          "searchEmojiPlaceholder": "이모티콘 검색",
+          "2b7d27b93c": {
+            "cd676f": "{{value0}} repo 색상 사용",
+            "59fda8": "{{value0}} 저장소 아이콘 사용"
+          }
         },
         "RepositoryPane": {
           "15a99d9b9f": "상대 경로는 이 프로젝트 루트에서 확인됩니다.",
@@ -6611,7 +6643,6 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git 리포지토리",
           "setupKindFolder": "폴더",
-          "settingUpHost": "가져오는 중...",
           "setupHost": "가져오기",
           "cloningHost": "클론 중...",
           "cloneHost": "클론",
@@ -6646,7 +6677,11 @@
           "show": "표시",
           "hide": "숨기기",
           "externalWorktreesGlobal": "전역 기본값: {{value0}}",
-          "useGlobal": "전역 설정 사용"
+          "useGlobal": "전역 설정 사용",
+          "settingUpHost": {
+            "b7353a": "가져오는 중...",
+            "268c06": "추가 중..."
+          }
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "명령 템플릿",
@@ -10170,6 +10205,9 @@
           "reviewStepDescription": "최근 실행을 검토하고 필요할 때 언제든지 작업을 계속할 수 있습니다.",
           "openAutomations": "자동화 열기",
           "openAutomationsDescription": "일정을 생성하고 최근 실행을 확인합니다."
+        },
+        "MantaCloudEndpointsSection": {
+          "enrollmentSaved": "저장됨 — 입력하면 교체됩니다"
         }
       },
       "right": {
@@ -12944,12 +12982,12 @@
           "13822cdfda": "일반 텍스트"
         },
         "RichMarkdownDocLinkMenu": {
-          "e17b987473": "↑↓ 탐색  ↵ 선택  esc 해제",
           "90c5f0e1e4": "/",
           "2aaf7d9678": "표시 중",
           "63ced7cb9b": "문서를 찾을 수 없습니다.",
           "0e8489bc11": "Markdown 문서 링크",
-          "142a7d51cd": "문서"
+          "142a7d51cd": "문서",
+          "b0f0efcfce": "↑↓ 탐색  ↵ 선택  esc 해제"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "다시 시도",

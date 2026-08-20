@@ -959,7 +959,6 @@
         "58c73cb0d8": "无法更新描述。",
         "5221548274": "描述已更新。",
         "06c06e58ba": "显示下面更多行",
-        "307c98e8e3": "在上面显示 {{value0}} 更多行",
         "5664681624": "显示上面的更多行",
         "b1574e8ac2": "重置代码上下文",
         "d43736d09c": "代码上下文控制",
@@ -1049,7 +1048,11 @@
           "activity": "活动",
           "noActivity": "暂无活动。"
         },
-        "checkActionRequiredHint": "此检查需要在 GitHub 上执行手动操作（例如批准工作流运行）后才能解除合并阻止。"
+        "checkActionRequiredHint": "此检查需要在 GitHub 上执行手动操作（例如批准工作流运行）后才能解除合并阻止。",
+        "307c98e8e3": {
+          "24fdee": "在上面显示 {{value0}} 更多行",
+          "752457": "显示下面更多 {{value0}} 行"
+        }
       },
       "GitLabItemDialog": {
         "65e784c1f1": "重新打开",
@@ -2394,7 +2397,6 @@
               "ee3d2caabd": "议题",
               "5f79bc76b0": "返回项目",
               "aac9a4afc6": "在 Linear 中打开",
-              "7616c986c6": "打开 {{value0}} 议题",
               "93e1f6bfca": "加载中",
               "98730088a6": "。在 Linear 中搜索或打开以查看完整列表。",
               "06b887d622": "首先显示",
@@ -2412,7 +2414,11 @@
               "df4bd63c1d": "未分配",
               "30402d2c6e": "尝试搜索或刷新。",
               "a2f31c4cd6": "未找到 Linear 项目",
-              "c9b6e9f90d": "无法加载 Linear 项目"
+              "c9b6e9f90d": "无法加载 Linear 项目",
+              "7616c986c6": {
+                "ac1f4e": "打开 {{value0}} 议题",
+                "5eb5e9": "在 Linear 中打开 {{value0}}"
+              }
             }
           }
         },
@@ -2820,14 +2826,17 @@
               "handler": {
                 "1e072f611e": "无法上传 {{value0}} {{value1}}。",
                 "53f015fd85": "跳过 {{value0}} 符号链接 {{value1}}。",
-                "29c031b49a": "正在上传 {{value0}} 文件{{value1}} 到运行时...",
                 "0c77693641": "工作树尚未准备好 - 请稍后再试。",
                 "ce8248b835": "工作树路径不可用。",
                 "internalTooManyPaths": "拖放的路径过多，无法安全粘贴到终端。",
                 "internalPathsTooLarge": "拖放的路径列表过大，无法安全粘贴到终端。",
                 "b4cf68e889": "已跳过 {{value0}} {{value1}}。",
                 "writeTimeout": "文件拖放已取消：终端在安全超时前未接受路径。",
-                "writeRejected": "文件拖放已取消：终端无法接受路径。"
+                "writeRejected": "文件拖放已取消：终端无法接受路径。",
+                "29c031b49a": {
+                  "e09913": "正在上传 {{value0}} 文件{{value1}} 到运行时...",
+                  "ac0575": "正在向远端上传 {{value0}} 个文件{{value1}}…"
+                }
               }
             }
           },
@@ -2884,6 +2893,10 @@
             "retryingBody": "Manta 将重试最多一分钟。如果连接恢复，此终端将恢复。",
             "disconnectedBody": "自动重试已停止。重新连接以恢复此终端会话。",
             "reconnectButton": "重新连接"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- 会话已恢复 ---",
+            "139e3d1083": "--- 上一个会话不可用,已重新开始 ---"
           }
         }
       },
@@ -2946,7 +2959,9 @@
             "1d04b1630b": "向下拆分",
             "6b3efb106e": "向上拆分",
             "fdd29eb669": "固定标签",
-            "8e9d603a09": "取消固定标签"
+            "8e9d603a09": "取消固定标签",
+            "fe23001e60": "打开所在文件夹",
+            "3da91e073d": "在文件资源管理器中显示"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "智能体设置...",
@@ -3324,8 +3339,11 @@
             "2837dc7c72": "取消",
             "0583c806ac": "不扫描工作区磁盘使用情况。",
             "39786e3b73": "扫描工作区大小。",
-            "bef4dc0457": "{{value0}} 可回收 · {{value1}} 不可用",
-            "3d8d47ce77": "{{value0}} · 保留最后的结果"
+            "3d8d47ce77": "{{value0}} · 保留最后的结果",
+            "bef4dc0457": {
+              "02d421": "{{value0}} 可回收 · {{value1}} 不可用",
+              "db101b": "{{value0}} 可回收 · {{value1}} 个工作区"
+            }
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "强制删除失败",
@@ -4361,7 +4379,6 @@
           "7bada3b1ab": "排序方式",
           "dc0bb670bc": "分组依据",
           "9919ae1082": "工作区选项",
-          "bc96dbd041": "工作区选项 ({{value0}})",
           "af9249c505": "最近的工作区活动",
           "b451c8b162": "最近的",
           "6664282a7b": "拖动项目进行排列",
@@ -4406,7 +4423,11 @@
           "219ebf1961": "分支名称",
           "automation": "自动化",
           "folderPathIdentity": "分支 / 文件夹路径",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "bc96dbd041": {
+            "5de9a9": "工作区选项 ({{value0}})",
+            "d8404d": "工作区选项({{value0}} 个活动)"
+          }
         },
         "SshTargetRow": {
           "4677394048": "正在连接…",
@@ -4428,13 +4449,16 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "添加状态",
           "054cb50df7": "删除 {{value0}}",
-          "b45b350eb0": "向左手机 {{value0}}",
           "8ce44af9a8": "重命名 {{value0}}",
           "395e541d5d": "状态",
           "34f03eb0de": "董事会设置",
           "26cbc92150": "工作区板设置",
           "87d24a0c2f": "同步看板和议题状态",
-          "4c2eaa78cc": "移动已关联的工作区时，如果存在匹配的工作流状态，将更新其 Linear 议题状态。"
+          "4c2eaa78cc": "移动已关联的工作区时，如果存在匹配的工作流状态，将更新其 Linear 议题状态。",
+          "b45b350eb0": {
+            "9bb3fd": "向左手机 {{value0}}",
+            "a4b8c6": "将 {{value0}} 右移"
+          }
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "空的",
@@ -4442,11 +4466,14 @@
           "2df01a03ff": "没有匹配项"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "将 {{value0}} 颜色设置为 {{value1}}",
           "8be427206b": "图标",
           "2ac106f6b2": "颜色",
           "74b1413279": "外观",
-          "ccbd1e2c69": "自定义 {{value0}} 外观"
+          "ccbd1e2c69": "自定义 {{value0}} 外观",
+          "514be2f569": {
+            "a9ca01": "将 {{value0}} 颜色设置为 {{value1}}",
+            "dd358d": "将 {{value0}} 图标设为 {{value1}}"
+          }
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}} 已存在。",
@@ -5350,7 +5377,9 @@
           "8b7a8df299": "支持故障排除的低级解决方法。",
           "8d8d8ac599": "兼容性",
           "network": "网络",
-          "networkDescription": "用于代理和企业环境的应用级网络路由。"
+          "networkDescription": "用于代理和企业环境的应用级网络路由。",
+          "mantaCloud": "Manta 云",
+          "mantaCloudDescription": "使用自建的登录与中继服务器,替代官方服务。"
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL 默认值",
@@ -6556,7 +6585,6 @@
           "waitForSetupBeforeAgentHelp": "如果设置会安装依赖、MCP 服务器或智能体启动时需要的配置文件，请开启此选项。"
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "使用 {{value0}} 仓库颜色",
           "fde066a63b": "PNG 上传必须为 256KB 或更小。",
           "cc1286e263": "网站图标",
           "03ca1a4e9b": "example.com",
@@ -6578,7 +6606,11 @@
           "868c5c9b56": "无法导入仓库图标",
           "emojiTooLongForRepoIcon": "此表情符号无法用作仓库图标。",
           "currentEmojiSelection": "当前：{{value0}}",
-          "searchEmojiPlaceholder": "搜索表情符号"
+          "searchEmojiPlaceholder": "搜索表情符号",
+          "2b7d27b93c": {
+            "cd676f": "使用 {{value0}} 仓库颜色",
+            "59fda8": "使用 {{value0}} 仓库图标"
+          }
         },
         "RepositoryPane": {
           "15a99d9b9f": "相对路径从该项目根解析。",
@@ -6621,7 +6653,6 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git 仓库",
           "setupKindFolder": "文件夹",
-          "settingUpHost": "导入中...",
           "setupHost": "导入",
           "cloningHost": "克隆中...",
           "cloneHost": "克隆",
@@ -6656,7 +6687,11 @@
           "show": "显示",
           "hide": "隐藏",
           "externalWorktreesGlobal": "全局默认值：{{value0}}",
-          "useGlobal": "使用全局设置"
+          "useGlobal": "使用全局设置",
+          "settingUpHost": {
+            "b7353a": "导入中...",
+            "268c06": "添加..."
+          }
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "提示词模板",
@@ -10172,6 +10207,9 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "MantaCloudEndpointsSection": {
+          "enrollmentSaved": "已保存 —— 输入可替换"
         }
       },
       "right": {
@@ -12946,12 +12984,12 @@
           "13822cdfda": "纯文本"
         },
         "RichMarkdownDocLinkMenu": {
-          "e17b987473": "↑↓ 导航↵ 选择 esc 关闭",
           "90c5f0e1e4": "的",
           "2aaf7d9678": "显示中",
           "63ced7cb9b": "没有找到文件",
           "0e8489bc11": "Markdown 文档链接",
-          "142a7d51cd": "文档"
+          "142a7d51cd": "文档",
+          "b0f0efcfce": "↑↓ 导航↵ 选择 esc 关闭"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "重试",

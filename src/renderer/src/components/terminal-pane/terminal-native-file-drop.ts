@@ -180,7 +180,7 @@ async function uploadRuntimeDropPaths(
   const destinationDir = joinRuntimeTerminalDropDir(args.worktreePath)
   const pending = toast.loading(
     translate(
-      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a',
+      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a.e09913',
       'Uploading {{value0}} file{{value1}} to runtime…',
       { value0: args.dataPaths.length, value1: args.dataPaths.length === 1 ? '' : 's' }
     )
@@ -252,7 +252,7 @@ async function uploadRemoteDropPaths(
 ): Promise<void> {
   const pending = toast.loading(
     translate(
-      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a',
+      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a.ac0575',
       'Uploading {{value0}} file{{value1}} to remote…',
       { value0: args.dataPaths.length, value1: args.dataPaths.length === 1 ? '' : 's' }
     )

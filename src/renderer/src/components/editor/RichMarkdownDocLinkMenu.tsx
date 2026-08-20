@@ -76,8 +76,8 @@ export function RichMarkdownDocLinkMenu({
       ) : null}
       <div className="rich-markdown-doc-link-hint">
         {translate(
-          'auto.components.editor.RichMarkdownDocLinkMenu.e17b987473',
-          '↑↓ navigate&nbsp;&nbsp;↵ select&nbsp;&nbsp;esc dismiss'
+          'auto.components.editor.RichMarkdownDocLinkMenu.b0f0efcfce',
+          '↑↓ navigate  ↵ select  esc dismiss'
         )}
       </div>
     </div>

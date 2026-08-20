@@ -1105,7 +1105,6 @@
         "58c73cb0d8": "Failed to update description.",
         "5221548274": "Description updated.",
         "06c06e58ba": "Show more lines below",
-        "307c98e8e3": "Show {{value0}} more lines above",
         "5664681624": "Show more lines above",
         "b1574e8ac2": "Reset code context",
         "d43736d09c": "Code context controls",
@@ -1206,7 +1205,11 @@
         "8812225174": "Reopen",
         "09d67a0f9b": "Failed to close pull request",
         "88809e79db": "Failed to reopen pull request",
-        "00f55cc17b": "Repository access is unavailable for this pull request."
+        "00f55cc17b": "Repository access is unavailable for this pull request.",
+        "307c98e8e3": {
+          "24fdee": "Show {{value0}} more lines above",
+          "752457": "Show {{value0}} more lines below"
+        }
       },
       "GitLabItemDialog": {
         "65e784c1f1": "Reopen",
@@ -2564,7 +2567,6 @@
               "ee3d2caabd": "Issues",
               "5f79bc76b0": "Back to projects",
               "aac9a4afc6": "Open in Linear",
-              "7616c986c6": "Open {{value0}} issues",
               "93e1f6bfca": "Loading",
               "98730088a6": ". Search or open Linear for the full set.",
               "06b887d622": "Showing first",
@@ -2582,7 +2584,11 @@
               "df4bd63c1d": "Unassigned",
               "30402d2c6e": "Try search or refresh.",
               "a2f31c4cd6": "No Linear projects found",
-              "c9b6e9f90d": "Unable to load Linear projects"
+              "c9b6e9f90d": "Unable to load Linear projects",
+              "7616c986c6": {
+                "ac1f4e": "Open {{value0}} issues",
+                "5eb5e9": "Open {{value0}} in Linear"
+              }
             }
           }
         },
@@ -3018,14 +3024,17 @@
               "handler": {
                 "1e072f611e": "Failed to upload {{value0}} {{value1}}.",
                 "53f015fd85": "Skipped {{value0}} symlink{{value1}}.",
-                "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…",
                 "0c77693641": "Worktree not ready — try again in a moment.",
                 "ce8248b835": "Worktree path not available.",
                 "internalTooManyPaths": "Drop contains too many paths for a safe terminal paste.",
                 "internalPathsTooLarge": "Drop path list is too large for a safe terminal paste.",
                 "b4cf68e889": "Skipped {{value0}} {{value1}}.",
                 "writeTimeout": "File drop cancelled: terminal did not accept the path before the safety timeout.",
-                "writeRejected": "File drop cancelled: terminal could not accept the path."
+                "writeRejected": "File drop cancelled: terminal could not accept the path.",
+                "29c031b49a": {
+                  "ac0575": "Uploading {{value0}} file{{value1}} to remote…",
+                  "e09913": "Uploading {{value0}} file{{value1}} to runtime…"
+                }
               }
             }
           },
@@ -3086,6 +3095,10 @@
           "TerminalQuickCommandsSubmenu": {
             "3ccc7981bb": "Host unavailable",
             "54f29b7c0d": "Loading host…"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- session restored ---",
+            "139e3d1083": "--- previous session unavailable, started fresh ---"
           }
         }
       },
@@ -3148,7 +3161,9 @@
             "1d04b1630b": "Split Down",
             "6b3efb106e": "Split Up",
             "fdd29eb669": "Pin Tab",
-            "8e9d603a09": "Unpin Tab"
+            "8e9d603a09": "Unpin Tab",
+            "fe23001e60": "Open Containing Folder",
+            "3da91e073d": "Reveal in File Explorer"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent settings…",
@@ -3551,8 +3566,11 @@
             "2837dc7c72": "cancelling",
             "0583c806ac": "Workspace disk usage is not scanned.",
             "39786e3b73": "Scanning workspace sizes.",
-            "bef4dc0457": "{{value0}} reclaimable · {{value1}} unavailable",
-            "3d8d47ce77": "{{value0}} · last result kept"
+            "3d8d47ce77": "{{value0}} · last result kept",
+            "bef4dc0457": {
+              "db101b": "{{value0}} reclaimable · {{value1}} workspaces",
+              "02d421": "{{value0}} reclaimable · {{value1}} unavailable"
+            }
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "Force delete failed",
@@ -5083,7 +5101,6 @@
           "dc0bb670bc": "Group by",
           "631b97eea9": "Host scope",
           "9919ae1082": "Workspace options",
-          "bc96dbd041": "Workspace options ({{value0}})",
           "af9249c505": "Most recent workspace activity",
           "b451c8b162": "Recent",
           "6664282a7b": "Drag projects to arrange them",
@@ -5120,7 +5137,11 @@
           "65a9820bd1": "Agent statuses",
           "219ebf1961": "Branch name",
           "folderPathIdentity": "Branch / folder path",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "bc96dbd041": {
+            "5de9a9": "Workspace options ({{value0}})",
+            "d8404d": "Workspace options ({{value0}} active)"
+          }
         },
         "SshTargetRow": {
           "4677394048": "Connecting…",
@@ -5142,13 +5163,16 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "Add status",
           "054cb50df7": "Remove {{value0}}",
-          "b45b350eb0": "Move {{value0}} left",
           "8ce44af9a8": "Rename {{value0}}",
           "395e541d5d": "Statuses",
           "34f03eb0de": "Board settings",
           "26cbc92150": "Workspace board settings",
           "87d24a0c2f": "Sync board and issue status",
-          "4c2eaa78cc": "Moving a linked workspace updates its Linear issue status when a matching workflow state exists."
+          "4c2eaa78cc": "Moving a linked workspace updates its Linear issue status when a matching workflow state exists.",
+          "b45b350eb0": {
+            "9bb3fd": "Move {{value0}} left",
+            "a4b8c6": "Move {{value0}} right"
+          }
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "Empty",
@@ -5156,11 +5180,14 @@
           "2df01a03ff": "No matches"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "Set {{value0}} color to {{value1}}",
           "8be427206b": "Icon",
           "2ac106f6b2": "Color",
           "74b1413279": "Appearance",
-          "ccbd1e2c69": "Customize {{value0}} appearance"
+          "ccbd1e2c69": "Customize {{value0}} appearance",
+          "514be2f569": {
+            "a9ca01": "Set {{value0}} color to {{value1}}",
+            "dd358d": "Set {{value0}} icon to {{value1}}"
+          }
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}} already exists.",
@@ -6153,7 +6180,8 @@
           "enrollmentPlaceholder": "Only if your relay requires one",
           "warning": "Both addresses must use https with a certificate your phone trusts. The relay only forwards end-to-end encrypted data, but its operator can see who connects and when. Applying signs you out and restarts Manta.",
           "applying": "Restarting…",
-          "apply": "Apply and restart"
+          "apply": "Apply and restart",
+          "enrollmentSaved": "Saved — type to replace"
         },
         "AdvancedPane": {
           "40b29e0bf3": "Restart",
@@ -6165,7 +6193,9 @@
           "8b7a8df299": "Low-level workarounds for support troubleshooting.",
           "8d8d8ac599": "Compatibility",
           "network": "Network",
-          "networkDescription": "App-level network routing for proxies and corporate environments."
+          "networkDescription": "App-level network routing for proxies and corporate environments.",
+          "mantaCloud": "Manta Cloud",
+          "mantaCloudDescription": "Use a self-hosted sign-in and relay server instead of the official one."
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL default",
@@ -7472,7 +7502,6 @@
           "waitForSetupBeforeAgentHelp": "Turn this on when setup installs dependencies, MCP servers, or config files the agent needs during startup."
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "Use {{value0}} repo color",
           "fde066a63b": "PNG uploads must be 256KB or smaller.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
@@ -7494,7 +7523,11 @@
           "868c5c9b56": "Failed to import repo icon",
           "emojiTooLongForRepoIcon": "This emoji can't be used as a repo icon.",
           "currentEmojiSelection": "Current: {{value0}}",
-          "searchEmojiPlaceholder": "Search emoji"
+          "searchEmojiPlaceholder": "Search emoji",
+          "2b7d27b93c": {
+            "cd676f": "Use {{value0}} repo color",
+            "59fda8": "Use {{value0}} repo icon"
+          }
         },
         "RepositoryPane": {
           "15a99d9b9f": "Relative paths resolve from this project root.",
@@ -7536,7 +7569,6 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git repo",
           "setupKindFolder": "Folder",
-          "settingUpHost": "Importing...",
           "setupHost": "Import",
           "cloningHost": "Cloning...",
           "cloneHost": "Clone",
@@ -7574,7 +7606,11 @@
           "show": "Show",
           "hide": "Hide",
           "externalWorktreesGlobal": "Global default: {{value0}}",
-          "useGlobal": "Use global"
+          "useGlobal": "Use global",
+          "settingUpHost": {
+            "268c06": "Adding...",
+            "b7353a": "Importing..."
+          }
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "Command template",
@@ -14266,12 +14302,12 @@
           "13822cdfda": "Plain text"
         },
         "RichMarkdownDocLinkMenu": {
-          "e17b987473": "↑↓ navigate&nbsp;&nbsp;↵ select&nbsp;&nbsp;esc dismiss",
           "90c5f0e1e4": "of",
           "2aaf7d9678": "Showing",
           "63ced7cb9b": "No documents found",
           "0e8489bc11": "Markdown document links",
-          "142a7d51cd": "document"
+          "142a7d51cd": "document",
+          "b0f0efcfce": "↑↓ navigate  ↵ select  esc dismiss"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "Retry",
