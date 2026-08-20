@@ -110,6 +110,10 @@ module.exports = {
     '!mobile{,/**/*}',
     '!native{,/**/*}',
     '!skills{,/**/*}',
+    // Why: the self-hosted relay is a separate deployable that the desktop only
+    // ever talks to over the network. Bundling it shipped 102 files into
+    // app.asar — including its own compiled dist/ and its deployment README.
+    '!relay-server{,/**/*}',
     // Why: guide/stub authoring sources are compiled into runtime artifacts; shipping
     // either source tree would duplicate content without a runtime consumer.
     '!skill-guides{,/**/*}',
@@ -415,14 +419,19 @@ module.exports = {
         to: 'MacOS/manta-keyboard-layout'
       }
     ],
+    // Why arm64 only: this fork ships to Apple Silicon. Building x64 as well
+    // doubled build time and, worse, produced a second Manta.app one directory
+    // over — launching that one on an M-series Mac runs the whole app under
+    // Rosetta, which looks like the app hanging rather than like a wrong build.
+    // Add 'x64' back here if an Intel build is ever needed.
     target: [
       {
         target: 'dmg',
-        arch: ['x64', 'arm64']
+        arch: ['arm64']
       },
       {
         target: 'zip',
-        arch: ['x64', 'arm64']
+        arch: ['arm64']
       }
     ]
   },
