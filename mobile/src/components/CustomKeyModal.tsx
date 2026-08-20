@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
-import { View, Text, Pressable, TextInput, StyleSheet, Switch } from 'react-native'
+import { View, Text, Pressable, TextInput, Switch } from 'react-native'
 import { ChevronLeft } from 'lucide-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { colors, spacing, radii, typography } from '../theme/mobile-theme'
+import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
 import {
   buildTerminalShortcutKey,

@@ -1,20 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  AppState,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Switch,
-  type AppStateStatus
-} from 'react-native'
+import { AppState, View, Text, Pressable, Switch, type AppStateStatus } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { ChevronRight, X } from 'lucide-react-native'
 import type Animated from 'react-native-reanimated'
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated'
 import { CustomKeyModal, loadCustomKeys, saveCustomKeys, type CustomKey } from './CustomKeyModal'
 import { DragReorderList } from './DragReorderList'
-import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import { colors } from '../theme/mobile-theme'
 import {
   terminalAccessoryKeys,
   type TerminalAccessoryKey

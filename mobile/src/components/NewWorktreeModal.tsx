@@ -1,19 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Switch,
-  StyleSheet,
-  Platform,
-  ActivityIndicator,
-  Keyboard
-} from 'react-native'
+import { View, Text, TextInput, Pressable, Switch, ActivityIndicator, Keyboard } from 'react-native'
 import { ChevronDown, ChevronUp, Monitor } from 'lucide-react-native'
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcResponse, RpcSuccess } from '../transport/types'
-import { colors, spacing, radii, typography } from '../theme/mobile-theme'
+import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
 import { BottomDrawerModalHost } from './bottom-drawer-modal-host'
 import { useNewWorktreeDrawerNavigation } from './use-new-worktree-drawer-navigation'

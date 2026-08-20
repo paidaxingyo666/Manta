@@ -6,7 +6,6 @@ import { ChevronLeft, RefreshCw } from 'lucide-react-native'
 import { colors } from '../theme/mobile-theme'
 import { useHostClient } from '../transport/client-context'
 import type { RpcSuccess } from '../transport/types'
-import type { RpcClient } from '../transport/rpc-client'
 import { readMobileRuntimeHostPlatform } from '../transport/mobile-runtime-host-platform'
 import { getWorktreeLabel } from '../session/worktree-label'
 import {
@@ -14,13 +13,9 @@ import {
   createMobileAiVaultResumeMutationRegistry,
   readMobileRuntimeTerminalWindowsShell,
   resolveMobileAiVaultResumePlatform,
-  resumeAiVaultSessionInTerminal,
-  type MobileAiVaultResumeSettings
+  resumeAiVaultSessionInTerminal
 } from '../session/ai-vault-resume-launch'
-import {
-  prepareMobileAiVaultSessionResume,
-  RESUME_RPC_TIMEOUT_MS
-} from '../session/ai-vault-resume-preparation'
+import { prepareMobileAiVaultSessionResume } from '../session/ai-vault-resume-preparation'
 import { triggerError, triggerSuccess } from '../platform/haptics'
 import type { AiVaultScope, AiVaultSession } from '../../../src/shared/ai-vault-types'
 import type { Worktree } from '../worktree/workspace-list-types'
@@ -28,12 +23,7 @@ import { useMobileAgentHistoryState } from './use-mobile-agent-history-state'
 import { buildMobileAgentHistorySections } from './agent-history-sections'
 import { shouldShowMobileCurrentWorktreeBadge } from './agent-history-current-worktree-badge'
 import { MobileAgentSessionHistoryList } from './MobileAgentSessionHistoryList'
-import {
-  resolveMobileAiVaultSessionResumeTarget,
-  type MobileAiVaultResumeFolderWorkspace,
-  type MobileAiVaultResumeProjectGroup,
-  type MobileAiVaultResumeRepo
-} from './agent-history-resume-target'
+import { resolveMobileAiVaultSessionResumeTarget } from './agent-history-resume-target'
 import { buildMobileAgentHistoryResumeActionState } from './agent-history-session-card'
 import { styles } from './agent-history-styles'
 import { translate } from '../i18n/i18n'

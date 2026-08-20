@@ -1,6 +1,6 @@
 /** List, section header, and filter-modal styles for a host's workspace list. */
 import { StyleSheet } from 'react-native'
-import { colors, radii, spacing, typography } from './mobile-theme'
+import { colors, spacing, typography } from './mobile-theme'
 
 export const listStyles = StyleSheet.create({
   centered: {

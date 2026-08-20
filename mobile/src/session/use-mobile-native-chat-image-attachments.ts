@@ -1,8 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { CLIPBOARD_IMAGE_TOO_LARGE_ERROR } from '../../../src/shared/clipboard-image'
 import { buildAgentTuiClearInputForText } from '../../../src/shared/agent-tui-input-clear'
-import type { RpcClient } from '../transport/rpc-client'
-import type { ConnectionState } from '../transport/types'
 import {
   ImageLibraryPermissionError,
   pickMobileImages,
@@ -17,10 +15,7 @@ import {
   MOBILE_NATIVE_CHAT_IMAGE_SETTLE_MS,
   pasteMobileNativeChatImagePaths
 } from './mobile-native-chat-image-send'
-import {
-  openMobileNativeChatSendBudget,
-  type MobileNativeChatSendOutcome
-} from './mobile-native-chat-send'
+import { openMobileNativeChatSendBudget } from './mobile-native-chat-send'
 import {
   clearMobileNativeChatInputStale,
   healMobileNativeChatStaleInput,
@@ -38,8 +33,6 @@ import {
   defaultSleep,
   withScopeAttachments,
   type Args,
-  type CurrentRef,
-  type ShowToast,
   type MobileNativeChatImageAttachments
 } from './mobile-native-chat-attachment-args'
 

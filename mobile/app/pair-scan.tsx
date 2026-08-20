@@ -2,7 +2,6 @@ import { useState, useRef, useCallback } from 'react'
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ActivityIndicator,
   Linking,
@@ -19,7 +18,7 @@ import {
 } from '../src/transport/pre-profile-pairing-coordinator'
 import type { ConnectionLogEntry, PairingOffer } from '../src/transport/types'
 import { useRefreshHostClient } from '../src/transport/client-context'
-import { colors, spacing, radii, typography } from '../src/theme/mobile-theme'
+import { colors, spacing } from '../src/theme/mobile-theme'
 import { TextInputModal } from '../src/components/TextInputModal'
 import { ConnectionLog } from '../src/components/ConnectionLog'
 import {

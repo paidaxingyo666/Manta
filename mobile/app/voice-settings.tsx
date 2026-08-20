@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View
-} from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { ChevronLeft, ChevronRight } from 'lucide-react-native'
-import { colors, radii, spacing, typography } from '../src/theme/mobile-theme'
+import { colors, spacing } from '../src/theme/mobile-theme'
 import { loadHosts } from '../src/transport/host-store'
 import type { HostProfile } from '../src/transport/types'
 import { useFocusedSettingsHostClients } from '../src/transport/settings-host-client-connections'

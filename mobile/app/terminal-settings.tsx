@@ -14,7 +14,7 @@ import { loadHosts } from '../src/transport/host-store'
 import type { HostProfile } from '../src/transport/types'
 import { useFocusedSettingsHostClients } from '../src/transport/settings-host-client-connections'
 import type { RpcClient } from '../src/transport/rpc-client'
-import { PickerModal, type PickerOption } from '../src/components/PickerModal'
+import { PickerModal } from '../src/components/PickerModal'
 import { TerminalShortcutSettings } from '../src/components/TerminalShortcutSettings'
 import { setTerminalAutoRestoreFitMsForHost } from '../src/terminal/terminal-auto-restore-fit-state'
 import { terminalSettingsScreenStyles as styles } from '../src/terminal/terminal-settings-screen-styles'
@@ -25,7 +25,6 @@ import {
   saveTerminalTextScale
 } from '../src/storage/preferences'
 import { translate } from '../src/i18n/i18n'
-import { localizedConstant } from '../src/i18n/localized-constant'
 import {
   autoRestoreFitOptions,
   autoRestoreSummary,
