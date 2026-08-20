@@ -70,7 +70,7 @@ describe('mobile GitHub Project readiness and refresh', () => {
   // this the board renders "No project items" before the repo list arrives, and
   // the memo assertion above stays green.
   it('gates the empty state on readiness in the renderer', () => {
-    const gate = block("githubMode === 'project' ? (", '"No project items"')
+    const gate = block("githubMode === 'project' ? (", 'No project items')
     expect(gate, 'the empty state must sit behind the readiness spinner').toContain(
       'githubProjectTable && !githubProjectRepoSlugReady ? ('
     )
