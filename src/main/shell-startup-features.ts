@@ -6,7 +6,7 @@
  * every earlier switch was a negative, exported one (`MANTA_SHELL_READY_MARKER=0`,
  * `MANTA_SHELL_COMMAND_MARKERS=0`). Those live in the pane's PTY env, so every
  * child inherits them — a pane launched with a feature suppressed suppressed it
- * for an Manta started from that pane too. With an allowlist, an inherited or
+ * for a Manta started from that pane too. With an allowlist, an inherited or
  * stale value can only ever mean *fewer* features, never more, and the wrapper
  * unsets it before the user's own config (or anything it spawns) can see it.
  */
@@ -23,7 +23,7 @@ export const SHELL_STARTUP_FEATURES = [
 
 export type ShellStartupFeature = (typeof SHELL_STARTUP_FEATURES)[number]
 
-/** Spawn-env keys that mean this pane carries an Manta overlay the wrapper must re-apply. */
+/** Spawn-env keys that mean this pane carries a Manta overlay the wrapper must re-apply. */
 const OVERLAY_ENV_KEYS = [
   'MANTA_OPENCODE_CONFIG_DIR',
   'MANTA_MIMOCODE_HOME',

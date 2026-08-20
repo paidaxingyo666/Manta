@@ -26,7 +26,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
       'Passes all following arguments through to Claude Code after enabling Agent Teams native panes.',
-      'Must be run from inside an Manta terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Manta splits.'
+      'Must be run from inside a Manta terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Manta splits.'
     ],
     examples: ['manta claude-teams', 'manta claude-teams --resume <session-id>']
   },

@@ -149,7 +149,7 @@ function deleteRequestedDaemonEnvKeys(
   keys: readonly string[] | undefined
 ): void {
   // Why: the persistent daemon's inherited env can differ from Electron's.
-  // Compare ownership here so real-home routing neither leaks an Manta overlay
+  // Compare ownership here so real-home routing neither leaks a Manta overlay
   // nor deletes a user-owned CODEX_HOME chosen by the daemon's host context.
   const deleteMantaOwnedCodexHome =
     keys?.includes('MANTA_CODEX_HOME') === true &&

@@ -227,7 +227,7 @@ describe('useInstalledAgentSkill', () => {
     })
 
     await renderProbe()
-    scan.resolve(discoveryResult([skill({ name: 'orca-linear' })], [unavailableSource()]))
+    scan.resolve(discoveryResult([skill({ name: 'manta-linear' })], [unavailableSource()]))
     await act(async () => {
       await scan.promise
     })

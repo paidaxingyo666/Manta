@@ -183,7 +183,7 @@ export function injectHistoryEnv(
   cwd: string,
   options: { wslDistro?: string | null } = {}
 ): HistoryInjectionResult {
-  // Why unconditionally first: MANTA_HISTFILE is Manta-owned, and an Manta PTY
+  // Why unconditionally first: MANTA_HISTFILE is Manta-owned, and a Manta PTY
   // launched from inside another Manta PTY inherits the parent's. Left in place,
   // the zsh wrapper would re-export a PREVIOUS worktree's history path into this
   // shell — the cross-worktree leak this feature exists to prevent — and it would

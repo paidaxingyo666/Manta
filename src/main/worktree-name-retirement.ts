@@ -174,7 +174,7 @@ async function getRetirementCollisionKey(
   return key
 }
 
-/** True when the repo executes on an Manta-provisioned on-demand runtime, whose address and
+/** True when the repo executes on a Manta-provisioned on-demand runtime, whose address and
  *  filesystem are both replaced on every provision. */
 function isRuntimeOwnedRetirementHost(repo: Repo): boolean {
   const parsed = parseExecutionHostId(getRepoExecutionHostId(repo))

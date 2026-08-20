@@ -218,7 +218,7 @@ describe('createPtySubprocess', () => {
   })
 
   it.each([
-    // HISTFILE is exported too, so a daemon started from an Manta pane would hand
+    // HISTFILE is exported too, so a daemon started from a Manta pane would hand
     // every session the launching worktree's history file.
     ['drops an inherited Manta HISTFILE', undefined, undefined],
     [

@@ -49,7 +49,7 @@ describe('relay shell history', () => {
     ]
   ])('replaces a %s HISTFILE inherited from a parent Manta', (_kind, inherited) => {
     // HISTFILE is exported, so a relay (or the client that spawned it) started
-    // from an Manta pane would otherwise scope every remote pane to that one
+    // from a Manta pane would otherwise scope every remote pane to that one
     // worktree's history file.
     const env: Record<string, string> = { HISTFILE: inherited }
 

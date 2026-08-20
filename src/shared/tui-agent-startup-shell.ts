@@ -152,7 +152,7 @@ export function tokenizeStartupCommand(
   value: string,
   shell: AgentStartupShell
 ): StartupCommandTokens {
-  // Why one Unix parse: the input is a string the user typed into an Manta
+  // Why one Unix parse: the input is a string the user typed into a Manta
   // settings field, and the shell never parses it — every token is re-quoted by
   // quoteStartupArg before the line is built. Parsing it differently per shell
   // would make the same setting mean different things in different workspaces.

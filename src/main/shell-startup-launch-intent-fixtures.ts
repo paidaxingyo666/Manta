@@ -15,7 +15,7 @@ export const STARTUP_COMMAND_FEATURES = selectShellStartupFeatures({
   emitsStartupIdentity: true
 })
 
-/** A pane carrying an Manta overlay but no startup command. */
+/** A pane carrying a Manta overlay but no startup command. */
 export const OVERLAY_ONLY_FEATURES = selectShellStartupFeatures({
   shellPath: 'zsh',
   env: { MANTA_CODEX_HOME: '/tmp/manta-codex-home' },

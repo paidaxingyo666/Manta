@@ -30,7 +30,7 @@ export function isSafeFishHistorySession(session: unknown): session is string {
 }
 
 /** Drop a `fish_history` this process inherited from an outer Manta.
- *  fish EXPORTS the variable, so an Manta launched from a fish pane hands the
+ *  fish EXPORTS the variable, so a Manta launched from a fish pane hands the
  *  LAUNCHING worktree's session name to every pane of the nested app, which then
  *  writes into that worktree's history file (STA-4682). Only Manta-minted names
  *  match, so a user's own `fish_history` survives; desktop and relay drop each

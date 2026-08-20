@@ -339,7 +339,7 @@ describe('ClaudeHookService.install', () => {
       new ClaudeHookService().install()
       expect(JSON.parse(readFileSync(settingsPath, 'utf-8')).statusLine).toBeUndefined()
 
-      // An Manta-level remove() resets the opt-out memory, so a fresh install re-adds it.
+      // A Manta-level remove() resets the opt-out memory, so a fresh install re-adds it.
       new ClaudeHookService().remove()
       new ClaudeHookService().install()
       expect(JSON.parse(readFileSync(settingsPath, 'utf-8')).statusLine).toBeTruthy()

@@ -668,8 +668,8 @@ export class PtyHandler {
     // Why: an older client may not ask a newly upgraded relay to delete inherited shim state.
     stripLegacyTerminalShimEnv(result, process.platform)
     // Why unconditionally here, not in injectRelayFishHistoryEnv: that runs only for a
-    // fish pane with isolation on, yet an Manta-minted `fish_history` (fish EXPORTS it,
-    // so the relay inherits one when launched from an Manta fish pane) must never scope
+    // fish pane with isolation on, yet a Manta-minted `fish_history` (fish EXPORTS it,
+    // so the relay inherits one when launched from a Manta fish pane) must never scope
     // any pane to someone else's worktree. Matches the desktop, which drops it on both
     // branches (STA-4682).
     dropInheritedMantaFishHistory(result)
@@ -679,7 +679,7 @@ export class PtyHandler {
     dropInheritedMantaHistFile(result)
     // Why unconditionally: MANTA_HISTFILE is Manta-owned and minted below by
     // injectRelayHistoryEnv, which also runs only with isolation on. An
-    // inherited one (the relay can be launched from an Manta pane) would
+    // inherited one (the relay can be launched from a Manta pane) would
     // otherwise reach the wrapper on the disabled and revive paths, scoping the
     // pane to another worktree's history file — and wrapping a zsh pane that
     // nothing asked to wrap, since `history` is selected on its presence.

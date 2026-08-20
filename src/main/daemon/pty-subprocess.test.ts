@@ -238,7 +238,7 @@ describe('createPtySubprocess', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
     delete process.env.SHELL
-    // Why: the test runner itself can execute inside an Manta-wrapped shell
+    // Why: the test runner itself can execute inside a Manta-wrapped shell
     // whose exported wrapper vars would leak through the process.env spread.
     delete process.env.MANTA_SHELL_FEATURES
     delete process.env.ZDOTDIR

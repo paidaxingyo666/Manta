@@ -16,7 +16,7 @@ const WINDOWS_GROK_HOOK_POST_COMMAND = buildWindowsAgentHookPostCommand('grok', 
  * Windows `grok-hook.cmd` body.
  *
  * Why (#9358 / #9941): cmd expands `%VAR:~n,m%` at parse time. When `GROK_HOME`
- * is unset (the default outside an Manta-managed terminal), length/trailing
+ * is unset (the default outside a Manta-managed terminal), length/trailing
  * guards become a syntax error and every Grok hook event fails with exit 255.
  *
  * - Guard substring ops behind `if defined` + goto (not a parenthesized block).

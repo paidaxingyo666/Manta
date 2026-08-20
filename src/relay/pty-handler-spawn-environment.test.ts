@@ -160,7 +160,7 @@ describe('PtyHandler', () => {
 
   describe('history isolation off', () => {
     // Why isolation OFF: injectRelayFishHistoryEnv runs only for a fish pane with
-    // isolation on, but fish EXPORTS fish_history, so a relay launched from an Manta
+    // isolation on, but fish EXPORTS fish_history, so a relay launched from a Manta
     // fish pane inherits one on EVERY path — and it names someone else's worktree
     // (a desktop-minted name names a directory that does not exist here at all).
     it.each([

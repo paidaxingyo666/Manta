@@ -233,7 +233,7 @@ describe('simulator-palette-search', () => {
     expect(searchSimulatorTabs(entries, 'checkout')[0]?.worktreeRanges).toEqual([
       { start: 0, end: 8 }
     ])
-    expect(searchSimulatorTabs(entries, 'client')[0]?.repoRanges).toEqual([{ start: 12, end: 18 }])
+    expect(searchSimulatorTabs(entries, 'client')[0]?.repoRanges).toEqual([{ start: 13, end: 19 }])
   })
 
   it('marks the current simulator tab from the active unified group', () => {

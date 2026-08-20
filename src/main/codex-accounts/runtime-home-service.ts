@@ -886,7 +886,7 @@ export class CodexRuntimeHomeService {
         this.persistRuntimeLogoutMarker(null)
         this.lastWrittenAuthJson = null
       } else if (this.lastWrittenAuthJson === null) {
-        // Why: unmanaged sessions use an Manta-owned CODEX_HOME; seed it once from system-default auth so terminals stay logged in without mutating ~/.codex.
+        // Why: unmanaged sessions use a Manta-owned CODEX_HOME; seed it once from system-default auth so terminals stay logged in without mutating ~/.codex.
         this.restoreSystemDefaultSnapshot({ detectExternalLogin: false })
       } else {
         this.persistRuntimeLogoutMarker()

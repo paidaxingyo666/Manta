@@ -346,7 +346,7 @@ describe('terminal-history', () => {
     })
 
     it('drops an MANTA_HISTFILE inherited from a parent Manta PTY', () => {
-      // Why: an Manta terminal opened from inside another Manta terminal inherits
+      // Why: a Manta terminal opened from inside another Manta terminal inherits
       // it, and the zsh wrapper would then re-export the PARENT worktree's
       // history path here. Credit: caught by @innocarpe in #11146.
       const env: Record<string, string> = {
@@ -390,7 +390,7 @@ describe('terminal-history', () => {
         ].join(sep)
       ]
     ])('drops a %s HISTFILE inherited from a parent Manta pane', (_kind, inherited) => {
-      // HISTFILE stays EXPORTED once the wrapper restores it, so an Manta launched
+      // HISTFILE stays EXPORTED once the wrapper restores it, so a Manta launched
       // from a pane in another worktree would otherwise hit the check-before-set
       // early return in EVERY pane and append into that one worktree's file.
       const env: Record<string, string> = { HISTFILE: inherited }
@@ -432,7 +432,7 @@ describe('terminal-history', () => {
       ['desktop', fishHistorySessionName(hashWorktreeId('repo-1::/path/other-wt'))],
       ['relay', relayFishHistorySessionName(hashWorktreeId('repo-1::/path/other-wt'))]
     ])('replaces a %s fish_history inherited from a parent Manta', (_kind, inherited) => {
-      // fish EXPORTS fish_history, so an Manta launched from a fish pane hands the
+      // fish EXPORTS fish_history, so a Manta launched from a fish pane hands the
       // LAUNCHING worktree's session to every pane here — panes in every other
       // worktree included, which would all then write one worktree's history file.
       const env: Record<string, string> = { fish_history: inherited }

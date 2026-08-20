@@ -260,7 +260,7 @@ describe('CodexHookService', () => {
           prompt: '你好世界',
           hook_event_name: 'UserPromptSubmit'
         })
-        // Why: this suite may run inside an Manta-launched terminal whose env
+        // Why: this suite may run inside a Manta-launched terminal whose env
         // already carries MANTA_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
         // script sources that endpoint file, so leave it out or the hook posts
         // to the live Manta instead of this test's listener.

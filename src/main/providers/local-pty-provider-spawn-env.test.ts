@@ -191,7 +191,7 @@ describe('LocalPtyProvider', () => {
     })
 
     it.each([
-      // fish EXPORTS fish_history, so an Manta launched from a fish pane hands every
+      // fish EXPORTS fish_history, so a Manta launched from a fish pane hands every
       // pane the LAUNCHING worktree's session — even with isolation off (STA-4682).
       ['an inherited Manta session', 'manta_abc123', undefined],
       ['a user value', 'mine', 'mine']
@@ -213,7 +213,7 @@ describe('LocalPtyProvider', () => {
     })
 
     it.each([
-      // HISTFILE is exported, so an Manta launched from a pane in another worktree
+      // HISTFILE is exported, so a Manta launched from a pane in another worktree
       // hands every pane that worktree's history file — isolation off included.
       [
         'an inherited Manta path',

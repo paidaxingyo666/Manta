@@ -67,10 +67,10 @@ function getManagedScript(
       'setlocal',
       // Why: Claude-compatible permission hooks fail closed on empty stdout (#14818).
       'echo {}',
-      // Why: refresh endpoint coordinates for PTYs surviving an Manta restart.
+      // Why: refresh endpoint coordinates for PTYs surviving a Manta restart.
       'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
       // Why (#11549): the env guards must outrank the Devin skip — the Devin skip parks in more.com,
-      // and outside an Manta pane the caller can abandon stdin, so more.com never returns.
+      // and outside a Manta pane the caller can abandon stdin, so more.com never returns.
       ...buildWindowsHookEnvironmentGuardLines(),
       ...(options.skipWhenDevinImportsClaude
         ? [
@@ -99,7 +99,7 @@ function getManagedScript(
           'fi'
         ]
       : []),
-    // Why: refresh endpoint coordinates for PTYs surviving an Manta restart.
+    // Why: refresh endpoint coordinates for PTYs surviving a Manta restart.
     // Why: suppress parse errors so they neither leak nor trip outer set -e.
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
@@ -325,7 +325,7 @@ export class ClaudeHookService {
     }
     if (this.options.agent === 'claude') {
       try {
-        // Why: an Manta-level uninstall resets the opt-out memory so a later re-enable installs the statusline again.
+        // Why: a Manta-level uninstall resets the opt-out memory so a later re-enable installs the statusline again.
         rmSync(getStatusLineInstallMarkerPath(this.options.settings), { force: true })
       } catch {
         // ignore — marker cleanup is best-effort

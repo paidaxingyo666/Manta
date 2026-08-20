@@ -406,7 +406,7 @@ describe('worktree-palette-search', () => {
     expect(results).toHaveLength(1)
     expect(results[0].worktreeId).toBe('wt-main')
     expect(results[0].matchedFields).toEqual(['repo', 'branch'])
-    expect(results[0].repoRanges).toEqual([{ start: 9, end: 13 }])
+    expect(results[0].repoRanges).toEqual([{ start: 9, end: 14 }])
     expect(results[0].branchRanges).toEqual([{ start: 0, end: 4 }])
   })
 

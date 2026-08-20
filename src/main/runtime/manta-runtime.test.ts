@@ -49353,7 +49353,7 @@ describe('MantaRuntimeService', () => {
     }
   })
 
-  it('prompts then force-removes an Manta-created runtime unregistered leftover directory with no git marker', async () => {
+  it('prompts then force-removes a Manta-created runtime unregistered leftover directory with no git marker', async () => {
     const parentDir = await mkdtemp(join(tmpdir(), 'manta-runtime-leftover-'))
     const repoPath = join(parentDir, 'repo')
     const leftoverPath = join(parentDir, 'leftover')
@@ -49425,7 +49425,7 @@ describe('MantaRuntimeService', () => {
     }
   })
 
-  it('rejects an Manta-created runtime unregistered local directory with a git directory', async () => {
+  it('rejects a Manta-created runtime unregistered local directory with a git directory', async () => {
     const parentDir = await mkdtemp(join(tmpdir(), 'manta-runtime-standalone-'))
     const repoPath = join(parentDir, 'repo')
     const standalonePath = join(parentDir, 'standalone')

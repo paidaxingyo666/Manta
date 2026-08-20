@@ -1,7 +1,7 @@
 /**
  * Recognises a `HISTFILE` value Manta itself minted for a worktree.
  *
- * Why: HISTFILE is EXPORTED into the pane, so an Manta launched from an Manta
+ * Why: HISTFILE is EXPORTED into the pane, so a Manta launched from a Manta
  * pane inherits the launching worktree's history path in `process.env`. Every
  * pane of the nested app then hits the check-before-set early return in
  * `injectHistoryEnv`, gets no injection of its own, and appends into that ONE
@@ -16,7 +16,7 @@
  * relay on a remote host. Desktop and relay drop each other's shapes on purpose
  * — neither owns the other's worktree ids.
  *
- * Why the shape is enough without an Manta-specific token: two of the three
+ * Why the shape is enough without a Manta-specific token: two of the three
  * shapes carry one already (`.manta-remote`, `terminal-history-wsl`), and the
  * third needs an absolute path whose LAST TWO segments are a 16-char lowercase
  * hex directory directly under `terminal-history`, holding a file named exactly

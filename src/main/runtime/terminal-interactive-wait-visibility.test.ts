@@ -369,7 +369,7 @@ describe('terminal interactive-wait visibility (STA-4513, STA-3714)', () => {
   })
 
   it('still reports a live dialog restored from terminal history', async () => {
-    // Why this case exists: a lane parked on a prompt emits no bytes, so an Manta restart is
+    // Why this case exists: a lane parked on a prompt emits no bytes, so a Manta restart is
     // exactly when it would go quiet forever. A restored tail carries no waitBlockedAt, and
     // the approval menu does not need one — being at the bottom of the restored screen is
     // itself the proof that this is where the pane stopped.

@@ -354,7 +354,7 @@ describePosix('daemon shell-ready launch config', () => {
   )
 
   it('falls back to HOME for MANTA_ORIG_ZDOTDIR when inherited ZDOTDIR points at a wrapper dir', async () => {
-    // Why: an Manta-PTY parent has ZDOTDIR=.../shell-ready/zsh; propagating it makes the wrapper source itself (recursion loop).
+    // Why: a Manta-PTY parent has ZDOTDIR=.../shell-ready/zsh; propagating it makes the wrapper source itself (recursion loop).
     const previousZdotdir = process.env.ZDOTDIR
     const previousHome = process.env.HOME
     process.env.ZDOTDIR = '/some/other/manta/shell-ready/zsh'
@@ -378,7 +378,7 @@ describePosix('daemon shell-ready launch config', () => {
     }
   })
 
-  it('uses inherited MANTA_ORIG_ZDOTDIR when ZDOTDIR is an Manta wrapper dir', async () => {
+  it('uses inherited MANTA_ORIG_ZDOTDIR when ZDOTDIR is a Manta wrapper dir', async () => {
     const previousZdotdir = process.env.ZDOTDIR
     const previousOrigZdotdir = process.env.MANTA_ORIG_ZDOTDIR
     const previousHome = process.env.HOME

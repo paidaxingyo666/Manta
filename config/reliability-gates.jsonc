@@ -2392,7 +2392,7 @@
       },
       "performanceBudget": {
         "required": true,
-        "evidence": "The production change adds no timer, polling, retry, subprocess, stream opcode, RPC method, or host publication. Each link hover or activation performs bounded in-memory owner and capability lookups; an Manta Browser action issues the same single browser creation and snapshot reconciliation already used by the tab bar."
+        "evidence": "The production change adds no timer, polling, retry, subprocess, stream opcode, RPC method, or host publication. Each link hover or activation performs bounded in-memory owner and capability lookups; a Manta Browser action issues the same single browser creation and snapshot reconciliation already used by the tab bar."
       },
       "promotionCriteria": [
         "Collect Linux and physical Windows paired-server evidence.",

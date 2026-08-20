@@ -52,7 +52,7 @@ export const SHELL_STARTUP_IDENTITY_MARKER_BLOCK = `__manta_has_feature identity
  * function only the newer .zshenv defines printed `command not found` AND left
  * the out-parameter empty, which skipped sourcing the user's own startup file.
  *
- * Why an Manta-private out-parameter and not `REPLY`: `REPLY` is zsh's shared
+ * Why a Manta-private out-parameter and not `REPLY`: `REPLY` is zsh's shared
  * scratch global, so a user config is entitled to constrain it. `typeset -r
  * REPLY` made the very first assignment a fatal error and aborted the wrapper
  * file; `typeset -i REPLY` silently turned every resolved path into `0`. Both

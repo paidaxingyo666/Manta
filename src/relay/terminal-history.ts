@@ -42,7 +42,7 @@ export function injectRelayHistoryEnv(
   // would otherwise survive every early return below and let the remote wrapper
   // re-export another worktree's history path.
   delete env.MANTA_HISTFILE
-  // Why: HISTFILE stays exported, so a relay (or a client) launched from an Manta
+  // Why: HISTFILE stays exported, so a relay (or a client) launched from a Manta
   // pane carries the launching worktree's path into this one; honouring it below
   // would scope every pane to that worktree's history file.
   dropInheritedMantaHistFile(env)
@@ -135,7 +135,7 @@ export function deleteRelayHistory(worktreeId: string): void {
  *  No metadata file is needed: the name is a pure function of the worktree id. */
 export function injectRelayFishHistoryEnv(env: Record<string, string>, worktreeId: string): void {
   // Own precondition, not the caller's: the check below may only honour a genuine
-  // user value, and fish EXPORTS `fish_history` so an Manta-minted name arrives from
+  // user value, and fish EXPORTS `fish_history` so a Manta-minted name arrives from
   // the relay's own env or the client's. `PtyHandler.buildSpawnEnv` already scrubs
   // every spawn path, so this is belt-and-braces for any other caller.
   dropInheritedMantaFishHistory(env)
