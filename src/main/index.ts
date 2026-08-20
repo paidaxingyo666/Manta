@@ -16,7 +16,10 @@ import {
   ensureActiveMantaProfile,
   initMantaProfilePaths
 } from './manta-profiles/profile-index-store'
-import { getMantaCloudAuthConfig } from './manta-profiles/profile-cloud-auth-config'
+import {
+  getMantaCloudAuthConfig,
+  setMantaCloudEndpointOverrideSource
+} from './manta-profiles/profile-cloud-auth-config'
 import { getProfileUserDataPath } from './manta-profiles/profile-storage-paths'
 import { applyAppIcon } from './app-icon'
 import { relaunchApp } from './app-relaunch'
@@ -2275,6 +2278,9 @@ void app.whenReady().then(async () => {
     }
   }
   wslHookRelayManager.setManagedHookSettingsResolver(() => store?.getSettings() ?? null)
+  // Why: lets packaged builds point sign-in/relay at a self-hosted server without
+  // shell env vars (macOS GUI launches never inherit them).
+  setMantaCloudEndpointOverrideSource(() => store?.getSettings().mantaCloudEndpoints ?? null)
   logStartupMilestone('store-loaded')
   // Why: apply initial fallback WSL distro from store settings for global git/CLI calls.
   setDefaultWslDistroOverride(store.getSettings().terminalWindowsWslDistro ?? null)

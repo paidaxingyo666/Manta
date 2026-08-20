@@ -52,7 +52,9 @@ export function createMantaCloudEndpointsDraft(
     apiBaseUrl: overrides?.apiBaseUrl ?? '',
     relayDirectorUrl: overrides?.relayDirectorUrl ?? '',
     clientId: overrides?.clientId ?? '',
-    enrollmentSecret: overrides?.enrollmentSecret ?? ''
+    // Deliberately not prefilled: a stored secret would then sit in the DOM as
+    // an input value on every settings render. Empty means "leave it alone".
+    enrollmentSecret: ''
   }
 }
 
@@ -61,8 +63,16 @@ export function createMantaCloudEndpointsDraft(
  * the official director rejects, and that failure is a non-retried 400 that
  * leaves relay offline for minutes with no actionable error.
  */
+/**
+ * Validates the draft and produces the overrides to persist.
+ *
+ * `savedSecret` carries the stored enrolment secret so an untouched field can
+ * mean "leave it alone". Without that, not prefilling the input would silently
+ * delete the secret on the next save of any other field.
+ */
 export function validateMantaCloudEndpointsDraft(
-  draft: MantaCloudEndpointsDraft
+  draft: MantaCloudEndpointsDraft,
+  savedSecret?: string
 ): { ok: true; value: MantaCloudEndpointOverrides | undefined } | { ok: false; message: string } {
   const api = normalizeMantaCloudEndpointUrl(draft.apiBaseUrl)
   if (!api.ok) {
@@ -89,9 +99,12 @@ export function validateMantaCloudEndpointsDraft(
       )
     }
   }
+  // Everything blank means "go back to the official endpoints" — including the
+  // secret, which is why a saved one is not carried forward here.
   if (!api.value && !relay.value && !clientId.value && !enrollmentSecret.value) {
     return { ok: true, value: undefined }
   }
+  const secret = enrollmentSecret.value || (savedSecret ?? '')
   const next: MantaCloudEndpointOverrides = {}
   if (api.value) {
     next.apiBaseUrl = api.value
@@ -102,8 +115,8 @@ export function validateMantaCloudEndpointsDraft(
   if (clientId.value) {
     next.clientId = clientId.value
   }
-  if (enrollmentSecret.value) {
-    next.enrollmentSecret = enrollmentSecret.value
+  if (secret) {
+    next.enrollmentSecret = secret
   }
   return { ok: true, value: next }
 }
@@ -128,7 +141,10 @@ export function MantaCloudEndpointsSection({
     hasConfiguredMantaCloudEndpoints(settings)
 
   const apply = (): void => {
-    const validated = validateMantaCloudEndpointsDraft(draft)
+    const validated = validateMantaCloudEndpointsDraft(
+      draft,
+      settings.mantaCloudEndpoints?.enrollmentSecret
+    )
     if (!validated.ok) {
       setError(validated.message)
       return
@@ -233,6 +249,24 @@ export function MantaCloudEndpointsSection({
                 'OAuth client ID'
               ),
               'manta-desktop'
+            )}
+            {field(
+              'enrollmentSecret',
+              'settings-manta-cloud-enrollment',
+              translate(
+                'auto.components.settings.MantaCloudEndpointsSection.enrollmentLabel',
+                'Enrolment secret'
+              ),
+              settings.mantaCloudEndpoints?.enrollmentSecret
+                ? translate(
+                    'auto.components.settings.MantaCloudEndpointsSection.enrollmentSaved',
+                    'Saved — type to replace'
+                  )
+                : translate(
+                    'auto.components.settings.MantaCloudEndpointsSection.enrollmentPlaceholder',
+                    'Only if your relay requires one'
+                  ),
+              true
             )}
             {error ? <p className="text-xs text-destructive">{error}</p> : null}
             <p className="text-xs text-muted-foreground">

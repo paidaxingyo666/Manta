@@ -64,7 +64,7 @@
       },
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
-        "description": "Keep an Manta shortcut and activity indicator in the macOS menu bar."
+        "description": "Keep a Manta shortcut and activity indicator in the macOS menu bar."
       }
     }
   },
@@ -215,7 +215,7 @@
         "27393856e4": "manta://pair?code=...",
         "7a566540de": "Pairing URL or code",
         "cb4d287238": "Server name",
-        "3affe7de3a": "Paste a pairing URL from an Manta server that this browser can reach.",
+        "3affe7de3a": "Paste a pairing URL from a Manta server that this browser can reach.",
         "e3bcd082ac": "Connect to Manta",
         "mobileScopeRejected": "This QR code grants limited (mobile) access. To use the full web app, open the browser access link from Settings → Runtime Environments → Share this Manta server → New Link."
       },
@@ -471,7 +471,7 @@
         }
       },
       "remotePairingCopy": {
-        "invalidInput": "Enter an Manta access link or bare pairing code.",
+        "invalidInput": "Enter a Manta access link or bare pairing code.",
         "mobileOnly": "This link grants mobile-only access. Generate a link for another Manta client.",
         "invalidDestination": "This access link contains an invalid destination.",
         "unsupportedDestination": "This access link contains an unsupported destination.",
@@ -2071,12 +2071,12 @@
         "loadPageUnreachable": "Page {{value0}} is beyond what GitHub search can return.",
         "loadPageFailed": "Page {{value0}} could not be loaded from GitHub.",
         "loadPageNoMoreResults": "No more results on page {{value0}}.",
-        "linearHasWorktreeLoadFailed": "Unable to load Linear issues linked to an Manta workspace.",
-        "linearHasWorktreePartialLoadFailed": "Some Linear issues linked to an Manta workspace could not be loaded. Refresh to try again.",
-        "linearHasWorktreeSearchPlaceholder": "Filter issues linked to an Manta workspace...",
+        "linearHasWorktreeLoadFailed": "Unable to load Linear issues linked to a Manta workspace.",
+        "linearHasWorktreePartialLoadFailed": "Some Linear issues linked to a Manta workspace could not be loaded. Refresh to try again.",
+        "linearHasWorktreeSearchPlaceholder": "Filter issues linked to a Manta workspace...",
         "linearModeHasWorktree": "Has Workspace",
-        "linearModeHasWorktreeTooltip": "Linear tickets linked to an Manta workspace",
-        "linearEmptyHasWorktree": "No Linear tickets are linked to an Manta workspace yet. Start work from a Linear issue to see it here.",
+        "linearModeHasWorktreeTooltip": "Linear tickets linked to a Manta workspace",
+        "linearEmptyHasWorktree": "No Linear tickets are linked to a Manta workspace yet. Start work from a Linear issue to see it here.",
         "linearOpenAttachedWorkspace": "Open workspace attached to {{value0}}",
         "linearWorktreesColumn": "Workspaces"
       },
@@ -4242,7 +4242,7 @@
         },
         "SkillShareDialog": {
           "reconnect": "Reconnect your Manta account before sharing.",
-          "unconfigured": "Connect an Manta Cloud account before sharing.",
+          "unconfigured": "Connect a Manta Cloud account before sharing.",
           "prepareFailed": "Could not prepare this skill for sharing.",
           "peopleRequired": "Select at least one teammate.",
           "publishCancelled": "Upload cancelled. The prepared copy is still available to retry.",
@@ -4687,7 +4687,7 @@
           "addSshHost": "Add SSH host",
           "addRemoteServer": "Add remote server",
           "addRemoteHost": "Add remote host",
-          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for an Manta server.",
+          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for a Manta server.",
           "addSshHostDetail": "Use an existing machine over SSH.",
           "addRemoteServerDetail": "Pair with Manta running on another computer.",
           "addRemoteHostDetail": "SSH host or Manta server"
@@ -6139,6 +6139,21 @@
           "codexConfigSyncBlankSource": "Codex is still using the settings it last synced because {{value0}} is empty. That is expected while a synced folder finishes downloading.",
           "codexConfigSyncManagedHomeUnavailable": "Manta could not read this account’s Codex files just now, so settings may not be syncing. This usually clears on its own — antivirus or a backup tool briefly locks them.",
           "codexConfigSyncUnreadableSource": "Codex is still using the settings it last synced because {{value0}} could not be read. Check that file's permissions."
+        },
+        "MantaCloudEndpointsSection": {
+          "pairRequired": "Set the sign-in server and the relay address together, or leave both empty.",
+          "applyFailed": "Could not apply the endpoints. Check the values and try again.",
+          "title": "Self-hosted server",
+          "description": "Point sign-in and the mobile relay at your own server instead of the official one.",
+          "configure": "Configure endpoints",
+          "apiLabel": "Sign-in server",
+          "relayLabel": "Relay address",
+          "clientIdLabel": "OAuth client ID",
+          "enrollmentLabel": "Enrolment secret",
+          "enrollmentPlaceholder": "Only if your relay requires one",
+          "warning": "Both addresses must use https with a certificate your phone trusts. The relay only forwards end-to-end encrypted data, but its operator can see who connects and when. Applying signs you out and restarts Manta.",
+          "applying": "Restarting…",
+          "apply": "Apply and restart"
         },
         "AdvancedPane": {
           "40b29e0bf3": "Restart",
@@ -10477,7 +10492,7 @@
           "copyError": "Could not copy the prompt.",
           "skillDescription": "Sets up, builds, authenticates, and validates repo-owned environment recipes.",
           "whatTitle": "What the skill does, with you",
-          "whatScaffold": "Writes the recipe & scripts for your provider — connected over an Manta server or SSH.",
+          "whatScaffold": "Writes the recipe & scripts for your provider — connected over a Manta server or SSH.",
           "whatBuild": "Builds a reusable base image and signs your agent in.",
           "whatValidate": "Validates it so you can create a workspace on it.",
           "promptHint": "In any workspace, ask your agent:",
@@ -11087,7 +11102,7 @@
           "allowAccess": "Allow access"
         },
         "TerminalTccAttributionNotice": {
-          "body": "The terminal daemon was started by an Manta install that no longer exists, so macOS can’t attribute its commands to Manta — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.",
+          "body": "The terminal daemon was started by a Manta install that no longer exists, so macOS can’t attribute its commands to Manta — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.",
           "openManageSessions": "Open Manage Sessions",
           "title": "macOS permission grants aren’t reaching terminals"
         },

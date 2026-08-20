@@ -200,6 +200,30 @@ export async function exchangeMantaCloudAuthCode(
   )
 }
 
+/**
+ * Exchanges the enrolment secret for a session, with no browser step.
+ *
+ * The authorization-code flow exists for a hosted service with a real identity
+ * provider and a human to sign in. A single-user self-hosted relay has neither,
+ * so the browser round trip would only bounce a code straight back. The secret
+ * is the credential either way, and skipping the trip means no code ever
+ * transits a browser or a loopback listener.
+ */
+export async function grantMantaCloudSessionDirectly(
+  config: MantaCloudAuthConfig,
+  localProfileId: string
+): Promise<MantaCloudSessionExchangeResponse> {
+  if (!config.enrollmentSecret) {
+    throw new Error('manta_cloud_direct_grant_unavailable')
+  }
+  return normalizeSessionResponse(
+    await postJson(config.sessionEndpoint, {
+      enrollmentSecret: config.enrollmentSecret,
+      localProfileId
+    })
+  )
+}
+
 export async function refreshMantaCloudCapabilities(
   config: MantaCloudAuthConfig,
   session: MantaCloudSession

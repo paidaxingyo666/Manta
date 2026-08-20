@@ -17,6 +17,7 @@ import { cloudSessionIdentity, tombstoneCloudSession } from './profile-cloud-ses
 import {
   createMantaCloudProfile,
   exchangeMantaCloudAuthCode,
+  grantMantaCloudSessionDirectly,
   revokeMantaCloudSession
 } from './profile-cloud-client'
 import { beginMantaCloudPkceFlow } from './profile-cloud-pkce'
@@ -74,11 +75,14 @@ export async function connectCurrentMantaProfile(
   }
 
   try {
-    const code = await beginMantaCloudPkceFlow(configState.config, active.profile.id)
-    const exchange = await exchangeMantaCloudAuthCode(configState.config, {
-      ...code,
-      localProfileId: active.profile.id
-    })
+    // A configured enrolment secret means a self-hosted relay with nobody to
+    // authenticate, so there is nothing for a browser to do.
+    const exchange = configState.config.enrollmentSecret
+      ? await grantMantaCloudSessionDirectly(configState.config, active.profile.id)
+      : await exchangeMantaCloudAuthCode(configState.config, {
+          ...(await beginMantaCloudPkceFlow(configState.config, active.profile.id)),
+          localProfileId: active.profile.id
+        })
     saveMantaCloudSessionExchange(active.profile.id, userDataPath, exchange)
     const list = linkMantaProfileToCloud(active.profile.id, exchange.cloud, userDataPath)
     return {
