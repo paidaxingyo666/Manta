@@ -201,6 +201,46 @@ alone; it does not help with issuance, which still needs 80 or 443. The durable
 fixes are to resolve whatever blocks those ports, or to move issuance to a
 DNS-01 challenge.
 
+### Moving back to 443 once issuance works again
+
+The non-standard port and the pinned certificate are both workarounds for
+blocked ports. When that block lifts — an ICP filing completing, a firewall
+opening — undo them in this order. The origin is signed into every host
+challenge, so the relay and the desktop must change together or the proof
+fails with nothing useful on either side.
+
+1. Confirm the block is actually gone, by domain and not just by IP. A filter
+   that inspects the Host header answers a bare IP normally while still
+   hijacking the name:
+
+   ```bash
+   curl -sI --resolve relay.example.com:80:<ip> http://relay.example.com/ | head -1
+   ```
+
+   A 200 or a redirect to your own site means it is clear. A redirect to the
+   provider's notice page means it is not.
+
+2. In `deploy/Caddyfile`, change the site address from `{$RELAY_DOMAIN}:9443`
+   to `{$RELAY_DOMAIN}`, drop the `tls` line so Caddy manages the certificate
+   again, and drop the `auto_https disable_redirects` global block.
+
+3. In `deploy/docker-compose.yml`, publish `80:80` and `443:443` instead of the
+   non-standard port, drop `MANTA_RELAY_TLS_CERT_PATH` and the `./certs` mount,
+   and set `RELAY_PORT=443` in `.env` — or remove the port from
+   `MANTA_RELAY_PUBLIC_URL` entirely.
+
+4. `docker compose up -d`, then watch for `certificate obtained successfully`.
+   Caddy reuses the existing certificate until renewal, so a failure here is
+   silent until it matters — do not skip the log check.
+
+5. Update the desktop's Sign-in server and Relay address to drop the port, then
+   Apply and restart. This signs the app out; that is expected, and the phone
+   does not need to re-pair.
+
+6. Remove the firewall rule for the non-standard port.
+
+`deploy/certs/` can be deleted once step 4 succeeds.
+
 Known gaps, honestly:
 
 - Rate limits are per-process and in-memory. A restart forgets them.
