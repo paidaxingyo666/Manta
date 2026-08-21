@@ -29,6 +29,10 @@ native/**/.build/
 # pnpm
 .pnpm-store/
 package-lock.json
+# relay-server is a standalone npm project, not part of the pnpm workspace: its
+# Dockerfile and release workflow both run `npm ci`, which needs the lockfile
+# committed. Without this exception the image builds from an unpinned tree.
+!relay-server/package-lock.json
 
 # Environment
 .env

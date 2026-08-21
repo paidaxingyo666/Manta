@@ -279,7 +279,7 @@
       "oxlint --config config/oxlint-react-doctor.json",
       "oxfmt --write"
     ],
-    "*.{json,css}": [
+    "!(package-lock).{json,css}": [
       "oxfmt --write"
     ]
   },
