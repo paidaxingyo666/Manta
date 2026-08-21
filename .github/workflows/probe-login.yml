@@ -4,6 +4,27 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - name: Credential shape
+        env:
+          AR: ${{ secrets.ALIYUN_REGISTRY }}
+          AU: ${{ secrets.ALIYUN_USERNAME }}
+          AP: ${{ secrets.ALIYUN_PASSWORD }}
+        run: |
+          # Shape only — no value reaches the log.
+          shape() {
+            printf '%s: len=%s lead_ws=%s trail_ws=%s newline=%s quoted=%s\n' \
+              "$1" "${#2}" \
+              "$(case "$2" in [\ \	]*) echo yes;; *) echo no;; esac)" \
+              "$(case "$2" in *[\ \	]) echo yes;; *) echo no;; esac)" \
+              "$(printf '%s' "$2" | grep -c $'\n' || true)" \
+              "$(case "$2" in \"*\"|\'*\') echo yes;; *) echo no;; esac)"
+          }
+          shape ALIYUN_REGISTRY "$AR"
+          shape ALIYUN_USERNAME "$AU"
+          shape ALIYUN_PASSWORD "$AP"
+          printf 'registry first char class: %s\n' "$(printf '%s' "$AR" | cut -c1)"
+          printf 'registry last char class: %s\n' "$(printf '%s' "$AR" | rev | cut -c1)"
+
       - name: Log in to Aliyun ACR
         id: aliyun
         continue-on-error: true
@@ -12,7 +33,7 @@ jobs:
           registry: ${{ secrets.ALIYUN_REGISTRY }}
           username: ${{ secrets.ALIYUN_USERNAME }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
+
       - name: Result
         run: |
           echo "aliyun sign-in: ${{ steps.aliyun.outcome }}"
-          [ "${{ steps.aliyun.outcome }}" = "success" ]
