@@ -86,6 +86,41 @@ Caddy terminates TLS and proxies to the relay, which is never published on the
 host itself. The relay container runs unprivileged with a read-only root
 filesystem.
 
+**Prebuilt image, or build it yourself.** Left as it is, compose compiles the
+checkout — which a small VPS takes minutes to do, and needs a toolchain the
+host may not have. To pull a published image instead, set `RELAY_IMAGE` in
+`.env`:
+
+```bash
+# Docker Hub
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+
+# Aliyun (Shanghai) — same image; one build pushes to both, so the digest matches
+RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.0.0
+```
+
+Both carry `linux/amd64` and `linux/arm64`; `docker pull` picks the right one.
+Pin a version rather than `:latest` — a relay that changes underneath a restart
+is a bad surprise.
+
+Building from source stays the right answer when you are running an unreleased
+commit, or would rather not take a binary someone else built.
+
+To check an image before deploying it:
+
+```bash
+docker run --rm -p 8787:8787 \
+  -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
+  -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
+  paidaxingyo666/manta-relay:1.0.0
+
+curl localhost:8787/health
+# {"ok":true,"version":"1.0.0","revision":"8dbee33…","builtAt":"2026-08-21T14:00:04Z"}
+```
+
+That is a smoke test, not a deployment — no enrolment secret and no TLS, so it
+will not enrol anyone. Use compose for the real thing.
+
 ### 2. Point the desktop at it
 
 Settings → Advanced → Manta Cloud → **Self-hosted server** → **Configure

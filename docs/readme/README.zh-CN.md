@@ -78,6 +78,38 @@ docker compose up -d
 Caddy 终止 TLS 并转发给中继，中继本身不对主机暴露端口。中继容器以非特权、
 只读根文件系统运行。
 
+**用现成镜像，或自行构建。** 不改任何配置时，compose 会就地编译当前 checkout ——
+小配置 VPS 要花几分钟，且主机上未必装了工具链。想直接拉取已发布的镜像，在 `.env`
+里设 `RELAY_IMAGE`：
+
+```bash
+# Docker Hub
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+
+# 阿里云（上海）—— 同一个镜像，一次构建同时推送两处，digest 一致
+RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.0.0
+```
+
+两处都含 `linux/amd64` 与 `linux/arm64`，`docker pull` 会自动选对架构。请固定版本号
+而不是用 `:latest` —— 中继在重启后悄悄换了版本不是好事。
+
+如果你跑的是未发布的提交，或者不愿意用别人构建的二进制，从源码构建仍然是对的选择。
+
+部署前先验证镜像：
+
+```bash
+docker run --rm -p 8787:8787 \
+  -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
+  -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
+  paidaxingyo666/manta-relay:1.0.0
+
+curl localhost:8787/health
+# {"ok":true,"version":"1.0.0","revision":"8dbee33…","builtAt":"2026-08-21T14:00:04Z"}
+```
+
+这只是冒烟测试，不是部署 —— 没有注册密钥、没有 TLS，中继会拒绝任何注册请求。
+正式部署请用 compose。
+
 ### 2. 让桌面端指向它
 
 设置 → 高级 → Manta Cloud → **自建服务器** → **配置端点**：

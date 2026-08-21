@@ -305,14 +305,44 @@ architectures without pushing.
 
 ### Deploying a published image
 
+Published images, `linux/amd64` and `linux/arm64`, same digest on both
+registries because one build pushes to both:
+
+| Registry | Image |
+| --- | --- |
+| Docker Hub | `paidaxingyo666/manta-relay` |
+| Aliyun (Shanghai) | `crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay` |
+
 Set `RELAY_IMAGE` in `deploy/.env` and compose pulls instead of building:
 
 ```
-RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.1
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+```
+
+Pin a version rather than `:latest` — a relay that changes underneath a
+restart is a bad surprise. Pin the digest if you want the exact bytes:
+
+```
+RELAY_IMAGE=paidaxingyo666/manta-relay@sha256:...
 ```
 
 Left unset it builds from the checkout, which is what an unreleased commit
 needs.
+
+Verify what you pulled:
+
+```bash
+docker run --rm -p 8787:8787 \
+  -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
+  -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
+  paidaxingyo666/manta-relay:1.0.0
+```
+
+`curl localhost:8787/health` answers with the version, the commit it was built
+from, and when — no shell access to the host required.
+
+That command is a smoke test, not a deployment: it has no enrolment secret and
+no TLS, so the relay refuses to enrol anyone. Use compose for the real thing.
 
 ## Development
 
