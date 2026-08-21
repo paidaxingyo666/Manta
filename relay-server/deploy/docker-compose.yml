@@ -24,7 +24,7 @@ services:
       # Renewal here needs port 80 or 443, and both are hijacked upstream while
       # the domain is unfiled — so the certificate has a fixed end date and the
       # relay is told to watch it. Drop this once renewal is automatic again.
-      MANTA_RELAY_TLS_CERT_PATH: /certs/relay.manta.sh.cn.crt
+      MANTA_RELAY_TLS_CERT_PATH: "/certs/${RELAY_DOMAIN:?set RELAY_DOMAIN}.crt"
       # Fail to start rather than expose an open enrolment endpoint.
       MANTA_RELAY_ENROLLMENT_SECRET: "${MANTA_RELAY_ENROLLMENT_SECRET:?set MANTA_RELAY_ENROLLMENT_SECRET}"
       # Guarded like the others. Left to env_file alone, an empty value starts

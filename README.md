@@ -2,256 +2,132 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta is a self-hosted fork of [Orca](https://github.com/stablyai/orca)** (MIT, © Lovecast Inc.).
->
-> Features:
->
-> - Self-host relay server
-> - No mandatory cloud account
-> - Internationalization
-> - Enterprise deployment
->
-> Based on: https://github.com/stablyai/orca
->
-> No standalone Manta release is published yet — build from source.
->
-> There is no Manta cloud service. Sign-in and relay stay off until you point
-> them at your own deployment (Settings → Advanced → Manta Cloud endpoints);
-> `relay-server/` is the server to run. Documentation links point at
-> `manta.sh.cn`, which is not a public service.
+<p align="center">
+  <sub><a href="docs/readme/README.zh-CN.md">中文</a></sub>
+</p>
 
 <p align="center">
-  <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub stars" /></a>
-  <a href="https://github.com/stablyai/orca/releases"><img src="docs/assets/readme-downloads.svg" title="Upstream Orca downloads" alt="Total downloads across all upstream Orca releases" /></a>
   <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="License: MIT" />
-  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="Join the upstream Orca Discord" /></a>
-  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="Follow upstream Orca on X" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="Supported platforms: macOS, Windows, and Linux" />
 </p>
 
-<p align="center">
-  <sub><a href="docs/readme/README.zh-CN.md">中文</a> · <a href="docs/readme/README.ja.md">日本語</a> · <a href="docs/readme/README.ko.md">한국어</a> · <a href="docs/readme/README.es.md">Español</a> · <a href="docs/readme/README.fr.md">Français</a> · <a href="docs/readme/README.pt.md">Português</a></sub>
-</p>
+**Manta is a self-hosted fork of [Orca](https://github.com/stablyai/orca)** (MIT, © Lovecast Inc.).
 
-<p align="center">
-  <strong>The AI Orchestrator for 100x builders.</strong><br/>
-  Run Codex, ClaudeCode, OpenCode or Pi side-by-side — each in its own worktree, tracked in one place.
-</p>
+Features:
 
-<h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Download Manta</ins></a></h3>
+- Self-host relay server
+- No mandatory cloud account
+- Internationalization
+- Enterprise deployment
 
-## Features
+Based on: https://github.com/stablyai/orca
 
-<table>
-<tr>
-<td valign="middle">
+No standalone Manta release is published yet — build from source.
 
-### Mobile Companion
-
-Monitor and steer your agents from your phone — get notified when an agent finishes and send follow-ups from anywhere.
-
-Build from source — Manta does not publish mobile binaries. Upstream Orca ships its own: [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Parallel Worktrees
-
-Fan one prompt across five agents, each in its own isolated git worktree — compare the results and merge the winner.
-
-[Docs →](https://www.manta.sh.cn/docs/model/worktrees)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Terminal Splits
-
-Ghostty-class terminals with WebGL rendering, infinite splits, and scrollback that survives restarts.
-
-[Docs →](https://www.manta.sh.cn/docs/terminal)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Design Mode
-
-Click any UI element in a real Chromium window to send its HTML, CSS, and a cropped screenshot straight into your agent's prompt.
-
-[Docs →](https://www.manta.sh.cn/docs/browser/design-mode)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### GitHub &amp; Linear, Native
-
-Browse PRs, issues, and project boards in-app — open a worktree from any task and review without a context switch.
-
-[Docs →](https://www.manta.sh.cn/docs/review/linear)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### SSH Worktrees
-
-Run agents on a beefy remote box with full file editing, git, and terminals — auto-reconnect and port forwarding included.
-
-[Docs →](https://www.manta.sh.cn/docs/ssh)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Annotate AI Diffs
-
-Drop comments on any diff line and ship them back to the agent — review, edit, and commit without leaving Manta.
-
-[Docs →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Drag Files to Agents
-
-VS Code's editor with autosave everywhere — drag files or images straight into an agent prompt.
-
-[Docs →](https://www.manta.sh.cn/docs/editing/file-explorer)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Manta CLI
-
-Agents drive Manta too — script every workflow with `manta worktree create`, `snapshot`, `click`, and `fill`.
-
-[Docs →](https://www.manta.sh.cn/docs/cli/overview)
-
-</td>
-</tr>
-</table>
-
-**Also in the box:**
-
-- **[Quick open](https://www.manta.sh.cn/docs/model/quick-open)** — Search across worktrees, files, agents, commands, and repo context without leaving your flow.
-- **[Account switcher &amp; usage tracking](https://www.manta.sh.cn/docs/agents/usage-tracking)** — See Claude and Codex usage and rate-limit resets, and hot-swap accounts without re-logging in.
-- **[Rich repo previews](https://www.manta.sh.cn/docs/editing/markdown)** — Preview Markdown, images, PDFs, and repo docs in the workspace.
-- **[Computer Use](https://www.manta.sh.cn/docs/cli/computer-use)** — Let agents operate desktop apps and visible UI when a workflow needs real interaction.
-- **[Notifications and unread state](https://www.manta.sh.cn/docs/notifications)** — Know when an agent finishes or needs attention, then mark threads unread to come back later.
-- **And many, many more** — this list trails upstream, whose [changelog](https://github.com/stablyai/orca/releases) is the fuller feature list.
+There is no Manta cloud service. Sign-in and relay stay off until you point them
+at your own deployment (Settings → Advanced → Manta Cloud endpoints);
+`relay-server/` is the server to run. Documentation links point at
+`manta.sh.cn`, which is not a public service.
 
 ---
 
-## Supported Agents
+## Build from source
 
-Works with **any CLI agent** — if it runs in a terminal, it runs in Manta.
-
-<p>
-  <a href="https://docs.anthropic.com/claude/docs/claude-code"><kbd><img src="docs/assets/claude-logo.svg" alt="Claude Code logo" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
-  <a href="https://github.com/openai/codex"><kbd><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="Codex logo" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
-  <a href="https://x.ai/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=x.ai&sz=64" alt="Grok logo" width="16" valign="middle" /> Grok</kbd></a> &nbsp;
-  <a href="https://cursor.com/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" alt="Cursor logo" width="16" valign="middle" /> Cursor</kbd></a> &nbsp;
-  <a href="https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli"><kbd><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="GitHub Copilot logo" width="16" valign="middle" /> GitHub Copilot</kbd></a> &nbsp;
-  <a href="https://opencode.ai/docs/cli/"><kbd><img src="https://www.google.com/s2/favicons?domain=opencode.ai&sz=64" alt="OpenCode logo" width="16" valign="middle" /> OpenCode</kbd></a> &nbsp;
-  <a href="https://mimo.xiaomi.com/coder"><kbd><img src="https://www.google.com/s2/favicons?domain=mimo.xiaomi.com&sz=64" alt="MiMo Code logo" width="16" valign="middle" /> MiMo Code</kbd></a> &nbsp;
-  <a href="https://ampcode.com/manual#install"><kbd><img src="https://www.google.com/s2/favicons?domain=ampcode.com&sz=64" alt="Amp logo" width="16" valign="middle" /> Amp</kbd></a> &nbsp;
-  <a href="https://openclaude.gitlawb.com/"><kbd><img src="resources/openclaude-logo.png" alt="OpenClaude logo" width="16" valign="middle" /> OpenClaude</kbd></a> &nbsp;
-  <a href="https://antigravity.google/docs/cli-overview"><kbd><img src="https://www.google.com/s2/favicons?domain=antigravity.google&sz=64" alt="Antigravity logo" width="16" valign="middle" /> Antigravity</kbd></a> &nbsp;
-  <a href="https://pi.dev"><kbd><img src="https://pi.dev/favicon.svg" alt="Pi logo" width="16" valign="middle" /> Pi</kbd></a> &nbsp;
-  <a href="https://omp.sh"><kbd><img src="https://omp.sh/favicon.svg" alt="oh-my-pi logo" width="16" valign="middle" /> oh-my-pi</kbd></a> &nbsp;
-  <a href="https://hermes-agent.nousresearch.com/docs/"><kbd><img src="https://www.google.com/s2/favicons?domain=nousresearch.com&sz=64" alt="Hermes Agent logo" width="16" valign="middle" /> Hermes Agent</kbd></a> &nbsp;
-  <a href="https://devin.ai/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=devin.ai&sz=64" alt="Devin logo" width="16" valign="middle" /> Devin</kbd></a> &nbsp;
-  <a href="https://block.github.io/goose/docs/quickstart/"><kbd><img src="https://www.google.com/s2/favicons?domain=goose-docs.ai&sz=64" alt="Goose logo" width="16" valign="middle" /> Goose</kbd></a> &nbsp;
-  <a href="https://docs.augmentcode.com/cli/overview"><kbd><img src="https://www.google.com/s2/favicons?domain=augmentcode.com&sz=64" alt="Auggie logo" width="16" valign="middle" /> Auggie</kbd></a> &nbsp;
-  <a href="https://github.com/autohandai/code-cli"><kbd><img src="https://www.google.com/s2/favicons?domain=autohand.ai&sz=64" alt="Autohand Code logo" width="16" valign="middle" /> Autohand Code</kbd></a> &nbsp;
-  <a href="https://github.com/charmbracelet/crush"><kbd><img src="https://www.google.com/s2/favicons?domain=charm.sh&sz=64" alt="Charm logo" width="16" valign="middle" /> Charm</kbd></a> &nbsp;
-  <a href="https://docs.cline.bot/cline-cli/overview"><kbd><img src="https://www.google.com/s2/favicons?domain=cline.bot&sz=64" alt="Cline logo" width="16" valign="middle" /> Cline</kbd></a> &nbsp;
-  <a href="https://www.codebuff.com/docs/help/quick-start"><kbd><img src="https://www.google.com/s2/favicons?domain=codebuff.com&sz=64" alt="Codebuff logo" width="16" valign="middle" /> Codebuff</kbd></a> &nbsp;
-  <a href="https://commandcode.ai/docs/quickstart"><kbd><img src="https://www.google.com/s2/favicons?domain=commandcode.ai&sz=64" alt="Command Code logo" width="16" valign="middle" /> Command Code</kbd></a> &nbsp;
-  <a href="https://docs.continue.dev/guides/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=continue.dev&sz=64" alt="Continue logo" width="16" valign="middle" /> Continue</kbd></a> &nbsp;
-  <a href="https://docs.factory.ai/cli/getting-started/quickstart"><kbd><img src="docs/assets/droid-logo.svg" alt="Droid logo" width="16" valign="middle" /> Droid</kbd></a> &nbsp;
-  <a href="https://kilo.ai/docs/cli"><kbd><img src="https://raw.githubusercontent.com/Kilo-Org/kilocode/main/packages/kilo-vscode/assets/icons/kilo-light.svg" alt="Kilocode logo" width="16" valign="middle" /> Kilocode</kbd></a> &nbsp;
-  <a href="https://www.kimi.com/code/docs/en/kimi-code-cli/getting-started.html"><kbd><img src="https://www.google.com/s2/favicons?domain=moonshot.cn&sz=64" alt="Kimi logo" width="16" valign="middle" /> Kimi</kbd></a> &nbsp;
-  <a href="https://kiro.dev/docs/cli/"><kbd><img src="https://www.google.com/s2/favicons?domain=kiro.dev&sz=64" alt="Kiro logo" width="16" valign="middle" /> Kiro</kbd></a> &nbsp;
-  <a href="https://github.com/mistralai/mistral-vibe"><kbd><img src="https://www.google.com/s2/favicons?domain=mistral.ai&sz=64" alt="Mistral Vibe logo" width="16" valign="middle" /> Mistral Vibe</kbd></a> &nbsp;
-  <a href="https://github.com/QwenLM/qwen-code"><kbd><img src="https://www.google.com/s2/favicons?domain=qwenlm.github.io&sz=64" alt="Qwen Code logo" width="16" valign="middle" /> Qwen Code</kbd></a> &nbsp;
-  <a href="https://support.atlassian.com/rovo/docs/install-and-run-rovo-dev-cli-on-your-device/"><kbd><img src="https://www.google.com/s2/favicons?domain=atlassian.com&sz=64" alt="Rovo Dev logo" width="16" valign="middle" /> Rovo Dev</kbd></a> &nbsp;
-  <kbd>+ any CLI agent</kbd>
-</p>
-
----
-
-## Install
-
-### Desktop — macOS, Windows, Linux
-
-- **[Download from GitHub Releases](https://github.com/paidaxingyo666/Manta/releases)**
-- Or grab a build directly: [macOS Apple Silicon](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-macos-arm64.dmg) · [macOS Intel](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-macos-x64.dmg) · [Windows (.exe)](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-windows-setup.exe) · [Linux AppImage](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-linux.AppImage) · [All builds](https://github.com/paidaxingyo666/Manta/releases/latest)
-- Running `manta serve` on a headless Linux server? See the [headless Linux server guide](docs/reference/headless-linux-server.md).
-
-_Or via a package manager:_
+Requires Node 20+ and pnpm.
 
 ```bash
-# macOS (Homebrew)
-brew install --cask paidaxingyo666/manta/manta
-
-# Arch Linux (AUR) — or stably-manta-git to build from source
-yay -S stably-manta-bin
+pnpm install
+pnpm dev            # run the desktop app
+pnpm build:mac      # or build:win / build:linux
 ```
 
-### Mobile Companion — iOS, Android
+The mobile companion lives in `mobile/` and is an Expo app:
 
-Pair with your desktop app to monitor and steer your agents from your phone.
-
-Manta publishes no mobile binaries yet; build the Expo app from `mobile/`.
-Upstream Orca's own builds are on the [App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) and [TestFlight](https://testflight.apple.com/join/YjeGMQBA) — those run upstream Orca, not this fork.
-
----
-
-## Community &amp; Support
-
-Manta runs no community channels of its own — open an issue on
-[this repository](https://github.com/paidaxingyo666/Manta/issues) instead.
-
-The channels below belong to upstream Orca and are the right place for questions
-about upstream, not about this fork:
-
-- **Discord:** [Orca community](https://discord.gg/fzjDKHxv8Q)
-- **Twitter / X:** [@orca_build](https://x.com/orca_build)
-- **WeChat:** upstream community group 7 (group 8 if full)
-
-- **Feedback &amp; Ideas:** We ship fast. Missing something? [Request a new feature](https://github.com/paidaxingyo666/Manta/issues).
-- **Privacy:** See the [privacy &amp; telemetry docs](https://www.manta.sh.cn/docs/telemetry) for what anonymous usage data Manta collects and how to opt out.
-- **Show Support:** [Star](https://github.com/stablyai/orca) this repo to follow along with our daily ships.
+```bash
+cd mobile && pnpm install && npx expo run:ios   # or run:android
+```
 
 ---
 
-## Developing
+## Deploy the relay
 
-Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTING.md) guide.
+The relay is what lets the phone reach a desktop that is not on the same
+network. It is a separate deployable — the desktop only ever talks to it over
+the network — and it is optional: on one LAN the phone pairs directly.
 
-<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+One relay serves several desktops. Each is identified by a hash of its own key,
+so a phone paired to one cannot reach another.
 
-<a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
-</a>
+### 1. Run the server
 
-## Signed Builds
-Windows code signing sponored/provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+On a host with a domain pointing at it:
+
+```bash
+git clone https://github.com/paidaxingyo666/Manta /opt/manta
+cd /opt/manta/relay-server/deploy
+cp .env.example .env
+$EDITOR .env
+docker compose up -d
+```
+
+`.env` needs four values, all of them required — compose refuses to start
+rather than fall back to something insecure:
+
+| Variable | What it is |
+| --- | --- |
+| `RELAY_DOMAIN` | the domain Caddy gets a certificate for |
+| `RELAY_PORT` | the public port; 443 unless it is unusable on that host |
+| `MANTA_RELAY_ENROLLMENT_SECRET` | what a desktop presents to enrol; without it the endpoint is open to anyone who can reach it |
+| `MANTA_RELAY_TOKEN_SECRET` | signs relay tokens; leave it empty and every restart invalidates the ones already issued |
+
+Both secrets: `openssl rand -base64 32`.
+
+Caddy terminates TLS and proxies to the relay, which is never published on the
+host itself. The relay container runs unprivileged with a read-only root
+filesystem.
+
+### 2. Point the desktop at it
+
+Settings → Advanced → Manta Cloud → **Self-hosted server** → **Configure
+endpoints**:
+
+| Field | Value |
+| --- | --- |
+| Sign-in server | `https://relay.example.com` |
+| Relay address | `https://relay.example.com` |
+| OAuth client ID | `manta-desktop` |
+| Enrolment secret | the value of `MANTA_RELAY_ENROLLMENT_SECRET` |
+
+Include the port if the relay is not on 443. The origin is signed into every
+host challenge byte for byte, so `https://host` and `https://host:9443` are
+different identities and a mismatch fails the handshake.
+
+Applying signs the app out and relaunches it — a session issued by one
+deployment means nothing to another. No browser opens: with a secret configured
+the desktop exchanges it for a session directly.
+
+Repeat on each desktop. They share one enrolment secret.
+
+### 3. Pair the phone
+
+Settings → Mobile on the desktop shows a QR code. Scan it from the app.
+
+**Full reference — configuration, TLS on a non-standard port, observability,
+operating notes: [`relay-server/README.md`](relay-server/README.md).**
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md). Design and platform rules that
+apply to every change are in [AGENTS.md](AGENTS.md).
 
 ## License
 
-Manta is free and open source under the [MIT License](LICENSE).
+MIT — see [LICENSE](LICENSE). Upstream Orca's copyright is retained there
+alongside this fork's.
+
+Upstream Orca's [contributors](https://github.com/stablyai/orca/graphs/contributors)
+wrote the code this builds on. Its [Discord](https://discord.gg/fzjDKHxv8Q) and
+[@orca_build](https://x.com/orca_build) are upstream's, not this fork's — for
+Manta, open an issue [here](https://github.com/paidaxingyo666/Manta/issues).

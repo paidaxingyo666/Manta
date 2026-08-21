@@ -21,7 +21,7 @@
 	#
 	# HARD DEADLINE: this certificate expires 2026-11-17. The ICP filing must
 	# land before then, or issuance has to move to a DNS-01 challenge.
-	tls /certs/relay.manta.sh.cn.crt /certs/relay.manta.sh.cn.key
+	tls /certs/{$RELAY_DOMAIN}.crt /certs/{$RELAY_DOMAIN}.key
 
 	@metrics path /metrics
 	respond @metrics 404

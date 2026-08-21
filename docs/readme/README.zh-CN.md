@@ -2,248 +2,120 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="../../resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta 是 [Orca](https://github.com/stablyai/orca) 的自托管 fork**（MIT，© Lovecast Inc.）。
->
-> 特性：
->
-> - 自建中继服务器
-> - 无需强制云账号
-> - 国际化
-> - 企业内部署
->
-> 基于：https://github.com/stablyai/orca
->
-> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。
->
-> Manta 没有云服务。登录与中继默认关闭，需在 设置 → 高级 → Manta Cloud 端点
-> 中指向你自己的部署；服务端代码在 `relay-server/`。文档链接指向 `manta.sh.cn`，
-> 那不是公共服务。
-
 <p align="center">
-  <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub Star 数" /></a>
-  <a href="https://github.com/stablyai/orca/releases"><img src="../assets/readme-downloads.svg" alt="所有版本的总下载量" /></a>
-  <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="许可证: MIT" />
-  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="加入 Manta Discord" /></a>
-  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="在 X 上关注 Manta" /></a>
-  <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="支持的平台：macOS、Windows 和 Linux" />
+  <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="License: MIT" />
+  <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="支持 macOS、Windows、Linux" />
 </p>
 
-<p align="center">
-  <sub><a href="../../README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.pt.md">Português</a></sub>
-</p>
+**Manta 是 [Orca](https://github.com/stablyai/orca) 的自托管 fork**（MIT，© Lovecast Inc.）。
 
-<p align="center">
-  <strong>面向 100x 构建者的 AI 编排器。</strong><br/>
-  并排运行 Codex、Claude Code、OpenCode 或 Pi — 每个都在自己的 worktree 中运行，并在一个地方统一跟踪。
-</p>
+特性：
 
-<h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>下载 Manta</ins></a></h3>
+- 自建中继服务器
+- 无需强制云账号
+- 国际化
+- 企业内部署
 
-## 特性
+基于：https://github.com/stablyai/orca
 
-<table>
-<tr>
-<td valign="middle">
+目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。
 
-### 移动 Companion 应用
-
-用手机监控并指挥你的智能体 — 智能体完成时收到通知，随时随地发送后续指令。
-
-[iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [Android APK](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [文档 →](https://www.manta.sh.cn/docs/mobile)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### 并行 Worktree
-
-把一个提示同时分发给五个智能体，每个都在自己隔离的 git worktree 中运行 — 比较结果，合并最佳方案。
-
-[文档 →](https://www.manta.sh.cn/docs/model/worktrees)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### 终端分屏
-
-Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然保留的滚动历史。
-
-[文档 →](https://www.manta.sh.cn/docs/terminal)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### 设计模式
-
-在真实的 Chromium 窗口中点击任意 UI 元素，把它的 HTML、CSS 和裁剪好的截图直接发送到智能体的提示中。
-
-[文档 →](https://www.manta.sh.cn/docs/browser/design-mode)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### GitHub &amp; Linear 原生集成
-
-在应用内浏览 PR、issue 和项目看板 — 从任意任务打开 worktree，无需切换上下文即可完成评审。
-
-[文档 →](https://www.manta.sh.cn/docs/review/linear)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### SSH Worktree
-
-在高性能远程机器上运行智能体，完整支持文件编辑、git 和终端 — 自动重连与端口转发一应俱全。
-
-[文档 →](https://www.manta.sh.cn/docs/ssh)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### 标注 AI Diff
-
-在任意 diff 行上添加评论并发回给智能体 — 评审、编辑、提交，全程无需离开 Manta。
-
-[文档 →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### 拖文件给智能体
-
-VS Code 的编辑器，处处自动保存 — 把文件或图片直接拖入智能体提示。
-
-[文档 →](https://www.manta.sh.cn/docs/editing/file-explorer)
-
-</td>
-</tr>
-<tr>
-<td valign="middle">
-
-### Manta CLI
-
-智能体也能驱动 Manta — 用 `manta worktree create`、`snapshot`、`click` 和 `fill` 把每个工作流脚本化。
-
-[文档 →](https://www.manta.sh.cn/docs/cli/overview)
-
-</td>
-</tr>
-</table>
-
-**开箱即用的还有：**
-
-- **[快速打开](https://www.manta.sh.cn/docs/model/quick-open)** — 在 worktree、文件、智能体、命令和仓库上下文之间搜索，不打断你的心流。
-- **[账号切换与用量追踪](https://www.manta.sh.cn/docs/agents/usage-tracking)** — 查看 Claude 和 Codex 的用量与限额重置时间，并且无需重新登录即可热切换账号。
-- **[丰富仓库预览](https://www.manta.sh.cn/docs/editing/markdown)** — 在工作区中预览 Markdown、图片、PDF 和仓库文档。
-- **[Computer Use](https://www.manta.sh.cn/docs/cli/computer-use)** — 当工作流需要真实交互时，让智能体操作桌面应用和可见 UI。
-- **[通知与未读状态](https://www.manta.sh.cn/docs/notifications)** — 第一时间知道智能体何时完成或需要关注，并可将会话标记为未读，稍后再回来处理。
-- **还有很多很多** — 我们每天发布新功能，这个列表永远跟不上。[更新日志](https://github.com/stablyai/orca/releases)才是真正的功能列表。
+Manta 没有云服务。登录与中继默认关闭，需在 设置 → 高级 → Manta Cloud 端点
+中指向你自己的部署；服务端代码在 `relay-server/`。文档链接指向
+`manta.sh.cn`，那不是公共服务。
 
 ---
 
-## 支持的智能体
+## 从源码构建
 
-适配**任何 CLI 智能体** — 只要能在终端里运行，就能在 Manta 里运行。
-
-<p>
-  <a href="https://docs.anthropic.com/claude/docs/claude-code"><kbd><img src="../assets/claude-logo.svg" alt="Claude Code logo" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
-  <a href="https://github.com/openai/codex"><kbd><img src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="Codex logo" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
-  <a href="https://x.ai/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=x.ai&sz=64" alt="Grok logo" width="16" valign="middle" /> Grok</kbd></a> &nbsp;
-  <a href="https://cursor.com/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" alt="Cursor logo" width="16" valign="middle" /> Cursor</kbd></a> &nbsp;
-  <a href="https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli"><kbd><img src="https://www.google.com/s2/favicons?domain=github.com&sz=64" alt="GitHub Copilot logo" width="16" valign="middle" /> GitHub Copilot</kbd></a> &nbsp;
-  <a href="https://opencode.ai/docs/cli/"><kbd><img src="https://www.google.com/s2/favicons?domain=opencode.ai&sz=64" alt="OpenCode logo" width="16" valign="middle" /> OpenCode</kbd></a> &nbsp;
-  <a href="https://ampcode.com/manual#install"><kbd><img src="https://www.google.com/s2/favicons?domain=ampcode.com&sz=64" alt="Amp logo" width="16" valign="middle" /> Amp</kbd></a> &nbsp;
-  <a href="https://openclaude.gitlawb.com/"><kbd><img src="../../resources/openclaude-logo.png" alt="OpenClaude logo" width="16" valign="middle" /> OpenClaude</kbd></a> &nbsp;
-  <a href="https://antigravity.google/docs/cli-overview"><kbd><img src="https://www.google.com/s2/favicons?domain=antigravity.google&sz=64" alt="Antigravity logo" width="16" valign="middle" /> Antigravity</kbd></a> &nbsp;
-  <a href="https://pi.dev"><kbd><img src="https://pi.dev/favicon.svg" alt="Pi logo" width="16" valign="middle" /> Pi</kbd></a> &nbsp;
-  <a href="https://omp.sh"><kbd><img src="https://omp.sh/favicon.svg" alt="oh-my-pi logo" width="16" valign="middle" /> oh-my-pi</kbd></a> &nbsp;
-  <a href="https://hermes-agent.nousresearch.com/docs/"><kbd><img src="https://www.google.com/s2/favicons?domain=nousresearch.com&sz=64" alt="Hermes Agent logo" width="16" valign="middle" /> Hermes Agent</kbd></a> &nbsp;
-  <a href="https://block.github.io/goose/docs/quickstart/"><kbd><img src="https://www.google.com/s2/favicons?domain=goose-docs.ai&sz=64" alt="Goose logo" width="16" valign="middle" /> Goose</kbd></a> &nbsp;
-  <a href="https://docs.augmentcode.com/cli/overview"><kbd><img src="https://www.google.com/s2/favicons?domain=augmentcode.com&sz=64" alt="Auggie logo" width="16" valign="middle" /> Auggie</kbd></a> &nbsp;
-  <a href="https://github.com/autohandai/code-cli"><kbd><img src="https://www.google.com/s2/favicons?domain=autohand.ai&sz=64" alt="Autohand Code logo" width="16" valign="middle" /> Autohand Code</kbd></a> &nbsp;
-  <a href="https://github.com/charmbracelet/crush"><kbd><img src="https://www.google.com/s2/favicons?domain=charm.sh&sz=64" alt="Charm logo" width="16" valign="middle" /> Charm</kbd></a> &nbsp;
-  <a href="https://docs.cline.bot/cline-cli/overview"><kbd><img src="https://www.google.com/s2/favicons?domain=cline.bot&sz=64" alt="Cline logo" width="16" valign="middle" /> Cline</kbd></a> &nbsp;
-  <a href="https://www.codebuff.com/docs/help/quick-start"><kbd><img src="https://www.google.com/s2/favicons?domain=codebuff.com&sz=64" alt="Codebuff logo" width="16" valign="middle" /> Codebuff</kbd></a> &nbsp;
-  <a href="https://commandcode.ai/docs/quickstart"><kbd><img src="https://www.google.com/s2/favicons?domain=commandcode.ai&sz=64" alt="Command Code logo" width="16" valign="middle" /> Command Code</kbd></a> &nbsp;
-  <a href="https://docs.continue.dev/guides/cli"><kbd><img src="https://www.google.com/s2/favicons?domain=continue.dev&sz=64" alt="Continue logo" width="16" valign="middle" /> Continue</kbd></a> &nbsp;
-  <a href="https://docs.factory.ai/cli/getting-started/quickstart"><kbd><img src="../assets/droid-logo.svg" alt="Droid logo" width="16" valign="middle" /> Droid</kbd></a> &nbsp;
-  <a href="https://kilo.ai/docs/cli"><kbd><img src="https://raw.githubusercontent.com/Kilo-Org/kilocode/main/packages/kilo-vscode/assets/icons/kilo-light.svg" alt="Kilocode logo" width="16" valign="middle" /> Kilocode</kbd></a> &nbsp;
-  <a href="https://www.kimi.com/code/docs/en/kimi-code-cli/getting-started.html"><kbd><img src="https://www.google.com/s2/favicons?domain=moonshot.cn&sz=64" alt="Kimi logo" width="16" valign="middle" /> Kimi</kbd></a> &nbsp;
-  <a href="https://kiro.dev/docs/cli/"><kbd><img src="https://www.google.com/s2/favicons?domain=kiro.dev&sz=64" alt="Kiro logo" width="16" valign="middle" /> Kiro</kbd></a> &nbsp;
-  <a href="https://github.com/mistralai/mistral-vibe"><kbd><img src="https://www.google.com/s2/favicons?domain=mistral.ai&sz=64" alt="Mistral Vibe logo" width="16" valign="middle" /> Mistral Vibe</kbd></a> &nbsp;
-  <a href="https://github.com/QwenLM/qwen-code"><kbd><img src="https://www.google.com/s2/favicons?domain=qwenlm.github.io&sz=64" alt="Qwen Code logo" width="16" valign="middle" /> Qwen Code</kbd></a> &nbsp;
-  <a href="https://support.atlassian.com/rovo/docs/install-and-run-rovo-dev-cli-on-your-device/"><kbd><img src="https://www.google.com/s2/favicons?domain=atlassian.com&sz=64" alt="Rovo Dev logo" width="16" valign="middle" /> Rovo Dev</kbd></a> &nbsp;
-  <kbd>+ 任何 CLI 智能体</kbd>
-</p>
-
----
-
-## 安装
-
-### 桌面端 — macOS、Windows、Linux
-
-- **[从 manta.sh.cn 下载](https://manta.sh.cn/download)**
-- 或直接获取安装包：[macOS Apple Silicon](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-macos-arm64.dmg) · [macOS Intel](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-macos-x64.dmg) · [Windows (.exe)](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-windows-setup.exe) · [Linux AppImage](https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-linux.AppImage) · [全部构建](https://github.com/paidaxingyo666/Manta/releases/latest)
-
-_也可以通过包管理器安装：_
+需要 Node 20+ 与 pnpm。
 
 ```bash
-# macOS (Homebrew)
-brew install --cask paidaxingyo666/manta/manta
-
-# Arch Linux (AUR) — or stably-manta-git to build from source
-yay -S stably-manta-bin
+pnpm install
+pnpm dev            # 运行桌面端
+pnpm build:mac      # 或 build:win / build:linux
 ```
 
-### 移动 Companion 应用 — iOS、Android
+移动端在 `mobile/`，是一个 Expo 应用：
 
-与桌面应用配对，用手机监控并指挥你的智能体。
-
-- **iOS:** [从 App Store 下载](https://apps.apple.com/us/app/orca-ide/id6766130217)
-- **Android:** [下载 APK](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk)
-
----
-
-## 社区与支持
-
-Manta 没有自己的社区渠道 —— 有问题请在
-[本仓库](https://github.com/paidaxingyo666/Manta/issues) 提 issue。
-
-下列渠道属于上游 Orca，适合咨询上游相关问题，不适合咨询本 fork：
-
-- **Discord:** [Orca 社区](https://discord.gg/fzjDKHxv8Q)
-- **Twitter / X:** [@orca_build](https://x.com/orca_build)
-- **微信:** 上游社区微信第 7 群（已满则用第 8 群）
-
-- **反馈与想法:** 我们发布很快。缺少什么功能？[提交功能请求](https://github.com/paidaxingyo666/Manta/issues)。
-- **隐私:** 查看[隐私与遥测文档](https://www.manta.sh.cn/docs/telemetry)，了解 Manta 收集哪些匿名使用数据以及如何退出。
-- **支持我们:** 给这个仓库点 [Star](https://github.com/stablyai/orca)，关注我们的日常发布。
+```bash
+cd mobile && pnpm install && npx expo run:ios   # 或 run:android
+```
 
 ---
 
-## 开发
+## 部署中继
 
-想要贡献代码或在本地运行？请参阅我们的 [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) 指南。
+中继的作用是让手机连上不在同一网络的桌面端。它是独立部署的服务 —— 桌面端只通过
+网络与它通信 —— 并且是可选的：同一局域网内手机可直接配对。
 
-<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+一个中继可以服务多台桌面端。每台由自身密钥的哈希标识，因此与某台配对的手机无法
+连到另一台。
 
-<a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
-</a>
+### 1. 启动服务端
+
+在一台已解析域名的主机上：
+
+```bash
+git clone https://github.com/paidaxingyo666/Manta /opt/manta
+cd /opt/manta/relay-server/deploy
+cp .env.example .env
+$EDITOR .env
+docker compose up -d
+```
+
+`.env` 需要四个值，全部必填 —— compose 宁可拒绝启动，也不会退回到不安全的默认值：
+
+| 变量 | 含义 |
+| --- | --- |
+| `RELAY_DOMAIN` | Caddy 申请证书所用的域名 |
+| `RELAY_PORT` | 对外端口；除非该主机无法使用，否则填 443 |
+| `MANTA_RELAY_ENROLLMENT_SECRET` | 桌面端注册时出示的密钥；不设则任何能访问到的人都能注册 |
+| `MANTA_RELAY_TOKEN_SECRET` | 签发中继令牌；留空则每次重启都会让已签发的令牌失效 |
+
+两个密钥都可用：`openssl rand -base64 32`。
+
+Caddy 终止 TLS 并转发给中继，中继本身不对主机暴露端口。中继容器以非特权、
+只读根文件系统运行。
+
+### 2. 让桌面端指向它
+
+设置 → 高级 → Manta Cloud → **自建服务器** → **配置端点**：
+
+| 字段 | 值 |
+| --- | --- |
+| 登录服务器 | `https://relay.example.com` |
+| 中继地址 | `https://relay.example.com` |
+| OAuth 客户端 ID | `manta-desktop` |
+| 注册密钥 | `MANTA_RELAY_ENROLLMENT_SECRET` 的值 |
+
+若中继不在 443 端口，必须带上端口号。该来源会逐字节参与主机质询的签名，
+`https://host` 与 `https://host:9443` 是两个不同身份，不一致会导致握手失败。
+
+应用后会退出登录并重启 —— 一个部署签发的会话对另一个部署没有意义。不会打开
+浏览器：配置了密钥后，桌面端直接用它换取会话。
+
+每台桌面端重复一次，它们共用同一个注册密钥。
+
+### 3. 配对手机
+
+桌面端 设置 → 移动端 会显示二维码，用手机 App 扫描即可。
+
+**完整参考 —— 配置项、非标端口上的 TLS、可观测性、运维注意事项：
+[`relay-server/README.md`](../../relay-server/README.md)。**
+
+---
+
+## 参与贡献
+
+见 [CONTRIBUTING.md](../../.github/CONTRIBUTING.md)。适用于所有改动的设计与平台
+规则在 [AGENTS.md](../../AGENTS.md)。
 
 ## 许可证
 
-Manta 是自由且开源的软件，遵循 [MIT 许可证](../../LICENSE)。
+MIT —— 见 [LICENSE](../../LICENSE)。上游 Orca 的版权声明与本 fork 的并列保留在其中。
+
+上游 Orca 的[贡献者](https://github.com/stablyai/orca/graphs/contributors)写下了
+本项目所基于的代码。其 [Discord](https://discord.gg/fzjDKHxv8Q) 与
+[@orca_build](https://x.com/orca_build) 属于上游，不属于本 fork —— Manta 的问题请
+在[这里](https://github.com/paidaxingyo666/Manta/issues)提 issue。
