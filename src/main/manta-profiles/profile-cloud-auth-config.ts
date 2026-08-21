@@ -35,9 +35,14 @@ export type MantaCloudAuthConfig = {
 }
 
 const DEFAULT_SCOPE = 'openid profile email offline_access'
-const PRODUCTION_API_BASE_URL = 'https://login.manta.sh.cn'
-const PRODUCTION_CLIENT_ID = 'manta-desktop'
-const PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.manta.sh.cn'
+const DEFAULT_CLIENT_ID = 'manta-desktop'
+
+// Why there is no built-in endpoint: this fork has no cloud service of its own,
+// and the relay it was developed against is one person's private server behind
+// an enrolment secret. Baking that host in would point every packaged build at
+// it — traffic its owner never invited, for a service that would refuse the
+// caller anyway. Sign-in stays off until someone names their own relay, which
+// is the whole point of a self-hosted fork.
 
 // Why: packaged main bundles never define NODE_ENV, so packaged-ness is the
 // only reliable production signal for gating dev-only auth escape hatches.
@@ -95,21 +100,14 @@ export function getMantaCloudAuthConfig(
   const cleanEndpointUrl = (value: string | undefined): string | null =>
     cleanUrl(value, allowLoopbackHttp)
   const configuredApiBaseUrl = env.MANTA_CLOUD_API_URL?.trim() || overrides?.apiBaseUrl?.trim()
-  // Why: packaged releases cannot depend on launch-time environment injection;
-  // these first-party endpoints and the public OAuth client ID are not secrets.
-  const apiBaseUrl = configuredApiBaseUrl
-    ? cleanEndpointUrl(configuredApiBaseUrl)
-    : packaged
-      ? PRODUCTION_API_BASE_URL
-      : null
+  const apiBaseUrl = configuredApiBaseUrl ? cleanEndpointUrl(configuredApiBaseUrl) : null
   const clientId =
-    env.MANTA_CLOUD_CLIENT_ID?.trim() ||
-    overrides?.clientId?.trim() ||
-    (packaged ? PRODUCTION_CLIENT_ID : undefined)
+    env.MANTA_CLOUD_CLIENT_ID?.trim() || overrides?.clientId?.trim() || DEFAULT_CLIENT_ID
   if (!apiBaseUrl || !clientId) {
     return {
       configured: false,
-      setupMessage: 'Manta Cloud sign-in is not configured for this build.'
+      setupMessage:
+        'No relay is configured. Set one in Settings → Advanced → Manta Cloud endpoints, or run your own from relay-server/.'
     }
   }
 
@@ -144,10 +142,12 @@ export function getMantaCloudAuthConfig(
       relayTokenEndpoint:
         cleanEndpointUrl(env.MANTA_CLOUD_RELAY_TOKEN_URL) ??
         endpoint(apiBaseUrl, '/v1/desktop/auth/relay-token'),
+      // Falls back to the configured API host rather than to a built-in one:
+      // a self-hosted deployment usually serves both from the same origin.
       relayDirectorUrl:
         cleanOrigin(env.MANTA_RELAY_URL, allowLoopbackHttp) ??
         cleanOrigin(overrides?.relayDirectorUrl, allowLoopbackHttp) ??
-        PRODUCTION_RELAY_DIRECTOR_URL,
+        apiBaseUrl,
       clientId,
       // Sent in the session-exchange body, never on the authorize URL: that
       // one opens in a browser, so anything on it lands in history and logs.

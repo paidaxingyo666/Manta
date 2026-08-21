@@ -13,7 +13,12 @@
 >
 > Based on: https://github.com/stablyai/orca
 >
-> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
+> No standalone Manta release is published yet — build from source.
+>
+> There is no Manta cloud service. Sign-in and relay stay off until you point
+> them at your own deployment (Settings → Advanced → Manta Cloud endpoints);
+> `relay-server/` is the server to run. Documentation links point at
+> `manta.sh.cn`, which is not a public service.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub 스타" /></a>
@@ -35,9 +40,6 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Manta 다운로드</ins></a></h3>
 
-<p align="center">
-  <img src="../assets/readme-hero.jpg" alt="병렬 worktree에서 에이전트를 실행 중인 Manta 데스크톱 앱과 한쪽 모서리에 보이는 Manta 모바일 companion 앱" width="960" />
-</p>
 
 ## 기능
 
@@ -271,9 +273,6 @@ yay -S stably-manta-bin
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
-<p align="center">
-  <img src="../assets/star-history.png" alt="stablyai/orca GitHub Star 히스토리 차트" width="880" />
-</p>
 
 ## 서명된 빌드
 

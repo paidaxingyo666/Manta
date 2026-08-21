@@ -13,7 +13,12 @@
 >
 > Based on: https://github.com/stablyai/orca
 >
-> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
+> No standalone Manta release is published yet — build from source.
+>
+> There is no Manta cloud service. Sign-in and relay stay off until you point
+> them at your own deployment (Settings → Advanced → Manta Cloud endpoints);
+> `relay-server/` is the server to run. Documentation links point at
+> `manta.sh.cn`, which is not a public service.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub stars" /></a>
@@ -35,9 +40,6 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Download Manta</ins></a></h3>
 
-<p align="center">
-  <img src="docs/assets/readme-hero.jpg" alt="Manta desktop app running agents in parallel worktrees, with the Manta mobile companion app in the corner" width="960" />
-</p>
 
 ## Features
 
@@ -278,9 +280,6 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
-<p align="center">
-  <img src="docs/assets/star-history.png" alt="GitHub star history chart for stablyai/orca" width="880" />
-</p>
 
 ## Signed Builds
 Windows code signing sponored/provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).

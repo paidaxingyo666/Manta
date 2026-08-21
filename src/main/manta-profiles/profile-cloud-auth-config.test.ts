@@ -15,7 +15,8 @@ describe('Manta cloud auth config', () => {
   it('reports unconfigured without both API URL and client ID', () => {
     expect(getMantaCloudAuthConfig({})).toEqual({
       configured: false,
-      setupMessage: 'Manta Cloud sign-in is not configured for this build.'
+      setupMessage:
+        'No relay is configured. Set one in Settings → Advanced → Manta Cloud endpoints, or run your own from relay-server/.'
     })
   })
 
@@ -37,31 +38,21 @@ describe('Manta cloud auth config', () => {
         orgEndpoint: 'https://manta-cloud.example/v1/desktop/auth/org',
         logoutEndpoint: 'https://manta-cloud.example/v1/desktop/auth/logout',
         relayTokenEndpoint: 'https://manta-cloud.example/v1/desktop/auth/relay-token',
-        relayDirectorUrl: 'https://relay.manta.sh.cn',
+        relayDirectorUrl: 'https://manta-cloud.example',
         clientId: 'desktop-client',
         scope: 'openid profile email offline_access'
       }
     })
   })
 
-  it('uses first-party production endpoints without runtime env in packaged builds', () => {
-    expect(getMantaCloudAuthConfig({}, true)).toEqual({
-      configured: true,
-      config: {
-        apiBaseUrl: 'https://login.manta.sh.cn',
-        authorizeEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/authorize',
-        sessionEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/session',
-        refreshEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/refresh',
-        capabilitiesEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/capabilities',
-        profileEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/profile',
-        orgEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/org',
-        logoutEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/logout',
-        relayTokenEndpoint: 'https://login.manta.sh.cn/v1/desktop/auth/relay-token',
-        relayDirectorUrl: 'https://relay.manta.sh.cn',
-        clientId: 'manta-desktop',
-        scope: 'openid profile email offline_access'
-      }
-    })
+  // Why not a built-in endpoint: the relay this fork was developed against is a
+  // private server, and shipping its host would point every packaged build at
+  // someone else's machine. Sign-in stays off until a relay is named.
+  it('leaves sign-in unconfigured in a packaged build with no endpoint set', () => {
+    const state = getMantaCloudAuthConfig({}, true)
+
+    expect(state.configured).toBe(false)
+    expect(state.configured === false && state.setupMessage).toContain('No relay is configured')
   })
 
   it('allows loopback HTTP endpoints for local desktop auth development', () => {
@@ -185,7 +176,7 @@ describe('self-hosted endpoint overrides', () => {
     expect(state.config.relayDirectorUrl).toBe('https://env-relay.example')
   })
 
-  it('ignores a non-canonical relay origin and keeps the built-in default', () => {
+  it('ignores a non-canonical relay origin and falls back to the API host', () => {
     const state = getMantaCloudAuthConfig({}, false, {
       ...overrides,
       relayDirectorUrl: 'https://relay.selfhost.example/v1'
@@ -194,7 +185,7 @@ describe('self-hosted endpoint overrides', () => {
     if (!state.configured) {
       return
     }
-    expect(state.config.relayDirectorUrl).toBe('https://relay.manta.sh.cn')
+    expect(state.config.relayDirectorUrl).toBe(state.config.apiBaseUrl)
   })
 
   it('stays unconfigured when overrides are absent on an unpackaged build', () => {

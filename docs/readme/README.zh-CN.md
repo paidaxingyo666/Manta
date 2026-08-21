@@ -13,7 +13,11 @@
 >
 > 基于：https://github.com/stablyai/orca
 >
-> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。文中链接指向 `manta.sh.cn`。
+> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。
+>
+> Manta 没有云服务。登录与中继默认关闭，需在 设置 → 高级 → Manta Cloud 端点
+> 中指向你自己的部署；服务端代码在 `relay-server/`。文档链接指向 `manta.sh.cn`，
+> 那不是公共服务。
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub Star 数" /></a>
@@ -35,9 +39,6 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>下载 Manta</ins></a></h3>
 
-<p align="center">
-  <img src="../assets/readme-hero.jpg" alt="Manta 桌面应用在并行 worktree 中运行智能体，角落里是 Manta 移动 companion 应用" width="960" />
-</p>
 
 ## 特性
 

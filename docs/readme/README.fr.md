@@ -13,7 +13,12 @@
 >
 > Based on: https://github.com/stablyai/orca
 >
-> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
+> No standalone Manta release is published yet — build from source.
+>
+> There is no Manta cloud service. Sign-in and relay stay off until you point
+> them at your own deployment (Settings → Advanced → Manta Cloud endpoints);
+> `relay-server/` is the server to run. Documentation links point at
+> `manta.sh.cn`, which is not a public service.
 
 <p align="center">
   <a href="https://github.com/stablyai/orca"><img src="https://badgen.net/github/stars/stablyai/orca?label=%E2%98%85" alt="Étoiles GitHub" /></a>
@@ -39,9 +44,6 @@
   <sub>Sous Windows ? Prenez la <a href="https://github.com/stablyai/orca/releases#release-v1.4.147-rc.3">dernière RC</a> — elle inclut des correctifs Windows.</sub>
 </p>
 
-<p align="center">
-  <img src="../assets/readme-hero.jpg" alt="Application de bureau Manta exécutant des agents dans des worktrees parallèles, avec l'app companion mobile Manta dans le coin" width="960" />
-</p>
 
 ## Fonctionnalités
 
@@ -276,9 +278,6 @@ Envie de contribuer ou de lancer le projet en local ? Consultez notre guide [CON
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
-<p align="center">
-  <img src="../assets/star-history.png" alt="Graphique d'historique des étoiles GitHub pour stablyai/orca" width="880" />
-</p>
 
 ## Builds signés
 

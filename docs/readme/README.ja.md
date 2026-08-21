@@ -13,7 +13,12 @@
 >
 > Based on: https://github.com/stablyai/orca
 >
-> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
+> No standalone Manta release is published yet — build from source.
+>
+> There is no Manta cloud service. Sign-in and relay stay off until you point
+> them at your own deployment (Settings → Advanced → Manta Cloud endpoints);
+> `relay-server/` is the server to run. Documentation links point at
+> `manta.sh.cn`, which is not a public service.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub スター数" /></a>
@@ -35,9 +40,6 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Manta をダウンロード</ins></a></h3>
 
-<p align="center">
-  <img src="../assets/readme-hero.jpg" alt="並列ワークツリーでエージェントを実行する Manta デスクトップアプリと、隅に表示された Manta モバイル companion アプリ" width="960" />
-</p>
 
 ## 機能
 

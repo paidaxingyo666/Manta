@@ -190,7 +190,8 @@ describe('Manta cloud profile service', () => {
       state: 'unconfigured',
       persistence: 'encrypted',
       cloud: cloudSummary,
-      setupMessage: 'Manta Cloud sign-in is not configured for this build.'
+      setupMessage:
+        'No relay is configured. Set one in Settings → Advanced → Manta Cloud endpoints, or run your own from relay-server/.'
     })
     expect(getCurrentMantaProfileAuthStatus(userDataPath).organizations).toBeUndefined()
     expect(getCurrentMantaProfileAuthStatus(userDataPath).capabilities).toBeUndefined()
