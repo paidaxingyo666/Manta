@@ -8,6 +8,11 @@
 #   docker compose up -d
 services:
   relay:
+    # Set RELAY_IMAGE in .env to pull a published image instead of compiling
+    # here — a small VPS takes minutes to build this and needs the toolchain.
+    # Left unset, compose builds from source, which is what a checkout of an
+    # unreleased commit needs.
+    image: "${RELAY_IMAGE:-manta-relay-local}"
     build:
       context: ..
       dockerfile: Dockerfile

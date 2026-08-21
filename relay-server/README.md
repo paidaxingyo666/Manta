@@ -252,6 +252,59 @@ Known gaps, honestly:
   assumption, not a policy engine.
 - No tracing, and no alerting rules ship with the metrics.
 
+## Releasing
+
+The image publishes on a `relay-v*` tag, to whichever registries are configured
+as secrets — Docker Hub, Aliyun ACR, Tencent TCR, or any subset.
+
+```bash
+# 1. Bump relay-server/package.json. The workflow refuses to publish a tag
+#    whose version disagrees with what the source declares.
+# 2. Tag and push.
+git tag relay-v1.0.1 && git push origin relay-v1.0.1
+```
+
+One build is pushed to every registry, so the digest is identical across them:
+an operator who pins a digest from Docker Hub gets the same bytes from Aliyun.
+Images are `linux/amd64` and `linux/arm64` — arm64 because the cheap way to run
+something this small is a Graviton or Ampere instance, where an amd64-only
+image would quietly run under emulation.
+
+`latest` moves only for a release without a prerelease suffix.
+
+The version reaches the running relay: `/health` reports it alongside the git
+revision and build time, so an operator can confirm what is deployed without
+shell access.
+
+```json
+{ "ok": true, "version": "1.0.1", "revision": "9f3c2a1", "builtAt": "2026-08-21T09:14:02Z" }
+```
+
+### Registry secrets
+
+Each registry is skipped when its secrets are absent, so configure only what
+you use.
+
+| Registry | Secrets |
+| --- | --- |
+| Docker Hub | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `DOCKERHUB_REPO` (e.g. `you/manta-relay`) |
+| Aliyun ACR | `ALIYUN_REGISTRY` (e.g. `registry.cn-hangzhou.aliyuncs.com`), `ALIYUN_USERNAME`, `ALIYUN_PASSWORD`, `ALIYUN_REPO` (e.g. `your-namespace/manta-relay`) |
+| Tencent TCR | `TENCENT_REGISTRY` (e.g. `ccr.ccs.tencentyun.com`), `TENCENT_USERNAME`, `TENCENT_PASSWORD`, `TENCENT_REPO` |
+
+Run the workflow manually with **dry run** first — it builds and verifies both
+architectures without pushing.
+
+### Deploying a published image
+
+Set `RELAY_IMAGE` in `deploy/.env` and compose pulls instead of building:
+
+```
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.1
+```
+
+Left unset it builds from the checkout, which is what an unreleased commit
+needs.
+
 ## Development
 
 ```bash

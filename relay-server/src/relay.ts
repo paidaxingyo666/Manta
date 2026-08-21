@@ -26,6 +26,7 @@ import { RateLimiter } from './shared/rate-limit.js'
 import { clientAddress, parseTrustedProxies, rateLimitKey } from './shared/client-ip.js'
 import { CLOSE_CODES } from './shared/protocol.js'
 import { startCertificateWatch } from './shared/certificate-expiry.js'
+import { buildInfo } from './build-info.js'
 
 /** How long a lingering socket may delay shutdown before it is cut. */
 const LINGER_MS = 1_000
@@ -152,7 +153,9 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
         // Health is the one unauthenticated endpoint and it says only whether
         // the process is up. Session counts belong on /metrics, behind a token.
         if (request.url === '/health' || request.url === '/healthz') {
-          json(response, shuttingDown ? 503 : 200, { ok: !shuttingDown })
+          // Version travels with the health check so an operator can confirm what
+          // is running without shell access to the host.
+          json(response, shuttingDown ? 503 : 200, { ok: !shuttingDown, ...buildInfo() })
           return
         }
         if (request.url === '/metrics') {

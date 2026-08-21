@@ -1,0 +1,174 @@
+# Publishes the relay image on a `relay-v*` tag.
+#
+# Why one build pushed to three registries rather than three builds: the digest
+# has to match across them. An operator who pins a digest from Docker Hub and
+# pulls from Aliyun should get the identical image, and rebuilding per registry
+# cannot promise that.
+#
+# Registries are opt-in per secret. A fork with only Docker Hub configured
+# publishes there and skips the rest instead of failing the run.
+name: Relay release
+
+on:
+  push:
+    tags:
+      - 'relay-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish, without the leading v (e.g. 1.0.0)'
+        required: true
+      dry_run:
+        description: 'Build and verify without pushing'
+        type: boolean
+        default: true
+
+concurrency:
+  group: relay-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            version="${{ inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#relay-v}"
+          fi
+          # A tag that does not parse is a typo, not a prerelease to guess at.
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$version' is not semver" && exit 1
+          fi
+          # The image must not claim a version the source does not carry.
+          declared=$(node -p "require('./relay-server/package.json').version")
+          if [ "$declared" != "$version" ]; then
+            echo "::error::relay-server/package.json says $declared, tag says $version" && exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$(printf '%s' "$version" | grep -q -- '-' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Test before publishing
+        working-directory: relay-server
+        run: |
+          npm ci --no-audit --no-fund
+          npm run check
+
+      - name: Which registries are configured
+        id: registries
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+        run: |
+          set -euo pipefail
+          echo "dockerhub=$([ -n "$DOCKERHUB_REPO" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "aliyun=$([ -n "$ALIYUN_REGISTRY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "tencent=$([ -n "$TENCENT_REGISTRY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      # Each login is skipped when its secret is absent, so a fork configures
+      # only the registries it actually uses.
+      - name: Log in to Docker Hub
+        if: steps.registries.outputs.dockerhub == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Aliyun ACR
+        if: steps.registries.outputs.aliyun == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Log in to Tencent TCR
+        if: steps.registries.outputs.tencent == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.TENCENT_REGISTRY }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+
+      - name: Assemble tags
+        id: tags
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+          TENCENT_REPO: ${{ secrets.TENCENT_REPO }}
+        run: |
+          set -euo pipefail
+          tags=""
+          add() {
+            # `latest` only for a real release: a prerelease that claimed it
+            # would be pulled by every `docker pull <repo>` with no tag.
+            tags="${tags}${1}:${VERSION}"$'\n'
+            if [ "$PRERELEASE" = "false" ]; then tags="${tags}${1}:latest"$'\n'; fi
+          }
+          # `if`, not `cond && add`: under `set -e` a false condition makes the
+          # whole line return non-zero and kills the step.
+          if [ -n "$DOCKERHUB_REPO" ]; then add "$DOCKERHUB_REPO"; fi
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_REPO" ]; then
+            add "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"
+          fi
+          if [ -n "$TENCENT_REGISTRY" ] && [ -n "$TENCENT_REPO" ]; then
+            add "${TENCENT_REGISTRY}/${TENCENT_REPO}"
+          fi
+          if [ -z "$tags" ]; then
+            echo "::error::No registry configured. Set at least DOCKERHUB_REPO." && exit 1
+          fi
+          { echo 'tags<<EOF'; printf '%s' "$tags"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: relay-server
+          # arm64 as well as amd64: Graviton and Ampere instances are the cheap
+          # way to run something this small, and an amd64-only image silently
+          # runs under emulation there.
+          platforms: linux/amd64,linux/arm64
+          push: ${{ !inputs.dry_run }}
+          tags: ${{ steps.tags.outputs.tags }}
+          # Attestation manifests confuse registries that only understand the
+          # classic multi-arch index; Aliyun ACR is one of them.
+          provenance: false
+          build-args: |
+            MANTA_RELAY_VERSION=${{ steps.version.outputs.version }}
+            MANTA_RELAY_REVISION=${{ github.sha }}
+            MANTA_RELAY_BUILT_AT=${{ steps.version.outputs.built_at }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Report
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          {
+            echo "### Relay ${{ steps.version.outputs.version }}"
+            echo
+            if [ "${{ inputs.dry_run }}" = "true" ]; then echo "_Dry run — nothing pushed._"; echo; fi
+            echo "Digest: \`${DIGEST:-n/a}\`"
+            echo
+            echo '```'
+            printf '%s\n' "${{ steps.tags.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

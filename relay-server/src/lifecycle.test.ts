@@ -23,7 +23,13 @@ afterEach(async () => {
 describe('lifecycle', () => {
   it('serves health without a credential and reports draining', async () => {
     current = await startTestRelay(() => ({ shutdownGraceMs: 400 }))
-    expect(await (await fetch(`${current.origin}/health`)).json()).toEqual({ ok: true })
+    // Health also carries build info; `ok` is what a load balancer reads.
+    const healthy = (await (await fetch(`${current.origin}/health`)).json()) as {
+      ok: boolean
+      version: string
+    }
+    expect(healthy.ok).toBe(true)
+    expect(healthy.version).toBeTruthy()
 
     const stopping = current.relay.shutdown('test')
     // A load balancer needs to see the relay leave rotation *before* the socket

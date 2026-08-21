@@ -19,7 +19,24 @@ RUN npm ci --omit=dev --no-audit --no-fund
 
 # ---- runtime -----------------------------------------------------------------
 FROM node:22-alpine
-ENV NODE_ENV=production
+# Passed by the release workflow; a plain `docker build` leaves them empty and
+# the relay reports 'dev'/'unknown' rather than claiming a version it is not.
+ARG MANTA_RELAY_VERSION=""
+ARG MANTA_RELAY_REVISION=""
+ARG MANTA_RELAY_BUILT_AT=""
+# Why OCI labels as well as the env vars: registries and `docker scout` read
+# these, and they are what links a pulled image back to the commit it came from.
+LABEL org.opencontainers.image.title="Manta relay" \
+      org.opencontainers.image.description="Self-hosted relay for Manta" \
+      org.opencontainers.image.source="https://github.com/paidaxingyo666/Manta" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${MANTA_RELAY_VERSION}" \
+      org.opencontainers.image.revision="${MANTA_RELAY_REVISION}" \
+      org.opencontainers.image.created="${MANTA_RELAY_BUILT_AT}"
+ENV NODE_ENV=production \
+    MANTA_RELAY_VERSION="${MANTA_RELAY_VERSION}" \
+    MANTA_RELAY_REVISION="${MANTA_RELAY_REVISION}" \
+    MANTA_RELAY_BUILT_AT="${MANTA_RELAY_BUILT_AT}"
 WORKDIR /app
 # The relay only ever needs to write its state directory, so it runs as a
 # dedicated user and the image can be mounted read-only apart from that volume.
