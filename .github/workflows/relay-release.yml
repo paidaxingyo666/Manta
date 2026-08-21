@@ -186,6 +186,22 @@ jobs:
           if [ -z "$tags" ]; then
             echo "::error::No registry accepted our credentials." && exit 1
           fi
+          # A repository path missing its namespace logs in fine and is refused
+          # at push, after a full build. Catch the shape here instead.
+          check_path() {
+            case "$2" in
+              */*) ;;
+              '') ;;
+              *) echo "::error::$1 needs namespace/repository, got a single segment" && exit 1 ;;
+            esac
+            case "$2" in
+              */) echo "::error::$1 has a trailing slash" && exit 1 ;;
+              http*) echo "::error::$1 must not include a scheme" && exit 1 ;;
+            esac
+          }
+          check_path DOCKERHUB_REPO "$DOCKERHUB_REPO"
+          check_path ALIYUN_REPO "$ALIYUN_REPO"
+          check_path TENCENT_REPO "$TENCENT_REPO"
           { echo 'tags<<EOF'; printf '%s' "$tags"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
 
       - name: Build and push

@@ -288,8 +288,17 @@ you use.
 | Registry | Secrets |
 | --- | --- |
 | Docker Hub | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `DOCKERHUB_REPO` (e.g. `you/manta-relay`) |
-| Aliyun ACR | `ALIYUN_REGISTRY` (e.g. `registry.cn-hangzhou.aliyuncs.com`), `ALIYUN_USERNAME`, `ALIYUN_PASSWORD`, `ALIYUN_REPO` (e.g. `your-namespace/manta-relay`) |
+| Aliyun ACR | `ALIYUN_REGISTRY` (host only, e.g. `crpi-xxxx.cn-shanghai.personal.cr.aliyuncs.com`), `ALIYUN_USERNAME`, `ALIYUN_PASSWORD`, `ALIYUN_REPO` (e.g. `your-namespace/manta-relay`) |
 | Tencent TCR | `TENCENT_REGISTRY` (e.g. `ccr.ccs.tencentyun.com`), `TENCENT_USERNAME`, `TENCENT_PASSWORD`, `TENCENT_REPO` |
+
+Every `*_REPO` is `namespace/repository`, without the registry host and without
+a scheme. A single segment is the mistake worth naming: it logs in fine and is
+refused at push, so you find out after a full build. The workflow checks the
+shape before building now.
+
+Aliyun in particular creates nothing for you — the namespace and the repository
+both have to exist in the ACR console first. Docker Hub creates personal
+repositories on first push, but not organisation ones.
 
 Run the workflow manually with **dry run** first — it builds and verifies both
 architectures without pushing.
