@@ -87,6 +87,11 @@ jobs:
       # Each login is skipped when its secret is absent, so a fork configures
       # only the registries it actually uses.
       - name: Log in to Docker Hub
+        id: login_dockerhub
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
         if: steps.registries.outputs.dockerhub == 'true' && !inputs.dry_run
         uses: docker/login-action@v3
         with:
@@ -94,6 +99,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to Aliyun ACR
+        id: login_aliyun
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
         if: steps.registries.outputs.aliyun == 'true' && !inputs.dry_run
         uses: docker/login-action@v3
         with:
@@ -102,6 +112,11 @@ jobs:
           password: ${{ secrets.ALIYUN_PASSWORD }}
 
       - name: Log in to Tencent TCR
+        id: login_tencent
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
         if: steps.registries.outputs.tencent == 'true' && !inputs.dry_run
         uses: docker/login-action@v3
         with:
@@ -119,9 +134,20 @@ jobs:
           ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
           TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
           TENCENT_REPO: ${{ secrets.TENCENT_REPO }}
+          DOCKERHUB_OK: ${{ steps.login_dockerhub.outcome }}
+          ALIYUN_OK: ${{ steps.login_aliyun.outcome }}
+          TENCENT_OK: ${{ steps.login_tencent.outcome }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
           tags=""
+          failed=""
+          # A dry run never logs in, so outcome is empty there and everything is
+          # taggable; a real run only tags what accepted our credentials.
+          usable() {
+            [ "$DRY_RUN" = "true" ] && return 0
+            [ "$1" = "success" ]
+          }
           add() {
             # `latest` only for a real release: a prerelease that claimed it
             # would be pulled by every `docker pull <repo>` with no tag.
@@ -130,15 +156,21 @@ jobs:
           }
           # `if`, not `cond && add`: under `set -e` a false condition makes the
           # whole line return non-zero and kills the step.
-          if [ -n "$DOCKERHUB_REPO" ]; then add "$DOCKERHUB_REPO"; fi
+          if [ -n "$DOCKERHUB_REPO" ]; then
+            if usable "$DOCKERHUB_OK"; then add "$DOCKERHUB_REPO"; else failed="${failed}Docker Hub "; fi
+          fi
           if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_REPO" ]; then
-            add "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"
+            if usable "$ALIYUN_OK"; then add "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"; else failed="${failed}Aliyun "; fi
           fi
           if [ -n "$TENCENT_REGISTRY" ] && [ -n "$TENCENT_REPO" ]; then
-            add "${TENCENT_REGISTRY}/${TENCENT_REPO}"
+            if usable "$TENCENT_OK"; then add "${TENCENT_REGISTRY}/${TENCENT_REPO}"; else failed="${failed}Tencent "; fi
           fi
+          if [ -n "$failed" ]; then
+            echo "::warning::Sign-in failed, skipping: ${failed}"
+          fi
+          echo "failed=${failed}" >> "$GITHUB_OUTPUT"
           if [ -z "$tags" ]; then
-            echo "::error::No registry configured. Set at least DOCKERHUB_REPO." && exit 1
+            echo "::error::No registry accepted our credentials." && exit 1
           fi
           { echo 'tags<<EOF'; printf '%s' "$tags"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
 
@@ -166,6 +198,7 @@ jobs:
       - name: Report
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
+          FAILED: ${{ steps.tags.outputs.failed }}
         run: |
           {
             echo "### Relay ${{ steps.version.outputs.version }}"
@@ -176,4 +209,13 @@ jobs:
             echo '```'
             printf '%s\n' "${{ steps.tags.outputs.tags }}"
             echo '```'
+            if [ -n "$FAILED" ]; then
+              echo
+              echo "**Not published — sign-in rejected:** $FAILED"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
+          # Published where it could, but a configured registry that refused us
+          # is a broken release, not a partial success.
+          if [ -n "$FAILED" ]; then
+            echo "::error::Sign-in failed for: $FAILED" && exit 1
+          fi
