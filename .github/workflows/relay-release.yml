@@ -31,8 +31,24 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  # Two native builders rather than one emulated. arm64 under QEMU on an x86
+  # runner spends forty minutes on `npm ci` and `tsc` alone; each arch on its
+  # own hardware takes a couple. They publish arch-suffixed tags, and the
+  # manifest job below joins them under the real one.
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      failed: ${{ steps.tags.outputs.failed }}
     steps:
       - uses: actions/checkout@v4
 
@@ -128,7 +144,7 @@ jobs:
         id: tags
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          ARCH: ${{ matrix.arch }}
           DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
           ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
           ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
@@ -148,12 +164,10 @@ jobs:
             [ "$DRY_RUN" = "true" ] && return 0
             [ "$1" = "success" ]
           }
-          add() {
-            # `latest` only for a real release: a prerelease that claimed it
-            # would be pulled by every `docker pull <repo>` with no tag.
-            tags="${tags}${1}:${VERSION}"$'\n'
-            if [ "$PRERELEASE" = "false" ]; then tags="${tags}${1}:latest"$'\n'; fi
-          }
+          # Arch-suffixed only. A bare `:1.0.0` here would be half a manifest,
+          # and whoever pulled it between the two builds would get an image that
+          # does not run on their machine.
+          add() { tags="${tags}${1}:${VERSION}-${ARCH}"$'\n'; }
           # `if`, not `cond && add`: under `set -e` a false condition makes the
           # whole line return non-zero and kills the step.
           if [ -n "$DOCKERHUB_REPO" ]; then
@@ -179,10 +193,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: relay-server
-          # arm64 as well as amd64: Graviton and Ampere instances are the cheap
-          # way to run something this small, and an amd64-only image silently
-          # runs under emulation there.
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/${{ matrix.arch }}
           push: ${{ !inputs.dry_run }}
           tags: ${{ steps.tags.outputs.tags }}
           # Attestation manifests confuse registries that only understand the
@@ -192,8 +203,8 @@ jobs:
             MANTA_RELAY_VERSION=${{ steps.version.outputs.version }}
             MANTA_RELAY_REVISION=${{ github.sha }}
             MANTA_RELAY_BUILT_AT=${{ steps.version.outputs.built_at }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=relay-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=relay-${{ matrix.arch }}
 
       - name: Report
         env:
@@ -219,3 +230,93 @@ jobs:
           if [ -n "$FAILED" ]; then
             echo "::error::Sign-in failed for: $FAILED" && exit 1
           fi
+
+  # Joins the per-arch tags into the one people actually pull. Runs even if an
+  # arch failed, so a working amd64 image is still published — but only over the
+  # arches that succeeded, and it says which are missing.
+  manifest:
+    needs: build
+    if: ${{ !inputs.dry_run && !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        id: login_dockerhub
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Aliyun ACR
+        id: login_aliyun
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Log in to Tencent TCR
+        id: login_tencent
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.TENCENT_REGISTRY }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+
+      - name: Create manifests
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+          TENCENT_REPO: ${{ secrets.TENCENT_REPO }}
+        run: |
+          set -euo pipefail
+          published=""
+          join() {
+            repo="$1"
+            sources=""
+            for arch in amd64 arm64; do
+              if docker buildx imagetools inspect "${repo}:${VERSION}-${arch}" >/dev/null 2>&1; then
+                sources="${sources} ${repo}:${VERSION}-${arch}"
+              else
+                echo "::warning::${repo}:${VERSION}-${arch} is missing; leaving it out"
+              fi
+            done
+            if [ -z "$sources" ]; then
+              echo "::warning::no architectures published for ${repo}"
+              return 0
+            fi
+            # shellcheck disable=SC2086
+            docker buildx imagetools create --tag "${repo}:${VERSION}" $sources
+            # `latest` only for a real release: a prerelease that claimed it
+            # would be served to every `docker pull <repo>` with no tag.
+            if [ "$PRERELEASE" = "false" ]; then
+              # shellcheck disable=SC2086
+              docker buildx imagetools create --tag "${repo}:latest" $sources
+            fi
+            published="${published}${repo}:${VERSION}"$'\n'
+          }
+          if [ -n "$DOCKERHUB_REPO" ]; then join "$DOCKERHUB_REPO"; fi
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_REPO" ]; then
+            join "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"
+          fi
+          if [ -n "$TENCENT_REGISTRY" ] && [ -n "$TENCENT_REPO" ]; then
+            join "${TENCENT_REGISTRY}/${TENCENT_REPO}"
+          fi
+          if [ -z "$published" ]; then
+            echo "::error::nothing was published" && exit 1
+          fi
+          {
+            echo "### Relay ${VERSION}"
+            echo
+            echo '```'
+            printf '%s' "$published"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
