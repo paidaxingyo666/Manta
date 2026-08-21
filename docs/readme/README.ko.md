@@ -40,12 +40,11 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Manta 다운로드</ins></a></h3>
 
-
 ## 기능
 
 <table>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 모바일 Companion
 
@@ -54,12 +53,9 @@
 [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA) · [Android APK 0.0.43](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [문서 →](https://www.manta.sh.cn/docs/mobile)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/mobile"><picture><source srcset="../assets/feature-wall/mobile-companion-app-showcase.gif" type="image/gif"><img src="../assets/feature-wall/mobile-companion-app-showcase.jpg" alt="Manta 데스크톱과 모바일 companion 앱" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 병렬 Worktree
 
@@ -68,12 +64,9 @@
 [문서 →](https://www.manta.sh.cn/docs/model/worktrees)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/model/worktrees"><picture><source srcset="../assets/feature-wall/parallel-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/parallel-worktrees.jpg" alt="병렬 worktree 오케스트레이션" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 터미널 분할
 
@@ -82,12 +75,9 @@ WebGL 렌더링, 무한 분할, 재시작 후에도 유지되는 스크롤백을
 [문서 →](https://www.manta.sh.cn/docs/terminal)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/terminal"><picture><source srcset="../assets/feature-wall/terminal-splits.gif" type="image/gif"><img src="../assets/feature-wall/terminal-splits.jpg" alt="터미널 분할" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 디자인 모드
 
@@ -96,12 +86,9 @@ WebGL 렌더링, 무한 분할, 재시작 후에도 유지되는 스크롤백을
 [문서 →](https://www.manta.sh.cn/docs/browser/design-mode)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/browser/design-mode"><picture><source srcset="../assets/feature-wall/design-mode.gif" type="image/gif"><img src="../assets/feature-wall/design-mode.jpg" alt="내장 브라우저와 디자인 모드" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### GitHub &amp; Linear 네이티브
 
@@ -110,12 +97,9 @@ PR, issue, 프로젝트 보드를 앱 안에서 탐색하세요 — 어떤 작�
 [문서 →](https://www.manta.sh.cn/docs/review/linear)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/linear"><picture><source srcset="../assets/feature-wall/github-linear.gif" type="image/gif"><img src="../assets/feature-wall/github-linear.jpg" alt="Manta의 GitHub 및 Linear 작업 워크플로" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### SSH Worktree
 
@@ -124,12 +108,9 @@ PR, issue, 프로젝트 보드를 앱 안에서 탐색하세요 — 어떤 작�
 [문서 →](https://www.manta.sh.cn/docs/ssh)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/ssh"><picture><source srcset="../assets/feature-wall/ssh-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/ssh-worktrees.jpg" alt="SSH를 통한 원격 worktree" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### AI Diff 주석
 
@@ -138,12 +119,9 @@ diff의 어느 줄에든 코멘트를 남기고 에이전트에게 바로 보내
 [문서 →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/annotate-ai-diff"><picture><source srcset="../assets/feature-wall/annotate-diff.gif" type="image/gif"><img src="../assets/feature-wall/annotate-diff.jpg" alt="AI가 생성한 diff에 주석 달기" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 에이전트로 파일 드래그
 
@@ -152,12 +130,9 @@ diff의 어느 줄에든 코멘트를 남기고 에이전트에게 바로 보내
 [문서 →](https://www.manta.sh.cn/docs/editing/file-explorer)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/editing/file-explorer"><picture><source srcset="../assets/feature-wall/file-drag.gif" type="image/gif"><img src="../assets/feature-wall/file-drag.jpg" alt="파일과 이미지를 에이전트 프롬프트로 드래그" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Manta CLI
 
@@ -165,9 +140,6 @@ diff의 어느 줄에든 코멘트를 남기고 에이전트에게 바로 보내
 
 [문서 →](https://www.manta.sh.cn/docs/cli/overview)
 
-</td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/cli/overview"><picture><source srcset="../assets/feature-wall/manta-cli.gif" type="image/gif"><img src="../assets/feature-wall/manta-cli.jpg" alt="CLI에서 Manta 스크립팅" width="100%" /></picture></a>
 </td>
 </tr>
 </table>
@@ -255,8 +227,6 @@ yay -S stably-manta-bin
 - **Twitter / X:** 업데이트와 공지는 **[@orca_build](https://x.com/orca_build) (upstream Orca account)** 를 팔로우하세요.
 - **WeChat:** QR 코드를 스캔해 Manta 커뮤니티 WeChat 그룹 7에 참여하세요.
 
-  <img src="../assets/wechat-qr-group7.jpg" alt="Manta 커뮤니티 WeChat 그룹 7 QR 코드" width="160" />
-
 - **피드백과 아이디어:** 우리는 빠르게 출시합니다. 필요한 기능이 있나요? [새 기능을 요청](https://github.com/paidaxingyo666/Manta/issues)하세요.
 - **개인정보 보호:** Manta가 수집하는 익명 사용 데이터와 수집 거부 방법은 [개인정보 및 텔레메트리 문서](https://www.manta.sh.cn/docs/telemetry)를 참고하세요.
 - **응원하기:** 이 리포지토리에 [Star](https://github.com/stablyai/orca)를 눌러 매일 공개되는 릴리스 소식을 확인해 주세요.
@@ -272,7 +242,6 @@ yay -S stably-manta-bin
 <a href="https://github.com/stablyai/orca/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
-
 
 ## 서명된 빌드
 

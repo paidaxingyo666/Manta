@@ -40,12 +40,11 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Download Manta</ins></a></h3>
 
-
 ## Features
 
 <table>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Mobile Companion
 
@@ -54,12 +53,9 @@ Monitor and steer your agents from your phone — get notified when an agent fin
 Build from source — Manta does not publish mobile binaries. Upstream Orca ships its own: [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/mobile"><picture><source srcset="docs/assets/feature-wall/mobile-companion-app-showcase.gif" type="image/gif"><img src="docs/assets/feature-wall/mobile-companion-app-showcase.jpg" alt="Manta desktop with the mobile companion app" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Parallel Worktrees
 
@@ -68,12 +64,9 @@ Fan one prompt across five agents, each in its own isolated git worktree — com
 [Docs →](https://www.manta.sh.cn/docs/model/worktrees)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/model/worktrees"><picture><source srcset="docs/assets/feature-wall/parallel-worktrees.gif" type="image/gif"><img src="docs/assets/feature-wall/parallel-worktrees.jpg" alt="Parallel worktree orchestration" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Terminal Splits
 
@@ -82,12 +75,9 @@ Ghostty-class terminals with WebGL rendering, infinite splits, and scrollback th
 [Docs →](https://www.manta.sh.cn/docs/terminal)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/terminal"><picture><source srcset="docs/assets/feature-wall/terminal-splits.gif" type="image/gif"><img src="docs/assets/feature-wall/terminal-splits.jpg" alt="Terminal splits" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Design Mode
 
@@ -96,12 +86,9 @@ Click any UI element in a real Chromium window to send its HTML, CSS, and a crop
 [Docs →](https://www.manta.sh.cn/docs/browser/design-mode)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/browser/design-mode"><picture><source srcset="docs/assets/feature-wall/design-mode.gif" type="image/gif"><img src="docs/assets/feature-wall/design-mode.jpg" alt="Embedded browser and Design Mode" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### GitHub &amp; Linear, Native
 
@@ -110,12 +97,9 @@ Browse PRs, issues, and project boards in-app — open a worktree from any task 
 [Docs →](https://www.manta.sh.cn/docs/review/linear)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/linear"><picture><source srcset="docs/assets/feature-wall/github-linear.gif" type="image/gif"><img src="docs/assets/feature-wall/github-linear.jpg" alt="GitHub and Linear task workflows in Manta" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### SSH Worktrees
 
@@ -124,12 +108,9 @@ Run agents on a beefy remote box with full file editing, git, and terminals — 
 [Docs →](https://www.manta.sh.cn/docs/ssh)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/ssh"><picture><source srcset="docs/assets/feature-wall/ssh-worktrees.gif" type="image/gif"><img src="docs/assets/feature-wall/ssh-worktrees.jpg" alt="Remote worktrees over SSH" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Annotate AI Diffs
 
@@ -138,12 +119,9 @@ Drop comments on any diff line and ship them back to the agent — review, edit,
 [Docs →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/annotate-ai-diff"><picture><source srcset="docs/assets/feature-wall/annotate-diff.gif" type="image/gif"><img src="docs/assets/feature-wall/annotate-diff.jpg" alt="Annotate AI-generated diffs" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Drag Files to Agents
 
@@ -152,12 +130,9 @@ VS Code's editor with autosave everywhere — drag files or images straight into
 [Docs →](https://www.manta.sh.cn/docs/editing/file-explorer)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/editing/file-explorer"><picture><source srcset="docs/assets/feature-wall/file-drag.gif" type="image/gif"><img src="docs/assets/feature-wall/file-drag.jpg" alt="Drag files and images into an agent prompt" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Manta CLI
 
@@ -165,9 +140,6 @@ Agents drive Manta too — script every workflow with `manta worktree create`, `
 
 [Docs →](https://www.manta.sh.cn/docs/cli/overview)
 
-</td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/cli/overview"><picture><source srcset="docs/assets/feature-wall/manta-cli.gif" type="image/gif"><img src="docs/assets/feature-wall/manta-cli.jpg" alt="Script Manta from the CLI" width="100%" /></picture></a>
 </td>
 </tr>
 </table>
@@ -261,9 +233,6 @@ about upstream, not about this fork:
 - **Twitter / X:** [@orca_build](https://x.com/orca_build)
 - **WeChat:** upstream community group 7 (group 8 if full)
 
-  <img src="docs/assets/wechat-qr-group7.jpg" alt="WeChat group 7 QR code for the upstream community" width="160" />&nbsp;&nbsp;
-  <img src="docs/assets/wechat-qr-group8.jpg" alt="WeChat group 8 QR code for the upstream community" width="160" />
-
 - **Feedback &amp; Ideas:** We ship fast. Missing something? [Request a new feature](https://github.com/paidaxingyo666/Manta/issues).
 - **Privacy:** See the [privacy &amp; telemetry docs](https://www.manta.sh.cn/docs/telemetry) for what anonymous usage data Manta collects and how to opt out.
 - **Show Support:** [Star](https://github.com/stablyai/orca) this repo to follow along with our daily ships.
@@ -279,7 +248,6 @@ Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTIN
 <a href="https://github.com/stablyai/orca/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
-
 
 ## Signed Builds
 Windows code signing sponored/provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).

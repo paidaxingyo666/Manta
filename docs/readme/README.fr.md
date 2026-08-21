@@ -44,12 +44,11 @@
   <sub>Sous Windows ? Prenez la <a href="https://github.com/stablyai/orca/releases#release-v1.4.147-rc.3">dernière RC</a> — elle inclut des correctifs Windows.</sub>
 </p>
 
-
 ## Fonctionnalités
 
 <table>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Companion mobile
 
@@ -58,12 +57,9 @@ Surveillez et pilotez vos agents depuis votre téléphone — soyez notifié qua
 [App Store iOS](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA) · [APK Android 0.0.43](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [Docs →](https://www.manta.sh.cn/docs/mobile)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/mobile"><picture><source srcset="../assets/feature-wall/mobile-companion-app-showcase.gif" type="image/gif"><img src="../assets/feature-wall/mobile-companion-app-showcase.jpg" alt="Manta desktop avec l'app companion mobile" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Worktrees parallèles
 
@@ -72,12 +68,9 @@ Lancez un même prompt sur cinq agents, chacun dans son propre worktree git isol
 [Docs →](https://www.manta.sh.cn/docs/model/worktrees)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/model/worktrees"><picture><source srcset="../assets/feature-wall/parallel-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/parallel-worktrees.jpg" alt="Orchestration de worktrees parallèles" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Splits de terminal
 
@@ -86,12 +79,9 @@ Terminaux de niveau Ghostty avec rendu WebGL, splits infinis et un scrollback qu
 [Docs →](https://www.manta.sh.cn/docs/terminal)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/terminal"><picture><source srcset="../assets/feature-wall/terminal-splits.gif" type="image/gif"><img src="../assets/feature-wall/terminal-splits.jpg" alt="Splits de terminal" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Mode Design
 
@@ -100,12 +90,9 @@ Cliquez sur n'importe quel élément d'UI dans une vraie fenêtre Chromium pour 
 [Docs →](https://www.manta.sh.cn/docs/browser/design-mode)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/browser/design-mode"><picture><source srcset="../assets/feature-wall/design-mode.gif" type="image/gif"><img src="../assets/feature-wall/design-mode.jpg" alt="Navigateur intégré et Mode Design" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### GitHub &amp; Linear, natifs
 
@@ -114,12 +101,9 @@ Parcourez PRs, issues et boards de projet dans l'app — ouvrez un worktree depu
 [Docs →](https://www.manta.sh.cn/docs/review/linear)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/linear"><picture><source srcset="../assets/feature-wall/github-linear.gif" type="image/gif"><img src="../assets/feature-wall/github-linear.jpg" alt="Workflows GitHub et Linear dans Manta" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Worktrees SSH
 
@@ -128,12 +112,9 @@ Faites tourner des agents sur une machine distante costaude, avec édition de fi
 [Docs →](https://www.manta.sh.cn/docs/ssh)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/ssh"><picture><source srcset="../assets/feature-wall/ssh-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/ssh-worktrees.jpg" alt="Worktrees distants via SSH" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Annoter les diffs IA
 
@@ -142,12 +123,9 @@ Posez des commentaires sur n'importe quelle ligne de diff et renvoyez-les à l'a
 [Docs →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/annotate-ai-diff"><picture><source srcset="../assets/feature-wall/annotate-diff.gif" type="image/gif"><img src="../assets/feature-wall/annotate-diff.jpg" alt="Annoter les diffs générés par l'IA" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Glisser-déposer vers les agents
 
@@ -156,12 +134,9 @@ L'éditeur VS Code avec autosave partout — glissez fichiers ou images directem
 [Docs →](https://www.manta.sh.cn/docs/editing/file-explorer)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/editing/file-explorer"><picture><source srcset="../assets/feature-wall/file-drag.gif" type="image/gif"><img src="../assets/feature-wall/file-drag.jpg" alt="Glisser des fichiers et images dans le prompt d'un agent" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Manta CLI
 
@@ -169,9 +144,6 @@ Les agents pilotent aussi Manta — scriptez n'importe quel workflow avec `manta
 
 [Docs →](https://www.manta.sh.cn/docs/cli/overview)
 
-</td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/cli/overview"><picture><source srcset="../assets/feature-wall/manta-cli.gif" type="image/gif"><img src="../assets/feature-wall/manta-cli.jpg" alt="Scripter Manta depuis la CLI" width="100%" /></picture></a>
 </td>
 </tr>
 </table>
@@ -260,8 +232,6 @@ Associez-la à l'app de bureau pour surveiller et piloter vos agents depuis votr
 - **Twitter / X :** Suivez **[@orca_build](https://x.com/orca_build) (upstream Orca account)** pour les news et annonces.
 - **WeChat :** Scannez pour rejoindre le groupe WeChat 7 de la communauté Manta.
 
-  <img src="../assets/wechat-qr-group7.jpg" alt="QR code WeChat groupe 7 de la communauté Manta" width="160" />
-
 - **Feedback &amp; idées :** On ship vite. Il manque quelque chose ? [Demandez une feature](https://github.com/paidaxingyo666/Manta/issues).
 - **Confidentialité :** Voir la [doc confidentialité &amp; télémétrie](https://www.manta.sh.cn/docs/telemetry) pour ce qu'Manta collecte en anonyme et comment désactiver la télémétrie.
 - **Soutenez-nous :** [Mettez une star](https://github.com/stablyai/orca) sur ce repo pour suivre nos ships quotidiens.
@@ -277,7 +247,6 @@ Envie de contribuer ou de lancer le projet en local ? Consultez notre guide [CON
 <a href="https://github.com/stablyai/orca/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
-
 
 ## Builds signés
 

@@ -40,12 +40,11 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>Manta をダウンロード</ins></a></h3>
 
-
 ## 機能
 
 <table>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### モバイル Companion
 
@@ -54,12 +53,9 @@
 [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [Android APK](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [ドキュメント →](https://www.manta.sh.cn/docs/mobile)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/mobile"><picture><source srcset="../assets/feature-wall/mobile-companion-app-showcase.gif" type="image/gif"><img src="../assets/feature-wall/mobile-companion-app-showcase.jpg" alt="Manta デスクトップとモバイル companion アプリ" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 並列ワークツリー
 
@@ -68,12 +64,9 @@
 [ドキュメント →](https://www.manta.sh.cn/docs/model/worktrees)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/model/worktrees"><picture><source srcset="../assets/feature-wall/parallel-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/parallel-worktrees.jpg" alt="並列ワークツリーのオーケストレーション" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### ターミナル分割
 
@@ -82,12 +75,9 @@ WebGL レンダリング、無制限の分割、再起動後も残るスクロ�
 [ドキュメント →](https://www.manta.sh.cn/docs/terminal)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/terminal"><picture><source srcset="../assets/feature-wall/terminal-splits.gif" type="image/gif"><img src="../assets/feature-wall/terminal-splits.jpg" alt="ターミナル分割" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### デザインモード
 
@@ -96,12 +86,9 @@ WebGL レンダリング、無制限の分割、再起動後も残るスクロ�
 [ドキュメント →](https://www.manta.sh.cn/docs/browser/design-mode)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/browser/design-mode"><picture><source srcset="../assets/feature-wall/design-mode.gif" type="image/gif"><img src="../assets/feature-wall/design-mode.jpg" alt="組み込みブラウザとデザインモード" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### GitHub &amp; Linear をネイティブに
 
@@ -110,12 +97,9 @@ PR、Issue、プロジェクトボードをアプリ内で閲覧 — 任意の�
 [ドキュメント →](https://www.manta.sh.cn/docs/review/linear)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/linear"><picture><source srcset="../assets/feature-wall/github-linear.gif" type="image/gif"><img src="../assets/feature-wall/github-linear.jpg" alt="Manta の GitHub と Linear タスクワークフロー" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### SSH ワークツリー
 
@@ -124,12 +108,9 @@ PR、Issue、プロジェクトボードをアプリ内で閲覧 — 任意の�
 [ドキュメント →](https://www.manta.sh.cn/docs/ssh)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/ssh"><picture><source srcset="../assets/feature-wall/ssh-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/ssh-worktrees.jpg" alt="SSH 経由のリモートワークツリー" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### AI Diff に注釈
 
@@ -138,12 +119,9 @@ PR、Issue、プロジェクトボードをアプリ内で閲覧 — 任意の�
 [ドキュメント →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/annotate-ai-diff"><picture><source srcset="../assets/feature-wall/annotate-diff.gif" type="image/gif"><img src="../assets/feature-wall/annotate-diff.jpg" alt="AI が生成した Diff への注釈" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### ファイルをエージェントへドラッグ
 
@@ -152,12 +130,9 @@ PR、Issue、プロジェクトボードをアプリ内で閲覧 — 任意の�
 [ドキュメント →](https://www.manta.sh.cn/docs/editing/file-explorer)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/editing/file-explorer"><picture><source srcset="../assets/feature-wall/file-drag.gif" type="image/gif"><img src="../assets/feature-wall/file-drag.jpg" alt="ファイルや画像をエージェントのプロンプトへドラッグ" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Manta CLI
 
@@ -165,9 +140,6 @@ PR、Issue、プロジェクトボードをアプリ内で閲覧 — 任意の�
 
 [ドキュメント →](https://www.manta.sh.cn/docs/cli/overview)
 
-</td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/cli/overview"><picture><source srcset="../assets/feature-wall/manta-cli.gif" type="image/gif"><img src="../assets/feature-wall/manta-cli.jpg" alt="CLI から Manta をスクリプト操作" width="100%" /></picture></a>
 </td>
 </tr>
 </table>

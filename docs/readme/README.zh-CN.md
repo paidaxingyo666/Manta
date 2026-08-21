@@ -39,12 +39,11 @@
 
 <h3 align="center"><a href="https://github.com/paidaxingyo666/Manta/releases"><ins>下载 Manta</ins></a></h3>
 
-
 ## 特性
 
 <table>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 移动 Companion 应用
 
@@ -53,12 +52,9 @@
 [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [Android APK](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [文档 →](https://www.manta.sh.cn/docs/mobile)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/mobile"><picture><source srcset="../assets/feature-wall/mobile-companion-app-showcase.gif" type="image/gif"><img src="../assets/feature-wall/mobile-companion-app-showcase.jpg" alt="Manta 桌面端与移动 companion 应用" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 并行 Worktree
 
@@ -67,12 +63,9 @@
 [文档 →](https://www.manta.sh.cn/docs/model/worktrees)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/model/worktrees"><picture><source srcset="../assets/feature-wall/parallel-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/parallel-worktrees.jpg" alt="并行 worktree 编排" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 终端分屏
 
@@ -81,12 +74,9 @@ Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然�
 [文档 →](https://www.manta.sh.cn/docs/terminal)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/terminal"><picture><source srcset="../assets/feature-wall/terminal-splits.gif" type="image/gif"><img src="../assets/feature-wall/terminal-splits.jpg" alt="终端分屏" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 设计模式
 
@@ -95,12 +85,9 @@ Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然�
 [文档 →](https://www.manta.sh.cn/docs/browser/design-mode)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/browser/design-mode"><picture><source srcset="../assets/feature-wall/design-mode.gif" type="image/gif"><img src="../assets/feature-wall/design-mode.jpg" alt="内置浏览器与设计模式" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### GitHub &amp; Linear 原生集成
 
@@ -109,12 +96,9 @@ Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然�
 [文档 →](https://www.manta.sh.cn/docs/review/linear)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/linear"><picture><source srcset="../assets/feature-wall/github-linear.gif" type="image/gif"><img src="../assets/feature-wall/github-linear.jpg" alt="Manta 中的 GitHub 与 Linear 任务工作流" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### SSH Worktree
 
@@ -123,12 +107,9 @@ Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然�
 [文档 →](https://www.manta.sh.cn/docs/ssh)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/ssh"><picture><source srcset="../assets/feature-wall/ssh-worktrees.gif" type="image/gif"><img src="../assets/feature-wall/ssh-worktrees.jpg" alt="通过 SSH 使用远程 worktree" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 标注 AI Diff
 
@@ -137,12 +118,9 @@ Ghostty 级终端，支持 WebGL 渲染、无限分屏，以及重启后依然�
 [文档 →](https://www.manta.sh.cn/docs/review/annotate-ai-diff)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/review/annotate-ai-diff"><picture><source srcset="../assets/feature-wall/annotate-diff.gif" type="image/gif"><img src="../assets/feature-wall/annotate-diff.jpg" alt="标注 AI 生成的 diff" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### 拖文件给智能体
 
@@ -151,12 +129,9 @@ VS Code 的编辑器，处处自动保存 — 把文件或图片直接拖入智�
 [文档 →](https://www.manta.sh.cn/docs/editing/file-explorer)
 
 </td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/editing/file-explorer"><picture><source srcset="../assets/feature-wall/file-drag.gif" type="image/gif"><img src="../assets/feature-wall/file-drag.jpg" alt="将文件和图片拖入智能体提示" width="100%" /></picture></a>
-</td>
 </tr>
 <tr>
-<td width="50%" valign="middle">
+<td valign="middle">
 
 ### Manta CLI
 
@@ -164,9 +139,6 @@ VS Code 的编辑器，处处自动保存 — 把文件或图片直接拖入智�
 
 [文档 →](https://www.manta.sh.cn/docs/cli/overview)
 
-</td>
-<td width="50%">
-  <a href="https://www.manta.sh.cn/docs/cli/overview"><picture><source srcset="../assets/feature-wall/manta-cli.gif" type="image/gif"><img src="../assets/feature-wall/manta-cli.jpg" alt="从 CLI 脚本化 Manta" width="100%" /></picture></a>
 </td>
 </tr>
 </table>
@@ -255,9 +227,6 @@ Manta 没有自己的社区渠道 —— 有问题请在
 - **Discord:** [Orca 社区](https://discord.gg/fzjDKHxv8Q)
 - **Twitter / X:** [@orca_build](https://x.com/orca_build)
 - **微信:** 上游社区微信第 7 群（已满则用第 8 群）
-
-  <img src="../assets/wechat-qr-group7.jpg" alt="上游社区微信第 7 群二维码" width="160" />&nbsp;&nbsp;
-  <img src="../assets/wechat-qr-group8.jpg" alt="上游社区微信第 8 群二维码" width="160" />
 
 - **反馈与想法:** 我们发布很快。缺少什么功能？[提交功能请求](https://github.com/paidaxingyo666/Manta/issues)。
 - **隐私:** 查看[隐私与遥测文档](https://www.manta.sh.cn/docs/telemetry)，了解 Manta 收集哪些匿名使用数据以及如何退出。
