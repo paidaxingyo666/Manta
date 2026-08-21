@@ -343,6 +343,7 @@ describe('PR workflow parallelism', () => {
       'xterm_patch_sync',
       'shell_contracts',
       'test',
+      'relay',
       'managed_hook_node18',
       'package',
       'package_windows'

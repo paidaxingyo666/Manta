@@ -475,6 +475,34 @@ jobs:
             --exclude=tests/e2e/cross-version-wire/** \
             --shard=${{ matrix.shard }}/${{ matrix.shard_total }}
 
+  relay:
+    # The relay is a separate npm project with its own vitest config, so the
+    # sharded suite above never touches it. Most of its tests import the
+    # desktop's protocol implementation to prove the two agree byte for byte —
+    # which is exactly why they belong here, where both trees are installed,
+    # and why the release workflow can only run the standalone subset.
+    name: relay tests
+    needs: [code_paths]
+    if: needs.code_paths.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+
+      - name: Install relay dependencies
+        working-directory: relay-server
+        run: npm ci --no-audit --no-fund
+
+      - name: Relay check
+        working-directory: relay-server
+        run: npm run check
+
   cross-version-wire:
     name: cross-version wire compatibility
     needs: [code_paths]
@@ -751,6 +779,7 @@ jobs:
       - xterm_patch_sync
       - shell_contracts
       - test
+      - relay
       - managed_hook_node18
       - package
       - package_windows
@@ -776,6 +805,7 @@ jobs:
           XTERM_PATCH_SYNC: ${{ needs.xterm_patch_sync.result }}
           SHELL_CONTRACTS: ${{ needs.shell_contracts.result }}
           TEST: ${{ needs.test.result }}
+          RELAY: ${{ needs.relay.result }}
           MANAGED_HOOK_NODE18: ${{ needs.managed_hook_node18.result }}
           PACKAGE: ${{ needs.package.result }}
           PACKAGE_WINDOWS: ${{ needs.package_windows.result }}
@@ -795,6 +825,7 @@ jobs:
               "$XTERM_PATCH_SYNC" \
               "$SHELL_CONTRACTS" \
               "$TEST" \
+              "$RELAY" \
               "$MANAGED_HOOK_NODE18" \
               "$PACKAGE" \
               "$PACKAGE_WINDOWS"; do
@@ -814,6 +845,7 @@ jobs:
             "$XTERM_PATCH_SYNC" \
             "$SHELL_CONTRACTS" \
             "$TEST" \
+            "$RELAY" \
             "$MANAGED_HOOK_NODE18" \
             "$PACKAGE" \
             "$PACKAGE_WINDOWS"; do

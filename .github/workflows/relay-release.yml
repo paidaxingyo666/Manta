@@ -58,11 +58,16 @@ jobs:
           echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           echo "prerelease=$(printf '%s' "$version" | grep -q -- '-' && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-      - name: Test before publishing
+      # The standalone subset only. Most of the suite imports the desktop's
+      # protocol code — deliberately, to prove both sides agree — and that needs
+      # the parent workspace installed, which is minutes of Electron for a check
+      # PR CI already ran on this commit. Typecheck and the image build below
+      # cover the rest.
+      - name: Verify before publishing
         working-directory: relay-server
         run: |
           npm ci --no-audit --no-fund
-          npm run check
+          npm run check:standalone
 
       - name: Which registries are configured
         id: registries

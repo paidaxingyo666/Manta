@@ -11,7 +11,9 @@
     "dev": "tsx watch src/main.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check": "npm run typecheck && npm run test"
+    "check": "npm run typecheck && npm run test",
+    "test:standalone": "RELAY_TEST_STANDALONE=1 vitest run",
+    "check:standalone": "npm run typecheck && npm run test:standalone"
   },
   "dependencies": {
     "tweetnacl": "^1.0.3",
