@@ -67,8 +67,15 @@ export const LINEAR_MCP_COMMAND_SPECS: CommandSpec[] = [
     ],
     examples: [
       'manta linear list-issues --team ENG --state started --assignee me --json',
-      'manta linear list-issues --query auth --updated-at -P7D --limit 100 --json',
-      'manta linear list-issues --cursor <cursor> --workspace <id> --json'
+      'manta linear list-issues --query auth --updated-at -P7D --json',
+      'manta linear list-issues --assignee me --priority 1 --limit 100 --json',
+      'manta linear list-issues --cursor <cursor> --json'
+    ],
+    notes: [
+      'Omitting --limit returns every match (result.meta.limit is null); --limit <n> caps the read.',
+      'JSON sets result.truncated when a cap held results back; text prints truncated: showing N.',
+      'Reuse --cursor from the previous page. Issued cursors bind the workspace; raw Linear cursors still need --workspace.',
+      '--priority is 0=none, 1=urgent, 2=high, 3=medium, 4=low. JSON includes priorityLabel on each issue.'
     ]
   },
   {
