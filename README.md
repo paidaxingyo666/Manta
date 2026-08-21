@@ -2,16 +2,25 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta** is a deep fork of [Orca](https://github.com/stablyai/orca) (MIT, © Lovecast Inc.), rebranded and reworked independently.
-> Standalone Manta builds are not published yet — build from source, or use the upstream Manta releases.
-> Links point at `manta.sh.cn`; those services are not deployed yet.
+> **Manta is a self-hosted fork of [Orca](https://github.com/stablyai/orca)** (MIT, © Lovecast Inc.).
+>
+> Features:
+>
+> - Self-host relay server
+> - No mandatory cloud account
+> - Internationalization
+> - Enterprise deployment
+>
+> Based on: https://github.com/stablyai/orca
+>
+> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub stars" /></a>
-  <a href="https://github.com/stablyai/orca/releases"><img src="docs/assets/readme-downloads.svg" title="upstream Manta downloads" alt="Total downloads across all releases" /></a>
+  <a href="https://github.com/stablyai/orca/releases"><img src="docs/assets/readme-downloads.svg" title="Upstream Orca downloads" alt="Total downloads across all upstream Orca releases" /></a>
   <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="License: MIT" />
-  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="Join the upstream Manta Discord" /></a>
-  <a href="https://x.com/manta_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="Follow Manta (upstream) on X" /></a>
+  <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="Join the upstream Orca Discord" /></a>
+  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="Follow upstream Orca on X" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="Supported platforms: macOS, Windows, and Linux" />
 </p>
 
@@ -40,7 +49,7 @@
 
 Monitor and steer your agents from your phone — get notified when an agent finishes and send follow-ups from anywhere.
 
-[iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA) · [Android APK 0.0.43](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk) · [Docs →](https://www.manta.sh.cn/docs/mobile)
+Build from source — Manta does not publish mobile binaries. Upstream Orca ships its own: [iOS App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) · [TestFlight](https://testflight.apple.com/join/YjeGMQBA)
 
 </td>
 <td width="50%">
@@ -168,7 +177,7 @@ Agents drive Manta too — script every workflow with `manta worktree create`, `
 - **[Rich repo previews](https://www.manta.sh.cn/docs/editing/markdown)** — Preview Markdown, images, PDFs, and repo docs in the workspace.
 - **[Computer Use](https://www.manta.sh.cn/docs/cli/computer-use)** — Let agents operate desktop apps and visible UI when a workflow needs real interaction.
 - **[Notifications and unread state](https://www.manta.sh.cn/docs/notifications)** — Know when an agent finishes or needs attention, then mark threads unread to come back later.
-- **And many, many more** — we ship daily, so this list is perpetually behind. The [changelog](https://github.com/stablyai/orca/releases) is the real feature list.
+- **And many, many more** — this list trails upstream, whose [changelog](https://github.com/stablyai/orca/releases) is the fuller feature list.
 
 ---
 
@@ -233,16 +242,22 @@ yay -S stably-manta-bin
 
 Pair with your desktop app to monitor and steer your agents from your phone.
 
-- **iOS:** [Download on the App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) or [join TestFlight](https://testflight.apple.com/join/YjeGMQBA)
-- **Android:** [Download APK 0.0.43](https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.43/app-release.apk)
+Manta publishes no mobile binaries yet; build the Expo app from `mobile/`.
+Upstream Orca's own builds are on the [App Store](https://apps.apple.com/us/app/orca-ide/id6766130217) and [TestFlight](https://testflight.apple.com/join/YjeGMQBA) — those run upstream Orca, not this fork.
 
 ---
 
 ## Community &amp; Support
 
-- **Discord:** Join the upstream Manta community on **[Discord](https://discord.gg/fzjDKHxv8Q)**.
-- **Twitter / X:** Follow **[@manta_build](https://x.com/manta_build) (upstream Manta account)** for updates and announcements.
-- **WeChat:** Scan to join the upstream community WeChat group 7. If it is full, use group 8.
+Manta runs no community channels of its own — open an issue on
+[this repository](https://github.com/paidaxingyo666/Manta/issues) instead.
+
+The channels below belong to upstream Orca and are the right place for questions
+about upstream, not about this fork:
+
+- **Discord:** [Orca community](https://discord.gg/fzjDKHxv8Q)
+- **Twitter / X:** [@orca_build](https://x.com/orca_build)
+- **WeChat:** upstream community group 7 (group 8 if full)
 
   <img src="docs/assets/wechat-qr-group7.jpg" alt="WeChat group 7 QR code for the upstream community" width="160" />&nbsp;&nbsp;
   <img src="docs/assets/wechat-qr-group8.jpg" alt="WeChat group 8 QR code for the upstream community" width="160" />
@@ -257,8 +272,10 @@ Pair with your desktop app to monitor and steer your agents from your phone.
 
 Want to contribute or run locally? See our [CONTRIBUTING.md](.github/CONTRIBUTING.md) guide.
 
+<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+
 <a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Manta contributors" />
+  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
 <p align="center">

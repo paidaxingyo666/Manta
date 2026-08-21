@@ -2,16 +2,25 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="../../resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta** 是 [Orca](https://github.com/stablyai/orca)（MIT，© Lovecast Inc.）的深度改造 fork，已独立更名与改造。
-> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建，或使用上游 Manta 的发行版。
-> 文中链接指向 `manta.sh.cn`，相关服务尚未部署。
+> **Manta 是 [Orca](https://github.com/stablyai/orca) 的自托管 fork**（MIT，© Lovecast Inc.）。
+>
+> 特性：
+>
+> - 自建中继服务器
+> - 无需强制云账号
+> - 国际化
+> - 企业内部署
+>
+> 基于：https://github.com/stablyai/orca
+>
+> 目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。文中链接指向 `manta.sh.cn`。
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub Star 数" /></a>
   <a href="https://github.com/stablyai/orca/releases"><img src="../assets/readme-downloads.svg" alt="所有版本的总下载量" /></a>
   <img src="https://img.shields.io/badge/license-MIT-08C?style=flat" alt="许可证: MIT" />
   <a href="https://discord.gg/fzjDKHxv8Q"><img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white" alt="加入 Manta Discord" /></a>
-  <a href="https://x.com/manta_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="在 X 上关注 Manta" /></a>
+  <a href="https://x.com/orca_build"><img src="https://img.shields.io/badge/X-000000?logo=x&logoColor=white" alt="在 X 上关注 Manta" /></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-4493F8?style=flat-square" alt="支持的平台：macOS、Windows 和 Linux" />
 </p>
 
@@ -237,9 +246,14 @@ yay -S stably-manta-bin
 
 ## 社区与支持
 
-- **Discord:** 加入 **[Discord](https://discord.gg/fzjDKHxv8Q)** 社区。
-- **Twitter / X:** 关注 **[@manta_build](https://x.com/manta_build)（上游 Manta 官方账号）** 获取更新和公告。
-- **微信:** 扫码加入上游社区微信第 7 群。如果第 7 群已满，请使用第 8 群。
+Manta 没有自己的社区渠道 —— 有问题请在
+[本仓库](https://github.com/paidaxingyo666/Manta/issues) 提 issue。
+
+下列渠道属于上游 Orca，适合咨询上游相关问题，不适合咨询本 fork：
+
+- **Discord:** [Orca 社区](https://discord.gg/fzjDKHxv8Q)
+- **Twitter / X:** [@orca_build](https://x.com/orca_build)
+- **微信:** 上游社区微信第 7 群（已满则用第 8 群）
 
   <img src="../assets/wechat-qr-group7.jpg" alt="上游社区微信第 7 群二维码" width="160" />&nbsp;&nbsp;
   <img src="../assets/wechat-qr-group8.jpg" alt="上游社区微信第 8 群二维码" width="160" />
@@ -254,8 +268,10 @@ yay -S stably-manta-bin
 
 想要贡献代码或在本地运行？请参阅我们的 [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) 指南。
 
+<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+
 <a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Manta 贡献者" />
+  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
 ## 许可证

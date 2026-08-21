@@ -2,9 +2,18 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="../../resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta** is a deep fork of [Orca](https://github.com/stablyai/orca) (MIT, © Lovecast Inc.), rebranded and reworked independently.
-> Standalone Manta builds are not published yet — build from source, or use the upstream Orca releases.
-> Links point at `manta.sh.cn`; those services are not deployed yet.
+> **Manta is a self-hosted fork of [Orca](https://github.com/stablyai/orca)** (MIT, © Lovecast Inc.).
+>
+> Features:
+>
+> - Self-host relay server
+> - No mandatory cloud account
+> - Internationalization
+> - Enterprise deployment
+>
+> Based on: https://github.com/stablyai/orca
+>
+> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
 
 <p align="center">
   <a href="https://github.com/paidaxingyo666/Manta"><img src="https://img.shields.io/github/stars/paidaxingyo666/Manta?style=flat&amp;label=%E2%98%85&amp;color=08C" alt="GitHub スター数" /></a>
@@ -249,8 +258,10 @@ yay -S stably-manta-bin
 
 貢献したい、またはローカルで実行したいですか？ [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) ガイドをご覧ください。
 
+<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+
 <a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Manta のコントリビューター" />
+  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
 ## ライセンス

@@ -86,7 +86,16 @@ const bundledPluginResources = {
 // from package directories where pnpm's symlink farm is absent. Copy the exact
 // runtime dependency closure to Resources/node_modules so bare require() calls
 // do not fall through to a developer checkout's node_modules.
-const commonExtraResources = [relayExtraResource, bundledPluginResources, skillFreshnessResources]
+// Why: MIT requires the copyright notice and permission text to travel with
+// every distributed copy. Nothing else placed LICENSE in the packaged app, so
+// a downloaded build carried the code without its licence.
+const licenseResource = { from: 'LICENSE', to: 'LICENSE' }
+const commonExtraResources = [
+  licenseResource,
+  relayExtraResource,
+  bundledPluginResources,
+  skillFreshnessResources
+]
 const macSpeechNativeResource = {
   from: 'node_modules/sherpa-onnx-darwin-${arch}',
   to: 'node_modules/sherpa-onnx-darwin-${arch}'

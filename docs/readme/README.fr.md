@@ -2,9 +2,18 @@
   <a href="https://github.com/paidaxingyo666/Manta"><img src="../../resources/build/icon.png" alt="Manta" width="64" valign="middle" /></a> Manta
 </h1>
 
-> **Manta** is a deep fork of [Orca](https://github.com/stablyai/orca) (MIT, © Lovecast Inc.), rebranded and reworked independently.
-> Standalone Manta builds are not published yet — build from source, or use the upstream Orca releases.
-> Links point at `manta.sh.cn`; those services are not deployed yet.
+> **Manta is a self-hosted fork of [Orca](https://github.com/stablyai/orca)** (MIT, © Lovecast Inc.).
+>
+> Features:
+>
+> - Self-host relay server
+> - No mandatory cloud account
+> - Internationalization
+> - Enterprise deployment
+>
+> Based on: https://github.com/stablyai/orca
+>
+> No standalone Manta release is published yet — build from source. Links point at `manta.sh.cn`.
 
 <p align="center">
   <a href="https://github.com/stablyai/orca"><img src="https://badgen.net/github/stars/stablyai/orca?label=%E2%98%85" alt="Étoiles GitHub" /></a>
@@ -261,8 +270,10 @@ Associez-la à l'app de bureau pour surveiller et piloter vos agents depuis votr
 
 Envie de contribuer ou de lancer le projet en local ? Consultez notre guide [CONTRIBUTING.md](../../.github/CONTRIBUTING.md).
 
+<sub>Upstream Orca contributors, whose work this fork builds on:</sub>
+
 <a href="https://github.com/stablyai/orca/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Contributeurs Manta" />
+  <img src="https://contrib.rocks/image?repo=stablyai/orca" alt="Upstream Orca contributors" />
 </a>
 
 <p align="center">
