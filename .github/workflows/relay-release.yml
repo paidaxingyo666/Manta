@@ -158,6 +158,7 @@ jobs:
           set -euo pipefail
           tags=""
           failed=""
+          echo "sign-in outcomes: dockerhub='${DOCKERHUB_OK}' aliyun='${ALIYUN_OK}' tencent='${TENCENT_OK}' dry='${DRY_RUN}'"
           # A dry run never logs in, so outcome is empty there and everything is
           # taggable; a real run only tags what accepted our credentials.
           usable() {
