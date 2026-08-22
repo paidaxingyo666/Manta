@@ -74,7 +74,19 @@ env:
 
 jobs:
   build-daily-mac:
-    if: github.repository == 'paidaxingyo666/Manta'
+    # Guarded off in this fork, deliberately. Two things make that necessary:
+    # this job runs on `blacksmith-6vcpu-macos-15`, a runner fleet only upstream
+    # has, and it publishes into a dev-channel repo that does not exist here. So
+    # it can never succeed — but it CAN sign. Every step below is wired to
+    # MAC_CERTS and a personal Apple ID, and the schedule is hourly. Repointing
+    # the runner label without also repointing this line would start twenty-four
+    # real notarization submissions a day against one person's Apple account.
+    #
+    # Turning it back on is therefore two deliberate edits, not one: a runner
+    # this fork actually has, and a dev-channel repo that exists. The Apple
+    # credentials are additionally scoped to an environment that only `v*` tags
+    # can read, so a scheduled run on a branch cannot reach them either.
+    if: github.repository == 'stablyai/orca'
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       version: ${{ steps.daily.outputs.version }}
