@@ -966,8 +966,6 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       repairWindowsFirewall: () => Promise.resolve({ ok: false, reason: 'unsupported' }),
       openWindowsNetworkSettings: () => Promise.resolve(false),
       getRuntimePairingUrl: () => Promise.resolve({ available: false }),
-      // A browser client has no relay identity of its own to hand out.
-      getRuntimeRelayPairingUrl: () => Promise.resolve({ available: false as const }),
       listDevices: () => Promise.resolve({ devices: [] }),
       revokeDevice: () => Promise.resolve({ revoked: false }),
       listRuntimeAccessGrants: () => Promise.resolve({ grants: [] }),

@@ -161,17 +161,7 @@ environment identity was adopted into — upgrading a relay that predates
 accounts needs no configuration change, and a desktop that was paired under the
 old identity moves itself onto your new account the first time you sign in.
 
-### 4. Reach one computer from another
-
-Settings → **Remote servers** → generate a pairing code on the computer you want
-to reach, choosing **Anywhere**. That code needs no address: it carries the relay
-alongside the usual LAN endpoint, so pasting it into the other computer works on
-any network. Both computers must be signed in to the same relay.
-
-Pairing stays an explicit act on the machine being reached. Sharing an account
-lists your machines; it does not authorize one to open a shell on another.
-
-### 5. Pair the phone
+### 4. Pair the phone
 
 Settings → Mobile on the desktop shows a QR code. Scan it from the app.
 

@@ -43,27 +43,17 @@ function isCanonicalBase64Key(value: string): boolean {
   }
 }
 
-/**
- * How to reach a host through a relay, without the invite freshness rule.
- *
- * A pairing code is read once, moments after it is made, so it insists the
- * invite is still live. The same block read back off disk months later is
- * describing reachability, not offering a usable invite — so the durable form
- * keeps the shape and drops the deadline.
- */
-export const StoredPairingRelaySchema = z.object({
-  v: z.literal(1),
-  directorUrl: z.string().min(1).refine(isCanonicalHttpsOrigin, 'Expected canonical HTTPS origin'),
-  cellUrl: z.string().min(1).refine(isCanonicalHttpsOrigin, 'Expected canonical HTTPS origin'),
-  assignmentEpoch: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
-  relayHostId: z.string().regex(BASE64URL_16_PATTERN),
-  inviteToken: z.string().regex(BASE64URL_43_PATTERN),
-  inviteExpiresAt: z.number().int(),
-  e2eeFraming: z.literal(2)
-})
-
 export function createPairingOfferSchema(now: () => number = () => Date.now()) {
-  const relaySchema = StoredPairingRelaySchema.extend({
+  const relaySchema = z.object({
+    v: z.literal(1),
+    directorUrl: z
+      .string()
+      .min(1)
+      .refine(isCanonicalHttpsOrigin, 'Expected canonical HTTPS origin'),
+    cellUrl: z.string().min(1).refine(isCanonicalHttpsOrigin, 'Expected canonical HTTPS origin'),
+    assignmentEpoch: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+    relayHostId: z.string().regex(BASE64URL_16_PATTERN),
+    inviteToken: z.string().regex(BASE64URL_43_PATTERN),
     inviteExpiresAt: z
       .number()
       .int()
@@ -73,7 +63,8 @@ export function createPairingOfferSchema(now: () => number = () => Date.now()) {
           value > currentTime &&
           value <= currentTime + MAX_INVITE_TTL_MS + INVITE_EXPIRY_CLOCK_SKEW_MS
         )
-      }, 'Expected a future invite expiry no more than 10 minutes away')
+      }, 'Expected a future invite expiry no more than 10 minutes away'),
+    e2eeFraming: z.literal(2)
   })
 
   return z

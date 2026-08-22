@@ -3,7 +3,7 @@ import type { PairingOffer } from './pairing'
 import type { RemoteRuntimeClientError } from './remote-runtime-client-error'
 import { remoteRuntimeUnavailableError } from './remote-runtime-request-frames'
 import {
-  openRemoteRuntimeConnection,
+  openRemoteRuntimeWebSocket,
   type RemoteRuntimeWebSocket
 } from './remote-runtime-request-websocket'
 import { formatSharedControlCloseMessage } from './remote-runtime-shared-control-protocol'
@@ -12,7 +12,7 @@ import {
   type RemoteRuntimeSocketLivenessOptions
 } from './remote-runtime-socket-liveness'
 
-export async function openSharedControlSocket(
+export function openSharedControlSocket(
   pairing: PairingOffer,
   callbacks: {
     getCurrentSocket: () => WebSocket | null
@@ -27,11 +27,9 @@ export async function openSharedControlSocket(
       onDead: (error: RemoteRuntimeClientError) => void
     }
   }
-): Promise<
-  { ok: true; socket: RemoteRuntimeWebSocket } | { ok: false; error: RemoteRuntimeClientError }
-> {
+): { ok: true; socket: RemoteRuntimeWebSocket } | { ok: false; error: RemoteRuntimeClientError } {
   let noteActivity: () => void = () => {}
-  const opened = await openRemoteRuntimeConnection(pairing, {
+  const opened = openRemoteRuntimeWebSocket(pairing, {
     onClose: (ws, code, reason) => {
       if (callbacks.getCurrentSocket() === ws) {
         callbacks.onClose(
@@ -99,7 +97,6 @@ export async function openSharedControlSocket(
     socket: {
       ws,
       cipher,
-      authenticated: opened.socket.authenticated,
       cleanup: () => {
         monitor.stop()
         cleanup()

@@ -2,14 +2,12 @@ import type { RuntimePairingReach } from '../../../../shared/runtime-pairing-rea
 
 export const RUNTIME_PAIRING_LOOPBACK_ADDRESS = '127.0.0.1'
 
-export type RuntimePairingIntent = 'another' | 'local' | 'custom' | 'relay'
+export type RuntimePairingIntent = 'another' | 'local' | 'custom'
 
 // Why: only "This computer only" declines off-host reach. Custom is the SSH-tunnel/reverse-proxy field, so
 // even a loopback-looking custom address (`127.0.0.1:8443`) needs the listener open behind the tunnel.
-// Relay declines it too: the whole point of that code is to reach a computer that is not on the
-// caller's network, so widening the local listener would expose an interface nobody asked for.
 export function runtimePairingReachForIntent(intent: RuntimePairingIntent): RuntimePairingReach {
-  return intent === 'local' || intent === 'relay' ? 'this-computer' : 'network'
+  return intent === 'local' ? 'this-computer' : 'network'
 }
 
 export type RuntimePairingUrlGeneratorProps = {
@@ -68,46 +66,7 @@ export function selectRuntimePairingIntent(
       ? RUNTIME_PAIRING_LOOPBACK_ADDRESS
       : intent === 'another'
         ? (networkInterfaces[0]?.address ?? '')
-        : // Relay needs no address at all; it is reached through the cell.
-          intent === 'relay'
-          ? RUNTIME_PAIRING_LOOPBACK_ADDRESS
-          : customAddress
+        : customAddress
   runtimePairingLinkCache.selectedAddress = selectedAddress
   return selectedAddress
-}
-
-/**
- * Fetches a pairing code for the chosen intent.
- *
- * Two calls rather than one with a flag: the relay code carries no address and
- * never widens the local listener, so it shares nothing with the address path
- * except the credential it is built on.
- */
-export async function requestRuntimePairingLink(
-  intent: RuntimePairingIntent,
-  address: string
-): Promise<
-  | { available: false; guidance?: string }
-  | { available: true; pairingUrl: string; deviceId: string; webClientUrl: string | null }
-> {
-  const result =
-    intent === 'relay'
-      ? await window.api.mobile.getRuntimeRelayPairingUrl({ rotate: true })
-      : await window.api.mobile.getRuntimePairingUrl({
-          address,
-          rotate: true,
-          // Why: main gates the one-way network widen on this, so the declared
-          // choice must travel with the address — the address alone cannot tell
-          // "This computer only" from a loopback tunnel front-end.
-          reach: runtimePairingReachForIntent(intent)
-        })
-  if (!result.available) {
-    return { available: false, ...(result.guidance ? { guidance: result.guidance } : {}) }
-  }
-  return {
-    available: true,
-    pairingUrl: result.pairingUrl,
-    deviceId: result.deviceId,
-    webClientUrl: 'webClientUrl' in result ? result.webClientUrl : null
-  }
 }

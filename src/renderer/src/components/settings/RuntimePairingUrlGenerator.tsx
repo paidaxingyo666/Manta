@@ -11,7 +11,7 @@ import {
   cacheGeneratedRuntimePairingLink,
   clearGeneratedRuntimePairingLink,
   runtimePairingLinkCache,
-  requestRuntimePairingLink,
+  runtimePairingReachForIntent,
   selectRuntimePairingIntent,
   type RuntimePairingIntent,
   type RuntimePairingUrlGeneratorProps
@@ -186,7 +186,13 @@ export function RuntimePairingUrlGenerator({
     }
     setIsGeneratingPairing(true)
     try {
-      const result = await requestRuntimePairingLink(intent, address)
+      const result = await window.api.mobile.getRuntimePairingUrl({
+        address,
+        rotate: true,
+        // Why: main gates the one-way network widen on this, so the declared choice must travel with the
+        // address — the address alone cannot tell "This computer only" from a loopback tunnel front-end.
+        reach: runtimePairingReachForIntent(intent)
+      })
       if (!result.available) {
         clearGeneratedUrls()
         if (mountedRef.current) {
@@ -202,23 +208,22 @@ export function RuntimePairingUrlGenerator({
         }
         return
       }
-      const { webClientUrl } = result
       cacheGeneratedRuntimePairingLink({
         address,
         pairingUrl: result.pairingUrl,
-        webClientUrl,
+        webClientUrl: result.webClientUrl,
         deviceId: result.deviceId
       })
       if (mountedRef.current) {
         setRuntimePairingUrl(result.pairingUrl)
-        setWebClientUrl(webClientUrl)
+        setWebClientUrl(result.webClientUrl)
         setRuntimePairingDeviceId(result.deviceId)
         setGeneratedAddress(address)
       }
       await loadRuntimeAccessGrants()
       if (mountedRef.current) {
         toast.success(
-          webClientUrl
+          result.webClientUrl
             ? translate(
                 'auto.components.settings.RuntimePairingUrlGenerator.6dd594a507',
                 'Generated web client URL.'

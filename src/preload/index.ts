@@ -4935,8 +4935,6 @@ const api = {
           deviceId: string
         }
     > => ipcRenderer.invoke('mobile:getRuntimePairingUrl', args),
-    getRuntimeRelayPairingUrl: (args) =>
-      ipcRenderer.invoke('mobile:getRuntimeRelayPairingUrl', args),
 
     listDevices: (): Promise<{
       devices: { deviceId: string; name: string; pairedAt: number; lastSeenAt: number }[]

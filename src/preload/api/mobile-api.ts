@@ -67,16 +67,6 @@ export type MobileApi = {
         deviceId: string
       }
   >
-  /** A runtime pairing code that reaches this computer through the relay. */
-  getRuntimeRelayPairingUrl: (args?: { rotate?: boolean }) => Promise<
-    | { available: false; reason?: string; guidance?: string }
-    | {
-        available: true
-        pairingUrl: string
-        deviceId: string
-        relayHostId: string
-      }
-  >
   listDevices: () => Promise<{
     devices: {
       deviceId: string

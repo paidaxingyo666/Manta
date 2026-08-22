@@ -13,19 +13,6 @@ import type {
   SharedControlReadyWaiter
 } from './remote-runtime-shared-control-types'
 
-/** The one place a shared-control socket becomes usable, however it got there. */
-export function becomeSharedControlReady(args: {
-  readyWaiters: SharedControlReadyWaiter[]
-  setState: (state: SharedControlConnectionState) => void
-  markReady: () => void
-  replaySubscriptions: () => void
-}): void {
-  args.setState('ready')
-  args.markReady()
-  resolveSharedControlReadyWaiters(args.readyWaiters)
-  args.replaySubscriptions()
-}
-
 export function handleSharedControlTextFrame(args: {
   frame: string
   state: SharedControlConnectionState
@@ -64,7 +51,10 @@ export function handleSharedControlTextFrame(args: {
       args.handleSocketClosed(error)
       return
     }
-    becomeSharedControlReady(args)
+    args.setState('ready')
+    args.markReady()
+    resolveSharedControlReadyWaiters(args.readyWaiters)
+    args.replaySubscriptions()
     return
   }
 
