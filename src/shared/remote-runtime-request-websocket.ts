@@ -6,7 +6,7 @@ import {
   remoteRuntimeRelayDialerFor,
   type RemoteRuntimeCipher
 } from './remote-runtime-transport'
-import { RemoteRuntimeClientError } from './remote-runtime-client'
+import { RemoteRuntimeClientError } from './remote-runtime-client-error'
 import {
   invalidRemoteRuntimeResponseError,
   remoteRuntimeUnavailableError

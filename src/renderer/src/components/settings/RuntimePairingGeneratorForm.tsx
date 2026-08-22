@@ -55,7 +55,10 @@ export function RuntimePairingGeneratorForm({
   const customAddressResult =
     intent === 'custom' ? parseServerShareAddress(selectedAddress) : { ok: true as const }
   const customAddressInvalid = selectedAddress !== '' && !customAddressResult.ok
-  const canGenerate = selectedAddress !== '' && (intent !== 'custom' || customAddressResult.ok)
+  // Relay needs no address; every other intent does.
+  const canGenerate =
+    intent === 'relay' ||
+    (selectedAddress !== '' && (intent !== 'custom' || customAddressResult.ok))
 
   return (
     <>
@@ -67,7 +70,7 @@ export function RuntimePairingGeneratorForm({
               'Where will this link be opened?'
             )}
           </legend>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             {(
               [
                 [
@@ -90,6 +93,17 @@ export function RuntimePairingGeneratorForm({
                   translate(
                     'auto.components.settings.RuntimePairingUrlGenerator.localOnlyHelp',
                     'A browser or Manta client on this computer'
+                  )
+                ],
+                [
+                  'relay',
+                  translate(
+                    'auto.components.settings.RuntimePairingUrlGenerator.relay',
+                    'Anywhere'
+                  ),
+                  translate(
+                    'auto.components.settings.RuntimePairingUrlGenerator.relayHelp',
+                    'Through your relay, on any network'
                   )
                 ],
                 [
@@ -136,7 +150,16 @@ export function RuntimePairingGeneratorForm({
           </div>
         </fieldset>
 
-        {intent === 'local' ? (
+        {intent === 'relay' ? (
+          <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs">
+            <p className="text-muted-foreground">
+              {translate(
+                'auto.components.settings.RuntimePairingUrlGenerator.relayLinkHelp',
+                'The code reaches this computer through the relay you are signed in to, so the other computer needs no address and no shared network. It must be signed in to the same relay.'
+              )}
+            </p>
+          </div>
+        ) : intent === 'local' ? (
           <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-xs">
             <div className="font-medium">
               {translate(

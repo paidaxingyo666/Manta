@@ -6909,7 +6909,10 @@
           "localLinkHelp": "此链接仅在运行于此计算机上的浏览器或 Manta 客户端中有效。",
           "noExternalAddress": "未找到其他设备的地址。将此计算机连接到 LAN 或 Tailscale，刷新，或选择“自定义地址”。",
           "staleAddress": "连接地址已更改。为 {{address}} 生成新链接。",
-          "customInvalid": "请输入有效的主机、主机:端口、IPv6 地址或 ws(s):// URL。"
+          "customInvalid": "请输入有效的主机、主机:端口、IPv6 地址或 ws(s):// URL。",
+          "relay": "任意网络",
+          "relayHelp": "通过你的中继，在任何网络下连接",
+          "relayLinkHelp": "该配对码通过你已登录的中继连到本机，因此对方电脑不需要地址、也不需要在同一网络。前提是它登录了同一个中继。"
         },
         "Settings": {
           "3bf149e873": "项目设置 > {{value0}}",
