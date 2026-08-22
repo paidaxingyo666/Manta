@@ -21,6 +21,7 @@ type OwnershipDeps = {
    */
   retire: (relayHostId: string, host: HostRecord) => void
   flush: () => void
+  now: () => number
 }
 
 export class HostOwnerIndex {
@@ -68,6 +69,11 @@ export class HostOwnerIndex {
     }
     const host = this.deps.ensureHost(relayHostId)
     host.ownerAccountId = accountId
+    // Claiming is contact from the owner, so it counts as being seen. Without
+    // this the record ages from zero and the sweeper retires it on its next
+    // pass — deleting the machine from its owner's list about a minute after
+    // they signed in, which is exactly the machine they are looking for.
+    host.lastSeenAt = this.deps.now()
     this.add(relayHostId, accountId)
     this.deps.flush()
     return 'ok'
@@ -107,6 +113,7 @@ export class HostOwnerIndex {
     }
     this.remove(relayHostId, owner)
     host.ownerAccountId = toAccountId
+    host.lastSeenAt = this.deps.now()
     this.add(relayHostId, toAccountId)
     this.deps.flush()
     return 'ok'
@@ -130,7 +137,9 @@ export class HostOwnerIndex {
 
   /** Records what a desktop calls itself. Cosmetic; nothing routes on it. */
   describe(relayHostId: string, descriptor: HostDescriptor): void {
-    this.deps.ensureHost(relayHostId).descriptor = descriptor
+    const host = this.deps.ensureHost(relayHostId)
+    host.descriptor = descriptor
+    host.lastSeenAt = this.deps.now()
     this.deps.flush()
   }
 

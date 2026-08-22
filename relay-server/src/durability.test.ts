@@ -226,3 +226,38 @@ describe('credential version floors', () => {
     expect(store.versionFloorSize).toBe(0)
   })
 })
+
+describe('a machine that has been claimed but never connected', () => {
+  it('survives the sweeper, because it is the one you are looking for', () => {
+    // lastSeenAt used to be stamped only by a control handshake, so a desktop
+    // that signed in and published itself aged from zero and was retired on
+    // the sweeper's next pass — about a minute later. The machine you want to
+    // reach from another computer is exactly the one nothing has paired with.
+    const store = new CellStore(null, undefined, 'acct-legacy')
+    const relayHostId = 'AbCdEf0123_-xyZ9'
+    expect(store.ownership.claim(relayHostId, 'acct-1', 16)).toBe('ok')
+    store.ownership.describe(relayHostId, {
+      displayName: 'Studio',
+      platform: 'darwin',
+      updatedAt: Date.now()
+    })
+
+    store.sweep(Date.now())
+    expect(store.ownership.listFor('acct-1').map((host) => host.relayHostId)).toEqual([relayHostId])
+
+    // It is still retired once it really has been quiet, which is what the
+    // long window is for.
+    store.sweep(Date.now() + 91 * 24 * 60 * 60_000)
+    expect(store.ownership.listFor('acct-1')).toEqual([])
+  })
+
+  it('still retires an unowned record on the short window', () => {
+    // An unowned record is scratch space from a handshake; nothing points at it.
+    const store = new CellStore(null, undefined, '')
+    store.host('BbCdEf0123_-xyZ9').lastSeenAt = Date.now()
+    store.sweep(Date.now() + 2 * 60 * 60_000)
+    expect(store.hostCount).toBe(1)
+    store.sweep(Date.now() + 25 * 60 * 60_000)
+    expect(store.hostCount).toBe(0)
+  })
+})

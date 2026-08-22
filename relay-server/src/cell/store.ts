@@ -29,22 +29,11 @@ export type {
 } from './store-records.js'
 
 import { HostOwnerIndex } from './host-ownership.js'
+import { hostIsAbandoned, sweepHostContents } from './store-retention.js'
 
 export type { HostClaimResult } from './host-ownership.js'
 
 type Snapshot = { v: 1; hosts: Record<string, StoredHost> }
-
-/** How long an empty host record is kept before it is considered abandoned. */
-const IDLE_HOST_TTL_MS = 24 * 60 * 60_000
-/**
- * An owned record is also the owner's machine list entry, so it outlives a
- * laptop that spends a fortnight in a bag. Growth is already bounded by the
- * per-account host cap, so the only job left here is retiring a machine the
- * user really has retired.
- */
-const OWNED_HOST_TTL_MS = 90 * 24 * 60 * 60_000
-/** A rotation round-trip is seconds; a day of history is already generous. */
-const LEDGER_TTL_MS = 24 * 60 * 60_000
 
 export class CellStore {
   private readonly hosts = new Map<string, HostRecord>()
@@ -55,7 +44,8 @@ export class CellStore {
     hosts: this.hosts,
     ensureHost: (id) => this.host(id),
     retire: (id, host) => this.rememberVersionFloor(id, host.maxCredentialVersion ?? 0),
-    flush: () => this.scheduleFlush()
+    flush: () => this.scheduleFlush(),
+    now: () => Date.now()
   })
   private readonly file: JsonFile<Snapshot>
 
@@ -116,7 +106,6 @@ export class CellStore {
   touch(): void {
     this.scheduleFlush()
   }
-
   host(relayHostId: string): HostRecord {
     let record = this.hosts.get(relayHostId)
     if (!record) {
@@ -212,7 +201,6 @@ export class CellStore {
   peekDevice(relayHostId: string, relayDeviceId: string): DeviceRecord | undefined {
     return this.hosts.get(relayHostId)?.devices.get(relayDeviceId)
   }
-
   /** Devices that still hold a usable credential. */
   countDevices(relayHostId: string): number {
     const host = this.hosts.get(relayHostId)
@@ -361,50 +349,12 @@ export class CellStore {
   /** Drops expired invites, credentials, ledger entries, and idle host records. */
   sweep(now: number): void {
     for (const [hostId, host] of this.hosts) {
-      for (const [hash, invite] of host.invites) {
-        if (invite.expiresAt <= now || invite.attempts >= invite.maxAttempts) {
-          host.invites.delete(hash)
-        }
+      if (!sweepHostContents(host, now) || !hostIsAbandoned(host, now)) {
+        continue
       }
-      for (const [id, device] of host.devices) {
-        if (device.current && device.current.expiresAt <= now) {
-          delete device.current
-        }
-        if (device.grace && device.grace.expiresAt <= now) {
-          delete device.grace
-        }
-        // Drop devices that hold nothing; maxCredentialVersion on the host keeps
-        // version numbers monotonic even after the record is gone.
-        if (!device.current && !device.grace) {
-          host.devices.delete(id)
-        }
-      }
-      for (const [reqId, entry] of host.installLedger) {
-        // An entry with no timestamp cannot be aged, so it is dropped rather
-        // than kept forever; a rotation round-trip is seconds, and the client
-        // retries with a fresh reqId.
-        if (typeof entry.createdAt !== 'number' || now - entry.createdAt > LEDGER_TTL_MS) {
-          host.installLedger.delete(reqId)
-        }
-      }
-      // An empty record still costs memory and a snapshot entry. Only retire it
-      // once it has also been quiet: dropping a live host's resume secret would
-      // turn its next lease rebind into a full reconnect.
-      const empty =
-        host.devices.size === 0 && host.invites.size === 0 && host.installLedger.size === 0
-      // An owned record is also the owner's machine-list entry, so it gets the
-      // long window: retiring it after a day would delete a laptop from the
-      // list the first time it spent a weekend switched off.
-      const ttl = host.ownerAccountId ? OWNED_HOST_TTL_MS : IDLE_HOST_TTL_MS
-      if (empty && now - (host.lastSeenAt ?? 0) > ttl) {
-        // Keep the version high-water mark. A phone refuses a credential
-        // version it has already seen, so restarting the numbering after the
-        // record is gone would make it reject the very credential it was just
-        // handed on re-pairing.
-        this.rememberVersionFloor(hostId, host.maxCredentialVersion ?? 0)
-        this.hosts.delete(hostId)
-        this.ownership.remove(hostId, host.ownerAccountId)
-      }
+      this.rememberVersionFloor(hostId, host.maxCredentialVersion ?? 0)
+      this.hosts.delete(hostId)
+      this.ownership.remove(hostId, host.ownerAccountId)
     }
     this.scheduleFlush()
   }
