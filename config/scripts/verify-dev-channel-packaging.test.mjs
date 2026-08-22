@@ -53,6 +53,20 @@ describe('electron-builder dev-channel identity', () => {
     expect(config.win.verifyUpdateCodeSignature).toBe(false)
   })
 
+  // Same trap, different reason to fall into it: this fork has no Windows
+  // certificate, so its releases are unsigned too. Claiming SignPath's name
+  // there would strand every installed copy on the version it was installed
+  // at, with no later build able to fix it.
+  it('drops the publisherName on an unsigned release build too', () => {
+    const config = loadConfigWithEnv({ MANTA_WIN_UNSIGNED: '1' })
+
+    expect(config.win.signtoolOptions?.publisherName).toBeUndefined()
+    expect(config.win.verifyUpdateCodeSignature).toBe(false)
+    // Still a real release: it goes to the main repo, not a dev-channel one.
+    expect(config.publish.repo).toBe('Manta')
+    expect(config.publish.releaseType).toBe('release')
+  })
+
   it.each([
     ['hourly', { MANTA_WIN_HOURLY: '1' }, 'manta-hourly'],
     ['daily', { MANTA_WIN_DAILY: '1' }, 'manta-daily'],

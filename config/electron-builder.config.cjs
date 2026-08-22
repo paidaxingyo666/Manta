@@ -31,6 +31,9 @@ const isWinHourly = process.env.MANTA_WIN_HOURLY === '1'
 const isWinDaily = process.env.MANTA_WIN_DAILY === '1'
 const isWinAdhoc = process.env.MANTA_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
+// Whether this Windows build will end up Authenticode-signed. Dev channels never
+// are, and neither is a build from a fork with no code-signing certificate.
+const isWinUnsigned = isWinDevChannel || process.env.MANTA_WIN_UNSIGNED === '1'
 const isMacRelease = process.env.MANTA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.MANTA_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
@@ -331,15 +334,16 @@ module.exports = {
     // Why: Windows installers are signed after electron-builder packaging by
     // SignPath, so the packager cannot infer the updater publisherName.
     //
-    // Why dev channels drop it instead: they ship unsigned, because SignPath's
-    // approval waits are budgeted in hours and cannot fit an hourly cadence.
+    // Why unsigned builds drop it instead: dev channels ship unsigned because
+    // SignPath's approval waits are budgeted in hours and cannot fit an hourly
+    // cadence, and a fork ships unsigned because it has no certificate at all.
     // electron-updater Authenticode-verifies every installer it downloads
     // against the publisherName baked into the *installed* app's app-update.yml
     // (NsisUpdater.verifySignature), and skips verification entirely when that
     // name is absent. An unsigned build that still claimed 'SignPath Foundation'
     // would therefore reject its own channel's next build — and its way back to
-    // stable with it. Dropping it is what makes dev→dev and dev→stable work.
-    ...(isWinDevChannel
+    // stable with it, with no way to fix the copies already installed.
+    ...(isWinUnsigned
       ? { verifyUpdateCodeSignature: false }
       : { signtoolOptions: { publisherName: 'SignPath Foundation' } }),
     extraResources: [

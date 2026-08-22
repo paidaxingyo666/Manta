@@ -35,10 +35,17 @@ name: Hourly macOS Dev Build
 # invisible draft — and the build-number query counts drafts, so it holds its
 # number and the next run does not reuse it.
 
+# The cron is commented out rather than deleted. This fork has none of what the
+# job needs: `runs-on: blacksmith-6vcpu-macos-15` is upstream's paid runner
+# fleet, so every scheduled run queued for a machine that never arrived and was
+# cancelled by the next hour's `cancel-in-progress` — an Actions page of red X's
+# for work that never started. It would fail at the end regardless, because the
+# `HOURLY_REPO` below does not exist. Restoring the schedule means creating that
+# repo and putting a real macOS runner label here first.
 on:
-  schedule:
-    # Top of every hour. Skipped automatically when main has not moved.
-    - cron: '0 * * * *'
+  # schedule:
+  #   # Top of every hour. Skipped automatically when main has not moved.
+  #   - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       force:

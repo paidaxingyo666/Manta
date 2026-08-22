@@ -45,10 +45,13 @@ name: Daily macOS Dev Build
 # worst case is still an invisible draft — and the build-number query counts
 # drafts, so it holds its number and the next run does not reuse it.
 
+# Cron commented out for the same reason as hourly-mac-build.yml: no Blacksmith
+# runner and no `manta-daily` repo to publish into, so a scheduled run can only
+# queue and then be cancelled.
 on:
-  schedule:
-    # Once a day, late morning Pacific. Single cron — no DST twin, no clock gate.
-    - cron: '15 18 * * *'
+  # schedule:
+  #   # Once a day, late morning Pacific. Single cron — no DST twin, no clock gate.
+  #   - cron: '15 18 * * *'
   workflow_dispatch:
     inputs:
       force:
