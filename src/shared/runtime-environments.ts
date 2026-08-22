@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { PAIRING_OFFER_VERSION, type PairingOffer } from './pairing'
+import { StoredPairingRelaySchema } from './mobile-relay-pairing-offer'
 
 export const RuntimeAccessEndpointSchema = z.object({
   id: z.string().min(1),
@@ -7,7 +8,15 @@ export const RuntimeAccessEndpointSchema = z.object({
   label: z.string().min(1),
   endpoint: z.string().min(1),
   deviceToken: z.string().min(1),
-  publicKeyB64: z.string().min(1)
+  publicKeyB64: z.string().min(1),
+  /**
+   * How to reach this host through a relay, when the pairing code carried one.
+   *
+   * Additive rather than a new `kind`: a downgraded client that failed to parse
+   * an unknown kind would drop the *whole* environment store, while an unknown
+   * key is simply stripped.
+   */
+  relay: StoredPairingRelaySchema.optional()
 })
 
 export const PublicRuntimeAccessEndpointSchema = RuntimeAccessEndpointSchema.omit({
@@ -87,7 +96,8 @@ export function createEnvironmentFromPairingOffer(args: {
         label: 'WebSocket',
         endpoint: args.offer.endpoint,
         deviceToken: args.offer.deviceToken,
-        publicKeyB64: args.offer.publicKeyB64
+        publicKeyB64: args.offer.publicKeyB64,
+        ...(args.offer.relay ? { relay: args.offer.relay } : {})
       }
     ],
     preferredEndpointId: endpointId
@@ -118,6 +128,7 @@ export function getPreferredPairingOffer(environment: KnownRuntimeEnvironment): 
     endpoint: endpoint.endpoint,
     deviceToken: endpoint.deviceToken,
     publicKeyB64: endpoint.publicKeyB64,
-    ...(environment.pairedDeviceId ? { pairedDeviceId: environment.pairedDeviceId } : {})
+    ...(environment.pairedDeviceId ? { pairedDeviceId: environment.pairedDeviceId } : {}),
+    ...(endpoint.relay ? { scope: 'runtime' as const, relay: endpoint.relay } : {})
   }
 }

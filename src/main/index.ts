@@ -104,6 +104,8 @@ import {
   publishThisMachineToRelay,
   setRelayHostIdentityReader
 } from './runtime/relay/relay-host-directory'
+import { dialRelayPeer } from './runtime/relay/relay-peer-dialer'
+import { setRemoteRuntimeRelayDialer } from '../shared/remote-runtime-transport'
 import type { RelayBrokerStatus } from './runtime/relay/relay-session-broker'
 import { awaitRuntimeFileWatcherUnsubscribes } from './runtime/manta-runtime-files'
 import { clearRuntimeMetadataIfOwned } from './runtime/runtime-metadata'
@@ -2197,6 +2199,11 @@ function shouldSuppressCodexAutoApprovalSyntheticTitleFromHook(args: {
     }) === 'yolo'
   )
 }
+
+// Why here rather than beside the relay service: a remote host reached through
+// a relay is dialled by the shared runtime client, which is transport-agnostic
+// by design and must not import a relay module of its own.
+setRemoteRuntimeRelayDialer((input) => dialRelayPeer(input))
 
 void app.whenReady().then(async () => {
   logStartupMilestone('app-ready')

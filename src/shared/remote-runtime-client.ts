@@ -6,7 +6,8 @@ import { randomUUID } from 'node:crypto'
 import WebSocket from 'ws'
 import { abortSignalReason, throwIfSignalAborted } from './abort-signal-reason'
 import type { PairingOffer } from './pairing'
-import { createDirectRuntimeHandshake } from './remote-runtime-transport'
+import type { RemoteRuntimeCipher } from './remote-runtime-transport'
+import { openRemoteRuntimeClientSocket } from './remote-runtime-request-websocket'
 import {
   isKeepaliveFrame,
   RuntimeRpcEnvelopeSchema,
@@ -154,7 +155,8 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
   let awaitingRequestId = statusRequestId ?? requestId
   let awaitingStatus = statusRequestId !== null
   return await new Promise<RuntimeRpcResponse<TResult>>((resolve, reject) => {
-    const { cipher, helloFrame } = createDirectRuntimeHandshake(pairing)
+    let cipher: RemoteRuntimeCipher
+    let helloFrame: string | null = null
     let state: HandshakeState = 'awaiting_ready'
     let settled = false
     let ws: WebSocket | null = null
@@ -237,22 +239,19 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
       return
     }
 
-    try {
-      ws = new WebSocket(pairing.endpoint, { maxPayload: REMOTE_RUNTIME_MAX_WEBSOCKET_FRAME_BYTES })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      finish({
-        ok: false,
-        error: new RemoteRuntimeClientError(
-          'invalid_argument',
-          `Invalid remote endpoint: ${message}`
-        )
-      })
-      return
-    }
-
     function onOpen(): void {
-      ws?.send(helloFrame)
+      if (helloFrame !== null) {
+        ws?.send(helloFrame)
+        return
+      }
+      // A relay transport already ran E2EE and presented the device token, so
+      // there is no handshake left and the first thing on the wire is RPC.
+      state = 'ready'
+      if (serializedStatusRequest) {
+        ws?.send(cipher.sealText(serializedStatusRequest))
+        return
+      }
+      sendRequestedRpc()
     }
 
     function onError(): void {
@@ -329,10 +328,32 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
       handleRpcFrame(plaintext)
     }
 
-    ws.once('open', onOpen)
-    ws.once('error', onError)
-    ws.on('close', onClose)
-    ws.on('message', onMessage)
+    void openRemoteRuntimeClientSocket(pairing, {
+      ...(signal ? { signal } : {}),
+      maxPayload: REMOTE_RUNTIME_MAX_WEBSOCKET_FRAME_BYTES
+    }).then((opened) => {
+      if (settled) {
+        if (opened.ok) {
+          opened.socket.ws.close()
+        }
+        return
+      }
+      if (!opened.ok) {
+        finish({ ok: false, error: opened.error })
+        return
+      }
+      ws = opened.socket.ws
+      cipher = opened.socket.cipher
+      helloFrame = opened.socket.helloFrame
+      ws.once('error', onError)
+      ws.on('close', onClose)
+      ws.on('message', onMessage)
+      if (ws.readyState === WebSocket.OPEN) {
+        onOpen()
+      } else {
+        ws.once('open', onOpen)
+      }
+    })
 
     function handleReadyFrame(frame: string): void {
       let ready: unknown
@@ -513,7 +534,8 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
     clientCapabilities: remoteRuntimeClientCapabilities()
   })
   return await new Promise((resolve, reject) => {
-    const { cipher, helloFrame } = createDirectRuntimeHandshake(pairing)
+    let cipher: RemoteRuntimeCipher
+    let helloFrame: string | null = null
     let state: HandshakeState = 'awaiting_ready'
     let settled = false
     let ws: WebSocket | null = null
@@ -633,16 +655,16 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
       callbacks.onClose?.()
     }
 
-    try {
-      ws = new WebSocket(pairing.endpoint, { maxPayload: REMOTE_RUNTIME_MAX_WEBSOCKET_FRAME_BYTES })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      fail(new RemoteRuntimeClientError('invalid_argument', `Invalid remote endpoint: ${message}`))
-      return
-    }
-
     function onOpen(): void {
-      ws?.send(helloFrame)
+      if (helloFrame !== null) {
+        ws?.send(helloFrame)
+        return
+      }
+      // A relay transport already ran E2EE and presented the device token, so
+      // the subscription request is the first thing on the wire.
+      state = 'ready'
+      ws?.send(cipher.sealText(serializedRequest))
+      succeed()
     }
 
     function onError(): void {
@@ -706,42 +728,65 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
       liveness?.noteActivity()
     }
 
-    ws.once('open', onOpen)
-    ws.once('error', onError)
-    ws.on('close', onClose)
-    ws.on('message', onMessage)
-    ws.on('pong', onLivenessSignal)
-    ws.on('ping', onLivenessSignal)
+    void openRemoteRuntimeClientSocket(pairing, {
+      maxPayload: REMOTE_RUNTIME_MAX_WEBSOCKET_FRAME_BYTES
+    }).then((opened) => {
+      if (settled) {
+        if (opened.ok) {
+          opened.socket.ws.close()
+        }
+        return
+      }
+      if (!opened.ok) {
+        fail(opened.error)
+        return
+      }
+      ws = opened.socket.ws
+      cipher = opened.socket.cipher
+      helloFrame = opened.socket.helloFrame
+      ws.once('error', onError)
+      ws.on('close', onClose)
+      ws.on('message', onMessage)
+      ws.on('pong', onLivenessSignal)
+      ws.on('ping', onLivenessSignal)
+      startLiveness(ws)
+      if (ws.readyState === WebSocket.OPEN) {
+        onOpen()
+      } else {
+        ws.once('open', onOpen)
+      }
+    })
 
     // Why: dedicated stream sockets (terminal.multiplex, browser.screencast)
     // ride the same tunnels as shared control; a half-open drop must surface
     // as a close so the renderer's onTransportClose resubscribe path runs
     // instead of freezing the stream forever (#7718/#7489).
-    const monitoredWs = ws
-    liveness = startRemoteRuntimeSocketLiveness({
-      ping: () => {
-        if (monitoredWs.readyState === WebSocket.OPEN) {
-          monitoredWs.ping()
-        }
-      },
-      onDead: () => {
-        // Why: fail() first so listeners detach before terminate's close event;
-        // otherwise the close handler would emit a second onClose to callers.
-        fail(
-          new RemoteRuntimeClientError(
-            'remote_runtime_unavailable',
-            'Remote Manta runtime stopped responding; the stream connection was reset.'
+    function startLiveness(monitoredWs: WebSocket): void {
+      liveness = startRemoteRuntimeSocketLiveness({
+        ping: () => {
+          if (monitoredWs.readyState === WebSocket.OPEN) {
+            monitoredWs.ping()
+          }
+        },
+        onDead: () => {
+          // Why: fail() first so listeners detach before terminate's close event;
+          // otherwise the close handler would emit a second onClose to callers.
+          fail(
+            new RemoteRuntimeClientError(
+              'remote_runtime_unavailable',
+              'Remote Manta runtime stopped responding; the stream connection was reset.'
+            )
           )
-        )
-        try {
-          // Why: close() on a half-open socket can hang for the OS TCP timeout.
-          monitoredWs.terminate()
-        } catch {
-          // Best-effort terminate; the subscription is already settled.
-        }
-      },
-      options: livenessOptions
-    })
+          try {
+            // Why: close() on a half-open socket can hang for the OS TCP timeout.
+            monitoredWs.terminate()
+          } catch {
+            // Best-effort terminate; the subscription is already settled.
+          }
+        },
+        options: livenessOptions
+      })
+    }
 
     function handleReadyFrame(frame: string): void {
       let ready: unknown

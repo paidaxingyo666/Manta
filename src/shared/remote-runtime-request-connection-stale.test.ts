@@ -9,7 +9,9 @@ import type { RemoteRuntimeWebSocketCallbacks } from './remote-runtime-request-w
 const opens: FakeOpenedSocket[] = []
 
 vi.mock('./remote-runtime-request-websocket', () => ({
-  openRemoteRuntimeWebSocket: (
+  // Why async: a relay transport finishes its handshake before the socket is
+  // handed over, so opening is a promise even for a direct socket.
+  openRemoteRuntimeConnection: async (
     _pairing: PairingOffer,
     callbacks: RemoteRuntimeWebSocketCallbacks
   ) => {
@@ -17,7 +19,12 @@ vi.mock('./remote-runtime-request-websocket', () => ({
     opens.push(socket)
     return {
       ok: true,
-      socket: { ws: socket.ws, cipher: socket.cipher, cleanup: socket.cleanup }
+      socket: {
+        ws: socket.ws,
+        cipher: socket.cipher,
+        cleanup: socket.cleanup,
+        authenticated: false
+      }
     }
   }
 }))
@@ -48,6 +55,12 @@ function createFakeOpenedSocket(callbacks: RemoteRuntimeWebSocketCallbacks): Fak
     sent,
     callbacks
   }
+}
+
+/** The dial is a promise now, so the socket appears a microtask later. */
+async function nextOpen(index: number): Promise<FakeOpenedSocket> {
+  await vi.waitFor(() => expect(opens.length).toBeGreaterThan(index))
+  return opens[index]!
 }
 
 function authenticate(socket: FakeOpenedSocket): void {
@@ -82,7 +95,7 @@ describe('RemoteRuntimeRequestConnection stale socket callbacks', () => {
     })
 
     const request = connection.request('status.get', undefined, 1000)
-    const socket = opens[0]!
+    const socket = await nextOpen(0)
     connection.close()
     connection.close()
 
@@ -101,7 +114,7 @@ describe('RemoteRuntimeRequestConnection stale socket callbacks', () => {
       publicKeyB64: Buffer.from(new Uint8Array(32).fill(9)).toString('base64')
     })
     const request = connection.request('status.get', undefined, 1000)
-    const socket = opens[0]!
+    const socket = await nextOpen(0)
     authenticate(socket)
     socket.ws.send = (() => {
       throw new Error('send failed')
@@ -131,6 +144,7 @@ describe('RemoteRuntimeRequestConnection stale socket callbacks', () => {
       })
 
       const first = connection.request('slow.method', undefined, 10)
+      await vi.waitFor(() => expect(opens.length).toBeGreaterThan(0))
       authenticate(opens[0]!)
       const firstRejected = expect(first).rejects.toThrow('Timed out')
       await vi.advanceTimersByTimeAsync(11)
@@ -141,6 +155,7 @@ describe('RemoteRuntimeRequestConnection stale socket callbacks', () => {
       })
 
       const second = connection.request('status.get', undefined, 1000)
+      await vi.waitFor(() => expect(opens.length).toBeGreaterThan(1))
       authenticate(opens[1]!)
       await vi.waitFor(() => expect(opens[1]!.sent.length).toBeGreaterThan(1))
 

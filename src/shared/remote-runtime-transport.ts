@@ -94,3 +94,32 @@ export function createDirectRuntimeHandshake(pairing: PairingOffer): {
     })
   }
 }
+
+/**
+ * Dials a relay peer. Registered by the main process, because the E2EE v2 key
+ * schedule lives there and shared code has no business knowing about relays.
+ */
+export type RemoteRuntimeRelayDialer = (input: {
+  relay: NonNullable<PairingOffer['relay']>
+  deviceToken: string
+  desktopPublicKeyB64: string
+  signal?: AbortSignal
+}) => Promise<{ ws: WebSocket; cipher: RemoteRuntimeCipher }>
+
+let relayDialer: RemoteRuntimeRelayDialer | null = null
+
+export function setRemoteRuntimeRelayDialer(dialer: RemoteRuntimeRelayDialer | null): void {
+  relayDialer = dialer
+}
+
+/**
+ * The dialer to use for this offer, or null to open a direct socket.
+ *
+ * Null when the offer carries no relay — and also when nothing registered a
+ * dialer, which is every non-desktop consumer of these clients.
+ */
+export function remoteRuntimeRelayDialerFor(
+  pairing: PairingOffer
+): RemoteRuntimeRelayDialer | null {
+  return pairing.relay && relayDialer ? relayDialer : null
+}

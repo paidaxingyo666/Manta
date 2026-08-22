@@ -4,10 +4,7 @@ import { abortSignalReason } from './abort-signal-reason'
 import type { PairingOffer } from './pairing'
 import { scheduleOrphanedRemoteRuntimeSocketClose } from './remote-runtime-abort-orphaned-socket'
 import type { RemoteRuntimeCipher } from './remote-runtime-transport'
-import {
-  serializeRemoteRuntimePayload,
-  serializeRemoteRuntimeRpcRequest
-} from './remote-runtime-memory-limits'
+import { serializeRemoteRuntimeRpcRequest } from './remote-runtime-memory-limits'
 import {
   prepareRemoteRuntimeRequest,
   releaseRemoteRuntimePreparedRequest,
@@ -17,13 +14,9 @@ import {
   type RemoteRuntimePreparedRequest
 } from './remote-runtime-prepared-request-admission'
 import {
-  invalidRemoteRuntimeResponseError,
-  parseAuthenticatedFrame,
-  parseReadyFrame,
   remoteRuntimeTimeoutError,
   remoteRuntimeUnavailableError
 } from './remote-runtime-request-frames'
-import { settleRemoteRuntimeRequestRpcFrame } from './remote-runtime-request-rpc-frame'
 import type { RuntimeRpcResponse } from './runtime-rpc-envelope'
 import {
   rejectRemoteRuntimeRequestReadyWaiters,
@@ -31,8 +24,8 @@ import {
   waitForRemoteRuntimeRequestReady,
   type RemoteRuntimeRequestReadyWaiter
 } from './remote-runtime-request-ready-waiters'
-import { openRemoteRuntimeWebSocket } from './remote-runtime-request-websocket'
-import { remoteRuntimeClientCapabilities } from './remote-runtime-client-capabilities'
+import { openRequestConnectionSocket } from './remote-runtime-request-open'
+import { handleRequestConnectionFrame } from './remote-runtime-request-frame-handler'
 type ConnectionState = 'closed' | 'awaiting_ready' | 'awaiting_authenticated' | 'ready'
 const IDLE_CLOSE_MS = 60_000
 
@@ -40,6 +33,15 @@ export class RemoteRuntimeRequestConnection {
   private state: ConnectionState = 'closed'
   private ws: WebSocket | null = null
   private cipher: RemoteRuntimeCipher | null = null
+  /**
+   * Bumped by every open and every close.
+   *
+   * A relay dial is async, so the connection can be closed — or re-opened —
+   * while one is in flight. Adopting that socket afterwards would leave a live
+   * connection nothing is tracking.
+   */
+  private openGeneration = 0
+  private opening = false
   private socketCleanup: (() => void) | null = null
   private readonly pendingRequests = new Map<string, RemoteRuntimePendingRequest<unknown>>()
   private readonly readyWaiters: RemoteRuntimeRequestReadyWaiter[] = []
@@ -120,6 +122,7 @@ export class RemoteRuntimeRequestConnection {
   }
 
   close(error?: Error): void {
+    this.openGeneration += 1
     const ws = this.ws
     const cleanup = this.socketCleanup
     this.ws = this.cipher = null
@@ -163,105 +166,62 @@ export class RemoteRuntimeRequestConnection {
     return promise
   }
 
+  /**
+   * A relay transport has a handshake to finish before the socket is usable, so
+   * this cannot be synchronous. `opening` keeps a second caller from starting a
+   * parallel dial while the first is still in flight.
+   */
   private open(): void {
-    const opened = openRemoteRuntimeWebSocket(this.pairing, {
-      onClose: (ws) => {
-        if (this.ws === ws) {
-          this.close()
-        }
-      },
-      onError: (ws, error) => {
-        if (this.ws === ws) {
-          this.close(error)
-        }
-      },
-      onTextFrame: (ws, frame) => {
-        if (this.ws === ws) {
-          this.handleTextFrame(frame)
-        }
-      }
-    })
-    if (!opened.ok) {
-      this.close(opened.error)
+    if (this.opening) {
       return
     }
-    this.ws = opened.socket.ws
-    this.cipher = opened.socket.cipher
-    this.socketCleanup = opened.socket.cleanup
-    this.state = 'awaiting_ready'
+    this.opening = true
+    const generation = ++this.openGeneration
+    void openRequestConnectionSocket({
+      pairing: this.pairing,
+      generation,
+      currentGeneration: () => this.openGeneration,
+      isCurrentSocket: (ws) => this.ws === ws,
+      onClose: () => this.close(),
+      onError: (error) => this.close(error),
+      onTextFrame: (frame) => this.handleTextFrame(frame),
+      adopt: (socket) => {
+        this.ws = socket.ws
+        this.cipher = socket.cipher
+        this.socketCleanup = socket.cleanup
+      },
+      awaitHandshake: () => {
+        this.state = 'awaiting_ready'
+      },
+      becomeReady: () => {
+        this.state = 'ready'
+        resolveRemoteRuntimeRequestReadyWaiters(this.readyWaiters)
+        this.scheduleIdleCloseIfUnused()
+      }
+    }).finally(() => {
+      this.opening = false
+    })
   }
 
   private handleTextFrame(frame: string): void {
-    if (this.state === 'awaiting_ready') {
-      this.handleReadyFrame(frame)
-      return
-    }
-
-    const cipher = this.cipher
-    if (!cipher) {
-      return
-    }
-    const plaintext = cipher.openText(frame)
-    if (plaintext === null) {
-      this.close(
-        invalidRemoteRuntimeResponseError('Remote Manta runtime returned an undecryptable frame.')
-      )
-      return
-    }
-
-    if (this.state === 'awaiting_authenticated') {
-      this.handleAuthenticatedFrame(plaintext)
-      return
-    }
-
-    this.handleRpcFrame(plaintext)
-  }
-
-  private handleReadyFrame(frame: string): void {
-    const error = parseReadyFrame(frame)
-    if (error) {
-      this.close(error)
-      return
-    }
-    this.state = 'awaiting_authenticated'
-    const cipher = this.cipher
-    if (!cipher) {
-      return
-    }
-    this.ws?.send(
-      cipher.sealText(
-        serializeRemoteRuntimePayload({
-          type: 'e2ee_auth',
-          deviceToken: this.pairing.deviceToken,
-          clientCapabilities: remoteRuntimeClientCapabilities()
-        })
-      )
-    )
-  }
-
-  private handleAuthenticatedFrame(plaintext: string): void {
-    const error = parseAuthenticatedFrame(plaintext)
-    if (error) {
-      this.close(error)
-      return
-    }
-    this.state = 'ready'
-    resolveRemoteRuntimeRequestReadyWaiters(this.readyWaiters)
-    this.scheduleIdleCloseIfUnused()
-  }
-
-  private handleRpcFrame(plaintext: string): void {
-    const result = settleRemoteRuntimeRequestRpcFrame({
-      plaintext,
-      pendingRequests: this.pendingRequests
+    handleRequestConnectionFrame({
+      frame,
+      state: this.state,
+      cipher: this.cipher,
+      deviceToken: this.pairing.deviceToken,
+      pendingRequests: this.pendingRequests,
+      send: (serialized) => this.ws?.send(serialized),
+      setState: (state) => {
+        this.state = state
+      },
+      close: (error) => this.close(error),
+      becomeReady: () => {
+        this.state = 'ready'
+        resolveRemoteRuntimeRequestReadyWaiters(this.readyWaiters)
+        this.scheduleIdleCloseIfUnused()
+      },
+      onSettled: () => this.scheduleIdleCloseIfUnused()
     })
-    if (result.error) {
-      this.close(result.error)
-      return
-    }
-    if (result.resolved) {
-      this.scheduleIdleCloseIfUnused()
-    }
   }
 
   private sendRequest(requestId: string): void {
