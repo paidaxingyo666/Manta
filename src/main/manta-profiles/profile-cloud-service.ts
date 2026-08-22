@@ -19,6 +19,7 @@ import {
   createMantaCloudProfile,
   exchangeMantaCloudAuthCode,
   grantMantaCloudSessionDirectly,
+  MantaCloudRequestError,
   revokeMantaCloudSession
 } from './profile-cloud-client'
 import { beginMantaCloudPkceFlow } from './profile-cloud-pkce'
@@ -109,13 +110,20 @@ export async function connectCurrentMantaProfile(
         auth: getCurrentMantaProfileAuthStatus(userDataPath)
       }
     }
+    const errorCode =
+      error instanceof MantaCloudCredentialError || error instanceof MantaCloudRequestError
+        ? error.errorCode
+        : undefined
     return {
       status: 'failed',
       auth: getCurrentMantaProfileAuthStatus(userDataPath),
-      error: message,
-      ...(error instanceof MantaCloudCredentialError && error.errorCode
-        ? { errorCode: error.errorCode }
-        : {})
+      // Every surface that offers "sign in" with no form ends up here, and
+      // 'manta_cloud_request_failed_409' names nothing a person can act on.
+      error:
+        errorCode === 'accounts_required'
+          ? 'This relay gives each person their own account. Sign in from Settings → Manta Account.'
+          : message,
+      ...(errorCode ? { errorCode } : {})
     }
   }
 }
