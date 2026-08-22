@@ -240,7 +240,7 @@ function moduleScopeRanges(sourceFile) {
   return ranges
 }
 
-function applyReplacements(filePath, sourceText, candidates, catalog, skipped, specifier) {
+function applyReplacements(filePath, sourceText, candidates, catalog, skipped, specifier, options) {
   const sourceFile = ts.createSourceFile(
     filePath,
     sourceText,
@@ -310,7 +310,8 @@ async function localizeFile(root, filePath, catalog, skipped, i18nSpecifier, opt
     candidates,
     catalog,
     skipped,
-    i18nSpecifier(filePath, root)
+    i18nSpecifier(filePath, root),
+    options
   )
   const replacedCount = uniqueCandidates(candidates).length - (skipped.length - before)
   if (nextSource !== sourceText) {

@@ -5,10 +5,9 @@ import { useRouter } from 'expo-router'
 import { ChevronLeft, ChevronRight, Languages } from 'lucide-react-native'
 import { PickerModal, type PickerOption } from '../src/components/PickerModal'
 import { colors, radii, spacing, typography } from '../src/theme/mobile-theme'
-import { translate } from '../src/i18n/i18n'
+import { setMobileUiLanguage, translate } from '../src/i18n/i18n'
 import { localizedConstant } from '../src/i18n/localized-constant'
 import { readUiLanguage, writeUiLanguage } from '../src/i18n/ui-language-store'
-import { setMobileUiLanguage } from '../src/i18n/i18n'
 import {
   UI_LANGUAGE_CHINESE,
   UI_LANGUAGE_ENGLISH,
