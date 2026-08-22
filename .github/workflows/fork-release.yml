@@ -121,9 +121,9 @@ jobs:
             echo "Draft for $RELEASE_TAG already exists; reusing it."
             exit 0
           fi
-          # Generated notes need a previous release to diff against. On the very
-          # first one there is none, and GitHub walks back to the root commit —
-          # nine thousand of them, against a 125000-character body limit.
+          # Generated notes need a previous release to diff against. With none,
+          # GitHub produces a bare "Full Changelog" link and nothing else, which
+          # is a poor thing for a first release to say.
           notes=(--generate-notes)
           if [[ -z "$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[].tagName')" ]]; then
             notes=(--notes "First Manta release.")
@@ -139,7 +139,7 @@ jobs:
   macos:
     needs: prepare
     runs-on: macos-15
-    timeout-minutes: 120
+    timeout-minutes: 240
     # The Apple credentials live here, not in repository secrets, and this
     # environment admits only refs matching the tag pattern `v*`. That is what
     # stops a scheduled or branch-triggered run from ever reaching them —
@@ -219,7 +219,11 @@ jobs:
       - name: Gate SSH relay watcher process isolation
         run: node config/scripts/relay-watcher-fault-harness.mjs
 
-      # Notarization is a round trip to Apple and occasionally just stalls.
+      # Notarization is a round trip to Apple and occasionally just stalls, which
+      # is what the retries are for. The job ceiling has to leave room for them:
+      # at 60 × 3 on a 120-minute job the second attempt was cut off partway and
+      # the third never ran, and the failure read as a job timeout rather than as
+      # a notary stall.
       - name: Package, sign, notarize and upload
         uses: nick-fields/retry@v4
         with:
@@ -300,20 +304,74 @@ jobs:
       - name: Build app
         run: pnpm build:release
 
+      # `;` and $LASTEXITCODE rather than `&&`: nick-fields/retry runs Windows
+      # commands under Windows PowerShell 5.1, whose parser does not know `&&`
+      # at all. It is a parse error, so neither command runs and all three
+      # attempts fail in the same second. Every other Windows leg in this repo
+      # is written this way for exactly that reason, and a contract test now
+      # covers this file too.
+      #
+      # Budget: 30 × 2 fits inside the job's 120, which 45 × 3 did not — a
+      # stall would have been cut off mid-second-attempt and reported as a job
+      # timeout rather than as what it was.
       - name: Package and upload
         uses: nick-fields/retry@v4
         with:
-          timeout_minutes: 45
-          max_attempts: 3
+          timeout_minutes: 30
+          max_attempts: 2
           retry_wait_seconds: 30
-          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --win --publish always
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; pnpm exec electron-builder --config config/electron-builder.config.cjs --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify the release is still a draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::Release $RELEASE_TAG went public during the Windows upload."
+            exit 1
+          fi
 
   publish:
     needs: [prepare, macos, windows]
     runs-on: ubuntu-latest
     steps:
+      # Two green jobs is not the same as a complete release. electron-publish
+      # skips the upload silently when it cannot resolve the release, exiting
+      # zero — so the last thing standing between a half-empty release and the
+      # public is this count.
+      #
+      # The list is the fork's own: arm64 mac only, unsigned Windows, no Linux.
+      # config/scripts/verify-release-required-assets.mjs still describes
+      # upstream's twenty artifacts and would fail every release here.
+      - name: Verify every artifact arrived
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          names="$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')"
+          echo "$names"
+          # The dmg people download, the zip electron-updater downloads, their
+          # blockmaps, and the manifest that points at each. A plain string
+          # rather than an array: `set -u` and empty arrays disagree across bash
+          # versions, and this must not be the thing that breaks a release.
+          missing=""
+          for want in 'manta-macos-arm64\.dmg$' 'manta-macos-arm64\.dmg\.blockmap$' \
+                      '\-arm64-mac\.zip$' '\-arm64-mac\.zip\.blockmap$' '^latest-mac\.yml$' \
+                      '^manta-windows-setup\.exe$' '^manta-windows-setup\.exe\.blockmap$' '^latest\.yml$'; do
+            echo "$names" | grep -qE "$want" || missing="$missing $want"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Release $RELEASE_TAG is missing:$missing"
+            exit 1
+          fi
+
       # Only now, with every platform's assets in place, does the release stop
       # being a draft.
       - name: Publish the release

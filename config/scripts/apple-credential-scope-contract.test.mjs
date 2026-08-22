@@ -105,15 +105,22 @@ describe('Apple credential scope', () => {
     expect(macos.environment).toBe(RELEASE_ENVIRONMENT)
   })
 
-  it('leaves the release workflow with no way to run from a branch', () => {
+  it('leaves the tag as the only way to name a release', () => {
     const workflow = readWorkflow('fork-release.yml')
     const on = workflow.on ?? workflow[true]
 
-    // A `tag` input would let a dispatch from a branch look right for forty
-    // minutes and then die at the environment gate. The ref is the tag.
-    expect(on.workflow_dispatch ?? null).toBeNull()
+    // workflow_dispatch stays — it is how a leg gets rebuilt. What must not
+    // come back is an input naming the tag: that would let a dispatch from a
+    // branch look right for forty minutes and then die at the environment gate
+    // with nothing published. `--ref refs/tags/<tag>` is the one way to say it.
+    //
+    // Asserted as a key check, not `on.workflow_dispatch ?? null`: a bare
+    // `workflow_dispatch:` parses to null, so that form passes whether the
+    // trigger is there or not, and would have said nothing at all.
+    expect(Object.keys(on)).toContain('workflow_dispatch')
+    expect(on.workflow_dispatch).toBeNull()
     expect(on.push.tags).toEqual(['v*'])
-    expect(JSON.stringify(workflow)).not.toContain('inputs.tag')
+    expect(JSON.stringify(workflow)).not.toContain('inputs.')
   })
 
   it('does not invite anyone to move credentials into the environment that has no rules', () => {
