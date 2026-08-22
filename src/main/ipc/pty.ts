@@ -5357,6 +5357,7 @@ export function registerPtyHandlers(
               tabId: hostSessionBinding.tabId,
               leafId: hostSessionBinding.leafId,
               ptyId: result.id,
+              hostAdmittedMembership: true,
               ...(result.incarnationId ? { incarnationId: result.incarnationId } : {}),
               ...(cwd ? { startupCwd: cwd } : {}),
               ...(hostSessionBinding.expectedSourceBinding
