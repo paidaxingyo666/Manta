@@ -64,7 +64,7 @@ export function openSharedControlSocket(
     return opened
   }
 
-  const { ws, cipher, cleanup } = opened.socket
+  const { ws, sharedKey, cleanup } = opened.socket
   const liveness = callbacks.liveness
   const monitor = startRemoteRuntimeSocketLiveness({
     ping: () => {
@@ -96,7 +96,7 @@ export function openSharedControlSocket(
     ok: true,
     socket: {
       ws,
-      cipher,
+      sharedKey,
       cleanup: () => {
         monitor.stop()
         cleanup()

@@ -12,16 +12,9 @@ import {
 import { deriveSharedKey } from '../rpc/e2ee-crypto'
 import { deriveMobileE2EEV2KeySchedule } from '../rpc/mobile-e2ee-v2-key-schedule'
 
-/**
- * The mobile side of the E2EE v2 wire, in the desktop's Node project.
- *
- * It began as a test double for the relay integration test — an independent
- * peer that cannot accidentally agree with a desktop-side bug — and it is also
- * exactly what a desktop needs to reach another desktop through a relay, where
- * the cell requires v2 and the only client role defined is the mobile one. The
- * context values are protocol constants, not claims about what is running.
- */
-export class MobileE2EEV2PeerSession {
+// Why: the relay integration test needs an independent mobile-side wire peer
+// without importing Expo modules into the desktop Node TypeScript project.
+export class SimulatedMobileE2EEV2Peer {
   readonly hello: MobileE2EEV2Hello
   private inboundCounter = 0n
   private outboundCounter = 0n
@@ -116,7 +109,7 @@ export class MobileE2EEV2PeerSession {
 
   private requireSchedule(): ReturnType<typeof deriveMobileE2EEV2KeySchedule> {
     if (!this.schedule) {
-      throw new Error('E2EE v2 peer has not accepted the desktop ready frame')
+      throw new Error('Simulated mobile peer has not accepted E2EE ready')
     }
     return this.schedule
   }

@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import type { RemoteRuntimeCipher } from './remote-runtime-transport'
 import { abortSignalReason } from './abort-signal-reason'
 import { RemoteRuntimeClientError } from './remote-runtime-client-error'
 import { REMOTE_RUNTIME_MAX_READY_WAITERS } from './remote-runtime-memory-limits'
@@ -12,9 +11,9 @@ import type {
 export function isSharedControlReady(args: {
   state: SharedControlConnectionState
   ws: WebSocket | null
-  cipher: RemoteRuntimeCipher | null
+  sharedKey: Uint8Array | null
 }): boolean {
-  return args.state === 'ready' && args.ws?.readyState === WebSocket.OPEN && !!args.cipher
+  return args.state === 'ready' && args.ws?.readyState === WebSocket.OPEN && !!args.sharedKey
 }
 
 export function waitForSharedControlReadyWithTimeout(args: {

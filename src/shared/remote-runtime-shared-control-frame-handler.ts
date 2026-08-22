@@ -1,5 +1,4 @@
 import { parseAuthenticatedFrame, parseReadyFrame } from './remote-runtime-request-frames'
-import type { RemoteRuntimeCipher } from './remote-runtime-transport'
 import type { RemoteRuntimeClientError } from './remote-runtime-client-error'
 import { remoteRuntimeClientCapabilities } from './remote-runtime-client-capabilities'
 import { dispatchSharedControlFrame } from './remote-runtime-shared-control-frame-dispatch'
@@ -16,7 +15,7 @@ import type {
 export function handleSharedControlTextFrame(args: {
   frame: string
   state: SharedControlConnectionState
-  cipher: RemoteRuntimeCipher | null
+  sharedKey: Uint8Array | null
   deviceToken: string
   environmentId?: string
   pendingRequests: Map<string, SharedControlPendingRequest<unknown>>
@@ -44,7 +43,7 @@ export function handleSharedControlTextFrame(args: {
     return
   }
 
-  const parsed = parseSharedControlFrame(args.frame, args.cipher, args.state)
+  const parsed = parseSharedControlFrame(args.frame, args.sharedKey, args.state)
   if (parsed.type === 'auth') {
     const error = parseAuthenticatedFrame(parsed.plaintext)
     if (error) {

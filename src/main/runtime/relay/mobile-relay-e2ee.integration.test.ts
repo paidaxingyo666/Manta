@@ -8,7 +8,7 @@ import { DeviceRegistry } from '../device-registry'
 import { MobileSocketWiring } from '../rpc/mobile-socket-wiring'
 import { CloudRelayTransport } from '../rpc/relay-transport'
 import { deriveRelayHostId } from './relay-http-client'
-import { MobileE2EEV2PeerSession } from './mobile-e2ee-v2-peer-session'
+import { SimulatedMobileE2EEV2Peer } from './simulated-mobile-e2ee-v2-peer'
 
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -182,7 +182,7 @@ describe('desktop relay E2EE integration', () => {
 
     const authenticated = deferred<void>()
     const phoneText = deferred<string>()
-    const phoneSession = new MobileE2EEV2PeerSession(
+    const phoneSession = new SimulatedMobileE2EEV2Peer(
       nacl.box.keyPair(),
       desktopKeys.publicKey,
       relayHostId

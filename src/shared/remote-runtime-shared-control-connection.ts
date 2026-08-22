@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import type { RemoteRuntimeCipher } from './remote-runtime-transport'
 import type { PairingOffer } from './pairing'
 import type { RemoteRuntimeClientError } from './remote-runtime-client-error'
 import { remoteRuntimeUnavailableError } from './remote-runtime-request-frames'
@@ -25,7 +24,7 @@ type LogicalSubscription = SharedControlTypes.SharedControlLogicalSubscription<u
 export class RemoteRuntimeSharedControlConnection {
   private state: SharedControlTypes.SharedControlConnectionState = 'closed'
   private ws: WebSocket | null = null
-  private cipher: RemoteRuntimeCipher | null = null
+  private sharedKey: Uint8Array | null = null
   private socketCleanup: (() => void) | null = null
   private readonly reconnect = new SharedControlReconnectScheduler()
   private readonly readyStableReset: SharedControlReadyStableResetTimer
@@ -152,7 +151,7 @@ export class RemoteRuntimeSharedControlConnection {
     return sharedControlReady.isSharedControlReady({
       state: this.state,
       ws: this.ws,
-      cipher: this.cipher
+      sharedKey: this.sharedKey
     })
   }
 
@@ -186,7 +185,7 @@ export class RemoteRuntimeSharedControlConnection {
       return
     }
     this.ws = opened.socket.ws
-    this.cipher = opened.socket.cipher
+    this.sharedKey = opened.socket.sharedKey
     this.socketCleanup = opened.socket.cleanup
     this.state = 'awaiting_ready'
   }
@@ -198,7 +197,7 @@ export class RemoteRuntimeSharedControlConnection {
     handleSharedControlTextFrame({
       frame,
       state: this.state,
-      cipher: this.cipher,
+      sharedKey: this.sharedKey,
       environmentId: this.options.environmentId,
       deviceToken: this.pairing.deviceToken,
       pendingRequests: this.pendingRequests,
@@ -230,7 +229,7 @@ export class RemoteRuntimeSharedControlConnection {
         sharedControlProtocol.sendSharedControlEncryptedSerialized({
           state: this.state,
           ws: this.ws,
-          cipher: this.cipher,
+          sharedKey: this.sharedKey,
           serialized
         }),
       reject: (id, error) =>
@@ -271,7 +270,7 @@ export class RemoteRuntimeSharedControlConnection {
     return sharedControlProtocol.sendSharedControlEncrypted({
       state: this.state,
       ws: this.ws,
-      cipher: this.cipher,
+      sharedKey: this.sharedKey,
       payload
     })
   }
@@ -308,7 +307,7 @@ export class RemoteRuntimeSharedControlConnection {
       preserveReadyWaitersAndPendingRequests,
       clearReadyStableTimer: () => this.readyStableReset.clear()
     })
-    this.ws = this.cipher = null
+    this.ws = this.sharedKey = null
     this.socketCleanup = null
     this.state = 'closed'
   }

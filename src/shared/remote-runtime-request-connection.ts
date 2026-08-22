@@ -3,7 +3,7 @@ import WebSocket from 'ws'
 import { abortSignalReason } from './abort-signal-reason'
 import type { PairingOffer } from './pairing'
 import { scheduleOrphanedRemoteRuntimeSocketClose } from './remote-runtime-abort-orphaned-socket'
-import type { RemoteRuntimeCipher } from './remote-runtime-transport'
+import { decrypt, encrypt } from './e2ee-crypto'
 import {
   serializeRemoteRuntimePayload,
   serializeRemoteRuntimeRpcRequest
@@ -39,7 +39,7 @@ const IDLE_CLOSE_MS = 60_000
 export class RemoteRuntimeRequestConnection {
   private state: ConnectionState = 'closed'
   private ws: WebSocket | null = null
-  private cipher: RemoteRuntimeCipher | null = null
+  private sharedKey: Uint8Array | null = null
   private socketCleanup: (() => void) | null = null
   private readonly pendingRequests = new Map<string, RemoteRuntimePendingRequest<unknown>>()
   private readonly readyWaiters: RemoteRuntimeRequestReadyWaiter[] = []
@@ -122,7 +122,7 @@ export class RemoteRuntimeRequestConnection {
   close(error?: Error): void {
     const ws = this.ws
     const cleanup = this.socketCleanup
-    this.ws = this.cipher = null
+    this.ws = this.sharedKey = null
     this.socketCleanup = null
     this.state = 'closed'
     this.clearIdleCloseTimer()
@@ -146,7 +146,7 @@ export class RemoteRuntimeRequestConnection {
 
   private ensureReady(signal?: AbortSignal): Promise<void> {
     const ws = this.ws
-    if (this.state === 'ready' && ws?.readyState === WebSocket.OPEN && this.cipher) {
+    if (this.state === 'ready' && ws?.readyState === WebSocket.OPEN && this.sharedKey) {
       return Promise.resolve()
     }
 
@@ -186,7 +186,7 @@ export class RemoteRuntimeRequestConnection {
       return
     }
     this.ws = opened.socket.ws
-    this.cipher = opened.socket.cipher
+    this.sharedKey = opened.socket.sharedKey
     this.socketCleanup = opened.socket.cleanup
     this.state = 'awaiting_ready'
   }
@@ -197,11 +197,11 @@ export class RemoteRuntimeRequestConnection {
       return
     }
 
-    const cipher = this.cipher
-    if (!cipher) {
+    const sharedKey = this.sharedKey
+    if (!sharedKey) {
       return
     }
-    const plaintext = cipher.openText(frame)
+    const plaintext = decrypt(frame, sharedKey)
     if (plaintext === null) {
       this.close(
         invalidRemoteRuntimeResponseError('Remote Manta runtime returned an undecryptable frame.')
@@ -224,17 +224,18 @@ export class RemoteRuntimeRequestConnection {
       return
     }
     this.state = 'awaiting_authenticated'
-    const cipher = this.cipher
-    if (!cipher) {
+    const sharedKey = this.sharedKey
+    if (!sharedKey) {
       return
     }
     this.ws?.send(
-      cipher.sealText(
+      encrypt(
         serializeRemoteRuntimePayload({
           type: 'e2ee_auth',
           deviceToken: this.pairing.deviceToken,
           clientCapabilities: remoteRuntimeClientCapabilities()
-        })
+        }),
+        sharedKey
       )
     )
   }
@@ -267,11 +268,11 @@ export class RemoteRuntimeRequestConnection {
   private sendRequest(requestId: string): void {
     const pending = this.pendingRequests.get(requestId)
     const ws = this.ws
-    const cipher = this.cipher
+    const sharedKey = this.sharedKey
     if (!pending) {
       return
     }
-    if (this.state !== 'ready' || !ws || ws.readyState !== WebSocket.OPEN || !cipher) {
+    if (this.state !== 'ready' || !ws || ws.readyState !== WebSocket.OPEN || !sharedKey) {
       this.rejectPendingRequest(requestId, remoteRuntimeUnavailableError())
       return
     }
@@ -281,7 +282,7 @@ export class RemoteRuntimeRequestConnection {
       return
     }
     try {
-      ws.send(cipher.sealText(serializedRequest))
+      ws.send(encrypt(serializedRequest, sharedKey))
     } catch (error) {
       this.rejectPendingRequest(requestId, toRemoteRuntimeRequestError(error))
     }
