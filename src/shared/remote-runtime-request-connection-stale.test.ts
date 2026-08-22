@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import WebSocket from 'ws'
 import type { PairingOffer } from './pairing'
 import { decrypt, encrypt } from './e2ee-crypto'
+import { createDirectRuntimeCipher } from './remote-runtime-transport'
 import { getRemoteRuntimeRequestAdmissionEvidence } from './remote-runtime-prepared-request-admission'
 import type { RemoteRuntimeWebSocketCallbacks } from './remote-runtime-request-websocket'
 
@@ -16,7 +17,7 @@ vi.mock('./remote-runtime-request-websocket', () => ({
     opens.push(socket)
     return {
       ok: true,
-      socket: { ws: socket.ws, sharedKey: socket.sharedKey, cleanup: socket.cleanup }
+      socket: { ws: socket.ws, cipher: socket.cipher, cleanup: socket.cleanup }
     }
   }
 }))
@@ -24,6 +25,7 @@ vi.mock('./remote-runtime-request-websocket', () => ({
 type FakeOpenedSocket = {
   ws: WebSocket
   sharedKey: Uint8Array
+  cipher: ReturnType<typeof createDirectRuntimeCipher>
   cleanup: ReturnType<typeof vi.fn>
   sent: string[]
   callbacks: RemoteRuntimeWebSocketCallbacks
@@ -41,6 +43,7 @@ function createFakeOpenedSocket(callbacks: RemoteRuntimeWebSocketCallbacks): Fak
   return {
     ws,
     sharedKey: new Uint8Array(32).fill(opens.length + 1),
+    cipher: createDirectRuntimeCipher(new Uint8Array(32).fill(opens.length + 1)),
     cleanup: vi.fn(),
     sent,
     callbacks

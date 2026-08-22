@@ -6,16 +6,7 @@ import { randomUUID } from 'node:crypto'
 import WebSocket from 'ws'
 import { abortSignalReason, throwIfSignalAborted } from './abort-signal-reason'
 import type { PairingOffer } from './pairing'
-import {
-  decrypt,
-  decryptBytes,
-  deriveSharedKey,
-  encrypt,
-  encryptBytes,
-  generateKeyPair,
-  publicKeyFromBase64,
-  publicKeyToBase64
-} from './e2ee-crypto'
+import { createDirectRuntimeHandshake } from './remote-runtime-transport'
 import {
   isKeepaliveFrame,
   RuntimeRpcEnvelopeSchema,
@@ -163,9 +154,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
   let awaitingRequestId = statusRequestId ?? requestId
   let awaitingStatus = statusRequestId !== null
   return await new Promise<RuntimeRpcResponse<TResult>>((resolve, reject) => {
-    const keyPair = generateKeyPair()
-    const serverPublicKey = publicKeyFromBase64(pairing.publicKeyB64)
-    const sharedKey = deriveSharedKey(keyPair.secretKey, serverPublicKey)
+    const { cipher, helloFrame } = createDirectRuntimeHandshake(pairing)
     let state: HandshakeState = 'awaiting_ready'
     let settled = false
     let ws: WebSocket | null = null
@@ -263,12 +252,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
     }
 
     function onOpen(): void {
-      ws?.send(
-        JSON.stringify({
-          type: 'e2ee_hello',
-          publicKeyB64: publicKeyToBase64(keyPair.publicKey)
-        })
-      )
+      ws?.send(helloFrame)
     }
 
     function onError(): void {
@@ -322,7 +306,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
         return
       }
 
-      const plaintext = decrypt(frame, sharedKey)
+      const plaintext = cipher.openText(frame)
       if (plaintext === null) {
         finish({
           ok: false,
@@ -381,7 +365,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
         return
       }
       state = 'awaiting_authenticated'
-      ws?.send(encrypt(serializedAuth, sharedKey))
+      ws?.send(cipher.sealText(serializedAuth))
     }
 
     function handleAuthenticatedFrame(plaintext: string): void {
@@ -419,7 +403,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
       }
       state = 'ready'
       if (serializedStatusRequest) {
-        ws?.send(encrypt(serializedStatusRequest, sharedKey))
+        ws?.send(cipher.sealText(serializedStatusRequest))
         return
       }
       sendRequestedRpc()
@@ -438,7 +422,7 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
         })
         return
       }
-      ws?.send(encrypt(request, sharedKey))
+      ws?.send(cipher.sealText(request))
     }
 
     function handleRpcFrame(plaintext: string): void {
@@ -529,9 +513,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
     clientCapabilities: remoteRuntimeClientCapabilities()
   })
   return await new Promise((resolve, reject) => {
-    const keyPair = generateKeyPair()
-    const serverPublicKey = publicKeyFromBase64(pairing.publicKeyB64)
-    const sharedKey = deriveSharedKey(keyPair.secretKey, serverPublicKey)
+    const { cipher, helloFrame } = createDirectRuntimeHandshake(pairing)
     let state: HandshakeState = 'awaiting_ready'
     let settled = false
     let ws: WebSocket | null = null
@@ -622,7 +604,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
       ) {
         return false
       }
-      ensureSendQueue(ws).enqueue(Buffer.from(encryptBytes(bytes, sharedKey)))
+      ensureSendQueue(ws).enqueue(Buffer.from(cipher.sealBinary(bytes)))
       return true
     }
 
@@ -660,12 +642,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
     }
 
     function onOpen(): void {
-      ws?.send(
-        JSON.stringify({
-          type: 'e2ee_hello',
-          publicKeyB64: publicKeyToBase64(keyPair.publicKey)
-        })
-      )
+      ws?.send(helloFrame)
     }
 
     function onError(): void {
@@ -706,7 +683,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
         return
       }
 
-      const plaintext = decrypt(frame, sharedKey)
+      const plaintext = cipher.openText(frame)
       if (plaintext === null) {
         fail(
           new RemoteRuntimeClientError(
@@ -793,7 +770,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
         return
       }
       state = 'awaiting_authenticated'
-      ws?.send(encrypt(serializedAuth, sharedKey))
+      ws?.send(cipher.sealText(serializedAuth))
     }
 
     function handleAuthenticatedFrame(plaintext: string): void {
@@ -821,7 +798,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
         return
       }
       state = 'ready'
-      ws?.send(encrypt(serializedRequest, sharedKey))
+      ws?.send(cipher.sealText(serializedRequest))
       succeed()
     }
 
@@ -865,7 +842,7 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
         )
         return
       }
-      const plaintext = decryptBytes(frame, sharedKey)
+      const plaintext = cipher.openBinary(frame)
       if (plaintext === null) {
         fail(
           new RemoteRuntimeClientError(

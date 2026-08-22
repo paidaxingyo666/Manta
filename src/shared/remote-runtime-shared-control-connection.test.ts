@@ -17,6 +17,7 @@ import {
   serializeRemoteRuntimeRpcRequest
 } from './remote-runtime-memory-limits'
 import { getRemoteRuntimeRequestAdmissionEvidence } from './remote-runtime-prepared-request-admission'
+import { createDirectRuntimeCipher, type RemoteRuntimeCipher } from './remote-runtime-transport'
 import { RemoteRuntimeSharedControlConnection } from './remote-runtime-shared-control-connection'
 import * as sharedControlProtocol from './remote-runtime-shared-control-protocol'
 import { isRuntimeSubscriptionReplayResponse } from './runtime-subscription-replay'
@@ -122,7 +123,7 @@ describe('RemoteRuntimeSharedControlConnection', () => {
     const unsafe = connection as unknown as {
       state: string
       ws: { readyState: number; send: () => void; close: () => void } | null
-      sharedKey: Uint8Array | null
+      cipher: RemoteRuntimeCipher | null
       pendingRequests: Map<string, unknown>
     }
     unsafe.state = 'ready'
@@ -133,7 +134,7 @@ describe('RemoteRuntimeSharedControlConnection', () => {
       },
       close: vi.fn()
     }
-    unsafe.sharedKey = new Uint8Array(32).fill(2)
+    unsafe.cipher = createDirectRuntimeCipher(new Uint8Array(32).fill(2))
 
     await expect(connection.request('worktree.ps', undefined, 1000)).rejects.toMatchObject({
       code: 'remote_runtime_unavailable'

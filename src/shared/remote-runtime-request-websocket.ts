@@ -1,11 +1,7 @@
 import WebSocket from 'ws'
 import type { PairingOffer } from './pairing'
-import {
-  deriveSharedKey,
-  generateKeyPair,
-  publicKeyFromBase64,
-  publicKeyToBase64
-} from './e2ee-crypto'
+import { publicKeyFromBase64 } from './e2ee-crypto'
+import { createDirectRuntimeHandshake, type RemoteRuntimeCipher } from './remote-runtime-transport'
 import { RemoteRuntimeClientError } from './remote-runtime-client'
 import {
   invalidRemoteRuntimeResponseError,
@@ -14,7 +10,7 @@ import {
 
 export type RemoteRuntimeWebSocket = {
   ws: WebSocket
-  sharedKey: Uint8Array
+  cipher: RemoteRuntimeCipher
   cleanup: () => void
 }
 
@@ -36,18 +32,11 @@ export function openRemoteRuntimeWebSocket(
   if (!opened.ok) {
     return opened
   }
-  const { ws, keyPair } = opened
-  const serverPublicKey = publicKeyFromBase64(pairing.publicKeyB64)
-  const sharedKey = deriveSharedKey(keyPair.secretKey, serverPublicKey)
+  const { ws, handshake } = opened
 
   let cleanedUp = false
   const onOpen = (): void => {
-    ws.send(
-      JSON.stringify({
-        type: 'e2ee_hello',
-        publicKeyB64: publicKeyToBase64(keyPair.publicKey)
-      })
-    )
+    ws.send(handshake.helloFrame)
   }
   const onError = (): void => {
     callbacks.onError(
@@ -94,7 +83,7 @@ export function openRemoteRuntimeWebSocket(
   ws.on('message', onMessage)
   ws.on('pong', onPong)
   ws.on('ping', onPing)
-  return { ok: true, socket: { ws, sharedKey, cleanup } }
+  return { ok: true, socket: { ws, cipher: handshake.cipher, cleanup } }
 }
 
 function ignoreLateSocketError(): void {}
@@ -102,11 +91,11 @@ function ignoreLateSocketError(): void {}
 function createSocket(
   pairing: PairingOffer
 ):
-  | { ok: true; ws: WebSocket; keyPair: ReturnType<typeof generateKeyPair> }
+  | { ok: true; ws: WebSocket; handshake: ReturnType<typeof createDirectRuntimeHandshake> }
   | { ok: false; error: RemoteRuntimeClientError } {
-  let keyPair: ReturnType<typeof generateKeyPair>
+  let handshake: ReturnType<typeof createDirectRuntimeHandshake>
   try {
-    keyPair = generateKeyPair()
+    handshake = createDirectRuntimeHandshake(pairing)
     publicKeyFromBase64(pairing.publicKeyB64)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -119,7 +108,7 @@ function createSocket(
     }
   }
   try {
-    return { ok: true, ws: new WebSocket(pairing.endpoint), keyPair }
+    return { ok: true, ws: new WebSocket(pairing.endpoint), handshake }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     return {
