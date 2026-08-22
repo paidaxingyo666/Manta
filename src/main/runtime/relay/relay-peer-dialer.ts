@@ -118,6 +118,10 @@ export async function dialRelayPeer(input: RelayPeerDialInput): Promise<RelayPee
       }
       settled = true
       detach()
+      // Between detaching and the caller attaching its own, the socket has no
+      // 'error' listener — and an unheard 'error' is an uncaughtException the
+      // main-process guard re-throws. The caller's listener adds to this one.
+      ws.on('error', ignoreDialedSocketError)
       resolve({
         ws,
         cipher: {
@@ -244,6 +248,8 @@ export async function dialRelayPeer(input: RelayPeerDialInput): Promise<RelayPee
     }
   })
 }
+
+function ignoreDialedSocketError(): void {}
 
 function wsForRelay(url: string): WebSocket {
   return new WebSocket(url, {

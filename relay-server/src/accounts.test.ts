@@ -14,6 +14,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { startTestRelay, type TestRelay } from './testing/harness.js'
 import { hashToken } from './auth/store.js'
+import { createRelay } from './relay.js'
+import { Logger } from './shared/log.js'
 
 const dirs: string[] = []
 let current: TestRelay | null = null
@@ -436,5 +438,101 @@ describe('taking over a machine the legacy account inherited', () => {
     )
     expect(stolen.status).toBe(403)
     expect(await stolen.json()).toMatchObject({ error: 'host_owned_by_another_account' })
+  })
+})
+
+describe('session table fairness', () => {
+  it('never lets one account evict another', async () => {
+    // A global cap on a multi-account relay is a cross-account eviction
+    // primitive: sign in until everyone else's oldest sessions fall off the
+    // end, taking their refresh tokens with them.
+    current = await startTestRelay()
+    await registerAccount(current.origin, 'ada@example.com')
+    const bob = await registerAccount(current.origin, 'bob@example.com')
+
+    for (let attempt = 0; attempt < 70; attempt += 1) {
+      const response = await post(current.origin, 'login', {
+        email: 'ada@example.com',
+        password: 'correct-horse'
+      })
+      expect(response.status).toBe(200)
+    }
+
+    expect((await post(current.origin, 'capabilities', {}, bob.accessToken)).status).toBe(200)
+    expect((await post(current.origin, 'refresh', { refreshToken: bob.refreshToken })).status).toBe(
+      200
+    )
+  })
+
+  it('rotates the profile session rather than accumulating one per call', async () => {
+    // Otherwise a repeatable endpoint is a way to fill the session table.
+    current = await startTestRelay()
+    const ada = await registerAccount(current.origin, 'ada@example.com')
+    const rotated = (await (
+      await post(current.origin, 'profile', {}, ada.accessToken)
+    ).json()) as SessionBody
+    expect(rotated.accessToken).not.toBe(ada.accessToken)
+    expect((await post(current.origin, 'capabilities', {}, ada.accessToken)).status).toBe(401)
+    expect((await post(current.origin, 'capabilities', {}, rotated.accessToken)).status).toBe(200)
+  })
+})
+
+describe('retiring a machine', () => {
+  it('lets a host whose account vanished be adopted with the enrolment secret', async () => {
+    // If auth-accounts.json is lost, the legacy account is rebuilt with a fresh
+    // id while every host record still names the old one. Without adoption they
+    // are orphaned with no way back short of hand-editing cell-state.json.
+    const dataDir = tempDir()
+    current = await startTestRelay(() => ({
+      dataDir,
+      enrollmentSecret: 'open-sesame',
+      registrationMode: 'enrollment-secret'
+    }))
+    const legacy = (await (
+      await post(current.origin, 'session', { enrollmentSecret: 'open-sesame' })
+    ).json()) as SessionBody
+    await post(current.origin, 'relay-token', { relayHostId: HOST_A }, legacy.accessToken)
+    await current.stop()
+
+    // Lose the account file the way a quarantined snapshot does.
+    rmSync(join(dataDir, 'auth-accounts.json'))
+    current = await startTestRelay(() => ({
+      dataDir,
+      enrollmentSecret: 'open-sesame',
+      registrationMode: 'enrollment-secret'
+    }))
+    const ada = await registerAccount(current.origin, 'ada@example.com', {
+      enrollmentSecret: 'open-sesame'
+    })
+    expect(
+      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
+    ).toBe(403)
+    expect(
+      (
+        await post(
+          current.origin,
+          'host-claim',
+          { relayHostId: HOST_A, enrollmentSecret: 'open-sesame' },
+          ada.accessToken
+        )
+      ).status
+    ).toBe(200)
+    expect(
+      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
+    ).toBe(200)
+  })
+})
+
+describe('the legacy identity', () => {
+  it('refuses to start rather than silently rewrite it', async () => {
+    // Every desktop paired under the stored triple signs it into its host
+    // proof. An env_file that moved would otherwise turn the value into its
+    // default and break every pairing with nothing in either log.
+    const dataDir = tempDir()
+    current = await startTestRelay(() => ({ dataDir }))
+    await current.stop()
+    const config = { ...current.config, user: { ...current.config.user, userId: 'someone-else' } }
+    current = null
+    expect(() => createRelay(config, new Logger('error'))).toThrow(/does not match the environment/)
   })
 })

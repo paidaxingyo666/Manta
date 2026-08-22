@@ -9,7 +9,11 @@
 import type { IncomingMessage } from 'node:http'
 import type { Duplex } from 'node:stream'
 import { WebSocketServer, type WebSocket } from 'ws'
-import { CONTROL_MAX_PAYLOAD_BYTES, DATA_MAX_PAYLOAD_BYTES } from '../shared/protocol.js'
+import {
+  CLOSE_CODES,
+  CONTROL_MAX_PAYLOAD_BYTES,
+  DATA_MAX_PAYLOAD_BYTES
+} from '../shared/protocol.js'
 import type { HostSession } from './session.js'
 import { closeQuietly } from './session.js'
 import { onHostControl, type HostControlContext } from './host-control.js'
@@ -251,6 +255,27 @@ export class RelayCell {
         }
       }
     }
+  }
+
+  /**
+   * Cuts one host's session and everything paired through it.
+   *
+   * Used when its owner retires the machine. 4401 rather than a transport code:
+   * the credential really is gone, and a phone that treats this as a transient
+   * drop would retry against a host that will never accept it again.
+   */
+  disconnectHost(relayHostId: string): boolean {
+    const session = this.sessions.get(relayHostId)
+    if (!session) {
+      return false
+    }
+    this.sessions.delete(relayHostId)
+    this.forgetPending(session)
+    session.destroy(CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'host retired by its owner')
+    closeQuietly(session.control, CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'host retired by its owner')
+    this.options.metrics.gauge('manta_relay_sessions', 'Live host sessions.', this.sessions.size)
+    this.options.logger.info('host.retired', { relayHostId })
+    return true
   }
 
   destroyAll(code: number, reason: string): void {

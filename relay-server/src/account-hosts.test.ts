@@ -12,10 +12,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { startTestRelay, TEST_SECRET, TEST_USER, type TestRelay } from './testing/harness.js'
 import { issueRelayToken } from './shared/relay-token.js'
+import WebSocket from 'ws'
 import {
   handshake,
   httpFetch,
+  nextClose,
   nextJson,
+  open,
   newHostIdentity,
   onlineHost,
   postAuth,
@@ -181,6 +184,55 @@ describe('a proven control leg', () => {
     host.control.send(JSON.stringify({ type: 'not-a-real-request', reqId: 'r1' }))
     expect(await reply).toMatchObject({ type: 'control-error', code: 'unsupported_request' })
     host.control.close()
+  })
+})
+
+describe('retiring a machine', () => {
+  it('cuts the live session and refuses the token it already handed out', async () => {
+    // A relay token is a stateless HMAC with an hour to live, so retiring a
+    // machine has to reach the cell. Otherwise "forget this machine" leaves the
+    // control leg forwarding and the cached token good for another hour.
+    current = await startTestRelay()
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+    const closed = nextClose(host.control)
+
+    expect(
+      (
+        await postAuth(current.origin, 'host-forget', ada.session.accessToken, {
+          relayHostId: host.identity.relayHostId
+        })
+      ).status
+    ).toBe(200)
+    // 4401, not a transport code: the credential really is gone, and a peer
+    // that read this as a transient drop would retry forever.
+    expect(await closed).toBe(4401)
+
+    // The token it already holds must not buy a fresh session either. Asserted
+    // on the close code rather than a timeout, so a regression fails loudly
+    // instead of slowly.
+    const retry = await open(
+      new WebSocket(`${current.wsOrigin}/v1/host/control`, {
+        headers: { authorization: `Bearer ${host.relayToken}` }
+      })
+    )
+    const retryClosed = nextClose(retry)
+    retry.send(
+      JSON.stringify({
+        type: 'host-hello',
+        v: 1,
+        relayHostId: host.identity.relayHostId,
+        assignmentEpoch: 1,
+        hostPublicKeyB64: host.identity.hostPublicKey.toString('base64')
+      })
+    )
+    expect(await retryClosed).toBe(4401)
   })
 })
 

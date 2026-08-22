@@ -107,12 +107,31 @@ export class AccountStore {
       this.persist()
       return account
     }
-    // The environment stays authoritative for the legacy identity — that is
-    // what it meant before accounts existed, and an operator who edits
-    // MANTA_RELAY_USER_NAME still expects it to take effect.
-    existing.userId = identity.userId
-    existing.profileId = identity.profileId
-    existing.organizationId = identity.organizationId
+    // The identity triple is signed byte-for-byte into every host proof, so a
+    // desktop that paired under the old one can never prove itself again — a
+    // 4401 with nothing in either log to explain it. Refusing to start is the
+    // only outcome that gets a person to look, and it is recoverable: put the
+    // value back, or edit auth-accounts.json deliberately.
+    //
+    // The trap this exists for is not a deliberate edit. It is an env_file that
+    // moved, or a compose file rewritten without MANTA_RELAY_USER_ID — where
+    // the variable silently becomes its default and every pairing dies.
+    if (
+      existing.userId !== identity.userId ||
+      existing.profileId !== identity.profileId ||
+      existing.organizationId !== identity.organizationId
+    ) {
+      throw new Error(
+        'the stored identity for the legacy account does not match the environment:\n' +
+          `  - MANTA_RELAY_USER_ID: stored ${existing.userId}, configured ${identity.userId}\n` +
+          `  - MANTA_RELAY_PROFILE_ID: stored ${existing.profileId}, configured ${identity.profileId}\n` +
+          `  - MANTA_RELAY_ORG_ID: stored "${existing.organizationId}", configured "${identity.organizationId}"\n` +
+          'Every desktop paired under the stored values signs them into its host proof, so\n' +
+          'changing them breaks pairing with no diagnostic. Restore them, or edit\n' +
+          'auth-accounts.json if the change is deliberate.'
+      )
+    }
+    // Cosmetic fields stay environment-driven; nothing is signed with them.
     existing.displayName = identity.displayName
     const collision = this.accounts.find(
       (account) => account !== existing && account.emailKey === emailKey

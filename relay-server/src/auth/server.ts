@@ -193,6 +193,10 @@ export class RelayAuthServer {
         json(response, 401, { error: 'unauthenticated' })
         return true
       }
+      // Rotate rather than accumulate: the caller is replacing the session it
+      // just used, and leaving the old one behind turns a repeatable endpoint
+      // into a way to fill the session table.
+      this.options.sessions.remove(caller.session)
       this.grant(response, caller.account, 'profile')
       return true
     }

@@ -202,3 +202,43 @@ describe('rate limits', () => {
     host.control.close()
   })
 })
+
+describe('sign-in rate limiting', () => {
+  it('does not let a spread-out attacker lock an account out everywhere', async () => {
+    // Keyed on the address alone the bucket is a lockout primitive: attempts
+    // from many sources all charge one bucket, and the owner is then refused
+    // from every network. The per-source bucket is what bounds an attacker.
+    const current = await relayWith(() => ({
+      trustedProxies: 'loopback',
+      limits: { authBurst: 6, authPerSecond: 0.01, httpBurst: 1_000, httpPerSecond: 100 }
+    }))
+    const login = (source: string, password: string): Promise<Response> =>
+      fetch(`${current.origin}/v1/desktop/auth/login`, {
+        method: 'POST',
+        headers: {
+          connection: 'close',
+          'content-type': 'application/json',
+          'x-forwarded-for': source
+        },
+        body: JSON.stringify({ email: 'ada@example.com', password })
+      })
+
+    expect(
+      (
+        await fetch(`${current.origin}/v1/desktop/auth/register`, {
+          method: 'POST',
+          headers: { connection: 'close', 'content-type': 'application/json' },
+          body: JSON.stringify({ email: 'ada@example.com', password: 'correct-horse' })
+        })
+      ).status
+    ).toBe(200)
+
+    // Each attempt from a different source, so the per-source bucket never
+    // runs out and every one of them reaches the per-address bucket.
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      expect((await login(`198.51.100.${attempt}`, 'wrong')).status).toBe(401)
+    }
+
+    expect((await login('203.0.113.9', 'correct-horse')).status).toBe(200)
+  })
+})

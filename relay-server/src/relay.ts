@@ -119,6 +119,9 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     // Bound late: the cell is constructed below, and the directory needs to ask
     // it who is online right now rather than trust a stored flag.
     isHostOnline: (relayHostId) => cell.isHostOnline(relayHostId),
+    disconnectHost: (relayHostId) => {
+      cell.disconnectHost(relayHostId)
+    },
     maxHostsPerAccount: config.maxHostsPerAccount,
     registrationMode: config.registrationMode,
     relayTokenSecret: config.relayTokenSecret,

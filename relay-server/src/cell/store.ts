@@ -54,7 +54,7 @@ export class CellStore {
   readonly ownership = new HostOwnerIndex({
     hosts: this.hosts,
     ensureHost: (id) => this.host(id),
-    retire: (id, host) => this.versionFloor.set(id, host.maxCredentialVersion ?? 0),
+    retire: (id, host) => this.rememberVersionFloor(id, host.maxCredentialVersion ?? 0),
     flush: () => this.scheduleFlush()
   })
   private readonly file: JsonFile<Snapshot>
@@ -83,6 +83,21 @@ export class CellStore {
         this.hosts.set(id, hostFromSnapshot(host, ownerAccountId))
         this.ownership.add(id, ownerAccountId)
       }
+    }
+  }
+
+  /**
+   * Never downwards, and never zero.
+   *
+   * Downwards is a 4401 the re-paired device cannot recover from (see `retire`
+   * in host-ownership.ts). Zero protects nothing, and a host that never issued
+   * a credential is exactly what a claim/forget loop produces — an
+   * authenticated way to grow this map without bound.
+   */
+  private rememberVersionFloor(relayHostId: string, version: number): void {
+    const floor = Math.max(this.versionFloor.get(relayHostId) ?? 0, version)
+    if (floor > 0) {
+      this.versionFloor.set(relayHostId, floor)
     }
   }
 
@@ -386,7 +401,7 @@ export class CellStore {
         // version it has already seen, so restarting the numbering after the
         // record is gone would make it reject the very credential it was just
         // handed on re-pairing.
-        this.versionFloor.set(hostId, host.maxCredentialVersion ?? 0)
+        this.rememberVersionFloor(hostId, host.maxCredentialVersion ?? 0)
         this.hosts.delete(hostId)
         this.ownership.remove(hostId, host.ownerAccountId)
       }
@@ -396,5 +411,10 @@ export class CellStore {
 
   get hostCount(): number {
     return this.hosts.size
+  }
+
+  /** Exposed so a test can prove the floor map is not an unbounded sink. */
+  get versionFloorSize(): number {
+    return this.versionFloor.size
   }
 }

@@ -8,6 +8,7 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { json, readJson } from '../shared/http-json.js'
+import { rateLimitKey } from '../shared/client-ip.js'
 import { isPlausibleEmail, normalizeEmail, type AuthAccount } from './accounts.js'
 import {
   hashPassword,
@@ -130,15 +131,20 @@ export async function handleLogin(
   options: AuthOptions,
   clientIp: string
 ): Promise<void> {
+  const sourceKey = rateLimitKey(clientIp)
   const body = await readJson(request)
   const credentials = readCredentials(body)
   if (!credentials) {
     refuse(response, options, 400, 'invalid_request', 'login')
     return
   }
-  // A second bucket keyed on the address: the per-source one already ran, and
-  // without this a botnet spread across addresses grinds one account freely.
-  const perAccount = options.limiter.take(`login:${normalizeEmail(credentials.email)}`)
+  // A second bucket, keyed on the address *and* the source. Keyed on the
+  // address alone it is a lockout primitive: anyone who knows a colleague's
+  // email can hold their bucket at zero and refuse them from every network.
+  // Per source-and-address still costs a botnet one bucket per node, which is
+  // what the cross-source grind this exists to stop actually needs.
+  const attemptKey = `login:${sourceKey}:${normalizeEmail(credentials.email)}`
+  const perAccount = options.limiter.take(attemptKey)
   if (!perAccount.ok) {
     options.metrics.counter(
       'manta_relay_rate_limited_total',
@@ -160,9 +166,9 @@ export async function handleLogin(
     refuse(response, options, 401, 'invalid_credentials', 'login')
     return
   }
-  // A successful sign-in should not leave the account's bucket drained for the
-  // next legitimate one; only failures are worth counting.
-  options.limiter.refund(`login:${account.emailKey}`)
+  // A successful sign-in should not leave the bucket drained for the next
+  // legitimate one; only failures are worth counting.
+  options.limiter.refund(attemptKey)
   options.logger.info('auth.login', { clientIp, accountId: account.accountId })
   grant(response, options, account, 'password')
 }

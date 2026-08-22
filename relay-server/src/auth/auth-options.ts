@@ -39,6 +39,15 @@ export type AuthOptions = {
   hosts: CellStore
   /** Whether a host id currently holds a live control leg on this cell. */
   isHostOnline: (relayHostId: string) => boolean
+  /**
+   * Cuts a host's live session and everything paired through it.
+   *
+   * Retiring a machine has to reach the cell, not just the store: a control leg
+   * that survives its own record keeps forwarding, and the desktop's cached
+   * relay token stays valid for the rest of its hour. Without this, "forget
+   * this machine" is a claim the relay does not honour.
+   */
+  disconnectHost: (relayHostId: string) => void
   maxHostsPerAccount: number
   registrationMode: RegistrationMode
   relayTokenSecret: string

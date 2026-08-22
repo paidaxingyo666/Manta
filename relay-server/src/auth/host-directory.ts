@@ -116,7 +116,8 @@ export async function handleHostClaim(
     relayHostId,
     options.legacyAccountId,
     accountId,
-    options.maxHostsPerAccount
+    options.maxHostsPerAccount,
+    (candidate) => options.accounts.byId(candidate) !== null
   )
   if (result !== 'ok') {
     json(response, result === 'owned-by-other' ? 403 : 409, {
@@ -145,6 +146,9 @@ export async function handleHostForget(
     json(response, 404, { error: 'host_not_found' })
     return
   }
+  // Order matters: the record is gone first, so a leg that races this and
+  // re-proves itself cannot find an owner to inherit.
+  options.disconnectHost(relayHostId)
   options.logger.info('auth.host_forgotten', { relayHostId })
   json(response, 200, { ok: true })
 }

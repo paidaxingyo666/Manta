@@ -287,13 +287,22 @@ function onHostHello(
     reject(CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'relay token host mismatch', 'host_mismatch')
     return
   }
-  // Second gate, from the store rather than the token: the token issuer already
-  // refuses a host owned by another account, and this catches a token minted
-  // before that check existed. Skipped when the token predates accounts —
-  // that window is one token lifetime after an upgrade.
+  // Second gate, from the store rather than the token. A token is a stateless
+  // HMAC with an hour to live, so the issuer's check is not enough on its own:
+  // retiring a machine has to stop the token it already handed out.
+  //
+  //   owner is someone else  — a token minted before ownership existed
+  //   owner is nobody        — the machine was retired while this token lived
+  //
+  // Both are refused. Skipped entirely when the token predates accounts, which
+  // is a window of one token lifetime after an upgrade.
   const owner = ctx.options.store.ownership.ownerOf(relayHostId)
-  if (owner && state.claims.accountId && owner !== state.claims.accountId) {
-    reject(CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'host owned by another account', 'host_not_owned')
+  if (state.claims.accountId && owner !== state.claims.accountId) {
+    reject(
+      CLOSE_CODES.BAD_OUTER_CREDENTIAL,
+      owner ? 'host owned by another account' : 'host is no longer registered',
+      owner ? 'host_not_owned' : 'host_retired'
+    )
     return
   }
   const hostPublicKey = Buffer.from(hostPublicKeyB64, 'base64')

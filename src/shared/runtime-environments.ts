@@ -21,7 +21,14 @@ export const RuntimeAccessEndpointSchema = z.object({
 
 export const PublicRuntimeAccessEndpointSchema = RuntimeAccessEndpointSchema.omit({
   deviceToken: true,
-  publicKeyB64: true
+  publicKeyB64: true,
+  // Why relay too: the block carries the invite token, which is a live bearer
+  // for a leg to that host. This projection reaches the renderer and `manta
+  // environment list --json`, so it must not carry one.
+  relay: true
+}).extend({
+  /** Whether this endpoint is reachable through a relay, without saying how. */
+  viaRelay: z.boolean().optional()
 })
 
 export type PublicRuntimeAccessEndpoint = z.infer<typeof PublicRuntimeAccessEndpointSchema>
@@ -56,7 +63,10 @@ export function redactRuntimeEnvironment(
   return {
     ...environment,
     endpoints: environment.endpoints.map(
-      ({ deviceToken: _deviceToken, publicKeyB64: _key, ...rest }) => rest
+      ({ deviceToken: _deviceToken, publicKeyB64: _key, relay, ...rest }) => ({
+        ...rest,
+        ...(relay ? { viaRelay: true } : {})
+      })
     )
   }
 }

@@ -25,8 +25,16 @@ export type AuthSession = {
 type SnapshotV1 = { v: 1; sessions: Omit<AuthSession, 'accountId'>[] }
 type Snapshot = { v: 2; sessions: AuthSession[] }
 
-/** Bounds the file: a client that never logs out still cannot grow it forever. */
-const MAX_SESSIONS = 64
+/**
+ * Bounds the file per account, not globally.
+ *
+ * A global cap on a multi-account relay is a cross-account eviction primitive:
+ * any signed-in account can mint sessions until everyone else's oldest ones
+ * fall off the end, and both their access and refresh tokens die with them.
+ */
+const MAX_SESSIONS_PER_ACCOUNT = 32
+/** A ceiling on the file itself, in case one account is the only one there. */
+const MAX_SESSIONS = 512
 
 export function hashToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('base64url')
@@ -121,9 +129,34 @@ export class AuthSessionStore {
     this.persist()
   }
 
-  /** Drops expired sessions, then the oldest ones once over the cap. */
+  /**
+   * Drops expired sessions, then the oldest ones once over a cap.
+   *
+   * The per-account cap runs first and is the one that matters: it is what
+   * stops one account's churn from evicting another's. The file-wide cap is
+   * only a backstop for a relay where one account really does hold everything.
+   */
   prune(now: number): void {
     this.sessions = this.sessions.filter((session) => session.expiresAt > now)
+    const perAccount = new Map<string, AuthSession[]>()
+    for (const session of this.sessions) {
+      const bucket = perAccount.get(session.accountId)
+      if (bucket) {
+        bucket.push(session)
+      } else {
+        perAccount.set(session.accountId, [session])
+      }
+    }
+    const evicted = new Set<AuthSession>()
+    for (const bucket of perAccount.values()) {
+      if (bucket.length > MAX_SESSIONS_PER_ACCOUNT) {
+        bucket.sort((a, b) => a.createdAt - b.createdAt)
+        for (const session of bucket.slice(0, bucket.length - MAX_SESSIONS_PER_ACCOUNT)) {
+          evicted.add(session)
+        }
+      }
+    }
+    this.sessions = this.sessions.filter((session) => !evicted.has(session))
     if (this.sessions.length > MAX_SESSIONS) {
       this.sessions.sort((a, b) => a.createdAt - b.createdAt)
       this.sessions = this.sessions.slice(this.sessions.length - MAX_SESSIONS)

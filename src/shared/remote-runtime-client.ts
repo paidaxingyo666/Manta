@@ -334,6 +334,10 @@ async function sendRemoteRuntimeRequestOnSocket<TResult>(
     }).then((opened) => {
       if (settled) {
         if (opened.ok) {
+          // Why a listener on a socket nobody wants: closing can still emit a
+          // late transport error, and an 'error' with no listener is an
+          // uncaughtException — which the main process guard re-throws.
+          opened.socket.ws.on('error', ignoreSettledRemoteRuntimeSocketError)
           opened.socket.ws.close()
         }
         return
@@ -733,6 +737,9 @@ export async function subscribeRemoteRuntimeRequest<TResult>(
     }).then((opened) => {
       if (settled) {
         if (opened.ok) {
+          // See the one-shot path: a late error on an unwanted socket kills the
+          // process, because the main-process guard re-throws uncaught errors.
+          opened.socket.ws.on('error', ignoreSettledRemoteRuntimeSocketError)
           opened.socket.ws.close()
         }
         return

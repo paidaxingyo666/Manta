@@ -178,3 +178,51 @@ describe('what the state file may contain', () => {
     expect(() => new CellStore(relay.config.dataDir)).not.toThrow()
   })
 })
+
+describe('credential version floors', () => {
+  it('never hands a re-paired device a version it has already retired', async () => {
+    // A phone refuses a credential version it has already seen. Retiring a host
+    // twice used to reset the floor to zero, so the next pairing started at v1
+    // and the phone rejected the very credential it was just handed.
+    const store = new CellStore(null, undefined, 'acct-legacy')
+    const relayHostId = 'AbCdEf0123_-xyZ9'
+    const now = Date.now()
+
+    store.ownership.claim(relayHostId, 'acct-1', 16)
+    const first = store.installCredential(
+      relayHostId,
+      'device-1',
+      hashCredential(mintToken()),
+      60_000,
+      60_000,
+      now,
+      8
+    )
+    expect(first?.currentVersion).toBe(1)
+    for (let round = 0; round < 3; round += 1) {
+      store.ownership.release(relayHostId, 'acct-1')
+      store.ownership.claim(relayHostId, 'acct-1', 16)
+    }
+    const reissued = store.installCredential(
+      relayHostId,
+      'device-1',
+      hashCredential(mintToken()),
+      60_000,
+      60_000,
+      now,
+      8
+    )
+    expect(reissued?.currentVersion).toBeGreaterThan(first!.currentVersion)
+  })
+
+  it('does not remember a floor for a host that never issued one', () => {
+    // Otherwise claim/forget is an authenticated way to grow the map for ever.
+    const store = new CellStore(null, undefined, 'acct-legacy')
+    for (let round = 0; round < 200; round += 1) {
+      const id = `Host${String(round).padStart(12, '0')}`
+      store.ownership.claim(id, 'acct-1', 1_000)
+      store.ownership.release(id, 'acct-1')
+    }
+    expect(store.versionFloorSize).toBe(0)
+  })
+})

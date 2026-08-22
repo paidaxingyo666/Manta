@@ -14,7 +14,11 @@ type OwnershipDeps = {
   hosts: Map<string, HostRecord>
   /** Creates the record if it does not exist yet. */
   ensureHost: (relayHostId: string) => HostRecord
-  /** Preserves the credential version high-water mark before a record is dropped. */
+  /**
+   * Preserves the credential version high-water mark before a record is
+   * dropped. Never downwards: a phone refuses a version it has already seen, so
+   * a floor that regressed is a 4401 the re-paired device cannot recover from.
+   */
   retire: (relayHostId: string, host: HostRecord) => void
   flush: () => void
 }
@@ -70,27 +74,38 @@ export class HostOwnerIndex {
   }
 
   /**
-   * Moves a host from one account to another.
+   * Moves a host to the account asking for it.
    *
-   * Only ever used to hand a machine that the legacy account inherited to the
-   * real person who owns it: on a relay that predates accounts every host
-   * belongs to the environment identity, and the operator who then registers an
-   * account of their own would otherwise be locked out of their own desktop.
+   * Two sources, both of them "nobody is actually holding this":
+   *
+   *   the legacy account — on a relay that predates accounts every host belongs
+   *   to the environment identity, so the operator who registers an account of
+   *   their own would be locked out of their own desktop
+   *
+   *   an account that no longer exists — if auth-accounts.json is lost or
+   *   quarantined, the legacy account is rebuilt with a fresh id and every host
+   *   record still names the old one. Without this, all of them are orphaned
+   *   with no way back short of hand-editing cell-state.json
+   *
+   * Never from a live account: the enrolment secret is a deployment credential,
+   * not a master key over other people's machines.
    */
   transfer(
     relayHostId: string,
     fromAccountId: string,
     toAccountId: string,
-    maxHostsPerAccount: number
+    maxHostsPerAccount: number,
+    accountExists: (accountId: string) => boolean
   ): HostClaimResult {
     const host = this.deps.hosts.get(relayHostId)
-    if (!host || host.ownerAccountId !== fromAccountId) {
-      return host?.ownerAccountId === toAccountId ? 'ok' : 'owned-by-other'
+    const owner = host?.ownerAccountId
+    if (!host || (owner !== fromAccountId && owner !== undefined && accountExists(owner))) {
+      return owner === toAccountId ? 'ok' : 'owned-by-other'
     }
     if ((this.byAccount.get(toAccountId)?.size ?? 0) >= maxHostsPerAccount) {
       return 'at-capacity'
     }
-    this.remove(relayHostId, fromAccountId)
+    this.remove(relayHostId, owner)
     host.ownerAccountId = toAccountId
     this.add(relayHostId, toAccountId)
     this.deps.flush()
