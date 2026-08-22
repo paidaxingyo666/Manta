@@ -96,7 +96,9 @@ jobs:
     if: github.repository == 'paidaxingyo666/Manta'
     # Why the same environment as the mac workflows: this needs the App token
     # that can write to the dev-channel repos, and it should be reachable from
-    # exactly the same place those secrets already live.
+    # exactly the same place those secrets already live. In the fork that
+    # environment does not exist and must stay empty — see the note in
+    # adhoc-mac-build.yml. Apple credentials belong in `apple-signing`.
     environment: adhoc-mac-build
     # Why windows-2022 and not windows-latest: windows-latest moved to the
     # Windows 2025 / VS 2026 image before node-gyp could detect VS 18, breaking

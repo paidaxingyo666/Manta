@@ -96,13 +96,13 @@ jobs:
     # credentials are additionally scoped to an environment that only `v*` tags
     # can read, so a scheduled run on a branch cannot reach them either.
     if: github.repository == 'stablyai/orca'
-    # Why an environment: it gives the signing/notary/App secrets somewhere to
-    # live that a stale copy of this workflow on an old branch cannot reach.
-    # Referencing it is a no-op until repo settings give it teeth; the intended
-    # follow-up is to move MAC_CERTS, MAC_CERTS_PASSWORD, APPLE_ID,
-    # APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID, HOURLY_RELEASE_APP_ID, and
-    # HOURLY_RELEASE_APP_PRIVATE_KEY into it, then pin its deployment branch
-    # policy to main so only main's copy of this file can read them.
+    # Do not put credentials here. This environment does not exist in the fork,
+    # and GitHub creates a referenced-but-missing environment on first use with
+    # no protection rules at all — so anything moved into it would be readable
+    # from any ref. The Apple credentials live in `apple-signing`, whose
+    # deployment policy admits only `v*` tags, and only fork-release.yml reads
+    # them. Upstream's own intent for this environment is preserved below; it is
+    # inert here because the job is guarded off.
     environment: adhoc-mac-build
     outputs:
       tag: ${{ steps.release.outputs.tag }}

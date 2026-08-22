@@ -1,6 +1,6 @@
 name: Release
 
-run-name: Release ${{ inputs.tag || github.ref_name }}
+run-name: Release ${{ github.ref_name }}
 
 # The fork's own release path. Deliberately not release-cut.yml: that workflow
 # is built around SignPath's two-round Windows signing with hours of approval
@@ -23,33 +23,35 @@ run-name: Release ${{ inputs.tag || github.ref_name }}
 # artifact, so a tag that says one thing and an app that says another produces
 # an update that installs and then offers itself again forever.
 #
-# Re-running one leg for an existing tag — note the --ref, which is what lets the
-# run read the Apple credentials (see `environment:` on the macos job):
+# Rebuilding a tag whose draft is still open — the --ref is not optional, and it
+# is not decoration. It is what makes the run a tag run, which is the only thing
+# the Apple credentials' environment will admit (see `environment:` on macos):
 #
 #   gh workflow run Release --repo paidaxingyo666/Manta --ref refs/tags/v1.5.0
 #
-# The draft is reused, artifacts are overwritten, and publishing is idempotent.
+# There is deliberately no `tag` input. One would let a dispatch from a branch
+# look correct — prepare resolves, Windows builds for forty minutes — and then
+# die at the environment gate with nothing published. The ref is the tag, and
+# there is one way to say so.
+#
+# Note that a dispatch runs the workflow file as it was at that tag, not as it
+# is on main. A tag cut before this file existed cannot be rebuilt this way.
 
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Tag to build. Leave blank when dispatching with --ref refs/tags/<tag>.
-        required: false
-        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ inputs.tag || github.ref_name }}
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
-  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+  RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
   prepare:
@@ -59,10 +61,26 @@ jobs:
       version: ${{ steps.resolve.outputs.version }}
       prerelease: ${{ steps.resolve.outputs.prerelease }}
     steps:
+      # Before the checkout, because the checkout is what fails badly. Dispatched
+      # from a branch, RELEASE_TAG is that branch's name, and `ref: refs/tags/main`
+      # is a fatal git error with no hint about what was actually wrong.
+      - name: Check the ref is a release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.ref_type }}" != "tag" ]]; then
+            echo "::error::This must run on a tag. Dispatch with --ref refs/tags/<tag>."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::Tag $RELEASE_TAG is not vX.Y.Z or vX.Y.Z-rc.N"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: refs/tags/${{ github.ref_name }}
 
       - name: Resolve and check the version
         id: resolve
@@ -70,10 +88,6 @@ jobs:
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
-            echo "::error::Tag $tag is not vX.Y.Z or vX.Y.Z-rc.N"
-            exit 1
-          fi
           version="${tag#v}"
           packaged="$(node -p "require('./package.json').version")"
           if [[ "$version" != "$packaged" ]]; then
@@ -95,9 +109,24 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if state="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null)"; then
+            # Refusing here is the whole point of checking this early. Further
+            # down, the mac leg would spend an hour rebuilding and then overwrite
+            # the assets of a release people can already download, and only after
+            # that notice it was published. Cut a new tag instead.
+            if [[ "$state" != "true" ]]; then
+              echo "::error::Release $RELEASE_TAG is already published. Cut a new tag rather than rebuilding this one."
+              exit 1
+            fi
             echo "Draft for $RELEASE_TAG already exists; reusing it."
             exit 0
+          fi
+          # Generated notes need a previous release to diff against. On the very
+          # first one there is none, and GitHub walks back to the root commit —
+          # nine thousand of them, against a 125000-character body limit.
+          notes=(--generate-notes)
+          if [[ -z "$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[].tagName')" ]]; then
+            notes=(--notes "First Manta release.")
           fi
           # Draft, always: electron-builder uploads asset by asset, and a
           # visible release with three of five files is worse than no release.
@@ -105,7 +134,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --title "Manta $RELEASE_TAG" \
             --draft \
-            --generate-notes
+            "${notes[@]}"
 
   macos:
     needs: prepare
@@ -127,7 +156,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: refs/tags/${{ github.ref_name }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -237,7 +266,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: refs/tags/${{ github.ref_name }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6

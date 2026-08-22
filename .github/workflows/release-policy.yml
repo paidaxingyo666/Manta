@@ -15,6 +15,13 @@ concurrency:
 
 jobs:
   enforce:
+    # Left pointing at upstream on purpose, and disabled at the GitHub level too.
+    # This fires on `release: published`, and what it does to a release it does
+    # not recognise is delete it — the release and its tag both. The rule it
+    # enforces is `author === "github-actions[bot]"`, which polices a repo where
+    # several people can publish. Here there is one person, and the release he
+    # would most plausibly make by hand — a hotfix drafted in the web UI — is
+    # exactly the shape this deletes.
     if: github.repository == 'stablyai/orca'
     runs-on: ubuntu-latest
     timeout-minutes: 5
