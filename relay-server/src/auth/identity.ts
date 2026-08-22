@@ -6,7 +6,7 @@
  * body normalizes to `{flags:{}}` — which is then persisted, silently revoking
  * relay.use and taking the relay offline until the user signs in again.
  */
-import type { AuthUser } from './server.js'
+import type { AuthUser } from './auth-options.js'
 
 export function sessionBody(
   user: AuthUser,

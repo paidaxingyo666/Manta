@@ -17,6 +17,15 @@ export type RelayTokenClaims = {
   organizationId: string
   /** Binds the token to one host so it cannot be replayed for another. */
   relayHostId?: string
+  /**
+   * The relay's internal account key.
+   *
+   * Separate from `userId` because that one is signed into the host proof and
+   * can never move; this one is what host ownership is recorded against.
+   * Absent on a token minted before accounts existed, so every read of it has
+   * to tolerate undefined for one token lifetime after an upgrade.
+   */
+  accountId?: string
   expiresAt: number
 }
 

@@ -209,6 +209,18 @@ export class RelayCell {
     return this.sessions.size
   }
 
+  /**
+   * Whether a host is reachable right now.
+   *
+   * A session whose control socket is not OPEN is in its rebind grace window,
+   * which is not the same as online: the machine list would otherwise show a
+   * laptop as reachable for three seconds after it closed its lid.
+   */
+  isHostOnline(relayHostId: string): boolean {
+    const session = this.sessions.get(relayHostId)
+    return session !== undefined && session.control.readyState === session.control.OPEN
+  }
+
   activeConnCount(): number {
     let total = 0
     for (const session of this.sessions.values()) {

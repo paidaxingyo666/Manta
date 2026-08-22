@@ -184,6 +184,21 @@ function onControlMessage(
       state.session?.send({ type: 'control-error', code: 'invalid_relay_token' })
       return
     }
+    // The proof was built against the identity in the *original* token and is
+    // never rebuilt, so a refresh that arrives with a different subject would
+    // silently re-label an already-proven session as somebody else's.
+    const subjectChanged =
+      refreshed.userId !== state.claims?.userId ||
+      (refreshed.accountId !== undefined &&
+        state.claims?.accountId !== undefined &&
+        refreshed.accountId !== state.claims.accountId)
+    if (state.claims && subjectChanged) {
+      ctx.options.logger.warn('host.auth_refresh_subject_mismatch', {
+        relayHostId: state.relayHostId
+      })
+      state.session?.send({ type: 'control-error', code: 'invalid_relay_token' })
+      return
+    }
     state.claims = refreshed
     return
   }
@@ -270,6 +285,15 @@ function onHostHello(
   // usable to take over user B's host session.
   if (state.claims.relayHostId && state.claims.relayHostId !== relayHostId) {
     reject(CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'relay token host mismatch', 'host_mismatch')
+    return
+  }
+  // Second gate, from the store rather than the token: the token issuer already
+  // refuses a host owned by another account, and this catches a token minted
+  // before that check existed. Skipped when the token predates accounts —
+  // that window is one token lifetime after an upgrade.
+  const owner = ctx.options.store.ownership.ownerOf(relayHostId)
+  if (owner && state.claims.accountId && owner !== state.claims.accountId) {
+    reject(CLOSE_CODES.BAD_OUTER_CREDENTIAL, 'host owned by another account', 'host_not_owned')
     return
   }
   const hostPublicKey = Buffer.from(hostPublicKeyB64, 'base64')

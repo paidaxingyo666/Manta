@@ -3,8 +3,8 @@
  *
  * The desktop needs this only to obtain an identity and a relay token. Tokens
  * are opaque to the client, so this implements the smallest thing that
- * satisfies the contract: a loopback OAuth redirect that grants a session for a
- * configured single user, plus the relay-token issuer.
+ * satisfies the contract: a loopback OAuth redirect, an enrolment-secret direct
+ * grant, an email/password sign-in, and the relay-token issuer.
  *
  * `capabilities.flags["relay.use"]` must be true or the desktop gates the whole
  * relay path before ever contacting the director.
@@ -12,76 +12,65 @@
  * Every endpoint except /authorize is POST — that is what the client sends, and
  * accepting GET would make the state-changing ones reachable from a plain link.
  */
-import { randomUUID, timingSafeEqual } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { json, readJson } from '../shared/http-json.js'
 import { RELAY_HOST_ID_PATTERN } from '../shared/protocol.js'
 import { rateLimitKey } from '../shared/client-ip.js'
 import { issueRelayToken } from '../shared/relay-token.js'
-import type { AuthSessionStore, AuthSession } from './store.js'
-import type { Logger } from '../shared/log.js'
-import type { Metrics } from '../metrics.js'
-import type { RateLimiter } from '../shared/rate-limit.js'
+import type { AuthAccount } from './accounts.js'
+import type { AuthSession } from './store.js'
+import { accountToUser, type AuthOptions } from './auth-options.js'
 import { identityBody, sessionBody } from './identity.js'
+import { handleLogin, handleRegister } from './account-endpoints.js'
+import { handleAuthorize, handleEnrollmentSession, type PendingCodes } from './session-endpoints.js'
+import {
+  handleHostClaim,
+  handleHostDescribe,
+  handleHostForget,
+  handleHostList
+} from './host-directory.js'
 
-export type AuthUser = {
-  userId: string
-  profileId: string
-  organizationId: string
-  email: string
-  displayName: string
-}
+export type { AuthUser, AuthOptions } from './auth-options.js'
 
-export type AuthOptions = {
-  user: AuthUser
-  relayTokenSecret: string
-  relayTokenTtlMs: number
-  sessionTtlMs: number
-  sessions: AuthSessionStore
-  logger: Logger
-  metrics: Metrics
-  limiter: RateLimiter
-  /** Rejects an authorize request from an unexpected desktop build. */
-  expectedClientId?: string
-  /**
-   * Shared secret the desktop sends when redeeming an authorization code.
-   *
-   * Without it, anyone who can reach this port gets a session and a relay
-   * token. That does not hand over a host — the host proof needs the desktop's
-   * secret key — but it does leak the configured identity, let a stranger
-   * occupy the session table until the real desktop is evicted, and open a
-   * control leg, which is the doorway to every other authenticated surface.
-   */
-  enrollmentSecret?: string
-}
-const CODE_TTL_MS = 5 * 60_000
-/** An unredeemed code is a pending grant; a few is normal, thousands is abuse. */
-const MAX_PENDING_CODES = 32
-
-function constantTimeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a, 'utf8')
-  const right = Buffer.from(b, 'utf8')
-  return left.byteLength === right.byteLength && timingSafeEqual(left, right)
-}
+type Caller = { session: AuthSession; account: AuthAccount }
 
 export class RelayAuthServer {
   /** Authorization codes minted by /authorize, redeemable exactly once. */
-  private readonly codes = new Map<string, { expiresAt: number }>()
+  private readonly codes: PendingCodes = new Map()
 
   constructor(private readonly options: AuthOptions) {}
 
-  private bearer(request: IncomingMessage): AuthSession | null {
+  /**
+   * Resolves the bearer to a live session *and* the account behind it.
+   *
+   * A session whose account has gone is not merely unauthenticated: leaving it
+   * in the table means the same 401 forever, so it is dropped here.
+   */
+  private caller(request: IncomingMessage): Caller | null {
     const header = request.headers.authorization
     const token = header?.startsWith('Bearer ') ? header.slice(7) : null
-    return token ? this.options.sessions.findByAccess(token, Date.now()) : null
+    const session = token ? this.options.sessions.findByAccess(token, Date.now()) : null
+    if (!session) {
+      return null
+    }
+    const account = this.options.accounts.byId(session.accountId)
+    if (!account) {
+      this.options.sessions.remove(session)
+      return null
+    }
+    return { session, account }
   }
 
-  private sweepCodes(now: number): void {
-    for (const [code, record] of this.codes) {
-      if (record.expiresAt <= now) {
-        this.codes.delete(code)
-      }
-    }
+  private grant(response: ServerResponse, account: AuthAccount, grantKind: string): void {
+    const tokens = this.options.sessions.create(
+      account.accountId,
+      this.options.sessionTtlMs,
+      Date.now()
+    )
+    this.options.metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.', {
+      grant: grantKind
+    })
+    json(response, 200, sessionBody(accountToUser(account), tokens))
   }
 
   async handle(
@@ -98,8 +87,8 @@ export class RelayAuthServer {
     const endpoint = path.slice('/v1/desktop/auth/'.length)
 
     // Why limit here and not only at the edge: these endpoints mint grants and
-    // sessions, and a self-hosted relay is normally reached by exactly one
-    // desktop. Anything beyond a trickle is either a bug or an attack.
+    // sessions, and a self-hosted relay is normally reached by a handful of
+    // desktops. Anything beyond a trickle is either a bug or an attack.
     const decision = limiter.take(`auth:${rateLimitKey(clientIp)}`)
     if (!decision.ok) {
       metrics.counter('manta_relay_rate_limited_total', 'Requests refused by a rate limiter.', {
@@ -125,108 +114,28 @@ export class RelayAuthServer {
     }
 
     if (endpoint === 'authorize') {
-      if (request.method !== 'GET') {
-        json(response, 405, { error: 'method_not_allowed' }, { allow: 'GET' })
-        return true
-      }
-      // The desktop opens this in a browser with a loopback redirect_uri and a
-      // PKCE challenge. A self-hosted single-user deployment has nobody to
-      // authenticate, so the grant is immediate.
-      const redirectUri = url.searchParams.get('redirect_uri')
-      const state = url.searchParams.get('state') ?? ''
-      const clientId = url.searchParams.get('client_id') ?? ''
-      if (!redirectUri || !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(redirectUri)) {
-        json(response, 400, { error: 'invalid_redirect_uri' })
-        return true
-      }
-      if (this.options.expectedClientId && clientId !== this.options.expectedClientId) {
-        json(response, 400, { error: 'invalid_client_id' })
-        return true
-      }
-      const now = Date.now()
-      this.sweepCodes(now)
-      if (this.codes.size >= MAX_PENDING_CODES) {
-        json(response, 429, { error: 'too_many_pending_grants' }, { 'retry-after': '60' })
-        return true
-      }
-      const code = `code-${randomUUID()}`
-      // Single use, short lived: without this /session would hand a session to
-      // anyone who can reach the port, which is a full account takeover.
-      this.codes.set(code, { expiresAt: now + CODE_TTL_MS })
-      const target = new URL(redirectUri)
-      target.searchParams.set('code', code)
-      target.searchParams.set('state', state)
-      logger.info('auth.authorize', { clientIp })
-      response.writeHead(302, { location: target.toString(), 'cache-control': 'no-store' })
-      response.end()
+      handleAuthorize(url, request, response, this.options, this.codes)
       return true
     }
 
     if (endpoint === 'session') {
-      if (!expectPost()) {
-        return true
+      if (expectPost()) {
+        await handleEnrollmentSession(request, response, this.options, clientIp, this.codes)
       }
-      const body = await readJson(request)
-      const { enrollmentSecret } = this.options
-      if (enrollmentSecret) {
-        // The gate lives here, not on /authorize. /authorize is a browser
-        // navigation: the desktop cannot attach a header to it, so gating it
-        // meant an HTML form and the secret travelling in a URL query string —
-        // which then landed in the proxy's access log, and which browsers
-        // silently broke via form-action CSP on the redirect.
-        //
-        // /session is a POST the desktop makes itself, so the secret rides in
-        // the body: never in a URL, a log, or browser history. A code handed
-        // out freely by /authorize is worthless without it.
-        const offered = typeof body?.enrollmentSecret === 'string' ? body.enrollmentSecret : ''
-        if (!constantTimeEqual(offered, enrollmentSecret)) {
-          logger.warn('auth.enrollment_rejected', { clientIp, offered: offered !== '' })
-          metrics.counter('manta_relay_auth_failures_total', 'Rejected auth requests.', {
-            endpoint: 'session'
-          })
-          json(response, 401, { error: 'invalid_enrollment_secret' })
-          return true
-        }
+      return true
+    }
+
+    if (endpoint === 'register') {
+      if (expectPost()) {
+        await handleRegister(request, response, this.options, clientIp)
       }
-      const now = Date.now()
-      const code = String(body?.code ?? '')
-      // Direct grant: no authorization code, no browser.
-      //
-      // The code flow exists for a hosted service with a real identity
-      // provider and a human to authenticate. A single-user self-hosted relay
-      // has neither — /authorize would just bounce a code back through the
-      // browser immediately. The enrolment secret is the credential either
-      // way, so skipping the round trip removes a step without removing a
-      // check, and no code ever transits a browser or a loopback listener.
-      //
-      // Only offered when a secret is configured: without one there would be
-      // nothing left to prove.
-      if (!code) {
-        if (!enrollmentSecret) {
-          json(response, 400, { error: 'direct_grant_unavailable' })
-          return true
-        }
-        const tokens = this.options.sessions.create(this.options.sessionTtlMs, now)
-        logger.info('auth.session.granted', { clientIp, grant: 'direct' })
-        metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.', { grant: 'direct' })
-        json(response, 200, sessionBody(this.options.user, tokens))
-        return true
+      return true
+    }
+
+    if (endpoint === 'login') {
+      if (expectPost()) {
+        await handleLogin(request, response, this.options, clientIp)
       }
-      this.sweepCodes(now)
-      const record = this.codes.get(code)
-      if (!record || record.expiresAt <= now) {
-        logger.warn('auth.session.rejected', { clientIp, reason: 'invalid_grant' })
-        metrics.counter('manta_relay_auth_failures_total', 'Rejected auth requests.', {
-          endpoint: 'session'
-        })
-        json(response, 400, { error: 'invalid_grant' })
-        return true
-      }
-      this.codes.delete(code)
-      const tokens = this.options.sessions.create(this.options.sessionTtlMs, now)
-      logger.info('auth.session.granted', { clientIp, grant: 'code' })
-      metrics.counter('manta_relay_auth_sessions_total', 'Sessions minted.', { grant: 'code' })
-      json(response, 200, sessionBody(this.options.user, tokens))
       return true
     }
 
@@ -237,7 +146,11 @@ export class RelayAuthServer {
       const body = await readJson(request)
       const now = Date.now()
       const existing = this.options.sessions.findByRefresh(String(body?.refreshToken ?? ''), now)
-      if (!existing) {
+      const account = existing ? this.options.accounts.byId(existing.accountId) : null
+      if (!existing || !account) {
+        if (existing) {
+          this.options.sessions.remove(existing)
+        }
         metrics.counter('manta_relay_auth_failures_total', 'Rejected auth requests.', {
           endpoint: 'refresh'
         })
@@ -245,13 +158,10 @@ export class RelayAuthServer {
         return true
       }
       // Rotate: leaving the old refresh token usable means a stolen copy of the
-      // state file grants sessions forever.
+      // state file grants sessions forever. The new one stays on the same
+      // account — a refresh must never be able to change subject.
       this.options.sessions.remove(existing)
-      json(
-        response,
-        200,
-        sessionBody(this.options.user, this.options.sessions.create(this.options.sessionTtlMs, now))
-      )
+      this.grant(response, account, 'refresh')
       return true
     }
 
@@ -259,7 +169,8 @@ export class RelayAuthServer {
       if (!expectPost()) {
         return true
       }
-      if (!this.bearer(request)) {
+      const caller = this.caller(request)
+      if (!caller) {
         json(response, 401, { error: 'unauthenticated' })
         return true
       }
@@ -267,7 +178,7 @@ export class RelayAuthServer {
       // `response.cloud`. A flat body normalizes to `{flags:{}}`, which is then
       // persisted — silently revoking relay.use and taking the relay offline
       // until the user signs in again.
-      json(response, 200, identityBody(this.options.user))
+      json(response, 200, identityBody(accountToUser(caller.account)))
       return true
     }
 
@@ -277,18 +188,12 @@ export class RelayAuthServer {
       }
       // Semantically this creates a cloud profile and returns a *new session*;
       // a bare summary makes the client's assertString(accessToken) throw.
-      if (!this.bearer(request)) {
+      const caller = this.caller(request)
+      if (!caller) {
         json(response, 401, { error: 'unauthenticated' })
         return true
       }
-      json(
-        response,
-        200,
-        sessionBody(
-          this.options.user,
-          this.options.sessions.create(this.options.sessionTtlMs, Date.now())
-        )
-      )
+      this.grant(response, caller.account, 'profile')
       return true
     }
 
@@ -296,51 +201,101 @@ export class RelayAuthServer {
       if (!expectPost()) {
         return true
       }
-      const session = this.bearer(request)
-      if (session) {
-        this.options.sessions.remove(session)
+      const caller = this.caller(request)
+      if (caller) {
+        this.options.sessions.remove(caller.session)
         logger.info('auth.logout', { clientIp })
       }
       json(response, 200, { ok: true })
       return true
     }
 
-    if (endpoint === 'relay-token') {
+    if (
+      endpoint === 'hosts' ||
+      endpoint === 'host-describe' ||
+      endpoint === 'host-forget' ||
+      endpoint === 'host-claim'
+    ) {
       if (!expectPost()) {
         return true
       }
-      if (!this.bearer(request)) {
+      const caller = this.caller(request)
+      if (!caller) {
         json(response, 401, { error: 'unauthenticated' })
         return true
       }
-      const body = await readJson(request)
-      const relayHostId = String(body?.relayHostId ?? '')
-      if (!RELAY_HOST_ID_PATTERN.test(relayHostId)) {
-        json(response, 422, { error: 'invalid_relay_host_id' })
-        return true
+      const { accountId } = caller.account
+      if (endpoint === 'hosts') {
+        handleHostList(response, this.options, accountId)
+      } else if (endpoint === 'host-describe') {
+        await handleHostDescribe(request, response, this.options, accountId)
+      } else if (endpoint === 'host-claim') {
+        await handleHostClaim(request, response, this.options, accountId)
+      } else {
+        await handleHostForget(request, response, this.options, accountId)
       }
-      const { user } = this.options
-      const expiresAt = Date.now() + this.options.relayTokenTtlMs
-      metrics.counter('manta_relay_tokens_issued_total', 'Relay tokens issued.')
-      // The identity triple here must match what the desktop has locally, or its
-      // byte-for-byte transcript comparison fails and pairing silently breaks.
-      json(response, 200, {
-        relayToken: issueRelayToken(
-          {
-            userId: user.userId,
-            profileId: user.profileId,
-            organizationId: user.organizationId,
-            relayHostId,
-            expiresAt
-          },
-          this.options.relayTokenSecret
-        ),
-        expiresAt
-      })
+      return true
+    }
+
+    if (endpoint === 'relay-token') {
+      if (expectPost()) {
+        await this.onRelayToken(request, response)
+      }
       return true
     }
 
     json(response, 404, { error: 'not_found' })
     return true
+  }
+
+  private async onRelayToken(request: IncomingMessage, response: ServerResponse): Promise<void> {
+    const caller = this.caller(request)
+    if (!caller) {
+      json(response, 401, { error: 'unauthenticated' })
+      return
+    }
+    const body = await readJson(request)
+    const relayHostId = String(body?.relayHostId ?? '')
+    if (!RELAY_HOST_ID_PATTERN.test(relayHostId)) {
+      json(response, 422, { error: 'invalid_relay_host_id' })
+      return
+    }
+    const { account } = caller
+    // First use claims the host id for this account; every later request from
+    // anyone else is refused. Without it a second account could mint a token
+    // for a host that is already paired and take over its phones.
+    const claim = this.options.hosts.ownership.claim(
+      relayHostId,
+      account.accountId,
+      this.options.maxHostsPerAccount
+    )
+    if (claim !== 'ok') {
+      this.options.logger.warn('auth.relay_token_refused', { relayHostId, reason: claim })
+      this.options.metrics.counter('manta_relay_auth_failures_total', 'Rejected auth requests.', {
+        endpoint: 'relay-token'
+      })
+      json(response, claim === 'owned-by-other' ? 403 : 409, {
+        error: claim === 'owned-by-other' ? 'host_owned_by_another_account' : 'too_many_hosts'
+      })
+      return
+    }
+    const expiresAt = Date.now() + this.options.relayTokenTtlMs
+    this.options.metrics.counter('manta_relay_tokens_issued_total', 'Relay tokens issued.')
+    // The identity triple here must match what the desktop has locally, or its
+    // byte-for-byte transcript comparison fails and pairing silently breaks.
+    json(response, 200, {
+      relayToken: issueRelayToken(
+        {
+          userId: account.userId,
+          profileId: account.profileId,
+          organizationId: account.organizationId,
+          relayHostId,
+          accountId: account.accountId,
+          expiresAt
+        },
+        this.options.relayTokenSecret
+      ),
+      expiresAt
+    })
   }
 }

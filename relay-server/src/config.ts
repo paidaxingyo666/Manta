@@ -34,6 +34,31 @@ function text(name: string, fallback: string): string {
   return process.env[name]?.trim() || fallback
 }
 
+/** Who may create an account on this relay. */
+export type RegistrationMode = 'open' | 'enrollment-secret' | 'disabled'
+
+/**
+ * Defaults to whatever the deployment already proved it trusts.
+ *
+ * A relay with an enrolment secret is normally exposed to the internet, so
+ * signup inherits that gate rather than being thrown open; one without a secret
+ * can only be loopback (assertRanges enforces that), where the local user is
+ * already the only caller.
+ */
+function registrationMode(hasEnrollmentSecret: boolean): RegistrationMode {
+  const raw = process.env.MANTA_RELAY_ALLOW_REGISTRATION?.trim().toLowerCase()
+  if (!raw) {
+    return hasEnrollmentSecret ? 'enrollment-secret' : 'open'
+  }
+  if (raw === '1' || raw === 'true' || raw === 'yes' || raw === 'open') {
+    return 'open'
+  }
+  if (raw === 'secret' || raw === 'enrollment-secret') {
+    return 'enrollment-secret'
+  }
+  return 'disabled'
+}
+
 export type RelayConfig = ReturnType<typeof loadConfig>
 
 /**
@@ -49,6 +74,7 @@ function assertRanges(config: {
   graceTtlMs: number
   maxDevicesPerHost: number
   maxConnsPerHost: number
+  maxHostsPerAccount: number
   maxSessions: number
   shutdownGraceMs: number
   port: number
@@ -56,6 +82,8 @@ function assertRanges(config: {
   publicUrl: string
   logLevel: string
   enrollmentSecret: string | null
+  registrationMode: RegistrationMode
+  ephemeralSecret: boolean
 }): void {
   const problems: string[] = []
   if (config.attachDeadlineMs < 1 || config.attachDeadlineMs > 60_000) {
@@ -88,6 +116,9 @@ function assertRanges(config: {
   if (config.maxConnsPerHost < 1 || config.maxConnsPerHost > 8) {
     problems.push('MANTA_RELAY_MAX_CONNS_PER_HOST must be between 1 and 8')
   }
+  if (config.maxHostsPerAccount < 1 || config.maxHostsPerAccount > 64) {
+    problems.push('MANTA_RELAY_MAX_HOSTS_PER_ACCOUNT must be between 1 and 64')
+  }
   // The drain frame carries graceMs, and the client refuses anything past an
   // hour — a longer window would make the message itself unparseable.
   if (config.shutdownGraceMs > 60 * 60_000) {
@@ -114,6 +145,16 @@ function assertRanges(config: {
     problems.push(
       'MANTA_RELAY_ENROLLMENT_SECRET is required unless MANTA_RELAY_PUBLIC_URL is loopback; ' +
         'generate one with: openssl rand -base64 24'
+    )
+  }
+  // Only for the deployment that explicitly opened signup: an ephemeral secret
+  // invalidates every account's tokens on each restart, and turning that into a
+  // startup failure for configurations that already exist would make an upgrade
+  // an outage.
+  if (!loopback && config.registrationMode === 'open' && config.ephemeralSecret) {
+    problems.push(
+      'MANTA_RELAY_TOKEN_SECRET is required when MANTA_RELAY_ALLOW_REGISTRATION opens signup ' +
+        'on a public origin; generate one with: openssl rand -base64 32'
     )
   }
   if (problems.length > 0) {
@@ -165,6 +206,14 @@ export function loadConfig() {
     expectedClientId: process.env.MANTA_RELAY_CLIENT_ID?.trim() || null,
     /** Required to enrol a desktop; mandatory on a non-loopback origin. */
     enrollmentSecret: process.env.MANTA_RELAY_ENROLLMENT_SECRET?.trim() || null,
+    registrationMode: registrationMode(Boolean(process.env.MANTA_RELAY_ENROLLMENT_SECRET?.trim())),
+    /**
+     * The identity adopted as the "legacy" account.
+     *
+     * Every desktop paired before accounts existed signs these three values
+     * into its host proof and compares them byte-for-byte, so they must keep
+     * being served for that account forever.
+     */
     user: {
       userId: text('MANTA_RELAY_USER_ID', 'self-hosted-user'),
       profileId: text('MANTA_RELAY_PROFILE_ID', 'self-hosted-profile'),
@@ -190,6 +239,8 @@ export function loadConfig() {
     // The desktop's host-hello-ack schema caps activeConnIds and pendingConns
     // at 8 each, so this can never exceed 8 without breaking every rebind.
     maxConnsPerHost: number('MANTA_RELAY_MAX_CONNS_PER_HOST', 8),
+    /** Bounds how much store state one account can make the relay keep. */
+    maxHostsPerAccount: number('MANTA_RELAY_MAX_HOSTS_PER_ACCOUNT', 16),
     /**
      * Rate limits. Defaults are sized for a household, not a public service:
      * a phone reconnecting after a network flap needs a burst of a few, and

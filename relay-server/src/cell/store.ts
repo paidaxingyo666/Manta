@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { hashCredential } from '../shared/protocol.js'
 import { JsonFile } from '../shared/json-file.js'
 import { safeId } from '../shared/wire.js'
+import { hostFromSnapshot, hostToSnapshot } from './store-records.js'
 import type {
   CredentialGeneration,
   DeviceRecord,
@@ -21,32 +22,27 @@ import type {
 export type {
   CredentialGeneration,
   DeviceRecord,
+  HostDescriptor,
   HostRecord,
   InstallLedgerEntry,
   InviteRecord
 } from './store-records.js'
 
-type Snapshot = { v: 1; hosts: Record<string, StoredHost> }
+import { HostOwnerIndex } from './host-ownership.js'
 
-/**
- * Rebuilds a Map from a snapshot object.
- *
- * `Object.entries` skips inherited keys, but a snapshot written by an older
- * build could still carry a literal "__proto__" entry, and reading it back into
- * a Map is the safe place to drop it.
- */
-function toMap<T>(source: Record<string, T> | undefined): Map<string, T> {
-  const out = new Map<string, T>()
-  for (const [key, value] of Object.entries(source ?? {})) {
-    if (key !== '__proto__' && value) {
-      out.set(key, value)
-    }
-  }
-  return out
-}
+export type { HostClaimResult } from './host-ownership.js'
+
+type Snapshot = { v: 1; hosts: Record<string, StoredHost> }
 
 /** How long an empty host record is kept before it is considered abandoned. */
 const IDLE_HOST_TTL_MS = 24 * 60 * 60_000
+/**
+ * An owned record is also the owner's machine list entry, so it outlives a
+ * laptop that spends a fortnight in a bag. Growth is already bounded by the
+ * per-account host cap, so the only job left here is retiring a machine the
+ * user really has retired.
+ */
+const OWNED_HOST_TTL_MS = 90 * 24 * 60 * 60_000
 /** A rotation round-trip is seconds; a day of history is already generous. */
 const LEDGER_TTL_MS = 24 * 60 * 60_000
 
@@ -54,14 +50,27 @@ export class CellStore {
   private readonly hosts = new Map<string, HostRecord>()
   /** Version high-water marks kept for hosts whose records have been swept. */
   private readonly versionFloor = new Map<string, number>()
+  /** Reverse index for the owner's machine list; rebuilt from the snapshot. */
+  readonly ownership = new HostOwnerIndex({
+    hosts: this.hosts,
+    ensureHost: (id) => this.host(id),
+    retire: (id, host) => this.versionFloor.set(id, host.maxCredentialVersion ?? 0),
+    flush: () => this.scheduleFlush()
+  })
   private readonly file: JsonFile<Snapshot>
 
+  /**
+   * @param legacyAccountId Adopts host records written before accounts existed.
+   *   Leaving them unowned would let the first account that asked claim someone
+   *   else's already-paired host.
+   */
   constructor(
     dataDir: string | null,
     onError: (error: Error) => void = () => {
       // A failed write is surfaced by the caller's logger in production; the
       // default keeps tests silent.
-    }
+    },
+    legacyAccountId = ''
   ) {
     this.file = new JsonFile<Snapshot>(dataDir ? join(dataDir, 'cell-state.json') : null, onError)
     const loaded = this.file.read()
@@ -70,12 +79,9 @@ export class CellStore {
         if (id === '__proto__' || !host) {
           continue
         }
-        this.hosts.set(id, {
-          ...host,
-          devices: toMap(host.devices),
-          invites: toMap(host.invites),
-          installLedger: toMap(host.installLedger)
-        })
+        const ownerAccountId = host.ownerAccountId || legacyAccountId || undefined
+        this.hosts.set(id, hostFromSnapshot(host, ownerAccountId))
+        this.ownership.add(id, ownerAccountId)
       }
     }
   }
@@ -83,17 +89,7 @@ export class CellStore {
   private scheduleFlush(): void {
     this.file.schedule(() => ({
       v: 1,
-      hosts: Object.fromEntries(
-        [...this.hosts].map(([id, host]) => [
-          id,
-          {
-            ...host,
-            devices: Object.fromEntries(host.devices),
-            invites: Object.fromEntries(host.invites),
-            installLedger: Object.fromEntries(host.installLedger)
-          }
-        ])
-      )
+      hosts: Object.fromEntries([...this.hosts].map(([id, host]) => [id, hostToSnapshot(host)]))
     }))
   }
 
@@ -381,13 +377,18 @@ export class CellStore {
       // turn its next lease rebind into a full reconnect.
       const empty =
         host.devices.size === 0 && host.invites.size === 0 && host.installLedger.size === 0
-      if (empty && now - (host.lastSeenAt ?? 0) > IDLE_HOST_TTL_MS) {
+      // An owned record is also the owner's machine-list entry, so it gets the
+      // long window: retiring it after a day would delete a laptop from the
+      // list the first time it spent a weekend switched off.
+      const ttl = host.ownerAccountId ? OWNED_HOST_TTL_MS : IDLE_HOST_TTL_MS
+      if (empty && now - (host.lastSeenAt ?? 0) > ttl) {
         // Keep the version high-water mark. A phone refuses a credential
         // version it has already seen, so restarting the numbering after the
         // record is gone would make it reject the very credential it was just
         // handed on re-pairing.
         this.versionFloor.set(hostId, host.maxCredentialVersion ?? 0)
         this.hosts.delete(hostId)
+        this.ownership.remove(hostId, host.ownerAccountId)
       }
     }
     this.scheduleFlush()

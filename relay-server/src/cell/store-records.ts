@@ -86,6 +86,29 @@ export type HostRecord = {
   maxCredentialVersion?: number
   /** Last successful control handshake; only idle empty hosts are swept. */
   lastSeenAt?: number
+  /**
+   * Account that owns this host.
+   *
+   * Absent only in a snapshot written before accounts existed; the store adopts
+   * those under the legacy account at load, so it is set from then on. Relay
+   * tokens are refused for a host owned by anyone else, which is what stops one
+   * account from taking over another's pairing.
+   */
+  ownerAccountId?: string
+  /** Self-reported, for the owner's machine list. Never trusted for routing. */
+  descriptor?: HostDescriptor
+}
+
+/**
+ * What a desktop tells the relay about itself so its owner can recognise it in
+ * a list of machines. Purely cosmetic: none of it is authenticated, and nothing
+ * routes on it.
+ */
+export type HostDescriptor = {
+  displayName: string
+  platform?: string
+  appVersion?: string
+  updatedAt: number
 }
 
 /** Maps do not survive JSON, so the snapshot uses plain objects. */
@@ -93,4 +116,40 @@ export type StoredHost = Omit<HostRecord, 'devices' | 'invites' | 'installLedger
   devices: Record<string, DeviceRecord>
   invites: Record<string, InviteRecord>
   installLedger: Record<string, InstallLedgerEntry>
+}
+
+/**
+ * Rebuilds a Map from a snapshot object.
+ *
+ * `Object.entries` skips inherited keys, but a snapshot written by an older
+ * build could still carry a literal "__proto__" entry, and reading it back into
+ * a Map is the safe place to drop it.
+ */
+function toMap<T>(source: Record<string, T> | undefined): Map<string, T> {
+  const out = new Map<string, T>()
+  for (const [key, value] of Object.entries(source ?? {})) {
+    if (key !== '__proto__' && value) {
+      out.set(key, value)
+    }
+  }
+  return out
+}
+
+export function hostFromSnapshot(host: StoredHost, ownerAccountId?: string): HostRecord {
+  return {
+    ...host,
+    ...(ownerAccountId ? { ownerAccountId } : {}),
+    devices: toMap(host.devices),
+    invites: toMap(host.invites),
+    installLedger: toMap(host.installLedger)
+  }
+}
+
+export function hostToSnapshot(host: HostRecord): StoredHost {
+  return {
+    ...host,
+    devices: Object.fromEntries(host.devices),
+    invites: Object.fromEntries(host.invites),
+    installLedger: Object.fromEntries(host.installLedger)
+  }
 }

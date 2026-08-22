@@ -95,6 +95,63 @@ export async function signIn(
   return (await response.json()) as { accessToken: string; refreshToken: string }
 }
 
+export type CloudIdentity = {
+  userId: string
+  profileId: string
+  organizationId: string
+}
+
+type SessionBody = {
+  accessToken: string
+  refreshToken: string
+  cloud: { userId: string; cloudProfileId: string; activeOrgId?: string }
+}
+
+/** Creates an account and returns its session plus the identity it signs with. */
+export async function register(
+  origin: string,
+  body: { email: string; password: string; enrollmentSecret?: string; displayName?: string }
+): Promise<{ session: SessionBody; user: CloudIdentity }> {
+  const response = await httpFetch(`${origin}/v1/desktop/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  if (!response.ok) {
+    throw new Error(`register failed: ${response.status} ${await response.text()}`)
+  }
+  const session = (await response.json()) as SessionBody
+  return {
+    session,
+    user: {
+      userId: session.cloud.userId,
+      profileId: session.cloud.cloudProfileId,
+      organizationId: session.cloud.activeOrgId ?? ''
+    }
+  }
+}
+
+export async function login(origin: string, email: string, password: string): Promise<Response> {
+  return httpFetch(`${origin}/v1/desktop/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  })
+}
+
+export async function postAuth(
+  origin: string,
+  endpoint: string,
+  accessToken: string,
+  body: unknown = {}
+): Promise<Response> {
+  return httpFetch(`${origin}/v1/desktop/auth/${endpoint}`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+}
+
 export async function relayTokenFor(
   origin: string,
   accessToken: string,
@@ -119,7 +176,10 @@ export async function handshake(options: {
   assignmentEpoch?: number
   previousGeneration?: number
   controlResumeSecret?: string
+  /** Defaults to the legacy identity; a registered account signs its own. */
+  user?: CloudIdentity
 }): Promise<{ control: WebSocket; ack: Record<string, unknown> }> {
+  const user = options.user ?? TEST_USER
   const epoch = options.assignmentEpoch ?? 1
   const { identity } = options
   const control = await open(
@@ -149,9 +209,9 @@ export async function handshake(options: {
   }
   const proof = answerRelayHostChallenge(challenge as never, {
     relayOrigin: options.origin,
-    userId: TEST_USER.userId,
-    profileId: TEST_USER.profileId,
-    organizationId: TEST_USER.organizationId,
+    userId: user.userId,
+    profileId: user.profileId,
+    organizationId: user.organizationId,
     relayHostId: identity.relayHostId,
     hostPublicKey: identity.hostPublicKey,
     hostSecretKey: identity.hostSecretKey,
@@ -173,17 +233,25 @@ export async function handshake(options: {
 }
 
 /** Signs in, mints a relay token, and completes the control handshake. */
-export async function onlineHost(origin: string): Promise<{
+export async function onlineHost(
+  origin: string,
+  account?: { accessToken: string; user: CloudIdentity }
+): Promise<{
   identity: HostIdentity
   relayToken: string
   control: WebSocket
   generation: number
   ack: Record<string, unknown>
 }> {
-  const session = await signIn(origin)
+  const session = account ?? (await signIn(origin))
   const identity = newHostIdentity()
   const relayToken = await relayTokenFor(origin, session.accessToken, identity.relayHostId)
-  const { control, ack } = await handshake({ origin, relayToken, identity })
+  const { control, ack } = await handshake({
+    origin,
+    relayToken,
+    identity,
+    ...(account ? { user: account.user } : {})
+  })
   if (ack.type !== 'host-hello-ack') {
     throw new Error(`handshake failed: ${JSON.stringify(ack)}`)
   }

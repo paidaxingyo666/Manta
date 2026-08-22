@@ -18,9 +18,12 @@ export type AuthSession = {
   refreshHash: string
   expiresAt: number
   createdAt: number
+  /** Which account this session speaks for. */
+  accountId: string
 }
 
-type Snapshot = { v: 1; sessions: AuthSession[] }
+type SnapshotV1 = { v: 1; sessions: Omit<AuthSession, 'accountId'>[] }
+type Snapshot = { v: 2; sessions: AuthSession[] }
 
 /** Bounds the file: a client that never logs out still cannot grow it forever. */
 const MAX_SESSIONS = 64
@@ -35,29 +38,56 @@ function equal(a: string, b: string): boolean {
   return left.byteLength === right.byteLength && timingSafeEqual(left, right)
 }
 
+function wellFormed(session: Partial<AuthSession> | null): boolean {
+  return (
+    typeof session?.accessHash === 'string' &&
+    typeof session.refreshHash === 'string' &&
+    typeof session.expiresAt === 'number'
+  )
+}
+
 export class AuthSessionStore {
   private sessions: AuthSession[] = []
   private readonly file: JsonFile<Snapshot>
 
-  constructor(path: string | null, onError: (error: Error) => void) {
+  /**
+   * @param legacyAccountId Account that adopts sessions written before accounts
+   *   existed. Discarding them instead would sign every paired desktop out on
+   *   the upgrade that introduced accounts.
+   */
+  constructor(path: string | null, onError: (error: Error) => void, legacyAccountId: string) {
     this.file = new JsonFile<Snapshot>(path, onError)
-    const loaded = this.file.read()
-    if (loaded?.v === 1 && Array.isArray(loaded.sessions)) {
-      this.sessions = loaded.sessions.filter(
-        (session) =>
-          typeof session?.accessHash === 'string' &&
-          typeof session?.refreshHash === 'string' &&
-          typeof session?.expiresAt === 'number'
-      )
+    const loaded = this.file.read() as Snapshot | SnapshotV1 | null
+    if (!loaded || !Array.isArray(loaded.sessions)) {
+      return
+    }
+    const version = loaded.v
+    this.sessions = (loaded.sessions as Partial<AuthSession>[])
+      .filter(wellFormed)
+      .map((session) => ({
+        accessHash: session.accessHash as string,
+        refreshHash: session.refreshHash as string,
+        expiresAt: session.expiresAt as number,
+        // A record written without one sorts as NaN when the cap is enforced,
+        // which silently makes the prune order undefined.
+        createdAt: typeof session.createdAt === 'number' ? session.createdAt : 0,
+        accountId:
+          version === 2 && typeof session.accountId === 'string' && session.accountId
+            ? session.accountId
+            : legacyAccountId
+      }))
+    if (version !== 2) {
+      this.persist()
     }
   }
 
   private persist(): void {
-    this.file.schedule(() => ({ v: 1, sessions: this.sessions }))
+    this.file.schedule(() => ({ v: 2, sessions: this.sessions }))
   }
 
   /** Mints a session and returns the plaintext tokens exactly once. */
   create(
+    accountId: string,
     ttlMs: number,
     now: number
   ): { accessToken: string; refreshToken: string; expiresAt: number } {
@@ -68,7 +98,8 @@ export class AuthSessionStore {
       accessHash: hashToken(accessToken),
       refreshHash: hashToken(refreshToken),
       expiresAt,
-      createdAt: now
+      createdAt: now,
+      accountId
     })
     this.prune(now)
     this.persist()

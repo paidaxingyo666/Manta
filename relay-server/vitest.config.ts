@@ -19,6 +19,7 @@ import { defineConfig } from 'vitest/config'
 // or through the shared client harness. Kept as a list because the alternative
 // — discovering it at config load — would hide the coupling rather than name it.
 const crossRepoTests = [
+  'src/account-hosts.test.ts',
   'src/auth.test.ts',
   'src/contract.test.ts',
   'src/credentials.test.ts',

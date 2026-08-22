@@ -50,6 +50,7 @@ export function testConfig(port: number, overrides: Partial<RelayConfig> = {}): 
     tlsCertPath: null,
     expectedClientId: null,
     enrollmentSecret: null,
+    registrationMode: 'open',
     user: TEST_USER,
     sessionTtlMs: 60_000,
     relayTokenTtlMs: 60_000,
@@ -63,6 +64,7 @@ export function testConfig(port: number, overrides: Partial<RelayConfig> = {}): 
     maxLedgerEntriesPerHost: 512,
     maxSessions: 64,
     maxConnsPerHost: 8,
+    maxHostsPerAccount: 16,
     limits: {
       // Generous by default so ordinary tests are not throttled; the limiter
       // tests tighten these deliberately.

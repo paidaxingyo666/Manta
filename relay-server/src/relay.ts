@@ -16,6 +16,7 @@ import type { Duplex } from 'node:stream'
 import type { RelayConfig } from './config.js'
 import { RelayAuthServer } from './auth/server.js'
 import { AuthSessionStore } from './auth/store.js'
+import { AccountStore } from './auth/accounts.js'
 import { RelayDirector } from './director/server.js'
 import { RelayCell } from './cell/server.js'
 import { CellStore } from './cell/store.js'
@@ -35,6 +36,7 @@ export type Relay = {
   server: Server
   cell: RelayCell
   store: CellStore
+  accounts: AccountStore
   authSessions: AuthSessionStore
   logger: Logger
   metrics: Metrics
@@ -67,12 +69,23 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
   const trustedProxies = parseTrustedProxies(config.trustedProxies)
   const verifyRelayToken = createRelayTokenVerifier(config.relayTokenSecret)
 
-  const store = new CellStore(config.dataDir, (error) =>
-    logger.error('cell.persist_failed', { error })
+  // Accounts come first: both stores below adopt anything written before
+  // accounts existed under the legacy account, so its id has to exist already.
+  const accounts = new AccountStore(
+    config.dataDir ? join(config.dataDir, 'auth-accounts.json') : null,
+    (error) => logger.error('accounts.persist_failed', { error })
+  )
+  const legacyAccount = accounts.bootstrapLegacy(config.user, Date.now())
+
+  const store = new CellStore(
+    config.dataDir,
+    (error) => logger.error('cell.persist_failed', { error }),
+    legacyAccount.accountId
   )
   const authSessions = new AuthSessionStore(
     config.dataDir ? join(config.dataDir, 'auth-sessions.json') : null,
-    (error) => logger.error('auth.persist_failed', { error })
+    (error) => logger.error('auth.persist_failed', { error }),
+    legacyAccount.accountId
   )
 
   const httpLimiter = new RateLimiter({
@@ -100,7 +113,14 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
   })
 
   const auth = new RelayAuthServer({
-    user: config.user,
+    accounts,
+    legacyAccountId: legacyAccount.accountId,
+    hosts: store,
+    // Bound late: the cell is constructed below, and the directory needs to ask
+    // it who is online right now rather than trust a stored flag.
+    isHostOnline: (relayHostId) => cell.isHostOnline(relayHostId),
+    maxHostsPerAccount: config.maxHostsPerAccount,
+    registrationMode: config.registrationMode,
     relayTokenSecret: config.relayTokenSecret,
     relayTokenTtlMs: config.relayTokenTtlMs,
     sessionTtlMs: config.sessionTtlMs,
@@ -177,6 +197,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
             store.hostCount
           )
           metrics.gauge('manta_relay_auth_sessions', 'Stored auth sessions.', authSessions.size)
+          metrics.gauge('manta_relay_accounts', 'Registered accounts.', accounts.size)
           const body = metrics.render()
           response.writeHead(200, {
             'content-type': 'text/plain; version=0.0.4',
@@ -287,6 +308,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     server,
     cell,
     store,
+    accounts,
     authSessions,
     logger,
     metrics,
@@ -313,6 +335,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       // holds a credential the relay has never heard of.
       store.flush()
       authSessions.flush()
+      accounts.flush()
       // Tell peers, then give them the grace window to migrate. Phones need an
       // explicit 4503; a bare socket close reaches them as 1006, which their
       // close-code table treats as a generic transport failure.
@@ -342,6 +365,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       }
       store.flush()
       authSessions.flush()
+      accounts.flush()
       logger.info('relay.stopped', { reason })
     }
   }
