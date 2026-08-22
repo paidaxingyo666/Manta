@@ -113,6 +113,46 @@ export class RelayAuthServer {
       return false
     }
 
+    // How to sign in, before anyone has. The desktop cannot draw the right
+    // screen without it: a password form against a shared relay asks for
+    // credentials that do not exist, and no form at all against a per-user
+    // relay leaves the person with no way in. Unauthenticated on purpose —
+    // it says only what the sign-in screen is about to say anyway — and it
+    // rides the same limiter as everything else here.
+    if (endpoint === 'methods') {
+      if (request.method !== 'GET') {
+        json(response, 405, { error: 'method_not_allowed' }, { allow: 'GET' })
+        return true
+      }
+      json(response, 200, {
+        v: 1,
+        accounts: this.options.accountsMode,
+        ...(this.options.accountsMode === 'per-user'
+          ? { registration: this.options.registrationMode }
+          : {}),
+        // A shared relay still needs one before it grants anything.
+        enrollmentSecretRequired: Boolean(this.options.enrollmentSecret)
+      })
+      return true
+    }
+
+    // Everything below belongs to one mode or the other. A relay that answered
+    // both would let one careless click put a person on the shared identity,
+    // where their machines are everyone's.
+    const perUser = this.options.accountsMode === 'per-user'
+    const accountEndpoints = [
+      'register',
+      'login',
+      'hosts',
+      'host-describe',
+      'host-forget',
+      'host-claim'
+    ]
+    if (!perUser && accountEndpoints.includes(endpoint)) {
+      json(response, 404, { error: 'accounts_disabled' })
+      return true
+    }
+
     if (endpoint === 'authorize') {
       handleAuthorize(url, request, response, this.options, this.codes)
       return true

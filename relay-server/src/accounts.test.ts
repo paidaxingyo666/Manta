@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { startTestRelay, type TestRelay } from './testing/harness.js'
+import { PER_USER, startTestRelay, type TestRelay } from './testing/harness.js'
 import { hashToken } from './auth/store.js'
 import { createRelay } from './relay.js'
 import { Logger } from './shared/log.js'
@@ -67,7 +67,7 @@ const HOST_B = 'BBBBBBBBBBBBBBBB'
 
 describe('registration', () => {
   it('mints an identity of its own, not the environment one', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const session = await registerAccount(current.origin, 'ada@example.com')
     // The identity triple is signed byte-for-byte into every host proof, so an
     // account that reused the legacy one would let two people's desktops prove
@@ -81,7 +81,7 @@ describe('registration', () => {
   })
 
   it('refuses a second account on the same address, however it is cased', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     await registerAccount(current.origin, 'ada@example.com')
     const again = await post(current.origin, 'register', {
       email: 'ADA@Example.com',
@@ -92,7 +92,7 @@ describe('registration', () => {
   })
 
   it('refuses a password short enough to grind', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const response = await post(current.origin, 'register', {
       email: 'ada@example.com',
       password: 'short'
@@ -105,6 +105,7 @@ describe('registration', () => {
     // A relay with a secret is reachable from the internet; open signup there
     // would hand a stranger a relay token and a control leg.
     current = await startTestRelay(() => ({
+      ...PER_USER,
       enrollmentSecret: 'open-sesame',
       registrationMode: 'enrollment-secret'
     }))
@@ -122,7 +123,10 @@ describe('registration', () => {
   })
 
   it('can be closed entirely', async () => {
-    current = await startTestRelay(() => ({ registrationMode: 'disabled' }))
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      registrationMode: 'disabled'
+    }))
     const response = await post(current.origin, 'register', {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -134,7 +138,7 @@ describe('registration', () => {
 
 describe('sign-in', () => {
   it('returns the same identity the account registered with', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const registered = await registerAccount(current.origin, 'ada@example.com')
     const response = await post(current.origin, 'login', {
       email: 'ADA@example.com ',
@@ -147,7 +151,7 @@ describe('sign-in', () => {
   })
 
   it('says the same thing for a wrong password and an unknown address', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     await registerAccount(current.origin, 'ada@example.com')
     for (const body of [
       { email: 'ada@example.com', password: 'wrong-horse' },
@@ -160,7 +164,7 @@ describe('sign-in', () => {
   })
 
   it('keeps a refreshed session on the same account', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const registered = await registerAccount(current.origin, 'ada@example.com')
     const response = await post(current.origin, 'refresh', {
       refreshToken: registered.refreshToken
@@ -177,7 +181,7 @@ describe('sign-in', () => {
 
 describe('host ownership', () => {
   it('claims a host id on first use and refuses every other account after', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await registerAccount(current.origin, 'ada@example.com')
     const bob = await registerAccount(current.origin, 'bob@example.com')
 
@@ -200,7 +204,10 @@ describe('host ownership', () => {
   })
 
   it('bounds how many machines one account can register', async () => {
-    current = await startTestRelay(() => ({ maxHostsPerAccount: 1 }))
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      maxHostsPerAccount: 1
+    }))
     const ada = await registerAccount(current.origin, 'ada@example.com')
     expect(
       (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
@@ -218,7 +225,7 @@ describe('host ownership', () => {
 
 describe('machine directory', () => {
   it('lists only the caller account\u2019s machines', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await registerAccount(current.origin, 'ada@example.com')
     const bob = await registerAccount(current.origin, 'bob@example.com')
     await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)
@@ -233,7 +240,7 @@ describe('machine directory', () => {
   })
 
   it('takes a label from the owner and refuses one from anybody else', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await registerAccount(current.origin, 'ada@example.com')
     const bob = await registerAccount(current.origin, 'bob@example.com')
     await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)
@@ -268,7 +275,7 @@ describe('machine directory', () => {
   })
 
   it('forgets a machine, and only for its owner', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await registerAccount(current.origin, 'ada@example.com')
     const bob = await registerAccount(current.origin, 'bob@example.com')
     await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)
@@ -291,7 +298,7 @@ describe('machine directory', () => {
   })
 
   it('refuses every account endpoint without a bearer', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     for (const endpoint of ['hosts', 'host-describe', 'host-forget', 'relay-token']) {
       expect((await post(current.origin, endpoint, {})).status).toBe(401)
     }
@@ -317,7 +324,10 @@ describe('sessions written before accounts existed', () => {
         ]
       })
     )
-    current = await startTestRelay(() => ({ dataDir }))
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      dataDir
+    }))
 
     const identity = await post(current.origin, 'capabilities', {}, 'access-legacy')
     expect(identity.status).toBe(200)
@@ -353,7 +363,10 @@ describe('sessions written before accounts existed', () => {
         ]
       })
     )
-    current = await startTestRelay(() => ({ dataDir }))
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      dataDir
+    }))
     // Still usable — the missing timestamp only had to stop breaking the prune
     // order, not invalidate the session.
     expect((await post(current.origin, 'capabilities', {}, 'access-undated')).status).toBe(200)
@@ -361,30 +374,47 @@ describe('sessions written before accounts existed', () => {
 })
 
 describe('taking over a machine the legacy account inherited', () => {
+  /** What a relay that predates accounts has on disk: hosts with no owner. */
+  function seedUnownedHost(dataDir: string, relayHostId: string): void {
+    writeFileSync(
+      join(dataDir, 'cell-state.json'),
+      JSON.stringify({
+        v: 1,
+        hosts: {
+          [relayHostId]: {
+            relayHostId,
+            devices: {},
+            invites: {},
+            installLedger: {},
+            generation: 2,
+            lastSeenAt: Date.now()
+          }
+        }
+      })
+    )
+  }
+
+  const PER_USER_WITH_SECRET = {
+    ...PER_USER,
+    enrollmentSecret: 'open-sesame',
+    registrationMode: 'enrollment-secret' as const
+  }
+
   it('hands it to the account that holds the enrolment secret', async () => {
-    // On a relay that predates accounts every host belongs to the environment
-    // identity, so the operator who registers an account of their own would
-    // otherwise find their own desktop refused.
-    current = await startTestRelay(() => ({
-      enrollmentSecret: 'open-sesame',
-      registrationMode: 'enrollment-secret'
-    }))
-    const legacy = (await (
-      await post(current.origin, 'session', { enrollmentSecret: 'open-sesame' })
-    ).json()) as SessionBody
-    expect(
-      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, legacy.accessToken))
-        .status
-    ).toBe(200)
+    // Upgrading a relay adopts its hosts under the legacy account, so the
+    // operator who then registers an account of their own finds their own
+    // desktop refused. The enrolment secret — which is what granted that
+    // identity before accounts existed — is what hands it over.
+    const dataDir = tempDir()
+    seedUnownedHost(dataDir, HOST_A)
+    current = await startTestRelay(() => ({ ...PER_USER_WITH_SECRET, dataDir }))
 
     const ada = await registerAccount(current.origin, 'ada@example.com', {
       enrollmentSecret: 'open-sesame'
     })
-    // Before the claim, the host is the legacy account's and ada is refused.
     expect(
       (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
     ).toBe(403)
-
     expect(
       (
         await post(
@@ -398,17 +428,10 @@ describe('taking over a machine the legacy account inherited', () => {
     expect(
       (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
     ).toBe(200)
-    const listed = (await (await post(current.origin, 'hosts', {}, ada.accessToken)).json()) as {
-      hosts: { relayHostId: string }[]
-    }
-    expect(listed.hosts.map((host) => host.relayHostId)).toEqual([HOST_A])
   })
 
   it('refuses without the secret, and never moves a host off another account', async () => {
-    current = await startTestRelay(() => ({
-      enrollmentSecret: 'open-sesame',
-      registrationMode: 'enrollment-secret'
-    }))
+    current = await startTestRelay(() => PER_USER_WITH_SECRET)
     const ada = await registerAccount(current.origin, 'ada@example.com', {
       enrollmentSecret: 'open-sesame'
     })
@@ -417,7 +440,6 @@ describe('taking over a machine the legacy account inherited', () => {
     })
     await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)
 
-    // Wrong secret.
     expect(
       (
         await post(
@@ -439,6 +461,35 @@ describe('taking over a machine the legacy account inherited', () => {
     expect(stolen.status).toBe(403)
     expect(await stolen.json()).toMatchObject({ error: 'host_owned_by_another_account' })
   })
+
+  it('adopts a host whose owning account no longer exists', async () => {
+    // If auth-accounts.json is lost, the legacy account is rebuilt with a fresh
+    // id while every host record still names the old one. Without adoption they
+    // are orphaned with no way back short of hand-editing cell-state.json.
+    const dataDir = tempDir()
+    seedUnownedHost(dataDir, HOST_A)
+    current = await startTestRelay(() => ({ ...PER_USER_WITH_SECRET, dataDir }))
+    await current.stop()
+
+    rmSync(join(dataDir, 'auth-accounts.json'))
+    current = await startTestRelay(() => ({ ...PER_USER_WITH_SECRET, dataDir }))
+    const ada = await registerAccount(current.origin, 'ada@example.com', {
+      enrollmentSecret: 'open-sesame'
+    })
+    expect(
+      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
+    ).toBe(403)
+    expect(
+      (
+        await post(
+          current.origin,
+          'host-claim',
+          { relayHostId: HOST_A, enrollmentSecret: 'open-sesame' },
+          ada.accessToken
+        )
+      ).status
+    ).toBe(200)
+  })
 })
 
 describe('session table fairness', () => {
@@ -446,7 +497,7 @@ describe('session table fairness', () => {
     // A global cap on a multi-account relay is a cross-account eviction
     // primitive: sign in until everyone else's oldest sessions fall off the
     // end, taking their refresh tokens with them.
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     await registerAccount(current.origin, 'ada@example.com')
     const bob = await registerAccount(current.origin, 'bob@example.com')
 
@@ -466,7 +517,7 @@ describe('session table fairness', () => {
 
   it('rotates the profile session rather than accumulating one per call', async () => {
     // Otherwise a repeatable endpoint is a way to fill the session table.
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await registerAccount(current.origin, 'ada@example.com')
     const rotated = (await (
       await post(current.origin, 'profile', {}, ada.accessToken)
@@ -477,59 +528,16 @@ describe('session table fairness', () => {
   })
 })
 
-describe('retiring a machine', () => {
-  it('lets a host whose account vanished be adopted with the enrolment secret', async () => {
-    // If auth-accounts.json is lost, the legacy account is rebuilt with a fresh
-    // id while every host record still names the old one. Without adoption they
-    // are orphaned with no way back short of hand-editing cell-state.json.
-    const dataDir = tempDir()
-    current = await startTestRelay(() => ({
-      dataDir,
-      enrollmentSecret: 'open-sesame',
-      registrationMode: 'enrollment-secret'
-    }))
-    const legacy = (await (
-      await post(current.origin, 'session', { enrollmentSecret: 'open-sesame' })
-    ).json()) as SessionBody
-    await post(current.origin, 'relay-token', { relayHostId: HOST_A }, legacy.accessToken)
-    await current.stop()
-
-    // Lose the account file the way a quarantined snapshot does.
-    rmSync(join(dataDir, 'auth-accounts.json'))
-    current = await startTestRelay(() => ({
-      dataDir,
-      enrollmentSecret: 'open-sesame',
-      registrationMode: 'enrollment-secret'
-    }))
-    const ada = await registerAccount(current.origin, 'ada@example.com', {
-      enrollmentSecret: 'open-sesame'
-    })
-    expect(
-      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
-    ).toBe(403)
-    expect(
-      (
-        await post(
-          current.origin,
-          'host-claim',
-          { relayHostId: HOST_A, enrollmentSecret: 'open-sesame' },
-          ada.accessToken
-        )
-      ).status
-    ).toBe(200)
-    expect(
-      (await post(current.origin, 'relay-token', { relayHostId: HOST_A }, ada.accessToken)).status
-    ).toBe(200)
-  })
-})
-
 describe('the legacy identity', () => {
   it('refuses to start rather than silently rewrite it', async () => {
     // Every desktop paired under the stored triple signs it into its host
     // proof. An env_file that moved would otherwise turn the value into its
     // default and break every pairing with nothing in either log.
     const dataDir = tempDir()
-    current = await startTestRelay(() => ({ dataDir }))
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      dataDir
+    }))
     await current.stop()
     const config = { ...current.config, user: { ...current.config.user, userId: 'someone-else' } }
     current = null

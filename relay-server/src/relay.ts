@@ -123,6 +123,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       cell.disconnectHost(relayHostId)
     },
     maxHostsPerAccount: config.maxHostsPerAccount,
+    accountsMode: config.accountsMode,
     registrationMode: config.registrationMode,
     relayTokenSecret: config.relayTokenSecret,
     relayTokenTtlMs: config.relayTokenTtlMs,

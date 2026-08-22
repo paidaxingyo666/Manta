@@ -34,7 +34,30 @@ function text(name: string, fallback: string): string {
   return process.env[name]?.trim() || fallback
 }
 
-/** Who may create an account on this relay. */
+/**
+ * Whether this relay serves one identity or one per person.
+ *
+ * `shared` is the original behaviour and the default: the enrolment secret is
+ * the whole credential, everyone who holds it is the same identity, and there
+ * is nothing to sign in to. That is right for one person's own relay, and it is
+ * what every deployment that predates accounts already is.
+ *
+ * `per-user` is the choice a relay serving several people makes. Each person
+ * registers, each gets their own identity and their own machines, and the
+ * enrolment secret stops being an identity — it only gates who may register.
+ *
+ * This is a deployment decision, not a per-client one: a relay that offered
+ * both would let one careless click put a person on the shared identity, where
+ * their machines are everyone's.
+ */
+export type AccountsMode = 'shared' | 'per-user'
+
+function accountsMode(): AccountsMode {
+  const raw = process.env.MANTA_RELAY_ACCOUNTS?.trim().toLowerCase()
+  return raw === 'per-user' || raw === 'peruser' || raw === 'accounts' ? 'per-user' : 'shared'
+}
+
+/** Who may create an account on this relay. Only meaningful under per-user. */
 export type RegistrationMode = 'open' | 'enrollment-secret' | 'disabled'
 
 /**
@@ -83,6 +106,7 @@ function assertRanges(config: {
   logLevel: string
   enrollmentSecret: string | null
   registrationMode: RegistrationMode
+  accountsMode: AccountsMode
   ephemeralSecret: boolean
 }): void {
   const problems: string[] = []
@@ -147,14 +171,23 @@ function assertRanges(config: {
         'generate one with: openssl rand -base64 24'
     )
   }
-  // Only for the deployment that explicitly opened signup: an ephemeral secret
+  // Only for a deployment that opted into accounts: an ephemeral secret
   // invalidates every account's tokens on each restart, and turning that into a
   // startup failure for configurations that already exist would make an upgrade
   // an outage.
-  if (!loopback && config.registrationMode === 'open' && config.ephemeralSecret) {
+  if (!loopback && config.accountsMode === 'per-user' && config.ephemeralSecret) {
     problems.push(
-      'MANTA_RELAY_TOKEN_SECRET is required when MANTA_RELAY_ALLOW_REGISTRATION opens signup ' +
-        'on a public origin; generate one with: openssl rand -base64 32'
+      'MANTA_RELAY_TOKEN_SECRET is required when MANTA_RELAY_ACCOUNTS is per-user on a public ' +
+        'origin; every account is signed out on each restart without it. ' +
+        'Generate one with: openssl rand -base64 32'
+    )
+  }
+  // Nobody could register, and the shared identity is gone: the relay would
+  // accept nobody at all. That is a typo, not a lockdown.
+  if (config.accountsMode === 'per-user' && config.registrationMode === 'disabled') {
+    problems.push(
+      'MANTA_RELAY_ALLOW_REGISTRATION cannot be disabled while MANTA_RELAY_ACCOUNTS is per-user; ' +
+        'no one could sign in at all'
     )
   }
   if (problems.length > 0) {
@@ -207,6 +240,7 @@ export function loadConfig() {
     /** Required to enrol a desktop; mandatory on a non-loopback origin. */
     enrollmentSecret: process.env.MANTA_RELAY_ENROLLMENT_SECRET?.trim() || null,
     registrationMode: registrationMode(Boolean(process.env.MANTA_RELAY_ENROLLMENT_SECRET?.trim())),
+    accountsMode: accountsMode(),
     /**
      * The identity adopted as the "legacy" account.
      *

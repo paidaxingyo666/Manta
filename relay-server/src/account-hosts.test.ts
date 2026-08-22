@@ -7,10 +7,13 @@
  * deployment whose state was written before accounts existed.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { startTestRelay, TEST_SECRET, TEST_USER, type TestRelay } from './testing/harness.js'
+import {
+  PER_USER,
+  startTestRelay,
+  TEST_SECRET,
+  TEST_USER,
+  type TestRelay
+} from './testing/harness.js'
 import { issueRelayToken } from './shared/relay-token.js'
 import WebSocket from 'ws'
 import {
@@ -27,22 +30,12 @@ import {
   signIn
 } from './testing/client.js'
 
-const dirs: string[] = []
 let current: TestRelay | null = null
 
 afterEach(async () => {
   await current?.stop()
   current = null
-  while (dirs.length > 0) {
-    rmSync(dirs.pop()!, { recursive: true, force: true })
-  }
 })
-
-function tempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'manta-relay-accounts-'))
-  dirs.push(dir)
-  return dir
-}
 
 type HostRow = { relayHostId: string; online: boolean; displayName?: string }
 
@@ -54,7 +47,7 @@ async function hostList(origin: string, accessToken: string): Promise<HostRow[]>
 
 describe('two accounts on one relay', () => {
   it('each proves with its own identity triple and sees only its own machines', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -88,7 +81,7 @@ describe('two accounts on one relay', () => {
   })
 
   it('refuses a relay token for a host another account already claimed', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -110,7 +103,7 @@ describe('two accounts on one relay', () => {
   })
 
   it('reports a machine offline once its control leg is gone', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -136,7 +129,7 @@ describe('a proven control leg', () => {
     // The host proof was built against the identity in the *original* token and
     // is never rebuilt, so accepting a refreshed token with a different subject
     // would silently re-label an already-proven session as somebody else's.
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -163,7 +156,7 @@ describe('a proven control leg', () => {
   })
 
   it('accepts an auth-refresh that keeps the same subject', async () => {
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -192,7 +185,7 @@ describe('retiring a machine', () => {
     // A relay token is a stateless HMAC with an hour to live, so retiring a
     // machine has to reach the cell. Otherwise "forget this machine" leaves the
     // control leg forwarding and the cached token good for another hour.
-    current = await startTestRelay()
+    current = await startTestRelay(() => PER_USER)
     const ada = await register(current.origin, {
       email: 'ada@example.com',
       password: 'correct-horse'
@@ -236,50 +229,11 @@ describe('retiring a machine', () => {
   })
 })
 
-describe('upgrading a relay that predates accounts', () => {
-  it('adopts existing sessions and host records under the legacy account', async () => {
-    const dataDir = tempDir()
-    // A v1 snapshot: no accountId on the session, no owner on the host.
-    const relayHostId = newHostIdentity().relayHostId
-    writeFileSync(
-      join(dataDir, 'cell-state.json'),
-      JSON.stringify({
-        v: 1,
-        hosts: {
-          [relayHostId]: {
-            relayHostId,
-            devices: {},
-            invites: {},
-            installLedger: {},
-            generation: 3,
-            maxCredentialVersion: 7,
-            lastSeenAt: Date.now()
-          }
-        }
-      })
-    )
-    current = await startTestRelay(() => ({ dataDir }))
-
-    // The enrolment path every desktop in the field uses still grants a
-    // session, and it lands on the legacy account.
-    const session = await signIn(current.origin)
-    const rows = await hostList(current.origin, session.accessToken)
-    expect(rows.map((row) => row.relayHostId)).toEqual([relayHostId])
-
-    // A brand-new account must not be able to take the adopted host over.
-    const bob = await register(current.origin, {
-      email: 'bob@example.com',
-      password: 'correct-horse'
-    })
-    const stolen = await postAuth(current.origin, 'relay-token', bob.session.accessToken, {
-      relayHostId
-    })
-    expect(stolen.status).toBe(403)
-  })
-
-  it('keeps serving the environment identity triple to the legacy account', async () => {
-    // Every already-paired desktop compares these three strings byte-for-byte
-    // inside the host proof; changing them is an undiagnosable 4401.
+describe('a shared relay', () => {
+  it('grants the environment identity with no account to sign in to', async () => {
+    // The original behaviour and the default: the enrolment secret is the whole
+    // credential, and every desktop paired against it signs that identity
+    // triple into its host proof byte for byte.
     current = await startTestRelay()
     const session = await signIn(current.origin)
     const identity = newHostIdentity()
@@ -296,11 +250,7 @@ describe('upgrading a relay that predates accounts', () => {
     })
     expect(ack.type).toBe('host-hello-ack')
     control.close()
-  })
 
-  it('still answers the identity envelope with relay.use', async () => {
-    current = await startTestRelay()
-    const session = await signIn(current.origin)
     const response = await httpFetch(`${current.origin}/v1/desktop/auth/capabilities`, {
       method: 'POST',
       headers: {
@@ -313,5 +263,69 @@ describe('upgrading a relay that predates accounts', () => {
       cloud: { userId: TEST_USER.userId, cloudProfileId: TEST_USER.profileId },
       capabilities: { flags: { 'relay.use': true } }
     })
+  })
+
+  it('has no account surface at all', async () => {
+    // Not a feature that happens to be switched off: on a shared relay there is
+    // nothing to register, nothing to sign in to, and no machine list, so the
+    // desktop must not draw a password form.
+    current = await startTestRelay()
+    for (const endpoint of [
+      'register',
+      'login',
+      'hosts',
+      'host-describe',
+      'host-forget',
+      'host-claim'
+    ]) {
+      const response = await httpFetch(`${current.origin}/v1/desktop/auth/${endpoint}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}'
+      })
+      expect(response.status).toBe(404)
+      expect(await response.json()).toMatchObject({ error: 'accounts_disabled' })
+    }
+  })
+})
+
+describe('how to sign in', () => {
+  it('says shared, so the desktop knows not to ask for a password', async () => {
+    current = await startTestRelay(() => ({ enrollmentSecret: 'open-sesame' }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/methods`)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      v: 1,
+      accounts: 'shared',
+      enrollmentSecretRequired: true
+    })
+  })
+
+  it('says per-user, and how registration is gated', async () => {
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      enrollmentSecret: 'open-sesame',
+      registrationMode: 'enrollment-secret'
+    }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/methods`)
+    expect(await response.json()).toEqual({
+      v: 1,
+      accounts: 'per-user',
+      registration: 'enrollment-secret',
+      enrollmentSecretRequired: true
+    })
+  })
+
+  it('refuses the shared grant once accounts are the point', async () => {
+    // Granting it here would hand someone an identity every other holder of the
+    // enrolment secret also has, from a button that says "sign in".
+    current = await startTestRelay(() => ({ ...PER_USER, enrollmentSecret: 'open-sesame' }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ enrollmentSecret: 'open-sesame' })
+    })
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ error: 'accounts_required' })
   })
 })

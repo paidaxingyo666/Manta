@@ -32,6 +32,9 @@ export type AuthUser = {
  */
 export type RegistrationMode = 'open' | 'enrollment-secret' | 'disabled'
 
+/** See `AccountsMode` in config.ts — a deployment decision, not a client one. */
+export type AccountsMode = 'shared' | 'per-user'
+
 export type AuthOptions = {
   accounts: AccountStore
   /** Account that owns everything written before accounts existed. */
@@ -49,6 +52,7 @@ export type AuthOptions = {
    */
   disconnectHost: (relayHostId: string) => void
   maxHostsPerAccount: number
+  accountsMode: AccountsMode
   registrationMode: RegistrationMode
   relayTokenSecret: string
   relayTokenTtlMs: number

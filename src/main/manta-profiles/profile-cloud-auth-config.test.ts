@@ -43,6 +43,7 @@ describe('Manta cloud auth config', () => {
         hostDescribeEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-describe',
         hostForgetEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-forget',
         hostClaimEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-claim',
+        methodsEndpoint: 'https://manta-cloud.example/v1/desktop/auth/methods',
         relayTokenEndpoint: 'https://manta-cloud.example/v1/desktop/auth/relay-token',
         relayDirectorUrl: 'https://manta-cloud.example',
         clientId: 'desktop-client',

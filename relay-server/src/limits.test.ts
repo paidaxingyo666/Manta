@@ -4,7 +4,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import WebSocket from 'ws'
-import { startTestRelay, type TestRelay } from './testing/harness.js'
+import { PER_USER, startTestRelay, type TestRelay } from './testing/harness.js'
 import {
   connectPhone,
   createInvite,
@@ -209,6 +209,7 @@ describe('sign-in rate limiting', () => {
     // from many sources all charge one bucket, and the owner is then refused
     // from every network. The per-source bucket is what bounds an attacker.
     const current = await relayWith(() => ({
+      ...PER_USER,
       trustedProxies: 'loopback',
       limits: { authBurst: 6, authPerSecond: 0.01, httpBurst: 1_000, httpPerSecond: 100 }
     }))

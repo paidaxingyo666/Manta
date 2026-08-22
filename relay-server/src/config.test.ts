@@ -98,6 +98,33 @@ describe('loadConfig', () => {
     expect(loadConfig().enrollmentSecret).toBeNull()
   })
 
+  it('serves one shared identity unless told otherwise', () => {
+    // The default has to stay what every relay deployed before accounts is,
+    // or an upgrade turns into a lockout on restart.
+    withEnv({})
+    expect(loadConfig().accountsMode).toBe('shared')
+  })
+
+  it('takes per-user only from the value that means it', () => {
+    withEnv({ MANTA_RELAY_ACCOUNTS: ' Per-User ' })
+    expect(loadConfig().accountsMode).toBe('per-user')
+    withEnv({ MANTA_RELAY_ACCOUNTS: 'yes' })
+    expect(loadConfig().accountsMode).toBe('shared')
+  })
+
+  it('refuses per-user accounts on a token secret that changes every restart', () => {
+    // Every account is signed out on each deploy, and deploying is how this
+    // relay is updated.
+    withEnv({ MANTA_RELAY_ACCOUNTS: 'per-user' })
+    delete process.env.MANTA_RELAY_TOKEN_SECRET
+    expect(() => loadConfig()).toThrow(/TOKEN_SECRET is required/)
+  })
+
+  it('refuses a per-user relay nobody could ever sign in to', () => {
+    withEnv({ MANTA_RELAY_ACCOUNTS: 'per-user', MANTA_RELAY_ALLOW_REGISTRATION: 'disabled' })
+    expect(() => loadConfig()).toThrow(/no one could sign in/)
+  })
+
   it('accepts a complete configuration', () => {
     withEnv({
       MANTA_RELAY_TRUSTED_PROXIES: 'loopback,private',

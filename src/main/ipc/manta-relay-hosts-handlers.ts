@@ -5,13 +5,20 @@ import type {
   ListMantaRelayHostsResult
 } from '../../shared/manta-relay-hosts'
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
+import type { MantaRelaySignInMethods } from '../../shared/manta-relay-sign-in-methods'
 import {
   forgetRelayHostForAccount,
-  listRelayHostsForAccount
+  listRelayHostsForAccount,
+  readRelaySignInMethods
 } from '../runtime/relay/relay-host-directory'
 
 /** The machines the signed-in account has on its relay. */
 export function registerMantaRelayHostHandlers(): void {
+  ipcMain.handle(
+    'mantaRelay:signInMethods',
+    (): Promise<MantaRelaySignInMethods> => readRelaySignInMethods()
+  )
+
   ipcMain.handle(
     'mantaRelay:listHosts',
     (): Promise<ListMantaRelayHostsResult> => listRelayHostsForAccount(getProfileUserDataPath())

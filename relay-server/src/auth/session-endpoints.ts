@@ -115,6 +115,14 @@ export async function handleEnrollmentSession(
       return
     }
   }
+  // The shared identity is the whole point of a shared relay and the whole
+  // problem on a per-user one: granting it there would hand someone an
+  // identity every other holder of the enrolment secret also has, from a
+  // button that says "sign in".
+  if (options.accountsMode === 'per-user') {
+    fail(409, 'accounts_required')
+    return
+  }
   const now = Date.now()
   const code = String(body?.code ?? '')
   // Direct grant: no authorization code, no browser. The enrolment secret is

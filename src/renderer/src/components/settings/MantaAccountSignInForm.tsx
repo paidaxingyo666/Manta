@@ -16,7 +16,11 @@ type Mode = 'sign-in' | 'register'
  * with a deployment-wide enrolment secret or the browser code flow, which the
  * pane falls back to when nothing is typed here.
  */
-export function MantaAccountSignInForm(): React.JSX.Element {
+export function MantaAccountSignInForm({
+  onDone
+}: {
+  onDone?: () => void
+} = {}): React.JSX.Element {
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const [mode, setMode] = useState<Mode>('sign-in')
@@ -44,6 +48,7 @@ export function MantaAccountSignInForm(): React.JSX.Element {
       // Never keep the password around once it has been exchanged for a token.
       setPassword('')
       setDisplayName('')
+      onDone?.()
       return
     }
     const unreachable = translate(

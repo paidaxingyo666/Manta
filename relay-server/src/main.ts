@@ -31,7 +31,9 @@ logger.info('relay.listening', {
   publicUrl: config.publicUrl,
   dataDir: config.dataDir,
   trustedProxies: config.trustedProxies || '(none)',
-  metrics: config.metricsToken ? 'enabled' : 'disabled'
+  metrics: config.metricsToken ? 'enabled' : 'disabled',
+  // Deploy-time choice with no other visible signal until something 404s.
+  accounts: config.accountsMode
 })
 
 // Misconfigurations that only show up as a silent pairing failure much later

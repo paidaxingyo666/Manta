@@ -150,24 +150,37 @@ deployment means nothing to another.
 
 Repeat on each desktop. They share one enrolment secret.
 
-### 3. Sign in to your account
+### 3. Decide who the relay is for
 
+By default a relay serves **one identity**: everyone who holds the enrolment
+secret is the same person, there is nothing to sign in to, and the desktop
+connects with no account at all. For your own relay that is usually what you
+want, and it is what every relay was before accounts existed.
+
+Set `MANTA_RELAY_ACCOUNTS=per-user` when several people share the relay. Then
+each person registers, and each gets their own identity and their own machines —
 Settings → **Manta Account** → email and password, or **Create one on this
 relay**. Accounts live on your relay and nowhere else; the relay is the only
 thing that ever sees the password.
 
+It is one or the other, chosen at deploy time. A relay that accepted both would
+let one careless click put someone on the shared identity, where their machines
+are everyone's — so the desktop asks the relay which it is and draws only that
+screen.
+
 Signing in to the same account from a second computer puts both in one place:
 **Your machines** lists every desktop on the account, which is online now, and
-when each was last seen. That is also what keeps a shared relay honest — a host
-belongs to exactly one account from the moment it is claimed, and another
+when each was last seen. That is also what keeps a per-user relay honest — a
+host belongs to exactly one account from the moment it is claimed, and another
 account asking for a token for it is refused.
 
 Who may register is `MANTA_RELAY_ALLOW_REGISTRATION`; unset, it inherits the
-enrolment secret, which is what a relay on the open internet wants. Signing in
-with the enrolment secret alone still works and still lands on the account the
-environment identity was adopted into — upgrading a relay that predates
-accounts needs no configuration change, and a desktop that was paired under the
-old identity moves itself onto your new account the first time you sign in.
+enrolment secret, which is what a relay on the open internet wants. A relay
+that already ran before accounts existed keeps working untouched — leaving
+`MANTA_RELAY_ACCOUNTS` unset is exactly what it was. Switching it to `per-user`
+later strands nothing: every host still belongs to the old shared identity, and
+each desktop takes its own back — with the enrolment secret it already holds —
+the first time someone signs in on it.
 
 ### 4. Pair the phone
 

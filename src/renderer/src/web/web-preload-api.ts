@@ -673,6 +673,11 @@ function createWebPreloadApi(): Partial<PreloadApi> {
         status: 'unconfigured',
         auth: await webMantaProfileAuthStatus()
       }),
+      // No host key here, so nothing to sign a per-account identity with.
+      relaySignInMethods: async () => ({
+        accounts: 'shared' as const,
+        enrollmentSecretRequired: true
+      }),
       // The relay directory is desktop-only: a browser client has no host key,
       // so it is never a machine on anyone's list.
       listRelayHosts: async () => ({ status: 'unconfigured' }),

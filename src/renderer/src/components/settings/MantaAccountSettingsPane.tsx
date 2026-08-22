@@ -65,16 +65,28 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const fetchAuthStatus = useAppStore((state) => state.fetchMantaProfileAuthStatus)
   const signOut = useAppStore((state) => state.signOutCurrentMantaProfile)
+  const signInMethods = useAppStore((state) => state.mantaRelaySignInMethods)
+  const fetchSignInMethods = useAppStore((state) => state.fetchMantaRelaySignInMethods)
   const [signOutOpen, setSignOutOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [switching, setSwitching] = useState(false)
   const connected = authStatus?.state === 'connected'
   const canConnect = authStatus?.configured === true
+  // The relay decides which screen exists. Until it has answered, draw neither
+  // — a password form for credentials that may not exist is worse than a pause.
+  const perUser = signInMethods?.accounts === 'per-user'
 
   useEffect(() => {
     if (!authStatus) {
       void fetchAuthStatus()
     }
   }, [authStatus, fetchAuthStatus])
+
+  useEffect(() => {
+    if (!signInMethods) {
+      void fetchSignInMethods()
+    }
+  }, [signInMethods, fetchSignInMethods])
 
   const confirmSignOut = async (): Promise<void> => {
     if (signingOut) {
@@ -122,34 +134,56 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
             >
               {translate('auto.components.settings.mantaAccount.signOut', 'Sign out')}
             </Button>
-          ) : (
+          ) : perUser ? null : (
             <Button
               type="button"
-              variant="outline"
               size="sm"
               disabled={!canConnect || connecting}
               onClick={() => void connect()}
             >
               {connecting
                 ? translate('auto.components.settings.mantaAccount.signingIn', 'Signing in…')
-                : translate(
-                    'auto.components.settings.mantaAccount.useRelayCredential',
-                    'Use relay credential'
-                  )}
+                : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
             </Button>
           )}
         </div>
 
-        {canConnect && !connected ? (
+        {/* Why the form can appear while already connected: this relay gives
+            each person their own identity, so switching to another account is
+            an ordinary thing to want. Hiding it until you sign out made the
+            shared identity a one-way door. */}
+        {canConnect && perUser && (!connected || switching) ? (
           <div className="space-y-3 border-t border-border/60 pt-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-              {translate('auto.components.settings.mantaAccount.signInTitle', 'Sign in')}
+              {connected
+                ? translate(
+                    'auto.components.settings.mantaAccount.switchTitle',
+                    'Use another account'
+                  )
+                : translate('auto.components.settings.mantaAccount.signInTitle', 'Sign in')}
             </p>
-            <MantaAccountSignInForm />
+            <MantaAccountSignInForm onDone={() => setSwitching(false)} />
           </div>
         ) : null}
 
-        {connected ? <MantaRelayMachinesSection /> : null}
+        {canConnect && perUser && connected && !switching ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-ml-2"
+            onClick={() => setSwitching(true)}
+          >
+            {translate(
+              'auto.components.settings.mantaAccount.switchAccount',
+              'Use another account'
+            )}
+          </Button>
+        ) : null}
+
+        {/* A shared relay has no per-account machine list; the section would
+            only report the absent endpoint as "this relay is too old". */}
+        {connected && perUser ? <MantaRelayMachinesSection /> : null}
 
         <div className="space-y-4 border-t border-border/60 pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">

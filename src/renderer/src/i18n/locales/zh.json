@@ -10223,7 +10223,6 @@
           "enrollmentSaved": "已保存 —— 输入可替换"
         },
         "mantaAccount": {
-          "useRelayCredential": "使用中继凭据",
           "signInTitle": "登录",
           "signInFailed": "无法连接到中继。",
           "emailLabel": "邮箱",
@@ -10244,7 +10243,9 @@
           "errorTooManyHosts": "此账号的设备数量已达中继允许的上限。",
           "errorRateLimited": "尝试次数过多，请稍后再试。",
           "errorRelayTooOldRegister": "该中继版本过旧，无法创建账号。请升级中继，或改用中继凭据连接。",
-          "errorRelayTooOldSignIn": "该中继版本过旧，不支持密码登录。请升级中继，或改用中继凭据连接。"
+          "errorRelayTooOldSignIn": "该中继版本过旧，不支持密码登录。请升级中继，或改用中继凭据连接。",
+          "switchTitle": "换一个账号",
+          "switchAccount": "换一个账号"
         },
         "relayMachines": {
           "unnamed": "未命名设备",

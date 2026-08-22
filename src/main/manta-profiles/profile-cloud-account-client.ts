@@ -2,6 +2,11 @@ import type { MantaCloudAuthConfig } from './profile-cloud-auth-config'
 import { MantaCloudRequestError, normalizeMantaCloudSessionResponse } from './profile-cloud-client'
 import type { MantaCloudSessionExchangeResponse } from './profile-cloud-session-exchange'
 import { cancelUnreadResponseBody } from '../lib/unread-response-body'
+import {
+  parseMantaRelaySignInMethods,
+  SHARED_RELAY_SIGN_IN_METHODS,
+  type MantaRelaySignInMethods
+} from '../../shared/manta-relay-sign-in-methods'
 
 const ACCOUNT_REQUEST_TIMEOUT_MS = 30_000
 
@@ -36,6 +41,27 @@ async function postAccountJson<T>(url: string, body: unknown, accessToken?: stri
     await cancelUnreadResponseBody(response)
   }
   throw new MantaCloudRequestError(response.status, errorCode)
+}
+
+/**
+ * Asks the relay how it expects to be signed in to.
+ *
+ * Unauthenticated, and answered before anyone has a session — the desktop needs
+ * it to decide whether to draw a password form at all. A relay that predates
+ * the question answers 404, which is the same thing as `shared`.
+ */
+export async function readMantaRelaySignInMethods(
+  config: MantaCloudAuthConfig
+): Promise<MantaRelaySignInMethods> {
+  const response = await fetch(config.methodsEndpoint, {
+    redirect: 'error',
+    signal: AbortSignal.timeout(ACCOUNT_REQUEST_TIMEOUT_MS)
+  })
+  if (!response.ok) {
+    await cancelUnreadResponseBody(response)
+    return SHARED_RELAY_SIGN_IN_METHODS
+  }
+  return parseMantaRelaySignInMethods(await response.json())
 }
 
 export type MantaCloudCredentialGrant = {

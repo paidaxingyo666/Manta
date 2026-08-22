@@ -8,6 +8,7 @@ import { getMantaCloudAuthConfig } from '../../manta-profiles/profile-cloud-auth
 import { MantaCloudRequestError } from '../../manta-profiles/profile-cloud-client'
 import {
   claimMantaRelayHost,
+  readMantaRelaySignInMethods,
   describeMantaRelayHost,
   forgetMantaRelayHost,
   listMantaRelayHosts
@@ -17,6 +18,10 @@ import { ensureActiveMantaProfile } from '../../manta-profiles/profile-index-sto
 import { runWithFreshMantaCloudSession } from '../../manta-profiles/profile-cloud-session-refresh'
 import type { MantaCloudAuthConfig } from '../../manta-profiles/profile-cloud-auth-config'
 import type { MantaCloudSession } from '../../manta-profiles/profile-cloud-session-store'
+import {
+  SHARED_RELAY_SIGN_IN_METHODS,
+  type MantaRelaySignInMethods
+} from '../../../shared/manta-relay-sign-in-methods'
 
 /** Resolved from the runtime's E2EE key, which is what the id is a digest of. */
 export type RelayHostIdentityReader = () => string | null
@@ -103,6 +108,28 @@ export async function forgetRelayHostForAccount(
   return result.status === 'ok'
     ? { status: 'ok', hosts: toSummaries(result.value, selfRelayHostId) }
     : result
+}
+
+/**
+ * How the configured relay expects to be signed in to.
+ *
+ * Unauthenticated and cheap, because the pane needs it before anyone has a
+ * session. An unconfigured desktop reports `shared`, which is also what every
+ * relay that predates the question is — so the caller never has to special-case
+ * "we do not know yet".
+ */
+export async function readRelaySignInMethods(): Promise<MantaRelaySignInMethods> {
+  const configState = getMantaCloudAuthConfig()
+  if (!configState.configured) {
+    return SHARED_RELAY_SIGN_IN_METHODS
+  }
+  try {
+    return await readMantaRelaySignInMethods(configState.config)
+  } catch {
+    // Unreachable relay: the sign-in screen is about to say so anyway, and
+    // guessing `per-user` would show a form nobody can use.
+    return SHARED_RELAY_SIGN_IN_METHODS
+  }
 }
 
 /**

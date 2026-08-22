@@ -22,6 +22,7 @@ const config: MantaCloudAuthConfig = {
   hostDescribeEndpoint: 'https://relay.example/v1/desktop/auth/host-describe',
   hostForgetEndpoint: 'https://relay.example/v1/desktop/auth/host-forget',
   hostClaimEndpoint: 'https://relay.example/v1/desktop/auth/host-claim',
+  methodsEndpoint: 'https://relay.example/v1/desktop/auth/methods',
   relayTokenEndpoint: 'https://relay.example/v1/desktop/auth/relay-token',
   relayDirectorUrl: 'https://relay.example',
   clientId: 'manta-desktop',

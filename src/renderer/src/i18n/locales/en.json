@@ -11213,7 +11213,6 @@
           "relayDescription": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
           "skillsTitle": "Skill sharing",
           "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use.",
-          "useRelayCredential": "Use relay credential",
           "signInTitle": "Sign in",
           "signInFailed": "Could not reach the relay.",
           "emailLabel": "Email",
@@ -11234,7 +11233,9 @@
           "errorTooManyHosts": "This account already has as many machines as the relay allows.",
           "errorRateLimited": "Too many attempts. Wait a moment and try again.",
           "errorRelayTooOldRegister": "This relay is too old to create accounts. Update it, or connect with its relay credential instead.",
-          "errorRelayTooOldSignIn": "This relay is too old for password sign-in. Update it, or connect with its relay credential instead."
+          "errorRelayTooOldSignIn": "This relay is too old for password sign-in. Update it, or connect with its relay credential instead.",
+          "switchTitle": "Use another account",
+          "switchAccount": "Use another account"
         },
         "automations": {
           "showButton": "Show Automations Button",

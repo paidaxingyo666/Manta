@@ -33,6 +33,7 @@ export type MantaCloudAuthConfig = {
   hostDescribeEndpoint: string
   hostForgetEndpoint: string
   hostClaimEndpoint: string
+  methodsEndpoint: string
   relayTokenEndpoint: string
   relayDirectorUrl: string
   clientId: string
@@ -154,6 +155,7 @@ export function getMantaCloudAuthConfig(
       hostDescribeEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-describe'),
       hostForgetEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-forget'),
       hostClaimEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-claim'),
+      methodsEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/methods'),
       relayTokenEndpoint:
         cleanEndpointUrl(env.MANTA_CLOUD_RELAY_TOKEN_URL) ??
         endpoint(apiBaseUrl, '/v1/desktop/auth/relay-token'),

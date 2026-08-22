@@ -5,9 +5,16 @@ import type {
   ListMantaRelayHostsResult,
   MantaRelayHostSummary
 } from '../../../../shared/manta-relay-hosts'
+import {
+  SHARED_RELAY_SIGN_IN_METHODS,
+  type MantaRelaySignInMethods
+} from '../../../../shared/manta-relay-sign-in-methods'
 import type { AppState } from '../types'
 
 export type MantaRelayHostsSlice = {
+  /** Null until asked; the relay decides which sign-in screen exists. */
+  mantaRelaySignInMethods: MantaRelaySignInMethods | null
+  fetchMantaRelaySignInMethods: () => Promise<void>
   mantaRelayHosts: MantaRelayHostSummary[]
   mantaRelayHostsLoading: boolean
   /** Null until the list has been fetched once. */
@@ -27,9 +34,22 @@ export const createMantaRelayHostsSlice: StateCreator<AppState, [], [], MantaRel
     })
   }
   return {
+    mantaRelaySignInMethods: null,
     mantaRelayHosts: [],
     mantaRelayHostsLoading: false,
     mantaRelayHostsState: null,
+
+    fetchMantaRelaySignInMethods: async () => {
+      try {
+        set({ mantaRelaySignInMethods: await window.api.mantaProfiles.relaySignInMethods() })
+      } catch (err) {
+        console.error('Failed to read relay sign-in methods:', err)
+        // Shared is what a relay that cannot answer is, and it is the screen
+        // that works either way: no password form for credentials that may
+        // not exist.
+        set({ mantaRelaySignInMethods: SHARED_RELAY_SIGN_IN_METHODS })
+      }
+    },
 
     fetchMantaRelayHosts: async () => {
       set({ mantaRelayHostsLoading: true })

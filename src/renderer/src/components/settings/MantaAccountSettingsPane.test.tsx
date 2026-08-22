@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   fetchRelayHosts: vi.fn(),
   forgetRelayHost: vi.fn(),
+  fetchSignInMethods: vi.fn(),
   state: {
     mantaProfileAuthStatus: {
       configured: true,
@@ -21,7 +22,11 @@ const mocks = vi.hoisted(() => ({
     mantaProfileConnecting: false,
     mantaRelayHosts: [] as Record<string, unknown>[],
     mantaRelayHostsLoading: false,
-    mantaRelayHostsState: 'ok' as string | null
+    mantaRelayHostsState: 'ok' as string | null,
+    mantaRelaySignInMethods: { accounts: 'per-user', enrollmentSecretRequired: true } as {
+      accounts: string
+      enrollmentSecretRequired: boolean
+    } | null
   }
 }))
 
@@ -40,7 +45,8 @@ vi.mock('@/store', () => ({
       fetchMantaProfileAuthStatus: mocks.fetchAuthStatus,
       signOutCurrentMantaProfile: mocks.signOut,
       fetchMantaRelayHosts: mocks.fetchRelayHosts,
-      forgetMantaRelayHost: mocks.forgetRelayHost
+      forgetMantaRelayHost: mocks.forgetRelayHost,
+      fetchMantaRelaySignInMethods: mocks.fetchSignInMethods
     })
 }))
 
@@ -64,7 +70,8 @@ describe('MantaAccountSettingsPane', () => {
       mocks.fetchAuthStatus,
       mocks.signOut,
       mocks.fetchRelayHosts,
-      mocks.forgetRelayHost
+      mocks.forgetRelayHost,
+      mocks.fetchSignInMethods
     ]) {
       mock.mockReset()
     }
@@ -78,6 +85,7 @@ describe('MantaAccountSettingsPane', () => {
     mocks.state.mantaProfileConnecting = false
     mocks.state.mantaRelayHosts = []
     mocks.state.mantaRelayHostsState = 'ok'
+    mocks.state.mantaRelaySignInMethods = { accounts: 'per-user', enrollmentSecretRequired: true }
   })
 
   afterEach(cleanup)
@@ -135,13 +143,41 @@ describe('MantaAccountSettingsPane', () => {
     })
   })
 
-  it('still offers the enrolment-secret path for a local profile', async () => {
+  it('offers a plain sign-in and no form on a shared relay', async () => {
+    // The relay decides: there are no per-person credentials to ask for, so a
+    // password form would ask for something that does not exist.
     const user = userEvent.setup()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
+    mocks.state.mantaRelaySignInMethods = { accounts: 'shared', enrollmentSecretRequired: true }
     render(<MantaAccountSettingsPane />)
 
-    await user.click(screen.getByRole('button', { name: 'Use relay credential' }))
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
     expect(mocks.connect).toHaveBeenCalledWith()
+  })
+
+  it('hides the machine list on a shared relay', () => {
+    // The endpoint is absent by design there, and the section would report that
+    // as "this relay is too old to list machines" — which is not true.
+    mocks.state.mantaRelaySignInMethods = { accounts: 'shared', enrollmentSecretRequired: true }
+    mocks.state.mantaRelayHosts = [
+      { relayHostId: 'aaaaaaaaaaaaaaaa', displayName: 'Studio', online: true, isThisMachine: true }
+    ]
+    render(<MantaAccountSettingsPane />)
+
+    expect(screen.queryByText('Your machines')).not.toBeInTheDocument()
+    expect(screen.queryByText('Studio')).not.toBeInTheDocument()
+  })
+
+  it('lets a signed-in person switch to another account without signing out', async () => {
+    // Hiding the form until you signed out made the shared identity a one-way
+    // door: you clicked sign in, became someone else, and had no way back.
+    const user = userEvent.setup()
+    render(<MantaAccountSettingsPane />)
+
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Use another account' }))
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
   })
 
   it('loads account status when it is not hydrated yet', () => {
@@ -150,7 +186,7 @@ describe('MantaAccountSettingsPane', () => {
 
     expect(mocks.fetchAuthStatus).toHaveBeenCalledOnce()
     // No relay is known to be configured yet, so neither way in is offered.
-    expect(screen.getByRole('button', { name: 'Use relay credential' })).toBeDisabled()
+    // Nothing is known about the relay yet, so neither screen is drawn.
     expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
   })
 })

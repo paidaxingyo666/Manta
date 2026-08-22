@@ -50,6 +50,10 @@ export function testConfig(port: number, overrides: Partial<RelayConfig> = {}): 
     tlsCertPath: null,
     expectedClientId: null,
     enrollmentSecret: null,
+    // The shipped default: one identity, nothing to sign in to. Suites that
+    // are about accounts opt into 'per-user' explicitly, so the ones that are
+    // not keep exercising what most deployments actually run.
+    accountsMode: 'shared',
     registrationMode: 'open',
     user: TEST_USER,
     sessionTtlMs: 60_000,
@@ -103,6 +107,9 @@ export async function restartTestRelay(previous: TestRelay): Promise<TestRelay> 
   await relay.listen()
   return { ...previous, relay, stop: () => relay.shutdown('test') }
 }
+
+/** Shorthand for the suites whose whole subject is accounts. */
+export const PER_USER: Partial<RelayConfig> = { accountsMode: 'per-user' }
 
 export async function startTestRelay(
   overrides: (port: number) => Partial<RelayConfig> = () => ({})

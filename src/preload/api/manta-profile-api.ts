@@ -31,6 +31,7 @@ import type {
   ForgetMantaRelayHostResult,
   ListMantaRelayHostsResult
 } from '../../shared/manta-relay-hosts'
+import type { MantaRelaySignInMethods } from '../../shared/manta-relay-sign-in-methods'
 
 export type MantaProfileApi = {
   list: () => Promise<MantaProfileListResult>
@@ -49,6 +50,8 @@ export type MantaProfileApi = {
   connectCurrent: (
     args?: ConnectCurrentMantaProfileArgs
   ) => Promise<ConnectCurrentMantaProfileResult>
+  /** How the configured relay expects to be signed in to. */
+  relaySignInMethods: () => Promise<MantaRelaySignInMethods>
   listRelayHosts: () => Promise<ListMantaRelayHostsResult>
   forgetRelayHost: (args: ForgetMantaRelayHostArgs) => Promise<ForgetMantaRelayHostResult>
   refreshAuth: () => Promise<RefreshCurrentMantaProfileAuthResult>

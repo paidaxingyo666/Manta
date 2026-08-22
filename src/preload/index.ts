@@ -608,6 +608,7 @@ const api = {
     transferProject: (args) => ipcRenderer.invoke('mantaProfiles:transferProject', args),
     findProjectProfiles: (args) => ipcRenderer.invoke('mantaProfiles:findProjectProfiles', args),
     connectCurrent: (args) => ipcRenderer.invoke('mantaProfiles:connectCurrent', args),
+    relaySignInMethods: () => ipcRenderer.invoke('mantaRelay:signInMethods'),
     listRelayHosts: () => ipcRenderer.invoke('mantaRelay:listHosts'),
     forgetRelayHost: (args) => ipcRenderer.invoke('mantaRelay:forgetHost', args),
     refreshAuth: () => ipcRenderer.invoke('mantaProfiles:refreshAuth'),
