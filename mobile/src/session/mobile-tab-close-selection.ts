@@ -1,6 +1,6 @@
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
-export type BulkTabCloseMode = 'others' | 'left' | 'right'
+export type BulkTabCloseMode = 'others' | 'left'
 
 /** Long-press sheet entries, in display order. */
 export const bulkTabCloseActions = localizedConstant(
@@ -12,10 +12,6 @@ export const bulkTabCloseActions = localizedConstant(
     {
       mode: 'left',
       label: translate('m.mobile.tab.close.selection.fe28cadb0a', 'Close Tabs to the Left')
-    },
-    {
-      mode: 'right',
-      label: translate('m.mobile.tab.close.selection.417f514e07', 'Close Tabs to the Right')
     }
   ]
 )
@@ -28,7 +24,7 @@ type BulkClosableTab = {
 
 /**
  * Pick the tabs a long-press bulk close ("Close Other Tabs" / "Close Tabs to
- * the Left/Right") should target, in strip order relative to the pressed tab.
+ * the Left") should target, in strip order relative to the pressed tab.
  * Dirty documents are skipped — mobile has no save prompt on close, so bulk
  * closing must never silently discard unsaved edits.
  */
@@ -44,8 +40,6 @@ export function selectBulkCloseTabs<T extends BulkClosableTab>(
   const candidates =
     mode === 'others'
       ? tabs.filter((_, index) => index !== anchorIndex)
-      : mode === 'left'
-        ? tabs.slice(0, anchorIndex)
-        : tabs.slice(anchorIndex + 1)
+      : tabs.slice(0, anchorIndex)
   return candidates.filter((tab) => tab.isDirty !== true && tab.isPinned !== true)
 }
