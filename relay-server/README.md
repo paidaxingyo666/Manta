@@ -81,6 +81,11 @@ Settings → Advanced → Manta Cloud → **Self-hosted server** → **Configure
 | OAuth client ID | `manta-desktop` |
 | Enrolment secret | the value of `MANTA_RELAY_ENROLLMENT_SECRET` |
 
+Then, under the same pane, sign in: **Manta Account** → email and password, or
+**Create one on this relay**. Accounts live on your relay and nowhere else. The
+enrolment secret still works on its own — see "Accounts" below for when each is
+the right one.
+
 Include the port if the relay is not on 443 — the origin is signed into every
 host challenge byte for byte, so `https://host` and `https://host:9443` are
 different identities and a mismatch fails the proof with nothing useful on
@@ -114,6 +119,8 @@ endpoints.
 | `MANTA_RELAY_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`. |
 | `MANTA_RELAY_TLS_CERT_PATH` | — | Certificate to watch. Only useful where the proxy cannot renew on its own. |
 | `MANTA_RELAY_ORG_ID` | `` | Leave empty unless the desktop profile genuinely has an org — compared byte for byte in the proof. |
+| `MANTA_RELAY_ALLOW_REGISTRATION` | inherits the enrolment secret | `open`, `disabled`, or unset. See "Accounts". |
+| `MANTA_RELAY_MAX_HOSTS_PER_ACCOUNT` | `16` | Machines one account may claim. |
 | `MANTA_RELAY_MAX_DEVICES` | `16` | Phones per desktop. |
 | `MANTA_RELAY_MAX_SESSIONS` | `64` | Desktops on this cell. |
 | `MANTA_RELAY_MAX_CONNS_PER_HOST` | `8` | Concurrent phone connections per desktop. Cannot exceed 8 — see below. |
@@ -142,6 +149,59 @@ Rate limiting is only as good as the address it buckets on.
 
 Set it to the address of your proxy and nothing else. Startup warns when the
 origin is `https` and this is empty, which is almost always the mistake.
+
+## Accounts
+
+A relay serves accounts, not one hardcoded identity. Each account has its own
+identity triple, its own machines, and its own credentials — one person's
+desktops cannot see or take over another's on the same relay.
+
+**Signing in.** Settings → Manta Account, email and password. **Create one on
+this relay** registers a new account; whether that is allowed is
+`MANTA_RELAY_ALLOW_REGISTRATION`:
+
+| Value | Who may register |
+| --- | --- |
+| unset | anyone holding the enrolment secret — the default wherever one is configured |
+| `open` | anyone who can reach the origin |
+| `disabled` | nobody |
+
+`open` on a public origin also requires `MANTA_RELAY_TOKEN_SECRET`: an
+ephemeral one invalidates every account's tokens on each restart, and with
+signup open that is everybody's.
+
+**Your machines.** Every desktop signed in to an account claims a host id — a
+digest of its own key — the first time it asks for a relay token, and publishes
+its hostname. Settings → Manta Account then lists every machine on the account,
+which is online right now, and when each was last seen. Sign in to the same
+relay from a second computer and it appears in the list on the first.
+
+A host id belongs to exactly one account from the moment it is claimed. Another
+account asking for a token for it is refused with `403
+host_owned_by_another_account`, and so is a control leg presenting a token for
+it. Removing a machine from the list retires its record and everything paired to
+it; the id is then free to be claimed again.
+
+**Taking a machine over from the legacy account.** On a relay upgraded from
+before accounts, every host belongs to the environment identity — including
+yours. Signing in with an account of your own would otherwise leave the relay
+path dead with a 403 nobody sees, so the desktop hands the machine over
+automatically using the enrolment secret it already has. That is the only
+transfer the relay performs: a host is only ever moved *off* the legacy account,
+and only for a caller who already holds the deployment's secret. The secret is
+not a master key over other people's machines.
+
+**Upgrading a relay that predates accounts.** Nothing to do. On first start the
+environment identity (`MANTA_RELAY_USER_ID`, `MANTA_RELAY_PROFILE_ID`,
+`MANTA_RELAY_ORG_ID`) is adopted as a real account, every existing session and
+host record is adopted with it, and the enrolment-secret grant keeps working
+exactly as before. Those three values must not change afterwards: every paired
+desktop compares them byte for byte inside the host proof, and a change is an
+undiagnosable 4401.
+
+**State.** `auth-accounts.json` alongside `auth-sessions.json` and
+`cell-state.json` in `MANTA_RELAY_DATA_DIR`, written 0600 with the same
+fsync-and-rename discipline. Passwords are stored as scrypt hashes.
 
 ## Observability
 

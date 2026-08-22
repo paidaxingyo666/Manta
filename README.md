@@ -138,12 +138,30 @@ host challenge byte for byte, so `https://host` and `https://host:9443` are
 different identities and a mismatch fails the handshake.
 
 Applying signs the app out and relaunches it — a session issued by one
-deployment means nothing to another. No browser opens: with a secret configured
-the desktop exchanges it for a session directly.
+deployment means nothing to another.
 
 Repeat on each desktop. They share one enrolment secret.
 
-### 3. Pair the phone
+### 3. Sign in to your account
+
+Settings → **Manta Account** → email and password, or **Create one on this
+relay**. Accounts live on your relay and nowhere else; the relay is the only
+thing that ever sees the password.
+
+Signing in to the same account from a second computer puts both in one place:
+**Your machines** lists every desktop on the account, which is online now, and
+when each was last seen. That is also what keeps a shared relay honest — a host
+belongs to exactly one account from the moment it is claimed, and another
+account asking for a token for it is refused.
+
+Who may register is `MANTA_RELAY_ALLOW_REGISTRATION`; unset, it inherits the
+enrolment secret, which is what a relay on the open internet wants. Signing in
+with the enrolment secret alone still works and still lands on the account the
+environment identity was adopted into — upgrading a relay that predates
+accounts needs no configuration change, and a desktop that was paired under the
+old identity moves itself onto your new account the first time you sign in.
+
+### 4. Pair the phone
 
 Settings → Mobile on the desktop shows a QR code. Scan it from the app.
 
