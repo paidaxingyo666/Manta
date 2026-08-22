@@ -182,6 +182,16 @@ host_owned_by_another_account`, and so is a control leg presenting a token for
 it. Removing a machine from the list retires its record and everything paired to
 it; the id is then free to be claimed again.
 
+**Reaching one computer from another.** A runtime pairing code can carry a
+relay block as well as a LAN endpoint, which makes it work from any network. The
+cell has never known what kind of device is on the far end of a connection — it
+checks a credential and splices bytes — so a desktop uses the same leg a phone
+does, speaking mobile E2EE v2 because that is what the host requires over a
+relay. The scope in the pairing code decides which RPC surface the peer gets.
+
+Pairing is still an explicit act on the machine being reached: an account lists
+your machines, it does not authorize one to open a shell on another.
+
 **Taking a machine over from the legacy account.** On a relay upgraded from
 before accounts, every host belongs to the environment identity — including
 yours. Signing in with an account of your own would otherwise leave the relay
