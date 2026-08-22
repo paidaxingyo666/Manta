@@ -176,7 +176,7 @@ jobs:
           bundler-cache: true
           working-directory: mobile
 
-      - name: Wait for processing and distribute to peeps
+      - name: Wait for processing and distribute to the external testers
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -190,6 +190,6 @@ jobs:
           if ! bundle exec fastlane ios distribute_testflight \
             version:"$MOBILE_IOS_RELEASE_VERSION" \
             build_number:"$MOBILE_IOS_BUILD_NUMBER"; then
-            echo "::error::TestFlight $MOBILE_IOS_RELEASE_VERSION ($MOBILE_IOS_BUILD_NUMBER) was uploaded but not distributed to peeps. If App Store Connect is still processing it, rerun only this failed job after the build becomes Ready; otherwise inspect the Fastlane error above."
+            echo "::error::TestFlight $MOBILE_IOS_RELEASE_VERSION ($MOBILE_IOS_BUILD_NUMBER) was uploaded but not distributed to the external test group. If App Store Connect is still processing it, rerun only this failed job after the build becomes Ready; otherwise inspect the Fastlane error above."
             exit 1
           fi

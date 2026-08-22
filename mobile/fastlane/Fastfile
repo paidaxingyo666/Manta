@@ -29,7 +29,12 @@ WORKSPACE = File.join(MOBILE_ROOT, "ios", "Manta.xcworkspace")
 BUILD_OUTPUT_DIRECTORY = File.join(MOBILE_ROOT, "build")
 SCHEME = "Manta"
 BUNDLE_ID = "cn.sh.manta.mobile"
-TESTFLIGHT_GROUPS = ["peeps"].freeze
+# The external group in App Store Connect, matched by name. Testers see this
+# name in TestFlight, so it is in the language they read. It must exist on
+# the app before this lane runs, and an external group cannot be created
+# until a build has been uploaded — so the first release necessarily fails
+# here, after ios-build has already done its job.
+TESTFLIGHT_GROUPS = ["外部测试"].freeze
 DEFAULT_TESTFLIGHT_CHANGELOG = "Latest Manta Mobile updates and fixes.".freeze
 TESTFLIGHT_PROCESSING_TIMEOUT_SECONDS = 20 * 60
 
