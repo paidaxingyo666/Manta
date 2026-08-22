@@ -412,6 +412,10 @@
               }
             }
           }
+        },
+        "mantaRelayHosts": {
+          "forgotten": "Machine removed from relay",
+          "forgetFailed": "Could not remove that machine"
         }
       }
     },
@@ -1207,8 +1211,8 @@
         "88809e79db": "Failed to reopen pull request",
         "00f55cc17b": "Repository access is unavailable for this pull request.",
         "307c98e8e3": {
-          "24fdee": "Show {{value0}} more lines above",
-          "752457": "Show {{value0}} more lines below"
+          "752457": "Show {{value0}} more lines below",
+          "24fdee": "Show {{value0}} more lines above"
         }
       },
       "GitLabItemDialog": {
@@ -11208,7 +11212,27 @@
           "relayTitle": "Manta Relay",
           "relayDescription": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
           "skillsTitle": "Skill sharing",
-          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use."
+          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use.",
+          "useRelayCredential": "Use relay credential",
+          "signInTitle": "Sign in",
+          "signInFailed": "Could not reach the relay.",
+          "emailLabel": "Email",
+          "passwordLabel": "Password",
+          "displayNameLabel": "Display name",
+          "displayNameOptional": "Optional",
+          "createAccount": "Create account",
+          "haveAccount": "I have an account",
+          "needAccount": "Create one on this relay",
+          "emailPlaceholder": "you@example.com",
+          "errorInvalidCredentials": "That email and password did not match an account on this relay.",
+          "errorEmailTaken": "An account already uses that email on this relay. Sign in instead.",
+          "errorWeakPassword": "Choose a password of at least 8 characters.",
+          "errorInvalidEmail": "Enter a valid email address.",
+          "errorRegistrationDisabled": "This relay does not accept new accounts. Ask its operator to create one for you.",
+          "errorEnrollmentSecret": "This relay needs its enrolment secret to create an account. Set it in Settings → Advanced → Manta Cloud endpoints.",
+          "errorTooManyAccounts": "This relay has reached its account limit.",
+          "errorTooManyHosts": "This account already has as many machines as the relay allows.",
+          "errorRateLimited": "Too many attempts. Wait a moment and try again."
         },
         "automations": {
           "showButton": "Show Automations Button",
@@ -11333,6 +11357,21 @@
         },
         "shortcutDefinitionCatalog": {
           "missionControlConflict": "Blocked by Mission Control. Remap here or change it in System Settings."
+        },
+        "relayMachines": {
+          "unnamed": "Unnamed machine",
+          "online": "Online now",
+          "neverSeen": "Not connected yet",
+          "lastSeen": "Last seen {{when}}",
+          "unsupported": "This relay is too old to list machines. Update it to see every computer on your account.",
+          "signedOut": "Sign in to see the machines on your account.",
+          "unconfigured": "No relay is configured, so there are no machines to list.",
+          "failed": "Could not read the machine list from the relay.",
+          "empty": "No machines yet. Sign in to the same relay on another computer and it will appear here.",
+          "title": "Your machines",
+          "refresh": "Refresh",
+          "thisMachine": "This machine",
+          "onlineBadge": "Online"
         }
       },
       "right": {

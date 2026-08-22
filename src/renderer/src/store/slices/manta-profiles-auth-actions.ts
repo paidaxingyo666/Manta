@@ -1,4 +1,5 @@
 import type { StateCreator } from 'zustand'
+import type { ConnectCurrentMantaProfileArgs } from '../../../../shared/manta-cloud-credentials'
 import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
 import type {
@@ -15,7 +16,9 @@ export type MantaProfilesAuthActions = {
     orgId?: string
     name?: string
   }) => Promise<CreateCloudLinkedMantaProfileResult | null>
-  connectCurrentMantaProfile: () => Promise<ConnectCurrentMantaProfileResult | null>
+  connectCurrentMantaProfile: (
+    args?: ConnectCurrentMantaProfileArgs
+  ) => Promise<ConnectCurrentMantaProfileResult | null>
   refreshCurrentMantaProfileAuth: () => Promise<RefreshCurrentMantaProfileAuthResult | null>
   signOutCurrentMantaProfile: () => Promise<SignOutCurrentMantaProfileResult | null>
   selectMantaProfileOrg: (orgId: string) => Promise<SelectMantaProfileOrgResult | null>
@@ -72,13 +75,13 @@ export const createMantaProfilesAuthActions: StateCreator<
     }
   },
 
-  connectCurrentMantaProfile: async () => {
+  connectCurrentMantaProfile: async (args) => {
     if (get().mantaProfileConnecting) {
       return null
     }
     set({ mantaProfileConnecting: true })
     try {
-      const result = await window.api.mantaProfiles.connectCurrent()
+      const result = await window.api.mantaProfiles.connectCurrent(args)
       set({
         mantaProfileConnecting: false,
         mantaProfileAuthStatus: result.auth,
@@ -106,6 +109,9 @@ export const createMantaProfilesAuthActions: StateCreator<
         )
       } else if (result.status === 'connected') {
         toast.success(translate('auto.store.slices.manta.profiles.9fcb07a796', 'Profile connected'))
+        // The machine list is account-scoped, so the previous account's rows
+        // must not survive a sign-in as somebody else.
+        void get().fetchMantaRelayHosts()
       }
       return result
     } catch (err) {
@@ -165,7 +171,11 @@ export const createMantaProfilesAuthActions: StateCreator<
       set({
         activeMantaProfileId: result.activeProfileId,
         mantaProfiles: result.profiles,
-        mantaProfileAuthStatus: result.auth
+        mantaProfileAuthStatus: result.auth,
+        // The machine list belongs to the account that just left; leaving the
+        // rows behind would show them to whoever signs in next.
+        mantaRelayHosts: [],
+        mantaRelayHostsState: null
       })
       toast.success(
         translate('auto.store.slices.manta.profiles.a37b5e6d37', 'Signed out of profile')

@@ -105,7 +105,7 @@ describe('registerMantaProfileHandlers auth channels', () => {
     await expect(
       Promise.resolve(handlers.get('mantaProfiles:signOutCurrent')?.(null))
     ).resolves.toBe(signOutResult)
-    expect(connectCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data')
+    expect(connectCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data', undefined)
     expect(signOutCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data')
   })
 

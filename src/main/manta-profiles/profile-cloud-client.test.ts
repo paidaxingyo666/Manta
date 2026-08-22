@@ -23,6 +23,12 @@ const config: MantaCloudAuthConfig = {
   orgEndpoint: 'https://manta-cloud.example/v1/desktop/auth/org',
   logoutEndpoint: 'https://manta-cloud.example/v1/desktop/auth/logout',
   relayTokenEndpoint: 'https://manta-cloud.example/v1/desktop/auth/relay-token',
+  registerEndpoint: 'https://manta-cloud.example/v1/desktop/auth/register',
+  loginEndpoint: 'https://manta-cloud.example/v1/desktop/auth/login',
+  hostsEndpoint: 'https://manta-cloud.example/v1/desktop/auth/hosts',
+  hostDescribeEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-describe',
+  hostForgetEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-forget',
+  hostClaimEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-claim',
   relayDirectorUrl: 'https://relay.example',
   clientId: 'desktop-client',
   scope: 'openid profile email offline_access'

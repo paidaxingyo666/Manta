@@ -9,16 +9,11 @@ import type {
   FindMantaProfileProjectsByPathArgs,
   FindMantaProfileProjectsByPathResult,
   MantaProfileListResult,
-  RefreshCurrentMantaProfileAuthResult,
   SwitchMantaProfileArgs,
   SwitchMantaProfileResult,
   TransferMantaProfileProjectArgs,
   TransferMantaProfileProjectResult,
-  ConnectCurrentMantaProfileResult,
-  MantaProfileAuthStatus,
-  SelectMantaProfileOrgArgs,
-  SelectMantaProfileOrgResult,
-  SignOutCurrentMantaProfileResult
+  MantaProfileAuthStatus
 } from '../../shared/manta-profiles'
 import {
   createLocalMantaProfile,
@@ -38,12 +33,10 @@ import { flushActiveProfileBeforeFileMutation } from '../manta-profiles/profile-
 import { normalizeExecutionHostId } from '../../shared/execution-host'
 import {
   createCloudLinkedMantaProfile,
-  connectCurrentMantaProfile,
-  getCurrentMantaProfileAuthStatus,
-  refreshCurrentMantaProfileAuth,
-  selectCurrentMantaProfileOrg,
-  signOutCurrentMantaProfile
+  getCurrentMantaProfileAuthStatus
 } from '../manta-profiles/profile-cloud-service'
+import { registerMantaProfileSessionHandlers } from './manta-profile-session-handlers'
+import { registerMantaRelayHostHandlers } from './manta-relay-hosts-handlers'
 import { registerMantaProfileOrgMemberHandlers } from './manta-profile-org-members-handlers'
 import { registerMantaCloudEndpointHandler } from './manta-cloud-endpoints-handler'
 
@@ -117,17 +110,6 @@ function findProjectsByPathArgsFromUnknown(args: unknown): FindMantaProfileProje
         ? candidate.excludeProfileId.trim() || null
         : null
   }
-}
-
-function orgIdFromUnknown(args: unknown): string {
-  if (!args || typeof args !== 'object') {
-    throw new Error('invalid_manta_profile_org_selection')
-  }
-  const orgId = (args as SelectMantaProfileOrgArgs).orgId?.trim()
-  if (!orgId) {
-    throw new Error('invalid_manta_profile_org_selection')
-  }
-  return orgId
 }
 
 function createCloudLinkedProfileArgsFromUnknown(args: unknown): CreateCloudLinkedMantaProfileArgs {
@@ -264,17 +246,6 @@ export function registerMantaProfileHandlers(
   )
 
   ipcMain.handle(
-    'mantaProfiles:connectCurrent',
-    async (): Promise<ConnectCurrentMantaProfileResult> => {
-      const result = await connectCurrentMantaProfile(getProfileUserDataPath())
-      if (result.status === 'connected') {
-        options.onAuthMutation?.()
-      }
-      return result
-    }
-  )
-
-  ipcMain.handle(
     'mantaProfiles:createCloudLinked',
     async (
       _event,
@@ -292,39 +263,8 @@ export function registerMantaProfileHandlers(
     }
   )
 
-  ipcMain.handle(
-    'mantaProfiles:refreshAuth',
-    async (): Promise<RefreshCurrentMantaProfileAuthResult> => {
-      const result = await refreshCurrentMantaProfileAuth(getProfileUserDataPath())
-      if (result.status === 'refreshed') {
-        options.onAuthMutation?.()
-      }
-      return result
-    }
-  )
-
-  ipcMain.handle(
-    'mantaProfiles:signOutCurrent',
-    async (): Promise<SignOutCurrentMantaProfileResult> => {
-      options.onBeforeSignOut?.()
-      return signOutCurrentMantaProfile(getProfileUserDataPath())
-    }
-  )
-
-  ipcMain.handle(
-    'mantaProfiles:selectOrg',
-    async (_event, rawArgs: SelectMantaProfileOrgArgs): Promise<SelectMantaProfileOrgResult> => {
-      const result = await selectCurrentMantaProfileOrg(
-        getProfileUserDataPath(),
-        orgIdFromUnknown(rawArgs)
-      )
-      if (result.status === 'selected') {
-        options.onAuthMutation?.()
-      }
-      return result
-    }
-  )
-
   registerMantaCloudEndpointHandler(store, options)
+  registerMantaProfileSessionHandlers(options)
+  registerMantaRelayHostHandlers()
   registerMantaProfileOrgMemberHandlers()
 }

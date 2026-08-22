@@ -24,7 +24,13 @@ import type {
   TransferMantaProfileProjectArgs,
   TransferMantaProfileProjectResult
 } from '../../shared/manta-profiles'
+import type { ConnectCurrentMantaProfileArgs } from '../../shared/manta-cloud-credentials'
 import type { MantaCloudEndpointOverrides } from '../../shared/manta-cloud-endpoints'
+import type {
+  ForgetMantaRelayHostArgs,
+  ForgetMantaRelayHostResult,
+  ListMantaRelayHostsResult
+} from '../../shared/manta-relay-hosts'
 
 export type MantaProfileApi = {
   list: () => Promise<MantaProfileListResult>
@@ -40,7 +46,11 @@ export type MantaProfileApi = {
   findProjectProfiles: (
     args: FindMantaProfileProjectsByPathArgs
   ) => Promise<FindMantaProfileProjectsByPathResult>
-  connectCurrent: () => Promise<ConnectCurrentMantaProfileResult>
+  connectCurrent: (
+    args?: ConnectCurrentMantaProfileArgs
+  ) => Promise<ConnectCurrentMantaProfileResult>
+  listRelayHosts: () => Promise<ListMantaRelayHostsResult>
+  forgetRelayHost: (args: ForgetMantaRelayHostArgs) => Promise<ForgetMantaRelayHostResult>
   refreshAuth: () => Promise<RefreshCurrentMantaProfileAuthResult>
   signOutCurrent: () => Promise<SignOutCurrentMantaProfileResult>
   applyCloudEndpoints: (

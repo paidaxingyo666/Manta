@@ -142,7 +142,10 @@ function normalizeCloudSummary(value: unknown): MantaProfileCloudSummary {
   }
 }
 
-function normalizeSessionResponse(value: unknown): MantaCloudSessionExchangeResponse {
+/** Exported so the account endpoints share one definition of a valid session. */
+export function normalizeMantaCloudSessionResponse(
+  value: unknown
+): MantaCloudSessionExchangeResponse {
   if (!value || typeof value !== 'object') {
     throw new Error('invalid_manta_cloud_session')
   }
@@ -184,7 +187,7 @@ export async function exchangeMantaCloudAuthCode(
   config: MantaCloudAuthConfig,
   args: ExchangeCodeArgs
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(config.sessionEndpoint, {
       code: args.code,
       codeVerifier: args.codeVerifier,
@@ -216,7 +219,7 @@ export async function grantMantaCloudSessionDirectly(
   if (!config.enrollmentSecret) {
     throw new Error('manta_cloud_direct_grant_unavailable')
   }
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(config.sessionEndpoint, {
       enrollmentSecret: config.enrollmentSecret,
       localProfileId
@@ -244,7 +247,7 @@ export async function refreshMantaCloudSession(
   config: MantaCloudAuthConfig,
   session: MantaCloudSession
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(config.refreshEndpoint, {
       refreshToken: session.refreshToken
     })
@@ -256,7 +259,7 @@ export async function createMantaCloudProfile(
   session: MantaCloudSession,
   args: CreateCloudProfileArgs
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(
       config.profileEndpoint,
       {

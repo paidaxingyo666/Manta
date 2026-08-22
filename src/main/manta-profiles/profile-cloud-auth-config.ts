@@ -26,6 +26,13 @@ export type MantaCloudAuthConfig = {
   profileEndpoint: string
   orgEndpoint: string
   logoutEndpoint: string
+  /** Account endpoints; a relay that predates accounts answers 404 on these. */
+  registerEndpoint: string
+  loginEndpoint: string
+  hostsEndpoint: string
+  hostDescribeEndpoint: string
+  hostForgetEndpoint: string
+  hostClaimEndpoint: string
   relayTokenEndpoint: string
   relayDirectorUrl: string
   clientId: string
@@ -139,6 +146,14 @@ export function getMantaCloudAuthConfig(
       logoutEndpoint:
         cleanEndpointUrl(env.MANTA_CLOUD_LOGOUT_URL) ??
         endpoint(apiBaseUrl, '/v1/desktop/auth/logout'),
+      // No env overrides: these only exist on a Manta relay, so there is
+      // nothing to point them at independently of the API base.
+      registerEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/register'),
+      loginEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/login'),
+      hostsEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/hosts'),
+      hostDescribeEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-describe'),
+      hostForgetEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-forget'),
+      hostClaimEndpoint: endpoint(apiBaseUrl, '/v1/desktop/auth/host-claim'),
       relayTokenEndpoint:
         cleanEndpointUrl(env.MANTA_CLOUD_RELAY_TOKEN_URL) ??
         endpoint(apiBaseUrl, '/v1/desktop/auth/relay-token'),

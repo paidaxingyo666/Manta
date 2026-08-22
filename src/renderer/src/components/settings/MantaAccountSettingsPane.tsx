@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import { MantaProfileSignOutConfirmDialog } from '../manta-profiles/MantaProfileSignOutConfirmDialog'
+import { MantaAccountSignInForm } from './MantaAccountSignInForm'
+import { MantaRelayMachinesSection } from './MantaRelayMachinesSection'
 
 function accountStatusCopy(
   state: 'local' | 'unconfigured' | 'connected' | 'reconnect-required' | undefined,
@@ -123,18 +125,31 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
           ) : (
             <Button
               type="button"
+              variant="outline"
               size="sm"
               disabled={!canConnect || connecting}
               onClick={() => void connect()}
             >
               {connecting
                 ? translate('auto.components.settings.mantaAccount.signingIn', 'Signing in…')
-                : authStatus?.state === 'reconnect-required'
-                  ? translate('auto.components.settings.mantaAccount.signInAgain', 'Sign in again')
-                  : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
+                : translate(
+                    'auto.components.settings.mantaAccount.useRelayCredential',
+                    'Use relay credential'
+                  )}
             </Button>
           )}
         </div>
+
+        {canConnect && !connected ? (
+          <div className="space-y-3 border-t border-border/60 pt-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+              {translate('auto.components.settings.mantaAccount.signInTitle', 'Sign in')}
+            </p>
+            <MantaAccountSignInForm />
+          </div>
+        ) : null}
+
+        {connected ? <MantaRelayMachinesSection /> : null}
 
         <div className="space-y-4 border-t border-border/60 pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">

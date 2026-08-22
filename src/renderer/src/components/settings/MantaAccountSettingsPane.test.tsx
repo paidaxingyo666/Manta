@@ -10,18 +10,26 @@ const mocks = vi.hoisted(() => ({
   connect: vi.fn(),
   fetchAuthStatus: vi.fn(),
   signOut: vi.fn(),
+  fetchRelayHosts: vi.fn(),
+  forgetRelayHost: vi.fn(),
   state: {
     mantaProfileAuthStatus: {
       configured: true,
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
     } as Record<string, unknown> | null,
-    mantaProfileConnecting: false
+    mantaProfileConnecting: false,
+    mantaRelayHosts: [] as Record<string, unknown>[],
+    mantaRelayHostsLoading: false,
+    mantaRelayHostsState: 'ok' as string | null
   }
 }))
 
 vi.mock('@/i18n/i18n', () => ({
-  translate: (_key: string, fallback: string) => fallback
+  translate: (_key: string, fallback: string, options?: Record<string, unknown>) =>
+    options
+      ? fallback.replace(/\{\{(\w+)\}\}/g, (_match, name: string) => String(options[name] ?? ''))
+      : fallback
 }))
 
 vi.mock('@/store', () => ({
@@ -30,7 +38,9 @@ vi.mock('@/store', () => ({
       ...mocks.state,
       connectCurrentMantaProfile: mocks.connect,
       fetchMantaProfileAuthStatus: mocks.fetchAuthStatus,
-      signOutCurrentMantaProfile: mocks.signOut
+      signOutCurrentMantaProfile: mocks.signOut,
+      fetchMantaRelayHosts: mocks.fetchRelayHosts,
+      forgetMantaRelayHost: mocks.forgetRelayHost
     })
 }))
 
@@ -49,16 +59,25 @@ import { MantaAccountSettingsPane } from './MantaAccountSettingsPane'
 
 describe('MantaAccountSettingsPane', () => {
   beforeEach(() => {
-    mocks.connect.mockReset()
-    mocks.fetchAuthStatus.mockReset()
-    mocks.signOut.mockReset()
+    for (const mock of [
+      mocks.connect,
+      mocks.fetchAuthStatus,
+      mocks.signOut,
+      mocks.fetchRelayHosts,
+      mocks.forgetRelayHost
+    ]) {
+      mock.mockReset()
+    }
     mocks.signOut.mockResolvedValue({ status: 'signed-out' })
+    mocks.connect.mockResolvedValue({ status: 'connected' })
     mocks.state.mantaProfileAuthStatus = {
       configured: true,
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
     }
     mocks.state.mantaProfileConnecting = false
+    mocks.state.mantaRelayHosts = []
+    mocks.state.mantaRelayHostsState = 'ok'
   })
 
   afterEach(cleanup)
@@ -77,7 +96,24 @@ describe('MantaAccountSettingsPane', () => {
     expect(mocks.signOut).toHaveBeenCalledOnce()
   })
 
-  it('offers sign in for a local profile', async () => {
+  it('lists the machines on the account once connected', () => {
+    mocks.state.mantaRelayHosts = [
+      { relayHostId: 'aaaaaaaaaaaaaaaa', displayName: 'Studio', online: true, isThisMachine: true },
+      {
+        relayHostId: 'bbbbbbbbbbbbbbbb',
+        displayName: 'Laptop',
+        online: false,
+        isThisMachine: false
+      }
+    ]
+    render(<MantaAccountSettingsPane />)
+
+    expect(screen.getByText('Studio')).toBeInTheDocument()
+    expect(screen.getByText('Laptop')).toBeInTheDocument()
+    expect(screen.getByText('This machine')).toBeInTheDocument()
+  })
+
+  it('signs in with an email and password against the configured relay', async () => {
     const user = userEvent.setup()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
     render(<MantaAccountSettingsPane />)
@@ -87,8 +123,25 @@ describe('MantaAccountSettingsPane', () => {
         'Sign in to extend Manta with cloud features, including Artifacts and Manta Relay.'
       )
     ).toBeInTheDocument()
+    // Nothing typed yet: submitting an empty form would post a blank password.
+    expect(screen.getByRole('button', { name: 'Sign in to Manta' })).toBeDisabled()
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com')
+    await user.type(screen.getByLabelText('Password'), 'correct-horse')
     await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
-    expect(mocks.connect).toHaveBeenCalledOnce()
+
+    expect(mocks.connect).toHaveBeenCalledWith({
+      credentials: { email: 'ada@example.com', password: 'correct-horse', mode: 'sign-in' }
+    })
+  })
+
+  it('still offers the enrolment-secret path for a local profile', async () => {
+    const user = userEvent.setup()
+    mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
+    render(<MantaAccountSettingsPane />)
+
+    await user.click(screen.getByRole('button', { name: 'Use relay credential' }))
+    expect(mocks.connect).toHaveBeenCalledWith()
   })
 
   it('loads account status when it is not hydrated yet', () => {
@@ -96,6 +149,8 @@ describe('MantaAccountSettingsPane', () => {
     render(<MantaAccountSettingsPane />)
 
     expect(mocks.fetchAuthStatus).toHaveBeenCalledOnce()
-    expect(screen.getByRole('button', { name: 'Sign in to Manta' })).toBeDisabled()
+    // No relay is known to be configured yet, so neither way in is offered.
+    expect(screen.getByRole('button', { name: 'Use relay credential' })).toBeDisabled()
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
   })
 })

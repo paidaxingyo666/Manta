@@ -310,6 +310,10 @@
             "f518e89aa5": "该项目已存在于那个配置文件中",
             "f03ae7f27b": "转移项目失败"
           }
+        },
+        "mantaRelayHosts": {
+          "forgotten": "已从中继移除该设备",
+          "forgetFailed": "无法移除该设备"
         }
       }
     },
@@ -10217,6 +10221,43 @@
         },
         "MantaCloudEndpointsSection": {
           "enrollmentSaved": "已保存 —— 输入可替换"
+        },
+        "mantaAccount": {
+          "useRelayCredential": "使用中继凭据",
+          "signInTitle": "登录",
+          "signInFailed": "无法连接到中继。",
+          "emailLabel": "邮箱",
+          "passwordLabel": "密码",
+          "displayNameLabel": "显示名称",
+          "displayNameOptional": "可选",
+          "createAccount": "创建账号",
+          "haveAccount": "我已有账号",
+          "needAccount": "在此中继创建账号",
+          "emailPlaceholder": "you@example.com",
+          "errorInvalidCredentials": "该中继上没有匹配此邮箱和密码的账号。",
+          "errorEmailTaken": "该中继上已有账号使用此邮箱，请直接登录。",
+          "errorWeakPassword": "密码至少需要 8 个字符。",
+          "errorInvalidEmail": "请输入有效的邮箱地址。",
+          "errorRegistrationDisabled": "该中继不接受新账号注册，请联系运维人员为你创建。",
+          "errorEnrollmentSecret": "在该中继创建账号需要注册密钥。请在 设置 → 高级 → Manta 云端点 中填写。",
+          "errorTooManyAccounts": "该中继的账号数量已达上限。",
+          "errorTooManyHosts": "此账号的设备数量已达中继允许的上限。",
+          "errorRateLimited": "尝试次数过多，请稍后再试。"
+        },
+        "relayMachines": {
+          "unnamed": "未命名设备",
+          "online": "当前在线",
+          "neverSeen": "尚未连接",
+          "lastSeen": "最后在线 {{when}}",
+          "unsupported": "该中继版本过旧，无法列出设备。升级后即可看到账号下的所有电脑。",
+          "signedOut": "登录后可查看账号下的设备。",
+          "unconfigured": "尚未配置中继，因此没有可列出的设备。",
+          "failed": "无法从中继读取设备列表。",
+          "empty": "暂无设备。在另一台电脑上登录同一个中继，它就会出现在这里。",
+          "title": "我的设备",
+          "refresh": "刷新",
+          "thisMachine": "本机",
+          "onlineBadge": "在线"
         }
       },
       "right": {

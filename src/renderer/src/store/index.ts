@@ -41,6 +41,7 @@ import { createCommitMessageGenerationSlice } from './slices/commit-message-gene
 import { createPinnedTabCloseConfirmSlice } from './slices/pinned-tab-close-confirm'
 import { createRecentlyClosedTabsSlice } from './slices/recently-closed-tabs'
 import { createMantaProfilesSlice } from './slices/manta-profiles'
+import { createMantaRelayHostsSlice } from './slices/manta-relay-hosts'
 import { createNewIssueDraftSlice } from './slices/new-issue-draft'
 import { createTaskCreationDraftsSlice } from './slices/task-creation-drafts'
 import { createRemoteServerUpdatesSlice } from './slices/remote-server-updates'
@@ -101,6 +102,7 @@ export const useAppStore = create<AppState>()((...a) => {
     ...createPinnedTabCloseConfirmSlice(...a),
     ...createRecentlyClosedTabsSlice(...a),
     ...createMantaProfilesSlice(...a),
+    ...createMantaRelayHostsSlice(...a),
     ...createNewIssueDraftSlice(...a),
     ...createTaskCreationDraftsSlice(...a),
     ...createRemoteServerUpdatesSlice(...a),

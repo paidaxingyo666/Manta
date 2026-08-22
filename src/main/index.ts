@@ -99,6 +99,11 @@ import { resolveAdvertisedPairingEndpoint } from './runtime/pairing-endpoint'
 import { ServeReadinessPublisher } from './server/serve-readiness'
 import { reserveServeStdoutForReadiness } from './server/serve-stdout-boundary'
 import { DesktopRelayService } from './runtime/relay/desktop-relay-service'
+import { deriveRelayHostId } from './runtime/relay/relay-http-client'
+import {
+  publishThisMachineToRelay,
+  setRelayHostIdentityReader
+} from './runtime/relay/relay-host-directory'
 import type { RelayBrokerStatus } from './runtime/relay/relay-session-broker'
 import { awaitRuntimeFileWatcherUnsubscribes } from './runtime/manta-runtime-files'
 import { clearRuntimeMetadataIfOwned } from './runtime/runtime-metadata'
@@ -1524,7 +1529,14 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
         desktopRelayService?.fenceAndCloseNow()
         await preserveAgentAuthBeforeRestart({ codexRuntimeHome, claudeRuntimeAuth, store })
       },
-      onMantaProfileAuthMutation: () => desktopRelayService?.authMutated(),
+      onMantaProfileAuthMutation: () => {
+        desktopRelayService?.authMutated()
+        // Signing in is when this machine can first claim its host id, and the
+        // startup attempt above ran while the profile was still signed out.
+        void publishThisMachineToRelay(getProfileUserDataPath(), app.getVersion()).catch(() => {
+          // Best effort: a relay without a directory simply leaves it out.
+        })
+      },
       onBeforeMantaProfileSignOut: () => desktopRelayService?.fenceAndCloseNow()
     },
     pluginService ?? undefined,
@@ -3264,6 +3276,17 @@ void app.whenReady().then(async () => {
         }
       })
       desktopRelayService = relayService
+      // The machine directory needs this id without opening a broker: a
+      // desktop with nothing paired never holds one, and that is exactly the
+      // machine the user is looking for from another computer.
+      setRelayHostIdentityReader(() => {
+        const keypair = runtimeRpc?.getE2EEKeypair()
+        return keypair ? deriveRelayHostId(keypair.publicKey) : null
+      })
+      void publishThisMachineToRelay(getProfileUserDataPath(), app.getVersion()).catch(() => {
+        // Best effort: a relay that predates accounts, or a signed-out
+        // profile, simply leaves this machine out of the list.
+      })
       runtimeRpc.setMobileRelayPairingProvider({
         createPairingRelay: (relayDeviceId) => relayService.createPairingRelay(relayDeviceId),
         onDeviceRevokeQueued: (item) => relayService.onDeviceRevokeQueued(item),

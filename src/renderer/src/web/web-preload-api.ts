@@ -673,6 +673,10 @@ function createWebPreloadApi(): Partial<PreloadApi> {
         status: 'unconfigured',
         auth: await webMantaProfileAuthStatus()
       }),
+      // The relay directory is desktop-only: a browser client has no host key,
+      // so it is never a machine on anyone's list.
+      listRelayHosts: async () => ({ status: 'unconfigured' }),
+      forgetRelayHost: async () => ({ status: 'unconfigured' }),
       refreshAuth: async () => ({
         status: 'unconfigured',
         auth: await webMantaProfileAuthStatus()
