@@ -376,8 +376,11 @@ registries because one build pushes to both:
 Set `RELAY_IMAGE` in `deploy/.env` and compose pulls instead of building:
 
 ```
-RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.1.0
 ```
+
+Accounts need 1.1.0 or newer; 1.0.0 predates them and answers 404 on every
+account endpoint. Building from source always matches the checkout.
 
 Pin a version rather than `:latest` — a relay that changes underneath a
 restart is a bad surprise. Pin the digest if you want the exact bytes:
@@ -395,7 +398,7 @@ Verify what you pulled:
 docker run --rm -p 8787:8787 \
   -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
   -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
-  paidaxingyo666/manta-relay:1.0.0
+  paidaxingyo666/manta-relay:1.1.0
 ```
 
 `curl localhost:8787/health` answers with the version, the commit it was built

@@ -10242,7 +10242,9 @@
           "errorEnrollmentSecret": "在该中继创建账号需要注册密钥。请在 设置 → 高级 → Manta 云端点 中填写。",
           "errorTooManyAccounts": "该中继的账号数量已达上限。",
           "errorTooManyHosts": "此账号的设备数量已达中继允许的上限。",
-          "errorRateLimited": "尝试次数过多，请稍后再试。"
+          "errorRateLimited": "尝试次数过多，请稍后再试。",
+          "errorRelayTooOldRegister": "该中继版本过旧，无法创建账号。请升级中继，或改用中继凭据连接。",
+          "errorRelayTooOldSignIn": "该中继版本过旧，不支持密码登录。请升级中继，或改用中继凭据连接。"
         },
         "relayMachines": {
           "unnamed": "未命名设备",

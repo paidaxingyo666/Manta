@@ -49,6 +49,16 @@ export function signInFailureMessage(errorCode: string | undefined, fallback: st
         'auto.components.settings.mantaAccount.errorTooManyHosts',
         'This account already has as many machines as the relay allows.'
       )
+    case 'relay_too_old_to_register':
+      return translate(
+        'auto.components.settings.mantaAccount.errorRelayTooOldRegister',
+        'This relay is too old to create accounts. Update it, or connect with its relay credential instead.'
+      )
+    case 'relay_too_old_to_sign_in':
+      return translate(
+        'auto.components.settings.mantaAccount.errorRelayTooOldSignIn',
+        'This relay is too old for password sign-in. Update it, or connect with its relay credential instead.'
+      )
     case 'rate_limited':
       return translate(
         'auto.components.settings.mantaAccount.errorRateLimited',

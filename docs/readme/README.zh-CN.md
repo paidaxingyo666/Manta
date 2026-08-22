@@ -73,6 +73,10 @@ docker compose up -d
 | `MANTA_RELAY_ENROLLMENT_SECRET` | 桌面端注册时出示的密钥；不设则任何能访问到的人都能注册 |
 | `MANTA_RELAY_TOKEN_SECRET` | 签发中继令牌；留空则每次重启都会让已签发的令牌失效 |
 
+账号相关的两个可选项：`MANTA_RELAY_ALLOW_REGISTRATION`（谁可以注册：不设=沿用
+注册密钥、`open`、`disabled`）和 `MANTA_RELAY_MAX_HOSTS_PER_ACCOUNT`（每个账号
+最多几台设备，默认 16）。
+
 两个密钥都可用：`openssl rand -base64 32`。
 
 Caddy 终止 TLS 并转发给中继，中继本身不对主机暴露端口。中继容器以非特权、
@@ -84,14 +88,17 @@ Caddy 终止 TLS 并转发给中继，中继本身不对主机暴露端口。中
 
 ```bash
 # Docker Hub
-RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.1.0
 
 # 阿里云（上海）—— 同一个镜像，一次构建同时推送两处，digest 一致
-RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.0.0
+RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.1.0
 ```
 
 两处都含 `linux/amd64` 与 `linux/arm64`，`docker pull` 会自动选对架构。请固定版本号
 而不是用 `:latest` —— 中继在重启后悄悄换了版本不是好事。
+
+**账号功能需要 1.1.0 或更新的镜像。** 1.0.0 早于账号层，对所有账号端点都返回 404，
+登录和设备列表在它上面根本不存在。从源码构建（默认行为）永远与当前检出一致。
 
 如果你跑的是未发布的提交，或者不愿意用别人构建的二进制，从源码构建仍然是对的选择。
 
@@ -101,10 +108,10 @@ RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-rel
 docker run --rm -p 8787:8787 \
   -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
   -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
-  paidaxingyo666/manta-relay:1.0.0
+  paidaxingyo666/manta-relay:1.1.0
 
 curl localhost:8787/health
-# {"ok":true,"version":"1.0.0","revision":"8dbee33…","builtAt":"2026-08-21T14:00:04Z"}
+# {"ok":true,"version":"1.1.0","revision":"a1b2c3d…","builtAt":"2026-08-21T14:00:04Z"}
 ```
 
 这只是冒烟测试，不是部署 —— 没有注册密钥、没有 TLS，中继会拒绝任何注册请求。
@@ -124,12 +131,25 @@ curl localhost:8787/health
 若中继不在 443 端口，必须带上端口号。该来源会逐字节参与主机质询的签名，
 `https://host` 与 `https://host:9443` 是两个不同身份，不一致会导致握手失败。
 
-应用后会退出登录并重启 —— 一个部署签发的会话对另一个部署没有意义。不会打开
-浏览器：配置了密钥后，桌面端直接用它换取会话。
+应用后会退出登录并重启 —— 一个部署签发的会话对另一个部署没有意义。
 
 每台桌面端重复一次，它们共用同一个注册密钥。
 
-### 3. 配对手机
+### 3. 登录你的账号
+
+设置 → **Manta 账户** → 填邮箱和密码，或点 **在此中继创建账号**。账号只存在于
+你自己的中继上，密码也只有中继见得到。
+
+在第二台电脑上登录同一个账号，两台就归到一起了：**我的设备** 会列出该账号下的
+每台电脑、谁当前在线、各自最后一次在线是什么时候。这也是共享中继能保持诚实的
+原因 —— 一台主机从被认领的那一刻起就只属于一个账号，别的账号来要 token 会被拒。
+
+谁可以注册由 `MANTA_RELAY_ALLOW_REGISTRATION` 决定；不设时沿用注册密钥作门槛，
+这正是暴露在公网的中继所需要的。只用注册密钥登录仍然可用，并且落在环境身份被
+收编成的那个账号上 —— 从更早版本升级上来的中继不需要改任何配置，原先用旧身份
+配对过的桌面端会在你首次登录时自动转到你的新账号名下。
+
+### 4. 配对手机
 
 桌面端 设置 → 移动端 会显示二维码，用手机 App 扫描即可。
 

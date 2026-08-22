@@ -116,5 +116,20 @@ describe('relay account credentials', () => {
     }).catch((caught: unknown) => caught)
     expect(error).toBeInstanceOf(MantaCloudCredentialError)
     expect((error as Error).message).toContain('too old')
+    // A 404 carries no discriminator of its own, so one is synthesised — this
+    // is the first thing anyone on an older relay hits, and the renderer needs
+    // a code to translate it by.
+    expect(error).toMatchObject({ errorCode: 'relay_too_old_to_sign_in' })
+  })
+
+  it('tells creating an account apart from signing in on an old relay', async () => {
+    refuse(404)
+    await expect(
+      exchangeMantaCloudCredentials(config, {
+        email: 'ada@example.com',
+        password: 'correct-horse',
+        mode: 'register'
+      })
+    ).rejects.toMatchObject({ errorCode: 'relay_too_old_to_register' })
   })
 })

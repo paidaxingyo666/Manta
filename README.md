@@ -93,15 +93,18 @@ host may not have. To pull a published image instead, set `RELAY_IMAGE` in
 
 ```bash
 # Docker Hub
-RELAY_IMAGE=paidaxingyo666/manta-relay:1.0.0
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.1.0
 
 # Aliyun (Shanghai) — same image; one build pushes to both, so the digest matches
-RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.0.0
+RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.1.0
 ```
 
 Both carry `linux/amd64` and `linux/arm64`; `docker pull` picks the right one.
 Pin a version rather than `:latest` — a relay that changes underneath a restart
 is a bad surprise.
+**Accounts need 1.1.0 or newer.** The 1.0.0 image predates them: it answers 404
+on every account endpoint, so sign-in and the machine list are simply absent
+against it. Building from source — the default — always matches the checkout.
 
 Building from source stays the right answer when you are running an unreleased
 commit, or would rather not take a binary someone else built.
@@ -112,10 +115,10 @@ To check an image before deploying it:
 docker run --rm -p 8787:8787 \
   -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
   -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
-  paidaxingyo666/manta-relay:1.0.0
+  paidaxingyo666/manta-relay:1.1.0
 
 curl localhost:8787/health
-# {"ok":true,"version":"1.0.0","revision":"8dbee33…","builtAt":"2026-08-21T14:00:04Z"}
+# {"ok":true,"version":"1.1.0","revision":"a1b2c3d…","builtAt":"2026-08-21T14:00:04Z"}
 ```
 
 That is a smoke test, not a deployment — no enrolment secret and no TLS, so it

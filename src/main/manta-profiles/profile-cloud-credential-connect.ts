@@ -37,8 +37,6 @@ function describeFailure(
       break
   }
   if (error.statusCode === 404) {
-    // The endpoint only exists on a relay that has accounts. Saying so is more
-    // useful than a 404, because the fix is upgrading the relay.
     return mode === 'register'
       ? 'This relay is too old to create accounts. Update it, or connect with its enrolment secret instead.'
       : 'This relay is too old for password sign-in. Update it, or connect with its enrolment secret instead.'
@@ -76,7 +74,15 @@ export async function exchangeMantaCloudCredentials(
     if (error instanceof MantaCloudRequestError) {
       throw new MantaCloudCredentialError(
         describeFailure(error, credentials.mode),
-        error.errorCode,
+        // A 404 carries no discriminator of its own — the endpoint simply is
+        // not there — so it gets one here. It is the first thing anyone
+        // running an older relay will hit, and it deserves a sentence in the
+        // reader's own language rather than this one.
+        error.statusCode === 404
+          ? credentials.mode === 'register'
+            ? 'relay_too_old_to_register'
+            : 'relay_too_old_to_sign_in'
+          : error.errorCode,
         error.statusCode
       )
     }
