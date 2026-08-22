@@ -88,10 +88,10 @@ Caddy 终止 TLS 并转发给中继，中继本身不对主机暴露端口。中
 
 ```bash
 # Docker Hub
-RELAY_IMAGE=paidaxingyo666/manta-relay:1.1.0
+RELAY_IMAGE=paidaxingyo666/manta-relay:1.1.0-dev.1
 
 # 阿里云（上海）—— 同一个镜像，一次构建同时推送两处，digest 一致
-RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.1.0
+RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-relay/manta-relay:1.1.0-dev.1
 ```
 
 两处都含 `linux/amd64` 与 `linux/arm64`，`docker pull` 会自动选对架构。请固定版本号
@@ -99,6 +99,10 @@ RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-rel
 
 **账号功能需要 1.1.0 或更新的镜像。** 1.0.0 早于账号层，对所有账号端点都返回 404，
 登录和设备列表在它上面根本不存在。从源码构建（默认行为）永远与当前检出一致。
+
+`1.1.0-dev.1` 是预发布版本，上面的固定版本号写的就是它——因为目前发布出来的就是它。
+预发布不会带 `:latest`，所以不指定标签的 `docker pull` 仍然拿到上一个稳定版。等账号层
+在真实环境跑一段时间后，再用 `1.1.0` 取代它。
 
 如果你跑的是未发布的提交，或者不愿意用别人构建的二进制，从源码构建仍然是对的选择。
 
@@ -108,10 +112,10 @@ RELAY_IMAGE=crpi-b5cuqx1nkkudw599.cn-shanghai.personal.cr.aliyuncs.com/manta-rel
 docker run --rm -p 8787:8787 \
   -e MANTA_RELAY_PUBLIC_URL=http://127.0.0.1:8787 \
   -e MANTA_RELAY_TOKEN_SECRET="$(openssl rand -base64 32)" \
-  paidaxingyo666/manta-relay:1.1.0
+  paidaxingyo666/manta-relay:1.1.0-dev.1
 
 curl localhost:8787/health
-# {"ok":true,"version":"1.1.0","revision":"a1b2c3d…","builtAt":"2026-08-21T14:00:04Z"}
+# {"ok":true,"version":"1.1.0-dev.1","revision":"a1b2c3d…","builtAt":"2026-08-21T14:00:04Z"}
 ```
 
 这只是冒烟测试，不是部署 —— 没有注册密钥、没有 TLS，中继会拒绝任何注册请求。

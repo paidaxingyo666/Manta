@@ -1,6 +1,6 @@
 {
   "name": "manta-relay-server",
-  "version": "1.1.0",
+  "version": "1.1.0-dev.1",
   "private": true,
   "description": "Self-hostable Manta relay: auth token issuer, director, and relay cell.",
   "license": "MIT",
