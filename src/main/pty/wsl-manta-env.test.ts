@@ -7,7 +7,6 @@ import {
 } from '../../shared/setup-agent-sequencing'
 import {
   addMantaWslInteropEnv,
-  addWorktreeSetupWslInteropEnv,
   stampWslOrchestrationCompatibilityHost
 } from './wsl-manta-env'
 
@@ -249,18 +248,3 @@ describe('addMantaWslInteropEnv', () => {
   })
 })
 
-describe('addWorktreeSetupWslInteropEnv', () => {
-  it('registers only setup vars, sharing the /u-vs-/p flag logic with the PTY path (#9206)', () => {
-    const env: Record<string, string | undefined> = {
-      MANTA_ROOT_PATH: '/mnt/c/Users/jin/repo',
-      MANTA_WORKTREE_PATH: 'C:\\Users\\jin\\repo-worktrees\\fix-1',
-      MANTA_WORKSPACE_NAME: 'fix-1',
-      // Terminal-only vars must not leak into runHook's WSLENV.
-      MANTA_TERMINAL_HANDLE: 'term_wsl'
-    }
-
-    addWorktreeSetupWslInteropEnv(env)
-
-    expect(env.WSLENV).toBe('MANTA_ROOT_PATH/u:MANTA_WORKTREE_PATH/p:MANTA_WORKSPACE_NAME/u')
-  })
-})
