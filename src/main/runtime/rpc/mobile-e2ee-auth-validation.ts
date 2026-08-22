@@ -17,15 +17,22 @@ export function isValidMobileE2EEAuthVersion(
   if (!v2Session) {
     return auth.v === undefined && auth.transcriptHashB64 === undefined
   }
-  // Why: mobile v2 keeps an exact transcript-bound shape; runtime capabilities use legacy paired-runtime auth.
+  // Why: v2 keeps an exact transcript-bound shape, so unknown keys are refused
+  // rather than ignored. `clientCapabilities` is the one addition, for a
+  // desktop peer that reaches this host through a relay and has nowhere else to
+  // declare them — phones still send the original four and still validate.
+  const keys = Object.keys(auth).sort().join(',')
   return (
-    Object.keys(auth).sort().join(',') === 'deviceToken,transcriptHashB64,type,v' &&
+    (keys === 'deviceToken,transcriptHashB64,type,v' ||
+      keys === 'clientCapabilities,deviceToken,transcriptHashB64,type,v') &&
     auth.v === 2 &&
     auth.transcriptHashB64 === v2Session.transcriptHashB64
   )
 }
 
-export function authenticateMobileE2EE<TDevice extends { deviceToken: string }>(args: {
+export function authenticateMobileE2EE<
+  TDevice extends { deviceToken: string; scope?: 'mobile' | 'runtime' }
+>(args: {
   plaintext: string
   v2Session: DesktopMobileE2EEV2Session | null
   resolveDevice: (token: string) => TDevice | null
@@ -46,9 +53,18 @@ export function authenticateMobileE2EE<TDevice extends { deviceToken: string }>(
     return { ok: false, code: 'bad_auth' }
   }
   const device = args.resolveDevice(auth.deviceToken)
-  return device?.deviceToken === auth.deviceToken
-    ? { ok: true, device, auth }
-    : { ok: false, code: 'unauthorized' }
+  if (device?.deviceToken !== auth.deviceToken) {
+    return { ok: false, code: 'unauthorized' }
+  }
+  // Why here and not in the shape check: capabilities are allowed on a v2 frame
+  // only for a runtime-scope peer, which reaches this host through a relay and
+  // has nowhere else to declare them. A phone announcing the paired-runtime
+  // surface is the downgrade this rule exists to refuse, and scope is only
+  // known once the token resolves.
+  if (args.v2Session && auth.clientCapabilities !== undefined && device.scope !== 'runtime') {
+    return { ok: false, code: 'bad_auth' }
+  }
+  return { ok: true, device, auth }
 }
 
 export function decodeMobileE2EEPublicKey(value: string): Uint8Array | null {

@@ -43,8 +43,11 @@ export class RelayDemandLedger {
     const now = (this.options.now ?? Date.now)()
     return this.options.deviceRegistry.listDevices().some((device) => {
       const binding = device.relayBinding
+      // Why not mobile-only any more: a desktop peer reaches this host through
+      // the same cell, and without its binding counting as demand the host
+      // never holds a control leg for it — so it is offline to exactly the
+      // client that just paired with it.
       if (
-        device.scope !== 'mobile' ||
         !binding ||
         binding.ownerIdentityKey !== ownerIdentityKey ||
         binding.relayHostId !== this.options.relayHostId

@@ -41,6 +41,10 @@ import {
   type RelayDeviceBinding,
   type RelayRevokeOutboxItem
 } from './relay/relay-revoke-outbox'
+import {
+  buildRuntimeRelayPairingOffer,
+  type RuntimeRelayPairingOffer
+} from './runtime-relay-pairing-offer'
 import type {
   DeviceCredentialInstalled,
   PairingGetEndpointsParams,
@@ -591,6 +595,77 @@ export class MantaRuntimeRpcServer {
 
   getRelayRevokeOutbox(): RelayRevokeOutbox {
     return this.relayRevokeOutbox
+  }
+
+  /**
+   * A runtime pairing code that also works off the local network.
+   *
+   * The direct half is unchanged — the same LAN endpoint and credential — so a
+   * peer on the same network keeps using it. The relay block is what makes the
+   * code work from anywhere.
+   */
+  async createRuntimeRelayPairingOffer(args: {
+    address?: string | null
+    name?: string
+    rotate?: boolean
+    reach?: RuntimePairingReach
+  }): Promise<RuntimeRelayPairingOffer | PairingOfferUnavailable> {
+    const direct = this.createPairingOffer({ ...args, scope: 'runtime' })
+    if (!direct.available) {
+      return direct
+    }
+    const provider = this.mobileRelayPairingProvider
+    const publicKeyB64 = this.getE2EEPublicKey()
+    if (!provider || !publicKeyB64) {
+      return {
+        available: false,
+        reason: 'relay_mint_failed',
+        guidance:
+          'Manta Relay is not available on this computer. Sign in to a relay in Settings, then try again.',
+        relayFailure: {
+          code: 'relay_provider_unavailable',
+          stage: 'provider_missing',
+          message: 'Manta Relay is not available on this desktop'
+        }
+      }
+    }
+    return buildRuntimeRelayPairingOffer({
+      direct,
+      publicKeyB64,
+      deviceToken: (deviceId) => this.deviceRegistry?.getDevice(deviceId)?.token ?? null,
+      createPairingRelay: (deviceId) => provider.createPairingRelay(deviceId),
+      bindRelay: (deviceId, binding) => this.setRuntimeRelayBinding(deviceId, binding),
+      releaseRelay: (deviceId, binding) => this.queueOrRetainRelayDeviceRevoke(deviceId, binding)
+    })
+  }
+
+  /**
+   * Records the relay credential for a runtime-scope peer.
+   *
+   * Separate from the mobile one because that path also enforces the phone's
+   * local-only connection mode, which has no meaning for a desktop peer.
+   */
+  setRuntimeRelayBinding(deviceId: string, binding: RelayDeviceBinding): boolean {
+    const current = this.deviceRegistry?.getDevice(deviceId)
+    if (current?.scope !== 'runtime') {
+      return false
+    }
+    if (
+      current.relayBinding &&
+      (current.relayBinding.relayHostId !== binding.relayHostId ||
+        current.relayBinding.ownerIdentityKey !== binding.ownerIdentityKey)
+    ) {
+      // Switching the owning account or host must not strand the old cloud
+      // credential family, even if that account is offline.
+      if (!this.queueRelayDeviceRevoke(current.relayBinding)) {
+        return false
+      }
+    }
+    const updated = this.deviceRegistry?.setRelayBinding(deviceId, binding) ?? false
+    if (updated) {
+      this.mobileRelayPairingProvider?.onDemandStateChanged?.()
+    }
+    return updated
   }
 
   setMobileRelayBinding(deviceId: string, binding: RelayDeviceBinding): boolean {

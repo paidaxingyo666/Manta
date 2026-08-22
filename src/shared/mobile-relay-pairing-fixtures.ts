@@ -54,9 +54,12 @@ export function createMobileRelayPairingFixtures(now: number): PairingFixture[] 
       expected: directOffer
     },
     {
-      name: 'runtime relay is invalid',
+      // A desktop peer reaches another desktop through the same cell a phone
+      // uses; the scope decides which RPC surface it gets, not whether a relay
+      // may carry it.
+      name: 'relay offer with runtime scope',
       payload: { ...directOffer, scope: 'runtime', relay },
-      expected: null
+      expected: { ...directOffer, scope: 'runtime', relay }
     },
     {
       name: 'relay offer public key must be canonical 32-byte base64',

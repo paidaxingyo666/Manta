@@ -202,6 +202,36 @@ export function registerMobileHandlers(
     }
   )
 
+  ipcMain.handle(
+    'mobile:getRuntimeRelayPairingUrl',
+    async (_event, args?: { rotate?: boolean }) => {
+      // Why no address and no network exposure: the whole point of this code is
+      // to reach a computer that is not on the caller's network, so widening the
+      // local listener would expose an interface nobody asked for.
+      const offer = await rpcServer.createRuntimeRelayPairingOffer({
+        rotate: args?.rotate,
+        name: `Relay ${new Date().toLocaleDateString()}`,
+        reach: 'this-computer'
+      })
+      if (!offer.available) {
+        return {
+          available: false as const,
+          reason: offer.reason,
+          guidance: offer.guidance,
+          ...('relayFailure' in offer && offer.relayFailure
+            ? { relayFailure: offer.relayFailure }
+            : {})
+        }
+      }
+      return {
+        available: true as const,
+        pairingUrl: offer.pairingUrl,
+        deviceId: offer.deviceId,
+        relayHostId: offer.relayHostId
+      }
+    }
+  )
+
   ipcMain.handle('mobile:listDevices', () => {
     const registry = rpcServer.getDeviceRegistry()
     if (!registry) {

@@ -48,14 +48,12 @@ function hello(): MobileE2EEV2Hello {
   }
 }
 
-function setup() {
+function setup(scope: 'mobile' | 'runtime' = 'mobile') {
   const ws = createMockWs()
   const onReady = vi.fn()
   const onError = vi.fn()
   const resolveAuthenticatedDevice = vi.fn((token: string) =>
-    token === 'valid-token'
-      ? { deviceId: 'device-1', deviceToken: token, scope: 'mobile' as const }
-      : null
+    token === 'valid-token' ? { deviceId: 'device-1', deviceToken: token, scope } : null
   )
   const channel = new E2EEChannel(ws as unknown as WebSocket, {
     serverSecretKey: server.secretKey,
@@ -114,6 +112,25 @@ function openServerFrame(
   })
 }
 
+function authenticateWithCapabilities(
+  ctx: ReturnType<typeof setup>,
+  schedule: ReturnType<typeof startV2>['schedule']
+) {
+  ctx.channel.handleRawMessage(
+    clientText(
+      JSON.stringify({
+        type: 'e2ee_auth',
+        v: 2,
+        transcriptHashB64: Buffer.from(schedule.transcriptHash).toString('base64'),
+        deviceToken: 'valid-token',
+        clientCapabilities: ['session-tabs.close-intent.v1']
+      }),
+      schedule,
+      0n
+    )
+  )
+}
+
 function authenticate(
   ctx: ReturnType<typeof setup>,
   schedule: ReturnType<typeof startV2>['schedule']
@@ -156,31 +173,31 @@ describe('E2EEChannel v2', () => {
     })
   })
 
-  it('rejects legacy downgrade and runtime-only capability metadata when mobile v2 is required', () => {
+  it('rejects a legacy downgrade when mobile v2 is required', () => {
     const legacy = setup()
     legacy.channel.handleRawMessage(
       JSON.stringify({ type: 'e2ee_hello', publicKeyB64: 'legacy-key' })
     )
     expect(legacy.onError).toHaveBeenCalledWith(4001, 'E2EE v2 required')
+  })
 
-    const ctx = setup()
-    const { schedule } = startV2(ctx)
-    const transcriptHashB64 = Buffer.from(schedule.transcriptHash).toString('base64')
-    ctx.channel.handleRawMessage(
-      clientText(
-        JSON.stringify({
-          type: 'e2ee_auth',
-          v: 2,
-          transcriptHashB64,
-          deviceToken: 'valid-token',
-          clientCapabilities: ['session-tabs.close-intent.v1']
-        }),
-        schedule,
-        0n
-      )
-    )
-    expect(ctx.resolveAuthenticatedDevice).not.toHaveBeenCalled()
+  it('refuses capability metadata from a mobile peer', () => {
+    // A phone announcing the paired-runtime surface is the downgrade this
+    // check exists to refuse.
+    const ctx = setup('mobile')
+    authenticateWithCapabilities(ctx, startV2(ctx).schedule)
+    expect(ctx.onReady).not.toHaveBeenCalled()
     expect(ctx.onError).toHaveBeenCalledWith(4001, 'Invalid e2ee_auth')
+  })
+
+  it('accepts capability metadata from a runtime peer', () => {
+    // A desktop reaching this host through a relay has nowhere else to declare
+    // them: the v2 auth frame is the only client-authored frame before RPC.
+    const ctx = setup('runtime')
+    authenticateWithCapabilities(ctx, startV2(ctx).schedule)
+    expect(ctx.onError).not.toHaveBeenCalled()
+    expect(ctx.onReady).toHaveBeenCalledOnce()
+    expect(ctx.channel.clientCapabilities).toContain('session-tabs.close-intent.v1')
   })
 
   it('rejects a captured auth frame replayed onto a fresh desktop nonce', () => {
