@@ -1,264 +1,150 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-const fetchMock = vi.fn()
-
-vi.mock('electron', () => ({
-  net: { fetch: (...args: unknown[]) => fetchMock(...args) }
-}))
-
+import { describe, expect, it } from 'vitest'
 import { fetchChangelog } from './updater-changelog'
 
-function jsonResponse(body: unknown): Response {
-  return { ok: true, json: () => Promise.resolve(body) } as unknown as Response
-}
-
-function makeEntries(
-  items: {
-    version: string
-    title?: string
-    description?: string
-    mediaUrl?: string
-    releaseNotesUrl?: string
-  }[]
-) {
-  return items.map((item) => ({
-    version: item.version,
-    title: item.title ?? `Release ${item.version}`,
-    description: item.description ?? '',
-    mediaUrl: item.mediaUrl,
-    releaseNotesUrl: item.releaseNotesUrl ?? `https://manta.sh.cn/changelog/${item.version}`
-  }))
-}
-
+/**
+ * The notes now arrive inside the update manifest rather than from a separate
+ * host, so there is nothing to mock: these are pure transformations from what
+ * electron-updater hands over into what the 360px card can hold.
+ */
 describe('fetchChangelog', () => {
-  beforeEach(() => {
-    fetchMock.mockReset()
+  it('takes the leading heading as the title and the rest as the body', async () => {
+    const data = await fetchChangelog(
+      '1.4.189-rc.0',
+      '1.4.188',
+      '# Manta 的第一个发布\n\n桌面端五个切片。\n\n- 自建中继\n- 中文界面'
+    )
+
+    expect(data?.release.title).toBe('Manta 的第一个发布')
+    expect(data?.release.description).toBe('桌面端五个切片。\n• 自建中继\n• 中文界面')
   })
 
-  it('returns exact match when the incoming version has rich content', async () => {
-    const entries = makeEntries([
-      {
-        version: '1.1.21',
-        description: 'New feature',
-        mediaUrl: 'https://manta.sh.cn/media/1.1.21.gif'
-      },
-      { version: '1.1.20' },
-      { version: '1.1.19' }
+  it('falls back to the version when the notes open with prose', async () => {
+    const data = await fetchChangelog('2.0.0', '1.9.0', 'Fixes a crash on startup.')
+
+    expect(data?.release.title).toBe('v2.0.0')
+    expect(data?.release.description).toBe('Fixes a crash on startup.')
+  })
+
+  it('points at the release for the version being offered', async () => {
+    const data = await fetchChangelog('1.4.189-rc.0', '1.4.188', 'Something changed.')
+
+    expect(data?.release.releaseNotesUrl).toContain('v1.4.189-rc.0')
+  })
+
+  it('joins the per-version notes electron-updater sometimes sends as an array', async () => {
+    const data = await fetchChangelog('3.0.0', '2.0.0', [
+      { version: '3.0.0', note: 'Newest first.' },
+      { version: '2.5.0', note: 'Then this.' }
     ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
-
-    expect(result).not.toBeNull()
-    expect(result!.release.title).toBe('Release 1.1.21')
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog/1.1.21')
-    expect(result!.releasesBehind).toBe(2)
+    expect(data?.release.description).toBe('Newest first.\nThen this.')
   })
 
-  it('falls back to the most recent rich entry when incoming version is not in JSON', async () => {
-    // Incoming 1.1.21 is not in JSON; 1.1.17 has rich content.
-    // User is on 1.1.15 which is behind 1.1.17.
-    const entries = makeEntries([
-      {
-        version: '1.1.17',
-        description: 'Cool feature',
-        mediaUrl: 'https://manta.sh.cn/media/1.1.17.gif',
-        releaseNotesUrl: 'https://manta.sh.cn/changelog/1.1.17'
-      },
-      { version: '1.1.16' },
-      { version: '1.1.15' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // Nothing renders Markdown here — the card is plain text with `pre-line`.
+  it('strips markup instead of showing it', async () => {
+    const data = await fetchChangelog(
+      '1.0.0',
+      '0.9.0',
+      '- **Bold** and `code` and [a link](https://example.com/very/long/url)'
+    )
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
-
-    expect(result).not.toBeNull()
-    expect(result!.release.title).toBe('Release 1.1.17')
-    expect(result!.release.description).toBe('Cool feature')
-    // Why: fallback entries link to the generic changelog, not a version-specific page.
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog')
-    expect(result!.releasesBehind).toBe(2)
+    expect(data?.release.description).toBe('• Bold and code and a link')
   })
 
-  it('falls back when incoming version is in JSON but has no rich content', async () => {
-    // Incoming 1.1.21 exists but has empty description and no media.
-    // 1.1.17 has rich content.
-    const entries = makeEntries([
-      { version: '1.1.21', description: '', mediaUrl: undefined },
-      {
-        version: '1.1.17',
-        description: 'Great update',
-        mediaUrl: 'https://manta.sh.cn/media/1.1.17.gif'
-      },
-      { version: '1.1.15' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // electron-updater falls back to the GitHub release body, which is HTML.
+  it('strips the HTML of the release-body fallback', async () => {
+    const data = await fetchChangelog('1.0.0', '0.9.0', '<p>Fixed a <em>crash</em>.</p>')
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
-
-    expect(result).not.toBeNull()
-    expect(result!.release.title).toBe('Release 1.1.17')
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog')
-    // releasesBehind is from local (index 2) to incoming (index 0) = 2
-    expect(result!.releasesBehind).toBe(2)
+    expect(data?.release.description).toBe('Fixed a crash.')
   })
 
-  it('returns null when no entry has rich content', async () => {
-    const entries = makeEntries([
-      { version: '1.1.21', description: '' },
-      { version: '1.1.20', description: '' },
-      { version: '1.1.19', description: '' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // Markdown hard-wraps at ~80 columns and the card wraps on its own, so every
+  // authored break left in place reads as a torn column.
+  it('folds a hard-wrapped paragraph back into one line', async () => {
+    const data = await fetchChangelog(
+      '1.0.0',
+      '0.9.0',
+      'The updater now reads its notes\nfrom the manifest it already\ndownloaded.'
+    )
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
-
-    expect(result).toBeNull()
+    expect(data?.release.description).toBe(
+      'The updater now reads its notes from the manifest it already downloaded.'
+    )
   })
 
-  it('treats description-only entries (no media) as non-rich', async () => {
-    // Exact match has a description but no mediaUrl — should not count as rich.
-    const entries = makeEntries([
-      { version: '1.1.21', description: 'Bug fixes and improvements' },
-      { version: '1.1.20', description: 'Minor tweaks' },
-      { version: '1.1.19' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // A space between two CJK characters is a visible defect, not a word gap.
+  it('folds CJK lines without inserting spaces', async () => {
+    const data = await fetchChangelog('1.0.0', '0.9.0', '手机端靠它连回不在\n同一网络的桌面端。')
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
-
-    expect(result).toBeNull()
+    expect(data?.release.description).toBe('手机端靠它连回不在同一网络的桌面端。')
   })
 
-  it('skips rich entries that the user has already passed', async () => {
-    // User is on 1.1.18, which is ahead of the only rich entry (1.1.17).
-    const entries = makeEntries([
-      { version: '1.1.20', description: '' },
-      { version: '1.1.18' },
-      {
-        version: '1.1.17',
-        description: 'Old feature',
-        mediaUrl: 'https://manta.sh.cn/media/old.gif'
-      }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  it('keeps a blank line from gluing two paragraphs together', async () => {
+    const data = await fetchChangelog('1.0.0', '0.9.0', 'First para.\n\nSecond para.')
 
-    const result = await fetchChangelog('1.1.20', '1.1.18')
-
-    // 1.1.18 is at index 1, 1.1.17 is at index 2 — user is already past it.
-    expect(result).toBeNull()
+    expect(data?.release.description).toBe('First para.\nSecond para.')
   })
 
-  it('shows rich entry at the same version as localVersion', async () => {
-    // User is on 1.1.18 which has rich content; incoming 1.1.20 has none.
-    // The user may not have seen the rich card for 1.1.18 (e.g., they updated
-    // silently), so showing it is better than showing nothing.
-    const entries = makeEntries([
-      { version: '1.1.20', description: '' },
-      {
-        version: '1.1.18',
-        description: 'Current feature',
-        mediaUrl: 'https://manta.sh.cn/media/current.gif'
-      },
-      { version: '1.1.17' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // Section headings are what separates "what changed" from "what is still
+  // broken"; dropping them silently merged the two.
+  it('keeps section headings below the title', async () => {
+    const data = await fetchChangelog(
+      '1.0.0',
+      '0.9.0',
+      '# Release\n\n## What changed\n\n- A fix\n\n## Known gaps\n\n- A gap'
+    )
 
-    const result = await fetchChangelog('1.1.20', '1.1.18')
-
-    expect(result).not.toBeNull()
-    expect(result!.release.title).toBe('Release 1.1.18')
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog')
+    expect(data?.release.title).toBe('Release')
+    expect(data?.release.description).toBe('What changed\n• A fix\nKnown gaps\n• A gap')
   })
 
-  it('shows rich entry when local version is not in JSON (very old user)', async () => {
-    const entries = makeEntries([
-      { version: '1.1.20', description: '' },
-      {
-        version: '1.1.17',
-        description: 'Feature demo',
-        mediaUrl: 'https://manta.sh.cn/media/demo.gif'
-      }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // The card does not scroll, so anything past this is invisible.
+  it('truncates a body longer than the card can show', async () => {
+    const data = await fetchChangelog('1.0.0', '0.9.0', 'x'.repeat(900))
 
-    const result = await fetchChangelog('1.1.21', '1.0.0')
-
-    expect(result).not.toBeNull()
-    expect(result!.release.title).toBe('Release 1.1.17')
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog')
-    // releasesBehind is null because the local version isn't in the JSON.
-    expect(result!.releasesBehind).toBeNull()
+    expect(data?.release.description).toHaveLength(400)
+    expect(data?.release.description.endsWith('…')).toBe(true)
   })
 
-  it('skips rich entries when local version is newer than all changelog entries', async () => {
-    // Local version 1.1.25 is not in the JSON and is newer than the latest
-    // changelog entry (1.1.20). The rich entry at 1.1.17 is stale — the user
-    // has already passed it.
-    const entries = makeEntries([
-      { version: '1.1.20', description: '' },
-      {
-        version: '1.1.17',
-        description: 'Old feature',
-        mediaUrl: 'https://manta.sh.cn/media/old.gif'
-      }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  it('cuts on a line break rather than mid-word', async () => {
+    const lines = Array.from({ length: 40 }, (_, i) => `- Entry number ${i} with some text`)
+    const data = await fetchChangelog('1.0.0', '0.9.0', lines.join('\n'))
 
-    const result = await fetchChangelog('1.1.26', '1.1.25')
-
-    expect(result).toBeNull()
+    const description = data?.release.description ?? ''
+    expect(description.length).toBeLessThanOrEqual(400)
+    expect(description.endsWith('…')).toBe(true)
+    // Every line except the truncated marker survived whole.
+    for (const line of description.replace(/…$/, '').split('\n')) {
+      expect(line).toMatch(/^• Entry number \d+ with some text$/)
+    }
   })
 
-  it('returns null on non-ok HTTP response', async () => {
-    fetchMock.mockResolvedValue({ ok: false })
-
-    const result = await fetchChangelog('1.1.21', '1.1.19')
-
-    expect(result).toBeNull()
+  // Every one of these used to cost a five-second timeout before producing the
+  // same nothing. The plain card is the correct outcome; only the wait was not.
+  it.each([
+    ['no notes at all', undefined],
+    ['an explicit null', null],
+    ['an empty string', ''],
+    ['only whitespace', '   \n\n  '],
+    ['a heading with no body', '# Release 1.0'],
+    ['an empty array', []]
+  ])('stays plain given %s', async (_label, notes) => {
+    expect(await fetchChangelog('1.0.0', '0.9.0', notes)).toBeNull()
   })
 
-  it('returns null on non-array JSON', async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ bad: true }))
+  // Upstream's feed gated on a screenshot being present, so a release with good
+  // prose and no media showed the plain card. Prose is the bar now.
+  it('shows a release that has no media', async () => {
+    const data = await fetchChangelog('1.0.0', '0.9.0', '# Title\nBody with no screenshot.')
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
-
-    expect(result).toBeNull()
+    expect(data?.release.mediaUrl).toBeUndefined()
+    expect(data?.release.description).toBe('Body with no screenshot.')
   })
 
-  it('prefers exact match over fallback when both have rich content', async () => {
-    const entries = makeEntries([
-      {
-        version: '1.1.21',
-        description: 'Latest feature',
-        mediaUrl: 'https://manta.sh.cn/media/latest.gif'
-      },
-      {
-        version: '1.1.17',
-        description: 'Older feature',
-        mediaUrl: 'https://manta.sh.cn/media/old.gif'
-      },
-      { version: '1.1.15' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
+  // One manifest describes one release, so the card cannot count skipped ones.
+  it('does not claim to know how many releases were skipped', async () => {
+    const data = await fetchChangelog('1.0.0', '0.1.0', 'Body.')
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
-
-    expect(result!.release.title).toBe('Release 1.1.21')
-    // Exact match keeps its own releaseNotesUrl.
-    expect(result!.release.releaseNotesUrl).toBe('https://manta.sh.cn/changelog/1.1.21')
-  })
-
-  it('strips version from the returned release object', async () => {
-    const entries = makeEntries([
-      { version: '1.1.17', description: 'Feature', mediaUrl: 'https://manta.sh.cn/media/demo.gif' },
-      { version: '1.1.15' }
-    ])
-    fetchMock.mockResolvedValue(jsonResponse(entries))
-
-    const result = await fetchChangelog('1.1.21', '1.1.15')
-
-    expect(result).not.toBeNull()
-    expect('version' in result!.release).toBe(false)
+    expect(data?.releasesBehind).toBeNull()
   })
 })

@@ -34,7 +34,8 @@ const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
 // Whether this Windows build will end up Authenticode-signed. Dev channels never
 // are, and neither is a build from a fork with no code-signing certificate.
 const isWinUnsigned = isWinDevChannel || process.env.MANTA_WIN_UNSIGNED === '1'
-const isMacRelease = process.env.MANTA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
+const isMacRelease =
+  process.env.MANTA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.MANTA_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.MANTA_LOCAL_BUILD_VERSION
@@ -48,6 +49,20 @@ const devChannelBuildVersion = isHourlyChannel
     : isAdhocChannel
       ? process.env.MANTA_ADHOC_BUILD_VERSION
       : undefined
+// Release notes for the in-app update card. electron-builder copies this into
+// every platform's latest*.yml, and electron-updater hands it back on the
+// update-available event — so the card needs no second host and no timeout.
+// Missing file means no releaseNotes in the manifest, which the card already
+// handles by staying plain; that is why this is guarded rather than required.
+//
+// The version has to match what extraMetadata below actually ships, or an
+// hourly build's manifest carries the RC's notes.
+const releaseNotesVersion =
+  devChannelBuildVersion || localBuildVersion || require('../package.json').version
+const releaseNotesPath = join(__dirname, '..', 'docs', 'release-notes', `${releaseNotesVersion}.md`)
+const releaseNotes = existsSync(releaseNotesPath)
+  ? { releaseInfo: { releaseNotesFile: releaseNotesPath } }
+  : {}
 // Why each dev channel gets its own repo rather than tagging into the main one:
 // the releases atom feed exposes only the 10 newest entries, so 24 hourly tags a
 // day would evict every stable/RC entry and strand users on a feed with nothing
@@ -568,6 +583,7 @@ module.exports = {
   // on Intel Macs. The beforeBuild hook performs Manta's targeted rebuild and
   // returns false so electron-builder does not rebuild optional cpu-features.
   npmRebuild: true,
+  ...releaseNotes,
   publish: {
     provider: 'github',
     owner: 'paidaxingyo666',

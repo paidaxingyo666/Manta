@@ -22,7 +22,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', minVersion: '1.1.0', maxVersion: '1.1.19' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge('https://example.test/nudge.json')
       expect(result).toEqual({ id: 'campaign-1', minVersion: '1.1.0', maxVersion: '1.1.19' })
     })
 
@@ -32,7 +32,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-2', maxVersion: '1.1.19' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge('https://example.test/nudge.json')
       expect(result).toEqual({ id: 'campaign-2', maxVersion: '1.1.19' })
     })
 
@@ -42,7 +42,7 @@ describe('updater-nudge', () => {
         json: async () => ({})
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null for a null response', async () => {
@@ -51,19 +51,19 @@ describe('updater-nudge', () => {
         json: async () => null
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null on non-ok HTTP response', async () => {
       netFetchMock.mockResolvedValue({ ok: false })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null on network error', async () => {
       netFetchMock.mockRejectedValue(new Error('network down'))
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('trims whitespace from the campaign id', async () => {
@@ -72,7 +72,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: '  campaign-1  ', minVersion: '1.0.0' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge('https://example.test/nudge.json')
       expect(result?.id).toBe('campaign-1')
     })
 
@@ -82,7 +82,7 @@ describe('updater-nudge', () => {
         json: async () => ({ minVersion: '1.0.0' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null when neither version endpoint is present', async () => {
@@ -91,7 +91,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null when minVersion is invalid', async () => {
@@ -100,7 +100,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', minVersion: 'not-a-version' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null when maxVersion is invalid', async () => {
@@ -109,7 +109,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', maxVersion: 'wat' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
 
     it('returns null when the configured range is inverted', async () => {
@@ -122,7 +122,7 @@ describe('updater-nudge', () => {
         })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
     })
   })
 
@@ -198,5 +198,11 @@ describe('updater-nudge', () => {
         })
       ).toBe(false)
     })
+  })
+
+  // The whole point of the change: no endpoint means no five-second wait.
+  it('does not reach the network when no endpoint is configured', async () => {
+    await expect(fetchNudge()).resolves.toBeNull()
+    expect(netFetchMock).not.toHaveBeenCalled()
   })
 })

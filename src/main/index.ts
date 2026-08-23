@@ -331,7 +331,10 @@ import { settleTeardownWithinDeadline } from './quit-teardown-deadline'
 import { quitTeardownStartGate } from './quit-teardown-start-gate'
 import { beginSshShutdown } from './ipc/ssh'
 import { PluginService } from './plugins/plugin-service'
-import { PluginKillListService } from './plugins/plugin-kill-list-service'
+import {
+  hasPluginKillListEndpoint,
+  PluginKillListService
+} from './plugins/plugin-kill-list-service'
 import { getPluginsDataDir } from './plugins/plugin-discovery'
 import { PluginMarketplaceService } from './plugins/plugin-marketplace-service'
 import { PluginMarketplaceInstaller } from './plugins/plugin-marketplace-installer'
@@ -2935,7 +2938,7 @@ void app.whenReady().then(async () => {
       requestBundledPluginBootstrap()
       requestOfficialMarketplaceSeed()
     }
-    if (app.isPackaged && updates.pluginSystemEnabled === true) {
+    if (app.isPackaged && updates.pluginSystemEnabled === true && hasPluginKillListEndpoint()) {
       void pluginKillListService?.refresh().catch((error) => {
         console.warn('[plugins] failed to refresh plugin safety list; using cached state:', error)
       })
@@ -2963,7 +2966,11 @@ void app.whenReady().then(async () => {
     .catch((error) => {
       console.warn('[plugins] failed to initialize plugin service:', error)
     })
-  if (app.isPackaged && store?.getSettings().pluginSystemEnabled === true) {
+  if (
+    app.isPackaged &&
+    store?.getSettings().pluginSystemEnabled === true &&
+    hasPluginKillListEndpoint()
+  ) {
     void pluginKillListService.refresh().catch((error) => {
       console.warn('[plugins] failed to refresh plugin safety list; using cached state:', error)
     })

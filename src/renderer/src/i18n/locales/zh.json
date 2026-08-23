@@ -4281,7 +4281,9 @@
           "69969ba364": "正在发送...",
           "imageReadFailed": "无法读取附加的图片。请重新附加。",
           "attachWhileSending": "请等待当前反馈发送完成，再附加更多图片。",
-          "imagesNotDelivered": "反馈已发送，但无法确认图片已送达。"
+          "imagesNotDelivered": "反馈已发送，但无法确认图片已送达。",
+          "selfHostedNotice": "这个自建版本没有反馈服务器。你在这里写的内容，连同下方的版本信息，会一并带进一个 GitHub issue。截图请在 GitHub 页面上直接拖进去。",
+          "openGitHubIssue": "提交 GitHub issue"
         },
         "SidebarFilter": {
           "e3b3898218": "添加项目",
@@ -4340,7 +4342,6 @@
         "SidebarSettingsHelpMenu": {
           "ad3d3ed7f1": "重启 Manta",
           "29c56f30ee": "检查更新",
-          "eb9884e55b": "Discord",
           "5687ab246a": "GitHub",
           "5f83d86d92": "变更日志",
           "cdc87f897e": "文档",
@@ -4352,8 +4353,7 @@
           "5161eef55d": "正在重启 Manta…",
           "d396773ef0": "检查中",
           "f8a2c91d4e": "里程碑",
-          "b7e4d2a19c": "入门引导",
-          "c4f8e1b72a": "X"
+          "b7e4d2a19c": "入门引导"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "打开文件夹选择器以添加项目",
@@ -13454,7 +13454,9 @@
               "notSent": "崩溃报告未发送",
               "copyDetails": "Copy Details",
               "sentWithoutDiagnostics": "崩溃报告已发送，但未附带诊断日志",
-              "diagnosticsReason": "诊断日志未附加：{{value0}}"
+              "diagnosticsReason": "诊断日志未附加：{{value0}}",
+              "noEndpointTitle": "这个版本没有可以接收崩溃报告的地方",
+              "noEndpointBody": "Manta 不运行崩溃报告服务。请复制详情，到 github.com/paidaxingyo666/Manta/issues 提一个 issue。"
             }
           },
           "copy": {
@@ -14435,6 +14437,9 @@
           "deleteTitle": "删除工件？",
           "deleteDescription": "“{{name}}” 将无法再通过其公共链接访问。",
           "delete": "删除"
+        },
+        "ArtifactsSelfHostNotice": {
+          "body": "这个自建版本没有附带产物（Artifacts）服务。发布时会上传到 MANTA_ARTIFACTS_API_URL 指向的地址；不设它的话，链接会建到一个本 fork 并不运行的主机上，上传必然失败。要么自己跑一个并设好这个变量，要么就把分享关掉。"
         }
       }
     },

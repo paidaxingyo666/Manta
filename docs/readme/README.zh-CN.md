@@ -18,11 +18,13 @@
 
 基于：https://github.com/stablyai/orca
 
-目前尚未发布独立的 Manta 构建产物 —— 请从源码构建。
+构建产物发布在 [Releases](https://github.com/paidaxingyo666/Manta/releases)，也可以直接从源码构建。
 
-Manta 没有云服务。登录与中继默认关闭，需在 设置 → 高级 → Manta Cloud 端点
-中指向你自己的部署；服务端代码在 `relay-server/`。文档链接指向
-`manta.sh.cn`，那不是公共服务。
+Manta 没有云服务。登录与中继默认关闭，需在 设置 → 高级 → Manta Cloud 端点中
+指向你自己的部署；服务端代码在 `relay-server/`。产物发布和意见反馈没有设置面
+板，`relay-server/` 也不实现它们 —— 它们读 `MANTA_ARTIFACTS_API_URL` 和
+`MANTA_FEEDBACK_API_URL`，在你指向自己的服务之前一直关着。应用内的文档链接指
+向上游的站点，那里描述的是同样的功能，只是叫另一个名字。
 
 ---
 

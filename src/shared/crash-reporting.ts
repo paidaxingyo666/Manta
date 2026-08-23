@@ -1,3 +1,11 @@
+/**
+ * Returned instead of a network error when the build has no feedback endpoint.
+ * A code rather than a sentence so the renderer can say it in the user's
+ * language, and so "nothing is configured" never reads like "the network is
+ * down" — the recovery is completely different.
+ */
+export const NO_FEEDBACK_ENDPOINT_ERROR = 'no_feedback_endpoint'
+
 import {
   appendDiagnosticBundleLines,
   type CrashReportDiagnosticBundle

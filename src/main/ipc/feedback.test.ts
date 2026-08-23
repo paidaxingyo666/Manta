@@ -59,9 +59,13 @@ describe('submitFeedback', () => {
     handlers.clear()
     fetchMock.mockReset()
     fetchMock.mockResolvedValue(okResponse())
+    // The shipped default is no endpoint at all; these cases are about what the
+    // submit path does once an operator has configured one.
+    process.env.MANTA_FEEDBACK_API_URL = 'https://feedback.example.com/v1/feedback'
   })
 
   afterEach(() => {
+    delete process.env.MANTA_FEEDBACK_API_URL
     vi.useRealTimers()
   })
 
@@ -174,9 +178,9 @@ describe('submitFeedback', () => {
     })
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(requestInit(0).body).toBeInstanceOf(FormData)
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(requestInit(1).headers).toEqual({
       'Content-Type': 'application/json'
     })
@@ -196,7 +200,7 @@ describe('submitFeedback', () => {
       diagnosticBundleFailure: { status: 502, error: 'status 502' }
     })
 
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(requestInit(1).headers).toEqual({ 'Content-Type': 'application/json' })
     expect(postedBody(1)).not.toHaveProperty('diagnosticBundle')
   })
@@ -211,7 +215,7 @@ describe('submitFeedback', () => {
     })
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(requestInit(1).body).not.toBeInstanceOf(FormData)
     expect(postedBody(1)).not.toHaveProperty('diagnosticBundle')
   })
@@ -235,7 +239,7 @@ describe('submitFeedback', () => {
       diagnosticBundleFailure: { status: null, error: 'request timed out after 60 seconds' }
     })
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(postedBody(1)).not.toHaveProperty('diagnosticBundle')
   })
 
@@ -246,7 +250,7 @@ describe('submitFeedback', () => {
       ok: true,
       diagnosticBundleFailure: { status: 403, error: 'status 403' }
     })
-    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('https://feedback.example.com/v1/feedback')
     expect(requestInit(1).body).not.toBeInstanceOf(FormData)
   })
 
@@ -297,8 +301,8 @@ describe('submitFeedback', () => {
     await expect(Promise.race([result, Promise.resolve('pending')])).resolves.toEqual({ ok: true })
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      'https://www.manta.sh.cn/v1/feedback',
-      'https://www.manta.sh.cn/v1/feedback'
+      'https://feedback.example.com/v1/feedback',
+      'https://feedback.example.com/v1/feedback'
     ])
   })
 
@@ -314,7 +318,7 @@ describe('submitFeedback', () => {
       })
     ).resolves.toEqual({ ok: false, status: 404, error: 'status 404' })
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://feedback.example.com/v1/feedback')
   })
 
   it('does not retry again when the website retry stalls after a primary server error', async () => {
@@ -341,8 +345,8 @@ describe('submitFeedback', () => {
     })
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      'https://www.manta.sh.cn/v1/feedback',
-      'https://www.manta.sh.cn/v1/feedback'
+      'https://feedback.example.com/v1/feedback',
+      'https://feedback.example.com/v1/feedback'
     ])
   })
 
@@ -373,7 +377,7 @@ describe('submitFeedback', () => {
       githubEmail: null
     } as Parameters<typeof submitFeedback>[0])
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://www.manta.sh.cn/v1/feedback')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://feedback.example.com/v1/feedback')
   })
 
   it('forces renderer IPC submissions onto the feedback lane', async () => {
@@ -607,5 +611,25 @@ describe('submitFeedback', () => {
       expect(body.getAll('feedbackImage')).toHaveLength(0)
       expect(body.get('diagnosticBundleSubmissionId')).toBe('bundleabcdefghijklmnop')
     })
+  })
+})
+
+describe('submitFeedback without a configured endpoint', () => {
+  it('refuses locally instead of posting to a host this fork does not run', async () => {
+    delete process.env.MANTA_FEEDBACK_API_URL
+    fetchMock.mockReset()
+
+    const result = await submitFeedback({
+      feedback: 'Terminal hangs.',
+      submissionType: 'feedback',
+      githubLogin: null,
+      githubEmail: null
+    })
+
+    expect(result.ok).toBe(false)
+    // A code, not a sentence: the renderer says it in the user's language and
+    // must be able to tell "nothing configured" from "the network failed".
+    expect(result.ok === false && result.error).toBe('no_feedback_endpoint')
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

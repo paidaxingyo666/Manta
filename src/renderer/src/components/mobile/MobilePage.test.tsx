@@ -179,7 +179,7 @@ describe('MobilePage pairing connection mode', () => {
     await user.click(screen.getByRole('button', { name: 'Open Android install guide' }))
 
     expect(window.api.shell.openUrl).toHaveBeenCalledWith(
-      'https://www.manta.sh.cn/docs/android-apk'
+      'https://github.com/paidaxingyo666/Manta/releases'
     )
   })
 

@@ -7,7 +7,10 @@ export type IosChannel = 'stable' | 'preview'
 
 export type InstallCopy = { ctaLabel: string; url: string }
 
-export const ANDROID_INSTALL_GUIDE_URL = 'https://www.manta.sh.cn/docs/android-apk'
+// Deliberately not upstream's android-apk guide, even though the sideloading
+// steps are generic: that page hands the reader upstream's APK, which is the
+// exact failure the FORK_RELEASES_URL comment below is about.
+export const ANDROID_INSTALL_GUIDE_URL = 'https://github.com/paidaxingyo666/Manta/releases'
 
 // Why the releases page and not a store listing or a pinned asset: the App
 // Store id and TestFlight invite inherited from upstream belong to upstream's

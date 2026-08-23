@@ -21,8 +21,8 @@ const RICH_CHANGELOG: ChangelogData = {
   release: {
     title: 'Inline Diffs',
     description: 'Review diffs without leaving the terminal.',
-    mediaUrl: 'https://manta.sh.cn/media/inline-diffs.png',
-    releaseNotesUrl: 'https://manta.sh.cn/changelog/1.2.0'
+    mediaUrl: 'https://example.com/media/inline-diffs.png',
+    releaseNotesUrl: 'https://github.com/paidaxingyo666/Manta/releases/tag/v1.2.0'
   },
   releasesBehind: 3
 }

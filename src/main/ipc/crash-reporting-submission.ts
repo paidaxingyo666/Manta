@@ -5,9 +5,10 @@ import {
   type CrashReportSubmitArgs,
   type CrashReportSubmitResult,
   formatCrashReportText,
-  formatUncapturedCrashReportText
+  formatUncapturedCrashReportText,
+  NO_FEEDBACK_ENDPOINT_ERROR
 } from '../../shared/crash-reporting'
-import { submitFeedback } from './feedback'
+import { hasFeedbackEndpoint, submitFeedback } from './feedback'
 import type { CrashReportStore } from '../crash-reporting/crash-report-store'
 import {
   diagnosticBundleForReportOnlyRetry,
@@ -44,6 +45,11 @@ export async function submitCrashReport(
   store: CrashReportStore,
   args: CrashReportSubmitArgs
 ): Promise<CrashReportSubmitResult> {
+  // Ask before working: prepareCrashDiagnosticBundle reads and redacts up to
+  // 4 MiB of logs, and with no endpoint every byte of that is thrown away.
+  if (!hasFeedbackEndpoint()) {
+    return { ok: false, status: null, error: NO_FEEDBACK_ENDPOINT_ERROR }
+  }
   const report = await getRequestedCrashReport(store, args)
   if (!report) {
     const diagnosticUpload = prepareCrashDiagnosticBundle(args.includeDiagnosticLogs !== false)

@@ -1,3 +1,4 @@
+import { ArtifactsSelfHostNotice } from './ArtifactsSelfHostNotice'
 import { ArrowRight, Files, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
@@ -89,6 +90,7 @@ export function ArtifactsPageAuthState({
           </Button>
         </div>
       )}
+      <ArtifactsSelfHostNotice className="max-w-sm text-left" />
     </div>
   )
 }
@@ -165,6 +167,7 @@ export function ArtifactsPageEmptyState({
           {translate('auto.components.artifacts.ArtifactCollection.loadMore', 'Load more')}
         </Button>
       ) : null}
+      {hasMore ? null : <ArtifactsSelfHostNotice className="max-w-sm text-left" />}
     </div>
   )
 }

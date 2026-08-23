@@ -52,7 +52,10 @@ vi.mock('electron', () => ({
 }))
 
 vi.mock('./feedback', () => ({
-  submitFeedback: submitFeedbackMock
+  submitFeedback: submitFeedbackMock,
+  // Submission short-circuits on a build with no endpoint, which is the shipped
+  // default; these cases exercise the delivery path behind it.
+  hasFeedbackEndpoint: () => true
 }))
 
 vi.mock('../crash-reporting/crash-breadcrumb-store', () => ({

@@ -4984,7 +4984,9 @@
           "69969ba364": "Sending…",
           "imageReadFailed": "Could not read the attached images. Try attaching them again.",
           "attachWhileSending": "Wait for the current feedback to finish sending before attaching more images.",
-          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed."
+          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed.",
+          "selfHostedNotice": "This self-hosted build has no feedback server. What you type here — plus the version details below — is carried into a GitHub issue instead. Screenshots can be dropped onto the GitHub page.",
+          "openGitHubIssue": "Open a GitHub issue"
         },
         "SidebarFilter": {
           "e3b3898218": "Add project",
@@ -5045,7 +5047,6 @@
         "SidebarSettingsHelpMenu": {
           "ad3d3ed7f1": "Restart Manta",
           "29c56f30ee": "Check for Updates",
-          "eb9884e55b": "Discord",
           "5687ab246a": "GitHub",
           "5f83d86d92": "Changelog",
           "cdc87f897e": "Docs",
@@ -5057,8 +5058,7 @@
           "5161eef55d": "Restarting Manta…",
           "d396773ef0": "checking",
           "f8a2c91d4e": "Milestones",
-          "b7e4d2a19c": "Onboarding",
-          "c4f8e1b72a": "X"
+          "b7e4d2a19c": "Onboarding"
         },
         "SidebarToolbar": {
           "87d0064026": "Workspace board moved to the bottom bar",
@@ -14760,7 +14760,9 @@
               "notSent": "Crash report wasn't sent",
               "copyDetails": "Copy Details",
               "sentWithoutDiagnostics": "Crash report sent without diagnostic logs",
-              "diagnosticsReason": "Diagnostic logs were not attached: {{value0}}"
+              "diagnosticsReason": "Diagnostic logs were not attached: {{value0}}",
+              "noEndpointTitle": "This build has nowhere to send crash reports",
+              "noEndpointBody": "Manta runs no crash-report service. Copy the details and open a GitHub issue at github.com/paidaxingyo666/Manta/issues."
             }
           },
           "copy": {
@@ -15961,7 +15963,10 @@
         },
         "expiredCompact": "Expired",
         "typeMarkdown": "Markdown",
-        "typeHtml": "HTML"
+        "typeHtml": "HTML",
+        "ArtifactsSelfHostNotice": {
+          "body": "This self-hosted build ships no artifact service. Publishing uploads to whatever MANTA_ARTIFACTS_API_URL points at; leave it unset and links are created against a host this fork does not run, so the upload fails. Run your own and set the variable, or keep sharing off."
+        }
       }
     },
     "i18n": {

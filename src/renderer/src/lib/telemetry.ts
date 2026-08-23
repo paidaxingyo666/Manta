@@ -8,7 +8,16 @@ import type { TelemetryConsentState } from '../../../shared/telemetry-consent-ty
 export { tuiAgentToAgentKind } from '../../../shared/agent-kind'
 
 // Single source-of-truth for the privacy doc URL so FirstLaunchBanner and PrivacyPane can't drift.
-export const PRIVACY_URL = 'https://www.manta.sh.cn/docs/telemetry'
+// Upstream's page, because it documents this exact implementation.
+//
+// It describes upstream as the collector, which is not who a Manta build would
+// report to — but nothing is collected here anyway: fork-release.yml leaves
+// MANTA_BUILD_IDENTITY and MANTA_POSTHOG_WRITE_KEY unset, so IS_OFFICIAL_BUILD
+// is false and the transport is inert regardless of consent. The inherited
+// release-cut.yml / release-mac-build.yml still wire that secret through, so if
+// this fork ever runs one of those with a non-empty value, revisit both this
+// link and that claim.
+export const PRIVACY_URL = 'https://www.onorca.dev/docs/telemetry'
 
 // Why: the IPC boundary is untyped at runtime, so validate before the Privacy pane trusts a payload from main.
 function isTelemetryConsentState(x: unknown): x is TelemetryConsentState {

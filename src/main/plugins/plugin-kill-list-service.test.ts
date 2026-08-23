@@ -148,11 +148,15 @@ describe('fetchPluginKillList', () => {
       })
     )
 
-    await expect(fetchPluginKillList(fetcher)).resolves.toEqual(killList())
+    await expect(
+      fetchPluginKillList('https://example.test/kill-list.json', fetcher)
+    ).resolves.toEqual(killList())
   })
 
   it('rejects non-success responses', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response('no', { status: 503 }))
-    await expect(fetchPluginKillList(fetcher)).rejects.toThrow('HTTP 503')
+    await expect(
+      fetchPluginKillList('https://example.test/kill-list.json', fetcher)
+    ).rejects.toThrow('HTTP 503')
   })
 })

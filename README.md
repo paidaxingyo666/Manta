@@ -22,12 +22,17 @@ Features:
 
 Based on: https://github.com/stablyai/orca
 
-No standalone Manta release is published yet — build from source.
+Builds are published under
+[Releases](https://github.com/paidaxingyo666/Manta/releases); building from
+source works too.
 
-There is no Manta cloud service. Sign-in and relay stay off until you point them
-at your own deployment (Settings → Advanced → Manta Cloud endpoints);
-`relay-server/` is the server to run. Documentation links point at
-`manta.sh.cn`, which is not a public service.
+There is no Manta cloud service. Sign-in and relay stay off until you point
+them at your own deployment in Settings → Advanced → Manta Cloud endpoints;
+`relay-server/` is the server to run. Artifact publishing and feedback have no
+settings pane and no implementation in `relay-server/` — they read
+`MANTA_ARTIFACTS_API_URL` and `MANTA_FEEDBACK_API_URL`, and stay off until
+those point at services you supply. In-app documentation links go to upstream's
+site, which describes the same features under their name.
 
 ---
 

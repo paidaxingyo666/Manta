@@ -1,5 +1,6 @@
 import { translate } from '@/i18n/i18n'
 import {
+  NO_FEEDBACK_ENDPOINT_ERROR,
   sanitizeCrashReportString,
   type CrashReportCopySubmissionFailure,
   type CrashReportDiagnosticBundle,
@@ -65,6 +66,24 @@ export function getCrashReportSubmitFailureNotice(
   failure: CrashReportSubmitFailureLike,
   includeDiagnosticLogs: boolean
 ): CrashReportSubmitFailureNotice {
+  // Nothing was configured to receive this, so "try again" is wrong advice —
+  // retrying produces the same answer forever. Copying is the only real path.
+  if (failure.error === NO_FEEDBACK_ENDPOINT_ERROR) {
+    return {
+      title: translate(
+        'auto.components.crash.report.submit.notice.noEndpointTitle',
+        'This build has nowhere to send crash reports'
+      ),
+      description: translate(
+        'auto.components.crash.report.submit.notice.noEndpointBody',
+        'Manta runs no crash-report service. Copy the details and open a GitHub issue at github.com/paidaxingyo666/Manta/issues.'
+      ),
+      actionLabel: translate(
+        'auto.components.crash.report.submit.notice.copyDetails',
+        'Copy Details'
+      )
+    }
+  }
   const ticketDetail =
     failure.diagnosticBundle?.status === 'uploaded'
       ? translate(
