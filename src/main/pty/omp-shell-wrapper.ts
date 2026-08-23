@@ -66,7 +66,9 @@ __manta_omp() {
   fi
 }
 if [[ -n "\${MANTA_OMP_STATUS_EXTENSION:-}" ]]; then
-  omp() { __manta_omp "$@"; }
+  # Why the function reserved word: it suppresses alias expansion of the name, which
+  # an \`alias omp\` otherwise rewrites at parse time, aborting the rest of the file.
+  function omp { __manta_omp "$@"; }
 fi
 `
 }
