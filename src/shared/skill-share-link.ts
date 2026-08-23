@@ -1,5 +1,4 @@
 const SHARE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
-const PRODUCTION_HOSTS = new Set(['app.manta.dev', 'share.manta.sh.cn'])
 
 export function parseSkillShareId(value: string): string | null {
   const trimmed = value.trim()
@@ -20,7 +19,10 @@ export function parseSkillShareId(value: string): string | null {
   if (url.protocol !== 'https:' && !(developmentHost && url.protocol === 'http:')) {
     return null
   }
-  if (!PRODUCTION_HOSTS.has(url.hostname) && !developmentHost) {
+  // No host allow-list on purpose: only the id survives this function, and the
+  // fetch origin is pinned by resolveArtifactCloudApiUrl. Unlike the artifact
+  // API URL, this one is never a destination and carries no token.
+  if (url.username || url.password) {
     return null
   }
   const match = url.pathname.match(/^\/skills\/share\/([A-Za-z0-9_-]{1,128})\/?$/)

@@ -46,7 +46,7 @@ export function SkillShareLinkInputForm({
         onChange={(event) => onLinkChange(event.target.value)}
         placeholder={translate(
           'auto.components.skills.SkillInstallReviewContent.66cff7a804',
-          'https://app.manta.dev/skills/share/…'
+          'https://your-manta-host/skills/share/…'
         )}
         className="font-mono text-xs"
         autoFocus

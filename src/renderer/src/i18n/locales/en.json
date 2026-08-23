@@ -4367,7 +4367,7 @@
           "157de228b4": "Inspect skill",
           "69236de8d6": "Checking…",
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
-          "66cff7a804": "https://app.manta.dev/skills/share/…",
+          "66cff7a804": "https://your-manta-host/skills/share/…",
           "93eb0fe8c7": "Manta skill link",
           "releaseNotes": "Release notes:"
         },

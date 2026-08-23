@@ -468,7 +468,7 @@ describe('SkillInstallManagementDialog', () => {
         shares: [
           {
             id: 'share_bundle',
-            url: 'https://app.manta.dev/skills/share/share_bundle',
+            url: 'https://skills.example.com/skills/share/share_bundle',
             createdAt: '2026-08-12T00:00:00.000Z'
           }
         ]

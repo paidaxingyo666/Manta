@@ -120,7 +120,7 @@ function installApi(previewInstall: ReturnType<typeof vi.fn>) {
 
 async function inspectSkill(expectedDescription = 'A private skill'): Promise<void> {
   fireEvent.change(screen.getByLabelText('Manta skill link'), {
-    target: { value: 'https://app.manta.dev/skills/share/share_1' }
+    target: { value: 'https://skills.example.com/skills/share/share_1' }
   })
   fireEvent.click(screen.getByRole('button', { name: 'Inspect skill' }))
   await screen.findByText(expectedDescription)
@@ -431,7 +431,7 @@ describe('SkillInstallDialog', () => {
     ])
     await user.type(
       screen.getByRole('textbox', { name: 'Manta skill link' }),
-      'https://app.manta.dev/skills/share/share_1'
+      'https://skills.example.com/skills/share/share_1'
     )
     await user.keyboard('{Enter}')
     await screen.findByText('A private skill')
@@ -448,7 +448,7 @@ describe('SkillInstallDialog', () => {
     render(<SkillInstallDialog open onOpenChange={() => undefined} />)
 
     fireEvent.change(screen.getByLabelText('Manta skill link'), {
-      target: { value: 'https://app.manta.dev/skills/share/share_1' }
+      target: { value: 'https://skills.example.com/skills/share/share_1' }
     })
     fireEvent.click(screen.getByRole('button', { name: 'Inspect skill' }))
 

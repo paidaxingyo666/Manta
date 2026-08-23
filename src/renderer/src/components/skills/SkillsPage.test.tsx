@@ -444,4 +444,27 @@ describe('SkillsPage', () => {
     expect(container?.textContent).toContain('0 selected')
     expect(renderedSkillNames()).toEqual(['beta'])
   })
+
+  // The deep-link round-trip had no coverage in either direction, which is how
+  // a plausible-looking fix — dropping the old host allow-list without touching
+  // the link this page manufactures — would have broken every OS deep link
+  // silently. The id must survive the trip through the link field.
+  it('opens the install dialog with a pending deep-link share id', async () => {
+    const discover = vi.fn().mockResolvedValue(discoveryResult(['alpha']))
+    const resolveShare = vi.fn().mockResolvedValue({ status: 'error' })
+    useAppStore.setState({ pendingSkillShareId: 'share_deeplink' })
+    Object.defineProperty(window, 'api', {
+      configurable: true,
+      value: {
+        skills: { ...skillsApi(discover), resolveShare },
+        runtimeEnvironments: { call: vi.fn() }
+      }
+    })
+
+    await renderPage()
+    await flushMicrotasks()
+
+    expect(resolveShare).toHaveBeenCalledWith('share_deeplink')
+    expect(useAppStore.getState().pendingSkillShareId).toBeNull()
+  })
 })

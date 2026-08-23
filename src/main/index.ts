@@ -759,6 +759,8 @@ function requestDesktopActivation(argv: readonly string[] = []): void {
 }
 
 app.on('open-url', (event, url) => {
+  // This guard is now protocol + path shape only. Re-tighten here if the fork
+  // ever registers https/universal links — today only `manta` is registered.
   if (!parseSkillShareId(url)) {
     return
   }

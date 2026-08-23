@@ -126,7 +126,9 @@ export default function SkillsPage(): React.JSX.Element {
     if (!pendingSkillShareId) {
       return
     }
-    setInstallLink(`https://app.manta.dev/skills/share/${pendingSkillShareId}`)
+    // The bare id parses too; manufacturing a host we do not own made the
+    // allow-list look like provenance when it was only ever our own echo.
+    setInstallLink(pendingSkillShareId)
     setInstallOpen(true)
     clearPendingSkillShare()
   }, [clearPendingSkillShare, pendingSkillShareId])
