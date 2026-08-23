@@ -25,8 +25,7 @@ export const TECHNICAL_LITERALS = new Set([
   'GitHub Project ·',
   'GitHub Projects',
   'OpenAI API',
-  'stablyai/manta',
-  '@orca_build',
+  'paidaxingyo666/Manta',
   // Protocol and format acronyms
   'SSH',
   'HTTPS',
