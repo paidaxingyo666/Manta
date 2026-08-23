@@ -514,3 +514,54 @@ jobs:
             --draft=false \
             --prerelease="${{ needs.prepare.outputs.prerelease }}" \
             --latest="${{ needs.prepare.outputs.prerelease == 'false' }}"
+
+      # Why this repo is the tap: `brew tap <name> <url>` reads casks straight
+      # out of Casks/, so the fork needs no second repository, no GitHub App,
+      # and no PAT — GITHUB_TOKEN can write to main, which is not protected.
+      # Upstream's homebrew-bump.yml PRs into a separate tap it owns; that path
+      # was never reachable here.
+      #
+      # Runs on main rather than the tag: a tag is where the release is cut, but
+      # the cask has to live on the branch a tap fetches.
+      - name: Update the Homebrew cask
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          if [ "$PRERELEASE" = 'true' ]; then cask='manta@rc'; else cask='manta'; fi
+
+          mkdir -p dmgs
+          for arch in arm64 x64; do
+            gh release download "$RELEASE_TAG" \
+              --pattern "manta-macos-${arch}.dmg" --dir dmgs --clobber
+          done
+          arm=$(sha256sum "dmgs/manta-macos-arm64.dmg" | awk '{print $1}')
+          intel=$(sha256sum "dmgs/manta-macos-x64.dmg" | awk '{print $1}')
+
+          git fetch origin main
+          git checkout main
+          CASK="Casks/${cask}.rb" VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
+          import os, pathlib, re
+          p = pathlib.Path(os.environ['CASK'])
+          src = p.read_text()
+          src = re.sub(r'version "[^"]+"', f'version "{os.environ["VERSION"]}"', src, count=1)
+          src = re.sub(
+              r'sha256 arm:\s*"[0-9a-f]+",\s*\n\s*intel:\s*"[0-9a-f]+"',
+              f'sha256 arm:   "{os.environ["ARM"]}",\n         intel: "{os.environ["INTEL"]}"',
+              src, count=1)
+          p.write_text(src)
+          PY
+
+          if git diff --quiet -- "Casks/${cask}.rb"; then
+            echo "cask already at ${version}"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add "Casks/${cask}.rb"
+          git commit -m "chore(cask): ${cask} ${version}"
+          git push origin main

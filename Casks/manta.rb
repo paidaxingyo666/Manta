@@ -1,3 +1,13 @@
+# This repo IS the Homebrew tap — `brew tap` reads casks straight out of Casks/,
+# so there is no second repository. `fork-release.yml` rewrites the version and
+# both hashes from the published release and commits the result back to main.
+#
+#   brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta
+#   brew install --cask paidaxingyo666/manta/manta
+#
+# No stable release exists yet — the fork has published only v1.4.189-rc.0, a
+# pre-release, which belongs to manta@rc.rb. The literals below are placeholders
+# the rewrite needs something to match, not a release anyone can install.
 cask "manta" do
   arch arm: "arm64", intel: "x64"
 

@@ -1,3 +1,9 @@
+# This repo IS the Homebrew tap — see manta.rb. `fork-release.yml` keeps the
+# version and hashes below in sync with the newest pre-release.
+#
+#   brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta
+#   brew install --cask paidaxingyo666/manta/manta@rc
+#
 cask "manta@rc" do
   arch arm: "arm64", intel: "x64"
 

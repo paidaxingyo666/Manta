@@ -44,10 +44,21 @@ Download and make the AppImage executable:
 
 ```bash
 sudo mkdir -p /opt/manta
-sudo curl -L https://github.com/stablyai/orca/releases/latest/download/manta-linux.AppImage \
+sudo curl -L https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-linux.AppImage \
   -o /opt/manta/manta-linux.AppImage
 sudo chmod +x /opt/manta/manta-linux.AppImage
 ```
+
+`releases/latest` resolves to the newest **stable** release and skips
+pre-releases, so it 404s while this fork has only published release candidates.
+Until a stable tag exists, name the tag:
+
+```bash
+sudo curl -L https://github.com/paidaxingyo666/Manta/releases/download/v1.4.189-rc.0/manta-linux.AppImage \
+  -o /opt/manta/manta-linux.AppImage
+```
+
+On arm64 the asset is `manta-linux-arm64.AppImage`.
 
 If `Xvfb` was installed somewhere other than `/usr/bin`, confirm systemd can
 find it later:
@@ -451,7 +462,7 @@ recover_failed_upgrade() {
 trap recover_failed_upgrade EXIT
 
 # 1. Stage and verify the new build while the server stays online
-sudo curl -fL --retry 3 "https://github.com/stablyai/orca/releases/download/${MANTA_VERSION}/${MANTA_ASSET}" \
+sudo curl -fL --retry 3 "https://github.com/paidaxingyo666/Manta/releases/download/${MANTA_VERSION}/${MANTA_ASSET}" \
   -o /opt/manta/manta-linux.AppImage.new
 sudo chown root:root /opt/manta/manta-linux.AppImage.new
 sudo chmod 755 /opt/manta/manta-linux.AppImage.new
