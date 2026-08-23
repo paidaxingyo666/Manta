@@ -204,6 +204,7 @@ import { listManagedSkillInstalls } from '../skills/skill-install-provenance'
 import { getWslHome, toLinuxPath } from '../wsl'
 import { WslSkillInstallFilesystem } from '../skills/skill-wsl-install-filesystem'
 import { nativeSkillInstallFilesystem } from '../skills/skill-install-filesystem'
+import { resolveSkillPackageDownloadOrigins } from '../../shared/skill-package-download-origins'
 import type { SkillProviderRootOverrides } from '../skills/skill-provider-destinations'
 import {
   resolveEnvironmentSkillProviderRoots,
@@ -5228,14 +5229,9 @@ export class MantaRuntimeService {
         })
       }
       await this.skillTransactionRecovery
-      const allowedDownloadOrigins = ['https://storage.googleapis.com']
-      if (!getAppEnvironment().isPackaged() && process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS) {
-        allowedDownloadOrigins.push(
-          ...process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS.split(',')
-            .map((origin) => origin.trim())
-            .filter(Boolean)
-        )
-      }
+      const allowedDownloadOrigins = resolveSkillPackageDownloadOrigins({
+        allowLoopbackHttp: !getAppEnvironment().isPackaged()
+      })
       return await executeSkillBundleInstallRequest(request, {
         authority: this.skillInstallDestinationAuthority(runtimeId),
         stateDirectory: getAppEnvironment().getPath('userData'),
@@ -5291,14 +5287,9 @@ export class MantaRuntimeService {
       })
     }
     await this.skillTransactionRecovery
-    const allowedDownloadOrigins = ['https://storage.googleapis.com']
-    if (!getAppEnvironment().isPackaged() && process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS) {
-      allowedDownloadOrigins.push(
-        ...process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS.split(',')
-          .map((origin) => origin.trim())
-          .filter(Boolean)
-      )
-    }
+    const allowedDownloadOrigins = resolveSkillPackageDownloadOrigins({
+      allowLoopbackHttp: !getAppEnvironment().isPackaged()
+    })
     return executeSkillInstallRequest(request, {
       authority: this.skillInstallDestinationAuthority(runtimeId),
       stateDirectory: getAppEnvironment().getPath('userData'),

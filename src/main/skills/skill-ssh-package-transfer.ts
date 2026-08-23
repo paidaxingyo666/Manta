@@ -1,3 +1,4 @@
+import { resolveSkillPackageDownloadOrigins } from '../../shared/skill-package-download-origins'
 import { open } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { SkillBundleInstallRequest } from '../../shared/skill-bundle-install-contract'
@@ -30,15 +31,7 @@ type SkillSshTransferInput = {
 }
 
 function allowedOrigins(requireHttps: boolean): string[] {
-  const origins = ['https://storage.googleapis.com']
-  if (!requireHttps && process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS) {
-    origins.push(
-      ...process.env.MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS.split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean)
-    )
-  }
-  return [...new Set(origins)]
+  return resolveSkillPackageDownloadOrigins({ allowLoopbackHttp: !requireHttps })
 }
 
 async function transferSkillPackageToSshHostUnobserved(
