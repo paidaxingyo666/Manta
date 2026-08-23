@@ -9,7 +9,7 @@
 # because electron-builder's directory name can vary by productName sanitization.
 set -e
 
-link="/usr/bin/orca-ide"
+link="/usr/bin/manta-ide"
 
 for dir in /opt/Manta /opt/manta-ide /opt/manta; do
   sandbox="$dir/chrome-sandbox"
@@ -21,7 +21,7 @@ for dir in /opt/Manta /opt/manta-ide /opt/manta; do
 
   shim="$dir/resources/bin/manta-ide"
   if [ -x "$shim" ]; then
-    # Only manage our own symlink; never clobber an unrelated /usr/bin/orca-ide.
+    # Only manage our own symlink; never clobber an unrelated /usr/bin/manta-ide.
     if [ ! -e "$link" ] || [ -L "$link" ]; then
       ln -sf "$shim" "$link"
     fi

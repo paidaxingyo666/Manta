@@ -174,7 +174,7 @@ describe('bundled skill guide generator', () => {
       expect(source).toContain('PowerShell')
       expect(source).toContain('cmd.exe')
       expect(source).toMatch(/^MANTA .+--json$/mu)
-      // Why: bare command lines can launch GNOME Manta, while shell variables make
+      // Why: bare command lines can launch GNOME Orca, while shell variables make
       // the same guide unusable from PowerShell and cmd.exe.
       expect(source).not.toMatch(/^manta /mu)
       expect(source).not.toMatch(/\$MANTA(?:_|\b)/u)

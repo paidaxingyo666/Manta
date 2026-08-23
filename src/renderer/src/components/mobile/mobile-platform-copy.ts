@@ -9,20 +9,28 @@ export type InstallCopy = { ctaLabel: string; url: string }
 
 export const ANDROID_INSTALL_GUIDE_URL = 'https://www.manta.sh.cn/docs/android-apk'
 
+// Why the releases page and not a store listing or a pinned asset: the App
+// Store id and TestFlight invite inherited from upstream belong to upstream's
+// app, so following them installs the wrong product — worse than a dead link,
+// because it works. And this fork has published no mobile build yet, so a
+// pinned `mobile-android-v0.0.44` asset is a 404. The releases page is true
+// today (it is empty) and stays true the moment one is cut.
+const FORK_RELEASES_URL = 'https://github.com/paidaxingyo666/Manta/releases'
+
 const IOS_CHANNEL_COPY: Record<IosChannel, InstallCopy> = {
   stable: {
-    ctaLabel: 'Open App Store',
-    url: 'https://apps.apple.com/app/manta-ide/id6766130217'
+    ctaLabel: 'Open releases',
+    url: FORK_RELEASES_URL
   },
   preview: {
-    ctaLabel: 'Open TestFlight',
-    url: 'https://testflight.apple.com/join/YjeGMQBA'
+    ctaLabel: 'Open releases',
+    url: FORK_RELEASES_URL
   }
 }
 
 const ANDROID_COPY: InstallCopy = {
-  ctaLabel: 'Download APK',
-  url: 'https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.44/app-release.apk'
+  ctaLabel: 'Open releases',
+  url: FORK_RELEASES_URL
 }
 
 export function getInstallCopy(platform: Platform, iosChannel: IosChannel): InstallCopy {

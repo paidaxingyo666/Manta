@@ -7,13 +7,29 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # sync must land upstream's bytes, not a locally reformatted version of them —
 # the gates at the end are where formatting gets settled.
 export HUSKY=0
+PRIOR_HOOKS_PATH="$(git config --get core.hooksPath || true)"
+restore_hooks() {
+  if [ -n "$PRIOR_HOOKS_PATH" ]; then
+    git config core.hooksPath "$PRIOR_HOOKS_PATH"
+  else
+    git config --unset core.hooksPath 2>/dev/null || true
+  fi
+}
+# Every exit, not just the happy one: this script stops on purpose whenever a
+# conflict needs a person, and leaving hooks pointed at /dev/null would make
+# every later commit skip pre-commit without saying so.
+trap restore_hooks EXIT
 git config core.hooksPath /dev/null
 PICKS="${1:?usage: sync-run.sh <file-of-commit-shas>}"
 LOG="${2:-/tmp/sync-status.txt}"
 : > "$LOG"
 total=$(grep -c . "$PICKS")
 n=0
-while read -r c; do
+# `|| [ -n "$c" ]`: a list written without a trailing newline loses its last
+# entry to a bare `read`, and the loop still reports success. It happened on the
+# 23 August sync — the newest upstream commit was missing and only turned up
+# because someone counted.
+while read -r c || [ -n "$c" ]; do
   [ -z "$c" ] && continue
   n=$((n + 1))
   subj=$(git log -1 --format=%s "$c")
@@ -49,5 +65,4 @@ while read -r c; do
   cat /tmp/rebrand-out.txt
   exit 1
 done < "$PICKS"
-git config --unset core.hooksPath
 echo "全部完成"

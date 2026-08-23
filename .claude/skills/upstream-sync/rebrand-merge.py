@@ -170,6 +170,10 @@ def main():
             if rebrand(theirs) == ours:
                 clean.append(path)
                 if apply:
+                    # Write before staging. The working tree still holds the file
+                    # git left behind, conflict markers and all, and `git add`
+                    # alone would stage those — silently, with a zero exit.
+                    pathlib.Path(path).write_bytes(ours)
                     subprocess.run(['git', 'add', '--', path], check=True)
                 continue
             skipped.append((path, 'add/add, not brand-only'))

@@ -35,7 +35,12 @@ KEEP = {
     'orca-hourly-release',
     'onorca-cloud',
 }
-KEEP_SUBSTRING = ('stablyai/orca', 'GNOME Orca', '/usr/bin/orca', 'onorca-cloud')
+KEEP_SUBSTRING = ('stablyai/orca', '/usr/bin/orca', 'onorca-cloud')
+# Phrases where the brand is a bare word with a space in front of it, so the
+# token scanner never sees them as one unit. GNOME Orca is Ubuntu's screen
+# reader and the whole reason the Linux binary is manta-ide; renaming it in a
+# comment turns the explanation into its own contradiction.
+KEEP_PHRASE = ('GNOME Orca',)
 
 def rebrand_token(tok):
     return tok.replace('ORCA', 'MANTA').replace('Orca', 'Manta').replace('orca', 'manta')
@@ -81,6 +86,9 @@ def main():
 
         def replace(m):
             tok = m.group(0)
+            if any(ph in text[max(0, m.start() - 12):m.end() + 12] for ph in KEEP_PHRASE):
+                declined.setdefault(tok, set()).add(path)
+                return tok
             if manta_twin_exists(tok):
                 renamed.setdefault(path, set()).add(tok)
                 return rebrand_token(tok)

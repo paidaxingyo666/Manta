@@ -87,7 +87,7 @@ export class CliInstaller {
       // Why: development builds must not claim the production shell command.
       return DEV_COMMAND_NAME
     }
-    // Why: packaged Linux uses `manta-ide` to avoid shadowing GNOME Manta's /usr/bin/orca.
+    // Why: packaged Linux uses `manta-ide` to avoid shadowing GNOME Orca's /usr/bin/orca.
     return this.platform === 'linux' ? LINUX_CLI_COMMAND_NAME : 'manta'
   }
 
@@ -356,7 +356,7 @@ export class CliInstaller {
 
     if (this.platform === 'linux') {
       // Why: Linux lacks a privileged global command flow; ~/.local/bin is the least-surprising user-scoped dir.
-      // Why `manta-ide`: GNOME Manta ships /usr/bin/orca, so avoid shadowing that screen reader.
+      // Why `manta-ide`: GNOME Orca ships /usr/bin/orca, so avoid shadowing that screen reader.
       return join(this.homePath, '.local', 'bin', LINUX_CLI_COMMAND_NAME)
     }
 
@@ -446,7 +446,7 @@ export class CliInstaller {
         return
       }
 
-      // Why: after the Linux command rename, the old `manta` symlink would keep shadowing GNOME Manta.
+      // Why: after the Linux command rename, the old `manta` symlink would keep shadowing GNOME Orca.
       await unlink(legacyCommandPath)
     } catch (error) {
       if (isMissingError(error)) {

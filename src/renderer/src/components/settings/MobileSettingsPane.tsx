@@ -11,9 +11,10 @@ import { useAppStore } from '@/store'
 import { MobileRelayBetaNotice } from './MobileRelayBetaNotice'
 export { getMobileSettingsPaneSearchEntries }
 
-const MANTA_IOS_APP_STORE_URL = 'https://apps.apple.com/app/manta-ide/id6766130217'
-const MANTA_ANDROID_APK_URL =
-  'https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.44/app-release.apk'
+// Upstream's App Store id, inherited by the rename. This fork has no listing
+// of its own yet, so point at its releases rather than at someone else's app.
+const MANTA_IOS_APP_STORE_URL = 'https://github.com/paidaxingyo666/Manta/releases'
+const MANTA_ANDROID_APK_URL = 'https://github.com/paidaxingyo666/Manta/releases'
 
 export function MobileSettingsPane(): React.JSX.Element {
   const showMobileButton = useAppStore((s) => s.settings?.showMobileButton !== false)

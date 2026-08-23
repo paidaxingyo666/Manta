@@ -483,7 +483,7 @@ module.exports = {
     artifactName: 'manta-macos-${arch}.${ext}'
   },
   linux: {
-    // Why: Ubuntu desktop ships GNOME Orca as the `manta` package and /usr/bin/manta.
+    // Why: Ubuntu desktop ships GNOME Orca as the `orca` package and /usr/bin/orca.
     // The Linux installer should not claim those system package/file names.
     executableName: 'manta-ide',
     // Why: the icns source lets electron-builder emit standard hicolor PNG

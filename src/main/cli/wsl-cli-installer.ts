@@ -264,7 +264,7 @@ export class WslCliInstaller {
         `mv -f "$command_tmp" ${quoteShell(status.commandPath)}`,
         'committed=1',
         'rm -f "$bridge_backup"',
-        // Why: the command was renamed to avoid GNOME Manta; remove only the
+        // Why: the command was renamed to avoid GNOME Orca; remove only the
         // old Manta-managed WSL wrapper after the replacement has committed.
         buildManagedLegacyRemoveCommand('"$legacy_command_path"'),
         'trap - EXIT'
@@ -357,7 +357,7 @@ export class WslCliInstaller {
     }
 
     const pathDirectory = `${home}/.local/bin`
-    // Why: matches the Linux CLI rename to `manta-ide` (avoids GNOME Manta conflict).
+    // Why: matches the Linux CLI rename to `manta-ide` (avoids GNOME Orca conflict).
     const commandPath = `${pathDirectory}/${WSL_COMMAND_NAME}`
     const pathConfigured =
       (
