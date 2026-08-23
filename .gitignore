@@ -135,8 +135,13 @@ validation-screenshots/
 test-results/
 playwright-report/
 
-# Agent skill installations (machine-local, populated by agent tooling)
-/.claude/skills/
+# Agent skill installations (machine-local, populated by agent tooling).
+# The glob rather than the bare directory so a repo-owned skill can be carved
+# back out — git cannot re-include anything under an excluded directory.
+/.claude/skills/*
+# Kept in the repo: syncing from upstream is a process this fork has to repeat,
+# and the tooling only makes sense next to the notes explaining it.
+!/.claude/skills/upstream-sync/
 /.agents/skills/
 /skills-lock.json
 
