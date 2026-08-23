@@ -60,7 +60,9 @@ describe('MimoCodeHookService buildPtyEnv', () => {
 
     const mantaPlugin = join(overlayHome, 'config', 'plugins', 'manta-mimocode-status.js')
     expect(existsSync(mantaPlugin)).toBe(true)
-    expect(readFileSync(mantaPlugin, 'utf8')).toContain('/hook/mimo-code')
+    const pluginSource = readFileSync(mantaPlugin, 'utf8')
+    expect(pluginSource).toContain('/hook/mimo-code')
+    expect(pluginSource).not.toContain('post("SessionStart"')
 
     expect(
       readFileSync(join(mimocodeHome, 'config', 'plugins', 'manta-mimocode-status.js'), 'utf8')
