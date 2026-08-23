@@ -21,7 +21,6 @@ const {
 vi.mock('electron', () => ({
   app: {
     exit: vi.fn(),
-    getPath: () => '/tmp/manta-user-data',
     relaunch: vi.fn()
   },
   ipcMain: {
@@ -56,9 +55,13 @@ vi.mock('../manta-profiles/profile-cloud-service', () => ({
 }))
 
 import { registerMantaProfileHandlers } from './manta-profiles'
+import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
 
 describe('registerMantaProfileHandlers auth channels', () => {
   beforeEach(() => {
+    // Why the port and per-test: userData resolves through AppEnvironment now, and
+    // the global setup's beforeEach reinstates its own fake before this runs.
+    installFakeAppEnvironment({ getPath: () => '/tmp/manta-user-data' })
     handlers.clear()
     createCloudLinkedMantaProfileMock.mockReset()
     connectCurrentMantaProfileMock.mockReset()
