@@ -11,7 +11,7 @@
  *
  * This is also the acceptance gate for a future Node-only backend
  * (docs/design/node-only-runtime-backend.html): the same script should pass against
- * `orcad` unchanged, because it drives nothing but the public pairing + RPC surface.
+ * `mantad` unchanged, because it drives nothing but the public pairing + RPC surface.
  *
  * Hard assertions (fail the job):
  *   - the server emits its ready payload with a pairing offer,
@@ -28,7 +28,7 @@ import process from 'node:process'
 
 const projectDir = resolve(import.meta.dirname, '../..')
 const serveEntry = join(projectDir, 'out', 'main', 'index.js')
-const ORCAD_ENTRY = join(projectDir, 'out', 'orcad', 'orcad.js')
+const MANTAD_ENTRY = join(projectDir, 'out', 'mantad', 'mantad.js')
 const READY_TIMEOUT_MS = 120_000
 const OUTPUT_TIMEOUT_MS = 30_000
 const SHUTDOWN_TIMEOUT_MS = 15_000
@@ -169,17 +169,17 @@ function resolveLaunch(userDataDir) {
   const flagIndex = process.argv.indexOf('--target')
   const target =
     flagIndex !== -1 ? process.argv[flagIndex + 1] : (process.env.ORCA_SMOKE_TARGET ?? 'electron')
-  if (target === 'orcad') {
+  if (target === 'mantad') {
     return {
-      label: `orcad (${ORCAD_ENTRY})`,
+      label: `mantad (${MANTAD_ENTRY})`,
       command: process.execPath,
-      args: [ORCAD_ENTRY, '--port', String(PORT), '--json'],
+      args: [MANTAD_ENTRY, '--port', String(PORT), '--json'],
       env: { MANTA_USER_DATA: userDataDir }
     }
   }
   if (target !== 'electron') {
     throw new Error(
-      `--target (or ORCA_SMOKE_TARGET) must be 'electron' or 'orcad', got '${target}'`
+      `--target (or ORCA_SMOKE_TARGET) must be 'electron' or 'mantad', got '${target}'`
     )
   }
   const serveArgs = [

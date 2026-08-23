@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bundle `orcad` — the Manta runtime served from plain Node, no Electron.
+ * Bundle `mantad` — the Manta runtime served from plain Node, no Electron.
  *
  * Variant B (see docs/design/node-only-runtime-backend.html): the browser-pane and
  * speech clusters are excluded. That is not a size optimisation — those modules are
@@ -13,14 +13,14 @@ import { join } from 'node:path'
 import process from 'node:process'
 
 const ROOT = join(import.meta.dirname, '..', '..')
-const OUT_DIR = join(ROOT, 'out', 'orcad')
+const OUT_DIR = join(ROOT, 'out', 'mantad')
 const ENTRY = join(ROOT, 'src/main/mantad/main.ts')
 
 // Native addons must exist on the host; they cannot be bundled.
 // `electron` is external so a residual import fails loudly at require() time rather
 // than silently bundling the npm package's installer shim, which is what happened the
 // first time and made the bundle look clean while it was not.
-// Why only these: measured, not guessed. `node-pty` is a hard `require.resolve` — orcad
+// Why only these: measured, not guessed. `node-pty` is a hard `require.resolve` — mantad
 // exits at startup without it. `@parcel/watcher` is a guarded dynamic import, so the
 // server boots without it but every watch install fails. `fsevents` is macOS-only and
 // optional upstream. better-sqlite3 / keytar / cpu-features were externalized here
@@ -55,7 +55,7 @@ const result = await build({
   platform: 'node',
   target: 'node18',
   format: 'cjs',
-  outfile: join(OUT_DIR, 'orcad.js'),
+  outfile: join(OUT_DIR, 'mantad.js'),
   external: EXTERNAL,
   plugins: [jsoncParserEsm, externalNativeAddons],
   metafile: true,
@@ -81,16 +81,16 @@ for (const [file, info] of Object.entries(result.metafile.inputs)) {
 
 if (electronImporters.size > 0) {
   console.error(
-    `[build-orcad] ${electronImporters.size} module(s) in the bundle import electron:
+    `[build-mantad] ${electronImporters.size} module(s) in the bundle import electron:
 ${[...electronImporters].map((f) => `  - ${f}`).join('\n')}`
   )
   // Why this can exceed the ratchet baseline: the ratchet measures the graph reachable
   // from manta-runtime + runtime-rpc, but this entry also imports ipc/pty directly to
-  // install the PTY controller. Once orcad ships, it should become a ratchet entry
+  // install the PTY controller. Once mantad ships, it should become a ratchet entry
   // point so the two numbers cannot drift.
   process.exitCode = 1
 } else {
   console.log(
-    `[build-orcad] ok — ${(output.bytes / 1024 / 1024).toFixed(2)} MB, ${Object.keys(output.inputs).length} modules, zero electron imports.`
+    `[build-mantad] ok — ${(output.bytes / 1024 / 1024).toFixed(2)} MB, ${Object.keys(output.inputs).length} modules, zero electron imports.`
   )
 }

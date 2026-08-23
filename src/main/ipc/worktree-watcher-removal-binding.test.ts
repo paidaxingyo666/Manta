@@ -3,7 +3,7 @@ import { getWorktreeWatcherRemoval, setWorktreeWatcherRemoval } from './worktree
 
 /**
  * Why: the port's default is inert by design — a host with no renderer has no watchers
- * to close. That is correct for orcad and silently wrong for the desktop, where an
+ * to close. That is correct for mantad and silently wrong for the desktop, where an
  * uninstalled port means worktree removal stops releasing the directory and Windows
  * fails the delete on a locked file. The default is indistinguishable from a working
  * install at the call site, so it gets asserted here.

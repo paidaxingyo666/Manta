@@ -1,5 +1,5 @@
 /**
- * `orcad` — the Manta runtime served from plain Node, with no Electron.
+ * `mantad` — the Manta runtime served from plain Node, with no Electron.
  *
  * Installs the Node host adapters, constructs the same `MantaRuntimeService` the
  * desktop uses, installs a PTY controller via `registerPtyHandlers(null, …)`, and
@@ -36,7 +36,7 @@ function createNodeAppEnvironment(): AppEnvironment {
       try {
         handler()
       } catch (error) {
-        console.error('[orcad] shutdown handler failed:', error)
+        console.error('[mantad] shutdown handler failed:', error)
       }
     }
   }
@@ -51,7 +51,7 @@ function createNodeAppEnvironment(): AppEnvironment {
   return {
     getPath: (name) => (name === 'home' ? homedir() : name === 'temp' ? tmpdir() : userData),
     getAppPath: () => process.cwd(),
-    getVersion: () => process.env.MANTA_VERSION ?? '0.0.0-orcad',
+    getVersion: () => process.env.MANTA_VERSION ?? '0.0.0-mantad',
     isPackaged: () => true,
     onWillQuit: (handler) => quitHandlers.push(handler),
     exit: (code = 0) => process.exit(code),
@@ -69,29 +69,29 @@ function createNodeSecretStore(): SecretStore {
   return {
     isEncryptionAvailable: () => false,
     encryptString: () => {
-      throw new Error('orcad_secret_sealing_unavailable')
+      throw new Error('mantad_secret_sealing_unavailable')
     },
     decryptString: () => {
-      throw new Error('orcad_secret_sealing_unavailable')
+      throw new Error('mantad_secret_sealing_unavailable')
     },
     describeProtectionGap: () =>
       'This host has no OS keyring, so credentials are stored unencrypted. Pair from a desktop to manage secrets, or install and unlock a keyring.'
   }
 }
 
-export function installOrcadHostAdapters(): void {
+export function installMantadHostAdapters(): void {
   setAppEnvironment(createNodeAppEnvironment())
   setSecretStore(createNodeSecretStore())
 }
 
-export type OrcadOptions = {
+export type MantadOptions = {
   port?: number
   json?: boolean
   noPairing?: boolean
   pairingAddress?: string
 }
 
-export type OrcadHandle = {
+export type MantadHandle = {
   readiness: ServeReadiness
   stop(): Promise<void>
 }
@@ -101,8 +101,8 @@ export type OrcadHandle = {
  * readiness payload has been published, mirroring the desktop `--serve` contract byte
  * for byte so the same harnesses can drive either host.
  */
-export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandle> {
-  installOrcadHostAdapters()
+export async function startMantad(options: MantadOptions = {}): Promise<MantadHandle> {
+  installMantadHostAdapters()
 
   const { MantaRuntimeService } = await import('../runtime/manta-runtime')
   const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
@@ -136,7 +136,7 @@ export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandl
     getSshProvider: (connectionId) => getSshPtyProvider(connectionId),
     // Why false: this host does not run the terminal daemon, so persistent local PTYs
     // cannot be recovered. The constructor defaults this to true, which would claim a
-    // capability orcad does not have.
+    // capability mantad does not have.
     canRecoverPersistentLocalPtys: () => false,
     // Why 'blocked': `'openable'` means a desktop window can be opened here, which is
     // what powers serve→desktop promotion. A Node host can never do that, and the
@@ -188,7 +188,7 @@ export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandl
     boundEndpoint,
     advertisedEndpoint: advertised?.ok ? advertised.endpoint : null,
     // Why 'settled': the WSL CLI reconciliation barrier is a desktop-launch concern.
-    // orcad never runs it, so there is no pending repair a client could race.
+    // mantad never runs it, so there is no pending repair a client could race.
     managedWslCliReconciliation: 'settled',
     pairing: offer.available
       ? {
@@ -215,8 +215,8 @@ export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandl
   }
 }
 
-function parseArgs(argv: string[]): OrcadOptions {
-  const options: OrcadOptions = {}
+function parseArgs(argv: string[]): MantadOptions {
+  const options: MantadOptions = {}
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
     if (arg === '--port') {
@@ -246,7 +246,7 @@ function parseArgs(argv: string[]): OrcadOptions {
 }
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
-  const handle = await startOrcad(parseArgs(argv))
+  const handle = await startMantad(parseArgs(argv))
   let stopping = false
   const shutdown = (signal: NodeJS.Signals): void => {
     if (stopping) {
@@ -259,7 +259,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
       // Why not rethrow: we are already tearing down on a signal, and an exit code is
       // the only thing a supervisor can act on.
       .catch((error) => {
-        console.error(`orcad: shutdown after ${signal} failed:`, error)
+        console.error(`mantad: shutdown after ${signal} failed:`, error)
         process.exit(1)
       })
   }
