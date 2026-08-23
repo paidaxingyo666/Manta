@@ -5,6 +5,7 @@ import {
   waitForActivePanePtyId,
   waitForActiveTerminalManager
 } from './helpers/terminal'
+import { FAKE_AGENT_WINDOWS_SHELL } from './helpers/fake-agent-command-override'
 import {
   cleanupCompletedWorkerFixture,
   clearCompletedWorkerLedger,
@@ -46,13 +47,20 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     await ensureTerminalVisible(mantaPage)
     await waitForActiveTerminalManager(mantaPage)
     await waitForActivePanePtyId(mantaPage)
-    await mantaPage.evaluate(async (agentCommand) => {
-      await window.__store?.getState().updateSettings({
-        agentCmdOverrides: { codex: agentCommand },
-        disabledTuiAgents: [],
-        terminalHiddenViewParking: false
-      })
-    }, completedWorkerFakeCodexCommand)
+    await mantaPage.evaluate(
+      async ({ agentCommand, terminalWindowsShell }) => {
+        await window.__store?.getState().updateSettings({
+          agentCmdOverrides: { codex: agentCommand },
+          terminalWindowsShell,
+          disabledTuiAgents: [],
+          terminalHiddenViewParking: false
+        })
+      },
+      {
+        agentCommand: completedWorkerFakeCodexCommand,
+        terminalWindowsShell: FAKE_AGENT_WINDOWS_SHELL
+      }
+    )
 
     const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
     const isolatedHome = await electronApp.evaluate(({ app }) => app.getPath('home'))
@@ -186,6 +194,13 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
         return dispatchCapability
       })
       .not.toBeNull()
+    await expect
+      .poll(() =>
+        readCompletedWorkerLedger()
+          .filter((event) => event.event === 'ack')
+          .map((event) => event.mode)
+      )
+      .toEqual(['bracketed'])
     if (!dispatchCapability) {
       throw new Error('Background worker did not receive its dispatch capability')
     }
@@ -197,7 +212,15 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
     )
 
     await mantaPage.evaluate(
-      ({ paneKey, providerSessionId, tabId, terminalHandle, transcriptPath, worktreeId }) => {
+      ({
+        agentCommand,
+        paneKey,
+        providerSessionId,
+        tabId,
+        terminalHandle,
+        transcriptPath,
+        worktreeId
+      }) => {
         const state = window.__store?.getState()
         if (!state) {
           throw new Error('Renderer store unavailable')
@@ -211,7 +234,10 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
         const recovery = {
           providerSession,
           launchConfig: {
-            agentCommand: 'codex',
+            // Why not bare 'codex': resume prefers the captured command over
+            // agentCmdOverrides, so a bare name would resolve the machine's real
+            // Codex off PATH and unpin the adoption leg this spec exercises.
+            agentCommand,
             agentArgs: '--dangerously-bypass-approvals-and-sandbox',
             agentEnv: {}
           }
@@ -234,6 +260,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
         )
       },
       {
+        agentCommand: completedWorkerFakeCodexCommand,
         paneKey: workerPaneKey,
         providerSessionId: PROVIDER_SESSION_ID,
         tabId: worker.tabId,
