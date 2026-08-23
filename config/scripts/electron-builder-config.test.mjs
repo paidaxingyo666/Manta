@@ -651,3 +651,17 @@ describe('electron-builder config', () => {
     })
   })
 })
+
+describe('macOS release architectures', () => {
+  // Restored after a local-build convenience shrank it to arm64 alone and the
+  // comment made that read as a shipping decision. Intel Macs get a build.
+  it('ships x64 and arm64 from one invocation', () => {
+    expect(electronBuilderConfig.mac.target.map((entry) => entry.target).sort()).toEqual([
+      'dmg',
+      'zip'
+    ])
+    for (const entry of electronBuilderConfig.mac.target) {
+      expect(entry.arch).toEqual(['x64', 'arm64'])
+    }
+  })
+})

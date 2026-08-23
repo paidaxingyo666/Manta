@@ -105,6 +105,20 @@ describe('Apple credential scope', () => {
     expect(macos.environment).toBe(RELEASE_ENVIRONMENT)
   })
 
+  it('keeps the credential-scoped environment on the signing job alone', () => {
+    const jobs = Object.entries(readWorkflow('fork-release.yml').jobs)
+    const scoped = jobs.filter(([, job]) => job.environment === RELEASE_ENVIRONMENT).map(([n]) => n)
+
+    // Environment secrets are job-scoped, not step-scoped: any job naming this
+    // environment can read the Developer ID from every step it runs. The Linux
+    // leg apt-gets from the Ubuntu archive and bind-mounts the workspace into a
+    // container it then installs packages inside — putting a signing identity
+    // within its reach buys nothing. The assertion above only says that a job
+    // using the credentials must declare the environment; without this one,
+    // adding `environment:` to a leg that does not need it stays silent.
+    expect(scoped).toEqual(['macos'])
+  })
+
   it('leaves the tag as the only way to name a release', () => {
     const workflow = readWorkflow('fork-release.yml')
     const on = workflow.on ?? workflow[true]

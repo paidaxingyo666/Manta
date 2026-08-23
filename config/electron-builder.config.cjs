@@ -454,19 +454,25 @@ module.exports = {
         to: 'MacOS/manta-keyboard-layout'
       }
     ],
-    // Why arm64 only: this fork ships to Apple Silicon. Building x64 as well
-    // doubled build time and, worse, produced a second Manta.app one directory
-    // over — launching that one on an M-series Mac runs the whole app under
-    // Rosetta, which looks like the app hanging rather than like a wrong build.
-    // Add 'x64' back here if an Intel build is ever needed.
+    // Both architectures ship. The second Manta.app that x64 leaves one
+    // directory over is a real hazard — opening it on Apple Silicon runs the
+    // whole app under Rosetta, which reads as a hang rather than as the wrong
+    // build — but it is a hazard of building locally, and build-mac-local.mjs
+    // is where it is handled. Release truth lives here.
+    //
+    // Both arches must come out of one electron-builder invocation:
+    // latest-mac.yml is written once at the end with every arch's entry merged.
+    // Split across two jobs and the second upload overwrites the first's
+    // manifest, leaving one architecture permanently unable to update while all
+    // nine files sit there looking complete.
     target: [
       {
         target: 'dmg',
-        arch: ['arm64']
+        arch: ['x64', 'arm64']
       },
       {
         target: 'zip',
-        arch: ['arm64']
+        arch: ['x64', 'arm64']
       }
     ]
   },
@@ -509,7 +515,7 @@ module.exports = {
       featureWallResources
     ],
     target: ['AppImage', 'deb'],
-    maintainer: 'stablyai',
+    maintainer: 'paidaxingyo666',
     category: 'Utility'
   },
   appImage: {

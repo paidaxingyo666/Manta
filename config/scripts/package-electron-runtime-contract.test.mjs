@@ -173,9 +173,16 @@ describe('Electron runtime package contract', () => {
     )
     expect(win).not.toContain(' && ')
 
-    // macOS runs under bash, where `&&` is the right separator.
+    // macOS and Linux run under bash, where `&&` is the right separator.
     const mac = packStep('macos').with.command
     expect(mac).toContain(' && MANTA_MAC_RELEASE=1 ')
+
+    const linux = packStep('linux').with.command
+    expect(linux).toContain(' && pnpm exec electron-builder ')
+    // A CLI target list replaces the config's outright, so this is the only
+    // place rpm is asked for — and verify-release-required-assets.mjs requires
+    // both rpms before it will let a release out of draft.
+    expect(linux).toContain('--linux AppImage deb rpm')
   })
 
   // A retry budget larger than the job it runs in is not a retry budget: the
@@ -185,7 +192,7 @@ describe('Electron runtime package contract', () => {
     const workflow = parse(
       readFileSync(join(projectDir, '.github/workflows/fork-release.yml'), 'utf8')
     )
-    for (const name of ['macos', 'windows']) {
+    for (const name of ['macos', 'windows', 'linux']) {
       const job = workflow.jobs[name]
       const worst = job.steps
         .filter((step) => String(step.uses ?? '').startsWith('nick-fields/retry'))

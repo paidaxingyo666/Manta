@@ -139,7 +139,7 @@ jobs:
   macos:
     needs: prepare
     runs-on: macos-15
-    timeout-minutes: 240
+    timeout-minutes: 300
     # The Apple credentials live here, not in repository secrets, and this
     # environment admits only refs matching the tag pattern `v*`. That is what
     # stops a scheduled or branch-triggered run from ever reaching them —
@@ -223,11 +223,12 @@ jobs:
       # is what the retries are for. The job ceiling has to leave room for them:
       # at 60 × 3 on a 120-minute job the second attempt was cut off partway and
       # the third never ran, and the failure read as a job timeout rather than as
-      # a notary stall.
+      # a notary stall. Two architectures means two independent notary round
+      # trips inside one attempt, hence 90 rather than 60.
       - name: Package, sign, notarize and upload
         uses: nick-fields/retry@v4
         with:
-          timeout_minutes: 60
+          timeout_minutes: 90
           max_attempts: 3
           retry_wait_seconds: 30
           command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_MAC_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
@@ -336,41 +337,169 @@ jobs:
             exit 1
           fi
 
-  publish:
-    needs: [prepare, macos, windows]
-    runs-on: ubuntu-latest
+  linux:
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    # 10×3 install + 30×3 package + 10×3 floor smoke = 150, inside 180.
+    timeout-minutes: 180
+    strategy:
+      # One architecture failing must not cancel the other: the draft then shows
+      # exactly which slice is missing instead of neither.
+      fail-fast: false
+      matrix:
+        include:
+          # Pinned rather than ubuntu-latest. runner-images already carries an
+          # Ubuntu 26.04 image, and the glibc floor gate would catch that bump
+          # by failing the package step — on release day, which is not when to
+          # find out.
+          - os: ubuntu-24.04
+            arch: x64
+            arm64_release: ''
+            unpacked_dir: dist/linux-unpacked
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            arm64_release: '1'
+            unpacked_dir: dist/linux-arm64-unpacked
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      # One reader: the config names the arm64 AppImage manta-linux-arm64
+      # while x64 keeps the historical manta-linux.AppImage — an ${arch} macro
+      # would render manta-linux-x86_64 and orphan every installed x64 client's
+      # latest-linux.yml. Drop this and both legs emit the same filename, and
+      # the second upload deletes the first before replacing it. deb and rpm
+      # are safe; they carry a real arch macro.
+      MANTA_LINUX_ARM64_RELEASE: ${{ matrix.arm64_release }}
     steps:
-      # Two green jobs is not the same as a complete release. electron-publish
-      # skips the upload silently when it cannot resolve the release, exiting
-      # zero — so the last thing standing between a half-empty release and the
-      # public is this count.
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: electron-builder-linux-${{ matrix.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            electron-builder-linux-${{ matrix.arch }}-
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      # Before Build app, not after. `pnpm build:release` runs
+      # verify:computer-native, which evaluates native/computer-use-linux's
+      # runtime.py, and that file imports gi at the top. Missing packages
+      # surface as a bare Python ImportError with nothing pointing at ordering.
+      # rpm feeds electron-builder's fpm backend. All of these are preinstalled
+      # on both images; installed anyway so an image change cannot quietly
+      # remove one.
+      - name: Install Linux packaging and computer-use dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-gi gir1.2-atspi-2.0 at-spi2-core xclip xdotool rpm
+
+      # MANTA_BUILD_IDENTITY and MANTA_POSTHOG_WRITE_KEY stay unset here for the
+      # same reason as on macOS: the analytics project behind them is upstream's.
+      - name: Build app
+        run: pnpm build:release
+
+      - name: Gate runtime file-watcher process isolation
+        run: |
+          node config/scripts/runtime-file-watcher-fault-harness.mjs
+          ELECTRON_RUN_AS_NODE=1 pnpm exec electron config/scripts/runtime-file-watcher-fault-harness.mjs
+
+      - name: Gate SSH relay watcher process isolation
+        run: node config/scripts/relay-watcher-fault-harness.mjs
+
+      # The target list here replaces the config's outright — a CLI target list
+      # makes electron-builder return before it ever reads the config, which is
+      # the only way rpm gets built. `--x64` / `--arm64` is not decoration
+      # either: it decides the unpacked directory name the next step reads.
       #
-      # The list is the fork's own: arm64 mac only, unsigned Windows, no Linux.
-      # config/scripts/verify-release-required-assets.mjs still describes
-      # upstream's twenty artifacts and would fail every release here.
-      - name: Verify every artifact arrived
+      # The glibc floor gate fires inside this step from electron-builder's
+      # afterPack hook. It needs no step of its own and cannot be skipped.
+      - name: Package and upload
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --${{ matrix.arch }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The other half of the floor contract. The afterPack gate is static: it
+      # reads version references and cannot see a dlopen-only dependency, or a
+      # library that simply does not exist on 20.04. This boots the packaged
+      # binary inside a real ubuntu:20.04 container, loads the packaged node-pty
+      # and forks a shell — the only step in the pipeline that starts the thing
+      # it just built. node-pty is imported at the top of the main process, so
+      # failing this is a double-click that does nothing, with no window and no
+      # error.
+      - name: Load packaged node-pty on the Ubuntu 20.04 floor
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node config/scripts/run-linux-packaged-node-pty-floor-smoke.mjs --app-dir ${{ matrix.unpacked_dir }}
+
+      - name: Verify the release is still a draft
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          names="$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')"
-          echo "$names"
-          # The dmg people download, the zip electron-updater downloads, their
-          # blockmaps, and the manifest that points at each. A plain string
-          # rather than an array: `set -u` and empty arrays disagree across bash
-          # versions, and this must not be the thing that breaks a release.
-          missing=""
-          for want in 'manta-macos-arm64\.dmg$' 'manta-macos-arm64\.dmg\.blockmap$' \
-                      '\-arm64-mac\.zip$' '\-arm64-mac\.zip\.blockmap$' '^latest-mac\.yml$' \
-                      '^manta-windows-setup\.exe$' '^manta-windows-setup\.exe\.blockmap$' '^latest\.yml$'; do
-            echo "$names" | grep -qE "$want" || missing="$missing $want"
-          done
-          if [ -n "$missing" ]; then
-            echo "::error::Release $RELEASE_TAG is missing:$missing"
+          draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::Release $RELEASE_TAG went public during the Linux upload."
             exit 1
           fi
+
+  publish:
+    needs: [prepare, macos, windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+
+      # Five green jobs is not the same as a complete release: electron-publish
+      # skips an upload silently when it cannot resolve the release, and exits
+      # zero having sent nothing. Now that this fork ships every slice upstream
+      # does, the shared checker describes exactly these twenty artifacts, so
+      # the hand-written list is gone — it could not see an asset still
+      # uploading or one that arrived empty, and two of its entries were about
+      # to become no-ops, since the x64 mac zip carries no arch token and any
+      # pattern loose enough to match it also matches the arm64 one.
+      - name: Verify every artifact arrived
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node config/scripts/verify-release-required-assets.mjs "$RELEASE_TAG"
 
       # Only now, with every platform's assets in place, does the release stop
       # being a draft.
