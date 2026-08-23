@@ -1,5 +1,5 @@
 /**
- * AppEnvironment abstracts the host-process facilities Orca's core reads from
+ * AppEnvironment abstracts the host-process facilities Manta's core reads from
  * Electron's `app`: data paths, version, packaged flag, and shutdown. The
  * desktop installs an Electron-backed implementation; a plain-Node host (the
  * headless runtime server) installs a Node one, so core modules never import

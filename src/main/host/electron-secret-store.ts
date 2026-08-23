@@ -63,6 +63,6 @@ function describeLinuxBackendGap(): string | null {
   // Why only basic_text: it "encrypts" with a hardcoded password, so it round-trips and
   // must keep working — but it protects nothing, and reporting it as sealed is the lie.
   return backend === 'basic_text'
-    ? 'Secrets are obfuscated with a built-in key, not protected by the OS keyring. Install and unlock gnome-keyring or kwallet, then restart Orca, to seal them properly.'
+    ? 'Secrets are obfuscated with a built-in key, not protected by the OS keyring. Install and unlock gnome-keyring or kwallet, then restart Manta, to seal them properly.'
     : null
 }

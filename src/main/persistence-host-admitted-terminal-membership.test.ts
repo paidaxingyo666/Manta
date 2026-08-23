@@ -55,7 +55,7 @@ describe('host-admitted terminal membership survives a stale renderer replay', (
     const store = await createStore()
     store.setWorkspaceSession(rendererSession())
 
-    // `orca terminal create`: the host mints a tab the renderer has never seen.
+    // `manta terminal create`: the host mints a tab the renderer has never seen.
     expect(
       store.persistPtyBinding({
         worktreeId: WORKTREE,

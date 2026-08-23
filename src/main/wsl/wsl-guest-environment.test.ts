@@ -14,8 +14,8 @@ import {
 function respondWithPayload(payload: string, code = 0): void {
   runProcessMock.mockImplementation(async (spec: { args: string[] }) => {
     const script = spec.args.at(-1) ?? ''
-    const begin = /__ORCA_WSL_CAPTURE_BEGIN_[a-z0-9]+__/.exec(script)?.[0] ?? ''
-    const end = /__ORCA_WSL_CAPTURE_END_[a-z0-9]+__/.exec(script)?.[0] ?? ''
+    const begin = /__MANTA_WSL_CAPTURE_BEGIN_[a-z0-9]+__/.exec(script)?.[0] ?? ''
+    const end = /__MANTA_WSL_CAPTURE_END_[a-z0-9]+__/.exec(script)?.[0] ?? ''
     return {
       code,
       signal: null,
@@ -156,7 +156,7 @@ describe('a failed verdict does not outlive its usefulness', () => {
     expect(await getWslGuestEnvironment('Ubuntu', 9_000)).not.toBeNull()
   })
 
-  it('bounds a joiner by its own budget, not the starter\'s', async () => {
+  it("bounds a joiner by its own budget, not the starter's", async () => {
     // Joining used to mean waiting out the starter's probe, so a joiner could
     // reach its own command with 1ms left.
     let release: (v: unknown) => void = () => {}
@@ -172,7 +172,7 @@ describe('a failed verdict does not outlive its usefulness', () => {
 describe('invalidation', () => {
   it('re-probes after the caller invalidates, so a newly installed tool appears', async () => {
     // A user who installs nvm inside a running distro would otherwise keep the
-    // pre-install PATH until Orca restarts, and read that as the detection bug
+    // pre-install PATH until Manta restarts, and read that as the detection bug
     // this cache exists to fix.
     respondWithPayload(GOOD)
     await getWslGuestEnvironment('Ubuntu')

@@ -198,11 +198,11 @@ describe('paneOwnsQueuedStartup', () => {
     observeConnect()
     // connectPanePty took it; the lifecycle nulls the outer slot so splits cannot replay it.
     deps.startup = null
-    splitPaneWithOneShotStartup(deps, { command: 'orca setup' }, () => {
+    splitPaneWithOneShotStartup(deps, { command: 'manta setup' }, () => {
       observeConnect()
       return { id: 2 }
     })
-    splitPaneWithOneShotStartup(deps, { command: 'orca issue' }, () => {
+    splitPaneWithOneShotStartup(deps, { command: 'manta issue' }, () => {
       observeConnect()
       return { id: 3 }
     })
@@ -213,16 +213,16 @@ describe('paneOwnsQueuedStartup', () => {
   // Why this case matters: a truthiness regression ("has a startup") passes the test above, because
   // the split payload is non-null there too. Only a structurally-identical payload separates them.
   it('denies ownership to a split payload structurally identical to the queued command', () => {
-    const queuedStartup = { command: 'orca setup' }
+    const queuedStartup = { command: 'manta setup' }
 
-    expect(paneOwnsQueuedStartup({ command: 'orca setup' }, queuedStartup)).toBe(false)
+    expect(paneOwnsQueuedStartup({ command: 'manta setup' }, queuedStartup)).toBe(false)
     expect(paneOwnsQueuedStartup(queuedStartup, queuedStartup)).toBe(true)
   })
 
   it('denies ownership when the tab queued nothing, so an unrelated pane cannot spend a slot', () => {
     expect(paneOwnsQueuedStartup(null, null)).toBe(false)
     expect(paneOwnsQueuedStartup(undefined, undefined)).toBe(false)
-    expect(paneOwnsQueuedStartup({ command: 'orca setup' }, null)).toBe(false)
+    expect(paneOwnsQueuedStartup({ command: 'manta setup' }, null)).toBe(false)
   })
 })
 

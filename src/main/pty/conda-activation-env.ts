@@ -24,7 +24,7 @@ const WINDOWS_STACK_KEY = /^(?:CONDA_PREFIX|CONDA_STACKED)_\d+$/i
  * CONDA_PYTHON_EXE, _CE_CONDA, _CE_M) are preserved so `conda` still resolves.
  *
  * Why delete-only, never synthesize: the reverse shape (prefix without sentinel)
- * does not crash — conda just reads it as inactive — and Orca cannot verify the
+ * does not crash — conda just reads it as inactive — and Manta cannot verify the
  * prefix directory exists on the executing host (it routinely does not for WSL
  * and SSH), so inventing activation state would be worse than leaving it.
  */

@@ -1,7 +1,7 @@
 /**
  * Windows command-line construction.
  *
- * Two parsers read the line Orca hands to CreateProcess, and they disagree:
+ * Two parsers read the line Manta hands to CreateProcess, and they disagree:
  *
  * - The target program's own startup code (`CommandLineToArgvW`, which the CRT and
  *   Node both use) understands `\"` as a literal quote and `\\` as a literal

@@ -39,7 +39,7 @@ export function resolveEnvironmentSkillProviderRoots(
 }
 
 // Why: `HERMES_HOME` relocates a whole Hermes profile tree (`hermes -p coder`),
-// and the rest of Orca already treats it as authoritative. Hermes is not an
+// and the rest of Manta already treats it as authoritative. Hermes is not an
 // install provider, so it stays out of `SkillProviderRootOverrides`.
 export function resolveEnvironmentHermesSkillsRoot(
   env: NodeJS.ProcessEnv = process.env

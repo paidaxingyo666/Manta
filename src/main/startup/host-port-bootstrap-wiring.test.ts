@@ -41,7 +41,7 @@ describe('host port bootstrap wiring', () => {
     // Why these three: they are the first things that resolve a path, seal a credential,
     // or register against an injected surface.
     const firstUse = Math.min(
-      ...['new OrcaRuntimeService(', 'registerHeadlessPtyRuntime(', 'function openMainWindow(']
+      ...['new MantaRuntimeService(', 'registerHeadlessPtyRuntime(', 'function openMainWindow(']
         .map((marker) => source.indexOf(marker))
         .filter((index) => index >= 0)
     )

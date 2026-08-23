@@ -14,7 +14,7 @@ import type {
   RuntimeMobileSessionTabsRemovedResult,
   RuntimeMobileSessionTabsResult
 } from '../../shared/runtime-types'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 vi.mock('electron', () => ({
   BrowserWindow: { fromId: vi.fn(() => ({ isDestroyed: () => false })) },
@@ -64,7 +64,7 @@ function createHarness() {
     },
     flushOrThrow: () => {}
   }
-  const runtime = new OrcaRuntimeService(store as never)
+  const runtime = new MantaRuntimeService(store as never)
   runtime.setNotifier({
     closeTerminal: vi.fn(),
     closeTerminalTab: vi.fn(),
@@ -168,7 +168,7 @@ function createHarness() {
     }
   })
 
-  /** An `orca terminal create` on this host, through the real create path. */
+  /** An `manta terminal create` on this host, through the real create path. */
   const createCliTerminal = async (worktreeId: string): Promise<string> => {
     await runtime.createTerminal(`id:${worktreeId}`, { focus: false })
     const tabId = spawnedTabIdByWorktree.get(worktreeId)

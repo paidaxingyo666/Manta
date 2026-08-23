@@ -86,7 +86,7 @@ describe('list-issues pagination contract', () => {
     expect(result.issues).toHaveLength(1)
     expect(result.truncated).toBe(true)
     expect(result.meta.hasMore).toBe(true)
-    expect(result.meta.nextCursor).toMatch(/^orca\.linear\.v1\./)
+    expect(result.meta.nextCursor).toMatch(/^manta\.linear\.v1\./)
     expect(result.issues[0]?.priorityLabel).toBe('urgent')
   })
 
@@ -222,7 +222,7 @@ describe('list-issues pagination contract', () => {
     expect(result.truncated).toBe(true)
     expect(result.meta.hasMore).toBe(true)
     expect(rawRequest.mock.calls.length).toBeLessThanOrEqual(200)
-    expect(result.meta.nextCursor).toMatch(/^orca\.linear\.v1\./)
+    expect(result.meta.nextCursor).toMatch(/^manta\.linear\.v1\./)
   })
 
   it('stops paging when a page claims more results but hands back no cursor', async () => {
@@ -259,7 +259,7 @@ describe('list-issues pagination contract', () => {
 
       expect(issued).toBe(2)
       expect(result.truncated).toBe(true)
-      expect(result.meta.nextCursor).toMatch(/^orca\.linear\.v1\./)
+      expect(result.meta.nextCursor).toMatch(/^manta\.linear\.v1\./)
     } finally {
       vi.useRealTimers()
     }

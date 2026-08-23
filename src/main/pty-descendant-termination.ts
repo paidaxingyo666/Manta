@@ -261,7 +261,7 @@ export async function killWithDescendantSweep(
   if (platform === 'win32') {
     try {
       if ((deps.ownsRoot?.() ?? true) && Number.isInteger(rootPid) && rootPid > 0) {
-        // Why first: the job names the tree Orca created, so it is immune to the
+        // Why first: the job names the tree Manta created, so it is immune to the
         // pid recycling the probe below exists to guard against, and it reaches
         // descendants that reparented away from the shell.
         if (deps.terminateOwnedTree?.() === 'terminated') {

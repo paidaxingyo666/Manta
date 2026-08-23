@@ -1,6 +1,6 @@
 # Reading the Windows process table
 
-Orca needs three things from the Windows process table: who a PID's parent is
+Manta needs three things from the Windows process table: who a PID's parent is
 (descendant walks and teardown identity), what a process is running (agent
 recognition), and how much memory/CPU it uses (Resource Manager).
 
@@ -42,7 +42,7 @@ Measured on Windows 11 with 1050 processes (p50 / p95):
 `config/patches/@vscode__windows-process-tree@0.8.0.patch` carries two hunks.
 
 1. **Spectre mitigation.** The upstream `binding.gyp` requires Spectre-mitigated
-   libraries, which Orca's Windows build agents do not install. `node-pty` is
+   libraries, which Manta's Windows build agents do not install. `node-pty` is
    patched the same way for the same reason.
 2. **The 1024-process cap.** `GetRawProcessList` stopped after 1024 entries.
    Measured on a real host with 1051 processes, the module returned exactly
@@ -74,8 +74,8 @@ ownership, and CPU accounting in the memory collector — still reads it through
 its own query. Those callers are not migrated.
 
 Start time is a proxy for identity, not identity. The durable answer for the
-process trees Orca itself spawns is an inherited handle: a job object names the
-tree Orca created, so no start-time comparison is needed. Those readers should
+process trees Manta itself spawns is an inherited handle: a job object names the
+tree Manta created, so no start-time comparison is needed. Those readers should
 be resolved that way rather than by adding a start time to this module.
 
 Do not adopt `getProcessCpuUsage()` from the package. It takes both CPU samples

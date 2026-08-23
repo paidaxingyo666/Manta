@@ -1,6 +1,6 @@
 /* eslint-disable max-lines -- Why: runtime behavior is stateful and cross-cutting, so these tests stay in one file to preserve the end-to-end invariants around handles, waits, and graph sync. */
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { RuntimeBrowserCommands } from './orca-runtime-browser'
+import { RuntimeBrowserCommands } from './manta-runtime-browser'
 import { setRuntimeBrowserCommandsFactory } from './runtime-browser-commands-factory'
 import { setRuntimeDesktopSurface } from './runtime-desktop-surface'
 import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'

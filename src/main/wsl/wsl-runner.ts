@@ -5,7 +5,7 @@ import { getWslGuestEnvironment, type WslGuestEnvironment } from './wsl-guest-en
 import { resolveWslExecutablePath } from './wsl-executable-path'
 
 /**
- * The single place Orca runs a program inside WSL.
+ * The single place Manta runs a program inside WSL.
  *
  * Five things have to be decided per call -- separator, shell, stdout fencing,
  * WSLENV, payload transport -- and each has shipped wrong: #12964, #14288 /
@@ -156,15 +156,15 @@ function withGuestCwd(cwd: string | undefined, argv: readonly string[]): string[
   if (argv.length === 0) {
     throw new Error('WSL invocation has no command to run')
   }
-  return ['sh', '-c', 'cd "$1" || exit 1; shift; exec "$@"', 'orca-wsl', cwd, ...argv]
+  return ['sh', '-c', 'cd "$1" || exit 1; shift; exec "$@"', 'manta-wsl', cwd, ...argv]
 }
 
 /**
  * Argv is the default, but it has a hard ceiling that stdin does not.
  *
  * Windows caps a command line at 32767 characters, and the distro, `--exec`,
- * the env prefix and the args all share it. A user's `orca.yaml` hook is the
- * one unbounded script Orca runs -- `run-both` concatenates two of them, and a
+ * the env prefix and the args all share it. A user's `manta.yaml` hook is the
+ * one unbounded script Manta runs -- `run-both` concatenates two of them, and a
  * vendored installer is ~15KB -- so past this size the choice is between
  * failing to spawn at all and accepting the stdin caveat. Degrading beats
  * failing: a large script that also reads stdin was already broken, while a

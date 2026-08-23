@@ -30,7 +30,7 @@ function globalGroup(): ShortcutGroup {
 const baseOptions = {
   keybindings: {},
   conflictByAction: new Map(),
-  terminalShortcutPolicy: 'orca-first',
+  terminalShortcutPolicy: 'manta-first',
   platform: 'darwin',
   managedBrowserCreationEnabled: false,
   mobileEmulatorCreationEnabled: false,

@@ -2604,7 +2604,7 @@ export class AgentBrowserBridge {
         child = execFile(
           this.agentBrowserBin,
           ['--session', sessionName, 'close'],
-          // Why windowsHide: agent-browser is console-subsystem and Orca's main
+          // Why windowsHide: agent-browser is console-subsystem and Manta's main
           // process owns no console, so each spawn gets a fresh visible conhost
           // that takes foreground -- keystrokes typed into a terminal at that
           // moment land in the black box (#14543).

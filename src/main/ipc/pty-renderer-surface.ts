@@ -3,7 +3,7 @@ import type { BrowserWindow, WebContents } from 'electron'
 /**
  * The renderer surface the PTY handlers talk to, which may not exist.
  *
- * Why: `orca serve` — and a future Node-only backend — run the same PTY handlers
+ * Why: `manta serve` — and a future Node-only backend — run the same PTY handlers
  * with no window. That used to be faked: `registerHeadlessPtyRuntime` built a
  * `BrowserWindow` whose `isDestroyed()` returned true and whose `webContents.send`
  * was a no-op, purely to satisfy the type — the "looks fine, silently lies" shape

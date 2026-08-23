@@ -7,7 +7,7 @@ import {
 import { buildWindowsCmdShimCommandLine, isCmdInterpretedProgram } from './windows-command-line'
 
 /**
- * The single place Orca starts a child process.
+ * The single place Manta starts a child process.
  *
  * Why one place: six decisions have to be made every time a child is spawned,
  * POSIX forgives all six, and Windows punishes each of them differently —
@@ -82,9 +82,9 @@ export function resolveSpawn(spec: ProcessSpec, platform: NodeJS.Platform): Reso
     cwd: spec.cwd,
     env: spec.env,
     stdio: ['pipe', 'pipe', 'pipe'],
-    // Why unconditional: Orca's main process is GUI-subsystem and owns no
+    // Why unconditional: Manta's main process is GUI-subsystem and owns no
     // console, so every console-subsystem child it starts gets a fresh visible
-    // conhost that takes foreground — keystrokes typed into an Orca terminal at
+    // conhost that takes foreground — keystrokes typed into a Manta terminal at
     // that moment land in the black box instead.
     windowsHide: true,
     // Why never `shell: true`: it concatenates arguments without escaping (Node

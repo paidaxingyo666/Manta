@@ -11,7 +11,7 @@ import { useAppStore } from '@/store'
 import { MobileRelayBetaNotice } from './MobileRelayBetaNotice'
 export { getMobileSettingsPaneSearchEntries }
 
-const MANTA_IOS_APP_STORE_URL = 'https://apps.apple.com/app/orca-ide/id6766130217'
+const MANTA_IOS_APP_STORE_URL = 'https://apps.apple.com/app/manta-ide/id6766130217'
 const MANTA_ANDROID_APK_URL =
   'https://github.com/paidaxingyo666/Manta/releases/download/mobile-android-v0.0.44/app-release.apk'
 

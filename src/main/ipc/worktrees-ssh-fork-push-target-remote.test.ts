@@ -138,29 +138,29 @@ describe('registerWorktreeHandlers', () => {
       name: 'contributor-fix',
       branchNameOverride: 'contributor/fix',
       pushTarget: {
-        remoteName: 'pr-contributor-orca',
+        remoteName: 'pr-contributor-manta',
         branchName: 'contributor/fix',
-        remoteUrl: 'https://github.com/contributor/orca.git'
+        remoteUrl: 'https://github.com/contributor/manta.git'
       }
     })
 
     expect(exec).toHaveBeenCalledWith(
-      ['remote', 'add', 'pr-contributor-orca', 'https://github.com/contributor/orca.git'],
+      ['remote', 'add', 'pr-contributor-manta', 'https://github.com/contributor/manta.git'],
       '/remote/repo'
     )
     expect(provider.fetchRemoteTrackingRef).toHaveBeenCalledWith(
       '/remote/repo',
-      'pr-contributor-orca',
+      'pr-contributor-manta',
       'contributor/fix',
-      'refs/remotes/pr-contributor-orca/contributor/fix'
+      'refs/remotes/pr-contributor-manta/contributor/fix'
     )
     expect(store.setWorktreeMeta).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         pushTarget: {
-          remoteName: 'pr-contributor-orca',
+          remoteName: 'pr-contributor-manta',
           branchName: 'contributor/fix',
-          remoteUrl: 'https://github.com/contributor/orca.git',
+          remoteUrl: 'https://github.com/contributor/manta.git',
           remoteCreated: true
         }
       })
@@ -206,9 +206,9 @@ describe('registerWorktreeHandlers', () => {
         name: 'contributor-fix',
         branchNameOverride: 'contributor/fix',
         pushTarget: {
-          remoteName: 'pr-contributor-orca',
+          remoteName: 'pr-contributor-manta',
           branchName: 'contributor/fix',
-          remoteUrl: 'https://github.com/contributor/orca.git'
+          remoteUrl: 'https://github.com/contributor/manta.git'
         }
       })
     ).rejects.toThrow('Reconnect to deploy the latest relay')
@@ -240,7 +240,7 @@ describe('registerWorktreeHandlers', () => {
       fetchRemoteTrackingRef: vi
         .fn()
         .mockImplementation(async (_repoPath: string, remote: string) => {
-          if (remote === 'pr-contributor-orca') {
+          if (remote === 'pr-contributor-manta') {
             throw new Error('network unreachable')
           }
         }),
@@ -259,14 +259,14 @@ describe('registerWorktreeHandlers', () => {
         name: 'contributor-fix',
         branchNameOverride: 'contributor/fix',
         pushTarget: {
-          remoteName: 'pr-contributor-orca',
+          remoteName: 'pr-contributor-manta',
           branchName: 'contributor/fix',
-          remoteUrl: 'https://github.com/contributor/orca.git'
+          remoteUrl: 'https://github.com/contributor/manta.git'
         }
       })
     ).rejects.toThrow('network unreachable')
 
-    expect(exec).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-orca'], '/remote/repo')
+    expect(exec).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-manta'], '/remote/repo')
     expect(provider.addWorktree).not.toHaveBeenCalled()
   })
 })

@@ -33,7 +33,7 @@ describe('WorktreeVisibilitySourceList', () => {
     const repo: Repo = {
       id: 'repo-1',
       path: '/repo',
-      displayName: 'orca',
+      displayName: 'manta',
       badgeColor: '#000000',
       addedAt: 0,
       worktreeBasePath: '.claude/worktrees'

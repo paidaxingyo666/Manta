@@ -75,7 +75,7 @@ async function stagedArchives(uploadRoot: string): Promise<string[]> {
 }
 
 async function uploadRootForOracle(home: string): Promise<string> {
-  const installRoot = join(home, '.orca', 'skill-installs')
+  const installRoot = join(home, '.manta', 'skill-installs')
   const current = join(installRoot, 'remote-uploads-v2')
   return (await stat(current).catch(() => null)) ? current : join(installRoot, 'remote-uploads')
 }
@@ -239,7 +239,7 @@ describe('skill upload ownership across relay processes', () => {
         uploads.push({ relay, uploadId: begun.uploadId, bytes, kind: owner.kind })
       }
 
-      const installRoot = join(home, '.orca', 'skill-installs')
+      const installRoot = join(home, '.manta', 'skill-installs')
       const legacyFiles = (await readdir(join(installRoot, 'remote-uploads'))).filter((name) =>
         name.endsWith('.tar.gz')
       )

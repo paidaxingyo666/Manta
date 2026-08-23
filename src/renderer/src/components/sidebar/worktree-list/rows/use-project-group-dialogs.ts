@@ -132,7 +132,7 @@ export function useProjectGroupDialogs(args: {
             description: translate(
               'auto.components.sidebar.WorktreeList.groupRenameFailedDesc',
               // Why: a falsy result also covers RPC timeout/disconnect, so the copy must not assert the host refused.
-              "Orca could not confirm the new name with the group's host. Recheck the group after reconnecting."
+              "Manta could not confirm the new name with the group's host. Recheck the group after reconnecting."
             )
           }
         )

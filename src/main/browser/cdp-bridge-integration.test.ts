@@ -1,5 +1,5 @@
 import { mkdtempSync } from 'node:fs'
-import { RuntimeBrowserCommands } from '../runtime/orca-runtime-browser'
+import { RuntimeBrowserCommands } from '../runtime/manta-runtime-browser'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

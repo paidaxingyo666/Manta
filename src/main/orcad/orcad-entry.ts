@@ -1,7 +1,7 @@
 /**
- * `orcad` — the Orca runtime served from plain Node, with no Electron.
+ * `orcad` — the Manta runtime served from plain Node, with no Electron.
  *
- * Installs the Node host adapters, constructs the same `OrcaRuntimeService` the
+ * Installs the Node host adapters, constructs the same `MantaRuntimeService` the
  * desktop uses, installs a PTY controller via `registerPtyHandlers(null, …)`, and
  * serves runtime RPC. See docs/design/node-only-runtime-backend.html.
  *
@@ -16,14 +16,14 @@ import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environ
 import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 
-/** XDG-ish data root. `$ORCA_USER_DATA` wins so a smoke test can isolate state. */
+/** XDG-ish data root. `$MANTA_USER_DATA` wins so a smoke test can isolate state. */
 function resolveUserDataPath(): string {
-  const explicit = process.env.ORCA_USER_DATA
+  const explicit = process.env.MANTA_USER_DATA
   if (explicit) {
     return explicit
   }
   const xdg = process.env.XDG_DATA_HOME
-  return xdg ? join(xdg, 'Orca') : join(homedir(), '.orca')
+  return xdg ? join(xdg, 'Manta') : join(homedir(), '.manta')
 }
 
 function createNodeAppEnvironment(): AppEnvironment {
@@ -51,7 +51,7 @@ function createNodeAppEnvironment(): AppEnvironment {
   return {
     getPath: (name) => (name === 'home' ? homedir() : name === 'temp' ? tmpdir() : userData),
     getAppPath: () => process.cwd(),
-    getVersion: () => process.env.ORCA_VERSION ?? '0.0.0-orcad',
+    getVersion: () => process.env.MANTA_VERSION ?? '0.0.0-orcad',
     isPackaged: () => true,
     onWillQuit: (handler) => quitHandlers.push(handler),
     exit: (code = 0) => process.exit(code),
@@ -104,21 +104,21 @@ export type OrcadHandle = {
 export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandle> {
   installOrcadHostAdapters()
 
-  const { OrcaRuntimeService } = await import('../runtime/orca-runtime')
-  const { OrcaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
+  const { MantaRuntimeService } = await import('../runtime/manta-runtime')
+  const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
   const { Store } = await import('../persistence/loading-store/store')
-  const { ensureActiveOrcaProfile, initOrcaProfilePaths } =
-    await import('../orca-profiles/profile-index-store')
+  const { ensureActiveMantaProfile, initMantaProfilePaths } =
+    await import('../manta-profiles/profile-index-store')
   const { initSshHostKeyStoreFile } = await import('../ssh/ssh-host-key-store')
 
   const userDataPath = getAppEnvironment().getPath('userData')
-  initOrcaProfilePaths()
-  const profile = ensureActiveOrcaProfile(userDataPath)
+  initMantaProfilePaths()
+  const profile = ensureActiveMantaProfile(userDataPath)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
   // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
   // a server that pairs and lists nothing looks healthy and is not.
@@ -127,7 +127,7 @@ export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandl
   // which is safe but silently discards accept records on every launch.
   initSshHostKeyStoreFile(profile.dataFile)
 
-  const runtime = new OrcaRuntimeService(store, undefined, {
+  const runtime = new MantaRuntimeService(store, undefined, {
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
     // reference would freeze the pre-daemon one.
     getLocalProvider: () => getLocalPtyProvider(),
@@ -158,7 +158,7 @@ export async function startOrcad(options: OrcadOptions = {}): Promise<OrcadHandl
   await runtime.refreshRestoredOrchestrationAuthority()
   await runtime.reconcileLegacyWorkerTerminals()
 
-  const rpc = new OrcaRuntimeRpcServer({
+  const rpc = new MantaRuntimeRpcServer({
     runtime,
     userDataPath,
     enableWebSocket: true,

@@ -203,18 +203,18 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
       prepareWorktreePushTargetWithExec(
         exec,
         REPO,
-        { remoteName: 'pr-contributor-orca', branchName: 'contributor/fix', remoteUrl: FORK_SSH },
+        { remoteName: 'pr-contributor-manta', branchName: 'contributor/fix', remoteUrl: FORK_SSH },
         () => false
       )
     ).rejects.toThrow('network unreachable')
 
     expect(callsMatching(exec, ['remote', 'remove'])).toEqual([
-      ['remote', 'remove', 'pr-contributor-orca']
+      ['remote', 'remove', 'pr-contributor-manta']
     ])
-    expect(remotes).not.toHaveProperty('pr-contributor-orca')
+    expect(remotes).not.toHaveProperty('pr-contributor-manta')
   })
 
-  it('keeps a reused remote Orca did not add when the fetch fails', async () => {
+  it('keeps a reused remote Manta did not add when the fetch fails', async () => {
     const remotes: Record<string, string> = {
       origin: 'git@github.com:stablyai/orca.git',
       existing: FORK_SSH
@@ -230,7 +230,7 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
       prepareWorktreePushTargetWithExec(
         exec,
         REPO,
-        { remoteName: 'pr-contributor-orca', branchName: 'contributor/fix', remoteUrl: FORK_SSH },
+        { remoteName: 'pr-contributor-manta', branchName: 'contributor/fix', remoteUrl: FORK_SSH },
         () => false
       )
     ).rejects.toThrow('network unreachable')

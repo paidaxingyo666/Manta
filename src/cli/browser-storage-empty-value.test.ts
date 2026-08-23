@@ -6,7 +6,7 @@ vi.mock('./runtime-client', () => {
   class RuntimeClient {
     call = callMock
     getCliStatus = vi.fn()
-    openOrca = vi.fn()
+    openManta = vi.fn()
   }
 
   class RuntimeClientError extends Error {
@@ -38,7 +38,7 @@ import { main } from './index'
 import { okFixture, queueFixtures } from './test-fixtures'
 
 // Why: StorageKeyValue requires a non-empty key but accepts any string value, empty included.
-describe('orca cli storage set preserves an empty value', () => {
+describe('manta cli storage set preserves an empty value', () => {
   beforeEach(() => {
     callMock.mockReset()
     process.exitCode = undefined
@@ -54,7 +54,7 @@ describe('orca cli storage set preserves an empty value', () => {
 
     await main(
       ['storage', 'local', 'set', '--key', 'flag', '--value', '', '--worktree', 'all', '--json'],
-      '/tmp/not-an-orca-worktree'
+      '/tmp/not-an-manta-worktree'
     )
 
     expect(callMock).toHaveBeenCalledTimes(1)
@@ -71,7 +71,7 @@ describe('orca cli storage set preserves an empty value', () => {
 
     await main(
       ['storage', 'session', 'set', '--key', 'flag', '--value', '', '--worktree', 'all', '--json'],
-      '/tmp/not-an-orca-worktree'
+      '/tmp/not-an-manta-worktree'
     )
 
     expect(callMock).toHaveBeenCalledTimes(1)
@@ -89,7 +89,7 @@ describe('orca cli storage set preserves an empty value', () => {
 
     await main(
       ['storage', 'local', 'set', '--key=flag', '--value=', '--worktree', 'all', '--json'],
-      '/tmp/not-an-orca-worktree'
+      '/tmp/not-an-manta-worktree'
     )
 
     expect(callMock).toHaveBeenCalledTimes(1)
@@ -106,7 +106,7 @@ describe('orca cli storage set preserves an empty value', () => {
 
     await main(
       ['storage', 'local', 'set', '--key', '', '--value', 'x', '--worktree', 'all'],
-      '/tmp/not-an-orca-worktree'
+      '/tmp/not-an-manta-worktree'
     )
 
     expect(callMock).not.toHaveBeenCalled()
@@ -122,7 +122,7 @@ describe('orca cli storage set preserves an empty value', () => {
 
     await main(
       ['storage', 'local', 'set', '--key', 'flag', '--worktree', 'all'],
-      '/tmp/not-an-orca-worktree'
+      '/tmp/not-an-manta-worktree'
     )
 
     expect(callMock).not.toHaveBeenCalled()

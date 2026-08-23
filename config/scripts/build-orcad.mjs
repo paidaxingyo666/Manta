@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bundle `orcad` — the Orca runtime served from plain Node, no Electron.
+ * Bundle `orcad` — the Manta runtime served from plain Node, no Electron.
  *
  * Variant B (see docs/design/node-only-runtime-backend.html): the browser-pane and
  * speech clusters are excluded. That is not a size optimisation — those modules are
@@ -14,7 +14,7 @@ import process from 'node:process'
 
 const ROOT = join(import.meta.dirname, '..', '..')
 const OUT_DIR = join(ROOT, 'out', 'orcad')
-const ENTRY = join(ROOT, 'src/main/orcad/main.ts')
+const ENTRY = join(ROOT, 'src/main/mantad/main.ts')
 
 // Native addons must exist on the host; they cannot be bundled.
 // `electron` is external so a residual import fails loudly at require() time rather
@@ -85,7 +85,7 @@ if (electronImporters.size > 0) {
 ${[...electronImporters].map((f) => `  - ${f}`).join('\n')}`
   )
   // Why this can exceed the ratchet baseline: the ratchet measures the graph reachable
-  // from orca-runtime + runtime-rpc, but this entry also imports ipc/pty directly to
+  // from manta-runtime + runtime-rpc, but this entry also imports ipc/pty directly to
   // install the PTY controller. Once orcad ships, it should become a ratchet entry
   // point so the two numbers cannot drift.
   process.exitCode = 1

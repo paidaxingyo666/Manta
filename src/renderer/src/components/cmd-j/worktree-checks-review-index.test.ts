@@ -184,7 +184,7 @@ describe('buildWorktreeChecksReviewIndex', () => {
   it('does not expose a physical SSH review to its runtime-owned worktree', () => {
     const runtimeRepo: Repo = {
       ...repo,
-      path: '/remote/orca',
+      path: '/remote/manta',
       executionHostId: 'runtime:paired-host'
     }
     const runtimeWorktree: Worktree = {
@@ -208,7 +208,7 @@ describe('buildWorktreeChecksReviewIndex', () => {
     ])
     const prCache = {
       [physicalKey]: { data: makePR(), fetchedAt: 1 },
-      '/remote/orca::feature/search': {
+      '/remote/manta::feature/search': {
         data: { ...makePR(), title: 'Physical legacy PR' },
         fetchedAt: 1
       }

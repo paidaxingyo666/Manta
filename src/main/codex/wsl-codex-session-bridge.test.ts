@@ -107,7 +107,7 @@ describe('syncWslCodexSessionsIntoManagedHome', () => {
         distro: 'Ubuntu',
         systemCodexHomePath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\.codex',
         managedCodexHomePath:
-          '\\\\wsl.localhost\\Ubuntu\\home\\alice\\.local\\share\\orca\\codex-runtime-home\\home'
+          '\\\\wsl.localhost\\Ubuntu\\home\\alice\\.local\\share\\manta\\codex-runtime-home\\home'
       })
     ).rejects.toThrow('WSL codex session bridge failed')
   })

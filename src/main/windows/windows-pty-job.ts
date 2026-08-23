@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 /**
  * Job-object ownership for a ConPTY's process tree.
  *
- * Before this, Orca answered "is this tree mine, and how do I kill it?" by
+ * Before this, Manta answered "is this tree mine, and how do I kill it?" by
  * scraping the process table, walking parent pids back to itself, and then
  * running `taskkill /T /F` only if the walk said yes. Every step of that is a
  * guess:

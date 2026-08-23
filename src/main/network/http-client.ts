@@ -13,7 +13,7 @@ import type { Session } from 'electron'
  * a Node host reads proxy configuration from the environment instead of from Chromium,
  * and sends Node's user agent.
  *
- * Body safety (orca#8695): the global uses undici, where an unread response body can
+ * Body safety (manta#8695): the global uses undici, where an unread response body can
  * crash the process. This port hands the Response straight to its caller and never
  * inspects it, so the consume/cancel obligation stays exactly where it already was —
  * with the caller, unchanged from when they called Electron's net directly.

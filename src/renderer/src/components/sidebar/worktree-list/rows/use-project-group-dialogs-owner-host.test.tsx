@@ -115,7 +115,7 @@ describe('project group dialogs carry the owner host', () => {
 
     expect(mocks.toastError).toHaveBeenCalledWith('Failed to rename group', {
       description:
-        "Orca could not confirm the new name with the group's host. Recheck the group after reconnecting."
+        "Manta could not confirm the new name with the group's host. Recheck the group after reconnecting."
     })
   })
 

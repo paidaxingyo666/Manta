@@ -40,7 +40,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo,
         settings,
         worktree,
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repo)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repo)
       })
     ).toBe('external')
   })
@@ -53,7 +53,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo,
         settings,
         worktree: makeWorktree('/projects/a/repo/.claude/worktrees/repo/feature'),
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repo)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repo)
       })
     ).toBe('agent-scratch')
   })
@@ -112,7 +112,7 @@ describe('repo-specific worktree ownership layouts', () => {
       worktreeBasePath: '/home/jin/src/.orca-worktrees'
     })
     const settings = makeSettings({ workspaceDir: 'C:\\global' })
-    const layouts = buildKnownOrcaWorkspaceLayouts(settings, repo)
+    const layouts = buildKnownMantaWorkspaceLayouts(settings, repo)
 
     expect(layouts[0]).toEqual({
       path: '//wsl.localhost/Ubuntu-24.04/home/jin/src/.orca-worktrees',
@@ -125,7 +125,7 @@ describe('repo-specific worktree ownership layouts', () => {
         worktree: makeWorktree(
           '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\.orca-worktrees\\repo\\feature'
         ),
-        knownOrcaLayouts: layouts
+        knownMantaLayouts: layouts
       })
     ).toBe('external')
   })
@@ -136,7 +136,7 @@ describe('repo-specific worktree ownership layouts', () => {
       worktreeBasePath: '/home/jin/src/../.orca-worktrees'
     })
     const settings = makeSettings({ workspaceDir: 'C:\\global' })
-    const layouts = buildKnownOrcaWorkspaceLayouts(settings, repo)
+    const layouts = buildKnownMantaWorkspaceLayouts(settings, repo)
 
     expect(layouts[0]).toEqual({
       path: '//wsl.localhost/Ubuntu-24.04/home/jin/.orca-worktrees',
@@ -149,7 +149,7 @@ describe('repo-specific worktree ownership layouts', () => {
         worktree: makeWorktree(
           '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.orca-worktrees\\repo\\feature'
         ),
-        knownOrcaLayouts: layouts
+        knownMantaLayouts: layouts
       })
     ).toBe('external')
   })
@@ -168,7 +168,7 @@ describe('repo-specific worktree ownership layouts', () => {
         worktree: makeWorktree(
           '\\\\wsl.localhost\\Ubuntu-24.04\\home\\Dev\\Repo\\.claude\\worktrees\\feature'
         ),
-        knownOrcaLayouts: buildKnownOrcaWorkspaceLayouts(settings, repo)
+        knownMantaLayouts: buildKnownMantaWorkspaceLayouts(settings, repo)
       })
     ).toBe('external')
   })

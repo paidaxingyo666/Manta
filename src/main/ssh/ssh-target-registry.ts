@@ -5,7 +5,7 @@ import type { SshConnectionState, SshTarget } from '../../shared/ssh-types'
 /**
  * The SSH target/state registry, split out of `ipc/ssh.ts`.
  *
- * Why: the Orca runtime reads registered SSH targets and state during normal
+ * Why: the Manta runtime reads registered SSH targets and state during normal
  * operation, but `ipc/ssh.ts` also owns `ipcMain`, `powerMonitor` and a
  * `BrowserWindow` accessor. Importing four thin accessors dragged all of Electron
  * into the runtime's module graph.

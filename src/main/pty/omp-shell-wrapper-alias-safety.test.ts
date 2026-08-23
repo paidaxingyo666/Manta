@@ -40,7 +40,7 @@ function expectAliasedOmpNameSurvives(shell: string, enableAliases: string): voi
       env: {
         ...process.env,
         PATH: `${bin}${delimiter}${process.env.PATH ?? ''}`,
-        ORCA_OMP_STATUS_EXTENSION: extension
+        MANTA_OMP_STATUS_EXTENSION: extension
       }
     }
   )
@@ -58,7 +58,7 @@ afterEach(() => {
 
 // Why: a user alias named omp used to expand into the wrapper's own `omp()`
 // header, and the shell abandons the rest of the startup file at that syntax
-// error — taking every hook Orca defines below the wrapper with it.
+// error — taking every hook Manta defines below the wrapper with it.
 describe.skipIf(process.platform === 'win32')('omp wrapper under a user alias named omp', () => {
   it.skipIf(!bashAvailable)('keeps a user alias named omp working in bash', () => {
     expectAliasedOmpNameSurvives('/bin/bash', 'shopt -s expand_aliases')

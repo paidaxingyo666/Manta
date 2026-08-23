@@ -1,9 +1,9 @@
-import type { RuntimeBrowserCommandHost, RuntimeBrowserCommands } from './orca-runtime-browser'
+import type { RuntimeBrowserCommandHost, RuntimeBrowserCommands } from './manta-runtime-browser'
 
 /**
- * How `OrcaRuntimeService` obtains its browser-automation commands.
+ * How `MantaRuntimeService` obtains its browser-automation commands.
  *
- * Why a factory rather than a direct import: `orca-runtime-browser.ts` reaches the
+ * Why a factory rather than a direct import: `manta-runtime-browser.ts` reaches the
  * whole Chromium cluster — `BrowserWindow`, `session`, `webContents`, cookie jars —
  * 15 modules that a Node host cannot load at all. Importing the class for its *type*
  * is free; constructing it is what drags the cluster in.

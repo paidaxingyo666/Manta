@@ -481,7 +481,7 @@ describe('skill discovery', () => {
   })
 
   it('discovers Skills installed in the Hermes home', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skills-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skills-'))
     const home = join(root, 'home')
     const skillDir = join(home, '.hermes', 'skills', 'social-media', 'research')
     await mkdir(skillDir, { recursive: true })
@@ -515,7 +515,7 @@ describe('skill discovery', () => {
   })
 
   it('discovers Hermes Skills under a relocated HERMES_HOME profile', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skills-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-skills-'))
     const home = join(root, 'home')
     const hermesHome = join(root, 'profiles', 'coder')
     const skillDir = join(hermesHome, 'skills', 'research')

@@ -15,7 +15,7 @@ const getAllProcesses = vi.fn()
 const SELF = { pid: process.pid, ppid: 0, name: 'vitest.exe' }
 const NATIVE = [
   SELF,
-  { pid: 100, ppid: 4, name: 'orca.exe', commandLine: '"C:/a b/orca.exe" --x', memory: 4096 }
+  { pid: 100, ppid: 4, name: 'manta.exe', commandLine: '"C:/a b/manta.exe" --x', memory: 4096 }
 ]
 
 describe('windows process table', () => {
@@ -46,8 +46,8 @@ describe('windows process table', () => {
       {
         pid: 100,
         ppid: 4,
-        name: 'orca.exe',
-        command: '"C:/a b/orca.exe" --x',
+        name: 'manta.exe',
+        command: '"C:/a b/manta.exe" --x',
         memoryBytes: 4096
       }
     ])

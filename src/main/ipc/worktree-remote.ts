@@ -1106,7 +1106,7 @@ async function prepareWorktreePushTargetSsh(
         // Why: relays predating fork-remote support reject this exec by policy; name the fix instead of surfacing their rule.
         if (error instanceof Error && error.message.includes('Destructive git remote operations')) {
           throw new Error(
-            'This SSH host is running an older Orca relay that cannot add a fork remote for a PR workspace. Reconnect to deploy the latest relay, then try again.'
+            'This SSH host is running an older Manta relay that cannot add a fork remote for a PR workspace. Reconnect to deploy the latest relay, then try again.'
           )
         }
         throw error

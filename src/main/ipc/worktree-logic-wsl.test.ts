@@ -19,7 +19,7 @@ import {
   getWorktreePathSettings
 } from './worktree-logic'
 import {
-  buildKnownOrcaWorkspaceLayouts,
+  buildKnownMantaWorkspaceLayouts,
   classifyWorktreeOwnership
 } from '../../shared/worktree/ownership'
 import { relativePathInsideRoot } from '../../shared/cross-platform-path'
@@ -142,7 +142,7 @@ describe('computeWorktreePath WSL layout', () => {
         repo.path,
         getWorktreePathSettings(repo, { nestWorkspaces: false, workspaceDir: 'C:\\workspaces' })
       )
-    ).toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\orca\\workspaces\\feature')
+    ).toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\manta\\workspaces\\feature')
   })
 
   it('classifies whatever creation produces for Linux bases, dotted or not', () => {
@@ -169,9 +169,12 @@ describe('computeWorktreePath WSL layout', () => {
         repo.path,
         getWorktreePathSettings(repo, settings)
       )
-      const layouts = buildKnownOrcaWorkspaceLayouts({ ...settings, workspaceDirHistory: [] }, repo)
+      const layouts = buildKnownMantaWorkspaceLayouts(
+        { ...settings, workspaceDirHistory: [] },
+        repo
+      )
       // Why containment, not just ownership: a regressed resolver lands in the
-      // ~/orca/workspaces mirror layout, which also classifies 'external'.
+      // ~/manta/workspaces mirror layout, which also classifies 'external'.
       // layouts[0] is the repo-base layout — it is always pushed first.
       expect(relativePathInsideRoot(layouts[0].path, createdPath)).not.toBeNull()
       expect(
@@ -179,7 +182,7 @@ describe('computeWorktreePath WSL layout', () => {
           repo,
           settings: { ...settings, workspaceDirHistory: [] },
           worktree: { path: createdPath, isMainWorktree: false },
-          knownOrcaLayouts: layouts
+          knownMantaLayouts: layouts
         })
       ).toBe('external')
     }

@@ -669,7 +669,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Why: node-pty prefers its upstream prebuild, which does not contain
-      # Orca's Windows patch, so the job-object exports would be absent and the
+      # Manta's Windows patch, so the job-object exports would be absent and the
       # suite below would test an unpatched binary. build_from_source removes
       # the prebuild, and the package's postinstall restores the ConPTY runtime
       # files that a bare node-gyp rebuild would miss.

@@ -1,14 +1,14 @@
 import type { ProviderRateLimits } from '../../shared/rate-limit-types'
 
 // Why: the Antigravity CLI keeps its token in the OS keyring, not in the files the Gemini
-// fetcher reads, so Orca never actually queries Antigravity. Only a *successful* Gemini read
+// fetcher reads, so Manta never actually queries Antigravity. Only a *successful* Gemini read
 // describes shared Google Code Assist quota; republishing a Gemini failure under the
 // Antigravity provider id surfaced "Refresh failed" for a request that was never attempted.
 const ANTIGRAVITY_NO_SIGN_IN_REASON =
-  'Antigravity usage is not available. Orca can only show shared Google Code Assist quota while a Gemini CLI sign-in is connected.'
+  'Antigravity usage is not available. Manta can only show shared Google Code Assist quota while a Gemini CLI sign-in is connected.'
 // Why: a Gemini `error` means the sign-in exists and the quota read failed, so blaming a missing sign-in would misdirect the user.
 const ANTIGRAVITY_QUOTA_UNREADABLE_REASON =
-  'Antigravity usage is not available. Orca reads it from the shared Google Code Assist quota, which could not be read right now.'
+  'Antigravity usage is not available. Manta reads it from the shared Google Code Assist quota, which could not be read right now.'
 
 export function deriveAntigravityRateLimits(gemini: ProviderRateLimits): ProviderRateLimits {
   if (gemini.status === 'ok') {

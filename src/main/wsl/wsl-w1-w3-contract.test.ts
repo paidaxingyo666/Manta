@@ -102,7 +102,7 @@ describe('W3: the five per-call decisions are made once', () => {
   it('runs no shell on the probe lane, so ~/.profile cannot stall it', async () => {
     // #14288: one blocking line in ~/.profile ate the whole timeout.
     await runWslProcess({ loginPath: 'preferred', distro: 'Ubuntu', program: 'codex' })
-    expect(JSON.stringify(spawnSpec().args)).not.toContain('_orca_wsl_shell')
+    expect(JSON.stringify(spawnSpec().args)).not.toContain('_manta_wsl_shell')
   })
 
   it('applies the user login PATH even with no shell in the loop', async () => {

@@ -27,7 +27,7 @@ const WINDOWS_POWERSHELL_LAUNCHER =
 
 // Why (#14828): Windows registers the bare script path when it is cmd-safe and only falls back
 // to the encoded launcher for a profile path that is not (#6078). windows-hook-launcher-chain
-// .test.ts pins which branch applies; these cases only care that Orca's hook is present.
+// .test.ts pins which branch applies; these cases only care that Manta's hook is present.
 function registersManagedGrokScript(command: string): boolean {
   return command.includes(GROK_SCRIPT_FILE_NAME) || WINDOWS_POWERSHELL_LAUNCHER.test(command)
 }

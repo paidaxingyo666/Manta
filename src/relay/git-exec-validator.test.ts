@@ -165,25 +165,30 @@ describe('validateGitExecArgs', () => {
       expectAllowed([
         'remote',
         'add',
-        'pr-contributor-orca',
-        'https://github.com/contributor/orca.git'
+        'pr-contributor-manta',
+        'https://github.com/contributor/manta.git'
       ])
-      expectAllowed(['remote', 'add', 'pr-contributor-orca', 'git@github.com:contributor/orca.git'])
-      expectAllowed(['remote', 'remove', 'pr-contributor-orca'])
+      expectAllowed([
+        'remote',
+        'add',
+        'pr-contributor-manta',
+        'git@github.com:contributor/manta.git'
+      ])
+      expectAllowed(['remote', 'remove', 'pr-contributor-manta'])
     })
 
     it.each([
       // Extra or missing operands are not a shape main ever sends.
       [['remote', 'add', 'fork']],
-      [['remote', 'add', 'fork', 'https://github.com/contributor/orca.git', '--tags']],
+      [['remote', 'add', 'fork', 'https://github.com/contributor/manta.git', '--tags']],
       [['remote', 'remove']],
       [['remote', 'remove', 'fork', 'extra']],
       // Names and URLs must pass the same rules the pushTarget RPCs enforce.
-      [['remote', 'add', '--mirror=push', 'https://github.com/contributor/orca.git']],
-      [['remote', 'add', '../escape', 'https://github.com/contributor/orca.git']],
+      [['remote', 'add', '--mirror=push', 'https://github.com/contributor/manta.git']],
+      [['remote', 'add', '../escape', 'https://github.com/contributor/manta.git']],
       [['remote', 'remove', '-f']],
       [['remote', 'add', 'fork', 'ext::sh -c payload']],
-      [['remote', 'add', 'fork', 'https://evil.test/contributor/orca.git']],
+      [['remote', 'add', 'fork', 'https://evil.test/contributor/manta.git']],
       [['remote', 'add', 'fork', '/etc/passwd']]
     ])('rejects unsafe remote write args %j', (args) => {
       expectBlocked(args, 'Destructive git remote operations')

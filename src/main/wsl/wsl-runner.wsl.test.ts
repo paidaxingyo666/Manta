@@ -12,7 +12,7 @@ import { resolveWslExecutablePath } from './wsl-executable-path'
  * to reproduce #14288. Run with:
  *   ORCA_REAL_WSL_RUNNER_TEST=1 pnpm vitest run src/main/wsl/wsl-runner.wsl.test.ts
  */
-const DISTRO = process.env.ORCA_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
+const DISTRO = process.env.MANTA_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
 const enabled = process.platform === 'win32' && process.env.ORCA_REAL_WSL_RUNNER_TEST === '1'
 const describeOnWsl = enabled ? describe : describe.skip
 

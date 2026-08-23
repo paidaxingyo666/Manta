@@ -15,7 +15,7 @@ patchedDependencies:
     hash: 47405b9994b5acf1b4e90b49250358c1ca03649854d59560e7732b72fe336920
     path: config/patches/@xterm__addon-ligatures@0.11.0-beta.287.patch
   '@xterm/addon-serialize@0.15.0-beta.287':
-    hash: af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c
+    hash: b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539
     path: config/patches/@xterm__addon-serialize@0.15.0-beta.287.patch
   '@xterm/addon-webgl@0.20.0-beta.286':
     hash: 6da7d7770b6427246f2a0d057d97da418040e498068b41d0c2d3c6b20bf49258
@@ -27,7 +27,7 @@ patchedDependencies:
     hash: 7333b3837f80a7fbd045964db6d76ba4fc118e49134bdbabb00585b6b7b60673
     path: config/patches/lint-staged@16.4.0.patch
   node-pty@1.1.0:
-    hash: 710d5c74d1b738c41316e997e7cb860b61147604f98380ccf4f5bb20b6ed0ac5
+    hash: e630e56cc8076fa93692dd801d239d0d211cb3872a717c5540e0b44d37f91b92
     path: config/patches/node-pty@1.1.0.patch
 
 importers:
@@ -51,7 +51,7 @@ importers:
         version: 2.5.6
       '@xterm/addon-serialize':
         specifier: 0.15.0-beta.287
-        version: 0.15.0-beta.287(patch_hash=af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
+        version: 0.15.0-beta.287(patch_hash=b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
       '@xterm/headless':
         specifier: 6.1.0-beta.287
         version: 6.1.0-beta.287
@@ -69,7 +69,7 @@ importers:
         version: 3.3.1
       node-pty:
         specifier: ^1.1.0
-        version: 1.1.0(patch_hash=710d5c74d1b738c41316e997e7cb860b61147604f98380ccf4f5bb20b6ed0ac5)
+        version: 1.1.0(patch_hash=e630e56cc8076fa93692dd801d239d0d211cb3872a717c5540e0b44d37f91b92)
       posthog-node:
         specifier: ^5.33.3
         version: 5.33.3
@@ -4547,7 +4547,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   global-agent@3.0.0:
     resolution: {integrity: sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==}
@@ -9626,7 +9626,7 @@ snapshots:
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
-  '@xterm/addon-serialize@0.15.0-beta.287(patch_hash=af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
+  '@xterm/addon-serialize@0.15.0-beta.287(patch_hash=b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
@@ -12046,7 +12046,7 @@ snapshots:
 
   node-int64@0.4.0: {}
 
-  node-pty@1.1.0(patch_hash=710d5c74d1b738c41316e997e7cb860b61147604f98380ccf4f5bb20b6ed0ac5):
+  node-pty@1.1.0(patch_hash=e630e56cc8076fa93692dd801d239d0d211cb3872a717c5540e0b44d37f91b92):
     dependencies:
       node-addon-api: 7.1.1
 

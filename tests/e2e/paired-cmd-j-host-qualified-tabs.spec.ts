@@ -1,5 +1,5 @@
 import { errors } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import {
   createRuntimeDesktopPairingOffer,
   launchPairedElectronClient,
@@ -8,12 +8,12 @@ import {
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 test('routes same-id browser and simulator Cmd-J rows to their owning paired host', async ({
-  orcaPage
+  mantaPage
 }, testInfo) => {
   test.setTimeout(240_000)
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  const hostBrowser = await orcaPage.evaluate(() => {
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  const hostBrowser = await mantaPage.evaluate(() => {
     const state = window.__store!.getState()
     const worktreeId = state.activeWorktreeId
     if (!worktreeId) {
@@ -27,13 +27,13 @@ test('routes same-id browser and simulator Cmd-J rows to their owning paired hos
     return { worktreeId, workspaceId: workspace.id }
   })
 
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   let client: PairedElectronClient | null = null
   try {
     client = await launchPairedElectronClient(offer, testInfo, 'Cmd-J host-qualified tabs')
     const page = client.page
     await page.evaluate(() => {
-      window.localStorage.setItem('orca.browser.markup-draw-hint-seen', 'true')
+      window.localStorage.setItem('manta.browser.markup-draw-hint-seen', 'true')
     })
     const drawHintDismiss = page.getByRole('button', { name: 'Got it', exact: true })
     const drawHintVisible = await drawHintDismiss

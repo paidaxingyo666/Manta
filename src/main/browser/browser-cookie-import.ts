@@ -1112,7 +1112,7 @@ function getWindowsEncryptionKey(browser: DetectedBrowser): EncryptionKeyResult 
 
     // Why runProcessSync and an absolute path: a bare `powershell` spawn from a
     // GUI-subsystem process opens a visible conhost that takes foreground, so
-    // keystrokes typed into an Orca terminal during a cookie import land in the
+    // keystrokes typed into a Manta terminal during a cookie import land in the
     // black box (#14543), and PATH under Electron is not the user's (#11771).
     const result = runProcessSync({
       program: windowsPowerShellPath(),

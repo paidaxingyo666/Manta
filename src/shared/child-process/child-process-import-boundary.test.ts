@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * Guard the spawn chokepoint at the tree level rather than per call site.
  *
- * Six decisions have to be made every time Orca starts a child process, and
+ * Six decisions have to be made every time Manta starts a child process, and
  * Windows punishes each of them differently. Made per-call-site they were right
  * in some files and wrong in others. `run-process.ts` makes them once; this
  * test is what stops the 174th file from making them again.

@@ -14,7 +14,7 @@ import type { WorkspaceSessionState } from '../../shared/workspace-session-state
 import { createStore, testState } from '../persistence-test-harness'
 
 vi.mock('electron', () => ({
-  app: { getPath: () => testStateDirRef.dir, getName: () => 'orca', getVersion: () => '0.0.0' },
+  app: { getPath: () => testStateDirRef.dir, getName: () => 'manta', getVersion: () => '0.0.0' },
   BrowserWindow: { fromId: () => null, getAllWindows: () => [] },
   webContents: { fromId: () => null },
   ipcMain: { on: () => {}, handle: () => {}, removeListener: () => {} },

@@ -183,23 +183,23 @@ test.describe('Worktree jump-palette filters', () => {
     await expect(filterTrigger(mantaPage)).not.toContainText('1')
   })
 
-  test('pressing Enter creates a worktree from a typed name', async ({ orcaPage }) => {
-    await openPalette(orcaPage)
-    const input = palette(orcaPage).getByPlaceholder(SEARCH_PLACEHOLDER)
+  test('pressing Enter creates a worktree from a typed name', async ({ mantaPage }) => {
+    await openPalette(mantaPage)
+    const input = palette(mantaPage).getByPlaceholder(SEARCH_PLACEHOLDER)
     await input.fill(`cmd-j-enter-${Date.now()}`)
     await expect(
-      palette(orcaPage).locator('[cmdk-item][data-value="__create_worktree__"]')
+      palette(mantaPage).locator('[cmdk-item][data-value="__create_worktree__"]')
     ).toBeVisible()
 
     await input.press('Enter')
 
-    const createDialog = orcaPage.getByRole('dialog', { name: /Create (Workspace|Worktree)/i })
+    const createDialog = mantaPage.getByRole('dialog', { name: /Create (Workspace|Worktree)/i })
     await expect(createDialog).toBeVisible()
     // Why assert focus first: the composer auto-focuses the name field, so Escape
     // always lands on an input the user never chose. A page-style "blur the field
     // first" handler here would silently cost a second press.
     await expect(createDialog.locator('[data-workspace-name-input="true"]')).toBeFocused()
-    await orcaPage.keyboard.press('Escape')
+    await mantaPage.keyboard.press('Escape')
     await expect(createDialog).toBeHidden()
   })
 })

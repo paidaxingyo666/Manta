@@ -1409,7 +1409,7 @@ jobs:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: c37aa192-a27a-4377-9c90-5d6c95912dc0
           # NOTE: SignPath project registered by upstream (stablyai). Replace with your own before enabling.
-          project-slug: orca
+          project-slug: manta
           signing-policy-slug: release-signing
           artifact-configuration-slug: windows-inner-binaries-zip
           github-artifact-id: ${{ steps.upload-unsigned-inner.outputs.artifact-id }}
@@ -1621,7 +1621,7 @@ jobs:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: c37aa192-a27a-4377-9c90-5d6c95912dc0
           # NOTE: SignPath project registered by upstream (stablyai). Replace with your own before enabling.
-          project-slug: orca
+          project-slug: manta
           signing-policy-slug: release-signing
           artifact-configuration-slug: github-actions-windows-installer
           github-artifact-id: ${{ steps.upload-unsigned-windows-installer.outputs.artifact-id }}

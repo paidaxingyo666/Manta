@@ -1,10 +1,10 @@
 import { join } from 'node:path'
 
 /**
- * Absolute paths for the Windows system binaries Orca shells out to.
+ * Absolute paths for the Windows system binaries Manta shells out to.
  *
  * Why not a bare name: a bare `powershell.exe` is resolved against the child's
- * PATH, and Orca's PATH under Electron is not the user's. Where a policy has
+ * PATH, and Manta's PATH under Electron is not the user's. Where a policy has
  * pruned or shadowed the System32 entry the spawn simply fails, and the caller
  * reports the wrong thing — the font picker silently fell back to five
  * hardcoded families rather than saying it could not enumerate (#11771).

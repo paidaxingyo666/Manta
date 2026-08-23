@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type * as AgentPromptInjection from '../../shared/agent-prompt-injection'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { makeStore } from './runtime-rpc-worktree-store-fixtures'
 
 // Why: vi.mock factories are hoisted above module-scope consts, so the delay must be hoisted too.
@@ -37,11 +37,11 @@ vi.mock('../git/worktree', () => ({
 
 // Why: 'aider' is not a settlement agent, so submission takes the fixed-delay branch under test.
 async function createPromptRuntime(): Promise<{
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   handle: string
   writes: string[]
 }> {
-  const runtime = new OrcaRuntimeService(makeStore() as never)
+  const runtime = new MantaRuntimeService(makeStore() as never)
   const writes: string[] = []
   runtime.setPtyController({
     spawn: vi.fn().mockResolvedValue({ id: 'pty-prompt' }),

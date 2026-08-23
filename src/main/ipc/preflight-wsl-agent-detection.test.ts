@@ -141,7 +141,7 @@ it('does not veto a guest binary on an ordinary Linux mount under /mnt', async (
   runWslProcessMock.mockResolvedValue({
     environmentResolved: true,
     code: 0,
-    stdout: '__ORCA_AGENT_PATH__claude\t/mnt/d/tools/claude\n',
+    stdout: '__MANTA_AGENT_PATH__claude\t/mnt/d/tools/claude\n',
     stderr: '',
     timedOut: false
   })
@@ -154,7 +154,7 @@ it('still counts a genuine guest install', async () => {
   runWslProcessMock.mockResolvedValue({
     environmentResolved: true,
     code: 0,
-    stdout: '__ORCA_AGENT_PATH__claude\t/home/alice/.nvm/versions/node/v20.1.0/bin/claude\n',
+    stdout: '__MANTA_AGENT_PATH__claude\t/home/alice/.nvm/versions/node/v20.1.0/bin/claude\n',
     stderr: '',
     timedOut: false
   })
@@ -205,13 +205,13 @@ describe('the detection script itself, run by a real POSIX shell', () => {
     // reports a working install as "not installed".
     plant('.nvm/versions/node/v20.1.0/bin', 'orca-fake-cli')
     const out = await runScript()
-    expect(out).toContain('__ORCA_AGENT_PATH__orca-fake-cli')
+    expect(out).toContain('__MANTA_AGENT_PATH__orca-fake-cli')
     expect(out).toContain('.nvm/versions/node/v20.1.0/bin/orca-fake-cli')
   })
 
   itPosix('finds a ~/.local/bin install', async () => {
     plant('.local/bin', 'orca-fake-cli')
-    expect(await runScript()).toContain('__ORCA_AGENT_PATH__orca-fake-cli')
+    expect(await runScript()).toContain('__MANTA_AGENT_PATH__orca-fake-cli')
   })
 
   itPosix('still reports nothing for a command that is genuinely absent', async () => {
@@ -222,7 +222,7 @@ describe('the detection script itself, run by a real POSIX shell', () => {
   itPosix('finds a CLI when $HOME contains a space', async () => {
     // The dir list is globbed, so an unquoted $HOME word-split into a relative
     // path and every CLI read as absent -- the #9725 symptom, from the fix.
-    const spaced = mkdtempSync(join(tmpdir(), 'orca has space-'))
+    const spaced = mkdtempSync(join(tmpdir(), 'manta has space-'))
     const previous = home
     home = spaced
     try {
@@ -238,7 +238,7 @@ describe('the detection script itself, run by a real POSIX shell', () => {
     // Directories are mode 755 and pass -x. Preflight would say installed and
     // the launch would fail later with EISDIR.
     mkdirSync(join(home, '.local/bin/orca-fake-cli'), { recursive: true })
-    expect(await runScript()).not.toContain('__ORCA_AGENT_PATH__orca-fake-cli')
+    expect(await runScript()).not.toContain('__MANTA_AGENT_PATH__orca-fake-cli')
   })
 
   itPosix.each([
@@ -248,7 +248,7 @@ describe('the detection script itself, run by a real POSIX shell', () => {
     '.local/share/mise/shims'
   ])('covers %s, which the native fallback also probes', async (dir) => {
     plant(dir, 'orca-fake-cli')
-    expect(await runScript()).toContain('__ORCA_AGENT_PATH__orca-fake-cli')
+    expect(await runScript()).toContain('__MANTA_AGENT_PATH__orca-fake-cli')
   })
 })
 
@@ -277,7 +277,7 @@ describe('the PATH walk, run by a real POSIX shell', () => {
         { kind: 'literal', value: 'claude' },
         { skipWindowsMountDirs: true }
         // Stand in for /proc/mounts, which a test host does not have.
-      ).replace(/_orca_win_mounts=\$\([^)]*\)/, `_orca_win_mounts=${join(root, 'winmnt')}`)
+      ).replace(/_manta_win_mounts=\$\([^)]*\)/, `_manta_win_mounts=${join(root, 'winmnt')}`)
       const options: ExecFileSyncOptions = {
         encoding: 'utf8',
         env: { PATH: `${win}:${nvm}:/usr/bin:/bin` }
