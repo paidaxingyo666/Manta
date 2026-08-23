@@ -895,9 +895,6 @@ if (hasSingleInstanceLock) {
   // the app.setName ordering the userData captures below depend on.
   setAppEnvironment(new ElectronAppEnvironment())
   setSecretStore(new ElectronSecretStore())
-  // Why right after install: this is the first moment the answer is knowable, and a
-  // silent weak backend is the gap users most need told about.
-  reportSecretProtectionGap()
   // Why at process level, not per-window: pty.ts registers against injected surfaces so
   // it can load without electron, and an Electron main process always has ipcMain —
   // whether a window exists is irrelevant. Installing this in attachMainWindowServices
@@ -2328,6 +2325,12 @@ void app.whenReady().then(async () => {
 
   const activeMantaProfile = ensureActiveMantaProfile()
   store = new Store({ dataFile: activeMantaProfile.dataFile })
+  // Why here and not at install time: the report remembers what it last said, and that
+  // state lives beside the profile data file, which does not exist until now.
+  reportSecretProtectionGap({
+    dataFile: activeMantaProfile.dataFile,
+    force: process.env.MANTA_ALWAYS_REPORT_SECRET_PROTECTION === '1'
+  })
   // Why here: the host key store is a sidecar of the same profile, and every SSH connect consults
   // it. Left unbound it reports nothing trusted, which is safe but silently discards our own
   // accept records on every launch.
