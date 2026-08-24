@@ -58,6 +58,30 @@ describe('fetchChangelog', () => {
     expect(data?.release.description).toBe('Fixed a crash.')
   })
 
+  // Markdown hard-wraps mid-span, so a code span or link routinely straddles a
+  // break. Stripping per line left the stray delimiters behind in the card.
+  it('strips markup that straddles a hard wrap', async () => {
+    const data = await fetchChangelog(
+      '1.0.0',
+      '0.9.0',
+      '- Run `brew tap paidaxingyo666/manta\n  https://github.com/paidaxingyo666/Manta` first'
+    )
+
+    expect(data?.release.description).toBe(
+      '• Run brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta first'
+    )
+  })
+
+  it('strips a link whose target is on the next line', async () => {
+    const data = await fetchChangelog(
+      '1.0.0',
+      '0.9.0',
+      'See [the guide](https://example.com/a/\nvery/long/path) for more'
+    )
+
+    expect(data?.release.description).toBe('See the guide for more')
+  })
+
   // Markdown hard-wraps at ~80 columns and the card wraps on its own, so every
   // authored break left in place reads as a torn column.
   it('folds a hard-wrapped paragraph back into one line', async () => {

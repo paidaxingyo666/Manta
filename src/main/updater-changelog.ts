@@ -83,22 +83,27 @@ function toBlocks(source: string): Block[] {
       continue
     }
     if (HEADING.test(raw)) {
-      blocks.push({ kind: 'heading', text: stripInlineMarkup(raw.replace(HEADING, '')) })
+      blocks.push({ kind: 'heading', text: raw.replace(HEADING, '').trim() })
       continue
     }
     if (BULLET.test(raw)) {
-      blocks.push({ kind: 'bullet', text: stripInlineMarkup(raw.replace(BULLET, '')) })
+      blocks.push({ kind: 'bullet', text: raw.replace(BULLET, '').trim() })
       continue
     }
     const previous = blocks.at(-1)
-    const text = stripInlineMarkup(raw)
+    const text = raw.trim()
     if (previous && previous.text && previous.kind !== 'heading') {
       previous.text = joinWrapped(previous.text, text)
       continue
     }
     blocks.push({ kind: 'prose', text })
   }
-  return blocks.filter((block) => block.text)
+  // Strip only once the block is whole: markdown hard-wraps mid-span, so a
+  // `code` or [link](url) routinely straddles a line break and neither half
+  // matches on its own. Stripping per line left the stray delimiters behind.
+  return blocks
+    .map((block) => ({ ...block, text: stripInlineMarkup(block.text) }))
+    .filter((block) => block.text)
 }
 
 /** Cuts on a line break where possible so the card never ends mid-word. */

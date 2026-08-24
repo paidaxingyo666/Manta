@@ -102,6 +102,10 @@ docs/**
 !docs/agent-skill-sharing-installation-plan.md
 !docs/ai-vault-process-isolation-plan.md
 !docs/mobile-terminal-shortcut-bar.md
+# Release notes are read at package time by electron-builder and shipped inside
+# every latest*.yml, so CI must be able to check them out.
+!docs/release-notes/
+!docs/release-notes/**
 !docs/reference/
 !docs/reference/git-compatibility.md
 !docs/reference/headless-linux-server.md

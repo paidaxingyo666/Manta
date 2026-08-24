@@ -63,6 +63,16 @@ const releaseNotesPath = join(__dirname, '..', 'docs', 'release-notes', `${relea
 const releaseNotes = existsSync(releaseNotesPath)
   ? { releaseInfo: { releaseNotesFile: releaseNotesPath } }
   : {}
+// Why say something: this guard is meant to cover a local build with no notes
+// written yet, but it cannot tell that apart from notes that exist and were not
+// checked out — which is exactly what happened when docs/release-notes/ was
+// still inside the docs/** ignore rule. The release shipped, the manifest
+// carried no releaseNotes, and nothing anywhere said so.
+if (!existsSync(releaseNotesPath)) {
+  console.warn(
+    `[release-notes] none for ${releaseNotesVersion}; the update card will stay plain. Expected ${releaseNotesPath}`
+  )
+}
 // Why each dev channel gets its own repo rather than tagging into the main one:
 // the releases atom feed exposes only the 10 newest entries, so 24 hourly tags a
 // day would evict every stable/RC entry and strand users on a feed with nothing
