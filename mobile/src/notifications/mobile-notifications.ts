@@ -1,3 +1,4 @@
+import { reportPushToken } from './push-token-reporting'
 import type { RpcClient } from '../transport/rpc-client'
 // Re-exported so the existing importers (and their vi.mock paths) keep working.
 export {
@@ -221,6 +222,11 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
       | { type: 'end' }
     if (event.type === 'ready') {
       subscriptionId = (event as SubscribeResult).subscriptionId
+      // Why here: the socket is authenticated and the desktop knows which paired
+      // device it belongs to, which is what the token has to be filed against.
+      // Fire-and-forget — a phone that cannot report a token still receives
+      // everything through the catch-up below.
+      void reportPushToken(client).catch(() => {})
       const isReconnect = session.connectedBefore
       session.connectedBefore = true
       if (disposed) {

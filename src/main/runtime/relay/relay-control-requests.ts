@@ -12,7 +12,7 @@ import {
 } from './relay-control-protocol'
 
 type PendingRequest = {
-  kind: 'invite' | 'revoke' | 'install' | 'install-status' | 'confirm'
+  kind: 'invite' | 'revoke' | 'install' | 'install-status' | 'confirm' | 'push-wake'
   resolve: (value: unknown) => void
   reject: (error: Error) => void
   timer: ReturnType<typeof setTimeout>
@@ -53,6 +53,26 @@ export class RelayControlRequests {
       { type: 'device-revoke', reqId, relayDeviceId },
       send
     ) as Promise<void>
+  }
+
+  /**
+   * Asks the relay to wake a device whose socket is gone.
+   *
+   * The token travels with the request rather than being registered: the relay
+   * deliberately remembers nothing about devices, so a dead one comes back as
+   * `discardToken` instead of being cleaned up there.
+   */
+  pushWake(
+    reqId: string,
+    input: { deviceToken: string; payload: Record<string, unknown>; collapseId?: string },
+    send: (payload: object) => void
+  ): Promise<{ ok: boolean; discardToken: boolean }> {
+    return this.request(
+      reqId,
+      'push-wake',
+      { type: 'push-wake', reqId, ...input },
+      send
+    ) as Promise<{ ok: boolean; discardToken: boolean }>
   }
 
   installCredential(

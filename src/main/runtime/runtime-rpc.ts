@@ -349,6 +349,7 @@ const MOBILE_RPC_METHOD_ALLOWLIST = new Set([
   'markdown.readTab',
   'markdown.saveTab',
   'notifications.getMissedSince',
+  'notifications.registerPushToken',
   'notifications.subscribe',
   'notifications.unsubscribe',
   'pairing.getEndpoints',
@@ -1718,6 +1719,8 @@ export class MantaRuntimeRpcServer {
         connectionId,
         clientId: token,
         pairedDeviceId: device.deviceId,
+        setDevicePushToken: (deviceId, pushToken) =>
+          this.deviceRegistry?.setPushToken(deviceId, pushToken) ?? false,
         // Why: gates the mobile-only payload diet so full-screen web/desktop clients aren't truncated.
         clientKind: device.scope,
         clientCapabilities: authenticatedSocket?.clientCapabilities,

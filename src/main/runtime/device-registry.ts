@@ -26,6 +26,18 @@ export type DeviceEntry = {
   // Why: STA-2370 — a grant minted for "This computer only" proves nothing about off-host reach when its
   // client connects, so the bind decision must be able to tell it apart from a LAN/phone grant.
   pairingReach?: RuntimePairingReach
+  // Why here rather than its own store: a push token is only meaningful for a
+  // paired device, so it inherits this file's persistence — push survives a
+  // desktop restart even though the phone is asleep and cannot re-register —
+  // and removeDevice takes it away on unpair without a second cleanup path.
+  pushToken?: DevicePushTokenRecord
+}
+
+export type DevicePushTokenRecord = {
+  /** APNs device token, lowercase hex. */
+  value: string
+  platform: 'ios'
+  updatedAt: number
 }
 
 function validRelayBinding(value: unknown, deviceId: string): RelayDeviceBinding | undefined {
@@ -168,6 +180,35 @@ export class DeviceRegistry {
     const nextDevices = this.devices.map((device, candidateIndex) =>
       candidateIndex === index ? { ...device, relayBinding: binding } : device
     )
+    this.save(nextDevices)
+    this.devices = nextDevices
+    return true
+  }
+
+  /**
+   * The phone re-registers on every launch, so this overwrites rather than
+   * merges: a token that changed (reinstall, restored backup, some OS updates)
+   * must not leave the previous one behind to be tried and rejected.
+   */
+  setPushToken(deviceId: string, token: DevicePushTokenRecord): boolean {
+    return this.updateDevice(deviceId, (device) => ({ ...device, pushToken: token }))
+  }
+
+  /** Called when APNs reports the token dead, so it is not retried forever. */
+  clearPushToken(deviceId: string): boolean {
+    return this.updateDevice(deviceId, ({ pushToken: _dropped, ...device }) => device)
+  }
+
+  private updateDevice(deviceId: string, apply: (device: DeviceEntry) => DeviceEntry): boolean {
+    const index = this.devices.findIndex((candidate) => candidate.deviceId === deviceId)
+    if (index === -1) {
+      return false
+    }
+    const nextDevices = this.devices.map((device, candidateIndex) =>
+      candidateIndex === index ? apply(device) : device
+    )
+    // Persist before the memory swap, like the setters above: a failed write
+    // must not leave memory claiming a token the file does not have.
     this.save(nextDevices)
     this.devices = nextDevices
     return true

@@ -1,4 +1,5 @@
 /* eslint-disable max-lines -- main-process entry point; owns app lifecycle, service wiring, window creation, and hook/daemon startup with no cleaner split seam. */
+import { MobilePushEscalation } from './runtime/mobile-push-escalation'
 import { existsSync, statSync } from 'node:fs'
 import { isAbsolute, join } from 'node:path'
 import os from 'node:os'
@@ -3362,6 +3363,24 @@ void app.whenReady().then(async () => {
         // Best effort: a relay that predates accounts, or a signed-out
         // profile, simply leaves this machine out of the list.
       })
+      // Only now do all three pieces exist: the listener count lives on the
+      // runtime, the tokens on the device registry, and the wake on the relay.
+      runtime?.setPushEscalation(
+        new MobilePushEscalation({
+          hasLiveSubscriber: () => (runtime?.getMobileNotificationListenerCount() ?? 0) > 0,
+          pushTargets: () =>
+            (runtimeRpc?.getDeviceRegistry()?.listDevices() ?? [])
+              .filter((device) => device.scope === 'mobile' && device.pushToken)
+              .map((device) => ({
+                deviceId: device.deviceId,
+                deviceToken: device.pushToken!.value
+              })),
+          wake: (input) => relayService.pushWake(input),
+          forgetToken: (deviceId) => {
+            runtimeRpc?.getDeviceRegistry()?.clearPushToken(deviceId)
+          }
+        })
+      )
       runtimeRpc.setMobileRelayPairingProvider({
         createPairingRelay: (relayDeviceId) => relayService.createPairingRelay(relayDeviceId),
         onDeviceRevokeQueued: (item) => relayService.onDeviceRevokeQueued(item),

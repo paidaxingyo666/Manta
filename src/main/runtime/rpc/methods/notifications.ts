@@ -6,6 +6,18 @@ import { defineStreamingMethod, defineMethod, type RpcAnyMethod } from '../core'
 // notifications.subscribe calls landed on the same millisecond.
 let notificationsSubscriptionSeq = 0
 
+/**
+ * The phone reports its APNs token so the desktop can reach it while its socket
+ * is gone — which is every time the phone is asleep, and the reason a
+ * notification used to wait for the app to be opened.
+ *
+ * Hex, bounded: this value becomes a URL path segment on the way to Apple.
+ */
+const RegisterPushTokenParams = z.object({
+  deviceToken: z.string().regex(/^[0-9a-f]{64,200}$/, 'APNs device tokens are lowercase hex'),
+  platform: z.literal('ios')
+})
+
 const NotificationUnsubscribeParams = z.object({
   subscriptionId: z
     .unknown()
@@ -69,6 +81,25 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
     handler: async (params, { runtime }) => {
       runtime.cleanupSubscription(params.subscriptionId)
       return { unsubscribed: true }
+    }
+  }),
+  defineMethod({
+    name: 'notifications.registerPushToken',
+    params: RegisterPushTokenParams,
+    // Why keyed by pairedDeviceId and not the socket: the token has to outlive
+    // the connection to be worth anything, and pairedDeviceId is the revocable
+    // identity that unpairing actually removes.
+    handler: async (params, { pairedDeviceId, setDevicePushToken }) => {
+      if (!pairedDeviceId || !setDevicePushToken) {
+        // An in-process or unpaired caller has no device to attach this to.
+        return { registered: false, reason: 'no-paired-device' }
+      }
+      const registered = setDevicePushToken(pairedDeviceId, {
+        value: params.deviceToken,
+        platform: params.platform,
+        updatedAt: Date.now()
+      })
+      return { registered }
     }
   }),
   defineMethod({

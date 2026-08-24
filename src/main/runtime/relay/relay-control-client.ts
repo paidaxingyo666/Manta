@@ -1,3 +1,4 @@
+import { respondToRelayHostChallenge } from './relay-host-challenge-exchange'
 import { randomUUID } from 'node:crypto'
 import WebSocket, { type RawData } from 'ws'
 import { MOBILE_RELAY_CLOSE_CODE } from '../../../shared/mobile-relay-close-codes'
@@ -5,8 +6,6 @@ import type { E2EEKeypair } from '../e2ee-keypair'
 import {
   RelayConnectionOpenMessageSchema,
   RelayDrainMessageSchema,
-  RelayHostChallengeMessageSchema,
-  RelayHostHelloAckMessageSchema,
   RelayPingMessageSchema,
   parseRelayControlMessage,
   type RelayConnectionOpenMessage,
@@ -16,7 +15,6 @@ import {
 } from './relay-control-protocol'
 import { RelayControlRequests } from './relay-control-requests'
 import type { DeviceCredentialInstallAuthorization } from './relay-control-requests'
-import { answerRelayHostChallenge } from './relay-host-proof'
 import {
   RELAY_CONTROL_SILENCE_LIMIT_MS,
   RelayControlSilenceWatchdog
@@ -238,45 +236,36 @@ export class RelayControlClient {
   }
 
   private handleProofMessage(message: Record<string, unknown>): void {
-    const challenge = RelayHostChallengeMessageSchema.safeParse(message)
-    if (challenge.success) {
-      let invalidReason = 'unknown'
-      const proofB64 = answerRelayHostChallenge(challenge.data, {
-        relayOrigin: this.relayOrigin,
-        ...this.options.identity,
-        relayHostId: this.options.relayHostId,
-        hostPublicKey: this.options.keypair.publicKey,
-        hostSecretKey: this.options.keypair.secretKey,
-        assignmentEpoch: this.options.assignmentEpoch,
-        previousGeneration: this.options.previousGeneration,
-        resumeRequested: Boolean(this.options.controlResumeSecret),
-        onInvalid: (reason) => {
-          invalidReason = reason
-        }
-      })
-      if (!proofB64) {
-        // Reason names the failing check only; field values never surface here.
-        this.failProtocol(`invalid host challenge: ${invalidReason} origin=${this.relayOrigin}`)
-        return
-      }
-      this.socket?.send(
-        JSON.stringify({
-          type: 'host-challenge-ack',
-          challengeId: challenge.data.challengeId,
-          proofB64
-        })
-      )
+    const result = respondToRelayHostChallenge({
+      message,
+      relayOrigin: this.relayOrigin,
+      identity: this.options.identity as Record<string, unknown>,
+      relayHostId: this.options.relayHostId,
+      hostPublicKey: this.options.keypair.publicKey,
+      hostSecretKey: this.options.keypair.secretKey,
+      assignmentEpoch: this.options.assignmentEpoch,
+      previousGeneration: this.options.previousGeneration,
+      resumeRequested: Boolean(this.options.controlResumeSecret)
+    })
+    if (result.kind === 'invalid') {
+      this.failProtocol(result.reason)
       return
     }
-    const ack = RelayHostHelloAckMessageSchema.safeParse(message)
-    if (!ack.success) {
-      this.failProtocol('invalid host proof message')
+    if (result.kind === 'answer') {
+      this.socket?.send(result.frame)
       return
     }
     this.state = 'active'
     this.silenceWatchdog.start()
-    this.connectResolve?.(ack.data)
+    this.connectResolve?.(result.ack)
     this.clearConnectPromise()
+  }
+
+  pushWake(
+    input: { deviceToken: string; payload: Record<string, unknown>; collapseId?: string },
+    reqId: string = randomUUID()
+  ): Promise<{ ok: boolean; discardToken: boolean }> {
+    return this.requests.pushWake(reqId, input, (payload) => this.sendActive(payload))
   }
 
   private sendActive(payload: object): void {

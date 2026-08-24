@@ -1,3 +1,4 @@
+import { flushRelayRevokeOutbox } from './relay-revoke-outbox-flush'
 import type { MantaCloudAuthConfig } from '../../manta-profiles/profile-cloud-auth-config'
 import type { MobilePairingConnectionContext, MantaRuntimeRpcServer } from '../runtime-rpc'
 import type {
@@ -90,7 +91,7 @@ export class DesktopRelayService {
           resolvePreferredRegion,
           onStatus: options.onStatus
         })
-        void this.flushRevokeOutbox(broker)
+        void flushRelayRevokeOutbox(this.revokeOutbox, broker, () => this.refreshDemand())
         return broker
       },
       onStatus: options.onStatus
@@ -149,7 +150,7 @@ export class DesktopRelayService {
       broker.hostId === item.relayHostId &&
       broker.ownerIdentityKey === item.ownerIdentityKey
     ) {
-      void this.flushRevoke(broker, item)
+      void flushRelayRevokeOutbox(this.revokeOutbox, broker, () => this.refreshDemand())
     }
   }
 
@@ -230,6 +231,24 @@ export class DesktopRelayService {
     })
   }
 
+  /**
+   * Wakes a phone whose socket is gone. Rejects when no broker is live — the
+   * caller treats that as "not delivered" and the reconnect catch-up still has
+   * the notification.
+   */
+  async pushWake(input: {
+    deviceToken: string
+    payload: Record<string, unknown>
+    collapseId?: string
+  }): Promise<{ ok: boolean; discardToken: boolean }> {
+    // withTransientDemand keeps the broker alive for the call: a desktop with no
+    // phone connected holds no broker, and that is exactly when push matters.
+    return await this.withTransientDemand('push-wake', async () => {
+      const broker = await this.requireActiveBroker()
+      return broker.pushWake(input)
+    })
+  }
+
   demandStateChanged(): void {
     this.refreshDemand()
   }
@@ -247,12 +266,6 @@ export class DesktopRelayService {
     this.coordinator.stop()
   }
 
-  private async flushRevokeOutbox(broker: RelaySessionBroker): Promise<void> {
-    for (const item of this.revokeOutbox.pendingFor(broker.ownerIdentityKey, broker.hostId)) {
-      await this.flushRevoke(broker, item)
-    }
-  }
-
   private requireMobileDevice(deviceId: string): void {
     if (this.runtimeRpc.getDeviceRegistry()?.getDevice(deviceId)?.scope !== 'mobile') {
       throw new Error('mobile_device_not_found')
@@ -268,20 +281,6 @@ export class DesktopRelayService {
       context.transport.relayHostId !== broker.hostId
     ) {
       throw new Error('stale_relay_connection')
-    }
-  }
-
-  private async flushRevoke(
-    broker: RelaySessionBroker,
-    item: RelayRevokeOutboxItem
-  ): Promise<void> {
-    try {
-      await broker.revokeDevice(item.relayDeviceId, item.reqId)
-      this.revokeOutbox.remove(item.reqId)
-      this.refreshDemand()
-    } catch {
-      // Why: the durable item is the source of truth; reconnecting the same
-      // account/control retries this stable reqId without delaying local revoke.
     }
   }
 

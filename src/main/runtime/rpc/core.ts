@@ -1,4 +1,5 @@
 // Why: single boundary between raw RPC frames and MantaRuntimeService; keeps schema, handler, and result type on one object.
+import type { DevicePushTokenRecord } from '../device-registry'
 import { ZodError, type ZodType } from 'zod'
 import type { TerminalStreamFrame } from '../../../shared/terminal-stream-protocol'
 import type {
@@ -76,6 +77,10 @@ export type RpcContext = {
   clientId?: string
   // Why: navigation is keyed by revocable device identity, never by the bearer credential or transient socket id.
   pairedDeviceId?: string
+  // Why injected rather than reached through `runtime`: the device registry is
+  // owned by the RPC server, and a push token is only writable for the device
+  // whose authenticated socket this context belongs to.
+  setDevicePushToken?: (deviceId: string, token: DevicePushTokenRecord) => boolean
   // Why: lets handlers gate mobile payload truncation to phones only; undefined for in-process callers → treat as full-class (no clip).
   clientKind?: 'mobile' | 'runtime'
   // Why: negotiation is bound to the authenticated socket, never asserted by a destructive request.

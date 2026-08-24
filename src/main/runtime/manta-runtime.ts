@@ -14301,8 +14301,22 @@ export class MantaRuntimeService {
   // idempotent-by-seq source of truth; clients watermark their own position.
   private readonly mobileNotificationReplay = new MobileNotificationReplayBuffer()
 
+  /**
+   * Installed once both the device registry and the relay connection exist, so
+   * this class does not have to reach across to either. Absent until then, and
+   * absent for good on a desktop whose operator configured no relay push.
+   */
+  setPushEscalation(escalation: { schedule: (event: MobileNotificationEvent) => void }): void {
+    this.pushEscalation = escalation
+  }
+
+  private pushEscalation: { schedule: (event: MobileNotificationEvent) => void } | null = null
+
   dispatchMobileNotification(event: MobileNotificationEvent): void {
     const seq = this.mobileNotificationReplay.record(event)
+    // Why after the record and before the fan-out: the escalation decides later,
+    // on a timer, and must not be able to delay or throw into live delivery.
+    this.pushEscalation?.schedule(event)
     // Why: surface the desktop-assigned seq to live listeners so they can watermark the last event
     // delivered and feed it back to getMissedSince on reconnect (idempotent catch-up, no dupes).
     notifyRuntimeListeners(
