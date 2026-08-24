@@ -90,16 +90,26 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
     // the connection to be worth anything, and pairedDeviceId is the revocable
     // identity that unpairing actually removes.
     handler: async (params, { pairedDeviceId, setDevicePushToken }) => {
-      if (!pairedDeviceId || !setDevicePushToken) {
-        // An in-process or unpaired caller has no device to attach this to.
-        return { registered: false, reason: 'no-paired-device' }
+      // Why throw rather than report a false: a successful response carrying
+      // `registered: false` is indistinguishable from success to a caller that
+      // only checks `ok`, and that is precisely how this shipped storing
+      // nothing while both sides believed it had worked.
+      if (!pairedDeviceId) {
+        throw new Error('Push tokens can only be registered by a paired device.')
       }
-      const registered = setDevicePushToken(pairedDeviceId, {
-        value: params.deviceToken,
-        platform: params.platform,
-        updatedAt: Date.now()
-      })
-      return { registered }
+      if (!setDevicePushToken) {
+        throw new Error('This runtime cannot store push tokens.')
+      }
+      if (
+        !setDevicePushToken(pairedDeviceId, {
+          value: params.deviceToken,
+          platform: params.platform,
+          updatedAt: Date.now()
+        })
+      ) {
+        throw new Error('No such paired device.')
+      }
+      return { registered: true }
     }
   }),
   defineMethod({

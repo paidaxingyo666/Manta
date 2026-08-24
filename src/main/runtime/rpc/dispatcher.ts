@@ -199,6 +199,7 @@ export class RpcDispatcher {
             connectionId: options?.connectionId,
             clientId: options?.clientId,
             pairedDeviceId: options?.pairedDeviceId,
+            setDevicePushToken: options?.setDevicePushToken,
             clientKind: options?.clientKind,
             clientCapabilities: options?.clientCapabilities,
             orchestrationCapability: request.orchestrationCapability,
