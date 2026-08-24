@@ -29,9 +29,11 @@ export async function reportPushToken(client: Client): Promise<PushTokenReport> 
       deviceToken: token.token,
       platform: 'ios'
     })
-    // An older desktop does not know this method. That is not a failure to
-    // recover from — it simply has no push, and the reconnect catch-up that
-    // predates this still delivers everything once the app is opened.
+    // `ok` alone is the whole answer now: the desktop throws rather than
+    // returning a successful response that says it stored nothing. An older
+    // desktop that does not know the method also lands here — that is not a
+    // failure to recover from, it simply has no push, and the reconnect
+    // catch-up that predates this still delivers everything on open.
     return response.ok ? { reported: true } : { reported: false, reason: 'rejected' }
   } catch {
     return { reported: false, reason: 'failed' }
