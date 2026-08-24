@@ -15,7 +15,16 @@ let notificationsSubscriptionSeq = 0
  */
 const RegisterPushTokenParams = z.object({
   deviceToken: z.string().regex(/^[0-9a-f]{64,200}$/, 'APNs device tokens are lowercase hex'),
-  platform: z.literal('ios')
+  platform: z.literal('ios'),
+  /**
+   * base64 of the 32-byte key this device will open a sealed push body with.
+   * Optional: a build without the notification service extension has nowhere to
+   * keep one, and its pushes stay generic rather than failing.
+   */
+  encryptionKeyB64: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]{43}=$/, 'expected base64 of 32 bytes')
+    .optional()
 })
 
 const NotificationUnsubscribeParams = z.object({
@@ -104,7 +113,8 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
         !setDevicePushToken(pairedDeviceId, {
           value: params.deviceToken,
           platform: params.platform,
-          updatedAt: Date.now()
+          updatedAt: Date.now(),
+          ...(params.encryptionKeyB64 ? { encryptionKeyB64: params.encryptionKeyB64 } : {})
         })
       ) {
         throw new Error('No such paired device.')

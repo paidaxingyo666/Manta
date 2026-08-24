@@ -181,9 +181,9 @@ describe('MobilePushEscalation', () => {
     expect(h.wake.mock.calls[0][0].payload.aps.alert).toEqual({ title: 'Manta', body: '有新动态' })
   })
 
-  // Losing the whole notification to say more about it is the wrong trade;
-  // APNs rejects anything over 4 KB outright.
-  it('drops the ciphertext rather than the notification when it would not fit', async () => {
+  // The old shape built the whole body and discarded it if it did not fit, so
+  // a long burst said nothing at all. Filling to the budget keeps what fits.
+  it('keeps what fits instead of discarding the whole body', async () => {
     const key = generatePushKey()
     const h = harness({
       pushTargets: () => [
@@ -201,7 +201,9 @@ describe('MobilePushEscalation', () => {
     await h.elapse()
 
     const payload = h.wake.mock.calls[0][0].payload
-    expect(payload.mb).toBeUndefined()
+    const items = JSON.parse(decryptPushBody(key, payload.mb)!)
+    expect(items.length).toBeGreaterThan(0)
+    expect(items.length).toBeLessThan(8)
     expect(payload.aps.alert.body).toBeTruthy()
   })
 

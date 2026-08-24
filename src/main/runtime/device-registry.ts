@@ -200,7 +200,21 @@ export class DeviceRegistry {
    * must not leave the previous one behind to be tried and rejected.
    */
   setPushToken(deviceId: string, token: DevicePushTokenRecord): boolean {
-    return this.updateDevice(deviceId, (device) => ({ ...device, pushToken: token }))
+    return this.updateDevice(deviceId, (device) => ({
+      ...device,
+      pushToken: {
+        ...token,
+        // Why keep the old key when this report has none: a single keychain
+        // read failing on the phone would otherwise erase a working key here
+        // permanently, and the RPC would still answer success. A report that
+        // omits the key means "unchanged", never "clear it".
+        ...(token.encryptionKeyB64
+          ? {}
+          : device.pushToken?.encryptionKeyB64
+            ? { encryptionKeyB64: device.pushToken.encryptionKeyB64 }
+            : {})
+      }
+    }))
   }
 
   /** Called when APNs reports the token dead, so it is not retried forever. */

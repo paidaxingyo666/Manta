@@ -115,7 +115,8 @@
           }
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "./plugins/notification-service"
     ]
   }
 }

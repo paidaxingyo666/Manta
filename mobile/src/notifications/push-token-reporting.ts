@@ -1,4 +1,5 @@
 import { readDevicePushToken } from './device-push-token'
+import { ensurePushKey } from './push-encryption-key'
 
 /**
  * Tells the desktop where this phone can be reached while its socket is gone.
@@ -25,9 +26,14 @@ export async function reportPushToken(client: Client): Promise<PushTokenReport> 
     return { reported: false, reason: token.status }
   }
   try {
+    // The key rides along rather than in its own call: they are only useful
+    // together, and two round trips can leave the desktop holding a token it
+    // cannot seal for.
+    const key = ensurePushKey()
     const response = await client.sendRequest('notifications.registerPushToken', {
       deviceToken: token.token,
-      platform: 'ios'
+      platform: 'ios',
+      ...(key.status === 'ready' ? { encryptionKeyB64: key.keyB64 } : {})
     })
     // `ok` alone is the whole answer now: the desktop throws rather than
     // returning a successful response that says it stored nothing. An older

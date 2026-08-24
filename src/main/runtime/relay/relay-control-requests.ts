@@ -4,6 +4,7 @@ import {
   RelayDeviceCredentialInstallStatusResultMessageSchema,
   RelayDeviceRevokedMessageSchema,
   RelayDeviceResumeConfirmedMessageSchema,
+  RelayPushWakeResultMessageSchema,
   RelayInviteCreatedMessageSchema,
   type RelayDeviceCredentialInstalledMessage,
   type RelayDeviceCredentialInstallStatusResultMessage,
@@ -149,12 +150,19 @@ export class RelayControlRequests {
       pending.resolve(undefined)
       return true
     }
+    // Why push-wake needs its own branch: without one it falls through to the
+    // resume schema, which is .strict() on a different `type`, so a perfectly
+    // good reply fails to parse — and the caller treats an unparsed control
+    // message as protocol violation and closes the connection. Every push would
+    // cost the relay link, and discardToken would never be seen.
     const schema =
       pending.kind === 'install'
         ? RelayDeviceCredentialInstalledMessageSchema
         : pending.kind === 'install-status'
           ? RelayDeviceCredentialInstallStatusResultMessageSchema
-          : RelayDeviceResumeConfirmedMessageSchema
+          : pending.kind === 'push-wake'
+            ? RelayPushWakeResultMessageSchema
+            : RelayDeviceResumeConfirmedMessageSchema
     const result = schema.safeParse(message)
     if (!result.success) {
       return false

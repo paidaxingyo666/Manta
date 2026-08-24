@@ -33,6 +33,32 @@ describe('notifications.registerPushToken', () => {
     })
   })
 
+  it('stores the key alongside the token when the phone published one', async () => {
+    const setDevicePushToken = vi.fn().mockReturnValue(true)
+    const keyB64 = Buffer.alloc(32, 7).toString('base64')
+
+    await (method as never as { handler: (p: unknown, c: unknown) => Promise<unknown> }).handler(
+      { ...TOKEN, encryptionKeyB64: keyB64 },
+      { pairedDeviceId: 'dev-1', setDevicePushToken }
+    )
+
+    expect(setDevicePushToken).toHaveBeenCalledWith(
+      'dev-1',
+      expect.objectContaining({ encryptionKeyB64: keyB64 })
+    )
+  })
+
+  // A build with no notification service extension has nowhere to keep a key.
+  // Its pushes stay generic rather than failing.
+  it('accepts a token with no key at all', async () => {
+    const setDevicePushToken = vi.fn().mockReturnValue(true)
+
+    await expect(invoke({ pairedDeviceId: 'dev-1', setDevicePushToken })).resolves.toEqual({
+      registered: true
+    })
+    expect(setDevicePushToken.mock.calls[0][1].encryptionKeyB64).toBeUndefined()
+  })
+
   it('fails loudly when the caller is not a paired device', async () => {
     await expect(invoke({ setDevicePushToken: vi.fn() })).rejects.toThrow(/paired device/)
   })

@@ -19,6 +19,12 @@ import { encryptPushBody, type EncryptedPushBody } from '../../shared/push-paylo
 
 /** Long enough to outlast a routine reconnect, short enough to still feel prompt. */
 const DEFAULT_ESCALATION_DELAY_MS = 4_000
+/**
+ * APNs rejects a payload over 4 KB and the rest of the notification shares it.
+ * Base64 costs a third on top, so this is the plaintext ceiling that keeps the
+ * sealed result comfortably inside.
+ */
+const MAX_SEALED_PLAINTEXT_BYTES = 1_400
 
 export type PushEscalationDeps = {
   /** True while any phone holds a live notification subscription. */
@@ -146,17 +152,41 @@ function sealedBody(
   if (!keyB64) {
     return null
   }
-  const plaintext = JSON.stringify(
-    batch.slice(0, 8).map((event) => ({
-      t: 'title' in event ? event.title : '',
-      b: 'body' in event ? String(event.body ?? '').slice(0, 200) : ''
-    }))
-  )
+  // Filled item by item against the byte budget rather than built whole and
+  // then measured. Slicing by JS characters and judging by base64 length means
+  // CJK — three bytes per character — blows the budget at three notifications
+  // and the whole body is discarded, silently, exactly when there is most to
+  // say.
+  const items: { t: string; b: string }[] = []
+  for (const event of batch) {
+    items.push({
+      t: clip('title' in event ? String(event.title ?? '') : '', 120),
+      b: clip('body' in event ? String(event.body ?? '') : '', 200)
+    })
+    if (Buffer.byteLength(JSON.stringify(items), 'utf8') > MAX_SEALED_PLAINTEXT_BYTES) {
+      items.pop()
+      break
+    }
+  }
+  if (items.length === 0) {
+    return null
+  }
   try {
-    const sealed = encryptPushBody(Buffer.from(keyB64, 'base64'), plaintext)
-    return JSON.stringify(sealed).length > 2_500 ? null : sealed
+    return encryptPushBody(Buffer.from(keyB64, 'base64'), JSON.stringify(items))
   } catch {
     // A malformed key must not cost the notification itself.
     return null
   }
+}
+
+/** Trims to a byte budget without splitting a multi-byte character. */
+function clip(text: string, maxBytes: number): string {
+  if (Buffer.byteLength(text, 'utf8') <= maxBytes) {
+    return text
+  }
+  let out = text
+  while (Buffer.byteLength(out, 'utf8') > maxBytes) {
+    out = out.slice(0, -1)
+  }
+  return out
 }

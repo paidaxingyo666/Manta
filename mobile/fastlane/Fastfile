@@ -29,6 +29,10 @@ WORKSPACE = File.join(MOBILE_ROOT, "ios", "Manta.xcworkspace")
 BUILD_OUTPUT_DIRECTORY = File.join(MOBILE_ROOT, "build")
 SCHEME = "Manta"
 BUNDLE_ID = "cn.sh.manta.mobile"
+# The notification service extension. iOS requires an extension's bundle id to
+# start with its host app's, and Apple requires it to be its own registered App
+# ID with its own provisioning profile.
+NSE_BUNDLE_ID = "cn.sh.manta.mobile.NotificationService"
 # The external group in App Store Connect, matched by name. Testers see this
 # name in TestFlight, so it is in the language they read. It must exist on
 # the app before this lane runs, and an external group cannot be created
@@ -202,23 +206,55 @@ platform :ios do
     # doesn't exist in this fastlane version).
     profile_name = lane_context[SharedValues::SIGH_NAME]
 
+    # The notification service extension is a second target with its own bundle
+    # id, and therefore its own profile. Manual signing means nothing is fetched
+    # implicitly: without this the archive fails at the extension with "No
+    # profiles for 'cn.sh.manta.mobile.NotificationService' were found".
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: NSE_BUNDLE_ID,
+      force: true,
+    )
+    nse_profile_name = lane_context[SharedValues::SIGH_NAME]
+
     # Manual signing: the archive needs the team, profile, and signing style set
     # explicitly (no -allowProvisioningUpdates). Without DEVELOPMENT_TEAM the
     # archive fails: "Signing for Manta requires a development team".
+    # export_options is consumed by -exportArchive only; the ARCHIVE still needs
+    # a specifier per target, and xcargs is global so it cannot supply two.
+    # Writing them into the pbxproj is the only way to give each target its own.
+    update_code_signing_settings(
+      path: File.join(MOBILE_ROOT, "ios", "Manta.xcodeproj"),
+      targets: [SCHEME],
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name,
+      team_id: team_id,
+      use_automatic_signing: false,
+    )
+    update_code_signing_settings(
+      path: File.join(MOBILE_ROOT, "ios", "Manta.xcodeproj"),
+      targets: ["NotificationService"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: nse_profile_name,
+      team_id: team_id,
+      use_automatic_signing: false,
+    )
+
     build_app(
       workspace: WORKSPACE,
       scheme: SCHEME,
       configuration: "Release",
       export_method: "app-store",
+  
       xcargs: "DEVELOPMENT_TEAM=#{team_id} " \
         "CODE_SIGN_STYLE=Manual " \
-        "CODE_SIGN_IDENTITY='Apple Distribution' " \
-        "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
+        "CODE_SIGN_IDENTITY='Apple Distribution'",
       export_options: {
         teamID: team_id,
         signingStyle: "manual",
         provisioningProfiles: {
           BUNDLE_ID => profile_name,
+          NSE_BUNDLE_ID => nse_profile_name,
         },
       },
       output_directory: BUILD_OUTPUT_DIRECTORY,
