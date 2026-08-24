@@ -64,6 +64,9 @@
             "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
           }
         ]
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
@@ -111,7 +114,8 @@
             "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "expo-notifications"
     ]
   }
 }
