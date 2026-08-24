@@ -10,6 +10,7 @@ function harness(overrides: Partial<PushEscalationDeps> = {}) {
     pushTargets: () => [{ deviceId: 'dev-1', deviceToken: 'a'.repeat(64) }],
     wake,
     forgetToken,
+    text: (count) => ({ title: 'Manta', body: count === 1 ? '有新动态' : `${count} 条新通知` }),
     setTimer: (fn) => {
       fire = fn
     },
@@ -75,6 +76,28 @@ describe('MobilePushEscalation', () => {
 
     expect(h.wake).toHaveBeenCalledTimes(1)
     expect(h.wake.mock.calls[0][0].collapseId).toBe('manta-activity')
+  })
+
+  // iOS resolves loc-keys against the app's Localizable.strings, which this app
+  // does not ship — so a loc-key reaches the lock screen as its own literal key.
+  it('sends readable text, not APNs loc-keys', async () => {
+    const h = harness()
+    h.escalation.schedule(notification('one'))
+    await h.elapse()
+
+    const alert = h.wake.mock.calls[0][0].payload.aps.alert
+    expect(alert).toEqual({ title: 'Manta', body: '有新动态' })
+    expect(JSON.stringify(alert)).not.toContain('loc-key')
+  })
+
+  it('says how many when a burst collapsed', async () => {
+    const h = harness()
+    for (const t of ['a', 'b', 'c']) {
+      h.escalation.schedule(notification(t))
+    }
+    await h.elapse()
+
+    expect(h.wake.mock.calls[0][0].payload.aps.alert.body).toBe('3 条新通知')
   })
 
   it('tells iOS to invoke the service extension, so content can be added later', async () => {

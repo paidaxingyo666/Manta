@@ -133,7 +133,12 @@ import type { RelayBrokerStatus } from './runtime/relay/relay-session-broker'
 import { awaitRuntimeFileWatcherUnsubscribes } from './runtime/manta-runtime-files'
 import { clearRuntimeMetadataIfOwned } from './runtime/runtime-metadata'
 import { scheduleAllPendingHistoryTreeRemovals } from './terminal-history-deletion'
-import { ensureMainI18n, setMainPluginLanguagePacks, setMainUiLanguage } from './i18n/main-i18n'
+import {
+  ensureMainI18n,
+  setMainPluginLanguagePacks,
+  setMainUiLanguage,
+  translateMain
+} from './i18n/main-i18n'
 import {
   getNextDefaultOnAppearanceSettingValue,
   registerAppMenu,
@@ -3378,7 +3383,16 @@ void app.whenReady().then(async () => {
           wake: (input) => relayService.pushWake(input),
           forgetToken: (deviceId) => {
             runtimeRpc?.getDeviceRegistry()?.clearPushToken(deviceId)
-          }
+          },
+          text: (count) => ({
+            title: translateMain('main.push.activityTitle', 'Manta'),
+            body:
+              count === 1
+                ? translateMain('main.push.activityBodyOne', 'New activity on your desktop')
+                : translateMain('main.push.activityBodyMany', '{{count}} new notifications', {
+                    count
+                  })
+          })
         })
       )
       runtimeRpc.setMobileRelayPairingProvider({

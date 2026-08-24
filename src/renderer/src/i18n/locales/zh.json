@@ -14809,5 +14809,12 @@
         "unknown": "请重启 Manta 以重试。"
       }
     }
+  },
+  "main": {
+    "push": {
+      "activityTitle": "Manta",
+      "activityBodyOne": "桌面端有新动态",
+      "activityBodyMany": "{{count}} 条新通知"
+    }
   }
 }

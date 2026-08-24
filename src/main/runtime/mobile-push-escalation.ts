@@ -32,6 +32,16 @@ export type PushEscalationDeps = {
   }) => Promise<{ ok: boolean; discardToken: boolean }>
   /** Called when APNs says the token is dead, so it is not retried forever. */
   forgetToken: (deviceId: string) => void
+  /**
+   * Builds the lock-screen text.
+   *
+   * Injected because the desktop is the only party that knows a language: the
+   * relay must not read the notification, and the phone ships no
+   * Localizable.strings, so APNs loc-keys have nothing to resolve against and
+   * iOS renders the key itself. The desktop's own UI language is the best
+   * available guess, and the same person is at both ends.
+   */
+  text: (count: number) => { title: string; body: string }
   delayMs?: number
   setTimer?: (fn: () => void, ms: number) => unknown
 }
@@ -73,7 +83,7 @@ export class MobilePushEscalation {
       const result = await this.deps
         .wake({
           deviceToken: target.deviceToken,
-          payload: pushPayload(batch),
+          payload: pushPayload(this.deps.text(batch.length)),
           // One collapse id for the whole app: a phone that was away for an hour
           // should light up once, not once per queued notification.
           collapseId: 'manta-activity'
@@ -87,19 +97,18 @@ export class MobilePushEscalation {
 }
 
 /**
- * Content-free on purpose, for now. The relay forwards this and cannot read a
- * notification's text — so until the payload is encrypted for the device and
- * decrypted on it, the lock screen says that something happened rather than
- * what.
+ * Says that something happened, not what. The relay forwards this and cannot
+ * read a notification's text, so real content has to wait for a payload that is
+ * encrypted for the device and decrypted on it.
+ *
+ * Literal strings rather than APNs loc-keys: those resolve against the app's
+ * Localizable.strings, which this app does not ship, and iOS renders the key
+ * itself when the lookup fails — `push.activity.title` on the lock screen.
  */
-function pushPayload(batch: readonly MobileNotificationEvent[]): Record<string, unknown> {
+function pushPayload(text: { title: string; body: string }): Record<string, unknown> {
   return {
     aps: {
-      alert: {
-        'title-loc-key': 'push.activity.title',
-        'loc-key': batch.length === 1 ? 'push.activity.body.one' : 'push.activity.body.many',
-        'loc-args': [String(batch.length)]
-      },
+      alert: { title: text.title, body: text.body },
       sound: 'default',
       // Tells iOS to hand this to the notification service extension, which is
       // what will decrypt real content once there is any to decrypt.

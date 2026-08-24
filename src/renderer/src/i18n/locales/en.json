@@ -16576,5 +16576,12 @@
   },
   "quickOpen": {
     "moreMatchesAvailable": "More matches may be available. Refine your search to narrow the results."
+  },
+  "main": {
+    "push": {
+      "activityTitle": "Manta",
+      "activityBodyOne": "New activity on your desktop",
+      "activityBodyMany": "{{count}} new notifications"
+    }
   }
 }
