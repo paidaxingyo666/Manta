@@ -542,9 +542,15 @@ jobs:
           arm=$(sha256sum "dmgs/manta-macos-arm64.dmg" | awk '{print $1}')
           intel=$(sha256sum "dmgs/manta-macos-x64.dmg" | awk '{print $1}')
 
-          git fetch origin main
-          git checkout main
-          CASK="Casks/${cask}.rb" VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
+          # Why the API and not git: this job checked out a tag, so main is not
+          # a local branch and the clone is shallow — fetch/checkout/push here
+          # is three ways to fail. The contents API needs neither.
+          path="Casks/${cask}.rb"
+          gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
+            | base64 -d > current.rb
+          sha=$(gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.sha')
+
+          CASK=current.rb VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
           import os, pathlib, re
           p = pathlib.Path(os.environ['CASK'])
           src = p.read_text()
@@ -556,12 +562,13 @@ jobs:
           p.write_text(src)
           PY
 
-          if git diff --quiet -- "Casks/${cask}.rb"; then
+          if gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
+            | base64 -d | diff -q - current.rb >/dev/null; then
             echo "cask already at ${version}"
             exit 0
           fi
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add "Casks/${cask}.rb"
-          git commit -m "chore(cask): ${cask} ${version}"
-          git push origin main
+          gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
+            -f message="chore(cask): ${cask} ${version}" \
+            -f branch=main \
+            -f sha="$sha" \
+            -f content="$(base64 -w0 < current.rb)"
