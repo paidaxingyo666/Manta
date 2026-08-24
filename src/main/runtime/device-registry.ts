@@ -38,6 +38,15 @@ export type DevicePushTokenRecord = {
   value: string
   platform: 'ios'
   updatedAt: number
+  /**
+   * base64 of the 32-byte key this device can decrypt a push body with.
+   *
+   * Absent until the phone can put one somewhere its notification service
+   * extension can read — which needs a keychain access group or an App Group
+   * container, neither of which expo-secure-store reaches. Until then the push
+   * carries no encrypted body and the lock screen keeps its generic text.
+   */
+  encryptionKeyB64?: string
 }
 
 function validRelayBinding(value: unknown, deviceId: string): RelayDeviceBinding | undefined {

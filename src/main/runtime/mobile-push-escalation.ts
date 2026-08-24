@@ -1,4 +1,5 @@
 import type { MobileNotificationEvent } from './manta-runtime'
+import { encryptPushBody, type EncryptedPushBody } from '../../shared/push-payload-encryption'
 
 /**
  * Decides when a notification has to travel as a push rather than down a socket.
@@ -23,7 +24,12 @@ export type PushEscalationDeps = {
   /** True while any phone holds a live notification subscription. */
   hasLiveSubscriber: () => boolean
   /** Paired devices that have reported a push token. */
-  pushTargets: () => readonly { deviceId: string; deviceToken: string }[]
+  pushTargets: () => readonly {
+    deviceId: string
+    deviceToken: string
+    /** base64 of this device's push key, when it has published one. */
+    encryptionKeyB64?: string
+  }[]
   /** Hands one wake to the relay. */
   wake: (input: {
     deviceToken: string
@@ -83,7 +89,10 @@ export class MobilePushEscalation {
       const result = await this.deps
         .wake({
           deviceToken: target.deviceToken,
-          payload: pushPayload(this.deps.text(batch.length)),
+          payload: pushPayload(
+            this.deps.text(batch.length),
+            sealedBody(target.encryptionKeyB64, batch)
+          ),
           // One collapse id for the whole app: a phone that was away for an hour
           // should light up once, not once per queued notification.
           collapseId: 'manta-activity'
@@ -105,14 +114,49 @@ export class MobilePushEscalation {
  * Localizable.strings, which this app does not ship, and iOS renders the key
  * itself when the lookup fails — `push.activity.title` on the lock screen.
  */
-function pushPayload(text: { title: string; body: string }): Record<string, unknown> {
+function pushPayload(
+  text: { title: string; body: string },
+  sealed: EncryptedPushBody | null
+): Record<string, unknown> {
   return {
     aps: {
+      // The generic text is what shows if the extension does not run, cannot
+      // decrypt, or is not installed — so it is the floor, not a placeholder.
       alert: { title: text.title, body: text.body },
       sound: 'default',
       // Tells iOS to hand this to the notification service extension, which is
-      // what will decrypt real content once there is any to decrypt.
+      // what replaces the text above with what actually happened.
       'mutable-content': 1
-    }
+    },
+    ...(sealed ? { mb: sealed } : {})
+  }
+}
+
+/**
+ * Seals what actually happened, for the extension to swap in.
+ *
+ * Absent until a device publishes a key. Absent too when the result would not
+ * fit: APNs rejects a payload over 4 KB outright, and losing the whole
+ * notification to say more about it is the wrong trade.
+ */
+function sealedBody(
+  keyB64: string | undefined,
+  batch: readonly MobileNotificationEvent[]
+): EncryptedPushBody | null {
+  if (!keyB64) {
+    return null
+  }
+  const plaintext = JSON.stringify(
+    batch.slice(0, 8).map((event) => ({
+      t: 'title' in event ? event.title : '',
+      b: 'body' in event ? String(event.body ?? '').slice(0, 200) : ''
+    }))
+  )
+  try {
+    const sealed = encryptPushBody(Buffer.from(keyB64, 'base64'), plaintext)
+    return JSON.stringify(sealed).length > 2_500 ? null : sealed
+  } catch {
+    // A malformed key must not cost the notification itself.
+    return null
   }
 }

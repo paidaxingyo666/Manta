@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MobilePushEscalation, type PushEscalationDeps } from './mobile-push-escalation'
+import { decryptPushBody, generatePushKey } from '../../shared/push-payload-encryption'
 
 function harness(overrides: Partial<PushEscalationDeps> = {}) {
   let fire: (() => void) | null = null
@@ -134,6 +135,87 @@ describe('MobilePushEscalation', () => {
     await h.elapse()
 
     expect(h.wake).not.toHaveBeenCalled()
+  })
+
+  // The extension is the only thing that can read this, and only once a device
+  // publishes a key. Until then the push is exactly what it was.
+  it('carries no encrypted body for a device with no key', async () => {
+    const h = harness()
+    h.escalation.schedule(notification('one'))
+    await h.elapse()
+
+    expect(h.wake.mock.calls[0][0].payload.mb).toBeUndefined()
+  })
+
+  it('seals what happened for a device that published a key', async () => {
+    const key = generatePushKey()
+    const h = harness({
+      pushTargets: () => [
+        {
+          deviceId: 'dev-1',
+          deviceToken: 'a'.repeat(64),
+          encryptionKeyB64: key.toString('base64')
+        }
+      ]
+    })
+    h.escalation.schedule(notification('agent 需要确认'))
+    await h.elapse()
+
+    const sealed = h.wake.mock.calls[0][0].payload.mb
+    expect(sealed).toBeTruthy()
+    expect(JSON.parse(decryptPushBody(key, sealed)!)[0].t).toBe('agent 需要确认')
+  })
+
+  // The generic text is the floor, not a placeholder: it is what shows if the
+  // extension does not run, cannot decrypt, or is not installed at all.
+  it('keeps readable generic text alongside the ciphertext', async () => {
+    const key = generatePushKey()
+    const h = harness({
+      pushTargets: () => [
+        { deviceId: 'd', deviceToken: 'a'.repeat(64), encryptionKeyB64: key.toString('base64') }
+      ]
+    })
+    h.escalation.schedule(notification('one'))
+    await h.elapse()
+
+    expect(h.wake.mock.calls[0][0].payload.aps.alert).toEqual({ title: 'Manta', body: '有新动态' })
+  })
+
+  // Losing the whole notification to say more about it is the wrong trade;
+  // APNs rejects anything over 4 KB outright.
+  it('drops the ciphertext rather than the notification when it would not fit', async () => {
+    const key = generatePushKey()
+    const h = harness({
+      pushTargets: () => [
+        { deviceId: 'd', deviceToken: 'a'.repeat(64), encryptionKeyB64: key.toString('base64') }
+      ]
+    })
+    for (let i = 0; i < 8; i += 1) {
+      h.escalation.schedule({
+        type: 'notification',
+        source: 'agent',
+        title: 'x'.repeat(200),
+        body: 'y'.repeat(200)
+      } as never)
+    }
+    await h.elapse()
+
+    const payload = h.wake.mock.calls[0][0].payload
+    expect(payload.mb).toBeUndefined()
+    expect(payload.aps.alert.body).toBeTruthy()
+  })
+
+  it('survives a malformed key without losing the notification', async () => {
+    const h = harness({
+      pushTargets: () => [
+        { deviceId: 'd', deviceToken: 'a'.repeat(64), encryptionKeyB64: 'not-a-key' }
+      ]
+    })
+    h.escalation.schedule(notification('one'))
+    await h.elapse()
+
+    expect(h.wake).toHaveBeenCalledTimes(1)
+    expect(h.wake.mock.calls[0][0].payload.mb).toBeUndefined()
   })
 
   it('does not let a relay failure escape into the dispatch path', async () => {

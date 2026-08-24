@@ -3378,7 +3378,10 @@ void app.whenReady().then(async () => {
               .filter((device) => device.scope === 'mobile' && device.pushToken)
               .map((device) => ({
                 deviceId: device.deviceId,
-                deviceToken: device.pushToken!.value
+                deviceToken: device.pushToken!.value,
+                ...(device.pushToken!.encryptionKeyB64
+                  ? { encryptionKeyB64: device.pushToken!.encryptionKeyB64 }
+                  : {})
               })),
           wake: (input) => relayService.pushWake(input),
           forgetToken: (deviceId) => {
