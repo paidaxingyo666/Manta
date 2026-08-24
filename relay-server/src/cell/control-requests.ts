@@ -23,7 +23,20 @@ export type ControlDeps = {
   maxDevicesPerHost: number
   maxLiveInvitesPerHost: number
   maxLedgerEntriesPerHost: number
+  /** Absent when the operator has not configured APNs; push-wake then refuses. */
+  sendPush?: PushWakeSender
 }
+
+/**
+ * Wakes one device. Returns false when the token is dead and the desktop should
+ * stop using it — the relay deliberately remembers nothing about devices, so
+ * this is the only way that fact travels back.
+ */
+export type PushWakeSender = (input: {
+  deviceToken: string
+  payload: Record<string, unknown>
+  collapseId?: string
+}) => Promise<{ ok: boolean; discardToken: boolean; reason?: string }>
 
 /**
  * The two authorization modes the clients know about.
@@ -85,6 +98,49 @@ export function handleControlRequest(
   // discards — and the desktop then waits out its own timeout instead.
   if (!reqId) {
     fail('missing_req_id')
+    return true
+  }
+
+  if (type === 'push-wake') {
+    // Why the desktop carries the token instead of the relay storing it: the
+    // relay would then own a device registry it must expire, clean up on
+    // unpair, and keep correct across a re-pair — state it otherwise has no
+    // reason to hold. The desktop already knows which devices it is paired
+    // with, so the token rides along and the relay stays forgetful.
+    if (!deps.sendPush) {
+      fail('push_not_configured')
+      return true
+    }
+    const deviceToken = str(message.deviceToken, 200)
+    // APNs tokens are lowercase hex. Anything else is a bug on the desktop side
+    // or someone probing, and either way it must not reach Apple as a URL path.
+    if (!deviceToken || !/^[0-9a-f]{64,200}$/.test(deviceToken)) {
+      fail('invalid_device_token')
+      return true
+    }
+    const payload = message.payload
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      fail('invalid_push_payload')
+      return true
+    }
+    const collapseId = str(message.collapseId, 64) ?? undefined
+    void deps
+      .sendPush({ deviceToken, payload: payload as Record<string, unknown>, collapseId })
+      .then((result) => {
+        metrics.counter('manta_relay_push_total', 'Pushes handed to APNs.', {
+          outcome: result.ok ? 'sent' : result.discardToken ? 'token_dead' : 'failed'
+        })
+        // The body is never logged: the desktop encrypts it for the device and
+        // the relay is not a party to it.
+        if (!result.ok) {
+          logger.warn('push.failed', { relayHostId, reason: result.reason })
+        }
+        reply({ type: 'push-wake-result', reqId, ok: result.ok, discardToken: result.discardToken })
+      })
+      .catch((error) => {
+        logger.warn('push.error', { relayHostId, error: String(error) })
+        reply({ type: 'push-wake-result', reqId, ok: false, discardToken: false })
+      })
     return true
   }
 

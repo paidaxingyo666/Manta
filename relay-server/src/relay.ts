@@ -9,6 +9,7 @@
  * production exercise the same wiring, including the upgrade path and the rate
  * limiters that sit in front of it.
  */
+import { createPushWakeSender } from './push/push-wake-sender.js'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { timingSafeEqual } from 'node:crypto'
 import { join } from 'node:path'
@@ -23,7 +24,7 @@ import { CellStore } from './cell/store.js'
 import { createRelayTokenVerifier } from './shared/relay-token.js'
 import { Logger } from './shared/log.js'
 import { Metrics } from './metrics.js'
-import { RateLimiter } from './shared/rate-limit.js'
+import { createRelayRateLimiters } from './shared/relay-rate-limiters.js'
 import { clientAddress, parseTrustedProxies, rateLimitKey } from './shared/client-ip.js'
 import { CLOSE_CODES } from './shared/protocol.js'
 import { startCertificateWatch } from './shared/certificate-expiry.js'
@@ -77,6 +78,11 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
   )
   const legacyAccount = accounts.bootstrapLegacy(config.user, Date.now())
 
+  // Why here and not lazily on first push: a bad key path or a Sandbox-only key
+  // should stop the relay at boot, next to the rest of its configuration, not
+  // hours later when the first notification is dropped.
+  const pushWake = createPushWakeSender(logger)
+
   const store = new CellStore(
     config.dataDir,
     (error) => logger.error('cell.persist_failed', { error }),
@@ -88,29 +94,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     legacyAccount.accountId
   )
 
-  const httpLimiter = new RateLimiter({
-    capacity: config.limits.httpBurst,
-    refillPerSecond: config.limits.httpPerSecond
-  })
-  const authLimiter = new RateLimiter({
-    capacity: config.limits.authBurst,
-    refillPerSecond: config.limits.authPerSecond
-  })
-  const phoneLimiter = new RateLimiter({
-    capacity: config.limits.phoneBurst,
-    refillPerSecond: config.limits.phonePerSecond
-  })
-  // Its own table, keyed by host id. Bounded by maxSessions because the key is
-  // only ever charged for a host that is actually online.
-  const hostConnectLimiter = new RateLimiter({
-    capacity: config.limits.phoneBurst,
-    refillPerSecond: config.limits.phonePerSecond,
-    maxKeys: Math.max(64, config.maxSessions * 4)
-  })
-  const controlLimiter = new RateLimiter({
-    capacity: config.limits.controlBurst,
-    refillPerSecond: config.limits.controlPerSecond
-  })
+  const limiters = createRelayRateLimiters(config)
 
   const auth = new RelayAuthServer({
     accounts,
@@ -131,7 +115,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     sessions: authSessions,
     logger,
     metrics,
-    limiter: authLimiter,
+    limiter: limiters.auth,
     ...(config.expectedClientId ? { expectedClientId: config.expectedClientId } : {}),
     ...(config.enrollmentSecret ? { enrollmentSecret: config.enrollmentSecret } : {})
   })
@@ -143,7 +127,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     verifyRelayToken,
     logger,
     metrics,
-    limiter: httpLimiter
+    limiter: limiters.http
   })
 
   const cell = new RelayCell({
@@ -159,13 +143,14 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     maxDevicesPerHost: config.maxDevicesPerHost,
     maxLiveInvitesPerHost: config.maxLiveInvitesPerHost,
     maxLedgerEntriesPerHost: config.maxLedgerEntriesPerHost,
+    ...(pushWake ? { sendPush: pushWake } : {}),
     maxSessions: config.maxSessions,
     maxConnsPerHost: config.maxConnsPerHost,
     logger,
     metrics,
-    phoneLimiter,
-    hostConnectLimiter,
-    controlLimiter
+    phoneLimiter: limiters.phone,
+    hostConnectLimiter: limiters.hostConnect,
+    controlLimiter: limiters.control
   })
 
   let shuttingDown = false
@@ -272,7 +257,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       // Upgrades bypass the request handler entirely, so the HTTP limiter has
       // to be applied here too — otherwise the cheapest way to flood the relay
       // is the one path that never reaches it.
-      if (!httpLimiter.take(`upgrade:${rateLimitKey(clientIp)}`).ok) {
+      if (!limiters.http.take(`upgrade:${rateLimitKey(clientIp)}`).ok) {
         metrics.counter('manta_relay_rate_limited_total', 'Requests refused by a rate limiter.', {
           surface: 'upgrade'
         })
@@ -296,13 +281,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     const now = Date.now()
     store.sweep(now)
     authSessions.prune(now)
-    for (const limiter of [
-      httpLimiter,
-      authLimiter,
-      phoneLimiter,
-      hostConnectLimiter,
-      controlLimiter
-    ]) {
+    for (const limiter of Object.values(limiters)) {
       limiter.sweep(now)
     }
   }, 60_000)

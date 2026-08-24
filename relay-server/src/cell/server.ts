@@ -65,7 +65,8 @@ export class RelayCell {
       maxInviteAttempts: options.maxInviteAttempts,
       maxDevicesPerHost: options.maxDevicesPerHost,
       maxLiveInvitesPerHost: options.maxLiveInvitesPerHost,
-      maxLedgerEntriesPerHost: options.maxLedgerEntriesPerHost
+      maxLedgerEntriesPerHost: options.maxLedgerEntriesPerHost,
+      ...(options.sendPush ? { sendPush: options.sendPush } : {})
     }
     this.controlContext = {
       options,

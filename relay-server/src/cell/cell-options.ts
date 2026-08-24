@@ -4,6 +4,7 @@
  * Its own module so the control leg can depend on the shape without importing
  * the cell itself, which would be circular.
  */
+import type { PushWakeSender } from './control-requests.js'
 import type { CellStore } from './store.js'
 import type { RelayTokenVerifier } from '../shared/relay-token.js'
 import type { Logger } from '../shared/log.js'
@@ -25,6 +26,8 @@ export type CellOptions = {
   maxDevicesPerHost: number
   maxLiveInvitesPerHost: number
   maxLedgerEntriesPerHost: number
+  /** Absent when the operator has not configured APNs. */
+  sendPush?: PushWakeSender
   /** Refuses new hosts past this point instead of degrading for everyone. */
   maxSessions: number
   maxConnsPerHost: number

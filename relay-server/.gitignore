@@ -4,3 +4,9 @@ data/
 *.log
 # Never commit a filled-in environment file; .env.example is the template.
 deploy/.env
+
+# APNs auth keys. The compose default puts them at deploy/apns/, and a .p8 that
+# reaches a public repo can push arbitrary notifications to every install of the
+# app until it is revoked.
+apns/
+*.p8

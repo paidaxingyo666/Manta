@@ -151,6 +151,91 @@ Rate limiting is only as good as the address it buckets on.
 Set it to the address of your proxy and nothing else. Startup warns when the
 origin is `https` and this is empty, which is almost always the mistake.
 
+## Push notifications (iOS)
+
+Optional, and off unless configured. Without it the phone still gets everything
+— the app asks the desktop for what it missed when it reconnects — but only once
+you open it. Push is what makes the phone tell you before you look.
+
+The relay is where the APNs key lives because it is the always-on piece you run.
+It cannot be the desktop: an APNs key is bound to one Apple team and bundle id,
+so shipping it inside the desktop app would hand a copy to everyone who installs
+a build. It cannot be the phone either. That leaves the relay.
+
+**The relay still never sees a notification.** It is told which device to wake
+and, once the encrypted payload lands, forwards bytes it cannot read — the same
+position it holds for every other frame.
+
+### What you need from Apple
+
+A `.p8` auth key from developer.apple.com → Certificates, Identifiers & Profiles
+→ Keys → ＋, with **Apple Push Notifications service (APNs)** ticked. Press
+**Configure** beside it and choose **Sandbox & Production**.
+
+That last step is not optional. A key left at the default Sandbox setting is
+accepted by `api.sandbox.push.apple.com` and rejected by production with
+`BadEnvironmentKeyInToken` — and TestFlight, like the App Store, is production.
+The symptom is a push that reports no error anywhere and never arrives.
+
+Apple lets you download the key once. The filename carries the Key ID:
+`AuthKey_XXXXXXXXXX.p8`.
+
+### Installing it
+
+The container runs as a non-root user, and a bind mount hands it the file's real
+uid and mode — so the key has to be owned by *that* user, not by you. Ask the
+image which uid it is rather than assuming: `adduser -S` picks the first free
+system id, so it can move when the base image does.
+
+```bash
+mkdir -p ~/manta-relay-apns
+mv AuthKey_XXXXXXXXXX.p8 ~/manta-relay-apns/
+
+uid=$(docker run --rm "$RELAY_IMAGE" id -u)
+gid=$(docker run --rm "$RELAY_IMAGE" id -g)
+sudo chown -R "$uid:$gid" ~/manta-relay-apns
+sudo chmod 700 ~/manta-relay-apns
+sudo chmod 600 ~/manta-relay-apns/AuthKey_XXXXXXXXXX.p8
+```
+
+Owning the directory as your login user and locking it to 700 is the obvious
+first attempt and it fails: the container cannot *traverse* into a directory it
+has no execute bit on, so the file's own mode never gets consulted. The error is
+`Permission denied` on the directory, not the key.
+
+After this, you can no longer read the key yourself without `sudo` — which is
+the point.
+
+Then in `.env`:
+
+```bash
+MANTA_RELAY_APNS_DIR=/home/YOU/manta-relay/apns
+MANTA_RELAY_APNS_KEY_PATH=/apns/AuthKey_XXXXXXXXXX.p8   # path INSIDE the container
+MANTA_RELAY_APNS_KEY_ID=XXXXXXXXXX
+MANTA_RELAY_APNS_TEAM_ID=YYYYYYYYYY
+MANTA_RELAY_APNS_TOPIC=cn.sh.manta.mobile               # the app's bundle id
+```
+
+Set all of them or none. On a partial set the relay refuses to start rather than
+coming up quietly without push, because a misspelled variable and a deliberate
+decision look identical from the outside.
+
+The key is a path, never its contents. An environment value is visible in
+`docker inspect`, in `/proc/<pid>/environ`, and in anything that dumps env on a
+crash, and this particular secret can push arbitrary notifications to every
+install of your app.
+
+### Checking it before you need it
+
+The relay logs `apns: ready` at startup with the topic and environment. To prove
+the credentials end to end without a phone, send to a device token that cannot
+exist:
+
+- `BadDeviceToken` — the key, Key ID and Team ID are all correct. This is the
+  answer you want; the token was the only wrong part.
+- `InvalidProviderToken` — the key, Key ID or Team ID disagree with each other.
+- `BadEnvironmentKeyInToken` — the key is Sandbox-only. Reissue it.
+
 ## Accounts
 
 A relay serves one identity or one per person, and that is the operator's choice
