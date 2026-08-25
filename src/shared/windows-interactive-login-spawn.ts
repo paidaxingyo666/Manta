@@ -23,13 +23,13 @@ function encodeUtf8(value: string): string {
 
 function buildPidRelayScript(command: string, args: string[], pidFilePath: string): string {
   const decode =
-    'function Read-OrcaValue([string]$Value) { [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Value)) }'
-  const encodedArgs = args.map((arg) => `(Read-OrcaValue '${encodeUtf8(arg)}')`).join(',')
+    'function Read-MantaValue([string]$Value) { [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Value)) }'
+  const encodedArgs = args.map((arg) => `(Read-MantaValue '${encodeUtf8(arg)}')`).join(',')
   return [
     decode,
-    `$Command = Read-OrcaValue '${encodeUtf8(command)}'`,
+    `$Command = Read-MantaValue '${encodeUtf8(command)}'`,
     `$Arguments = @(${encodedArgs})`,
-    `[IO.File]::WriteAllText((Read-OrcaValue '${encodeUtf8(pidFilePath)}'), [string]$PID)`,
+    `[IO.File]::WriteAllText((Read-MantaValue '${encodeUtf8(pidFilePath)}'), [string]$PID)`,
     '& $Command @Arguments',
     'if ($null -eq $LASTEXITCODE) { exit 0 }',
     'exit $LASTEXITCODE'

@@ -42,21 +42,21 @@ describe('resolveWatcherProcessEntryPath', () => {
   })
 
   it('uses the adjacent entry for a packaged host whose app root is not an asar', () => {
-    // orcad: a packaged Node bundle that ships this child beside orcad.js. Gating the
+    // mantad: a packaged Node bundle that ships this child beside mantad.js. Gating the
     // adjacent probe on isPackaged sent it to a desktop out/main that never exists here.
-    const orcadRoot = path.join(path.sep, 'opt', 'orca')
-    const adjacentEntry = path.join(orcadRoot, 'parcel-watcher-process-entry.js')
+    const mantadRoot = path.join(path.sep, 'opt', 'manta')
+    const adjacentEntry = path.join(mantadRoot, 'parcel-watcher-process-entry.js')
 
     expect(
-      resolveWatcherProcessEntryPath(orcadRoot, true, (candidate) => candidate === adjacentEntry)
+      resolveWatcherProcessEntryPath(mantadRoot, true, (candidate) => candidate === adjacentEntry)
     ).toBe(adjacentEntry)
   })
 
   it('falls back to the nested entry when a non-asar packaged host ships no adjacent child', () => {
-    const orcadRoot = path.join(path.sep, 'opt', 'orca')
+    const mantadRoot = path.join(path.sep, 'opt', 'manta')
 
-    expect(resolveWatcherProcessEntryPath(orcadRoot, true, () => false)).toBe(
-      path.join(orcadRoot, 'out', 'main', 'parcel-watcher-process-entry.js')
+    expect(resolveWatcherProcessEntryPath(mantadRoot, true, () => false)).toBe(
+      path.join(mantadRoot, 'out', 'main', 'parcel-watcher-process-entry.js')
     )
   })
 

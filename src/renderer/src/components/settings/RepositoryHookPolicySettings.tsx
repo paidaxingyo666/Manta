@@ -1,10 +1,10 @@
 import { ChevronRight } from 'lucide-react'
 import type {
   HookCommandSourcePolicy,
-  OrcaHooks,
+  MantaHooks,
   SetupAgentStartupPolicy,
   SetupRunPolicy
-} from '../../../../shared/orca-yaml-hook-types'
+} from '../../../../shared/manta-yaml-hook-types'
 import { translate } from '@/i18n/i18n'
 import { matchesSettingsSearch } from './settings-search'
 import { SettingsSwitch } from './SettingsFormControls'
@@ -82,7 +82,7 @@ function getCommandSourcePolicyOptions(): PolicyOption<HookCommandSourcePolicy>[
       policy: 'shared-only',
       label: translate(
         'auto.components.settings.RepositoryHooksSection.d88b6ff88f',
-        'orca.yaml only'
+        'manta.yaml only'
       ),
       description: translate(
         'auto.components.settings.RepositoryHooksSection.29397e8bbc',
@@ -94,7 +94,7 @@ function getCommandSourcePolicyOptions(): PolicyOption<HookCommandSourcePolicy>[
       label: translate('auto.components.settings.RepositoryHooksSection.83dc78202a', 'Local only'),
       description: translate(
         'auto.components.settings.RepositoryHooksSection.0e8b2a520d',
-        'Ignore orca.yaml; run only your local commands.'
+        'Ignore manta.yaml; run only your local commands.'
       )
     },
     {
@@ -102,7 +102,7 @@ function getCommandSourcePolicyOptions(): PolicyOption<HookCommandSourcePolicy>[
       label: translate('auto.components.settings.RepositoryHooksSection.8d6c56bff8', 'Run both'),
       description: translate(
         'auto.components.settings.RepositoryHooksSection.8561b0665f',
-        'orca.yaml first, then your local commands.'
+        'manta.yaml first, then your local commands.'
       )
     }
   ]
@@ -174,7 +174,7 @@ export function RepositorySetupPolicySetting({
 
 function getCommandSourceLabel(policy: HookCommandSourcePolicy): string {
   if (policy === 'shared-only') {
-    return translate('auto.components.settings.RepositoryHooksSection.d88b6ff88f', 'orca.yaml only')
+    return translate('auto.components.settings.RepositoryHooksSection.d88b6ff88f', 'manta.yaml only')
   }
   if (policy === 'local-only') {
     return translate('auto.components.settings.RepositoryHooksSection.83dc78202a', 'Local only')
@@ -196,7 +196,7 @@ export function RepositoryHookCommandSourceSetting({
   searchQuery: string
   selectedPolicy: HookCommandSourcePolicy
   yamlState: string
-  yamlHooks: OrcaHooks | null
+  yamlHooks: MantaHooks | null
   copiedTemplate: boolean
   isAdvancedOpen: boolean
   onSelectPolicy: (policy: HookCommandSourcePolicy) => void
@@ -209,12 +209,12 @@ export function RepositoryHookCommandSourceSetting({
       title: translate('auto.components.settings.RepositoryHooksSection.c9bc1bfd8f', 'Advanced'),
       description: translate(
         'auto.components.settings.RepositoryHooksSection.610d90fdbd',
-        'Command source and orca.yaml details.'
+        'Command source and manta.yaml details.'
       ),
       keywords: [
         translate('auto.components.settings.RepositoryHooksSection.c5a55a2d2e', 'advanced'),
         translate('auto.components.settings.RepositoryHooksSection.4611b78617', 'command source'),
-        translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'orca.yaml'),
+        translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'manta.yaml'),
         translate('auto.components.settings.RepositoryHooksSection.d2b3016c20', 'shared'),
         translate('auto.components.settings.RepositoryHooksSection.2d03a514db', 'local'),
         translate('auto.components.settings.RepositoryHooksSection.0518758f38', 'both'),
@@ -250,7 +250,7 @@ export function RepositoryHookCommandSourceSetting({
           <span className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.RepositoryHooksSection.bbbd6e0bc4',
-              'Command source & orca.yaml'
+              'Command source & manta.yaml'
             )}
           </span>
         </div>
@@ -272,7 +272,7 @@ export function RepositoryHookCommandSourceSetting({
               <code className="rounded bg-muted px-1 py-0.5">
                 {translate(
                   'auto.components.settings.RepositoryHooksSection.39da2ae12f',
-                  'orca.yaml'
+                  'manta.yaml'
                 )}
               </code>{' '}
               {translate(

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { isMobileTuiAgentEnabled } from '../tasks/mobile-tui-agents'
 import {
   NEW_WORKTREE_AGENT_OPTIONS,
-  NEW_WORKTREE_BLANK_AGENT,
+  newWorktreeBlankAgent,
   resolveNewWorktreeAgentSelection,
   type NewWorktreeAgentOption,
   type NewWorktreeRuntimeSettings
@@ -46,6 +46,6 @@ export function useNewWorkspaceAgentSelection(args: {
     selectedAgent: resolution.selectedAgent,
     setSelectedAgent,
     setAgentOverridden,
-    pickerAgentOptions: [...visibleAgentOptions, NEW_WORKTREE_BLANK_AGENT]
+    pickerAgentOptions: [...visibleAgentOptions, newWorktreeBlankAgent()]
   }
 }

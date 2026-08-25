@@ -90,7 +90,7 @@ export const createProjectRowActions = (
 
     // Why: labels/assignees go through the issue endpoint for both (GitHub PRs are issues for those); title/body split PR→updatePullRequestBySlug vs issue→updateIssueBySlug.
     let envelope: GitHubProjectMutationResult = { ok: true }
-    // Why: slug-only Project rows have no registered Orca repo, so fall back to the view source in the cache key, not the focused host.
+    // Why: slug-only Project rows have no registered Manta repo, so fall back to the view source in the cache key, not the focused host.
     const target = getActiveRuntimeTarget(
       settingsForProjectRowOwner(
         get(),

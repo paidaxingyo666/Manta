@@ -3012,7 +3012,7 @@ export class AgentHookServer {
         // real turn to describe — a parent whose children it just reaped — while these panes' only
         // claim IS the stale non-terminal row. Rewriting a `waiting`/`blocked` row to `done` would
         // invent a completion that never happened, and leaving it non-terminal keeps the bug. This
-        // sweep stands in for the exit Orca never observed, so it does what that exit does:
+        // sweep stands in for the exit Manta never observed, so it does what that exit does:
         // `clearProviderPtyState` -> `clearPaneState`.
         if (this.hasLiveClaimsForPaneKey(paneKey)) {
           this.clearPaneState(paneKey)

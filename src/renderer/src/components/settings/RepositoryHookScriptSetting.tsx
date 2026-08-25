@@ -12,21 +12,21 @@ import type {
 function getEnvVars(): { name: string; description: string }[] {
   return [
     {
-      name: '$ORCA_ROOT_PATH',
+      name: '$MANTA_ROOT_PATH',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.30952c4aa4',
         'Path to the main repo checkout. Useful for copying shared files, like .env, into a worktree.'
       )
     },
     {
-      name: '$ORCA_WORKTREE_PATH',
+      name: '$MANTA_WORKTREE_PATH',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.54c73d88d0',
         'Path to the worktree being created. Setup commands run from this directory.'
       )
     },
     {
-      name: '$ORCA_WORKSPACE_NAME',
+      name: '$MANTA_WORKSPACE_NAME',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.0fa21e19ec',
         'Name of the workspace, usually based on the branch name.'
@@ -148,7 +148,7 @@ export function RepositoryHookScriptSetting({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'orca.yaml')}
+              {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'manta.yaml')}
               <span className="font-normal text-emerald-700/80 dark:text-emerald-300/80">
                 {translate(
                   'auto.components.settings.RepositoryHooksSection.f828e1de19',
@@ -161,7 +161,7 @@ export function RepositoryHookScriptSetting({
               <code className="rounded bg-muted px-1 py-0.5">
                 {translate(
                   'auto.components.settings.RepositoryHooksSection.39da2ae12f',
-                  'orca.yaml'
+                  'manta.yaml'
                 )}
               </code>{' '}
               {translate(
@@ -251,11 +251,11 @@ export function LocalCommandSourceNotice({
             {notice.kind === 'checking'
               ? translate(
                   'auto.components.settings.RepositoryHooksSection.7f78e5eea6',
-                  'Local scripts are saved. Orca is still checking orca.yaml before it can recommend which script source to use.'
+                  'Local scripts are saved. Manta is still checking manta.yaml before it can recommend which script source to use.'
                 )
               : translate(
                   'auto.components.settings.RepositoryHooksSection.0ce113fd7b',
-                  'Local scripts are saved, but Script Source is set to orca.yaml only.'
+                  'Local scripts are saved, but Script Source is set to manta.yaml only.'
                 )}
           </p>
         </div>

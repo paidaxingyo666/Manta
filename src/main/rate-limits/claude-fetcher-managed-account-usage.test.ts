@@ -219,11 +219,11 @@ describe('fetchClaudeRateLimits', () => {
 
   it('cleans up scoped Keychain credentials when the inactive preview fails', async () => {
     setPlatform('darwin')
-    tempDir = mkdtempSync(join(tmpdir(), 'orca-claude-fetcher-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'manta-claude-fetcher-'))
     appGetPathMock.mockReturnValue(tempDir)
     const ownedAuthPath = join(tempDir, 'claude-accounts', 'account-1', 'auth')
     mkdirSync(ownedAuthPath, { recursive: true })
-    writeFileSync(join(ownedAuthPath, '.orca-managed-claude-auth'), 'account-1\n', 'utf-8')
+    writeFileSync(join(ownedAuthPath, '.manta-managed-claude-auth'), 'account-1\n', 'utf-8')
     const canonicalAuthPath = realpathSync(ownedAuthPath)
     vi.mocked(readManagedClaudeKeychainCredentials).mockResolvedValueOnce(
       JSON.stringify({ claudeAiOauth: { accessToken: 'managed-keychain-token' } })

@@ -46,7 +46,7 @@ function createModel(overrides: Partial<PollingInput> = {}): PollingInput {
     pr: {
       number: 42,
       headSha: 'head-1',
-      prRepo: { owner: 'orca', repo: 'app', host: 'github.com' }
+      prRepo: { owner: 'manta', repo: 'app', host: 'github.com' }
     } as NonNullable<PollingInput['pr']>,
     prCacheKey: 'cache',
     prNumber: 42,

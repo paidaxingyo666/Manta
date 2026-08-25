@@ -23,7 +23,7 @@ export function admitRendererAgentLaunchAuthority(args: {
     typeof args.launchToken !== 'string' ||
     args.launchToken.length === 0 ||
     args.launchToken.length > AGENT_LAUNCH_TOKEN_MAX_LENGTH ||
-    args.spawnEnv?.ORCA_AGENT_LAUNCH_TOKEN !== args.launchToken
+    args.spawnEnv?.MANTA_AGENT_LAUNCH_TOKEN !== args.launchToken
   ) {
     return null
   }

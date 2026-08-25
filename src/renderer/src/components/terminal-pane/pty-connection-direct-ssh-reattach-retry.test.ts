@@ -321,7 +321,7 @@ describe('connectPanePty', () => {
         'wt-1': [{ id: 'tab-1', ptyId: restoredPtyId, generation: 7 }]
       },
       ptyIdsByTabId: { 'tab-1': [restoredPtyId] },
-      repos: [{ id: 'repo1', connectionId: 'target-a', displayName: 'orca' }],
+      repos: [{ id: 'repo1', connectionId: 'target-a', displayName: 'manta' }],
       sshConnectionStates: new Map([
         [
           'target-a',

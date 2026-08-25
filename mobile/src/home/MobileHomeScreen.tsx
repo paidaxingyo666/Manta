@@ -32,6 +32,7 @@ import { MobileHomeHostList } from './MobileHomeHostList'
 import { MobileHomeListFooter } from './MobileHomeListFooter'
 import { MobileHomeTopBar } from './MobileHomeTopBar'
 import { useMobileHomeData } from './use-mobile-home-data'
+import { translate } from '../i18n/i18n'
 
 export function MobileHomeScreen() {
   const data = useMobileHomeData()
@@ -82,7 +83,7 @@ export function MobileHomeScreen() {
     } else if (host.credentialStatus === 'temporarily-unavailable') {
       void loadHostCatalog()
         .then(data.setHostCatalog)
-        .catch(() => Alert.alert('Could not check pairing', 'Please try again.'))
+        .catch(() => Alert.alert(translate('m.index.b10d78d179', 'Could not check pairing'), translate('m.index.18b828cf5b', 'Please try again.')))
     } else {
       data.router.push(`/h/${host.id}`)
     }
@@ -107,7 +108,7 @@ export function MobileHomeScreen() {
       data.setHostCatalog(await loadHostCatalog())
     } catch {
       setConfirmRemove(host)
-      Alert.alert('Could not remove host', 'Please try again.')
+      Alert.alert(translate('m.index.53b5a5229a', 'Could not remove host'), translate('m.index.18b828cf5b', 'Please try again.'))
     }
   }
 
@@ -184,8 +185,8 @@ export function MobileHomeScreen() {
       />
       <ConfirmModal
         visible={confirmRemove != null}
-        title="Remove Host"
-        message={`Remove "${confirmRemove?.name}"? You can re-pair later.`}
+        title={translate('m.index.c8e253dc76', 'Remove Host')}
+        message={translate('m.index.a3cfae357a', "Remove \"{{value0}}\"? You can re-pair later.", { value0: confirmRemove?.name ?? '' })}
         confirmLabel="Remove"
         destructive
         onConfirm={() => void handleRemove()}

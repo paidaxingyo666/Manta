@@ -185,7 +185,7 @@ export function SkillInstallAgentPicker({
               <p className="mt-1 text-[11px] leading-normal text-muted-foreground">
                 {translate(
                   'auto.components.skills.install.canonicalExplanation',
-                  'These agents natively read {{root}}, which Orca installs to by default:',
+                  'These agents natively read {{root}}, which Manta installs to by default:',
                   { root: canonicalRoot }
                 )}
               </p>

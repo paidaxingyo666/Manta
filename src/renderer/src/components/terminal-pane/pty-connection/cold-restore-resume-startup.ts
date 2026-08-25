@@ -89,7 +89,7 @@ export function bindBuildColdRestoreAgentResumeStartup(session: ConnectPanePtySe
       command: startupPlan.launchCommand,
       env: {
         ...startupPlan.env,
-        ORCA_AGENT_LAUNCH_TOKEN: coldRestoreLaunchToken
+        MANTA_AGENT_LAUNCH_TOKEN: coldRestoreLaunchToken
       },
       launchConfig: startupPlan.launchConfig,
       resumeProviderSession: providerSession,

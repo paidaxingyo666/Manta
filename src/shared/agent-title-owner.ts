@@ -151,7 +151,7 @@ export function normalizeCompatibleAgentTitleForOwner(
     return title
   }
   // Why: a π-branded title is the agent's own semantic session title (`π > <session> - <cwd>`;
-  // Orca's injected extension writes the same shape). Swap only the BRAND for the owner's label
+  // Manta's injected extension writes the same shape). Swap only the BRAND for the owner's label
   // so the pane still reads as its launch owner (#6689, #7633, #9077) without discarding the
   // session name and cwd, which collapsing to a bare profile label threw away (#16093).
   if (isLegacyPiCompatibleTitle(source.sourceTitle)) {

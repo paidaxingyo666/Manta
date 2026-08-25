@@ -36,7 +36,7 @@ describe('packaged node-pty launcher-surviving grandchild', () => {
     })
 
     expect(result).toMatchObject({ code: 0, timedOut: false })
-    expect(result.stdout).toBe('ORCA_ONE_SHOT_EVIDENCE=flushed\n')
+    expect(result.stdout).toBe('MANTA_ONE_SHOT_EVIDENCE=flushed\n')
     expect(result.stderr).toBe('')
   })
 

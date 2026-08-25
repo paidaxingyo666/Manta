@@ -28,14 +28,14 @@ export function ProjectMissingRepoDialog({
           <DialogTitle>
             {translate(
               'auto.components.github.project.ProjectViewWrapper.7037c8f5f1',
-              'Repository not in Orca'
+              'Repository not in Manta'
             )}
           </DialogTitle>
           <DialogDescription>
             {missingRepo
               ? translate(
                   'auto.components.github.project.ProjectViewWrapper.1850fceac8',
-                  "{{value0}}/{{value1}} isn't added to Orca. Add it to start work, or open in GitHub.",
+                  "{{value0}}/{{value1}} isn't added to Manta. Add it to start work, or open in GitHub.",
                   { value0: missingRepo.owner, value1: missingRepo.repo }
                 )
               : null}

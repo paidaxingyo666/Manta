@@ -32,12 +32,12 @@ export function createWslProcessGroupTermination(distro: string): WslProcessGrou
       return false
     }
     const script = [
-      '_orca_group=$1',
-      `kill -${signal} "-$_orca_group" 2>/dev/null || :`,
-      '_orca_attempt=0',
-      'while kill -0 "-$_orca_group" 2>/dev/null; do',
-      `  [ "$_orca_attempt" -ge ${GUEST_TERMINATION_ATTEMPTS} ] && exit 1`,
-      '  _orca_attempt=$((_orca_attempt + 1))',
+      '_manta_group=$1',
+      `kill -${signal} "-$_manta_group" 2>/dev/null || :`,
+      '_manta_attempt=0',
+      'while kill -0 "-$_manta_group" 2>/dev/null; do',
+      `  [ "$_manta_attempt" -ge ${GUEST_TERMINATION_ATTEMPTS} ] && exit 1`,
+      '  _manta_attempt=$((_manta_attempt + 1))',
       `  sleep ${GUEST_TERMINATION_INTERVAL_SECONDS}`,
       'done'
     ].join('\n')

@@ -14,7 +14,7 @@ describe('useChecksPanelCreateReview provider flow', () => {
     const createdReview: CreateHostedReviewResult = {
       ok: true,
       number: 42,
-      url: 'https://github.com/orca/app/pull/42'
+      url: 'https://github.com/manta/app/pull/42'
     }
     const createHostedReview: CreateInput['createHostedReview'] = vi.fn(async () => createdReview)
     const refreshLinkedGitHubPullRequest: CreateInput['refreshLinkedGitHubPullRequest'] = vi.fn()

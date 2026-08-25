@@ -68,18 +68,18 @@ describe('OpenCode hook plugin source', () => {
     expect(primarySource).toContain('post("SessionStart", { sessionID: info.id })')
     expect(familySource).toContain('http://127.0.0.1:${coords.port}/hook/mimo-code')
     expect(familySource).not.toContain('post("SessionStart", { sessionID: info.id })')
-    expect(familySource).toContain('export const OrcaOpenCodeStatusPlugin')
+    expect(familySource).toContain('export const MantaOpenCodeStatusPlugin')
   })
 
   it('keeps generated plugin bytes stable across the module split', () => {
     const digest = (source: string): string => createHash('sha256').update(source).digest('hex')
 
     expect(digest(getOpenCodePluginSource())).toBe(
-      'd14859a36c88aefe3a45cd232789503296e0a23438b151c773414bad64ab8eaa'
+      '43ff47a39daaa7c8cbd8dc9dba4151c861bd1704e7cc53ea754b507e62041549'
     )
     expect(
       digest(getOpenCodeFamilyPluginSource('/hook/mimo-code', { emitSessionStart: false }))
-    ).toBe('4de14bee0c27ce55f29f70b19aa6ce9967e09b098bba139fb88f0511af7d4fca')
+    ).toBe('a9227b540c0f67ad53ec9603b9742f478a81c56f1aabc27e00492ed16e75df6d')
   })
 
   it('filters child sessions via parentID lookup before forwarding events', () => {

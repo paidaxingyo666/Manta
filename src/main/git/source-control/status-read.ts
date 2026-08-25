@@ -63,7 +63,7 @@ function getStatusReadKey(worktreePath: string, options: GetStatusOptions): stri
   ])
 }
 
-/** Remove untracked entries that are shared symlinks Orca created.
+/** Remove untracked entries that are shared symlinks Manta created.
  *
  *  Why this can't be left to Git: a directory-only ignore rule (`node_modules/`)
  *  matches the primary checkout's real directory but never the worktree's

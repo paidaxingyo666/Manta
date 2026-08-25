@@ -3,8 +3,8 @@ import type { GlobalSettings } from '../../shared/global-settings-types'
 import type * as GitRemoteModule from '../git/remote'
 import type * as GitStatusModule from '../git/status'
 import type * as SshGitDispatchModule from '../providers/ssh-git-dispatch'
-import type { ResolvedRuntimeGitWorktree } from './orca-runtime-git'
-import { RuntimeGitCommands } from './orca-runtime-git'
+import type { ResolvedRuntimeGitWorktree } from './manta-runtime-git'
+import { RuntimeGitCommands } from './manta-runtime-git'
 import { SSH_GIT_PROVIDER_UNAVAILABLE_MESSAGE } from '../providers/ssh-git-dispatch'
 
 const mocks = vi.hoisted(() => ({

@@ -25,7 +25,7 @@ type StoredSettingsBaseline = {
 
 /**
  * Why callers need three answers, not two: without a readable baseline,
- * promotion cannot distinguish an in-Codex edit from Orca's last mirror. An
+ * promotion cannot distinguish an in-Codex edit from Manta's last mirror. An
  * unreadable baseline must stall that mirror; absent and unparseable still map
  * to `absent` because rebuilding those is the intent.
  */

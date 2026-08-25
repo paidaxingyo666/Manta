@@ -230,7 +230,7 @@ describe('project group deletion store routing', () => {
       failedProjectRemovals: [
         {
           projectId: 'shared',
-          reason: 'Project remained in Orca after removeProject completed.'
+          reason: 'Project remained in Manta after removeProject completed.'
         }
       ]
     })

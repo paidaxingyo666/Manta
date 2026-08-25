@@ -73,6 +73,9 @@ def main():
     since = sys.argv[1]
     apply = '--apply' in sys.argv
     changed = [p for p in run('git', 'diff', '--name-only', f'{since}..HEAD').splitlines() if p]
+    # This skill's own prose is *about* upstream, so renaming Orca inside it
+    # inverts what it says — `orcad` became "upstream's new daemon named mantad".
+    changed = [p for p in changed if not p.startswith('.claude/skills/upstream-sync/')]
 
     renamed, declined = {}, {}
     for path in changed:

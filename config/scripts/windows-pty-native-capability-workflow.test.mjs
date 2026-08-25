@@ -17,7 +17,7 @@ describe('packaged Windows PTY native capability routing', () => {
     expect(job['runs-on']).toBe('windows-2022')
     expect(smokeIndex).toBe(packageIndex + 1)
     expect(smoke.run).toBe(
-      'pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/Orca.exe'
+      'pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/Manta.exe'
     )
     expect(smoke.if).toBeUndefined()
     expect(smoke['continue-on-error']).toBeUndefined()
@@ -42,7 +42,7 @@ describe('packaged Windows PTY native capability routing', () => {
     expect(sourceRebuild.run).toBe('pnpm rebuild node-pty')
     expect(build.run).toBe('pnpm run build:release:parallel')
     expect(prepare.run).toBe('node config/scripts/ensure-native-runtime.mjs --runtime=electron')
-    expect(packageStep.env.ORCA_REUSE_PREPARED_NATIVE_RUNTIME).toBe('1')
+    expect(packageStep.env.MANTA_REUSE_PREPARED_NATIVE_RUNTIME).toBe('1')
     expect(workflow.jobs.verify.needs).toContain('package_windows')
     expect(verify.env.PACKAGE_WINDOWS).toBe('${{ needs.package_windows.result }}')
     expect(verify.run).toContain('"$PACKAGE_WINDOWS"')

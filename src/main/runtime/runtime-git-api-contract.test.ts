@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { GlobalSettings } from '../../shared/global-settings-types'
 import { GIT_METHODS } from './rpc/methods/git'
-import { RuntimeGitCommands } from './orca-runtime-git'
+import { RuntimeGitCommands } from './manta-runtime-git'
 
 const RPC_TO_RUNTIME_COMMAND = {
   'git.status': 'getRuntimeGitStatus',

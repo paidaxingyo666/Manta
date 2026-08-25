@@ -64,7 +64,7 @@ export class ExternalChromiumBrowserSession {
       .update(`${statePath}:${launch.provider}`)
       .digest('hex')
       .slice(0, 16)
-    this.sessionName = `orca-orcad-${identity}`
+    this.sessionName = `orca-mantad-${identity}`
     this.profilePath = join(statePath, `browser-${launch.provider}`)
   }
 

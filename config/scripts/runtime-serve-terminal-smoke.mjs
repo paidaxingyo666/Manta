@@ -36,7 +36,7 @@ const READY_TIMEOUT_MS = 120_000
 const OUTPUT_TIMEOUT_MS = 30_000
 const SHUTDOWN_TIMEOUT_MS = 15_000
 // Why a random high port: a fixed one collides with a developer's own `manta serve`.
-const PORT = 6800 + Math.floor(Number(process.env.ORCA_SMOKE_PORT_OFFSET ?? '0'))
+const PORT = 6800 + Math.floor(Number(process.env.MANTA_SMOKE_PORT_OFFSET ?? '0'))
 
 function log(message) {
   process.stdout.write(`[serve-terminal-smoke] ${message}\n`)
@@ -171,7 +171,7 @@ function resolveLaunch(userDataDir) {
   // and `FOO=bar cmd` is not portable there.
   const flagIndex = process.argv.indexOf('--target')
   const target =
-    flagIndex !== -1 ? process.argv[flagIndex + 1] : (process.env.ORCA_SMOKE_TARGET ?? 'electron')
+    flagIndex !== -1 ? process.argv[flagIndex + 1] : (process.env.MANTA_SMOKE_TARGET ?? 'electron')
   if (target === 'mantad') {
     return {
       label: `mantad (${MANTAD_ENTRY})`,
@@ -182,7 +182,7 @@ function resolveLaunch(userDataDir) {
   }
   if (target !== 'electron') {
     throw new Error(
-      `--target (or ORCA_SMOKE_TARGET) must be 'electron' or 'mantad', got '${target}'`
+      `--target (or MANTA_SMOKE_TARGET) must be 'electron' or 'mantad', got '${target}'`
     )
   }
   const serveArgs = [
@@ -193,7 +193,7 @@ function resolveLaunch(userDataDir) {
     '--serve-json',
     `--user-data-dir=${userDataDir}`
   ]
-  const override = process.env.ORCA_SMOKE_ELECTRON
+  const override = process.env.MANTA_SMOKE_ELECTRON
   return {
     label: `electron (${serveEntry})`,
     command: override ?? 'npx',
@@ -278,7 +278,7 @@ async function main() {
     }
     log(`server resolves ${shown.id}`)
     if (process.argv.includes('--browser')) {
-      const status = orca(pairingCode, ['status'])
+      const status = manta(pairingCode, ['status'])
       if (!status?.runtime?.capabilities?.includes('browser.headless.v1')) {
         throw new Error(
           `status omitted browser.headless.v1: ${JSON.stringify(status?.runtime?.capabilities)}`
@@ -287,9 +287,9 @@ async function main() {
       const fixturePath = join(userDataDir, 'browser-smoke.html')
       writeFileSync(
         fixturePath,
-        '<!doctype html><title>Orcad Browser Smoke</title><main>browser-ready</main>'
+        '<!doctype html><title>Mantad Browser Smoke</title><main>browser-ready</main>'
       )
-      const browserPageId = orca(pairingCode, [
+      const browserPageId = manta(pairingCode, [
         'tab',
         'create',
         '--worktree',
@@ -302,11 +302,11 @@ async function main() {
       }
       const targetFlags = ['--worktree', created.id, '--page', browserPageId]
       const targetUrl = pathToFileURL(fixturePath).href
-      const navigation = orca(pairingCode, ['goto', ...targetFlags, '--url', targetUrl])
-      if (navigation?.url !== targetUrl || navigation?.title !== 'Orcad Browser Smoke') {
+      const navigation = manta(pairingCode, ['goto', ...targetFlags, '--url', targetUrl])
+      if (navigation?.url !== targetUrl || navigation?.title !== 'Mantad Browser Smoke') {
         throw new Error(`browser.goto returned the wrong page: ${JSON.stringify(navigation)}`)
       }
-      const evaluated = orca(pairingCode, [
+      const evaluated = manta(pairingCode, [
         'eval',
         ...targetFlags,
         '--expression',
@@ -315,7 +315,7 @@ async function main() {
       if (evaluated?.result !== 'browser-ready') {
         throw new Error(`browser.eval returned ${JSON.stringify(evaluated)}`)
       }
-      const screenshot = orca(pairingCode, ['screenshot', ...targetFlags])
+      const screenshot = manta(pairingCode, ['screenshot', ...targetFlags])
       if (screenshot?.format !== 'png' || typeof screenshot.data !== 'string' || !screenshot.data) {
         throw new Error('browser.screenshot returned no PNG data')
       }
@@ -329,7 +329,7 @@ async function main() {
     log(`created ${terminal.handle}`)
 
     // Why invoke node rather than `echo`: the shell differs per platform, node does not.
-    const nonce = `ORCA_SMOKE_${randomBytes(8).toString('hex')}`
+    const nonce = `MANTA_SMOKE_${randomBytes(8).toString('hex')}`
     manta(pairingCode, [
       'terminal',
       'send',

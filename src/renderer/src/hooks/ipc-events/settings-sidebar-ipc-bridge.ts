@@ -70,7 +70,7 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
           id: 'unpaired-device-auth-failure',
           description: translate(
             'auto.hooks.useIpcEvents.11992d0337',
-            'If this was your phone or another Orca client, re-pair it from Settings → Mobile.'
+            'If this was your phone or another Manta client, re-pair it from Settings → Mobile.'
           ),
           // Why: main emits this recovery path once per session, so it must remain visible until acted on or dismissed.
           duration: Infinity,

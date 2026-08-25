@@ -146,7 +146,7 @@ export function bindFreshSpawnFollowReset(session: ConnectPanePtySession): void 
     if (session.shouldPreserveAgentReattachModes()) {
       return buildPostReplayLiveAgentReattachReset(payload)
     }
-    // Why: an alt-screen pane is a live TUI Orca just does not recognise as an agent, and the
+    // Why: an alt-screen pane is a live TUI Manta just does not recognise as an agent, and the
     // replay already re-armed its mouse modes — keep them instead of wiping them (#8291).
     return (isAlternateScreen ?? session.kittyKeyboardModes.isAlternateScreen)
       ? POST_REPLAY_REATTACH_RESET_KEEP_MOUSE

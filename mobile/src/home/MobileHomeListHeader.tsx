@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import type { HomeStatsSummary } from '../stats/home-stats-total'
 import { colors, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 function formatDuration(ms: number): string {
   const totalMinutes = Math.floor(ms / 60_000)
@@ -18,25 +19,25 @@ export function MobileHomeListHeader({ stats }: { stats: HomeStatsSummary | null
   return (
     <View>
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>Welcome back</Text>
+        <Text style={styles.heroTitle}>{translate('m.index.f62e59845a', 'Welcome back')}</Text>
       </View>
       {stats ? (
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.totalAgentsSpawned.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>Agents spawned</Text>
+            <Text style={styles.statLabel}>{translate('m.index.a8515b5dc4', 'Agents spawned')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{formatDuration(stats.totalAgentTimeMs)}</Text>
-            <Text style={styles.statLabel}>Agent time</Text>
+            <Text style={styles.statLabel}>{translate('m.index.e2e27dc946', 'Agent time')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.totalPRsCreated.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>PRs created</Text>
+            <Text style={styles.statLabel}>{translate('m.index.4cf927c2bb', 'PRs created')}</Text>
           </View>
         </View>
       ) : null}
-      <Text style={styles.sectionHeading}>Desktops</Text>
+      <Text style={styles.sectionHeading}>{translate('m.index.f3542b6e7a', 'Desktops')}</Text>
     </View>
   )
 }

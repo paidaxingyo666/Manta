@@ -17,7 +17,7 @@ const RuntimeResponse = z.discriminatedUnion('ok', [
     .passthrough()
 ])
 
-export async function sendOrcadSidecarRequest(
+export async function sendMantadSidecarRequest(
   metadata: RuntimeMetadata,
   method: string,
   params: unknown,

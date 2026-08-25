@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron'
-import type { OrcaRuntimeService } from '../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../runtime/manta-runtime'
 import type { Store } from '../../persistence'
 import type { GlobalSettings } from '../../../shared/global-settings-types'
 import { LocalPtyProvider } from '../../providers/local-pty-provider'
@@ -60,7 +60,7 @@ import {
 
 export function registerPtyHandlers(
   mainWindow: BrowserWindow,
-  runtime?: OrcaRuntimeService,
+  runtime?: MantaRuntimeService,
   getSelectedCodexHomePath?: GetSelectedCodexHomePath,
   getSettings?: () => GlobalSettings,
   prepareClaudeAuth?: PrepareClaudeAuth,

@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { resolveOrcadBrowserProvider } from './orcad-browser-provider'
+import { resolveMantadBrowserProvider } from './mantad-browser-provider'
 
-const executablePath = process.env.ORCA_BROWSER_EXECUTABLE
+const executablePath = process.env.MANTA_BROWSER_EXECUTABLE
 
 // Why 120s rather than the 30s global default: one macOS run took 30s and timed out,
 // while a Linux run with an empty ~/.agent-browser was 2.8s — so the cost looks like a
@@ -18,15 +18,15 @@ describe('ExternalChromiumBrowserProcess integration', () => {
   it.runIf(Boolean(executablePath))(
     'navigates, evaluates, and screenshots with the operator executable',
     async () => {
-      const root = await mkdtemp(join(tmpdir(), 'orcad-external-browser-'))
+      const root = await mkdtemp(join(tmpdir(), 'mantad-external-browser-'))
       const fixturePath = join(root, 'fixture.html')
       await writeFile(
         fixturePath,
         '<!doctype html><title>External Chromium</title><main>external-ready</main>'
       )
-      const provider = await resolveOrcadBrowserProvider({
+      const provider = await resolveMantadBrowserProvider({
         userDataPath: root,
-        environment: { ORCA_BROWSER_EXECUTABLE: executablePath },
+        environment: { MANTA_BROWSER_EXECUTABLE: executablePath },
         resolveInstalledElectronExecutable: async () => null
       })
       try {

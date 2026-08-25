@@ -228,7 +228,7 @@ describe('GitHandler', () => {
           }).trim()
         )
         expect(
-          execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/orca/rebase'], {
+          execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/manta/rebase'], {
             cwd: tmpDir,
             encoding: 'utf-8'
           }).trim()
@@ -313,7 +313,7 @@ describe('GitHandler', () => {
           })
         ).toContain('rebase (finish)')
         expect(
-          execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/orca/rebase'], {
+          execFileSync('git', ['for-each-ref', '--format=%(refname)', 'refs/manta/rebase'], {
             cwd: targetDir,
             encoding: 'utf-8'
           }).trim()

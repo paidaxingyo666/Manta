@@ -12,7 +12,7 @@ const relays: RelayProcess[] = []
 const roots: string[] = []
 
 beforeAll(async () => {
-  const externalEntry = process.env.ORCA_SKILL_UPLOAD_RELAY_ENTRY
+  const externalEntry = process.env.MANTA_SKILL_UPLOAD_RELAY_ENTRY
   if (externalEntry) {
     relayEntry = resolve(externalEntry)
     return
@@ -194,7 +194,7 @@ describe('skill upload ownership across relay processes', () => {
   })
 
   it
-    .runIf(Boolean(process.env.ORCA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY))
+    .runIf(Boolean(process.env.MANTA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY))
     .each(['legacy-first', 'current-first'] as const)(
     'keeps %s mixed-version uploads isolated',
     async (order) => {
@@ -202,7 +202,7 @@ describe('skill upload ownership across relay processes', () => {
       roots.push(root)
       const home = join(root, 'home')
       const environment = { ...process.env, HOME: home, USERPROFILE: home }
-      const legacyEntry = resolve(process.env.ORCA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY!)
+      const legacyEntry = resolve(process.env.MANTA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY!)
       const entries =
         order === 'legacy-first'
           ? [

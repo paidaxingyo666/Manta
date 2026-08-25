@@ -1,20 +1,20 @@
 import { getAppEnvironment } from '../../../../shared/app-environment'
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../../runtime/manta-runtime'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { isAgentStatusHooksEnabled } from '../../../agent-hooks/managed-agent-hook-controls'
 import { isPwshAvailableAsync } from '../../../pwsh'
 import { LocalPtyProvider } from '../../../providers/local-pty-provider'
 import {
-  addOrcaWslInteropEnv,
+  addMantaWslInteropEnv,
   stampWslOrchestrationCompatibilityHost
-} from '../../../pty/wsl-orca-env'
+} from '../../../pty/wsl-manta-env'
 import type { CodexAccountSelectionTarget } from '../../../codex-accounts/runtime-selection'
 import { markClaudePtyExited } from '../../../claude-accounts/live-pty-gate'
 import { buildPtyHostEnv } from '../host-env/assembly'
 import {
   getCompatibleSelectedCodexHomePath,
   isCodexStatusHooksEnabled,
-  shouldStripInheritedOrcaCodexHome
+  shouldStripInheritedMantaCodexHome
 } from '../host-env/codex-home'
 import type { GetSelectedCodexHomePath } from '../host-env/types'
 import { isCurrentPtyExit, ptyOwnership } from './ownership-state'
@@ -22,7 +22,7 @@ import { localProvider } from './registry'
 import { clearProviderPtyState } from './state-cleanup'
 
 export function configureLocalPtyProvider(args: {
-  runtime?: OrcaRuntimeService
+  runtime?: MantaRuntimeService
   getSettings?: () => GlobalSettings
   getSelectedCodexHomePath?: GetSelectedCodexHomePath
   trustedTerminalHandleEnv: Set<string>
@@ -60,7 +60,7 @@ export function configureLocalPtyProvider(args: {
         userDataPath: getAppEnvironment().getPath('userData'),
         selectedCodexHomePath,
         skipCodexHomeEnv,
-        stripInheritedOrcaCodexHome: shouldStripInheritedOrcaCodexHome({
+        stripInheritedMantaCodexHome: shouldStripInheritedMantaCodexHome({
           target: codexSelectionTarget,
           selectedCodexHomePath,
           skipCodexHomeEnv,
@@ -75,16 +75,16 @@ export function configureLocalPtyProvider(args: {
         networkProxySettings: ptySettings
       })
       // Why: agents need their terminal handle at process start to self-identify in orchestration messages without an extra RPC.
-      const requestedHandle = baseEnv.ORCA_TERMINAL_HANDLE
+      const requestedHandle = baseEnv.MANTA_TERMINAL_HANDLE
       const preAllocatedHandle =
         requestedHandle && trustedTerminalHandleEnv.has(requestedHandle)
           ? requestedHandle
           : runtime?.preAllocateHandleForPty(id)
       if (requestedHandle && requestedHandle !== preAllocatedHandle) {
-        delete env.ORCA_TERMINAL_HANDLE
+        delete env.MANTA_TERMINAL_HANDLE
       }
       if (preAllocatedHandle) {
-        env.ORCA_TERMINAL_HANDLE = preAllocatedHandle
+        env.MANTA_TERMINAL_HANDLE = preAllocatedHandle
       }
       stampWslOrchestrationCompatibilityHost(
         env,
@@ -92,7 +92,7 @@ export function configureLocalPtyProvider(args: {
         ctx?.isWsl === true ? ctx.wslDistro : null
       )
       if (ctx?.isWsl === true) {
-        addOrcaWslInteropEnv(env)
+        addMantaWslInteropEnv(env)
       }
       return env
     },

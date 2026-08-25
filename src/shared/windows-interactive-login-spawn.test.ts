@@ -14,13 +14,13 @@ function withWindows<T>(fn: () => T): T {
 }
 
 function encodedValue(value: string): string {
-  return `Read-OrcaValue '${Buffer.from(value).toString('base64')}'`
+  return `Read-MantaValue '${Buffer.from(value).toString('base64')}'`
 }
 
 function pidFilePathFromSpawnArgs(args: string[]): string {
   const script = Buffer.from(args[11] ?? '', 'base64').toString('utf16le')
   const encodedPath = script.match(
-    /WriteAllText\(\(Read-OrcaValue '([^']+)'\), \[string\]\$PID\)/
+    /WriteAllText\(\(Read-MantaValue '([^']+)'\), \[string\]\$PID\)/
   )?.[1]
   if (!encodedPath) {
     throw new Error('PID relay path is missing')

@@ -7,7 +7,7 @@ import { SkillInstallWorkspaceCombobox } from './SkillInstallWorkspaceCombobox'
 import type { SkillInstallWorkspaceChoice } from './skill-install-workspace-choices'
 
 const sampleChoices: SkillInstallWorkspaceChoice[] = [
-  { id: 'wt-1', label: 'orca-main', kind: 'worktree' },
+  { id: 'wt-1', label: 'manta-main', kind: 'worktree' },
   { id: 'wt-2', label: 'feature-skills', kind: 'worktree' },
   { id: 'f-1', label: 'dotfiles', kind: 'folder' },
   { id: 'f-2', label: 'scripts-repo', kind: 'folder' }
@@ -35,7 +35,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
     )
 
     const trigger = screen.getByRole('combobox')
-    expect(trigger).toHaveTextContent('orca-main · Git worktree')
+    expect(trigger).toHaveTextContent('manta-main · Git worktree')
   })
 
   it('is disabled when choices are empty', () => {
@@ -54,7 +54,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
     fireEvent.click(trigger)
 
     expect(screen.getByPlaceholderText('Search workspaces...')).toBeInTheDocument()
-    expect(screen.getByText('orca-main ·')).toBeInTheDocument()
+    expect(screen.getByText('manta-main ·')).toBeInTheDocument()
     expect(screen.getByText('feature-skills ·')).toBeInTheDocument()
     expect(screen.getByText('dotfiles ·')).toBeInTheDocument()
     expect(screen.getByText('scripts-repo ·')).toBeInTheDocument()
@@ -71,7 +71,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
     fireEvent.change(searchInput, { target: { value: 'feature' } })
 
     expect(screen.getByText('feature-skills ·')).toBeInTheDocument()
-    expect(screen.queryByText('orca-main ·')).toBeNull()
+    expect(screen.queryByText('manta-main ·')).toBeNull()
     expect(screen.queryByText('dotfiles ·')).toBeNull()
     expect(screen.queryByText('scripts-repo ·')).toBeNull()
   })
@@ -88,7 +88,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
 
     expect(screen.getByText('dotfiles ·')).toBeInTheDocument()
     expect(screen.getByText('scripts-repo ·')).toBeInTheDocument()
-    expect(screen.queryByText('orca-main ·')).toBeNull()
+    expect(screen.queryByText('manta-main ·')).toBeNull()
     expect(screen.queryByText('feature-skills ·')).toBeNull()
   })
 
@@ -144,7 +144,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
     const searchInput = screen.getByPlaceholderText('Search workspaces...') as HTMLInputElement
     expect(searchInput.value).toBe('d')
     expect(screen.getByText('dotfiles ·')).toBeInTheDocument()
-    expect(screen.queryByText('orca-main ·')).toBeNull()
+    expect(screen.queryByText('manta-main ·')).toBeNull()
   })
 
   it('includes full name in title attribute for trigger when selected', () => {
@@ -153,7 +153,7 @@ describe('SkillInstallWorkspaceCombobox', () => {
     )
 
     const trigger = screen.getByRole('combobox')
-    expect(trigger).toHaveAttribute('title', 'orca-main · Git worktree')
+    expect(trigger).toHaveAttribute('title', 'manta-main · Git worktree')
   })
 
   it('includes full name in title attribute for dropdown items', () => {

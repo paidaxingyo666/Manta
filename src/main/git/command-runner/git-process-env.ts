@@ -21,7 +21,7 @@ export function gitOptionalLocksDisabledEnv(
 export { appendGitConfigEnv }
 
 /**
- * Pin Orca-spawned git to untranslated English output so stderr/progress parsers
+ * Pin Manta-spawned git to untranslated English output so stderr/progress parsers
  * work under any user locale (issue #7808). Terminal git is untouched.
  */
 export function untranslatedGitOutputEnv(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {

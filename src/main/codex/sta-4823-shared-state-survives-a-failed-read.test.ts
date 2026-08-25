@@ -157,15 +157,15 @@ let runtimeHomePath: string
 let previousUserDataPath: string | undefined
 
 const systemHome = (): string => join(fakeHomeDir, '.codex')
-const baselinePath = (): string => join(runtimeHomePath, '.orca-config-settings-baseline.json')
+const baselinePath = (): string => join(runtimeHomePath, '.manta-config-settings-baseline.json')
 
 beforeEach(() => {
   denials.reset()
   fakeHomeDir = realFs.mkdtempSync(join(tmpdir(), 'orca-sta4823-home-'))
   userDataDir = realFs.mkdtempSync(join(tmpdir(), 'orca-sta4823-data-'))
   runtimeHomePath = join(userDataDir, 'codex-runtime-home', 'home')
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  previousUserDataPath = process.env.MANTA_USER_DATA_PATH
+  process.env.MANTA_USER_DATA_PATH = userDataDir
   homedirMock.mockReturnValue(fakeHomeDir)
   getPathMock.mockImplementation((name: string) => {
     if (name === 'userData') {
@@ -184,9 +184,9 @@ afterEach(() => {
   realFs.rmSync(fakeHomeDir, { recursive: true, force: true })
   realFs.rmSync(userDataDir, { recursive: true, force: true })
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.MANTA_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.MANTA_USER_DATA_PATH = previousUserDataPath
   }
   vi.clearAllMocks()
 })
@@ -207,7 +207,7 @@ describe('STA-4823 D29 — an unreadable config.toml must not become a trust-onl
       eventLabel: 'stop',
       groupIndex: 0,
       handlerIndex: 0,
-      command: 'orca hook',
+      command: 'manta hook',
       trustedHash: 'sha256:x',
       enabled: true
     }

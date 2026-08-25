@@ -73,9 +73,9 @@ export class RelayAgentHookRuntime {
       const dir = this.pluginOverlay.materializeOpenCode(overlayId, sourceDir)
       if (dir) {
         env.OPENCODE_CONFIG_DIR = dir
-        env.ORCA_OPENCODE_CONFIG_DIR = dir
+        env.MANTA_OPENCODE_CONFIG_DIR = dir
         if (sourceDir) {
-          env.ORCA_OPENCODE_SOURCE_CONFIG_DIR = sourceDir
+          env.MANTA_OPENCODE_SOURCE_CONFIG_DIR = sourceDir
         }
       }
     }
@@ -97,22 +97,22 @@ export class RelayAgentHookRuntime {
         materializeDefaultHome: explicitKind === 'pi'
       })
       if (result?.sourceAgentDir) {
-        env.ORCA_PI_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.MANTA_PI_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     if (kind === 'omp' || !hasLaunchCommand) {
       const sourceDir =
         kind === 'omp'
           ? resolvePiSourceAgentDir(context.env, context.shell, 'omp')
-          : context.env.ORCA_OMP_SOURCE_AGENT_DIR
+          : context.env.MANTA_OMP_SOURCE_AGENT_DIR
       const result = this.pluginOverlay.materializePi(overlayId, sourceDir, 'omp', {
         materializeDefaultHome: explicitKind === 'omp'
       })
       if (result?.statusExtensionPath) {
-        env.ORCA_OMP_STATUS_EXTENSION = result.statusExtensionPath
+        env.MANTA_OMP_STATUS_EXTENSION = result.statusExtensionPath
       }
       if (result?.sourceAgentDir) {
-        env.ORCA_OMP_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.MANTA_OMP_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     if (kind === 'prime-agent') {
@@ -121,7 +121,7 @@ export class RelayAgentHookRuntime {
         materializeDefaultHome: explicitKind === 'prime-agent'
       })
       if (result?.sourceAgentDir) {
-        env.ORCA_PRIME_AGENT_SOURCE_AGENT_DIR = result.sourceAgentDir
+        env.MANTA_PRIME_AGENT_SOURCE_AGENT_DIR = result.sourceAgentDir
       }
     }
     return env

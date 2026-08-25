@@ -151,9 +151,9 @@ describe('OpenCode plugin lifecycle delivery', () => {
     const endpointPath = join(tempDir, 'endpoint.env')
     writeFileSync(
       endpointPath,
-      'not-an-assignment\nORCA_AGENT_HOOK_TOKEN=file-token\nBROKEN LINE\n'
+      'not-an-assignment\nMANTA_AGENT_HOOK_TOKEN=file-token\nBROKEN LINE\n'
     )
-    process.env.ORCA_AGENT_HOOK_ENDPOINT = endpointPath
+    process.env.MANTA_AGENT_HOOK_ENDPOINT = endpointPath
 
     const fetchMock = vi.fn(
       async (_url: RequestInfo | URL, _init?: RequestInit) => new Response(null, { status: 204 })
@@ -166,12 +166,12 @@ describe('OpenCode plugin lifecycle delivery', () => {
     expect(fetchMock).toHaveBeenCalledOnce()
     const [url, init] = fetchMock.mock.calls[0]!
     expect(String(url)).toBe('http://127.0.0.1:45678/hook/opencode')
-    expect(new Headers(init?.headers).get('X-Orca-Agent-Hook-Token')).toBe('file-token')
+    expect(new Headers(init?.headers).get('X-Manta-Agent-Hook-Token')).toBe('file-token')
   })
 
   it('warns once for an unreadable endpoint without exposing hook credentials', async () => {
-    process.env.ORCA_AGENT_HOOK_ENDPOINT = tempDir
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'fallback-secret-token'
+    process.env.MANTA_AGENT_HOOK_ENDPOINT = tempDir
+    process.env.MANTA_AGENT_HOOK_TOKEN = 'fallback-secret-token'
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     try {

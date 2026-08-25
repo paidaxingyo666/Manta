@@ -1286,7 +1286,7 @@ function setInMemoryOrchestrationMessages(
   runtime.setOrchestrationDb(db as unknown as OrchestrationDb)
 }
 
-function pendingMailPointerRepoints(runtime: OrcaRuntimeService): number {
+function pendingMailPointerRepoints(runtime: MantaRuntimeService): number {
   const internals = runtime as unknown as {
     mailPointerRepointScheduler: { pendingCount: number }
   }
@@ -2543,10 +2543,10 @@ describe('MantaRuntimeService', () => {
       capability: 'browser.headless.v1',
       reason: 'driver_missing',
       message:
-        'ORCA_BROWSER_EXECUTABLE is set, but the bundled agent-browser driver is missing or not executable on this host, so Chromium cannot be driven.'
+        'MANTA_BROWSER_EXECUTABLE is set, but the bundled agent-browser driver is missing or not executable on this host, so Chromium cannot be driven.'
     })
     // The whole point: never send someone to set a variable they already set.
-    expect(degradation?.message).not.toMatch(/set ORCA_BROWSER_EXECUTABLE/)
+    expect(degradation?.message).not.toMatch(/set MANTA_BROWSER_EXECUTABLE/)
   })
 
   it('carries the underlying error to the client when a provider failed to start', () => {
@@ -2588,7 +2588,7 @@ describe('MantaRuntimeService', () => {
     expect(degradation?.code).toBe('browser_unavailable')
     expect(degradation?.capability).toBe('browser.headless.v1')
     expect(degradation?.message).toBe(
-      'ORCA_BROWSER_EXECUTABLE points at a path that does not exist. (/nope/chromium)'
+      'MANTA_BROWSER_EXECUTABLE points at a path that does not exist. (/nope/chromium)'
     )
   })
 
@@ -18451,7 +18451,7 @@ describe('MantaRuntimeService', () => {
           resolveSnapshot = resolve
         })
     )
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setPtyController({
       write: () => true,
       kill: () => true,
@@ -18505,7 +18505,7 @@ describe('MantaRuntimeService', () => {
             resolveSnapshot = resolve
           })
       )
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setPtyController({
       write: () => true,
       kill: () => true,
@@ -37843,7 +37843,7 @@ describe('MantaRuntimeService', () => {
     const now = Date.now()
     const folderWorkspace = makeFolderWorkspace({ name: 'GG' })
     const projectGroup = makeFolderProjectGroup({ name: 'Store' })
-    const runtime = new OrcaRuntimeService(
+    const runtime = new MantaRuntimeService(
       createFolderWorkspaceRuntimeStore(folderWorkspace, projectGroup) as never,
       undefined,
       {
@@ -37874,7 +37874,7 @@ describe('MantaRuntimeService', () => {
   })
   it('projects monitoring over a title-derived working status', async () => {
     const now = Date.now()
-    const runtime = new OrcaRuntimeService(store, undefined, {
+    const runtime = new MantaRuntimeService(store, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: 'tab-1:1',
@@ -37899,7 +37899,7 @@ describe('MantaRuntimeService', () => {
   })
   it('keeps hook monitoring mode when a newer mode-less OSC row reports the same work', async () => {
     const now = Date.now()
-    const runtime = new OrcaRuntimeService(store, undefined, {
+    const runtime = new MantaRuntimeService(store, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: 'tab-1:1',
@@ -37936,7 +37936,7 @@ describe('MantaRuntimeService', () => {
   })
   it('does not carry hook monitoring mode into a newer OSC turn', async () => {
     const now = Date.now()
-    const runtime = new OrcaRuntimeService(store, undefined, {
+    const runtime = new MantaRuntimeService(store, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: 'tab-1:1',
@@ -37972,7 +37972,7 @@ describe('MantaRuntimeService', () => {
     const now = Date.now()
     const monitoringLeafId = '33333333-3333-4333-8333-333333333333'
     const foregroundLeafId = '44444444-4444-4444-8444-444444444444'
-    const runtime = new OrcaRuntimeService(store, undefined, {
+    const runtime = new MantaRuntimeService(store, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: `monitoring-tab:${monitoringLeafId}`,
@@ -38040,7 +38040,7 @@ describe('MantaRuntimeService', () => {
     const tabId = 'split-tab'
     const monitoringLeafId = '33333333-3333-4333-8333-333333333333'
     const foregroundLeafId = '44444444-4444-4444-8444-444444444444'
-    const runtime = new OrcaRuntimeService(store, undefined, {
+    const runtime = new MantaRuntimeService(store, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: `${tabId}:${monitoringLeafId}`,

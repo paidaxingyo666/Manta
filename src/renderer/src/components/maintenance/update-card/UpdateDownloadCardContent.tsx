@@ -78,7 +78,7 @@ export function UpdateDownloadingContent({
       <p className="text-sm text-muted-foreground">
         {release
           ? release.description
-          : translate('auto.components.UpdateCard.93794ea932', 'Orca v{{value0}} is downloading.', {
+          : translate('auto.components.UpdateCard.93794ea932', 'Manta v{{value0}} is downloading.', {
               value0: version
             })}
       </p>
@@ -135,7 +135,7 @@ export function UpdateReadyToInstallContent({
       <p className="text-sm text-muted-foreground">
         {translate(
           'auto.components.UpdateCard.6714206e5a',
-          "Orca v{{value0}} is downloaded. Restart when you're ready.",
+          "Manta v{{value0}} is downloaded. Restart when you're ready.",
           { value0: version }
         )}
       </p>

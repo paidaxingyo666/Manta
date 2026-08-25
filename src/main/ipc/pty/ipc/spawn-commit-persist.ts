@@ -72,7 +72,7 @@ export async function persistPtyIpcSpawnCommit(ctx: PtyIpcSpawnState): Promise<{
   }
   const relayResultId = getRelayPtyId(args.connectionId, ctx.result.id)
   if (ctx.deps.store && args.connectionId) {
-    // Why: remote PTYs live in the SSH relay grace window after Orca detaches; persist IDs immediately so reconnect reattaches instead of spawning a fresh shell.
+    // Why: remote PTYs live in the SSH relay grace window after Manta detaches; persist IDs immediately so reconnect reattaches instead of spawning a fresh shell.
     ctx.deps.store.upsertSshRemotePtyLease({
       targetId: args.connectionId,
       ptyId: relayResultId,

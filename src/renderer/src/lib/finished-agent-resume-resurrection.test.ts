@@ -141,7 +141,7 @@ describe('a finished local agent', () => {
     seedLiveLocalCodexPane()
     reportTurnFinished()
 
-    // `orca terminal stop` / app death: the PTY and pane go, the record stays.
+    // `manta terminal stop` / app death: the PTY and pane go, the record stays.
     useAppStore.setState({
       tabsByWorktree: { [WORKTREE_ID]: [] },
       ptyIdsByTabId: {},

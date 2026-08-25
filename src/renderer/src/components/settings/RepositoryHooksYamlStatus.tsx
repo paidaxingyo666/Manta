@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import type { OrcaHooks } from '../../../../shared/orca-yaml-hook-types'
+import type { MantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import { Button } from '../ui/button'
 import { translate } from '@/i18n/i18n'
 import { renderYamlScriptPreview } from './repository-hook-settings-draft'
@@ -34,7 +34,7 @@ function getYamlStateCopy(yamlState: string): { heading: string; description: st
       return {
         heading: translate(
           'auto.components.settings.RepositoryHooksSection.56f9a4a1d0',
-          'Using `orca.yaml`'
+          'Using `manta.yaml`'
         ),
         description: translate(
           'auto.components.settings.RepositoryHooksSection.ca424ff135',
@@ -45,33 +45,33 @@ function getYamlStateCopy(yamlState: string): { heading: string; description: st
       return {
         heading: translate(
           'auto.components.settings.RepositoryHooksSection.623e0c9f31',
-          '`orca.yaml` could not be parsed'
+          '`manta.yaml` could not be parsed'
         ),
         description: translate(
           'auto.components.settings.RepositoryHooksSection.aba825233f',
-          'The file contains configuration keys that this version of Orca does not recognize. You may need to update Orca, or check the file for typos.'
+          'The file contains configuration keys that this version of Manta does not recognize. You may need to update Manta, or check the file for typos.'
         )
       }
     case 'invalid':
       return {
         heading: translate(
           'auto.components.settings.RepositoryHooksSection.623e0c9f31',
-          '`orca.yaml` could not be parsed'
+          '`manta.yaml` could not be parsed'
         ),
         description: translate(
           'auto.components.settings.RepositoryHooksSection.0cc712b823',
-          'The core configuration file exists in the repo root, but Orca could not parse the supported hook definitions yet.'
+          'The core configuration file exists in the repo root, but Manta could not parse the supported hook definitions yet.'
         )
       }
     default:
       return {
         heading: translate(
           'auto.components.settings.RepositoryHooksSection.5a67e4793d',
-          'No `orca.yaml` detected'
+          'No `manta.yaml` detected'
         ),
         description: translate(
           'auto.components.settings.RepositoryHooksSection.b20c5df6ca',
-          'Add an `orca.yaml` file to enable shared setup, archive, or issue-automation defaults for this repo. Example template:'
+          'Add an `manta.yaml` file to enable shared setup, archive, or issue-automation defaults for this repo. Example template:'
         )
       }
   }
@@ -106,7 +106,7 @@ function ExampleTemplateCard({
       <p className="text-[10px] tracking-[0.18em] text-muted-foreground">
         {translate('auto.components.settings.RepositoryHooksSection.175daba180', 'Example')}{' '}
         <code className="rounded bg-muted px-1 py-0.5">
-          {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'orca.yaml')}
+          {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'manta.yaml')}
         </code>{' '}
         {translate('auto.components.settings.RepositoryHooksSection.95a0411b3e', 'template')}
       </p>
@@ -137,7 +137,7 @@ export function RepositoryHooksYamlStatus({
   onCopyTemplate
 }: {
   yamlState: string
-  yamlHooks: OrcaHooks | null
+  yamlHooks: MantaHooks | null
   copiedTemplate: boolean
   onCopyTemplate: () => void
 }): React.JSX.Element {
@@ -163,7 +163,7 @@ export function RepositoryHooksYamlStatus({
               <p>
                 {translate(
                   'auto.components.settings.RepositoryHooksSection.af49e2a19e',
-                  'The file is present, but Orca could not find valid `scripts` or `issueCommand` definitions.'
+                  'The file is present, but Manta could not find valid `scripts` or `issueCommand` definitions.'
                 )}
               </p>
               <ol className="space-y-1.5 pl-4 text-[11.5px]">

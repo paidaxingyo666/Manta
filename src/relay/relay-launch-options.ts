@@ -6,12 +6,12 @@ const DEFAULT_GRACE_MS = DEFAULT_SSH_RELAY_GRACE_PERIOD_SECONDS * 1000
 const DEFAULT_SOCKET_NAME = 'relay.sock'
 
 export const RELAY_EMPTY_DETACHED_STARTUP_GRACE_MS = parseNonNegativeIntEnv(
-  'ORCA_RELAY_EMPTY_STARTUP_GRACE_MS',
+  'MANTA_RELAY_EMPTY_STARTUP_GRACE_MS',
   60_000
 )
 // Why: a relay holding zero PTYs preserves nothing, so an unlimited grace only accumulates idle daemons.
 // The env override is test-only — the remote relay is launched over a non-interactive SSH exec channel that carries no client env.
-export const RELAY_IDLE_GRACE_MS = parseNonNegativeIntEnv('ORCA_RELAY_IDLE_GRACE_MS', 15 * 60_000)
+export const RELAY_IDLE_GRACE_MS = parseNonNegativeIntEnv('MANTA_RELAY_IDLE_GRACE_MS', 15 * 60_000)
 
 export type RelayLaunchOptions = {
   graceTimeMs: number

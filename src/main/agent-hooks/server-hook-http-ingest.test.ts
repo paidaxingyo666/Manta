@@ -33,11 +33,11 @@ async function postClaudeHook(
   payload: Record<string, unknown>
 ): Promise<Response> {
   const env = server.buildPtyEnv()
-  return fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+  return fetch(`http://127.0.0.1:${env.MANTA_AGENT_HOOK_PORT}/hook/claude`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+      'X-Manta-Agent-Hook-Token': env.MANTA_AGENT_HOOK_TOKEN
     },
     body: JSON.stringify(buildBody(payload))
   })

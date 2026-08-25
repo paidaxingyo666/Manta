@@ -45,7 +45,7 @@ export class CliPathRegistration extends CliCommandInstallation {
         pathConfigured,
         state: 'not_installed',
         currentTarget: null,
-        detail: `Register ${status.commandPath} to use Orca from Command Prompt or PowerShell.`
+        detail: `Register ${status.commandPath} to use Manta from Command Prompt or PowerShell.`
       }
     }
 
@@ -56,7 +56,7 @@ export class CliPathRegistration extends CliCommandInstallation {
         pathConfigured,
         detail:
           pathProbe.detail ??
-          'The Orca launcher exists, but Orca could not check your Windows user PATH.'
+          'The Manta launcher exists, but Manta could not check your Windows user PATH.'
       }
     }
 
@@ -144,8 +144,8 @@ export class CliPathRegistration extends CliCommandInstallation {
       }
       const guidance =
         action === 'add'
-          ? `Add this folder to your PATH manually: ${pathDirectory}. Or run Orca as an administrator and try again.`
-          : `Remove this folder from your PATH manually: ${pathDirectory}. Or run Orca as an administrator and try again.`
+          ? `Add this folder to your PATH manually: ${pathDirectory}. Or run Manta as an administrator and try again.`
+          : `Remove this folder from your PATH manually: ${pathDirectory}. Or run Manta as an administrator and try again.`
       throw new Error(
         `Windows blocked updating your user PATH (access denied). This usually means your PATH environment variable is managed by Group Policy or your organization's device management. ${guidance}`,
         { cause: error }

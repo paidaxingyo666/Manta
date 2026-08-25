@@ -45,10 +45,10 @@ export function installAgentIdleWorkingHandlers(session: ConnectPanePtySession):
     // Why: title reversion alone is not process death. The process/PTY tracker
     // owns removing agent rows when the TUI actually exits.
   }
-  // Why: inject ORCA_PANE_KEY so global Claude/Codex hooks can attribute their
-  // callbacks to the correct Orca pane without resolving worktrees from cwd.
+  // Why: inject MANTA_PANE_KEY so global Claude/Codex hooks can attribute their
+  // callbacks to the correct Manta pane without resolving worktrees from cwd.
   // The key matches the `${tabId}:${leafId}` composite used for cacheTimerByKey
-  // and agentStatusByPaneKey. Treat it as opaque outside Orca.
+  // and agentStatusByPaneKey. Treat it as opaque outside Manta.
   session.state = useAppStore.getState()
   session.parsedWorkspaceKey = parseWorkspaceKey(session.deps.worktreeId)
   session.folderWorkspace =
@@ -57,17 +57,17 @@ export function installAgentIdleWorkingHandlers(session: ConnectPanePtySession):
           (workspace) => workspace.id === session.parsedWorkspaceKey.folderWorkspaceId
         )
       : null
-  session.workspaceEnv = { ORCA_WORKSPACE_ID: session.deps.worktreeId }
+  session.workspaceEnv = { MANTA_WORKSPACE_ID: session.deps.worktreeId }
   if (session.folderWorkspace) {
-    session.workspaceEnv.ORCA_PROJECT_GROUP_ID = session.folderWorkspace.projectGroupId
-    session.workspaceEnv.ORCA_WORKSPACE_ROOT = session.folderWorkspace.folderPath
+    session.workspaceEnv.MANTA_PROJECT_GROUP_ID = session.folderWorkspace.projectGroupId
+    session.workspaceEnv.MANTA_WORKSPACE_ROOT = session.folderWorkspace.folderPath
   }
   session.paneIdentityEnv = {
     ...session.workspaceEnv,
-    ORCA_PANE_KEY: session.cacheKey,
-    ORCA_TAB_ID: session.deps.tabId,
-    ORCA_WORKTREE_ID: session.deps.worktreeId,
-    ...(session.launchToken ? { ORCA_AGENT_LAUNCH_TOKEN: session.launchToken } : {})
+    MANTA_PANE_KEY: session.cacheKey,
+    MANTA_TAB_ID: session.deps.tabId,
+    MANTA_WORKTREE_ID: session.deps.worktreeId,
+    ...(session.launchToken ? { MANTA_AGENT_LAUNCH_TOKEN: session.launchToken } : {})
   }
   session.paneEnv = {
     ...session.paneStartup?.env,

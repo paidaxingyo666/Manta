@@ -1,8 +1,8 @@
 import { isWindowsAbsolutePathLike } from '../../../../shared/cross-platform-path'
-import type { OrcaHooks } from '../../../../shared/orca-yaml-hook-types'
+import type { MantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import type { Repo } from '../../../../shared/repo-types'
 import { getEffectiveHooksFromConfig } from '../../../effective-hook-config'
-import { getEffectiveHooks, parseOrcaYaml } from '../../../hooks'
+import { getEffectiveHooks, parseMantaYaml } from '../../../hooks'
 import { getSshFilesystemProvider } from '../../../providers/ssh-filesystem-dispatch'
 import { requireSshGitProvider } from '../../../providers/ssh-git-dispatch'
 import { joinWorktreeRelativePath } from '../../../runtime/runtime-relative-paths'
@@ -10,7 +10,7 @@ import { getSetupRunnerEnvVars } from '../../../setup-hook-env-vars'
 
 const WORKTREE_ARCHIVE_HOOK_TIMEOUT_MS = 120_000
 
-export async function getArchiveHooksForRemoval(repo: Repo): Promise<OrcaHooks | null> {
+export async function getArchiveHooksForRemoval(repo: Repo): Promise<MantaHooks | null> {
   if (!repo.connectionId) {
     return getEffectiveHooks(repo)
   }
@@ -21,8 +21,8 @@ export async function getArchiveHooksForRemoval(repo: Repo): Promise<OrcaHooks |
   }
 
   try {
-    const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'orca.yaml'))
-    const yamlHooks = result.isBinary ? null : parseOrcaYaml(result.content)
+    const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'manta.yaml'))
+    const yamlHooks = result.isBinary ? null : parseMantaYaml(result.content)
     return getEffectiveHooksFromConfig(repo, yamlHooks)
   } catch {
     return getEffectiveHooksFromConfig(repo, null)

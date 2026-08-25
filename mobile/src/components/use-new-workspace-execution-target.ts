@@ -3,6 +3,7 @@ import type { SshConnectionState } from '../../../src/shared/ssh-types'
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
 import { deriveWorkspaceSshGate, type WorkspaceSshGate } from '../tasks/workspace-ssh-gate'
+import { translate } from '../i18n/i18n'
 
 type DetectedAgentIdsState = {
   connectionId: string | null
@@ -125,7 +126,7 @@ export function useNewWorkspaceExecutionTarget(args: {
         fallbackSshState(
           connectionId,
           'error',
-          error instanceof Error ? error.message : 'Failed to connect to SSH repository.'
+          error instanceof Error ? error.message : translate('m.NewWorktreeModal.1588fda823', 'Failed to connect to SSH repository.')
         )
       )
     } finally {

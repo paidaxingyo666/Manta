@@ -8,7 +8,7 @@ import { sendSnapshotFrames } from './terminal/terminal-snapshot-publication'
 import { TerminalSourceRangeRegistry } from '../terminal-source-range-registry'
 import { initializeMultiplexStream } from './terminal/terminal-multiplex-stream-initialization'
 import type { TerminalMultiplexConnection } from './terminal/terminal-multiplex-connection'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 
 // These assertions protect the permanent binary publication seam while its state machine
 // lives in concrete terminal domain modules.
@@ -107,7 +107,7 @@ describe('terminal stream extraction characterization', () => {
     const streams = new Map()
     const runtime = {
       attachRemoteTerminalSourceRangeConsumer: vi.fn(() => false)
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const state = {
       runtime,
       connectionId: 'connection',

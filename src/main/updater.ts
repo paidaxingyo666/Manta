@@ -1449,17 +1449,21 @@ async function pinDefaultReleaseFeed(
     }
     throw new Error('Could not resolve perf update feed')
   } else if (releaseTagsResult.state === 'no-newer') {
-    // Why not fall through to the feed below: `releases/latest` resolves to the
-    // newest STABLE release and skips prereleases, so on a channel that has only
-    // ever published prereleases it 404s. electron-updater then reports a
-    // transport failure and the user is told the update server is unreachable —
-    // when the check in fact succeeded and the answer was "you are up to date".
+    // Why not the `releases/latest` feed below: it resolves to the newest STABLE
+    // release and skips prereleases, so on a channel that has only ever published
+    // prereleases it 404s. electron-updater then reports a transport failure and
+    // the user is told the update server is unreachable — when the check in fact
+    // succeeded and the answer was "you are up to date". Pinning to this build's
+    // own release keeps the real check that the rest of the flow expects, against
+    // a URL that exists.
     clearPrereleaseFallbackContext()
     clearPublishingWindowLastGoodCheck()
+    const url = getReleaseDownloadUrl(`v${currentVersion}`)
     console.info(
-      `[updater] release feed: current=${currentVersion} includePrerelease=${includePrerelease}; nothing newer`
+      `[updater] release feed: current=${currentVersion} includePrerelease=${includePrerelease}; nothing newer → ${url}`
     )
-    return 'not-available'
+    autoUpdater.setFeedURL({ provider: 'generic', url })
+    return 'ready'
   } else {
     clearPrereleaseFallbackContext()
     clearPublishingWindowLastGoodCheck()

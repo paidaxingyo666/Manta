@@ -6,7 +6,7 @@ export type AgentHookEventPayload = {
   paneKey: string
   /** Authenticated hook route that produced this event. */
   source?: AgentHookSource
-  /** Ephemeral Orca launch identity stamped into the PTY env for this process. */
+  /** Ephemeral Manta launch identity stamped into the PTY env for this process. */
   launchToken?: string
   tabId?: string
   worktreeId?: string

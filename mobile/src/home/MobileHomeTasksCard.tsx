@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { TaskProviderLogo } from '../components/TaskProviderLogo'
 import type { TaskProvider } from '../tasks/mobile-task-providers'
 import { colors, radii, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 const TASK_PROVIDER_LABELS: Record<TaskProvider, string> = {
   github: 'GitHub',
@@ -29,11 +30,11 @@ export function MobileHomeTasksCard(props: {
         <ListTodo size={18} color={colors.textSecondary} />
       </View>
       <View style={styles.main}>
-        <Text style={styles.title}>Tasks</Text>
+        <Text style={styles.title}>{translate('m.index.cbbc34848b', 'Tasks')}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>
           {props.providers.length > 0
             ? props.providers.map((provider) => TASK_PROVIDER_LABELS[provider]).join(' · ')
-            : 'No task sources connected'}
+            : translate('m.index.d7fb33f5cb', 'No task sources connected')}
         </Text>
       </View>
       <View style={styles.trailing}>

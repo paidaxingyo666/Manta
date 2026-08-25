@@ -1,14 +1,14 @@
-export const SETTINGS_STORAGE_KEY = 'orca.web.settings.v1'
+export const SETTINGS_STORAGE_KEY = 'manta.web.settings.v1'
 
-export const UI_STORAGE_KEY = 'orca.web.ui.v1'
+export const UI_STORAGE_KEY = 'manta.web.ui.v1'
 
-export const SESSION_STORAGE_KEY = 'orca.web.workspaceSession.v1'
+export const SESSION_STORAGE_KEY = 'manta.web.workspaceSession.v1'
 
 export const ONBOARDING_STORAGE_KEY = 'orca.web.onboarding.v1'
 
 export const GITHUB_CACHE_STORAGE_KEY = 'orca.web.githubCache.v1'
 
-export const KEYBINDINGS_STORAGE_KEY = 'orca.web.keybindings.v1'
+export const KEYBINDINGS_STORAGE_KEY = 'manta.web.keybindings.v1'
 
 export function getBrowserPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Windows')) {

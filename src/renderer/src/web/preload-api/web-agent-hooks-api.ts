@@ -22,7 +22,7 @@ export function createAgentHooksApi(): NonNullable<Partial<PreloadApi>['agentHoo
       state: 'not_installed',
       configPath: '',
       managedHooksPresent: false,
-      detail: 'Agent hook status is only available on the Orca server.'
+      detail: 'Agent hook status is only available on the Manta server.'
     } as const)
   return {
     claudeStatus: () => status('claude'),

@@ -136,7 +136,7 @@ export async function useWslRuntimeForActiveProject(page: Page, distro: string):
   await page.evaluate(async (wslDistro) => {
     const store = window.__store
     if (!store) {
-      throw new Error('Orca store is unavailable')
+      throw new Error('Manta store is unavailable')
     }
     const state = store.getState()
     const worktreeId = state.activeWorktreeId

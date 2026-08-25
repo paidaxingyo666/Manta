@@ -44,7 +44,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
       const target = String(args[0])
       if (
         writeControl.failPrimaryOpen &&
-        target.includes('orca-data.json.') &&
+        target.includes('manta-data.json.') &&
         target.endsWith('.tmp')
       ) {
         throw Object.assign(new Error('profile mount rejected write'), { code: 'EIO' })
@@ -53,7 +53,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
     },
     rename: async (...args: Parameters<typeof actual.rename>) => {
       const target = String(args[1])
-      if (writeControl.blockPrimaryRename && target.endsWith('orca-data.json')) {
+      if (writeControl.blockPrimaryRename && target.endsWith('manta-data.json')) {
         writeControl.markRenameStarted()
         await writeControl.renameRelease
       }
@@ -82,7 +82,7 @@ vi.mock('./telemetry/cohort-classifier', () => ({
 function createStore(): Store {
   installFakeAppEnvironment({ getPath: () => testState.dir })
   initDataPath()
-  return new Store({ dataFile: join(testState.dir, 'orca-data.json') })
+  return new Store({ dataFile: join(testState.dir, 'manta-data.json') })
 }
 
 describe('loading Store write-risk characterization', () => {
@@ -108,7 +108,7 @@ describe('loading Store write-risk characterization', () => {
     writeControl.releaseRename()
     await store.waitForPendingWrite()
 
-    const persisted = JSON.parse(readFileSync(join(testState.dir, 'orca-data.json'), 'utf-8')) as {
+    const persisted = JSON.parse(readFileSync(join(testState.dir, 'manta-data.json'), 'utf-8')) as {
       ui: { sidebarWidth: number }
     }
     expect(persisted.ui.sidebarWidth).toBe(712)
@@ -131,7 +131,7 @@ describe('loading Store write-risk characterization', () => {
     writeControl.failPrimaryOpen = false
     store.updateUI({ sidebarWidth: 713 })
     await store.flushPendingOrThrowAsync()
-    const persisted = JSON.parse(readFileSync(join(testState.dir, 'orca-data.json'), 'utf-8')) as {
+    const persisted = JSON.parse(readFileSync(join(testState.dir, 'manta-data.json'), 'utf-8')) as {
       sshPtyConsumerRecoveries: { clientInstanceId: string }[]
     }
     expect(persisted.sshPtyConsumerRecoveries[0]?.clientInstanceId).toBe('client-1')

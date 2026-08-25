@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { TERMINAL_METHODS } from './terminal'
 import {
   TerminalMultiplexLegacyAckFrame,
@@ -54,12 +54,12 @@ function schemaFor(name: string) {
   }
   return method.params
 }
-async function invoke(name: string, params: unknown, runtime: Partial<OrcaRuntimeService>) {
+async function invoke(name: string, params: unknown, runtime: Partial<MantaRuntimeService>) {
   const method = TERMINAL_METHODS.find((candidate) => candidate.name === name)
   if (!method?.params || 'stream' in method) {
     throw new Error(`Missing unary terminal method: ${name}`)
   }
-  return method.handler(method.params.parse(params), { runtime: runtime as OrcaRuntimeService })
+  return method.handler(method.params.parse(params), { runtime: runtime as MantaRuntimeService })
 }
 
 describe('terminal RPC manifest characterization', () => {
@@ -152,7 +152,7 @@ describe('terminal RPC manifest characterization', () => {
       recoverTerminalPane: vi.fn(async () => recovered),
       showTerminal: vi.fn(async () => shown),
       splitTerminal: vi.fn(async () => split)
-    } as unknown as Partial<OrcaRuntimeService>
+    } as unknown as Partial<MantaRuntimeService>
 
     await expect(invoke('terminal.resolvePane', { paneKey: 'pane' }, runtime)).resolves.toEqual({
       terminal: pane
@@ -186,7 +186,7 @@ describe('terminal RPC manifest characterization', () => {
         ) => create(selector, 'term-preallocated')
       ),
       createTerminal
-    } as unknown as Partial<OrcaRuntimeService>
+    } as unknown as Partial<MantaRuntimeService>
     const selector = 'ssh://windows-host/C:/Users/dev/repo'
 
     await expect(

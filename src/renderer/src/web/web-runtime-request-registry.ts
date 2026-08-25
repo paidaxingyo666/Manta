@@ -39,7 +39,7 @@ export class WebRuntimeRequestRegistry {
       ) {
         this.pending.delete(id)
         window.clearTimeout(timeout)
-        reject(new Error('Remote Orca runtime is not connected.'))
+        reject(new Error('Remote Manta runtime is not connected.'))
       }
     })
   }

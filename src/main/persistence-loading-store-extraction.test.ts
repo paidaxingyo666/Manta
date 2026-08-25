@@ -101,7 +101,7 @@ describe('loading Store extraction seams', () => {
     const { Store } = await import('./persistence/loading-store/store')
     const { setMigrationUnsupportedPty } =
       await import('./agent-hooks/migration-unsupported-pty-state')
-    const secondDataFile = join(testState.dir, 'second-profile', 'orca-data.json')
+    const secondDataFile = join(testState.dir, 'second-profile', 'manta-data.json')
     const second = new Store({ dataFile: secondDataFile })
 
     setMigrationUnsupportedPty({
@@ -187,7 +187,7 @@ describe('loading Store extraction seams', () => {
       }
     }
     const overridden = new StoreWithRepoCountOverride({
-      dataFile: join(testState.dir, 'override-profile', 'orca-data.json')
+      dataFile: join(testState.dir, 'override-profile', 'manta-data.json')
     })
     expect(overridden.getRepoCount()).toBe(47)
     expectTypeOf<PersistenceStore>().not.toHaveProperty('scheduleSave')

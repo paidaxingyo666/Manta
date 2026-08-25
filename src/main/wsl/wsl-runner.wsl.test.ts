@@ -10,10 +10,10 @@ import { resolveWslExecutablePath } from './wsl-executable-path'
  *
  * Gated behind an env var and win32 because it mutates the distro's `~/.profile`
  * to reproduce #14288. Run with:
- *   ORCA_REAL_WSL_RUNNER_TEST=1 pnpm vitest run src/main/wsl/wsl-runner.wsl.test.ts
+ *   MANTA_REAL_WSL_RUNNER_TEST=1 pnpm vitest run src/main/wsl/wsl-runner.wsl.test.ts
  */
 const DISTRO = process.env.MANTA_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
-const enabled = process.platform === 'win32' && process.env.ORCA_REAL_WSL_RUNNER_TEST === '1'
+const enabled = process.platform === 'win32' && process.env.MANTA_REAL_WSL_RUNNER_TEST === '1'
 const describeOnWsl = enabled ? describe : describe.skip
 
 const PROFILE = '/tmp/orca-wsl-runner-profile.bak'
@@ -78,10 +78,10 @@ describeOnWsl('runWslProcess against a real distro', () => {
       loginPath: 'preferred',
       distro: DISTRO,
       program: '/bin/echo',
-      args: ['ORCA_PAYLOAD'],
+      args: ['MANTA_PAYLOAD'],
       timeoutMs: 60_000
     })
-    expect(result.stdout.trim()).toBe('ORCA_PAYLOAD')
+    expect(result.stdout.trim()).toBe('MANTA_PAYLOAD')
   }, 90_000)
 
   it('a script with quotes and $ arrives byte-identical', async () => {
@@ -96,7 +96,7 @@ describeOnWsl('runWslProcess against a real distro', () => {
       loginPath: 'preferred',
       distro: DISTRO,
       script,
-      args: ['ORCA_ARG'],
+      args: ['MANTA_ARG'],
       timeoutMs: 30_000
     })
     expect(
@@ -104,15 +104,15 @@ describeOnWsl('runWslProcess against a real distro', () => {
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean)
-    ).toEqual(['ORCA_ARG', "it's fine", 'x'])
+    ).toEqual(['MANTA_ARG', "it's fine", 'x'])
   }, 60_000)
 
   it('propagated env crosses the boundary via WSLENV', async () => {
     const result = await runWslProcess({
       loginPath: 'preferred',
       distro: DISTRO,
-      script: 'printf %s "$ORCA_WSLENV_PROBE"',
-      env: { ORCA_WSLENV_PROBE: 'crossed' },
+      script: 'printf %s "$MANTA_WSLENV_PROBE"',
+      env: { MANTA_WSLENV_PROBE: 'crossed' },
       timeoutMs: 30_000
     })
     expect(result.stdout.trim()).toBe('crossed')

@@ -83,7 +83,7 @@ function makeFailingDispatcher(error: Error): RpcDispatcher {
   const runtime = {
     getRuntimeId: () => 'test-runtime',
     listAiVaultSessions: vi.fn().mockRejectedValue(error)
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
   return new RpcDispatcher({ runtime, methods: AI_VAULT_METHODS })
 }
 

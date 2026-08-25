@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runProcess, spawnProcess } from '../../shared/child-process/run-process'
 import { ExternalChromiumBrowserProcess } from './external-chromium-browser-process'
-import { installedElectronCandidates, resolveOrcadBrowserProvider } from './orcad-browser-provider'
-import { orcadAgentBrowserNativeName } from './orcad-agent-browser-binary'
+import { installedElectronCandidates, resolveMantadBrowserProvider } from './mantad-browser-provider'
+import { mantadAgentBrowserNativeName } from './mantad-agent-browser-binary'
 import {
   runtimeBrowserUnavailableCause,
   setRuntimeBrowserUnavailableCause
@@ -80,7 +80,7 @@ function installAgentBrowserMock(): void {
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'orcad-browser-provider-'))
+  root = await mkdtemp(join(tmpdir(), 'mantad-browser-provider-'))
   screenshotPath = join(root, 'fixture.png')
   await writeFile(screenshotPath, Buffer.from('fixture-image'))
   browserState = {
@@ -165,36 +165,36 @@ describe('ExternalChromiumBrowserProcess', () => {
 describe('cross-platform browser provider paths', () => {
   it('resolves installed Electron launchers on macOS, Linux, and Windows', () => {
     expect(installedElectronCandidates('darwin', '/Users/test', {})).toContain(
-      '/Users/test/Applications/Orca.app/Contents/MacOS/Orca'
+      '/Users/test/Applications/Manta.app/Contents/MacOS/Manta'
     )
     expect(installedElectronCandidates('linux', '/home/test', {})).toContain(
-      '/home/test/.local/bin/orca-ide'
+      '/home/test/.local/bin/manta-ide'
     )
     expect(
       installedElectronCandidates('win32', 'C:\\Users\\test', {
         LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local'
       })
-    ).toContain('C:\\Users\\test\\AppData\\Local\\Programs\\Orca\\Orca.exe')
+    ).toContain('C:\\Users\\test\\AppData\\Local\\Programs\\Manta\\Manta.exe')
   })
 
   it('uses platform-specific bundled agent-browser names', () => {
-    expect(orcadAgentBrowserNativeName('darwin', 'arm64')).toBe('agent-browser-darwin-arm64')
-    expect(orcadAgentBrowserNativeName('linux', 'x64')).toBe('agent-browser-linux-x64')
-    expect(orcadAgentBrowserNativeName('win32', 'x64')).toBe('agent-browser-win32-x64.exe')
+    expect(mantadAgentBrowserNativeName('darwin', 'arm64')).toBe('agent-browser-darwin-arm64')
+    expect(mantadAgentBrowserNativeName('linux', 'x64')).toBe('agent-browser-linux-x64')
+    expect(mantadAgentBrowserNativeName('win32', 'x64')).toBe('agent-browser-win32-x64.exe')
   })
 })
 
-describe('resolveOrcadBrowserProvider', () => {
-  it('uses ORCA_BROWSER_EXECUTABLE when Electron is absent', async () => {
+describe('resolveMantadBrowserProvider', () => {
+  it('uses MANTA_BROWSER_EXECUTABLE when Electron is absent', async () => {
     const executable = join(root, process.platform === 'win32' ? 'chromium.exe' : 'chromium')
     await writeFile(executable, '')
     if (process.platform !== 'win32') {
       await chmod(executable, 0o755)
     }
 
-    const provider = await resolveOrcadBrowserProvider({
+    const provider = await resolveMantadBrowserProvider({
       userDataPath: root,
-      environment: { ORCA_BROWSER_EXECUTABLE: executable },
+      environment: { MANTA_BROWSER_EXECUTABLE: executable },
       resolveInstalledElectronExecutable: async () => null,
       resolveAgentBrowserBinary: () => '/agent-browser'
     })
@@ -205,7 +205,7 @@ describe('resolveOrcadBrowserProvider', () => {
 
   it('returns no provider when neither executable resolves', async () => {
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
         environment: {},
         resolveInstalledElectronExecutable: async () => null,
@@ -224,9 +224,9 @@ describe('resolveOrcadBrowserProvider', () => {
     }
 
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
-        environment: { ORCA_BROWSER_EXECUTABLE: executable },
+        environment: { MANTA_BROWSER_EXECUTABLE: executable },
         resolveInstalledElectronExecutable: async () => null,
         resolveAgentBrowserBinary: () => null
       })
@@ -234,13 +234,13 @@ describe('resolveOrcadBrowserProvider', () => {
     expect(runtimeBrowserUnavailableCause()).toEqual({ reason: 'driver_missing' })
   })
 
-  it('reports an ORCA_BROWSER_EXECUTABLE path that does not exist', async () => {
+  it('reports an MANTA_BROWSER_EXECUTABLE path that does not exist', async () => {
     const missing = join(root, 'absent-chromium')
 
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
-        environment: { ORCA_BROWSER_EXECUTABLE: missing },
+        environment: { MANTA_BROWSER_EXECUTABLE: missing },
         resolveInstalledElectronExecutable: async () => null,
         resolveAgentBrowserBinary: () => '/agent-browser'
       })
@@ -252,16 +252,16 @@ describe('resolveOrcadBrowserProvider', () => {
   })
 
   it.skipIf(process.platform === 'win32')(
-    'separates a non-executable ORCA_BROWSER_EXECUTABLE from a missing one',
+    'separates a non-executable MANTA_BROWSER_EXECUTABLE from a missing one',
     async () => {
       const executable = join(root, 'unchmodded-chromium')
       await writeFile(executable, '')
       await chmod(executable, 0o644)
 
       await expect(
-        resolveOrcadBrowserProvider({
+        resolveMantadBrowserProvider({
           userDataPath: root,
-          environment: { ORCA_BROWSER_EXECUTABLE: executable },
+          environment: { MANTA_BROWSER_EXECUTABLE: executable },
           resolveInstalledElectronExecutable: async () => null,
           resolveAgentBrowserBinary: () => '/agent-browser'
         })
@@ -279,10 +279,10 @@ describe('resolveOrcadBrowserProvider', () => {
     })
 
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
         environment: {},
-        resolveInstalledElectronExecutable: async () => '/opt/Orca/orca-ide',
+        resolveInstalledElectronExecutable: async () => '/opt/Manta/manta-ide',
         resolveAgentBrowserBinary: () => '/agent-browser'
       })
     ).resolves.toBeNull()
@@ -298,10 +298,10 @@ describe('resolveOrcadBrowserProvider', () => {
     })
 
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
-        environment: { ORCA_BROWSER_EXECUTABLE: join(root, 'absent-chromium') },
-        resolveInstalledElectronExecutable: async () => '/opt/Orca/orca-ide',
+        environment: { MANTA_BROWSER_EXECUTABLE: join(root, 'absent-chromium') },
+        resolveInstalledElectronExecutable: async () => '/opt/Manta/manta-ide',
         resolveAgentBrowserBinary: () => null
       })
     ).resolves.toBeNull()
@@ -317,9 +317,9 @@ describe('resolveOrcadBrowserProvider', () => {
     runProcessMock.mockRejectedValue(new Error('spawn EACCES'))
 
     await expect(
-      resolveOrcadBrowserProvider({
+      resolveMantadBrowserProvider({
         userDataPath: root,
-        environment: { ORCA_BROWSER_EXECUTABLE: executable },
+        environment: { MANTA_BROWSER_EXECUTABLE: executable },
         resolveInstalledElectronExecutable: async () => null,
         resolveAgentBrowserBinary: () => '/agent-browser'
       })
@@ -338,9 +338,9 @@ describe('resolveOrcadBrowserProvider', () => {
     }
     setRuntimeBrowserUnavailableCause({ reason: 'driver_missing' })
 
-    const provider = await resolveOrcadBrowserProvider({
+    const provider = await resolveMantadBrowserProvider({
       userDataPath: root,
-      environment: { ORCA_BROWSER_EXECUTABLE: executable },
+      environment: { MANTA_BROWSER_EXECUTABLE: executable },
       resolveInstalledElectronExecutable: async () => null,
       resolveAgentBrowserBinary: () => '/agent-browser'
     })

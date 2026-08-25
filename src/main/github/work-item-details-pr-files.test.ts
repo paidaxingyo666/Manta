@@ -340,7 +340,7 @@ describe('getWorkItemDetails PR file listing', () => {
 
     const contents = await getPRFileContents({
       repoPath: '/repo-root',
-      prRepo: { owner: 'team', repo: 'orca', host: 'github.acme-corp.com' },
+      prRepo: { owner: 'team', repo: 'manta', host: 'github.acme-corp.com' },
       prNumber: 7,
       path: 'src/large.ts',
       status: 'added',
@@ -358,7 +358,7 @@ describe('getWorkItemDetails PR file listing', () => {
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledOnce()
     expect(ghExecFileAsyncMock.mock.calls[0][0]).toContain(
-      'repos/team/orca/contents/src/large.ts?ref=head-sha'
+      'repos/team/manta/contents/src/large.ts?ref=head-sha'
     )
     expect(noteRepositoryRateLimitSpendMock).toHaveBeenCalledOnce()
   })

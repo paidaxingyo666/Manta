@@ -65,7 +65,7 @@ export function RepositoryIssueCommandSetting({
           'Leave blank to use the repo default from'
         )}{' '}
         <code className="rounded bg-muted px-1 py-0.5">
-          {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'orca.yaml')}
+          {translate('auto.components.settings.RepositoryHooksSection.39da2ae12f', 'manta.yaml')}
         </code>
         {hasSharedIssueCommand
           ? '.'

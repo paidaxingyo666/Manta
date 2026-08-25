@@ -543,16 +543,16 @@ describe('git remote operations', () => {
           'fetch',
           '--no-write-fetch-head',
           'upstream',
-          expect.stringMatching(/^\+refs\/heads\/main:refs\/orca\/rebase\//),
+          expect.stringMatching(/^\+refs\/heads\/main:refs\/manta\/rebase\//),
           '+refs/heads/main:refs/remotes/upstream/main'
         ],
         { ...REBASE_OPERATION_OPTIONS, timeout: REBASE_SOURCE_FETCH_TIMEOUT_MS }
       ],
       [
-        ['rebase', '--onto', expect.stringMatching(/^refs\/orca\/rebase\//), 'fork-point'],
+        ['rebase', '--onto', expect.stringMatching(/^refs\/manta\/rebase\//), 'fork-point'],
         REBASE_OPERATION_OPTIONS
       ],
-      [['update-ref', '-d', expect.stringMatching(/^refs\/orca\/rebase\//)], { cwd: '/repo' }]
+      [['update-ref', '-d', expect.stringMatching(/^refs\/manta\/rebase\//)], { cwd: '/repo' }]
     ])
 
     const fetchRefspec = gitExecFileAsyncMock.mock.calls[3][0][3]
@@ -578,7 +578,7 @@ describe('git remote operations', () => {
 
     expect(gitExecFileAsyncMock).toHaveBeenNthCalledWith(
       5,
-      ['rebase', '--onto', expect.stringMatching(/^refs\/orca\/rebase\//), 'fork-point'],
+      ['rebase', '--onto', expect.stringMatching(/^refs\/manta\/rebase\//), 'fork-point'],
       REBASE_OPERATION_OPTIONS
     )
   })
@@ -601,7 +601,7 @@ describe('git remote operations', () => {
         'fetch',
         '--no-write-fetch-head',
         'upstream',
-        expect.stringMatching(/^\+refs\/heads\/main:refs\/orca\/rebase\//),
+        expect.stringMatching(/^\+refs\/heads\/main:refs\/manta\/rebase\//),
         '+refs/heads/main:refs/remotes/upstream/main'
       ],
       { ...REBASE_OPERATION_OPTIONS, timeout: REBASE_SOURCE_FETCH_TIMEOUT_MS }

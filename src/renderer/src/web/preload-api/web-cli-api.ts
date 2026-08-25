@@ -4,7 +4,7 @@ import { getBrowserPlatform } from './web-storage'
 export function createCliApi(): NonNullable<Partial<PreloadApi>['cli']> {
   const status = {
     platform: getBrowserPlatform(),
-    commandName: getBrowserPlatform() === 'linux' ? 'orca-ide' : 'orca',
+    commandName: getBrowserPlatform() === 'linux' ? 'manta-ide' : 'manta',
     commandPath: null,
     pathDirectory: null,
     pathConfigured: false,
@@ -14,7 +14,7 @@ export function createCliApi(): NonNullable<Partial<PreloadApi>['cli']> {
     state: 'unsupported',
     currentTarget: null,
     unsupportedReason: 'launch_mode_unavailable',
-    detail: 'CLI registration is managed on the Orca server, not in the web browser.'
+    detail: 'CLI registration is managed on the Manta server, not in the web browser.'
   } as const
   return {
     getInstallStatus: () => Promise.resolve(status),

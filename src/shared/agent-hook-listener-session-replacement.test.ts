@@ -32,7 +32,7 @@ function stop(
   })
 }
 
-// A replacement session is the only evidence Orca gets for the exits Claude emits no terminating
+// A replacement session is the only evidence Manta gets for the exits Claude emits no terminating
 // hook for (/clear, relaunch, resume). See PLAN-STA-4612 §4.1.
 describe('Claude session replacement voids the replaced session claims', () => {
   it('voids a session cron gate held by the previous session', () => {

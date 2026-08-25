@@ -2,7 +2,7 @@ import { getDefaultRepoHookSettings } from '../../../../shared/constants'
 import type {
   RepoHookSettings,
   SetupAgentStartupPolicy
-} from '../../../../shared/orca-yaml-hook-types'
+} from '../../../../shared/manta-yaml-hook-types'
 
 export function getRepoSetupAgentStartupPolicy(repo?: {
   hookSettings?: Pick<RepoHookSettings, 'setupAgentStartupPolicy'>

@@ -216,7 +216,7 @@ describe('registerPtyHandlers', () => {
       sessionId: 'pty-runtime-reservation',
       tabId,
       leafId,
-      env: { ORCA_PANE_KEY: paneKey }
+      env: { MANTA_PANE_KEY: paneKey }
     }
 
     const rendererSpawn = handlers.get('pty:spawn')!(null, {

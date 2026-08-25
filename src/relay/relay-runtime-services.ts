@@ -127,14 +127,14 @@ export class RelayRuntimeServices {
   }
 
   private registerRemoteCliRoutes(): void {
-    this.dispatcher.onRequest('orca.cli', async (params, context) =>
-      this.dispatcher.requestAnyClient('orca.cli', params, {
+    this.dispatcher.onRequest('manta.cli', async (params, context) =>
+      this.dispatcher.requestAnyClient('manta.cli', params, {
         excludeClientId: context.clientId,
         timeoutMs: remoteCliRequestTimeoutMs(params)
       })
     )
-    this.dispatcher.onRequest('orca.cli.postOutput', async (params, context) =>
-      this.dispatcher.requestAnyClient('orca.cli.postOutput', params, {
+    this.dispatcher.onRequest('manta.cli.postOutput', async (params, context) =>
+      this.dispatcher.requestAnyClient('manta.cli.postOutput', params, {
         excludeClientId: context.clientId,
         timeoutMs: remoteCliRequestTimeoutMs(params)
       })

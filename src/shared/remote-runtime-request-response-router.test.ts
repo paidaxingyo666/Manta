@@ -31,7 +31,7 @@ describe('RemoteRuntimeRequestResponseRouter authentication frames', () => {
     expect(finishError).toHaveBeenCalledOnce()
     expect(finishError.mock.calls[0][0]).toMatchObject({
       code: 'invalid_runtime_response',
-      message: 'Remote Orca runtime returned an invalid E2EE auth frame.',
+      message: 'Remote Manta runtime returned an invalid E2EE auth frame.',
       pairingStage: 'host-identity'
     })
   })
@@ -48,7 +48,7 @@ describe('RemoteRuntimeRequestResponseRouter authentication frames', () => {
     expect(finishError).toHaveBeenCalledOnce()
     expect(finishError.mock.calls[0][0]).toMatchObject({
       code: 'unauthorized',
-      message: 'Remote Orca runtime rejected the pairing token.',
+      message: 'Remote Manta runtime rejected the pairing token.',
       pairingStage: 'access-grant'
     })
   })

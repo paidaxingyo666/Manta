@@ -3,7 +3,7 @@ import { posix, win32 } from 'node:path'
 /**
  * Path semantics of the host that owns the files, which is not always the host
  * running this process: a WSL runtime is POSIX and case-sensitive while the
- * process platform is `win32`, and a remote Orca runtime has its own platform.
+ * process platform is `win32`, and a remote Manta runtime has its own platform.
  */
 export type SkillPathSemantics = { caseSensitive: boolean; sep: '/' | '\\' }
 

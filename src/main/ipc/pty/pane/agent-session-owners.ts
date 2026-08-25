@@ -1,7 +1,7 @@
 import type { AgentSessionOwnerBinding } from '../../../../shared/agent-session-host-authority'
 import { ClaimedAgentPtyOwnerRegistry } from '../../../../shared/claimed-agent-pty-owner'
 import { isPtyIncarnationId } from '../../../../shared/pty-incarnation'
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../../runtime/manta-runtime'
 import type { IPtyProvider, PtySpawnResult } from '../../../providers/types'
 import { ptyIncarnationById, ptyOwnership } from '../provider/ownership-state'
 import {
@@ -25,7 +25,7 @@ const OWNER_LISTING_DEADLINE_MS = 5_000
 // The runtime's empty-record guard makes a second seed for the same session a
 // no-op, so overlapping paths cannot double-apply history.
 export function seedTerminalRestoreRecordsFromSpawnResult(
-  runtime: OrcaRuntimeService | undefined,
+  runtime: MantaRuntimeService | undefined,
   result: PtySpawnResult
 ): void {
   const text =

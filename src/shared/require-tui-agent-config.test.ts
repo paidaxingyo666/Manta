@@ -11,7 +11,7 @@ describe('requireTuiAgentConfig', () => {
     // A custom-agent id persisted by a branch build, read back by one without the feature.
     const stale = 'custom-agent:codex:b2e1ff6f-8932-413a-9133-edffa44e0ee9' as TuiAgent
     expect(() => requireTuiAgentConfig(stale)).toThrow(
-      `Unknown agent "${stale}". This version of Orca has no such agent — pick a different agent and try again.`
+      `Unknown agent "${stale}". This version of Manta has no such agent — pick a different agent and try again.`
     )
   })
 

@@ -85,7 +85,7 @@ describe('quick composer creation request', () => {
         pushTarget: { remoteName: 'origin', branchName: 'feature' },
         linkedLinearIssue: 'ENG-42',
         linkedLinearIssueWorkspaceId: 'workspace-1',
-        linkedLinearIssueOrganizationUrlKey: 'orca',
+        linkedLinearIssueOrganizationUrlKey: 'manta',
         branchNameOverride: 'feature',
         workspaceStatus: 'in-progress',
         linkedGitLabMR: 9,

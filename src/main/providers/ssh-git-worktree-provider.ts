@@ -134,7 +134,7 @@ export class SshGitWorktreeProvider extends SshGitReviewHeadProvider {
     } catch (error) {
       if (isJsonRpcMethodNotFoundError(error)) {
         throw new Error(
-          'This SSH host is running an older Orca relay that cannot delete preserved branches. Reconnect to deploy the latest relay, then try again.'
+          'This SSH host is running an older Manta relay that cannot delete preserved branches. Reconnect to deploy the latest relay, then try again.'
         )
       }
       throw error

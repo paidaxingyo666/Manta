@@ -1,4 +1,4 @@
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../../runtime/manta-runtime'
 import { getSshPtyProvider, getLocalPtyProvider, clearProviderPtyState } from '../../pty'
 import { killAllProcessesForWorktree } from '../../../runtime/worktree-teardown'
 import type { Store } from '../../../persistence/loading-store/store'
@@ -16,7 +16,7 @@ import { pruneWorkspaceCleanupScanSnapshot } from '../../../workspace-cleanup-sc
 import { pruneWorkspaceSpaceAnalysisSnapshot } from '../../../workspace-space-analysis-snapshot'
 
 export async function stopPtysForDestructiveWorktreeRemoval(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   worktreeId: string,
   options: { connectionId?: string; allowUnverifiedStop?: boolean } = {}
 ): Promise<void> {

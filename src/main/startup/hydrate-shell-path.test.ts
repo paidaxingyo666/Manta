@@ -207,7 +207,7 @@ describe('hydrateShellPath', () => {
   })
 
   it('sets a probe marker so rc files can take a fast path', async () => {
-    expect((await captureProbeEnv()).ORCA_SHELL_PATH_PROBE).toBe('1')
+    expect((await captureProbeEnv()).MANTA_SHELL_PATH_PROBE).toBe('1')
   })
 
   it('overwrites the captured key in place so Windows never carries both Path and PATH', async () => {

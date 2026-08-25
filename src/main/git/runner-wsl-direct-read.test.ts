@@ -260,10 +260,10 @@ describe('WSL direct Git reads', () => {
         const child = createMockChild()
         queueMicrotask(() => {
           const capturedCommand = args?.find((arg) =>
-            String(arg).includes('__ORCA_WSL_CAPTURE_BEGIN_')
+            String(arg).includes('__MANTA_WSL_CAPTURE_BEGIN_')
           )
           const fenced = fencedProbeStdout(capturedCommand, 'fork-point\n')
-          const echoedMarker = fenced.match(/__ORCA_WSL_CAPTURE_BEGIN_[^_]+__/)?.[0] ?? ''
+          const echoedMarker = fenced.match(/__MANTA_WSL_CAPTURE_BEGIN_[^_]+__/)?.[0] ?? ''
           child.stdout.emit('data', Buffer.from(`${echoedMarker}shell trace\n${fenced}`))
           child.emit('close', 0, null)
         })
@@ -281,7 +281,7 @@ describe('WSL direct Git reads', () => {
       ).resolves.toEqual({ stdout: 'fork-point\n', stderr: '' })
 
       expect(spawnMock.mock.calls[0]?.[1]?.join(' ')).toContain('setsid --wait')
-      expect(spawnMock.mock.calls[0]?.[1]?.join(' ')).toContain('__ORCA_WSL_CAPTURE_BEGIN_')
+      expect(spawnMock.mock.calls[0]?.[1]?.join(' ')).toContain('__MANTA_WSL_CAPTURE_BEGIN_')
     })
   })
 

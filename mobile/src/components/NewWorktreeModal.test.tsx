@@ -183,11 +183,11 @@ describe('NewWorktreeModal project targets', () => {
   it('loads SSH state before detecting agents on the selected remote target', async () => {
     const remoteRepo = {
       id: 'repo-remote',
-      displayName: 'orca',
-      path: '/home/dev/orca',
+      displayName: 'manta',
+      path: '/home/dev/manta',
       connectionId: 'build-server',
       kind: 'git',
-      upstream: { owner: 'stablyai', repo: 'orca' }
+      upstream: { owner: 'stablyai', repo: 'manta' }
     }
     setCachedRepos('host-ssh', [remoteRepo])
     const sendRequest = vi.fn().mockImplementation((method: string) => {

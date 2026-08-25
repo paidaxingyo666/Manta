@@ -14,6 +14,7 @@ import { NewWorkspaceSetupScriptField } from './NewWorkspaceSetupScriptField'
 import { NewWorkspaceSshConnectionField } from './NewWorkspaceSshConnectionField'
 import { SmartWorkspaceAdvancedFields } from './SmartWorkspaceAdvancedFields'
 import { SmartWorkspaceSourceField } from './SmartWorkspaceSourceField'
+import { translate } from '../i18n/i18n'
 
 type Composer = ReturnType<typeof useMobileComposerSource>
 type Selection = { label: string; detail?: string }
@@ -58,7 +59,7 @@ export function NewWorktreeFormSheet(props: {
   return (
     <BottomDrawer visible={props.visible} interactive={props.interactive} onClose={props.onClose}>
       <View style={styles.header}>
-        <Text style={styles.title}>Create worktree</Text>
+        <Text style={styles.title}>{translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}</Text>
       </View>
 
       {props.loading ? (
@@ -67,7 +68,7 @@ export function NewWorktreeFormSheet(props: {
         </View>
       ) : !props.hasRepos ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.emptyText}>No projects found</Text>
+          <Text style={styles.emptyText}>{translate('m.NewWorktreeModal.47a5edf943', 'No projects found')}</Text>
         </View>
       ) : (
         <>
@@ -81,7 +82,7 @@ export function NewWorktreeFormSheet(props: {
 
           <SmartWorkspaceSourceField
             composer={props.composer}
-            label={props.selectedRepoIsGit ? "Name or 'Create From'" : 'Workspace name'}
+            label={props.selectedRepoIsGit ? translate('m.NewWorktreeModal.cb29993224', 'Name or \'Create From\'') : translate('m.NewWorktreeModal.1054d2ae92', 'Workspace name')}
             disabled={props.sshGate.requiresConnection}
             interactive={props.interactive}
             onBeforeOpen={props.onClearError}
@@ -101,7 +102,7 @@ export function NewWorktreeFormSheet(props: {
           ) : null}
 
           <View style={styles.field}>
-            <Text style={styles.label}>Agent</Text>
+            <Text style={styles.label}>{translate('m.NewWorktreeModal.5442bc67b1', 'Agent')}</Text>
             <Pressable
               style={[styles.fieldButton, props.sshGate.requiresConnection && styles.disabled]}
               disabled={props.sshGate.requiresConnection}
@@ -110,7 +111,7 @@ export function NewWorktreeFormSheet(props: {
               <MobileAgentIcon agentId={props.selectedAgent.id} size={16} />
               <Text style={styles.fieldButtonText} numberOfLines={1}>
                 {props.sshGate.requiresConnection
-                  ? 'Connect target first'
+                  ? translate('m.NewWorktreeModal.7e8fbb7a16', 'Connect target first')
                   : props.selectedAgent.label}
               </Text>
               <ChevronDown size={14} color={colors.textMuted} />
@@ -121,7 +122,7 @@ export function NewWorktreeFormSheet(props: {
             style={styles.advancedToggle}
             onPress={() => props.onShowAdvancedChange(!props.showAdvanced)}
           >
-            <Text style={styles.advancedText}>Advanced</Text>
+            <Text style={styles.advancedText}>{translate('m.NewWorktreeModal.013a3be8ad', 'Advanced')}</Text>
             {props.showAdvanced ? (
               <ChevronUp size={14} color={colors.textSecondary} />
             ) : (
@@ -136,12 +137,12 @@ export function NewWorktreeFormSheet(props: {
                 selectedRepoIsGit={props.selectedRepoIsGit}
               />
               <View style={styles.field}>
-                <Text style={styles.label}>Note</Text>
+                <Text style={styles.label}>{translate('m.NewWorktreeModal.2cc02a28d4', 'Note')}</Text>
                 <TextInput
                   style={styles.input}
                   value={props.note}
                   onChangeText={props.onNoteChange}
-                  placeholder="Write a note"
+                  placeholder={translate('m.NewWorktreeModal.6f2f2092d5', 'Write a note')}
                   placeholderTextColor={colors.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -172,7 +173,7 @@ export function NewWorktreeFormSheet(props: {
                 <ActivityIndicator size="small" color={colors.bgBase} />
               ) : (
                 <Text style={styles.createText}>
-                  {props.sshGate.requiresConnection ? 'Connect target' : 'Create worktree'}
+                  {props.sshGate.requiresConnection ? translate('m.NewWorktreeModal.8a9197a7a9', 'Connect target') : translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}
                 </Text>
               )}
             </Pressable>

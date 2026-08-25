@@ -350,12 +350,12 @@ function prunePackagedNodePty(resourcesDir, electronPlatformName, electronArch) 
 
   // Why delete only conpty.node: node-pty's loader tries build/Release, then
   // build/Debug, then prebuilds/<platform>-<arch>, swallowing every failure in
-  // between. Only the source build carries Orca's job-object exports, so an ABI
+  // between. Only the source build carries Manta's job-object exports, so an ABI
   // mismatch or an AV quarantine of build/Release/conpty.node would silently
   // fall through to the UNPATCHED prebuild -- teardown back to guessing by PID
   // ancestry, with no error anywhere.
   //
-  // Why NOT the whole prebuilds/ tree: Orca's own patch deletes the
+  // Why NOT the whole prebuilds/ tree: Manta's own patch deletes the
   // `conpty_console_list` and winpty `pty` gyp targets, so a Windows source
   // build emits conpty.node and nothing else. conpty_console_list.node,
   // pty.node, winpty.dll and winpty-agent.exe exist ONLY here. Removing them

@@ -15,6 +15,9 @@ import { describe, expect, it } from 'vitest'
  * ever published prereleases it 404s: a successful "nothing newer" arrived as a
  * transport error. And the message that would have explained it required
  * releaseChannel === 'default', so prerelease users saw the network text.
+ *
+ * The branch still runs a real check — it pins this build's own release, which
+ * exists — so the rest of the flow keeps the behavior upstream's tests assume.
  */
 const source = readFileSync(join(__dirname, 'updater.ts'), 'utf8')
 
@@ -30,19 +33,19 @@ describe('preflight when nothing is newer', () => {
 
     expect(source).toContain(guard)
     expect(source.indexOf(guard)).toBeLessThan(source.indexOf(fallback))
-    expect(source.slice(source.indexOf(guard), source.indexOf(fallback))).toContain(
-      "return 'not-available'"
-    )
   })
 
-  it('does not pin a feed on the no-newer path', () => {
+  it('pins the no-newer path to this build own release, never to releases/latest', () => {
     const guard = "} else if (releaseTagsResult.state === 'no-newer') {"
     const fallback =
       "const url = 'https://github.com/paidaxingyo666/Manta/releases/latest/download'"
+    const branch = source.slice(source.indexOf(guard), source.indexOf(fallback))
 
-    expect(source.slice(source.indexOf(guard), source.indexOf(fallback))).not.toContain(
-      'setFeedURL'
-    )
+    // A concrete versioned feed, so electron-updater runs a real comparison and
+    // answers "up to date" instead of failing to reach releases/latest.
+    expect(branch).toContain('getReleaseDownloadUrl(`v${currentVersion}`)')
+    expect(branch).toContain('setFeedURL')
+    expect(branch).not.toContain('releases/latest/download')
   })
 
   // Requiring the default channel meant every prerelease user got the transport

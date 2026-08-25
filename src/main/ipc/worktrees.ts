@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { Store } from '../persistence/loading-store/store'
-import type { OrcaRuntimeService, RuntimeWorktreeLifecycleEvent } from '../runtime/orca-runtime'
+import type { MantaRuntimeService, RuntimeWorktreeLifecycleEvent } from '../runtime/manta-runtime'
 import { createSenderScopedRequestCancellations } from './sender-scoped-request-cancellation'
 import { registerWorktreeCreateHandlers } from './worktrees/create/register-worktree-create-handlers'
 import { registerWorktreePrefetchHandler } from './worktrees/create/register-worktree-prefetch-handler'
@@ -52,7 +52,7 @@ const WORKTREE_HANDLER_CHANNELS = [
 export function registerWorktreeHandlers(
   mainWindow: BrowserWindow,
   store: Store,
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   options?: { onWorktreeLifecycle?: (event: RuntimeWorktreeLifecycleEvent) => void }
 ): void {
   const context: WorktreeIpcContext = {

@@ -388,7 +388,7 @@ describe('Linear project queries', () => {
         targetDate: '2026-08-01'
       }
     })
-    expect(rawRequest.mock.calls[0]?.[0]).toContain('mutation OrcaLinearProjectCreate')
+    expect(rawRequest.mock.calls[0]?.[0]).toContain('mutation MantaLinearProjectCreate')
     expect(rawRequest.mock.calls[0]?.[0]).toContain('projectCreate(input: $input)')
   })
 

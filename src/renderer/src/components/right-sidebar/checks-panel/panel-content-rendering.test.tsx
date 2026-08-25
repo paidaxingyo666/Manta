@@ -47,7 +47,7 @@ describe('checks panel concrete content', () => {
         number: 42,
         state: 'open',
         title: 'Preserve mounted panel behavior',
-        url: 'https://github.com/orca/app/pull/42',
+        url: 'https://github.com/manta/app/pull/42',
         status: 'success',
         updatedAt: '2026-08-23T00:00:00.000Z',
         mergeable: 'MERGEABLE'

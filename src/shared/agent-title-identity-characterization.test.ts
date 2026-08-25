@@ -15,12 +15,12 @@ import { getAgentLabel } from './agent-title-identity'
  * resolved to the wrong agent. Task text is minimized here; the corpus stays local.
  */
 
-/** Orca's own owner suffix: the agent that owns the pane is named after the final `- `. */
+/** Manta's own owner suffix: the agent that owns the pane is named after the final `- `. */
 const ownerSuffix = (task: string, agent: string): string => `${task}… - ${agent}`
 
 describe('getAgentLabel — characterization (pre-refactor)', () => {
   describe('the owner suffix loses to a foreign name in task text', () => {
-    // DEFECT. In each case the pane owner is Grok, named by Orca's own `- grok` suffix
+    // DEFECT. In each case the pane owner is Grok, named by Manta's own `- grok` suffix
     // grammar, while the competing agent appears only inside free-form task text. Codex is
     // checked before Grok, so the weaker evidence wins.
     it.each([

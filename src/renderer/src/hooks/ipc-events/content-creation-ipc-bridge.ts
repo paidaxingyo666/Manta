@@ -105,7 +105,7 @@ export function registerContentCreationIpcBridge(
       // Why: watcher may detect a helper while a simulator tab is already mounted; push stream info so the pane updates without re-attach.
       window.setTimeout(() => {
         window.dispatchEvent(
-          new CustomEvent('orca:emulator-auto-attach', {
+          new CustomEvent('manta:emulator-auto-attach', {
             detail: { worktreeId, info }
           })
         )

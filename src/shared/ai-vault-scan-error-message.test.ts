@@ -48,7 +48,7 @@ describe('describeAiVaultScanError', () => {
   it('routes a missing scanner entry to install guidance, not a retry', () => {
     const described = describeAiVaultScanError('AI Vault service entry not found: /a/b.js')
     expect(described).toBe(
-      'The session scanner is missing from this Orca install. Reinstalling Orca restores it.'
+      'The session scanner is missing from this Manta install. Reinstalling Manta restores it.'
     )
     expect(described).not.toContain('Refresh')
   })

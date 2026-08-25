@@ -5,7 +5,7 @@ export function getStatusPluginFactorySource(options: { emitSessionStart: boolea
     '// plugin factory with undefined during startup, which makes the',
     '// destructuring form throw synchronously and crash OpenCode with an opaque',
     '// UnknownError before any event is ever dispatched.',
-    'export const OrcaOpenCodeStatusPlugin = async (_ctx) => {',
+    'export const MantaOpenCodeStatusPlugin = async (_ctx) => {',
     '  const client = _ctx?.client;',
     '  const factoryID = ++nextFactoryID;',
     '  activeFactoryIDs.add(factoryID);',
@@ -189,7 +189,7 @@ export function getStatusPluginFactorySource(options: { emitSessionStart: boolea
     '          );',
     '        } else {',
     '          // Why: Instance disposal can happen while the PTY stays alive;',
-    '          // publish a final idle so Orca does not retain a dead owner.',
+    '          // publish a final idle so Manta does not retain a dead owner.',
     '          if (!deliveredStatusKey.startsWith("idle:") || ownsDeliveredMessagePart) {',
     '            await setStatus(',
     '              "idle",',
@@ -217,8 +217,8 @@ export function getStatusPluginFactorySource(options: { emitSessionStart: boolea
     '// export an object with server()"). `setup()` does not satisfy it. Keep the named',
     '// export so the factory-based loader still finds the same instance.',
     'export default {',
-    '  id: "orca-opencode-status",',
-    '  server: OrcaOpenCodeStatusPlugin,',
+    '  id: "manta-opencode-status",',
+    '  server: MantaOpenCodeStatusPlugin,',
     '};',
     ''
   ]

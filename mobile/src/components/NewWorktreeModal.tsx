@@ -28,6 +28,7 @@ import { useNewWorkspaceRepositories } from './use-new-workspace-repositories'
 import { useNewWorkspaceRuntimeContext } from './use-new-workspace-runtime-context'
 import { useNewWorkspaceSetupScript } from './use-new-workspace-setup-script'
 import { useNewWorktreeDrawerNavigation } from './use-new-worktree-drawer-navigation'
+import { translate } from '../i18n/i18n'
 
 export function NewWorktreeModal(props: NewWorktreeModalProps) {
   const openEpochRef = useRef(0)
@@ -116,8 +117,8 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
     setupRunPolicy: setupScript.setupRunPolicy,
     setupDecisionChoice: setupScript.setupDecisionChoice,
     runSetup: setupScript.runSetup,
-    trustedOrcaHooks: runtime.trustedOrcaHooks,
-    setTrustedOrcaHooks: runtime.setTrustedOrcaHooks,
+    trustedMantaHooks: runtime.trustedMantaHooks,
+    setTrustedMantaHooks: runtime.setTrustedMantaHooks,
     getWorktreeCreateCutoverSupport,
     transitionDrawer: navigation.transitionDrawer,
     setError,
@@ -200,7 +201,7 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
         projectBadgeColor={selectedRepo ? getMobileWorkspaceRepoBadgeColor(selectedRepo) : null}
         selectedRepoIsGit={selectedRepoIsGit}
         selectedRepoConnectionId={selectedRepoConnectionId}
-        selectedRepoName={selectedRepo?.displayName ?? 'Remote repository'}
+        selectedRepoName={selectedRepo?.displayName ?? translate('m.NewWorktreeModal.02690f5980', 'Remote repository')}
         sshGate={executionTarget.sshGate}
         composer={composer}
         selectedAgent={agentSelection.selectedAgent}

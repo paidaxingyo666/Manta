@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron'
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../../runtime/manta-runtime'
 import type { Store } from '../../../persistence'
 import type { IPtyProvider } from '../../../providers/types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
@@ -20,7 +20,7 @@ import type { AdoptStablePaneArgs, AdoptStablePaneResult } from '../ipc/spawn-ty
 import type { finishPtyShutdown } from '../provider/liveness'
 
 export type PtyRuntimeControllerDeps = {
-  runtime?: OrcaRuntimeService
+  runtime?: MantaRuntimeService
   store?: Store
   adoptStablePane: (args: AdoptStablePaneArgs) => Promise<AdoptStablePaneResult | null>
   getLocalPtyStartupPromise: (connectionId?: string | null) => Promise<void> | undefined

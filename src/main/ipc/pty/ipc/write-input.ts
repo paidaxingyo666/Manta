@@ -1,5 +1,5 @@
 import type { BrowserWindow, IpcMainEvent, IpcMainInvokeEvent, WebContents } from 'electron'
-import type { OrcaRuntimeService } from '../../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../../runtime/manta-runtime'
 import type { IPtyProvider } from '../../../providers/types'
 import { isPtyWriteUnavailableError } from '../../../providers/pty-write-unavailable-error'
 import {
@@ -31,7 +31,7 @@ export type PtyViewportClaimPayload = { id: string; cols: number; rows: number }
 
 export function createPtyWriteInput(deps: {
   mainWindow: BrowserWindow
-  runtime?: OrcaRuntimeService
+  runtime?: MantaRuntimeService
   clearHiddenRendererResizeOutput: (id: string) => void
 }): {
   writePtyInput: (args: PtyWritePayload) => boolean | Promise<boolean>

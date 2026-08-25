@@ -14,11 +14,11 @@ import { DaemonProtocolError } from '../types'
 const PTY_SPAWN_HEALTH_TIMEOUT_MS = 4_000
 
 function daemonEnvironmentDiagSuffix(): string {
-  const orca = process.env.ORCA_APP_VERSION?.trim() || '0.0.0-dev'
+  const manta = process.env.MANTA_APP_VERSION?.trim() || '0.0.0-dev'
   const systemVersion =
     (process as NodeJS.Process & { getSystemVersion?: () => string }).getSystemVersion?.() ||
     release()
-  return ` (orca: ${orca}, arch: ${process.arch}, platform: ${process.platform} ${systemVersion})`
+  return ` (manta: ${manta}, arch: ${process.arch}, platform: ${process.platform} ${systemVersion})`
 }
 
 function formatMissingDaemonPathError(kind: 'helper' | 'cwd', path: string): DaemonProtocolError {
@@ -26,7 +26,7 @@ function formatMissingDaemonPathError(kind: 'helper' | 'cwd', path: string): Dae
   const step = kind === 'helper' ? 'posix_spawn' : 'daemon_cwd'
   const missingTarget = kind === 'helper' ? 'node-pty install' : 'working directory'
   return new DaemonProtocolError(
-    `Daemon's ${missingTarget} is gone (worktree deleted?). Restart Orca. node-pty: ${step} failed: ENOENT (errno 2, No such file or directory) - ${detailName}='${path}'${daemonEnvironmentDiagSuffix()}`
+    `Daemon's ${missingTarget} is gone (worktree deleted?). Restart Manta. node-pty: ${step} failed: ENOENT (errno 2, No such file or directory) - ${detailName}='${path}'${daemonEnvironmentDiagSuffix()}`
   )
 }
 
@@ -42,7 +42,7 @@ function isExistingDirectory(path: string | undefined): path is string {
 }
 
 function repairDaemonCwd(): string | null {
-  const candidates = [process.env.ORCA_USER_DATA_PATH]
+  const candidates = [process.env.MANTA_USER_DATA_PATH]
   try {
     candidates.push(resolveSafePtyDefaultCwd())
   } catch {
@@ -155,8 +155,8 @@ export function formatPtySpawnError(err: unknown, shellPath: string, spawnCwd: s
 }
 
 export function runPtySpawnHealthProbe(): Promise<void> {
-  const cwd = isExistingDirectory(process.env.ORCA_USER_DATA_PATH)
-    ? process.env.ORCA_USER_DATA_PATH
+  const cwd = isExistingDirectory(process.env.MANTA_USER_DATA_PATH)
+    ? process.env.MANTA_USER_DATA_PATH
     : resolveSafePtyDefaultCwd()
   let proc: pty.IPty
   try {

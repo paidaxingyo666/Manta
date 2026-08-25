@@ -32,7 +32,7 @@ async function isGitAvailable(): Promise<boolean> {
 }
 
 function getDefaultCreateProjectParent(): string {
-  return join(homedir(), 'orca', 'projects')
+  return join(homedir(), 'manta', 'projects')
 }
 
 export function registerRepoCreationHandlers(mainWindow: BrowserWindow, store: Store): void {
@@ -100,7 +100,7 @@ export function registerRepoCreationHandlers(mainWindow: BrowserWindow, store: S
     }
   )
 
-  // Create a repo/folder from scratch (orca#763); git repos need an empty initial commit so HEAD has a branch ref for worktrees.
+  // Create a repo/folder from scratch (manta#763); git repos need an empty initial commit so HEAD has a branch ref for worktrees.
   ipcMain.handle(
     'repos:create',
     async (
@@ -140,7 +140,7 @@ export function registerRepoCreationHandlers(mainWindow: BrowserWindow, store: S
       let createdDir = false
       let targetExists = false
       try {
-        // Why: the default parent (~/orca/projects) may not exist on a fresh install; create only the parent before probing the target.
+        // Why: the default parent (~/manta/projects) may not exist on a fresh install; create only the parent before probing the target.
         await mkdir(parentPath, { recursive: true })
         await access(targetPath)
         targetExists = true

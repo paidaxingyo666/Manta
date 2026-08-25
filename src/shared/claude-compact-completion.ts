@@ -1,15 +1,15 @@
-// Claude's compact lifecycle, from Orca's side.
+// Claude's compact lifecycle, from Manta's side.
 //
 // Claude emits PreCompact -> (summarizer SubagentStop) -> SessionStart(source=compact) ->
 // PostCompact for a successful /compact, but PreCompact ALONE when the compact aborts
 // ("Not enough messages to compact"), and post-compact hooks are only reached on the success
-// path. So PreCompact proves nothing and Orca deliberately does not register it: mapping it to
+// path. So PreCompact proves nothing and Manta deliberately does not register it: mapping it to
 // `working` would strand the pane on every aborted compact, which is the bug this file exists to
 // fix (STA-2915/STA-4613).
 //
 // PostCompact is the only compact event that proves something. `manual` ends at an idle prompt and
 // is the pane's missing clearing signal; `auto` fires inside a turn that resumes and emits its own
-// Stop, so Orca must not touch the state.
+// Stop, so Manta must not touch the state.
 
 import { agentProviderSessionsEqual } from './agent-session-resume'
 import type { AgentProviderSessionMetadata } from './agent-session-resume'

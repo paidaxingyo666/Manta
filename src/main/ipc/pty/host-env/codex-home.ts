@@ -40,7 +40,7 @@ export function isCodexStatusHooksEnabled(settings: GlobalSettings | undefined):
 // Why: with the real-home flag ON, a host system-default launch resolves to a
 // null managed home. Signal the env builder to strip a nested-Orca-inherited
 // override instead of injecting one, so Codex runs on the user's own ~/.codex.
-export function shouldStripInheritedOrcaCodexHome(args: {
+export function shouldStripInheritedMantaCodexHome(args: {
   target: CodexAccountSelectionTarget
   selectedCodexHomePath: string | null
   skipCodexHomeEnv: boolean
@@ -51,26 +51,26 @@ export function shouldStripInheritedOrcaCodexHome(args: {
   )
 }
 
-export const CODEX_HOME_ENV_KEYS = ['CODEX_HOME', 'ORCA_CODEX_HOME'] as const
+export const CODEX_HOME_ENV_KEYS = ['CODEX_HOME', 'MANTA_CODEX_HOME'] as const
 
 // Why: system-default real-home routing runs Codex on the user's own ~/.codex.
-// Nested Orca panes inherit the parent's Orca-owned override; strip only that
-// (CODEX_HOME matching Orca's private ORCA_CODEX_HOME marker), and always drop
+// Nested Manta panes inherit the parent's Manta-owned override; strip only that
+// (CODEX_HOME matching Manta's private MANTA_CODEX_HOME marker), and always drop
 // the marker so a shell-ready wrapper cannot restore the managed home. A
-// user-set CODEX_HOME with no Orca marker is preserved untouched (see #8606).
-export function stripInheritedOrcaCodexHomeOverride(baseEnv: Record<string, string>): void {
-  for (const key of getLocalOrcaCodexHomeEnvKeysToDelete(baseEnv)) {
+// user-set CODEX_HOME with no Manta marker is preserved untouched (see #8606).
+export function stripInheritedMantaCodexHomeOverride(baseEnv: Record<string, string>): void {
+  for (const key of getLocalMantaCodexHomeEnvKeysToDelete(baseEnv)) {
     delete baseEnv[key]
   }
 }
 
 // Why: in-process spawns share main's inherited environment, so equality with
 // the private marker is authoritative here. Persistent daemons compare locally.
-export function getLocalOrcaCodexHomeEnvKeysToDelete(env: Record<string, string>): string[] {
-  const inheritedOrcaOverride = env.ORCA_CODEX_HOME ?? process.env.ORCA_CODEX_HOME
+export function getLocalMantaCodexHomeEnvKeysToDelete(env: Record<string, string>): string[] {
+  const inheritedMantaOverride = env.MANTA_CODEX_HOME ?? process.env.MANTA_CODEX_HOME
   const inheritedCodexHome = env.CODEX_HOME ?? process.env.CODEX_HOME
-  const keysToDelete = ['ORCA_CODEX_HOME']
-  if (inheritedOrcaOverride && inheritedCodexHome === inheritedOrcaOverride) {
+  const keysToDelete = ['MANTA_CODEX_HOME']
+  if (inheritedMantaOverride && inheritedCodexHome === inheritedMantaOverride) {
     keysToDelete.push('CODEX_HOME')
   }
   return keysToDelete

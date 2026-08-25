@@ -8,6 +8,7 @@ import type { HomeResumeCard } from '../worktree/home-resume-card'
 import { MobileHomeAccountUsageCards } from './MobileHomeAccountUsageCards'
 import { MobileHomeResumeCard } from './MobileHomeResumeCard'
 import { MobileHomeTasksCard } from './MobileHomeTasksCard'
+import { translate } from '../i18n/i18n'
 
 export function MobileHomeListFooter(props: {
   accountsHosts: { host: HostProfile; snapshot: AccountsSnapshot }[]
@@ -25,11 +26,11 @@ export function MobileHomeListFooter(props: {
     <View>
       {props.resumeCard ? (
         <>
-          <Text style={styles.sectionHeading}>Resume</Text>
+          <Text style={styles.sectionHeading}>{translate('m.index.44e6505b65', 'Resume')}</Text>
           <MobileHomeResumeCard card={props.resumeCard} onOpen={props.onOpenResume} />
         </>
       ) : null}
-      <Text style={styles.sectionHeading}>Tasks</Text>
+      <Text style={styles.sectionHeading}>{translate('m.index.cbbc34848b', 'Tasks')}</Text>
       <MobileHomeTasksCard
         enabled={props.primaryHost != null}
         providers={props.primaryTaskProviders}

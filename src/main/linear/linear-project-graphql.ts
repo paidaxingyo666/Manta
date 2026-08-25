@@ -1,4 +1,4 @@
-export const ORCA_PROJECT_FIELDS = `
+export const MANTA_PROJECT_FIELDS = `
   id
   slugId
   name
@@ -55,8 +55,8 @@ export const ORCA_PROJECT_FIELDS = `
   }
 `
 
-export const ORCA_PROJECT_DETAIL_FIELDS = `
-  ${ORCA_PROJECT_FIELDS}
+export const MANTA_PROJECT_DETAIL_FIELDS = `
+  ${MANTA_PROJECT_FIELDS}
   projectMilestones(first: 20) {
     nodes {
       id
@@ -88,7 +88,7 @@ export const ORCA_PROJECT_DETAIL_FIELDS = `
   }
 `
 
-export const ORCA_ISSUE_FIELDS = `
+export const MANTA_ISSUE_FIELDS = `
   id
   identifier
   title
@@ -122,10 +122,10 @@ export const ORCA_ISSUE_FIELDS = `
 `
 
 export const PROJECTS_QUERY = `
-  query OrcaLinearProjects($first: Int, $filter: ProjectFilter, $orderBy: PaginationOrderBy) {
+  query MantaLinearProjects($first: Int, $filter: ProjectFilter, $orderBy: PaginationOrderBy) {
     projects(first: $first, filter: $filter, orderBy: $orderBy) {
       nodes {
-        ${ORCA_PROJECT_FIELDS}
+        ${MANTA_PROJECT_FIELDS}
       }
       pageInfo {
         hasNextPage
@@ -135,10 +135,10 @@ export const PROJECTS_QUERY = `
 `
 
 export const SEARCH_PROJECTS_QUERY = `
-  query OrcaLinearProjectSearch($term: String!, $first: Int, $after: String) {
+  query MantaLinearProjectSearch($term: String!, $first: Int, $after: String) {
     searchProjects(term: $term, first: $first, after: $after) {
       nodes {
-        ${ORCA_PROJECT_FIELDS}
+        ${MANTA_PROJECT_FIELDS}
       }
       pageInfo {
         hasNextPage
@@ -149,26 +149,26 @@ export const SEARCH_PROJECTS_QUERY = `
 `
 
 export const PROJECT_QUERY = `
-  query OrcaLinearProject($id: String!) {
+  query MantaLinearProject($id: String!) {
     project(id: $id) {
-      ${ORCA_PROJECT_DETAIL_FIELDS}
+      ${MANTA_PROJECT_DETAIL_FIELDS}
     }
   }
 `
 
 export const CREATE_PROJECT_MUTATION = `
-  mutation OrcaLinearProjectCreate($input: ProjectCreateInput!) {
+  mutation MantaLinearProjectCreate($input: ProjectCreateInput!) {
     projectCreate(input: $input) {
       success
       project {
-        ${ORCA_PROJECT_DETAIL_FIELDS}
+        ${MANTA_PROJECT_DETAIL_FIELDS}
       }
     }
   }
 `
 
 export const PROJECT_ISSUES_QUERY = `
-  query OrcaLinearProjectIssues(
+  query MantaLinearProjectIssues(
     $id: String!,
     $first: Int,
     $after: String,
@@ -177,7 +177,7 @@ export const PROJECT_ISSUES_QUERY = `
     project(id: $id) {
       issues(first: $first, after: $after, orderBy: $orderBy) {
         nodes {
-          ${ORCA_ISSUE_FIELDS}
+          ${MANTA_ISSUE_FIELDS}
         }
         pageInfo {
           hasNextPage
@@ -189,7 +189,7 @@ export const PROJECT_ISSUES_QUERY = `
 `
 
 export const PROJECT_TEAMS_QUERY = `
-  query OrcaLinearProjectTeams($id: String!, $first: Int, $after: String) {
+  query MantaLinearProjectTeams($id: String!, $first: Int, $after: String) {
     project(id: $id) {
       teams(first: $first, after: $after) {
         nodes {

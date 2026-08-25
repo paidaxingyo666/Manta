@@ -105,7 +105,10 @@ describe('Linear project view surfaces', () => {
     expect(onUseProjectIssues).toHaveBeenCalledWith(project)
     expect(onSelectProject).toHaveBeenCalledTimes(1)
 
-    const openButton = container.querySelectorAll('button[aria-label="Open Compiler issues"]')[1]
+    // Upstream gives both buttons the same catalog key, so both render "…issues"
+    // and the open-in-Linear button is only reachable by index. This fork split
+    // the collided key, so it has its own label.
+    const openButton = container.querySelector('button[aria-label="Open Compiler in Linear"]')
     act(() => openButton?.dispatchEvent(new MouseEvent('click', { bubbles: true })))
     expect(onOpenProject).toHaveBeenCalledWith(project)
     expect(onSelectProject).toHaveBeenCalledTimes(1)

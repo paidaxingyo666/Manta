@@ -155,7 +155,7 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
     const fetchHeadPath = join(repoPath, '.git', 'FETCH_HEAD')
     await writeFile(fetchHeadPath, 'sentinel\n')
     await expectPreferredOrRecognizedFallback(
-      ['fetch', '--no-write-fetch-head', '.', '+HEAD:refs/orca/compat/no-write-fetch-head'],
+      ['fetch', '--no-write-fetch-head', '.', '+HEAD:refs/manta/compat/no-write-fetch-head'],
       supports(2, 29),
       isNoWriteFetchHeadUnsupportedError
     )

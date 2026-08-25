@@ -11,17 +11,17 @@ import {
   ExternalChromiumBrowserProcess,
   type ExternalChromiumLaunch
 } from './external-chromium-browser-process'
-import { resolveOrcadAgentBrowserBinary } from './orcad-agent-browser-binary'
+import { resolveMantadAgentBrowserBinary } from './mantad-agent-browser-binary'
 import { ElectronServeBrowserProcess } from './electron-serve-browser-process'
 
-export type OrcadBrowserProvider = {
+export type MantadBrowserProvider = {
   kind: 'electron' | 'chromium'
   factory: RuntimeBrowserCommandsFactory
   isAvailable(): boolean
   stop(): Promise<void>
 }
 
-export type OrcadBrowserProviderOptions = {
+export type MantadBrowserProviderOptions = {
   userDataPath: string
   environment?: NodeJS.ProcessEnv
   resolveInstalledElectronExecutable?: () => Promise<string | null>
@@ -65,23 +65,23 @@ export function installedElectronCandidates(
   const joinPath = platform === 'win32' ? win32.join : posix.join
   if (platform === 'darwin') {
     return [
-      '/Applications/Orca.app/Contents/MacOS/Orca',
-      joinPath(homePath, 'Applications', 'Orca.app', 'Contents', 'MacOS', 'Orca')
+      '/Applications/Manta.app/Contents/MacOS/Manta',
+      joinPath(homePath, 'Applications', 'Manta.app', 'Contents', 'MacOS', 'Manta')
     ]
   }
   if (platform === 'win32') {
     return [
       ...(environment.LOCALAPPDATA
-        ? [joinPath(environment.LOCALAPPDATA, 'Programs', 'Orca', 'Orca.exe')]
+        ? [joinPath(environment.LOCALAPPDATA, 'Programs', 'Manta', 'Manta.exe')]
         : []),
-      ...(environment.ProgramFiles ? [joinPath(environment.ProgramFiles, 'Orca', 'Orca.exe')] : [])
+      ...(environment.ProgramFiles ? [joinPath(environment.ProgramFiles, 'Manta', 'Manta.exe')] : [])
     ]
   }
   return [
-    joinPath(homePath, '.local', 'bin', 'orca-ide'),
-    '/usr/local/bin/orca-ide',
+    joinPath(homePath, '.local', 'bin', 'manta-ide'),
+    '/usr/local/bin/manta-ide',
     '/usr/bin/orca-ide',
-    '/opt/Orca/orca-ide'
+    '/opt/Manta/manta-ide'
   ]
 }
 
@@ -100,7 +100,7 @@ async function startProvider(
   agentBrowserPath: string,
   launch: ExternalChromiumLaunch,
   userDataPath: string
-): Promise<OrcadBrowserProvider> {
+): Promise<MantadBrowserProvider> {
   const processHandle = new ExternalChromiumBrowserProcess(agentBrowserPath, launch, userDataPath)
   try {
     await processHandle.start()
@@ -116,7 +116,7 @@ async function startProvider(
   }
 }
 
-async function startElectronServeProvider(executablePath: string): Promise<OrcadBrowserProvider> {
+async function startElectronServeProvider(executablePath: string): Promise<MantadBrowserProvider> {
   const processHandle = new ElectronServeBrowserProcess(executablePath)
   try {
     await processHandle.start()
@@ -133,9 +133,9 @@ async function startElectronServeProvider(executablePath: string): Promise<Orcad
 }
 
 /** Resolve once at startup: Electron first, then the operator-supplied Chromium. */
-export async function resolveOrcadBrowserProvider(
-  options: OrcadBrowserProviderOptions
-): Promise<OrcadBrowserProvider | null> {
+export async function resolveMantadBrowserProvider(
+  options: MantadBrowserProviderOptions
+): Promise<MantadBrowserProvider | null> {
   const environment = options.environment ?? process.env
   await mkdir(options.userDataPath, { recursive: true, mode: 0o700 })
 
@@ -155,20 +155,20 @@ export async function resolveOrcadBrowserProvider(
       setRuntimeBrowserUnavailableCause(null)
       return await startElectronServeProvider(installedElectronExecutable)
     } catch (error) {
-      console.warn('[orcad] Installed Electron browser provider unavailable:', error)
+      console.warn('[mantad] Installed Electron browser provider unavailable:', error)
       electronFailure = { reason: 'electron_start_failed', detail: errorDetail(error) }
     }
   }
 
   // Why the env var is read before the driver: with it set, a missing driver is a driver
-  // problem, not an unconfigured host. Telling someone to set ORCA_BROWSER_EXECUTABLE when
+  // problem, not an unconfigured host. Telling someone to set MANTA_BROWSER_EXECUTABLE when
   // they already did is the misdirection this ordering exists to prevent.
-  const chromiumExecutable = environment.ORCA_BROWSER_EXECUTABLE?.trim()
+  const chromiumExecutable = environment.MANTA_BROWSER_EXECUTABLE?.trim()
   if (!chromiumExecutable) {
     return declined(electronFailure ?? { reason: 'unconfigured' })
   }
 
-  const agentBrowserPath = (options.resolveAgentBrowserBinary ?? resolveOrcadAgentBrowserBinary)()
+  const agentBrowserPath = (options.resolveAgentBrowserBinary ?? resolveMantadAgentBrowserBinary)()
   if (!agentBrowserPath) {
     return declined({ reason: 'driver_missing' })
   }
@@ -189,7 +189,7 @@ export async function resolveOrcadBrowserProvider(
       options.userDataPath
     )
   } catch (error) {
-    console.warn('[orcad] External Chromium browser provider unavailable:', error)
+    console.warn('[mantad] External Chromium browser provider unavailable:', error)
     return declined({ reason: 'chromium_start_failed', detail: errorDetail(error) })
   }
 }

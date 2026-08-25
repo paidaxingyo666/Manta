@@ -3,7 +3,7 @@ const { writeSync } = require('node:fs')
 const net = require('node:net')
 const path = require('node:path')
 
-const EVIDENCE_PREFIX = 'ORCA_NODE_PTY_CAPABILITY_EVIDENCE='
+const EVIDENCE_PREFIX = 'MANTA_NODE_PTY_CAPABILITY_EVIDENCE='
 const EXPECTED_ROLES = new Set([
   'target-shell',
   'target-launcher-exited',
@@ -418,7 +418,7 @@ async function main() {
     return
   }
   if (mode === '--exit-contract-fixture') {
-    process.stdout.write('ORCA_ONE_SHOT_EVIDENCE=flushed\n')
+    process.stdout.write('MANTA_ONE_SHOT_EVIDENCE=flushed\n')
     setInterval(() => {}, 60_000)
     return
   }

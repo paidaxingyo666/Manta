@@ -10,6 +10,7 @@ import {
 } from '../components/AccountUsage'
 import { colors, radii, spacing } from '../theme/mobile-theme'
 import type { HostProfile } from '../transport/types'
+import { translate } from '../i18n/i18n'
 
 export function MobileHomeAccountUsageCards(props: {
   items: { host: HostProfile; snapshot: AccountsSnapshot }[]
@@ -20,7 +21,7 @@ export function MobileHomeAccountUsageCards(props: {
   }
   return (
     <>
-      <Text style={styles.sectionHeading}>Account usage</Text>
+      <Text style={styles.sectionHeading}>{translate('m.index.557a47bcbe', 'Account usage')}</Text>
       {props.items.map(({ host, snapshot }) => {
         const claudeActive =
           snapshot.claude.accounts.find(
@@ -62,17 +63,17 @@ export function MobileHomeAccountUsageCards(props: {
                   </View>
                   <View style={styles.info}>
                     <Text style={styles.email} numberOfLines={1}>
-                      {active?.email ?? 'System default'}
+                      {active?.email ?? translate('m.index.20e2e26d8c', 'System default')}
                     </Text>
                     <View style={styles.bars}>
                       <UsageBar
-                        label="5h"
+                        label={translate('m.index.fcaaa4c805', '5h')}
                         usedPercent={sessionBar.usedPercent}
                         unavailable={sessionBar.unavailable}
                         loading={sessionBar.loading}
                       />
                       <UsageBar
-                        label="7d"
+                        label={translate('m.index.267203af46', '7d')}
                         usedPercent={weeklyBar.usedPercent}
                         unavailable={weeklyBar.unavailable}
                         loading={weeklyBar.loading}

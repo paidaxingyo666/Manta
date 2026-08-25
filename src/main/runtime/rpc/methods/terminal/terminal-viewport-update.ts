@@ -1,8 +1,8 @@
-import type { OrcaRuntimeService } from '../../../orca-runtime'
+import type { MantaRuntimeService } from '../../../manta-runtime'
 import type { TerminalViewportClient } from './terminal-stream-types'
 
 export async function updateViewportForClient(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   ptyId: string,
   subscriptionKey: string,
   client: TerminalViewportClient,

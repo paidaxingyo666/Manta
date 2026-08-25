@@ -34,4 +34,4 @@ export const HIDDEN_OUTPUT_RESTORE_LOCAL_GATE_MAX_ATTEMPTS = 30
 // Why: this is only shown if hidden renderer output was skipped and main-owned
 // terminal state is unavailable, so the user has an explicit loss signal.
 export const HIDDEN_OUTPUT_RESTORE_UNAVAILABLE_WARNING =
-  '\r\n[Orca skipped hidden terminal output because main recovery was unavailable.]\r\n'
+  '\r\n[Manta skipped hidden terminal output because main recovery was unavailable.]\r\n'

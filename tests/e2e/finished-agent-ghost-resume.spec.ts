@@ -8,7 +8,7 @@
  * (#9454). Nothing downstream can then tell "finished" from "interrupted": once
  * the pane is gone, worktree activation reads the record as unfinished work and
  * opens a fresh tab running `--resume`. Killing the PTY removes the pane but
- * never the record, so `orca terminal stop`, a crash, or a pty-exit tab close
+ * never the record, so `manta terminal stop`, a crash, or a pty-exit tab close
  * all leave one queued respawn per finished agent.
  *
  * Run:
@@ -18,7 +18,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { ElectronApplication } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import { TEST_REPO_PATH_FILE } from './global-setup'
 import {
   execInTerminal,
@@ -29,9 +29,9 @@ import {
   waitForTerminalOutput
 } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
-import { attachRepoAndOpenTerminal, createRestartSession } from './helpers/orca-restart'
+import { attachRepoAndOpenTerminal, createRestartSession } from './helpers/manta-restart'
 import { createHostRendererTerminalTab } from './helpers/host-created-terminal-retention-oracle'
-import { DEFAULT_LOCAL_ORCA_PROFILE_ID } from '../../src/shared/orca-profiles'
+import { DEFAULT_LOCAL_MANTA_PROFILE_ID } from '../../src/shared/manta-profiles'
 
 const PROVIDER_SESSION_ID = 'e2e-finished-agent-session'
 
@@ -46,8 +46,8 @@ function readPersistedRecords(userDataDir: string): Record<string, PersistedReco
   const dataPath = path.join(
     userDataDir,
     'profiles',
-    DEFAULT_LOCAL_ORCA_PROFILE_ID,
-    'orca-data.json'
+    DEFAULT_LOCAL_MANTA_PROFILE_ID,
+    'manta-data.json'
   )
   const data = JSON.parse(readFileSync(dataPath, 'utf8')) as {
     workspaceSession?: { sleepingAgentSessionsByPaneKey?: Record<string, PersistedRecord> }
@@ -60,8 +60,8 @@ function stubPersistedResumeCommand(userDataDir: string): PersistedRecord {
   const dataPath = path.join(
     userDataDir,
     'profiles',
-    DEFAULT_LOCAL_ORCA_PROFILE_ID,
-    'orca-data.json'
+    DEFAULT_LOCAL_MANTA_PROFILE_ID,
+    'manta-data.json'
   )
   const data = JSON.parse(readFileSync(dataPath, 'utf8')) as {
     workspaceSession?: { sleepingAgentSessionsByPaneKey?: Record<string, PersistedRecord> }
@@ -144,7 +144,7 @@ test('does not respawn an agent whose turn already finished', async (// oxlint-d
     // an empty one does not reactivate on relaunch at all.
     const survivingTabId = await createHostRendererTerminalTab(page, worktreeId)
 
-    // The PTY dies and its tab closes with it — `orca terminal stop`, a crash,
+    // The PTY dies and its tab closes with it — `manta terminal stop`, a crash,
     // or the pty-exit auto close. This reason deliberately keeps the record.
     const tabId = await page.evaluate(
       (wtId) => (window.__store?.getState().tabsByWorktree[wtId] ?? [])[0]?.id ?? null,

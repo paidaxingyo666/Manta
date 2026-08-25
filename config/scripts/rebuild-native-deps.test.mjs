@@ -213,20 +213,20 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
   )
 
   it.skipIf(process.platform !== 'win32')(
-    'rebuilds a loadable ConPTY native that lacks Orca job ownership',
+    'rebuilds a loadable ConPTY native that lacks Manta job ownership',
     () => {
       const projectDir = mkTempProject()
 
       try {
         const rebuildLogPath = join(projectDir, 'electron-rebuild.log')
         writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
-        writeFakeElectronRebuild(projectDir, { logPathEnv: 'ORCA_REBUILD_TEST_LOG' })
+        writeFakeElectronRebuild(projectDir, { logPathEnv: 'MANTA_REBUILD_TEST_LOG' })
         writeFakeLoadableNodePty(projectDir, { ownsPtyJob: false })
         writeFakeWindowsRegistry(projectDir)
         writeFakeWindowsProcessTree(projectDir)
 
         const result = runRebuildScript(projectDir, {
-          ORCA_REBUILD_TEST_LOG: rebuildLogPath,
+          MANTA_REBUILD_TEST_LOG: rebuildLogPath,
           npm_config_platform: 'win32',
           npm_config_arch: process.arch
         })

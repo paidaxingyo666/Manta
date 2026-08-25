@@ -17,11 +17,11 @@ export function formatProjectPresenceProfileNames(profileNames: readonly string[
 
 export async function warnIfProjectKnownInAnotherProfile(
   repo: Repo,
-  activeOrcaProfileId: string | null
+  activeMantaProfileId: string | null
 ): Promise<void> {
-  const findProjectProfiles = window.api.orcaProfiles?.findProjectProfiles
+  const findProjectProfiles = window.api.mantaProfiles?.findProjectProfiles
   // Why: without an active profile ID the scan can't exclude the current profile and would false-positive on the just-added project.
-  if (!findProjectProfiles || !activeOrcaProfileId) {
+  if (!findProjectProfiles || !activeMantaProfileId) {
     return
   }
   try {
@@ -29,7 +29,7 @@ export async function warnIfProjectKnownInAnotherProfile(
       path: repo.path,
       connectionId: repo.connectionId ?? null,
       executionHostId: getRepoExecutionHostId(repo),
-      excludeProfileId: activeOrcaProfileId
+      excludeProfileId: activeMantaProfileId
     })
     const description = formatProjectPresenceProfileNames(
       result.projects.map((project) => project.profileName)

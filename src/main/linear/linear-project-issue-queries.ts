@@ -32,7 +32,7 @@ export async function readIssueConnectionPages(
 
   while (items.length < limit) {
     // Why: Linear returns issue connections in pages of up to 50; expanded
-    // Orca reads must follow cursors to show more than one backend page.
+    // Manta reads must follow cursors to show more than one backend page.
     const first = Math.min(LINEAR_ISSUE_API_PAGE_SIZE_MAX, limit - items.length)
     const connection = await loadConnection(after ? { first, after } : { first })
     const nodes = connection?.nodes ?? []

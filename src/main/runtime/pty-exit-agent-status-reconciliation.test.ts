@@ -5,7 +5,7 @@
  * resolve, so it reconciles them — but only on a real death certificate.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { makePaneKey } from '../../shared/stable-pane-id'
 
 const LEAF = '11111111-1111-4111-8111-111111111111'
@@ -19,8 +19,8 @@ type RuntimeInternals = {
 function runtimeWithBoundPane(
   reconcile: (paneKeys: Iterable<string>) => void,
   options: { connectionId?: string } = {}
-): OrcaRuntimeService {
-  const runtime = new OrcaRuntimeService(null, undefined, {
+): MantaRuntimeService {
+  const runtime = new MantaRuntimeService(null, undefined, {
     reconcileAgentStatusForEndedProcess: reconcile
   })
   const ptys = (runtime as unknown as RuntimeInternals).ptysById

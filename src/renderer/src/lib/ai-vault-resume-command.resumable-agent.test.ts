@@ -63,7 +63,7 @@ describe('AI Vault resume for Kimi', () => {
 
   it('takes the resumable-agent startup plan so the pane claims the provider session', () => {
     // Why: the plan branch applies Kimi's default launch args, so a resumed pane starts with the
-    // same permission flag Orca gives a fresh one.
+    // same permission flag Manta gives a fresh one.
     expect(
       buildAiVaultResumeStartupForWorktree({
         state: makeState(),

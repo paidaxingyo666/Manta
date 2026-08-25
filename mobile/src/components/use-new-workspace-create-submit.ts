@@ -1,5 +1,5 @@
 import { useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import type { PersistedTrustedOrcaHooks } from '../../../src/shared/orca-yaml-hook-types'
+import type { PersistedTrustedMantaHooks } from '../../../src/shared/manta-yaml-hook-types'
 import type { RetiredNameRegistry } from '../../../src/shared/worktree/retired-name-registry'
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcSuccess } from '../transport/types'
@@ -52,8 +52,8 @@ export function useNewWorkspaceCreateSubmit(args: {
   setupRunPolicy: SetupRunPolicy
   setupDecisionChoice: Exclude<WorkspaceCreateSetupDecision, 'inherit'> | null
   runSetup: boolean
-  trustedOrcaHooks: PersistedTrustedOrcaHooks
-  setTrustedOrcaHooks: (trust: PersistedTrustedOrcaHooks) => void
+  trustedMantaHooks: PersistedTrustedMantaHooks
+  setTrustedMantaHooks: (trust: PersistedTrustedMantaHooks) => void
   getWorktreeCreateCutoverSupport: () => Promise<boolean>
   transitionDrawer: (view: Exclude<NewWorktreeDrawerView, 'transition'>) => void
   setError: Dispatch<SetStateAction<string>>
@@ -136,14 +136,14 @@ export function useNewWorkspaceCreateSubmit(args: {
         setupDecision === 'run' &&
         args.setupTrust &&
         args.setupTrust.contentHash !== options.approvedSetupContentHash &&
-        !isSetupHookTrusted(args.trustedOrcaHooks, selectedRepo.id, args.setupTrust.contentHash)
+        !isSetupHookTrusted(args.trustedMantaHooks, selectedRepo.id, args.setupTrust.contentHash)
       ) {
         setSetupTrustPrompt({
           repoId: selectedRepo.id,
           repoName: selectedRepo.displayName,
           scriptContent: args.setupTrust.scriptContent,
           contentHash: args.setupTrust.contentHash,
-          previouslyApproved: wasSetupHookPreviouslyApproved(args.trustedOrcaHooks, selectedRepo.id)
+          previouslyApproved: wasSetupHookPreviouslyApproved(args.trustedMantaHooks, selectedRepo.id)
         })
         args.transitionDrawer('trust')
         return
@@ -203,12 +203,12 @@ export function useNewWorkspaceCreateSubmit(args: {
     try {
       const nextTrust = await persistSetupHookTrustApproval({
         client: args.client,
-        trust: args.trustedOrcaHooks,
+        trust: args.trustedMantaHooks,
         repoId: setupTrustPrompt.repoId,
         contentHash: setupTrustPrompt.contentHash,
         alwaysTrust
       })
-      args.setTrustedOrcaHooks(nextTrust)
+      args.setTrustedMantaHooks(nextTrust)
       const approvedHash = setupTrustPrompt.contentHash
       setSetupTrustPrompt(null)
       args.transitionDrawer('form')

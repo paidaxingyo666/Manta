@@ -1,16 +1,17 @@
 import { Settings } from 'lucide-react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { OrcaLogo } from '../components/OrcaLogo'
+import { MantaLogo } from '../components/MantaLogo'
 import { colors, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 export function MobileHomeTopBar({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <View style={styles.topBar}>
       <View style={styles.brandLockup}>
         <View style={styles.logoMark}>
-          <OrcaLogo size={18} />
+          <MantaLogo size={18} />
         </View>
-        <Text style={styles.brandName}>Orca</Text>
+        <Text style={styles.brandName}>{translate('m.index.8a7cdca657', 'Manta')}</Text>
       </View>
       <Pressable
         style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}

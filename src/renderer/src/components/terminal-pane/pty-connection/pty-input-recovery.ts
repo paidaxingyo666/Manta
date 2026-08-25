@@ -108,7 +108,7 @@ export function installPtyInputRecovery(session: ConnectPanePtySession): void {
           onAgentBecameWorking: session.onAgentBecameWorking,
           onAgentExited: session.onAgentExited
         }),
-    // Why: local IPC terminals are now model-owned in main: OrcaRuntimeService
+    // Why: local IPC terminals are now model-owned in main: MantaRuntimeService
     // parses OSC 9999 before renderer delivery and forwards through the hook
     // server with local/SSH identity. Remote-runtime streams do not pass through
     // local main, so the renderer remains their status owner for now.

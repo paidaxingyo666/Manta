@@ -222,7 +222,7 @@ describe('updater', () => {
       expect(autoUpdaterMock.disableDifferentialDownload).toBe(false)
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -265,7 +265,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -305,7 +305,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -362,7 +362,7 @@ describe('updater', () => {
       expect(send).toHaveBeenCalledWith('updater:status', { state: 'not-available' })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -408,7 +408,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -557,7 +557,9 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
-        message: "Couldn't reach the update server. Try again in a few minutes.",
+        // Fork behavior: a not-ready release is not a transport failure, so the
+        // message says so on every channel, not only the default one.
+        message: "A newer release isn't available for this device yet. Check again later.",
         userInitiated: true
       })
     })
@@ -590,7 +592,9 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
-        message: "Couldn't reach the update server. Try again in a few minutes.",
+        // Fork behavior: a not-ready release is not a transport failure, so the
+        // message says so on every channel, not only the default one.
+        message: "A newer release isn't available for this device yet. Check again later.",
         userInitiated: true
       })
     })

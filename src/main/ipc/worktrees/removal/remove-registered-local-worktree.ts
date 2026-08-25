@@ -82,7 +82,7 @@ export async function removeRegisteredLocalWorktree(
     throw new Error(formatWorktreeRemovalError(error, canonicalWorktreePath, args.force ?? false))
   }
 
-  // Why: `orca.yaml` shared directories are symlinked in too, and a
+  // Why: `manta.yaml` shared directories are symlinked in too, and a
   // directory-only ignore rule leaves those links untracked, so removal must
   // tolerate and unlink them exactly like the per-user shared paths.
   const linkedPaths = getWorktreeSharedLinkPaths(repo)

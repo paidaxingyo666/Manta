@@ -2,7 +2,7 @@ import { accessSync, constants, existsSync } from 'node:fs'
 import { arch, platform } from 'node:os'
 import { dirname, join } from 'node:path'
 
-export function orcadAgentBrowserNativeName(
+export function mantadAgentBrowserNativeName(
   platformName: NodeJS.Platform,
   architecture: string
 ): string {
@@ -10,8 +10,8 @@ export function orcadAgentBrowserNativeName(
   return `agent-browser-${platformName}-${architecture}${ext}`
 }
 
-export function resolveOrcadAgentBrowserBinary(): string | null {
-  const name = orcadAgentBrowserNativeName(platform(), arch())
+export function resolveMantadAgentBrowserBinary(): string | null {
+  const name = mantadAgentBrowserNativeName(platform(), arch())
   const candidates = [
     join(dirname(process.argv[1] ?? __filename), name),
     join(process.cwd(), 'node_modules', 'agent-browser', 'bin', name)

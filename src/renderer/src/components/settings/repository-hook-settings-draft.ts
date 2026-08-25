@@ -1,8 +1,8 @@
 import type {
   HookCommandSourcePolicy,
-  OrcaHooks,
+  MantaHooks,
   RepoHookSettings
-} from '../../../../shared/orca-yaml-hook-types'
+} from '../../../../shared/manta-yaml-hook-types'
 import type { Repo } from '../../../../shared/repo-types'
 import { DEFAULT_REPO_HOOK_SETTINGS } from './SettingsConstants'
 import { translate } from '@/i18n/i18n'
@@ -32,7 +32,7 @@ export function getLocalHookFields(): readonly [LocalHookField, LocalHookField] 
       ),
       placeholder: translate(
         'auto.components.settings.RepositoryHooksSection.a3fc966677',
-        '# e.g. pnpm install cp "$ORCA_ROOT_PATH/.env" "$ORCA_WORKTREE_PATH/.env"'
+        '# e.g. pnpm install cp "$MANTA_ROOT_PATH/.env" "$MANTA_WORKTREE_PATH/.env"'
       )
     },
     {
@@ -47,7 +47,7 @@ export function getLocalHookFields(): readonly [LocalHookField, LocalHookField] 
       ),
       placeholder: translate(
         'auto.components.settings.RepositoryHooksSection.9b821fa19d',
-        '# e.g. echo "Cleaning up $ORCA_WORKSPACE_NAME"'
+        '# e.g. echo "Cleaning up $MANTA_WORKSPACE_NAME"'
       )
     }
   ]
@@ -114,7 +114,7 @@ export function getLocalCommandSourcePolicyNotice({
       }
 }
 
-export function renderYamlScriptPreview(hooks: OrcaHooks | null): string {
+export function renderYamlScriptPreview(hooks: MantaHooks | null): string {
   const formatScript = (key: string, command?: string): string =>
     command ? `\n  ${key}: |\n${command.replace(/^/gm, '    ')}` : ''
   const issueCommand = hooks?.issueCommand

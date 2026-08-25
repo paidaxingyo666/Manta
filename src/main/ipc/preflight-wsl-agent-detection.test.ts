@@ -367,8 +367,8 @@ describe('the mount table read, counted against a real shell', () => {
       })
       await detectWslCommandsOnPath({ distro: 'Ubuntu' }, ['claude', 'codex'])
       const script = String(runWslProcessMock.mock.calls.at(-1)?.[0].script).replace(
-        /_orca_win_mounts=\$\([^)]*\)/,
-        `_orca_win_mounts=${join(root, 'winmnt')}`
+        /_manta_win_mounts=\$\([^)]*\)/,
+        `_manta_win_mounts=${join(root, 'winmnt')}`
       )
       const options: ExecFileSyncOptions = {
         encoding: 'utf8',
@@ -376,8 +376,8 @@ describe('the mount table read, counted against a real shell', () => {
       }
       const out = String(execFileSync('/bin/sh', ['-c', script], options))
       // BOTH must resolve behind the mount, not just the first.
-      expect(out).toContain(`__ORCA_AGENT_PATH__claude\t${join(guest, 'claude')}`)
-      expect(out).toContain(`__ORCA_AGENT_PATH__codex\t${join(guest, 'codex')}`)
+      expect(out).toContain(`__MANTA_AGENT_PATH__claude\t${join(guest, 'claude')}`)
+      expect(out).toContain(`__MANTA_AGENT_PATH__codex\t${join(guest, 'codex')}`)
     } finally {
       rmSync(root, { recursive: true, force: true })
     }

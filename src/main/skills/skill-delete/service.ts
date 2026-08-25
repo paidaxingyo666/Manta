@@ -108,7 +108,7 @@ async function deleteOneSkill(
   //
   // With no canonical placement (a tool-managed skill linked in from outside the
   // roots) no install could have created one, so any stable key excludes
-  // correctly; prefer a path Orca owns over the out-of-root canonical.
+  // correctly; prefer a path Manta owns over the out-of-root canonical.
   const lockKeyPath = resolved.toFilesystemPath(
     canonical?.path ?? entry.placements[0]?.path ?? api.dirname(entry.canonicalPath)
   )

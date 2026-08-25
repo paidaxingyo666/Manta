@@ -54,7 +54,7 @@ export type RuntimePtySpawnState = {
   selectedCodexHomePath: string | null
   codexResumeHomeSelected: boolean
   skipCodexHomeEnv: boolean
-  stripInheritedOrcaCodexHome: boolean
+  stripInheritedMantaCodexHome: boolean
   spawnOptions: PtySpawnOptions
   hadSessionSizeBeforeAttach: boolean
   sessionSizeBeforeAttach: { cols: number; rows: number } | undefined
@@ -160,7 +160,7 @@ export function createRuntimePtySpawnState(
     selectedCodexHomePath: null,
     codexResumeHomeSelected: false,
     skipCodexHomeEnv: false,
-    stripInheritedOrcaCodexHome: false,
+    stripInheritedMantaCodexHome: false,
     spawnOptions: { cols: args.cols, rows: args.rows },
     hadSessionSizeBeforeAttach: false,
     sessionSizeBeforeAttach: undefined,

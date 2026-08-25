@@ -103,7 +103,7 @@ export class ClaudeAccountRegistration {
       wslLinuxAuthPath: account.wslLinuxAuthPath ?? null
     })
     if (!captured.identity.email) {
-      throw new Error('Claude login completed, but Orca could not resolve the account email.')
+      throw new Error('Claude login completed, but Manta could not resolve the account email.')
     }
 
     const settings = this.dependencies.store.getSettings()
@@ -152,7 +152,7 @@ export class ClaudeAccountRegistration {
     captured: CapturedClaudeAuth
   ): Promise<ClaudeRateLimitAccountsState> {
     if (!captured.identity.email) {
-      throw new Error('Claude login completed, but Orca could not resolve the account email.')
+      throw new Error('Claude login completed, but Manta could not resolve the account email.')
     }
     if (
       findDuplicateClaudeAccount(previousSettings.claudeManagedAccounts, {

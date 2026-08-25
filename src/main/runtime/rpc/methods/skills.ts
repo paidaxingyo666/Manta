@@ -50,7 +50,7 @@ export function resolveDiscoveryTarget(
 }
 
 function skillDeleteDependencies(
-  runtime: Pick<OrcaRuntimeService, 'listRepos' | 'resolveSkillDiscoveryProviderRoots'>
+  runtime: Pick<MantaRuntimeService, 'listRepos' | 'resolveSkillDiscoveryProviderRoots'>
 ): SkillDeleteRequestDependencies {
   return {
     repos: () => runtime.listRepos(),

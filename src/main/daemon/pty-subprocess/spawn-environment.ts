@@ -1,12 +1,12 @@
 import { delimiter } from 'node:path'
-import { dropInheritedOrcaFishHistory } from '../../fish-history-session'
+import { dropInheritedMantaFishHistory } from '../../fish-history-session'
 import { removeAppImageRuntimeEnv } from '../../pty/appimage-terminal-env'
 import { stripInheritedBuildModeEnv } from '../../pty/build-mode-env'
 import { dropIncoherentCondaActivationEnv } from '../../pty/conda-activation-env'
 import { stripLegacyTerminalShimEnv } from '../../pty/legacy-terminal-shim-dir'
 import { removeInheritedNoColor } from '../../pty/terminal-color-env'
 import { resolvePathEnvKey } from '../../pty/windows-environment-path'
-import { dropInheritedOrcaHistFile } from '../../worktree-history-file-path'
+import { dropInheritedMantaHistFile } from '../../worktree-history-file-path'
 import {
   gitCredentialPromptGuardEnv,
   mergeGitConfigEnvProtocol
@@ -20,10 +20,10 @@ import type { TuiAgent } from '../../../shared/tui-agent'
 import type { PtySubprocessOptions } from '../pty-subprocess'
 
 const PANE_IDENTITY_ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN'
+  'MANTA_PANE_KEY',
+  'MANTA_TAB_ID',
+  'MANTA_WORKTREE_ID',
+  'MANTA_AGENT_LAUNCH_TOKEN'
 ] as const
 const WINDOWS_PATH_ENV_KEY_RE = /^path$/i
 
@@ -45,15 +45,15 @@ function deleteRequestedDaemonEnvKeys(
   env: Record<string, string>,
   keys: readonly string[] | undefined
 ): void {
-  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Orca overlay owns it.
-  const deleteOrcaOwnedCodexHome =
-    keys?.includes('ORCA_CODEX_HOME') === true &&
-    env.ORCA_CODEX_HOME !== undefined &&
-    env.CODEX_HOME === env.ORCA_CODEX_HOME
+  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Manta overlay owns it.
+  const deleteMantaOwnedCodexHome =
+    keys?.includes('MANTA_CODEX_HOME') === true &&
+    env.MANTA_CODEX_HOME !== undefined &&
+    env.CODEX_HOME === env.MANTA_CODEX_HOME
   for (const key of keys ?? []) {
     delete env[key]
   }
-  if (deleteOrcaOwnedCodexHome) {
+  if (deleteMantaOwnedCodexHome) {
     delete env.CODEX_HOME
   }
 }
@@ -104,7 +104,7 @@ function promoteAgentTeamsShimPath(
   env: Record<string, string>,
   requestedPath: string | undefined
 ): void {
-  if (!env.ORCA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
+  if (!env.MANTA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
     return
   }
   const normalizedRequestedPath =
@@ -125,9 +125,9 @@ function removeInheritedDevAgentHookEndpoint(
   env: Record<string, string>,
   explicitEnv: Record<string, string> | undefined
 ): void {
-  if (explicitEnv?.ORCA_AGENT_HOOK_ENV === 'development' && !explicitEnv.ORCA_AGENT_HOOK_ENDPOINT) {
+  if (explicitEnv?.MANTA_AGENT_HOOK_ENV === 'development' && !explicitEnv.MANTA_AGENT_HOOK_ENDPOINT) {
     // Why: strip only stale inherited endpoints; a fresh explicit one is needed by hooks that scrub token-like env vars before exec.
-    delete env.ORCA_AGENT_HOOK_ENDPOINT
+    delete env.MANTA_AGENT_HOOK_ENDPOINT
   }
 }
 
@@ -136,8 +136,8 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
     ...mergeGitConfigEnvProtocol(stripInheritedBuildModeEnv(process.env), opts.env),
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
-    TERM_PROGRAM: 'Orca',
-    TERM_PROGRAM_VERSION: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
+    TERM_PROGRAM: 'Manta',
+    TERM_PROGRAM_VERSION: process.env.MANTA_APP_VERSION ?? '0.0.0-dev',
     FORCE_HYPERLINK: '1'
   } as Record<string, string>
   stripLegacyTerminalShimEnv(env, process.platform)
@@ -148,13 +148,13 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
   }
   removeUnspecifiedPaneIdentityEnv(env, opts.env)
   if (opts.env?.fish_history === undefined) {
-    dropInheritedOrcaFishHistory(env)
+    dropInheritedMantaFishHistory(env)
   }
   if (opts.env?.HISTFILE === undefined) {
-    dropInheritedOrcaHistFile(env)
+    dropInheritedMantaHistFile(env)
   }
-  if (opts.env?.ORCA_HISTFILE === undefined) {
-    delete env.ORCA_HISTFILE
+  if (opts.env?.MANTA_HISTFILE === undefined) {
+    delete env.MANTA_HISTFILE
   }
   removeInheritedDevAgentHookEndpoint(env, opts.env)
   delete env.ELECTRON_RUN_AS_NODE

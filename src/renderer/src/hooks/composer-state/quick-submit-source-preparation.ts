@@ -96,7 +96,7 @@ export function useQuickSubmitSourcePreparation(input: QuickSubmitSourcePreparat
         return null
       }
 
-      // Why: only a name Orca generated may be retired — see the full-composer submit path.
+      // Why: only a name Manta generated may be retired — see the full-composer submit path.
       const nameWasGenerated = !name.trim() && workspaceName === fallbackCreatureName
 
       const smartSubmitBaseBranch =

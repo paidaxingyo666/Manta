@@ -140,7 +140,7 @@ export function mergeFetchedProjectCompatibilityForHost({
       return setup.hostId === hostId
     }
     const owner = parseExecutionHostId(setup.hostId)
-    // Why: desktop persistence owns local and direct-SSH setups; runtime setups stay authoritative on their remote Orca server.
+    // Why: desktop persistence owns local and direct-SSH setups; runtime setups stay authoritative on their remote Manta server.
     return setup.hostId === LOCAL_EXECUTION_HOST_ID || owner?.kind === 'ssh'
   }
   const fetchedSetupsForHost = fetched.projectHostSetups.filter(setupBelongsToFetchedCatalog)

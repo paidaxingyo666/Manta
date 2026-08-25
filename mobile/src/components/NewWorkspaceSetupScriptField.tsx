@@ -3,6 +3,7 @@ import type { WorkspaceCreateSetupDecision } from '../tasks/workspace-create-par
 import { colors } from '../theme/mobile-theme'
 import { newWorktreeFormStyles as styles } from './new-worktree-form-styles'
 import type { SetupRunPolicy } from './new-worktree-modal-types'
+import { translate } from '../i18n/i18n'
 
 export function NewWorkspaceSetupScriptField({
   command,
@@ -24,11 +25,11 @@ export function NewWorkspaceSetupScriptField({
   return (
     <View style={styles.field}>
       <View style={styles.setupHeader}>
-        <Text style={styles.label}>Setup script</Text>
+        <Text style={styles.label}>{translate('m.NewWorktreeModal.d1c6e46d31', 'Setup script')}</Text>
         {source ? (
           <View style={styles.sourceBadge}>
             <Text style={styles.sourceBadgeText}>
-              {source === 'orca.yaml' ? 'ORCA.YAML' : 'HOOKS'}
+              {source === 'manta.yaml' ? translate('m.NewWorktreeModal.2c40d1cbfe', 'MANTA.YAML') : translate('m.NewWorktreeModal.f1c9144d48', 'HOOKS')}
             </Text>
           </View>
         ) : null}
@@ -43,7 +44,7 @@ export function NewWorkspaceSetupScriptField({
               ]}
               onPress={() => onDecisionChange('run')}
             >
-              <Text style={styles.setupChoiceText}>Run</Text>
+              <Text style={styles.setupChoiceText}>{translate('m.NewWorktreeModal.d2a6322022', 'Run')}</Text>
             </Pressable>
             <Pressable
               style={[
@@ -52,12 +53,12 @@ export function NewWorkspaceSetupScriptField({
               ]}
               onPress={() => onDecisionChange('skip')}
             >
-              <Text style={styles.setupChoiceText}>Skip</Text>
+              <Text style={styles.setupChoiceText}>{translate('m.NewWorktreeModal.b191daf935', 'Skip')}</Text>
             </Pressable>
           </View>
         ) : (
           <View style={styles.setupToggleRow}>
-            <Text style={styles.setupToggleLabel}>Run setup command</Text>
+            <Text style={styles.setupToggleLabel}>{translate('m.NewWorktreeModal.a1b2e6ce4c', 'Run setup command')}</Text>
             <Switch
               value={runSetup}
               onValueChange={onRunSetupChange}

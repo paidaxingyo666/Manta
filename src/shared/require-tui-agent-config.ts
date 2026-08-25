@@ -8,7 +8,7 @@ import { isTuiAgent, TUI_AGENT_CONFIG, type TuiAgentConfig } from './tui-agent-c
 export function requireTuiAgentConfig(agent: TuiAgent): TuiAgentConfig {
   if (!isTuiAgent(agent)) {
     throw new Error(
-      `Unknown agent "${String(agent)}". This version of Orca has no such agent — pick a different agent and try again.`
+      `Unknown agent "${String(agent)}". This version of Manta has no such agent — pick a different agent and try again.`
     )
   }
   return TUI_AGENT_CONFIG[agent]

@@ -37,7 +37,7 @@ describe('useComposerState public decisions', () => {
           number: 42,
           title: 'Fix it',
           state: 'open',
-          url: 'https://github.com/orca/orca/pull/42',
+          url: 'https://github.com/manta/manta/pull/42',
           labels: [],
           updatedAt: '2026-08-23T00:00:00.000Z',
           author: 'octocat',
@@ -48,7 +48,7 @@ describe('useComposerState public decisions', () => {
           type: 'pr',
           number: 42,
           title: 'Fix it',
-          url: 'https://github.com/orca/orca/pull/42'
+          url: 'https://github.com/manta/manta/pull/42'
         },
         repoId: null
       })
@@ -80,7 +80,7 @@ describe('useComposerState public decisions', () => {
       type: 'issue' as const,
       number: 42,
       title: 'Fix it',
-      url: 'https://github.com/orca/orca/issues/42'
+      url: 'https://github.com/manta/manta/issues/42'
     }
     const context = {
       kind: 'task-source' as const,

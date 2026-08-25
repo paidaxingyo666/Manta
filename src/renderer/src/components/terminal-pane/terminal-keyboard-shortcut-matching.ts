@@ -22,7 +22,7 @@ export function resolveTerminalKeyboardShortcutAction(
   layoutCharacterForCode: Parameters<typeof resolveTerminalShortcutAction>[8],
   getWindowsShiftEnterEncoding: Parameters<typeof resolveTerminalShortcutAction>[9],
   isWindowsTerminalHost: NonNullable<Parameters<typeof resolveTerminalShortcutAction>[10]>,
-  terminalShortcutPolicy: Parameters<typeof resolveTerminalShortcutAction>[11] = 'orca-first',
+  terminalShortcutPolicy: Parameters<typeof resolveTerminalShortcutAction>[11] = 'manta-first',
   hasCtrlEnterCsiUAuthority?: Parameters<typeof resolveTerminalShortcutAction>[12]
 ): ReturnType<typeof resolveTerminalShortcutAction> {
   return resolveTerminalShortcutAction(
@@ -110,7 +110,7 @@ export function matchFileSearchShortcut(
   e: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'shiftKey' | 'altKey' | 'repeat'>,
   platform: KeybindingPlatform,
   keybindings?: KeybindingOverrides,
-  terminalShortcutPolicy: TerminalShortcutPolicy = 'orca-first'
+  terminalShortcutPolicy: TerminalShortcutPolicy = 'manta-first'
 ): boolean {
   if (e.repeat) {
     return false

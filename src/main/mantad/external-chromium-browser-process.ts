@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type {
   RuntimeBrowserCommandHost,
   RuntimeBrowserCommands
-} from '../runtime/orca-runtime-browser'
+} from '../runtime/manta-runtime-browser'
 import { BrowserError } from '../browser/browser-error'
 import {
   ExternalChromiumBrowserSession,

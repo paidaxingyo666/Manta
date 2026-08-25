@@ -19,7 +19,7 @@ import { readLaunchVersion, runConnectHandshake } from './relay-handshake'
 
 const CONNECT_TIMEOUT_MS = 5_000
 
-export async function runRelayOrcaCliChannel(
+export async function runRelayMantaCliChannel(
   sockPath: string,
   argv: string[],
   endpointCredential?: string
@@ -35,7 +35,7 @@ export async function runRelayOrcaCliChannel(
   }
   const stdin =
     preparedArtifact.stdin ??
-    (shouldReadRemoteCliStdin(argv) ? await readOrcaCliStdin() : undefined)
+    (shouldReadRemoteCliStdin(argv) ? await readMantaCliStdin() : undefined)
   const env = pickRemoteCliEnv(process.env)
   const requestParams: RemoteArtifactCliForwardingParams = {
     argv,
@@ -81,7 +81,7 @@ export async function runRelayOrcaCliChannel(
       {
         jsonrpc: '2.0',
         id: requestId,
-        method: 'orca.cli',
+        method: 'manta.cli',
         params: requestParams
       },
       nextSeq++,
@@ -101,7 +101,7 @@ export async function runRelayOrcaCliChannel(
         {
           jsonrpc: '2.0',
           id: postOutputRequestId,
-          method: 'orca.cli.postOutput',
+          method: 'manta.cli.postOutput',
           params: { postOutput, env: pickRemoteCliEnv(process.env) }
         },
         nextSeq++,
@@ -229,7 +229,7 @@ export async function runRelayOrcaCliChannel(
   })
 }
 
-async function readOrcaCliStdin(): Promise<string | undefined> {
+async function readMantaCliStdin(): Promise<string | undefined> {
   if (process.stdin.isTTY) {
     return undefined
   }

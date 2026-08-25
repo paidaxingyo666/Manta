@@ -65,7 +65,7 @@ export function owningSkillRoot(
  * `home` on the client. The host verdict may be stricter than the badge.
  *
  * A canonical directory *outside* every root is deliberately not blocked here.
- * The rule is "remove every placement Orca owns, and never touch anything
+ * The rule is "remove every placement Manta owns, and never touch anything
  * outside its roots" — so a tool-managed skill linked into a repo stays
  * deletable by its links, while its content is left alone. When no placement
  * sits inside a root either, the plan reports `unowned` on that basis instead.

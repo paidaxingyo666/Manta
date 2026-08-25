@@ -15,7 +15,7 @@ export function getStoredOnboarding(): OnboardingState {
     return closed
   }
   const closed = closeWebOnboarding(getDefaultOnboardingState())
-  // Why: paired clients already have an Orca server; skip desktop first-run onboarding that would probe browser-local tools.
+  // Why: paired clients already have a Manta server; skip desktop first-run onboarding that would probe browser-local tools.
   writeJson(ONBOARDING_STORAGE_KEY, closed)
   return closed
 }

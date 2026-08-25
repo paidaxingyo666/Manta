@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { PersistedTrustedOrcaHooks } from '../../../src/shared/orca-yaml-hook-types'
+import type { PersistedTrustedMantaHooks } from '../../../src/shared/manta-yaml-hook-types'
 import type { RpcClient } from '../transport/rpc-client'
 import type { RpcResponse, RpcSuccess } from '../transport/types'
 import {
@@ -20,12 +20,12 @@ export function useNewWorkspaceRuntimeContext(
 ): {
   runtimeSettings: NewWorktreeRuntimeSettings | null
   setRuntimeSettings: (settings: NewWorktreeRuntimeSettings) => void
-  trustedOrcaHooks: PersistedTrustedOrcaHooks
-  setTrustedOrcaHooks: (trust: PersistedTrustedOrcaHooks) => void
+  trustedMantaHooks: PersistedTrustedMantaHooks
+  setTrustedMantaHooks: (trust: PersistedTrustedMantaHooks) => void
   availableProviders: TaskProvider[]
 } {
   const [runtimeSettings, setRuntimeSettings] = useState<NewWorktreeRuntimeSettings | null>(null)
-  const [trustedOrcaHooks, setTrustedOrcaHooks] = useState<PersistedTrustedOrcaHooks>({})
+  const [trustedMantaHooks, setTrustedMantaHooks] = useState<PersistedTrustedMantaHooks>({})
   const [availableProviders, setAvailableProviders] = useState<TaskProvider[]>([])
 
   useEffect(() => {
@@ -59,8 +59,8 @@ export function useNewWorkspaceRuntimeContext(
       }
       const uiResult = settledSuccess(uiRes)
       if (uiResult) {
-        const ui = (uiResult.result as { ui?: { trustedOrcaHooks?: PersistedTrustedOrcaHooks } }).ui
-        setTrustedOrcaHooks(ui?.trustedOrcaHooks ?? {})
+        const ui = (uiResult.result as { ui?: { trustedMantaHooks?: PersistedTrustedMantaHooks } }).ui
+        setTrustedMantaHooks(ui?.trustedMantaHooks ?? {})
       }
 
       const [preflightRes, linearRes] = await probes
@@ -89,8 +89,8 @@ export function useNewWorkspaceRuntimeContext(
   return {
     runtimeSettings,
     setRuntimeSettings,
-    trustedOrcaHooks,
-    setTrustedOrcaHooks,
+    trustedMantaHooks,
+    setTrustedMantaHooks,
     availableProviders
   }
 }

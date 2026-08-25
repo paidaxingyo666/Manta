@@ -1,9 +1,9 @@
 import type { BrowserWindow } from 'electron'
-import type { OrcaRuntimeService } from '../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../runtime/manta-runtime'
 import { wakeFolderRepoGitUpgradeWatch } from '../folder-repo-git-upgrade-wake'
 import { scheduleCurrentWorktreeBaseDirectoryWatcherSync } from '../worktree-base-directory-watcher'
 
-type RepoRemoteClientNotifier = Pick<OrcaRuntimeService, 'notifyReposChangedForRemoteClients'>
+type RepoRemoteClientNotifier = Pick<MantaRuntimeService, 'notifyReposChangedForRemoteClients'>
 
 // Why: notifyReposChanged is module-level and cannot close over a handler argument (#11994).
 let repoRemoteClientNotifier: RepoRemoteClientNotifier | null = null

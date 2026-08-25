@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type { RefObject } from 'react'
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
-import type { OrcaHooks, SetupAgentStartupPolicy } from '../../../../shared/orca-yaml-hook-types'
+import type { MantaHooks, SetupAgentStartupPolicy } from '../../../../shared/manta-yaml-hook-types'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { GitHubRepositoryIdentity } from '../../../../shared/github/pull-request-types'
 import type { WorkspaceCreateErrorDisplay } from '@/lib/workspace-create-error-format'
@@ -9,8 +9,8 @@ import type { IssueCommandReadResult } from '@/runtime/runtime-hooks-client'
 import type { SmartGitHubPrStartPointSelection } from './source-selection-decisions'
 
 export type ComposerAsyncModel = {
-  yamlHooks: OrcaHooks | null
-  setYamlHooks: React.Dispatch<React.SetStateAction<OrcaHooks | null>>
+  yamlHooks: MantaHooks | null
+  setYamlHooks: React.Dispatch<React.SetStateAction<MantaHooks | null>>
   checkedHooksContextKey: string | null
   setCheckedHooksContextKey: React.Dispatch<React.SetStateAction<string | null>>
   loadedIssueCommand: { contextKey: string; result: IssueCommandReadResult } | null

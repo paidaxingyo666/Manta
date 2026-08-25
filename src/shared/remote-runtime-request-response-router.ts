@@ -55,7 +55,7 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
       this.options.finishError(
         new RemoteRuntimeClientError(
           'invalid_runtime_response',
-          'Remote Orca runtime returned an undecryptable frame.',
+          'Remote Manta runtime returned an undecryptable frame.',
           {
             pairingStage:
               this.state === 'awaiting_authenticated' ? 'host-identity' : this.pairingStage
@@ -78,8 +78,8 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
         new RemoteRuntimeClientError(
           'invalid_runtime_response',
           readyFrame === 'invalid'
-            ? 'Remote Orca runtime returned an invalid E2EE handshake frame.'
-            : 'Remote Orca runtime returned an unexpected E2EE handshake frame.',
+            ? 'Remote Manta runtime returned an invalid E2EE handshake frame.'
+            : 'Remote Manta runtime returned an unexpected E2EE handshake frame.',
           { pairingStage: 'host-identity' }
         )
       )
@@ -95,7 +95,7 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
       this.options.finishError(
         new RemoteRuntimeClientError(
           'invalid_runtime_response',
-          'Remote Orca runtime returned an invalid E2EE auth frame.',
+          'Remote Manta runtime returned an invalid E2EE auth frame.',
           { pairingStage: 'host-identity' }
         )
       )
@@ -104,7 +104,7 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
     if (authenticated.kind !== 'authenticated') {
       const code = authenticated.unauthorized ? 'unauthorized' : 'invalid_runtime_response'
       this.options.finishError(
-        new RemoteRuntimeClientError(code, 'Remote Orca runtime rejected the pairing token.', {
+        new RemoteRuntimeClientError(code, 'Remote Manta runtime rejected the pairing token.', {
           pairingStage: code === 'unauthorized' ? 'access-grant' : 'host-identity'
         })
       )
@@ -123,7 +123,7 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
     try {
       raw = parseRemoteRuntimeJsonText(plaintext)
     } catch {
-      this.invalidResponse('Remote Orca runtime returned an invalid response frame.')
+      this.invalidResponse('Remote Manta runtime returned an invalid response frame.')
       return
     }
     if (isKeepaliveFrame(raw)) {
@@ -132,11 +132,11 @@ export class RemoteRuntimeRequestResponseRouter<TResult> {
     }
     const parsed = RuntimeRpcEnvelopeSchema.safeParse(raw)
     if (!parsed.success || '_keepalive' in parsed.data) {
-      this.invalidResponse('Remote Orca runtime returned an invalid response frame.')
+      this.invalidResponse('Remote Manta runtime returned an invalid response frame.')
       return
     }
     if (parsed.data.id !== this.awaitingRequestId) {
-      this.invalidResponse('Remote Orca runtime returned a mismatched response id.')
+      this.invalidResponse('Remote Manta runtime returned a mismatched response id.')
       return
     }
     if (this.awaitingStatus && this.options.validateStatus) {

@@ -46,7 +46,7 @@ export const ORCHESTRATION_CHECK_HANDLER: Record<string, CommandHandler> = {
     try {
       result = await callOrchestrationMutation<CheckResult>(client, flags, 'orchestration.check', {
         terminal,
-        terminalPaneKey: explicitTerminal ? undefined : process.env.ORCA_PANE_KEY || undefined,
+        terminalPaneKey: explicitTerminal ? undefined : process.env.MANTA_PANE_KEY || undefined,
         // Why: old runtimes degrade peek to non-consuming all mode instead of destructive mark-read.
         unread: flags.has('unread') ? true : peek ? false : undefined,
         peek: peek ? true : undefined,

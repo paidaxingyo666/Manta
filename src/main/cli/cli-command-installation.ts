@@ -64,7 +64,7 @@ export class CliCommandInstallation extends CliCommandInspection {
         return
       }
 
-      // Why: after the Linux command rename, the old `orca` symlink would keep shadowing GNOME Orca.
+      // Why: after the Linux command rename, the old `manta` symlink would keep shadowing GNOME Orca.
       await unlink(legacyCommandPath)
     } catch (error) {
       if (isMissingError(error)) {
@@ -91,7 +91,7 @@ export class CliCommandInstallation extends CliCommandInspection {
     }
 
     // Why: AppImage upgrades can strand a legacy symlink into a now-gone FUSE mount that isn't a sibling of the stable path.
-    return /(?:^|[/\\])resources[/\\]bin[/\\]orca$/.test(resolvedTarget)
+    return /(?:^|[/\\])resources[/\\]bin[/\\]manta$/.test(resolvedTarget)
   }
 
   protected async installWindowsWrapper(commandPath: string, launcherPath: string): Promise<void> {

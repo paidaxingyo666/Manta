@@ -1254,7 +1254,7 @@ export class GitHandler {
           }
         }
         // Why: concurrent fetches can replace FETCH_HEAD and remote-tracking refs between fetch and rebase.
-        rebaseRef = `refs/orca/rebase/${randomUUID()}`
+        rebaseRef = `refs/manta/rebase/${randomUUID()}`
         const fetchArgs = [
           source.remoteName,
           `+refs/heads/${source.branchName}:${rebaseRef}`,

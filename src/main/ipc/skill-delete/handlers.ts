@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import type { Store } from '../../persistence'
-import type { OrcaRuntimeService } from '../../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../runtime/manta-runtime'
 import {
   SkillDeleteRequestSchema,
   type SkillDeletePlan,
@@ -21,7 +21,7 @@ import { handleMainWindowSkillIpc } from '../skill-ipc-main-window'
  * main-process remote branch here, unlike install and remove, because a
  * main-side capability check on one transport never runs on the other.
  */
-export function registerSkillDeleteIpcHandlers(store: Store, runtime?: OrcaRuntimeService): void {
+export function registerSkillDeleteIpcHandlers(store: Store, runtime?: MantaRuntimeService): void {
   const dependencies: SkillDeleteRequestDependencies = {
     repos: () => store.getRepos(),
     ...(runtime

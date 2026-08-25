@@ -95,7 +95,7 @@ export class SshGitReadProvider {
     } catch (error) {
       if (isJsonRpcMethodNotFoundError(error)) {
         throw new Error(
-          'SSH submodule diff support is unavailable on this relay. Reconnect the SSH target to update Orca on the host, then try again.'
+          'SSH submodule diff support is unavailable on this relay. Reconnect the SSH target to update Manta on the host, then try again.'
         )
       }
       throw error

@@ -43,7 +43,7 @@ import { abandonCancelledConnectAttempt, abandonFailedSshSession } from './ssh-s
 import { awaitTargetLifecycle } from './ssh-target-lifecycle-queue'
 
 export async function connectTarget(targetId: string): Promise<SshConnectionState> {
-  const e2eProbePath = process.env.ORCA_E2E_FORBID_LOCAL_SSH_CONNECT_PROBE
+  const e2eProbePath = process.env.MANTA_E2E_FORBID_LOCAL_SSH_CONNECT_PROBE
   if (e2eProbePath) {
     appendFileSync(e2eProbePath, `${JSON.stringify(targetId)}\n`)
     throw new Error('e2e_forbidden_local_ssh_connect')

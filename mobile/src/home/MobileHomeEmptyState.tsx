@@ -1,21 +1,24 @@
 import { QrCode } from 'lucide-react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors, radii, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
-const ONBOARDING_STEPS = [
-  {
-    title: 'Open Orca desktop',
-    desc: 'Go to Settings → Mobile and generate a pairing QR code.'
-  },
-  {
-    title: 'Scan the code',
-    desc: 'Tap the button above to open the scanner. Point at the QR code on your screen.'
-  },
-  {
-    title: "You're connected",
-    desc: 'Your desktop will appear here. Everything is encrypted end-to-end.'
-  }
-]
+function onboardingSteps() {
+  return [
+    {
+      title: translate('m.index.813580ddc9', 'Open Manta desktop'),
+      desc: 'Go to Settings → Mobile and generate a pairing QR code.'
+    },
+    {
+      title: translate('m.index.6cac1b9d8b', 'Scan the code'),
+      desc: 'Tap the button above to open the scanner. Point at the QR code on your screen.'
+    },
+    {
+      title: translate('m.index.aea01b53db', 'You\'re connected'),
+      desc: 'Your desktop will appear here. Everything is encrypted end-to-end.'
+    }
+  ]
+}
 
 export function MobileHomeEmptyState(props: {
   bottomInset: number
@@ -36,19 +39,16 @@ export function MobileHomeEmptyState(props: {
       ]}
     >
       <View style={styles.emptyHero}>
-        <Text style={styles.emptyTitle}>Connect your desktop</Text>
-        <Text style={styles.emptyBody}>
-          Pair with Orca on your computer to check on your agents, jump into any terminal, and drive
-          work from your phone.
-        </Text>
+        <Text style={styles.emptyTitle}>{translate('m.index.f2f89ea971', 'Connect your desktop')}</Text>
+        <Text style={styles.emptyBody}>{translate('m.index.bf2694d8a7', "Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.")}</Text>
         <Pressable style={styles.primaryButton} onPress={props.onPairDesktop}>
           <QrCode size={17} color={colors.bgBase} />
-          <Text style={styles.primaryButtonText}>Pair Desktop</Text>
+          <Text style={styles.primaryButtonText}>{translate('m.index.956aabb1b3', 'Pair Desktop')}</Text>
         </Pressable>
       </View>
       <View style={styles.stepsSection}>
-        <Text style={styles.sectionHeading}>How it works</Text>
-        {ONBOARDING_STEPS.map((step, index) => (
+        <Text style={styles.sectionHeading}>{translate('m.index.f4795d1407', 'How it works')}</Text>
+        {onboardingSteps().map((step, index) => (
           <View key={step.title} style={[styles.stepRow, index > 0 && styles.stepRowBorder]}>
             <View style={styles.stepNum}>
               <Text style={styles.stepNumText}>{index + 1}</Text>

@@ -41,7 +41,7 @@ export function getStatusPluginRuntimeStateSource(): string[] {
     '',
     '// Why: message.part.updated re-sends the FULL accumulated text of the part',
     '// after every streamed append, so posting each event forwards O(n^2) bytes',
-    '// per turn through Orca (loopback HTTP -> main JSON parse -> status compare',
+    '// per turn through Manta (loopback HTTP -> main JSON parse -> status compare',
     '// -> IPC -> renderer store update -> React commit). On Windows that flood',
     '// saturated both event loops and froze the whole UI a few seconds into a',
     '// streaming reply. The dashboard only needs a bounded preview at a human',

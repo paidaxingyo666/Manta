@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 import type { RpcContext } from '../../core'
-import type { SubscriptionRegistration } from '../../../orca-runtime'
+import type { SubscriptionRegistration } from '../../../manta-runtime'
 import type { TerminalReplyQuerySequence } from '../../../../../shared/terminal-reply-query-scan'
 import type { TerminalOutputChunk } from './terminal-stream-types'
 import type { TerminalSubscribe } from './stream-schemas'

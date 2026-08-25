@@ -8,12 +8,12 @@ import { BrowserError } from '../browser/browser-error'
 import type {
   RuntimeBrowserCommandHost,
   RuntimeBrowserCommands
-} from '../runtime/orca-runtime-browser'
+} from '../runtime/manta-runtime-browser'
 import type { RuntimeMetadata } from '../../shared/runtime-bootstrap'
 import { BROWSER_UNAVAILABLE_ERROR_CODE } from '../../shared/runtime-types'
 import { readRuntimeMetadata } from '../runtime/runtime-metadata'
 import { spawnProcess, type SpawnedProcess } from '../../shared/child-process/run-process'
-import { sendOrcadSidecarRequest } from './orcad-sidecar-runtime-client'
+import { sendMantadSidecarRequest } from './mantad-sidecar-runtime-client'
 import {
   ElectronSidecarTabRegistry,
   ElectronSidecarTabSchema,
@@ -99,7 +99,7 @@ export class ElectronServeBrowserProcess {
 
   async start(): Promise<void> {
     const temporaryRoot = process.platform === 'win32' ? tmpdir() : '/tmp'
-    const userDataPath = await mkdtemp(join(temporaryRoot, 'orcad-browser-'))
+    const userDataPath = await mkdtemp(join(temporaryRoot, 'mantad-browser-'))
     this.sidecarDataPath = userDataPath
     const port = await reserveLoopbackPort()
     const child = spawnProcess({
@@ -126,7 +126,7 @@ export class ElectronServeBrowserProcess {
       if (metadata) {
         try {
           const status = RuntimeStatusResult.parse(
-            await sendOrcadSidecarRequest(metadata, 'status.get', undefined, 5_000)
+            await sendMantadSidecarRequest(metadata, 'status.get', undefined, 5_000)
           )
           if (status.capabilities?.includes('browser.headless.v1')) {
             this.metadata = metadata
@@ -197,7 +197,7 @@ export class ElectronServeBrowserProcess {
     if (method === 'browserScreencast') {
       throw new BrowserError(
         'browser_screencast_unavailable',
-        'The orcad Electron provider does not proxy screencast.'
+        'The mantad Electron provider does not proxy screencast.'
       )
     }
     const metadata = this.metadata
@@ -256,7 +256,7 @@ export class ElectronServeBrowserProcess {
 
     let result: unknown
     try {
-      result = await sendOrcadSidecarRequest(metadata, rpcMethod, params)
+      result = await sendMantadSidecarRequest(metadata, rpcMethod, params)
     } catch (error) {
       if (
         targetPage &&

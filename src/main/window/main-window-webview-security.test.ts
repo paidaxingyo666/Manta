@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORCA_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
+import { MANTA_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
 
 const mocks = vi.hoisted(() => ({
   attachGuestPolicies: vi.fn(),
@@ -59,7 +59,7 @@ describe('main window webview security', () => {
     mocks.isAllowedPartition.mockReturnValue(true)
     const params = { src: 'https://example.com', preload: 'attacker.js' }
     const preferences: Record<string, unknown> = {
-      partition: 'persist:orca-browser',
+      partition: 'persist:manta-browser',
       preload: 'attacker.js',
       preloadURL: 'attacker.js',
       sandbox: false
@@ -73,8 +73,8 @@ describe('main window webview security', () => {
 
     expect(params).not.toHaveProperty('preload')
     expect(preferences).toMatchObject({
-      ...ORCA_BROWSER_GUEST_WEB_PREFERENCES,
-      partition: 'persist:orca-browser',
+      ...MANTA_BROWSER_GUEST_WEB_PREFERENCES,
+      partition: 'persist:manta-browser',
       contextIsolation: true,
       nodeIntegration: false,
       nodeIntegrationInSubFrames: false,

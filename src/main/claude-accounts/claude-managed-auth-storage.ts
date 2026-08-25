@@ -47,7 +47,7 @@ export class ClaudeManagedAuthStorage {
     }
     const managedAuthPath = join(this.getRoot(), accountId, 'auth')
     mkdirSync(managedAuthPath, { recursive: true, mode: 0o700 })
-    writeFileSync(join(managedAuthPath, '.orca-managed-claude-auth'), `${accountId}\n`, {
+    writeFileSync(join(managedAuthPath, '.manta-managed-claude-auth'), `${accountId}\n`, {
       encoding: 'utf-8',
       mode: 0o600
     })
@@ -162,7 +162,7 @@ export class ClaudeManagedAuthStorage {
       adoptLegacyMarker: true
     })
     if (!trustedPath) {
-      throw new Error('Managed Claude auth storage is not owned by Orca.')
+      throw new Error('Managed Claude auth storage is not owned by Manta.')
     }
     return trustedPath
   }
@@ -194,12 +194,12 @@ export class ClaudeManagedAuthStorage {
     if (!distro || !home?.startsWith('/')) {
       throw new Error('Could not resolve the active WSL home directory for Claude login.')
     }
-    const linuxPath = `${home.replace(/\/$/, '')}/.local/share/orca/claude-accounts/${accountId}/auth`
+    const linuxPath = `${home.replace(/\/$/, '')}/.local/share/manta/claude-accounts/${accountId}/auth`
     const created = await runWslProcess({
       distro,
       loginPath: 'none',
       shell: 'bash',
-      script: 'umask 077; mkdir -p "$1" && printf \'%s\\n\' "$2" > "$1/.orca-managed-claude-auth"',
+      script: 'umask 077; mkdir -p "$1" && printf \'%s\\n\' "$2" > "$1/.manta-managed-claude-auth"',
       args: [linuxPath, accountId],
       timeoutMs: 5000
     })
@@ -221,24 +221,24 @@ export class ClaudeManagedAuthStorage {
     expectedAccountId?: string
   ): Promise<string> {
     if (
-      !wslInfo.linuxPath.includes('/.local/share/orca/claude-accounts/') ||
+      !wslInfo.linuxPath.includes('/.local/share/manta/claude-accounts/') ||
       !wslInfo.linuxPath.endsWith('/auth')
     ) {
-      throw new Error('Managed WSL Claude auth storage is outside Orca account storage.')
+      throw new Error('Managed WSL Claude auth storage is outside Manta account storage.')
     }
     if (process.platform !== 'win32') {
       if (
         !existsSync(candidatePath) ||
-        !existsSync(join(candidatePath, '.orca-managed-claude-auth'))
+        !existsSync(join(candidatePath, '.manta-managed-claude-auth'))
       ) {
-        throw new Error('Managed Claude auth storage is not owned by Orca.')
+        throw new Error('Managed Claude auth storage is not owned by Manta.')
       }
       return candidatePath
     }
     try {
       const expected = expectedAccountId
-        ? `test "$(cat "$candidate_real/.orca-managed-claude-auth")" = ${shellQuote(expectedAccountId)}`
-        : 'test -n "$(cat "$candidate_real/.orca-managed-claude-auth")"'
+        ? `test "$(cat "$candidate_real/.manta-managed-claude-auth")" = ${shellQuote(expectedAccountId)}`
+        : 'test -n "$(cat "$candidate_real/.manta-managed-claude-auth")"'
       const owned = await runWslProcess({
         distro: wslInfo.distro,
         loginPath: 'none',
@@ -246,10 +246,10 @@ export class ClaudeManagedAuthStorage {
         script: [
           'set -euo pipefail',
           `candidate=${shellQuote(wslInfo.linuxPath)}`,
-          'managed_root="${HOME%/}/.local/share/orca/claude-accounts"',
+          'managed_root="${HOME%/}/.local/share/manta/claude-accounts"',
           'candidate_real=$(readlink -f -- "$candidate")',
           'managed_root_real=$(readlink -f -- "$managed_root")',
-          'test -f "$candidate_real/.orca-managed-claude-auth"',
+          'test -f "$candidate_real/.manta-managed-claude-auth"',
           expected,
           'case "$candidate_real" in "$managed_root_real"/*/auth) printf "%s\\n" "$candidate_real" ;; *) exit 35 ;; esac'
         ].join('\n'),
@@ -261,7 +261,7 @@ export class ClaudeManagedAuthStorage {
       }
       return toWindowsWslPath(canonicalPath, wslInfo.distro)
     } catch (error) {
-      throw new Error('Managed WSL Claude auth storage is outside Orca account storage.', {
+      throw new Error('Managed WSL Claude auth storage is outside Manta account storage.', {
         cause: error
       })
     }

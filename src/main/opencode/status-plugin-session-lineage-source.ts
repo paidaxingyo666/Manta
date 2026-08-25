@@ -2,7 +2,7 @@ export function getStatusPluginSessionLineageSource(): string[] {
   return [
     '// Why: oh-my-opencode style tools spawn child sessions that emit their',
     '// own session.idle / message events. Those child completions must not',
-    '// flip the root Orca pane to done or overwrite the parent turn preview.',
+    '// flip the root Manta pane to done or overwrite the parent turn preview.',
     '// Resolve the full parentID chain so descendant attention can be attributed',
     '// to the root while child completion and previews remain non-authoritative.',
     'async function resolveRootSessionID(client, sessionID) {',

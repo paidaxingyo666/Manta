@@ -5,7 +5,7 @@ import type { TuiAgent } from './tui-agent'
  *
  * Today four ladders answer it independently — the tab icon, the open-tab/search occupant, the
  * sidebar title rows, and the sidebar hook-row fallback — and they disagree. Two of them consult
- * the terminal title before the launch record, so a string Orca parsed outranks a fact Orca owns.
+ * the terminal title before the launch record, so a string Manta parsed outranks a fact Manta owns.
  *
  * Two rules make this resolvable where reordering alone could not:
  *
@@ -28,7 +28,7 @@ export const PANE_AGENT_EVIDENCE_SOURCES = [
   'live-hook',
   /** The pane's foreground process, as read on the execution host. */
   'process',
-  /** Orca launched, resumed, or accepted a command for this agent. A fact Orca owns. */
+  /** Manta launched, resumed, or accepted a command for this agent. A fact Manta owns. */
   'launch',
   /** A provider hook from a turn that finished. Still authoritative about identity. */
   'completed-hook',

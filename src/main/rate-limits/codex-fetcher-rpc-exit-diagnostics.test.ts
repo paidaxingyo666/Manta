@@ -42,8 +42,8 @@ import { fetchCodexRateLimits } from './codex-fetcher'
 // once the client has spoken, so the initialize write can never race an EPIPE.
 const STUB_CODEX_SOURCE = `
 process.stdin.on('data', () => {
-  process.stderr.write(process.env.ORCA_STUB_CODEX_STDERR ?? '')
-  process.exit(Number(process.env.ORCA_STUB_CODEX_EXIT_CODE ?? '1'))
+  process.stderr.write(process.env.MANTA_STUB_CODEX_STDERR ?? '')
+  process.exit(Number(process.env.MANTA_STUB_CODEX_EXIT_CODE ?? '1'))
 })
 `
 
@@ -51,8 +51,8 @@ let tempRoot: string
 let stubPath: string
 
 function runStub(stderr: string, exitCode: number): Promise<{ error: string | null }> {
-  process.env.ORCA_STUB_CODEX_STDERR = stderr
-  process.env.ORCA_STUB_CODEX_EXIT_CODE = String(exitCode)
+  process.env.MANTA_STUB_CODEX_STDERR = stderr
+  process.env.MANTA_STUB_CODEX_EXIT_CODE = String(exitCode)
   return fetchCodexRateLimits({ allowPtyFallback: false })
 }
 
@@ -69,8 +69,8 @@ describe('Codex RPC exit diagnostics', () => {
   })
 
   afterEach(() => {
-    delete process.env.ORCA_STUB_CODEX_STDERR
-    delete process.env.ORCA_STUB_CODEX_EXIT_CODE
+    delete process.env.MANTA_STUB_CODEX_STDERR
+    delete process.env.MANTA_STUB_CODEX_EXIT_CODE
     rmSync(tempRoot, { recursive: true, force: true })
     vi.clearAllMocks()
   })

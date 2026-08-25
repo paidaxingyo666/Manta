@@ -562,7 +562,7 @@ describe('web runtime environment identity', () => {
       _meta: { runtimeId: 'runtime-a' }
     })
     expect(
-      JSON.parse(globals.storage.getItem('orca.web.runtimeEnvironment.v1') ?? '{}')
+      JSON.parse(globals.storage.getItem('manta.web.runtimeEnvironment.v1') ?? '{}')
     ).toMatchObject({ runtimeId: 'runtime-a' })
 
     installWebPreloadApi()
