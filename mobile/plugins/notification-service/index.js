@@ -30,7 +30,13 @@ function withSourceFiles(config) {
   <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
   <key>CFBundleDisplayName</key><string>${TARGET}</string>
   <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-  <key>CFBundlePackageType</key><string>XPC!</string>
+  <!-- Without this the .appex's binary is a standalone executable to Apple, and
+       upload fails with 90171 "Invalid bundle structure". Xcode archives it
+       happily; only App Store Connect checks. -->
+  <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleDevelopmentRegion</key><string>$(DEVELOPMENT_LANGUAGE)</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundlePackageType</key><string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
   <key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
   <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
   <key>NSExtension</key><dict>

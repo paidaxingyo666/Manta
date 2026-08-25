@@ -59,6 +59,25 @@ describe('notification service extension wiring', () => {
     expect(plugin).toContain('keychain-access-groups')
   })
 
+  /**
+   * Xcode archives an extension whose Info.plist omits CFBundleExecutable
+   * without complaint; App Store Connect rejects the upload with 90171,
+   * "Invalid bundle structure", because the binary inside reads as a standalone
+   * executable. Forty minutes of build time to find out.
+   */
+  it('declares the keys App Store Connect validates on upload', () => {
+    const plugin = read('plugins/notification-service/index.js')
+
+    for (const key of [
+      'CFBundleExecutable',
+      'CFBundleDevelopmentRegion',
+      'CFBundleInfoDictionaryVersion',
+      'CFBundlePackageType'
+    ]) {
+      expect(plugin).toContain(key)
+    }
+  })
+
   // The payload field and version the desktop writes.
   it('reads the field the desktop actually sends', () => {
     const extension_ = read('plugins/notification-service/NotificationService.swift')
