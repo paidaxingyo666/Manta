@@ -1,4 +1,8 @@
-import { publishPushKey, readPublishedPushKey } from '../../modules/push-key-store'
+import {
+  isPushKeyStoreLinked,
+  publishPushKey,
+  readPublishedPushKey
+} from '../../modules/push-key-store'
 
 /**
  * The key the desktop seals a push body with and the notification service
@@ -14,8 +18,8 @@ const KEY_BYTES = 32
 export type PushKeyResult =
   | { status: 'ready'; keyB64: string }
   /** No native module: Android, a simulator, or a build without the extension. */
-  | { status: 'unavailable' }
-  | { status: 'failed' }
+  | { status: 'unavailable'; reason: string }
+  | { status: 'failed'; reason: string }
 
 /**
  * Returns the key to send to the desktop, minting one when there is none.
@@ -26,16 +30,38 @@ export type PushKeyResult =
  * Rotating instead would make any push sealed moments earlier undecryptable.
  */
 export function ensurePushKey(): PushKeyResult {
-  try {
-    const existing = readPublishedPushKey()
-    if (existing) {
-      return { status: 'ready', keyB64: existing }
-    }
-    const keyB64 = toBase64(randomBytes(KEY_BYTES))
-    return publishPushKey(keyB64) ? { status: 'ready', keyB64 } : { status: 'failed' }
-  } catch {
-    return { status: 'unavailable' }
+  // Every step names itself. Folding these into one silent result is what made
+  // the first three attempts unfalsifiable from the desktop side: the key was
+  // simply absent, with no way to tell a missing module from a failed write.
+  if (!isPushKeyStoreLinked()) {
+    return { status: 'unavailable', reason: 'native-module-missing' }
   }
+  let existing: string | null = null
+  try {
+    existing = readPublishedPushKey()
+  } catch (error) {
+    return { status: 'failed', reason: `read: ${message(error)}` }
+  }
+  if (existing) {
+    return { status: 'ready', keyB64: existing }
+  }
+  let keyB64: string
+  try {
+    keyB64 = toBase64(randomBytes(KEY_BYTES))
+  } catch (error) {
+    return { status: 'failed', reason: `generate: ${message(error)}` }
+  }
+  try {
+    return publishPushKey(keyB64)
+      ? { status: 'ready', keyB64 }
+      : { status: 'failed', reason: 'keychain-write-refused' }
+  } catch (error) {
+    return { status: 'failed', reason: `write: ${message(error)}` }
+  }
+}
+
+function message(error: unknown): string {
+  return error instanceof Error ? error.message.slice(0, 120) : String(error).slice(0, 120)
 }
 
 /**
@@ -50,11 +76,16 @@ function randomBytes(count: number): Uint8Array {
   return crypto.getRandomBytes(count)
 }
 
+/**
+ * Bare btoa, matching transport/e2ee.ts. The earlier version guarded with
+ * `global.btoa ?? Buffer` — and Buffer does not exist in React Native, so on any
+ * runtime where that guard missed, this threw and the caller reported the key as
+ * merely unavailable.
+ */
 function toBase64(bytes: Uint8Array): string {
   let binary = ''
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte)
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]!)
   }
-  // eslint-disable-next-line no-undef
-  return global.btoa ? global.btoa(binary) : Buffer.from(bytes).toString('base64')
+  return btoa(binary)
 }

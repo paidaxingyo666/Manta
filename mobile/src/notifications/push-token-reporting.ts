@@ -33,7 +33,12 @@ export async function reportPushToken(client: Client): Promise<PushTokenReport> 
     const response = await client.sendRequest('notifications.registerPushToken', {
       deviceToken: token.token,
       platform: 'ios',
-      ...(key.status === 'ready' ? { encryptionKeyB64: key.keyB64 } : {})
+      ...(key.status === 'ready'
+        ? { encryptionKeyB64: key.keyB64 }
+        : // Why send the reason rather than just omitting the key: the whole
+          // chain is invisible from the desktop, and "no key" alone cannot tell
+          // a phone without the extension from one whose keychain write failed.
+          { keyUnavailableReason: `${key.status}:${key.reason}`.slice(0, 200) })
     })
     // `ok` alone is the whole answer now: the desktop throws rather than
     // returning a successful response that says it stored nothing. An older

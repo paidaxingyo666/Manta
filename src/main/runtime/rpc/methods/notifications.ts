@@ -24,7 +24,9 @@ const RegisterPushTokenParams = z.object({
   encryptionKeyB64: z
     .string()
     .regex(/^[A-Za-z0-9+/]{43}=$/, 'expected base64 of 32 bytes')
-    .optional()
+    .optional(),
+  /** Set instead of the key when the phone could not produce one, naming the step that failed. */
+  keyUnavailableReason: z.string().max(200).optional()
 })
 
 const NotificationUnsubscribeParams = z.object({
@@ -108,6 +110,10 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
       }
       if (!setDevicePushToken) {
         throw new Error('This runtime cannot store push tokens.')
+      }
+      if (params.keyUnavailableReason) {
+        // The only place this chain is observable from the desktop.
+        console.warn('[push] device reported no encryption key:', params.keyUnavailableReason)
       }
       if (
         !setDevicePushToken(pairedDeviceId, {

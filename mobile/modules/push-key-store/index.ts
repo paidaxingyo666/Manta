@@ -28,6 +28,11 @@ function native(): PushKeyStore | null {
   }
 }
 
+/** Tells a missing native module apart from a module that refused the write. */
+export function isPushKeyStoreLinked(): boolean {
+  return native() !== null
+}
+
 export function publishPushKey(keyB64: string): boolean {
   return native()?.setKey(keyB64) ?? false
 }
