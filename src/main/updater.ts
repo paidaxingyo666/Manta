@@ -1111,7 +1111,7 @@ async function sendCheckFailureStatus(
       if (userInitiated) {
         // Why: a user click needs visible feedback (idle looks broken); distinguish incomplete releases from transport failures.
         sendErrorStatus(
-          isStableReleaseNotReadyFailure(sourceError)
+          isReleaseNotReadyFailure(sourceError)
             ? "A newer release isn't available for this device yet. Check again later."
             : "Couldn't reach the update server. Try again in a few minutes.",
           true
@@ -1151,11 +1151,19 @@ function isRetryableReleaseFeedPreflightFailure(sourceError: unknown): boolean {
   )
 }
 
-function isStableReleaseNotReadyFailure(sourceError: unknown): boolean {
+/**
+ * Whether the check failed because there is nothing to install yet, rather than
+ * because the server could not be reached.
+ *
+ * The channel is deliberately not part of this. It used to require 'default',
+ * which meant a release-not-ready on the prerelease channel fell through to the
+ * transport message — and a fork that publishes only prereleases hits that on
+ * every manual check, telling the user the update server is unreachable when
+ * the request in fact succeeded and said there was nothing newer.
+ */
+function isReleaseNotReadyFailure(sourceError: unknown): boolean {
   return (
-    sourceError instanceof ReleaseFeedPreflightError &&
-    sourceError.reason === 'release-not-ready' &&
-    sourceError.releaseChannel === 'default'
+    sourceError instanceof ReleaseFeedPreflightError && sourceError.reason === 'release-not-ready'
   )
 }
 
@@ -1437,6 +1445,18 @@ async function pinDefaultReleaseFeed(
       return 'not-available'
     }
     throw new Error('Could not resolve perf update feed')
+  } else if (releaseTagsResult.state === 'no-newer') {
+    // Why not fall through to the feed below: `releases/latest` resolves to the
+    // newest STABLE release and skips prereleases, so on a channel that has only
+    // ever published prereleases it 404s. electron-updater then reports a
+    // transport failure and the user is told the update server is unreachable —
+    // when the check in fact succeeded and the answer was "you are up to date".
+    clearPrereleaseFallbackContext()
+    clearPublishingWindowLastGoodCheck()
+    console.info(
+      `[updater] release feed: current=${currentVersion} includePrerelease=${includePrerelease}; nothing newer`
+    )
+    return 'not-available'
   } else {
     clearPrereleaseFallbackContext()
     clearPublishingWindowLastGoodCheck()
