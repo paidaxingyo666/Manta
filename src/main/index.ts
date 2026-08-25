@@ -1934,7 +1934,8 @@ function recordProcessGoneCrash(
     reason,
     exitCode,
     expectedTeardown: getExpectedTeardownScope(webContentsId),
-    details
+    details,
+    ...(webContentsId !== undefined ? { webContentsId } : {})
   })
 }
 
