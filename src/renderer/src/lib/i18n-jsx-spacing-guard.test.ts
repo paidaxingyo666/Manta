@@ -34,17 +34,17 @@ const CASES: GuardCase[] = [
     label: 'Found a setup command in source'
   },
   {
-    file: 'components/settings/RepositoryHooksSection.tsx',
+    file: 'components/settings/RepositoryHooksYamlStatus.tsx',
     afterFallback: 'Example',
     label: 'Example manta.yaml template'
   },
   {
-    file: 'components/settings/RepositoryHooksSection.tsx',
+    file: 'components/settings/RepositoryHookScriptSetting.tsx',
     afterFallback: 'Edit',
     label: 'Edit manta.yaml'
   },
   {
-    file: 'components/settings/RepositoryHooksSection.tsx',
+    file: 'components/settings/RepositoryHookPolicySettings.tsx',
     afterFallback: 'When both',
     label: 'When both manta.yaml'
   },
