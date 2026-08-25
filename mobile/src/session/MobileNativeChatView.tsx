@@ -165,6 +165,10 @@ export function MobileNativeChatView({
   // never sits under the home indicator / nav bar (mirrors the terminal dock).
   const bottomPad = keyboardInset > 0 ? keyboardInset + insets.bottom : insets.bottom
   const [atBottom, setAtBottom] = useState(true)
+  // Why: onScroll cannot tell a programmatic scrollToEnd from a drag, and the
+  // one this view fires on open starts at offset 0 — its first throttled sample
+  // reads as "near the top" and pages in history nobody asked for.
+  const userDraggingRef = useRef(false)
   const sendScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { fontScale, pinchGesture } = useMobileNativeChatPinchGesture()
   useEffect(
@@ -230,8 +234,8 @@ export function MobileNativeChatView({
       const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
       const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
       setAtBottom(distanceFromBottom < 80)
-      // Near the top — page in older history.
-      if (contentOffset.y < 60 && hasMore && !loadingEarlier) {
+      // Near the top — page in older history, but only if the user put us here.
+      if (userDraggingRef.current && contentOffset.y < 60 && hasMore && !loadingEarlier) {
         onLoadEarlier?.()
       }
     },
@@ -293,6 +297,24 @@ export function MobileNativeChatView({
               keyboardShouldPersistTaps="handled"
               onScroll={onScroll}
               scrollEventThrottle={32}
+              onScrollBeginDrag={() => {
+                userDraggingRef.current = true
+              }}
+              // Momentum outlives the finger, and a fling from mid-list is still
+              // the user asking for history — so the flag clears only once the
+              // list is fully at rest.
+              onMomentumScrollEnd={() => {
+                userDraggingRef.current = false
+              }}
+              onScrollEndDrag={(e) => {
+                if (e.nativeEvent.velocity == null || e.nativeEvent.velocity.y === 0) {
+                  userDraggingRef.current = false
+                }
+              }}
+              // Why: paging in history prepends up to PAGE rows above the
+              // viewport. Without an anchor the reader is pushed down by
+              // whatever those rows measure to.
+              maintainVisibleContentPosition={{ minIndexForVisible: 1 }}
               onContentSizeChange={() => {
                 if (data.length > 0 && atBottom) {
                   listRef.current?.scrollToEnd({ animated: false })
