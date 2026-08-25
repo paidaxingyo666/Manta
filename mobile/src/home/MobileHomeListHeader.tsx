@@ -25,7 +25,9 @@ export function MobileHomeListHeader({ stats }: { stats: HomeStatsSummary | null
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.totalAgentsSpawned.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>{translate('m.index.a8515b5dc4', 'Agents spawned')}</Text>
+            <Text style={styles.statLabel}>
+              {translate('m.index.a8515b5dc4', 'Agents spawned')}
+            </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{formatDuration(stats.totalAgentTimeMs)}</Text>

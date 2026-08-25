@@ -306,5 +306,4 @@ describe('MobileNativeChatView', () => {
       expect(list().props.maintainVisibleContentPosition).toEqual({ minIndexForVisible: 1 })
     })
   })
-
 })

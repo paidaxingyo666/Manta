@@ -196,7 +196,6 @@ export function MobileNativeChatView({
     [onSend, onClearSendError, scroll]
   )
 
-
   const renderItem = useCallback(
     ({ item, index }: { item: NativeChatMessage; index: number }) => (
       <MobileNativeChatMessage

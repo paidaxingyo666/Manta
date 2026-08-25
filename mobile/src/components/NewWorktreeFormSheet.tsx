@@ -59,7 +59,9 @@ export function NewWorktreeFormSheet(props: {
   return (
     <BottomDrawer visible={props.visible} interactive={props.interactive} onClose={props.onClose}>
       <View style={styles.header}>
-        <Text style={styles.title}>{translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}</Text>
+        <Text style={styles.title}>
+          {translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}
+        </Text>
       </View>
 
       {props.loading ? (
@@ -68,7 +70,9 @@ export function NewWorktreeFormSheet(props: {
         </View>
       ) : !props.hasRepos ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.emptyText}>{translate('m.NewWorktreeModal.47a5edf943', 'No projects found')}</Text>
+          <Text style={styles.emptyText}>
+            {translate('m.NewWorktreeModal.47a5edf943', 'No projects found')}
+          </Text>
         </View>
       ) : (
         <>
@@ -82,7 +86,11 @@ export function NewWorktreeFormSheet(props: {
 
           <SmartWorkspaceSourceField
             composer={props.composer}
-            label={props.selectedRepoIsGit ? translate('m.NewWorktreeModal.cb29993224', 'Name or \'Create From\'') : translate('m.NewWorktreeModal.1054d2ae92', 'Workspace name')}
+            label={
+              props.selectedRepoIsGit
+                ? translate('m.NewWorktreeModal.cb29993224', "Name or 'Create From'")
+                : translate('m.NewWorktreeModal.1054d2ae92', 'Workspace name')
+            }
             disabled={props.sshGate.requiresConnection}
             interactive={props.interactive}
             onBeforeOpen={props.onClearError}
@@ -122,7 +130,9 @@ export function NewWorktreeFormSheet(props: {
             style={styles.advancedToggle}
             onPress={() => props.onShowAdvancedChange(!props.showAdvanced)}
           >
-            <Text style={styles.advancedText}>{translate('m.NewWorktreeModal.013a3be8ad', 'Advanced')}</Text>
+            <Text style={styles.advancedText}>
+              {translate('m.NewWorktreeModal.013a3be8ad', 'Advanced')}
+            </Text>
             {props.showAdvanced ? (
               <ChevronUp size={14} color={colors.textSecondary} />
             ) : (
@@ -137,7 +147,9 @@ export function NewWorktreeFormSheet(props: {
                 selectedRepoIsGit={props.selectedRepoIsGit}
               />
               <View style={styles.field}>
-                <Text style={styles.label}>{translate('m.NewWorktreeModal.2cc02a28d4', 'Note')}</Text>
+                <Text style={styles.label}>
+                  {translate('m.NewWorktreeModal.2cc02a28d4', 'Note')}
+                </Text>
                 <TextInput
                   style={styles.input}
                   value={props.note}
@@ -173,7 +185,9 @@ export function NewWorktreeFormSheet(props: {
                 <ActivityIndicator size="small" color={colors.bgBase} />
               ) : (
                 <Text style={styles.createText}>
-                  {props.sshGate.requiresConnection ? translate('m.NewWorktreeModal.8a9197a7a9', 'Connect target') : translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}
+                  {props.sshGate.requiresConnection
+                    ? translate('m.NewWorktreeModal.8a9197a7a9', 'Connect target')
+                    : translate('m.NewWorktreeModal.52a6d084dc', 'Create worktree')}
                 </Text>
               )}
             </Pressable>

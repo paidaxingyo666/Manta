@@ -126,7 +126,9 @@ export function useNewWorkspaceExecutionTarget(args: {
         fallbackSshState(
           connectionId,
           'error',
-          error instanceof Error ? error.message : translate('m.NewWorktreeModal.1588fda823', 'Failed to connect to SSH repository.')
+          error instanceof Error
+            ? error.message
+            : translate('m.NewWorktreeModal.1588fda823', 'Failed to connect to SSH repository.')
         )
       )
     } finally {
