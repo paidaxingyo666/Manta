@@ -201,7 +201,10 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
         projectBadgeColor={selectedRepo ? getMobileWorkspaceRepoBadgeColor(selectedRepo) : null}
         selectedRepoIsGit={selectedRepoIsGit}
         selectedRepoConnectionId={selectedRepoConnectionId}
-        selectedRepoName={selectedRepo?.displayName ?? translate('m.NewWorktreeModal.02690f5980', 'Remote repository')}
+        selectedRepoName={
+          selectedRepo?.displayName ??
+          translate('m.NewWorktreeModal.02690f5980', 'Remote repository')
+        }
         sshGate={executionTarget.sshGate}
         composer={composer}
         selectedAgent={agentSelection.selectedAgent}

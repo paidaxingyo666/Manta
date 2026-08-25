@@ -14,7 +14,7 @@ function onboardingSteps() {
       desc: 'Tap the button above to open the scanner. Point at the QR code on your screen.'
     },
     {
-      title: translate('m.index.aea01b53db', 'You\'re connected'),
+      title: translate('m.index.aea01b53db', "You're connected"),
       desc: 'Your desktop will appear here. Everything is encrypted end-to-end.'
     }
   ]
@@ -39,11 +39,20 @@ export function MobileHomeEmptyState(props: {
       ]}
     >
       <View style={styles.emptyHero}>
-        <Text style={styles.emptyTitle}>{translate('m.index.f2f89ea971', 'Connect your desktop')}</Text>
-        <Text style={styles.emptyBody}>{translate('m.index.bf2694d8a7', "Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.")}</Text>
+        <Text style={styles.emptyTitle}>
+          {translate('m.index.f2f89ea971', 'Connect your desktop')}
+        </Text>
+        <Text style={styles.emptyBody}>
+          {translate(
+            'm.index.bf2694d8a7',
+            'Pair with Manta on your computer to check on your agents, jump into any terminal, and drive work from your phone.'
+          )}
+        </Text>
         <Pressable style={styles.primaryButton} onPress={props.onPairDesktop}>
           <QrCode size={17} color={colors.bgBase} />
-          <Text style={styles.primaryButtonText}>{translate('m.index.956aabb1b3', 'Pair Desktop')}</Text>
+          <Text style={styles.primaryButtonText}>
+            {translate('m.index.956aabb1b3', 'Pair Desktop')}
+          </Text>
         </Pressable>
       </View>
       <View style={styles.stepsSection}>

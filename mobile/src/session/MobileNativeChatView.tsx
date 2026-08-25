@@ -1,13 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  Pressable,
-  Text,
-  View
-} from 'react-native'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
 import { ArrowDown, ChevronsDownUp, ChevronsUpDown, Square } from 'lucide-react-native'
@@ -21,6 +13,7 @@ import {
   type MobileNativeChatPendingItem
 } from './mobile-native-chat-render-data'
 import { useMobileNativeChatPinchGesture } from './use-mobile-native-chat-pinch-gesture'
+import { useMobileNativeChatScroll } from './use-mobile-native-chat-scroll'
 import { MobileAgentWorkingIndicator } from './MobileAgentWorkingIndicator'
 import type { PendingNativeChatImage } from './mobile-native-chat-image-attachment'
 import { MobileNativeChatComposer } from './MobileNativeChatComposer'
@@ -159,22 +152,11 @@ export function MobileNativeChatView({
   keyboardInset = 0
 }: Props): React.JSX.Element {
   const insets = useSafeAreaInsets()
-  const listRef = useRef<FlatList<NativeChatMessage>>(null)
   const [toolsExpanded, setToolsExpanded] = useState(false)
   // Lift the composer clear of the keyboard, plus the bottom safe-area so it
   // never sits under the home indicator / nav bar (mirrors the terminal dock).
   const bottomPad = keyboardInset > 0 ? keyboardInset + insets.bottom : insets.bottom
-  const [atBottom, setAtBottom] = useState(true)
-  const sendScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { fontScale, pinchGesture } = useMobileNativeChatPinchGesture()
-  useEffect(
-    () => () => {
-      if (sendScrollTimerRef.current) {
-        clearTimeout(sendScrollTimerRef.current)
-      }
-    },
-    []
-  )
 
   // `data` is the list source: folded transcript + synthetic streaming bubble +
   // route-owned accepted echoes. Memoize on the same deps so the
@@ -190,17 +172,13 @@ export function MobileNativeChatView({
     [folded, streaming, pending, imagePreviewsByMessageId]
   )
 
-  // Follow the tail as the conversation grows and keep the newest message above
-  // the keyboard when it opens — but only when already pinned to the bottom, so
-  // we don't yank the user away while they read history. (Also fires on keyboard
-  // close, which is harmless while atBottom.)
-  useEffect(() => {
-    if (data.length === 0 || !atBottom) {
-      return
-    }
-    const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60)
-    return () => clearTimeout(t)
-  }, [data.length, atBottom, keyboardInset])
+  const scroll = useMobileNativeChatScroll({
+    messageCount: data.length,
+    keyboardInset,
+    hasMore,
+    loadingEarlier,
+    onLoadEarlier
+  })
 
   const handleSend = useCallback(
     async (text: string): Promise<boolean> => {
@@ -212,36 +190,11 @@ export function MobileNativeChatView({
       // or a stale "Message not sent" sits above the delivered message.
       onClearSendError?.()
       // Always jump to the newest message when the user sends.
-      setAtBottom(true)
-      if (sendScrollTimerRef.current) {
-        clearTimeout(sendScrollTimerRef.current)
-      }
-      sendScrollTimerRef.current = setTimeout(() => {
-        sendScrollTimerRef.current = null
-        listRef.current?.scrollToEnd({ animated: true })
-      }, 60)
+      scroll.jumpToLatest()
       return true
     },
-    [onSend, onClearSendError]
+    [onSend, onClearSendError, scroll]
   )
-
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
-      const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
-      setAtBottom(distanceFromBottom < 80)
-      // Near the top — page in older history.
-      if (contentOffset.y < 60 && hasMore && !loadingEarlier) {
-        onLoadEarlier?.()
-      }
-    },
-    [hasMore, loadingEarlier, onLoadEarlier]
-  )
-
-  // Align a single message's top to the top of the viewport.
-  const onScrollToMessage = useCallback((index: number) => {
-    listRef.current?.scrollToIndex({ index, viewPosition: 0, animated: true })
-  }, [])
 
   const renderItem = useCallback(
     ({ item, index }: { item: NativeChatMessage; index: number }) => (
@@ -250,11 +203,11 @@ export function MobileNativeChatView({
         toolsExpanded={toolsExpanded}
         fontScale={fontScale}
         messageIndex={index}
-        onScrollToMessage={onScrollToMessage}
+        onScrollToMessage={scroll.scrollToMessage}
         onOpenFile={onOpenFile}
       />
     ),
-    [toolsExpanded, fontScale, onScrollToMessage, onOpenFile]
+    [toolsExpanded, fontScale, scroll.scrollToMessage, onOpenFile]
   )
 
   const emptyState = mobileNativeChatEmptyState(status, agent ?? null, error)
@@ -283,7 +236,7 @@ export function MobileNativeChatView({
         <GestureHandlerRootView style={styles.listWrap}>
           <GestureDetector gesture={pinchGesture}>
             <FlatList
-              ref={listRef}
+              ref={scroll.listRef}
               data={data}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
@@ -291,28 +244,17 @@ export function MobileNativeChatView({
               // Let link/file taps land while the composer keyboard is up
               // instead of being swallowed by the dismiss gesture.
               keyboardShouldPersistTaps="handled"
-              onScroll={onScroll}
+              onScroll={scroll.onScroll}
               scrollEventThrottle={32}
-              onContentSizeChange={() => {
-                if (data.length > 0 && atBottom) {
-                  listRef.current?.scrollToEnd({ animated: false })
-                }
-              }}
-              // scrollToIndex can fail before an off-screen row is measured —
-              // fall back to an estimated offset, then retry once it's laid out.
-              onScrollToIndexFailed={(info) => {
-                listRef.current?.scrollToOffset({
-                  offset: info.averageItemLength * info.index,
-                  animated: true
-                })
-                setTimeout(() => {
-                  listRef.current?.scrollToIndex({
-                    index: info.index,
-                    viewPosition: 0,
-                    animated: true
-                  })
-                }, 120)
-              }}
+              onScrollBeginDrag={scroll.onScrollBeginDrag}
+              onScrollEndDrag={scroll.onScrollEndDrag}
+              onMomentumScrollEnd={scroll.onMomentumScrollEnd}
+              // Why: paging in history prepends rows above the viewport.
+              // Without an anchor the reader is pushed down by whatever those
+              // rows measure to.
+              maintainVisibleContentPosition={{ minIndexForVisible: 1 }}
+              onContentSizeChange={scroll.onContentSizeChange}
+              onScrollToIndexFailed={scroll.onScrollToIndexFailed}
               ListHeaderComponent={
                 hasMore ? (
                   <Pressable
@@ -342,11 +284,11 @@ export function MobileNativeChatView({
           </GestureDetector>
           {/* Jump-to-latest control. The scroll-to-top affordance now lives
               per-message (the up-arrow in each agent message's controls). */}
-          {!atBottom ? (
+          {!scroll.atBottom ? (
             <Pressable
               accessibilityLabel="Scroll to latest"
               style={[styles.fab, styles.fabBottom]}
-              onPress={() => listRef.current?.scrollToEnd({ animated: true })}
+              onPress={scroll.jumpToLatest}
             >
               <ArrowDown size={18} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>

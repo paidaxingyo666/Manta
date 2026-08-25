@@ -143,7 +143,10 @@ export function useNewWorkspaceCreateSubmit(args: {
           repoName: selectedRepo.displayName,
           scriptContent: args.setupTrust.scriptContent,
           contentHash: args.setupTrust.contentHash,
-          previouslyApproved: wasSetupHookPreviouslyApproved(args.trustedMantaHooks, selectedRepo.id)
+          previouslyApproved: wasSetupHookPreviouslyApproved(
+            args.trustedMantaHooks,
+            selectedRepo.id
+          )
         })
         args.transitionDrawer('trust')
         return

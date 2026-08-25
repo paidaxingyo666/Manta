@@ -166,11 +166,20 @@ and check a suspect against the pre-sync branch before treating it as new.
 
 Two things the sync itself will not tell you:
 
-- **The version follows upstream's line.** Read their newest tag
-  (`git tag -l 'v*' --sort=-v:refname | head -1`), not `package.json` on their
-  main — their release-cut writes the version in a separate commit, so main
-  always lags. After 79 commits on 23 August, upstream's newest was `v1.4.188`,
-  so this fork went to `1.4.189-rc.0`.
+- **The version follows upstream's line.** Read their newest tag, not
+  `package.json` on their main — their release-cut writes the version in a
+  separate commit, so main always lags. After 79 commits on 23 August,
+  upstream's newest was `v1.4.188`, so this fork went to `1.4.189-rc.0`.
+
+  Ask the remote, not the local tag list. `git fetch upstream --tags` pulls
+  2000+ of their tags in beside this fork's own, and `git tag -l` then reports
+  whichever sorts highest — on 25 August that was `v1.4.189-rc.6`, which is
+  *ours*. Upstream was still on `v1.4.188`.
+
+  ```bash
+  git ls-remote --tags upstream | grep -v '\^{}' |
+    grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$' | sort -V | tail -1
+  ```
 - **Skill revisions need sealing at the new version.** Compare
   `resources/skills/current-manifest.json` against the last row of
   `release-mapping.json`; if they disagree, run
@@ -178,7 +187,33 @@ Two things the sync itself will not tell you:
   Left unsealed, the next regeneration reassigns a revision number to different
   bytes and every installed copy stops matching a known snapshot.
 
-Then merge into `main` and cut the tag per `docs/reference/release-secrets.md`.
+## Landing it
+
+**Open a pull request. Do not push the sync straight to `main`.**
+
+Nothing in this repo's CI runs on a push to `main` — `pr.yml` and `mobile.yml`
+both trigger on `pull_request` only, and the release workflow builds without
+testing. A sync pushed directly is a few hundred files that no CI has ever
+seen; the 25 August one landed that way and its only evidence was a local
+test run.
+
+`mobile.yml` matters most here, because it is the only job that loads the
+Fastfile — the iOS signing config and the NSE target's provisioning. A local
+`vitest` pass over `mobile/` does not cover any of that, and this sync changed
+67 files under `mobile/`.
+
+```bash
+git push -u origin sync/upstream-<date>
+gh pr create --repo <fork> --base main --fill
+gh pr checks --repo <fork> --watch
+```
+
+Merge once the checks are green, then cut the tag per
+`docs/reference/release-secrets.md`.
+
+Push the tag only after `main` is where you want it. Pushing the tag first and
+rebasing afterwards leaves the tag on an orphaned commit, and moving it means
+force-updating a ref that a published release already points at.
 
 ## What this fork owns
 

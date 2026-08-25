@@ -22,6 +22,11 @@ const ARCHIVE_PATHS = ['src/main', 'src/shared', 'src/preload', 'src/renderer', 
 
 const BASELINE_REF_ENV = 'MANTA_CROSS_VERSION_BASELINE_REF'
 const STABLE_DESKTOP_RELEASE_TAG = /^v\d+\.\d+\.\d+$/
+// Why a prerelease may stand in: this fork has published only release
+// candidates, so requiring a stable tag leaves the lane with no baseline at all
+// — and a cross-version lane that runs nothing is what this harness exists to
+// prevent. An rc tag is a real shipped build, so it pairs just as honestly.
+const PRERELEASE_DESKTOP_RELEASE_TAG = /^v\d+\.\d+\.\d+-rc\.\d+$/
 
 export type ReleaseCheckout = {
   /** The ref as requested, e.g. `v1.4.169`. */
@@ -81,10 +86,10 @@ export function resolveBaselineReleaseRef(): string {
         `Run it inside a git checkout, or pin a ref with ${BASELINE_REF_ENV}.`
     )
   }
-  const latest = selectLatestStableReleaseTag(tags)
+  const latest = selectBaselineReleaseTag(tags)
   if (!latest) {
     throw new Error(
-      `Cross-version harness found no stable desktop release tags matching vX.Y.Z (saw ${tags.length} tag(s) total). ` +
+      `Cross-version harness found no desktop release tags matching vX.Y.Z or vX.Y.Z-rc.N (saw ${tags.length} tag(s) total). ` +
         'CI checkouts default to a shallow clone with no tags: use `actions/checkout` with `fetch-depth: 0`, ' +
         `or pin a ref with ${BASELINE_REF_ENV}.`
     )
@@ -99,6 +104,38 @@ export function selectLatestStableReleaseTag(tags: string[]): string | null {
       .sort(compareReleaseTags)
       .at(-1) ?? null
   )
+}
+
+/**
+ * The tag the lane pairs against: newest stable if this fork has cut one, else
+ * newest release candidate.
+ *
+ * Kept separate from {@link resolveBaselineReleaseRef} so the choice is testable
+ * without a git checkout — locally `git tag --list` also carries upstream's tags,
+ * which include stable releases this fork never published, so a test that shells
+ * out cannot see what CI sees.
+ */
+export function selectBaselineReleaseTag(tags: string[]): string | null {
+  return selectLatestStableReleaseTag(tags) ?? selectLatestPrereleaseTag(tags)
+}
+
+/** Newest `vX.Y.Z-rc.N`, used only when no stable release exists to pair against. */
+export function selectLatestPrereleaseTag(tags: string[]): string | null {
+  return (
+    tags
+      .filter((tag) => PRERELEASE_DESKTOP_RELEASE_TAG.test(tag))
+      .sort(comparePrereleaseTags)
+      .at(-1) ?? null
+  )
+}
+
+function comparePrereleaseTags(a: string, b: string): number {
+  const base = compareReleaseTags(a.replace(/-rc\.\d+$/, ''), b.replace(/-rc\.\d+$/, ''))
+  if (base !== 0) {
+    return base
+  }
+  const rc = (tag: string): number => Number.parseInt(/-rc\.(\d+)$/.exec(tag)?.[1] ?? '0', 10)
+  return rc(a) - rc(b)
 }
 
 function resolveCommit(ref: string): string {

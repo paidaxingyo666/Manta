@@ -72,6 +72,9 @@ type Overrides = {
   inputLockReason?: 'disconnected' | 'waiting' | null
   onSend?: (text: string) => Promise<boolean>
   pending?: Parameters<typeof MobileNativeChatView>[0]['pending']
+  hasMore?: boolean
+  loadingEarlier?: boolean
+  onLoadEarlier?: () => void
 }
 
 function assistantTurn(id: string, text: string): NativeChatMessage {
@@ -240,5 +243,67 @@ describe('MobileNativeChatView', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+  describe('paging in older history', () => {
+    function list(): ReactTestInstance {
+      return renderer!.root.find((node) => node.type === 'FlatList')
+    }
+
+    async function scrollTo(offsetY: number): Promise<void> {
+      await act(async () => {
+        list().props.onScroll({
+          nativeEvent: {
+            contentOffset: { y: offsetY },
+            contentSize: { height: 4000 },
+            layoutMeasurement: { height: 800 }
+          }
+        })
+      })
+    }
+
+    /**
+     * The view fires its own scrollToEnd on open, starting from offset 0. Its
+     * first throttled sample reads as "near the top", so a trigger that only
+     * looks at the offset pages in history nobody asked for — and because that
+     * prepends PAGE rows above the viewport, the reader lands mid-session.
+     */
+    it('does not page in history for a scroll the user did not start', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await scrollTo(10)
+
+      expect(onLoadEarlier).not.toHaveBeenCalled()
+    })
+
+    it('pages in history once the user drags to the top', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(10)
+
+      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
+    })
+
+    it('stops paging again once the list comes to rest', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(10)
+      await act(async () => list().props.onMomentumScrollEnd())
+      await scrollTo(10)
+
+      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
+    })
+
+    // A prepended page measures to whatever its rows render to, so without an
+    // anchor it pushes the reader down by that much.
+    it('anchors visible content so a prepend does not move the reader', async () => {
+      await render({ messages: [assistantTurn('a', 'one')], hasMore: true })
+
+      expect(list().props.maintainVisibleContentPosition).toEqual({ minIndexForVisible: 1 })
+    })
   })
 })
