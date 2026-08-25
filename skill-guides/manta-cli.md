@@ -367,12 +367,14 @@ Browser rules:
 - Prefer `wait --text`, `--url`, `--selector`, or `--load` after async page changes instead of bare timeouts.
 - Less common workflows can use typed commands above or `manta exec --command "<agent-browser command>"` passthrough.
 - If `fill` or `type` fails on a custom input, try `manta focus --element @e1 --json` then `manta inserttext --text "text" --json`.
+- Client-hosted pages have interactive-session affinity: the page renders in the paired desktop's own browser engine, so every command against it needs that desktop online and returns `browser_host_unavailable` when it is closed, asleep, or disconnected. Server-hosted pages keep running with no desktop attached, so prefer server placement for long-running or unattended browser automation.
 
 Common recoveries:
 
 - `browser_no_tab`: open a tab with `manta tab create --url <url> --json`.
 - `browser_stale_ref`: run `manta snapshot --json` and retry with fresh refs.
 - `browser_tab_not_found`: run `manta tab list --json` before switching or closing.
+- `browser_host_unavailable`: the desktop hosting that page is offline. Bring it back, or create the page for server placement when the work must survive without an interactive session.
 
 ## Next Action
 

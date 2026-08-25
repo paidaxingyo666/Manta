@@ -5,10 +5,7 @@ import {
   SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV,
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV
 } from '../../shared/setup-agent-sequencing'
-import {
-  addMantaWslInteropEnv,
-  stampWslOrchestrationCompatibilityHost
-} from './wsl-manta-env'
+import { addMantaWslInteropEnv, stampWslOrchestrationCompatibilityHost } from './wsl-manta-env'
 
 describe('addMantaWslInteropEnv', () => {
   it('marks the Manta terminal handle for Windows to WSL env import', () => {
@@ -247,4 +244,3 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).not.toContain('MANTA_OPENCODE_CONFIG_DIR')
   })
 })
-

@@ -287,6 +287,7 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     // Why: Manta-first keeps core shortcuts working from a focused terminal; TUI-ownership users opt in.
     terminalShortcutPolicy: 'manta-first',
     floatingTerminalEnabled: true,
+    browserClientHostedRemoteEnabled: true,
     floatingTerminalDefaultedForAllUsers: true,
     floatingTerminalCwd: '~',
     floatingTerminalTrustedCwds: [],
