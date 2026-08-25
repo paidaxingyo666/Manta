@@ -98,10 +98,13 @@ export class MobilePushEscalation {
           payload: pushPayload(
             this.deps.text(batch.length),
             sealedBody(target.encryptionKeyB64, batch)
-          ),
-          // One collapse id for the whole app: a phone that was away for an hour
-          // should light up once, not once per queued notification.
-          collapseId: 'manta-activity'
+          )
+          // No apns-collapse-id. A constant one made every push replace the last
+          // in Notification Center, so the phone only ever showed the newest
+          // event and everything before it vanished. The burst it was meant to
+          // tame is already handled above — a window's worth of notifications
+          // leaves here as one push — and collapsing past that discards history
+          // rather than condensing it.
         })
         .catch(() => ({ ok: false, discardToken: false }))
       if (result.discardToken) {
