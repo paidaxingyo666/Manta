@@ -250,6 +250,7 @@ export function MobileNativeChatView({
               onScrollEndDrag={scroll.onScrollEndDrag}
               onMomentumScrollEnd={scroll.onMomentumScrollEnd}
               onContentSizeChange={scroll.onContentSizeChange}
+              onLayout={scroll.onLayout}
               onScrollToIndexFailed={scroll.onScrollToIndexFailed}
               ListHeaderComponent={
                 hasMore ? (

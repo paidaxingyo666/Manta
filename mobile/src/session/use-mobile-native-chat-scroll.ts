@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
+import type {
+  FlatList,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent
+} from 'react-native'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 
 /** Distance from the bottom, in px, still counted as "following the tail". */
@@ -28,7 +33,8 @@ export type ChatScroll = {
   onScrollBeginDrag: () => void
   onScrollEndDrag: (e: NativeSyntheticEvent<NativeScrollEvent>) => void
   onMomentumScrollEnd: () => void
-  onContentSizeChange: () => void
+  onContentSizeChange: (width: number, height: number) => void
+  onLayout: (event: LayoutChangeEvent) => void
   onScrollToIndexFailed: (info: { index: number; averageItemLength: number }) => void
 }
 
@@ -45,6 +51,7 @@ export function useMobileNativeChatScroll({
   // one this view fires on open starts at offset 0 — its first throttled sample
   // reads as "near the top" and pages in history nobody asked for.
   const userDraggingRef = useRef(false)
+  const viewportHeightRef = useRef(0)
   const jumpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(
@@ -125,11 +132,33 @@ export function useMobileNativeChatScroll({
     userDraggingRef.current = false
   }, [])
 
-  const onContentSizeChange = useCallback(() => {
-    if (messageCount > 0 && atBottom) {
-      listRef.current?.scrollToEnd({ animated: false })
-    }
-  }, [messageCount, atBottom])
+  /**
+   * Re-pins the bottom as content grows, using the height the callback reports.
+   *
+   * Not scrollToEnd: that reads the list's own cached scroll metrics, which lag
+   * a growing row. A streaming reply changes height far faster than those
+   * refresh, so the pin repeatedly landed at a bottom that had already moved —
+   * the reader drifted up mid-answer and only caught up when the finished
+   * message changed the row count and woke the effect above. The height handed
+   * in here is measured, not remembered.
+   */
+  const onContentSizeChange = useCallback(
+    (_width: number, height: number) => {
+      if (messageCount === 0 || !atBottom) {
+        return
+      }
+      listRef.current?.scrollToOffset({
+        offset: Math.max(0, height - viewportHeightRef.current),
+        animated: false
+      })
+    },
+    [messageCount, atBottom]
+  )
+
+  /** The viewport height the offset above subtracts; 0 until the first layout. */
+  const onLayout = useCallback((event: LayoutChangeEvent) => {
+    viewportHeightRef.current = event.nativeEvent.layout.height
+  }, [])
 
   // scrollToIndex can fail before an off-screen row is measured — fall back to
   // an estimated offset, then retry once it's laid out.
@@ -156,6 +185,7 @@ export function useMobileNativeChatScroll({
     onScrollEndDrag,
     onMomentumScrollEnd,
     onContentSizeChange,
+    onLayout,
     onScrollToIndexFailed
   }
 }
