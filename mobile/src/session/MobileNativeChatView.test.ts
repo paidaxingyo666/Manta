@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import { MobileNativeChatView } from './MobileNativeChatView'
 
@@ -103,9 +103,15 @@ describe('MobileNativeChatView', () => {
     renderer = null
   })
 
+  /** Stands in for the FlatList the view holds a ref to, so scrolls are visible. */
+  let listMock: { scrollToOffset: Mock; scrollToEnd: Mock; scrollToIndex: Mock }
+
   async function render(overrides: Overrides = {}): Promise<void> {
+    listMock = { scrollToOffset: vi.fn(), scrollToEnd: vi.fn(), scrollToIndex: vi.fn() }
     await act(async () => {
-      renderer = create(chatViewElement(overrides))
+      renderer = create(chatViewElement(overrides), {
+        createNodeMock: (element) => (element.type === 'FlatList' ? listMock : null)
+      })
     })
   }
 
@@ -274,7 +280,7 @@ describe('MobileNativeChatView', () => {
      */
     it('does not page in history for a scroll the user did not start', async () => {
       const onLoadEarlier = vi.fn()
-      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
 
       await scrollTo(10)
 
@@ -283,7 +289,7 @@ describe('MobileNativeChatView', () => {
 
     it('pages in history once the user drags to the top', async () => {
       const onLoadEarlier = vi.fn()
-      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
 
       await act(async () => list().props.onScrollBeginDrag())
       await scrollTo(10)
@@ -293,7 +299,7 @@ describe('MobileNativeChatView', () => {
 
     it('stops paging again once the list comes to rest', async () => {
       const onLoadEarlier = vi.fn()
-      await render({ messages: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
 
       await act(async () => list().props.onScrollBeginDrag())
       await scrollTo(10)
@@ -310,7 +316,7 @@ describe('MobileNativeChatView', () => {
      * Paging is guarded by the drag flag above, so the anchor is not needed.
      */
     it('does not anchor content position', async () => {
-      await render({ messages: [assistantTurn('a', 'one')], hasMore: true })
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true })
 
       expect(list().props.maintainVisibleContentPosition).toBeUndefined()
     })
@@ -321,7 +327,7 @@ describe('MobileNativeChatView', () => {
      * — which is how the jump-to-latest button appeared on every reply.
      */
     it('keeps following the tail through its own scroll', async () => {
-      await render({ messages: [assistantTurn('a', 'one')] })
+      await render({ folded: [assistantTurn('a', 'one')] })
 
       // A mid-animation sample: still far from the bottom, no drag in progress.
       await scrollTo(0)
@@ -329,8 +335,23 @@ describe('MobileNativeChatView', () => {
       expect(jumpToLatestButtons()).toHaveLength(0)
     })
 
+    /**
+     * scrollToEnd reads the list's cached scroll metrics, and a streaming reply
+     * changes height faster than those refresh — so the pin kept landing at a
+     * bottom that had already moved, and the reader drifted up mid-answer.
+     */
+    it('re-pins from the measured height, not the list cached metrics', async () => {
+      await render({ folded: [assistantTurn('a', 'one')] })
+
+      await act(async () => list().props.onLayout({ nativeEvent: { layout: { height: 800 } } }))
+      await act(async () => list().props.onContentSizeChange(400, 3000))
+
+      expect(listMock.scrollToEnd).not.toHaveBeenCalled()
+      expect(listMock.scrollToOffset).toHaveBeenCalledWith({ offset: 2200, animated: false })
+    })
+
     it('stops following once the user drags away from the bottom', async () => {
-      await render({ messages: [assistantTurn('a', 'one')] })
+      await render({ folded: [assistantTurn('a', 'one')] })
 
       await act(async () => list().props.onScrollBeginDrag())
       await scrollTo(0)
