@@ -4,6 +4,15 @@ function pathSeparatorFor(pathValue: string): '/' | '\\' {
   return pathValue.includes('\\') ? '\\' : '/'
 }
 
+/** True only for `{home}/manta/projects` on the usual OS home layouts. A configured
+ *  directory that merely ends in `manta/projects` (e.g. `/data/manta/projects`) must
+ *  stay verbatim — the `~` shorthand would otherwise lie. */
+function isHomeProjectsFallback(pathValue: string): boolean {
+  return /^(?:\/(?:Users|home)\/[^/]+|[A-Za-z]:[\\/]Users[\\/][^\\/]+)[\\/]manta[\\/]projects$/.test(
+    pathValue
+  )
+}
+
 function trimTrailingSeparators(pathValue: string): string {
   const trimmed = pathValue.replace(/[\\/]+$/, '')
   if (trimmed === '' && pathValue.startsWith('/')) {
@@ -81,7 +90,13 @@ export function formatCreateProjectParentSummary({
   if (!trimmedParent) {
     return runtimeEnvironmentId || isRemoteHost ? missingServerLocationLabel : missingLocationLabel
   }
-  if (defaultParent && trimmedParent === defaultParent && !runtimeEnvironmentId && !isRemoteHost) {
+  if (
+    defaultParent &&
+    trimmedParent === defaultParent &&
+    !runtimeEnvironmentId &&
+    !isRemoteHost &&
+    isHomeProjectsFallback(trimmedParent)
+  ) {
     return '~/manta/projects'
   }
   return trimmedParent
