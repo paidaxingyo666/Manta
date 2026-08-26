@@ -7,7 +7,10 @@ import type { SmartModeAvailabilityInput } from '../tasks/mobile-smart-source-mo
 import { deriveRepoSlug, type PasteRepoCandidate } from '../tasks/smart-source-paste-intent'
 import { useMobileComposerSource } from '../tasks/use-mobile-composer-source'
 import { useNewWorktreeRuntimeCapabilities } from '../tasks/worktree-create-capability'
-import { useRetiredWorktreeNames } from '../worktree/use-retired-worktree-names'
+import {
+  buildRetiredWorktreeNamesRefreshKey,
+  useRetiredWorktreeNames
+} from '../worktree/use-retired-worktree-names'
 import { BottomDrawerModalHost } from './bottom-drawer-modal-host'
 import {
   getMobileWorkspaceRepoBadgeColor,
@@ -28,7 +31,6 @@ import { useNewWorkspaceRepositories } from './use-new-workspace-repositories'
 import { useNewWorkspaceRuntimeContext } from './use-new-workspace-runtime-context'
 import { useNewWorkspaceSetupScript } from './use-new-workspace-setup-script'
 import { useNewWorktreeDrawerNavigation } from './use-new-worktree-drawer-navigation'
-import { translate } from '../i18n/i18n'
 
 export function NewWorktreeModal(props: NewWorktreeModalProps) {
   const openEpochRef = useRef(0)
@@ -90,7 +92,7 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
     detectedAgentIds: executionTarget.detectedAgentIds
   })
   const retiredNamesRefreshKey = useMemo(
-    () => [...(existingWorktreePaths ?? [])].sort().join('\0'),
+    () => buildRetiredWorktreeNamesRefreshKey(existingWorktreePaths),
     [existingWorktreePaths]
   )
   const retiredWorktreeNames = useRetiredWorktreeNames(
@@ -117,8 +119,8 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
     setupRunPolicy: setupScript.setupRunPolicy,
     setupDecisionChoice: setupScript.setupDecisionChoice,
     runSetup: setupScript.runSetup,
-    trustedMantaHooks: runtime.trustedMantaHooks,
-    setTrustedMantaHooks: runtime.setTrustedMantaHooks,
+    trustedOrcaHooks: runtime.trustedOrcaHooks,
+    setTrustedOrcaHooks: runtime.setTrustedOrcaHooks,
     getWorktreeCreateCutoverSupport,
     transitionDrawer: navigation.transitionDrawer,
     setError,
@@ -201,10 +203,7 @@ function NewWorktreeModalContent(props: NewWorktreeModalProps) {
         projectBadgeColor={selectedRepo ? getMobileWorkspaceRepoBadgeColor(selectedRepo) : null}
         selectedRepoIsGit={selectedRepoIsGit}
         selectedRepoConnectionId={selectedRepoConnectionId}
-        selectedRepoName={
-          selectedRepo?.displayName ??
-          translate('m.NewWorktreeModal.02690f5980', 'Remote repository')
-        }
+        selectedRepoName={selectedRepo?.displayName ?? 'Remote repository'}
         sshGate={executionTarget.sshGate}
         composer={composer}
         selectedAgent={agentSelection.selectedAgent}
