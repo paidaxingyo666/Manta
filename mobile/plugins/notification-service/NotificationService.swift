@@ -9,6 +9,13 @@ import Security
 /// exactly as it arrived. The generic text the desktop already put in `alert`
 /// is the floor, and showing that is always better than showing nothing.
 class NotificationService: UNNotificationServiceExtension {
+  /// Shared with the app: the keychain group holding the decryption key, and
+  /// the defaults suite holding how far each push carried the counter.
+  private static let appGroup = "group.cn.sh.manta.mobile"
+  /// Read by the app before it asks the desktop what it missed.
+  private static let deliveredKey = "pushDeliveredSeqByEpoch"
+  private static let maxTrackedEpochs = 8
+
   private var handler: ((UNNotificationContent) -> Void)?
   private var content: UNMutableNotificationContent?
 
@@ -22,6 +29,12 @@ class NotificationService: UNNotificationServiceExtension {
       contentHandler(request.content)
       return
     }
+
+    // Before every guard below: those all end in the desktop's generic text,
+    // which is still a delivered notification. Recording only on the decrypt
+    // path would leave the app re-notifying everything the extension could not
+    // read — the exact duplicate this mark exists to stop.
+    recordDelivered(request.content.userInfo)
 
     guard
       let sealed = request.content.userInfo["mb"] as? [String: Any],
@@ -96,6 +109,40 @@ class NotificationService: UNNotificationServiceExtension {
 
   // MARK: - Shared key
 
+  /// Records how far this push carried the desktop's notification counter.
+  ///
+  /// The app's catch-up watermark only advances on a live socket delivery, so
+  /// without this every push shown while the app was closed is replayed as a
+  /// local notification on the next open. Keyed by epoch because a seq means
+  /// nothing across a desktop restart.
+  ///
+  /// Best effort by design: a miss here costs a duplicate notification, and
+  /// nothing about it is worth failing a delivery over.
+  private func recordDelivered(_ userInfo: [AnyHashable: Any]) {
+    guard
+      let seq = userInfo["ds"] as? Int,
+      let epoch = userInfo["de"] as? String,
+      let defaults = UserDefaults(suiteName: Self.appGroup)
+    else {
+      return
+    }
+    var marks = defaults.dictionary(forKey: Self.deliveredKey) as? [String: Int] ?? [:]
+    // Monotonic: pushes can arrive out of order, and a lower seq must never
+    // walk the mark backwards into ground the app has already skipped.
+    if let known = marks[epoch], known >= seq {
+      return
+    }
+    marks[epoch] = seq
+    // One epoch per desktop counter lifetime, so this grows only with restarts
+    // of paired desktops. Keeping the newest few bounds it without needing to
+    // know which epoch is live — the app ignores every epoch but its own.
+    if marks.count > Self.maxTrackedEpochs {
+      let newest = marks.sorted { $0.value > $1.value }.prefix(Self.maxTrackedEpochs)
+      marks = Dictionary(uniqueKeysWithValues: newest.map { ($0.key, $0.value) })
+    }
+    defaults.set(marks, forKey: Self.deliveredKey)
+  }
+
   /// Reads the key the app published into the shared keychain group.
   ///
   /// The access group is what makes this readable from an extension at all: a
@@ -106,7 +153,7 @@ class NotificationService: UNNotificationServiceExtension {
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: "cn.sh.manta.mobile.push",
       kSecAttrAccount as String: "push-key",
-      kSecAttrAccessGroup as String: "group.cn.sh.manta.mobile",
+      kSecAttrAccessGroup as String: Self.appGroup,
       kSecReturnData as String: true,
       kSecMatchLimit as String: kSecMatchLimitOne
     ]

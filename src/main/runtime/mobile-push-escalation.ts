@@ -97,7 +97,8 @@ export class MobilePushEscalation {
           deviceToken: target.deviceToken,
           payload: pushPayload(
             this.deps.text(batch.length),
-            sealedBody(target.encryptionKeyB64, batch)
+            sealedBody(target.encryptionKeyB64, batch),
+            deliveredMark(batch)
           )
           // No apns-collapse-id. A constant one made every push replace the last
           // in Notification Center, so the phone only ever showed the newest
@@ -125,7 +126,8 @@ export class MobilePushEscalation {
  */
 function pushPayload(
   text: { title: string; body: string },
-  sealed: EncryptedPushBody | null
+  sealed: EncryptedPushBody | null,
+  delivered: DeliveredMark | null
 ): Record<string, unknown> {
   return {
     aps: {
@@ -137,8 +139,40 @@ function pushPayload(
       // what replaces the text above with what actually happened.
       'mutable-content': 1
     },
-    ...(sealed ? { mb: sealed } : {})
+    ...(sealed ? { mb: sealed } : {}),
+    ...(delivered ? { ds: delivered.seq, de: delivered.epoch } : {})
   }
+}
+
+/**
+ * How far the phone's catch-up may skip once this push lands.
+ *
+ * Without it the watermark only ever advances on a live socket delivery, so
+ * everything APNs showed while the app was closed is still missed-since-last-
+ * connect on the next open and gets notified a second time. The extension
+ * records this on arrival; the app folds it in before asking what it missed.
+ *
+ * The epoch travels with it because a seq only means anything inside one
+ * counter lifetime — a desktop restart makes the number meaningless, and the
+ * phone must not fold a stale one into a fresh counter.
+ */
+type DeliveredMark = { seq: number; epoch: string }
+
+function deliveredMark(batch: readonly MobileNotificationEvent[]): DeliveredMark | null {
+  let seq: number | null = null
+  let epoch: string | null = null
+  for (const event of batch) {
+    if (event.type !== 'notification' || event.notificationSeq == null) {
+      continue
+    }
+    if (seq === null || event.notificationSeq > seq) {
+      seq = event.notificationSeq
+      epoch = event.notificationEpoch ?? null
+    }
+  }
+  // Why both: an event without an epoch predates the counter and cannot be
+  // folded in safely, so it stays the phone's job to re-check rather than skip.
+  return seq !== null && epoch !== null ? { seq, epoch } : null
 }
 
 /**
