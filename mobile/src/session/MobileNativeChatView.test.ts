@@ -249,6 +249,11 @@ describe('MobileNativeChatView', () => {
       return renderer!.root.find((node) => node.type === 'FlatList')
     }
 
+    /** The jump-to-latest control; empty means the view is following the tail. */
+    function jumpToLatestButtons(): ReactTestInstance[] {
+      return renderer!.root.findAll((node) => node.props.accessibilityLabel === 'Scroll to latest')
+    }
+
     async function scrollTo(offsetY: number): Promise<void> {
       await act(async () => {
         list().props.onScroll({
@@ -298,12 +303,39 @@ describe('MobileNativeChatView', () => {
       expect(onLoadEarlier).toHaveBeenCalledTimes(1)
     })
 
-    // A prepended page measures to whatever its rows render to, so without an
-    // anchor it pushes the reader down by that much.
-    it('anchors visible content so a prepend does not move the reader', async () => {
+    /**
+     * `maintainVisibleContentPosition` looked like the right way to stop a
+     * prepend moving the reader, and it fought the scrollToEnd this view fires
+     * on every new message: each reply bounced the reader up the transcript.
+     * Paging is guarded by the drag flag above, so the anchor is not needed.
+     */
+    it('does not anchor content position', async () => {
       await render({ messages: [assistantTurn('a', 'one')], hasMore: true })
 
-      expect(list().props.maintainVisibleContentPosition).toEqual({ minIndexForVisible: 1 })
+      expect(list().props.maintainVisibleContentPosition).toBeUndefined()
+    })
+
+    /**
+     * scrollToEnd emits samples on its way down. Reading those as "the user
+     * left the bottom" turns following off mid-flight, and then nothing re-pins
+     * — which is how the jump-to-latest button appeared on every reply.
+     */
+    it('keeps following the tail through its own scroll', async () => {
+      await render({ messages: [assistantTurn('a', 'one')] })
+
+      // A mid-animation sample: still far from the bottom, no drag in progress.
+      await scrollTo(0)
+
+      expect(jumpToLatestButtons()).toHaveLength(0)
+    })
+
+    it('stops following once the user drags away from the bottom', async () => {
+      await render({ messages: [assistantTurn('a', 'one')] })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(0)
+
+      expect(jumpToLatestButtons()).toHaveLength(1)
     })
   })
 })
