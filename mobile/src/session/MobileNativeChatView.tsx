@@ -249,10 +249,6 @@ export function MobileNativeChatView({
               onScrollBeginDrag={scroll.onScrollBeginDrag}
               onScrollEndDrag={scroll.onScrollEndDrag}
               onMomentumScrollEnd={scroll.onMomentumScrollEnd}
-              // Why: paging in history prepends rows above the viewport.
-              // Without an anchor the reader is pushed down by whatever those
-              // rows measure to.
-              maintainVisibleContentPosition={{ minIndexForVisible: 1 }}
               onContentSizeChange={scroll.onContentSizeChange}
               onScrollToIndexFailed={scroll.onScrollToIndexFailed}
               ListHeaderComponent={

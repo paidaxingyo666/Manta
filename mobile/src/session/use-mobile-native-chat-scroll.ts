@@ -57,9 +57,9 @@ export function useMobileNativeChatScroll({
   )
 
   // Follow the tail as the conversation grows and keep the newest message above
-  // the keyboard when it opens — but only when already pinned to the bottom, so
-  // we don't yank the user away while they read history. (Also fires on keyboard
-  // close, which is harmless while atBottom.)
+  // the keyboard when it opens — but only while following, so we don't yank the
+  // user away while they read history. (Also fires on keyboard close, which is
+  // harmless while following.)
   useEffect(() => {
     if (messageCount === 0 || !atBottom) {
       return
@@ -83,21 +83,26 @@ export function useMobileNativeChatScroll({
   }, [])
 
   const scrollToMessage = useCallback((index: number) => {
+    // Jumping to a specific message is the user leaving the tail on purpose.
+    setAtBottom(false)
     listRef.current?.scrollToIndex({ index, viewPosition: 0, animated: true })
   }, [])
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      // Why only while the user drives: following the tail is a mode, not a
+      // measurement. The scrollToEnd this hook fires itself emits samples on its
+      // way down, and reading those flips following off mid-flight — which is
+      // how every incoming reply started bouncing the reader up the transcript
+      // and revealing the jump-to-latest button.
+      if (!userDraggingRef.current) {
+        return
+      }
       const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
       const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
       setAtBottom(distanceFromBottom < AT_BOTTOM_SLACK)
       // Near the top — page in older history, but only if the user put us here.
-      if (
-        userDraggingRef.current &&
-        contentOffset.y < LOAD_EARLIER_OFFSET &&
-        hasMore &&
-        !loadingEarlier
-      ) {
+      if (contentOffset.y < LOAD_EARLIER_OFFSET && hasMore && !loadingEarlier) {
         onLoadEarlier?.()
       }
     },
