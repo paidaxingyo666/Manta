@@ -128,11 +128,11 @@ export function useMobileHomeData() {
   )
 
   const sortedHosts = useMemo(
-    () => hosts.toSorted((left, right) => right.lastConnected - left.lastConnected),
+    () => [...hosts].sort((left, right) => right.lastConnected - left.lastConnected),
     [hosts]
   )
   const sortedHostCatalog = useMemo(
-    () => hostCatalog.toSorted((left, right) => right.lastConnected - left.lastConnected),
+    () => [...hostCatalog].sort((left, right) => right.lastConnected - left.lastConnected),
     [hostCatalog]
   )
   const hostIds = useMemo(() => hosts.map((host) => host.id), [hosts])
