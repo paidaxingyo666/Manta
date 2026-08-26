@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import { MantaRuntimeService } from '../../manta-runtime'
-import { SettingsUpdate } from './client-ui-schemas'
+import { SettingsUpdate } from './client-settings-schemas'
 
 function runtimeWithSharing(artifactSharingEnabled: unknown): MantaRuntimeService {
   return new MantaRuntimeService({
