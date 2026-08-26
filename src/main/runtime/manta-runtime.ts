@@ -14417,19 +14417,24 @@ export class MantaRuntimeService {
 
   dispatchMobileNotification(event: MobileNotificationEvent): void {
     const seq = this.mobileNotificationReplay.record(event)
+    // Why the sequenced copy and not `event`: the phone folds this number into
+    // its catch-up watermark so a push it already showed is not notified again
+    // on the next open, and the bare event carries neither field — the counter
+    // is assigned here, by the record above. Passing `event` sent every push
+    // without a mark, and every one of them was replayed.
+    const sequenced = {
+      ...event,
+      notificationSeq: seq,
+      notificationEpoch: this.mobileNotificationReplay.epoch
+    }
     // Why after the record and before the fan-out: the escalation decides later,
     // on a timer, and must not be able to delay or throw into live delivery.
-    this.pushEscalation?.schedule(event)
+    this.pushEscalation?.schedule(sequenced)
     // Why: surface the desktop-assigned seq to live listeners so they can watermark the last event
     // delivered and feed it back to getMissedSince on reconnect (idempotent catch-up, no dupes).
     notifyRuntimeListeners(
       this.notificationListeners,
-      (listener) =>
-        listener({
-          ...event,
-          notificationSeq: seq,
-          notificationEpoch: this.mobileNotificationReplay.epoch
-        }),
+      (listener) => listener(sequenced),
       'mobile-notification'
     )
   }

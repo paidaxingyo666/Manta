@@ -40298,6 +40298,31 @@ describe('MantaRuntimeService', () => {
     expect(delivered).toHaveLength(1)
   })
 
+  /**
+   * The phone folds this number into its catch-up watermark so a push it has
+   * already shown is not notified again on the next open. The counter is
+   * assigned here, by the replay buffer — the event handed in carries neither
+   * field, so passing it straight through sent every push unmarked and every
+   * one of them was replayed on the next open.
+   */
+  it('hands the push escalation the sequenced event, not the bare one', () => {
+    const runtime = new MantaRuntimeService(store)
+    const pushed: { notificationSeq?: number; notificationEpoch?: string }[] = []
+    runtime.setPushEscalation({ schedule: (event) => void pushed.push(event) })
+
+    runtime.dispatchMobileNotification({
+      type: 'notification',
+      source: 'test',
+      title: 'Test',
+      body: 'Body',
+      worktreeId: TEST_WORKTREE_ID
+    })
+
+    expect(pushed).toHaveLength(1)
+    expect(pushed[0].notificationSeq).toBeGreaterThan(0)
+    expect(pushed[0].notificationEpoch).toBe(runtime.getMobileNotificationEpoch())
+  })
+
   it('keeps the original committed disposition across an idempotent retry', async () => {
     const runtime = new MantaRuntimeService(store)
     const events: RuntimeClientEvent[] = []
