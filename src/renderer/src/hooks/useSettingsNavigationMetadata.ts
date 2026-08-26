@@ -202,7 +202,9 @@ export function buildSettingsNavigationMetadata({
         'Coordinate multiple coding agents through Manta.'
       ),
       icon: Network,
-      searchEntries: getOrchestrationPaneSearchEntries(),
+      searchEntries: getOrchestrationPaneSearchEntries({
+        includeNestedWorkerDepth: !isWebClient
+      }),
       group: 'capabilities'
     },
     // Why: only surfaced once Linear is connected — a capability that needs a
