@@ -32,6 +32,16 @@ function harness(overrides: Partial<PushEscalationDeps> = {}) {
 const notification = (title: string) =>
   ({ type: 'notification', source: 'agent', title, body: '' }) as never
 
+const sequenced = (title: string, seq: number, epoch = 'epoch-a') =>
+  ({
+    type: 'notification',
+    source: 'agent',
+    title,
+    body: '',
+    notificationSeq: seq,
+    notificationEpoch: epoch
+  }) as never
+
 describe('MobilePushEscalation', () => {
   it('pushes when nothing is listening', async () => {
     const h = harness()
@@ -240,4 +250,35 @@ describe('MobilePushEscalation', () => {
 
     await expect(h.elapse()).resolves.not.toThrow()
   })
+  /**
+   * Without this the phone's catch-up watermark only advances on a live socket
+   * delivery, so everything a push showed to a closed app is still "missed" on
+   * the next open and gets notified a second time.
+   */
+  describe('the mark that lets the phone skip what this push delivered', () => {
+    it('carries the highest sequence in the batch, with its epoch', async () => {
+      const h = harness()
+      h.escalation.schedule(sequenced('one', 41))
+      h.escalation.schedule(sequenced('two', 57))
+      h.escalation.schedule(sequenced('three', 12))
+      await h.elapse()
+
+      const payload = h.wake.mock.calls[0][0].payload
+      expect(payload.ds).toBe(57)
+      expect(payload.de).toBe('epoch-a')
+    })
+
+    // A seq means nothing without the counter it belongs to, so an event that
+    // carries no epoch stays the phone's job to re-check rather than to skip.
+    it('omits the mark when the batch carries no epoch', async () => {
+      const h = harness()
+      h.escalation.schedule(notification('one'))
+      await h.elapse()
+
+      const payload = h.wake.mock.calls[0][0].payload
+      expect(payload.ds).toBeUndefined()
+      expect(payload.de).toBeUndefined()
+    })
+  })
+
 })

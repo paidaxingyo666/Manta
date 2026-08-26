@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { readDeliveredSeq } from '../../modules/push-delivered-seq'
 
 // Why: the reconnect catch-up watermark + dedup helpers for #8129, extracted
 // from mobile-notifications.ts so that file stays under its max-lines budget.
@@ -319,6 +320,33 @@ export function adoptNotificationEpoch(
   session.catchUpQuarantineSeq = null
   session.lastDeliveredEpoch = epoch
   void saveWatermark(hostId, { seq: 0, epoch })
+
+  foldDeliveredPushes(session)
+}
+
+/**
+ * Skips what APNs already showed while the app was closed.
+ *
+ * The watermark advances only on a live socket delivery, so a push shown to a
+ * closed app leaves it where it was — and the next catch-up asks the desktop for
+ * that whole span again and notifies every bit of it a second time. The
+ * notification service extension records how far each push carried the counter;
+ * this folds that in once the session knows which counter it is on.
+ *
+ * In memory only. The persisted watermark is a promise that something was
+ * *shown*, and this reads back from a native module that may be absent or wrong;
+ * keeping it out of storage means a bad read costs one session rather than
+ * permanently skipping notifications nobody saw.
+ */
+function foldDeliveredPushes(session: HostNotificationSession): void {
+  const epoch = session.lastDeliveredEpoch
+  if (epoch === null) {
+    return
+  }
+  const delivered = readDeliveredSeq(epoch)
+  if (delivered != null && delivered > session.lastDeliveredSeq) {
+    session.lastDeliveredSeq = delivered
+  }
 }
 
 // Why: seed the watermark lazily so subscribe() doesn't block on an AsyncStorage read.
@@ -374,6 +402,7 @@ export function seedWatermarkFromStorage(session: HostNotificationSession, hostI
       if (session.lastDeliveredEpoch === null && epoch !== null) {
         session.lastDeliveredEpoch = epoch
       }
+      foldDeliveredPushes(session)
     }
   })
   // The late seed still applies when it eventually lands; the timeout only stops it
