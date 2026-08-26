@@ -249,12 +249,9 @@ describe('MobileNativeChatView', () => {
       return renderer!.root.find((node) => node.type === 'FlatList')
     }
 
-    /** The jump-to-latest control; absent means the view is following the tail. */
-    function jumpToLatestButton(): ReactTestInstance | null {
-      return (
-        renderer!.root.findAll((node) => node.props.accessibilityLabel === 'Scroll to latest')[0] ??
-        null
-      )
+    /** The jump-to-latest control; empty means the view is following the tail. */
+    function jumpToLatestButtons(): ReactTestInstance[] {
+      return renderer!.root.findAll((node) => node.props.accessibilityLabel === 'Scroll to latest')
     }
 
     async function scrollTo(offsetY: number): Promise<void> {
@@ -329,7 +326,7 @@ describe('MobileNativeChatView', () => {
       // A mid-animation sample: still far from the bottom, no drag in progress.
       await scrollTo(0)
 
-      expect(jumpToLatestButton()).toBeNull()
+      expect(jumpToLatestButtons()).toHaveLength(0)
     })
 
     it('stops following once the user drags away from the bottom', async () => {
@@ -338,7 +335,7 @@ describe('MobileNativeChatView', () => {
       await act(async () => list().props.onScrollBeginDrag())
       await scrollTo(0)
 
-      expect(jumpToLatestButton()).not.toBeNull()
+      expect(jumpToLatestButtons()).toHaveLength(1)
     })
   })
 })
