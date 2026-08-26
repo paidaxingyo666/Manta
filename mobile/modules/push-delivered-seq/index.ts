@@ -21,7 +21,6 @@ type PushDeliveredSeq = {
 
 function native(): PushDeliveredSeq | null {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const core = require('expo-modules-core') as {
       requireOptionalNativeModule: <T>(name: string) => T | null
     }
