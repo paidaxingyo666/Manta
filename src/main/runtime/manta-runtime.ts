@@ -27,6 +27,7 @@ import type { AgentStatus } from '../../shared/agent-detection'
 import type { TerminalOscLinkRange } from '../../shared/terminal-osc-link-ranges'
 import type { TerminalOscColorQueryReplyColors } from '../../shared/terminal-osc-color-reply'
 import type { TerminalOutputSourceRange } from '../../shared/terminal-output-source-range'
+import { detectTerminalComposerDraft } from '../../shared/terminal-composer-draft'
 import type {
   RemoteTerminalSourceRangeConsumerHooks,
   RemoteTerminalSourceRangeReplacementPublication,
@@ -1897,9 +1898,15 @@ export type RuntimeTerminalDataMeta = Readonly<{
 
 type RuntimeVisibleTerminalState = {
   lines: string[]
+  draft?: string
   isAlternateScreen: boolean
   sequence: number
   generation: number
+}
+
+type RuntimeTerminalProjection = {
+  lines: string[]
+  draft?: string
 }
 
 type ProviderBufferAcquisition = {
@@ -14044,13 +14051,18 @@ export class MantaRuntimeService {
       !recoveredWorkerFallback &&
       this.isKnownUnattachedLocalDaemonPty(ptyId)
     if (recoveredWorkerFallback || neverAttachedProviderFallback) {
-      const providerLines = await this.readProviderTerminalTailLines(
+      const providerProjection = await this.readProviderTerminalTailLines(
         ptyId,
         opts.limit,
         providerSnapshot
       )
-      if (providerLines.length > 0) {
-        return buildVisibleSnapshotReadFallback(read, providerLines, opts.limit)
+      if (providerProjection.lines.length > 0) {
+        return buildVisibleSnapshotReadFallback(
+          read,
+          providerProjection.lines,
+          opts.limit,
+          providerProjection.draft
+        )
       }
     }
     const knownAlternateScreen = this.isTerminalAlternateScreen(ptyId)
@@ -14074,21 +14086,21 @@ export class MantaRuntimeService {
     ) {
       return read
     }
-    let lines = visibleState?.lines ?? []
-    if (lines.length === 0) {
-      lines = await this.readRendererVisibleSnapshotLines(ptyId)
+    let projection: RuntimeTerminalProjection = visibleState ?? { lines: [] }
+    if (projection.lines.length === 0) {
+      projection = await this.readRendererVisibleSnapshotLines(ptyId)
     }
-    if (lines.length === 0) {
+    if (projection.lines.length === 0) {
       return read
     }
-    return buildVisibleSnapshotReadFallback(read, lines, opts.limit)
+    return buildVisibleSnapshotReadFallback(read, projection.lines, opts.limit, projection.draft)
   }
 
   private async readProviderTerminalTailLines(
     ptyId: string,
     limit: number | undefined,
     snapshotOptions: ProviderSnapshotReadOptions = {}
-  ): Promise<string[]> {
+  ): Promise<RuntimeTerminalProjection> {
     const generation = this.getPtyLifecycleGeneration(ptyId)
     const lineLimit = terminalReadLimit(limit, DEFAULT_TERMINAL_READ_LIMIT)
     const snapshot = await this.serializeProviderTerminalBuffer(
@@ -14097,21 +14109,21 @@ export class MantaRuntimeService {
       snapshotOptions
     )
     if (!snapshot) {
-      return []
+      return { lines: [] }
     }
     // Why: a cached acquisition can carry scrollback this caller did not ask for,
     // so visible-only reads parse the grid itself rather than trusting the request.
     if (snapshotOptions.visibleScreenOnly) {
-      const lines = await this.parseVisibleSnapshotLines(snapshot)
+      const projection = await this.parseVisibleSnapshot(snapshot)
       // Live bytes ordered after the provider frame make that frame stale.
       return this.getPtyLifecycleGeneration(ptyId) === generation &&
         this.getPtyOutputSequence(ptyId) <= snapshot.seq
-        ? lines
-        : []
+        ? projection
+        : { lines: [] }
     }
     const data = `${snapshot.scrollbackAnsi ?? ''}${snapshot.data}`
     if (data.length === 0) {
-      return []
+      return { lines: [] }
     }
     const emulator = new HeadlessEmulator({
       cols: snapshot.cols,
@@ -14120,11 +14132,11 @@ export class MantaRuntimeService {
     })
     try {
       await emulator.write(data)
-      const lines = visibleNonBlankTerminalLines(emulator.getBufferTailLines(lineLimit))
+      const projection = projectTerminalTailLines(emulator, lineLimit)
       return this.getPtyLifecycleGeneration(ptyId) === generation &&
         this.getPtyOutputSequence(ptyId) <= snapshot.seq
-        ? lines
-        : []
+        ? projection
+        : { lines: [] }
     } finally {
       emulator.dispose()
     }
@@ -14141,11 +14153,11 @@ export class MantaRuntimeService {
     if (!knownAlternateScreen && !visibleState?.isAlternateScreen) {
       return preview
     }
-    let lines = visibleState?.lines ?? []
-    if (lines.length === 0) {
-      lines = await this.readRendererVisibleSnapshotLines(ptyId)
+    let projection: RuntimeTerminalProjection = visibleState ?? { lines: [] }
+    if (projection.lines.length === 0) {
+      projection = await this.readRendererVisibleSnapshotLines(ptyId)
     }
-    return lines.length > 0 ? buildPreview(lines, '') : preview
+    return projection.lines.length > 0 ? buildPreview(projection.lines, '') : preview
   }
 
   private async readVisibleTerminalState(
@@ -14199,7 +14211,7 @@ export class MantaRuntimeService {
         return liveState
       }
     }
-    const lines = await this.parseVisibleSnapshotLines(snapshot)
+    const projection = await this.parseVisibleSnapshot(snapshot)
     if (
       this.getPtyLifecycleGeneration(ptyId) !== generation ||
       this.getPtyOutputSequence(ptyId) > snapshot.seq
@@ -14207,7 +14219,8 @@ export class MantaRuntimeService {
       return null
     }
     const visibleState: RuntimeVisibleTerminalState = {
-      lines,
+      lines: projection.lines,
+      ...(projection.draft ? { draft: projection.draft } : {}),
       isAlternateScreen: snapshot.alternateScreen ?? false,
       sequence: snapshot.seq,
       generation
@@ -14231,21 +14244,23 @@ export class MantaRuntimeService {
     ) {
       return null
     }
+    const projection = projectVisibleTerminalLines(state.emulator)
     return {
-      lines: visibleNonBlankTerminalLines(state.emulator.getVisibleLines()),
+      lines: projection.lines,
+      ...(projection.draft ? { draft: projection.draft } : {}),
       isAlternateScreen: state.emulator.isAlternateScreen,
       sequence: state.outputSequence,
       generation
     }
   }
 
-  private async parseVisibleSnapshotLines(snapshot: {
+  private async parseVisibleSnapshot(snapshot: {
     data: string
     cols: number
     rows: number
-  }): Promise<string[]> {
+  }): Promise<{ lines: string[]; draft?: string }> {
     if (snapshot.data.length === 0) {
-      return []
+      return { lines: [] }
     }
     const emulator = new HeadlessEmulator({
       cols: snapshot.cols,
@@ -14254,19 +14269,21 @@ export class MantaRuntimeService {
     })
     try {
       await emulator.write(`\x1b[2J\x1b[3J\x1b[H${snapshot.data}`)
-      return visibleNonBlankTerminalLines(emulator.getVisibleLines())
+      return projectVisibleTerminalLines(emulator)
     } finally {
       emulator.dispose()
     }
   }
 
-  private async readRendererVisibleSnapshotLines(ptyId: string): Promise<string[]> {
+  private async readRendererVisibleSnapshotLines(
+    ptyId: string
+  ): Promise<RuntimeTerminalProjection> {
     const controller = this.ptyController
     if (!controller?.serializeBuffer) {
-      return []
+      return { lines: [] }
     }
     if (controller.hasRendererSerializer && !controller.hasRendererSerializer(ptyId)) {
-      return []
+      return { lines: [] }
     }
     try {
       // Why: raw PTY tails can be whitespace-only while a full-screen TUI is
@@ -14281,11 +14298,11 @@ export class MantaRuntimeService {
         null
       )
       if (!snapshot || snapshot.data.length === 0) {
-        return []
+        return { lines: [] }
       }
-      return this.parseVisibleSnapshotLines(snapshot)
+      return this.parseVisibleSnapshot(snapshot)
     } catch {
-      return []
+      return { lines: [] }
     }
   }
 
@@ -19285,12 +19302,11 @@ export class MantaRuntimeService {
     opts: { limit?: number } = {}
   ): Promise<RuntimeTerminalRead> {
     const visibleState = await this.readVisibleTerminalState(ptyId)
-    const lines =
-      visibleState?.lines ?? (await this.readProviderTerminalTailLines(ptyId, opts.limit))
-    if (lines.length === 0) {
+    const projection = visibleState ?? (await this.readProviderTerminalTailLines(ptyId, opts.limit))
+    if (projection.lines.length === 0) {
       return { ...read, source: 'screen-unavailable' }
     }
-    return buildVisibleSnapshotReadFallback(read, lines, opts.limit)
+    return buildVisibleSnapshotReadFallback(read, projection.lines, opts.limit, projection.draft)
   }
 
   // Why a cache: leaf-branch sends may arrive per keystroke; one proven-absent
@@ -40985,6 +41001,46 @@ function visibleNonBlankTerminalLines(lines: string[]): string[] {
   return lines.map((line) => line.trimEnd()).filter((line) => line.trim().length > 0)
 }
 
+function projectVisibleTerminalLines(emulator: HeadlessEmulator): {
+  lines: string[]
+  draft?: string
+} {
+  const lines = emulator.getVisibleLines()
+  const draft = detectTerminalComposerDraft(emulator.getCursorLineContext())
+  if (draft) {
+    lines[draft.promptRow] = draft.promptGlyph
+    for (let row = draft.promptRow + 1; row <= draft.endRow; row += 1) {
+      lines[row] = ''
+    }
+  }
+  return {
+    lines: visibleNonBlankTerminalLines(lines),
+    ...(draft ? { draft: draft.text } : {})
+  }
+}
+
+export function projectTerminalTailLines(
+  emulator: HeadlessEmulator,
+  limit: number
+): RuntimeTerminalProjection {
+  const tail = emulator.getBufferTailLines(limit)
+  const visible = emulator.getVisibleLines()
+  const visibleRange = emulator.getVisibleBufferRange()
+  const draft = detectTerminalComposerDraft(emulator.getCursorLineContext())
+  if (draft && visibleRange.endExclusive === visibleRange.totalLength) {
+    visible[draft.promptRow] = draft.promptGlyph
+    for (let row = draft.promptRow + 1; row <= draft.endRow; row += 1) {
+      visible[row] = ''
+    }
+    const scrollbackTail = tail.slice(0, Math.max(0, tail.length - visible.length))
+    tail.splice(0, tail.length, ...scrollbackTail, ...visibleNonBlankTerminalLines(visible))
+  }
+  return {
+    lines: visibleNonBlankTerminalLines(tail).slice(-limit),
+    ...(draft ? { draft: draft.text } : {})
+  }
+}
+
 // Why: every read carries its source, so a caller that asked for a screen and got a response
 // with no source at all knows it reached a host that predates screen reads — rather than
 // mistaking the stream for the screen. Rendered lines only ever enter a read through
@@ -40997,7 +41053,8 @@ function labelTerminalReadSource(resolved: RuntimeTerminalRead): RuntimeTerminal
 function buildVisibleSnapshotReadFallback(
   read: RuntimeTerminalRead,
   visibleLines: string[],
-  limit: number | undefined
+  limit: number | undefined,
+  draft?: string
 ): RuntimeTerminalRead {
   const lineLimit = terminalReadLimit(limit, DEFAULT_TERMINAL_READ_LIMIT)
   const lineBoundedTail = visibleLines.slice(-lineLimit)
@@ -41011,7 +41068,8 @@ function buildVisibleSnapshotReadFallback(
     limited:
       read.limited || lineBoundedTail.length < visibleLines.length || charBoundedTail.limited,
     returnedLineCount: charBoundedTail.tail.length,
-    source: 'screen'
+    source: 'screen',
+    ...(draft ? { draft } : {})
   }
 }
 
