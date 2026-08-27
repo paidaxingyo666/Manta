@@ -4,8 +4,10 @@ import type { Store } from './persistence'
 
 const AUTH_PRESERVATION_TIMEOUT_MS = 2_000
 
-type CodexRuntimeAuthSync = Pick<CodexRuntimeHomeService, 'syncForCurrentSelection'> &
-  Partial<Pick<CodexRuntimeHomeService, 'syncActiveWslSelectionsBeforeRestart'>>
+type CodexRuntimeAuthSync = Pick<
+  CodexRuntimeHomeService,
+  'syncForCurrentSelection' | 'syncActiveWslSelectionsBeforeRestart'
+>
 type ClaudeRuntimeAuthSync = Pick<ClaudeRuntimeAuthService, 'syncForCurrentSelection'>
 type ShutdownStore = Pick<Store, 'flushPendingOrThrowAsync'>
 
@@ -25,26 +27,35 @@ export async function preserveAgentAuthBeforeRestart({
   claudeRuntimeAuth,
   store
 }: AgentAuthRestartPreservationOptions): Promise<void> {
-  runCodexPreservationStep(codexRuntimeHome)
-  // Why: the drain owns guest-process timeouts; a shared 2s cutoff can relaunch before promotion.
-  const wslCodexPreservation = runWslCodexPreservationStep(codexRuntimeHome)
+  const startedAt = Date.now()
 
-  if (claudeRuntimeAuth) {
+  runCodexPreservationStep(codexRuntimeHome)
+
+  const remainingMs = Math.max(0, AUTH_PRESERVATION_TIMEOUT_MS - (Date.now() - startedAt))
+  if (claudeRuntimeAuth && remainingMs > 0) {
     await runWithinLifecycleTimeout(
       'Claude auth preservation',
       () => claudeRuntimeAuth.syncForCurrentSelection(),
-      AUTH_PRESERVATION_TIMEOUT_MS
+      remainingMs
     )
+  } else if (claudeRuntimeAuth) {
+    logStepTimeout('Claude auth preservation', 0)
   }
 
-  const storePreservation = store
-    ? runWithinLifecycleTimeout(
-        'Store persistence',
-        () => store.flushPendingOrThrowAsync(),
-        AUTH_PRESERVATION_TIMEOUT_MS
-      )
-    : Promise.resolve()
-  await Promise.all([wslCodexPreservation, storePreservation])
+  if (codexRuntimeHome && Date.now() - startedAt < AUTH_PRESERVATION_TIMEOUT_MS) {
+    runWslCodexPreservationStep(codexRuntimeHome)
+  } else if (codexRuntimeHome) {
+    logStepTimeout('Codex auth preservation', 0)
+  }
+
+  if (store) {
+    const storeRemainingMs = Math.max(0, AUTH_PRESERVATION_TIMEOUT_MS - (Date.now() - startedAt))
+    await runWithinLifecycleTimeout(
+      'Store persistence',
+      () => store.flushPendingOrThrowAsync(),
+      storeRemainingMs
+    )
+  }
 }
 
 function runCodexPreservationStep(codexRuntimeHome: CodexRuntimeAuthSync | null | undefined): void {
@@ -55,11 +66,11 @@ function runCodexPreservationStep(codexRuntimeHome: CodexRuntimeAuthSync | null 
   }
 }
 
-async function runWslCodexPreservationStep(
+function runWslCodexPreservationStep(
   codexRuntimeHome: CodexRuntimeAuthSync | null | undefined
-): Promise<void> {
+): void {
   try {
-    await codexRuntimeHome?.syncActiveWslSelectionsBeforeRestart?.()
+    codexRuntimeHome?.syncActiveWslSelectionsBeforeRestart()
   } catch (error) {
     logStepFailure('Codex auth preservation', error)
   }
@@ -78,7 +89,7 @@ async function runWithinLifecycleTimeout(
     })
 
   // Why: this timeout only releases the restart/update path. It does not
-  // cancel a sync that already started.
+  // cancel a sync that already started, and Codex sync is synchronous today.
   const timeoutResult = new Promise<'timeout'>((resolve) => {
     timeout = setTimeout(() => resolve('timeout'), timeoutMs)
   })

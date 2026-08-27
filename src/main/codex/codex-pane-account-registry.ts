@@ -266,15 +266,6 @@ export function hasRecordedLegacySharedCodexPane(): boolean {
   )
 }
 
-/** True when a retained WSL pane may still read the retired per-distro runtime home. */
-export function hasRecordedLegacyWslCodexPane(selectionKey: string): boolean {
-  return Object.values(readRegistryOrThrow().panes).some(
-    (record) =>
-      (record.selectionKey === selectionKey || record.selectionKey === 'wsl:__default__') &&
-      (record.homeRoute === undefined || record.homeRoute === 'wsl-home')
-  )
-}
-
 /** True when startup may need to repair hooks for a retained managed host pane. */
 export function hasRecordedManagedHostCodexPane(): boolean {
   return Object.values(readRegistry().panes).some(

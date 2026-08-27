@@ -1,6 +1,5 @@
 import type { GlobalSettings } from '../../shared/global-settings-types'
 import { normalizeRuntimePathForComparison } from '../../shared/cross-platform-path'
-import { parseWslUncPath } from '../../shared/wsl-paths'
 import {
   getCodexSelectionLaneKey,
   getCodexSelectionTargetForAccount,
@@ -81,6 +80,9 @@ function resolveCodexPaneHomeRoute(args: {
   settings: CodexPaneLaunchAccountSettings
   target: CodexAccountSelectionTarget
 }): CodexPaneHomeRoute {
+  if (args.target.runtime === 'wsl') {
+    return 'wsl-home'
+  }
   if (
     !args.launchCodexHomePath ||
     normalizeRuntimePathForComparison(args.launchCodexHomePath) ===
@@ -91,19 +93,10 @@ function resolveCodexPaneHomeRoute(args: {
   const launchHome = normalizeRuntimePathForComparison(args.launchCodexHomePath)
   const accountOwnsHome = args.settings.codexManagedAccounts?.some(
     (account) =>
-      getCodexSelectionLaneKey(getCodexSelectionTargetForAccount(account)) ===
-        getCodexSelectionLaneKey(args.target) &&
+      getCodexSelectionTargetForAccount(account).runtime === 'host' &&
       normalizeRuntimePathForComparison(account.managedHomePath) === launchHome
   )
-  if (accountOwnsHome) {
-    return 'account-home'
-  }
-  if (args.target.runtime === 'wsl') {
-    return parseWslUncPath(args.launchCodexHomePath)?.linuxPath.endsWith('/.codex')
-      ? 'real-home'
-      : 'wsl-home'
-  }
-  return 'shared-home'
+  return accountOwnsHome ? 'account-home' : 'shared-home'
 }
 
 /** undefined when no account owns the home; null means the system-default account. */
