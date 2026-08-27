@@ -611,7 +611,10 @@ jobs:
             exit 0
           fi
           git remote add baseline https://github.com/stablyai/orca.git 2>/dev/null || true
-          git fetch --no-tags --filter=blob:none baseline "refs/tags/$ref:refs/tags/$ref"
+          # Full blobs, not blob:none: the harness extracts the tree with
+          # `git archive`, which needs every blob present. A partial clone would
+          # send it to a promisor remote that does not have them.
+          git fetch --no-tags --depth=1 baseline "refs/tags/$ref:refs/tags/$ref"
           git rev-parse -q --verify "$ref^{commit}" >/dev/null
 
       - uses: ./.github/actions/install-node-dependencies
