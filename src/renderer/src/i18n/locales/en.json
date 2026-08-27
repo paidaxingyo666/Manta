@@ -14860,14 +14860,16 @@
           "d5a8c2f1b9": "Start the default AI agent to fix this check",
           "e2b4d7c8a1": "Choose an agent for this check",
           "f1c9e3a6d4": "Choose agent to fix check",
-          "actionRequired": "Action required"
+          "actionRequired": "Action required",
+          "copyOutput": "Copy output"
         },
         "CheckRunJobs": {
           "1c0a4d7e02": "succeeded",
           "2d3b8f1a55": "skipped",
           "3e6c9a2b71": "pending",
           "4f7d0c3e88": "steps failed",
-          "5a8e1d4f23": " · "
+          "5a8e1d4f23": " · ",
+          "copy": "Copy jobs"
         },
         "check": {
           "run": {
@@ -14967,6 +14969,14 @@
           "copyDocumentRelativePathControl": "Copy relative path",
           "openExternallyUnknownHostError": "Can't open '{{value0}}': the host that owns it is no longer known.",
           "downloadBlockedNotice": "Downloads are disabled in document previews."
+        },
+        "CheckRunAnnotations": {
+          "copy": "Copy annotations"
+        },
+        "CheckRunCopyButton": {
+          "copied": "Copied",
+          "failed": "Couldn't copy",
+          "empty": "Nothing to copy"
         }
       },
       "diff": {
