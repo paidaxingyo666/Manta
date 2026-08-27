@@ -165,7 +165,7 @@ describe('PR E2E gate contract', () => {
         (step) => step.uses === './.github/actions/install-node-dependencies'
       )
 
-    expect(installFor('build').with).toBeUndefined()
+    expect(installFor('build').with['native-runtime']).toBe('node')
     for (const jobName of ['e2e', 'changed-e2e', 'ssh-docker-watcher-isolation']) {
       expect(installFor(jobName).with['native-runtime'], jobName).toBe('electron')
     }
