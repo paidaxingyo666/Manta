@@ -752,9 +752,21 @@ describe('worktree git-common narrow watch (local native platforms)', () => {
       const stalePendingSubscription = narrowSubscriptions()[1]
       await replaceWorktreesRoot(commonDir, worktreesDir, retainedEntry)
       await vi.advanceTimersByTimeAsync(POLL_MS * RECONCILIATION_TICKS * 4)
-      expect(
-        received.flat().filter((event) => event.type === 'create' && event.path === worktreesDir)
-      ).toHaveLength(2)
+      // Waited for, like the first replacement above: the second create reaches
+      // `received` through a real watcher callback, and advancing fake timers
+      // does not move that. Under CI load it arrived after the bare assertion
+      // ran, reading as "got 1, expected 2". This still fails if the event never
+      // comes — waitFor times out rather than passing on one event.
+      await vi.waitFor(
+        () => {
+          expect(
+            received
+              .flat()
+              .filter((event) => event.type === 'create' && event.path === worktreesDir)
+          ).toHaveLength(2)
+        },
+        { timeout: 1_000 }
+      )
 
       const beforeStaleInterruption = received.length
       stalePendingSubscription.hooks.onInterruption?.()
