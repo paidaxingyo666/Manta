@@ -62,7 +62,7 @@ import { join } from 'node:path'
 import { importCookiesFromBrowser, type DetectedBrowser } from './browser-cookie-import'
 import { createChromiumCookieTestDatabase } from './browser-cookie-import-test-database'
 
-const routePartition = `persist:orca-browser-v1-${'b'.repeat(64)}`
+const routePartition = `persist:manta-browser-v1-${'b'.repeat(64)}`
 let tmpDir = ''
 let cookiesSetMock: ReturnType<typeof vi.fn>
 

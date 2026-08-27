@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import type * as GitUsernameModule from '../git/git-username'
 import type { RuntimeMobileSessionTabsSnapshot } from '../../shared/runtime-types'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 vi.mock('../git/worktree', () => ({
   listWorktrees: vi.fn().mockResolvedValue([]),
@@ -73,7 +73,7 @@ type SessionTabsPrivate = {
   notifyMobileSessionTabsChanged: (worktreeId?: string) => void
 }
 
-function seedPtyBackedSnapshot(runtime: OrcaRuntimeService, ptyId: string): void {
+function seedPtyBackedSnapshot(runtime: MantaRuntimeService, ptyId: string): void {
   const priv = runtime as unknown as SessionTabsPrivate
   priv.mobileSessionTabsByWorktree.set('worktree-a', {
     worktree: 'worktree-a',
@@ -106,7 +106,7 @@ describe('session.tabs title/status churn coalescing', () => {
   })
 
   it('collapses a rapid title-flip burst into a single emit (repro)', () => {
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     seedPtyBackedSnapshot(runtime, 'pty-1')
     const priv = runtime as unknown as SessionTabsPrivate
 
@@ -137,7 +137,7 @@ describe('session.tabs title/status churn coalescing', () => {
   })
 
   it('lets a structural change emit immediately and supersede the coalesced notify', () => {
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     seedPtyBackedSnapshot(runtime, 'pty-1')
     const priv = runtime as unknown as SessionTabsPrivate
 
@@ -160,7 +160,7 @@ describe('session.tabs title/status churn coalescing', () => {
   })
 
   it('flushes a pending notify when the last subscriber closes', () => {
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     seedPtyBackedSnapshot(runtime, 'pty-1')
     const priv = runtime as unknown as SessionTabsPrivate
 

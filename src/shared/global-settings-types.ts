@@ -239,7 +239,7 @@ export type GlobalSettings = {
   agentSkillSharingEnabled?: boolean
   /** How deep dispatched workers may nest. 1 = workers cannot dispatch sub-workers.
    *  Renderer-writable only: omitted from the SettingsUpdate RPC schema so a worker
-   *  cannot raise its own cap via `orca settings update`. */
+   *  cannot raise its own cap via `manta settings update`. */
   nestedWorkerMaxDepth?: number
   /** Only toggles the sidebar shortcut; Artifacts stay reachable from Settings. */
   showArtifactsButton?: boolean

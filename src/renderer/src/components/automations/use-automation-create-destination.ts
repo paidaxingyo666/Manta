@@ -42,7 +42,7 @@ export type AutomationCreateDestinationCheck =
   | { ok: false; notice: AutomationActionNotice }
 
 export type AutomationCreateDestinationInput = {
-  /** False whenever the dialog is closed or is not creating an Orca automation. */
+  /** False whenever the dialog is closed or is not creating a Manta automation. */
   open: boolean
   catalog: AutomationHostCatalog
   entries: readonly AutomationHostCatalogEntry[]

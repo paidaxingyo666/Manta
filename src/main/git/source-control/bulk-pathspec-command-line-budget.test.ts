@@ -28,12 +28,12 @@ vi.mock('../../../shared/git-discard-path-safety', () => ({
 }))
 
 const WSL_DISTRO = 'Ubuntu-24.04'
-const WSL_WORKTREE = `\\\\wsl$\\${WSL_DISTRO}\\home\\emilio\\projects\\orca`
+const WSL_WORKTREE = `\\\\wsl$\\${WSL_DISTRO}\\home\\emilio\\projects\\manta`
 
 /** Windows-side length of the line `wsl.exe` is spawned with, wrapper included. */
 function finishedCommandLineLength(args: readonly string[], wslDistro?: string): number {
   const resolved = resolveGitCommandWithoutProbe([...args], {
-    cwd: wslDistro ? WSL_WORKTREE : '/home/emilio/projects/orca',
+    cwd: wslDistro ? WSL_WORKTREE : '/home/emilio/projects/manta',
     ...(wslDistro ? { wslDistro } : {})
   })
   return commandLineLength([resolved.binary, ...resolved.args])
@@ -185,7 +185,7 @@ describe('bulk pathspec command-line budget', () => {
     Object.defineProperty(process, 'platform', { value: 'darwin' })
     const { bulkStageFiles } = await import('./staging')
 
-    await bulkStageFiles('/home/emilio/projects/orca', realisticChangedPaths(100))
+    await bulkStageFiles('/home/emilio/projects/manta', realisticChangedPaths(100))
 
     // Same 100 paths that need several chunks under the WSL wrapper stay one native call.
     expect(capturedInvocations()).toHaveLength(1)

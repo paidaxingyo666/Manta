@@ -33,7 +33,7 @@ function sshTarget(overrides: Partial<SshTarget> = {}): SshTarget {
     id: 't1',
     label: 'build-box',
     host: 'build.example',
-    user: 'orca',
+    user: 'manta',
     generation: 3,
     ...overrides
   } as SshTarget
@@ -199,9 +199,9 @@ describe('probe scope retention', () => {
   })
 })
 
-describe('Orca automation traffic priority', () => {
-  it('parks queued probes while Orca automation work holds the installed lease', async () => {
-    // Orca CRUD and dispatch arrive through the runtime methods, which take the
+describe('Manta automation traffic priority', () => {
+  it('parks queued probes while Manta automation work holds the installed lease', async () => {
+    // Manta CRUD and dispatch arrive through the runtime methods, which take the
     // lease through the hook this registration installed on the service.
     const lease = state.service.externalProbePriority
     expect(lease).not.toBeNull()

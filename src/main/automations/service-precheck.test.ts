@@ -50,7 +50,7 @@ function mutateDataFile(
     automationRuns: Record<string, unknown>[]
   }) => void
 ): void {
-  const file = join(testState.dir, 'orca-data.json')
+  const file = join(testState.dir, 'manta-data.json')
   const state = JSON.parse(readFileSync(file, 'utf-8'))
   mutate(state)
   writeFileSync(file, JSON.stringify(state, null, 2), 'utf-8')

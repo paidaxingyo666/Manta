@@ -46,30 +46,30 @@ import {
   collectOrphanedBrowserRoutePartitionStorage
 } from './browser-route-partition-storage-runtime'
 
-const ENV_PARTITION = `persist:orca-browser-v1-${'a'.repeat(64)}`
-const LIVE_TARGET_PARTITION = `persist:orca-browser-v1-${'b'.repeat(64)}`
-const REMOVED_TARGET_PARTITION = `persist:orca-browser-v1-${'c'.repeat(64)}`
+const ENV_PARTITION = `persist:manta-browser-v1-${'a'.repeat(64)}`
+const LIVE_TARGET_PARTITION = `persist:manta-browser-v1-${'b'.repeat(64)}`
+const REMOVED_TARGET_PARTITION = `persist:manta-browser-v1-${'c'.repeat(64)}`
 
 function seedBindings(): void {
   mocks.bindings.clear()
   mocks.bindings.set(ENV_PARTITION, {
     fingerprint: '1'.repeat(64),
     storageScope: deriveBrowserRoutePartitionStorageScope({
-      orcaProfileId: 'local-default',
+      mantaProfileId: 'local-default',
       environmentId: 'env-1'
     })
   })
   mocks.bindings.set(LIVE_TARGET_PARTITION, {
     fingerprint: '2'.repeat(64),
     storageScope: deriveLocalSshBrowserRoutePartitionStorageScope({
-      orcaProfileId: 'local-default',
+      mantaProfileId: 'local-default',
       targetId: 'target-live'
     })
   })
   mocks.bindings.set(REMOVED_TARGET_PARTITION, {
     fingerprint: '3'.repeat(64),
     storageScope: deriveLocalSshBrowserRoutePartitionStorageScope({
-      orcaProfileId: 'local-default',
+      mantaProfileId: 'local-default',
       targetId: 'target-removed'
     })
   })

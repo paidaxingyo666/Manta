@@ -1,5 +1,5 @@
 import type { ClientHostedBrowserRow } from '../../../../shared/client-hosted-browser-rows'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../../../shared/constants'
 import { translate } from '@/i18n/i18n'
 import { formatBrowserTabUrlLabel } from './BrowserTab'
 
@@ -8,7 +8,7 @@ export function getClientHostedBrowserRowLabel(row: ClientHostedBrowserRow): str
   if (
     !row.title ||
     row.title === row.url ||
-    row.title === ORCA_BROWSER_BLANK_URL ||
+    row.title === MANTA_BROWSER_BLANK_URL ||
     row.title === 'about:blank'
   ) {
     return formatBrowserTabUrlLabel(row.url)

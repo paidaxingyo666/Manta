@@ -104,7 +104,7 @@ export async function dispatchTaskToWorker(params: {
     assigneePaneKey,
     launchTokenHash: dispatchAuthority?.launchTokenHash ?? undefined,
     processIncarnation,
-    // Why system: the automatic loop is host-local Orca code driven by
+    // Why system: the automatic loop is host-local Manta code driven by
     // coordinator_runs, not a CLI caller, so it is a root by construction.
     creator: { kind: 'system' },
     maxDepth: params.nestedWorkerMaxDepth

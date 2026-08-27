@@ -28,7 +28,7 @@ export type BrowserRouteTcpEgressProbeResult = {
 export async function runBrowserRouteTcpEgressProbe(
   protectedSession: boolean
 ): Promise<BrowserRouteTcpEgressProbeResult> {
-  const root = mkdtempSync(join(tmpdir(), 'orca-browser-tcp-egress-'))
+  const root = mkdtempSync(join(tmpdir(), 'manta-browser-tcp-egress-'))
   const observations: TargetObservation[] = []
   const routedSourcePorts = new Set<number>()
   const socksHosts = new Set<string>()

@@ -1,9 +1,9 @@
 /**
  * Per-`{owner, provider}` manager and error state.
  *
- * Deliberately holds no reference to Orca automation storage: a provider that is
+ * Deliberately holds no reference to Manta automation storage: a provider that is
  * missing, wedged, or returning garbage is a fact about that manager only, and
- * must never be able to mark the host's Orca store unavailable.
+ * must never be able to mark the host's Manta store unavailable.
  */
 
 import type { ExternalAutomationManager } from '../../shared/automations-types'

@@ -68,14 +68,14 @@ describe('owner/repo identity cache', () => {
     await getOwnerRepoForRemote(REPO, 'origin')
     expect(remoteGetUrlCalls()).toBe(1)
 
-    remoteUrl = 'https://github.com/other-org/orca.git'
+    remoteUrl = 'https://github.com/other-org/manta.git'
     readLocalGitConfigSignatureMock.mockImplementation(async () => 'sig-2')
     vi.setSystemTime(Date.now() + THIRTY_SECONDS)
 
     // A signature change must invalidate before the TTL.
     await expect(getOwnerRepoForRemote(REPO, 'origin')).resolves.toEqual({
       owner: 'other-org',
-      repo: 'orca'
+      repo: 'manta'
     })
     expect(remoteGetUrlCalls()).toBe(2)
     vi.useRealTimers()

@@ -31,14 +31,14 @@ export type BrowserRoutePartitionStorageClear = {
 export async function collectOrphanedBrowserRoutePartitionStorage(
   listLocalSshTargetIds?: () => string[]
 ): Promise<string[]> {
-  const orcaProfileId = activeBrowserRoutePartitionOrcaProfileId()
-  if (!orcaProfileId) {
+  const mantaProfileId = activeBrowserRoutePartitionOrcaProfileId()
+  if (!mantaProfileId) {
     return []
   }
   const dependencies = storageDependencies()
   const liveStorageScopes = new Set(
     listEnvironments(app.getPath('userData')).map((environment) =>
-      deriveBrowserRoutePartitionStorageScope({ orcaProfileId, environmentId: environment.id })
+      deriveBrowserRoutePartitionStorageScope({ mantaProfileId, environmentId: environment.id })
     )
   )
   if (!listLocalSshTargetIds) {
@@ -46,7 +46,7 @@ export async function collectOrphanedBrowserRoutePartitionStorage(
   }
   for (const targetId of listLocalSshTargetIds()) {
     liveStorageScopes.add(
-      deriveLocalSshBrowserRoutePartitionStorageScope({ orcaProfileId, targetId })
+      deriveLocalSshBrowserRoutePartitionStorageScope({ mantaProfileId, targetId })
     )
   }
   const orphans = findOrphanedBrowserRoutePartitions(dependencies, liveStorageScopes)
@@ -67,14 +67,14 @@ export async function collectOrphanedBrowserRoutePartitionStorage(
 export async function clearBrowserRoutePartitionStorageForEnvironment(
   environmentId: string
 ): Promise<BrowserRoutePartitionStorageClear> {
-  const orcaProfileId = activeBrowserRoutePartitionOrcaProfileId()
-  if (!orcaProfileId) {
+  const mantaProfileId = activeBrowserRoutePartitionOrcaProfileId()
+  if (!mantaProfileId) {
     return { clearedPartitions: [], livePartitions: [] }
   }
   const dependencies = storageDependencies()
   const partitions = findBrowserRoutePartitionsForStorageScope(
     dependencies,
-    deriveBrowserRoutePartitionStorageScope({ orcaProfileId, environmentId })
+    deriveBrowserRoutePartitionStorageScope({ mantaProfileId, environmentId })
   )
   if (partitions.length === 0) {
     return { clearedPartitions: [], livePartitions: [] }
@@ -88,14 +88,14 @@ export async function clearBrowserRoutePartitionStorageForEnvironment(
 export async function clearBrowserRoutePartitionStorageForLocalSshTarget(
   targetId: string
 ): Promise<BrowserRoutePartitionStorageClear> {
-  const orcaProfileId = activeBrowserRoutePartitionOrcaProfileId()
-  if (!orcaProfileId) {
+  const mantaProfileId = activeBrowserRoutePartitionOrcaProfileId()
+  if (!mantaProfileId) {
     return { clearedPartitions: [], livePartitions: [] }
   }
   const dependencies = storageDependencies()
   const partitions = findBrowserRoutePartitionsForStorageScope(
     dependencies,
-    deriveLocalSshBrowserRoutePartitionStorageScope({ orcaProfileId, targetId })
+    deriveLocalSshBrowserRoutePartitionStorageScope({ mantaProfileId, targetId })
   )
   if (partitions.length === 0) {
     return { clearedPartitions: [], livePartitions: [] }

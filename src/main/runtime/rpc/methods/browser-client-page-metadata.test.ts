@@ -5,7 +5,7 @@ import {
 } from '../../../../shared/protocol-version'
 import type { RuntimeBrowserClientPlacement } from '../../../../shared/runtime-browser-placement'
 import { getBrowserHostLeaseRegistry } from '../../browser-host-lease-registry-instance'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { getRuntimeBrowserPageRegistry } from '../../runtime-browser-page-registry'
 import { RpcDispatcher } from '../dispatcher'
 import { BROWSER_CLIENT_HOST_METHODS } from './browser-client-host'
@@ -93,7 +93,7 @@ async function createHarness() {
     markClientHostedPagesReconciled: () => {},
     registerSubscriptionCleanup: (id: string, cleanup: () => void) => cleanups.set(id, cleanup),
     notifyMobileSessionTabsChanged: notifySessionTabs
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
   const dispatcher = new RpcDispatcher({ runtime, methods: BROWSER_CLIENT_HOST_METHODS })
   const replies: string[] = []
   const attached = dispatcher.dispatchStreaming(attachRequest(), (reply) => replies.push(reply), {

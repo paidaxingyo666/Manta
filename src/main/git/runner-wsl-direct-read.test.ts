@@ -392,7 +392,7 @@ describe('WSL direct Git reads', () => {
     await withPlatform('win32', async () => {
       execFileMock.mockImplementation((_command, args, _options, callback) => {
         const child = createMockChild()
-        if (String(args).includes('_orca_git_path')) {
+        if (String(args).includes('_manta_git_path')) {
           setTimeout(
             () => callback?.(null, fencedProbeStdout(args, LOGIN_ENVIRONMENT_FIELDS), ''),
             0
@@ -419,7 +419,7 @@ describe('WSL direct Git reads', () => {
         execFileMock.mockImplementation((_command, args, _options, callback) => {
           const child = createMockChild()
           // The probe never answers; only the git command itself does.
-          if (!String(args).includes('_orca_git_path')) {
+          if (!String(args).includes('_manta_git_path')) {
             queueMicrotask(() => callback?.(null, 'ok', ''))
           }
           return child

@@ -1,11 +1,11 @@
 import { normalizeBrowserNavigationUrl } from '../../../../shared/browser-url'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../../../shared/constants'
 import { createWebRuntimeSessionBrowserTab } from '@/runtime/web-runtime-session'
 
 /**
  * Last committed URL, reduced to what is safe to restore on another browser engine.
  * A blank or non-web destination reopens blank rather than replaying something the
- * new page cannot reproduce; Orca never reconstructs a request body.
+ * new page cannot reproduce; Manta never reconstructs a request body.
  */
 export function resolveBrowserReopenOnServerUrl(
   url: string | null | undefined
@@ -19,7 +19,7 @@ export function resolveBrowserReopenOnServerUrl(
   } catch {
     return undefined
   }
-  if (!normalized || normalized === ORCA_BROWSER_BLANK_URL || normalized.startsWith('file:')) {
+  if (!normalized || normalized === MANTA_BROWSER_BLANK_URL || normalized.startsWith('file:')) {
     return undefined
   }
   return normalized

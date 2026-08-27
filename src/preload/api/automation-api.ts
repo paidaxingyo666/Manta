@@ -24,7 +24,7 @@ export type ExternalAutomationManagerResult = {
 }
 
 /**
- * Orca automation CRUD rides the local runtime RPC surface (`runtime:call`),
+ * Manta automation CRUD rides the local runtime RPC surface (`runtime:call`),
  * so this IPC api carries only what stays desktop-native: the external-manager
  * scope (probes run on this computer) and the dispatch-loop plumbing.
  */

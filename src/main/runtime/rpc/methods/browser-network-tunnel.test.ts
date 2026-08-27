@@ -6,7 +6,7 @@ import {
 } from '../../../../shared/protocol-version'
 import { getBrowserHostLeaseRegistry } from '../../browser-host-lease-registry-instance'
 import type { BrowserHostLease } from '../../browser-host-lease-records'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { BrowserNetworkTunnelOutboundMemoryBudgetRegistry } from '../../../browser/browser-network-tunnel-outbound-memory-budget'
 import {
   browserNetworkExecutionHostKey,
@@ -36,15 +36,15 @@ function request(lease?: BrowserHostLease, overrides: Record<string, unknown> = 
   }
 }
 
-function runtime(cleanups = new Map<string, () => void>()): OrcaRuntimeService {
+function runtime(cleanups = new Map<string, () => void>()): MantaRuntimeService {
   return {
     getRuntimeId: () => 'runtime-a',
     getStartedAt: () => 1,
     registerSubscriptionCleanup: (id: string, cleanup: () => void) => cleanups.set(id, cleanup)
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
 }
 
-function attachLease(hostRuntime: OrcaRuntimeService): BrowserHostLease {
+function attachLease(hostRuntime: MantaRuntimeService): BrowserHostLease {
   return getBrowserHostLeaseRegistry(hostRuntime).attach({
     browserHostClientId: 'host-a',
     connectionId: 'host-control-connection',
@@ -54,7 +54,7 @@ function attachLease(hostRuntime: OrcaRuntimeService): BrowserHostLease {
 }
 
 function grantExecutionHost(
-  hostRuntime: OrcaRuntimeService,
+  hostRuntime: MantaRuntimeService,
   lease: BrowserHostLease,
   executionHost: Parameters<typeof browserNetworkExecutionHostKey>[0]
 ) {

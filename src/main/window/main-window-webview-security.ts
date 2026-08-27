@@ -12,7 +12,7 @@ import {
   browserRouteSessionRegistry,
   browserRouteWebContentsRegistry
 } from '../browser/browser-route-session-runtime'
-import { ORCA_BROWSER_BLANK_URL } from '../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../shared/constants'
 import { registerPluginPanelNavigationGuard } from '../plugins/plugin-panel-navigation-guard'
 import { installPrivilegedWindowNavigationPolicy } from './privileged-window-navigation'
 
@@ -38,7 +38,7 @@ export function installMainWindowWebviewSecurity(mainWindow: BrowserWindow): voi
     if (
       !normalizedSrc ||
       (!isProfilePartition && !isRoutePartition && !isLocalSshPartition) ||
-      (isRoutePartition && normalizedSrc !== ORCA_BROWSER_BLANK_URL)
+      (isRoutePartition && normalizedSrc !== MANTA_BROWSER_BLANK_URL)
     ) {
       event.preventDefault()
       return

@@ -23,7 +23,7 @@ import {
   REPO_ID
 } from './automations-page-fixtures'
 
-const repo = { id: REPO_ID, displayName: 'orca', path: '/src/orca' } as Repo
+const repo = { id: REPO_ID, displayName: 'manta', path: '/src/manta' } as Repo
 const repoMap = new Map([[REPO_ID, repo]])
 
 function fieldsFor(
@@ -49,7 +49,7 @@ describe('automation search row fields', () => {
 
     expect(fields).toEqual({
       name: 'Nightly sweep',
-      project: 'orca /src/orca',
+      project: 'manta /src/manta',
       workspace: 'feature/login-retry',
       agent: getAgentLabel('claude'),
       host: 'build-box',
@@ -108,7 +108,7 @@ describe('automation search row index', () => {
     expect(rows.map((row) => row.key)).toEqual([first, second])
     expect(matchAutomationListSearchRowKeys(rows, 'reviewers')).toEqual([second])
     expect(matchAutomationListSearchRowKeys(rows, 'build-box')).toEqual([second])
-    expect(matchAutomationListSearchRowKeys(rows, 'orca')).toEqual([first, second])
+    expect(matchAutomationListSearchRowKeys(rows, 'manta')).toEqual([first, second])
     expect(matchAutomationListSearchRowKeys(rows, 'nothing')).toEqual([])
   })
 

@@ -41,7 +41,7 @@ describe('browser client page renderer runtime', () => {
     const renderer = selectBrowserClientPageRenderer()
     const mounted = renderer.mountPage(
       {
-        partition: 'persist:orca-browser-route:v1:partition-a',
+        partition: 'persist:manta-browser-route:v1:partition-a',
         browserPageId: 'page-a',
         pageHostGeneration: 7
       },

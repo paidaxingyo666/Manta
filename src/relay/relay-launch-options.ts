@@ -43,7 +43,7 @@ export function parseRelayLaunchOptions(argv: string[]): RelayLaunchOptions {
       i++
     } else if (argv[i] === '--connect') {
       connectMode = true
-    } else if (argv[i] === '--orca-cli') {
+    } else if (argv[i] === '--manta-cli') {
       cliMode = true
     } else if (argv[i] === '--detached') {
       detached = true

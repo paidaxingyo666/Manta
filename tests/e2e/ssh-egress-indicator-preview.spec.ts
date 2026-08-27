@@ -1,9 +1,9 @@
 // Throwaway interactive preview (untracked): a REAL routed SSH-workspace page
 // (docker sshd) with the egress indicator chip visible, held open for review.
-// Run: ORCA_SSH_INDICATOR_PREVIEW=1 ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
+// Run: ORCA_SSH_INDICATOR_PREVIEW=1 MANTA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
 //   --config tests/playwright.config.ts --project electron-headless --workers=1 \
 //   tests/e2e/ssh-egress-indicator-preview.spec.ts
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   cleanupDockerSshRelayTarget,
@@ -25,13 +25,13 @@ const HOLD_MINUTES = 20
 
 test('shows the egress indicator on a live routed SSH page and holds', async ({
   electronApp,
-  orcaPage
+  mantaPage
 }, testInfo) => {
   test.setTimeout((HOLD_MINUTES + 15) * 60_000)
   let target: DockerSshRelayTarget | null = null
   try {
-    await waitForSessionReady(orcaPage)
-    await waitForActiveWorktree(orcaPage)
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
 
     await electronApp.evaluate(({ BrowserWindow }) => {
       const window = BrowserWindow.getAllWindows()[0]
@@ -43,9 +43,9 @@ test('shows the egress indicator on a live routed SSH page and holds', async ({
 
     target = startDockerSshRelayTarget(testInfo)
     startSshRemoteOnlyBrowserFixture(target)
-    const remote = await connectDockerSshRelayTarget(orcaPage, target)
+    const remote = await connectDockerSshRelayTarget(mantaPage, target)
 
-    await orcaPage.evaluate(
+    await mantaPage.evaluate(
       ({ worktreeId, url }) => {
         const state = window.__store?.getState()
         if (!state) {
@@ -57,7 +57,7 @@ test('shows the egress indicator on a live routed SSH page and holds', async ({
       { worktreeId: remote.worktreeId, url: `${SSH_REMOTE_ONLY_ORIGIN}/login` }
     )
 
-    const chip = orcaPage.getByTestId('ssh-egress-indicator')
+    const chip = mantaPage.getByTestId('ssh-egress-indicator')
     await expect(chip).toBeVisible({ timeout: 60_000 })
     await expect(chip).toHaveAttribute('data-egress', 'ssh')
 

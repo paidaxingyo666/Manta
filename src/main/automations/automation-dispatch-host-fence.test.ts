@@ -58,7 +58,7 @@ function sshTarget(generation: number | undefined): SshTarget {
     label: 'devbox',
     host: 'devbox.internal',
     port: 22,
-    username: 'orca',
+    username: 'manta',
     ...(generation === undefined ? {} : { generation })
   }
 }

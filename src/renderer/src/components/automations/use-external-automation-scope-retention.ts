@@ -8,7 +8,7 @@ import type { AutomationHostCatalogEntry } from './automation-host-catalog-types
  *
  * Probes for a host the user has filtered away are cancelled rather than left to
  * finish: they would land after the view moved on, and they compete with the
- * Orca traffic the user is waiting on. Leaving the page retains nothing.
+ * Manta traffic the user is waiting on. Leaving the page retains nothing.
  */
 export function useExternalAutomationScopeRetention(
   entries: readonly AutomationHostCatalogEntry[]

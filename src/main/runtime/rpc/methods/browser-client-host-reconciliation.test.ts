@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BROWSER_CLIENT_HOST_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 import { getBrowserHostLeaseRegistry } from '../../browser-host-lease-registry-instance'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { RpcDispatcher } from '../dispatcher'
 import { BROWSER_CLIENT_HOST_METHODS } from './browser-client-host'
 
@@ -155,7 +155,7 @@ async function commandResult(dispatcher: RpcDispatcher, params: Record<string, u
   return JSON.parse(replies[0]!)
 }
 
-function runtime(cleanups: Map<string, () => void>): OrcaRuntimeService {
+function runtime(cleanups: Map<string, () => void>): MantaRuntimeService {
   return {
     getRuntimeId: () => 'runtime-a',
     getStartedAt: () => 1,
@@ -163,5 +163,5 @@ function runtime(cleanups: Map<string, () => void>): OrcaRuntimeService {
     resolveBrowserExecutionHostKeyForWorkspace: async () => undefined,
     markClientHostedPagesReconciled: () => {},
     registerSubscriptionCleanup: (id: string, cleanup: () => void) => cleanups.set(id, cleanup)
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
 }

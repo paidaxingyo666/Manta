@@ -46,7 +46,7 @@ const makeRepo = (): Repo => ({
 
 const SETUP_GONE = 'Project is not set up on the selected automation host anymore.'
 
-const NO_WINDOW = 'No Orca window was available to launch the automation.'
+const NO_WINDOW = 'No Manta window was available to launch the automation.'
 
 /**
  * Daily at 09:00, pointed at a project host setup that does not exist. The
@@ -66,7 +66,7 @@ async function seedUnresolvableAutomation(): Promise<{ store: Store; automation:
     rrule: 'FREQ=DAILY;BYHOUR=9;BYMINUTE=0',
     dtstart: new Date('2026-05-12T00:00:00').getTime()
   })
-  const file = join(testState.dir, 'orca-data.json')
+  const file = join(testState.dir, 'manta-data.json')
   const state = JSON.parse(readFileSync(file, 'utf-8'))
   state.automations[0].runContext = {
     kind: 'workspace-run',

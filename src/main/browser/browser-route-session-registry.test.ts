@@ -6,7 +6,7 @@ import {
 } from './browser-route-session-registry'
 
 const identity = {
-  orcaProfileId: 'orca-profile-a',
+  mantaProfileId: 'orca-profile-a',
   browserProfileId: 'browser-profile-a',
   authorityConnectionIdentity: 'authority-a',
   executionHostIdentity: 'execution-host-a'

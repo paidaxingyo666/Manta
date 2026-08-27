@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { expect } from './orca-app'
+import { expect } from './manta-app'
 
 export type MaterializedRemoteBrowserPane = {
   /** The client's local browser page id — the key its remote handle is stored under. */

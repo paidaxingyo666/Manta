@@ -219,7 +219,7 @@ describe('wslCodexSessionsDirs', () => {
   })
 
   it('includes WSL managed-account session roots supplied by the runtime', async () => {
-    const accountHome = `${UBUNTU_HOME}\\.local\\share\\orca\\codex-accounts\\account-1\\home`
+    const accountHome = `${UBUNTU_HOME}\\.local\\share\\manta\\codex-accounts\\account-1\\home`
     configureHostReadableTranscriptPathSources({
       getAdditionalCodexHomePaths: () => [accountHome, '/host/account/home']
     })

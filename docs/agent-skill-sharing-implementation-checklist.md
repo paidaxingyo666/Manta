@@ -795,7 +795,7 @@ does not mean the surrounding phase is complete.
       `orca-cloud-auth-db`.
 - [x] Declare dedicated principal `manta_skills_app` with access only to `manta_skills`.
 - [x] Store its connection URL in Secret Manager as `orca-cloud-skills-database-url`.
-- [x] Attach the existing Cloud SQL instance to `orca-cloud-api` without replacing the service.
+- [x] Attach the existing Cloud SQL instance to `manta-cloud-api` without replacing the service.
 - [x] Inject only the skill database secret into the API service.
 - [x] Verify backups and point-in-time recovery cover the new database. `manta_skills` shares the
       Terraform-managed Cloud SQL instance whose live staging and production settings both have
@@ -819,7 +819,7 @@ does not mean the surrounding phase is complete.
 
 ### Cloud Run configuration
 
-- [x] Extend `orca-cloud-api` in `us-central1`; do not create a separate V1 worker service.
+- [x] Extend `manta-cloud-api` in `us-central1`; do not create a separate V1 worker service.
 - [x] Configure bucket, 40 MiB compressed limit, 15-minute upload TTL, five-minute download TTL,
       fixed finalize concurrency, and skill database URL.
 - [x] Reuse existing auth base URL and application CORS configuration.
@@ -1511,7 +1511,7 @@ disconnect boundaries remain separate gates below.
 ### Staging
 
 - [x] Apply reviewed Terraform and migrations to staging.
-- [x] Deploy `orca-cloud-api` skill routes disabled by server-side flags.
+- [x] Deploy `manta-cloud-api` skill routes disabled by server-side flags.
 - [x] Enable all four staging controls and pass the GitHub OIDC owner plus anonymous bearer-link
       lifecycle smoke, including owner management, immutable versions, local/remote grants,
       rollback selection, expiry, revocation, deletion, and object cleanup.

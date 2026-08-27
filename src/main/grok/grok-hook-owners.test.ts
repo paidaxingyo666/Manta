@@ -19,7 +19,7 @@ describe('Grok hook owners', () => {
     await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true })))
   })
 
-  it('keeps the shared hook while another Orca process is live', async () => {
+  it('keeps the shared hook while another Manta process is live', async () => {
     const directory = await makeDirectory()
     const peer = { token: '11111111-1111-4111-8111-111111111111', pid: 42 }
     await writeFile(join(directory, `owner-${peer.token}.json`), JSON.stringify(peer))

@@ -2,7 +2,7 @@ import type { Session, WebContents } from 'electron'
 import { describe, expect, it, vi } from 'vitest'
 import { BrowserRouteWebContentsRegistry } from './browser-route-webcontents-registry'
 
-const partition = `persist:orca-browser-v1-${'a'.repeat(64)}`
+const partition = `persist:manta-browser-v1-${'a'.repeat(64)}`
 const page = {
   partition,
   browserPageId: 'page-a',

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 /**
- * A record Orca switched off used to be indistinguishable from one the user
+ * A record Manta switched off used to be indistinguishable from one the user
  * switched off — same "Paused", no reason, no next step. These pin the one new
  * state to the migration's own stamp, and pin the other two to reading exactly
  * as they did before it existed.
@@ -28,7 +28,7 @@ async function render(overrides: Partial<Automation>): Promise<HTMLDivElement> {
         <AutomationDetail
           automation={makeAutomation(overrides)}
           runs={[]}
-          projectName="orca"
+          projectName="manta"
           workspaceName="main"
           projectDefaultBaseRef="main"
           runNowAvailability={null}

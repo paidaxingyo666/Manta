@@ -19,7 +19,7 @@ function createPath(): string {
 }
 
 function partitionAt(index: number): string {
-  return `persist:orca-browser-v1-${index.toString(16).padStart(64, '0')}`
+  return `persist:manta-browser-v1-${index.toString(16).padStart(64, '0')}`
 }
 
 /** Persisted v2 state, written directly so entry shapes older builds wrote can be replayed. */

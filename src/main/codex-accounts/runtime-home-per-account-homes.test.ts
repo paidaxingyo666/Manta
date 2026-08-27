@@ -307,7 +307,7 @@ describe('CodexRuntimeHomeService', () => {
 
   it('includes WSL account homes in session discovery', async () => {
     const wslHome =
-      '\\\\wsl.localhost\\Ubuntu\\home\\me\\.local\\share\\orca\\codex-accounts\\account-1\\home'
+      '\\\\wsl.localhost\\Ubuntu\\home\\me\\.local\\share\\manta\\codex-accounts\\account-1\\home'
     const store = createStore(
       createSettings({
         codexManagedAccounts: [
@@ -317,7 +317,7 @@ describe('CodexRuntimeHomeService', () => {
             managedHomePath: wslHome,
             managedHomeRuntime: 'wsl',
             wslDistro: 'Ubuntu',
-            wslLinuxHomePath: '/home/me/.local/share/orca/codex-accounts/account-1/home',
+            wslLinuxHomePath: '/home/me/.local/share/manta/codex-accounts/account-1/home',
             providerAccountId: null,
             workspaceLabel: null,
             workspaceAccountId: null,

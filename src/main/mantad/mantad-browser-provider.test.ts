@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runProcess, spawnProcess } from '../../shared/child-process/run-process'
 import { ExternalChromiumBrowserProcess } from './external-chromium-browser-process'
-import { installedElectronCandidates, resolveMantadBrowserProvider } from './mantad-browser-provider'
+import {
+  installedElectronCandidates,
+  resolveMantadBrowserProvider
+} from './mantad-browser-provider'
 import { mantadAgentBrowserNativeName } from './mantad-agent-browser-binary'
 import {
   runtimeBrowserUnavailableCause,
@@ -110,7 +113,7 @@ describe('ExternalChromiumBrowserProcess', () => {
       resolveWorktreeSelector: async (selector) => ({ id: selector }),
       resolveBrowserWorkspace: async (selector) => ({ id: selector }),
       // Unused by the sidecar command paths under test; the daemon's real host is
-      // OrcaRuntimeService, which owns the client-hosted registries.
+      // MantaRuntimeService, which owns the client-hosted registries.
       resolveBrowserNetworkExecutionHost: () => {
         throw new Error('No browser network execution host')
       },

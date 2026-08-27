@@ -9,13 +9,13 @@ vi.mock('electron', () => ({
 }))
 
 import {
-  configurePairedRuntimeBrowserClientHostsForOrcaProfile,
+  configurePairedRuntimeBrowserClientHostsForMantaProfile,
   startPairedRuntimeBrowserClientHost
 } from './paired-runtime-browser-client-host-runtime'
 
 describe('paired runtime browser client host runtime', () => {
   it('returns a rejected promise when pairing resolution fails', async () => {
-    configurePairedRuntimeBrowserClientHostsForOrcaProfile({ orcaProfileId: 'profile-a' })
+    configurePairedRuntimeBrowserClientHostsForMantaProfile({ mantaProfileId: 'profile-a' })
     const environment = {
       id: 'environment-a',
       name: 'Environment A',

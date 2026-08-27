@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react'
 
-import { filterLinearIssuesBySearchQuery } from '@/components/task-page-linear-in-orca-issues'
+import { filterLinearIssuesBySearchQuery } from '@/components/task-page-linear-in-manta-issues'
 import {
   compareLinearIssues,
   type LinearProjectTab
@@ -74,12 +74,12 @@ export function useTaskPageLinearIssuePaging({
 }) {
   const filteredLinearIssues = useMemo(() => {
     const searchedIssues =
-      linearMode === 'in-orca'
+      linearMode === 'in-manta'
         ? filterLinearIssuesBySearchQuery(displayedLinearIssues, appliedLinearSearch)
         : displayedLinearIssues
-    // Why: 'in-orca' is scoped by local workspace links, not by team, and it has no "Fetch more" —
+    // Why: 'in-manta' is scoped by local workspace links, not by team, and it has no "Fetch more" —
     // a team filter would silently drop a linked ticket with no way to recover it.
-    if (activeLinearIssueContextLabel || linearMode === 'in-orca') {
+    if (activeLinearIssueContextLabel || linearMode === 'in-manta') {
       return searchedIssues
     }
     // Why: team options can arrive after issue rows render; treat an empty selection as "all" until reconciliation sets teams.

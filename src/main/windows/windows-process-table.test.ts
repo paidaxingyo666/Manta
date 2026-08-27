@@ -330,8 +330,8 @@ describe('resolving the native reader', () => {
       {
         pid: 100,
         ppid: 4,
-        name: 'orca.exe',
-        command: '"C:/a b/orca.exe" --x',
+        name: 'manta.exe',
+        command: '"C:/a b/manta.exe" --x',
         memoryBytes: 4096
       }
     ])

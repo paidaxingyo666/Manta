@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
 import { readHostBrowserPageIds } from './helpers/host-session-tabs'
 import { cleanupE2EDaemons, closeElectronAppForE2E } from './helpers/electron-process-shutdown'
@@ -33,30 +33,30 @@ const RECONNECT_GRACE_OVERSHOOT_MS = 20_000
  * nothing on the host answers for.
  */
 function forgetPersistedClientHostedPages(userDataDir: string): number {
-  return listOrcaDataFiles(userDataDir).reduce(
+  return listMantaDataFiles(userDataDir).reduce(
     (total, dataFile) => total + forgetPersistedClientHostedPagesIn(dataFile),
     0
   )
 }
 
 /**
- * Every orca-data.json under a user-data dir.
+ * Every manta-data.json under a user-data dir.
  *
- * The live one is `profiles/<id>/orca-data.json`; the root file is only the harness's onboarding
+ * The live one is `profiles/<id>/manta-data.json`; the root file is only the harness's onboarding
  * seed, which the first boot migrates from. Reading the seed alone made the strip a no-op that
  * looked exactly like a runtime that had persisted nothing.
  */
-function listOrcaDataFiles(userDataDir: string): string[] {
+function listMantaDataFiles(userDataDir: string): string[] {
   const profilesDir = path.join(userDataDir, 'profiles')
   let profileFiles: string[] = []
   try {
     profileFiles = readdirSync(profilesDir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
-      .map((entry) => path.join(profilesDir, entry.name, 'orca-data.json'))
+      .map((entry) => path.join(profilesDir, entry.name, 'manta-data.json'))
   } catch {
     // No profile directory yet; only the harness seed exists.
   }
-  return [path.join(userDataDir, 'orca-data.json'), ...profileFiles].filter((file) => {
+  return [path.join(userDataDir, 'manta-data.json'), ...profileFiles].filter((file) => {
     try {
       readFileSync(file, 'utf8')
       return true

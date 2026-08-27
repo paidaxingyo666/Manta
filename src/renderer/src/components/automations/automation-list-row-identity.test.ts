@@ -28,7 +28,7 @@ import { REPO_ID } from './automations-page-fixtures'
 import { automationRepoForRow, automationWorktreeForRow } from './automation-list-row-identity'
 
 const repoMap = new Map([
-  [REPO_ID, { id: REPO_ID, displayName: 'orca', path: '/src/orca' } as Repo]
+  [REPO_ID, { id: REPO_ID, displayName: 'manta', path: '/src/manta' } as Repo]
 ])
 
 const DESKTOP_SELF: AutomationHostCatalogEntry = {

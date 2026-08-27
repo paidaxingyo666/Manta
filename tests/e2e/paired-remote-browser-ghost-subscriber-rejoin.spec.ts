@@ -8,7 +8,7 @@ import {
 } from './helpers/headless-paired-runtime-host'
 import { forceQuitElectronAppForE2E } from './helpers/electron-process-shutdown'
 import { focusMaterializedRemoteBrowserPane } from './helpers/materialized-remote-browser-pane'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import {
   launchPairedElectronClient,
   type PairedElectronClient

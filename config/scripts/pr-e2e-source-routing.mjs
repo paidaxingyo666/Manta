@@ -105,14 +105,14 @@ export const PR_E2E_SOURCE_ROUTES = [
   {
     // Why a second, wider pattern: restart survival breaks from seams that never say
     // "client-hosted" - page adoption, the host lease/reconciliation plan, the session-tab
-    // snapshot the client culls rows against. orca-runtime.ts is included despite its churn: it
+    // snapshot the client culls rows against. manta-runtime.ts is included despite its churn: it
     // publishes the snapshot flag the client holds its rows on, and no narrower path names that
     // seam.
     id: 'client-hosted-browser.restart-survival',
     specs: ['tests/e2e/paired-client-hosted-browser-restart-survival.spec.ts'],
     matches: (file) =>
       isProductSource(file) &&
-      /^src\/.*(?:[Cc]lient-?[Hh]osted|browser-host-(?:lease|page|client-page)|browser-client-(?:host|page)|runtime-browser-(?:client-)?page|session-tabs-sync|host-session-snapshot-authority|orca-runtime(?:-browser)?\.ts|\/runtime-(?:status|types)\.ts)/.test(
+      /^src\/.*(?:[Cc]lient-?[Hh]osted|browser-host-(?:lease|page|client-page)|browser-client-(?:host|page)|runtime-browser-(?:client-)?page|session-tabs-sync|host-session-snapshot-authority|manta-runtime(?:-browser)?\.ts|\/runtime-(?:status|types)\.ts)/.test(
         file
       )
   }

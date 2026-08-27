@@ -3,7 +3,7 @@ import type { RuntimeFileReadChunkResult } from '../../shared/runtime-types'
 import { FileRangeReadUnsupportedError, type IFilesystemProvider } from '../providers/types'
 
 export const SSH_RANGED_READ_UNAVAILABLE_MESSAGE =
-  'This SSH host cannot serve ranged file reads; reconnect the SSH target to update its Orca helper and retry'
+  'This SSH host cannot serve ranged file reads; reconnect the SSH target to update its Manta helper and retry'
 
 /**
  * Serves one `readFileExplorerChunk` window from an SSH host, mirroring the local positional read.

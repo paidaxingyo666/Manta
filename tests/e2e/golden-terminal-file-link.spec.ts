@@ -191,12 +191,12 @@ test('opens a terminal file link and observes an external edit @golden', async (
 })
 
 test('reuses a terminal file link already open in a sibling workspace @golden', async ({
-  orcaPage
+  mantaPage
 }) => {
   test.setTimeout(180_000)
-  await waitForSessionReady(orcaPage)
-  const sourceWorktreeId = await waitForActiveWorktree(orcaPage)
-  const sibling = await orcaPage.evaluate((sourceId) => {
+  await waitForSessionReady(mantaPage)
+  const sourceWorktreeId = await waitForActiveWorktree(mantaPage)
+  const sibling = await mantaPage.evaluate((sourceId) => {
     const state = window.__store?.getState()
     return (
       Object.values(state?.worktreesByRepo ?? {})
@@ -209,7 +209,7 @@ test('reuses a terminal file link already open in a sibling workspace @golden', 
   }
 
   const filePath = path.join(sibling.path, 'package.json')
-  await orcaPage.evaluate(
+  await mantaPage.evaluate(
     ({ filePath, sourceWorktreeId, siblingWorktreeId }) => {
       const state = window.__store?.getState()
       if (!state) {
@@ -228,23 +228,23 @@ test('reuses a terminal file link already open in a sibling workspace @golden', 
     { filePath, sourceWorktreeId, siblingWorktreeId: sibling.id }
   )
 
-  await ensureTerminalVisible(orcaPage)
-  await waitForActiveTerminalManager(orcaPage, 30_000)
-  const ptyId = await waitForActivePanePtyId(orcaPage)
-  await waitForPtyShellEcho(orcaPage, ptyId, 15_000)
+  await ensureTerminalVisible(mantaPage)
+  await waitForActiveTerminalManager(mantaPage, 30_000)
+  const ptyId = await waitForActivePanePtyId(mantaPage)
+  await waitForPtyShellEcho(mantaPage, ptyId, 15_000)
   const printedPath = process.platform === 'win32' ? filePath.replaceAll('\\', '/') : filePath
   const command = nodeTerminalCommand(['-e', `console.log(${JSON.stringify(printedPath)})`])
-  await sendToTerminal(orcaPage, ptyId, `${command}\r`)
+  await sendToTerminal(mantaPage, ptyId, `${command}\r`)
   await expect
-    .poll(() => getTerminalContent(orcaPage, LINK_SCAN_CHAR_LIMIT), { timeout: 15_000 })
+    .poll(() => getTerminalContent(mantaPage, LINK_SCAN_CHAR_LIMIT), { timeout: 15_000 })
     .toContain(printedPath)
 
   let probe: LinkProbe | null = null
   await expect
     .poll(
       async () => {
-        probe = await locateLink(orcaPage, printedPath)
-        return probe ? hoverLink(orcaPage, probe) : null
+        probe = await locateLink(mantaPage, printedPath)
+        return probe ? hoverLink(mantaPage, probe) : null
       },
       { timeout: 10_000, message: 'sibling file path did not become clickable' }
     )
@@ -252,22 +252,22 @@ test('reuses a terminal file link already open in a sibling workspace @golden', 
   if (!probe) {
     throw new Error('sibling file link disappeared before activation')
   }
-  await clickLink(orcaPage, probe)
-  const actionPopover = orcaPage.locator('[data-terminal-link-action-popover]')
+  await clickLink(mantaPage, probe)
+  const actionPopover = mantaPage.locator('[data-terminal-link-action-popover]')
   await expect(actionPopover).toBeVisible()
   await actionPopover.getByRole('button', { name: /Open file/i }).click()
 
-  const editorHeader = orcaPage.locator('.editor-header-path').first()
+  const editorHeader = mantaPage.locator('.editor-header-path').first()
   await expect(editorHeader).toContainText('package.json', { timeout: 20_000 })
   await expect
     .poll(
       () =>
-        orcaPage.evaluate(() => ({
+        mantaPage.evaluate(() => ({
           filePath: window.__monacoEditorE2E?.filePath ?? null,
           activeWorktreeId: window.__store?.getState()?.activeWorktreeId ?? null
         })),
       { timeout: 20_000, message: 'sibling workspace never rendered the linked file' }
     )
     .toEqual({ filePath, activeWorktreeId: sibling.id })
-  await expect(orcaPage.getByText('Loading...', { exact: true })).toHaveCount(0)
+  await expect(mantaPage.getByText('Loading...', { exact: true })).toHaveCount(0)
 })

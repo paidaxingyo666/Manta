@@ -6,7 +6,7 @@ import {
 } from './browser-route-identity'
 
 const identity = {
-  orcaProfileId: 'orca/profile:alpha',
+  mantaProfileId: 'manta/profile:alpha',
   browserProfileId: 'browser/profile:default',
   authorityConnectionIdentity: 'paired/runtime:authority',
   executionHostIdentity: 'ssh/target:private.example'
@@ -14,10 +14,10 @@ const identity = {
 
 /** Shipping-shaped inputs whose derived names are frozen: both are persisted on disk. */
 const pinnedIdentity = {
-  orcaProfileId: 'orca/profile:alpha',
+  mantaProfileId: 'manta/profile:alpha',
   browserProfileId: 'browser/profile:default',
   authorityConnectionIdentity: 'paired-runtime:authority-a',
-  executionHostIdentity: '["orca-browser-execution-host-storage",1,"authority","env-a"]'
+  executionHostIdentity: '["manta-browser-execution-host-storage",1,"authority","env-a"]'
 }
 
 describe('browser route partition identity', () => {
@@ -26,7 +26,7 @@ describe('browser route partition identity', () => {
     const second = deriveBrowserRoutePartition({ ...identity })
 
     expect(second).toEqual(first)
-    expect(first.partition).toMatch(/^persist:orca-browser-v1-[a-f0-9]{64}$/)
+    expect(first.partition).toMatch(/^persist:manta-browser-v1-[a-f0-9]{64}$/)
     expect(first.bindingFingerprint).toMatch(/^[a-f0-9]{64}$/)
     expect(first.partition.slice('persist:'.length)).toMatch(/^[a-z0-9-]+$/)
     for (const rawIdentity of Object.values(identity)) {
@@ -38,12 +38,12 @@ describe('browser route partition identity', () => {
   it('keeps delimiter-containing components structurally distinct', () => {
     const left = deriveBrowserRoutePartition({
       ...identity,
-      orcaProfileId: 'a',
+      mantaProfileId: 'a',
       browserProfileId: 'b:c'
     })
     const right = deriveBrowserRoutePartition({
       ...identity,
-      orcaProfileId: 'a:b',
+      mantaProfileId: 'a:b',
       browserProfileId: 'c'
     })
 
@@ -66,7 +66,7 @@ describe('browser route partition identity', () => {
   it('makes every identity component load-bearing', () => {
     const derived = [
       identity,
-      { ...identity, orcaProfileId: 'orca/profile:beta' },
+      { ...identity, mantaProfileId: 'manta/profile:beta' },
       { ...identity, browserProfileId: 'browser/profile:work' },
       { ...identity, authorityConnectionIdentity: 'paired/runtime:other' },
       { ...identity, executionHostIdentity: 'ssh/target:other.example' }
@@ -78,11 +78,18 @@ describe('browser route partition identity', () => {
 
   // Why: both names are persisted, so a changed hash input, order, tag, or version relocates
   // every existing user's cookie jar instead of failing.
+  //
+  // These differ from upstream's by exactly one thing: the component tag reads
+  // `manta-profile` and the version prefix `manta-browser-v1`, where upstream
+  // says orca. Free to change here only because this module arrived in the same
+  // sync that renamed it — no build of this fork has ever written a partition
+  // under the old name, so there is nothing to relocate. Anything that moves
+  // them after this point does relocate real cookie jars.
   it('pins the derived partition and fingerprint against silent relocation', () => {
     expect(deriveBrowserRoutePartition(pinnedIdentity)).toEqual({
       partition:
-        'persist:orca-browser-v1-955a5db671b210d053d64d1e557d8cdf1e60e1e6cb710a033f1b5cd1b61e6586',
-      bindingFingerprint: 'fe69d9d83ab889b68eeb185f12821e4e0e77dcc91fc4cb7672c88e7818a4ded7'
+        'persist:manta-browser-v1-e054b77296faa69b8da1acaaf2b3fbbc3dac3a2dc7f2d5a50ffda1e327126d2d',
+      bindingFingerprint: 'fb75d2cc662fedd2a0ffdf5a149e117aa20068656b16dfd5ead92415ec2a87fa'
     })
   })
 
@@ -94,22 +101,22 @@ describe('browser route partition identity', () => {
 
   // Why: removal deletes every partition carrying the scope, so a scope missing either
   // component wipes storage the removed record never owned.
-  it('scopes partition ownership to one orca profile and one environment', () => {
+  it('scopes partition ownership to one manta profile and one environment', () => {
     const scope = deriveBrowserRoutePartitionStorageScope({
-      orcaProfileId: 'orca/profile:alpha',
+      mantaProfileId: 'manta/profile:alpha',
       environmentId: 'environment-a'
     })
 
-    expect(scope).toBe('2821c92c85c9724ddb6136aeeec266a84fc5a9ea00f61faacef8db89bea79fb4')
+    expect(scope).toBe('805fa06af660887e3b788fa45f1b53a1351337b23796d592b14625c5c3317e13')
     expect(
       deriveBrowserRoutePartitionStorageScope({
-        orcaProfileId: 'orca/profile:alpha',
+        mantaProfileId: 'manta/profile:alpha',
         environmentId: 'environment-b'
       })
     ).not.toBe(scope)
     expect(
       deriveBrowserRoutePartitionStorageScope({
-        orcaProfileId: 'orca/profile:beta',
+        mantaProfileId: 'manta/profile:beta',
         environmentId: 'environment-a'
       })
     ).not.toBe(scope)

@@ -1,5 +1,5 @@
 /**
- * Drives the runtime's own wiring: a real OrcaRuntimeService, the real page registry, and the real
+ * Drives the runtime's own wiring: a real MantaRuntimeService, the real page registry, and the real
  * session-tabs announcement every client-page mutation already goes through.
  *
  * The store here is a fake holding one session object -- enough to prove the runtime writes and
@@ -15,7 +15,7 @@ import type { RuntimeBrowserClientPlacement } from '../../shared/runtime-browser
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import { getBrowserHostLeaseRegistry } from './browser-host-lease-registry-instance'
 import { isRestoredClientHostedBrowserPlacement } from './client-hosted-browser-page-persistence'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { getRuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 
 const WT = 'repo-1::/tmp/worktree-a'
@@ -73,13 +73,13 @@ function createProfile() {
   }
 }
 
-function startRuntime(profile: ReturnType<typeof createProfile>): OrcaRuntimeService {
-  const runtime = new OrcaRuntimeService(profile.store, undefined, {})
+function startRuntime(profile: ReturnType<typeof createProfile>): MantaRuntimeService {
+  const runtime = new MantaRuntimeService(profile.store, undefined, {})
   runtime.rehydrateClientHostedBrowserPages()
   return runtime
 }
 
-function placeAndPublish(runtime: OrcaRuntimeService, browserPageId: string): void {
+function placeAndPublish(runtime: MantaRuntimeService, browserPageId: string): void {
   const placement = getBrowserHostLeaseRegistry(runtime).placeClientPage(browserPageId, 'host-a')
   if (placement.kind !== 'client') {
     throw new Error('expected client placement')
@@ -98,7 +98,7 @@ function placeAndPublish(runtime: OrcaRuntimeService, browserPageId: string): vo
   })
 }
 
-function attachHost(runtime: OrcaRuntimeService) {
+function attachHost(runtime: MantaRuntimeService) {
   return getBrowserHostLeaseRegistry(runtime).attach({
     browserHostClientId: 'host-a',
     connectionId: 'connection-host-a',

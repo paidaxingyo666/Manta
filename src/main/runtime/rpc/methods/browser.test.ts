@@ -22,7 +22,7 @@ describe('browser RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       browserTabCreate: vi.fn().mockResolvedValue({ browserPageId: 'page-1' })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: BROWSER_CORE_METHODS })
     const replies: string[] = []
     const params = {

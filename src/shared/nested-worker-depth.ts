@@ -2,7 +2,7 @@ import type { GlobalSettings } from './global-settings-types'
 
 /**
  * How deep dispatched workers may nest. 1 means a coordinator dispatches
- * workers and those workers may not dispatch further — the behaviour Orca
+ * workers and those workers may not dispatch further — the behaviour Manta
  * documented but never actually enforced.
  */
 export const NESTED_WORKER_MAX_DEPTH_DEFAULT = 1
@@ -23,7 +23,7 @@ export function nestedWorkerDepthExceededMessage(childDepth: number, maxDepth: n
 
 export const NESTED_WORKER_DEPTH_EXCEEDED_NEXT_STEPS: readonly string[] = [
   'Do the work in this terminal instead of dispatching a sub-worker.',
-  'To allow deeper nesting, open Settings → Orchestration in the Orca desktop app and raise "Nested worker depth".'
+  'To allow deeper nesting, open Settings → Orchestration in the Manta desktop app and raise "Nested worker depth".'
 ]
 
 /**

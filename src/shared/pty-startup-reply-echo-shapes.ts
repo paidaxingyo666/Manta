@@ -33,7 +33,7 @@ const PRIVATE_DSR_RE = new RegExp('^\\u001b\\[\\?[0-9][0-9;]*n$')
 const MIN_READLINE_NEEDLE_LENGTH = 4
 
 /**
- * ECHOCTL carets EVERY control, not just ESC. Every OSC reply Orca emits is ST-terminated
+ * ECHOCTL carets EVERY control, not just ESC. Every OSC reply Manta emits is ST-terminated
  * (terminal-osc-color-reply.ts) and ST is ESC-led, so this is byte-identical to the old
  * ESC-only encoding for all of them. It matters for a BEL-terminated reply, which the
  * grammar admits from a foreign or older emulator: the tty prints that BEL as `^G`, where
@@ -86,7 +86,7 @@ export function replyEchoProjections(
 ): readonly EchoProjection[] {
   if (ownerBackend === 'windows-conpty') {
     // ESC-stripped, but observed only for the ST-terminated OSC 10/11 reply that #9651
-    // was reported against — which is every OSC reply Orca emits. Whether conhost leaves a
+    // was reported against — which is every OSC reply Manta emits. Whether conhost leaves a
     // BEL literal, carets it, or eats it is unknown, so this shares the latent defect the
     // POSIX caret form had. Not corrected blind: #9500 Decision 3 forbids generalising the
     // ESC-strip without evidence, and the harness that would produce it does not exist.

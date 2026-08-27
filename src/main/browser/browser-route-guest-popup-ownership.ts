@@ -1,5 +1,5 @@
 /**
- * Route-guest popups are hosted in an Orca-built BaseWindow, so Electron never fires
+ * Route-guest popups are hosted in a Manta-built BaseWindow, so Electron never fires
  * `did-create-window` for them and nothing else in main can tell whose client-hosted page a popup
  * belongs to. Download routing and renderer-bound events resolve that ownership here; without it a
  * popup's bytes fall through to the desktop Downloads folder instead of the remote workspace.

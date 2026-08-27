@@ -35,8 +35,8 @@ const restartSurvivalRoute = PR_E2E_SOURCE_ROUTES.find(
 describe('restart-survival E2E routing', () => {
   // Every file below carries behavior the restart spec is the only test that exercises end to end.
   it.each([
-    'src/main/runtime/orca-runtime.ts',
-    'src/main/runtime/orca-runtime-browser.ts',
+    'src/main/runtime/manta-runtime.ts',
+    'src/main/runtime/manta-runtime-browser.ts',
     'src/main/runtime/client-hosted-page-reconciliation-window.ts',
     'src/main/runtime/runtime-browser-client-page-adoption.ts',
     'src/main/runtime/runtime-browser-client-page-recovery.ts',

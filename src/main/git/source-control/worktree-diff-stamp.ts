@@ -75,7 +75,7 @@ export async function readWorktreeDiffStamp(
     const gitDir = await resolveGitDir(worktreePath)
     const [head, index, gitmodules, workingTree] = await Promise.all([
       readHeadComponent(gitDir),
-      // Over-invalidates on purpose: git run outside Orca (a terminal `git status`/`git add`)
+      // Over-invalidates on purpose: git run outside Manta (a terminal `git status`/`git add`)
       // can refresh a stat-dirty index and rewrite this file without changing a single blob,
       // which costs one re-read. That is the safe direction — do not "fix" it by dropping the
       // index from the stamp, because `git add` then becomes invisible and the cache serves a

@@ -16,9 +16,9 @@ import {
 } from './external-chromium-browser-session'
 
 const BASE = {
-  executablePath: '/opt/orca/chromium',
+  executablePath: '/opt/manta/chromium',
   profilePath: '/state/browser-chromium',
-  sessionName: 'orca-orcad-0123456789abcdef'
+  sessionName: 'manta-mantad-0123456789abcdef'
 }
 
 type Spec = { args?: readonly string[]; env?: NodeJS.ProcessEnv }
@@ -27,7 +27,7 @@ function commands(): string[][] {
   return runProcessMock.mock.calls.map((call) => [...((call[0] as Spec).args ?? [])])
 }
 
-describe('orcad external-chromium agent-browser environment', () => {
+describe('mantad external-chromium agent-browser environment', () => {
   beforeEach(() => {
     runProcessMock.mockReset()
   })
@@ -60,8 +60,8 @@ describe('orcad external-chromium agent-browser environment', () => {
     expect(env.AGENT_BROWSER_ARGS).toBe('--headless=new\n--no-sandbox')
   })
 
-  // Why (#16367): orcad is the backend a remote user's Chromium hangs off, and this session
-  // never passes --cdp, so a daemon an earlier orcad left behind is not bound to the dead
+  // Why (#16367): mantad is the backend a remote user's Chromium hangs off, and this session
+  // never passes --cdp, so a daemon an earlier mantad left behind is not bound to the dead
   // process. Closing it on every start would take their browser and every tab with it.
   it("reuses a surviving session instead of closing the user's browser", async () => {
     runProcessMock.mockImplementation((spec: Spec) => {
@@ -78,7 +78,7 @@ describe('orcad external-chromium agent-browser environment', () => {
     })
 
     const session = new ExternalChromiumBrowserSession(
-      '/opt/orca/agent-browser',
+      '/opt/manta/agent-browser',
       { executablePath: BASE.executablePath, provider: 'chromium' },
       '/state'
     )
@@ -117,7 +117,7 @@ describe('orcad external-chromium agent-browser environment', () => {
     })
 
     const session = new ExternalChromiumBrowserSession(
-      '/opt/orca/agent-browser',
+      '/opt/manta/agent-browser',
       { executablePath: BASE.executablePath, provider: 'chromium' },
       '/state'
     )

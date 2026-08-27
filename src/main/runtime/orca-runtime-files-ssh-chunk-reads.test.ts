@@ -5,46 +5,46 @@ import {
   openMock,
   resolveAuthorizedPathMock,
   statMock
-} from './orca-runtime-files-mock-registry'
+} from './manta-runtime-files-mock-registry'
 import {
   createRuntimeFileCommands,
   useRuntimeFileCommandsLifecycle
-} from './orca-runtime-files-test-harness'
+} from './manta-runtime-files-test-harness'
 import { getSshFilesystemProvider } from '../providers/ssh-filesystem-dispatch'
 import { FileRangeReadUnsupportedError } from '../providers/types'
 import { MAX_FILE_RANGE_READ_BYTES } from '../../shared/file-range-read'
 import { BROWSER_CLIENT_FILE_CHANNEL_CHUNK_MAX_BYTES } from '../../shared/browser-client-file-channel-protocol'
-import type { RuntimeFileCommands } from './orca-runtime-files'
+import type { RuntimeFileCommands } from './manta-runtime-files'
 
-vi.mock('fs', async () => (await import('./orca-runtime-files-mock-registry')).fsModuleMock())
+vi.mock('fs', async () => (await import('./manta-runtime-files-mock-registry')).fsModuleMock())
 vi.mock('fs/promises', async () =>
-  (await import('./orca-runtime-files-mock-registry')).fsPromisesModuleMock()
+  (await import('./manta-runtime-files-mock-registry')).fsPromisesModuleMock()
 )
 vi.mock(
   './file-watcher-host',
-  async () => (await import('./orca-runtime-files-mock-registry')).fileWatcherHostMock
+  async () => (await import('./manta-runtime-files-mock-registry')).fileWatcherHostMock
 )
 vi.mock('../ipc/filesystem-auth', async () =>
-  (await import('./orca-runtime-files-mock-registry')).filesystemAuthModuleMock()
+  (await import('./manta-runtime-files-mock-registry')).filesystemAuthModuleMock()
 )
 vi.mock('../git/runner', async () =>
-  (await import('./orca-runtime-files-mock-registry')).gitRunnerModuleMock()
+  (await import('./manta-runtime-files-mock-registry')).gitRunnerModuleMock()
 )
 vi.mock(
   '../ipc/rg-availability',
-  async () => (await import('./orca-runtime-files-mock-registry')).rgAvailabilityMock
+  async () => (await import('./manta-runtime-files-mock-registry')).rgAvailabilityMock
 )
 vi.mock(
   '../ipc/local-worktree-runtime-options',
-  async () => (await import('./orca-runtime-files-mock-registry')).localWorktreeRuntimeOptionsMock
+  async () => (await import('./manta-runtime-files-mock-registry')).localWorktreeRuntimeOptionsMock
 )
 vi.mock(
   '../ipc/filesystem-search-git',
-  async () => (await import('./orca-runtime-files-mock-registry')).filesystemSearchGitMock
+  async () => (await import('./manta-runtime-files-mock-registry')).filesystemSearchGitMock
 )
 vi.mock(
   '../providers/ssh-filesystem-dispatch',
-  async () => (await import('./orca-runtime-files-mock-registry')).sshFilesystemDispatchMock
+  async () => (await import('./manta-runtime-files-mock-registry')).sshFilesystemDispatchMock
 )
 
 /**

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentBrowserBridge } from '../browser/agent-browser-bridge'
-import type { RuntimeBrowserCommandHost } from './orca-runtime-browser'
+import type { RuntimeBrowserCommandHost } from './manta-runtime-browser'
 import { RuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 import {
   BROWSER_TAB_CREATE_PLACEMENT_KINDS,
@@ -39,9 +39,9 @@ vi.mock('../ipc/browser-tab-registration-wait', () => ({
 
 vi.mock('../browser/browser-session-registry', () => ({
   browserSessionRegistry: {
-    getDefaultProfile: () => ({ id: 'default', partition: 'persist:orca-browser' }),
+    getDefaultProfile: () => ({ id: 'default', partition: 'persist:manta-browser' }),
     getProfile: () => null,
-    resolveKnownPartition: () => 'persist:orca-browser'
+    resolveKnownPartition: () => 'persist:manta-browser'
   }
 }))
 
@@ -91,7 +91,7 @@ function createPublicationHost(registeredTabs: readonly [string, number][] = [['
 }
 
 function browserCommandsSource(): string {
-  return readFileSync(join(__dirname, 'orca-runtime-browser.ts'), 'utf8')
+  return readFileSync(join(__dirname, 'manta-runtime-browser.ts'), 'utf8')
 }
 
 describe('publishCreatedBrowserSessionTab', () => {
@@ -404,7 +404,7 @@ describe('browser tab-create placement census', () => {
     })
 
     it('moves a user-created offscreen tab into the clicked split group', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const markHeadlessBrowserSessionTabActive = vi.fn()
       const commands = new RuntimeBrowserCommands(
         createCommandHost({
@@ -441,7 +441,7 @@ describe('browser tab-create placement census', () => {
     })
 
     it('leaves renderer tab focus to the create IPC instead of the session-tab marker', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const webContents = { send: vi.fn() }
       webContents.send = vi.fn((_channel: string, data: { requestId: string }) => {
         const handler = ipcMainOnMock.mock.calls.find(
@@ -478,7 +478,7 @@ describe('browser tab-create placement census', () => {
     })
 
     it('does not focus the host renderer for a create addressed to the caller', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const webContents = { send: vi.fn() }
       webContents.send = vi.fn((_channel: string, data: { requestId: string }) => {
         const handler = ipcMainOnMock.mock.calls.find(
@@ -511,7 +511,7 @@ describe('browser tab-create placement census', () => {
     })
 
     it('still places a caller-addressed client page in the clicked split group', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const markHeadlessBrowserSessionTabActive = vi.fn()
       const commands = new RuntimeBrowserCommands(
         createCommandHost({
@@ -729,7 +729,7 @@ describe('browser tab-switch placement census', () => {
     }
 
     it('marks a focused client switch active and leaves an unfocused one alone', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const markHeadlessBrowserSessionTabActive = vi.fn()
       const notifyHeadlessBrowserSessionTabsChanged = vi.fn()
       const { host, registry } = createClientSwitchHost({
@@ -757,7 +757,7 @@ describe('browser tab-switch placement census', () => {
     })
 
     it('marks a focused bridge switch active and leaves an unfocused one alone', async () => {
-      const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+      const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
       const markHeadlessBrowserSessionTabActive = vi.fn()
       const bridge = {
         getRegisteredTabs: vi.fn(() => new Map([['page-server', 100]])),

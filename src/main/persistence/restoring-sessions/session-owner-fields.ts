@@ -5,7 +5,7 @@ import {
   getWorktreeIdFromHostIdentity,
   isWorktreeHostIdentity
 } from '../../../shared/worktree/host-qualified-identity'
-import { SESSION_FIELDS_PRUNED_BY_OWNER_KEY } from '../../orca-profiles/profile-project-session-field-disposition'
+import { SESSION_FIELDS_PRUNED_BY_OWNER_KEY } from '../../manta-profiles/profile-project-session-field-disposition'
 
 /**
  * The census fields this path deletes by indexing the owner key.

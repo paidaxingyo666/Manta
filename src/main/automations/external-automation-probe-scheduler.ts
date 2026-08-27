@@ -1,7 +1,7 @@
 /**
  * Bounded pool for `{host, provider}` external-manager probes.
  *
- * Probes are always secondary to Orca automation list and mutation traffic, so
+ * Probes are always secondary to Manta automation list and mutation traffic, so
  * the pool parks its queue while that work holds a priority lease. Nothing is
  * scheduled speculatively: a caller schedules exactly the scopes it selected,
  * which is what keeps a Local view from reaching out to every SSH target.
@@ -98,7 +98,7 @@ export class ExternalAutomationProbeScheduler {
     return settled
   }
 
-  /** Held for the duration of Orca list/mutation work; queued probes wait behind it. */
+  /** Held for the duration of Manta list/mutation work; queued probes wait behind it. */
   beginPriorityWork(): () => void {
     this.priorityHolds += 1
     let released = false

@@ -129,11 +129,11 @@ export const WORKTREE_VISIBILITY_SOURCE_DEFAULTS_RUNTIME_CAPABILITY =
 export const AUTOMATION_LIST_HOST_SCOPE_RUNTIME_CAPABILITY =
   'automation.list-host-scope.v1' as const
 export const AUTOMATION_LIST_HOST_SCOPE_UPDATE_REQUIRED_MESSAGE =
-  'Filtering automations by host requires a newer Orca server. Update the HUB and try again.'
+  'Filtering automations by host requires a newer Manta server. Update the HUB and try again.'
 // Why: without server-side owner preconditions a mutation could run against a host the user never saw, so unfenced rows stay view-only.
 export const AUTOMATION_OWNER_FENCING_RUNTIME_CAPABILITY = 'automation.owner-fencing.v1' as const
 export const AUTOMATION_OWNER_FENCING_UPDATE_REQUIRED_MESSAGE =
-  'Editing automations on this host requires a newer Orca server. Update the HUB and try again.'
+  'Editing automations on this host requires a newer Manta server. Update the HUB and try again.'
 
 // Generic native clients include the CLI and must not claim Electron-only page
 // placement support.

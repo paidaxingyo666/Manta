@@ -62,8 +62,8 @@ function addSshHost(): void {
 function addSshProject(): void {
   const repo = {
     id: SSH_REPO_ID,
-    displayName: 'orca',
-    path: '/repos/orca',
+    displayName: 'manta',
+    path: '/repos/manta',
     badgeColor: '#222222',
     addedAt: 1,
     worktreeBaseRef: 'main',

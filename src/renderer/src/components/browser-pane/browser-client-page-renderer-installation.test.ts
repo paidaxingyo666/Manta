@@ -18,7 +18,7 @@ type RequestCallback = (
 
 describe('browser client page renderer installation', () => {
   afterEach(() => {
-    delete (window as unknown as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__
+    delete (window as unknown as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__
   })
 
   it('stays inert when the preload surface is unavailable', () => {
@@ -26,7 +26,7 @@ describe('browser client page renderer installation', () => {
   })
 
   it('stays inert in the paired web client', () => {
-    ;(window as unknown as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ = true
+    ;(window as unknown as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__ = true
     const subscribe = vi.fn()
 
     expect(installBrowserClientPageRenderer({ subscribe })).toBeNull()

@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { expect, it, vi } from 'vitest'
 import { parsePairingCode } from '../../shared/pairing'
 import { RemoteRuntimeRequestConnection } from '../../shared/remote-runtime-request-connection'
-import type { OrcaRuntimeService } from './orca-runtime'
-import { OrcaRuntimeRpcServer } from './runtime-rpc'
+import type { MantaRuntimeService } from './manta-runtime'
+import { MantaRuntimeRpcServer } from './runtime-rpc'
 
 const TEST_TIMEOUT_MS = 15_000
 const REQUEST_TIMEOUT_MS = 5_000
@@ -52,8 +52,8 @@ it(
       listMobileSessionTabs,
       refuseUnattributedMobileSessionTabClose,
       closeMobileSessionTab
-    } as unknown as OrcaRuntimeService
-    const server = new OrcaRuntimeRpcServer({
+    } as unknown as MantaRuntimeService
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,

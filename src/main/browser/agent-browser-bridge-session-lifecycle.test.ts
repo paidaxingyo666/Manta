@@ -175,7 +175,7 @@ describe('AgentBrowserBridge', () => {
           options: { recreate: boolean }
         ) => Promise<void>
       }
-    ).restartSessionForTarget('orca-tab-tab-1', 'tab-1', 100, { recreate: false })
+    ).restartSessionForTarget('manta-tab-tab-1', 'tab-1', 100, { recreate: false })
 
     const closeCall = execFileMock.mock.calls.find((call: unknown[]) =>
       (call[1] as string[]).includes('close')
@@ -468,7 +468,7 @@ describe('AgentBrowserBridge', () => {
 
     const sessions = (bridge as unknown as { sessions: Map<string, { lastCommandAt: number }> })
       .sessions
-    const session = sessions.get('orca-tab-tab-1')!
+    const session = sessions.get('manta-tab-tab-1')!
     session.lastCommandAt = Date.now() - 11 * 60 * 1000
 
     const commandCalls: string[][] = []
@@ -525,7 +525,7 @@ describe('AgentBrowserBridge', () => {
   it('bounds concurrent helper retirements during runtime shutdown', async () => {
     const sessions = (bridge as unknown as { sessions: Map<string, unknown> }).sessions
     for (let index = 0; index < 6; index++) {
-      sessions.set(`orca-tab-tab-${index}`, {
+      sessions.set(`manta-tab-tab-${index}`, {
         proxy: { stop: vi.fn(async () => {}) },
         cdpEndpoint: `ws://127.0.0.1:${9200 + index}`,
         initialized: true,
@@ -587,7 +587,7 @@ describe('AgentBrowserBridge', () => {
           webContentsId: number
         ) => Promise<void>
       }
-    ).ensureSession('orca-tab-tab-1', 'tab-1', 100)
+    ).ensureSession('manta-tab-tab-1', 'tab-1', 100)
     await vi.waitFor(() => expect(releaseStaleClose).not.toBeNull())
 
     const destroyAllPromise = bridge.destroyAllSessions()
@@ -626,7 +626,7 @@ describe('AgentBrowserBridge', () => {
           webContentsId: number
         ) => Promise<void>
       }
-    ).restartSessionForTarget('orca-tab-tab-1', 'tab-1', 100)
+    ).restartSessionForTarget('manta-tab-tab-1', 'tab-1', 100)
     await vi.waitFor(() => expect(releaseClose).not.toBeNull())
 
     const shutdown = bridge.destroyAllSessions()

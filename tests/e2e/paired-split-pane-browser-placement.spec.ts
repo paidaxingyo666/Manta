@@ -1,4 +1,4 @@
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { readHostBrowserPageIds } from './helpers/host-session-tabs'
 import {
   contentTypesOf,

@@ -41,7 +41,7 @@ export function getResourceCommitMetricCopy(): Omit<ResourceMemoryMetricCopy, 'c
 }
 
 /**
- * Warning tint once *Orca's own* tracked commit grows large against physical
+ * Warning tint once *Manta's own* tracked commit grows large against physical
  * RAM, on the same 60/80 bands as the host usage bars. Deliberately not a
  * host-wide paging predictor: that needs the host's commit charge and commit
  * limit, which this snapshot does not carry (#16211).

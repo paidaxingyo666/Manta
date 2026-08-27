@@ -21,7 +21,10 @@ import {
   type ClientHostedBrowserCloseIntentsByEnvironment,
   type PendingClientHostedBrowserClose
 } from '@/runtime/client-hosted-browser-close-intents'
-import { FLOATING_TERMINAL_WORKTREE_ID, MANTA_BROWSER_BLANK_URL } from '../../../../shared/constants'
+import {
+  FLOATING_TERMINAL_WORKTREE_ID,
+  MANTA_BROWSER_BLANK_URL
+} from '../../../../shared/constants'
 import { folderWorkspaceKey } from '../../../../shared/workspace-scope'
 import { redactKagiSessionToken } from '../../../../shared/browser-url'
 import {

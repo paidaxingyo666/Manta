@@ -1,4 +1,4 @@
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { readHostBrowserPageIds } from './helpers/host-session-tabs'
 import {
   readPanes,
@@ -135,7 +135,7 @@ async function readAddressBarState(
   page: Awaited<ReturnType<typeof setUpPairedFixture>>['client']['page']
 ): Promise<{ bars: number; focused: boolean; value: string | null }> {
   return page.evaluate(() => {
-    const bars = document.querySelectorAll('[data-orca-browser-address-bar]')
+    const bars = document.querySelectorAll('[data-manta-browser-address-bar]')
     const input = bars[0] as HTMLInputElement | undefined
     return {
       bars: bars.length,
@@ -192,7 +192,7 @@ test('keeps an address typed into the staged tab when the paired create is adopt
       { groupId: rootGroupId, url: fixture.url }
     )
 
-    await client.page.locator('[data-orca-browser-address-bar]').first().waitFor()
+    await client.page.locator('[data-manta-browser-address-bar]').first().waitFor()
     await expect
       .poll(() => readActiveBrowserPlacementKind(client.page, worktreeId), {
         timeout: 60_000,
@@ -211,7 +211,7 @@ test('keeps an address typed into the staged tab when the paired create is adopt
 
     // The user types their address while the create is still held at the seam.
     const typed = 'example.internal/typed-before-adoption'
-    const addressBar = client.page.locator('[data-orca-browser-address-bar]').first()
+    const addressBar = client.page.locator('[data-manta-browser-address-bar]').first()
     await addressBar.click()
     await client.page.keyboard.type(typed)
     expect(await readAddressBarState(client.page)).toMatchObject({ focused: true, value: typed })
@@ -879,11 +879,11 @@ test('adopts a paired browser tab without rebuilding its chrome', async ({
   try {
     const { client, rootGroupId, worktreeId } = fixture
     await startHeldCreate(fixture, rootGroupId)
-    await client.page.locator('[data-orca-browser-address-bar]').first().waitFor()
+    await client.page.locator('[data-manta-browser-address-bar]').first().waitFor()
 
     // Mark the live node. A remount builds a new input, which cannot carry this.
     const marked = await client.page.evaluate(() => {
-      const input = document.querySelector('[data-orca-browser-address-bar]')
+      const input = document.querySelector('[data-manta-browser-address-bar]')
       if (!input) {
         return false
       }
@@ -896,10 +896,10 @@ test('adopts a paired browser tab without rebuilding its chrome', async ({
 
     expect(
       await client.page.evaluate(() => ({
-        bars: document.querySelectorAll('[data-orca-browser-address-bar]').length,
+        bars: document.querySelectorAll('[data-manta-browser-address-bar]').length,
         marked: document.querySelectorAll('[data-e2e-staged-address-bar="marked"]').length,
         sameNode:
-          document.querySelector('[data-orca-browser-address-bar]') ===
+          document.querySelector('[data-manta-browser-address-bar]') ===
           document.querySelector('[data-e2e-staged-address-bar="marked"]')
       }))
     ).toEqual({ bars: 1, marked: 1, sameNode: true })

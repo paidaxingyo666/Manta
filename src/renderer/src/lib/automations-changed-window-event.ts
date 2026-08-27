@@ -2,7 +2,7 @@
  *  Automations page refreshes without every publisher knowing about the page. */
 import type { AutomationsChangedPayload } from '../../../shared/runtime-client-events'
 
-export const AUTOMATIONS_CHANGED_EVENT = 'orca:automations-changed'
+export const AUTOMATIONS_CHANGED_EVENT = 'manta:automations-changed'
 
 /** `environmentId` names the runtime authority that published; absent means desktop. */
 export type AutomationsChangedWindowDetail = AutomationsChangedPayload & {

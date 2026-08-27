@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * agent-browser forks a daemon per browser tab that Orca holds no handle on, and
+ * agent-browser forks a daemon per browser tab that Manta holds no handle on, and
  * `destroyAllSessions` closes each one by spawning another agent-browser child —
  * hundreds of ms apiece. Left off the will-quit barrier, `app.quit()` fired first and
  * every open tab's daemon outlived the app (#16367).

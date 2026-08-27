@@ -39,11 +39,11 @@ function requireCapturedOwner<T extends { owner?: AutomationOwnerRef | null }>(
 }
 
 /**
- * Holds the probe pool's priority lease for the duration of Orca's own automation
+ * Holds the probe pool's priority lease for the duration of Manta's own automation
  * work. Without this, a queued external probe competes with the list and mutation
  * traffic the user is actually waiting on.
  */
-function underOrcaPriority<T>(scheduler: ExternalAutomationProbeScheduler, run: () => T): T {
+function underMantaPriority<T>(scheduler: ExternalAutomationProbeScheduler, run: () => T): T {
   const release = scheduler.beginPriorityWork()
   let pending = false
   try {
@@ -72,9 +72,9 @@ export function registerAutomationHandlers(store: Store, service: AutomationServ
     scheduler: probeScheduler,
     cache: managerCache
   })
-  // Why: Orca automation CRUD now arrives over the local runtime RPC surface,
+  // Why: Manta automation CRUD now arrives over the local runtime RPC surface,
   // so the runtime methods take the lease through this hook instead of an arm here.
-  service.externalProbePriority = (run) => underOrcaPriority(probeScheduler, run)
+  service.externalProbePriority = (run) => underMantaPriority(probeScheduler, run)
   // Scoped external-manager surface: one captured desktop owner in, one host's
   // managers out. The target and manager ID are derived inside the guard.
   ipcMain.handle(

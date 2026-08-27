@@ -71,7 +71,7 @@ type AutomationEditorDialogProps = {
   worktrees: Worktree[]
   settings: GlobalSettings | null
   draft: AutomationDraft
-  /** Present only while creating an Orca automation; editing keeps the record's captured owner. */
+  /** Present only while creating a Manta automation; editing keeps the record's captured owner. */
   createDestination?: AutomationCreateDestinationControl
   /** Why a save was refused. Belongs here rather than on the page: this dialog covers it. */
   notice?: AutomationActionNotice | null

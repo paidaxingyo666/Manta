@@ -4,10 +4,10 @@
 //   forwarding-blocked card -> "Browse from this device instead" -> page loads
 //   locally (Monitor icon in the URL bar) -> Settings lists the host with
 //   "Route again" -> pressing it re-routes and the card returns.
-// Run: ORCA_ROUTING_DEMO=1 ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
+// Run: ORCA_ROUTING_DEMO=1 MANTA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
 //   --config tests/playwright.config.ts --project electron-headless --workers=1 \
 //   tests/e2e/ssh-routing-optout-demo.spec.ts
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 import {
   blockDockerSshRelayTargetTcpForwarding,
@@ -23,13 +23,13 @@ const HOLD_MINUTES = 25
 
 test('stages the per-host routing opt-out loop against a real forwarding-blocked sshd', async ({
   electronApp,
-  orcaPage
+  mantaPage
 }, testInfo) => {
   test.setTimeout((HOLD_MINUTES + 15) * 60_000)
   let target: DockerSshRelayTarget | null = null
   try {
-    await waitForSessionReady(orcaPage)
-    await orcaPage.evaluate(async () => {
+    await waitForSessionReady(mantaPage)
+    await mantaPage.evaluate(async () => {
       await window.__store?.getState().updateSettings({ uiLanguage: 'en' })
     })
 
@@ -44,9 +44,9 @@ test('stages the per-host routing opt-out loop against a real forwarding-blocked
     target = startDockerSshRelayTarget(testInfo)
     // Real sshd policy: terminal healthy, browser forwarding refused with reason 1.
     blockDockerSshRelayTargetTcpForwarding(target)
-    const remote = await connectDockerSshRelayTarget(orcaPage, target)
+    const remote = await connectDockerSshRelayTarget(mantaPage, target)
 
-    await orcaPage.evaluate(
+    await mantaPage.evaluate(
       ({ worktreeId }) => {
         const state = window.__store?.getState()
         if (!state) {
@@ -60,7 +60,7 @@ test('stages the per-host routing opt-out loop against a real forwarding-blocked
       { worktreeId: remote.worktreeId }
     )
 
-    await expect(orcaPage.getByText('The SSH server blocks browser traffic')).toBeVisible({
+    await expect(mantaPage.getByText('The SSH server blocks browser traffic')).toBeVisible({
       timeout: 180_000
     })
 
@@ -73,7 +73,7 @@ test('stages the per-host routing opt-out loop against a real forwarding-blocked
         `3. Settings -> Browser -> SSH workspaces lists the host with "Route again".\n` +
         `4. Press "Route again" -> routing resumes -> the card returns (host still blocks).\n`
     )
-    await orcaPage.waitForTimeout(HOLD_MINUTES * 60_000)
+    await mantaPage.waitForTimeout(HOLD_MINUTES * 60_000)
   } finally {
     cleanupDockerSshRelayTarget(target)
   }

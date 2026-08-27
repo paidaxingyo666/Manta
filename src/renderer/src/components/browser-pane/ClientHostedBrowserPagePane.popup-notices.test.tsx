@@ -18,7 +18,7 @@ import { ClientHostedBrowserPagePane } from './ClientHostedBrowserPagePane'
 type PopupEvent = {
   browserPageId: string
   origin: string
-  action: 'opened-in-orca' | 'opened-external' | 'blocked'
+  action: 'opened-in-manta' | 'opened-external' | 'blocked'
 }
 
 let popups = paneChannel<PopupEvent>()
@@ -82,7 +82,7 @@ describe('ClientHostedBrowserPagePane popup notices', () => {
     emitPopup()
 
     expect(toastMocks.message).toHaveBeenCalledWith(
-      'https://accounts.example.com tried to open a popup Orca does not support here.',
+      'https://accounts.example.com tried to open a popup Manta does not support here.',
       { id: 'browser-popup:page-a:blocked:https://accounts.example.com' }
     )
   })
@@ -101,16 +101,16 @@ describe('ClientHostedBrowserPagePane popup notices', () => {
 
   // Why: the local pane reports all three outcomes; only "blocked" reaching this pane left a page
   // that silently opened somewhere else looking like it did nothing.
-  it('reports where a popup Orca did open actually went', () => {
+  it('reports where a popup Manta did open actually went', () => {
     renderPane()
 
-    emitPopup({ action: 'opened-in-orca' })
+    emitPopup({ action: 'opened-in-manta' })
     emitPopup({ action: 'opened-external' })
 
     expect(toastMocks.message).toHaveBeenNthCalledWith(
       1,
-      'https://accounts.example.com opened a new page in Orca.',
-      { id: 'browser-popup:page-a:opened-in-orca:https://accounts.example.com' }
+      'https://accounts.example.com opened a new page in Manta.',
+      { id: 'browser-popup:page-a:opened-in-manta:https://accounts.example.com' }
     )
     expect(toastMocks.message).toHaveBeenNthCalledWith(
       2,

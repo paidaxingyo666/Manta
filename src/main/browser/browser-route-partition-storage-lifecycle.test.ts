@@ -16,7 +16,7 @@ const scopeAlpha = '1'.repeat(64)
 const scopeBeta = '2'.repeat(64)
 
 function partitionName(marker: string): string {
-  return `persist:orca-browser-v1-${marker.repeat(64)}`
+  return `persist:manta-browser-v1-${marker.repeat(64)}`
 }
 
 function createStore(): {

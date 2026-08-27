@@ -4,7 +4,7 @@ import { formatPopupNotice } from './navigate/browser-notices'
 
 /**
  * A client-hosted page's popups are gesture-gated and capped, and every outcome — blocked, opened
- * in an Orca tab, or handed to the default browser — leaves no other trace on this pane. One quiet
+ * in a Manta tab, or handed to the default browser — leaves no other trace on this pane. One quiet
  * toast per page and origin says what happened, without spamming a site that retries.
  */
 export function useBrowserClientHostedPopupNotices(browserPageId: string): void {

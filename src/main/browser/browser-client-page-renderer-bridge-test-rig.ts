@@ -10,7 +10,7 @@ import {
 } from './browser-client-page-renderer-bridge'
 
 export const rendererPage = {
-  partition: 'persist:orca-browser-route:v1:partition-a',
+  partition: 'persist:manta-browser-route:v1:partition-a',
   browserPageId: 'page-a',
   pageHostGeneration: 7
 }

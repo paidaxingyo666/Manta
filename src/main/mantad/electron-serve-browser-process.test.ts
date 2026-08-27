@@ -19,7 +19,7 @@ vi.mock('../../shared/child-process/run-process', async (importOriginal) => ({
 import { ElectronServeBrowserProcess } from './electron-serve-browser-process'
 
 const FAKE_SIDECAR = join(import.meta.dirname, '__fixtures__', 'fake-mantad-electron-sidecar.cjs')
-const INSTALLED_EXECUTABLE = join('/Applications', 'Orca.app', 'Contents', 'MacOS', 'Orca')
+const INSTALLED_EXECUTABLE = join('/Applications', 'Manta.app', 'Contents', 'MacOS', 'Manta')
 
 /** Every key the provider must strip so the sidecar cannot inherit mantad's own browser config. */
 const AGENT_BROWSER_ENVIRONMENT_KEYS = [
@@ -45,7 +45,7 @@ const host: RuntimeBrowserCommandHost = {
   resolveWorktreeSelector: async (selector) => ({ id: `id-${selector}` }),
   resolveBrowserWorkspace: async (selector) => ({ id: `id-${selector}` }),
   // Unused by the sidecar command paths under test; the daemon's real host is
-  // OrcaRuntimeService, which owns the client-hosted registries.
+  // MantaRuntimeService, which owns the client-hosted registries.
   resolveBrowserNetworkExecutionHost: () => {
     throw new Error('No browser network execution host')
   },

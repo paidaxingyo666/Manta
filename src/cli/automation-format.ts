@@ -5,7 +5,7 @@
  * stored `executionTarget*` fields: a target that was removed — or removed and
  * re-registered under the same id — leaves those fields untouched, so printing
  * them alone would render a dead host identically to a healthy one and leave
- * `orca automations show` unable to complete the recovery it is named in.
+ * `manta automations show` unable to complete the recovery it is named in.
  */
 
 import type { Automation, AutomationRun } from '../shared/automations-types'

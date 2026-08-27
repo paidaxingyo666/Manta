@@ -83,7 +83,7 @@ async function launch(profileDirectory: string): Promise<void> {
 /** Reports the identity a client host of the current launch attaches under. */
 async function hostingIdentity(): Promise<string> {
   const runtime = await import('./paired-runtime-browser-client-host-runtime')
-  runtime.configurePairedRuntimeBrowserClientHostsForOrcaProfile({ orcaProfileId: 'profile-a' })
+  runtime.configurePairedRuntimeBrowserClientHostsForMantaProfile({ mantaProfileId: 'profile-a' })
   await runtime.startPairedRuntimeBrowserClientHost({
     environment: pairedEnvironment('environment-a'),
     authorityRuntimeId: 'runtime-a'
@@ -119,7 +119,7 @@ describe('client host hosting identity wiring', () => {
     )
   })
 
-  it('attaches under a different identity for a different Orca profile', async () => {
+  it('attaches under a different identity for a different Manta profile', async () => {
     expect(
       await hostingIdentityForLaunch(mkdtempSync(join(tmpdir(), 'orca-host-wiring-')))
     ).not.toBe(await hostingIdentityForLaunch(mkdtempSync(join(tmpdir(), 'orca-host-wiring-'))))

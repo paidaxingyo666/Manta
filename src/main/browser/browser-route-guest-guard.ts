@@ -1,6 +1,6 @@
 import type { Session, WebContents } from 'electron'
 import { normalizeBrowserNavigationUrl } from '../../shared/browser-url'
-import { ORCA_BROWSER_BLANK_URL } from '../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../shared/constants'
 import {
   isValidBrowserRoutePageOwnerIdentity,
   type BrowserRoutePageAuthorityRetirement,
@@ -22,7 +22,7 @@ export function isValidBlankRouteGuest(guest: WebContents): boolean {
 
 export function isBlankRouteGuest(guest: WebContents): boolean {
   try {
-    return normalizeBrowserNavigationUrl(guest.getURL()) === ORCA_BROWSER_BLANK_URL
+    return normalizeBrowserNavigationUrl(guest.getURL()) === MANTA_BROWSER_BLANK_URL
   } catch {
     return false
   }

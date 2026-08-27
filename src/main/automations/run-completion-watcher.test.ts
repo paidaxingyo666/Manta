@@ -157,7 +157,7 @@ describe('authority-owned automation run completion', () => {
     })
 
     expect(readRun(store, automation.id, run.id).error).toBe(
-      'Orca stopped watching this run before it reported completion.'
+      'Manta stopped watching this run before it reported completion.'
     )
     // The token is still recoverable where it is actually useful.
     expect(logged.mock.calls.flat().map(String).join(' ')).toContain('terminal_handle_stale')

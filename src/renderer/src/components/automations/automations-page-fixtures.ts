@@ -155,8 +155,8 @@ export function makeScopedExternalManager(
 function makeRepo(): Repo {
   return {
     id: REPO_ID,
-    displayName: 'orca',
-    path: '/repos/orca',
+    displayName: 'manta',
+    path: '/repos/manta',
     badgeColor: '#000000',
     addedAt: 1,
     worktreeBaseRef: 'main'
@@ -170,8 +170,8 @@ function makeProjectHostSetup(): ProjectHostSetup {
     projectId: 'project-1',
     hostId: 'local',
     repoId: REPO_ID,
-    path: '/repos/orca',
-    displayName: 'orca',
+    path: '/repos/manta',
+    displayName: 'manta',
     setupState: 'ready',
     setupMethod: 'legacy-repo',
     createdAt: 1,
@@ -184,7 +184,7 @@ function makeWorktree(): Worktree {
     id: WORKSPACE_ID,
     repoId: REPO_ID,
     displayName: 'main',
-    path: '/repos/orca',
+    path: '/repos/manta',
     branch: 'main'
   } as Worktree
 }

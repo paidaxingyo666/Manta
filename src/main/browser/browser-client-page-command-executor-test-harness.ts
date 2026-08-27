@@ -6,7 +6,7 @@ import type {
   BrowserRoutePageGuestIdentity
 } from './browser-route-page-authority'
 
-export const partition = `persist:orca-browser-v1-${'a'.repeat(64)}`
+export const partition = `persist:manta-browser-v1-${'a'.repeat(64)}`
 
 export function createCommand(
   type: 'createPage' | 'navigate',
@@ -78,7 +78,7 @@ export function createHarness(options: { maxPages?: number } = {}) {
     })
   }
   const dependencies = {
-    orcaProfileId: 'orca-profile-a',
+    mantaProfileId: 'orca-profile-a',
     authorityConnectionIdentity: 'authority-record-a',
     legacyAuthorityConnectionIdentity: 'legacy-authority-record-a',
     storageScope: 'a'.repeat(64),

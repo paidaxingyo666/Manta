@@ -5,7 +5,7 @@ const extraArgs = rawExtraArgs[0] === '--' ? rawExtraArgs.slice(1) : rawExtraArg
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
 const env = {
   ...process.env,
-  ORCA_E2E_SSH_DOCKER: '1',
+  MANTA_E2E_SSH_DOCKER: '1',
   ORCA_E2E_LOCAL_SSH_BROWSER: '1'
 }
 

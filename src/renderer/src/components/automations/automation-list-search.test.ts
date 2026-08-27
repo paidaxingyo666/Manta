@@ -131,13 +131,20 @@ describe('automation-list-search', () => {
   it('matches workspace, agent, and host alongside name, project, and prompt', () => {
     const fields = {
       name: 'Auto PR assignment',
-      project: 'orca / main',
+      project: 'manta / main',
       workspace: 'feature/login-retry',
       agent: 'Claude Code',
       host: 'build-box',
       prompt: 'Assign reviewers for open PRs'
     }
-    for (const query of ['assignment', 'ORCA', 'login-retry', 'claude', 'build-box', 'reviewers']) {
+    for (const query of [
+      'assignment',
+      'MANTA',
+      'login-retry',
+      'claude',
+      'build-box',
+      'reviewers'
+    ]) {
       expect(automationListSearchFieldsMatch(fields, query)).toBe(true)
     }
     expect(automationListSearchFieldsMatch(fields, 'missing')).toBe(false)
@@ -161,7 +168,7 @@ describe('automation-list-search', () => {
   })
 
   it('leaves absent workspace/agent/host axes empty rather than matching everything', () => {
-    const index = buildAutomationListSearchIndex({ name: 'Job', project: 'orca', prompt: 'hi' })
+    const index = buildAutomationListSearchIndex({ name: 'Job', project: 'manta', prompt: 'hi' })
     expect(index.workspace).toBe('')
     expect(index.agent).toBe('')
     expect(index.host).toBe('')

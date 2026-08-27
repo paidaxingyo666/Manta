@@ -1,5 +1,5 @@
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import {
   cleanupDockerSshRelayTarget,
   startDockerSshRelayTarget,
@@ -39,7 +39,7 @@ const COOKIE_PAIR = `${SSH_REMOTE_ONLY_COOKIE_NAME}=${SSH_REMOTE_ONLY_COOKIE_VAL
 const LOGIN_URL = `${SSH_REMOTE_ONLY_ORIGIN}/login`
 const ECHO_BEFORE_URL = `${SSH_REMOTE_ONLY_ORIGIN}/echo/before`
 const ECHO_AFTER_URL = `${SSH_REMOTE_ONLY_ORIGIN}/echo/after`
-const ROUTE_PARTITION_RE = /^persist:orca-browser-v1-[a-f0-9]{64}$/
+const ROUTE_PARTITION_RE = /^persist:manta-browser-v1-[a-f0-9]{64}$/
 
 type HubSshState = {
   status: string | null
@@ -248,7 +248,7 @@ async function openClientHostedSshPage(
 }
 
 test('recovers client-hosted SSH-routed browser pages across a real SSH drop', async ({
-  orcaPage
+  mantaPage
 }, testInfo) => {
   test.setTimeout(900_000)
   let target: DockerSshRelayTarget | null = null
@@ -256,9 +256,9 @@ test('recovers client-hosted SSH-routed browser pages across a real SSH drop', a
   try {
     target = startDockerSshRelayTarget(testInfo)
     startSshRemoteOnlyBrowserFixture(target)
-    const remote = await connectDockerSshRelayTarget(orcaPage, target)
+    const remote = await connectDockerSshRelayTarget(mantaPage, target)
 
-    const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+    const offer = await createRuntimeDesktopPairingOffer(mantaPage)
     client = await launchPairedElectronClient(
       offer,
       testInfo,
@@ -300,7 +300,7 @@ test('recovers client-hosted SSH-routed browser pages across a real SSH drop', a
       })
       .toEqual(expect.arrayContaining([LOGIN_URL, ECHO_BEFORE_URL]))
 
-    const beforeDrop = await readHubSshState(orcaPage, remote.targetId)
+    const beforeDrop = await readHubSshState(mantaPage, remote.targetId)
     expect(beforeDrop.status).toBe('connected')
     expect(beforeDrop.connectionGeneration).not.toBeNull()
 
@@ -309,7 +309,7 @@ test('recovers client-hosted SSH-routed browser pages across a real SSH drop', a
       killSshRelayTargetTransport(target),
       'the container had no established SSH session to kill'
     ).toBeGreaterThan(0)
-    const afterDrop = await reconnectHubSshTarget(orcaPage, remote.targetId)
+    const afterDrop = await reconnectHubSshTarget(mantaPage, remote.targetId)
     expect(
       afterDrop.connectionGeneration,
       'a reconnect must mint a new SSH connection generation'

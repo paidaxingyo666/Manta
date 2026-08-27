@@ -12,7 +12,7 @@ import {
 } from './browser-client-upload-staging'
 import type { BrowserRoutePageGuestIdentity } from './browser-route-page-authority'
 
-const partition = `persist:orca-browser-v1-${'a'.repeat(64)}`
+const partition = `persist:manta-browser-v1-${'a'.repeat(64)}`
 let stagingRoot = ''
 
 beforeEach(async () => {
@@ -87,7 +87,7 @@ function createHarness(
   const releaseRouteSession = vi.fn(() => {})
   const releaseNetworkRoute = vi.fn(async () => {})
   const executor = new BrowserClientPageCommandExecutor({
-    orcaProfileId: 'orca-profile-a',
+    mantaProfileId: 'orca-profile-a',
     authorityConnectionIdentity: 'authority-a',
     retainNetworkRoute: async () => ({
       key: 'execution-a',

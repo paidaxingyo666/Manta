@@ -21,15 +21,15 @@ const RECOVERY: Record<string, readonly string[]> = {
   ],
   [AUTOMATION_OWNER_CONFLICT_CODES.targetRemoved]: [
     'This automation is pinned to an SSH host that is no longer registered, so it cannot run and retrying will not change that.',
-    'Re-add that SSH host, or delete the automation with `orca automations remove --id <id>`.'
+    'Re-add that SSH host, or delete the automation with `manta automations remove --id <id>`.'
   ],
   [AUTOMATION_OWNER_CONFLICT_CODES.fencingRequired]: [
     'The host accepted the request but did not report which host owns the automation, so the CLI had no owner to send.',
-    'Update Orca on the host, then run the command again.'
+    'Update Manta on the host, then run the command again.'
   ],
   [AUTOMATION_OWNER_CONFLICT_CODES.invalidDestination]: [
     'The host this command targets is not registered on the authority that stores the automation.',
-    'Run `orca automations show --id <id>` to see where it lives, then target a host that authority knows.'
+    'Run `manta automations show --id <id>` to see where it lives, then target a host that authority knows.'
   ]
 }
 

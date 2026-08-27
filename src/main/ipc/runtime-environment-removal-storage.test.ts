@@ -48,7 +48,7 @@ describe('runtime environment removal storage clearing', () => {
     clearStorageMock.mockResolvedValue({ clearedPartitions: ['persist:one'], livePartitions: [] })
     registerRuntimeEnvironmentConnectivityHandlers({
       store: { getSettings: () => ({}) } as never,
-      getUserDataPath: () => '/tmp/orca-user-data',
+      getUserDataPath: () => '/tmp/manta-user-data',
       invalidateTransport: () => teardown
     })
 
@@ -68,7 +68,7 @@ describe('runtime environment removal storage clearing', () => {
       .mockResolvedValueOnce({ clearedPartitions: ['persist:one'], livePartitions: [] })
     registerRuntimeEnvironmentConnectivityHandlers({
       store: { getSettings: () => ({}) } as never,
-      getUserDataPath: () => '/tmp/orca-user-data',
+      getUserDataPath: () => '/tmp/manta-user-data',
       invalidateTransport: () => Promise.resolve()
     })
 

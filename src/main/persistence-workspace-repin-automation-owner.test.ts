@@ -132,7 +132,7 @@ function initialState(): Record<string, unknown> {
 async function loadStore(state: Record<string, unknown>) {
   mkdirSync(testState.dir, { recursive: true })
   writeFileSync(
-    join(testState.dir, 'orca-data.json'),
+    join(testState.dir, 'manta-data.json'),
     JSON.stringify({ ...getDefaultPersistedState(testState.dir), ...state }),
     'utf-8'
   )
@@ -145,7 +145,7 @@ async function loadStore(state: Record<string, unknown>) {
 
 /** The workspace's execution host changes without any automation being edited. */
 function repinWorkspace(connectionId: string, sshTargets?: SshTarget[]): void {
-  const file = join(testState.dir, 'orca-data.json')
+  const file = join(testState.dir, 'manta-data.json')
   const state = JSON.parse(readFileSync(file, 'utf-8'))
   state.folderWorkspaces = [folderWorkspace(connectionId)]
   if (sshTargets) {

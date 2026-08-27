@@ -17,7 +17,11 @@ import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveMantadBrowserProvider, type MantadBrowserProvider } from './mantad-browser-provider'
-import { resolveMantadInstallRoot, resolveMantadPath, resolveUserDataPath } from './mantad-app-paths'
+import {
+  resolveMantadInstallRoot,
+  resolveMantadPath,
+  resolveUserDataPath
+} from './mantad-app-paths'
 
 let runMantadQuitHandlers = (): void => {}
 
@@ -132,7 +136,7 @@ async function startMantadRuntime(
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
   // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
   // a server that pairs and lists nothing looks healthy and is not.
-  // Why: orcad IS the runtime authority — loading as 'desktop' would classify its
+  // Why: mantad IS the runtime authority — loading as 'desktop' would classify its
   // own runtime-scheduled automations as ambiguous mirrors and orphan them.
   const store = new Store({ dataFile: profile.dataFile, storageAuthority: 'runtime' })
   // Why: every SSH connect consults this sidecar. Left unbound it reports nothing trusted,

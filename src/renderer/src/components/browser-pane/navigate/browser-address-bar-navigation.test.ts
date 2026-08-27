@@ -34,7 +34,7 @@ describe('resolveBrowserAddressBarSubmission', () => {
   it('routes searches through the Kagi session link when one is configured', () => {
     storeState.browserDefaultSearchEngine = 'kagi'
     storeState.browserKagiSessionLink = 'https://kagi.com/search?token=secret-token'
-    expect(resolveBrowserAddressBarSubmission('orca browser')).toMatchObject({
+    expect(resolveBrowserAddressBarSubmission('manta browser')).toMatchObject({
       status: 'navigate',
       url: expect.stringContaining('secret-token')
     })

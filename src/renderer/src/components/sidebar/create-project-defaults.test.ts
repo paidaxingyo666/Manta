@@ -81,16 +81,16 @@ describe('create project defaults', () => {
     ).toBe('~/manta/projects')
     expect(
       formatCreateProjectParentSummary({
-        parent: '/home/alice/orca/projects',
-        defaultParent: '/home/alice/orca/projects'
+        parent: '/home/alice/manta/projects',
+        defaultParent: '/home/alice/manta/projects'
       })
-    ).toBe('~/orca/projects')
+    ).toBe('~/manta/projects')
     expect(
       formatCreateProjectParentSummary({
-        parent: 'C:\\Users\\alice\\orca\\projects',
-        defaultParent: 'C:\\Users\\alice\\orca\\projects'
+        parent: 'C:\\Users\\alice\\manta\\projects',
+        defaultParent: 'C:\\Users\\alice\\manta\\projects'
       })
-    ).toBe('~/orca/projects')
+    ).toBe('~/manta/projects')
     expect(
       formatCreateProjectParentSummary({
         parent: '',
@@ -123,15 +123,15 @@ describe('create project defaults', () => {
     ).toBe('J:\\PROJECTS')
     expect(
       formatCreateProjectParentSummary({
-        parent: '/data/orca/projects',
-        defaultParent: '/data/orca/projects'
+        parent: '/data/manta/projects',
+        defaultParent: '/data/manta/projects'
       })
-    ).toBe('/data/orca/projects')
+    ).toBe('/data/manta/projects')
     expect(
       formatCreateProjectParentSummary({
-        parent: 'D:\\code\\orca\\projects',
-        defaultParent: 'D:\\code\\orca\\projects'
+        parent: 'D:\\code\\manta\\projects',
+        defaultParent: 'D:\\code\\manta\\projects'
       })
-    ).toBe('D:\\code\\orca\\projects')
+    ).toBe('D:\\code\\manta\\projects')
   })
 })

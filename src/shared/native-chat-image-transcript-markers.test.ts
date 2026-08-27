@@ -227,8 +227,8 @@ describe('normalizeNativeChatUserText control bytes', () => {
 
   // Remove a bracketed-paste wrapper as one sequence so its printable tail cannot survive.
   it('drops a bracketed-paste wrapper, not just its ESC introducer', () => {
-    expect(normalizeNativeChatUserText('\u001b[200~/tmp/orca-paste-1.png\u001b[201~')).toBe(
-      '/tmp/orca-paste-1.png'
+    expect(normalizeNativeChatUserText('\u001b[200~/tmp/manta-paste-1.png\u001b[201~')).toBe(
+      '/tmp/manta-paste-1.png'
     )
   })
 

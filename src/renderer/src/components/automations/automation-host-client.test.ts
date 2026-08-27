@@ -130,7 +130,7 @@ describe('automation host client', () => {
   it('encodes exact machine selectors for the create wire input', () => {
     const automation = makeAutomation({
       workspaceMode: 'existing',
-      workspaceId: 'repo-1::/srv/orca'
+      workspaceId: 'repo-1::/srv/manta'
     })
     const input: AutomationCreateInput = {
       name: automation.name,
@@ -149,7 +149,7 @@ describe('automation host client', () => {
 
     expect(toRuntimeAutomationCreateInput(input)).toMatchObject({
       repo: 'id:repo-1',
-      workspace: 'id:repo-1::/srv/orca'
+      workspace: 'id:repo-1::/srv/manta'
     })
     // A per-run workspace states no workspace selector at all.
     expect(

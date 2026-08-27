@@ -42,7 +42,7 @@ async function buildFixtureBundle(options: {
         entry: options.entry,
         formats: [options.format],
         fileName: () => options.fileName,
-        name: 'OrcaBrowserClientPageFixture'
+        name: 'MantaBrowserClientPageFixture'
       },
       outDir: options.root,
       target: options.target,

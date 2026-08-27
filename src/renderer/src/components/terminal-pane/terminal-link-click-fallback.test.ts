@@ -528,24 +528,24 @@ describe('createFilePathLinkProvider range bounds', () => {
   it('opens a deeply wrapped absolute path from its final short continuation row', async () => {
     setPlatform('Macintosh')
     const rows = [
-      makeBufferLine('/private/tmp/or'),
-      makeBufferLine('ca-setup-e2e.hO'),
-      makeBufferLine('W01f/workspaces'),
-      makeBufferLine('/test-wt-5/mob'),
-      makeBufferLine('ile/packages/ex'),
-      makeBufferLine('po-two-way-aud'),
-      makeBufferLine('io/android/src/'),
-      makeBufferLine('main/java/expo'),
-      makeBufferLine('/modules/twoway'),
-      makeBufferLine('audio/ExpoTwoW'),
-      makeBufferLine('ayAudioLifeCyc'),
-      makeBufferLine('leListener.kt')
+      makeBufferLine('/private/tmp/ma'),
+      makeBufferLine('nta-setup-e2e.h'),
+      makeBufferLine('OW01f/workspace'),
+      makeBufferLine('s/test-wt-5/mo'),
+      makeBufferLine('bile/packages/e'),
+      makeBufferLine('xpo-two-way-au'),
+      makeBufferLine('dio/android/src'),
+      makeBufferLine('/main/java/exp'),
+      makeBufferLine('o/modules/twowa'),
+      makeBufferLine('yaudio/ExpoTwo'),
+      makeBufferLine('WayAudioLifeCy'),
+      makeBufferLine('cleListener.kt')
     ]
 
     const opened = openFilePathLinkAtBufferPosition(makeBuffer(rows), { x: 4, y: 12 }, 15, {
-      startupCwd: '/private/tmp/orca-setup-e2e.hOW01f/workspaces/test-wt-5',
+      startupCwd: '/private/tmp/manta-setup-e2e.hOW01f/workspaces/test-wt-5',
       worktreeId: 'wt-1',
-      worktreePath: '/private/tmp/orca-setup-e2e.hOW01f/workspaces/test-wt-5',
+      worktreePath: '/private/tmp/manta-setup-e2e.hOW01f/workspaces/test-wt-5',
       runtimeEnvironmentId: null,
       openWithSystemDefault: true
     })
@@ -553,7 +553,7 @@ describe('createFilePathLinkProvider range bounds', () => {
 
     expect(opened).toBe(true)
     expect(openFilePathMock).toHaveBeenCalledWith(
-      '/private/tmp/orca-setup-e2e.hOW01f/workspaces/test-wt-5/mobile/packages/expo-two-way-audio/android/src/main/java/expo/modules/twowayaudio/ExpoTwoWayAudioLifeCycleListener.kt'
+      '/private/tmp/manta-setup-e2e.hOW01f/workspaces/test-wt-5/mobile/packages/expo-two-way-audio/android/src/main/java/expo/modules/twowayaudio/ExpoTwoWayAudioLifeCycleListener.kt'
     )
   })
 

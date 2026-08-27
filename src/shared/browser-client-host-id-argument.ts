@@ -1,4 +1,4 @@
-const PREFIX = '--orca-browser-client-host-id='
+const PREFIX = '--manta-browser-client-host-id='
 
 /**
  * How main hands a renderer the id it hosts browser guests under: a command-line argument, read
