@@ -230,6 +230,39 @@ describe('MobilePushEscalation', () => {
     expect(payload.aps.alert.body).toBeTruthy()
   })
 
+  /**
+   * The budget cuts the oldest, never the newest. A lock screen has room for one
+   * line and the extension reads the last item, so trimming from the back threw
+   * away the only thing the user was going to see — every push in a busy session
+   * showed the same stale message.
+   */
+  it('drops the oldest when the batch will not fit, never the newest', async () => {
+    const key = generatePushKey()
+    const h = harness({
+      pushTargets: () => [
+        { deviceId: 'd', deviceToken: 'a'.repeat(64), encryptionKeyB64: key.toString('base64') }
+      ]
+    })
+    for (let i = 0; i < 8; i += 1) {
+      h.escalation.schedule({
+        type: 'notification',
+        source: 'agent',
+        title: `t${i}`,
+        body: `${'y'.repeat(199)}${i}`
+      } as never)
+    }
+    await h.elapse()
+
+    const items = JSON.parse(decryptPushBody(key, h.wake.mock.calls[0][0].payload.mb)!) as {
+      t: string
+      b: string
+    }[]
+    expect(items.length).toBeLessThan(8)
+    // Still oldest-first on the wire, and the newest survived the trim.
+    expect(items.at(-1)?.t).toBe('t7')
+    expect(items.at(0)?.t).not.toBe('t0')
+  })
+
   it('survives a malformed key without losing the notification', async () => {
     const h = harness({
       pushTargets: () => [
@@ -280,5 +313,4 @@ describe('MobilePushEscalation', () => {
       expect(payload.de).toBeUndefined()
     })
   })
-
 })
