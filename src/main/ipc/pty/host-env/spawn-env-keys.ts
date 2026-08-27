@@ -3,6 +3,7 @@ export const AGENT_HOOK_RUNTIME_ENV_KEYS = [
   'MANTA_AGENT_HOOK_TOKEN',
   'MANTA_AGENT_HOOK_ENV',
   'MANTA_AGENT_HOOK_VERSION',
+  'MANTA_AGENT_HOOK_TRANSPORT',
   'MANTA_AGENT_HOOK_ENDPOINT',
   // Why: PR 2778 briefly exported this path; keep deleting stale inherited values so older PTYs can't leak the reverted path.
   'MANTA_CLAUDE_AGENT_STATUS_SETTINGS'

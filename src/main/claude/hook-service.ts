@@ -9,6 +9,7 @@ import {
   writeManagedScript,
   type HooksConfig
 } from '../agent-hooks/installer-utils'
+import { buildPosixAgentHookPostCommand } from '../agent-hooks/hook-post-command'
 import {
   readHooksJsonRemote,
   writeHooksJsonRemote,
@@ -114,25 +115,17 @@ function getManagedScript(
     // Why: refresh endpoint coordinates for PTYs surviving a Manta restart.
     // Why: suppress parse errors so they neither leak nor trip outer set -e.
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
+    '  unset MANTA_AGENT_HOOK_TRANSPORT',
     '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
     'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
     '  spool_hook_event',
     '  exit 0',
     'fi',
-    // Why: post form fields because path-bearing payloads are unsafe in hand-built JSON.
-    // Why: pipe payload to curl stdin to keep large output off the command line.
-    'printf \'%s\' "$payload" | curl -sS -X POST "http://127.0.0.1:${MANTA_AGENT_HOOK_PORT}/hook/claude" \\',
-    '  --connect-timeout 0.5 --max-time 1.5 \\',
-    '  -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '  -H "X-Manta-Agent-Hook-Token: ${MANTA_AGENT_HOOK_TOKEN}" \\',
-    '  --data-urlencode "paneKey=${MANTA_PANE_KEY}" \\',
-    '  --data-urlencode "tabId=${MANTA_TAB_ID}" \\',
-    '  --data-urlencode "launchToken=${MANTA_AGENT_LAUNCH_TOKEN}" \\',
-    '  --data-urlencode "worktreeId=${MANTA_WORKTREE_ID}" \\',
-    '  --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
-    '  --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
-    '  --data-urlencode "payload@-" >/dev/null 2>&1 || spool_hook_event',
+    // Why: keep full hook JSON off the command line and avoid IDS-friendly URL-encoded paths.
+    ...buildPosixAgentHookPostCommand('claude').map((line, index, lines) =>
+      index === lines.length - 1 ? `${line} >/dev/null 2>&1 || spool_hook_event` : line
+    ),
     'exit 0',
     ''
   ].join('\n')

@@ -90,6 +90,7 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     'MANTA_AGENT_HOOK_TOKEN/u',
     'MANTA_AGENT_HOOK_ENV/u',
     'MANTA_AGENT_HOOK_VERSION/u',
+    'MANTA_AGENT_HOOK_TRANSPORT/u',
     `MANTA_AGENT_HOOK_ENDPOINT/${endpointFlag}`,
     ...opencodeOverlayEntries,
     'MANTA_WSL_HOOK_RELAY_VERSION/u',

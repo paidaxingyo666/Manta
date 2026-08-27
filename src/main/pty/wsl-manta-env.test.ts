@@ -73,6 +73,7 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_AGENT_HOOK_TOKEN: 'token',
       MANTA_AGENT_HOOK_ENV: 'dev',
       MANTA_AGENT_HOOK_VERSION: '1',
+      MANTA_AGENT_HOOK_TRANSPORT: 'raw-json-v1',
       MANTA_WSL_HOOK_INSTANCE: 'testinstance',
       MANTA_ORCHESTRATION_COMPATIBILITY_HOST_KIND: 'wsl',
       MANTA_ORCHESTRATION_COMPATIBILITY_HOST_ID: 'local',
@@ -95,6 +96,7 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_TOKEN/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_ENV/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_VERSION/u')
+    expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_TRANSPORT/u')
     expect(env.WSLENV).toContain('MANTA_WSL_HOOK_INSTANCE/u')
     expect(env.WSLENV).toContain('MANTA_ORCHESTRATION_COMPATIBILITY_HOST_KIND/u')
     expect(env.WSLENV).toContain('MANTA_ORCHESTRATION_COMPATIBILITY_HOST_ID/u')

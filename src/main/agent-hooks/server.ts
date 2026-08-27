@@ -8,7 +8,10 @@ import { join } from 'node:path'
 import { track } from '../telemetry/client'
 import { getCohortAtEmit } from '../telemetry/cohort-classifier'
 import { AGENT_KIND_VALUES, type AgentKind } from '../../shared/telemetry-events'
-import { MANTA_HOOK_PROTOCOL_VERSION } from '../../shared/agent-hook-types'
+import {
+  MANTA_HOOK_PROTOCOL_VERSION,
+  MANTA_HOOK_RAW_JSON_TRANSPORT
+} from '../../shared/agent-hook-types'
 import {
   clearAllListenerCaches,
   clearPaneCacheState,
@@ -46,6 +49,7 @@ import {
 } from '../../shared/agent-hook-listener/listener-limits'
 import { isNewTurnEvent } from '../../shared/agent-hook-listener/provider-event-routing'
 import { normalizeHookPayload } from '../../shared/agent-hook-listener'
+import { mergeAgentHookRequestHeaders } from '../../shared/agent-hook-listener/hook-envelope'
 import {
   parseFormEncodedBody,
   readRequestBody
@@ -2675,8 +2679,9 @@ export class AgentHookServer {
           return
         }
 
-        trackEmptyPaneKeyHook(body)
-        const aliasedBody = this.normalizeHookBodyPaneKeyAlias(body)
+        const hookBody = mergeAgentHookRequestHeaders(body, req.headers)
+        trackEmptyPaneKeyHook(hookBody)
+        const aliasedBody = this.normalizeHookBodyPaneKeyAlias(hookBody)
         const normalized = this.normalizeLocalHookPayload(source, aliasedBody)
         const statusDisposition = normalized.event
           ? this.getAgentStatusDisposition(normalized.event.paneKey, {
@@ -3188,7 +3193,8 @@ export class AgentHookServer {
       MANTA_AGENT_HOOK_PORT: String(this.port),
       MANTA_AGENT_HOOK_TOKEN: this.token,
       MANTA_AGENT_HOOK_ENV: this.env,
-      MANTA_AGENT_HOOK_VERSION: MANTA_HOOK_PROTOCOL_VERSION
+      MANTA_AGENT_HOOK_VERSION: MANTA_HOOK_PROTOCOL_VERSION,
+      MANTA_AGENT_HOOK_TRANSPORT: MANTA_HOOK_RAW_JSON_TRANSPORT
     }
     // Why: hooks source this file at invocation; dev namespaces it so parallel `pnpm dev` runs don't steal each other's hooks.
     if (this.endpointFileWritten && this.endpointFilePathCache) {
@@ -3215,7 +3221,8 @@ export class AgentHookServer {
       port: this.port,
       token: this.token,
       env: this.env,
-      version: MANTA_HOOK_PROTOCOL_VERSION
+      version: MANTA_HOOK_PROTOCOL_VERSION,
+      transport: MANTA_HOOK_RAW_JSON_TRANSPORT
     })
     this.endpointFileWritten = ok
   }
