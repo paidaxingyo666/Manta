@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
@@ -35,7 +34,25 @@ export function shouldRunPrChecks(changedFiles) {
   return changedFiles.some((file) => !isDocsOnlyPath(file))
 }
 
+/**
+ * Read stdin to the end rather than `readFileSync(0)`.
+ *
+ * The caller pipes one path per line, and a sync read of a pipe throws EAGAIN
+ * once the writer cannot deliver the whole list in a single go — which is
+ * exactly what a large change does. A 324-file sync PR hit it twice in a row
+ * and took the gate down with it, and because this step decides whether the
+ * rest of PR CI runs at all, every other job was skipped rather than failed.
+ */
+async function readStdin() {
+  let text = ''
+  process.stdin.setEncoding('utf8')
+  for await (const chunk of process.stdin) {
+    text += chunk
+  }
+  return text
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const files = readFileSync(0, 'utf8').split('\n').filter(Boolean)
+  const files = (await readStdin()).split('\n').filter(Boolean)
   process.stdout.write(shouldRunPrChecks(files) ? 'true\n' : 'false\n')
 }

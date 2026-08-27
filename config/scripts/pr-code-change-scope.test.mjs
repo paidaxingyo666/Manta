@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -104,4 +105,34 @@ describe('PR Checks docs-only skip wiring', () => {
     expect(docsOnlyBranch).not.toContain('"$result" != "success"')
     expect(verifyStep.run).toContain('"$ROOT_DIRECTORY_GUARD" != "success"')
   })
+  /**
+   * The gate reads its file list from a pipe, and a sync read of a pipe throws
+   * EAGAIN once the writer cannot deliver it in one go. A 324-file sync PR hit
+   * that twice in a row on the Linux runners; because this step decides whether
+   * the rest of PR CI runs, every other job was skipped rather than failed. The
+   * platform difference is why it never showed up locally — the same input goes
+   * through fine on macOS.
+   */
+  it('reads a change list larger than a pipe buffer', async () => {
+    const scriptPath = resolve(import.meta.dirname, 'pr-code-change-scope.mjs')
+    // Stripped of comments: the doc comment above the reader names the call it
+    // replaced, and matching that would fail the file for explaining itself.
+    const source = readFileSync(scriptPath, 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+    expect(source).not.toContain('readFileSync(0')
+
+    // 4000 paths, comfortably past the 64 KiB a pipe will hold.
+    const paths = Array.from({ length: 4000 }, (_, i) => `src/main/generated/file-${i}.ts`)
+    const child = spawn(process.execPath, [scriptPath], { stdio: ['pipe', 'pipe', 'inherit'] })
+    let out = ''
+    child.stdout.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => {
+      out += chunk
+    })
+    const exited = new Promise((resolveExit) => child.on('close', resolveExit))
+    child.stdin.end(`${paths.join('\n')}\n`)
+
+    expect(await exited).toBe(0)
+    expect(out.trim()).toBe('true')
+  })
 })
+
