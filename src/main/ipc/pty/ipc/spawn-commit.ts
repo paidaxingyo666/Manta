@@ -35,14 +35,14 @@ export async function commitPtyIpcSpawn(ctx: PtyIpcSpawnState): Promise<PtySpawn
         : undefined
     if (typeof ctx.result.snapshot === 'string' && ctx.result.snapshot.length > 0) {
       // Why kitty flags ride seed metadata: the snapshot omits them, but the re-seeded emulator must answer hidden `CSI ? u` with the running app's flags (terminal-query-authority.md).
-      ctx.deps.runtime.seedHeadlessTerminal(
-        ctx.result.id,
-        ctx.result.snapshot,
-        snapshotSeedSize,
-        typeof ctx.result.snapshotKittyKeyboardFlags === 'number'
+      ctx.deps.runtime.seedHeadlessTerminal(ctx.result.id, ctx.result.snapshot, snapshotSeedSize, {
+        ...(typeof ctx.result.snapshotKittyKeyboardFlags === 'number'
           ? { kittyKeyboardFlags: ctx.result.snapshotKittyKeyboardFlags }
-          : {}
-      )
+          : {}),
+        ...(ctx.result.snapshotTerminalOwner
+          ? { terminalOwner: ctx.result.snapshotTerminalOwner }
+          : {})
+      })
     } else if (
       ctx.result.coldRestore &&
       typeof ctx.result.coldRestore.scrollback === 'string' &&
