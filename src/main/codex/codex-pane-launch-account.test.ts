@@ -202,7 +202,7 @@ describe('resolveCodexPaneLaunchAccount', () => {
     ).toEqual({
       selectionKey: 'wsl:Ubuntu',
       accountId: 'wsl-account',
-      homeRoute: 'wsl-home'
+      homeRoute: 'account-home'
     })
   })
 

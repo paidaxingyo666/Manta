@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type * as WslPaths from '../../shared/wsl-paths'
 import { createSettings } from './runtime-home-settings-test-fixtures'
@@ -89,7 +89,7 @@ describe('CodexRuntimeHomeService', () => {
     }
   })
 
-  it('starts WSL session bridging after materializing the WSL launch home', async () => {
+  it('skips WSL session bridging when system default already uses its direct home', async () => {
     const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
     const startWslCodexSessionBridgeInBackground = vi.fn(() => Promise.resolve())
@@ -124,17 +124,13 @@ describe('CodexRuntimeHomeService', () => {
       )
 
       expect(service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: 'Ubuntu' })).toBe(
-        wslRuntimeHomePath
+        wslSystemHomePath
       )
-      expect(startWslCodexSessionBridgeInBackground).toHaveBeenCalledTimes(1)
-      expect(startWslCodexSessionBridgeInBackground).toHaveBeenCalledWith({
-        distro: 'Ubuntu',
-        systemCodexHomePath: wslSystemHomePath,
-        managedCodexHomePath: wslRuntimeHomePath
-      })
-      const runtimeAgentsPath = join(wslRuntimeHomePath, 'AGENTS.md')
-      expect(readFileSync(runtimeAgentsPath, 'utf-8')).toBe('# WSL instructions\n')
-      expect(lstatSync(runtimeAgentsPath).isSymbolicLink()).toBe(false)
+      expect(startWslCodexSessionBridgeInBackground).not.toHaveBeenCalled()
+      expect(readFileSync(join(wslSystemHomePath, 'AGENTS.md'), 'utf-8')).toBe(
+        '# WSL instructions\n'
+      )
+      expect(existsSync(join(wslRuntimeHomePath, 'AGENTS.md'))).toBe(false)
     } finally {
       vi.doUnmock('../codex/wsl-codex-session-bridge')
       vi.doUnmock('../wsl')
@@ -144,7 +140,7 @@ describe('CodexRuntimeHomeService', () => {
     }
   })
 
-  it('promotes WSL in-Codex setting changes on the next Codex launch', async () => {
+  it('keeps WSL in-Codex setting changes in the direct system home', async () => {
     const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
     vi.doMock('../codex/wsl-codex-session-bridge', () => ({
@@ -177,32 +173,20 @@ describe('CodexRuntimeHomeService', () => {
         'home'
       )
 
-      // First launch seeds the runtime config and records the per-distro baseline.
       expect(service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: 'Ubuntu' })).toBe(
-        wslRuntimeHomePath
+        join(wslHome, '.codex')
       )
       const baselinePath = join(wslRuntimeHomePath, '.manta-config-settings-baseline.json')
-      expect(existsSync(baselinePath)).toBe(true)
+      expect(existsSync(baselinePath)).toBe(false)
 
-      // A direct WSL Codex edit wins and is mirrored into Manta's runtime before
-      // the baseline advances, so later in-Manta changes remain promotable.
-      const runtimeConfigPath = join(wslRuntimeHomePath, 'config.toml')
       writeFileSync(wslSystemConfigPath, 'model = "outside-edit"\n', 'utf-8')
       service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: 'Ubuntu' })
-      expect(readFileSync(runtimeConfigPath, 'utf-8')).toBe('model = "outside-edit"\n')
-      expect(readFileSync(baselinePath, 'utf-8')).toContain('"model": "\\"outside-edit\\""')
+      expect(readFileSync(wslSystemConfigPath, 'utf-8')).toBe('model = "outside-edit"\n')
 
-      // Codex now persists a /model change inside Manta's reconciled runtime.
-      writeFileSync(
-        runtimeConfigPath,
-        readFileSync(runtimeConfigPath, 'utf-8').replace('model = "outside-edit"', 'model = "o4"'),
-        'utf-8'
-      )
-
+      writeFileSync(wslSystemConfigPath, 'model = "o4"\n', 'utf-8')
       service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: 'Ubuntu' })
       expect(readFileSync(wslSystemConfigPath, 'utf-8')).toBe('model = "o4"\n')
-      // Baseline advances so the promoted value is not re-promoted forever.
-      expect(readFileSync(baselinePath, 'utf-8')).toContain('"model": "\\"o4\\""')
+      expect(existsSync(baselinePath)).toBe(false)
     } finally {
       vi.doUnmock('../codex/wsl-codex-session-bridge')
       vi.doUnmock('../wsl')
@@ -236,22 +220,13 @@ describe('CodexRuntimeHomeService', () => {
     try {
       const { CodexRuntimeHomeService } = await import('./runtime-home-service')
       const service = new CodexRuntimeHomeService(store as never)
-      const wslRuntimeHomePath = join(
-        wslHome,
-        '.local',
-        'share',
-        'manta',
-        'codex-runtime-home',
-        'home'
-      )
-
       service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: 'Ubuntu' })
 
       expect(startWslCodexSessionBridgeInBackground).toHaveBeenCalledTimes(1)
       expect(startWslCodexSessionBridgeInBackground).toHaveBeenCalledWith({
         distro: 'Ubuntu',
         systemCodexHomePath: '/home/me/.config/codex',
-        managedCodexHomePath: wslRuntimeHomePath
+        managedCodexHomePath: join(wslHome, '.codex')
       })
     } finally {
       vi.doUnmock('../codex/wsl-codex-session-bridge')
@@ -287,7 +262,8 @@ describe('CodexRuntimeHomeService', () => {
       return {
         ...actual,
         parseWslUncPath: (candidate: string) =>
-          candidate === wslRuntimeHomePath
+          candidate === wslRuntimeHomePath ||
+          candidate.includes('codex-accounts/debian-account/home')
             ? {
                 distro: 'Debian',
                 linuxPath: '/home/alice/.local/share/manta/codex-runtime-home/home'
@@ -328,12 +304,12 @@ describe('CodexRuntimeHomeService', () => {
       const service = new CodexRuntimeHomeService(store as never)
 
       expect(service.prepareForCodexLaunch({ runtime: 'wsl', wslDistro: null })).toBe(
-        wslRuntimeHomePath
+        managedHomePath
       )
       expect(startWslCodexSessionBridgeInBackground).toHaveBeenCalledWith({
         distro: 'Debian',
         systemCodexHomePath: join(wslHome, '.codex'),
-        managedCodexHomePath: wslRuntimeHomePath
+        managedCodexHomePath: managedHomePath
       })
     } finally {
       vi.doUnmock('../codex/wsl-codex-session-bridge')

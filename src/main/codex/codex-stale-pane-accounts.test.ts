@@ -8,6 +8,7 @@ import {
   forgetCodexPaneAccount,
   getCodexPaneAccount,
   hasRecordedLegacySharedCodexPane,
+  hasRecordedLegacyWslCodexPane,
   hasRecordedManagedHostCodexPane,
   isCodexPaneHomeRouteProvenAwayFromSharedHome,
   reconcileCodexPaneAccountsWithLivePtys,
@@ -136,6 +137,36 @@ describe('codex pane account registry', () => {
     })
 
     expect(hasRecordedLegacySharedCodexPane()).toBe(true)
+  })
+
+  it('identifies only legacy runtime-home panes on the requested WSL lane', () => {
+    recordCodexPaneAccount('pty-legacy', {
+      selectionKey: 'wsl:Ubuntu',
+      accountId: 'account-old',
+      homeRoute: 'wsl-home'
+    })
+    recordCodexPaneAccount('pty-direct', {
+      selectionKey: 'wsl:Ubuntu',
+      accountId: 'account-new',
+      homeRoute: 'account-home'
+    })
+    recordCodexPaneAccount('pty-other-distro', {
+      selectionKey: 'wsl:Debian',
+      accountId: 'account-debian',
+      homeRoute: 'wsl-home'
+    })
+    recordCodexPaneAccount('pty-default', {
+      selectionKey: 'wsl:__default__',
+      accountId: null,
+      homeRoute: 'wsl-home'
+    })
+
+    expect(hasRecordedLegacyWslCodexPane('wsl:Ubuntu')).toBe(true)
+    forgetCodexPaneAccount('pty-legacy')
+    expect(hasRecordedLegacyWslCodexPane('wsl:Ubuntu')).toBe(true)
+    forgetCodexPaneAccount('pty-default')
+    expect(hasRecordedLegacyWslCodexPane('wsl:Ubuntu')).toBe(false)
+    expect(hasRecordedLegacyWslCodexPane('wsl:Debian')).toBe(true)
   })
 
   it('requests startup inventory only for managed host panes', () => {
