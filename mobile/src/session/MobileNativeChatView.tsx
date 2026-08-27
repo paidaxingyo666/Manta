@@ -164,12 +164,13 @@ export function MobileNativeChatView({
   const { data } = useMemo(
     () =>
       buildMobileNativeChatTransientData({
+        messages,
         folded,
         streaming,
         pending,
         imagePreviewsByMessageId
       }),
-    [folded, streaming, pending, imagePreviewsByMessageId]
+    [messages, folded, streaming, pending, imagePreviewsByMessageId]
   )
 
   const scroll = useMobileNativeChatScroll({
