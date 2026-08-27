@@ -106,9 +106,27 @@ describe('buildHostCliEnv', () => {
     expect(env.PATH).toBe('/host/bin')
     expect(env.MANTA_USER_DATA_PATH).toBe('/host/user-data')
     expect(env.MANTA_CLI_CWD).toBe('/home/alice/wt/sub')
+    expect(env.MANTA_CLI_COMMAND).toBe('manta')
     expect(env.ELECTRON_RUN_AS_NODE).toBe('1')
     expect(env.NODE_OPTIONS).toBeUndefined()
     expect(env.MANTA_NODE_OPTIONS).toBe('--inspect')
+  })
+
+  it.each([
+    ['dev host', { MANTA_DEV_REPO_ROOT: '/repo', MANTA_CLI_COMMAND: 'manta-dev' }],
+    ['packaged Linux host', { MANTA_CLI_COMMAND: 'manta-ide' }],
+    ['local host', {}],
+    ['WSL host', { WSL_DISTRO_NAME: 'Ubuntu', MANTA_CLI_COMMAND: 'manta-ide' }],
+    ['Windows host', { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }]
+  ])('pins %s recovery to the remote shim', (_name, hostEnv) => {
+    const env = buildHostCliEnv({
+      hostEnv,
+      remoteEnv: { MANTA_CLI_COMMAND: 'untrusted-remote-command' },
+      userDataPath: '/host/user-data',
+      remoteCwd: '/srv/repo'
+    })
+
+    expect(env.MANTA_CLI_COMMAND).toBe('manta')
   })
 
   it('namespaces identical remote artifact paths by stable SSH target', () => {
