@@ -14,6 +14,7 @@ import {
   type Tray,
   session
 } from 'electron'
+import { applyMacPressAndHoldDefaultAtStartup } from './macos-press-and-hold-default'
 import { initTccPromptNotice, stopTccPromptNotice } from './macos-tcc-prompt-notice'
 import { electronApp, is } from '@electron-toolkit/utils'
 import {
@@ -960,6 +961,9 @@ if (hasSingleInstanceLock) {
   installDevParentSignalQuit(shouldCoupleToDevParent)
   // Why: run after configureDevUserDataPath but before app.setName('Manta') (whenReady), which changes the resolved path on case-sensitive filesystems.
   initDataPath()
+  // Why here: initDataPath above gives the canonical userData path for the record file; the write
+  // itself lands for the next launch (see macos-press-and-hold-default.ts).
+  applyMacPressAndHoldDefaultAtStartup(getCanonicalUserDataPath())
   // Why: use the canonical userData path — late app.getPath('userData') can resolve differently across restarts, defeating persistence.
   initSessionParseCachePersistence({
     filePath: join(getCanonicalUserDataPath(), 'ai-vault', 'session-parse-cache.json'),
