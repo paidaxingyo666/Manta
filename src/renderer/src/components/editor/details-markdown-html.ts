@@ -36,6 +36,10 @@ export type DetailsHtmlBlock = {
   inner: string
 }
 
+// Fence ranges depend only on the scanned string, so callers scanning one body
+// repeatedly compute them once and share them across sibling matches.
+export type MarkdownFenceRanges = readonly (readonly [number, number])[]
+
 export type DetailsSummaryHtml = {
   attributes: string
   content: string
@@ -87,7 +91,7 @@ export function renderDetailsAttributes(attrs: Record<string, unknown> | undefin
   return attributes.join(' ')
 }
 
-function markdownFenceRanges(content: string): [number, number][] {
+function markdownFenceRanges(content: string): MarkdownFenceRanges {
   const ranges: [number, number][] = []
   let offset = 0
   let openFence: { marker: '`' | '~'; length: number; start: number } | null = null
@@ -129,11 +133,15 @@ function markdownFenceRanges(content: string): [number, number][] {
   return ranges
 }
 
-function isInsideRange(index: number, ranges: [number, number][]): boolean {
+function isInsideRange(index: number, ranges: MarkdownFenceRanges): boolean {
   return ranges.some(([start, end]) => index >= start && index < end)
 }
 
-export function matchDetailsHtmlBlock(content: string, start: number): DetailsHtmlBlock | null {
+export function matchDetailsHtmlBlock(
+  content: string,
+  start: number,
+  precomputedFenceRanges?: MarkdownFenceRanges
+): DetailsHtmlBlock | null {
   const openingMatch = content.slice(start).match(/^<details\b[^>]*>/i)
   if (!openingMatch) {
     return null
@@ -141,7 +149,7 @@ export function matchDetailsHtmlBlock(content: string, start: number): DetailsHt
 
   const detailsTagPattern = /<\/?details\b[^>]*>/gi
   detailsTagPattern.lastIndex = start
-  const fenceRanges = markdownFenceRanges(content)
+  const fenceRanges = precomputedFenceRanges ?? markdownFenceRanges(content)
 
   let depth = 0
 
@@ -270,6 +278,8 @@ const MAX_DETAILS_NESTING_LEVELS = 16
 function stripEditableNestedDetails(bodyHtml: string, nestingLevel: number): string | null {
   let result = ''
   let index = 0
+  // Why: without sharing this, N sibling toggles rescan the whole body N times.
+  let fenceRanges: MarkdownFenceRanges | null = null
 
   for (;;) {
     const nestedStart = indexOfAsciiIgnoreCase(bodyHtml, '<details', index)
@@ -281,7 +291,8 @@ function stripEditableNestedDetails(bodyHtml: string, nestingLevel: number): str
       return null
     }
 
-    const nested = matchDetailsHtmlBlock(bodyHtml, nestedStart)
+    fenceRanges ??= markdownFenceRanges(bodyHtml)
+    const nested = matchDetailsHtmlBlock(bodyHtml, nestedStart, fenceRanges)
     if (!nested || !isEditableDetailsHtmlBlock(nested, nestingLevel + 1)) {
       return null
     }

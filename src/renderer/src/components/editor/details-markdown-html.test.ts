@@ -91,6 +91,22 @@ describe('details markdown html', () => {
     expect(isEditableHtml(nestedToggles(16))).toBe(true)
   })
 
+  it('bounds each of many sibling nested toggles independently', () => {
+    const siblings = (count: number, extra = ''): string =>
+      Array.from(
+        { length: count },
+        (_, index) =>
+          `<details class="orca-details"${extra}>\n<summary>sibling ${index}</summary>\n\nBody\n\n</details>`
+      ).join('\n\n')
+    const wrap = (body: string): string =>
+      `<details class="orca-details">\n<summary>Outer</summary>\n\n${body}\n\n</details>`
+
+    expect(isEditableHtml(wrap(siblings(40)))).toBe(true)
+    // A single non-editable sibling must still reject, so sharing fence ranges
+    // cannot make later siblings inherit an earlier sibling's boundaries.
+    expect(isEditableHtml(wrap(`${siblings(20)}\n\n${siblings(1, ' id="x"')}`))).toBe(false)
+  })
+
   it('rejects a toggle whose nested toggle is not itself editable', () => {
     const block: DetailsHtmlBlock = {
       raw: '',
