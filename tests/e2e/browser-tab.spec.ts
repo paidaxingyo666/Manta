@@ -690,7 +690,7 @@ test.describe('Browser Tab', () => {
     }
   })
 
-  test('plain links stay current while explicit new-tab gestures activate Manta tabs', async ({
+  test('every new-tab link gesture activates a Manta tab and never a native window', async ({
     electronApp,
     mantaPage
   }) => {
@@ -708,23 +708,20 @@ test.describe('Browser Tab', () => {
       const baseWindowCount = await electronApp.evaluate(
         ({ BaseWindow }) => BaseWindow.getAllWindows().length
       )
-      const baseTabCount = await mantaPage.locator('[data-tab-id]').count()
-      await clickBrowserLink(mantaPage, sourceTab!.id, '#external-link')
-
+      // A plain target=_blank click is a new-tab request, in the main frame and in an iframe;
+      // the source tab must stay put rather than navigate away under it.
       const sourceTabLocator = mantaPage.locator(`[data-tab-id="${sourceTab!.id}"]`)
-      await expect(sourceTabLocator).toContainText('Linked destination', { timeout: 10_000 })
-      await expect(mantaPage.locator('[data-tab-id]')).toHaveCount(baseTabCount)
+      await clickBrowserLink(mantaPage, sourceTab!.id, '#external-link')
+      await expectBrowserTabActive(mantaPage, 'Linked destination')
+      await expect(sourceTabLocator).toContainText('Source page')
+      await switchToBrowserTab(mantaPage, worktreeId, sourceTab!.id)
 
-      await clickBrowserLink(mantaPage, sourceTab!.id, '#return-link')
-      await expect(sourceTabLocator).toContainText('Source page', { timeout: 10_000 })
       await clickBrowserLink(mantaPage, sourceTab!.id, '#frame-link', {
         frameSelector: '#link-frame'
       })
-      await expect(sourceTabLocator).toContainText('Frame destination', { timeout: 10_000 })
-      await expect(mantaPage.locator('[data-tab-id]')).toHaveCount(baseTabCount)
-
-      await clickBrowserLink(mantaPage, sourceTab!.id, '#return-link')
-      await expect(sourceTabLocator).toContainText('Source page', { timeout: 10_000 })
+      await expectBrowserTabActive(mantaPage, 'Frame destination')
+      await expect(sourceTabLocator).toContainText('Source page')
+      await switchToBrowserTab(mantaPage, worktreeId, sourceTab!.id)
 
       await clickBrowserLink(mantaPage, sourceTab!.id, '#frame-modifier-link', {
         frameSelector: '#link-frame',
