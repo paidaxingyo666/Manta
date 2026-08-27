@@ -574,6 +574,34 @@ jobs:
           filter: blob:none
           persist-credentials: false
 
+      # Why: the baseline the harness skews against is an UPSTREAM release tag.
+      # This fork's own tags start well after it, and the tags a clone of
+      # upstream carries locally are never pushed here — so on CI the ref does
+      # not resolve and the whole lane fails on `git rev-parse`.
+      #
+      # Fetched one tag at a time, never `--tags`: a sibling test picks "the
+      # newest release tag", and dragging upstream's tag line in would silently
+      # change which release that is.
+      #
+      # The ref is read out of the test rather than repeated here, so a baseline
+      # bump stays a one-line change in the file that owns it.
+      - name: Fetch the upstream baseline release tag
+        run: |
+          set -euo pipefail
+          spec='tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts'
+          ref="$(sed -n "s/.*RELEASE_REF = '\([^']*\)'.*/\1/p" "$spec" | head -1)"
+          if [ -z "$ref" ]; then
+            echo "::error::could not read the baseline release ref out of $spec"
+            exit 1
+          fi
+          if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
+            echo "$ref already present"
+            exit 0
+          fi
+          git remote add baseline https://github.com/stablyai/orca.git 2>/dev/null || true
+          git fetch --no-tags --filter=blob:none baseline "refs/tags/$ref:refs/tags/$ref"
+          git rev-parse -q --verify "$ref^{commit}" >/dev/null
+
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: node
