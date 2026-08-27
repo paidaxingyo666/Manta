@@ -5,6 +5,7 @@ import {
   toHostReadableTranscriptPath
 } from './host-readable-transcript-path'
 import { resolveSessionFilePath } from './session-file-resolver'
+import { watchForTranscriptRebind, type RebindWatch } from './transcript-rebind-watch'
 import { installTranscriptWatcher } from './transcript-watch-engine'
 import type {
   NativeChatTranscriptSubscription,
@@ -76,10 +77,13 @@ function subscribeViaResolvePoll(
 ): NativeChatTranscriptSubscription {
   let closed = false
   let installed: NativeChatTranscriptSubscription | null = null
+  let rebindWatch: RebindWatch | null = null
+  /** The session the bound file belongs to; advances each time it rolls. */
+  let rebindSessionId = args.sessionId
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let delay = args.resolvePollIntervalMs ?? INITIAL_RESOLVE_POLL_MS
   let lastFallbackResolveAt = Date.now()
-  const exactPath = exactTranscriptPath(args)
+  let exactPath = exactTranscriptPath(args)
   // Why: WSL hooks report guest Linux paths the Windows host cannot open; the
   // UNC twin is resolved lazily (the distro may still be cold) and memoized so
   // the exact-path install doesn't wait on the slower id-glob (#10326).
@@ -116,6 +120,47 @@ function subscribeViaResolvePoll(
   if (args.onTranscriptPending) {
     settleTimer = setTimeout(settleUnflushed, UNFLUSHED_SETTLE_MS)
     settleTimer.unref?.()
+  }
+
+  /**
+   * Follow the session if its transcript rolls to a new file.
+   *
+   * A watcher binds once and then holds that descriptor. When the bound file
+   * stops being the one the agent writes, the watcher stays healthy, keeps
+   * reporting watching:true, and delivers nothing — indistinguishable from an
+   * idle conversation. See transcript-rebind-watch.ts for what that cost.
+   */
+  function armRebindWatch(boundPath: string | null): void {
+    rebindWatch?.stop()
+    rebindWatch = null
+    // An explicit filePath is a caller pinning one file on purpose.
+    if (!boundPath || args.filePath) {
+      return
+    }
+    rebindWatch = watchForTranscriptRebind({
+      agent: args.agent,
+      sessionId: rebindSessionId,
+      boundPath,
+      signal: resolveController.signal,
+      ...(args.rebindCheckIntervalMs === undefined
+        ? {}
+        : { intervalMs: args.rebindCheckIntervalMs }),
+      onMoved: (next) => {
+        if (closed) {
+          return
+        }
+        // Pin the successor rather than re-resolving: the id we hold still
+        // resolves to the dead file, which is the whole reason we are here.
+        // Track the new id too, so a second roll is still findable.
+        rebindSessionId = next.sessionId
+        installed?.unsubscribe()
+        installed = null
+        exactPath = next.path
+        hostReadableExactPath = null
+        delay = args.resolvePollIntervalMs ?? INITIAL_RESOLVE_POLL_MS
+        scheduleAttempt()
+      }
+    })
   }
 
   function scheduleAttempt(): void {
@@ -204,6 +249,7 @@ function subscribeViaResolvePoll(
     if (result) {
       installed = result
       stopSettleTimer()
+      armRebindWatch(hostReadableExactPath ?? exactPath ?? null)
       return
     }
     scheduleAttempt()
@@ -220,6 +266,8 @@ function subscribeViaResolvePoll(
       closed = true
       resolveController.abort()
       stopSettleTimer()
+      rebindWatch?.stop()
+      rebindWatch = null
       if (pollTimer) {
         clearTimeout(pollTimer)
         pollTimer = null
