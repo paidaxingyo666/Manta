@@ -83,6 +83,18 @@ jobs:
       - name: Enforce changed-code quality
         run: pnpm run check:code-quality:changed -- "${{ github.event.pull_request.base.sha }}"
 
+      # Why: the changed-lines gate cannot tell upstream's code from this fork's,
+      # and a sync PR presents thousands of upstream-authored lines as changed.
+      # With this ref present, a finding whose exact line also exists upstream is
+      # reported as upstream's and not counted; without it every finding is this
+      # fork's, which is the stricter reading. Never fatal — a fetch that fails
+      # tightens the gate, it does not open it.
+      - name: Fetch upstream for line attribution
+        continue-on-error: true
+        run: |
+          git remote add upstream https://github.com/stablyai/orca.git 2>/dev/null || true
+          git fetch --no-tags --filter=blob:none upstream main:refs/remotes/upstream/main
+
       - name: Enforce React Doctor on changed lines
         run: pnpm run check:react-doctor:changed -- "${{ github.event.pull_request.base.sha }}"
 
