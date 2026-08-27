@@ -1,7 +1,7 @@
 /**
- * `mantad` — the Manta runtime served from plain Node, with no Electron.
+ * `mantad` — the Orca runtime served from plain Node, with no Electron.
  *
- * Installs the Node host adapters, constructs the same `MantaRuntimeService` the
+ * Installs the Node host adapters, constructs the same `OrcaRuntimeService` the
  * desktop uses, installs a PTY controller via `registerHeadlessPtyRuntime`, and
  * serves runtime RPC. See docs/design/node-only-runtime-backend.html.
  *
@@ -22,6 +22,16 @@ import {
   resolveMantadPath,
   resolveUserDataPath
 } from './mantad-app-paths'
+import {
+  describeMantadBindExposure,
+  MantadBindAddressError,
+  resolveMantadBindHost
+} from './mantad-bind-address'
+import {
+  acquireMantadInstanceLock,
+  MantadInstanceLockError,
+  type MantadInstanceLock
+} from './mantad-instance-lock'
 
 let runMantadQuitHandlers = (): void => {}
 
@@ -41,7 +51,7 @@ function createNodeAppEnvironment(): AppEnvironment {
   return {
     getPath: resolveMantadPath,
     getAppPath: () => resolveMantadInstallRoot(),
-    getVersion: () => process.env.MANTA_VERSION ?? '0.0.0-mantad',
+    getVersion: () => process.env.ORCA_VERSION ?? '0.0.0-mantad',
     // Why still true: consumers read this as "production build, not a dev checkout" —
     // it gates HTTPS-only skill downloads, the real CLI command name, and shell-PATH
     // hydration. Answering false to satisfy a path resolver would relax a security
@@ -84,6 +94,8 @@ export type MantadOptions = {
   json?: boolean
   noPairing?: boolean
   pairingAddress?: string
+  /** Literal IP to bind. Defaults to loopback; see mantad-bind-address.ts. */
+  bind?: string
 }
 
 export type MantadHandle = {
@@ -99,40 +111,49 @@ export type MantadHandle = {
 export async function startMantad(options: MantadOptions = {}): Promise<MantadHandle> {
   installMantadHostAdapters()
   const userDataPath = resolveUserDataPath()
+  // Why before anything else touches the root: the profile index, the store and the daemon
+  // runtime dir all live under it, and two mantads sharing them corrupt state silently. This
+  // is also the last point at which refusing costs nothing.
+  const instanceLock = acquireMantadInstanceLock(userDataPath)
   const browserProvider = await resolveMantadBrowserProvider({ userDataPath })
   setRuntimeBrowserCommandsFactory(browserProvider?.factory ?? null, {
     headless: browserProvider !== null,
     ...(browserProvider ? { isAvailable: () => browserProvider.isAvailable() } : {})
   })
   try {
-    return await startMantadRuntime(options, browserProvider)
+    return await startMantadRuntime(options, browserProvider, instanceLock)
   } catch (error) {
     await browserProvider?.stop()
     setRuntimeBrowserCommandsFactory(null)
     runMantadQuitHandlers()
+    instanceLock.release()
     throw error
   }
 }
 
 async function startMantadRuntime(
   options: MantadOptions,
-  browserProvider: MantadBrowserProvider | null
+  browserProvider: MantadBrowserProvider | null,
+  instanceLock: MantadInstanceLock
 ): Promise<MantadHandle> {
-  const { MantaRuntimeService } = await import('../runtime/manta-runtime')
-  const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
+  const { OrcaRuntimeService } = await import('../runtime/orca-runtime')
+  const { OrcaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
   const { Store } = await import('../persistence/loading-store/store')
-  const { ensureActiveMantaProfile, initMantaProfilePaths } =
-    await import('../manta-profiles/profile-index-store')
+  const { ensureActiveOrcaProfile, initOrcaProfilePaths } =
+    await import('../orca-profiles/profile-index-store')
   const { initSshHostKeyStoreFile } = await import('../ssh/ssh-host-key-store')
+  const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
+  const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
+  const { collectMantadHealth } = await import('./mantad-health')
 
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
-  initMantaProfilePaths()
-  const profile = ensureActiveMantaProfile(runtimeUserDataPath)
+  initOrcaProfilePaths()
+  const profile = ensureActiveOrcaProfile(runtimeUserDataPath)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
   // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
   // a server that pairs and lists nothing looks healthy and is not.
@@ -143,17 +164,23 @@ async function startMantadRuntime(
   // which is safe but silently discards accept records on every launch.
   initSshHostKeyStoreFile(profile.dataFile)
 
-  const runtime = new MantaRuntimeService(store, undefined, {
+  // Why before the runtime and the PTY handlers: `setLocalPtyProvider` installs the daemon
+  // adapter as THE local provider, and the registry's contract is that it lands before
+  // registerPtyHandlers so the IPC layer routes through the daemon from the first call.
+  await startMantadDaemon()
+
+  const runtime = new OrcaRuntimeService(store, undefined, {
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
     // reference would freeze the pre-daemon one.
     getLocalProvider: () => getLocalPtyProvider(),
     // Why: destructive worktree removal refuses to run without a provider to stop
     // processes through — correctly, since it cannot otherwise verify the tree is idle.
     getSshProvider: (connectionId) => getSshPtyProvider(connectionId),
-    // Why false: this host does not run the terminal daemon, so persistent local PTYs
-    // cannot be recovered. The constructor defaults this to true, which would claim a
-    // capability mantad does not have.
-    canRecoverPersistentLocalPtys: () => false,
+    // Why the daemon predicate and not a constant: mantad now spawns the terminal daemon, so
+    // its PTYs DO survive an mantad restart — but only while a daemon that owns fresh
+    // sessions is installed. A failed or degraded launch has to answer false, and this reads
+    // that live rather than snapshotting it at construction.
+    canRecoverPersistentLocalPtys: () => daemonOwnsFreshPersistentPtys(),
     // Why 'blocked': `'openable'` means a desktop window can be opened here, which is
     // what powers serve→desktop promotion. A Node host can never do that, and the
     // constructor's default would advertise it.
@@ -177,14 +204,20 @@ async function startMantadRuntime(
   await runtime.refreshRestoredOrchestrationAuthority()
   await runtime.reconcileLegacyWorkerTerminals()
 
-  const rpc = new MantaRuntimeRpcServer({
+  const bindHost = resolveMantadBindHost(options.bind)
+  const rpc = new OrcaRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,
-    exposeNetworkByDefault: true,
+    // Why pinned and not `exposeNetworkByDefault`: an unattended host's exposure must be
+    // exactly what the operator asked for, on every launch. The default path widens itself
+    // once a device has connected, so a loopback deployment would silently go wide one
+    // restart after its first client paired.
+    pinnedBindHost: bindHost,
     ...(options.port !== undefined ? { wsPort: options.port, preferPinnedWsPort: true } : {})
   })
   await rpc.start()
+  console.error(`[mantad] ${describeMantadBindExposure(bindHost)}`)
 
   const boundEndpoint = rpc.getWebSocketEndpoint()
   const advertised = boundEndpoint
@@ -219,7 +252,11 @@ async function startMantadRuntime(
           scope: 'runtime',
           qr: null
         }
-      : offer
+      : offer,
+    // Why in the readiness payload: this is the one message a supervisor and a deploy
+    // transaction both read, and a green mantad with a dead daemon is exactly the
+    // looks-healthy-but-useless state they must not activate.
+    health: await collectMantadHealth(getAppEnvironment().getVersion())
   }
 
   await new ServeReadinessPublisher().publish(readiness, {
@@ -232,15 +269,20 @@ async function startMantadRuntime(
       try {
         await rpc.stop()
       } finally {
+        // Why disconnect and not shut down: the daemon must outlive this process, or an
+        // mantad restart goes back to killing every running terminal. See
+        // mantad-daemon-supervision.ts.
+        await stopMantadDaemon()
         await browserProvider?.stop()
         setRuntimeBrowserCommandsFactory(null)
         runMantadQuitHandlers()
+        instanceLock.release()
       }
     }
   }
 }
 
-function parseArgs(argv: string[]): MantadOptions {
+export function parseArgs(argv: string[]): MantadOptions {
   const options: MantadOptions = {}
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
@@ -256,6 +298,13 @@ function parseArgs(argv: string[]): MantadOptions {
       options.json = true
     } else if (arg === '--no-pairing') {
       options.noPairing = true
+    } else if (arg === '--bind') {
+      const value = argv[i + 1]
+      if (value === undefined) {
+        throw new Error('--bind expects a value')
+      }
+      options.bind = value
+      i += 1
     } else if (arg === '--pairing-address') {
       const value = argv[i + 1]
       if (!value) {
@@ -270,22 +319,56 @@ function parseArgs(argv: string[]): MantadOptions {
   return options
 }
 
+/**
+ * Exit codes a supervisor can act on. Closed set — see docs/reference/mantad-operations.md.
+ *
+ * `MANTAD_EXIT_CONFIGURATION` is the load-bearing one: a data root owned by someone else, or
+ * held by another mantad, is not fixed by restarting. Restarting on it is the crash-loop the
+ * supervision contract has to prevent, so systemd's `RestartPreventExitStatus` needs a code
+ * that means "do not retry" and nothing else does.
+ */
+export const MANTAD_EXIT_OK = 0
+export const MANTAD_EXIT_FAILED = 1
+export const MANTAD_EXIT_CONFIGURATION = 78
+
+/** Bounded so a wedged transport cannot hold a supervisor's stop past its own deadline. */
+export const MANTAD_SHUTDOWN_DEADLINE_MS = 15_000
+
+export function resolveMantadExitCode(error: unknown): number {
+  return error instanceof MantadInstanceLockError || error instanceof MantadBindAddressError
+    ? MANTAD_EXIT_CONFIGURATION
+    : MANTAD_EXIT_FAILED
+}
+
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
   const handle = await startMantad(parseArgs(argv))
   let stopping = false
   const shutdown = (signal: NodeJS.Signals): void => {
     if (stopping) {
-      return
+      // Why escalate rather than ignore: a supervisor's second signal means the first
+      // deadline elapsed. Continuing to wait silently is what makes a stop hang until
+      // SIGKILL, which is the one teardown that skips the daemon handoff entirely.
+      console.error(`mantad: second ${signal} during shutdown — exiting immediately`)
+      process.exit(MANTAD_EXIT_FAILED)
     }
     stopping = true
+    // Why a self-imposed deadline as well: the supervisor's SIGKILL leaves no exit code and
+    // no log line. Exiting ourselves keeps the failure attributable.
+    const deadline = setTimeout(() => {
+      console.error(
+        `mantad: shutdown after ${signal} exceeded ${MANTAD_SHUTDOWN_DEADLINE_MS}ms — exiting`
+      )
+      process.exit(MANTAD_EXIT_FAILED)
+    }, MANTAD_SHUTDOWN_DEADLINE_MS)
+    deadline.unref()
     handle
       .stop()
-      .then(() => process.exit(0))
+      .then(() => process.exit(MANTAD_EXIT_OK))
       // Why not rethrow: we are already tearing down on a signal, and an exit code is
       // the only thing a supervisor can act on.
       .catch((error) => {
         console.error(`mantad: shutdown after ${signal} failed:`, error)
-        process.exit(1)
+        process.exit(MANTAD_EXIT_FAILED)
       })
   }
   process.on('SIGINT', () => shutdown('SIGINT'))
