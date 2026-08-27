@@ -115,7 +115,7 @@ export function SkillInstallDialog({
     } finally {
       setBusy(false)
     }
-  }, [])
+  }, [copy.enterShareLink, copy.shareUnavailable])
 
   const inspect = (): Promise<void> => resolveLink(link)
 
