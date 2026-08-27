@@ -10,7 +10,7 @@ import type { Automation } from '../../shared/automations-types'
 import { resolveAutomationRunTarget, type AutomationRunTargetResult } from './run-target-resolution'
 import type { AutomationRunWriter } from './automation-run-writer'
 
-export const NO_DISPATCH_HOST = 'No Orca window was available to launch the automation.'
+export const NO_DISPATCH_HOST = 'No Manta window was available to launch the automation.'
 
 /** A record the authority refuses to execute at all, with no target diagnosis of its own. */
 export const NO_RUNNABLE_HOST = 'This automation has no host to run on.'

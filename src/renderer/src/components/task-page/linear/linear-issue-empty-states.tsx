@@ -88,7 +88,7 @@ export function LinearIssueEmptyStates({
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {(() => {
-              if (linearMode === 'in-orca') {
+              if (linearMode === 'in-manta') {
                 if (linearSearchActive) {
                   return translate(
                     'auto.components.TaskPage.2bdefbcac3',
@@ -97,7 +97,7 @@ export function LinearIssueEmptyStates({
                 }
                 return translate(
                   'auto.components.TaskPage.linearEmptyHasWorktree',
-                  'No Linear tickets are linked to an Orca workspace yet. Start work from a Linear issue to see it here.'
+                  'No Linear tickets are linked to a Manta workspace yet. Start work from a Linear issue to see it here.'
                 )
               }
               const emptyKind = resolveLinearIssueEmptyKind({
@@ -139,7 +139,7 @@ export function LinearIssueEmptyStates({
       filteredLinearIssues.length === 0 ? (
         <div className="px-4 py-10 text-center">
           <p className="text-sm font-medium text-foreground">
-            {linearMode === 'in-orca' && linearSearchActive
+            {linearMode === 'in-manta' && linearSearchActive
               ? translate('auto.components.TaskPage.903c7af49f', 'No Linear issues found')
               : translate(
                   'auto.components.TaskPage.618107fab3',
@@ -147,14 +147,14 @@ export function LinearIssueEmptyStates({
                 )}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {linearMode === 'in-orca' && linearSearchActive
+            {linearMode === 'in-manta' && linearSearchActive
               ? translate('auto.components.TaskPage.2bdefbcac3', 'Try a different search query.')
               : translate(
                   'auto.components.TaskPage.592a55611b',
                   'Try selecting more teams or refreshing; team filters apply to the current fetched issue set.'
                 )}
           </p>
-          {linearMode !== 'in-orca' &&
+          {linearMode !== 'in-manta' &&
           shouldOfferLinearIssueFetchMore({
             emptyKind: 'client-team',
             serverHasMore: linearIssuesHasMore

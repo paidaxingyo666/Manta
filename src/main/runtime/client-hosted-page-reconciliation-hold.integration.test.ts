@@ -1,11 +1,11 @@
 /**
- * Drives the real publication seam: a real OrcaRuntimeService answering the same session-tabs call
+ * Drives the real publication seam: a real MantaRuntimeService answering the same session-tabs call
  * the client subscribes through. The window's own unit tests can only prove it answers correctly
  * once asked -- they cannot prove the runtime asks it, or asks it per client.
  */
 import { describe, expect, it } from 'vitest'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 const WT = 'repo-1::/tmp/worktree-a'
 const DEVICE_A = 'device-a'
@@ -39,7 +39,7 @@ const storeBase = {
   })
 }
 
-function createRuntime(): OrcaRuntimeService {
+function createRuntime(): MantaRuntimeService {
   let session: WorkspaceSessionState = {
     activeRepoId: 'repo-1',
     activeWorktreeId: WT,
@@ -47,7 +47,7 @@ function createRuntime(): OrcaRuntimeService {
     tabsByWorktree: {},
     terminalLayoutsByTabId: {}
   }
-  return new OrcaRuntimeService({
+  return new MantaRuntimeService({
     ...storeBase,
     getWorkspaceSession: () => session,
     setWorkspaceSession: (next: WorkspaceSessionState) => {

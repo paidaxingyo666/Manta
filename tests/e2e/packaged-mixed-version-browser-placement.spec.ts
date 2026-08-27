@@ -10,7 +10,7 @@ import {
   type TestInfo
 } from '@stablyai/playwright-test'
 
-import { expect, forwardElectronProcessLogs, test } from './helpers/orca-app'
+import { expect, forwardElectronProcessLogs, test } from './helpers/manta-app'
 import { getE2ECompletedOnboardingProfile } from './helpers/e2e-completed-onboarding-profile'
 import { cleanupE2EDaemons, closeElectronAppForE2E } from './helpers/electron-process-shutdown'
 import {
@@ -146,7 +146,7 @@ async function launchPackagedPairedClient(args: {
   let app: ElectronApplication | undefined
   try {
     writeFileSync(
-      path.join(userDataDir, 'orca-data.json'),
+      path.join(userDataDir, 'manta-data.json'),
       `${JSON.stringify(getE2ECompletedOnboardingProfile(), null, 2)}\n`
     )
     const { ELECTRON_RUN_AS_NODE: _unused, ...cleanEnv } = process.env
@@ -163,8 +163,8 @@ async function launchPackagedPairedClient(args: {
       env: {
         ...homeIsolation.env,
         NODE_ENV: 'production',
-        ORCA_BYPASS_SINGLE_INSTANCE_LOCK: '1',
-        ORCA_E2E_HEADLESS: '1'
+        MANTA_BYPASS_SINGLE_INSTANCE_LOCK: '1',
+        MANTA_E2E_HEADLESS: '1'
       }
     })
     forwardElectronProcessLogs(app, args.testInfo)
@@ -388,7 +388,7 @@ const packagedExecutable = process.env[PACKAGED_EXECUTABLE_ENV]
 test.describe('packaged mixed-version browser placement', () => {
   test.skip(
     !packagedExecutable || !existsSync(packagedExecutable),
-    `${PACKAGED_EXECUTABLE_ENV} must point at an older packaged Orca executable`
+    `${PACKAGED_EXECUTABLE_ENV} must point at an older packaged Manta executable`
   )
 
   test('keeps an old packaged client on the current server-hosted path', async ({

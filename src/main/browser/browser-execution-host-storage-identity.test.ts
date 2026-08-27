@@ -126,7 +126,7 @@ describe('browserNetworkExecutionHostStorageIdentity', () => {
   // Why: these strings are hashed into persisted partition names, and the pre-migration forms
   // name the jar adoption must find -- changing either relocates or strands the user's cookies.
   it('pins the storage identity of every host kind, current and pre-migration', () => {
-    const tag = '"orca-browser-execution-host-storage",1'
+    const tag = '"manta-browser-execution-host-storage",1'
 
     expect(
       browserNetworkExecutionHostStorageIdentity(

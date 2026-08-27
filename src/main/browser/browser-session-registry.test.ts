@@ -237,7 +237,7 @@ describe('BrowserSessionRegistry', () => {
 
   it('applies and clears existing browser-profile policy on an opaque route partition', () => {
     const partition =
-      'persist:orca-browser-v1-1111111111111111222222222222222233333333333333334444444444444444'
+      'persist:manta-browser-v1-1111111111111111222222222222222233333333333333334444444444444444'
 
     browserSessionRegistry.setupRoutePartitionPolicies(partition, 'default')
 
@@ -254,7 +254,7 @@ describe('BrowserSessionRegistry', () => {
 
   it('rejects route partitions for missing browser profiles', () => {
     const partition =
-      'persist:orca-browser-v1-aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd'
+      'persist:manta-browser-v1-aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd'
 
     expect(() =>
       browserSessionRegistry.setupRoutePartitionPolicies(partition, 'missing-profile')

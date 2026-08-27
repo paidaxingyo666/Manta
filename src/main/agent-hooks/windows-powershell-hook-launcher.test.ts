@@ -38,7 +38,7 @@ describe('windows PowerShell hook launcher', () => {
 
   it('keeps hiding the console window on every hook event (#14815)', () => {
     // Dropping this flag is not a cosmetic flash: the console takes foreground
-    // and swallows what the user is typing into Orca (#14828), and never closes
+    // and swallows what the user is typing into Manta (#14828), and never closes
     // at all when the hook blocks reading stdin (#14815).
     const command = wrapWindowsPowerShellEncodedCommand('exit 0')
 

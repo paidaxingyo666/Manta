@@ -45,7 +45,7 @@ class MockBrowserWindow {
 vi.mock('electron', () => ({ BrowserWindow: mocks.BrowserWindow }))
 vi.mock('./browser-session-registry', () => ({
   browserSessionRegistry: {
-    getDefaultProfile: vi.fn(() => ({ id: 'default', partition: 'persist:orca-browser' }))
+    getDefaultProfile: vi.fn(() => ({ id: 'default', partition: 'persist:manta-browser' }))
   }
 }))
 

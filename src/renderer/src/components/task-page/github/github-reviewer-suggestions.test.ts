@@ -13,15 +13,15 @@ describe('sameOptionalGitHubOwnerRepo', () => {
 
   it('treats a missing value as unequal to a repo', () => {
     expect(
-      sameOptionalGitHubOwnerRepo(null, { owner: 'acme', repo: 'orca', host: 'github.com' })
+      sameOptionalGitHubOwnerRepo(null, { owner: 'acme', repo: 'manta', host: 'github.com' })
     ).toBe(false)
   })
 
   it('separates the same owner/repo on different hosts', () => {
     expect(
       sameOptionalGitHubOwnerRepo(
-        { owner: 'acme', repo: 'orca', host: 'github.com' },
-        { owner: 'acme', repo: 'orca', host: 'github.example.com' }
+        { owner: 'acme', repo: 'manta', host: 'github.com' },
+        { owner: 'acme', repo: 'manta', host: 'github.example.com' }
       )
     ).toBe(false)
   })
@@ -31,19 +31,19 @@ describe('resolveTaskPullRequestRepo', () => {
   it('keeps prRepo host when present', () => {
     expect(
       resolveTaskPullRequestRepo({
-        prRepo: { owner: 'acme', repo: 'orca', host: 'github.example.com' },
+        prRepo: { owner: 'acme', repo: 'manta', host: 'github.example.com' },
         url: 'https://github.com/other/repo/pull/1'
       })
-    ).toEqual({ owner: 'acme', repo: 'orca', host: 'github.example.com' })
+    ).toEqual({ owner: 'acme', repo: 'manta', host: 'github.example.com' })
   })
 
   it('falls back to the URL slug and pins github.com', () => {
     expect(
       resolveTaskPullRequestRepo({
         prRepo: undefined,
-        url: 'https://github.com/acme/orca/pull/12'
+        url: 'https://github.com/acme/manta/pull/12'
       })
-    ).toEqual({ owner: 'acme', repo: 'orca', host: 'github.com' })
+    ).toEqual({ owner: 'acme', repo: 'manta', host: 'github.com' })
   })
 })
 

@@ -69,7 +69,7 @@ function createHarness() {
   })
 
   const dependencies = {
-    orcaProfileId: 'orca-profile-a',
+    mantaProfileId: 'orca-profile-a',
     authorityConnectionIdentity: 'authority-record-a',
     legacyAuthorityConnectionIdentity: 'legacy-authority-record-a',
     storageScope: 'a'.repeat(64),

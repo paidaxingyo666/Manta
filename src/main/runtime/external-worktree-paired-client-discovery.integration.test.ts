@@ -6,7 +6,7 @@ import { listWorktrees, listWorktreesStrict } from '../git/worktree'
 import { scheduleWorktreeBaseNotification } from '../ipc/worktree-base-directory-notifications'
 import { createWorktreeHeadIdentityRefreshState } from '../ipc/worktree-head-identity-refresh'
 import { setWorktreeCatalogRemoteClientNotifier } from '../ipc/watched-worktree-catalog-notification'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import {
   authenticate,
   createReader,
@@ -17,7 +17,7 @@ import {
   type PairedSession,
   type ResponseReader
 } from './paired-client-navigation-test-harness'
-import { OrcaRuntimeRpcServer } from './runtime-rpc'
+import { MantaRuntimeRpcServer } from './runtime-rpc'
 
 vi.mock('../git/worktree', () => ({
   listWorktrees: vi.fn(),
@@ -66,7 +66,7 @@ function catalogPaths(response: Record<string, unknown>): string[] {
 }
 
 describe('external worktree discovery for paired clients', () => {
-  const servers: OrcaRuntimeRpcServer[] = []
+  const servers: MantaRuntimeRpcServer[] = []
   const sessions: PairedSession[] = []
   const readers: ResponseReader[] = []
   const tempDirs: string[] = []
@@ -90,11 +90,11 @@ describe('external worktree discovery for paired clients', () => {
   it('publishes one host-scoped catalog invalidation to two paired clients', async () => {
     vi.mocked(listWorktrees).mockResolvedValue([initialWorktree])
     vi.mocked(listWorktreesStrict).mockResolvedValue([initialWorktree])
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     setWorktreeCatalogRemoteClientNotifier(runtime)
     const userDataPath = mkdtempSync(join(tmpdir(), 'o-ewd-'))
     tempDirs.push(userDataPath)
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,
@@ -272,11 +272,11 @@ describe('external worktree discovery for paired clients', () => {
     let scanCount = 0
     vi.mocked(listWorktrees).mockResolvedValue([initialWorktree])
     vi.mocked(listWorktreesStrict).mockResolvedValue([initialWorktree, externalWorktree])
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     setWorktreeCatalogRemoteClientNotifier(runtime)
     const userDataPath = mkdtempSync(join(tmpdir(), 'o-ewd-race-'))
     tempDirs.push(userDataPath)
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,
@@ -392,7 +392,7 @@ describe('external worktree discovery for paired clients', () => {
       ...store.getRepos(),
       { ...localRepo, path: '/remote/repo', connectionId: 'ssh-target-1' }
     ]
-    const runtime = new OrcaRuntimeService({
+    const runtime = new MantaRuntimeService({
       ...store,
       getRepo: (id: string) => collidingRepos.find((repo) => repo.id === id),
       getRepos: () => collidingRepos
@@ -400,7 +400,7 @@ describe('external worktree discovery for paired clients', () => {
     setWorktreeCatalogRemoteClientNotifier(runtime)
     const userDataPath = mkdtempSync(join(tmpdir(), 'o-ewd-collision-'))
     tempDirs.push(userDataPath)
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,
@@ -451,11 +451,11 @@ describe('external worktree discovery for paired clients', () => {
   })
 
   it('does not publish a host-blind event for a nested SSH watcher', async () => {
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     setWorktreeCatalogRemoteClientNotifier(runtime)
     const userDataPath = mkdtempSync(join(tmpdir(), 'o-ewd-ssh-owner-'))
     tempDirs.push(userDataPath)
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,
@@ -509,10 +509,10 @@ describe('external worktree discovery for paired clients', () => {
   it('keeps the shared runtime publication valid without a headed renderer', async () => {
     vi.mocked(listWorktrees).mockResolvedValue([initialWorktree])
     vi.mocked(listWorktreesStrict).mockResolvedValue([initialWorktree])
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     const userDataPath = mkdtempSync(join(tmpdir(), 'o-ewd-h-'))
     tempDirs.push(userDataPath)
-    const server = new OrcaRuntimeRpcServer({
+    const server = new MantaRuntimeRpcServer({
       runtime,
       userDataPath,
       enableWebSocket: true,

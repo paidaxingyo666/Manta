@@ -124,7 +124,7 @@ describe('replyEchoProjections on other backends', () => {
 
   // Documents current behaviour, and is NOT a claim that it is right: conhost's echo of a
   // BEL-terminated reply has never been captured, so the needle keeps a raw BEL exactly as
-  // the POSIX caret form used to. Unreachable in-tree (every OSC reply Orca emits is
+  // the POSIX caret form used to. Unreachable in-tree (every OSC reply Manta emits is
   // ST-terminated) and deliberately not corrected blind — see the branch comment.
   it('leaves a BEL literal in the ConPTY needle, which is unverified', () => {
     const [conpty] = replyEchoProjections(OSC11_BEL, 'windows-conpty')

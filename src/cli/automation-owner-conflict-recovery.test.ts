@@ -35,7 +35,7 @@ describe('automation owner conflicts read as CLI outcomes', () => {
     expect(output).not.toMatch(/run the command again|try again/i)
     expect(output).toContain('retrying will not change that')
     expect(output).toContain('Re-add that SSH host')
-    expect(output).toContain('orca automations remove')
+    expect(output).toContain('manta automations remove')
   })
 
   it('keeps the code machine-readable in --json while carrying the same steps', () => {
@@ -49,7 +49,7 @@ describe('automation owner conflicts read as CLI outcomes', () => {
     const payload = JSON.parse(log.mock.calls[0]![0] as string)
     expect(payload.error.code).toBe('automation_owner_fencing_required')
     expect(payload.error.message).toBe('Owner required.')
-    expect(payload.error.data.nextSteps[1]).toContain('Update Orca on the host')
+    expect(payload.error.data.nextSteps[1]).toContain('Update Manta on the host')
   })
 
   it('leaves unrelated failures untouched', () => {
@@ -109,6 +109,6 @@ describe('automation owner conflicts read as CLI outcomes', () => {
     )
 
     expect(output).not.toContain('automation_destination_invalid')
-    expect(output).toContain('Next step: Run `orca automations show --id <id>`')
+    expect(output).toContain('Next step: Run `manta automations show --id <id>`')
   })
 })

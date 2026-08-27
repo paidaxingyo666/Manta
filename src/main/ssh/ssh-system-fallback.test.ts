@@ -270,10 +270,10 @@ describe('spawnSystemSsh', () => {
 
   it('passes an explicit main-owned OpenSSH config as one argument', () => {
     const args = buildSshArgs(createTarget({ configHost: 'isolated-host', source: 'ssh-config' }), {
-      configFile: '/tmp/orca isolated/ssh_config'
+      configFile: '/tmp/manta isolated/ssh_config'
     })
 
-    expect(args.slice(0, 2)).toEqual(['-F', '/tmp/orca isolated/ssh_config'])
+    expect(args.slice(0, 2)).toEqual(['-F', '/tmp/manta isolated/ssh_config'])
     expect(args).toContain('isolated-host')
   })
 

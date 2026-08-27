@@ -15,7 +15,7 @@ export function browserHostClientIdentityPath(profileDirectory: string): string 
 }
 
 /**
- * The durable name this Orca profile hosts remote browser pages under.
+ * The durable name this Manta profile hosts remote browser pages under.
  *
  * A per-process id made every relaunch look like a brand new host: the server fenced the old
  * lease and dropped the pages it was placing, so client-hosted tabs could not survive a quit.

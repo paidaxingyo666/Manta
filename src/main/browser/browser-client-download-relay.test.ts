@@ -92,7 +92,7 @@ describe('BrowserClientDownloadRelay', () => {
       const chunk = params as { offset: number; final: boolean; contentBase64: string }
       writes.push({ offset: chunk.offset, final: chunk.final, contentBase64: chunk.contentBase64 })
       return chunk.final
-        ? { accepted: true, workspaceRelativePath: '.orca/browser-downloads/report.pdf' }
+        ? { accepted: true, workspaceRelativePath: '.manta/browser-downloads/report.pdf' }
         : { accepted: true }
     })
     const { filesystem, removed } = memoryFilesystem(Buffer.from('hello world'))
@@ -109,7 +109,7 @@ describe('BrowserClientDownloadRelay', () => {
     const destination = await route.complete('report.pdf')
 
     expect(destination).toEqual({
-      workspaceRelativePath: '.orca/browser-downloads/report.pdf',
+      workspaceRelativePath: '.manta/browser-downloads/report.pdf',
       hostLabel: 'build-box'
     })
     expect(writes.at(0)?.offset).toBe(0)
@@ -160,7 +160,7 @@ describe('BrowserClientDownloadRelay', () => {
         hostLabel: 'build-box',
         transport: negotiatedTransport((_method, params) =>
           (params as { final: boolean }).final
-            ? { accepted: true, workspaceRelativePath: '.orca/browser-downloads/report.pdf' }
+            ? { accepted: true, workspaceRelativePath: '.manta/browser-downloads/report.pdf' }
             : { accepted: true }
         ),
         resolvePage: () => page

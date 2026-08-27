@@ -244,7 +244,7 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
   it('keeps a reused remote a sibling worktree owns when the fetch fails', async () => {
     const remotes: Record<string, string> = {
       origin: 'git@github.com:stablyai/orca.git',
-      'pr-contributor-orca': FORK_HTTPS
+      'pr-contributor-manta': FORK_HTTPS
     }
     const exec = vi.fn<GitRemoteExec>(async (args: string[]) => {
       if (args[0] === 'fetch') {
@@ -258,6 +258,6 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
     ).rejects.toThrow('network unreachable')
 
     expect(callsMatching(exec, ['remote', 'remove'])).toEqual([])
-    expect(remotes['pr-contributor-orca']).toBe(FORK_HTTPS)
+    expect(remotes['pr-contributor-manta']).toBe(FORK_HTTPS)
   })
 })

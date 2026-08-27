@@ -198,7 +198,7 @@ Two limits worth knowing:
 
 - **It is a guardrail, not a security boundary.** A caller that declares another terminal's
   handle while its own launch evidence is unverifiable (an ordinary restored terminal, for
-  example) can be counted as that terminal instead. Orca does not treat workers as hostile.
+  example) can be counted as that terminal instead. Manta does not treat workers as hostile.
 - **It applies while a Dispatch is active.** After `worker_done`, or after a coordinator
   settles the task, the terminal is no longer a worker and is counted as a root again. The
   process may still be alive; that is the documented boundary, not an accident.

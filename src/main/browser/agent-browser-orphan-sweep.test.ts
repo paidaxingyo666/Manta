@@ -9,7 +9,7 @@ import { sweepOrphanedAgentBrowserSessions } from './agent-browser-orphan-sweep'
 
 type Spec = { args?: readonly string[] }
 
-const BIN = '/opt/orca/agent-browser'
+const BIN = '/opt/manta/agent-browser'
 const SCOPED = {
   env: { AGENT_BROWSER_SOCKET_DIR: '/tmp/orca-ab-0123456789abcdef' },
   ownsSocketDirectory: true
@@ -42,44 +42,44 @@ describe('agent-browser orphan sweep', () => {
   })
 
   it('closes tab daemons left by a previous run', async () => {
-    respond(['orca-tab-aaa', 'orca-tab-bbb'])
+    respond(['manta-tab-aaa', 'manta-tab-bbb'])
 
     const closed = await sweepOrphanedAgentBrowserSessions({ binaryPath: BIN, ...SCOPED })
 
-    expect(closed).toEqual(['orca-tab-aaa', 'orca-tab-bbb'])
+    expect(closed).toEqual(['manta-tab-aaa', 'manta-tab-bbb'])
     expect(closedArgs()).toEqual([
-      ['--session', 'orca-tab-aaa', 'close'],
-      ['--session', 'orca-tab-bbb', 'close']
+      ['--session', 'manta-tab-aaa', 'close'],
+      ['--session', 'manta-tab-bbb', 'close']
     ])
   })
 
-  it('never closes a daemon outside Orca tab naming', async () => {
-    respond(['default', 'agent1', 'orca-orcad-deadbeef', 'orca-tab-aaa'])
+  it('never closes a daemon outside Manta tab naming', async () => {
+    respond(['default', 'agent1', 'manta-mantad-deadbeef', 'manta-tab-aaa'])
 
     await sweepOrphanedAgentBrowserSessions({ binaryPath: BIN, ...SCOPED })
 
-    expect(closedArgs()).toEqual([['--session', 'orca-tab-aaa', 'close']])
+    expect(closedArgs()).toEqual([['--session', 'manta-tab-aaa', 'close']])
   })
 
   it('leaves sessions this run already owns alone', async () => {
-    respond(['orca-tab-live', 'orca-tab-orphan'])
+    respond(['manta-tab-live', 'manta-tab-orphan'])
 
     await sweepOrphanedAgentBrowserSessions({
       binaryPath: BIN,
       ...SCOPED,
-      isSessionLive: (name) => name === 'orca-tab-live'
+      isSessionLive: (name) => name === 'manta-tab-live'
     })
 
-    expect(closedArgs()).toEqual([['--session', 'orca-tab-orphan', 'close']])
+    expect(closedArgs()).toEqual([['--session', 'manta-tab-orphan', 'close']])
   })
 
-  // Why: without a socket dir Orca derived itself, `session list` can reach daemons another Orca
+  // Why: without a socket dir Manta derived itself, `session list` can reach daemons another Manta
   // profile owns (Windows named pipes, or an inherited AGENT_BROWSER_SOCKET_DIR). Idle timeout bounds those.
   it.each([
     ['no socket directory at all', { PATH: 'C:\\Windows' }],
-    ['a socket directory Orca inherited', { AGENT_BROWSER_SOCKET_DIR: '/tmp/shared-ab' }]
+    ['a socket directory Manta inherited', { AGENT_BROWSER_SOCKET_DIR: '/tmp/shared-ab' }]
   ])('does not enumerate with %s', async (_label, env) => {
-    respond(['orca-tab-aaa'])
+    respond(['manta-tab-aaa'])
 
     const closed = await sweepOrphanedAgentBrowserSessions({
       binaryPath: BIN,
@@ -120,12 +120,12 @@ describe('agent-browser orphan sweep', () => {
         return Promise.resolve({
           code: 0,
           signal: null,
-          stdout: JSON.stringify({ data: { sessions: ['orca-tab-aaa', 'orca-tab-bbb'] } }),
+          stdout: JSON.stringify({ data: { sessions: ['manta-tab-aaa', 'manta-tab-bbb'] } }),
           stderr: '',
           timedOut: false
         })
       }
-      if (spec.args?.[1] === 'orca-tab-aaa') {
+      if (spec.args?.[1] === 'manta-tab-aaa') {
         return Promise.reject(new Error('spawn failed'))
       }
       return Promise.resolve({ code: 0, signal: null, stdout: '', stderr: '', timedOut: false })
@@ -133,11 +133,11 @@ describe('agent-browser orphan sweep', () => {
 
     const closed = await sweepOrphanedAgentBrowserSessions({ binaryPath: BIN, ...SCOPED })
 
-    expect(closed).toEqual(['orca-tab-bbb'])
+    expect(closed).toEqual(['manta-tab-bbb'])
   })
 
   it('bounds every child it starts', async () => {
-    respond(['orca-tab-aaa'])
+    respond(['manta-tab-aaa'])
 
     await sweepOrphanedAgentBrowserSessions({ binaryPath: BIN, ...SCOPED })
 
@@ -148,20 +148,20 @@ describe('agent-browser orphan sweep', () => {
 })
 
 describe('sweep kill switch', () => {
-  const previous = process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP
+  const previous = process.env.MANTA_DISABLE_AGENT_BROWSER_SWEEP
 
   afterEach(() => {
     if (previous === undefined) {
-      delete process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP
+      delete process.env.MANTA_DISABLE_AGENT_BROWSER_SWEEP
     } else {
-      process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP = previous
+      process.env.MANTA_DISABLE_AGENT_BROWSER_SWEEP = previous
     }
   })
 
   // Why: the idle bound is an env passthrough an operator can raise and the quit close is
   // self-bounded, so the sweep is the only new behaviour whose failure would need a revert.
-  it('enumerates nothing when disabled, even when Orca owns the socket directory', async () => {
-    process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP = '1'
+  it('enumerates nothing when disabled, even when Manta owns the socket directory', async () => {
+    process.env.MANTA_DISABLE_AGENT_BROWSER_SWEEP = '1'
     runProcessMock.mockClear()
 
     const closed = await sweepOrphanedAgentBrowserSessions({
@@ -175,7 +175,7 @@ describe('sweep kill switch', () => {
   })
 
   it('still sweeps when the flag holds any other value', async () => {
-    process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP = '0'
+    process.env.MANTA_DISABLE_AGENT_BROWSER_SWEEP = '0'
     runProcessMock.mockClear()
     runProcessMock.mockResolvedValue({ code: 0, stdout: '{"data":{"sessions":[]}}', stderr: '' })
 

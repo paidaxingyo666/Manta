@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
 import {
   launchPairedElectronClient,
@@ -10,7 +10,7 @@ import {
 
 const COOKIE_NAME = 'sta4150'
 const COOKIE_VALUE = 'survivor'
-const ROUTE_PARTITION_RE = /^persist:orca-browser-v1-[a-f0-9]{64}$/
+const ROUTE_PARTITION_RE = /^persist:manta-browser-v1-[a-f0-9]{64}$/
 
 type CookieFixture = {
   close(): Promise<void>

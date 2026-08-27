@@ -28,7 +28,6 @@ import {
 } from './skill-managed-install-groups'
 import { SkillInstallMachineSelect } from './SkillInstallMachineSelect'
 import { SkillInstallManagementStatus } from './SkillInstallManagementStatus'
-import { translate } from '@/i18n/i18n'
 
 export function SkillInstallManagementDialog({
   open,
@@ -91,13 +90,15 @@ export function SkillInstallManagementDialog({
         return
       }
       console.warn('[skills] managed install listing failed:', cause)
-      setError(translate('auto.components.skills.install.inspectManagedFailed', 'Manta could not inspect managed installs on this machine.'))
+      setError(
+        copy.inspectManagedFailed
+      )
     } finally {
       if (generation === loadGeneration.current) {
         setBusy(false)
       }
     }
-  }, [environmentId, open])
+  }, [environmentId, open, copy.inspectManagedFailed])
 
   useEffect(() => {
     void load()
@@ -121,7 +122,7 @@ export function SkillInstallManagementDialog({
       if (operation.status !== 'ok') {
         setError(
           operation.status === 'reconnect-required'
-            ? translate('auto.components.skills.install.reconnectForVersionHistory', 'Reconnect your Manta account to load version history.')
+            ? copy.reconnectForVersionHistory
             : operation.message
         )
         return
@@ -133,7 +134,9 @@ export function SkillInstallManagementDialog({
         return
       }
       console.warn('[skills] package history failed:', cause)
-      setError(translate('auto.components.skills.install.versionHistoryUnavailable', 'Version history is unavailable for this skill.'))
+      setError(
+        copy.versionHistoryUnavailable
+      )
     } finally {
       if (generation === detailGeneration.current) {
         setBusy(false)
@@ -169,7 +172,9 @@ export function SkillInstallManagementDialog({
           installedNames.has(skill.name)
         )
         if (selectedSkills.length === 0) {
-          setError(translate('auto.components.skills.install.bundleSkillsMissing', 'This version does not contain any of the installed bundle skills.'))
+          setError(
+            copy.bundleSkillsMissing
+          )
           return
         }
         const operation = await window.api.skills.installBundlePackageVersion({
@@ -194,7 +199,7 @@ export function SkillInstallManagementDialog({
         if (operation.status !== 'ok') {
           setError(
             operation.status === 'reconnect-required'
-              ? translate('auto.components.skills.install.reconnectBeforeVersionChange', 'Reconnect your Manta account before changing versions.')
+              ? copy.reconnectBeforeVersionChange
               : operation.message
           )
           return
@@ -220,7 +225,7 @@ export function SkillInstallManagementDialog({
       if (operation.status !== 'ok') {
         setError(
           operation.status === 'reconnect-required'
-            ? translate('auto.components.skills.install.reconnectBeforeVersionChange', 'Reconnect your Manta account before changing versions.')
+            ? copy.reconnectBeforeVersionChange
             : operation.message
         )
         return
@@ -234,7 +239,9 @@ export function SkillInstallManagementDialog({
       }
     } catch (cause) {
       console.warn('[skills] version installation failed:', cause)
-      setError(translate('auto.components.skills.install.versionVerificationFailed', 'Manta could not verify the requested version.'))
+      setError(
+        copy.versionVerificationFailed
+      )
     } finally {
       installProgress.finish()
       setBusy(false)
@@ -250,7 +257,9 @@ export function SkillInstallManagementDialog({
       ...(environmentId === 'local' || environmentId.startsWith('ssh:') ? {} : { environmentId })
     })
     if (!cancelled.cancelled) {
-      setError(translate('auto.components.skills.install.destinationAlreadyFinished', 'The destination had already finished this installation.'))
+      setError(
+        copy.destinationAlreadyFinished
+      )
     }
   }
 
@@ -295,7 +304,9 @@ export function SkillInstallManagementDialog({
       }
     } catch (cause) {
       console.warn('[skills] managed removal failed:', cause)
-      setError(translate('auto.components.skills.install.removeFailed', 'Manta could not safely remove this skill.'))
+      setError(
+        copy.removeFailed
+      )
     } finally {
       setBusy(false)
     }

@@ -41,7 +41,7 @@ vi.mock('./paired-runtime-browser-client-host-composition', () => ({
 }))
 
 import {
-  configurePairedRuntimeBrowserClientHostsForOrcaProfile,
+  configurePairedRuntimeBrowserClientHostsForMantaProfile,
   getPairedRuntimeBrowserClientRouteIdentity,
   startPairedRuntimeBrowserClientHost
 } from './paired-runtime-browser-client-host-runtime'
@@ -96,7 +96,7 @@ describe('client host authority connection identity', () => {
   // Why: authorityRuntimeId is a per-process UUID. Hashing it into the current identity is the
   // regression that minted a fresh partition on every remote restart and logged the user out.
   it('survives the remote restarting, and keeps the pre-migration identity distinct', async () => {
-    configurePairedRuntimeBrowserClientHostsForOrcaProfile({ orcaProfileId: 'profile-a' })
+    configurePairedRuntimeBrowserClientHostsForMantaProfile({ mantaProfileId: 'profile-a' })
     const environment = pairedEnvironment('environment-restart')
 
     const before = await connectionIdentity(environment, 'runtime-a')
@@ -110,7 +110,7 @@ describe('client host authority connection identity', () => {
   // Why: each of these names a different server or a different trust decision, so sharing an
   // identity would serve one of them the other's cookies.
   it('separates environments, pairing revisions, and server keys', async () => {
-    configurePairedRuntimeBrowserClientHostsForOrcaProfile({ orcaProfileId: 'profile-a' })
+    configurePairedRuntimeBrowserClientHostsForMantaProfile({ mantaProfileId: 'profile-a' })
     const identities = [
       await connectionIdentity(pairedEnvironment('environment-a'), 'runtime-a'),
       await connectionIdentity(pairedEnvironment('environment-b'), 'runtime-a'),
@@ -130,7 +130,7 @@ describe('client host authority connection identity', () => {
 
 describe('client host route identity lifetime', () => {
   it('stops answering with a route identity once the host is retired by its own error', async () => {
-    configurePairedRuntimeBrowserClientHostsForOrcaProfile({ orcaProfileId: 'profile-a' })
+    configurePairedRuntimeBrowserClientHostsForMantaProfile({ mantaProfileId: 'profile-a' })
     const environment = pairedEnvironment('environment-retired')
     await startPairedRuntimeBrowserClientHost({
       environment,

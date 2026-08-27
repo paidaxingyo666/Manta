@@ -1,6 +1,6 @@
 import type { Session, WebContents } from 'electron'
 import { normalizeBrowserNavigationUrl } from '../../shared/browser-url'
-import { ORCA_BROWSER_BLANK_URL } from '../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../shared/constants'
 import { enforceBrowserRouteWebRtcPolicy } from './browser-route-webrtc-policy'
 import {
   trackBrowserRouteGuestPopupGesture,
@@ -214,5 +214,5 @@ function normalizeRoutePopupUrl(rawUrl: unknown): string | null {
   } catch {
     return null
   }
-  return !normalized || normalized === ORCA_BROWSER_BLANK_URL ? null : normalized
+  return !normalized || normalized === MANTA_BROWSER_BLANK_URL ? null : normalized
 }

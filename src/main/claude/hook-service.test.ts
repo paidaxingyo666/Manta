@@ -490,7 +490,10 @@ describe('backgrounded-session pane guard (#9236)', () => {
     vi.stubEnv('USERPROFILE', tmpHome)
     try {
       expect(new ClaudeHookService().install().state).toBe('installed')
-      const script = readFileSync(join(tmpHome, '.manta', 'agent-hooks', 'claude-hook.cmd'), 'utf-8')
+      const script = readFileSync(
+        join(tmpHome, '.manta', 'agent-hooks', 'claude-hook.cmd'),
+        'utf-8'
+      )
       const guard = script.split('\r\n').find((line) => line.includes('CLAUDE_JOB_DIR'))
       expect(guard).toBe('if not "%CLAUDE_JOB_DIR%"=="" exit /b 0')
       // Why: the drain parks in more.com, and a daemon worker is exactly the

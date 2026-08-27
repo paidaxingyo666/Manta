@@ -66,7 +66,7 @@ const target = {
   label: 'Target A',
   host: 'ssh.example.com',
   port: 2222,
-  username: 'orca',
+  username: 'manta',
   identityFile: '/tmp/id_ed25519'
 }
 
@@ -99,7 +99,7 @@ describe('system SSH dynamic forward process', () => {
       ])
     )
     expect(args.indexOf('-D')).toBeLessThan(args.indexOf('--'))
-    expect(args[args.indexOf('--') + 1]).toBe('orca@ssh.example.com')
+    expect(args[args.indexOf('--') + 1]).toBe('manta@ssh.example.com')
     expect(spawnMock).toHaveBeenCalledOnce()
 
     await forward.close()

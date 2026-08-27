@@ -130,13 +130,13 @@ describe('ClientHostedBrowserPagePane download notices', () => {
 
     emitFinished({
       remoteDestination: {
-        workspaceRelativePath: '.orca/browser-downloads/report.pdf',
+        workspaceRelativePath: '.manta/browser-downloads/report.pdf',
         hostLabel: 'build-box'
       }
     })
 
     expect(toastMocks.success).toHaveBeenCalledWith(
-      'Saved to .orca/browser-downloads/report.pdf on build-box',
+      'Saved to .manta/browser-downloads/report.pdf on build-box',
       { id: 'browser-download:download-1' }
     )
   })

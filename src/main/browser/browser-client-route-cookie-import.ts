@@ -100,13 +100,13 @@ function bindRoutePartition(
   const derived = resolveBrowserRoutePartitionBinding({
     bindings,
     identity: {
-      orcaProfileId: routeIdentity.orcaProfileId,
+      mantaProfileId: routeIdentity.mantaProfileId,
       browserProfileId,
       authorityConnectionIdentity: routeIdentity.authorityConnectionIdentity,
       executionHostIdentity: routeIdentity.executionHostIdentity
     },
     legacyIdentity: {
-      orcaProfileId: routeIdentity.orcaProfileId,
+      mantaProfileId: routeIdentity.mantaProfileId,
       browserProfileId,
       authorityConnectionIdentity: routeIdentity.legacyAuthorityConnectionIdentity,
       executionHostIdentity: routeIdentity.legacyExecutionHostIdentity

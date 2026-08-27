@@ -131,8 +131,8 @@ describe('holdFor', () => {
 // per-client seam. A `project` call that bypasses it publishes an unheld -- or another client's --
 // answer, which is invisible to any behavioral test that does not happen to cover that call site.
 describe('session-tabs projection census', () => {
-  it('routes every client projection in orca-runtime through the per-client seam', () => {
-    const source = readFileSync(new URL('./orca-runtime.ts', import.meta.url), 'utf8')
+  it('routes every client projection in manta-runtime through the per-client seam', () => {
+    const source = readFileSync(new URL('./manta-runtime.ts', import.meta.url), 'utf8')
     const direct = source.match(/this\.clientSessionTabSelections\.project\(/g) ?? []
 
     // Exactly two: inside `projectMobileSessionTabsForClient` itself, and the removed-worktree
@@ -142,7 +142,7 @@ describe('session-tabs projection census', () => {
   })
 
   it('keeps the unreconciled flag out of every other runtime publication site', () => {
-    const source = readFileSync(new URL('./orca-runtime.ts', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('./manta-runtime.ts', import.meta.url), 'utf8')
 
     expect(source).not.toContain('clientHostedPagesUnreconciled')
   })

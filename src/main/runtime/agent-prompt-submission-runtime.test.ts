@@ -444,14 +444,14 @@ describe('agent prompt submission runtime', () => {
   })
 
   // Why: hook rows reach the runtime through this provider, which has no window and no OSC title —
-  // the same path a headless `orca serve` host and a minimized desktop window take.
+  // the same path a headless `manta serve` host and a minimized desktop window take.
   async function createHookOnlyPromptRuntime(hook: {
     state: 'done' | 'working'
     stateStartedAt: number
-  }): Promise<{ runtime: OrcaRuntimeService; handle: string; writes: string[] }> {
+  }): Promise<{ runtime: MantaRuntimeService; handle: string; writes: string[] }> {
     let handle = ''
     const writes: string[] = []
-    const runtime = new OrcaRuntimeService(makeStore() as never, undefined, {
+    const runtime = new MantaRuntimeService(makeStore() as never, undefined, {
       getAgentStatusSnapshot: () => [
         {
           paneKey: 'prompt-pane',

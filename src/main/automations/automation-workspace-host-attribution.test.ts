@@ -102,7 +102,7 @@ async function createStore(
 ) {
   mkdirSync(testState.dir, { recursive: true })
   writeFileSync(
-    join(testState.dir, 'orca-data.json'),
+    join(testState.dir, 'manta-data.json'),
     JSON.stringify({
       ...getDefaultPersistedState(testState.dir),
       repos,
@@ -169,7 +169,7 @@ describe('folder-workspace host attribution', () => {
 })
 
 const AMBIGUOUS_REFUSAL =
-  'The automation workspace spans more than one host, so Orca cannot tell which one to run it on.'
+  'The automation workspace spans more than one host, so Manta cannot tell which one to run it on.'
 
 /**
  * Built through the store rather than seeded: load-time projection replaces any

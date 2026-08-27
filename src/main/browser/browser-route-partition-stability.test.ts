@@ -19,7 +19,7 @@ const authority: BrowserHostLeaseAuthority = {
 }
 
 const baseIdentity = {
-  orcaProfileId: 'orca/profile:alpha',
+  mantaProfileId: 'manta/profile:alpha',
   browserProfileId: 'browser/profile:default',
   authorityConnectionIdentity: 'paired-runtime:authority-a'
 }
@@ -194,7 +194,7 @@ describe('client-hosted route partition stability', () => {
     )
 
     expect(second).not.toBe(first)
-    expect(first).toMatch(/^persist:orca-browser-v1-[a-f0-9]{64}$/)
+    expect(first).toMatch(/^persist:manta-browser-v1-[a-f0-9]{64}$/)
     expect(first).not.toContain('runtime-a')
   })
 })

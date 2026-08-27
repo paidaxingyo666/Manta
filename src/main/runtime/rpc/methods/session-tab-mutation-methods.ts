@@ -1,6 +1,6 @@
 import { resolveRuntimeNavigationTarget } from '../../../../shared/runtime-navigation'
 import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { defineMethod, type RpcAnyMethod } from '../core'
 import { projectSessionTabAgentStatus } from './session-tab-agent-status-projection'
 import {
@@ -127,7 +127,7 @@ function projectSessionTabsForMutationClient(
 }
 
 async function assertVisibleMutationTab(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   worktree: string,
   tabId: string,
   pairedDeviceId: string | undefined,

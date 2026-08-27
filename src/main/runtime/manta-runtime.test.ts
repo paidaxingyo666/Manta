@@ -2866,7 +2866,7 @@ describe('MantaRuntimeService', () => {
       getWorktreeMeta: () => ({ ...store.getWorktreeMeta(TEST_WORKTREE_ID), hostId: 'local' }),
       removeWorktreeMeta: vi.fn()
     }
-    const runtime = new OrcaRuntimeService(runtimeStore as never)
+    const runtime = new MantaRuntimeService(runtimeStore as never)
     const host = attachClientBrowserHost(runtime)
     const placement = await publishClientHostedPage(runtime, host, 'page-kept', TEST_WORKTREE_ID)
 
@@ -2882,7 +2882,7 @@ describe('MantaRuntimeService', () => {
     )
   })
 
-  function attachClientBrowserHost(runtime: OrcaRuntimeService) {
+  function attachClientBrowserHost(runtime: MantaRuntimeService) {
     const leases = getBrowserHostLeaseRegistry(runtime)
     let commands: BrowserClientHostCommandEvent[] = []
     const { lease } = leases.attach({
@@ -2937,7 +2937,7 @@ describe('MantaRuntimeService', () => {
   }
 
   async function publishClientHostedPage(
-    runtime: OrcaRuntimeService,
+    runtime: MantaRuntimeService,
     host: ReturnType<typeof attachClientBrowserHost>,
     browserPageId: string,
     workspaceId: string
@@ -28802,7 +28802,7 @@ describe('MantaRuntimeService', () => {
   it.each([false, true])(
     'retires client-hosted session tabs through their selected engine when offscreen=%s',
     async (withOffscreen) => {
-      const runtime = new OrcaRuntimeService(store)
+      const runtime = new MantaRuntimeService(store)
       const pages = getRuntimeBrowserPageRegistry(runtime)
       const placement = {
         kind: 'client' as const,
@@ -28886,7 +28886,7 @@ describe('MantaRuntimeService', () => {
     const closeProof = deferred<void>()
     const closeOffscreenTab = vi.fn(() => closeProof.promise)
     const closeSessionTab = vi.fn()
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setOffscreenBrowserBackend({
       createTab: vi.fn(),
       closeTab: closeOffscreenTab

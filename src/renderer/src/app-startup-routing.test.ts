@@ -524,8 +524,11 @@ describe('renderer startup runtime routing', () => {
     expect(source).toContain(
       'MANTA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT,\n      shutdownCheckpoint.abortAfterCheckpointFailure'
     )
-    expect(source).toContain(
-      'window.addEventListener(MANTA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt)'
+    // Matched without the line breaks: renaming Orca to Manta pushed these calls
+    // past the print width, so the formatter wraps them. Where the argument list
+    // happens to break is not the contract — that this listener is registered is.
+    expect(source.replace(/\s+/g, ' ')).toContain(
+      'window.addEventListener( MANTA_RENDERER_UNLOAD_PREVENTED_EVENT, shutdownCheckpoint.abandonAttempt )'
     )
     expect(source).toContain("window.addEventListener('beforeunload', persistBeforeUnload)")
     expect(source.match(/window\.addEventListener\('beforeunload'/g) ?? []).toHaveLength(1)

@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Page } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
 import { readHostBrowserPageIds, readHostBrowserPageUrl } from './helpers/host-session-tabs'
 import { cleanupE2EDaemons } from './helpers/electron-process-shutdown'

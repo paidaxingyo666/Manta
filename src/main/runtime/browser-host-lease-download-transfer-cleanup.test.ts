@@ -59,7 +59,7 @@ describe('runtime-side download transfer cleanup', () => {
     await vi.waitFor(() =>
       expect(getBrowserClientDownloadTransferStore(runtime).activeTransferCount()).toBe(0)
     )
-    expect(removed).toEqual(['.orca/browser-downloads/.incoming-transfer-page-a'])
+    expect(removed).toEqual(['.manta/browser-downloads/.incoming-transfer-page-a'])
   })
 
   it('releases staged transfers of every page a fenced lease hosted', async () => {

@@ -282,7 +282,7 @@ describe('ClientHostedBrowserPagePane chrome parity', () => {
     const addressBar = screen.getByRole('combobox')
     act(() => {
       fireEvent.change(addressBar, {
-        target: { value: 'https://kagi.com/search?q=orca&token=secret-token' }
+        target: { value: 'https://kagi.com/search?q=manta&token=secret-token' }
       })
     })
     act(() => {
@@ -292,9 +292,9 @@ describe('ClientHostedBrowserPagePane chrome parity', () => {
     const stored = onUpdatePageState.mock.calls.at(-1)?.[1] as { title: string }
     expect(stored.title).not.toContain('secret-token')
     expect((addressBar as HTMLInputElement).value).not.toContain('secret-token')
-    // The guest still gets the real link — redaction is about what Orca keeps, not what loads.
+    // The guest still gets the real link — redaction is about what Manta keeps, not what loads.
     expect(webview.loadURL).toHaveBeenCalledWith(
-      'https://kagi.com/search?q=orca&token=secret-token'
+      'https://kagi.com/search?q=manta&token=secret-token'
     )
   })
 
@@ -314,7 +314,7 @@ describe('ClientHostedBrowserPagePane chrome parity', () => {
     expect(screen.queryByRole('button', { name: 'Copy Address' })).toBeNull()
   })
 
-  it('says so when the page asks for a permission Orca denied', () => {
+  it('says so when the page asks for a permission Manta denied', () => {
     renderPane()
 
     act(() =>
@@ -326,7 +326,7 @@ describe('ClientHostedBrowserPagePane chrome parity', () => {
     )
 
     expect(toastMocks.message).toHaveBeenCalledWith(
-      'https://example.internal asked for camera or microphone access, and Orca denied it.',
+      'https://example.internal asked for camera or microphone access, and Manta denied it.',
       { id: 'browser-permission-denied:page-a:media' }
     )
   })

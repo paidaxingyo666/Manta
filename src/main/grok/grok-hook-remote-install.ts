@@ -46,8 +46,8 @@ export async function installRemoteGrokHook(
   script: string
 ): Promise<AgentHookInstallStatus> {
   const home = remoteHome.replace(/\/$/, '')
-  const configPath = `${remoteGrokHome(home, remoteGrokHomeDir)}/hooks/orca-status.json`
-  const scriptPath = `${home}/.orca/agent-hooks/grok-hook.sh`
+  const configPath = `${remoteGrokHome(home, remoteGrokHomeDir)}/hooks/manta-status.json`
+  const scriptPath = `${home}/.manta/agent-hooks/grok-hook.sh`
   try {
     const config = await readHooksJsonRemote(sftp, configPath)
     if (!config) {
@@ -55,7 +55,7 @@ export async function installRemoteGrokHook(
     }
     buildInstalledGrokConfig(
       config,
-      wrapPosixHookCommand(scriptPath, {}, { requiredEnvVar: 'ORCA_PANE_KEY' }),
+      wrapPosixHookCommand(scriptPath, {}, { requiredEnvVar: 'MANTA_PANE_KEY' }),
       'grok-hook.sh'
     )
     await writeManagedScriptRemote(sftp, scriptPath, script)

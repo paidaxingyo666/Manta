@@ -1,5 +1,5 @@
 /**
- * Drives the real push seam: a real OrcaRuntimeService, the real lease registry, the real page
+ * Drives the real push seam: a real MantaRuntimeService, the real lease registry, the real page
  * registry, and the real session-tabs announcement every client-page mutation already goes
  * through. The unit tests around the publisher can only prove it behaves once called.
  */
@@ -8,7 +8,7 @@ import type { ClientHostedBrowserRowsEvent } from '../../shared/client-hosted-br
 import type { RuntimeBrowserClientPlacement } from '../../shared/runtime-browser-placement'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import { getBrowserHostLeaseRegistry } from './browser-host-lease-registry-instance'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { getRuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 
 const WT = 'repo-1::/tmp/worktree-a'
@@ -42,7 +42,7 @@ const storeBase = {
 }
 
 function createRuntime(deviceNames: Record<string, string> = {}): {
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
   events: ClientHostedBrowserRowsEvent[]
 } {
   let session: WorkspaceSessionState = {
@@ -52,7 +52,7 @@ function createRuntime(deviceNames: Record<string, string> = {}): {
     tabsByWorktree: {},
     terminalLayoutsByTabId: {}
   }
-  const runtime = new OrcaRuntimeService(
+  const runtime = new MantaRuntimeService(
     {
       ...storeBase,
       getWorkspaceSession: () => session,
@@ -70,7 +70,7 @@ function createRuntime(deviceNames: Record<string, string> = {}): {
   return { runtime, events }
 }
 
-function attachHost(runtime: OrcaRuntimeService, browserHostClientId: string) {
+function attachHost(runtime: MantaRuntimeService, browserHostClientId: string) {
   return getBrowserHostLeaseRegistry(runtime).attach({
     browserHostClientId,
     connectionId: `connection-${browserHostClientId}`,
@@ -80,7 +80,7 @@ function attachHost(runtime: OrcaRuntimeService, browserHostClientId: string) {
 }
 
 function placeAndPublish(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   browserPageId: string,
   browserHostClientId: string
 ): RuntimeBrowserClientPlacement {

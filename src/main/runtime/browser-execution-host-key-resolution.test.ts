@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { FolderWorkspace } from '../../shared/folder-workspace-types'
 import { parseBrowserNetworkExecutionHostKey } from '../browser/browser-network-execution-route'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 // Why the real service: every other suite stubs this resolver, and its two failure branches are
 // what adoption reads as "retire this page" versus "wait for its host". Stubbing the seam that
@@ -44,7 +44,7 @@ describe('browser execution host key resolution', () => {
   })
 })
 
-function createRuntime(overrides: Partial<FolderWorkspace> = {}): OrcaRuntimeService {
+function createRuntime(overrides: Partial<FolderWorkspace> = {}): MantaRuntimeService {
   const folderPath = mkdtempSync(join(tmpdir(), 'orca-browser-host-key-'))
   const folderWorkspace: FolderWorkspace = {
     id: FOLDER_WORKSPACE_ID,
@@ -62,7 +62,7 @@ function createRuntime(overrides: Partial<FolderWorkspace> = {}): OrcaRuntimeSer
     updatedAt: 1,
     ...overrides
   }
-  return new OrcaRuntimeService({
+  return new MantaRuntimeService({
     getFolderWorkspaces: () => [folderWorkspace],
     getProjectGroups: () => [],
     getAllWorktreeMeta: () => ({}),

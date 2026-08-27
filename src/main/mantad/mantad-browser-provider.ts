@@ -80,7 +80,7 @@ export function installedElectronCandidates(
   return [
     joinPath(homePath, '.local', 'bin', 'manta-ide'),
     '/usr/local/bin/manta-ide',
-    '/usr/bin/orca-ide',
+    '/usr/bin/manta-ide',
     '/opt/Manta/manta-ide'
   ]
 }

@@ -41,7 +41,7 @@ import {
 } from './browser-route-session-runtime'
 
 export type ClientHostRouteIdentity = {
-  orcaProfileId: string
+  mantaProfileId: string
   authorityConnectionIdentity: string
   executionHostIdentity: string
   /** Pre-migration pair, naming the partition an older build already populated. */
@@ -52,14 +52,14 @@ export type ClientHostRouteIdentity = {
 
 type ProductionBrowserClientHostStart = PairedRuntimeBrowserClientHostStart & {
   pairing: PairingOffer
-  orcaProfileId: string
+  mantaProfileId: string
   authorityConnectionIdentity: string
   legacyAuthorityConnectionIdentity: string
   storageScope: string
   environmentLabel: string
 }
 
-let activeOrcaProfileId: string | null = null
+let activeMantaProfileId: string | null = null
 /** Route identity of each live client host, for storage operations without a page. */
 const clientHostRouteIdentities = new Map<string, ClientHostRouteIdentity>()
 
@@ -90,7 +90,7 @@ const browserClientHosts =
           createNetworkRoutes(next.pairing, authority, next.storageScope, input.environmentId),
         createExecutor: (next, { retainNetworkRoute, onPageUnavailable }) => {
           executor = new BrowserClientPageCommandExecutor({
-            orcaProfileId: next.orcaProfileId,
+            mantaProfileId: next.mantaProfileId,
             authorityConnectionIdentity: next.authorityConnectionIdentity,
             legacyAuthorityConnectionIdentity: next.legacyAuthorityConnectionIdentity,
             storageScope: next.storageScope,
@@ -138,34 +138,34 @@ const browserClientHosts =
     }
   })
 
-export function configurePairedRuntimeBrowserClientHostsForOrcaProfile(options: {
-  orcaProfileId: string
+export function configurePairedRuntimeBrowserClientHostsForMantaProfile(options: {
+  mantaProfileId: string
 }): void {
-  if (activeOrcaProfileId && activeOrcaProfileId !== options.orcaProfileId) {
+  if (activeMantaProfileId && activeMantaProfileId !== options.mantaProfileId) {
     throw new Error('paired_runtime_browser_client_host_profile_conflict')
   }
-  activeOrcaProfileId = options.orcaProfileId
+  activeMantaProfileId = options.mantaProfileId
 }
 
 export async function startPairedRuntimeBrowserClientHost(options: {
   environment: KnownRuntimeEnvironment
   authorityRuntimeId: string
 }): Promise<BrowserClientHostLeaseAuthority> {
-  const orcaProfileId = activeOrcaProfileId
-  if (!orcaProfileId) {
+  const mantaProfileId = activeMantaProfileId
+  if (!mantaProfileId) {
     throw new Error('paired_runtime_browser_client_host_profile_unavailable')
   }
   const pairingRevision = options.environment.pairingRevision ?? options.environment.createdAt
   const pairing = getPreferredPairingOffer(options.environment)
   const storageScope = deriveBrowserRoutePartitionStorageScope({
-    orcaProfileId,
+    mantaProfileId,
     environmentId: options.environment.id
   })
   const routeIdentity: ClientHostRouteIdentity = {
-    orcaProfileId,
+    mantaProfileId,
     storageScope,
     authorityConnectionIdentity: authorityConnectionIdentity(
-      orcaProfileId,
+      mantaProfileId,
       options.environment.id,
       pairingRevision,
       pairing
@@ -173,7 +173,7 @@ export async function startPairedRuntimeBrowserClientHost(options: {
     // Why: settings-level operations target the server's own machine, not a nested SSH/WSL host.
     executionHostIdentity: browserAuthorityExecutionHostStorageIdentity(storageScope),
     legacyAuthorityConnectionIdentity: legacyAuthorityConnectionIdentity(
-      orcaProfileId,
+      mantaProfileId,
       options.environment.id,
       pairingRevision,
       options.authorityRuntimeId,
@@ -188,7 +188,7 @@ export async function startPairedRuntimeBrowserClientHost(options: {
     pairingRevision,
     authorityRuntimeId: options.authorityRuntimeId,
     pairing,
-    orcaProfileId,
+    mantaProfileId,
     storageScope: routeIdentity.storageScope,
     environmentLabel: options.environment.name,
     authorityConnectionIdentity: routeIdentity.authorityConnectionIdentity,
@@ -266,14 +266,14 @@ function createNetworkRoutes(
  * fresh partition on every remote restart, dropping the user's cookies.
  */
 function authorityConnectionIdentity(
-  orcaProfileId: string,
+  mantaProfileId: string,
   environmentId: string,
   pairingRevision: number,
   pairing: PairingOffer
 ): string {
   return connectionIdentityDigest([
     'paired-runtime-browser',
-    orcaProfileId,
+    mantaProfileId,
     environmentId,
     pairingRevision,
     pairing.publicKeyB64,
@@ -283,7 +283,7 @@ function authorityConnectionIdentity(
 
 /** Superseded per-process identity, kept only so its partition can be adopted. */
 function legacyAuthorityConnectionIdentity(
-  orcaProfileId: string,
+  mantaProfileId: string,
   environmentId: string,
   pairingRevision: number,
   authorityRuntimeId: string,
@@ -291,7 +291,7 @@ function legacyAuthorityConnectionIdentity(
 ): string {
   return connectionIdentityDigest([
     'paired-runtime-browser',
-    orcaProfileId,
+    mantaProfileId,
     environmentId,
     pairingRevision,
     authorityRuntimeId,
@@ -307,7 +307,7 @@ function connectionIdentityDigest(components: readonly unknown[]): string {
 // Why: staged remote bytes are main-owned scratch, never the user's visible Downloads folder.
 function browserClientFileStagingRoot(environmentId: string): string {
   const scope = createHash('sha256').update(environmentId).digest('hex').slice(0, 16)
-  return path.join(app.getPath('temp'), 'orca-browser-file-channel', scope)
+  return path.join(app.getPath('temp'), 'manta-browser-file-channel', scope)
 }
 
 function reportBrowserClientHostError(error: Error): void {

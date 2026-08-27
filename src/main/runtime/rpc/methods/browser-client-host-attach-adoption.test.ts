@@ -4,7 +4,7 @@ import type { BrowserClientHostedPageInventory } from '../../../../shared/browse
 import { getBrowserHostLeaseRegistry } from '../../browser-host-lease-registry-instance'
 import { getRuntimeBrowserPageRegistry } from '../../runtime-browser-page-registry'
 import type { BrowserExecutionHostKeyResolution } from '../../runtime-browser-client-page-adoption'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { RpcDispatcher } from '../dispatcher'
 import { BROWSER_CLIENT_HOST_METHODS } from './browser-client-host'
 
@@ -62,7 +62,7 @@ function attachHost(
     markClientHostedPagesReconciled,
     notifyMobileSessionTabsChanged,
     registerSubscriptionCleanup: (id: string, cleanup: () => void) => cleanups.set(id, cleanup)
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
   const dispatcher = new RpcDispatcher({
     runtime: hostRuntime,
     methods: BROWSER_CLIENT_HOST_METHODS

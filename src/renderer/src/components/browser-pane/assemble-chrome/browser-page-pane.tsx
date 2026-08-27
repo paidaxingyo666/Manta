@@ -358,7 +358,7 @@ export function BrowserPagePane({
               navigateToUrl={nav.navigateToUrl}
               setResourceNotice={setResourceNotice}
               certificateFailure={certificateFailure}
-              sshRouted={Boolean(sessionPartition?.startsWith('persist:orca-browser-v1-'))}
+              sshRouted={Boolean(sessionPartition?.startsWith('persist:manta-browser-v1-'))}
               isBlankTab={isBlankTab}
               containerRef={containerRef}
               browserOverlayViewport={browserOverlayViewport}

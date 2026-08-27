@@ -27,7 +27,7 @@ type TargetObservation = Readonly<{ path: string; remotePort: number }>
 export async function runPersistedWorkerProbe(
   protectedSession: boolean
 ): Promise<PersistedWorkerProbeResult> {
-  const root = mkdtempSync(join(tmpdir(), 'orca-browser-worker-egress-'))
+  const root = mkdtempSync(join(tmpdir(), 'manta-browser-worker-egress-'))
   const observations: TargetObservation[] = []
   const routedSourcePorts = new Set<number>()
   const sockets = new Set<Socket>()

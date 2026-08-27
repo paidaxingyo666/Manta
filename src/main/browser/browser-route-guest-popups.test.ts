@@ -14,8 +14,8 @@ import {
 import { BrowserRouteWebContentsRegistry } from './browser-route-webcontents-registry'
 
 const GESTURE_CLICK_AT = 1_700_000_000_000
-const partition = `persist:orca-browser-v1-${'a'.repeat(64)}`
-const otherPartition = `persist:orca-browser-v1-${'b'.repeat(64)}`
+const partition = `persist:manta-browser-v1-${'a'.repeat(64)}`
+const otherPartition = `persist:manta-browser-v1-${'b'.repeat(64)}`
 const page = {
   partition,
   browserPageId: 'page-a',

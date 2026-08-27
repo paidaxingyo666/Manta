@@ -1014,8 +1014,8 @@ export default function AutomationsPage(): React.JSX.Element {
       getAutomationTargetFromHostId(editingRow?.automation.runContext?.hostId)
     )
   })()
-  const isOrcaForm = createTarget === 'orca' && editingExternalTarget === null
-  const dialogRepos = isOrcaForm
+  const isMantaForm = createTarget === 'manta' && editingExternalTarget === null
+  const dialogRepos = isMantaForm
     ? editingAutomationId !== null
       ? getAutomationCreateRepos(repos, automationDialogTarget)
       : editorProjects
@@ -1574,7 +1574,7 @@ export default function AutomationsPage(): React.JSX.Element {
       }
       if (
         editingAutomationId !== null &&
-        isOrcaForm &&
+        isMantaForm &&
         !dialogRepos.some((repo) => repo.id === draft.projectId)
       ) {
         toast.error(
@@ -2294,7 +2294,7 @@ export default function AutomationsPage(): React.JSX.Element {
         onNoticeDismiss={() => setEditorNotice(null)}
         onProjectChange={handleProjectChange}
         getRepoHostLabel={getAutomationRepoHostLabel}
-        allowAddProject={!isOrcaForm || automationDialogTarget.kind === 'local'}
+        allowAddProject={!isMantaForm || automationDialogTarget.kind === 'local'}
         onCreateTargetChange={handleCreateTargetChange}
         onOpenChange={(open) => {
           setCreateOpen(open)

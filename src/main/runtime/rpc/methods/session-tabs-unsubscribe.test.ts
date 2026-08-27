@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { RpcDispatcher } from '../dispatcher'
 import { SESSION_TAB_METHODS } from './session-tabs'
 
@@ -49,7 +49,7 @@ describe('session tab unsubscribe RPC methods', () => {
       getRuntimeId: () => 'test-runtime',
       cleanupSubscription,
       cleanupSubscriptionsByPrefix
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: SESSION_TAB_METHODS })
 
     await dispatcher.dispatchStreaming(
@@ -66,7 +66,7 @@ describe('session tab unsubscribe RPC methods', () => {
 function runtimeWithCleanup(
   cleanupSubscription: ReturnType<typeof vi.fn>,
   cleanupSubscriptionsByPrefix = vi.fn()
-): OrcaRuntimeService {
+): MantaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
     listMobileSessionTabs: vi.fn().mockResolvedValue({
@@ -80,7 +80,7 @@ function runtimeWithCleanup(
     }),
     cleanupSubscription,
     cleanupSubscriptionsByPrefix
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
 }
 
 function request(method: string, params: unknown) {

@@ -274,7 +274,7 @@ describe('quit-path durable writes never park the main thread', () => {
     const { GrokHookService } = await import('./grok/hook-service')
     const service = new GrokHookService()
     try {
-      const configPath = join(dir, 'hooks', 'orca-status.json')
+      const configPath = join(dir, 'hooks', 'manta-status.json')
       const configDir = join(dir, 'hooks')
       const { mkdirSync } = await import('node:fs')
       mkdirSync(configDir, { recursive: true })
@@ -283,7 +283,9 @@ describe('quit-path durable writes never park the main thread', () => {
         `${JSON.stringify({
           hooks: {
             SessionStart: [
-              { hooks: [{ type: 'command', command: '/home/test/.orca/agent-hooks/grok-hook.sh' }] }
+              {
+                hooks: [{ type: 'command', command: '/home/test/.manta/agent-hooks/grok-hook.sh' }]
+              }
             ]
           }
         })}\n`

@@ -13,7 +13,7 @@
  * viewer receiving frames only while the host operator happened to be looking at the same page.
  */
 import { describe, expect, it, vi } from 'vitest'
-import type { OrcaRuntimeService } from '../../src/main/runtime/orca-runtime'
+import type { MantaRuntimeService } from '../../src/main/runtime/manta-runtime'
 import {
   createScreencastHarness,
   HARNESS_PAGE_ID as PAGE
@@ -34,7 +34,7 @@ vi.mock('electron', () => ({
 }))
 
 function hostGuestIsPaintable(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   hostIsLookingAtThisPage: boolean
 ): boolean {
   hydrateBrowserDrivers(

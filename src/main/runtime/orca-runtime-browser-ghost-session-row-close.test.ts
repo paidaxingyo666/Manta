@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentBrowserBridge } from '../browser/agent-browser-bridge'
-import type { RuntimeBrowserCommandHost } from './orca-runtime-browser'
+import type { RuntimeBrowserCommandHost } from './manta-runtime-browser'
 import { RESTORED_CLIENT_HOSTED_BROWSER_PLACEMENT } from './client-hosted-browser-page-persistence'
 import { RuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 
@@ -19,7 +19,7 @@ vi.mock('electron', () => ({
  */
 describe('browserTabClose on a session row with no runtime page', () => {
   it('retires the runtime-owned session row on a registry miss', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const retireRuntimeOwnedBrowserSessionTab = vi.fn(() => true)
     const commands = new RuntimeBrowserCommands(createHost({ retireRuntimeOwnedBrowserSessionTab }))
 
@@ -30,7 +30,7 @@ describe('browserTabClose on a session row with no runtime page', () => {
   })
 
   it('still fails closed when no session row names that page either', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const commands = new RuntimeBrowserCommands(
       createHost({ retireRuntimeOwnedBrowserSessionTab: vi.fn(() => false) })
     )
@@ -41,7 +41,7 @@ describe('browserTabClose on a session row with no runtime page', () => {
   })
 
   it('retires the row even on a runtime with no browser session at all', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const retireRuntimeOwnedBrowserSessionTab = vi.fn(() => true)
     const commands = new RuntimeBrowserCommands(
       createHost({
@@ -57,7 +57,7 @@ describe('browserTabClose on a session row with no runtime page', () => {
   })
 
   it('closes a rehydrated row with no host to ask, and leaves nothing to restore', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const pages = new RuntimeBrowserPageRegistry()
     pages.publishClientPage({
       browserPageId: 'page-restored',
@@ -88,7 +88,7 @@ describe('browserTabClose on a session row with no runtime page', () => {
   })
 
   it('never steals a close from a page the bridge still holds', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const retireRuntimeOwnedBrowserSessionTab = vi.fn(() => true)
     const closeTab = vi.fn(async () => {})
     const commands = new RuntimeBrowserCommands(

@@ -245,7 +245,7 @@ describe('reconciling retained runs against a graph that has not published yet',
 
     expect(readRun(store, automation.id, retained.id).status).toBe('dispatch_failed')
     expect(readRun(store, automation.id, retained.id).error).toBe(
-      'Orca lost the terminal for this run before it reported completion.'
+      'Manta lost the terminal for this run before it reported completion.'
     )
     service.stop()
   })

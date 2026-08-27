@@ -2148,9 +2148,7 @@
         },
         {
           "file": "src/cli/runtime/serve-signal-exit-diagnostic.test.ts",
-          "assertions": [
-            "late update handoff failure cannot rearm termination after child exit"
-          ]
+          "assertions": ["late update handoff failure cannot rearm termination after child exit"]
         },
         {
           "file": "src/main/serve-update-handoff.test.ts",
@@ -4266,7 +4264,7 @@
       },
       "performanceBudget": {
         "required": true,
-        "evidence": "Derivation performs one bounded full SHA-256 aggregate partition hash and one binding hash. The registry admits at most 64 live or pending partitions, 64 logical page generations per partition, and 512 durable bindings per Orca profile. Concurrent preparation shares one promise and one Electron proxy application per partition. Binding-file reads are capped at 128 KiB. Writes are bounded synchronous profile-local JSON, fsync the temporary file before Windows-retried rename, and fsync the containing directory where supported."
+        "evidence": "Derivation performs one bounded full SHA-256 aggregate partition hash and one binding hash. The registry admits at most 64 live or pending partitions, 64 logical page generations per partition, and 512 durable bindings per Manta profile. Concurrent preparation shares one promise and one Electron proxy application per partition. Binding-file reads are capped at 128 KiB. Writes are bounded synchronous profile-local JSON, fsync the temporary file before Windows-retried rename, and fsync the containing directory where supported."
       },
       "promotionCriteria": [
         "Use the production paired journey to prove proxy application precedes the first popup and speculative request.",
@@ -4282,7 +4280,7 @@
         "Network-service recovery, speculative requests, and popup traffic remain incompletely captured.",
         "QUIC, DoH, WebTransport, and non-WebRTC UDP/direct-network paths are not yet disabled or proven fail closed.",
         "Partition deletion, download/transfer draining, idle route release, disk quotas, and browser-profile cloning are later lifecycle stages.",
-        "Binding writes serialize in Electron main, and packaged hosts rely on Orca's per-userData single-instance lock. Activation still needs an explicit guard for dev instances that share userData or a cross-process CAS/lock.",
+        "Binding writes serialize in Electron main, and packaged hosts rely on Manta's per-userData single-instance lock. Activation still needs an explicit guard for dev instances that share userData or a cross-process CAS/lock.",
         "Sequential proxy or policy setup failures retain durable bindings and can exhaust the 512-binding ledger. Activation requires bounded tombstone recovery and partition garbage collection.",
         "Each preparePage synchronously reads and parses bounded binding metadata on Electron main; activation requires latency evidence or a safely invalidated cache before this becomes frequent."
       ],
@@ -4529,7 +4527,7 @@
       "providers": ["remote-runtime", "ssh", "wsl"],
       "coveredPlatforms": ["macos", "ios"],
       "coveredProviders": ["remote-runtime", "ssh", "wsl"],
-      "coverageNotes": "Fresh-build Playwright journeys run the same production store action against an isolated headed Electron server and a real headless orca serve host. They prove one immutable client placement owns one real retained guest on the viewing desktop, the server owns no duplicate guest, no screencast frame renders, browser.snapshot reaches the client guest, disabling the setting preserves that guest, and the next page uses the legacy server engine. Deterministic contracts cover omitted placement, missing capabilities, explicit server placement, exact renderer-store materialization after delayed publication, no fallback after client-create failure, folder workspaces, git worktrees, browserless hosts, native and WSL routes, exact connected SSH authority, reconnect command replay, lease replacement, imported-inventory cleanup, bounded retirement, and shared remote screencast fanout for multiple independent viewers. A published v1.4.184 package runs both skew directions: an old client omits placement against the current host, while a current client capability-downgrades against the old host; each creates one server guest, no client guest, and returns the exact snapshot marker. A current iOS Simulator client paired to that legacy packaged host visibly loads Example Domain through the preserved server-hosted surface. A Docker OpenSSH target proves container-only DNS and localhost through both ssh2 and system-SSH routes. Physical Windows/Linux Electron and physical mobile journeys remain gaps.",
+      "coverageNotes": "Fresh-build Playwright journeys run the same production store action against an isolated headed Electron server and a real headless manta serve host. They prove one immutable client placement owns one real retained guest on the viewing desktop, the server owns no duplicate guest, no screencast frame renders, browser.snapshot reaches the client guest, disabling the setting preserves that guest, and the next page uses the legacy server engine. Deterministic contracts cover omitted placement, missing capabilities, explicit server placement, exact renderer-store materialization after delayed publication, no fallback after client-create failure, folder workspaces, git worktrees, browserless hosts, native and WSL routes, exact connected SSH authority, reconnect command replay, lease replacement, imported-inventory cleanup, bounded retirement, and shared remote screencast fanout for multiple independent viewers. A published v1.4.184 package runs both skew directions: an old client omits placement against the current host, while a current client capability-downgrades against the old host; each creates one server guest, no client guest, and returns the exact snapshot marker. A current iOS Simulator client paired to that legacy packaged host visibly loads Example Domain through the preserved server-hosted surface. A Docker OpenSSH target proves container-only DNS and localhost through both ssh2 and system-SSH routes. Physical Windows/Linux Electron and physical mobile journeys remain gaps.",
       "motivatingLinks": [
         "https://linear.app/stably/issue/STA-4150/refactor-remote-browser-to-client-hosted-electron-webviews"
       ],
@@ -4540,11 +4538,11 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/runtime/web-runtime-session-browser-client-placement.test.ts src/renderer/src/runtime/web-runtime-session-browser-create-failure.test.ts src/main/runtime/orca-runtime-browser-client-hosted.test.ts src/main/runtime/runtime-browser-client-page-creation.test.ts src/main/runtime/browser-host-page-reconciliation-orchestration.test.ts src/main/runtime/browser-host-command-ledger.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/browser-client-host-protocol.test.ts src/shared/remote-runtime-client.test.ts src/main/runtime/browser-host-capability-selection.test.ts src/main/runtime/rpc/methods/browser-tab-create-schema.test.ts src/main/ipc/runtime-environment-browser-client-host-handler.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts",
-        "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Manta.app/Contents/MacOS/Manta pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/browser-network-tunnel-paired-runtime.integration.test.ts src/main/browser/paired-runtime-browser-network-route.test.ts src/main/browser/browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-relay-launch.test.ts src/main/runtime/runtime-browser-network-execution-host.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
         "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
-        "Manual iOS 26.5 simulator: pair current mobile code to packaged Orca 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface"
+        "Manual iOS 26.5 simulator: pair current mobile code to packaged Manta 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface"
       ],
       "testFiles": [
         "tests/e2e/paired-client-hosted-browser.spec.ts",
@@ -4634,7 +4632,7 @@
           "command": "pnpm exec playwright test tests/e2e/paired-client-hosted-browser.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 48.8,
-          "summary": "Two fresh-build production journeys passed against isolated headed Electron and real headless orca serve hosts, including client ownership, visible retained content, automation, no screencast, new-page-only kill switch, and server fallback without duplicate execution."
+          "summary": "Two fresh-build production journeys passed against isolated headed Electron and real headless manta serve hosts, including client ownership, visible retained content, automation, no screencast, new-page-only kill switch, and server fallback without duplicate execution."
         },
         {
           "date": "2026-08-16",
@@ -4649,7 +4647,7 @@
           "date": "2026-08-16",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Manta.app/Contents/MacOS/Manta pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 10.3,
           "summary": "Two packaged v1.4.184 skew journeys passed four times (9.6, 10.3, 9.5, and 10.3 seconds), including after the latest-main rebase: old client to current host and current client to old host each selected server placement, owned one host guest and zero client guests, and returned packaged-skew-marker through browser.snapshot."
@@ -4667,7 +4665,7 @@
           "date": "2026-08-16",
           "runner": "manual",
           "platform": "ios",
-          "command": "Manual iOS 26.5 simulator: pair current mobile code to packaged Orca 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface",
+          "command": "Manual iOS 26.5 simulator: pair current mobile code to packaged Manta 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface",
           "result": "passed",
           "durationSeconds": 180,
           "summary": "Current mobile code paired to an isolated legacy packaged host, created one Browser tab, and visibly progressed from about:blank through loading to Example Domain at https://example.com/ on the server-hosted mobile surface."
@@ -5087,7 +5085,7 @@
       "invariant": "After a TUI exits or is killed, reveal, reattach, snapshot replay, or renderer remount must not deliver terminal-owned mouse or alternate-screen protocol bytes to the surviving shell. Recovery is an ordered output barrier in the daemon session data path: an OSC 133;D completing while the alternate screen is still active pauses the stream at that exact byte boundary, a fresh execution-host process inspection proves shell ownership, and on proof a mode reset is injected as in-stream output so every consumer converges by parsing the same bytes and the queued post-boundary shell output (the prompt) lands on the normal buffer. Snapshots are pure reads. Any failure — refuted proof, timeout, queue overflow, session death, disposal — flushes the queue unmodified, preserving incumbent behavior; later command or mode bytes revoke proof. Clean alternate-screen exits prove ownership asynchronously without pausing.",
       "oracle": "Run one fixed child-TUI journey for normal exit and cleanup-free SIGKILL. Assert renderer and host normal-buffer/non-mouse state, host snapshot terminalOwner metadata, exact PTY writes with no post-exit mouse report, unrelated-pane survival, post-boundary prompt output preserved (normal exit), ordered proof invalidation, bounded settlement and bail-out flush, one inspection per unclean episode with zero scans for ordinary output, split-escape safety at every chunk boundary, and old/new client-host fallback parity.",
       "commands": [
-        "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/terminal-shell-lifecycle-scanner.test.ts src/main/daemon/terminal-shell-recovery-barrier.test.ts src/main/daemon/session-shell-recovery.test.ts src/main/daemon/session.test.ts src/main/daemon/terminal-host-concurrent-create.test.ts src/main/daemon/daemon-pty-adapter.test.ts src/main/daemon/daemon-restore-scrollback-depth.test.ts src/main/daemon/terminal-checkpoint-serializer.test.ts src/main/providers/agent-foreground-process.test.ts src/main/runtime/orca-runtime.test.ts src/main/runtime/mobile-subscribe-integration.test.ts src/main/runtime/rpc/terminal-multiplex-escape-tail.test.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-codex-queries.test.ts src/renderer/src/components/terminal-pane/pty-connection-reattach-mode-reset.test.ts src/renderer/src/components/terminal-pane/pty-connection-daemon-snapshot-replay.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-snapshot-escape-tail.test.ts --reporter=dot",
+        "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/terminal-shell-lifecycle-scanner.test.ts src/main/daemon/terminal-shell-recovery-barrier.test.ts src/main/daemon/session-shell-recovery.test.ts src/main/daemon/session.test.ts src/main/daemon/terminal-host-concurrent-create.test.ts src/main/daemon/daemon-pty-adapter.test.ts src/main/daemon/daemon-restore-scrollback-depth.test.ts src/main/daemon/terminal-checkpoint-serializer.test.ts src/main/providers/agent-foreground-process.test.ts src/main/runtime/manta-runtime.test.ts src/main/runtime/mobile-subscribe-integration.test.ts src/main/runtime/rpc/terminal-multiplex-escape-tail.test.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-codex-queries.test.ts src/renderer/src/components/terminal-pane/pty-connection-reattach-mode-reset.test.ts src/renderer/src/components/terminal-pane/pty-connection-daemon-snapshot-replay.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-snapshot-escape-tail.test.ts --reporter=dot",
         "pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/cross-version-terminal-wire.unit.test.ts --reporter=dot",
         "pnpm exec electron-vite build --mode e2e",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-hidden-child-tui-kill-mode-reset.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
@@ -5102,7 +5100,7 @@
         "src/main/daemon/daemon-restore-scrollback-depth.test.ts",
         "src/main/daemon/terminal-checkpoint-serializer.test.ts",
         "src/main/providers/agent-foreground-process.test.ts",
-        "src/main/runtime/orca-runtime.test.ts",
+        "src/main/runtime/manta-runtime.test.ts",
         "src/main/runtime/mobile-subscribe-integration.test.ts",
         "src/main/runtime/rpc/terminal-multiplex-escape-tail.test.ts",
         "src/renderer/src/components/terminal-pane/pty-connection-hidden-codex-queries.test.ts",
@@ -16410,9 +16408,7 @@
         },
         {
           "file": "src/main/browser/agent-browser-bridge-tab-routing.test.ts",
-          "assertions": [
-            "closing a tab retires the exact named agent-browser session"
-          ]
+          "assertions": ["closing a tab retires the exact named agent-browser session"]
         },
         {
           "file": "src/main/startup/serve-signal-handlers.test.ts",

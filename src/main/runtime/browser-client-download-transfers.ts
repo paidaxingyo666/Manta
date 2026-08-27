@@ -11,7 +11,7 @@ import {
 
 // Why: client-hosted downloads land in the remote workspace, not the desktop, so they need a
 // stable in-workspace home that the containment-checked file transfer path can reach.
-export const BROWSER_CLIENT_DOWNLOAD_WORKSPACE_DIRECTORY = '.orca/browser-downloads'
+export const BROWSER_CLIENT_DOWNLOAD_WORKSPACE_DIRECTORY = '.manta/browser-downloads'
 
 export type BrowserClientDownloadTransferDependencies = {
   writeChunk(input: {

@@ -18,7 +18,7 @@ const pty = (pid = 100): IPty => ({ pid }) as unknown as IPty
 describe('readWindowsPtyJobProcessIds', () => {
   it('never spawns a child process to answer', () => {
     // The whole point. node-pty answers console membership by FORKING a helper,
-    // and Orca asked on a foreground poll, per pane -- hundreds of hidden
+    // and Manta asked on a foreground poll, per pane -- hundreds of hidden
     // conpty_console_list_agent processes until the machine ran out of memory
     // (#10857). Killing them changed nothing; the next poll spawned more.
     // QueryInformationJobObject needs no console attachment, so this is one

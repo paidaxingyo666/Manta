@@ -6,7 +6,7 @@ import type {
   BrowserRoutePageGuestIdentity
 } from './browser-route-page-authority'
 
-const partition = `persist:orca-browser-v1-${'a'.repeat(64)}`
+const partition = `persist:manta-browser-v1-${'a'.repeat(64)}`
 
 function command(
   type: BrowserClientHostCommandEvent['command']['type'],
@@ -113,7 +113,7 @@ function createHarness() {
     )
   }
   const dependencies = {
-    orcaProfileId: 'orca-profile-a',
+    mantaProfileId: 'orca-profile-a',
     authorityConnectionIdentity: 'authority-record-a',
     legacyAuthorityConnectionIdentity: 'legacy-authority-record-a',
     storageScope: 'a'.repeat(64),

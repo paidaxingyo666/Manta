@@ -5,9 +5,9 @@ import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import type { WebSocket } from 'ws'
 import { DeviceRegistry } from './device-registry'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { defineStreamingMethod, type RpcRequest } from './rpc/core'
-import { classifyRuntimeLongPoll, OrcaRuntimeRpcServer } from './runtime-rpc'
+import { classifyRuntimeLongPoll, MantaRuntimeRpcServer } from './runtime-rpc'
 import { withCurrentOrchestrationContract } from './runtime-rpc-test-harness'
 
 const request = (method: string, params?: unknown): RpcRequest => ({
@@ -46,8 +46,8 @@ describe('runtime RPC browser-host admission', () => {
           })
         }
       })
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       longPollCap: 4,
       methods: [blockingMethod('browser.clientHost.attach'), blockingMethod('terminal.wait')]
@@ -106,8 +106,8 @@ describe('runtime RPC browser-host admission', () => {
       handler: async (_params, { signal }) =>
         await new Promise<void>((resolve) => signal?.addEventListener('abort', () => resolve()))
     })
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       longPollCap: 16,
       methods: [blockingHost]
@@ -199,8 +199,8 @@ describe('runtime RPC browser-host admission', () => {
         handler: async (_params, { signal }) =>
           await new Promise<void>((resolve) => signal?.addEventListener('abort', () => resolve()))
       })
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       longPollCap: 4,
       methods: [

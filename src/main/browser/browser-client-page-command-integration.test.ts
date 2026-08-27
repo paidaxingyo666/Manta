@@ -7,7 +7,7 @@ import { createBrowserRoutePartitionBindingStoreFake } from './browser-route-par
 import { BrowserRouteSessionRegistry } from './browser-route-session-registry'
 import { BrowserRouteWebContentsRegistry } from './browser-route-webcontents-registry'
 
-const partition = `persist:orca-browser-v1-${'b'.repeat(64)}`
+const partition = `persist:manta-browser-v1-${'b'.repeat(64)}`
 
 describe('BrowserClientPageCommandExecutor integration', () => {
   it('composes exact route, Session, navigation, and spontaneous destroyed cleanup', async () => {
@@ -45,7 +45,7 @@ describe('BrowserClientPageCommandExecutor integration', () => {
     })
     const rendererRekey = vi.fn(async () => {})
     const executor = new BrowserClientPageCommandExecutor({
-      orcaProfileId: 'orca-profile-a',
+      mantaProfileId: 'orca-profile-a',
       authorityConnectionIdentity: 'authority-record-a',
       legacyAuthorityConnectionIdentity: 'legacy-authority-record-a',
       storageScope: 'a'.repeat(64),

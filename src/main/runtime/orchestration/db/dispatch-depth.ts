@@ -12,7 +12,7 @@ import type { DispatchContextRow, RemoteDispatchAttachmentRow } from '../types'
 /**
  * Who is creating a dispatch row, for nesting-depth purposes.
  *
- * `system` is Orca's own in-process coordinator loop, which is host-local code
+ * `system` is Manta's own in-process coordinator loop, which is host-local code
  * rather than a CLI caller and is a root by construction. It is an internal
  * discriminated branch on purpose — never a caller-supplied value, or a worker
  * could claim to be the loop.

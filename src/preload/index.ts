@@ -4930,7 +4930,7 @@ const api = {
       ipcRenderer.invoke('ssh:submitCredential', args)
   },
 
-  // Orca automation CRUD rides the local runtime RPC surface (`runtime:call`),
+  // Manta automation CRUD rides the local runtime RPC surface (`runtime:call`),
   // so only external-manager and dispatch-loop plumbing stays on IPC.
   automations: {
     listExternalManagerForOwner: (

@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { RpcContext, RpcRequest } from '../core'
 import { RpcDispatcher } from '../dispatcher'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { AUTOMATION_METHODS } from './automations'
 import { AUTOMATION_OWNER_FENCING_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 
@@ -59,7 +59,7 @@ async function invoke(
     throw parsed?.error
   }
   return await target.handler(parsed.data, {
-    runtime: runtime as unknown as OrcaRuntimeService,
+    runtime: runtime as unknown as MantaRuntimeService,
     ...context
   } as RpcContext)
 }
@@ -109,7 +109,7 @@ describe('automation.list from a client that sends literal null params', () => {
   it('answers with the complete authority list, not an invalid-argument error', async () => {
     const runtime = runtimeStub()
     const dispatcher = new RpcDispatcher({
-      runtime: { ...runtime, getRuntimeId: () => 'test-runtime' } as unknown as OrcaRuntimeService,
+      runtime: { ...runtime, getRuntimeId: () => 'test-runtime' } as unknown as MantaRuntimeService,
       methods: AUTOMATION_METHODS
     })
     const request: RpcRequest = {

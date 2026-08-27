@@ -281,7 +281,7 @@ describe('runner execFile timeout handling', () => {
     const child = createMockChildProcess(1234)
     execFileMock.mockReturnValue(child)
 
-    const promise = glabExecFileAsync(['api', 'projects/stablyai%2Forca/issues'], {
+    const promise = glabExecFileAsync(['api', 'projects/stablyai%2Fmanta/issues'], {
       cwd: '/repo'
     })
     const rejection = expect(promise).rejects.toThrow('glab timed out.')

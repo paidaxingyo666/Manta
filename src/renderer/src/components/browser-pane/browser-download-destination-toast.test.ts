@@ -26,10 +26,10 @@ describe('browser remote download toast', () => {
   it('names the remote path and the execution host without repeating the file name', () => {
     expect(
       formatBrowserRemoteDownloadMessage({
-        workspaceRelativePath: '.orca/browser-downloads/report.pdf',
+        workspaceRelativePath: '.manta/browser-downloads/report.pdf',
         hostLabel: 'build-box'
       })
-    ).toBe('Saved to .orca/browser-downloads/report.pdf on build-box')
+    ).toBe('Saved to .manta/browser-downloads/report.pdf on build-box')
   })
 
   it('stays silent for a download that saved on this device', () => {
@@ -55,7 +55,7 @@ describe('browser remote download toast', () => {
       emitBrowserRemoteDownloadToast(
         finished({
           remoteDestination: {
-            workspaceRelativePath: '.orca/browser-downloads/report.pdf',
+            workspaceRelativePath: '.manta/browser-downloads/report.pdf',
             hostLabel: 'build-box'
           }
         })

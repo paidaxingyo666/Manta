@@ -255,7 +255,7 @@ describe('Store', () => {
 
   it('stores its own contexts over a client-perspective create runContext', async () => {
     const store = await createStore()
-    store.addRepo(makeRepo({ upstream: { owner: 'stablyai', repo: 'orca' } }))
+    store.addRepo(makeRepo({ upstream: { owner: 'stablyai', repo: 'manta' } }))
 
     const automation = store.createAutomation({
       name: 'Nightly',
@@ -284,7 +284,7 @@ describe('Store', () => {
 
   it('re-derives a stored client-perspective context on an explicit move, not on a toggle', async () => {
     const store = await createStore()
-    store.addRepo(makeRepo({ upstream: { owner: 'stablyai', repo: 'orca' } }))
+    store.addRepo(makeRepo({ upstream: { owner: 'stablyai', repo: 'manta' } }))
     const automation = store.createAutomation({
       name: 'Nightly',
       prompt: 'Run checks',

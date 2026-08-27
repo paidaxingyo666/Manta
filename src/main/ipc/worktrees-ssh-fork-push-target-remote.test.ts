@@ -287,14 +287,14 @@ describe('registerWorktreeHandlers', () => {
       if (args[0] === 'remote' && args[1] === 'get-url') {
         return {
           stdout:
-            args[2] === 'pr-contributor-orca'
-              ? 'git@github.com:contributor/orca.git\n'
+            args[2] === 'pr-contributor-manta'
+              ? 'git@github.com:contributor/manta.git\n'
               : 'git@github.com:stablyai/orca.git\n',
           stderr: ''
         }
       }
       if (args[0] === 'remote' && args.length === 1) {
-        return { stdout: 'origin\npr-contributor-orca\n', stderr: '' }
+        return { stdout: 'origin\npr-contributor-manta\n', stderr: '' }
       }
       return { stdout: '', stderr: '' }
     })
@@ -303,7 +303,7 @@ describe('registerWorktreeHandlers', () => {
       fetchRemoteTrackingRef: vi
         .fn()
         .mockImplementation(async (_repoPath: string, remote: string) => {
-          if (remote === 'pr-contributor-orca') {
+          if (remote === 'pr-contributor-manta') {
             throw new Error('network unreachable')
           }
         }),
@@ -316,9 +316,9 @@ describe('registerWorktreeHandlers', () => {
     store.getAllWorktreeMeta.mockReturnValue({
       'repo-ssh::/remote/repo-sibling': {
         pushTarget: {
-          remoteName: 'pr-contributor-orca',
+          remoteName: 'pr-contributor-manta',
           branchName: 'contributor/other',
-          remoteUrl: 'https://github.com/contributor/orca.git',
+          remoteUrl: 'https://github.com/contributor/manta.git',
           remoteCreated: true
         }
       }
@@ -332,19 +332,19 @@ describe('registerWorktreeHandlers', () => {
         name: 'contributor-fix',
         branchNameOverride: 'contributor/fix',
         pushTarget: {
-          remoteName: 'pr-contributor-orca',
+          remoteName: 'pr-contributor-manta',
           branchName: 'contributor/fix',
-          remoteUrl: 'https://github.com/contributor/orca.git'
+          remoteUrl: 'https://github.com/contributor/manta.git'
         }
       })
     ).rejects.toThrow('network unreachable')
 
     expect(exec).not.toHaveBeenCalledWith(
-      ['remote', 'remove', 'pr-contributor-orca'],
+      ['remote', 'remove', 'pr-contributor-manta'],
       '/remote/repo'
     )
     expect(exec).not.toHaveBeenCalledWith(
-      ['remote', 'add', 'pr-contributor-orca', 'https://github.com/contributor/orca.git'],
+      ['remote', 'add', 'pr-contributor-manta', 'https://github.com/contributor/manta.git'],
       '/remote/repo'
     )
   })

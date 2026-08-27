@@ -10,7 +10,7 @@ import {
   MANTA_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT,
   MANTA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT
 } from '../../../shared/updater-renderer-events'
-import { ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT } from '../../../shared/renderer-shutdown-events'
+import { MANTA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT } from '../../../shared/renderer-shutdown-events'
 
 type WindowEventStub = Pick<Window, 'addEventListener' | 'removeEventListener' | 'dispatchEvent'>
 
@@ -60,8 +60,8 @@ describe('registerUpdaterBeforeUnloadBypass', () => {
   it('ends restart progress when the shutdown checkpoint aborts preparation', () => {
     const cleanup = registerUpdaterBeforeUnloadBypass()
 
-    window.dispatchEvent(new Event(ORCA_APP_RESTART_STARTED_EVENT))
-    window.dispatchEvent(new Event(ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT))
+    window.dispatchEvent(new Event(MANTA_APP_RESTART_STARTED_EVENT))
+    window.dispatchEvent(new Event(MANTA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT))
 
     expect(isIntentionalAppRestartInProgress()).toBe(false)
     cleanup()

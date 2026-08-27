@@ -91,7 +91,7 @@ describe('client-hosted downloads', () => {
     // Exactly what client-hosted page creation does; the renderer never registers a client page.
     createBrowserClientPageGuestBinding(browserManager).bind({
       registration: {
-        partition: `persist:orca-browser-v1-${'a'.repeat(64)}`,
+        partition: `persist:manta-browser-v1-${'a'.repeat(64)}`,
         browserPageId: BROWSER_PAGE_ID,
         pageHostGeneration: 7,
         rendererWebContentsId,
@@ -148,7 +148,7 @@ describe('client-hosted downloads', () => {
         status: 'completed',
         savePath: null,
         remoteDestination: {
-          workspaceRelativePath: '.orca/browser-downloads/report.csv',
+          workspaceRelativePath: '.manta/browser-downloads/report.csv',
           hostLabel: 'build-box'
         }
       })
@@ -181,7 +181,7 @@ describe('client-hosted downloads', () => {
         return {
           ok: true,
           result: chunk.final
-            ? { accepted: true, workspaceRelativePath: '.orca/browser-downloads/report.csv' }
+            ? { accepted: true, workspaceRelativePath: '.manta/browser-downloads/report.csv' }
             : { accepted: true },
           _meta: {}
         } as never
@@ -246,7 +246,7 @@ describe('client-hosted downloads', () => {
         browserPageId: BROWSER_PAGE_ID,
         status: 'completed',
         remoteDestination: {
-          workspaceRelativePath: '.orca/browser-downloads/report.csv',
+          workspaceRelativePath: '.manta/browser-downloads/report.csv',
           hostLabel: 'build-box'
         }
       })
@@ -368,7 +368,7 @@ function stubRoute(): { route: BrowserClientDownloadRoute; completed: Promise<vo
     complete: async () => {
       resolveCompleted()
       return {
-        workspaceRelativePath: '.orca/browser-downloads/report.csv',
+        workspaceRelativePath: '.manta/browser-downloads/report.csv',
         hostLabel: 'build-box'
       }
     },

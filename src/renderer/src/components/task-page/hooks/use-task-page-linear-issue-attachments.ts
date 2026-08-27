@@ -6,7 +6,7 @@ import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspac
 import {
   collectLinkedLinearIssueRefsFromWorktrees,
   linkedLinearIssueRefsSignature
-} from '@/components/task-page-linear-in-orca-issues'
+} from '@/components/task-page-linear-in-manta-issues'
 import type { LinearMode } from '@/components/task-page-localized-options'
 import type { FolderWorkspace } from '../../../../../shared/folder-workspace-types'
 import type { LinearConnectionStatus } from '../../../../../shared/linear/workspace-types'
@@ -44,7 +44,7 @@ export function useTaskPageLinearIssueAttachments({
     () => buildLinearIssueWorkspaceAttachmentIndex(linearAttachmentWorkspaces),
     [linearAttachmentWorkspaces]
   )
-  const inOrcaLinkedLinearRefs = useMemo(
+  const inMantaLinkedLinearRefs = useMemo(
     () =>
       collectLinkedLinearIssueRefsFromWorktrees(linearAttachmentWorkspaces, {
         workspaceId: selectedLinearWorkspaceId,
@@ -52,23 +52,23 @@ export function useTaskPageLinearIssueAttachments({
       }),
     [linearAttachmentWorkspaces, linearStatus.workspaces, selectedLinearWorkspaceId]
   )
-  const inOrcaLinkedLinearRefsSignature = useMemo(
-    () => linkedLinearIssueRefsSignature(inOrcaLinkedLinearRefs),
-    [inOrcaLinkedLinearRefs]
+  const inMantaLinkedLinearRefsSignature = useMemo(
+    () => linkedLinearIssueRefsSignature(inMantaLinkedLinearRefs),
+    [inMantaLinkedLinearRefs]
   )
-  const inOrcaLinkedLinearRefsRef = useRef(inOrcaLinkedLinearRefs)
-  // Keep latest linked refs for the in-orca loader without re-running it on identity churn.
+  const inMantaLinkedLinearRefsRef = useRef(inMantaLinkedLinearRefs)
+  // Keep latest linked refs for the in-manta loader without re-running it on identity churn.
   useEffect(() => {
-    inOrcaLinkedLinearRefsRef.current = inOrcaLinkedLinearRefs
-  }, [inOrcaLinkedLinearRefs])
+    inMantaLinkedLinearRefsRef.current = inMantaLinkedLinearRefs
+  }, [inMantaLinkedLinearRefs])
 
   return {
     linearSearchActive,
     showLinearAttributeFilters,
     linearAttachmentWorkspaces,
     linearIssueAttachmentIndex,
-    inOrcaLinkedLinearRefs,
-    inOrcaLinkedLinearRefsSignature,
-    inOrcaLinkedLinearRefsRef
+    inMantaLinkedLinearRefs,
+    inMantaLinkedLinearRefsSignature,
+    inMantaLinkedLinearRefsRef
   }
 }

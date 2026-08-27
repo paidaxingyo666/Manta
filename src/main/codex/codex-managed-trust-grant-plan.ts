@@ -21,7 +21,7 @@ export type CodexManagedTrustGrantPlan = {
   tomlPath: string
   /** Exact command string written to the managed hooks.json entries. */
   managedCommand: string
-  /** Managed trust identities Orca just wrote (no trustedHash). */
+  /** Managed trust identities Manta just wrote (no trustedHash). */
   managedEntries: readonly CodexTrustEntry[]
   host: CodexTrustGrantHost
   telemetryLane: CodexTrustGrantTelemetryLane

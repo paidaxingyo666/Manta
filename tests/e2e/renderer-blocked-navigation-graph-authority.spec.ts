@@ -107,13 +107,13 @@ test('cancelled renderer reload restores the surviving graph authority', async (
 
 test('beforeunload cancellation never retires the surviving graph authority', async ({
   electronApp,
-  orcaPage
+  mantaPage
 }) => {
-  await waitForSessionReady(orcaPage)
+  await waitForSessionReady(mantaPage)
   const userDataDir = await electronApp.evaluate(({ app }) => app.getPath('userData'))
   const client = new RuntimeClient(userDataDir, 30_000, null, null)
   const before = (await client.call<RuntimeStatus>('status.get')).result
-  await orcaPage.evaluate(() => {
+  await mantaPage.evaluate(() => {
     ;(window as unknown as { __preventedUnloadCanary: string }).__preventedUnloadCanary = 'alive'
     window.addEventListener(
       'beforeunload',
@@ -125,7 +125,7 @@ test('beforeunload cancellation never retires the surviving graph authority', as
     )
   })
   // Electron prevents the unload before Playwright can dismiss the transient dialog.
-  orcaPage.once('dialog', (dialog) => void dialog.dismiss().catch(() => undefined))
+  mantaPage.once('dialog', (dialog) => void dialog.dismiss().catch(() => undefined))
 
   const navigationEvents = await electronApp.evaluate(async ({ BrowserWindow }) => {
     const contents = BrowserWindow.getAllWindows()[0]!.webContents
@@ -154,7 +154,7 @@ test('beforeunload cancellation never retires the surviving graph authority', as
     authoritativeWindowId: before.authoritativeWindowId
   })
   expect(
-    await orcaPage.evaluate(
+    await mantaPage.evaluate(
       () => (window as unknown as { __preventedUnloadCanary?: string }).__preventedUnloadCanary
     )
   ).toBe('alive')

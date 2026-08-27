@@ -21,7 +21,7 @@ describe('WSL browser network relay launch', () => {
     const script = buildWslBrowserNetworkGuestLaunchScript('0.1.0+abc123')
 
     execFileSync('sh', ['-n'], { input: script })
-    expect(script).toContain('.orca-wsl/browser-network/0.1.0+abc123')
+    expect(script).toContain('.manta-wsl/browser-network/0.1.0+abc123')
     expect(script).toContain('Number(process.versions.node.split(".")[0])>=18')
     expect(script).toContain('wsl-browser-network-relay.js')
     expect(() => buildWslBrowserNetworkGuestLaunchScript("bad'version")).toThrow(
@@ -38,7 +38,7 @@ describe('WSL browser network relay launch', () => {
 
     execFileSync('sh', ['-s'], { input: script, env: { ...process.env, HOME: root } })
 
-    const installDir = join(root, '.orca-wsl', 'browser-network', version)
+    const installDir = join(root, '.manta-wsl', 'browser-network', version)
     expect(readFileSync(join(installDir, 'wsl-browser-network-relay.js'))).toEqual(bundle)
     expect(readFileSync(join(installDir, '.browser-network-version'), 'utf8')).toBe(version)
     expect(readFileSync(join(installDir, 'launch.sh'), 'utf8')).toContain(version)

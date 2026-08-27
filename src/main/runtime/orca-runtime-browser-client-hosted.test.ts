@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentBrowserBridge } from '../browser/agent-browser-bridge'
-import type { RuntimeBrowserCommandHost } from './orca-runtime-browser'
+import type { RuntimeBrowserCommandHost } from './manta-runtime-browser'
 import { RuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 
 const { startBrowserScreencastMock, browserSessionRegistryMock } = vi.hoisted(() => ({
@@ -12,7 +12,7 @@ const { startBrowserScreencastMock, browserSessionRegistryMock } = vi.hoisted(()
         {
           id: 'default',
           scope: 'default',
-          partition: 'persist:orca-browser',
+          partition: 'persist:manta-browser',
           label: 'Default',
           source: null
         }
@@ -121,7 +121,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
     browserSessionRegistryMock.resolveKnownPartition.mockImplementation(
       (profileId: string | null | undefined) => {
         if (!profileId) {
-          return 'persist:orca-browser'
+          return 'persist:manta-browser'
         }
         return browserSessionRegistryMock.profiles.get(profileId)?.partition ?? null
       }
@@ -129,7 +129,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('creates an explicitly client-placed page without a server renderer or offscreen backend', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const createClientPage = vi.fn(async () => ({
       kind: 'client' as const,
       browserHostClientId: 'host-a',
@@ -197,7 +197,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('moves a user-created client page into the clicked split group', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const markHeadlessBrowserSessionTabActive = vi.fn()
     const host = createHost({
       resolveBrowserNetworkExecutionHost: vi.fn(async () => ({
@@ -254,7 +254,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('keeps a background client page out of the workspace current-page slot', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     const commands = new RuntimeBrowserCommands(
       createHost({
@@ -298,7 +298,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('publishes the proven client page before navigation and scopes it to the worktree', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const createProof = deferred<{
       kind: 'client'
       browserHostClientId: string
@@ -380,7 +380,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('retains a folder-scoped logical client page when navigation fails', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     const resolveBrowserWorkspace = vi.fn(async () => ({
       id: 'folder:folder-1',
@@ -451,7 +451,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('lists, shows, and resolves the current client page on a browserless host', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-client', workspaceId: 'folder:folder-1' })
     const commands = new RuntimeBrowserCommands(
@@ -485,7 +485,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('switches logical client pages without invoking the server bridge', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-a', active: true })
     publishClientPage(registry, { browserPageId: 'page-b', active: false })
@@ -508,7 +508,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('reports one global active client page across independently active workspaces', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-a', workspaceId: 'wt-1' })
     publishClientPage(registry, { browserPageId: 'page-b', workspaceId: 'wt-2' })
@@ -534,7 +534,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('makes a switched server tab globally active without clearing other workspace scopes', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-client-a', workspaceId: 'wt-1' })
     publishClientPage(registry, { browserPageId: 'page-client-b', workspaceId: 'wt-2' })
@@ -573,7 +573,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('closes the exact client page and excludes it from server screencast', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-client' })
     const issueClientPageCommand = vi.fn(() => ({
@@ -626,7 +626,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('closes a retained client page whose host is gone without commanding it', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const registry = new RuntimeBrowserPageRegistry()
     publishClientPage(registry, { browserPageId: 'page-client' })
     const issueClientPageCommand = vi.fn()
@@ -665,7 +665,7 @@ describe('RuntimeBrowserCommands client-hosted routing', () => {
   })
 
   it('does not fall back to a server page after explicit client placement fails', async () => {
-    const { RuntimeBrowserCommands } = await import('./orca-runtime-browser')
+    const { RuntimeBrowserCommands } = await import('./manta-runtime-browser')
     const offscreenCreate = vi.fn()
     const send = vi.fn()
     const commands = new RuntimeBrowserCommands(

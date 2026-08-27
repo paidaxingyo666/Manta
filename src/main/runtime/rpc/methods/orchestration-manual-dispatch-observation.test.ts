@@ -211,7 +211,7 @@ describe('manual Dispatch observation', () => {
 
   it('lists an unsupervised context-only dispatch even when process identity is absent', async () => {
     db = new OrchestrationDb(':memory:')
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     runtime.setOrchestrationDb(db)
     const run = db.createRun({
       objective: 'context-only listing',

@@ -106,7 +106,7 @@ describe('MantaRuntimeService automation methods', () => {
 
   it('rejects a run context that names a different repo path', async () => {
     const store = makeStore()
-    const runtime = new OrcaRuntimeService(store as never)
+    const runtime = new MantaRuntimeService(store as never)
 
     await expect(
       runtime.createAutomation({
@@ -133,11 +133,11 @@ describe('MantaRuntimeService automation methods', () => {
 
   it('rejects a mismatched run context when the workspace is the machine selector', async () => {
     const store = makeStore()
-    const runtime = new OrcaRuntimeService(store as never)
+    const runtime = new MantaRuntimeService(store as never)
     vi.spyOn(runtime, 'showManagedWorktree').mockResolvedValue({
-      id: 'repo-1::/tmp/orca',
+      id: 'repo-1::/tmp/manta',
       repoId: 'repo-1',
-      path: '/tmp/orca'
+      path: '/tmp/manta'
     } as never)
 
     await expect(
@@ -145,7 +145,7 @@ describe('MantaRuntimeService automation methods', () => {
         name: 'Workspace review',
         prompt: 'Review changes',
         agentId: 'codex',
-        workspace: 'id:repo-1::/tmp/orca',
+        workspace: 'id:repo-1::/tmp/manta',
         runContext: {
           kind: 'workspace-run',
           projectId: 'project-1',
@@ -165,7 +165,7 @@ describe('MantaRuntimeService automation methods', () => {
 
   it('rejects a run-context-only update that names a different repo path', async () => {
     const store = makeStore([existingAutomation])
-    const runtime = new OrcaRuntimeService(store as never)
+    const runtime = new MantaRuntimeService(store as never)
 
     await expect(
       runtime.updateAutomation('auto-1', {

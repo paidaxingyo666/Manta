@@ -23,7 +23,7 @@ describe('browser host client identity', () => {
     expect(first).toMatch(/^[0-9a-f-]{36}$/)
   })
 
-  it('gives each Orca profile its own hosting identity', () => {
+  it('gives each Manta profile its own hosting identity', () => {
     expect(readOrCreateBrowserHostClientId(profileDirectory())).not.toBe(
       readOrCreateBrowserHostClientId(profileDirectory())
     )

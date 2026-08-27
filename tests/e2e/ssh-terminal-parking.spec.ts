@@ -104,7 +104,7 @@ test.describe('SSH terminal hidden view parking', () => {
       await expect
         .poll(
           () =>
-            orcaPage.evaluate(async (ptyId) => {
+            mantaPage.evaluate(async (ptyId) => {
               const snapshot = await window.api.pty.getMainBufferSnapshot(ptyId, {
                 scrollbackRows: 5_000
               })
