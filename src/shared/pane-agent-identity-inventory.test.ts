@@ -126,11 +126,6 @@ const INVENTORY: readonly InventoryGroup[] = [
   },
   {
     helper: 'buildAgentNameRe',
-    classification: 'action-consumer',
-    paths: [['src/main/runtime/orchestration/groups.ts', 2]]
-  },
-  {
-    helper: 'buildAgentNameRe',
     classification: 'parser-implementation',
     paths: [['src/shared/agent-name-token-match.ts', 2]]
   },
