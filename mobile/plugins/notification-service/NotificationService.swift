@@ -43,7 +43,10 @@ class NotificationService: UNNotificationServiceExtension {
       let key = readSharedKey(),
       let plaintext = open(payload: payload, with: key),
       let items = decodeItems(plaintext),
-      let first = items.first
+      // Last, not first: the batch arrives oldest-first, and a lock screen has
+      // room for one line. Showing the oldest meant every push in a busy session
+      // displayed the same stale message no matter what had just happened.
+      let latest = items.last
     else {
       // Every one of these is the same outcome: the desktop's generic text.
       contentHandler(content)
@@ -53,8 +56,8 @@ class NotificationService: UNNotificationServiceExtension {
     // Both fall back to what the desktop already wrote. A decrypted-but-empty
     // body would otherwise replace readable generic text with nothing, which is
     // worse on the lock screen than not decrypting at all.
-    content.title = first.title.isEmpty ? content.title : first.title
-    let body = first.body.isEmpty ? content.body : first.body
+    content.title = latest.title.isEmpty ? content.title : latest.title
+    let body = latest.body.isEmpty ? content.body : latest.body
     content.body = items.count == 1 ? body : "\(body)\n+\(items.count - 1)"
     contentHandler(content)
   }

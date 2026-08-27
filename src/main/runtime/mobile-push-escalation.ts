@@ -194,14 +194,23 @@ function sealedBody(
   // CJK — three bytes per character — blows the budget at three notifications
   // and the whole body is discarded, silently, exactly when there is most to
   // say.
+  //
+  // Filled newest-first so the budget cuts the OLDEST: the line a lock screen
+  // shows is the latest one, and filling forwards trimmed exactly that. The
+  // array itself stays oldest-first, so an extension still reading items[0] is
+  // unaffected by the change.
   const items: { t: string; b: string }[] = []
-  for (const event of batch) {
-    items.push({
+  for (let i = batch.length - 1; i >= 0; i--) {
+    const event = batch[i]
+    if (!event) {
+      continue
+    }
+    items.unshift({
       t: clip('title' in event ? String(event.title ?? '') : '', 120),
       b: clip('body' in event ? String(event.body ?? '') : '', 200)
     })
     if (Buffer.byteLength(JSON.stringify(items), 'utf8') > MAX_SEALED_PLAINTEXT_BYTES) {
-      items.pop()
+      items.shift()
       break
     }
   }
