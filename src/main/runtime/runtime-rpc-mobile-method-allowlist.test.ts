@@ -479,7 +479,6 @@ describe('MantaRuntimeRpcServer', () => {
       deviceToken: mobile.token,
       params: { worktree: 'id:wt-1', page: 'page-1' }
     })
-
     expect(replies).toContainEqual(
       expect.objectContaining({
         id: 'req_forbidden',
