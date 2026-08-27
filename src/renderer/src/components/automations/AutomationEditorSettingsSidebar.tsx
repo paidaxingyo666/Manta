@@ -4,7 +4,7 @@ import { translate } from '@/i18n/i18n'
 import {
   isValidAutomationCronSchedule,
   isValidAutomationSchedule
-} from '../../../../shared/automation-schedules'
+} from '../../../../shared/automation-schedule-parsing'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { MantaHooks } from '../../../../shared/manta-yaml-hook-types'
 import type { ProjectHostSetup } from '../../../../shared/project-types'
