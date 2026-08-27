@@ -16,6 +16,7 @@ import {
   type CodexTrustEntry
 } from './config-toml-trust'
 import {
+  CodexHookService,
   _internals,
   createCodexWslRuntimeHookInstallPlan,
   type CodexWslRuntimeHookInstallPlan
@@ -82,7 +83,67 @@ function expectedManagedCommand(scriptPath: string): string {
 }
 
 describe('Codex WSL runtime hook install', () => {
-  it('plans WSL hook files with Linux command and trust paths', async () => {
+  it('coalesces aliases of one runtime home without blocking independent homes', async () => {
+    const service = new CodexHookService()
+    const releases: (() => void)[] = []
+    const started: string[] = []
+    vi.spyOn(service, 'installForRuntimeHome').mockImplementation(async (runtimeHomePath) => {
+      started.push(runtimeHomePath!)
+      await new Promise<void>((resolve) => releases.push(resolve))
+      return null
+    })
+    const firstHome = '\\\\wsl$\\Ubuntu\\home\\Alice\\.local\\share\\orca\\codex-runtime-home\\home'
+    const alias = firstHome.replace('\\\\wsl$', '\\\\wsl.localhost')
+    const independent = firstHome.replace('\\Alice\\', '\\Bob\\')
+
+    const first = service.installForRuntimeHomeSerialized(firstHome)
+    const second = service.installForRuntimeHomeSerialized(alias)
+    const third = service.installForRuntimeHomeSerialized(independent)
+    await vi.waitFor(() => expect(started).toEqual([firstHome, independent]))
+    expect(second).toBe(first)
+
+    releases.splice(0).forEach((release) => release())
+    await Promise.all([first, second, third])
+    expect(started).toEqual([firstHome, independent])
+  })
+
+  it('does not coalesce one drive-backed home across WSL distros', async () => {
+    const service = new CodexHookService()
+    const started: string[] = []
+    vi.spyOn(service, 'installForRuntimeHome').mockImplementation(async (_runtimeHome, target) => {
+      started.push(target?.wslDistro ?? '')
+      return null
+    })
+    const home = 'D:\\wsl-home\\.local\\share\\orca\\codex-runtime-home\\home'
+
+    await Promise.all([
+      service.installForRuntimeHomeSerialized(home, { runtime: 'wsl', wslDistro: 'Ubuntu' }),
+      service.installForRuntimeHomeSerialized(home, { runtime: 'wsl', wslDistro: 'Debian' })
+    ])
+
+    expect(started).toEqual(['Ubuntu', 'Debian'])
+  })
+
+  it('keeps case-distinct Linux runtime homes on separate queues', async () => {
+    const service = new CodexHookService()
+    const started: string[] = []
+    vi.spyOn(service, 'installForRuntimeHome').mockImplementation(async (runtimeHomePath) => {
+      started.push(runtimeHomePath!)
+      return null
+    })
+    const upper =
+      '\\\\wsl.localhost\\Ubuntu\\home\\Alice\\.local\\share\\orca\\codex-runtime-home\\home'
+    const lower = upper.replace('\\Alice\\', '\\alice\\')
+
+    await Promise.all([
+      service.installForRuntimeHomeSerialized(upper),
+      service.installForRuntimeHomeSerialized(lower)
+    ])
+
+    expect(started).toEqual([upper, lower])
+  })
+
+  it('plans WSL hook files with Linux command and trust paths', () => {
     const runtimeHome =
       '\\\\wsl.localhost\\Ubuntu\\home\\alice\\.local\\share\\manta\\codex-runtime-home\\home'
 

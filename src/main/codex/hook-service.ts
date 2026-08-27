@@ -1075,6 +1075,7 @@ export class CodexHookService {
   }
 
   private readonly wslReconciliationGeneration = new Map<string, number>()
+  private readonly wslInstallsInFlight = new Map<string, Promise<AgentHookInstallStatus | null>>()
 
   private supersedeWslReconciliation(runtimeHomePath: string | null | undefined): number {
     if (!runtimeHomePath) {
@@ -1169,6 +1170,30 @@ export class CodexHookService {
     } finally {
       markPrimaryInstallSettled()
     }
+  }
+
+  installForRuntimeHomeSerialized(
+    runtimeHomePath: string | null | undefined,
+    target?: CodexWslRuntimeHookTarget
+  ): Promise<AgentHookInstallStatus | null> {
+    if (!runtimeHomePath) {
+      return Promise.resolve(null)
+    }
+    const targetKey = target?.runtime === 'wsl' ? target.wslDistro?.trim().toLowerCase() : ''
+    const key = `${getWslReconciliationKey(runtimeHomePath)}\0${targetKey ?? ''}`
+    const active = this.wslInstallsInFlight.get(key)
+    if (active) {
+      return active
+    }
+    const install = this.installForRuntimeHome(runtimeHomePath, target)
+    this.wslInstallsInFlight.set(key, install)
+    const clear = (): void => {
+      if (this.wslInstallsInFlight.get(key) === install) {
+        this.wslInstallsInFlight.delete(key)
+      }
+    }
+    void install.then(clear, clear)
+    return install
   }
 
   refreshRuntimeUserHooksForRuntimeHome(
@@ -1486,7 +1511,13 @@ export class CodexHookService {
       options?.codexHomeDir?.replace(/\/$/, '') ?? `${remoteHome.replace(/\/$/, '')}/.codex`
     const remoteConfigPath = `${codexHomeBase}/hooks.json`
     const remoteTomlPath = `${codexHomeBase}/config.toml`
-    const remoteScriptPath = `${remoteHome.replace(/\/$/, '')}/.manta/agent-hooks/codex-hook.sh`
+    // Redirected WSL homes must use the same script location and command shape
+    // as the runtime installer; two representations of one hooks.json race
+    // into stale trust keys. Plain SSH keeps its guest-home script contract.
+    const redirectedCodexHome = options?.codexHomeDir?.replace(/\/$/, '')
+    const remoteScriptPath = redirectedCodexHome
+      ? `${redirectedCodexHome}/.manta/agent-hooks/codex-hook.sh`
+      : `${remoteHome.replace(/\/$/, '')}/.manta/agent-hooks/codex-hook.sh`
     try {
       const config = await readHooksJsonRemote(sftp, remoteConfigPath)
       if (!config) {
@@ -1499,7 +1530,9 @@ export class CodexHookService {
         }
       }
 
-      const command = wrapPosixHookCommand(remoteScriptPath)
+      const command = redirectedCodexHome
+        ? wrapReadablePosixHookCommand(remoteScriptPath)
+        : wrapPosixHookCommand(remoteScriptPath)
       const nextHooks = { ...config.hooks }
       const managedEvents = new Set<string>(CODEX_EVENTS)
       const isManagedCommand = createManagedCommandMatcher('codex-hook.sh')
@@ -1523,11 +1556,13 @@ export class CodexHookService {
         const definition: HookDefinition = {
           hooks: [buildManagedCommandHook(command)]
         }
-        nextHooks[eventName] = [...cleaned, definition]
+        nextHooks[eventName] = redirectedCodexHome
+          ? [definition, ...cleaned]
+          : [...cleaned, definition]
         trustEntries.push({
           sourcePath: remoteConfigPath,
           eventLabel: CODEX_EVENT_LABEL[eventName],
-          groupIndex: cleaned.length,
+          groupIndex: redirectedCodexHome ? 0 : cleaned.length,
           handlerIndex: 0,
           command,
           timeoutSec: MANAGED_HOOK_TIMEOUT_SECONDS

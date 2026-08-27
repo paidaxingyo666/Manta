@@ -85,7 +85,7 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_TERMINAL_HANDLE/u')
     expect(env.WSLENV).toContain('MANTA_USER_DATA_PATH/p')
     expect(env.WSLENV).toContain('MANTA_CLI_COMMAND/u')
-    expect(env.WSLENV).not.toContain('MANTA_CODEX_LAUNCH_PREFLIGHT')
+    expect(env.WSLENV).toContain('MANTA_CODEX_LAUNCH_PREFLIGHT/p')
     expect(env.WSLENV).toContain('MANTA_OMP_STATUS_EXTENSION/p')
     expect(env.WSLENV).not.toContain('MANTA_PRIME_AGENT_STATUS_EXTENSION')
     expect(env.WSLENV).toContain('MANTA_PANE_KEY/u')

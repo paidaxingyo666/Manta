@@ -284,7 +284,7 @@ describe('remote hook service installers', () => {
       hooks: Record<string, { hooks: { command: string }[] }[]>
     }
     expect(hooks.hooks.Stop?.[0]?.hooks?.[0]?.command).toContain(
-      '/home/dev/.manta/agent-hooks/codex-hook.sh'
+      '/home/dev/.local/share/manta/codex-runtime-home/home/.manta/agent-hooks/codex-hook.sh'
     )
     expect(fs.files.get(`${runtimeHome}/config.toml`)).toContain(
       `${runtimeHome}/hooks.json:stop:0:0`
