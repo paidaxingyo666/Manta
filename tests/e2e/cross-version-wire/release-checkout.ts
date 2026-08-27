@@ -248,9 +248,18 @@ export function materializeReleaseCheckout(ref: string): ReleaseCheckout {
   try {
     // `git archive | tar -x` keeps the extraction independent of the working tree,
     // so an injected violation in the working tree cannot leak into the old side.
+    //
+    // pipefail is load-bearing: a pipeline reports tar's status, and tar happily
+    // succeeds on a truncated stream. A `git archive` that dies partway — a
+    // missing blob in a partial clone is how this surfaced — then leaves a tree
+    // that is silently short a few files, and the failure arrives much later as
+    // an unresolvable import from inside the extracted baseline.
     execFileSync(
       'sh',
-      ['-c', `git archive ${commit} ${ARCHIVE_PATHS.join(' ')} | tar -x -C "${staging}"`],
+      [
+        '-c',
+        `set -o pipefail; git archive ${commit} ${ARCHIVE_PATHS.join(' ')} | tar -x -C "${staging}"`
+      ],
       { cwd: REPO_ROOT, stdio: ['ignore', 'ignore', 'pipe'] }
     )
     prepareExtractedTree(staging)
