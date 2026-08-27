@@ -243,25 +243,28 @@ export function materializeReleaseCheckout(ref: string): ReleaseCheckout {
 
   mkdirSync(CACHE_ROOT, { recursive: true })
   const staging = join(CACHE_ROOT, `.staging-${label}-${process.pid}`)
+  const archive = join(CACHE_ROOT, `.archive-${label}-${process.pid}.tar`)
   rmSync(staging, { recursive: true, force: true })
   mkdirSync(staging, { recursive: true })
   try {
-    // `git archive | tar -x` keeps the extraction independent of the working tree,
-    // so an injected violation in the working tree cannot leak into the old side.
+    // Archived to a file, then extracted — not piped through a shell.
     //
-    // pipefail is load-bearing: a pipeline reports tar's status, and tar happily
-    // succeeds on a truncated stream. A `git archive` that dies partway — a
-    // missing blob in a partial clone is how this surfaced — then leaves a tree
-    // that is silently short a few files, and the failure arrives much later as
-    // an unresolvable import from inside the extracted baseline.
-    execFileSync(
-      'sh',
-      [
-        '-c',
-        `set -o pipefail; git archive ${commit} ${ARCHIVE_PATHS.join(' ')} | tar -x -C "${staging}"`
-      ],
-      { cwd: REPO_ROOT, stdio: ['ignore', 'ignore', 'pipe'] }
-    )
+    // Writing the tar first keeps the extraction independent of the working
+    // tree (an injected violation there cannot leak into the old side) and, more
+    // importantly, lets each command fail on its own. Piped, the status is
+    // tar's, and tar succeeds on a truncated stream: a `git archive` that dies
+    // partway (a missing blob in a partial clone is how this surfaced) left a
+    // tree silently short a few files, and the failure arrived much later as an
+    // unresolvable import from inside the extracted baseline. `pipefail` is not
+    // the fix either — /bin/sh is dash on Ubuntu runners and rejects it.
+    execFileSync('git', ['archive', '--output', archive, commit, ...ARCHIVE_PATHS], {
+      cwd: REPO_ROOT,
+      stdio: ['ignore', 'ignore', 'pipe']
+    })
+    execFileSync('tar', ['-x', '-f', archive, '-C', staging], {
+      stdio: ['ignore', 'ignore', 'pipe']
+    })
+    rmSync(archive, { force: true })
     prepareExtractedTree(staging)
     writeFileSync(
       join(staging, 'checkout-stamp.json'),
@@ -271,6 +274,7 @@ export function materializeReleaseCheckout(ref: string): ReleaseCheckout {
     renameSync(staging, root)
   } catch (error) {
     rmSync(staging, { recursive: true, force: true })
+    rmSync(archive, { force: true })
     if (readStamp(root)?.commit === commit) {
       return { ref, commit, label, root }
     }
