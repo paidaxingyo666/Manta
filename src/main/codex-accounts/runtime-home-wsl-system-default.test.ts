@@ -53,15 +53,6 @@ describe('CodexRuntimeHomeService', () => {
     try {
       const { CodexRuntimeHomeService } = await import('./runtime-home-service')
       const service = new CodexRuntimeHomeService(store as never)
-      const syncWslRuntime = vi.spyOn(
-        service as unknown as {
-          syncWslRuntimeForCurrentSelection: (target: {
-            runtime: 'wsl'
-            wslDistro?: string | null
-          }) => string | null
-        },
-        'syncWslRuntimeForCurrentSelection'
-      )
       const target = { runtime: 'wsl' as const, wslDistro: 'Ubuntu' }
       const expectedHome = join(wslHome, '.codex')
 
@@ -73,7 +64,6 @@ describe('CodexRuntimeHomeService', () => {
         kind: 'ready',
         codexHomePath: expectedHome
       })
-      expect(syncWslRuntime).not.toHaveBeenCalled()
     } finally {
       if (originalPlatform) {
         Object.defineProperty(process, 'platform', originalPlatform)

@@ -34,61 +34,6 @@ describe('CodexRuntimeHomeService', () => {
     teardownRuntimeHomeTest()
   })
 
-  it('builds a valid WSL legacy active-home migration shell command', async () => {
-    const execFileSyncMock = vi.fn()
-    vi.doMock('node:child_process', () => ({ execFileSync: execFileSyncMock }))
-
-    try {
-      const { CodexRuntimeHomeService } = await import('./runtime-home-service')
-      const service = new CodexRuntimeHomeService(
-        createStore(createSettings()) as never
-      ) as unknown as {
-        migrateLegacyWslActiveHomePointer(distro: string, runtimeHomePath: string): void
-      }
-
-      service.migrateLegacyWslActiveHomePointer(
-        'Ubuntu',
-        '\\\\wsl.localhost\\Ubuntu\\home\\alice\\.local\\share\\manta\\codex-runtime-home\\home'
-      )
-
-      expect(execFileSyncMock).toHaveBeenCalledTimes(1)
-      const firstCall = execFileSyncMock.mock.calls[0]
-      expect(firstCall).toBeDefined()
-      const [command, args] = firstCall as [string, string[]]
-      expect(command).toBe('wsl.exe')
-      expect(args.slice(0, 5)).toEqual(['-d', 'Ubuntu', '--exec', 'bash', '-lc'])
-      expect(args).toHaveLength(6)
-
-      const shellCommand = args[5]
-      expect(shellCommand).toContain(
-        "if [ ! -e '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home' ] && [ ! -L '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home' ]; then :"
-      )
-      expect(shellCommand).toContain(
-        "elif [ -e '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home' ] && [ ! -L '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home' ]; then :"
-      )
-      expect(shellCommand).toContain(
-        "mkdir -p '/home/alice/.local/share/manta/codex-runtime-home/active/wsl'"
-      )
-      expect(shellCommand).toContain(
-        "ln -s -- '/home/alice/.local/share/manta/codex-runtime-home/home' '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home.next-"
-      )
-      expect(shellCommand).toContain(
-        "mv -Tf -- '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home.next-"
-      )
-      expect(shellCommand).toContain(
-        "' '/home/alice/.local/share/manta/codex-runtime-home/active/wsl/home'"
-      )
-      expect(shellCommand).not.toContain('[! -L')
-      expect(shellCommand).not.toContain('mv -Tf--')
-      expect(shellCommand).not.toContain('$1')
-      expect(shellCommand).not.toContain('$2')
-      expect(shellCommand).not.toContain('$3')
-      expect(shellCommand).not.toContain('exit 0')
-    } finally {
-      vi.doUnmock('node:child_process')
-    }
-  })
-
   it('skips WSL session bridging when system default already uses its direct home', async () => {
     const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
@@ -237,7 +182,7 @@ describe('CodexRuntimeHomeService', () => {
     }
   })
 
-  it('starts WSL session bridging for the distro used by the materialized runtime home', async () => {
+  it('starts WSL session bridging for the selected direct account home', async () => {
     const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
     const startWslCodexSessionBridgeInBackground = vi.fn(() => Promise.resolve())
@@ -245,14 +190,6 @@ describe('CodexRuntimeHomeService', () => {
       startWslCodexSessionBridgeInBackground
     }))
     const wslHome = join(testState.userDataDir, 'debian-wsl-home')
-    const wslRuntimeHomePath = join(
-      wslHome,
-      '.local',
-      'share',
-      'manta',
-      'codex-runtime-home',
-      'home'
-    )
     vi.doMock('../wsl', () => ({
       getDefaultWslDistro: () => null,
       getWslHome: (distro: string) => (distro === 'Debian' ? wslHome : null)
@@ -262,11 +199,10 @@ describe('CodexRuntimeHomeService', () => {
       return {
         ...actual,
         parseWslUncPath: (candidate: string) =>
-          candidate === wslRuntimeHomePath ||
           candidate.includes('codex-accounts/debian-account/home')
             ? {
                 distro: 'Debian',
-                linuxPath: '/home/alice/.local/share/manta/codex-runtime-home/home'
+                linuxPath: '/home/alice/.local/share/manta/codex-accounts/debian-account/home'
               }
             : null
       }

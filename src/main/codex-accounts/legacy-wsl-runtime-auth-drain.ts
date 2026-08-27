@@ -31,16 +31,19 @@ type LegacyWslRuntimeAuthDrainOptions = {
 const drainQueueByDistro = new Map<string, Promise<void>>()
 const completedDistroKeys = new Set<string>()
 
-export function startLegacyWslRuntimeAuthDrain(options: LegacyWslRuntimeAuthDrainOptions): void {
+export function startLegacyWslRuntimeAuthDrain(
+  options: LegacyWslRuntimeAuthDrainOptions
+): Promise<void> {
   const key = options.distro.trim().toLowerCase()
   if (completedDistroKeys.has(key)) {
-    return
+    return Promise.resolve()
   }
   // Coalesce launch/rate-limit callers while a drain is in flight. Queuing a
   // new pass for every poll can otherwise build an unbounded promise chain
   // while a legacy pane keeps the migration pending.
-  if (drainQueueByDistro.has(key)) {
-    return
+  const inFlight = drainQueueByDistro.get(key)
+  if (inFlight) {
+    return inFlight
   }
   const next = drainLegacyWslRuntimeAuth(options)
     .then((status) => {
@@ -57,6 +60,7 @@ export function startLegacyWslRuntimeAuthDrain(options: LegacyWslRuntimeAuthDrai
       drainQueueByDistro.delete(key)
     }
   })
+  return next
 }
 
 export async function drainLegacyWslRuntimeAuth(
