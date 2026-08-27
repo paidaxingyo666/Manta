@@ -48,7 +48,7 @@ import type {
   RemoteFetchResult,
   RemoteTrackingBase
 } from '../runtime/manta-runtime'
-import { getProjectHostSetupWorktreeMeta } from '../../shared/project-host-setup-projection'
+import { getProjectHostSetupWorktreeMeta } from '../../shared/project-host-setup-lookup'
 import { getEffectiveHooks, loadHooks, parseMantaYaml } from '../hooks'
 import { buildPosixRunnerScript, buildWindowsRunnerScript } from '../setup-runner-script-text'
 import { createSetupRunnerScript, resolveSetupRunnerShell } from '../worktree-runner-script'

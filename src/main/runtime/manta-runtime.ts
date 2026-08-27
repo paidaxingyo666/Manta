@@ -539,11 +539,11 @@ import {
   splitWorktreeIdForFilesystem,
   worktreeIdComparisonKey
 } from '../../shared/worktree/id'
+import { getProjectIdForProviderIdentity } from '../../shared/project-host-setup-projection'
 import {
-  getProjectIdForProviderIdentity,
   getProjectHostSetupForRepo,
   getProjectHostSetupWorktreeMeta
-} from '../../shared/project-host-setup-projection'
+} from '../../shared/project-host-setup-lookup'
 import { parsePtySessionId } from '../../shared/pty-session-id-format'
 import { clampLinearIssueListLimit } from '../../shared/linear/issue-read-limits'
 import { isFolderRepo } from '../../shared/repo-kind'
@@ -919,6 +919,7 @@ import {
   type RepoWorktreeRowDeps
 } from './repo-worktree-row-resolution'
 import { getRepoOwnedWorktreeMeta } from '../worktree-metadata-ownership'
+import { readWorktreeMetaForHost } from '../persistence/host-qualified-worktree-meta'
 import { withTimeout } from '../../shared/promise-timeout-fallback'
 import {
   getLocalWorktreePathAccess,
@@ -1355,6 +1356,7 @@ type RuntimeStore = {
   getAllWorktreeMeta: Store['getAllWorktreeMeta']
   getWorktreeMeta: Store['getWorktreeMeta']
   setWorktreeMeta: Store['setWorktreeMeta']
+  setWorktreeMetaForHost?: Store['setWorktreeMetaForHost']
   removeWorktreeMeta: Store['removeWorktreeMeta']
   getWorktreeLineage?: Store['getWorktreeLineage']
   getAllWorktreeLineage?: Store['getAllWorktreeLineage']
@@ -20845,7 +20847,7 @@ export class MantaRuntimeService {
         workspaceKind: 'git',
         worktreeId: worktree.id,
         repoId: worktree.repoId,
-        ...((worktree.hostId ?? meta?.hostId) ? { hostId: worktree.hostId ?? meta?.hostId } : {}),
+        ...((meta?.hostId ?? worktree.hostId) ? { hostId: meta?.hostId ?? worktree.hostId } : {}),
         terminalPlatform,
         repo: repo?.displayName ?? worktree.repoId,
         path: worktree.path,
@@ -24271,7 +24273,10 @@ export class MantaRuntimeService {
     const metaById = store.getAllWorktreeMeta()
     const detected = scan.worktrees.map((gitWorktree) => {
       const worktreeId = `${repo.id}::${gitWorktree.path}`
-      const meta = getRepoOwnedWorktreeMeta(repo, worktreeId, metaById, repoOwnerCount)
+      // A host-qualified row is exact; the locator-keyed one is only trustworthy when this repo owns it.
+      const meta =
+        readWorktreeMetaForHost(store, worktreeId, expectedHostId) ??
+        getRepoOwnedWorktreeMeta(repo, worktreeId, metaById, repoOwnerCount)
       const worktree = {
         ...mergeWorktree(repo.id, gitWorktree, meta, repo.displayName),
         hostId: repoOwnerCount === 1 ? (meta?.hostId ?? expectedHostId) : expectedHostId
@@ -27139,12 +27144,20 @@ export class MantaRuntimeService {
         createdAt
       })
     }
-    this.store.setWorktreeMeta(worktree.id, stripMantaProvenanceMetaUpdates(persistedMetaUpdates))
+    const metadataUpdates = stripMantaProvenanceMetaUpdates(persistedMetaUpdates)
+    const executionHostId = worktree.identity?.executionHostId ?? worktree.hostId
+    if (executionHostId && this.store.setWorktreeMetaForHost) {
+      this.store.setWorktreeMetaForHost(worktree.id, executionHostId, metadataUpdates)
+    } else {
+      this.store.setWorktreeMeta(worktree.id, metadataUpdates)
+    }
     // Why: unlike renderer-initiated optimistic updates, CLI callers need an
     // explicit push so the editor refreshes metadata changed outside the UI.
     this.invalidateResolvedWorktreeCache()
     this.notifyWorktreesChanged(worktree.repoId)
-    return await this.showManagedWorktree(`id:${worktree.id}`)
+    return await this.showManagedWorktree(
+      worktree.identity?.key ? `identity:${worktree.identity.key}` : `id:${worktree.id}`
+    )
   }
 
   persistManagedWorktreeSortOrder(orderedIds: string[]): { updated: number } {
@@ -32332,7 +32345,10 @@ export class MantaRuntimeService {
       throw new Error('selector_not_found')
     }
 
-    if (selector.startsWith('id:')) {
+    if (selector.startsWith('identity:')) {
+      const identityKey = selector.slice('identity:'.length)
+      candidates = worktrees.filter((worktree) => worktree.identity?.key === identityKey)
+    } else if (selector.startsWith('id:')) {
       const worktreeId = explicitWorktreeId ?? selector.slice(3)
       candidates = worktrees.filter((worktree) => worktree.id === worktreeId)
       if (candidates.length === 0) {
