@@ -151,7 +151,7 @@ describe('worktree git-common narrow watch (local native platforms)', () => {
   }
 
   async function makeCommonDir(withWorktrees: boolean): Promise<string> {
-    const root = await mkdtemp(join(tmpdir(), 'manta-git-common-watch-'))
+    const root = await mkdtemp(join(tmpdir(), 'orca-git-common-watch-'))
     cleanups.push(() => rm(root, { recursive: true, force: true }))
     const commonDir = await realpath(root)
     if (withWorktrees) {
@@ -752,11 +752,8 @@ describe('worktree git-common narrow watch (local native platforms)', () => {
       const stalePendingSubscription = narrowSubscriptions()[1]
       await replaceWorktreesRoot(commonDir, worktreesDir, retainedEntry)
       await vi.advanceTimersByTimeAsync(POLL_MS * RECONCILIATION_TICKS * 4)
-      // Waited for, like the first replacement above: the second create reaches
-      // `received` through a real watcher callback, and advancing fake timers
-      // does not move that. Under CI load it arrived after the bare assertion
-      // ran, reading as "got 1, expected 2". This still fails if the event never
-      // comes — waitFor times out rather than passing on one event.
+      // Reconciliation's snapshot is real filesystem work, so advancing the fake
+      // clock schedules the second replacement's tick but does not settle it.
       await vi.waitFor(
         () => {
           expect(
@@ -765,7 +762,7 @@ describe('worktree git-common narrow watch (local native platforms)', () => {
               .filter((event) => event.type === 'create' && event.path === worktreesDir)
           ).toHaveLength(2)
         },
-        { timeout: 1_000 }
+        { timeout: 2_000 }
       )
 
       const beforeStaleInterruption = received.length
