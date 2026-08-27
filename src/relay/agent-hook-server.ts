@@ -24,10 +24,16 @@ import {
   isHookRequestTruncatedError
 } from '../shared/agent-hook-transport-interference'
 import {
+  isAgentHookSource,
   REMOTE_AGENT_HOOK_ENV,
   type AgentHookRelayEnvelope,
   type AgentHookSource
 } from '../shared/agent-hook-relay'
+import {
+  buildSpoolHookBody,
+  drainAgentHookSpool,
+  type SpoolRecord
+} from '../shared/agent-hook-spool'
 import { buildRelayHookPtyEnv, defaultEndpointDir } from './agent-hook-endpoint-coordinates'
 import { buildRelayHookEnvelope, hookBodyEnv, hookBodyVersion } from './agent-hook-envelope-build'
 import { AgentHookResultRetryScheduler } from './agent-hook-result-retry-scheduler'
@@ -100,6 +106,19 @@ export class RelayAgentHookServer {
     this.token = this.fixedToken ?? randomUUID()
     this.endpointFileWritten = false
     this.portFallbackApplied = false
+    try {
+      drainAgentHookSpool({
+        endpointDir: this.endpointDir,
+        getPersistedLaunchTokenHash: () => undefined,
+        ingest: (record) => this.ingestSpoolRecord(record)
+      })
+    } catch (err) {
+      // Why: a downstream relay failure must not prevent the loopback listener from starting;
+      // the untruncated spool file remains available for retry on the next restart.
+      process.stderr.write(
+        `[relay-hook-server] spool replay failed: ${err instanceof Error ? err.message : String(err)}\n`
+      )
+    }
     try {
       await this.listenOn(this.preferredPort)
     } catch (err) {
@@ -273,7 +292,8 @@ export class RelayAgentHookServer {
     event: AgentHookEventPayload,
     source: AgentHookSource,
     env?: string,
-    version?: string
+    version?: string,
+    options: { isReplay?: boolean } = {}
   ): void {
     if (event.payload.state !== 'done' || event.payload.lastAssistantMessage) {
       this.retryScheduler.clearAssistantMessageRetry(event.paneKey)
@@ -294,6 +314,22 @@ export class RelayAgentHookServer {
       }
       this.clearPaneState(oldest)
     }
-    this.forward(buildRelayHookEnvelope(event, source, env, version))
+    this.forward(buildRelayHookEnvelope(event, source, env, version, options))
+  }
+
+  private ingestSpoolRecord(record: SpoolRecord): void {
+    if (!isAgentHookSource(record.source)) {
+      return
+    }
+    const body = buildSpoolHookBody(record)
+    const event = normalizeHookPayload(this.state, record.source, body, this.env, {
+      deferCompactOwnershipToClient: true
+    })
+    if (!event) {
+      return
+    }
+    this.applyEvent(event, record.source, hookBodyEnv(body), hookBodyVersion(body), {
+      isReplay: true
+    })
   }
 }

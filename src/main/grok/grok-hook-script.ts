@@ -3,7 +3,10 @@ import {
   wrapPosixHookCommand,
   wrapWindowsCmdHookCommand
 } from '../agent-hooks/installer-utils'
-import { buildPosixHookPayloadCapture } from '../agent-hooks/hook-stdin-contract'
+import {
+  buildPosixHookPayloadCapture,
+  buildPosixHookSpoolLines
+} from '../agent-hooks/hook-stdin-contract'
 import {
   buildWindowsGrokHookScript,
   GROK_HOME_ENVELOPE_MAX_LENGTH
@@ -33,10 +36,12 @@ export function getGrokManagedScript(target: 'local' | 'posix' = 'local'): strin
   return [
     '#!/bin/sh',
     ...buildPosixHookPayloadCapture(),
+    ...buildPosixHookSpoolLines('grok'),
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
     'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
+    '  spool_hook_event',
     '  exit 0',
     'fi',
     'grok_home=',
@@ -54,7 +59,7 @@ export function getGrokManagedScript(target: 'local' | 'posix' = 'local'): strin
     '  --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
     '  --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
     '  --data-urlencode "grokHome=${grok_home}" \\',
-    '  --data-urlencode "payload@-" >/dev/null 2>&1 || true',
+    '  --data-urlencode "payload@-" >/dev/null 2>&1 || spool_hook_event',
     'exit 0',
     ''
   ].join('\n')

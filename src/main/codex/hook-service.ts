@@ -31,6 +31,7 @@ import {
 } from '../agent-hooks/installer-utils-remote'
 import {
   buildPosixHookPayloadCapture,
+  buildPosixHookSpoolLines,
   buildWindowsHookEnvironmentGuardLines,
   buildWindowsHookStdinDrainEpilogue,
   POSIX_HOOK_STDIN_DRAIN_COMMAND
@@ -818,6 +819,7 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
   return [
     '#!/bin/sh',
     ...buildPosixHookPayloadCapture(),
+    ...buildPosixHookSpoolLines('codex'),
     // Why: sourcing refreshes PORT/TOKEN/ENV/VERSION from the current Manta so a surviving PTY keeps reporting after a restart (see claude/hook-service.ts).
     'load_hook_endpoint() {',
     '  endpoint_path="$1"',
@@ -844,6 +846,7 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     '  load_hook_endpoint "$MANTA_AGENT_HOOK_ENDPOINT"',
     'fi',
     'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
+    '  spool_hook_event',
     '  exit 0',
     'fi',
     'post_codex_hook() {',
@@ -875,9 +878,13 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     'if is_wsl_runtime; then',
     '  windows_curl=$(command -v curl.exe 2>/dev/null || true)',
     '  if [ -n "$windows_curl" ] && [ -x "$windows_curl" ]; then',
-    '    post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1 || true',
+    '    if post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1; then',
+    '      exit 0',
+    '    fi',
+    '    # post_codex_hook "$windows_curl" 3 5 >/dev/null 2>&1 || true',
     '  fi',
     'fi',
+    'spool_hook_event',
     'exit 0',
     ''
   ].join('\n')

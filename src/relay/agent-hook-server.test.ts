@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { RelayAgentHookServer } from './agent-hook-server'
@@ -77,6 +77,79 @@ describe('RelayAgentHookServer', () => {
       // protocol diagnostics and remote-location marker survive the wire.
       expect(envelope.env).toBe('remote')
       expect(envelope.version).toBe('1')
+    } finally {
+      server.stop()
+    }
+  })
+
+  it('normalizes and forwards raw spooled hooks on startup', async () => {
+    const spoolDir = join(dir, 'spool')
+    const spoolFile = join(spoolDir, 'pane-codex.jsonl')
+    mkdirSync(spoolDir)
+    writeFileSync(
+      spoolFile,
+      `${JSON.stringify({
+        paneKey: PANE_KEY,
+        tabId: 'tab-1',
+        worktreeId: 'wt-1',
+        env: 'remote',
+        version: '1',
+        launchToken: 'generation-token',
+        hookEventName: 'SubagentStop',
+        source: 'codex',
+        payload: { hook_event_name: 'SubagentStop', agent_id: 'child-spooled' },
+        receivedAt: Date.now()
+      })}\n`
+    )
+    const forward = vi.fn<(envelope: AgentHookRelayEnvelope) => void>()
+    const server = new RelayAgentHookServer({ endpointDir: dir, forward })
+
+    await server.start()
+    try {
+      expect(forward).toHaveBeenCalledTimes(1)
+      expect(forward.mock.calls[0][0]).toMatchObject({
+        source: 'codex',
+        paneKey: PANE_KEY,
+        tabId: 'tab-1',
+        worktreeId: 'wt-1',
+        launchToken: 'generation-token',
+        hookEventName: 'SubagentStop',
+        isReplay: true,
+        env: 'remote',
+        version: '1',
+        payload: { state: 'working', agentType: 'codex' }
+      })
+      expect(readFileSync(spoolFile)).toHaveLength(0)
+    } finally {
+      server.stop()
+    }
+  })
+
+  it('keeps the relay listening when spool replay forwarding fails', async () => {
+    const spoolDir = join(dir, 'spool')
+    const spoolFile = join(spoolDir, 'pane-codex.jsonl')
+    mkdirSync(spoolDir)
+    writeFileSync(
+      spoolFile,
+      `${JSON.stringify({
+        paneKey: PANE_KEY,
+        source: 'codex',
+        hookEventName: 'SubagentStop',
+        payload: { hook_event_name: 'SubagentStop', agent_id: 'child-spooled' },
+        receivedAt: Date.now()
+      })}\n`
+    )
+    const server = new RelayAgentHookServer({
+      endpointDir: dir,
+      forward: () => {
+        throw new Error('receiver unavailable')
+      }
+    })
+
+    try {
+      await expect(server.start()).resolves.toBeUndefined()
+      expect(server.getCoordinates().port).toBeGreaterThan(0)
+      expect(readFileSync(spoolFile, 'utf8')).not.toBe('')
     } finally {
       server.stop()
     }
