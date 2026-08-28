@@ -1180,14 +1180,18 @@ export function handleActivityFilterFocusShortcut({
   return true
 }
 
-function ThreadAgentStateIndicator({ thread }: { thread: AgentPaneThread }): React.JSX.Element {
+export function ThreadAgentStateIndicator({
+  thread
+}: {
+  thread: AgentPaneThread
+}): React.JSX.Element {
   const state = threadAgentState(thread)
   const label = threadAgentStateLabel(thread)
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="inline-flex size-4 shrink-0 items-center justify-center">
-          <AgentStateDot state={state} size="md" />
+          <AgentStateDot state={state} size="md" title={null} />
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={4}>

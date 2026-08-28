@@ -506,9 +506,11 @@ describe('ReviewNotesSendMenuContent', () => {
 
     const tree = render()
     const item = findByType(tree, 'DropdownMenuItem')
+    const stateDot = findByType(item, 'AgentStateDot')
 
     expect(item.props.disabled).toBe(true)
     expect(item.props.title).toBe('Agent needs permission')
+    expect(stateDot.props.title).toBeNull()
     ;(item.props.onSelect as () => void)()
     expect(harness.sendNotesToActiveAgentSession).not.toHaveBeenCalled()
   })
