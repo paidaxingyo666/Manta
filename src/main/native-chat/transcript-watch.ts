@@ -11,7 +11,7 @@ import type {
   NativeChatTranscriptSubscription,
   SubscribeNativeChatTranscriptArgs
 } from './transcript-watch-contract'
-import { nativeChatLineDecoderForAgent } from './transcript-tail-reader'
+import { nativeChatLineDecoderForAgent, type NativeChatLineDecoder } from './transcript-tail-reader'
 import { WslTranscriptFsError, wslTranscriptFsRefusal } from './wsl-transcript-fs-gate'
 
 export { readNativeChatTranscriptTail } from './transcript-tail-reader'
@@ -319,8 +319,95 @@ export async function subscribeNativeChatTranscript(
     installed = null
   }
   if (installed) {
-    return installed
+    // Why not just return it: the path a hook reports usually EXISTS — a rolled
+    // session's old file is not deleted, it just stops growing — so this fast
+    // path is the one a frozen chat actually takes. Returning the bare
+    // subscription leaves it bound there for good.
+    return followRolls(installed, args, decode)
   }
   setupSignal?.throwIfAborted()
   return subscribeViaResolvePoll(args, decode)
+}
+
+/**
+ * Keeps an already-installed watcher pointed at the session as its file rolls.
+ *
+ * The resolve-poll path arms the same guard inline, because it already owns a
+ * rebind loop. This wraps the case that has none: one install that succeeded, on
+ * a path that may stop being the session's before the subscription ends.
+ */
+function followRolls(
+  installed: NativeChatTranscriptSubscription,
+  args: SubscribeNativeChatTranscriptArgs,
+  decode: NativeChatLineDecoder
+): NativeChatTranscriptSubscription {
+  // An explicit filePath is a caller pinning one file on purpose.
+  const boundPath = args.filePath ?? exactTranscriptPath(args)
+  if (args.filePath || !boundPath) {
+    return installed
+  }
+
+  let current = installed
+  let sessionId = args.sessionId
+  let closed = false
+  let watch: RebindWatch | null = null
+  const controller = new AbortController()
+
+  function arm(path: string): void {
+    watch?.stop()
+    watch = watchForTranscriptRebind({
+      agent: args.agent,
+      sessionId,
+      boundPath: path,
+      signal: controller.signal,
+      ...(args.rebindCheckIntervalMs === undefined
+        ? {}
+        : { intervalMs: args.rebindCheckIntervalMs }),
+      onMoved: (next) => {
+        if (closed) {
+          return
+        }
+        sessionId = next.sessionId
+        // Install first, drop second: a failed install must not leave chat with
+        // no watcher at all, which is worse than the stale one it replaces.
+        void attemptInstall({ ...args, filePath: next.path }, decode, controller.signal)
+          .then((replacement) => {
+            if (closed) {
+              replacement?.unsubscribe()
+              return
+            }
+            if (!replacement) {
+              arm(path)
+              return
+            }
+            current.unsubscribe()
+            current = replacement
+            arm(next.path)
+          })
+          .catch(() => {
+            if (!closed) {
+              arm(path)
+            }
+          })
+      }
+    })
+  }
+
+  arm(boundPath)
+
+  return {
+    get watching(): boolean {
+      return current.watching
+    },
+    unsubscribe: () => {
+      if (closed) {
+        return
+      }
+      closed = true
+      controller.abort()
+      watch?.stop()
+      watch = null
+      current.unsubscribe()
+    }
+  }
 }

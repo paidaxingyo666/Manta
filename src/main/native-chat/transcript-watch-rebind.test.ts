@@ -124,6 +124,31 @@ describe('a watcher follows its session when the transcript rolls', () => {
     sub.unsubscribe()
   })
 
+  /**
+   * The path the hook reports usually EXISTS — a rolled session's old file is
+   * not deleted, it just stops growing. So the first install succeeds and the
+   * subscribe returns straight from that fast path. A guard installed only on
+   * the resolve-poll fallback is therefore absent in exactly the case it was
+   * written for, which is how a watcher sat on a dead file for seven hours.
+   */
+  it('follows the roll even when the first install succeeds outright', async () => {
+    const bound: string[] = []
+    mocks.install.mockImplementation(async (filePath: string) => {
+      bound.push(filePath)
+      return { unsubscribe: () => {} }
+    })
+    // The hook's path resolves, so subscribe never reaches the poll fallback.
+    mocks.resolve.mockResolvedValue(OLD)
+    mocks.findSuccessor.mockResolvedValue({ path: NEW, sessionId: 'new-id' })
+
+    const sub = await subscribe()
+    await vi.advanceTimersByTimeAsync(200)
+
+    expect(bound[0]).toBe(OLD)
+    expect(bound.at(-1)).toBe(NEW)
+    sub.unsubscribe()
+  })
+
   it('stops searching once unsubscribed', async () => {
     mocks.install.mockResolvedValue({ unsubscribe: () => {} })
     const sub = await subscribe()
