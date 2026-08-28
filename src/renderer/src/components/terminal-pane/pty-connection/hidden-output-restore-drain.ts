@@ -2,6 +2,7 @@ import { recordTerminalFreezeBreadcrumb } from '../terminal-freeze-breadcrumbs'
 import { redactPtyIdForDiagnostics } from '../../../../../shared/pty-delivery-diagnostics'
 import { RESET_AFTER_BYTE_GAP } from '../../../../../shared/terminal-mode-reset-profiles'
 import { cancelScheduledHiddenOutputRestore } from '../hidden-output-restore-scheduler'
+import { isRemoteExecutionHostPtyId } from '../remote-execution-host-pty'
 
 import {
   HIDDEN_OUTPUT_RESTORE_FOREGROUND_TIMEOUT_MS,
@@ -9,7 +10,6 @@ import {
 } from './hidden-output-restore-limits'
 import { shouldWritePtyOutputForeground } from './foreground-output-scan'
 import { isRemoteRuntimePtyId } from './paired-parked-terminal-restore'
-import { isRemoteExecutionHostPtyId } from './remote-execution-host-pty'
 
 import type { ConnectPanePtySession } from './connect-pane-pty-session'
 
