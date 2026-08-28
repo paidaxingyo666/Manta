@@ -17,22 +17,58 @@ differ on other Debian-derived releases.
 
 ## Ubuntu and Debian prerequisites
 
-Install the AppImage runtime dependency and Xvfb:
+Install the CLI tools, Xvfb, and the shared libraries Electron links against.
+A minimal server or container image ships none of the Electron libraries, and
+`manta serve` then fails before Electron starts:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y curl file jq xvfb zlib1g-dev
+sudo apt-get install -y \
+  curl file jq xvfb zlib1g-dev ca-certificates git \
+  libgtk-3-0t64 libnss3 libatk1.0-0t64 libatk-bridge2.0-0t64 libgbm1 libasound2t64 \
+  libxtst6 libcups2t64 libdrm2 libxkbcommon0 libpango-1.0-0 libcairo2 libatspi2.0-0t64 \
+  libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxrender1 libx11-xcb1 \
+  libxcb-dri3-0 libxss1
 ```
 
-On Ubuntu 22.04, install `libfuse2` to execute the AppImage through FUSE. On
-Ubuntu 24.04 and Debian, the equivalent package may be `libfuse2t64`. FUSE is
+That command is for Ubuntu 24.04 and newer and Debian 13 and newer. Those
+releases carried out the 64-bit `time_t` transition, which renamed six of the
+packages with a `t64` suffix. On Ubuntu 20.04, Ubuntu 22.04, and Debian 12,
+substitute the unsuffixed names:
+
+- `libgtk-3-0t64` becomes `libgtk-3-0`
+- `libatk1.0-0t64` becomes `libatk1.0-0`
+- `libatk-bridge2.0-0t64` becomes `libatk-bridge2.0-0`
+- `libasound2t64` becomes `libasound2`
+- `libcups2t64` becomes `libcups2`
+- `libatspi2.0-0t64` becomes `libatspi2.0-0`
+
+The other names are identical on every supported release. The substitution is not
+symmetric, so use the list that matches the release. A `t64` name on Ubuntu 20.04,
+Ubuntu 22.04, or Debian 12 fails immediately with `E: Unable to locate package
+libgtk-3-0t64`. In the other direction the old names mostly still resolve, because
+each renamed package declares `Provides:` its unsuffixed name — except `libasound2`
+on Ubuntu 24.04, where `liboss4-salsa-asound2` in `universe` claims that name too.
+apt will not choose between two providers and exits with `E: Package 'libasound2'
+has no installation candidate`, which aborts the entire install line and leaves none
+of the libraries installed.
+
+On Ubuntu 20.04 and 22.04, install `libfuse2` to execute the AppImage through
+FUSE. On Ubuntu 24.04 and Debian 13 the package is `libfuse2t64`, though the plain
+`libfuse2` name also resolves there because nothing else provides it. FUSE is
 optional: without it, use the AppImage's supported extraction path:
 
 ```bash
 cd /opt/manta
 ./manta-linux.AppImage --appimage-extract
+sudo chmod -R a+rX /opt/manta/squashfs-root
 /opt/manta/squashfs-root/AppRun serve --port 6768
 ```
+
+The `chmod` is required whenever the extraction runs as a different user than
+the server: `--appimage-extract` creates `squashfs-root` as `drwx------` owned by
+the extracting user, so anyone else — including a dedicated service user — cannot
+even traverse it, and the run fails before Electron starts.
 
 Docker commonly has no FUSE device. Use `--appimage-extract` once or
 `--appimage-extract-and-run`; neither requires a privileged container. The
@@ -155,7 +191,14 @@ AppImage, but must not be able to replace it or the rollback artifacts.
 sudo useradd --system --create-home --shell /usr/sbin/nologin manta
 sudo chown root:root /opt/manta /opt/manta/manta-linux.AppImage
 sudo chmod 755 /opt/manta /opt/manta/manta-linux.AppImage
+# Only if you ran --appimage-extract: extraction leaves squashfs-root root-only.
+sudo chmod -R a+rX /opt/manta/squashfs-root
 ```
+
+The last line matters because the two halves of this guide combine badly without
+it. `--appimage-extract` writes `squashfs-root` as `drwx------ root root`, so the
+`manta` service user cannot read or traverse the extracted tree and the unit fails
+at startup. `chmod 755 /opt/manta` alone does not reach into it.
 
 For most hosts, one `manta serve` service is enough because Manta starts Xvfb on
 display `:99` when no display exists:
@@ -845,7 +888,8 @@ refuse to run there and print the command to run on the machine you want.
 - GPU or DRI warnings on a VPS: keep `LIBGL_ALWAYS_SOFTWARE=1` in the service
   environment.
 - Chromium sandbox errors: confirm the service is running as the non-root
-  `manta` user and that `/opt/manta` is readable by that user.
+  `manta` user and that `/opt/manta` is readable by that user, including
+  `/opt/manta/squashfs-root` if you extracted the AppImage.
 - Clients cannot connect: make sure `--pairing-address` is an address reachable
   from the client, and make sure firewalls allow the selected `--port`.
 - Journal shows `Another Manta instance is already running for this userData
@@ -868,4 +912,7 @@ profile` and the unit exits `3`: another process already owns the profile, so
   `sudo systemctl reset-failed manta-serve.service` first.
 - Diagnosing other missing libraries: extract the AppImage without launching it
   with `./manta-linux.AppImage --appimage-extract`, then run
-  `ldd squashfs-root/manta` to list any shared libraries the host is missing.
+  `ldd squashfs-root/manta-ide` to list any shared libraries the host is missing.
+  The Electron binary is `manta-ide`, not `manta`; `ldd` on a path that does not
+  exist prints nothing and exits cleanly, which reads as a clean result in
+  exactly the situation where you are hunting a missing library.
