@@ -269,7 +269,7 @@
           "runtimeScopeForbiddenDescription": "移动端范围的配对无法使用工作区。请通过设置 → 远程 Manta 服务器 → 分享此 Manta 服务器中的浏览器访问链接重新连接。",
           "createdWithoutParentNesting": "已创建，但未嵌套在“{{value0}}”下",
           "createdWithoutParentNestingUnnamed": "已创建，但未嵌套在所选父工作树下",
-          "createdWithoutParentNestingDetail": "父工作区已不可用。您可以从工作区菜单中重新设置。"
+          "createdWithoutParentNestingDetail": "父工作树已不可用。您可以从工作区菜单中重新设置。"
         },
         "repos": {
           "2975400634": "请更新 Manta 服务器，以便在此运行时打开非 Git 文件夹。",
@@ -14612,8 +14612,8 @@
       "ComposerParentWorktreePicker": {
         "label": "父工作树",
         "noParent": "无父工作树",
-        "description": "在侧边栏中将此工作区嵌套到另一个工作区下。不会更改基础分支。",
-        "searchPlaceholder": "搜索工作区...",
+        "description": "在侧边栏中将此工作区嵌套到另一个工作树下。不会更改基础分支。",
+        "searchPlaceholder": "搜索工作树...",
         "noMatches": "无匹配项。"
       }
     },
