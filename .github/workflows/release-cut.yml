@@ -1005,6 +1005,9 @@ jobs:
         with:
           ref: refs/tags/${{ needs.cut.outputs.tag }}
 
+      - name: Trust the checked-out workspace in the job container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Restore skill-sharing test harness from the workflow ref
         shell: bash
         env:
