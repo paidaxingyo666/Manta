@@ -27,7 +27,6 @@ import {
   getRuntimeClientEventEnvironmentIds,
   invalidateRuntimeClientEventReplay
 } from './runtime-environment-subscription-selection'
-import { dialRuntimeStatusReprobe } from './runtime-status-reprobe'
 import type { WorktreeEventRuntime } from './worktree-event-runtime'
 
 /** Backoff for re-asking status.get after a probe that failed on its own socket. */
@@ -194,7 +193,11 @@ export function registerRuntimeClientIpcBridge(
       runtimeStatusProbeRetryTimers.delete(environmentId)
     }
     inFlightRuntimeStatusProbes.add(environmentId)
-    void dialRuntimeStatusReprobe(environmentId)
+    void useAppStore
+      .getState()
+      // publishUnreachable: false — the transport that just proved this host alive is not the
+      // socket status.get dials, so a failed probe here is unverifiable and must publish nothing.
+      .refreshRuntimeEnvironmentStatus(environmentId, undefined, { publishUnreachable: false })
       .catch(() => false)
       .then((reachable) => {
         inFlightRuntimeStatusProbes.delete(environmentId)
