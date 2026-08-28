@@ -43,7 +43,7 @@ test('@golden opens an unstaged file diff from Source Control', async ({
   ).toBeVisible()
   await expect(mantaPage.locator('.editor-header-path').first()).toHaveAttribute(
     'title',
-    `${realpathSync(path.join(fixture.worktreePath, GOLDEN_CHANGED_PATH))} (diff)`
+    `${realpathSync(path.join(fixture.worktreePath, GOLDEN_CHANGED_PATH)).replaceAll('\\', '/')} (diff)`
   )
 
   const probe = mantaPage.getByRole('button', { name: /Source Control/ })
