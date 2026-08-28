@@ -15,6 +15,7 @@ import {
   bumpHostedReviewLinkMutationGeneration,
   clearOlderHostedReviewLinksForReplacement,
   getHostedReviewLinkForMetaRefresh,
+  hasChangedHostedReviewLinkUpdates,
   hasHostedReviewLinkUpdates
 } from './hosted-review-link-mutation'
 import {
@@ -111,16 +112,9 @@ export function createUpdateWorktreeMeta(
     if (shouldApplyUpdate && !shouldApplyUpdate(worktreeForUpdate)) {
       return { ok: true }
     }
-    const shouldRefreshHostedReview =
-      (normalizedUpdates.linkedPR === null && (worktreeForUpdate?.linkedPR ?? null) !== null) ||
-      (normalizedUpdates.linkedGitLabMR === null &&
-        (worktreeForUpdate?.linkedGitLabMR ?? null) !== null) ||
-      (normalizedUpdates.linkedBitbucketPR === null &&
-        (worktreeForUpdate?.linkedBitbucketPR ?? null) !== null) ||
-      (normalizedUpdates.linkedAzureDevOpsPR === null &&
-        (worktreeForUpdate?.linkedAzureDevOpsPR ?? null) !== null) ||
-      (normalizedUpdates.linkedGiteaPR === null &&
-        (worktreeForUpdate?.linkedGiteaPR ?? null) !== null)
+    const shouldRefreshHostedReview = Boolean(
+      worktreeForUpdate && hasChangedHostedReviewLinkUpdates(normalizedUpdates, worktreeForUpdate)
+    )
     const reviewRepo = shouldRefreshHostedReview
       ? (findRepoForHost(get().repos, worktreeForUpdate?.repoId ?? '', {
           hostId: executionHostId,
@@ -265,6 +259,7 @@ export function createUpdateWorktreeMeta(
         // Why: refetch against post-update links so a cache entry from the previous provider link can't keep showing the removed review.
         void get().fetchHostedReviewForBranch(reviewRepo.path, reviewBranch, {
           repoId: reviewRepo.id,
+          repoOwnerExecutionHostId: executionHostId ?? worktreeForUpdate?.hostId,
           linkedGitHubPR: getHostedReviewLinkForMetaRefresh(
             targetEnriched,
             worktreeForUpdate,

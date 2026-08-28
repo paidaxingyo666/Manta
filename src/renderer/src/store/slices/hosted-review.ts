@@ -16,7 +16,9 @@ import {
 import {
   canReuseInflightHint,
   findHostedReviewRepoByPath,
+  findHostedReviewRepoForFetch,
   hasNewerHostedReviewCacheEntry,
+  hostedReviewOwnerIpcArgs,
   isFreshHostedReview,
   isStaleMergedGitHubReviewForHead,
   settingsForHostedReviewActionOwner,
@@ -149,18 +151,17 @@ export const createHostedReviewSlice: StateCreator<AppState, [], [], HostedRevie
     branch,
     options
   ): Promise<HostedReviewInfo | null> => {
-    const settings = get().settings
-    const repo = get().repos?.find((candidate) =>
-      options?.repoId ? candidate.id === options.repoId : candidate.path === repoPath
-    )
-    const ownerSettings = settingsForHostedReviewRepoOwner(settings, repo)
+    const repo = findHostedReviewRepoForFetch(get().repos, repoPath, options)
+    if (repo === null) {
+      return null
+    }
+    const ownerSettings = settingsForHostedReviewRepoOwner(get().settings, repo)
     const target = getActiveRuntimeTarget(ownerSettings)
-    const repoId = options?.repoId ?? repo?.id
     const cacheKey = getHostedReviewCacheKey(
       repoPath,
       branch,
       ownerSettings,
-      repoId,
+      options?.repoId ?? repo?.id,
       repo?.connectionId,
       repo?.executionHostId,
       repo !== undefined
@@ -219,6 +220,7 @@ export const createHostedReviewSlice: StateCreator<AppState, [], [], HostedRevie
                 )
               : await window.api.hostedReview.forBranch({
                   repoPath,
+                  ...hostedReviewOwnerIpcArgs(options),
                   ...args
                 })
           if (requestGenerations.get(cacheKey) === generation) {
@@ -238,7 +240,7 @@ export const createHostedReviewSlice: StateCreator<AppState, [], [], HostedRevie
                 cache: currentPRCache,
                 review,
                 repoPath,
-                repoId,
+                repoId: options?.repoId ?? repo?.id,
                 branch,
                 settings: ownerSettings,
                 repo

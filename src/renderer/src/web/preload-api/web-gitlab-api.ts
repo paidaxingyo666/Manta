@@ -40,7 +40,7 @@ export function createGitLabApi(): WebGitLabApi {
       route<WebGitLabResult<'listLabels'>>(GITLAB_WEB_RPC_METHODS.listLabels, args),
     listAssignableUsers: () => Promise.resolve([]),
     todos: (args) => route<WebGitLabResult<'todos'>>(GITLAB_WEB_RPC_METHODS.todos, args),
-    workItemDetails: (args) =>
+    workItemDetails: ({ repoOwnerExecutionHostId: _owner, ...args }) =>
       route<WebGitLabResult<'workItemDetails'>>(GITLAB_WEB_RPC_METHODS.workItemDetails, args),
     closeMR: (args) =>
       route<WebGitLabResult<'closeMR'>>(GITLAB_WEB_RPC_METHODS.closeMR, {

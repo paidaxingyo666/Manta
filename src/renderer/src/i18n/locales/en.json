@@ -5622,7 +5622,11 @@
           "382fd11a3e": "Edit Worktree Details",
           "2174f17011": "Save",
           "61d6f612cf": "Saving...",
-          "a0d191b7a7": "Edit issue links, pull request links, and notes for this workspace."
+          "a0d191b7a7": "Edit issue links, pull request links, and notes for this workspace.",
+          "gitlabDescription": "Edit issue links, merge request links, and notes for this workspace.",
+          "gitlabMR": "GitLab MR",
+          "gitlabPlaceholder": "MR ! or GitLab URL",
+          "gitlabHelp": "Paste a merge request URL, or enter a number. Leave blank to remove the link."
         },
         "WorktreeOpenInMenu": {
           "localOnly": "Local only",
@@ -11721,7 +11725,10 @@
             },
             "7e4b2a19c0": "Could not resolve the GitHub PR to reply on.",
             "430f1a62d4": "Could not resolve the selected thread on the host.",
-            "updateReactionFailed": "Failed to update reaction."
+            "updateReactionFailed": "Failed to update reaction.",
+            "gitlabMoreActions": "More MR actions",
+            "gitlabUnlink": "Unlink MR",
+            "gitlabLinkAnother": "Link another MR"
           },
           "CreatePullRequestDialog": {
             "2bc1b4345e": "Cancel",
