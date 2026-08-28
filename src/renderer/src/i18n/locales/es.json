@@ -3937,13 +3937,17 @@
           "viewDetails": "Ver detalles",
           "deleteSkill": "Eliminar…"
         },
-        "SkillsList": { "listLabel": "Skills" },
+        "SkillsList": {
+          "listLabel": "Skills"
+        },
         "sourceStatus": {
           "missing": "Carpeta no encontrada",
           "remoteRepo": "Repositorio remoto — sin analizar",
           "unavailable": "Sin analizar"
         },
-        "sources": { "heading": "Carpetas de skills" },
+        "sources": {
+          "heading": "Carpetas de skills"
+        },
         "sourceKind": {
           "home": "Inicio",
           "workspace": "Espacio de trabajo",
@@ -6198,10 +6202,9 @@
           "compareBaseBranchUpstream": "Upstream de la rama"
         },
         "HiddenExperimentalGroup": {
-          "d0f914a528": "Alternar marcador de posición",
-          "1014ddbfaf": "No hace nada hoy. Reservado como primer espacio para opciones experimentales ocultas.",
-          "232cf83de8": "Alternadores no listados para pruebas internas. Aquí no se admite nada.",
-          "3e9e827ca5": "experimental oculto"
+          "7c4e18d2f6": "Activa los gestos de captura del fallo de negrita en esta máquina: {{samplingShortcut}} inicia una ráfaga de muestreo; {{captureShortcut}} captura evidencia del panel en disco.",
+          "b09f24a51d": "Diagnósticos de renderizado del terminal",
+          "f2c81d904a": "Configuración experimental oculta"
         },
         "InputPane": {
           "db15068196": "Habilitado de forma predeterminada en Linux y macOS. Linux usa el portapapeles de selección del sistema; otras plataformas utilizan un búfer privado.",

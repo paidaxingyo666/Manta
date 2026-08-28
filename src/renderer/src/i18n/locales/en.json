@@ -7232,10 +7232,9 @@
           "compareBaseBranchUpstream": "Branch upstream"
         },
         "HiddenExperimentalGroup": {
-          "d0f914a528": "Placeholder toggle",
-          "1014ddbfaf": "Does nothing today. Reserved as the first slot for hidden experimental options.",
-          "232cf83de8": "Unlisted toggles for internal testing. Nothing here is supported.",
-          "3e9e827ca5": "Hidden experimental"
+          "7c4e18d2f6": "Arms the bold-glitch capture gestures on this machine: {{samplingShortcut}} starts a sampling burst; {{captureShortcut}} captures pane evidence to disk.",
+          "b09f24a51d": "Terminal render diagnostics",
+          "f2c81d904a": "Hidden experimental settings"
         },
         "InputPane": {
           "db15068196": "Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.",

@@ -3925,7 +3925,9 @@
           "searchLinks": "リンクを検索",
           "deleteSkills": "スキルを削除…"
         },
-        "SkillShareSelectionControls": { "01c5a15e02": "スキルを共有" },
+        "SkillShareSelectionControls": {
+          "01c5a15e02": "スキルを共有"
+        },
         "SkillRow": {
           "updatedUnknown": "日付なし",
           "pathCopied": "パスをコピーしました",
@@ -3935,13 +3937,17 @@
           "viewDetails": "詳細を表示",
           "deleteSkill": "削除…"
         },
-        "SkillsList": { "listLabel": "スキル" },
+        "SkillsList": {
+          "listLabel": "スキル"
+        },
         "sourceStatus": {
           "missing": "フォルダーが見つかりません",
           "remoteRepo": "リモートリポジトリ — 未スキャン",
           "unavailable": "未スキャン"
         },
-        "sources": { "heading": "スキルフォルダー" },
+        "sources": {
+          "heading": "スキルフォルダー"
+        },
         "sourceKind": {
           "home": "ホーム",
           "workspace": "ワークスペース",
@@ -3963,7 +3969,10 @@
           "linkOne": "{{count}} 件のリンク",
           "linkOther": "{{count}} 件のリンク"
         },
-        "filter": { "allAgents": "すべての Agent", "sharedAgent": "共有 (.agents)" },
+        "filter": {
+          "allAgents": "すべての Agent",
+          "sharedAgent": "共有 (.agents)"
+        },
         "SkillsSelectionHeader": {
           "exit": "選択を終了",
           "exitTooltip": "選択を終了 · Esc",
@@ -3972,7 +3981,11 @@
           "clear": "クリア",
           "deleteTitle": "削除するスキルを選択"
         },
-        "SkillDetailDialog": { "agents": "Agent", "updated": "更新日", "copy": "コピー" },
+        "SkillDetailDialog": {
+          "agents": "Agent",
+          "updated": "更新日",
+          "copy": "コピー"
+        },
         "SkillFreshnessNudge": {
           "titleOne": "インストール済みの Manta スキルが古くなっています",
           "titleMany": "インストール済みの Manta スキル {{value0}} 件が古くなっています",
@@ -6211,10 +6224,9 @@
           "compareBaseBranchUpstream": "ブランチの upstream"
         },
         "HiddenExperimentalGroup": {
-          "d0f914a528": "プレースホルダーの切り替え",
-          "1014ddbfaf": "今日は何もしません。隠された実験的機能オプションの最初のスロットとして予約されています。",
-          "232cf83de8": "内部テスト用の非公開トグル。ここでは何もサポートされていません。",
-          "3e9e827ca5": "隠された実験的機能"
+          "7c4e18d2f6": "このマシンで太字グリッチのキャプチャジェスチャーを有効にします。{{samplingShortcut}} でサンプリングバーストを開始し、{{captureShortcut}} でペインの証拠をディスクに保存します。",
+          "b09f24a51d": "ターミナル描画診断",
+          "f2c81d904a": "隠された実験的機能の設定"
         },
         "InputPane": {
           "db15068196": "Linux および macOS ではデフォルトで有効になっています。 Linux はシステム選択クリップボードを使用します。他のプラットフォームはプライベートバッファを使用します。",

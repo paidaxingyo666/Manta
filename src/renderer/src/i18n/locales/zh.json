@@ -6228,10 +6228,9 @@
           "compareBaseBranchUpstream": "分支上游"
         },
         "HiddenExperimentalGroup": {
-          "d0f914a528": "占位符切换",
-          "1014ddbfaf": "今天什么也不做。保留作为隐藏实验选项的第一个插槽。",
-          "232cf83de8": "用于内部测试的未列出的切换。这里什么都不支持。",
-          "3e9e827ca5": "隐藏实验"
+          "7c4e18d2f6": "在本机启用粗体故障捕获手势：{{samplingShortcut}} 开始采样突发；{{captureShortcut}} 将窗格证据捕获到磁盘。",
+          "b09f24a51d": "终端渲染诊断",
+          "f2c81d904a": "隐藏实验设置"
         },
         "InputPane": {
           "db15068196": "在 Linux 和 macOS 上默认启用。 Linux使用系统选择剪贴板；其他平台使用私有缓冲区。",
