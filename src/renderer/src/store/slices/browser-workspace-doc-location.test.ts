@@ -264,6 +264,56 @@ describe('a browser page that shows a workspace document', () => {
     expect(mocks.releaseDocPreviewGrant).toHaveBeenCalledTimes(1)
   })
 
+  it('revokes a document grant when only that page is closed', () => {
+    mocks.releaseDocPreviewGrant.mockClear()
+    const store = createStoreWithWorktree()
+    const tab = store.getState().createBrowserTab(WORKTREE_ID, LIVE_GRANT_URL, {
+      docLocation: DOC_LOCATION,
+      browserRuntimeEnvironmentId: null
+    })
+    const docPageId = store.getState().browserPagesByWorkspace[tab.id]?.[0]?.id ?? ''
+    store.getState().createBrowserPage(tab.id, 'https://example.com/')
+
+    store.getState().closeBrowserPage(docPageId)
+
+    expect(mocks.releaseDocPreviewGrant).toHaveBeenCalledExactlyOnceWith(docPageId)
+    expect(store.getState().browserPagesByWorkspace[tab.id]).toHaveLength(1)
+  })
+
+  it('reopens a closed document tab with its document identity', () => {
+    const store = createStoreWithWorktree()
+    const tab = store.getState().createBrowserTab(WORKTREE_ID, LIVE_GRANT_URL, {
+      docLocation: DOC_LOCATION,
+      browserRuntimeEnvironmentId: null
+    })
+
+    store.getState().closeBrowserTab(tab.id)
+    const reopened = store.getState().reopenClosedBrowserTab(WORKTREE_ID)
+    const page = reopened ? store.getState().browserPagesByWorkspace[reopened.id]?.[0] : undefined
+
+    expect(page?.docLocation).toEqual(DOC_LOCATION)
+    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(reopened?.docLocation).toEqual(DOC_LOCATION)
+  })
+
+  it('reopens a closed document page with its document identity', () => {
+    const store = createStoreWithWorktree()
+    const tab = store.getState().createBrowserTab(WORKTREE_ID, 'https://example.com/')
+    const documentPage = store.getState().createBrowserPage(tab.id, LIVE_GRANT_URL, {
+      docLocation: DOC_LOCATION,
+      browserRuntimeEnvironmentId: null
+    })
+    if (!documentPage) {
+      throw new Error('Expected a document page')
+    }
+
+    store.getState().closeBrowserPage(documentPage.id)
+    const reopened = store.getState().reopenClosedBrowserPage(tab.id)
+
+    expect(reopened?.docLocation).toEqual(DOC_LOCATION)
+    expect(reopened?.url).toBe(ORCA_BROWSER_BLANK_URL)
+  })
+
   it('writes the document and not the grant to the session', () => {
     const store = createStoreWithWorktree()
     const tab = store.getState().createBrowserTab(WORKTREE_ID, LIVE_GRANT_URL, {

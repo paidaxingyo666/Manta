@@ -14971,7 +14971,14 @@
           "openExternallyControl": "Open with default app",
           "copyDocumentRelativePathControl": "Copy relative path",
           "openExternallyUnknownHostError": "Can't open '{{value0}}': the host that owns it is no longer known.",
-          "downloadBlockedNotice": "Downloads are disabled in document previews."
+          "downloadBlockedNotice": "Downloads are disabled in document previews.",
+          "directoryAuthorizationFailed": "Could not allow access to this directory.",
+          "directoryAccessRequest": "This preview wants to read files in {{path}}.",
+          "dismissAccessRequest": "Dismiss",
+          "allowDirectory": "Allow folder",
+          "directoryAccessRequestOverflow": "{{folders}}, and {{count}} more",
+          "directoryAccessRequestMultiple": "This preview wants to read files in {{folders}}.",
+          "allowDirectories": "Allow {{count}} folders"
         },
         "CheckRunAnnotations": {
           "copy": "Copy annotations"
@@ -16547,6 +16554,13 @@
         "description": "Nests this workspace under another in the sidebar. Does not change the base branch.",
         "searchPlaceholder": "Search workspaces...",
         "noMatches": "No matches."
+      },
+      "browserPane": {
+        "workspaceDoc": {
+          "externalLinkTitle": "Open link to {{host}}?",
+          "externalLinkConfirm": "Open link",
+          "externalLinkCancel": "Cancel"
+        }
       }
     },
     "i18n": {

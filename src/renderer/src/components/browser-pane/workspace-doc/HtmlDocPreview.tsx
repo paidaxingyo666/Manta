@@ -19,6 +19,10 @@ import { selectWorktreeHostDisplayLabel } from '@/lib/execution-host-display-lab
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import { openDocPreviewExternally, openDocPreviewSource } from './doc-preview-document-actions'
+import {
+  DocPreviewDirectoryAccessBanner,
+  useDocPreviewDirectoryAccess
+} from './doc-preview-directory-access'
 import { buildDocPreviewDocumentIdentity } from './doc-preview-document-identity'
 import {
   docPreviewAssetNotice,
@@ -108,6 +112,7 @@ function attachDocPreviewWebview({
 
 /** Frames a preview keeps offering focus to a guest that is still attaching. */
 const GUEST_FOCUS_FRAMES = 10
+const MAX_ASSET_FAILURES = 50
 
 export function HtmlDocPreview({
   previewId,
@@ -136,6 +141,14 @@ export function HtmlDocPreview({
   const [downloadBlocked, setDownloadBlocked] = useState(false)
   const [remintCount, setRemintCount] = useState(0)
   const [grantId, setGrantId] = useState<string | null>(null)
+  const {
+    requests: accessRequests,
+    busy: accessRequestBusy,
+    offer: offerDirectoryAccess,
+    reset: resetDirectoryAccess,
+    dismiss: dismissDirectoryAccess,
+    allow: allowDirectoryAccess
+  } = useDocPreviewDirectoryAccess({ grantId, reloadRef })
 
   const history = useDocPreviewWebviewHistory(webviewRef)
   const { sync: syncHistory, reset: resetHistory } = history
@@ -193,6 +206,7 @@ export function HtmlDocPreview({
     setState('loading')
     setFailureReason(null)
     setAssetFailures([])
+    resetDirectoryAccess()
     setDownloadBlocked(false)
     setGrantId(null)
     resetHistory()
@@ -216,11 +230,16 @@ export function HtmlDocPreview({
         setDownloadBlocked(true)
         return
       }
+      if (payload.reason === 'authorization-required') {
+        offerDirectoryAccess(payload)
+        return
+      }
       if (payload.relativePath === request.entryRelativePath) {
         setFailureReason(payload.reason)
         return
       }
       setAssetFailures((current) =>
+        current.length >= MAX_ASSET_FAILURES ||
         current.some((failure) => failure.relativePath === payload.relativePath)
           ? current
           : [...current, payload]
@@ -267,12 +286,19 @@ export function HtmlDocPreview({
       unsubscribeFailure?.()
       detach?.()
     }
-  }, [filePath, previewId, remintCount, resetHistory, syncHistory, worktreeId])
+  }, [
+    filePath,
+    offerDirectoryAccess,
+    previewId,
+    remintCount,
+    resetDirectoryAccess,
+    resetHistory,
+    syncHistory,
+    worktreeId
+  ])
 
-  // Why the guest is handed focus rather than left to the press that opens a link: main answers a
-  // reported link click only from a focused guest, and a preview has no chrome of its own to pass
-  // focus on — a URL page's address bar is what hands it over. Without this the one route out of a
-  // preview stays shut until something else happens to focus the document.
+  // Why the guest is handed focus: a preview has no address bar to make the usual handoff, so a
+  // surfaced document would otherwise look active while its keyboard and link input land elsewhere.
   useEffect(() => {
     if (!holdsGuestFocus || state !== 'ready') {
       return
@@ -377,6 +403,15 @@ export function HtmlDocPreview({
           <span className="min-w-0 flex-1 truncate">{notice}</span>
         </div>
       ))}
+      {accessRequests.length > 0 && !isUnavailable ? (
+        <DocPreviewDirectoryAccessBanner
+          requests={accessRequests}
+          busy={accessRequestBusy}
+          worktreeRoot={worktreeRoot}
+          onDismiss={dismissDirectoryAccess}
+          onAllow={allowDirectoryAccess}
+        />
+      ) : null}
       <div className="relative flex min-h-0 flex-1 overflow-hidden" ref={containerRef}>
         <BrowserGuestAnnotateOverlays
           markup={markup}

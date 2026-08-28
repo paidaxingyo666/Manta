@@ -10,6 +10,7 @@ import { getCanonicalUserDataPath } from '../persistence'
 import { requireSshFilesystemProvider } from '../providers/ssh-filesystem-dispatch'
 import {
   resolveCanonicalDocPreviewPath,
+  resolveDocPreviewCandidatePath,
   resolveDocPreviewTargetPath,
   toRuntimeWorktreeRelativePath,
   type DocPreviewGrant
@@ -153,9 +154,18 @@ export async function readDocPreviewFile(
   grant: DocPreviewGrant,
   relativePath: string
 ): Promise<DocPreviewReadOutcome> {
+  const candidatePath = resolveDocPreviewCandidatePath(grant, relativePath)
+  if (!candidatePath) {
+    return notFoundOutcome()
+  }
   const absolutePath = resolveDocPreviewTargetPath(grant, relativePath)
   if (!absolutePath) {
-    return notFoundOutcome()
+    return {
+      ok: false,
+      status: 403,
+      reason: 'authorization-required',
+      message: 'This file needs permission before the preview can read it.'
+    }
   }
   const contentType = docPreviewContentType(relativePath)
   try {

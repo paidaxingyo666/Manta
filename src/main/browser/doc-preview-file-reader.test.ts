@@ -17,19 +17,27 @@ vi.mock('../providers/ssh-filesystem-dispatch', () => ({
 
 import { FileReadCapExceededError } from '../ssh/ssh-filesystem-stream-reader'
 import { docPreviewContentType, readDocPreviewFile } from './doc-preview-file-reader'
-import { mintDocPreviewGrant, revokeAllDocPreviewGrants } from './doc-preview-grant-registry'
+import {
+  authorizeDocPreviewDirectory,
+  mintDocPreviewGrant,
+  revokeAllDocPreviewGrants
+} from './doc-preview-grant-registry'
 
+// Why the fixtures approve the document directory up front: these tests exercise the transport
+// half of a read — an entry-only grant's approval flow is pinned in its own test below.
 function sshGrant(): ReturnType<typeof mintDocPreviewGrant> {
-  return mintDocPreviewGrant({
+  const grant = mintDocPreviewGrant({
     owner: { kind: 'ssh', connectionId: 'ssh-1' },
     root: '/home/alice/docs',
     entryRelativePath: 'index.html',
     browserPageId: 'page-1'
   })
+  authorizeDocPreviewDirectory(grant.id, grant.entryRelativePath)
+  return grant
 }
 
 function runtimeGrant(root = '/srv/repo/docs'): ReturnType<typeof mintDocPreviewGrant> {
-  return mintDocPreviewGrant({
+  const grant = mintDocPreviewGrant({
     owner: {
       kind: 'runtime',
       environmentId: 'env-1',
@@ -40,6 +48,8 @@ function runtimeGrant(root = '/srv/repo/docs'): ReturnType<typeof mintDocPreview
     entryRelativePath: 'index.html',
     browserPageId: 'page-1'
   })
+  authorizeDocPreviewDirectory(grant.id, grant.entryRelativePath)
+  return grant
 }
 
 beforeEach(() => {
@@ -163,6 +173,29 @@ describe('readDocPreviewFile — ssh owner', () => {
 
     expect(outcome).toMatchObject({ ok: false, status: 404 })
     expect(mocks.requireSshFilesystemProvider).not.toHaveBeenCalled()
+  })
+
+  it('requires approval for a sibling directory before touching the SSH provider', async () => {
+    const grant = mintDocPreviewGrant({
+      owner: { kind: 'ssh', connectionId: 'ssh-1' },
+      requestBase: '/home/alice',
+      root: '/home/alice/docs',
+      entryRelativePath: 'docs/index.html',
+      browserPageId: 'page-1'
+    })
+
+    await expect(readDocPreviewFile(grant, 'assets/logo.png')).resolves.toMatchObject({
+      ok: false,
+      status: 403,
+      reason: 'authorization-required'
+    })
+    expect(mocks.requireSshFilesystemProvider).not.toHaveBeenCalled()
+
+    authorizeDocPreviewDirectory(grant.id, 'assets/logo.png')
+    mocks.readFile.mockResolvedValue({ content: 'logo', isBinary: false })
+
+    await expect(readDocPreviewFile(grant, 'assets/logo.png')).resolves.toMatchObject({ ok: true })
+    expect(mocks.readFile).toHaveBeenCalledWith('/home/alice/assets/logo.png')
   })
 
   it('reports an over-cap SSH file as too large rather than unreadable', async () => {
@@ -329,5 +362,42 @@ describe('readDocPreviewFile — paired runtime owner', () => {
 
     expect(outcome).toMatchObject({ ok: false, status: 404 })
     expect(mocks.callRuntimeEnvironment).not.toHaveBeenCalled()
+  })
+
+  it('requires approval for a sibling directory before touching the runtime', async () => {
+    const grant = mintDocPreviewGrant({
+      owner: {
+        kind: 'runtime',
+        environmentId: 'env-1',
+        worktreeSelector: 'id:wt-1',
+        worktreeRoot: '/srv/repo'
+      },
+      requestBase: '/srv/repo',
+      root: '/srv/repo/docs',
+      entryRelativePath: 'docs/index.html',
+      browserPageId: 'page-1'
+    })
+
+    await expect(readDocPreviewFile(grant, 'assets/app.js')).resolves.toMatchObject({
+      ok: false,
+      status: 403,
+      reason: 'authorization-required'
+    })
+    expect(mocks.callRuntimeEnvironment).not.toHaveBeenCalled()
+
+    authorizeDocPreviewDirectory(grant.id, 'assets/app.js')
+    mocks.callRuntimeEnvironment.mockResolvedValue({
+      ok: true,
+      result: { content: 'console.log(1)', truncated: false, byteLength: 14 }
+    })
+
+    await expect(readDocPreviewFile(grant, 'assets/app.js')).resolves.toMatchObject({ ok: true })
+    expect(mocks.callRuntimeEnvironment).toHaveBeenCalledWith(
+      '/user-data',
+      'env-1',
+      'files.read',
+      { worktree: 'id:wt-1', relativePath: 'assets/app.js' },
+      15_000
+    )
   })
 })

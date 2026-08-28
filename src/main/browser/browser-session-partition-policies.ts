@@ -57,10 +57,14 @@ function resolvePermissionNoticeUrl(
 
 /** `route` hands the item to the owning page's download flow; `deny` cancels it before it starts. */
 export type BrowserPartitionDownloadPolicy = 'route' | 'deny'
+export type BrowserPartitionPermissionPolicy = 'browser' | 'deny'
 
 export function installBrowserSessionPartitionPolicies(
   profile: BrowserSessionProfile,
-  options?: { downloads?: BrowserPartitionDownloadPolicy }
+  options?: {
+    downloads?: BrowserPartitionDownloadPolicy
+    permissions?: BrowserPartitionPermissionPolicy
+  }
 ): void {
   const { partition } = profile
   const sess = session.fromPartition(partition)
@@ -75,57 +79,63 @@ export function installBrowserSessionPartitionPolicies(
     sess.setUserAgent(cleanUA)
     setupClientHintsOverride(sess, cleanUA)
   }
-  sess.setPermissionRequestHandler((webContents, permission, callback, details) => {
-    // Why: defer media to macOS TCC; denying at the session layer throws NotAllowedError even after the user granted Camera/Mic to the OS.
-    if (permission === 'media') {
-      // Capture before async handling; opaque frames cannot be attributed to a named site.
-      const rawUrl = resolvePermissionNoticeUrl(webContents, details)
-      void requestSystemMediaAccess(
-        details as Electron.MediaAccessPermissionRequest | undefined
-      ).then(
-        (granted) => {
-          if (!granted) {
+  if (options?.permissions === 'deny') {
+    sess.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false))
+    sess.setPermissionCheckHandler(() => false)
+    clearBrowserWebAuthnAccessHandlers(sess)
+  } else {
+    sess.setPermissionRequestHandler((webContents, permission, callback, details) => {
+      // Why: defer media to macOS TCC; denying at the session layer throws NotAllowedError even after the user granted Camera/Mic to the OS.
+      if (permission === 'media') {
+        // Capture before async handling; opaque frames cannot be attributed to a named site.
+        const rawUrl = resolvePermissionNoticeUrl(webContents, details)
+        void requestSystemMediaAccess(
+          details as Electron.MediaAccessPermissionRequest | undefined
+        ).then(
+          (granted) => {
+            if (!granted) {
+              browserManager.notifyPermissionDenied({
+                guestWebContentsId: webContents.id,
+                permission,
+                rawUrl
+              })
+            }
+            callback(granted)
+          },
+          (error: unknown) => {
+            console.error('[permissions] Browser media access failed:', error)
             browserManager.notifyPermissionDenied({
               guestWebContentsId: webContents.id,
               permission,
               rawUrl
             })
+            callback(false)
           }
-          callback(granted)
-        },
-        (error: unknown) => {
-          console.error('[permissions] Browser media access failed:', error)
-          browserManager.notifyPermissionDenied({
-            guestWebContentsId: webContents.id,
-            permission,
-            rawUrl
-          })
-          callback(false)
-        }
-      )
-      return
-    }
-    const allowed = isAutoGrantedBrowserSessionPermission(permission)
-    if (!allowed) {
-      const rawUrl = resolvePermissionNoticeUrl(webContents, details)
-      browserManager.notifyPermissionDenied({
-        guestWebContentsId: webContents.id,
-        permission,
-        rawUrl
-      })
-    }
-    callback(allowed)
-  })
-  sess.setPermissionCheckHandler((_webContents, permission, _origin, details) => {
-    if (permission === 'media') {
-      return hasSystemMediaAccess(details?.mediaType)
-    }
-    if (allowsBrowserWebAuthnPermission(permission, details)) {
-      return true
-    }
-    return isAutoGrantedBrowserSessionPermission(permission)
-  })
-  installBrowserWebAuthnAccessHandlers(sess)
+        )
+        return
+      }
+      const allowed = isAutoGrantedBrowserSessionPermission(permission)
+      if (!allowed) {
+        const rawUrl = resolvePermissionNoticeUrl(webContents, details)
+        browserManager.notifyPermissionDenied({
+          guestWebContentsId: webContents.id,
+          permission,
+          rawUrl
+        })
+      }
+      callback(allowed)
+    })
+    sess.setPermissionCheckHandler((_webContents, permission, _origin, details) => {
+      if (permission === 'media') {
+        return hasSystemMediaAccess(details?.mediaType)
+      }
+      if (allowsBrowserWebAuthnPermission(permission, details)) {
+        return true
+      }
+      return isAutoGrantedBrowserSessionPermission(permission)
+    })
+    installBrowserWebAuthnAccessHandlers(sess)
+  }
   sess.setDisplayMediaRequestHandler((_request, callback) => {
     callback({ video: undefined, audio: undefined })
   })

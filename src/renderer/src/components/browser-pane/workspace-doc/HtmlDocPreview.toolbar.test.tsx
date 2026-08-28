@@ -484,9 +484,8 @@ describe('HtmlDocPreview browser chrome', () => {
   })
 })
 
-// Why this is a test and not left to the pane: main answers a reported link click only from a
-// focused guest, so a preview whose guest never takes focus has no route out at all — the failure
-// is silent, and only the reader pressing a link ever sees it.
+// Why this is a test and not left to the pane: a preview has no address bar to hand focus to the
+// document, so without this its keyboard and link input can silently land outside the visible guest.
 describe('HtmlDocPreview guest focus', () => {
   let container: HTMLDivElement
   let root: Root
