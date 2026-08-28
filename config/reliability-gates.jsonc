@@ -3333,7 +3333,7 @@
           "durationSeconds": 1.5,
           "summary": "175/175 at the relocated paths on the unified tool authority, replacing the 2026-08-27 record of the same command at 174/174. That run killed twelve of fourteen mutants as sole deltas — dropping the document branch from the one authority door, removing either browsing-registration refusal or the mint-side refusal that is its converse, deleting the registration notification or widening it to the worktree-wide and any-tab waits, disposing revoked state by grant instead of by page, dropping the hosting-renderer or destroyed-contents check, rebuilding the renderer tool target from the grant, and deleting the teardown identity check under a re-mint — and reported two as ill-posed rather than as kills. The relocation changed no file it names except their directory."
         },
-{
+        {
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
@@ -3378,7 +3378,7 @@
           "durationSeconds": 0.17,
           "summary": "22/22 on the candidate that stops a previewed document writing into this desktop's Downloads folder. The hole was read out of the shipping path, not guessed: the preview partition took the shared browser partition policies whole, including will-download, and a preview guest joins no browser-page registry, so handleGuestWillDownload resolved no owner context, routeBrowserClientDownload answered local for a non-client-hosted contents, and the item got a reserved Downloads name with no prompt and no tab to attribute it to. Downloads are now the one policy the preview partition does not inherit. Red-green with each mutant as the sole delta: making the installer ignore the deny option routes the preview partition's download to the router again, and making the preview protocol installer stop asking for the deny leaves the option unset. The absence half is paired with a presence precondition in the same run — an ordinary browsing partition installed beside the preview one in one test still reaches the download router, so a deny that fenced everything, or a download path that had been removed entirely, would fail rather than pass quietly."
         },
-{
+        {
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
@@ -3441,7 +3441,7 @@
           "durationSeconds": 0.36,
           "summary": "The four surfaces the trusted-click route is built from passed 63/63: the preload's click policy over a real document, including an untrusted dispatched click, an untrusted middle click, an SVG animated href resolved against the document so a relative, rooted or fragment SVG link behaves exactly like the identical HTML anchor, fragment and percent-encoded fragment targets and a trusted middle click; the guest policy's deny-only sinks, its refusal of a navigation that arrives before a document has bound the guest to a grant, and its report gate for an unfocused guest, an unregistered sender, a missing or revoked grant and non-web URLs; will-attach-webview pinning the preview preload in both directions; and the click channel handing main its own sender without a trusted-renderer check."
         },
-{
+        {
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
@@ -3468,7 +3468,7 @@
           "durationSeconds": 66,
           "summary": "The journey passed 3/3 again under --repeat-each=3 on the candidate that clears grants on every fresh shell document and gates the mint channel on the trusted renderer, so neither change disturbs a live preview: the document still rendered, both browser counts held at baseline, and the target=_blank press still routed out as a Manta browser tab."
         },
-{
+        {
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
