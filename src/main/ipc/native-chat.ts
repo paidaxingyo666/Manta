@@ -1,4 +1,5 @@
 import { ipcMain, type IpcMainEvent, type WebContents } from 'electron'
+import { agentHookServer } from '../agent-hooks/server'
 import type {
   AgentType,
   NativeChatMessage,
@@ -179,11 +180,18 @@ async function handleSubscribe(event: IpcMainEvent, args: NativeChatSubscribeArg
   const pending = beginPendingSubscription(sender.id, subscriptionId)
   registerSenderCleanup(sender)
 
+  // Tracks the roll chain: each rebind is reported against the id in force when
+  // it happened, not the one the subscription started with.
+  let boundSessionId = sessionId
   const subscribeArgs: SubscribeNativeChatTranscriptArgs = {
     agent,
     sessionId,
     transcriptPath,
     initialLimit: limit,
+    onRebound: (next) => {
+      agentHookServer.noteSessionContinued(boundSessionId, next)
+      boundSessionId = next.sessionId
+    },
     onTranscriptPending: () => {
       if (sender.isDestroyed()) {
         return

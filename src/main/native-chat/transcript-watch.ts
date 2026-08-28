@@ -153,6 +153,7 @@ function subscribeViaResolvePoll(
         // resolves to the dead file, which is the whole reason we are here.
         // Track the new id too, so a second roll is still findable.
         rebindSessionId = next.sessionId
+        args.onRebound?.({ sessionId: next.sessionId, transcriptPath: next.path })
         installed?.unsubscribe()
         installed = null
         exactPath = next.path
@@ -368,6 +369,7 @@ function followRolls(
           return
         }
         sessionId = next.sessionId
+        args.onRebound?.({ sessionId: next.sessionId, transcriptPath: next.path })
         // Install first, drop second: a failed install must not leave chat with
         // no watcher at all, which is worse than the stale one it replaces.
         void attemptInstall({ ...args, filePath: next.path }, decode, controller.signal)

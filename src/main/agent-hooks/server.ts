@@ -1375,6 +1375,48 @@ export class AgentHookServer {
     })
   }
 
+  /**
+   * Records that a pane's session continued into a new transcript.
+   *
+   * The only writer of a provider session other than a hook post, and it exists
+   * because a rolled session cannot always announce itself: a backgrounded
+   * session's hooks are muted at the script (#9236), so compaction — which opens
+   * a NEW transcript under a NEW id — leaves the pane pinned to a file nobody
+   * writes to again. Chat then shows a conversation that stopped, indefinitely.
+   *
+   * Only the transcript watcher calls this, and only after proving the descent
+   * it needed to rebind at all (claude-transcript-successor.ts): the new file
+   * replays this very session's rows. An unrelated session cannot produce that,
+   * so this cannot be used to capture a pane.
+   */
+  noteSessionContinued(
+    previousSessionId: string,
+    next: { sessionId: string; transcriptPath: string }
+  ): void {
+    const from = previousSessionId.trim()
+    if (!from || !next.sessionId.trim() || from === next.sessionId) {
+      return
+    }
+    // Keyed by the session rather than the pane: the caller is a transcript
+    // subscription, which knows which conversation it follows but not which pane
+    // is showing it.
+    let changed = false
+    for (const [paneKey, entry] of this.state.lastStatusByPaneKey) {
+      const previous = (entry as EnrichedAgentHookEventPayload).providerSession
+      if (previous?.id !== from) {
+        continue
+      }
+      this.state.lastStatusByPaneKey.set(paneKey, {
+        ...(entry as EnrichedAgentHookEventPayload),
+        providerSession: { ...previous, id: next.sessionId, transcriptPath: next.transcriptPath }
+      })
+      changed = true
+    }
+    if (changed) {
+      this.notifyStatusChangeListeners()
+    }
+  }
+
   private applyNormalizedStatus(
     payload: AgentHookEventPayload,
     onAccepted?: () => void,

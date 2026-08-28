@@ -33,6 +33,14 @@ export type SubscribeNativeChatTranscriptArgs = ResolveSessionFileOptions & {
   debounceMs?: number
   /** Test-only override for the production resolve-poll backoff. */
   resolvePollIntervalMs?: number
+  /**
+   * Called when the session is proved to have continued in another file.
+   *
+   * Rebinding alone only moves the tail this subscription reads; everything that
+   * re-derives a path from the pane's identity — the seed read, pagination, a
+   * later resubscribe — keeps using the old one until someone records the move.
+   */
+  onRebound?: (next: { sessionId: string; transcriptPath: string }) => void
   /** How often to check whether the session rolled to a new file; tests shorten it. */
   rebindCheckIntervalMs?: number
   /** Test-only override for the host-side watcher reconciliation interval. */

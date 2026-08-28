@@ -149,6 +149,33 @@ describe('a watcher follows its session when the transcript rolls', () => {
     sub.unsubscribe()
   })
 
+  /**
+   * Rebinding moves this subscription's tail and nothing else. The pane's
+   * identity feeds the seed read, pagination, and every later resubscribe, so
+   * without this report they all keep resolving the file the session left.
+   */
+  it('reports the move so the pane can stop pointing at the old file', async () => {
+    mocks.install.mockResolvedValue({ unsubscribe: () => {} })
+    mocks.resolve.mockResolvedValue(OLD)
+    mocks.findSuccessor.mockResolvedValue({ path: NEW, sessionId: 'new-id' })
+    const onRebound = vi.fn()
+
+    const sub = await subscribeNativeChatTranscript({
+      agent: 'claude',
+      sessionId: 'old-id',
+      transcriptPath: OLD,
+      resolvePollIntervalMs: 10,
+      rebindCheckIntervalMs: 10,
+      onRebound,
+      onAppend: () => {},
+      onInitialSnapshot: () => {}
+    })
+    await vi.advanceTimersByTimeAsync(200)
+
+    expect(onRebound).toHaveBeenCalledWith({ sessionId: 'new-id', transcriptPath: NEW })
+    sub.unsubscribe()
+  })
+
   it('stops searching once unsubscribed', async () => {
     mocks.install.mockResolvedValue({ unsubscribe: () => {} })
     const sub = await subscribe()
