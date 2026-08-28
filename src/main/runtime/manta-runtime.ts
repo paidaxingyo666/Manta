@@ -3172,6 +3172,8 @@ export class MantaRuntimeService {
   private headlessGraphFallbackAvailable = false
   private pendingHeadlessPromotionWindowId: number | null = null
   private rendererGeneration: string | null = null
+  private mobileSessionTabsChangeSequence = 0
+  private pendingMobileSessionTabsChangeSequenceByWorktree = new Map<string, number>()
   private readonly graphReloadLifecycle = new RuntimeGraphReloadLifecycle({
     timeoutMs: RUNTIME_GRAPH_RELOAD_TIMEOUT_MS,
     onSettled: ({ revision, windowId, outcome, durationMs }) => {
@@ -3249,7 +3251,7 @@ export class MantaRuntimeService {
     }
   >()
   private mobileSessionTabListeners = new Set<{
-    listener: (snapshot: RuntimeMobileSessionTabsResult) => void
+    listener: (snapshot: RuntimeMobileSessionTabsResult, changeSequence: number) => void
     clientNavigationId?: string
   }>()
   // Why: one watermark per repo replaces per-closed-pane fences while preserving stale-write safety.
@@ -3265,7 +3267,7 @@ export class MantaRuntimeService {
   // second. Emit reads the latest snapshot, so only the freshest version ships.
   private readonly mobileSessionTabsNotifyCoalescer: MobileSessionTabsNotifyCoalescer =
     createMobileSessionTabsNotifyCoalescer((worktreeId) =>
-      this.notifyMobileSessionTabsChangedNow(worktreeId)
+      this.flushScheduledMobileSessionTabsChanged(worktreeId)
     )
   private readonly mobileSessionTabsAgentStatusHeartbeat: MobileSessionTabsAgentStatusHeartbeat =
     createMobileSessionTabsAgentStatusHeartbeat(
@@ -6757,7 +6759,7 @@ export class MantaRuntimeService {
         ...next,
         snapshotVersion: snapshot.snapshotVersion + 1
       })
-      this.mobileSessionTabsNotifyCoalescer.schedule(worktreeId)
+      this.scheduleMobileSessionTabsChanged(worktreeId)
       return
     }
   }
@@ -6945,7 +6947,7 @@ export class MantaRuntimeService {
       return
     }
     for (const worktreeId of worktreeIds) {
-      this.notifyMobileSessionTabsChangedNow(worktreeId)
+      this.notifyMobileSessionTabsChangedNow(worktreeId, ++this.mobileSessionTabsChangeSequence)
     }
   }
 
@@ -7352,7 +7354,7 @@ export class MantaRuntimeService {
     }
     for (const worktreeId of changedMobileWorktrees) {
       if (this.mobileSessionTabsByWorktree.has(worktreeId)) {
-        this.mobileSessionTabsNotifyCoalescer.schedule(worktreeId)
+        this.scheduleMobileSessionTabsChanged(worktreeId)
       }
     }
     // Why: only the authoritative window grants inventory authority; headless qualifies because it becomes authoritative before its next sync.
@@ -7479,12 +7481,21 @@ export class MantaRuntimeService {
   async listAllMobileSessionTabs(
     clientNavigationId?: string
   ): Promise<RuntimeMobileSessionTabsResult[]> {
-    return (await this.collectAllMobileSessionTabs(clientNavigationId)).snapshots
+    return (await this.listAllMobileSessionTabsWithChangeSequence(clientNavigationId)).snapshots
+  }
+
+  async listAllMobileSessionTabsWithChangeSequence(clientNavigationId?: string): Promise<{
+    snapshots: RuntimeMobileSessionTabsResult[]
+    changeSequence: number
+  }> {
+    const inventory = await this.collectAllMobileSessionTabs(clientNavigationId)
+    return { snapshots: inventory.snapshots, changeSequence: inventory.changeSequence }
   }
 
   private async collectAllMobileSessionTabs(clientNavigationId?: string): Promise<{
     snapshots: RuntimeMobileSessionTabsResult[]
     ptyInventory: PtyControllerInventory | null
+    changeSequence: number
   }> {
     for (const worktreeId of this.getKnownWorkspaceSessionWorktreeIds()) {
       this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession(worktreeId, {
@@ -7495,21 +7506,32 @@ export class MantaRuntimeService {
     this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession()
     const ptyInventory = await this.refreshMobileSessionPtyInventory()
     this.restoreLivePairedRendererSessionOwnedMobileTerminals(null)
-    return {
-      snapshots: [...this.mobileSessionTabsByWorktree.values()].map((snapshot) =>
-        this.projectMobileSessionTabsForClient(
-          this.toMobileSessionTabsResult(snapshot),
-          clientNavigationId
-        )
-      ),
-      ptyInventory
-    }
+    const snapshots = [...this.mobileSessionTabsByWorktree.values()].map((snapshot) =>
+      this.projectMobileSessionTabsForClient(
+        this.toMobileSessionTabsResult(snapshot),
+        clientNavigationId
+      )
+    )
+    return { snapshots, ptyInventory, changeSequence: this.mobileSessionTabsChangeSequence }
   }
 
   async listAllMobileSessionTabsInventory(
     clientNavigationId?: string,
     signal?: AbortSignal
   ): Promise<{ snapshots: RuntimeMobileSessionTabsResult[]; authoritative?: true }> {
+    const { snapshots, authoritative } =
+      await this.listAllMobileSessionTabsInventoryWithChangeSequence(clientNavigationId, signal)
+    return { snapshots, ...(authoritative ? { authoritative } : {}) }
+  }
+
+  async listAllMobileSessionTabsInventoryWithChangeSequence(
+    clientNavigationId?: string,
+    signal?: AbortSignal
+  ): Promise<{
+    snapshots: RuntimeMobileSessionTabsResult[]
+    authoritative?: true
+    changeSequence: number
+  }> {
     this.assertSessionTabsInventoryRequestActive(signal)
     const primedPublicationEpoch = this.getAuthoritativeSessionTabsInventoryEpoch()
     const primed = await this.collectAllMobileSessionTabs(clientNavigationId)
@@ -7543,17 +7565,26 @@ export class MantaRuntimeService {
     inventory: {
       snapshots: RuntimeMobileSessionTabsResult[]
       ptyInventory: PtyControllerInventory | null
+      changeSequence: number
     },
     clientNavigationId?: string,
     signal?: AbortSignal
-  ): Promise<{ snapshots: RuntimeMobileSessionTabsResult[]; authoritative?: true }> {
+  ): Promise<{
+    snapshots: RuntimeMobileSessionTabsResult[]
+    authoritative?: true
+    changeSequence: number
+  }> {
     if (this.isCompleteSessionTabsPtyCensus(inventory.ptyInventory)) {
-      return { snapshots: inventory.snapshots, authoritative: true }
+      return {
+        snapshots: inventory.snapshots,
+        authoritative: true,
+        changeSequence: inventory.changeSequence
+      }
     }
     const retried = await this.collectAllMobileSessionTabs(clientNavigationId)
     this.assertSessionTabsInventoryRequestActive(signal)
     // Why: the retry ran outside the epoch fence, so it never claims authority.
-    return { snapshots: retried.snapshots }
+    return { snapshots: retried.snapshots, changeSequence: retried.changeSequence }
   }
 
   supportsAuthoritativeSessionTabsInventory(): boolean {
@@ -8590,7 +8621,7 @@ export class MantaRuntimeService {
     }
     // Why: title/status flips several times a second under spinner-in-title
     // agents. Coalesce the emit instead of fanning out every version.
-    this.mobileSessionTabsNotifyCoalescer.schedule(worktreeId)
+    this.scheduleMobileSessionTabsChanged(worktreeId)
   }
 
   /** Republish the workspace snapshot after a pane's hook status changed.
@@ -9317,9 +9348,11 @@ export class MantaRuntimeService {
       return
     }
     const result = this.toMobileSessionTabsResult(snapshot)
+    const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {
       subscription.listener(
-        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId)
+        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId),
+        changeSequence
       )
     }
   }
@@ -11237,7 +11270,7 @@ export class MantaRuntimeService {
   }
 
   onMobileSessionTabsChanged(
-    listener: (snapshot: RuntimeMobileSessionTabsResult) => void,
+    listener: (snapshot: RuntimeMobileSessionTabsResult, changeSequence: number) => void,
     clientNavigationId?: string
   ): () => void {
     // Why: a notify coalesced before this subscriber existed is already folded
@@ -30088,9 +30121,11 @@ export class MantaRuntimeService {
     }
     this.mobileSessionTabsByWorktree.set(worktreeId, next)
     const result = this.toMobileSessionTabsResult(next)
+    const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {
       subscription.listener(
-        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId)
+        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId),
+        changeSequence
       )
     }
     const created = result.tabs.find((candidate) => candidate.id === tab.id)
@@ -34299,7 +34334,7 @@ export class MantaRuntimeService {
           this.mobileSessionTabsAgentStatusHeartbeat.removeWorktree(worktreeId)
           this.acceptedRendererMobileSnapshotByWorktree.delete(worktreeId)
           // Why: drop any pending coalesced notify so a stale snapshot can't land after the removed frame.
-          this.mobileSessionTabsNotifyCoalescer.cancel(worktreeId)
+          this.cancelScheduledMobileSessionTabsChanged(worktreeId)
           this.notifyMobileSessionTabsRemoved(worktreeId)
         }
       }
@@ -34541,9 +34576,11 @@ export class MantaRuntimeService {
       activeTabType: null,
       tabs: []
     }
+    const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {
       subscription.listener(
-        this.clientSessionTabSelections.project(removed, subscription.clientNavigationId)
+        this.clientSessionTabSelections.project(removed, subscription.clientNavigationId),
+        changeSequence
       )
     }
     this.clientSessionTabSelections.forgetWorktree(worktreeId)
@@ -34585,11 +34622,33 @@ export class MantaRuntimeService {
       }
     }
     // Why: structural changes must propagate promptly; cancel any pending coalesced notify since this immediate emit supersedes it.
-    this.mobileSessionTabsNotifyCoalescer.cancel(worktreeId)
-    this.notifyMobileSessionTabsChangedNow(worktreeId)
+    this.cancelScheduledMobileSessionTabsChanged(worktreeId)
+    this.notifyMobileSessionTabsChangedNow(worktreeId, ++this.mobileSessionTabsChangeSequence)
   }
 
-  private notifyMobileSessionTabsChangedNow(worktreeId: string): void {
+  private scheduleMobileSessionTabsChanged(worktreeId: string): void {
+    this.pendingMobileSessionTabsChangeSequenceByWorktree.set(
+      worktreeId,
+      ++this.mobileSessionTabsChangeSequence
+    )
+    this.mobileSessionTabsNotifyCoalescer.schedule(worktreeId)
+  }
+
+  private cancelScheduledMobileSessionTabsChanged(worktreeId: string): void {
+    this.mobileSessionTabsNotifyCoalescer.cancel(worktreeId)
+    this.pendingMobileSessionTabsChangeSequenceByWorktree.delete(worktreeId)
+  }
+
+  private flushScheduledMobileSessionTabsChanged(worktreeId: string): void {
+    const changeSequence = this.pendingMobileSessionTabsChangeSequenceByWorktree.get(worktreeId)
+    if (changeSequence === undefined) {
+      return
+    }
+    this.pendingMobileSessionTabsChangeSequenceByWorktree.delete(worktreeId)
+    this.notifyMobileSessionTabsChangedNow(worktreeId, changeSequence)
+  }
+
+  private notifyMobileSessionTabsChangedNow(worktreeId: string, changeSequence: number): void {
     if (this.mobileSessionTabListeners.size === 0) {
       return
     }
@@ -34601,7 +34660,8 @@ export class MantaRuntimeService {
     const result = this.toMobileSessionTabsResult(snapshot)
     for (const subscription of this.mobileSessionTabListeners) {
       subscription.listener(
-        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId)
+        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId),
+        changeSequence
       )
     }
   }
@@ -34612,9 +34672,11 @@ export class MantaRuntimeService {
     }
     for (const snapshot of this.mobileSessionTabsByWorktree.values()) {
       const result = this.toMobileSessionTabsResult(snapshot)
+      const changeSequence = ++this.mobileSessionTabsChangeSequence
       for (const subscription of this.mobileSessionTabListeners) {
         subscription.listener(
-          this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId)
+          this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId),
+          changeSequence
         )
       }
     }
@@ -34650,9 +34712,13 @@ export class MantaRuntimeService {
     clientNavigationId: string,
     follow = false
   ): void {
+    const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {
       if (subscription.clientNavigationId === clientNavigationId) {
-        subscription.listener(follow ? { ...projected, navigationIntent: 'follow' } : projected)
+        subscription.listener(
+          follow ? { ...projected, navigationIntent: 'follow' } : projected,
+          changeSequence
+        )
       }
     }
   }
