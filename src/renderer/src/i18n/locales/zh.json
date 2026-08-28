@@ -266,7 +266,10 @@
           "3b57982bf6": "删除工作区\"{{value1}}\"后，Git 无法安全删除分支\"{{value0}}\"，因此 Manta 将其保留以避免丢失本地提交。",
           "81f13f48d2": "删除工作树\"{{value1}}\"后，Git 无法安全删除分支\"{{value0}}\"，因此 Manta 将其保留以避免丢失本地提交。",
           "runtimeScopeForbiddenTitle": "此连接具有受限（移动端）访问权限",
-          "runtimeScopeForbiddenDescription": "移动端范围的配对无法使用工作区。请通过设置 → 远程 Manta 服务器 → 分享此 Manta 服务器中的浏览器访问链接重新连接。"
+          "runtimeScopeForbiddenDescription": "移动端范围的配对无法使用工作区。请通过设置 → 远程 Manta 服务器 → 分享此 Manta 服务器中的浏览器访问链接重新连接。",
+          "createdWithoutParentNesting": "已创建，但未嵌套在“{{value0}}”下",
+          "createdWithoutParentNestingUnnamed": "已创建，但未嵌套在所选父工作树下",
+          "createdWithoutParentNestingDetail": "父工作区已不可用。您可以从工作区菜单中重新设置。"
         },
         "repos": {
           "2975400634": "请更新 Manta 服务器，以便在此运行时打开非 Git 文件夹。",
@@ -14588,6 +14591,13 @@
         "ArtifactsSelfHostNotice": {
           "body": "这个自建版本没有附带产物（Artifacts）服务。发布时会上传到 MANTA_ARTIFACTS_API_URL 指向的地址；不设它的话，链接会建到一个本 fork 并不运行的主机上，上传必然失败。要么自己跑一个并设好这个变量，要么就把分享关掉。"
         }
+      },
+      "ComposerParentWorktreePicker": {
+        "label": "父工作树",
+        "noParent": "无父工作树",
+        "description": "在侧边栏中将此工作区嵌套到另一个工作区下。不会更改基础分支。",
+        "searchPlaceholder": "搜索工作区...",
+        "noMatches": "无匹配项。"
       }
     },
     "i18n": {

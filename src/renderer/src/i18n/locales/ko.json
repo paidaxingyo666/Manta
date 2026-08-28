@@ -266,7 +266,10 @@
           "3b57982bf6": "\"{{value1}}\" 워크스페이스를 삭제한 후 Git이 \"{{value0}}\" 브랜치를 안전하게 삭제할 수 없어 Manta가 로컬 커밋 손실을 방지하기 위해 유지했습니다.",
           "81f13f48d2": "\"{{value1}}\" 워크트리를 삭제한 후 Git이 \"{{value0}}\" 브랜치를 안전하게 삭제할 수 없어 Manta가 로컬 커밋 손실을 방지하기 위해 유지했습니다.",
           "runtimeScopeForbiddenTitle": "이 연결은 제한된(모바일) 액세스입니다",
-          "runtimeScopeForbiddenDescription": "모바일 범위 페어링에서는 워크스페이스를 사용할 수 없습니다. 설정 → 원격 Manta 서버 → 이 Manta 서버 공유에서 브라우저 액세스 링크로 다시 연결하세요."
+          "runtimeScopeForbiddenDescription": "모바일 범위 페어링에서는 워크스페이스를 사용할 수 없습니다. 설정 → 원격 Manta 서버 → 이 Manta 서버 공유에서 브라우저 액세스 링크로 다시 연결하세요.",
+          "createdWithoutParentNesting": "\"{{value0}}\" 아래에 중첩하지 않고 생성했습니다",
+          "createdWithoutParentNestingUnnamed": "선택한 상위 워크트리 아래에 중첩하지 않고 생성했습니다",
+          "createdWithoutParentNestingDetail": "상위 워크스페이스를 더 이상 사용할 수 없습니다. 워크스페이스 메뉴에서 설정할 수 있습니다."
         },
         "repos": {
           "2975400634": "이 런타임에서 Git이 아닌 폴더를 열려면 Manta 서버를 업데이트하세요.",
@@ -14493,6 +14496,13 @@
           "deleteDescription": "“{{name}}”은(는) 공개 링크에서 더 이상 사용할 수 없습니다.",
           "delete": "삭제"
         }
+      },
+      "ComposerParentWorktreePicker": {
+        "label": "상위 워크트리",
+        "noParent": "상위 워크트리 없음",
+        "description": "이 워크스페이스를 사이드바의 다른 워크스페이스 아래에 중첩합니다. 기준 브랜치는 변경되지 않습니다.",
+        "searchPlaceholder": "워크스페이스 검색...",
+        "noMatches": "일치하는 항목이 없습니다."
       }
     },
     "i18n": {
