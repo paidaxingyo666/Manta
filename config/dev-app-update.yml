@@ -1,0 +1,4 @@
+provider: github
+owner: stablyai
+repo: manta
+updaterCacheDirName: manta-updater

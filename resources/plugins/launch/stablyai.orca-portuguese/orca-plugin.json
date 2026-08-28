@@ -1,0 +1,15 @@
+{
+  "manifestVersion": 1,
+  "id": "manta-portuguese",
+  "publisher": "stablyai",
+  "name": "Português do Brasil",
+  "version": "1.0.0",
+  "description": "Brazilian Portuguese translations for common Manta navigation.",
+  "repository": "https://github.com/stablyai/orca-portuguese",
+  "engines": { "manta": ">=1.4.0" },
+  "pluginApi": 1,
+  "contributes": {
+    "languagePacks": [{ "locale": "pt-BR", "path": "locales/pt-BR.json" }]
+  },
+  "capabilities": []
+}

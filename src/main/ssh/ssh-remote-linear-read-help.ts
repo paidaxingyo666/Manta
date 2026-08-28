@@ -1,0 +1,163 @@
+export function getRemoteLinearReadHelp(commandPath: string[]): string | null {
+  if (commandPath.length === 1 && commandPath[0] === 'linear') {
+    return LINEAR_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'issue')) {
+    return LINEAR_ISSUE_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'list-issues')) {
+    return LINEAR_MCP_ISSUE_LIST_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'search')) {
+    return LINEAR_SEARCH_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'team', 'list')) {
+    return LINEAR_TEAM_LIST_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'team', 'members')) {
+    return LINEAR_TEAM_MEMBERS_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'team', 'states')) {
+    return LINEAR_TEAM_STATES_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'team', 'labels')) {
+    return LINEAR_TEAM_LABELS_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'project', 'list')) {
+    return LINEAR_PROJECT_LIST_HELP
+  }
+  if (matchesRemoteCommand(commandPath, 'linear', 'list')) {
+    return LINEAR_LIST_HELP
+  }
+  return null
+}
+
+function matchesRemoteCommand(commandPath: string[], ...command: string[]): boolean {
+  return (
+    commandPath.length === command.length &&
+    command.every((part, index) => commandPath[index] === part)
+  )
+}
+
+const LINEAR_HELP = `manta linear
+
+Usage: manta linear <command> [options]
+
+Commands:
+  save-issue         Create or update a Linear issue
+  list-issues        List Linear issues with MCP-compatible filters
+  relation add       Add a Linear issue relation
+  relation remove    Remove a Linear issue relation
+  issue              Read Linear issue context for agents
+  search             Search connected Linear workspaces
+  team list          List connected Linear teams
+  team members       List Linear team members
+  team states        List Linear team workflow states
+  team labels        List Linear team labels
+  project list       List connected Linear projects
+  list               List Linear issues
+  assignee set       Set a Linear issue assignee
+  assignee clear     Clear a Linear issue assignee
+  priority set       Set a Linear issue priority
+  priority clear     Clear a Linear issue priority
+  estimate set       Set a Linear issue estimate
+  estimate clear     Clear a Linear issue estimate
+  due-date set       Set a Linear issue due date
+  due-date clear     Clear a Linear issue due date
+  label add          Add labels to a Linear issue
+  label remove       Remove labels from a Linear issue
+  label set          Replace labels on a Linear issue
+  status set         Set a Linear issue status
+  comment add        Add a comment to a Linear issue
+  attach             Attach a link to a Linear issue
+  create             Create a Linear issue
+
+Run \`manta linear <command> --help\` for command-specific usage.`
+
+const LINEAR_ISSUE_HELP = `manta linear issue
+
+Usage: manta linear issue [<id>] [--current] [--comments] [--children] [--depth <n>] [--attachments] [--relations] [--activity] [--full] [--workspace <id>] [--json]
+
+Read Linear issue context for agents
+
+Options:
+  --help                 Show this help message
+  --json                 Emit machine-readable JSON
+  --pairing-code
+  --environment
+  --current              Use the current Manta worktree linked Linear issue
+  --comments             Include threaded Linear comments
+  --children             Include recursive child issues
+  --depth <n>            Child issue depth for --children/--full
+  --attachments          Include attachment metadata and URLs
+  --relations            Include blocking, related, and duplicate links
+  --activity             Include issue field-change history
+  --full                 Include all supported V1 issue context within caps
+  --workspace <id>      Connected Linear workspace id
+  --id <id>             Linear issue key, id, or URL
+
+Examples:
+  $ manta linear issue ENG-123
+  $ manta linear issue --current --comments
+  $ manta linear issue https://linear.app/acme/issue/ENG-123 --full --json`
+
+const LINEAR_MCP_ISSUE_LIST_HELP = `manta linear list-issues
+
+Usage: manta linear list-issues [--team <team>] [--cycle <cycle>] [--label <label>] [--limit <n>] [--query <text>] [--state <state>] [--cursor <cursor>] [--order-by createdAt|updatedAt] [--project <project>] [--release <release>] [--assignee <user|me|null>] [--delegate <user|me|null>] [--parent-id <issue|null>] [--priority <0-4>] [--created-at <datetime|duration>] [--updated-at <datetime|duration>] [--include-archived] [--workspace <id>|all] [--json]
+
+List Linear issues with MCP-compatible filters and cursor pagination`
+
+const LINEAR_SEARCH_HELP = `manta linear search
+
+Usage: manta linear search <query> [--limit <n>] [--workspace <id>|all] [--json]
+
+Search connected Linear workspaces
+
+Options:
+  --help                 Show this help message
+  --json                 Emit machine-readable JSON
+  --pairing-code
+  --environment
+  --limit <n>            Maximum number of rows to return
+  --workspace <id|all>  Connected Linear workspace id, or all
+  --query <text>        Text to search across Linear issues
+
+Examples:
+  $ manta linear search "auth bug"
+  $ manta linear search ENG --workspace all --json`
+
+const LINEAR_TEAM_LIST_HELP = `manta linear team list
+
+Usage: manta linear team list [--workspace <id>|all] [--json]
+
+List connected Linear teams`
+
+const LINEAR_TEAM_MEMBERS_HELP = `manta linear team members
+
+Usage: manta linear team members --team <key|id> [--workspace <id>] [--json]
+
+List Linear team members`
+
+const LINEAR_TEAM_STATES_HELP = `manta linear team states
+
+Usage: manta linear team states --team <key|id> [--workspace <id>] [--json]
+
+List Linear team workflow states`
+
+const LINEAR_TEAM_LABELS_HELP = `manta linear team labels
+
+Usage: manta linear team labels --team <key|id> [--workspace <id>] [--json]
+
+List Linear team labels`
+
+const LINEAR_PROJECT_LIST_HELP = `manta linear project list
+
+Usage: manta linear project list [--query <text>] [--limit <n>] [--workspace <id>|all] [--json]
+
+List connected Linear projects`
+
+const LINEAR_LIST_HELP = `manta linear list
+
+Usage: manta linear list [--filter assigned|created|all|completed|open] [--team <key|id>] [--limit <n>] [--workspace <id>|all] [--json]
+
+List Linear issues`

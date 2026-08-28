@@ -1,0 +1,116 @@
+# Manta relay zsh overlay wrapper
+__manta_usable_zdotdir() {
+  [[ -n "${1:-}" ]] || return 1
+  # Manta's own dir, by marker file or by the shape older builds wrote.
+  [[ "$1" != */shell-ready/zsh ]] || return 1
+  [[ ! -f "$1/.manta-shell-wrapper" ]] || return 1
+  # A directory holding no zsh startup file at all is not a config root,
+  # whoever wrote it — and a stale value pointing at one would stop zsh from
+  # ever reading the user's real .zshenv.
+  local _manta_startup_file
+  for _manta_startup_file in .zshenv .zshrc .zprofile .zlogin; do
+    [[ -r "$1/$_manta_startup_file" ]] && return 0
+  done
+  return 1
+}
+if __manta_usable_zdotdir "${MANTA_ORIG_ZDOTDIR:-}"; then
+  builtin export ZDOTDIR="$MANTA_ORIG_ZDOTDIR"
+else
+  builtin unset ZDOTDIR
+fi
+builtin unset MANTA_ORIG_ZDOTDIR MANTA_ZSHENV_SOURCE_DIR
+builtin unfunction __manta_usable_zdotdir
+builtin typeset -ga _manta_shell_features
+_manta_shell_features=(${(s:,:)${MANTA_SHELL_FEATURES:-}})
+builtin unset MANTA_SHELL_FEATURES
+# Why MANTA_HISTFILE is consumed HERE and not in the deferred hook: a user config
+# that replaces precmd_functions wholesale drops the hook, and an exported value
+# nothing will ever consume is then inherited by every child of this pane,
+# including a nested Manta (#11146). Captured non-exported, it cannot escape.
+builtin typeset -g _manta_histfile="${MANTA_HISTFILE:-}"
+builtin unset MANTA_HISTFILE
+__manta_has_feature() { (( ${_manta_shell_features[(Ie)$1]} )) }
+__manta_has_feature identity && printf "\033]777;manta-shell-start:%s\007" "$$"
+__manta_deferred_init() {
+  # Why first: this body runs after the user's own config, so it would otherwise
+  # inherit whatever options that config left set. Under NO_UNSET an unset
+  # precmd_functions is fatal, and KSH_ARRAYS makes the 1-based feature lookup
+  # drop whichever feature is listed first.
+  builtin emulate -L zsh
+  (( $+_manta_deferred_init_done )) && return 0
+  builtin typeset -g _manta_deferred_init_done=1
+  builtin typeset -g precmd_functions
+  precmd_functions=(${precmd_functions:#__manta_deferred_init})
+  if __manta_has_feature overlay; then
+    # Why: remote startup files can re-export user defaults after relay spawn.
+    [[ -n "${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${MANTA_OPENCODE_CONFIG_DIR}"
+    [[ -n "${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${MANTA_MIMOCODE_HOME}"
+    [[ -n "${MANTA_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"${MANTA_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="${MANTA_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac
+    # Why: OMP does not auto-load Manta's managed status extension; wrap only
+    # interactive launch invocations so subcommands such as `omp config` keep
+    # their normal argv shape.
+    __manta_omp_should_skip_extension() {
+      case "${1:-}" in
+        help|--help|-h|--version|-v) return 0 ;;
+        __complete|acp|agents|auth-broker|auth-gateway|bench|commit|completions|config|dry-balance|gallery|grep|grievances|install|join|models|plugin|read|say|search|setup|shell|ssh|stats|tiny-models|token|ttsr|update|usage|worktree|q|wt) return 0 ;;
+      esac
+      return 1
+    }
+    __manta_omp() {
+      local __manta_use_extension=1
+      __manta_omp_should_skip_extension "${1:-}" && __manta_use_extension=0
+      if [[ $__manta_use_extension -eq 1 && -n "${MANTA_OMP_STATUS_EXTENSION:-}" && -f "${MANTA_OMP_STATUS_EXTENSION}" ]]; then
+        if [[ "${1:-}" == "launch" ]]; then
+          shift
+          command omp launch --extension "${MANTA_OMP_STATUS_EXTENSION}" "$@"
+        else
+          command omp --extension "${MANTA_OMP_STATUS_EXTENSION}" "$@"
+        fi
+      else
+        command omp "$@"
+      fi
+    }
+    if [[ -n "${MANTA_OMP_STATUS_EXTENSION:-}" ]]; then
+      # Why the function reserved word: it suppresses alias expansion of the name, which
+      # an `alias omp` otherwise rewrites at parse time, aborting the rest of the file.
+      function omp { __manta_omp "$@"; }
+    fi
+  fi
+  if [[ -n "${_manta_histfile:-}" ]]; then
+    HISTFILE="$_manta_histfile"
+  fi
+  if __manta_has_feature ready; then
+    # Why: capture the prior zle-line-init so the marker chains to it. On a
+    # re-source we are already the bound widget, so keep the function captured
+    # the first time instead of clobbering it to empty (which would silently
+    # drop the user's widget on every prompt after the second source). Only
+    # user-defined widgets are chainable as plain functions; builtin/completion
+    # forms (rare for zle-line-init) are left unchained.
+    if [[ "${widgets[zle-line-init]:-}" == "user:__manta_prompt_mark" ]]; then
+      :
+    elif (( ${+widgets[zle-line-init]} )) && [[ "${widgets[zle-line-init]}" == user:* ]]; then
+      __manta_prev_line_init_fn="${widgets[zle-line-init]#user:}"
+    else
+      __manta_prev_line_init_fn=""
+    fi
+    __manta_prompt_mark() {
+      printf "\033]777;manta-shell-ready\007"
+      # Why: call the prior hook as a plain function, not an aliased widget, so
+      # $WIDGET stays zle-line-init for add-zle-hook-widget dispatchers.
+      if [[ -n "${__manta_prev_line_init_fn:-}" ]]; then
+        "${__manta_prev_line_init_fn}" "$@"
+      fi
+    }
+    zle -N zle-line-init __manta_prompt_mark
+  fi
+  builtin unset _manta_shell_features _manta_histfile
+  builtin unfunction __manta_deferred_init __manta_has_feature
+}
+{
+  builtin typeset _manta_user_zshenv="${ZDOTDIR-$HOME}/.zshenv"
+  [[ ! -r "$_manta_user_zshenv" ]] || builtin source -- "$_manta_user_zshenv"
+} always {
+  builtin unset _manta_user_zshenv
+  builtin typeset -ag precmd_functions
+  (( ${precmd_functions[(Ie)__manta_deferred_init]} )) || precmd_functions+=(__manta_deferred_init)
+}

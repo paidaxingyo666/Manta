@@ -1,0 +1,81 @@
+import { getPowerShellOmpShellWrapper } from './pty/omp-shell-wrapper'
+import { getPowerShellCodexShellLaunchPreflight } from './pty/codex-shell-launch-preflight'
+export { encodePowerShellCommand } from '../shared/powershell-command-encoding'
+
+const POWERSHELL_OSC133_BOOTSTRAP = `# Manta OSC 133 shell integration for PowerShell.
+# Profiles have already loaded normally by the time -EncodedCommand runs.
+# Restore managed ownership before the shell-integration compatibility guard.
+if ($env:MANTA_OPENCODE_CONFIG_DIR) { $env:OPENCODE_CONFIG_DIR = $env:MANTA_OPENCODE_CONFIG_DIR }
+if ($env:MANTA_MIMOCODE_HOME) { $env:MIMOCODE_HOME = $env:MANTA_MIMOCODE_HOME }
+if ($env:MANTA_CODEX_HOME) { $env:CODEX_HOME = $env:MANTA_CODEX_HOME }
+
+if ($ExecutionContext.SessionState.LanguageMode -eq "FullLanguage" -and
+    ((-not (Test-Path variable:global:__MantaOsc133State)) -or
+     $null -eq $Global:__MantaOsc133State.OriginalPrompt)) {
+    # Wrap the user's final prompt/readline state; do not source profiles here.
+
+    # Preserve Windows CJK output by keeping ConPTY on UTF-8 without bypassing
+    # profile loading or execution-policy checks.
+    try {
+        [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+        [Console]::InputEncoding = [System.Text.UTF8Encoding]::new()
+        $OutputEncoding = [Console]::OutputEncoding
+    } catch { Write-Error $_ -ErrorAction Continue }
+
+${getPowerShellOmpShellWrapper()}
+${getPowerShellCodexShellLaunchPreflight()}
+
+    $Global:__MantaOsc133State = @{
+        OriginalPrompt = $function:prompt
+        OriginalReadLine = $function:PSConsoleHostReadLine
+        HasSeenPrompt = $false
+        HasPSReadLine = $null -ne (Get-Module -Name PSReadLine)
+        Esc = [char]27
+        Bel = [char]7
+    }
+
+    function Global:prompt {
+        # Capture FIRST; any other expression can clobber PowerShell's success bit.
+        $fakeExitCode = [int](!$global:?)
+        Set-StrictMode -Off
+        $result = ""
+
+        # Emit D from prompt, not readline state. Some profile setups bypass
+        # PSConsoleHostReadLine; the consumer only needs completion.
+        if ($Global:__MantaOsc133State.HasSeenPrompt) {
+            $result += "$($Global:__MantaOsc133State.Esc)]133;D;$fakeExitCode$($Global:__MantaOsc133State.Bel)"
+        }
+        $Global:__MantaOsc133State.HasSeenPrompt = $true
+
+        $result += "$($Global:__MantaOsc133State.Esc)]133;A$($Global:__MantaOsc133State.Bel)"
+        # Preserve the previous success/failure value for prompts that inspect it.
+        if ($fakeExitCode -ne 0) { Write-Error "failure" -ea ignore }
+        $result += $Global:__MantaOsc133State.OriginalPrompt.Invoke()
+        $result += "$($Global:__MantaOsc133State.Esc)]133;B$($Global:__MantaOsc133State.Bel)"
+        $result
+    }
+
+    if ($Global:__MantaOsc133State.HasPSReadLine -and
+        $null -ne $Global:__MantaOsc133State.OriginalReadLine) {
+        function Global:PSConsoleHostReadLine {
+            $commandLine = $Global:__MantaOsc133State.OriginalReadLine.Invoke()
+            [Console]::Write("$($Global:__MantaOsc133State.Esc)]133;C$($Global:__MantaOsc133State.Bel)")
+            return $commandLine
+        }
+    }
+}
+`
+
+export function getPowerShellOsc133Bootstrap(): string {
+  return POWERSHELL_OSC133_BOOTSTRAP
+}
+
+export function isPowerShellExecutableName(shellName: string): boolean {
+  const normalized = shellName.toLowerCase()
+  return (
+    normalized === 'pwsh' ||
+    normalized === 'pwsh.exe' ||
+    normalized === 'powershell' ||
+    normalized === 'powershell.exe'
+  )
+}

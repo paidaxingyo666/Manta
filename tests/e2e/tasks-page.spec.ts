@@ -1,0 +1,434 @@
+/**
+ * E2E tests for the Tasks page.
+ *
+ * Verifies that opening the tasks view renders correctly and that the
+ * source controls and close affordance are present.
+ */
+
+import { test, expect } from './helpers/manta-app'
+import { waitForSessionReady, waitForActiveWorktree, getStoreState } from './helpers/store'
+
+type RenderedTaskSource = {
+  source: string
+  active: boolean
+}
+
+type TaskSearchRequestProbe = {
+  countQueries: string[]
+  fetchQueries: string[]
+}
+
+const TASK_SOURCE_BY_LABEL: Record<string, string> = {
+  GitHub: 'github',
+  GitLab: 'gitlab',
+  Linear: 'linear',
+  Jira: 'jira'
+}
+
+async function openTasksPage(page: Parameters<typeof getStoreState>[0]): Promise<void> {
+  await page.evaluate(() => {
+    const store = window.__store
+    if (!store) {
+      throw new Error('window.__store is not available')
+    }
+    store.getState().openTaskPage()
+  })
+}
+
+async function getRenderedTaskSources(
+  page: Parameters<typeof getStoreState>[0]
+): Promise<RenderedTaskSource[]> {
+  return page
+    .locator('[data-contextual-tour-target="tasks-source-filters"] button')
+    .evaluateAll((buttons, sourceByLabel) => {
+      return buttons.flatMap((button) => {
+        const source =
+          button.getAttribute('data-task-source') ??
+          sourceByLabel[button.getAttribute('aria-label')?.trim() ?? '']
+        if (!source) {
+          return []
+        }
+        const active = button.getAttribute('aria-pressed') === 'true'
+        return [{ source, active }]
+      })
+    }, TASK_SOURCE_BY_LABEL)
+}
+
+async function openMockedPaginatedGitHubTasks(
+  page: Parameters<typeof getStoreState>[0]
+): Promise<void> {
+  await page.evaluate(() => {
+    const store = window.__store
+    if (!store) {
+      throw new Error('window.__store is not available')
+    }
+    const repos = store.getState().repos.map((repo, index) =>
+      index === 0
+        ? {
+            ...repo,
+            gitRemoteIdentity: {
+              canonicalKey: 'github.com/example/repo',
+              remoteName: 'origin',
+              remoteUrl: 'https://github.com/example/repo.git'
+            }
+          }
+        : repo
+    )
+    const makePage = (pageNumber: number) =>
+      Array.from({ length: 30 }, (_, index) => ({
+        id: `issue-${pageNumber}-${index + 1}`,
+        type: 'issue' as const,
+        number: pageNumber * 100 + index + 1,
+        title: `Issue page ${pageNumber} item ${index + 1}`,
+        state: 'open' as const,
+        url: `https://github.com/example/repo/issues/${pageNumber * 100 + index + 1}`,
+        labels: [],
+        updatedAt: new Date(1_700_000_000_000 - index * 1_000).toISOString(),
+        author: 'octocat',
+        repoId: repos[0]?.id ?? 'repo-1'
+      }))
+
+    store.setState({
+      repos,
+      getCachedWorkItems: () => makePage(1),
+      prefetchWorkItems: () => {},
+      fetchWorkItemsAcrossRepos: async () => ({
+        items: makePage(1),
+        failedCount: 0,
+        githubUnavailable: false
+      }),
+      fetchWorkItemsNextPage: async (_repos, _perRepoLimit, _displayLimit, _query, pageNumber) => ({
+        items: makePage(pageNumber),
+        failedCount: 0,
+        errorTypes: []
+      }),
+      countWorkItemsAcrossRepos: async () => ({ totalCount: 840, totalPages: 28 })
+    })
+    store.getState().openTaskPage({ taskSource: 'github' })
+  })
+}
+
+async function openInstrumentedGitHubTasksPage(
+  page: Parameters<typeof getStoreState>[0]
+): Promise<void> {
+  await page.evaluate(() => {
+    const store = window.__store
+    if (!store) {
+      throw new Error('window.__store is not available')
+    }
+    const state = store.getState()
+    const activeWorktree = Object.values(state.worktreesByRepo)
+      .flat()
+      .find((worktree) => worktree.id === state.activeWorktreeId)
+    const repo = state.repos.find((candidate) => candidate.id === activeWorktree?.repoId)
+    if (!repo || !state.settings) {
+      throw new Error('GitHub Tasks probe requires a ready repository and settings')
+    }
+    const probe: TaskSearchRequestProbe = { countQueries: [], fetchQueries: [] }
+    ;(
+      window as typeof window & { __taskSearchRequestProbe?: TaskSearchRequestProbe }
+    ).__taskSearchRequestProbe = probe
+    const existingIssue = {
+      id: 'issue:999',
+      type: 'issue' as const,
+      number: 999,
+      title: 'Existing GitHub issue',
+      state: 'open' as const,
+      url: 'https://github.com/manta/e2e/issues/999',
+      labels: [],
+      updatedAt: '2026-08-08T00:00:00Z',
+      author: 'manta-e2e',
+      repoId: repo.id,
+      assignees: [],
+      reviewRequests: []
+    }
+
+    store.setState({
+      repos: state.repos.map((candidate) =>
+        candidate.id === repo.id
+          ? { ...candidate, upstream: { owner: 'manta', repo: 'e2e' } }
+          : candidate
+      ),
+      settings: {
+        ...state.settings,
+        defaultTaskSource: 'github',
+        defaultTaskViewPreset: 'issues',
+        visibleTaskProviders: ['github']
+      },
+      taskResumeState: {
+        ...state.taskResumeState,
+        githubItemsPreset: 'issues',
+        githubItemsQuery: 'is:issue is:open',
+        githubMode: 'items'
+      },
+      prefetchWorkItems: () => undefined,
+      fetchWorkItemsAcrossRepos: async (_repos, _perRepoLimit, _displayLimit, query) => {
+        probe.fetchQueries.push(query)
+        return { items: [existingIssue], failedCount: 0, githubUnavailable: false }
+      },
+      countWorkItemsAcrossRepos: async (_repos, query) => {
+        probe.countQueries.push(query)
+        return { totalCount: 1, totalPages: 1 }
+      }
+    })
+    store
+      .getState()
+      .openTaskPage(
+        { taskSource: 'github', preselectedRepoId: repo.id },
+        { recordTasksInteraction: false }
+      )
+  })
+}
+
+async function readTaskSearchRequestProbe(
+  page: Parameters<typeof getStoreState>[0]
+): Promise<TaskSearchRequestProbe> {
+  return page.evaluate(() => {
+    const probe = (window as typeof window & { __taskSearchRequestProbe?: TaskSearchRequestProbe })
+      .__taskSearchRequestProbe
+    if (!probe) {
+      throw new Error('Task search request probe is not installed')
+    }
+    return { countQueries: [...probe.countQueries], fetchQueries: [...probe.fetchQueries] }
+  })
+}
+
+async function resetTaskSearchRequestProbe(
+  page: Parameters<typeof getStoreState>[0]
+): Promise<void> {
+  await page.evaluate(() => {
+    const probe = (window as typeof window & { __taskSearchRequestProbe?: TaskSearchRequestProbe })
+      .__taskSearchRequestProbe
+    if (!probe) {
+      throw new Error('Task search request probe is not installed')
+    }
+    probe.countQueries.length = 0
+    probe.fetchQueries.length = 0
+  })
+}
+
+test.describe('Tasks page', () => {
+  test.beforeEach(async ({ mantaPage }) => {
+    await waitForSessionReady(mantaPage)
+    await waitForActiveWorktree(mantaPage)
+  })
+
+  test('opening the tasks view renders the tasks UI', async ({ mantaPage }) => {
+    await openTasksPage(mantaPage)
+
+    await expect
+      .poll(async () => getStoreState<string>(mantaPage, 'activeView'), { timeout: 5_000 })
+      .toBe('tasks')
+
+    await expect(mantaPage.getByRole('button', { name: 'Close tasks' })).toBeVisible({
+      timeout: 10_000
+    })
+
+    // Why: source buttons are provider-availability aware in CI; assert the
+    // stable Tasks chrome instead of a GitHub-only tab set.
+    let renderedSources: RenderedTaskSource[] = []
+    await expect
+      .poll(
+        async () => {
+          renderedSources = await getRenderedTaskSources(mantaPage)
+          return renderedSources.length
+        },
+        {
+          timeout: 10_000,
+          message: 'Tasks source controls did not render'
+        }
+      )
+      .toBeGreaterThan(1)
+
+    await expect
+      .poll(
+        async () => {
+          renderedSources = await getRenderedTaskSources(mantaPage)
+          return renderedSources.some((source) => source.active)
+        },
+        {
+          timeout: 5_000,
+          message: 'Active task source did not render'
+        }
+      )
+      .toBe(true)
+    if (renderedSources.some((source) => source.source === 'github' && source.active)) {
+      await expect(mantaPage.getByRole('button', { name: 'Issues', exact: true })).toBeVisible()
+      await expect(mantaPage.getByRole('button', { name: 'PRs', exact: true })).toBeVisible()
+      await expect(mantaPage.getByRole('button', { name: 'Projects', exact: true })).toBeVisible()
+      await expect(mantaPage.getByPlaceholder(/Search GitHub (issues|PRs)/i)).toBeVisible()
+    }
+  })
+
+  test('closing the tasks page returns to the previous view', async ({ mantaPage }) => {
+    const previousView = await getStoreState<string>(mantaPage, 'activeView')
+
+    await openTasksPage(mantaPage)
+    await expect
+      .poll(async () => getStoreState<string>(mantaPage, 'activeView'), { timeout: 5_000 })
+      .toBe('tasks')
+    // Sanity: the tasks UI actually painted before we close it.
+    await expect(mantaPage.getByRole('button', { name: 'Close tasks' })).toBeVisible()
+
+    await mantaPage.getByRole('button', { name: 'Close tasks' }).click()
+
+    await expect
+      .poll(async () => getStoreState<string>(mantaPage, 'activeView'), { timeout: 5_000 })
+      .toBe(previousView)
+    // Why: the load-bearing check is that the previous view's DOM actually
+    // re-rendered — a store-only `activeView` assertion would pass even if the
+    // terminal/editor surface had silently stopped mounting. `.xterm` is the
+    // stable class xterm.js emits on every live terminal pane; if the
+    // previous view was terminal (by far the common case in E2E setup), that
+    // element must be visible. Tasks-close also hides the "Close tasks"
+    // button regardless of previous view, so we assert that too.
+    await expect(mantaPage.getByRole('button', { name: 'Close tasks' })).toHaveCount(0)
+    if (previousView === 'terminal') {
+      await expect(mantaPage.locator('.xterm').first()).toBeVisible({ timeout: 5_000 })
+    }
+  })
+
+  test('reopening restores the GitHub page and scroll position', async ({ mantaPage }) => {
+    await openMockedPaginatedGitHubTasks(mantaPage)
+
+    await mantaPage.getByRole('button', { name: 'Page 28', exact: true }).click()
+    await expect(mantaPage.getByText('Issue page 28 item 1', { exact: true })).toBeVisible()
+
+    const list = mantaPage.locator('[data-task-list-scroll="github"]')
+    await list.evaluate((element) => {
+      element.scrollTop = 360
+      element.dispatchEvent(new Event('scroll'))
+    })
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(300)
+
+    await mantaPage.getByRole('button', { name: 'Close tasks' }).click()
+    await expect(list).toHaveCount(0)
+    const clampedRowsStyle = await mantaPage.addStyleTag({
+      content:
+        '[data-task-list-scroll="github"] > .divide-y { max-height: 0 !important; overflow: hidden !important; }'
+    })
+    await openTasksPage(mantaPage)
+
+    await expect(mantaPage.getByRole('button', { name: 'Page 28', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    const restoredList = mantaPage.locator('[data-task-list-scroll="github"]')
+    await expect.poll(() => restoredList.evaluate((element) => element.scrollTop)).toBe(0)
+    await clampedRowsStyle.evaluate((element) => element.remove())
+    await expect(mantaPage.getByText('Issue page 28 item 1', { exact: true })).toBeVisible()
+    await expect
+      .poll(() => restoredList.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(300)
+
+    await mantaPage.getByText('Issue page 28 item 12', { exact: true }).click()
+    await expect(restoredList).toHaveCount(0)
+    await expect
+      .poll(async () => {
+        const position = await getStoreState<{ scrollTop: number }>(mantaPage, 'taskListPosition')
+        return position.scrollTop
+      })
+      .toBeGreaterThan(300)
+    await mantaPage.getByRole('button', { name: 'GitHub list', exact: true }).click()
+    await expect(mantaPage.getByText('Issue page 28 item 1', { exact: true })).toBeVisible()
+    await expect
+      .poll(() => restoredList.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(300)
+
+    await mantaPage.getByRole('button', { name: 'Close tasks' }).click()
+    const pendingRestoreStyle = await mantaPage.addStyleTag({
+      content:
+        '[data-task-list-scroll="github"] > .divide-y { max-height: 0 !important; overflow: hidden !important; }'
+    })
+    await openTasksPage(mantaPage)
+    await expect(mantaPage.getByRole('button', { name: 'Page 28', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    await mantaPage.getByRole('button', { name: 'Page 1', exact: true }).click()
+    await pendingRestoreStyle.evaluate((element) => element.remove())
+    await expect(mantaPage.getByRole('button', { name: 'Page 1', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    await expect
+      .poll(() =>
+        mantaPage
+          .locator('[data-task-list-scroll="github"]')
+          .evaluate((element) => element.scrollTop)
+      )
+      .toBe(0)
+
+    await mantaPage.getByRole('button', { name: 'Page 28', exact: true }).click()
+    await expect(mantaPage.getByText('Issue page 28 item 1', { exact: true })).toBeVisible()
+    await restoredList.evaluate((element) => {
+      element.scrollTop = 360
+      element.dispatchEvent(new Event('scroll'))
+    })
+    await expect
+      .poll(() => restoredList.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(300)
+    await mantaPage.getByRole('button', { name: 'Close tasks' }).click()
+
+    const permanentlyClampedRowsStyle = await mantaPage.addStyleTag({
+      content:
+        '[data-task-list-scroll="github"] > .divide-y { max-height: 0 !important; overflow: hidden !important; }'
+    })
+    await openTasksPage(mantaPage)
+    await expect(mantaPage.getByRole('button', { name: 'Page 28', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    await mantaPage.waitForTimeout(5_500)
+    await mantaPage.getByRole('button', { name: 'Close tasks' }).click()
+    await expect
+      .poll(async () => {
+        const position = await getStoreState<{ scrollTop: number }>(mantaPage, 'taskListPosition')
+        return position.scrollTop
+      })
+      .toBe(0)
+    await permanentlyClampedRowsStyle.evaluate((element) => element.remove())
+  })
+
+  test('GitHub search waits for idle, keeps rows visible, and Enter does not double-fetch', async ({
+    mantaPage
+  }) => {
+    await openInstrumentedGitHubTasksPage(mantaPage)
+
+    const input = mantaPage.getByPlaceholder('Search GitHub issues...')
+    const existingIssue = mantaPage.getByText('Existing GitHub issue', { exact: true })
+    await expect(input).toBeVisible()
+    await expect(existingIssue).toBeVisible()
+
+    await input.fill('')
+    await mantaPage.waitForTimeout(800)
+    await resetTaskSearchRequestProbe(mantaPage)
+
+    await input.pressSequentially('rate', { delay: 400 })
+
+    expect(await readTaskSearchRequestProbe(mantaPage)).toEqual({
+      countQueries: [],
+      fetchQueries: []
+    })
+    await expect(existingIssue).toBeVisible()
+
+    await expect
+      .poll(async () => readTaskSearchRequestProbe(mantaPage), { timeout: 2_000 })
+      .toEqual({ countQueries: ['is:issue rate'], fetchQueries: ['is:issue rate'] })
+
+    await resetTaskSearchRequestProbe(mantaPage)
+    await input.pressSequentially('x')
+    await input.press('Enter')
+
+    await expect
+      .poll(async () => readTaskSearchRequestProbe(mantaPage), { timeout: 2_000 })
+      .toEqual({ countQueries: ['is:issue ratex'], fetchQueries: ['is:issue ratex'] })
+    await mantaPage.waitForTimeout(800)
+    expect(await readTaskSearchRequestProbe(mantaPage)).toEqual({
+      countQueries: ['is:issue ratex'],
+      fetchQueries: ['is:issue ratex']
+    })
+    await expect(input).toHaveValue('is:issue ratex')
+    await expect(existingIssue).toBeVisible()
+  })
+})
