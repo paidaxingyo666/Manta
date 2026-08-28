@@ -37,7 +37,7 @@ import { setSpeechServiceFactories } from './speech/speech-runtime-service'
 import { setWorktreeWatcherRemoval } from './ipc/worktree-watcher-removal'
 import { setSecretStore } from '../shared/secret-store'
 import { ElectronSecretStore } from './host/electron-secret-store'
-import { reportSecretProtectionGap } from './host/secret-protection-report'
+import { scheduleSecretProtectionGapReport } from './host/deferred-secret-protection-report'
 import { initSessionParseCachePersistence } from './ai-vault/session-parse-cache-persistence'
 import {
   ensureActiveMantaProfile,
@@ -2376,11 +2376,14 @@ void app.whenReady().then(async () => {
     dataFile: activeMantaProfile.dataFile,
     storageAuthority: isServeMode ? 'runtime' : 'desktop'
   })
-  // Why here and not at install time: the report remembers what it last said, and that
-  // state lives beside the profile data file, which does not exist until now.
-  reportSecretProtectionGap({
+  // Why armed here and not at install time: the report remembers what it last said, and
+  // that state lives beside the profile data file, which does not exist until now.
+  // Why scheduled and not called: the report probes the OS keyring, which blocks on Linux
+  // and must not gate the first window (STA-5765).
+  scheduleSecretProtectionGapReport({
     dataFile: activeMantaProfile.dataFile,
-    force: process.env.MANTA_ALWAYS_REPORT_SECRET_PROTECTION === '1'
+    force: process.env.MANTA_ALWAYS_REPORT_SECRET_PROTECTION === '1',
+    deferUntilFirstWindow: !isServeMode
   })
   // Why here: the host key store is a sidecar of the same profile, and every SSH connect consults
   // it. Left unbound it reports nothing trusted, which is safe but silently discards our own
