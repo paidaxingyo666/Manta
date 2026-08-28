@@ -7,7 +7,11 @@ describe('getMantaElectronLaunchArgs', () => {
     const root = join('workspace', 'manta')
     const mainPath = join(root, 'out', 'main', 'index.js')
 
-    expect(getMantaElectronLaunchArgs(mainPath, true)).toEqual([root])
+    const args = getMantaElectronLaunchArgs(mainPath, true)
+    expect(args.at(-1)).toBe(root)
+    if (process.platform === 'darwin') {
+      expect(args.slice(0, -1)).toEqual(['--password-store=basic', '--use-mock-keychain'])
+    }
     expect(getMantaElectronLaunchArgs(mainPath, false).at(-1)).toBe(root)
   })
 })

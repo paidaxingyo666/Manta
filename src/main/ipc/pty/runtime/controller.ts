@@ -27,6 +27,7 @@ import {
   resizePtyFromRuntimeController,
   serializeProviderBufferFromRuntimeController,
   waitForRendererSerializerFromRuntimeController,
+  writePtyAgentSessionProofFromRuntimeController,
   writePtyFromRuntimeController
 } from './operations'
 
@@ -41,7 +42,9 @@ export function installPtyRuntimeController(deps: PtyRuntimeControllerDeps): voi
     },
     adoptStablePane,
     spawn: async (args) => spawnPtyFromRuntimeController(deps, args),
-    write: (ptyId, data) => writePtyFromRuntimeController(ptyId, data),
+    write: (ptyId, data) => writePtyFromRuntimeController(deps, ptyId, data),
+    writeAgentSessionProof: (ptyId, data, authority) =>
+      writePtyAgentSessionProofFromRuntimeController(ptyId, data, authority),
     probePtyLiveness: (ptyId) => probePtyLivenessFromRuntimeController(deps, ptyId),
     // Why: subscriber-driven ingestion for daemon sessions no renderer pane
     // ever attached. Local daemon sessions only — SSH panes have their own

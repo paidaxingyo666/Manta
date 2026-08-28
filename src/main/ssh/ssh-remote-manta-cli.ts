@@ -4,8 +4,9 @@ import { randomUUID } from 'node:crypto'
 import type { RuntimeOrchestrationEnvelope } from '../../shared/runtime-rpc-envelope'
 import { readOrchestrationCompatibilityEvidence } from '../../shared/orchestration-compatibility-evidence'
 import { ORCHESTRATION_CONTRACT_VERSION } from '../../shared/protocol-version'
-import { RpcDispatcher } from '../runtime/rpc/dispatcher'
 import type { RpcResponse } from '../runtime/rpc/core'
+import { RpcDispatcher } from '../runtime/rpc/dispatcher'
+import { ALL_RPC_METHODS } from '../runtime/rpc/methods'
 import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import {
   HostCliUnavailableError,
@@ -101,7 +102,7 @@ async function runLegacyRemoteMantaCli(
   json: boolean,
   passthroughFailure: HostCliUnavailableError
 ): Promise<RemoteMantaCliResult> {
-  const dispatcher = new RpcDispatcher({ runtime })
+  const dispatcher = new RpcDispatcher({ runtime, methods: ALL_RPC_METHODS })
   const help = getRemoteLinearHelp(parsed)
   if (help) {
     return { stdout: `${help}\n`, stderr: '', exitCode: 0 }

@@ -13,6 +13,7 @@ import {
   type RuntimeMetadataOwnershipWatch
 } from './runtime-metadata-ownership-watch'
 import { RpcDispatcher } from './rpc/dispatcher'
+import { ALL_RPC_METHODS } from './rpc/methods'
 import type { RpcAnyMethod, RpcRequest, RpcResponse } from './rpc/core'
 import { errorResponse } from './rpc/errors'
 import { fingerprintAuthenticatedPairingCredential } from './rpc/orchestration-mutation-executor'
@@ -597,7 +598,7 @@ export class MantaRuntimeRpcServer {
     methods
   }: MantaRuntimeRpcServerOptions) {
     this.runtime = runtime
-    this.dispatcher = new RpcDispatcher({ runtime, methods })
+    this.dispatcher = new RpcDispatcher({ runtime, methods: methods ?? ALL_RPC_METHODS })
     this.userDataPath = userDataPath
     this.pid = pid
     this.platform = platform
