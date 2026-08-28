@@ -15425,6 +15425,7 @@
           "showMore": "Show more"
         },
         "AutomationDetail": {
+          "host": "Host",
           "007c8ad874": "Prompt",
           "a1d52c2189": "Usage coverage",
           "449fc83bf7": "Tokens",
@@ -15593,6 +15594,9 @@
           "b11170a008": "Failed to save automation.",
           "2a20596d6b": "Automation saved.",
           "244727e655": "Automation updated.",
+          "moved": "Automation moved to {host}.",
+          "moveOriginalKept": "Created on {host}, but the original could not be deleted. Remove it on the old host.",
+          "moveOriginalUnverified": "Created on {host}, but the original deletion could not be verified. Check the old host before retrying.",
           "77b81bc4ac": "Hermes automation created.",
           "08efc3ae12": "Hermes automation updated.",
           "e431bb85d4": "Choose a workspace on the same host as this Hermes automation.",
@@ -15898,16 +15902,17 @@
           "occurrences": "{{times}} times"
         },
         "createDestination": {
-          "label": "Create on",
+          "label": "Host",
           "placeholder": "Select a host",
           "storedOn": "Stored and scheduled by {authority}.",
-          "unselected": "Choose the host this automation will be created on.",
+          "unselected": "Choose the host that stores and schedules this automation.",
           "orphan": "Automations with no host cannot hold new ones. Choose a host to create this automation on.",
           "unavailable": "That host cannot hold a new automation yet. Choose another host to create this one on.",
           "stale": "{host} changed while this form was open. Choose it again before saving.",
           "projectMismatch": "That project is not on {host}. Choose a project on that host, or another host.",
           "noProjects": "No projects are set up on {host}. Add one there, or choose another host.",
-          "updateRequired": "Update the Manta server on {hosts} to create automations there."
+          "updateRequired": "Update the Manta server on {hosts} to store automations there.",
+          "move": "Saving creates this automation on {host} and deletes the original and its run history."
         }
       },
       "agent": {

@@ -4375,6 +4375,7 @@ export class MantaRuntimeService {
       throw new Error('Session reuse requires an existing workspace target.')
     }
     const createInput: AutomationCreateInput = {
+      creationKey: input.creationKey,
       name: input.name,
       prompt: input.prompt,
       precheck: input.precheck,

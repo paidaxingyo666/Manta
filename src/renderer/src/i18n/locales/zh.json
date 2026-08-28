@@ -13879,6 +13879,7 @@
           "showMore": "显示更多"
         },
         "AutomationDetail": {
+          "host": "主机",
           "007c8ad874": "提示词",
           "a1d52c2189": "使用范围",
           "449fc83bf7": "token",
@@ -14042,6 +14043,9 @@
           "b11170a008": "无法保存自动化。",
           "2a20596d6b": "自动化已保存。",
           "244727e655": "自动化已更新。",
+          "moved": "自动化已移动到 {host}。",
+          "moveOriginalKept": "已在 {host} 上创建，但无法删除原有自动化。请在原主机上删除它。",
+          "moveOriginalUnverified": "已在 {host} 上创建，但无法确认是否删除了原有自动化。重试前请检查原主机。",
           "77b81bc4ac": "Hermes 自动化创建。",
           "08efc3ae12": "Hermes 自动化已更新。",
           "e431bb85d4": "选择与此 Hermes 自动化位于同一主机上的工作区。",
@@ -14238,6 +14242,19 @@
           "filters": "筛选器",
           "clear": "清除筛选器",
           "removeFilter": "移除 {{value0}} 筛选器"
+        },
+        "createDestination": {
+          "label": "主机",
+          "placeholder": "选择主机",
+          "storedOn": "由 {authority} 存储和调度。",
+          "unselected": "选择存储和调度此自动化的主机。",
+          "orphan": "没有主机的自动化无法容纳新的自动化。请选择要在其上创建此自动化的主机。",
+          "unavailable": "该主机尚无法容纳新的自动化。请选择另一台主机来创建它。",
+          "stale": "此表单打开期间 {host} 已更改。保存前请重新选择。",
+          "projectMismatch": "该项目不在 {host} 上。请选择该主机上的项目，或选择另一台主机。",
+          "noProjects": "{host} 上未设置任何项目。请在该主机上添加一个，或选择另一台主机。",
+          "updateRequired": "更新 {hosts} 上的 Orca 服务器即可在其中存储自动化。",
+          "move": "保存后会在 {host} 上创建此自动化，并删除原有自动化及其运行历史。"
         }
       },
       "agent": {
