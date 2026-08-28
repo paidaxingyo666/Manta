@@ -60,7 +60,7 @@ export function installPtyRuntimeController(deps: PtyRuntimeControllerDeps): voi
     getCwd: (ptyId) => getCwdFromRuntimeController(ptyId),
     hasChildProcesses: (ptyId) => hasChildProcessesFromRuntimeController(ptyId),
     clearBuffer: (ptyId) => clearBufferFromRuntimeController(deps, ptyId),
-    hasPty: (ptyId) => hasPtyFromRuntimeController(ptyId),
+    hasPty: (ptyId) => hasPtyFromRuntimeController(deps, ptyId),
     listProcesses: (connectionId, opts) =>
       listProcessesFromRuntimeController(deps, connectionId, opts),
     listProcessesWithHostScope: (opts) =>

@@ -152,8 +152,35 @@ export async function clearBufferFromRuntimeController(
   }
 }
 
-export function hasPtyFromRuntimeController(ptyId: string): boolean | null {
+const settledLocalPtyProviderStartups = new WeakSet<Promise<void>>()
+const watchedLocalPtyProviderStartups = new WeakSet<Promise<void>>()
+
+export function hasPtyFromRuntimeController(
+  deps: PtyRuntimeControllerDeps,
+  ptyId: string
+): boolean | null {
   try {
+    // Why: no locally routed provider can authoritatively answer for a
+    // remote host's PTY, so remote-scoped ids stay unknown, never absent.
+    if (ptyId.startsWith('remote:')) {
+      return null
+    }
+    const connectionId = ptyOwnership.get(ptyId) ?? parseAppSshPtyId(ptyId)?.connectionId
+    const startupPromise = deps.getLocalPtyProviderStartupPromise(connectionId)
+    if (startupPromise && !settledLocalPtyProviderStartups.has(startupPromise)) {
+      // Why: a sync probe cannot wait out the cold-start daemon swap the way
+      // probePtyLiveness does, and the pre-swap provider's "no PTY" for a
+      // daemon-restored id is fabricated — answer unverifiable until the swap
+      // settles (docs/reference/ssh-execution-boundary.md rule 2).
+      if (!watchedLocalPtyProviderStartups.has(startupPromise)) {
+        watchedLocalPtyProviderStartups.add(startupPromise)
+        const markSettled = (): void => {
+          settledLocalPtyProviderStartups.add(startupPromise)
+        }
+        startupPromise.then(markSettled, markSettled)
+      }
+      return null
+    }
     return getProviderForPty(ptyId).hasPty?.(ptyId) ?? null
   } catch {
     return null
