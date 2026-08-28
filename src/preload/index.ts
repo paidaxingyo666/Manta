@@ -1671,6 +1671,15 @@ const api = {
     }): Promise<{ ok: true } | { ok: false; error: string }> =>
       ipcRenderer.invoke('gh:updatePRState', args),
 
+    markPRReadyForReview: (args: {
+      repoPath: string
+      repoId?: string
+      sourceContext?: TaskSourceContext | null
+      prNumber: number
+      prRepo?: GitHubOwnerRepo | null
+    }): Promise<{ ok: true } | { ok: false; error: string }> =>
+      ipcRenderer.invoke('gh:markPRReadyForReview', args),
+
     requestPRReviewers: (args: {
       repoPath: string
       repoId?: string
