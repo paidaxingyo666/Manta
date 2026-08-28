@@ -149,8 +149,13 @@ export function registerWorktreeCatalogHandlers(context: WorktreeIpcContext): vo
     return getRetiredNameRegistryForRepo(store, repo, store.getRepos(), store.getSettings())
   })
 
-  ipcMain.handle('worktrees:list', async (_event, args: { repoId: string }) => {
-    const repo = store.getRepo(args.repoId)
+  ipcMain.handle('worktrees:list', async (_event, args: { repoId: string } | undefined) => {
+    // Renderer startup can race repo selection; malformed requests must fail closed, not crash the handler.
+    const repoId = typeof args?.repoId === 'string' ? args.repoId : ''
+    if (!repoId) {
+      return []
+    }
+    const repo = store.getRepo(repoId)
     if (!repo) {
       return []
     }

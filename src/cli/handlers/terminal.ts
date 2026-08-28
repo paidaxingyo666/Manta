@@ -115,6 +115,9 @@ export const TERMINAL_HANDLERS: Record<string, CommandHandler> = {
       client: { id: 'manta-cli', type: 'desktop' }
     })
     printResult(result, json, formatTerminalSend)
+    if (!result.result.send.accepted) {
+      process.exitCode = 1
+    }
   },
   'terminal wait': async ({ flags, client, cwd, json }) => {
     const timeoutMs = getOptionalPositiveIntegerFlag(flags, 'timeout-ms')
