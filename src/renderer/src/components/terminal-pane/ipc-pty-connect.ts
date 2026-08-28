@@ -4,6 +4,7 @@ import { ensurePtyDispatcher } from './pty-dispatcher'
 import {
   clearConsumedPreHandlerPtyExit,
   currentPreHandlerPtySequence,
+  discardPreHandlerPtyExitFromForeignIncarnation,
   discardPreHandlerPtyStateFromPriorIncarnation,
   hasPreHandlerPtyExit,
   isPreHandlerPtyStateDiscarded
@@ -93,6 +94,10 @@ export async function connectIpcPty(
       context.getCallbacks().onReattachDetermined?.()
     }
 
+    // Why unconditional: this runs on identity, not timing. Whatever we attached to — fresh,
+    // reattach or cold restore — an exit naming a different incarnation of the id is not ours, so
+    // it is safe to drop even for the reattach the fence below deliberately leaves alone.
+    discardPreHandlerPtyExitFromForeignIncarnation(spawnResult.id, spawnResult.incarnationId)
     if (!admittedSessionId && !spawnResult.isReattach && !spawnResult.coldRestore) {
       // Why only a fresh spawn: a reattach deliberately re-owns an id that already existed, so its
       // buffered exit is the real thing. A fresh spawn's PTY did not exist yet.
@@ -103,7 +108,7 @@ export async function connectIpcPty(
       onPtySpawn?.(spawnResult.id)
     }
     handlers.registerData(spawnResult.id)
-    const exitedBeforeAttach = handlers.registerExit(spawnResult.id)
+    const exitedBeforeAttach = handlers.registerExit(spawnResult.id, spawnResult.incarnationId)
     if (exitedBeforeAttach) {
       return { id: spawnResult.id, exitedBeforeAttach: true }
     }
