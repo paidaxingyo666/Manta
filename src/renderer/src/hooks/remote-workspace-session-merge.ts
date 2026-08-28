@@ -36,12 +36,19 @@ export function mergeDirectSshRemoteWorkspaceSession(
   const locallyPreservedTabIds = new Set<string>()
   const localTabsFor = (worktreeId: string): TerminalTab[] =>
     liveTabsByWorktree[worktreeId] ?? current.tabsByWorktree[worktreeId] ?? []
+  // Why presence and not length: an explicit empty row is the record that the user closed the last
+  // terminal (initial-terminal.ts), and localTabsFor cannot tell it from an absent one. Admitting
+  // only non-empty rows dropped the key, which reads downstream as "never initialized" and seeds a
+  // fresh terminal on every reconnect.
+  const hasLocalTabsRow = (worktreeId: string): boolean =>
+    Object.hasOwn(liveTabsByWorktree, worktreeId) ||
+    Object.hasOwn(current.tabsByWorktree, worktreeId)
   // Why the union and not just the remote keys: a host snapshot that has never been told about this
   // worktree carries no entry for it at all, and iterating only its keys would drop every local tab
   // through the omit below.
   const mergedWorktreeIds = new Set([
     ...Object.keys(remote.tabsByWorktree),
-    ...[...replaceWorktreeIds].filter((worktreeId) => localTabsFor(worktreeId).length > 0)
+    ...[...replaceWorktreeIds].filter(hasLocalTabsRow)
   ])
   // The active worktree is walked FIRST so that when one tab id is held locally under two of them,
   // the copy that survives below is the one the user is looking at. That matches what
@@ -255,7 +262,11 @@ export function mergeDirectSshRemoteWorkspaceSession(
       ...remote.lastVisitedAtByWorktreeId
     },
     defaultTerminalTabsAppliedByWorktreeId: {
-      ...omitTargetWorktrees(current.defaultTerminalTabsAppliedByWorktreeId),
+      // Why no omit here: the marker is write-once and is the only guard on applyDefaultTerminalTabs,
+      // so a snapshot that omits it is a host that was never told rather than one reporting the tabs
+      // were never applied — omitting the local entry re-applies the whole template over the user's
+      // tabs. Removal is the worktree-teardown path's job, not a reconnect's.
+      ...current.defaultTerminalTabsAppliedByWorktreeId,
       ...remote.defaultTerminalTabsAppliedByWorktreeId
     }
   }
