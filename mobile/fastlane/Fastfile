@@ -40,6 +40,12 @@ NSE_BUNDLE_ID = "cn.sh.manta.mobile.NotificationService"
 # here, after ios-build has already done its job.
 TESTFLIGHT_GROUPS = ["外部测试"].freeze
 DEFAULT_TESTFLIGHT_CHANGELOG = "Latest Manta Mobile updates and fixes.".freeze
+# App Store Connect refuses an external-testing submission while Test Information
+# is blank ("Beta App Description is required to submit a build for external
+# testing"). Every distribute run failed there from the first release onward,
+# after the build itself had uploaded fine. Sent on each run, so a fresh app — or
+# one whose field was cleared — needs no console visit.
+BETA_APP_DESCRIPTION = "Manta Mobile pairs with the Manta desktop app over your own relay: watch agent sessions, read chat transcripts, and reply from your phone.".freeze
 TESTFLIGHT_PROCESSING_TIMEOUT_SECONDS = 20 * 60
 
 # App Store version states in which the version "train" is terminally closed to
@@ -83,6 +89,19 @@ end
 
 def current_mobile_version(config)
   config.fetch("expo").fetch("version")
+end
+
+# Why an env var rather than a constant: Test Information wants a reachable
+# address, and a personal one does not belong in the repo. Only the description
+# is required for external submission, so an unset address is fine.
+#
+# nil, never "": pilot guards this field with a bare truthiness check
+# (`default_info[:feedback_email] = … if options[:beta_app_feedback_email]`), and
+# an empty string is truthy in Ruby — it would submit a blank address as if it
+# were one, which App Store Connect rejects.
+def beta_feedback_email
+  value = ENV.fetch("TESTFLIGHT_FEEDBACK_EMAIL", "").strip
+  value.empty? ? nil : value
 end
 
 def testflight_changelog
@@ -312,6 +331,8 @@ platform :ios do
       groups: TESTFLIGHT_GROUPS,
       notify_external_testers: true,
       changelog: testflight_changelog,
+      beta_app_description: BETA_APP_DESCRIPTION,
+      beta_app_feedback_email: beta_feedback_email,
     )
   end
 

@@ -1526,13 +1526,30 @@ export class AgentHookServer {
     ) {
       return previous
     }
+    // Why: when the fence has already refused this post's agentType, its session id
+    // is the same overreach one field over — providerSession rides the envelope, so
+    // it reaches lastStatusByPaneKey untouched while agentType is rewritten. A codex
+    // subagent that inherits its parent's MANTA_PANE_KEY thereby repoints the pane's
+    // chat at its own rollout transcript.
+    //
+    // Carried forward, never blanked. Blanking would disarm the fence (the next post
+    // finds no incumbent session to be refused against) and strand the pane for
+    // noteSessionContinued, which locates panes by `previous?.id !== from` — the
+    // 27-hour freeze class this repo just fixed.
+    //
+    // Gated on inheritedFromActivePane, not on the agentType comparison below: an
+    // absent or unknown incoming agentType also lands in that branch, and the fence
+    // did not fire for it.
+    const fencedPayload = identity.inheritedFromActivePane
+      ? { ...rootContextPreservingPayload, providerSession: previous?.providerSession }
+      : rootContextPreservingPayload
     const identityResolvedPayload =
-      identity.agentType === rootContextPreservingPayload.payload.agentType
-        ? rootContextPreservingPayload
+      identity.agentType === fencedPayload.payload.agentType
+        ? fencedPayload
         : {
-            ...rootContextPreservingPayload,
+            ...fencedPayload,
             payload: {
-              ...rootContextPreservingPayload.payload,
+              ...fencedPayload.payload,
               agentType: identity.agentType
             }
           }
