@@ -89,20 +89,20 @@ issues `adb shell input` events; AVD names resolve to running adb serials.
 Use `--json` for agent-friendly output. Coordinates are **normalized 0..1**
 (top-left origin) — never pixels; Manta converts using the live screen size.
 
-| Goal                       | Command                                                        | Notes |
-|----------------------------|----------------------------------------------------------------|-------|
-| List devices + AVDs        | `MANTA emulator devices --json`                                 | Cross-platform; shows iOS + Android with a platform column, booted vs shutdown. |
-| Single tap                 | `MANTA emulator tap <x> <y> --device <serial>`                  | Normalized 0..1. Preferred for single taps. |
-| Swipe / gesture            | `MANTA emulator gesture '<json>' --device <serial>`             | adb approximates the path by its endpoints (start→end). |
-| Type text                  | `MANTA emulator type "user@example.com" --device <serial>`      | US ASCII; spaces handled. No newlines. |
-| Hardware button            | `MANTA emulator button back --device <serial>`                  | home, back, recents, power, volume_up, volume_down. |
-| Rotate                     | `MANTA emulator rotate landscape_left --device <serial>`        | Sets user_rotation (disables auto-rotate). |
-| Install an APK             | `MANTA emulator install ./app-debug.apk --reinstall --device <serial>` | `--reinstall` passes `-r`. |
-| Launch an app              | `MANTA emulator launch com.acme.app --activity .MainActivity --device <serial>` | Omit `--activity` to launch the default LAUNCHER activity. |
-| Grant a permission         | `MANTA emulator permissions grant com.acme.app android.permission.CAMERA --device <serial>` | grant / revoke / reset. |
-| Accessibility tree         | `MANTA emulator ax --device <serial> --json`                    | `uiautomator dump` parsed to a node tree. |
-| Logcat (one-shot)          | `MANTA emulator logcat --lines 200 --device <serial>`           | Dumps recent lines; parsed to entries. |
-| Raw adb shell              | `MANTA emulator exec --command "getprop ro.build.version.sdk" --device <serial>` | Runs `adb -s <serial> shell <command>`. |
+| Goal                | Command                                                                                    | Notes                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| List devices + AVDs | `MANTA emulator devices --json`                                                             | Cross-platform; shows iOS + Android with a platform column, booted vs shutdown. |
+| Single tap          | `MANTA emulator tap <x> <y> --device <serial>`                                              | Normalized 0..1. Preferred for single taps.                                     |
+| Swipe / gesture     | `MANTA emulator gesture '<json>' --device <serial>`                                         | adb approximates the path by its endpoints (start→end).                         |
+| Type text           | `MANTA emulator type "user@example.com" --device <serial>`                                  | US ASCII; spaces handled. No newlines.                                          |
+| Hardware button     | `MANTA emulator button back --device <serial>`                                              | home, back, recents, power, volume_up, volume_down.                             |
+| Rotate              | `MANTA emulator rotate landscape_left --device <serial>`                                    | Sets user_rotation (disables auto-rotate).                                      |
+| Install an APK      | `MANTA emulator install ./app-debug.apk --reinstall --device <serial>`                      | `--reinstall` passes `-r`.                                                      |
+| Launch an app       | `MANTA emulator launch com.acme.app --activity .MainActivity --device <serial>`             | Omit `--activity` to launch the default LAUNCHER activity.                      |
+| Grant a permission  | `MANTA emulator permissions grant com.acme.app android.permission.CAMERA --device <serial>` | grant / revoke / reset.                                                         |
+| Accessibility tree  | `MANTA emulator ax --device <serial> --json`                                                | `uiautomator dump` parsed to a node tree.                                       |
+| Logcat (one-shot)   | `MANTA emulator logcat --lines 200 --device <serial>`                                       | Dumps recent lines; parsed to entries.                                          |
+| Raw adb shell       | `MANTA emulator exec --command "getprop ro.build.version.sdk" --device <serial>`            | Runs `adb -s <serial> shell <command>`.                                         |
 
 ## Critical gotchas (teach agents)
 

@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Download, Loader2, ShieldCheck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Loader2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useAppStore } from '@/store'
 import type {
   SkillInstallDestination,
@@ -29,9 +22,10 @@ import {
 } from './SkillInstallReviewContent'
 import { notifyInstalledAgentSkillsChanged } from '@/hooks/useInstalledAgentSkills'
 import { useSkillInstallProgress } from './skill-install-progress-state'
-import { skillInstallDialogCopy } from './skill-install-dialog-copy'
+import { translate } from '@/i18n/i18n'
 import { resolveSkillShareForInstall } from './skill-warning-preview-gate'
 import { useSkillInstallRisk } from './use-skill-install-risk'
+import { SkillInstallDialogFooter } from './SkillInstallDialogFooter'
 
 export function SkillInstallDialog({
   open,
@@ -42,7 +36,6 @@ export function SkillInstallDialog({
   onOpenChange: (open: boolean) => void
   initialLink?: string
 }): React.JSX.Element {
-  const copy = skillInstallDialogCopy()
   const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
   const runtimeStatus = useAppStore((state) => state.runtimeStatusByEnvironmentId)
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
@@ -92,7 +85,12 @@ export function SkillInstallDialog({
   const resolveLink = useCallback(async (value: string): Promise<void> => {
     const shareId = parseSkillShareId(value)
     if (!shareId) {
-      setError(copy.enterShareLink)
+      setError(
+        translate(
+          'auto.components.skills.install.enterShareLink',
+          'Enter an Orca skill share link.'
+        )
+      )
       return
     }
     setBusy(true)
@@ -104,18 +102,26 @@ export function SkillInstallDialog({
         setError(
           operation.status === 'unconfigured'
             ? operation.message
-            : copy.shareUnavailable
+            : translate(
+                'auto.components.skills.install.shareUnavailable',
+                'This share is unavailable. The link may be invalid, expired, or revoked.'
+              )
         )
         return
       }
       setPreview({ shareId, version: operation.value.version })
     } catch (cause) {
       console.warn('[skills] share resolution failed:', cause)
-      setError(copy.shareUnavailable)
+      setError(
+        translate(
+          'auto.components.skills.install.shareUnavailable',
+          'This share is unavailable. The link may be invalid, expired, or revoked.'
+        )
+      )
     } finally {
       setBusy(false)
     }
-  }, [copy.enterShareLink, copy.shareUnavailable])
+  }, [])
 
   const inspect = (): Promise<void> => resolveLink(link)
 
@@ -139,7 +145,7 @@ export function SkillInstallDialog({
     }
     const choice = workspaceChoices.find((candidate) => candidate.id === workspace)
     if (scope === 'workspace' && !choice) {
-      setError(copy.chooseWorkspace)
+      setError(translate('auto.components.skills.install.chooseWorkspace', 'Choose a workspace.'))
       return
     }
     setBusy(true)
@@ -205,7 +211,10 @@ export function SkillInstallDialog({
       if (operation.status !== 'ok') {
         setError(
           operation.status === 'reconnect-required'
-            ? copy.reconnectBeforeInstalling
+            ? translate(
+                'auto.components.skills.install.reconnectBeforeInstalling',
+                'Reconnect your Orca account before installing.'
+              )
             : operation.message
         )
         return
@@ -217,7 +226,10 @@ export function SkillInstallDialog({
     } catch (cause) {
       console.warn('[skills] install failed:', cause)
       setError(
-        copy.requestedVersionVerificationFailed
+        translate(
+          'auto.components.skills.install.requestedVersionVerificationFailed',
+          'Installation failed before Orca could verify the requested version.'
+        )
       )
     } finally {
       installProgress.finish()
@@ -234,7 +246,12 @@ export function SkillInstallDialog({
       ...(environmentId === 'local' || environmentId.startsWith('ssh:') ? {} : { environmentId })
     })
     if (!cancelled.cancelled) {
-      setError(copy.destinationAlreadyFinished)
+      setError(
+        translate(
+          'auto.components.skills.install.destinationAlreadyFinished',
+          'The destination had already finished this installation.'
+        )
+      )
     }
   }
 
@@ -266,8 +283,14 @@ export function SkillInstallDialog({
         <DialogHeader>
           <DialogTitle>
             {bundleVersion
-              ? copy.k01c5a14e01
-              : copy.fcbec627cc}
+              ? translate(
+                  'auto.components.skills.SkillInstallDialog.01c5a14e01',
+                  'Install shared skills'
+                )
+              : translate(
+                  'auto.components.skills.SkillInstallDialog.fcbec627cc',
+                  'Install shared skill'
+                )}
           </DialogTitle>
         </DialogHeader>
 
@@ -276,7 +299,7 @@ export function SkillInstallDialog({
           // before being replaced by a review the caller already asked for.
           <p className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
-            {copy.opening}
+            {translate('auto.components.skills.SkillInstallDialog.opening', 'Opening this link…')}
           </p>
         ) : !preview ? (
           <SkillShareLinkInputForm
@@ -345,50 +368,21 @@ export function SkillInstallDialog({
             {installProgress.phaseLabel}
           </p>
         ) : null}
-        {!bundleVersion ? (
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={close} disabled={busy}>
-              {copy.d198ec91e5}
-            </Button>
-            {!preview && !resolvingInitialLink ? (
-              <Button type="button" disabled={busy || !link.trim()} onClick={() => void inspect()}>
-                {busy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <ShieldCheck className="size-4" />
-                )}
-                {busy
-                  ? copy.k69236de8d6
-                  : copy.k157de228b4}
-              </Button>
-            ) : null}
-            {busy && installProgress.activeOperationId ? (
-              <Button type="button" variant="secondary" onClick={() => void cancelInstall()}>
-                {copy.k05588076a9}
-              </Button>
-            ) : null}
-            {preview &&
-            (!result || ['conflict', 'partial', 'failed', 'cancelled'].includes(result.status)) ? (
-              <Button
-                type="button"
-                disabled={busy || (scope === 'workspace' && !workspace)}
-                onClick={() => void install()}
-                className="w-32"
-              >
-                {busy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Download className="size-4" />
-                )}
-                {busy
-                  ? copy.k241e72f9d6
-                  : result
-                    ? copy.k59c3b76cdd
-                    : copy.k39acb9e8f4}
-              </Button>
-            ) : null}
-          </DialogFooter>
-        ) : null}
+        <SkillInstallDialogFooter
+          activeOperationId={installProgress.activeOperationId}
+          busy={busy}
+          hasBundleVersion={Boolean(bundleVersion)}
+          hasPreview={Boolean(preview)}
+          link={link}
+          resolvingInitialLink={resolvingInitialLink}
+          result={result}
+          scope={scope}
+          workspace={workspace}
+          onCancelInstall={() => void cancelInstall()}
+          onClose={close}
+          onInspect={() => void inspect()}
+          onInstall={(discardLocal) => void install(discardLocal)}
+        />
       </DialogContent>
     </Dialog>
   )

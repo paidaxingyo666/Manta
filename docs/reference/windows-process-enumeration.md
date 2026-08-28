@@ -65,7 +65,7 @@ Two guards, and they work together:
   the module refuses every further read until that read's callback fires.
 
 The wedge used to be a 30 s cooldown that let one probe through per window. That
-bounded the *rate* of new callbacks but not the total: a permanently wedged
+bounded the _rate_ of new callbacks but not the total: a permanently wedged
 reader retained one more closure every 30 s for as long as the app ran, and each
 probe also blocked its caller for the full 3 s deadline first. Gating on the
 outstanding read instead bounds retention at exactly one callback, and gives up
