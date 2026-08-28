@@ -1,5 +1,6 @@
 import type { TerminalTab } from '../../../shared/terminal-tab-types'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
+import { reconcileClosedTerminalTabTombstones } from '../../../shared/closed-terminal-tab-tombstones'
 import type { ExecutionHostId } from '../../../shared/execution-host'
 import { worktreeWorkspaceKey } from '../../../shared/workspace-scope'
 import { splitWorktreeId } from '../../../shared/worktree/id'
@@ -26,8 +27,21 @@ export function mergeDirectSshRemoteWorkspaceSession(
   replaceWorktreeIds: ReadonlySet<string>,
   liveTabsByWorktree: AppState['tabsByWorktree'],
   preserveLocalTerminalTabIds: ReadonlySet<string>,
-  replaceExecutionHostId?: ExecutionHostId
+  replaceExecutionHostId?: ExecutionHostId,
+  remoteRevision?: number
 ): WorkspaceSessionState {
+  // Live tabs across the worktrees this snapshot replaces. Close-suppression consults it so a tab
+  // that is still live locally always beats its own tombstone.
+  // What actually keeps suppression from deleting a tab the user did not close — the earlier claim
+  // that "every use is inside replaceWorktreeIds" was wrong, since the tabsByWorktree pass below
+  // walks all of orderedWorktreeIds and the layout/session sweeps cover the whole remote maps:
+  //   1. closeTab strips the id from EVERY worktree row before recording the tombstone
+  //      (terminal-tab-close.ts), so a tombstoned id is not live anywhere;
+  //   2. isSuppressedByClose matches the tombstone's own worktreeId, so it cannot reach another
+  //      workspace's tab even if an id somehow recurred;
+  //   3. only closeReason === 'user' ever writes a tombstone.
+  // A final sweep of suppression over the assembled tabsByWorktree — including worktrees
+  // omitTargetWorktrees passes through verbatim — is still deliberately absent.
   const currentTabsById = new Map(
     [...replaceWorktreeIds]
       .flatMap((worktreeId) => liveTabsByWorktree[worktreeId] ?? [])
@@ -96,22 +110,64 @@ export function mergeDirectSshRemoteWorkspaceSession(
       .filter(([tabId]) => remoteKnownTabIds.has(tabId))
       .map(([, sessionId]) => sessionId)
   )
+  // The other half of the trade below. Absence still cannot say "closed", so this says it instead:
+  // a tab THIS client watched the user close, whose close never reached the host. Only ids the user
+  // closed are ever in here, and only until the host's own snapshot stops listing them.
+  const closedTerminalTabTombstonesByTabId = reconcileClosedTerminalTabTombstones({
+    tombstones: current.closedTerminalTabTombstonesByTabId,
+    acknowledgedWorktreeIds: new Set(
+      [...replaceWorktreeIds].filter((worktreeId) =>
+        Object.hasOwn(remote.tabsByWorktree, worktreeId)
+      )
+    ),
+    hostKnownTabIds: remoteKnownTabIds,
+    hostRevision: remoteRevision,
+    now: Date.now()
+  })
+  // Why Object.hasOwn and not `in`: the map is a plain object from Object.fromEntries, so `in`
+  // answers true for every Object.prototype key on an EMPTY map — a host tab whose id is
+  // `toString` would be filtered, blocked from the host-unknown branch, and stripped of its layout
+  // and session id. Tab ids are validated only as non-empty and colon-free, and createTab honours
+  // caller-supplied id hints, so that id is reachable. This is the one place either direction could
+  // delete a tab the user never closed.
+  // Why the worktree comparison: the tombstone already carries the worktree it was closed in, so
+  // scoping on it makes "this suppression cannot reach another workspace's tab" structural rather
+  // than a property of where the call sites happen to sit.
+  // Why a live local tab still overrides its own tombstone: an id that is live here means the
+  // tombstone is stale (a close undone before it persisted), not a revival. Deleting a live pane is
+  // the one outcome this whole function exists to avoid.
+  const isSuppressedByClose = (tabId: string, worktreeId: string): boolean =>
+    Object.hasOwn(closedTerminalTabTombstonesByTabId, tabId) &&
+    closedTerminalTabTombstonesByTabId[tabId]?.worktreeId === worktreeId &&
+    !currentTabsById.has(tabId)
+  // Ids this merge actually suppressed, recorded as it walks the worktrees. The layout and
+  // session-id sweeps below have no worktree in scope, so they consult decisions already made
+  // rather than re-deriving one without the scope that makes it safe.
+  const suppressedTabIds = new Set<string>()
   const tabsByWorktree = Object.fromEntries(
     orderedWorktreeIds.map((worktreeId) => {
       const remoteTabs = remote.tabsByWorktree[worktreeId] ?? []
-      const reconciled = remoteTabs.map((tab) => {
-        const local = currentTabsById.get(tab.id)
-        if (
-          !local ||
-          ((local.generation ?? 0) <= (tab.generation ?? 0) &&
-            !local.pendingActivationSpawn &&
-            !preserveLocalTerminalTabIds.has(tab.id))
-        ) {
-          return tab
-        }
-        locallyPreservedTabIds.add(tab.id)
-        return preserveNewerLocalTerminalFields(tab, local)
-      })
+      const reconciled = remoteTabs
+        .filter((tab) => {
+          if (!isSuppressedByClose(tab.id, worktreeId)) {
+            return true
+          }
+          suppressedTabIds.add(tab.id)
+          return false
+        })
+        .map((tab) => {
+          const local = currentTabsById.get(tab.id)
+          if (
+            !local ||
+            ((local.generation ?? 0) <= (tab.generation ?? 0) &&
+              !local.pendingActivationSpawn &&
+              !preserveLocalTerminalTabIds.has(tab.id))
+          ) {
+            return tab
+          }
+          locallyPreservedTabIds.add(tab.id)
+          return preserveNewerLocalTerminalFields(tab, local)
+        })
       for (const tab of reconciled) {
         emittedTabIds.add(tab.id)
       }
@@ -133,6 +189,10 @@ export function mergeDirectSshRemoteWorkspaceSession(
       // been told about the tab, so it is not host-unknown.
       const hostUnknown = localTabsFor(worktreeId).filter((tab) => {
         if (remoteKnownTabIds.has(tab.id) || emittedTabIds.has(tab.id)) {
+          return false
+        }
+        if (isSuppressedByClose(tab.id, worktreeId)) {
+          suppressedTabIds.add(tab.id)
           return false
         }
         const localSessionId = current.remoteSessionIdsByTabId?.[tab.id]
@@ -186,7 +246,7 @@ export function mergeDirectSshRemoteWorkspaceSession(
     ),
     ...Object.fromEntries(
       Object.entries(remote.terminalLayoutsByTabId).filter(
-        ([tabId]) => !locallyPreservedTabIds.has(tabId)
+        ([tabId]) => !locallyPreservedTabIds.has(tabId) && !suppressedTabIds.has(tabId)
       )
     )
   }
@@ -243,6 +303,9 @@ export function mergeDirectSshRemoteWorkspaceSession(
           return localActiveTabId == null ? [] : [[worktreeId, localActiveTabId] as const]
         })
       ),
+      // Why a suppressed id is left in place here: hydration validates both active-tab pointers
+      // against the tab rows it just built and nulls anything they no longer name, so nulling twice
+      // would only add a second rule that has to stay in step with that one.
       ...remote.activeTabIdByWorktree
     },
     remoteSessionIdsByTabId: {
@@ -253,7 +316,7 @@ export function mergeDirectSshRemoteWorkspaceSession(
       ),
       ...Object.fromEntries(
         Object.entries(remote.remoteSessionIdsByTabId ?? {}).filter(
-          ([tabId]) => !locallyPreservedTabIds.has(tabId)
+          ([tabId]) => !locallyPreservedTabIds.has(tabId) && !suppressedTabIds.has(tabId)
         )
       )
     },
@@ -268,7 +331,11 @@ export function mergeDirectSshRemoteWorkspaceSession(
       // tabs. Removal is the worktree-teardown path's job, not a reconnect's.
       ...current.defaultTerminalTabsAppliedByWorktreeId,
       ...remote.defaultTerminalTabsAppliedByWorktreeId
-    }
+    },
+    closedTerminalTabTombstonesByTabId:
+      Object.keys(closedTerminalTabTombstonesByTabId).length > 0
+        ? closedTerminalTabTombstonesByTabId
+        : undefined
   }
 }
 
