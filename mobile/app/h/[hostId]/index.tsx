@@ -71,6 +71,7 @@ import { getCachedWorktrees, setCachedWorktrees } from '../../../src/cache/workt
 import { setCachedRepos } from '../../../src/cache/repo-cache'
 import { colors, spacing } from '../../../src/theme/mobile-theme'
 import { useResponsiveLayout } from '../../../src/layout/responsive-layout'
+import { hostScreenStyles as styles } from '../../../src/host-screen/host-screen-styles'
 import { leaveHostRoute } from '../../../src/host-route-exit'
 import { loadPinnedIds, savePinnedIds } from '../../../src/storage/preferences'
 import {
