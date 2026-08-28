@@ -7,6 +7,7 @@ import {
   resolveDocPreviewTargetPath,
   revokeAllDocPreviewGrants,
   revokeDocPreviewGrant,
+  toRuntimeWorktreeRelativeDirectoryPath,
   toRuntimeWorktreeRelativePath,
   type DocPreviewGrant
 } from './doc-preview-grant-registry'
@@ -279,5 +280,10 @@ describe('toRuntimeWorktreeRelativePath', () => {
       'docs/index.html'
     )
     expect(toRuntimeWorktreeRelativePath('C:\\srv\\repo', 'D:\\other\\index.html')).toBeNull()
+  })
+
+  it('represents an explicitly authorized worktree root as the empty relative directory', () => {
+    expect(toRuntimeWorktreeRelativeDirectoryPath('/srv/repo', '/srv/repo')).toBe('')
+    expect(toRuntimeWorktreeRelativeDirectoryPath('C:\\srv\\repo', 'C:\\srv\\repo')).toBe('')
   })
 })

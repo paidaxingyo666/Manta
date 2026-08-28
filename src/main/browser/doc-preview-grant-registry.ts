@@ -184,6 +184,18 @@ function directoryAuthorityRoots(grant: DocPreviewGrant): string[] {
     : [grant.root, ...grant.authorizedRoots]
 }
 
+export function resolveDocPreviewAuthorityPaths(grant: DocPreviewGrant): {
+  entryPath: string | null
+  implicitRootPath: string | null
+  authorizedRootPaths: string[]
+} {
+  return {
+    entryPath: resolveEntryAbsolutePath(grant),
+    implicitRootPath: grant.root === grant.requestBase ? null : grant.root,
+    authorizedRootPaths: [...grant.authorizedRoots]
+  }
+}
+
 /** The one path an entry-only grant can read before the reader approves a directory. */
 function resolveEntryAbsolutePath(grant: DocPreviewGrant): string | null {
   return resolveDocPreviewCandidatePath(grant, grant.entryRelativePath)
@@ -302,4 +314,14 @@ export function toRuntimeWorktreeRelativePath(
     return null
   }
   return relative.replace(/\\/g, '/')
+}
+
+export function toRuntimeWorktreeRelativeDirectoryPath(
+  worktreeRoot: string,
+  absolutePath: string
+): string | null {
+  const normalizedRoot = normalizeRootPath(worktreeRoot)
+  return normalizeRootPath(absolutePath) === normalizedRoot
+    ? ''
+    : toRuntimeWorktreeRelativePath(worktreeRoot, absolutePath)
 }
