@@ -20,10 +20,11 @@ import {
   selectPairedRuntimeParkingEnvironmentIdsFromState,
   selectColdParkedTerminalTabs
 } from './terminal-hidden-view-parking'
+import type { ParkVerdictFlipRecord } from './terminal-park-verdict-flip-telemetry'
 import {
-  recordParkVerdictFlips,
-  type ParkVerdictFlipRecord
-} from './terminal-park-verdict-flip-telemetry'
+  haveSameTerminalTabIds,
+  useTerminalParkVerdictPin
+} from './use-terminal-park-verdict-pin'
 import { withholdUnparkableTerminalTabs } from './terminal-cold-park-withheld-tabs'
 import { getTerminalParkingPolicyOverrides } from './terminal-parking-e2e-overrides'
 import {
@@ -47,18 +48,6 @@ type TerminalOverlayTabAssignment = {
 }
 
 const EMPTY_TAB_IDS: ReadonlySet<string> = new Set()
-
-function haveSameTerminalTabIds(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
-  if (left.size !== right.size) {
-    return false
-  }
-  for (const id of left) {
-    if (!right.has(id)) {
-      return false
-    }
-  }
-  return true
-}
 
 export function useTerminalTabColdParking(args: {
   worktreeId: string
@@ -296,11 +285,11 @@ export function useTerminalTabColdParking(args: {
     [evictionExemptLayoutKey, isForceParked, terminalTabs, worktreeId]
   )
 
-  // Why: the rendered park verdict — worktree-level park (prop from
+  // Why: the park verdict before damping — worktree-level park (prop from
   // Terminal.tsx) or per-tab cold park, never portal-hosted tabs. Render and
-  // the watcher-sync effect must share this exact set so watcher lifecycle
-  // tracks the committed unmounts.
-  const parkedTerminalTabIds = useMemo(() => {
+  // the watcher-sync effect must share the pinned result below so watcher
+  // lifecycle tracks the committed unmounts.
+  const candidateParkedTerminalTabIds = useMemo(() => {
     const parked = new Set<string>()
     for (const terminalTab of terminalTabs) {
       const assignment = assignments.get(terminalTab.id)
@@ -357,19 +346,15 @@ export function useTerminalTabColdParking(args: {
     worktreeId
   ])
 
-  // Why: observation only — records whether the *rendered* park verdict churns,
-  // so a crash bundle can confirm or refute a park-flip update loop. Watching
-  // the pre-gate cold set instead would miss loops driven by coldParkTerminalPanes
-  // or the portal/measuring gates. Changes no verdict; see
-  // terminal-park-verdict-flip-telemetry.ts.
-  useEffect(() => {
-    recordParkVerdictFlips({
-      records: parkVerdictRecordsRef.current,
-      liveTabIds: new Set(terminalTabs.map((terminalTab) => terminalTab.id)),
-      nextParkedTabIds: parkedTerminalTabIds,
-      nowMs: Date.now()
-    })
-  }, [parkedTerminalTabIds, terminalTabs])
+  // Why the last gate: flips are counted on the *rendered* verdict, so damping
+  // has to subtract from that same set — coldParkTerminalPanes and the
+  // activation-deferred branch never pass through the cold-park candidate list
+  // withholdUnparkableTerminalTabs filters (issue #15136).
+  const parkedTerminalTabIds = useTerminalParkVerdictPin({
+    records: parkVerdictRecordsRef,
+    terminalTabs,
+    candidateParkedTabIds: candidateParkedTerminalTabIds
+  })
 
   // Why: runs in the same effect flush as the commit that parked/revealed the
   // panes — watcher disposal therefore lands before any PTY data IPC can
