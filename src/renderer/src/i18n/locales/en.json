@@ -13845,6 +13845,30 @@
           },
           "feature": {
             "wall": {
+              "setup": {
+                "checklist": {
+                  "localized": {
+                    "copy": {
+                      "ec0a363633": "Multi-task",
+                      "62bac8f43c": "Work in 2 different worktrees at once. Each one is isolated (even in the same project). Perfect for working on 2 features at once.",
+                      "908898c3ee": "Use Manta's browser",
+                      "43781563c3": "Browse your web app without leaving Manta. Grab any element and send its exact source and styles to an agent with one click.",
+                      "29aa2c2077": "Turn on notifications",
+                      "71bd9a8c95": "Know the moment an agent finishes, needs attention, or gets blocked.",
+                      "46db810da8": "Choose your default agent",
+                      "b8e5bae17f": "Start new work faster with your preferred agent already selected.",
+                      "fee5557b02": "Enable Manta CLI",
+                      "7bcb4097fa": "Register the Manta shell command and install agent skills for browser, computer, and orchestration workflows.",
+                      "ad342dd4c6": "Connect integrations",
+                      "06fe30fdb0": "Start an agent from a task in one click and keep PR status in view.",
+                      "eddc532e58": "Automate workspace setup",
+                      "56049b74c2": "Run install and setup commands automatically so every new worktree is ready for agents.",
+                      "2cf795433b": "Start work in multiple repos",
+                      "42525ba8a4": "Bring your key repos into Manta so you can start agent work without hunting for folders."
+                    }
+                  }
+                }
+              },
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Tracking not set up",
