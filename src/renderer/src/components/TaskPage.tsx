@@ -758,8 +758,8 @@ export default function TaskPage(): React.JSX.Element {
     // Hard guarantee (K4): always overlay pending after reconcile so list
     // fetch clobbers never paint unprotected coordinator fields.
     setPages((current) =>
-      reconcileTaskPagePagesWithWorkItemsCache(current, selectedWorkItemsCacheEntries).map((page) =>
-        page ? (overlayPendingOnTaskPagePages([page])[0] ?? []) : null
+      reconcileTaskPagePagesWithWorkItemsCache(current, selectedWorkItemsCacheEntries).map(
+        (page) => (page ? (overlayPendingOnTaskPagePages([page])[0] ?? []) : null)
       )
     )
   }, [githubMode, selectedWorkItemsCacheEntries, taskSource, setPages])

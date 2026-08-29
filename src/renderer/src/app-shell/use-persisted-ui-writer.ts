@@ -96,34 +96,32 @@ export function usePersistedUIWriter(): void {
   const persistedUIReady = useAppStore((s) => s.persistedUIReady)
   const activeView = useAppStore((s) => s.activeView)
   const ui = useAppStore(
-    useShallow(
-      (s): PersistedUIWriteBaseline => ({
-        sidebarWidth: s.sidebarWidth,
-        rightSidebarOpen: s.rightSidebarOpen,
-        rightSidebarTab: s.rightSidebarTab,
-        rightSidebarExplorerView: s.rightSidebarExplorerView,
-        rightSidebarWidth: s.rightSidebarWidth,
-        markdownTocPanelWidth: s.markdownTocPanelWidth,
-        combinedDiffFileTreeWidth: s.combinedDiffFileTreeWidth,
-        groupBy: s.groupBy,
-        sortBy: s.sortBy,
-        projectOrderBy: s.projectOrderBy,
-        showSleepingWorkspaces: s.showSleepingWorkspaces,
-        hideDefaultBranchWorkspace: s.hideDefaultBranchWorkspace,
-        hideAutomationGeneratedWorkspaces: s.hideAutomationGeneratedWorkspaces,
-        hideCliCreatedWorkspaces: s.hideCliCreatedWorkspaces,
-        hideDetachedHeadWorkspaces: s.hideDetachedHeadWorkspaces,
-        hideWorkspacesFromOtherDevices: s.hideWorkspacesFromOtherDevices,
-        alwaysShowDefaultBranchWorkspace: s.alwaysShowDefaultBranchWorkspace,
-        showDotfilesByWorktree: s.showDotfilesByWorktree,
-        filterRepoIds: s.filterRepoIds,
-        // Why: dashboard auto-acks (fire on focus/visibility) and the in-memory ack cleanup
-        // paths in agent-status.ts (close/dismiss) flow to disk through map identity changes.
-        // Without persisting, agent rows that survive restart come back bold even when the
-        // user had already visited them.
-        acknowledgedAgentsByPaneKey: s.acknowledgedAgentsByPaneKey
-      })
-    )
+    useShallow((s): PersistedUIWriteBaseline => ({
+      sidebarWidth: s.sidebarWidth,
+      rightSidebarOpen: s.rightSidebarOpen,
+      rightSidebarTab: s.rightSidebarTab,
+      rightSidebarExplorerView: s.rightSidebarExplorerView,
+      rightSidebarWidth: s.rightSidebarWidth,
+      markdownTocPanelWidth: s.markdownTocPanelWidth,
+      combinedDiffFileTreeWidth: s.combinedDiffFileTreeWidth,
+      groupBy: s.groupBy,
+      sortBy: s.sortBy,
+      projectOrderBy: s.projectOrderBy,
+      showSleepingWorkspaces: s.showSleepingWorkspaces,
+      hideDefaultBranchWorkspace: s.hideDefaultBranchWorkspace,
+      hideAutomationGeneratedWorkspaces: s.hideAutomationGeneratedWorkspaces,
+      hideCliCreatedWorkspaces: s.hideCliCreatedWorkspaces,
+      hideDetachedHeadWorkspaces: s.hideDetachedHeadWorkspaces,
+      hideWorkspacesFromOtherDevices: s.hideWorkspacesFromOtherDevices,
+      alwaysShowDefaultBranchWorkspace: s.alwaysShowDefaultBranchWorkspace,
+      showDotfilesByWorktree: s.showDotfilesByWorktree,
+      filterRepoIds: s.filterRepoIds,
+      // Why: dashboard auto-acks (fire on focus/visibility) and the in-memory ack cleanup
+      // paths in agent-status.ts (close/dismiss) flow to disk through map identity changes.
+      // Without persisting, agent rows that survive restart come back bold even when the
+      // user had already visited them.
+      acknowledgedAgentsByPaneKey: s.acknowledgedAgentsByPaneKey
+    }))
   )
   useEffect(() => {
     // The baseline holds the values this client last saw persisted (newest

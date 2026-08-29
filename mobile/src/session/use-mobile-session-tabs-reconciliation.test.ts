@@ -39,12 +39,10 @@ type TestResult = {
 }
 
 const fetchTerminals = vi.fn(async () => {})
-const applySessionTabs = vi.fn(
-  (value: TestResult): SessionTabsApplyOutcome<string> => ({
-    accepted: true,
-    effectiveTabs: value.tabs
-  })
-)
+const applySessionTabs = vi.fn((value: TestResult): SessionTabsApplyOutcome<string> => ({
+  accepted: true,
+  effectiveTabs: value.tabs
+}))
 const consumeAcceptedSessionTabs = vi.fn()
 let recoveryNeeded = false
 let clearRecoveryAt = Number.POSITIVE_INFINITY

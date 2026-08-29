@@ -152,17 +152,13 @@ export function registerMantaProfileHandlers(
   store: Store,
   options: RegisterMantaProfileHandlersOptions = {}
 ): void {
-  ipcMain.handle(
-    'mantaProfiles:list',
-    (): MantaProfileListResult => ({
-      ...getMantaProfileListState(),
-      multiProfileUi: isMultiProfileUiEnabled()
-    })
-  )
+  ipcMain.handle('mantaProfiles:list', (): MantaProfileListResult => ({
+    ...getMantaProfileListState(),
+    multiProfileUi: isMultiProfileUiEnabled()
+  }))
 
-  ipcMain.handle(
-    'mantaProfiles:authStatus',
-    (): MantaProfileAuthStatus => getCurrentMantaProfileAuthStatus(getProfileUserDataPath())
+  ipcMain.handle('mantaProfiles:authStatus', (): MantaProfileAuthStatus =>
+    getCurrentMantaProfileAuthStatus(getProfileUserDataPath())
   )
 
   ipcMain.handle(
