@@ -4,8 +4,9 @@ import { focusActiveTerminalInput } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 const modifier = process.platform === 'darwin' ? 'Meta' : 'Control'
+const guestModifier: 'meta' | 'control' = process.platform === 'darwin' ? 'meta' : 'control'
 
-type SplitFindFixture = {
+type TerminalBrowserSplitFixture = {
   browserGroupId: string
   browserTabId: string
   terminalGroupId: string
@@ -17,7 +18,7 @@ type BrowserSplitFixture = {
   secondBrowserTabId: string
 }
 
-async function createTerminalBrowserSplit(page: Page): Promise<SplitFindFixture> {
+async function createTerminalBrowserSplit(page: Page): Promise<TerminalBrowserSplitFixture> {
   return page.evaluate(() => {
     const store = window.__store
     if (!store) {
@@ -27,6 +28,13 @@ async function createTerminalBrowserSplit(page: Page): Promise<SplitFindFixture>
     const worktreeId = state.activeWorktreeId
     if (!worktreeId) {
       throw new Error('Active worktree unavailable')
+    }
+    const terminalTabId = state.activeTabIdByWorktree[worktreeId] ?? state.activeTabId ?? undefined
+    if (
+      !terminalTabId ||
+      !(state.tabsByWorktree[worktreeId] ?? []).some((tab) => tab.id === terminalTabId)
+    ) {
+      throw new Error('Active terminal tab unavailable')
     }
     const terminalGroupId = state.ensureWorktreeRootGroup(worktreeId)
     const browserGroupId = state.createEmptySplitGroup(worktreeId, terminalGroupId, 'right')
@@ -38,7 +46,15 @@ async function createTerminalBrowserSplit(page: Page): Promise<SplitFindFixture>
       focusAddressBar: false,
       targetGroupId: browserGroupId
     })
-    return { browserGroupId, browserTabId: browserTab.id, terminalGroupId }
+    const browserPageId = browserTab.activePageId
+    if (!browserPageId) {
+      throw new Error('Active browser page unavailable')
+    }
+    return {
+      browserGroupId,
+      browserTabId: browserTab.id,
+      terminalGroupId
+    }
   })
 }
 
@@ -76,8 +92,12 @@ async function createBrowserSplit(page: Page): Promise<BrowserSplitFixture> {
       focusAddressBar: false,
       targetGroupId: secondBrowserGroupId
     })
+    const firstBrowserPageId = firstBrowserTab.activePageId
+    if (!firstBrowserPageId) {
+      throw new Error('First active browser page unavailable')
+    }
     return {
-      firstBrowserPageId: firstBrowserTab.activePageId,
+      firstBrowserPageId,
       firstBrowserTabId: firstBrowserTab.id,
       secondBrowserTabId: secondBrowserTab.id
     }
@@ -97,7 +117,7 @@ async function focusBrowserAddressBar(page: Page, browserTabId: string): Promise
     'form:has(> [data-manta-browser-address-bar="true"])'
   )
   await expect(addressBarForm).toBeVisible()
-  await addressBarForm.click()
+  await addressBar.focus()
   await expect(addressBar).toBeFocused()
 }
 
@@ -115,7 +135,7 @@ function browserSplitFindInput(page: Page, browserTabId: string) {
     .getByPlaceholder('Find in page...')
 }
 
-async function pressFindInBrowserGuest(
+async function waitForBrowserGuestRegistration(
   page: Page,
   browserTabId: string,
   browserPageId: string
@@ -123,7 +143,7 @@ async function pressFindInBrowserGuest(
   await expect
     .poll(() =>
       page.evaluate(
-        async ({ targetBrowserPageId, targetBrowserTabId, inputModifier }) => {
+        async ({ targetBrowserPageId, targetBrowserTabId }) => {
           const overlay = document.querySelector(
             `[data-browser-overlay-tab-id="${targetBrowserTabId}"]`
           )
@@ -140,17 +160,6 @@ async function pressFindInBrowserGuest(
             if (!registered) {
               return false
             }
-            webview.focus()
-            await webview.sendInputEvent({
-              type: 'keyDown',
-              keyCode: 'F',
-              modifiers: [inputModifier]
-            })
-            await webview.sendInputEvent({
-              type: 'keyUp',
-              keyCode: 'F',
-              modifiers: [inputModifier]
-            })
             return true
           } catch {
             return false
@@ -158,12 +167,42 @@ async function pressFindInBrowserGuest(
         },
         {
           targetBrowserPageId: browserPageId,
-          targetBrowserTabId: browserTabId,
-          inputModifier: modifier.toLowerCase()
+          targetBrowserTabId: browserTabId
         }
       )
     )
     .toBe(true)
+}
+
+async function pressFindInBrowserGuest(
+  page: Page,
+  browserTabId: string,
+  browserPageId: string
+): Promise<void> {
+  await waitForBrowserGuestRegistration(page, browserTabId, browserPageId)
+  await page.evaluate(
+    async ({ targetBrowserTabId, inputModifier }) => {
+      const overlay = document.querySelector(
+        `[data-browser-overlay-tab-id="${targetBrowserTabId}"]`
+      )
+      const webview = overlay?.querySelector('webview') as Electron.WebviewTag | null
+      if (!webview) {
+        throw new Error('Registered browser guest unavailable')
+      }
+      webview.focus()
+      await webview.sendInputEvent({
+        type: 'keyDown',
+        keyCode: 'F',
+        modifiers: [inputModifier]
+      })
+      await webview.sendInputEvent({
+        type: 'keyUp',
+        keyCode: 'F',
+        modifiers: [inputModifier]
+      })
+    },
+    { targetBrowserTabId: browserTabId, inputModifier: guestModifier }
+  )
 }
 
 function terminalFindInput(page: Page) {
@@ -199,7 +238,7 @@ async function focusBrowserGroup(page: Page, groupId: string): Promise<void> {
   await waitForFocusedGroup(page, groupId)
 }
 
-test.describe('browser split Find shortcut', () => {
+test.describe('browser split shortcuts', () => {
   test.beforeEach(async ({ mantaPage }) => {
     await waitForSessionReady(mantaPage)
     await waitForActiveWorktree(mantaPage)
