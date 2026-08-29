@@ -467,7 +467,8 @@ describe('registerWorktreeHandlers – Windows path handling', () => {
       'C:\\workspaces\\improve-dashboard',
       'pnpm install',
       undefined,
-      setupShell
+      setupShell,
+      undefined
     )
     expect(result).toMatchObject({
       setup: {
