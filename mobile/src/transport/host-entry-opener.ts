@@ -1,4 +1,7 @@
-import { connectionLogStore } from './connection-log-buffer'
+import {
+  connectionLogStore,
+  recordConnectionClientSessionStart
+} from './persisted-connection-log-store'
 import { loadHosts } from './host-store'
 import { openHostLogicalClient } from './host-logical-client'
 import type { HostClientOpenRegistry } from './host-client-open-registry'
@@ -65,7 +68,8 @@ export async function openHostClientEntry(
       id: `host-open-${ticket.generation}-${Date.now()}`,
       ts: Date.now(),
       level: 'error',
-      message: 'Host client open failed', // i18n-exempt: connection-log transcript
+      code: 'host-open-failed',
+      message: 'Host client open failed',
       detail: `${category}; retry ${retry.nextDelayMs}ms (failure ${retry.failureCount})`
     })
   }
@@ -98,6 +102,7 @@ export async function openHostClientEntry(
 
     let client: RpcClient
     try {
+      recordConnectionClientSessionStart(hostId)
       client = openHostLogicalClient(host, (entry) => connectionLogStore.append(hostId, entry))
     } catch {
       failCurrentOpen('client-construction')
@@ -139,7 +144,7 @@ export async function openHostClientEntry(
         id: `host-open-recovered-${ticket.generation}-${Date.now()}`,
         ts: Date.now(),
         level: 'success',
-        message: 'Host client recovered', // i18n-exempt: connection-log transcript
+        message: 'Host client recovered',
         detail: `after ${priorFailureCount} failed open${priorFailureCount === 1 ? '' : 's'}`
       })
     }

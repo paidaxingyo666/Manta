@@ -26,15 +26,12 @@ import {
   startDiagnosticFetchTimeout,
   type DiagnosticFetchTimeout
 } from '../src/diagnostics/diagnostic-fetch-timeout'
-import { testHostReachability } from '../src/diagnostics/host-reachability'
 import {
-  hostConnectionPathTargets,
-  summarizeHostConnectionPaths,
-  type HostConnectionPathProbe
-} from '../src/diagnostics/host-connection-path-probe'
-import { probeHostName, testInternetReachability } from '../src/diagnostics/internet-reachability'
+  formatEndpoint,
+  testHostReachability,
+  unreachableHostDetail
+} from '../src/diagnostics/host-reachability'
 import { troubleshootCommonIssues } from '../src/diagnostics/troubleshoot-common-issues'
-import { translate } from '../src/i18n/i18n'
 
 type DiagnosticStatus = 'idle' | 'running' | 'done'
 
@@ -97,23 +94,11 @@ export default function TroubleshootScreen() {
       const hosts = await loadHosts()
       results.push(
         hosts.length > 0
-          ? {
-              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
-              status: 'pass',
-              detail: `${hosts.length} paired`
-            }
-          : {
-              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
-              status: 'fail',
-              detail: 'None — scan a QR to pair'
-            }
+          ? { label: 'Paired hosts', status: 'pass', detail: `${hosts.length} paired` }
+          : { label: 'Paired hosts', status: 'fail', detail: 'None — scan a QR to pair' }
       )
     } catch {
-      results.push({
-        label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
-        status: 'warn',
-        detail: 'Could not read host data'
-      })
+      results.push({ label: 'Paired hosts', status: 'warn', detail: 'Could not read host data' })
     }
 
     if (!isCurrentRun()) {
@@ -123,33 +108,29 @@ export default function TroubleshootScreen() {
 
     const internetCheck = startDiagnosticFetchTimeout(5000)
     activeInternetCheckRef.current = internetCheck
-    const internet = await testInternetReachability(internetCheck)
-    internetCheck.dispose()
-    if (activeInternetCheckRef.current === internetCheck) {
-      activeInternetCheckRef.current = null
+    try {
+      const resp = await fetch('https://dns.google/resolve?name=example.com&type=A', {
+        signal: internetCheck.signal
+      })
+      if (!isCurrentRun()) {
+        return
+      }
+      results.push(
+        resp.ok
+          ? { label: 'Internet', status: 'pass', detail: 'Connected' }
+          : { label: 'Internet', status: 'warn', detail: 'Unexpected response' }
+      )
+    } catch {
+      if (!isCurrentRun()) {
+        return
+      }
+      results.push({ label: 'Internet', status: 'fail', detail: 'No connection' })
+    } finally {
+      internetCheck.dispose()
+      if (activeInternetCheckRef.current === internetCheck) {
+        activeInternetCheckRef.current = null
+      }
     }
-    if (!isCurrentRun()) {
-      return
-    }
-    results.push({
-      label: translate('m.troubleshoot.de003da9ea', 'Internet'),
-      status:
-        internet.status === 'online' ? 'pass' : internet.status === 'offline' ? 'fail' : 'warn',
-      detail:
-        internet.status === 'online'
-          ? translate('mobile.diagnostics.internet.connected', 'Connected via {{host}}', {
-              host: probeHostName(internet.via)
-            })
-          : internet.status === 'unexpected-response'
-            ? translate(
-                'mobile.diagnostics.internet.unexpected',
-                'Unexpected response from {{host}}',
-                {
-                  host: probeHostName(internet.via)
-                }
-              )
-            : translate('mobile.diagnostics.internet.offline', 'No connection')
-    })
 
     if (!isCurrentRun()) {
       return
@@ -162,28 +143,21 @@ export default function TroubleshootScreen() {
         if (!isCurrentRun()) {
           return
         }
-        // Probe every path the client would dial. A relay-connected host is
-        // routinely unreachable at the direct address it paired on, and testing
-        // only that reported a perfectly healthy host as down.
-        const probes: HostConnectionPathProbe[] = []
-        for (const target of hostConnectionPathTargets(host)) {
-          if (!isCurrentRun()) {
-            return
-          }
-          probes.push({ ...target, reachable: await testHostReachability(target.url) })
-        }
+        const reachable = await testHostReachability(host.endpoint)
         if (!isCurrentRun()) {
           return
         }
-        results.push({ label: host.name, ...summarizeHostConnectionPaths(probes) })
+        results.push({
+          label: host.name,
+          status: reachable ? 'pass' : 'fail',
+          detail: reachable
+            ? `Reachable at ${formatEndpoint(host.endpoint)}`
+            : unreachableHostDetail(host.endpoint)
+        })
         setChecks([...results])
       }
     } catch {
-      results.push({
-        label: translate('m.troubleshoot.21ef75f0f3', 'Hosts'),
-        status: 'warn',
-        detail: 'Could not test'
-      })
+      results.push({ label: 'Hosts', status: 'warn', detail: 'Could not test' })
     }
 
     if (!isCurrentRun()) {
@@ -191,7 +165,7 @@ export default function TroubleshootScreen() {
     }
 
     results.push({
-      label: translate('m.troubleshoot.f2c3857280', 'Platform'),
+      label: 'Platform',
       status: 'pass',
       detail: `${Platform.OS} ${Platform.Version ?? ''}`
     })
@@ -209,9 +183,7 @@ export default function TroubleshootScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>
-          {translate('m.troubleshoot.0c81261ae3', 'Troubleshooting')}
-        </Text>
+        <Text style={styles.heading}>Troubleshooting</Text>
       </View>
 
       <ScrollView
@@ -235,10 +207,10 @@ export default function TroubleshootScreen() {
           )}
           <Text style={styles.diagnosticButtonLabel}>
             {diagnosticStatus === 'running'
-              ? translate('m.troubleshoot.750b3cfa37', 'Running…')
+              ? 'Running…'
               : diagnosticStatus === 'done'
-                ? translate('m.troubleshoot.0790b66aca', 'Run again')
-                : translate('m.troubleshoot.e71414eafc', 'Run diagnostics')}
+                ? 'Run again'
+                : 'Run diagnostics'}
           </Text>
         </Pressable>
 
@@ -250,9 +222,7 @@ export default function TroubleshootScreen() {
           onPress={() => router.push('/connection-log')}
         >
           <ScrollText size={16} color={colors.textPrimary} />
-          <Text style={styles.diagnosticButtonLabel}>
-            {translate('m.troubleshoot.6f024bb4ae', 'View connection log')}
-          </Text>
+          <Text style={styles.diagnosticButtonLabel}>View network diagnostics</Text>
         </Pressable>
 
         {checks.length > 0 && (
@@ -274,12 +244,10 @@ export default function TroubleshootScreen() {
           </View>
         )}
 
-        <Text style={styles.sectionHeading}>
-          {translate('m.troubleshoot.d89f2f9bbd', 'Common issues')}
-        </Text>
+        <Text style={styles.sectionHeading}>Common issues</Text>
 
         <View style={styles.section}>
-          {troubleshootCommonIssues().map((section, i) => (
+          {troubleshootCommonIssues.map((section, i) => (
             <View key={section.id}>
               {i > 0 && <View style={styles.separator} />}
               <Pressable
