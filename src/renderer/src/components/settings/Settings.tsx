@@ -120,6 +120,10 @@ import {
   getLinearAgentSkillNavInstallStatus
 } from '@/lib/agent-skill-nav-install-status'
 import { deriveNeededSectionIds, getInitialMountedSectionIds } from './settings-load-performance'
+import {
+  watchForSettingsDeepLinkTarget,
+  type SettingsDeepLinkTargetWatch
+} from './settings-deep-link-target-watcher'
 import { translate } from '@/i18n/i18n'
 import { getProjectHostSetupProjectionFromState } from '../../store/selectors'
 import { getRepoHostIdentity } from '../../store/slices/repo-host-identity'
@@ -277,6 +281,13 @@ function cancelPendingSettingsSubsectionScrollFrame(
   }
 }
 
+function cancelPendingSettingsDeepLinkTargetWatch(
+  watchRef: MutableRefObject<SettingsDeepLinkTargetWatch | null>
+): void {
+  watchRef.current?.cancel()
+  watchRef.current = null
+}
+
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false
@@ -399,6 +410,7 @@ function Settings(): React.JSX.Element {
   const pendingNavSectionRef = useRef<string | null>(null)
   const pendingScrollTargetRef = useRef<string | null>(null)
   const pendingSubsectionScrollFrameRef = useRef<number | null>(null)
+  const pendingScrollTargetWatchRef = useRef<SettingsDeepLinkTargetWatch | null>(null)
   const repoHooksRequestSeqRef = useRef(0)
   const shortcutsEscapeConfirmUntilRef = useRef(0)
   const sourceControlAiWriteQueueRef = useRef<Promise<void>>(Promise.resolve())
@@ -446,6 +458,7 @@ function Settings(): React.JSX.Element {
     }
     // Why: cancel pending subsection jumps with the scroll container so a stale deep-link frame can't run after close.
     cancelPendingSettingsSubsectionScrollFrame(pendingSubsectionScrollFrameRef)
+    cancelPendingSettingsDeepLinkTargetWatch(pendingScrollTargetWatchRef)
   }, [])
 
   useEffect(() => {
@@ -1043,6 +1056,8 @@ function Settings(): React.JSX.Element {
   useEffect(() => {
     const scrollTargetId = pendingScrollTargetRef.current
     const pendingNavSectionId = pendingNavSectionRef.current
+    // Why: this pass re-decides whether to wait for the target, so drop any watch armed by the previous one.
+    cancelPendingSettingsDeepLinkTargetWatch(pendingScrollTargetWatchRef)
 
     // Why: subsection deep links clear a stale filter that could hide the target row; pane-level links keep it to force-open the matching section.
     if (
@@ -1069,6 +1084,13 @@ function Settings(): React.JSX.Element {
       if (scrollTargetId !== pendingNavSectionId) {
         // Why: target can arrive before the lazy section mounts; keep pending refs until it does.
         if (!getSettingsScrollTarget(scrollTargetId, container)) {
+          // Why: async panes (the server list, say) mount rows after this pass, and nothing else re-runs the effect.
+          pendingScrollTargetWatchRef.current = watchForSettingsDeepLinkTarget({
+            root: container,
+            isTargetPresent: () =>
+              getSettingsScrollTarget(scrollTargetId, contentScrollRef.current) !== null,
+            onTargetPresent: () => setPendingNavRequestTick((tick) => tick + 1)
+          })
           return
         }
         const scrollToSubsection = (): void => {
