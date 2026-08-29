@@ -32,8 +32,12 @@ import {
   toSshExecutionHostId
 } from '../../../shared/execution-host'
 import { parseWorkspaceKey } from '../../../shared/workspace-scope'
-import type { AgentStateHistoryEntry } from '../../../shared/agent-status-types'
+import type { AgentStateHistoryEntry, AgentStatusEntry } from '../../../shared/agent-status-types'
 import { resolveFolderWorkspaceHost } from '../../../shared/folder-workspace-execution-host'
+import {
+  selectAutomationAgentStatusEntryChange,
+  UNCHANGED_AUTOMATION_AGENT_STATUS_ENTRY
+} from './automation-agent-status-entry-change'
 
 const activeReuseDispatchTabIds = new Set<string>()
 
@@ -450,56 +454,63 @@ export function useAutomationDispatchEvents(): void {
           ): void => {
             let sawWorkingAfterStart = false
             let observedStateHistory: AgentStateHistoryEntry[] = []
+            let observedEntry: AgentStatusEntry | undefined
             const checkCurrentStatus = (): void => {
-              const { agentStatusByPaneKey } = useAppStore.getState()
-              for (const [paneKey, entry] of Object.entries(agentStatusByPaneKey)) {
-                if (paneKey !== targetPaneKey || entry.updatedAt < startedAfter) {
+              const entryChange = selectAutomationAgentStatusEntryChange(
+                useAppStore.getState().agentStatusByPaneKey,
+                targetPaneKey,
+                observedEntry
+              )
+              if (entryChange === UNCHANGED_AUTOMATION_AGENT_STATUS_ENTRY) {
+                return
+              }
+              const entry = entryChange
+              observedEntry = entry
+              if (!entry || entry.updatedAt < startedAfter) {
+                return
+              }
+              const historyOverlap = getAgentStateHistoryOverlap(
+                observedStateHistory,
+                entry.stateHistory
+              )
+              // Why: sawWorkingAfterStart stays monotonic — a recreated entry
+              // (transport loss, PTY exit, cap eviction) arrives with an empty
+              // stateHistory, so clearing it here would strand reuseSession runs
+              // with nothing left to re-derive the working edge from.
+              for (const historicalState of entry.stateHistory.slice(historyOverlap)) {
+                if (historicalState.startedAt < startedAfter) {
                   continue
                 }
-                const historyOverlap = getAgentStateHistoryOverlap(
-                  observedStateHistory,
-                  entry.stateHistory
-                )
-                // Why: sawWorkingAfterStart stays monotonic — a recreated entry
-                // (transport loss, PTY exit, cap eviction) arrives with an empty
-                // stateHistory, so clearing it here would strand reuseSession runs
-                // with nothing left to re-derive the working edge from.
-                for (const historicalState of entry.stateHistory.slice(historyOverlap)) {
-                  if (historicalState.startedAt < startedAfter) {
-                    continue
-                  }
-                  if (historicalState.state === 'working') {
-                    sawWorkingAfterStart = true
-                  }
-                  if (
-                    historicalState.state === 'done' &&
-                    (!options?.requireWorkingAfterStart || sawWorkingAfterStart)
-                  ) {
-                    // Why: this `done` already rolled out of the live entry, so its output
-                    // survives only in the entry-level completed slot.
-                    latestAssistantMessage =
-                      entry.lastCompletedAssistantMessage?.trim() || latestAssistantMessage
-                    handleAgentDone()
-                    return
-                  }
-                }
-                observedStateHistory = [...entry.stateHistory]
-                if (entry.state === 'working') {
+                if (historicalState.state === 'working') {
                   sawWorkingAfterStart = true
                 }
                 if (
-                  entry.state === 'done' &&
-                  // Why: a session-boundary done is the agent CONNECTING (Claude SessionStart
-                  // fires at launch, before the argv prompt submits) — completing here would
-                  // close the tab and record an empty run result.
-                  entry.sessionBoundary !== true &&
+                  historicalState.state === 'done' &&
                   (!options?.requireWorkingAfterStart || sawWorkingAfterStart)
                 ) {
+                  // Why: this `done` already rolled out of the live entry, so its output
+                  // survives only in the entry-level completed slot.
                   latestAssistantMessage =
-                    entry.lastAssistantMessage?.trim() || latestAssistantMessage
+                    entry.lastCompletedAssistantMessage?.trim() || latestAssistantMessage
                   handleAgentDone()
                   return
                 }
+              }
+              observedStateHistory = [...entry.stateHistory]
+              if (entry.state === 'working') {
+                sawWorkingAfterStart = true
+              }
+              if (
+                entry.state === 'done' &&
+                // Why: a session-boundary done is the agent CONNECTING (Claude SessionStart
+                // fires at launch, before the argv prompt submits) — completing here would
+                // close the tab and record an empty run result.
+                entry.sessionBoundary !== true &&
+                (!options?.requireWorkingAfterStart || sawWorkingAfterStart)
+              ) {
+                latestAssistantMessage =
+                  entry.lastAssistantMessage?.trim() || latestAssistantMessage
+                handleAgentDone()
               }
             }
             // Why: Codex/Claude completion normally arrives through the global
