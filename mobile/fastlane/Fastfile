@@ -95,13 +95,30 @@ end
 # address, and a personal one does not belong in the repo. Only the description
 # is required for external submission, so an unset address is fine.
 #
-# nil, never "": pilot guards this field with a bare truthiness check
-# (`default_info[:feedback_email] = … if options[:beta_app_feedback_email]`), and
-# an empty string is truthy in Ruby — it would submit a blank address as if it
-# were one, which App Store Connect rejects.
+# nil, never "": pilot guards this field with a bare truthiness check, and an
+# empty string is truthy in Ruby — it would submit a blank address as if it were
+# a real one, which App Store Connect rejects.
 def beta_feedback_email
   value = ENV.fetch("TESTFLIGHT_FEEDBACK_EMAIL", "").strip
   value.empty? ? nil : value
+end
+
+# Keyed by an explicit locale, NOT passed as beta_app_description.
+#
+# pilot's default_info path only walks the localizations the app ALREADY has
+# (build_manager.rb: it seeds the map from `app.get_beta_app_localizations` and
+# iterates that), so on an app with none it updates nothing — and still prints
+# "Successfully set the beta_app_description", which is why this looked fixed
+# while every external submission kept failing on "Beta App Description is
+# missing". A named locale gives the map an entry with a nil localization, and
+# that is the branch that POSTs a new one.
+def beta_test_info_for(app)
+  locale = app.primary_locale.to_s.strip
+  locale = "en-US" if locale.empty?
+  info = { description: BETA_APP_DESCRIPTION }
+  email = beta_feedback_email
+  info[:feedback_email] = email if email
+  { locale => info }
 end
 
 def testflight_changelog
@@ -331,8 +348,7 @@ platform :ios do
       groups: TESTFLIGHT_GROUPS,
       notify_external_testers: true,
       changelog: testflight_changelog,
-      beta_app_description: BETA_APP_DESCRIPTION,
-      beta_app_feedback_email: beta_feedback_email,
+      localized_app_info: beta_test_info_for(app),
     )
   end
 
