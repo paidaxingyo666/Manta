@@ -6321,36 +6321,48 @@
     },
     {
       "id": "terminal-session.startup-cwd-missing-dir-recovery",
-      "title": "Fresh local terminal creation cannot be bricked by a deleted startup cwd",
+      "title": "Terminal working-directory recovery stays scoped and provider-safe",
       "maturity": "experimental",
       "protection": "partial",
       "owner": "terminal-runtime",
-      "layer": "shared-main-renderer-contract",
-      "surfaces": ["terminal lifecycle", "tab creation", "PTY spawn", "startup cwd persistence"],
+      "layer": "shared-main-renderer-and-posix-shell-contract",
+      "surfaces": [
+        "terminal lifecycle",
+        "tab creation",
+        "PTY spawn",
+        "startup cwd persistence",
+        "long-lived Bash and Zsh OMP launches"
+      ],
       "platforms": ["macos", "linux", "windows", "mobile"],
       "providers": ["local", "daemon", "ssh", "wsl", "remote-runtime"],
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "ssh", "remote-runtime"],
-      "coverageNotes": "Local macOS evidence covers the shared missing-dir fallback policy, main pty:spawn recovery and metadata, no-flag and reattach strictness, renderer IPC flag routing, SSH-tagged and remote-runtime omission, and the visibility-gated terminal notice. Daemon shares the same pre-provider main cwd decision but lacks a live daemon-provider run; WSL UNC paths are exempt from the probe by design and lack a live run; Linux/Windows and mobile/API strictness are gaps.",
+      "coverageNotes": "Local macOS evidence covers the shared missing-dir fallback policy, main pty:spawn recovery and metadata, no-flag and reattach strictness, renderer IPC flag routing, SSH-tagged and remote-runtime omission, and the visibility-gated terminal notice. Real Bash and Zsh node-pty tests replace the active cwd inode and exercise the shared POSIX OMP wrapper; generated-file snapshots pin identical local, daemon/SSH, and relay wrappers. Daemon shares the same pre-provider main cwd decision but lacks a live daemon-provider run; WSL UNC paths are exempt from the spawn probe and lack a live run; native PowerShell is unaffected; Linux/Windows and mobile/API strictness remain gaps.",
       "motivatingLinks": [
         "https://github.com/stablyai/orca/issues/7239",
         "https://github.com/stablyai/orca/pull/7750",
-        "https://github.com/stablyai/orca/pull/7678"
+        "https://github.com/stablyai/orca/pull/7678",
+        "https://github.com/stablyai/orca/issues/16457",
+        "https://github.com/stablyai/orca/pull/17128"
       ],
-      "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics.",
-      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path.",
+      "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics. A long-lived POSIX shell whose cwd inode was deleted and replaced may run an extension-enabled OMP launch from the live path named by its logical PWD only in a subshell; the parent shell cwd, OMP argv, status extension, and exit status remain unchanged, while a genuinely unavailable path fails visibly without invoking OMP. A usable current directory remains authoritative when PWD is unset instead of being remapped to a workspace fallback.",
+      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path. In real interactive Bash and Zsh PTYs, unset PWD in a usable nested directory and require OMP to stay there rather than remap to MANTA_WORKTREE_PATH; then delete and recreate the active project path, require OMP to observe the replacement inode with byte-exact extension argv and its nonzero status preserved, require the parent shell to remain on the stale inode, and finally delete the replacement and require an actionable failure before the fake OMP binary runs again.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/terminal-startup-cwd.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty-spawn-cwd-fallback.test.ts src/main/ipc/pty-wsl-cwd-validation.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-transport-connect-spawn.test.ts",
-        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-connection-runtime-owner-spawn-routing.test.ts"
+        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-connection-runtime-owner-spawn-routing.test.ts",
+        "pnpm exec vitest run --config config/vitest.config.ts src/main/pty/omp-shell-wrapper.node-pty.test.ts src/main/pty/omp-shell-wrapper-alias-safety.test.ts src/main/shell-wrapper-generated-file-snapshot.test.ts"
       ],
       "testFiles": [
         "src/shared/terminal-startup-cwd.test.ts",
         "src/main/ipc/pty-spawn-cwd-fallback.test.ts",
         "src/main/ipc/pty-wsl-cwd-validation.test.ts",
         "src/renderer/src/components/terminal-pane/pty-transport-connect-spawn.test.ts",
-        "src/renderer/src/components/terminal-pane/pty-connection-runtime-owner-spawn-routing.test.ts"
+        "src/renderer/src/components/terminal-pane/pty-connection-runtime-owner-spawn-routing.test.ts",
+        "src/main/pty/omp-shell-wrapper.node-pty.test.ts",
+        "src/main/pty/omp-shell-wrapper-alias-safety.test.ts",
+        "src/main/shell-wrapper-generated-file-snapshot.test.ts"
       ],
       "assertionRefs": [
         {
@@ -6392,6 +6404,21 @@
             "startup cwd fallback metadata prints a generic in-terminal notice",
             "remote-runtime worktree spawns are not marked with cwdFallback"
           ]
+        },
+        {
+          "file": "src/main/pty/omp-shell-wrapper.node-pty.test.ts",
+          "assertions": [
+            "real Bash and Zsh PTYs rebind OMP to a recreated cwd inode without changing the parent shell",
+            "an unset PWD with a usable cwd stays unset and does not remap OMP to MANTA_WORKTREE_PATH",
+            "extension argv and a nonzero OMP exit status survive the recovery subshell",
+            "a subsequently missing logical cwd prints an actionable error and does not invoke OMP again"
+          ]
+        },
+        {
+          "file": "src/main/shell-wrapper-generated-file-snapshot.test.ts",
+          "assertions": [
+            "local, daemon/SSH, and relay Bash/Zsh files contain the byte-identical shared OMP wrapper"
+          ]
         }
       ],
       "evidenceRuns": [
@@ -6430,11 +6457,20 @@
           "result": "passed",
           "durationSeconds": 6.5,
           "summary": "1 test file passed, 341 tests passed; covers local IPC marking, the generic terminal fallback notice, and remote-runtime omission."
+        },
+        {
+          "date": "2026-08-29",
+          "runner": "local",
+          "platform": "macos",
+          "command": "pnpm exec vitest run --config config/vitest.config.ts src/main/pty/omp-shell-wrapper.node-pty.test.ts src/main/pty/omp-shell-wrapper-alias-safety.test.ts src/main/shell-wrapper-generated-file-snapshot.test.ts",
+          "result": "passed",
+          "durationSeconds": 3,
+          "summary": "3 test files passed; real Bash and Zsh PTYs covered unset-PWD authority, stale-inode recovery, parent-shell isolation, extension argv, exit status, missing-path visibility, alias safety, and generated local/daemon/relay parity."
         }
       ],
       "runtimeBudget": {
-        "p95Seconds": 30,
-        "scope": "focused unit and IPC contract tests"
+        "p95Seconds": 40,
+        "scope": "focused unit, IPC, generated-wrapper, and real Bash/Zsh PTY contracts"
       },
       "flakeHistory": {
         "status": "unknown",
@@ -6442,23 +6478,25 @@
       },
       "redGreenEvidence": {
         "status": "partial",
-        "evidence": "The main IPC missing-cwd tests fail with the provider's 'Working directory ... does not exist.' error when the fallback is removed and pass with it. Full live Electron reproduction from a production persisted session is not captured."
+        "evidence": "The main IPC missing-cwd tests fail with the provider's 'Working directory ... does not exist.' error when the spawn fallback is removed and pass with it. Before the OMP recovery, the stale-inode reproduction makes the child process fail to resolve its cwd; the candidate rebinds to the recreated path in real Bash and Zsh PTYs. Full live Electron reproduction from a production persisted session is not captured."
       },
       "performanceBudget": {
         "required": true,
-        "evidence": "The runtime change adds at most two statSync probes on the fresh-local spawn path (the provider already stats the same paths during validation) and one bounded terminal write only when fallback actually occurs; no polling, provider listing, hidden-pane work, startup awaits, subprocesses, or render-loop work was added."
+        "evidence": "The spawn recovery adds at most two statSync probes on the fresh-local spawn path (the provider already stats the same paths during validation) and one bounded terminal write only when fallback actually occurs. Each extension-enabled OMP launch adds a constant number of shell filesystem predicates; only a detected stale/unusable cwd creates one short recovery subshell. No polling, retry, provider listing, hidden-pane work, startup awaits, extra OMP subprocesses, or render-loop work was added."
       },
       "promotionCriteria": [
         "Attach CI evidence for all declared test files.",
         "Add a live Electron regression that opens a local terminal whose persisted startupCwd was deleted and proves visible shell input/output at the workspace root.",
-        "Add WSL/mobile/API provider-contract coverage or explicitly narrow their risk scope."
+        "Add a live stale-inode OMP run on Linux or WSL and through an SSH/relay-generated wrapper.",
+        "Add WSL/mobile/API spawn provider-contract coverage or explicitly narrow their risk scope."
       ],
       "knownGaps": [
         "No live Electron fixture seeds a persisted tab whose startupCwd directory was deleted.",
         "Daemon coverage is via the shared pre-provider main cwd decision, not a live daemon provider spawn.",
-        "WSL UNC paths bypass the probe by design and have no live existence-recovery run; Linux, Windows, and mobile/API strictness are not directly exercised."
+        "The stale-inode OMP oracle is local macOS Bash/Zsh plus shared generated-file parity; it does not execute through live SSH, relay, Linux, or WSL providers.",
+        "WSL UNC paths bypass the spawn probe by design and have no live existence-recovery run; Linux, Windows, and mobile/API spawn strictness are not directly exercised."
       ],
-      "demotionRule": "Demote or quarantine if the gate flakes without a product bug, if an existing directory is ever remapped away from the requested cwd, or if a reattach/remote/API caller can engage the fallback."
+      "demotionRule": "Demote or quarantine if the gate flakes without a product bug, if an existing directory is ever remapped away from the requested cwd, if a reattach/remote/API caller can engage the spawn fallback, or if OMP recovery remaps a usable cwd with unset PWD, changes argv/status/parent cwd, or invokes OMP when the logical path remains unavailable."
     },
     {
       "id": "agent-status.pi-hook-liveness",
