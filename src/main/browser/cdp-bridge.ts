@@ -822,7 +822,7 @@ export class CdpBridge {
 
   async tabSwitch(index: number): Promise<BrowserTabSwitchResult> {
     // Why: filter to live tabs so indices match tabList(), skipping destroyed-but-uncleaned entries.
-    const liveEntries = [...this.getRegisteredTabs()].filter(([_, wcId]) => {
+    const liveEntries = [...this.getRegisteredTabs()].filter(([_tabId, wcId]) => {
       const guest = webContents.fromId(wcId)
       return guest && !guest.isDestroyed()
     })

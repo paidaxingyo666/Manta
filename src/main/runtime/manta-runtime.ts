@@ -6067,22 +6067,18 @@ export class MantaRuntimeService {
     )
     const worktrees = (await this.listResolvedWorktrees())
       .filter((worktree) => repos.has(getRepoIdFromWorktreeId(worktree.id)))
-      .map(
-        (worktree): SkillSshWorkspaceAuthority => ({
-          kind: 'worktree',
-          id: worktree.id,
-          path: worktree.path
-        })
-      )
+      .map((worktree): SkillSshWorkspaceAuthority => ({
+        kind: 'worktree',
+        id: worktree.id,
+        path: worktree.path
+      }))
     const folders = this.listFolderWorkspaces()
       .filter((folder) => folder.connectionId === connectionId)
-      .map(
-        (folder): SkillSshWorkspaceAuthority => ({
-          kind: 'folder',
-          id: folder.id,
-          path: folder.folderPath
-        })
-      )
+      .map((folder): SkillSshWorkspaceAuthority => ({
+        kind: 'folder',
+        id: folder.id,
+        path: folder.folderPath
+      }))
     return [...worktrees, ...folders]
   }
 

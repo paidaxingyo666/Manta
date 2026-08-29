@@ -338,7 +338,7 @@ describe('getPiAgentStatusExtensionSource', () => {
 
       await vi.waitFor(() => expect(harness.fetchMock).toHaveBeenCalledTimes(2))
       const payloads = harness.fetchMock.mock.calls.map(
-        ([_, init]) => JSON.parse(String(init?.body)).payload
+        ([_event, init]) => JSON.parse(String(init?.body)).payload
       )
       expect(payloads).toEqual([
         { hook_event_name: 'session_start' },
@@ -391,7 +391,7 @@ describe('getPiAgentStatusExtensionSource', () => {
 
     await vi.waitFor(() => expect(harness.fetchMock).toHaveBeenCalledTimes(3))
     expect(
-      harness.fetchMock.mock.calls.map(([_, init]) => JSON.parse(String(init?.body)).payload)
+      harness.fetchMock.mock.calls.map(([_event, init]) => JSON.parse(String(init?.body)).payload)
     ).toEqual([
       { hook_event_name: 'agent_start', session_id: 'omp-session-8' },
       {

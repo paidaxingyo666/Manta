@@ -57,12 +57,10 @@ export async function getWorktreeTabs(
     }
 
     const state = store.getState()
-    return (state.tabsByWorktree[worktreeId] ?? []).map(
-      (tab): TerminalTabSummary => ({
-        id: tab.id,
-        title: tab.customTitle || tab.title
-      })
-    )
+    return (state.tabsByWorktree[worktreeId] ?? []).map((tab): TerminalTabSummary => ({
+      id: tab.id,
+      title: tab.customTitle || tab.title
+    }))
   }, worktreeId)
 }
 
@@ -116,13 +114,11 @@ export async function getBrowserTabs(
     }
 
     const state = store.getState()
-    return (state.browserTabsByWorktree[worktreeId] ?? []).map(
-      (tab): BrowserTabSummary => ({
-        id: tab.id,
-        url: tab.url,
-        title: tab.title
-      })
-    )
+    return (state.browserTabsByWorktree[worktreeId] ?? []).map((tab): BrowserTabSummary => ({
+      id: tab.id,
+      url: tab.url,
+      title: tab.title
+    }))
   }, worktreeId)
 }
 
@@ -140,13 +136,11 @@ export async function getOpenFiles(
     const state = store.getState()
     return state.openFiles
       .filter((file) => file.worktreeId === worktreeId)
-      .map(
-        (file): ExplorerFileSummary => ({
-          id: file.id,
-          filePath: file.filePath,
-          relativePath: file.relativePath
-        })
-      )
+      .map((file): ExplorerFileSummary => ({
+        id: file.id,
+        filePath: file.filePath,
+        relativePath: file.relativePath
+      }))
   }, worktreeId)
 }
 

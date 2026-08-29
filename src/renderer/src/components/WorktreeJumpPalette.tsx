@@ -2022,13 +2022,11 @@ function WorktreeJumpPaletteContent({
       fetchLinearIssue: state.fetchLinearIssue
     })
       .catch(() => null)
-      .then(
-        (issue): CmdJLinearIssuePreview => ({
-          ...pendingPreview,
-          issue,
-          loading: false
-        })
-      )
+      .then((issue): CmdJLinearIssuePreview => ({
+        ...pendingPreview,
+        issue,
+        loading: false
+      }))
     linearIssueLookupRef.current = { query: createWorktreeName, promise }
     void promise.then((preview) => {
       if (linearIssueLookupGenerationRef.current === generation) {
@@ -2077,13 +2075,11 @@ function WorktreeJumpPaletteContent({
       sourceContext
     })
       .catch(() => null)
-      .then(
-        (item): CmdJGitHubWorkItemPreview => ({
-          ...pendingPreview,
-          item: item ?? null,
-          loading: false
-        })
-      )
+      .then((item): CmdJGitHubWorkItemPreview => ({
+        ...pendingPreview,
+        item: item ?? null,
+        loading: false
+      }))
     githubLookupRef.current = { query: createWorktreeName, promise }
     void promise.then((preview) => {
       if (githubLookupGenerationRef.current === generation) {
