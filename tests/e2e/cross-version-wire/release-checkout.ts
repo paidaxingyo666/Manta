@@ -130,7 +130,7 @@ export function resolveBaselineReleaseRef(): string {
         `Run it inside a git checkout, or pin a ref with ${BASELINE_REF_ENV}.`
     )
   }
-  const latest = selectLatestStableReleaseTag(tags)
+  const latest = selectBaselineReleaseTag(tags)
   if (!latest) {
     throw new Error(
       `Cross-version harness found no desktop release tags matching vX.Y.Z or vX.Y.Z-rc.N (saw ${tags.length} tag(s) total). ` +
