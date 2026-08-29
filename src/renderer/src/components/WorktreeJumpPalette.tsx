@@ -568,7 +568,7 @@ function PaletteOpenTabPrimaryLine({
     <div className="flex min-w-0 items-center gap-2 overflow-hidden">
       <span
         data-slot="palette-open-tab-title"
-        className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground"
+        className="min-w-0 flex-1 truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground"
       >
         <HighlightedText text={title} matchRanges={titleRanges} />
       </span>
