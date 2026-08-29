@@ -7,6 +7,7 @@ import { resetRetirementCollisionKeyCacheForTests } from '../worktree-name-retir
 import { resetSshProviderAuthorities } from '../ssh/ssh-provider-authority'
 import { createWorktreeRuntimeStub, type WorktreeRuntimeStub } from './worktrees-test-runtime-stub'
 import { handlers, mainWindow, store } from './worktrees-test-ipc-surface'
+import { configureMetadataPruningStoreMocks } from './worktrees-test-metadata-pruning-store'
 import {
   ORIGINAL_PLATFORM,
   setPlatform,
@@ -129,10 +130,12 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
     store.getWorktreeMeta,
     store.getWorktreeMetaForHost,
     store.getAllWorktreeMeta,
+    store.captureNativeLocalWorktreeMetadataScanExpectation,
     store.setWorktreeMeta,
     store.setWorktreeMetaForHost,
     store.getProjectHostSetups,
     store.removeWorktreeMeta,
+    store.pruneSessionlessMissingLocalWorktreeMetadataForRepo,
     store.removeWorkspaceSessionStateForWorktree,
     store.getAllWorktreeLineage,
     store.removeWorktreeLineage,
@@ -187,12 +190,13 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
   store.getRepo.mockReturnValue({ ...repo, worktreeBaseRef: null })
   store.getProjects.mockReturnValue([])
   store.getSparsePresets.mockReturnValue([])
-  store.getSettings.mockReturnValue({
+  const settings = {
     branchPrefix: 'none',
     nestWorkspaces: false,
     refreshLocalBaseRefOnWorktreeCreate: false,
     workspaceDir: '/workspace'
-  })
+  }
+  store.getSettings.mockReturnValue(settings)
   store.getWorktreeMeta.mockReturnValue(undefined)
   // Host-qualified accessors delegate by default so payload assertions stay on one spy;
   // host routing itself is covered by worktree-identity-persistence.test.ts.
@@ -200,6 +204,7 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
     store.getWorktreeMeta(args[0] as string)
   )
   store.getAllWorktreeMeta.mockReturnValue({})
+  configureMetadataPruningStoreMocks(store, settings)
   store.getRetiredWorktreeNameRegistry.mockReturnValue({ exhaustedTiers: 0, names: [] })
   resetRetirementCollisionKeyCacheForTests()
   store.setWorktreeMeta.mockReturnValue({})
