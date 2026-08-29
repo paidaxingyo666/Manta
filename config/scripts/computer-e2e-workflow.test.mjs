@@ -12,7 +12,7 @@ describe('computer-use e2e workflow', () => {
     expect(config).toContain('fileParallelism: false')
   })
 
-  it('guards e2e source against fragile fixed waits and stale element indexes', () => {
+  it('guards e2e source against fragile waits and Windows Calculator drift', () => {
     const driver = readFileSync(join(projectDir, 'tests/e2e/helpers/computer-driver.ts'), 'utf8')
     const cliDriver = readFileSync(
       join(projectDir, 'tests/e2e/helpers/computer-cli-driver.ts'),
@@ -31,11 +31,14 @@ describe('computer-use e2e workflow', () => {
     expect(cliDriver).toContain('Could not read Manta runtime metadata')
     expect(cliDriver).toContain("'serve', '--no-pairing', '--json'")
 
-    expect(windowsStoreE2e).toMatch(
-      /for \(const buttonName of \['One', 'Plus', 'Two', 'Equals'\]\) \{[\s\S]*findRoleIndex\(state\.result\.snapshot\.treeText, `button \$\{buttonName\}`\)[\s\S]*state = parseJsonOutput/
+    expect(windowsStoreE2e).toContain("app.bundleId === 'ApplicationFrameHost'")
+    expect(windowsStoreE2e).toContain("app.bundleId === 'win32calc'")
+    expect(windowsStoreE2e).toContain('buttonIndex >= 0')
+    expect(windowsStoreE2e).toContain('pane(?:\\s|$)/m')
+    expect(windowsStoreE2e).toContain('String(clickIndex)')
+    expect(windowsStoreE2e).not.toContain(
+      "for (const buttonName of ['One', 'Plus', 'Two', 'Equals'])"
     )
-    expect(windowsStoreE2e).not.toMatch(/const one = findRoleIndex/)
-    expect(windowsStoreE2e).not.toMatch(/for \(const index of \[one, plus, two, equals\]\)/)
   })
 
   it('triggers on computer-use shared contracts, scripts, and agent skill changes', () => {
@@ -118,7 +121,7 @@ describe('computer-use e2e workflow', () => {
     }
   })
 
-  it('builds and tests the macOS helper on pull requests without TCC e2e', () => {
+  it('builds and tests the macOS helper on every trigger without hosted TCC e2e', () => {
     const workflow = parse(
       readFileSync(join(projectDir, '.github/workflows/computer-e2e.yml'), 'utf8')
     )
@@ -129,7 +132,7 @@ describe('computer-use e2e workflow', () => {
       (step) => step.uses === './.github/actions/install-node-dependencies'
     )
 
-    expect(job.if).toBe("github.event_name == 'pull_request'")
+    expect(job.if).toBeUndefined()
     expect(job['runs-on']).toBe('macos-15')
     expect(checkout.with['persist-credentials']).toBe(false)
     expect(install.with['native-runtime']).toBe('electron')
@@ -142,6 +145,7 @@ describe('computer-use e2e workflow', () => {
     )
     expect(runs).toContain('pnpm verify:computer-native')
     expect(runs.join('\n')).not.toContain('test:e2e:computer')
+    expect(workflow.jobs.mac).toBeUndefined()
     expect(workflow.on.pull_request.paths).toEqual(
       expect.arrayContaining([
         'config/scripts/macos-computer-helper-owner-loss-benchmark.mjs',
@@ -152,6 +156,29 @@ describe('computer-use e2e workflow', () => {
         'config/scripts/macos-computer-helper-owner-loss-trial-cleanup.mjs'
       ])
     )
+  })
+
+  it('uses the cached Electron dependency path for scheduled Linux and Windows e2e', () => {
+    const workflow = parse(
+      readFileSync(join(projectDir, '.github/workflows/computer-e2e.yml'), 'utf8')
+    )
+    for (const jobName of ['linux', 'windows']) {
+      const job = workflow.jobs[jobName]
+      const checkout = job.steps.find((step) => step.uses === 'actions/checkout@v6')
+      const install = job.steps.find(
+        (step) => step.uses === './.github/actions/install-node-dependencies'
+      )
+      expect(checkout.with['persist-credentials'], jobName).toBe(false)
+      expect(install.with['native-runtime'], jobName).toBe('electron')
+      expect(
+        job.steps.some((step) => step.uses === 'pnpm/action-setup@v6'),
+        jobName
+      ).toBe(false)
+      expect(
+        job.steps.some((step) => step.run === 'pnpm install --frozen-lockfile'),
+        jobName
+      ).toBe(false)
+    }
   })
 
   it('runs deterministic macOS owner-loss benchmark cleanup coverage', () => {
@@ -244,7 +271,7 @@ describe('computer-use e2e workflow', () => {
       readFileSync(join(projectDir, '.github/workflows/computer-e2e.yml'), 'utf8')
     )
 
-    for (const jobName of ['native-smoke', 'mac', 'linux', 'windows']) {
+    for (const jobName of ['native-smoke', 'linux', 'windows']) {
       const runs = workflow.jobs[jobName].steps
         .map((step) => step.run)
         .filter((run) => typeof run === 'string')
@@ -274,7 +301,6 @@ describe('computer-use e2e workflow', () => {
       .filter((run) => typeof run === 'string')
     const allRuns = [
       ...nativeSmokeRuns,
-      ...workflow.jobs.mac.steps.map((step) => step.run).filter((run) => typeof run === 'string'),
       ...workflow.jobs.linux.steps.map((step) => step.run).filter((run) => typeof run === 'string'),
       ...workflow.jobs.windows.steps
         .map((step) => step.run)
@@ -286,30 +312,25 @@ describe('computer-use e2e workflow', () => {
     expect(allRuns.join('\n')).not.toContain('test:e2e:computer -- --reporter')
   })
 
-  it('runs macOS and Linux computer-use e2e files in scheduled jobs', () => {
+  it('runs Linux e2e on schedule without advertising hosted macOS TCC coverage', () => {
     const workflow = parse(
       readFileSync(join(projectDir, '.github/workflows/computer-e2e.yml'), 'utf8')
     )
     const triggerPaths = workflow.on.pull_request.paths
-    const macRuns = workflow.jobs.mac.steps
-      .map((step) => step.run)
-      .filter((run) => typeof run === 'string')
     const linuxRuns = workflow.jobs.linux.steps
       .map((step) => step.run)
       .filter((run) => typeof run === 'string')
 
     expect(triggerPaths).toEqual(
       expect.arrayContaining([
-        'tests/e2e/computer-mac.e2e.ts',
-        'tests/e2e/computer-mac-safari.e2e.ts',
         'tests/e2e/computer-linux.e2e.ts',
         'tests/e2e/helpers/computer-cli-driver.ts',
         'tests/e2e/helpers/computer-driver.ts'
       ])
     )
-    expect(macRuns).toContain(
-      'pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-mac.e2e.ts tests/e2e/computer-mac-safari.e2e.ts'
-    )
+    expect(triggerPaths).not.toContain('tests/e2e/computer-mac.e2e.ts')
+    expect(triggerPaths).not.toContain('tests/e2e/computer-mac-safari.e2e.ts')
+    expect(workflow.jobs.mac).toBeUndefined()
     expect(linuxRuns).toContain(
       'xvfb-run --auto-servernum dbus-run-session -- pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-linux.e2e.ts'
     )
