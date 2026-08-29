@@ -9,6 +9,7 @@ const dependencyAction = parse(
   readFileSync('.github/actions/install-node-dependencies/action.yml', 'utf8')
 )
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+const pnpmWorkspace = parse(readFileSync('pnpm-workspace.yaml', 'utf8'))
 const shellContractFiles = [
   'src/main/daemon/repro-13767-shell-ready-marker-lost-to-exec.test.ts',
   'src/main/daemon/shell-ready.test.ts',
@@ -224,7 +225,10 @@ describe('PR workflow parallelism', () => {
     expect(pnpmIndex).toBeLessThan(nodeIndex)
     expect(pnpmIndex).toBeLessThan(requestedNodeIndex)
     const packageManagerVersion = /^pnpm@([^+]+)/.exec(packageJson.packageManager)?.[1]
-    expect(steps[pnpmIndex].with.version).toBe(packageManagerVersion)
+    expect(packageManagerVersion).toBe('12.0.0')
+    expect(steps[pnpmIndex].uses).toBe('pnpm/setup@v2')
+    expect(steps[pnpmIndex].with.version).toBeUndefined()
+    expect(steps[pnpmIndex].with.install).toBe(false)
     expect(steps[nodeIndex].with.cache).toBe('pnpm')
     expect(steps[nodeIndex].if).toBe("inputs.node-version == ''")
     expect(steps[requestedNodeIndex].if).toBe("inputs.node-version != ''")
@@ -232,20 +236,20 @@ describe('PR workflow parallelism', () => {
     expect(steps[requestedNodeIndex].with.cache).toBe('pnpm')
   })
 
-  it('pins every direct pnpm setup to the repository package-manager version', () => {
-    const packageManagerVersion = /^pnpm@([^+]+)/.exec(packageJson.packageManager)?.[1]
+  it('uses the repository package-manager version for every direct pnpm setup', () => {
     const directSetups = globSync('.github/workflows/*.yml').flatMap((workflowPath) => {
       const parsed = parse(readFileSync(workflowPath, 'utf8'))
       return Object.values(parsed.jobs ?? {}).flatMap((job) =>
         (job.steps ?? [])
-          .filter((step) => step.uses === 'pnpm/action-setup@v6')
+          .filter((step) => step.uses === 'pnpm/setup@v2')
           .map((step) => ({ workflowPath, step }))
       )
     })
 
     expect(directSetups.length).toBeGreaterThan(0)
     for (const { workflowPath, step } of directSetups) {
-      expect(step.with?.version, workflowPath).toBe(packageManagerVersion)
+      expect(step.with?.version, workflowPath).toBeUndefined()
+      expect(step.with?.install, workflowPath).toBe(false)
     }
   })
 
@@ -293,15 +297,15 @@ describe('PR workflow parallelism', () => {
     expect(dependencyInstall.run).toContain('--frozen-lockfile')
     expect(dependencyInstall.run).not.toContain('--no-frozen-lockfile')
     expect(dependencyInstall.run).toContain(
-      'git -C "$GITHUB_WORKSPACE" diff --exit-code -- package.json pnpm-lock.yaml'
+      'git -C "$GITHUB_WORKSPACE" diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml'
     )
     expect(dependencyInstall.run).toContain('--ignore-scripts')
     expect(dependencyInstall.run).not.toContain('--os=')
     expect(dependencyInstall.run).not.toContain('--cpu=')
-    expect(packageJson.pnpm.supportedArchitectures.os).toEqual(
+    expect(pnpmWorkspace.supportedArchitectures.os).toEqual(
       expect.arrayContaining(['current', 'win32'])
     )
-    expect(packageJson.pnpm.supportedArchitectures.cpu).toContain('current')
+    expect(pnpmWorkspace.supportedArchitectures.cpu).toContain('current')
     const prepareRuntime = dependencyAction.runs.steps.find(
       (step) => step.name === 'Prepare native runtime'
     )

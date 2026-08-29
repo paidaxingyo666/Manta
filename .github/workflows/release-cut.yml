@@ -864,10 +864,9 @@ jobs:
           node-version-file: package.json
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       # Why: Linux terminal golden E2E uses the same native install path as
       # release CI, which needs pnpm to bypass its non-executable gyp_main.py.
@@ -1080,10 +1079,9 @@ jobs:
           node-version-file: package.json
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       # Why: keep the non-blocking evidence lane on the same Linux native
       # install path as the blocking golden and release build jobs.
@@ -1195,10 +1193,9 @@ jobs:
 
       # pnpm must be on PATH before setup-node so setup-node can locate the store for caching.
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

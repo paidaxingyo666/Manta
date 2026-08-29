@@ -301,41 +301,7 @@
   "engines": {
     "node": "24"
   },
-  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
-  "pnpm": {
-    "overrides": {
-      "monaco-editor>dompurify": "3.4.13"
-    },
-    "supportedArchitectures": {
-      "os": [
-        "current",
-        "darwin",
-        "linux",
-        "win32"
-      ],
-      "cpu": [
-        "current",
-        "x64",
-        "arm64"
-      ]
-    },
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "cpu-features",
-      "esbuild",
-      "node-pty",
-      "sherpa-onnx"
-    ],
-    "patchedDependencies": {
-      "node-pty@1.1.0": "config/patches/node-pty@1.1.0.patch",
-      "@xterm/addon-ligatures@0.11.0-beta.287": "config/patches/@xterm__addon-ligatures@0.11.0-beta.287.patch",
-      "@xterm/addon-webgl@0.20.0-beta.286": "config/patches/@xterm__addon-webgl@0.20.0-beta.286.patch",
-      "@xterm/addon-serialize@0.15.0-beta.287": "config/patches/@xterm__addon-serialize@0.15.0-beta.287.patch",
-      "@xterm/xterm@6.1.0-beta.287": "config/patches/@xterm__xterm@6.1.0-beta.287.patch",
-      "lint-staged@16.4.0": "config/patches/lint-staged@16.4.0.patch",
-      "@vscode/windows-process-tree@0.8.0": "config/patches/@vscode__windows-process-tree@0.8.0.patch"
-    }
-  },
+  "packageManager": "pnpm@12.0.0+sha512.9e2e3dc3911995868dc94b8175c217c27e95408fa03b4a22749778f2b34f773b77cdd3b39ede8171b22fcd53be6a35342e9fac9948a68ef58df6488ce89a7e67",
   "reactDoctor": {
     "rules": {
       "react-doctor/js-combine-iterations": "off"

@@ -1,3 +1,104 @@
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      pnpm:
+        specifier: 12.0.0
+        version: 12.0.0
+
+packages:
+
+  '@pnpm/exe.darwin-arm64@12.0.0':
+    resolution: {integrity: sha512-sqeoPfVMIfQhbwzDrKraXY2ynyuWClFqzvfImzAS/yczEru1m5SGvQ9kgFPDvQzJZ9AetedgJeDZC6qYvH8/tQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@pnpm/exe.darwin-x64@12.0.0':
+    resolution: {integrity: sha512-Quc3J6c9cGTy+LDgz1cLVgCNOU9IERuyAlDoEj0DCilKqvo50Jx1GV8k74iwn4J9fFSKkm8JrwNvtTDj3uWnUA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@pnpm/exe.linux-arm64-musl@12.0.0':
+    resolution: {integrity: sha512-EVWd3OTmgsMFhXx69b5JxIzoabG9Ma7m4OeTaf0ZKBzMnfYi8u21NDQo92ToMrdYL5dYDDCHsyYIjXzk+d0HhA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-arm64@12.0.0':
+    resolution: {integrity: sha512-cXHHW8M4rAPsYNkKZO9WVcpLLK55i9EaIsZPfIqUuY2eopd5LqnFyBge54HCh1GC0yCX8ySn0hYIi+4OyAEoDg==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-x64-musl@12.0.0':
+    resolution: {integrity: sha512-UcXwMdFjly0mpddkGigHKTxe27IMv2fUK4IWW/MHmJ3yMguxXmkwNlEI4aE+G1HO2TLo20uNEUWD4ymLe/DaCQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-x64@12.0.0':
+    resolution: {integrity: sha512-6Rsl+zEWMOmus7v7/9J3OE8EMvHyNAfxYmDfmhQG4J0985OuT3G3Ho9NSGHjkBn4aU4bgklWifRhe1HX8dUSyw==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.win32-arm64@12.0.0':
+    resolution: {integrity: sha512-O5F76A4oVFrpDGdFxEszRIThOSBfjHdH5c006gR+7UTCfiXrukr1XfqPungUI1DXcSR5gb9jBsPQqQZOAoOOxw==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@pnpm/exe.win32-x64@12.0.0':
+    resolution: {integrity: sha512-5dKFajIEWJ1ai+KHXFJvskY6vchbunmLwSUV2ywbLymcmJjfY5XJVpgzPCyIoVCMVG0zHorr66+hM8h8b3aRfQ==}
+    cpu: [x64]
+    os: [win32]
+
+  pnpm@12.0.0:
+    resolution: {integrity: sha512-ni49w5EZlYaNyUuBdcIXwn6VQI+gO0oidJd48rNPdzt3zdOznt6BcbIvzVO+ajU0Lp+smUimjvWN9kiM6Jp+Zw==}
+    engines: {node: '>=18.*'}
+    hasBin: true
+
+snapshots:
+
+  '@pnpm/exe.darwin-arm64@12.0.0':
+    optional: true
+
+  '@pnpm/exe.darwin-x64@12.0.0':
+    optional: true
+
+  '@pnpm/exe.linux-arm64-musl@12.0.0':
+    optional: true
+
+  '@pnpm/exe.linux-arm64@12.0.0':
+    optional: true
+
+  '@pnpm/exe.linux-x64-musl@12.0.0':
+    optional: true
+
+  '@pnpm/exe.linux-x64@12.0.0':
+    optional: true
+
+  '@pnpm/exe.win32-arm64@12.0.0':
+    optional: true
+
+  '@pnpm/exe.win32-x64@12.0.0':
+    optional: true
+
+  pnpm@12.0.0:
+    optionalDependencies:
+      '@pnpm/exe.darwin-arm64': 12.0.0
+      '@pnpm/exe.darwin-x64': 12.0.0
+      '@pnpm/exe.linux-arm64': 12.0.0
+      '@pnpm/exe.linux-arm64-musl': 12.0.0
+      '@pnpm/exe.linux-x64': 12.0.0
+      '@pnpm/exe.linux-x64-musl': 12.0.0
+      '@pnpm/exe.win32-arm64': 12.0.0
+      '@pnpm/exe.win32-x64': 12.0.0
+
+---
 lockfileVersion: '9.0'
 
 settings:
@@ -8,27 +109,13 @@ overrides:
   monaco-editor>dompurify: 3.4.13
 
 patchedDependencies:
-  '@vscode/windows-process-tree@0.8.0':
-    hash: 946ffb2b1026bcb554d9920681fb00f546c28fc5de6d95a877d198b49bf73988
-    path: config/patches/@vscode__windows-process-tree@0.8.0.patch
-  '@xterm/addon-ligatures@0.11.0-beta.287':
-    hash: 47405b9994b5acf1b4e90b49250358c1ca03649854d59560e7732b72fe336920
-    path: config/patches/@xterm__addon-ligatures@0.11.0-beta.287.patch
-  '@xterm/addon-serialize@0.15.0-beta.287':
-    hash: b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539
-    path: config/patches/@xterm__addon-serialize@0.15.0-beta.287.patch
-  '@xterm/addon-webgl@0.20.0-beta.286':
-    hash: a18413f0661a2a8be4781057e64020c4f03012ed4f5a2fdc0defc39df04447fa
-    path: config/patches/@xterm__addon-webgl@0.20.0-beta.286.patch
-  '@xterm/xterm@6.1.0-beta.287':
-    hash: 46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7
-    path: config/patches/@xterm__xterm@6.1.0-beta.287.patch
-  lint-staged@16.4.0:
-    hash: 7333b3837f80a7fbd045964db6d76ba4fc118e49134bdbabb00585b6b7b60673
-    path: config/patches/lint-staged@16.4.0.patch
-  node-pty@1.1.0:
-    hash: d278a1e8dff9b07d07aa2bd11b3c2fce1456597468868923f29616dcc01ae10a
-    path: config/patches/node-pty@1.1.0.patch
+  '@vscode/windows-process-tree@0.8.0': 9217ef36c01ed74127fef5512b0c92089cdbf820fd6c109dd671137eebdc7585
+  '@xterm/addon-ligatures@0.11.0-beta.287': 47405b9994b5acf1b4e90b49250358c1ca03649854d59560e7732b72fe336920
+  '@xterm/addon-serialize@0.15.0-beta.287': af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c
+  '@xterm/addon-webgl@0.20.0-beta.286': 2c301a06ad9caa635d746147dcb2b1c69aa026904f65e1183564f08a0e601b91
+  '@xterm/xterm@6.1.0-beta.287': 46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7
+  lint-staged@16.4.0: 7333b3837f80a7fbd045964db6d76ba4fc118e49134bdbabb00585b6b7b60673
+  node-pty@1.1.0: 9a2eedbf2448b8ff1387a8a740ee5e4e968bf8484d7d80e12a3f6a2dc26b0e17
 
 importers:
 
@@ -51,7 +138,7 @@ importers:
         version: 2.5.6
       '@xterm/addon-serialize':
         specifier: 0.15.0-beta.287
-        version: 0.15.0-beta.287(patch_hash=b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
+        version: 0.15.0-beta.287(patch_hash=af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
       '@xterm/headless':
         specifier: 6.1.0-beta.287
         version: 6.1.0-beta.287
@@ -69,7 +156,7 @@ importers:
         version: 3.3.1
       node-pty:
         specifier: ^1.1.0
-        version: 1.1.0(patch_hash=d278a1e8dff9b07d07aa2bd11b3c2fce1456597468868923f29616dcc01ae10a)
+        version: 1.1.0(patch_hash=9a2eedbf2448b8ff1387a8a740ee5e4e968bf8484d7d80e12a3f6a2dc26b0e17)
       posthog-node:
         specifier: ^5.33.3
         version: 5.33.3
@@ -241,7 +328,7 @@ importers:
         version: 0.13.0-beta.287(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
       '@xterm/addon-webgl':
         specifier: 0.20.0-beta.286
-        version: 0.20.0-beta.286(patch_hash=a18413f0661a2a8be4781057e64020c4f03012ed4f5a2fdc0defc39df04447fa)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
+        version: 0.20.0-beta.286(patch_hash=2c301a06ad9caa635d746147dcb2b1c69aa026904f65e1183564f08a0e601b91)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))
       '@xterm/xterm':
         specifier: 6.1.0-beta.287
         version: 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
@@ -419,7 +506,7 @@ importers:
     optionalDependencies:
       '@vscode/windows-process-tree':
         specifier: 0.8.0
-        version: 0.8.0(patch_hash=946ffb2b1026bcb554d9920681fb00f546c28fc5de6d95a877d198b49bf73988)
+        version: 0.8.0(patch_hash=9217ef36c01ed74127fef5512b0c92089cdbf820fd6c109dd671137eebdc7585)
       sherpa-onnx-darwin-arm64:
         specifier: 1.12.37
         version: 1.12.37
@@ -4562,7 +4649,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-agent@3.0.0:
     resolution: {integrity: sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q==}
@@ -9624,7 +9711,7 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
-  '@vscode/windows-process-tree@0.8.0(patch_hash=946ffb2b1026bcb554d9920681fb00f546c28fc5de6d95a877d198b49bf73988)':
+  '@vscode/windows-process-tree@0.8.0(patch_hash=9217ef36c01ed74127fef5512b0c92089cdbf820fd6c109dd671137eebdc7585)':
     dependencies:
       node-addon-api: 7.1.0
     optional: true
@@ -9645,7 +9732,7 @@ snapshots:
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
-  '@xterm/addon-serialize@0.15.0-beta.287(patch_hash=b32cba6e04da65869402838b0ef1a41fd8ac59d7754e8ca69334b91a875a5539)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
+  '@xterm/addon-serialize@0.15.0-beta.287(patch_hash=af3b156143ed2ee9903b753145b63dd4a2ee72cadd7ef333ab0f4d5d3ebfc32c)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
@@ -9657,7 +9744,7 @@ snapshots:
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
-  '@xterm/addon-webgl@0.20.0-beta.286(patch_hash=a18413f0661a2a8be4781057e64020c4f03012ed4f5a2fdc0defc39df04447fa)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
+  '@xterm/addon-webgl@0.20.0-beta.286(patch_hash=2c301a06ad9caa635d746147dcb2b1c69aa026904f65e1183564f08a0e601b91)(@xterm/xterm@6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7))':
     dependencies:
       '@xterm/xterm': 6.1.0-beta.287(patch_hash=46796c152f3b73e28238f44499eaf5a867a863809bc7b470b159526a41e354f7)
 
@@ -12065,7 +12152,7 @@ snapshots:
 
   node-int64@0.4.0: {}
 
-  node-pty@1.1.0(patch_hash=d278a1e8dff9b07d07aa2bd11b3c2fce1456597468868923f29616dcc01ae10a):
+  node-pty@1.1.0(patch_hash=9a2eedbf2448b8ff1387a8a740ee5e4e968bf8484d7d80e12a3f6a2dc26b0e17):
     dependencies:
       node-addon-api: 7.1.1
 

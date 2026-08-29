@@ -98,6 +98,8 @@ describe('pnpm diff format', () => {
     expect(PNPM_DIFF_FLAGS).toEqual([
       '-c',
       'core.safecrlf=false',
+      '-c',
+      'core.quotePath=false',
       'diff',
       '--src-prefix=a/',
       '--dst-prefix=b/',
@@ -107,18 +109,18 @@ describe('pnpm diff format', () => {
       '--no-index',
       '--text',
       '--no-ext-diff',
-      '--no-color'
+      '--no-color',
+      '--'
     ])
   })
 
-  it('blanks the config-bearing environment variables', () => {
+  it('matches pnpm git config isolation', () => {
     const environment = pnpmDiffEnvironment({ PATH: '/usr/bin', HOME: '/Users/someone' })
     expect(environment).toMatchObject({
       PATH: '/usr/bin',
       GIT_CONFIG_NOSYSTEM: '1',
-      HOME: '',
-      XDG_CONFIG_HOME: '',
-      USERPROFILE: ''
+      GIT_CONFIG_GLOBAL: '/dev/null',
+      HOME: '/Users/someone'
     })
   })
 
@@ -350,12 +352,8 @@ describe('manifest guards', () => {
 describe('lockfile coupling', () => {
   const lockfile = [
     'patchedDependencies:',
-    "  '@xterm/xterm@6.1.0-beta.287':",
-    `    hash: ${'0'.repeat(64)}`,
-    '    path: config/patches/@xterm__xterm@6.1.0-beta.287.patch',
-    '  node-pty@1.1.0:',
-    `    hash: ${'1'.repeat(64)}`,
-    '    path: config/patches/node-pty@1.1.0.patch',
+    `  '@xterm/xterm@6.1.0-beta.287': ${'0'.repeat(64)}`,
+    `  node-pty@1.1.0: ${'1'.repeat(64)}`,
     'snapshots:',
     `  '@xterm/addon-fit@0.12.0-beta.287(@xterm/xterm@6.1.0-beta.287(patch_hash=${'0'.repeat(64)}))':`,
     `      '@xterm/xterm': 6.1.0-beta.287(patch_hash=${'0'.repeat(64)})`,
@@ -396,7 +394,10 @@ describe('lockfile coupling', () => {
 
   it('reports a lockfile stale in its resolution keys alone', () => {
     const key = '@xterm/xterm@6.1.0-beta.287'
-    const halfUpdated = lockfile.replace(`hash: ${'0'.repeat(64)}`, `hash: ${'a'.repeat(64)}`)
+    const halfUpdated = lockfile.replace(
+      `'@xterm/xterm@6.1.0-beta.287': ${'0'.repeat(64)}`,
+      `'@xterm/xterm@6.1.0-beta.287': ${'a'.repeat(64)}`
+    )
 
     expect(readLockfilePatchHash(halfUpdated, key)).toBe('a'.repeat(64))
     expect(lockfilePatchHashIsStale(halfUpdated, key, 'a'.repeat(64))).toBe(true)

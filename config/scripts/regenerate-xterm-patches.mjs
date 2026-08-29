@@ -22,13 +22,15 @@ const DEFAULT_REPO_ROOT = path.resolve(import.meta.dirname, '..', '..')
 const MANIFEST_RELATIVE_PATH = path.join('config', 'patches', 'xterm-upstream.json')
 
 /**
- * Flags pnpm@10 passes to `git diff` in its own `diffFolders()`. A patch built
+ * Flags pnpm@12 passes to `git diff` in its own `diff_folders()`. A patch built
  * with anything else is a patch pnpm may re-diff differently on the next
  * `pnpm patch-commit`, so the byte-comparison gate would never settle.
  */
 export const PNPM_DIFF_FLAGS = [
   '-c',
   'core.safecrlf=false',
+  '-c',
+  'core.quotePath=false',
   'diff',
   '--src-prefix=a/',
   '--dst-prefix=b/',
@@ -38,7 +40,8 @@ export const PNPM_DIFF_FLAGS = [
   '--no-index',
   '--text',
   '--no-ext-diff',
-  '--no-color'
+  '--no-color',
+  '--'
 ]
 
 /**
@@ -47,14 +50,12 @@ export const PNPM_DIFF_FLAGS = [
  */
 export const CHECKOUT_DIFF_FLAGS = PNPM_DIFF_FLAGS.filter((flag) => flag !== '--no-index')
 
-/** Blanks the vars pnpm blanks so user and system git config cannot reach the diff. */
+/** Applies pnpm's git config isolation so local machine settings cannot change the patch. */
 export function pnpmDiffEnvironment(baseEnvironment = process.env) {
   return {
     ...baseEnvironment,
     GIT_CONFIG_NOSYSTEM: '1',
-    HOME: '',
-    XDG_CONFIG_HOME: '',
-    USERPROFILE: ''
+    GIT_CONFIG_GLOBAL: '/dev/null'
   }
 }
 
@@ -216,7 +217,7 @@ export function patchHash(patchText) {
 
 function lockfilePatchHashPattern(packageKey) {
   // Unscoped keys such as `node-pty@1.1.0` are emitted unquoted.
-  return new RegExp(`(^  '?${escapeRegExp(packageKey)}'?:\\n    hash: )([0-9a-f]{64})$`, 'm')
+  return new RegExp(`(^  '?${escapeRegExp(packageKey)}'?: )([0-9a-f]{64})$`, 'm')
 }
 
 export function readLockfilePatchHash(lockfileText, packageKey) {
@@ -507,7 +508,7 @@ function diffFolders(folderA, folderB) {
 
 /** The source of truth for the hand-written half: what the checkout itself holds. */
 function diffCheckoutSource(packageRoot) {
-  return run('git', [...CHECKOUT_DIFF_FLAGS, '--', 'src/'], {
+  return run('git', [...CHECKOUT_DIFF_FLAGS, 'src/'], {
     cwd: packageRoot,
     env: pnpmDiffEnvironment(),
     maxBuffer: 64 * 1024 * 1024
