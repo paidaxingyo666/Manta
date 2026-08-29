@@ -5,10 +5,8 @@ import { Button } from '@/components/ui/button'
 import { RICH_MARKDOWN_MAX_SIZE_BYTES } from '../../../../shared/constants'
 import { formatBytes } from '../status-bar/workspace-space-format'
 import { MarkdownPreview, RichMarkdownEditor } from './editor-lazy-views'
-import { exceedsMarkdownRichModeSizeLimit } from './markdown-rich-size-limit'
 import { extractFrontMatter, prependFrontMatter } from './markdown-frontmatter'
-import { getMarkdownRenderMode } from './markdown-render-mode'
-import { getMarkdownRichModeUnsupportedMessage } from './markdown-rich-mode'
+import type { MarkdownRenderState } from './markdown-render-mode'
 import { RichMarkdownErrorBoundary } from './RichMarkdownErrorBoundary'
 import type { useMarkdownDocuments } from './useMarkdownDocuments'
 
@@ -20,6 +18,7 @@ export function EditorMarkdownFileSurface({
   editorViewStateKey,
   currentContent,
   mdViewMode,
+  inlineMarkdownRenderState,
   showMarkdownTableOfContents,
   showMarkdownFrontmatter,
   onCloseMarkdownTableOfContents,
@@ -35,6 +34,7 @@ export function EditorMarkdownFileSurface({
   editorViewStateKey: string
   currentContent: string
   mdViewMode: MarkdownViewMode
+  inlineMarkdownRenderState: MarkdownRenderState | null
   showMarkdownTableOfContents: boolean
   showMarkdownFrontmatter: boolean
   onCloseMarkdownTableOfContents: () => void
@@ -45,18 +45,15 @@ export function EditorMarkdownFileSurface({
   handleDirtyStateHint: (dirty: boolean) => void
   monacoEditor: React.JSX.Element
 }): React.JSX.Element {
-  const sizeOverridden = useAppStore((s) => s.markdownRichModeSizeOverride[activeFile.id] === true)
   const setSizeOverride = useAppStore((s) => s.setMarkdownRichModeSizeOverride)
-  const richModeUnsupportedMessage = getMarkdownRichModeUnsupportedMessage(currentContent)
-  const renderMode = getMarkdownRenderMode({
-    exceedsRichModeSizeLimit: !sizeOverridden && exceedsMarkdownRichModeSizeLimit(currentContent),
-    hasRichModeUnsupportedContent: richModeUnsupportedMessage !== null,
-    viewMode: mdViewMode
-  })
 
   if (activeFile.conflict?.conflictStatus === 'unresolved') {
     return <div className="h-full min-h-0">{monacoEditor}</div>
   }
+  if (!inlineMarkdownRenderState) {
+    return <div className="h-full min-h-0">{monacoEditor}</div>
+  }
+  const { renderMode, richModeUnsupportedMessage } = inlineMarkdownRenderState
   if (renderMode === 'source' && mdViewMode === 'rich') {
     // Why: only a size fallback is recoverable — unsupported syntax would round-trip badly, so it gets no override.
     const isSizeFallback = richModeUnsupportedMessage === null
