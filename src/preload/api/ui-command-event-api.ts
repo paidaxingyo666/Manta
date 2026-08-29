@@ -32,6 +32,8 @@ import type {
   SessionTabCloseResponse
 } from '../../shared/session-tab-close'
 
+export type CloseActiveTabPayload = { sourceId: string }
+
 export type UiCommandEventApi = {
   get: () => Promise<PersistedUIState>
   set: (args: Partial<PersistedUIState>) => Promise<void>
@@ -105,7 +107,7 @@ export type UiCommandEventApi = {
   onBrowserHistoryNavigate: (callback: (direction: 'back' | 'forward') => void) => () => void
   onZoomBrowserPage: (callback: (direction: 'in' | 'out' | 'reset') => void) => () => void
   onHardReloadBrowserPage: (callback: () => void) => () => void
-  onCloseActiveTab: (callback: () => void) => () => void
+  onCloseActiveTab: (callback: (payload?: CloseActiveTabPayload) => void) => () => void
   onCloseFloatingItem: (callback: (payload: { sourceId: string }) => void) => () => void
   onSelectFloatingIndex: (callback: (payload: { index: number }) => void) => () => void
   onSwitchTab: (callback: (direction: 1 | -1) => void) => () => void
