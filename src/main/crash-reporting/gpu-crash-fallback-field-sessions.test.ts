@@ -82,12 +82,14 @@ describe('1.4.190 win32 GPU-child crash cluster', () => {
     const guardStart = listener.indexOf('isGpuFallbackCrashCandidate(')
     expect(guardStart).toBeGreaterThan(0)
     expect(listener.slice(0, guardStart).match(/\bif\s*\(/g) ?? []).toHaveLength(1)
-    expect(listener).toMatch(/isGpuFallbackCrashCandidate\([\s\S]*?void handleGpuChildCrash\(/)
+    expect(listener).toMatch(
+      /isGpuFallbackCrashCandidate\([\s\S]*?gpuCrashDiagnostics\?\.record\(\)[\s\S]*?handleGpuChildCrash\(/
+    )
     // The `if (` count alone still allows `recorded && isGpuFallbackCrashCandidate(...)`, which
     // re-couples recovery to the suppression decision, so pin the guard to that check alone.
     const recoveryGuard = listener.slice(
       listener.lastIndexOf('if (', guardStart),
-      listener.indexOf('void handleGpuChildCrash(')
+      listener.indexOf('handleGpuChildCrash(')
     )
     expect(recoveryGuard).not.toMatch(/&&|\|\|/)
   })

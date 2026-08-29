@@ -187,6 +187,7 @@ import {
 } from './crash-reporting/gpu-crash-fallback-decision'
 import { promptForGpuFallbackRestart } from './crash-reporting/gpu-fallback-restart-prompt'
 import { engageGpuFallbackAfterCrashBurst } from './crash-reporting/gpu-fallback-engagement'
+import { GpuCrashDiagnosticsRecorder } from './crash-reporting/gpu-crash-diagnostics'
 import {
   handleGpuFallbackRecoveredLaunch,
   promptForGpuFallbackRecoveredLaunch
@@ -470,6 +471,16 @@ const gpuCrashFallbackTracker = new GpuCrashFallbackTracker({
 let activeGpuFallbackMarker: GpuFallbackMarker | null = null
 let gpuFallbackActiveThisLaunch = false
 let gpuFeatureStatus: Electron.GPUFeatureStatus | null = null
+const gpuCrashDiagnostics =
+  process.platform === 'win32'
+    ? new GpuCrashDiagnosticsRecorder({
+        provider: {
+          getGPUInfo: (infoType) => app.getGPUInfo(infoType),
+          getGPUFeatureStatus: () => app.getGPUFeatureStatus()
+        },
+        recordBreadcrumb: (data) => recordDurableCrashBreadcrumb('gpu_crash_hardware', data)
+      })
+    : null
 let localPtyStartupReady: Promise<void> = Promise.resolve()
 let localPtyProviderStartupReady: Promise<void> = Promise.resolve()
 const AGENT_STATE_CRASH_BREADCRUMB_MIN_INTERVAL_MS = 30_000
@@ -556,6 +567,7 @@ function updateGpuAccelerationAboutPanel(): void {
 
 app.on('gpu-info-update', () => {
   gpuFeatureStatus = app.getGPUFeatureStatus()
+  gpuCrashDiagnostics?.warm()
   if (app.isReady()) {
     updateGpuAccelerationAboutPanel()
   }
@@ -1945,12 +1957,16 @@ async function presentGpuFallbackRecoveredLaunchPrompt(window: BrowserWindow): P
 }
 
 // Why: a burst of GPU child crashes means HW acceleration is unusable — persist a build-scoped marker and offer software rendering.
-async function handleGpuChildCrash(reason: string, exitCode: number | null): Promise<void> {
+async function handleGpuChildCrash(
+  reason: string,
+  exitCode: number | null,
+  crashedAt: number
+): Promise<void> {
   // Software rendering already active or shutting down: nothing more to do.
   if (gpuFallbackActiveThisLaunch || isQuitting || isServeMode) {
     return
   }
-  const result = gpuCrashFallbackTracker.recordGpuCrash(performance.now())
+  const result = gpuCrashFallbackTracker.recordGpuCrash(crashedAt)
   if (!result.shouldEngageFallback) {
     return
   }
@@ -3219,7 +3235,9 @@ void app.whenReady().then(async () => {
         reason: details.reason
       })
     ) {
-      void handleGpuChildCrash(details.reason, details.exitCode ?? null)
+      const crashedAt = performance.now()
+      void gpuCrashDiagnostics?.record()
+      void handleGpuChildCrash(details.reason, details.exitCode ?? null, crashedAt)
     }
   })
 
