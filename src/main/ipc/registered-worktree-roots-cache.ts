@@ -7,6 +7,9 @@ import { isDescendantOrEqual, normalizeExistingPath } from './filesystem-path-co
 const registeredWorktreeRoots = new Set<string>()
 const registeredWorktreeRootsByRepo = new Map<string, Set<string>>()
 const registeredWorktreeRootRepoIds = new Set<string>()
+const registeredWorktreeRootsRevisionByRepo = new Map<string, number>()
+let registeredWorktreeRootsRevisionSequence = 0
+let registeredWorktreeRootsBaseRevision = 0
 let registeredWorktreeRootsDirty = true
 let registeredWorktreeRootsRefresh: Promise<void> | null = null
 const AUTHORIZED_ROOTS_REBUILD_CONCURRENCY = 8
@@ -17,6 +20,8 @@ export function invalidateAuthorizedRootsCache(): void {
   registeredWorktreeRoots.clear()
   registeredWorktreeRootsByRepo.clear()
   registeredWorktreeRootRepoIds.clear()
+  registeredWorktreeRootsBaseRevision = ++registeredWorktreeRootsRevisionSequence
+  registeredWorktreeRootsRevisionByRepo.clear()
 }
 
 export async function rebuildAuthorizedRootsCache(store: Store): Promise<void> {
@@ -55,6 +60,8 @@ export async function rebuildAuthorizedRootsCache(store: Store): Promise<void> {
     registeredWorktreeRootRepoIds.add(repoId)
   }
   registeredWorktreeRootsDirty = false
+  registeredWorktreeRootsBaseRevision = ++registeredWorktreeRootsRevisionSequence
+  registeredWorktreeRootsRevisionByRepo.clear()
 }
 
 async function mapWithConcurrency<T, R>(
@@ -87,6 +94,10 @@ export function registerWorktreeRootsForRepo(
     if (!localRepoIds.has(registeredRepoId)) {
       registeredWorktreeRootsByRepo.delete(registeredRepoId)
       registeredWorktreeRootRepoIds.delete(registeredRepoId)
+      registeredWorktreeRootsRevisionByRepo.set(
+        registeredRepoId,
+        ++registeredWorktreeRootsRevisionSequence
+      )
     }
   }
 
@@ -98,8 +109,13 @@ export function registerWorktreeRootsForRepo(
 
   registeredWorktreeRootsByRepo.set(repoId, new Set(worktreeRoots.map((root) => resolve(root))))
   registeredWorktreeRootRepoIds.add(repoId)
+  registeredWorktreeRootsRevisionByRepo.set(repoId, ++registeredWorktreeRootsRevisionSequence)
   refreshRegisteredWorktreeRoots()
   registeredWorktreeRootsDirty = !allLocalRepoRootsRegistered(localRepoIds)
+}
+
+export function getRegisteredWorktreeRootsRevision(repoId: string): number {
+  return registeredWorktreeRootsRevisionByRepo.get(repoId) ?? registeredWorktreeRootsBaseRevision
 }
 
 export async function ensureAuthorizedRootsCache(store: Store): Promise<void> {
