@@ -33,6 +33,7 @@ import { createRichMarkdownAnnotationHighlightExtension } from './rich-markdown-
 import type { RichMarkdownEditorCodec } from './rich-markdown-source-transport'
 import { createRichMarkdownHtmlSuperscriptLink } from './rich-markdown-html-superscript-link'
 import type { RichMarkdownHtmlSuperscriptLinkContext } from './rich-markdown-html-superscript-link-context'
+import { RichMarkdownOrderedList } from './rich-markdown-ordered-list'
 import { RichMarkdownTaskList } from './rich-markdown-task-list'
 
 const lowlight = createLowlight(common)
@@ -70,7 +71,8 @@ export function createRichMarkdownExtensions({
     StarterKit.configure({
       link: false,
       code: false,
-      codeBlock: false
+      codeBlock: false,
+      orderedList: false
     }),
     RichMarkdownCode,
     CodeBlockLowlight.extend({
@@ -195,6 +197,7 @@ export function createRichMarkdownExtensions({
     }).configure({
       allowBase64: true
     }),
+    RichMarkdownOrderedList,
     RichMarkdownTaskList,
     TaskItem.configure({
       nested: true
