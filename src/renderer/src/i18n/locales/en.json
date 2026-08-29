@@ -15405,7 +15405,7 @@
           "53fc5f07ab": "Run history",
           "a00e38d1a3": "n/a",
           "fdb3caa8fb": "known",
-          "historyUnavailable": "Run history could not be loaded for this automation."
+          "historyUnavailable": "Run history is unavailable from this host. This does not mean the automation failed or has no runs."
         },
         "AutomationRunPageFrame": {
           "40a511bed4": "Run context",
@@ -15727,7 +15727,7 @@
         },
         "capturedOwner": {
           "orphan": "This automation has no host to run on. Delete it, or re-add the host it belongs to.",
-          "unfenced": "This host cannot confirm which automation it is changing, so this automation is read-only here."
+          "unfenced": "Manta on this host needs an update before you can view run history or manage this automation. Scheduled runs may still continue on the host."
         },
         "hostStatus": {
           "authority": {
