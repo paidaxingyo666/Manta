@@ -15,6 +15,7 @@ import {
   resolveRuntimePath
 } from '../../shared/cross-platform-path'
 import { isWslUncPath } from '../../shared/wsl-paths'
+import { mapWithConcurrency } from '../../shared/map-with-concurrency'
 import { getSshFilesystemProvider } from '../providers/ssh-filesystem-dispatch'
 import {
   computeWorkspaceRoot,
@@ -31,6 +32,9 @@ import type {
 
 const missingRootWarnings = new Set<string>()
 const skippedWslWarnings = new Set<string>()
+
+// Why: match existing worktree probe caps while bounding aggregate SSH filesystem RPC pressure.
+export const WORKTREE_BASE_TARGET_RESOLUTION_CONCURRENCY = 8
 
 function normalizeWatchKey(pathValue: string): string {
   return normalizeRuntimePathForComparison(normalize(pathValue))
@@ -177,21 +181,51 @@ async function maybeAddBaseTarget(
   }
 }
 
+async function resolveRepoTargets(
+  repo: Repo,
+  settings: GlobalSettings
+): Promise<Map<string, WorktreeBaseWatchTarget>> {
+  const targets = new Map<string, WorktreeBaseWatchTarget>()
+  if (isFolderRepo(repo)) {
+    return targets
+  }
+  const executionHostId = getRepoExecutionHostId(repo)
+  if (executionHostId === LOCAL_EXECUTION_HOST_ID) {
+    await maybeAddBaseTarget(targets, repo, settings)
+  } else if (repo.connectionId) {
+    await maybeAddBaseTarget(targets, repo, settings, repo.connectionId)
+  }
+  return targets
+}
+
+function mergeRepoTargets(
+  targets: Map<string, WorktreeBaseWatchTarget>,
+  repoTargets: Map<string, WorktreeBaseWatchTarget>
+): void {
+  for (const [key, target] of repoTargets) {
+    const existing = targets.get(key)
+    if (!existing) {
+      targets.set(key, target)
+      continue
+    }
+    for (const [repoId, config] of target.repos) {
+      existing.repos.set(repoId, config)
+    }
+  }
+}
+
 export async function buildWorktreeBaseDirectoryWatchTargets(
   store: Store
 ): Promise<Map<string, WorktreeBaseWatchTarget>> {
   const settings = store.getSettings()
+  const resolvedRepoTargets = await mapWithConcurrency(
+    store.getRepos(),
+    WORKTREE_BASE_TARGET_RESOLUTION_CONCURRENCY,
+    (repo) => resolveRepoTargets(repo, settings)
+  )
   const targets = new Map<string, WorktreeBaseWatchTarget>()
-  for (const repo of store.getRepos()) {
-    if (isFolderRepo(repo)) {
-      continue
-    }
-    const executionHostId = getRepoExecutionHostId(repo)
-    if (executionHostId === LOCAL_EXECUTION_HOST_ID) {
-      await maybeAddBaseTarget(targets, repo, settings)
-    } else if (repo.connectionId) {
-      await maybeAddBaseTarget(targets, repo, settings, repo.connectionId)
-    }
+  for (const repoTargets of resolvedRepoTargets) {
+    mergeRepoTargets(targets, repoTargets)
   }
   return targets
 }
