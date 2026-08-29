@@ -514,10 +514,14 @@ describe('registerWorktreeHandlers', () => {
         isMainWorktree: false
       }
     ])
-    loadHooksMock.mockReturnValue({ scripts: { setup: 'pnpm install' } })
+    loadHooksMock.mockReturnValue({
+      scripts: { setup: 'pnpm install' },
+      setupAgentStartupPolicy: 'wait-for-setup'
+    })
     getEffectiveHooksMock.mockReturnValue({ scripts: { setup: 'pnpm install' } })
     getEffectiveHooksFromConfigMock.mockReturnValue({ scripts: { setup: 'pnpm install' } })
     shouldRunSetupForCreateMock.mockReturnValue(true)
+    expect(createSetupRunnerScriptMock).not.toHaveBeenCalled()
 
     const result = (await handlers['worktrees:create'](null, {
       repoId: 'repo-1',
@@ -538,6 +542,14 @@ describe('registerWorktreeHandlers', () => {
       startupTerminal?: { spawned: boolean; surface?: string }
       timing?: { phases: { phase: string }[] }
     }
+    expect(createSetupRunnerScriptMock).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'repo-1' }),
+      '/workspace/improve-dashboard',
+      'pnpm install',
+      undefined,
+      undefined,
+      'wait-for-setup'
+    )
 
     expect(runtimeStub.createTerminal).toHaveBeenNthCalledWith(
       1,

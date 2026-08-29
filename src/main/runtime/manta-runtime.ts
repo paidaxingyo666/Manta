@@ -27377,13 +27377,13 @@ export class MantaRuntimeService {
           // a renderer window, so the startup shell can wait on setup completion
           // and windowless creates resolve the same Windows setup shell.
           const runtimeTarget = this.getLocalGitExecutionOptionArgs(repo)[0]
-          // Why: both trailing args are optional — the shell is undefined off Windows.
           setup = createSetupRunnerScript(
             repo,
             worktreePath,
             hooks.scripts.setup,
             runtimeTarget,
-            resolveSetupRunnerShell(settings)
+            resolveSetupRunnerShell(settings),
+            yamlHooks?.setupAgentStartupPolicy
           )
         } catch (error) {
           // Why: the git worktree is already real at this point. If runner

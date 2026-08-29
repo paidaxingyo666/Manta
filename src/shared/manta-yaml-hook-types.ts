@@ -8,6 +8,7 @@ export type MantaHooks = {
     setup?: string // Runs after worktree is created
     archive?: string // Runs before worktree is archived
   }
+  setupAgentStartupPolicy?: SetupAgentStartupPolicy
   issueCommand?: string // Shared default command for linked GitHub issues
   defaultTabs?: MantaDefaultTabTemplate[] // Terminal tabs to create once for a new worktree
   environmentRecipes?: MantaVmRecipe[] // Project-scoped per-workspace environment recipes
