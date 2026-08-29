@@ -12,7 +12,7 @@ import { getEditorHeaderOpenFileState } from './editor-header'
 import type { EditorToggleValue } from './EditorViewToggle'
 import type { FileContent } from './editor-panel-content-types'
 import { canUseChangesModeForFile } from './editor-panel-file-mode'
-import { getMarkdownRenderMode } from './markdown-render-mode'
+import { getMarkdownRenderMode, type MarkdownRenderState } from './markdown-render-mode'
 import { getMarkdownRichModeUnsupportedMessage } from './markdown-rich-mode'
 import { exceedsMarkdownRichModeSizeLimit } from './markdown-rich-size-limit'
 
@@ -129,17 +129,36 @@ export function getEditorPanelRenderModel({
   const shouldShowMarkdownExportAction =
     viewerLanguage === 'markdown' &&
     (activeFile.mode === 'edit' || activeFile.mode === 'markdown-preview')
-  const inlineMarkdownRenderMode =
-    activeFile.mode === 'edit' && inlineMarkdownContent !== null
-      ? getMarkdownRenderMode({
-          exceedsRichModeSizeLimit:
-            markdownRichModeSizeOverride[activeFile.id] !== true &&
-            exceedsMarkdownRichModeSizeLimit(inlineMarkdownContent),
-          hasRichModeUnsupportedContent:
-            getMarkdownRichModeUnsupportedMessage(inlineMarkdownContent) !== null,
-          viewMode: mdViewMode
-        })
+  const inlineFileContent = activeFile.mode === 'edit' ? fileContents[activeFile.id] : undefined
+  const canRenderInlineMarkdown =
+    viewerLanguage === 'markdown' &&
+    activeFile.mode === 'edit' &&
+    inlineMarkdownContent !== null &&
+    !isChangesMode &&
+    inlineFileContent !== undefined &&
+    inlineFileContent.isBinary !== true &&
+    !inlineFileContent.loadError &&
+    activeFile.conflict?.kind !== 'conflict-placeholder' &&
+    activeFile.conflict?.conflictStatus !== 'unresolved'
+  let inlineMarkdownRenderState: MarkdownRenderState | null = null
+  if (canRenderInlineMarkdown) {
+    const shouldClassifyRichMode = mdViewMode === 'rich'
+    const exceedsRichModeSizeLimit =
+      shouldClassifyRichMode &&
+      markdownRichModeSizeOverride[activeFile.id] !== true &&
+      exceedsMarkdownRichModeSizeLimit(inlineMarkdownContent)
+    const richModeUnsupportedMessage = shouldClassifyRichMode
+      ? getMarkdownRichModeUnsupportedMessage(inlineMarkdownContent)
       : null
+    inlineMarkdownRenderState = {
+      renderMode: getMarkdownRenderMode({
+        exceedsRichModeSizeLimit,
+        hasRichModeUnsupportedContent: richModeUnsupportedMessage !== null,
+        viewMode: mdViewMode
+      }),
+      richModeUnsupportedMessage
+    }
+  }
   const canExportMarkdownToPdf =
     shouldShowMarkdownExportAction &&
     ((activeFile.mode === 'markdown-preview' &&
@@ -149,8 +168,8 @@ export function getEditorPanelRenderModel({
       (activeFile.mode === 'edit' &&
         fileContents[activeFile.id] !== undefined &&
         !isChangesMode &&
-        inlineMarkdownRenderMode !== null &&
-        inlineMarkdownRenderMode !== 'source' &&
+        inlineMarkdownRenderState !== null &&
+        inlineMarkdownRenderState.renderMode !== 'source' &&
         fileContents[activeFile.id]?.isBinary !== true &&
         !fileContents[activeFile.id]?.loadError &&
         activeFile.conflict?.conflictStatus !== 'unresolved'))
@@ -180,6 +199,7 @@ export function getEditorPanelRenderModel({
     isMarkdownTableOfContentsDisabled: hasViewModeToggle && mdViewMode === 'source',
     shouldShowMarkdownExportAction,
     canExportMarkdownToPdf,
+    inlineMarkdownRenderState,
     canShowMarkdownTableOfContents:
       viewerLanguage === 'markdown' &&
       (hasViewModeToggle || activeFile.mode === 'markdown-preview'),
