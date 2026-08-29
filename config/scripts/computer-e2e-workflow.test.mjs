@@ -171,7 +171,7 @@ describe('computer-use e2e workflow', () => {
       expect(checkout.with['persist-credentials'], jobName).toBe(false)
       expect(install.with['native-runtime'], jobName).toBe('electron')
       expect(
-        job.steps.some((step) => step.uses === 'pnpm/action-setup@v6'),
+        job.steps.some((step) => step.uses === 'pnpm/setup@v2'),
         jobName
       ).toBe(false)
       expect(
