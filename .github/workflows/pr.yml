@@ -595,9 +595,13 @@ jobs:
         with:
           native-runtime: electron
 
+      # Why --no-file-parallelism: every file here launches a full Electron stack twice, and each
+      # probe carries its own in-process deadline. Four at once on a 4-vCPU runner starve each other
+      # past those deadlines; serial, every probe owns the runner.
       - name: Test Linux Electron lifecycle boundary
         run: >-
           xvfb-run --auto-servernum pnpm exec vitest run --config config/vitest.config.ts
+          --no-file-parallelism
           src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts
           src/main/browser/browser-route-tcp-egress.electron.test.ts
           src/main/browser/browser-route-webrtc-egress.electron.test.ts
