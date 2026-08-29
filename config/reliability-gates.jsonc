@@ -6345,8 +6345,8 @@
         "https://github.com/stablyai/orca/issues/16457",
         "https://github.com/stablyai/orca/pull/17128"
       ],
-      "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics. A long-lived POSIX shell whose cwd inode was deleted and replaced may run an extension-enabled OMP launch from the live path named by its logical PWD only in a subshell; the parent shell cwd, OMP argv, status extension, and exit status remain unchanged, while a genuinely unavailable path fails visibly without invoking OMP. A usable current directory remains authoritative when PWD is unset instead of being remapped to a workspace fallback.",
-      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path. In real interactive Bash and Zsh PTYs, unset PWD in a usable nested directory and require OMP to stay there rather than remap to MANTA_WORKTREE_PATH; then delete and recreate the active project path, require OMP to observe the replacement inode with byte-exact extension argv and its nonzero status preserved, require the parent shell to remain on the stale inode, and finally delete the replacement and require an actionable failure before the fake OMP binary runs again.",
+      "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics. A long-lived POSIX shell whose cwd inode was deleted and replaced may run a wrapped OMP command from the live path named by its logical PWD only in a subshell; the parent shell cwd, OMP argv, status extension, and exit status remain unchanged, while a genuinely unavailable path fails visibly without invoking OMP. A usable physical cwd remains authoritative when PWD is unset or names a removed logical symlink instead of being remapped to a workspace fallback.",
+      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path. In real interactive Bash and Zsh PTYs, unset PWD and remove a logical symlink while the physical cwd stays usable, requiring OMP to remain there; then delete and recreate the active project path, require extension-enabled and extension-skipping invocations to observe the replacement inode with byte-exact argv and nonzero status preserved, require the parent shell to remain on the stale inode, unset PWD and require recovery through MANTA_WORKTREE_PATH, clear every logical fallback and require an actionable failure without invoking OMP, and finally delete the replacement and require the same for the missing PWD path.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/terminal-startup-cwd.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty-spawn-cwd-fallback.test.ts src/main/ipc/pty-wsl-cwd-validation.test.ts",
@@ -6410,6 +6410,10 @@
           "assertions": [
             "real Bash and Zsh PTYs rebind OMP to a recreated cwd inode without changing the parent shell",
             "an unset PWD with a usable cwd stays unset and does not remap OMP to MANTA_WORKTREE_PATH",
+            "a removed logical symlink does not invalidate its still-usable physical cwd",
+            "extension-skipping commands such as omp --version still recover the cwd without gaining extension argv",
+            "an unset PWD on a stale inode recovers through MANTA_WORKTREE_PATH",
+            "an unset PWD on a stale inode without a logical fallback fails visibly before invoking OMP",
             "extension argv and a nonzero OMP exit status survive the recovery subshell",
             "a subsequently missing logical cwd prints an actionable error and does not invoke OMP again"
           ]
@@ -6465,7 +6469,7 @@
           "command": "pnpm exec vitest run --config config/vitest.config.ts src/main/pty/omp-shell-wrapper.node-pty.test.ts src/main/pty/omp-shell-wrapper-alias-safety.test.ts src/main/shell-wrapper-generated-file-snapshot.test.ts",
           "result": "passed",
           "durationSeconds": 3,
-          "summary": "3 test files passed; real Bash and Zsh PTYs covered unset-PWD authority, stale-inode recovery, parent-shell isolation, extension argv, exit status, missing-path visibility, alias safety, and generated local/daemon/relay parity."
+          "summary": "3 test files passed; real Bash and Zsh PTYs covered usable physical cwd authority, stale-inode recovery with set and unset PWD, extension-enabled and extension-skipping argv, parent-shell isolation, exit status, missing-path visibility, alias safety, and generated local/daemon/relay parity."
         }
       ],
       "runtimeBudget": {
@@ -6482,7 +6486,7 @@
       },
       "performanceBudget": {
         "required": true,
-        "evidence": "The spawn recovery adds at most two statSync probes on the fresh-local spawn path (the provider already stats the same paths during validation) and one bounded terminal write only when fallback actually occurs. Each extension-enabled OMP launch adds a constant number of shell filesystem predicates; only a detected stale/unusable cwd creates one short recovery subshell. No polling, retry, provider listing, hidden-pane work, startup awaits, extra OMP subprocesses, or render-loop work was added."
+        "evidence": "The spawn recovery adds at most two statSync probes on the fresh-local spawn path (the provider already stats the same paths during validation) and one bounded terminal write only when fallback actually occurs. Each wrapped OMP launch adds a constant number of shell filesystem predicates; only a detected stale/unusable cwd creates one short recovery subshell. No polling, retry, provider listing, hidden-pane work, startup awaits, extra OMP subprocesses, or render-loop work was added."
       },
       "promotionCriteria": [
         "Attach CI evidence for all declared test files.",
