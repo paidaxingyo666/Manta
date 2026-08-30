@@ -359,7 +359,8 @@ export function RemoteBrowserPagePane({
               workspaceId: worktreeId,
               url: linkUrl,
               intent: { kind: 'url' },
-              expectedRuntimeEnvironmentId: runtimeEnvironmentId
+              expectedRuntimeEnvironmentId: runtimeEnvironmentId,
+              placementPreference: 'server'
             }).catch((error) => {
               setPaneNotice({
                 kind: 'direct',
