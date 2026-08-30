@@ -7,18 +7,7 @@
  */
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
-import {
-  CSI_FINAL_SPECIAL_KEYS,
-  CSI_TILDE_SPECIAL_KEYS,
-  CTRL_PRINTABLE_BYTES,
-  ESC,
-  MODIFIER_LABELS,
-  MODIFIER_ORDER,
-  SHIFTED_PRINTABLE,
-  SPECIAL_KEY_ACCESSIBILITY_LABELS,
-  SPECIAL_KEY_LABELS,
-  SS3_BASE_SPECIAL_KEYS
-} from './terminal-key-encoding-tables'
+import { SPECIAL_KEY_ACCESSIBILITY_LABELS, SPECIAL_KEY_LABELS } from './terminal-key-encoding-tables'
 export type {
   TerminalAccessoryKey,
   TerminalShortcutBinding,
@@ -26,13 +15,7 @@ export type {
   TerminalShortcutModifier,
   TerminalShortcutSpecialKey
 } from './terminal-shortcut-types'
-import type {
-  TerminalAccessoryKey,
-  TerminalShortcutBinding,
-  TerminalShortcutBuildResult,
-  TerminalShortcutModifier,
-  TerminalShortcutSpecialKey
-} from './terminal-shortcut-types'
+import type { TerminalAccessoryKey, TerminalShortcutSpecialKey } from './terminal-shortcut-types'
 
 export const TERMINAL_SHORTCUT_SPECIAL_KEYS: TerminalShortcutSpecialKey[] = [
   'escape',

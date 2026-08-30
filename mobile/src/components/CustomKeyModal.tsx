@@ -1,24 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import { View, Text, Pressable, TextInput, Switch } from 'react-native'
 import { ChevronLeft } from 'lucide-react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
-import {
-  buildTerminalShortcutKey,
-  normalizeShortcutKeyInput,
-  TERMINAL_SHORTCUT_SPECIAL_KEYS,
-  type TerminalShortcutModifier,
-  type TerminalShortcutSpecialKey
-} from '../terminal/terminal-accessory-keys'
+import { buildTerminalShortcutKey, normalizeShortcutKeyInput, type TerminalShortcutModifier } from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { styles } from './custom-key-modal-styles'
-import {
-  shortcutModifierCatalog,
-  specialKeyGroups,
-  SPECIAL_KEY_BY_ID,
-  type CustomKey
-} from './custom-key-modal-catalog'
+import { shortcutModifierCatalog, specialKeyGroups, SPECIAL_KEY_BY_ID, type CustomKey } from './custom-key-modal-catalog'
 
 export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortcuts }: Props) {
   const [step, setStep] = useState<Step>('choose-type')
