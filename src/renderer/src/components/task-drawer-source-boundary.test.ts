@@ -46,9 +46,16 @@ describe('task drawer source boundaries', () => {
   })
 
   it('threads GitLab task source context through the shared drawer selector', () => {
-    const source = componentSource('GitLabItemDialog.tsx')
+    const controllerSource = componentSource('GitLabItemDialog.tsx')
+    const source = [
+      controllerSource,
+      componentSource('gitlab-item-dialog/use-gitlab-item-dialog-effects.ts'),
+      componentSource('gitlab-item-dialog/use-gitlab-details-editing.ts'),
+      componentSource('gitlab-item-dialog/use-gitlab-primary-actions.ts'),
+      componentSource('gitlab-item-dialog/use-gitlab-review-actions.ts')
+    ].join('\n')
     const selector = sourceBetween(
-      source,
+      controllerSource,
       'const repoSelector = useMemo',
       'const updateCommentDraft'
     )

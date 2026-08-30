@@ -34,7 +34,6 @@ inline src/preload/index.ts
 inline src/relay/dispatcher.ts
 inline src/relay/git-handler.ts
 inline src/relay/pty-handler.ts
-inline src/renderer/src/components/GitLabItemDialog.tsx
 inline src/renderer/src/components/LinearItemDrawer.tsx
 inline src/renderer/src/components/TaskPage.tsx
 inline src/renderer/src/components/Terminal.tsx
