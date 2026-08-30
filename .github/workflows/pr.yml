@@ -350,9 +350,12 @@ jobs:
 
       - uses: ./.github/actions/install-node-dependencies
 
-      # Why: the check rebuilds xterm.js from a pinned upstream commit. Caching the
-      # npm metadata and the shallow clone turns a ~4 min cold run into well under a
-      # minute; the key is the manifest, so a commit or toolchain bump invalidates it.
+      # Why: the check rebuilds every package in the manifest from a pinned upstream
+      # commit — @xterm/xterm and the two addons, each built twice (once unmodified to
+      # prove the toolchain still reproduces the published bundles, once patched). Caching
+      # the npm metadata and the shallow clone keeps the repeated cost to the builds
+      # themselves; the key is the manifest, so a commit, package or toolchain bump
+      # invalidates it.
       - name: Restore upstream xterm build inputs
         uses: actions/cache@v5
         with:

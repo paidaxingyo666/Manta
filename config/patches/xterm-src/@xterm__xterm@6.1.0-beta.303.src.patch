@@ -1,5 +1,5 @@
 diff --git a/src/browser/CoreBrowserTerminal.ts b/src/browser/CoreBrowserTerminal.ts
-index 4557e1652c34737fdf853436bd9328d9918eee2b..aff6ba624523849c2a39878a2181cbd1e931791d 100644
+index 67893b7966eb095db4459b8837de9766921f36c5..0abf7ecac1aa108f7caf711d0a5c610a688d34fd 100644
 --- a/src/browser/CoreBrowserTerminal.ts
 +++ b/src/browser/CoreBrowserTerminal.ts
 @@ -325,6 +325,9 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
@@ -32,7 +32,7 @@ index 4557e1652c34737fdf853436bd9328d9918eee2b..aff6ba624523849c2a39878a2181cbd1
      this._register(addDisposableListener(this.textarea!, 'input', (ev: InputEvent) => this._inputEvent(ev), true));
      this._register(this.onRender(() => this._compositionHelper!.updateCompositionElements()));
    }
-@@ -551,6 +565,11 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
+@@ -552,6 +566,11 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
      this._compositionView = this._document.createElement('div');
      this._compositionView.classList.add('composition-view');
      this._compositionHelper = this._instantiationService.createInstance(CompositionHelper, this.textarea, this._compositionView);
@@ -44,7 +44,7 @@ index 4557e1652c34737fdf853436bd9328d9918eee2b..aff6ba624523849c2a39878a2181cbd1
      this._helperContainer.appendChild(this._compositionView);
  
      this._mouseCoordsService = this._instantiationService.createInstance(MouseCoordsService);
-@@ -1008,7 +1027,9 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
+@@ -1009,7 +1028,9 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
  
      this._onKey.fire({ key, domEvent: ev });
      this._showCursor();
@@ -55,7 +55,7 @@ index 4557e1652c34737fdf853436bd9328d9918eee2b..aff6ba624523849c2a39878a2181cbd1
  
      this._keyPressHandled = true;
  
-@@ -1026,6 +1047,15 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
+@@ -1027,6 +1048,15 @@ export class CoreBrowserTerminal extends CoreTerminal implements ITerminal {
     * @param ev The input event to be handled.
     */
    protected _inputEvent(ev: InputEvent): boolean {
@@ -88,7 +88,7 @@ index 497afcf535f3eaca00889525a77e15eb633ccd96..96d499b34605f860608382114c3fbdc0
  
  export interface IBrowser {
 diff --git a/src/browser/input/CompositionHelper.ts b/src/browser/input/CompositionHelper.ts
-index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f01bd98554 100644
+index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..d4d5106d8dd723eceed87310c193ccfe0c516b06 100644
 --- a/src/browser/input/CompositionHelper.ts
 +++ b/src/browser/input/CompositionHelper.ts
 @@ -3,8 +3,9 @@
@@ -575,7 +575,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
  
        // Since composition* events happen before the changes take place in the textarea on most
        // browsers, use a setTimeout with 0ms time to allow the native compositionend event to
-@@ -172,37 +479,310 @@ export class CompositionHelper {
+@@ -172,37 +479,315 @@ export class CompositionHelper {
        // - The last compositionupdate event's data property does not always accurately describe
        //   the character, a counter example being Korean where an ending consonsant can move to
        //   the following character if the following input is a vowel.
@@ -609,11 +609,11 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
 +        pending.finalizerTimer = undefined;
 +        if (this._compositionTransactionId === pending.transactionId) {
 +          this._isAwaitingCompositionEnd = false;
-+        }
-+        if (this._pendingComposition === pending) {
-+          this._sendPendingComposition(pending, true);
          }
 -      }, 0);
++        if (this._pendingComposition === pending) {
++          this._sendPendingComposition(pending, true);
++        }
 +      });
      }
    }
@@ -830,12 +830,17 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
 +      if (
 +        this._compositionEndTimer !== timer ||
 +        !this._isComposing ||
-+        this._compositionTransactionId !== transactionId ||
-+        !this._compositionEndBelongsToCurrentTransaction(endData)
++        this._compositionTransactionId !== transactionId
 +      ) {
 +        return;
 +      }
 +      this._compositionEndTimer = undefined;
++      if (!this._compositionEndBelongsToCurrentTransaction(endData)) {
++        if (endData.length === 0 && !this._hasCompositionProgress()) {
++          this._cancelComposition();
++        }
++        return;
++      }
 +      this._finalizeComposition(true, endData);
 +      this._dispatchCompositionSessionEvent(new CustomEvent(
 +        XTERM_COMPOSITION_TRANSACTION_ACCEPTED_EVENT,
@@ -913,7 +918,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
    /**
     * Apply any changes made to the textarea after the current event chain is allowed to complete.
     * This should be called when not currently composing but a keydown event with the "composition
-@@ -222,6 +802,9 @@ export class CompositionHelper {
+@@ -222,6 +807,9 @@ export class CompositionHelper {
  
          const diff = newValue.replace(oldValue, '');
  
@@ -923,7 +928,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
          this._dataAlreadySent = diff;
  
          if (newValue.length > oldValue.length) {
-@@ -236,6 +819,101 @@ export class CompositionHelper {
+@@ -236,6 +824,101 @@ export class CompositionHelper {
      }, 0);
    }
  
@@ -1025,7 +1030,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
    /**
     * Positions the composition view on top of the cursor and the textarea just below it (so the
     * IME helper dialog is positioned correctly).
-@@ -243,10 +921,23 @@ export class CompositionHelper {
+@@ -243,10 +926,23 @@ export class CompositionHelper {
     *   necessary as the IME events across browsers are not consistently triggered.
     */
    public updateCompositionElements(dontRecurse?: boolean): void {
@@ -1050,7 +1055,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f0
      if (this._bufferService.buffer.isCursorInViewport) {
        const cursorX = Math.min(this._bufferService.buffer.x, this._bufferService.cols - 1);
  
-@@ -265,20 +956,38 @@ export class CompositionHelper {
+@@ -265,20 +961,38 @@ export class CompositionHelper {
        const maxWidth = this._bufferService.cols * this._renderService.dimensions.css.cell.width - cursorLeft;
        this._compositionView.style.maxWidth = maxWidth + 'px';
        this._compositionView.style.overflow = 'hidden';
