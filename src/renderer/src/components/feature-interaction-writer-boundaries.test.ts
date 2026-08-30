@@ -206,7 +206,10 @@ describe('feature interaction writer boundaries', () => {
   })
 
   it('records Linear provider-depth for inline edits, board drops, creation, and workspace use', () => {
-    const drawerSource = componentSource('LinearItemDrawer.tsx')
+    const drawerSource = [
+      componentSource('linear-item-drawer-edit-controller.tsx'),
+      componentSource('linear-item-drawer-comment-footer.tsx')
+    ].join('\n')
     const linearWriter = "recordFeatureInteraction('linear-tasks')"
 
     const taskPageSections = [
@@ -240,7 +243,7 @@ describe('feature interaction writer boundaries', () => {
       sourceBetween(drawerSource, 'const handlePriorityChange', 'const handleEstimateChange'),
       sourceBetween(drawerSource, 'const handleEstimateChange', 'const handleEstimateSubmit'),
       sourceBetween(drawerSource, 'const handleAssigneeChange', 'const handleLabelToggle'),
-      sourceBetween(drawerSource, 'const handleLabelToggle', 'return ('),
+      sourceBetween(drawerSource, 'const handleLabelToggle', 'return {'),
       sourceBetween(drawerSource, 'const handleSubmit = useCallback(async () => {', 'return (')
     ]
     for (const section of drawerMutationSections) {
