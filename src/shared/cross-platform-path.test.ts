@@ -5,6 +5,7 @@ import {
   isPathInsideOrEqual,
   isRuntimePathAbsolute,
   isWslUncPathForCallerLinuxPath,
+  isWslUncPathForLinuxMountedPath,
   normalizeRuntimePathForComparison,
   relativePathInsideRoot,
   resolveRuntimePath
@@ -96,6 +97,32 @@ describe('isWslUncPathForCallerLinuxPath', () => {
     expect(isWslUncPathForCallerLinuxPath('C:\\repos\\qa-repo', '/home/neil/qa-repo', UBUNTU)).toBe(
       false
     )
+  })
+})
+
+describe('isWslUncPathForLinuxMountedPath', () => {
+  it('matches a shared /mnt drive regardless of distro', () => {
+    expect(
+      isWslUncPathForLinuxMountedPath(
+        '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\Neil\\repo',
+        '/mnt/c/users/neil/repo'
+      )
+    ).toBe(true)
+    expect(
+      isWslUncPathForLinuxMountedPath(
+        '\\\\wsl.localhost\\Debian\\mnt\\c\\Users\\Neil\\repo',
+        '/mnt/c/users/neil/repo'
+      )
+    ).toBe(true)
+  })
+
+  it('keeps non-mounted Linux paths out of the distro-independent match', () => {
+    expect(
+      isWslUncPathForLinuxMountedPath(
+        '\\\\wsl.localhost\\Ubuntu\\home\\Neil\\repo',
+        '/home/neil/repo'
+      )
+    ).toBe(false)
   })
 })
 
