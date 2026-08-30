@@ -6625,6 +6625,10 @@ export class MantaRuntimeService {
     }
   }
 
+  shouldRelayTerminalBrowserOpens(): boolean {
+    return this.authoritativeWindowId === HEADLESS_RUNTIME_WINDOW_ID
+  }
+
   // Why: scans the transcript-owning host's disk (correct by construction over
   // RPC — a remote/SSH host scans its own disk). Delegates to the one shared
   // cache so the desktop panel and the mobile screen never double-scan.
@@ -41266,6 +41270,9 @@ export class MantaRuntimeService {
 
   browserTabCreate: RuntimeBrowserCommands['browserTabCreate'] =
     this.browserCommands.browserTabCreate.bind(this.browserCommands)
+
+  browserOpenUrlOnClient: RuntimeBrowserCommands['browserOpenUrlOnClient'] =
+    this.browserCommands.browserOpenUrlOnClient.bind(this.browserCommands)
 
   browserTabSetProfile: RuntimeBrowserCommands['browserTabSetProfile'] =
     this.browserCommands.browserTabSetProfile.bind(this.browserCommands)
