@@ -88,10 +88,21 @@ index 497afcf535f3eaca00889525a77e15eb633ccd96..96d499b34605f860608382114c3fbdc0
  
  export interface IBrowser {
 diff --git a/src/browser/input/CompositionHelper.ts b/src/browser/input/CompositionHelper.ts
-index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8d94e8797 100644
+index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..cf3e685c7e1b29a6e9d0d4747e1b30f01bd98554 100644
 --- a/src/browser/input/CompositionHelper.ts
 +++ b/src/browser/input/CompositionHelper.ts
-@@ -12,6 +12,28 @@ interface IPosition {
+@@ -3,8 +3,9 @@
+  * @license MIT
+  */
+ 
+-import { IRenderService } from '../services/Services';
++import { IRenderService, IThemeService } from '../services/Services';
+ import { IBufferService, ICoreService, IOptionsService } from '../../common/services/Services';
++import { color } from '../../common/Color';
+ import { C0 } from '../../common/data/EscapeSequences';
+ 
+ interface IPosition {
+@@ -12,6 +13,27 @@ interface IPosition {
    end: number;
  }
  
@@ -116,7 +127,6 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +const XTERM_COMPOSITION_SESSION_END_EVENT = 'xterm-composition-session-end';
 +const XTERM_COMPOSITION_TRANSACTION_ACCEPTED_EVENT =
 +  'xterm-composition-transaction-accepted';
-+
  /**
   * Encapsulates the logic for handling compositionstart, compositionupdate and compositionend
   * events, displaying the in-progress composition to the UI and forwarding the final composition
@@ -136,7 +146,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
  
    /**
     * The position within the input textarea's value of the current composition.
-@@ -36,22 +67,63 @@ export class CompositionHelper {
+@@ -36,52 +67,144 @@ export class CompositionHelper {
     */
    private _compositionSuffix: string;
  
@@ -194,20 +204,40 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +
 +  private _compositionEndTimer?: ReturnType<typeof setTimeout>;
 +
-+  /** The preedit's own span, set only while the view also renders the row tail behind it. */
++  /** The preedit's own span, used to anchor the native candidate window. */
 +  private _compositionPreedit?: HTMLElement;
 +
 +  /** The rendered row tail, set only while the cursor sits mid-line. */
 +  private _compositionRemainder?: HTMLElement;
 +
++  /** The insertion caret painted above the renderer cursor the composition view covers. */
++  private _compositionCaret?: HTMLElement;
++
 +  /** The last preedit rendered, so a row repaint can re-render without a composition event. */
 +  private _compositionViewData?: string;
 +
++  // Keep the six-argument form callable: upstream's own CompositionHelper.test.ts constructs
++  // this class directly, and `.npmignore` strips src/**/*.test.ts from the published tarball, so
++  // the shipped patch has no hunk that could update that call. Dropping this overload fails the
++  // upstream build with TS2554. The theme service is therefore optional, and every color read
++  // below keeps the stock fallback that path needs.
++  constructor(
++    textarea: HTMLTextAreaElement,
++    compositionView: HTMLElement,
++    bufferService: IBufferService,
++    optionsService: IOptionsService,
++    coreService: ICoreService,
++    renderService: IRenderService
++  );
    constructor(
      private readonly _textarea: HTMLTextAreaElement,
      private readonly _compositionView: HTMLElement,
-@@ -61,27 +133,61 @@ export class CompositionHelper {
-     @IRenderService private readonly _renderService: IRenderService
+     @IBufferService private readonly _bufferService: IBufferService,
+     @IOptionsService private readonly _optionsService: IOptionsService,
+     @ICoreService private readonly _coreService: ICoreService,
+-    @IRenderService private readonly _renderService: IRenderService
++    @IRenderService private readonly _renderService: IRenderService,
++    @IThemeService private readonly _themeService?: IThemeService
    ) {
      this._isComposing = false;
 -    this._isSendingComposition = false;
@@ -271,13 +301,16 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
    }
  
    /**
-@@ -89,22 +195,90 @@ export class CompositionHelper {
+@@ -89,22 +212,93 @@ export class CompositionHelper {
     * @param ev The event.
     */
    public compositionupdate(ev: Pick<CompositionEvent, 'data'>): void {
 -    // Mark text as LTR, direction=rtl is used in CSS so the end of the text is followed for long
 -    // compositions
 -    this._compositionView.textContent = `\u200E${ev.data}\u200E`;
++    if (ev.data && !this._isComposing) {
++      this.compositionstart();
++    }
 +    this._cancelDeferredTimer(this._compositionEndTimer);
 +    this._compositionEndTimer = undefined;
 +    this._compositionHasObservedProgress ||= this._hasCompositionProgress();
@@ -285,10 +318,8 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +      this._lastCompositionData = ev.data;
 +    }
 +    this._renderCompositionView(ev.data ?? '');
-+    // Some IMEs resume a composition with an update alone and no second compositionstart, by which
-+    // point compositionend has already hidden the view. Without re-showing it the resumed preedit
-+    // is written into a hidden element and the user composes blind. Empty data is the IME saying
-+    // the preedit is gone, so it hides the view again rather than leaving an orphaned overlay.
++    // Some IMEs resume without compositionstart; keep that inferred transaction visible until
++    // compositionend settles it. An empty update hides the overlay without ending the transaction.
 +    this._compositionView.classList.toggle('active', Boolean(ev.data));
      this.updateCompositionElements();
 -    setTimeout(() => {
@@ -368,10 +399,12 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +    this._isAwaitingCompositionEnd = false;
 +    this._isComposing = false;
 +    this._compositionTransactionId++;
++    this._compositionView.classList.remove('active');
++    this._resetCompositionView();
    }
  
    /**
-@@ -113,7 +287,19 @@ export class CompositionHelper {
+@@ -113,7 +307,19 @@ export class CompositionHelper {
     * @returns Whether the Terminal should continue processing the keydown event.
     */
    public keydown(ev: KeyboardEvent): boolean {
@@ -392,7 +425,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
        if (ev.keyCode === 20 || ev.keyCode === 229) {
          // 20 is CapsLock, 229 is Enter
          // Continue composing if the keyCode is the "composition character"
-@@ -128,6 +314,10 @@ export class CompositionHelper {
+@@ -128,6 +334,10 @@ export class CompositionHelper {
        this._finalizeComposition(false);
      }
  
@@ -403,7 +436,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
      if (ev.keyCode === 229) {
        // If the "composition character" is used but gets to this point it means a non-composition
        // character (eg. numbers and punctuation) was pressed when the IME was active.
-@@ -138,6 +328,74 @@ export class CompositionHelper {
+@@ -138,6 +348,74 @@ export class CompositionHelper {
      return true;
    }
  
@@ -478,7 +511,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
    /**
     * Finalizes the composition, resuming regular input actions. This is called when a composition
     * is ending.
-@@ -146,23 +404,52 @@ export class CompositionHelper {
+@@ -146,23 +424,52 @@ export class CompositionHelper {
     *   compositionend event is triggered, such as enter, so that the composition is sent before
     *   the command is executed.
     */
@@ -542,7 +575,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
  
        // Since composition* events happen before the changes take place in the textarea on most
        // browsers, use a setTimeout with 0ms time to allow the native compositionend event to
-@@ -172,37 +459,310 @@ export class CompositionHelper {
+@@ -172,37 +479,310 @@ export class CompositionHelper {
        // - The last compositionupdate event's data property does not always accurately describe
        //   the character, a counter example being Korean where an ending consonsant can move to
        //   the following character if the following input is a vowel.
@@ -880,7 +913,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
    /**
     * Apply any changes made to the textarea after the current event chain is allowed to complete.
     * This should be called when not currently composing but a keydown event with the "composition
-@@ -222,6 +782,9 @@ export class CompositionHelper {
+@@ -222,6 +802,9 @@ export class CompositionHelper {
  
          const diff = newValue.replace(oldValue, '');
  
@@ -890,7 +923,7 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
          this._dataAlreadySent = diff;
  
          if (newValue.length > oldValue.length) {
-@@ -236,6 +799,77 @@ export class CompositionHelper {
+@@ -236,6 +819,101 @@ export class CompositionHelper {
      }, 0);
    }
  
@@ -900,31 +933,40 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +   * box hiding the character under the cursor. Nothing reaches the pty while composing, so those
 +   * cells still hold their characters; only what the overlay shows changes.
 +   */
-+  private _renderCompositionView(data: string): void {
-+    // Mark text as LTR, direction=rtl is used in CSS so the end of the text is followed for long
-+    // compositions
-+    const preeditText = `‎${data}‎`;
-+    const remainderText = this._getRowRemainderText();
-+    this._compositionViewData = data;
-+    if (!remainderText) {
-+      this._compositionPreedit = undefined;
-+      this._compositionRemainder = undefined;
-+      this._compositionView.textContent = preeditText;
++  private _renderCompositionView(data: string, rowRemainder = this._getRowRemainderText()): void {
++    if (!data) {
++      this._resetCompositionView();
 +      return;
 +    }
++    // Keep DOM order LTR so the insertion caret follows the preedit.
++    const preeditText = `‎${data}‎`;
++    this._compositionViewData = data;
 +    const doc = this._compositionView.ownerDocument;
 +    const preedit = doc.createElement('span');
++    preedit.className = 'xterm-composition-preedit';
 +    // Underlined so the composing text stays distinguishable from the tail it pushed right.
++    preedit.style.flexShrink = '0';
 +    preedit.style.textDecoration = 'underline';
 +    preedit.textContent = preeditText;
-+    const remainder = doc.createElement('span');
-+    // Why: the view is nowrap, which collapses runs of spaces, so committed padding would draw
-+    // its trailing glyph cells to the left of where the grid has them.
-+    remainder.style.whiteSpace = 'pre';
-+    remainder.textContent = remainderText;
-+    this._compositionView.replaceChildren(preedit, remainder);
++    const caret = doc.createElement('span');
++    caret.className = 'xterm-composition-caret';
++    caret.setAttribute('aria-hidden', 'true');
++    const children = [preedit, caret];
++    let remainder: HTMLElement | undefined;
++    if (rowRemainder) {
++      remainder = doc.createElement('span');
++      remainder.className = 'xterm-composition-remainder';
++      // Why: the view is nowrap, which collapses runs of spaces, so committed padding would draw
++      // its trailing glyph cells to the left of where the grid has them.
++      remainder.style.whiteSpace = 'pre';
++      remainder.textContent = rowRemainder;
++      children.push(remainder);
++    }
++    this._compositionView.replaceChildren(...children);
 +    this._compositionPreedit = preedit;
++    this._compositionCaret = caret;
 +    this._compositionRemainder = remainder;
++    this._styleCompositionCaret();
 +  }
 +
 +  /** The committed row text from the cursor rightwards — what a mid-line preedit would cover. */
@@ -941,11 +983,34 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +      : '';
 +  }
 +
++  private _styleCompositionCaret(): void {
++    const caret = this._compositionCaret;
++    if (!caret) {
++      return;
++    }
++    const width = Math.max(1, this._optionsService.rawOptions.cursorWidth);
++    const cellHeight = this._renderService.dimensions.css.cell.height;
++    const colors = this._themeService?.colors;
++    const cursor = colors && (
++      color.ensureContrastRatio(colors.background, colors.cursor, 3) ?? colors.cursor
++    );
++    caret.style.backgroundColor = cursor?.css ?? '#FFF';
++    caret.style.display = 'inline-block';
++    caret.style.flexShrink = '0';
++    caret.style.height = cellHeight + 'px';
++    caret.style.marginLeft = -width + 'px';
++    caret.style.verticalAlign = 'top';
++    caret.style.width = width + 'px';
++  }
++
 +  private _resetCompositionView(): void {
 +    this._compositionView.textContent = '';
 +    this._compositionPreedit = undefined;
 +    this._compositionRemainder = undefined;
++    this._compositionCaret = undefined;
 +    this._compositionViewData = '';
++    this._compositionView.style.display = '';
++    this._compositionView.style.justifyContent = '';
 +  }
 +
 +  /**
@@ -953,28 +1018,19 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +   * see-through background would re-expose the very characters the rendered tail stands in for.
 +   */
 +  private _opaqueViewBackground(): string {
-+    const value = this._optionsService.rawOptions.theme?.background?.trim();
-+    if (!value) {
-+      return '#000';
-+    }
-+    const channels = /^rgba?\(([^,()]+),([^,()]+),([^,()]+)(?:,[^()]+)?\)$/.exec(value);
-+    if (channels) {
-+      return `rgb(${channels[1]},${channels[2]},${channels[3]})`;
-+    }
-+    const opaqueHex = /^(#(?:[\da-f]{3}|[\da-f]{6}))[\da-f]{1,2}$/i.exec(value);
-+    return opaqueHex ? opaqueHex[1] : value;
++    const background = this._themeService?.colors.background;
++    return background ? color.opaque(background).css : '#000';
 +  }
 +
    /**
     * Positions the composition view on top of the cursor and the textarea just below it (so the
     * IME helper dialog is positioned correctly).
-@@ -243,10 +877,22 @@ export class CompositionHelper {
+@@ -243,10 +921,23 @@ export class CompositionHelper {
     *   necessary as the IME events across browsers are not consistently triggered.
     */
    public updateCompositionElements(dontRecurse?: boolean): void {
 -    if (!this._isComposing) {
-+    // The shown overlay, not `_isComposing`: a composition the IME resumed without a
-+    // compositionstart has to be positioned too. Every other path sets both together.
++    // Empty updates hide the overlay without ending the inferred transaction.
 +    if (!this._compositionView.classList.contains('active')) {
        return;
      }
@@ -982,17 +1038,19 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 +    // A TUI can repaint the row under an open composition (spinners, streamed output), and this
 +    // already runs on every render — so keep the rendered tail current with the buffer. A string
 +    // compare adds no layout read.
++    const rowRemainder = this._getRowRemainderText();
 +    if (
 +      this._compositionViewData &&
-+      this._getRowRemainderText() !== (this._compositionRemainder?.textContent ?? '')
++      rowRemainder !== (this._compositionRemainder?.textContent ?? '')
 +    ) {
-+      this._renderCompositionView(this._compositionViewData);
++      this._renderCompositionView(this._compositionViewData, rowRemainder);
 +    }
++    this._styleCompositionCaret();
 +
      if (this._bufferService.buffer.isCursorInViewport) {
        const cursorX = Math.min(this._bufferService.buffer.x, this._bufferService.cols - 1);
  
-@@ -265,10 +911,17 @@ export class CompositionHelper {
+@@ -265,20 +956,38 @@ export class CompositionHelper {
        const maxWidth = this._bufferService.cols * this._renderService.dimensions.css.cell.width - cursorLeft;
        this._compositionView.style.maxWidth = maxWidth + 'px';
        this._compositionView.style.overflow = 'hidden';
@@ -1000,21 +1058,37 @@ index c9ec396ab66cb966d49aa63bed09cdf9cd6c4246..808c710356fe026471467e35ad776af8
 -      // Sync the textarea to the exact position of the composition view so the IME knows where the
 -      // text is.
 -      const compositionViewBounds = this._compositionView.getBoundingClientRect();
-+      // With a tail rendered the view is start-anchored so the preedit stays put and the pushed
-+      // tail clips at the right edge; alone, rtl still keeps a long preedit's end in view.
-+      this._compositionView.style.direction = this._compositionRemainder ? 'ltr' : 'rtl';
+-      this._textarea.style.left = cursorLeft + 'px';
++      const anchorBounds =
++        (this._compositionPreedit ?? this._compositionView).getBoundingClientRect();
++      const anchorLeft = cursorLeft + Math.min(0, maxWidth - anchorBounds.width);
++      const showsRemainder =
++        Boolean(this._compositionRemainder) && anchorBounds.width < maxWidth;
++      if (this._compositionRemainder) {
++        this._compositionRemainder.style.display = showsRemainder ? '' : 'none';
++      }
++      // End alignment keeps the caret visible when the preedit consumes the remaining width.
++      this._compositionView.style.direction = 'ltr';
++      this._compositionView.style.display = showsRemainder ? '' : 'flex';
++      this._compositionView.style.justifyContent = showsRemainder ? '' : 'flex-end';
 +      // Themed rather than the stock #000/#FFF, so the pushed tail reads as ordinary terminal text
 +      // and light themes keep contrast.
 +      this._compositionView.style.background = this._opaqueViewBackground();
-+      this._compositionView.style.color = this._optionsService.rawOptions.theme?.foreground ?? '#FFF';
-+      // Sync the textarea to the exact position of the preedit so the IME knows where the text is,
-+      // and so candidate dialogs anchor to it rather than to the end of the rendered tail.
-+      const compositionViewBounds =
-+        (this._compositionPreedit ?? this._compositionView).getBoundingClientRect();
-       this._textarea.style.left = cursorLeft + 'px';
++      this._compositionView.style.color = this._themeService?.colors.foreground.css ?? '#FFF';
++      // Sized and placed to match the preedit, not the whole view, so the candidate window
++      // anchors to the composing text rather than the end of the rendered tail. The clamp has to
++      // be applied here and not only in Manta's terminal-ime-candidate-anchor.ts, because
++      // CoreBrowserTerminal calls this from onRender as well as from composition events, and a
++      // render can land after the last composition event that module can hear.
++      this._textarea.style.left = anchorLeft + 'px';
        this._textarea.style.top = cursorTop + 'px';
        // Ensure the text area is at least 1x1, otherwise certain IMEs may break
-@@ -278,7 +931,8 @@ export class CompositionHelper {
+-      this._textarea.style.width = Math.max(compositionViewBounds.width, 1) + 'px';
+-      this._textarea.style.height = Math.max(compositionViewBounds.height, 1) + 'px';
+-      this._textarea.style.lineHeight = compositionViewBounds.height + 'px';
++      this._textarea.style.width = Math.max(anchorBounds.width, 1) + 'px';
++      this._textarea.style.height = Math.max(anchorBounds.height, 1) + 'px';
++      this._textarea.style.lineHeight = anchorBounds.height + 'px';
      }
  
      if (!dontRecurse) {
