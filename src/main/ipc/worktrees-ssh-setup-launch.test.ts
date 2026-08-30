@@ -127,6 +127,13 @@ describe('registerWorktreeHandlers', () => {
       addWorktree: vi.fn().mockResolvedValue(undefined),
       listWorktrees: vi.fn().mockResolvedValue([
         {
+          path: '/remote/old-improve-dashboard',
+          head: 'old123',
+          branch: 'refs/heads/archive/improve-dashboard',
+          isBare: false,
+          isMainWorktree: false
+        },
+        {
           path: '/remote/repo-improve-dashboard',
           head: 'abc123',
           branch: 'refs/heads/improve-dashboard',
