@@ -71,13 +71,13 @@ describe('task drawer source boundaries', () => {
   })
 
   it('uses Linear task source context for drawer reads, mutations, and optimistic patches', () => {
-    const source = componentSource('LinearItemDrawer.tsx')
-    const editSection = sourceBetween(
-      source,
-      'export function LinearIssueEditSection',
-      'export function LinearIssueCommentFooter'
+    const drawerSource = componentSource('LinearItemDrawer.tsx')
+    const editSection = componentSource('linear-item-drawer-edit-controller.tsx')
+    const drawer = sourceBetween(
+      drawerSource,
+      'export default function LinearItemDrawer',
+      'return renderLinearItemDrawerSheet'
     )
-    const drawer = sourceBetween(source, 'export default function LinearItemDrawer', 'return (')
 
     expect(editSection).toContain('const providerSettings = sourceContext ?? settings')
     expect(editSection).toContain('linearUpdateIssue(providerSettings')
