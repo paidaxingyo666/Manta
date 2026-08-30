@@ -54,7 +54,6 @@ inline src/renderer/src/components/terminal-pane/TerminalPane.tsx
 inline src/renderer/src/components/terminal-pane/remote-runtime-pty-transport.ts
 inline src/renderer/src/components/terminal-pane/use-terminal-pane-lifecycle.ts
 inline src/renderer/src/runtime/remote-runtime-terminal-multiplexer.ts
-inline src/renderer/src/runtime/runtime-file-client.ts
 inline src/renderer/src/runtime/sync-runtime-graph.ts
 inline src/renderer/src/runtime/web-runtime-session.ts
 inline src/renderer/src/runtime/web-session-tabs-sync.ts
