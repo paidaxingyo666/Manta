@@ -9,7 +9,6 @@ inline src/main/browser/browser-manager.ts
 inline src/main/claude-accounts/runtime-auth-service.ts
 inline src/main/codex-accounts/runtime-home-service.ts
 inline src/main/codex-accounts/service.ts
-inline src/main/github/project-view.ts
 inline src/main/index.ts
 inline src/main/ipc/filesystem-watcher.ts
 inline src/main/ipc/filesystem.ts
