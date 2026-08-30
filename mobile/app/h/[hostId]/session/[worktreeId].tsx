@@ -182,6 +182,7 @@ import {
 } from '../../../../src/session/mobile-file-syntax'
 import {
   getTerminalRecordsFromSessionTabs,
+  hasConnectedTerminalAbsentFromSessionTabs,
   mergeTerminalListWithKnownRecords,
   mergeTerminalRecordsByCurrentOrder,
   mobileSessionTabsEqual,
@@ -245,6 +246,11 @@ import {
 } from '../../../../src/session/mobile-terminal-prune-decision'
 import { useMobileNativeChatTerminalStream } from '../../../../src/session/use-mobile-native-chat-terminal-stream'
 import { subscribeMobileTerminalSafely } from '../../../../src/session/mobile-terminal-stream-subscribe'
+import { MobileTerminalInventoryRequest } from '../../../../src/session/mobile-terminal-inventory-request'
+import {
+  useMobileTerminalInventoryRecoveryBridge,
+  type MobileTerminalInventoryRefreshOptions
+} from '../../../../src/session/use-mobile-terminal-inventory-recovery'
 import {
   TerminalViewportResubscribeBudget,
   readTerminalViewportDims,
@@ -1277,6 +1283,9 @@ export default function SessionScreen() {
   )
   const unsubscribeTerminalRef = useRef(unsubscribeTerminal)
   unsubscribeTerminalRef.current = unsubscribeTerminal
+  const terminalInventoryRecoveryScope = JSON.stringify([hostId, worktreeId])
+  const { registerTerminalInventoryRecoveryAction, signalTerminalInventoryRecovery } =
+    useMobileTerminalInventoryRecoveryBridge(terminalInventoryRecoveryScope)
 
   const clearTerminalCache = useCallback(() => {
     terminalUnsubsRef.current.forEach((unsub) => unsub())
@@ -1379,6 +1388,7 @@ export default function SessionScreen() {
           diagnostics.firstStreamEvent(handle, seq, data.type)
           if (data.type === 'end' || data.type === 'error') {
             unsubscribeTerminalRef.current(handle)
+            signalTerminalInventoryRecovery()
             return
           }
           if (data.type === 'subscribed') {
@@ -1522,7 +1532,10 @@ export default function SessionScreen() {
             scheduleDelayedAction(() => getTerminalRef(handle)?.resetZoom(), 200)
           }
         },
-        () => unsubscribeTerminalRef.current(handle)
+        () => {
+          unsubscribeTerminalRef.current(handle)
+          signalTerminalInventoryRecovery()
+        }
       )
 
       if (subscribeSeqRef.current.get(handle) === seq) {
@@ -1532,7 +1545,14 @@ export default function SessionScreen() {
       }
       subscribingHandlesRef.current.delete(handle)
     },
-    [client, getTerminalRef, markNativeChatInputLeaseReady, scheduleDelayedAction, showToast]
+    [
+      client,
+      getTerminalRef,
+      markNativeChatInputLeaseReady,
+      scheduleDelayedAction,
+      showToast,
+      signalTerminalInventoryRecovery
+    ]
   )
 
   const nativeChatStream = useMobileNativeChatTerminalStream({
@@ -1586,93 +1606,105 @@ export default function SessionScreen() {
   )
 
   const lastKnownTerminalCountRef = useRef(0)
-  const fetchTerminalsInFlightRef = useRef(false)
+  const terminalInventoryRequest = useMemo(
+    () => new MobileTerminalInventoryRequest(),
+    [client, hostId, worktreeId]
+  )
+  useEffect(() => {
+    lastKnownTerminalCountRef.current = 0
+    return terminalInventoryRequest.activate()
+  }, [terminalInventoryRequest])
 
   const fetchTerminals = useCallback(
-    async (opts: { allowEmptyLoaded?: boolean } = {}) => {
+    (opts: MobileTerminalInventoryRefreshOptions = {}): Promise<boolean> => {
       if (!client) {
-        return
+        return Promise.resolve(false)
       }
-      if (fetchTerminalsInFlightRef.current) {
-        return
-      }
-      fetchTerminalsInFlightRef.current = true
       const allowEmptyLoaded = opts.allowEmptyLoaded ?? true
-
-      try {
-        const response = await client.sendRequest('terminal.list', {
-          worktree: `id:${worktreeId}`,
-          includeVisualLayouts: false
-        })
-        if (response.ok) {
-          const result = (response as RpcSuccess).result as { terminals: Terminal[] }
-          if (result.terminals.length === 0 && !allowEmptyLoaded) {
-            return
-          }
-          // Why: require two consecutive empties before trusting 0, so transient empty responses don't flash the UI empty.
-          if (result.terminals.length === 0 && lastKnownTerminalCountRef.current > 0) {
-            lastKnownTerminalCountRef.current = 0
-            return
-          }
-
-          const liveHandles = new Set(result.terminals.map((terminal) => terminal.handle))
-          const pruneContext = {
-            liveHandles,
-            showNativeChat: showNativeChatRef.current,
-            activeHandle: activeHandleRef.current
-          }
-          // Why: terminal.list is the lifetime signal; lagging tab snapshots must not erase a user's buffered-mode opt-out.
-          // Sweep against the retained set, not the raw list: a chat-covered handle
-          // keeps its subscription across a graph reload, so erasing its live-input
-          // preference on the same refresh is the erasure this guard exists to stop.
-          pruneTerminalHandlesFromLiveInput(resolveRetainedTerminalHandles(pruneContext))
-          defaultTerminalHandlesToLiveInput([...liveHandles])
-          const shouldPrune = createTerminalPrunePredicate(pruneContext)
-          for (const handle of Array.from(terminalUnsubsRef.current.keys())) {
-            if (!shouldPrune(handle)) {
-              continue
-            }
-            unsubscribeTerminal(handle)
-            terminalRefs.current.delete(handle)
-            initializedHandlesRef.current.delete(handle)
-            viewportResubscribeBudgetRef.current.forget(handle)
-            clearTerminalLiveInputDefault(handle)
-          }
-          setTerminalKeyboardMetrics((prev) => pruneTerminalKeyboardMetrics(prev, shouldPrune))
-          // Why: a chat-covered handle the host reports again refills its rearm budget,
-          // so an exhausted rearm can't lock the composer until leave-chat.
-          nativeChatStream.notifyListedHandles(liveHandles)
-          // Why: same absence-gated refill for the viewport-fit budget — a handle that
-          // left the list and returned may converge now, so it earns fresh attempts.
-          viewportResubscribeBudgetRef.current.notifyListedHandles(liveHandles)
-          lastKnownTerminalCountRef.current = result.terminals.length
-          // Why: dedupe duplicate handles (rename/split race) to avoid a React duplicate-key throw; keep first for tab-strip order.
-          const seen = new Set<string>()
-          const deduped = result.terminals.filter((t) => {
-            if (seen.has(t.handle)) {
+      return terminalInventoryRequest.run(
+        allowEmptyLoaded,
+        async (allowsEmpty, isCurrent) => {
+          try {
+            const response = await client.sendRequest('terminal.list', {
+              worktree: `id:${worktreeId}`,
+              includeVisualLayouts: false
+            })
+            if (!isCurrent()) {
               return false
             }
-            seen.add(t.handle)
+            if (!response.ok) {
+              return false
+            }
+            const result = (response as RpcSuccess).result as { terminals: Terminal[] }
+            if (result.terminals.length === 0 && !allowsEmpty()) {
+              return true
+            }
+            // Why: require two consecutive empties before trusting 0, so transient empty responses don't flash the UI empty.
+            if (result.terminals.length === 0 && lastKnownTerminalCountRef.current > 0) {
+              lastKnownTerminalCountRef.current = 0
+              return true
+            }
+
+            const liveHandles = new Set(result.terminals.map((terminal) => terminal.handle))
+            const pruneContext = {
+              liveHandles,
+              showNativeChat: showNativeChatRef.current,
+              activeHandle: activeHandleRef.current
+            }
+            // Why: terminal.list is the lifetime signal; lagging tab snapshots must not erase a user's buffered-mode opt-out.
+            // Sweep against the retained set, not the raw list: a chat-covered handle
+            // keeps its subscription across a graph reload, so erasing its live-input
+            // preference on the same refresh is the erasure this guard exists to stop.
+            pruneTerminalHandlesFromLiveInput(resolveRetainedTerminalHandles(pruneContext))
+            defaultTerminalHandlesToLiveInput([...liveHandles])
+            const shouldPrune = createTerminalPrunePredicate(pruneContext)
+            for (const handle of Array.from(terminalUnsubsRef.current.keys())) {
+              if (!shouldPrune(handle)) {
+                continue
+              }
+              unsubscribeTerminal(handle)
+              terminalRefs.current.delete(handle)
+              initializedHandlesRef.current.delete(handle)
+              viewportResubscribeBudgetRef.current.forget(handle)
+              clearTerminalLiveInputDefault(handle)
+            }
+            setTerminalKeyboardMetrics((prev) => pruneTerminalKeyboardMetrics(prev, shouldPrune))
+            // Why: a chat-covered handle the host reports again refills its rearm budget,
+            // so an exhausted rearm can't lock the composer until leave-chat.
+            nativeChatStream.notifyListedHandles(liveHandles)
+            // Why: same absence-gated refill for the viewport-fit budget — a handle that
+            // left the list and returned may converge now, so it earns fresh attempts.
+            viewportResubscribeBudgetRef.current.notifyListedHandles(liveHandles)
+            lastKnownTerminalCountRef.current = result.terminals.length
+            // Why: dedupe duplicate handles (rename/split race) to avoid a React duplicate-key throw; keep first for tab-strip order.
+            const seen = new Set<string>()
+            const deduped = result.terminals.filter((t) => {
+              if (seen.has(t.handle)) {
+                return false
+              }
+              seen.add(t.handle)
+              return true
+            })
+
+            const mergedTerminals = mergeTerminalListWithKnownRecords(
+              deduped,
+              terminalsRef.current,
+              sessionTabsRef.current
+            )
+            setTerminals((prev) =>
+              terminalRecordsEqual(prev, mergedTerminals) ? prev : mergedTerminals
+            )
+            terminalsRef.current = mergedTerminals
+
+            // Session tabs are the UI authority; terminal.list only refreshes per-handle metadata for existing terminal surfaces.
             return true
-          })
-
-          const mergedTerminals = mergeTerminalListWithKnownRecords(
-            deduped,
-            terminalsRef.current,
-            sessionTabsRef.current
-          )
-          setTerminals((prev) =>
-            terminalRecordsEqual(prev, mergedTerminals) ? prev : mergedTerminals
-          )
-          terminalsRef.current = mergedTerminals
-
-          // Session tabs are the UI authority; terminal.list only refreshes per-handle metadata for existing terminal surfaces.
-        }
-      } catch {
-        // Failed to list terminals
-      } finally {
-        fetchTerminalsInFlightRef.current = false
-      }
+          } catch {
+            // Failed to list terminals
+            return false
+          }
+        },
+        opts.onPhysicalRequestStarted
+      )
     },
     [
       client,
@@ -1682,6 +1714,7 @@ export default function SessionScreen() {
       nativeChatStream,
       pruneTerminalHandlesFromLiveInput,
       subscribeToTerminal,
+      terminalInventoryRequest,
       unsubscribeTerminal
     ]
   )
@@ -2302,6 +2335,9 @@ export default function SessionScreen() {
     () =>
       closedTabTombstonesRef.current.size > 0 ||
       pendingBrowserFocusPageIdRef.current !== null ||
+      // Why: tabs dropped a connected handle we still hold. `terminal.list` is the only
+      // remover, so keep the fast cadence until that sweep confirms or restores it.
+      hasConnectedTerminalAbsentFromSessionTabs(terminalsRef.current, sessionTabsRef.current) ||
       // Why: a chat-covered handle that ran out of rearms and left `terminal.list`
       // was reminted by a desktop graph reload. Only a fresh tab snapshot carries
       // the replacement handle, so force one instead of holding the composer locked.
@@ -2333,7 +2369,8 @@ export default function SessionScreen() {
     fetchSessionTabs,
     ensureSessionTabs,
     fetchPendingBrowserSessionTabs,
-    retryPendingTerminalRecovery
+    retryPendingTerminalRecovery,
+    requestTerminalInventoryRecovery
   } = useMobileSessionTabsReconciliation<SessionTabsResult, MobileSessionTab>({
     client,
     connState,
@@ -2341,6 +2378,7 @@ export default function SessionScreen() {
     applySessionTabs,
     consumeAcceptedSessionTabs,
     fetchTerminals,
+    terminalInventoryRecoveryScopeKey: terminalInventoryRecoveryScope,
     hasRecoveryNeed: hasSessionTabsRecoveryNeed,
     pendingTerminalRecoveryContextKey,
     getPendingTerminalRecoveryContextKey,
@@ -2348,6 +2386,11 @@ export default function SessionScreen() {
     getApplicationRevision: getSessionTabsApplicationRevision,
     ...sessionTabsFetchReporting
   })
+
+  useEffect(
+    () => registerTerminalInventoryRecoveryAction(requestTerminalInventoryRecovery),
+    [registerTerminalInventoryRecoveryAction, requestTerminalInventoryRecovery]
+  )
 
   useEffect(() => {
     if (connState === 'connected') {
