@@ -21,6 +21,9 @@ const sourceInstallScriptPath = fileURLToPath(
 const sourceNodePtyJobOwnershipPath = fileURLToPath(
   new URL('./node-pty-job-ownership.cjs', import.meta.url)
 )
+const sourceWindowsProcessTreeGypRebuildPath = fileURLToPath(
+  new URL('./windows-process-tree-gyp-rebuild.mjs', import.meta.url)
+)
 
 describe('rebuild-native-deps Electron install fallback', () => {
   it('continues non-strict postinstall when Electron retry download fails', () => {
@@ -158,6 +161,41 @@ describe('rebuild-native-deps patched node-pty rebuild', () => {
       }
     }
   )
+
+  it('stages windows-process-tree node-addon-api headers before a Windows rebuild', () => {
+    const projectDir = mkTempProject()
+
+    try {
+      writeFakeUsableElectronPackage(projectDir, { platform: 'win32' })
+      writeFakeElectronRebuild(projectDir)
+      writeFakeNodePtyConptyPayload(projectDir, 'x64')
+      writeFakeWindowsProcessTreeWithNodeAddonApi(projectDir)
+
+      const result = runRebuildScript(
+        projectDir,
+        { npm_config_platform: 'win32', npm_config_arch: 'x64' },
+        ['--platform=win32', '--arch=x64', '--force']
+      )
+
+      expect(result.status, result.stderr).toBe(0)
+      expect(
+        readFileSync(
+          join(
+            projectDir,
+            'node_modules',
+            '@vscode',
+            'windows-process-tree',
+            'deps',
+            'node-addon-api',
+            'napi.h'
+          ),
+          'utf8'
+        )
+      ).toBe('// napi.h\n')
+    } finally {
+      rmSync(projectDir, { recursive: true, force: true })
+    }
+  })
 
   it('restores the ConPTY runtime payload after a Windows Electron rebuild', () => {
     const projectDir = mkTempProject()
@@ -343,6 +381,10 @@ function mkTempProject() {
   copyFileSync(
     sourceNodePtyJobOwnershipPath,
     join(projectDir, 'config', 'scripts', 'node-pty-job-ownership.cjs')
+  )
+  copyFileSync(
+    sourceWindowsProcessTreeGypRebuildPath,
+    join(projectDir, 'config', 'scripts', 'windows-process-tree-gyp-rebuild.mjs')
   )
   return projectDir
 }
@@ -576,6 +618,18 @@ function writeFakeWindowsProcessTree(projectDir) {
   const processTreeDir = join(projectDir, 'node_modules', '@vscode', 'windows-process-tree')
   mkdirSync(processTreeDir, { recursive: true })
   writeFileSync(join(processTreeDir, 'index.js'), 'module.exports = {}\n')
+}
+
+function writeFakeWindowsProcessTreeWithNodeAddonApi(projectDir) {
+  const processTreeDir = join(projectDir, 'node_modules', '@vscode', 'windows-process-tree')
+  const nodeAddonApiDir = join(processTreeDir, 'node_modules', 'node-addon-api')
+  mkdirSync(nodeAddonApiDir, { recursive: true })
+  writeFileSync(join(processTreeDir, 'package.json'), '{"dependencies":{"node-addon-api":"*"}}\n')
+  writeFileSync(join(processTreeDir, 'index.js'), 'module.exports = {}\n')
+  writeFileSync(join(nodeAddonApiDir, 'package.json'), '{"name":"node-addon-api"}\n')
+  writeFileSync(join(nodeAddonApiDir, 'napi.h'), '// napi.h\n')
+  writeFileSync(join(nodeAddonApiDir, 'napi-inl.h'), '// napi-inl.h\n')
+  writeFileSync(join(nodeAddonApiDir, 'napi-inl.deprecated.h'), '// napi-inl.deprecated.h\n')
 }
 
 function writeNodePtyPatchFile(projectDir) {

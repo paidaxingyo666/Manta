@@ -20,6 +20,7 @@
 
 import { rebuild } from '@electron/rebuild'
 import { execFileSync, spawnSync } from 'node:child_process'
+import { stageWindowsProcessTreeNodeAddonApiHeaders } from './windows-process-tree-gyp-rebuild.mjs'
 import {
   copyFileSync,
   existsSync,
@@ -130,6 +131,14 @@ if (!ignoreModules.includes('cpu-features')) {
       process.exit(1)
     }
   }
+}
+
+if (
+  rebuildPlatform === 'win32' &&
+  modulesToRebuild.includes('@vscode/windows-process-tree') &&
+  existsSync(join(projectDir, 'node_modules', '@vscode', 'windows-process-tree', 'package.json'))
+) {
+  stageWindowsProcessTreeNodeAddonApiHeaders()
 }
 
 try {
