@@ -56,6 +56,31 @@ export function normalizeRuntimePathForComparison(rawValue: string): string {
   return isWindowsPath ? normalized.toLowerCase() : normalized
 }
 
+/**
+ * Whether `uncPath` is the WSL UNC spelling of `linuxPath` as the caller's own distro sees it.
+ *
+ * Why the distro must match and not just the Linux tail: every distro spells
+ * `/home/<user>/repo`, so a tail-only match lets a Debian caller resolve — and
+ * `worktree rm` then delete — an Ubuntu directory. The distro is proven by the
+ * caller's UNC cwd, never guessed.
+ */
+export function isWslUncPathForCallerLinuxPath(
+  uncPath: string,
+  linuxPath: string,
+  callerDistro: string
+): boolean {
+  const parsed = parseWslUncPath(uncPath)
+  if (!parsed) {
+    return false
+  }
+  // Why the case split: Windows folds the distro name, the Linux tail it fronts is case-sensitive.
+  return (
+    parsed.distro.toLowerCase() === callerDistro.toLowerCase() &&
+    normalizeRuntimePathForComparison(parsed.linuxPath) ===
+      normalizeRuntimePathForComparison(linuxPath)
+  )
+}
+
 export function areLocalWindowsWslPathAliases(left: string, right: string): boolean {
   const leftIdentity = getLocalWindowsWslPathIdentity(left)
   const rightIdentity = getLocalWindowsWslPathIdentity(right)
