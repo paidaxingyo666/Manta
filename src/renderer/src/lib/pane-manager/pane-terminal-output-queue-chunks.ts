@@ -4,7 +4,7 @@ import type {
   QueuedWrite,
   TerminalOutputBeforeWrite,
   TerminalOutputParsedCallback
-} from './pane-terminal-output-scheduler'
+} from './pane-terminal-output-queue-registry'
 import { recordTerminalOutputQueueDebugPressure as recordQueueDebugPressure } from './pane-terminal-output-scheduler-debug'
 
 type ForegroundRefreshSyncResolver = () => boolean
