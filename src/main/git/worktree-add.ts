@@ -19,7 +19,46 @@ import type {
 import { gitExecOptions, resolveWorktreeAddTimeoutMs } from './worktree-operation-options'
 import { bumpWorktreeScanGeneration } from './worktree-scan-cache'
 
-async function persistWorktreeCreationBase(
+export type WorktreeAddBaseContext = AddWorktreeResult & {
+  effectiveBase: string
+}
+
+export async function resolveWorktreeAddBaseContext(
+  repoPath: string,
+  baseBranch: string,
+  refreshLocalBaseRef: boolean,
+  options: AddWorktreeOptions
+): Promise<WorktreeAddBaseContext> {
+  const effectiveBase = await resolveWorktreeAddBaseRef(baseBranch, (qualifiedRef) =>
+    hasWorktreeBaseCommitRef(repoPath, qualifiedRef, options)
+  )
+  const localBaseRefRefresh = refreshLocalBaseRef
+    ? await refreshLocalBaseRefForWorktreeCreate(
+        repoPath,
+        baseBranch,
+        effectiveBase,
+        options.remoteTrackingBase,
+        options
+      )
+    : undefined
+  const localBaseRefUpdateSuggestion =
+    !refreshLocalBaseRef && options.suggestLocalBaseRefUpdate
+      ? await getLocalBaseRefUpdateSuggestionForWorktreeCreate(
+          repoPath,
+          baseBranch,
+          effectiveBase,
+          options.remoteTrackingBase,
+          options
+        )
+      : undefined
+  return {
+    effectiveBase,
+    ...(localBaseRefRefresh ? { localBaseRefRefresh } : {}),
+    ...(localBaseRefUpdateSuggestion ? { localBaseRefUpdateSuggestion } : {})
+  }
+}
+
+export async function persistWorktreeCreationBase(
   worktreePath: string,
   branch: string,
   effectiveBase: string,
@@ -43,6 +82,35 @@ async function persistWorktreeCreationBase(
         unsetError
       )
     }
+  }
+}
+
+export async function configurePushAutoSetupRemote(
+  worktreePath: string,
+  options: GitWorktreeExecOptions
+): Promise<void> {
+  try {
+    // Why: `--get` (not `--local --get`) treats a value at any scope as an explicit user choice.
+    let alreadySet = false
+    try {
+      await gitExecFileAsync(['config', '--get', 'push.autoSetupRemote'], {
+        ...gitExecOptions(worktreePath, options)
+      })
+      alreadySet = true
+    } catch (readError) {
+      // Why: exit 1 means unset; other codes are real read failures and must not overwrite config.
+      const code = (readError as { code?: unknown })?.code
+      if (code !== 1) {
+        throw readError
+      }
+    }
+    if (!alreadySet) {
+      await gitExecFileAsync(['config', '--local', 'push.autoSetupRemote', 'true'], {
+        ...gitExecOptions(worktreePath, options)
+      })
+    }
+  } catch (error) {
+    console.warn(`addWorktree: failed to set push.autoSetupRemote for ${worktreePath}`, error)
   }
 }
 
@@ -120,27 +188,15 @@ async function performAddWorktree(
     // Why: --no-track avoids inheriting the base's upstream so `git status` won't misreport "behind by N" pre-publish; first push sets it (see push.autoSetupRemote below).
     args.push('--no-track', '-b', branch, worktreePath)
     if (baseBranch) {
-      effectiveBase = await resolveWorktreeAddBaseRef(baseBranch, (qualifiedRef) =>
-        hasWorktreeBaseCommitRef(repoPath, qualifiedRef, options)
+      const baseContext = await resolveWorktreeAddBaseContext(
+        repoPath,
+        baseBranch,
+        refreshLocalBaseRef,
+        options
       )
-      // Why: resolve the creation base first to distinguish remote-tracking refs from slash-containing local branches (mutation gated behind the explicit setting).
-      if (refreshLocalBaseRef) {
-        localBaseRefRefresh = await refreshLocalBaseRefForWorktreeCreate(
-          repoPath,
-          baseBranch,
-          effectiveBase,
-          options.remoteTrackingBase,
-          options
-        )
-      } else if (options.suggestLocalBaseRefUpdate) {
-        localBaseRefUpdateSuggestion = await getLocalBaseRefUpdateSuggestionForWorktreeCreate(
-          repoPath,
-          baseBranch,
-          effectiveBase,
-          options.remoteTrackingBase,
-          options
-        )
-      }
+      effectiveBase = baseContext.effectiveBase
+      localBaseRefRefresh = baseContext.localBaseRefRefresh
+      localBaseRefUpdateSuggestion = baseContext.localBaseRefUpdateSuggestion
       args.push(effectiveBase)
     }
   }
@@ -163,29 +219,7 @@ async function performAddWorktree(
   // `git push` create+set origin/<branch> (git >=2.37; older clients ignore it). `--local` on a
   // linked worktree writes the shared common-dir config (whole repo) — intentional and idempotent,
   // so it's warn-only and not rolled back on failure.
-  try {
-    // Why: `--get` (not `--local --get`) so a value at any scope counts as "user already chose" and isn't overwritten.
-    let alreadySet = false
-    try {
-      await gitExecFileAsync(['config', '--get', 'push.autoSetupRemote'], {
-        ...gitExecOptions(worktreePath, options)
-      })
-      alreadySet = true
-    } catch (readError) {
-      // Why: `git config --get` exits 1 only when unset at every scope; any other code is a real read failure — rethrow rather than overwrite the user's value.
-      const code = (readError as { code?: unknown })?.code
-      if (code !== 1) {
-        throw readError
-      }
-    }
-    if (!alreadySet) {
-      await gitExecFileAsync(['config', '--local', 'push.autoSetupRemote', 'true'], {
-        ...gitExecOptions(worktreePath, options)
-      })
-    }
-  } catch (error) {
-    console.warn(`addWorktree: failed to set push.autoSetupRemote for ${worktreePath}`, error)
-  }
+  await configurePushAutoSetupRemote(worktreePath, options)
   return {
     ...(localBaseRefRefresh ? { localBaseRefRefresh } : {}),
     ...(localBaseRefUpdateSuggestion ? { localBaseRefUpdateSuggestion } : {})

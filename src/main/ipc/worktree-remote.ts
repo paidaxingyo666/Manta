@@ -29,6 +29,7 @@ import type {
 import { getPRForBranch } from '../github/client'
 import { listWorktrees, addWorktree, addSparseWorktree } from '../git/worktree'
 import type { AddWorktreeOptions, AddWorktreeResult } from '../git/worktree'
+import { consumePreparedWorktreeCreate } from '../worktree-create-preparation'
 import {
   getBranchConflictKind,
   resolveDefaultBaseRefViaExec,
@@ -2381,10 +2382,27 @@ export async function createLocalWorktree(
     ...remoteTrackingBaseOption,
     ...(suggestLocalBaseRefUpdate ? { suggestLocalBaseRefUpdate } : {})
   }
+  const preparedWorktreeOptions = suggestLocalBaseRefUpdate
+    ? addProjectGitOptions({ ...remoteTrackingBaseOption, suggestLocalBaseRefUpdate })
+    : addProjectGitOptions(remoteTrackingBaseOption)
   let addResult: AddWorktreeResult
   try {
     addResult =
       (await timing.time('git_worktree_add', async () => {
+        if (sparseDirectories.length === 0 && !checkoutExistingBranch) {
+          const preparedResult = await consumePreparedWorktreeCreate({
+            repoPath: repo.path,
+            workspaceRoot,
+            worktreePath,
+            branch: branchName,
+            baseBranch,
+            refreshLocalBaseRef: settings.refreshLocalBaseRefOnWorktreeCreate,
+            ...(preparedWorktreeOptions ? { options: preparedWorktreeOptions } : {})
+          })
+          if (preparedResult) {
+            return preparedResult
+          }
+        }
         if (sparseDirectories.length > 0) {
           if (checkoutExistingBranch) {
             return addSparseWorktree(

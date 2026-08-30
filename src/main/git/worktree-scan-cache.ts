@@ -66,7 +66,7 @@ function shareWorktreeScan(
   const timeout = options.timeout ?? WORKTREE_LIST_TIMEOUT_MS
   // Why: callers with different deadlines cannot safely share which timeout wins the scan.
   // Why `run.name`: a strict joiner must never receive a softened `[]` from a lenient scan.
-  const key = `${repoPath}\0${options.wslDistro ?? ''}\0${timeout}\0${generation}\0${run.name}`
+  const key = `${repoPath}\0${options.wslDistro ?? ''}\0${timeout}\0${options.includeCreatePreparations === true}\0${generation}\0${run.name}`
   const inFlight = inFlightWorktreeScans.get(key)
   if (inFlight) {
     return inFlight

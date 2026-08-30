@@ -18,6 +18,7 @@ export type GitWorktreeExecOptions = {
   wslDistro?: string
   signal?: AbortSignal
   timeout?: number
+  includeCreatePreparations?: boolean
 }
 
 export type WorktreeRemovalPreflightOptions = GitWorktreeExecOptions & {
