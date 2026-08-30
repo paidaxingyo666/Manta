@@ -34,6 +34,8 @@ import { parseExecutionHostId, type ExecutionHostId } from '../../../../shared/e
 import type { Repo } from '../../../../shared/repo-types'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import type { Worktree } from '../../../../shared/worktree/types'
+import { isGitHubPRSuppressed } from '../../../../shared/worktree/github-pr-suppression'
+import type { HostedReviewProvider } from '../../../../shared/hosted-review'
 import type {
   WorktreeForceDeleteReason,
   WorktreeRemovalTarget
@@ -172,7 +174,15 @@ type WorkspaceDecisionInputs = {
   remoteStatusesByWorktree: Record<string, { hasUpstream: boolean; ahead: number; behind: number }>
   hostedReviewCache: Record<
     string,
-    { data?: { number: number; state: string; status: string; title: string } | null }
+    {
+      data?: {
+        number: number
+        state: string
+        status: string
+        title: string
+        provider?: HostedReviewProvider
+      } | null
+    }
   >
   issueCache: Record<string, { data?: { number: number; title: string; state: string } | null }>
   linearIssueCache: Record<
@@ -245,7 +255,13 @@ export function getWorkspaceDecisionDetails(
     repo?.executionHostId,
     repo !== undefined
   )
-  const hostedReview = inputs.hostedReviewCache[reviewCacheKey]?.data
+  const cachedHostedReview = inputs.hostedReviewCache[reviewCacheKey]?.data
+  const hostedReview =
+    cachedHostedReview?.provider === 'github' &&
+    workspaceRecord &&
+    isGitHubPRSuppressed(workspaceRecord, cachedHostedReview.number)
+      ? null
+      : cachedHostedReview
   const linkedPR = workspaceRecord?.linkedPR ?? null
   const reviewLabel =
     hostedReview !== undefined && hostedReview !== null

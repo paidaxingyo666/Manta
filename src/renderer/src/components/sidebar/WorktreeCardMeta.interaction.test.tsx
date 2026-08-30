@@ -248,7 +248,7 @@ describe('WorktreeCardDetailsHover interactions', () => {
     })
 
     const unlinkButton = Array.from(container.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Unlink PR')
+      button.textContent?.includes('Unlink PR from workspace')
     )
 
     act(() => {

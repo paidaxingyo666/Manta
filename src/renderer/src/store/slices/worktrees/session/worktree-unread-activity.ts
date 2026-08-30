@@ -16,6 +16,7 @@ import {
 } from '../listing/worktree-owner-settings'
 import { persistWorktreeMeta } from '../metadata/worktree-meta-persist'
 import { isRuntimeSelectorNotFoundError } from '../listing/runtime-worktree-rpc-errors'
+import { isGitHubPRSuppressed } from '../../../../../../shared/worktree/github-pr-suppression'
 
 export function createMarkWorktreeUnread(
   set: WorktreeSliceSet,
@@ -110,7 +111,10 @@ export function createObserveTerminalGitHubPullRequestLink(
     if (!repo || (repo.kind && repo.kind !== 'git')) {
       return
     }
-    if (typeof worktree.linkedPR === 'number' && worktree.linkedPR !== link.number) {
+    if (
+      isGitHubPRSuppressed(worktree, link.number) ||
+      (typeof worktree.linkedPR === 'number' && worktree.linkedPR !== link.number)
+    ) {
       return
     }
 
@@ -139,6 +143,7 @@ export function createObserveTerminalGitHubPullRequestLink(
                   currentWorktree &&
                   !currentWorktree.isBare &&
                   !currentWorktree.isArchived &&
+                  !isGitHubPRSuppressed(currentWorktree, link.number) &&
                   (currentWorktree.linkedPR == null || currentWorktree.linkedPR === link.number)
                 )
             }
