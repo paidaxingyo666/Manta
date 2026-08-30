@@ -18,6 +18,7 @@ import type { TaskSourceContext } from '../../../shared/task-source-context'
 
 const USER_SEARCH_DEBOUNCE_MS = 250
 
+/** Renders selectable user rows inside a picker. */
 export function JiraUserOptionItems({
   users,
   onSelect
@@ -44,7 +45,7 @@ export function JiraUserOptionItems({
   )
 }
 
-// Jira user fields require account IDs, not free-text display names.
+/** Selects the account ID required by a scalar Jira user field. */
 export function JiraUserPicker({
   providerSettings,
   siteId,

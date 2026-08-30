@@ -11,12 +11,12 @@ import { clearToken, getClients, isAuthError } from './client'
 import { issueUrl, toBodyText } from './jira-issue-mapping'
 import type { JiraRecord } from './jira-record-pages'
 
-// Server/DC user IDs occupy `accountId` locally but serialize as `name`.
+/** Builds a Cloud or Server/DC user reference. */
 export function userFieldRef(site: JiraSite, id: string | null): JiraRecord {
   return site.authType === 'server' ? { name: id } : { accountId: id }
 }
 
-// Jira user fields require reference objects rather than bare IDs.
+/** Shapes scalar and array user IDs into Jira references. */
 function toUserFieldValue(site: JiraSite, value: unknown): unknown {
   if (typeof value === 'string') {
     return userFieldRef(site, value)
@@ -27,6 +27,7 @@ function toUserFieldValue(site: JiraSite, value: unknown): unknown {
   return value
 }
 
+/** Creates an issue, shaping the customFields keys named by `userFieldKeys`. */
 export async function createIssue(args: JiraCreateIssueArgs): Promise<JiraCreateIssueResult> {
   const entry = getClients(args.siteId)[0]
   if (!entry) {
@@ -74,6 +75,7 @@ export async function createIssue(args: JiraCreateIssueArgs): Promise<JiraCreate
   }
 }
 
+/** Applies field, assignee, and transition updates to an existing issue. */
 export async function updateIssue(
   key: string,
   updates: JiraIssueUpdate,

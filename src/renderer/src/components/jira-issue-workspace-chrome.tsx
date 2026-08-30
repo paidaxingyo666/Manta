@@ -25,6 +25,7 @@ function jiraStatusClass(categoryKey: string): string {
   return 'border-border/50 bg-muted/40 text-muted-foreground'
 }
 
+/** Header row for an open Jira issue: key, summary, and workspace actions. */
 export function JiraIssueWorkspaceHeader({
   displayed,
   issueLoading,
@@ -83,6 +84,7 @@ export function JiraIssueWorkspaceHeader({
   )
 }
 
+/** Status, assignee, and priority controls shown above an open Jira issue. */
 export function JiraIssueMetadataBar({
   displayed,
   pendingField,

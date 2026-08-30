@@ -55,6 +55,7 @@ export async function listIssueTypes(
   }
 }
 
+/** Lists the required create fields for a project and issue type. */
 export async function listCreateFields(
   projectIdOrKey: string,
   issueTypeId: string,
@@ -104,6 +105,7 @@ export async function listCreateFields(
   }
 }
 
+/** Lists the site's issue priorities. */
 export async function listPriorities(siteId?: string | null): Promise<JiraPriority[]> {
   const entry = getClients(siteId)[0]
   if (!entry) {
@@ -125,7 +127,7 @@ export async function listPriorities(siteId?: string | null): Promise<JiraPriori
   }
 }
 
-// Pre-create user fields need all visible users, not issue-scoped assignees.
+/** Searches site users for pre-create user fields. */
 export async function searchUsers(query?: string, siteId?: string | null): Promise<JiraUser[]> {
   const entry = getClients(siteId)[0]
   if (!entry) {

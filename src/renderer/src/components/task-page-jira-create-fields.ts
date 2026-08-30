@@ -3,11 +3,15 @@ import type { JiraCreateField } from '../../../shared/jira-types'
 
 const JIRA_CREATE_SYSTEM_FIELD_KEYS = new Set(['project', 'issuetype', 'summary', 'description'])
 
+/** Jira's own create screen defaults only this field to the authenticated user. */
+export const JIRA_REPORTER_FIELD_KEY = 'reporter'
+
+/** True for required create fields the dialog must render (system fields excluded). */
 export function isVisibleJiraCreateField(field: JiraCreateField): boolean {
   return field.required && !JIRA_CREATE_SYSTEM_FIELD_KEYS.has(field.key)
 }
 
-// User pickers lack allowedValues and must be detected from schema type.
+/** Detects scalar and array Jira user fields by schema. */
 export function isJiraUserCreateField(field: JiraCreateField): boolean {
   return (
     field.schema?.type === 'user' ||
@@ -15,7 +19,12 @@ export function isJiraUserCreateField(field: JiraCreateField): boolean {
   )
 }
 
-// The host needs these keys because values alone do not identify user fields.
+/** Detects single-user fields supported by `JiraUserPicker`. */
+export function isJiraScalarUserCreateField(field: JiraCreateField): boolean {
+  return field.schema?.type === 'user'
+}
+
+/** Lists user-field keys that the host must shape. */
 export function getJiraUserCreateFieldKeys(fields: readonly JiraCreateField[]): string[] {
   return fields.filter(isJiraUserCreateField).map((field) => field.key)
 }
