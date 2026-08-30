@@ -191,15 +191,19 @@ export async function finalizePreparedWorktree(
         refreshLocalBaseRef,
         finalizeGitOptions
       )
-      const { stdout: targetHeadOutput } = await gitExecFileAsync(
-        ['rev-parse', '--verify', `${baseContext.effectiveBase}^{commit}`],
-        gitExecOptions(repoPath, finalizeGitOptions)
-      )
+      const [targetHeadResult, preparedHeadResult] = await Promise.all([
+        gitExecFileAsync(
+          ['rev-parse', '--verify', `${baseContext.effectiveBase}^{commit}`],
+          gitExecOptions(repoPath, finalizeGitOptions)
+        ),
+        gitExecFileAsync(
+          ['rev-parse', '--verify', 'HEAD'],
+          gitExecOptions(preparedPath, finalizeGitOptions)
+        )
+      ])
+      const { stdout: targetHeadOutput } = targetHeadResult
       const targetHead = targetHeadOutput.trim()
-      const { stdout: preparedHeadOutput } = await gitExecFileAsync(
-        ['rev-parse', '--verify', 'HEAD'],
-        gitExecOptions(preparedPath, finalizeGitOptions)
-      )
+      const { stdout: preparedHeadOutput } = preparedHeadResult
       if (preparedHeadOutput.trim() !== targetHead) {
         await gitExecFileAsync(
           [...windowsLongPathGitArgs(preparedPath), 'reset', '--hard', targetHead],
