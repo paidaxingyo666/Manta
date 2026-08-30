@@ -10145,7 +10145,7 @@ export class MantaRuntimeService {
           }
         }
       }
-      this.closeStructuredAgentSessionTab(worktreeId, snapshot, tab)
+      await this.closeStructuredAgentSessionTab(worktreeId, snapshot, tab)
     } else {
       if (!this.notifier?.closeSessionTab) {
         throw new Error('runtime_unavailable')
@@ -10251,11 +10251,15 @@ export class MantaRuntimeService {
     return true
   }
 
-  private closeStructuredAgentSessionTab(
+  private async closeStructuredAgentSessionTab(
     worktreeId: string,
     snapshot: RuntimeMobileSessionTabsSnapshot,
     tab: RuntimeMobileSessionAgentTab
-  ): void {
+  ): Promise<void> {
+    const host = getStructuredAgentSessionHost()
+    if (typeof host?.setSessionTabVisibility === 'function') {
+      await host.setSessionTabVisibility(tab.sessionId, false)
+    }
     const nextTabs = snapshot.tabs.filter((candidate) => candidate.id !== tab.id)
     const active = nextTabs.find((candidate) => candidate.isActive) ?? nextTabs[0] ?? null
     const nextSnapshot: RuntimeMobileSessionTabsSnapshot = {
@@ -11767,11 +11771,11 @@ export class MantaRuntimeService {
       stopRecoveredOwner: (record) => this.stopStructuredSessionProcess(record),
       tuiStatus: (owner) => this.structuredTuiStatus(owner),
       closeTuiOwner: (owner) => this.closeStructuredTuiOwner(owner),
-      revealNativeSession: ({ workspaceId, sessionId, agent = 'codex', adoptedTerminal }) => {
+      revealNativeSession: async ({ workspaceId, sessionId, agent = 'codex', adoptedTerminal }) => {
         if (adoptedTerminal || agent !== 'codex') {
           return
         }
-        this.publishStructuredAgentSessionTab({
+        await this.publishStructuredAgentSessionTab({
           workspaceId,
           sessionId,
           agent,
@@ -12330,10 +12334,15 @@ export class MantaRuntimeService {
   private async restoreStructuredAgentSessionTabsOnce(): Promise<void> {
     await this.prepareStructuredAgentSessionStartupRestoration()
     const host = getStructuredAgentSessionHost()
+    const persistedVisibleIndex =
+      typeof host?.getPersistedVisibleSessionTabIndex === 'function'
+        ? host.getPersistedVisibleSessionTabIndex()
+        : { present: false, sessionIds: [] }
+    const profileIds = collectSavedStructuredAgentSessionIds(
+      this.store?.getWorkspaceSession?.(LOCAL_EXECUTION_HOST_ID) ?? null
+    )
     await host?.restoreReadableSessions(
-      collectSavedStructuredAgentSessionIds(
-        this.store?.getWorkspaceSession?.(LOCAL_EXECUTION_HOST_ID) ?? null
-      )
+      persistedVisibleIndex.present ? persistedVisibleIndex.sessionIds : profileIds
     )
     for (const worktreeId of this.getKnownWorkspaceSessionWorktreeIds()) {
       this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession(worktreeId, {
@@ -12350,7 +12359,7 @@ export class MantaRuntimeService {
       while (sessionId.startsWith('agent-session:')) {
         sessionId = sessionId.slice('agent-session:'.length)
       }
-      this.publishStructuredAgentSessionTab({
+      await this.publishStructuredAgentSessionTab({
         ...session,
         agent: 'codex',
         sessionId,
@@ -12360,13 +12369,17 @@ export class MantaRuntimeService {
     }
   }
 
-  publishStructuredAgentSessionTab(input: {
+  async publishStructuredAgentSessionTab(input: {
     workspaceId: string
     sessionId: string
     agent: 'codex'
     activate: boolean
     notify?: boolean
-  }): void {
+  }): Promise<void> {
+    const host = getStructuredAgentSessionHost()
+    if (typeof host?.setSessionTabVisibility === 'function') {
+      await host.setSessionTabVisibility(input.sessionId, true)
+    }
     const existing = this.mobileSessionTabsByWorktree.get(input.workspaceId)
     const id = `agent-session:${input.sessionId}`
     if (existing?.tabs.some((tab) => tab.id === id)) {
