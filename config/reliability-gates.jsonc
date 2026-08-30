@@ -2864,6 +2864,15 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/browser-preview-tool-authorization.test.ts src/main/browser/browser-manager-annotation-bridge.test.ts src/main/browser/browser-manager-guest-lifecycle.test.ts src/main/browser/offscreen-browser-backend-lifecycle.test.ts src/main/browser/doc-preview-guest-policy.test.ts src/shared/doc-preview-scheme.test.ts src/renderer/src/components/browser-pane/workspace-doc/doc-preview-document-actions.test.ts src/renderer/src/components/browser-pane/workspace-doc/use-doc-preview-guest-tools.test.ts src/renderer/src/components/editor/EditorPanelShell.header.test.tsx src/renderer/src/components/browser-pane/workspace-doc/HtmlDocPreview.toolbar.test.tsx",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/doc-preview-grant-ipc.test.ts src/renderer/src/components/terminal-pane/TerminalLinkActionPopover.test.tsx src/renderer/src/runtime/sync-runtime-graph-editor-diff-tabs.test.ts src/renderer/src/store/slices/tabs-hydration.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/browser-preview-tool-authorization.test.ts src/main/ipc/browser-tab-registration-wait.test.ts src/main/ipc/doc-preview-grant-ipc.test.ts src/main/browser/browser-manager-guest-lifecycle.test.ts src/main/browser/browser-manager-guest-policy-profile.test.ts src/main/browser/browser-manager-annotation-bridge.test.ts src/main/browser/offscreen-browser-backend-lifecycle.test.ts src/main/browser/doc-preview-guest-policy.test.ts src/shared/doc-preview-scheme.test.ts src/renderer/src/components/browser-pane/workspace-doc/use-doc-preview-guest-tools.test.ts src/renderer/src/components/browser-pane/workspace-doc/HtmlDocPreview.toolbar.test.tsx",
+        // STA-5681 address-bar convergence: conversion is page replacement (fresh id, one store
+        // commit flips page + mirror + mobile observables), typed workspace paths convert via the
+        // lexical-containment classifier, and doc history carries document identities with no url
+        // field at all. The chip now answers to "Edit address".
+        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/store/slices/browser-page-conversion.test.ts src/renderer/src/runtime/sync-runtime-graph-conversion-publish.test.ts src/renderer/src/lib/workspace-doc-address-input.test.ts src/shared/workspace-doc-history.test.ts src/renderer/src/components/browser-pane/workspace-doc/HtmlDocPreview.toolbar.test.tsx src/renderer/src/components/browser-pane/assemble-chrome/browser-address-bar-suggestions.test.ts",
+        // The convergence journey with real clicks and typing: chip → address bar → URL converts in
+        // place, Back returns across the conversion, a typed path converts a runtime-owned tab, the
+        // dropdown's doc row dedupe-activates. Caught the remote-pane routing gap before it shipped.
+        "SKIP_BUILD=1 MANTA_E2E_WEB_CLIENT=1 MANTA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-preview-address-bar-convergence.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=list",
         "SKIP_BUILD=1 MANTA_E2E_WEB_CLIENT=1 MANTA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
         "SKIP_BUILD=1 MANTA_E2E_WEB_CLIENT=1 MANTA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
         // The changed-spec e2e job's own command, which is the only Linux run this gate has.
@@ -2919,7 +2928,13 @@
         "src/renderer/src/store/slices/tabs-hydration.test.ts",
         "src/renderer/src/components/terminal-pane/TerminalLinkActionPopover.test.tsx",
         "src/renderer/src/runtime/sync-runtime-graph-editor-diff-tabs.test.ts",
+        "src/renderer/src/store/slices/browser-page-conversion.test.ts",
+        "src/renderer/src/runtime/sync-runtime-graph-conversion-publish.test.ts",
+        "src/renderer/src/lib/workspace-doc-address-input.test.ts",
+        "src/shared/workspace-doc-history.test.ts",
+        "src/renderer/src/components/browser-pane/assemble-chrome/browser-address-bar-suggestions.test.ts",
         "tests/e2e/paired-remote-html-preview-local-render.spec.ts",
+        "tests/e2e/paired-preview-address-bar-convergence.spec.ts",
         "tests/e2e/paired-browser-create-navigation-deadline.spec.ts",
         "tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts"
       ],
