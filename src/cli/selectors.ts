@@ -4,7 +4,11 @@ import type {
   RuntimeWorktreeListResult,
   RuntimeWorktreeRecord
 } from '../shared/runtime-types'
-import { isPathInsideOrEqual, isWslUncPathForCallerLinuxPath } from '../shared/cross-platform-path'
+import {
+  isPathInsideOrEqual,
+  isWslUncPathForCallerLinuxPath,
+  isWslUncPathForLinuxMountedPath
+} from '../shared/cross-platform-path'
 import { parseWslUncPath } from '../shared/wsl-paths'
 import type { RuntimeClient } from './runtime-client'
 import { RuntimeClientError } from './runtime/types'
@@ -49,8 +53,9 @@ export async function resolveCallerDistroPathSelector(
   // the WSL launcher always sets and which arrives here as the invocation cwd, proves it.
   const callerDistro = parseWslUncPath(cwd)?.distro
   const linuxPath = selector.startsWith('path:') ? selector.slice(5) : ''
+  const isLinuxMountedPath = /^\/mnt\/[A-Za-z](?:\/|$)/.test(linuxPath)
   if (
-    !callerDistro ||
+    (!callerDistro && !isLinuxMountedPath) ||
     client.isRemote ||
     !linuxPath.startsWith('/') ||
     linuxPath.startsWith('//') ||
@@ -63,7 +68,9 @@ export async function resolveCallerDistroPathSelector(
     limit: 10_000
   })
   const match = worktrees.result.worktrees.find((worktree) =>
-    isWslUncPathForCallerLinuxPath(worktree.path, linuxPath, callerDistro)
+    isLinuxMountedPath
+      ? isWslUncPathForLinuxMountedPath(worktree.path, linuxPath)
+      : isWslUncPathForCallerLinuxPath(worktree.path, linuxPath, callerDistro!)
   )
   // Why the stored spelling rather than a synthesized UNC path: an unmatched selector must
   // reach the runtime verbatim and fail as the caller typed it, never as a guessed distro.

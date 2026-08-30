@@ -11,6 +11,7 @@ import { normalizeWorktreeSelectorForCaller } from './selectors'
 const UBUNTU = 'Ubuntu-24.04'
 const DEBIAN = 'Debian'
 const LINUX_PATH = '/home/neil/qa-repo'
+const MOUNTED_PATH = '/mnt/c/Users/neil/qa-repo'
 
 function uncPath(distro: string, linuxPath: string): string {
   return `\\\\wsl.localhost\\${distro}${linuxPath.replace(/\//g, '\\')}`
@@ -37,6 +38,15 @@ afterEach(() => {
 })
 
 describe('normalizeWorktreeSelectorForCaller in a WSL shell (#16628)', () => {
+  it('resolves a shared /mnt drive without requiring the caller distro', async () => {
+    const storedPath = uncPath(UBUNTU, '/mnt/c/Users/neil/qa-repo')
+    const { client } = makeClient([storedPath])
+
+    await expect(
+      normalizeWorktreeSelectorForCaller(`path:${MOUNTED_PATH}`, '/mnt/c/Users/neil', client)
+    ).resolves.toBe(`path:${storedPath}`)
+  })
+
   it.each([
     ['a backslash UNC registration', uncPath(UBUNTU, LINUX_PATH)],
     ['a forward-slash UNC registration', `//wsl.localhost/${UBUNTU}${LINUX_PATH}`],
