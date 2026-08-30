@@ -272,7 +272,7 @@ const DIRECT_SINGLE_SOURCE_SURFACES: readonly {
     marker: 'isCursorAgentTitle'
   },
   {
-    path: 'src/main/providers/local-pty-provider.ts',
+    path: 'src/main/providers/local-pty-session-activation.ts',
     classification: 'action-consumer',
     marker: 'launchAgent'
   },
