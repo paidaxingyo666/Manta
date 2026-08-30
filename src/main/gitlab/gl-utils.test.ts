@@ -663,6 +663,21 @@ describe('getGlabKnownHosts', () => {
     expect(glabExecFileAsyncMock).toHaveBeenCalledWith(['auth', 'status'], { timeout: 10_000 })
   })
 
+  it('preserves WSL and background admission on the cold auth-status probe', async () => {
+    glabExecFileAsyncMock.mockResolvedValueOnce({ stdout: '', stderr: '' })
+
+    await getGlabKnownHosts(undefined, {
+      wslDistro: 'Ubuntu',
+      admissionTier: 'background'
+    })
+
+    expect(glabExecFileAsyncMock).toHaveBeenCalledWith(['auth', 'status'], {
+      timeout: 10_000,
+      wslDistro: 'Ubuntu',
+      admissionTier: 'background'
+    })
+  })
+
   it('falls back to default when glab auth status fails', async () => {
     glabExecFileAsyncMock.mockRejectedValueOnce(new Error('glab not authenticated'))
 

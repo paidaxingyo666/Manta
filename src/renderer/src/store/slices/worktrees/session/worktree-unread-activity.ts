@@ -129,7 +129,8 @@ export function createObserveTerminalGitHubPullRequestLink(
         worktreeId,
         linkedPRNumber: alreadyLinked ? link.number : null,
         fallbackPRNumber: null,
-        fallbackPRSource: alreadyLinked ? null : 'explicit'
+        fallbackPRSource: alreadyLinked ? null : 'explicit',
+        reason: 'active'
       }).then((pr) => {
         if (!alreadyLinked && pr?.number === link.number) {
           // Why: terminal output can carry arbitrary PR URLs (docs/agents/logs).

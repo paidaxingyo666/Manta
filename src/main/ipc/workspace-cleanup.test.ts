@@ -197,6 +197,7 @@ describe('workspace cleanup scan', () => {
     const result = await scanWorkspaceCleanup(makeStore())
 
     expect(getStatusMock).toHaveBeenCalledWith('/repo-feature', {
+      includeLineStats: false,
       signal: expect.any(AbortSignal),
       sharedLinkPaths: ['node_modules']
     })
@@ -456,6 +457,7 @@ describe('workspace cleanup scan', () => {
       signal: expect.any(AbortSignal)
     })
     expect(provider.getStatus).toHaveBeenCalledWith('/remote/repo-feature', {
+      includeLineStats: false,
       signal: expect.any(AbortSignal)
     })
     expect(result.errors).toEqual([])
