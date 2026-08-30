@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, readFileSync, readlinkSync, statSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -9,13 +9,11 @@ vi.mock('electron', () => ({
   app: { isPackaged: true }
 }))
 
-import {
-  resolveAppImageLauncherEndpointPath,
-  resolveAppImageStableLauncherPath
-} from './appimage-stable-launcher'
+import { resolveAppImageLauncherEndpointPath } from './appimage-stable-launcher'
 import { ensureLinuxTerminalMantaCliShimDir } from './linux-terminal-manta-cli-shim'
 
 const created: string[] = []
+const canFenceAppImageRuntime = process.platform === 'linux' && existsSync('/proc/self/stat')
 
 async function makeFixture(): Promise<{ userDataPath: string; resourcesPath: string }> {
   const root = await mkdtemp(join(tmpdir(), 'manta-terminal-cli-shim-'))
@@ -80,93 +78,131 @@ describe('ensureLinuxTerminalMantaCliShimDir', () => {
     expect(statSync(healedPath).mode & 0o111).not.toBe(0)
   })
 
-  it('routes AppImage terminals through the stable cache without extracting', async () => {
-    const { userDataPath, resourcesPath } = await makeFixture()
-    const appImagePath = join(userDataPath, 'Manta.AppImage')
-    await mkdir(userDataPath, { recursive: true })
-    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
-    const cacheRootPath = join(userDataPath, 'cache')
-    const liveLauncherPath = join(resourcesPath, 'bin', 'manta-ide')
-    writeFileSync(liveLauncherPath, '#!/usr/bin/env bash\nprintf live', 'utf8')
-    chmodSync(liveLauncherPath, 0o755)
-    const shimDir = ensureLinuxTerminalMantaCliShimDir({
-      userDataPath,
-      resourcesPath,
-      appImagePath,
-      appImageCacheRootPath: cacheRootPath
-    })
+  it.skipIf(!canFenceAppImageRuntime)(
+    'routes first-use AppImage terminals through a fenced current mount without a live endpoint',
+    async () => {
+      const { userDataPath, resourcesPath } = await makeFixture()
+      const appImagePath = join(userDataPath, 'Manta.AppImage')
+      await mkdir(userDataPath, { recursive: true })
+      await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
+      const cacheRootPath = join(userDataPath, 'cache')
+      const liveLauncherPath = join(resourcesPath, 'bin', 'manta-ide')
+      writeFileSync(liveLauncherPath, '#!/usr/bin/env bash\nprintf live', 'utf8')
+      chmodSync(liveLauncherPath, 0o755)
+      const shimDir = ensureLinuxTerminalMantaCliShimDir({
+        userDataPath,
+        resourcesPath,
+        appImagePath,
+        appImageCacheRootPath: cacheRootPath
+      })
 
-    const shimPath = join(shimDir!, 'manta')
-    const stableLauncherPath = resolveAppImageStableLauncherPath(cacheRootPath)
-    const content = readFileSync(shimPath, 'utf8')
-    expect(content).toContain(stableLauncherPath)
-    expect(content).not.toContain(resourcesPath)
-    expect(content).not.toContain(appImagePath)
-    await expect(
-      runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
-    ).resolves.toMatchObject({ code: 0, stdout: 'live' })
-  })
-
-  it('updates restored terminals to the current AppImage mount without rewriting the shim', async () => {
-    const { userDataPath, resourcesPath } = await makeFixture()
-    const appImagePath = join(userDataPath, 'Manta.AppImage')
-    await mkdir(userDataPath, { recursive: true })
-    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
-    const cacheRootPath = join(userDataPath, 'cache')
-    const firstLauncher = join(resourcesPath, 'bin', 'manta-ide')
-    writeFileSync(firstLauncher, '#!/usr/bin/env bash\nprintf first', 'utf8')
-    chmodSync(firstLauncher, 0o755)
-    const options = {
-      userDataPath,
-      resourcesPath,
-      appImagePath,
-      appImageCacheRootPath: cacheRootPath
+      const shimPath = join(shimDir!, 'manta')
+      const content = readFileSync(shimPath, 'utf8')
+      expect(content).toContain(liveLauncherPath)
+      expect(content).toContain('runtime_pid=')
+      expect(content).toContain('/proc/$runtime_pid/stat')
+      expect(existsSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(false)
+      await expect(
+        runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+      ).resolves.toMatchObject({ code: 0, stdout: 'live' })
     }
-    const shimDir = ensureLinuxTerminalMantaCliShimDir(options)
-    const shimPath = join(shimDir!, 'manta')
-    const originalShim = readFileSync(shimPath, 'utf8')
+  )
 
-    const nextResourcesPath = join(userDataPath, 'next-mount', 'resources')
-    const nextLauncher = join(nextResourcesPath, 'bin', 'manta-ide')
-    await mkdir(join(nextResourcesPath, 'bin'), { recursive: true })
-    await writeFile(nextLauncher, '#!/usr/bin/env bash\nprintf next', { mode: 0o755 })
-    await rm(firstLauncher)
-    expect(
-      ensureLinuxTerminalMantaCliShimDir({ ...options, resourcesPath: nextResourcesPath })
-    ).toBe(shimDir)
+  it.skipIf(!canFenceAppImageRuntime)(
+    'refreshes restored terminals to the current AppImage mount',
+    async () => {
+      const { userDataPath, resourcesPath } = await makeFixture()
+      const appImagePath = join(userDataPath, 'Manta.AppImage')
+      await mkdir(userDataPath, { recursive: true })
+      await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
+      const cacheRootPath = join(userDataPath, 'cache')
+      const firstLauncher = join(resourcesPath, 'bin', 'manta-ide')
+      writeFileSync(firstLauncher, '#!/usr/bin/env bash\nprintf first', 'utf8')
+      chmodSync(firstLauncher, 0o755)
+      const options = {
+        userDataPath,
+        resourcesPath,
+        appImagePath,
+        appImageCacheRootPath: cacheRootPath
+      }
+      const shimDir = ensureLinuxTerminalMantaCliShimDir(options)
+      const shimPath = join(shimDir!, 'manta')
+      const originalShim = readFileSync(shimPath, 'utf8')
 
-    expect(readFileSync(shimPath, 'utf8')).toBe(originalShim)
-    expect(readlinkSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(
-      nextLauncher
-    )
-    await expect(
-      runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
-    ).resolves.toMatchObject({ code: 0, stdout: 'next' })
-  })
+      const nextResourcesPath = join(userDataPath, 'next-mount', 'resources')
+      const nextLauncher = join(nextResourcesPath, 'bin', 'manta-ide')
+      await mkdir(join(nextResourcesPath, 'bin'), { recursive: true })
+      await writeFile(nextLauncher, '#!/usr/bin/env bash\nprintf next', { mode: 0o755 })
+      await rm(firstLauncher)
+      expect(
+        ensureLinuxTerminalMantaCliShimDir({ ...options, resourcesPath: nextResourcesPath })
+      ).toBe(shimDir)
 
-  it('waits briefly for a temporarily unavailable live endpoint', async () => {
-    const { userDataPath, resourcesPath } = await makeFixture()
-    const appImagePath = join(userDataPath, 'Manta.AppImage')
-    const cacheRootPath = join(userDataPath, 'cache')
-    await mkdir(userDataPath, { recursive: true })
-    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 })
-    const liveLauncher = join(resourcesPath, 'bin', 'manta-ide')
-    chmodSync(liveLauncher, 0o755)
-    const shimDir = ensureLinuxTerminalMantaCliShimDir({
-      userDataPath,
-      resourcesPath,
-      appImagePath,
-      appImageCacheRootPath: cacheRootPath
-    })
-    const shimPath = join(shimDir!, 'manta')
-    await rm(liveLauncher)
-    const invocation = runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
-    setTimeout(() => {
-      writeFileSync(liveLauncher, '#!/usr/bin/env bash\nprintf recovered', { mode: 0o755 })
-    }, 100)
+      const refreshedShim = readFileSync(shimPath, 'utf8')
+      expect(refreshedShim).not.toBe(originalShim)
+      expect(refreshedShim).toContain(nextLauncher)
+      expect(existsSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(false)
+      await expect(
+        runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+      ).resolves.toMatchObject({ code: 0, stdout: 'next' })
+    }
+  )
 
-    await expect(invocation).resolves.toMatchObject({ code: 0, stdout: 'recovered' })
-  })
+  it.skipIf(!canFenceAppImageRuntime)(
+    'rejects a stale shim when its mount path is removed and reused',
+    async () => {
+      const { userDataPath, resourcesPath } = await makeFixture()
+      const appImagePath = join(userDataPath, 'Manta.AppImage')
+      const cacheRootPath = join(userDataPath, 'cache')
+      await mkdir(userDataPath, { recursive: true })
+      await writeFile(appImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 })
+      const liveLauncher = join(resourcesPath, 'bin', 'manta-ide')
+      writeFileSync(liveLauncher, '#!/usr/bin/env bash\nprintf original', { mode: 0o755 })
+      const shimDir = ensureLinuxTerminalMantaCliShimDir({
+        userDataPath,
+        resourcesPath,
+        appImagePath,
+        appImageCacheRootPath: cacheRootPath
+      })
+      const shimPath = join(shimDir!, 'manta')
+      await rm(liveLauncher)
+      await writeFile(liveLauncher, '#!/usr/bin/env bash\nprintf replaced-by-another-mount', {
+        mode: 0o755
+      })
+
+      await expect(
+        runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+      ).resolves.toMatchObject({ code: 1, stdout: '' })
+    }
+  )
+
+  it.skipIf(!canFenceAppImageRuntime)(
+    'rejects a shim after its owning AppImage process generation changes',
+    async () => {
+      const { userDataPath, resourcesPath } = await makeFixture()
+      const appImagePath = join(userDataPath, 'Manta.AppImage')
+      await mkdir(userDataPath, { recursive: true })
+      await writeFile(appImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 })
+      const liveLauncher = join(resourcesPath, 'bin', 'manta-ide')
+      writeFileSync(liveLauncher, '#!/usr/bin/env bash\nprintf original', { mode: 0o755 })
+      const shimDir = ensureLinuxTerminalMantaCliShimDir({
+        userDataPath,
+        resourcesPath,
+        appImagePath,
+        appImageCacheRootPath: join(userDataPath, 'cache')
+      })
+      const shimPath = join(shimDir!, 'manta')
+      const staleContent = readFileSync(shimPath, 'utf8').replace(
+        /runtime_start_time='[^']*'/,
+        "runtime_start_time='stale-process'"
+      )
+      writeFileSync(shimPath, staleContent, { mode: 0o755 })
+
+      await expect(
+        runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+      ).resolves.toMatchObject({ code: 1, stdout: '' })
+    }
+  )
 
   it('returns null (and does not memoize) when the bundled launcher is missing', async () => {
     const root = await mkdtemp(join(tmpdir(), 'manta-terminal-cli-shim-missing-'))

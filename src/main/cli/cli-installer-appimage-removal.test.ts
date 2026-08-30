@@ -1,9 +1,8 @@
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readlink, rm, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readlink, rm, symlink, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { runProcess } from '../../shared/child-process/run-process'
 
 vi.mock('electron', () => ({
   app: { isPackaged: false, getPath: () => tmpdir(), getAppPath: () => tmpdir() }
@@ -26,7 +25,7 @@ afterEach(async () => {
 
 describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
   it.each([false, true])(
-    'removes installed payloads while preserving the live PTY launcher (command missing: %s)',
+    'removes installed payloads and the legacy live endpoint (command missing: %s)',
     async (removeCommandFirst) => {
       const root = await mkdtemp(join(tmpdir(), 'orca-appimage-cli-remove-'))
       created.push(root)
@@ -38,7 +37,9 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
       await mkdir(join(resourcesPath, 'bin'), { recursive: true })
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 })
       await writeFile(liveLauncherPath, '#!/usr/bin/env bash\nprintf live', { mode: 0o755 })
-      publishAppImageLauncherEndpoint(cacheRootPath, 'live', liveLauncherPath)
+      const liveEndpointPath = resolveAppImageLauncherEndpointPath(cacheRootPath, 'live')
+      await mkdir(dirname(liveEndpointPath), { recursive: true })
+      await symlink(liveLauncherPath, liveEndpointPath)
 
       const installer = new CliInstaller({
         platform: 'linux',
@@ -80,12 +81,9 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
       expect(existsSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'installed'))).toBe(
         false
       )
-      expect(existsSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(true)
+      expect(existsSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(false)
       const stableLauncherPath = resolveAppImageStableLauncherPath(cacheRootPath)
       expect(existsSync(stableLauncherPath)).toBe(true)
-      await expect(
-        runProcess({ program: stableLauncherPath, args: [], timeoutMs: 3_000 })
-      ).resolves.toMatchObject({ code: 0, stdout: 'live' })
     }
   )
 

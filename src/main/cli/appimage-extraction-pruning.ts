@@ -4,7 +4,10 @@ import type { Dirent } from 'node:fs'
 import { lstat, readlink, readdir, rename, rm, rmdir, symlink, unlink } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { isAppImageCacheKey, resolveCachedAppImagePayloadRoot } from './appimage-cache-layout'
-import { resolveAppImageLauncherEndpointPath } from './appimage-stable-launcher'
+import {
+  removeAppImageLegacyLiveEndpoint,
+  resolveAppImageLauncherEndpointPath
+} from './appimage-stable-launcher'
 
 const EXTRACTION_STAGING_PREFIX = '.extract-'
 const ACTIVE_EXTRACTION_PREFIX = '.active-'
@@ -39,6 +42,7 @@ export async function pruneAppImageExtractedRoots(keepRootPath: string): Promise
 export async function removeAppImageInstalledPayloads(namespacePath: string): Promise<void> {
   const resolvedNamespace = resolve(namespacePath)
   const cacheRootPath = dirname(resolvedNamespace)
+  removeAppImageLegacyLiveEndpoint(cacheRootPath)
   if (await removeInstalledEndpoint(cacheRootPath, resolvedNamespace)) {
     await pruneNamespace(resolvedNamespace, new Set())
     await rmdir(resolvedNamespace).catch(() => {})

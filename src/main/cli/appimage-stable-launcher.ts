@@ -5,6 +5,7 @@ import {
   copyFileSync,
   fstatSync,
   linkSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readSync,
@@ -45,12 +46,27 @@ export function isAppImageStableLauncherReady(cacheRootPath: string): boolean {
   return isExactExecutableLauncher(launcherPath, buildStableLauncherScript(cacheRootPath))
 }
 
+/** Ensures the persistent wrapper exists without publishing an endpoint. */
+export function ensureAppImageStableLauncher(cacheRootPath: string): string | null {
+  return ensureAppImageStableLauncherFile(cacheRootPath)
+}
+
+/** Removes the legacy live endpoint only when it is a symlink. */
+export function removeAppImageLegacyLiveEndpoint(cacheRootPath: string): void {
+  const endpointPath = resolveAppImageLauncherEndpointPath(cacheRootPath, 'live')
+  try {
+    if (lstatSync(endpointPath).isSymbolicLink()) {
+      unlinkSync(endpointPath)
+    }
+  } catch {}
+}
+
 export function publishAppImageLauncherEndpoint(
   cacheRootPath: string,
-  endpoint: AppImageLauncherEndpoint,
+  endpoint: 'installed',
   targetPath: string
 ): string | null {
-  const launcherPath = ensureAppImageStableLauncher(cacheRootPath)
+  const launcherPath = ensureAppImageStableLauncherFile(cacheRootPath)
   if (!launcherPath) {
     return null
   }
@@ -70,7 +86,7 @@ export function publishAppImageLauncherEndpoint(
   }
 }
 
-function ensureAppImageStableLauncher(cacheRootPath: string): string | null {
+function ensureAppImageStableLauncherFile(cacheRootPath: string): string | null {
   const launcherPath = resolveAppImageStableLauncherPath(cacheRootPath)
   const content = buildStableLauncherScript(cacheRootPath)
   try {
@@ -213,11 +229,10 @@ shopt -s execfail
 launcher_dir=${quoteShell(launcherDirectory)}
 deadline=$((SECONDS + ${LAUNCHER_WAIT_SECONDS}))
 while (( SECONDS <= deadline )); do
-  for launcher in "$launcher_dir/${LIVE_ENDPOINT_NAME}" "$launcher_dir/${INSTALLED_ENDPOINT_NAME}"; do
-    if [[ -f "$launcher" && -x "$launcher" ]]; then
-      exec "$launcher" "$@"
-    fi
-  done
+  launcher="$launcher_dir/${INSTALLED_ENDPOINT_NAME}"
+  if [[ -f "$launcher" && -x "$launcher" ]]; then
+    exec "$launcher" "$@"
+  fi
   sleep 0.1
 done
 printf 'Manta CLI is not ready; reopen Manta or register the CLI again.\\n' >&2
