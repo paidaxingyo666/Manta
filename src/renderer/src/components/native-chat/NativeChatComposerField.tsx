@@ -1,5 +1,5 @@
 import type { ClipboardEventHandler, KeyboardEventHandler, RefObject } from 'react'
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { Image as ImageIcon, ImageOff, X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { useImeEnterGestureOwnership } from '@/lib/ime-composition-keyboard-event'
@@ -60,6 +60,27 @@ export type NativeChatComposerImageAttachment = {
   path: string
 }
 
+/**
+ * Applies a draft clear that was dropped mid-composition: everything the field held when the
+ * IME started is what the clear was meant to erase, so only the composed segment survives.
+ * Diffed from both ends because an IME edits at the caret, which need not be the end.
+ */
+function imeComposedSegment(base: string, settled: string): string {
+  const limit = Math.min(base.length, settled.length)
+  let prefix = 0
+  while (prefix < limit && base[prefix] === settled[prefix]) {
+    prefix += 1
+  }
+  let suffix = 0
+  while (
+    suffix < limit - prefix &&
+    base[base.length - 1 - suffix] === settled[settled.length - 1 - suffix]
+  ) {
+    suffix += 1
+  }
+  return settled.slice(prefix, settled.length - suffix)
+}
+
 export function NativeChatComposerField({
   textareaRef,
   draft,
@@ -97,17 +118,37 @@ export function NativeChatComposerField({
   sessionOptionsSnapshot,
   sessionOptionsPickerRequest
 }: NativeChatComposerFieldProps): React.JSX.Element {
+  // Value the IME started from, and whether a programmatic clear was dropped on top of it.
+  const compositionBaseRef = useRef('')
+  const droppedDraftClearRef = useRef(false)
+
   // Browser owns the provisional value; React synchronizes drafts only between IME sessions.
   useLayoutEffect(() => {
     const textarea = textareaRef.current
-    if (!textarea || imeEnterGesture.isComposing()) {
+    if (!textarea) {
       return
     }
+    if (imeEnterGesture.isComposing()) {
+      // Why: a clear (an async structured send confirming) would otherwise be lost outright and
+      // the sent text would ride along into the next message. Only clears are carved out of
+      // browser ownership; every other programmatic draft still loses to the live composition.
+      droppedDraftClearRef.current ||= draft === '' && textarea.value !== ''
+      return
+    }
+    droppedDraftClearRef.current = false
     if (textarea.value === draft) {
       return
     }
     textarea.value = draft
   }, [draft, imeEnterGesture, textareaRef])
+
+  const settleImeValue = (element: HTMLTextAreaElement): void => {
+    if (droppedDraftClearRef.current) {
+      droppedDraftClearRef.current = false
+      element.value = imeComposedSegment(compositionBaseRef.current, element.value)
+    }
+    onImeSettled(element)
+  }
 
   return (
     <div className="shrink-0 bg-background">
@@ -190,17 +231,18 @@ export function NativeChatComposerField({
                 const compositionWasActive = imeEnterGesture.isComposing()
                 imeEnterGesture.reset()
                 if (compositionWasActive) {
-                  onImeSettled(event.currentTarget)
+                  settleImeValue(event.currentTarget)
                 }
               }}
-              onCompositionStart={() => {
+              onCompositionStart={(event) => {
+                compositionBaseRef.current = event.currentTarget.value
                 imeEnterGesture.setComposing(true)
               }}
               onCompositionEnd={(event) => {
                 const compositionWasActive = imeEnterGesture.isComposing()
                 imeEnterGesture.setComposing(false)
                 if (compositionWasActive) {
-                  onImeSettled(event.currentTarget)
+                  settleImeValue(event.currentTarget)
                 }
               }}
               onPaste={onPaste}

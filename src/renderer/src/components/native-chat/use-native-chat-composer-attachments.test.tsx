@@ -208,6 +208,11 @@ describe('useNativeChatComposerAttachments', () => {
     })
 
     expect(probe.draft()).toBe('각 @/remote/b.txt @/remote/b.txt @/remote/a.txt ')
+    // The focus this flush must not steal would be scheduled a frame out, so without advancing
+    // one the assertions below hold even when the flush does steal focus.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+    })
     expect(focus).not.toHaveBeenCalled()
     expect(document.activeElement).not.toBe(textarea)
     act(() => probe.root.unmount())
