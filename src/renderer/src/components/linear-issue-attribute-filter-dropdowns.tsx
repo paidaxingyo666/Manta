@@ -4,10 +4,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ListFilter, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTeamsLabels, useTeamsMembers, useTeamsStates } from '@/hooks/useIssueMetadata'
 import type { RuntimeLinearSettings } from '@/runtime/runtime-linear-client'
 import { translate } from '@/i18n/i18n'
 import {
+  LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS,
+  LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS,
   boundLinearIssueAttributeFilter,
   canonicalizeLinearIssueAttributeFilter,
   emptyLinearIssueAttributeFilter,
@@ -15,14 +18,17 @@ import {
 } from '../../../shared/linear/issue-attribute-filter'
 import type { LinearTeam } from '../../../shared/linear/workspace-types'
 import {
-  LinearIssueFilterSectionDetail,
-  LinearIssueFilterSectionMenu,
   clearLinearIssueAttributeFacet,
   countLinearIssueAttributeFilters,
-  linearIssueAttributeFilterPillLabels,
+  linearIssueAttributeFilterPillLabels
+} from './linear-issue-attribute-filter-pills'
+import {
+  LinearIssueFilterSectionDetail,
+  LinearIssueFilterSectionMenu,
   type LinearIssueFilterSectionKey
 } from './linear-issue-attribute-filter-sections'
 import {
+  capLinearMetadataIdsAcrossGroups,
   groupLinearMetadataByName,
   resolveLinearIssueAttributeFilterTeamIds
 } from './linear-issue-attribute-filter-team-ids'
@@ -44,16 +50,40 @@ type Props = {
 function ActivePill({
   label,
   value,
+  partial,
   onClear
 }: {
   label: string
   value: string
+  partial: boolean
   onClear: () => void
 }): React.JSX.Element {
   return (
     <span className="inline-flex h-6 items-center gap-1 rounded-full border border-border/60 bg-muted/50 pl-2 pr-1 text-[11px] text-foreground">
       <span className="text-muted-foreground">{label}:</span>
       <span className="max-w-[160px] truncate font-medium">{value}</span>
+      {partial ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/* Why: a bare title attribute reaches neither keyboard nor screen reader. */}
+            <button
+              type="button"
+              className="rounded-sm text-muted-foreground underline decoration-dotted underline-offset-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              {translate(
+                'auto.components.linear-issue-attribute-filter-dropdowns.partialCoverage',
+                'partial'
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={4}>
+            {translate(
+              'auto.components.linear-issue-attribute-filter-dropdowns.partialCoverageTitle',
+              'Some teams may be left out of this filter. Open Filters for details.'
+            )}
+          </TooltipContent>
+        </Tooltip>
+      ) : null}
       <button
         type="button"
         aria-label={translate(
@@ -217,8 +247,33 @@ export default function LinearIssueAttributeFilterDropdowns({
     value,
     stateNamesById,
     memberNamesById,
-    labelNamesById
+    labelNamesById,
+    statusOptions,
+    labelOptions
   })
+
+  // Why: one picked row expands to an id per team, so bound here — the IPC/RPC parser rejects a
+  // filter over the transport cap outright. Spread the cap over the picked rows first: the
+  // canonical slice is lexicographic, so it can drop every id of a row the user just checked.
+  const applyPickedFilter = (next: LinearIssueAttributeFilter): void => {
+    onChange(
+      boundLinearIssueAttributeFilter(
+        canonicalizeLinearIssueAttributeFilter({
+          ...next,
+          stateIds: capLinearMetadataIdsAcrossGroups(
+            statusOptions,
+            next.stateIds,
+            LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
+          ),
+          labelIds: capLinearMetadataIdsAcrossGroups(
+            labelOptions,
+            next.labelIds,
+            LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
+          )
+        })
+      )
+    )
+  }
 
   const teamRequiredMessage = !primaryTeam
     ? translate(
@@ -283,13 +338,7 @@ export default function LinearIssueAttributeFilterDropdowns({
                 <LinearIssueFilterSectionDetail
                   section={openSection}
                   value={value}
-                  // Why: one status now expands to an id per team, so bound here — the
-                  // IPC/RPC parser rejects a filter over the transport id cap outright.
-                  onChange={(next) =>
-                    onChange(
-                      boundLinearIssueAttributeFilter(canonicalizeLinearIssueAttributeFilter(next))
-                    )
-                  }
+                  onChange={applyPickedFilter}
                   statusOptions={statusOptions}
                   assigneeOptions={assigneeOptions}
                   labelOptions={labelOptions}
@@ -305,8 +354,8 @@ export default function LinearIssueAttributeFilterDropdowns({
               ) : (
                 <LinearIssueFilterSectionMenu
                   value={value}
-                  stateNamesById={stateNamesById}
-                  labelNamesById={labelNamesById}
+                  statusOptions={statusOptions}
+                  labelOptions={labelOptions}
                   onOpenSection={setOpenSection}
                 />
               )}
@@ -334,6 +383,7 @@ export default function LinearIssueAttributeFilterDropdowns({
           key={pill.key}
           label={pill.label}
           value={pill.value}
+          partial={pill.partial}
           onClear={() =>
             onChange(
               canonicalizeLinearIssueAttributeFilter(

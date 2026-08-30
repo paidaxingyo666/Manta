@@ -81,13 +81,97 @@ export function selectedLinearMetadataGroupKeys(
   groups: readonly { key: string; ids: readonly string[] }[],
   selectedIds: readonly string[]
 ): string[] {
+  const keyById = linearMetadataKeyById(groups)
+  return [...new Set(selectedIds.map((id) => keyById.get(id) ?? id))]
+}
+
+function linearMetadataKeyById(
+  groups: readonly { key: string; ids: readonly string[] }[]
+): Map<string, string> {
   const keyById = new Map<string, string>()
   for (const group of groups) {
     for (const id of group.ids) {
       keyById.set(id, group.key)
     }
   }
-  return [...new Set(selectedIds.map((id) => keyById.get(id) ?? id))]
+  return keyById
+}
+
+/** Ids the picked rows stand for, against the ids the transport cap actually kept (#16879). */
+export function linearMetadataGroupCoverage(
+  groups: readonly { key: string; ids: readonly string[] }[],
+  selectedIds: readonly string[],
+  max: number
+): { applied: number; intended: number; atLimit: boolean } {
+  const keys = selectedLinearMetadataGroupKeys(groups, selectedIds)
+  return {
+    applied: selectedIds.length,
+    intended: expandLinearMetadataGroupKeys(groups, keys).length,
+    // Why: a row the cap could not fit leaves no trace in the ids, so once the budget is
+    // spent the honest claim is the exhausted budget itself — never full coverage (#17342).
+    atLimit: selectedIds.length >= max
+  }
+}
+
+/** True when the filter cannot be shown to cover every team id the picked rows stand for. */
+export function isLinearMetadataGroupSelectionPartial(
+  groups: readonly { key: string; ids: readonly string[] }[],
+  selectedIds: readonly string[],
+  max: number
+): boolean {
+  const { applied, intended, atLimit } = linearMetadataGroupCoverage(groups, selectedIds, max)
+  return intended > applied || atLimit
+}
+
+/**
+ * Trim an expanded selection to `max` ids by taking turns across the picked groups.
+ * A plain slice of the canonical (sorted) id list can drop every id of one picked row,
+ * which then renders unchecked with no explanation and vanishes from the coverage count.
+ * More picked rows than `max` cannot all be represented; `linearMetadataGroupCoverage`
+ * reports that shortfall so the starved row is never passed off as full coverage.
+ */
+export function capLinearMetadataIdsAcrossGroups(
+  groups: readonly { key: string; ids: readonly string[] }[],
+  ids: readonly string[],
+  max: number
+): string[] {
+  if (ids.length <= max) {
+    return [...ids]
+  }
+  const selected = new Set(ids)
+  // Why: the picker hands us click order, so bucket by metadata order instead — the same
+  // visible selection must always cap to the same ids (#17342).
+  const lists = groups
+    .map((group) => group.ids.filter((id) => selected.has(id)))
+    .filter((list) => list.length > 0)
+  const grouped = new Set(lists.flat())
+  // An id no loaded group covers is its own row; sorted so its slot is stable too (R12).
+  lists.push(
+    ...[...new Set(ids)]
+      .filter((id) => !grouped.has(id))
+      .sort()
+      .map((id) => [id])
+  )
+  const capped: string[] = []
+  // Round 0 gives every row one id before any row gets a second.
+  for (let round = 0; capped.length < max; round += 1) {
+    let advanced = false
+    for (const list of lists) {
+      const id = list[round]
+      if (id === undefined) {
+        continue
+      }
+      advanced = true
+      capped.push(id)
+      if (capped.length >= max) {
+        break
+      }
+    }
+    if (!advanced) {
+      break
+    }
+  }
+  return capped
 }
 
 /** Every id behind the picked group keys; an unknown key is itself an id. */
