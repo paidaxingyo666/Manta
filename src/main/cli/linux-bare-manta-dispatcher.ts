@@ -4,7 +4,7 @@ import { copyFile, link, lstat, mkdir, readFile, rename, unlink, writeFile } fro
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
-  hasAppImageRuntimeEnvironment,
+  hasAppImagePathEnvironment,
   resolveAppImageRuntimeIdentity
 } from '../appimage-runtime-identity'
 import {
@@ -89,7 +89,7 @@ async function resolveStableLauncherPath(
 ): Promise<string | null> {
   const hasExplicitAppImagePath = Object.hasOwn(options, 'appImagePath')
   const runtimeIdentity = resolveAppImageRuntimeIdentity({ resourcesPath: options.resourcesPath })
-  if (!hasExplicitAppImagePath && hasAppImageRuntimeEnvironment() && !runtimeIdentity) {
+  if (!hasExplicitAppImagePath && hasAppImagePathEnvironment() && !runtimeIdentity) {
     return null
   }
   const appImagePath = hasExplicitAppImagePath

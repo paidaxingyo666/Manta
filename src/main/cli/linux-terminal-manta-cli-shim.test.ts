@@ -26,10 +26,24 @@ async function makeFixture(): Promise<{ userDataPath: string; resourcesPath: str
 }
 
 afterEach(async () => {
+  vi.unstubAllEnvs()
   await Promise.all(created.splice(0).map((dir) => rm(dir, { recursive: true, force: true })))
 })
 
 describe('ensureLinuxTerminalMantaCliShimDir', () => {
+  it('uses the mounted bundled launcher when only APPDIR is inherited', async () => {
+    const { userDataPath, resourcesPath } = await makeFixture()
+    vi.stubEnv('APPIMAGE', '')
+    vi.stubEnv('APPDIR', resourcesPath)
+
+    const shimDir = ensureLinuxTerminalMantaCliShimDir({ userDataPath, resourcesPath })
+
+    expect(shimDir).toBe(join(userDataPath, 'linux-manta-cli-shim'))
+    expect(readFileSync(join(shimDir!, 'manta'), 'utf8')).toContain(
+      `exec '${join(resourcesPath, 'bin', 'manta-ide')}' "$@"`
+    )
+  })
+
   it('writes an executable bare-manta shim that execs the bundled manta-ide launcher', async () => {
     const { userDataPath, resourcesPath } = await makeFixture()
 

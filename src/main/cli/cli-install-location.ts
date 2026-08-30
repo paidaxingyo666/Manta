@@ -4,7 +4,7 @@ import { basename, dirname, join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
 import type { CliInstallStatus } from '../../shared/cli-install-types'
 import {
-  hasAppImageRuntimeEnvironment,
+  hasAppImagePathEnvironment,
   resolveAppImageRuntimeIdentity
 } from '../appimage-runtime-identity'
 import {
@@ -106,7 +106,7 @@ export abstract class CliInstallLocation {
       this.platform === 'linux' &&
       this.isPackaged &&
       !hasExplicitAppImagePath &&
-      hasAppImageRuntimeEnvironment() &&
+      hasAppImagePathEnvironment() &&
       !runtimeAppImageIdentity
     this.appImagePath =
       this.platform === 'linux' && this.isPackaged

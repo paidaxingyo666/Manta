@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
-  hasAppImageRuntimeEnvironment,
+  hasAppImagePathEnvironment,
   resolveAppImageRuntimeIdentity
 } from './appimage-runtime-identity'
 
@@ -231,10 +231,10 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
   })
 })
 
-describe('hasAppImageRuntimeEnvironment', () => {
-  it('detects either AppImage runtime variable', () => {
-    expect(hasAppImageRuntimeEnvironment({ APPIMAGE: '/tmp/Manta.AppImage' })).toBe(true)
-    expect(hasAppImageRuntimeEnvironment({ APPDIR: '/tmp/.mount_Orca123' })).toBe(true)
-    expect(hasAppImageRuntimeEnvironment({ APPIMAGE: '', APPDIR: '' })).toBe(false)
+describe('hasAppImagePathEnvironment', () => {
+  it('requires the AppImage file path before treating the runtime as verifiable', () => {
+    expect(hasAppImagePathEnvironment({ APPIMAGE: '/tmp/Manta.AppImage' })).toBe(true)
+    expect(hasAppImagePathEnvironment({ APPDIR: '/tmp/.mount_Orca123' })).toBe(false)
+    expect(hasAppImagePathEnvironment({ APPIMAGE: '', APPDIR: '/tmp/.mount_Orca123' })).toBe(false)
   })
 })

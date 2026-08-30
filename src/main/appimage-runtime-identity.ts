@@ -143,10 +143,9 @@ function hasAppImagePackageEvidence(runtimeRoot: string, resourcesPath: string):
   }
 }
 
-export function hasAppImageRuntimeEnvironment(
-  environment: NodeJS.ProcessEnv = process.env
-): boolean {
-  return Boolean(environment.APPIMAGE || environment.APPDIR)
+/** Returns whether the process inherited an AppImage file path to validate. */
+export function hasAppImagePathEnvironment(environment: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(environment.APPIMAGE)
 }
 
 export function resolveAppImageRuntimeIdentity(

@@ -72,6 +72,7 @@ async function makeFixture(): Promise<{ homePath: string; resourcesPath: string 
 }
 
 afterEach(async () => {
+  vi.unstubAllEnvs()
   filePublicationFailures.link = 0
   filePublicationFailures.replaceBeforeRename = ''
   registrationLock.completed = null
@@ -81,6 +82,17 @@ afterEach(async () => {
 })
 
 describe('installLinuxBareMantaDispatcher', () => {
+  it('uses the mounted bundled launcher when only APPDIR is inherited', async () => {
+    const { homePath, resourcesPath } = await makeFixture()
+    vi.stubEnv('APPIMAGE', '')
+    vi.stubEnv('APPDIR', resourcesPath)
+
+    const result = await installLinuxBareMantaDispatcher({ resourcesPath, homePath })
+
+    expect(result.state).toBe('installed')
+    expect(result.target).toBe(join(resourcesPath, 'bin', 'manta-ide'))
+  })
+
   it('writes an executable bare-manta dispatcher that execs the bundled manta-ide launcher', async () => {
     const { homePath, resourcesPath } = await makeFixture()
 

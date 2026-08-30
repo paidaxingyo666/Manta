@@ -70,6 +70,38 @@ function installerOptions(fixture: Fixture) {
 }
 
 describe.skipIf(process.platform === 'win32')('AppImage CLI ownership', () => {
+  it('uses the mounted bundled launcher when only APPDIR is inherited', async () => {
+    const fixture = await makeFixture()
+    const resourcesPath = join(fixture.root, 'mounted', 'resources')
+    const launcherPath = join(resourcesPath, 'bin', 'manta-ide')
+    await mkdir(dirname(launcherPath), { recursive: true })
+    await writeFile(launcherPath, '#!/usr/bin/env bash\n', { mode: 0o755 })
+    vi.stubEnv('APPIMAGE', '')
+    vi.stubEnv('APPDIR', dirname(resourcesPath))
+
+    const installer = new CliInstaller({
+      platform: 'linux',
+      isPackaged: true,
+      userDataPath: join(fixture.root, 'user-data'),
+      resourcesPath,
+      execPath: join(dirname(resourcesPath), 'manta-ide'),
+      appPath: join(resourcesPath, 'app.asar'),
+      homePath: join(fixture.root, 'home'),
+      processPathEnv: fixture.commandDirectory,
+      commandPathOverride: fixture.commandPath
+    })
+
+    await expect(installer.getStatus()).resolves.toMatchObject({
+      state: 'not_installed',
+      launcherPath
+    })
+    await expect(installer.install()).resolves.toMatchObject({
+      state: 'installed',
+      launcherPath
+    })
+    await expect(readlink(fixture.commandPath)).resolves.toBe(launcherPath)
+  })
+
   it('ignores inherited APPIMAGE without the matching runtime identity', async () => {
     const fixture = await makeFixture()
     const resourcesPath = join(fixture.root, 'installed', 'resources')

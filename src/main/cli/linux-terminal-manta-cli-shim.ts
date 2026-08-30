@@ -9,7 +9,7 @@ import {
 } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import {
-  hasAppImageRuntimeEnvironment,
+  hasAppImagePathEnvironment,
   resolveAppImageRuntimeIdentity
 } from '../appimage-runtime-identity'
 import {
@@ -50,7 +50,7 @@ export function ensureLinuxTerminalMantaCliShimDir(
     options.resourcesPath === undefined ? process.resourcesPath : options.resourcesPath
   const hasExplicitAppImagePath = Object.hasOwn(options, 'appImagePath')
   const runtimeIdentity = resolveAppImageRuntimeIdentity({ resourcesPath })
-  if (!hasExplicitAppImagePath && hasAppImageRuntimeEnvironment() && !runtimeIdentity) {
+  if (!hasExplicitAppImagePath && hasAppImagePathEnvironment() && !runtimeIdentity) {
     return null
   }
   const appImagePath = hasExplicitAppImagePath
