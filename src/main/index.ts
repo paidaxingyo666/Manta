@@ -3425,12 +3425,12 @@ void app.whenReady().then(async () => {
   let desktopWindow: BrowserWindow | null = null
   if (process.platform === 'win32' && app.isPackaged && !serveOptions) {
     const desktopStartup = startWindowsDesktopBeforeShellPathReady({
+      bindServices: bindTerminalRuntimeStartupServices,
       openWindow: () => openMainWindow({ revealOnDidFinishLoad: true }),
       shellPathReady,
       startServices: startTerminalRuntimeStartupServices
     })
     desktopWindow = desktopStartup.window
-    bindTerminalRuntimeStartupServices(desktopStartup.services)
   } else {
     await shellPathReady
     bindTerminalRuntimeStartupServices(Promise.resolve(startTerminalRuntimeStartupServices()))
@@ -3446,7 +3446,8 @@ void app.whenReady().then(async () => {
     })
     // Why: headless PTYs must not start on the fallback provider, then get swept when an activated renderer registers desktop lifecycle handlers.
     await localPtyStartupReady
-    registerHeadlessPtyRuntime(
+    await localPtyProviderStartupReady
+    await registerHeadlessPtyRuntime(
       runtime,
       prepareCodexRuntimeHomeForLaunch,
       () => store!.getSettings(),
