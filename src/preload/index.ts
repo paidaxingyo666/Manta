@@ -2115,6 +2115,8 @@ const api = {
       query?: string
       siteId?: string
     }): Promise<unknown[]> => ipcRenderer.invoke('jira:listAssignableUsers', args),
+    searchUsers: (args?: { query?: string; siteId?: string }): Promise<unknown[]> =>
+      ipcRenderer.invoke('jira:searchUsers', args),
 
     listTransitions: (args: { key: string; siteId?: string }): Promise<unknown[]> =>
       ipcRenderer.invoke('jira:listTransitions', args),

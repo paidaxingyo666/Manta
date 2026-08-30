@@ -1091,6 +1091,7 @@ import {
   listProjects as listJiraProjects,
   listTransitions as listJiraTransitions,
   searchIssues as searchJiraIssues,
+  searchUsers as searchJiraUsers,
   updateIssue as updateJiraIssue
 } from '../jira/issues'
 import {
@@ -40839,6 +40840,10 @@ export class MantaRuntimeService {
     siteId?: string
   ): ReturnType<typeof listJiraAssignableUsers> {
     return listJiraAssignableUsers(key, query, siteId)
+  }
+
+  jiraSearchUsers(query?: string, siteId?: string): ReturnType<typeof searchJiraUsers> {
+    return searchJiraUsers(query, siteId)
   }
 
   jiraListTransitions(key: string, siteId?: string): ReturnType<typeof listJiraTransitions> {
