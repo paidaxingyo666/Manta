@@ -13,8 +13,8 @@ import {
 } from './appimage-extracted-root'
 import { pruneAppImageExtractedRoots } from './appimage-extraction-pruning'
 import { withAppImageRegistrationLock } from './appimage-registration-lock'
+import { getBundledLauncherPath } from './bundled-cli-launcher-path'
 import { quoteShell } from './cli-install-path-format'
-import { getBundledLauncherPath } from './cli-installer'
 
 // Why: marks a dispatcher this function wrote so repeat serve starts overwrite
 // our own file idempotently but never clobber a user's own ~/.local/bin/manta.

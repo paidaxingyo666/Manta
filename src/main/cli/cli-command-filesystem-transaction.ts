@@ -196,12 +196,12 @@ export function buildMacPrivilegedSymlinkTransaction(
   }
 
   const rollback =
-    `/bin/rm ${quoteShell(publishPath)}; /bin/rmdir ${quoteShell(publishDirectory)}; ` +
+    `/bin/rm -f ${quoteShell(publishPath)}; /bin/rmdir ${quoteShell(publishDirectory)} 2>/dev/null || :; ` +
     `if [ "$captured" -eq 1 ]; then ${restoreOrPreserve}; else /bin/rmdir ${quoteShell(transactionDirectory)}; fi; exit 73`
   return (
-    `${capture}/bin/mkdir ${quoteShell(publishDirectory)} || exit $?; ` +
-    `/bin/ln -s ${quoteShell(args.launcherPath)} ${quoteShell(publishPath)} || exit $?; ` +
-    `if /bin/ln -P ${quoteShell(publishPath)} ${quoteShell(commandDirectory)}; then ` +
+    `${capture}if /bin/mkdir ${quoteShell(publishDirectory)} && ` +
+    `/bin/ln -s ${quoteShell(args.launcherPath)} ${quoteShell(publishPath)} && ` +
+    `/bin/ln -P ${quoteShell(publishPath)} ${quoteShell(commandDirectory)}; then ` +
     `/bin/rm ${quoteShell(publishPath)}; /bin/rmdir ${quoteShell(publishDirectory)}; ` +
     `if [ "$captured" -eq 1 ]; then /bin/rm ${quoteShell(heldPath)}; fi; ` +
     `/bin/rmdir ${quoteShell(transactionDirectory)}; else ${rollback}; fi`

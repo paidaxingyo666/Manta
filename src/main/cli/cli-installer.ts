@@ -11,7 +11,6 @@ import {
   isAppImageInstalledLauncherOwnedBySibling,
   resolveAppImageNamespacePath
 } from './appimage-extracted-root'
-import { getBundledLauncherPath } from './bundled-cli-launcher-path'
 import { isAppImageStableLauncherReady } from './appimage-stable-launcher'
 import { CliPathRegistration } from './cli-path-registration'
 
@@ -213,5 +212,3 @@ export class CliInstaller extends CliPathRegistration {
       : operation()
   }
 }
-
-export { getBundledLauncherPath }

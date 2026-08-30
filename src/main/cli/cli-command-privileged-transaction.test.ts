@@ -163,5 +163,27 @@ describe.skipIf(process.platform !== 'darwin' || process.getuid?.() === 0)(
         (await readdir(fixture.protectedDirectory)).some((name) => name.startsWith('.manta-cli-'))
       ).toBe(false)
     })
+
+    it('restores the displaced command when publication setup fails', async () => {
+      const fixture = await createPrivilegedFixture()
+      const staleTarget = join(fixture.userDataPath, 'cli', 'bin', 'old', 'manta')
+      await symlink(staleTarget, fixture.commandPath)
+      const installer = new CliInstaller({
+        ...fixtureInstallerOptions(fixture),
+        privilegedRunner: async (command) => {
+          await chmod(fixture.protectedDirectory, 0o700)
+          const sabotaged = command.replace(/\/bin\/mkdir ('[^']*\/publish')/, '/usr/bin/false')
+          expect(sabotaged).not.toBe(command)
+          await executePrivilegedShell(sabotaged)
+        }
+      })
+
+      await chmod(fixture.protectedDirectory, 0o500)
+      await expect(installer.install()).rejects.toThrow()
+      await expect(readlink(fixture.commandPath)).resolves.toBe(staleTarget)
+      expect(
+        (await readdir(fixture.protectedDirectory)).some((name) => name.startsWith('.manta-cli-'))
+      ).toBe(false)
+    })
   }
 )
