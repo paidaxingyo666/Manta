@@ -1,3 +1,5 @@
+import { quoteShell } from './cli-install-path-format'
+
 const APPIMAGE_CLI_SCRIPT = [
   '(async()=>{',
   'try{',
@@ -12,9 +14,15 @@ const APPIMAGE_CLI_SCRIPT = [
   '})();'
 ].join('')
 
-export function buildAppImageCliWrapper(appImagePath: string): string {
-  // Why: AppImage mounts resources under a fresh FUSE path per launch, so the
-  // installed command must call the stable outer AppImage and resolve APPDIR.
+export function extractLegacyAppImageCliWrapperTarget(content: string): string | null {
+  const assignment = /^APPIMAGE=(.+)$/mu.exec(content)?.[1]
+  const appImagePath = assignment ? unquoteShell(assignment) : null
+  return appImagePath && content === buildLegacyAppImageCliWrapper(appImagePath)
+    ? appImagePath
+    : null
+}
+
+export function buildLegacyAppImageCliWrapper(appImagePath: string): string {
   return `#!/usr/bin/env bash
 set -euo pipefail
 APPIMAGE=${quoteShell(appImagePath)}
@@ -32,6 +40,10 @@ ELECTRON_RUN_AS_NODE=1 exec "$APPIMAGE" -e ${quoteShell(APPIMAGE_CLI_SCRIPT)} --
 `
 }
 
-export function quoteShell(value: string): string {
-  return `'${value.replaceAll("'", `'"'"'`)}'`
+function unquoteShell(value: string): string | null {
+  if (!value.startsWith("'") || !value.endsWith("'")) {
+    return null
+  }
+  const decoded = value.slice(1, -1).split(`'"'"'`).join("'")
+  return quoteShell(decoded) === value ? decoded : null
 }

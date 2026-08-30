@@ -1,13 +1,18 @@
-import { chmodSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { chmodSync, mkdirSync, readFileSync, readlinkSync, statSync, writeFileSync } from 'node:fs'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { runProcess } from '../../shared/child-process/run-process'
 
 vi.mock('electron', () => ({
   app: { isPackaged: true }
 }))
 
+import {
+  resolveAppImageLauncherEndpointPath,
+  resolveAppImageStableLauncherPath
+} from './appimage-stable-launcher'
 import { ensureLinuxTerminalMantaCliShimDir } from './linux-terminal-manta-cli-shim'
 
 const created: string[] = []
@@ -44,7 +49,7 @@ describe('ensureLinuxTerminalMantaCliShimDir', () => {
     expect(mode & 0o111).not.toBe(0)
   })
 
-  it('memoizes per userDataPath and re-asserts the exec bit for a stale shim', async () => {
+  it('reuses the shim path and re-asserts its exec bit', async () => {
     const { userDataPath, resourcesPath } = await makeFixture()
     const options = { userDataPath, resourcesPath, appImagePath: null }
 
@@ -53,10 +58,9 @@ describe('ensureLinuxTerminalMantaCliShimDir', () => {
     const shimPath = join(first!, 'manta')
     chmodSync(shimPath, 0o644)
 
-    // A distinct userData path is not memoized, so ensure runs again and heals
-    // the exec bit lost above only when it actually processes that path.
     const second = ensureLinuxTerminalMantaCliShimDir(options)
     expect(second).toBe(first)
+    expect(statSync(shimPath).mode & 0o111).not.toBe(0)
 
     const root = await mkdtemp(join(tmpdir(), 'manta-terminal-cli-shim-2-'))
     created.push(root)
@@ -76,19 +80,103 @@ describe('ensureLinuxTerminalMantaCliShimDir', () => {
     expect(statSync(healedPath).mode & 0o111).not.toBe(0)
   })
 
-  it('execs the stable AppImage (not the ephemeral mount) when running from an AppImage', async () => {
+  it('routes AppImage terminals through the stable cache without extracting', async () => {
     const { userDataPath, resourcesPath } = await makeFixture()
-    const appImagePath = join(userDataPath, 'Applications', 'Manta.AppImage')
+    const appImagePath = join(userDataPath, 'Manta.AppImage')
+    await mkdir(userDataPath, { recursive: true })
+    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
+    const cacheRootPath = join(userDataPath, 'cache')
+    const liveLauncherPath = join(resourcesPath, 'bin', 'manta-ide')
+    writeFileSync(liveLauncherPath, '#!/usr/bin/env bash\nprintf live', 'utf8')
+    chmodSync(liveLauncherPath, 0o755)
+    const extract = vi.fn()
 
     const shimDir = ensureLinuxTerminalMantaCliShimDir({
       userDataPath,
       resourcesPath,
-      appImagePath
+      appImagePath,
+      appImageCacheRootPath: cacheRootPath,
+      appImageExtractRunner: extract
     })
 
-    const content = readFileSync(join(shimDir!, 'manta'), 'utf8')
-    expect(content).toContain(appImagePath)
+    const shimPath = join(shimDir!, 'manta')
+    const stableLauncherPath = resolveAppImageStableLauncherPath(cacheRootPath)
+    const content = readFileSync(shimPath, 'utf8')
+    expect(content).toContain(stableLauncherPath)
     expect(content).not.toContain(resourcesPath)
+    expect(content).not.toContain(appImagePath)
+    await expect(
+      runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+    ).resolves.toMatchObject({ code: 0, stdout: 'live' })
+    expect(extract).not.toHaveBeenCalled()
+  })
+
+  it('updates restored terminals to the current AppImage mount without rewriting the shim', async () => {
+    const { userDataPath, resourcesPath } = await makeFixture()
+    const appImagePath = join(userDataPath, 'Manta.AppImage')
+    await mkdir(userDataPath, { recursive: true })
+    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
+    const cacheRootPath = join(userDataPath, 'cache')
+    const firstLauncher = join(resourcesPath, 'bin', 'manta-ide')
+    writeFileSync(firstLauncher, '#!/usr/bin/env bash\nprintf first', 'utf8')
+    chmodSync(firstLauncher, 0o755)
+    const extract = vi.fn()
+    const options = {
+      userDataPath,
+      resourcesPath,
+      appImagePath,
+      appImageCacheRootPath: cacheRootPath,
+      appImageExtractRunner: extract
+    }
+    const shimDir = ensureLinuxTerminalMantaCliShimDir(options)
+    const shimPath = join(shimDir!, 'manta')
+    const originalShim = readFileSync(shimPath, 'utf8')
+
+    const nextResourcesPath = join(userDataPath, 'next-mount', 'resources')
+    const nextLauncher = join(nextResourcesPath, 'bin', 'manta-ide')
+    await mkdir(join(nextResourcesPath, 'bin'), { recursive: true })
+    await writeFile(nextLauncher, '#!/usr/bin/env bash\nprintf next', { mode: 0o755 })
+    await rm(firstLauncher)
+    expect(
+      ensureLinuxTerminalMantaCliShimDir({ ...options, resourcesPath: nextResourcesPath })
+    ).toBe(shimDir)
+
+    expect(readFileSync(shimPath, 'utf8')).toBe(originalShim)
+    expect(readlinkSync(resolveAppImageLauncherEndpointPath(cacheRootPath, 'live'))).toBe(
+      nextLauncher
+    )
+    await expect(
+      runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+    ).resolves.toMatchObject({ code: 0, stdout: 'next' })
+    expect(extract).not.toHaveBeenCalled()
+  })
+
+  it('waits briefly for a temporarily unavailable live endpoint', async () => {
+    const { userDataPath, resourcesPath } = await makeFixture()
+    const appImagePath = join(userDataPath, 'Manta.AppImage')
+    const cacheRootPath = join(userDataPath, 'cache')
+    await mkdir(userDataPath, { recursive: true })
+    await writeFile(appImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 })
+    const liveLauncher = join(resourcesPath, 'bin', 'manta-ide')
+    chmodSync(liveLauncher, 0o755)
+    const extract = vi.fn()
+
+    const shimDir = ensureLinuxTerminalMantaCliShimDir({
+      userDataPath,
+      resourcesPath,
+      appImagePath,
+      appImageCacheRootPath: cacheRootPath,
+      appImageExtractRunner: extract
+    })
+    const shimPath = join(shimDir!, 'manta')
+    await rm(liveLauncher)
+    const invocation = runProcess({ program: shimPath, args: [], timeoutMs: 3_000 })
+    setTimeout(() => {
+      writeFileSync(liveLauncher, '#!/usr/bin/env bash\nprintf recovered', { mode: 0o755 })
+    }, 100)
+
+    await expect(invocation).resolves.toMatchObject({ code: 0, stdout: 'recovered' })
+    expect(extract).not.toHaveBeenCalled()
   })
 
   it('returns null (and does not memoize) when the bundled launcher is missing', async () => {

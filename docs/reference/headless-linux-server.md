@@ -56,7 +56,9 @@ of the libraries installed.
 On Ubuntu 20.04 and 22.04, install `libfuse2` to execute the AppImage through
 FUSE. On Ubuntu 24.04 and Debian 13 the package is `libfuse2t64`, though the plain
 `libfuse2` name also resolves there because nothing else provides it. FUSE is
-optional: without it, use the AppImage's supported extraction path:
+optional: without it, use the AppImage's supported extraction path. CLI
+registration does this once automatically, so registered commands do not need
+FUSE:
 
 ```bash
 cd /opt/manta
