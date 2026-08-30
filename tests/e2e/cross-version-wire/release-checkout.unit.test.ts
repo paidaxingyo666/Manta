@@ -24,6 +24,16 @@ import {
   type CheckoutStagingContext,
   type ReleaseCheckout
 } from './release-checkout'
+
+/**
+ * Any tag that resolves is enough here — these cases exercise caching, locking
+ * and staging, not the contents. Upstream names one of its own releases; this
+ * fork's remote has only its own tags, so a hard-coded upstream ref fails on CI
+ * while passing on a clone that still carries them locally.
+ *
+ * Named `RELEASE_REF` so the workflow's baseline fetch picks it up with the rest.
+ */
+const FIXTURE_RELEASE_REF = 'v1.4.189-rc.10'
 const temporaryRoots: string[] = []
 
 const COMPRESSED_LOCK_OPTIONS: CheckoutLockOptions = {
@@ -264,9 +274,9 @@ describe('release checkout materialization', () => {
   it('single-flights concurrent consumers of one release identity', async () => {
     const cacheRoot = temporaryCacheRoot()
     const checkouts = await Promise.all([
-      materializeReleaseCheckout('v1.4.190', { cacheRoot }),
-      materializeReleaseCheckout('v1.4.190', { cacheRoot }),
-      materializeReleaseCheckout('v1.4.190', { cacheRoot })
+      materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot }),
+      materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot }),
+      materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot })
     ])
 
     expect(new Set(checkouts.map(({ root }) => root))).toHaveLength(1)
@@ -275,7 +285,7 @@ describe('release checkout materialization', () => {
 
   it('loads a baseline module whose source imports another checkout-root file', async () => {
     const cacheRoot = temporaryCacheRoot()
-    const checkout = await materializeReleaseCheckout('v1.4.190', { cacheRoot })
+    const checkout = await materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot })
     const protocol = await importReleaseCheckoutModule(checkout, '/src/shared/protocol-version.ts')
 
     expect(protocol.REMOTE_SERVER_UPDATE_CAPABILITY).toBe('updater.remote-control.v1')
@@ -311,7 +321,7 @@ describe('release checkout materialization', () => {
   it('causally single-flights a rival process before publishing an in-use checkout', async () => {
     const cacheRoot = temporaryCacheRoot()
     const scratch = temporaryCacheRoot()
-    const published = await materializeReleaseCheckout('v1.4.190', { cacheRoot })
+    const published = await materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot })
 
     await expect(runContentionPhase(published, scratch, 'locked', false)).resolves.toBe(true)
     // In the same causally acknowledged interleaving, a no-lock materializer
@@ -333,7 +343,7 @@ describe('release checkout materialization', () => {
     const stagingReady = new Promise<CheckoutStagingContext>((resolveStaging) => {
       acknowledgeStaging = resolveStaging
     })
-    const publisher = materializeReleaseCheckout('v1.4.190', {
+    const publisher = materializeReleaseCheckout(FIXTURE_RELEASE_REF, {
       cacheRoot,
       testHooks: {
         lockOptions: COMPRESSED_LOCK_OPTIONS,
@@ -347,7 +357,7 @@ describe('release checkout materialization', () => {
     const active = await stagingReady
     const rival = startMaterializerChild(scratch, 'heartbeat-rival', {
       cacheRoot,
-      ref: 'v1.4.190',
+      ref: FIXTURE_RELEASE_REF,
       resultPath,
       attemptMarker,
       acquiredMarker,
@@ -392,7 +402,7 @@ describe('release checkout materialization', () => {
     const stagingMarker = join(scratch, 'crashed-staging')
     const crashed = startMaterializerChild(scratch, 'crashing-publisher', {
       cacheRoot,
-      ref: 'v1.4.190',
+      ref: FIXTURE_RELEASE_REF,
       stagingMarker,
       hangAfterStaging: true,
       lockOptions: COMPRESSED_LOCK_OPTIONS
@@ -414,7 +424,7 @@ describe('release checkout materialization', () => {
 
       const unrelated = join(crashedContext.staging, '..', '.staging-unrelated-live-owner')
       mkdirSync(unrelated)
-      const recovered = await materializeReleaseCheckout('v1.4.190', {
+      const recovered = await materializeReleaseCheckout(FIXTURE_RELEASE_REF, {
         cacheRoot,
         testHooks: {
           lockOptions: COMPRESSED_LOCK_OPTIONS,
@@ -435,14 +445,14 @@ describe('release checkout materialization', () => {
   it('never stamps an incomplete tree produced through the injectable test seam', async () => {
     const cacheRoot = temporaryCacheRoot()
     await expect(
-      materializeReleaseCheckout('v1.4.190', {
+      materializeReleaseCheckout(FIXTURE_RELEASE_REF, {
         cacheRoot,
         testHooks: { populateStaging: async () => undefined }
       })
     ).rejects.toThrow(/missing the terminal stream protocol/)
 
     let populated = 0
-    const recovered = await materializeReleaseCheckout('v1.4.190', {
+    const recovered = await materializeReleaseCheckout(FIXTURE_RELEASE_REF, {
       cacheRoot,
       testHooks: {
         populateStaging: async (context) => {
