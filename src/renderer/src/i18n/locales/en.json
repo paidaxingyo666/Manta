@@ -199,8 +199,7 @@
     "help": "Help",
     "paste": "Paste",
     "copy": "Copy",
-    "selectAll": "Select All",
-    "exploreManta": "Explore Manta"
+    "selectAll": "Select All"
   },
   "tray": {
     "openManta": "Open Manta",
@@ -209,8 +208,7 @@
       "body": "Manta is still running in the system tray"
     },
     "activityWaiting": "Manta - activity waiting",
-    "activityWaitingSuffix": "activity waiting",
-    "openManta": "Open Manta"
+    "activityWaitingSuffix": "activity waiting"
   },
   "worktreeJumpPalette": {
     "matchLabel": {
@@ -528,24 +526,6 @@
         "mantaRelayHosts": {
           "forgotten": "Machine removed from relay",
           "forgetFailed": "Could not remove that machine"
-        },
-        "manta": {
-          "profiles": {
-            "612f7f6861": "Failed to create profile",
-            "319d7cf39b": "Cloud profile created",
-            "d6e764e7db": "Reconnect this profile",
-            "f0c9e11a6d": "Failed to create cloud profile",
-            "8b8fa73174": "Manta Cloud sign-in is not configured",
-            "33290e88ed": "Failed to connect profile",
-            "9fcb07a796": "Profile connected",
-            "2f6c78a039": "Failed to refresh profile auth",
-            "a37b5e6d37": "Signed out of profile",
-            "83600521e7": "Failed to sign out",
-            "76deec8f58": "Failed to switch organization",
-            "7d4bc516ee": "Failed to switch profile",
-            "f518e89aa5": "Project already exists in that profile",
-            "f03ae7f27b": "Failed to transfer project"
-          }
         }
       }
     },
@@ -1682,9 +1662,7 @@
         "addSshHostHint": "Use an existing machine over SSH",
         "addRemoteMantaServer": "Add Remote Manta Server",
         "addRemoteMantaServerHint": "Pair another Manta runtime",
-        "hostConnectionFailed": "Connection failed",
-        "addRemoteMantaServer": "Add Remote Manta Server",
-        "addRemoteMantaServerHint": "Pair another Manta runtime"
+        "hostConnectionFailed": "Connection failed"
       },
       "NewWorkspaceComposerModal": {
         "createWorktree": "Create worktree",
@@ -3130,8 +3108,7 @@
             "copiedLink": "Copied link",
             "copyLinkFailed": "Failed to copy link",
             "downloadOpenWithDefaultApp": "Download & open with default app",
-            "downloadOpenFailed": "Failed to download '{{value0}}'.",
-            "mantaBrowser": "Manta Browser"
+            "downloadOpenFailed": "Failed to download '{{value0}}'."
           },
           "TerminalSessionStateSaveFailureDialog": {
             "6bee0c8f17": "Open Disk Space Analyzer",
@@ -6091,8 +6068,7 @@
           "sshConfigPickerAddAllEmpty": "Add all to Manta",
           "identityFileFromConfigHint": "Left empty on purpose: Manta uses every key ~/.ssh/config resolves for {{value0}}. Type a path to use just that key.",
           "sshConfigPickerRetry": "Try again",
-          "sshConfigPickerResolving": "Reading…",
-          "sshConfigPickerInManta": "In Manta"
+          "sshConfigPickerResolving": "Reading…"
         },
         "ForgetSshWorkspaceDialog": {
           "reconnectFailed": "Reconnection failed",
@@ -6226,21 +6202,6 @@
           "projectOnly": "Added in this project only.",
           "useGlobalFor": "Use global for {{value0}}",
           "useGlobal": "Use global"
-        },
-        "MantaYamlTrustDialog": {
-          "f3e2b868fb": "Run hooks",
-          "43b7bec4cd": "Don't run",
-          "c494b3ccb1": "in",
-          "79afc6772b": "manta.yaml",
-          "531689199b": "Always trust",
-          "bf800b7e04": ". Only run if you trust",
-          "831f2cd9f0": "runs on your machine",
-          "aa3ffb33fb": "This repository's",
-          "c55beddbf8": "changed since you last approved. Re-review before it runs",
-          "95bf974a1a": "{{value0}} script",
-          "9e52effffd": "New {{value0}} script",
-          "e4a51dc4b3": "Run {{value0}} from {{value1}}?",
-          "02b0ede5ad": "{{value0}}'s {{value1}} changed — run the new version?"
         }
       },
       "shared": {
@@ -7251,7 +7212,11 @@
         "HiddenExperimentalGroup": {
           "7c4e18d2f6": "Arms the bold-glitch capture gestures on this machine: {{samplingShortcut}} starts a sampling burst; {{captureShortcut}} captures pane evidence to disk.",
           "b09f24a51d": "Terminal render diagnostics",
-          "f2c81d904a": "Hidden experimental settings"
+          "f2c81d904a": "Hidden experimental settings",
+          "d0f914a528": "Placeholder toggle",
+          "1014ddbfaf": "Does nothing today. Reserved as the first slot for hidden experimental options.",
+          "232cf83de8": "Unlisted toggles for internal testing. Nothing here is supported.",
+          "3e9e827ca5": "Hidden experimental"
         },
         "InputPane": {
           "db15068196": "Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.",
@@ -8041,8 +8006,7 @@
           "troubleshootStepRegenerate": "Generate a new access link and use only the newest link here.",
           "troubleshootTunnel": "Using an SSH local forward? Return to Connect to a host, paste the loopback link, then enable “I am using an SSH tunnel” under Advanced.",
           "cloudVmWorkflow": "Cloud VM",
-          "cloudVmWorkflowHelp": "Manage recipe-created cloud machines",
-          "mantaVersion": "Manta v{{value0}}"
+          "cloudVmWorkflowHelp": "Manage recipe-created cloud machines"
         },
         "RuntimePairingGeneratedUrlRows": {
           "0495f68959": "Copy {{value0}}"
@@ -10755,13 +10719,6 @@
           "mantaCloudSignOut": "Sign out",
           "mantaCloudConnect": "Connect profile",
           "mantaCloudRefresh": "Refresh status",
-          "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build.",
-          "mantaCloud": "Manta Cloud",
-          "mantaCloudDescription": "Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID are set.",
-          "mantaCloudStatus": "Status",
-          "mantaCloudSignOut": "Sign out",
-          "mantaCloudConnect": "Connect profile",
-          "mantaCloudRefresh": "Refresh status",
           "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build."
         },
         "EphemeralVmRecipeRow": {
@@ -11029,8 +10986,6 @@
           "titleSystem": "Hold Shift to open in your web browser",
           "titleManta": "Hold Shift to open in Manta",
           "descriptionSystem": "Links open in Manta, so {{chord}}+click sends one to your system browser instead.",
-          "descriptionManta": "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead.",
-          "titleManta": "Hold Shift to open in Manta",
           "descriptionManta": "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead."
         },
         "BrowserTerminalLinkActionsSetting": {
@@ -11649,28 +11604,6 @@
           "thisMachine": "This machine",
           "onlineBadge": "Online"
         },
-        "mantaAccount": {
-          "connected": "Connected",
-          "reconnectRequired": "Your session expired. Sign in again to use cloud features.",
-          "unavailable": "Manta sign-in is unavailable in this build.",
-          "signedOut": "Sign in to extend Manta with cloud features, including Artifacts and Manta Relay.",
-          "checking": "Checking account status…",
-          "account": "Manta account",
-          "signOut": "Sign out",
-          "signingIn": "Signing in…",
-          "signInAgain": "Sign in again",
-          "signIn": "Sign in to Manta",
-          "title": "Manta Account",
-          "description": "Share work instantly and reach your desktop from Manta Mobile wherever you are.",
-          "searchDescription": "Sign in or out of the account used by Artifacts and Manta Relay.",
-          "benefitsTitle": "Included with your account",
-          "artifactsTitle": "Artifact sharing",
-          "artifactsDescription": "Publish HTML and Markdown files, then manage every shared link from Manta.",
-          "relayTitle": "Manta Relay",
-          "relayDescription": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
-          "skillsTitle": "Skill sharing",
-          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use."
-        },
         "NativeChatSupportedAgents": {
           "label": "Supported agents:"
         }
@@ -12197,7 +12130,8 @@
             "a4e93c21d7": "Current branch: {{value0}}",
             "c7d4e2f801": "Change base ref: {{value0}}",
             "f3a1b8c204": "upstream",
-            "createPrIntentGenerateDetailsFailed": "Could not generate review details. Retry Create PR."
+            "createPrIntentGenerateDetailsFailed": "Could not generate review details. Retry Create PR.",
+            "createPrIntentEmptyGeneratedBody": "Generated review details did not include a description. Retry Create PR."
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
@@ -16145,9 +16079,6 @@
                 "description": "Or use your system browser by default.",
                 "manta": {
                   "button": "Keep Manta"
-                },
-                "manta": {
-                  "button": "Keep Manta"
                 }
               },
               "title": "Open terminal links in Manta's browser?",
@@ -16170,10 +16101,6 @@
               },
               "system": {
                 "button": "Use system browser"
-              },
-              "manta": {
-                "note": "Manta can use imported cookies for logged-in sites.",
-                "button": "Open in Manta"
               }
             }
           }
@@ -16583,18 +16510,6 @@
         "remoteLabel": "Browsers on {{value0}}",
         "clientNoteLocalStorage": "Imports read this device’s browsers. Cookies are stored locally.",
         "remoteNoteRemoteStorage": "Imports read browsers on {{value0}}. Cookies are stored on that machine, and a permission prompt may appear on its screen."
-      },
-      "manta": {
-        "profiles": {
-          "signout": {
-            "confirm": {
-              "title": "Sign out of Manta?",
-              "description": "Artifacts and Manta Relay will be unavailable until you sign in again. Your local projects and worktrees won't be affected.",
-              "cancel": "Cancel",
-              "action": "Sign out"
-            }
-          }
-        }
       },
       "ComposerParentWorktreePicker": {
         "label": "Parent worktree",
