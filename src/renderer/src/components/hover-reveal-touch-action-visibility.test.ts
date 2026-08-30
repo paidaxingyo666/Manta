@@ -13,7 +13,7 @@ const HOVER_REVEAL_FILES = [
   resolve(__dirname, 'browser-pane/annotate/browser-page-annotation-tray.tsx'),
   resolve(__dirname, 'dashboard/DashboardAgentRow.tsx'),
   resolve(__dirname, 'dashboard/DashboardAgentRowTrailingControls.tsx'),
-  resolve(__dirname, 'editor/CombinedDiffViewer.tsx'),
+  resolve(__dirname, 'editor/combined-diff/CombinedDiffViewer.tsx'),
   resolve(__dirname, 'editor/DiffSectionHeader.tsx'),
   resolve(__dirname, 'github-project/ProjectPicker.tsx'),
   resolve(__dirname, 'github-project/ProjectRow.tsx'),

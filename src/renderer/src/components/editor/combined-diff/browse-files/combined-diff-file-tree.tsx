@@ -10,26 +10,21 @@ import {
   compactSourceControlTree,
   flattenSourceControlTree
 } from '@/components/right-sidebar/source-control-tree'
-import type { GitBranchChangeEntry } from '../../../../shared/git-diff-compare-types'
-import type { GitStagingArea, GitStatusEntry } from '../../../../shared/git-status-types'
+import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
+import type { GitStagingArea, GitStatusEntry } from '../../../../../../shared/git-status-types'
 import {
   getEntryExtension,
-  getFilteredCombinedDiffFileTreeEntries,
+  getFilteredCombinedDiffFileTreeEntries
+} from './combined-diff-file-tree-filter'
+import {
   isGitStatusEntry,
   type CombinedDiffBranchTreeArea,
   type CombinedDiffFileTreeEntry,
   type CombinedDiffFileTreeMode
-} from './combined-diff-file-tree-model'
+} from '../resolve-changes/combined-diff-section-identity'
 import { CombinedDiffFileTreeRow, type CombinedDiffTreeNode } from './combined-diff-file-tree-row'
 import { useCombinedDiffFileTreeResize } from './use-combined-diff-file-tree-resize'
 import { translate } from '@/i18n/i18n'
-
-export {
-  createCombinedDiffSectionIndexMap,
-  getCombinedDiffFileTreeNavigationIndex,
-  getCombinedDiffFileTreeSectionKey,
-  handleCombinedDiffFileTreeNavigation
-} from './combined-diff-file-tree-model'
 
 const UNCOMMITTED_AREA_ORDER: readonly GitStagingArea[] = ['unstaged', 'staged', 'untracked']
 const UNCOMMITTED_AREA_LABELS: Record<GitStagingArea, string> = {

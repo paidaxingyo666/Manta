@@ -1,16 +1,18 @@
 import { basename } from '@/lib/path'
-import type { GitBranchChangeEntry } from '../../../../shared/git-diff-compare-types'
-import type { GitStatusEntry } from '../../../../shared/git-status-types'
-import { isClipboardTextByteLengthOverLimit } from '../../../../shared/clipboard-text'
+import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
+import { isClipboardTextByteLengthOverLimit } from '../../../../../../shared/clipboard-text'
 import {
   buildSourceControlTree,
   compactSourceControlTree,
   flattenSourceControlTree
 } from '@/components/right-sidebar/source-control-tree'
-
-export type CombinedDiffFileTreeMode = 'all' | 'uncommitted' | 'branch' | 'commit'
-export type CombinedDiffFileTreeEntry = GitStatusEntry | GitBranchChangeEntry
-export type CombinedDiffBranchTreeArea = 'combined-branch' | 'combined-commit'
+import {
+  getCombinedDiffFileTreeSectionKey,
+  isGitStatusEntry,
+  type CombinedDiffBranchTreeArea,
+  type CombinedDiffFileTreeEntry,
+  type CombinedDiffFileTreeMode
+} from '../resolve-changes/combined-diff-section-identity'
 
 export const NO_EXTENSION_KEY = '(no extension)'
 export const COMBINED_DIFF_FILE_TREE_QUERY_MAX_BYTES = 2 * 1024
@@ -20,68 +22,6 @@ export function isCombinedDiffFileTreeQueryTooLarge(
   maxBytes = COMBINED_DIFF_FILE_TREE_QUERY_MAX_BYTES
 ): boolean {
   return isClipboardTextByteLengthOverLimit(query, maxBytes)
-}
-
-export function getCombinedDiffFileTreeSectionKey(
-  mode: CombinedDiffFileTreeMode,
-  entry: CombinedDiffFileTreeEntry
-): string {
-  if ((mode === 'all' || mode === 'uncommitted') && 'area' in entry) {
-    return `${entry.area}:${entry.path}`
-  }
-  return `${mode === 'commit' ? 'combined-commit' : 'combined-branch'}:${entry.path}`
-}
-
-export function createCombinedDiffSectionIndexMap(
-  sections: readonly { key: string }[]
-): Map<string, number> {
-  return new Map(sections.map((section, index) => [section.key, index]))
-}
-
-export function getCombinedDiffFileTreeNavigationIndex({
-  mode,
-  entry,
-  sectionIndexByKey
-}: {
-  mode: CombinedDiffFileTreeMode
-  entry: CombinedDiffFileTreeEntry
-  sectionIndexByKey: ReadonlyMap<string, number>
-}): number | null {
-  return sectionIndexByKey.get(getCombinedDiffFileTreeSectionKey(mode, entry)) ?? null
-}
-
-export function handleCombinedDiffFileTreeNavigation({
-  mode,
-  entry,
-  sections,
-  sectionIndexByKey,
-  toggleSection,
-  loadSection,
-  scrollToIndex
-}: {
-  mode: CombinedDiffFileTreeMode
-  entry: CombinedDiffFileTreeEntry
-  sections: readonly { collapsed: boolean }[]
-  sectionIndexByKey: ReadonlyMap<string, number>
-  toggleSection: (index: number) => void
-  loadSection?: (index: number) => void
-  scrollToIndex: (index: number) => void
-}): number | null {
-  const index = getCombinedDiffFileTreeNavigationIndex({ mode, entry, sectionIndexByKey })
-  if (index === null || !sections[index]) {
-    return null
-  }
-
-  if (sections[index].collapsed) {
-    toggleSection(index)
-  }
-  loadSection?.(index)
-  scrollToIndex(index)
-  return index
-}
-
-export function isGitStatusEntry(entry: CombinedDiffFileTreeEntry): entry is GitStatusEntry {
-  return 'area' in entry
 }
 
 export function getEntryExtension(entry: CombinedDiffFileTreeEntry): string {

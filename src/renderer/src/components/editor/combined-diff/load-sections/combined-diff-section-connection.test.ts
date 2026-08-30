@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import type { FolderWorkspace } from '../../../../shared/folder-workspace-types'
-import type { ProjectGroup } from '../../../../shared/project-group-types'
-import type { Repo } from '../../../../shared/repo-types'
+import type { FolderWorkspace } from '../../../../../../shared/folder-workspace-types'
+import type { ProjectGroup } from '../../../../../../shared/project-group-types'
+import type { Repo } from '../../../../../../shared/repo-types'
 import { useAppStore } from '@/store'
-import { folderWorkspaceKey } from '../../../../shared/workspace-scope'
+import { folderWorkspaceKey } from '../../../../../../shared/workspace-scope'
 import { getCombinedDiffSectionConnectionId } from './combined-diff-section-connection'
 
 const initialState = useAppStore.getInitialState()

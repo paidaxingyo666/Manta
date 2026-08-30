@@ -1,7 +1,7 @@
 import type { OpenFile } from '@/store/slices/editor'
-import type { GitBranchChangeEntry } from '../../../../shared/git-diff-compare-types'
-import type { GitStatusEntry } from '../../../../shared/git-status-types'
-import type { CombinedDiffFileTreeMode } from './combined-diff-file-tree-model'
+import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
+import type { GitStatusEntry } from '../../../../../../shared/git-status-types'
+import type { CombinedDiffFileTreeMode } from './combined-diff-section-identity'
 
 /**
  * Fallback filtering for combined-diff tabs that were opened before the
