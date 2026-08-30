@@ -21,7 +21,7 @@ describe('native chat Stop layering', () => {
   it('publishes working state from both structured and bridge chat roots', () => {
     for (const path of [
       'src/renderer/src/components/native-chat/NativeChatStructuredSession.tsx',
-      'src/renderer/src/components/native-chat/NativeChatView.tsx'
+      'src/renderer/src/components/native-chat/NativeChatResolvedView.tsx'
     ]) {
       expect(source(path)).toContain('data-native-chat-working=')
     }
