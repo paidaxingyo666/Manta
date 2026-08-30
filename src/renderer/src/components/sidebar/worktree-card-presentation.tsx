@@ -57,8 +57,10 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     handleEditIssue,
     handleEditComment,
     handleOpenGitHubIssueInManta,
+    handleOpenIssueInBrowser,
     handleOpenLinearIssueInManta,
     handleOpenReviewInManta,
+    handleOpenReviewInBrowser,
     handleOpenAutomation,
     handleOpenAutomationRun,
     hasExplicitLinkedReview,
@@ -167,12 +169,18 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
                 ? handleOpenGitHubIssueInManta
                 : undefined
             }
+            onOpenIssueInBrowser={
+              metaIssue && 'url' in metaIssue && metaIssue.url
+                ? handleOpenIssueInBrowser
+                : undefined
+            }
             onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
             onOpenReviewInManta={
               metaReview?.url && metaReview.provider === 'github'
                 ? handleOpenReviewInManta
                 : undefined
             }
+            onOpenReviewInBrowser={metaReview?.url ? handleOpenReviewInBrowser : undefined}
             onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
             onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}
             // Why: compact mode hides the metadata badge row, so title hover carries the explicit-link affordance.
@@ -231,10 +239,14 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
         onOpenGitHubIssueInManta={
           metaIssue && 'url' in metaIssue && metaIssue.url ? handleOpenGitHubIssueInManta : undefined
         }
+        onOpenIssueInBrowser={
+          metaIssue && 'url' in metaIssue && metaIssue.url ? handleOpenIssueInBrowser : undefined
+        }
         onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
         onOpenReviewInManta={
           metaReview?.url && metaReview.provider === 'github' ? handleOpenReviewInManta : undefined
         }
+        onOpenReviewInBrowser={metaReview?.url ? handleOpenReviewInBrowser : undefined}
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
         onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}
         // Why: branch lookup can surface a review without persisted metadata; only unlink when explicitly linked.

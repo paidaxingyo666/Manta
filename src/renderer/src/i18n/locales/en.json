@@ -5415,6 +5415,7 @@
           "eace1d2cf6": "neutral",
           "dbe2d18972": "More {{value0}} actions",
           "ae76907ca6": "Unlink {{value0}}",
+          "openInMantaBrowser": "Open in Manta browser",
           "ad25c3ff05": "View on {{value0}}",
           "2c67730e07": "Open in Manta",
           "e42941631a": "View on Linear",
