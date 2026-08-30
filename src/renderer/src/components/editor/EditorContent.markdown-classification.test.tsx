@@ -10,11 +10,16 @@ const classifiers = vi.hoisted(() => ({
 }))
 
 vi.mock('./markdown-rich-mode', () => ({
-  getMarkdownRichModeUnsupportedMessage: classifiers.getUnsupportedMessage
-}))
-
-vi.mock('./markdown-rich-size-limit', () => ({
-  exceedsMarkdownRichModeSizeLimit: classifiers.exceedsSizeLimit
+  getMarkdownRichModeEligibility: ({
+    content,
+    sizeOverridden
+  }: {
+    content: string
+    sizeOverridden: boolean
+  }) => ({
+    exceedsSizeLimit: !sizeOverridden && classifiers.exceedsSizeLimit(content),
+    unsupportedMessage: classifiers.getUnsupportedMessage(content)
+  })
 }))
 
 vi.mock('./editor-lazy-views', () => {
