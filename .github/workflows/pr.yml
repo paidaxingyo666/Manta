@@ -594,7 +594,7 @@ jobs:
       #
       # The ref is read out of the test rather than repeated here, so a baseline
       # bump stays a one-line change in the file that owns it.
-      - name: Fetch the upstream baseline release tag
+      - name: Fetch the upstream baseline refs
         run: |
           set -euo pipefail
           # Every pinned baseline in the lane, read out of the tests rather than
@@ -616,6 +616,18 @@ jobs:
             git rev-parse -q --verify "$ref^{commit}" >/dev/null
           done
 
+          commit_refs="$(sed -n "s/^const .*_REF = '\([0-9a-f]\{40\}\)'.*/\1/p" \
+            tests/e2e/cross-version-wire/reported-lossy-initial-snapshot.unit.test.ts | sort -u)"
+          for ref in $commit_refs; do
+            if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
+              echo "$ref already present"
+              continue
+            fi
+            git remote add baseline https://github.com/stablyai/orca.git 2>/dev/null || true
+            git fetch --no-tags --depth=1 baseline "$ref:refs/manta-cross-version/$ref"
+            git rev-parse -q --verify "$ref^{commit}" >/dev/null
+          done
+
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: node
@@ -628,6 +640,7 @@ jobs:
           tests/e2e/cross-version-wire/release-checkout.unit.test.ts
           tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts
           tests/e2e/cross-version-wire/cross-version-terminal-wire.unit.test.ts
+          tests/e2e/cross-version-wire/reported-lossy-initial-snapshot.unit.test.ts
           tests/e2e/cross-version-wire/cross-version-agent-session-wire.unit.test.ts
 
   managed_hook_node18:
