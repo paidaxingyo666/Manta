@@ -70,16 +70,16 @@ describe('computeWorktreePath WSL layout', () => {
     getWslHomeMock.mockReturnValue('\\\\wsl.localhost\\Ubuntu\\home\\jin')
     const repo = {
       path: '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\repo',
-      worktreeBasePath: '/home/jin/src/.orca-worktrees'
+      worktreeBasePath: '/home/jin/src/.manta-worktrees'
     }
     const settings = { nestWorkspaces: false, workspaceDir: 'C:\\workspaces' }
 
     expect(computeWorktreePath('feature', repo.path, getWorktreePathSettings(repo, settings))).toBe(
-      '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\.orca-worktrees\\feature'
+      '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\.manta-worktrees\\feature'
     )
     // Why repeat: cached follow-up calls must resolve identically to the first.
     expect(computeWorktreePath('feature', repo.path, getWorktreePathSettings(repo, settings))).toBe(
-      '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\.orca-worktrees\\feature'
+      '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\.manta-worktrees\\feature'
     )
     expect(getWslHomeMock).not.toHaveBeenCalled()
   })
@@ -197,7 +197,7 @@ describe('computeWorktreePath WSL layout', () => {
     getWslHomeAsyncMock.mockResolvedValue('\\\\wsl.localhost\\Ubuntu\\home\\jin')
     const repo = {
       path: '\\\\wsl.localhost\\Ubuntu\\home\\jin\\src\\repo',
-      worktreeBasePath: '/home/jin/src/.orca-worktrees'
+      worktreeBasePath: '/home/jin/src/.manta-worktrees'
     }
     const pathSettings = getWorktreePathSettings(repo, {
       nestWorkspaces: false,
@@ -278,7 +278,7 @@ describe('computeWorktreePath WSL layout', () => {
           workspaceDir: 'C:\\workspaces',
           wslMirrorDistro: 'Ubuntu'
         })
-      ).toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\orca\\workspaces\\feature')
+      ).toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\manta\\workspaces\\feature')
     })
 
     it('keeps Windows placement when the project has no WSL runtime', () => {
@@ -342,7 +342,7 @@ describe('computeWorktreePath WSL layout', () => {
           workspaceDir: 'C:\\workspaces',
           wslMirrorDistro: 'Ubuntu'
         })
-      ).resolves.toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\orca\\workspaces\\feature')
+      ).resolves.toBe('\\\\wsl.localhost\\Ubuntu\\home\\jin\\manta\\workspaces\\feature')
     })
   })
 })

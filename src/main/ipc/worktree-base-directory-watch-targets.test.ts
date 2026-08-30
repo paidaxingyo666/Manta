@@ -219,14 +219,14 @@ describe('worktree base directory watch target resolution', () => {
   // stays on the Windows drive, so the UNC root skip must not take git-common with it.
   it('keeps the Windows-side git-common watcher when only the workspace root is a WSL UNC path', async () => {
     const repo = makeRepo(0, {
-      path: 'C:\\Users\\alice\\orca',
+      path: 'C:\\Users\\alice\\manta',
       worktreeBasePath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\workspaces'
     })
 
     const targets = await buildWorktreeBaseDirectoryWatchTargets(makeStore([repo]) as never)
 
     expect([...targets.values()].map((target) => target.kind)).toEqual(['git-common'])
-    expect([...targets.values()][0]?.path).toBe('C:/Users/alice/orca/.git')
+    expect([...targets.values()][0]?.path).toBe('C:/Users/alice/manta/.git')
   })
 
   it('does not publish ordered partial targets when a repo resolver rejects unexpectedly', async () => {
