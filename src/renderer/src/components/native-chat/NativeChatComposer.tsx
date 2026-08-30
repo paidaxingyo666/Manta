@@ -72,8 +72,7 @@ export const NativeChatComposer = forwardRef<NativeChatComposerHandle, NativeCha
       onSlashCommand,
       onSwitchToTerminal,
       readTerminalScreen,
-      launchDraft,
-      launchDraftResolved = false,
+      launchSeed,
       structuredTransport
     },
     ref
@@ -88,8 +87,9 @@ export const NativeChatComposer = forwardRef<NativeChatComposerHandle, NativeCha
     useNativeChatLaunchDraftAdoption({
       terminalTabId,
       agent,
-      launchDraft,
-      launchDraftResolved,
+      launchDraft: launchSeed?.launchDraft,
+      launchDraftResolved: launchSeed?.launchDraftResolved === true,
+      ownsTabWideLaunchDraft: launchSeed?.ownsTabWideLaunchDraft === true,
       draft,
       setDraft,
       setCaret
@@ -285,8 +285,8 @@ export const NativeChatComposer = forwardRef<NativeChatComposerHandle, NativeCha
       imageAttachments,
       disabled,
       isDispatchingSessionOption,
-      launchDraft,
-      launchDraftResolved,
+      launchDraft: launchSeed?.launchDraft,
+      launchDraftResolved: launchSeed?.launchDraftResolved === true,
       readTerminalScreen,
       resolveTarget,
       classifySend,
