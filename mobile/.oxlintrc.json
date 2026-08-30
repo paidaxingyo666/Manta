@@ -58,12 +58,6 @@
       }
     },
     {
-      "files": ["src/components/NewWorktreeModal.tsx"],
-      "rules": {
-        "max-lines": ["error", { "max": 1263, "skipBlankLines": true, "skipComments": true }]
-      }
-    },
-    {
       "files": ["src/transport/rpc-client.ts"],
       "rules": {
         "max-lines": ["error", { "max": 1074, "skipBlankLines": true, "skipComments": true }]
