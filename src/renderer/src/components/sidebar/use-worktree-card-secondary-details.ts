@@ -173,17 +173,32 @@ export function useWorktreeCardSecondaryDetails({
     [openLinkedUrlInBrowser]
   )
   const hoverReviewProvider = hoverReview?.provider
+  const canUnlinkReview =
+    hoverReviewProvider === 'github' ||
+    (hoverReviewProvider === 'gitlab' && linkedGitLabMR !== null) ||
+    (hoverReviewProvider === 'bitbucket' && linkedBitbucketPR !== null) ||
+    (hoverReviewProvider === 'azure-devops' && linkedAzureDevOpsPR !== null) ||
+    (hoverReviewProvider === 'gitea' && linkedGiteaPR !== null)
   const hasExplicitLinkedReview =
     (hoverReviewProvider === 'github' && worktree.linkedPR !== null) ||
     (hoverReviewProvider === 'gitlab' && linkedGitLabMR !== null) ||
     (hoverReviewProvider === 'bitbucket' && linkedBitbucketPR !== null) ||
     (hoverReviewProvider === 'azure-devops' && linkedAzureDevOpsPR !== null) ||
     (hoverReviewProvider === 'gitea' && linkedGiteaPR !== null)
-  const handleUnlinkReview = useCallback(() => {
+  const handleUnlinkReview = useCallback(async () => {
     const options = { executionHostId: worktree.hostId ?? 'local' }
     switch (hoverReviewProvider) {
       case 'github':
-        void updateWorktreeMeta(worktree.id, { linkedPR: null }, options)
+        if (hoverReview) {
+          const result = await updateWorktreeMeta(
+            worktree.id,
+            { linkedPR: null, suppressedGitHubPR: hoverReview.number },
+            options
+          )
+          if (!result.ok) {
+            toast.error(result.error)
+          }
+        }
         return
       case 'gitlab':
         void updateWorktreeMeta(worktree.id, { linkedGitLabMR: null }, options)
@@ -201,7 +216,7 @@ export function useWorktreeCardSecondaryDetails({
       case undefined:
         break
     }
-  }, [hoverReviewProvider, updateWorktreeMeta, worktree.hostId, worktree.id])
+  }, [hoverReview, hoverReviewProvider, updateWorktreeMeta, worktree.hostId, worktree.id])
   const handleOpenLinearIssueInManta = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -247,6 +262,7 @@ export function useWorktreeCardSecondaryDetails({
     handleOpenGitHubIssueInManta,
     handleOpenIssueInBrowser,
     handleOpenReviewInManta,
+    canUnlinkReview,
     handleOpenReviewInBrowser,
     hasExplicitLinkedReview,
     handleUnlinkReview,

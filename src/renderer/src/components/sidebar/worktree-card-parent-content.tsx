@@ -51,7 +51,7 @@ export function WorktreeCardParentContent({
     handleOpenReviewInBrowser,
     handleOpenAutomation,
     handleOpenAutomationRun,
-    hasExplicitLinkedReview,
+    canUnlinkReview,
     handleUnlinkReview
   } = card
   const {
@@ -110,9 +110,7 @@ export function WorktreeCardParentContent({
         onOpenReviewInBrowser={hoverReview?.url ? handleOpenReviewInBrowser : undefined}
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
         onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}
-        onUnlinkReview={
-          !affiliateListMode && hasExplicitLinkedReview ? handleUnlinkReview : undefined
-        }
+        onUnlinkReview={!affiliateListMode && canUnlinkReview ? handleUnlinkReview : undefined}
       >
         {identityContent}
       </WorktreeCardDetailsHover>

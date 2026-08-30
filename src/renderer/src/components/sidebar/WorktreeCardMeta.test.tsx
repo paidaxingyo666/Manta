@@ -144,13 +144,16 @@ describe('WorktreeCardDetailsHover', () => {
     expect(moreActionsIndex).toBeGreaterThan(-1)
     expect(markup).toContain('More PR actions')
     expect(markup).toContain('Copy link')
+    expect(markup).toContain('Unlink PR from workspace')
+    expect(markup).toContain(
+      'Manta will hide PR #456 details for this workspace. The PR and branch on GitHub won’t be changed.'
+    )
     expect(markup).toContain('Open in Manta browser')
-    expect(markup).toContain('Unlink PR')
     expect(moreActionsIndex).toBeLessThan(openInMantaIndex)
     expect(openInMantaIndex).toBeLessThan(viewOnGitHubIndex)
-    expect(markup).not.toContain('aria-label="Unlink PR"')
     expect(markup.indexOf('Open in Manta browser')).toBeLessThan(markup.indexOf('Copy link'))
-    expect(markup.indexOf('Copy link')).toBeLessThan(markup.indexOf('Unlink PR'))
+    expect(markup.indexOf('Copy link')).toBeLessThan(markup.indexOf('Unlink PR from workspace'))
+    expect(markup).not.toContain('aria-label="Unlink PR from workspace"')
   })
 
   it('puts issue copy menu before edit and open actions and keeps GitHub last', () => {
@@ -216,7 +219,10 @@ describe('WorktreeCardDetailsHover', () => {
     )
 
     expect(markup).toContain('aria-label="More MR actions"')
-    expect(markup).toContain('Unlink MR')
+    expect(markup).toContain('Unlink MR from workspace')
+    expect(markup).toContain(
+      'Manta will hide MR !77 details for this workspace. The MR and branch on GitLab won’t be changed.'
+    )
     expect(markup).toContain('View on GitLab')
     expect(markup).toContain('Open in Manta browser')
   })
