@@ -57,7 +57,6 @@ inline src/renderer/src/store/slices/linear.ts
 inline src/renderer/src/store/slices/tabs.ts
 inline src/renderer/src/store/slices/ui.ts
 inline src/shared/keybindings.ts
-inline src/shared/telemetry-events.ts
 mobile-config app/h/*/files/*.tsx
 mobile-config app/h/*/session/*.tsx
 mobile-config app/h/*/source-control/*.tsx
