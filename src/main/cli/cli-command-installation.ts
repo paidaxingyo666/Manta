@@ -1,5 +1,5 @@
 import { link, readlink, rmdir, symlink, unlink, writeFile } from 'node:fs/promises'
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import type { CliInstallStatus } from '../../shared/cli-install-types'
 import {
   ensureAppImageExtractedRoot,
@@ -21,6 +21,7 @@ import {
 import { DEV_LAUNCHER_DIR, LEGACY_LINUX_COMMAND_NAME } from './cli-install-constants'
 import { buildWindowsForwarder } from './cli-dev-launcher'
 import { isMissingError, isPermissionError } from './cli-install-errors'
+import { isPathInsideOrEqual } from './cli-install-path-format'
 
 const STABLE_LEGACY_INSPECTION_ATTEMPTS = 3
 
@@ -101,16 +102,24 @@ export class CliCommandInstallation extends CliCommandInspection {
     }
 
     const commandPath = join(this.homePath, '.local', 'bin', LEGACY_LINUX_COMMAND_NAME)
-    const inspected = await this.inspectStableLegacyCommand(commandPath, launcherPath)
-    if (!inspected?.managed) {
-      return
+    try {
+      const inspected = await this.inspectStableLegacyCommand(commandPath, launcherPath)
+      if (!inspected?.managed) {
+        return
+      }
+      const quarantine = await this.quarantineCommandPath(commandPath)
+      if (!(await capturedExpectedEntry(quarantine, inspected))) {
+        await this.restoreQuarantinedCommand(quarantine, commandPath)
+        return
+      }
+      await this.discardQuarantinedCommand(quarantine)
+    } catch (error) {
+      // Why: the new command is already registered; leave legacy cleanup for a later attempt.
+      console.warn(
+        `[cli] Could not remove the legacy command at ${commandPath}:`,
+        error instanceof Error ? error.message : String(error)
+      )
     }
-    const quarantine = await this.quarantineCommandPath(commandPath)
-    if (!(await capturedExpectedEntry(quarantine, inspected))) {
-      await this.restoreQuarantinedCommand(quarantine, commandPath)
-      return
-    }
-    await this.discardQuarantinedCommand(quarantine)
   }
 
   protected async quarantineCommandPath(commandPath: string): Promise<CommandQuarantine> {
@@ -132,8 +141,7 @@ export class CliCommandInstallation extends CliCommandInspection {
     }
 
     const devLauncherDir = resolve(this.userDataPath, ...DEV_LAUNCHER_DIR)
-    const devRelative = relative(devLauncherDir, resolvedTarget)
-    if (devRelative && !devRelative.startsWith('..') && !isAbsolute(devRelative)) {
+    if (isPathInsideOrEqual(devLauncherDir, resolvedTarget)) {
       return true
     }
 

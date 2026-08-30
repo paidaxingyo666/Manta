@@ -19,8 +19,6 @@ export type LinuxTerminalMantaCliShimOptions = {
   appImagePath?: string | null
   /** Test seam — defaults to $XDG_CACHE_HOME/manta/appimage. */
   appImageCacheRootPath?: string
-  /** Regression seam: opening a PTY must never invoke AppImage extraction. */
-  appImageExtractRunner?: (appImagePath: string, cwd: string) => Promise<void>
 }
 
 // Why: on Linux the CLI installs as `manta-ide` so it never shadows the GNOME

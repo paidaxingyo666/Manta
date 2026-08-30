@@ -73,8 +73,7 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
   ])('accepts a complete %s AppImage runtime', (_architecture, machine, appDirName) => {
     const fixture = createFixture(appDirName, machine)
     expect(resolveAppImageRuntimeIdentity(fixture.identity)).toEqual({
-      appImagePath: fixture.appImagePath,
-      appDirPath: fixture.appDirPath
+      appImagePath: fixture.appImagePath
     })
   })
 

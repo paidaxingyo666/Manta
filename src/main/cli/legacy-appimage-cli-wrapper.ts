@@ -15,7 +15,7 @@ const APPIMAGE_CLI_SCRIPT = [
 ].join('')
 
 export function extractLegacyAppImageCliWrapperTarget(content: string): string | null {
-  const assignment = /^APPIMAGE=(.+)$/mu.exec(content)?.[1]
+  const assignment = /^APPIMAGE=([\s\S]+?)\nif \[ ! -f "\$APPIMAGE" \]; then/mu.exec(content)?.[1]
   const appImagePath = assignment ? unquoteShell(assignment) : null
   return appImagePath && content === buildLegacyAppImageCliWrapper(appImagePath)
     ? appImagePath

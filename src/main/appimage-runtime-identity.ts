@@ -16,7 +16,6 @@ const PACKAGE_TYPE_MARKER_MAX_BYTES = 32
 
 export type AppImageRuntimeIdentity = {
   appImagePath: string
-  appDirPath: string
 }
 
 export type AppImageRuntimeIdentityInput = {
@@ -194,5 +193,5 @@ export function resolveAppImageRuntimeIdentity(
     return null
   }
 
-  return { appImagePath, appDirPath: runtimeRoot }
+  return { appImagePath }
 }
