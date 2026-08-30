@@ -184,6 +184,14 @@ export class StructuredAgentSessionHost {
     return listStructuredAgentSessionTabs(this.sessions)
   }
 
+  getPersistedVisibleSessionTabIndex(): { present: boolean; sessionIds: string[] } {
+    return this.deps.store.getVisibleSessionTabIndex()
+  }
+
+  setSessionTabVisibility(sessionId: string, visible: boolean): Promise<void> {
+    return this.deps.store.setSessionTabVisibility(sessionId, visible)
+  }
+
   reconcileRestartLeases = async (): Promise<void> => {
     const refusal = await this.reconcileLeases('startup')
     if (refusal) {
