@@ -216,6 +216,7 @@ async function runValidation(mode) {
           env: {
             ...env,
             NODE_ENV: 'development',
+            MANTA_BACKGROUND_LAUNCH: '1',
             MANTA_DEV_USER_DATA_PATH: userDataPath,
             HOME: isolatedHome,
             USERPROFILE: isolatedHome,
