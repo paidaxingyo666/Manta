@@ -1,7 +1,7 @@
 /**
- * Stopping a running orcad on the host without taking its terminals with it.
+ * Stopping a running mantad on the host without taking its terminals with it.
  *
- * `SIGKILL` is absent on purpose. orcad's own escalation contract (`orcad-entry.ts`) is
+ * `SIGKILL` is absent on purpose. mantad's own escalation contract (`mantad-entry.ts`) is
  * SIGTERM, then a second SIGTERM meaning "your deadline elapsed, exit now"; a kill skips the
  * teardown that releases the instance lock and disconnects — rather than shuts down — the
  * terminal daemon. The daemon is detached and would survive a kill, but a stop that leaves
@@ -12,14 +12,14 @@ import { shellEscape } from './ssh-connection-utils'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import {
   assertPosixOrcadHost as assertPosixHost,
-  ORCAD_PID_FILENAME,
+  MANTAD_PID_FILENAME,
   posixProcessAliveShellFunction
-} from './orcad-remote-host-support'
+} from './mantad-remote-host-support'
 
 /**
- * Signal the orcad recorded in a version dir and wait for it to go.
+ * Signal the mantad recorded in a version dir and wait for it to go.
  *
- * `escalate` sends the second SIGTERM orcad reads as "exit immediately". Callers use it only
+ * `escalate` sends the second SIGTERM mantad reads as "exit immediately". Callers use it only
  * after the first deadline elapses, so the two signals are never in the same command.
  */
 export function stopOrcadCommand(
@@ -28,7 +28,7 @@ export function stopOrcadCommand(
   options: { waitSeconds: number }
 ): string {
   assertPosixHost(host)
-  const pidFile = shellEscape(joinRemotePath(host, remoteInstallDir, ORCAD_PID_FILENAME))
+  const pidFile = shellEscape(joinRemotePath(host, remoteInstallDir, MANTAD_PID_FILENAME))
   return [
     posixProcessAliveShellFunction(),
     `pid=$(cat ${pidFile} 2>/dev/null);`,

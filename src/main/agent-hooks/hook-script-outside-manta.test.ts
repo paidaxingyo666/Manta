@@ -14,7 +14,7 @@ function runHook(dir: string, extraEnv: NodeJS.ProcessEnv = {}) {
   chmodSync(script, 0o755)
   const clean: NodeJS.ProcessEnv = {}
   for (const [k, v] of Object.entries(process.env)) {
-    if (!k.startsWith('ORCA_')) {
+    if (!k.startsWith('MANTA_')) {
       clean[k] = v
     }
   }
@@ -26,8 +26,8 @@ function runHook(dir: string, extraEnv: NodeJS.ProcessEnv = {}) {
   })
 }
 
-describe('managed hook outside an Orca terminal', () => {
-  it('no Orca env at all: silent, exit 0, writes nothing', () => {
+describe('managed hook outside a Manta terminal', () => {
+  it('no Manta env at all: silent, exit 0, writes nothing', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orca-outside-'))
     const res = runHook(dir)
     expect(res.status).toBe(0)
@@ -38,7 +38,7 @@ describe('managed hook outside an Orca terminal', () => {
 
   it('pane key present but no endpoint: still silent and writes nothing', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orca-outside-partial-'))
-    const res = runHook(dir, { ORCA_PANE_KEY: 'tab:0', ORCA_TAB_ID: 'tab' })
+    const res = runHook(dir, { MANTA_PANE_KEY: 'tab:0', MANTA_TAB_ID: 'tab' })
     expect(res.status).toBe(0)
     expect(res.stdout).toBe('')
     expect(res.stderr).toBe('')
@@ -48,21 +48,21 @@ describe('managed hook outside an Orca terminal', () => {
   it('endpoint points at a path that does not exist: silent, exit 0', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orca-outside-stale-'))
     const res = runHook(dir, {
-      ORCA_AGENT_HOOK_ENDPOINT: join(dir, 'gone', 'deeper', 'endpoint.env'),
-      ORCA_PANE_KEY: 'tab:0'
+      MANTA_AGENT_HOOK_ENDPOINT: join(dir, 'gone', 'deeper', 'endpoint.env'),
+      MANTA_PANE_KEY: 'tab:0'
     })
     expect(res.status).toBe(0)
     expect(res.stdout).toBe('')
     expect(res.stderr).toBe('')
-    // a stale env var must not create a spool tree for an Orca that is not installed here
+    // a stale env var must not create a spool tree for a Manta that is not installed here
     expect(readdirSync(dir)).toEqual(['codex-hook.sh'])
   })
 
   it('readable endpoint without a pane key: silent, writes nothing', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orca-outside-readable-'))
     const endpoint = join(dir, 'endpoint.env')
-    writeFileSync(endpoint, 'ORCA_AGENT_HOOK_PORT=9\nORCA_AGENT_HOOK_TOKEN=stale\n')
-    const res = runHook(dir, { ORCA_AGENT_HOOK_ENDPOINT: endpoint })
+    writeFileSync(endpoint, 'MANTA_AGENT_HOOK_PORT=9\nMANTA_AGENT_HOOK_TOKEN=stale\n')
+    const res = runHook(dir, { MANTA_AGENT_HOOK_ENDPOINT: endpoint })
     expect(res.status).toBe(0)
     expect(res.stdout).toBe('')
     expect(res.stderr).toBe('')
@@ -72,9 +72,9 @@ describe('managed hook outside an Orca terminal', () => {
 
 describe('antigravity out-of-band event name', () => {
   it('records hookEventName and filters tool progress on it', () => {
-    const lines = buildPosixHookSpoolLines('antigravity', 'ORCA_ANTIGRAVITY_EVENT').join('\n')
+    const lines = buildPosixHookSpoolLines('antigravity', 'MANTA_ANTIGRAVITY_EVENT').join('\n')
     expect(lines).toContain('"hookEventName":"%s"')
-    expect(lines).toContain('${ORCA_ANTIGRAVITY_EVENT:-}')
+    expect(lines).toContain('${MANTA_ANTIGRAVITY_EVENT:-}')
     expect(lines).toContain('in PreToolUse|PostToolUse|PostToolUseFailure) return 0')
     // payload-based filtering stays the default for every other provider
     expect(buildPosixHookSpoolLines('codex').join('\n')).toContain('case "$payload" in')

@@ -9,15 +9,15 @@ import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import {
-  ORCAD_ACTIVATION_FILENAME,
+  MANTAD_ACTIVATION_FILENAME,
   emptyOrcadActivationRecord,
   parseOrcadActivationRecord,
   type OrcadActivationRecord
-} from './orcad-activation-record'
+} from './mantad-activation-record'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 
 export function orcadActivationPath(host: RemoteHostPlatform, remoteHome: string): string {
-  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR, ORCAD_ACTIVATION_FILENAME)
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR, MANTAD_ACTIVATION_FILENAME)
 }
 
 export async function readOrcadActivationRecord(options: {
@@ -38,7 +38,7 @@ export async function readOrcadActivationRecord(options: {
   if (parsed.state === 'unreadable') {
     // Why throw: an unreadable record is not an empty one. Treating it as empty would
     // activate over a live install and orphan its rollback target.
-    throw new Error(`Cannot read this host's orcad activation record: ${parsed.reason}`)
+    throw new Error(`Cannot read this host's mantad activation record: ${parsed.reason}`)
   }
   return emptyOrcadActivationRecord()
 }

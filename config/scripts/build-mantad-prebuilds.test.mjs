@@ -9,11 +9,11 @@ import {
   mergeManifest,
   readManifest,
   slotName
-} from './build-orcad-prebuilds.mjs'
+} from './build-mantad-prebuilds.mjs'
 
 const PATCHED_BINDING_GYP =
   "'ldflags': ['-Wl,--no-as-needed,-l:libutil.so.1,-l:libpthread.so.0,--as-needed']"
-const PATCHED_PTY_CC = '__asm__(".symver openpty,openpty@" ORCA_GLIBC_COMPAT_VERSION);'
+const PATCHED_PTY_CC = '__asm__(".symver openpty,openpty@" MANTA_GLIBC_COMPAT_VERSION);'
 
 const dirs = []
 const stage = (bindingGyp, ptyCc) => {
@@ -60,7 +60,7 @@ describe('assertNodePtyPatchApplied', () => {
 })
 
 describe('slot naming', () => {
-  it('covers every platform orcad ships to', () => {
+  it('covers every platform mantad ships to', () => {
     expect([...MATRIX_SLOTS].sort()).toEqual([
       'darwin-arm64',
       'darwin-x64',

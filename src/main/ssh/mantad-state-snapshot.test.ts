@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  ORCAD_SNAPSHOT_EXCLUDED,
-  ORCAD_SNAPSHOT_MEMBERS,
+  MANTAD_SNAPSHOT_EXCLUDED,
+  MANTAD_SNAPSHOT_MEMBERS,
   captureOrcadStateSnapshotCommand,
   newestStateMtimeCommand,
   orcadSnapshotDirName,
@@ -10,29 +10,29 @@ import {
   parseOrcadSnapshotCapture,
   parseOrcadSnapshotRestore,
   restoreOrcadStateSnapshotCommand
-} from './orcad-state-snapshot'
+} from './mantad-state-snapshot'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 const posix = getRemoteHostPlatform('linux-x64')
 const windows = getRemoteHostPlatform('win32-x64')
-const ROOT = '/home/u/.orca'
-const SNAP = '/home/u/.orca-remote/orcad-state-snapshots/pre-0.2.0+bb01-1000'
+const ROOT = '/home/u/.manta'
+const SNAP = '/home/u/.manta-remote/mantad-state-snapshots/pre-0.2.0+bb01-1000'
 
 describe('capturing the pre-activation snapshot', () => {
   it('captures the profile state a rollback needs', () => {
     const command = captureOrcadStateSnapshotCommand(posix, ROOT, SNAP)
-    for (const member of ORCAD_SNAPSHOT_MEMBERS) {
+    for (const member of MANTAD_SNAPSHOT_MEMBERS) {
       expect(command).toContain(`'${member}'`)
     }
   })
 
   // The live daemon owns <root>/daemon and outlives every restart. Restoring a stale copy of
   // its socket, PID record and token would break the fence that keeps its terminals adoptable.
-  it.each(ORCAD_SNAPSHOT_EXCLUDED)('never captures %s', (excluded) => {
+  it.each(MANTAD_SNAPSHOT_EXCLUDED)('never captures %s', (excluded) => {
     expect(captureOrcadStateSnapshotCommand(posix, ROOT, SNAP)).not.toContain(`'${excluded}'`)
   })
 
-  it.each(ORCAD_SNAPSHOT_EXCLUDED)('never removes or restores over %s', (excluded) => {
+  it.each(MANTAD_SNAPSHOT_EXCLUDED)('never removes or restores over %s', (excluded) => {
     expect(restoreOrcadStateSnapshotCommand(posix, ROOT, SNAP)).not.toContain(`'${excluded}'`)
   })
 
@@ -83,7 +83,7 @@ describe('detecting writes since activation', () => {
 
   it('looks at the same members the snapshot covers', () => {
     const command = newestStateMtimeCommand(posix, ROOT)
-    for (const member of ORCAD_SNAPSHOT_MEMBERS) {
+    for (const member of MANTAD_SNAPSHOT_MEMBERS) {
       expect(command).toContain(`'${member}'`)
     }
   })
@@ -95,6 +95,6 @@ describe('Windows hosts', () => {
     ['restore', () => restoreOrcadStateSnapshotCommand(windows, ROOT, SNAP)],
     ['mtime', () => newestStateMtimeCommand(windows, ROOT)]
   ])('refuses %s rather than emitting a POSIX command', (_label, build) => {
-    expect(build).toThrow('orcad to a Windows host is not implemented')
+    expect(build).toThrow('mantad to a Windows host is not implemented')
   })
 })

@@ -1,11 +1,11 @@
 /**
- * orcad's health surface: the facts a supervisor needs to decide whether this deployment
+ * mantad's health surface: the facts a supervisor needs to decide whether this deployment
  * is actually serving, as opposed to merely listening.
  *
- * The load-bearing one is the terminal-daemon verdict. orcad answers RPC from its own
+ * The load-bearing one is the terminal-daemon verdict. mantad answers RPC from its own
  * process, so "the port is open" stays true while the daemon that owns every terminal is
  * dead — a green host that cannot run a single command. The self-test below therefore has
- * to cross the process boundary: orcad drives it, the daemon performs it, and the verdict
+ * to cross the process boundary: mantad drives it, the daemon performs it, and the verdict
  * travels back over the daemon's socket.
  */
 import { createHash } from 'node:crypto'
@@ -40,10 +40,10 @@ export type PtySelfTest = {
 export type TerminalDaemonHealth = {
   /** `live` requires the daemon to have answered; absence is never inferred from silence. */
   state: 'live' | 'degraded' | 'absent'
-  /** True only when FRESH terminals are daemon-owned, i.e. survive an orcad restart. */
+  /** True only when FRESH terminals are daemon-owned, i.e. survive an mantad restart. */
   ownsFreshSessions: boolean
   pid: number | null
-  /** The build the LIVE daemon was forked from, which may predate this orcad after an update. */
+  /** The build the LIVE daemon was forked from, which may predate this mantad after an update. */
   buildVersion: string | null
   entryPath: string | null
   protocolVersion: number | null
@@ -51,7 +51,7 @@ export type TerminalDaemonHealth = {
 }
 
 export type OrcadHealth = {
-  /** Content hash of the running orcad bundle — the deployed build's identity. */
+  /** Content hash of the running mantad bundle — the deployed build's identity. */
   buildHash: string
   buildVersion: string
   nodeVersion: string
@@ -66,7 +66,7 @@ export type OrcadHealth = {
 /**
  * Identity of the exact bytes running.
  *
- * Why hash the entry and not read a version string: `ORCA_VERSION` is whatever the deploy
+ * Why hash the entry and not read a version string: `MANTA_VERSION` is whatever the deploy
  * exported, so two different builds can carry one version. A rollback that did not actually
  * replace the file is precisely what this has to catch.
  */
@@ -141,7 +141,7 @@ export async function collectTerminalDaemonHealth(): Promise<TerminalDaemonHealt
   }
 }
 
-export async function collectOrcadHealth(buildVersion: string): Promise<OrcadHealth> {
+export async function collectMantadHealth(buildVersion: string): Promise<OrcadHealth> {
   return {
     buildHash: computeOrcadBuildHash(),
     buildVersion,

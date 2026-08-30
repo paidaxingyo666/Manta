@@ -179,12 +179,12 @@ describe('managed Codex shell preflight', () => {
 })
 
 describe('managed WSL Codex shell preflight', () => {
-  const home = '/home/jin/.local/share/orca/codex-runtime-home/home'
+  const home = '/home/jin/.local/share/manta/codex-runtime-home/home'
   const runtimeHome =
-    '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.local\\share\\orca\\codex-runtime-home\\home'
+    '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.local\\share\\manta\\codex-runtime-home\\home'
   const env = {
     CODEX_HOME: home,
-    ORCA_CODEX_HOME: home,
+    MANTA_CODEX_HOME: home,
     WSL_DISTRO_NAME: 'Ubuntu-24.04'
   }
 
@@ -231,15 +231,15 @@ describe('managed WSL Codex shell preflight', () => {
   it.each([
     [
       'a user home',
-      { ...env, CODEX_HOME: '/home/jin/.codex', ORCA_CODEX_HOME: '/home/jin/.codex' }
+      { ...env, CODEX_HOME: '/home/jin/.codex', MANTA_CODEX_HOME: '/home/jin/.codex' }
     ],
-    ['unequal routing markers', { ...env, ORCA_CODEX_HOME: `${home}-other` }],
+    ['unequal routing markers', { ...env, MANTA_CODEX_HOME: `${home}-other` }],
     [
       'a parent traversal',
       {
         ...env,
         CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`,
-        ORCA_CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`
+        MANTA_CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`
       }
     ],
     [
@@ -247,12 +247,12 @@ describe('managed WSL Codex shell preflight', () => {
       {
         ...env,
         CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`,
-        ORCA_CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`
+        MANTA_CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`
       }
     ],
     [
       'a host path',
-      { ...env, CODEX_HOME: 'C:\\Users\\jin\\.codex', ORCA_CODEX_HOME: 'C:\\Users\\jin\\.codex' }
+      { ...env, CODEX_HOME: 'C:\\Users\\jin\\.codex', MANTA_CODEX_HOME: 'C:\\Users\\jin\\.codex' }
     ],
     ['a missing distro', { ...env, WSL_DISTRO_NAME: '' }],
     ['a distro path escape', { ...env, WSL_DISTRO_NAME: 'Ubuntu\\..\\host' }],
@@ -261,7 +261,7 @@ describe('managed WSL Codex shell preflight', () => {
       {
         ...env,
         CODEX_HOME: home.replace('/jin/', '/jin//'),
-        ORCA_CODEX_HOME: home.replace('/jin/', '/jin//')
+        MANTA_CODEX_HOME: home.replace('/jin/', '/jin//')
       }
     ]
   ])('rejects %s', (_label, candidate) => {
@@ -270,15 +270,15 @@ describe('managed WSL Codex shell preflight', () => {
   })
 
   it('preserves a recorded runtime spelling for a managed account home', () => {
-    const directHome = '/home/jin/.local/share/orca/codex-accounts/account-1/home'
+    const directHome = '/home/jin/.local/share/manta/codex-accounts/account-1/home'
     const directRuntimeHome =
-      '\\\\wsl$\\Ubuntu-24.04\\home\\jin\\.local\\share\\orca\\codex-accounts\\account-1\\home'
+      '\\\\wsl$\\Ubuntu-24.04\\home\\jin\\.local\\share\\manta\\codex-accounts\\account-1\\home'
     recordManagedWslCodexHome('Ubuntu-24.04', directRuntimeHome)
 
     expect(
       resolveManagedWslCodexShellPreflightTarget({
         CODEX_HOME: directHome,
-        ORCA_CODEX_HOME: directHome,
+        MANTA_CODEX_HOME: directHome,
         WSL_DISTRO_NAME: 'ubuntu-24.04'
       })
     ).toEqual({ runtimeHomePath: directRuntimeHome, wslDistro: 'ubuntu-24.04' })
@@ -291,7 +291,7 @@ describe('managed WSL Codex shell preflight', () => {
     expect(
       resolveManagedWslCodexShellPreflightTarget({
         CODEX_HOME: systemHome,
-        ORCA_CODEX_HOME: systemHome,
+        MANTA_CODEX_HOME: systemHome,
         WSL_DISTRO_NAME: 'Ubuntu-24.04'
       })
     ).toBeNull()

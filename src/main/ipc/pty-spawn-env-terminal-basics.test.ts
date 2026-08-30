@@ -60,7 +60,7 @@ describe('registerPtyHandlers', () => {
   describe('spawn environment', () => {
     it('passes the PTY-resolved Codex home to the WSL relay lane', () => {
       const runtimeHome =
-        '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-runtime-home\\home'
+        '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\manta\\codex-runtime-home\\home'
       const ensureForDistro = vi
         .spyOn(wslHookRelayManager, 'ensureForDistro')
         .mockImplementation(() => {})
@@ -71,7 +71,7 @@ describe('registerPtyHandlers', () => {
           {},
           {
             isPackaged: true,
-            userDataPath: '/tmp/orca-user-data',
+            userDataPath: '/tmp/manta-user-data',
             selectedCodexHomePath: runtimeHome,
             isWsl: true,
             wslDistro: 'Ubuntu',

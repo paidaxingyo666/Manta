@@ -8,7 +8,7 @@ const GPU_FALLBACK_RECOVERED_LAUNCH_OPTIONS: MessageBoxOptions = {
   defaultId: 0,
   cancelId: 0,
   title: 'Safe Graphics Mode is Active',
-  message: 'Orca recovered in Safe Graphics Mode.',
+  message: 'Manta recovered in Safe Graphics Mode.',
   detail:
     'Safe Graphics Mode was enabled after repeated graphics crashes. Keep it for stability, or restart and try hardware acceleration again.'
 }

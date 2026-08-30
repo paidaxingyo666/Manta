@@ -16,17 +16,17 @@ import {
 } from './macos-press-and-hold-default'
 
 /**
- * Runs against the real `/usr/bin/defaults` on a throwaway Orca-owned domain.
+ * Runs against the real `/usr/bin/defaults` on a throwaway Manta-owned domain.
  *
  * The whole design rests on one claim the mocks cannot make: a domain that has never been written
  * is distinguishable from one explicitly set to `false`. Electron's `systemPreferences` cannot tell
  * them apart, so if `defaults` could not either, "only write when unset" would be unimplementable.
  *
- * Every domain used here is a throwaway UUID under Orca's own prefix, deleted along with its plist
+ * Every domain used here is a throwaway UUID under Manta's own prefix, deleted along with its plist
  * in `afterEach`; the real `com.stablyai.orca` domain is never read or written.
  */
 
-// Why a real Orca-owned domain shape: the ownership guard rejects anything else, so a fake prefix
+// Why a real Manta-owned domain shape: the ownership guard rejects anything else, so a fake prefix
 // would exercise a different branch than production.
 const domains: string[] = []
 

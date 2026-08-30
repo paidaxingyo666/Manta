@@ -97,7 +97,7 @@ describe('CodexRuntimeHomeService', () => {
       wslHome,
       '.local',
       'share',
-      'orca',
+      'manta',
       'codex-runtime-home',
       'home',
       'auth.json'
@@ -147,7 +147,7 @@ describe('CodexRuntimeHomeService', () => {
 
       expect(service.prepareForRateLimitFetch({ runtime: 'wsl', wslDistro: null })).toEqual({
         kind: 'ready',
-        codexHomePath: join(wslHome, '.local', 'share', 'orca', 'codex-runtime-home', 'home')
+        codexHomePath: join(wslHome, '.local', 'share', 'manta', 'codex-runtime-home', 'home')
       })
       expect(readFileSync(runtimeAuthPath, 'utf-8')).toBe(ubuntuAuth)
     } finally {
@@ -261,7 +261,7 @@ describe('CodexRuntimeHomeService', () => {
         wslHome,
         '.local',
         'share',
-        'orca',
+        'manta',
         'codex-runtime-home',
         'home'
       )

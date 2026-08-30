@@ -824,7 +824,7 @@ export class BrowserManager {
         return { action: 'deny' }
       }
 
-      // Why: an unnamed, featureless window.open() is Chromium's own new-tab shape, so an Orca tab is
+      // Why: an unnamed, featureless window.open() is Chromium's own new-tab shape, so a Manta tab is
       // the honest presentation; a floating origin-bar window is not. Opener-dependent shapes are
       // excluded by isNewBrowserTabPopupIntent and still get a real child window below.
       if (
@@ -841,10 +841,10 @@ export class BrowserManager {
           })
           return { action: 'deny' }
         }
-        if (this.openLinkInOrcaTab(ownerContext.browserTabId, externalUrl)) {
+        if (this.openLinkInMantaTab(ownerContext.browserTabId, externalUrl)) {
           this.forwardOrQueuePopupEvent(guest.id, {
             origin: safeOrigin(externalUrl),
-            action: 'opened-in-orca'
+            action: 'opened-in-manta'
           })
         }
         // Why: a recognized new-tab intent must never fall through to a native popup if its renderer vanished mid-open.

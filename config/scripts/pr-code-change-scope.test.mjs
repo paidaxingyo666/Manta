@@ -20,7 +20,7 @@ const expensiveJobs = [
   'xterm_patch_sync',
   'shell_contracts',
   'test',
-  'orcad_browser',
+  'mantad_browser',
   'cross-version-wire',
   'managed_hook_node18',
   'package',
@@ -71,7 +71,7 @@ describe('docs-only path classification', () => {
 
   it('still runs PR Checks for product markdown and CI', () => {
     expect(isDocsOnlyPath('skills/computer-use/SKILL.md')).toBe(false)
-    expect(isDocsOnlyPath('skill-guides/orca-cli.md')).toBe(false)
+    expect(isDocsOnlyPath('skill-guides/manta-cli.md')).toBe(false)
     expect(isDocsOnlyPath('.github/workflows/pr.yml')).toBe(false)
     expect(isDocsOnlyPath('src/main/index.ts')).toBe(false)
     expect(isDocsOnlyPath('config/scripts/pr-code-change-scope.mjs')).toBe(false)
@@ -128,7 +128,7 @@ describe('per-job path classification', () => {
   })
 
   it('runs native package jobs only for the platform that ships the changed native', () => {
-    expectClassification(['native/windows-cli-launcher/OrcaCliLauncher.cs'], {
+    expectClassification(['native/windows-cli-launcher/MantaCliLauncher.cs'], {
       package_windows: true
     })
     expectClassification(['native/computer-use-linux/runtime.py'], {
@@ -158,15 +158,16 @@ describe('per-job path classification', () => {
     })
   })
 
-  it('runs orcad browser when Chrome launch, session, or tab modules change', () => {
+  it('runs mantad browser when Chrome launch, session, or tab modules change', () => {
     for (const file of [
-      'src/main/orcad/external-chromium-browser-session.ts',
-      'src/main/orcad/external-chromium-command-arguments.ts',
-      'src/main/orcad/external-chromium-tab-registry.ts',
-      'src/main/orcad/external-chromium-tab-projection.ts'
+      'src/main/mantad/external-chromium-browser-session.ts',
+      'src/main/mantad/external-chromium-command-arguments.ts',
+      'src/main/mantad/external-chromium-tab-registry.ts',
+      'src/main/mantad/external-chromium-tab-projection.ts'
     ]) {
       expectClassification([file], {
-        orcad_browser: true,
+        mantad_browser: true,
+      relay: false,
         package: true,
         package_windows: true
       })

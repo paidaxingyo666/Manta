@@ -1,12 +1,12 @@
 /**
- * Single-instance ownership of orcad's data root, taken BEFORE the profile is loaded.
+ * Single-instance ownership of mantad's data root, taken BEFORE the profile is loaded.
  *
- * Two orcads on one data root corrupt it quietly: both load the same profile, both write
+ * Two mantads on one data root corrupt it quietly: both load the same profile, both write
  * the same store file, and the loser's writes disappear on the next flush. The refusal is
  * therefore a startup gate, not a warning.
  *
  * What this lock does NOT cover, and must not: the terminal daemon. The daemon is a second
- * long-lived process living under `<root>/daemon`, it deliberately outlives the orcad that
+ * long-lived process living under `<root>/daemon`, it deliberately outlives the mantad that
  * spawned it, and it fences its own endpoint with a PID record of its own. A lock that
  * asked "is any process using this root" would refuse every restart that a live daemon
  * makes worthwhile. This lock scopes exactly one role — who is the runtime — so releasing
@@ -27,7 +27,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import { getProcessStartedAtMs, startTimeMatches } from '../daemon/daemon-process-start-time'
 
-export const ORCAD_LOCK_FILE_NAME = 'orcad.lock'
+export const MANTAD_LOCK_FILE_NAME = 'orcad.lock'
 
 export type OrcadInstanceLockCode =
   | 'orcad_data_root_unusable'
@@ -36,13 +36,13 @@ export type OrcadInstanceLockCode =
   | 'orcad_instance_lock_held'
   | 'orcad_instance_lock_foreign_identity'
 
-export class OrcadInstanceLockError extends Error {
+export class MantadInstanceLockError extends Error {
   constructor(
     readonly code: OrcadInstanceLockCode,
     message: string
   ) {
     super(message)
-    this.name = 'OrcadInstanceLockError'
+    this.name = 'MantadInstanceLockError'
   }
 }
 
@@ -58,7 +58,7 @@ export type OrcadLockRecord = {
   nonce: string
 }
 
-export type OrcadInstanceLock = {
+export type MantadInstanceLock = {
   readonly path: string
   readonly record: OrcadLockRecord
   release(): void
@@ -121,7 +121,7 @@ function parseLockRecord(content: string): OrcadLockRecord | null {
 /**
  * Fail closed on a data root other identities can read or write.
  *
- * Why self-heal first and refuse second: orcad stores credentials unsealed (there is no OS
+ * Why self-heal first and refuse second: mantad stores credentials unsealed (there is no OS
  * keyring on this host), so a group- or world-accessible root is a real exposure — but if
  * we own the directory, tightening it is strictly better than refusing to start. We refuse
  * only when the permissions are not ours to fix.
@@ -136,17 +136,17 @@ function assertDataRootIsPrivate(dataRoot: string): void {
   try {
     stats = statSync(dataRoot)
   } catch (error) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_data_root_unusable',
-      `Cannot stat the orcad data root ${dataRoot}: ${(error as Error).message}`
+      `Cannot stat the mantad data root ${dataRoot}: ${(error as Error).message}`
     )
   }
   const uid = process.getuid?.()
   if (uid !== undefined && stats.uid !== uid) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_data_root_wrong_owner',
-      `The orcad data root ${dataRoot} is owned by uid ${stats.uid}, not by uid ${uid} running ` +
-        'this process. Give orcad its own data root (ORCA_USER_DATA) or chown this one.'
+      `The mantad data root ${dataRoot} is owned by uid ${stats.uid}, not by uid ${uid} running ` +
+        'this process. Give mantad its own data root (MANTA_USER_DATA) or chown this one.'
     )
   }
   if ((stats.mode & 0o077) === 0) {
@@ -161,32 +161,32 @@ function assertDataRootIsPrivate(dataRoot: string): void {
   try {
     mode = statSync(dataRoot).mode
   } catch (error) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_data_root_unusable',
-      `Cannot stat the orcad data root ${dataRoot}: ${(error as Error).message}`
+      `Cannot stat the mantad data root ${dataRoot}: ${(error as Error).message}`
     )
   }
   if ((mode & 0o077) !== 0) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_data_root_shared',
-      `The orcad data root ${dataRoot} is accessible to other users (mode ` +
-        `${(mode & 0o777).toString(8)}) and could not be tightened. orcad stores credentials ` +
-        'there unsealed, so it refuses to start. Run `chmod 700` on it, or point ORCA_USER_DATA ' +
+      `The mantad data root ${dataRoot} is accessible to other users (mode ` +
+        `${(mode & 0o777).toString(8)}) and could not be tightened. mantad stores credentials ` +
+        'there unsealed, so it refuses to start. Run `chmod 700` on it, or point MANTA_USER_DATA ' +
         'at a private directory.'
     )
   }
 }
 
 /**
- * Take the lock, or throw an `OrcadInstanceLockError` naming why.
+ * Take the lock, or throw an `MantadInstanceLockError` naming why.
  *
  * A dead holder's record is reclaimed; a live one, or one belonging to a different identity,
  * is never touched.
  */
-export function acquireOrcadInstanceLock(
+export function acquireMantadInstanceLock(
   dataRoot: string,
   hooks: OrcadInstanceLockHooks = {}
-): OrcadInstanceLock {
+): MantadInstanceLock {
   const identity = (hooks.identity ?? defaultIdentity)()
   const isAlive = hooks.processIsAlive ?? defaultProcessIsAlive
   const readStartedAt = hooks.startedAtMs ?? getProcessStartedAtMs
@@ -195,19 +195,19 @@ export function acquireOrcadInstanceLock(
   try {
     mkdirSync(dataRoot, { recursive: true, mode: 0o700 })
   } catch (error) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_data_root_unusable',
-      `Cannot create the orcad data root ${dataRoot}: ${(error as Error).message}`
+      `Cannot create the mantad data root ${dataRoot}: ${(error as Error).message}`
     )
   }
   assertDataRootIsPrivate(dataRoot)
 
-  const lockPath = join(dataRoot, ORCAD_LOCK_FILE_NAME)
+  const lockPath = join(dataRoot, MANTAD_LOCK_FILE_NAME)
   const record: OrcadLockRecord = {
     pid: process.pid,
     startedAtMs: readStartedAt(process.pid),
     identity,
-    version: (hooks.version ?? (() => process.env.ORCA_VERSION ?? 'unknown'))(),
+    version: (hooks.version ?? (() => process.env.MANTA_VERSION ?? 'unknown'))(),
     acquiredAt: (hooks.now ?? (() => new Date()))().toISOString(),
     nonce: randomUUID()
   }
@@ -221,9 +221,9 @@ export function acquireOrcadInstanceLock(
       if (isErrorCode(error, 'EEXIST')) {
         return false
       }
-      throw new OrcadInstanceLockError(
+      throw new MantadInstanceLockError(
         'orcad_data_root_unusable',
-        `Cannot write the orcad instance lock ${lockPath}: ${(error as Error).message}`
+        `Cannot write the mantad instance lock ${lockPath}: ${(error as Error).message}`
       )
     }
   }
@@ -234,24 +234,24 @@ export function acquireOrcadInstanceLock(
 
   const existing = parseLockRecord(safeRead(lockPath) ?? '')
   if (existing && existing.identity !== identity) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_instance_lock_foreign_identity',
-      `The orcad data root ${dataRoot} is locked by identity ${existing.identity} (pid ` +
+      `The mantad data root ${dataRoot} is locked by identity ${existing.identity} (pid ` +
         `${existing.pid}); this process runs as ${identity}. Two identities sharing one data ` +
-        'root corrupts it. Give each its own ORCA_USER_DATA.'
+        'root corrupts it. Give each its own MANTA_USER_DATA.'
     )
   }
   if (existing && isAlive(existing.pid) && matchesStartTime(existing.pid, existing.startedAtMs)) {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_instance_lock_held',
-      `Another orcad (pid ${existing.pid}, started ${existing.acquiredAt || 'unknown'}) already ` +
+      `Another mantad (pid ${existing.pid}, started ${existing.acquiredAt || 'unknown'}) already ` +
         `owns the data root ${dataRoot}. Stop it before starting another, or use a different ` +
-        'ORCA_USER_DATA.'
+        'MANTA_USER_DATA.'
     )
   }
   if (!existing) {
     console.warn(
-      `[orcad] The instance lock at ${lockPath} is unreadable; reclaiming it. If another orcad ` +
+      `[mantad] The instance lock at ${lockPath} is unreadable; reclaiming it. If another mantad ` +
         'is running on this data root, stop it now.'
     )
   }
@@ -263,10 +263,10 @@ export function acquireOrcadInstanceLock(
   try {
     renameSync(lockPath, claimPath)
   } catch {
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_instance_lock_held',
-      `Could not reclaim the stale orcad instance lock at ${lockPath}; another process is ` +
-        'holding it. Retry, or stop the other orcad.'
+      `Could not reclaim the stale mantad instance lock at ${lockPath}; another process is ` +
+        'holding it. Retry, or stop the other mantad.'
     )
   }
   if (!publish()) {
@@ -276,9 +276,9 @@ export function acquireOrcadInstanceLock(
     } catch {
       // A uniquely named claim is inert.
     }
-    throw new OrcadInstanceLockError(
+    throw new MantadInstanceLockError(
       'orcad_instance_lock_held',
-      `Another orcad took the data root ${dataRoot} while this one was reclaiming a stale lock.`
+      `Another mantad took the data root ${dataRoot} while this one was reclaiming a stale lock.`
     )
   }
   try {
@@ -297,7 +297,7 @@ function safeRead(path: string): string | null {
   }
 }
 
-function makeLock(lockPath: string, record: OrcadLockRecord): OrcadInstanceLock {
+function makeLock(lockPath: string, record: OrcadLockRecord): MantadInstanceLock {
   let released = false
   return {
     path: lockPath,
@@ -307,7 +307,7 @@ function makeLock(lockPath: string, record: OrcadLockRecord): OrcadInstanceLock 
         return
       }
       released = true
-      // Why re-read before unlinking: a reclaim by a later orcad (after, say, a SIGKILL that
+      // Why re-read before unlinking: a reclaim by a later mantad (after, say, a SIGKILL that
       // this process somehow survived enough to run handlers) leaves a record that is not
       // ours. Deleting it would unlock a live runtime.
       const current = parseLockRecord(safeRead(lockPath) ?? '')

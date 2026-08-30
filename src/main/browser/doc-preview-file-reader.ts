@@ -31,7 +31,7 @@ const RUNTIME_TOO_LARGE_ERROR = 'file_too_large'
 
 /** Same stance as the SSH relay message: previews fail closed on a host without scoped reads. */
 const RUNTIME_DOC_PREVIEW_UPDATE_REQUIRED_MESSAGE =
-  'Secure document previews require a newer Orca on the paired machine. Update it and try again.'
+  'Secure document previews require a newer Manta on the paired machine. Update it and try again.'
 
 /** Both owners refuse an over-cap file; only their error shapes differ. */
 function isTooLargeReadError(error: unknown): boolean {

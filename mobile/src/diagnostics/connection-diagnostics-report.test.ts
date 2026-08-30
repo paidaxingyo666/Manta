@@ -26,8 +26,8 @@ describe('buildConnectionDiagnosticsReport', () => {
       nowMs: NOW
     })
 
-    expect(report).toContain('App: Orca Mobile 0.0.29 · ios 26.5.1')
-    expect(report).toContain('Host Orca version: 1.4.191')
+    expect(report).toContain('App: Manta Mobile 0.0.29 · ios 26.5.1')
+    expect(report).toContain('Host Manta version: 1.4.191')
     expect(report).toContain('Endpoint: 100.65.9.106:6768 (Tailscale)')
     expect(report).toContain('State: reconnecting (reconnect attempts: 12)')
     expect(report).toContain('(5m 0s ago)')
@@ -50,7 +50,7 @@ describe('buildConnectionDiagnosticsReport', () => {
     })
 
     expect(report).toContain('Endpoint: 192.168.1.50:6768')
-    expect(report).toContain('Host Orca version: unknown')
+    expect(report).toContain('Host Manta version: unknown')
     expect(report).not.toContain('(Tailscale)')
     expect(report).toContain('Last connected: never this session')
     expect(report).toContain('No connection events recorded.')
@@ -81,10 +81,10 @@ describe('buildConnectionDiagnosticsReport', () => {
     })
 
     expect(report).toContain(
-      'Likely cause: Relay service was temporarily unavailable and asked Orca to retry in 30s.'
+      'Likely cause: Relay service was temporarily unavailable and asked Manta to retry in 30s.'
     )
     expect(report).toContain('Path: active=tailscale; recovery=relay')
-    expect(report).toContain('Next step: Keep Orca open; recovery should retry automatically.')
+    expect(report).toContain('Next step: Keep Manta open; recovery should retry automatically.')
     expect(report).toContain('resumeToken=[redacted]')
     expect(report).not.toContain('secret-resume-token')
   })

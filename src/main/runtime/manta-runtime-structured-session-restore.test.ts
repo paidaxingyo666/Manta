@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { setStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 afterEach(() => setStructuredAgentSessionHost(null))
 
 describe('structured session cold restoration', () => {
   it('skips every heavy recovery step when no durable session store exists', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const refresh = vi.fn(async () => new Set<string>())
     const ensureHost = vi.fn(async () => undefined)
     const reconcileRestartLeases = vi.fn(async () => undefined)
@@ -28,7 +28,7 @@ describe('structured session cold restoration', () => {
   })
 
   it('keeps historical journal parsing outside the terminal-safety fence', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const refresh = vi.fn(async () => new Set<string>())
     const ensureHost = vi.fn(async () => undefined)
     const reconcileRestartLeases = vi.fn(async () => undefined)
@@ -52,7 +52,7 @@ describe('structured session cold restoration', () => {
   })
 
   it('loads records, inventories PTYs, restores ownership, then projects tabs exactly once', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const hydrate = vi.fn()
     const refresh = vi.fn(async () => new Set<string>())
     const ensureHost = vi.fn(async () => undefined)
@@ -108,7 +108,7 @@ describe('structured session cold restoration', () => {
   })
 
   it('normalizes a restored tab id and removes it when closed', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const closeSessionTab = vi.fn(async () => undefined)
     runtime.setNotifier({ closeSessionTab } as never)
     const internal = runtime as unknown as {
@@ -219,7 +219,7 @@ describe('structured session cold restoration', () => {
   })
 
   it('commits the host close when the renderer already removed the structured tab', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     runtime.setNotifier({
       closeSessionTab: vi.fn(async () => {
         throw new Error('session_tab_not_found')

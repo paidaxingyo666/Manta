@@ -4931,12 +4931,12 @@
       "oracle": "Create through the normal renderer-store action with client hosting enabled. Require client placement, one client-owned guest at the fixture URL, zero server-owned guests, no remote-browser frame, a visible retained marker, and a browser.snapshot marker from the same remote page. Disable the setting and require that guest to survive; create another page and require one server-owned guest, zero matching client guests, and a visible server screencast. Delay renderer publication after tabCreate acknowledgement and require one exact bounded subscription to materialize the page without polling or cleanup. Reject a client create and require no server fallback. Omit placement or capabilities and require no client-host RPC. During replacement, admit close-first only for negotiated reconciliation of imported inventory; ordinary close-first and navigate-first remain rejected. Run the same placement oracle against headed and headless paired hosts, plus deterministic native, SSH, WSL, folder, worktree, reconnect, retirement, and browserless-host contracts.",
       "commands": [
         "pnpm exec playwright test tests/e2e/paired-client-hosted-browser.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/runtime/web-runtime-session-browser-client-placement.test.ts src/renderer/src/runtime/web-runtime-session-browser-create-failure.test.ts src/main/runtime/orca-runtime-browser-client-hosted.test.ts src/main/runtime/runtime-browser-client-page-creation.test.ts src/main/runtime/browser-host-page-reconciliation-orchestration.test.ts src/main/runtime/browser-host-command-ledger.test.ts",
+        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/runtime/web-runtime-session-browser-client-placement.test.ts src/renderer/src/runtime/web-runtime-session-browser-create-failure.test.ts src/main/runtime/manta-runtime-browser-client-hosted.test.ts src/main/runtime/runtime-browser-client-page-creation.test.ts src/main/runtime/browser-host-page-reconciliation-orchestration.test.ts src/main/runtime/browser-host-command-ledger.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/browser-client-host-protocol.test.ts src/shared/remote-runtime-client.test.ts src/main/runtime/browser-host-capability-selection.test.ts src/main/runtime/rpc/methods/browser-tab-create-schema.test.ts src/main/ipc/runtime-environment-browser-client-host-handler.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts",
         "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Manta.app/Contents/MacOS/Manta pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/browser-network-tunnel-paired-runtime.integration.test.ts src/main/browser/paired-runtime-browser-network-route.test.ts src/main/browser/browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-relay-launch.test.ts src/main/runtime/runtime-browser-network-execution-host.test.ts",
-        "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
+        "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/manta-runtime-browser-screencast-fanout.test.ts",
         "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
         "Manual iOS 26.5 simulator: pair current mobile code to packaged Manta 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface"
       ],
@@ -4944,7 +4944,7 @@
         "tests/e2e/paired-client-hosted-browser.spec.ts",
         "src/renderer/src/runtime/web-runtime-session-browser-client-placement.test.ts",
         "src/renderer/src/runtime/web-runtime-session-browser-create-failure.test.ts",
-        "src/main/runtime/orca-runtime-browser-client-hosted.test.ts",
+        "src/main/runtime/manta-runtime-browser-client-hosted.test.ts",
         "src/main/runtime/runtime-browser-client-page-creation.test.ts",
         "src/main/runtime/browser-host-page-reconciliation-orchestration.test.ts",
         "src/main/runtime/browser-host-command-ledger.test.ts",
@@ -4963,7 +4963,7 @@
         "src/main/runtime/runtime-browser-network-execution-host.test.ts",
         "src/main/browser/browser-screencast-lifecycle.test.ts",
         "src/main/browser/browser-screencast-stream.test.ts",
-        "src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
+        "src/main/runtime/manta-runtime-browser-screencast-fanout.test.ts",
         "tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts"
       ],
       "assertionRefs": [
@@ -5013,7 +5013,7 @@
           ]
         },
         {
-          "file": "src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
+          "file": "src/main/runtime/manta-runtime-browser-screencast-fanout.test.ts",
           "assertions": [
             "two independent viewers share one physical CDP screencast without evicting one another",
             "viewer-specific backpressure and viewport ownership survive attach, detach, and replacement"
@@ -5070,7 +5070,7 @@
           "date": "2026-08-17",
           "runner": "local",
           "platform": "macos",
-          "command": "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
+          "command": "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/manta-runtime-browser-screencast-fanout.test.ts",
           "result": "passed",
           "durationSeconds": 1.2,
           "summary": "22 screencast lifecycle, stream, and shared-fanout tests passed; the suite confirms one physical CDP stream fans out independently to multiple viewers, preserves viewport ownership, and cleans up without cross-viewer eviction."

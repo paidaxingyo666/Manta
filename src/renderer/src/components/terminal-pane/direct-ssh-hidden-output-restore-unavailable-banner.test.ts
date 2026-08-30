@@ -19,7 +19,7 @@ import {
 // Direct-SSH sibling of remote-hidden-output-restore-unavailable-banner.repro.test.ts.
 //
 // Reported by a WSL2 user driving remote Coder workspaces over direct SSH:
-//   "[Orca skipped hidden terminal output because main recovery was unavailable.]"
+//   "[Manta skipped hidden terminal output because main recovery was unavailable.]"
 //   multiple times a day (v1.4.190).
 //
 // Topology modeled: a direct-SSH PTY carries an "ssh:<target>@@<relayPtyId>" id,

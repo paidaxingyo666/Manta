@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  ORCAD_NATIVE_PRECONDITION_EXIT_CODE,
-  runOrcadNativePreflight
-} from './orcad-native-preflight'
+  MANTAD_NATIVE_PRECONDITION_EXIT_CODE,
+  runMantadNativePreflight
+} from './mantad-native-preflight'
 import {
   runtimeTerminalDegradation,
   setRuntimeTerminalUnavailableCause
@@ -28,7 +28,7 @@ const harness = (given: NodePtyPreconditionVerdict) => {
   const warn = vi.fn()
   const fail = vi.fn()
   const exit = vi.fn(() => undefined as never)
-  const continued = runOrcadNativePreflight({
+  const continued = runMantadNativePreflight({
     check: () => given,
     toolchainHints: () => ['  sudo apt-get install -y build-essential python3'],
     warn,
@@ -42,7 +42,7 @@ afterEach(() => {
   setRuntimeTerminalUnavailableCause(null)
 })
 
-describe('runOrcadNativePreflight', () => {
+describe('runMantadNativePreflight', () => {
   it('stops the boot on a proven-unloadable binary instead of reaching the require', () => {
     // Continuing here would hit the very dlopen the probe just proved fatal, and the
     // operator would get the loader's stack trace instead of the sentence below.
@@ -50,7 +50,7 @@ describe('runOrcadNativePreflight', () => {
       verdict({ status: 'blocked', reason: 'libc_floor', detail: 'the binary requires GLIBC_2.34' })
     )
 
-    expect(exit).toHaveBeenCalledWith(ORCAD_NATIVE_PRECONDITION_EXIT_CODE)
+    expect(exit).toHaveBeenCalledWith(MANTAD_NATIVE_PRECONDITION_EXIT_CODE)
     expect(warn).not.toHaveBeenCalled()
     const message = fail.mock.calls[0][0] as string
     expect(message).toContain('newer C library')
@@ -61,8 +61,8 @@ describe('runOrcadNativePreflight', () => {
   })
 
   it('exits with EX_CONFIG so a supervisor does not restart an unequippable host forever', () => {
-    expect(ORCAD_NATIVE_PRECONDITION_EXIT_CODE).toBe(78)
-    expect(ORCAD_NATIVE_PRECONDITION_EXIT_CODE).not.toBe(1)
+    expect(MANTAD_NATIVE_PRECONDITION_EXIT_CODE).toBe(78)
+    expect(MANTAD_NATIVE_PRECONDITION_EXIT_CODE).not.toBe(1)
   })
 
   it('publishes the blocked cause as a status degradation', () => {
@@ -113,7 +113,7 @@ describe('runOrcadNativePreflight', () => {
 
   it('does not run the toolchain probe for a verdict that is not about a missing build', () => {
     const toolchainHints = vi.fn(() => [] as string[])
-    runOrcadNativePreflight({
+    runMantadNativePreflight({
       check: () => verdict({ status: 'degraded', reason: 'spawn_helper_missing' }),
       toolchainHints,
       warn: vi.fn(),

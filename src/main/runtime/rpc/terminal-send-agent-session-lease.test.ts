@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from './dispatcher'
 import { TERMINAL_METHODS } from './methods/terminal'
 import type { RpcRequest } from './core'
-import type { OrcaRuntimeService } from '../orca-runtime'
+import type { MantaRuntimeService } from '../manta-runtime'
 import {
   AgentSessionPtyWriteRefusedError,
   type AgentSessionPtyWriteRefusal
@@ -22,21 +22,21 @@ const REFUSAL: AgentSessionPtyWriteRefusal = {
 
 const rollback = vi.fn()
 
-function stubRuntime(overrides: Partial<OrcaRuntimeService> = {}): OrcaRuntimeService {
+function stubRuntime(overrides: Partial<MantaRuntimeService> = {}): MantaRuntimeService {
   return {
     getRuntimeId: () => 'test-runtime',
     resolveLiveLeafForHandle: vi.fn().mockReturnValue({ ptyId: 'pty-1' }),
     getDriver: vi.fn().mockReturnValue({ kind: 'idle' }),
     beginMobileInputFloor: vi.fn(() => ({ commit: async () => {}, rollback })),
     ...overrides
-  } as OrcaRuntimeService
+  } as MantaRuntimeService
 }
 
 function makeRequest(params: unknown): RpcRequest {
   return { id: 'req-1', authToken: 'tok', method: 'terminal.send', params }
 }
 
-async function send(runtime: OrcaRuntimeService, client: { id: string; type: string }) {
+async function send(runtime: MantaRuntimeService, client: { id: string; type: string }) {
   const dispatcher = new RpcDispatcher({ runtime, methods: TERMINAL_METHODS })
   return await dispatcher.dispatch(makeRequest({ terminal: 'terminal-1', text: 'hello', client }))
 }

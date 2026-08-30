@@ -117,8 +117,8 @@ describe('codex question items', () => {
     const items = codexQuestionItems({ threadId: THREAD_ID, promptKey: CODEX_ITEM_ID, params })
 
     expect(items.map((item) => item.identity)).toEqual([
-      { provider: 'orca', clientMessageId: 'codex-prompt:thread-abc:item-4:q1' },
-      { provider: 'orca', clientMessageId: 'codex-prompt:thread-abc:item-4:q2' }
+      { provider: 'manta', clientMessageId: 'codex-prompt:thread-abc:item-4:q1' },
+      { provider: 'manta', clientMessageId: 'codex-prompt:thread-abc:item-4:q2' }
     ])
   })
 
@@ -173,7 +173,7 @@ describe('codex question items', () => {
 
   it('keys an approval without a question id', () => {
     expect(codexPromptIdentity({ threadId: THREAD_ID, promptKey: CODEX_ITEM_ID })).toEqual({
-      provider: 'orca',
+      provider: 'manta',
       clientMessageId: 'codex-prompt:thread-abc:item-4'
     })
   })

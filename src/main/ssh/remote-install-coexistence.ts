@@ -1,5 +1,5 @@
 /**
- * What a client does when it finds both a relay and an orcad installed on one host.
+ * What a client does when it finds both a relay and an mantad installed on one host.
  *
  * `docs/design/shipping-orcad.html` §06 draws the line the boundary doc actually draws:
  * two *directories* on disk are fine and permanent; two *registered targets* for one
@@ -8,7 +8,7 @@
  *
  * So the model is never inferred from the filesystem. It is decided by how the user
  * registered the host, and the on-disk inventory is only ever diagnostic. Inferring it —
- * "an orcad dir exists, so prefer orcad" — would let a GC pass, a half-finished install or
+ * "an mantad dir exists, so prefer mantad" — would let a GC pass, a half-finished install or
  * a stale tree silently re-point a live connection at a different execution identity.
  */
 import { inventoryRemoteInstallDirs, type RemoteInstallModelId } from './remote-install-model'
@@ -43,7 +43,7 @@ export type RemoteInstallSelection =
  */
 export function selectRemoteInstallModel(input: {
   registration: RemoteHostRegistration
-  /** Raw directory names under `~/.orca-remote/`, as listed on the host. */
+  /** Raw directory names under `~/.manta-remote/`, as listed on the host. */
   installedDirNames: readonly string[]
 }): RemoteInstallSelection {
   if (input.registration === 'both') {
@@ -51,7 +51,7 @@ export function selectRemoteInstallModel(input: {
       outcome: 'refuse',
       code: 'remote_host_registered_under_both_models',
       reason:
-        'This machine is registered both as an SSH target and as a paired orcad peer. One ' +
+        'This machine is registered both as an SSH target and as a paired mantad peer. One ' +
         'machine must have one execution identity, or its worktrees and terminals split ' +
         'across two owners that cannot see each other. Remove one registration. Leaving ' +
         'both install directories on disk is fine and expected.'
@@ -63,19 +63,19 @@ export function selectRemoteInstallModel(input: {
       code: 'remote_host_not_registered',
       reason:
         'This machine has no execution model registered. Add it as an SSH target or pair it ' +
-        'as an orcad peer; what is already installed on it does not decide which it is.'
+        'as an mantad peer; what is already installed on it does not decide which it is.'
     }
   }
-  const model: RemoteInstallModelId = input.registration === 'ssh-target' ? 'relay' : 'orcad'
+  const model: RemoteInstallModelId = input.registration === 'ssh-target' ? 'relay' : 'mantad'
   const inventory = inventoryRemoteInstallDirs(input.installedDirNames)
-  const coexisting = model === 'relay' ? inventory.orcad : inventory.relay
+  const coexisting = model === 'relay' ? inventory.mantad : inventory.relay
   return {
     outcome: 'use',
     model,
     coexisting,
     note:
       coexisting.length > 0
-        ? `This host also has ${coexisting.length} ${model === 'relay' ? 'orcad' : 'relay'} ` +
+        ? `This host also has ${coexisting.length} ${model === 'relay' ? 'mantad' : 'relay'} ` +
           `install directory(ies) (${coexisting.join(', ')}). They are left untouched: each ` +
           'model garbage-collects only its own namespace.'
         : null

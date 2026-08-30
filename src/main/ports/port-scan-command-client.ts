@@ -319,7 +319,7 @@ export function resolveWorkerEntryPath(layout: WorkerEntryLayout): string {
   // the bundler's __dirname, matching the shipped stt/warp/opencode workers.
   // Split out from the electron read so the packaged branch is testable without
   // a packaged build.
-  // Why the resourcesPath guard: `isPackaged` is true on orcad too, but
+  // Why the resourcesPath guard: `isPackaged` is true on mantad too, but
   // `process.resourcesPath` is Electron-only and undefined under plain Node — joining
   // it threw a TypeError rather than failing as a missing worker. A host without an
   // Electron resources tree has no asar to look in, so fall back to the module dir and

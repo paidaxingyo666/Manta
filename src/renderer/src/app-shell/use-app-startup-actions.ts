@@ -15,7 +15,7 @@ export function useStartupActions() {
       fetchAllWorktrees: s.fetchAllWorktrees,
       fetchWorktrees: s.fetchWorktrees,
       fetchWorktreeLineage: s.fetchWorktreeLineage,
-      fetchOrcaProfiles: s.fetchOrcaProfiles,
+      fetchMantaProfiles: s.fetchMantaProfiles,
       fetchSettings: s.fetchSettings,
       awaitOwnerWorktreeVisibilityDefaultsHydration:
         s.awaitOwnerWorktreeVisibilityDefaultsHydration,

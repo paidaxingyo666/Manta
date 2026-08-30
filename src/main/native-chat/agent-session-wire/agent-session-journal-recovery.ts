@@ -42,7 +42,7 @@ export function recoveryJournalDir(journalDir: string): string {
 }
 
 /** The provider's own session id, which is what the transcript readers index
- *  by — never the Orca session id. */
+ *  by — never the Manta session id. */
 export function providerHistoryId(handle: AgentSessionProviderHandle): string {
   if (handle.kind === 'codex') {
     return handle.threadId

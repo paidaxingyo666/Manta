@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createConnectionLogStore } from './connection-log-buffer'
 import type { ConnectionLogEntry } from './types'
+import { translate } from '../i18n/i18n'
 
 const STORAGE_PREFIX = 'orca.mobile.connection-log.v1.'
 const clientSessionId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -34,7 +35,7 @@ export function recordConnectionRevival(
     ts: now,
     level: 'info',
     code: reason === 'app-resume' ? 'app-resumed' : 'network-changed',
-    message: reason === 'app-resume' ? 'App returned to foreground' : 'Network changed',
+    message: reason === 'app-resume' ? translate("m.persisted.connection.log.store.de6c1a64dd", "App returned to foreground") : translate("m.persisted.connection.log.store.58dd04eee9", "Network changed"),
     detail: 'Connection recovery notified'
   })
 }
@@ -50,7 +51,7 @@ export function recordConnectionClientSessionStart(hostId: string): void {
     ts: now,
     level: 'info',
     code: 'client-session-started',
-    message: 'Mobile client session started'
+    message: translate("m.persisted.connection.log.store.c28191823b", "Mobile client session started")
   })
 }
 

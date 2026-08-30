@@ -3,7 +3,7 @@ import { posix, win32 } from 'node:path'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 
 /**
- * A preview grant is the only authority that turns an `orca-preview://` request
+ * A preview grant is the only authority that turns an `manta-preview://` request
  * into bytes: it names the host that owns the file and the single directory
  * subtree requests may resolve inside. No grant, no bytes.
  */

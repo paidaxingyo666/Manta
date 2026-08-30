@@ -207,7 +207,7 @@ describe('orchestration gate commands carry caller identity', () => {
           {
             orchestrationRequestId: 'mutation_1',
             originalCommand: [
-              'orca',
+              'manta',
               'orchestration',
               'gate-create',
               '--task',

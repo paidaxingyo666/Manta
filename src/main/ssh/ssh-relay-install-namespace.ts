@@ -46,8 +46,8 @@ export function relayRemoteDirSegments(
 }
 
 /**
- * The model-parameterized form. `relay-<v>` and `orcad-<v>` are permanent siblings under
- * one `.orca-remote/` (see remote-install-model.ts), so the prefix is an argument.
+ * The model-parameterized form. `relay-<v>` and `mantad-<v>` are permanent siblings under
+ * one `.manta-remote/` (see remote-install-model.ts), so the prefix is an argument.
  */
 export function remoteInstallDirSegments(
   model: RemoteInstallModel,

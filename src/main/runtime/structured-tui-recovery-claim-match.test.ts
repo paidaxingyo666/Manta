@@ -7,23 +7,23 @@ import {
 // Modeled after a packaged restart whose first recovery claim failed.
 const PACKAGED_CANDIDATE: StructuredTuiRecoveryClaimCandidate = {
   expectedWorkspaceId:
-    '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture',
+    '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture',
   claimMatches: true,
   pty: {
     connected: true,
     ptyId:
-      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture@@fda34510',
+      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture@@fda34510',
     incarnationId: '4cf23679-8987-487d-a24c-dba3bed1b442',
     worktreeId:
-      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture'
+      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture'
   },
   owner: {
     phase: 'live',
     ptyId:
-      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture@@fda34510',
+      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture@@fda34510',
     surface: {
       worktreeId:
-        '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture',
+        '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture',
       tabId: 'ced3bd39-262b-41f3-a446-92ceab4f938c',
       leafId: 'd4e9d94d-8ec3-4d0d-8ca3-52730ba61c24'
     }
@@ -32,7 +32,7 @@ const PACKAGED_CANDIDATE: StructuredTuiRecoveryClaimCandidate = {
     sessionResolved: true,
     tabPresent: true,
     ptyId:
-      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/orca/workspaces/orca/recovery-fixture@@fda34510',
+      '4d68c30a-b7eb-4078-a1ca-e44e9fa75024::/Users/alice/manta/workspaces/manta/recovery-fixture@@fda34510',
     incarnationId: null
   }
 }

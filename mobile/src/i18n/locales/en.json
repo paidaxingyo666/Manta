@@ -7,7 +7,10 @@
             "actions": {
               "d380ec81a0": "Remove",
               "9c12136964": "Edit host",
-              "57290dfe4b": "Disconnect"
+              "57290dfe4b": "Disconnect",
+              "b9ce652dd1": "Network diagnostics",
+              "072e40b005": "Connect",
+              "0641634e14": "Reconnect"
             }
           }
         }
@@ -31,6 +34,12 @@
         "7d7f763de8": "Host must not include a path or query.",
         "1d030015d1": "Use ws:// or wss:// (or host:port).",
         "cfce487cfa": "Enter a host address."
+      },
+      "entry": {
+        "opener": {
+          "e40eea0afb": "Host client recovered",
+          "a92a6b03d4": "Host client open failed"
+        }
       }
     },
     "mobile": {
@@ -48,6 +57,11 @@
             "97129930cc": "Expected exactly one endpoint for configured relay metadata",
             "7becc2880a": "Relay host identity mismatch",
             "0a36dc1b70": "Relay identity and endpoint must coexist"
+          }
+        },
+        "rpc": {
+          "session": {
+            "e13b42eb6e": "Relay health check failed"
           }
         }
       },
@@ -273,7 +287,23 @@
         "1a265761bf": "Copy diagnostics",
         "0d8cbd791b": "Copied",
         "9aee626b28": " · attempt {{value0}}",
-        "c78dc5ccfb": "Connection log"
+        "c78dc5ccfb": "Connection log",
+        "8a647c3df9": "No connection events yet. Events appear as the app dials this host.",
+        "e9f27427b4": "Send diagnostics to Manta",
+        "abfd913c55": "Retry sending",
+        "37de5c5676": "Diagnostics sent",
+        "45bd68e67e": "Sending…",
+        "68f76867a2": "Sends a size-limited redacted report including host name, endpoint, versions, connection state, and events—never terminal contents or credentials.",
+        "2a4e5d28c5": "What this suggests",
+        "364a248d79": "Copy report",
+        "a74b2501d7": "Network diagnostics"
+      },
+      "diagnostics": {
+        "submission": {
+          "3712ed6691": "request failed",
+          "519897e0d5": "request timed out",
+          "d28cec3768": "status {{value0}}"
+        }
       }
     },
     "terminal": {
@@ -1244,7 +1274,8 @@
       "f2c3857280": "Platform",
       "21ef75f0f3": "Hosts",
       "de003da9ea": "Internet",
-      "fc87d4676b": "Paired hosts"
+      "fc87d4676b": "Paired hosts",
+      "ac0976ca35": "View network diagnostics"
     },
     "mock": {
       "server": {
@@ -1302,6 +1333,7 @@
       }
     },
     "index": {
+      "3055838788": "Hide default branch",
       "a3cfae357a": "Remove \"{{value0}}\"? You can re-pair later.",
       "c8e253dc76": "Remove Host",
       "267203af46": "7d",
@@ -1327,7 +1359,6 @@
       "aea01b53db": "You're connected",
       "6cac1b9d8b": "Scan the code",
       "813580ddc9": "Open Manta desktop",
-      "3055838788": "Hide default branch",
       "1db32a2799": "Remove \"{{value0}}\"? You can re-pair later.",
       "b6776c9891": "Remove Host",
       "3c26b0ed7f": "Delete",
@@ -1890,6 +1921,20 @@
       "fb82b8a66c": "{{value0}} tabs",
       "291c4edd48": "1 tab",
       "bc570e2e5a": "Loading tabs"
+    },
+    "persisted": {
+      "connection": {
+        "log": {
+          "store": {
+            "c28191823b": "Mobile client session started",
+            "58dd04eee9": "Network changed",
+            "de6c1a64dd": "App returned to foreground"
+          }
+        }
+      }
+    },
+    "HostDiagnosticsLink": {
+      "ceff9523b5": "View network diagnostics"
     }
   },
   "mobile": {

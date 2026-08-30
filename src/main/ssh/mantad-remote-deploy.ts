@@ -1,9 +1,9 @@
 /**
- * Installing orcad on a host and, only if it proves itself, making it the active one.
+ * Installing mantad on a host and, only if it proves itself, making it the active one.
  *
  * The install half is the relay's transaction, parameterized: the same per-version lock,
  * staged SFTP write, `.install-complete` sentinel and stale-lock recovery, under
- * `orcad-<version>/` instead of `relay-<version>/`. That is what §02 marks reusable.
+ * `mantad-<version>/` instead of `relay-<version>/`. That is what §02 marks reusable.
  *
  * The activation half has no relay equivalent, because the relay has no notion of a version
  * being *selected*. Bytes landing in a versioned directory neither picks a version nor rolls
@@ -14,7 +14,7 @@
  */
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
-import { ORCAD_INSTALL_MODEL } from './remote-install-model'
+import { MANTAD_INSTALL_MODEL } from './remote-install-model'
 import { acquireInstallLock } from './ssh-relay-install-lock'
 import { uploadRelayDirectory, writeRelayFile } from './ssh-relay-install-transfers'
 import {
@@ -26,40 +26,40 @@ import {
 } from './ssh-relay-versioned-install'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import {
-  ORCAD_STATE_SNAPSHOT_DIR,
+  MANTAD_STATE_SNAPSHOT_DIR,
   serializeOrcadActivationRecord,
   withActivatedVersion,
   type OrcadActivationRecord,
   type OrcadStateSnapshot
-} from './orcad-activation-record'
-import { orcadActivationPath, readOrcadActivationRecord } from './orcad-activation-record-store'
-import { evaluateOrcadActivation, type OrcadActivationVerdict } from './orcad-activation-gate'
-import { planOrcadUpdate, type OrcadTerminalCensus } from './orcad-update-plan'
+} from './mantad-activation-record'
+import { orcadActivationPath, readOrcadActivationRecord } from './mantad-activation-record-store'
+import { evaluateOrcadActivation, type OrcadActivationVerdict } from './mantad-activation-gate'
+import { planOrcadUpdate, type OrcadTerminalCensus } from './mantad-update-plan'
 import {
-  ORCAD_LOG_FILENAME,
+  MANTAD_LOG_FILENAME,
   orcadLaunchCommand,
   parseOrcadReadinessOutput,
   readOrcadReadinessCommand,
   type OrcadLaunchSpec
-} from './orcad-remote-launch'
+} from './mantad-remote-launch'
 import {
   captureOrcadStateSnapshotCommand,
   orcadSnapshotDirName,
   parseOrcadSnapshotCapture
-} from './orcad-state-snapshot'
+} from './mantad-state-snapshot'
 import {
   orcadStopFreedTheHost,
   parseOrcadStopOutcome,
   stopOrcadCommand
-} from './orcad-remote-process-control'
+} from './mantad-remote-process-control'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
-import { computeLocalOrcadBuildHash } from './orcad-local-build-hash'
+import { computeLocalOrcadBuildHash } from './mantad-local-build-hash'
 
 export type OrcadDeployOptions = {
   conn: SshConnection
   host: RemoteHostPlatform
   remoteHome: string
-  /** Local `out/orcad`, containing the artifacts and the `.version` marker. */
+  /** Local `out/mantad`, containing the artifacts and the `.version` marker. */
   localOrcadDir: string
   nodePath: string
   userDataDir: string
@@ -102,14 +102,14 @@ function baseDir(options: OrcadDeployOptions): string {
   return joinRemotePath(options.host, options.remoteHome, RELAY_REMOTE_DIR)
 }
 
-/** Install the bytes under `orcad-<version>/`, using the relay's install transaction. */
+/** Install the bytes under `mantad-<version>/`, using the relay's install transaction. */
 async function installOrcadBundle(
   options: OrcadDeployOptions,
   fullVersion: string,
   remoteDir: string
 ): Promise<void> {
   if (
-    await isRemoteInstallComplete(options.conn, ORCAD_INSTALL_MODEL, remoteDir, options.host, {
+    await isRemoteInstallComplete(options.conn, MANTAD_INSTALL_MODEL, remoteDir, options.host, {
       signal: options.signal
     })
   ) {
@@ -119,7 +119,7 @@ async function installOrcadBundle(
   try {
     // Re-probe under the lock: a sibling deploy may have finished while we waited.
     if (
-      await isRemoteInstallComplete(options.conn, ORCAD_INSTALL_MODEL, remoteDir, options.host, {
+      await isRemoteInstallComplete(options.conn, MANTAD_INSTALL_MODEL, remoteDir, options.host, {
         signal: options.signal
       })
     ) {
@@ -131,7 +131,7 @@ async function installOrcadBundle(
     await writeRelayFile(
       options.conn,
       options.host,
-      joinRemotePath(options.host, remoteDir, ORCAD_INSTALL_MODEL.versionFilename),
+      joinRemotePath(options.host, remoteDir, MANTAD_INSTALL_MODEL.versionFilename),
       fullVersion,
       { signal: options.signal }
     )
@@ -153,7 +153,7 @@ async function captureSnapshot(
   const snapshotDir = joinRemotePath(
     options.host,
     baseDir(options),
-    ORCAD_STATE_SNAPSHOT_DIR,
+    MANTAD_STATE_SNAPSHOT_DIR,
     dirName
   )
   const capture = parseOrcadSnapshotCapture(
@@ -164,7 +164,7 @@ async function captureSnapshot(
   )
   if (capture === 'failed') {
     throw new Error(
-      `Could not snapshot ${options.userDataDir} before activating ${fullVersion}. Orca's ` +
+      `Could not snapshot ${options.userDataDir} before activating ${fullVersion}. Manta's ` +
         'persisted state carries no schema version, so without a snapshot a rollback has no ' +
         'way back. Refusing to activate.'
     )
@@ -230,7 +230,7 @@ async function restoreIncumbent(
     return 'No previous version was active, so this host is now serving nothing.'
   }
   const incumbentDir = computeRemoteInstallDir(
-    ORCAD_INSTALL_MODEL,
+    MANTAD_INSTALL_MODEL,
     options.remoteHome,
     record.active
   )
@@ -243,8 +243,8 @@ async function restoreIncumbent(
     port: options.port
   })
   return parsed.state === 'ready'
-    ? `orcad ${record.active} was restarted and is serving again.`
-    : `orcad ${record.active} was relaunched but has not published readiness; this host may be down.`
+    ? `mantad ${record.active} was restarted and is serving again.`
+    : `mantad ${record.active} was relaunched but has not published readiness; this host may be down.`
 }
 
 /**
@@ -257,7 +257,7 @@ async function restoreIncumbent(
 export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDeployResult> {
   const now = options.now ?? ((): Date => new Date())
   const fullVersion = readLocalFullVersion(options.localOrcadDir)
-  const remoteDir = computeRemoteInstallDir(ORCAD_INSTALL_MODEL, options.remoteHome, fullVersion)
+  const remoteDir = computeRemoteInstallDir(MANTAD_INSTALL_MODEL, options.remoteHome, fullVersion)
   const record = await readOrcadActivationRecord(options)
 
   await installOrcadBundle(options, fullVersion, remoteDir)
@@ -286,7 +286,7 @@ export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDep
 
   if (record.active) {
     const outgoingDir = computeRemoteInstallDir(
-      ORCAD_INSTALL_MODEL,
+      MANTAD_INSTALL_MODEL,
       options.remoteHome,
       record.active
     )
@@ -304,7 +304,7 @@ export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDep
         fullVersion,
         code: 'orcad_outgoing_stop_incomplete',
         reason:
-          `orcad ${record.active} did not exit within ${STOP_WAIT_SECONDS}s of SIGTERM ` +
+          `mantad ${record.active} did not exit within ${STOP_WAIT_SECONDS}s of SIGTERM ` +
           `(${stopped}). It is still holding the data root and the port, so the candidate ` +
           'cannot start. Not escalating to SIGKILL: that skips the shutdown that releases ' +
           'the instance lock, and the successor would then refuse to start.'
@@ -332,7 +332,7 @@ export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDep
       code: verdict.code,
       reason:
         `${verdict.reason} Candidate stderr is at ` +
-        `${joinRemotePath(options.host, remoteDir, ORCAD_LOG_FILENAME)}. ${restored}`
+        `${joinRemotePath(options.host, remoteDir, MANTAD_LOG_FILENAME)}. ${restored}`
     }
   }
 

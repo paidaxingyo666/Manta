@@ -22,7 +22,9 @@ export const PR_CHECK_JOBS = [
   'xterm_patch_sync',
   'shell_contracts',
   'test',
-  'orcad_browser',
+  'mantad_browser',
+  // This fork ships a self-hosted relay upstream has no counterpart for.
+  'relay',
   'cross-version-wire',
   'managed_hook_node18',
   'package',
@@ -78,11 +80,11 @@ const SHELL_PREFIXES = [
   'config/scripts/node-pty-job-ownership'
 ]
 
-const ORCAD_BROWSER_PREFIXES = [
-  'src/main/orcad/external-chromium-',
-  'src/main/orcad/orcad-browser-provider',
-  'src/main/orcad/orcad-agent-browser-binary',
-  'src/main/orcad/electron-serve-browser-process'
+const MANTAD_BROWSER_PREFIXES = [
+  'src/main/mantad/external-chromium-',
+  'src/main/mantad/mantad-browser-provider',
+  'src/main/mantad/mantad-agent-browser-binary',
+  'src/main/mantad/electron-serve-browser-process'
 ]
 
 const CROSS_VERSION_WIRE_PREFIXES = [
@@ -200,7 +202,7 @@ const WINDOWS_PACKAGE_TESTS = [
   'src/shared/source-scan/source-tree-scan.test.ts',
   'src/main/cli/wsl-cli-powershell-boundary.test.ts',
   'src/main/cursor/hook-service.test.ts',
-  'src/main/orca-profiles/profile-index-store.test.ts',
+  'src/main/manta-profiles/profile-index-store.test.ts',
   'src/main/runtime/repo-worktree-admin-fingerprint.test.ts',
   'src/main/runtime/worktree-scan-admin-fingerprint-gate.test.ts',
   'src/shared/secure-file-fsync-flags.test.ts',
@@ -251,16 +253,29 @@ export function classifyPrJobs(changedFiles) {
   }
 }
 
+// The two shared entries are the only desktop modules the relay imports;
+// `src/shared/` as a whole would fire this job on nearly every PR.
+const RELAY_PREFIXES = [
+  'relay-server/',
+  'src/relay/',
+  'src/shared/mobile-relay-phone-protocol',
+  'src/shared/host-proof'
+]
+
 function jobDetector(job) {
   switch (job) {
+    // Why src/shared too: most relay tests import the desktop's protocol
+    // implementation to prove the two agree byte for byte.
+    case 'relay':
+      return (files) => files.some((file) => matchesPrefix(file, RELAY_PREFIXES))
     case 'git_compatibility':
       return (files) => files.some((file) => matchesPrefix(file, GIT_COMPAT_PREFIXES))
     case 'xterm_patch_sync':
       return (files) => files.some((file) => matchesPrefix(file, XTERM_PREFIXES))
     case 'shell_contracts':
       return (files) => files.some((file) => matchesPrefix(file, SHELL_PREFIXES))
-    case 'orcad_browser':
-      return (files) => files.some((file) => matchesPrefix(file, ORCAD_BROWSER_PREFIXES))
+    case 'mantad_browser':
+      return (files) => files.some((file) => matchesPrefix(file, MANTAD_BROWSER_PREFIXES))
     case 'cross-version-wire':
       return (files) => files.some((file) => matchesPrefix(file, CROSS_VERSION_WIRE_PREFIXES))
     case 'managed_hook_node18':

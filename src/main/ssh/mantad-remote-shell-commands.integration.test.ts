@@ -13,10 +13,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   orcadLivenessProbeCommand,
-  ORCAD_PID_FILENAME,
+  MANTAD_PID_FILENAME,
   parseOrcadLiveness
-} from './orcad-remote-launch'
-import { parseOrcadStopOutcome, stopOrcadCommand } from './orcad-remote-process-control'
+} from './mantad-remote-launch'
+import { parseOrcadStopOutcome, stopOrcadCommand } from './mantad-remote-process-control'
 import {
   captureOrcadStateSnapshotCommand,
   newestStateMtimeCommand,
@@ -25,7 +25,7 @@ import {
   parseOrcadSnapshotRestore,
   probeOrcadStateSnapshotCommand,
   restoreOrcadStateSnapshotCommand
-} from './orcad-state-snapshot'
+} from './mantad-state-snapshot'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 const host = getRemoteHostPlatform('linux-x64')
@@ -40,14 +40,14 @@ function sh(command: string): string {
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'orcad-shell-'))
-  dataDir = join(root, '.orca')
+  dataDir = join(root, '.manta')
   snapshotDir = join(root, 'snapshots', 'pre-0.2.0+bb01-1000')
-  versionDir = join(root, '.orca-remote', 'orcad-0.2.0+bb01')
+  versionDir = join(root, '.manta-remote', 'mantad-0.2.0+bb01')
   mkdirSync(join(dataDir, 'profiles', 'p1'), { recursive: true })
   mkdirSync(join(dataDir, 'daemon'), { recursive: true })
   mkdirSync(versionDir, { recursive: true })
-  writeFileSync(join(dataDir, 'orca-profile-index.json'), '{"v":"before"}')
-  writeFileSync(join(dataDir, 'profiles', 'p1', 'orca-data.json'), '{"repos":"before"}')
+  writeFileSync(join(dataDir, 'manta-profile-index.json'), '{"v":"before"}')
+  writeFileSync(join(dataDir, 'profiles', 'p1', 'manta-data.json'), '{"repos":"before"}')
   writeFileSync(join(dataDir, 'daemon', 'daemon.sock.token'), 'live-daemon-token')
 })
 
@@ -63,13 +63,13 @@ describe('state snapshot commands, run for real', () => {
     expect(sh(probeOrcadStateSnapshotCommand(host, snapshotDir)).trim()).toBe('PRESENT')
 
     // The new version migrates the store and adds a file of its own.
-    writeFileSync(join(dataDir, 'orca-profile-index.json'), '{"v":"migrated"}')
+    writeFileSync(join(dataDir, 'manta-profile-index.json'), '{"v":"migrated"}')
     writeFileSync(join(dataDir, 'profiles', 'p1', 'new-build-only.json'), '{}')
 
     expect(
       parseOrcadSnapshotRestore(sh(restoreOrcadStateSnapshotCommand(host, dataDir, snapshotDir)))
     ).toBe('restored')
-    expect(readFileSync(join(dataDir, 'orca-profile-index.json'), 'utf8')).toBe('{"v":"before"}')
+    expect(readFileSync(join(dataDir, 'manta-profile-index.json'), 'utf8')).toBe('{"v":"before"}')
     // Removed before extraction, so the older build never sees a file it cannot interpret.
     expect(() => readFileSync(join(dataDir, 'profiles', 'p1', 'new-build-only.json'))).toThrow()
   })
@@ -111,33 +111,33 @@ describe('state snapshot commands, run for real', () => {
   it('survives a data root whose path contains a quote and a space', () => {
     const nasty = join(root, `it's a dir`)
     mkdirSync(join(nasty, 'profiles'), { recursive: true })
-    writeFileSync(join(nasty, 'orca-profile-index.json'), '{"v":"quoted"}')
+    writeFileSync(join(nasty, 'manta-profile-index.json'), '{"v":"quoted"}')
     expect(
       parseOrcadSnapshotCapture(sh(captureOrcadStateSnapshotCommand(host, nasty, snapshotDir)))
     ).toBe('captured')
-    writeFileSync(join(nasty, 'orca-profile-index.json'), '{"v":"changed"}')
+    writeFileSync(join(nasty, 'manta-profile-index.json'), '{"v":"changed"}')
     expect(
       parseOrcadSnapshotRestore(sh(restoreOrcadStateSnapshotCommand(host, nasty, snapshotDir)))
     ).toBe('restored')
-    expect(readFileSync(join(nasty, 'orca-profile-index.json'), 'utf8')).toBe('{"v":"quoted"}')
+    expect(readFileSync(join(nasty, 'manta-profile-index.json'), 'utf8')).toBe('{"v":"quoted"}')
   })
 })
 
 describe('liveness and stop commands, run for real', () => {
   it('reports UNKNOWN with no pid file, and DEAD for a pid that has exited', () => {
     expect(parseOrcadLiveness(sh(orcadLivenessProbeCommand(host, versionDir)))).toBe('UNKNOWN')
-    writeFileSync(join(versionDir, ORCAD_PID_FILENAME), 'not-a-pid')
+    writeFileSync(join(versionDir, MANTAD_PID_FILENAME), 'not-a-pid')
     expect(parseOrcadLiveness(sh(orcadLivenessProbeCommand(host, versionDir)))).toBe('UNKNOWN')
     // A pid that has certainly exited: our own `sh` child from the line above.
     const exited = Number(sh('sh -c "echo $$"').trim())
-    writeFileSync(join(versionDir, ORCAD_PID_FILENAME), String(exited))
+    writeFileSync(join(versionDir, MANTAD_PID_FILENAME), String(exited))
     expect(parseOrcadLiveness(sh(orcadLivenessProbeCommand(host, versionDir)))).toBe('DEAD')
   })
 
   it('reports LIVE for a running process and stops it with SIGTERM', async () => {
     const child = spawn('/bin/sh', ['-c', 'sleep 30'], { stdio: 'ignore' })
     try {
-      writeFileSync(join(versionDir, ORCAD_PID_FILENAME), String(child.pid))
+      writeFileSync(join(versionDir, MANTAD_PID_FILENAME), String(child.pid))
       expect(parseOrcadLiveness(sh(orcadLivenessProbeCommand(host, versionDir)))).toBe('LIVE')
 
       const exited = new Promise<NodeJS.Signals | null>((resolve) =>
@@ -159,7 +159,7 @@ describe('liveness and stop commands, run for real', () => {
   it('reports a zombie as DEAD, not as a running process', () => {
     const child = spawn('/bin/sh', ['-c', 'exit 0'], { stdio: 'ignore' })
     try {
-      writeFileSync(join(versionDir, ORCAD_PID_FILENAME), String(child.pid))
+      writeFileSync(join(versionDir, MANTAD_PID_FILENAME), String(child.pid))
       // Block the event loop so Node never reaps it; the process is now a zombie.
       sh('sleep 1')
       expect(sh(`ps -o stat= -p ${child.pid} || echo GONE`).trim()).toMatch(/^Z/)
@@ -175,7 +175,7 @@ describe('liveness and stop commands, run for real', () => {
 
   it('reports ALREADY_EXITED for a stale pid file rather than signalling a stranger', () => {
     const exited = Number(sh('sh -c "echo $$"').trim())
-    writeFileSync(join(versionDir, ORCAD_PID_FILENAME), String(exited))
+    writeFileSync(join(versionDir, MANTAD_PID_FILENAME), String(exited))
     expect(parseOrcadStopOutcome(sh(stopOrcadCommand(host, versionDir, { waitSeconds: 1 })))).toBe(
       'already-exited'
     )

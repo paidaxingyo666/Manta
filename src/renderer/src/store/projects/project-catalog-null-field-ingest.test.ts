@@ -9,13 +9,13 @@ import { fetchProjectHostSetupCompatibility, setupWithFetchedOwner } from './pro
 // (reading 'trim')". Normalizing at ingest is what must make that unreachable — by the time a
 // row is in the store, its declared field types hold.
 const repos = [
-  { id: 'repo-1', path: '/Users/alice/orca', displayName: 'orca', badgeColor: '#000', addedAt: 1 }
+  { id: 'repo-1', path: '/Users/alice/manta', displayName: 'manta', badgeColor: '#000', addedAt: 1 }
 ] satisfies Repo[]
 
 const projects = [
   {
     id: 'repo:repo-1',
-    displayName: 'orca',
+    displayName: 'manta',
     badgeColor: '#000',
     sourceRepoIds: ['repo-1'],
     createdAt: 1,
@@ -52,17 +52,17 @@ function badSetups(): ProjectHostSetup[] {
     projectId: 'repo:repo-1',
     hostId: 'local',
     repoId: 'repo-1',
-    path: '/Users/alice/orca',
+    path: '/Users/alice/manta',
     displayName,
     setupState: 'ready',
     setupMethod: 'legacy-repo',
     createdAt: 1,
     updatedAt: 1
   })
-  const corrupted = base('repo:repo-1::local::2', 'orca-2')
+  const corrupted = base('repo:repo-1::local::2', 'manta-2')
   Reflect.set(corrupted, 'repoId', null)
   Reflect.set(corrupted, 'path', null)
-  return [base('repo:repo-1::local', 'orca'), corrupted]
+  return [base('repo:repo-1::local', 'manta'), corrupted]
 }
 
 function stubProjectsApi(setups: ProjectHostSetup[], projectRows: Project[] = projects): void {
@@ -85,7 +85,7 @@ describe('project catalog ingest with non-string row fields', () => {
     expect(row?.path).toBe('')
   })
 
-  // Why: a remote host on a different Orca version is a first-class source of these rows, and
+  // Why: a remote host on a different Manta version is a first-class source of these rows, and
   // decoders hand them over verbatim — the client cannot assume the host already repaired them.
   it('coerces on the remote adoption boundary too', () => {
     const adopted = setupWithFetchedOwner(badSetups()[1]!, {

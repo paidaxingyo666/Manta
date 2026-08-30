@@ -1,5 +1,5 @@
 /**
- * Host scan for processes carrying an Orca agent-session spawn token.
+ * Host scan for processes carrying a Manta agent-session spawn token.
  *
  * The token is the only PID-reuse-safe identity element a child is guaranteed to carry, and it
  * lives in the child's environment — which only Linux lets another process read (`/proc/<pid>/environ`).

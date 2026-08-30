@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { selectRemoteInstallModel } from './remote-install-coexistence'
 
-const BOTH_INSTALLED = ['relay-0.1.0+aa01', 'orcad-0.2.0+bb01', 'orcad-0.1.0+aa01']
+const BOTH_INSTALLED = ['relay-0.1.0+aa01', 'mantad-0.2.0+bb01', 'mantad-0.1.0+aa01']
 
 describe('what a client does when it finds both models installed', () => {
   it('uses the registered model and leaves the other install alone', () => {
@@ -10,7 +10,7 @@ describe('what a client does when it finds both models installed', () => {
       registration: 'orcad-peer',
       installedDirNames: BOTH_INSTALLED
     })
-    expect(selection).toMatchObject({ outcome: 'use', model: 'orcad' })
+    expect(selection).toMatchObject({ outcome: 'use', model: 'mantad' })
     expect(selection.outcome === 'use' && selection.coexisting).toEqual(['relay-0.1.0+aa01'])
     expect(selection.outcome === 'use' && selection.note).toContain(
       'garbage-collects only its own namespace'
@@ -24,19 +24,19 @@ describe('what a client does when it finds both models installed', () => {
     })
     expect(selection).toMatchObject({ outcome: 'use', model: 'relay' })
     expect(selection.outcome === 'use' && selection.coexisting).toEqual([
-      'orcad-0.2.0+bb01',
-      'orcad-0.1.0+aa01'
+      'mantad-0.2.0+bb01',
+      'mantad-0.1.0+aa01'
     ])
   })
 
   it('picks the registered model even when only the other one is installed', () => {
     // On-disk presence is diagnostic, never a vote: an orcad-registered host with only relay
-    // dirs is a first orcad deploy, not a reason to fall back to the relay.
+    // dirs is a first mantad deploy, not a reason to fall back to the relay.
     const selection = selectRemoteInstallModel({
       registration: 'orcad-peer',
       installedDirNames: ['relay-0.1.0+aa01']
     })
-    expect(selection).toMatchObject({ outcome: 'use', model: 'orcad' })
+    expect(selection).toMatchObject({ outcome: 'use', model: 'mantad' })
   })
 
   it('refuses a machine registered under both models', () => {
@@ -69,8 +69,8 @@ describe('what a client does when it finds both models installed', () => {
   it('says nothing when there is nothing coexisting', () => {
     const selection = selectRemoteInstallModel({
       registration: 'orcad-peer',
-      installedDirNames: ['orcad-0.2.0+bb01']
+      installedDirNames: ['mantad-0.2.0+bb01']
     })
-    expect(selection).toMatchObject({ outcome: 'use', model: 'orcad', note: null })
+    expect(selection).toMatchObject({ outcome: 'use', model: 'mantad', note: null })
   })
 })

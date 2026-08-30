@@ -91,7 +91,7 @@ function readRecord(value: unknown): Record<string, unknown> {
 /**
  * Durable identity for a Codex item, or null for one that has none.
  *
- * Non-message items fall back to the `orca` namespace keyed by the Codex item
+ * Non-message items fall back to the `manta` namespace keyed by the Codex item
  * id. That id is unstable across resume, so those rows are live-session detail
  * that a recovered journal simply will not contain — which is correct: Codex
  * itself does not persist them either.
@@ -111,7 +111,7 @@ export function codexItemIdentity(input: {
       ordinal: input.ordinals.ordinalFor(input.threadId, turnId, item.id)
     }
   }
-  return { provider: 'orca', clientMessageId: `codex-item:${input.threadId}:${item.id}` }
+  return { provider: 'manta', clientMessageId: `codex-item:${input.threadId}:${item.id}` }
 }
 
 function readString(source: Record<string, unknown>, key: string): string | null {

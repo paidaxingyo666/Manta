@@ -458,7 +458,7 @@ describe('github RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       markRepoPRReadyForReview: vi.fn().mockResolvedValue({ ok: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: GITHUB_METHODS })
 
     const response = await dispatcher.dispatch(

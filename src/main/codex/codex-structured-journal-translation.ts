@@ -102,7 +102,7 @@ export function createCodexJournalTranslator(
       const suppressed = (suppressedRowsByTurn.get(bucket) ?? 0) + 1
       suppressedRowsByTurn.set(bucket, suppressed)
       deps.sink.appendItem(
-        { provider: 'orca', clientMessageId: `provider-frame-suppressed:codex:${bucket}` },
+        { provider: 'manta', clientMessageId: `provider-frame-suppressed:codex:${bucket}` },
         {
           kind: 'status',
           text: `${suppressed} more provider notification${suppressed === 1 ? '' : 's'} not shown for this turn`
@@ -114,7 +114,7 @@ export function createCodexJournalTranslator(
     genericRowsByTurn.set(bucket, rowCount + 1)
     fallbackSequence += 1
     deps.sink.appendItem(
-      { provider: 'orca', clientMessageId: `provider-frame:codex:${fallbackSequence}` },
+      { provider: 'manta', clientMessageId: `provider-frame:codex:${fallbackSequence}` },
       translated.body,
       translated.blobs
     )

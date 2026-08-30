@@ -518,10 +518,10 @@ describe('MantaRuntimeRpcServer WebSocket bind host (STA-2370)', () => {
     }
   })
 
-  it('honours a pinned bind host over exposeNetworkByDefault (orcad --bind)', async () => {
-    const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+  it('honours a pinned bind host over exposeNetworkByDefault (mantad --bind)', async () => {
+    const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       enableWebSocket: true,
       wsPort: 0,
@@ -541,16 +541,16 @@ describe('MantaRuntimeRpcServer WebSocket bind host (STA-2370)', () => {
   })
 
   it('stays pinned to loopback even after a device has connected once', async () => {
-    const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))
+    const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
     // Why this case specifically: the unpinned default widens at the NEXT startup once any
-    // network-reach device has connected. A loopback orcad would therefore go wide one
+    // network-reach device has connected. A loopback mantad would therefore go wide one
     // restart after its first client paired — silently, and without the operator asking.
     const registry = new DeviceRegistry(userDataPath)
     const device = registry.getOrCreatePendingDevice('CLI', 'runtime', 'network')
     registry.updateLastSeen(device.deviceId)
 
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       enableWebSocket: true,
       wsPort: 0,
@@ -572,10 +572,10 @@ describe('MantaRuntimeRpcServer WebSocket bind host (STA-2370)', () => {
   })
 
   it('refuses a runtime-widening pairing offer while the bind is pinned to loopback', async () => {
-    const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))
+    const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       enableWebSocket: true,
       wsPort: 0,
@@ -602,9 +602,9 @@ describe('MantaRuntimeRpcServer WebSocket bind host (STA-2370)', () => {
   })
 
   it('still widens on request when the operator pinned the wide address', async () => {
-    const userDataPath = mkdtempSync(join(tmpdir(), 'orca-runtime-rpc-'))
-    const server = new OrcaRuntimeRpcServer({
-      runtime: new OrcaRuntimeService(),
+    const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
+    const server = new MantaRuntimeRpcServer({
+      runtime: new MantaRuntimeService(),
       userDataPath,
       enableWebSocket: true,
       wsPort: 0,

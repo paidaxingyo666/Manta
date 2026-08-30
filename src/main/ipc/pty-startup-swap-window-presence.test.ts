@@ -32,7 +32,7 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
-vi.mock('../cli/linux-terminal-orca-cli-shim', () =>
+vi.mock('../cli/linux-terminal-manta-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
 vi.mock('../memory/pty-registry', () =>
@@ -238,7 +238,7 @@ describe('registerPtyHandlers daemon-swap-window presence', () => {
   })
 
   it('keeps the in-process provider authoritative when no startup barrier is configured', async () => {
-    // Headless/orcad installs the daemon before registerPtyHandlers and passes
+    // Headless/mantad installs the daemon before registerPtyHandlers and passes
     // no barrier; the installed provider is then the sole owner (#12393) and
     // its false stays an observed absence.
     let controller: { hasPty: (ptyId: string) => boolean | null } | undefined

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { assessOrcadRollback, planOrcadUpdate } from './orcad-update-plan'
+import { assessOrcadRollback, planOrcadUpdate } from './mantad-update-plan'
 import {
   emptyOrcadActivationRecord,
   type OrcadActivationRecord,
   type OrcadStateSnapshot
-} from './orcad-activation-record'
+} from './mantad-activation-record'
 
 const SNAPSHOT: OrcadStateSnapshot = {
   dirName: 'pre-0.2.0+bb01-1000',
@@ -41,7 +41,7 @@ describe('planOrcadUpdate', () => {
       candidateVersion: '0.3.0+cc01',
       census: { liveSessions: 3, startedSinceActivation: 1 }
     })
-    expect(plan).toMatchObject({ action: 'defer', code: 'orcad_update_terminals_running' })
+    expect(plan).toMatchObject({ action: 'defer', code: 'mantad_update_terminals_running' })
     expect(plan.action === 'defer' && plan.reason).toContain('would not kill them')
   })
 
@@ -53,7 +53,7 @@ describe('planOrcadUpdate', () => {
     })
     expect(plan).toMatchObject({
       action: 'defer',
-      code: 'orcad_update_terminal_census_unavailable'
+      code: 'mantad_update_terminal_census_unavailable'
     })
   })
 

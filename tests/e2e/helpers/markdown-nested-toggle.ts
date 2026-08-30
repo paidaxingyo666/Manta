@@ -10,10 +10,10 @@ export const NESTED_TOGGLE_BODY_TEXT = 'Get back to ppl'
 export const NESTED_TOGGLE_MARKDOWN = [
   '# 08/27/2026',
   '',
-  '<details class="orca-details" data-orca-toggle="heading-3" open>',
+  '<details class="manta-details" data-manta-toggle="heading-3" open>',
   '<summary>08/26/2026</summary>',
   '',
-  '<details class="orca-details" open>',
+  '<details class="manta-details" open>',
   '<summary>goals</summary>',
   '',
   '- Get back to ppl',
@@ -29,7 +29,7 @@ export const NESTED_TOGGLE_MARKDOWN = [
 // An inner toggle carrying unsupported attributes cannot become an editable
 // node, so the whole block must still fall back to byte-preserving passthrough.
 export const UNSUPPORTED_NESTED_TOGGLE_MARKDOWN = [
-  '<details class="orca-details" open>',
+  '<details class="manta-details" open>',
   '<summary>outer</summary>',
   '',
   '<details id="not-a-toggle">',
@@ -63,7 +63,7 @@ export async function readRenderedToggles(page: Page): Promise<RenderedToggles> 
       summaries: toggles.map(
         (toggle) => toggle.querySelector('summary')?.textContent?.trim() ?? ''
       ),
-      variants: toggles.map((toggle) => toggle.getAttribute('data-orca-toggle')),
+      variants: toggles.map((toggle) => toggle.getAttribute('data-manta-toggle')),
       passthroughBlockCount: editor?.querySelectorAll('[data-raw-markdown-html-block]').length ?? 0
     }
   })
@@ -143,8 +143,8 @@ export async function expectSentinelInsideNestedToggle(
 }
 
 export function expectFileKeepsNesting(fileContents: string, sentinel: string): void {
-  const outerOpen = fileContents.indexOf('<details class="orca-details" data-orca-toggle=')
-  const innerOpen = fileContents.indexOf('<details class="orca-details" open>')
+  const outerOpen = fileContents.indexOf('<details class="manta-details" data-manta-toggle=')
+  const innerOpen = fileContents.indexOf('<details class="manta-details" open>')
   const firstClose = fileContents.indexOf('</details>')
   const sentinelAt = fileContents.indexOf(sentinel)
 

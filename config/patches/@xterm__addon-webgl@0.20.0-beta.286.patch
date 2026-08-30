@@ -259,7 +259,7 @@ diff -ruN a/src/TextureAtlas.ts b/src/TextureAtlas.ts
      const fontStyle = italic ? 'italic' : '';
      this._tmpCtx.font =
        `${fontStyle} ${fontWeight} ${this._config.fontSize * this._config.devicePixelRatio}px ${this._config.fontFamily}`;
-+    // Orca font probe: canvas silently keeps its previous font when an assignment
++    // Manta font probe: canvas silently keeps its previous font when an assignment
 +    // fails to parse, which rasterizes glyphs at a stale weight (bold-collapse
 +    // family). Normalize Canvas font serialization: Chromium omits 400 and emits
 +    // the keyword bold for 700.

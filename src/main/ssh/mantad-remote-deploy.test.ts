@@ -13,15 +13,15 @@ vi.mock('./ssh-relay-install-transfers', () => ({
   uploadRelayDirectory: vi.fn().mockResolvedValue(undefined),
   writeRelayFile: vi.fn().mockResolvedValue(undefined)
 }))
-vi.mock('./orcad-local-build-hash', () => ({
+vi.mock('./mantad-local-build-hash', () => ({
   computeLocalOrcadBuildHash: () => 'abc123def4567890'
 }))
 
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { acquireInstallLock } from './ssh-relay-install-lock'
 import { uploadRelayDirectory, writeRelayFile } from './ssh-relay-install-transfers'
-import { deployOrcad, type OrcadDeployOptions } from './orcad-remote-deploy'
-import { emptyOrcadActivationRecord, withActivatedVersion } from './orcad-activation-record'
+import { deployOrcad, type OrcadDeployOptions } from './mantad-remote-deploy'
+import { emptyOrcadActivationRecord, withActivatedVersion } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 
@@ -43,7 +43,7 @@ function readyLine(overrides: {
   selfTestOk?: boolean
 }): string {
   return JSON.stringify({
-    type: 'orca_server_ready',
+    type: 'manta_server_ready',
     schemaVersion: 1,
     runtimeId: 'r1',
     boundEndpoint: 'ws://127.0.0.1:7777',
@@ -86,10 +86,10 @@ type HostScript = {
 function scriptHost(script: HostScript): void {
   mockExec.mockImplementation(async (_conn, command: string) => {
     const text = String(command)
-    if (text.startsWith('cat ') && text.includes('orcad-active.json')) {
+    if (text.startsWith('cat ') && text.includes('mantad-active.json')) {
       return script.activationRecord
     }
-    if (text.includes('.orcad-readiness') && text.startsWith('cat ')) {
+    if (text.includes('.mantad-readiness') && text.startsWith('cat ')) {
       const version = Object.keys(script.readiness).find((v) => text.includes(v))
       return version ? script.readiness[version] : ''
     }
@@ -114,9 +114,9 @@ function options(overrides: Partial<OrcadDeployOptions> = {}): OrcadDeployOption
     conn: {} as SshConnection,
     host: getRemoteHostPlatform('linux-x64'),
     remoteHome: '/home/u',
-    localOrcadDir: '/local/out/orcad',
+    localOrcadDir: '/local/out/mantad',
     nodePath: '/usr/bin/node',
-    userDataDir: '/home/u/.orca',
+    userDataDir: '/home/u/.manta',
     bindHost: '127.0.0.1',
     port: 7777,
     census: { liveSessions: 0, startedSinceActivation: 0 },
@@ -136,7 +136,7 @@ describe('deployOrcad', () => {
     vi.clearAllMocks()
   })
 
-  it('installs under the orcad namespace, not the relay one', async () => {
+  it('installs under the mantad namespace, not the relay one', async () => {
     const script: HostScript = {
       activationRecord: '',
       readiness: { [NEW_VERSION]: readyLine({}) },
@@ -145,9 +145,9 @@ describe('deployOrcad', () => {
     scriptHost(script)
     await deployOrcad(options())
     expect(vi.mocked(acquireInstallLock).mock.calls[0][1]).toBe(
-      `/home/u/.orca-remote/orcad-${NEW_VERSION}`
+      `/home/u/.manta-remote/mantad-${NEW_VERSION}`
     )
-    expect(vi.mocked(uploadRelayDirectory).mock.calls[0][2]).toContain(`orcad-${NEW_VERSION}`)
+    expect(vi.mocked(uploadRelayDirectory).mock.calls[0][2]).toContain(`mantad-${NEW_VERSION}`)
   })
 
   it('activates a healthy candidate and records the outgoing version as the rollback target', async () => {
@@ -161,7 +161,7 @@ describe('deployOrcad', () => {
     expect(result).toMatchObject({ outcome: 'installed-and-activated', fullVersion: NEW_VERSION })
     const written = vi
       .mocked(writeRelayFile)
-      .mock.calls.find((call) => String(call[2]).endsWith('orcad-active.json'))
+      .mock.calls.find((call) => String(call[2]).endsWith('mantad-active.json'))
     expect(JSON.parse(String(written?.[3]))).toMatchObject({
       active: NEW_VERSION,
       previous: OLD_VERSION
@@ -192,7 +192,7 @@ describe('deployOrcad', () => {
     )
     expect(result).toMatchObject({
       outcome: 'installed-not-activated',
-      code: 'orcad_update_terminals_running'
+      code: 'mantad_update_terminals_running'
     })
     // The bytes landed; nothing was stopped, launched or snapshotted.
     expect(vi.mocked(uploadRelayDirectory)).toHaveBeenCalled()
@@ -211,7 +211,7 @@ describe('deployOrcad', () => {
     expect(
       vi
         .mocked(writeRelayFile)
-        .mock.calls.some((call) => String(call[2]).endsWith('orcad-active.json'))
+        .mock.calls.some((call) => String(call[2]).endsWith('mantad-active.json'))
     ).toBe(false)
   })
 
@@ -235,7 +235,7 @@ describe('deployOrcad', () => {
       `launch:${OLD_VERSION}`
     ])
     expect(result.outcome === 'installed-not-activated' && result.reason).toContain(
-      `orcad ${OLD_VERSION} was restarted and is serving again`
+      `mantad ${OLD_VERSION} was restarted and is serving again`
     )
   })
 

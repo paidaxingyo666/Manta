@@ -139,7 +139,7 @@ export type AttachedJournal = {
 
 /**
  * Open the session's journal, recovering it when the stored one is unusable,
- * and settle every submission left in flight by a previous process. Orca never
+ * and settle every submission left in flight by a previous process. Manta never
  * re-sends those; they surface as delivery unconfirmed.
  */
 export async function attachJournal(input: {

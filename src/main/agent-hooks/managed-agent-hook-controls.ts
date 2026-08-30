@@ -44,7 +44,7 @@ export function isAgentStatusHooksEnabled(
 export type StartupManagedHookAction = 'install' | 'skip'
 
 // Why never 'remove': this reads THIS instance's settings, but the managed hook files are
-// user-global (~/.claude/settings.json, ~/.cursor/hooks.json). A second Orca profile with the off
+// user-global (~/.claude/settings.json, ~/.cursor/hooks.json). A second Manta profile with the off
 // switch set would delete the hooks every other instance depends on, and Cursor — the one agent
 // with no title-derived status fallback — then goes silently idle (STA-5679). Honoring the off
 // switch only requires skipping the install; explicit removal stays on the Settings toggle.

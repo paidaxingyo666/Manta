@@ -191,7 +191,7 @@ export async function probeAgentSessionProcessIdentities(args: {
 }
 
 /**
- * Probe one recorded owner. `observedExit` short-circuits everything: Orca watching that exact
+ * Probe one recorded owner. `observedExit` short-circuits everything: Manta watching that exact
  * process exit is the strongest evidence available.
  */
 export async function probeAgentSessionProcessIdentity(args: {

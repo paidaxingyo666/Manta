@@ -19,8 +19,8 @@ vi.mock('./ssh-relay-install-lock', () => ({
 }))
 
 import { execCommand } from './ssh-relay-deploy-helpers'
-import { gcOldOrcadVersions } from './orcad-remote-gc'
-import { emptyOrcadActivationRecord } from './orcad-activation-record'
+import { gcOldOrcadVersions } from './mantad-remote-gc'
+import { emptyOrcadActivationRecord } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 
@@ -63,12 +63,12 @@ function scriptHost(options: {
   })
 }
 
-describe('orcad GC', () => {
+describe('mantad GC', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('scopes its remote listing to the orcad namespace', async () => {
+  it('scopes its remote listing to the mantad namespace', async () => {
     const removed: string[] = []
     scriptHost({ listing: [], removed })
     await gcOldOrcadVersions({
@@ -81,7 +81,7 @@ describe('orcad GC', () => {
     const listCommand = mockExec.mock.calls
       .map((call) => String(call[1]))
       .find((c) => c.includes('find'))
-    expect(listCommand).toContain("-name 'orcad-*'")
+    expect(listCommand).toContain("-name 'mantad-*'")
     expect(listCommand).not.toContain("-name 'relay-*'")
   })
 
@@ -89,7 +89,7 @@ describe('orcad GC', () => {
     // The host is lying — or a future listing bug widened the glob. GC must still refuse.
     const removed: string[] = []
     scriptHost({
-      listing: ['relay-0.1.0+aa', 'relay-0.0.9+ff', 'orcad-0.1.0+aa'],
+      listing: ['relay-0.1.0+aa', 'relay-0.0.9+ff', 'mantad-0.1.0+aa'],
       removed
     })
     await gcOldOrcadVersions({
@@ -99,13 +99,13 @@ describe('orcad GC', () => {
       currentDirAbsPath: '/home/u/.orca-remote/orcad-0.2.0+bb',
       record: emptyOrcadActivationRecord()
     })
-    expect(removed).toEqual(['orcad-0.1.0+aa'])
+    expect(removed).toEqual(['mantad-0.1.0+aa'])
   })
 
   it('never removes the active or the previous version', async () => {
     const removed: string[] = []
     scriptHost({
-      listing: ['orcad-0.1.0+01d', 'orcad-0.2.0+9ee0', 'orcad-0.3.0+cc0'],
+      listing: ['mantad-0.1.0+01d', 'mantad-0.2.0+9ee0', 'mantad-0.3.0+cc0'],
       removed
     })
     await gcOldOrcadVersions({
@@ -119,12 +119,12 @@ describe('orcad GC', () => {
         previous: '0.2.0+9ee0'
       }
     })
-    expect(removed).toEqual(['orcad-0.1.0+01d'])
+    expect(removed).toEqual(['mantad-0.1.0+01d'])
   })
 
   it('never removes the version a live daemon was forked from', async () => {
     const removed: string[] = []
-    scriptHost({ listing: ['orcad-0.1.0+01d', 'orcad-0.0.9+01de'], removed })
+    scriptHost({ listing: ['mantad-0.1.0+01d', 'mantad-0.0.9+01de'], removed })
     await gcOldOrcadVersions({
       conn,
       host,
@@ -133,14 +133,14 @@ describe('orcad GC', () => {
       record: { ...emptyOrcadActivationRecord(), active: '0.3.0+cc0' },
       liveDaemonVersion: '0.1.0+01d'
     })
-    expect(removed).toEqual(['orcad-0.0.9+01de'])
+    expect(removed).toEqual(['mantad-0.0.9+01de'])
   })
 
   it('treats an unanswerable liveness probe as in use', async () => {
     const removed: string[] = []
     scriptHost({
-      listing: ['orcad-0.1.0+bb0', 'orcad-0.0.9+dead'],
-      liveness: { 'orcad-0.1.0+bb0': 'UNKNOWN', 'orcad-0.0.9+dead': 'DEAD' },
+      listing: ['mantad-0.1.0+bb0', 'mantad-0.0.9+dead'],
+      liveness: { 'mantad-0.1.0+bb0': 'UNKNOWN', 'mantad-0.0.9+dead': 'DEAD' },
       removed
     })
     await gcOldOrcadVersions({
@@ -150,6 +150,6 @@ describe('orcad GC', () => {
       currentDirAbsPath: '/home/u/.orca-remote/orcad-0.3.0+cc0',
       record: emptyOrcadActivationRecord()
     })
-    expect(removed).toEqual(['orcad-0.0.9+dead'])
+    expect(removed).toEqual(['mantad-0.0.9+dead'])
   })
 })

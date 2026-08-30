@@ -92,7 +92,7 @@ describe('Codex WSL runtime hook install', () => {
       await new Promise<void>((resolve) => releases.push(resolve))
       return null
     })
-    const firstHome = '\\\\wsl$\\Ubuntu\\home\\Alice\\.local\\share\\orca\\codex-runtime-home\\home'
+    const firstHome = '\\\\wsl$\\Ubuntu\\home\\Alice\\.local\\share\\manta\\codex-runtime-home\\home'
     const alias = firstHome.replace('\\\\wsl$', '\\\\wsl.localhost')
     const independent = firstHome.replace('\\Alice\\', '\\Bob\\')
 
@@ -114,7 +114,7 @@ describe('Codex WSL runtime hook install', () => {
       started.push(target?.wslDistro ?? '')
       return null
     })
-    const home = 'D:\\wsl-home\\.local\\share\\orca\\codex-runtime-home\\home'
+    const home = 'D:\\wsl-home\\.local\\share\\manta\\codex-runtime-home\\home'
 
     await Promise.all([
       service.installForRuntimeHomeSerialized(home, { runtime: 'wsl', wslDistro: 'Ubuntu' }),
@@ -132,7 +132,7 @@ describe('Codex WSL runtime hook install', () => {
       return null
     })
     const upper =
-      '\\\\wsl.localhost\\Ubuntu\\home\\Alice\\.local\\share\\orca\\codex-runtime-home\\home'
+      '\\\\wsl.localhost\\Ubuntu\\home\\Alice\\.local\\share\\manta\\codex-runtime-home\\home'
     const lower = upper.replace('\\Alice\\', '\\alice\\')
 
     await Promise.all([

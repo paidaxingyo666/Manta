@@ -88,7 +88,7 @@ afterEach(async () => {
 })
 
 describe('providerHistoryId', () => {
-  it('uses the provider handle, never the Orca session id', () => {
+  it('uses the provider handle, never the Manta session id', () => {
     expect(providerHistoryId({ kind: 'codex', threadId: 'thread-9' })).toBe('thread-9')
     expect(providerHistoryId({ kind: 'claude', sessionId: 'sess-9', leafUuid: null })).toBe(
       'sess-9'

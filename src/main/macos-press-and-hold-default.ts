@@ -4,7 +4,7 @@ import { runProcessSync, type ProcessResult } from '../shared/child-process/run-
 import { writeFileAtomically } from './codex-accounts/fs-utils'
 
 /**
- * Turns off the macOS accent picker for Orca's own preferences domain (#14746).
+ * Turns off the macOS accent picker for Manta's own preferences domain (#14746).
  *
  * macOS routes press-and-hold to the accent popup unless an app opts out via
  * `ApplePressAndHoldEnabled`, so holding `j` in vim inserts one character instead of repeating.
@@ -49,7 +49,7 @@ export type PressAndHoldDecision =
   | 'not-macos'
   /** A previous launch already decided; the domain is never touched again. */
   | 'already-decided'
-  /** The running bundle is not Orca's (e.g. a bare `Electron.app`), whose domain we do not own. */
+  /** The running bundle is not Manta's (e.g. a bare `Electron.app`), whose domain we do not own. */
   | 'foreign-bundle'
   /** `defaults read` could not answer, so we cannot tell an unset key from a user's choice. */
   | 'probe-failed'
@@ -80,7 +80,7 @@ export type PressAndHoldHost = {
   now: () => string
 }
 
-/** Only Orca's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
+/** Only Manta's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
  *  unpackaged Electron app on the machine. */
 export function isOrcaPreferencesDomain(domain: string): boolean {
   return domain === ORCA_BUNDLE_ID || domain.startsWith(`${ORCA_BUNDLE_ID}.`)
@@ -169,7 +169,7 @@ function parseRecord(raw: string): PressAndHoldRecord | null {
 }
 
 /**
- * Apply Orca's press-and-hold default at most once, leaving any explicit user value alone.
+ * Apply Manta's press-and-hold default at most once, leaving any explicit user value alone.
  *
  * Returns the decision so startup can log it; the same value is persisted for support triage.
  */

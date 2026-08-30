@@ -1,18 +1,18 @@
 /**
- * The address `orcad` binds its RPC listener to.
+ * The address `mantad` binds its RPC listener to.
  *
  * Why loopback by default: the desktop stays on loopback until the user pairs, and the
- * shipping design reaches a remote orcad over an SSH local port-forward — so the wide
- * bind orcad had was both a departure from the desktop's posture and unnecessary for the
+ * shipping design reaches a remote mantad over an SSH local port-forward — so the wide
+ * bind mantad had was both a departure from the desktop's posture and unnecessary for the
  * deploy model. Exposure is now something an operator asks for by name.
  */
 import { isIP } from 'node:net'
 
-export const ORCAD_LOOPBACK_BIND_HOST = '127.0.0.1'
+export const MANTAD_LOOPBACK_BIND_HOST = '127.0.0.1'
 const ALL_INTERFACES_V4 = '0.0.0.0'
 const ALL_INTERFACES_V6 = '::'
 
-export class OrcadBindAddressError extends Error {
+export class MantadBindAddressError extends Error {
   readonly code = 'orcad_invalid_bind_address'
 }
 
@@ -24,19 +24,19 @@ export class OrcadBindAddressError extends Error {
  * writes `--bind internal.example` would have no way to know whether the service came up
  * on a private interface or a public one.
  */
-export function resolveOrcadBindHost(raw?: string): string {
+export function resolveMantadBindHost(raw?: string): string {
   if (raw === undefined) {
-    return ORCAD_LOOPBACK_BIND_HOST
+    return MANTAD_LOOPBACK_BIND_HOST
   }
   const value = raw.trim()
   if (value === '') {
-    throw new OrcadBindAddressError('--bind expects an address')
+    throw new MantadBindAddressError('--bind expects an address')
   }
   if (value === 'localhost') {
-    return ORCAD_LOOPBACK_BIND_HOST
+    return MANTAD_LOOPBACK_BIND_HOST
   }
   if (isIP(value) === 0) {
-    throw new OrcadBindAddressError(
+    throw new MantadBindAddressError(
       `--bind expects a literal IP address (got '${value}'). Hostnames are refused because ` +
         'DNS decides which interface would be bound. Use 127.0.0.1 for loopback, or ' +
         '0.0.0.0 to expose every interface.'
@@ -57,10 +57,10 @@ export function bindHostIsNetworkExposed(host: string): boolean {
 }
 
 /** One line for the startup log, so an exposed deployment is never a silent default. */
-export function describeOrcadBindExposure(host: string): string {
+export function describeMantadBindExposure(host: string): string {
   return bindHostIsNetworkExposed(host)
-    ? `orcad is bound to ${host} and is reachable from the network. Anything that can reach ` +
+    ? `mantad is bound to ${host} and is reachable from the network. Anything that can reach ` +
         'this port can attempt pairing.'
-    : `orcad is bound to ${host} (local only). Reach it from another machine with an SSH ` +
+    : `mantad is bound to ${host} (local only). Reach it from another machine with an SSH ` +
         'local port-forward, or re-launch with --bind to expose it.'
 }

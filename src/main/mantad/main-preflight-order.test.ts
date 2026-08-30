@@ -7,20 +7,20 @@ import { describe, expect, it, vi } from 'vitest'
  */
 const order: string[] = []
 
-vi.mock('./orcad-native-preflight', () => ({
-  runOrcadNativePreflight: () => {
+vi.mock('./mantad-native-preflight', () => ({
+  runMantadNativePreflight: () => {
     order.push('preflight')
     return true
   }
 }))
 
-vi.mock('./orcad-entry', () => ({
+vi.mock('./mantad-entry', () => ({
   main: async () => {
     order.push('main')
   }
 }))
 
-describe('orcad entry', () => {
+describe('mantad entry', () => {
   it('runs the native preflight before starting the runtime', async () => {
     await import('./main')
     await vi.waitFor(() => expect(order).toContain('main'))

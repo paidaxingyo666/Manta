@@ -12,8 +12,8 @@ vi.mock('./ssh-relay-install-transfers', () => ({
 
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { writeRelayFile } from './ssh-relay-install-transfers'
-import { rollbackOrcad, type OrcadRollbackOptions } from './orcad-remote-rollback'
-import { emptyOrcadActivationRecord, type OrcadActivationRecord } from './orcad-activation-record'
+import { rollbackOrcad, type OrcadRollbackOptions } from './mantad-remote-rollback'
+import { emptyOrcadActivationRecord, type OrcadActivationRecord } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 
@@ -40,7 +40,7 @@ function record(overrides: Partial<OrcadActivationRecord> = {}): OrcadActivation
 
 function readyLine(version: string): string {
   return JSON.stringify({
-    type: 'orca_server_ready',
+    type: 'manta_server_ready',
     schemaVersion: 1,
     runtimeId: 'r1',
     boundEndpoint: 'ws://127.0.0.1:7777',
@@ -89,7 +89,7 @@ function scriptHost(log: string[], overrides: { restore?: string } = {}): void {
       log.push(`launch:${text.includes(ACTIVE) ? ACTIVE : TARGET}`)
       return '9999'
     }
-    if (text.startsWith('cat ') && text.includes('.orcad-readiness')) {
+    if (text.startsWith('cat ') && text.includes('.mantad-readiness')) {
       return readyLine(TARGET)
     }
     return ''
@@ -103,7 +103,7 @@ function options(overrides: Partial<OrcadRollbackOptions> = {}): OrcadRollbackOp
     remoteHome: '/home/u',
     record: record(),
     nodePath: '/usr/bin/node',
-    userDataDir: '/home/u/.orca',
+    userDataDir: '/home/u/.manta',
     bindHost: '127.0.0.1',
     port: 7777,
     census: { liveSessions: 0, startedSinceActivation: 0 },
@@ -125,7 +125,7 @@ describe('rollbackOrcad', () => {
     scriptHost(log)
     const result = await rollbackOrcad(options())
     expect(result).toMatchObject({ outcome: 'rolled-back', target: TARGET })
-    // Restoring under a running orcad would replace the store beneath a process holding it;
+    // Restoring under a running mantad would replace the store beneath a process holding it;
     // starting first would let the older build migrate the newer build's state.
     expect(log).toEqual([`stop:${ACTIVE}`, 'restore', `launch:${TARGET}`])
   })
@@ -193,7 +193,7 @@ describe('rollbackOrcad', () => {
     await rollbackOrcad(options())
     const written = vi
       .mocked(writeRelayFile)
-      .mock.calls.find((call) => String(call[2]).endsWith('orcad-active.json'))
+      .mock.calls.find((call) => String(call[2]).endsWith('mantad-active.json'))
     expect(JSON.parse(String(written?.[3]))).toMatchObject({
       active: TARGET,
       previous: null,

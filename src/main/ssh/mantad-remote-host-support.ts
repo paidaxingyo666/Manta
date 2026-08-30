@@ -1,5 +1,5 @@
 /**
- * Which hosts the orcad launch/lifecycle path actually supports, declared rather than
+ * Which hosts the mantad launch/lifecycle path actually supports, declared rather than
  * discovered at runtime.
  *
  * The install transaction is host-agnostic — it is the relay's, and the relay runs on
@@ -13,7 +13,7 @@ export class OrcadRemoteLaunchUnsupportedError extends Error {
   readonly code = 'orcad_remote_launch_unsupported_host'
   constructor(hostLabel: string) {
     super(
-      `Deploying orcad to a ${hostLabel} host is not implemented. The install transaction is ` +
+      `Deploying mantad to a ${hostLabel} host is not implemented. The install transaction is ` +
         'host-agnostic, but the launch and readiness path is POSIX-only: it uses nohup, a ' +
         'redirected stdout and `kill -0` liveness. Use the relay for this host.'
     )
@@ -27,8 +27,8 @@ export function assertPosixOrcadHost(host: RemoteHostPlatform): void {
   }
 }
 
-/** PID of the launched orcad, written into its own version dir at launch. */
-export const ORCAD_PID_FILENAME = '.orcad-pid'
+/** PID of the launched mantad, written into its own version dir at launch. */
+export const MANTAD_PID_FILENAME = '.orcad-pid'
 
 /**
  * A shell function answering whether a PID is a *running* process.

@@ -5,7 +5,7 @@
 // rows a reconnecting client still needs. Truncating the log afterwards is
 // idempotent: a crash before it leaves the log a superset of the tail.
 //
-// The retained tail must cover the longest reconnect window Orca supports, or a
+// The retained tail must cover the longest reconnect window Manta supports, or a
 // client that was merely asleep gets a full snapshot reload instead of a resume.
 
 import {
@@ -41,7 +41,7 @@ export type JournalCompactionPolicy = {
 }
 
 /** Two hours of tail comfortably covers a phone that slept through a commute,
- *  which is the longest reconnect Orca resumes rather than reloads. */
+ *  which is the longest reconnect Manta resumes rather than reloads. */
 export const DEFAULT_JOURNAL_COMPACTION_POLICY: JournalCompactionPolicy = {
   minTailRows: 512,
   retainTailMs: 2 * 60 * 60 * 1000

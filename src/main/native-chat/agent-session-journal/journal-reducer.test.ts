@@ -272,7 +272,7 @@ describe('submission and dispatch state machine', () => {
       }
       rows.push({
         kind: 'item',
-        itemId: 'orca:cancel-between-sends',
+        itemId: 'manta:cancel-between-sends',
         revision: 1,
         body: { kind: 'status', text: 'Cancelled an earlier turn.' },
         ...base(rows.length + 1)

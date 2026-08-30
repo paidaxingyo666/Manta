@@ -260,7 +260,7 @@ describe('orchestration migration behavior', () => {
     databases.push(db)
 
     const calls: { method: string; params: unknown }[] = []
-    const runtime = new OrcaRuntimeService(null, undefined, {
+    const runtime = new MantaRuntimeService(null, undefined, {
       orchestrationEnvironmentTransport: {
         resolve: () => ({
           environmentId: 'environment_windows',

@@ -14252,7 +14252,7 @@
           "stale": "此表单打开期间 {host} 已更改。保存前请重新选择。",
           "projectMismatch": "该项目不在 {host} 上。请选择该主机上的项目，或选择另一台主机。",
           "noProjects": "{host} 上未设置任何项目。请在该主机上添加一个，或选择另一台主机。",
-          "updateRequired": "更新 {hosts} 上的 Orca 服务器即可在其中存储自动化。",
+          "updateRequired": "更新 {hosts} 上的 Manta 服务器即可在其中存储自动化。",
           "move": "保存后会在 {host} 上创建此自动化，并删除原有自动化及其运行历史。"
         }
       },

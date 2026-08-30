@@ -12,7 +12,7 @@ import { readCodexTurnId } from './codex-structured-thread-facts'
 // `turn/start` returns the id on newer builds and acks before it exists on
 // older ones, where it arrives as a `turn/started` notification instead.
 
-/** Codex records the user message first in a turn, so the submission Orca just
+/** Codex records the user message first in a turn, so the submission Manta just
  *  accepted is ordinal 0 of `(threadId, turnId)`. */
 export const CODEX_USER_MESSAGE_ORDINAL = 0
 

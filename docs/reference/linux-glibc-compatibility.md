@@ -82,11 +82,11 @@ libstdc++ floor — its glibc needs are still checked. Speech-to-text therefore
 needs a host with libstdc++ from GCC 11+ (Ubuntu 21.10 / 22.04 LTS or newer); the
 app itself still launches on stock 20.04.
 
-**3. Check before loading, on hosts that ship without a compiler (`orcad`).**
+**3. Check before loading, on hosts that ship without a compiler (`mantad`).**
 The two gates above protect the packaged desktop app, where the binary is built and
-verified by the same pipeline. `orcad` is deployed to hosts Orca never built on, so it
+verified by the same pipeline. `mantad` is deployed to hosts Manta never built on, so it
 adds a runtime precondition
-([`src/main/orcad/node-pty-precondition.ts`](../../src/main/orcad/node-pty-precondition.ts)),
+([`src/main/mantad/node-pty-precondition.ts`](../../src/main/mantad/node-pty-precondition.ts)),
 run from `main.ts` before anything requires `node-pty`. It loads the addon in a **child
 process**, so a binary the loader refuses — or one that aborts outright — is data rather
 than this process's death, and the operator gets a sentence naming the host's libc, its
@@ -96,8 +96,8 @@ as unverifiable and boots anyway, because a silent probe is not evidence. Whatev
 finds is published in `status.get`'s `degradations[]` under `terminal_unavailable`.
 
 **4. Ship the binary, built from patched sources.**
-[`config/scripts/build-orcad-prebuilds.mjs`](../../config/scripts/build-orcad-prebuilds.mjs)
-(`pnpm run build:orcad-prebuilds`, after `build:orcad`) compiles node-pty for the current
+[`config/scripts/build-mantad-prebuilds.mjs`](../../config/scripts/build-mantad-prebuilds.mjs)
+(`pnpm run build:mantad-prebuilds`, after `build:mantad`) compiles node-pty for the current
 host and files it under `out/orcad/prebuilds/<slot>/`, where a slot is
 `linux-{x64,arm64}-{glibc,musl}` or `darwin-{x64,arm64}`. libc is part of the slot name
 because node-pty's own loader falls back to `prebuilds/<platform>-<arch>` and cannot tell

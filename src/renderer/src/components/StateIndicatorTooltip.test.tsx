@@ -16,7 +16,7 @@ vi.mock('@/components/ui/tooltip', () => ({
 }))
 
 describe('StateIndicatorTooltip', () => {
-  it('uses Orca tooltip chrome with an explicit 200ms delay', () => {
+  it('uses Manta tooltip chrome with an explicit 200ms delay', () => {
     const markup = renderToStaticMarkup(
       <StateIndicatorTooltip label="Monitoring background tasks">
         <span data-heartbeat="" />

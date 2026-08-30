@@ -1,51 +1,51 @@
 /**
- * Going back to the previously active orcad.
+ * Going back to the previously active mantad.
  *
  * Rollback is a state operation, not a binary swap. The version dirs are immutable and both
  * are still on disk, so pointing at the old one is trivial; what is not trivial is that both
- * versions share ONE data root, outside either dir. A newer orcad migrates that root on load
- * — and Orca's persisted state carries no schema version to migrate against, so the older
+ * versions share ONE data root, outside either dir. A newer mantad migrates that root on load
+ * — and Manta's persisted state carries no schema version to migrate against, so the older
  * build cannot be shown to read the result. Rollback therefore restores the pre-activation
  * snapshot, and refuses when restoring it would orphan work (`assessOrcadRollback`).
  *
  * The order below is the whole safety argument: stop, then restore, then start. Restoring
- * under a running orcad would replace the store beneath a process holding it open, and
+ * under a running mantad would replace the store beneath a process holding it open, and
  * starting before restoring would let the old build migrate the new build's state — the
  * failure this is meant to avoid, arrived at from the other side.
  */
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
-import { ORCAD_INSTALL_MODEL } from './remote-install-model'
+import { MANTAD_INSTALL_MODEL } from './remote-install-model'
 import { computeRemoteInstallDir } from './ssh-relay-versioned-install'
 import { writeRelayFile } from './ssh-relay-install-transfers'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import {
-  ORCAD_STATE_SNAPSHOT_DIR,
+  MANTAD_STATE_SNAPSHOT_DIR,
   serializeOrcadActivationRecord,
   withRolledBackVersion,
   type OrcadActivationRecord
-} from './orcad-activation-record'
-import { assessOrcadRollback, type OrcadTerminalCensus } from './orcad-update-plan'
-import { evaluateOrcadActivation, type OrcadActivationVerdict } from './orcad-activation-gate'
+} from './mantad-activation-record'
+import { assessOrcadRollback, type OrcadTerminalCensus } from './mantad-update-plan'
+import { evaluateOrcadActivation, type OrcadActivationVerdict } from './mantad-activation-gate'
 import {
-  ORCAD_LOG_FILENAME,
+  MANTAD_LOG_FILENAME,
   orcadLaunchCommand,
   parseOrcadReadinessOutput,
   readOrcadReadinessCommand
-} from './orcad-remote-launch'
+} from './mantad-remote-launch'
 import {
   newestStateMtimeCommand,
   parseNewestStateMtimeSeconds,
   parseOrcadSnapshotRestore,
   probeOrcadStateSnapshotCommand,
   restoreOrcadStateSnapshotCommand
-} from './orcad-state-snapshot'
+} from './mantad-state-snapshot'
 import {
   orcadStopFreedTheHost,
   parseOrcadStopOutcome,
   stopOrcadCommand
-} from './orcad-remote-process-control'
-import { orcadActivationPath } from './orcad-activation-record-store'
+} from './mantad-remote-process-control'
+import { orcadActivationPath } from './mantad-activation-record-store'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 
 export type OrcadRollbackOptions = {
@@ -87,7 +87,7 @@ function snapshotDirPath(options: OrcadRollbackOptions, dirName: string): string
     options.host,
     options.remoteHome,
     RELAY_REMOTE_DIR,
-    ORCAD_STATE_SNAPSHOT_DIR,
+    MANTAD_STATE_SNAPSHOT_DIR,
     dirName
   )
 }
@@ -135,7 +135,7 @@ export async function rollbackOrcad(options: OrcadRollbackOptions): Promise<Orca
 
   if (options.record.active) {
     const outgoingDir = computeRemoteInstallDir(
-      ORCAD_INSTALL_MODEL,
+      MANTAD_INSTALL_MODEL,
       options.remoteHome,
       options.record.active
     )
@@ -150,14 +150,14 @@ export async function rollbackOrcad(options: OrcadRollbackOptions): Promise<Orca
         outcome: 'failed',
         code: 'orcad_rollback_stop_incomplete',
         reason:
-          `orcad ${options.record.active} did not exit within ${STOP_WAIT_SECONDS}s of SIGTERM ` +
+          `mantad ${options.record.active} did not exit within ${STOP_WAIT_SECONDS}s of SIGTERM ` +
           `(${stopped}). Nothing was restored — the store is untouched and the host is still ` +
           'serving the version you tried to leave.'
       }
     }
   }
 
-  // Why between stop and start: the store must be replaced while no orcad holds it, and
+  // Why between stop and start: the store must be replaced while no mantad holds it, and
   // before the older build gets a chance to migrate the newer build's state.
   const restored = parseOrcadSnapshotRestore(
     await exec(
@@ -175,13 +175,13 @@ export async function rollbackOrcad(options: OrcadRollbackOptions): Promise<Orca
       outcome: 'failed',
       code: 'orcad_rollback_restore_failed',
       reason:
-        `The pre-activation snapshot could not be restored (${restored}). orcad is stopped and ` +
+        `The pre-activation snapshot could not be restored (${restored}). mantad is stopped and ` +
         'the data root may be partially replaced. Do NOT start the older build against it; ' +
         `re-deploy ${options.record.active ?? 'the newer version'}, which can read what is there.`
     }
   }
 
-  const targetDir = computeRemoteInstallDir(ORCAD_INSTALL_MODEL, options.remoteHome, safety.target)
+  const targetDir = computeRemoteInstallDir(MANTAD_INSTALL_MODEL, options.remoteHome, safety.target)
   await exec(
     options,
     orcadLaunchCommand(options.host, {
@@ -216,7 +216,7 @@ export async function rollbackOrcad(options: OrcadRollbackOptions): Promise<Orca
       reason:
         `The rollback target ${safety.target} did not come up healthy: ${verdict.reason} The ` +
         `store has been restored to its pre-activation state. Its stderr is at ` +
-        `${joinRemotePath(options.host, targetDir, ORCAD_LOG_FILENAME)}.`
+        `${joinRemotePath(options.host, targetDir, MANTAD_LOG_FILENAME)}.`
     }
   }
 

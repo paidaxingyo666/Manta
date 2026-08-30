@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const STORAGE_KEY_PREFIX = 'orca:host-app-version:v1:'
+const STORAGE_KEY_PREFIX = 'manta:host-app-version:v1:'
 const MAX_VERSION_LENGTH = 64
 
 export function normalizeHostAppVersion(value: unknown): string | null {

@@ -30,7 +30,7 @@ function isOrcaManagedWslCodexHome(linuxHomePath: string): boolean {
   const segments = linuxHomePath.split('/').filter(Boolean)
   const orcaIndex = segments.findIndex(
     (segment, index) =>
-      segment === 'orca' && segments[index - 1] === 'share' && segments[index - 2] === '.local'
+      segment === 'manta' && segments[index - 1] === 'share' && segments[index - 2] === '.local'
   )
   if (orcaIndex === -1) {
     return false

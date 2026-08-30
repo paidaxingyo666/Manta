@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 describe('structured agent-session create intent', () => {
   it('pins the selected Codex launch home after normal launch preparation', async () => {
     const prepareCodexStructuredLaunch = vi.fn(() => '/accounts/selected/home')
-    const runtime = new OrcaRuntimeService(
+    const runtime = new MantaRuntimeService(
       {
         getSettings: () => ({
           agentDefaultEnv: { codex: { CODEX_HOME: '/configured/home' } }

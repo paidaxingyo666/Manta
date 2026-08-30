@@ -344,7 +344,7 @@ describe('PR E2E gate contract', () => {
   })
 
   it('gives every Docker-gated SSH spec a lane that runs it', () => {
-    // Why this shape: the sharded lanes set no ORCA_E2E_SSH_DOCKER, so a Docker-gated spec
+    // Why this shape: the sharded lanes set no MANTA_E2E_SSH_DOCKER, so a Docker-gated spec
     // that no runner names runs nowhere and still reports green — the silent skip this file
     // exists to prevent. Asserting reachability rather than a literal keeps that true when
     // the lanes move.
@@ -371,7 +371,7 @@ describe('PR E2E gate contract', () => {
     // "how to run me" comment without gating on it. Why a regex rather than one literal: an
     // equally-valid spelling (double quotes, or a `!==` guard) would escape a fixed-string scan
     // and the spec would silently leave the contract.
-    const dockerGateExpression = /ORCA_E2E_SSH_DOCKER\s*[!=]==\s*['"]1['"]/
+    const dockerGateExpression = /MANTA_E2E_SSH_DOCKER\s*[!=]==\s*['"]1['"]/
     const dockerGatedSpecs = readdirSync(join(projectDir, 'tests/e2e'))
       .filter((file) => file.endsWith('.spec.ts'))
       .map((file) => `tests/e2e/${file}`)

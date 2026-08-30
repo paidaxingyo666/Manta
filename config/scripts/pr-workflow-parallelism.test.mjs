@@ -318,7 +318,7 @@ describe('PR workflow parallelism', () => {
     )
 
     expect(buildStep.run).not.toContain('ensure:electron-runtime')
-    expect(packageStep.env.ORCA_REUSE_PREPARED_NATIVE_RUNTIME).toBe('1')
+    expect(packageStep.env.MANTA_REUSE_PREPARED_NATIVE_RUNTIME).toBe('1')
   })
 
   it('restores compiled native modules after the install that strips them', () => {
@@ -409,7 +409,10 @@ describe('PR workflow parallelism', () => {
       'xterm_patch_sync',
       'shell_contracts',
       'test',
-      'orcad_browser',
+      'mantad_browser',
+      // This fork's relay is a separate npm project with its own suite; upstream
+      // has no such job, so it is absent from their matrix.
+      'relay',
       'cross-version-wire',
       'managed_hook_node18',
       'package',
@@ -421,9 +424,9 @@ describe('PR workflow parallelism', () => {
     expect(verifyStep.env.MANAGED_HOOK_NODE18).toBe('${{ needs.managed_hook_node18.result }}')
     expect(verifyStep.run).toContain('"$MANAGED_HOOK_NODE18"')
     // Why assert this one too: the browser provider test skips itself without
-    // ORCA_BROWSER_EXECUTABLE, so it only guards anything if verify actually reads it.
-    expect(verifyStep.env.ORCAD_BROWSER).toBe('${{ needs.orcad_browser.result }}')
-    expect(verifyStep.run).toContain('"$ORCAD_BROWSER"')
+    // MANTA_BROWSER_EXECUTABLE, so it only guards anything if verify actually reads it.
+    expect(verifyStep.env.MANTAD_BROWSER).toBe('${{ needs.mantad_browser.result }}')
+    expect(verifyStep.run).toContain('"$MANTAD_BROWSER"')
     expect(verifyStep.env.CROSS_VERSION_WIRE).toBe('${{ needs.cross-version-wire.result }}')
     expect(verifyStep.run).toContain('"$CROSS_VERSION_WIRE"')
   })

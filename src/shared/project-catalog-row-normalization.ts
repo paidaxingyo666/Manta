@@ -4,7 +4,7 @@ import type { Project, ProjectHostSetup } from './project-types'
 /**
  * Repairs untrusted `Project` / `ProjectHostSetup` rows so their declared field types are true.
  *
- * These rows reach typed code from persisted JSON and from remote Orca hosts running a different
+ * These rows reach typed code from persisted JSON and from remote Manta hosts running a different
  * version, where a field the type promises is a `string` can arrive `null`, missing, or another
  * type entirely — while consumers call `.trim()` on it unconditionally (crash 3bcc5be3). Call
  * these at every boundary such a row enters the app, so nothing downstream has to re-guard.

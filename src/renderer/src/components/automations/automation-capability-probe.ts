@@ -136,7 +136,7 @@ export async function assertAutomationCreateIdempotencySupported(
   await assertAuthorityCapability(
     authority,
     AUTOMATION_CREATE_IDEMPOTENCY_RUNTIME_CAPABILITY,
-    'Moving automations to this host requires a newer Orca server. Update the HUB and try again.'
+    'Moving automations to this host requires a newer Manta server. Update the HUB and try again.'
   )
 }
 

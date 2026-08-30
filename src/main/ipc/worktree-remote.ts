@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto'
 import type { Store } from '../persistence'
 import type { GlobalSettings } from '../../shared/global-settings-types'
 import type { Repo } from '../../shared/repo-types'
-import type { SetupAgentStartupPolicy } from '../../shared/orca-yaml-hook-types'
+import type { SetupAgentStartupPolicy } from '../../shared/manta-yaml-hook-types'
 import type {
   LocalBaseRefRefreshResult,
   LocalBaseRefUpdateSuggestion

@@ -5,8 +5,8 @@ const extraArgs = rawExtraArgs[0] === '--' ? rawExtraArgs.slice(1) : rawExtraArg
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
 const env = {
   ...process.env,
-  ORCA_E2E_SSH_DOCKER: '1',
-  ORCA_E2E_WEB_CLIENT: '1'
+  MANTA_E2E_SSH_DOCKER: '1',
+  MANTA_E2E_WEB_CLIENT: '1'
 }
 
 // Why: Node's CVE-2024-27980 hardening rejects .cmd spawns without shell on Windows.
@@ -22,7 +22,7 @@ if (runtime.status !== 0) {
   process.exit(runtime.status ?? 1)
 }
 
-// Why one explicit list: these specs self-skip without ORCA_E2E_SSH_DOCKER and no sharded lane
+// Why one explicit list: these specs self-skip without MANTA_E2E_SSH_DOCKER and no sharded lane
 // sets it, so a spec in no runner runs nowhere. The gate contract proves every flag-reading
 // spec is claimed here, by the watcher-isolation or parking runner, or by a listed exclusion.
 //
@@ -57,8 +57,8 @@ if (runtime.status !== 0) {
 //     and are not Docker-gated, which puts them outside this file's contract:
 //       local-ssh-browser-routing (ORCA_E2E_LOCAL_SSH_BROWSER)
 //       ssh-client-hosted-browser-drop-reconnect (ORCA_E2E_SSH_CLIENT_HOSTED_BROWSER)
-//       nested-runtime-ssh-lifecycle, nested-runtime-ssh-routing (ORCA_E2E_NESTED_RUNTIME_SSH)
-//       ssh-localhost (ORCA_E2E_SSH_LOCALHOST)
+//       nested-runtime-ssh-lifecycle, nested-runtime-ssh-routing (MANTA_E2E_NESTED_RUNTIME_SSH)
+//       ssh-localhost (MANTA_E2E_SSH_LOCALHOST)
 //       ssh-browser-network-execution-route.docker.unit.test.ts (ORCA_RUN_DOCKER_SSH_BROWSER_E2E)
 //     Runner scripts for the first four sit unused in package.json; no workflow calls them.
 const result = spawnSync(

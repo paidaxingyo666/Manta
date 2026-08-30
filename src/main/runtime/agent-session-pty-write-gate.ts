@@ -3,7 +3,7 @@
  * whether bytes may enter that PTY right now.
  *
  * It lives on the execution host that owns the process, never in a client: a paired desktop, a
- * mobile client, and an SSH-attached Orca all reach the same gate through the host that spawned
+ * mobile client, and an SSH-attached Manta all reach the same gate through the host that spawned
  * the PTY. With nothing bound — the state of every build until a later part registers records —
  * `admit` short-circuits to admitted, so no existing terminal path changes behavior or cost.
  */

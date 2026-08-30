@@ -5,7 +5,7 @@ import { defineMethod, type RpcMethod } from '../core'
 const PrepareCodexForWslPaneParams = z
   .object({
     codexHome: z.string().max(4_096),
-    orcaCodexHome: z.string().max(4_096),
+    mantaCodexHome: z.string().max(4_096),
     wslDistro: z
       .string()
       .trim()
@@ -21,13 +21,13 @@ export const AGENT_HOOK_METHODS: readonly RpcMethod[] = [
     params: PrepareCodexForWslPaneParams,
     handler: async (params, { runtime, clientKind }) => {
       if (clientKind !== undefined) {
-        throw new Error('Codex hook preparation is only available to the local Orca CLI.')
+        throw new Error('Codex hook preparation is only available to the local Manta CLI.')
       }
       const settings = runtime.getClientSettings()
       return await prepareManagedWslCodexHomeBeforeShellLaunch({
         env: {
           CODEX_HOME: params.codexHome,
-          ORCA_CODEX_HOME: params.orcaCodexHome,
+          MANTA_CODEX_HOME: params.mantaCodexHome,
           WSL_DISTRO_NAME: params.wslDistro
         },
         hooksEnabled:

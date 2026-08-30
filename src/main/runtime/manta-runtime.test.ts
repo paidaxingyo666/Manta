@@ -6499,7 +6499,7 @@ describe('MantaRuntimeService', () => {
     computeWorktreePathMock.mockReturnValue(created.path)
     ensurePathWithinWorkspaceMock.mockImplementation((pathValue: string) => pathValue)
     vi.mocked(listWorktrees).mockResolvedValueOnce([created])
-    const runtime = new OrcaRuntimeService(runtimeStore as never)
+    const runtime = new MantaRuntimeService(runtimeStore as never)
 
     const result = await runtime.createManagedWorktree({
       repoSelector: TEST_REPO_ID,
@@ -19413,7 +19413,7 @@ describe('MantaRuntimeService', () => {
   })
 
   it('separates composer draft text from rendered terminal output', async () => {
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setPtyController({
       write: () => true,
       kill: () => true,
@@ -19443,7 +19443,7 @@ describe('MantaRuntimeService', () => {
       cols: 80,
       rows: 24
     })
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setPtyController({
       write: () => true,
       kill: () => true,
@@ -19477,7 +19477,7 @@ describe('MantaRuntimeService', () => {
       source: 'headless',
       alternateScreen: true
     })
-    const runtime = new OrcaRuntimeService(store)
+    const runtime = new MantaRuntimeService(store)
     runtime.setPtyController({
       write: () => true,
       kill: () => true,

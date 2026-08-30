@@ -595,7 +595,7 @@ describe('scoped explicit worktree-id resolution', () => {
     expect(scannedRepoPaths()).toEqual([REPO_PATH])
   })
   it('resolves an exact canonical identity without relying on the mutable locator', async () => {
-    const runtime = new OrcaRuntimeService(makeStore({ repoCount: 10 }) as never)
+    const runtime = new MantaRuntimeService(makeStore({ repoCount: 10 }) as never)
     const resolve = (selector: string): Promise<{ id: string }> =>
       (
         runtime as unknown as { resolveWorktreeSelector: (s: string) => Promise<{ id: string }> }

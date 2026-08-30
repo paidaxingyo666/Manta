@@ -12,7 +12,7 @@ import { acquireWebviewsDragPassthrough } from '@/components/browser-pane/host-g
 
 const GRANT_ID = 'a'.repeat(32)
 // The draw-tool hint's own storage key; the hook that owns it keeps it private.
-const MARKUP_DRAW_HINT_SEEN_KEY = 'orca.browser.markup-draw-hint-seen'
+const MARKUP_DRAW_HINT_SEEN_KEY = 'manta.browser.markup-draw-hint-seen'
 const ENTRY_RELATIVE_PATH = 'docs/reports/index.html'
 const ABSOLUTE_PATH = '/repo/docs/reports/index.html'
 
@@ -34,7 +34,7 @@ vi.mock('@/lib/doc-preview-grants', () => ({
   ensureDocPreviewGrant: () =>
     Promise.resolve({
       grantId: GRANT_ID,
-      url: `orca-preview://${GRANT_ID}/${ENTRY_RELATIVE_PATH}`
+      url: `manta-preview://${GRANT_ID}/${ENTRY_RELATIVE_PATH}`
     }),
   releaseDocPreviewGrant: () => undefined
 }))
@@ -227,12 +227,12 @@ describe('HtmlDocPreview browser chrome', () => {
   it('never shows the internal preview scheme to the reader', async () => {
     const webview = await renderPreview(container, root)
 
-    expect(webview.getAttribute('src')).toContain('orca-preview')
+    expect(webview.getAttribute('src')).toContain('manta-preview')
     const withoutGuest = container.cloneNode(true) as HTMLElement
     for (const guest of withoutGuest.querySelectorAll('webview')) {
       guest.remove()
     }
-    expect(withoutGuest.innerHTML).not.toContain('orca-preview')
+    expect(withoutGuest.innerHTML).not.toContain('manta-preview')
   })
 
   // Why this is a drag bug and not a styling one: a <webview> takes the pointer stream the

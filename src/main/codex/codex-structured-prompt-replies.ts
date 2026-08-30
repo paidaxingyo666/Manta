@@ -1,7 +1,7 @@
 import type { CodexAppServerConnection } from './codex-app-server-connection'
 
 // Codex asks for approvals and tool input by sending JSON-RPC REQUESTS back to
-// Orca, and the turn blocks until each one is answered. The journal answers them
+// Manta, and the turn blocks until each one is answered. The journal answers them
 // much later, through a durable item id, so this module holds the live request
 // ids and turns a chosen option back into the reply payload Codex expects.
 

@@ -1,8 +1,8 @@
 /**
  * Which daemon-entry.js the launcher forks, per deployment layout.
  *
- * The layout that matters here is orcad's: a packaged host with NO asar, whose bundle root
- * holds `orcad.js` and `daemon-entry.js` side by side (config/scripts/build-orcad.mjs emits
+ * The layout that matters here is mantad's: a packaged host with NO asar, whose bundle root
+ * holds `mantad.js` and `daemon-entry.js` side by side (config/scripts/build-mantad.mjs emits
  * exactly that). Resolving against `out/main` there would fork a path that does not exist,
  * and the failure would surface as "terminals do not persist" rather than as a missing file.
  */
@@ -51,8 +51,8 @@ const ASAR_UNPACKED_ENTRY = join(
   'main',
   'daemon-entry.js'
 )
-const ORCAD_ROOT = join('/opt', 'orcad')
-const ORCAD_ADJACENT_ENTRY = join(ORCAD_ROOT, 'daemon-entry.js')
+const MANTAD_ROOT = join('/opt', 'mantad')
+const MANTAD_ADJACENT_ENTRY = join(MANTAD_ROOT, 'daemon-entry.js')
 
 /** Drive one launch under the given layout and return the entry path that was forked. */
 async function forkedDaemonEntryPath(layout: {
@@ -101,15 +101,15 @@ describe('daemon entry path per deployment layout', () => {
     )
   })
 
-  it('forks the entry beside orcad.js on a packaged host with no asar', async () => {
-    // orcad answers isPackaged() true; the question the resolver must ask is whether the app
+  it('forks the entry beside mantad.js on a packaged host with no asar', async () => {
+    // mantad answers isPackaged() true; the question the resolver must ask is whether the app
     // root is an asar archive, not whether the build is packaged.
     expect(
       await forkedDaemonEntryPath({
-        appPath: ORCAD_ROOT,
+        appPath: MANTAD_ROOT,
         isPackaged: true,
-        existingEntry: ORCAD_ADJACENT_ENTRY
+        existingEntry: MANTAD_ADJACENT_ENTRY
       })
-    ).toBe(ORCAD_ADJACENT_ENTRY)
+    ).toBe(MANTAD_ADJACENT_ENTRY)
   })
 })

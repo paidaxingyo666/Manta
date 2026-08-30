@@ -27,9 +27,9 @@ async function postHook(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Orca-Agent-Hook-Token': token,
-      'X-Orca-Agent-Hook-Meta-Encoding': 'base64',
-      'X-Orca-Agent-Hook-Meta': hookMeta(paneKey)
+      'X-Manta-Agent-Hook-Token': token,
+      'X-Manta-Agent-Hook-Meta-Encoding': 'base64',
+      'X-Manta-Agent-Hook-Meta': hookMeta(paneKey)
     },
     body: JSON.stringify({ hook_event_name: 'UserPromptSubmit', prompt })
   })

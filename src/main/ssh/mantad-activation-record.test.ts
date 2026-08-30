@@ -8,7 +8,7 @@ import {
   withActivatedVersion,
   withRolledBackVersion,
   type OrcadStateSnapshot
-} from './orcad-activation-record'
+} from './mantad-activation-record'
 
 const SNAPSHOT: OrcadStateSnapshot = {
   dirName: 'pre-0.2.0+bb01-1000',
@@ -18,7 +18,7 @@ const SNAPSHOT: OrcadStateSnapshot = {
 }
 const NOW = new Date('2026-01-02T00:00:00.000Z')
 
-describe('orcad activation record', () => {
+describe('mantad activation record', () => {
   it('round-trips through the host', () => {
     const record = withActivatedVersion(
       { ...emptyOrcadActivationRecord(), active: '0.1.0+aa01' },
@@ -89,7 +89,7 @@ describe('orcad activation record', () => {
       },
       '0.1.0+aa01'
     )
-    expect(pinned).toEqual(['orcad-0.3.0+cc01', 'orcad-0.2.0+bb01', 'orcad-0.1.0+aa01'])
+    expect(pinned).toEqual(['mantad-0.3.0+cc01', 'mantad-0.2.0+bb01', 'mantad-0.1.0+aa01'])
   })
 
   it('deduplicates pins when the live daemon came from the active bundle', () => {
@@ -97,6 +97,6 @@ describe('orcad activation record', () => {
       { ...emptyOrcadActivationRecord(), active: '0.3.0+cc01', previous: null },
       '0.3.0+cc01'
     )
-    expect(pinned).toEqual(['orcad-0.3.0+cc01'])
+    expect(pinned).toEqual(['mantad-0.3.0+cc01'])
   })
 })

@@ -2,19 +2,19 @@
 
 macOS opens the accent picker when a key is held unless an application opts out in its preferences
 domain. That prevents held keys from repeating in terminal applications such as vim. On the first
-eligible launch, Orca writes:
+eligible launch, Manta writes:
 
 ```sh
 defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool false
 ```
 
-The write is scoped to Orca's packaged bundle domain. Bare Electron development bundles and
+The write is scoped to Manta's packaged bundle domain. Bare Electron development bundles and
 non-macOS platforms are left untouched. A fresh write is conservatively treated as taking effect
 on the next launch.
 
 ## Precedence and decision record
 
-Orca checks for an explicit domain value before writing. Either `true` or `false` is treated as a
+Manta checks for an explicit domain value before writing. Either `true` or `false` is treated as a
 user choice and preserved. Only an unset key receives the `false` default.
 
 The decision is stored once in
@@ -30,20 +30,20 @@ timeouts, and other exit statuses leave the preference alone.
 
 ## Restoring the accent picker
 
-Set the preference explicitly, then restart Orca:
+Set the preference explicitly, then restart Manta:
 
 ```sh
 defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool true
 ```
 
-After Orca has recorded its one-time decision, deleting the key also restores the macOS default
-without Orca recreating it:
+After Manta has recorded its one-time decision, deleting the key also restores the macOS default
+without Manta recreating it:
 
 ```sh
 defaults delete com.stablyai.orca ApplePressAndHoldEnabled
 ```
 
-Development and prerelease channels may use a channel-suffixed Orca bundle identifier; use that
+Development and prerelease channels may use a channel-suffixed Manta bundle identifier; use that
 domain instead when applicable.
 
 ## Reverting

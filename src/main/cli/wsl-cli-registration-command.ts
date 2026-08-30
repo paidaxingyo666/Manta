@@ -14,7 +14,7 @@ import {
 
 const MANAGED_MARKER = getWslLauncherMarker()
 const BRIDGE_MANAGED_MARKER = getWslBridgeMarker()
-const LEGACY_WSL_COMMAND_NAME = 'orca'
+const LEGACY_WSL_COMMAND_NAME = 'manta'
 
 export function buildWslCliInstallCommand(
   status: CliInstallStatus & { commandPath: string; launcherPath: string }
@@ -48,12 +48,12 @@ export function buildWslCliInstallCommand(
     'trap rollback EXIT',
     buildSafeReplaceGuard(status.commandPath, MANAGED_MARKER),
     buildSafeReplaceGuard(bridgePath, BRIDGE_MANAGED_MARKER),
-    `cat > "$command_tmp" <<'ORCA_WSL_CLI'`,
+    `cat > "$command_tmp" <<'MANTA_WSL_CLI'`,
     buildWslLauncher(status.launcherPath, bridgePath),
-    'ORCA_WSL_CLI',
-    `cat > "$bridge_tmp" <<'ORCA_WSL_BRIDGE'`,
+    'MANTA_WSL_CLI',
+    `cat > "$bridge_tmp" <<'MANTA_WSL_BRIDGE'`,
     buildWslBridgeScript(),
-    'ORCA_WSL_BRIDGE',
+    'MANTA_WSL_BRIDGE',
     'chmod 755 "$command_tmp"',
     'chmod 644 "$bridge_tmp"',
     buildSafeReplaceGuard(status.commandPath, MANAGED_MARKER),

@@ -39,7 +39,7 @@ describe('privileged window navigation policy', () => {
 
   it('lets the packaged renderer document reload itself', () => {
     const appUrl =
-      'file:///Applications/Orca.app/Contents/Resources/app.asar/out/renderer/index.html'
+      'file:///Applications/Manta.app/Contents/Resources/app.asar/out/renderer/index.html'
     const event = createFixture(appUrl).willNavigate(appUrl)
 
     expect(event.preventDefault).not.toHaveBeenCalled()
@@ -48,7 +48,7 @@ describe('privileged window navigation policy', () => {
 
   it('still blocks and hands off an external http target', () => {
     const appUrl =
-      'file:///Applications/Orca.app/Contents/Resources/app.asar/out/renderer/index.html'
+      'file:///Applications/Manta.app/Contents/Resources/app.asar/out/renderer/index.html'
     const event = createFixture(appUrl).willNavigate('https://example.com/')
 
     expect(event.preventDefault).toHaveBeenCalled()
@@ -71,12 +71,12 @@ describe('privileged window navigation policy', () => {
   // non-file scheme that reuses it must not read as "our own document".
   it('blocks a foreign file host and a data: URL that reuse the renderer path', () => {
     const appUrl =
-      'file:///Applications/Orca.app/Contents/Resources/app.asar/out/renderer/index.html'
+      'file:///Applications/Manta.app/Contents/Resources/app.asar/out/renderer/index.html'
     const fixture = createFixture(appUrl)
 
     expect(
       fixture.willNavigate(
-        'file://evil.example/Applications/Orca.app/Contents/Resources/app.asar/out/renderer/index.html'
+        'file://evil.example/Applications/Manta.app/Contents/Resources/app.asar/out/renderer/index.html'
       ).preventDefault
     ).toHaveBeenCalled()
     expect(
@@ -87,7 +87,7 @@ describe('privileged window navigation policy', () => {
 
   it('still blocks navigation to an unrelated local file', () => {
     const appUrl =
-      'file:///Applications/Orca.app/Contents/Resources/app.asar/out/renderer/index.html'
+      'file:///Applications/Manta.app/Contents/Resources/app.asar/out/renderer/index.html'
     const event = createFixture(appUrl).willNavigate('file:///Users/someone/.ssh/id_rsa')
 
     expect(event.preventDefault).toHaveBeenCalled()

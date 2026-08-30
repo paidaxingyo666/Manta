@@ -54,7 +54,7 @@ export type BrowserViewportOverride = {
 
 /**
  * A page that shows a workspace document rather than a URL. The document is the identity: the grant
- * and the `orca-preview://` URL it is served over are minted when the page mounts and replaced on a
+ * and the `manta-preview://` URL it is served over are minted when the page mounts and replaced on a
  * hard reload, so neither may be stored, persisted or published — this is what is, and `url` stays
  * the blank URL for the whole life of such a page.
  */

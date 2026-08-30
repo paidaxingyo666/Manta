@@ -36,7 +36,7 @@ export type PrebuiltSlotOutcome =
 
 /**
  * Where a deployment's prebuilds live: beside the bundle that is running. `argv[1]` is
- * `orcad.js` itself, so this stays correct wherever the install directory ends up.
+ * `mantad.js` itself, so this stays correct wherever the install directory ends up.
  */
 export function resolveOrcadPrebuildsDir(entryScript = process.argv[1]): string | null {
   const override = process.env.ORCA_ORCAD_PREBUILDS_DIR

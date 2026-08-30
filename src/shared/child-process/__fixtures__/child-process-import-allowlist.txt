@@ -15,7 +15,7 @@
 # than all-pipes (a long-lived `ssh -N` must not be handed a stdin pipe nobody closes).
 # Migrating them means teaching run-process.ts those options first.
 # codex-app-server-posix-supervisor.ts requires child_process only inside its
-# dependency-free POSIX supervisor script, never in Orca's process.
+# dependency-free POSIX supervisor script, never in Manta's process.
 #
 # The src/main/git/command-runner/* entries are the seven spawn sites that used
 # to live in the single line src/main/git/runner.ts; splitting that file moved

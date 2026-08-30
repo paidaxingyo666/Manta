@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type * as AgentStatusModule from '@/lib/agent-status'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../shared/constants'
+import { MANTA_BROWSER_BLANK_URL } from '../../../../shared/constants'
 import { buildBrowserSessionData } from '@/lib/workspace-session-browser-tabs'
 import {
   browserPageSchema,
@@ -28,7 +28,7 @@ const DOC_LOCATION = {
 }
 // What a live document page shows: minted at mount, replaced on a hard reload, dead with the
 // process. Nothing in the store, on disk or on the wire may ever carry it.
-const LIVE_GRANT_URL = `orca-preview://${'a'.repeat(32)}/report/index.html`
+const LIVE_GRANT_URL = `manta-preview://${'a'.repeat(32)}/report/index.html`
 
 function createStoreWithWorktree(): ReturnType<typeof createTestStore> {
   const store = createTestStore()
@@ -64,11 +64,11 @@ describe('a browser page that shows a workspace document', () => {
     })
 
     const page = store.getState().browserPagesByWorkspace[tab.id]?.[0]
-    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(page?.url).toBe(MANTA_BROWSER_BLANK_URL)
     expect(page?.docLocation).toEqual(DOC_LOCATION)
     // The mirror is what the tab strip and every workspace-level reader see.
     expect(store.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.url).toBe(
-      ORCA_BROWSER_BLANK_URL
+      MANTA_BROWSER_BLANK_URL
     )
     expect(store.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.docLocation).toEqual(
       DOC_LOCATION
@@ -121,14 +121,14 @@ describe('a browser page that shows a workspace document', () => {
 
     expect(store.getState().browserPagesByWorkspace[tab.id]?.[0]?.title).toBe('index.html')
     expect(store.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.title).toBe('index.html')
-    expect(JSON.stringify(persistedSession(store))).not.toContain('orca-preview://')
+    expect(JSON.stringify(persistedSession(store))).not.toContain('manta-preview://')
   })
 
   // The presence half for both: an ordinary page still gets the blank-url name, so a fallback that
   // had swallowed every title would fail here rather than pass by naming everything after a file.
   it('still names an ordinary blank browser tab New Tab', () => {
     const store = createStoreWithWorktree()
-    const tab = store.getState().createBrowserTab(WORKTREE_ID, ORCA_BROWSER_BLANK_URL)
+    const tab = store.getState().createBrowserTab(WORKTREE_ID, MANTA_BROWSER_BLANK_URL)
     const pageId = store.getState().browserPagesByWorkspace[tab.id]?.[0]?.id ?? ''
 
     store.getState().updateBrowserPageState(pageId, { title: '' })
@@ -151,14 +151,14 @@ describe('a browser page that shows a workspace document', () => {
     store.getState().setBrowserPageUrl(pageId, LIVE_GRANT_URL)
 
     const page = store.getState().browserPagesByWorkspace[tab.id]?.[0]
-    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(page?.url).toBe(MANTA_BROWSER_BLANK_URL)
     expect(page?.title).toBe('index.html')
     // Nothing to wait for behind a blank url: an inert guest never reports the load that clears it.
     expect(page?.loading).toBe(false)
     expect(store.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.url).toBe(
-      ORCA_BROWSER_BLANK_URL
+      MANTA_BROWSER_BLANK_URL
     )
-    expect(JSON.stringify(persistedSession(store))).not.toContain('orca-preview://')
+    expect(JSON.stringify(persistedSession(store))).not.toContain('manta-preview://')
   })
 
   // The presence half for the door above: an ordinary page still takes the url it is given, so a
@@ -183,7 +183,7 @@ describe('a browser page that shows a workspace document', () => {
       docLocation: DOC_LOCATION,
       browserRuntimeEnvironmentId: null
     })
-    const newTab = store.getState().createBrowserTab(WORKTREE_ID, ORCA_BROWSER_BLANK_URL)
+    const newTab = store.getState().createBrowserTab(WORKTREE_ID, MANTA_BROWSER_BLANK_URL)
 
     expect(store.getState().pendingAddressBarFocusByTabId[docTab.id]).toBeUndefined()
     // The blank url is exactly what marks an ordinary New Tab as wanting focus there.
@@ -292,7 +292,7 @@ describe('a browser page that shows a workspace document', () => {
     const page = reopened ? store.getState().browserPagesByWorkspace[reopened.id]?.[0] : undefined
 
     expect(page?.docLocation).toEqual(DOC_LOCATION)
-    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(page?.url).toBe(MANTA_BROWSER_BLANK_URL)
     expect(reopened?.docLocation).toEqual(DOC_LOCATION)
   })
 
@@ -311,7 +311,7 @@ describe('a browser page that shows a workspace document', () => {
     const reopened = store.getState().reopenClosedBrowserPage(tab.id)
 
     expect(reopened?.docLocation).toEqual(DOC_LOCATION)
-    expect(reopened?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(reopened?.url).toBe(MANTA_BROWSER_BLANK_URL)
   })
 
   it('writes the document and not the grant to the session', () => {
@@ -325,8 +325,8 @@ describe('a browser page that shows a workspace document', () => {
     const written = JSON.stringify(session)
 
     expect(session.browserPagesByWorkspace?.[tab.id]?.[0]?.docLocation).toEqual(DOC_LOCATION)
-    expect(session.browserPagesByWorkspace?.[tab.id]?.[0]?.url).toBe(ORCA_BROWSER_BLANK_URL)
-    expect(written).not.toContain('orca-preview://')
+    expect(session.browserPagesByWorkspace?.[tab.id]?.[0]?.url).toBe(MANTA_BROWSER_BLANK_URL)
+    expect(written).not.toContain('manta-preview://')
   })
 
   // Why the schema is asserted separately: both browser schemas are plain z.object, which strips
@@ -369,7 +369,7 @@ describe('a browser page that shows a workspace document', () => {
 
     const page = restored.getState().browserPagesByWorkspace[tab.id]?.[0]
     expect(page?.docLocation).toEqual(DOC_LOCATION)
-    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(page?.url).toBe(MANTA_BROWSER_BLANK_URL)
     expect(restored.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.docLocation).toEqual(
       DOC_LOCATION
     )
@@ -398,7 +398,7 @@ describe('a browser page that shows a workspace document', () => {
 
     const page = restored.getState().browserPagesByWorkspace[tab.id]?.[0]
     expect(page?.docLocation).toEqual(DOC_LOCATION)
-    expect(page?.url).toBe(ORCA_BROWSER_BLANK_URL)
+    expect(page?.url).toBe(MANTA_BROWSER_BLANK_URL)
   })
 
   // Why a hand-written row and not one this build can produce: the store refuses to mint one, so
@@ -453,10 +453,10 @@ describe('a browser page that shows a workspace document', () => {
     })
 
     expect(restored.getState().browserPagesByWorkspace['browser-1']?.[0]?.url).toBe(
-      ORCA_BROWSER_BLANK_URL
+      MANTA_BROWSER_BLANK_URL
     )
     expect(restored.getState().browserTabsByWorktree[WORKTREE_ID]?.[0]?.url).toBe(
-      ORCA_BROWSER_BLANK_URL
+      MANTA_BROWSER_BLANK_URL
     )
   })
 })

@@ -26,7 +26,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.connectionId = null
   mocks.environmentId = null
-  mocks.mintGrant.mockResolvedValue({ grantId: 'grant-1', url: 'orca-preview://grant-1/a.html' })
+  mocks.mintGrant.mockResolvedValue({ grantId: 'grant-1', url: 'manta-preview://grant-1/a.html' })
   vi.stubGlobal('window', {
     api: { docPreview: { mintGrant: mocks.mintGrant, revokeGrant: mocks.revokeGrant } }
   })
@@ -144,7 +144,7 @@ describe('doc preview grant lifetime', () => {
     )
     mocks.mintGrant.mockResolvedValueOnce({
       grantId: 'grant-2',
-      url: 'orca-preview://grant-2/a.html'
+      url: 'manta-preview://grant-2/a.html'
     })
 
     const stale = ensureDocPreviewGrant('preview-4', request)

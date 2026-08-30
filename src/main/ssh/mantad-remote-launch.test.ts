@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  ORCAD_READINESS_FILENAME,
+  MANTAD_READINESS_FILENAME,
   orcadLaunchCommand,
   orcadLivenessBlocksGc,
   orcadLivenessProbeCommand,
   OrcadRemoteLaunchUnsupportedError,
   parseOrcadLiveness,
   parseOrcadReadinessOutput
-} from './orcad-remote-launch'
+} from './mantad-remote-launch'
 import {
   orcadStopFreedTheHost,
   parseOrcadStopOutcome,
   stopOrcadCommand
-} from './orcad-remote-process-control'
+} from './mantad-remote-process-control'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 const posix = getRemoteHostPlatform('linux-x64')
@@ -23,13 +23,13 @@ const SPEC = {
   remoteInstallDir: '/home/u/.orca-remote/orcad-0.2.0+bb01',
   nodePath: '/usr/bin/node',
   fullVersion: '0.2.0+bb01',
-  userDataDir: '/home/u/.orca',
+  userDataDir: '/home/u/.manta',
   bindHost: '127.0.0.1',
   port: 7777
 }
 
 const READY_LINE = JSON.stringify({
-  type: 'orca_server_ready',
+  type: 'manta_server_ready',
   schemaVersion: 1,
   runtimeId: 'r1',
   boundEndpoint: 'ws://127.0.0.1:7777',
@@ -46,7 +46,7 @@ describe('orcadLaunchCommand', () => {
 
   it('truncates the readiness file, so a stale line cannot be activated on', () => {
     const command = orcadLaunchCommand(posix, SPEC)
-    const truncate = command.indexOf(`: > '${SPEC.remoteInstallDir}/${ORCAD_READINESS_FILENAME}'`)
+    const truncate = command.indexOf(`: > '${SPEC.remoteInstallDir}/${MANTAD_READINESS_FILENAME}'`)
     const launch = command.indexOf('nohup')
     expect(truncate).toBeGreaterThan(-1)
     expect(truncate).toBeLessThan(launch)
@@ -54,8 +54,8 @@ describe('orcadLaunchCommand', () => {
 
   it('exports the version and the shared data root the deploy decided on', () => {
     const command = orcadLaunchCommand(posix, SPEC)
-    expect(command).toContain(`ORCA_VERSION '${SPEC.fullVersion}'`.replace(' ', '='))
-    expect(command).toContain(`ORCA_USER_DATA='${SPEC.userDataDir}'`)
+    expect(command).toContain(`MANTA_VERSION '${SPEC.fullVersion}'`.replace(' ', '='))
+    expect(command).toContain(`MANTA_USER_DATA='${SPEC.userDataDir}'`)
   })
 
   it('declares the Windows refusal instead of emitting a command that cannot work', () => {
@@ -64,7 +64,7 @@ describe('orcadLaunchCommand', () => {
 })
 
 describe('readiness parsing', () => {
-  it('extracts the orca_server_ready payload', () => {
+  it('extracts the manta_server_ready payload', () => {
     const parsed = parseOrcadReadinessOutput(`${READY_LINE}\n`)
     expect(parsed).toMatchObject({ state: 'ready' })
     expect(parsed.state === 'ready' && parsed.readiness.boundEndpoint).toBe('ws://127.0.0.1:7777')
@@ -98,7 +98,7 @@ describe('liveness', () => {
   })
 })
 
-describe('stopping a running orcad', () => {
+describe('stopping a running mantad', () => {
   it('sends SIGTERM and never SIGKILL', () => {
     const command = stopOrcadCommand(posix, SPEC.remoteInstallDir, { waitSeconds: 20 })
     expect(command).toContain('kill -TERM')

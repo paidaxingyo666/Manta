@@ -5049,7 +5049,7 @@
     "ko": "모든 에이전트를 한눈에 볼 수 있는 곳입니다. 보드는 곧 제공됩니다."
   },
   "dashboardPopout.recoverableError.title": {
-    "ko": "Orca 대시보드에서 오류가 발생했습니다."
+    "ko": "Manta 대시보드에서 오류가 발생했습니다."
   },
   "dashboardPopout.recoverableError.description": {
     "ko": "대시보드 렌더링을 완료하지 못했습니다. 다시 시도해 다시 마운트하거나 다시 열어 보세요."

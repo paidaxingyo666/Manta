@@ -35,7 +35,7 @@ vi.mock('../git/worktree', async (importOriginal) => ({
 }))
 
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 const REPO_ID = 'repo-local'
 const REPO_PATH = '/srv/projects/app'
@@ -115,7 +115,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
     'resolves through the fleet path what `path:` resolves when the id carries %s',
     async (_label, storedPath, repoPath) => {
       scanReports(scannedSpellingOf(storedPath), repoPath)
-      const runtime = new OrcaRuntimeService(makeStore(repoPath) as never)
+      const runtime = new MantaRuntimeService(makeStore(repoPath) as never)
 
       // The CLI's shape, and the live data point: `path:` already resolves it.
       const byPath = await runtime.showManagedWorktree(`path:${storedPath}`)
@@ -130,7 +130,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
     'resolves a host-qualified removal target when the id carries %s',
     async (_label, storedPath, repoPath) => {
       scanReports(scannedSpellingOf(storedPath), repoPath)
-      const runtime = new OrcaRuntimeService(makeStore(repoPath) as never)
+      const runtime = new MantaRuntimeService(makeStore(repoPath) as never)
       const internals = runtime as unknown as RemovalInternals
 
       // The scoped path the UI's delete takes must agree with the fleet path above.
@@ -145,7 +145,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
   it('still refuses an id whose path names a different workspace', async () => {
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await expect(
       runtime.showManagedWorktree(`id:${REPO_ID}::/srv/projects/workspaces/other-plugin`)
@@ -155,7 +155,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
   // STA-4343: matching across repo ids would delete a workspace the caller never confirmed.
   it('still refuses the same path under a different repo id', async () => {
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await expect(runtime.showManagedWorktree(`id:other-repo::${WORKTREE_PATH}/`)).rejects.toThrow(
       'selector_not_found'
@@ -164,7 +164,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
   it('still refuses a removal qualified to a host that does not own the repo id', async () => {
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     const internals = runtime as unknown as RemovalInternals
 
     await expect(
@@ -174,7 +174,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
   it('keeps `id:` and `path:` agreeing on a dot segment neither canonicalizes', async () => {
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     const dotted = '/srv/projects/./workspaces/plugin-host'
 
     await expect(runtime.showManagedWorktree(`path:${dotted}`)).rejects.toThrow(
@@ -194,7 +194,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
     it('folds drive-letter case only for Windows paths, never for a POSIX path', async () => {
       scanReports(WINDOWS_WORKTREE, WINDOWS_REPO)
-      const windowsRuntime = new OrcaRuntimeService(makeStore(WINDOWS_REPO) as never)
+      const windowsRuntime = new MantaRuntimeService(makeStore(WINDOWS_REPO) as never)
 
       // A Windows root is case-insensitive, as `path:` already treats it.
       await expect(
@@ -203,7 +203,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
       // A POSIX root is not: folding case there would merge distinct directories for a delete.
       scanReports(WORKTREE_PATH)
-      const posixRuntime = new OrcaRuntimeService(makeStore() as never)
+      const posixRuntime = new MantaRuntimeService(makeStore() as never)
 
       await expect(
         posixRuntime.showManagedWorktree(`id:${REPO_ID}::/SRV/projects/workspaces/plugin-host`)
@@ -212,7 +212,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
 
     it('does not fold a backslash inside a POSIX path, where it is a valid filename character', async () => {
       scanReports(WORKTREE_PATH)
-      const runtime = new OrcaRuntimeService(makeStore() as never)
+      const runtime = new MantaRuntimeService(makeStore() as never)
 
       await expect(
         runtime.showManagedWorktree(`id:${REPO_ID}::/srv/projects\\workspaces\\plugin-host`)
@@ -234,7 +234,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
         isMainWorktree: false
       }
     ])
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     // Matches neither row exactly, folds to both.
     await expect(runtime.showManagedWorktree(`id:${CANONICAL_ID}/`)).rejects.toThrow(
@@ -247,7 +247,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
   it('keeps a folder-workspace id exact when a slash precedes the instance suffix', async () => {
     const instanceSuffix = '::workspace:123e4567-e89b-12d3-a456-426614174000'
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await expect(
       runtime.showManagedWorktree(`id:${REPO_ID}::${WORKTREE_PATH}/${instanceSuffix}`)
@@ -260,7 +260,7 @@ describe('worktree id selectors vs. the path spelling git reports (#16243)', () 
     ['an empty path', `${REPO_ID}::`]
   ])('keeps exact matching for a malformed id with %s', async (_label, malformedId) => {
     scanReports(WORKTREE_PATH)
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
     const internals = runtime as unknown as RemovalInternals
 
     await expect(runtime.showManagedWorktree(`id:${malformedId}`)).rejects.toThrow(

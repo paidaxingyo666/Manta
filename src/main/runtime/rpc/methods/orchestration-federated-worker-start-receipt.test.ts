@@ -3,7 +3,7 @@ import {
   ORCHESTRATION_CONTRACT_RUNTIME_CAPABILITY,
   ORCHESTRATION_FEDERATION_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { MantaRuntimeService } from '../../manta-runtime'
 import { OrchestrationDb } from '../../orchestration/db'
 import { startFederatedWorker } from './orchestration-federated-worker-start'
 
@@ -18,7 +18,7 @@ describe('federated worker start receipt validation', () => {
 
   it('marks a malformed ready receipt outcome unknown without persisting resources', async () => {
     const db = new OrchestrationDb(':memory:')
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     runtime.setOrchestrationDb(db)
     databases.push(db)
     const run = db.createRun({

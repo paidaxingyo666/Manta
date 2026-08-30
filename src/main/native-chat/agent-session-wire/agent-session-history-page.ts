@@ -79,7 +79,7 @@ function oversizedHistoryItem(
     itemId: boundJournalKeyComponent(item.itemId),
     body: {
       kind: 'status',
-      text: `[Orca: item truncated — ${byteLength} bytes exceeds the history page budget]`
+      text: `[Manta: item truncated — ${byteLength} bytes exceeds the history page budget]`
     }
   }
 }

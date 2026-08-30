@@ -1,4 +1,4 @@
-// The handful of facts Orca reads out of Codex app-server payloads. Codex has
+// The handful of facts Manta reads out of Codex app-server payloads. Codex has
 // moved these fields between the envelope and a nested `thread` / `turn` object
 // across releases, so each reader accepts both shapes rather than pinning one.
 

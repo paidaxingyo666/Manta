@@ -193,10 +193,10 @@ describe('rich markdown round trip', () => {
       )
     ).toBe(
       [
-        '<details class="orca-details">',
+        '<details class="manta-details">',
         '<summary>Outer</summary>',
         '',
-        '<details class="orca-details">',
+        '<details class="manta-details">',
         '<summary>Inner</summary>',
         '',
         'Body',
@@ -210,10 +210,10 @@ describe('rich markdown round trip', () => {
 
   it('round-trips an orca-authored nested toggle unchanged', () => {
     const input = [
-      '<details class="orca-details" data-orca-toggle="heading-3" open>',
+      '<details class="manta-details" data-manta-toggle="heading-3" open>',
       '<summary>08/26/2026</summary>',
       '',
-      '<details class="orca-details" open>',
+      '<details class="manta-details" open>',
       '<summary>goals</summary>',
       '',
       '- Read X post',
@@ -232,10 +232,10 @@ describe('rich markdown round trip', () => {
   it('keeps nested toggle bodies editable rather than inert raw html', () => {
     const markdown = markdownAfterTextReplace(
       [
-        '<details class="orca-details" open>',
+        '<details class="manta-details" open>',
         '<summary>Outer</summary>',
         '',
-        '<details class="orca-details" open>',
+        '<details class="manta-details" open>',
         '<summary>Inner</summary>',
         '',
         'Body',

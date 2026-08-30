@@ -4,7 +4,7 @@ import {
   type RuntimeCapability
 } from '../../../../shared/protocol-version'
 import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-types'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import { RpcDispatcher } from '../dispatcher'
 import type { RpcDispatchStreamingOptions } from '../dispatcher-stream-options'
 import { SESSION_TAB_METHODS } from './session-tabs'
@@ -89,7 +89,7 @@ function createFixture(capabilities: RuntimeCapability[]) {
     getRuntimeId: () => 'test-runtime',
     listMobileSessionTabs: vi.fn().mockResolvedValue(snapshot),
     ...calls
-  } as unknown as OrcaRuntimeService
+  } as unknown as MantaRuntimeService
   const dispatcher = new RpcDispatcher({ runtime, methods: SESSION_TAB_METHODS })
   const context: RpcDispatchStreamingOptions = {
     clientKind: 'runtime',

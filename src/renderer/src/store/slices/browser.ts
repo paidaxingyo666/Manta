@@ -495,7 +495,7 @@ function buildBrowserPage(
   // Why the url is overridden rather than trusted: this is the one place a page's url is minted,
   // and it is read by persistence, the mobile publisher, history and the address bar. A grant URL
   // reaching any of them would outlive the grant and name a document that machine cannot read.
-  const normalizedUrl = docLocation ? ORCA_BROWSER_BLANK_URL : normalizeUrl(url)
+  const normalizedUrl = docLocation ? MANTA_BROWSER_BLANK_URL : normalizeUrl(url)
   return {
     id: browserPageId ?? createBrowserUuid(),
     workspaceId,
@@ -1777,7 +1777,7 @@ export const createBrowserSlice: StateCreator<AppState, [], [], BrowserSlice> = 
       // Why a document page keeps its blank url here too: this is the third door onto a page's url,
       // and a document's url is blank by construction. A grant committed here would reach
       // persistence, the publish boundary and the address bar, exactly as at the other two doors.
-      const nextPageUrl = page.docLocation ? ORCA_BROWSER_BLANK_URL : nextUrl
+      const nextPageUrl = page.docLocation ? MANTA_BROWSER_BLANK_URL : nextUrl
       // Why: annotations point at DOM coords of the loaded document; a real URL change invalidates those markers.
       const shouldClearAnnotations = normalizeUrl(page.url) !== nextPageUrl
       const nextPages = (s.browserPagesByWorkspace[workspace.id] ?? []).map((entry) =>
@@ -1992,7 +1992,7 @@ export const createBrowserSlice: StateCreator<AppState, [], [], BrowserSlice> = 
               // Why re-asserted on restore: the same invariant creation enforces. A session written
               // by an older or hand-edited build could carry a grant URL here, and it would name a
               // grant that died with the process that minted it.
-              url: page.docLocation ? ORCA_BROWSER_BLANK_URL : normalizeUrl(page.url),
+              url: page.docLocation ? MANTA_BROWSER_BLANK_URL : normalizeUrl(page.url),
               loading: false,
               loadError: page.loadError ?? null
             }

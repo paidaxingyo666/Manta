@@ -114,7 +114,7 @@ export function probeRelayInstalledCommand(
  * The model-agnostic form: any install is complete when its directory exists and every
  * named artifact is a regular file inside it.
  *
- * Why the caller passes the list: orcad and the relay ship different artifacts, and a probe
+ * Why the caller passes the list: mantad and the relay ship different artifacts, and a probe
  * that checked a shared subset would call a torn install complete.
  */
 export function probeRemoteInstallCompleteCommand(
@@ -148,10 +148,10 @@ export function listRelayBaseDirsCommand(host: RemoteHostPlatform, baseDir: stri
 }
 
 /**
- * List one model's version dirs (and its own tombstones) under `~/.orca-remote/`.
+ * List one model's version dirs (and its own tombstones) under `~/.manta-remote/`.
  *
  * The model scopes BOTH the `find`/`Get-ChildItem` glob and the validating regex. That
- * double filter is the on-the-wire half of the GC ownership rule: an orcad GC pass never
+ * double filter is the on-the-wire half of the GC ownership rule: an mantad GC pass never
  * even receives a relay directory name, so it cannot delete one through a later bug.
  */
 export function listRemoteInstallBaseDirsCommand(

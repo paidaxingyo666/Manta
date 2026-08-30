@@ -76,7 +76,7 @@ describe.skipIf(process.platform === 'win32')(
       const server = mantaServer
 
       const warns: string[] = []
-      const codexHome = join(fakeHome, '.local', 'share', 'orca', 'codex-runtime-home', 'home')
+      const codexHome = join(fakeHome, '.local', 'share', 'manta', 'codex-runtime-home', 'home')
       manager = new WslHookRelayManager({
         platform: () => 'win32',
         remoteHooksEnabled: () => true,

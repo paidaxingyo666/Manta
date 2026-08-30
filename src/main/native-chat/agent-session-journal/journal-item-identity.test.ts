@@ -130,19 +130,19 @@ describe('key encoding', () => {
   })
 
   it('separates the provider namespaces', () => {
-    const orca = agentJournalItemKey({ provider: 'orca', clientMessageId: 'x' })
+    const manta = agentJournalItemKey({ provider: 'manta', clientMessageId: 'x' })
     const legacy = agentJournalItemKey({
       provider: 'legacy',
       agent: 'claude',
       sessionId: 'x',
       recordId: 'x'
     })
-    expect(orca).not.toBe(legacy)
+    expect(manta).not.toBe(legacy)
   })
 
   it('derives the submission slot from the same function the reducer uses', () => {
     expect(agentJournalSubmissionKey('cm_42')).toBe(
-      agentJournalItemKey({ provider: 'orca', clientMessageId: 'cm_42' })
+      agentJournalItemKey({ provider: 'manta', clientMessageId: 'cm_42' })
     )
   })
 })

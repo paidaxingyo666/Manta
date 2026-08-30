@@ -1,5 +1,5 @@
 import type { PairingOfferUnavailableReason } from '../runtime/runtime-rpc'
-import type { OrcadHealth } from '../orcad/orcad-health'
+import type { OrcadHealth } from '../mantad/mantad-health'
 
 export type ServePairingUnavailableReason = PairingOfferUnavailableReason | 'disabled_by_operator'
 
@@ -108,7 +108,7 @@ function renderHumanReadiness(readiness: ServeReadiness): string {
     lines.push(
       `Terminal daemon: ${daemon.state} — PTY self-test ${daemon.selfTest.ok ? 'passed' : 'FAILED'}` +
         ` (${daemon.selfTest.coverage}: ${daemon.selfTest.verdict})` +
-        `; terminals survive an orcad restart: ${daemon.ownsFreshSessions ? 'yes' : 'NO'}`
+        `; terminals survive an mantad restart: ${daemon.ownsFreshSessions ? 'yes' : 'NO'}`
     )
   }
   if (readiness.pairing.available) {

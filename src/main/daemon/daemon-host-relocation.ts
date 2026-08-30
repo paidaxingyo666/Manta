@@ -91,7 +91,7 @@ function resolveEntrySourcePath(resourcesPath: string): string {
  * Whether this process is a packaged ELECTRON app on win32 — the only shape relocation
  * addresses, because what it escapes is the NSIS updater's kill zone.
  *
- * Why asar and not isPackaged alone: orcad answers isPackaged() true (it is a shipped build,
+ * Why asar and not isPackaged alone: mantad answers isPackaged() true (it is a shipped build,
  * not a dev checkout) while having no asar, no resourcesPath and no NSIS installer. Asking
  * whether the app root is an asar archive is the same honesty fix the watcher path uses, and
  * it keeps a Node host from staging a copy of an Electron tree it does not have.

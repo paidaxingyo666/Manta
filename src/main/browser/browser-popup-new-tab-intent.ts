@@ -1,7 +1,7 @@
 /**
  * Whether a `window.open()` asks for a new tab rather than a popup window.
  *
- * Orca answers a tab by denying, which hands the page `null`, so named and featured opens — whose
+ * Manta answers a tab by denying, which hands the page `null`, so named and featured opens — whose
  * flow may use that handle — stay popups.
  */
 export function isNewBrowserTabPopupIntent(details: {

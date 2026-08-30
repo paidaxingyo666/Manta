@@ -51,7 +51,7 @@ describe('diagnoseConnection', () => {
       })
     ).toEqual({
       likelyCause: 'The saved Tailscale endpoint did not answer before the connection timeout.',
-      nextStep: 'Relay recovery is in progress; keep Orca open while it retries.',
+      nextStep: 'Relay recovery is in progress; keep Manta open while it retries.',
       reportability: 'none'
     })
   })
@@ -72,8 +72,8 @@ describe('diagnoseConnection', () => {
       })
     ).toEqual({
       likelyCause: 'Relay stopped answering authenticated health checks.',
-      nextStep: 'Orca closed the stale session and started recovery.',
-      reportability: 'orca-relay'
+      nextStep: 'Manta closed the stale session and started recovery.',
+      reportability: 'manta-relay'
     })
   })
 
@@ -93,8 +93,8 @@ describe('diagnoseConnection', () => {
       })
     ).toEqual({
       likelyCause: 'The active Relay session closed unexpectedly.',
-      nextStep: 'Orca started Relay recovery; the event history includes the cell close reason.',
-      reportability: 'orca-relay'
+      nextStep: 'Manta started Relay recovery; the event history includes the cell close reason.',
+      reportability: 'manta-relay'
     })
   })
 
@@ -112,7 +112,7 @@ describe('diagnoseConnection', () => {
           }
         ]
       }).reportability
-    ).toBe('orca-relay')
+    ).toBe('manta-relay')
   })
 
   it.each([
@@ -207,7 +207,7 @@ describe('diagnoseConnection', () => {
       })
     ).toEqual({
       likelyCause: 'The connected host stopped answering authenticated health checks.',
-      nextStep: 'Orca closed the stale session and started recovery.',
+      nextStep: 'Manta closed the stale session and started recovery.',
       reportability: 'none'
     })
   })

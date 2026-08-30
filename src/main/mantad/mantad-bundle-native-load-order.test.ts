@@ -7,16 +7,16 @@ import { runProcessSync } from '../../shared/child-process/run-process'
 /**
  * The preflight only prevents a loader crash if nothing in the bundle's import graph has
  * already required node-pty by the time it runs. esbuild wraps `local-pty-provider` in a
- * lazy initializer because `orcad-entry` reaches it through `await import('../ipc/pty')`,
+ * lazy initializer because `mantad-entry` reaches it through `await import('../ipc/pty')`,
  * and that laziness is load-bearing rather than incidental — a single top-level static
  * import anywhere in the graph would hoist `require("node-pty")` above every statement in
  * `main.ts`, including the preflight.
  *
- * Why this builds the bundle instead of skipping without one: no CI job builds orcad and
- * runs vitest. `smoke:orcad-terminal` builds it in the static-analysis job, which never
- * runs vitest; the `orcad_browser` job runs vitest but deliberately does not build orcad.
+ * Why this builds the bundle instead of skipping without one: no CI job builds mantad and
+ * runs vitest. `smoke:mantad-terminal` builds it in the static-analysis job, which never
+ * runs vitest; the `orcad_browser` job runs vitest but deliberately does not build mantad.
  * A `runIf(existsSync(...))` guard therefore skips in every shard, forever — the same way
- * an unset ORCA_BROWSER_EXECUTABLE kept the browser provider uncovered.
+ * an unset MANTA_BROWSER_EXECUTABLE kept the browser provider uncovered.
  *
  * Why not fail-when-CI instead: the wiring that would satisfy it lives in `.github/`, so
  * that turns a silent gap into a red build someone else has to fix. Building costs well
@@ -24,8 +24,8 @@ import { runProcessSync } from '../../shared/child-process/run-process'
  * to cooperate. What it must never do is skip.
  */
 const REPO_ROOT = join(__dirname, '..', '..', '..')
-const BUNDLE = join(REPO_ROOT, 'out', 'orcad', 'orcad.js')
-const BUILD_SCRIPT = join(REPO_ROOT, 'config', 'scripts', 'build-orcad.mjs')
+const BUNDLE = join(REPO_ROOT, 'out', 'mantad', 'mantad.js')
+const BUILD_SCRIPT = join(REPO_ROOT, 'config', 'scripts', 'build-mantad.mjs')
 
 /**
  * Why it throws rather than skipping when the build fails: a bundle that cannot be built
@@ -50,7 +50,7 @@ function ensureOrcadBundle(): void {
   }
 }
 
-describe('orcad bundle native load order', () => {
+describe('mantad bundle native load order', () => {
   const dirs: string[] = []
   afterEach(() => {
     for (const dir of dirs.splice(0)) {

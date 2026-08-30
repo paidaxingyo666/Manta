@@ -109,7 +109,7 @@ describe('codex item identity', () => {
     expect(ordinals.ordinalFor(THREAD_ID, 'turn-2', 'item-1')).toBe(0)
   })
 
-  it('keys a non-message item and a turnless message in the orca namespace', () => {
+  it('keys a non-message item and a turnless message in the manta namespace', () => {
     const ordinals = new CodexTurnOrdinals()
     const command = codexItemIdentity({
       threadId: THREAD_ID,
@@ -124,8 +124,8 @@ describe('codex item identity', () => {
       ordinals
     })
 
-    expect(command).toEqual({ provider: 'orca', clientMessageId: 'codex-item:thread-abc:item-2' })
-    expect(orphan).toEqual({ provider: 'orca', clientMessageId: 'codex-item:thread-abc:item-1' })
+    expect(command).toEqual({ provider: 'manta', clientMessageId: 'codex-item:thread-abc:item-2' })
+    expect(orphan).toEqual({ provider: 'manta', clientMessageId: 'codex-item:thread-abc:item-1' })
   })
 })
 

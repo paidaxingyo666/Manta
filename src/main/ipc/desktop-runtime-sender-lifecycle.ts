@@ -1,5 +1,5 @@
 import type { WebContents } from 'electron'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 
 type SenderState = {
   connectionId: string
@@ -7,7 +7,7 @@ type SenderState = {
   subscriptions: Map<string, AbortController>
 }
 
-type CleanupRuntime = Pick<OrcaRuntimeService, 'cleanupSubscriptionsForConnection'>
+type CleanupRuntime = Pick<MantaRuntimeService, 'cleanupSubscriptionsForConnection'>
 
 export class DesktopRuntimeSenderLifecycle {
   private readonly senders = new Map<number, SenderState>()

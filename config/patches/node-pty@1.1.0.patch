@@ -9,7 +9,7 @@ index 5f63978b07ab50aaf7523219a2170ec737a6b5db..bbd9e06136e8922f40b5779e35d4fc83
 -      "<!(node -p \"require('node-addon-api').targets\"):node_addon_api_except",
 +      "<!(node -p \"require.resolve('node-addon-api/node_addon_api.gyp')\"):node_addon_api_except",
      ],
-+    # Orca: GCC 9 (Ubuntu 20.04 floor) accepts C++20 as gnu++2a, but rejects
++    # Manta: GCC 9 (Ubuntu 20.04 floor) accepts C++20 as gnu++2a, but rejects
 +    # the newer gnu++20 spelling emitted by Node 24's gyp flags.
 +    'cflags_cc!': [
 +      '-std=gnu++20'

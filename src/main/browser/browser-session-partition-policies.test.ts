@@ -45,7 +45,7 @@ function fakeSession(): FakeSession {
         listeners.splice(index, 1)
       }
     }),
-    getUserAgent: () => 'Mozilla/5.0 Orca',
+    getUserAgent: () => 'Mozilla/5.0 Manta',
     setUserAgent: vi.fn(),
     setPermissionRequestHandler: vi.fn(),
     setPermissionCheckHandler: vi.fn(),

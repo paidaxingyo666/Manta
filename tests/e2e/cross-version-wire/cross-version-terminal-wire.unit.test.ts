@@ -21,6 +21,20 @@ import {
 const SUITE_TIMEOUT_MS = 180_000
 
 /**
+ * Pinned, not "the newest release" — this fork is AHEAD of upstream here.
+ *
+ * `terminalOwner` arrived in this tree one sync before upstream tagged it, so
+ * every release this fork has cut since already carries the field. The
+ * new-client-against-old-server journey asserts an old peer never emits it, and
+ * a rolling baseline made that assertion test the field against itself. This is
+ * the last release without it.
+ *
+ * Bump it only alongside a deliberate decision about which skew is worth
+ * covering, the way the browser-placement suite pins its own baseline.
+ */
+const LEGACY_TERMINAL_WIRE_RELEASE_REF = 'v1.4.189-rc.10'
+
+/**
  * The frames one journey must produce, named rather than numbered so a diff reads
  * as a protocol change. Any deviation is a change in what a peer publishes or
  * accepts, and needs a human decision against docs/reference/remote-wire-compatibility.md.
@@ -49,7 +63,7 @@ let current: TerminalWireBuild
 let baseline: TerminalWireBuild
 
 beforeAll(async () => {
-  baselineRef = resolveBaselineReleaseRef()
+  baselineRef = LEGACY_TERMINAL_WIRE_RELEASE_REF
   current = await loadTerminalWireBuild(WORKING_TREE)
   baseline = await loadTerminalWireBuild(baselineRef)
 }, SUITE_TIMEOUT_MS)

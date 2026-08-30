@@ -71,7 +71,7 @@ describe('real Codex structured-to-TUI resume', () => {
           'model = "gpt-5"',
           '',
           '[model_providers.orca-integration]',
-          'name = "Orca integration"',
+          'name = "Manta integration"',
           'base_url = "http://127.0.0.1:9/v1"',
           'wire_api = "responses"',
           'requires_openai_auth = false',
@@ -113,7 +113,7 @@ describe('real Codex structured-to-TUI resume', () => {
         env: {
           ...process.env,
           CODEX_HOME: codexHome,
-          ORCA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
+          MANTA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
           TERM: 'xterm-256color'
         }
       })

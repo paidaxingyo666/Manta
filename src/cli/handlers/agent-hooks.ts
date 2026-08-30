@@ -216,7 +216,7 @@ export const AGENT_HOOK_HANDLERS: Record<string, CommandHandler> = {
           'agentHooks.prepareCodexForWslPane',
           {
             codexHome: process.env.CODEX_HOME ?? '',
-            orcaCodexHome: process.env.ORCA_CODEX_HOME ?? '',
+            mantaCodexHome: process.env.MANTA_CODEX_HOME ?? '',
             wslDistro: process.env.WSL_DISTRO_NAME
           },
           { timeoutMs: WSL_CODEX_PREPARE_TIMEOUT_MS }

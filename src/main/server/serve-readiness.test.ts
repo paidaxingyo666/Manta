@@ -4,7 +4,7 @@ import {
   ServeReadinessPublisher,
   type ServeReadiness
 } from './serve-readiness'
-import type { OrcadHealth } from '../orcad/orcad-health'
+import type { OrcadHealth } from '../mantad/mantad-health'
 
 const ready: ServeReadiness = {
   runtimeId: 'runtime-1',
@@ -35,7 +35,7 @@ const health: OrcadHealth = {
     ownsFreshSessions: true,
     pid: 4242,
     buildVersion: '1.4.0',
-    entryPath: '/opt/orcad/daemon-entry.js',
+    entryPath: '/opt/mantad/daemon-entry.js',
     protocolVersion: 36,
     selfTest: { ok: true, coverage: 'pty-spawn', verdict: 'healthy', durationMs: 12 }
   }
@@ -151,7 +151,7 @@ describe('ServeReadinessPublisher', () => {
     const human = renderServeReadiness(failed, { mode: 'human' })
     // An operator reading the ready block must not have to infer this from a missing line.
     expect(human).toContain('PTY self-test FAILED')
-    expect(human).toContain('terminals survive an orcad restart: NO')
+    expect(human).toContain('terminals survive an mantad restart: NO')
   })
 
   it('rejects concurrent and later duplicate publications', async () => {

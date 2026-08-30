@@ -130,7 +130,7 @@ describe('terminal send CLI', () => {
     })
 
     expect(console.log).toHaveBeenCalledWith(
-      expect.stringMatching(/Structured Chat.*Switch it to Terminal.*orca terminal send/s)
+      expect.stringMatching(/Structured Chat.*Switch it to Terminal.*manta terminal send/s)
     )
     expect(process.exitCode).toBe(1)
   })

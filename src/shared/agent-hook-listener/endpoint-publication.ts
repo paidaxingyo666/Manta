@@ -41,7 +41,7 @@ export function writeEndpointFile(
     ['MANTA_AGENT_HOOK_VERSION', fields.version]
   ]
   if (fields.transport) {
-    valuesToWrite.push(['ORCA_AGENT_HOOK_TRANSPORT', fields.transport])
+    valuesToWrite.push(['MANTA_AGENT_HOOK_TRANSPORT', fields.transport])
   }
   for (const [key, value] of valuesToWrite) {
     if (!isShellSafeEndpointValue(value)) {

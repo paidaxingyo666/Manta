@@ -38,12 +38,12 @@ const stageSlot = (prebuilds: string, slot: string): void => {
 
 describe('resolveOrcadPrebuildsDir', () => {
   it('looks beside the running bundle', () => {
-    expect(resolveOrcadPrebuildsDir('/opt/orcad/orcad.js')).toBe(join('/opt/orcad', 'prebuilds'))
+    expect(resolveOrcadPrebuildsDir('/opt/mantad/mantad.js')).toBe(join('/opt/mantad', 'prebuilds'))
   })
 
   it('honours an explicit override', () => {
     process.env.ORCA_ORCAD_PREBUILDS_DIR = '/custom/prebuilds'
-    expect(resolveOrcadPrebuildsDir('/opt/orcad/orcad.js')).toBe('/custom/prebuilds')
+    expect(resolveOrcadPrebuildsDir('/opt/mantad/mantad.js')).toBe('/custom/prebuilds')
   })
 })
 

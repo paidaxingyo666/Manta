@@ -100,7 +100,7 @@ export async function readIssueConnectionPages(
   let hasMore = false
 
   while (items.length < limit) {
-    // Why: Linear caps connection pages at 50, so larger Orca reads must walk
+    // Why: Linear caps connection pages at 50, so larger Manta reads must walk
     // cursors instead of asking for the whole expanded limit in one request.
     const first = Math.min(LINEAR_ISSUE_API_PAGE_SIZE_MAX, limit - items.length)
     const connection = await loadConnection(after ? { first, after } : { first })

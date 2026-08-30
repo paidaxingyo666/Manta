@@ -26,7 +26,7 @@ describe('NativeChatOrchestrationPausedNotice', () => {
       expect(notice.textContent).toContain('Structured Chat blocks terminal prompts and sends')
       expect(notice.textContent).toContain('Orchestration messages remain queued')
       expect(notice.textContent).toContain(
-        'switch to Terminal, then check the Orca inbox with orca orchestration check'
+        'switch to Terminal, then check the Manta inbox with manta orchestration check'
       )
     }
   )

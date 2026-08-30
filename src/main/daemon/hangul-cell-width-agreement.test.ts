@@ -1,9 +1,9 @@
 /**
- * #15192, activation-order hypothesis: "the Orca unicode provider is not reached
+ * #15192, activation-order hypothesis: "the Manta unicode provider is not reached
  * in production, so Hangul lays out at the wrong width."
  *
  * These pin the measurements that close it. Every precomposed Hangul syllable is
- * two cells under xterm's Unicode 6 tables, its Unicode 11 tables, and Orca's
+ * two cells under xterm's Unicode 6 tables, its Unicode 11 tables, and Manta's
  * provider alike, so no activation order — provider, v11 fallback, or the
  * untouched v6 default — can change how a syllable is budgeted. Whatever moves
  * Korean text off its cells is not the unicode version.
@@ -15,10 +15,10 @@
 import { describe, expect, it } from 'vitest'
 import { Terminal } from '@xterm/headless'
 import { Unicode11Addon } from '@xterm/addon-unicode11'
-import { activateOrcaTerminalUnicodeProvider } from '../../shared/terminal-unicode-provider'
+import { activateMantaTerminalUnicodeProvider } from '../../shared/terminal-unicode-provider'
 import { isWideGlyph } from './__fixtures__/terminal-wide-cell-grid'
 
-const ORCA_UNICODE_VERSION = 'orca-11-zwj'
+const MANTA_UNICODE_VERSION = 'manta-11-zwj'
 const HANGUL_SYLLABLES_FIRST = 0xac00
 const HANGUL_SYLLABLES_LAST = 0xd7a3
 
@@ -59,7 +59,7 @@ function openWithUnicode11AddonLoaded(): {
 } {
   const terminal = new Terminal({ cols: 40, rows: 10, allowProposedApi: true })
   terminal.loadAddon(new Unicode11Addon())
-  activateOrcaTerminalUnicodeProvider(terminal as never)
+  activateMantaTerminalUnicodeProvider(terminal as never)
   const unicode = (
     terminal as unknown as {
       _core: { unicodeService: UnicodeServiceInternals }
@@ -96,17 +96,17 @@ function summarize(entries: { codepoint: number; detail: string }[]): string[] {
 }
 
 describe('Hangul cell width agreement (#15192)', () => {
-  it('reaches the Orca provider, not the v11 fallback, on a live terminal', () => {
+  it('reaches the Manta provider, not the v11 fallback, on a live terminal', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
-    expect(unicode.versions).toContain(ORCA_UNICODE_VERSION)
-    expect(unicode.activeVersion).toBe(ORCA_UNICODE_VERSION)
+    expect(unicode.versions).toContain(MANTA_UNICODE_VERSION)
+    expect(unicode.activeVersion).toBe(MANTA_UNICODE_VERSION)
     terminal.dispose()
   })
 
-  it('budgets every precomposed syllable at two cells under v6, v11 and Orca', () => {
+  it('budgets every precomposed syllable at two cells under v6, v11 and Manta', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
     const disagreeing: { codepoint: number; detail: string }[] = []
-    for (const version of ['6', '11', ORCA_UNICODE_VERSION]) {
+    for (const version of ['6', '11', MANTA_UNICODE_VERSION]) {
       unicode.activeVersion = version
       for (let cp = HANGUL_SYLLABLES_FIRST; cp <= HANGUL_SYLLABLES_LAST; cp += 1) {
         const wcwidth = unicode.wcwidth(cp)

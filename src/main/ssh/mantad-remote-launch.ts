@@ -1,9 +1,9 @@
 /**
- * Starting a candidate orcad on the host and reading back what it says about itself.
+ * Starting a candidate mantad on the host and reading back what it says about itself.
  *
  * This is the piece `docs/design/shipping-orcad.html` §02 marks **fork**, not reuse: the
- * relay launches detached and proves itself by printing an `ORCA-RELAY` sentinel, and orcad
- * has no such interface. It publishes a single `orca_server_ready` JSON line on stdout,
+ * relay launches detached and proves itself by printing an `MANTA-RELAY` sentinel, and mantad
+ * has no such interface. It publishes a single `manta_server_ready` JSON line on stdout,
  * carrying the health payload activation is gated on — so the handshake here is "capture
  * that line", not "match a marker".
  *
@@ -16,16 +16,16 @@ import { shellEscape } from './ssh-connection-utils'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import {
   assertPosixOrcadHost as assertPosixHost,
-  ORCAD_PID_FILENAME,
+  MANTAD_PID_FILENAME,
   posixProcessAliveShellFunction
-} from './orcad-remote-host-support'
+} from './mantad-remote-host-support'
 import type { ServeReadiness } from '../server/serve-readiness'
 
-/** Stdout of the launched candidate: exactly one `orca_server_ready` line, then nothing. */
-export const ORCAD_READINESS_FILENAME = '.orcad-readiness'
+/** Stdout of the launched candidate: exactly one `manta_server_ready` line, then nothing. */
+export const MANTAD_READINESS_FILENAME = '.mantad-readiness'
 /** Stderr, including the bind-exposure line and every supervision message. */
-export const ORCAD_LOG_FILENAME = 'orcad.log'
-export { ORCAD_PID_FILENAME, OrcadRemoteLaunchUnsupportedError } from './orcad-remote-host-support'
+export const MANTAD_LOG_FILENAME = 'orcad.log'
+export { MANTAD_PID_FILENAME, OrcadRemoteLaunchUnsupportedError } from './mantad-remote-host-support'
 
 export type OrcadLaunchSpec = {
   remoteInstallDir: string
@@ -41,7 +41,7 @@ export type OrcadLaunchSpec = {
 /**
  * Launch the candidate detached and echo its PID.
  *
- * Why `--bind` is always passed explicitly: orcad defaults to loopback, but a default is a
+ * Why `--bind` is always passed explicitly: mantad defaults to loopback, but a default is a
  * thing a future version can change. The deploy states the posture it intends rather than
  * inheriting whatever the installed build happens to default to.
  */
@@ -49,19 +49,19 @@ export function orcadLaunchCommand(host: RemoteHostPlatform, spec: OrcadLaunchSp
   assertPosixHost(host)
   const dir = shellEscape(spec.remoteInstallDir)
   const readiness = shellEscape(
-    joinRemotePath(host, spec.remoteInstallDir, ORCAD_READINESS_FILENAME)
+    joinRemotePath(host, spec.remoteInstallDir, MANTAD_READINESS_FILENAME)
   )
-  const log = shellEscape(joinRemotePath(host, spec.remoteInstallDir, ORCAD_LOG_FILENAME))
-  const pidFile = shellEscape(joinRemotePath(host, spec.remoteInstallDir, ORCAD_PID_FILENAME))
-  const entry = shellEscape(joinRemotePath(host, spec.remoteInstallDir, 'orcad.js'))
+  const log = shellEscape(joinRemotePath(host, spec.remoteInstallDir, MANTAD_LOG_FILENAME))
+  const pidFile = shellEscape(joinRemotePath(host, spec.remoteInstallDir, MANTAD_PID_FILENAME))
+  const entry = shellEscape(joinRemotePath(host, spec.remoteInstallDir, 'mantad.js'))
   return [
     `cd ${dir} &&`,
     // Why truncate: a re-launch into a dir that already holds a previous readiness line would
     // otherwise let the deploy activate on the OLD process's health payload.
     `: > ${readiness} &&`,
     'umask 077 &&',
-    `ORCA_VERSION=${shellEscape(spec.fullVersion)}`,
-    `ORCA_USER_DATA=${shellEscape(spec.userDataDir)}`,
+    `MANTA_VERSION=${shellEscape(spec.fullVersion)}`,
+    `MANTA_USER_DATA=${shellEscape(spec.userDataDir)}`,
     `nohup ${shellEscape(spec.nodePath)} ${entry}`,
     `--json --bind ${shellEscape(spec.bindHost)} --port ${String(spec.port)}`,
     `> ${readiness} 2>> ${log} < /dev/null &`,
@@ -74,7 +74,7 @@ export function readOrcadReadinessCommand(
   remoteInstallDir: string
 ): string {
   assertPosixHost(host)
-  const readiness = shellEscape(joinRemotePath(host, remoteInstallDir, ORCAD_READINESS_FILENAME))
+  const readiness = shellEscape(joinRemotePath(host, remoteInstallDir, MANTAD_READINESS_FILENAME))
   return `cat ${readiness} 2>/dev/null || true`
 }
 
@@ -90,7 +90,7 @@ export function orcadLivenessProbeCommand(
   remoteInstallDir: string
 ): string {
   assertPosixHost(host)
-  const pidFile = shellEscape(joinRemotePath(host, remoteInstallDir, ORCAD_PID_FILENAME))
+  const pidFile = shellEscape(joinRemotePath(host, remoteInstallDir, MANTAD_PID_FILENAME))
   return [
     posixProcessAliveShellFunction(),
     `pid=$(cat ${pidFile} 2>/dev/null);`,
@@ -124,7 +124,7 @@ export type OrcadReadinessParse =
   | { state: 'malformed'; reason: string }
 
 /**
- * Pull the `orca_server_ready` payload out of whatever the candidate has written so far.
+ * Pull the `manta_server_ready` payload out of whatever the candidate has written so far.
  *
  * Why scan for the type tag rather than parsing the last line: stdout is a file being
  * appended to, so a poll can catch a half-written line. A partial JSON line is `pending`,
@@ -149,10 +149,10 @@ export function parseOrcadReadinessOutput(raw: string): OrcadReadinessParse {
       continue
     }
     const payload = parsed as { type?: unknown }
-    if (payload.type !== 'orca_server_ready') {
+    if (payload.type !== 'manta_server_ready') {
       return {
         state: 'malformed',
-        reason: `expected an orca_server_ready line, got type=${JSON.stringify(payload.type)}`
+        reason: `expected an manta_server_ready line, got type=${JSON.stringify(payload.type)}`
       }
     }
     return { state: 'ready', readiness: toServeReadiness(payload as Record<string, unknown>) }

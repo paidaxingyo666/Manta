@@ -1,5 +1,5 @@
 /**
- * The native precondition orcad runs before its runtime loads anything native.
+ * The native precondition mantad runs before its runtime loads anything native.
  *
  * Split from `node-pty-precondition.ts` so the decision (what to do about a verdict) is
  * testable apart from the detection (what the verdict is).
@@ -19,7 +19,7 @@ import {
  * host that can never load this binary. This code says "the host is not equipped", which
  * is a different instruction from "it crashed".
  */
-export const ORCAD_NATIVE_PRECONDITION_EXIT_CODE = 78
+export const MANTAD_NATIVE_PRECONDITION_EXIT_CODE = 78
 
 export type NativePreflightHooks = {
   check?: () => NodePtyPreconditionVerdict
@@ -36,7 +36,7 @@ export type NativePreflightHooks = {
  * just proved fatal, and the operator would get the loader's stack trace instead of the
  * sentence printed here.
  */
-export function runOrcadNativePreflight(hooks: NativePreflightHooks = {}): boolean {
+export function runMantadNativePreflight(hooks: NativePreflightHooks = {}): boolean {
   const check = hooks.check ?? checkNodePtyPrecondition
   const warn = hooks.warn ?? ((message: string) => console.warn(message))
   const fail = hooks.fail ?? ((message: string) => console.error(message))
@@ -59,14 +59,14 @@ export function runOrcadNativePreflight(hooks: NativePreflightHooks = {}): boole
 
   if (verdict.status === 'blocked') {
     const hints = (hooks.toolchainHints ?? probeLocalBuildToolchainHints)(verdict.abi.platform)
-    fail(`orcad: ${formatNodePtyPreconditionReport(verdict, message, hints)}`)
-    exit(ORCAD_NATIVE_PRECONDITION_EXIT_CODE)
+    fail(`mantad: ${formatNodePtyPreconditionReport(verdict, message, hints)}`)
+    exit(MANTAD_NATIVE_PRECONDITION_EXIT_CODE)
     return false
   }
 
   // `degraded` and `unverifiable` both boot. The first is a proven spawn-time fault the
   // host can still serve around; the second established nothing, and refusing to boot on
   // an inconclusive probe would take down hosts that work.
-  warn(`orcad: ${formatNodePtyPreconditionReport(verdict, message)}`)
+  warn(`mantad: ${formatNodePtyPreconditionReport(verdict, message)}`)
   return true
 }

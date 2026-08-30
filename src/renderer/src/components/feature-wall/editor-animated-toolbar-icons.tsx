@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 
 // Toolbar icons mirror RichMarkdownToolbar.tsx — same families so the
-// surface reads as Orca's actual editor, not a generic editor.
+// surface reads as Manta's actual editor, not a generic editor.
 export const TB_ICON: Record<string, JSX.Element> = {
   pilcrow: (
     <svg

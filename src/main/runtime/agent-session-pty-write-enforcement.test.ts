@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { agentSessionPtyWriteGate } from './agent-session-pty-write-gate'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import {
@@ -50,7 +50,7 @@ function publish(lease: AgentSessionLease): void {
 }
 
 async function makeRuntime(options: { onWrite?: (ptyId: string, data: string) => void } = {}) {
-  const runtime = new OrcaRuntimeService(makeStore() as never)
+  const runtime = new MantaRuntimeService(makeStore() as never)
   const write = vi.fn((ptyId: string, data: string) => {
     options.onWrite?.(ptyId, data)
     // A real agent starts working when it receives the submit, and the prompt path now waits for
@@ -335,7 +335,7 @@ describe('lease transition against an in-flight write', () => {
     try {
       const { runtime, handle, write } = await makeRuntime({
         onWrite: (_ptyId, data) => {
-          if (data.includes('orca orchestration check')) {
+          if (data.includes('manta orchestration check')) {
             publish(agentSessionLeaseFixture({ runtimeFence: 8 }))
           }
         }

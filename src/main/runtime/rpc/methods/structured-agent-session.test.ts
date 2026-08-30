@@ -10,7 +10,7 @@ import {
   STRUCTURED_AGENT_SESSION_HOLD_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY
 } from '../../../../shared/protocol-version'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MantaRuntimeService } from '../../manta-runtime'
 import type { RpcRequest, RpcResponse } from '../core'
 import { RpcDispatcher } from '../dispatcher'
 import { ALL_RPC_METHODS } from './index'
@@ -135,7 +135,7 @@ function dispatcher(): RpcDispatcher {
     ...runtimeCalls
   }
   return new RpcDispatcher({
-    runtime: runtime as unknown as OrcaRuntimeService,
+    runtime: runtime as unknown as MantaRuntimeService,
     methods: STRUCTURED_AGENT_SESSION_METHODS
   })
 }

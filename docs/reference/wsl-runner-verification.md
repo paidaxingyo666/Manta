@@ -30,7 +30,7 @@ Each fails on a **new** offender _and_ on a **stale** entry, so the count can on
 **Real WSL distro** — not in CI; WSL isn't available on hosted runners.
 
 ```
-ORCA_REAL_WSL_RUNNER_TEST=1 MANTA_WSL_TEST_DISTRO=Ubuntu-24.04 \
+MANTA_REAL_WSL_RUNNER_TEST=1 MANTA_WSL_TEST_DISTRO=Ubuntu-24.04 \
   pnpm vitest run src/main/wsl/wsl-runner.wsl.test.ts
 ```
 

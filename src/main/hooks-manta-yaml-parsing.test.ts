@@ -29,7 +29,7 @@ describe('parseMantaYaml', () => {
       '  setup: node install-project-skills.mjs'
     ].join('\n')
 
-    expect(parseOrcaYaml(yaml)).toEqual({
+    expect(parseMantaYaml(yaml)).toEqual({
       scripts: { setup: 'node install-project-skills.mjs' },
       setupAgentStartupPolicy: 'wait-for-setup'
     })

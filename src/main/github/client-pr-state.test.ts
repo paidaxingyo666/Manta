@@ -105,13 +105,13 @@ describe('pull request state mutations', () => {
   })
 
   it('marks pull requests ready for review through gh', async () => {
-    getOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'orca' })
+    getOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'manta' })
     ghExecFileAsyncMock.mockResolvedValueOnce({ stdout: '', stderr: '' })
 
     await expect(markPRReadyForReview('/repo-root', 3977)).resolves.toEqual({ ok: true })
 
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      ['pr', 'ready', '3977', '--repo', 'stablyai/orca'],
+      ['pr', 'ready', '3977', '--repo', 'stablyai/manta'],
       { cwd: '/repo-root', host: 'github.com' }
     )
     expect(acquireMock).toHaveBeenCalledTimes(1)

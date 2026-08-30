@@ -4,7 +4,7 @@ import { readDocPreviewGuestBoundGrantId } from './doc-preview-guest-policy'
 
 /**
  * Why the reader is told at all, when the point of the fence is that nothing happens: a press that
- * produces no file and no explanation reads as Orca being broken. The notice is chrome the document
+ * produces no file and no explanation reads as Manta being broken. The notice is chrome the document
  * cannot see or read back, so the refusal stays as silent to the page as it was.
  *
  * Why a floor between notices: a document can ask in a loop, and every attempt would otherwise

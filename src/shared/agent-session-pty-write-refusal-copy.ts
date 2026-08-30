@@ -8,6 +8,6 @@ export function structuredChatPtyWriteRefusalCopy(
     return null
   }
   return action === 'worker-start'
-    ? 'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca orchestration worker-start`.'
-    : 'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca terminal send`.'
+    ? 'The target terminal is in Structured Chat. Switch it to Terminal, then retry `manta orchestration worker-start`.'
+    : 'The target terminal is in Structured Chat. Switch it to Terminal, then retry `manta terminal send`.'
 }

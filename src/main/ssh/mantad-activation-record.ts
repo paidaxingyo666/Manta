@@ -1,5 +1,5 @@
 /**
- * Which installed orcad is the live one, and which one a rollback goes back to.
+ * Which installed mantad is the live one, and which one a rollback goes back to.
  *
  * A versioned install directory decides where bytes land; it does not decide which version
  * runs. Without this record, "roll back" means "deploy the old version again" — which needs
@@ -7,19 +7,19 @@
  * record is the host-side half: it names an active version, a rollback target, and the
  * pre-activation state snapshot that makes going back to that target sound.
  *
- * It lives beside the version dirs (`~/.orca-remote/orcad-active.json`), not inside one,
+ * It lives beside the version dirs (`~/.manta-remote/mantad-active.json`), not inside one,
  * because it has to outlive whichever version GC removes.
  */
-import { remoteInstallDirName, ORCAD_INSTALL_MODEL } from './remote-install-model'
+import { remoteInstallDirName, MANTAD_INSTALL_MODEL } from './remote-install-model'
 
-export const ORCAD_ACTIVATION_FILENAME = 'orcad-active.json'
-export const ORCAD_ACTIVATION_SCHEMA_VERSION = 1
+export const MANTAD_ACTIVATION_FILENAME = 'mantad-active.json'
+export const MANTAD_ACTIVATION_SCHEMA_VERSION = 1
 
-/** Where a pre-activation copy of the shared data root lives, relative to `.orca-remote/`. */
-export const ORCAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'
+/** Where a pre-activation copy of the shared data root lives, relative to `.manta-remote/`. */
+export const MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'
 
 export type OrcadStateSnapshot = {
-  /** Directory name under `ORCAD_STATE_SNAPSHOT_DIR`. */
+  /** Directory name under `MANTAD_STATE_SNAPSHOT_DIR`. */
   dirName: string
   /** The version whose activation this snapshot was taken FOR — i.e. taken before it ran. */
   takenBeforeVersion: string
@@ -29,7 +29,7 @@ export type OrcadStateSnapshot = {
 }
 
 export type OrcadActivationRecord = {
-  schemaVersion: typeof ORCAD_ACTIVATION_SCHEMA_VERSION
+  schemaVersion: typeof MANTAD_ACTIVATION_SCHEMA_VERSION
   /** Full content-hashed version, e.g. `0.1.0+9f2a1c`. Null before the first activation. */
   active: string | null
   /** The version `active` replaced. The rollback target, and pinned against GC. */
@@ -40,7 +40,7 @@ export type OrcadActivationRecord = {
 
 export function emptyOrcadActivationRecord(): OrcadActivationRecord {
   return {
-    schemaVersion: ORCAD_ACTIVATION_SCHEMA_VERSION,
+    schemaVersion: MANTAD_ACTIVATION_SCHEMA_VERSION,
     active: null,
     previous: null,
     activatedAt: null,
@@ -77,18 +77,18 @@ export function parseOrcadActivationRecord(raw: string | null): OrcadActivationR
     return { state: 'unreadable', reason: 'activation record is not an object' }
   }
   const record = parsed as Partial<OrcadActivationRecord>
-  if (record.schemaVersion !== ORCAD_ACTIVATION_SCHEMA_VERSION) {
+  if (record.schemaVersion !== MANTAD_ACTIVATION_SCHEMA_VERSION) {
     return {
       state: 'unreadable',
       reason:
         `activation record schemaVersion ${String(record.schemaVersion)} is not ` +
-        `${ORCAD_ACTIVATION_SCHEMA_VERSION}; this client cannot safely interpret it`
+        `${MANTAD_ACTIVATION_SCHEMA_VERSION}; this client cannot safely interpret it`
     }
   }
   return {
     state: 'ok',
     record: {
-      schemaVersion: ORCAD_ACTIVATION_SCHEMA_VERSION,
+      schemaVersion: MANTAD_ACTIVATION_SCHEMA_VERSION,
       active: typeof record.active === 'string' ? record.active : null,
       previous: typeof record.previous === 'string' ? record.previous : null,
       activatedAt: typeof record.activatedAt === 'string' ? record.activatedAt : null,
@@ -126,7 +126,7 @@ export function withActivatedVersion(
   now: Date
 ): OrcadActivationRecord {
   return {
-    schemaVersion: ORCAD_ACTIVATION_SCHEMA_VERSION,
+    schemaVersion: MANTAD_ACTIVATION_SCHEMA_VERSION,
     active: version,
     // Why keep the OLD previous when re-activating the same version: a repeated deploy of
     // an already-active build is not a version change, so it must not erase the rollback
@@ -143,7 +143,7 @@ export function withRolledBackVersion(
   now: Date
 ): OrcadActivationRecord {
   return {
-    schemaVersion: ORCAD_ACTIVATION_SCHEMA_VERSION,
+    schemaVersion: MANTAD_ACTIVATION_SCHEMA_VERSION,
     active: record.previous,
     // Why null and not the version we just left: it is the build we are rolling back FROM,
     // so offering it as the next rollback target would walk straight back into the failure.
@@ -169,5 +169,5 @@ export function orcadGcPinnedDirNames(
   const versions = [record.active, record.previous, daemonEntryVersion ?? null].filter(
     (v): v is string => typeof v === 'string' && v.length > 0
   )
-  return [...new Set(versions)].map((version) => remoteInstallDirName(ORCAD_INSTALL_MODEL, version))
+  return [...new Set(versions)].map((version) => remoteInstallDirName(MANTAD_INSTALL_MODEL, version))
 }

@@ -122,7 +122,7 @@ describe('main window webview security', () => {
   })
 })
 
-describe('orca-preview scheme admission', () => {
+describe('manta-preview scheme admission', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     revokeAllDocPreviewGrants()
@@ -183,7 +183,7 @@ describe('orca-preview scheme admission', () => {
   it('keeps the preview preload off a browsing attach', () => {
     const { handlers } = installOnFakeWindow()
     mocks.isAllowedPartition.mockReturnValue(true)
-    const preferences: Record<string, unknown> = { partition: 'persist:orca-browser' }
+    const preferences: Record<string, unknown> = { partition: 'persist:manta-browser' }
 
     handlers['will-attach-webview']?.(
       { preventDefault: vi.fn() } as never,
@@ -202,7 +202,7 @@ describe('orca-preview scheme admission', () => {
     handlers['will-attach-webview']?.(
       { preventDefault } as never,
       { partition: DOC_PREVIEW_PARTITION } as never,
-      { src: `orca-preview://${'0'.repeat(32)}/index.html` } as never
+      { src: `manta-preview://${'0'.repeat(32)}/index.html` } as never
     )
 
     expect(preventDefault).toHaveBeenCalledOnce()
@@ -217,7 +217,7 @@ describe('orca-preview scheme admission', () => {
 
     handlers['will-attach-webview']?.(
       { preventDefault } as never,
-      { partition: 'persist:orca-browser' } as never,
+      { partition: 'persist:manta-browser' } as never,
       { src: buildDocPreviewUrl(grant.id, 'index.html') } as never
     )
 

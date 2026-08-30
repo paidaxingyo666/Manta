@@ -75,8 +75,8 @@ describe('compactRetiredNames', () => {
 
   it('drops names a higher watermark already covers', () => {
     expect(
-      compactRetiredNames({ exhaustedTiers: 2, names: ['nautilus', 'manta-2', 'manta-3'] })
-    ).toEqual({ exhaustedTiers: 2, names: ['manta-3'] })
+      compactRetiredNames({ exhaustedTiers: 2, names: ['nautilus', 'orca-2', 'orca-3'] })
+    ).toEqual({ exhaustedTiers: 2, names: ['orca-3'] })
   })
 
   it.each([
@@ -107,7 +107,7 @@ describe('createRetiredNameLookup', () => {
   it('still answers for explicit names above the watermark', () => {
     const lookup = createRetiredNameLookup({ exhaustedTiers: 1, names: ['nautilus-3'] })
     expect(lookup('NAUTILUS-3')).toBe(true)
-    expect(lookup('manta-3')).toBe(false)
+    expect(lookup('orca-3')).toBe(false)
   })
 })
 
@@ -138,7 +138,7 @@ describe('mergeRetiredNameRegistries', () => {
     expect(
       mergeRetiredNameRegistries(
         { exhaustedTiers: 2, names: ['nautilus-3'] },
-        { exhaustedTiers: 0, names: ['nautilus', 'manta-2', 'seahorse-4'] }
+        { exhaustedTiers: 0, names: ['nautilus', 'orca-2', 'seahorse-4'] }
       )
     ).toEqual({ exhaustedTiers: 2, names: ['nautilus-3', 'seahorse-4'] })
   })

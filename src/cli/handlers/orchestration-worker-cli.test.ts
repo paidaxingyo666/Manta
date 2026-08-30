@@ -172,7 +172,7 @@ describe('orchestration worker-start CLI contract', () => {
         state: 'failed',
         failedStage: 'dispatch_input',
         lastError:
-          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca orchestration worker-start`.',
+          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `manta orchestration worker-start`.',
         effects: [],
         residualResources: []
       }
@@ -205,9 +205,9 @@ describe('orchestration worker-start CLI contract', () => {
         state: 'failed',
         failedStage: 'dispatch_input',
         lastError:
-          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `orca orchestration worker-start`.'
+          'The target terminal is in Structured Chat. Switch it to Terminal, then retry `manta orchestration worker-start`.'
       })
-    ).toMatch(/Structured Chat.*Switch it to Terminal.*orca orchestration worker-start/s)
+    ).toMatch(/Structured Chat.*Switch it to Terminal.*manta orchestration worker-start/s)
   })
 
   it('prints a reveal warning for a live background worker', async () => {

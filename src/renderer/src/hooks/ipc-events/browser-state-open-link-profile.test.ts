@@ -28,7 +28,7 @@ function captureOpenLinkHandler(): (event: { browserPageId: string; url: string 
   let handler: ((event: { browserPageId: string; url: string }) => void) | null = null
   const browserApi = new Proxy(
     {
-      onOpenLinkInOrcaTab: (callback: (event: { browserPageId: string; url: string }) => void) => {
+      onOpenLinkInMantaTab: (callback: (event: { browserPageId: string; url: string }) => void) => {
         handler = callback
         return noopUnsubscribe
       }
@@ -48,12 +48,12 @@ function captureOpenLinkHandler(): (event: { browserPageId: string; url: string 
 
   registerBrowserStateIpcBridge([], () => false)
   if (!handler) {
-    throw new Error('Expected the bridge to subscribe to browser:open-link-in-orca-tab')
+    throw new Error('Expected the bridge to subscribe to browser:open-link-in-manta-tab')
   }
   return handler
 }
 
-describe('link-opened Orca tabs', () => {
+describe('link-opened Manta tabs', () => {
   beforeEach(() => {
     createBrowserTabMock.mockReset()
   })

@@ -43,8 +43,8 @@ describe('Windows CLI launcher', () => {
   it('reuses a compiled launcher that is at least as new as the C# source', () => {
     const root = mkdtempSync(join(tmpdir(), 'orca-cli-launcher-reuse-'))
     try {
-      const sourcePath = join(root, 'OrcaCliLauncher.cs')
-      const outputPath = join(root, '.build', 'orca.exe')
+      const sourcePath = join(root, 'MantaCliLauncher.cs')
+      const outputPath = join(root, '.build', 'manta.exe')
       mkdirSync(join(root, '.build'))
       writeFileSync(sourcePath, 'source\n')
       writeFileSync(outputPath, 'binary\n')

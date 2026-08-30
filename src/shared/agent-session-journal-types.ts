@@ -32,7 +32,7 @@ export type AgentSessionProviderHandle =
 /** The narrow slice of the durable session record the journal needs. The full
  *  record (owner, lease, account home) belongs to the session store. */
 export type AgentSessionJournalIdentity = {
-  /** Orca agent-session id — the journal's primary key. */
+  /** Manta agent-session id — the journal's primary key. */
   sessionId: string
   /** Execution-host workspace key. Identical for a worktree, a folder
    *  workspace, a WSL distro, and an SSH host; never a path. */
@@ -51,8 +51,8 @@ export type AgentSessionJournalIdentity = {
 export type AgentJournalItemIdentity =
   | { provider: 'codex'; threadId: string; turnId: string; ordinal: number }
   | { provider: 'claude'; sessionId: string; uuid: string }
-  /** A submission Orca minted before any provider echo existed. */
-  | { provider: 'orca'; clientMessageId: string }
+  /** A submission Manta minted before any provider echo existed. */
+  | { provider: 'manta'; clientMessageId: string }
   /** Bridge-era transcript record with no provider-stable identity. */
   | { provider: 'legacy'; agent: AgentType; sessionId: string; recordId: string }
 

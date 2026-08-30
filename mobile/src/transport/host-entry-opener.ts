@@ -9,6 +9,7 @@ import type { HostOpenRetryScheduler } from './host-open-retry-scheduler'
 import type { RpcClient } from './rpc-client'
 import type { StableLogicalRpcClient } from './stable-logical-rpc-client'
 import type { ConnectionState, HostProfile } from './types'
+import { translate } from '../i18n/i18n'
 
 export type HostClientStoreEntry = {
   client: RpcClient
@@ -69,7 +70,7 @@ export async function openHostClientEntry(
       ts: Date.now(),
       level: 'error',
       code: 'host-open-failed',
-      message: 'Host client open failed',
+      message: translate("m.host.entry.opener.a92a6b03d4", "Host client open failed"),
       detail: `${category}; retry ${retry.nextDelayMs}ms (failure ${retry.failureCount})`
     })
   }
@@ -144,7 +145,7 @@ export async function openHostClientEntry(
         id: `host-open-recovered-${ticket.generation}-${Date.now()}`,
         ts: Date.now(),
         level: 'success',
-        message: 'Host client recovered',
+        message: translate("m.host.entry.opener.e40eea0afb", "Host client recovered"),
         detail: `after ${priorFailureCount} failed open${priorFailureCount === 1 ? '' : 's'}`
       })
     }

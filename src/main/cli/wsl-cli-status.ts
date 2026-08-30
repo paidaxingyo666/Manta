@@ -1,7 +1,7 @@
 import type { CliInstallStatus } from '../../shared/cli-install-types'
 import { getBridgePathFromCommandPath, getPosixDirname, quoteShell } from './wsl-cli-scripts'
 
-const WSL_COMMAND_NAME = 'orca-ide'
+const WSL_COMMAND_NAME = 'manta-ide'
 
 export type ReadyWslCliState = {
   distro: string
@@ -22,7 +22,7 @@ export async function readWslCliCommandFile(
       `if [ -L ${quoteShell(commandPath)} ]; then`,
       '  printf __ORCA_NOT_FILE__',
       `elif [ ! -e ${quoteShell(commandPath)} ]; then`,
-      '  printf __ORCA_MISSING__',
+      '  printf __MANTA_MISSING__',
       `elif [ ! -f ${quoteShell(commandPath)} ]; then`,
       '  printf __ORCA_NOT_FILE__',
       'else',
@@ -30,7 +30,7 @@ export async function readWslCliCommandFile(
       'fi'
     ].join('\n')
   )
-  if (output === '__ORCA_MISSING__') {
+  if (output === '__MANTA_MISSING__') {
     return null
   }
   if (output === '__ORCA_NOT_FILE__') {
@@ -112,7 +112,7 @@ export async function resolveReadyWslCliState(args: {
     return {
       status: unsupportedWslCliStatus(
         hostStatus.unsupportedReason ?? 'launcher_missing',
-        hostStatus.detail ?? 'The Windows Orca CLI launcher is missing.'
+        hostStatus.detail ?? 'The Windows Manta CLI launcher is missing.'
       )
     }
   }
@@ -138,7 +138,7 @@ export async function resolveReadyWslCliState(args: {
     return {
       status: unsupportedWslCliStatus(
         'launcher_missing',
-        'WSL Windows interop is unavailable; Orca cannot launch the Windows CLI from WSL.'
+        'WSL Windows interop is unavailable; Manta cannot launch the Windows CLI from WSL.'
       )
     }
   }

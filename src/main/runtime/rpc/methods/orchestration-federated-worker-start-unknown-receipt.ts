@@ -18,8 +18,8 @@ export function federatedUnknownReceipt(
     effects: [],
     residualResources: [],
     nextCommands: [
-      `orca orchestration worker-show --dispatch ${worker.dispatch_id} --json`,
-      `orca orchestration worker-abandon --dispatch ${worker.dispatch_id} --json`
+      `manta orchestration worker-show --dispatch ${worker.dispatch_id} --json`,
+      `manta orchestration worker-abandon --dispatch ${worker.dispatch_id} --json`
     ]
   }
 }

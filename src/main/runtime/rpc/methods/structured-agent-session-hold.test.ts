@@ -20,7 +20,7 @@ import {
 import { setStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-registry'
 import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 import { AgentSessionRecordStore } from '../../agent-session-record-store'
-import { OrcaRuntimeService } from '../../orca-runtime'
+import { MantaRuntimeService } from '../../manta-runtime'
 import type { RpcResponse } from '../core'
 import { RpcDispatcher } from '../dispatcher'
 import { STRUCTURED_AGENT_SESSION_METHODS } from './structured-agent-session'
@@ -37,7 +37,7 @@ const CLIENT = {
 let root: string
 let store: AgentSessionRecordStore
 let host: StructuredAgentSessionHost
-let runtime: OrcaRuntimeService
+let runtime: MantaRuntimeService
 let dispatcher: RpcDispatcher
 let closeSession: Mock<NonNullable<StructuredAgentSessionAdapter['closeSession']>>
 let requests = 0
@@ -85,7 +85,7 @@ beforeEach(async () => {
     now: () => NOW
   })
   setStructuredAgentSessionHost(host)
-  runtime = new OrcaRuntimeService()
+  runtime = new MantaRuntimeService()
   dispatcher = new RpcDispatcher({ runtime, methods: STRUCTURED_AGENT_SESSION_METHODS })
   expect(await host.attach({ callerKey: 'client-1' }, hostTestAttachParams(null))).toMatchObject({
     ok: true

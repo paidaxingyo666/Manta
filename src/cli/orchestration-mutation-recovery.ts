@@ -173,7 +173,7 @@ function resolveRecoveryShell(
     return 'posix'
   }
   return resolveWindowsShellStartupFamily(
-    env.ORCA_TERMINAL_WINDOWS_SHELL ?? env.ORCA_WINDOWS_SHELL ?? env.ComSpec ?? env.COMSPEC
+    env.MANTA_TERMINAL_WINDOWS_SHELL ?? env.ORCA_WINDOWS_SHELL ?? env.ComSpec ?? env.COMSPEC
   )
 }
 

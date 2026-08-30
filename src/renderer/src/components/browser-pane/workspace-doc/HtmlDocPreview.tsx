@@ -5,7 +5,7 @@ import {
   type DocPreviewFileFailure,
   type DocPreviewFileFailureReason
 } from '../../../../../shared/doc-preview-scheme'
-import { ORCA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE } from '../../../../../shared/browser-guest-web-preferences'
+import { MANTA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE } from '../../../../../shared/browser-guest-web-preferences'
 import { BrowserGuestAnnotateOverlays } from '@/components/browser-pane/annotate/browser-guest-annotate-overlays'
 import { useGuestDragPassthrough } from '@/components/browser-pane/host-guest/use-guest-drag-passthrough'
 import { isWebviewDragPassthroughActive } from '@/components/browser-pane/host-guest/webview-drag-passthrough'
@@ -58,7 +58,7 @@ function attachDocPreviewWebview({
   // Why no allowpopups: the guest's preload intercepts a trusted click on a link before Chromium
   // considers a popup at all, so target="_blank" needs no popup path and every one stays denied.
   webview.setAttribute('partition', DOC_PREVIEW_PARTITION)
-  webview.setAttribute('webpreferences', ORCA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE)
+  webview.setAttribute('webpreferences', MANTA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE)
   webview.setAttribute('aria-label', ariaLabel)
   // Browsers paint an undeclared page canvas white; the guest is transparent, so without this the
   // editor's dark surface shows through and default black text becomes unreadable.

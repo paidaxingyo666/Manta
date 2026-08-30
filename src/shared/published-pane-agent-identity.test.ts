@@ -20,7 +20,7 @@ describe('resolvePublishedPaneAgentIdentity', () => {
     // The ranking assertion. Every other case here either yields no title evidence or agrees with
     // the launch record, so without this one the suite passes even with title ranked FIRST —
     // verified by mutation. `✳ Claude Code` is a parseable, unambiguous Claude title, and it still
-    // must not rename a pane Orca launched as Codex.
+    // must not rename a pane Manta launched as Codex.
     expect(resolve({ launchAgent: 'codex', title: '✳ Claude Code' })).toBe('codex')
   })
 
@@ -75,7 +75,7 @@ describe('resolvePublishedPaneAgentIdentity', () => {
   })
 
   describe('identity must not depend on how the agent was started', () => {
-    // Most agents are started by typing `claude` / `codex` at a shell, not through Orca's agent
+    // Most agents are started by typing `claude` / `codex` at a shell, not through Manta's agent
     // launcher. Those panes have no launch record at all, so anything that leans on one works for
     // roughly half of real usage.
     it('identifies a shell-started agent from its own hook report', () => {
@@ -104,7 +104,7 @@ describe('resolvePublishedPaneAgentIdentity', () => {
     // Field report: launch an agent, close it, reuse the terminal — the pane kept reading as the
     // old agent. A launch record does not stop being true when the thing it describes ends.
     it('keeps the launch record when only a completed hook competes', () => {
-      // Both are records, and neither expires without run keys. The launch record is the one Orca
+      // Both are records, and neither expires without run keys. The launch record is the one Manta
       // stamped for the CURRENT process, so promoting the hook above it lets a stale hook from a
       // previous agent hijack the pane. Matches pane-agent-owner.ts.
       expect(resolve({ launchAgent: 'claude', hookAgent: 'codex', hookIsLive: false })).toBe(

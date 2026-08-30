@@ -293,13 +293,13 @@ jobs:
             mv test-results "e2e-traces/terminal-parking"
           fi
 
-      # Why here rather than the sharded lanes: the shards set no ORCA_E2E_SSH_DOCKER, so every
+      # Why here rather than the sharded lanes: the shards set no MANTA_E2E_SSH_DOCKER, so every
       # spec below skipped itself while the shard still reported green. Running them on this one
       # VM pays the fixture image build once instead of ten times, and keeps an SSH regression
       # legible as an SSH-named failure.
       - name: Run remaining Docker SSH E2E
         if: always()
-        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:ssh-docker
+        run: xvfb-run --auto-servernum env SKIP_BUILD=1 MANTA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:ssh-docker
 
       - name: Keep remaining-ssh-docker traces
         if: always()

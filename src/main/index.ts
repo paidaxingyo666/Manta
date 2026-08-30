@@ -3236,7 +3236,7 @@ void app.whenReady().then(async () => {
         })
       : Promise.resolve()
   // Why skip rather than remove when the off switch is set: the hook files are user-global but this
-  // decision reads only THIS profile's settings, so removing here deletes the hooks every other Orca
+  // decision reads only THIS profile's settings, so removing here deletes the hooks every other Manta
   // instance depends on (STA-5679). Skipping already keeps removed hooks from reappearing on launch.
   if (shouldReconcileStartupManagedHooks) {
     const managedHookStore = store

@@ -72,7 +72,7 @@ const reapProviderExit = async (code, signal) => {
 timer = setInterval(() => {
   // A detached supervisor is reparented when its owner exits. The new parent
   // may be PID 1 or a platform subreaper, so any parent change is proof that
-  // this process group no longer has a live Orca owner.
+  // this process group no longer has a live Manta owner.
   if (process.ppid !== originalParent) {
     terminateOwnedGroup()
   }

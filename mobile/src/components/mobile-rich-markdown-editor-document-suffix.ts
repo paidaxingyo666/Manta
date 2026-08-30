@@ -79,7 +79,7 @@ export const MOBILE_RICH_MARKDOWN_EDITOR_AFTER_KEYBOARD_DISMISS = [
   '        }',
   '      });',
   '',
-  '      window.__orcaRichMarkdown = { setMarkdown: setMarkdown, setEditable: setEditable, runCommand: runCommand, currentMarkdown: currentMarkdown, dismissKeyboard: dismissKeyboard };',
+  '      window.__mantaRichMarkdown = { setMarkdown: setMarkdown, setEditable: setEditable, runCommand: runCommand, currentMarkdown: currentMarkdown, dismissKeyboard: dismissKeyboard };',
   ''
 ].join('\n')
 

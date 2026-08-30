@@ -24,8 +24,8 @@ vi.mock('../daemon/daemon-init', () => ({
   daemonOwnsFreshPersistentPtys: daemonOwnsFreshPersistentPtysMock
 }))
 
-const { collectOrcadHealth, collectTerminalDaemonHealth, computeOrcadBuildHash } =
-  await import('./orcad-health')
+const { collectMantadHealth, collectTerminalDaemonHealth, computeOrcadBuildHash } =
+  await import('./mantad-health')
 
 const LIVE_FACTS = {
   runtimeDir: '/data/daemon',
@@ -38,7 +38,7 @@ const LIVE_FACTS = {
 const PID_RECORD: ParsedDaemonPid = {
   pid: 4242,
   startedAtMs: 1_000,
-  entryPath: '/opt/orcad/daemon-entry.js',
+  entryPath: '/opt/mantad/daemon-entry.js',
   appVersion: '1.2.2',
   launchNonce: 'n',
   linuxStartTicks: null,
@@ -66,9 +66,9 @@ describe('collectTerminalDaemonHealth', () => {
     expect(health.state).toBe('live')
     expect(health.selfTest).toMatchObject({ ok: true, verdict: 'healthy', coverage: 'pty-spawn' })
     expect(health.pid).toBe(4242)
-    // The build the LIVE daemon came from, which can legitimately predate this orcad.
+    // The build the LIVE daemon came from, which can legitimately predate this mantad.
     expect(health.buildVersion).toBe('1.2.2')
-    expect(health.entryPath).toBe('/opt/orcad/daemon-entry.js')
+    expect(health.entryPath).toBe('/opt/mantad/daemon-entry.js')
     expect(health.protocolVersion).toBe(36)
     // Why assert the coordinates: a self-test that probed some other endpoint would prove
     // nothing about the daemon this process installed.
@@ -121,9 +121,9 @@ describe('collectTerminalDaemonHealth', () => {
   })
 })
 
-describe('collectOrcadHealth', () => {
+describe('collectMantadHealth', () => {
   it('carries build identity and the Node ABI native addons must match', async () => {
-    const health = await collectOrcadHealth('1.2.3')
+    const health = await collectMantadHealth('1.2.3')
     expect(health.buildVersion).toBe('1.2.3')
     expect(health.nodeVersion).toBe(process.versions.node)
     expect(health.nodeAbi).toBe(process.versions.modules)
@@ -135,7 +135,7 @@ describe('collectOrcadHealth', () => {
 describe('computeOrcadBuildHash', () => {
   it('changes when the bundle bytes change, even at the same version string', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orcad-build-hash-'))
-    const entry = join(dir, 'orcad.js')
+    const entry = join(dir, 'mantad.js')
     writeFileSync(entry, 'build-a')
     const first = computeOrcadBuildHash(entry)
     writeFileSync(entry, 'build-b')

@@ -3,7 +3,7 @@
  *
  * Why this is separate from `ssh-relay-build-toolchain.ts`: everything here is pure —
  * it builds a shell command, parses its output, and formats messages. The relay reaches
- * it over SSH; `orcad` reaches it over a local shell. Keeping it transport-free is what
+ * it over SSH; `mantad` reaches it over a local shell. Keeping it transport-free is what
  * lets the Node-only bundle reuse it without pulling `ssh2` in behind it.
  */
 // Why: node-pty@1.1.0 ships no Linux prebuild, so the remote `npm install` falls
@@ -153,7 +153,7 @@ export function formatMissingToolchainError(
 ): string {
   const lines = [
     `The remote host is missing the C/C++ build tools (${missingToolNames(status).join(', ')}) ` +
-      `needed to compile Orca's relay native modules (node-pty, @parcel/watcher). node-pty has no ` +
+      `needed to compile Manta's relay native modules (node-pty, @parcel/watcher). node-pty has no ` +
       `prebuilt binary for Linux, so they must be compiled on the remote host.`,
     '',
     'Install the build tools on the remote host, then reconnect:',

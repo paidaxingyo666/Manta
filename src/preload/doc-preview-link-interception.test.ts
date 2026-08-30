@@ -71,7 +71,7 @@ beforeEach(() => {
   // Why: the module decides "sibling document" and "pure fragment" against the URL the guest is
   // really on, which in a preview is always the preview scheme.
   ;(window as never as { happyDOM: { setURL: (url: string) => void } }).happyDOM.setURL(
-    `orca-preview://${PREVIEW_GRANT_ID}/index.html`
+    `manta-preview://${PREVIEW_GRANT_ID}/index.html`
   )
   vi.restoreAllMocks()
 })
@@ -184,7 +184,7 @@ describe('doc preview link interception', () => {
 
   it('leaves a sibling preview document to the guest, which its policy already permits', () => {
     loadPreviewDocument(
-      `<a id="sibling" href="orca-preview://${PREVIEW_GRANT_ID}/guide.html">guide</a>`
+      `<a id="sibling" href="manta-preview://${PREVIEW_GRANT_ID}/guide.html">guide</a>`
     )
 
     const event = pressTrusted('#sibling')

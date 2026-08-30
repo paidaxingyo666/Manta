@@ -14,7 +14,7 @@ describe('submitConnectionDiagnostics', () => {
 
     expect(result).toEqual({ ok: true })
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://www.onorca.dev/v1/feedback',
+      'https://www.onmanta.dev/v1/feedback',
       expect.objectContaining({ method: 'POST' })
     )
     const request = fetchImpl.mock.calls[0]?.[1]
@@ -35,7 +35,7 @@ describe('submitConnectionDiagnostics', () => {
 
   it('preserves the newest complete events when bounding a UTF-8 report', () => {
     const report = [
-      'Orca Mobile connection diagnostics',
+      'Manta Mobile connection diagnostics',
       'State: reconnecting',
       '',
       'Recent connection history (3 events, oldest first):',
@@ -54,7 +54,7 @@ describe('submitConnectionDiagnostics', () => {
 
   it('retains a bounded form of the newest event when that event exceeds the budget', () => {
     const report = [
-      'Orca Mobile connection diagnostics',
+      'Manta Mobile connection diagnostics',
       'State: reconnecting',
       '',
       'Recent connection history (2 events, oldest first):',

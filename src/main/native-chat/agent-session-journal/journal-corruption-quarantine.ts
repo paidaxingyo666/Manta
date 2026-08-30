@@ -57,13 +57,13 @@ async function readSnapshotBytes(journalDir: string): Promise<string | null> {
 /** The disclosure row for lines that failed to parse. Skipped lines are lost
  *  rows; counting them silently is the drop this exists to prevent. */
 export function malformedRowsDisclosure(count: number): {
-  identity: { provider: 'orca'; clientMessageId: string }
+  identity: { provider: 'manta'; clientMessageId: string }
   body: { kind: 'status'; text: string }
 } {
   const plural = count === 1 ? '' : 's'
   return {
     // One stable identity, so a reopen upserts the same row instead of adding one.
-    identity: { provider: 'orca', clientMessageId: 'journal-malformed-lines' },
+    identity: { provider: 'manta', clientMessageId: 'journal-malformed-lines' },
     body: {
       kind: 'status',
       text: `${count} journal line${plural} could not be read and ${count === 1 ? 'was' : 'were'} skipped`

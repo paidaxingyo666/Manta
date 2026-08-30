@@ -300,7 +300,7 @@ describe('PortScanCommandClient on a real worker thread', () => {
 })
 
 describe('resolveWorkerEntryPath on a non-Electron host', () => {
-  // Why: orcad reports isPackaged true (it is a production build), but
+  // Why: mantad reports isPackaged true (it is a production build), but
   // process.resourcesPath is Electron-only and undefined there. Joining undefined threw
   // a TypeError instead of failing as a missing worker — a crash where a clean
   // "worker unavailable" was the honest outcome.
@@ -309,7 +309,7 @@ describe('resolveWorkerEntryPath on a non-Electron host', () => {
       resolveWorkerEntryPath({
         isPackaged: true,
         resourcesPath: undefined,
-        moduleDir: '/opt/orcad'
+        moduleDir: '/opt/mantad'
       })
     ).not.toThrow()
   })
@@ -319,8 +319,8 @@ describe('resolveWorkerEntryPath on a non-Electron host', () => {
       resolveWorkerEntryPath({
         isPackaged: true,
         resourcesPath: undefined,
-        moduleDir: '/opt/orcad'
+        moduleDir: '/opt/mantad'
       })
-    ).toBe(join('/opt/orcad', 'port-scan-command-worker-entry.js'))
+    ).toBe(join('/opt/mantad', 'port-scan-command-worker-entry.js'))
   })
 })

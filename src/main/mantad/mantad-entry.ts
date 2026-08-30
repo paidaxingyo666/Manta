@@ -1,7 +1,7 @@
 /**
- * `mantad` — the Orca runtime served from plain Node, with no Electron.
+ * `mantad` — the Manta runtime served from plain Node, with no Electron.
  *
- * Installs the Node host adapters, constructs the same `OrcaRuntimeService` the
+ * Installs the Node host adapters, constructs the same `MantaRuntimeService` the
  * desktop uses, installs a PTY controller via `registerHeadlessPtyRuntime`, and
  * serves runtime RPC. See docs/design/node-only-runtime-backend.html.
  *
@@ -51,7 +51,7 @@ function createNodeAppEnvironment(): AppEnvironment {
   return {
     getPath: resolveMantadPath,
     getAppPath: () => resolveMantadInstallRoot(),
-    getVersion: () => process.env.ORCA_VERSION ?? '0.0.0-mantad',
+    getVersion: () => process.env.MANTA_VERSION ?? '0.0.0-mantad',
     // Why still true: consumers read this as "production build, not a dev checkout" —
     // it gates HTTPS-only skill downloads, the real CLI command name, and shell-PATH
     // hydration. Answering false to satisfy a path resolver would relax a security
@@ -136,24 +136,24 @@ async function startMantadRuntime(
   browserProvider: MantadBrowserProvider | null,
   instanceLock: MantadInstanceLock
 ): Promise<MantadHandle> {
-  const { OrcaRuntimeService } = await import('../runtime/orca-runtime')
-  const { OrcaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
+  const { MantaRuntimeService } = await import('../runtime/manta-runtime')
+  const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
   const { Store } = await import('../persistence/loading-store/store')
-  const { ensureActiveOrcaProfile, initOrcaProfilePaths } =
-    await import('../orca-profiles/profile-index-store')
+  const { ensureActiveMantaProfile, initMantaProfilePaths } =
+    await import('../manta-profiles/profile-index-store')
   const { initSshHostKeyStoreFile } = await import('../ssh/ssh-host-key-store')
   const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
   const { collectMantadHealth } = await import('./mantad-health')
 
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
-  initOrcaProfilePaths()
-  const profile = ensureActiveOrcaProfile(runtimeUserDataPath)
+  initMantaProfilePaths()
+  const profile = ensureActiveMantaProfile(runtimeUserDataPath)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
   // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
   // a server that pairs and lists nothing looks healthy and is not.
@@ -169,7 +169,7 @@ async function startMantadRuntime(
   // registerPtyHandlers so the IPC layer routes through the daemon from the first call.
   await startMantadDaemon()
 
-  const runtime = new OrcaRuntimeService(store, undefined, {
+  const runtime = new MantaRuntimeService(store, undefined, {
     // Why lazy: a daemon swap replaces the provider after construction, so an eager
     // reference would freeze the pre-daemon one.
     getLocalProvider: () => getLocalPtyProvider(),
@@ -205,7 +205,7 @@ async function startMantadRuntime(
   await runtime.reconcileLegacyWorkerTerminals()
 
   const bindHost = resolveMantadBindHost(options.bind)
-  const rpc = new OrcaRuntimeRpcServer({
+  const rpc = new MantaRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,

@@ -14,7 +14,7 @@ function setMobileSessionSnapshot(
 }
 
 function getMobileSessionSnapshot(
-  runtime: OrcaRuntimeService,
+  runtime: MantaRuntimeService,
   worktree: string
 ): RuntimeMobileSessionTabsSnapshot | undefined {
   return (
@@ -62,7 +62,7 @@ function browserTab({
 
 describe('session tab move validation', () => {
   it('preserves a structured tab across renderer-authored snapshot sync', () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const structured = {
       type: 'agent-session' as const,
       id: 'agent-session:session-a',
@@ -110,7 +110,7 @@ describe('session tab move validation', () => {
   })
 
   it('publishes a structured tab into the active group instead of the first group', () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     setMobileSessionSnapshot(runtime, {
       worktree: 'wt-1',
       publicationEpoch: 'epoch-1',
@@ -154,7 +154,7 @@ describe('session tab move validation', () => {
   })
 
   it('preserves a capability-hidden structured tab during an old-client reorder', async () => {
-    const runtime = new OrcaRuntimeService()
+    const runtime = new MantaRuntimeService()
     const moveSessionTab = vi.fn()
     runtime.setNotifier({ moveSessionTab } as never)
     setMobileSessionSnapshot(runtime, {

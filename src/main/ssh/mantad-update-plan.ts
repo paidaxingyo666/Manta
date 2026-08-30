@@ -1,10 +1,10 @@
 /**
- * When an update may restart orcad, and when going back is still sound.
+ * When an update may restart mantad, and when going back is still sound.
  *
  * Two constraints shape everything here.
  *
- * **The daemon must outlive the restart.** orcad forks the terminal daemon and deliberately
- * does not kill it on stop (`orcad-daemon-supervision.ts` uses `disconnectDaemon`, never
+ * **The daemon must outlive the restart.** mantad forks the terminal daemon and deliberately
+ * does not kill it on stop (`mantad-daemon-supervision.ts` uses `disconnectDaemon`, never
  * `shutdownDaemon`). An update that killed it would destroy every terminal on the host —
  * the thing the daemon exists to prevent. After an update the surviving daemon was forked
  * from the OUTGOING bundle, so `daemon-init` sees an entry-path/version mismatch and takes
@@ -12,13 +12,13 @@
  * daemon; at exactly zero it replaces it. Both are correct, and both mean the outgoing
  * version's directory is still load-bearing.
  *
- * **The state root is shared across versions.** `~/.orca/` (or `$ORCA_USER_DATA`) is outside
- * every version dir, and Orca's persisted state carries no schema version — migrations run
+ * **The state root is shared across versions.** `~/.manta/` (or `$MANTA_USER_DATA`) is outside
+ * every version dir, and Manta's persisted state carries no schema version — migrations run
  * on load and rewrite in place. So "is the old version able to read what the new one wrote"
  * has no answer that can be computed. That is why rollback is defined against a
  * pre-activation snapshot rather than against a version comparison.
  */
-import type { OrcadActivationRecord } from './orcad-activation-record'
+import type { OrcadActivationRecord } from './mantad-activation-record'
 
 export type OrcadTerminalCensus = {
   /**
@@ -45,14 +45,14 @@ export type OrcadUpdateDecision =
   | { action: 'defer'; code: OrcadUpdateDeferCode; reason: string }
 
 export type OrcadUpdateDeferCode =
-  | 'orcad_update_terminals_running'
-  | 'orcad_update_terminal_census_unavailable'
+  | 'mantad_update_terminals_running'
+  | 'mantad_update_terminal_census_unavailable'
 
 /**
- * Decide whether to restart orcad onto `candidateVersion`.
+ * Decide whether to restart mantad onto `candidateVersion`.
  *
  * Deferring on live terminals is a deliberate choice, not caution. The restart itself is
- * non-destructive, but it leaves the host running a NEW orcad against an OLD daemon until
+ * non-destructive, but it leaves the host running a NEW mantad against an OLD daemon until
  * every one of those terminals exits — a mixed pair whose duration the operator, not the
  * deploy, should decide. `force` is how they decide it.
  */
@@ -73,7 +73,7 @@ export function planOrcadUpdate(input: {
     if (!input.force) {
       return {
         action: 'defer',
-        code: 'orcad_update_terminal_census_unavailable',
+        code: 'mantad_update_terminal_census_unavailable',
         reason:
           'The terminal daemon did not answer a session count, so this update cannot tell ' +
           'whether work is running on the host. Retry, or force the update knowing terminals ' +
@@ -95,11 +95,11 @@ export function planOrcadUpdate(input: {
   if (liveSessions > 0 && !input.force) {
     return {
       action: 'defer',
-      code: 'orcad_update_terminals_running',
+      code: 'mantad_update_terminals_running',
       reason:
         `${liveSessions} terminal${liveSessions === 1 ? ' is' : 's are'} running on this host. ` +
         'The restart would not kill them — the daemon is preserved — but the host would run ' +
-        `orcad ${input.candidateVersion} against a daemon forked from ` +
+        `mantad ${input.candidateVersion} against a daemon forked from ` +
         `${input.record.active ?? 'the previous build'} until they all exit. Update when the ` +
         'host is idle, or force it.'
     }
@@ -172,7 +172,7 @@ export function assessOrcadRollback(input: {
       safety: 'unsafe',
       code: 'orcad_rollback_no_target',
       reason:
-        'This host has no previous orcad version recorded, so there is nothing to roll back ' +
+        'This host has no previous mantad version recorded, so there is nothing to roll back ' +
         'to. Deploy a known-good build instead.'
     }
   }
@@ -182,7 +182,7 @@ export function assessOrcadRollback(input: {
       code: 'orcad_rollback_snapshot_missing',
       reason:
         `The pre-activation state snapshot for ${input.record.active ?? 'the active version'} ` +
-        'is gone, and Orca state carries no schema version that could prove the older build ' +
+        'is gone, and Manta state carries no schema version that could prove the older build ' +
         'can read what the newer one migrated. Switching the binary back would hand ' +
         `${target} a store it may not understand. Deploy forward instead.`
     }

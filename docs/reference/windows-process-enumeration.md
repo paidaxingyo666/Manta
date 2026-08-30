@@ -71,7 +71,7 @@ probe also blocked its caller for the full 3 s deadline first. Gating on the
 outstanding read instead bounds retention at exactly one callback, and gives up
 nothing on recovery — a probe queued behind the latch could never have observed
 recovery anyway, whereas the stuck callback firing is the drain itself. On the
-relay's bare addon, which has no queue of its own, it is also what keeps Orca
+relay's bare addon, which has no queue of its own, it is also what keeps Manta
 from re-entering `CreateToolhelp32Snapshot` while a call is still running.
 
 That last part is not just tidiness. The addon runs each read as a

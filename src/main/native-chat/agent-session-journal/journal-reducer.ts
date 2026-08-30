@@ -97,7 +97,7 @@ export function resolveJournalItemId(
     body.kind !== 'message' ||
     body.role !== 'user' ||
     !identity ||
-    identity.provider === 'orca'
+    identity.provider === 'manta'
   ) {
     return itemId
   }

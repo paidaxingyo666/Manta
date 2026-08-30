@@ -1,30 +1,30 @@
 import { describe, expect, it } from 'vitest'
 import {
   bindHostIsNetworkExposed,
-  describeOrcadBindExposure,
-  ORCAD_LOOPBACK_BIND_HOST,
-  OrcadBindAddressError,
-  resolveOrcadBindHost
-} from './orcad-bind-address'
+  describeMantadBindExposure,
+  MANTAD_LOOPBACK_BIND_HOST,
+  MantadBindAddressError,
+  resolveMantadBindHost
+} from './mantad-bind-address'
 
-describe('resolveOrcadBindHost', () => {
+describe('resolveMantadBindHost', () => {
   it('defaults to loopback when the operator asked for nothing', () => {
-    expect(resolveOrcadBindHost()).toBe(ORCAD_LOOPBACK_BIND_HOST)
-    expect(ORCAD_LOOPBACK_BIND_HOST).toBe('127.0.0.1')
+    expect(resolveMantadBindHost()).toBe(MANTAD_LOOPBACK_BIND_HOST)
+    expect(MANTAD_LOOPBACK_BIND_HOST).toBe('127.0.0.1')
   })
 
   it('accepts literal IPv4 and IPv6 addresses, including explicit wide binds', () => {
-    expect(resolveOrcadBindHost('0.0.0.0')).toBe('0.0.0.0')
-    expect(resolveOrcadBindHost('10.1.2.3')).toBe('10.1.2.3')
-    expect(resolveOrcadBindHost('::1')).toBe('::1')
-    expect(resolveOrcadBindHost('localhost')).toBe('127.0.0.1')
-    expect(resolveOrcadBindHost(' 127.0.0.1 ')).toBe('127.0.0.1')
+    expect(resolveMantadBindHost('0.0.0.0')).toBe('0.0.0.0')
+    expect(resolveMantadBindHost('10.1.2.3')).toBe('10.1.2.3')
+    expect(resolveMantadBindHost('::1')).toBe('::1')
+    expect(resolveMantadBindHost('localhost')).toBe('127.0.0.1')
+    expect(resolveMantadBindHost(' 127.0.0.1 ')).toBe('127.0.0.1')
   })
 
   it('refuses hostnames, because DNS would decide which interface got bound', () => {
-    expect(() => resolveOrcadBindHost('internal.example')).toThrow(OrcadBindAddressError)
-    expect(() => resolveOrcadBindHost('')).toThrow(OrcadBindAddressError)
-    expect(() => resolveOrcadBindHost('0.0.0.0:80')).toThrow(OrcadBindAddressError)
+    expect(() => resolveMantadBindHost('internal.example')).toThrow(MantadBindAddressError)
+    expect(() => resolveMantadBindHost('')).toThrow(MantadBindAddressError)
+    expect(() => resolveMantadBindHost('0.0.0.0:80')).toThrow(MantadBindAddressError)
   })
 })
 
@@ -39,7 +39,7 @@ describe('bindHostIsNetworkExposed', () => {
   })
 
   it('says out loud when a deployment is reachable from the network', () => {
-    expect(describeOrcadBindExposure('0.0.0.0')).toContain('reachable from the network')
-    expect(describeOrcadBindExposure('127.0.0.1')).toContain('local only')
+    expect(describeMantadBindExposure('0.0.0.0')).toContain('reachable from the network')
+    expect(describeMantadBindExposure('127.0.0.1')).toContain('local only')
   })
 })

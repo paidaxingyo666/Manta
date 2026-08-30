@@ -24,7 +24,7 @@ const NOW = 1_800_000_000_000
 
 describe('Store SSH pending PTY kills', () => {
   beforeEach(() => {
-    testState.dir = mkdtempSync(join(tmpdir(), 'orca-test-'))
+    testState.dir = mkdtempSync(join(tmpdir(), 'manta-test-'))
   })
 
   afterEach(() => {

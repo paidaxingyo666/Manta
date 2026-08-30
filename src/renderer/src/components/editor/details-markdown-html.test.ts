@@ -96,10 +96,10 @@ describe('details markdown html', () => {
       Array.from(
         { length: count },
         (_, index) =>
-          `<details class="orca-details"${extra}>\n<summary>sibling ${index}</summary>\n\nBody\n\n</details>`
+          `<details class="manta-details"${extra}>\n<summary>sibling ${index}</summary>\n\nBody\n\n</details>`
       ).join('\n\n')
     const wrap = (body: string): string =>
-      `<details class="orca-details">\n<summary>Outer</summary>\n\n${body}\n\n</details>`
+      `<details class="manta-details">\n<summary>Outer</summary>\n\n${body}\n\n</details>`
 
     expect(isEditableHtml(wrap(siblings(40)))).toBe(true)
     // A single non-editable sibling must still reject, so sharing fence ranges

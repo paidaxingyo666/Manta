@@ -124,7 +124,7 @@ import {
 import { ClaudeTranscriptTailIncompleteError } from '../claude/claude-transcript-branch-proof'
 import { hasStructuredTuiIdleEvidence } from './structured-tui-idle-evidence'
 import { evaluateStructuredTuiRecoveryClaim } from './structured-tui-recovery-claim-match'
-import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
+import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { getSystemCodexHomePath } from '../codex/codex-home-paths'
 import {
   agentSessionPtyWriteGate,

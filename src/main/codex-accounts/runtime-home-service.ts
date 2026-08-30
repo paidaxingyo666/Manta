@@ -1056,7 +1056,7 @@ export class CodexRuntimeHomeService {
       const settings = this.store.getSettings()
       const selectedAccountId = getSelectedCodexAccountIdForTarget(settings, target)
       if (selectedAccountId === null) {
-        // Why: the system-default account changes outside Orca, so read its real home directly to avoid a stale cached runtime copy.
+        // Why: the system-default account changes outside Manta, so read its real home directly to avoid a stale cached runtime copy.
         return this.getWslSystemCodexHomePath(target)
       }
       const cachedRuntimeHomePath = this.wslRuntimeHomePathByDistro.get(distro)
@@ -1259,7 +1259,7 @@ export class CodexRuntimeHomeService {
           'fi'
         ].join('\n')
       ],
-      // wsl.exe is console-subsystem: without this a GUI-launched Orca flashes
+      // wsl.exe is console-subsystem: without this a GUI-launched Manta flashes
       // a conhost and steals foreground for up to the timeout (#10488).
       { stdio: ['ignore', 'pipe', 'pipe'], timeout: 5000, windowsHide: true }
     )

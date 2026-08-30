@@ -68,10 +68,10 @@ function runRegisteredCursorHook(
     timeout: 15_000,
     env: {
       ...process.env,
-      ORCA_AGENT_HOOK_ENDPOINT: '',
-      ORCA_AGENT_HOOK_PORT: '',
-      ORCA_AGENT_HOOK_TOKEN: '',
-      ORCA_PANE_KEY: '',
+      MANTA_AGENT_HOOK_ENDPOINT: '',
+      MANTA_AGENT_HOOK_PORT: '',
+      MANTA_AGENT_HOOK_TOKEN: '',
+      MANTA_PANE_KEY: '',
       ...extraEnv
     }
   })
@@ -229,7 +229,7 @@ describe('CursorHookService', () => {
   it('emits protocol-valid JSON when the managed Cursor script is missing (#15462)', () => {
     expect(new CursorHookService().install().state).toBe('installed')
     const config = readInstalledCursorHooks(homeDir)
-    unlinkSync(join(homeDir, '.orca', 'agent-hooks', CURSOR_SCRIPT_FILE_NAME))
+    unlinkSync(join(homeDir, '.manta', 'agent-hooks', CURSOR_SCRIPT_FILE_NAME))
 
     for (const eventName of CURSOR_EVENTS) {
       const command = requireRegisteredCommand(config, eventName)
@@ -252,9 +252,9 @@ describe('CursorHookService', () => {
         command,
         JSON.stringify({ hook_event_name: eventName, tool_name: 'Write' }),
         {
-          ORCA_AGENT_HOOK_PORT: '59999',
-          ORCA_AGENT_HOOK_TOKEN: 'token',
-          ORCA_PANE_KEY: 'tab:leaf'
+          MANTA_AGENT_HOOK_PORT: '59999',
+          MANTA_AGENT_HOOK_TOKEN: 'token',
+          MANTA_PANE_KEY: 'tab:leaf'
         }
       )
       expect(result.status, `${eventName} dead-listener exit`).toBe(0)
@@ -283,10 +283,10 @@ describe('CursorHookService', () => {
             timeout: 15_000,
             env: {
               ...process.env,
-              ORCA_AGENT_HOOK_ENDPOINT: '',
-              ORCA_AGENT_HOOK_PORT: '',
-              ORCA_AGENT_HOOK_TOKEN: '',
-              ORCA_PANE_KEY: '',
+              MANTA_AGENT_HOOK_ENDPOINT: '',
+              MANTA_AGENT_HOOK_PORT: '',
+              MANTA_AGENT_HOOK_TOKEN: '',
+              MANTA_PANE_KEY: '',
               USERPROFILE: homeDir
             }
           })

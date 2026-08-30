@@ -10,13 +10,13 @@
  * The preference semantics the fix depends on are pinned against the real `/usr/bin/defaults` in
  * src/main/macos-press-and-hold-default.defaults-domain.test.ts.
  *
- * The E2E app runs unpackaged, so its bundle identifier is Electron's own rather than Orca's. That
+ * The E2E app runs unpackaged, so its bundle identifier is Electron's own rather than Manta's. That
  * is the ownership guard's case, and asserting it here is the point: `defaults` resolves the user's
  * real home regardless of the harness's HOME isolation, so a run that wrote anything would be
  * writing into a domain shared with every other unpackaged Electron app on the machine.
  */
 import type { ElectronApplication } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 
 test.use({ seedTestRepo: false })
 
@@ -79,7 +79,7 @@ test.describe('macOS press-and-hold default', () => {
       // A packaged or dev-identity bundle: the write path is live and must have settled.
       expect(['applied', 'kept-user-preference']).toContain(record.decision)
     } else {
-      // The unpackaged harness. Anything but a refusal means Orca wrote into a foreign domain.
+      // The unpackaged harness. Anything but a refusal means Manta wrote into a foreign domain.
       expect(record.decision).toBe('foreign-bundle')
     }
   })

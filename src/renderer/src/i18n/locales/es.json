@@ -14141,7 +14141,7 @@
           "stale": "{host} cambió mientras este formulario estaba abierto. Elíjalo de nuevo antes de guardar.",
           "projectMismatch": "Ese proyecto no está en {host}. Elija un proyecto en ese host, u otro host.",
           "noProjects": "No hay proyectos configurados en {host}. Agregue uno allí o elija otro host.",
-          "updateRequired": "Actualice el servidor de Orca en {hosts} para almacenar automatizaciones allí.",
+          "updateRequired": "Actualice el servidor de Manta en {hosts} para almacenar automatizaciones allí.",
           "move": "Al guardar se crea esta automatización en {host} y se eliminan la original y su historial de ejecuciones."
         }
       },

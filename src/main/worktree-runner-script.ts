@@ -13,7 +13,7 @@ import { buildPosixRunnerScript, buildWindowsRunnerScript } from './setup-runner
 import type { HookRuntimeTarget } from './hook-runtime-target'
 import type { Repo } from '../shared/repo-types'
 import type { WorktreeSetupLaunch } from '../shared/worktree/launch-types'
-import type { SetupAgentStartupPolicy } from '../shared/orca-yaml-hook-types'
+import type { SetupAgentStartupPolicy } from '../shared/manta-yaml-hook-types'
 import type { ProjectExecutionRuntimeResolution } from '../shared/project-execution-runtime'
 import type { SetupRunnerShell } from '../shared/setup-runner-command'
 

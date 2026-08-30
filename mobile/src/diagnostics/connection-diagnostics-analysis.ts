@@ -8,7 +8,7 @@ import type {
 export type ConnectionDiagnosis = {
   likelyCause: string
   nextStep: string
-  reportability: 'none' | 'orca-relay'
+  reportability: 'none' | 'manta-relay'
 }
 
 type DiagnoseConnectionArgs = {
@@ -41,8 +41,8 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
   if (/relay director resolve failed \(503\)/i.test(evidence)) {
     const retryMs = parseRetryDelayMs(evidence)
     return {
-      likelyCause: `Relay service was temporarily unavailable${retryMs == null ? '.' : ` and asked Orca to retry in ${formatDelay(retryMs)}.`}`,
-      nextStep: 'Keep Orca open; recovery should retry automatically.',
+      likelyCause: `Relay service was temporarily unavailable${retryMs == null ? '.' : ` and asked Manta to retry in ${formatDelay(retryMs)}.`}`,
+      nextStep: 'Keep Manta open; recovery should retry automatically.',
       reportability: 'none'
     }
   }
@@ -58,17 +58,17 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
         : 'The connected host'
     return {
       likelyCause: `${path} stopped answering authenticated health checks.`,
-      nextStep: 'Orca closed the stale session and started recovery.',
-      reportability: relayLiveness ? 'orca-relay' : 'none'
+      nextStep: 'Manta closed the stale session and started recovery.',
+      reportability: relayLiveness ? 'manta-relay' : 'none'
     }
   }
 
   if (/relay-session-failed|active relay session failed/i.test(evidence)) {
     return {
       likelyCause: 'The active Relay session closed unexpectedly.',
-      nextStep: 'Orca started Relay recovery; the event history includes the cell close reason.',
+      nextStep: 'Manta started Relay recovery; the event history includes the cell close reason.',
       reportability:
-        failure?.code === 'relay-session-failed' && failure.path === 'relay' ? 'orca-relay' : 'none'
+        failure?.code === 'relay-session-failed' && failure.path === 'relay' ? 'manta-relay' : 'none'
     }
   }
 
@@ -87,7 +87,7 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
         : 'The saved direct endpoint did not answer before the connection timeout.',
       nextStep:
         args.pendingPath === 'relay'
-          ? 'Relay recovery is in progress; keep Orca open while it retries.'
+          ? 'Relay recovery is in progress; keep Manta open while it retries.'
           : 'Check the local/VPN network and confirm the desktop is awake.',
       reportability: 'none'
     }
@@ -95,8 +95,8 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
 
   if (/handshake-timeout|handshake timeout/i.test(evidence)) {
     return {
-      likelyCause: 'The endpoint opened, but the encrypted Orca handshake did not finish.',
-      nextStep: 'Confirm the desktop is running a compatible Orca version and retry.',
+      likelyCause: 'The endpoint opened, but the encrypted Manta handshake did not finish.',
+      nextStep: 'Confirm the desktop is running a compatible Manta version and retry.',
       reportability: 'none'
     }
   }
@@ -117,7 +117,7 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
 }
 
 export function getReportableConnectionIncidentId(args: DiagnoseConnectionArgs): string | null {
-  if (diagnoseConnection(args).reportability !== 'orca-relay') {
+  if (diagnoseConnection(args).reportability !== 'manta-relay') {
     return null
   }
   return findCurrentDiagnosticFailure(args.entries)?.id ?? null

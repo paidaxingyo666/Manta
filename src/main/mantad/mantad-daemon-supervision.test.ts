@@ -18,13 +18,13 @@ vi.mock('../daemon/daemon-init', () => ({
   initDaemonPtyProvider: initDaemonPtyProviderMock,
   disconnectDaemon: disconnectDaemonMock,
   // Exported here purely so the test can prove it is never reached — killing the daemon on
-  // orcad shutdown is what would make an orcad restart destructive again.
+  // mantad shutdown is what would make an mantad restart destructive again.
   shutdownDaemon: shutdownDaemonMock,
   daemonOwnsFreshPersistentPtys: daemonOwnsFreshPersistentPtysMock,
   readDaemonPidRecord: readDaemonPidRecordMock
 }))
 
-const { startOrcadDaemon, stopOrcadDaemon } = await import('./orcad-daemon-supervision')
+const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
 
 beforeEach(() => {
   initDaemonPtyProviderMock.mockResolvedValue()
@@ -41,14 +41,14 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('startOrcadDaemon', () => {
+describe('startMantadDaemon', () => {
   it('reports live with the daemon pid once the provider is installed', async () => {
-    await expect(startOrcadDaemon()).resolves.toEqual({ state: 'live', pid: 4242 })
+    await expect(startMantadDaemon()).resolves.toEqual({ state: 'live', pid: 4242 })
   })
 
   it('does not arm the macOS login-session death watch', async () => {
-    await startOrcadDaemon()
-    // That watch retires the daemon when the spawning GUI login session dies. An orcad
+    await startMantadDaemon()
+    // That watch retires the daemon when the spawning GUI login session dies. An mantad
     // daemon must survive its SSH session ending — arming it would kill every terminal the
     // moment the operator logged out, which is the opposite of the property being bought.
     expect(initDaemonPtyProviderMock).toHaveBeenCalledWith(undefined, {
@@ -58,7 +58,7 @@ describe('startOrcadDaemon', () => {
 
   it('reports degraded when fresh terminals would fall back to the local provider', async () => {
     daemonOwnsFreshPersistentPtysMock.mockReturnValue(false)
-    const result = await startOrcadDaemon()
+    const result = await startMantadDaemon()
     expect(result.state).toBe('degraded')
   })
 
@@ -67,18 +67,18 @@ describe('startOrcadDaemon', () => {
     daemonOwnsFreshPersistentPtysMock.mockReturnValue(false)
     // Fail-open, like the desktop: git, worktrees and non-persistent terminals must still
     // serve. What must not happen is a thrown startup or a claim of persistence.
-    await expect(startOrcadDaemon()).resolves.toEqual({
+    await expect(startMantadDaemon()).resolves.toEqual({
       state: 'unavailable',
       reason: 'node-pty is missing'
     })
   })
 })
 
-describe('stopOrcadDaemon', () => {
+describe('stopMantadDaemon', () => {
   it('disconnects and never shuts the daemon down', async () => {
-    await stopOrcadDaemon()
+    await stopMantadDaemon()
     expect(disconnectDaemonMock).toHaveBeenCalledTimes(1)
-    // The whole point of item 4: an orcad restart is non-destructive only if the daemon
+    // The whole point of item 4: an mantad restart is non-destructive only if the daemon
     // outlives it. shutdownDaemon() kills the daemon and every PTY under it.
     expect(shutdownDaemonMock).not.toHaveBeenCalled()
   })

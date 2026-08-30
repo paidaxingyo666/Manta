@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { makePaneKey } from '../../shared/stable-pane-id'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 vi.mock('electron', () => ({
   app: { getPath: vi.fn(() => '/tmp'), isPackaged: false },
@@ -23,7 +23,7 @@ type RuntimePtyLaunchIdentity = {
   launchIncarnationId: string | null
 }
 
-function getPty(runtime: OrcaRuntimeService, ptyId: string): RuntimePtyLaunchIdentity | undefined {
+function getPty(runtime: MantaRuntimeService, ptyId: string): RuntimePtyLaunchIdentity | undefined {
   return (runtime as unknown as { ptysById: Map<string, RuntimePtyLaunchIdentity> }).ptysById.get(
     ptyId
   )
@@ -31,7 +31,7 @@ function getPty(runtime: OrcaRuntimeService, ptyId: string): RuntimePtyLaunchIde
 
 describe('provider reattach launch identity', () => {
   it('restores daemon-owned agent identity without minting renderer authority', () => {
-    const runtime = new OrcaRuntimeService(null)
+    const runtime = new MantaRuntimeService(null)
 
     runtime.registerPty('pty-reattach', WORKTREE_ID, null, {
       tabId: TAB_ID,
@@ -53,7 +53,7 @@ describe('provider reattach launch identity', () => {
   })
 
   it('rejects provider identity from a different process incarnation', () => {
-    const runtime = new OrcaRuntimeService(null)
+    const runtime = new MantaRuntimeService(null)
 
     runtime.registerPty('pty-mismatched-reattach', WORKTREE_ID, null, {
       tabId: TAB_ID,
@@ -75,7 +75,7 @@ describe('provider reattach launch identity', () => {
   })
 
   it('retires daemon launch identity when the agent command finishes', () => {
-    const runtime = new OrcaRuntimeService(null)
+    const runtime = new MantaRuntimeService(null)
 
     runtime.registerPty('pty-finished-reattach', WORKTREE_ID, null, {
       tabId: TAB_ID,

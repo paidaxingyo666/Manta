@@ -282,8 +282,8 @@ describe('ClaudeUsageStore', () => {
       ]
     })
 
-    const summary = await store.getSummary('orca', '30d')
-    const breakdown = await store.getBreakdown('orca', '30d', 'model')
+    const summary = await store.getSummary('manta', '30d')
+    const breakdown = await store.getBreakdown('manta', '30d', 'model')
 
     // 5 + 25 + 0.5 + (0.6 * 6.25 + 0.4 * 10); the flat 5m rate would give 36.75.
     expect(summary.estimatedCostUsd).toBeCloseTo(38.25)

@@ -1,7 +1,7 @@
 /**
- * orcad's garbage collection, and the half of §06 falsifier 1 that says who owns it.
+ * mantad's garbage collection, and the half of §06 falsifier 1 that says who owns it.
  *
- * **Each model GCs only its own namespace, permanently.** orcad removes `orcad-<v>/`
+ * **Each model GCs only its own namespace, permanently.** mantad removes `mantad-<v>/`
  * directories; the relay removes `relay-<v>/` directories; neither ever removes the other's,
  * and no plan item makes one the winner. That is not a migration compromise — the two models
  * serve different users on the same machine (SSH target vs paired peer), so there is no
@@ -9,20 +9,20 @@
  * the sibling's tree would be reaching across the execution boundary the whole design exists
  * to keep intact.
  *
- * On top of the ownership rule, orcad pins three directories that are idle-looking but
+ * On top of the ownership rule, mantad pins three directories that are idle-looking but
  * load-bearing: the active version, the rollback target, and whichever version the LIVE
  * terminal daemon was forked from.
  */
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
-import { ORCAD_INSTALL_MODEL } from './remote-install-model'
+import { MANTAD_INSTALL_MODEL } from './remote-install-model'
 import { gcOldRemoteInstallVersions } from './ssh-relay-versioned-install'
-import { orcadGcPinnedDirNames, type OrcadActivationRecord } from './orcad-activation-record'
+import { orcadGcPinnedDirNames, type OrcadActivationRecord } from './mantad-activation-record'
 import {
   orcadLivenessBlocksGc,
   orcadLivenessProbeCommand,
   parseOrcadLiveness
-} from './orcad-remote-launch'
+} from './mantad-remote-launch'
 import type { RemoteHostPlatform } from './ssh-remote-platform'
 
 export type OrcadGcOptions = {
@@ -46,7 +46,7 @@ export type OrcadGcOptions = {
 export async function gcOldOrcadVersions(options: OrcadGcOptions): Promise<void> {
   await gcOldRemoteInstallVersions(
     options.conn,
-    ORCAD_INSTALL_MODEL,
+    MANTAD_INSTALL_MODEL,
     options.remoteHome,
     options.currentDirAbsPath,
     options.host,

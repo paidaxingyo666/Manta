@@ -63,7 +63,7 @@ describe('secret protection report deferral wiring', () => {
     // before the profile is resolved would key the state off a path that does not exist yet.
     // Anchored on code, never a comment — a reworded comment silently becomes -1.
     const ready = source.indexOf('app.whenReady().then(')
-    const profile = source.indexOf('const activeOrcaProfile = ensureActiveOrcaProfile()')
+    const profile = source.indexOf('const activeMantaProfile = ensureActiveMantaProfile()')
     const schedule = source.indexOf(SCHEDULE)
 
     expect(ready).toBeGreaterThanOrEqual(0)

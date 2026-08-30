@@ -41,7 +41,7 @@ describe('shouldBypassXtermForIosTextEdit', () => {
   it('claims Shift-typed double consonants, which start 깨 꿈 딸 빵 쓰다 짜다', () => {
     for (const key of ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']) {
       expect(shouldBypassXtermForIosTextEdit(event({ key, shiftKey: true }), true)).toBe(true)
-      // Orca's own Shift rule already hides these keydowns from xterm, so only
+      // Manta's own Shift rule already hides these keydowns from xterm, so only
       // the keypress claim keeps `_keyPress` from sending the raw jamo.
       expect(
         shouldBypassXtermForIosTextEdit(event({ key, shiftKey: true, type: 'keypress' }), true)

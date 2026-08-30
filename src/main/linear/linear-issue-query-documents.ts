@@ -99,7 +99,7 @@ export const LINEAR_ISSUE_NODE_FIELDS = `
 `
 
 export const SEARCH_ISSUES_QUERY = `
-  query OrcaLinearIssueSearch($term: String!, $first: Int) {
+  query MantaLinearIssueSearch($term: String!, $first: Int) {
     searchIssues(term: $term, first: $first) {
       nodes {
         ${LINEAR_ISSUE_NODE_FIELDS}
@@ -109,7 +109,7 @@ export const SEARCH_ISSUES_QUERY = `
 `
 
 export const ALL_ISSUES_QUERY = `
-  query OrcaLinearIssues(
+  query MantaLinearIssues(
     $first: Int,
     $after: String,
     $filter: IssueFilter,
@@ -188,7 +188,7 @@ export const AGENT_ISSUE_WRITE_FIELDS = `
 `
 
 export const ISSUE_BY_UUID_QUERY = `
-  query OrcaLinearIssueByUuid($id: String!) {
+  query MantaLinearIssueByUuid($id: String!) {
     issue(id: $id) {
       ${AGENT_ISSUE_WRITE_FIELDS}
     }
@@ -196,7 +196,7 @@ export const ISSUE_BY_UUID_QUERY = `
 `
 
 export const COMMENT_BY_UUID_QUERY = `
-  query OrcaLinearCommentByUuid($id: String!) {
+  query MantaLinearCommentByUuid($id: String!) {
     comment(id: $id) {
       id
       url
@@ -224,7 +224,7 @@ export const ATTACHMENT_BY_UUID_QUERY = `
 // fetches, all sequential while holding a shared Linear concurrency slot).
 // first: 50 matches the SDK default page size the previous code relied on.
 export const ISSUE_COMMENTS_QUERY = `
-  query OrcaLinearIssueComments($id: String!) {
+  query MantaLinearIssueComments($id: String!) {
     issue(id: $id) {
       comments(first: 50) {
         nodes {

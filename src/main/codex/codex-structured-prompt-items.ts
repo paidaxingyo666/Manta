@@ -172,7 +172,7 @@ function questionOptions(
 }
 
 /** Prompts are live-session state Codex does not persist, so they are keyed in
- *  the Orca namespace rather than by `(threadId, turnId, ordinal)`. */
+ *  the Manta namespace rather than by `(threadId, turnId, ordinal)`. */
 /** Keyed by the prompt, not by the tool item it is about: one shell item can
  *  ask several times, and each ask is its own journal row to answer. */
 export function codexPromptIdentity(input: {
@@ -182,7 +182,7 @@ export function codexPromptIdentity(input: {
 }): AgentJournalItemIdentity {
   const suffix = input.questionId ? `:${input.questionId}` : ''
   return {
-    provider: 'orca',
+    provider: 'manta',
     clientMessageId: `codex-prompt:${input.threadId}:${input.promptKey}${suffix}`
   }
 }

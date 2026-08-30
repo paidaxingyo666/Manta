@@ -12,6 +12,7 @@ import { isRpcResponse } from './rpc-response-shape'
 import { RpcSessionLivenessWatchdog } from './rpc-session-liveness-watchdog'
 import type { RpcClient } from './rpc-client'
 import type { ConnectionLogSink, ConnectionState, RpcResponse } from './types'
+import { translate } from '../i18n/i18n'
 
 const RELAY_PROBE_TIMEOUT_MS = 4_000
 const RELAY_MISSED_PROBE_LIMIT = 2
@@ -156,7 +157,7 @@ export function connectMobileRelayRpcSession(args: {
         level: 'error',
         code: 'liveness-timeout',
         path: 'relay',
-        message: 'Relay health check failed',
+        message: translate("m.mobile.relay.rpc.session.e13b42eb6e", "Relay health check failed"),
         detail: `${evidence.reason}; ${evidence.missedProbes}/${evidence.missedProbeLimit} probes missed; last authenticated activity ${evidence.lastInboundAgeMs}ms ago`
       })
     },

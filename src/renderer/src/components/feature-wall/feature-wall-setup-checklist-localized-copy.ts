@@ -22,11 +22,11 @@ const getLocalizedFeatureWallSetupChecklistCopyById = createLocalizedCatalog(
     browser: {
       name: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.908898c3ee',
-        "Use Orca's browser"
+        "Use Manta's browser"
       ),
       description: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.43781563c3',
-        'Browse your web app without leaving Orca. Grab any element and send its exact source and styles to an agent with one click.'
+        'Browse your web app without leaving Manta. Grab any element and send its exact source and styles to an agent with one click.'
       )
     },
     notifications: {
@@ -52,11 +52,11 @@ const getLocalizedFeatureWallSetupChecklistCopyById = createLocalizedCatalog(
     'agent-capabilities': {
       name: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.fee5557b02',
-        'Enable Orca CLI'
+        'Enable Manta CLI'
       ),
       description: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.7bcb4097fa',
-        'Register the Orca shell command and install agent skills for browser, computer, and orchestration workflows.'
+        'Register the Manta shell command and install agent skills for browser, computer, and orchestration workflows.'
       )
     },
     'task-sources': {
@@ -86,7 +86,7 @@ const getLocalizedFeatureWallSetupChecklistCopyById = createLocalizedCatalog(
       ),
       description: translate(
         'auto.components.feature.wall.feature.wall.setup.checklist.localized.copy.42525ba8a4',
-        'Bring your key repos into Orca so you can start agent work without hunting for folders.'
+        'Bring your key repos into Manta so you can start agent work without hunting for folders.'
       )
     }
   })

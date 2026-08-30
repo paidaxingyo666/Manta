@@ -261,7 +261,7 @@ describe('readDocPreviewFile — paired runtime owner', () => {
       reason: 'unreadable',
       // Why: fail-closed is deliberate, so the reader is told the host is old, not that it broke.
       message:
-        'Secure document previews require a newer Orca on the paired machine. Update it and try again.'
+        'Secure document previews require a newer Manta on the paired machine. Update it and try again.'
     })
     expect(mocks.callRuntimeEnvironment).toHaveBeenCalledOnce()
   })

@@ -31,7 +31,7 @@ export const DEFAULT_JOURNAL_PAYLOAD_LIMITS: JournalPayloadLimits = {
  *  truncated body as complete. Kept in the text itself because block-level
  *  payloads (tool-result output) have nowhere else to carry the flag. */
 export function journalTruncationMarker(byteLength: number, digest: string): string {
-  return `\n[Orca: output truncated — ${byteLength} bytes total, digest ${digest.slice(0, 12)}]`
+  return `\n[Manta: output truncated — ${byteLength} bytes total, digest ${digest.slice(0, 12)}]`
 }
 
 export function digestPayload(payload: string): string {

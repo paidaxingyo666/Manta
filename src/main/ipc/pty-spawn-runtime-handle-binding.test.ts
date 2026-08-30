@@ -465,9 +465,9 @@ describe('registerPtyHandlers', () => {
       tabId,
       leafId,
       env: {
-        ORCA_PANE_KEY: makePaneKey(tabId, leafId),
-        ORCA_TAB_ID: tabId,
-        ORCA_WORKTREE_ID: worktreeId
+        MANTA_PANE_KEY: makePaneKey(tabId, leafId),
+        MANTA_TAB_ID: tabId,
+        MANTA_WORKTREE_ID: worktreeId
       },
       launchConfig: {
         agentCommand: 'codex --model gpt-5',

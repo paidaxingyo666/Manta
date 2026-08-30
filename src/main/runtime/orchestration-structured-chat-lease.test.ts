@@ -7,7 +7,7 @@ import type { AgentSessionExecutionLocation } from '../../shared/agent-session-r
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import { agentSessionPtyWriteGate } from './agent-session-pty-write-gate'
 import { AgentSessionRecordStore } from './agent-session-record-store'
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 import { OrchestrationDb } from './orchestration/db'
 import { RpcDispatcher } from './rpc/dispatcher'
 import { ORCHESTRATION_METHODS } from './rpc/methods/orchestration'
@@ -73,7 +73,7 @@ describe('orchestration while Structured Chat owns an agent session', () => {
   let directory: string
   let recordStore: AgentSessionRecordStore
   let db: OrchestrationDb
-  let runtime: OrcaRuntimeService
+  let runtime: MantaRuntimeService
   let dispatcher: RpcDispatcher
   let writes: Mock<(ptyId: string, data: string) => void>
   let operationSequence: number
@@ -82,7 +82,7 @@ describe('orchestration while Structured Chat owns an agent session', () => {
     directory = await mkdtemp(join(tmpdir(), 'orca-orchestration-structured-chat-'))
     recordStore = await AgentSessionRecordStore.open({ directory, hostId: 'local' })
     db = new OrchestrationDb(':memory:')
-    runtime = new OrcaRuntimeService(makeStore() as never)
+    runtime = new MantaRuntimeService(makeStore() as never)
     runtime.setOrchestrationDb(db)
     vi.spyOn(runtime, 'showManagedTerminalWorkspace').mockResolvedValue({
       id: WORKTREE_ID,
@@ -257,7 +257,7 @@ describe('orchestration while Structured Chat owns an agent session', () => {
 
     expect(db.getMessageById(message.id)?.delivered_at).not.toBeNull()
     expect(writes).toHaveBeenCalledTimes(2)
-    expect(writes.mock.calls[0]?.[1]).toContain('orca orchestration check')
+    expect(writes.mock.calls[0]?.[1]).toContain('manta orchestration check')
     expect(writes.mock.calls[1]).toEqual([WORKER.ptyId, '\r'])
   })
 

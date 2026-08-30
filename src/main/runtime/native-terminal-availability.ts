@@ -12,7 +12,7 @@ import {
  *
  * Why a module-level note rather than a constructor argument: only the host entry point
  * can run the out-of-process load probe, and it must run before anything requires
- * `node-pty` — long before `OrcaRuntimeService` exists. This is the same shape
+ * `node-pty` — long before `MantaRuntimeService` exists. This is the same shape
  * `runtime-browser-commands-factory` uses for `browser_unavailable`, for the same reason.
  *
  * Silence means "nothing proved it broken", never "proved working". Hosts that never

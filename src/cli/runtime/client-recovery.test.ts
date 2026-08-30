@@ -25,7 +25,7 @@ afterEach(async () => {
 
 describe('RuntimeClient orchestration recovery identity', () => {
   it('rejects a worker-start timeout whose client grace would overflow timers', () => {
-    const client = new RuntimeClient(undefined, 60_000, null, null, 'orca')
+    const client = new RuntimeClient(undefined, 60_000, null, null, 'manta')
     const resolve = (
       client as unknown as {
         resolveMethodTimeoutMs: (method: string, params?: unknown) => number
@@ -75,7 +75,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
     servers.add(server)
     await new Promise<void>((resolve) => server.listen(endpoint, resolve))
     writeFileSync(
-      join(userDataPath, 'orca-runtime.json'),
+      join(userDataPath, 'manta-runtime.json'),
       JSON.stringify({
         runtimeId: 'runtime-1',
         pid: 1,
@@ -85,7 +85,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
       })
     )
 
-    const client = new RuntimeClient(userDataPath, 500, null, null, 'orca')
+    const client = new RuntimeClient(userDataPath, 500, null, null, 'manta')
     try {
       await client.call('orchestration.workerStart', { task: 'task_1' })
       throw new Error('expected worker-start failure')
@@ -103,10 +103,10 @@ describe('RuntimeClient orchestration recovery identity', () => {
       expect(recovered.data).toMatchObject({
         orchestrationRequestId: expect.any(String),
         dispatchId: 'dispatch_1',
-        originalCommand: ['orca', 'orchestration', 'worker-start', '--task', 'task_1'],
+        originalCommand: ['manta', 'orchestration', 'worker-start', '--task', 'task_1'],
         recovery: {
           queryCommand: [
-            'orca',
+            'manta',
             'orchestration',
             'worker-show',
             '--dispatch',
@@ -114,7 +114,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
             '--json'
           ],
           retryCommand: [
-            'orca',
+            'manta',
             'orchestration',
             'worker-start',
             '--task',

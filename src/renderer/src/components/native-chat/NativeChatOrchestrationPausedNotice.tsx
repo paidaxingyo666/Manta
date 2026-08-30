@@ -26,12 +26,12 @@ export function NativeChatOrchestrationPausedNotice({
         <p>
           {translate(
             'components.native-chat.orchestrationPaused.message',
-            'Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Orca inbox with'
+            'Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Manta inbox with'
           )}{' '}
           <code className="font-mono text-foreground">
             {translate(
               'components.native-chat.orchestrationPaused.command',
-              'orca orchestration check'
+              'manta orchestration check'
             )}
           </code>
           .

@@ -32,7 +32,7 @@ import {
   openAgentSessionJournal,
   type AgentSessionJournal
 } from '../native-chat/agent-session-journal/journal-store'
-import type { OrcaRuntimeService } from './orca-runtime'
+import type { MantaRuntimeService } from './manta-runtime'
 import type { RpcRequest, RpcResponse } from './rpc/core'
 import { RpcDispatcher } from './rpc/dispatcher'
 import { STRUCTURED_AGENT_SESSION_METHODS } from './rpc/methods/structured-agent-session'
@@ -331,7 +331,7 @@ beforeEach(async () => {
     })
   }
   dispatcher = new RpcDispatcher({
-    runtime: runtime as unknown as OrcaRuntimeService,
+    runtime: runtime as unknown as MantaRuntimeService,
     methods: STRUCTURED_AGENT_SESSION_METHODS
   })
 })
@@ -773,7 +773,7 @@ describe('a structured codex session over agentSession.*', () => {
 
   it('replays a durable image send without dispatching it twice', async () => {
     const created = await ok<{ fence: number }>('agentSession.create', createIntentParams())
-    const path = '/tmp/orca-paste-image.png'
+    const path = '/tmp/manta-paste-image.png'
     const body = {
       kind: 'message' as const,
       role: 'user' as const,

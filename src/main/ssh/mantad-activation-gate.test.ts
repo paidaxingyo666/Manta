@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { evaluateOrcadActivation } from './orcad-activation-gate'
+import { evaluateOrcadActivation } from './mantad-activation-gate'
 import type { ServeReadiness } from '../server/serve-readiness'
-import type { OrcadHealth, TerminalDaemonHealth } from '../orcad/orcad-health'
+import type { OrcadHealth, TerminalDaemonHealth } from '../mantad/mantad-health'
 
 const EXPECTED = { buildHash: 'abc123def4567890', fullVersion: '0.2.0+bb01' }
 
@@ -70,7 +70,7 @@ describe('evaluateOrcadActivation', () => {
     expect(verdict).toMatchObject({ decision: 'reject', code: 'orcad_activation_build_mismatch' })
   })
 
-  it('refuses a listening orcad whose terminal daemon is absent', () => {
+  it('refuses a listening mantad whose terminal daemon is absent', () => {
     const verdict = evaluateOrcadActivation(
       readiness({
         health: health({

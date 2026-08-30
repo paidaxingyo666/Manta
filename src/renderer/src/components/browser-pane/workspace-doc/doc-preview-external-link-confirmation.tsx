@@ -27,7 +27,7 @@ async function openConfirmedExternalLink(url: string): Promise<void> {
   toast.error(
     translate(
       'auto.hooks.ipc.events.browserStateIpcBridge.docPreviewLinkFailed',
-      'Could not open this link in Orca Browser.'
+      'Could not open this link in Manta Browser.'
     )
   )
 }

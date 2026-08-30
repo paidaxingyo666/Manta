@@ -4,7 +4,7 @@ import type { WebContents } from 'electron'
  * True when the target stays inside the window's own privileged document: for `file:`
  * the exact same host+path (query/hash may differ, as a reload keeps them), for http(s)
  * the same origin. Also gates preload privilege in installPrivilegedWindowNavigationPolicy,
- * so loosening it past a same-origin document hands a foreign page the Orca bridge.
+ * so loosening it past a same-origin document hands a foreign page the Manta bridge.
  */
 export function isRendererDocumentNavigation(currentUrl: string, nextUrl: string): boolean {
   try {

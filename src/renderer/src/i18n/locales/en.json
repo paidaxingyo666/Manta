@@ -200,7 +200,7 @@
     "paste": "Paste",
     "copy": "Copy",
     "selectAll": "Select All",
-    "exploreOrca": "Explore Orca"
+    "exploreManta": "Explore Manta"
   },
   "tray": {
     "openManta": "Open Manta",
@@ -210,7 +210,7 @@
     },
     "activityWaiting": "Manta - activity waiting",
     "activityWaitingSuffix": "activity waiting",
-    "openOrca": "Open Orca"
+    "openManta": "Open Manta"
   },
   "worktreeJumpPalette": {
     "matchLabel": {
@@ -529,13 +529,13 @@
           "forgotten": "Machine removed from relay",
           "forgetFailed": "Could not remove that machine"
         },
-        "orca": {
+        "manta": {
           "profiles": {
             "612f7f6861": "Failed to create profile",
             "319d7cf39b": "Cloud profile created",
             "d6e764e7db": "Reconnect this profile",
             "f0c9e11a6d": "Failed to create cloud profile",
-            "8b8fa73174": "Orca Cloud sign-in is not configured",
+            "8b8fa73174": "Manta Cloud sign-in is not configured",
             "33290e88ed": "Failed to connect profile",
             "9fcb07a796": "Profile connected",
             "2f6c78a039": "Failed to refresh profile auth",
@@ -1128,7 +1128,7 @@
       "ipc": {
         "events": {
           "browserStateIpcBridge": {
-            "docPreviewLinkFailed": "Could not open this link in Orca Browser."
+            "docPreviewLinkFailed": "Could not open this link in Manta Browser."
           }
         }
       }
@@ -1683,8 +1683,8 @@
         "addRemoteMantaServer": "Add Remote Manta Server",
         "addRemoteMantaServerHint": "Pair another Manta runtime",
         "hostConnectionFailed": "Connection failed",
-        "addRemoteOrcaServer": "Add Remote Orca Server",
-        "addRemoteOrcaServerHint": "Pair another Orca runtime"
+        "addRemoteMantaServer": "Add Remote Manta Server",
+        "addRemoteMantaServerHint": "Pair another Manta runtime"
       },
       "NewWorkspaceComposerModal": {
         "createWorktree": "Create worktree",
@@ -3131,7 +3131,7 @@
             "copyLinkFailed": "Failed to copy link",
             "downloadOpenWithDefaultApp": "Download & open with default app",
             "downloadOpenFailed": "Failed to download '{{value0}}'.",
-            "orcaBrowser": "Orca Browser"
+            "mantaBrowser": "Manta Browser"
           },
           "TerminalSessionStateSaveFailureDialog": {
             "6bee0c8f17": "Open Disk Space Analyzer",
@@ -6092,7 +6092,7 @@
           "identityFileFromConfigHint": "Left empty on purpose: Manta uses every key ~/.ssh/config resolves for {{value0}}. Type a path to use just that key.",
           "sshConfigPickerRetry": "Try again",
           "sshConfigPickerResolving": "Reading…",
-          "sshConfigPickerInOrca": "In Orca"
+          "sshConfigPickerInManta": "In Manta"
         },
         "ForgetSshWorkspaceDialog": {
           "reconnectFailed": "Reconnection failed",
@@ -6227,11 +6227,11 @@
           "useGlobalFor": "Use global for {{value0}}",
           "useGlobal": "Use global"
         },
-        "OrcaYamlTrustDialog": {
+        "MantaYamlTrustDialog": {
           "f3e2b868fb": "Run hooks",
           "43b7bec4cd": "Don't run",
           "c494b3ccb1": "in",
-          "79afc6772b": "orca.yaml",
+          "79afc6772b": "manta.yaml",
           "531689199b": "Always trust",
           "bf800b7e04": ". Only run if you trust",
           "831f2cd9f0": "runs on your machine",
@@ -8042,7 +8042,7 @@
           "troubleshootTunnel": "Using an SSH local forward? Return to Connect to a host, paste the loopback link, then enable “I am using an SSH tunnel” under Advanced.",
           "cloudVmWorkflow": "Cloud VM",
           "cloudVmWorkflowHelp": "Manage recipe-created cloud machines",
-          "orcaVersion": "Orca v{{value0}}"
+          "mantaVersion": "Manta v{{value0}}"
         },
         "RuntimePairingGeneratedUrlRows": {
           "0495f68959": "Copy {{value0}}"
@@ -10756,13 +10756,13 @@
           "mantaCloudConnect": "Connect profile",
           "mantaCloudRefresh": "Refresh status",
           "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build.",
-          "orcaCloud": "Orca Cloud",
-          "orcaCloudDescription": "Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID are set.",
-          "orcaCloudStatus": "Status",
-          "orcaCloudSignOut": "Sign out",
-          "orcaCloudConnect": "Connect profile",
-          "orcaCloudRefresh": "Refresh status",
-          "orcaCloudNotConfigured": "Set ORCA_CLOUD_API_URL and ORCA_CLOUD_CLIENT_ID to preview Orca Cloud sign-in in this dev build."
+          "mantaCloud": "Manta Cloud",
+          "mantaCloudDescription": "Dev-only preview of first-party cloud sign-in. Hidden in production; in dev it also appears in the sidebar account switcher once MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID are set.",
+          "mantaCloudStatus": "Status",
+          "mantaCloudSignOut": "Sign out",
+          "mantaCloudConnect": "Connect profile",
+          "mantaCloudRefresh": "Refresh status",
+          "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build."
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "Use in workspace"
@@ -11030,8 +11030,8 @@
           "titleManta": "Hold Shift to open in Manta",
           "descriptionSystem": "Links open in Manta, so {{chord}}+click sends one to your system browser instead.",
           "descriptionManta": "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead.",
-          "titleOrca": "Hold Shift to open in Orca",
-          "descriptionOrca": "Links open in your system browser. When enabled, {{chord}}+click opens one in Orca's built-in browser instead."
+          "titleManta": "Hold Shift to open in Manta",
+          "descriptionManta": "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead."
         },
         "BrowserTerminalLinkActionsSetting": {
           "title": "Show terminal link actions",
@@ -11649,25 +11649,25 @@
           "thisMachine": "This machine",
           "onlineBadge": "Online"
         },
-        "orcaAccount": {
+        "mantaAccount": {
           "connected": "Connected",
           "reconnectRequired": "Your session expired. Sign in again to use cloud features.",
-          "unavailable": "Orca sign-in is unavailable in this build.",
-          "signedOut": "Sign in to extend Orca with cloud features, including Artifacts and Orca Relay.",
+          "unavailable": "Manta sign-in is unavailable in this build.",
+          "signedOut": "Sign in to extend Manta with cloud features, including Artifacts and Manta Relay.",
           "checking": "Checking account status…",
-          "account": "Orca account",
+          "account": "Manta account",
           "signOut": "Sign out",
           "signingIn": "Signing in…",
           "signInAgain": "Sign in again",
-          "signIn": "Sign in to Orca",
-          "title": "Orca Account",
-          "description": "Share work instantly and reach your desktop from Orca Mobile wherever you are.",
-          "searchDescription": "Sign in or out of the account used by Artifacts and Orca Relay.",
+          "signIn": "Sign in to Manta",
+          "title": "Manta Account",
+          "description": "Share work instantly and reach your desktop from Manta Mobile wherever you are.",
+          "searchDescription": "Sign in or out of the account used by Artifacts and Manta Relay.",
           "benefitsTitle": "Included with your account",
           "artifactsTitle": "Artifact sharing",
-          "artifactsDescription": "Publish HTML and Markdown files, then manage every shared link from Orca.",
-          "relayTitle": "Orca Relay",
-          "relayDescription": "Connect Orca Mobile to this desktop across cellular or any Wi-Fi.",
+          "artifactsDescription": "Publish HTML and Markdown files, then manage every shared link from Manta.",
+          "relayTitle": "Manta Relay",
+          "relayDescription": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
           "skillsTitle": "Skill sharing",
           "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use."
         },
@@ -14018,20 +14018,20 @@
                     "copy": {
                       "ec0a363633": "Multi-task",
                       "62bac8f43c": "Work in 2 different worktrees at once. Each one is isolated (even in the same project). Perfect for working on 2 features at once.",
-                      "908898c3ee": "Use Orca's browser",
-                      "43781563c3": "Browse your web app without leaving Orca. Grab any element and send its exact source and styles to an agent with one click.",
+                      "908898c3ee": "Use Manta's browser",
+                      "43781563c3": "Browse your web app without leaving Manta. Grab any element and send its exact source and styles to an agent with one click.",
                       "29aa2c2077": "Turn on notifications",
                       "71bd9a8c95": "Know the moment an agent finishes, needs attention, or gets blocked.",
                       "46db810da8": "Choose your default agent",
                       "b8e5bae17f": "Start new work faster with your preferred agent already selected.",
-                      "fee5557b02": "Enable Orca CLI",
-                      "7bcb4097fa": "Register the Orca shell command and install agent skills for browser, computer, and orchestration workflows.",
+                      "fee5557b02": "Enable Manta CLI",
+                      "7bcb4097fa": "Register the Manta shell command and install agent skills for browser, computer, and orchestration workflows.",
                       "ad342dd4c6": "Connect integrations",
                       "06fe30fdb0": "Start an agent from a task in one click and keep PR status in view.",
                       "eddc532e58": "Automate workspace setup",
                       "56049b74c2": "Run install and setup commands automatically so every new worktree is ready for agents.",
                       "2cf795433b": "Start work in multiple repos",
-                      "42525ba8a4": "Bring your key repos into Orca so you can start agent work without hunting for folders."
+                      "42525ba8a4": "Bring your key repos into Manta so you can start agent work without hunting for folders."
                     }
                   }
                 }
@@ -15003,11 +15003,11 @@
         },
         "HtmlDocPreview": {
           "documentTooLargePanel": "This document is too large to preview. Open it in the editor instead.",
-          "documentUnreadablePanel": "Orca could not read this file from the workspace.",
+          "documentUnreadablePanel": "Manta could not read this file from the workspace.",
           "multipleAssetsFailedNotice": "{{count}} files in this document could not be loaded.",
           "assetTooLargeNotice": "{{path}} is too large to load in this preview.",
           "assetUnsupportedNotice": "This workspace cannot send {{path}} to a preview.",
-          "assetUnreadableNotice": "Orca could not read {{path}} from the workspace.",
+          "assetUnreadableNotice": "Manta could not read {{path}} from the workspace.",
           "previewAriaLabel": "HTML preview",
           "reloadPreviewControl": "Reload preview",
           "previewUnavailableTitle": "Preview unavailable",
@@ -16146,8 +16146,8 @@
                 "manta": {
                   "button": "Keep Manta"
                 },
-                "orca": {
-                  "button": "Keep Orca"
+                "manta": {
+                  "button": "Keep Manta"
                 }
               },
               "title": "Open terminal links in Manta's browser?",
@@ -16171,9 +16171,9 @@
               "system": {
                 "button": "Use system browser"
               },
-              "orca": {
-                "note": "Orca can use imported cookies for logged-in sites.",
-                "button": "Open in Orca"
+              "manta": {
+                "note": "Manta can use imported cookies for logged-in sites.",
+                "button": "Open in Manta"
               }
             }
           }
@@ -16584,12 +16584,12 @@
         "clientNoteLocalStorage": "Imports read this device’s browsers. Cookies are stored locally.",
         "remoteNoteRemoteStorage": "Imports read browsers on {{value0}}. Cookies are stored on that machine, and a permission prompt may appear on its screen."
       },
-      "orca": {
+      "manta": {
         "profiles": {
           "signout": {
             "confirm": {
-              "title": "Sign out of Orca?",
-              "description": "Artifacts and Orca Relay will be unavailable until you sign in again. Your local projects and worktrees won't be affected.",
+              "title": "Sign out of Manta?",
+              "description": "Artifacts and Manta Relay will be unavailable until you sign in again. Your local projects and worktrees won't be affected.",
               "cancel": "Cancel",
               "action": "Sign out"
             }
@@ -16807,8 +16807,8 @@
       },
       "orchestrationPaused": {
         "label": "Orchestration paused",
-        "message": "Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Orca inbox with",
-        "command": "orca orchestration check"
+        "message": "Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Manta inbox with",
+        "command": "manta orchestration check"
       },
       "structuredSessionCloseFailed": "Could not close this Codex chat",
       "structuredSessionLaunchFailed": "Could not open Codex chat",

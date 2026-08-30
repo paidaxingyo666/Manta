@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Locator, Page, TestInfo } from '@stablyai/playwright-test'
-import { expect, test } from './helpers/orca-app'
+import { expect, test } from './helpers/manta-app'
 import { openFileExplorer } from './helpers/file-explorer'
 import {
   createRuntimeDesktopPairingOffer,
@@ -126,12 +126,12 @@ async function focusBrowserWorkspace(
 
 /**
  * Since STA-5557 a paired HTML preview is a browser page located by a workspace document, rendered
- * on the client from the workspace's disk over the `orca-preview://` scheme. The oracle therefore
+ * on the client from the workspace's disk over the `manta-preview://` scheme. The oracle therefore
  * splits: the client gains exactly one browser workspace — the document one, blank-URL'd and named
  * by the document — while the host's own page registry gains nothing at all.
  */
 test('renders a paired HTML doc as a document browser tab while the host gains no browser page', async ({
-  orcaPage,
+  mantaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(300_000)
@@ -181,11 +181,11 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
       `location.href='${SCRIPTED_EGRESS_URL}'</script>` +
       `</body></html>\n`
   )
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
 
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   const marker = await startClientHostedMarkerFixture()
   let prepared: PreparedPairedClient | null = null
   try {
@@ -239,7 +239,7 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
       })
       .toBe(FIXTURE_HEADING)
     const firstGuestUrl = await readDocPreviewGuestUrl(page)
-    expect(firstGuestUrl).toMatch(/^orca-preview:\/\//)
+    expect(firstGuestUrl).toMatch(/^manta-preview:\/\//)
     // Why a live check: the fence is a main-process call on the guest, and nothing in the served
     // document or its headers would show whether it took. Gathering nothing is the proof.
     await expect
@@ -419,7 +419,7 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
     expect(
       withMarker.hostBrowserPages.filter(
         (hostPage) =>
-          hostPage.url.includes('orca-preview:') ||
+          hostPage.url.includes('manta-preview:') ||
           hostPage.url.includes(FIXTURE_NAME) ||
           hostPage.title === FIXTURE_TITLE
       )
@@ -575,7 +575,7 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
     })
     const guestFocus = await page.evaluate(() => {
       const active = document.activeElement
-      const guest = document.querySelector('webview[src^="orca-preview://"]') as HTMLElement | null
+      const guest = document.querySelector('webview[src^="manta-preview://"]') as HTMLElement | null
       const before = active?.tagName ?? null
       guest?.focus()
       return { before, after: document.activeElement?.tagName ?? null }
@@ -636,7 +636,7 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
           {
             timeout: 60_000,
             intervals: [2_000],
-            message: 'a confirmed preview link never opened an Orca browser tab'
+            message: 'a confirmed preview link never opened a Manta browser tab'
           }
         )
         .toMatchObject({
@@ -658,7 +658,7 @@ test('renders a paired HTML doc as a document browser tab while the host gains n
 })
 
 test('asks before a paired preview reads a sibling directory', async ({
-  orcaPage,
+  mantaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(300_000)
@@ -676,11 +676,11 @@ test('asks before a paired preview reads a sibling directory', async ({
     path.join(assetsDirectory, 'scoped-preview.js'),
     `document.getElementById('asset-result').textContent=${JSON.stringify(SCOPED_ASSET_TEXT)}\n`
   )
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
 
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   let prepared: PreparedPairedClient | null = null
   try {
     prepared = await preparePairedClient(offer, testInfo, 'Scoped HTML preview', testRepoPath)
@@ -757,7 +757,7 @@ test('asks before a paired preview reads a sibling directory', async ({
  * restores it, which is why the restored guest's URL must differ from the one that was quit.
  */
 test('restores the document tab, on a fresh grant, after the client quits and relaunches', async ({
-  orcaPage,
+  mantaPage,
   testRepoPath
 }, testInfo) => {
   test.setTimeout(300_000)
@@ -766,11 +766,11 @@ test('restores the document tab, on a fresh grant, after the client quits and re
     `<!doctype html><html><head><title>${RESTORE_FIXTURE_TITLE}</title></head>` +
       `<body><h1>${RESTORE_FIXTURE_HEADING}</h1></body></html>\n`
   )
-  await waitForSessionReady(orcaPage)
-  await waitForActiveWorktree(orcaPage)
-  await ensureTerminalVisible(orcaPage)
+  await waitForSessionReady(mantaPage)
+  await waitForActiveWorktree(mantaPage)
+  await ensureTerminalVisible(mantaPage)
 
-  const offer = await createRuntimeDesktopPairingOffer(orcaPage)
+  const offer = await createRuntimeDesktopPairingOffer(mantaPage)
   let prepared: PreparedPairedClient | null = null
   let abandonedProfile: string | null = null
   try {
@@ -795,7 +795,7 @@ test('restores the document tab, on a fresh grant, after the client quits and re
     const beforeQuit = await readPairedHtmlPreviewInventory(prepared.client.page, inventoryArgs)
     const quitRow = requireSingleDocWorkspace(beforeQuit)
     const guestUrlBeforeQuit = await readDocPreviewGuestUrl(prepared.client.page)
-    expect(guestUrlBeforeQuit).toMatch(/^orca-preview:\/\//)
+    expect(guestUrlBeforeQuit).toMatch(/^manta-preview:\/\//)
 
     // Quit without disposing: the profile has to outlive the app, as it does for a real Cmd+Q.
     const quitting = prepared.client.app
@@ -844,7 +844,7 @@ test('restores the document tab, on a fresh grant, after the client quits and re
       })
       .toBe(RESTORE_FIXTURE_HEADING)
     const guestUrlAfterRestore = await readDocPreviewGuestUrl(relaunched)
-    expect(guestUrlAfterRestore).toMatch(/^orca-preview:\/\//)
+    expect(guestUrlAfterRestore).toMatch(/^manta-preview:\/\//)
     // The grant is minted by the client that mounts the page, so a restore that carried the old
     // URL back in — from disk or from the host — would show the same one here.
     expect(guestUrlAfterRestore).not.toBe(guestUrlBeforeQuit)
@@ -853,7 +853,7 @@ test('restores the document tab, on a fresh grant, after the client quits and re
     expect(
       afterRestore.hostBrowserPages.filter(
         (hostPage) =>
-          hostPage.url.includes('orca-preview:') || hostPage.url.includes(RESTORE_FIXTURE_NAME)
+          hostPage.url.includes('manta-preview:') || hostPage.url.includes(RESTORE_FIXTURE_NAME)
       )
     ).toEqual([])
   } finally {

@@ -25,7 +25,7 @@ const roots: string[] = []
 const zshAvailable = existsSync('/bin/zsh')
 const bashAvailable = existsSync('/bin/bash')
 // Why the shared lookup: it also finds a Homebrew fish that is off PATH, and it
-// carries the ORCA_REQUIRE_FISH contract asserted below.
+// carries the MANTA_REQUIRE_FISH contract asserted below.
 const fishLookup = resolveFishBinary()
 const fishAvailable = fishLookup.available
 const pwshAvailable =
@@ -70,18 +70,18 @@ function createFishSandbox(prefix: string): { bin: string; preflight: string; ma
   mkdirSync(bin)
   symlinkSync(fishBinary, join(bin, 'fish'))
   const marker = join(root, 'preflight-ran')
-  const preflight = join(bin, 'orca-preflight')
+  const preflight = join(bin, 'manta-preflight')
   writeExecutable(preflight, `#!/bin/sh\nprintf ran > ${JSON.stringify(marker)}\n`)
   return { bin, preflight, marker }
 }
 
-// Reports Orca's own wrapper (not a user-defined codex function) and any capture leak.
+// Reports Manta's own wrapper (not a user-defined codex function) and any capture leak.
 const FISH_STATE_PROBE = `if functions -q codex; and functions codex | string match -q '*prepare-codex*'
   echo -n wrapper=YES
 else
   echo -n wrapper=NO
 end
-echo " var=[$__orca_codex_type]"`
+echo " var=[$__manta_codex_type]"`
 
 function writeExecutable(path: string, content: string): void {
   writeFileSync(path, content)
@@ -228,14 +228,14 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
     )
   })
 
-  it('does not trigger a preflight outside an Orca terminal', () => {
+  it('does not trigger a preflight outside a Manta terminal', () => {
     const root = mkdtempSync(join(tmpdir(), 'orca-codex-plain-shell-'))
     roots.push(root)
     const bin = join(root, 'bin')
     const marker = join(root, 'preflight-ran')
     mkdirSync(bin)
     writeExecutable(join(bin, 'codex'), '#!/bin/sh\nprintf launched\n')
-    writeExecutable(join(bin, 'orca-test'), `#!/bin/sh\nprintf ran > ${JSON.stringify(marker)}\n`)
+    writeExecutable(join(bin, 'manta-test'), `#!/bin/sh\nprintf ran > ${JSON.stringify(marker)}\n`)
 
     const output = execFileSync(
       '/bin/bash',
@@ -310,7 +310,7 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
   // Regression for #16893: an unquoted `(type -t codex)` expands to zero words when
   // codex is absent, so `test` saw `= file` (2 args) and printed "Missing argument
   // at index 3" on every fish pane launch. Needs a valid executable
-  // ORCA_CODEX_LAUNCH_PREFLIGHT so the `and` chain reaches the second `test`, and
+  // MANTA_CODEX_LAUNCH_PREFLIGHT so the `and` chain reaches the second `test`, and
   // the real `-l -C` launch shape both shell-ready call sites use.
   it.skipIf(!fishAvailable)('stays silent and installs no wrapper when codex is absent', () => {
     const { bin, preflight } = createFishSandbox('orca-codex-fish-absent-')
@@ -318,7 +318,7 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
     const result = spawnSync(
       join(bin, 'fish'),
       ['--no-config', '-l', '-C', getFishCodexShellLaunchPreflight(), '-c', FISH_STATE_PROBE],
-      { encoding: 'utf-8', env: { PATH: bin, ORCA_CODEX_LAUNCH_PREFLIGHT: preflight } }
+      { encoding: 'utf-8', env: { PATH: bin, MANTA_CODEX_LAUNCH_PREFLIGHT: preflight } }
     )
 
     expect(result.stderr).not.toContain('Missing argument')
@@ -333,7 +333,7 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
     const output = execFileSync(
       join(bin, 'fish'),
       ['--no-config', '-l', '-C', getFishCodexShellLaunchPreflight(), '-c', 'codex hi'],
-      { encoding: 'utf-8', env: { PATH: bin, ORCA_CODEX_LAUNCH_PREFLIGHT: preflight } }
+      { encoding: 'utf-8', env: { PATH: bin, MANTA_CODEX_LAUNCH_PREFLIGHT: preflight } }
     )
 
     expect(output.trim()).toBe('real codex hi')
@@ -354,7 +354,7 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
         '-c',
         FISH_STATE_PROBE
       ],
-      { encoding: 'utf-8', env: { PATH: bin, ORCA_CODEX_LAUNCH_PREFLIGHT: preflight } }
+      { encoding: 'utf-8', env: { PATH: bin, MANTA_CODEX_LAUNCH_PREFLIGHT: preflight } }
     )
 
     expect(result.stderr).not.toContain('Missing argument')
@@ -463,7 +463,7 @@ describe('Codex shell launch preflight command', () => {
 
   it('carries the packaged Windows launcher for WSLENV path translation', () => {
     const { userDataPath, resourcesPath } = makeCliRoot()
-    const launcherPath = join(resourcesPath, 'bin', 'orca.exe')
+    const launcherPath = join(resourcesPath, 'bin', 'manta.exe')
     writeExecutable(launcherPath, '#!/bin/sh\nexit 0\n')
 
     expect(
@@ -471,7 +471,7 @@ describe('Codex shell launch preflight command', () => {
         hooksEnabled: true,
         isPackaged: true,
         isWsl: true,
-        managedHomePath: '/home/jin/.local/share/orca/codex-runtime-home/home',
+        managedHomePath: '/home/jin/.local/share/manta/codex-runtime-home/home',
         userDataPath,
         resourcesPath,
         platform: 'win32'
@@ -524,7 +524,7 @@ describe('Codex shell launch preflight command', () => {
     'skips the preflight when the launcher is not executable',
     () => {
       const { userDataPath, resourcesPath } = makeCliRoot()
-      const launcherPath = join(resourcesPath, 'bin', 'orca')
+      const launcherPath = join(resourcesPath, 'bin', 'manta')
       writeFileSync(launcherPath, '#!/bin/sh\nexit 0\n')
       chmodSync(launcherPath, 0o644)
 

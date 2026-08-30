@@ -17,7 +17,7 @@ import {
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
 
-const OUTBOX_PREFIX = 'orca:desktopStructuredAgentSessionOutbox:v1:'
+const OUTBOX_PREFIX = 'manta:desktopStructuredAgentSessionOutbox:v1:'
 
 export function structuredSessionOperationId(): string {
   return createStructuredAgentSessionOperationId(() => crypto.randomUUID())

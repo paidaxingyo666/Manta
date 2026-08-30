@@ -12,7 +12,7 @@ describe('orchestration mutation recovery', () => {
       new RuntimeClientError('runtime_timeout', 'request timed out', {
         orchestrationRequestId: 'request_1',
         dispatchId: 'dispatch_1',
-        originalCommand: ['orca', 'orchestration', 'worker-start', '--task', 'task_1']
+        originalCommand: ['manta', 'orchestration', 'worker-start', '--task', 'task_1']
       })
     ) as RuntimeClientError
 
@@ -21,7 +21,7 @@ describe('orchestration mutation recovery', () => {
         orchestrationRequestId: 'request_1',
         dispatchId: 'dispatch_1',
         queryCommand: [
-          'orca',
+          'manta',
           'orchestration',
           'worker-show',
           '--dispatch',
@@ -29,7 +29,7 @@ describe('orchestration mutation recovery', () => {
           '--json'
         ],
         retryCommand: [
-          'orca',
+          'manta',
           'orchestration',
           'worker-start',
           '--task',
@@ -40,12 +40,12 @@ describe('orchestration mutation recovery', () => {
         workerDeathInferred: false
       }
     })
-    expect(result.message.indexOf('orca orchestration worker-show')).toBeLessThan(
-      result.message.indexOf('orca orchestration worker-start')
+    expect(result.message.indexOf('manta orchestration worker-show')).toBeLessThan(
+      result.message.indexOf('manta orchestration worker-start')
     )
     expect((result.data as { nextSteps?: string[] }).nextSteps).toEqual([
-      'Run orca orchestration worker-show --dispatch dispatch_1 --json before retrying.',
-      'Run orca orchestration worker-start --task task_1 --retry-request request_1.'
+      'Run manta orchestration worker-show --dispatch dispatch_1 --json before retrying.',
+      'Run manta orchestration worker-start --task task_1 --retry-request request_1.'
     ])
   })
 
@@ -53,7 +53,7 @@ describe('orchestration mutation recovery', () => {
     const result = orchestrationMutationRecoveryError(
       new RuntimeClientError('runtime_timeout', 'request timed out', {
         orchestrationRequestId: 'request_2',
-        originalCommand: ['orca', 'orchestration', 'worker-start', '--task', 'task_2']
+        originalCommand: ['manta', 'orchestration', 'worker-start', '--task', 'task_2']
       })
     ) as RuntimeClientError
 
@@ -74,7 +74,7 @@ describe('orchestration mutation recovery', () => {
         orchestrationRequestId: 'request_3',
         dispatchId: 'dispatch_3',
         originalCommand: [
-          'orca-dev',
+          'manta-dev',
           'orchestration',
           'worker-start',
           '--task',
@@ -86,8 +86,8 @@ describe('orchestration mutation recovery', () => {
     ) as RuntimeClientError
 
     expect((result.data as { nextSteps?: string[] }).nextSteps).toEqual([
-      'Run orca-dev orchestration worker-show --dispatch dispatch_3 --json before retrying.',
-      "Run orca-dev orchestration worker-start --task 'task 3' --comment 'literal $(do-not-run)' --retry-request request_3."
+      'Run manta-dev orchestration worker-show --dispatch dispatch_3 --json before retrying.',
+      "Run manta-dev orchestration worker-start --task 'task 3' --comment 'literal $(do-not-run)' --retry-request request_3."
     ])
     expect(result.message).toContain("'literal $(do-not-run)'")
   })
@@ -97,14 +97,14 @@ describe('orchestration mutation recovery', () => {
       new RuntimeClientError('runtime_timeout', 'request timed out', {
         orchestrationRequestId: 'request_4',
         originalCommand:
-          'orca-ide orchestration worker-stop --dispatch dispatch_4 --comment "quoted value"'
+          'manta-ide orchestration worker-stop --dispatch dispatch_4 --comment "quoted value"'
       })
     ) as RuntimeClientError
 
     expect(
       (result.data as { recovery?: { retryCommand?: string[] } }).recovery?.retryCommand
     ).toEqual([
-      'orca-ide',
+      'manta-ide',
       'orchestration',
       'worker-stop',
       '--dispatch',
@@ -119,11 +119,11 @@ describe('orchestration mutation recovery', () => {
   it.each([
     [
       'gate-create',
-      ['orca', 'orchestration', 'gate-create', '--task', 'task_1', '--question', 'ship?']
+      ['manta', 'orchestration', 'gate-create', '--task', 'task_1', '--question', 'ship?']
     ],
     [
       'worker-retain',
-      ['orca', 'orchestration', 'worker-retain', '--dispatch', 'dispatch_1', '--json']
+      ['manta', 'orchestration', 'worker-retain', '--dispatch', 'dispatch_1', '--json']
     ]
   ])('replays exact %s argv with the keyed retry', (_name, originalCommand) => {
     const result = orchestrationMutationRecoveryError(
@@ -143,7 +143,7 @@ describe('orchestration mutation recovery', () => {
       new RuntimeClientError('runtime_timeout', 'request timed out', {
         orchestrationRequestId: 'request_reused',
         originalCommand: [
-          'orca',
+          'manta',
           'orchestration',
           'worker-retain',
           '--dispatch',
@@ -156,7 +156,7 @@ describe('orchestration mutation recovery', () => {
     expect(
       (result.data as { recovery?: { retryCommand?: string[] } }).recovery?.retryCommand
     ).toEqual([
-      'orca',
+      'manta',
       'orchestration',
       'worker-retain',
       '--dispatch',
@@ -169,23 +169,23 @@ describe('orchestration mutation recovery', () => {
   it('renders Windows cmd recovery guidance without quote drift or percent expansion', () => {
     expect(
       renderCommand(
-        ['orca', 'orchestration', 'worker-start', '--comment', 'literal "quoted" %PATH% & safe'],
+        ['manta', 'orchestration', 'worker-start', '--comment', 'literal "quoted" %PATH% & safe'],
         'win32',
         { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }
       )
     ).toBe(
-      '"orca" "orchestration" "worker-start" "--comment" "literal ""quoted"" "^%"PATH"^%" & safe"'
+      '"manta" "orchestration" "worker-start" "--comment" "literal ""quoted"" "^%"PATH"^%" & safe"'
     )
   })
 
   it('keeps PowerShell and POSIX recovery guidance literal', () => {
     expect(
-      renderCommand(['orca', 'literal "quoted" $HOME'], 'win32', {
+      renderCommand(['manta', 'literal "quoted" $HOME'], 'win32', {
         ComSpec: 'powershell.exe'
       })
-    ).toBe("& 'orca' 'literal \\\"quoted\\\" $HOME'")
-    expect(renderCommand(['orca', 'literal $(do-not-run)'], 'darwin')).toBe(
-      "orca 'literal $(do-not-run)'"
+    ).toBe("& 'manta' 'literal \\\"quoted\\\" $HOME'")
+    expect(renderCommand(['manta', 'literal $(do-not-run)'], 'darwin')).toBe(
+      "manta 'literal $(do-not-run)'"
     )
   })
 
@@ -213,18 +213,18 @@ describe('orchestration mutation recovery', () => {
   it.each([
     [
       'split',
-      ['orca', 'orchestration', 'send', '--pairing-code', 'split-secret', '--subject', 'status'],
+      ['manta', 'orchestration', 'send', '--pairing-code', 'split-secret', '--subject', 'status'],
       'split-secret'
     ],
     [
       'equals',
-      ['orca', 'orchestration', 'send', '--pairing-code=equals-secret', '--subject', 'status'],
+      ['manta', 'orchestration', 'send', '--pairing-code=equals-secret', '--subject', 'status'],
       'equals-secret'
     ],
     [
       'dispatch split',
       [
-        'orca',
+        'manta',
         'orchestration',
         'send',
         '--dispatch-capability',
@@ -237,7 +237,7 @@ describe('orchestration mutation recovery', () => {
     [
       'dispatch equals',
       [
-        'orca',
+        'manta',
         'orchestration',
         'send',
         '--dispatch-capability=equals-dispatch-secret',

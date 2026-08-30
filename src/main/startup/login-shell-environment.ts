@@ -127,7 +127,7 @@ export type ResolveLoginShellEnvironmentOptions = {
   spawner?: (shell: string) => Promise<NodeJS.ProcessEnv | null>
 }
 
-/** Resolves the environment seen by commands launched from Orca's profile-loading terminal shell. */
+/** Resolves the environment seen by commands launched from Manta's profile-loading terminal shell. */
 export function resolveLoginShellEnvironment(
   options: ResolveLoginShellEnvironmentOptions = {}
 ): Promise<NodeJS.ProcessEnv> {

@@ -1,6 +1,7 @@
 import { Activity, Edit3, PowerOff, RefreshCw } from 'lucide-react-native'
 import type { ActionSheetAction } from './components/ActionSheetModal'
 import type { ConnectionState, HostProfile } from './transport/types'
+import { translate } from './i18n/i18n'
 
 /** Builds the home-screen host long-press menu. Navigation and second drawers
  *  defer until this sheet's native Modal has unmounted —
@@ -29,7 +30,7 @@ export function getHostListActionSheetActions(args: {
 
   return [
     {
-      label: args.hasEverConnected && isLive ? 'Reconnect' : 'Connect',
+      label: args.hasEverConnected && isLive ? translate("m.host.list.action.sheet.actions.0641634e14", "Reconnect") : translate("m.host.list.action.sheet.actions.072e40b005", "Connect"),
       icon: RefreshCw,
       onPress: () => {
         args.onDismiss()
@@ -39,7 +40,7 @@ export function getHostListActionSheetActions(args: {
     ...(isLive
       ? [
           {
-            label: 'Disconnect',
+            label: translate("m.host.list.action.sheet.actions.57290dfe4b", "Disconnect"),
             icon: PowerOff,
             onPress: () => {
               args.onDismiss()
@@ -49,7 +50,7 @@ export function getHostListActionSheetActions(args: {
         ]
       : []),
     {
-      label: 'Network diagnostics',
+      label: translate("m.host.list.action.sheet.actions.b9ce652dd1", "Network diagnostics"),
       icon: Activity,
       closeBeforePress: true,
       onPress: () => {
@@ -57,7 +58,7 @@ export function getHostListActionSheetActions(args: {
       }
     },
     {
-      label: 'Edit host',
+      label: translate("m.host.list.action.sheet.actions.9c12136964", "Edit host"),
       icon: Edit3,
       closeBeforePress: true,
       onPress: () => {
@@ -66,7 +67,7 @@ export function getHostListActionSheetActions(args: {
       }
     },
     {
-      label: 'Remove',
+      label: translate("m.host.list.action.sheet.actions.d380ec81a0", "Remove"),
       destructive: true,
       closeBeforePress: true,
       onPress: () => {
