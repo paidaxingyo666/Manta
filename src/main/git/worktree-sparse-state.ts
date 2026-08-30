@@ -29,7 +29,7 @@ export async function detectSparseCheckout(worktreePath: string): Promise<boolea
 // Resolve the shared common gitdir for a (possibly linked) worktree gitdir. A linked worktree's
 // gitdir holds a `commondir` file pointing at the repo's main `.git`; the main worktree's gitdir
 // is itself the common dir.
-async function resolveGitCommonDir(gitDir: string): Promise<string> {
+export async function resolveGitCommonDir(gitDir: string): Promise<string> {
   try {
     const raw = (await readFile(join(gitDir, 'commondir'), 'utf-8')).trim()
     if (raw.length > 0) {

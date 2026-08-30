@@ -41,6 +41,7 @@ import {
   addWorktree,
   assertWorktreeCleanForRemoval,
   listWorktrees,
+  listWorktreesSharedStrict,
   listWorktreesStrict,
   removeWorktree
 } from '../git/worktree'
@@ -441,6 +442,8 @@ const {
 vi.mock('../git/worktree', () => ({
   listWorktrees: vi.fn().mockResolvedValue(MOCK_GIT_WORKTREES),
   listWorktreesStrict: vi.fn().mockResolvedValue(MOCK_GIT_WORKTREES),
+  listWorktreesSharedStrict: vi.fn().mockResolvedValue(MOCK_GIT_WORKTREES),
+  describeCreatedWorktree: vi.fn().mockResolvedValue(undefined),
   assertWorktreeCleanForRemoval: vi.fn().mockResolvedValue(undefined),
   addSparseWorktree: addSparseWorktreeMock,
   addWorktree: addWorktreeMock,
@@ -736,6 +739,11 @@ function resetRuntimeTestMocks(): void {
   forgetRemoteWatcherRemovalSnapshotMock.mockReset()
   vi.mocked(listWorktrees).mockResolvedValue(MOCK_GIT_WORKTREES)
   vi.mocked(listWorktreesStrict).mockResolvedValue(MOCK_GIT_WORKTREES)
+  // Why delegate: production reads both from one repo state, so a test that stubs the listing must
+  // see the same rows through the create path's strict read.
+  vi.mocked(listWorktreesSharedStrict).mockImplementation((repoPath, options) =>
+    options ? listWorktrees(repoPath, options) : listWorktrees(repoPath)
+  )
   scanLocalRepoWorktreesForResolutionMock
     .mockReset()
     .mockImplementation(async (repoPath: string, options: { wslDistro?: string }) => {
