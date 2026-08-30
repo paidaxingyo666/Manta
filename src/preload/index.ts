@@ -1466,8 +1466,10 @@ const api = {
       currentHeadOid?: string | null
     }): Promise<unknown> => ipcRenderer.invoke('gh:prForBranch', args),
 
-    refreshPRNow: (args: { candidate: GitHubPRRefreshCandidate }): Promise<unknown> =>
-      ipcRenderer.invoke('gh:refreshPRNow', args),
+    refreshPRNow: (args: {
+      candidate: GitHubPRRefreshCandidate
+      reason?: GitHubPRRefreshReason
+    }): Promise<unknown> => ipcRenderer.invoke('gh:refreshPRNow', args),
 
     enqueuePRRefresh: (args: {
       candidate: GitHubPRRefreshCandidate
@@ -3612,7 +3614,9 @@ const api = {
     status: (args: {
       worktreePath: string
       connectionId?: string
+      admissionTier?: 'interactive' | 'status' | 'background'
       includeIgnored?: boolean
+      includeLineStats?: boolean
       bypassEffectiveUpstreamNegativeCache?: boolean
       reuseLineStats?: boolean
       branchLineTotalMergeBase?: string
@@ -3663,6 +3667,7 @@ const api = {
       worktreePath: string
       baseRef: string
       connectionId?: string
+      admissionTier?: 'interactive' | 'status' | 'background'
     }): Promise<unknown> => ipcRenderer.invoke('git:branchCompare', args),
     commitCompare: (args: {
       worktreePath: string

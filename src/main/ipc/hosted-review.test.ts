@@ -171,7 +171,7 @@ describe('registerHostedReviewHandlers', () => {
         title: 'Feature PR'
       }),
       null,
-      { localGitExecOptions: { wslDistro: 'Ubuntu' } }
+      { localGitExecOptions: { wslDistro: 'Ubuntu', admissionTier: 'interactive' } }
     )
   })
 
@@ -212,7 +212,10 @@ describe('registerHostedReviewHandlers', () => {
       resolvedWorktreePath,
       expect.anything(),
       null,
-      { sharedLinkPaths: ['node_modules'] }
+      {
+        localGitExecOptions: { admissionTier: 'interactive' },
+        sharedLinkPaths: ['node_modules']
+      }
     )
   })
 
@@ -236,7 +239,9 @@ describe('registerHostedReviewHandlers', () => {
       title: 'Feature PR'
     })
 
-    expect(createHostedReviewMock).toHaveBeenCalledWith(worktreePath, expect.anything(), 'ssh-1')
+    expect(createHostedReviewMock).toHaveBeenCalledWith(worktreePath, expect.anything(), 'ssh-1', {
+      localGitExecOptions: { admissionTier: 'interactive' }
+    })
   })
 
   it('routes local WSL project review status through main-process runtime options', async () => {
@@ -289,7 +294,7 @@ describe('registerHostedReviewHandlers', () => {
         connectionId: undefined,
         branch: 'feature/wsl',
         linkedGitHubPR: 42,
-        localGitExecOptions: { wslDistro: 'Ubuntu' }
+        localGitExecOptions: { wslDistro: 'Ubuntu', admissionTier: 'background' }
       })
     )
     // Card-list polling is the O(N) tier and must not claim the fast one.
@@ -311,6 +316,25 @@ describe('registerHostedReviewHandlers', () => {
     // earns the per-minute tier instead of the card-list interval (#11532).
     expect(getHostedReviewForBranchMock).toHaveBeenCalledWith(
       expect.objectContaining({ branch: 'feature/selected', active: true })
+    )
+  })
+
+  it('uses interactive git admission for an explicit card refresh', async () => {
+    getHostedReviewForBranchMock.mockResolvedValueOnce(null)
+    registerHostedReviewHandlers(store as never, stats as never)
+
+    await handlers['hostedReview:forBranch'](null, {
+      repoPath,
+      repoId: repo.id,
+      branch: 'feature/refresh',
+      admissionTier: 'interactive'
+    })
+
+    expect(getHostedReviewForBranchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        branch: 'feature/refresh',
+        localGitExecOptions: { admissionTier: 'interactive' }
+      })
     )
   })
 
@@ -411,7 +435,8 @@ describe('registerHostedReviewHandlers', () => {
         body: null,
         draft: false
       },
-      'ssh-1'
+      'ssh-1',
+      { localGitExecOptions: { admissionTier: 'interactive' } }
     )
     expect(resolveRegisteredWorktreePathMock).not.toHaveBeenCalled()
     expect(stats.record).toHaveBeenCalledWith(
@@ -447,7 +472,7 @@ describe('registerHostedReviewHandlers', () => {
       worktreePath,
       expect.objectContaining({ base: 'stack/parent', head: 'stack/child' }),
       'ssh-1',
-      {}
+      { localGitExecOptions: { admissionTier: 'interactive' } }
     )
     expect(createHostedReviewMock).not.toHaveBeenCalled()
   })

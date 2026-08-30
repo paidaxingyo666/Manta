@@ -11,7 +11,6 @@ import {
   filterWorkspaceSpaceRows,
   getLargestWorkspaceSpaceItemSize,
   getLargestWorkspaceSpaceRowSize,
-  getWorkspaceSpaceGitStatusRefreshCandidates,
   isWorkspaceSpaceFilterQueryTooLarge,
   isWorkspaceSpaceRowReadyToDelete,
   pruneWorkspaceSpaceSelectedIds,
@@ -19,6 +18,7 @@ import {
   resolveWorkspaceSpaceTreemapZoomWorktreeId,
   sortWorkspaceSpaceRows
 } from './workspace-space-presentation'
+import { getWorkspaceSpaceGitStatusRefreshCandidates } from './workspace-space-git-status-order'
 import {
   getWorkspaceDecisionDetails,
   getWorkspaceSpaceDeleteState,
@@ -569,6 +569,27 @@ describe('workspace space presentation helpers', () => {
     expect(
       getWorkspaceSpaceGitStatusRefreshCandidates(rows).map((item) => item.worktreeId)
     ).toEqual(rows.map((item) => item.worktreeId))
+  })
+
+  it('orders git-status refreshes active first, then visible, then the rest', () => {
+    const rows = [
+      row({ worktreeId: 'rest-a', executionHostId: 'local' }),
+      row({ worktreeId: 'visible-a', executionHostId: 'local' }),
+      row({ worktreeId: 'active', executionHostId: 'ssh:builder' }),
+      row({ worktreeId: 'visible-b', executionHostId: 'local' }),
+      row({ worktreeId: 'rest-b', executionHostId: 'local' })
+    ]
+    const visibleWorktreeIdentities = new Set(
+      [rows[1], rows[3]].map(getWorkspaceSpaceWorktreeIdentity)
+    )
+
+    expect(
+      getWorkspaceSpaceGitStatusRefreshCandidates(rows, {
+        activeWorktreeId: 'active',
+        activeExecutionHostId: 'ssh:builder',
+        visibleWorktreeIdentities
+      }).map((item) => item.worktreeId)
+    ).toEqual(['active', 'visible-a', 'visible-b', 'rest-a', 'rest-b'])
   })
 
   it('resolves inspected worktree ids from the current scan rows', () => {

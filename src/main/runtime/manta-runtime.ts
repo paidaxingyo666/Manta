@@ -167,6 +167,7 @@ import {
   gitSpawnAfterWindowsEnvironmentReady,
   nonInteractiveGitEnv
 } from '../git/runner'
+import type { GitAdmissionTier } from '../git/command-runner/git-exec-options'
 import { runWithGitReadCacheInvalidation } from '../git/status'
 import { wakeFolderRepoGitUpgradeWatch } from '../ipc/folder-repo-git-upgrade-wake'
 import {
@@ -338,7 +339,11 @@ import type {
   GitHubPRReviewCommentInput,
   GitHubReactionContent
 } from '../../shared/github/comment-types'
-import type { PRRefreshOutcome } from '../../shared/github/pull-request-refresh-types'
+import type {
+  GitHubPRRefreshReason,
+  PRRefreshOutcome
+} from '../../shared/github/pull-request-refresh-types'
+import { admissionTierForRefreshReason } from '../github/pr-refresh-candidate-policy'
 import type { GitHubOwnerRepo, GitHubPRFile } from '../../shared/github/pull-request-types'
 import type { ListWorkItemsResult } from '../../shared/github/work-item-types'
 import type {
@@ -23586,6 +23591,7 @@ export class MantaRuntimeService {
         ['clone', '--progress', '--', trimmedUrl, clonePath],
         {
           cwd: trimmedDestination,
+          admissionTier: 'interactive',
           // Why: without the non-interactive guard, a clone that needs GitHub
           // auth makes Git Credential Manager pop its "Connect to GitHub" OAuth
           // window on Windows; in a network-restricted env the browser/device
@@ -23982,9 +23988,20 @@ export class MantaRuntimeService {
   }
 
   private getHostedReviewExecutionOptions(
-    repo: Repo
-  ): { localGitExecOptions: { wslDistro?: string } } | undefined {
-    const localGitOptions = this.getLocalGitExecutionOptionArgs(repo)[0] ?? {}
+    repo: Repo,
+    admissionTier?: GitAdmissionTier
+  ):
+    | {
+        localGitExecOptions: {
+          wslDistro?: string
+          admissionTier?: GitAdmissionTier
+        }
+      }
+    | undefined {
+    const localGitOptions = {
+      ...this.getLocalGitExecutionOptionArgs(repo)[0],
+      ...(admissionTier && { admissionTier })
+    }
     return Object.keys(localGitOptions).length > 0
       ? { localGitExecOptions: localGitOptions }
       : undefined
@@ -24209,10 +24226,15 @@ export class MantaRuntimeService {
     linkedPRNumber?: number | null,
     fallbackPRNumber?: number | null,
     acceptMergedFallbackPR?: boolean,
-    currentHeadOid?: string | null
+    currentHeadOid?: string | null,
+    reason?: GitHubPRRefreshReason
   ): Promise<PRRefreshOutcome> {
     const repo = await this.resolveRepoSelector(repoSelector)
-    const options: GitHubPRBranchLookupOptions = this.getHostedReviewExecutionOptions(repo) ?? {}
+    const options: GitHubPRBranchLookupOptions =
+      this.getHostedReviewExecutionOptions(
+        repo,
+        reason ? admissionTierForRefreshReason(reason) : undefined
+      ) ?? {}
     const lookupOptions = { ...options }
     if (acceptMergedFallbackPR === true) {
       lookupOptions.acceptMergedFallbackPR = true
@@ -24239,6 +24261,7 @@ export class MantaRuntimeService {
   async getHostedReviewForBranch(args: {
     repoSelector: string
     branch: string
+    admissionTier?: GitAdmissionTier
     currentHeadOid?: string | null
     active?: boolean
     linkedGitHubPR?: number | null
@@ -24249,7 +24272,10 @@ export class MantaRuntimeService {
     linkedGiteaPR?: number | null
   }): Promise<HostedReviewInfo | null> {
     const repo = await this.resolveRepoSelector(args.repoSelector)
-    const executionOptions = this.getHostedReviewExecutionOptions(repo)
+    const executionOptions = this.getHostedReviewExecutionOptions(
+      repo,
+      args.admissionTier ?? 'background'
+    )
     const review = await getHostedReviewForBranchFromRepo({
       repoPath: repo.path,
       connectionId: repo.connectionId ?? null,
@@ -24282,7 +24308,7 @@ export class MantaRuntimeService {
     }
   ): Promise<HostedReviewCreationEligibility> {
     const { repo, repoPath } = await this.resolveHostedReviewTarget(args)
-    const executionOptions = this.getHostedReviewExecutionOptions(repo)
+    const executionOptions = this.getHostedReviewExecutionOptions(repo, 'interactive')
     return getHostedReviewCreationEligibilityFromRepo({
       repoPath,
       connectionId: repo.connectionId ?? null,
@@ -24306,7 +24332,7 @@ export class MantaRuntimeService {
     args: CreateHostedReviewInput & { repoSelector: string; worktreeSelector?: string }
   ): Promise<CreateHostedReviewResult> {
     const { repo, repoPath } = await this.resolveHostedReviewTarget(args)
-    const executionOptions = this.getHostedReviewExecutionOptions(repo)
+    const executionOptions = this.getHostedReviewExecutionOptions(repo, 'interactive')
     const input = {
       provider: args.provider,
       base: args.base,
@@ -24339,7 +24365,7 @@ export class MantaRuntimeService {
     args: CreateStackedHostedReviewInput & { repoSelector: string; worktreeSelector?: string }
   ): Promise<CreateStackedHostedReviewResult> {
     const { repo, repoPath } = await this.resolveHostedReviewTarget(args)
-    const executionOptions = this.getHostedReviewExecutionOptions(repo)
+    const executionOptions = this.getHostedReviewExecutionOptions(repo, 'interactive')
     const result = await createStackedHostedReviewFromRepo(
       repoPath,
       {
