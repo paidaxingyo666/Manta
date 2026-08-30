@@ -37,13 +37,22 @@ export type TerminalUrlOpenHintOptions = {
   showActions?: boolean
 }
 
+function canSourceOwnerOpenInManta(
+  sourceOwner: HttpLinkSourceOwner,
+  canOpenOwnedBrowser: boolean
+): boolean {
+  return (
+    sourceOwner.kind === 'local' ||
+    ((sourceOwner.kind === 'runtime' || sourceOwner.kind === 'ssh') && canOpenOwnedBrowser)
+  )
+}
+
 export function terminalHttpLinkActionDestinationsFor(
   settings: { openLinksInApp?: boolean } | null | undefined,
   sourceOwner: HttpLinkSourceOwner,
-  canOpenRuntimeBrowser: boolean
+  canOpenOwnedBrowser: boolean
 ): TerminalHttpLinkActionDestinations {
-  const canOpenInManta =
-    sourceOwner.kind === 'local' || (sourceOwner.kind === 'runtime' && canOpenRuntimeBrowser)
+  const canOpenInManta = canSourceOwnerOpenInManta(sourceOwner, canOpenOwnedBrowser)
   if (!canOpenInManta) {
     return { primary: 'system' }
   }
@@ -52,7 +61,7 @@ export function terminalHttpLinkActionDestinationsFor(
     : { primary: 'system', alternate: 'manta' }
 }
 
-// Why: only a capability-verified runtime can advertise the in-app destination.
+// Why: remote owners advertise Manta only when their existing browser route is eligible.
 export function terminalUrlOpenHintOptionsFor(
   settings:
     | {
@@ -63,10 +72,10 @@ export function terminalUrlOpenHintOptionsFor(
     | null
     | undefined,
   sourceOwner?: HttpLinkSourceOwner,
-  canOpenRuntimeBrowser = false
+  canOpenOwnedBrowser = false
 ): TerminalUrlOpenHintOptions {
   const sourceCanOpenInManta = sourceOwner
-    ? sourceOwner.kind === 'local' || (sourceOwner.kind === 'runtime' && canOpenRuntimeBrowser)
+    ? canSourceOwnerOpenInManta(sourceOwner, canOpenOwnedBrowser)
     : !settings?.activeRuntimeEnvironmentId?.trim()
   return {
     openLinksInApp: settings?.openLinksInApp === true,
