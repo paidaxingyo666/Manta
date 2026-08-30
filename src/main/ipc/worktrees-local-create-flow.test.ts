@@ -4,6 +4,7 @@ import type { CreateWorktreeResult } from '../../shared/worktree/create-types'
 import { resolveRegisteredWorktreePath } from './registered-worktree-roots-cache'
 import {
   listWorktreesMock,
+  describeCreatedWorktreeMock,
   addWorktreeMock,
   resolveLocalGitUsernameMock,
   getBaseRefDefaultMock,
@@ -460,6 +461,49 @@ describe('registerWorktreeHandlers', () => {
       resolveRegisteredWorktreePath('/workspace/improve-dashboard', store as never)
     ).resolves.toBe(resolve('/workspace/improve-dashboard'))
     expect(listWorktreesMock).toHaveBeenCalledTimes(listWorktreesCallsAfterCreate)
+  })
+
+  it('completes a create the listing failed and keeps sibling worktrees authorized', async () => {
+    const sibling = {
+      path: '/workspace/existing-sibling',
+      head: 'sib123',
+      branch: 'refs/heads/existing-sibling',
+      isBare: false,
+      isMainWorktree: false
+    }
+    listWorktreesMock.mockResolvedValue([
+      {
+        path: '/workspace/repo',
+        head: 'base',
+        branch: 'refs/heads/main',
+        isBare: false,
+        isMainWorktree: true
+      },
+      sibling
+    ])
+    await handlers['worktrees:create'](null, { repoId: 'repo-1', name: 'existing-sibling' })
+
+    // The create Git could no longer list, recovered by reading the worktree directly.
+    listWorktreesMock.mockRejectedValue(new Error('git worktree list timed out.'))
+    describeCreatedWorktreeMock.mockResolvedValue({
+      path: '/workspace/improve-dashboard',
+      head: 'abc123',
+      branch: 'refs/heads/improve-dashboard',
+      isBare: false,
+      isMainWorktree: false
+    })
+
+    await expect(
+      handlers['worktrees:create'](null, { repoId: 'repo-1', name: 'improve-dashboard' })
+    ).resolves.toMatchObject({ worktree: { path: '/workspace/improve-dashboard' } })
+    // Why: registration replaces the repo's root set, so a one-row recovery must not revoke it.
+    await expect(
+      resolveRegisteredWorktreePath('/workspace/existing-sibling', store as never)
+    ).resolves.toBe(resolve('/workspace/existing-sibling'))
+    // Why: the recovered create is still a real worktree, so its own path must be usable at once.
+    await expect(
+      resolveRegisteredWorktreePath('/workspace/improve-dashboard', store as never)
+    ).resolves.toBe(resolve('/workspace/improve-dashboard'))
   })
 
   it('uses branchNameOverride for the git branch while keeping the sanitized worktree path', async () => {

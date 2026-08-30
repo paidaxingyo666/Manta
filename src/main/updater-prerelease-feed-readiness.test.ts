@@ -153,28 +153,26 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
 
   it.each([301, 307, 308])('accepts a GitHub %s asset redirect as ready', async (status) => {
     setPlatformForTest('win32')
-    netFetchMock.mockImplementation(
-      (url: string, init?: { method?: string }) => {
-        if (url === 'https://github.com/stablyai/orca/releases.atom') {
-          return Promise.resolve({
-            ok: true,
-            status: 200,
-            text: () => Promise.resolve(buildAtomFeed(['v1.4.190']))
-          })
-        }
-        if (isPlatformManifestRequest(url)) {
-          return Promise.resolve({
-            ok: true,
-            status: 200,
-            text: () => Promise.resolve(buildWindowsManifest('1.4.190'))
-          })
-        }
-        if (init?.method === 'HEAD') {
-          return Promise.resolve({ ok: false, status, text: () => Promise.resolve('') })
-        }
-        return Promise.resolve({ ok: false, status: 503, text: () => Promise.resolve('') })
+    netFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
+      if (url === 'https://github.com/stablyai/orca/releases.atom') {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(buildAtomFeed(['v1.4.190']))
+        })
       }
-    )
+      if (isPlatformManifestRequest(url)) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(buildWindowsManifest('1.4.190'))
+        })
+      }
+      if (init?.method === 'HEAD') {
+        return Promise.resolve({ ok: false, status, text: () => Promise.resolve('') })
+      }
+      return Promise.resolve({ ok: false, status: 503, text: () => Promise.resolve('') })
+    })
 
     const { fetchNewerReleaseTagsWithReadiness } = await import('./updater-prerelease-feed')
 

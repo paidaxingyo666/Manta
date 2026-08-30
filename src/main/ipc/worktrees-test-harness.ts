@@ -1,5 +1,8 @@
 import { __resetSshWorktreeCreateFetchCacheForTests } from './worktree-remote'
-import { invalidateAuthorizedRootsCache } from './registered-worktree-roots-cache'
+import {
+  __resetCreatedWorktreeRootsForTests,
+  invalidateAuthorizedRootsCache
+} from './registered-worktree-roots-cache'
 import { registerWorktreeHandlers } from './worktrees'
 import { __resetDetectedWorktreeScanCacheForTests } from './worktrees/listing/detected-worktree-scan-cache'
 import { clearConfiguredWorktreeSharedDirectoriesCacheForTests } from '../git/worktree-shared-directories'
@@ -16,6 +19,7 @@ import {
   handleMock,
   removeHandlerMock,
   listWorktreesMock,
+  describeCreatedWorktreeMock,
   assertWorktreeCleanForRemovalMock,
   addWorktreeMock,
   addSparseWorktreeMock,
@@ -82,6 +86,7 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
   __resetDetectedWorktreeScanCacheForTests()
   resetSshProviderAuthorities()
   invalidateAuthorizedRootsCache()
+  __resetCreatedWorktreeRootsForTests()
   for (const m of [
     handleMock,
     removeHandlerMock,
@@ -157,7 +162,8 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
     pruneSpaceAnalysisSnapshotsMock,
     recordRemovalSnapshotPruneMock,
     findExistingWorktreeSymlinkPathsMock,
-    removeWorktreeLinkedPathsMock
+    removeWorktreeLinkedPathsMock,
+    describeCreatedWorktreeMock
   ]) {
     m.mockReset()
   }
@@ -293,6 +299,8 @@ export function setupWorktreeHandlers(): WorktreeRuntimeStub {
   )
   ensurePathWithinWorkspaceMock.mockImplementation((targetPath: string) => targetPath)
   listWorktreesMock.mockResolvedValue([])
+  // Default: no direct-read recovery, so a listing that omits the row still fails the create.
+  describeCreatedWorktreeMock.mockResolvedValue(undefined)
   forceDeleteLocalBranchMock.mockResolvedValue(undefined)
   const runtimeStub = createWorktreeRuntimeStub()
   registerWorktreeHandlers(mainWindow as never, store as never, runtimeStub as never)
