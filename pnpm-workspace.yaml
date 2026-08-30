@@ -5,9 +5,6 @@
 packages: []
 
 minimumReleaseAge: 4320
-# 6.3.289 is younger than the 3-day age gate; drop this once it ages.
-minimumReleaseAgeExclude:
-  - pdfjs-dist
 shamefullyHoist: true
 
 supportedArchitectures:
