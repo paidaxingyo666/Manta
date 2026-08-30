@@ -5,8 +5,6 @@ import {
   Linking,
   type AppStateStatus,
   BackHandler,
-  FlatList,
-  Image,
   View,
   Text,
   ScrollView,
@@ -16,8 +14,7 @@ import {
   Platform,
   ActivityIndicator,
   type KeyboardEvent,
-  type LayoutChangeEvent,
-  type ListRenderItem
+  type LayoutChangeEvent
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -37,12 +34,10 @@ import {
   GitBranch,
   Globe,
   Keyboard as KeyboardIcon,
-  MessageSquare,
   Monitor,
   MoreHorizontal,
   Plus,
   RefreshCw,
-  Send,
   Smartphone,
   SquareTerminal,
   X
@@ -82,6 +77,8 @@ import {
 } from '../../../../src/session/mobile-bulk-close-sheet-actions'
 import { useMobilePrBranchContext } from '../../../../src/session/use-mobile-pr-branch-context'
 import { isFloatingWorkspaceWorktreeId } from '../../../../src/session/floating-workspace'
+import { useAgentSendKeyboardDismissal } from '../../../../src/session/use-agent-send-keyboard-dismissal'
+import { useMobileSendCompletionGeneration } from '../../../../src/session/use-mobile-send-completion-generation'
 import { SessionDockColumn } from '../../../../src/session/SessionDockColumn'
 import { MobileSessionHeaderIconButton } from '../../../../src/session/MobileSessionHeaderIconButton'
 import { MobileSessionHeaderMoreActionsSheet } from '../../../../src/session/MobileSessionHeaderMoreActionsSheet'
@@ -130,6 +127,7 @@ import { useTerminalLiveInputFocus } from '../../../../src/terminal/use-terminal
 import { dismissTerminalKeyboard } from '../../../../src/terminal/terminal-keyboard-dismiss'
 import type { TerminalLiveInputSender } from '../../../../src/terminal/terminal-live-input-sender'
 import { isTerminalSendRpcAccepted } from '../../../../src/terminal/terminal-send-rpc-response'
+import { useBufferedTerminalDrafts } from '../../../../src/terminal/use-buffered-terminal-drafts'
 import { sendMobileTerminalQueryReply } from '../../../../src/terminal/mobile-terminal-query-reply'
 import { TERMINAL_QUERY_REPLY_INPUT_RUNTIME_CAPABILITY } from '../../../../../src/shared/protocol-version'
 import { useTerminalLiveInputCommit } from '../../../../src/terminal/use-terminal-live-input-commit'
@@ -160,7 +158,6 @@ import { MobileAgentIcon } from '../../../../src/components/MobileAgentIcon'
 import { TextInputModal } from '../../../../src/components/TextInputModal'
 import { ConfirmModal } from '../../../../src/components/ConfirmModal'
 import { MobileMarkdownReader } from '../../../../src/session/MobileMarkdownReader'
-import { MobileSyntaxSegments } from '../../../../src/components/MobileSyntaxSegments'
 import {
   CustomKeyModal,
   loadCustomKeys,
@@ -174,12 +171,6 @@ import {
   removeDeliveredMobileDiffComments,
   removeMobileDiffComments
 } from '../../../../src/session/mobile-diff-comments'
-import {
-  buildPlainMobileDiffSyntaxLines,
-  highlightMobileCode,
-  highlightMobileDiffLines,
-  resolveMobileSyntaxLanguage
-} from '../../../../src/session/mobile-file-syntax'
 import {
   getTerminalRecordsFromSessionTabs,
   hasConnectedTerminalAbsentFromSessionTabs,
@@ -223,7 +214,6 @@ import {
   buildMarkdownDiskFallbackDoc,
   shouldReadMarkdownFromDiskAfterReadTabFailure
 } from '../../../../src/session/mobile-markdown-disk-fallback'
-import { MobileHtmlPreview } from '../../../../src/components/MobileHtmlPreview'
 import { MobileDictationSetupSheet } from '../../../../src/components/MobileDictationSetupSheet'
 import {
   fetchDictationSetup,
@@ -290,21 +280,18 @@ import {
 import { colors } from '../../../../src/theme/mobile-theme'
 import { QuickCommandsTabButton } from '../../../../src/session/QuickCommandsTabButton'
 import { styles } from '../../../../src/session/mobile-session-styles'
+import { MobileSessionFileReader } from '../../../../src/session/MobileSessionFileReader'
 import type { DiffComment } from '../../../../../src/shared/diff-comment-types'
 import type { TerminalQuickCommand } from '../../../../../src/shared/terminal-quick-command-types'
 import type {
-  DiffCommentActions,
   DiffNotesDelivery,
-  DiffSyntaxState,
   DirtyMarkdownDraft,
   FileDocState,
-  FileSyntaxState,
   MarkdownDocState,
   MobileDisplayMode,
   MobileNewTabAgentLoadState,
   MobileSessionTab,
   MobileSessionTabType,
-  RenderableDiffLine,
   RuntimeRepoSummary,
   SessionTabsResult,
   Terminal,
@@ -322,416 +309,6 @@ function createMobileTerminalMutationId(): string {
 
 function getClosedTabTombstoneExpiry(): number {
   return Date.now() + CLOSED_TAB_TOMBSTONE_TTL_MS
-}
-
-function DiffLineRow({
-  line,
-  title,
-  index,
-  comments,
-  activeCommentLine,
-  commentDraft,
-  commentsBusy,
-  onStartComment,
-  onCancelComment,
-  onDraftChange,
-  onSubmitComment,
-  onDeleteComment
-}: {
-  line: RenderableDiffLine
-  title: string
-  index: number
-  comments: DiffComment[]
-  activeCommentLine: number | null
-  commentDraft: string
-  commentsBusy: boolean
-  onStartComment: (lineNumber: number) => void
-  onCancelComment: () => void
-  onDraftChange: (value: string) => void
-  onSubmitComment: (lineNumber: number) => void
-  onDeleteComment: (commentId: string) => void
-}) {
-  const commentLine = line.newLineNumber
-  const isCommenting = commentLine !== undefined && activeCommentLine === commentLine
-  const canComment = commentLine !== undefined
-  // Why: review notes anchor to the modified side, so show that line number in the single mobile gutter.
-  const gutterLineNumber = line.newLineNumber ?? line.oldLineNumber ?? ''
-  return (
-    <View style={styles.diffLineBlock}>
-      <View
-        style={[
-          styles.diffLine,
-          line.kind === 'add' && styles.diffLineAdded,
-          line.kind === 'delete' && styles.diffLineDeleted
-        ]}
-      >
-        <Text style={styles.diffGutter}>{gutterLineNumber}</Text>
-        <Text
-          selectable
-          style={styles.diffText}
-          accessibilityLabel={`${title} diff line ${index + 1}`}
-        >
-          <Text
-            style={[
-              styles.diffPrefix,
-              line.kind === 'add' && styles.diffPrefixAdded,
-              line.kind === 'delete' && styles.diffPrefixDeleted
-            ]}
-          >
-            {line.kind === 'add' ? '+ ' : line.kind === 'delete' ? '- ' : '  '}
-          </Text>
-          <MobileSyntaxSegments segments={line.segments} />
-        </Text>
-        {canComment ? (
-          <Pressable
-            style={({ pressed }) => [
-              styles.diffCommentAddButton,
-              pressed && styles.diffCommentAddButtonPressed,
-              commentsBusy && styles.diffCommentButtonDisabled
-            ]}
-            disabled={commentsBusy}
-            onPress={() => {
-              if (commentLine !== undefined) {
-                onStartComment(commentLine)
-              }
-            }}
-            accessibilityLabel={`Add note on line ${commentLine}`}
-          >
-            <Plus size={12} color={colors.textSecondary} strokeWidth={2.3} />
-          </Pressable>
-        ) : null}
-      </View>
-      {comments.length > 0 ? (
-        <View style={styles.diffCommentList}>
-          {comments.map((comment) => (
-            <View key={comment.id} style={styles.diffCommentCard}>
-              <View style={styles.diffCommentHeader}>
-                <MessageSquare size={12} color={colors.textMuted} strokeWidth={2.2} />
-                <Text style={styles.diffCommentMeta}>Line {comment.lineNumber}</Text>
-                <Pressable
-                  style={styles.diffCommentDeleteButton}
-                  disabled={commentsBusy}
-                  onPress={() => onDeleteComment(comment.id)}
-                  accessibilityLabel={`Delete note on line ${comment.lineNumber}`}
-                >
-                  <X size={12} color={colors.textMuted} strokeWidth={2.2} />
-                </Pressable>
-              </View>
-              <Text style={styles.diffCommentBody}>{comment.body}</Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-      {isCommenting ? (
-        <View style={styles.diffCommentComposer}>
-          <TextInput
-            style={[styles.textInput, styles.diffCommentInput]}
-            value={commentDraft}
-            onChangeText={onDraftChange}
-            placeholder="Add review note"
-            placeholderTextColor={colors.textMuted}
-            editable={!commentsBusy}
-            multiline
-            textAlignVertical="top"
-            autoFocus
-          />
-          <View style={styles.diffCommentComposerActions}>
-            <Pressable
-              style={styles.diffCommentSecondaryAction}
-              disabled={commentsBusy}
-              onPress={onCancelComment}
-            >
-              <Text style={styles.diffCommentSecondaryText}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.diffCommentPrimaryAction,
-                (!commentDraft.trim() || commentsBusy) && styles.diffCommentButtonDisabled
-              ]}
-              disabled={!commentDraft.trim() || commentsBusy}
-              onPress={() => {
-                if (commentLine !== undefined) {
-                  onSubmitComment(commentLine)
-                }
-              }}
-            >
-              <Text style={styles.diffCommentPrimaryText}>Save note</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : null}
-    </View>
-  )
-}
-
-function FileReader({
-  doc,
-  title,
-  relativePath,
-  language,
-  diffCommentActions
-}: {
-  doc: FileDocState | undefined
-  title: string
-  relativePath: string
-  language?: string
-  diffCommentActions?: DiffCommentActions
-}) {
-  const syntaxLanguage = useMemo(
-    () => resolveMobileSyntaxLanguage(relativePath || title, language),
-    [language, relativePath, title]
-  )
-  const [fileSyntax, setFileSyntax] = useState<FileSyntaxState | null>(null)
-  const [diffSyntax, setDiffSyntax] = useState<DiffSyntaxState | null>(null)
-  const [activeCommentLine, setActiveCommentLine] = useState<number | null>(null)
-  const [commentDraft, setCommentDraft] = useState('')
-  const plainDiffLines = useMemo(
-    () =>
-      doc?.status === 'ready' && doc.kind === 'diff'
-        ? buildPlainMobileDiffSyntaxLines(doc.lines)
-        : [],
-    [doc]
-  )
-  const diffCommentsForFile = useMemo(
-    () =>
-      diffCommentActions?.comments.filter(
-        (comment) => comment.filePath === relativePath && comment.source !== 'markdown'
-      ) ?? [],
-    [diffCommentActions?.comments, relativePath]
-  )
-  const diffCommentsByLine = useMemo(() => {
-    const map = new Map<number, DiffComment[]>()
-    for (const comment of diffCommentsForFile) {
-      const list = map.get(comment.lineNumber) ?? []
-      list.push(comment)
-      map.set(comment.lineNumber, list)
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => a.createdAt - b.createdAt)
-    }
-    return map
-  }, [diffCommentsForFile])
-
-  const startComment = useCallback((lineNumber: number) => {
-    setActiveCommentLine(lineNumber)
-    setCommentDraft('')
-  }, [])
-
-  const cancelComment = useCallback(() => {
-    setActiveCommentLine(null)
-    setCommentDraft('')
-  }, [])
-
-  const submitComment = useCallback(
-    (lineNumber: number) => {
-      if (!diffCommentActions) {
-        return
-      }
-      void diffCommentActions.onAdd(relativePath, lineNumber, commentDraft).then((added) => {
-        if (added) {
-          setActiveCommentLine(null)
-          setCommentDraft('')
-        }
-      })
-    },
-    [commentDraft, diffCommentActions, relativePath]
-  )
-
-  const renderDiffLine: ListRenderItem<RenderableDiffLine> = useCallback(
-    ({ item, index }) => (
-      <DiffLineRow
-        line={item}
-        title={title}
-        index={index}
-        comments={
-          item.newLineNumber !== undefined ? (diffCommentsByLine.get(item.newLineNumber) ?? []) : []
-        }
-        activeCommentLine={activeCommentLine}
-        commentDraft={commentDraft}
-        commentsBusy={diffCommentActions?.busy === true}
-        onStartComment={startComment}
-        onCancelComment={cancelComment}
-        onDraftChange={setCommentDraft}
-        onSubmitComment={submitComment}
-        onDeleteComment={(commentId) => {
-          if (diffCommentActions) {
-            void diffCommentActions.onDelete(commentId)
-          }
-        }}
-      />
-    ),
-    [
-      activeCommentLine,
-      cancelComment,
-      commentDraft,
-      diffCommentActions,
-      diffCommentsByLine,
-      startComment,
-      submitComment,
-      title
-    ]
-  )
-
-  useEffect(() => {
-    if (doc?.status !== 'ready') {
-      return undefined
-    }
-
-    // Why: defer highlighting one tick so large files show as plain text immediately before colors are applied.
-    const timer = setTimeout(() => {
-      // file + html share the syntax-segment source view (html's "Source" toggle).
-      if (doc.kind === 'file' || doc.kind === 'html') {
-        setFileSyntax({
-          doc,
-          language: syntaxLanguage,
-          segments: highlightMobileCode(doc.content, syntaxLanguage).segments
-        })
-        return
-      }
-      if (doc.kind === 'diff') {
-        setDiffSyntax({
-          doc,
-          language: syntaxLanguage,
-          lines: highlightMobileDiffLines(doc.lines, syntaxLanguage)
-        })
-      }
-      // image: no syntax highlighting.
-    }, 0)
-
-    return () => clearTimeout(timer)
-  }, [doc, syntaxLanguage])
-
-  if (!doc || doc.status === 'loading') {
-    return (
-      <View style={styles.markdownState}>
-        <ActivityIndicator size="small" color={colors.textSecondary} />
-      </View>
-    )
-  }
-  if (doc.status === 'error') {
-    return (
-      <View style={styles.markdownState}>
-        <Text style={styles.markdownError}>{doc.message}</Text>
-      </View>
-    )
-  }
-
-  if (doc.kind === 'diff') {
-    const activeDiffSyntax =
-      diffSyntax?.doc === doc && diffSyntax.language === syntaxLanguage ? diffSyntax.lines : null
-    const commentCount = diffCommentActions?.comments.length ?? 0
-    const unsentCommentCount =
-      diffCommentActions?.comments.filter((comment) => !comment.sentAt).length ?? 0
-    const commentsBusy = diffCommentActions?.busy === true
-    const canCopyNotes = commentCount > 0 && !commentsBusy
-    const canSendNotes = unsentCommentCount > 0 && !commentsBusy
-    return (
-      <View style={styles.markdownEditor}>
-        {diffCommentActions ? (
-          <View style={styles.diffNotesToolbar}>
-            <View style={styles.diffNotesTitleRow}>
-              <MessageSquare size={14} color={colors.textSecondary} strokeWidth={2.2} />
-              <Text style={styles.diffNotesTitle}>
-                {commentCount === 0
-                  ? 'No review notes'
-                  : `${commentCount} review ${commentCount === 1 ? 'note' : 'notes'}`}
-              </Text>
-            </View>
-            <View style={styles.diffNotesActions}>
-              <Pressable
-                style={[
-                  styles.diffNotesActionButton,
-                  !canCopyNotes && styles.diffCommentButtonDisabled
-                ]}
-                disabled={!canCopyNotes}
-                onPress={() => void diffCommentActions.onCopyAll()}
-                accessibilityLabel="Copy review notes"
-              >
-                <Copy size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Copy</Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.diffNotesActionButton,
-                  !canSendNotes && styles.diffCommentButtonDisabled
-                ]}
-                disabled={!canSendNotes}
-                onPress={diffCommentActions.onSendAll}
-                accessibilityLabel="Send review notes to AI"
-              >
-                <Send size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Send</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-        <FlatList
-          data={activeDiffSyntax ?? plainDiffLines}
-          style={styles.filePreviewScroll}
-          contentContainerStyle={styles.filePreviewContent}
-          keyExtractor={(line, index) =>
-            `${index}:${line.kind}:${line.oldLineNumber ?? ''}:${line.newLineNumber ?? ''}`
-          }
-          renderItem={renderDiffLine}
-          initialNumToRender={32}
-          maxToRenderPerBatch={48}
-          windowSize={7}
-          removeClippedSubviews={Platform.OS !== 'web'}
-          keyboardShouldPersistTaps="handled"
-        />
-      </View>
-    )
-  }
-
-  if (doc.kind === 'image') {
-    return (
-      <View style={styles.imagePreviewContainer}>
-        <ScrollView
-          style={styles.imagePreviewScroll}
-          contentContainerStyle={styles.imagePreviewContent}
-          maximumZoomScale={4}
-          minimumZoomScale={1}
-          centerContent
-        >
-          <Image
-            source={{ uri: doc.dataUri }}
-            style={styles.imagePreview}
-            resizeMode="contain"
-            accessibilityLabel={`${title} image`}
-          />
-        </ScrollView>
-      </View>
-    )
-  }
-
-  const renderSourceText = (content: string) => (
-    <View style={styles.markdownEditor}>
-      <ScrollView
-        style={styles.filePreviewScroll}
-        contentContainerStyle={styles.filePreviewContent}
-      >
-        <Text selectable style={styles.filePreviewText} accessibilityLabel={`${title} preview`}>
-          <MobileSyntaxSegments
-            segments={
-              fileSyntax?.doc === doc && fileSyntax.language === syntaxLanguage
-                ? fileSyntax.segments
-                : [{ text: content, kind: 'plain' }]
-            }
-          />
-        </Text>
-      </ScrollView>
-    </View>
-  )
-
-  if (doc.kind === 'html') {
-    return (
-      <View style={styles.markdownEditor}>
-        <MobileHtmlPreview html={doc.content} renderSource={() => renderSourceText(doc.content)} />
-      </View>
-    )
-  }
-
-  return renderSourceText(doc.content)
 }
 
 export default function SessionScreen() {
@@ -815,7 +392,6 @@ export default function SessionScreen() {
   // Why: after an optimistic close, suppress the tab (with expiry) until the publisher confirms, so an in-flight snapshot can't flash it back.
   const closedTabTombstonesRef = useRef<Map<string, number>>(new Map())
   const [terminalsLoaded, setTerminalsLoaded] = useWorktreeSessionTabsLoaded(worktreeId)
-  const [input, setInput] = useState('')
   // Why: baseline terminal zoom reloaded on focus so a Settings → Terminal change applies in place (panes stay mounted).
   const [terminalTextScale, setTerminalTextScale] = useState(1)
   // Why: terminal command-bar autocomplete opt-in, reloaded on focus so a Settings → Terminal toggle takes effect on return.
@@ -951,6 +527,8 @@ export default function SessionScreen() {
   // Why: don't subscribe until the WebView fires web-ready — iOS may defer JS in hidden WebViews and init() messages would queue unrendered.
   const webReadyHandlesRef = useRef<Set<string>>(new Set())
   const activeHandleRef = useRef<string | null>(null)
+  const bufferedTerminalDraftState = useBufferedTerminalDrafts({ activeHandle, activeHandleRef })
+  const reconcileBufferedDraftsRef = useRef(bufferedTerminalDraftState.reconcileTerminalTabs)
   const activeSessionTabTypeRef = useRef<MobileSessionTabType | null>(null)
   const pendingActiveSessionTabIdRef = useRef<string | null>(null)
   // Why: survive transient snapshot gaps so the device's own tab pick can re-bind.
@@ -983,6 +561,7 @@ export default function SessionScreen() {
   const {
     clearPendingLiveInputCommit,
     flushPendingLiveInputBeforeExternalSend,
+    getLiveInputInteractionGeneration: getLiveInteractionGeneration,
     handleLiveInputAccessoryBytes,
     handleLiveInputChange,
     handleLiveInputKeyPress,
@@ -1015,12 +594,6 @@ export default function SessionScreen() {
     liveInputEnabled,
     timerRef: liveInputFocusTimerRef
   })
-  useFocusEffect(
-    useCallback(() => {
-      // Expo retains this route while pushed screens are visible.
-      return resetLiveInputFocus
-    }, [resetLiveInputFocus])
-  )
   const [browserScreencastSupported, setBrowserScreencastSupported] = useState<boolean | null>(null)
   // Why: hosts without aiVault.v1 reject listSessions, so hide the header entry instead of a dead-end "update this host" panel.
   const [agentSessionHistorySupported, setAgentSessionHistorySupported] = useState<boolean | null>(
@@ -1133,6 +706,11 @@ export default function SessionScreen() {
   })
   const { toggleTabChatView, showNativeChat, showNativeChatRef } = nativeChatController
   nativeChatSendError.bannerMountedRef.current = showNativeChat
+  const routeKey = nativeChatScopeKey ?? `${hostId}\0${worktreeId}`
+  const getSendCompletionGeneration = useMobileSendCompletionGeneration({
+    onBlur: resetLiveInputFocus,
+    surfaceKey: JSON.stringify([routeKey, activeHandle, showNativeChat, liveInputEnabled])
+  })
 
   const dictation = useMobileDictation({
     client,
@@ -1170,7 +748,7 @@ export default function SessionScreen() {
         })()
         return
       }
-      setInput((current) => appendBufferedDictation(current, route.text))
+      bufferedTerminalDraftState.setInput((current) => appendBufferedDictation(current, route.text))
       showToast('Dictation inserted')
     },
     onError: (err) => {
@@ -1664,7 +1242,9 @@ export default function SessionScreen() {
             // Sweep against the retained set, not the raw list: a chat-covered handle
             // keeps its subscription across a graph reload, so erasing its live-input
             // preference on the same refresh is the erasure this guard exists to stop.
-            pruneTerminalHandlesFromLiveInput(resolveRetainedTerminalHandles(pruneContext))
+            const retainedHandles = resolveRetainedTerminalHandles(pruneContext)
+            pruneTerminalHandlesFromLiveInput(retainedHandles)
+            bufferedTerminalDraftState.pruneDrafts(retainedHandles)
             defaultTerminalHandlesToLiveInput([...liveHandles])
             const shouldPrune = createTerminalPrunePredicate(pruneContext)
             for (const handle of Array.from(terminalUnsubsRef.current.keys())) {
@@ -1721,6 +1301,7 @@ export default function SessionScreen() {
       clearTerminalLiveInputDefault,
       defaultTerminalHandlesToLiveInput,
       nativeChatStream,
+      bufferedTerminalDraftState.pruneDrafts,
       pruneTerminalHandlesFromLiveInput,
       subscribeToTerminal,
       terminalInventoryRequest,
@@ -1761,6 +1342,9 @@ export default function SessionScreen() {
       if (orphanedDraftTabs.length > 0) {
         nextTabs = [...orphanedDraftTabs, ...nextTabs]
       }
+      reconcileBufferedDraftsRef.current(currentSessionTabs, nextTabs, {
+        retainMissingSurfaces: result.tabs.length === 0
+      })
       sessionTabsRef.current = nextTabs
       initialSessionAutoCreateRef.current.sawSessionTabs ||= nextTabs.length > 0
       // Why: subscribe snapshots often repeat identical payloads; skip re-set to avoid a subscription teardown/replay loop.
@@ -2663,6 +2247,7 @@ export default function SessionScreen() {
     terminalDiagnosticsRef.current.resetRoute()
     appliedSnapshotMarkerRef.current = { epoch: null, version: -1 }
     closedTabTombstonesRef.current.clear()
+    bufferedTerminalDraftState.resetDrafts()
     for (const queued of terminalGestureInputQueuesRef.current.values()) {
       if (queued.timer) {
         clearTimeout(queued.timer)
@@ -2682,14 +2267,17 @@ export default function SessionScreen() {
     return () => {
       sessionTabActionSheetRequestSeqRef.current += 1
       sessionTabActionSheetKeyboardHideSubRef.current?.remove()
+      bufferedTerminalDraftState.clearPendingRestorations()
       clearPendingLiveInputCommit()
       clearDelayedActionTimers()
     }
   }, [
     clearDelayedActionTimers,
+    bufferedTerminalDraftState.clearPendingRestorations,
     clearPendingLiveInputCommit,
     clearTerminalCache,
     hostId,
+    bufferedTerminalDraftState.resetDrafts,
     worktreeId
   ])
 
@@ -3020,6 +2608,20 @@ export default function SessionScreen() {
     }
   }, [activeSessionTab, fileDocs, readFileTab])
 
+  const dismissSoftwareKeyboard = useCallback(() => {
+    dismissTerminalKeyboard({
+      clearPendingLiveInputFocus: () => clearTerminalLiveInputFocusTimer(liveInputFocusTimerRef),
+      commandInput: commandInputRef.current,
+      dismissKeyboard: () => Keyboard.dismiss(),
+      liveInput: liveInputRef.current
+    })
+  }, [])
+
+  const dismissKeyboardAfterAgentSend = useAgentSendKeyboardDismissal(
+    dismissSoftwareKeyboard,
+    getSendCompletionGeneration
+  )
+
   async function handleSend() {
     // Why: the return key still submits while offline; hold the composed text instead of firing a doomed RPC (#6713).
     if (!client || !activeHandle || sendingRef.current || !canSend) {
@@ -3027,12 +2629,23 @@ export default function SessionScreen() {
     }
     sendingRef.current = true
 
-    const text = normalizeTerminalTextInput(input)
-    setInput('')
+    const draft = bufferedTerminalDraftState.input
+    const text = normalizeTerminalTextInput(draft)
+    const bufferedDraftSend = bufferedTerminalDraftState.beginBufferedTerminalDraftSend(
+      activeHandle,
+      draft
+    )
+    const sendOrigin = {
+      handle: activeHandle,
+      tab: activeSessionTab,
+      generation: getSendCompletionGeneration()
+    }
+    const restoreRejectedDraft = () =>
+      bufferedTerminalDraftState.restoreRejectedDraft(bufferedDraftSend)
 
     try {
       // Why: fail now and restore the text — a send parked across a reconnect would execute long after the tap.
-      await client.sendRequest(
+      const response = await client.sendRequest(
         'terminal.send',
         buildTerminalSendParams({
           terminal: activeHandle,
@@ -3042,9 +2655,17 @@ export default function SessionScreen() {
         }),
         TERMINAL_INPUT_SEND_OPTIONS
       )
+      const accepted = isTerminalSendRpcAccepted(response)
+      if (!accepted) {
+        restoreRejectedDraft()
+      }
+      const draftUnchanged =
+        accepted && bufferedTerminalDraftState.settleBufferedTerminalDraftSend(bufferedDraftSend)
+      dismissKeyboardAfterAgentSend(sendOrigin, accepted && draftUnchanged)
     } catch {
-      setInput(text)
+      restoreRejectedDraft()
     } finally {
+      bufferedTerminalDraftState.settleBufferedTerminalDraftSend(bufferedDraftSend)
       sendingRef.current = false
     }
   }
@@ -3179,15 +2800,6 @@ export default function SessionScreen() {
       scheduleDelayedAction
     ]
   )
-
-  const dismissSoftwareKeyboard = useCallback(() => {
-    dismissTerminalKeyboard({
-      clearPendingLiveInputFocus: () => clearTerminalLiveInputFocusTimer(liveInputFocusTimerRef),
-      commandInput: commandInputRef.current,
-      dismissKeyboard: () => Keyboard.dismiss(),
-      liveInput: liveInputRef.current
-    })
-  }, [])
 
   // Tap a terminal or chat file path → resolve on host, open as file tab/preview.
   const { handleFileTap, handleNativeChatFileTap } = useMobileFileTapHandlers<MobileSessionTab>({
@@ -4123,6 +3735,7 @@ export default function SessionScreen() {
       })
       if (response.ok) {
         const remainingTabs = sessionTabsRef.current.filter((candidate) => candidate.id !== tab.id)
+        reconcileBufferedDraftsRef.current(sessionTabsRef.current, remainingTabs)
         if (tab.type === 'browser' && tab.browserPageId === pendingBrowserFocusPageIdRef.current) {
           pendingBrowserFocusPageIdRef.current = null
         }
@@ -4649,7 +4262,7 @@ export default function SessionScreen() {
               </View>
             ) : activeFileTab ? (
               <View style={styles.markdownFrame}>
-                <FileReader
+                <MobileSessionFileReader
                   doc={fileDocs.get(activeFileTab.id)}
                   title={activeFileTab.title || 'File'}
                   relativePath={activeFileTab.relativePath}
@@ -4768,6 +4381,8 @@ export default function SessionScreen() {
                   inputLockReason={nativeChatInputLockReason}
                   sendErrorMessage={nativeChatSendError.message}
                   onClearSendError={nativeChatSendError.clear}
+                  sendSurfaceId={nativeChatScopeKey ?? ''}
+                  getSendCompletionGeneration={getSendCompletionGeneration}
                   keyboardInset={keyboardLift}
                 />
                 {toastMessage && (
@@ -5023,7 +4638,20 @@ export default function SessionScreen() {
                       // marked-text report that says whether this text is still preedit.
                       onChange={handleLiveInputChange}
                       onKeyPress={handleLiveInputKeyPress}
-                      onSubmitEditing={handleLiveInputSubmit}
+                      onSubmitEditing={() => {
+                        const submit = handleLiveInputSubmit()
+                        const sendOrigin = {
+                          tab: activeSessionTab,
+                          generation: getSendCompletionGeneration(),
+                          interaction: getLiveInteractionGeneration()
+                        }
+                        void submit.then((accepted) =>
+                          dismissKeyboardAfterAgentSend(
+                            sendOrigin,
+                            accepted && sendOrigin.interaction === getLiveInteractionGeneration()
+                          )
+                        )
+                      }}
                       placeholder=""
                       showSoftInputOnFocus
                       autoCapitalize="none"
@@ -5052,9 +4680,9 @@ export default function SessionScreen() {
                           : 'cmd-input'
                       }
                       style={styles.textInput}
-                      value={input}
+                      value={bufferedTerminalDraftState.input}
                       // Why: iOS kills active dictation/IME if JS writes a value differing from native text; store raw, normalize at send.
-                      onChangeText={setInput}
+                      onChangeText={bufferedTerminalDraftState.setInput}
                       placeholder="Type a command…"
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="none"
@@ -5068,6 +4696,7 @@ export default function SessionScreen() {
                         autocompleteEnabled
                       )}
                       returnKeyType="send"
+                      blurOnSubmit={false}
                       // Why: composing is local — an outage must not lock the field or discard typed text (#6713).
                       editable={canCompose}
                       onSubmitEditing={() => void handleSend()}
