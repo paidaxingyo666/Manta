@@ -35,7 +35,6 @@ inline src/renderer/src/components/editor/MarkdownPreview.tsx
 inline src/renderer/src/components/floating-terminal/FloatingTerminalPanel.tsx
 inline src/renderer/src/components/new-workspace/SmartWorkspaceNameField.tsx
 inline src/renderer/src/components/settings/AccountsPane.tsx
-inline src/renderer/src/components/settings/Settings.tsx
 inline src/renderer/src/components/status-bar/StatusBar.tsx
 inline src/renderer/src/components/status-bar/WorkspaceSpaceManagerPanel.tsx
 inline src/renderer/src/components/terminal-pane/TerminalPane.tsx
