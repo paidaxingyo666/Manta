@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { LinearTeam } from '../../../shared/linear/workspace-types'
 import {
+  expandLinearMetadataGroupKeys,
+  groupLinearMetadataByName,
   resolveLinearIssueAttributeFilterTeamIds,
+  selectedLinearMetadataGroupKeys,
   unionLinearMetadataById
 } from './linear-issue-attribute-filter-team-ids'
 
@@ -81,5 +84,50 @@ describe('unionLinearMetadataById', () => {
       [{ id: 'shared', name: 'From FE' }]
     ])
     expect(unioned).toEqual([{ id: 'shared', name: 'From BE' }])
+  })
+})
+
+describe('groupLinearMetadataByName', () => {
+  // Why: Linear workflow states are per team, so "Todo" exists once per selected team (#16785).
+  const states = [
+    { id: 'be-backlog', name: 'Backlog' },
+    { id: 'be-todo', name: 'Todo' },
+    { id: 'fe-backlog', name: 'Backlog' },
+    { id: 'fe-todo', name: 'Todo' },
+    { id: 'fe-review', name: 'In Review' }
+  ]
+
+  it('collapses same-named ids into one keyed group in first-seen order', () => {
+    expect(groupLinearMetadataByName(states)).toEqual([
+      { key: 'be-backlog', name: 'Backlog', ids: ['be-backlog', 'fe-backlog'] },
+      { key: 'be-todo', name: 'Todo', ids: ['be-todo', 'fe-todo'] },
+      { key: 'fe-review', name: 'In Review', ids: ['fe-review'] }
+    ])
+  })
+
+  it('marks a group selected when any of its team ids is selected', () => {
+    const groups = groupLinearMetadataByName(states)
+    expect(selectedLinearMetadataGroupKeys(groups, ['fe-todo'])).toEqual(['be-todo'])
+    expect(selectedLinearMetadataGroupKeys(groups, ['be-todo', 'fe-todo'])).toEqual(['be-todo'])
+    expect(selectedLinearMetadataGroupKeys(groups, [])).toEqual([])
+  })
+
+  it('expands picked group keys back to every team id behind them', () => {
+    const groups = groupLinearMetadataByName(states)
+    expect(expandLinearMetadataGroupKeys(groups, ['be-todo', 'fe-review'])).toEqual([
+      'be-todo',
+      'fe-todo',
+      'fe-review'
+    ])
+  })
+
+  // Why: metadata for another team may still be loading; toggling a row must not drop
+  // the ids it does not know about yet (R12).
+  it('passes ids no group covers through both directions', () => {
+    const groups = groupLinearMetadataByName(states)
+    expect(selectedLinearMetadataGroupKeys(groups, ['other-team-todo'])).toEqual([
+      'other-team-todo'
+    ])
+    expect(expandLinearMetadataGroupKeys(groups, ['other-team-todo'])).toEqual(['other-team-todo'])
   })
 })

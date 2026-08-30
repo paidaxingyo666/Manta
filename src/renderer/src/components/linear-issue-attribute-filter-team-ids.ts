@@ -47,3 +47,54 @@ export function unionLinearMetadataById<T extends { id: string }>(groups: readon
   }
   return out
 }
+
+/** One picker row standing for every id that shares a display name. */
+export type LinearMetadataNameGroup = { key: string; name: string; ids: string[] }
+
+/**
+ * Collapse metadata rows that share a display name. Linear workflow states (and team
+ * labels) are per team, so every selected team contributes its own "Todo" id — the app
+ * already treats status identity as the name, so the picker must too (#16785).
+ */
+export function groupLinearMetadataByName<T extends { id: string; name: string }>(
+  rows: readonly T[]
+): LinearMetadataNameGroup[] {
+  const byName = new Map<string, LinearMetadataNameGroup>()
+  for (const row of rows) {
+    const group = byName.get(row.name)
+    if (group) {
+      group.ids.push(row.id)
+      continue
+    }
+    // First id doubles as the row key: unique, and stable while metadata is unchanged.
+    byName.set(row.name, { key: row.id, name: row.name, ids: [row.id] })
+  }
+  return [...byName.values()]
+}
+
+/**
+ * Group keys for the selected ids. An id no loaded group covers — a facet from a team
+ * whose metadata is not in yet — passes through as its own key so toggling another row
+ * never drops it (R12).
+ */
+export function selectedLinearMetadataGroupKeys(
+  groups: readonly { key: string; ids: readonly string[] }[],
+  selectedIds: readonly string[]
+): string[] {
+  const keyById = new Map<string, string>()
+  for (const group of groups) {
+    for (const id of group.ids) {
+      keyById.set(id, group.key)
+    }
+  }
+  return [...new Set(selectedIds.map((id) => keyById.get(id) ?? id))]
+}
+
+/** Every id behind the picked group keys; an unknown key is itself an id. */
+export function expandLinearMetadataGroupKeys(
+  groups: readonly { key: string; ids: readonly string[] }[],
+  keys: readonly string[]
+): string[] {
+  const idsByKey = new Map(groups.map((group) => [group.key, group.ids] as const))
+  return keys.flatMap((key) => [...(idsByKey.get(key) ?? [key])])
+}

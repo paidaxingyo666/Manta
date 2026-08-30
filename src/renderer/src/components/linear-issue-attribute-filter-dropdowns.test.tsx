@@ -2,46 +2,61 @@
 
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LinearTeam } from '../../../shared/linear/workspace-types'
 import {
   clearLinearIssueAttributeFacet,
   countLinearIssueAttributeFilters,
   linearIssueAttributeFilterPillLabels
 } from './linear-issue-attribute-filter-sections'
-import type { LinearIssueAttributeFilter } from '../../../shared/linear/issue-attribute-filter'
+import {
+  LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS,
+  type LinearIssueAttributeFilter
+} from '../../../shared/linear/issue-attribute-filter'
 import LinearIssueAttributeFilterDropdowns from './linear-issue-attribute-filter-dropdowns'
 
 const metadataMocks = vi.hoisted(() => ({
-  useTeamsStates: vi.fn((teamIds: readonly string[]) => ({
-    data: teamIds.length > 0 ? [{ id: 'state-1', name: 'Todo' }] : [],
-    loading: false,
-    error: null
-  })),
-  useTeamsLabels: vi.fn((teamIds: readonly string[]) => ({
-    data: teamIds.length > 0 ? [{ id: 'label-1', name: 'Bug' }] : [],
-    loading: false,
-    error: null
-  })),
-  useTeamsMembers: vi.fn((teamIds: readonly string[]) => ({
-    data: teamIds.length > 0 ? [{ id: 'member-1', displayName: 'Ada Lovelace' }] : [],
-    loading: false,
-    error: null
-  }))
+  useTeamsStates: vi.fn(),
+  useTeamsLabels: vi.fn(),
+  useTeamsMembers: vi.fn()
 }))
 
 vi.mock('@/hooks/useIssueMetadata', () => metadataMocks)
 
+Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+
+const defaultStates = (teamIds: readonly string[]): unknown => ({
+  data: teamIds.length > 0 ? [{ id: 'state-1', name: 'Todo' }] : [],
+  loading: false,
+  error: null
+})
+const defaultLabels = (teamIds: readonly string[]): unknown => ({
+  data: teamIds.length > 0 ? [{ id: 'label-1', name: 'Bug' }] : [],
+  loading: false,
+  error: null
+})
+const defaultMembers = (teamIds: readonly string[]): unknown => ({
+  data: teamIds.length > 0 ? [{ id: 'member-1', displayName: 'Ada Lovelace' }] : [],
+  loading: false,
+  error: null
+})
+
 const roots: Root[] = []
+
+beforeEach(() => {
+  metadataMocks.useTeamsStates.mockImplementation(defaultStates)
+  metadataMocks.useTeamsLabels.mockImplementation(defaultLabels)
+  metadataMocks.useTeamsMembers.mockImplementation(defaultMembers)
+})
 
 afterEach(() => {
   roots.splice(0).forEach((root) => {
     act(() => root.unmount())
   })
   document.body.replaceChildren()
-  metadataMocks.useTeamsStates.mockClear()
-  metadataMocks.useTeamsLabels.mockClear()
-  metadataMocks.useTeamsMembers.mockClear()
+  metadataMocks.useTeamsStates.mockReset()
+  metadataMocks.useTeamsLabels.mockReset()
+  metadataMocks.useTeamsMembers.mockReset()
 })
 
 const sample: LinearIssueAttributeFilter = {
@@ -58,6 +73,20 @@ describe('linear-issue-attribute-filter helpers', () => {
     expect(clearLinearIssueAttributeFacet(sample, 'priority').priorities).toEqual([])
     expect(clearLinearIssueAttributeFacet(sample, 'assignee').assignee).toBeNull()
     expect(clearLinearIssueAttributeFacet(sample, 'labels').labelIds).toEqual([])
+  })
+
+  // Why: Linear workflow states are per team, so every team owns its own "Todo" id (#16785).
+  it('collapses same-named status ids into one pill label', () => {
+    const pills = linearIssueAttributeFilterPillLabels({
+      value: { stateIds: ['be-todo', 'fe-todo'], priorities: [], assignee: null, labelIds: [] },
+      stateNamesById: new Map([
+        ['be-todo', 'Todo'],
+        ['fe-todo', 'Todo']
+      ]),
+      memberNamesById: new Map(),
+      labelNamesById: new Map()
+    })
+    expect(pills[0]?.value).toBe('Todo')
   })
 
   it('builds pill labels from metadata maps', () => {
@@ -217,6 +246,115 @@ describe('LinearIssueAttributeFilterDropdowns', () => {
     renderWith(true)
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ stateIds: [], labelIds: [], assignee: null })
+    )
+  })
+})
+
+const multiTeamStates = [
+  { id: 'be-backlog', name: 'Backlog', type: 'backlog' },
+  { id: 'be-todo', name: 'Todo', type: 'unstarted' },
+  { id: 'fe-backlog', name: 'Backlog', type: 'backlog' },
+  { id: 'fe-todo', name: 'Todo', type: 'unstarted' }
+]
+
+const teamBe: LinearTeam = { id: 'team-be', name: 'Backend', key: 'BE' }
+const teamFe: LinearTeam = { id: 'team-fe', name: 'Frontend', key: 'FE' }
+
+function openStatusSection(onChange: (next: LinearIssueAttributeFilter) => void): void {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  roots.push(root)
+
+  act(() => {
+    root.render(
+      <LinearIssueAttributeFilterDropdowns
+        value={{ stateIds: [], priorities: [], assignee: null, labelIds: [] }}
+        onChange={onChange}
+        workspaceId="workspace-1"
+        primaryTeam={teamBe}
+        selectedTeamIds={['team-be', 'team-fe']}
+        availableTeams={[teamBe, teamFe]}
+        teamsSettled
+      />
+    )
+  })
+
+  const trigger = container.querySelector('button')
+  act(() => {
+    trigger?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+
+  const statusButton = [...document.body.querySelectorAll('button')].find(
+    (button) => button.textContent?.trim() === 'Status'
+  )
+  act(() => {
+    statusButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
+function statusRowsNamed(name: string): HTMLElement[] {
+  return [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].filter(
+    (row) => row.textContent?.trim() === name
+  )
+}
+
+// Why: two teams share Linear's default state template, so the picker used to list
+// "Todo"/"Backlog" once per team and each row filtered to a single team's issues (#16785).
+describe('LinearIssueAttributeFilterDropdowns status options across teams', () => {
+  it('lists one row per status name instead of one per team state id', () => {
+    metadataMocks.useTeamsStates.mockImplementation(() => ({
+      data: multiTeamStates,
+      loading: false,
+      error: null
+    }))
+
+    openStatusSection(() => undefined)
+
+    expect(statusRowsNamed('Todo')).toHaveLength(1)
+    expect(statusRowsNamed('Backlog')).toHaveLength(1)
+  })
+
+  it('selects every team state id behind the picked status name', () => {
+    metadataMocks.useTeamsStates.mockImplementation(() => ({
+      data: multiTeamStates,
+      loading: false,
+      error: null
+    }))
+    const onChange = vi.fn()
+
+    openStatusSection(onChange)
+    act(() => {
+      statusRowsNamed('Todo')[0]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ stateIds: ['be-todo', 'fe-todo'] })
+    )
+  })
+
+  // Why: "All teams" in a large workspace expands one status into an id per team, and the
+  // IPC parser rejects a filter over the transport cap instead of trimming it.
+  it('keeps the expanded status selection within the transport id cap', () => {
+    const overCap = LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS + 20
+    metadataMocks.useTeamsStates.mockImplementation(() => ({
+      data: Array.from({ length: overCap }, (_unused, index) => ({
+        id: `team-${index}-todo`,
+        name: 'Todo',
+        type: 'unstarted'
+      })),
+      loading: false,
+      error: null
+    }))
+    const onChange = vi.fn()
+
+    openStatusSection(onChange)
+    act(() => {
+      statusRowsNamed('Todo')[0]?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(onChange.mock.calls[0]?.[0].stateIds).toHaveLength(
+      LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
     )
   })
 })

@@ -8,6 +8,7 @@ import { useTeamsLabels, useTeamsMembers, useTeamsStates } from '@/hooks/useIssu
 import type { RuntimeLinearSettings } from '@/runtime/runtime-linear-client'
 import { translate } from '@/i18n/i18n'
 import {
+  boundLinearIssueAttributeFilter,
   canonicalizeLinearIssueAttributeFilter,
   emptyLinearIssueAttributeFilter,
   type LinearIssueAttributeFilter
@@ -21,7 +22,10 @@ import {
   linearIssueAttributeFilterPillLabels,
   type LinearIssueFilterSectionKey
 } from './linear-issue-attribute-filter-sections'
-import { resolveLinearIssueAttributeFilterTeamIds } from './linear-issue-attribute-filter-team-ids'
+import {
+  groupLinearMetadataByName,
+  resolveLinearIssueAttributeFilterTeamIds
+} from './linear-issue-attribute-filter-team-ids'
 
 type Props = {
   value: LinearIssueAttributeFilter
@@ -166,12 +170,24 @@ export default function LinearIssueAttributeFilterDropdowns({
     onChange
   ])
 
+  // Why: workflow states and team labels are per team, so several ids share one name —
+  // one row per name, selecting every id behind it (#16785).
   const statusOptions = useMemo(
-    () => states.data.map((state) => ({ key: state.id, primary: state.name })),
+    () =>
+      groupLinearMetadataByName(states.data).map((group) => ({
+        key: group.key,
+        primary: group.name,
+        ids: group.ids
+      })),
     [states.data]
   )
   const labelOptions = useMemo(
-    () => labels.data.map((label) => ({ key: label.id, primary: label.name })),
+    () =>
+      groupLinearMetadataByName(labels.data).map((group) => ({
+        key: group.key,
+        primary: group.name,
+        ids: group.ids
+      })),
     [labels.data]
   )
   const assigneeOptions = useMemo(
@@ -267,7 +283,13 @@ export default function LinearIssueAttributeFilterDropdowns({
                 <LinearIssueFilterSectionDetail
                   section={openSection}
                   value={value}
-                  onChange={(next) => onChange(canonicalizeLinearIssueAttributeFilter(next))}
+                  // Why: one status now expands to an id per team, so bound here — the
+                  // IPC/RPC parser rejects a filter over the transport id cap outright.
+                  onChange={(next) =>
+                    onChange(
+                      boundLinearIssueAttributeFilter(canonicalizeLinearIssueAttributeFilter(next))
+                    )
+                  }
                   statusOptions={statusOptions}
                   assigneeOptions={assigneeOptions}
                   labelOptions={labelOptions}
@@ -281,7 +303,12 @@ export default function LinearIssueAttributeFilterDropdowns({
                   onBack={() => setOpenSection(null)}
                 />
               ) : (
-                <LinearIssueFilterSectionMenu value={value} onOpenSection={setOpenSection} />
+                <LinearIssueFilterSectionMenu
+                  value={value}
+                  stateNamesById={stateNamesById}
+                  labelNamesById={labelNamesById}
+                  onOpenSection={setOpenSection}
+                />
               )}
               {activeCount > 0 ? (
                 <div className="border-t border-border/50 p-2">
