@@ -1549,14 +1549,16 @@ export async function createRemoteWorktree(
   await registerRequiredSshWorktreeCreateRoots(repo.connectionId!, [repo.path])
 
   // Why: explicit branches and non-username prefix modes never consume this; skipping the remote probe preserves the exact branch name.
-  const username =
-    !args.branchNameOverride && settings.branchPrefix === 'git-username'
-      ? await getSshGitUsername(provider, repo.path)
-      : ''
-
   const branchConflictSubject = args.branchNameOverride ? 'branch name' : 'worktree name'
   // Why: don't fall back to hardcoded 'origin/main'; it may not exist (master/develop) and yields an opaque git error, so fail clearly and let the UI prompt.
-  const basePlan = await getOrStartRemoteWorktreeCreateBasePlan(provider, repo, args.baseBranch)
+  // Username and base-plan probes are independent read-only work; overlap them so
+  // SSH latency is paid once before the conflict loop.
+  const [username, basePlan] = await Promise.all([
+    !args.branchNameOverride && settings.branchPrefix === 'git-username'
+      ? getSshGitUsername(provider, repo.path)
+      : Promise.resolve(''),
+    getOrStartRemoteWorktreeCreateBasePlan(provider, repo, args.baseBranch)
+  ])
   if (!basePlan) {
     throw new Error(
       'Could not resolve a default base ref for this repo. Pick a base branch explicitly and try again.'
@@ -1567,12 +1569,10 @@ export async function createRemoteWorktree(
   let baseFallback: WorktreeCreateBaseFallback | undefined
 
   if (remoteTrackingBase) {
-    const hasRemoteTrackingBaseRef = await hasCommitRefSsh(
-      provider,
-      repo.path,
-      remoteTrackingBase.ref
-    )
-    const hasNamedLocalBaseRef = await hasRemoteWorktreeBaseRef(provider, repo.path, baseBranch)
+    const [hasRemoteTrackingBaseRef, hasNamedLocalBaseRef] = await Promise.all([
+      hasCommitRefSsh(provider, repo.path, remoteTrackingBase.ref),
+      hasRemoteWorktreeBaseRef(provider, repo.path, baseBranch)
+    ])
     const hasFallbackLocalBaseRef =
       !hasNamedLocalBaseRef &&
       (await hasRemoteWorktreeBaseRef(provider, repo.path, remoteTrackingBase.branch))
@@ -2016,12 +2016,13 @@ export async function createLocalWorktree(
     ? sanitizeWorktreeDisplayName(args.displayName)
     : undefined
   // Why: explicit branches and non-username prefix modes never consume this; skipping the probe preserves the exact generated branch name.
-  const username =
+  // Username and base resolution are independent read-only probes. Starting
+  // both before awaiting removes one serial git/config round trip from create.
+  const usernamePromise =
     !args.branchNameOverride && settings.branchPrefix === 'git-username'
-      ? await resolveLocalGitUsername(repo.path)
-      : ''
-
-  let baseBranch = await resolveWorktreeCreateBase({
+      ? resolveLocalGitUsername(repo.path)
+      : Promise.resolve('')
+  const baseBranchPromise = resolveWorktreeCreateBase({
     requestedBaseBranch: args.baseBranch,
     repoWorktreeBaseRef: repo.worktreeBaseRef,
     resolveDefaultBaseRef: () => resolveDefaultBaseRefWithLocalGit(localGitExecOptions),
@@ -2052,6 +2053,8 @@ export async function createLocalWorktree(
       return hasLocalWorktreeBaseRefWithOptions(repo.path, baseBranchCandidate, localGitExecOptions)
     }
   })
+  const [username, resolvedBaseBranch] = await Promise.all([usernamePromise, baseBranchPromise])
+  let baseBranch = resolvedBaseBranch
   if (!baseBranch) {
     // Why: no default base resolved; fail clearly rather than pass a hardcoded non-existent ref to git worktree add (opaque error) so the UI can prompt.
     throw new Error(
@@ -2075,16 +2078,10 @@ export async function createLocalWorktree(
       ...localWorktreeGitOptionArgs
     )
     if (remoteTrackingBase) {
-      const hasRemoteTrackingBaseRef = await runtime.hasRemoteTrackingRef(
-        repo.path,
-        remoteTrackingBase,
-        ...localWorktreeGitOptionArgs
-      )
-      const hasNamedLocalBaseRef = await hasLocalWorktreeBaseRefWithOptions(
-        repo.path,
-        baseBranch,
-        localGitExecOptions
-      )
+      const [hasRemoteTrackingBaseRef, hasNamedLocalBaseRef] = await Promise.all([
+        runtime.hasRemoteTrackingRef(repo.path, remoteTrackingBase, ...localWorktreeGitOptionArgs),
+        hasLocalWorktreeBaseRefWithOptions(repo.path, baseBranch, localGitExecOptions)
+      ])
       const hasFallbackLocalBaseRef =
         !hasNamedLocalBaseRef &&
         (await hasLocalWorktreeBaseRefWithOptions(
@@ -2591,9 +2588,14 @@ export async function createLocalWorktree(
 
   // Why: project-level `manta.yaml` shared directories add to (never replace) the per-user
   // setting, so a repo's shared dirs reach every teammate (issue #10451).
-  const sharedDirectories = await timing.time('resolve_shared_directories', () =>
-    resolveWorktreeSharedDirectories(repo.path, localWorktreeGitOptions)
-  )
+  const [sharedDirectories, includePaths] = await Promise.all([
+    timing.time('resolve_shared_directories', () =>
+      resolveWorktreeSharedDirectories(repo.path, localWorktreeGitOptions)
+    ),
+    timing.time('resolve_worktreeinclude', () =>
+      resolveWorktreeIncludePaths(repo.path, localWorktreeGitOptions)
+    )
+  ])
   if (sharedDirectories.length > 0) {
     await timing.time('create_shared_directories', async () => {
       await createWorktreeSharedPaths(repo.path, created.path, sharedDirectories)
@@ -2602,9 +2604,6 @@ export async function createLocalWorktree(
 
   // Why: project-level `.worktreeinclude` travels with the repo (issue #7549); copy semantics
   // (never symlink) so each worktree owns its files. Paths already linked above are skipped.
-  const includePaths = await timing.time('resolve_worktreeinclude', () =>
-    resolveWorktreeIncludePaths(repo.path, localWorktreeGitOptions)
-  )
   let includeCopyWarning: string | undefined
   if (includePaths.length > 0) {
     await timing.time('copy_worktreeinclude', async () => {
