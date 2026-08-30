@@ -11,7 +11,7 @@ import type {
 import type { RuntimeMobileSessionTabMove } from '../../shared/runtime-types'
 import type { TerminalTabCreateReply } from '../../shared/terminal-reveal-identity'
 import { runWorktreeChangeInvalidators } from '../ipc/worktree-change-invalidators'
-import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import { requestMobileMarkdownFromRenderer } from './mobile-markdown-request-relay'
 import { registerRendererDocumentNavigation } from './renderer-document-navigation'
 import { createRuntimeRendererNotificationSender } from './runtime-renderer-notification-sender'
@@ -23,7 +23,7 @@ let activeRuntimeNotifierToken: number | null = null
 
 export function registerRuntimeWindowLifecycle(
   mainWindow: BrowserWindow,
-  runtime: OrcaRuntimeService
+  runtime: MantaRuntimeService
 ): void {
   const notifierToken = ++runtimeNotifierTokenCounter
   activeRuntimeNotifierToken = notifierToken
@@ -155,7 +155,8 @@ export function registerRuntimeWindowLifecycle(
         paneRuntimeId,
         direction: opts.direction,
         command: opts.command,
-        telemetrySource: opts.telemetrySource
+        telemetrySource: opts.telemetrySource,
+        newLeafId: opts.newLeafId
       })
     },
     renameTerminal: (tabId, title) => send('ui:renameTerminal', { tabId, title }),
