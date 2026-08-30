@@ -16552,7 +16552,8 @@
           "ultra": "Ultra",
           "on": "On",
           "off": "Off"
-        }
+        },
+        "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more."
       },
       "tool": {
         "running": "Running…",
