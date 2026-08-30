@@ -8,8 +8,8 @@
 //   mobile client     = mobile/src/worktree/workspace-view-settings mapping; the ui.set
 //                       payload uses the shipping buildWorkspaceViewSettingsUpdate when
 //                       exported, else the legacy whole-snapshot shape — the source-pin
-//                       test asserts index.tsx matches whichever path is active, so the
-//                       model stays tethered to shipping code on baseline and candidate.
+//                       test asserts use-host-view-settings.ts matches whichever path is
+//                       active, so the model stays tethered to shipping code.
 //
 // Invariant: when two independently identified clients change DISJOINT workspace-view
 // fields concurrently or across stale-mirror windows, both changes survive and all
@@ -175,8 +175,11 @@ function createMobileClient(authority: Authority) {
   }
 }
 
-function readMobileHostScreenSource(): string {
-  return readFileSync(join(__dirname, '../../../../mobile/app/h/[hostId]/index.tsx'), 'utf-8')
+function readMobileViewSettingsHookSource(): string {
+  return readFileSync(
+    join(__dirname, '../../../../mobile/src/host-screen/use-host-view-settings.ts'),
+    'utf-8'
+  )
 }
 
 function readMobileViewSettingsSource(): string {
@@ -601,9 +604,9 @@ describe('workspace view preferences: cross-client persistence (STA-5781)', () =
   })
 
   it('pins the modeled mobile ui.set payload to the shipping source', async () => {
-    const source = readMobileHostScreenSource()
+    const source = readMobileViewSettingsHookSource()
     if (mobileHasPatchOnlyBuilder()) {
-      // Candidate: index.tsx must push through the patch-only builder this model uses.
+      // Candidate: the persistence hook must push through the patch-only builder this model uses.
       expect(source).toContain('buildWorkspaceViewSettingsUpdate(patch, next)')
       const builderSource = readMobileViewSettingsSource()
       for (const guard of [

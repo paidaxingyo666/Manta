@@ -46,12 +46,6 @@
       }
     },
     {
-      "files": ["app/h/*/index.tsx"],
-      "rules": {
-        "max-lines": ["error", { "max": 1603, "skipBlankLines": true, "skipComments": true }]
-      }
-    },
-    {
       "files": ["app/index.tsx"],
       "rules": {
         "max-lines": ["error", { "max": 1422, "skipBlankLines": true, "skipComments": true }]
