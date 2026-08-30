@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Copy, Ellipsis, ExternalLink, MonitorUp, Unlink } from 'lucide-react'
+import { Copy, Ellipsis, ExternalLink, Globe, MonitorUp, Unlink } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import {
   WorktreeCardDetailSection,
@@ -24,6 +24,7 @@ type WorktreeCardReviewDetailSectionProps = {
   onReviewMenuOpenChange: (open: boolean) => void
   onOpenReviewInManta?: (event: React.MouseEvent) => void
   onCopyReviewLink?: () => void
+  onOpenReviewInBrowser?: (url: string) => void
   onUnlinkReview?: () => void
   closeHover: () => void
 }
@@ -34,6 +35,7 @@ export function WorktreeCardReviewDetailSection({
   onReviewMenuOpenChange,
   onOpenReviewInManta,
   onCopyReviewLink,
+  onOpenReviewInBrowser,
   onUnlinkReview,
   closeHover
 }: WorktreeCardReviewDetailSectionProps): React.JSX.Element | null {
@@ -78,7 +80,7 @@ export function WorktreeCardReviewDetailSection({
         )}
         actions={
           <>
-            {(onCopyReviewLink || onUnlinkReview) && (
+            {(onCopyReviewLink || onOpenReviewInBrowser || onUnlinkReview) && (
               <DropdownMenu
                 modal={false}
                 open={reviewMenuOpen}
@@ -95,6 +97,20 @@ export function WorktreeCardReviewDetailSection({
                   </Tooltip>
                 )}
                 <DropdownMenuContent align="end" className="w-40">
+                  {onOpenReviewInBrowser && (
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        closeHover()
+                        onOpenReviewInBrowser(review.url!)
+                      }}
+                    >
+                      <Globe className="size-3.5" />
+                      {translate(
+                        'auto.components.sidebar.WorktreeCardMeta.openInMantaBrowser',
+                        'Open in Manta browser'
+                      )}
+                    </DropdownMenuItem>
+                  )}
                   {onCopyReviewLink && (
                     <DropdownMenuItem
                       onSelect={() => {

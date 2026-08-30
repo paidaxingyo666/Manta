@@ -25,6 +25,10 @@ export type OpenWorkspaceBrowserTabRequest = {
   targetGroupId?: string
   url: string
   intent: WorkspaceBrowserTabIntent
+  /** Keep the caller's current terminal/task surface selected while creating the tab. */
+  focusOnCreate?: boolean
+  /** Keep the caller's current workspace selected while creating the tab. */
+  selectWorktree?: boolean
   expectedRuntimeEnvironmentId?: string
   expectedSshConnectionId?: string
 }
@@ -180,7 +184,7 @@ function createClientBrowserTab(
 ): void {
   try {
     state.createBrowserTab(request.workspaceId, request.url, {
-      activate: true,
+      activate: request.focusOnCreate !== false,
       browserRuntimeEnvironmentId: null,
       focusAddressBar: false,
       sessionProfileId:
@@ -284,7 +288,8 @@ export async function openWorkspaceBrowserTab(
       ...(expectedEnvironmentId !== null ? { waitForRegistration: true } : {}),
       // Why: the tab is opened from this workspace's tab bar, so surface that
       // workspace — otherwise a background worktree looks like nothing happened.
-      selectWorktree: true,
+      ...(request.focusOnCreate !== undefined ? { focusOnCreate: request.focusOnCreate } : {}),
+      selectWorktree: request.selectWorktree !== false,
       stagedTitle: presentation.title,
       stagedFocusAddressBar: false,
       failureLogMode: 'operation-only'

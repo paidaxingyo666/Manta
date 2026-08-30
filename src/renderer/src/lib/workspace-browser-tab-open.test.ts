@@ -104,6 +104,31 @@ describe('openWorkspaceBrowserTab', () => {
     expect(mocks.createRemote).not.toHaveBeenCalled()
   })
 
+  it('creates a client tab without activating it when requested', async () => {
+    const createBrowserTab = vi.fn()
+    const sshHost = toSshExecutionHostId('ssh-target')
+    mocks.state = {
+      ...ownerState(sshHost),
+      createBrowserTab,
+      defaultBrowserSessionProfileId: 'focused-profile',
+      defaultBrowserSessionProfileIdByHostId: { [sshHost]: 'ssh-profile' }
+    }
+
+    await openWorkspaceBrowserTab({
+      workspaceId: WORKSPACE_ID,
+      url: 'https://github.com/acme/manta/pull/456',
+      intent: { kind: 'url' },
+      focusOnCreate: false,
+      selectWorktree: false
+    })
+
+    expect(createBrowserTab).toHaveBeenCalledWith(
+      WORKSPACE_ID,
+      'https://github.com/acme/manta/pull/456',
+      expect.objectContaining({ activate: false })
+    )
+  })
+
   it('fails closed when the asserted SSH browser route is opted out or belongs to another host', async () => {
     const sshHost = toSshExecutionHostId('ssh-target')
     mocks.state = {
@@ -162,6 +187,32 @@ describe('openWorkspaceBrowserTab', () => {
       failureLogMode: 'operation-only'
     })
     expect(createBrowserTab).not.toHaveBeenCalled()
+  })
+
+  it('stages a runtime tab without selecting the worktree or focusing the browser', async () => {
+    mocks.state = {
+      ...ownerState(toRuntimeExecutionHostId('hub-a')),
+      ...browserCapableRuntime('hub-a'),
+      createBrowserTab: vi.fn(),
+      defaultBrowserSessionProfileId: 'client-profile',
+      defaultBrowserSessionProfileIdByHostId: {}
+    }
+
+    await openWorkspaceBrowserTab({
+      workspaceId: WORKSPACE_ID,
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/77',
+      intent: { kind: 'url' },
+      focusOnCreate: false,
+      selectWorktree: false
+    })
+
+    expect(mocks.createRemote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        focusOnCreate: false,
+        selectWorktree: false,
+        url: 'https://gitlab.com/acme/manta/-/merge_requests/77'
+      })
+    )
   })
 
   it('waits for host registration before reconciling an asserted runtime link', async () => {

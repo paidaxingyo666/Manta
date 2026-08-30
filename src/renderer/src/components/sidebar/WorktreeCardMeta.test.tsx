@@ -130,6 +130,7 @@ describe('WorktreeCardDetailsHover', () => {
         onEditIssue={vi.fn()}
         onEditComment={vi.fn()}
         onOpenReviewInManta={vi.fn()}
+        onOpenReviewInBrowser={vi.fn()}
         onUnlinkReview={vi.fn()}
       >
         <span>Linked PR</span>
@@ -143,10 +144,12 @@ describe('WorktreeCardDetailsHover', () => {
     expect(moreActionsIndex).toBeGreaterThan(-1)
     expect(markup).toContain('More PR actions')
     expect(markup).toContain('Copy link')
+    expect(markup).toContain('Open in Manta browser')
     expect(markup).toContain('Unlink PR')
     expect(moreActionsIndex).toBeLessThan(openInMantaIndex)
     expect(openInMantaIndex).toBeLessThan(viewOnGitHubIndex)
     expect(markup).not.toContain('aria-label="Unlink PR"')
+    expect(markup.indexOf('Open in Manta browser')).toBeLessThan(markup.indexOf('Copy link'))
     expect(markup.indexOf('Copy link')).toBeLessThan(markup.indexOf('Unlink PR'))
   })
 
@@ -166,6 +169,7 @@ describe('WorktreeCardDetailsHover', () => {
         onEditIssue={vi.fn()}
         onEditComment={vi.fn()}
         onOpenGitHubIssueInManta={vi.fn()}
+        onOpenIssueInBrowser={vi.fn()}
       >
         <span>Linked issue</span>
       </WorktreeCardDetailsHover>
@@ -179,6 +183,8 @@ describe('WorktreeCardDetailsHover', () => {
 
     expect(moreActionsIndex).toBeGreaterThan(-1)
     expect(copyLinkIndex).toBeGreaterThan(-1)
+    expect(markup).toContain('Open in Manta browser')
+    expect(markup.indexOf('Open in Manta browser')).toBeLessThan(copyLinkIndex)
     expect(editIssueIndex).toBeGreaterThan(-1)
     expect(moreActionsIndex).toBeLessThan(editIssueIndex)
     expect(copyLinkIndex).toBeLessThan(editIssueIndex)
@@ -203,6 +209,7 @@ describe('WorktreeCardDetailsHover', () => {
         onEditIssue={vi.fn()}
         onEditComment={vi.fn()}
         onUnlinkReview={vi.fn()}
+        onOpenReviewInBrowser={vi.fn()}
       >
         <span>Linked MR</span>
       </WorktreeCardDetailsHover>
@@ -211,6 +218,53 @@ describe('WorktreeCardDetailsHover', () => {
     expect(markup).toContain('aria-label="More MR actions"')
     expect(markup).toContain('Unlink MR')
     expect(markup).toContain('View on GitLab')
+    expect(markup).toContain('Open in Manta browser')
+  })
+
+  it('hides the embedded-browser action when a linked review has no URL', () => {
+    const markup = renderToStaticMarkup(
+      <WorktreeCardDetailsHover
+        issue={null}
+        linearIssue={null}
+        review={{
+          provider: 'github',
+          number: 456,
+          title: 'Loading PR...',
+          state: 'open'
+        }}
+        comment={null}
+        onOpenReviewInBrowser={vi.fn()}
+      >
+        <span>Linked PR</span>
+      </WorktreeCardDetailsHover>
+    )
+
+    expect(markup).not.toContain('Open in Manta browser')
+  })
+
+  it('keeps the embedded-browser action provider-neutral for unsupported review URLs', () => {
+    const markup = renderToStaticMarkup(
+      <WorktreeCardDetailsHover
+        issue={null}
+        linearIssue={null}
+        review={{
+          provider: 'unsupported',
+          number: 12,
+          title: 'Review from an unsupported provider',
+          state: 'open',
+          url: 'https://code.example.test/reviews/12',
+          status: 'neutral',
+          updatedAt: '2026-05-17T00:00:00.000Z',
+          mergeable: 'UNKNOWN'
+        }}
+        comment={null}
+        onOpenReviewInBrowser={vi.fn()}
+      >
+        <span>Linked review</span>
+      </WorktreeCardDetailsHover>
+    )
+
+    expect(markup).toContain('Open in Manta browser')
   })
 
   it('displays Linear issue details with link', () => {
