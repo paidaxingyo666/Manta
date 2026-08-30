@@ -237,6 +237,47 @@ describe('native chat composer composition ownership', () => {
     expect(onImeSettled).toHaveBeenCalledWith(input)
   })
 
+  it('replays a draft clear dropped mid-composition when the field settles on blur', () => {
+    let settledValue: string | null = null
+    const props = fieldProps({
+      draft: '안녕',
+      onImeSettled: (element) => {
+        settledValue = element.value
+      }
+    })
+    const view = render(<TestField {...props} />)
+    const input = textarea()
+    fireEvent.compositionStart(input)
+    input.value = '안녕하'
+    view.rerender(<TestField {...props} draft="안녕하" />)
+
+    // The accepted structured send lands while the next composition is still open.
+    view.rerender(<TestField {...props} draft="" />)
+    expect(input.value).toBe('안녕하')
+
+    fireEvent.blur(input)
+    expect(settledValue).toBe('하')
+    expect(input.value).toBe('하')
+  })
+
+  it('forgets a dropped clear that the browser already settled', () => {
+    const onImeSettled = vi.fn()
+    const props = fieldProps({ draft: '안녕', onImeSettled })
+    const view = render(<TestField {...props} />)
+    const input = textarea()
+    fireEvent.compositionStart(input)
+    input.value = '안녕하'
+    view.rerender(<TestField {...props} draft="" />)
+    fireEvent.blur(input)
+
+    // A second composition must not inherit the first one's clear.
+    fireEvent.compositionStart(input)
+    input.value = '하늘'
+    fireEvent.blur(input)
+
+    expect(input.value).toBe('하늘')
+  })
+
   it('keeps the browser value through a same-draft streaming rerender', () => {
     const onImeSettled = vi.fn()
     const props = fieldProps({ onImeSettled })
