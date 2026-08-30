@@ -70,12 +70,6 @@
       }
     },
     {
-      "files": ["app/troubleshoot.tsx"],
-      "rules": {
-        "max-lines": ["error", { "max": 436, "skipBlankLines": true, "skipComments": true }]
-      }
-    },
-    {
       "files": ["app/h/*/files/*.tsx"],
       "rules": {
         "max-lines": ["error", { "max": 402, "skipBlankLines": true, "skipComments": true }]
