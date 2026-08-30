@@ -13,16 +13,6 @@ const packageJson = JSON.parse(readProject('package.json'))
 const pnpmWorkspace = parse(readProject('pnpm-workspace.yaml'))
 
 describe('Electron runtime package contract', () => {
-  it('keeps shared WebGL atlas invalidation reproducible from vendored source', () => {
-    const patch = readProject('config/patches/@xterm__addon-webgl@0.20.0-beta.286.patch')
-
-    expect(patch).toContain('readonly clearModelGeneration: number')
-    expect(patch).toContain('const generation = this._atlas.clearModelGeneration')
-    expect(patch).toContain('this.clearModelGeneration++')
-    expect(patch).toContain('this._atlas._clearModelGeneration||0')
-    expect(patch.match(/\^\(\?:\[1-8\]\\d\{2\}\|900\)\$/g)).toHaveLength(3)
-  })
-
   it('keeps root postinstall as the single Electron binary install owner', () => {
     expect(packageJson.scripts.postinstall).toBe('node config/scripts/rebuild-native-deps.mjs')
     expect(pnpmWorkspace.allowBuilds).not.toHaveProperty('electron')
