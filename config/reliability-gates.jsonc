@@ -8151,15 +8151,15 @@
       "id": "startup-upgrade.persisted-session-corpus",
       "title": "Current Manta preserves or recovers old production persisted sessions",
       "maturity": "experimental",
-      "protection": "none",
+      "protection": "partial",
       "owner": "startup-persistence",
       "layer": "upgrade-fixture",
       "surfaces": ["startup", "upgrade", "session restore", "daemon restore"],
       "platforms": ["macos", "linux", "windows"],
       "providers": ["local", "daemon", "ssh", "wsl"],
-      "coveredPlatforms": [],
-      "coveredProviders": [],
-      "coverageNotes": "Registered gap only; no executable coverage is wired yet.",
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "daemon"],
+      "coverageNotes": "A macOS Electron journey materializes the immutable legacy workspace-session fixture over a live update-surviving daemon PTY, boots current Manta without a current-format session write, and proves the terminal title, marker output, exact PTY, tab identity, repo, and worktree survive both the upgrade launch and a second current-version relaunch. Linux, Windows, SSH, and WSL fixture journeys remain uncollected.",
       "motivatingLinks": [
         "https://github.com/stablyai/orca/issues/5356",
         "https://github.com/stablyai/orca/pull/5234",
@@ -8167,21 +8167,40 @@
       ],
       "invariant": "Startup and restore fixes must preserve or explicitly recover sessions from the last affected production persisted-state schema, not only from state written by current code.",
       "oracle": "Boot current Manta against immutable copied user-data fixtures from affected versions and reject blank replacement panes, duplicate resume tabs, silent session loss, or works-only-after-current-write behavior.",
-      "commands": [],
-      "testFiles": [],
-      "assertionRefs": [],
-      "evidenceRuns": [],
+      "commands": [
+        "SKIP_BUILD=1 pnpm run test:e2e -- tests/e2e/persisted-session-production-upgrade.spec.ts"
+      ],
+      "testFiles": ["tests/e2e/persisted-session-production-upgrade.spec.ts"],
+      "assertionRefs": [
+        {
+          "file": "tests/e2e/persisted-session-production-upgrade.spec.ts",
+          "assertions": [
+            "upgrades a legacy daemon session and keeps it stable after relaunch"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-08-29",
+          "runner": "local",
+          "platform": "macos",
+          "command": "SKIP_BUILD=1 pnpm run test:e2e -- tests/e2e/persisted-session-production-upgrade.spec.ts",
+          "result": "passed",
+          "durationSeconds": 16.7,
+          "summary": "The legacy-shaped session retained its exact daemon PTY, terminal output marker, tab, repository, and worktree through the upgrade launch and a second current-version relaunch."
+        }
+      ],
       "runtimeBudget": {
         "p95Seconds": 120,
         "scope": "focused Electron upgrade fixture"
       },
       "flakeHistory": {
-        "status": "not-started",
-        "evidence": "Fixture corpus not implemented."
+        "status": "unknown",
+        "evidence": "One focused local macOS Electron run passed; CI soak history is not collected."
       },
       "redGreenEvidence": {
-        "status": "missing",
-        "evidence": "Needs immutable pre-fix persisted-state fixture."
+        "status": "partial",
+        "evidence": "The immutable legacy-shaped fixture and first-write/second-restart oracle are executable; saved intentional-break red/green evidence is still required."
       },
       "performanceBudget": {
         "required": true,
@@ -8192,7 +8211,11 @@
         "Run second restart after current code writes upgraded state.",
         "Record startup timing and failure artifact."
       ],
-      "knownGaps": ["No fixture corpus or command yet."],
+      "knownGaps": [
+        "The corpus currently contains one minimized legacy local-daemon workspace session.",
+        "Linux, Windows, SSH, and WSL upgrade fixtures remain uncollected.",
+        "The setup uses a current binary to create the live daemon PTY that stands in for the pre-upgrade process; it does not launch an installed legacy artifact."
+      ],
       "demotionRule": "Cannot promote without old production fixture provenance."
     },
     {
