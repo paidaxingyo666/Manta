@@ -32,6 +32,7 @@ import {
   createMobileAiVaultResumeMutationId,
   loadMobileResumeMetadata
 } from './mobile-resume-metadata'
+import { useNow } from '../hooks/use-now'
 
 export type MobileAgentSessionHistoryPanelProps = {
   hostId: string
@@ -66,6 +67,7 @@ export function MobileAgentSessionHistoryPanel({
   const [query, setQuery] = useState('')
   const [resumingSessionId, setResumingSessionId] = useState<string | null>(null)
   const [resumeMessage, setResumeMessage] = useState<string | null>(null)
+  const now = useNow(30_000)
   const resumeLaunchInFlightRef = useRef(false)
   const resumeMutationRegistryRef = useRef(
     createMobileAiVaultResumeMutationRegistry(createMobileAiVaultResumeMutationId)
@@ -130,9 +132,9 @@ export function MobileAgentSessionHistoryPanel({
         scope,
         scopeFilterPaths,
         activeWorktreePath,
-        now: Date.now()
+        now
       }),
-    [sessions, query, scope, scopeFilterPaths, activeWorktreePath]
+    [sessions, query, scope, scopeFilterPaths, activeWorktreePath, now]
   )
 
   const hostPlatform = useMemo(
