@@ -90,7 +90,7 @@ import {
   shouldSetDisplayName,
   mergeWorktree
 } from './worktree-logic'
-import { resolveCreatedWorktree } from './created-worktree-reconciliation'
+import { findCreatedWorktree, resolveCreatedWorktree } from './created-worktree-reconciliation'
 import type { BranchPrefixSettings } from '../../shared/branch-prefix'
 import { getRepoIdFromWorktreeId } from '../../shared/worktree/id'
 import { parseWorkspaceKey, worktreeWorkspaceKey } from '../../shared/workspace-scope'
@@ -1840,9 +1840,9 @@ export async function createRemoteWorktree(
   const gitWorktrees = await timing.time('list_created_worktree', async () =>
     provider.listWorktrees(repo.path)
   )
-  const created = gitWorktrees.find(
-    (gw) => gw.branch?.endsWith(branchName) || gw.path.endsWith(effectiveSanitizedName)
-  )
+  // Match the exact requested path first, then the exact branch ref. Suffix matching can
+  // select an older `prefix/<branchName>` worktree when the newly created row is present.
+  const created = findCreatedWorktree(gitWorktrees, remotePath, branchName)
   if (!created) {
     throw new Error('Worktree created but not found in listing')
   }
