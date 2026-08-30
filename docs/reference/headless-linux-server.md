@@ -58,11 +58,23 @@ FUSE. On Ubuntu 24.04 and Debian 13 the package is `libfuse2t64`, though the pla
 `libfuse2` name also resolves there because nothing else provides it. FUSE is
 optional: without it, use the AppImage's supported extraction path. CLI
 registration does this once automatically, so registered commands do not need
-FUSE:
+FUSE.
+
+Download and make the AppImage executable:
+
+```bash
+sudo mkdir -p /opt/manta
+sudo curl -L https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage \
+  -o /opt/manta/manta-linux.AppImage
+sudo chmod +x /opt/manta/manta-linux.AppImage
+```
+
+To extract it without FUSE, run the extraction as root because the installation
+directory is root-owned:
 
 ```bash
 cd /opt/manta
-./manta-linux.AppImage --appimage-extract
+sudo ./manta-linux.AppImage --appimage-extract
 sudo chmod -R a+rX /opt/manta/squashfs-root
 /opt/manta/squashfs-root/AppRun serve --port 6768
 ```
@@ -77,15 +89,6 @@ Docker commonly has no FUSE device. Use `--appimage-extract` once or
 extract-and-run wrapper can print extracted paths before Manta starts, so
 automation that requires stdout to contain only the ready JSON should extract
 once and invoke `squashfs-root/AppRun`.
-
-Download and make the AppImage executable:
-
-```bash
-sudo mkdir -p /opt/manta
-sudo curl -L https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage \
-  -o /opt/manta/manta-linux.AppImage
-sudo chmod +x /opt/manta/manta-linux.AppImage
-```
 
 If `Xvfb` was installed somewhere other than `/usr/bin`, confirm systemd can
 find it later:
