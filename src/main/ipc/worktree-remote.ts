@@ -133,7 +133,8 @@ import {
 } from '../agent-trust-presets'
 import {
   getLocalProjectGitExecOptions,
-  getLocalProjectWorktreeGitOptions
+  getLocalProjectWorktreeGitOptions,
+  getWorktreeMirrorDistro
 } from '../project-runtime-git-options'
 import {
   getBranchNameOverrideCandidate,
@@ -1996,7 +1997,11 @@ export async function createLocalWorktree(
 ): Promise<CreateWorktreeResult> {
   const timing = createWorktreeCreateTimingRecorder()
   const settings = store.getSettings()
-  const worktreePathSettings = getWorktreePathSettings(repo, settings)
+  const worktreePathSettings = getWorktreePathSettings(
+    repo,
+    settings,
+    getWorktreeMirrorDistro(store, repo)
+  )
   const localGitExecOptions = getLocalProjectGitExecOptions(store, repo)
   const localWorktreeGitOptions = getLocalProjectWorktreeGitOptions(store, repo)
   const hasLocalWorktreeGitOptions = Object.keys(localWorktreeGitOptions).length > 0

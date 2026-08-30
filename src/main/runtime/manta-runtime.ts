@@ -957,6 +957,7 @@ import { createStackedHostedReview as createStackedHostedReviewFromRepo } from '
 import {
   getLocalProjectGitExecOptions,
   getLocalProjectWorktreeGitOptions,
+  getWorktreeMirrorDistro,
   getLocalProjectWorktreeGitOptionsForRuntime,
   resolveLocalProjectRuntimeForRepo,
   resolveLocalProjectRuntimesForRepos
@@ -1460,6 +1461,9 @@ type RuntimeStore = {
   getSettings(): {
     workspaceDir: string
     nestWorkspaces: boolean
+    // Read by worktree placement: decides whether this project's worktrees
+    // mirror into a WSL distro instead of the Windows drive.
+    localWindowsRuntimeDefault?: GlobalSettings['localWindowsRuntimeDefault']
     refreshLocalBaseRefOnWorktreeCreate: boolean
     localBaseRefSuggestionDismissed?: boolean
     branchPrefix: string
@@ -26773,7 +26777,11 @@ export class MantaRuntimeService {
       }
     }
     const settings = createSettings
-    const worktreePathSettings = getWorktreePathSettings(repo, settings)
+    const worktreePathSettings = getWorktreePathSettings(
+      repo,
+      settings,
+      getWorktreeMirrorDistro(this.requireStore(), repo)
+    )
     const localGitExecOptions = getLocalProjectGitExecOptions(this.requireStore(), repo)
     const localWorktreeGitOptions = getLocalProjectWorktreeGitOptions(this.requireStore(), repo)
     const hasLocalWorktreeGitOptions = hasLocalGitOptions(localWorktreeGitOptions)
