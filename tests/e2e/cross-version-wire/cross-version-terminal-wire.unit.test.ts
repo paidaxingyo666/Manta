@@ -1,6 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import {
-  resolveBaselineReleaseRef,
   selectBaselineReleaseTag,
   selectLatestPrereleaseTag,
   selectLatestStableReleaseTag
