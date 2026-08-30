@@ -7,6 +7,19 @@ export function isVisibleJiraCreateField(field: JiraCreateField): boolean {
   return field.required && !JIRA_CREATE_SYSTEM_FIELD_KEYS.has(field.key)
 }
 
+// User pickers lack allowedValues and must be detected from schema type.
+export function isJiraUserCreateField(field: JiraCreateField): boolean {
+  return (
+    field.schema?.type === 'user' ||
+    (field.schema?.type === 'array' && field.schema?.items === 'user')
+  )
+}
+
+// The host needs these keys because values alone do not identify user fields.
+export function getJiraUserCreateFieldKeys(fields: readonly JiraCreateField[]): string[] {
+  return fields.filter(isJiraUserCreateField).map((field) => field.key)
+}
+
 export function getJiraCreateAllowedValueLabel(
   value: NonNullable<JiraCreateField['allowedValues']>[number]
 ): string {

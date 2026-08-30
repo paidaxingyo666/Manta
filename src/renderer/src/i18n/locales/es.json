@@ -14586,6 +14586,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "Seleccionar {{value0}}",
+      "search": "Buscar usuarios",
+      "empty": "No se encontraron usuarios"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "Este agente no admite pegar imágenes.",

@@ -14700,6 +14700,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "选择{{value0}}",
+      "search": "搜索用户",
+      "empty": "未找到用户"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "此智能体不支持粘贴图片。",

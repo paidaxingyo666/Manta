@@ -2,6 +2,8 @@ import { ArrowRight, LoaderCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { JiraUserOptionItems } from '@/components/jira-user-picker'
+import { Command, CommandItem, CommandList } from '@/components/ui/command'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { formatUiRelativeTimeFromDate } from '@/i18n/relative-time-format'
@@ -189,35 +191,34 @@ export function JiraIssueMetadataBar({
             {pendingField === 'assignee' ? <LoaderCircle className="size-3 animate-spin" /> : null}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="popover-scroll-content scrollbar-sleek w-56 p-1" align="start">
-          <button
-            type="button"
-            onClick={() =>
-              void mutateIssue('assignee', { assigneeAccountId: null }, { assignee: undefined })
-            }
-            className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-accent"
-          >
-            {translate('auto.components.JiraIssueWorkspace.0b6b5646ed', 'Unassigned')}
-          </button>
-          {users.map((user) => (
-            <button
-              key={user.accountId}
-              type="button"
-              onClick={() =>
-                void mutateIssue(
-                  'assignee',
-                  { assigneeAccountId: user.accountId },
-                  { assignee: user }
-                )
-              }
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-accent"
-            >
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="size-5 rounded-full" />
-              ) : null}
-              <span className="truncate">{user.displayName}</span>
-            </button>
-          ))}
+        <PopoverContent className="w-56 p-0" align="start">
+          <Command shouldFilter={false}>
+            <CommandList>
+              <CommandItem
+                value="unassigned"
+                onSelect={() =>
+                  void mutateIssue(
+                    'assignee',
+                    { assigneeAccountId: null },
+                    { assignee: undefined }
+                  )
+                }
+                className="px-2 py-1.5 text-xs"
+              >
+                {translate('auto.components.JiraIssueWorkspace.0b6b5646ed', 'Unassigned')}
+              </CommandItem>
+              <JiraUserOptionItems
+                users={users}
+                onSelect={(user) =>
+                  void mutateIssue(
+                    'assignee',
+                    { assigneeAccountId: user.accountId },
+                    { assignee: user }
+                  )
+                }
+              />
+            </CommandList>
+          </Command>
         </PopoverContent>
       </Popover>
     </div>

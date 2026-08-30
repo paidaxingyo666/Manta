@@ -9,14 +9,19 @@ import {
   compareJiraProjectsByDisplayLabel,
   getJiraProjectSelectionKey
 } from '@/components/task-page-jira-project-selection'
-import { isVisibleJiraCreateField } from '@/components/task-page-jira-create-fields'
+import {
+  isJiraUserCreateField,
+  isVisibleJiraCreateField
+} from '@/components/task-page-jira-create-fields'
 import { writeNewJiraIssueDraft } from '@/components/task-page/dialogs/task-creation-draft-writers'
 import type { GlobalSettings } from '../../../../../shared/global-settings-types'
 import type {
   JiraCreateField,
   JiraIssueType,
   JiraProject,
-  JiraSiteSelection
+  JiraSiteSelection,
+  JiraUser,
+  JiraViewer
 } from '../../../../../shared/jira-types'
 import type { TaskSourceContext } from '../../../../../shared/task-source-context'
 
@@ -24,12 +29,14 @@ export function useTaskPageJiraCreateDialog({
   selectedJiraSiteId,
   availableJiraProjects,
   jiraConnected,
+  jiraViewer,
   settings,
   jiraTaskSourceContext
 }: {
   selectedJiraSiteId: JiraSiteSelection | null
   availableJiraProjects: JiraProject[]
   jiraConnected: boolean
+  jiraViewer: JiraViewer | null
   settings: GlobalSettings | null
   jiraTaskSourceContext: TaskSourceContext | null
 }) {
@@ -51,6 +58,10 @@ export function useTaskPageJiraCreateDialog({
   const [newJiraIssueCustomFieldValues, setNewJiraIssueCustomFieldValues] = useState<
     Record<string, string>
   >({})
+  // Retain display metadata beside submitted IDs for picker labels.
+  const [jiraUserFieldSelections, setJiraUserFieldSelections] = useState<Record<string, JiraUser>>(
+    {}
+  )
 
   const discardNewJiraIssueDraft = useTaskCreationDraftRetention({
     open: newJiraIssueOpen,
@@ -219,6 +230,7 @@ export function useTaskPageJiraCreateDialog({
       setJiraCreateFieldsLoading(false)
       setJiraCreateFieldsError(null)
       setNewJiraIssueCustomFieldValues({})
+      setJiraUserFieldSelections({})
       return
     }
     let cancelled = false
@@ -226,6 +238,7 @@ export function useTaskPageJiraCreateDialog({
     setJiraCreateFieldsLoading(true)
     setJiraCreateFieldsError(null)
     setNewJiraIssueCustomFieldValues({})
+    setJiraUserFieldSelections({})
     void jiraListCreateFields(
       jiraTaskSourceContext ?? settings,
       newJiraIssueTargetProject.id,
@@ -233,9 +246,35 @@ export function useTaskPageJiraCreateDialog({
       newJiraIssueTargetProject.siteId
     )
       .then((fields) => {
-        if (!cancelled) {
-          setJiraCreateFields(fields)
+        if (cancelled) {
+          return
         }
+        setJiraCreateFields(fields)
+        // Seed single-user fields from Jira's authenticated-viewer default.
+        if (!jiraViewer) {
+          return
+        }
+        const seededUser: JiraUser = {
+          accountId: jiraViewer.accountId,
+          displayName: jiraViewer.displayName,
+          email: jiraViewer.email,
+          avatarUrl: jiraViewer.avatarUrl
+        }
+        const seededKeys = fields
+          .filter((field) => isVisibleJiraCreateField(field) && isJiraUserCreateField(field))
+          .filter((field) => field.schema?.type !== 'array')
+          .map((field) => field.key)
+        if (seededKeys.length === 0) {
+          return
+        }
+        setNewJiraIssueCustomFieldValues((prev) => ({
+          ...Object.fromEntries(seededKeys.map((key) => [key, seededUser.accountId])),
+          ...prev
+        }))
+        setJiraUserFieldSelections((prev) => ({
+          ...Object.fromEntries(seededKeys.map((key) => [key, seededUser])),
+          ...prev
+        }))
       })
       .catch(() => {
         if (!cancelled) {
@@ -259,6 +298,7 @@ export function useTaskPageJiraCreateDialog({
   }, [
     settings,
     jiraConnected,
+    jiraViewer,
     newJiraIssueOpen,
     newJiraIssueTargetProject,
     newJiraIssueTargetType,
@@ -297,6 +337,8 @@ export function useTaskPageJiraCreateDialog({
     setJiraCreateFieldsError,
     newJiraIssueCustomFieldValues,
     setNewJiraIssueCustomFieldValues,
+    jiraUserFieldSelections,
+    setJiraUserFieldSelections,
     discardNewJiraIssueDraft,
     includeJiraSiteNameInProjectLabel,
     sortedAvailableJiraProjects,

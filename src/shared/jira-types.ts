@@ -150,6 +150,8 @@ export type JiraCreateIssueArgs = {
   title: string
   description?: string
   customFields?: Record<string, unknown>
+  // Optional for wire compatibility; hosts shape these IDs into Jira user references.
+  userFieldKeys?: string[]
 }
 
 export type JiraCreateIssueResult =
