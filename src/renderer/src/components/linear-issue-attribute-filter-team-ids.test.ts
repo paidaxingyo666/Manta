@@ -5,7 +5,9 @@ import {
   expandLinearMetadataGroupKeys,
   groupLinearMetadataByName,
   isLinearMetadataGroupSelectionPartial,
+  isLinearMetadataTruncated,
   linearMetadataGroupCoverage,
+  recordLinearMetadataTruncation,
   resolveLinearIssueAttributeFilterTeamIds,
   selectedLinearMetadataGroupKeys,
   unionLinearMetadataById
@@ -174,10 +176,12 @@ describe('capLinearMetadataIdsAcrossGroups over-subscribed rows', () => {
     const groups = singleIdGroups(4)
     const ids = groups.flatMap((group) => group.ids)
     expect(capLinearMetadataIdsAcrossGroups(groups, ids, 4)).toEqual(ids)
-    // Why: on the cap, full coverage is indistinguishable from a starved row, so coverage
-    // warns rather than claim what it cannot prove — below the cap it stays quiet (#17342).
-    expect(isLinearMetadataGroupSelectionPartial(groups, ids, 4)).toBe(true)
-    expect(isLinearMetadataGroupSelectionPartial(groups, ids, 5)).toBe(false)
+    // Why: the cap is a provable no-op here, so nothing is recorded and nothing is claimed —
+    // the old at-the-cap inference warned on this complete selection (STA-5996).
+    expect(
+      recordLinearMetadataTruncation(ids, capLinearMetadataIdsAcrossGroups(groups, ids, 4))
+    ).toBeNull()
+    expect(isLinearMetadataGroupSelectionPartial(groups, ids, false)).toBe(false)
   })
 
   it('keeps one id per row when the selection is one id over the cap', () => {
@@ -197,8 +201,53 @@ describe('capLinearMetadataIdsAcrossGroups over-subscribed rows', () => {
     const ids = groups.flatMap((group) => group.ids)
     const capped = capLinearMetadataIdsAcrossGroups(groups, ids, 100)
     expect(capped).toHaveLength(100)
-    expect(linearMetadataGroupCoverage(groups, capped, 100).atLimit).toBe(true)
-    expect(isLinearMetadataGroupSelectionPartial(groups, capped, 100)).toBe(true)
+    // The starved row leaves no trace in `capped`, so only the recorded trim can report it.
+    expect(linearMetadataGroupCoverage(groups, capped)).toEqual({ applied: 100, intended: 100 })
+    const record = recordLinearMetadataTruncation(ids, capped)
+    expect(isLinearMetadataTruncated(record, capped)).toBe(true)
+    expect(isLinearMetadataGroupSelectionPartial(groups, capped, true)).toBe(true)
+  })
+
+  // Why: the record must not outlive the selection it describes — the prune effect only ever
+  // removes ids, so a flag kept by value alone would warn about a filter that now fits.
+  it('stops applying a recorded trim once the facet carries different ids', () => {
+    const groups = singleIdGroups(101)
+    const ids = groups.flatMap((group) => group.ids)
+    const record = recordLinearMetadataTruncation(
+      ids,
+      capLinearMetadataIdsAcrossGroups(groups, ids, 100)
+    )
+    expect(isLinearMetadataTruncated(record, ids.slice(0, 99))).toBe(false)
+    expect(isLinearMetadataTruncated(record, [])).toBe(false)
+    expect(isLinearMetadataTruncated(null, ids.slice(0, 100))).toBe(false)
+    // Why: a facet that grew past its record has refetched underneath it — matching by subset
+    // would keep warning about a trim that no longer describes the filter (the STA-5996 bug).
+    expect(isLinearMetadataTruncated(record, [...(record ?? []), 'later-id'])).toBe(false)
+  })
+
+  // Why: `recordLinearMetadataTruncation(['a','b'], [])` is non-null-but-empty, and an empty
+  // record matches an empty facet vacuously — a filter carrying nothing is never truncated.
+  it('never reports truncation for an empty record', () => {
+    expect(isLinearMetadataTruncated([], [])).toBe(false)
+    expect(isLinearMetadataTruncated(recordLinearMetadataTruncation(['a', 'b'], []), [])).toBe(
+      false
+    )
+    // The genuine case is untouched: a real trim still records and still reports.
+    const groups = singleIdGroups(101)
+    const ids = groups.flatMap((group) => group.ids)
+    const capped = capLinearMetadataIdsAcrossGroups(groups, ids, 100)
+    expect(isLinearMetadataTruncated(recordLinearMetadataTruncation(ids, capped), capped)).toBe(
+      true
+    )
+  })
+
+  // Why: click order reaches the cap, so the record has to match by set, not by position.
+  it('matches a recorded trim whatever order the ids arrive in', () => {
+    const groups = singleIdGroups(101)
+    const ids = groups.flatMap((group) => group.ids)
+    const capped = capLinearMetadataIdsAcrossGroups(groups, ids, 100)
+    const record = recordLinearMetadataTruncation(ids, capped)
+    expect(isLinearMetadataTruncated(record, capped.toReversed())).toBe(true)
   })
 
   it('never starves a single-id row to widen a row that has many ids', () => {

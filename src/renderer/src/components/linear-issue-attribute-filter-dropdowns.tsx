@@ -30,7 +30,10 @@ import {
 import {
   capLinearMetadataIdsAcrossGroups,
   groupLinearMetadataByName,
-  resolveLinearIssueAttributeFilterTeamIds
+  isLinearMetadataTruncated,
+  recordLinearMetadataTruncation,
+  resolveLinearIssueAttributeFilterTeamIds,
+  type LinearMetadataTruncationRecord
 } from './linear-issue-attribute-filter-team-ids'
 
 type Props = {
@@ -112,6 +115,12 @@ export default function LinearIssueAttributeFilterDropdowns({
 }: Props): React.JSX.Element {
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [openSection, setOpenSection] = useState<LinearIssueFilterSectionKey | null>(null)
+  // Why: each record holds the ids the cap left behind, so it stops applying the moment the
+  // facet carries anything else — prune, pill clear, Clear all, workspace switch (STA-5996).
+  const [stateIdsTruncation, setStateIdsTruncation] = useState<LinearMetadataTruncationRecord>(null)
+  const [labelIdsTruncation, setLabelIdsTruncation] = useState<LinearMetadataTruncationRecord>(null)
+  const statusTruncated = isLinearMetadataTruncated(stateIdsTruncation, value.stateIds)
+  const labelsTruncated = isLinearMetadataTruncated(labelIdsTruncation, value.labelIds)
   const activeCount = countLinearIssueAttributeFilters(value)
   const metadataNeeded =
     popoverOpen ||
@@ -249,30 +258,43 @@ export default function LinearIssueAttributeFilterDropdowns({
     memberNamesById,
     labelNamesById,
     statusOptions,
-    labelOptions
+    labelOptions,
+    statusTruncated,
+    labelsTruncated
   })
 
   // Why: one picked row expands to an id per team, so bound here — the IPC/RPC parser rejects a
   // filter over the transport cap outright. Spread the cap over the picked rows first: the
   // canonical slice is lexicographic, so it can drop every id of a row the user just checked.
   const applyPickedFilter = (next: LinearIssueAttributeFilter): void => {
-    onChange(
-      boundLinearIssueAttributeFilter(
-        canonicalizeLinearIssueAttributeFilter({
-          ...next,
-          stateIds: capLinearMetadataIdsAcrossGroups(
-            statusOptions,
-            next.stateIds,
-            LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
-          ),
-          labelIds: capLinearMetadataIdsAcrossGroups(
-            labelOptions,
-            next.labelIds,
-            LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
-          )
-        })
-      )
+    const bounded = boundLinearIssueAttributeFilter(
+      canonicalizeLinearIssueAttributeFilter({
+        ...next,
+        stateIds: capLinearMetadataIdsAcrossGroups(
+          statusOptions,
+          next.stateIds,
+          LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
+        ),
+        labelIds: capLinearMetadataIdsAcrossGroups(
+          labelOptions,
+          next.labelIds,
+          LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
+        )
+      })
     )
+    // Why: only here are the pre-cap expansion and the survivors both in hand. Re-capping an
+    // untouched facet (a priority click) is a no-op, so keep a record that still matches.
+    setStateIdsTruncation(
+      isLinearMetadataTruncated(stateIdsTruncation, bounded.stateIds)
+        ? stateIdsTruncation
+        : recordLinearMetadataTruncation(next.stateIds, bounded.stateIds)
+    )
+    setLabelIdsTruncation(
+      isLinearMetadataTruncated(labelIdsTruncation, bounded.labelIds)
+        ? labelIdsTruncation
+        : recordLinearMetadataTruncation(next.labelIds, bounded.labelIds)
+    )
+    onChange(bounded)
   }
 
   const teamRequiredMessage = !primaryTeam
@@ -348,6 +370,8 @@ export default function LinearIssueAttributeFilterDropdowns({
                   assigneeError={members.error}
                   labelLoading={labels.loading}
                   labelError={labels.error}
+                  statusTruncated={statusTruncated}
+                  labelsTruncated={labelsTruncated}
                   teamRequiredMessage={teamRequiredMessage}
                   onBack={() => setOpenSection(null)}
                 />
@@ -356,6 +380,8 @@ export default function LinearIssueAttributeFilterDropdowns({
                   value={value}
                   statusOptions={statusOptions}
                   labelOptions={labelOptions}
+                  statusTruncated={statusTruncated}
+                  labelsTruncated={labelsTruncated}
                   onOpenSection={setOpenSection}
                 />
               )}

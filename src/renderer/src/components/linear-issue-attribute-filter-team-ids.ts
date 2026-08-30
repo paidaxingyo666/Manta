@@ -100,35 +100,62 @@ function linearMetadataKeyById(
 /** Ids the picked rows stand for, against the ids the transport cap actually kept (#16879). */
 export function linearMetadataGroupCoverage(
   groups: readonly { key: string; ids: readonly string[] }[],
-  selectedIds: readonly string[],
-  max: number
-): { applied: number; intended: number; atLimit: boolean } {
+  selectedIds: readonly string[]
+): { applied: number; intended: number } {
   const keys = selectedLinearMetadataGroupKeys(groups, selectedIds)
   return {
     applied: selectedIds.length,
-    intended: expandLinearMetadataGroupKeys(groups, keys).length,
-    // Why: a row the cap could not fit leaves no trace in the ids, so once the budget is
-    // spent the honest claim is the exhausted budget itself — never full coverage (#17342).
-    atLimit: selectedIds.length >= max
+    intended: expandLinearMetadataGroupKeys(groups, keys).length
   }
+}
+
+/**
+ * The ids a cap is known to have trimmed, kept as the ids that survived it. A row the cap
+ * could not fit leaves no trace in those ids, so truncation is recorded where it happens
+ * rather than inferred from the bounded filter — a complete selection landing exactly on the
+ * cap is indistinguishable from a trimmed one and used to warn anyway (STA-5996).
+ */
+export type LinearMetadataTruncationRecord = readonly string[] | null
+
+export function recordLinearMetadataTruncation(
+  requestedIds: readonly string[],
+  appliedIds: readonly string[]
+): LinearMetadataTruncationRecord {
+  return new Set(requestedIds).size > new Set(appliedIds).size ? [...appliedIds] : null
+}
+
+/** A record describes the facet only while it still carries exactly the ids that survived. */
+export function isLinearMetadataTruncated(
+  record: LinearMetadataTruncationRecord,
+  appliedIds: readonly string[]
+): boolean {
+  // Why: an empty record matches an empty facet vacuously, and a facet filtering nothing
+  // cannot be under-covering — so no empty record ever reports truncation.
+  if (record === null || record.length === 0) {
+    return false
+  }
+  const applied = new Set(appliedIds)
+  const recorded = new Set(record)
+  return recorded.size === applied.size && record.every((id) => applied.has(id))
 }
 
 /** True when the filter cannot be shown to cover every team id the picked rows stand for. */
 export function isLinearMetadataGroupSelectionPartial(
   groups: readonly { key: string; ids: readonly string[] }[],
   selectedIds: readonly string[],
-  max: number
+  truncated: boolean
 ): boolean {
-  const { applied, intended, atLimit } = linearMetadataGroupCoverage(groups, selectedIds, max)
-  return intended > applied || atLimit
+  const { applied, intended } = linearMetadataGroupCoverage(groups, selectedIds)
+  // Why: the value-derived shortfall stays as a fallback — a restored filter carries no record.
+  return truncated || intended > applied
 }
 
 /**
  * Trim an expanded selection to `max` ids by taking turns across the picked groups.
  * A plain slice of the canonical (sorted) id list can drop every id of one picked row,
  * which then renders unchecked with no explanation and vanishes from the coverage count.
- * More picked rows than `max` cannot all be represented; `linearMetadataGroupCoverage`
- * reports that shortfall so the starved row is never passed off as full coverage.
+ * More picked rows than `max` cannot all be represented; the caller records that shortfall
+ * with `recordLinearMetadataTruncation` so the starved row is never passed off as coverage.
  */
 export function capLinearMetadataIdsAcrossGroups(
   groups: readonly { key: string; ids: readonly string[] }[],

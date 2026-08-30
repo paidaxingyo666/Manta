@@ -2,8 +2,6 @@
 // popover closes, so they carry the same coverage truth the picker shows inline.
 import { translate } from '@/i18n/i18n'
 import {
-  LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS,
-  LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS,
   canonicalizeLinearIssueAttributeFilter,
   type LinearIssueAttributeFilter
 } from '../../../shared/linear/issue-attribute-filter'
@@ -60,6 +58,9 @@ export function linearIssueAttributeFilterPillLabels(options: {
   labelNamesById: Map<string, string>
   statusOptions: readonly LinearIssueFilterGroupedOption[]
   labelOptions: readonly LinearIssueFilterGroupedOption[]
+  /** Recorded where the cap ran, not inferred from the ids it left behind (STA-5996). */
+  statusTruncated: boolean
+  labelsTruncated: boolean
 }): LinearIssueFilterPill[] {
   const canonical = canonicalizeLinearIssueAttributeFilter(options.value)
   const pills: LinearIssueFilterPill[] = []
@@ -71,7 +72,7 @@ export function linearIssueAttributeFilterPillLabels(options: {
       partial: isLinearMetadataGroupSelectionPartial(
         options.statusOptions,
         canonical.stateIds,
-        LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
+        options.statusTruncated
       )
     })
   }
@@ -118,7 +119,7 @@ export function linearIssueAttributeFilterPillLabels(options: {
       partial: isLinearMetadataGroupSelectionPartial(
         options.labelOptions,
         canonical.labelIds,
-        LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
+        options.labelsTruncated
       )
     })
   }
