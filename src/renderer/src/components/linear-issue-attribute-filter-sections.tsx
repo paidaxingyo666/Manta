@@ -12,8 +12,20 @@ import {
   type LinearIssueAttributeFilter
 } from '../../../shared/linear/issue-attribute-filter'
 import { getLinearPriorityLabel } from './task-page-localized-options'
+import {
+  expandLinearMetadataGroupKeys,
+  selectedLinearMetadataGroupKeys
+} from './linear-issue-attribute-filter-team-ids'
 
 export type LinearIssueFilterSectionKey = 'status' | 'priority' | 'assignee' | 'labels'
+
+/** Picker row backed by every same-named id across the selected teams (#16785). */
+export type LinearIssueFilterGroupedOption = PickerOption & { ids: string[] }
+
+/** Same-named ids from different teams are one selection to the user. */
+function distinctFacetNames(ids: readonly string[], namesById: Map<string, string>): string[] {
+  return [...new Set(ids.map((id) => namesById.get(id) ?? id))]
+}
 
 export function countLinearIssueAttributeFilters(value: LinearIssueAttributeFilter): number {
   const canonical = canonicalizeLinearIssueAttributeFilter(value)
@@ -53,7 +65,7 @@ export function linearIssueAttributeFilterPillLabels(options: {
     pills.push({
       key: 'status',
       label: translate('auto.components.linear-issue-attribute-filter-sections.status', 'Status'),
-      value: canonical.stateIds.map((id) => options.stateNamesById.get(id) ?? id).join(', ')
+      value: distinctFacetNames(canonical.stateIds, options.stateNamesById).join(', ')
     })
   }
   if (canonical.priorities.length > 0) {
@@ -92,7 +104,7 @@ export function linearIssueAttributeFilterPillLabels(options: {
     pills.push({
       key: 'labels',
       label: translate('auto.components.linear-issue-attribute-filter-sections.labels', 'Labels'),
-      value: canonical.labelIds.map((id) => options.labelNamesById.get(id) ?? id).join(', ')
+      value: distinctFacetNames(canonical.labelIds, options.labelNamesById).join(', ')
     })
   }
   return pills
@@ -107,21 +119,27 @@ function priorityOptions(): PickerOption[] {
 
 export function LinearIssueFilterSectionMenu({
   value,
+  stateNamesById,
+  labelNamesById,
   onOpenSection
 }: {
   value: LinearIssueAttributeFilter
+  stateNamesById: Map<string, string>
+  labelNamesById: Map<string, string>
   onOpenSection: (section: LinearIssueFilterSectionKey) => void
 }): React.JSX.Element {
+  const selectedStatusCount = distinctFacetNames(value.stateIds, stateNamesById).length
+  const selectedLabelCount = distinctFacetNames(value.labelIds, labelNamesById).length
   const sections: { key: LinearIssueFilterSectionKey; label: string; summary: string }[] = [
     {
       key: 'status',
       label: translate('auto.components.linear-issue-attribute-filter-sections.status', 'Status'),
       summary:
-        value.stateIds.length > 0
+        selectedStatusCount > 0
           ? translate(
               'auto.components.linear-issue-attribute-filter-sections.countSelected',
               '{{count}} selected',
-              { count: value.stateIds.length }
+              { count: selectedStatusCount }
             )
           : ''
     },
@@ -159,11 +177,11 @@ export function LinearIssueFilterSectionMenu({
       key: 'labels',
       label: translate('auto.components.linear-issue-attribute-filter-sections.labels', 'Labels'),
       summary:
-        value.labelIds.length > 0
+        selectedLabelCount > 0
           ? translate(
               'auto.components.linear-issue-attribute-filter-sections.countSelected',
               '{{count}} selected',
-              { count: value.labelIds.length }
+              { count: selectedLabelCount }
             )
           : ''
     }
@@ -210,9 +228,9 @@ export function LinearIssueFilterSectionDetail({
   section: LinearIssueFilterSectionKey
   value: LinearIssueAttributeFilter
   onChange: (next: LinearIssueAttributeFilter) => void
-  statusOptions: PickerOption[]
+  statusOptions: LinearIssueFilterGroupedOption[]
   assigneeOptions: PickerOption[]
-  labelOptions: PickerOption[]
+  labelOptions: LinearIssueFilterGroupedOption[]
   statusLoading: boolean
   statusError: string | null
   assigneeLoading: boolean
@@ -288,14 +306,16 @@ export function LinearIssueFilterSectionDetail({
         <SectionBack onBack={onBack} />
         <MultiSelectList
           options={statusOptions}
-          selected={value.stateIds}
+          selected={selectedLinearMetadataGroupKeys(statusOptions, value.stateIds)}
           loading={statusLoading}
           error={statusError}
           searchPlaceholder={translate(
             'auto.components.linear-issue-attribute-filter-sections.searchStatus',
             'Filter status…'
           )}
-          onChange={(stateIds) => onChange({ ...value, stateIds })}
+          onChange={(keys) =>
+            onChange({ ...value, stateIds: expandLinearMetadataGroupKeys(statusOptions, keys) })
+          }
         />
       </div>
     )
@@ -307,14 +327,16 @@ export function LinearIssueFilterSectionDetail({
         <SectionBack onBack={onBack} />
         <MultiSelectList
           options={labelOptions}
-          selected={value.labelIds}
+          selected={selectedLinearMetadataGroupKeys(labelOptions, value.labelIds)}
           loading={labelLoading}
           error={labelError}
           searchPlaceholder={translate(
             'auto.components.linear-issue-attribute-filter-sections.searchLabels',
             'Filter labels…'
           )}
-          onChange={(labelIds) => onChange({ ...value, labelIds })}
+          onChange={(keys) =>
+            onChange({ ...value, labelIds: expandLinearMetadataGroupKeys(labelOptions, keys) })
+          }
         />
       </div>
     )
