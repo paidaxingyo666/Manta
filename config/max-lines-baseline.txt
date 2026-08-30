@@ -6,7 +6,6 @@ inline src/main/agent-hooks/server.ts
 inline src/main/browser/agent-browser-bridge.ts
 inline src/main/browser/browser-cookie-import.ts
 inline src/main/browser/browser-manager.ts
-inline src/main/claude-accounts/runtime-auth-service.ts
 inline src/main/codex-accounts/runtime-home-service.ts
 inline src/main/codex-accounts/service.ts
 inline src/main/index.ts
