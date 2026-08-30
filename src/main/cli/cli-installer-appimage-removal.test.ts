@@ -132,8 +132,12 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
       }
     }
     let siblingStatusReads = 0
+    let rejectSiblingStatusRead = false
     class TrackingInstaller extends CliInstaller {
       override async getStatus() {
+        if (rejectSiblingStatusRead) {
+          throw new Error('sibling status read before registration lock release')
+        }
         siblingStatusReads += 1
         return super.getStatus()
       }
@@ -172,11 +176,11 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
     let siblingInstall: Promise<unknown> | null = null
     siblingStatusReads = 0
     firstInstaller.afterNextStatus = async () => {
+      rejectSiblingStatusRead = true
       siblingInstall = secondInstaller.install()
-      await Promise.resolve()
-      expect(siblingStatusReads).toBe(0)
     }
     await firstInstaller.remove()
+    rejectSiblingStatusRead = false
     expect(siblingInstall).not.toBeNull()
     await siblingInstall
 
