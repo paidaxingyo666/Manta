@@ -31,6 +31,7 @@ jobs:
       static_analysis: ${{ steps.filter.outputs.static_analysis }}
       typecheck: ${{ steps.filter.outputs.typecheck }}
       git_compatibility: ${{ steps.filter.outputs.git_compatibility }}
+      codex_index_heal_contract: ${{ steps.filter.outputs.codex_index_heal_contract }}
       xterm_patch_sync: ${{ steps.filter.outputs.xterm_patch_sync }}
       shell_contracts: ${{ steps.filter.outputs.shell_contracts }}
       test: ${{ steps.filter.outputs.test }}
@@ -293,6 +294,47 @@ jobs:
             wait "$pid" || status=1
           done
           exit "$status"
+
+  # Why this job: Manta's session index-heal depends on a Codex behavior — a
+  # `thread/read` of an unindexed rollout performs a read-repair that inserts the
+  # `threads` row. Every unit test drives a stub app-server and asserts only that the
+  # call did not error, so if Codex dropped the repair they would all stay green while
+  # the subsystem went inert. This runs the pinned real binary and fails when the
+  # repair stops happening. Pinned because the binary is the thing expected to drift.
+  codex_index_heal_contract:
+    name: Codex index-heal contract
+    needs: [code_paths]
+    if: needs.code_paths.outputs.codex_index_heal_contract == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CODEX_CLI_VERSION: '0.150.1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/install-node-dependencies
+
+      - name: Install pinned Codex CLI
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund --prefix "$RUNNER_TEMP/codex-cli" \
+            "@openai/codex@$CODEX_CLI_VERSION"
+
+      - name: Verify Codex index-heal contract
+        env:
+          # Why REQUIRED: without a binary the suite skips, and a job that skips
+          # reports success. This turns a failed or missing install into a red test
+          # instead of a green no-op.
+          MANTA_CODEX_CONTRACT_REQUIRED: '1'
+          ORCA_CODEX_CONTRACT_VERSION: ${{ env.CODEX_CLI_VERSION }}
+        run: |
+          set -euo pipefail
+          MANTA_CODEX_CONTRACT_BINARY="$RUNNER_TEMP/codex-cli/node_modules/.bin/codex" \
+            pnpm exec vitest run --config config/vitest.config.ts \
+            src/main/codex/codex-index-heal-binary-contract.test.ts
 
   xterm_patch_sync:
     name: xterm patch sync
@@ -843,6 +885,7 @@ jobs:
       - root_directory_guard
       - typecheck
       - git_compatibility
+      - codex_index_heal_contract
       - xterm_patch_sync
       - shell_contracts
       - test
@@ -873,6 +916,8 @@ jobs:
           TYPECHECK_SHOULD_RUN: ${{ needs.code_paths.outputs.typecheck }}
           GIT_COMPATIBILITY: ${{ needs.git_compatibility.result }}
           GIT_COMPATIBILITY_SHOULD_RUN: ${{ needs.code_paths.outputs.git_compatibility }}
+          CODEX_INDEX_HEAL_CONTRACT: ${{ needs.codex_index_heal_contract.result }}
+          CODEX_INDEX_HEAL_CONTRACT_SHOULD_RUN: ${{ needs.code_paths.outputs.codex_index_heal_contract }}
           XTERM_PATCH_SYNC: ${{ needs.xterm_patch_sync.result }}
           XTERM_PATCH_SYNC_SHOULD_RUN: ${{ needs.code_paths.outputs.xterm_patch_sync }}
           SHELL_CONTRACTS: ${{ needs.shell_contracts.result }}
@@ -918,6 +963,7 @@ jobs:
           check_job static_analysis "$STATIC_ANALYSIS" "$STATIC_ANALYSIS_SHOULD_RUN"
           check_job typecheck "$TYPECHECK" "$TYPECHECK_SHOULD_RUN"
           check_job git_compatibility "$GIT_COMPATIBILITY" "$GIT_COMPATIBILITY_SHOULD_RUN"
+          check_job codex_index_heal_contract "$CODEX_INDEX_HEAL_CONTRACT" "$CODEX_INDEX_HEAL_CONTRACT_SHOULD_RUN"
           check_job xterm_patch_sync "$XTERM_PATCH_SYNC" "$XTERM_PATCH_SYNC_SHOULD_RUN"
           check_job shell_contracts "$SHELL_CONTRACTS" "$SHELL_CONTRACTS_SHOULD_RUN"
           check_job test "$TEST" "$TEST_SHOULD_RUN"
