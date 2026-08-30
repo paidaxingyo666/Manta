@@ -264,6 +264,15 @@ export function buildPtyHostEnv(
       : bundledCliBin
   }
 
+  if (
+    opts.routeBrowserOpensToClient === true &&
+    baseEnv.BROWSER === undefined &&
+    process.env.BROWSER === undefined
+  ) {
+    const cliCommand = opts.isWsl ? (opts.isPackaged ? 'manta-ide' : 'manta-dev') : 'manta'
+    baseEnv.BROWSER = `${cliCommand} open-url --url %s`
+  }
+
   // Why: must run after the prepends above — they re-read PATH from the unscrubbed
   // process.env when baseEnv carries none, which is the daemon path's normal shape.
   stripLegacyTerminalShimEnv(baseEnv, process.platform)
