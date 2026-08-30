@@ -101,6 +101,28 @@ function blockRemoteWorkspaceGet(target: DockerSshRelayTarget, snapshotPath: str
   return saved
 }
 
+/**
+ * Tab ids the relay actually persisted, or null when the bytes are not parseable JSON.
+ *
+ * The spec replays this capture verbatim, so bytes that carry no tab make every downstream count
+ * meaningless: an empty session places nothing, therefore reports nothing unplaced, therefore
+ * hydrates cleanly and replaces the worktree's tabs with none. That is indistinguishable from the
+ * regression this test exists to catch, so the capture has to be checked before it is trusted.
+ */
+function capturedSnapshotTabIds(saved: string): string[] | null {
+  try {
+    const parsed = JSON.parse(saved) as {
+      session?: { tabsByWorktreePath?: Record<string, { id?: unknown }[]> }
+    }
+    return Object.values(parsed.session?.tabsByWorktreePath ?? {})
+      .flat()
+      .map((tab) => tab?.id)
+      .filter((id): id is string => typeof id === 'string')
+  } catch {
+    return null
+  }
+}
+
 function unblockRemoteWorkspaceGet(
   target: DockerSshRelayTarget,
   snapshotPath: string,
@@ -174,6 +196,18 @@ test.describe('SSH cold hydration gap tab seeding', () => {
       app = null
 
       const saved = blockRemoteWorkspaceGet(target, snapshotPath)
+      // Precondition, not an expectation about the product: everything below reads the bytes this
+      // capture holds, so a capture that never recorded the baseline has to fail here and name
+      // itself rather than surface later as a tab count the product appears to have lost.
+      const capturedTabIds = capturedSnapshotTabIds(saved)
+      expect(
+        capturedTabIds,
+        `the captured host snapshot ${snapshotPath} is not parseable JSON, so replaying it proves nothing: ${JSON.stringify(saved.slice(0, 200))}`
+      ).not.toBeNull()
+      expect(
+        remote.tabIds.filter((id) => !(capturedTabIds ?? []).includes(id)),
+        `the captured host snapshot ${snapshotPath} holds ${capturedTabIds?.length ?? 0} tab(s) and is missing part of the ${BASELINE_TAB_COUNT}-tab baseline this test seeded, so the bytes it replays are not the workspace the assertions below describe`
+      ).toEqual([])
       const relaunch = await restart.launch()
       app = relaunch.app
       const page = relaunch.page
