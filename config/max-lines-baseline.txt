@@ -18,7 +18,6 @@ inline src/main/runtime/manta-runtime-files.ts
 inline src/main/runtime/manta-runtime.test.ts
 inline src/main/runtime/manta-runtime.ts
 inline src/main/runtime/rpc/methods/orchestration.ts
-inline src/main/runtime/runtime-rpc.ts
 inline src/main/ssh/ssh-channel-multiplexer.ts
 inline src/main/ssh/ssh-connection.ts
 inline src/main/ssh/ssh-relay-deploy.ts
