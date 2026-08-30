@@ -8,6 +8,7 @@ import {
   type ExecutionHostId
 } from '../../../shared/execution-host'
 import { SEARCH_ENGINE_LABELS, type SearchEngine } from '../../../shared/browser-url'
+import type { BrowserClientHostPlacementPreference } from '../../../shared/browser-client-host-placement'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import { BROWSER_SCREENCAST_RUNTIME_CAPABILITY } from '../../../shared/protocol-version'
 import {
@@ -31,6 +32,8 @@ export type OpenWorkspaceBrowserTabRequest = {
   selectWorktree?: boolean
   expectedRuntimeEnvironmentId?: string
   expectedSshConnectionId?: string
+  /** Override placement for links whose pane explicitly requires server ownership. */
+  placementPreference?: BrowserClientHostPlacementPreference
 }
 
 function isExpectedRuntimeBrowserRoute(
@@ -272,7 +275,9 @@ export async function openWorkspaceBrowserTab(
       `host ${route.executionHostId} does not own runtime ${environmentId}`
     )
   }
-  if (availability.provider === 'local-client') {
+  // An asserted runtime owns links opened from remote panes; provider policy may describe the
+  // viewing client's generic browser surface rather than that pane's execution host.
+  if (expectedEnvironmentId === null && availability.provider === 'local-client') {
     const localHostId = host && host.kind !== 'runtime' ? host.id : LOCAL_EXECUTION_HOST_ID
     createClientBrowserTab(state, request, localHostId, presentation)
     return
@@ -286,6 +291,9 @@ export async function openWorkspaceBrowserTab(
       targetGroupId: request.targetGroupId,
       // Owner-pinned links need the host tab published before client reconciliation.
       ...(expectedEnvironmentId !== null ? { waitForRegistration: true } : {}),
+      ...(request.placementPreference !== undefined
+        ? { placementPreference: request.placementPreference }
+        : {}),
       // Why: the tab is opened from this workspace's tab bar, so surface that
       // workspace — otherwise a background worktree looks like nothing happened.
       ...(request.focusOnCreate !== undefined ? { focusOnCreate: request.focusOnCreate } : {}),
