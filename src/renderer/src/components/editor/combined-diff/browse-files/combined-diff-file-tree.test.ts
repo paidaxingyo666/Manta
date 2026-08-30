@@ -1,18 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   createCombinedDiffSectionIndexMap,
+  getCombinedDiffFileTreeSectionKey
+} from '../resolve-changes/combined-diff-section-identity'
+import {
   getCombinedDiffFileTreeNavigationIndex,
-  getCombinedDiffFileTreeSectionKey,
   handleCombinedDiffFileTreeNavigation
-} from './CombinedDiffFileTree'
+} from './combined-diff-file-tree-navigation'
 import {
   COMBINED_DIFF_FILE_TREE_QUERY_MAX_BYTES,
   getCombinedDiffBranchEntriesInTreeOrder,
   getFilteredCombinedDiffFileTreeEntries,
   isCombinedDiffFileTreeQueryTooLarge
-} from './combined-diff-file-tree-model'
-import type { GitBranchChangeEntry } from '../../../../shared/git-diff-compare-types'
-import type { GitStatusEntry } from '../../../../shared/git-status-types'
+} from './combined-diff-file-tree-filter'
+import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
+import type { GitStatusEntry } from '../../../../../../shared/git-status-types'
 
 describe('CombinedDiffFileTree navigation mapping', () => {
   it('disambiguates uncommitted entries with the same path by area', () => {

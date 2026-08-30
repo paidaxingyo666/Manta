@@ -1,5 +1,5 @@
-import type { DiffLineCounts, LargeDiffRenderLimit } from './large-diff-render-limit'
-import type { DiffSection } from './diff-section-types'
+import type { DiffLineCounts, LargeDiffRenderLimit } from '../../large-diff-render-limit'
+import type { DiffSection } from '../../diff-section-types'
 
 // Why: `diffResult === null` subsumes a dirty check — `dirty` is only ever set from a mounted
 // editor's content compare, which implies content was already loaded.
