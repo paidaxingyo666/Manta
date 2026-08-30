@@ -767,6 +767,7 @@ jobs:
       should_run: ${{ steps.filter.outputs.should_run }}
       test_files: ${{ steps.filter.outputs.test_files }}
       ssh_source_changed: ${{ steps.filter.outputs.ssh_source_changed }}
+      native_ime_source_changed: ${{ steps.filter.outputs.native_ime_source_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -794,6 +795,11 @@ jobs:
           SSH_SOURCE_CHANGED="$(printf '%s\n' "$CHANGED" | node config/scripts/pr-e2e-source-routing.mjs --ssh-source)"
           echo "ssh_source_changed=$SSH_SOURCE_CHANGED" >> "$GITHUB_OUTPUT"
           echo "SSH source changed: $SSH_SOURCE_CHANGED"
+          # Why its own signal: the real-IME lane is a whole ibus session, not a spec, so it must
+          # trigger on IME source rather than on a spec name in some route's list.
+          NATIVE_IME_SOURCE_CHANGED="$(printf '%s\n' "$CHANGED" | node config/scripts/pr-e2e-source-routing.mjs --native-ime-source)"
+          echo "native_ime_source_changed=$NATIVE_IME_SOURCE_CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Native IME source changed: $NATIVE_IME_SOURCE_CHANGED"
           if [ "$TEST_FILES_JSON" != '[]' ]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             echo "Changed E2E specs: $TEST_FILES_JSON"
@@ -813,6 +819,21 @@ jobs:
     with:
       test_files: ${{ needs.e2e-paths.outputs.test_files }}
       ssh_source_changed: ${{ needs.e2e-paths.outputs.ssh_source_changed }}
+
+  # Why this is not in verify's needs: it is the first PR-gate run of a harness whose reliability
+  # is only known from nightly main runs (20/20 green, 2026-08-09..2026-08-29, p50 3m25s). It
+  # reports a red X on the PR without blocking, exactly like `e2e` above. Deliberately no
+  # continue-on-error: that renders the check green and hides the signal it exists to give. To
+  # make it blocking, add it to verify.needs, add TERMINAL_IME_NATIVE to the env below, and
+  # require `success || skipped` outside the strict loop — see the note on `e2e`.
+  terminal_ime_native:
+    name: real IME
+    needs: e2e-paths
+    if: needs.e2e-paths.outputs.native_ime_source_changed == 'true'
+    # Why: the reusable workflow only checks out, builds, and uploads artifacts.
+    permissions:
+      contents: read
+    uses: ./.github/workflows/terminal-ime-e2e.yml
 
   verify:
     if: always()
