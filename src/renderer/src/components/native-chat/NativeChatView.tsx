@@ -73,6 +73,7 @@ function NativeChatBridgeView({
   targetPtyId = null,
   launchAgent,
   resolvedAgent,
+  ownsTabWideLaunchDraft,
   onSwitchToTerminal,
   readTerminalScreen,
   contextMenuActions,
@@ -99,6 +100,7 @@ function NativeChatBridgeView({
           isVisible={isVisible}
           targetPtyId={targetPtyId}
           terminalTabId={terminalTabId}
+          ownsTabWideLaunchDraft={ownsTabWideLaunchDraft}
           onSwitchToTerminal={onSwitchToTerminal}
           readTerminalScreen={readTerminalScreen}
           contextMenuActions={contextMenuActions}
@@ -117,6 +119,7 @@ function NativeChatResolvedView({
   isVisible,
   targetPtyId,
   terminalTabId,
+  ownsTabWideLaunchDraft,
   onSwitchToTerminal,
   readTerminalScreen,
   contextMenuActions,
@@ -140,7 +143,6 @@ function NativeChatResolvedView({
   const paneLaunchPrompt = launchPrompt?.agent === agent ? launchPrompt : null
   // Launch context prefilled into the TUI input as an unsent draft; the
   // composer adopts it so the GUI view shows the same context as the TUI.
-  // Shape matches NativeChatComposer's two launch-draft props, so it spreads.
   const launchDraftSignal = useNativeChatLaunchDraftSignal({
     terminalTabId,
     agent,
@@ -450,7 +452,7 @@ function NativeChatResolvedView({
           onSlashCommand={onSlashCommand}
           onSwitchToTerminal={onSwitchToTerminal}
           readTerminalScreen={readTerminalScreen}
-          {...launchDraftSignal}
+          launchSeed={{ ...launchDraftSignal, ownsTabWideLaunchDraft }}
         />
       )}
       {contextMenu.menu}
