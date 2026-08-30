@@ -119,37 +119,35 @@ export class GitHandlerWorktreeOperations extends GitHandlerOperationContext {
 
   async listWorktrees(params: Record<string, unknown>, context?: RequestContext) {
     const repoPath = params.repoPath as string
-    return this.gitCapabilities
-      .runWithFallback(
-        'worktree-list-z',
-        async () => {
-          const { stdout } = await this.git(['worktree', 'list', '--porcelain', '-z'], repoPath, {
+    return this.gitCapabilities.runWithFallback(
+      'worktree-list-z',
+      async () => {
+        const { stdout } = await this.git(['worktree', 'list', '--porcelain', '-z'], repoPath, {
+          signal: context?.signal
+        })
+        return this.normalizeMainWorktreePath(
+          repoPath,
+          parseWorktreeList(stdout, { nulDelimited: true })
+        )
+      },
+      async () => {
+        // Why: Git <2.36 lacks worktree-list `-z`, so fall back to the newline-block parser (loses newline-in-path safety).
+        try {
+          const { stdout } = await this.git(['worktree', 'list', '--porcelain'], repoPath, {
             signal: context?.signal
           })
-          return this.normalizeMainWorktreePath(
+          const normalized = await this.normalizeMainWorktreePath(
             repoPath,
-            parseWorktreeList(stdout, { nulDelimited: true })
+            parseWorktreeList(stdout)
           )
-        },
-        async () => {
-          // Why: Git <2.36 lacks worktree-list `-z`, so fall back to the newline-block parser (loses newline-in-path safety).
-          try {
-            const { stdout } = await this.git(['worktree', 'list', '--porcelain'], repoPath, {
-              signal: context?.signal
-            })
-            const normalized = await this.normalizeMainWorktreePath(
-              repoPath,
-              parseWorktreeList(stdout)
-            )
-            // Why: Git <2.31 emits no `prunable` annotation, so probe each linked worktree's existence instead of trusting stale registrations (issue #8389).
-            return annotatePrunableWorktreesByExistence(normalized)
-          } catch {
-            return []
-          }
-        },
-        isUnsupportedWorktreeListZError
-      )
-      .catch(() => [])
+          // Why: Git <2.31 emits no `prunable` annotation, so probe each linked worktree's existence instead of trusting stale registrations (issue #8389).
+          return annotatePrunableWorktreesByExistence(normalized)
+        } catch {
+          return []
+        }
+      },
+      isUnsupportedWorktreeListZError
+    )
   }
 
   async addWorktree(params: Record<string, unknown>) {
