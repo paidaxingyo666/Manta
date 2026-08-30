@@ -40,15 +40,18 @@ export function LinearFacetCoverageNotice({
   facet,
   options,
   selectedIds,
-  max
+  max,
+  truncated
 }: {
   facet: LinearCoverageFacet
   options: readonly { key: string; ids: readonly string[] }[]
   selectedIds: readonly string[]
   max: number
+  /** Recorded where the cap ran, not inferred from the ids it left behind (STA-5996). */
+  truncated: boolean
 }): React.JSX.Element | null {
-  const { applied, intended, atLimit } = linearMetadataGroupCoverage(options, selectedIds, max)
-  if (intended <= applied && !atLimit) {
+  const { applied, intended } = linearMetadataGroupCoverage(options, selectedIds)
+  if (intended <= applied && !truncated) {
     return null
   }
   return (

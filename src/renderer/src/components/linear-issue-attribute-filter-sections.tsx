@@ -32,50 +32,56 @@ function priorityOptions(): PickerOption[] {
   }))
 }
 
+type LinearIssueFilterSectionSummary = { text: string; partial: boolean }
+
 /** "{{count}} selected", flagged when the transport id cap left teams out (#16879). */
 function facetSummary(
   options: readonly LinearIssueFilterGroupedOption[],
   selectedIds: readonly string[],
-  max: number
-): string {
+  truncated: boolean
+): LinearIssueFilterSectionSummary {
   const count = selectedLinearMetadataGroupKeys(options, selectedIds).length
   if (count === 0) {
-    return ''
+    return { text: '', partial: false }
   }
-  const summary = translate(
-    'auto.components.linear-issue-attribute-filter-sections.countSelected',
-    '{{count}} selected',
-    { count }
-  )
-  return isLinearMetadataGroupSelectionPartial(options, selectedIds, max)
-    ? translate(
-        'auto.components.linear-issue-attribute-filter-sections.partialCoverageSuffix',
-        '{{value0}} · partial',
-        { value0: summary }
-      )
-    : summary
+  return {
+    text: translate(
+      'auto.components.linear-issue-attribute-filter-sections.countSelected',
+      '{{count}} selected',
+      { count }
+    ),
+    partial: isLinearMetadataGroupSelectionPartial(options, selectedIds, truncated)
+  }
+}
+
+function plainSummary(text: string): LinearIssueFilterSectionSummary {
+  return { text, partial: false }
 }
 
 export function LinearIssueFilterSectionMenu({
   value,
   statusOptions,
   labelOptions,
+  statusTruncated,
+  labelsTruncated,
   onOpenSection
 }: {
   value: LinearIssueAttributeFilter
   statusOptions: LinearIssueFilterGroupedOption[]
   labelOptions: LinearIssueFilterGroupedOption[]
+  statusTruncated: boolean
+  labelsTruncated: boolean
   onOpenSection: (section: LinearIssueFilterSectionKey) => void
 }): React.JSX.Element {
-  const sections: { key: LinearIssueFilterSectionKey; label: string; summary: string }[] = [
+  const sections: {
+    key: LinearIssueFilterSectionKey
+    label: string
+    summary: LinearIssueFilterSectionSummary
+  }[] = [
     {
       key: 'status',
       label: translate('auto.components.linear-issue-attribute-filter-sections.status', 'Status'),
-      summary: facetSummary(
-        statusOptions,
-        value.stateIds,
-        LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
-      )
+      summary: facetSummary(statusOptions, value.stateIds, statusTruncated)
     },
     {
       key: 'priority',
@@ -83,7 +89,7 @@ export function LinearIssueFilterSectionMenu({
         'auto.components.linear-issue-attribute-filter-sections.priority',
         'Priority'
       ),
-      summary:
+      summary: plainSummary(
         value.priorities.length > 0
           ? translate(
               'auto.components.linear-issue-attribute-filter-sections.countSelected',
@@ -91,6 +97,7 @@ export function LinearIssueFilterSectionMenu({
               { count: value.priorities.length }
             )
           : ''
+      )
     },
     {
       key: 'assignee',
@@ -98,23 +105,24 @@ export function LinearIssueFilterSectionMenu({
         'auto.components.linear-issue-attribute-filter-sections.assignee',
         'Assignee'
       ),
-      summary: value.assignee
-        ? value.assignee.kind === 'unassigned'
-          ? translate(
-              'auto.components.linear-issue-attribute-filter-sections.unassigned',
-              'Unassigned'
-            )
-          : translate('auto.components.linear-issue-attribute-filter-sections.selected', 'selected')
-        : ''
+      summary: plainSummary(
+        value.assignee
+          ? value.assignee.kind === 'unassigned'
+            ? translate(
+                'auto.components.linear-issue-attribute-filter-sections.unassigned',
+                'Unassigned'
+              )
+            : translate(
+                'auto.components.linear-issue-attribute-filter-sections.selected',
+                'selected'
+              )
+          : ''
+      )
     },
     {
       key: 'labels',
       label: translate('auto.components.linear-issue-attribute-filter-sections.labels', 'Labels'),
-      summary: facetSummary(
-        labelOptions,
-        value.labelIds,
-        LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
-      )
+      summary: facetSummary(labelOptions, value.labelIds, labelsTruncated)
     }
   ]
 
@@ -128,11 +136,20 @@ export function LinearIssueFilterSectionMenu({
           className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left transition hover:bg-muted/50"
         >
           <span className="font-medium">{section.label}</span>
-          <span className="inline-flex items-center gap-1 text-muted-foreground">
-            {section.summary ? (
-              <span className="max-w-[120px] truncate">{section.summary}</span>
+          <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
+            {section.summary.text ? (
+              <span className="min-w-0 truncate">{section.summary.text}</span>
             ) : null}
-            <ChevronRight className="size-3.5" />
+            {/* Why: the marker sits outside the truncating span so a long count never clips it. */}
+            {section.summary.partial ? (
+              <span className="shrink-0">
+                {translate(
+                  'auto.components.linear-issue-attribute-filter-sections.partialCoverageMarker',
+                  '· partial'
+                )}
+              </span>
+            ) : null}
+            <ChevronRight className="size-3.5 shrink-0" />
           </span>
         </button>
       ))}
@@ -153,6 +170,8 @@ export function LinearIssueFilterSectionDetail({
   assigneeError,
   labelLoading,
   labelError,
+  statusTruncated,
+  labelsTruncated,
   teamRequiredMessage,
   onBack
 }: {
@@ -168,6 +187,8 @@ export function LinearIssueFilterSectionDetail({
   assigneeError: string | null
   labelLoading: boolean
   labelError: string | null
+  statusTruncated: boolean
+  labelsTruncated: boolean
   teamRequiredMessage: string | null
   onBack: () => void
 }): React.JSX.Element {
@@ -269,6 +290,7 @@ export function LinearIssueFilterSectionDetail({
               ? LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_STATE_IDS
               : LINEAR_ISSUE_ATTRIBUTE_FILTER_MAX_LABEL_IDS
           }
+          truncated={isStatus ? statusTruncated : labelsTruncated}
         />
       </div>
     )
