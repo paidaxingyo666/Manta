@@ -1,5 +1,6 @@
-import { vi } from 'vitest'
+import { afterAll, vi } from 'vitest'
 import type { Mock } from 'vitest'
+import { clearTrackedRealTimers, trackRealTimers } from './updater-test-timer-tracking'
 
 /** Loose spy signature for the electron/electron-updater calls the suites only assert on. */
 type UpdaterSpy = Mock<(...args: unknown[]) => unknown>
@@ -257,6 +258,9 @@ export function createUpdaterMocks(): UpdaterMocks {
   const resetUpdaterMocks = () => {
     vi.clearAllTimers()
     vi.useRealTimers()
+    // Why: the generation fence only ignores a stale instance's spy calls; this cancels the real
+    // timers it left armed so it never runs at all.
+    clearTrackedRealTimers()
     vi.resetModules()
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
@@ -284,7 +288,15 @@ export function createUpdaterMocks(): UpdaterMocks {
       close: closeLocalBuildFeedMock
     })
     vi.unstubAllGlobals()
+    trackRealTimers()
   }
+
+  // Why: keeps the timer patch scoped to files that use the harness. Fakes are dropped first
+  // because a file ending on a fake clock fails the wrapper's identity guard, stranding it.
+  afterAll(() => {
+    vi.useRealTimers()
+    clearTrackedRealTimers()
+  })
 
   return {
     appMock,
