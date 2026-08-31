@@ -1,14 +1,19 @@
 import React from 'react'
-import { useShallow } from 'zustand/react/shallow'
 import type { TabGroupLayoutNode } from '../../../shared/tab-types'
-import { useAppStore } from '../store'
 import type { ActivityTerminalPortalTarget } from './activity/activity-terminal-portal'
-import { useBrowserAutomationVisibilityForAny } from './browser-pane/browser-automation-visibility'
-import { useBrowserMobileDriverForAny } from '@/lib/pane-manager/browser-mobile-driver-state'
+import {
+  useBrowserGuestPaintRetention,
+  useWorktreeBrowserPageIds
+} from './browser-pane/host-guest/browser-guest-paint-retention'
+import {
+  shouldKeepHiddenWorktreeSurfacePaintable,
+  shouldMountRetainedBrowserOverlay
+} from './browser-pane/host-guest/browser-worktree-surface-paintability'
 import TabGroupSplitLayout from './tab-group/TabGroupSplitLayout'
 import TerminalPaneOverlayLayer from './terminal-pane/TerminalPaneOverlayLayer'
-import { RetainedBrowserPaneOverlayLayer } from './browser-pane/BrowserPaneOverlayLayer'
+import { RetainedBrowserPaneOverlayLayer } from './browser-pane/assemble-chrome/BrowserPaneOverlayLayer'
 import EmulatorPaneOverlayLayer from './emulator-pane/EmulatorPaneOverlayLayer'
+import StructuredAgentSessionPaneOverlayLayer from './native-chat/StructuredAgentSessionPaneOverlayLayer'
 import AiVaultSessionDropLayer from './tab-group/AiVaultSessionDropLayer'
 
 export const WorktreeSplitSurface = React.memo(function WorktreeSplitSurface({
@@ -36,17 +41,12 @@ export const WorktreeSplitSurface = React.memo(function WorktreeSplitSurface({
   backgroundMountTabIds: ReadonlySet<string> | null
   activationDeferredMountTabIds: ReadonlySet<string> | null
 }): React.JSX.Element {
-  const browserPageIds = useAppStore(
-    useShallow((state) =>
-      (state.browserTabsByWorktree[worktreeId] ?? []).flatMap((tab) =>
-        tab.pageIds && tab.pageIds.length > 0 ? tab.pageIds : [tab.activePageId ?? tab.id]
-      )
-    )
-  )
-  const hasAutomationVisibleBrowser = useBrowserAutomationVisibilityForAny(browserPageIds)
-  const hasMobileDrivenBrowser = useBrowserMobileDriverForAny(browserPageIds)
-  const shouldKeepPaintable =
-    shouldMeasureHiddenWorktree || hasAutomationVisibleBrowser || hasMobileDrivenBrowser
+  const browserPageIds = useWorktreeBrowserPageIds(worktreeId)
+  const needsBrowserGuestPaint = useBrowserGuestPaintRetention(browserPageIds)
+  const shouldKeepPaintable = shouldKeepHiddenWorktreeSurfacePaintable({
+    shouldMeasureHiddenWorktree,
+    needsBrowserGuestPaint
+  })
 
   return (
     <div
@@ -80,16 +80,19 @@ export const WorktreeSplitSurface = React.memo(function WorktreeSplitSurface({
       <RetainedBrowserPaneOverlayLayer
         worktreeId={worktreeId}
         isWorktreeActive={isVisible}
-        mountEligible={
-          isVisible ||
-          backgroundMountTabIds === null ||
-          hasAutomationVisibleBrowser ||
-          hasMobileDrivenBrowser
-        }
+        mountEligible={shouldMountRetainedBrowserOverlay({
+          isWorktreeVisible: isVisible,
+          hasDeferredBackgroundMounts: backgroundMountTabIds !== null,
+          needsBrowserGuestPaint
+        })}
       />
       {isVisible || backgroundMountTabIds === null ? (
         <EmulatorPaneOverlayLayer worktreeId={worktreeId} isWorktreeActive={isVisible} />
       ) : null}
+      <StructuredAgentSessionPaneOverlayLayer
+        worktreeId={worktreeId}
+        isWorktreeActive={isVisible}
+      />
       <AiVaultSessionDropLayer worktreeId={worktreeId} enabled={isVisible} />
     </div>
   )

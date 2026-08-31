@@ -35,6 +35,7 @@ export function useTerminalParkingPass(controller: TerminalParkingFoundation): v
     tabsByWorktree,
     terminalParkingEnabled,
     terminalParkingRevision,
+    terminalProviderSnapshotCapabilityRevision,
     terminalRetentionBudgetEnabled,
     terminalSshParkingEnabled,
     workspaceSurfaces
@@ -167,6 +168,7 @@ export function useTerminalParkingPass(controller: TerminalParkingFoundation): v
     tabsByWorktree,
     terminalParkingEnabled,
     terminalParkingRevision,
+    terminalProviderSnapshotCapabilityRevision,
     terminalRetentionBudgetEnabled,
     terminalSshParkingEnabled,
     workspaceSurfaces

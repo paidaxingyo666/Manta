@@ -4,6 +4,8 @@ import { getConnectionId } from '../lib/connection-context'
 import { isRemoteRuntimePtyId } from '@/runtime/runtime-terminal-inspection'
 import { CLOSE_DIALOG_DEBOUNCE_MS } from './terminal-workspace-model'
 import type { TerminalWorkspaceProjectionController } from './use-terminal-workspace-projection'
+import { runWithWindowCloseCheckpointScope } from './window-close-request-coordinator'
+import { showShutdownCheckpointFailureToast } from '@/lib/shutdown-checkpoint-failure-toast'
 
 export function useTerminalEditorCloseFoundation(
   controller: TerminalWorkspaceProjectionController
@@ -28,8 +30,15 @@ export function useTerminalEditorCloseFoundation(
   const windowCloseAfterDirtyRef = useRef<{ isQuitting: boolean } | null>(null)
 
   const confirmNativeWindowClose = useCallback(() => {
-    const accepted = window.dispatchEvent(new Event('beforeunload', { cancelable: true }))
+    // Why: capture only after every close guard has committed. A canceled child-
+    // process prompt must not consume App's synthetic/native unload guard.
+    const accepted = runWithWindowCloseCheckpointScope(() =>
+      window.dispatchEvent(new Event('beforeunload', { cancelable: true }))
+    )
     if (!accepted) {
+      // Why: a checkpoint-vetoed quit used to die here with no dialog and no log,
+      // leaving SIGKILL as the only exit (#15352). Dirty-file vetoes publish no reason.
+      showShutdownCheckpointFailureToast()
       return
     }
     window.api.ui.confirmWindowClose()
