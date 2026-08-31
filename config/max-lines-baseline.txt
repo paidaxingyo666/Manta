@@ -40,9 +40,7 @@ inline src/renderer/src/store/slices/tabs.ts
 inline src/renderer/src/store/slices/ui.ts
 inline src/shared/keybindings.ts
 mobile-config app/h/*/files/*.tsx
-mobile-config app/h/*/session/*.tsx
 mobile-config app/h/*/source-control/*.tsx
 mobile-config app/index.tsx
 mobile-config scripts/mock-server.ts
-mobile-config src/terminal/terminal-webview-html.ts
 mobile-config src/transport/rpc-client.ts

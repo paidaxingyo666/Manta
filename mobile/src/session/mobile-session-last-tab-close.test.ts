@@ -27,4 +27,17 @@ describe('mobile session last-tab close', () => {
       'reconcileBufferedDraftsRef.current(sessionTabsRef.current, remainingTabs)'
     )
   })
+
+  it('ignores a pending terminal handle when the host requests follow navigation', () => {
+    const start = sessionRouteSource.indexOf('const applySessionTabs = useCallback')
+    const end = sessionRouteSource.indexOf('const readMarkdownTab', start)
+    const block = sessionRouteSource.slice(start, end)
+
+    const followsHost = block.indexOf("const followsHost = result.navigationIntent === 'follow'")
+    const pendingHandle = block.indexOf('const pendingActiveTerminalHandle = followsHost')
+
+    expect(followsHost).toBeGreaterThanOrEqual(0)
+    expect(pendingHandle).toBeGreaterThan(followsHost)
+    expect(block.slice(pendingHandle, pendingHandle + 150)).toContain('? null')
+  })
 })
