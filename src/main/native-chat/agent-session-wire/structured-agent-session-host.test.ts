@@ -382,6 +382,9 @@ describe('send', () => {
     const params = { envelope: envelope('agentSession.send', { body }), body }
 
     await expect(host.send(CALLER, params)).rejects.toThrow('journal resolve failed')
+    expect(journal.submissions()).toMatchObject([
+      { clientMessageId: params.envelope.clientOperationId, dispatchState: 'unknown' }
+    ])
     expect(
       store.listOperationRows().find((row) => row.operationId === params.envelope.clientOperationId)
         ?.outcome
@@ -449,7 +452,7 @@ describe('send', () => {
 })
 
 describe('cancel', () => {
-  it('records the outcome as a status item keyed by the operation id', async () => {
+  it('records the request acknowledgement as a status item keyed by the operation id', async () => {
     await attach()
     const result = await host.cancel(CALLER, {
       envelope: envelope('agentSession.cancel', { turnId: 'turn-1' }),
@@ -459,7 +462,7 @@ describe('cancel', () => {
     const page = host.history({ sessionId: SESSION, direction: 'tail' })
     expect(page.ok && page.page.items[0]?.body).toMatchObject({
       kind: 'status',
-      text: 'Turn cancelled.'
+      text: 'Cancellation requested.'
     })
     expect(JSON.stringify(page.ok && page.page.items[0]?.body)).not.toContain('turn-1')
   })
