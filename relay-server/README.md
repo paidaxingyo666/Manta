@@ -439,6 +439,33 @@ staging endpoint after repeated failures, whose certificate no client trusts.
 Issue out of band, with the pinned certificate still serving, and switch only
 once the new one is in hand.
 
+`deploy/certificate-bootstrap/` does exactly that, and is what currently runs on
+the host. Caddy serves `/.well-known/acme-challenge/*` for the relay's name from
+a webroot, certbot writes into it on a 20-minute timer, and only once a
+certificate exists does the script seed Caddy's managed store and drop the `tls`
+line — so the swap has no gap at all. It rolls back and keeps the pinned
+certificate if the reload does not verify, and disables its own timer when done.
+
+Twenty minutes is not arbitrary. Let's Encrypt allows five failed authorizations
+per identifier per account per hour, and a tighter loop spends that budget
+without improving the odds.
+
+The script deliberately leaves `MANTA_RELAY_PUBLIC_URL` and the second listener
+alone. Those sign the desktop out, so they are not something to do unattended.
+
+What actually blocks issuance, when it blocks, is upstream of this fork:
+
+```
+DNSSEC: DNSKEY Missing: validation failure <relay.manta.sh.cn. A IN>:
+key for validation cn. is marked as invalid because of a previous
+No DNSKEY record [exceeded the maximum number of sends]
+```
+
+Let's Encrypt's resolver cannot fetch the DNSKEY for `cn.` and marks the whole
+TLD bogus, so nothing under it resolves. It is intermittent and it is not
+specific to this zone or its provider — which is why waiting works and why the
+retry loop is the entire remedy.
+
 ### Registry secrets
 
 Each registry is skipped when its secrets are absent, so configure only what
