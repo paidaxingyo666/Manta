@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process'
 import { pbkdf2Sync } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -15,6 +14,14 @@ import type { EncryptionKeyResult } from './browser-cookie-sqlite'
 const PBKDF2_ITERATIONS = 1003
 const PBKDF2_KEY_LENGTH = 16
 const PBKDF2_SALT = 'saltysalt'
+
+function runKeychainCommand(program: string, args: readonly string[], timeoutMs: number): string {
+  const result = runProcessSync({ program, args, timeoutMs })
+  if (result.code !== 0 || result.timedOut) {
+    throw new Error(`${program} exited with code ${result.code ?? 'unknown'}`)
+  }
+  return result.stdout.trim()
+}
 
 export function getEncryptionKey(
   keychainService: string,
@@ -38,11 +45,11 @@ export function getMacEncryptionKey(
   keychainAccount: string
 ): EncryptionKeyResult | null {
   try {
-    const raw = execFileSync(
+    const raw = runKeychainCommand(
       'security',
       ['find-generic-password', '-s', keychainService, '-a', keychainAccount, '-w'],
-      { encoding: 'utf-8', timeout: 30_000 }
-    ).trim()
+      30_000
+    )
     return {
       mode: 'aes-128-cbc',
       keysByVersion: {
@@ -65,19 +72,16 @@ export function getLinuxEncryptionKey(
   let keyringPassword = ''
   try {
     // Why: GNOME keyring stores the Chrome Safe Storage password via secret-tool.
-    keyringPassword = execFileSync(
+    keyringPassword = runKeychainCommand(
       'secret-tool',
       ['lookup', 'service', keychainService, 'account', keychainAccount],
-      { encoding: 'utf-8', timeout: 5_000 }
-    ).trim()
+      5_000
+    )
   } catch {
     // Why: fall back to application-based lookup used by newer Chromium versions.
     try {
       const app = keychainAccount.toLowerCase().replaceAll(' ', '')
-      keyringPassword = execFileSync('secret-tool', ['lookup', 'application', app], {
-        encoding: 'utf-8',
-        timeout: 5_000
-      }).trim()
+      keyringPassword = runKeychainCommand('secret-tool', ['lookup', 'application', app], 5_000)
     } catch {
       diag('  Linux keyring unavailable — v11 cookies cannot be decrypted')
     }
