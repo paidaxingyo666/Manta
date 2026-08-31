@@ -5,13 +5,12 @@ import type {
   KeybindingOverrides,
   TerminalShortcutPolicy
 } from './types'
-import { DEFINITIONS_BY_ID, getKeybindingPlatform } from './definitions'
+import { DEFINITIONS_BY_ID, getKeybindingPlatform, isDigitIndexActionId } from './definitions'
 import {
   normalizeKeybindingWithOptions,
   normalizeOptionsForAction,
   canonicalizeDigitIndexBinding
 } from './normalization'
-import { isDigitIndexActionId } from './definitions'
 
 export function getDefaultBindings(
   definition: KeybindingDefinition,

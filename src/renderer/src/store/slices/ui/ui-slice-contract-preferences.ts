@@ -6,7 +6,9 @@ import type {
   StatusBarItem,
   WorktreeCardMode,
   WorktreeCardProperty,
-  WorkspaceHostOrder
+  WorkspaceHostOrder,
+  WorkspaceHostScope,
+  VisibleWorkspaceHostIds
 } from '../../../../../shared/ui-chrome-types'
 import type { UsagePercentageDisplay } from '../../../../../shared/usage-percentage-display'
 import type { AutomationHostFilter } from '../../../../../shared/automation-host-filter'
@@ -17,10 +19,6 @@ import type { ReleaseChannel } from '../../../../../shared/release-channel'
 import type { ChangelogData, UpdateStatus } from '../../../../../shared/update-status-types'
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar-usage-mode'
 import type { PersistedUIWriteBaseline } from '../persisted-ui-write-baseline'
-import type {
-  WorkspaceHostScope,
-  VisibleWorkspaceHostIds
-} from '../../../../../shared/ui-chrome-types'
 import type { UISliceCore } from './ui-slice-contract-core'
 
 export type UISlicePreferences = {

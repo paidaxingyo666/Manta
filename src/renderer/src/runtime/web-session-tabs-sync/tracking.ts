@@ -2,8 +2,8 @@ import type {
   RuntimeMobileSessionTabsRemovedResult,
   RuntimeMobileSessionTabsResult
 } from '../../../../shared/runtime-types'
-import { VISIBILITY_INVENTORY_REMOVAL_EPOCH, type SessionTabsListAllResult } from './state'
 import {
+  VISIBILITY_INVENTORY_REMOVAL_EPOCH,
   latestReceivedSessionTabsInventoryFrameByEnvironment,
   latestReceivedSessionTabsSnapshotByWorktree,
   latestSessionTabsRemovalFenceByWorktree,
@@ -13,10 +13,11 @@ import {
   sessionTabsPublicationEpochHistoryByWorktree,
   sessionTabsRecoveryStateByWorktree,
   trackedSessionTabsWorktreeIdsByEnvironment,
+  nextReceivedSessionTabsFrame,
   type SnapshotFreshness,
+  type SessionTabsListAllResult,
   type TrackedWebSessionTabsWorktree
 } from './state'
-import { nextReceivedSessionTabsFrame } from './state'
 import {
   acceptSessionTabsRuntimeId,
   isCurrentSessionTabsRuntimeId,

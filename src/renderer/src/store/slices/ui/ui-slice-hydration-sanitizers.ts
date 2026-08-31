@@ -4,7 +4,8 @@ import type { PersistedUIState } from '../../../../../shared/persisted-ui-state-
 import type {
   TaskViewPresetId,
   TopLevelView,
-  VisibleWorkspaceHostIds
+  VisibleWorkspaceHostIds,
+  StatusBarItem
 } from '../../../../../shared/ui-chrome-types'
 import type { WorkspaceCleanupDismissal } from '../../../../../shared/workspace-cleanup'
 import { WORKSPACE_CLEANUP_CLASSIFIER_VERSION } from '../../../../../shared/workspace-cleanup'
@@ -15,7 +16,6 @@ import {
 } from '../../../../../shared/execution-host'
 import { persistedUIValuesEqual } from '../../../../../shared/persisted-ui-equality'
 import { DEFAULT_STATUS_BAR_ITEMS } from '../../../../../shared/constants'
-import type { StatusBarItem } from '../../../../../shared/ui-chrome-types'
 import type { UISlice } from './ui-slice-contract'
 
 const MIN_SIDEBAR_WIDTH = 220

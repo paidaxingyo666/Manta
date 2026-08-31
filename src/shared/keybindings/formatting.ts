@@ -7,11 +7,10 @@ import type {
   ModifierToken,
   KeybindingScope
 } from './types'
-import { KEYBINDING_DEFINITIONS, isDigitIndexActionId } from './definitions'
+import { KEYBINDING_DEFINITIONS, isDigitIndexActionId, isKeybindingActionId } from './definitions'
 import { parseKeybinding } from './parser'
 import { getEffectiveKeybindingsForAction, getEffectiveKeybindingsForDefinition } from './effective'
 import { isDoubleTapBinding } from './normalization'
-import { isKeybindingActionId } from './definitions'
 import { getKeybindingConflictIdentity, keybindingConflictIdentities } from './matching'
 
 function formatModifierGlyph(modifier: ModifierToken, isMac: boolean): string {

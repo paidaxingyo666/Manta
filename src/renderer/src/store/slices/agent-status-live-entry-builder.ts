@@ -10,6 +10,7 @@ import {
   agentProviderSessionsEqual,
   getAgentResumeArgv,
   isResumableTuiAgent,
+  type AgentProviderSessionMetadata,
   type SleepingAgentLaunchConfig,
   type SleepingAgentSessionRecord
 } from '../../../../shared/agent-session-resume'
@@ -24,7 +25,6 @@ import type {
   AgentStatusRouting,
   AgentStatusTiming
 } from './agent-status-contract'
-import type { AgentProviderSessionMetadata } from '../../../../shared/agent-session-resume'
 import { registryEntryMatchesStatus } from './agent-status-launch-config'
 import { findAgentPaneWorktreeId, getTabIdFromPaneKey } from './agent-status-pane-helpers'
 import { mergeCurrentOrchestrationContext } from './agent-status-map-helpers'

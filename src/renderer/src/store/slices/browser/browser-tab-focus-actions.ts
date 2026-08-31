@@ -1,5 +1,9 @@
-import type { BrowserSlice, BrowserSliceGet, BrowserSliceSet } from './browser-slice-contract'
-import type { ClosedBrowserWorkspaceSnapshot } from './browser-slice-contract'
+import type {
+  BrowserSlice,
+  BrowserSliceGet,
+  BrowserSliceSet,
+  ClosedBrowserWorkspaceSnapshot
+} from './browser-slice-contract'
 import { findWorkspace } from '../browser-page-records'
 import { restoreRecentlyClosedTabPosition } from '../recently-closed-tabs'
 import { isLocalBrowserPageOwner } from './browser-host-state'

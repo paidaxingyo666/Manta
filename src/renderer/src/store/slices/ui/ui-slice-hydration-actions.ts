@@ -12,16 +12,16 @@ import {
 import { normalizeFeatureInteractions } from '../../../../../shared/feature-interactions'
 import { normalizeContextualTourIds } from '../../../../../shared/contextual-tours'
 import { normalizeFeatureTipIds } from '../../../../../shared/feature-tips'
-import { DEFAULT_HIDE_SLEEPING_WORKSPACES } from '../../../../../shared/constants'
+import {
+  DEFAULT_HIDE_SLEEPING_WORKSPACES,
+  normalizeWorktreeCardProperties,
+  normalizeAgentActivityDisplayMode
+} from '../../../../../shared/constants'
 import {
   clampWorkspaceBoardColumnWidth,
   clampWorkspaceBoardOpacity,
   normalizeWorkspaceStatuses
 } from '../../../../../shared/workspace-statuses'
-import {
-  normalizeWorktreeCardProperties,
-  normalizeAgentActivityDisplayMode
-} from '../../../../../shared/constants'
 import { PET_SIZE_DEFAULT, PET_SIZE_MAX, PET_SIZE_MIN } from '../../../../../shared/pet-types'
 import { clampMarkdownTocPanelWidth } from '../../../../../shared/markdown-toc-panel-width'
 import { clampCombinedDiffFileTreeWidth } from '../../../../../shared/combined-diff-file-tree-width'
@@ -53,10 +53,10 @@ import {
   sanitizeWorkspaceCleanupDismissals,
   sanitizePersistedSidebarWidth,
   hydratedUIPartialMatchesState,
-  migrateStatusBarItems
+  migrateStatusBarItems,
+  clampPetSize
 } from './ui-slice-hydration-sanitizers'
 import { sanitizeTaskResumeState } from './ui-slice-hydration-values'
-import { clampPetSize } from './ui-slice-hydration-sanitizers'
 
 const MAX_LEFT_SIDEBAR_WIDTH = 500
 const MAX_RIGHT_SIDEBAR_WIDTH = 4000
