@@ -362,11 +362,14 @@ describe('startup ordering', () => {
     // leaves the serve process orphaned on its port, which is the failure this handler prevents.
     expect(installIndex).toBeLessThan(source.indexOf('void app.whenReady().then('))
     expect(installIndex).toBeGreaterThan(source.indexOf('if (hasSingleInstanceLock) {'))
-    const betweenCode = source
-      .slice(dataPathIndex, installIndex)
+    // Why only statements at block indentation: the span now covers unrelated helper functions,
+    // and an `await` inside one of those bodies is not what this guards against — the risk is this
+    // call itself being parked behind one.
+    const blockStatements = source
+      .slice(source.indexOf('if (hasSingleInstanceLock) {'), installIndex)
       .split('\n')
-      .filter((line) => !line.trim().startsWith('//'))
+      .filter((line) => /^ {2}\S/.test(line) && !line.trim().startsWith('//'))
       .join('\n')
-    expect(betweenCode).not.toContain('await')
+    expect(blockStatements).not.toContain('await')
   })
 })
