@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   foldWslUncPathCaseInsensitiveParts,
+  getWslFilesystemBoundaryDistro,
+  isDrvfsLinuxPath,
   isWslUncPath,
   parseWslUncPath,
   resolveWslRepoWorktreeBasePath,
@@ -114,5 +116,60 @@ describe('foldWslUncPathCaseInsensitiveParts', () => {
     expect(foldWslUncPathCaseInsensitiveParts('C:\\Users\\jin')).toBeNull()
     expect(foldWslUncPathCaseInsensitiveParts('//server/share/x')).toBeNull()
     expect(foldWslUncPathCaseInsensitiveParts('/home/jin')).toBeNull()
+  })
+})
+
+describe('getWslFilesystemBoundaryDistro', () => {
+  it('names the runtime distro for a Windows drive project running WSL git', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: 'C:\\Users\\alice\\manta',
+        wslRuntimeDistro: 'Ubuntu-24.04'
+      })
+    ).toBe('Ubuntu-24.04')
+  })
+
+  it('stays silent for a Windows drive project running host git', () => {
+    for (const wslRuntimeDistro of [undefined, null, '']) {
+      expect(
+        getWslFilesystemBoundaryDistro({ projectPath: 'C:/Users/alice/manta', wslRuntimeDistro })
+      ).toBeNull()
+    }
+  })
+
+  it('stays silent for a project already inside the distro', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\manta',
+        wslRuntimeDistro: 'Ubuntu'
+      })
+    ).toBeNull()
+  })
+
+  // The UNC spelling of drvfs is still the Windows drive, so it crosses the boundary even though
+  // the path names no runtime preference at all.
+  it('names the path distro for the UNC spelling of a drvfs mount', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\alice\\manta'
+      })
+    ).toBe('Ubuntu')
+  })
+
+  it('stays silent for POSIX, relative, and plain UNC share paths', () => {
+    for (const projectPath of ['/home/alice/manta', 'manta', '\\\\fileserver\\share\\manta']) {
+      expect(getWslFilesystemBoundaryDistro({ projectPath, wslRuntimeDistro: 'Ubuntu' })).toBeNull()
+    }
+  })
+})
+
+describe('isDrvfsLinuxPath', () => {
+  it('accepts the automount root and its descendants only', () => {
+    expect(isDrvfsLinuxPath('/mnt/c')).toBe(true)
+    expect(isDrvfsLinuxPath('/mnt/c/Users')).toBe(true)
+    expect(isDrvfsLinuxPath('/mnt/cdrom')).toBe(false)
+    // Why: /MNT and /mnt/C are ordinary case-sensitive Linux directories, not the drvfs automount.
+    expect(isDrvfsLinuxPath('/MNT/c')).toBe(false)
+    expect(isDrvfsLinuxPath('/mnt/C/Users')).toBe(false)
   })
 })
