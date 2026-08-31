@@ -3901,6 +3901,16 @@
             "onDescription": "Keep this computer awake continuously",
             "autoDescription": "Stay awake while an agent is working",
             "offDescription": "Allow normal system sleep behavior"
+          },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "The previous connection closed",
+            "workspace_window_closed": "The workspace window is closed",
+            "checking_host": "Manta is checking whether this host is reachable",
+            "restoring_connection": "Manta is trying to restore the connection",
+            "host_unreachable": "Manta isn’t reachable on this host",
+            "contact_note": "The host may still be running; only the Manta connection is unavailable.",
+            "last_connected": "Last connected {{value0}}",
+            "reconnect_attempt": "Attempt {{value0}}"
           }
         }
       },
