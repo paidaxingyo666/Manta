@@ -14,7 +14,7 @@ import type {
   RuntimeMobileSessionTerminalClientTab
 } from './runtime-mobile-session-tab-contracts'
 
-export * from './runtime-mobile-session-tab-contracts'
+export type * from './runtime-mobile-session-tab-contracts'
 
 export type RuntimeGraphStatus = 'ready' | 'reloading' | 'unavailable'
 

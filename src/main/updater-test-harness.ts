@@ -227,6 +227,8 @@ export function createUpdaterMocks(): UpdaterMocks {
 
   /** Shared `beforeEach` body: fresh module registry plus every mock back to its default. */
   const resetUpdaterMocks = () => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
     vi.resetModules()
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
@@ -254,7 +256,6 @@ export function createUpdaterMocks(): UpdaterMocks {
       close: closeLocalBuildFeedMock
     })
     vi.unstubAllGlobals()
-    vi.useRealTimers()
   }
 
   return {
