@@ -9,9 +9,9 @@ import type {
   PluginHostInstallResult,
   PluginHostInstallSource,
   PluginHostListEntry,
-  PluginHostLogLine
+  PluginHostLogLine,
+  PreloadApi
 } from '../api-types'
-import type { PreloadApi } from '../api-types'
 
 export const pluginsApi = {
   list: (): Promise<PluginHostListEntry[]> => ipcRenderer.invoke('plugins:list'),
