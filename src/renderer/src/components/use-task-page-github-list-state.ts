@@ -89,7 +89,10 @@ export function useTaskPageGitHubListState(model: TaskPageProviderStateModel) {
   const [currentPage, setCurrentPage] = useState(0)
   const pagesRef = useRef(pages)
   const currentPageRef = useRef(currentPage)
+  // Fetch callbacks need the latest paging window immediately after render.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   pagesRef.current = pages
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   currentPageRef.current = currentPage
   const githubResumeConsumedRef = useRef(false)
   const githubResumeContextRef = useRef('')

@@ -59,9 +59,12 @@ export function useTerminalPaneFoundation(
   const panePtyBindingsRef = useRef<Map<number, IDisposable>>(new Map())
   const replayingPanesRef = useRef<Map<number, number>>(new Map())
   const isActiveRef = useRef(isActive)
+  // Event/PTY callbacks need current visibility before passive effects run.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   isActiveRef.current = isActive
   const isRendererVisible = isVisible && isWorktreeActive
   const isVisibleRef = useRef(isRendererVisible)
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   isVisibleRef.current = isRendererVisible
   const {
     nativeChatTranscriptIsLocalReadable,
@@ -100,6 +103,8 @@ export function useTerminalPaneFoundation(
   }, [])
   const [searchOpen, setSearchOpen] = useState(false)
   const searchOpenRef = useRef(false)
+  // Keyboard callbacks must observe current search state immediately.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   searchOpenRef.current = searchOpen
   const searchStateRef = useRef<SearchState>({
     query: '',

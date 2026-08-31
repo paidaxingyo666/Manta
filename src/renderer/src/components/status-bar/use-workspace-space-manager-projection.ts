@@ -89,12 +89,15 @@ export function useWorkspaceSpaceManagerProjection(args: {
   // Why: these ids are local UI state derived from the latest scan rows. Repair
   // them before commit so stale selections cannot flash after a scan changes.
   if (inspectedWorktreeId !== nextInspectedWorktreeId) {
+    // react-doctor-disable-next-line react-doctor/no-prop-callback-in-render
     setInspectedWorktreeId(nextInspectedWorktreeId)
   }
   if (nextSelectedIds !== selectedIds) {
+    // react-doctor-disable-next-line react-doctor/no-prop-callback-in-render
     setSelectedIds(nextSelectedIds)
   }
   if (treemapZoomWorktreeId !== nextTreemapZoomWorktreeId) {
+    // react-doctor-disable-next-line react-doctor/no-prop-callback-in-render
     setTreemapZoomWorktreeId(nextTreemapZoomWorktreeId)
   }
 

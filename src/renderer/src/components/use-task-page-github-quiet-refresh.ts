@@ -17,6 +17,8 @@ export function useTaskPageGitHubQuietRefreshPrelude(model: TaskPageGitHubLandin
     queryKey: githubWorkItemMutationQueryKey,
     generation: 0
   })
+  // Revalidation may run before a passive effect observes a new key.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   quietRevalidateScopeRef.current = advanceTaskPageQuietRevalidateScope(
     quietRevalidateScopeRef.current,
     githubWorkItemMutationQueryKey

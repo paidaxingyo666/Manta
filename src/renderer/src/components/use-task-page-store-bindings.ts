@@ -71,6 +71,8 @@ export function useTaskPageStoreBindings() {
   const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
   const providerRuntimeContextKey = getProviderRuntimeContextKey(settings)
   const providerRuntimeContextKeyRef = useRef(providerRuntimeContextKey)
+  // Submit handlers must fence against the current provider context immediately.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   providerRuntimeContextKeyRef.current = providerRuntimeContextKey
   const linearStatusCurrent = linearStatusContextKey === providerRuntimeContextKey
   const jiraStatusCurrent = jiraStatusContextKey === providerRuntimeContextKey

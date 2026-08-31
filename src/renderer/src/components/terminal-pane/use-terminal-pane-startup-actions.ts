@@ -165,6 +165,8 @@ export function useTerminalPaneStartupActions(controller: TerminalPaneStoreContr
   }, [issueCommandSplit, tabId, consumeTabIssueCommandSplit])
 
   const settingsRef = useRef(settings)
+  // Startup callbacks can run before the next effect commit.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   settingsRef.current = settings
   const openLinksInAppPreferencePromiseRef = useRef<Promise<boolean> | null>(null)
   const requestOpenLinksInAppPreference = useCallback(
@@ -199,8 +201,12 @@ export function useTerminalPaneStartupActions(controller: TerminalPaneStoreContr
   )
   const effectiveMacOptionAsAlt = useEffectiveMacOptionAsAlt(settings?.terminalMacOptionAsAlt)
   const macOptionAsAltRef = useRef<MacOptionAsAlt>(effectiveMacOptionAsAlt)
+  // Keyboard listeners need the current preference without a render lag.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   macOptionAsAltRef.current = effectiveMacOptionAsAlt
   const onPtyExitRef = useRef(onPtyExit)
+  // PTY teardown may call this ref before passive effects flush.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   onPtyExitRef.current = onPtyExit
   const systemPrefersDark = useSystemPrefersDark()
   const dispatchNotification = useNotificationDispatch(worktreeId)

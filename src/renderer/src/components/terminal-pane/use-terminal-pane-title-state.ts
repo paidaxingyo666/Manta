@@ -24,6 +24,8 @@ export function useTerminalPaneTitleState(controller: TerminalPaneFoundation) {
   } = controller
   const [paneTitles, setPaneTitles] = useState<Record<number, string>>({})
   const paneTitlesRef = useRef<Record<number, string>>({})
+  // Rename handlers read this ref synchronously during the render that changes it.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   paneTitlesRef.current = paneTitles
   const removedTitleLeafIdsRef = useRef<Set<string>>(new Set())
   const clearedScrollbackLeafIdsRef = useRef<Set<string>>(new Set())

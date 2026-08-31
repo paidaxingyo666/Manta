@@ -1,9 +1,6 @@
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import type { WorktreePaletteRequestGuard } from '@/lib/worktree-palette-create-action'
-import {
-  EMPTY_PALETTE_FILTER,
-  type PaletteFilterState
-} from '@/components/cmd-j/palette-filter'
+import { EMPTY_PALETTE_FILTER, type PaletteFilterState } from '@/components/cmd-j/palette-filter'
 import { parseCmdJTaskSourceUrl } from '@/lib/worktree-palette-task-url-match'
 import { getWorktreePaletteCreateActionState } from '@/lib/worktree-palette-create-action'
 import type { CmdJActiveGroupSnapshot } from '@/components/cmd-j/quick-action-context'
@@ -20,6 +17,8 @@ export function useWorktreeJumpPaletteLocalState({
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
   const liveQueryRef = useRef(query)
+  // Keyboard handlers must see the current query before effects flush.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   liveQueryRef.current = query
   const taskSourceUrl = useMemo(() => parseCmdJTaskSourceUrl(query), [query])
   const paletteSearchQuery = taskSourceUrl ? query.trim() : deferredQuery.trim()

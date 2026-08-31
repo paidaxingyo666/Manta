@@ -138,6 +138,8 @@ export function useAutomationsPageLocalState(store: AutomationsPageStoreState) {
     scheduleWarning: null
   })
   const draftRef = useRef(draft)
+  // Keep async editor actions on the latest draft before they can run.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   draftRef.current = draft
 
   return {
