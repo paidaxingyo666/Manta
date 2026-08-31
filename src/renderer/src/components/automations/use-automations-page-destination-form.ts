@@ -51,6 +51,7 @@ export function useAutomationsPageDestinationForm({
     settings
   } = store
   const {
+    createOpen,
     createTarget,
     editingAutomationId,
     editingRowKey,
@@ -58,6 +59,7 @@ export function useAutomationsPageDestinationForm({
     setEditingHostStableKey,
     setEditingDestination,
     setDraft,
+    draft,
     draftRef
   } = local
   const { visibleRows, hostCatalog, capturedAutomationOwners } = list
@@ -162,9 +164,23 @@ export function useAutomationsPageDestinationForm({
       ? editHostProjects
       : editorProjects
     : getAutomationCreateRepos(repos, { kind: 'local' })
+
+  // A destination change can strand the chosen project on another host; clear
+  // it so the draft/default-target effect can select a project the host owns.
+  useEffect(() => {
+    if (!createOpen || editingAutomationId !== null || createTarget !== 'orca') {
+      return
+    }
+    setDraft((current) =>
+      !current.projectId || editorProjects.some((project) => project.id === current.projectId)
+        ? current
+        : { ...current, projectId: '', workspaceId: '', baseBranch: '' }
+    )
+  }, [createOpen, createTarget, editingAutomationId, editorProjects, setDraft])
+
   const dialogWorktrees = useMemo(() => {
-    const candidates = worktreesByRepo[draftRef.current.projectId] ?? []
-    const project = dialogRepos.find((repo) => repo.id === draftRef.current.projectId)
+    const candidates = worktreesByRepo[draft.projectId] ?? []
+    const project = dialogRepos.find((repo) => repo.id === draft.projectId)
     if (!project) {
       return candidates
     }
@@ -179,7 +195,7 @@ export function useAutomationsPageDestinationForm({
         worktree.runtimeOwnerEnvironmentId === parsedHost.environmentId
       )
     })
-  }, [dialogRepos, draftRef, worktreesByRepo])
+  }, [dialogRepos, draft.projectId, worktreesByRepo])
   const destinationForProject = useCallback(
     (projectId: string, hostStableKey?: string | null): AutomationCreateDestination | null => {
       const selectedEntry = hostStableKey

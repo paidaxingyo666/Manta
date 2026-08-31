@@ -232,6 +232,7 @@ export async function saveMantaAutomation(
   } else if (editingAutomationId !== null) {
     saved = await saveExistingAutomation(
       context,
+      editingAutomationId,
       currentAutomation,
       updates,
       editDestination,
