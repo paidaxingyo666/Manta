@@ -22,7 +22,6 @@ import { mainProcessState as state } from './main-process-state'
 
 export function initializeMainProcessObservers(): void {
   const store = state.store
-  const runtime = state.runtime
   if (!store) {
     throw new Error('Store must be initialized before observers')
   }
@@ -41,11 +40,11 @@ export function initializeMainProcessObservers(): void {
       ...identity,
       worktreeId:
         identity.worktreeId ??
-        runtime?.getTerminalWorktreeIdForPaneKey(identity.paneKey) ??
+        state.runtime?.getTerminalWorktreeIdForPaneKey(identity.paneKey) ??
         undefined
     }))
     for (const worktreeId of collectChangedProviderSessionWorktrees(ownedIdentities)) {
-      runtime?.touchMobileSessionTabsForWorktree(worktreeId, { immediate: true })
+      state.runtime?.touchMobileSessionTabsForWorktree(worktreeId, { immediate: true })
     }
   }
   state.publishProviderSessionChanges = publishProviderSessionChanges
@@ -58,7 +57,7 @@ export function initializeMainProcessObservers(): void {
   const hookStatusChangedSessionTabs = createHookStatusSessionTabsInvalidator()
   const unsubscribeHookStatusSessionTabs = agentHookServer.subscribeEnrichedStatus((enriched) => {
     if (hookStatusChangedSessionTabs(enriched)) {
-      runtime?.touchMobileSessionTabsForPane(enriched.paneKey, enriched.worktreeId ?? null)
+      state.runtime?.touchMobileSessionTabsForPane(enriched.paneKey, enriched.worktreeId ?? null)
     }
   })
   const unsubscribeHookStatusClear = agentHookServer.subscribePaneStatusClear((clear) => {
@@ -68,7 +67,7 @@ export function initializeMainProcessObservers(): void {
         : hookStatusChangedSessionTabs.forgetConnection(clear.connectionId)
     for (const paneKey of clearedPaneKeys) {
       hookStatusChangedSessionTabs.forgetPane(paneKey)
-      runtime?.touchMobileSessionTabsForPane(paneKey)
+      state.runtime?.touchMobileSessionTabsForPane(paneKey)
     }
   })
   state.unsubscribeAgentAwakeStatusChanges = () => {
