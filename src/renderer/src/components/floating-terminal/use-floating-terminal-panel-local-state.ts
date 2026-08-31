@@ -54,6 +54,8 @@ export function useFloatingTerminalPanelLocalState() {
   )
   const doubleTapDetectorRef = useRef<ModifierDoubleTapDetector | null>(null)
   if (!doubleTapDetectorRef.current) {
+    // The detector must exist before event handlers are published.
+    // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
     doubleTapDetectorRef.current = new ModifierDoubleTapDetector()
   }
   const shortcutFocusFrameRef = useRef<number | null>(null)
