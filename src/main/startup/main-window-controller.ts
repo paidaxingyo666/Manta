@@ -18,6 +18,7 @@ import {
   createSystemTrayDeferred,
   getSystemTrayOptions,
   showMainWindowFromTray,
+  showRendererRecoveryPrompt,
   syncMacMenuBarIcon
 } from './main-window-actions'
 import { attachMainWindowCoreServices } from './main-window-core-services'
@@ -33,7 +34,6 @@ import {
   getExpectedTeardownScope,
   recordProcessGoneCrash
 } from './main-window-lifecycle-flags'
-import { showRendererRecoveryPrompt } from './main-window-actions'
 import { presentGpuFallbackRecoveredLaunchPrompt } from './gpu-lifecycle'
 import { maybeAutoRenameBranchOnFirstWorkFromHook } from './branch-rename-hook'
 import {

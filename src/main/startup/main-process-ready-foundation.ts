@@ -32,11 +32,13 @@ import {
   shouldSuppressDevEducation,
   suppressDevEducationForStore
 } from './dev-education-suppression'
-import { setBrowserNetworkProxySettingsResolver } from '../browser/browser-session-proxy'
+import {
+  applyBrowserSessionProxies,
+  setBrowserNetworkProxySettingsResolver
+} from '../browser/browser-session-proxy'
 import { installDocPreviewProtocolHandler } from '../browser/doc-preview-protocol'
 import { registerDocPreviewGrantHandlers } from '../ipc/doc-preview-grant-ipc'
 import { initializeBrowserSessionsForApp } from '../browser/browser-session-startup'
-import { applyBrowserSessionProxies } from '../browser/browser-session-proxy'
 import { browserSessionRegistry } from '../browser/browser-session-registry'
 import { logStartupMilestone } from './startup-diagnostics'
 import { mainProcessState as state } from './main-process-state'
