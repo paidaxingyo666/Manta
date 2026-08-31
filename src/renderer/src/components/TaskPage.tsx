@@ -442,7 +442,6 @@ export default function TaskPage(): React.JSX.Element {
     page: number
     scrollTop: number
   } | null>(null)
-
   useLayoutEffect(() => {
     if (
       taskSource !== 'github' ||
