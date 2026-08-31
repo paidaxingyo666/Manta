@@ -1,5 +1,6 @@
 import { basename } from '@/lib/path'
 import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
+import type { DiffSection } from '../../diff-section-types'
 import { isClipboardTextByteLengthOverLimit } from '../../../../../../shared/clipboard-text'
 import {
   buildSourceControlTree,
@@ -24,6 +25,11 @@ export function isCombinedDiffFileTreeQueryTooLarge(
   return isClipboardTextByteLengthOverLimit(query, maxBytes)
 }
 
+export function isCombinedDiffSectionViewed(
+  section: Pick<DiffSection, 'loading' | 'loadOnDemand'>
+): boolean {
+  return !section.loading && section.loadOnDemand !== true
+}
 export function getEntryExtension(entry: CombinedDiffFileTreeEntry): string {
   const name = basename(entry.path)
   const index = name.lastIndexOf('.')

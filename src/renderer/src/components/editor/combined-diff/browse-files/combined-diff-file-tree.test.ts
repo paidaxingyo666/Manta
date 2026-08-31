@@ -11,12 +11,20 @@ import {
   COMBINED_DIFF_FILE_TREE_QUERY_MAX_BYTES,
   getCombinedDiffBranchEntriesInTreeOrder,
   getFilteredCombinedDiffFileTreeEntries,
-  isCombinedDiffFileTreeQueryTooLarge
+  isCombinedDiffFileTreeQueryTooLarge,
+  isCombinedDiffSectionViewed
 } from './combined-diff-file-tree-filter'
 import type { GitBranchChangeEntry } from '../../../../../../shared/git-diff-compare-types'
 import type { GitStatusEntry } from '../../../../../../shared/git-status-types'
 
 describe('CombinedDiffFileTree navigation mapping', () => {
+  it('does not count deferred sections as viewed', () => {
+    expect(isCombinedDiffSectionViewed({ loading: false, loadOnDemand: true })).toBe(false)
+    expect(isCombinedDiffSectionViewed({ loading: false, loadOnDemand: false })).toBe(true)
+    expect(isCombinedDiffSectionViewed({ loading: false })).toBe(true)
+    expect(isCombinedDiffSectionViewed({ loading: true, loadOnDemand: false })).toBe(false)
+  })
+
   it('disambiguates uncommitted entries with the same path by area', () => {
     const staged: GitStatusEntry = { path: 'src/App.tsx', status: 'modified', area: 'staged' }
     const unstaged: GitStatusEntry = { path: 'src/App.tsx', status: 'modified', area: 'unstaged' }

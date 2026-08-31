@@ -7,6 +7,7 @@ import {
   type CombinedDiffFileTreeMode
 } from '../resolve-changes/combined-diff-section-identity'
 import { handleCombinedDiffFileTreeNavigation } from './combined-diff-file-tree-navigation'
+import { isCombinedDiffSectionViewed } from './combined-diff-file-tree-filter'
 
 export type CombinedDiffTreeNavigation = {
   activeTreeSectionKey: string | null
@@ -54,7 +55,7 @@ export function useCombinedDiffTreeNavigation({
     setActiveTreeSectionState({ entrySignature, key: null })
   }
   const viewedSectionKeys = React.useMemo(
-    () => new Set(sections.filter((section) => !section.loading).map((section) => section.key)),
+    () => new Set(sections.filter((section) => isCombinedDiffSectionViewed(section)).map((section) => section.key)),
     [sections]
   )
   const handleTreeNavigate = useCallback(

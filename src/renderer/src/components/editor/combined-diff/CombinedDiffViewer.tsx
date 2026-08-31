@@ -104,7 +104,7 @@ export default function CombinedDiffViewer({
     setSideBySide: preferences.setSideBySide,
     viewStateKey
   })
-  const loadSection = useCombinedDiffSectionLoader({
+  const { loadSection, loadDeferredSection } = useCombinedDiffSectionLoader({
     entrySet,
     file,
     registry,
@@ -351,6 +351,7 @@ export default function CombinedDiffViewer({
             isCommitMode={entrySet.isCommitMode}
             isDark={isDark}
             loadSection={loadSection}
+            loadDeferredSection={loadDeferredSection}
             markDirectScrollInput={markDirectScrollInput}
             modifiedEditorsRef={modifiedEditorsRef}
             onScrollbarPointerDown={handleScrollbarPointerDown}
