@@ -154,6 +154,25 @@ export class CodexHookService {
     return install
   }
 
+  async prepareRuntimeHomeForLaunch(
+    runtimeHomePath: string | null | undefined,
+    target: CodexWslRuntimeHookTarget | undefined,
+    hooksEnabled: boolean
+  ): Promise<AgentHookInstallStatus> {
+    if (hooksEnabled) {
+      // Why: a managed account's launch home is its self-contained CODEX_HOME,
+      // so hooks/trust must install there rather than the shared mirror.
+      return (
+        (await this.installForRuntimeHomeSerialized(runtimeHomePath, target)) ??
+        (await this.install(runtimeHomePath ?? undefined))
+      )
+    }
+    return (
+      this.refreshRuntimeUserHooksForRuntimeHome(runtimeHomePath, target) ??
+      (await this.refreshRuntimeUserHooks(runtimeHomePath ?? undefined))
+    )
+  }
+
   refreshRuntimeUserHooksForRuntimeHome(
     runtimeHomePath: string | null | undefined,
     target?: CodexWslRuntimeHookTarget
