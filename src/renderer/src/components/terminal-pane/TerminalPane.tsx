@@ -71,6 +71,7 @@ import {
 } from './pane-title-overlay-rects'
 import NativeChatView from '../native-chat/NativeChatView'
 import { splitTerminalPaneWithInheritedCwd } from './terminal-pane-split-with-inherited-cwd'
+import type { PaneCwdMap } from './resolve-split-cwd'
 import { TerminalAgentSessionForkDialog } from './TerminalAgentSessionForkDialog'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
 import { SessionRestoredBannerPortals } from './SessionRestoredBannerPortals'
@@ -345,7 +346,7 @@ function TerminalPane(
   )
   const paneTransportsRef = useRef<Map<number, PtyTransport>>(new Map())
   // Why: per-pane live cwd via OSC 7 for split-pane cwd inheritance; split actions read it at dispatch. See docs/ssh-split-pane-inherit-cwd.md.
-  const paneCwdRef = useRef<Map<number, { cwd: string; confirmed: boolean }>>(new Map())
+  const paneCwdRef = useRef<PaneCwdMap>(new Map())
   const paneMode2031Ref = useRef<Map<number, boolean>>(new Map())
   // Why: per-pane mirror of kitty keyboard flags; the keyboard policy reads it to encode Option chords as kitty CSI-u for opted-in TUIs.
   const paneKittyKeyboardModesRef = useRef<Map<number, TerminalKittyKeyboardModeTracker>>(new Map())
@@ -1428,6 +1429,7 @@ function TerminalPane(
         return false
       }
       const fallbackPtyId = paneTransportsRef.current.get(sourcePaneId)?.getPtyId() ?? null
+      const sourcePaneCwd = paneCwdRef.current.get(sourcePaneId)
       return (
         detachTerminalPaneToTab({
           fallbackPtyId,
@@ -1435,6 +1437,7 @@ function TerminalPane(
           manager: managerRef.current,
           persistLayoutSnapshot,
           sourcePaneId,
+          ...(sourcePaneCwd ? { sourcePaneCwd } : {}),
           sourceTabId: tabId,
           targetGroupId: target.groupId,
           targetIndex: target.insertionIndex,
