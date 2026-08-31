@@ -57,7 +57,7 @@ const ELECTRON_ARCHITECTURE_BY_ENUM = {
 }
 const PACKAGED_NATIVE_ARCHITECTURES = new Set(['ia32', 'x64', 'arm', 'arm64'])
 const TYPE_DECLARATION_ARTIFACT_RE = /\.d\.(?:c|m)?ts(?:\.map)?$/
-const LINEAR_SDK_SOURCE_MAP_RE = /\.(?:c|m)?js\.map$/
+const JS_SOURCE_MAP_ARTIFACT_RE = /\.(?:c|m)?js\.map$/
 const VERSIONED_ONNXRUNTIME_DYLIB_RE = /^libonnxruntime\.\d[\d.]*\.dylib$/
 
 const NODE_BUILTINS = new Set([
@@ -447,14 +447,16 @@ function prunePackagedRuntimeTypeDeclarations(resourcesDir) {
   pruneMatchingFiles(nodeModulesDir, (filename) => TYPE_DECLARATION_ARTIFACT_RE.test(filename))
 }
 
-function prunePackagedLinearSdkSourceMaps(resourcesDir) {
-  // Why: @linear/sdk's source maps embed several megabytes of generated source,
-  // but Node never loads them to execute the CJS runtime entry.
-  const packageDir = join(resourcesDir, 'node_modules', '@linear', 'sdk')
-  if (!existsSync(packageDir)) {
+function prunePackagedRuntimeSourceMaps(resourcesDir) {
+  // Why: dependency source maps embed the original sources (megabytes for
+  // @linear/sdk alone), and nothing in the packaged app turns on Node's
+  // source-map support, so they are never read. Manta's own main-process maps
+  // live outside node_modules and ship as a separate release artifact.
+  const nodeModulesDir = join(resourcesDir, 'node_modules')
+  if (!existsSync(nodeModulesDir)) {
     return
   }
-  pruneMatchingFiles(packageDir, (filename) => LINEAR_SDK_SOURCE_MAP_RE.test(filename))
+  pruneMatchingFiles(nodeModulesDir, (filename) => JS_SOURCE_MAP_ARTIFACT_RE.test(filename))
 }
 
 function prunePackagedSherpaOnnx(resourcesDir, electronPlatformName) {
@@ -493,7 +495,7 @@ function prunePackagedRuntimeNodeModules(resourcesDir, electronPlatformName, ele
   prunePackagedNodePty(resourcesDir, electronPlatformName, architecture)
   prunePackagedParcelWatcher(resourcesDir, electronPlatformName, architecture)
   prunePackagedRuntimeTypeDeclarations(resourcesDir)
-  prunePackagedLinearSdkSourceMaps(resourcesDir)
+  prunePackagedRuntimeSourceMaps(resourcesDir)
   prunePackagedSherpaOnnx(resourcesDir, electronPlatformName)
   prunePackagedZodSources(resourcesDir)
 }
@@ -518,7 +520,7 @@ module.exports = {
   prunePackagedNodePty,
   prunePackagedParcelWatcher,
   prunePackagedRuntimeNodeModules,
-  prunePackagedLinearSdkSourceMaps,
+  prunePackagedRuntimeSourceMaps,
   prunePackagedSherpaOnnx,
   prunePackagedRuntimeTypeDeclarations,
   prunePackagedZodSources,
