@@ -8,6 +8,10 @@ import {
   POWERLEVEL10K_WIZARD_DISABLE_ENV,
   seedPowerlevel10kWizardEnv
 } from '../pty/powerlevel10k-wizard-env'
+import {
+  POSIX_SHELL_STARTUP_COMMAND_ENV,
+  supportsPosixShellStartupCommand
+} from '../pty/posix-shell-startup-command'
 import { resolvePathEnvKey } from '../pty/windows-environment-path'
 import { selectShellStartupFeatures } from '../shell-startup-features'
 import {
@@ -89,19 +93,25 @@ export function finalizeLocalPtySpawnEnvironment(args: {
     // HISTFILE that the system zshrc clobbers, so the decision to wrap has to
     // see whether this spawn actually injected one.
     const isCodexStartupCommand = plan.startupAgentRecognition?.agent === 'codex'
-    // Why: payload-bearing Codex startup can be lost to rc-file noise; plain Codex stays markerless for startup speed.
-    const waitsForShellReady =
-      Boolean(spawn.command) &&
-      (!isCodexStartupCommand ||
-        shouldUseShellReadyStartupDelivery({
-          command: spawn.command as string,
-          startupCommandDelivery: spawn.startupCommandDelivery
-        }))
+    const codexStartupCommand = isCodexStartupCommand ? spawn.command : undefined
+    const codexRequiresShellReady =
+      codexStartupCommand !== undefined &&
+      shouldUseShellReadyStartupDelivery({
+        command: codexStartupCommand,
+        startupCommandDelivery: spawn.startupCommandDelivery
+      })
     // Why delete: MANTA_SHELL_FEATURES is Manta-owned, and only the launch
     // config below may name features for this shell.
     delete env.MANTA_SHELL_FEATURES
-    plan.getFallbackShellReadyConfig = (shell) =>
-      getShellLaunchConfig(
+    delete env[POSIX_SHELL_STARTUP_COMMAND_ENV]
+    plan.getFallbackShellReadyConfig = (shell) => {
+      const wrapperStartupCommand =
+        codexStartupCommand !== undefined && supportsPosixShellStartupCommand(shell)
+          ? codexStartupCommand
+          : undefined
+      const waitsForShellReady =
+        Boolean(spawn.command) && (!isCodexStartupCommand || codexRequiresShellReady)
+      return getShellLaunchConfig(
         shell,
         selectShellStartupFeatures({
           shellPath: shell,
@@ -111,8 +121,10 @@ export function finalizeLocalPtySpawnEnvironment(args: {
           // Why identical: the identity marker exists so the readiness
           // handshake can bind output to the right shell PID.
           emitsStartupIdentity: waitsForShellReady
-        })
+        }),
+        wrapperStartupCommand
       )
+    }
     const shellLaunch = plan.getFallbackShellReadyConfig(plan.shellPath)
     Object.assign(env, shellLaunch.env)
     plan.shellArgs = shellLaunch.args ?? plan.shellArgs

@@ -7,6 +7,7 @@
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
 import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
 import { getPosixCodexShellLaunchPreflight } from '../pty/codex-shell-launch-preflight'
+import { getBashStartupCommandPromptBlock } from '../pty/posix-shell-startup-command'
 import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
 import { SHELL_READY_MARKER_ESCAPED } from './local-pty-shell-ready-marker'
 
@@ -122,6 +123,7 @@ if [[ -n "$__manta_ready_marker" ]]; then
 fi
 __manta_append_prompt_command '__manta_in_debug_capture=1; __manta_prompt_had_functrace=""; if [[ -o functrace ]]; then __manta_prompt_had_functrace=1; set +T; fi; __manta_outer_debug_trap_spec="$(trap -p DEBUG)"; [[ -z "$__manta_prompt_had_functrace" ]] || set -T; unset __manta_prompt_had_functrace __manta_in_debug_capture'
 __manta_append_prompt_command "__manta_osc133_prompt_done"
+${getBashStartupCommandPromptBlock()}
 __manta_had_functrace=""
 [[ -o functrace ]] && __manta_had_functrace=1
 set +T
