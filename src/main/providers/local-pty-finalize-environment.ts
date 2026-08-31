@@ -1,13 +1,17 @@
 import { win32 as pathWin32 } from 'node:path'
 import { shouldUseShellReadyStartupDelivery } from '../../shared/codex-startup-delivery'
 import { expandWindowsPathEnvironmentVariables } from '../../shared/windows-environment-expansion'
-import { dropInheritedOrcaFishHistory } from '../fish-history-session'
+import { dropInheritedMantaFishHistory } from '../fish-history-session'
 import { dropIncoherentCondaActivationEnv } from '../pty/conda-activation-env'
 import { stripLegacyTerminalShimEnv } from '../pty/legacy-terminal-shim-dir'
 import {
   POWERLEVEL10K_WIZARD_DISABLE_ENV,
   seedPowerlevel10kWizardEnv
 } from '../pty/powerlevel10k-wizard-env'
+import {
+  POSIX_SHELL_STARTUP_COMMAND_ENV,
+  supportsPosixShellStartupCommand
+} from '../pty/posix-shell-startup-command'
 import { resolvePathEnvKey } from '../pty/windows-environment-path'
 import { selectShellStartupFeatures } from '../shell-startup-features'
 import {
@@ -17,7 +21,7 @@ import {
   type HistoryInjectionResult
 } from '../terminal-history'
 import { addWslEnvKeys } from '../wsl-env'
-import { dropInheritedOrcaHistFile } from '../worktree-history-file-path'
+import { dropInheritedMantaHistFile } from '../worktree-history-file-path'
 import { promoteAgentTeamsShimPath } from './local-pty-launch-helpers'
 import type { LocalPtyLaunchPlan } from './local-pty-launch-plan'
 import type { LocalPtyProviderOptions } from './local-pty-provider-types'
@@ -74,14 +78,14 @@ export function finalizeLocalPtySpawnEnvironment(args: {
     logHistoryInjection(worktreeId, historyResult)
   } else {
     // Why: injectHistoryEnv is what normally clears it, so when history is off
-    // an inherited ORCA_HISTFILE would still reach the wrapper. Credit: #11146.
-    delete env.ORCA_HISTFILE
+    // an inherited MANTA_HISTFILE would still reach the wrapper. Credit: #11146.
+    delete env.MANTA_HISTFILE
     // Same for an exported `fish_history` from the fish pane that launched this
-    // Orca: history off means fish's own default, not another worktree's file.
-    dropInheritedOrcaFishHistory(env)
+    // Manta: history off means fish's own default, not another worktree's file.
+    dropInheritedMantaFishHistory(env)
     // And for an exported HISTFILE: history off means the shell's own default,
-    // not the history file of the worktree this Orca was launched from.
-    dropInheritedOrcaHistFile(env)
+    // not the history file of the worktree this Manta was launched from.
+    dropInheritedMantaHistFile(env)
   }
 
   if (!plan.wslInfo && process.platform !== 'win32') {
@@ -89,19 +93,25 @@ export function finalizeLocalPtySpawnEnvironment(args: {
     // HISTFILE that the system zshrc clobbers, so the decision to wrap has to
     // see whether this spawn actually injected one.
     const isCodexStartupCommand = plan.startupAgentRecognition?.agent === 'codex'
-    // Why: payload-bearing Codex startup can be lost to rc-file noise; plain Codex stays markerless for startup speed.
-    const waitsForShellReady =
-      Boolean(spawn.command) &&
-      (!isCodexStartupCommand ||
-        shouldUseShellReadyStartupDelivery({
-          command: spawn.command as string,
-          startupCommandDelivery: spawn.startupCommandDelivery
-        }))
-    // Why delete: ORCA_SHELL_FEATURES is Orca-owned, and only the launch
+    const codexStartupCommand = isCodexStartupCommand ? spawn.command : undefined
+    const codexRequiresShellReady =
+      codexStartupCommand !== undefined &&
+      shouldUseShellReadyStartupDelivery({
+        command: codexStartupCommand,
+        startupCommandDelivery: spawn.startupCommandDelivery
+      })
+    // Why delete: MANTA_SHELL_FEATURES is Manta-owned, and only the launch
     // config below may name features for this shell.
-    delete env.ORCA_SHELL_FEATURES
-    plan.getFallbackShellReadyConfig = (shell) =>
-      getShellLaunchConfig(
+    delete env.MANTA_SHELL_FEATURES
+    delete env[POSIX_SHELL_STARTUP_COMMAND_ENV]
+    plan.getFallbackShellReadyConfig = (shell) => {
+      const wrapperStartupCommand =
+        codexStartupCommand !== undefined && supportsPosixShellStartupCommand(shell)
+          ? codexStartupCommand
+          : undefined
+      const waitsForShellReady =
+        Boolean(spawn.command) && (!isCodexStartupCommand || codexRequiresShellReady)
+      return getShellLaunchConfig(
         shell,
         selectShellStartupFeatures({
           shellPath: shell,
@@ -111,8 +121,10 @@ export function finalizeLocalPtySpawnEnvironment(args: {
           // Why identical: the identity marker exists so the readiness
           // handshake can bind output to the right shell PID.
           emitsStartupIdentity: waitsForShellReady
-        })
+        }),
+        wrapperStartupCommand
       )
+    }
     const shellLaunch = plan.getFallbackShellReadyConfig(plan.shellPath)
     Object.assign(env, shellLaunch.env)
     plan.shellArgs = shellLaunch.args ?? plan.shellArgs
