@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildProcessTableIndex,
   parseStrictProcessTableRows,
-  ProcessTableCaptureError
+  ProcessTableCaptureError,
+  type ProcessTableIndexStats
 } from '../../shared/process-table-snapshot'
 import {
   resolveAgentForegroundProcessesBatch,
   resolveAgentForegroundProcessesFromIndex
 } from './agent-foreground-process'
-import {
-  buildProcessTableIndex,
-  type ProcessTableIndexStats
-} from '../../shared/process-table-snapshot'
 
 describe('strict process-table evidence parser', () => {
   it('extracts pgid/tpgid while retaining command spacing', () => {
