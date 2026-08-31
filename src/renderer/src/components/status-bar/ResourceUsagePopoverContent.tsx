@@ -49,8 +49,7 @@ export function ResourceUsagePopoverContent({
     totalMemory,
     memoryMetricCopy,
     orphanCount,
-    unifiedRepos,
-    oldWorkspaceCount
+    unifiedRepos
   } = projection
   const {
     toggleRepo,
@@ -345,8 +344,7 @@ export function ResourceUsagePopoverContent({
           <span className="min-w-0 truncate px-4 text-center">
             {translate(
               'auto.components.status.bar.ResourceUsageStatusSegment.92924a14e3',
-              'Review inactive workspaces ({{value0}})',
-              { value0: oldWorkspaceCount }
+              'Clean up workspaces'
             )}
           </span>
           <ChevronRight className="absolute right-2.5 size-3.5 text-muted-foreground" aria-hidden />

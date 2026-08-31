@@ -15580,7 +15580,8 @@
           "rowActions": "Automation actions",
           "tableLastRun": "Last run",
           "noListMatches": "No automations match.",
-          "destinationProjectUnavailable": "Choose a project owned by the selected automation destination."
+          "destinationProjectUnavailable": "Choose a project owned by the selected automation destination.",
+          "ownerChanged": "This automation changed hosts. Refresh and try again."
         },
         "AutomationsPageSkeleton": {
           "55527b7bcf": "Loading automations"
