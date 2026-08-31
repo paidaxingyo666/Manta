@@ -762,6 +762,16 @@ if (app.isPackaged && process.platform !== 'win32') {
 }
 configureDevUserDataPath(is.dev)
 configureMantaUserDataPathEnv()
+// Why these four lines are one step (#16761): the two above decide where userData lives, and
+// everything below may resolve a path. Installing the accessor any later leaves a window where an
+// early resolve either throws — which is what killed `manta serve` — or, worse, memoizes the
+// pre-override directory and silently writes user state to the wrong place for the whole session.
+// Safe this early: ElectronAppEnvironment holds no state and calls `app` lazily per accessor, so it
+// changes no timing, and initDataPath only joins strings.
+setAppEnvironment(new ElectronAppEnvironment())
+// Why captured now: after the dev/E2E override above, and before app.setName('Manta') (whenReady)
+// changes how userData resolves on a case-sensitive filesystem. See persistence.ts:20-28.
+initDataPath()
 
 // Why: just past createMainWindow's 10s ready-to-show fallback, so a window revealed that way still gets its tray icon.
 const TRAY_CREATE_FALLBACK_MS = 12_000
@@ -936,12 +946,11 @@ if (!hasSingleInstanceLock) {
 
 // Why: when another process holds the lock we've already exited; skip file-writing side effects so this transient process never touches userData.
 if (hasSingleInstanceLock) {
-  // Why first: both accessors throw until installed, and everything below this line
-  // may resolve a path or read a credential. Neither constructor touches `app` or
-  // `safeStorage` — they resolve lazily per call — so installing here changes no
-  // timing, in particular not the pre-ready Keychain service-name resolution and
-  // the app.setName ordering the userData captures below depend on.
-  setAppEnvironment(new ElectronAppEnvironment())
+  // Why first in this block: the accessor throws until installed and everything below may read a
+  // credential. The constructor does not touch `safeStorage` — it resolves lazily per call — so
+  // installing here changes no timing, in particular not the pre-ready Keychain service-name
+  // resolution. The app-environment port and the userData capture install earlier still, next to
+  // the path decision they depend on.
   setSecretStore(new ElectronSecretStore())
   // Why at process level, not per-window: pty.ts registers against injected surfaces so
   // it can load without electron, and an Electron main process always has ipcMain —
@@ -974,8 +983,6 @@ if (hasSingleInstanceLock) {
   installDevParentDisconnectQuit(shouldCoupleToDevParent)
   installDevParentWatchdog(shouldCoupleToDevParent)
   installDevParentSignalQuit(shouldCoupleToDevParent)
-  // Why: run after configureDevUserDataPath but before app.setName('Manta') (whenReady), which changes the resolved path on case-sensitive filesystems.
-  initDataPath()
   // Why not at module scope with the other lifetime couplings (#16761): this resolves the handoff
   // path, so it throws until setAppEnvironment() above installs the accessor — which killed every
   // `manta serve` process before it could listen. After initDataPath() specifically, so the
