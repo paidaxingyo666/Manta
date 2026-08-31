@@ -161,7 +161,7 @@ export const ORCHESTRATION_SEND_METHODS: RpcMethod[] = [
           senderPaneKey,
           legacyCoordinatorRunId,
           orchestrationCapability,
-          processIncarnation:
+          resolveProcessIncarnation: () =>
             attestedCaller?.processIncarnation ??
             runtime.getTerminalProcessIncarnation(from) ??
             undefined,
