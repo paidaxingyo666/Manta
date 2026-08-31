@@ -19,6 +19,13 @@ const reconciliationHookSource = readMobileSessionRouteSource(
 const terminalInventoryRecoverySource = readMobileSessionRouteSource(
   './use-mobile-terminal-inventory-recovery.ts'
 )
+const terminalSubscriptionSource = readMobileSessionRouteSource(
+  './use-mobile-session-terminal-subscription.ts'
+)
+const terminalListSource = readMobileSessionRouteSource('./use-mobile-session-terminal-list.ts')
+const tabReconciliationOwnerSource = readMobileSessionRouteSource(
+  './use-mobile-session-tab-reconciliation.ts'
+)
 const autoCreateHookSource = readMobileSessionRouteSource(
   './use-initial-session-terminal-autocreate.ts'
 )
@@ -100,15 +107,17 @@ describe('mobile session startup', () => {
   })
 
   it('confirms terminal stream teardown with a committed inventory-recovery bridge', () => {
-    expect(source).toContain("if (data.type === 'end' || data.type === 'error')")
-    expect(source).toContain('signalTerminalInventoryRecovery()')
+    expect(terminalSubscriptionSource).toContain(
+      "if (data.type === 'end' || data.type === 'error')"
+    )
+    expect(terminalSubscriptionSource).toContain('signalTerminalInventoryRecovery()')
     expect(terminalInventoryRecoverySource).toContain('actionRef.current = recoveryAction')
     expect(terminalInventoryRecoverySource).toContain('pendingSignalScopeRef.current = scopeKey')
     expect(terminalInventoryRecoverySource).toContain(
       'committedScope !== null && committedScope !== scopeKey'
     )
-    expect(source).toContain('return terminalInventoryRequest.activate()')
-    expect(source).toContain('if (!isCurrent())')
+    expect(terminalListSource).toContain('return terminalInventoryRequest.activate()')
+    expect(terminalListSource).toContain('if (!isCurrent() || !response.ok)')
     expect(terminalInventoryRecoverySource).toContain(
       'TERMINAL_INVENTORY_CONFIRMATION_DELAY_MS = 750'
     )
@@ -232,7 +241,8 @@ describe('mobile session startup', () => {
     )
     const recoveryContext = sliceBetween(
       'const pendingTerminalRecoveryContextCache = useMemo(',
-      'const getSessionTabsApplicationRevision'
+      'const sessionTabsFetchReporting',
+      tabReconciliationOwnerSource
     )
 
     const tabsRefWrite = 'sessionTabsRef.current = nextTabs'

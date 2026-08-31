@@ -14,15 +14,15 @@ import {
   TERMINAL_INPUT_SEND_OPTIONS
 } from '../terminal/terminal-send-request'
 import { normalizeTerminalTextInput } from '../terminal/terminal-text-input-normalization'
+import { useAgentSendKeyboardDismissal } from './use-agent-send-keyboard-dismissal'
 import type { MobileSessionTab } from './mobile-session-route-types'
 import type { MobileSessionTerminalWebviewModel } from './use-mobile-session-terminal-webview'
 
 export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminalWebviewModel) {
   const {
     client,
-    input,
-    setInput,
     activeHandle,
+    activeSessionTab,
     setActionTarget,
     setMarkdownActionTarget,
     setFileActionTarget,
@@ -40,12 +40,28 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     activeHandleRef,
     activeSessionTabTypeRef,
     sendingRef,
+    bufferedTerminalDraftState,
+    getSendCompletionGeneration,
     handleLiveInputAccessoryBytes,
     canSend,
     scheduleDelayedAction,
     showToast
   } = scope
   const TERMINAL_KEYBOARD_DISMISS_ACTION_SHEET_FALLBACK_MS = 450
+
+  const dismissSoftwareKeyboard = useCallback(() => {
+    dismissTerminalKeyboard({
+      clearPendingLiveInputFocus: () => clearTerminalLiveInputFocusTimer(liveInputFocusTimerRef),
+      commandInput: commandInputRef.current,
+      dismissKeyboard: () => Keyboard.dismiss(),
+      liveInput: liveInputRef.current
+    })
+  }, [])
+  const dismissKeyboardAfterAgentSend = useAgentSendKeyboardDismissal(
+    dismissSoftwareKeyboard,
+    getSendCompletionGeneration
+  )
+
   async function handleSend() {
     // Why: the return key still submits while offline; hold the composed text instead of firing a doomed RPC (#6713).
     if (!client || !activeHandle || sendingRef.current || !canSend) {
@@ -53,12 +69,23 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     }
     sendingRef.current = true
 
-    const text = normalizeTerminalTextInput(input)
-    setInput('')
+    const draft = bufferedTerminalDraftState.input
+    const text = normalizeTerminalTextInput(draft)
+    const bufferedDraftSend = bufferedTerminalDraftState.beginBufferedTerminalDraftSend(
+      activeHandle,
+      draft
+    )
+    const sendOrigin = {
+      handle: activeHandle,
+      tab: activeSessionTab,
+      generation: getSendCompletionGeneration()
+    }
+    const restoreRejectedDraft = () =>
+      bufferedTerminalDraftState.restoreRejectedDraft(bufferedDraftSend)
 
     try {
       // Why: fail now and restore the text — a send parked across a reconnect would execute long after the tap.
-      await client.sendRequest(
+      const response = await client.sendRequest(
         'terminal.send',
         buildTerminalSendParams({
           terminal: activeHandle,
@@ -68,9 +95,17 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
         }),
         TERMINAL_INPUT_SEND_OPTIONS
       )
+      const accepted = isTerminalSendRpcAccepted(response)
+      if (!accepted) {
+        restoreRejectedDraft()
+      }
+      const draftUnchanged =
+        accepted && bufferedTerminalDraftState.settleBufferedTerminalDraftSend(bufferedDraftSend)
+      dismissKeyboardAfterAgentSend(sendOrigin, accepted && draftUnchanged)
     } catch {
-      setInput(text)
+      restoreRejectedDraft()
     } finally {
+      bufferedTerminalDraftState.settleBufferedTerminalDraftSend(bufferedDraftSend)
       sendingRef.current = false
     }
   }
@@ -200,14 +235,6 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     ]
   )
 
-  const dismissSoftwareKeyboard = useCallback(() => {
-    dismissTerminalKeyboard({
-      clearPendingLiveInputFocus: () => clearTerminalLiveInputFocusTimer(liveInputFocusTimerRef),
-      commandInput: commandInputRef.current,
-      dismissKeyboard: () => Keyboard.dismiss(),
-      liveInput: liveInputRef.current
-    })
-  }, [])
   return {
     handleSend,
     handleAccessoryKey,
@@ -215,7 +242,8 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     clearSessionTabActionSheetKeyboardListener,
     openSessionTabActionSheet,
     openSessionTabActionSheetAfterKeyboardDismiss,
-    dismissSoftwareKeyboard
+    dismissSoftwareKeyboard,
+    dismissKeyboardAfterAgentSend
   }
 }
 

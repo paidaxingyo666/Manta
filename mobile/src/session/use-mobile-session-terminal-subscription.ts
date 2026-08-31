@@ -22,6 +22,7 @@ export function useMobileSessionTerminalSubscription(
     viewportMeasuredRef,
     terminalUnsubsRef,
     subscribingHandlesRef,
+    leaseOnlyHandlesRef,
     initializedHandlesRef,
     terminalDiagnosticsRef,
     viewportResubscribeBudgetRef,
@@ -36,7 +37,8 @@ export function useMobileSessionTerminalSubscription(
     showNativeChatRef,
     getTerminalRef,
     unsubscribeTerminal,
-    unsubscribeTerminalRef
+    unsubscribeTerminalRef,
+    signalTerminalInventoryRecovery
   } = scope
   const subscribeToTerminal = useCallback(
     (handle: string) => {
@@ -73,6 +75,11 @@ export function useMobileSessionTerminalSubscription(
       }
 
       subscribingHandlesRef.current.add(handle)
+      if (covered) {
+        leaseOnlyHandlesRef.current.add(handle)
+      } else {
+        leaseOnlyHandlesRef.current.delete(handle)
+      }
       const seq = (subscribeSeqRef.current.get(handle) ?? 0) + 1
       subscribeSeqRef.current.set(handle, seq)
       diagnostics.streamArmed(handle, seq, viewportRef.current)
@@ -97,6 +104,7 @@ export function useMobileSessionTerminalSubscription(
           diagnostics.firstStreamEvent(handle, seq, data.type)
           if (data.type === 'end' || data.type === 'error') {
             unsubscribeTerminalRef.current(handle)
+            signalTerminalInventoryRecovery()
             return
           }
           if (data.type === 'subscribed') {
@@ -240,7 +248,10 @@ export function useMobileSessionTerminalSubscription(
             scheduleDelayedAction(() => getTerminalRef(handle)?.resetZoom(), 200)
           }
         },
-        () => unsubscribeTerminalRef.current(handle)
+        () => {
+          unsubscribeTerminalRef.current(handle)
+          signalTerminalInventoryRecovery()
+        }
       )
 
       if (subscribeSeqRef.current.get(handle) === seq) {
@@ -250,7 +261,14 @@ export function useMobileSessionTerminalSubscription(
       }
       subscribingHandlesRef.current.delete(handle)
     },
-    [client, getTerminalRef, markNativeChatInputLeaseReady, scheduleDelayedAction, showToast]
+    [
+      client,
+      getTerminalRef,
+      markNativeChatInputLeaseReady,
+      scheduleDelayedAction,
+      showToast,
+      signalTerminalInventoryRecovery
+    ]
   )
   return {
     subscribeToTerminal

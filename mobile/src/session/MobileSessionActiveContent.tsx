@@ -72,6 +72,8 @@ export function MobileSessionActiveContent({
     activeFileTab,
     activeBrowserTab,
     activePendingTerminalTab,
+    isPendingTerminalRecoveryParked,
+    retryPendingTerminalRecovery,
     showLoadingState,
     showEmptyState,
     keyboardLift,
@@ -170,8 +172,24 @@ export function MobileSessionActiveContent({
     </View>
   ) : activePendingTerminalTab ? (
     <View style={styles.emptyState}>
-      <ActivityIndicator size="small" color={colors.textSecondary} />
-      <Text style={styles.emptyText}>{activePendingTerminalTab.title || 'Loading terminal'}</Text>
+      {!isPendingTerminalRecoveryParked && (
+        <ActivityIndicator size="small" color={colors.textSecondary} />
+      )}
+      <Text style={styles.emptyText}>
+        {isPendingTerminalRecoveryParked
+          ? 'Terminal is taking longer than expected'
+          : activePendingTerminalTab.title || 'Loading terminal'}
+      </Text>
+      {isPendingTerminalRecoveryParked && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading terminal"
+          style={({ pressed }) => [styles.createButton, pressed && styles.newTerminalButtonPressed]}
+          onPress={() => void retryPendingTerminalRecovery()}
+        >
+          <Text style={styles.createButtonText}>Retry</Text>
+        </Pressable>
+      )}
     </View>
   ) : (
     <View
@@ -225,6 +243,8 @@ export function MobileSessionActiveContent({
         inputLockReason={nativeChatInputLockReason}
         sendErrorMessage={nativeChatSendError.message}
         onClearSendError={nativeChatSendError.clear}
+        sendSurfaceId={controller.nativeChatScopeKey ?? ''}
+        getSendCompletionGeneration={controller.getSendCompletionGeneration}
         keyboardInset={keyboardLift}
       />
       {toastMessage && (

@@ -11,6 +11,8 @@ import { resolveMobileTerminalInputGate } from '../terminal/terminal-input-conne
 import { createInitialSessionAutoCreateState } from './use-initial-session-terminal-autocreate'
 import { TerminalViewportResubscribeBudget } from './mobile-terminal-viewport-resubscribe'
 import { MobileTerminalDiagnostics } from './mobile-terminal-diagnostics'
+import { useBufferedTerminalDrafts } from '../terminal/use-buffered-terminal-drafts'
+import { useMobileTerminalInventoryRecoveryBridge } from './use-mobile-terminal-inventory-recovery'
 import type {
   MobileSessionTab,
   MobileSessionTabType,
@@ -63,6 +65,8 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   } | null>(null)
   const terminalUnsubsRef = useRef<Map<string, () => void>>(new Map())
   const subscribingHandlesRef = useRef<Set<string>>(new Set())
+  // Lease-only streams do not render, so reconciliation tracks them separately.
+  const leaseOnlyHandlesRef = useRef<Set<string>>(new Set())
   const initializedHandlesRef = useRef<Set<string>>(new Set())
   const terminalDiagnosticsRef = useRef(new MobileTerminalDiagnostics())
   // Why: bounds the scrollback→resubscribe fit loop per handle (STA-3337).
@@ -70,6 +74,9 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   // Why: don't subscribe until the WebView fires web-ready — iOS may defer JS in hidden WebViews and init() messages would queue unrendered.
   const webReadyHandlesRef = useRef<Set<string>>(new Set())
   const activeHandleRef = useRef<string | null>(null)
+  const bufferedTerminalDraftState = useBufferedTerminalDrafts({ activeHandle, activeHandleRef })
+  const reconcileBufferedDraftsRef = useRef(bufferedTerminalDraftState.reconcileTerminalTabs)
+  reconcileBufferedDraftsRef.current = bufferedTerminalDraftState.reconcileTerminalTabs
   const activeSessionTabTypeRef = useRef<MobileSessionTabType | null>(null)
   const pendingActiveSessionTabIdRef = useRef<string | null>(null)
   const pendingActiveTerminalHandleRef = useRef<string | null>(null)
@@ -79,6 +86,9 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   const pendingTerminalActivationAttemptRef = useRef<string | null>(null)
   // Why: route the terminal URL tap through a ref so it runs the current handleCreateBrowser closure (the memoized one may hold a null-client render).
   const handleCreateBrowserRef = useRef<((rawUrl?: string) => Promise<boolean>) | null>(null)
+  const terminalInventoryRecoveryScope = JSON.stringify([hostId, worktreeId])
+  const { registerTerminalInventoryRecoveryAction, signalTerminalInventoryRecovery } =
+    useMobileTerminalInventoryRecoveryBridge(terminalInventoryRecoveryScope)
 
   const initialSessionAutoCreateRef = useRef(createInitialSessionAutoCreateState())
   const markdownSaveSeqRef = useRef<Map<string, number>>(new Map())
@@ -97,6 +107,7 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   const {
     clearPendingLiveInputCommit,
     flushPendingLiveInputBeforeExternalSend,
+    getLiveInputInteractionGeneration,
     handleLiveInputAccessoryBytes,
     handleLiveInputChange,
     handleLiveInputKeyPress,
@@ -159,6 +170,7 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
     dictationRouteContextRef,
     terminalUnsubsRef,
     subscribingHandlesRef,
+    leaseOnlyHandlesRef,
     initializedHandlesRef,
     terminalDiagnosticsRef,
     viewportResubscribeBudgetRef,
@@ -193,7 +205,15 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
     liveInputEnabled,
     focusLiveInput,
     handleTerminalTap,
-    resetLiveInputFocus
+    resetLiveInputFocus,
+    terminalInventoryRecoveryScope,
+    registerTerminalInventoryRecoveryAction,
+    signalTerminalInventoryRecovery,
+    bufferedTerminalDraftState,
+    reconcileBufferedDraftsRef,
+    input: bufferedTerminalDraftState.input,
+    setInput: bufferedTerminalDraftState.setInput,
+    getLiveInteractionGeneration: getLiveInputInteractionGeneration
   }
 }
 

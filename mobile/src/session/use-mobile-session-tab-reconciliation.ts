@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react'
 import { startRuntimeCapabilityProbe } from '../transport/runtime-capability-probe'
 import { supportsMobileQuickCommands } from '../terminal/quick-commands'
 import { MOBILE_AI_VAULT_CAPABILITY } from '../agent-history/agent-history-capability'
@@ -7,6 +7,8 @@ import { runAcceptedMobileSessionTabsEffects } from './mobile-session-tabs-accep
 import type { SessionTabsStreamSource } from './mobile-session-tabs-stream-health'
 import { useMobileSessionTabsFetchReporting } from './use-mobile-session-tabs-fetch-reporting'
 import { useMobileSessionTabsReconciliation } from './use-mobile-session-tabs-reconciliation'
+import { PendingTerminalHandleRecoveryContextCache } from './pending-terminal-handle-recovery'
+import { hasConnectedTerminalAbsentFromSessionTabs } from './mobile-terminal-records'
 import type { MobileSessionTab, SessionTabsResult } from './mobile-session-route-types'
 import type { MobileSessionMarkdownActionsModel } from './use-mobile-session-markdown-actions'
 
@@ -15,6 +17,9 @@ export function useMobileSessionTabReconciliation(scope: MobileSessionMarkdownAc
     worktreeId,
     client,
     connState,
+    sessionTabsRef,
+    activeSessionTabIdRef,
+    terminalsRef,
     appliedSessionTabsRevisionRef,
     closedTabTombstonesRef,
     setMarkdownDocs,
@@ -29,8 +34,13 @@ export function useMobileSessionTabReconciliation(scope: MobileSessionMarkdownAc
     setQuickCommandsSupported,
     nativeChatStream,
     fetchTerminals,
-    applySessionTabs
+    applySessionTabs,
+    terminalInventoryRecoveryScope,
+    registerTerminalInventoryRecoveryAction
   } = scope
+  const [parkedPendingTerminalContext, setParkedPendingTerminalContext] = useState<string | null>(
+    null
+  )
   const consumeAcceptedSessionTabs = useCallback(
     (
       _result: SessionTabsResult,
@@ -64,6 +74,7 @@ export function useMobileSessionTabReconciliation(scope: MobileSessionMarkdownAc
     () =>
       closedTabTombstonesRef.current.size > 0 ||
       pendingBrowserFocusPageIdRef.current !== null ||
+      hasConnectedTerminalAbsentFromSessionTabs(terminalsRef.current, sessionTabsRef.current) ||
       // Why: a chat-covered handle that ran out of rearms and left `terminal.list`
       // was reminted by a desktop graph reload. Only a fresh tab snapshot carries
       // the replacement handle, so force one instead of holding the composer locked.
@@ -74,22 +85,49 @@ export function useMobileSessionTabReconciliation(scope: MobileSessionMarkdownAc
     () => appliedSessionTabsRevisionRef.current,
     []
   )
+  const pendingTerminalRecoveryContextCache = useMemo(
+    () => new PendingTerminalHandleRecoveryContextCache(),
+    []
+  )
+  const getPendingTerminalRecoveryContextKey = useCallback(
+    () =>
+      pendingTerminalRecoveryContextCache.read(
+        sessionTabsRef.current,
+        activeSessionTabIdRef.current
+      ),
+    [pendingTerminalRecoveryContextCache, sessionTabsRef, activeSessionTabIdRef]
+  )
+  const pendingTerminalRecoveryContextKey = getPendingTerminalRecoveryContextKey()
   const sessionTabsFetchReporting = useMobileSessionTabsFetchReporting<SessionTabsResult>({
     worktreeId,
     diagnosticsRef: terminalDiagnosticsRef
   })
-  const { fetchSessionTabs, ensureSessionTabs, fetchPendingBrowserSessionTabs } =
-    useMobileSessionTabsReconciliation<SessionTabsResult, MobileSessionTab>({
-      client,
-      connState,
-      worktreeId,
-      applySessionTabs,
-      consumeAcceptedSessionTabs,
-      fetchTerminals,
-      hasRecoveryNeed: hasSessionTabsRecoveryNeed,
-      getApplicationRevision: getSessionTabsApplicationRevision,
-      ...sessionTabsFetchReporting
-    })
+  const {
+    fetchSessionTabs,
+    ensureSessionTabs,
+    fetchPendingBrowserSessionTabs,
+    retryPendingTerminalRecovery,
+    requestTerminalInventoryRecovery
+  } = useMobileSessionTabsReconciliation<SessionTabsResult, MobileSessionTab>({
+    client,
+    connState,
+    worktreeId,
+    applySessionTabs,
+    consumeAcceptedSessionTabs,
+    fetchTerminals,
+    terminalInventoryRecoveryScopeKey: terminalInventoryRecoveryScope,
+    hasRecoveryNeed: hasSessionTabsRecoveryNeed,
+    pendingTerminalRecoveryContextKey,
+    getPendingTerminalRecoveryContextKey,
+    onPendingTerminalRecoveryParked: setParkedPendingTerminalContext,
+    getApplicationRevision: getSessionTabsApplicationRevision,
+    ...sessionTabsFetchReporting
+  })
+
+  useEffect(
+    () => registerTerminalInventoryRecoveryAction(requestTerminalInventoryRecovery),
+    [registerTerminalInventoryRecoveryAction, requestTerminalInventoryRecovery]
+  )
 
   useEffect(() => {
     if (connState === 'connected') {
@@ -143,6 +181,10 @@ export function useMobileSessionTabReconciliation(scope: MobileSessionMarkdownAc
     fetchSessionTabs,
     ensureSessionTabs,
     fetchPendingBrowserSessionTabs,
+    retryPendingTerminalRecovery,
+    requestTerminalInventoryRecovery,
+    pendingTerminalRecoveryContextKey,
+    parkedPendingTerminalContext,
     hostQueryReplyInputSupportedRef
   }
 }

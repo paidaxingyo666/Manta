@@ -23,7 +23,10 @@ export function useMobileSessionBulkClose(scope: MobileSessionCloseActionsModel)
     applySessionTabs,
     fetchSessionTabs,
     switchSessionTab,
-    handleCloseSessionTab
+    handleCloseSessionTab,
+    pendingTerminalRecoveryContextKey,
+    parkedPendingTerminalContext,
+    retryPendingTerminalRecovery
   } = scope
   const bulkCloseActions = createBulkCloseSheetActions({
     sessionTabsRef,
@@ -42,6 +45,9 @@ export function useMobileSessionBulkClose(scope: MobileSessionCloseActionsModel)
     activeSessionTab?.type === 'terminal' && typeof activeSessionTab.terminal !== 'string'
       ? activeSessionTab
       : null
+  const isPendingTerminalRecoveryParked =
+    pendingTerminalRecoveryContextKey !== null &&
+    pendingTerminalRecoveryContextKey === parkedPendingTerminalContext
 
   useEffect(() => {
     if (!client || connState !== 'connected' || !activePendingTerminalTab) {
@@ -98,7 +104,9 @@ export function useMobileSessionBulkClose(scope: MobileSessionCloseActionsModel)
     activeMarkdownTab,
     activeFileTab,
     activeBrowserTab,
-    activePendingTerminalTab
+    activePendingTerminalTab,
+    isPendingTerminalRecoveryParked,
+    retryPendingTerminalRecovery
   }
 }
 

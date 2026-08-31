@@ -24,8 +24,7 @@ import type { MobileSessionController } from './use-mobile-session-controller'
 export function MobileSessionCommandDock({ controller }: { controller: MobileSessionController }) {
   const {
     insets,
-    input,
-    setInput,
+    bufferedTerminalDraftState,
     autocompleteEnabled,
     liveInputCapture,
     activeHandle,
@@ -41,6 +40,10 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
     handleLiveInputChange,
     handleLiveInputKeyPress,
     handleLiveInputSubmit,
+    getLiveInteractionGeneration,
+    getSendCompletionGeneration,
+    dismissKeyboardAfterAgentSend,
+    activeSessionTab,
     canSend,
     canCompose,
     liveInputEnabled,
@@ -293,9 +296,22 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
               ref={liveInputRef}
               style={styles.liveInputCapture}
               value={liveInputCapture}
-              onChangeText={handleLiveInputChange}
+              onChange={handleLiveInputChange}
               onKeyPress={handleLiveInputKeyPress}
-              onSubmitEditing={handleLiveInputSubmit}
+              onSubmitEditing={() => {
+                const submit = handleLiveInputSubmit()
+                const sendOrigin = {
+                  tab: activeSessionTab,
+                  generation: getSendCompletionGeneration(),
+                  interaction: getLiveInteractionGeneration()
+                }
+                void submit.then((accepted) =>
+                  dismissKeyboardAfterAgentSend(
+                    sendOrigin,
+                    accepted && sendOrigin.interaction === getLiveInteractionGeneration()
+                  )
+                )
+              }}
               placeholder=""
               showSoftInputOnFocus
               autoCapitalize="none"
@@ -324,9 +340,9 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
                   : 'cmd-input'
               }
               style={styles.textInput}
-              value={input}
+              value={bufferedTerminalDraftState.input}
               // Why: iOS kills active dictation/IME if JS writes a value differing from native text; store raw, normalize at send.
-              onChangeText={setInput}
+              onChangeText={bufferedTerminalDraftState.setInput}
               placeholder="Type a command…"
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
@@ -337,6 +353,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
               autoComplete="off"
               keyboardType={getTerminalCommandKeyboardType(Platform.OS, autocompleteEnabled)}
               returnKeyType="send"
+              blurOnSubmit={false}
               // Why: composing is local — an outage must not lock the field or discard typed text (#6713).
               editable={canCompose}
               onSubmitEditing={() => void handleSend()}
