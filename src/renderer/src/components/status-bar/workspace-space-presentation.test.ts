@@ -11,7 +11,6 @@ import {
   filterWorkspaceSpaceRows,
   getLargestWorkspaceSpaceItemSize,
   getLargestWorkspaceSpaceRowSize,
-  getWorkspaceSpaceGitStatusRefreshCandidates,
   isWorkspaceSpaceFilterQueryTooLarge,
   isWorkspaceSpaceRowReadyToDelete,
   pruneWorkspaceSpaceSelectedIds,
@@ -19,6 +18,7 @@ import {
   resolveWorkspaceSpaceTreemapZoomWorktreeId,
   sortWorkspaceSpaceRows
 } from './workspace-space-presentation'
+import { getWorkspaceSpaceGitStatusRefreshCandidates } from './workspace-space-git-status-order'
 import { getWorkspaceDecisionDetails } from './WorkspaceSpaceManagerPanel'
 import {
   getWorkspaceSpaceDeleteState,

@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo } from 'react'
 import {
   filterWorkspaceSpaceRows,
   getLargestWorkspaceSpaceRowSize,
-  getWorkspaceSpaceGitStatusRefreshCandidates,
   isWorkspaceSpaceRowReadyToDelete,
   pruneWorkspaceSpaceSelectedIds,
   resolveWorkspaceSpaceInspectedWorktreeId,
   resolveWorkspaceSpaceTreemapZoomWorktreeId,
   sortWorkspaceSpaceRows
 } from './workspace-space-presentation'
+import { getWorkspaceSpaceGitStatusRefreshCandidates } from './workspace-space-git-status-order'
 import {
   getSelectedDeletableWorkspaceRows,
   getVisibleDeletableWorkspaceIdentities,
@@ -30,6 +30,8 @@ export function useWorkspaceSpaceManagerProjection(args: {
   refreshWorkspaceGitStatus: ReturnType<typeof useWorkspaceSpaceGitRefreshAction>
 }) {
   const {
+    activeWorktreeId,
+    activeWorkspaceExecutionHostId,
     analysis,
     inspectedWorktreeId,
     isScanning,
@@ -117,7 +119,12 @@ export function useWorkspaceSpaceManagerProjection(args: {
   ])
 
   useEffect(() => {
-    const candidates = getWorkspaceSpaceGitStatusRefreshCandidates(sourceRows)
+    const visibleWorktreeIdentities = new Set(rows.map(getWorkspaceSpaceWorktreeIdentity))
+    const candidates = getWorkspaceSpaceGitStatusRefreshCandidates(sourceRows, {
+      activeWorktreeId,
+      activeExecutionHostId: activeWorkspaceExecutionHostId,
+      visibleWorktreeIdentities
+    })
     if (candidates.length === 0) {
       return
     }
@@ -140,7 +147,13 @@ export function useWorkspaceSpaceManagerProjection(args: {
     return () => {
       cancelled = true
     }
-  }, [refreshWorkspaceGitStatus, sourceRows])
+  }, [
+    activeWorktreeId,
+    activeWorkspaceExecutionHostId,
+    refreshWorkspaceGitStatus,
+    rows,
+    sourceRows
+  ])
 
   const inspectedWorktree =
     rows.find((row) => getWorkspaceSpaceWorktreeIdentity(row) === nextInspectedWorktreeId) ??
