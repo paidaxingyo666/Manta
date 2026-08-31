@@ -13,6 +13,7 @@ export function useMobileSessionTerminalSubscriptionFoundation(
     terminalRefs,
     terminalUnsubsRef,
     subscribingHandlesRef,
+    leaseOnlyHandlesRef,
     initializedHandlesRef,
     terminalDiagnosticsRef,
     viewportResubscribeBudgetRef,
@@ -34,6 +35,7 @@ export function useMobileSessionTerminalSubscriptionFoundation(
       terminalUnsubsRef.current.get(handle)?.()
       terminalUnsubsRef.current.delete(handle)
       subscribingHandlesRef.current.delete(handle)
+      leaseOnlyHandlesRef.current.delete(handle)
       terminalDiagnosticsRef.current.terminalUnsubscribed(handle)
       subscribeSeqRef.current.set(handle, (subscribeSeqRef.current.get(handle) ?? 0) + 1)
       // Why: reset the high-water mark so a fresh subscription's first scrollback isn't dropped as stale.
@@ -66,6 +68,7 @@ export function useMobileSessionTerminalSubscriptionFoundation(
     clearNativeChatInputLease()
     terminalUnsubsRef.current.clear()
     subscribingHandlesRef.current.clear()
+    leaseOnlyHandlesRef.current.clear()
     initializedHandlesRef.current.clear()
     terminalDiagnosticsRef.current.clearTerminalCache()
     viewportResubscribeBudgetRef.current.clear()

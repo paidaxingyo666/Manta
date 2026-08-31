@@ -12,6 +12,7 @@ import {
 } from './session-tab-snapshot-gate'
 import type { SessionTabsApplyOutcome } from './mobile-session-tabs-stream-health'
 import { getActiveTabIdForHandle } from './mobile-session-route-helpers'
+import { resolveActiveSessionTab } from './active-session-tab'
 import type { MobileSessionTab, SessionTabsResult } from './mobile-session-route-types'
 import type { MobileSessionTerminalListModel } from './use-mobile-session-terminal-list'
 
@@ -24,11 +25,13 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
     appliedSnapshotMarkerRef,
     appliedSessionTabsRevisionRef,
     closedTabTombstonesRef,
+    reconcileBufferedDraftsRef,
     setTerminalsLoaded,
     defaultTerminalHandlesToLiveInput,
     setActiveHandle,
     setActiveSessionTabId,
     activeSessionTabIdRef,
+    selectedSessionTabIdRef,
     markdownDocsRef,
     initializedHandlesRef,
     terminalDiagnosticsRef,
@@ -36,6 +39,7 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
     activeSessionTabTypeRef,
     pendingActiveSessionTabIdRef,
     pendingActiveTerminalHandleRef,
+    pendingBrowserFocusPageIdRef,
     initialSessionAutoCreateRef,
     unsubscribeTerminal,
     subscribeToTerminal,
@@ -74,6 +78,9 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
       if (orphanedDraftTabs.length > 0) {
         nextTabs = [...orphanedDraftTabs, ...nextTabs]
       }
+      reconcileBufferedDraftsRef.current(currentSessionTabs, nextTabs, {
+        retainMissingSurfaces: result.tabs.length === 0
+      })
       sessionTabsRef.current = nextTabs
       initialSessionAutoCreateRef.current.sawSessionTabs ||= nextTabs.length > 0
       // Why: subscribe snapshots often repeat identical payloads; skip re-set to avoid a subscription teardown/replay loop.
@@ -100,28 +107,27 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
         applicationRevision
       }
 
-      const snapshotActive = nextTabs.find((tab) => tab.isActive) ?? nextTabs[0] ?? null
       const pendingActiveSessionTabId = pendingActiveSessionTabIdRef.current
       const pendingActiveTerminalHandle = pendingActiveTerminalHandleRef.current
-      let active = snapshotActive
-      let selectionSource = 'snapshot'
-      if (pendingActiveSessionTabId) {
-        if (snapshotActive?.id === pendingActiveSessionTabId) {
-          if (confirmsMirroredTabSelection(result.publicationEpoch)) {
-            pendingActiveSessionTabIdRef.current = null
-          } else {
-            selectionSource = 'pending-tab-local-ack'
-          }
-        } else {
-          const pendingTab = nextTabs.find((tab) => tab.id === pendingActiveSessionTabId)
-          if (pendingTab) {
-            // Why: desktop tab snapshots can lag a mobile tap mid-activate-RPC; keep the local selection to avoid snapping back.
-            active = pendingTab
-            selectionSource = 'pending-tab'
-          } else {
-            pendingActiveSessionTabIdRef.current = null
-          }
-        }
+      const followsHost = result.navigationIntent === 'follow'
+      if (followsHost) {
+        pendingActiveTerminalHandleRef.current = null
+        pendingBrowserFocusPageIdRef.current = null
+      }
+      const resolved = resolveActiveSessionTab(nextTabs, {
+        pendingActiveSessionTabId,
+        selectedSessionTabId: selectedSessionTabIdRef.current,
+        navigationIntent: result.navigationIntent
+      })
+      let active = resolved.activeTab
+      let selectionSource: string = resolved.selectionSource
+      if (resolved.clearPendingActiveSessionTabId) {
+        const localAck =
+          !followsHost &&
+          nextTabs.find((tab) => tab.isActive)?.id === pendingActiveSessionTabId &&
+          !confirmsMirroredTabSelection(result.publicationEpoch)
+        selectionSource = localAck ? 'pending-tab-local-ack' : selectionSource
+        pendingActiveSessionTabIdRef.current = localAck ? pendingActiveSessionTabId : null
       }
       if (pendingActiveTerminalHandle) {
         const pendingTerminalTab = nextTabs.find(
@@ -131,14 +137,16 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
         const pendingTerminalExists = mergedTerminalsForActive.some(
           (terminal) => terminal.handle === pendingActiveTerminalHandle
         )
-        if (
-          snapshotActive?.type === 'terminal' &&
-          snapshotActive.terminal === pendingActiveTerminalHandle
-        ) {
-          if (confirmsMirroredTabSelection(result.publicationEpoch)) {
-            pendingActiveTerminalHandleRef.current = null
-          } else {
+        if (active?.type === 'terminal' && active.terminal === pendingActiveTerminalHandle) {
+          const snapshotActive = nextTabs.find((tab) => tab.isActive) ?? nextTabs[0] ?? null
+          if (
+            snapshotActive?.type === 'terminal' &&
+            snapshotActive.terminal === pendingActiveTerminalHandle &&
+            !confirmsMirroredTabSelection(result.publicationEpoch)
+          ) {
             selectionSource = 'pending-handle-local-ack'
+          } else {
+            pendingActiveTerminalHandleRef.current = null
           }
         } else if (pendingTerminalTab) {
           // Why: desktop active flags lag a mobile tap; key by handle too, as fallback PTY tabs lack a stable tab id at startup.
@@ -161,6 +169,9 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
         }
       }
       diagnostics.tabsApplied(result, nextTabs, active, selectionSource)
+      if (!resolved.retainSelectedSessionTabId || active !== resolved.activeTab) {
+        selectedSessionTabIdRef.current = active?.id ?? null
+      }
       activeSessionTabTypeRef.current = active?.type ?? null
       activeSessionTabIdRef.current = active?.id ?? null
       setActiveSessionTabId(active?.id ?? null)

@@ -15,6 +15,7 @@ import { useMobileNativeChatReadability } from './use-mobile-native-chat-readabi
 import { useMobileNativeChatInputLease } from './use-mobile-native-chat-input-lease'
 import { useMobileNativeChatSendError } from './use-mobile-native-chat-send-error'
 import { mobileNativeChatScopeKey } from './mobile-native-chat-scope-key'
+import { useMobileSendCompletionGeneration } from './use-mobile-send-completion-generation'
 import type { MobileSessionFeedbackCapabilitiesModel } from './use-mobile-session-feedback-capabilities'
 
 export function useMobileSessionNativeChatDictation(
@@ -41,7 +42,8 @@ export function useMobileSessionNativeChatDictation(
     flushPendingLiveInputBeforeExternalSend,
     canSend,
     liveInputEnabled,
-    showToast
+    showToast,
+    resetLiveInputFocus
   } = scope
   const nativeChatScopeKey = mobileNativeChatScopeKey(hostId, worktreeId, activeSessionTabId)
   const nativeChatSendError = useMobileNativeChatSendError({
@@ -75,6 +77,11 @@ export function useMobileSessionNativeChatDictation(
   })
   const { toggleTabChatView, showNativeChat, showNativeChatRef } = nativeChatController
   nativeChatSendError.bannerMountedRef.current = showNativeChat
+  const routeKey = nativeChatScopeKey ?? `${hostId}\0${worktreeId}`
+  const getSendCompletionGeneration = useMobileSendCompletionGeneration({
+    onBlur: resetLiveInputFocus,
+    surfaceKey: JSON.stringify([routeKey, activeHandle, showNativeChat, liveInputEnabled])
+  })
 
   const dictation = useMobileDictation({
     client,
@@ -207,6 +214,7 @@ export function useMobileSessionNativeChatDictation(
     markNativeChatInputLeaseReady,
     clearNativeChatInputLease,
     nativeChatController,
+    getSendCompletionGeneration,
     toggleTabChatView,
     showNativeChat,
     showNativeChatRef,

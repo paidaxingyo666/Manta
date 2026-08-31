@@ -10,11 +10,13 @@ export function useMobileSessionCloseActions(scope: MobileSessionContentCreateAc
     terminalsRef,
     setSessionTabs,
     sessionTabsRef,
+    reconcileBufferedDraftsRef,
     closedTabTombstonesRef,
     clearTerminalLiveInputDefault,
     setActiveHandle,
     setActiveSessionTabId,
     activeSessionTabIdRef,
+    selectedSessionTabIdRef,
     renameTarget,
     setRenameTarget,
     terminalRefs,
@@ -104,6 +106,7 @@ export function useMobileSessionCloseActions(scope: MobileSessionContentCreateAc
       })
       if (response.ok) {
         const remainingTabs = sessionTabsRef.current.filter((candidate) => candidate.id !== tab.id)
+        reconcileBufferedDraftsRef.current(sessionTabsRef.current, remainingTabs)
         if (tab.type === 'browser' && tab.browserPageId === pendingBrowserFocusPageIdRef.current) {
           pendingBrowserFocusPageIdRef.current = null
         }
@@ -123,6 +126,7 @@ export function useMobileSessionCloseActions(scope: MobileSessionContentCreateAc
         // so comparing against the ref keeps the anchor from being nulled out.
         if (activeSessionTabIdRef.current === tab.id || remainingTabs.length === 0) {
           activeSessionTabTypeRef.current = null
+          selectedSessionTabIdRef.current = null
           activeSessionTabIdRef.current = null
           setActiveSessionTabId(null)
           activeHandleRef.current = null

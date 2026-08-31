@@ -73,6 +73,8 @@ export function MobileSessionActiveContent({
     activeFileTab,
     activeBrowserTab,
     activePendingTerminalTab,
+    isPendingTerminalRecoveryParked,
+    retryPendingTerminalRecovery,
     showLoadingState,
     showEmptyState,
     keyboardLift,
@@ -175,10 +177,27 @@ export function MobileSessionActiveContent({
     </View>
   ) : activePendingTerminalTab ? (
     <View style={styles.emptyState}>
-      <ActivityIndicator size="small" color={colors.textSecondary} />
+      {!isPendingTerminalRecoveryParked && (
+        <ActivityIndicator size="small" color={colors.textSecondary} />
+      )}
       <Text style={styles.emptyText}>
-        {activePendingTerminalTab.title || translate('m.worktreeId.d447fa8c0f', 'Loading terminal')}
+        {isPendingTerminalRecoveryParked
+          ? translate('m.worktreeId.d1d5a995dd', 'Terminal is taking longer than expected')
+          : activePendingTerminalTab.title ||
+            translate('m.worktreeId.d447fa8c0f', 'Loading terminal')}
       </Text>
+      {isPendingTerminalRecoveryParked && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading terminal"
+          style={({ pressed }) => [styles.createButton, pressed && styles.newTerminalButtonPressed]}
+          onPress={() => void retryPendingTerminalRecovery()}
+        >
+          <Text style={styles.createButtonText}>
+            {translate('m.worktreeId.f14ae8d9fd', 'Retry')}
+          </Text>
+        </Pressable>
+      )}
     </View>
   ) : (
     <View
@@ -232,6 +251,8 @@ export function MobileSessionActiveContent({
         inputLockReason={nativeChatInputLockReason}
         sendErrorMessage={nativeChatSendError.message}
         onClearSendError={nativeChatSendError.clear}
+        sendSurfaceId={controller.nativeChatScopeKey ?? ''}
+        getSendCompletionGeneration={controller.getSendCompletionGeneration}
         keyboardInset={keyboardLift}
       />
       {toastMessage && (

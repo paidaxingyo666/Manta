@@ -58,6 +58,8 @@ export function useMobileSessionScreenState(scope: MobileSessionFoundationModel)
   const [coveredStreamRevision, setCoveredStreamRevision] = useState(0)
   const [activeSessionTabId, setActiveSessionTabId] = useState<string | null>(null)
   const activeSessionTabIdRef = useRef<string | null>(null)
+  // Preserve an explicit phone tab pick while a host snapshot is transiently incomplete.
+  const selectedSessionTabIdRef = useRef<string | null>(null)
   // Auto-scroll the tab strip so the desktop-synced active tab is revealed without a manual scroll.
   const tabStripRef = useRef<ScrollView>(null)
   const tabStripOffsetRef = useRef(0)
@@ -168,6 +170,7 @@ export function useMobileSessionScreenState(scope: MobileSessionFoundationModel)
     activeSessionTabId,
     setActiveSessionTabId,
     activeSessionTabIdRef,
+    selectedSessionTabIdRef,
     tabStripRef,
     tabStripOffsetRef,
     tabStripViewportWidthRef,
