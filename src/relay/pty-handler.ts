@@ -2064,9 +2064,19 @@ export class PtyHandler {
   private async shutdown(params: Record<string, unknown>): Promise<void> {
     const id = params.id as string
     const immediate = params.immediate as boolean
+    const expectedIncarnationId = params.expectedIncarnationId
+    if (
+      expectedIncarnationId !== undefined &&
+      (typeof expectedIncarnationId !== 'string' || expectedIncarnationId.length === 0)
+    ) {
+      throw new Error('Invalid expectedIncarnationId')
+    }
     const managed = this.ptys.get(id)
     if (!managed) {
       return
+    }
+    if (expectedIncarnationId !== undefined && expectedIncarnationId !== managed.incarnationId) {
+      throw new Error(`PTY incarnation mismatch for ${id}`)
     }
     // Why: `pty.shutdown` is the only authoritative statement this host ever gets that a tab is
     // gone. Record it before the kill request, because the kill is the part that can fail: an agent
