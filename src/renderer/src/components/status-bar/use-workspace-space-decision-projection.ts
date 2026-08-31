@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useNow } from '@/hooks/use-now'
+import { getAgentStatusEpochNow } from '@/lib/agent-status-epoch-clock'
 import {
   getWorkspaceDecisionDetails,
   type WorkspaceDecisionDetails
@@ -40,7 +40,6 @@ export function useWorkspaceSpaceDecisionProjection(bindings: WorkspaceSpaceMana
   } = bindings
 
   const sourceRows = useMemo(() => analysis?.worktrees ?? [], [analysis?.worktrees])
-  const now = useNow(30_000)
   const worktreeIdCounts = useMemo(() => {
     const counts = new Map<string, number>()
     for (const row of sourceRows) {
@@ -49,9 +48,9 @@ export function useWorkspaceSpaceDecisionProjection(bindings: WorkspaceSpaceMana
     return counts
   }, [sourceRows])
   const decisionDetailsByWorktreeId = useMemo(() => {
-    // Why: active-agent freshness is time-based. The epoch bumps when fresh
-    // hook entries cross the stale boundary so delete readiness recomputes.
-    void agentStatusEpoch
+    // Why: the epoch bumps when fresh hook entries cross the stale boundary so
+    // delete readiness recomputes with the same wall-clock sample as the store.
+    const agentStatusNow = getAgentStatusEpochNow(agentStatusEpoch)
     const details = new Map<string, WorkspaceDecisionDetails>()
     for (const worktree of sourceRows) {
       details.set(
@@ -78,7 +77,7 @@ export function useWorkspaceSpaceDecisionProjection(bindings: WorkspaceSpaceMana
           settings,
           activeWorktreeId,
           activeWorkspaceExecutionHostId,
-          now
+          now: agentStatusNow
         })
       )
     }
@@ -106,8 +105,7 @@ export function useWorkspaceSpaceDecisionProjection(bindings: WorkspaceSpaceMana
     settings,
     sourceRows,
     tabsByWorktree,
-    worktreeMap,
-    now
+    worktreeMap
   ])
   const getDeleteStateForWorktree = useCallback(
     (worktree: WorkspaceSpaceWorktree) =>
