@@ -1,4 +1,3 @@
-/* oxlint-disable react-doctor/no-adjust-state-on-prop-change -- Why: provider runtime changes intentionally clear stale Jira/Linear composer state. */
 import type { TaskPageGitHubMutationStateModel } from './use-task-page-github-mutation-state'
 import { useState, useRef, useEffect } from 'react'
 import type { JiraIssueType, JiraCreateField } from '../../../shared/jira-types'
@@ -49,6 +48,7 @@ export function useTaskPageJiraCreationStatePrelude(model: TaskPageGitHubMutatio
     writeDraft: writeNewJiraIssueDraft
   })
   const previousProviderRuntimeContextKeyRef = useRef(providerRuntimeContextKey)
+  // Why: provider changes must clear dependent composer state before stale values can be submitted.
   useEffect(() => {
     if (previousProviderRuntimeContextKeyRef.current === providerRuntimeContextKey) {
       return
