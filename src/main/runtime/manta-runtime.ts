@@ -780,6 +780,10 @@ import type { BrowserExecutionHostKeyResolution } from './runtime-browser-client
 import { browserNetworkExecutionHostKey } from '../browser/browser-network-execution-route'
 import type { BrowserNetworkExecutionHost } from '../../shared/browser-client-host-protocol'
 import { sameRuntimeBrowserPlacement } from '../../shared/runtime-browser-placement'
+import {
+  WorktreeTerminalMutationLock,
+  type WorktreeTerminalMutationKind
+} from './worktree-terminal-mutation-lock'
 import { RemoteRuntimeTerminalCreateIdempotency } from './remote-runtime-terminal-create-idempotency'
 import { deriveRemoteRuntimeTerminalCreateHandle } from './remote-runtime-terminal-create-identity'
 import {
@@ -3316,7 +3320,7 @@ export class MantaRuntimeService {
   private readonly terminalCreateIdempotency = new RemoteRuntimeTerminalCreateIdempotency()
   // Why: concurrent clients sleeping one host workspace must share one physical teardown.
   private terminalSleepByWorktreeId = new Map<string, Promise<RuntimeWorktreeTerminalSleepResult>>()
-  private terminalMutationTailByWorktreeId = new Map<string, Promise<void>>()
+  private readonly terminalMutationLock = new WorktreeTerminalMutationLock()
   private terminalSleepStateByWorktreeId = new Map<
     string,
     {
@@ -33337,7 +33341,7 @@ export class MantaRuntimeService {
     if (!worktreeId) {
       return () => {}
     }
-    const release = await this.acquireWorktreeTerminalMutation(worktreeId)
+    const release = await this.acquireWorktreeTerminalMutation(worktreeId, 'shared')
     const key = runtimeWorktreeIdentityKey(worktreeId)
     const sleepState = this.terminalSleepStateByWorktreeId.get(key)
     if (sleepState?.phase === 'sleeping' || sleepState?.phase === 'partial') {
@@ -33358,7 +33362,9 @@ export class MantaRuntimeService {
     worktreeId: string,
     operation: () => Promise<T>
   ): Promise<T> {
-    const release = await this.acquireWorktreeTerminalMutation(worktreeId)
+    // Why exclusive: adoption reconciles this worktree's terminal records, so
+    // it must not interleave with a spawn registering a pty or with a sleep.
+    const release = await this.acquireWorktreeTerminalMutation(worktreeId, 'exclusive')
     try {
       return await operation()
     } finally {
@@ -33368,51 +33374,25 @@ export class MantaRuntimeService {
 
   private async acquireWorktreeTerminalMutation(
     worktreeId: string,
+    kind: WorktreeTerminalMutationKind,
     deadline?: number
   ): Promise<() => void> {
-    const key = runtimeWorktreeIdentityKey(worktreeId)
-    const previous = this.terminalMutationTailByWorktreeId.get(key) ?? Promise.resolve()
-    let releaseCurrent = (): void => {}
-    const current = new Promise<void>((resolve) => {
-      releaseCurrent = resolve
-    })
-    const tail = previous.catch(() => {}).then(() => current)
-    this.terminalMutationTailByWorktreeId.set(key, tail)
-    try {
-      await waitForWorktreeTerminalMutation(
-        previous.catch(() => {}),
-        deadline
-      )
-    } catch (error) {
-      // Why: resolve this abandoned queue node now so it can never acquire later and stop a terminal after the caller timed out.
-      releaseCurrent()
-      void tail.finally(() => {
-        if (this.terminalMutationTailByWorktreeId.get(key) === tail) {
-          this.terminalMutationTailByWorktreeId.delete(key)
-        }
-      })
-      throw error
-    }
-    let released = false
-    return () => {
-      if (released) {
-        return
-      }
-      released = true
-      releaseCurrent()
-      void tail.finally(() => {
-        if (this.terminalMutationTailByWorktreeId.get(key) === tail) {
-          this.terminalMutationTailByWorktreeId.delete(key)
-        }
-      })
-    }
+    return await this.terminalMutationLock.acquire(
+      runtimeWorktreeIdentityKey(worktreeId),
+      kind,
+      deadline
+    )
   }
 
   private async sleepResolvedWorktreeTerminals(
     worktree: ResolvedWorktree
   ): Promise<RuntimeWorktreeTerminalSleepResult> {
     const sleepDeadline = Date.now() + WORKTREE_TERMINAL_SLEEP_TIMEOUT_MS
-    const releaseMutation = await this.acquireWorktreeTerminalMutation(worktree.id, sleepDeadline)
+    const releaseMutation = await this.acquireWorktreeTerminalMutation(
+      worktree.id,
+      'exclusive',
+      sleepDeadline
+    )
     const key = runtimeWorktreeIdentityKey(worktree.id)
     const existingSleepState = this.terminalSleepStateByWorktreeId.get(key)
     if (existingSleepState?.phase === 'sleeping') {
@@ -41993,36 +41973,6 @@ const PTY_CONTROLLER_LIST_TIMEOUT_MS = 3000
 const PTY_CONTROLLER_LIST_PROVIDER_MARGIN_MS = 500
 // Why: the renderer waits 15s; leave room for the verified failure response and release the spawn fence before its caller times out.
 const WORKTREE_TERMINAL_SLEEP_TIMEOUT_MS = 12_000
-
-async function waitForWorktreeTerminalMutation(
-  previous: Promise<void>,
-  deadline?: number
-): Promise<void> {
-  if (deadline === undefined) {
-    await previous
-    return
-  }
-  const remainingMs = deadline - Date.now()
-  if (remainingMs <= 0) {
-    throw new Error('terminal_worktree_sleep_timeout')
-  }
-  let timeout: ReturnType<typeof setTimeout> | undefined
-  try {
-    await Promise.race([
-      previous,
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(
-          () => reject(new Error('terminal_worktree_sleep_timeout')),
-          remainingMs
-        )
-      })
-    ])
-  } finally {
-    if (timeout !== undefined) {
-      clearTimeout(timeout)
-    }
-  }
-}
 
 // Why: listener fan-out is best-effort delivery. One subscriber throwing synchronously — e.g. a
 // paired-client relay whose stream is closed — must never abort the emitting operation or leak
