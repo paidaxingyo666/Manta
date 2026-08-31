@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
   ptySourceDeliveryKey,
-  type PtySourceDeliveryIdentity,
-  type PtySourceSpan
+  type PtySourceDeliveryIdentity
 } from '../shared/pty-source-credit-contract'
 import { RelayPtySourceCreditLedger } from './pty-source-credit-ledger'
 import { CLOSED_DELIVERY_TOMBSTONE_LIMIT, type DeliveryRecord } from './pty-source-credit-record'
+
+function getDeliveryRecord(
+  ledger: RelayPtySourceCreditLedger,
+  owner: PtySourceDeliveryIdentity
+): DeliveryRecord {
+  const internals = ledger as unknown as { deliveries: Map<string, DeliveryRecord> }
+  const record = internals.deliveries.get(ptySourceDeliveryKey(owner))
+  if (!record) {
+    throw new Error('test delivery record missing')
+  }
+  return record
+}
 
 function identity(
   deliveryToken = 'token-1',
@@ -55,23 +66,6 @@ function drainOne(
   return reservation
 }
 
-type CursorRecord = {
-  spans: PtySourceSpan[]
-  sendSpanIndex: number
-}
-
-function getCursorRecord(
-  ledger: RelayPtySourceCreditLedger,
-  owner: PtySourceDeliveryIdentity
-): CursorRecord {
-  const internals = ledger as unknown as { deliveries: Map<string, CursorRecord> }
-  const record = internals.deliveries.get(ptySourceDeliveryKey(owner))
-  if (!record) {
-    throw new Error('test delivery record missing')
-  }
-  return record
-}
-
 // Why: retention totals are maintained incrementally, so recomputing from the live records is
 // the only independent check that no mutation path skipped a counter update.
 function expectRetentionMatchesRecords(ledger: RelayPtySourceCreditLedger): void {
@@ -102,7 +96,7 @@ describe('RelayPtySourceCreditLedger', () => {
       append(ledger, owner, 'x', `span-${index}`)
     }
 
-    const record = getCursorRecord(ledger, owner)
+    const record = getDeliveryRecord(ledger, owner)
     let indexedReads = 0
     const spans = record.spans
     record.spans = new Proxy(spans, {
@@ -136,7 +130,7 @@ describe('RelayPtySourceCreditLedger', () => {
     const owner = identity('token-gap')
     ledger.open(owner, 8)
     append(ledger, owner, 'ab', 'span-gap')
-    const record = getCursorRecord(ledger, owner)
+    const record = getDeliveryRecord(ledger, owner)
     record.spans = [
       Object.freeze({
         ...record.spans[0],
@@ -165,7 +159,7 @@ describe('RelayPtySourceCreditLedger', () => {
 
     const first = ledger.reserveNextSend(oldOwner, 2)!
     ledger.commitSend(first)
-    expect(getCursorRecord(ledger, oldOwner).sendSpanIndex).toBe(0)
+    expect(getDeliveryRecord(ledger, oldOwner).sendSpanIndex).toBe(0)
     ledger.acknowledge(oldOwner, {
       id: oldOwner.id,
       clientGeneration: oldOwner.clientGeneration,
@@ -173,7 +167,7 @@ describe('RelayPtySourceCreditLedger', () => {
       deliveryToken: oldOwner.deliveryToken,
       creditedEndSu: 2
     })
-    expect(getCursorRecord(ledger, oldOwner).sendSpanIndex).toBe(0)
+    expect(getDeliveryRecord(ledger, oldOwner).sendSpanIndex).toBe(0)
 
     const attempted = ledger.reserveNextSend(oldOwner, 1)!
     expect(attempted.span.data).toBe('c')
@@ -185,7 +179,7 @@ describe('RelayPtySourceCreditLedger', () => {
     ledger.commitSend(ledger.reserveNextSend(oldOwner, 2)!)
     const rotation = ledger.rotate(oldOwner, replacement, 2, 16)
     expect(rotation.recovery.map((span) => span.data).join('')).toBe('cdef')
-    expect(getCursorRecord(ledger, replacement).sendSpanIndex).toBe(0)
+    expect(getDeliveryRecord(ledger, replacement).sendSpanIndex).toBe(0)
     // Rotation is the only path that removes and re-adds a record in one call.
     expectRetentionMatchesRecords(ledger)
     ledger.commitSend(ledger.reserveNextSend(replacement, 16)!)
@@ -222,7 +216,7 @@ describe('RelayPtySourceCreditLedger', () => {
     append(ledger, owner, 'ef', 'span-c')
     ledger.commitSend(ledger.reserveNextSend(owner, 2)!)
     ledger.commitSend(ledger.reserveNextSend(owner, 2)!)
-    expect(getCursorRecord(ledger, owner).sendSpanIndex).toBe(1)
+    expect(getDeliveryRecord(ledger, owner).sendSpanIndex).toBe(1)
 
     ledger.acknowledge(owner, {
       id: owner.id,
@@ -233,10 +227,75 @@ describe('RelayPtySourceCreditLedger', () => {
     })
 
     // Reclaim dropped both spans the cursor had passed, so it must rebase onto the new head.
-    const record = getCursorRecord(ledger, owner)
+    const record = getDeliveryRecord(ledger, owner)
     expect(record.spans.map((span) => span.data)).toEqual(['ef'])
     expect(record.sendSpanIndex).toBe(0)
     expect(ledger.reserveNextSend(owner, 2)!.span.data).toBe('ef')
+  })
+
+  it('reclaims every credited boundary across a long sequential ACK drain', () => {
+    const boundaryCount = 1_024
+    const spanCount = boundaryCount - 1
+    const ledger = new RelayPtySourceCreditLedger({
+      maxRetainedSpans: boundaryCount,
+      maxAggregateRetainedSpans: boundaryCount
+    })
+    const owner = identity()
+    ledger.open(owner, boundaryCount)
+    for (let index = 0; index < spanCount; index += 1) {
+      append(ledger, owner, 'x', `span-${index}`)
+      const reservation = ledger.reserveNextSend(owner, 1)
+      expect(reservation).not.toBeNull()
+      ledger.commitSend(reservation!)
+    }
+
+    const record = getDeliveryRecord(ledger, owner)
+    expect([...record.sentBoundaries]).toEqual(
+      Array.from({ length: boundaryCount }, (_, index) => index)
+    )
+
+    for (let creditedEndSu = 1; creditedEndSu <= spanCount; creditedEndSu += 1) {
+      expect(
+        ledger.acknowledge(owner, {
+          id: owner.id,
+          clientGeneration: owner.clientGeneration,
+          ownerGeneration: owner.ownerGeneration,
+          deliveryToken: owner.deliveryToken,
+          creditedEndSu
+        })
+      ).toBe('advanced')
+      // Every boundary below the credit must be gone, so the oldest live one is the credit itself.
+      const [oldestLive] = record.sentBoundaries
+      expect(oldestLive).toBe(creditedEndSu)
+      // Boundary cleanup and span reclamation must stay in step on every ACK, not just the last.
+      expect(ledger.retentionSnapshot().spans).toBe(spanCount - creditedEndSu)
+    }
+
+    expect([...record.sentBoundaries]).toEqual([spanCount])
+    expect(ledger.retentionSnapshot()).toEqual({ sourceSu: 0, dataBytes: 0, spans: 0 })
+  })
+
+  it('deletes every boundary skipped by a jump-ahead cumulative ACK', () => {
+    const ledger = new RelayPtySourceCreditLedger()
+    const owner = identity()
+    ledger.open(owner, 16)
+    append(ledger, owner, 'abcdefgh')
+    for (let index = 0; index < 8; index += 1) {
+      ledger.commitSend(ledger.reserveNextSend(owner, 1)!)
+    }
+    const record = getDeliveryRecord(ledger, owner)
+    expect([...record.sentBoundaries]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8])
+
+    expect(
+      ledger.acknowledge(owner, {
+        id: owner.id,
+        clientGeneration: owner.clientGeneration,
+        ownerGeneration: owner.ownerGeneration,
+        deliveryToken: owner.deliveryToken,
+        creditedEndSu: 8
+      })
+    ).toBe('advanced')
+    expect([...record.sentBoundaries]).toEqual([8])
   })
 
   it('never exceeds a token source window across generated send/ACK sequences', () => {
@@ -253,7 +312,7 @@ describe('RelayPtySourceCreditLedger', () => {
         const reservation = drainOne(ledger, owner, 1 + ((seed * 13 + turn * 7) % 19))
         const snapshot = ledger.snapshot(owner)
         expect(snapshot.sentEndSu - snapshot.creditedEndSu).toBeLessThanOrEqual(windowSu)
-        const record = getCursorRecord(ledger, owner)
+        const record = getDeliveryRecord(ledger, owner)
         const containingIndex = record.spans.findIndex(
           (span) =>
             span.sourceStartSu <= snapshot.sentEndSu && span.sourceEndSu > snapshot.sentEndSu
@@ -390,6 +449,7 @@ describe('RelayPtySourceCreditLedger', () => {
 
     ledger.commitSend(pending)
     expect(ledger.snapshot(owner)).toMatchObject({ sentEndSu: 4, creditedEndSu: 4 })
+    expect([...getDeliveryRecord(ledger, owner).sentBoundaries]).toEqual([4])
     expect(ledger.retentionSnapshot()).toEqual({ sourceSu: 0, dataBytes: 0, spans: 0 })
   })
 
