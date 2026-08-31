@@ -156,6 +156,16 @@ describe('electron-builder config', () => {
     )
   })
 
+  it('ships one macOS serve-sim package through the runtime closure', () => {
+    const serveSimResources = electronBuilderConfig.mac.extraResources.filter((resource) =>
+      [join('node_modules', 'serve-sim'), 'serve-sim'].includes(resource.to)
+    )
+
+    expect(serveSimResources).toEqual([
+      expect.objectContaining({ to: join('node_modules', 'serve-sim') })
+    ])
+  })
+
   // Why: the Windows CLI shim is delivered only via extraResources to
   // resources/bin/manta.cmd (beside the native resources/bin/manta.exe). If the
   // source tree is also packed into app.asar it gets extracted by
