@@ -12651,7 +12651,7 @@
             "large persisted mismatches route in 50-row pages with coalesced per-mailbox wakes",
             "Run pointers pin the existing mixed-version-compatible --run identity",
             "direct and Dispatch mail remain durable without unpinned synthetic terminal turns",
-            "a delayed pointer submit cannot press Enter after the agent becomes working",
+            "a staged pointer submits once when Codex or Claude becomes working and still withholds Enter for permission",
             "an explicit check releases its staged pointer reservation without redrive",
             "accepted pointer text is durably deduplicated before delayed Enter and provider Enter refusal",
             "a known PTY exit releases staged rows for the replacement process",
