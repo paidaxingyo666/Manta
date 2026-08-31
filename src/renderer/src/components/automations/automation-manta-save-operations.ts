@@ -21,15 +21,17 @@ import {
   dispatchAutomationReread,
   dispatchAutomationUpdate,
   toDispatchResult,
+  type AutomationActionNotice,
   type AutomationDispatchContext,
   type AutomationDispatchResult
 } from './automation-row-action-dispatch'
-import type { AutomationCreateDestination } from './automation-create-destination'
+import {
+  revalidateAutomationCreateDestination,
+  type AutomationCreateDestination
+} from './automation-create-destination'
 import type { AutomationHostTarget } from './automation-host-client'
 import type { AutomationAuthorityChangeReason } from './automation-host-invalidation'
-import type { AutomationActionNotice } from './automation-row-action-dispatch'
 import type { AutomationSaveContext } from './automation-save-context'
-import { revalidateAutomationCreateDestination } from './automation-create-destination'
 import { automationAuthorityCatalogKey } from './automation-host-catalog-types'
 
 export type AutomationMoveOperationContext = {

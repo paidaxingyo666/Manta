@@ -1,11 +1,13 @@
 import type { PaneManager } from '@/lib/pane-manager/pane-manager'
 import type { DeferredSplitPaneHandoffHandle } from './deferred-split-pane-handoff'
-import type { TerminalLinkRoutingPreferenceRequester } from './terminal-url-link-hit-testing'
+import type {
+  TerminalHttpLinkActionDestinations,
+  TerminalLinkRoutingPreferenceRequester
+} from './terminal-url-link-hit-testing'
 import type { PtyConnectionDeps } from './pty-connection-types'
 import type { LinkHandlerDeps } from './terminal-link-handlers'
 import type { TerminalPaneLifecycleRefs } from './use-terminal-pane-lifecycle-refs'
 import type { UseTerminalPaneLifecycleDeps } from './terminal-pane-lifecycle-types'
-import type { TerminalHttpLinkActionDestinations } from './terminal-url-link-hit-testing'
 import type { TerminalLinkActionContext } from './terminal-link-action-request'
 import type { resolveTerminalHttpLinkSourceOwner } from './terminal-http-link-source-owner'
 import type { SessionRestoredBannerReason } from './session-restored-banner-pane-state'
