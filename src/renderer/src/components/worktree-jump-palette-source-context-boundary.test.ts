@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { readWorktreeJumpPaletteSource } from './worktree-jump-palette-source.test-support'
 
-const source = readWorktreeJumpPaletteSource('use-worktree-jump-palette-create-action.ts')
+const source = [
+  readWorktreeJumpPaletteSource('use-worktree-jump-palette-create-action.ts'),
+  readWorktreeJumpPaletteSource('worktree-jump-palette-create-worktree.ts')
+].join('\n')
 
 function sourceBetween(startPattern: string, endPattern: string): string {
   const start = source.indexOf(startPattern)

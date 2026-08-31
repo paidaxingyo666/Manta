@@ -20,7 +20,7 @@ export function useWorktreeJumpPaletteStoreState({
 }) {
   useTranslation()
   // Freeze age labels for one palette session; live status dots own their clock separately.
-  // oxlint-disable-next-line react/purity
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- visibility intentionally starts a new session clock.
   const paletteNowMs = useMemo(() => Date.now(), [visible])
   const closeModal = useAppStore((state) => state.closeModal)
   const openModal = useAppStore((state) => state.openModal)
@@ -78,9 +78,7 @@ export function useWorktreeJumpPaletteStoreState({
   const sleepingAgentSessionsByPaneKey = useAppStore(
     (state) => state.sleepingAgentSessionsByPaneKey
   )
-  const paneForegroundAgentByPaneKey = useAppStore(
-    (state) => state.paneForegroundAgentByPaneKey
-  )
+  const paneForegroundAgentByPaneKey = useAppStore((state) => state.paneForegroundAgentByPaneKey)
   const settings = useAppStore((state) => state.settings)
   const worktreeVisibilityDefaultsByHost = useAppStore(
     (state) => state.worktreeVisibilityDefaultsByHost
