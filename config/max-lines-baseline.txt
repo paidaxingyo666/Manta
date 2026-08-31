@@ -20,14 +20,6 @@ inline src/main/updater.ts
 inline src/preload/index.ts
 inline src/relay/pty-handler.ts
 inline src/renderer/src/components/terminal-pane/remote-runtime-pty-transport.ts
-inline src/renderer/src/runtime/sync-runtime-graph.ts
-inline src/renderer/src/runtime/web-session-tabs-sync.ts
-inline src/renderer/src/store/slices/agent-status.ts
-inline src/renderer/src/store/slices/browser.ts
-inline src/renderer/src/store/slices/linear.ts
-inline src/renderer/src/store/slices/tabs.ts
-inline src/renderer/src/store/slices/ui.ts
-inline src/shared/keybindings.ts
 mobile-config app/h/*/files/*.tsx
 mobile-config app/h/*/source-control/*.tsx
 mobile-config app/index.tsx
