@@ -560,10 +560,12 @@ import {
   type RuntimeMobileSessionAgentTab,
   type RuntimeMobileSessionClientTab,
   type RuntimeMobileSessionMarkdownTab,
+  type RuntimeMobileSessionRetiredTerminalSurface,
   type RuntimeMobileSessionTabMove,
   type RuntimeMobileSessionTabMoveResult,
   type RuntimeMobileSessionTabGroup,
   type RuntimeMobileSessionSnapshotTab,
+  type RuntimeMobileSessionTerminalClientTab,
   type RuntimeMobileSessionTerminalTab,
   type RuntimeMobileSessionBrowserTab,
   type RuntimeMobileSessionTabsRemovedResult,
@@ -800,6 +802,7 @@ import {
   retireTerminalSurfacesFromSnapshot,
   type RetiredTerminalSurface
 } from './mobile-session-terminal-retirement'
+import { appendRetiredTerminalSurfaceProofs } from './mobile-session-terminal-retirement-proof'
 import { retireTerminalSurfaceFromPersistence } from './mobile-session-terminal-persistence-retirement'
 import {
   NO_OBSERVING_PROVIDER_REASON,
@@ -1592,6 +1595,17 @@ function hasRuntimeAutomationUpdateValue<K extends keyof RuntimeAutomationUpdate
   return Object.hasOwn(updates, key) && updates[key] !== undefined
 }
 
+/** The runtime indexes graph tabs by bare id, so duplicate ids cannot be routed safely. */
+function assertUniqueRuntimeGraphTabIds(tabs: readonly RuntimeSyncedTab[]): void {
+  const seen = new Set<string>()
+  for (const tab of tabs) {
+    if (seen.has(tab.tabId)) {
+      throw new Error('duplicate_runtime_tab_id')
+    }
+    seen.add(tab.tabId)
+  }
+}
+
 type RuntimeLeafRecord = RuntimeSyncedLeaf & {
   ptyGeneration: number
   connected: boolean
@@ -1683,6 +1697,13 @@ type RuntimePtyWorktreeRecord = {
   waitBlockedAt: number | null
   // Why: memoized wait scan of the current retained tail (see RuntimeLeafRecord).
   tailWaitState?: TerminalTailWaitState
+}
+
+type RuntimePtyTabCloseAuthority = {
+  handle: string
+  ptyId: string
+  incarnationId: PtyIncarnationId | null
+  worktreeId: string
 }
 
 type TerminalAgentStatusSnapshot = {
@@ -2420,6 +2441,8 @@ type RuntimeNotifier = {
     opts: {
       direction: 'horizontal' | 'vertical'
       command?: string
+      worktreeId?: string
+      sourceLeafId?: string
       telemetrySource?: TerminalPaneSplitSource
       newLeafId?: string
     }
@@ -3373,6 +3396,16 @@ export class MantaRuntimeService {
   private handleByLeafKey = new Map<string, string>()
   private handleByPtyId = new Map<string, string>()
   private handleByPtyIncarnation = new Map<string, PtyIncarnationHandleRecord>()
+  // A provider announces a replacement before the spawn commit can bind its
+  // pane. Keep the predecessor aliases fenced during that hand-off window.
+  private pendingPtyHandleReplacementFences = new Map<
+    string,
+    {
+      incarnationId: PtyIncarnationId
+      staleHandles: Set<string>
+      pendingRegistration: boolean
+    }
+  >()
   private readonly mailPointerRepointScheduler = new MailPointerRepointScheduler((handle) =>
     this.repointPendingMessagesForHandle(handle)
   )
@@ -5209,76 +5242,90 @@ export class MantaRuntimeService {
           pendingResolutions.push({ candidate, resolution: 'exited' })
           continue
         }
-        const preAdoptionInventory = await this.refreshPtyWorktreeRecordsWithControllerInventory(
-          resolvedWorktrees,
-          null,
-          undefined,
-          provider.connectionId
-        )
-        if (!preAdoptionInventory) {
-          deferredDispatchIds.add(candidate.dispatchId)
-          continue
-        }
-        if (!preAdoptionInventory.livePtyIds.has(candidate.ptyId)) {
-          pendingResolutions.push({ candidate, resolution: 'exited' })
-          continue
-        }
-        const preAdoptionIdentity = preAdoptionInventory.terminalIdentityByPtyId.get(
-          candidate.ptyId
-        )
-        if (!preAdoptionIdentity) {
-          deferredDispatchIds.add(candidate.dispatchId)
-          continue
-        }
-        if (
-          preAdoptionIdentity.handle !== candidate.terminalHandle ||
-          preAdoptionIdentity.incarnationId !== candidate.incarnationId
-        ) {
-          pendingResolutions.push({ candidate, resolution: 'exited' })
-          continue
-        }
-        const session = this.getWorkspaceSessionForWorktree(candidate.worktreeId)
-        const sessionWorktreeId = session
-          ? resolveTerminalSessionWorktreeId(session, candidate.worktreeId)
-          : null
-        const activeTabId = sessionWorktreeId
-          ? session?.activeTabIdByWorktree?.[sessionWorktreeId]
-          : undefined
-        const activeGroupId = sessionWorktreeId
-          ? session?.activeGroupIdByWorktree?.[sessionWorktreeId]
-          : undefined
-        const exactSurfaceAlreadyPublished =
-          this.hasExactPersistedTerminalSurfaceIdentity(candidate) &&
-          this.hasExactTerminalSurfaceIdentity(candidate)
-        if (!exactSurfaceAlreadyPublished) {
-          try {
-            await this.adoptTerminalOrphansFromInventory(
-              {
-                worktree: `id:${candidate.worktreeId}`,
-                expectedTopologyRevision: this.getTerminalTopologyRevision(candidate.worktreeId),
-                ...(activeTabId ? { activeTabId } : {}),
-                ...(activeGroupId ? { activeGroupId } : {}),
-                claims: [
+        let adoptionStatus: 'ready' | 'unverifiable' | 'exited'
+        try {
+          adoptionStatus = await this.runWorktreeTerminalMutation(
+            candidate.worktreeId,
+            async () => {
+              const preAdoptionInventory =
+                await this.refreshPtyWorktreeRecordsWithControllerInventory(
+                  resolvedWorktrees,
+                  null,
+                  undefined,
+                  provider.connectionId
+                )
+              if (!preAdoptionInventory) {
+                return 'unverifiable'
+              }
+              if (!preAdoptionInventory.livePtyIds.has(candidate.ptyId)) {
+                return 'exited'
+              }
+              const preAdoptionIdentity = preAdoptionInventory.terminalIdentityByPtyId.get(
+                candidate.ptyId
+              )
+              if (!preAdoptionIdentity) {
+                return 'unverifiable'
+              }
+              if (
+                preAdoptionIdentity.handle !== candidate.terminalHandle ||
+                preAdoptionIdentity.incarnationId !== candidate.incarnationId
+              ) {
+                return 'exited'
+              }
+              const session = this.getWorkspaceSessionForWorktree(candidate.worktreeId)
+              const sessionWorktreeId = session
+                ? resolveTerminalSessionWorktreeId(session, candidate.worktreeId)
+                : null
+              const activeTabId = sessionWorktreeId
+                ? session?.activeTabIdByWorktree?.[sessionWorktreeId]
+                : undefined
+              const activeGroupId = sessionWorktreeId
+                ? session?.activeGroupIdByWorktree?.[sessionWorktreeId]
+                : undefined
+              const exactSurfaceAlreadyPublished =
+                this.hasExactPersistedTerminalSurfaceIdentity(candidate) &&
+                this.hasExactTerminalSurfaceIdentity(candidate)
+              if (!exactSurfaceAlreadyPublished) {
+                await this.adoptTerminalOrphansFromInventoryUnderMutation(
                   {
-                    terminal: candidate.terminalHandle,
-                    ptyId: candidate.ptyId,
-                    incarnationId: candidate.incarnationId,
-                    tabId: candidate.tabId,
-                    leafId: candidate.leafId
-                  }
-                ]
-              },
-              workspace,
-              preAdoptionInventory
-            )
-          } catch (error) {
-            console.warn('[orchestration] legacy worker terminal adoption deferred', {
-              dispatchId: candidate.dispatchId,
-              error
-            })
-            deferredDispatchIds.add(candidate.dispatchId)
-            continue
-          }
+                    worktree: `id:${candidate.worktreeId}`,
+                    expectedTopologyRevision: this.getTerminalTopologyRevision(
+                      candidate.worktreeId
+                    ),
+                    ...(activeTabId ? { activeTabId } : {}),
+                    ...(activeGroupId ? { activeGroupId } : {}),
+                    claims: [
+                      {
+                        terminal: candidate.terminalHandle,
+                        ptyId: candidate.ptyId,
+                        incarnationId: candidate.incarnationId,
+                        tabId: candidate.tabId,
+                        leafId: candidate.leafId
+                      }
+                    ]
+                  },
+                  workspace,
+                  preAdoptionInventory
+                )
+              }
+              return 'ready'
+            }
+          )
+        } catch (error) {
+          console.warn('[orchestration] legacy worker terminal adoption deferred', {
+            dispatchId: candidate.dispatchId,
+            error
+          })
+          deferredDispatchIds.add(candidate.dispatchId)
+          continue
+        }
+        if (adoptionStatus === 'unverifiable') {
+          deferredDispatchIds.add(candidate.dispatchId)
+          continue
+        }
+        if (adoptionStatus === 'exited') {
+          pendingResolutions.push({ candidate, resolution: 'exited' })
+          continue
         }
         let rendererMaterialized =
           options.materializeRenderer !== true ||
@@ -7248,6 +7295,10 @@ export class MantaRuntimeService {
     windowId: number,
     graph: RuntimeSyncWindowGraph | RuntimeRendererSyncWindowGraph
   ): RuntimeSyncWindowGraphResult {
+    // `tabs` and several downstream indexes are keyed only by tab id. Reject
+    // malformed persisted/mirrored graphs before authority or graph state is
+    // changed; choosing a winner would route PTYs to the wrong worktree.
+    assertUniqueRuntimeGraphTabIds(graph.tabs)
     if (
       windowId !== HEADLESS_RUNTIME_WINDOW_ID &&
       this.authoritativeWindowId === HEADLESS_RUNTIME_WINDOW_ID &&
@@ -8515,9 +8566,25 @@ export class MantaRuntimeService {
     const activeGroupId =
       (activeParentId ? ownerGroupId.get(activeParentId) : undefined) ?? nextGroups[0]!.id
     const retainedOrder = new Map<string, string[]>(nextGroups.map((group) => [group.id, []]))
+    // Why: tabOrder is the canonical user-visible order, so it must survive a republish.
+    // A materialized idle surface can move to the end of terminalTabs; retaining the
+    // stored order prevents activation from rotating the tab bar.
+    const placed = new Set<string>()
+    for (const group of nextGroups) {
+      for (const tabId of group.tabOrder) {
+        if (liveTabIds.has(tabId) && !placed.has(tabId)) {
+          retainedOrder.get(group.id)?.push(tabId)
+          placed.add(tabId)
+        }
+      }
+    }
     for (const tabId of parentTabOrder) {
+      if (placed.has(tabId)) {
+        continue
+      }
       const groupId = ownerGroupId.get(tabId) ?? activeGroupId
       retainedOrder.get(groupId)?.push(tabId)
+      placed.add(tabId)
     }
     return nextGroups
       .map((group) => {
@@ -8849,6 +8916,8 @@ export class MantaRuntimeService {
     const accepted: RetiredTerminalSurface[] = []
     const unpersisted: RetiredTerminalSurface[] = []
     const pendingWrites: { hostId: ExecutionHostId; session: WorkspaceSessionState }[] = []
+    const originalSessions = new Map<ExecutionHostId, WorkspaceSessionState>()
+    const stagedSessions = new Map<ExecutionHostId, WorkspaceSessionState>()
     for (const [hostId, surfaces] of surfacesByHostId) {
       const session = this.store?.getWorkspaceSession?.(hostId)
       if (!session) {
@@ -8860,6 +8929,7 @@ export class MantaRuntimeService {
       if (!this.store?.setWorkspaceSession || !this.store.flushOrThrow) {
         return null
       }
+      originalSessions.set(hostId, session)
       let nextSession = session
       const acceptedForHost: RetiredTerminalSurface[] = []
       for (const surface of surfaces) {
@@ -8879,9 +8949,30 @@ export class MantaRuntimeService {
       try {
         for (const write of pendingWrites) {
           this.store?.setWorkspaceSession?.(write.session, write.hostId)
+          const staged = this.store?.getWorkspaceSession?.(write.hostId)
+          if (staged) {
+            stagedSessions.set(write.hostId, staged)
+          }
         }
         this.store?.flushOrThrow?.()
       } catch (error) {
+        // setWorkspaceSession mutates the in-memory partition before the flush. Restore only
+        // fields still equal to our staged write so concurrent renderer updates survive.
+        for (const [hostId, original] of originalSessions) {
+          const staged = stagedSessions.get(hostId)
+          const current = this.store?.getWorkspaceSession?.(hostId)
+          if (!staged || !current) {
+            continue
+          }
+          const rolledBack = rollbackWorkspaceSessionAfterFailedAsyncWrite(
+            original,
+            staged,
+            current
+          )
+          if (rolledBack !== current) {
+            this.store?.setWorkspaceSession?.(rolledBack, hostId)
+          }
+        }
         console.error('[runtime] failed to persist terminal retirement:', error)
         return null
       }
@@ -8894,6 +8985,8 @@ export class MantaRuntimeService {
     incarnationId: string,
     exactSurfaces: readonly Pick<RetiredTerminalSurface, 'worktreeId' | 'parentTabId' | 'leafId'>[]
   ): void {
+    const terminalHandle =
+      this.handleByPtyId.get(ptyId) ?? this.findHandleForPtyRecord(ptyId) ?? undefined
     const retiredSurfaceByKey = new Map<string, RetiredTerminalSurface>()
     for (const surface of exactSurfaces) {
       retiredSurfaceByKey.set(`${surface.worktreeId}\0${surface.parentTabId}\0${surface.leafId}`, {
@@ -8946,7 +9039,20 @@ export class MantaRuntimeService {
           (surface) => surface.worktreeId === worktreeId
         ),
         // Why: discovery is broad by PTY id, but publication may remove only surfaces whose durable retirement was accepted.
-        exactOnly: true
+        exactOnly: true,
+        ...(terminalHandle
+          ? {
+              retirementProofs: publishableRetiredSurfaces
+                .filter((surface) => surface.worktreeId === worktreeId)
+                .map((surface) => ({
+                  parentTabId: surface.parentTabId,
+                  leafId: surface.leafId,
+                  ptyId: surface.ptyId,
+                  terminal: terminalHandle,
+                  incarnationId
+                }))
+            }
+          : {})
       })
       if (retired) {
         this.mobileSessionTabsByWorktree.set(worktreeId, retired.snapshot)
@@ -9277,7 +9383,27 @@ export class MantaRuntimeService {
   ): RuntimeMobileSessionTabGroup[] {
     // Why: order across terminals and browsers in their actual array order so a
     // tab opened after a browser tab lands to its right, not regrouped before it.
-    const tabOrder = this.collectHeadlessTopLevelTabOrder(tabs)
+    const arrivalOrder = this.collectHeadlessTopLevelTabOrder(tabs)
+    // Why: tabOrder is the user-visible order and must survive a republish. A
+    // materialized idle surface can move to the end of the incoming array, so
+    // retain stored positions and append only genuinely new ids.
+    const liveTopLevelIds = new Set(arrivalOrder)
+    const tabOrder: string[] = []
+    const placed = new Set<string>()
+    for (const group of existingGroups ?? []) {
+      for (const tabId of group.tabOrder) {
+        if (liveTopLevelIds.has(tabId) && !placed.has(tabId)) {
+          tabOrder.push(tabId)
+          placed.add(tabId)
+        }
+      }
+    }
+    for (const tabId of arrivalOrder) {
+      if (!placed.has(tabId)) {
+        tabOrder.push(tabId)
+        placed.add(tabId)
+      }
+    }
     const topLevelOf = (tab: RuntimeMobileSessionSnapshotTab): string =>
       tab.type === 'terminal' ? tab.parentTabId : tab.id
     const activeTopLevelId =
@@ -9396,13 +9522,13 @@ export class MantaRuntimeService {
     }
   }
 
-  private removePersistedHeadlessTerminalTab(
+  private commitHeadlessTerminalTabRetirement(
     worktreeId: string,
     parentTabId: string,
     options: { allowMissing?: boolean } = {}
   ): string[] {
     const session = this.getWorkspaceSessionForWorktree(worktreeId)
-    if (!session || !this.store?.setWorkspaceSession) {
+    if (!session || !this.store?.setWorkspaceSession || !this.store.flushOrThrow) {
       throw new Error('workspace_session_unavailable')
     }
     const result = closeTerminalTabInWorkspaceSession(session, worktreeId, parentTabId)
@@ -9410,15 +9536,27 @@ export class MantaRuntimeService {
       throw new Error('terminal_tab_pinned')
     }
     if (!result.closed) {
-      if (options.allowMissing) {
-        return []
+      if (!options.allowMissing) {
+        throw new Error('tab_not_found')
       }
-      throw new Error('tab_not_found')
     }
-    this.setWorkspaceSessionForWorktree(
-      worktreeId,
-      advanceTerminalTopologyRevision(result.session, worktreeId)
-    )
+    const persisted = result.closed
+      ? advanceTerminalTopologyRevision(result.session, worktreeId)
+      : session
+    this.setWorkspaceSessionForWorktree(worktreeId, persisted)
+    const staged = this.getWorkspaceSessionForWorktree(worktreeId)
+    try {
+      this.store.flushOrThrow()
+    } catch (error) {
+      const current = this.getWorkspaceSessionForWorktree(worktreeId)
+      if (staged && current) {
+        const rolledBack = rollbackWorkspaceSessionAfterFailedAsyncWrite(session, staged, current)
+        if (rolledBack !== current) {
+          this.setWorkspaceSessionForWorktree(worktreeId, rolledBack)
+        }
+      }
+      throw error
+    }
     return result.ptyIdsToKill
   }
 
@@ -9907,6 +10045,7 @@ export class MantaRuntimeService {
       expectedTerminalHandle?: string
       clientNavigationId?: string
       localPtyTeardownOwnedExternally?: boolean
+      expectedPtyCloseAuthority?: RuntimePtyTabCloseAuthority
     } = {}
   ): Promise<MobileSessionTabCloseOutcome> {
     const graphEpoch = options.clientNavigationId ? this.captureReadyGraphEpoch() : null
@@ -9936,16 +10075,103 @@ export class MantaRuntimeService {
         snapshotRepublished: Boolean(snapshot)
       })
     }
-    const tab =
-      snapshot?.tabs.find((candidate) => candidate.id === tabId) ??
-      snapshot?.tabs.find(
-        (candidate) => candidate.type === 'terminal' && candidate.parentTabId === tabId
-      ) ??
-      snapshot?.tabs.find(
-        (candidate) => candidate.type === 'browser' && candidate.browserWorkspaceId === tabId
+    const ptyCloseAuthority = options.expectedPtyCloseAuthority
+      ? this.resolvePtyTabCloseSurfaceAuthority(options.expectedPtyCloseAuthority)
+      : null
+    const tab = options.expectedPtyCloseAuthority
+      ? ptyCloseAuthority?.surface.tab
+      : (snapshot?.tabs.find((candidate) => candidate.id === tabId) ??
+        snapshot?.tabs.find(
+          (candidate) => candidate.type === 'terminal' && candidate.parentTabId === tabId
+        ) ??
+        snapshot?.tabs.find(
+          (candidate) => candidate.type === 'browser' && candidate.browserWorkspaceId === tabId
+        ))
+    const lifecycleCloseParentTabId =
+      tab?.type === 'terminal'
+        ? tab.parentTabId
+        : ptyCloseAuthority?.surface.tab.type === 'terminal'
+          ? ptyCloseAuthority.surface.tab.parentTabId
+          : this.tabs.has(tabId)
+            ? tabId
+            : ([...this.tabs.keys()]
+                .filter((parentTabId) => tabId.startsWith(`${parentTabId}::`))
+                .sort((a, b) => b.length - a.length)[0] ??
+              (
+                snapshot?.tabs.find(
+                  (candidate) =>
+                    candidate.type === 'terminal' && tabId.startsWith(`${candidate.parentTabId}::`)
+                ) as RuntimeMobileSessionTerminalTab | undefined
+              )?.parentTabId ??
+              null)
+    const lifecycleParentLeaves = lifecycleCloseParentTabId
+      ? (snapshot?.tabs.filter(
+          (candidate): candidate is RuntimeMobileSessionTerminalTab =>
+            candidate.type === 'terminal' && candidate.parentTabId === lifecycleCloseParentTabId
+        ) ?? [])
+      : []
+    const lifecycleRendererLeaves = lifecycleCloseParentTabId
+      ? [...this.leaves.values()].filter(
+          (leaf) =>
+            leaf.tabId === lifecycleCloseParentTabId &&
+            worktreeIdsEqual(leaf.worktreeId, worktreeId)
+        )
+      : []
+    const lifecycleLeafHasConnectedPty = (leaf: RuntimeMobileSessionTerminalTab): boolean => {
+      const snapshotPtyIds = [leaf.ptyId, leaf.parentLayout?.ptyIdsByLeafId?.[leaf.leafId]].filter(
+        (ptyId): ptyId is string => Boolean(ptyId)
       )
+      return (
+        this.findPtyForMobileTerminalTab(worktreeId, leaf)?.connected === true ||
+        snapshotPtyIds.some((ptyId) => observedPtyIds?.has(ptyId) === true)
+      )
+    }
+    const lifecycleRendererLeafHasConnectedPty = (leaf: RuntimeLeafRecord): boolean => {
+      const ptyId = leaf.ptyId
+      return Boolean(
+        ptyId &&
+        (this.ptysById.get(ptyId)?.connected === true || observedPtyIds?.has(ptyId) === true)
+      )
+    }
+    const lifecycleCloseLeafId =
+      lifecycleCloseParentTabId && tabId.startsWith(`${lifecycleCloseParentTabId}::`)
+        ? tabId.slice(lifecycleCloseParentTabId.length + 2)
+        : null
     if (!snapshot || !tab) {
-      throw new Error('tab_not_found')
+      // Lifecycle echoes are idempotent: a provider exit may have already
+      // retired the surface before the viewer reports its stale close. A user
+      // close still fails closed so an unknown target cannot be hidden.
+      if (options.reason !== undefined && options.reason !== 'user') {
+        // A missing leaf can still be part of a live split parent. Closing that
+        // parent would take the surviving sibling down, so retain the refusal
+        // even though the addressed leaf has already been retired.
+        const hasLiveRendererParentLeaf = lifecycleRendererLeaves.some(
+          lifecycleRendererLeafHasConnectedPty
+        )
+        if (lifecycleParentLeaves.some(lifecycleLeafHasConnectedPty) || hasLiveRendererParentLeaf) {
+          const addressedDeadRendererLeaf =
+            lifecycleCloseLeafId !== null &&
+            !lifecycleRendererLeaves.some(
+              (leaf) =>
+                leaf.leafId === lifecycleCloseLeafId && lifecycleRendererLeafHasConnectedPty(leaf)
+            )
+          if (addressedDeadRendererLeaf) {
+            return refusedMobileSessionTabClose('live-host-pty')
+          }
+          if (snapshot) {
+            this.republishMobileSessionTabsSnapshot(worktreeId)
+          }
+          return refusedMobileSessionTabClose('live-host-pty')
+        }
+        // The renderer owns a graph-visible parent, including a dead leaf whose
+        // lifecycle echo arrived after main retired its mirror. Leave retirement
+        // to that renderer instead of acknowledging a host-side close.
+        if (lifecycleCloseParentTabId && this.tabs.has(lifecycleCloseParentTabId)) {
+          return refusedMobileSessionTabClose('retirement-owner')
+        }
+        return delegatedMobileSessionTabClose()
+      }
+      throw new Error(options.expectedPtyCloseAuthority ? 'terminal_handle_stale' : 'tab_not_found')
     }
     if (options.expectedTerminalHandle !== undefined) {
       const terminalIncarnationMatches =
@@ -9999,16 +10225,7 @@ export class MantaRuntimeService {
         // presence is not liveness — only `connected` counts, or a genuinely
         // dead tab never retires and the echo loops forever.
         const leafHasConnectedPty = (leaf: RuntimeMobileSessionTerminalTab): boolean => {
-          const snapshotPtyIds = [
-            leaf.ptyId,
-            leaf.parentLayout?.ptyIdsByLeafId?.[leaf.leafId]
-          ].filter((ptyId): ptyId is string => Boolean(ptyId))
-          // Why: daemon discovery can prove the PTY live before its pane binding
-          // reconnects; missing metadata is never authority to retire it.
-          return (
-            this.findPtyForMobileTerminalTab(worktreeId, leaf)?.connected === true ||
-            snapshotPtyIds.some((ptyId) => observedPtyIds?.has(ptyId) === true)
-          )
+          return lifecycleLeafHasConnectedPty(leaf)
         }
         if (parentLeaves.some(leafHasConnectedPty)) {
           // Why: when the echo addresses a dead leaf under a live sibling we
@@ -10039,10 +10256,13 @@ export class MantaRuntimeService {
       // renderer's live pin guard and durable close transaction.
       if (closingWholeParent && !this.tabs.has(tab.parentTabId)) {
         this.closeHeadlessMobileTerminalTab(worktreeId, snapshot, tab, {
-          killPtys: options.reason === undefined || options.reason === 'user'
+          allowMissingPersistedTab: Boolean(ptyCloseAuthority),
+          killPtys:
+            options.localPtyTeardownOwnedExternally !== true &&
+            (options.reason === undefined || options.reason === 'user'),
+          ...(ptyCloseAuthority ? { authorizedPty: ptyCloseAuthority.pty } : {})
         })
         this.notifyRendererOfHeadlessTerminalClose(tab.parentTabId)
-        this.store?.flushOrThrow?.()
         return finishCommittedClose()
       }
       if (closingWholeParent && this.notifier?.closeTerminalTab) {
@@ -10075,13 +10295,16 @@ export class MantaRuntimeService {
           remainingTab &&
           this.isRuntimeOwnedHeadlessMobileTab(worktreeId, remainingTab)
         ) {
+          const remainingPtyCloseAuthority = options.expectedPtyCloseAuthority
+            ? this.resolvePtyTabCloseSurfaceAuthority(options.expectedPtyCloseAuthority)
+            : null
           // Why: after relay recovery the renderer can acknowledge a tab it no longer mirrors; the HUB must still retire its SSH-owned surface.
           this.closeHeadlessMobileTerminalTab(worktreeId, remainingSnapshot, remainingTab, {
             // Why: the renderer may already have durably removed the tab before acknowledging.
-            allowMissingPersistedTab: true
+            allowMissingPersistedTab: true,
+            ...(remainingPtyCloseAuthority ? { authorizedPty: remainingPtyCloseAuthority.pty } : {})
           })
           this.notifyRendererOfHeadlessTerminalClose(tab.parentTabId)
-          this.store?.flushOrThrow?.()
         }
         this.clearRuntimeSessionOwnershipForMobileTab(worktreeId, snapshot, tab.parentTabId)
         return finishCommittedClose()
@@ -10089,14 +10312,16 @@ export class MantaRuntimeService {
       // Why: notifier implementations without the acknowledged relay may expose
       // only raw pane close. Runtime-owned parents still need de-persist + kill.
       if (closingWholeParent && this.isRuntimeOwnedHeadlessMobileTab(worktreeId, tab)) {
-        this.closeHeadlessMobileTerminalTab(worktreeId, snapshot, tab)
+        this.closeHeadlessMobileTerminalTab(worktreeId, snapshot, tab, {
+          ...(ptyCloseAuthority ? { authorizedPty: ptyCloseAuthority.pty } : {})
+        })
         this.notifyRendererOfHeadlessTerminalClose(tab.parentTabId)
-        this.store?.flushOrThrow?.()
         return finishCommittedClose()
       }
       if (!this.notifier?.closeTerminal) {
-        this.closeHeadlessMobileTerminalTab(worktreeId, snapshot, tab)
-        this.store?.flushOrThrow?.()
+        this.closeHeadlessMobileTerminalTab(worktreeId, snapshot, tab, {
+          ...(ptyCloseAuthority ? { authorizedPty: ptyCloseAuthority.pty } : {})
+        })
         return finishCommittedClose()
       }
       if (tab.id === tabId) {
@@ -10183,6 +10408,33 @@ export class MantaRuntimeService {
       return null
     }
     return this.handleByPtyId.get(pty.ptyId) ?? this.findHandleForPtyRecord(pty.ptyId)
+  }
+
+  private getMobileSessionTerminalRetirementProof(
+    worktreeId: string,
+    tab: RuntimeMobileSessionTerminalTab,
+    authorizedPty?: RuntimePtyWorktreeRecord
+  ): RuntimeMobileSessionRetiredTerminalSurface | null {
+    const pty = this.findPtyForMobileTerminalTab(worktreeId, tab) ?? authorizedPty ?? null
+    if (!pty || !this.getMobileTerminalLeafPtyIds(tab).includes(pty.ptyId)) {
+      return null
+    }
+    const terminal = this.handleByPtyId.get(pty.ptyId) ?? this.findHandleForPtyRecord(pty.ptyId)
+    if (!terminal) {
+      return null
+    }
+    const incarnationId =
+      pty.incarnationId ??
+      this.getWorkspaceSessionForWorktree(worktreeId)?.terminalPtyIncarnationsByPaneKey?.[
+        this.getMobileTerminalPaneKey(tab)
+      ]
+    return {
+      parentTabId: tab.parentTabId,
+      leafId: tab.leafId,
+      ptyId: pty.ptyId,
+      terminal,
+      ...(incarnationId ? { incarnationId } : {})
+    }
   }
 
   private notifyRendererOfHeadlessTerminalClose(parentTabId: string): void {
@@ -10344,13 +10596,34 @@ export class MantaRuntimeService {
     worktreeId: string,
     snapshot: RuntimeMobileSessionTabsSnapshot,
     tab: RuntimeMobileSessionTerminalTab,
-    options: { allowMissingPersistedTab?: boolean; killPtys?: boolean } = {}
+    options: {
+      allowMissingPersistedTab?: boolean
+      killPtys?: boolean
+      authorizedPty?: RuntimePtyWorktreeRecord
+    } = {}
   ): void {
     const closedParentTabId = tab.parentTabId
-    this.clearRuntimeSessionOwnershipForMobileTab(worktreeId, snapshot, closedParentTabId)
-    const projectedPtyIds = this.removePersistedHeadlessTerminalTab(worktreeId, closedParentTabId, {
-      allowMissing: options.allowMissingPersistedTab
+    const retirementProofs = snapshot.tabs.flatMap((candidate) => {
+      if (candidate.type !== 'terminal' || candidate.parentTabId !== closedParentTabId) {
+        return []
+      }
+      const proof = this.getMobileSessionTerminalRetirementProof(
+        worktreeId,
+        candidate,
+        options.authorizedPty
+      )
+      return proof ? [proof] : []
     })
+    const projectedPtyIds = this.commitHeadlessTerminalTabRetirement(
+      worktreeId,
+      closedParentTabId,
+      { allowMissing: options.allowMissingPersistedTab }
+    )
+    this.clearRuntimeSessionOwnershipForMobileTab(worktreeId, snapshot, closedParentTabId)
+    if (options.authorizedPty) {
+      options.authorizedPty.runtimeSessionOwned = false
+      this.setPairedRendererSessionOwnership(options.authorizedPty.ptyId, false)
+    }
     // Why: local provider ids can be reused after restart, so a dormant
     // persisted id is not kill authority. SSH relay ids remain durable exact
     // identities even before pane metadata reconnects.
@@ -10359,7 +10632,12 @@ export class MantaRuntimeService {
       if (candidate.type !== 'terminal' || candidate.parentTabId !== closedParentTabId) {
         continue
       }
-      const livePty = this.findPtyForMobileTerminalTab(worktreeId, candidate)
+      const authorizedPty =
+        options.authorizedPty &&
+        this.getMobileTerminalLeafPtyIds(candidate).includes(options.authorizedPty.ptyId)
+          ? options.authorizedPty
+          : null
+      const livePty = this.findPtyForMobileTerminalTab(worktreeId, candidate) ?? authorizedPty
       const ptyId = livePty?.ptyId ?? candidate.ptyId
       const hasOtherOwner = snapshot.tabs.some(
         (other) =>
@@ -10398,6 +10676,14 @@ export class MantaRuntimeService {
         active,
         snapshot.tabGroups
       ),
+      ...(retirementProofs.length > 0
+        ? {
+            retiredTerminalSurfaces: appendRetiredTerminalSurfaceProofs(
+              snapshot.retiredTerminalSurfaces,
+              retirementProofs
+            )
+          }
+        : {}),
       tabs: nextTabs
     }
     this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
@@ -12591,7 +12877,39 @@ export class MantaRuntimeService {
     return `term_${randomUUID()}`
   }
 
+  private rememberPtyHandleReplacementFence(
+    ptyId: string,
+    incarnationId: PtyIncarnationId,
+    staleHandles: Iterable<string>,
+    pendingRegistration: boolean
+  ): void {
+    const previous = this.pendingPtyHandleReplacementFences.get(ptyId)
+    const merged = new Set(previous?.staleHandles)
+    for (const handle of staleHandles) {
+      merged.add(handle)
+    }
+    // A PTY normally has one direct and one renderer alias. Keep a small bound
+    // in case a malformed provider emits an unbounded alias stream.
+    while (merged.size > 16) {
+      const oldest = merged.values().next().value
+      if (typeof oldest !== 'string') {
+        break
+      }
+      merged.delete(oldest)
+    }
+    this.pendingPtyHandleReplacementFences.set(ptyId, {
+      incarnationId,
+      staleHandles: merged,
+      pendingRegistration
+    })
+  }
+
   registerPreAllocatedHandleForPty(ptyId: string, handle: string): void {
+    if (this.pendingPtyHandleReplacementFences.get(ptyId)?.staleHandles.has(handle)) {
+      // The provider can replay the old env handle after announcing a new
+      // incarnation. Never let that predecessor alias be reintroduced.
+      return
+    }
     const retained = this.handleByPtyIncarnation.get(ptyId)
     if (retained?.handle === handle) {
       this.handleByPtyIncarnation.delete(ptyId)
@@ -12642,19 +12960,25 @@ export class MantaRuntimeService {
     this.registerPreAllocatedHandleForPty(ptyId, trimmed)
   }
 
-  private invalidateAllHandlesForPty(ptyId: string): void {
+  private invalidateAllHandlesForPty(ptyId: string, preserveHandle?: string): Set<string> {
     const incarnationHandle = this.handleByPtyIncarnation.get(ptyId)?.handle
     const preallocatedHandle = this.handleByPtyId.get(ptyId)
-    this.invalidatePtyIncarnationHandle(ptyId)
-    this.handleByPtyId.delete(ptyId)
     const invalidated = new Set<string>()
-    if (preallocatedHandle && preallocatedHandle !== incarnationHandle) {
+    if (incarnationHandle && incarnationHandle !== preserveHandle) {
+      this.handleByPtyIncarnation.delete(ptyId)
+      invalidated.add(incarnationHandle)
+    } else if (incarnationHandle) {
+      // The retained handle no longer describes the old incarnation. Keep its direct alias,
+      // when requested, but discard the incarnation-specific leaf record.
+      this.handleByPtyIncarnation.delete(ptyId)
+    }
+    if (preallocatedHandle && preallocatedHandle !== preserveHandle) {
+      this.handleByPtyId.delete(ptyId)
       invalidated.add(preallocatedHandle)
     }
     for (const [handle, record] of this.handles) {
-      if (record.ptyId === ptyId) {
+      if (record.ptyId === ptyId && handle !== preserveHandle) {
         invalidated.add(handle)
-        this.handles.delete(handle)
       }
     }
     for (const handle of invalidated) {
@@ -12663,10 +12987,18 @@ export class MantaRuntimeService {
       this.rejectWaitersForHandle(handle, 'terminal_handle_stale')
     }
     for (const [leafKey, handle] of this.handleByLeafKey) {
-      if (invalidated.has(handle)) {
+      if (invalidated.has(handle) || (preserveHandle !== undefined && handle === preserveHandle)) {
         this.handleByLeafKey.delete(leafKey)
       }
     }
+    if (preserveHandle !== undefined) {
+      // The direct alias is the only identity retained across an incarnation
+      // change. Renderer records point at the predecessor pane generation and
+      // must be rebuilt by graph sync (or issuePtyHandle) before use.
+      this.handles.delete(preserveHandle)
+      this.syntheticTerminalHandles.delete(preserveHandle)
+    }
+    return invalidated
   }
 
   private replaceSyntheticTerminalHandlesForRestoredPty(
@@ -12740,6 +13072,23 @@ export class MantaRuntimeService {
     incarnationId?: PtyIncarnationId,
     options: { awaitsRegistration?: boolean } = {}
   ): void {
+    const existingPty = this.ptysById.get(ptyId)
+    if (
+      existingPty &&
+      incarnationId !== undefined &&
+      existingPty.incarnationId !== null &&
+      existingPty.incarnationId !== incarnationId
+    ) {
+      // Providers announce a child before the commit binds its pane. Fence the
+      // predecessor now so a reused id cannot route through its old handle in
+      // that gap.
+      this.rememberPtyHandleReplacementFence(
+        ptyId,
+        incarnationId,
+        this.invalidateAllHandlesForPty(ptyId),
+        true
+      )
+    }
     this.forgetPtyLivenessVerdict(ptyId)
     if (options.awaitsRegistration !== false) {
       // Why: surface absence cannot distinguish an in-flight admission from a completed headless lifecycle.
@@ -12769,6 +13118,8 @@ export class MantaRuntimeService {
       tabId: string
       leafId: string
       incarnationId?: PtyIncarnationId
+      /** Handle allocated for the replacement incarnation, when one is known. */
+      terminalHandle?: string
       agentLaunchAuthority?: { launchToken: string; launchAgent: TuiAgent }
       providerReattachLaunchIdentity?: {
         incarnationId: PtyIncarnationId
@@ -12778,6 +13129,42 @@ export class MantaRuntimeService {
     isWsl?: boolean
   ): void {
     this.assertPtyDidNotExitBeforeRegistration(ptyId, binding?.incarnationId)
+    const existingPty = this.ptysById.get(ptyId)
+    const replacementHandle = binding?.terminalHandle?.trim()
+    const pendingReplacement = this.pendingPtyHandleReplacementFences.get(ptyId)
+    const pendingReplacementMatches =
+      pendingReplacement !== undefined &&
+      pendingReplacement.pendingRegistration &&
+      binding?.incarnationId !== undefined &&
+      pendingReplacement.incarnationId === binding.incarnationId
+    const incarnationChanged =
+      existingPty !== undefined &&
+      binding?.incarnationId !== undefined &&
+      existingPty.incarnationId !== null &&
+      existingPty.incarnationId !== binding.incarnationId
+    if (incarnationChanged || pendingReplacementMatches) {
+      // A reconnect can register a replacement before inventory reports its exported handle.
+      // Drop every alias for the predecessor; a newly preallocated handle is retained only when
+      // the caller can prove it is the replacement's handle.
+      const directHandle = this.handleByPtyId.get(ptyId)
+      const canPreserveReplacementHandle =
+        replacementHandle !== undefined &&
+        replacementHandle.startsWith('term_') &&
+        directHandle === replacementHandle &&
+        !pendingReplacement?.staleHandles.has(replacementHandle)
+      const invalidated = this.invalidateAllHandlesForPty(
+        ptyId,
+        canPreserveReplacementHandle ? replacementHandle : undefined
+      )
+      if (binding?.incarnationId) {
+        this.rememberPtyHandleReplacementFence(
+          ptyId,
+          binding.incarnationId,
+          invalidated,
+          pendingReplacementMatches
+        )
+      }
+    }
     this.forgetPtyLivenessVerdict(ptyId)
     this.spawnPublishedPtys.add(ptyId)
     // Why: record the renderer pane identity at spawn time so a stalled graph
@@ -12832,6 +13219,12 @@ export class MantaRuntimeService {
       pendingIncarnation === binding.incarnationId
     ) {
       this.pendingPtyRegistrationIncarnations.delete(ptyId)
+    }
+    if (pendingReplacement !== undefined) {
+      const currentFence = this.pendingPtyHandleReplacementFences.get(ptyId)
+      if (currentFence && (pendingReplacementMatches || !binding?.incarnationId)) {
+        currentFence.pendingRegistration = false
+      }
     }
     // Why: the renderer's own PTY spawn is the reliable signal that the pending
     // mobile create's tab is live; publish its surface main-side (#7587).
@@ -19481,22 +19874,24 @@ export class MantaRuntimeService {
       throw new Error('terminal_orphan_claims_required')
     }
     const workspace = await this.resolveTerminalWorkspaceLaunchScope(request.worktree)
-    const resolvedWorkspace = workspace.folderWorkspace
-      ? this.folderWorkspaceToResolvedWorktree(workspace.folderWorkspace)
-      : await this.resolveWorktreeSelector(`id:${workspace.id}`)
-    const inventory = await this.refreshPtyWorktreeRecordsWithControllerInventory(
-      [resolvedWorkspace],
-      workspace.id,
-      undefined,
-      workspace.connectionId ?? null
-    )
-    if (!inventory) {
-      throw new Error('terminal_liveness_unavailable')
-    }
-    return this.adoptTerminalOrphansFromInventory(request, workspace, inventory)
+    return this.runWorktreeTerminalMutation(workspace.id, async () => {
+      const resolvedWorkspace = workspace.folderWorkspace
+        ? this.folderWorkspaceToResolvedWorktree(workspace.folderWorkspace)
+        : await this.resolveWorktreeSelector(`id:${workspace.id}`)
+      const inventory = await this.refreshPtyWorktreeRecordsWithControllerInventory(
+        [resolvedWorkspace],
+        workspace.id,
+        undefined,
+        workspace.connectionId ?? null
+      )
+      if (!inventory) {
+        throw new Error('terminal_liveness_unavailable')
+      }
+      return this.adoptTerminalOrphansFromInventoryUnderMutation(request, workspace, inventory)
+    })
   }
 
-  private async adoptTerminalOrphansFromInventory(
+  private async adoptTerminalOrphansFromInventoryUnderMutation(
     request: RuntimeTerminalOrphanAdoptionRequest,
     workspace: TerminalWorkspaceLaunchScope,
     inventory: PtyControllerInventory
@@ -30669,6 +31064,7 @@ export class MantaRuntimeService {
         this.registerPty(result.id, workspace.id, workspace.connectionId, {
           tabId,
           leafId,
+          terminalHandle: preAllocatedHandle,
           ...(result.incarnationId ? { incarnationId: result.incarnationId } : {})
         })
         if (launchOpts.structuredAgentSessionId) {
@@ -31589,15 +31985,78 @@ export class MantaRuntimeService {
     ptyId: string
   ): RuntimeMobileSessionCreateTerminalResult | null {
     const snapshot = this.mobileSessionTabsByWorktree.get(worktreeId)
-    const tab = snapshot?.tabs.find(
-      (candidate) =>
+    if (!snapshot) {
+      return null
+    }
+    const result = this.toMobileSessionTabsResult(snapshot)
+    const tabs = result.tabs.filter(
+      (candidate): candidate is RuntimeMobileSessionTerminalClientTab =>
         candidate.type === 'terminal' &&
         (candidate.ptyId === ptyId ||
           candidate.parentLayout?.ptyIdsByLeafId?.[candidate.leafId] === ptyId)
     )
-    return tab?.type === 'terminal'
-      ? this.findMobileTerminalSurface(worktreeId, tab.parentTabId)
+    if (tabs.length === 0 || new Set(tabs.map((tab) => tab.parentTabId)).size !== 1) {
+      return null
+    }
+    return {
+      tab: tabs[0]!,
+      publicationEpoch: result.publicationEpoch,
+      snapshotVersion: result.snapshotVersion
+    }
+  }
+
+  private resolvePtyTabCloseSurfaceAuthority(
+    authority: RuntimePtyTabCloseAuthority
+  ): { pty: RuntimePtyWorktreeRecord; surface: RuntimeMobileSessionCreateTerminalResult } | null {
+    const live = this.getLivePtyForHandle(authority.handle)
+    if (
+      !live ||
+      live.pty.ptyId !== authority.ptyId ||
+      live.pty.worktreeId !== authority.worktreeId ||
+      live.record.worktreeId !== authority.worktreeId ||
+      live.pty.incarnationId !== authority.incarnationId
+    ) {
+      return null
+    }
+    const surface = this.findMobileTerminalSurfaceForPty(authority.worktreeId, authority.ptyId)
+    if (!surface) {
+      return null
+    }
+    const session = this.getWorkspaceSessionForWorktree(authority.worktreeId)
+    const sessionWorktreeId = session
+      ? resolveTerminalSessionWorktreeId(session, authority.worktreeId)
       : null
+    const persistedTab = sessionWorktreeId
+      ? session?.tabsByWorktree[sessionWorktreeId]?.find(
+          (tab) => tab.id === surface.tab.parentTabId
+        )
+      : undefined
+    if (persistedTab && !worktreeIdsEqual(persistedTab.worktreeId, authority.worktreeId)) {
+      return null
+    }
+    const paneKey = makePaneKey(surface.tab.parentTabId, surface.tab.leafId)
+    const persistedPtyId =
+      session?.terminalLayoutsByTabId?.[surface.tab.parentTabId]?.ptyIdsByLeafId?.[
+        surface.tab.leafId
+      ] ?? null
+    const persistedIncarnationId = session?.terminalPtyIncarnationsByPaneKey?.[paneKey] ?? null
+    if (
+      (persistedPtyId && persistedPtyId !== authority.ptyId) ||
+      (persistedIncarnationId && persistedIncarnationId !== authority.incarnationId)
+    ) {
+      return null
+    }
+    if (
+      !this.resolveTerminalSplitSourceAuthority(
+        authority.worktreeId,
+        surface.tab.parentTabId,
+        surface.tab.leafId,
+        authority.ptyId
+      )
+    ) {
+      return null
+    }
+    return { pty: live.pty, surface }
   }
 
   // Why: publish an in-flight mobile create main-side from the live PTY so it can't stall on graph sync and destroy the session (#7587).
@@ -32181,11 +32640,22 @@ export class MantaRuntimeService {
     const pty = this.getLivePtyForHandle(handle)
     this.claudeAgentTeams.removeTeamForLeaderHandle(handle)
     if (pty) {
+      const closeAuthority: RuntimePtyTabCloseAuthority = {
+        handle,
+        ptyId: pty.pty.ptyId,
+        incarnationId: pty.pty.incarnationId,
+        worktreeId: pty.pty.worktreeId
+      }
+      const ptyCloseAuthority = this.resolvePtyTabCloseSurfaceAuthority(closeAuthority)
+      const spawnSurface = pty.pty.tabId
+        ? this.findMobileTerminalSurface(pty.pty.worktreeId, pty.pty.tabId)
+        : null
       // Why: PTY exit can immediately replace a ready SSH publication with a pending one, so capture its durable HUB surface before killing it.
       const surface =
-        (pty.pty.tabId
-          ? this.findMobileTerminalSurface(pty.pty.worktreeId, pty.pty.tabId)
-          : null) ?? this.findMobileTerminalSurfaceForPty(pty.pty.worktreeId, pty.pty.ptyId)
+        ptyCloseAuthority?.surface ??
+        (spawnSurface && this.getMobileTerminalLeafPtyIds(spawnSurface.tab).length === 0
+          ? spawnSurface
+          : null)
       const tabId = surface?.tab.parentTabId ?? pty.pty.tabId ?? pty.record.tabId
       // Why: relay recovery can leave stale renderer leaves; the persisted HUB layout defines whether closing this PTY closes the whole surface.
       const siblingCount = surface?.tab.parentLayout
@@ -32204,6 +32674,29 @@ export class MantaRuntimeService {
           this.notifier.closeTerminal?.(tabId)
         }
         const ptyKilled = await this.stopExplicitlyClosedTabPtys(ptyIdsToKill, pty.pty.ptyId)
+        return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
+      }
+      if (
+        siblingCount <= 1 &&
+        surface &&
+        ptyCloseAuthority &&
+        !this.tabs.has(surface.tab.parentTabId)
+      ) {
+        try {
+          await this.closeMobileSessionTab(`id:${pty.pty.worktreeId}`, tabId, {
+            reason: 'user',
+            localPtyTeardownOwnedExternally: true,
+            expectedPtyCloseAuthority: closeAuthority
+          })
+        } catch (error) {
+          if (!(error instanceof Error) || error.message !== 'workspace_session_unavailable') {
+            throw error
+          }
+          const ptyKilled = await this.stopExplicitlyClosedTabPtys([pty.pty.ptyId], pty.pty.ptyId)
+          this.notifier?.closeTerminal(tabId)
+          return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
+        }
+        const ptyKilled = await this.stopExplicitlyClosedTabPtys([pty.pty.ptyId], pty.pty.ptyId)
         return this.describeTerminalClose(handle, tabId, pty.pty.ptyId, ptyKilled)
       }
       if (siblingCount <= 1 && !surface && pty.pty.tabId && this.notifier?.closeTerminalTab) {
@@ -32286,13 +32779,24 @@ export class MantaRuntimeService {
   async closeTerminalTab(handle: string): Promise<RuntimeTerminalClose> {
     const pty = this.getLivePtyForHandle(handle)
     if (pty) {
-      const tabId = pty.pty.tabId
+      const closeAuthority: RuntimePtyTabCloseAuthority = {
+        handle,
+        ptyId: pty.pty.ptyId,
+        incarnationId: pty.pty.incarnationId,
+        worktreeId: pty.pty.worktreeId
+      }
+      const tabId =
+        this.resolvePtyTabCloseSurfaceAuthority(closeAuthority)?.surface.tab.parentTabId ??
+        pty.pty.tabId
       if (!tabId) {
         return this.closeTerminal(handle)
       }
       // Why: a handle-addressed CLI/automation close is an explicit intent, so
       // it must stay destructive under the non-user close adjudication gate.
-      await this.closeMobileSessionTab(`id:${pty.pty.worktreeId}`, tabId, { reason: 'user' })
+      await this.closeMobileSessionTab(`id:${pty.pty.worktreeId}`, tabId, {
+        reason: 'user',
+        expectedPtyCloseAuthority: closeAuthority
+      })
       this.claudeAgentTeams.removeTeamForLeaderHandle(handle)
       return { handle, tabId, closeMode: 'tab', ptyKilled: false }
     }
@@ -32330,6 +32834,8 @@ export class MantaRuntimeService {
     this.notifier?.splitTerminal(leaf.tabId, leaf.paneRuntimeId, {
       direction,
       command: opts.command,
+      worktreeId: leaf.worktreeId,
+      sourceLeafId: leaf.leafId,
       telemetrySource: opts.telemetrySource,
       newLeafId
     })
@@ -32831,6 +33337,18 @@ export class MantaRuntimeService {
       })
     }
     return release
+  }
+
+  private async runWorktreeTerminalMutation<T>(
+    worktreeId: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const release = await this.acquireWorktreeTerminalMutation(worktreeId)
+    try {
+      return await operation()
+    } finally {
+      release()
+    }
   }
 
   private async acquireWorktreeTerminalMutation(
@@ -35376,6 +35894,7 @@ export class MantaRuntimeService {
     this.advancePtyLifecycleGeneration(ptyId)
     this.pairedRendererSessionOwnedPtyIds.delete(ptyId)
     this.ptysById.delete(ptyId)
+    this.pendingPtyHandleReplacementFences.delete(ptyId)
     this.recentPtyOutputById.delete(ptyId)
     this.setupCompletionTokenByPtyId.delete(ptyId)
     this.clearWaitBlockedCheckState(ptyId)
@@ -36533,6 +37052,19 @@ export class MantaRuntimeService {
       activeTabType: active?.type ?? null,
       ...(tabGroups ? { tabGroups } : {}),
       ...(snapshot.tabGroupLayout !== undefined ? { tabGroupLayout } : {}),
+      ...(snapshot.retiredTerminalSurfaces
+        ? {
+            retiredTerminalSurfaces: snapshot.retiredTerminalSurfaces.filter(
+              (retired) =>
+                !snapshot.tabs.some(
+                  (tab) =>
+                    tab.type === 'terminal' &&
+                    tab.parentTabId === retired.parentTabId &&
+                    tab.leafId === retired.leafId
+                )
+            )
+          }
+        : {}),
       tabs: normalizedTabs
     }
   }

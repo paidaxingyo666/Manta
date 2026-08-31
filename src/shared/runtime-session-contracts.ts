@@ -219,7 +219,16 @@ export type RuntimeMobileSessionTabsSnapshot = {
   activeTabType: 'terminal' | 'markdown' | 'file' | 'browser' | 'agent-session' | null
   tabGroups?: RuntimeMobileSessionTabGroup[]
   tabGroupLayout?: TabGroupLayoutNode | null
+  retiredTerminalSurfaces?: RuntimeMobileSessionRetiredTerminalSurface[]
   tabs: RuntimeMobileSessionSnapshotTab[]
+}
+
+export type RuntimeMobileSessionRetiredTerminalSurface = {
+  parentTabId: string
+  leafId: string
+  ptyId: string
+  terminal: string
+  incarnationId?: string
 }
 
 export type RuntimeMobileSessionTabsResult = {
@@ -232,6 +241,7 @@ export type RuntimeMobileSessionTabsResult = {
   activeTabType: 'terminal' | 'markdown' | 'file' | 'browser' | 'agent-session' | null
   tabGroups?: RuntimeMobileSessionTabGroup[]
   tabGroupLayout?: TabGroupLayoutNode | null
+  retiredTerminalSurfaces?: RuntimeMobileSessionRetiredTerminalSurface[]
   tabs: RuntimeMobileSessionClientTab[]
   /**
    * Set while a freshly started runtime has not yet taken back the client-hosted pages its paired

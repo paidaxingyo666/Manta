@@ -110,6 +110,41 @@ describe('bundled skill guide generator', () => {
   })
 
   it.skipIf(process.platform === 'win32')(
+    'resolves snapshot cleanup through Manta user-data precedence',
+    async () => {
+      const source = await readFile(
+        path.join(projectDir, 'skill-guides', 'manta-per-workspace-env.md'),
+        'utf8'
+      )
+      const assignment =
+        'manta_user_data_path="${MANTA_USER_DATA_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/manta}"'
+      expect(source).toContain(assignment)
+      const renderPath = async (env) =>
+        (
+          await execFileAsync(
+            'bash',
+            ['-u', '-c', `${assignment}; printf '%s' "$manta_user_data_path"`],
+            {
+              env
+            }
+          )
+        ).stdout
+
+      await expect(renderPath({ HOME: '/home/manta' })).resolves.toBe('/home/manta/.config/manta')
+      await expect(
+        renderPath({ HOME: '/home/manta', XDG_CONFIG_HOME: '/srv/config' })
+      ).resolves.toBe('/srv/config/manta')
+      await expect(
+        renderPath({
+          HOME: '/home/manta',
+          XDG_CONFIG_HOME: '/srv/config',
+          MANTA_USER_DATA_PATH: '/var/lib/manta-custom'
+        })
+      ).resolves.toBe('/var/lib/manta-custom')
+    }
+  )
+
+  it.skipIf(process.platform === 'win32')(
     'keeps Vercel sandbox names valid while preserving the instance suffix',
     async () => {
       const source = await readFile(
