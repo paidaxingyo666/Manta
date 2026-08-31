@@ -148,7 +148,6 @@ import {
   iterateTerminalInputChunks
 } from '../../shared/terminal-input'
 import {
-  AGENT_PROMPT_BRACKETED_PASTE_END,
   AGENT_PROMPT_SUBMIT,
   buildAgentPromptPasteBytes,
   getAgentPromptSubmitDelayMs,
@@ -2297,11 +2296,9 @@ async function waitForAgentPromptPromise<T>(promise: Promise<T>, signal?: AbortS
   })
 }
 
-// Why not setTimeout(0): it costs a full ~15.19 ms Windows timer tick per chunk (~0.95 s/MB)
-// and never bought backpressure -- 16 KiB per tick paces ~1.07 MB/s, 11x above ConPTY's
-// ~96 KB/s drain, so the in-flight buffer grew regardless. setImmediate keeps the only thing
-// the yield actually did (let abort/permission/data callbacks run between chunks) at ~0.01 ms,
-// and TERMINAL_INPUT_MAX_BYTES still bounds what can be in flight either way.
+// Generic terminal.send uses setImmediate to let abort/permission/data callbacks run between
+// chunks without paying a full Windows timer tick for every 16 KiB write. Agent prompts use an
+// atomic bracketed-paste write below, so they do not rely on this scheduler.
 // Why the global and not node:timers/promises: only the global is intercepted by fake timers,
 // so a chunked paste stays observable on the test clock.
 function yieldBetweenTerminalInputChunks(): Promise<void> {
@@ -22001,60 +21998,25 @@ export class MantaRuntimeService {
     const pasteByteLength = Buffer.byteLength(pastePayload, 'utf8')
     const pasteIngestMs = getTerminalPasteIngestMs(writeHostPlatform, pasteByteLength)
     const renderGate = this.createAgentPromptRenderGate(ptyId, pasteIngestMs)
-    let wrotePasteBytes = false
-    let completedPaste = false
     try {
-      const chunks = iterateTerminalInputChunks(pastePayload)
-      let chunk = chunks.next()
-      let firstChunk = true
-      while (!chunk.done) {
-        const nextChunk = chunks.next()
-        assertAgentPromptRequestActive(options.signal)
-        this.assertAgentPromptGeneration(ptyId, generation)
-        // Why: the first chunk was just admitted above; re-checking the lease there would only
-        // re-read what `assertAdmitted` established.
-        if (!firstChunk) {
-          agentSessionPtyWriteGate.assertReadmitted(ptyId, admitted)
-        }
-        firstChunk = false
-        await options.beforeWrite?.(ptyId)
-        assertAgentPromptRequestActive(options.signal)
-        this.assertAgentPromptGeneration(ptyId, generation)
-        this.assertAgentPromptPermissionSafe(
-          permissionBaseline,
-          this.getAgentPromptActivity(handle, ptyId)
-        )
-        agentSessionPtyWriteGate.assertReadmitted(ptyId, admitted)
-        if (nextChunk.done) {
-          renderGate?.arm()
-        }
-        const wrote = this.ptyController?.write(ptyId, chunk.value) ?? false
-        if (!wrote) {
-          throw new Error('terminal_not_writable')
-        }
-        wrotePasteBytes = true
-        chunk = nextChunk
-        if (!chunk.done) {
-          await yieldBetweenTerminalInputChunks()
-        }
+      assertAgentPromptRequestActive(options.signal)
+      this.assertAgentPromptGeneration(ptyId, generation)
+      await options.beforeWrite?.(ptyId)
+      assertAgentPromptRequestActive(options.signal)
+      this.assertAgentPromptGeneration(ptyId, generation)
+      this.assertAgentPromptPermissionSafe(
+        permissionBaseline,
+        this.getAgentPromptActivity(handle, ptyId)
+      )
+      agentSessionPtyWriteGate.assertReadmitted(ptyId, admitted)
+      // Keep the bracketed paste frame in one PTY write; Claude's composer can drop the
+      // beginning when a large frame is split into independently processed chunks.
+      renderGate?.arm()
+      const wrote = this.ptyController?.write(ptyId, pastePayload) ?? false
+      if (!wrote) {
+        throw new Error('terminal_not_writable')
       }
-      completedPaste = true
     } catch (error) {
-      if (
-        wrotePasteBytes &&
-        !completedPaste &&
-        this.getPtyLifecycleGeneration(ptyId) === generation
-      ) {
-        // Why: a lease that moved mid-paste also refuses this terminator, leaving the TUI in paste
-        // mode — the incoming owner re-establishes the mode, and feeding a session we no longer own
-        // is the worse outcome.
-        try {
-          agentSessionPtyWriteGate.assertReadmitted(ptyId, admitted)
-          this.ptyController?.write(ptyId, AGENT_PROMPT_BRACKETED_PASTE_END)
-        } catch {
-          // The original refusal is the actionable error.
-        }
-      }
       renderGate?.dispose()
       throw error
     }
