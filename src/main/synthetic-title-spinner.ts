@@ -1,3 +1,12 @@
+import type { AgentStatusClearIpcPayload } from '../shared/agent-status-types'
+
+/** Returns a pane-scoped clear target; SSH transport loss is not process-death evidence. */
+export function getSyntheticTitleSpinnerPaneKeyToStop(
+  clear: AgentStatusClearIpcPayload
+): string | null {
+  return 'paneKey' in clear ? clear.paneKey : null
+}
+
 export type SyntheticTitleSpinnerEntry<TProfile> = {
   frame: number
   profile: TProfile

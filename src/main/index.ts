@@ -406,6 +406,7 @@ import { startPreGoneProcessMetricsSampling } from './crash-reporting/process-go
 import { resolveExpectedTeardownScope } from './crash-reporting/expected-teardown-state'
 import {
   advanceSyntheticTitleSpinnerEntries,
+  getSyntheticTitleSpinnerPaneKeyToStop,
   type SyntheticTitleSpinnerEntry
 } from './synthetic-title-spinner'
 import { shouldSendSyntheticTitleFrame } from './synthetic-title-visibility'
@@ -2236,6 +2237,15 @@ async function printServeReady(options: ServeOptions): Promise<void> {
 registerPaneKeyTeardownListener((paneKey) => {
   stopSyntheticTitleSpinner(paneKey)
 })
+
+// Synthetic titles mirror hook rows, including dismissals that bypass pane clears (#13890).
+agentHookServer.subscribePaneStatusClear((clear) => {
+  const paneKey = getSyntheticTitleSpinnerPaneKeyToStop(clear)
+  if (paneKey) {
+    stopSyntheticTitleSpinner(paneKey)
+  }
+})
+agentHookServer.subscribeStatusDrop(stopSyntheticTitleSpinner)
 
 function sendSyntheticTitle(ptyId: string, data: string, options: { force?: boolean } = {}): void {
   if (!mainWindow || mainWindow.isDestroyed()) {

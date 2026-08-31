@@ -119,6 +119,30 @@ describe('main title tracker parity with the renderer transport processor', () =
     expect(kinds.indexOf('became-working')).toBeLessThan(kinds.indexOf('became-idle'))
   })
 
+  // OMP 17.2.12+ uses static WSL/ConPTY markers; both paths must see working→idle.
+  it('derives identical facts from static OMP WSL state titles', () => {
+    const chunk = `${ESC}]0;zsh | π : cwd${BEL}response text\r\n` + `${ESC}]0;zsh | π > cwd${BEL}`
+    feedBoth(paths, chunk)
+
+    expect(paths.main.events).toEqual(paths.renderer.events)
+    const kinds = paths.main.events.map((event) => event.kind)
+    expect(kinds).toContain('became-working')
+    expect(kinds.indexOf('became-working')).toBeLessThan(kinds.indexOf('became-idle'))
+  })
+
+  // A stale native marker must not leave either tracker pinned to working.
+  it('clears a stale static OMP working title in both paths', () => {
+    feedBoth(paths, `${ESC}]0;zsh | π : cwd${BEL}`)
+    feedBoth(paths, 'title-free output')
+    vi.advanceTimersByTime(3_000)
+
+    expect(paths.main.events).toEqual(paths.renderer.events)
+    expect(paths.main.events).toContainEqual({
+      kind: 'became-idle',
+      title: 'zsh | π > cwd'
+    })
+  })
+
   it('derives identical facts from BEL- and ST-terminated titles', () => {
     feedBoth(paths, `${ESC}]2;Codex working${ST}body bytes`)
     feedBoth(paths, `${ESC}]0;Codex done${BEL}`)
