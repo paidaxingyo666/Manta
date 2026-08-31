@@ -486,15 +486,9 @@ async function isBinaryFilePrefix(filePath: string): Promise<boolean> {
   }
 }
 
-async function isDirectoryEntry(
-  dirPath: string,
-  entry: { name: string; isDirectory(): boolean; isSymbolicLink(): boolean },
-  _resolveEntryPath: (entryPath: string) => Promise<string>
-): Promise<boolean> {
+function isDirectoryEntry(entry: { isDirectory(): boolean; isSymbolicLink(): boolean }): boolean {
   // Why: following a symlink in readDir can touch macOS TCC-protected containers; treat links as file-like until explicitly opened.
-  void _resolveEntryPath
   if (entry.isSymbolicLink()) {
-    void dirPath
     return false
   }
   if (entry.isDirectory()) {
@@ -553,15 +547,11 @@ export function registerFilesystemHandlers(
         const dirPath = await resolveAuthorizedPath(args.dirPath, store)
         throwSite = 'readdir'
         const entries = await readdir(dirPath, { withFileTypes: true })
-        const mapped = await Promise.all(
-          entries.map(async (entry) => ({
-            name: entry.name,
-            isDirectory: await isDirectoryEntry(dirPath, entry, (entryPath) =>
-              resolveAuthorizedPath(entryPath, store)
-            ),
-            isSymlink: entry.isSymbolicLink()
-          }))
-        )
+        const mapped = entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: isDirectoryEntry(entry),
+          isSymlink: entry.isSymbolicLink()
+        }))
         return sortDirEntries(mapped)
       } catch (error: unknown) {
         recordCrashBreadcrumb(
