@@ -163,6 +163,7 @@ import { resumeSleepingAgentSessionsForWorktree } from '@/lib/resume-sleeping-ag
 import { listBoundAgentTabActions, resolveDefaultAgentForNewTab } from '@/lib/agent-tab-shortcuts'
 import { terminalProviderHasAuthoritativeSnapshot } from './terminal/terminal-provider-snapshot-capability'
 import { useTerminalProviderSnapshotCapability } from './terminal/use-terminal-provider-snapshot-capability'
+import { useWorktreeFiles } from './terminal/use-worktree-files'
 import {
   createFloatingWorkspaceBrowserTab,
   createFloatingWorkspaceMarkdownTab,
@@ -460,9 +461,7 @@ function Terminal(): React.JSX.Element | null {
   }, [activeWorktreeId, ensureWorktreeRootGroup])
 
   // Filter editor files to only show those belonging to the active worktree
-  const worktreeFiles = renderedActiveWorktreeId
-    ? openFiles.filter((f) => f.worktreeId === renderedActiveWorktreeId)
-    : []
+  const worktreeFiles = useWorktreeFiles(openFiles, renderedActiveWorktreeId)
   const worktreeBrowserTabs = renderedActiveWorktreeId
     ? (browserTabsByWorktree[renderedActiveWorktreeId] ?? [])
     : []
