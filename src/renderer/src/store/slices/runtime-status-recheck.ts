@@ -15,6 +15,14 @@ type RecheckState = {
   publish: (status: RuntimeStatus | null) => void
 }
 
+type RuntimeStatusStore = {
+  runtimeEnvironments: readonly { id: string }[]
+  setRuntimeEnvironmentStatus: (
+    environmentId: string,
+    status: { status: RuntimeStatus | null; checkedAt: number }
+  ) => void
+}
+
 const rechecks = new Map<string, RecheckState>()
 
 export function reconcileRuntimeStatusRecheck(args: {
@@ -53,6 +61,27 @@ export function reconcileRuntimeStatusRecheck(args: {
     state.publish = args.publish
   }
   armRuntimeStatusRecheck(args.environmentId, state)
+}
+
+export function reconcileRuntimeStatusForSlice(
+  environmentId: string,
+  status: RuntimeStatus | null,
+  get: () => RuntimeStatusStore,
+  getConnectionGeneration: () => number
+): void {
+  reconcileRuntimeStatusRecheck({
+    environmentId,
+    status,
+    connectionGeneration: getConnectionGeneration(),
+    environmentExists: () =>
+      get().runtimeEnvironments.some((environment) => environment.id === environmentId),
+    getConnectionGeneration,
+    publish: (nextStatus) =>
+      get().setRuntimeEnvironmentStatus(environmentId, {
+        status: nextStatus,
+        checkedAt: Date.now()
+      })
+  })
 }
 
 export function cancelRuntimeStatusRecheck(environmentId: string): void {
