@@ -13749,6 +13749,20 @@
             "f3575229df": "Agarrar",
             "405bb315da": "Intitulado"
           },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "Editar anotación {{value0}}",
+                    "c16f932cb3": "Guardar",
+                    "024467ceac": "Cancelar",
+                    "449d2c2629": "Intención de la anotación"
+                  }
+                }
+              }
+            }
+          },
           "browser": {
             "address": {
               "bar": {

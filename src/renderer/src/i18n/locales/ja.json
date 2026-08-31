@@ -13749,6 +13749,20 @@
             "f3575229df": "取得",
             "405bb315da": "無題"
           },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "注釈 {{value0}} を編集",
+                    "c16f932cb3": "保存",
+                    "024467ceac": "キャンセル",
+                    "449d2c2629": "注釈の意図"
+                  }
+                }
+              }
+            }
+          },
           "browser": {
             "address": {
               "bar": {

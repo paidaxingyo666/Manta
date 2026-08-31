@@ -13792,6 +13792,20 @@
             "f3575229df": "가져오기",
             "405bb315da": "제목 없음"
           },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "주석 {{value0}} 편집",
+                    "c16f932cb3": "저장",
+                    "024467ceac": "취소",
+                    "449d2c2629": "주석 의도"
+                  }
+                }
+              }
+            }
+          },
           "browser": {
             "address": {
               "bar": {
