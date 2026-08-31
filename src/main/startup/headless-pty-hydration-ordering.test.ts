@@ -21,9 +21,12 @@ describe('headless PTY registry hydration ordering', () => {
   })
 
   it('hydrates Electron serve after provider and handler readiness but before RPC', () => {
-    const source = readFileSync(join(process.cwd(), 'src/main/index.ts'), 'utf8')
-    const serve = source.indexOf('if (serveOptions) {')
-    const provider = source.indexOf('await localPtyProviderStartupReady', serve)
+    const source = readFileSync(
+      join(process.cwd(), 'src/main/startup/main-process-runtime-launch.ts'),
+      'utf8'
+    )
+    const serve = source.indexOf('async function launchServeMode(')
+    const provider = source.indexOf('await state.localPtyProviderStartupReady', serve)
     const handlersAndHydration = source.indexOf('await registerHeadlessPtyRuntime(', provider)
     const rpc = source.indexOf('await runtimeRpc.start()', handlersAndHydration)
     const readiness = source.indexOf('await printServeReady(serveOptions)', rpc)
@@ -35,10 +38,10 @@ describe('headless PTY registry hydration ordering', () => {
     expect(readiness).toBeGreaterThan(rpc)
   })
 
-  it('hydrates orcad after Store and daemon readiness but before RPC and publication', () => {
-    const source = readFileSync(join(process.cwd(), 'src/main/orcad/orcad-entry.ts'), 'utf8')
+  it('hydrates mantad after Store and daemon readiness but before RPC and publication', () => {
+    const source = readFileSync(join(process.cwd(), 'src/main/mantad/mantad-entry.ts'), 'utf8')
     const store = source.indexOf('const store = new Store(')
-    const daemon = source.indexOf('await startOrcadDaemon()', store)
+    const daemon = source.indexOf('await startMantadDaemon()', store)
     const handlersAndHydration = source.indexOf('await registerHeadlessPtyRuntime(', daemon)
     const rpc = source.indexOf('await rpc.start()', handlersAndHydration)
     const readiness = source.indexOf('await new ServeReadinessPublisher().publish(', rpc)
