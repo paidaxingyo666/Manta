@@ -1,24 +1,14 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store'
+import { onBrowserGuestPaintRetentionChange } from './browser-pane/host-guest/browser-guest-paint-retention'
 import {
-  isBrowserAutomationVisible,
-  onBrowserAutomationVisibilityChange
-} from './browser-pane/browser-automation-visibility'
-import {
-  isBrowserPageMobileDriven,
-  onBrowserDriverChange
-} from '@/lib/pane-manager/browser-mobile-driver-state'
-import {
-  browserTabVisibilityPageIds,
+  browserTabsVetoGuestEviction,
   selectBrowserGuestEvictionWorktreeIds,
   touchBrowserGuestWorktreeRecency,
   worktreeHoldsLiveBrowserGuests
-} from './browser-pane/browser-guest-worktree-retention'
-import {
-  hasActiveBrowserPageDownload,
-  installBrowserPageDownloadActivityTracking
-} from './browser-pane/browser-page-download-activity'
-import { hasLiveBrowserGuest } from './browser-pane/webview-registry'
+} from './browser-pane/host-guest/browser-guest-worktree-retention'
+import { installBrowserPageDownloadActivityTracking } from './browser-pane/navigate/browser-page-download-activity'
+import { hasLiveBrowserGuest } from './browser-pane/host-guest/webview-registry'
 import { destroyWorktreeBrowserGuests } from '../store/slices/browser-webview-cleanup'
 import type { TerminalParkingFoundation } from './use-terminal-parking-foundation'
 
@@ -38,12 +28,10 @@ export function useTerminalBrowserRetention(controller: TerminalParkingFoundatio
       setBrowserGuestRetentionRevision((revision) => revision + 1)
     }
     const removeDownloadTracking = installBrowserPageDownloadActivityTracking(invalidateRetention)
-    const removeAutomationTracking = onBrowserAutomationVisibilityChange(invalidateRetention)
-    const removeMobileTracking = onBrowserDriverChange(invalidateRetention)
+    const removePaintRetentionTracking = onBrowserGuestPaintRetentionChange(invalidateRetention)
     return () => {
       removeDownloadTracking()
-      removeAutomationTracking()
-      removeMobileTracking()
+      removePaintRetentionTracking()
     }
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- the controller setter preserves its original stable identity.
   }, [])
@@ -79,15 +67,10 @@ export function useTerminalBrowserRetention(controller: TerminalParkingFoundatio
           state.browserPagesByWorkspace,
           hasLiveBrowserGuest
         ),
+      // Why a shared veto: destroying a guest must respect every paint-retention signal (including
+      // remote viewers) as well as active downloads, matching the overlay's mount predicate.
       isEvictable: (worktreeId) =>
-        !(state.browserTabsByWorktree[worktreeId] ?? []).some((tab) =>
-          browserTabVisibilityPageIds(tab).some(
-            (pageId) =>
-              isBrowserAutomationVisible(pageId) ||
-              isBrowserPageMobileDriven(pageId) ||
-              hasActiveBrowserPageDownload(pageId)
-          )
-        )
+        !browserTabsVetoGuestEviction(state.browserTabsByWorktree[worktreeId] ?? [])
     })
     for (const worktreeId of evictedWorktreeIds) {
       destroyWorktreeBrowserGuests(
