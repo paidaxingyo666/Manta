@@ -16621,13 +16621,28 @@
         "running": "Running…",
         "result": "Result",
         "countOne": "1 tool call",
-        "countN": "{{value0}} tool calls"
+        "countN": "{{value0}} tool calls",
+        "runningPreview": "Running {{preview}}",
+        "runningCommand": "Running command",
+        "runningNamedPreview": "Running {{toolName}} {{preview}}",
+        "runningNamed": "Running {{toolName}}",
+        "ranCommandOneToolSummary": "Ran {{commandCount}} command and used {{toolCount}} tool",
+        "ranCommandManyToolsSummary": "Ran {{commandCount}} command and used {{toolCount}} tools",
+        "ranCommandsOneToolSummary": "Ran {{commandCount}} commands and used {{toolCount}} tool",
+        "ranCommandsManyToolsSummary": "Ran {{commandCount}} commands and used {{toolCount}} tools",
+        "usedOneSummary": "Used 1 tool",
+        "usedManySummary": "Used {{toolCount}} tools"
       },
       "providerFrame": {
         "byteLength": "{{value0}} bytes"
       },
       "status": {
-        "responding": "Agent is responding"
+        "responding": "Agent is responding",
+        "working": "Working…",
+        "thinking": "Thinking",
+        "workingFor": "Working for {{value0}} seconds",
+        "workedFor": "Worked for {{value0}} seconds",
+        "toggleDetails": "Toggle turn details"
       },
       "jumpToLatest": "Jump to latest",
       "toggle": {
