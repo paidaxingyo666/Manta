@@ -1383,9 +1383,9 @@ async function prepareCodexSessionResumeForLaunch(args: {
             userDataPath: app.getPath('userData')
           })
         } else if (hooksEnabled) {
-          await codexHookService.install(resumeHome)
+          await codexHookService.installForLaunchPrep(resumeHome)
         } else {
-          await codexHookService.refreshRuntimeUserHooks(resumeHome)
+          await codexHookService.refreshRuntimeUserHooksForLaunchPrep(resumeHome)
         }
       } catch (error) {
         // Why: hook repair is best-effort; session provenance must still win over the currently selected home.
