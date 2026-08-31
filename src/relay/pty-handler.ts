@@ -63,6 +63,16 @@ import {
 } from '../shared/pty-startup-ingress'
 import { resolvePtyOwnerBackend, type PtyOwnerBackend } from '../shared/pty-owner-backend'
 import { RecentPtyOutputBuffer } from '../main/runtime/recent-pty-output-buffer'
+import {
+  resolveAgentForegroundProcessesBatch,
+  toForegroundProcessEvidence,
+  type BatchedForegroundProcessResult
+} from '../main/providers/agent-foreground-process'
+import {
+  getStrictProcessTableSnapshot,
+  type ProcessTableRow
+} from '../shared/process-table-snapshot'
+import type { ForegroundProcessEvidence } from '../shared/foreground-process-evidence'
 import { expandWindowsPathEnvironmentVariables } from '../shared/windows-environment-expansion'
 import {
   agentSessionOwnerBindingsEqual,
@@ -364,6 +374,7 @@ type PtyProcessSummary = {
   title: string
   worktreeId?: string
   terminalHandle?: string
+  foregroundProcessEvidence?: ForegroundProcessEvidence
   agentSessionOwners?: AgentSessionOwnerBinding[]
 }
 
@@ -439,6 +450,7 @@ export type RelayPtyWorktreeRemovalCoordinator = {
 export class PtyHandler {
   private ptys = new Map<string, ManagedPty>()
   private readonly ptyIdMintEpoch: string
+  private foregroundEvidenceEpoch = 0
   private nextId = 1
   private dispatcher: RelayDispatcher
   private graceTimeMs: number
@@ -2364,13 +2376,52 @@ export class PtyHandler {
     // listing is what publishes `agentSessionOwners`, i.e. "there is a live agent session here you
     // can adopt". A shell can exit without node-pty's onExit, and an unverified entry advertised
     // that session forever. Snapshot the map because reaping mutates it.
-    for (const [id, managed] of Array.from(this.ptys)) {
+    const managedEntries = Array.from(this.ptys)
+    // R1 seed evidence is additive and POSIX-only. Windows authorities retain
+    // the existing title/liveness path until the measured relay adapter lands.
+    let evidenceRows: readonly ProcessTableRow[] | null = null
+    let evidenceResults: BatchedForegroundProcessResult[] = []
+    const evidenceEpoch = ++this.foregroundEvidenceEpoch
+    if (process.platform !== 'win32' && managedEntries.length > 0) {
+      try {
+        evidenceRows = await getStrictProcessTableSnapshot()
+        evidenceResults = await resolveAgentForegroundProcessesBatch(
+          managedEntries.map(([, managed]) => ({
+            rootPid: managed.pty.pid,
+            fallbackProcess: managed.pty.process || null
+          })),
+          { rows: evidenceRows }
+        )
+      } catch {
+        // An unreadable capture is represented as unverifiable evidence below;
+        // existing inventory fields remain available for old clients.
+      }
+    }
+    for (const [entryIndex, [id, managed]] of managedEntries.entries()) {
       if (managed.disposed || (managed.pty.pid && !isProcessAlive(managed.pty.pid))) {
         this.reapExitedPty(managed)
         continue
       }
+      // Reuse batched correlation; per-PTY tree scans recreate O(PTY × rows) work.
       const title =
-        (await getForegroundProcessName(managed.pty.pid, managed.pty.process || null)) || 'shell'
+        (evidenceRows
+          ? (evidenceResults[entryIndex]?.processName ?? managed.pty.process ?? null)
+          : await getForegroundProcessName(managed.pty.pid, managed.pty.process || null)) || 'shell'
+      const foregroundProcessEvidence =
+        process.platform !== 'win32'
+          ? toForegroundProcessEvidence(
+              evidenceResults[entryIndex] ?? {
+                available: false,
+                processName: managed.pty.process || null,
+                reason: 'table_unreadable'
+              },
+              {
+                authorityGeneration: this.ptyIdMintEpoch,
+                observationEpoch: evidenceEpoch,
+                capturedAgeMs: 0
+              }
+            )
+          : undefined
       results.push({
         id,
         incarnationId: managed.incarnationId,
@@ -2378,6 +2429,7 @@ export class PtyHandler {
         title,
         ...(managed.worktreeId ? { worktreeId: managed.worktreeId } : {}),
         ...(managed.terminalHandle ? { terminalHandle: managed.terminalHandle } : {}),
+        ...(foregroundProcessEvidence ? { foregroundProcessEvidence } : {}),
         ...(this.agentSessionOwners.listForPty(id).length
           ? { agentSessionOwners: this.agentSessionOwners.listForPty(id) }
           : {})
