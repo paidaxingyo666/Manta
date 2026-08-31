@@ -23,9 +23,42 @@ import type { WorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-w
 
 type WorktreeJumpPaletteRecentTabsInput = WorktreeJumpPaletteStoreState &
   WorktreeJumpPaletteOpenTabs &
-  Pick<WorktreeJumpPaletteWorktrees, 'worktreeMap' | 'hasQuery'> &
+  Pick<WorktreeJumpPaletteWorktrees, 'resolveWorktree' | 'hasQuery'> &
   Pick<WorktreeJumpPaletteFilter, 'filterActive'> &
   Pick<WorktreeJumpPaletteLocalState, 'query' | 'autoSelectedItemIdRef' | 'setSelectedItemId'>
+
+function getRecentTabOccurrenceBase(item: OpenTabRecentRow['item']): string {
+  if (item.type === 'browser-page') {
+    const result = item.result
+    return JSON.stringify([
+      item.type,
+      item.id,
+      result.executionHostId ?? '',
+      result.worktreeId,
+      result.workspaceId,
+      result.pageId
+    ])
+  }
+  if (item.type === 'simulator-tab') {
+    const result = item.result
+    return JSON.stringify([
+      item.type,
+      item.id,
+      result.executionHostId ?? '',
+      result.worktreeId,
+      result.tabId
+    ])
+  }
+  const result = item.result
+  return JSON.stringify([
+    item.type,
+    item.id,
+    result.executionHostId ?? '',
+    result.worktreeId,
+    result.tabId,
+    result.entityId
+  ])
+}
 
 export function useWorktreeJumpPaletteRecentTabs({
   tabsByWorktree,
@@ -35,7 +68,7 @@ export function useWorktreeJumpPaletteRecentTabs({
   runtimePaneTitlesByTabId,
   terminalLayoutsByTabId,
   openTabItems,
-  worktreeMap,
+  resolveWorktree,
   unreadTerminalTabs,
   unreadAgentCompletionPanes,
   visible,
@@ -48,6 +81,15 @@ export function useWorktreeJumpPaletteRecentTabs({
   autoSelectedItemIdRef,
   setSelectedItemId
 }: WorktreeJumpPaletteRecentTabsInput) {
+  const occurrenceIds = useMemo(() => {
+    const counts = new Map<string, number>()
+    return openTabItems.map((item) => {
+      const base = getRecentTabOccurrenceBase(item)
+      const ordinal = counts.get(base) ?? 0
+      counts.set(base, ordinal + 1)
+      return `recent-tab:${base}:${ordinal}`
+    })
+  }, [openTabItems])
   const terminalTabsById = useMemo(() => {
     const byId = new Map<string, TerminalTab>()
     for (const tabs of Object.values(tabsByWorktree)) {
@@ -77,17 +119,21 @@ export function useWorktreeJumpPaletteRecentTabs({
   )
   const openTabRecentRows = useMemo<OpenTabRecentRow[]>(() => {
     const entries: OpenTabRecentRow[] = []
-    for (const item of openTabItems) {
-      const worktree = worktreeMap.get(item.result.worktreeId)
+    for (const [index, item] of openTabItems.entries()) {
+      const worktree = resolveWorktree(item.result.worktreeId, item.result.executionHostId)
       if (!worktree) {
         continue
       }
+      const occurrenceId = occurrenceIds[index]!
       entries.push({
         item,
+        occurrenceId,
         worktree,
         row: {
           id: item.id,
+          occurrenceId,
           worktreeId: worktree.id,
+          worktreeHostId: worktree.hostId,
           unifiedTabId: item.type === 'browser-page' ? null : item.result.tabId,
           terminalTab:
             item.type === 'workspace-tab' && item.result.contentType === 'terminal'
@@ -98,9 +144,9 @@ export function useWorktreeJumpPaletteRecentTabs({
       })
     }
     return entries
-  }, [openTabItems, terminalTabsById, worktreeMap])
-  const recentTabRowById = useMemo(
-    () => new Map(openTabRecentRows.map(({ row }) => [row.id, row])),
+  }, [occurrenceIds, openTabItems, resolveWorktree, terminalTabsById])
+  const recentTabRowByItem = useMemo(
+    () => new Map(openTabRecentRows.map(({ item, row }) => [item, row])),
     [openTabRecentRows]
   )
   const recentTabRows = useMemo<RecentWorkspaceTabRow[]>(() => {
@@ -190,11 +236,13 @@ export function useWorktreeJumpPaletteRecentTabs({
     visible
   ])
   const recentTabItems = useMemo<PaletteItem[]>(() => {
-    const itemById = new Map(openTabItems.map((item) => [item.id, item]))
-    return recentTabOrder.flatMap((id) => itemById.get(id) ?? [])
-  }, [openTabItems, recentTabOrder])
+    const itemByOccurrenceId = new Map(
+      openTabRecentRows.map(({ occurrenceId, item }) => [occurrenceId, item])
+    )
+    return recentTabOrder.flatMap((occurrenceId) => itemByOccurrenceId.get(occurrenceId) ?? [])
+  }, [openTabRecentRows, recentTabOrder])
 
-  return { recentTabPaneSources, recentTabRowById, recentTabItems }
+  return { recentTabPaneSources, recentTabRowByItem, recentTabItems, openTabRecentRows }
 }
 
 export type WorktreeJumpPaletteRecentTabs = ReturnType<typeof useWorktreeJumpPaletteRecentTabs>

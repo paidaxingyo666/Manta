@@ -1,8 +1,8 @@
 import type React from 'react'
-import { Plus } from 'lucide-react'
+import { flushSync } from 'react-dom'
 import { CommandItem } from '@/components/ui/command'
-import { CREATE_WORKTREE_ITEM_ID } from '@/lib/worktree-palette-create-action'
-import { translate } from '@/i18n/i18n'
+import { cn } from '@/lib/utils'
+import { PaletteCreateWorktreeRow } from '@/components/cmd-j/PaletteCreateWorktreeRow'
 import type { PaletteListEntry } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteController } from './use-worktree-jump-palette-controller'
 import { WorktreeJumpPaletteWorktreeRow } from './worktree-jump-palette-worktree-row'
@@ -15,12 +15,15 @@ import {
   WorktreeJumpPaletteBrowserRow,
   WorktreeJumpPaletteSimulatorRow
 } from './worktree-jump-palette-browser-simulator-rows'
+import { translate } from '@/i18n/i18n'
 
 export function WorktreeJumpPaletteEntry({
   entry,
+  renderKey,
   controller
 }: {
   entry: PaletteListEntry
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   if (entry.type === 'section-header') {
@@ -32,47 +35,62 @@ export function WorktreeJumpPaletteEntry({
   }
   if (entry.type === 'hint') {
     return (
-      <div className="mx-0.5 mt-1 px-3 py-1.5 text-[12px] italic text-muted-foreground/70">
-        {entry.label}
-      </div>
-    )
-  }
-  if (entry.type === 'create-worktree') {
-    return (
       <CommandItem
-        value={CREATE_WORKTREE_ITEM_ID}
-        onSelect={controller.handleCreateWorktree}
-        className="group mx-0.5 mt-1 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-1.5 text-left outline-none transition-[background-color,border-color,box-shadow] data-[selected=true]:border-border data-[selected=true]:bg-accent data-[selected=true]:text-foreground"
+        value={renderKey}
+        onSelect={() => {
+          const previousIndex = controller.selectionItemIds.indexOf(renderKey)
+          flushSync(() => entry.onSeeMore?.())
+          const expandedItemId = Array.from(
+            controller.listRef.current?.querySelectorAll<HTMLElement>('[cmdk-item]') ?? []
+          )[previousIndex]?.getAttribute('data-value')
+          if (expandedItemId) {
+            controller.setSelectedItemId(expandedItemId)
+          }
+          controller.inputRef.current?.focus()
+        }}
+        className={cn(
+          'group mx-0.5 mt-1 min-h-0 gap-2 py-1.5 text-[12px] text-muted-foreground',
+          'data-[selected=true]:bg-accent/60'
+        )}
       >
-        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-dashed border-border/60 bg-muted/25 text-muted-foreground/70">
-          <Plus size={13} aria-hidden="true" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[14px] font-semibold tracking-[-0.01em] text-foreground">
-            {translate(
-              'auto.components.WorktreeJumpPalette.95be6587d3',
-              'Create worktree "{{value0}}"',
-              { value0: controller.createWorktreeName }
-            )}
-          </div>
-        </div>
+        <span className="truncate">{entry.label}</span>
+        {entry.onSeeMore ? (
+          <span className="h-6 shrink-0 rounded-md border border-input bg-background px-2 text-xs font-medium leading-6 text-foreground">
+            {translate('worktreeJumpPalette.seeMore', 'See more')}
+          </span>
+        ) : null}
       </CommandItem>
     )
   }
+  if (entry.type === 'create-worktree') {
+    const linearPreview = controller.currentLinearIssuePreview
+    return (
+      <PaletteCreateWorktreeRow
+        className="group mx-0.5 mt-1 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-1.5 text-left outline-none transition-[background-color,border-color,box-shadow] data-[selected=true]:border-border data-[selected=true]:bg-accent data-[selected=true]:text-foreground"
+        createWorktreeName={controller.createWorktreeName}
+        linearIdentifier={controller.linearIssueUrlIntent?.identifier ?? null}
+        linearIssue={linearPreview?.issue ?? null}
+        linearPending={controller.linearIssueUrlIntent !== null && linearPreview?.loading !== false}
+        showLinearLoadingFeedback={controller.showLinearLoadingFeedback}
+        taskUrlPreview={controller.taskUrlCreatePreview}
+        onSelect={controller.handleCreateWorktree}
+      />
+    )
+  }
   if (entry.type === 'worktree') {
-    return <WorktreeJumpPaletteWorktreeRow entry={entry} controller={controller} />
+    return <WorktreeJumpPaletteWorktreeRow entry={entry} renderKey={renderKey} controller={controller} />
   }
   if (entry.type === 'project-target') {
-    return <WorktreeJumpPaletteProjectRow entry={entry} controller={controller} />
+    return <WorktreeJumpPaletteProjectRow entry={entry} renderKey={renderKey} controller={controller} />
   }
   if (entry.type === 'settings' || entry.type === 'quick-action') {
-    return <WorktreeJumpPaletteActionRow entry={entry} controller={controller} />
+    return <WorktreeJumpPaletteActionRow entry={entry} renderKey={renderKey} controller={controller} />
   }
   if (entry.type === 'workspace-tab') {
-    return <WorktreeJumpPaletteWorkspaceTabRow entry={entry} controller={controller} />
+    return <WorktreeJumpPaletteWorkspaceTabRow entry={entry} renderKey={renderKey} controller={controller} />
   }
   if (entry.type === 'simulator-tab') {
-    return <WorktreeJumpPaletteSimulatorRow entry={entry} controller={controller} />
+    return <WorktreeJumpPaletteSimulatorRow entry={entry} renderKey={renderKey} controller={controller} />
   }
-  return <WorktreeJumpPaletteBrowserRow entry={entry} controller={controller} />
+  return <WorktreeJumpPaletteBrowserRow entry={entry} renderKey={renderKey} controller={controller} />
 }

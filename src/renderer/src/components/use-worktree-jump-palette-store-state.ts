@@ -19,6 +19,9 @@ export function useWorktreeJumpPaletteStoreState({
   lingering: boolean
 }) {
   useTranslation()
+  // Freeze age labels for one palette session; live status dots own their clock separately.
+  // oxlint-disable-next-line react/purity
+  const paletteNowMs = useMemo(() => Date.now(), [visible])
   const closeModal = useAppStore((state) => state.closeModal)
   const openModal = useAppStore((state) => state.openModal)
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
@@ -44,6 +47,9 @@ export function useWorktreeJumpPaletteStoreState({
   const migrationUnsupportedByPtyId = useAppStore((state) => state.migrationUnsupportedByPtyId)
   const activeView = useAppStore((state) => state.activeView)
   const activeWorktreeId = useAppStore((state) => state.activeWorktreeId)
+  const activeWorkspaceExecutionHostId = useAppStore(
+    (state) => state.activeWorkspaceExecutionHostId
+  )
   const activeTabType = useAppStore((state) => state.activeTabType)
   const activeTabId = useAppStore((state) => state.activeTabId)
   const activeTabIdByWorktree = useAppStore((state) => state.activeTabIdByWorktree)
@@ -72,7 +78,13 @@ export function useWorktreeJumpPaletteStoreState({
   const sleepingAgentSessionsByPaneKey = useAppStore(
     (state) => state.sleepingAgentSessionsByPaneKey
   )
+  const paneForegroundAgentByPaneKey = useAppStore(
+    (state) => state.paneForegroundAgentByPaneKey
+  )
   const settings = useAppStore((state) => state.settings)
+  const worktreeVisibilityDefaultsByHost = useAppStore(
+    (state) => state.worktreeVisibilityDefaultsByHost
+  )
   const sshTargetLabels = useAppStore((state) => state.sshTargetLabels)
   const sshConnectionStates = useAppStore((state) => state.sshConnectionStates)
   const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
@@ -83,6 +95,9 @@ export function useWorktreeJumpPaletteStoreState({
   )
   const hideCliCreatedWorkspaces = useAppStore((state) => state.hideCliCreatedWorkspaces)
   const hideDetachedHeadWorkspaces = useAppStore((state) => state.hideDetachedHeadWorkspaces)
+  const hideWorkspacesFromOtherDevices = useAppStore(
+    (state) => state.hideWorkspacesFromOtherDevices
+  )
   const showSleepingWorkspaces = useAppStore((state) => state.showSleepingWorkspaces)
   const alwaysShowDefaultBranchWorkspace = useAppStore(
     (state) => state.alwaysShowDefaultBranchWorkspace
@@ -102,6 +117,7 @@ export function useWorktreeJumpPaletteStoreState({
 
   return {
     visible,
+    paletteNowMs,
     closeModal,
     openModal,
     openSettingsPage,
@@ -127,6 +143,7 @@ export function useWorktreeJumpPaletteStoreState({
     migrationUnsupportedByPtyId,
     activeView,
     activeWorktreeId,
+    activeWorkspaceExecutionHostId,
     activeTabType,
     activeTabId,
     activeTabIdByWorktree,
@@ -146,7 +163,9 @@ export function useWorktreeJumpPaletteStoreState({
     groupsByWorktree,
     retainedAgentsByPaneKey,
     sleepingAgentSessionsByPaneKey,
+    paneForegroundAgentByPaneKey,
     settings,
+    worktreeVisibilityDefaultsByHost,
     sshTargetLabels,
     sshConnectionStates,
     runtimeEnvironments,
@@ -155,6 +174,7 @@ export function useWorktreeJumpPaletteStoreState({
     hideAutomationGeneratedWorkspaces,
     hideCliCreatedWorkspaces,
     hideDetachedHeadWorkspaces,
+    hideWorkspacesFromOtherDevices,
     showSleepingWorkspaces,
     alwaysShowDefaultBranchWorkspace,
     lastVisitedAtByWorktreeId,

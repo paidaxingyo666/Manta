@@ -13,18 +13,26 @@ import {
   PaletteOpenTabPrimaryLine,
   PaletteRowShortcutBadge
 } from './worktree-jump-palette-primitives'
+import { formatPaletteSessionAge } from '@/components/cmd-j/palette-session-age'
+import { resolvePaletteRepoForWorktree } from '@/lib/palette-repo-resolution'
 
 export function WorktreeJumpPaletteSimulatorRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: SimulatorPaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
-  const simulatorWorktree = controller.worktreeMap.get(result.worktreeId)
+  const simulatorWorktree = controller.resolveWorktree(result.worktreeId, result.executionHostId)
   const simulatorRepo = simulatorWorktree
-    ? controller.repoMap.get(simulatorWorktree.repoId)
+    ? resolvePaletteRepoForWorktree(
+        simulatorWorktree,
+        controller.repoMap,
+        controller.repoByHostIdentity
+      )
     : undefined
   const simulatorRepoName = simulatorRepo?.displayName ?? result.repoName
   const simulatorHostBadge = getPaletteHostBadge(
@@ -32,11 +40,14 @@ export function WorktreeJumpPaletteSimulatorRow({
     controller.hostOptions,
     controller.hostFilterActive
   )
+  const simulatorSessionAge = formatPaletteSessionAge(
+    result.lastActiveAt ?? null,
+    controller.paletteNowMs
+  )
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => controller.handleSelectItem(entry)}
       className={cn(
         'group mx-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left outline-none transition-[background-color,border-color,box-shadow]',
@@ -56,6 +67,7 @@ export function WorktreeJumpPaletteSimulatorRow({
               secondaryRanges={result.secondaryRanges}
               worktreeName={result.worktreeName}
               worktreeRanges={result.worktreeRanges}
+              sessionAge={simulatorSessionAge}
               leadingBadges={
                 <>
                   {result.isCurrentTab && (
@@ -86,7 +98,7 @@ export function WorktreeJumpPaletteSimulatorRow({
               </span>
             )}
             <PaletteRowShortcutBadge
-              index={controller.recentTabShortcutIndexById.get(entry.id)}
+              index={controller.recentTabShortcutIndexByItem.get(entry)}
               modifierKeys={controller.digitShortcutModifiers}
             />
           </div>
@@ -98,25 +110,36 @@ export function WorktreeJumpPaletteSimulatorRow({
 
 export function WorktreeJumpPaletteBrowserRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: BrowserPaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
-  const browserWorktree = controller.worktreeMap.get(result.worktreeId)
-  const browserRepo = browserWorktree ? controller.repoMap.get(browserWorktree.repoId) : undefined
+  const browserWorktree = controller.resolveWorktree(result.worktreeId, result.executionHostId)
+  const browserRepo = browserWorktree
+    ? resolvePaletteRepoForWorktree(
+        browserWorktree,
+        controller.repoMap,
+        controller.repoByHostIdentity
+      )
+    : undefined
   const browserRepoName = browserRepo?.displayName ?? result.repoName
   const browserHostBadge = getPaletteHostBadge(
     browserRepo,
     controller.hostOptions,
     controller.hostFilterActive
   )
+  const browserSessionAge = formatPaletteSessionAge(
+    result.lastActiveAt ?? null,
+    controller.paletteNowMs
+  )
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => controller.handleSelectItem(entry)}
       className={cn(
         'group mx-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left outline-none transition-[background-color,border-color,box-shadow]',
@@ -136,6 +159,7 @@ export function WorktreeJumpPaletteBrowserRow({
               secondaryRanges={result.secondaryRanges}
               worktreeName={result.worktreeName}
               worktreeRanges={result.worktreeRanges}
+              sessionAge={browserSessionAge}
               leadingBadges={
                 <>
                   {result.isCurrentPage && (
@@ -166,7 +190,7 @@ export function WorktreeJumpPaletteBrowserRow({
               </span>
             )}
             <PaletteRowShortcutBadge
-              index={controller.recentTabShortcutIndexById.get(entry.id)}
+              index={controller.recentTabShortcutIndexByItem.get(entry)}
               modifierKeys={controller.digitShortcutModifiers}
             />
           </div>

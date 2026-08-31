@@ -10,8 +10,24 @@ import { sortWorktreesSmart } from '@/components/sidebar/smart-sort'
 import { buildWorktreeChecksReviewIndex } from '@/components/cmd-j/worktree-checks-review-index'
 import { getLiveAgentStatusByWorktreeId, isInactiveWorkspace } from '@/lib/worktree-activity-state'
 import { orderEmptyQueryWorktrees } from '@/lib/order-empty-query-worktrees'
-import { getWorktreePaletteSearchScope, searchWorktrees } from '@/lib/worktree-palette-search'
+import {
+  getWorktreePaletteSearchScope,
+  searchWorktreeDocuments
+} from '@/lib/worktree-palette-search'
+import { buildWorktreePaletteDocuments } from '@/lib/worktree-palette-document'
 import { getWorkspacePortsByWorktreeId } from '@/lib/workspace-port-groups'
+import {
+  buildPaletteWorktreeIndex,
+  resolvePaletteWorktree,
+  resolvePaletteRepoForWorktree
+} from '@/lib/palette-repo-resolution'
+import { getWorktreeHostIdentity } from '../../../shared/worktree/host-qualified-identity'
+import { getPaletteHostBadge } from '@/components/cmd-j/palette-host-badge'
+import {
+  EMPTY_PAIRED_DEVICE_IDS_BY_ENVIRONMENT,
+  getPairedDeviceIdsByEnvironment,
+  isWorkspaceFromOtherDevice
+} from '@/components/sidebar/workspace-creator-visibility'
 import type { Worktree } from '../../../shared/worktree/types'
 import { EMPTY_SORTED_WORKTREES } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteFilter } from './use-worktree-jump-palette-filter'
@@ -19,11 +35,14 @@ import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-
 import type { WorktreeJumpPaletteStoreState } from './use-worktree-jump-palette-store-state'
 
 type WorktreeJumpPaletteWorktreesInput = WorktreeJumpPaletteStoreState &
-  Pick<WorktreeJumpPaletteFilter, 'filterPredicate' | 'repoMap' | 'repoByHostIdentity'> &
-  Pick<WorktreeJumpPaletteLocalState, 'deferredQuery'>
+  Pick<
+    WorktreeJumpPaletteFilter,
+    'filterPredicate' | 'repoMap' | 'repoByHostIdentity' | 'hostOptions' | 'hostFilterActive'
+  > &
+  Pick<WorktreeJumpPaletteLocalState, 'paletteSearchQuery'>
 
 export function useWorktreeJumpPaletteWorktrees({
-  deferredQuery,
+  paletteSearchQuery,
   repos,
   worktreesByRepo,
   agentStatusByPaneKey,
@@ -34,11 +53,15 @@ export function useWorktreeJumpPaletteWorktrees({
   hideAutomationGeneratedWorkspaces,
   hideCliCreatedWorkspaces,
   hideDetachedHeadWorkspaces,
+  hideWorkspacesFromOtherDevices,
   showSleepingWorkspaces,
   alwaysShowDefaultBranchWorkspace,
   ptyIdsByTabId,
   browserTabsByWorktree,
   activeWorktreeId,
+  activeWorkspaceExecutionHostId,
+  runtimeEnvironments,
+  runtimeStatusByEnvironmentId,
   lastVisitedAtByWorktreeId,
   paletteStatusInputsActive,
   repoMap,
@@ -46,13 +69,15 @@ export function useWorktreeJumpPaletteWorktrees({
   migrationUnsupportedByPtyId,
   terminalLayoutsByTabId,
   repoByHostIdentity,
+  hostOptions,
+  hostFilterActive,
   prCache,
   hostedReviewCache,
   settings,
   issueCache,
   workspacePortScan
 }: WorktreeJumpPaletteWorktreesInput) {
-  const hasQuery = deferredQuery.trim().length > 0
+  const hasQuery = paletteSearchQuery.length > 0
   const isLoading = repos.length > 0 && Object.keys(worktreesByRepo).length === 0
   const worktreeIdsWithLiveAgent = useMemo(
     () =>
@@ -63,6 +88,13 @@ export function useWorktreeJumpPaletteWorktrees({
         getLiveAgentStatusByWorktreeId(agentStatusByPaneKey, tabsByWorktree, Date.now()).keys()
       ),
     [agentStatusByPaneKey, tabsByWorktree]
+  )
+  const pairedDeviceIdsByEnvironment = useMemo(
+    () =>
+      hideWorkspacesFromOtherDevices
+        ? getPairedDeviceIdsByEnvironment(runtimeEnvironments, runtimeStatusByEnvironmentId)
+        : EMPTY_PAIRED_DEVICE_IDS_BY_ENVIRONMENT,
+    [hideWorkspacesFromOtherDevices, runtimeEnvironments, runtimeStatusByEnvironmentId]
   )
   const emptyQueryVisibleWorktrees = useMemo(
     () =>
@@ -83,6 +115,12 @@ export function useWorktreeJumpPaletteWorktrees({
           return false
         }
         if (hideDetachedHeadWorkspaces && isDetachedHeadWorkspace(worktree)) {
+          return false
+        }
+        if (
+          hideWorkspacesFromOtherDevices &&
+          isWorkspaceFromOtherDevice(worktree, pairedDeviceIdsByEnvironment)
+        ) {
           return false
         }
         if (
@@ -109,6 +147,8 @@ export function useWorktreeJumpPaletteWorktrees({
       hideCliCreatedWorkspaces,
       hideDefaultBranchWorkspace,
       hideDetachedHeadWorkspaces,
+      hideWorkspacesFromOtherDevices,
+      pairedDeviceIdsByEnvironment,
       ptyIdsByTabId,
       showSleepingWorkspaces,
       tabsByWorktree,
@@ -120,9 +160,15 @@ export function useWorktreeJumpPaletteWorktrees({
       orderEmptyQueryWorktrees({
         visibleWorktrees: emptyQueryVisibleWorktrees,
         activeWorktreeId,
+        activeWorkspaceExecutionHostId,
         lastVisitedAtByWorktreeId
       }),
-    [emptyQueryVisibleWorktrees, activeWorktreeId, lastVisitedAtByWorktreeId]
+    [
+      emptyQueryVisibleWorktrees,
+      activeWorktreeId,
+      activeWorkspaceExecutionHostId,
+      lastVisitedAtByWorktreeId
+    ]
   )
   const searchScopeWorktrees = useMemo(() => {
     const scope = getWorktreePaletteSearchScope({
@@ -168,17 +214,45 @@ export function useWorktreeJumpPaletteWorktrees({
         : searchScopeWorktrees,
     [hasQuery, browserSortedWorktrees, searchScopeWorktrees]
   )
+  const paletteWorktreeIndex = useMemo(
+    () => buildPaletteWorktreeIndex(browserSortedWorktrees),
+    [browserSortedWorktrees]
+  )
+  const resolveWorktree = useMemo(
+    () =>
+      (worktreeId: string, hostId: Worktree['hostId'] | undefined): Worktree | undefined =>
+        resolvePaletteWorktree(paletteWorktreeIndex, worktreeId, hostId),
+    [paletteWorktreeIndex]
+  )
+  // Keep a host-qualified map for consumers that only have an identity key.
   const worktreeMap = useMemo(() => {
     const map = new Map<string, Worktree>()
     for (const worktree of browserSortedWorktrees) {
-      map.set(worktree.id, worktree)
+      map.set(getWorktreeHostIdentity(worktree), worktree)
+      if (!map.has(worktree.id)) {
+        map.set(worktree.id, worktree)
+      }
     }
     return map
   }, [browserSortedWorktrees])
   const worktreeOrder = useMemo(
-    () => new Map(browserSortedWorktrees.map((worktree, index) => [worktree.id, index])),
+    () =>
+      new Map(
+        browserSortedWorktrees.map((worktree, index) => [getWorktreeHostIdentity(worktree), index])
+      ),
     [browserSortedWorktrees]
   )
+  const hostLabelByWorktreeId = useMemo(() => {
+    const labels = new Map<string, string>()
+    for (const worktree of allWorktrees) {
+      const repo = resolvePaletteRepoForWorktree(worktree, repoMap, repoByHostIdentity)
+      const badge = getPaletteHostBadge(repo, hostOptions, hostFilterActive)
+      if (badge) {
+        labels.set(getWorktreeHostIdentity(worktree), badge.label)
+      }
+    }
+    return labels
+  }, [allWorktrees, hostFilterActive, hostOptions, repoByHostIdentity, repoMap])
   const checksReviewByWorktree = useMemo(
     () =>
       buildWorktreeChecksReviewIndex({
@@ -190,24 +264,48 @@ export function useWorktreeJumpPaletteWorktrees({
       }),
     [allWorktrees, hostedReviewCache, prCache, repoByHostIdentity, settings]
   )
+  const worktreeDocuments = useMemo(
+    () =>
+      buildWorktreePaletteDocuments(
+        allWorktrees.filter((worktree) => !worktree.isArchived),
+        {
+          repoMap,
+          repoMapByHostIdentity: repoByHostIdentity,
+          prCache,
+          issueCache,
+          workspacePortsByWorktreeId: getWorkspacePortsByWorktreeId(workspacePortScan),
+          checksReviewByWorktree,
+          hostLabelByWorktreeId
+        }
+      ),
+    [
+      allWorktrees,
+      checksReviewByWorktree,
+      issueCache,
+      prCache,
+      repoByHostIdentity,
+      repoMap,
+      workspacePortScan,
+      hostLabelByWorktreeId
+    ]
+  )
   const worktreeMatches = useMemo(
     () =>
-      searchWorktrees(sortedWorktrees, deferredQuery.trim(), repoMap, {
+      searchWorktreeDocuments({
+        worktrees: sortedWorktrees,
+        query: paletteSearchQuery,
+        documents: worktreeDocuments,
+        repoMap,
         repoMapByHostIdentity: repoByHostIdentity,
-        prCache,
-        issueCache,
-        workspacePortsByWorktreeId: getWorkspacePortsByWorktreeId(workspacePortScan),
         checksReviewByWorktree
       }),
     [
-      sortedWorktrees,
-      deferredQuery,
-      repoMap,
+      checksReviewByWorktree,
+      paletteSearchQuery,
       repoByHostIdentity,
-      prCache,
-      issueCache,
-      workspacePortScan,
-      checksReviewByWorktree
+      repoMap,
+      sortedWorktrees,
+      worktreeDocuments
     ]
   )
   return {
@@ -218,6 +316,8 @@ export function useWorktreeJumpPaletteWorktrees({
     searchScopeWorktrees,
     browserSortedWorktrees,
     worktreeMap,
+    resolveWorktree,
+    paletteWorktreeIndex,
     worktreeOrder,
     worktreeMatches
   }

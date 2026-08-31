@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useLayoutEffect } from 'react'
 import {
   MANTA_BROWSER_FOCUS_REQUEST_EVENT,
   queueBrowserFocusRequest
@@ -57,6 +57,8 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
   setQuery,
   setSelectedItemId,
   setRawFilter,
+  selectionMovedByUserRef,
+  taskSourceUrl,
   listRef,
   preserveCreateLookupOnCloseRef,
   selectedItemId,
@@ -105,6 +107,7 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
       latestQueryRef.current = ''
       setQuery('')
       setSelectedItemId('')
+      selectionMovedByUserRef.current = false
       setRawFilter(EMPTY_PALETTE_FILTER)
       listRef.current?.scrollTo(0, 0)
     }
@@ -131,18 +134,29 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
     currentSelectedItemId: selectedItemId,
     queryChanged: false,
     selectableItemIds: selectionItemIds,
-    showCreateAction
+    showCreateAction,
+    autoSelectCreateAction: taskSourceUrl !== null
   })
   const handleCommandSelectionChange = useCallback(
     (nextItemId: string) => {
-      if (latestQueryRef.current !== deferredQuery) {
-        return
-      }
       setSelectedItemId(nextItemId)
     },
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- controller refs and setters preserve their original stable identities.
-    [deferredQuery]
+    [setSelectedItemId]
   )
+  // A late cmdk callback can restore the old cursor after handleQueryChange clears it.
+  // Commit the new list head explicitly when the deferred query changes.
+  useLayoutEffect(() => {
+    setSelectedItemId(
+      getNextWorktreePaletteSelection({
+        currentSelectedItemId: '',
+        queryChanged: true,
+        selectableItemIds: selectionItemIds,
+        showCreateAction,
+        autoSelectCreateAction: taskSourceUrl !== null
+      })
+    )
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- selection resets only when the deferred query commits.
+  }, [deferredQuery])
   useEffect(() => {
     const isCreateWorkspaceHighlighted =
       commandSelectedItemId === CREATE_WORKTREE_ITEM_ID ||

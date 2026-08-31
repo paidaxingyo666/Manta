@@ -11,6 +11,8 @@ import {
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { isRuntimeOwnedSshTargetId } from '../../../shared/execution-host'
+import { isPaletteCurrentWorktree, resolvePaletteRepoForWorktree } from '@/lib/palette-repo-resolution'
+import { formatPaletteSessionAge } from '@/components/cmd-j/palette-session-age'
 import type { WorktreePaletteItem } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteController } from './use-worktree-jump-palette-controller'
 import {
@@ -21,9 +23,11 @@ import {
 
 export function WorktreeJumpPaletteWorktreeRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: WorktreePaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const {
@@ -35,11 +39,20 @@ export function WorktreeJumpPaletteWorktreeRow({
     handleSelectItem
   } = controller
   const worktree = entry.worktree
-  const repo = repoMap.get(worktree.repoId)
+  const repo = resolvePaletteRepoForWorktree(
+    worktree,
+    repoMap,
+    controller.repoByHostIdentity
+  )
   const repoName = repo?.displayName ?? ''
   const branch = resolveWorktreeBranchLabel(worktree)
   const worktreeLabel = resolveWorktreeDisplayName(worktree)
-  const isCurrentWorktree = activeWorktreeId === worktree.id
+  const isCurrentWorktree = isPaletteCurrentWorktree(
+    worktree,
+    activeWorktreeId,
+    controller.activeWorkspaceExecutionHostId
+  )
+  const sessionAge = formatPaletteSessionAge(worktree.lastActivityAt, controller.paletteNowMs)
   const sshConnectionId =
     repo?.connectionId && !isRuntimeOwnedSshTargetId(repo.connectionId) ? repo.connectionId : null
   const sshStatus = sshConnectionId
@@ -50,8 +63,7 @@ export function WorktreeJumpPaletteWorktreeRow({
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => handleSelectItem(entry)}
       data-current={isCurrentWorktree ? 'true' : undefined}
       className={cn(
@@ -88,6 +100,18 @@ export function WorktreeJumpPaletteWorktreeRow({
               <span className="truncate text-[14px] font-semibold text-foreground">
                 <HighlightedText text={worktreeLabel} matchRanges={entry.match.displayNameRanges} />
               </span>
+              {sessionAge ? (
+                <span
+                  aria-label={translate(
+                    'auto.components.WorktreeJumpPalette.lastActiveTime',
+                    'Last active {{value0}} ago',
+                    { value0: sessionAge }
+                  )}
+                  className="shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground/70"
+                >
+                  {sessionAge}
+                </span>
+              ) : null}
               {isCurrentWorktree && (
                 <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
                   {translate('auto.components.WorktreeJumpPalette.556e7232ca', 'Current')}
@@ -98,10 +122,14 @@ export function WorktreeJumpPaletteWorktreeRow({
                   {translate('auto.components.WorktreeJumpPalette.739bda980c', 'primary')}
                 </span>
               )}
-              <span className="shrink-0 text-muted-foreground/45">·</span>
-              <span className="truncate text-[12px] font-medium text-muted-foreground/92">
-                <HighlightedText text={branch} matchRanges={entry.match.branchRanges} />
-              </span>
+              {branch.trim().length > 0 ? (
+                <>
+                  <span className="shrink-0 text-muted-foreground/45">·</span>
+                  <span className="truncate text-[12px] font-medium text-muted-foreground/92">
+                    <HighlightedText text={branch} matchRanges={entry.match.branchRanges} />
+                  </span>
+                </>
+              ) : null}
             </div>
             {entry.match.supportingText && (
               <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[12px] leading-5 text-muted-foreground/88">

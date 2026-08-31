@@ -15,9 +15,11 @@ import { PaletteHostBadgeChip } from './worktree-jump-palette-primitives'
 
 export function WorktreeJumpPaletteProjectRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: ProjectTargetPaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
@@ -31,8 +33,7 @@ export function WorktreeJumpPaletteProjectRow({
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => controller.handleSelectItem(entry)}
       className={cn(
         'group mx-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left outline-none transition-[background-color,border-color,box-shadow]',
@@ -71,9 +72,11 @@ export function WorktreeJumpPaletteProjectRow({
 
 export function WorktreeJumpPaletteActionRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: SettingsPaletteItem | QuickActionPaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
@@ -85,8 +88,7 @@ export function WorktreeJumpPaletteActionRow({
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => controller.handleSelectItem(entry)}
       className={cn(
         'group mx-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left outline-none transition-[background-color,border-color,box-shadow]',

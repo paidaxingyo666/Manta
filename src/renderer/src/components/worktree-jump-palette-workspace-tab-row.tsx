@@ -1,5 +1,6 @@
 import type React from 'react'
 import { FileText, SquareTerminal } from 'lucide-react'
+import { AgentIcon } from '@/lib/agent-catalog'
 import { CommandItem } from '@/components/ui/command'
 import { PaletteRecentTabStatusDot } from '@/components/cmd-j/palette-live-status'
 import { RepoBadgeMark } from '@/components/repo/RepoBadgeLabel'
@@ -14,18 +15,29 @@ import {
   PaletteOpenTabPrimaryLine,
   PaletteRowShortcutBadge
 } from './worktree-jump-palette-primitives'
+import { formatPaletteSessionAge } from '@/components/cmd-j/palette-session-age'
+import { resolvePaletteRepoForWorktree } from '@/lib/palette-repo-resolution'
 
 export function WorktreeJumpPaletteWorkspaceTabRow({
   entry,
+  renderKey,
   controller
 }: {
   entry: WorkspaceTabPaletteItem
+  renderKey: string
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
-  const workspaceTabWorktree = controller.worktreeMap.get(result.worktreeId)
+  const workspaceTabWorktree = controller.resolveWorktree(
+    result.worktreeId,
+    result.executionHostId
+  )
   const workspaceTabRepo = workspaceTabWorktree
-    ? controller.repoMap.get(workspaceTabWorktree.repoId)
+    ? resolvePaletteRepoForWorktree(
+        workspaceTabWorktree,
+        controller.repoMap,
+        controller.repoByHostIdentity
+      )
     : undefined
   const workspaceTabRepoName = workspaceTabRepo?.displayName ?? result.repoName
   const workspaceTabHostBadge = getPaletteHostBadge(
@@ -33,13 +45,22 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
     controller.hostOptions,
     controller.hostFilterActive
   )
-  const WorkspaceTabIcon = result.contentType === 'terminal' ? SquareTerminal : FileText
-  const recentRow = controller.hasQuery ? null : (controller.recentTabRowById.get(entry.id) ?? null)
+  const recentRow = controller.recentTabRowByItem.get(entry) ?? null
+  const fallback =
+    result.contentType === 'terminal' && result.occupantAgent ? (
+      <span className="inline-flex" data-agent-icon={result.occupantAgent} aria-hidden="true">
+        <AgentIcon agent={result.occupantAgent} size={14} />
+      </span>
+    ) : result.contentType === 'terminal' ? (
+      <SquareTerminal className="size-3.5" aria-hidden="true" />
+    ) : (
+      <FileText className="size-3.5" aria-hidden="true" />
+    )
+  const sessionAge = formatPaletteSessionAge(result.lastActiveAt ?? null, controller.paletteNowMs)
 
   return (
     <CommandItem
-      key={entry.id}
-      value={entry.id}
+      value={renderKey}
       onSelect={() => controller.handleSelectItem(entry)}
       className={cn(
         'group mx-0.5 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left outline-none transition-[background-color,border-color,box-shadow]',
@@ -49,7 +70,7 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
       <div className="flex h-5 w-4 shrink-0 items-center justify-center self-start text-muted-foreground/85">
         <PaletteRecentTabStatusDot
           row={recentRow}
-          fallback={<WorkspaceTabIcon className="size-3.5" aria-hidden="true" />}
+          fallback={fallback}
         />
       </div>
       <div className="min-w-0 flex-1 overflow-hidden">
@@ -62,6 +83,7 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
               secondaryRanges={result.secondaryRanges}
               worktreeName={result.worktreeName}
               worktreeRanges={result.worktreeRanges}
+              sessionAge={sessionAge}
               leadingBadges={
                 <>
                   {result.isCurrentTab && (
@@ -92,7 +114,7 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
               </span>
             )}
             <PaletteRowShortcutBadge
-              index={controller.recentTabShortcutIndexById.get(entry.id)}
+              index={controller.recentTabShortcutIndexByItem.get(entry)}
               modifierKeys={controller.digitShortcutModifiers}
             />
           </div>

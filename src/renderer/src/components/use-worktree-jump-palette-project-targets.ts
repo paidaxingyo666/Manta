@@ -28,6 +28,7 @@ export function useWorktreeJumpPaletteProjectTargets({
   repos,
   worktreesByRepo,
   detectedWorktreesByRepo,
+  worktreeVisibilityDefaultsByHost,
   pendingWorktreeCreations,
   projectGroups,
   projects,
@@ -63,8 +64,9 @@ export function useWorktreeJumpPaletteProjectTargets({
       }
     }
     for (const repoId of buildImportedWorktreesCardCandidates({
-      repos,
-      detectedWorktreesByRepo
+    repos,
+    detectedWorktreesByRepo,
+    visibilityDefaultsByHost: worktreeVisibilityDefaultsByHost
     }).keys()) {
       ids.add(repoId)
     }
@@ -72,7 +74,14 @@ export function useWorktreeJumpPaletteProjectTargets({
       ids.add(creation.request.repoId)
     }
     return ids
-  }, [allWorktrees, detectedWorktreesByRepo, pendingWorktreeCreations, repos, worktreesByRepo])
+  }, [
+    allWorktrees,
+    detectedWorktreesByRepo,
+    pendingWorktreeCreations,
+    repos,
+    worktreeVisibilityDefaultsByHost,
+    worktreesByRepo
+  ])
   const hasAnyProjectSearchCandidates = useMemo(
     () =>
       hasCmdJProjectSearchCandidates({
