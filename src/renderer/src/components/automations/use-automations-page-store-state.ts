@@ -30,6 +30,7 @@ export function useAutomationsPageStoreState() {
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const closeAutomationsPage = useAppStore((s) => s.closeAutomationsPage)
+  const activeModal = useAppStore((s) => s.activeModal)
   const sshConnectionStates = useAppStore((s) => s.sshConnectionStates)
   const sshTargetLabels = useAppStore((s) => s.sshTargetLabels)
   const runtimeEnvironments = useAppStore((s) => s.runtimeEnvironments)
@@ -78,6 +79,7 @@ export function useAutomationsPageStoreState() {
     openSettingsPage,
     openSettingsTarget,
     closeAutomationsPage,
+    activeModal,
     sshConnectionStates,
     sshTargetLabels,
     runtimeEnvironments,

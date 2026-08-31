@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { hasVisibleOverlay } from '@/lib/visible-overlay'
 import type { AutomationsPageLocalState } from './use-automations-page-local-state'
 import type { AutomationsPageStoreState } from './use-automations-page-store-state'
 
@@ -9,15 +10,31 @@ export function useAutomationsPageEscape({
   store: AutomationsPageStoreState
   local: AutomationsPageLocalState
 }): void {
-  const { closeAutomationsPage } = store
-  const { createOpen, deleteTarget, externalDeleteTarget } = local
+  const { activeModal, closeAutomationsPage } = store
+  const {
+    createOpen,
+    deleteTarget,
+    externalDeleteTarget,
+    isDetailOpen,
+    selectedAutomationRunPageId,
+    selectedExternalRunPage,
+    setActivePaneTab,
+    setIsDetailOpen,
+    setSelectedAutomationRunPageId,
+    setSelectedExternalRunPage
+  } = local
   useEffect(() => {
-    if (createOpen || deleteTarget || externalDeleteTarget) {
+    if (createOpen || deleteTarget || externalDeleteTarget || activeModal !== 'none') {
       return
     }
 
     function onKeyDown(event: KeyboardEvent): void {
       if (event.key !== 'Escape' || event.defaultPrevented) {
+        return
+      }
+
+      // Popovers and menus are outside the store modal registry and own Escape.
+      if (hasVisibleOverlay()) {
         return
       }
 
@@ -44,11 +61,39 @@ export function useAutomationsPageEscape({
         }
       }
 
+      if (isDetailOpen) {
+        event.preventDefault()
+        if (selectedExternalRunPage) {
+          setSelectedExternalRunPage(null)
+          return
+        }
+        if (selectedAutomationRunPageId) {
+          setSelectedAutomationRunPageId(null)
+          return
+        }
+        setIsDetailOpen(false)
+        setActivePaneTab('overview')
+        return
+      }
+
       event.preventDefault()
       closeAutomationsPage()
     }
 
     window.addEventListener('keydown', onKeyDown, { capture: true })
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
-  }, [closeAutomationsPage, createOpen, deleteTarget, externalDeleteTarget])
+  }, [
+    activeModal,
+    closeAutomationsPage,
+    createOpen,
+    deleteTarget,
+    externalDeleteTarget,
+    isDetailOpen,
+    selectedAutomationRunPageId,
+    selectedExternalRunPage,
+    setActivePaneTab,
+    setIsDetailOpen,
+    setSelectedAutomationRunPageId,
+    setSelectedExternalRunPage
+  ])
 }
