@@ -8,10 +8,13 @@ description: >-
   requests phrased as "hand off", "handoff", "handover", "give this to another
   agent", or "another worktree" when the user did not explicitly ask to
   supervise, monitor, wait for results, or coordinate a DAG. Use `manta-cli` for
-  ordinary terminal control, lightweight terminal prompts, shell commands, Manta
+  terminal control, lightweight terminal prompts, shell commands, Manta
   worktree management, reading or waiting on terminals, and automation of the
-  browser embedded inside Manta. Use Computer Use for browser windows, webviews,
-  Manta app UI, or desktop UI outside Manta's embedded browser.
+  browser embedded inside Manta. Use Computer Use for external browser windows,
+  webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when
+  the task requires OS/window-level control such as focus, menus, dialogs,
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
+  page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta Inter-Agent Orchestration
@@ -384,7 +387,7 @@ manta terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
 manta orchestration dispatch --task <task_id> --to <handle> --inject --json
 ```
 
-For new-worktree workers, read the id and `agentTerminalHandle` from `worktree create`, falling back to `startupTerminal.handle` for older runtimes. Use that as the sole worker handle when present; otherwise use `terminal list` to resolve the agent handle. Omit `--repo` only inside a Manta-managed worktree; otherwise pass `--repo <selector>`.
+For new-worktree workers, read the id and `agentTerminalHandle` from `worktree create`, falling back to `startupTerminal.handle` for older runtimes. Use that as the sole worker handle when present; otherwise use `terminal list` to resolve the agent handle. Omit `--repo` only inside an Manta-managed worktree; otherwise pass `--repo <selector>`.
 
 **For an allowed new worktree, use agent-first:** `--agent` reveals the new worktree and launches the selected agent **in its first terminal**, without adding a separate fallback shell for that worker. Pass `--setup run`; repo setup and default-terminal settings may add intentional tabs or splits. Do **not** run bare `worktree create` and then `terminal create --command <agent>` for the same worker when agent-first create is available: without configured default tabs, that two-step path leaves a fallback shell + agent pair. Only use it when custom agent argv is required (for example Codex model/effort flags) or when an older CLI rejects `--agent`; if you must, message only the agent handle. Configured default tabs are intentional surfaces, so close a prior terminal only after `terminal list` or `terminal show` confirms it is an unused shell. Do not run `worktree create` when the task must stay in the current worktree.
 
