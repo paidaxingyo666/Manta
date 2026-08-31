@@ -18,6 +18,17 @@ vi.mock('./native-chat-composer-target', () => ({
 }))
 
 vi.mock('./native-chat-attachment-upload', () => ({
+  getNativeChatAttachmentOwnerIdentity: (owner: NativeChatAttachmentOwner) =>
+    owner.kind === 'not-ready'
+      ? null
+      : owner.kind === 'ssh'
+        ? JSON.stringify([
+            owner.connectionId,
+            owner.expectedExecutionHostId,
+            owner.expectedSshTargetId,
+            owner.worktreePath
+          ])
+        : owner.kind,
   nativeChatLocalAttachmentUnsupportedNotice: () =>
     'Local attachments are not available for remote sessions.',
   nativeChatWorktreeNotReadyNotice: () => 'Worktree not ready — try again in a moment.'
@@ -46,7 +57,7 @@ function Probe({
 }: {
   disabled: boolean
   resolveAttachmentOwner: () => NativeChatAttachmentOwner
-  attachResolvedPaths: (paths: string[]) => void
+  attachResolvedPaths: (paths: string[], owner?: NativeChatAttachmentOwner) => void
   insertTypedText: (text: string) => boolean
   setNotice: (notice: string | null) => void
   onReady: (api: HookApi) => void
@@ -71,7 +82,7 @@ let root: Root | null = null
 async function renderProbe(args: {
   disabled?: boolean
   resolveAttachmentOwner: () => NativeChatAttachmentOwner
-  attachResolvedPaths?: (paths: string[]) => void
+  attachResolvedPaths?: (paths: string[], owner?: NativeChatAttachmentOwner) => void
   insertTypedText?: (text: string) => boolean
   setNotice?: (notice: string | null) => void
 }): Promise<{ latest: () => HookApi; setDisabled: (disabled: boolean) => Promise<void> }> {
@@ -184,7 +195,44 @@ describe('useNativeChatComposerPaste', () => {
       probe.latest().handlePaste(imagePasteEvent())
     })
     expect(mocks.saveClipboardImageAsTempFile).toHaveBeenCalledWith({ connectionId: 'conn-1' })
-    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/tmp/manta-paste-1.png'])
+    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/tmp/manta-paste-1.png'], sshOwner)
+  })
+
+  it('preserves the SSH owner for menu-driven image paste', async () => {
+    mocks.saveClipboardImageAsTempFile.mockResolvedValue('/remote/tmp/manta-paste-2.png')
+    const attachResolvedPaths = vi.fn()
+    const probe = await renderProbe({
+      resolveAttachmentOwner: () => sshOwner,
+      attachResolvedPaths
+    })
+
+    await act(async () => probe.latest().pasteFromClipboard())
+
+    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/tmp/manta-paste-2.png'], sshOwner)
+  })
+
+  it('drops an image save that finishes after the attachment owner changes', async () => {
+    let resolveSave: (path: string) => void = () => undefined
+    mocks.saveClipboardImageAsTempFile.mockReturnValue(
+      new Promise<string>((resolve) => {
+        resolveSave = resolve
+      })
+    )
+    let owner: NativeChatAttachmentOwner = sshOwner
+    const attachResolvedPaths = vi.fn()
+    const setNotice = vi.fn()
+    const probe = await renderProbe({
+      resolveAttachmentOwner: () => owner,
+      attachResolvedPaths,
+      setNotice
+    })
+
+    act(() => probe.latest().handlePaste(imagePasteEvent()))
+    owner = { kind: 'local' }
+    await act(async () => resolveSave('/remote/tmp/manta-paste-stale.png'))
+
+    expect(attachResolvedPaths).not.toHaveBeenCalled()
+    expect(setNotice).toHaveBeenCalledWith('Worktree not ready — try again in a moment.')
   })
 
   it('stops pasteFromClipboard on a failed save instead of falling through to text', async () => {

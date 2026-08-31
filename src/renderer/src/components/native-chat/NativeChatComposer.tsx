@@ -38,6 +38,11 @@ import { dispatchNativeChatStructuredComposerText } from './native-chat-structur
 import { useNativeChatPtyComposerSend } from './use-native-chat-pty-composer-send'
 import { useImeEnterGestureOwnership } from '@/lib/ime-composition-keyboard-event'
 import { useNativeChatComposerAppMenuSelection } from './use-native-chat-composer-app-menu-selection'
+import {
+  getNativeChatAttachmentOwnerIdentity,
+  resolveNativeChatAttachmentOwner,
+  resolveNativeChatAttachmentOwnerForWorktree
+} from './native-chat-attachment-upload'
 
 export type {
   NativeChatComposerHandle,
@@ -159,8 +164,17 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
       setCaret(el.selectionStart ?? el.value.length)
     }, [])
 
+    const attachmentOwnerIdentity = useAppStore((store) =>
+      getNativeChatAttachmentOwnerIdentity(
+        structuredTransport?.worktreeId
+          ? resolveNativeChatAttachmentOwnerForWorktree(store, structuredTransport.worktreeId)
+          : resolveNativeChatAttachmentOwner(store, terminalTabId)
+      )
+    )
+
     const attachments = useNativeChatComposerAttachments({
       attachmentScopeKey: paneKey,
+      attachmentOwnerIdentity,
       allowWithoutTarget: Boolean(structuredTransport),
       caret,
       disabled,

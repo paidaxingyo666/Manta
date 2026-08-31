@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import type { NativeChatAttachmentOwner } from './native-chat-attachment-upload'
 
 const mocks = vi.hoisted(() => ({
   resolveNativeChatAttachmentOwner: vi.fn(),
@@ -13,6 +14,15 @@ vi.mock('@/store', () => ({
 }))
 
 vi.mock('./native-chat-attachment-upload', () => ({
+  getNativeChatAttachmentOwnerIdentity: (owner: NativeChatAttachmentOwner) =>
+    owner.kind === 'ssh'
+      ? JSON.stringify([
+          owner.connectionId,
+          owner.expectedExecutionHostId,
+          owner.expectedSshTargetId,
+          owner.worktreePath
+        ])
+      : owner.kind,
   nativeChatLocalAttachmentUnsupportedNotice: () =>
     'Local attachments are not available for remote sessions.',
   resolveNativeChatAttachmentOwner: mocks.resolveNativeChatAttachmentOwner,
@@ -39,7 +49,7 @@ function Probe({
   onReady
 }: {
   disabled: boolean
-  attachResolvedPaths: (paths: string[]) => void
+  attachResolvedPaths: (paths: string[], owner?: NativeChatAttachmentOwner) => void
   setNotice: (notice: string | null) => void
   onReady: (api: HookApi) => void
 }): null {
@@ -58,7 +68,7 @@ let root: Root | null = null
 
 async function renderProbe(args: {
   disabled?: boolean
-  attachResolvedPaths: (paths: string[]) => void
+  attachResolvedPaths: (paths: string[], owner?: NativeChatAttachmentOwner) => void
   setNotice?: (notice: string | null) => void
 }): Promise<{ latest: () => HookApi; setDisabled: (disabled: boolean) => Promise<void> }> {
   const container = document.createElement('div')
@@ -105,7 +115,7 @@ describe('useNativeChatExternalAttachments', () => {
     await act(async () => {
       probe.latest().attachExternalPaths(['/local/a.txt'])
     })
-    expect(attachResolvedPaths).toHaveBeenCalledWith(['/local/a.txt'])
+    expect(attachResolvedPaths).toHaveBeenCalledWith(['/local/a.txt'], { kind: 'local' })
     expect(mocks.uploadNativeChatAttachmentPaths).not.toHaveBeenCalled()
   })
 
@@ -132,7 +142,10 @@ describe('useNativeChatExternalAttachments', () => {
       expectedSshTargetId: 'conn-1',
       expectedSshConnectionGeneration: 4
     })
-    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/wt/.manta/drops/a.txt'])
+    expect(attachResolvedPaths).toHaveBeenCalledWith(
+      ['/remote/wt/.manta/drops/a.txt'],
+      expect.objectContaining({ kind: 'ssh', connectionId: 'conn-1' })
+    )
   })
 
   it('delivers concurrent SSH resolutions in order without deduplicating paths', async () => {
@@ -164,8 +177,14 @@ describe('useNativeChatExternalAttachments', () => {
     })
 
     expect(attachResolvedPaths.mock.calls).toEqual([
-      [['/remote/wt/.manta/drops/b.txt', '/remote/wt/.manta/drops/b.txt']],
-      [['/remote/wt/.manta/drops/a.txt']]
+      [
+        ['/remote/wt/.manta/drops/b.txt', '/remote/wt/.manta/drops/b.txt'],
+        expect.objectContaining({ kind: 'ssh', connectionId: 'conn-1' })
+      ],
+      [
+        ['/remote/wt/.manta/drops/a.txt'],
+        expect.objectContaining({ kind: 'ssh', connectionId: 'conn-1' })
+      ]
     ])
   })
 
@@ -230,6 +249,33 @@ describe('useNativeChatExternalAttachments', () => {
     await act(async () => {
       resolveUpload(['/remote/wt/.manta/drops/a.txt'])
     })
+    expect(attachResolvedPaths).not.toHaveBeenCalled()
+  })
+
+  it('drops an upload that resolves after the SSH owner changes', async () => {
+    let owner: NativeChatAttachmentOwner = {
+      kind: 'ssh',
+      connectionId: 'conn-1',
+      worktreePath: '/remote/wt',
+      expectedExecutionHostId: 'ssh:conn-1',
+      expectedSshTargetId: 'target-1',
+      expectedSshConnectionGeneration: 4
+    }
+    mocks.resolveNativeChatAttachmentOwner.mockImplementation(() => owner)
+    const upload = deferred<string[]>()
+    mocks.uploadNativeChatAttachmentPaths.mockReturnValue(upload.promise)
+    const attachResolvedPaths = vi.fn()
+    const probe = await renderProbe({ attachResolvedPaths })
+
+    act(() => probe.latest().attachExternalPaths(['/local/a.txt']))
+    owner = {
+      ...owner,
+      connectionId: 'conn-2',
+      expectedExecutionHostId: 'ssh:conn-2',
+      expectedSshTargetId: 'target-2'
+    }
+    await act(async () => upload.resolve(['/remote/wt/.manta/drops/a.txt']))
+
     expect(attachResolvedPaths).not.toHaveBeenCalled()
   })
 })
