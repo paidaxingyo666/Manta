@@ -12,7 +12,13 @@ import { subscribeCmdJRowIndexJump } from '@/lib/cmd-j-row-index-jump'
 import { getRepoMapFromState } from '@/store/selectors'
 import { useAppStore } from '@/store'
 import { isGitRepoKind } from '../../../shared/repo-kind'
-import { buildTaskSourceContextFromRepo } from '../../../shared/task-source-context'
+import {
+  buildTaskSourceContextFromRepo,
+  normalizeTaskSourceContext
+} from '../../../shared/task-source-context'
+import { getLinearIssueWorkspaceName } from '../../../shared/workspace-name'
+import { buildLinearIssueLinkedWorkItem } from '@/lib/linear-linked-work-item'
+import { isWorktreePaletteCreateActivationAllowed } from '@/lib/worktree-palette-create-action'
 import type { WorktreeJumpPaletteFilter } from './use-worktree-jump-palette-filter'
 import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-local-state'
 import type { WorktreeJumpPaletteQuickActions } from './use-worktree-jump-palette-quick-actions'
@@ -21,6 +27,7 @@ import type { WorktreeJumpPaletteSelectionActions } from './use-worktree-jump-pa
 import type { WorktreeJumpPaletteSelectionLifecycle } from './use-worktree-jump-palette-selection-lifecycle'
 import type { WorktreeJumpPaletteStoreState } from './use-worktree-jump-palette-store-state'
 import type { WorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-worktrees'
+import type { WorktreeJumpPaletteTaskUrl } from './use-worktree-jump-palette-task-url'
 
 type WorktreeJumpPaletteCreateActionInput = WorktreeJumpPaletteStoreState &
   WorktreeJumpPaletteLocalState &
@@ -29,6 +36,7 @@ type WorktreeJumpPaletteCreateActionInput = WorktreeJumpPaletteStoreState &
   WorktreeJumpPaletteSections &
   WorktreeJumpPaletteSelectionActions &
   WorktreeJumpPaletteSelectionLifecycle &
+  WorktreeJumpPaletteTaskUrl &
   Pick<WorktreeJumpPaletteWorktrees, 'hasQuery'>
 
 export function useWorktreeJumpPaletteCreateAction({
@@ -50,30 +58,41 @@ export function useWorktreeJumpPaletteCreateAction({
   createLookupGuard,
   preserveCreateLookupOnCloseRef,
   inputRef,
-  setDialogElement
+  setDialogElement,
+  taskSourceUrl,
+  linearIssueUrlIntent,
+  currentLinearIssuePreview,
+  currentGitHubWorkItemPreview,
+  linearLookupRef,
+  githubLookupRef,
+  taskUrlCreatePreview,
+  selectionMovedByUserRef
 }: WorktreeJumpPaletteCreateActionInput) {
   useLayoutEffect(() => {
     digitShortcutItemsRef.current = paletteSections.visibleOpenTabItems
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the controller ref preserves its original stable identity.
-  }, [paletteSections])
+  }, [digitShortcutItemsRef, paletteSections])
   useEffect(() => {
-    if (!visible || hasQuery || query.length > 0) {
-      return
-    }
+    if (!visible || hasQuery || query.length > 0) return
     return subscribeCmdJRowIndexJump((index) => {
       const item = digitShortcutItemsRef.current[index]
-      if (item) {
-        handleSelectItem(item)
-      }
+      if (item) handleSelectItem(item)
     })
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the controller ref preserves its original stable identity.
-  }, [handleSelectItem, hasQuery, query.length, visible])
+  }, [digitShortcutItemsRef, handleSelectItem, hasQuery, query.length, visible])
+
   const handleCreateWorktree = useCallback(() => {
-    skipRestoreFocusRef.current = true
     const trimmed = createWorktreeName.trim()
+    if (query.trim() !== trimmed) return
+    if (
+      !isWorktreePaletteCreateActivationAllowed({
+        hasTaskUrlIntent: taskSourceUrl !== null,
+        hasCreateName: trimmed.length > 0,
+        selectionMovedByUser: selectionMovedByUserRef.current
+      })
+    ) return
     const ghLink = parseGitHubIssueOrPRLink(trimmed)
     const ghNumber = parseGitHubIssueOrPRNumber(trimmed)
     const openComposer = (data: Record<string, unknown>): void => {
+      skipRestoreFocusRef.current = true
       prefetchCreateWorkspaceBaseForComposer(
         typeof data.initialRepoId === 'string' ? data.initialRepoId : undefined
       )
@@ -83,35 +102,108 @@ export function useWorktreeJumpPaletteCreateAction({
         openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
       )
     }
-    if (ghLink) {
-      const { number } = ghLink
-      const state = useAppStore.getState()
-      const matches = allWorktrees.filter(
-        (worktree) =>
-          !worktree.isArchived && (worktree.linkedIssue === number || worktree.linkedPR === number)
-      )
-      const activeMatch =
-        matches.find((worktree) => worktree.repoId === state.activeRepoId) ?? matches[0]
-      if (activeMatch) {
-        closeModal()
-        const activation = activateAndRevealWorktree(activeMatch.id)
-        if (!queueWorkspaceActivationTerminalFocus(activeMatch.id, activation)) {
-          focusFallbackSurface()
+
+    if (linearIssueUrlIntent) {
+      const lookup = linearLookupRef.current
+      const resolve = async (): Promise<void> => {
+        const preview = currentLinearIssuePreview?.loading
+          ? await lookup?.promise
+          : (currentLinearIssuePreview ?? (await lookup?.promise))
+        if (
+          !preview ||
+          lookup?.query !== trimmed ||
+          linearLookupRef.current !== lookup ||
+          query.trim() !== trimmed ||
+          useAppStore.getState().activeModal !== 'worktree-palette'
+        ) {
+          return
         }
-        recordFeatureInteraction('cmd-j-workspace-open')
-        return
+        const data = preview.issue
+          ? (() => {
+              const sourceContext = preview.sourceContext
+                ? normalizeTaskSourceContext({
+                    ...preview.sourceContext,
+                    providerIdentity: {
+                      provider: 'linear',
+                      workspaceId: preview.issue.workspaceId ?? null,
+                      workspaceName: preview.issue.workspaceName ?? null,
+                      teamId: preview.issue.team.id,
+                      teamKey: preview.issue.team.key
+                    },
+                    accountLabel: preview.issue.workspaceName ?? null
+                  })
+                : null
+              return {
+                prefilledName: getLinearIssueWorkspaceName(preview.issue),
+                linkedWorkItem: buildLinearIssueLinkedWorkItem(preview.issue),
+                ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {}),
+                ...(sourceContext ? { taskSourceContext: sourceContext } : {})
+              }
+            })()
+          : preview.initialRepoId
+            ? { prefilledName: trimmed, initialRepoId: preview.initialRepoId }
+            : { prefilledName: trimmed }
+        openComposer(data)
       }
-      const eligibleRepos = state.repos.filter((repo) => isGitRepoKind(repo))
-      const repoForLookup =
-        (state.activeRepoId && eligibleRepos.find((repo) => repo.id === state.activeRepoId)) ||
-        eligibleRepos[0]
-      openComposer(
-        repoForLookup
-          ? { prefilledName: trimmed, initialRepoId: repoForLookup.id }
-          : { prefilledName: trimmed }
-      )
+      void resolve()
       return
     }
+
+    if (ghLink) {
+      const lookup = githubLookupRef.current
+      const resolve = async (): Promise<void> => {
+        const preview = currentGitHubWorkItemPreview?.loading
+          ? await lookup?.promise
+          : (currentGitHubWorkItemPreview ?? (await lookup?.promise))
+        if (
+          !preview ||
+          lookup?.query !== trimmed ||
+          githubLookupRef.current !== lookup ||
+          query.trim() !== trimmed ||
+          useAppStore.getState().activeModal !== 'worktree-palette'
+        ) {
+          return
+        }
+        const item = preview.item
+        if (item) {
+          const linkedWorkItem: LinkedWorkItemSummary = {
+            provider: 'github',
+            type: item.type,
+            number: item.number,
+            title: item.title,
+            url: item.url,
+            ...(item.repoId ? { repoId: item.repoId } : {})
+          }
+          openComposer({
+            prefilledName:
+              getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
+              getLinkedWorkItemSuggestedName({ title: item.title }),
+            linkedWorkItem,
+            initialGitHubWorkItem: item,
+            ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {}),
+            ...(preview.sourceContext ? { taskSourceContext: preview.sourceContext } : {})
+          })
+        } else {
+          openComposer({
+            prefilledName: trimmed,
+            ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {})
+          })
+        }
+      }
+      void resolve()
+      return
+    }
+
+    if (taskUrlCreatePreview) {
+      const state = useAppStore.getState()
+      const eligibleRepos = state.repos.filter((repo) => isGitRepoKind(repo))
+      const repo =
+        (state.activeRepoId && eligibleRepos.find((candidate) => candidate.id === state.activeRepoId)) ||
+        eligibleRepos[0]
+      openComposer(repo ? { prefilledName: trimmed, initialRepoId: repo.id } : { prefilledName: trimmed })
+      return
+    }
+
     if (ghNumber !== null) {
       const state = useAppStore.getState()
       const matches = allWorktrees.filter(
@@ -122,97 +214,104 @@ export function useWorktreeJumpPaletteCreateAction({
       const activeMatch =
         matches.find((worktree) => worktree.repoId === state.activeRepoId) ?? matches[0]
       if (activeMatch) {
+        skipRestoreFocusRef.current = true
         closeModal()
-        const activation = activateAndRevealWorktree(activeMatch.id)
+        const activation = activateAndRevealWorktree(
+          activeMatch.id,
+          activeMatch.hostId ? { executionHostId: activeMatch.hostId } : {}
+        )
         if (!queueWorkspaceActivationTerminalFocus(activeMatch.id, activation)) {
           focusFallbackSurface()
         }
         recordFeatureInteraction('cmd-j-workspace-open')
         return
       }
-      const repoForLookup =
+      const repo =
         (state.activeRepoId ? (repoMap.get(state.activeRepoId) ?? null) : null) ||
-        [...getRepoMapFromState(state).values()].find((repo) => isGitRepoKind(repo))
-      if (!repoForLookup || !isGitRepoKind(repoForLookup)) {
+        [...getRepoMapFromState(state).values()].find((candidate) => isGitRepoKind(candidate))
+      if (!repo || !isGitRepoKind(repo)) {
         openComposer({ prefilledName: trimmed })
         return
       }
-      prefetchCreateWorkspaceBaseForComposer(repoForLookup.id)
       const sourceContext = buildTaskSourceContextFromRepo({
         provider: 'github',
-        projectId: repoForLookup.id,
-        repo: repoForLookup
+        projectId: repo.id,
+        repo
       })
-      const lookupToken = createLookupGuard.start()
+      const token = createLookupGuard.start()
       preserveCreateLookupOnCloseRef.current = true
-      recordFeatureInteraction('cmd-j-create-workspace')
+      skipRestoreFocusRef.current = true
       closeModal()
       void lookupGitHubWorkItemForSource({
-        repoPath: repoForLookup.path,
-        repoId: repoForLookup.id,
+        repoPath: repo.path,
+        repoId: repo.id,
         sourceContext,
         number: ghNumber
       })
         .then((item) => {
-          if (!createLookupGuard.isCurrent(lookupToken)) {
-            return
-          }
-          const data: Record<string, unknown> = { initialRepoId: repoForLookup.id }
-          if (item) {
-            const linkedWorkItem: LinkedWorkItemSummary = {
-              type: item.type,
-              number: item.number,
-              title: item.title,
-              url: item.url
-            }
-            data.linkedWorkItem = linkedWorkItem
-            data.prefilledName =
-              getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
-              getLinkedWorkItemSuggestedName({ title: item.title })
-          } else {
-            data.prefilledName = trimmed
-          }
-          queueMicrotask(() =>
-            openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
-          )
-        })
-        .catch(() => {
-          if (!createLookupGuard.isCurrent(lookupToken)) {
-            return
-          }
+          if (!createLookupGuard.isCurrent(token)) return
+          const linkedWorkItem = item
+            ? { type: item.type, number: item.number, title: item.title, url: item.url }
+            : null
           queueMicrotask(() =>
             openModal('new-workspace-composer', {
-              initialRepoId: repoForLookup.id,
-              prefilledName: trimmed,
+              initialRepoId: repo.id,
+              ...(linkedWorkItem
+                ? {
+                    linkedWorkItem,
+                    prefilledName:
+                      getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
+                      getLinkedWorkItemSuggestedName({ title: linkedWorkItem.title })
+                  }
+                : { prefilledName: trimmed }),
               telemetrySource: 'command_palette'
             })
           )
         })
+        .catch(() => {
+          if (createLookupGuard.isCurrent(token)) {
+            queueMicrotask(() =>
+              openModal('new-workspace-composer', {
+                initialRepoId: repo.id,
+                prefilledName: trimmed,
+                telemetrySource: 'command_palette'
+              })
+            )
+          }
+        })
       return
     }
     openComposer(trimmed ? { prefilledName: trimmed } : {})
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- controller refs preserve their original stable identities.
   }, [
     allWorktrees,
     closeModal,
     createLookupGuard,
     createWorktreeName,
+    currentGitHubWorkItemPreview,
+    currentLinearIssuePreview,
     focusFallbackSurface,
+    githubLookupRef,
+    linearIssueUrlIntent,
+    linearLookupRef,
     openModal,
     prefetchCreateWorkspaceBaseForComposer,
+    query,
     recordFeatureInteraction,
-    repoMap
+    repoMap,
+    selectionMovedByUserRef,
+    skipRestoreFocusRef,
+    taskSourceUrl,
+    taskUrlCreatePreview
   ])
+
   const handleCloseAutoFocus = useCallback((event: Event) => event.preventDefault(), [])
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- the controller ref preserves its original stable identity.
-  const focusPaletteInput = useCallback(() => inputRef.current?.focus(), [])
-  const setDialogElementFromNode = useCallback((node: HTMLDivElement | null) => {
-    setDialogElement(node?.closest<HTMLElement>('[role="dialog"]') ?? null)
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- local-state setter identity is stable across extraction.
-  }, [])
-  const handleOpenAutoFocus = useCallback((_event: Event) => {
-    // No-op: focus is captured before Radix moves it into the dialog.
-  }, [])
+  const focusPaletteInput = useCallback(() => inputRef.current?.focus(), [inputRef])
+  const setDialogElementFromNode = useCallback(
+    (node: HTMLDivElement | null) =>
+      setDialogElement(node?.closest<HTMLElement>('[role="dialog"]') ?? null),
+    [setDialogElement]
+  )
+  const handleOpenAutoFocus = useCallback((_event: Event) => {}, [])
   return {
     handleCreateWorktree,
     handleCloseAutoFocus,
@@ -222,4 +321,6 @@ export function useWorktreeJumpPaletteCreateAction({
   }
 }
 
-export type WorktreeJumpPaletteCreateAction = ReturnType<typeof useWorktreeJumpPaletteCreateAction>
+export type WorktreeJumpPaletteCreateAction = ReturnType<
+  typeof useWorktreeJumpPaletteCreateAction
+>

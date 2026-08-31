@@ -1,20 +1,39 @@
-import { useDeferredValue, useRef, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import type { WorktreePaletteRequestGuard } from '@/lib/worktree-palette-create-action'
-import { EMPTY_PALETTE_FILTER, type PaletteFilterState } from '@/components/cmd-j/palette-filter'
+import {
+  EMPTY_PALETTE_FILTER,
+  type PaletteFilterState
+} from '@/components/cmd-j/palette-filter'
+import { parseCmdJTaskSourceUrl } from '@/lib/worktree-palette-task-url-match'
+import { getWorktreePaletteCreateActionState } from '@/lib/worktree-palette-create-action'
 import type { CmdJActiveGroupSnapshot } from '@/components/cmd-j/quick-action-context'
 import type { WorkspaceVisibleTabType } from '../../../shared/tab-types'
 import type { PaletteItem } from './worktree-jump-palette-model'
 
 export function useWorktreeJumpPaletteLocalState({
-  createLookupGuard
+  createLookupGuard,
+  visible
 }: {
   createLookupGuard: WorktreePaletteRequestGuard
+  visible: boolean
 }) {
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
+  const liveQueryRef = useRef(query)
+  liveQueryRef.current = query
+  const taskSourceUrl = useMemo(() => parseCmdJTaskSourceUrl(query), [query])
+  const paletteSearchQuery = taskSourceUrl ? query.trim() : deferredQuery.trim()
+  const deferredCreateAction = useMemo(
+    () => getWorktreePaletteCreateActionState({ query: deferredQuery }),
+    [deferredQuery]
+  )
+  const createWorktreeName = taskSourceUrl ? query.trim() : deferredCreateAction.createWorktreeName
+  const showCreateAction = deferredCreateAction.showCreateAction || taskSourceUrl !== null
   const [selectedItemId, setSelectedItemId] = useState('')
   const latestQueryRef = useRef('')
   const autoSelectedItemIdRef = useRef<string | null>(null)
+  // Create is armed by an explicit keyboard/pointer move, except for task URLs.
+  const selectionMovedByUserRef = useRef(false)
   const digitShortcutItemsRef = useRef<readonly PaletteItem[]>([])
   const [rawFilter, setRawFilter] = useState<PaletteFilterState>(EMPTY_PALETTE_FILTER)
   const [dialogElement, setDialogElement] = useState<HTMLElement | null>(null)
@@ -31,15 +50,31 @@ export function useWorktreeJumpPaletteLocalState({
   const fallbackFocusOuterFrameRef = useRef<number | null>(null)
   const fallbackFocusInnerFrameRef = useRef<number | null>(null)
   const preserveCreateLookupOnCloseRef = useRef(false)
+  const [expandedSectionCaps, setExpandedSectionCaps] = useState<Record<string, number>>({})
+
+  // Reset expansion after a new query or a fresh open without adding an extra effect render.
+  const [previousQuery, setPreviousQuery] = useState(query)
+  const [previousVisible, setPreviousVisible] = useState(visible)
+  if (previousQuery !== query || previousVisible !== visible) {
+    setPreviousQuery(query)
+    setPreviousVisible(visible)
+    setExpandedSectionCaps({})
+  }
 
   return {
     query,
     setQuery,
     deferredQuery,
+    liveQueryRef,
+    taskSourceUrl,
+    paletteSearchQuery,
+    createWorktreeName,
+    showCreateAction,
     selectedItemId,
     setSelectedItemId,
     latestQueryRef,
     autoSelectedItemIdRef,
+    selectionMovedByUserRef,
     digitShortcutItemsRef,
     rawFilter,
     setRawFilter,
@@ -58,7 +93,10 @@ export function useWorktreeJumpPaletteLocalState({
     fallbackFocusOuterFrameRef,
     fallbackFocusInnerFrameRef,
     createLookupGuard,
-    preserveCreateLookupOnCloseRef
+    preserveCreateLookupOnCloseRef,
+    expandedSectionCaps,
+    setExpandedSectionCaps,
+    previousVisible
   }
 }
 

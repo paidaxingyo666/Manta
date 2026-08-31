@@ -11,11 +11,8 @@ import {
   searchWorkspaceTabs,
   type SearchableWorkspaceTab
 } from '@/lib/workspace-tab-palette-search'
-import {
-  getOpenTabMatchRelevance,
-  getWorktreeMatchRelevance,
-  NO_MATCH_RELEVANCE
-} from '@/lib/cmd-j-match-relevance'
+import { comparePaletteRankedItems } from '@/lib/cmd-j-section-leadership'
+import { getWorktreeHostIdentity } from '../../../shared/worktree/host-qualified-identity'
 import type {
   BrowserPaletteItem,
   OpenTabPaletteItem,
@@ -34,18 +31,21 @@ const EMPTY_WORKSPACE_TAB_ENTRIES: SearchableWorkspaceTab[] = []
 
 type WorktreeJumpPaletteOpenTabsInput = WorktreeJumpPaletteStoreState &
   WorktreeJumpPaletteWorktrees &
-  Pick<WorktreeJumpPaletteFilter, 'repoMap'> &
+  Pick<WorktreeJumpPaletteFilter, 'repoMap' | 'repoByHostIdentity'> &
   Pick<WorktreeJumpPaletteLocalState, 'deferredQuery'>
 
 export function useWorktreeJumpPaletteOpenTabs({
   paletteStatusInputsActive,
   browserSortedWorktrees,
+  allWorktrees,
   repoMap,
+  repoByHostIdentity,
   worktreeOrder,
   browserTabsByWorktree,
   browserPagesByWorkspace,
   activeBrowserTabId,
   activeWorktreeId,
+  activeWorkspaceExecutionHostId,
   activeTabType,
   unifiedTabsByWorktree,
   activeGroupIdByWorktree,
@@ -61,10 +61,12 @@ export function useWorktreeJumpPaletteOpenTabs({
   activeFileIdByWorktree,
   activeTabTypeByWorktree,
   settings,
+  terminalLayoutsByTabId,
+  paneForegroundAgentByPaneKey,
   deferredQuery,
   hasQuery,
   worktreeMatches,
-  worktreeMap
+  resolveWorktree
 }: WorktreeJumpPaletteOpenTabsInput) {
   const browserPageEntries = useMemo<SearchableBrowserPage[]>(() => {
     if (!paletteStatusInputsActive) {
@@ -72,12 +74,15 @@ export function useWorktreeJumpPaletteOpenTabs({
     }
     return buildSearchableBrowserPages({
       worktrees: browserSortedWorktrees,
+      ownershipWorktrees: allWorktrees,
       repoMap,
+      repoMapByHostIdentity: repoByHostIdentity,
       worktreeOrder,
       browserTabsByWorktree,
       browserPagesByWorkspace,
       activeBrowserTabId,
       activeWorktreeId,
+      activeWorkspaceExecutionHostId,
       activeTabType
     })
   }, [
@@ -85,9 +90,12 @@ export function useWorktreeJumpPaletteOpenTabs({
     activeBrowserTabId,
     activeTabType,
     activeWorktreeId,
+    activeWorkspaceExecutionHostId,
+    allWorktrees,
     browserPagesByWorkspace,
     browserTabsByWorktree,
     browserSortedWorktrees,
+    repoByHostIdentity,
     repoMap,
     worktreeOrder
   ])
@@ -101,12 +109,15 @@ export function useWorktreeJumpPaletteOpenTabs({
     }
     return buildSearchableSimulatorTabs({
       worktrees: browserSortedWorktrees,
+      ownershipWorktrees: allWorktrees,
       repoMap,
+      repoMapByHostIdentity: repoByHostIdentity,
       worktreeOrder,
       unifiedTabsByWorktree,
       activeGroupIdByWorktree,
       groupsByWorktree,
       activeWorktreeId,
+      activeWorkspaceExecutionHostId,
       activeTabType
     })
   }, [
@@ -114,8 +125,11 @@ export function useWorktreeJumpPaletteOpenTabs({
     activeGroupIdByWorktree,
     activeTabType,
     activeWorktreeId,
+    activeWorkspaceExecutionHostId,
+    allWorktrees,
     browserSortedWorktrees,
     groupsByWorktree,
+    repoByHostIdentity,
     repoMap,
     unifiedTabsByWorktree,
     worktreeOrder
@@ -130,7 +144,9 @@ export function useWorktreeJumpPaletteOpenTabs({
     }
     return buildSearchableWorkspaceTabs({
       worktrees: browserSortedWorktrees,
+      ownershipWorktrees: allWorktrees,
       repoMap,
+      repoMapByHostIdentity: repoByHostIdentity,
       worktreeOrder,
       unifiedTabsByWorktree,
       tabsByWorktree,
@@ -141,13 +157,16 @@ export function useWorktreeJumpPaletteOpenTabs({
       activeGroupIdByWorktree,
       groupsByWorktree,
       activeWorktreeId,
+      activeWorkspaceExecutionHostId,
       activeTabType,
       activeTabId,
       activeTabIdByWorktree,
       activeFileId,
       activeFileIdByWorktree,
       activeTabTypeByWorktree,
-      generatedTitlesEnabled: settings?.tabAutoGenerateTitle === true
+      generatedTitlesEnabled: settings?.tabAutoGenerateTitle === true,
+      terminalLayoutsByTabId,
+      paneForegroundAgentByPaneKey
     })
   }, [
     paletteStatusInputsActive,
@@ -159,15 +178,20 @@ export function useWorktreeJumpPaletteOpenTabs({
     activeTabType,
     activeTabTypeByWorktree,
     activeWorktreeId,
+    activeWorkspaceExecutionHostId,
+    allWorktrees,
     agentStatusByPaneKey,
     browserSortedWorktrees,
     groupsByWorktree,
     openFiles,
     repoMap,
+    repoByHostIdentity,
     retainedAgentsByPaneKey,
     settings?.tabAutoGenerateTitle,
     sleepingAgentSessionsByPaneKey,
+    paneForegroundAgentByPaneKey,
     tabsByWorktree,
+    terminalLayoutsByTabId,
     unifiedTabsByWorktree,
     worktreeOrder
   ])
@@ -175,30 +199,10 @@ export function useWorktreeJumpPaletteOpenTabs({
     () => searchWorkspaceTabs(workspaceTabEntries, deferredQuery.trim()),
     [workspaceTabEntries, deferredQuery]
   )
-  const worktreeRelevanceById = useMemo(() => {
-    const relevanceById = new Map<string, number>()
-    if (!hasQuery) {
-      return relevanceById
-    }
-    for (const match of worktreeMatches) {
-      const worktree = worktreeMap.get(match.worktreeId)
-      if (worktree) {
-        relevanceById.set(
-          match.worktreeId,
-          getWorktreeMatchRelevance(
-            match,
-            worktree,
-            repoMap.get(worktree.repoId)?.displayName ?? ''
-          )
-        )
-      }
-    }
-    return relevanceById
-  }, [hasQuery, repoMap, worktreeMap, worktreeMatches])
   const worktreeItems = useMemo<WorktreePaletteItem[]>(() => {
     const items = worktreeMatches
       .map((match) => {
-        const worktree = worktreeMap.get(match.worktreeId)
+        const worktree = resolveWorktree(match.worktreeId, match.worktreeHostId)
         return worktree
           ? { id: `worktree:${worktree.id}`, type: 'worktree' as const, match, worktree }
           : null
@@ -207,12 +211,24 @@ export function useWorktreeJumpPaletteOpenTabs({
     if (!hasQuery) {
       return items
     }
-    return items.sort(
-      (left, right) =>
-        (worktreeRelevanceById.get(left.worktree.id) ?? NO_MATCH_RELEVANCE) -
-        (worktreeRelevanceById.get(right.worktree.id) ?? NO_MATCH_RELEVANCE)
+    const orderByIdentity = new Map(
+      items.map((item, index) => [getWorktreeHostIdentity(item.worktree), index])
     )
-  }, [hasQuery, worktreeMap, worktreeMatches, worktreeRelevanceById])
+    return items.sort((left, right) =>
+      comparePaletteRankedItems(
+        {
+          rank: left.match.rank,
+          order: orderByIdentity.get(getWorktreeHostIdentity(left.worktree)) ?? 0,
+          id: left.id
+        },
+        {
+          rank: right.match.rank,
+          order: orderByIdentity.get(getWorktreeHostIdentity(right.worktree)) ?? 0,
+          id: right.id
+        }
+      )
+    )
+  }, [hasQuery, resolveWorktree, worktreeMatches])
   const browserItems = useMemo<BrowserPaletteItem[]>(
     () =>
       browserMatches.map((result) => ({
@@ -242,28 +258,28 @@ export function useWorktreeJumpPaletteOpenTabs({
   )
   const openTabItems = useMemo<OpenTabPaletteItem[]>(() => {
     const items = [...browserItems, ...simulatorItems, ...workspaceTabItems]
-    const relevanceById = new Map(
-      items.map((item) => [item.id, getOpenTabMatchRelevance(item.result)])
+    return items.sort((left, right) =>
+      comparePaletteRankedItems(
+        {
+          rank: left.result.rank,
+          order: left.result.score,
+          id: left.id,
+          lastActiveAt: left.result.lastActiveAt ?? undefined
+        },
+        {
+          rank: right.result.rank,
+          order: right.result.score,
+          id: right.id,
+          lastActiveAt: right.result.lastActiveAt ?? undefined
+        }
+      )
     )
-    return items.sort((left, right) => {
-      const relevance =
-        (relevanceById.get(left.id) ?? NO_MATCH_RELEVANCE) -
-        (relevanceById.get(right.id) ?? NO_MATCH_RELEVANCE)
-      if (relevance !== 0) {
-        return relevance
-      }
-      if (left.result.score !== right.result.score) {
-        return left.result.score - right.result.score
-      }
-      return left.id.localeCompare(right.id)
-    })
   }, [browserItems, simulatorItems, workspaceTabItems])
 
   return {
     browserPageEntries,
     simulatorTabEntries,
     workspaceTabEntries,
-    worktreeRelevanceById,
     worktreeItems,
     browserItems,
     simulatorItems,

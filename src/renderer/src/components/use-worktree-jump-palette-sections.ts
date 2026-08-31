@@ -1,10 +1,18 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useShortcutKeyComboDetails } from '@/hooks/useShortcutLabel'
-import { getOpenTabMatchRelevance, NO_MATCH_RELEVANCE } from '@/lib/cmd-j-match-relevance'
-import { getWorktreePaletteCreateActionState } from '@/lib/worktree-palette-create-action'
+import { bestCmdJPaletteSectionQualityClass } from '@/components/cmd-j/palette-results'
+import {
+  bestPaletteQualityRank,
+  NO_PALETTE_QUALITY_RANK,
+  shouldIntentSectionLeadPaletteSections,
+  shouldOpenTabsLeadPaletteSections
+} from '@/lib/cmd-j-section-leadership'
 import {
   capPaletteSection,
-  layoutMultiPrimaryPaletteSections
+  layoutMultiPrimaryPaletteSections,
+  PALETTE_SECTION_EXPAND_STEP,
+  PALETTE_SECTION_RENDER_CAP,
+  TYPED_QUERY_LEADING_PREVIEW
 } from '@/components/cmd-j/palette-section-render-cap'
 import {
   DIGIT_INDEX_ACTION_ID,
@@ -28,56 +36,108 @@ type WorktreeJumpPaletteSectionsInput = WorktreeJumpPaletteOpenTabs &
   WorktreeJumpPaletteProjectTargets &
   Pick<WorktreeJumpPaletteQuickActions, 'middleItems'> &
   Pick<WorktreeJumpPaletteWorktrees, 'hasQuery'> &
-  Pick<WorktreeJumpPaletteLocalState, 'deferredQuery'>
+  Pick<
+    WorktreeJumpPaletteLocalState,
+    'createWorktreeName' | 'showCreateAction' | 'expandedSectionCaps' | 'setExpandedSectionCaps'
+  >
 
 export function useWorktreeJumpPaletteSections({
   hasQuery,
   worktreeItems,
-  worktreeRelevanceById,
   openTabItems,
   recentTabItems,
   projectTargetItems,
   middleItems,
-  deferredQuery
+  createWorktreeName,
+  showCreateAction,
+  expandedSectionCaps,
+  setExpandedSectionCaps
 }: WorktreeJumpPaletteSectionsInput) {
   const openTabsLeadSections = useMemo(() => {
-    if (!hasQuery) {
-      return true
-    }
-    const bestWorktree = worktreeItems[0]
-    const bestWorktreeRelevance = bestWorktree
-      ? (worktreeRelevanceById.get(bestWorktree.worktree.id) ?? NO_MATCH_RELEVANCE)
-      : NO_MATCH_RELEVANCE
-    const bestOpenTab = openTabItems[0]
-    const bestOpenTabRelevance = bestOpenTab
-      ? getOpenTabMatchRelevance(bestOpenTab.result)
-      : NO_MATCH_RELEVANCE
-    return bestOpenTabRelevance <= bestWorktreeRelevance
-  }, [hasQuery, openTabItems, worktreeItems, worktreeRelevanceById])
+    if (!hasQuery) return true
+    return shouldOpenTabsLeadPaletteSections({
+      bestWorktreeQualityRank: worktreeItems[0]
+        ? bestPaletteQualityRank([worktreeItems[0].match.qualityClass])
+        : NO_PALETTE_QUALITY_RANK,
+      bestOpenTabQualityRank: openTabItems[0]
+        ? bestPaletteQualityRank([openTabItems[0].result.qualityClass])
+        : NO_PALETTE_QUALITY_RANK
+    })
+  }, [hasQuery, openTabItems, worktreeItems])
+
+  const middleLeadsSections = useMemo(() => {
+    if (!hasQuery) return false
+    const bestEntityQualityRank = Math.min(
+      worktreeItems[0]
+        ? bestPaletteQualityRank([worktreeItems[0].match.qualityClass])
+        : NO_PALETTE_QUALITY_RANK,
+      openTabItems[0]
+        ? bestPaletteQualityRank([openTabItems[0].result.qualityClass])
+        : NO_PALETTE_QUALITY_RANK
+    )
+    return shouldIntentSectionLeadPaletteSections({
+      bestEntityQualityRank,
+      bestIntentQualityRank: bestPaletteQualityRank([
+        bestCmdJPaletteSectionQualityClass(middleItems.map((item) => item.result)),
+        bestCmdJPaletteSectionQualityClass(projectTargetItems.map((item) => item.result))
+      ])
+    })
+  }, [hasQuery, middleItems, openTabItems, projectTargetItems, worktreeItems])
+
+  const handleExpandSection = useCallback(
+    (sectionKey: string) => {
+      setExpandedSectionCaps((previous) => ({
+        ...previous,
+        [sectionKey]: (previous[sectionKey] ?? 0) + PALETTE_SECTION_EXPAND_STEP
+      }))
+    },
+    [setExpandedSectionCaps]
+  )
+
   const paletteSections = useMemo(() => {
-    // Why: the empty-query trim lives here, not in `recentTabItems`, so the trimmed tail becomes an
-    // overflow count the section can offer as "See more" instead of silently vanishing.
+    const openTabsCap = PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps['open-tabs'] ?? 0)
+    // Why: "See more" drops the above-the-fold trim outright instead of stepping 20 at a time, so one
+    // click reveals the whole recent history the shared render cap allows.
+    const recentTabsCap = expandedSectionCaps['open-tabs']
+      ? openTabsCap
+      : EMPTY_QUERY_RECENT_TAB_CAP
     const openTabs = hasQuery
-      ? capPaletteSection(openTabItems)
-      : capPaletteSection(recentTabItems, EMPTY_QUERY_RECENT_TAB_CAP)
-    const worktreeCap = hasQuery
+      ? capPaletteSection(openTabItems, openTabsCap)
+      : capPaletteSection(recentTabItems, recentTabsCap)
+    const baseWorktreeCap = hasQuery
       ? Infinity
       : Math.min(
           openTabs.visible.length === 0 ? EMPTY_QUERY_ROW_BUDGET : EMPTY_QUERY_WORKTREE_CAP,
           Math.max(1, EMPTY_QUERY_ROW_BUDGET - openTabs.visible.length)
         )
+    const worktreeCap = hasQuery
+      ? PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.worktrees ?? 0)
+      : baseWorktreeCap + (expandedSectionCaps.worktrees ?? 0)
     const worktrees = hasQuery
-      ? capPaletteSection(worktreeItems)
-      : { visible: worktreeItems.slice(0, worktreeCap), overflowCount: 0 }
-    const projectTargets = capPaletteSection(hasQuery ? projectTargetItems : [])
-    const middle = capPaletteSection(hasQuery ? middleItems : [])
-    const showWorktreeHint = !hasQuery && worktreeItems.length > worktreeCap
+      ? capPaletteSection(worktreeItems, worktreeCap)
+      : {
+          visible: worktreeItems.slice(0, worktreeCap),
+          overflowCount: Math.max(0, worktreeItems.length - worktreeCap)
+        }
+    const projectTargets = capPaletteSection(
+      hasQuery ? projectTargetItems : [],
+      PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.projects ?? 0)
+    )
+    const middle = capPaletteSection(
+      hasQuery ? middleItems : [],
+      PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.middle ?? 0)
+    )
     const multiPrimaryFirstScreen =
       hasQuery && openTabs.visible.length > 0 && worktrees.visible.length > 0
     const multiPrimaryLayout = multiPrimaryFirstScreen
       ? layoutMultiPrimaryPaletteSections<WorktreePaletteItem | OpenTabPaletteItem>({
           leadingItems: openTabsLeadSections ? openTabItems : worktreeItems,
-          trailingItems: openTabsLeadSections ? worktreeItems : openTabItems
+          trailingItems: openTabsLeadSections ? worktreeItems : openTabItems,
+          leadingPreviewCount:
+            TYPED_QUERY_LEADING_PREVIEW +
+            (expandedSectionCaps[openTabsLeadSections ? 'open-tabs' : 'worktrees'] ?? 0),
+          leadingHardCap: openTabsLeadSections ? openTabsCap : worktreeCap,
+          trailingHardCap: openTabsLeadSections ? worktreeCap : openTabsCap
         })
       : null
     return {
@@ -89,21 +149,33 @@ export function useWorktreeJumpPaletteSections({
       middleOverflowCount: middle.overflowCount,
       visibleOpenTabItems: openTabs.visible as PaletteItem[],
       openTabOverflowCount: openTabs.overflowCount,
-      showWorktreeHint,
       multiPrimaryFirstScreen,
       multiPrimaryLayout
     }
   }, [
-    worktreeItems,
-    projectTargetItems,
+    expandedSectionCaps,
+    hasQuery,
     middleItems,
     openTabItems,
+    openTabsLeadSections,
+    projectTargetItems,
     recentTabItems,
-    hasQuery,
-    openTabsLeadSections
+    worktreeItems
   ])
+
   // Why: badges number the snapshotted recent rows only — ⌘N is meaningless on a typed query, and an
   // expanded section leaves its unaddressable rows unbadged rather than advertising ⌘10.
+  const recentTabShortcutIndexByItem = useMemo(
+    () =>
+      new Map(
+        hasQuery
+          ? []
+          : paletteSections.visibleOpenTabItems
+              .slice(0, DIGIT_INDEX_ADDRESSABLE_ROWS)
+              .map((item, index) => [item, index])
+      ),
+    [hasQuery, paletteSections]
+  )
   const recentTabShortcutIndexById = useMemo(
     () =>
       new Map(
@@ -117,17 +189,17 @@ export function useWorktreeJumpPaletteSections({
   )
   const digitShortcutModifiers =
     useShortcutKeyComboDetails(DIGIT_INDEX_ACTION_ID)[0]?.keys.slice(0, -1) ?? []
-  const { createWorktreeName, showCreateAction } = useMemo(
-    () => getWorktreePaletteCreateActionState({ query: deferredQuery }),
-    [deferredQuery]
-  )
+
   return {
     openTabsLeadSections,
+    middleLeadsSections,
     paletteSections,
+    recentTabShortcutIndexByItem,
     recentTabShortcutIndexById,
     digitShortcutModifiers,
     createWorktreeName,
-    showCreateAction
+    showCreateAction,
+    handleExpandSection
   }
 }
 

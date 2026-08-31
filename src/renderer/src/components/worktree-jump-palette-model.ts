@@ -2,8 +2,15 @@ import type { BrowserPaletteSearchResult } from '@/lib/browser-palette-search'
 import type { PaletteSearchResult } from '@/lib/worktree-palette-search'
 import type { SimulatorPaletteSearchResult } from '@/lib/simulator-palette-search'
 import type { WorkspaceTabPaletteSearchResult } from '@/lib/workspace-tab-palette-search'
-import type { CmdJActionResult, CmdJSettingsResult } from '@/components/cmd-j/palette-results'
-import type { CmdJProjectSearchResult } from '@/components/cmd-j/palette-project-results'
+import type {
+  CmdJActionResult,
+  CmdJRankedMiddleResult,
+  CmdJSettingsResult
+} from '@/components/cmd-j/palette-results'
+import type {
+  CmdJProjectSearchResult,
+  CmdJRankedProjectSearchResult
+} from '@/components/cmd-j/palette-project-results'
 import type { RecentWorkspaceTabRow } from '@/lib/recent-workspace-tab-rows'
 import type { Worktree } from '../../../shared/worktree/types'
 import { CREATE_WORKSPACE_QUICK_ACTION_ID } from '@/components/cmd-j/quick-actions'
@@ -37,27 +44,28 @@ export type WorkspaceTabPaletteItem = {
 export type SettingsPaletteItem = {
   id: string
   type: 'settings'
-  result: CmdJSettingsResult
+  result: CmdJSettingsResult & Pick<CmdJRankedMiddleResult, 'qualityClass'>
 }
 
 export type QuickActionPaletteItem = {
   id: string
   type: 'quick-action'
-  result: CmdJActionResult
+  result: CmdJActionResult & Pick<CmdJRankedMiddleResult, 'qualityClass'>
 }
 
 export type ProjectTargetPaletteItem = {
   id: string
   type: 'project-target'
-  result: CmdJProjectSearchResult
+  result: CmdJProjectSearchResult & Pick<CmdJRankedProjectSearchResult, 'qualityClass'>
 }
 
-export type SectionHeader = {
+export type SectionHeader = { id: string; type: 'section-header'; label: string }
+export type HintRow = {
   id: string
-  type: 'section-header'
+  type: 'hint'
   label: string
+  onSeeMore?: () => void
 }
-export type HintRow = { id: string; type: 'hint'; label: string }
 export type CreateWorktreePaletteItem = {
   id: typeof CREATE_WORKTREE_ITEM_ID
   type: 'create-worktree'
@@ -77,6 +85,8 @@ export type OpenTabPaletteItem = BrowserPaletteItem | SimulatorPaletteItem | Wor
 
 export type OpenTabRecentRow = {
   item: OpenTabPaletteItem
+  /** Stable per-occurrence key; persisted tab ids can collide across hosts/snapshots. */
+  occurrenceId: string
   worktree: Worktree
   row: RecentWorkspaceTabRow
 }

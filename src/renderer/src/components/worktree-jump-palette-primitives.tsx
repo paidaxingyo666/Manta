@@ -1,8 +1,12 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type React from 'react'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
 import { translate } from '@/i18n/i18n'
 import type { PaletteHostBadge } from '@/components/cmd-j/palette-host-badge'
 import type { MatchRange, PaletteSearchResult } from '@/lib/worktree-palette-search'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import type { Worktree } from '../../../shared/worktree/types'
+import { resolveWorktreeBranchLabel } from '@/lib/worktree-default-display-name'
 
 export function PaletteRowShortcutBadge({
   index,
@@ -67,6 +71,7 @@ export function PaletteOpenTabPrimaryLine({
   secondaryRanges,
   worktreeName,
   worktreeRanges,
+  sessionAge,
   leadingBadges
 }: {
   title: string
@@ -75,6 +80,7 @@ export function PaletteOpenTabPrimaryLine({
   secondaryRanges: readonly MatchRange[]
   worktreeName: string
   worktreeRanges: readonly MatchRange[]
+  sessionAge?: string
   leadingBadges?: React.ReactNode
 }): React.JSX.Element {
   const showSecondary = secondaryText.trim().length > 0
@@ -82,9 +88,24 @@ export function PaletteOpenTabPrimaryLine({
 
   return (
     <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-      <span className="min-w-0 max-w-[42%] shrink-0 truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground">
+      <span
+        data-slot="palette-open-tab-title"
+        className="min-w-0 flex-1 truncate text-[14px] font-semibold tracking-[-0.01em] text-foreground"
+      >
         <HighlightedText text={title} matchRanges={titleRanges} />
       </span>
+      {sessionAge ? (
+        <span
+          aria-label={translate(
+            'auto.components.WorktreeJumpPalette.lastActiveTime',
+            'Last active {{value0}} ago',
+            { value0: sessionAge }
+          )}
+          className="shrink-0 text-[11px] font-medium tabular-nums text-muted-foreground/70"
+        >
+          {sessionAge}
+        </span>
+      ) : null}
       {leadingBadges}
       {showSecondary ? (
         <>
@@ -97,12 +118,78 @@ export function PaletteOpenTabPrimaryLine({
       {showWorktree ? (
         <>
           <span className="shrink-0 text-muted-foreground/45">·</span>
-          <span className="min-w-0 truncate text-[12px] font-medium text-muted-foreground/92">
+          <span
+            data-slot="palette-open-tab-worktree"
+            className="min-w-0 truncate text-[12px] font-medium text-muted-foreground/92"
+          >
             <HighlightedText text={worktreeName} matchRanges={worktreeRanges} />
           </span>
         </>
       ) : null}
     </div>
+  )
+}
+
+function resolveOpenTabWorktreeRailTooltip({
+  isBranch,
+  truncated,
+  name
+}: {
+  isBranch: boolean
+  truncated: boolean
+  name: string
+}): string {
+  if (truncated) return name
+  return isBranch
+    ? translate('auto.components.WorktreeJumpPalette.paletteOpenTabBranch', 'Branch name')
+    : translate('auto.components.WorktreeJumpPalette.paletteOpenTabWorkspace', 'Workspace name')
+}
+
+export function PaletteOpenTabWorktreeRailLabel({
+  name,
+  matchRanges,
+  worktree,
+  className,
+  slot = 'palette-open-tab-worktree'
+}: {
+  name: string
+  matchRanges: readonly MatchRange[]
+  worktree?: Pick<Worktree, 'branch'> | null
+  className?: string
+  slot?: string
+}): React.JSX.Element | null {
+  const [truncated, setTruncated] = useState(false)
+  const labelRef = useRef<HTMLSpanElement | null>(null)
+  useLayoutEffect(() => {
+    const node = labelRef.current
+    if (!node) {
+      setTruncated(false)
+      return
+    }
+    const updateTruncated = (): void => {
+      const next = node.scrollWidth > node.clientWidth
+      setTruncated((current) => (current === next ? current : next))
+    }
+    updateTruncated()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(updateTruncated)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [name])
+  if (name.trim().length === 0) return null
+  const isBranch = worktree != null && name === resolveWorktreeBranchLabel(worktree)
+  const tooltip = resolveOpenTabWorktreeRailTooltip({ isBranch, truncated, name })
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span ref={labelRef} data-slot={slot} tabIndex={-1} className={className}>
+          <HighlightedText text={name} matchRanges={matchRanges} />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={6} className="max-w-80 break-all">
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 

@@ -8,6 +8,7 @@ import {
 import { rankCmdJMiddleResults } from '@/components/cmd-j/palette-results'
 import {
   getComposerEligibleRepos,
+  resolveComposerActiveRepoId,
   resolveComposerGitRepoId
 } from '@/lib/new-workspace-composer-repo'
 import type { QuickActionPaletteItem, SettingsPaletteItem } from './worktree-jump-palette-model'
@@ -24,7 +25,7 @@ function getComposerPrefetchRepoId(
   return resolveComposerGitRepoId({
     eligibleRepos: getComposerEligibleRepos(state.repos),
     initialRepoId,
-    activeRepoId: state.activeRepoId,
+    activeRepoId: resolveComposerActiveRepoId(state.repos, getComposerEligibleRepos(state.repos), state.activeRepoId),
     focusedHostScope: state.workspaceHostScope
   })
 }
@@ -71,11 +72,20 @@ export function useWorktreeJumpPaletteQuickActions({
     )
   }, [openModal, prefetchCreateWorkspaceBaseForComposer])
   const deleteActiveWorkspaceAction = useCallback(() => {
-    const { activeView: currentView, activeWorktreeId: currentWorktreeId } = useAppStore.getState()
+    const {
+      activeView: currentView,
+      activeWorktreeId: currentWorktreeId,
+      activeWorkspaceExecutionHostId
+    } = useAppStore.getState()
     if (currentView !== 'terminal' || !currentWorktreeId) {
       return
     }
-    queueMicrotask(() => runWorktreeDelete(currentWorktreeId))
+    queueMicrotask(() =>
+      runWorktreeDelete(
+        currentWorktreeId,
+        activeWorkspaceExecutionHostId ? { expectedHostId: activeWorkspaceExecutionHostId } : {}
+      )
+    )
   }, [])
   const openAddQuickCommandAction = useCallback(() => {
     openSettingsTarget({ pane: 'quick-commands', repoId: null, intent: 'add-quick-command' })

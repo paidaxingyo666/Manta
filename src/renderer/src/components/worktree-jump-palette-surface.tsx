@@ -1,5 +1,6 @@
 import type React from 'react'
 import { CommandDialog, CommandEmpty, CommandInput, CommandList } from '@/components/ui/command'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import PaletteFilterMenu from '@/components/cmd-j/PaletteFilterMenu'
 import PaletteFilterChips from '@/components/cmd-j/PaletteFilterChips'
 import { PaletteLiveStatusProvider } from '@/components/cmd-j/palette-live-status'
@@ -39,7 +40,13 @@ export function WorktreeJumpPaletteSurface({
         loop: true,
         value: controller.commandSelectedItemId,
         onValueChange: controller.handleCommandSelectionChange,
-        className: 'bg-transparent'
+        className: 'bg-transparent',
+        onKeyDownCapture: (event: React.KeyboardEvent) => {
+          if (controller.selectionMovedByUserRef &&
+            ['ArrowDown', 'ArrowUp', 'Home', 'End', 'PageDown', 'PageUp'].includes(event.key)) {
+            controller.selectionMovedByUserRef.current = true
+          }
+        }
       }}
     >
       <CommandInput
@@ -88,6 +95,9 @@ export function WorktreeJumpPaletteSurface({
       />
       <CommandList
         ref={controller.listRef}
+        onPointerDownCapture={() => {
+          controller.selectionMovedByUserRef.current = true
+        }}
         className="max-h-[min(600px,calc(100vh-14rem))] px-2.5 pb-2.5 pt-2"
       >
         {controller.isLoading &&
@@ -109,8 +119,13 @@ export function WorktreeJumpPaletteSurface({
           </CommandEmpty>
         ) : (
           <>
-            {controller.listEntries.map((entry) => (
-              <WorktreeJumpPaletteEntry key={entry.id} entry={entry} controller={controller} />
+            {controller.listEntries.map((entry, index) => (
+              <WorktreeJumpPaletteEntry
+                key={controller.listEntryRenderKeys[index] ?? entry.id}
+                entry={entry}
+                renderKey={controller.listEntryRenderKeys[index] ?? entry.id}
+                controller={controller}
+              />
             ))}
           </>
         )}
@@ -159,8 +174,10 @@ export function WorktreeJumpPaletteSurface({
   )
 
   return (
-    <PaletteLiveStatusProvider active={controller.paletteStatusInputsActive}>
-      {paletteDialog}
-    </PaletteLiveStatusProvider>
+    <TooltipProvider delayDuration={400}>
+      <PaletteLiveStatusProvider active={controller.paletteStatusInputsActive}>
+        {paletteDialog}
+      </PaletteLiveStatusProvider>
+    </TooltipProvider>
   )
 }
