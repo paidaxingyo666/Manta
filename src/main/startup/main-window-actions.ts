@@ -2,13 +2,12 @@ import { app, clipboard, dialog, type BrowserWindow, type Tray } from 'electron'
 import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { recordCrashBreadcrumb } from '../crash-reporting/crash-breadcrumb-store'
 import { recordDurableCrashBreadcrumb } from '../crash-reporting/durable-crash-breadcrumb'
-import { isQuittingForUpdate } from '../updater'
+import { checkForUpdatesFromMenu, isQuittingForUpdate } from '../updater'
 import {
   createSystemTray,
   setMacMenuBarIconVisible,
   type SystemTrayOptions
 } from '../tray/system-tray'
-import { checkForUpdatesFromMenu } from '../updater'
 import { ensureAutoUpdaterConfigured } from '../window/attach-main-window-services'
 import { focusExistingMainWindow, safelyRevealWindow } from '../window/focus-existing-window'
 import { mainProcessState as state } from './main-process-state'

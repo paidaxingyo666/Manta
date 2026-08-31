@@ -1,5 +1,4 @@
-import { join } from 'node:path'
-import { win32 as pathWin32 } from 'node:path'
+import { join, win32 as pathWin32 } from 'node:path'
 import { parseWslUncPath, toLinuxPath, toWindowsWslUncPath } from '../../shared/wsl-paths'
 import {
   getCodexSelectionLaneKey,

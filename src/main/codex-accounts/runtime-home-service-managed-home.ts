@@ -6,7 +6,10 @@ import {
 } from '../codex/codex-home-paths'
 import { syncSystemConfigIntoManagedCodexHome } from '../codex/codex-config-mirror'
 import { startCodexAccountSessionBridgeInBackground } from '../codex/codex-account-session-bridge'
-import { resolveHostCodexSessionSourceHome } from '../codex/codex-session-source-home'
+import {
+  resolveHostCodexSessionSourceHome,
+  resolveWslCodexSessionSourceHome
+} from '../codex/codex-session-source-home'
 import { parseWslUncPath } from '../../shared/wsl-paths'
 import { normalizeRuntimePathForComparison } from '../../shared/cross-platform-path'
 import { normalizeCodexRuntimeSelection } from './runtime-selection'
@@ -18,7 +21,6 @@ import { hasCustomCodexHomeOverrideForLaunch } from '../codex/codex-real-home-pa
 import { resolveCodexSessionBackfillPaths } from '../codex/codex-session-backfill'
 import { hasCompletedCodexSessionBackfillMarker } from '../codex/codex-session-backfill-marker'
 import { getDefaultWslDistro } from '../wsl'
-import { resolveWslCodexSessionSourceHome } from '../codex/codex-session-source-home'
 import { startWslCodexSessionBridgeInBackground } from '../codex/wsl-codex-session-bridge'
 import type { CodexAccountSelectionTarget } from './runtime-selection'
 import type { CodexManagedAccount } from '../../shared/managed-account-types'

@@ -14,7 +14,8 @@ import {
   installDevParentDisconnectQuit,
   installDevParentSignalQuit,
   installDevParentWatchdog,
-  patchPackagedProcessPath
+  patchPackagedProcessPath,
+  optOutOfHiddenPageWakeUpThrottling
 } from './configure-process'
 import { installServeSupervisorDisconnectQuit } from '../serve-update-handoff'
 import {
@@ -77,7 +78,6 @@ import { recordCrashBreadcrumb } from '../crash-reporting/crash-breadcrumb-store
 import { recordDurableCrashBreadcrumb } from '../crash-reporting/durable-crash-breadcrumb'
 import { GpuCrashDiagnosticsRecorder } from '../crash-reporting/gpu-crash-diagnostics'
 import { getMainProcessLifecycleIdentity } from '../crash-reporting/main-process-lifecycle-identity'
-import { optOutOfHiddenPageWakeUpThrottling } from './configure-process'
 import { ensureVirtualDisplayForHeadlessServe } from './ensure-virtual-display'
 import { maybeApplyGpuFallbackForThisLaunch, registerGpuLifecycleHandlers } from './gpu-lifecycle'
 import { mainProcessState as state } from './main-process-state'
