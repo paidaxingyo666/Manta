@@ -18074,7 +18074,7 @@ describe('MantaRuntimeService', () => {
     }
   })
 
-  it('chunks large agent prompt paste frames before delayed submit', async () => {
+  it('writes large agent prompt paste frames atomically before delayed submit', async () => {
     vi.useFakeTimers()
     try {
       const writes: string[] = []
@@ -18103,7 +18103,7 @@ describe('MantaRuntimeService', () => {
         Buffer.byteLength(`${buildAgentPromptPasteBytes(prompt)}\r`, 'utf8')
       )
       expect(writes.at(-1)).toBe('\r')
-      expect(pasteWrites.length).toBeGreaterThan(1)
+      expect(pasteWrites).toHaveLength(1)
       expect(pasteWrites.join('')).toBe(buildAgentPromptPasteBytes(prompt))
       expect(pasteWrites[0]).toContain(AGENT_PROMPT_BRACKETED_PASTE_START)
       expect(pasteWrites.at(-1)).toContain(AGENT_PROMPT_BRACKETED_PASTE_END)
@@ -18112,18 +18112,16 @@ describe('MantaRuntimeService', () => {
     }
   })
 
-  it('closes an incomplete agent prompt paste when a later chunk write fails', async () => {
+  it('rejects an agent prompt when the atomic paste write fails', async () => {
     vi.useFakeTimers()
     try {
       const writes: string[] = []
-      let writeCount = 0
       const runtime = new MantaRuntimeService(store)
       runtime.setPtyController({
         spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
         write: (_ptyId, data) => {
-          writeCount += 1
           writes.push(data)
-          return writeCount !== 2
+          return false
         },
         kill: () => true,
         getForegroundProcess: async () => null
@@ -18139,7 +18137,7 @@ describe('MantaRuntimeService', () => {
 
       await sendRejection
       expect(writes[0]).toContain(AGENT_PROMPT_BRACKETED_PASTE_START)
-      expect(writes.at(-1)).toBe(AGENT_PROMPT_BRACKETED_PASTE_END)
+      expect(writes).toHaveLength(1)
       expect(writes).not.toContain('\r')
     } finally {
       vi.useRealTimers()
@@ -18169,6 +18167,33 @@ describe('MantaRuntimeService', () => {
       bytesWritten: Buffer.byteLength(text, 'utf8')
     })
     expect(writes).toEqual(['x'.repeat(TERMINAL_INPUT_CHUNK_MAX_BYTES), 'tail'])
+  })
+
+  it('yields chunked terminal input through immediates between writes', async () => {
+    const immediate = vi.spyOn(globalThis, 'setImmediate')
+    try {
+      const writes: string[] = []
+      const runtime = new MantaRuntimeService(store)
+      runtime.setPtyController({
+        spawn: vi.fn().mockResolvedValue({ id: 'pty-bg' }),
+        write: (_ptyId, data) => {
+          writes.push(data)
+          return true
+        },
+        kill: () => true,
+        getForegroundProcess: async () => null
+      })
+      const { handle } = await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`)
+
+      const text = `${'x'.repeat(TERMINAL_INPUT_CHUNK_MAX_BYTES)}\nline two\nline three`
+      await runtime.sendTerminal(handle, { text, enter: true })
+
+      expect(writes.at(-1)).toBe('\r')
+      expect(writes.slice(0, -1).join('')).toBe(text)
+      expect(immediate).toHaveBeenCalled()
+    } finally {
+      immediate.mockRestore()
+    }
   })
 
   it('yields while validating accepted large terminal.send text before provider writes', async () => {
