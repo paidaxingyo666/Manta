@@ -20,7 +20,6 @@ inline src/main/updater.ts
 inline src/preload/index.ts
 inline src/relay/pty-handler.ts
 inline src/renderer/src/components/terminal-pane/remote-runtime-pty-transport.ts
-inline src/renderer/src/components/terminal-pane/use-terminal-pane-lifecycle.ts
 inline src/renderer/src/runtime/sync-runtime-graph.ts
 inline src/renderer/src/runtime/web-session-tabs-sync.ts
 inline src/renderer/src/store/slices/agent-status.ts
