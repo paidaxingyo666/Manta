@@ -428,6 +428,30 @@ describe('workspace space presentation helpers', () => {
     expect(details.issueLabel).toBe('#123 open: Local owner issue')
   })
 
+  it('hides a GitHub review explicitly suppressed after unlinking', () => {
+    const details = getWorkspaceDecisionDetails(
+      row({ branch: 'refs/heads/feature/local' }),
+      decisionInputs({
+        hostedReviewCache: {
+          'local::repo::feature/local': {
+            data: {
+              number: 12,
+              state: 'open',
+              status: 'success',
+              title: 'Suppressed review',
+              provider: 'github'
+            }
+          }
+        },
+        worktreeMap: new Map([
+          ['wt', worktreeRecord({ branch: 'refs/heads/feature/local', suppressedGitHubPR: 12 })]
+        ])
+      })
+    )
+
+    expect(details.reviewLabel).toBeNull()
+  })
+
   it('counts migration-unsupported agent entries by worktree id', () => {
     const count = countWorkspaceSpaceActiveAgents({
       worktreeId: 'wt',
