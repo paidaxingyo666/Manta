@@ -9,13 +9,13 @@ import {
 } from '@/runtime/runtime-provider-accounts-client'
 import { translate } from '@/i18n/i18n'
 import {
-  getWindowsTerminalCapabilityOwnerKey,
-  useWindowsTerminalCapabilities
-} from '@/lib/windows-terminal-capabilities'
-import {
   markLiveCodexSessionsForRestart,
   resolveCodexRestartPromptAccountLabel
 } from '@/lib/codex-session-restart'
+import {
+  getWindowsTerminalCapabilityOwnerKey,
+  useWindowsTerminalCapabilities
+} from '@/lib/windows-terminal-capabilities'
 import { getCodexAccountSyncKey, getCodexResetProjection } from './codex-switcher-projection'
 import {
   getCodexStatusRuntimeKey,
@@ -31,6 +31,7 @@ import {
   normalizeCodexStatusRuntimeTarget,
   resolveCodexStatusAccountState
 } from './status-bar-codex-accounts'
+import { signInCodexAccount } from './codex-sign-in-action'
 
 export function useCodexSwitcherController(codex: ProviderRateLimits) {
   const [open, setOpen] = useState(false)
@@ -174,29 +175,23 @@ export function useCodexSwitcherController(codex: ProviderRateLimits) {
     }
   }
 
-  const handleSignInAccount = async (accountId: string): Promise<void> => {
-    if (isSwitching || reauthenticatingAccountId !== null) {
-      return
-    }
-    setReauthenticatingAccountId(accountId)
-    try {
-      const next = await window.api.codexAccounts.reauthenticate({ accountId })
-      recordFeatureInteraction('codex-account-switching')
-      if (mountedRef.current) {
-        setAccounts(next)
-      }
-      await fetchSettings()
-      if (mountedRef.current && accountsExpandedRef.current) {
-        await fetchInactiveCodexAccountUsage()
-      }
-    } catch (error) {
-      console.error('Failed to re-authenticate Codex account from status bar:', error)
-    } finally {
-      if (mountedRef.current) {
-        setReauthenticatingAccountId(null)
-      }
-    }
-  }
+  const handleSignInAccount = (
+    accountId: string,
+    target: CodexStatusRuntimeTarget
+  ): Promise<void> =>
+    signInCodexAccount(accountId, target, {
+      accountState,
+      accountsExpandedRef,
+      fetchInactiveCodexAccountUsage,
+      fetchSettings,
+      isSwitching,
+      mountedRef,
+      reauthenticatingAccountId,
+      recordFeatureInteraction,
+      setAccounts,
+      setAccountsExpanded,
+      setReauthenticatingAccountId
+    })
 
   const handleSelectRuntime = async (group: CodexStatusSwitchGroup): Promise<void> => {
     const currentKey = getCodexStatusRuntimeKey(

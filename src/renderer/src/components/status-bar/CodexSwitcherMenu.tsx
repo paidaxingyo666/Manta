@@ -260,7 +260,7 @@ export function CodexSwitcherMenu({
                             onSignIn={() => {
                               suppressNextAccountSelect()
                               if (target.id !== null) {
-                                void handleSignInAccount(target.id)
+                                void handleSignInAccount(target.id, target.runtimeTarget)
                               }
                             }}
                           />
