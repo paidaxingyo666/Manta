@@ -1,28 +1,27 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  ActivityIndicator,
   FlatList,
   Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
   View,
+  Text,
+  ScrollView,
+  Pressable,
+  Platform,
+  ActivityIndicator,
   type ListRenderItem
 } from 'react-native'
 import { Copy, MessageSquare, Send } from 'lucide-react-native'
-import { MobileHtmlPreview } from '../components/MobileHtmlPreview'
 import { MobileSyntaxSegments } from '../components/MobileSyntaxSegments'
-import { colors } from '../theme/mobile-theme'
 import {
   buildPlainMobileDiffSyntaxLines,
   highlightMobileCode,
   highlightMobileDiffLines,
   resolveMobileSyntaxLanguage
 } from './mobile-file-syntax'
-import { styles } from './mobile-session-styles'
-import { DiffLineRow } from './MobileDiffLineRow'
+import { MobileHtmlPreview } from '../components/MobileHtmlPreview'
+import { colors } from '../theme/mobile-theme'
 import { translate } from '../i18n/i18n'
+import { styles } from './mobile-session-styles'
 import type { DiffComment } from '../../../src/shared/diff-comment-types'
 import type {
   DiffCommentActions,
@@ -31,8 +30,9 @@ import type {
   FileSyntaxState,
   RenderableDiffLine
 } from './mobile-session-route-types'
+import { DiffLineRow } from './MobileDiffLineRow'
 
-export function MobileSessionFileReader({
+export function FileReader({
   doc,
   title,
   relativePath,
