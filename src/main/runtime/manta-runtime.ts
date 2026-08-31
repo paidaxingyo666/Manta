@@ -413,6 +413,7 @@ import type {
   WorktreeRemoteBranchConflictEvent
 } from '../../shared/worktree/base-ref-drift-types'
 import type {
+  CreateWorktreeArgs,
   CreateWorktreeResult,
   ForceDeleteWorktreeBranchResult,
   RemoveWorktreeResult
@@ -1248,7 +1249,8 @@ import {
   isOrphanedWorktreeError,
   mergeWorktree,
   sanitizeWorktreeName,
-  shouldSetDisplayName,
+  resolveWorktreeCreateDisplayNameRequest,
+  resolveWorktreeCreateDisplayNameMeta,
   areWorktreePathsEqual
 } from '../ipc/worktree-logic'
 import { resolveCreatedWorktree } from '../ipc/created-worktree-reconciliation'
@@ -26993,6 +26995,7 @@ export class MantaRuntimeService {
     linkedTaskSourceContext?: TaskSourceContext | null
     comment?: string
     displayName?: string
+    displayNameKind?: CreateWorktreeArgs['displayNameKind']
     telemetrySource?: WorkspaceCreateTelemetrySource
     workspaceStatus?: string
     manualOrder?: number
@@ -27066,10 +27069,21 @@ export class MantaRuntimeService {
       const settings = createSettings
       const instanceId = randomUUID()
       const worktreeId = getRuntimeFolderWorkspaceInstanceId(repo, instanceId)
+      const displayNameRequest = resolveWorktreeCreateDisplayNameRequest(
+        args.displayName,
+        args.displayNameKind,
+        args.name,
+        args.cliProvenance?.kind === 'created-by-cli',
+        args.nameWasGenerated === true
+      )
+      const resolvedFolderDisplayName = displayNameRequest.value
       const meta = this.store.setWorktreeMeta(worktreeId, {
         instanceId,
         ...getProjectHostSetupWorktreeMeta(this.store.getProjectHostSetups?.() ?? [], repo),
-        displayName: args.displayName?.trim() || args.name,
+        displayName: resolvedFolderDisplayName ?? args.name,
+        ...(displayNameRequest.kind === 'user' && resolvedFolderDisplayName
+          ? { displayNameIsPinned: true }
+          : {}),
         lastActivityAt: now,
         createdAt: now,
         mantaCreatedAt: now,
@@ -27261,7 +27275,14 @@ export class MantaRuntimeService {
     }
     const hostedReviewExecutionContext = this.getHostedReviewExecutionOptions(repo)
     let effectiveRequestedName = args.name
-    const requestedDisplayName = args.displayName?.trim() || undefined
+    const displayNameRequest = resolveWorktreeCreateDisplayNameRequest(
+      args.displayName,
+      args.displayNameKind,
+      args.name,
+      args.cliProvenance?.kind === 'created-by-cli',
+      args.nameWasGenerated === true
+    )
+    const requestedDisplayName = displayNameRequest.value
     const sanitizedName = sanitizeWorktreeName(args.name)
     let effectiveSanitizedName = sanitizedName
     // Username and base resolution are independent read-only probes. Starting
@@ -27704,11 +27725,12 @@ export class MantaRuntimeService {
     // Why: PR/MR-created worktrees can start from a head ref/SHA while Source
     // Control must compare against the review target branch.
     const metadataBaseRef = args.compareBaseRef ?? remoteTrackingBase?.ref ?? baseBranch
-    const displayNameMeta = requestedDisplayName
-      ? { displayName: requestedDisplayName }
-      : shouldSetDisplayName(effectiveRequestedName, branchName, effectiveSanitizedName)
-        ? { displayName: effectiveRequestedName }
-        : {}
+    const displayNameMeta = resolveWorktreeCreateDisplayNameMeta(
+      requestedDisplayName,
+      branchName,
+      displayNameRequest.kind,
+      { requestedName: effectiveRequestedName, sanitizedName: effectiveSanitizedName }
+    )
     const meta = this.store.setWorktreeMeta(worktreeId, {
       // Why: worktree IDs are path-derived. If a path is deleted outside Manta
       // and later recreated, creation must mint a fresh instance identity so
@@ -28158,6 +28180,7 @@ export class MantaRuntimeService {
       linkedTaskSourceContext?: TaskSourceContext | null
       comment?: string
       displayName?: string
+      displayNameKind?: CreateWorktreeArgs['displayNameKind']
       workspaceStatus?: string
       manualOrder?: number
       sparseCheckout?: { directories: string[]; presetId?: string }
@@ -28195,6 +28218,7 @@ export class MantaRuntimeService {
         name: args.name,
         ...(args.nameWasGenerated === true ? { nameWasGenerated: true } : {}),
         ...(args.displayName ? { displayName: args.displayName } : {}),
+        ...(args.displayNameKind ? { displayNameKind: args.displayNameKind } : {}),
         ...(args.baseBranch ? { baseBranch: args.baseBranch } : {}),
         ...(args.compareBaseRef ? { compareBaseRef: args.compareBaseRef } : {}),
         ...(args.branchNameOverride ? { branchNameOverride: args.branchNameOverride } : {}),
