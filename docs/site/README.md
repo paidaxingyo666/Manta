@@ -100,16 +100,18 @@ deployment needs `basePath`, first move the route tree to an unprefixed
    custom deployment branch policies for `main` and `v*` tags. The release-cut
    dispatch runs from `main`; the direct published-release fallback runs from a
    stable tag, while the workflow still authorizes only exact stable tags.
-5. Add the three rewrites above to the `www.manta.sh.cn` marketing project. A
-   Vercel custom domain cannot delegate only `/docs` by itself; the default zone
-   must proxy both page/API/media requests and `/docs-static` assets. Remove the
-   marketing project's old docs routes after the proxy is verified; keeping the
-   rewrites in `beforeFiles` prevents those filesystem routes from winning during
-   the transition.
-6. Deploy a stable desktop tag that contains `docs/site` before enabling the
-   marketing rewrites. Tags cut before this package was added cannot bootstrap
-   the docs project because production intentionally checks out the tag's exact
-   commit.
+5. Prepare the three rewrites above in the `www.manta.sh.cn` marketing project,
+   but leave them disabled until the docs deployment is verified. A Vercel
+   custom domain cannot delegate only `/docs` by itself; the default zone must
+   proxy both page/API/media requests and `/docs-static` assets. Keep the
+   marketing project's old docs routes available for rollback during the
+   transition; putting the proxy rules in `beforeFiles` ensures they win once
+   enabled.
+6. Deploy a stable desktop tag that contains `docs/site`, verify the docs
+   origin, then enable the marketing rewrites. Tags cut before this package was
+   added cannot bootstrap the docs project because production intentionally
+   checks out the tag's exact commit. Remove the old marketing docs routes in a
+   follow-up after the proxy is stable.
 
 `.github/workflows/docs.yml` runs credential-free checks for every pull request.
 It intentionally does not deploy PR previews: a PR-controlled build must not
