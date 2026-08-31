@@ -1316,6 +1316,38 @@ jobs:
           # Kill only its child and require both PTY and watch recovery before packaging.
           node config/scripts/relay-watcher-fault-harness.mjs
 
+      # Why: main ships minified with sourcemap:'hidden' and packaging drops
+      # out/**/*.map from app.asar, so a crash trace from a released build is
+      # otherwise undecodable. The main bundle is platform-independent, so one
+      # leg publishes the maps for the whole release.
+      - name: Bundle main-process source maps
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        env:
+          TAG: ${{ needs.cut.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(find out/main -name '*.js.map' -print -quit)" ]; then
+            echo "::error::No main-process source maps in out/main. Did build.sourcemap regress in electron.vite.config.ts?"
+            exit 1
+          fi
+          # Why: every entry in electron-builder's `files` is a negation, so
+          # app-builder prepends `**/*` and packs anything left in the workspace
+          # root into app.asar. Stage the bundle outside the checkout instead.
+          find out/main -name '*.js.map' -print | sort | zip -q -X "$RUNNER_TEMP/manta-sourcemaps-$TAG.zip" -@
+          ls -l "$RUNNER_TEMP/manta-sourcemaps-$TAG.zip"
+
+      - name: Publish main-process source maps
+        if: matrix.platform == 'linux-x64'
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: gh release upload "${{ needs.cut.outputs.tag }}" "${{ runner.temp }}/manta-sourcemaps-${{ needs.cut.outputs.tag }}.zip" --clobber --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish release artifacts (Linux)
         if: matrix.platform == 'linux-x64' || matrix.platform == 'linux-arm64'
         uses: nick-fields/retry@v4
