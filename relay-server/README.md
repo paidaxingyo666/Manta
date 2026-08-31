@@ -418,12 +418,34 @@ name starts renewing itself only once no block loads a file for it, which in
 practice means once the old port is retired. Retire it before the pinned
 certificate expires, not after.
 
-**Let's Encrypt validates from several vantage points, and a mainland DNS
-provider can time out for the remote ones.** Issuance failed once with
-`During secondary validation: DNS problem: query timed out looking up A`, for the
-apex only, while the sibling name succeeded on the first attempt. Caddy's own
-retry cleared it a minute later. A single failure of this shape is not a
-misconfiguration and needs no action.
+**Let's Encrypt validates from several vantage points, and this zone is not
+reachable from most of them.** Issuance fails with `During secondary validation:
+DNS problem: query timed out looking up A`. It is not a transient: the zone's
+authoritative nameservers are DNSPod's free pair, whose addresses are both inside
+mainland China, so a resolver abroad has to reach across the border to query
+them. Measured against the relay's name, four attempts each:
+
+| Resolver | Resolved |
+| --- | --- |
+| Cloudflare | 4/4 |
+| Google | 0/4 |
+| Quad9 | 0/4 |
+
+The site's two names got certificates anyway, on the perspectives that did get
+through — the apex needed one retry. The relay's name did not, across several
+minutes.
+
+This is why the relay is still on a pinned certificate. It cannot move to a
+managed one until the zone answers reliably from outside China, and the same
+constraint will block renewal, not just first issuance. The fix is nameservers
+with real international presence — a paid DNSPod plan keeps the zone domestic
+and adds them — and it has to be in place before 2026-11-17.
+
+Do not attempt the move by config alone. Caddy drops a file-loaded certificate
+the moment the config no longer names it, and then serves nothing for that name
+until ACME succeeds; with issuance failing, that is an outage for as long as it
+is left in place. It also falls back to Let's Encrypt's staging endpoint after
+repeated failures, whose certificate no client trusts.
 
 ### Registry secrets
 
