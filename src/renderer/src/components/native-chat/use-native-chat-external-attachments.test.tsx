@@ -132,7 +132,7 @@ describe('useNativeChatExternalAttachments', () => {
       expectedSshTargetId: 'conn-1',
       expectedSshConnectionGeneration: 4
     })
-    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/wt/.manta/drops/a.txt'])
+    expect(attachResolvedPaths).toHaveBeenCalledWith(['/remote/wt/.manta/drops/a.txt'], 'conn-1')
   })
 
   it('delivers concurrent SSH resolutions in order without deduplicating paths', async () => {
@@ -164,8 +164,8 @@ describe('useNativeChatExternalAttachments', () => {
     })
 
     expect(attachResolvedPaths.mock.calls).toEqual([
-      [['/remote/wt/.manta/drops/b.txt', '/remote/wt/.manta/drops/b.txt']],
-      [['/remote/wt/.manta/drops/a.txt']]
+      [['/remote/wt/.manta/drops/b.txt', '/remote/wt/.manta/drops/b.txt'], 'conn-1'],
+      [['/remote/wt/.manta/drops/a.txt'], 'conn-1']
     ])
   })
 

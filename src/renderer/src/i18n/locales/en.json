@@ -16600,7 +16600,10 @@
           "on": "On",
           "off": "Off"
         },
-        "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more."
+        "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more.",
+        "viewAttachment": "View image",
+        "imagePreview": "Full-size image preview",
+        "imagePreviewUnavailable": "Preview unavailable"
       },
       "tool": {
         "running": "Running…",
