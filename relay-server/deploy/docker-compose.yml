@@ -99,6 +99,7 @@ services:
       - "443:443"
     environment:
       RELAY_DOMAIN: "${RELAY_DOMAIN:?set RELAY_DOMAIN}"
+      SITE_DOMAIN: "${SITE_DOMAIN:?set SITE_DOMAIN}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # The filing requires the domain to serve a page; this is it.

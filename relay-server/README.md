@@ -365,30 +365,38 @@ DNS-01 challenge.
 
 ### The non-standard port, and why it is gone
 
-This deployment ran on 9443 with a pinned certificate until the ICP filing
-cleared on 2026-08-30. Both were workarounds for the same thing: the provider
+This deployment ran on a non-standard port with a pinned certificate until the
+ICP filing cleared. Both were workarounds for the same thing: the provider
 hijacked 80 and 443 for the unfiled domain, and ACME needs one of them, so the
 certificate could not renew and carried a hard 2026-11-17 expiry.
 
-With the filing in place the deployment is back on 443 with a managed
-certificate, and that deadline is gone. What the move required, recorded because
-the next person hitting a blocked port will need the same steps in reverse:
+With the filing in place, 80 and 443 are usable and certificates are managed
+again. What the move required, recorded because the next person hitting a
+blocked port will need the same steps in reverse:
 
-1. Confirm the block is gone **by domain, not by IP**. A filter that inspects the
-   Host header answers a bare IP normally while still hijacking the name:
+1. Confirm the block is gone **by name, and read the failure mode, not just the
+   body**. With nothing yet listening on 80, the useful signal is which way the
+   connection fails:
 
-   ```bash
-   curl -sI --resolve relay.example.com:80:<ip> http://relay.example.com/ | head -1
-   ```
+   | Result | Meaning |
+   | --- | --- |
+   | `Connection refused` | The packet reached the host. No filter answered — the block is gone. |
+   | `Connection timed out` | Something dropped it. Usually the security group, not the filter. |
+   | A redirect or notice page | A filter answered for a host that is not listening. Still blocked. |
 
-   Your own response means it is clear; the provider's notice page means it is not.
+   The filter answers _instead of_ the host, so it shows up even with no server
+   running. That is what makes this test usable before the move rather than after.
 
-2. `deploy/Caddyfile`: one site on `{$RELAY_DOMAIN}`, no `tls` line, no
-   `auto_https disable_redirects`.
+2. `deploy/Caddyfile`: one block per name. The filing is for the registered
+   domain and the relay has always been a subdomain of it, so the two split on
+   the name they already had — no path matcher to keep in sync with the relay's
+   route table, and so no way for a route added on one side only to answer HTML
+   to a client expecting JSON.
 
-3. `deploy/docker-compose.yml`: publish `80:80` and `443:443`, drop
-   `MANTA_RELAY_TLS_CERT_PATH` and the `./certs` mount, and drop the port from
-   `MANTA_RELAY_PUBLIC_URL`.
+3. `deploy/docker-compose.yml`: publish `80:80` and `443:443`, mount `./site`,
+   and set `SITE_DOMAIN`. Drop `MANTA_RELAY_TLS_CERT_PATH` and the `./certs`
+   mount once nothing loads a certificate from a file; that variable only feeds
+   the expiry metric, which exists for proxies that cannot renew themselves.
 
 4. `docker compose up -d`, then watch for `certificate obtained successfully`.
    Caddy serves the existing certificate until renewal, so a failure here is
@@ -398,10 +406,24 @@ the next person hitting a blocked port will need the same steps in reverse:
    Apply and restart. This signs the app out; that is expected, and the phone
    does not need to re-pair.
 
-The filing also requires the domain to serve a web page, so `deploy/site/` holds
-one and Caddy serves it for every path the relay does not claim. The relay's
-routes are listed explicitly in the Caddyfile — **a new route has to be added
-there too, or it will answer HTML instead of reaching the relay.**
+Two things the move taught that the configuration does not show:
+
+**A certificate loaded from a file suppresses management for that name across the
+whole Caddy instance.** Keeping the old port alive on the pinned certificate
+through the migration therefore keeps the _new_ listener on it too — same serial,
+same expiry — even though the new block asks for nothing. Forcing it with a
+`tls { issuer acme }` on the other block does not work either: Caddy refuses the
+config outright with `hostname appears in more than one automation policy`. The
+name starts renewing itself only once no block loads a file for it, which in
+practice means once the old port is retired. Retire it before the pinned
+certificate expires, not after.
+
+**Let's Encrypt validates from several vantage points, and a mainland DNS
+provider can time out for the remote ones.** Issuance failed once with
+`During secondary validation: DNS problem: query timed out looking up A`, for the
+apex only, while the sibling name succeeded on the first attempt. Caddy's own
+retry cleared it a minute later. A single failure of this shape is not a
+misconfiguration and needs no action.
 
 ### Registry secrets
 
