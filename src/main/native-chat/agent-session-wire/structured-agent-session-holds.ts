@@ -54,7 +54,7 @@ export class StructuredAgentSessionHolds {
     options: StructuredAgentSessionHoldOptions = {}
   ): Promise<void> {
     const alreadyHeld = this.holders.has(sessionId, holderId)
-    this.holders.add(sessionId, holderId, options.resume !== false)
+    this.holders.add(sessionId, holderId)
     // Unconditional, not only on the first-holder edge: a second surface arriving during the grace
     // window must cancel the pending release too.
     this.clock.cancel(sessionId)
@@ -91,10 +91,6 @@ export class StructuredAgentSessionHolds {
 
   isHeld(sessionId: string): boolean {
     return this.holders.isHeld(sessionId)
-  }
-
-  hasResumeCapableHolder(sessionId: string): boolean {
-    return this.holders.hasResumeCapableHolder(sessionId)
   }
 
   isReleasePending(sessionId: string): boolean {

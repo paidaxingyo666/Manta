@@ -27,7 +27,6 @@ export function releaseAgentSessionOwnerAfterSurfaceClose(args: {
   record: AgentSessionRecord
   expectedFence: number
   now: number
-  settlementRetry?: { settlementId: string; detail: string }
 }): AgentSessionRecord {
   const { record } = args
   assertFence(record.lease, args.expectedFence)
@@ -41,13 +40,10 @@ export function releaseAgentSessionOwnerAfterSurfaceClose(args: {
     reservedSpawnToken: null,
     processlessAt: null,
     claimStatus: 'released',
-    handoffStage: args.settlementRetry ? 'recovering' : null,
-    settlementRetryRequired: args.settlementRetry ? true : undefined,
-    settlementRetryId: args.settlementRetry?.settlementId,
     lastRenewedAt: args.now,
     deathEvidence: {
       kind: 'exit-observed',
-      detail: args.settlementRetry?.detail ?? 'the last surface holding this session released it',
+      detail: 'the last surface holding this session released it',
       observedAt: args.now
     }
   })
@@ -56,12 +52,7 @@ export function releaseAgentSessionOwnerAfterSurfaceClose(args: {
 /** Applied through the store's generic transition, the same way handoff records move. */
 export function releaseStoredAgentSessionOwnerAfterSurfaceClose(
   store: AgentSessionRecordStore,
-  args: {
-    sessionId: string
-    expectedFence: number
-    now: number
-    settlementRetry?: { settlementId: string; detail: string }
-  }
+  args: { sessionId: string; expectedFence: number; now: number }
 ): Promise<AgentSessionRecord> {
   return store.transitionHandoff(args.sessionId, (record) =>
     releaseAgentSessionOwnerAfterSurfaceClose({ ...args, record })

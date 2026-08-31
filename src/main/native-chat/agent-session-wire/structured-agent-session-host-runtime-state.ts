@@ -2,8 +2,7 @@ import type { AgentSessionOwnerProbe } from '../../../shared/agent-session-lease
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import {
   createDeferredStructuredAgentSessionEventSink,
-  type DeferredStructuredAgentSessionEventSink,
-  type StructuredAgentSessionSinkBarrier
+  type DeferredStructuredAgentSessionEventSink
 } from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionHostDeps } from './structured-agent-session-host'
 import { StructuredAgentSessionLeaseRenewer } from './structured-agent-session-lease-renewer'
@@ -12,15 +11,12 @@ import { resolveStructuredSessionRecovery } from './structured-agent-session-rec
 export class StructuredAgentSessionHostRuntimeState {
   private readonly eventSinks = new Map<string, DeferredStructuredAgentSessionEventSink>()
   private readonly leaseRenewer: StructuredAgentSessionLeaseRenewer
-  private readonly onEventSinkFailure?: (sessionId: string, error: unknown) => void
 
   constructor(
     private readonly deps: StructuredAgentSessionHostDeps,
     onLeaseRenewed?: (record: AgentSessionRecord) => Promise<void>,
-    onDeadTuiOwner?: (record: AgentSessionRecord, probe: AgentSessionOwnerProbe) => Promise<void>,
-    onEventSinkFailure?: (sessionId: string, error: unknown) => void
+    onDeadTuiOwner?: (record: AgentSessionRecord, probe: AgentSessionOwnerProbe) => Promise<void>
   ) {
-    this.onEventSinkFailure = onEventSinkFailure
     this.leaseRenewer = new StructuredAgentSessionLeaseRenewer({
       store: deps.store,
       probe: (record) => this.probeRecord(record),
@@ -28,8 +24,6 @@ export class StructuredAgentSessionHostRuntimeState {
       now: () => deps.now?.() ?? Date.now(),
       ...(onLeaseRenewed ? { onRenewed: onLeaseRenewed } : {}),
       ...(onDeadTuiOwner ? { onDeadTuiOwner } : {}),
-      // Lease/ownership failures are transient and stay on the visible lease-error path.
-      // Only deferred sink I/O failures are terminal and may force-close a provider.
       onError: ({ sessionId, error }) => deps.onEventSinkError?.({ sessionId, error })
     })
   }
@@ -45,22 +39,10 @@ export class StructuredAgentSessionHostRuntimeState {
   eventSinkFor(sessionId: string): DeferredStructuredAgentSessionEventSink {
     const existing = this.eventSinks.get(sessionId)
     if (existing) {
-      // A sink failure is terminal for that sink instance. Reusing it on a
-      // recovery attach makes `drained()` return the old error forever and
-      // prevents the newly acquired journal from accepting provider events.
-      // Replace the cache entry before attach calls its drain barrier.
-      if (existing.state().failed) {
-        existing.close()
-        this.eventSinks.delete(sessionId)
-      } else {
-        return existing
-      }
+      return existing
     }
     const created = createDeferredStructuredAgentSessionEventSink({
-      onError: (error) => {
-        this.deps.onEventSinkError?.({ sessionId, error })
-        this.onEventSinkFailure?.(sessionId, error)
-      }
+      onError: (error) => this.deps.onEventSinkError?.({ sessionId, error })
     })
     this.eventSinks.set(sessionId, created)
     return created
@@ -71,28 +53,11 @@ export class StructuredAgentSessionHostRuntimeState {
   }
 
   flushEventSink(sessionId: string): Promise<void> {
-    return this.requireSuccessfulBarrier(
-      this.eventSinks.get(sessionId)?.drained() ?? Promise.resolve({ ok: true } as const)
-    )
-  }
-
-  lifecycleBarrier(sessionId: string): Promise<StructuredAgentSessionSinkBarrier> {
-    return this.eventSinks.get(sessionId)?.lifecycleBarrier() ?? Promise.resolve({ ok: true })
+    return this.eventSinks.get(sessionId)?.drained() ?? Promise.resolve()
   }
 
   async flushAllEventSinks(): Promise<void> {
-    await Promise.all(
-      [...this.eventSinks.values()].map((sink) => this.requireSuccessfulBarrier(sink.drained()))
-    )
-  }
-
-  private async requireSuccessfulBarrier(
-    barrier: Promise<StructuredAgentSessionSinkBarrier>
-  ): Promise<void> {
-    const result = await barrier
-    if (!result.ok) {
-      throw result.error
-    }
+    await Promise.all([...this.eventSinks.values()].map((sink) => sink.drained()))
   }
 
   /** Exit from a latched recovery stage when present-time evidence permits one. */

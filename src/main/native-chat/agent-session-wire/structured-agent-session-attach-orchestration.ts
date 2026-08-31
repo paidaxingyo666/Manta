@@ -22,43 +22,25 @@ import type { StructuredAgentSessionAttachContext } from './structured-agent-ses
 export function attachStructuredAgentSession(
   context: StructuredAgentSessionAttachContext,
   callerKey: string,
-  params: AgentSessionAttachParams,
-  admitRecoveryTicket?: () => boolean
+  params: AgentSessionAttachParams
 ): Promise<AgentSessionMutationResult<AgentSessionAttachResult>> {
   const sessionId = params.envelope.sessionId
   const attaching = context.serialize(sessionId, async () => {
-    if (admitRecoveryTicket && !admitRecoveryTicket()) {
-      return refuseAgentSessionMutation({
-        code: 'agent_session_checkpoint_stale',
-        message: 'The provider-exit recovery ticket is no longer current.'
-      })
-    }
     const unreconciled = await context.reconcileLeases(sessionId)
     if (unreconciled) {
       return refuseAgentSessionMutation(unreconciled)
     }
     await context.runtimeState.resolveRecovery(sessionId)
-    if (context.retryPendingSettlement) {
-      const settled = await context.retryPendingSettlement(sessionId, params)
-      if (!settled) {
-        return refuseAgentSessionMutation({
-          code: 'agent_session_ownership_unknown',
-          message: 'The provider-exit terminal journal settlement is still pending; retry attach.'
-        })
-      }
-    }
     const eventSink = context.runtimeState.eventSinkFor(sessionId)
     const attached = await performAttach({
       store: context.deps.store,
       adapter: context.deps.adapter,
       journalRoot: context.deps.journalRoot,
       eventSink: eventSink.sink,
-      onAcquiring: async () => {
-        const barrier = await eventSink.drained()
-        if (!barrier.ok) {
-          throw barrier.error
-        }
+      onAcquiring: () => eventSink.unbind(),
+      beforeJournalOpen: async () => {
         eventSink.unbind()
+        await eventSink.drained()
       },
       authority: {
         spawnToken: () => context.deps.mintSpawnToken?.() ?? randomUUID(),
@@ -76,25 +58,14 @@ export function attachStructuredAgentSession(
         eventSink.close()
         context.runtimeState.discardEventSink(sessionId)
       },
-      onAttached: async (attached, acquisitionGeneration) => {
+      onAttached: (attached) => {
         const fence = context.deps.store.getRecord(sessionId)?.lease.runtimeFence ?? 0
-        const previous = context.sessions.get(sessionId)
-        const previousFence = previous?.fence
-        eventSink.bind({
-          journal: attached.journal,
-          fence,
-          publish: () => context.subscribers.publish(sessionId, attached.journal)
-        })
-        const barrier = await eventSink.drained()
-        if (!barrier.ok) {
-          throw barrier.error
-        }
+        const previousFence = context.sessions.get(sessionId)?.fence
         context.sessions.set(sessionId, {
           journal: attached.journal,
           params,
           fence,
-          hasProviderChild: true,
-          acquisitionGeneration: acquisitionGeneration ?? previous?.acquisitionGeneration ?? null
+          hasProviderChild: true
         })
         if (attached.recovery) {
           context.subscribers.reset(sessionId, attached.journal, attached.recovery.reset, fence)
@@ -103,6 +74,11 @@ export function attachStructuredAgentSession(
         } else {
           context.subscribers.publish(sessionId, attached.journal)
         }
+        eventSink.bind({
+          journal: attached.journal,
+          fence,
+          publish: () => context.subscribers.publish(sessionId, attached.journal)
+        })
       }
     })
     // Why: a failed attach that left no session behind must not strand a bound sink; the runtime

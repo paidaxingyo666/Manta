@@ -103,8 +103,7 @@ function createCatchup(input: Awaited<ReturnType<typeof createCatchupFixture>>) 
       hasProviderChild: false,
       journal: input.journal,
       params: {} as never,
-      fence: input.fence,
-      acquisitionGeneration: null
+      fence: input.fence
     }),
     schedule: async (_sessionId, task) => task(),
     publish: vi.fn(),

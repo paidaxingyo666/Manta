@@ -5,15 +5,10 @@ import type {
   AgentJournalQuestionItem
 } from '../../shared/agent-session-journal-types'
 import {
-  boundInlineText,
-  DEFAULT_JOURNAL_PAYLOAD_LIMITS
-} from '../native-chat/agent-session-journal/journal-payload-bounds'
-import {
   CODEX_APPROVAL_DECISIONS,
   CODEX_COMMAND_APPROVAL_METHOD,
   CODEX_FILE_CHANGE_APPROVAL_METHOD,
-  codexJournalPromptIdPart,
-  encodeCodexJournalQuestionOptionId,
+  encodeCodexQuestionOptionId,
   type CodexApprovalDecision
 } from './codex-structured-prompt-replies'
 
@@ -38,10 +33,6 @@ const PENDING = {
   resolvedAt: null
 } as const
 
-const MAX_CODEX_PROMPT_QUESTIONS = 64
-const MAX_CODEX_PROMPT_OPTIONS = 64
-const PROMPT_OPTION_LIMITS = { ...DEFAULT_JOURNAL_PAYLOAD_LIMITS, inlineHeadBytes: 1024 }
-
 function readParams(params: unknown): Record<string, unknown> {
   return typeof params === 'object' && params !== null ? (params as Record<string, unknown>) : {}
 }
@@ -49,14 +40,6 @@ function readParams(params: unknown): Record<string, unknown> {
 function readString(source: Record<string, unknown>, key: string): string | null {
   const value = source[key]
   return typeof value === 'string' && value.length > 0 ? value : null
-}
-
-function boundPromptText(value: string): string {
-  return boundInlineText(value, DEFAULT_JOURNAL_PAYLOAD_LIMITS).text
-}
-
-function boundPromptOptionLabel(value: string): string {
-  return boundInlineText(value, PROMPT_OPTION_LIMITS).text
 }
 
 /**
@@ -92,14 +75,10 @@ export function codexApprovalItem(input: {
         : input.method === CODEX_COMMAND_APPROVAL_METHOD
           ? 'Run a command?'
           : 'Approve this action?',
-    detail: boundNullablePromptText(approvalDetail(params) ?? input.detail),
+    detail: approvalDetail(params) ?? input.detail,
     options: codexApprovalOptions(input.params),
     resolution: { ...PENDING }
   }
-}
-
-function boundNullablePromptText(value: string | null): string | null {
-  return value === null ? null : boundPromptText(value)
 }
 
 function approvalDetail(params: Record<string, unknown>): string | null {
@@ -140,7 +119,7 @@ export function codexQuestionItems(input: {
     return []
   }
   const items: CodexQuestionItem[] = []
-  for (const entry of questions.slice(0, MAX_CODEX_PROMPT_QUESTIONS)) {
+  for (const entry of questions) {
     const question = readParams(entry)
     const questionId = readString(question, 'id')
     const prompt = readString(question, 'question') ?? readString(question, 'header')
@@ -152,11 +131,9 @@ export function codexQuestionItems(input: {
       identity: codexPromptIdentity({ ...input, questionId }),
       body: {
         kind: 'question',
-        question: boundPromptText(prompt),
+        question: prompt,
         options: questionOptions(question, questionId),
-        ...(questionAllowsFreeText(question)
-          ? { freeTextQuestionId: codexJournalPromptIdPart(questionId) }
-          : {}),
+        ...(questionAllowsFreeText(question) ? { freeTextQuestionId: questionId } : {}),
         resolution: { ...PENDING }
       }
     })
@@ -183,18 +160,12 @@ function questionOptions(
   }
   const mapped: AgentJournalPromptOption[] = []
   for (const entry of options) {
-    if (mapped.length >= MAX_CODEX_PROMPT_OPTIONS) {
-      break
-    }
     const option = readParams(entry)
     const label = readString(option, 'label')
     if (label !== null && option.isOther !== true) {
       // The option id has to name its question: Codex's reply is a map keyed by
       // question id, and the client only ever hands back an option id.
-      mapped.push({
-        id: encodeCodexJournalQuestionOptionId(questionId, label),
-        label: boundPromptOptionLabel(label)
-      })
+      mapped.push({ id: encodeCodexQuestionOptionId(questionId, label), label })
     }
   }
   return mapped
@@ -209,11 +180,9 @@ export function codexPromptIdentity(input: {
   promptKey: string
   questionId?: string
 }): AgentJournalItemIdentity {
-  const suffix = input.questionId ? `:${codexJournalPromptIdPart(input.questionId)}` : ''
-  const threadId = codexJournalPromptIdPart(input.threadId)
-  const promptKey = codexJournalPromptIdPart(input.promptKey)
+  const suffix = input.questionId ? `:${input.questionId}` : ''
   return {
     provider: 'manta',
-    clientMessageId: `codex-prompt:${threadId}:${promptKey}${suffix}`
+    clientMessageId: `codex-prompt:${input.threadId}:${input.promptKey}${suffix}`
   }
 }

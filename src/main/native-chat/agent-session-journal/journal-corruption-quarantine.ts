@@ -11,35 +11,15 @@ import {
   rewriteJournalLog
 } from './journal-log-file'
 import type { JournalRow } from './journal-row-schema'
-import { assertJournalPhysicalCapacity } from './journal-physical-quota'
 
 /** Keep the readable prefix and set the unreadable suffix aside. */
 export async function quarantineCorruptSuffix(
   journalDir: string,
   retainedRows: readonly JournalRow[],
-  remainder: string | undefined,
-  quota?: { sessionId: string; maxBytes: number }
+  remainder: string | undefined
 ): Promise<void> {
   if (remainder) {
-    if (quota) {
-      await assertJournalPhysicalCapacity({
-        journalDir,
-        ...quota,
-        peakAdditionalBytes: Buffer.byteLength(remainder, 'utf8')
-      })
-    }
     await quarantineJournalRemainder(journalDir, remainder)
-  }
-  if (quota) {
-    const retainedBytes = retainedRows.reduce(
-      (total, row) => total + Buffer.byteLength(JSON.stringify(row), 'utf8') + 1,
-      0
-    )
-    await assertJournalPhysicalCapacity({
-      journalDir,
-      ...quota,
-      peakAdditionalBytes: retainedBytes
-    })
   }
   await rewriteJournalLog(journalDir, retainedRows)
 }
@@ -48,10 +28,7 @@ export async function quarantineCorruptSuffix(
  *  schema: those rows are unreadable to THIS build, not worthless. The
  *  snapshot is preserved as raw bytes — a future-version snapshot does not
  *  parse under this build's schema, and its bytes must survive verbatim. */
-export async function quarantineUnreadableSchema(
-  journalDir: string,
-  quota?: { sessionId: string; maxBytes: number }
-): Promise<void> {
+export async function quarantineUnreadableSchema(journalDir: string): Promise<void> {
   const snapshot = await readSnapshotBytes(journalDir)
   const log = await readJournalLog(journalDir)
   const preserved = [
@@ -62,13 +39,6 @@ export async function quarantineUnreadableSchema(
     .filter(Boolean)
     .join('\n')
   if (preserved) {
-    if (quota) {
-      await assertJournalPhysicalCapacity({
-        journalDir,
-        ...quota,
-        peakAdditionalBytes: Buffer.byteLength(preserved, 'utf8')
-      })
-    }
     await quarantineJournalRemainder(journalDir, preserved)
   }
 }

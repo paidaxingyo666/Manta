@@ -17,7 +17,6 @@ import {
 import {
   applyJournalRow,
   createJournalReducerState,
-  rememberAppliedSettlementId,
   type JournalReducerState
 } from './journal-reducer'
 import { journalRowByteLength, type JournalRow } from './journal-row-schema'
@@ -43,8 +42,7 @@ export type JournalLoad = {
 /** Returns null when no journal exists yet for this session. */
 export async function loadJournal(
   journalDir: string,
-  sessionId: string,
-  quota?: { maxBytes: number }
+  sessionId: string
 ): Promise<JournalLoad | null> {
   const snapshotRead = await readJournalSnapshot(journalDir)
   if (snapshotRead.status === 'unreadable') {
@@ -55,10 +53,7 @@ export async function loadJournal(
     return emptyReadOnlyLoad(sessionId)
   }
   if (snapshotRead.status === 'invalid') {
-    await quarantineInvalidJournalSnapshot(
-      journalDir,
-      quota ? { sessionId, maxBytes: quota.maxBytes } : undefined
-    )
+    await quarantineInvalidJournalSnapshot(journalDir)
   }
   const snapshot = snapshotRead.status === 'valid' ? snapshotRead.snapshot : null
   const log = await readJournalLog(journalDir)
@@ -164,9 +159,6 @@ function seedState(
   }
   for (const tombstone of snapshot.tombstones ?? []) {
     state.tombstones.set(tombstone.itemId, tombstone.revision)
-  }
-  for (const settlementId of snapshot.appliedSettlementIds ?? []) {
-    rememberAppliedSettlementId(state, settlementId)
   }
   state.highestFence = snapshot.highestFence ?? 0
   state.lastSequence = snapshot.compactedThrough

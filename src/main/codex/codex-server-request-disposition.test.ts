@@ -78,7 +78,7 @@ describe('Codex blocking server request dispositions', () => {
     )
   })
 
-  it('refuses a malformed interactive request instead of inventing an answer', () => {
+  it('cancels a malformed interactive request instead of using method-not-found', () => {
     const { registry, connection } = harness()
 
     disposeCodexServerRequest(registry, connection, {
@@ -87,12 +87,7 @@ describe('Codex blocking server request dispositions', () => {
       params: {}
     })
 
-    expect(connection.respond).not.toHaveBeenCalled()
-    expect(connection.respondWithError).toHaveBeenCalledWith(
-      4,
-      -32001,
-      'Manta could not model item/commandExecution/requestApproval as a durable prompt'
-    )
+    expect(connection.respond).toHaveBeenCalledWith(4, { decision: 'cancel' })
   })
 
   it('enumerates every server request in the negotiated stable schema', () => {

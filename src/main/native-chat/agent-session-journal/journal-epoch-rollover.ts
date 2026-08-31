@@ -22,7 +22,6 @@ export async function publishNewEpoch(input: {
   reason: AgentJournalEpochReason
   fence: number
   now: number
-  maxSessionBytes?: number
 }): Promise<JournalLoad> {
   const row: JournalRow = {
     kind: 'epoch',
@@ -41,8 +40,7 @@ export async function publishNewEpoch(input: {
     tailRows: [row],
     policy: { minTailRows: 1, retainTailMs: Number.POSITIVE_INFINITY },
     now: input.now,
-    maxSessionBytes: input.maxSessionBytes ?? DEFAULT_JOURNAL_PAYLOAD_LIMITS.maxSessionBytes,
-    sessionId: input.sessionId
+    maxSessionBytes: DEFAULT_JOURNAL_PAYLOAD_LIMITS.maxSessionBytes
   })
   applyJournalRow(state, row)
   state.oldestSequence = 1

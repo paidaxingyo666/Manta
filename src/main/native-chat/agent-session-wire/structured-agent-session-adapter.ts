@@ -44,9 +44,6 @@ export class AgentSessionAcquisitionExitUnprovenError extends Error {
 export type AgentSessionAcquisition = {
   process: AgentSessionProcessIdentity
   link: AgentSessionProviderHandleLink
-  /** Host-local identity for this exact provider child, distinct even when the durable fence is
-   *  reused by a superseding acquisition. */
-  acquisitionGeneration?: string
 }
 
 /** Acquisition validation failed before the adapter attempted to spawn. */
@@ -67,17 +64,6 @@ export type AgentSessionDispatchOutcome =
   | { state: 'rejected'; reason: string }
   /** The call did not settle. Never re-send on the user's behalf. */
   | { state: 'unknown'; reason: string }
-
-export type StructuredAgentSessionLifecycleEvent = {
-  type: 'ended'
-  sessionId: string
-  reason: string
-  cause: 'unexpected-exit' | 'requested-close'
-  fence: number
-  acquisitionGeneration: string
-  /** Translator could not admit terminal rows; host recovery must append its bounded fallback. */
-  settlementRetryRequired?: boolean
-}
 
 export type StructuredAgentSessionAcquireInput = {
   identity: AgentSessionJournalIdentity
@@ -139,8 +125,6 @@ export type StructuredAgentSessionAdapter = {
   /** Gracefully stops the structured owner after its event stream is drained. */
   /** Returns true only after the provider child exit is proven. */
   closeSession?(sessionId: string): Promise<boolean>
-  /** Stops a provider after a sink failure; the resulting exit is recovered as unexpected. */
-  forceCloseSession?(sessionId: string): Promise<boolean>
   /** Stops a provider child for teardown without requiring a future-resume cursor. */
   disposeSession?(sessionId: string): Promise<boolean>
 }
