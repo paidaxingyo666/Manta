@@ -315,6 +315,15 @@
         },
         {
           "files": [
+            "src/renderer/src/components/use-task-page-github-issue-draft.ts",
+            "src/renderer/src/components/use-task-page-jira-creation-state.ts"
+          ],
+          "rules": [
+            "react-doctor/no-adjust-state-on-prop-change"
+          ]
+        },
+        {
+          "files": [
             "src/renderer/src/components/editor/combined-diff/browse-files/use-combined-diff-tree-navigation.ts",
             "src/renderer/src/components/editor/combined-diff/load-sections/combined-diff-section-load-registry.ts",
             "src/renderer/src/components/editor/combined-diff/review-controls/use-combined-diff-section-actions.ts"

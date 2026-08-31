@@ -1,4 +1,3 @@
-/* oxlint-disable react-doctor/no-adjust-state-on-prop-change, react-doctor/no-derived-state-effect -- Why: provider metadata and runtime IPC intentionally reset and hydrate dependent composer state. */
 import type { TaskPageJiraListProjectionModel } from './use-task-page-jira-list-projection'
 import { useState, useMemo, useEffect, type SetStateAction } from 'react'
 import { useTeamMembers, useTeamLabels, useTeamStates } from '@/hooks/useIssueMetadata'

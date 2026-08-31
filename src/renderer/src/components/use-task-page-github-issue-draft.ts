@@ -1,4 +1,3 @@
-/* oxlint-disable react-doctor/no-adjust-state-on-prop-change -- Why: repo selection and session-only draft persistence intentionally synchronize dialog state from external cache/session state. */
 import type { TaskPageGitHubCacheReconciliationModel } from './use-task-page-github-cache-reconciliation'
 import { useState, useMemo, useEffect } from 'react'
 import type { GitHubAssignableUser } from '../../../shared/github/pull-request-types'
