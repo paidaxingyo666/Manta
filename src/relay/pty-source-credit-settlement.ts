@@ -18,8 +18,13 @@ export function reservedPtySourceSendLength(
 }
 
 function reclaimCreditedSpans(record: DeliveryRecord): void {
+  let removed = 0
   while (record.spans[0]?.sourceEndSu <= record.creditedEndSu) {
     record.retainedDataBytes -= chargedPtyRetainedStringBytes(record.spans.shift()!.data)
+    removed += 1
+  }
+  if (removed > 0) {
+    record.sendSpanIndex = Math.max(0, record.sendSpanIndex - removed)
   }
 }
 
