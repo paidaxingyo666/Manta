@@ -462,9 +462,22 @@ No DNSKEY record [exceeded the maximum number of sends]
 ```
 
 Let's Encrypt's resolver cannot fetch the DNSKEY for `cn.` and marks the whole
-TLD bogus, so nothing under it resolves. It is intermittent and it is not
-specific to this zone or its provider — which is why waiting works and why the
-retry loop is the entire remedy.
+TLD bogus, so nothing under it resolves. Other attempts fail as a plain
+`query timed out` instead. Either way it is intermittent, and it is not specific
+to this zone: all three names here carry one A record, the same address, no
+AAAA, no CNAME, and the zone is unsigned.
+
+It is specifically the *remote* perspectives that fail. Production validates
+from several vantage points and reports `During secondary validation`; staging
+does not, and a staging issuance for the same name succeeds on the first attempt
+while production is failing. That also dates the good windows — the two site
+names were issued around midday and the relay's name was still failing at four
+in the afternoon — which is the shape of cross-border congestion, not of a
+misconfiguration.
+
+So the remedy is the retry loop and nothing else. A staging issuance is the
+cheap way to confirm that the webroot, the route and the primary perspective are
+all fine before suspecting any of them.
 
 ### Registry secrets
 
