@@ -14,15 +14,7 @@ import {
   getWorktreePaletteSearchScope,
   searchWorktreeDocuments
 } from '@/lib/worktree-palette-search'
-import { buildWorktreePaletteDocuments } from '@/lib/worktree-palette-document'
-import { getWorkspacePortsByWorktreeId } from '@/lib/workspace-port-groups'
-import {
-  buildPaletteWorktreeIndex,
-  resolvePaletteWorktree,
-  resolvePaletteRepoForWorktree
-} from '@/lib/palette-repo-resolution'
-import { getWorktreeHostIdentity } from '../../../shared/worktree/host-qualified-identity'
-import { getPaletteHostBadge } from '@/components/cmd-j/palette-host-badge'
+import { buildPaletteWorktreeIndex, resolvePaletteWorktree } from '@/lib/palette-repo-resolution'
 import {
   EMPTY_PAIRED_DEVICE_IDS_BY_ENVIRONMENT,
   getPairedDeviceIdsByEnvironment,
@@ -33,6 +25,8 @@ import { EMPTY_SORTED_WORKTREES } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteFilter } from './use-worktree-jump-palette-filter'
 import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-local-state'
 import type { WorktreeJumpPaletteStoreState } from './use-worktree-jump-palette-store-state'
+import { buildWorktreeJumpPaletteDocumentIndex } from './worktree-jump-palette-document-index'
+import { buildWorktreeJumpPaletteWorktreeMaps } from './worktree-jump-palette-worktree-maps'
 
 type WorktreeJumpPaletteWorktreesInput = WorktreeJumpPaletteStoreState &
   Pick<
@@ -224,35 +218,10 @@ export function useWorktreeJumpPaletteWorktrees({
         resolvePaletteWorktree(paletteWorktreeIndex, worktreeId, hostId),
     [paletteWorktreeIndex]
   )
-  // Keep a host-qualified map for consumers that only have an identity key.
-  const worktreeMap = useMemo(() => {
-    const map = new Map<string, Worktree>()
-    for (const worktree of browserSortedWorktrees) {
-      map.set(getWorktreeHostIdentity(worktree), worktree)
-      if (!map.has(worktree.id)) {
-        map.set(worktree.id, worktree)
-      }
-    }
-    return map
-  }, [browserSortedWorktrees])
-  const worktreeOrder = useMemo(
-    () =>
-      new Map(
-        browserSortedWorktrees.map((worktree, index) => [getWorktreeHostIdentity(worktree), index])
-      ),
+  const { worktreeMap, worktreeOrder } = useMemo(
+    () => buildWorktreeJumpPaletteWorktreeMaps(browserSortedWorktrees),
     [browserSortedWorktrees]
   )
-  const hostLabelByWorktreeId = useMemo(() => {
-    const labels = new Map<string, string>()
-    for (const worktree of allWorktrees) {
-      const repo = resolvePaletteRepoForWorktree(worktree, repoMap, repoByHostIdentity)
-      const badge = getPaletteHostBadge(repo, hostOptions, hostFilterActive)
-      if (badge) {
-        labels.set(getWorktreeHostIdentity(worktree), badge.label)
-      }
-    }
-    return labels
-  }, [allWorktrees, hostFilterActive, hostOptions, repoByHostIdentity, repoMap])
   const checksReviewByWorktree = useMemo(
     () =>
       buildWorktreeChecksReviewIndex({
@@ -266,27 +235,27 @@ export function useWorktreeJumpPaletteWorktrees({
   )
   const worktreeDocuments = useMemo(
     () =>
-      buildWorktreePaletteDocuments(
-        allWorktrees.filter((worktree) => !worktree.isArchived),
-        {
-          repoMap,
-          repoMapByHostIdentity: repoByHostIdentity,
-          prCache,
-          issueCache,
-          workspacePortsByWorktreeId: getWorkspacePortsByWorktreeId(workspacePortScan),
-          checksReviewByWorktree,
-          hostLabelByWorktreeId
-        }
-      ),
+      buildWorktreeJumpPaletteDocumentIndex({
+        worktrees: allWorktrees,
+        repoMap,
+        repoByHostIdentity,
+        hostOptions,
+        hostFilterActive,
+        prCache,
+        issueCache,
+        workspacePortScan,
+        checksReviewByWorktree
+      }),
     [
       allWorktrees,
       checksReviewByWorktree,
+      hostFilterActive,
+      hostOptions,
       issueCache,
       prCache,
       repoByHostIdentity,
       repoMap,
-      workspacePortScan,
-      hostLabelByWorktreeId
+      workspacePortScan
     ]
   )
   const worktreeMatches = useMemo(

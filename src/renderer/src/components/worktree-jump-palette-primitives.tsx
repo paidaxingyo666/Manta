@@ -139,7 +139,9 @@ function resolveOpenTabWorktreeRailTooltip({
   truncated: boolean
   name: string
 }): string {
-  if (truncated) return name
+  if (truncated) {
+    return name
+  }
   return isBranch
     ? translate('auto.components.WorktreeJumpPalette.paletteOpenTabBranch', 'Branch name')
     : translate('auto.components.WorktreeJumpPalette.paletteOpenTabWorkspace', 'Workspace name')
@@ -171,12 +173,16 @@ export function PaletteOpenTabWorktreeRailLabel({
       setTruncated((current) => (current === next ? current : next))
     }
     updateTruncated()
-    if (typeof ResizeObserver === 'undefined') return
+    if (typeof ResizeObserver === 'undefined') {
+      return
+    }
     const observer = new ResizeObserver(updateTruncated)
     observer.observe(node)
     return () => observer.disconnect()
   }, [name])
-  if (name.trim().length === 0) return null
+  if (name.trim().length === 0) {
+    return null
+  }
   const isBranch = worktree != null && name === resolveWorktreeBranchLabel(worktree)
   const tooltip = resolveOpenTabWorktreeRailTooltip({ isBranch, truncated, name })
   return (

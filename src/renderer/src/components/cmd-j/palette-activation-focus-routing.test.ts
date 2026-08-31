@@ -46,16 +46,12 @@ describe('Cmd+J activation focus routing (#9939)', () => {
   })
 
   it('falls back when scoped focus declines for an already-open issue match', () => {
-    const handler = sourceBetween(
-      paletteSource('use-worktree-jump-palette-create-action.ts'),
-      'const handleCreateWorktree = useCallback',
-      'const handleCloseAutoFocus'
-    )
+    const handler = paletteSource('worktree-jump-palette-create-worktree.ts')
     const activationCalls =
-      handler.match(/const activation = activateAndRevealWorktree\(activeMatch\.id\)/g)?.length ?? 0
-    // Both a pasted issue/PR URL and a typed #N can jump to an existing match
-    // from the create handler; each path must keep the scoped-focus fallback.
-    expect(activationCalls).toBe(2)
+      handler.match(/const activation = activateAndRevealWorktree\(/g)?.length ?? 0
+    // Typed #N jumps to an existing match; pasted URLs stay in the composer
+    // so cross-project detection can choose the correct project.
+    expect(activationCalls).toBe(1)
     expect(
       handler.match(
         /if \(!queueWorkspaceActivationTerminalFocus\(activeMatch\.id, activation\)\) \{\s*focusFallbackSurface\(\)\s*\}/g
