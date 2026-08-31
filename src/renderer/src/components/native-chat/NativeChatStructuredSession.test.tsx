@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type React from 'react'
+import React, { forwardRef, useImperativeHandle } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
     onLinkClick?: (...args: unknown[]) => void
   },
   composerProps: null as null | { structuredTransport?: Record<string, unknown> },
+  handlePasteEvent: vi.fn(),
+  pasteFromClipboard: vi.fn(),
   submissions: [] as unknown[]
 }))
 
@@ -110,10 +112,16 @@ vi.mock('./NativeChatMessageList', () => ({
 }))
 
 vi.mock('./NativeChatComposer', () => ({
-  NativeChatComposer: (props: typeof mocks.composerProps) => {
+  NativeChatComposer: forwardRef((props: typeof mocks.composerProps, ref) => {
     mocks.composerProps = props
-    return null
-  }
+    useImperativeHandle(ref, () => ({
+      focus: () => true,
+      insertTypedText: () => true,
+      handlePasteEvent: mocks.handlePasteEvent,
+      pasteFromClipboard: mocks.pasteFromClipboard
+    }))
+    return <textarea data-testid="structured-composer" />
+  })
 }))
 vi.mock('./NativeChatEmptyState', () => ({ NativeChatEmptyState: () => null }))
 vi.mock('./NativeChatApprovalCard', () => ({ NativeChatApprovalCard: () => null }))
@@ -128,7 +136,28 @@ describe('NativeChatStructuredSession', () => {
     mocks.mode = 'static'
     mocks.messageListProps = null
     mocks.composerProps = null
+    mocks.handlePasteEvent.mockReset()
+    mocks.pasteFromClipboard.mockReset()
     mocks.submissions = []
+  })
+
+  it('routes app-menu paste into the structured composer', () => {
+    render(
+      <NativeChatStructuredSession
+        isVisible
+        tabId="structured-tab-paste"
+        sessionId="session-paste"
+        target={{ kind: 'local' }}
+        agent="codex"
+        allowFileUriLinks
+      />
+    )
+
+    const composer = screen.getByTestId('structured-composer')
+    composer.focus()
+    window.dispatchEvent(new Event('manta-app-menu-paste', { cancelable: true }))
+
+    expect(mocks.pasteFromClipboard).toHaveBeenCalledOnce()
   })
 
   it('wires local structured file links through the native chat opener', () => {
