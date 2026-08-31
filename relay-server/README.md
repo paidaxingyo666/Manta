@@ -418,34 +418,26 @@ name starts renewing itself only once no block loads a file for it, which in
 practice means once the old port is retired. Retire it before the pinned
 certificate expires, not after.
 
-**Let's Encrypt validates from several vantage points, and this zone is not
-reachable from most of them.** Issuance fails with `During secondary validation:
-DNS problem: query timed out looking up A`. It is not a transient: the zone's
-authoritative nameservers are DNSPod's free pair, whose addresses are both inside
-mainland China, so a resolver abroad has to reach across the border to query
-them. Measured against the relay's name, four attempts each:
+**Let's Encrypt validates from several vantage points, and issuance can fail on
+some of them.** The error is `During secondary validation: DNS problem: query
+timed out looking up A`. It is intermittent, not systemic: the zone resolves
+4/4 from two international resolvers and from a domestic one, and two of the
+three names here got certificates on the first pass — the apex needed one retry.
+The relay's name simply lost the coin toss for several minutes.
 
-| Resolver | Resolved |
-| --- | --- |
-| Cloudflare | 4/4 |
-| Google | 0/4 |
-| Quad9 | 0/4 |
+Measure this before concluding anything about it, and pick resolvers this host
+can actually reach. A DoH endpoint that is blocked from the querying machine
+returns nothing, which looks exactly like a zone that cannot be resolved. Use a
+known-good name as a reachability control on every resolver in the comparison;
+without one, the result is a measurement of the network, not of the zone.
 
-The site's two names got certificates anyway, on the perspectives that did get
-through — the apex needed one retry. The relay's name did not, across several
-minutes.
-
-This is why the relay is still on a pinned certificate. It cannot move to a
-managed one until the zone answers reliably from outside China, and the same
-constraint will block renewal, not just first issuance. The fix is nameservers
-with real international presence — a paid DNSPod plan keeps the zone domestic
-and adds them — and it has to be in place before 2026-11-17.
-
-Do not attempt the move by config alone. Caddy drops a file-loaded certificate
-the moment the config no longer names it, and then serves nothing for that name
-until ACME succeeds; with issuance failing, that is an outage for as long as it
-is left in place. It also falls back to Let's Encrypt's staging endpoint after
-repeated failures, whose certificate no client trusts.
+**Retrying costs an outage, which is the real constraint.** Caddy drops a
+file-loaded certificate the moment the config stops naming it, and then serves
+nothing for that name until ACME succeeds — so a failed attempt takes the relay
+down for as long as it is left in place. It also falls back to Let's Encrypt's
+staging endpoint after repeated failures, whose certificate no client trusts.
+Issue out of band, with the pinned certificate still serving, and switch only
+once the new one is in hand.
 
 ### Registry secrets
 
