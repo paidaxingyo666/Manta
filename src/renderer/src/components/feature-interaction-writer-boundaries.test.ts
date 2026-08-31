@@ -18,34 +18,41 @@ function sourceBetween(source: string, startPattern: string, endPattern: string)
 
 describe('feature interaction writer boundaries', () => {
   it('keeps Cmd+J feature writers in open/selection handlers, not query or navigation rendering', () => {
-    const source = componentSource('WorktreeJumpPalette.tsx')
-    const renderStart = source.lastIndexOf('  return (')
-    expect(renderStart).toBeGreaterThan(0)
-
-    const handlerSection = source.slice(0, renderStart)
-    const renderSection = source.slice(renderStart)
+    // Selection and create callbacks now live in focused hooks; the surface only renders them.
+    const selectionSource = componentSource('use-worktree-jump-palette-selection-actions.ts')
+    const lifecycleSource = componentSource('use-worktree-jump-palette-selection-lifecycle.ts')
+    const createSource = componentSource('use-worktree-jump-palette-create-action.ts')
+    const handlerSection = [selectionSource, lifecycleSource, createSource].join('\n')
+    const renderSection = componentSource('worktree-jump-palette-surface.tsx')
 
     const cmdJWriterPattern = /recordFeatureInteraction\('cmd-j/g
-    const allCmdJWriterCount = source.match(cmdJWriterPattern)?.length ?? 0
+    const allCmdJWriterCount = handlerSection.match(cmdJWriterPattern)?.length ?? 0
     expect(allCmdJWriterCount).toBeGreaterThanOrEqual(6)
     expect(handlerSection.match(cmdJWriterPattern)?.length ?? 0).toBe(allCmdJWriterCount)
     expect(renderSection).not.toContain("recordFeatureInteraction('cmd-j")
     expect(
-      sourceBetween(source, 'const handleQueryChange', 'const cancelFallbackFocusFrames')
+      sourceBetween(lifecycleSource, 'const handleQueryChange', 'const cancelFallbackFocusFrames')
     ).not.toContain("recordFeatureInteraction('cmd-j")
   })
 
   it('keeps task-provider writers off filters, tab switches, query edits, refresh, and pagination', () => {
     const providerWriter = /recordFeatureInteraction\('(github|gitlab|linear)-tasks'\)/
-    const taskPage = componentSource('TaskPage.tsx')
-    const pageLoader = componentSource('task-page/hooks/use-task-page-github-page-loader.ts')
+    const refreshSource = componentSource('use-task-page-github-cache-reconciliation.ts')
+    const paginationSource = componentSource('use-task-page-github-search-pagination.ts')
+    const searchSource = componentSource('use-task-page-search-actions.ts')
 
     const passiveSections = [
-      sourceBetween(taskPage, 'const handleRefreshGithubTasks', 'const {\n    newIssueOpen'),
-      sourceBetween(pageLoader, 'const handleLoadNextPage', 'return { handleLoadNextPage }'),
-      sourceBetween(taskPage, 'const handleApplyTaskSearch', 'const handleSetDefaultTaskPreset'),
+      sourceBetween(refreshSource, 'const handleRefreshGithubTasks', 'const nextModel'),
+      sourceBetween(paginationSource, 'const handleLoadNextPage', 'const commitTaskSearch'),
+      sourceBetween(searchSource, 'const applyPRFilterChange', 'const handleApplyTaskSearch'),
+      sourceBetween(searchSource, 'const handleApplyTaskSearch', 'const handleTaskSearchChange'),
       sourceBetween(
-        taskPage,
+        searchSource,
+        'const handleTaskSearchChange',
+        'const handleSetDefaultTaskPreset'
+      ),
+      sourceBetween(
+        searchSource,
         'const handleSelectGithubTaskKind',
         'const handleResetGithubTaskSearch'
       )
@@ -101,14 +108,14 @@ describe('feature interaction writer boundaries', () => {
   it('suppresses Tasks surface telemetry for in-page provider switches and detail opens', () => {
     const suppression = 'recordTasksInteraction: false'
     const githubDetailSection = sourceBetween(
-      componentSource('TaskPage.tsx'),
+      componentSource('use-task-page-github-detail.ts'),
       'const openGitHubDetailPage',
-      'const patchTaskPageWorkItemRows'
+      'const nextModel'
     )
 
     const inPageNavigationSections = [
       sourceBetween(
-        componentSource('task-page/hooks/use-task-page-selected-issue-state.ts'),
+        componentSource('use-task-page-detail-routing.ts'),
         'const openLinearDetailPage',
         'const openRelatedLinearIssue'
       ),
@@ -129,8 +136,12 @@ describe('feature interaction writer boundaries', () => {
   })
 
   it('records Cmd+J create-workspace as its own destination, not a generic quick action', () => {
-    const source = componentSource('WorktreeJumpPalette.tsx')
-    const section = sourceBetween(source, 'const handleSelectQuickAction', 'const handleSelectItem')
+    const source = componentSource('use-worktree-jump-palette-selection-actions.ts')
+    const section = sourceBetween(
+      source,
+      'const handleSelectQuickAction',
+      'const handleSelectProjectTarget'
+    )
 
     expect(section).toContain("recordFeatureInteraction('cmd-j-create-workspace')")
     expect(section).toContain("recordFeatureInteraction('cmd-j-quick-action')")

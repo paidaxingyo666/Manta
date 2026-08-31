@@ -1,10 +1,8 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { readTaskPageSource } from './task-page-source-family.test-support'
+import { readFileSync } from 'node:fs'
 
-const taskPageSource = readFileSync(
-  new URL('./task-page/hooks/use-task-page-create-github-submit.ts', import.meta.url),
-  'utf8'
-)
+const taskPageSource = readTaskPageSource('use-task-page-github-issue-creation.ts')
 const newIssueStateSource = readFileSync(
   new URL('./task-page/hooks/use-task-page-github-new-issue-state.ts', import.meta.url),
   'utf8'
@@ -13,7 +11,7 @@ const newIssueStateSource = readFileSync(
 function issueCreationSection(): string {
   const start = taskPageSource.indexOf('const handleCreateNewIssue')
   expect(start).toBeGreaterThanOrEqual(0)
-  const end = taskPageSource.indexOf('return { handleCreateNewIssue }', start)
+  const end = taskPageSource.indexOf('const nextModel', start)
   expect(end).toBeGreaterThan(start)
   return taskPageSource.slice(start, end)
 }
@@ -28,7 +26,7 @@ describe('TaskPage GitHub issue creation', () => {
     const section = issueCreationSection()
 
     expect(section).toContain("'github.createIssue'")
-    expect(section).toContain('{ timeoutMs: 65_000 }')
+    expect(section).toMatch(/\{\s*timeoutMs: 65_000\s*\}/)
   })
 
   it('treats a body-save warning as created while preserving the recovery draft', () => {
@@ -40,7 +38,7 @@ describe('TaskPage GitHub issue creation', () => {
 
     expect(warningBranch).toContain('toast.warning')
     expect(warningBranch).toContain('description: result.bodySaveWarning')
-    expect(warningBranch).toContain("setNewIssueDraft({ title: '' })")
+    expect(warningBranch).toMatch(/setNewIssueDraft\(\{\s*title: ''\s*\}\)/)
     expect(warningBranch).toContain('} else {')
     expect(warningBranch).toContain('clearNewIssueDraft()')
   })

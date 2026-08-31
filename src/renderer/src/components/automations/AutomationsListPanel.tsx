@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type {
+  Automation,
   AutomationRun,
   ExternalAutomationAction,
   ExternalAutomationJob,
@@ -54,6 +55,9 @@ const EMPTY_AUTOMATION_RUNS: ReadonlyMap<string, AutomationRun> = new Map()
 type AutomationsListPanelProps = {
   hasListItems: boolean
   hasFilteredListItems: boolean
+  /** Compatibility projections for consumers that still inspect bare rows. */
+  isListSearchActive?: boolean
+  filteredAutomations?: readonly Automation[]
   listSearchQuery: string
   isListSearchQueryTooLarge: boolean
   onListSearchQueryChange: (query: string) => void
