@@ -10,8 +10,10 @@ description: >-
   "share HTML/Markdown", "public artifact link", "share skills", or "control the browser inside
   Manta". Prefer this over raw `git worktree`, ad hoc
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
-  Use Computer Use for browser windows, webviews, or desktop UI outside Manta's
-  embedded browser.
+  Use Computer Use for external browser windows, webviews, or desktop UI only
+  when the task requires OS/window-level control such as focus, menus, dialogs,
+  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
+  page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta CLI

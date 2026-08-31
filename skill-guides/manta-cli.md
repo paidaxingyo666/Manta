@@ -10,8 +10,10 @@ description: >-
   "share HTML/Markdown", "public artifact link", "share skills", or "control the browser inside
   Manta". Prefer this over raw `git worktree`, ad hoc
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
-  Use Computer Use for browser windows, webviews, or desktop UI outside Manta's
-  embedded browser.
+  Use Computer Use for external browser windows, webviews, or desktop UI only
+  when the task requires OS/window-level control such as focus, menus, dialogs,
+  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
+  page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta CLI
@@ -309,7 +311,7 @@ MANTA skills share --skill <selector> [--skill <selector> ...] --bundle-name <na
 
 The built-in browser is Manta's embedded browser tab surface, scoped to Manta worktrees; it is not Chrome/Safari or desktop app UI.
 
-These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
+These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control. Use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
 
 Use a snapshot-interact-re-snapshot loop:
 
