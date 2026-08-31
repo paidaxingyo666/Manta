@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const {
-  prunePackagedRuntimeSourceMaps,
+  prunePackagedRuntimeTypeAndSourceMapArtifacts,
   prunePackagedRuntimeNodeModules
 } = require('../packaged-runtime-node-modules.cjs')
 
@@ -54,14 +54,14 @@ async function createPackagedNodeModulesFixture(resourcesDir) {
   return { packageDir, distDir, webhooksDir, updaterDir, jsYamlDir, nodePtyDir }
 }
 
-describe('packaged runtime source-map pruning', () => {
+describe('packaged runtime type-declaration and source-map pruning', () => {
   it('removes @linear/sdk source maps while preserving runtime files and non-JS maps', async () => {
     const resourcesDir = await mkdtemp(join(tmpdir(), 'manta-source-map-prune-'))
     try {
       const { packageDir, distDir, webhooksDir } =
         await createPackagedNodeModulesFixture(resourcesDir)
 
-      prunePackagedRuntimeSourceMaps(resourcesDir)
+      prunePackagedRuntimeTypeAndSourceMapArtifacts(resourcesDir)
 
       await expect(readdir(distDir).then((entries) => entries.sort())).resolves.toEqual([
         'index.cjs',
@@ -91,7 +91,7 @@ describe('packaged runtime source-map pruning', () => {
     try {
       const { jsYamlDir, nodePtyDir } = await createPackagedNodeModulesFixture(resourcesDir)
 
-      prunePackagedRuntimeSourceMaps(resourcesDir)
+      prunePackagedRuntimeTypeAndSourceMapArtifacts(resourcesDir)
 
       await expect(readdir(jsYamlDir)).resolves.toEqual(['js-yaml.min.js'])
       await expect(readdir(nodePtyDir)).resolves.toEqual(['index.js'])
@@ -100,25 +100,20 @@ describe('packaged runtime source-map pruning', () => {
     }
   })
 
-  it('leaves declaration-map cleanup to the type-declaration prune', async () => {
+  it('removes type declarations and declaration maps in the same walk', async () => {
     const resourcesDir = await mkdtemp(join(tmpdir(), 'manta-source-map-prune-dts-'))
     try {
       const { updaterDir } = await createPackagedNodeModulesFixture(resourcesDir)
 
-      prunePackagedRuntimeSourceMaps(resourcesDir)
+      prunePackagedRuntimeTypeAndSourceMapArtifacts(resourcesDir)
 
-      // Why: the two predicates are disjoint -- `.d.ts.map` never ends in `.js.map`.
-      await expect(readdir(updaterDir).then((entries) => entries.sort())).resolves.toEqual([
-        'main.d.ts',
-        'main.d.ts.map',
-        'main.js'
-      ])
+      await expect(readdir(updaterDir)).resolves.toEqual(['main.js'])
     } finally {
       await rm(resourcesDir, { recursive: true, force: true })
     }
   })
 
-  it('runs the source-map prune through aggregate runtime cleanup', async () => {
+  it('runs the artifact prune through aggregate runtime cleanup', async () => {
     const resourcesDir = await mkdtemp(join(tmpdir(), 'manta-source-map-aggregate-prune-'))
     try {
       const { distDir, updaterDir, packageDir } =
