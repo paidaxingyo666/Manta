@@ -1,9 +1,11 @@
 import type { TabGroup } from '../../../../shared/tab-types'
 import type { prepareWebSessionTabsSnapshotUnified } from './apply-preparation-unified'
 import { toWebTerminalSurfaceTabId } from '../web-runtime-session'
-import { peekWebSessionBrowserPlacementGroup } from '../web-session-browser-placement'
+import {
+  isWebSessionBrowserPlacementGroupReserved,
+  peekWebSessionBrowserPlacementGroup
+} from '../web-session-browser-placement'
 import { peekWebSessionTerminalPlacementGroup } from '../web-session-terminal-placement'
-import { isWebSessionBrowserPlacementGroupReserved } from '../web-session-browser-placement'
 import { reconcileClientOwnedTabPlacement } from '../web-session-client-owned-tab-placement'
 import { buildMirroredHostGroups, retainClientPlacedMirroredTabs } from './layout-groups'
 import { sanitizeRecentTabIds, pushRecentTabId } from './state-equality-core'

@@ -1,6 +1,8 @@
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
-import { mergeFeatureInteractionState } from './ui-slice-hydration-values'
-import { mergeContextualTourSeenIds } from './ui-slice-hydration-values'
+import {
+  mergeFeatureInteractionState,
+  mergeContextualTourSeenIds
+} from './ui-slice-hydration-values'
 import { getContextualTourProgressionForFeatureInteraction } from './ui-slice-tour-helpers'
 import type { FeatureInteractionState } from '../../../../../shared/feature-interactions'
 

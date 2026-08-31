@@ -11,9 +11,9 @@ import {
   platformModifiers,
   modifierStateMatches,
   keyMatches,
-  digitKeyMatches
+  digitKeyMatches,
+  resolveModifierToken
 } from './matching-key'
-import { resolveModifierToken } from './matching-key'
 import { getEffectiveKeybindingsForAction, keybindingIsActiveInContext } from './effective'
 
 export function keybindingMatchesInput(
