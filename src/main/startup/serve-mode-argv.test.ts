@@ -107,6 +107,24 @@ describe('serve-mode-argv', () => {
     ])
   })
 
+  it('keeps Electron-injected Chromium switches while normalizing direct serve', () => {
+    expect(
+      normalizeServeModeArgv([
+        '/opt/manta/manta-ide',
+        '--disable-features=FedCm,DirectSockets',
+        'serve',
+        '--port',
+        '6768'
+      ])
+    ).toEqual([
+      '/opt/manta/manta-ide',
+      '--disable-features=FedCm,DirectSockets',
+      '--serve',
+      '--serve-port',
+      '6768'
+    ])
+  })
+
   it('leaves already-normalized argv unchanged', () => {
     // Why every value flag: the CLI's own `manta serve` spawns the app with exactly this shape
     // (serveMantaApp), and the rewrite now runs over it too — a bad mapping would drop the port here.
