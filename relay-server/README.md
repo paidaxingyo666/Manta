@@ -363,84 +363,45 @@ alone; it does not help with issuance, which still needs 80 or 443. The durable
 fixes are to resolve whatever blocks those ports, or to move issuance to a
 DNS-01 challenge.
 
-### Moving back to 443 once issuance works again
+### The non-standard port, and why it is gone
 
-The non-standard port and the pinned certificate are both workarounds for
-blocked ports. When that block lifts — an ICP filing completing, a firewall
-opening — undo them in this order. The origin is signed into every host
-challenge, so the relay and the desktop must change together or the proof
-fails with nothing useful on either side.
+This deployment ran on 9443 with a pinned certificate until the ICP filing
+cleared on 2026-08-30. Both were workarounds for the same thing: the provider
+hijacked 80 and 443 for the unfiled domain, and ACME needs one of them, so the
+certificate could not renew and carried a hard 2026-11-17 expiry.
 
-1. Confirm the block is actually gone, by domain and not just by IP. A filter
-   that inspects the Host header answers a bare IP normally while still
-   hijacking the name:
+With the filing in place the deployment is back on 443 with a managed
+certificate, and that deadline is gone. What the move required, recorded because
+the next person hitting a blocked port will need the same steps in reverse:
+
+1. Confirm the block is gone **by domain, not by IP**. A filter that inspects the
+   Host header answers a bare IP normally while still hijacking the name:
 
    ```bash
    curl -sI --resolve relay.example.com:80:<ip> http://relay.example.com/ | head -1
    ```
 
-   A 200 or a redirect to your own site means it is clear. A redirect to the
-   provider's notice page means it is not.
+   Your own response means it is clear; the provider's notice page means it is not.
 
-2. In `deploy/Caddyfile`, change the site address from `{$RELAY_DOMAIN}:9443`
-   to `{$RELAY_DOMAIN}`, drop the `tls` line so Caddy manages the certificate
-   again, and drop the `auto_https disable_redirects` global block.
+2. `deploy/Caddyfile`: one site on `{$RELAY_DOMAIN}`, no `tls` line, no
+   `auto_https disable_redirects`.
 
-3. In `deploy/docker-compose.yml`, publish `80:80` and `443:443` instead of the
-   non-standard port, drop `MANTA_RELAY_TLS_CERT_PATH` and the `./certs` mount,
-   and set `RELAY_PORT=443` in `.env` — or remove the port from
-   `MANTA_RELAY_PUBLIC_URL` entirely.
+3. `deploy/docker-compose.yml`: publish `80:80` and `443:443`, drop
+   `MANTA_RELAY_TLS_CERT_PATH` and the `./certs` mount, and drop the port from
+   `MANTA_RELAY_PUBLIC_URL`.
 
 4. `docker compose up -d`, then watch for `certificate obtained successfully`.
-   Caddy reuses the existing certificate until renewal, so a failure here is
+   Caddy serves the existing certificate until renewal, so a failure here is
    silent until it matters — do not skip the log check.
 
 5. Update the desktop's Sign-in server and Relay address to drop the port, then
    Apply and restart. This signs the app out; that is expected, and the phone
    does not need to re-pair.
 
-6. Remove the firewall rule for the non-standard port.
-
-`deploy/certs/` can be deleted once step 4 succeeds.
-
-Known gaps, honestly:
-
-- Rate limits are per-process and in-memory. A restart forgets them.
-- Base images are tracked by tag (`node:22-alpine`, `caddy:2-alpine`) rather
-  than pinned by digest, so a rebuild picks up upstream security fixes — and
-  also upstream changes you did not ask for. Pin the digests if you need
-  reproducible builds more than you need automatic patching.
-- Auth sessions are capped at 64 and pruned oldest-first. That is a household
-  assumption, not a policy engine.
-- No tracing, and no alerting rules ship with the metrics.
-
-## Releasing
-
-The image publishes on a `relay-v*` tag, to whichever registries are configured
-as secrets — Docker Hub, Aliyun ACR, Tencent TCR, or any subset.
-
-```bash
-# 1. Bump relay-server/package.json. The workflow refuses to publish a tag
-#    whose version disagrees with what the source declares.
-# 2. Tag and push.
-git tag relay-v1.0.1 && git push origin relay-v1.0.1
-```
-
-One build is pushed to every registry, so the digest is identical across them:
-an operator who pins a digest from Docker Hub gets the same bytes from Aliyun.
-Images are `linux/amd64` and `linux/arm64` — arm64 because the cheap way to run
-something this small is a Graviton or Ampere instance, where an amd64-only
-image would quietly run under emulation.
-
-`latest` moves only for a release without a prerelease suffix.
-
-The version reaches the running relay: `/health` reports it alongside the git
-revision and build time, so an operator can confirm what is deployed without
-shell access.
-
-```json
-{ "ok": true, "version": "1.0.1", "revision": "9f3c2a1", "builtAt": "2026-08-21T09:14:02Z" }
-```
+The filing also requires the domain to serve a web page, so `deploy/site/` holds
+one and Caddy serves it for every path the relay does not claim. The relay's
+routes are listed explicitly in the Caddyfile — **a new route has to be added
+there too, or it will answer HTML instead of reaching the relay.**
 
 ### Registry secrets
 

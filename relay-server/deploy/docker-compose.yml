@@ -20,16 +20,15 @@ services:
     env_file: .env
     environment:
       # Must equal the origin clients dial; it is signed into every challenge.
-      MANTA_RELAY_PUBLIC_URL: "https://${RELAY_DOMAIN:?set RELAY_DOMAIN}:${RELAY_PORT:?set RELAY_PORT}"
+      # No port: the relay is on 443 now, and the origin is signed into every
+      # host challenge byte for byte — `https://host` and `https://host:443` are
+      # different identities, so the desktop must match this exactly.
+      MANTA_RELAY_PUBLIC_URL: "https://${RELAY_DOMAIN:?set RELAY_DOMAIN}"
       MANTA_RELAY_DATA_DIR: /var/lib/manta-relay
       # Caddy sits on the compose bridge network, so its address is the only one
       # allowed to speak for a client. Without this every phone shares one
       # rate-limit bucket — the proxy's.
       MANTA_RELAY_TRUSTED_PROXIES: "private"
-      # Renewal here needs port 80 or 443, and both are hijacked upstream while
-      # the domain is unfiled — so the certificate has a fixed end date and the
-      # relay is told to watch it. Drop this once renewal is automatic again.
-      MANTA_RELAY_TLS_CERT_PATH: "/certs/${RELAY_DOMAIN:?set RELAY_DOMAIN}.crt"
       # Push is opt-in. Set all four in .env to enable it, or none to leave it
       # off — the relay refuses to start on a partial set rather than running
       # quietly without push. The key is a PATH, never its contents: an env
@@ -50,7 +49,6 @@ services:
       MANTA_RELAY_TOKEN_SECRET: "${MANTA_RELAY_TOKEN_SECRET:?set MANTA_RELAY_TOKEN_SECRET — openssl rand -base64 32}"
     volumes:
       - relay-state:/var/lib/manta-relay
-      - ./certs:/certs:ro
       # Read-only, like the certificates. The directory and key must be owned by
       # the container's uid — a bind mount hands it the real ownership, and it
       # cannot traverse a directory owned by someone else. See the README.
@@ -95,16 +93,16 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      # Only the non-standard TLS port. No cleartext listener: the provider
-      # hijacks HTTP by Host header on every port while the domain is unfiled.
-      - "${RELAY_PORT:?set RELAY_PORT}:9443"
+      # Standard ports again. 80 is not just the redirect — it is ACME's
+      # challenge port, and without it the certificate cannot renew.
+      - "80:80"
+      - "443:443"
     environment:
       RELAY_DOMAIN: "${RELAY_DOMAIN:?set RELAY_DOMAIN}"
-      RELAY_PORT: "${RELAY_PORT:?set RELAY_PORT}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # Pinned certificate; see the comment in Caddyfile.
-      - ./certs:/certs:ro
+      # The filing requires the domain to serve a page; this is it.
+      - ./site:/srv/site:ro
       - caddy-data:/data
       - caddy-config:/config
     # This is the process that parses a stranger's TLS, so it should not be the

@@ -1,27 +1,16 @@
-# Bound to a non-standard port on purpose.
+# Standard ports, since the ICP filing cleared on 2026-08-30.
 #
-# This host is in mainland China and manta.sh.cn is not yet ICP-filed, so the
-# provider hijacks port 80 and 443 for it. Measured behaviour: the filter
-# inspects *cleartext HTTP by Host header on any port* (9443 included, which
-# 302s to a block page), but leaves TLS alone on non-standard ports. So this
-# site serves TLS only, and never speaks cleartext HTTP.
-#
-# When the ICP filing clears: move back to 443, restore the ACME block below,
-# and drop the security-group rule for 9443.
-{
-	# No cleartext listener at all, and no HTTP->HTTPS redirect to be hijacked.
-	auto_https disable_redirects
-}
+# Before that this host's provider hijacked 80 and 443 for the unfiled domain:
+# the filter inspected cleartext HTTP by Host header on any port — 9443 included,
+# which 302'd to a block page — while leaving TLS alone elsewhere. So the site
+# listened on 9443, served TLS only, and pinned a certificate it could not renew,
+# because ACME needs 80 or 443. All three workarounds are gone with the filing.
 
-{$RELAY_DOMAIN}:9443 {
-	# The certificate is pinned rather than managed. It was issued by Let's
-	# Encrypt before the block took effect and is valid until 2026-11-17;
-	# renewal needs port 80 or 443, which are exactly what is hijacked. Caddy
-	# would otherwise retry ACME forever and log a failure every few minutes.
-	#
-	# HARD DEADLINE: this certificate expires 2026-11-17. The ICP filing must
-	# land before then, or issuance has to move to a DNS-01 challenge.
-	tls /certs/{$RELAY_DOMAIN}.crt /certs/{$RELAY_DOMAIN}.key
+{$RELAY_DOMAIN} {
+	# Managed again, so the 2026-11-17 expiry the pinned certificate carried no
+	# longer applies. Watch for `certificate obtained successfully` on the first
+	# deploy: Caddy serves the old certificate until renewal, so a failure here
+	# stays silent until it matters.
 
 	@metrics path /metrics
 	respond @metrics 404
@@ -33,16 +22,29 @@
 		-Server
 	}
 
-	# WebSocket upgrades pass through unchanged; the relay needs the original
-	# Authorization header on the control leg. flush_interval -1 disables
-	# response buffering, which would otherwise add latency to every frame.
-	reverse_proxy relay:8787 {
-		flush_interval -1
+	# The relay's own surface. Anything not listed falls through to the page
+	# below, so a new relay route has to be added here too or it answers HTML.
+	@relay path /health /healthz /session /authorize /v1/*
+	handle @relay {
+		# WebSocket upgrades pass through unchanged; the relay needs the original
+		# Authorization header on the control leg. flush_interval -1 disables
+		# response buffering, which would otherwise add latency to every frame.
+		reverse_proxy relay:8787 {
+			flush_interval -1
+		}
 	}
 
-	# No query-string filtering needed: the enrolment secret moved into the
-	# POST body of /session, so it never appears in a URL, a log, or browser
-	# history in the first place.
+	# Why a page at all: the filing is for a website, so the domain has to serve
+	# something over HTTP. It carries the filing number and nothing else — the
+	# relay has no public surface worth documenting.
+	handle {
+		root * /srv/site
+		file_server
+	}
+
+	# No query-string filtering needed: the enrolment secret moved into the POST
+	# body of /session, so it never appears in a URL, a log, or browser history
+	# in the first place.
 	log {
 		output stdout
 		format json
