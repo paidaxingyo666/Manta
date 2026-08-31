@@ -386,6 +386,7 @@ import { startPreGoneProcessMetricsSampling } from './crash-reporting/process-go
 import { resolveExpectedTeardownScope } from './crash-reporting/expected-teardown-state'
 import {
   advanceSyntheticTitleSpinnerEntries,
+  getSyntheticTitleSpinnerPaneKeyToStop,
   type SyntheticTitleSpinnerEntry
 } from './synthetic-title-spinner'
 import { shouldSendSyntheticTitleFrame } from './synthetic-title-visibility'
@@ -2207,6 +2208,18 @@ async function printServeReady(options: ServeOptions): Promise<void> {
 registerPaneKeyTeardownListener((paneKey) => {
   stopSyntheticTitleSpinner(paneKey)
 })
+
+// Why: the spinner is a stand-in for a live hook status, so it must retire with the row it
+// stands in for — otherwise a pane whose status was cleared or dismissed keeps rotating a
+// working title long after the agent finished (#13890). Both paths are covered: the
+// pane-scoped clear fan-out, and user dismissal, which never routes through it.
+agentHookServer.subscribePaneStatusClear((clear) => {
+  const paneKey = getSyntheticTitleSpinnerPaneKeyToStop(clear)
+  if (paneKey) {
+    stopSyntheticTitleSpinner(paneKey)
+  }
+})
+agentHookServer.subscribeStatusDrop(stopSyntheticTitleSpinner)
 
 function sendSyntheticTitle(ptyId: string, data: string, options: { force?: boolean } = {}): void {
   if (!mainWindow || mainWindow.isDestroyed()) {
