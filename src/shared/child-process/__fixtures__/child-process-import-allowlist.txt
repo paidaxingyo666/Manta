@@ -41,8 +41,11 @@ src/main/ai-vault/session-scanner-service-spawn.ts
 src/main/ai-vault/session-scanner-service-test-child.ts
 src/main/app-icon.ts
 src/main/automations/precheck-runner.ts
-src/main/browser/agent-browser-bridge.ts
-src/main/browser/browser-cookie-import.ts
+src/main/browser/agent-browser-bridge-execution.ts
+src/main/browser/agent-browser-bridge-raw-process.ts
+src/main/browser/agent-browser-bridge-state.ts
+src/main/browser/agent-browser-bridge-types.ts
+src/main/browser/browser-cookie-key.ts
 src/main/browser/browser-route-egress-electron-launch.ts
 src/main/browser/browser-route-persisted-worker-electron-process.ts
 src/main/claude-accounts/keychain.ts
@@ -88,7 +91,8 @@ src/main/ipc/developer-permissions.ts
 src/main/ipc/filesystem-list-files-git-fallback.ts
 src/main/ipc/filesystem-list-files.ts
 src/main/ipc/filesystem-watcher-wsl.ts
-src/main/ipc/filesystem.ts
+src/main/ipc/filesystem/filesystem-handler-context.ts
+src/main/ipc/filesystem/filesystem-search-handlers.ts
 src/main/ipc/local-network-connection-test.ts
 src/main/ipc/macos-keyboard-layout-snapshot.ts
 src/main/ipc/notebook.ts
