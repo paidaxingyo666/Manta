@@ -1,10 +1,9 @@
 import type { GitLabTaskFilter, GitLabIssueFilter } from '@/components/task-page-localized-options'
 import type { GitHubWorkItem } from '../../../shared/github/work-item-types'
-import type { GitLabWorkItem } from '../../../shared/gitlab-types'
+import type { GitLabProjectRef, GitLabWorkItem } from '../../../shared/gitlab-types'
 import type { JiraIssue } from '../../../shared/jira-types'
 import type { Repo } from '../../../shared/repo-types'
 import { getLinkedWorkItemWorkspaceName, getLinkedWorkItemSuggestedName } from '@/lib/new-workspace'
-import type { GitLabProjectRef } from '../../../shared/gitlab-types'
 import {
   type TaskSourceContext,
   normalizeTaskSourceContext,

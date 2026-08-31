@@ -11,9 +11,9 @@ import {
 } from './workspace-space-presentation'
 import {
   getSelectedDeletableWorkspaceRows,
-  getVisibleDeletableWorkspaceIdentities
+  getVisibleDeletableWorkspaceIdentities,
+  getWorkspaceSpaceWorktreeIdentity
 } from './workspace-space-delete-selection'
-import { getWorkspaceSpaceWorktreeIdentity } from './workspace-space-delete-selection'
 import type { WorkspaceSpaceWorktree } from '../../../../shared/workspace-space-types'
 import { getWorkspaceSpaceProgressLabel } from './workspace-space-format'
 import type { useWorkspaceSpaceManagerBindings } from './use-workspace-space-manager-bindings'

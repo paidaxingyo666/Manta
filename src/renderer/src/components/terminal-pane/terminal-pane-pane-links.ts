@@ -4,8 +4,10 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TerminalPaneLifecycleRefs } from './use-terminal-pane-lifecycle-refs'
 import type { LinkHandlerDeps } from './terminal-link-handlers'
 import type { TerminalLinkActionContext } from './terminal-link-action-request'
-import type { TerminalHttpLinkActionDestinations } from './terminal-url-link-hit-testing'
-import type { TerminalLinkRoutingPreferenceRequester } from './terminal-url-link-hit-testing'
+import type {
+  TerminalHttpLinkActionDestinations,
+  TerminalLinkRoutingPreferenceRequester
+} from './terminal-url-link-hit-testing'
 import {
   createFilePathLinkProvider,
   installFilePathLinkClickFallback
