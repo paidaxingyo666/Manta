@@ -1,0 +1,5 @@
+{
+  "title": "Editing in Manta",
+  "defaultOpen": true,
+  "pages": ["monaco", "markdown", "viewers", "file-explorer"]
+}

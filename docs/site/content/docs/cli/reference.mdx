@@ -1,0 +1,341 @@
+---
+title: Manta CLI reference
+description: Commands, selectors, and agent-friendly patterns for driving Manta from a shell.
+---
+
+import { Callout } from '@/components/docs/prose';
+
+The `manta` CLI talks to a running Manta runtime. Use it when a shell script or agent needs to inspect worktrees, launch terminals, open files, automate the built-in browser, or report progress back into Manta.
+
+## Verify the runtime
+
+Register the CLI under [Settings → General → Manta CLI](/docs/settings), then check that it can reach Manta:
+
+```bash
+command -v manta
+manta status --json
+```
+
+If Manta is not already running:
+
+```bash
+manta open --json
+manta status --json
+```
+
+Use `--json` when another tool will parse the result. Human-readable output is for quick terminal checks.
+
+## Selectors
+
+Most commands accept selectors instead of requiring long IDs:
+
+```bash
+manta repo show --repo id:<repoId> --json
+manta worktree show --worktree active --json
+manta worktree show --worktree path:/abs/path/to/worktree --json
+manta worktree show --worktree branch:feature-name --json
+manta worktree show --worktree issue:123 --json
+```
+
+`active` and `current` resolve to the enclosing Manta-managed worktree from the shell's current directory or terminal context. Use explicit selectors in scripts that may run outside the target worktree. For remote runtimes, prefer full server-side selectors such as `id:<repoId>::<absolute-worktree-path>` or `path:<absolute-server-path>` because the local shell's current directory may not exist on the runtime host.
+
+## Choose a host
+
+List every machine the current Manta host can target and the selector for each one:
+
+```bash
+manta host list --json
+```
+
+The result includes this machine, its registered [SSH targets](/docs/ssh), and paired [Remote Manta Servers](/docs/remote-servers). Use `--host local` for this machine, `--host ssh:<target-id>` for an SSH target, and `--environment <server-name>` for a paired server. SSH labels and paired-server names also resolve when they are unique; use the IDs from `host list` when names collide. If you put a machine name on the wrong selector, Manta reports the matching machine and the flag to use instead of returning an empty result.
+
+## Runtime commands
+
+```bash
+manta open --json
+manta status --json
+manta serve --port 6768 --pairing-address 100.64.1.20 --json
+```
+
+`manta serve` starts a runtime server in the foreground without opening the desktop window. Use it for [Remote Manta Servers](/docs/remote-servers) or headless environments, and stop it with `Ctrl-C`.
+
+## Repos
+
+```bash
+manta repo list --json
+manta repo add --path /abs/path/to/repo --json
+manta repo show --repo id:<repoId> --json
+manta repo set-base-ref --repo id:<repoId> --ref origin/main --json
+manta repo search-refs --repo id:<repoId> --query main --limit 10 --json
+```
+
+Set the repo base ref before creating lots of worktrees so new tasks branch from the right place by default.
+
+## Worktrees
+
+```bash
+manta worktree list --repo id:<repoId> --json
+manta worktree ps --json
+manta worktree current --json
+manta worktree show --worktree active --json
+manta worktree create --repo id:<repoId> --name fix-login --json
+manta worktree create --name child-task --agent codex --prompt "Investigate the flaky login test" --json
+manta worktree set --worktree active --comment "reproduced failure; testing token refresh fix" --json
+manta worktree rm --worktree id:<worktreeId> --force --json
+```
+
+When `worktree create` runs from inside a Manta-managed worktree, Manta records the new worktree as a child when it can infer the relationship. Pass `--parent-worktree active` to be explicit, or `--no-parent` when the new work is independent.
+
+Agent startup flags:
+
+```bash
+manta worktree create --name review-api --agent claude --setup run --json
+manta worktree create --name quick-check --agent codex --prompt "Summarize the diff" --setup skip --json
+manta worktree create --name hidden-setup --setup inherit --json
+```
+
+`--agent` launches the selected agent in the first terminal. `--prompt` sends initial work to that agent. `--setup run|skip|inherit` controls repo setup hooks; `inherit` follows the repo policy.
+
+## Terminals
+
+```bash
+manta terminal list --worktree active --json
+manta terminal show --terminal <handle> --json
+manta terminal read --terminal <handle> --json
+manta terminal read --terminal <handle> --screen --json
+manta terminal read --terminal <handle> --cursor <cursor> --limit 1000 --json
+manta terminal send --terminal <handle> --text "continue" --enter --json
+manta terminal wait --terminal <handle> --for tui-idle --timeout-ms 300000 --json
+manta terminal create --worktree active --title "tests" --command "npm test" --json
+manta terminal split --terminal <handle> --direction horizontal --command "npm run dev" --json
+manta terminal rename --terminal <handle> --title "runner" --json
+manta terminal switch --terminal <handle> --json
+manta terminal close --terminal <handle> --json
+```
+
+Omit `--terminal` to target the active terminal in the current worktree. Read before sending when you are not sure what the terminal is waiting for.
+
+<Callout title="Terminal handles">
+Terminal handles are runtime-scoped. If Manta restarts or a command reports a stale terminal handle, run `manta terminal list --json` and reacquire the handle.
+</Callout>
+
+`terminal list` reports each terminal's `executionHostId` when Manta can verify it, plus a result-level `hostScope` with covered and omitted host IDs. Treat a missing host identity or scope as **unverifiable**, not local. A missing terminal is evidence that it exited only when its execution host is listed in `hostScope.hostIds`.
+
+By default, `terminal read` returns the accumulated output stream with terminal escapes stripped. Programs that redraw lines can therefore appear as stacked fragments. Use `--screen` when you need the currently rendered frame; the response's `source` identifies `stream`, `screen`, or `screen-unavailable`. Screen reads have no history to page, so `--screen` and `--cursor` are mutually exclusive.
+
+For long output, use cursor reads. Save `nextCursor` from one stream read, then pass it back with `--cursor` to fetch only new output.
+
+## Files
+
+```bash
+manta file open src/App.tsx --worktree active --json
+manta file diff src/App.tsx --staged --worktree active --json
+manta file open-changed --mode both --worktree active --json
+```
+
+Paths are relative to the selected worktree. `open-changed` reads git status and opens changed files in edit, diff, or both modes.
+
+## Built-in browser
+
+Browser commands control Manta's embedded browser tab for the selected worktree. They do not control Chrome, Safari, or the Manta desktop UI.
+
+Use a snapshot -> act -> snapshot loop:
+
+```bash
+manta goto --url http://localhost:3000 --worktree active --json
+manta snapshot --worktree active --json
+manta click --element @e3 --worktree active --json
+manta fill --element @e1 --value "user@example.com" --worktree active --json
+manta wait --text "Welcome" --worktree active --json
+manta screenshot --worktree active --json
+```
+
+Refs such as `@e3` come from `snapshot`. Re-snapshot after navigation, tab switches, clicks that change the page, and any stale-ref error.
+
+Tab and capture commands:
+
+```bash
+manta tab list --worktree active --json
+manta tab create --url http://localhost:3000 --worktree active --json
+manta tab switch --index 1 --worktree active --json
+manta capture start --worktree active --json
+manta console --limit 50 --worktree active --json
+manta network --limit 50 --worktree active --json
+manta full-screenshot --worktree active --json
+manta pdf --worktree active --json
+```
+
+Use `manta exec --command "<agent-browser command>" --json` only for browser actions that do not have a typed Manta command yet.
+
+Browser device emulation:
+
+```bash
+manta set device --name "iPhone 12" --worktree active --json
+manta screenshot --worktree active --json
+```
+
+## Desktop computer use
+
+Use `manta computer` for native desktop apps outside the built-in browser:
+
+```bash
+manta computer permissions --json
+manta computer list-apps --json
+manta computer get-app-state --app com.apple.Safari --json
+manta computer click --app com.apple.Safari --element-index 12 --json
+manta computer paste-text --app com.apple.Safari --text "hello" --json
+```
+
+See [Computer use](/docs/cli/computer-use) for the full workflow and permission setup.
+
+## Mobile emulator
+
+The mobile emulator commands control iOS Simulator devices through Manta's worktree-scoped bridge. Use them instead of raw `serve-sim` or `simctl` when an agent is operating from inside Manta, so lifecycle and active-device state stay attached to the current worktree.
+
+```bash
+manta emulator list --worktree active --json
+manta emulator attach "<device-name-or-udid>" --worktree active --json
+manta emulator tap 0.5 0.7 --worktree active --json
+manta emulator type "hello" --worktree active --json
+manta emulator gesture '[{"type":"begin","x":0.5,"y":0.8},{"type":"move","x":0.5,"y":0.4},{"type":"end","x":0.5,"y":0.2}]' --worktree active --json
+manta emulator button home --worktree active --json
+manta emulator rotate landscape_left --worktree active --json
+manta emulator exec --command "tap 0.5 0.7" --worktree active --json
+manta emulator kill --worktree active --json
+manta emulator shutdown --worktree active --json
+```
+
+Coordinates are normalized from `0` to `1`. Prefer `tap` for single taps, and use `gesture` for drags or multi-step touch input. Pass `--device <udid-or-name>` or `--emulator <id>` when a script must target a specific simulator instead of the worktree's active emulator.
+
+## Linear
+
+The `manta linear` surface is what agents use via the `orca-linear` skill (legacy install name `linear-tickets` still works). Prefer `--json`. Linked worktrees resolve with `--current`.
+
+### Read
+
+```bash
+manta linear issue --current --full --json
+manta linear issue ENG-123 --comments --children --relations --activity --json
+manta linear search "auth bug" --workspace all --json
+manta linear list --filter assigned --limit 10 --json
+manta linear list-issues --team ENG --state started --assignee me --json
+manta linear list-issues --query auth --updated-at -P7D --cursor <cursor> --workspace <id> --json
+manta linear team list --json
+manta linear team states --team ENG --json
+manta linear team labels --team ENG --json
+manta linear project list --query launch --json
+```
+
+`--full` expands comments, children, attachments, relations, and activity. Section flags (`--comments`, `--children`, `--attachments`, `--relations`, `--activity`) work individually.
+
+### MCP-style write
+
+```bash
+# Create or update (omit id/--current to create; requires --team and --title on create)
+manta linear save-issue --team ENG --title "Fix auth" --priority high --json
+manta linear save-issue ENG-123 --state "In Progress" --assignee me --json
+manta linear save-issue --current --project null --due-date null --json
+
+manta linear relation add ENG-1 --related ENG-2 --type blocks --json
+manta linear relation remove ENG-1 --related ENG-2 --type related --json
+```
+
+`save-issue` labels **replace** the full label set (Linear MCP `save_issue` semantics). Literal `null` clears assignee, estimate, due date, project, or parent.
+
+### Field helpers (still valid)
+
+```bash
+manta linear status set --current --to "In Progress" --json
+manta linear assignee set --current --me --json
+manta linear priority set ENG-123 --to high --json
+manta linear estimate set --current --to 3 --json
+manta linear due-date set --current --to 2026-08-01 --json
+manta linear label add --current --label backend --json
+manta linear comment add --current --body "Investigating regression" --json
+manta linear attach --current --url https://example.com/repro --title "Repro" --json
+manta linear create --title "Flaky login test" --team ENG --priority high --json
+```
+
+Run `manta linear --help` or `manta skills get orca-linear` for the version-matched list. Pass an explicit issue id (e.g. `ENG-123`) when a script may run outside an Orca-linked worktree.
+
+## Skills (local, no runtime required)
+
+List bundled guides, print a version-matched guide, or install/update hybrid skill packages without the desktop Settings UI:
+
+```bash
+manta skills list
+manta skills get orca-cli
+manta skills get orchestration --full
+manta skills install --skill orca-cli --skill orchestration
+manta skills install --all --dry-run
+manta skills update --all
+```
+
+`install` / `update` shell out to the same `npx skills` commands Settings uses. They do not contact the Manta runtime. See [Manta skills](/docs/cli/skills#keep-skills-up-to-date).
+
+## Account (host-local runtime)
+
+On a headless host running Manta (`manta serve` or the desktop app), add managed Claude/Codex accounts when the remote client cannot use **Add account** (remote runtime scope disables that button):
+
+```bash
+manta account list
+manta account add                 # Claude by default
+manta account add --agent codex
+```
+
+`account add` runs `claude login` / `codex login` in **this** terminal on the host, then registers the captured credentials with the local runtime. Codex uses device authorization so the browser can finish on another machine. Run these on the machine that owns the accounts — not through a client-only remote session.
+
+## Artifacts
+
+Publish HTML or Markdown through the signed-in Manta account. Viewing a public link does not require sign-in; create/list/update/delete do. **Publishing is off by default** — a human must enable **Settings → Artifacts → Allow publishing public artifact links** on the device. There is no CLI flag that grants the gate. `list`, `unshare`, and `delete` stay available so you can audit or revoke links after turning publishing off.
+
+```bash
+manta artifacts share ./report.html --json
+manta artifacts share ./notes.md --json
+manta artifacts update ./notes.md --json
+manta artifacts unshare ./notes.md --json
+manta artifacts list --json
+manta artifacts list --cursor <cursor> --json
+manta artifacts delete <id> --json
+```
+
+- Accepted files: `.html`, `.htm`, `.md`, `.markdown`.
+- `share` stores the edit token in the active Manta profile and does not print it. `update` / `unshare` resolve by the same local path and profile that originally shared the file.
+- `list` is paged (`nextCursor` → `--cursor`). `delete` takes the artifact id from `list` and does not need the original file.
+- Relative HTML assets are not uploaded — share self-contained HTML or absolute asset URLs.
+- Denied publish/update fails with `artifact_sharing_disabled`; fix Settings instead of retrying.
+- Desktop: open a local HTML or Markdown file and use **Share as artifact**, or manage links from the sidebar **Artifacts** page.
+
+## Automations, environments, and hooks
+
+Scheduled prompts:
+
+```bash
+manta automations list --json
+manta automations create --name "Daily review" --trigger daily --time 09:00 --prompt "Review open changes" --provider codex --repo id:<repoId> --disabled --json
+manta automations run <automationId> --json
+```
+
+Remote runtime environments:
+
+```bash
+manta environment add --name work-laptop --pairing-code "manta://pair?code=..." --json
+manta environment list --json
+manta environment rm --environment <selector> --json
+```
+
+Agent status hooks:
+
+```bash
+manta agent hooks status --json
+manta agent hooks on --json
+manta agent hooks off --json
+```
+
+## Agent habits
+
+- Prefer `--json` for automation and agent calls.
+- Prefer selectors over parsing UI labels.
+- Read terminal state before sending input unless the next input is obvious.
+- Use worktree comments for progress checkpoints. See [Worktree checkpoints](/docs/cli/worktree-checkpoints).
+- Use [Orchestration](/docs/cli/orchestration) for tracked multi-agent dispatches instead of ad hoc terminal prompts.

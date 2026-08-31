@@ -2150,6 +2150,42 @@ jobs:
           done
           echo "::warning::Failed to dispatch post-release E2E for $TAG after 3 attempts."
 
+  docs-production-dispatch:
+    needs:
+      - cut
+      - publish-release
+    # A release created with GITHUB_TOKEN does not reliably emit a release
+    # event to other workflows. Dispatch the trusted default-branch workflow;
+    # it validates and checks out the released tag before deploying.
+    if: ${{ needs.cut.outputs.tag != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch docs deployment for stable desktop tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.cut.outputs.tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Skipping docs deployment for non-stable tag $TAG."
+            exit 0
+          fi
+          for attempt in 1 2 3; do
+            if gh workflow run docs.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref "$DEFAULT_BRANCH" \
+              --field "tag=$TAG"; then
+              echo "Dispatched docs deployment for $TAG."
+              exit 0
+            fi
+            [[ "$attempt" -eq 3 ]] || sleep "$((attempt * 5))"
+          done
+          echo "::error::Failed to dispatch docs deployment for $TAG after 3 attempts."
+          exit 1
+
   homebrew-bump-published-rc-draft:
     needs:
       - cut

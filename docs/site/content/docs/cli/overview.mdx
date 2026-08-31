@@ -1,0 +1,122 @@
+---
+title: Manta CLI overview
+description: Use the Manta CLI to script Manta from a terminal, manage worktrees, control agent terminals, automate the built-in browser, and install agent skills.
+keywords:
+  - manta cli
+  - Manta CLI
+  - manta command line
+  - Manta skills
+  - npx skills add
+  - agent CLI
+---
+
+import { Callout } from '@/components/docs/prose';
+
+The Manta CLI is the `manta` command-line interface for scripting a running Manta editor from any shell. Use it to create and inspect worktrees, drive agent terminals, open files and diffs, automate the built-in browser, run scheduled automations, share HTML/Markdown artifacts, and control Manta-native tools from scripts or AI agents.
+
+It ships with the desktop app; register it under [Settings → General → Manta CLI](/docs/settings).
+
+Agents can install the matching Manta CLI skill with:
+
+```bash
+npx skills add https://github.com/stablyai/orca --skill orca-cli
+# headless / no Settings UI:
+manta skills install --skill orca-cli
+```
+
+See [Skills registry & MCP](/docs/cli/skills) for every installable Manta skill, including `manta skills install` / `manta skills update`.
+
+## Install & verify
+
+```
+command -v manta
+manta status --json
+```
+
+## Worktree commands
+
+```
+manta worktree ps --json
+manta worktree create --repo id:<repoId> --name my-task --issue 123 --json
+manta worktree current --json
+manta worktree set --worktree active --comment "reproduced bug" --json
+manta worktree rm --worktree id:<id> --force --json
+```
+
+For selectors, setup flags, parent/child worktrees, and the broader command map, see [Manta CLI reference](/docs/cli/reference).
+
+## Terminal commands
+
+```
+manta terminal list --json
+manta terminal read --json
+manta terminal send --text "continue" --enter --json
+manta terminal wait --for tui-idle --timeout-ms 30000 --json
+manta terminal create --worktree path:/projects/app --command "npm test" --json
+manta terminal split --direction vertical --command "npm run dev" --json
+```
+
+For tracked multi-agent work, use [Orchestration](/docs/cli/orchestration) instead of plain terminal prompts.
+
+## File commands
+
+Open files and diffs in the active Manta worktree from a shell:
+
+```
+manta file open src/App.tsx
+manta file diff src/App.tsx --staged
+manta file open-changed --mode both
+```
+
+Use `--worktree <selector>` when the shell's current directory is not inside the target worktree.
+
+## Browser profiles
+
+Browser profiles isolate tab session state, so a script or agent can test with different cookies, local storage, and logged-in identities. The CLI exposes profile commands under `manta tab profile`; start with `manta tab profile list --json`, then use `create`, `set`, `clone`, or `use-default` as needed.
+
+## Scheduled automations
+
+Use `manta automations` to create, inspect, run, and remove scheduled Manta tasks from a shell. Start with [Scheduled automations](/docs/cli/automations) when you want a recurring prompt to run against a repo or an existing worktree.
+
+## Artifacts
+
+Share HTML or Markdown as public view links through the signed-in Manta account (`manta artifacts share|update|list|delete`). Publishing is **opt-in** under Settings → Artifacts. Command details: [CLI reference → Artifacts](/docs/cli/reference#artifacts).
+
+## Browser automation
+
+The CLI also drives the built-in browser with a snapshot-interact-re-snapshot loop:
+
+```
+manta goto --url https://example.com --json
+manta snapshot --json     # returns refs like @e1, @e3
+manta click --element @e3 --json
+manta fill --element @e1 --value "user@example.com" --json
+manta screenshot --json
+```
+
+For responsive browser checks, switch the active tab to a named device profile:
+
+```
+manta set device --name "iPhone 12" --json
+manta screenshot --json
+```
+
+## Mobile emulator
+
+The CLI can also drive an iOS Simulator through Manta's mobile emulator bridge. It is scoped to the active worktree, so agents and scripts can attach a simulator from `manta emulator list`, tap normalized coordinates, type text, send gestures, rotate the device, and shut it down without leaving Manta.
+
+```
+manta emulator list --json
+manta emulator attach "<device-name-or-udid>" --json
+manta emulator tap 0.5 0.7 --json
+manta emulator type "hello" --json
+manta emulator gesture '[{"type":"begin","x":0.5,"y":0.8},{"type":"move","x":0.5,"y":0.4},{"type":"end","x":0.5,"y":0.2}]' --json
+manta emulator rotate landscape_left --json
+manta emulator kill --json
+```
+
+Use `--worktree <selector>`, `--device <udid-or-name>`, or `--emulator <id>` when a script needs an explicit target.
+
+<Callout>
+For the full command surface including tabs, waits, cookies, and frames, see [Manta CLI reference](/docs/cli/reference), then install the Manta CLI skill (see [Skills registry](/docs/cli/skills)) and point your agent at it.
+</Callout>
