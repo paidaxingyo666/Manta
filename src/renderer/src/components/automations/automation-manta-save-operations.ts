@@ -236,30 +236,28 @@ export async function createAutomationOnDestination(
 
 export async function saveExistingAutomation(
   context: AutomationSaveContext,
+  automationId: string,
   currentAutomation: Automation | null,
   updates: AutomationUpdateInput,
   destination: AutomationDestination | undefined,
   fallbackTarget: AutomationHostTarget | null,
   rowKey: string | null
 ): Promise<AutomationDispatchResult<Automation>> {
-  if (!currentAutomation) {
-    return {
-      ok: false,
-      notice: {
-        message: translate(
-          'auto.components.automations.AutomationsPage.ownerChanged',
-          'This automation changed hosts. Refresh and try again.'
-        ),
-        recovery: 'retry',
-        severity: 'owner'
-      }
-    }
-  }
   return await dispatchAutomationUpdate(
     context.destination.automationDispatchContext,
-    { rowKey: rowKey ?? '', automationId: currentAutomation.id },
+    { rowKey: rowKey ?? '', automationId },
     updates,
-    () => updateAutomationForTarget(currentAutomation, updates, fallbackTarget),
+    () => {
+      if (!currentAutomation) {
+        throw new Error(
+          translate(
+            'auto.components.automations.AutomationsPage.ownerChanged',
+            'This automation changed hosts. Refresh and try again.'
+          )
+        )
+      }
+      return updateAutomationForTarget(currentAutomation, updates, fallbackTarget)
+    },
     'save',
     destination
   )
