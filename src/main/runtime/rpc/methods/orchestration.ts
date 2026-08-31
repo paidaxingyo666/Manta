@@ -25,6 +25,7 @@ import {
 import { clampOrchestrationAskTimeoutMs } from '../../../../shared/orchestration-ask-timeout'
 import { ORCHESTRATION_GATE_METHODS } from './orchestration-gates'
 import {
+  assertDispatchMailboxDeliverable,
   resolveBareOrchestrationRecipient,
   type SendRecipientWarning
 } from './orchestration-recipient-routing'
@@ -34,6 +35,7 @@ import { resolveRunScope } from './orchestration-run-scope'
 import { ORCHESTRATION_RUN_METHODS } from './orchestration-runs'
 import { ORCHESTRATION_WORKER_METHODS } from './orchestration-worker-methods'
 import { ORCHESTRATION_FEDERATION_METHODS } from './orchestration-federation-methods'
+import { ORCHESTRATION_MUTATION_REQUEST_METHODS } from './orchestration-mutation-request-show'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import type { MantaRuntimeService } from '../../manta-runtime'
 import type { RunRow } from '../../orchestration/types'
@@ -441,6 +443,7 @@ export const ORCHESTRATION_METHODS: RpcMethod[] = [
   ...ORCHESTRATION_RUN_METHODS,
   ...ORCHESTRATION_WORKER_METHODS,
   ...ORCHESTRATION_FEDERATION_METHODS,
+  ...ORCHESTRATION_MUTATION_REQUEST_METHODS,
   defineMethod({
     name: 'orchestration.send',
     params: SendParams,
@@ -626,15 +629,18 @@ export const ORCHESTRATION_METHODS: RpcMethod[] = [
       } => (sendWarnings.length > 0 ? { ...receipt, warnings: sendWarnings } : receipt)
 
       if (!isGroupAddress(to)) {
-        const federatedDispatchId = to.startsWith('dispatch:')
+        const addressedDispatchId = to.startsWith('dispatch:')
           ? to.slice('dispatch:'.length)
           : undefined
         const federatedTarget =
-          federatedDispatchId && to === `dispatch:${federatedDispatchId}`
-            ? db.getFederatedDispatch(federatedDispatchId)
+          addressedDispatchId && to === `dispatch:${addressedDispatchId}`
+            ? db.getFederatedDispatch(addressedDispatchId)
             : undefined
-        if (federatedTarget && federatedDispatchId) {
-          const dispatchId = federatedDispatchId
+        if (addressedDispatchId && !federatedTarget) {
+          assertDispatchMailboxDeliverable(db, addressedDispatchId)
+        }
+        if (federatedTarget && addressedDispatchId) {
+          const dispatchId = addressedDispatchId
           if (
             federatedTarget.protocol_version <
             ORCHESTRATION_FEDERATION_CONTROL_MAIL_PROTOCOL_VERSION
