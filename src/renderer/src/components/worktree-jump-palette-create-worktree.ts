@@ -235,6 +235,7 @@ export function createWorktreeJumpPaletteWorktreeHandler({
         openComposer({ prefilledName: trimmed })
         return
       }
+      prefetchCreateWorkspaceBaseForComposer(repo.id)
       const sourceContext = buildTaskSourceContextFromRepo({
         provider: 'github',
         projectId: repo.id,
@@ -243,6 +244,7 @@ export function createWorktreeJumpPaletteWorktreeHandler({
       const token = createLookupGuard.start()
       preserveCreateLookupOnCloseRef.current = true
       skipRestoreFocusRef.current = true
+      recordFeatureInteraction('cmd-j-create-workspace')
       closeModal()
       void lookupGitHubWorkItemForSource({
         repoPath: repo.path,
