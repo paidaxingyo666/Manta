@@ -3252,6 +3252,16 @@
             "autoDescription": "Mantener la computadora activa mientras un agente está trabajando",
             "offDescription": "Permitir que el sistema entre en suspensión normalmente"
           },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "La conexión anterior se cerró",
+            "workspace_window_closed": "La ventana del espacio de trabajo está cerrada",
+            "checking_host": "Manta está comprobando si se puede acceder a este host",
+            "restoring_connection": "Manta está intentando restablecer la conexión",
+            "host_unreachable": "No se puede acceder a Manta en este host",
+            "contact_note": "Es posible que el host siga en ejecución; solo la conexión de Manta no está disponible.",
+            "last_connected": "Última conexión: {{value0}}",
+            "reconnect_attempt": "Intento {{value0}}"
+          },
           "StatusBar": {
             "9659e38343": "Puertos",
             "d1e1a7a6bf": "Administrador de recursos",

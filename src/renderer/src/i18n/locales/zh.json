@@ -3271,6 +3271,16 @@
             "autoDescription": "智能体工作时防止电脑进入睡眠状态",
             "offDescription": "允许系统正常进入睡眠状态"
           },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "上一次连接已断开",
+            "workspace_window_closed": "工作区窗口已关闭",
+            "checking_host": "Manta 正在检查此主机是否可达",
+            "restoring_connection": "Manta 正在尝试恢复连接",
+            "host_unreachable": "无法连接此主机上的 Manta",
+            "contact_note": "主机可能仍在运行；当前仅 Manta 连接不可用。",
+            "last_connected": "上次连接：{{value0}}",
+            "reconnect_attempt": "第 {{value0}} 次尝试"
+          },
           "StatusBar": {
             "9659e38343": "端口",
             "d1e1a7a6bf": "资源管理器",

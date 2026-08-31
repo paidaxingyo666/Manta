@@ -3257,6 +3257,16 @@
             "autoDescription": "에이전트가 작업하는 동안 절전 모드로 전환되지 않도록 유지",
             "offDescription": "시스템의 기본 절전 동작 허용"
           },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "이전 연결이 종료되었습니다",
+            "workspace_window_closed": "워크스페이스 창이 닫혀 있습니다",
+            "checking_host": "Manta가 이 호스트에 연결할 수 있는지 확인하는 중입니다",
+            "restoring_connection": "Manta가 연결 복구를 시도하는 중입니다",
+            "host_unreachable": "이 호스트의 Manta에 연결할 수 없습니다",
+            "contact_note": "호스트는 계속 실행 중일 수 있으며, Manta 연결만 사용할 수 없습니다.",
+            "last_connected": "마지막 연결: {{value0}}",
+            "reconnect_attempt": "{{value0}}번째 시도"
+          },
           "StatusBar": {
             "9659e38343": "포트",
             "d1e1a7a6bf": "리소스 관리자",

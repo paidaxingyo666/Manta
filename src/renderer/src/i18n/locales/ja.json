@@ -3252,6 +3252,16 @@
             "autoDescription": "Agent の作業中はスリープさせない",
             "offDescription": "通常のシステムスリープを許可する"
           },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "前回の接続は切断されました",
+            "workspace_window_closed": "ワークスペースウィンドウが閉じています",
+            "checking_host": "Manta がこのホストに接続可能か確認しています",
+            "restoring_connection": "Manta が接続の復元を試みています",
+            "host_unreachable": "このホストの Manta に接続できません",
+            "contact_note": "ホストは引き続き稼働している可能性があります。利用できないのは Manta の接続のみです。",
+            "last_connected": "最終接続：{{value0}}",
+            "reconnect_attempt": "試行 {{value0}}"
+          },
           "StatusBar": {
             "9659e38343": "ポート",
             "d1e1a7a6bf": "リソースマネージャー",
