@@ -125,7 +125,9 @@ export class RpcDispatcher {
           clientCapabilities: options?.clientCapabilities,
           orchestrationCapability: request.orchestrationCapability,
           authenticatedCallerFingerprint:
-            mutation?.identity.callerFingerprint ?? authenticatedCallerFingerprint,
+            mutation?.identity.callerFingerprint ??
+            legacyCoordinator?.mutationCallerFingerprint ??
+            authenticatedCallerFingerprint,
           recordMutationReceipt: mutation?.recordReceipt,
           orchestrationMutation: mutation?.identity,
           legacyCoordinatorRunId,
@@ -240,7 +242,9 @@ export class RpcDispatcher {
             clientCapabilities: options?.clientCapabilities,
             orchestrationCapability: request.orchestrationCapability,
             authenticatedCallerFingerprint:
-              mutation?.identity.callerFingerprint ?? authenticatedCallerFingerprint,
+              mutation?.identity.callerFingerprint ??
+              legacyCoordinator?.mutationCallerFingerprint ??
+              authenticatedCallerFingerprint,
             recordMutationReceipt: mutation?.recordReceipt,
             orchestrationMutation: mutation?.identity,
             pairing: options?.pairing,
