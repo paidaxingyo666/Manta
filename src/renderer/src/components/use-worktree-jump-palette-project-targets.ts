@@ -64,9 +64,9 @@ export function useWorktreeJumpPaletteProjectTargets({
       }
     }
     for (const repoId of buildImportedWorktreesCardCandidates({
-    repos,
-    detectedWorktreesByRepo,
-    visibilityDefaultsByHost: worktreeVisibilityDefaultsByHost
+      repos,
+      detectedWorktreesByRepo,
+      visibilityDefaultsByHost: worktreeVisibilityDefaultsByHost
     }).keys()) {
       ids.add(repoId)
     }
