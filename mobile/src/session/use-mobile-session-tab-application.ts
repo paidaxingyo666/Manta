@@ -108,8 +108,10 @@ export function useMobileSessionTabApplication(scope: MobileSessionTerminalListM
       }
 
       const pendingActiveSessionTabId = pendingActiveSessionTabIdRef.current
-      const pendingActiveTerminalHandle = pendingActiveTerminalHandleRef.current
       const followsHost = result.navigationIntent === 'follow'
+      const pendingActiveTerminalHandle = followsHost
+        ? null
+        : pendingActiveTerminalHandleRef.current
       if (followsHost) {
         pendingActiveTerminalHandleRef.current = null
         pendingBrowserFocusPageIdRef.current = null
