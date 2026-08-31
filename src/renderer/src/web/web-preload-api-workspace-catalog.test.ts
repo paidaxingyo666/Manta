@@ -596,6 +596,8 @@ describe('web worktree preload API', () => {
       compareBaseRef: 'refs/remotes/origin/main',
       setupDecision: 'inherit',
       createdWithAgent: 'codex',
+      displayName: 'Review label',
+      displayNameKind: 'user',
       startup: {
         command: "codex 'summarize repo'",
         env: { MANTA_AGENT_MODE: 'direct' },
@@ -636,6 +638,8 @@ describe('web worktree preload API', () => {
           baseBranch: TEST_COMMIT_OID,
           compareBaseRef: 'refs/remotes/origin/main',
           createdWithAgent: 'codex',
+          displayName: 'Review label',
+          displayNameKind: 'user',
           startupCommand: "codex 'summarize repo'",
           startupEnv: { MANTA_AGENT_MODE: 'direct' },
           startupLaunchConfig: {

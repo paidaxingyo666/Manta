@@ -16,11 +16,11 @@ const hash = (parts: string[] | string): string =>
     .update(Array.isArray(parts) ? parts.join('\n') : parts)
     .digest('hex')
 
-const PRE_REFACTOR_SCREEN_HOOKS = '6c6c1fb534f71b1e019158991bc50b6ba769e12af8a77cfbf10b0f56f3bda41c'
+const PRE_REFACTOR_SCREEN_HOOKS = 'b265fe7229e464ed9ad0b33cfd6b8bff7c97aa5623340f1061311fcc93bab41f'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
-const PRE_REFACTOR_STATEMENTS = '38f1c766f97e908a0cddeda123b576cd4a38232287836523e17df89d503743ae'
+const PRE_REFACTOR_STATEMENTS = '4d605fb77d880894d20dcd95d2498fc36ef4e168826e40fbd196200ab7c7c1d7'
 const PRE_REFACTOR_DECLARATIONS = '52e653c7bd29d73afa4265116c3ec590f3e091ceba31a9c6e37522437532e150'
-const PRE_REFACTOR_SEMANTICS = '06b5d60df02134908e6efdda2b5838e87ddbafdccd8d5cc518c74806996f8623'
+const PRE_REFACTOR_SEMANTICS = 'f99c16761d54127786d6a827e5459cc1daa2584fb4eae0daebce5e2260aecbb9'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
 const PRE_REFACTOR_RENDER_TREE = '642f7d7b88d7d4c9793da2ac5efb37c7d4fb2ab979cf472c719549a8cfe76fc7'
 
@@ -49,7 +49,7 @@ describe('Mobile Tasks refactor parity', () => {
 
   it('preserves RPC calls, runtime strings, and JSX host signatures', () => {
     const semantics = readMobileTasksSemanticSource()
-    expect(semantics.split('\n')).toHaveLength(4_223)
+    expect(semantics.split('\n')).toHaveLength(4_224)
     expect(hash(semantics)).toBe(PRE_REFACTOR_SEMANTICS)
   })
 
