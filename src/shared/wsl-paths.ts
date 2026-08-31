@@ -55,7 +55,12 @@ export function toWindowsWslPath(linuxPath: string, distro: string): string {
     return `${mntMatch[1].toUpperCase()}:${rest || '\\'}`
   }
 
-  return `\\\\wsl.localhost\\${distro}${linuxPath.replace(/\//g, '\\')}`
+  return toWindowsWslUncPath(linuxPath, distro)
+}
+
+/** Keep a Linux path addressable through its distro, including drvfs mounts. */
+export function toWindowsWslUncPath(linuxPath: string, distro: string): string {
+  return `\\\\wsl.localhost\\${distro}${linuxPath === '/' ? '\\' : linuxPath.replace(/\//g, '\\')}`
 }
 
 /**
@@ -86,7 +91,7 @@ export function resolveWslRepoWorktreeBasePath(repoPath: string, basePath: strin
     return basePath
   }
   const collapsed = collapsePosixDotSegments(basePath)
-  return `\\\\wsl.localhost\\${repoWsl.distro}${collapsed === '/' ? '\\' : collapsed.replace(/\//g, '\\')}`
+  return toWindowsWslUncPath(collapsed, repoWsl.distro)
 }
 
 function collapsePosixDotSegments(absolutePosixPath: string): string {
