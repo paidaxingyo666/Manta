@@ -1,10 +1,7 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { readMobileSessionRouteSourceFamily } from './mobile-session-route-source-family.test-support'
 
-const sessionRouteSource = readFileSync(
-  new URL('../../app/h/[hostId]/session/[worktreeId].tsx', import.meta.url),
-  'utf8'
-)
+const sessionRouteSource = readMobileSessionRouteSourceFamily()
 
 describe('mobile session last-tab close', () => {
   it('preserves terminal identity while an empty snapshot may be transient', () => {
