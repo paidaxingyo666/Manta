@@ -41,7 +41,7 @@ export type GlobalSubscriptionRefs = {
       runtimeId?: string
     ) => boolean
   >
-  snapshotRecord: Ref<
+  snapshotAccepted: Ref<
     (
       environmentId: string,
       snapshot: RuntimeMobileSessionTabsResult,
@@ -122,7 +122,7 @@ export function installGlobalSessionTabsSubscriptions({
   })
   refs.snapshotReceipt.current = coordinator.recordSnapshotReceipt.bind(coordinator)
   refs.snapshotApply.current = coordinator.shouldApplySnapshot.bind(coordinator)
-  refs.snapshotRecord.current = coordinator.recordSnapshot.bind(coordinator)
+  refs.snapshotAccepted.current = coordinator.recordSnapshot.bind(coordinator)
 
   for (const environment of environments) {
     const {
@@ -215,7 +215,7 @@ export function installGlobalSessionTabsSubscriptions({
   return () => {
     refs.snapshotReceipt.current = () => {}
     refs.snapshotApply.current = () => true
-    refs.snapshotRecord.current = () => {}
+    refs.snapshotAccepted.current = () => {}
     dispose()
     for (const { environmentId, expectedEnvironmentPairingRevision } of environments) {
       const owner = { environmentId, pairingRevision: expectedEnvironmentPairingRevision }

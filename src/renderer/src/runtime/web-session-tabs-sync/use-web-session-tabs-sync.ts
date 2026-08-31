@@ -24,9 +24,9 @@ export function useWebSessionTabsSync(): void {
   const visibilitySnapshotApplyRef = useRef<GlobalSubscriptionRefs['snapshotApply']['current']>(
     () => true
   )
-  const visibilitySnapshotRecordRef = useRef<GlobalSubscriptionRefs['snapshotRecord']['current']>(
-    () => {}
-  )
+  const visibilitySnapshotAcceptedRef = useRef<
+    GlobalSubscriptionRefs['snapshotAccepted']['current']
+  >(() => {})
 
   const activeWorktreeId = useAppStore((state) => state.activeWorktreeId)
   const workspaceSessionReady = useAppStore((state) => state.workspaceSessionReady)
@@ -86,7 +86,7 @@ export function useWebSessionTabsSync(): void {
         visibilityResumeOmissions: visibilityResumeOmissionsRef,
         snapshotReceipt: visibilitySnapshotReceiptRef,
         snapshotApply: visibilitySnapshotApplyRef,
-        snapshotRecord: visibilitySnapshotRecordRef,
+        snapshotAccepted: visibilitySnapshotAcceptedRef,
         ownerRevisions: ownerRevisionsRef
       }
     })
@@ -101,7 +101,7 @@ export function useWebSessionTabsSync(): void {
       workspaceSessionReady,
       visibilitySnapshotReceipt: visibilitySnapshotReceiptRef,
       visibilitySnapshotApply: visibilitySnapshotApplyRef,
-      visibilitySnapshotRecord: visibilitySnapshotRecordRef
+      visibilitySnapshotAccepted: visibilitySnapshotAcceptedRef
     })
   }, [
     activeWorktreeId,
