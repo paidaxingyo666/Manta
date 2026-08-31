@@ -759,7 +759,6 @@ if (app.isPackaged && process.platform !== 'win32') {
 }
 configureDevUserDataPath(is.dev)
 configureMantaUserDataPathEnv()
-installServeSupervisorDisconnectQuit(isServeMode)
 
 // Why: just past createMainWindow's 10s ready-to-show fallback, so a window revealed that way still gets its tray icon.
 const TRAY_CREATE_FALLBACK_MS = 12_000
@@ -974,6 +973,13 @@ if (hasSingleInstanceLock) {
   installDevParentSignalQuit(shouldCoupleToDevParent)
   // Why: run after configureDevUserDataPath but before app.setName('Manta') (whenReady), which changes the resolved path on case-sensitive filesystems.
   initDataPath()
+  // Why not at module scope with the other lifetime couplings (#16761): this resolves the handoff
+  // path, so it throws until setAppEnvironment() above installs the accessor — which killed every
+  // `manta serve` process before it could listen. After initDataPath() specifically, so the
+  // path-equality check against the CLI's env var uses the dir captured before app.setName().
+  // Safe to defer, and must stay synchronous: no 'disconnect' can be delivered until this module
+  // finishes evaluating, so moving this behind an await would open a real orphan window.
+  installServeSupervisorDisconnectQuit(isServeMode)
   // Why here: initDataPath above gives the canonical userData path for the record file; the write
   // itself lands for the next launch (see macos-press-and-hold-default.ts).
   applyMacPressAndHoldDefaultAtStartup(getCanonicalUserDataPath())

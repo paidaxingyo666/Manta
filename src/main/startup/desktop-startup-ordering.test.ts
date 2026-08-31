@@ -339,4 +339,34 @@ describe('startup ordering', () => {
     expect(desktopSetWebContents).toBeGreaterThanOrEqual(0)
     expect(desktopAutomationStart).toBeGreaterThan(desktopSetWebContents)
   })
+
+  it('installs the serve supervisor disconnect quit after the app environment and data path', () => {
+    // Why (#16761): the call resolves the handoff path through getCanonicalUserDataPath(). At module
+    // scope that accessor throws by design, so every `manta serve` process on macOS died at startup
+    // before it could listen. serve-update-handoff.test.ts mocks the resolver, so only ordering
+    // catches this; serve-update-handoff.app-environment.test.ts pins the throw it depends on.
+    const source = readFileSync(join(process.cwd(), 'src/main/index.ts'), 'utf8')
+    const install = 'installServeSupervisorDisconnectQuit(isServeMode)'
+    const appEnvironmentIndex = source.indexOf('setAppEnvironment(new ElectronAppEnvironment())')
+    const dataPathIndex = source.indexOf('initDataPath()')
+    const installIndex = source.indexOf(install)
+
+    expect(source.split(install).length - 1, `${install} should appear exactly once`).toBe(1)
+    expect(appEnvironmentIndex).toBeGreaterThanOrEqual(0)
+    expect(dataPathIndex).toBeGreaterThan(appEnvironmentIndex)
+    expect(installIndex).toBeGreaterThan(dataPathIndex)
+
+    // Why also pin it synchronous: 'disconnect' cannot be delivered while this module is still
+    // evaluating, which is the whole reason deferring it is free. Parked behind an await — say
+    // inside app.whenReady() — the ordering above still holds but a parent that dies in the gap
+    // leaves the serve process orphaned on its port, which is the failure this handler prevents.
+    expect(installIndex).toBeLessThan(source.indexOf('void app.whenReady().then('))
+    expect(installIndex).toBeGreaterThan(source.indexOf('if (hasSingleInstanceLock) {'))
+    const betweenCode = source
+      .slice(dataPathIndex, installIndex)
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('//'))
+      .join('\n')
+    expect(betweenCode).not.toContain('await')
+  })
 })
