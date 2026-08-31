@@ -22,7 +22,7 @@ export function sendPointToPointMessage(args: {
   senderPaneKey: string | undefined
   legacyCoordinatorRunId: string | undefined
   orchestrationCapability: string | undefined
-  processIncarnation: string | undefined
+  resolveProcessIncarnation: () => string | undefined
   revalidateLegacyCoordinator: (() => string) | undefined
   withSendWarnings: SendReceipt
 }): unknown {
@@ -37,7 +37,7 @@ export function sendPointToPointMessage(args: {
     senderPaneKey,
     legacyCoordinatorRunId,
     orchestrationCapability,
-    processIncarnation,
+    resolveProcessIncarnation,
     revalidateLegacyCoordinator,
     withSendWarnings
   } = args
@@ -65,6 +65,7 @@ export function sendPointToPointMessage(args: {
     )
   })
   if (isDispatchMutationMessageType(msg.type)) {
+    const processIncarnation = resolveProcessIncarnation()
     const taskId = parseMessageTaskId(params.payload)
     const capabilityBacked = Boolean(dispatch?.capability_hash)
     const coordinatorMutation = msg.type === 'escalation' || msg.type === 'decision_gate'
