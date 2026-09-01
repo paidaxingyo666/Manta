@@ -23,6 +23,11 @@
 #
 # daemon-launched-child.ts holds daemon-init.ts's fork() site; splitting that
 # file moved the import, it did not add one.
+#
+# Likewise the agent-browser-bridge-* and ipc/filesystem/* entries: splitting
+# agent-browser-bridge.ts and ipc/filesystem.ts moved these imports, it did not
+# add any. Only -execution.ts and -raw-process.ts spawn, and both already pass
+# windowsHide; the other four import ChildProcess as a type only.
 src/cli/handlers/account.ts
 src/cli/handlers/core.ts
 src/cli/handlers/interactive-login-interruption.ts
