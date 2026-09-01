@@ -1,5 +1,5 @@
 import { createElement, useEffect } from 'react'
-import { act, create, type ReactTestRenderer } from 'react-test-renderer'
+import { act, create } from 'react-test-renderer'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RpcClient } from '../transport/rpc-client'
 import {
@@ -84,8 +84,10 @@ async function flush(): Promise<void> {
 }
 
 describe('useMobileTerminalInventoryRecovery', () => {
-  let renderer: ReactTestRenderer | null = null
-  let bridgeRenderer: ReactTestRenderer | null = null
+  // ReturnType<typeof create>: the root type-aware gate cannot resolve
+  // ReactTestRenderer out of mobile/node_modules and reports it as `any`.
+  let renderer: ReturnType<typeof create> | null = null
+  let bridgeRenderer: ReturnType<typeof create> | null = null
 
   async function mount(scopeKey = 'host::worktree-a'): Promise<void> {
     await act(async () => {
