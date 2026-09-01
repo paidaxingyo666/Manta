@@ -159,10 +159,9 @@ jobs:
           ref: refs/tags/${{ github.ref_name }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -275,10 +274,9 @@ jobs:
           ref: refs/tags/${{ github.ref_name }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -378,10 +376,9 @@ jobs:
           ref: refs/tags/${{ github.ref_name }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/setup@v2
         with:
-          version: 10.24.0
-          run_install: false
+          install: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

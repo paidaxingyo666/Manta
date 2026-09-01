@@ -74,8 +74,8 @@ describe('resolveWslRepoWorktreeBasePath', () => {
   const WSL_REPO = '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\repo'
 
   it('resolves an absolute Linux base path into the repo distro (STA-4772)', () => {
-    expect(resolveWslRepoWorktreeBasePath(WSL_REPO, '/home/jin/project/.orca-worktrees')).toBe(
-      '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\project\\.orca-worktrees'
+    expect(resolveWslRepoWorktreeBasePath(WSL_REPO, '/home/jin/project/.manta-worktrees')).toBe(
+      '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\project\\.manta-worktrees'
     )
     expect(resolveWslRepoWorktreeBasePath('\\\\wsl$\\Debian\\srv\\repo', '/srv/trees')).toBe(
       '\\\\wsl.localhost\\Debian\\srv\\trees'
@@ -156,7 +156,7 @@ describe('getWslFilesystemBoundaryDistro', () => {
   it('names the runtime distro for a Windows drive project running WSL git', () => {
     expect(
       getWslFilesystemBoundaryDistro({
-        projectPath: 'C:\\Users\\alice\\orca',
+        projectPath: 'C:\\Users\\alice\\manta',
         wslRuntimeDistro: 'Ubuntu-24.04'
       })
     ).toBe('Ubuntu-24.04')
@@ -165,7 +165,7 @@ describe('getWslFilesystemBoundaryDistro', () => {
   it('stays silent for a Windows drive project running host git', () => {
     for (const wslRuntimeDistro of [undefined, null, '']) {
       expect(
-        getWslFilesystemBoundaryDistro({ projectPath: 'C:/Users/alice/orca', wslRuntimeDistro })
+        getWslFilesystemBoundaryDistro({ projectPath: 'C:/Users/alice/manta', wslRuntimeDistro })
       ).toBeNull()
     }
   })
@@ -173,7 +173,7 @@ describe('getWslFilesystemBoundaryDistro', () => {
   it('stays silent for a project already inside the distro', () => {
     expect(
       getWslFilesystemBoundaryDistro({
-        projectPath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\orca',
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\manta',
         wslRuntimeDistro: 'Ubuntu'
       })
     ).toBeNull()
@@ -184,13 +184,13 @@ describe('getWslFilesystemBoundaryDistro', () => {
   it('names the path distro for the UNC spelling of a drvfs mount', () => {
     expect(
       getWslFilesystemBoundaryDistro({
-        projectPath: '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\alice\\orca'
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\alice\\manta'
       })
     ).toBe('Ubuntu')
   })
 
   it('stays silent for POSIX, relative, and plain UNC share paths', () => {
-    for (const projectPath of ['/home/alice/orca', 'orca', '\\\\fileserver\\share\\orca']) {
+    for (const projectPath of ['/home/alice/manta', 'manta', '\\\\fileserver\\share\\manta']) {
       expect(getWslFilesystemBoundaryDistro({ projectPath, wslRuntimeDistro: 'Ubuntu' })).toBeNull()
     }
   })

@@ -127,7 +127,9 @@ function findCurrentDiagnosticFailure(
   entries: readonly ConnectionLogEntry[]
 ): ConnectionLogEntry | undefined {
   const boundaryIndex = entries.findLastIndex(isDiagnosticBoundary)
-  return [...entries.slice(boundaryIndex + 1)].reverse().find(isDiagnosticFailure)
+  // findLast, not reverse+find: Hermes has no toReversed, and the lint rule that
+  // bans reverse() would push it right back in.
+  return entries.slice(boundaryIndex + 1).findLast(isDiagnosticFailure)
 }
 
 function isDiagnosticBoundary(entry: ConnectionLogEntry): boolean {

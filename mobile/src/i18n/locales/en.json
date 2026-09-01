@@ -1935,6 +1935,13 @@
     },
     "HostDiagnosticsLink": {
       "ceff9523b5": "View network diagnostics"
+    },
+    "MobileSessionCommandDock": {
+      "267d90acf0": "Paste"
+    },
+    "MobileSessionHeader": {
+      "ff08ff24b1": "Checking desktop capabilities — try again in a moment",
+      "6ccffdeccd": "Desktop update required for quick commands"
     }
   },
   "mobile": {

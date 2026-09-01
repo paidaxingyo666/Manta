@@ -491,7 +491,7 @@ describe('registerWorktreeHandlers', () => {
     )
   })
 
-  it('keeps the Manta-created marker when a new worktree reuses an Manta-created fork remote', async () => {
+  it('keeps the Manta-created marker when a new worktree reuses a Manta-created fork remote', async () => {
     listWorktreesMock.mockResolvedValue([
       {
         path: '/workspace/improve-dashboard',

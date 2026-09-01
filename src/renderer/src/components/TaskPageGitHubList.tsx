@@ -114,7 +114,7 @@ export function TaskPageGitHubList({
         ) : null}
 
         {!tasksError && githubUnavailable ? (
-          // Why: name the GitHub outage explicitly so an empty list isn't misread as an Manta bug; takes priority over the count banner.
+          // Why: name the GitHub outage explicitly so an empty list isn't misread as a Manta bug; takes priority over the count banner.
           <div
             role="alert"
             className="border-b border-border/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"

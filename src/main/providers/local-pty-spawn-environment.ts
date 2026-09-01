@@ -26,7 +26,7 @@ export function buildLocalPtySpawnEnvironment(args: {
     // Why: supports-hyperlinks rejects TERM_PROGRAM=Manta, so tools drop OSC 8 links; force it since xterm.js parses them.
     FORCE_HYPERLINK: '1'
   } as Record<string, string>
-  // Why: Manta can be launched from an Manta terminal; pane identity belongs to the child PTY, not the parent shell.
+  // Why: Manta can be launched from a Manta terminal; pane identity belongs to the child PTY, not the parent shell.
   removeUnspecifiedPaneIdentityEnv(spawnEnv, spawn.env)
   removeAppImageRuntimeEnv(spawnEnv)
   removeInheritedNoColor(spawnEnv)

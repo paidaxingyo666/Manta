@@ -274,7 +274,7 @@ export async function hasUncommittedChanges(
 /** True when any record is real user work rather than a shared symlink Manta put
  *  in the worktree.
  *
- *  Fails closed on purpose: anything not positively identified as an Manta-owned
+ *  Fails closed on purpose: anything not positively identified as a Manta-owned
  *  untracked symlink counts as dirty. A false "clean" would let a review be
  *  created off a branch missing the user's work. */
 async function anyRecordIsUserDirt(

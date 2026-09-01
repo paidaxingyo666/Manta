@@ -196,7 +196,7 @@ describe('buildWorktreeChecksReviewIndex', () => {
   })
 
   it('filters matching suppression from a legacy-only local PR cache', () => {
-    const localRepo = { ...repo, path: '/local/orca', executionHostId: 'local' as const }
+    const localRepo = { ...repo, path: '/local/manta', executionHostId: 'local' as const }
     const suppressedWorktree = {
       ...worktree,
       hostId: 'local' as const,
@@ -275,7 +275,7 @@ describe('buildWorktreeChecksReviewIndex', () => {
   })
 
   it('keeps an explicit PR authoritative over stale branch-cache evidence', () => {
-    const localRepo = { ...repo, path: '/local/orca', executionHostId: 'local' as const }
+    const localRepo = { ...repo, path: '/local/manta', executionHostId: 'local' as const }
     const explicitWorktree = { ...worktree, hostId: 'local' as const, linkedPR: 42 }
     const prKey = getGitHubPRCacheKey(
       localRepo.path,

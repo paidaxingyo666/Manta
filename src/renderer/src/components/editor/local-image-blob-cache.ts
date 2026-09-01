@@ -100,7 +100,8 @@ function notifyCapacityAvailable(): void {
   capacityNotificationQueued = true
   queueMicrotask(() => {
     capacityNotificationQueued = false
-    for (const listener of [...capacityListeners]) {
+    // Snapshot: a listener may unsubscribe itself, or reset() may clear the set.
+    for (const listener of Array.from(capacityListeners)) {
       listener()
     }
   })

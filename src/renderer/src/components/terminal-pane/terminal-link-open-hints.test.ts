@@ -143,7 +143,7 @@ describe('terminalUrlOpenHintOptionsFor', () => {
     expect(getTerminalUrlOpenHint(options)).toContain('to open in Manta')
   })
 
-  it('keeps inversion for a runtime pane when its host can open an Manta browser', () => {
+  it('keeps inversion for a runtime pane when its host can open a Manta browser', () => {
     const options = terminalUrlOpenHintOptionsFor(
       {
         openLinksInApp: false,

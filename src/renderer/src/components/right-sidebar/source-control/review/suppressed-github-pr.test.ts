@@ -28,7 +28,7 @@ const differentReview: HostedReviewInfo = {
   number: 43,
   title: 'Different PR',
   state: 'open',
-  url: 'https://github.com/acme/orca/pull/43',
+  url: 'https://github.com/acme/manta/pull/43',
   status: 'pending',
   updatedAt: '2026-08-28T00:00:00Z',
   mergeable: 'UNKNOWN'
@@ -64,7 +64,7 @@ describe('resolveSourceControlSuppressedGitHubPRState', () => {
       resolve({
         hostedReviewCreation: {
           ...notFound,
-          review: { number: 42, url: 'https://github.com/acme/orca/pull/42' },
+          review: { number: 42, url: 'https://github.com/acme/manta/pull/42' },
           canCreate: false,
           blockedReason: 'existing_review',
           nextAction: 'open_existing_review',

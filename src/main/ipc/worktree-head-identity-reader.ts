@@ -56,7 +56,7 @@ type ResolvedRefOids = Map<string, string | null>
 
 // Why: a read that failed for any reason other than absence is an UNKNOWN, not
 // an absence — the same distinction AGENTS.md draws for the SSH verdict
-// vocabulary. Collapsing the two evicts identities Orca still knows and turns a
+// vocabulary. Collapsing the two evicts identities Manta still knows and turns a
 // single EMFILE into a full re-read of every worktree on the next pass.
 const UNREADABLE = Symbol('unreadable')
 type Unreadable = typeof UNREADABLE

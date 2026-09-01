@@ -124,7 +124,7 @@ describe('sparse-checkout cache invalidation across the worktree lifecycle', () 
       const sparseRow = beforeRemoval.find((worktree) => worktree.branch.endsWith('sparse-branch'))
       expect(sparseRow?.isSparse).toBe(true)
 
-      // Removing through Orca's own removeWorktree (not a raw `git worktree remove`) exercises the
+      // Removing through Manta's own removeWorktree (not a raw `git worktree remove`) exercises the
       // cache-invalidation hook this listing now relies on instead of a fresh stat every time.
       await removeWorktree(repoPath, linkedPath, true)
       git(repoPath, ['worktree', 'add', '-b', 'full-branch', linkedPath])

@@ -48,7 +48,7 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionCommandDock',
   'MobileSessionSheets'
 ])
-const CONTENT_COMPONENT_NAMES = ['MarkdownReader', 'DiffLineRow', 'FileReader'] as const
+const CONTENT_COMPONENT_NAMES = ['MobileMarkdownReader', 'DiffLineRow', 'FileReader'] as const
 const HOST_COMPONENT_NAMES = new Set([
   'ActivityIndicator',
   'Animated.View',
@@ -66,11 +66,11 @@ const HEAD_MAIN_HOOK_SHA256 = '5c475b904928f418c76a7885afdbed7adbfea3fe3ea05e85d
 const HEAD_HOOK_BINDING_SHA256 = '028f99dd14fea2110cff446418ee71513aeed38484c2dcea68bf0da8eff377c0'
 const HEAD_CALLBACK_IDENTITY_SHA256 =
   'd60ffe53f8d77f2dd3ebd14a5de162bb399113c170b59bdc917de6318ec433ec'
-const HEAD_CALLBACK_BODY_SHA256 = '69dfda53fd700f4395a18a37ffdaa530e187bc24b4986d8fdc0184127c00b52d'
-const HEAD_EFFECT_SHA256 = '346d384ea0bf2f8f926c5092c5bf57bc2a03494f49f9639e9d6b8a2c51c9f882'
-const HEAD_CONTENT_HOOK_SHA256 = '9c3b612fef3f370d66873aefdbe1d701f20cb64ded31fef5cc45fde6f8189581'
+const HEAD_CALLBACK_BODY_SHA256 = '0ee4ebbc8dfba69ce35c50caa7cbfdd11e14c4354d63ec13bd460f70b6c595fc'
+const HEAD_EFFECT_SHA256 = '508c36d581c4b3c2965af6352509cdd5271fa683c21e2b2592c3047b264b3f60'
+const HEAD_CONTENT_HOOK_SHA256 = 'd74431115b27c22dd38c29a510604554ca767cdd2585beaa73ec2e2dae0c5de4'
 const HEAD_NESTED_FUNCTION_SHA256 =
-  'b562c117eb1e4532dd656d8bdd3ca3bc58ce65d78a7ed740dbd866a48d4d8dbe'
+  '21eb62b19d480616fafd5d1077e1d2367bbc8db02ff4e47121d94e79657cbd94'
 const HEAD_NATIVE_REGISTRATION_SHA256 =
   'cab85e4e4a3f43289ba93ddea9ccce57aea83e0bf14fd1620a965aad0c1cb49e'
 const HEAD_NATIVE_REMOVAL_SHA256 =
@@ -79,11 +79,11 @@ const HEAD_TIMER_CREATION_SHA256 =
   '1a31b625e2174c3db77272249843196d2b6b06ab1e654a96d8f7858e3082e66b'
 const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f34234541a2065ec3d1a8cd116'
 const HEAD_RUNTIME_STRING_SHA256 =
-  'ad0def23206f08d0523c155fe730e86824876e67cf1db6b597541b9c35b54447'
-const HEAD_HOST_JSX_SHA256 = '390405926b1695fa3a33686f0bc192b432f5468d8576499d7cafbb4922defbb5'
-const HEAD_LEAF_JSX_SHA256 = 'b070e25c47b3e298be02a4ffe1572b36e204446fc161bad894690e9939403f54'
+  'dc03c803606824c93b7e8e2f89c22033a7256a16316b8a071510eda6f5eb6824'
+const HEAD_HOST_JSX_SHA256 = '628a3eef98e5b9d47a456488e087e164bb739bf20e18246ea250936ed9ee7efc'
+const HEAD_LEAF_JSX_SHA256 = 'db41359eac3df599b0d48b1b0692cb08e85eeb42a4443e454d79fb27795b78bd'
 const HEAD_STYLE_REFERENCE_SHA256 =
-  '295a3501c2c6d7bea7c8bbf38b3f3534f01344cd7e1b91bb8e07c040821d596a'
+  '3e4f57e5c8691d443187ffe306eae28506d5505276ea3de7a4f2f1df1cfa3885'
 const HEAD_IDENTITY_FIELD_SHA256 =
   '6b37a0351795a387a358df76a5ab919a7098ddb76bf25a936c8902c062c8951c'
 const HEAD_NAVIGATION_SHA256 = '9d96f5dad7de555d6553eac39c0fab00efad507470fd562cb9beaa32db16f512'
@@ -465,6 +465,21 @@ function readCompatibilityFacts(definitions: ReadonlyMap<string, Definition>): {
   return { capabilities, identityFields, navigation }
 }
 
+// Baselines are this fork's, not upstream's, and the divergence is accounted for
+// rather than assumed benign. Upstream's "split session and terminal surfaces"
+// refactor created MobileSessionMarkdownReader.tsx (exporting `MarkdownReader`)
+// and left its own MobileMarkdownReader.tsx orphaned — nothing upstream imports
+// it. This fork had already localized that older file, so the pick kept the
+// localized component wired into MobileSessionActiveContent; adopting upstream's
+// new one would have silently dropped the reader's Chinese strings. Hence the
+// component name here, the extra content binding (the fork's copy still carries
+// the `editorRef` keyboard dismissal from #13856, which upstream's split does
+// not), and the string/JSX counts that `translate()` inflates.
+//
+// What must NOT drift is the logic: hook count and identities, callback
+// identities, effect count, native registrations, timers, and compatibility
+// fields all still hash identically to upstream. A sync that moves any of those
+// is losing work, and re-pinning it to make this file green would hide that.
 describe('mobile session route extraction parity', () => {
   it('preserves hooks, callbacks, effects, and nested action bodies', () => {
     const definitions = readDefinitions()
@@ -480,7 +495,7 @@ describe('mobile session route extraction parity', () => {
     expect(hash(main.callbackBodies)).toBe(HEAD_CALLBACK_BODY_SHA256)
     expect(main.effects).toHaveLength(24)
     expect(hash(main.effects)).toBe(HEAD_EFFECT_SHA256)
-    expect(contentBindings).toHaveLength(14)
+    expect(contentBindings).toHaveLength(15)
     expect(hash(contentBindings)).toBe(HEAD_CONTENT_HOOK_SHA256)
     const nestedFunctions = readNestedFunctions(definitions)
     expect(nestedFunctions).toHaveLength(12)
@@ -515,16 +530,18 @@ describe('mobile session route extraction parity', () => {
     expect(hash(compatibility.capabilities)).toBe(HEAD_CAPABILITY_SHA256)
   })
 
+
+
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(537)
+    expect(strings).toHaveLength(617)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
-    expect(jsx.host).toHaveLength(124)
+    expect(jsx.host).toHaveLength(126)
     expect(hash(jsx.host)).toBe(HEAD_HOST_JSX_SHA256)
-    expect(jsx.leaf).toHaveLength(59)
+    expect(jsx.leaf).toHaveLength(61)
     expect(hash(jsx.leaf)).toBe(HEAD_LEAF_JSX_SHA256)
-    expect(jsx.styleReferences).toHaveLength(172)
+    expect(jsx.styleReferences).toHaveLength(176)
     expect(hash(jsx.styleReferences)).toBe(HEAD_STYLE_REFERENCE_SHA256)
   })
 })

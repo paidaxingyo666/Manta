@@ -27,7 +27,7 @@ function requestDesktopActivation(argv: readonly string[] = []): void {
   state.skillShareDeepLinks.capture(argv, (shareId) => {
     state.mainWindow?.webContents.send('ui:openSkillShare', shareId)
   })
-  // Why: a duplicate `orca serve` must not drag a headless server into opening a desktop window (#11935).
+  // Why: a duplicate `manta serve` must not drag a headless server into opening a desktop window (#11935).
   if (!shouldActivateDesktopForSecondInstance(argv)) {
     return
   }

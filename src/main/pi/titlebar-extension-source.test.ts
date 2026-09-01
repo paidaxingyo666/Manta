@@ -102,7 +102,7 @@ describe('getPiTitlebarExtensionSource', () => {
     vi.useRealTimers()
   })
 
-  it('registers nothing outside an Manta pane', () => {
+  it('registers nothing outside a Manta pane', () => {
     expect(createHarness({ paneKey: '' }).handlers).toEqual({})
   })
 

@@ -249,7 +249,7 @@ export class RuntimeLinearTeamWriteCommands extends RuntimeLinearDedupeCommands 
       if (!worktree) {
         throw new LinearAgentAccessError(
           'linear_issue_required',
-          'Run --current from inside an Manta-managed worktree or pass an issue id.'
+          'Run --current from inside a Manta-managed worktree or pass an issue id.'
         )
       }
     }
@@ -257,7 +257,7 @@ export class RuntimeLinearTeamWriteCommands extends RuntimeLinearDedupeCommands 
     if (!worktree) {
       throw new LinearAgentAccessError(
         'linear_issue_required',
-        'Run --current from inside an Manta-managed worktree or pass an issue id.'
+        'Run --current from inside a Manta-managed worktree or pass an issue id.'
       )
     }
 

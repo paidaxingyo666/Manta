@@ -13,7 +13,7 @@ import {
   type PressAndHoldRecord
 } from './macos-press-and-hold-default'
 
-const MANTA_DOMAIN = 'com.stablyai.manta'
+const MANTA_DOMAIN = 'cn.sh.manta'
 
 type HostOverrides = Partial<PressAndHoldHost> & { record?: PressAndHoldRecord | null }
 
@@ -141,11 +141,11 @@ describe('ensureMacPressAndHoldDefault', () => {
     })
 
     it('accepts Manta and its channel-scoped bundles, and nothing else', () => {
-      expect(isMantaPreferencesDomain('com.stablyai.manta')).toBe(true)
-      expect(isMantaPreferencesDomain('com.stablyai.manta.dev')).toBe(true)
+      expect(isMantaPreferencesDomain('cn.sh.manta')).toBe(true)
+      expect(isMantaPreferencesDomain('cn.sh.manta.dev')).toBe(true)
       expect(isMantaPreferencesDomain('com.github.Electron')).toBe(false)
       // Why: a prefix test without the dot would accept a lookalike bundle id.
-      expect(isMantaPreferencesDomain('com.stablyai.mantafake')).toBe(false)
+      expect(isMantaPreferencesDomain('cn.sh.mantafake')).toBe(false)
     })
   })
 
@@ -245,10 +245,10 @@ describe('readBundleIdentifierFromExecutablePath', () => {
   it('reads CFBundleIdentifier from the plist beside the executable', () => {
     const exe = bundleWithPlist(
       '<plist><dict>\n<key>CFBundleName</key>\n<string>Manta</string>\n' +
-        '<key>CFBundleIdentifier</key>\n\t<string>com.stablyai.manta</string>\n</dict></plist>'
+        '<key>CFBundleIdentifier</key>\n\t<string>cn.sh.manta</string>\n</dict></plist>'
     )
 
-    expect(readBundleIdentifierFromExecutablePath(exe)).toBe('com.stablyai.manta')
+    expect(readBundleIdentifierFromExecutablePath(exe)).toBe('cn.sh.manta')
   })
 
   it('returns null when the plist is missing or carries no identifier', () => {

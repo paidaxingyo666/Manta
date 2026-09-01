@@ -11,7 +11,7 @@ function makePR(number = 42): PRInfo {
     number,
     title: 'Detected pull request',
     state: 'open',
-    url: `https://github.com/acme/orca/pull/${number}`,
+    url: `https://github.com/acme/manta/pull/${number}`,
     checksStatus: 'pending',
     updatedAt: '2026-08-27T00:00:00Z',
     mergeable: 'UNKNOWN'
@@ -68,7 +68,7 @@ describe('useSourceControlHostedReviewState', () => {
       number: 42,
       title: 'GitLab review',
       state: 'open',
-      url: 'https://gitlab.com/acme/orca/-/merge_requests/42',
+      url: 'https://gitlab.com/acme/manta/-/merge_requests/42',
       status: 'pending',
       updatedAt: '2026-08-27T00:00:00Z',
       mergeable: 'UNKNOWN'

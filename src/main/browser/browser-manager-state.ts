@@ -257,7 +257,7 @@ export abstract class BrowserManagerState extends BrowserManagerViewportScrollSt
     if (browserTabId) {
       return { browserTabId, rootGuestWebContentsId: guestWebContentsId }
     }
-    // Route popups live in an Manta-built window, so they never pass through did-create-window and
+    // Route popups live in a Manta-built window, so they never pass through did-create-window and
     // have no inherited context; their owning page comes from the route popup registry instead.
     const routeOpenerWebContentsId = resolveBrowserRouteGuestPopupOpener(guestWebContentsId)
     if (routeOpenerWebContentsId !== null) {

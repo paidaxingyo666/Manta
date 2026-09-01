@@ -25,7 +25,7 @@ export function getSafeRelativePath(rawPath: string): SafeRelativePathResult {
   // rejected the same way POSIX `../escape` is; the split catches relative
   // backslash traversal that `.split('/')` would otherwise miss.
   // Why the drive check runs on every host: the same entry — per-user Shared
-  // Paths setting or repo `orca.yaml` — is evaluated on every host Orca runs
+  // Paths setting or repo `manta.yaml` — is evaluated on every host Manta runs
   // on, so the verdict must not depend on which one is asking.
   if (!rel || WINDOWS_DRIVE_DESIGNATOR.test(rel) || rel.split(/[\\/]/).includes('..')) {
     return { safe: false }

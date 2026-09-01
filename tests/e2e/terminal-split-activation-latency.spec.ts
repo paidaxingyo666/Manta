@@ -4,7 +4,7 @@ import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import type { ElectronApplication, Page, TestInfo } from '@stablyai/playwright-test'
-import { test, expect } from './helpers/orca-app'
+import { test, expect } from './helpers/manta-app'
 import {
   countVisibleTerminalPanes,
   focusActiveTerminalInput,
@@ -581,11 +581,11 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
 
   test('records attributed CWD, spawn, bind, fixture-ready, input, and echo phases', async ({
     electronApp,
-    orcaPage,
+    mantaPage,
     testRepoPath
   }, testInfo) => {
     const headfulRun =
-      process.env.ORCA_E2E_FORCE_HEADFUL === '1' || testInfo.project.metadata.orcaHeadful === true
+      process.env.MANTA_E2E_FORCE_HEADFUL === '1' || testInfo.project.metadata.mantaHeadful === true
     const windowState: BrowserWindowState = {
       browserWindowVisible: false,
       windowCount: 0
@@ -611,7 +611,7 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
       await expect
         .poll(
           async () => {
-            documentVisibility = await orcaPage.evaluate(() => document.visibilityState)
+            documentVisibility = await mantaPage.evaluate(() => document.visibilityState)
             return documentVisibility
           },
           {
@@ -620,20 +620,20 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
           }
         )
         .toBe('visible')
-      await waitForSessionReady(orcaPage)
-      await waitForActiveWorktree(orcaPage)
-      await ensureTerminalVisible(orcaPage)
+      await waitForSessionReady(mantaPage)
+      await waitForActiveWorktree(mantaPage)
+      await ensureTerminalVisible(mantaPage)
 
       fixture = createEchoShellFixture()
-      const source = await createSourceTab(orcaPage, fixture.shellPath)
+      const source = await createSourceTab(mantaPage, fixture.shellPath)
       const { tabId, ptyId: sourcePtyId } = source
-      const sourcePaneId = await readActivePaneId(orcaPage, tabId)
-      await installPtyExitProbe(orcaPage)
+      const sourcePaneId = await readActivePaneId(mantaPage, tabId)
+      await installPtyExitProbe(mantaPage)
       await installSplitLatencyMainProbe(electronApp)
       let priorCloseCompletedAt = Date.now()
 
       for (let iteration = 0; iteration < WARMUP_CYCLES; iteration += 1) {
-        const result = await runSplitCycle(electronApp, orcaPage, {
+        const result = await runSplitCycle(electronApp, mantaPage, {
           tabId,
           sourcePaneId,
           sourcePtyId,
@@ -650,8 +650,8 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
       }
 
       for (let iteration = 0; iteration < MEASURED_CYCLES && abortError === null; iteration += 1) {
-        await waitForColdProcessCwdLookup(orcaPage, priorCloseCompletedAt)
-        const result = await runSplitCycle(electronApp, orcaPage, {
+        await waitForColdProcessCwdLookup(mantaPage, priorCloseCompletedAt)
+        const result = await runSplitCycle(electronApp, mantaPage, {
           tabId,
           sourcePaneId,
           sourcePtyId,
@@ -666,7 +666,7 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
         }
       }
 
-      documentVisibility = await orcaPage
+      documentVisibility = await mantaPage
         .evaluate(() => document.visibilityState)
         .catch(() => 'unavailable' as const)
       const reportResult = buildBenchmarkReport({
@@ -721,7 +721,7 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
       throw error
     } finally {
       await disposeSplitLatencyMainProbe(electronApp).catch(() => undefined)
-      await disposePtyExitProbe(orcaPage).catch(() => undefined)
+      await disposePtyExitProbe(mantaPage).catch(() => undefined)
       if (fixture) {
         rmSync(fixture.root, { recursive: true, force: true })
       }

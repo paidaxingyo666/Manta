@@ -87,7 +87,7 @@ export function useTaskPageLinearInMantaEffects(model: TaskPageLinearListEffects
           setLinearError(
             translate(
               'auto.components.TaskPage.linearHasWorktreeLoadFailed',
-              'Unable to load Linear issues linked to an Manta workspace.'
+              'Unable to load Linear issues linked to a Manta workspace.'
             )
           )
           setLinearIssues([])
@@ -98,7 +98,7 @@ export function useTaskPageLinearInMantaEffects(model: TaskPageLinearListEffects
           setLinearError(
             translate(
               'auto.components.TaskPage.linearHasWorktreePartialLoadFailed',
-              'Some Linear issues linked to an Manta workspace could not be loaded. Refresh to try again.'
+              'Some Linear issues linked to a Manta workspace could not be loaded. Refresh to try again.'
             )
           )
         }

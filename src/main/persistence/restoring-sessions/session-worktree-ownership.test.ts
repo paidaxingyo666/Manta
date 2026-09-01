@@ -132,8 +132,8 @@ describe('workspace session worktree ownership', () => {
   })
 
   it('matches macOS /private/tmp session owners to /tmp metadata', () => {
-    const candidateId = 'repo-1::/private/tmp/orca/target'
-    const session = sessionWith('activeWorktreeId', 'repo-1::/tmp/orca/target')
+    const candidateId = 'repo-1::/private/tmp/manta/target'
+    const session = sessionWith('activeWorktreeId', 'repo-1::/tmp/manta/target')
 
     expect([
       ...collectWorkspaceSessionWorktreeOwners(session, new Set([candidateId]), 'darwin')

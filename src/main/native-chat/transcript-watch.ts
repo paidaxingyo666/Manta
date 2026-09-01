@@ -1,18 +1,16 @@
-import { extname } from 'node:path'
 import type { NativeChatMessage } from '../../shared/native-chat-types'
 import {
   needsWslHostResolution,
   toHostReadableTranscriptPath,
   type WslTranscriptResolutionSnapshot
 } from './host-readable-transcript-path'
-import { resolveSessionFilePath } from './session-file-resolver'
 import { watchForTranscriptRebind, type RebindWatch } from './transcript-rebind-watch'
-import { installTranscriptWatcher } from './transcript-watch-engine'
+import { attemptInstall, exactTranscriptPath, followRolls } from './transcript-watch-binding'
 import type {
   NativeChatTranscriptSubscription,
   SubscribeNativeChatTranscriptArgs
 } from './transcript-watch-contract'
-import { nativeChatLineDecoderForAgent, type NativeChatLineDecoder } from './transcript-tail-reader'
+import { nativeChatLineDecoderForAgent } from './transcript-tail-reader'
 import { WslTranscriptFsError, wslTranscriptFsRefusal } from './wsl-transcript-fs-gate'
 import { observeRunningWslDistros } from './wsl-transcript-running-observer'
 
@@ -22,27 +20,6 @@ export type {
   NativeChatTranscriptSubscription,
   SubscribeNativeChatTranscriptArgs
 } from './transcript-watch-contract'
-
-/** One resolve+install attempt. Returns null while the transcript file itself
- *  is unresolved; native-watch failure degrades to reconciliation-only mode. */
-async function attemptInstall(
-  args: SubscribeNativeChatTranscriptArgs,
-  decode: (line: string, fallbackId: string) => NativeChatMessage | null,
-  signal?: AbortSignal
-): Promise<NativeChatTranscriptSubscription | null> {
-  const filePath =
-    args.filePath ?? (await resolveSessionFilePath(args.agent, args.sessionId, args, signal))
-  signal?.throwIfAborted()
-  if (!filePath) {
-    return null
-  }
-  const installed = await installTranscriptWatcher(filePath, decode, args, signal)
-  if (signal?.aborted) {
-    installed?.unsubscribe()
-    signal.throwIfAborted()
-  }
-  return installed
-}
 
 // Why: Claude Code (and other agents) can take from ~3s to minutes to flush a
 // brand-new session's first JSONL line (#8401) — resolveSessionFilePath
@@ -57,11 +34,6 @@ const FALLBACK_RESOLVE_POLL_MS = 5_000
 // spinner is permanent. Long enough that a merely slow resolve still wins the
 // race and paints history directly.
 const UNFLUSHED_SETTLE_MS = 1_500
-
-function exactTranscriptPath(args: SubscribeNativeChatTranscriptArgs): string | null {
-  const path = args.transcriptPath?.trim()
-  return path && extname(path) === '.jsonl' ? path : null
-}
 
 /**
  * Background retry loop for a transcript that hasn't been resolvable yet.
@@ -351,88 +323,4 @@ export async function subscribeNativeChatTranscript(
   }
   setupSignal?.throwIfAborted()
   return subscribeViaResolvePoll(args, decode)
-}
-
-/**
- * Keeps an already-installed watcher pointed at the session as its file rolls.
- *
- * The resolve-poll path arms the same guard inline, because it already owns a
- * rebind loop. This wraps the case that has none: one install that succeeded, on
- * a path that may stop being the session's before the subscription ends.
- */
-function followRolls(
-  installed: NativeChatTranscriptSubscription,
-  args: SubscribeNativeChatTranscriptArgs,
-  decode: NativeChatLineDecoder
-): NativeChatTranscriptSubscription {
-  // An explicit filePath is a caller pinning one file on purpose.
-  const boundPath = args.filePath ?? exactTranscriptPath(args)
-  if (args.filePath || !boundPath) {
-    return installed
-  }
-
-  let current = installed
-  let sessionId = args.sessionId
-  let closed = false
-  let watch: RebindWatch | null = null
-  const controller = new AbortController()
-
-  function arm(path: string): void {
-    watch?.stop()
-    watch = watchForTranscriptRebind({
-      agent: args.agent,
-      sessionId,
-      boundPath: path,
-      signal: controller.signal,
-      ...(args.rebindCheckIntervalMs === undefined
-        ? {}
-        : { intervalMs: args.rebindCheckIntervalMs }),
-      onMoved: (next) => {
-        if (closed) {
-          return
-        }
-        sessionId = next.sessionId
-        args.onRebound?.({ sessionId: next.sessionId, transcriptPath: next.path })
-        // Install first, drop second: a failed install must not leave chat with
-        // no watcher at all, which is worse than the stale one it replaces.
-        void attemptInstall({ ...args, filePath: next.path }, decode, controller.signal)
-          .then((replacement) => {
-            if (closed) {
-              replacement?.unsubscribe()
-              return
-            }
-            if (!replacement) {
-              arm(path)
-              return
-            }
-            current.unsubscribe()
-            current = replacement
-            arm(next.path)
-          })
-          .catch(() => {
-            if (!closed) {
-              arm(path)
-            }
-          })
-      }
-    })
-  }
-
-  arm(boundPath)
-
-  return {
-    get watching(): boolean {
-      return current.watching
-    },
-    unsubscribe: () => {
-      if (closed) {
-        return
-      }
-      closed = true
-      controller.abort()
-      watch?.stop()
-      watch = null
-      current.unsubscribe()
-    }
-  }
 }

@@ -23,7 +23,7 @@ function renderActions(overrides: Partial<ChecksPanelCheckAndReviewActionsInput>
       number: 42,
       title: 'Detected PR',
       state: 'open',
-      url: 'https://github.com/acme/orca/pull/42',
+      url: 'https://github.com/acme/manta/pull/42',
       status: 'pending',
       updatedAt: '2026-08-27T00:00:00Z',
       mergeable: 'UNKNOWN'

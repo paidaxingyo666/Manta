@@ -25,7 +25,7 @@ import {
 } from './automation-manta-save-operations'
 import type { AutomationSaveContext } from './automation-save-context'
 
-/** Saves an Manta automation, including destination validation and host moves. */
+/** Saves a Manta automation, including destination validation and host moves. */
 export async function saveMantaAutomation(
   context: AutomationSaveContext,
   time: { hour: number; minute: number; now: number }

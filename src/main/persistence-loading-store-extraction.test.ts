@@ -59,7 +59,7 @@ describe('loading Store extraction seams', () => {
 
   it('does not serialize the workspace session when startup diagnostics are disabled', () => {
     const sentinel = 'startup-diagnostics-workspace-session-sentinel-disabled'
-    vi.stubEnv('ORCA_STARTUP_DIAGNOSTICS', '')
+    vi.stubEnv('MANTA_STARTUP_DIAGNOSTICS', '')
     const state = getDefaultPersistedState(testState.dir)
     state.workspaceSession = { ...state.workspaceSession, activeTabId: sentinel }
     writeDataFile(state)
@@ -85,7 +85,7 @@ describe('loading Store extraction seams', () => {
 
   it('reports the unchanged workspace-session byte count when startup diagnostics are enabled', () => {
     const sentinel = 'startup-diagnostics-workspace-session-sentinel-enabled'
-    vi.stubEnv('ORCA_STARTUP_DIAGNOSTICS', '1')
+    vi.stubEnv('MANTA_STARTUP_DIAGNOSTICS', '1')
     const state = getDefaultPersistedState(testState.dir)
     state.workspaceSession = { ...state.workspaceSession, activeTabId: sentinel }
     writeDataFile(state)

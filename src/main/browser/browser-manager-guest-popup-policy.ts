@@ -131,7 +131,7 @@ export abstract class BrowserManagerGuestPopupPolicy extends BrowserManagerNavig
         return { action: 'deny' }
       }
 
-      // Why: an unnamed, featureless window.open() is Chromium's own new-tab shape, so an Manta tab is
+      // Why: an unnamed, featureless window.open() is Chromium's own new-tab shape, so a Manta tab is
       // the honest presentation; a floating origin-bar window is not. Opener-dependent shapes are
       // excluded by isNewBrowserTabPopupIntent and still get a real child window below.
       if (
@@ -165,7 +165,7 @@ export abstract class BrowserManagerGuestPopupPolicy extends BrowserManagerNavig
         return {
           action: 'allow',
           overrideBrowserWindowOptions: SAFE_POPUP_WINDOW_OPTIONS,
-          // Why: default child windows lack an address bar; host in an Manta origin-bar window so the destination is verifiable.
+          // Why: default child windows lack an address bar; host in a Manta origin-bar window so the destination is verifiable.
           createWindow: (options: PopupChildWindowOptions) =>
             this.createPopupChildWindowWithOriginBar(guest, url, options)
         }

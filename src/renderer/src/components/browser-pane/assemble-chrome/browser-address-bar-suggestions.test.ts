@@ -157,9 +157,9 @@ describe('browser address bar suggestions', () => {
             visitCount: 1
           }),
           historyEntry({
-            url: 'https://github.com/acme/orca',
-            normalizedUrl: 'https://github.com/acme/orca',
-            title: 'acme/orca',
+            url: 'https://github.com/acme/manta',
+            normalizedUrl: 'https://github.com/acme/manta',
+            title: 'acme/manta',
             lastVisitedAt: hoursAgo(20),
             visitCount: 1
           })
@@ -167,7 +167,7 @@ describe('browser address bar suggestions', () => {
       })
 
       expect(historyUrls(suggestions)).toEqual([
-        'https://github.com/acme/orca',
+        'https://github.com/acme/manta',
         'https://docs.github.com/actions',
         'https://example.com/setup'
       ])

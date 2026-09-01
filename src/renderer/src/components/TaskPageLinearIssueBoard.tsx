@@ -93,7 +93,7 @@ export function TaskPageLinearIssueBoard({
                 }
                 return translate(
                   'auto.components.TaskPage.linearEmptyHasWorktree',
-                  'No Linear tickets are linked to an Manta workspace yet. Start work from a Linear issue to see it here.'
+                  'No Linear tickets are linked to a Manta workspace yet. Start work from a Linear issue to see it here.'
                 )
               }
               const emptyKind = resolveLinearIssueEmptyKind({

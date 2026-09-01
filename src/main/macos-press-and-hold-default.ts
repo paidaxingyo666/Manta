@@ -11,7 +11,7 @@ import { writeFileAtomically } from './codex-accounts/fs-utils'
  * The key is unset by default, which is why every terminal-hosting Mac app ships this opt-out.
  *
  * Written once and never again: a user who wants the accent picker back sets
- * `defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool true` (or deletes the key), and
+ * `defaults write cn.sh.manta ApplePressAndHoldEnabled -bool true` (or deletes the key), and
  * the recorded decision below keeps a later launch from overwriting that choice.
  *
  * A fresh write is assumed to land for the *next* launch, not the current one: it goes out through
@@ -42,7 +42,7 @@ const DEFAULTS_TIMEOUT_MS = 5_000
 /** Why: `defaults` exits 1 for "does not exist"; anything else means the probe itself failed. */
 const DEFAULTS_MISSING_STATUS = 1
 
-const ORCA_BUNDLE_ID = 'com.stablyai.orca'
+const MANTA_BUNDLE_ID = 'cn.sh.manta'
 
 export type PressAndHoldDecision =
   /** Not macOS — nothing is read or written. */
@@ -82,8 +82,8 @@ export type PressAndHoldHost = {
 
 /** Only Manta's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
  *  unpackaged Electron app on the machine. */
-export function isOrcaPreferencesDomain(domain: string): boolean {
-  return domain === ORCA_BUNDLE_ID || domain.startsWith(`${ORCA_BUNDLE_ID}.`)
+export function isMantaPreferencesDomain(domain: string): boolean {
+  return domain === MANTA_BUNDLE_ID || domain.startsWith(`${MANTA_BUNDLE_ID}.`)
 }
 
 /** `<bundle>/Contents/MacOS/<exe>` → `<bundle>/Contents/Info.plist`. */
@@ -198,7 +198,7 @@ export function ensureMacPressAndHoldDefault(host: PressAndHoldHost): PressAndHo
   }
 
   const domain = host.resolveBundleIdentifier()
-  if (!domain || !isOrcaPreferencesDomain(domain)) {
+  if (!domain || !isMantaPreferencesDomain(domain)) {
     return record('foreign-bundle', domain)
   }
 

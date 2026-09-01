@@ -4,6 +4,7 @@ import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import { useAppStore } from '../../store'
+import type * as RuntimeProviderAccountsClient from '@/runtime/runtime-provider-accounts-client'
 
 const accountWatch = vi.hoisted(() => ({
   close: vi.fn(),
@@ -11,7 +12,7 @@ const accountWatch = vi.hoisted(() => ({
 }))
 
 vi.mock('@/runtime/runtime-provider-accounts-client', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/runtime/runtime-provider-accounts-client')>()),
+  ...(await importOriginal<typeof RuntimeProviderAccountsClient>()),
   watchProviderAccounts: accountWatch.watch
 }))
 

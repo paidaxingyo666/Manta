@@ -92,7 +92,7 @@ describe('createSequencedSetupAgentCommands', () => {
 
   it('announces success so the pane stops showing the waiting line', () => {
     const commands = createSequencedSetupAgentCommands({
-      runnerScriptPath: '/repo/.git/orca/setup-runner.sh',
+      runnerScriptPath: '/repo/.git/manta/setup-runner.sh',
       startupCommand: 'codex',
       platform: 'posix',
       nonce: 'nonce-1'
@@ -101,13 +101,13 @@ describe('createSequencedSetupAgentCommands', () => {
     // Why ordering: `eval`/`exec` never returns, so a later message never renders.
     expect(script.indexOf(SETUP_COMPLETE_MESSAGE)).toBeGreaterThan(-1)
     expect(script.indexOf(SETUP_COMPLETE_MESSAGE)).toBeLessThan(
-      script.indexOf('eval "$ORCA_SEQUENCED_STARTUP_COMMAND"')
+      script.indexOf('eval "$MANTA_SEQUENCED_STARTUP_COMMAND"')
     )
   })
 
   it('announces success on the native Windows gate too', () => {
     const commands = createSequencedSetupAgentCommands({
-      runnerScriptPath: 'C:\\repo\\.git\\orca\\setup-runner.cmd',
+      runnerScriptPath: 'C:\\repo\\.git\\manta\\setup-runner.cmd',
       platform: 'windows',
       startupCommand: 'codex',
       nonce: 'nonce-2'
@@ -125,7 +125,7 @@ describe('createSequencedSetupAgentCommands', () => {
   it('leaves the failure and timeout messages as the only other outcomes', () => {
     const script =
       createSequencedSetupAgentCommands({
-        runnerScriptPath: '/repo/.git/orca/setup-runner.sh',
+        runnerScriptPath: '/repo/.git/manta/setup-runner.sh',
         startupCommand: 'codex',
         platform: 'posix',
         nonce: 'nonce-3'

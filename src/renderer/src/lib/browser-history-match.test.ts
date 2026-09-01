@@ -37,13 +37,13 @@ const GIT_CORPUS = [
   entry({ url: 'https://example.com/?ref=git', title: 'Example', visitCount: 50 }),
   entry({ url: 'https://example.org/hooks', title: 'Configure git hooks', visitCount: 50 }),
   entry({ url: 'https://docs.legit.dev/api', title: 'API', visitCount: 50 }),
-  entry({ url: 'https://github.com/acme/orca', title: 'acme/orca', visitCount: 50 })
+  entry({ url: 'https://github.com/acme/manta', title: 'acme/manta', visitCount: 50 })
 ]
 
 describe('browser history match', () => {
   it('orders host-prefix above host-substring above title above url-tail', () => {
     expect(match(GIT_CORPUS, 'git')).toEqual([
-      { tier: 'host-prefix', url: 'https://github.com/acme/orca' },
+      { tier: 'host-prefix', url: 'https://github.com/acme/manta' },
       { tier: 'host-substring', url: 'https://docs.legit.dev/api' },
       { tier: 'title', url: 'https://example.org/hooks' },
       { tier: 'url-tail', url: 'https://example.com/?ref=git' }

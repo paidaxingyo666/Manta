@@ -96,7 +96,7 @@ export class MantaRuntimeWithSerializeMainTerminalBuffer extends MantaRuntimeWit
     )
   }
 
-  // Why: daemon-backed PTYs that the runtime adopted after an Manta relaunch
+  // Why: daemon-backed PTYs that the runtime adopted after a Manta relaunch
   // start with a fresh headless emulator that has zero scrollback, even though
   // the daemon's on-disk checkpoint and the desktop xterm both contain the
   // full prior history. Without this hydration, mobile subscribers see only

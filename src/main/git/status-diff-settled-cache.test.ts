@@ -221,7 +221,7 @@ describe('settled diff cache', () => {
   })
 
   // An empty worktree path has no host spelling, and `path.join('', x)` is a *relative* path:
-  // every fs read would land in the process cwd, which in dev is Orca's own checkout.
+  // every fs read would land in the process cwd, which in dev is Manta's own checkout.
   it('reads nothing relative to the cwd when the worktree path has no host spelling', async () => {
     await getDiff('', FILE, false)
 

@@ -17,7 +17,7 @@ Use this skill for desktop UI through `manta computer`. For a website or web app
 
 - Choose the Manta executable once: use the `MANTA_CLI_COMMAND` environment value when set;
   otherwise use `manta-dev` in a dev session exposing `MANTA_DEV_REPO_ROOT`, `manta-ide` on
-  Linux outside an Manta-managed terminal, and `manta` everywhere else. Never try bare
+  Linux outside a Manta-managed terminal, and `manta` everywhere else. Never try bare
   `manta` first on unmanaged Linux because it normally resolves to the GNOME screen reader.
 - In every command example, `MANTA` is a documentation placeholder — including examples that
   name a specific shell. Replace it with that chosen executable before running the command;
