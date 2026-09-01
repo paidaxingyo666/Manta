@@ -4,11 +4,11 @@ import type { AgentLaunchConfigRegistryEntry } from './agent-status-contract'
 import { copyLaunchConfig, sleepingRecordFromEntry } from './agent-status-sleeping-records'
 import {
   getLaunchConfigForEntry,
+  getLaunchConfigForStatusMetadata,
   launchConfigRegistryEntriesEqual,
   normalizeLaunchConfigRegistrationMetadata,
   registryEntryMatchesStatus
 } from './agent-status-launch-config'
-import { getLaunchConfigForStatusMetadata } from './agent-status-launch-config'
 import { findAgentPaneWorktreeId, getTabIdFromPaneKey } from './agent-status-pane-key-tab-binding'
 
 export function createAgentStatusLaunchActions(
