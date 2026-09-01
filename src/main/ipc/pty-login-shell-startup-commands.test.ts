@@ -361,7 +361,9 @@ describe('registerPtyHandlers', () => {
 
       const [, , options] = spawnMock.mock.calls[0]!
       expect(options.env.MANTA_SHELL_FEATURES).toContain('ready')
-      expect(options.env[POSIX_SHELL_STARTUP_COMMAND_ENV]).toBe("codex --prefill 'linked issue context'")
+      expect(options.env[POSIX_SHELL_STARTUP_COMMAND_ENV]).toBe(
+        "codex --prefill 'linked issue context'"
+      )
       expect(mockProc.proc.write).not.toHaveBeenCalled()
 
       mockProc.emitData('\x1b]777;manta-shell-ready\x07')
