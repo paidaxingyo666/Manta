@@ -406,6 +406,13 @@ blocked port will need the same steps in reverse:
    Apply and restart. This signs the app out; that is expected, and the phone
    does not need to re-pair.
 
+6. Drop the port from `MANTA_RELAY_PUBLIC_URL` and recreate the relay. It is
+   signed byte for byte into every host challenge, so it and the desktop's
+   address have to agree exactly — `https://host` is not `https://host:443`.
+   Do this alongside step 5, not before it. Retire the old listener only once
+   both clients are confirmed on the new one; keeping it up costs nothing while
+   they are both certificates from the same managed store.
+
 Two things the move taught that the configuration does not show:
 
 **A certificate loaded from a file suppresses management for that name across the
