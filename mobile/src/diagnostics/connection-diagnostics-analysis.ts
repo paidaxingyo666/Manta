@@ -127,10 +127,7 @@ function findCurrentDiagnosticFailure(
   entries: readonly ConnectionLogEntry[]
 ): ConnectionLogEntry | undefined {
   const boundaryIndex = entries.findLastIndex(isDiagnosticBoundary)
-  return entries
-    .slice(boundaryIndex + 1)
-    .toReversed()
-    .find(isDiagnosticFailure)
+  return [...entries.slice(boundaryIndex + 1)].reverse().find(isDiagnosticFailure)
 }
 
 function isDiagnosticBoundary(entry: ConnectionLogEntry): boolean {

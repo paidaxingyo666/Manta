@@ -26,11 +26,12 @@ import {
   startDiagnosticFetchTimeout,
   type DiagnosticFetchTimeout
 } from '../src/diagnostics/diagnostic-fetch-timeout'
+import { testHostReachability } from '../src/diagnostics/host-reachability'
 import {
-  formatEndpoint,
-  testHostReachability,
-  unreachableHostDetail
-} from '../src/diagnostics/host-reachability'
+  hostConnectionPathTargets,
+  summarizeHostConnectionPaths,
+  type HostConnectionPathProbe
+} from '../src/diagnostics/host-connection-path-probe'
 import { troubleshootCommonIssues } from '../src/diagnostics/troubleshoot-common-issues'
 import { translate } from '../src/i18n/i18n'
 
@@ -144,17 +145,17 @@ export default function TroubleshootScreen() {
         if (!isCurrentRun()) {
           return
         }
-        const reachable = await testHostReachability(host.endpoint)
+        const probes: HostConnectionPathProbe[] = []
+        for (const target of hostConnectionPathTargets(host)) {
+          if (!isCurrentRun()) {
+            return
+          }
+          probes.push({ ...target, reachable: await testHostReachability(target.url) })
+        }
         if (!isCurrentRun()) {
           return
         }
-        results.push({
-          label: host.name,
-          status: reachable ? 'pass' : 'fail',
-          detail: reachable
-            ? `Reachable at ${formatEndpoint(host.endpoint)}`
-            : unreachableHostDetail(host.endpoint)
-        })
+        results.push({ label: host.name, ...summarizeHostConnectionPaths(probes) })
         setChecks([...results])
       }
     } catch {
@@ -248,7 +249,7 @@ export default function TroubleshootScreen() {
         <Text style={styles.sectionHeading}>{translate("m.troubleshoot.d89f2f9bbd", "Common issues")}</Text>
 
         <View style={styles.section}>
-          {troubleshootCommonIssues.map((section, i) => (
+          {troubleshootCommonIssues().map((section, i) => (
             <View key={section.id}>
               {i > 0 && <View style={styles.separator} />}
               <Pressable

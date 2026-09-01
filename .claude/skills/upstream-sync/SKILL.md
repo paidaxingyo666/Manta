@@ -156,7 +156,21 @@ pnpm install                 # the sync may have brought new dependencies
 pnpm lint
 pnpm typecheck
 pnpm test
+
+cd mobile && pnpm install && pnpm typecheck && pnpm test && cd ..
 ```
+
+**The four root commands do not cover `mobile/`.** It is a separate pnpm project
+outside the root workspace, so `pnpm typecheck` there is a different tsc run
+against a different tsconfig — which is why the 142-commit sync on 2026-08-30
+landed 28 type errors in mobile source. Nine of them were imports of symbols a
+file split had moved, and one of those, `loadCustomKeys` in the session screen,
+crashed the phone on entering any session: mobile ships no error boundary, so an
+uncaught JS exception is `RCTFatal`, not a red box.
+
+Mobile Checks did report every one of them on the sync PR. Nothing enforced it —
+`main` has no branch protection — so the PR merged with the job red. **Read that
+job before merging a sync; a red Mobile Checks is not advisory.**
 
 Run the full suite, with the project's vitest config — a bare `vitest` misses
 the gates. Expect timeouts under load: a saturated machine fails

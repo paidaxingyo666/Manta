@@ -1,3 +1,8 @@
+import type {
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier
+} from './terminal-shortcut-types'
 import { CSI_FINAL_SPECIAL_KEYS, CSI_TILDE_SPECIAL_KEYS, CTRL_PRINTABLE_BYTES, ESC, MODIFIER_LABELS, MODIFIER_ORDER, SHIFTED_PRINTABLE, SPECIAL_KEY_LABELS, SS3_BASE_SPECIAL_KEYS } from './terminal-key-encoding-tables'
 
 // Re-exported so callers keep importing key definitions and the encoder from one
@@ -6,6 +11,15 @@ export {
   TERMINAL_SHORTCUT_SPECIAL_KEYS,
   terminalAccessoryKeys
 } from './terminal-accessory-key-definitions'
+
+// The types live apart from the encoder, but callers want one import site.
+export type {
+  TerminalAccessoryKey,
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier,
+  TerminalShortcutSpecialKey
+} from './terminal-shortcut-types'
 
 export function buildTerminalShortcutKey(
   binding: TerminalShortcutBinding

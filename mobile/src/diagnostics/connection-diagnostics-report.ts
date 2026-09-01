@@ -18,11 +18,6 @@ const EVENT_TRUNCATION_MARKER = ' … [truncated]'
 export function buildConnectionDiagnosticsReport(args: {
   hostName: string
   endpoint: string
-  // The path the client is actually on. The paired endpoint is where this
-  // phone first met the host; once a relay is in play the two routinely
-  // disagree, and a report naming only the endpoint sends readers to the
-  // wrong network.
-  activePath?: 'lan' | 'tailscale' | 'relay'
   state: ConnectionState
   reconnectAttempts: number
   lastConnectedAt: number | null
@@ -30,6 +25,9 @@ export function buildConnectionDiagnosticsReport(args: {
   appVersion: string
   desktopAppVersion?: string | null
   entries: readonly ConnectionLogEntry[]
+  // The path the client is actually on. The paired endpoint is where this phone
+  // first met the host; once a relay is in play the two routinely disagree, and
+  // a report naming only the endpoint sends readers to the wrong network.
   activePath?: MobileConnectionDiagnosticPath
   pendingPath?: MobileConnectionDiagnosticPath | null
   nowMs?: number
@@ -53,9 +51,6 @@ export function buildConnectionDiagnosticsReport(args: {
   lines.push(
     `Paired endpoint: ${formatEndpoint(args.endpoint)}${isTailscaleEndpoint(args.endpoint) ? ' (Tailscale)' : ''}`
   )
-  if (args.activePath) {
-    lines.push(`Active path: ${args.activePath}`)
-  }
   lines.push(`State: ${args.state} (reconnect attempts: ${args.reconnectAttempts})`)
   if (args.activePath) {
     lines.push(

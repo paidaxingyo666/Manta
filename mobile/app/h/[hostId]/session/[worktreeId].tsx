@@ -161,12 +161,12 @@ import { TextInputModal } from '../../../../src/components/TextInputModal'
 import { ConfirmModal } from '../../../../src/components/ConfirmModal'
 import { MobileMarkdownReader } from '../../../../src/session/MobileMarkdownReader'
 import { MobileSyntaxSegments } from '../../../../src/components/MobileSyntaxSegments'
+import { CustomKeyModal } from '../../../../src/components/CustomKeyModal'
 import {
-  CustomKeyModal,
   loadCustomKeys,
   saveCustomKeys,
   type CustomKey
-} from '../../../../src/components/CustomKeyModal'
+} from '../../../../src/components/custom-key-modal-catalog'
 import {
   addMobileDiffComment,
   formatDiffComments,

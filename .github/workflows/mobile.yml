@@ -1,6 +1,18 @@
 name: Mobile Checks
 
 on:
+  # Why: the checks are only advisory on a pull request — this repository has no
+  # branch protection, so a sync can merge with them red, and one did. Running on
+  # main as well means a merge that broke mobile says so within the hour rather
+  # than at the next release.
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+      - 'src/shared/terminal-file-link-conformance.ts'
+      - '.github/workflows/mobile.yml'
+      - '.github/workflows/mobile-ios-release.yml'
   pull_request:
     types:
       - opened

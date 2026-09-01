@@ -6,7 +6,16 @@ import { BottomDrawer } from './BottomDrawer'
 import { buildTerminalShortcutKey, normalizeShortcutKeyInput, type TerminalShortcutModifier } from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { styles } from './custom-key-modal-styles'
-import { shortcutModifierCatalog, specialKeyGroups, SPECIAL_KEY_BY_ID, type CustomKey } from './custom-key-modal-catalog'
+import {
+  loadCustomKeys,
+  saveCustomKeys,
+  shortcutModifierCatalog,
+  specialKeyGroups,
+  SPECIAL_KEY_BY_ID,
+  type CustomKey,
+  type Props,
+  type Step
+} from './custom-key-modal-catalog'
 
 export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortcuts }: Props) {
   const [step, setStep] = useState<Step>('choose-type')
