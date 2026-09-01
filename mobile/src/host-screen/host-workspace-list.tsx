@@ -4,8 +4,9 @@ import { AuthFailedBanner } from '../components/AuthFailedBanner'
 import { HostDiagnosticsLink } from '../components/HostDiagnosticsLink'
 import { HostRouteNoticeBanner } from '../components/HostRouteNoticeBanner'
 import { MobileRepoIcon } from '../components/MobileRepoIcon'
-import { MobileSearchField } from '../components/MobileSearchField'
+import { HostWorkspaceSearchBar } from '../components/HostWorkspaceSearchBar'
 import { NewWorkspaceFab, FAB_SIZE } from '../components/NewWorkspaceFab'
+import { SearchWorkspacesFab } from '../components/SearchWorkspacesFab'
 import { WorktreeListRow } from '../components/WorktreeListRow'
 import { colors, spacing } from '../theme/mobile-theme'
 import { getWorktreeRowIdentity } from '../worktree/worktree-host-row-identity'
@@ -75,17 +76,7 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
 
       {/* Search bar */}
       {state.showSearch && (
-        <View style={styles.searchBar}>
-          <MobileSearchField
-            value={state.search}
-            onChangeText={state.setSearch}
-            placeholder="Search worktrees…"
-            autoFocus
-            // Why: new key per open remounts the focus effect across rapid toggles so the keyboard reappears.
-            focusKey={state.showSearch}
-            accessibilityLabel="Search worktrees"
-          />
-        </View>
+        <HostWorkspaceSearchBar value={state.search} onChangeText={state.setSearch} />
       )}
 
       <HostWorkspaceListStates
@@ -111,7 +102,7 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
           // Why: edge-to-edge under the system nav bar; insets.bottom keeps the last row above it.
           contentContainerStyle={[
             styles.list,
-            // Reserve room so the last row stays tappable above the phone's floating "+" (embedded uses the toolbar +).
+            // Reserve room so the last phone row stays tappable above the floating actions.
             { paddingBottom: (embedded ? spacing.lg : FAB_SIZE + spacing.xl) + insets.bottom },
             isWideLayout &&
               !embedded && { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' }
@@ -183,12 +174,18 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
         />
       )}
 
-      {/* Floating "new workspace" button — phone only; embedded sidebars keep the toolbar +. */}
+      {/* Phone actions float above the safe area; embedded layouts use the toolbar. */}
       {!embedded && (
-        <NewWorkspaceFab
-          onPress={actions.openNewWorktreeModal}
-          disabled={connState !== 'connected'}
-        />
+        <>
+          <SearchWorkspacesFab
+            active={state.showSearch}
+            onPress={() => state.setShowSearch((s) => !s)}
+          />
+          <NewWorkspaceFab
+            onPress={actions.openNewWorktreeModal}
+            disabled={connState !== 'connected'}
+          />
+        </>
       )}
     </>
   )
