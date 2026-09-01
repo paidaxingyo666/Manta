@@ -7,6 +7,7 @@ import {
   readdirSync,
   readlinkSync,
   rmSync,
+  statSync,
   symlinkSync
 } from 'node:fs'
 import { join } from 'node:path'
@@ -100,7 +101,10 @@ export function makeTreeReadOnly(targetPath, chmod = chmodSync) {
     if (entry.isDirectory()) {
       makeTreeReadOnly(entryPath, chmod)
     } else if (!entry.isSymbolicLink()) {
-      chmod(entryPath, 0o555)
+      // Clear the write bits and nothing else. A flat 0o555 would strip setuid from
+      // chrome-sandbox, and under hardlink sharing it would strip it in every worktree at once.
+      const mode = statSync(entryPath, { throwIfNoEntry: false })?.mode
+      chmod(entryPath, mode === undefined ? 0o555 : mode & ~0o222)
     }
   }
   chmod(targetPath, 0o755)

@@ -1,4 +1,5 @@
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -143,6 +144,16 @@ describe('makeTreeReadOnly', () => {
     makeTreeReadOnly(destination)
     expect(() => writeFileSync(path.join(destination, 'nested', 'file'), 'mutated')).toThrow()
     expect(readFileSync(path.join(source, 'nested', 'file'), 'utf8')).toBe('contents')
+  })
+
+  it.runIf(process.platform !== 'win32')('preserves setuid, which chrome-sandbox needs', () => {
+    const { source } = makeTree()
+    const sandbox = path.join(source, 'chrome-sandbox')
+    writeFileSync(sandbox, 'binary')
+    chmodSync(sandbox, 0o4755)
+    makeTreeReadOnly(source)
+    expect(statSync(sandbox).mode & 0o4000).toBe(0o4000)
+    expect(statSync(sandbox).mode & 0o222).toBe(0)
   })
 
   it.runIf(process.platform !== 'win32')(
