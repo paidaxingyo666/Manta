@@ -69,16 +69,26 @@ fi
 
 docker exec manta-relay-dev-caddy-1 caddy reload --config /etc/caddy/Caddyfile >>"$LOG" 2>&1
 
+# The URL's host has to be the domain, not the address: it sets both SNI and the
+# Host header, and --resolve only rewrites the name the URL already carries.
+# Pointing it at 127.0.0.1 instead makes Caddy match no site and answer nothing,
+# which reads as a failed switch when the switch was fine.
+want=$(openssl x509 -in "$LIVE/fullchain.pem" -noout -fingerprint -sha256 2>/dev/null | cut -d= -f2)
+
 ok=0
 for i in $(seq 1 10); do
-  a=$(curl -sk --max-time 8 -o /dev/null -w '%{http_code}' https://127.0.0.1/health --resolve "$DOMAIN:443:127.0.0.1" 2>/dev/null)
+  a=$(curl -sk --max-time 8 -o /dev/null -w '%{http_code}' "https://$DOMAIN/health" --resolve "$DOMAIN:443:127.0.0.1" 2>/dev/null)
   b=$(curl -sk --max-time 8 -o /dev/null -w '%{http_code}' "https://$DOMAIN:9444/health" --resolve "$DOMAIN:9444:127.0.0.1" 2>/dev/null)
-  [ "$a" = "200" ] && [ "$b" = "200" ] && { ok=1; break; }
+  # Serving 200 is not enough — the pinned certificate would pass that too. Check
+  # the listener is actually presenting the certificate this run just obtained.
+  got=$(echo | openssl s_client -connect 127.0.0.1:443 -servername "$DOMAIN" 2>/dev/null \
+        | openssl x509 -noout -fingerprint -sha256 2>/dev/null | cut -d= -f2)
+  [ "$a" = "200" ] && [ "$b" = "200" ] && [ -n "$want" ] && [ "$got" = "$want" ] && { ok=1; break; }
   sleep 3
 done
 
 if [ "$ok" != "1" ]; then
-  say "verification failed (443=$a 9444=$b); rolling back"
+  say "verification failed (443=$a 9444=$b cert=$([ \"$got\" = \"$want\" ] && echo match || echo mismatch)); rolling back"
   cp -a Caddyfile.bak-preswitch Caddyfile
   docker exec manta-relay-dev-caddy-1 caddy reload --config /etc/caddy/Caddyfile >>"$LOG" 2>&1
   exit 1

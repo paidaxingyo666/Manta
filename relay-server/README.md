@@ -446,6 +446,12 @@ certificate exists does the script seed Caddy's managed store and drop the `tls`
 line — so the swap has no gap at all. It rolls back and keeps the pinned
 certificate if the reload does not verify, and disables its own timer when done.
 
+Verify a listener by the name, never by the address. `--resolve` only rewrites
+the name the URL already carries, so a URL pointed at `127.0.0.1` sends that as
+both SNI and Host, Caddy matches no site, and a switch that worked reads as a
+failure. Check the fingerprint too: 200 alone would pass on the very certificate
+being replaced.
+
 Twenty minutes is not arbitrary. Let's Encrypt allows five failed authorizations
 per identifier per account per hour, and a tighter loop spends that budget
 without improving the odds.
