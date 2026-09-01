@@ -36,6 +36,7 @@ function getWindowsGpuFallbackEnvironment(): WindowsGpuFallbackEnvironment | nul
   return environment.platform === 'win32' ? { ...environment, platform: 'win32' } : null
 }
 
+// Writes both crash-time and post-recovery consent states through one build-scoped path.
 function persistGpuFallbackMarker(
   userDataPath: string,
   info: { engagedAt: number; crashesInWindow: number; userConfirmed: boolean }
@@ -53,7 +54,7 @@ function persistGpuFallbackMarker(
   }
 }
 
-/** Apply persisted software-rendering switches before Electron consumes its command line. */
+// Read before app.whenReady() so app.disableHardwareAcceleration() takes effect. Windows desktop only.
 export function maybeApplyGpuFallbackForThisLaunch(): void {
   if (state.isServeMode || process.platform !== 'win32') {
     return
@@ -66,6 +67,8 @@ export function maybeApplyGpuFallbackForThisLaunch(): void {
   app.disableHardwareAcceleration()
   const appliedSwitches = applyGpuFallbackCommandLineSwitches(app.commandLine, process.platform)
   state.gpuFallbackActiveThisLaunch = true
+  // Why: with no GPU child left, child-process-gone can't report a GPU fault, so
+  // name the applied switches in the trail any later crash report carries.
   recordCrashBreadcrumb('gpu_fallback_applied', {
     crashesInWindow: marker.crashesInWindow,
     switches: appliedSwitches.join(',')
@@ -79,6 +82,7 @@ export async function presentGpuFallbackRecoveredLaunchPrompt(
   if (!marker || marker.userConfirmed || window.isDestroyed() || state.isQuitting) {
     return
   }
+  // One prompt per process. A failure leaves the on-disk marker unconfirmed so the next launch retries.
   state.activeGpuFallbackMarker = null
   const userDataPath = app.getPath('userData')
   await handleGpuFallbackRecoveredLaunch({
@@ -110,11 +114,13 @@ export async function presentGpuFallbackRecoveredLaunchPrompt(
   })
 }
 
+// Why: a burst of GPU child crashes means HW acceleration is unusable — persist a build-scoped marker and offer software rendering.
 export async function handleGpuChildCrash(
   reason: string,
   exitCode: number | null,
   crashedAt: number
 ): Promise<void> {
+  // Software rendering already active or shutting down: nothing more to do.
   if (state.gpuFallbackActiveThisLaunch || state.isQuitting || state.isServeMode) {
     return
   }

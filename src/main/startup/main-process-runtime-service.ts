@@ -63,18 +63,25 @@ export function initializeMainProcessRuntime(): MantaRuntimeService {
       getProfileUserDataPath(),
       getProfileUserDataPath()
     ),
+    // Why: resolve the PTY provider lazily — a daemon swap happens later, so an eager reference would freeze the pre-daemon provider (design §4.3).
     getLocalProvider: () => getLocalPtyProvider(),
+    // Why: SSH relay providers register after construction and may reconnect, so destructive cleanup must resolve the current generation.
     getSshProvider: (connectionId) => getSshPtyProvider(connectionId),
     onPtyStopped: clearProviderPtyState,
     onTerminalAgentStatus: (event) => agentHookServer.ingestTerminalStatus(event),
+    // Why: serve can be promoted in place, so wire the listener from startup; runtime enables desktop-only scanners only for a ready renderer.
     onTerminalSideEffects: (batch: TerminalSideEffectBatch) => {
       if (state.mainWindow && !state.mainWindow.isDestroyed()) {
         state.mainWindow.webContents.send('pty:sideEffect', batch)
       }
     },
     getDesktopWindowStatus,
+    // Why: worktree.ps pulls hook-reported agent status (same source as the desktop sidebar) at query time so mobile shows the same agents.
     getAgentStatusSnapshot: () =>
       agentHookServer.getStatusSnapshot().filter((entry) => entry.providerSessionOnly !== true),
+    // Why: the filter above hides resume-identity rows from the live-agent views, but
+    // those rows carry the provider session mobile native chat addresses transcripts
+    // by — Pi publishes identity that way and would otherwise be unreachable.
     getAgentProviderSessionSnapshot: () => agentHookServer.getStatusSnapshot(),
     getAgentProviderSessionRowsForPane: (paneKey) =>
       agentHookServer.getStatusSnapshotForPane(paneKey),
@@ -85,8 +92,11 @@ export function initializeMainProcessRuntime(): MantaRuntimeService {
     reconcileAgentStatusForEndedProcess: (paneKeys) =>
       agentHookServer.reconcileEndedProcessForPaneKeys(paneKeys),
     canRecoverPersistentLocalPtys: () => getDaemonProvider() !== null,
+    // Why: evaluated per call, not captured — the RPC server that owns the device registry is
+    // constructed with this runtime and does not exist yet at this point.
     getPairedDeviceName: (pairedDeviceId) =>
       state.runtimeRpc?.getDeviceRegistry()?.getDevice(pairedDeviceId)?.name ?? null,
+    // Why: source codex-home here (runs in window AND serve) so aiVault.listSessions includes managed-Codex sessions; registerCoreHandlers is window-only.
     getAdditionalAiVaultCodexHomePaths: () =>
       state.codexRuntimeHome?.getHostCodexHomePathsForSessionDiscovery() ?? [],
     prepareAiVaultSessionResume: (args) =>
@@ -106,6 +116,8 @@ export function initializeMainProcessRuntime(): MantaRuntimeService {
   })
   state.runtime = runtime
   runtime.prepareLegacyWorkerTerminalRecovery()
+  // Why before anything can attach: a client host that reattaches to a restarted runtime is only
+  // handed its pages back if the runtime found them first.
   runtime.rehydrateClientHostedBrowserPages()
   state.publishProviderSessionChanges?.(agentHookServer.getProviderSessionIdentities())
   browserManager.setBrowserGuestStateChangedListener((worktreeId) => {
@@ -130,6 +142,7 @@ export function configureRuntimeServices(runtime: MantaRuntimeService): void {
   runtime.setSkillCloudService(new SkillCloudService(app.getPath('userData')))
   runtime.setAccountServices({ claudeAccounts, codexAccounts, rateLimits })
   runtime.setCommitMessageAgentEnvironmentResolvers({
+    // Why: Codex hooks/auth live in Orca's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
     prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,
     prepareForClaudeLaunch: (target) => state.claudeRuntimeAuth!.prepareForClaudeLaunch(target)
   })

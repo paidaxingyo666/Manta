@@ -49,6 +49,7 @@ export function handleCodexHomePtySpawned(args: {
   startedAt?: Date
   startedSequence?: number
 }): void {
+  // Why: only shared or ambiguous retained shells can create rollout logs that still need publication.
   if (args.reattached && args.startedSequence !== undefined) {
     const paneAccount = getCodexPaneAccount(args.id)
     const homeRoute =
@@ -79,6 +80,11 @@ export function handlePtyExit(id: string, exitSequence: number): void {
   state.codexSessionMigration?.finishLaunch(id, exitSequence)
 }
 
+/** A PTY that dies while Orca is down never runs the teardown that clears pane
+ *  state, so hydrate can rebuild a Claude subagent roster that no later hook can
+ *  retire — pinning the pane 'working' and locking its agent out of hibernation
+ *  for good. Once provider and hook hydration settle, targeted PTY liveness can
+ *  retire only rows whose local owner is proven gone. */
 export async function reapRestoredSubagentsWithoutLiveAgent(): Promise<void> {
   const store = state.store
   if (!store) {
@@ -119,9 +125,12 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
     // Why: both desktop and headless serve must adopt the same persistent provider before creating terminals or a renderer.
     startDaemonPtyProvider: async (signal) => {
       logStartupMilestone('startup-service-start', { service: 'daemon-pty-provider' })
+      // Why: only GUI-spawned macOS daemons watch for login-session death; a headless
+      // serve daemon must survive its spawning session ending (SSH disconnect).
       await initDaemonPtyProvider(signal, {
         macosLoginSessionWatch: process.platform === 'darwin' && !state.isServeMode
       })
+      // Why: a retained shell keeps its launch-time Codex home even when the current routing lane changes.
       const hasRetainedManagedHostPane = hasRecordedManagedHostCodexPane()
       if (
         state.codexRuntimeHome &&
@@ -131,6 +140,9 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
         if (livePtyIds) {
           reconcileCodexPaneAccountsWithLivePtys(livePtyIds)
           const settings = state.store?.getSettings()
+          // Why (#16441): each retained home can run a codex app-server grant
+          // session. Awaiting them here delayed the first window by N sessions;
+          // a retained shell cannot invoke Codex before this provider serves.
           if (hasRetainedManagedHostPane) {
             void reconcileRetainedCodexHookHomes({
               hookService: codexHookService,
@@ -144,26 +156,33 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
           }
         }
       }
+      // Why: retained shells can invoke Codex immediately after the startup gate.
       state.codexRuntimeHome?.reconcileLegacySharedHomeForRetainedPanes()
       logStartupMilestone('startup-service-done', { service: 'daemon-pty-provider' })
     },
+    // Why: PTY spawn env reads ORCA_AGENT_HOOK_* from live server state, so the renderer awaits this before restored terminals reconnect.
     startAgentHookServer: async () => {
       const settings = state.store?.getSettings()
       if (!isAgentStatusHooksEnabled(settings)) {
         return
       }
       logStartupMilestone('startup-service-start', { service: 'agent-hook-server' })
+      // Why (#11217): the hook listener fails open on every request error, so an IDS resetting
+      // loopback POSTs mid-body stops agent status for every runtime with no symptom but staleness.
+      // Log + telemetry (the daemon_start_failed pattern) so it is diagnosable without a packet capture.
       agentHookServer.setTransportInterferenceListener((report) => {
         track('agent_hook_transport_blocked', { count: report.count })
       })
       await agentHookServer.start({
         env: app.isPackaged ? 'production' : 'development',
+        // Why: hooks source this endpoint file at invocation time so old PTY env reaches the current process after restart; dev namespaces it (worktrees share `orca-dev`).
         userDataPath: app.getPath('userData'),
         endpointNamespace: state.devAgentHookEndpointNamespace
       })
       logStartupMilestone('startup-service-done', { service: 'agent-hook-server' })
     },
     onDaemonError: (error) => {
+      // Why: daemon failure silently falls back to non-persistent local PTYs; log + telemetry so a fleet-wide outage is observable (was invisible in v1.4.129-rc.1).
       const reason = error instanceof Error ? error.message : String(error)
       console.error(
         `[daemon] STARTUP FAILED — falling back to local PTYs; terminals will not persist across quit. Reason: ${reason}`
@@ -171,6 +190,7 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
       track('daemon_start_failed', classifyError(error))
     },
     onAgentHookServerError: (error) => {
+      // Why: hook callbacks are sidebar enrichment only; Orca must still boot if the loopback receiver fails.
       console.error('[agent-hooks] Failed to start local hook server:', error)
     }
   })

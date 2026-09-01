@@ -110,6 +110,7 @@ export async function printServeReady(options: ServeOptions): Promise<void> {
       runtimeId: runtime.getRuntimeId(),
       boundEndpoint,
       advertisedEndpoint: advertised?.ok ? advertised.endpoint : null,
+      // Why: the WSL reconciliation barrier fails open, so 'pending' warns a WSL PTY launch may still race a repair.
       managedWslCliReconciliation: state.managedWslCliReconciliationStatus,
       pairing: pairing.available
         ? {

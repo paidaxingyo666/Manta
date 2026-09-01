@@ -1,4 +1,4 @@
-/** A short-lived renderer intent scoped to one WebContents instance. */
+// Why: webContents-scoped auto-expiring flag so an intent can't leak to a later renderer load; `consume` clears on match for one-shot signals.
 export function createWebContentsTimedFlag(defaultDurationMs = 10_000): {
   mark: (webContentsId: number, durationMs?: number) => void
   clear: (webContentsId?: number) => void

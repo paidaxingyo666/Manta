@@ -33,7 +33,13 @@ export function initializeMainProcessAccountServices(): void {
   state.rateLimits = new RateLimitService()
   state.codexRuntimeHome = new CodexRuntimeHomeService(store)
   void startCodexStateDbBackfillRecoveryInBackground(getMantaManagedCodexHomePath())
+  // Why: an incapable trust-grant host must fall back to the managed home for
+  // every consumer (PTY env, rate limits, commit messages) in one place.
   state.codexRuntimeHome.setRealHomeLaneGate(() => isRealHomeCodexHookLaneUsable())
+  // Why: while the real-home lane owns ~/.codex/hooks.json, the legacy
+  // system-home sweep inside managed installs would delete the entry the
+  // real-home installer just appended. Flag OFF, hooks off, or an incapable
+  // trust lane re-arms the sweep so downgrade, opt-out, and rollback converge.
   setSystemCodexHomeHookSweepSuppressed(
     () =>
       state.codexRuntimeHome !== null &&
@@ -55,6 +61,8 @@ export function initializeMainProcessAccountServices(): void {
   state.codexAccounts = new CodexAccountService(store, state.rateLimits, state.codexRuntimeHome, {
     onHostSystemDefaultSelected: state.codexSessionMigration.requestRun
   })
+  // Why: migrate historical shared-home sessions after startup; compatibility
+  // launches re-arm the non-destructive pass for new rollouts (#4444, #8612, #12480).
   state.codexSessionMigration.scheduleInitialRun()
   state.claudeRuntimeAuth = new ClaudeRuntimeAuthService(store)
   state.claudeAccounts = new ClaudeAccountService(store, state.rateLimits, state.claudeRuntimeAuth)
@@ -62,6 +70,8 @@ export function initializeMainProcessAccountServices(): void {
     state.codexRuntimeHome!.prepareForRateLimitFetch(target)
   )
   state.rateLimits.setCodexFetchTarget(getInitialCodexRateLimitTarget(store.getSettings()))
+  // Why: Kimi's CLI refreshes its OAuth token in whichever runtime it runs in, so the
+  // usage fetch must read the WSL-side credentials when that's the configured runtime (#12370).
   state.rateLimits.setKimiHomeResolver(() =>
     resolveKimiHome(getKimiRuntimeTarget(store.getSettings()))
   )
@@ -71,6 +81,7 @@ export function initializeMainProcessAccountServices(): void {
     store.getSettings()
   )
   store.onSettingsChanged((updates, settings) => {
+    // Why: auto is a live policy; retarget only providers whose settings-derived runtime changed.
     void syncAccountRuntimeTargets(updates, settings).catch((error) =>
       console.warn('[rate-limits] Failed to apply account runtime target:', error)
     )
@@ -78,8 +89,7 @@ export function initializeMainProcessAccountServices(): void {
   state.rateLimits.setClaudeAuthPreparationResolver((target) =>
     state.claudeRuntimeAuth!.prepareForRateLimitFetch(target)
   )
-  // Live Claude sessions publish quota windows through their status-line hook;
-  // consume those snapshots before falling back to OAuth polling.
+  // Why: live Claude sessions stream usage windows through their statusLine command; feeding them here avoids OAuth usage-endpoint polling (and its 429s).
   agentHookServer.setClaudeStatusLineListener((event) => {
     state.rateLimits!.ingestLiveClaudeRateLimits(event)
   })

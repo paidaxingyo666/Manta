@@ -52,6 +52,7 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
     onTabsChanged: (worktreeId) => runtime.notifyMobileSessionTabsChanged(worktreeId)
   })
   runtime.setAgentBrowserBridge(state.agentBrowserBridge)
+  // Why: daemons a crashed or SIGKILL'd previous run left behind answer to nobody; nothing else reclaims them.
   void state.agentBrowserBridge.sweepOrphanedSessions()
   const browserClientAutomationDispatcher = new RpcDispatcher({ runtime })
   configureBrowserClientPageAutomationRuntime({
@@ -68,15 +69,22 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
       return response.result
     }
   })
+  // Emulator bridge (serve-sim). macOS-only feature (gated in CLI/runtime); always ship like agent-browser.
+  // Why: externally started serve-sim processes must stay independent — only Orca-managed/attached helpers belong to a workspace.
   state.emulatorBridge = new EmulatorBridge()
   runtime.setEmulatorBridge(state.emulatorBridge)
-  // Remove directories left behind by an interrupted worktree deletion.
+  // Why: worktree deletion renames the checkout aside and deletes it in the background, so a quit or
+  // crash mid-delete can leave the moved directory on disk.
   void sweepStaleWorktreeTrash(
     collectWorktreeTrashSweepRoots(store.getRepos(), store.getSettings())
   ).catch((error) => {
     console.warn('[worktrees] Failed to sweep leftover worktree directories:', error)
   })
   nativeTheme.themeSource = store.getSettings().theme ?? 'system'
+  // Why (#16441): the real-home grant runs a codex app-server session. It stays
+  // ordered before managed-hook reconciliation — an incapable host must re-arm
+  // and complete the legacy real-home sweep first — but awaiting it inline
+  // stalled app init behind that session, so chain instead of blocking.
   const startupManagedHookSettings = store.getSettings()
   const shouldReconcileStartupManagedHooks =
     shouldInstallManagedHooks(is.dev) &&
@@ -92,6 +100,9 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
           console.warn('[codex-real-home-hooks] startup ensure failed:', error)
         })
       : Promise.resolve()
+  // Why skip rather than remove when the off switch is set: the hook files are user-global but this
+  // decision reads only THIS profile's settings, so removing here deletes the hooks every other Orca
+  // instance depends on (STA-5679). Skipping already keeps removed hooks from reappearing on launch.
   if (shouldReconcileStartupManagedHooks) {
     const managedHookStore = store
     void realHomeCodexHookState
@@ -111,6 +122,8 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
         console.warn('[agent-hooks] failed to reconcile managed hooks on startup:', error)
       )
   }
+  // Why: process-gone metrics only see survivors; retain a recent whole-app
+  // snapshot for comparison in crash reports.
   startPreGoneProcessMetricsSampling()
   app.on('child-process-gone', (_event, details) => {
     recordProcessGoneCrash('child', details.type, details.reason, details.exitCode ?? null, {

@@ -27,6 +27,7 @@ function requestDesktopActivation(argv: readonly string[] = []): void {
   state.skillShareDeepLinks.capture(argv, (shareId) => {
     state.mainWindow?.webContents.send('ui:openSkillShare', shareId)
   })
+  // Why: a duplicate `orca serve` must not drag a headless server into opening a desktop window (#11935).
   if (!shouldActivateDesktopForSecondInstance(argv)) {
     return
   }
@@ -43,6 +44,7 @@ const preflightReady = runMainProcessPreflight({
   requestDesktopActivation
 })
 
+// Why: when another process holds the lock we've already exited; skip file-writing side effects so this transient process never touches userData.
 if (preflightReady) {
   app.on('open-url', (event, url) => {
     if (!parseSkillShareId(url)) {

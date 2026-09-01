@@ -7,8 +7,10 @@ import { renameWorktreeFolderOnFirstWork } from '../agent-hooks/first-work-folde
 import { moveWorktree } from '../git/worktree'
 import { mainProcessState as state } from './main-process-state'
 
+// Kill switch for the first-work on-disk folder rename; the renderer reconciles the id change (migrateWorktreeIdentity) so it isn't mistaken for a deletion.
 const ENABLE_FIRST_WORK_FOLDER_RENAME = false
 
+// Why: inject the index.ts store/runtime singletons so the rename orchestrator stays module-state-free and unit-testable.
 export function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
   paneKey: string
   tabId: string | undefined
@@ -56,6 +58,7 @@ export function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
       },
       canRenameMantaCreatedBranch: (worktreeId) => {
         const meta = store.getWorktreeMeta(worktreeId)
+        // Why: a user branch could coincidentally match a creature name; only Manta-stamped worktrees are safe to auto-rename.
         return !!meta?.mantaCreationSource && meta.preserveBranchOnDelete !== true
       },
       setDisplayName: (worktreeId, displayName) => {
@@ -76,6 +79,7 @@ export function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
           // generated branch is renamed and across subsequent catalog refreshes.
           displayNameIsPinned: true,
           pendingFirstAgentMessageRename: false,
+          // Success clears the failure badge (redundant with the explicit setRenameError(null)).
           firstAgentMessageRenameError: null
         })
       },
@@ -93,7 +97,9 @@ export function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
             })
         : undefined,
       setRenameError: (worktreeId, error, failureOutput) => {
+        // Refresh the full-output capture before the dedupe below — a repeat error string is still a fresh run.
         rememberBranchRenameFailureOutput(worktreeId, error === null ? null : failureOutput)
+        // Skip the write + push when unchanged — most settled worktrees never had an error to clear.
         const scope = parseWorkspaceKey(worktreeId)
         if (scope?.type === 'folder') {
           const current = store.getFolderWorkspace(
@@ -113,6 +119,7 @@ export function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
           return
         }
         store.setWorktreeMeta(worktreeId, { firstAgentMessageRenameError: error })
+        // Why: the hook only knows the worktreeId, so derive the repoId notifyBranchRenamed expects.
         runtime.notifyBranchRenamed(getRepoIdFromWorktreeId(worktreeId))
       },
       resolveWorktreeIdForTab: (tabId) => store.getWorktreeIdForTab(tabId),

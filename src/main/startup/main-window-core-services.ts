@@ -115,6 +115,7 @@ export function attachMainWindowCoreServices(
         }
         deps.recordRendererReload(ignoreCache)
       },
+      // Why: let the PTY layer skip its orphan sweep on the recovery reload that re-fires did-finish-load, so live local sessions survive (#5787).
       isRecoveryReloadInFlight,
       onCodexHomePtySpawned: handleCodexHomePtySpawned,
       onPtyExit: handlePtyExit,
@@ -124,7 +125,9 @@ export function attachMainWindowCoreServices(
       onWorktreeLifecycle: emitPluginWorktreeLifecycle
     }
   )
+  // Why: attach the durable renderer pull now, but launch the diagnostic process after first paint.
   initTccPromptNotice(window, { deferWatchUntilReadyToShow: true })
   rateLimits.attach(window)
+  // Why: quota probes spawn CLIs and hit network, so don't fetch immediately and compete with first paint; show/focus listeners refresh later.
   rateLimits.start({ fetchImmediately: false })
 }
