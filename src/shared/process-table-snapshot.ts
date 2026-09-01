@@ -150,7 +150,10 @@ export function buildProcessTableIndex(
     if (stats) {
       stats.rowVisits += 1
     }
-    byPid.set(row.pid, row)
+    // Preserve rows.find() semantics if a malformed table repeats a pid
+    if (!byPid.has(row.pid)) {
+      byPid.set(row.pid, row)
+    }
     const children = childrenByPpid.get(row.ppid) ?? []
     children.push(row)
     childrenByPpid.set(row.ppid, children)
@@ -175,6 +178,31 @@ export function lookupProcessTableIndex<T>(
     stats.indexLookups += 1
   }
   return lookup(index)
+}
+
+const processTableIndexes = new WeakMap<readonly ProcessTableRow[], ProcessTableIndex>()
+
+/**
+ * Memoize one index per snapshot identity, so the panes that share a TTL-cached
+ * capture walk its rows once instead of once each. Keyed weakly by the rows
+ * array, so an index dies with the snapshot that produced it. The shared build
+ * materializes only `byPid` and `childrenByPpid`, so a one-pane relay pays for
+ * two maps per capture rather than four indexes no resolver queries.
+ *
+ * Deliberately stats-free: `buildProcessTableIndex` mutates the caller's counter
+ * bag and stores it on the index, so a shared index would hand one caller's bag
+ * to an unrelated later caller and let a cache hit satisfy an `indexBuilds`
+ * measurement without building anything. Measured callers keep calling
+ * `buildProcessTableIndex(rows, stats)` directly.
+ */
+export function getProcessTableIndex(rows: readonly ProcessTableRow[]): ProcessTableIndex {
+  const cached = processTableIndexes.get(rows)
+  if (cached) {
+    return cached
+  }
+  const index = buildProcessTableIndex(rows)
+  processTableIndexes.set(rows, index)
+  return index
 }
 
 type Snapshot<T> = { value: T; capturedAtMs: number }
