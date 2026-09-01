@@ -47,6 +47,7 @@ import { createWebContentsTimedFlag } from './web-contents-timed-flag'
 /** Mutable composition-root state shared by startup, window, serve, and quit phases. */
 export const mainProcessState = {
   mainWindow: null as BrowserWindow | null,
+  /** Whether a manual app.quit() (Cmd+Q) is in progress; lets the close handler skip the running-process confirmation and go straight to close. */
   isQuitting: false,
   store: null as Store | null,
   stats: null as StatsCollector | null,
@@ -65,6 +66,7 @@ export const mainProcessState = {
   desktopRelayService: null as DesktopRelayService | null,
   desktopRelayStatus: 'offline' as RelayBrokerStatus,
   pendingUnpairedDeviceAuthFailure: false,
+  // Why: gates whether headless serve installs the offscreen browser backend (and advertises browser pane support).
   headlessBrowserDisplayAvailable: false,
   starNag: null as StarNagService | null,
   agentAwakeService: null as AgentAwakeService | null,
@@ -82,13 +84,16 @@ export const mainProcessState = {
   pluginMarketplaceService: null as PluginMarketplaceService | null,
   pluginMarketplaceInstaller: null as PluginMarketplaceInstaller | null,
   keybindings: null as KeybindingService | null,
+  // Why: a reload intent must not leak to a later load; the recovery reload re-fires did-finish-load, so its flag spares live PTYs from the orphan sweep (#5787).
   expectedRendererReload: createWebContentsTimedFlag(),
   recoveryReloadInFlight: createWebContentsTimedFlag(),
+  // Why: a tray "Settings…" click can precede the renderer's ui:openSettings listener; it pulls this one-shot on mount.
   pendingOpenSettings: createWebContentsTimedFlag(),
   skillShareDeepLinks: new SkillShareDeepLinkState(),
   firstWindowStartupServicesReady: Promise.resolve(),
   managedWslCliReconciliationReady: Promise.resolve(),
   managedWslCliStartupBarrierReady: Promise.resolve(),
+  // Why: the serve barrier fails open, so this state tells headless clients a WSL PTY launch may still race an un-migrated registration ('settled' = off-Windows no-op).
   managedWslCliReconciliationStatus: 'settled' as 'pending' | 'settled' | 'failed',
   gpuCrashFallbackTracker: new GpuCrashFallbackTracker({
     windowMs: DEFAULT_GPU_CRASH_FALLBACK_WINDOW_MS,

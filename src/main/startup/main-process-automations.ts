@@ -17,6 +17,7 @@ export function initializeMainProcessAutomations(): AutomationService {
     codexUsage,
     terminalObserver: createRuntimeAutomationRunTerminalObserver(runtime),
     onAutomationsChanged: (payload) => runtime.notifyAutomationsChanged(payload),
+    // Why: desktop clients mirror remote-host automations, but only a server process should execute remote_host_service-owned schedules.
     allowRemoteHostScheduling: state.isServeMode,
     headlessDispatcher: state.isServeMode
       ? async ({ automation, run, target }) => {

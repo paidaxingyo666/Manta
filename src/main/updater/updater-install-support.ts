@@ -8,10 +8,7 @@ import { getTrackedLinuxPackageArtifact } from '../linux-package-update-recovery
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
 import { disarmUpdateInstallExitWatchdog } from '../update-install-exit-watchdog'
 import { resetMacInstallState } from '../updater-mac-install'
-import type {
-  LinuxPackageInstallRecovery,
-  UpdateStatus
-} from '../../shared/update-status-types'
+import type { LinuxPackageInstallRecovery, UpdateStatus } from '../../shared/update-status-types'
 import { compareVersions } from '../updater-fallback'
 import { PRE_QUIT_CLEANUP_TIMEOUT_MS } from './updater-state'
 import { UpdaterCheckState } from './updater-check-state'

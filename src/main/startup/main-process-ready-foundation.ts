@@ -51,6 +51,7 @@ import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-con
 
 export async function initializeReadyFoundation(): Promise<void> {
   logStartupMilestone('app-ready')
+  // Why: a headless automated run must not claim a macOS Dock tile or the menu bar.
   applyBackgroundActivationPolicy({ warn: console.warn })
   installElectronProxyRequestGuard(session.defaultSession)
   app.on('login', (event, webContents, details, authInfo, callback) => {
@@ -73,6 +74,7 @@ export async function initializeReadyFoundation(): Promise<void> {
       selfRecovered: state.hangDetection.selfRecovered
     })
   }
+  // Why: install certificate decisions before any webview or headless window issues its first TLS request.
   app.on(
     'certificate-error',
     (event, webContents, url, error, certificate, callback, isMainFrame) => {
@@ -92,8 +94,12 @@ export async function initializeReadyFoundation(): Promise<void> {
     throw new Error('Development identity is unavailable')
   }
   electronApp.setAppUserModelId(identity.appUserModelId)
+  // Why: names the app menu/About panel. Dev already applied this pre-ready (see the
+  // safeStorage note above); this call stays unconditional so packaged builds keep their
+  // existing post-ready rename, which lands after the Keychain name is already resolved.
   app.setName(identity.appName)
   updateGpuAccelerationAboutPanel()
+  // Why: managed WSL launchers live outside the Windows app bundle, so keep their launcher/bridge contract synced across app updates.
   state.managedWslCliReconciliationStatus = 'pending'
   state.managedWslCliReconciliationReady = reconcileManagedWslCliRegistrations({
     isPackaged: app.isPackaged,
@@ -124,20 +130,31 @@ export async function initializeReadyFoundation(): Promise<void> {
   )
   const profile = ensureActiveMantaProfile()
   state.activeMantaProfile = profile
+  // Why this early: the first window stamps the hosting id into its renderer's argv, so the durable
+  // read has to have happened by then or the renderer and the browser-host lease disagree.
   initializeBrowserClientHostId(profile.profileDirectory)
   const store = new Store({
     dataFile: profile.dataFile,
     storageAuthority: state.isServeMode ? 'runtime' : 'desktop'
   })
   state.store = store
+  // Why: create pending readiness before the guard can observe the default session.
   const initialProxyApplication = applyElectronProxySettings(store.getSettings())
   installElectronProxyRequestGuard(session.defaultSession)
+  // Why armed here and not at install time: the report remembers what it last said, and
+  // that state lives beside the profile data file, which does not exist until now.
+  // Why scheduled and not called: the report probes the OS keyring, which blocks on Linux
+  // and must not gate the first window (STA-5765).
   scheduleSecretProtectionGapReport({
     dataFile: profile.dataFile,
     force: process.env.MANTA_ALWAYS_REPORT_SECRET_PROTECTION === '1',
     deferUntilFirstWindow: !state.isServeMode
   })
+  // Why here: the host key store is a sidecar of the same profile, and every SSH connect consults
+  // it. Left unbound it reports nothing trusted, which is safe but silently discards our own
+  // accept records on every launch.
   initSshHostKeyStoreFile(profile.dataFile)
+  // Why: must precede PTY handler registration and run in headless serve too, which returns before openMainWindow.
   neutralizeLegacyTerminalShimDir(app.getPath('userData'))
   const windowsShellPathHydration = createWindowsShellPathHydration()
   state.windowsShellPathHydration = windowsShellPathHydration
@@ -160,9 +177,11 @@ export async function initializeReadyFoundation(): Promise<void> {
   }
   wslHookRelayManager.setManagedHookSettingsResolver(() => state.store?.getSettings() ?? null)
   logStartupMilestone('store-loaded')
+  // Why: apply initial fallback WSL distro from store settings for global git/CLI calls.
   setDefaultWslDistroOverride(store.getSettings().terminalWindowsWslDistro ?? null)
   store.onSettingsChanged((updates, settings) => {
     if ('terminalWindowsWslDistro' in updates) {
+      // Why: synchronize fallback WSL distro updates to runner.
       setDefaultWslDistroOverride(settings.terminalWindowsWslDistro ?? null)
     }
     if (
@@ -182,9 +201,13 @@ export async function initializeReadyFoundation(): Promise<void> {
       }
     }
     if ('showMenuBarIcon' in updates) {
+      // Why: Store is the mutation authority for all settings writes, so every macOS toggle updates the native item live.
       syncMacMenuBarIcon(settings.showMenuBarIcon !== false)
     }
     if ('agentStatusHooksEnabled' in updates) {
+      // Why both directions: the ensure gate only blocks NEW relays, so off must stop the running
+      // guest process and timers, and on must restart them — otherwise open WSL panes report no
+      // status until their next spawn.
       if (isAgentStatusHooksEnabled(settings)) {
         wslHookRelayManager.resumeStoppedRelays()
       } else {
@@ -192,7 +215,11 @@ export async function initializeReadyFoundation(): Promise<void> {
       }
     }
   })
+  // Why: run before ClaudeRuntimeAuthService's constructor sync — a surviving daemon Claude CLI holds the single-use refresh token; early refresh rotates it out mid-session.
   attachClaudeLivePtyPersistence(store)
+  // Why: while a live claude defers the managed OAuth refresh, usage shows
+  // "Waiting for Claude session"; refetch when the last live PTY exits so the
+  // error clears immediately instead of after the failure backoff.
   onLiveClaudePtysDrained(() => {
     void state.rateLimits?.refreshAfterClaudeLivePtysDrained()
   })
@@ -208,28 +235,37 @@ export async function initializeReadyFoundation(): Promise<void> {
     suppressDevEducationForStore(store)
   }
   try {
+    // Why: Dock/Launchpad launches don't inherit shell proxy env vars, so apply the persisted proxy before any app-owned network fetchers run.
     const proxyApplyResult = await initialProxyApplication
     if (proxyApplyResult.source === 'invalid-settings') {
+      // Why (STA-3442): a silent DIRECT fallback made a dead configured proxy undiagnosable.
       console.warn('[proxy] persisted proxy settings are invalid; using direct networking')
     }
   } catch {
     console.warn('[proxy] Failed to apply network proxy settings')
   }
+  // Why: the partition installer reads the proxy through this resolver, so register it before sessions materialize.
   setBrowserNetworkProxySettingsResolver(() => state.store!.getSettings())
+  // Why: the preview session is protocol-scoped, so the handler must exist before any preview webview attaches.
   installDocPreviewProtocolHandler()
   registerDocPreviewGrantHandlers()
+  // Why: browser sessions serve desktop webviews and runtime profile commands, so init at app startup rather than via a renderer IPC path.
   initializeBrowserSessionsForApp({
     mantaProfileId: profile.profile.id,
     profileDirectory: profile.profileDirectory,
+    // Why: local direct-SSH partitions are scoped to targets, and the orphan
+    // sweep must see the live target list or it would clear their cookie jars.
     listLocalSshTargetIds: () => {
       const currentStore = state.store
       if (!currentStore) {
+        // Why: an empty list would read as "every SSH jar is an orphan"; throwing skips the sweep.
         throw new Error('ssh target store unavailable at partition sweep')
       }
       return currentStore.getSshTargets().map((target) => target.id)
     }
   })
   try {
+    // Why: awaited here so the first guest navigation cannot race the installer's fire-and-forget write.
     await applyBrowserSessionProxies(browserSessionRegistry.listProfiles(), store.getSettings())
   } catch {
     console.warn('[proxy] Failed to apply network proxy settings to browser sessions')

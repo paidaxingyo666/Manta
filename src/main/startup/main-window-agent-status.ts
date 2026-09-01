@@ -48,6 +48,7 @@ export function installMainWindowAgentStatusListeners(options: MainWindowAgentSt
         return
       }
       if (providerSessionOnly) {
+        // Why: session_start just refreshes durable resume identity while Pi is idle; forward it without titles, telemetry, or status UI.
         state.mainWindow?.webContents.send('agentStatus:set', {
           ...payload,
           paneKey,
@@ -99,6 +100,7 @@ export function installMainWindowAgentStatusListeners(options: MainWindowAgentSt
         getDashboardPopoutWindow()?.webContents.send('agentStatus:set', statusEvent)
       }
       options.onRecordAgentState(payload.agentType ?? 'unknown', payload.state)
+      // Why: native OSC titles miss some idle/permission frames, so inject hook-derived ones to keep the renderer title tracker in sync.
       const profile = getSyntheticAgentTitleProfile(payload.agentType)
       if (
         profile &&
@@ -131,8 +133,10 @@ export function installMainWindowAgentStatusListeners(options: MainWindowAgentSt
 }
 
 export function clearMainWindowAgentStatusListeners(): void {
+  // Why: detach the hook listener on close so the server never fires into destroyed webContents before reopen, and replay runs only on deliberate recreations.
   agentHookServer.setListener(null)
   agentHookServer.setPaneStatusClearListener(null)
   setMigrationUnsupportedPtyListener(null)
+  // Why: stop the spinner timer here — it would fire into destroyed webContents, and per-pane teardown may never run for restored-but-untorn panes.
   stopAllSyntheticTitleSpinners()
 }

@@ -31,6 +31,7 @@ export function registerMainProcessIpcHandlers(): void {
       }
     })
   )
+  // Why: the renderer pulls this once its ui:openSettings listener attaches, so a Settings request queued before mount isn't lost.
   ipcMain.handle('ui:consumePendingOpenSettings', (event) =>
     state.pendingOpenSettings.matches(event.sender.id, { consume: true })
   )
