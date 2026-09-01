@@ -1,8 +1,8 @@
 import { vi, type Mock } from 'vitest'
-import { makePaneKey } from '../../shared/stable-pane-id'
-import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
-import type { RuntimeTerminalListResult } from '../../shared/runtime-types'
-import { MantaRuntimeService } from './manta-runtime'
+import { makePaneKey } from '../../../shared/stable-pane-id'
+import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
+import type { RuntimeTerminalListResult } from '../../../shared/runtime-types'
+import { MantaRuntimeService } from '../manta-runtime'
 import {
   CANARY_INCARNATION_ID,
   CANARY_LEAF_ID,

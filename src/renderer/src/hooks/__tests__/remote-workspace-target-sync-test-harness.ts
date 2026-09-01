@@ -2,14 +2,14 @@ import { vi } from 'vitest'
 import type {
   RemoteWorkspaceObservedPatchResult,
   RemoteWorkspaceObservedSnapshot
-} from '../../../shared/remote-workspace-types'
-import type { DirectSshAuthority, SshProviderEpoch } from '../../../shared/ssh-types'
-import type { AppState } from '../store/types'
+} from '../../../../shared/remote-workspace-types'
+import type { DirectSshAuthority, SshProviderEpoch } from '../../../../shared/ssh-types'
+import type { AppState } from '../../store/types'
 import type {
   DirectSshPreparationInput,
   DirectSshPreparationToken
-} from './direct-ssh-reconnect-coordinator'
-import { createRemoteWorkspaceTargetSync } from './remote-workspace-target-sync'
+} from '../direct-ssh-reconnect-coordinator'
+import { createRemoteWorkspaceTargetSync } from '../remote-workspace-target-sync'
 
 export type Deferred<T> = {
   promise: Promise<T>

@@ -164,10 +164,37 @@ type ReceivedSessionTabsSnapshot = SnapshotFreshness & {
  * minted by several publishers. Retain a bounded predecessor set so a frame
  * queued by a restarted host cannot be mistaken for a fresh publication.
  */
-type SessionTabsRuntimeHistory = {
+type RetiredValueHistory = {
   current: string | null
   retired: string[]
 }
+
+function hasRetiredValue(history: RetiredValueHistory | undefined, value: string): boolean {
+  return history?.retired.includes(value) ?? false
+}
+
+function noteRetiredValue(
+  history: RetiredValueHistory | undefined,
+  value: string,
+  retiredLimit: number
+): RetiredValueHistory {
+  if (!history) {
+    return { current: value, retired: [] }
+  }
+  if (history.current === value) {
+    return history
+  }
+  if (history.current && !history.retired.includes(history.current)) {
+    history.retired.push(history.current)
+    if (history.retired.length > retiredLimit) {
+      history.retired.splice(0, history.retired.length - retiredLimit)
+    }
+  }
+  history.current = value
+  return history
+}
+
+type SessionTabsRuntimeHistory = RetiredValueHistory
 
 /**
  * A host restart changes the publication epoch, but frames from the previous
@@ -175,10 +202,7 @@ type SessionTabsRuntimeHistory = {
  * of epochs that have already been superseded so those delayed frames cannot
  * roll the mirror back after the replacement epoch is accepted.
  */
-type SessionTabsPublicationEpochHistory = {
-  current: string
-  retired: string[]
-}
+type SessionTabsPublicationEpochHistory = RetiredValueHistory
 
 type SessionTabsRecoveryState = {
   pendingCount: number
@@ -438,32 +462,20 @@ function getSessionTabsRuntimeIdFromResponse(
 }
 
 function isRetiredSessionTabsRuntimeId(environmentId: string, runtimeId: string): boolean {
-  return (
-    sessionTabsRuntimeHistoryByEnvironment.get(environmentId)?.retired.includes(runtimeId) ?? false
-  )
+  return hasRetiredValue(sessionTabsRuntimeHistoryByEnvironment.get(environmentId), runtimeId)
 }
 
 function noteSessionTabsRuntimeId(
   environmentId: string,
   runtimeId: string
 ): SessionTabsRuntimeHistory {
-  const existing = sessionTabsRuntimeHistoryByEnvironment.get(environmentId)
-  if (!existing) {
-    const created: SessionTabsRuntimeHistory = { current: runtimeId, retired: [] }
-    sessionTabsRuntimeHistoryByEnvironment.set(environmentId, created)
-    return created
-  }
-  if (existing.current === runtimeId) {
-    return existing
-  }
-  if (existing.current && !existing.retired.includes(existing.current)) {
-    existing.retired.push(existing.current)
-    if (existing.retired.length > SESSION_TABS_RETIRED_RUNTIME_ID_LIMIT) {
-      existing.retired.splice(0, existing.retired.length - SESSION_TABS_RETIRED_RUNTIME_ID_LIMIT)
-    }
-  }
-  existing.current = runtimeId
-  return existing
+  const history = noteRetiredValue(
+    sessionTabsRuntimeHistoryByEnvironment.get(environmentId),
+    runtimeId,
+    SESSION_TABS_RETIRED_RUNTIME_ID_LIMIT
+  )
+  sessionTabsRuntimeHistoryByEnvironment.set(environmentId, history)
+  return history
 }
 
 function isCurrentSessionTabsRuntimeId(environmentId: string, runtimeId: string): boolean {
@@ -505,33 +517,20 @@ function acceptSessionTabsRuntimeId(
 }
 
 function isRetiredSessionTabsPublicationEpoch(key: string, publicationEpoch: string): boolean {
-  return (
-    sessionTabsPublicationEpochHistoryByWorktree.get(key)?.retired.includes(publicationEpoch) ??
-    false
-  )
+  return hasRetiredValue(sessionTabsPublicationEpochHistoryByWorktree.get(key), publicationEpoch)
 }
 
 function noteSessionTabsPublicationEpoch(
   key: string,
   publicationEpoch: string
 ): SessionTabsPublicationEpochHistory {
-  const existing = sessionTabsPublicationEpochHistoryByWorktree.get(key)
-  if (!existing) {
-    const created = { current: publicationEpoch, retired: [] }
-    sessionTabsPublicationEpochHistoryByWorktree.set(key, created)
-    return created
-  }
-  if (existing.current === publicationEpoch) {
-    return existing
-  }
-  if (!existing.retired.includes(existing.current)) {
-    existing.retired.push(existing.current)
-    if (existing.retired.length > SESSION_TABS_RETIRED_EPOCH_LIMIT) {
-      existing.retired.splice(0, existing.retired.length - SESSION_TABS_RETIRED_EPOCH_LIMIT)
-    }
-  }
-  existing.current = publicationEpoch
-  return existing
+  const history = noteRetiredValue(
+    sessionTabsPublicationEpochHistoryByWorktree.get(key),
+    publicationEpoch,
+    SESSION_TABS_RETIRED_EPOCH_LIMIT
+  )
+  sessionTabsPublicationEpochHistoryByWorktree.set(key, history)
+  return history
 }
 
 function recordReceivedWebSessionTabsSnapshot(
