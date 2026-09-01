@@ -1926,6 +1926,11 @@ export class BrowserManager {
       this.unregisterGuest(browserTabId)
       return false
     }
+    // Offscreen guests have no visible window on this desktop; detaching DevTools would open it
+    // on the host display with no route back to the remote client.
+    if (this.offscreenGuestIds.has(webContentsId)) {
+      return false
+    }
     guest.openDevTools({ mode: 'detach' })
     return true
   }
