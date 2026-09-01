@@ -258,4 +258,26 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI ownership', () => {
       false
     )
   })
+
+  // #15081 review: the Linux reclaim rule was narrowed to extracted-cache launchers, which left a
+  // deb/rpm -> AppImage migration wedged on its own leftover symlink.
+  it('reclaims a symlink left by a packaged deb/rpm install', async () => {
+    for (const directory of ['/opt/Manta', '/opt/manta-ide', '/opt/manta']) {
+      const fixture = await makeFixture()
+      await symlink(`${directory}/resources/bin/manta-ide`, fixture.commandPath)
+
+      await expect(new CliInstaller(installerOptions(fixture)).getStatus()).resolves.toMatchObject({
+        state: 'stale'
+      })
+    }
+  })
+
+  it('still refuses a launcher-named symlink outside the packaged install tree', async () => {
+    const fixture = await makeFixture()
+    await symlink('/opt/not-manta/resources/bin/manta-ide', fixture.commandPath)
+
+    await expect(new CliInstaller(installerOptions(fixture)).getStatus()).resolves.toMatchObject({
+      state: 'conflict'
+    })
+  })
 })

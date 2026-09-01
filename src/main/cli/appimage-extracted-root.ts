@@ -5,6 +5,7 @@ import { homedir } from 'node:os'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { runProcess } from '../../shared/child-process/run-process'
 import { resolveCachedAppImagePayloadRoot } from './appimage-cache-layout'
+import { removeExtractedAppImagePayload } from './appimage-payload-removal'
 import { LINUX_CLI_COMMAND_NAME } from './bundled-cli-launcher-path'
 import {
   APPIMAGE_EXTRACTION_TIMEOUT_MS,
@@ -179,7 +180,7 @@ async function extractAppImageGeneration(
     return isAppImageExtractionComplete(root)
   } finally {
     stopTracking()
-    await rm(stagingPath, { recursive: true, force: true }).catch(() => {})
+    await removeExtractedAppImagePayload(stagingPath).catch(() => {})
     await rmdir(namespacePath).catch(() => {})
   }
 }
@@ -227,7 +228,7 @@ async function publishExtractedRoot(
   if (hasPayloadLauncher(displacedPath)) {
     return (await renameRoot(displacedPath, root.rootPath)) || isAppImageExtractionComplete(root)
   }
-  await rm(displacedPath, { recursive: true, force: true })
+  await removeExtractedAppImagePayload(displacedPath)
   return (await renameRoot(extractedPath, root.rootPath)) || isAppImageExtractionComplete(root)
 }
 

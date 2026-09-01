@@ -10,6 +10,11 @@ import { CliInstallLocation } from './cli-install-location'
 import { isPathInsideOrEqual, samePathEntry } from './cli-install-path-format'
 import { extractLegacyAppImageCliWrapperTarget } from './legacy-appimage-cli-wrapper'
 
+// Why: electron-builder's /opt directory name varies with productName sanitization, which is why
+// resources/linux/packaging/after-install.sh enumerates all three of these. A symlink into one is a
+// previous packaged Manta and is ours to reclaim; anything else stays a conflict.
+const PACKAGED_LINUX_LAUNCHER_DIRECTORIES = ['/opt/Manta', '/opt/manta-ide', '/opt/manta']
+
 export class CliCommandInspection extends CliInstallLocation {
   protected async inspectSymlink(
     commandPath: string,
@@ -107,6 +112,9 @@ export class CliCommandInspection extends CliInstallLocation {
     }
 
     if (this.platform === 'linux') {
+      if (this.isPackagedLinuxLauncherTarget(resolvedTarget, expectedName)) {
+        return true
+      }
       const extractionOptions = this.appImageExtractionOptions()
       return extractionOptions
         ? isAppImageExtractedLauncherPath(extractionOptions, resolvedTarget)
@@ -114,6 +122,13 @@ export class CliCommandInspection extends CliInstallLocation {
     }
 
     return false
+  }
+
+  /** A launcher inside a packaged Linux install tree, left behind by a deb/rpm Manta. */
+  protected isPackagedLinuxLauncherTarget(resolvedTarget: string, expectedName: string): boolean {
+    return PACKAGED_LINUX_LAUNCHER_DIRECTORIES.some(
+      (directory) => resolvedTarget === `${directory}/resources/bin/${expectedName}`
+    )
   }
 
   protected isSiblingDevLauncherTarget(

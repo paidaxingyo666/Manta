@@ -116,7 +116,7 @@ export class CliInstaller extends CliPathRegistration {
       throw new Error(initialStatus.detail ?? 'CLI registration is unavailable on this build.')
     }
     if (initialStatus.state === 'conflict') {
-      throw new Error(`Refusing to replace non-Manta command at ${initialStatus.commandPath}.`)
+      throw new Error(`Refusing to replace non-Manta command at ${initialStatus.commandPath}. Remove it and register again if it is no longer needed.`)
     }
     const extractedRoot = await this.ensureLinuxAppImagePayload()
     const status = extractedRoot
@@ -126,7 +126,7 @@ export class CliInstaller extends CliPathRegistration {
       throw new Error(status.detail ?? 'CLI registration is unavailable on this build.')
     }
     if (status.state === 'conflict') {
-      throw new Error(`Refusing to replace non-Manta command at ${status.commandPath}.`)
+      throw new Error(`Refusing to replace non-Manta command at ${status.commandPath}. Remove it and register again if it is no longer needed.`)
     }
 
     // eslint-disable-next-line unicorn/prefer-ternary -- Why: the install path performs async side effects and is easier to audit as an explicit branch than as an awaited ternary.

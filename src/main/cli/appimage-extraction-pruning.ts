@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Dirent } from 'node:fs'
-import { lstat, readlink, readdir, rename, rm, rmdir, symlink, unlink } from 'node:fs/promises'
+import { lstat, readlink, readdir, rename, rmdir, symlink, unlink } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { isAppImageCacheKey, resolveCachedAppImagePayloadRoot } from './appimage-cache-layout'
+import { removeExtractedAppImagePayload } from './appimage-payload-removal'
 import {
   removeAppImageLegacyLiveEndpoint,
   resolveAppImageLauncherEndpointPath
@@ -133,7 +134,13 @@ async function pruneNamespace(
     ) {
       continue
     }
-    await rm(entryPath, { recursive: true, force: true }).catch(() => {})
+    // Best effort, but never silent: a swallowed failure here leaks a whole payload generation.
+    await removeExtractedAppImagePayload(entryPath).catch((error: unknown) => {
+      console.warn(
+        `[cli] could not reclaim AppImage payload ${entryPath}:`,
+        error instanceof Error ? error.message : error
+      )
+    })
   }
 }
 
