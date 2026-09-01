@@ -3,7 +3,7 @@ title: Manta CLI reference
 description: Commands, selectors, and agent-friendly patterns for driving Manta from a shell.
 ---
 
-import { Callout } from '@/components/docs/prose';
+import { Callout } from '@/components/docs/prose'
 
 The `manta` CLI talks to a running Manta runtime. Use it when a shell script or agent needs to inspect worktrees, launch terminals, open files, automate the built-in browser, or report progress back into Manta.
 
@@ -116,7 +116,8 @@ manta terminal close --terminal <handle> --json
 Omit `--terminal` to target the active terminal in the current worktree. Read before sending when you are not sure what the terminal is waiting for.
 
 <Callout title="Terminal handles">
-Terminal handles are runtime-scoped. If Manta restarts or a command reports a stale terminal handle, run `manta terminal list --json` and reacquire the handle.
+  Terminal handles are runtime-scoped. If Manta restarts or a command reports a stale terminal
+  handle, run `manta terminal list --json` and reacquire the handle.
 </Callout>
 
 `terminal list` reports each terminal's `executionHostId` when Manta can verify it, plus a result-level `hostScope` with covered and omitted host IDs. Treat a missing host identity or scope as **unverifiable**, not local. A missing terminal is evidence that it exited only when its execution host is listed in `hostScope.hostIds`.

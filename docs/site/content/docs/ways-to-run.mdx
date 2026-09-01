@@ -3,7 +3,7 @@ title: Ways to run Manta
 description: Local desktop, SSH hosts, self-hosted Manta servers, and on-demand per-workspace VMs — pick the right compute for each task.
 ---
 
-import { Callout, ImagePlaceholder } from '@/components/docs/prose';
+import { Callout, ImagePlaceholder } from '@/components/docs/prose'
 
 Manta is not locked to your laptop. Every worktree runs somewhere — on the machine in front of you, on a box you already own, on a shared always-on server, or on a fresh cloud VM spun up for that one workspace.
 
@@ -11,12 +11,12 @@ This page is the map. Deep dives live on the linked pages.
 
 ## At a glance
 
-| Mode | Where files and agents live | Who owns the machine | Best for |
-| --- | --- | --- | --- |
-| **Local** | Your desktop | You | Day-to-day coding, fast iteration |
-| **SSH target** | A remote host you connect to over SSH | You (or your team) | Dev boxes, GPU hosts, always-on VPS |
-| **Remote Manta Server** | A machine running Manta desktop or `manta serve` | You (or your team) | Persistent shared runtime, mobile, automation |
-| **Cloud VM / per-workspace environment** | A disposable VM/sandbox per workspace | Your cloud account (BYO provider) | Isolated, ephemeral agent compute |
+| Mode                                     | Where files and agents live                    | Who owns the machine              | Best for                                      |
+| ---------------------------------------- | ---------------------------------------------- | --------------------------------- | --------------------------------------------- |
+| **Local**                                | Your desktop                                   | You                               | Day-to-day coding, fast iteration             |
+| **SSH target**                           | A remote host you connect to over SSH          | You (or your team)                | Dev boxes, GPU hosts, always-on VPS           |
+| **Remote Manta Server**                   | A machine running Manta desktop or `manta serve` | You (or your team)                | Persistent shared runtime, mobile, automation |
+| **Cloud VM / per-workspace environment** | A disposable VM/sandbox per workspace          | Your cloud account (BYO provider) | Isolated, ephemeral agent compute             |
 
 Manta does **not** sell managed VPS hosting. Remote modes always use machines and cloud accounts you control.
 
@@ -62,12 +62,12 @@ Full detail: [Remote Manta Servers](/docs/remote-servers).
 
 ### SSH vs Remote Manta Server
 
-| | SSH worktrees | Remote Manta Server |
-| --- | --- | --- |
-| Runtime owner | Laptop Manta | Remote machine (Manta desktop or `manta serve`) |
-| Disconnect | Agents keep running on the host; laptop reattaches | Full session state lives on the server |
-| Multi-client | One laptop drives the host | Laptop, web, mobile, and automation can share the same runtime |
-| Typical setup | Import SSH config, pick **Run on** | Share the server app or run `manta serve`, then pair with a URL |
+|               | SSH worktrees                                      | Remote Manta Server                                             |
+| ------------- | -------------------------------------------------- | -------------------------------------------------------------- |
+| Runtime owner | Laptop Manta                                        | Remote machine (Manta desktop or `manta serve`)                  |
+| Disconnect    | Agents keep running on the host; laptop reattaches | Full session state lives on the server                         |
+| Multi-client  | One laptop drives the host                         | Laptop, web, mobile, and automation can share the same runtime |
+| Typical setup | Import SSH config, pick **Run on**                 | Share the server app or run `manta serve`, then pair with a URL |
 
 ## 4. Cloud VMs (per-workspace environments)
 
@@ -100,7 +100,9 @@ Providers people wire today include Vercel Sandbox, Fly, Modal, plain SSH hosts,
 Recipes only show up for workspace create once the `environmentRecipes` entry is on the project's **primary** checkout of `manta.yaml` (not only a feature branch). Doctor and live provision can still run from any branch while you iterate on scripts.
 
 <Callout title="BYO cloud — not a Manta VPS">
-Cloud VMs do not give you an Orca-hosted VPS. You bring the provider (and pay that provider). Manta runs your create/suspend/resume/destroy scripts and connects over the pairing URL or SSH details they print.
+  Cloud VMs do not give you an Orca-hosted VPS. You bring the provider (and pay that provider). Manta
+  runs your create/suspend/resume/destroy scripts and connects over the pairing URL or SSH details
+  they print.
 </Callout>
 
 ## How to choose
