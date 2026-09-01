@@ -19,10 +19,10 @@ test('@golden opens an unstaged file diff from Source Control', async ({
 }) => {
   const fixture = createGoldenWorktree(testRepoPath, 'open-diff')
   registerPostElectronShutdownCleanup(async () => cleanupGoldenWorktree(testRepoPath, fixture))
+  seedGoldenSourceEdit(fixture.worktreePath)
 
   await waitForSessionReady(mantaPage)
   await openGoldenSourceControl(mantaPage, testRepoPath, fixture)
-  seedGoldenSourceEdit(fixture.worktreePath)
 
   const changedFile = mantaPage
     .locator('[data-testid="source-control-entry"]')
