@@ -9,7 +9,7 @@ import { sortWorkItemsByNumber } from '../../../../../shared/work-items'
 import type { GitHubWorkItem } from '../../../../../shared/github/work-item-types'
 import type { Repo } from '../../../../../shared/repo-types'
 import type { TaskViewPresetId } from '../../../../../shared/ui-chrome-types'
-import type { GitHubListRestoreWrite } from '@/components/task-page/github/github-list-scroll-restore'
+import type { GitHubListRestoreWrite } from '@/components/task-page-github-list-scroll-restore'
 import type { AppState } from '@/store/types'
 
 export function useTaskPageGitHubListState({

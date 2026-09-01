@@ -27,7 +27,7 @@ import type { TaskPageGitHubWorkItemMutationRunner } from './github-work-item-mu
 import {
   supersedeGitHubListScrollRestore,
   type GitHubListRestoreWrite
-} from './github-list-scroll-restore'
+} from '@/components/task-page-github-list-scroll-restore'
 import { GithubWorkItemRows } from './github-work-item-rows'
 import { PaginationBar } from '../pagination/pagination-bar'
 

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { LoaderCircle } from 'lucide-react'
 import { TaskPageGitHubRows } from './TaskPageGitHubRows'
 import { PaginationBar } from './TaskPagePaginationBar'
+import { supersedeGitHubListScrollRestore } from './task-page-github-list-scroll-restore'
 export function TaskPageGitHubList({
   model
 }: {
@@ -33,6 +34,7 @@ export function TaskPageGitHubList({
     githubListScrollRef,
     githubListScrollTopRef,
     pendingGithubScrollRestoreRef,
+    githubListRestoreWriteRef,
     loadingTargetPage,
     taskListPositionRef,
     perRepoSourceState,
@@ -61,14 +63,21 @@ export function TaskPageGitHubList({
         }}
         onScroll={(event) => {
           const state = useAppStore.getState()
-          if (
-            state.activeView !== 'tasks' ||
-            state.taskPageData.openGitHubWorkItem ||
-            pendingGithubScrollRestoreRef.current !== null
-          ) {
+          if (state.activeView !== 'tasks' || state.taskPageData.openGitHubWorkItem) {
             return
           }
           const scrollTop = event.currentTarget.scrollTop
+          // Why: a restore's own write must not be saved as the user's position, but a real
+          // user scroll has to supersede a pending restore or saving stays suppressed.
+          if (
+            !supersedeGitHubListScrollRestore({
+              scrollTop,
+              pendingRestoreRef: pendingGithubScrollRestoreRef,
+              restoreWriteRef: githubListRestoreWriteRef
+            })
+          ) {
+            return
+          }
           githubListScrollTopRef.current = scrollTop
           taskListPositionRef.current = {
             contextKey: githubResumeContextKey,
