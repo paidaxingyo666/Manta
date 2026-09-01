@@ -450,14 +450,22 @@ describe('registerWorktreeHandlers', () => {
     })
 
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
-      ['remote', 'add', 'pr-prateek-manta', 'git@github.com:prateek/manta.git'],
+      [
+        'remote',
+        'add',
+        '-t',
+        'prateek/fix-sidebar-agents-toggle',
+        '--no-tags',
+        'pr-prateek-manta',
+        'git@github.com:prateek/manta.git'
+      ],
       { cwd: '/workspace/repo' }
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
       [
         'fetch',
         'pr-prateek-manta',
-        '+refs/heads/prateek/fix-sidebar-agents-toggle:refs/remotes/pr-prateek-manta/prateek/fix-sidebar-agents-toggle'
+        '+refs/heads/prateek/fix-sidebar-agents-toggle*:refs/remotes/pr-prateek-manta/prateek/fix-sidebar-agents-toggle*'
       ],
       { cwd: '/workspace/repo' }
     )

@@ -29,7 +29,8 @@ function makeRepoExec(remotes: Record<string, string>): ExecMock {
       return { stdout: `${url}\n`, stderr: '' }
     }
     if (args[0] === 'remote' && args[1] === 'add') {
-      remotes[args[2]!] = args[3]!
+      // Why: name/url are always the last two args, regardless of `-t`/`--no-tags` flags.
+      remotes[args.at(-2)!] = args.at(-1)!
       return { stdout: '', stderr: '' }
     }
     if (args[0] === 'remote' && args[1] === 'remove') {
@@ -62,13 +63,13 @@ describe('prepareWorktreePushTargetWithExec', () => {
     const result = await prepareWorktreePushTargetWithExec(exec, REPO, forkTarget(), () => false)
 
     expect(callsMatching(exec, ['remote', 'add'])).toEqual([
-      ['remote', 'add', 'pr-contributor-manta', FORK_SSH]
+      ['remote', 'add', '-t', 'contributor/fix', '--no-tags', 'pr-contributor-manta', FORK_SSH]
     ])
     expect(callsMatching(exec, ['fetch'])).toEqual([
       [
         'fetch',
         'pr-contributor-manta',
-        '+refs/heads/contributor/fix:refs/remotes/pr-contributor-manta/contributor/fix'
+        '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-manta/contributor/fix*'
       ]
     ])
     expect(result).toEqual({
@@ -92,7 +93,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
       [
         'fetch',
         'pr-contributor-manta',
-        '+refs/heads/contributor/fix:refs/remotes/pr-contributor-manta/contributor/fix'
+        '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-manta/contributor/fix*'
       ]
     ])
     // remoteCreated omitted because the predicate says no known worktree owns it.
@@ -118,7 +119,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
     const result = await prepareWorktreePushTargetWithExec(exec, REPO, forkTarget(), () => false)
 
     expect(callsMatching(exec, ['remote', 'add'])).toEqual([
-      ['remote', 'add', 'pr-contributor-manta-2', FORK_SSH]
+      ['remote', 'add', '-t', 'contributor/fix', '--no-tags', 'pr-contributor-manta-2', FORK_SSH]
     ])
     expect(result.remoteName).toBe('pr-contributor-manta-2')
     expect(result.remoteCreated).toBe(true)
@@ -136,7 +137,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
 
     expect(callsMatching(exec, ['remote', 'add'])).toEqual([])
     expect(callsMatching(exec, ['fetch'])).toEqual([
-      ['fetch', 'origin', '+refs/heads/feature:refs/remotes/origin/feature']
+      ['fetch', 'origin', '+refs/heads/feature*:refs/remotes/origin/feature*']
     ])
     expect(result).toEqual({ remoteName: 'origin', branchName: 'feature' })
   })
