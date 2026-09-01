@@ -1,6 +1,6 @@
 import { TERMINAL_REFLOW_JS } from '../terminal-webview-reflow-injected'
 
-export const TERMINAL_HTML_FRAGMENT_05 = `  ${TERMINAL_REFLOW_JS}
+export const TERMINAL_HTML_HOST_MESSAGE_ROUTER = `  ${TERMINAL_REFLOW_JS}
 
   function notify(msg) {
     if (window.ReactNativeWebView) {
@@ -186,45 +186,4 @@ export const TERMINAL_HTML_FRAGMENT_05 = `  ${TERMINAL_REFLOW_JS}
     }
   }
 
-  // ============================================================
-  // SELECTION MODE (long-press → handles → Copy)
-  // ============================================================
-  var WORD_RE = /[\\p{L}\\p{N}_./:@~+=?&#%-]/u;
-  var LONG_PRESS_MS = 500;
-  var LONG_PRESS_SLOP = 10;
-  // Why: a tap that opens a link/path must survive small finger jitter. The
-  // long-press slop (10px) only cancels the press-to-select timer; reusing it
-  // to gate the tap dropped any URL/file tap that wandered >10px — at fit scale
-  // a few screen px of jitter is a normal tap. Use a wider, time-bounded tap
-  // window so deliberate scrolls/pans still don't fire a tap.
-  var TAP_SLOP = 24;
-  var TAP_MAX_MS = 700;
-  var EDGE_SCROLL_PX = 40;
-  var EDGE_SCROLL_INTERVAL = 60;
-
-  var selectionOverlay = document.getElementById('selection-overlay');
-  var handleStart = document.getElementById('sel-handle-start');
-  var handleEnd = document.getElementById('sel-handle-end');
-  var selMenu = document.getElementById('sel-menu');
-  var btnCopy = document.getElementById('sel-menu-copy');
-  var btnSelAll = document.getElementById('sel-menu-all');
-
-  // mode: 'navigate' | 'select'
-  var selMode = 'navigate';
-  var sel = null; // { anchor:{col,row}, focus:{col,row}, activeHandle:null|'start'|'end' }
-  var longPressTimer = null;
-  var longPressOrigin = null; // {x,y, identifier}
-  // Why: tap detection is tracked separately from the long-press timer so a
-  // small jitter that cancels the press-to-select timer does not also cancel
-  // the tap (which opens links/paths). {x,y,t,identifier} or null once the
-  // gesture is disqualified as a tap (moved too far or held too long).
-  var tapCandidate = null;
-  var edgeScrollTimer = null;
-  var edgeScrollDir = 0;
-  var edgeScrollClientX = 0;
-  var edgeScrollClientY = 0;
-
-  // Eviction watchdog: linesEverWritten counts onLineFeed since last init.
-  // Once buffer is full, every onLineFeed evicts the top row in xterm and
-  // we mirror that by decrementing stored absolute rows.
 `

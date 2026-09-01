@@ -1,7 +1,7 @@
 import { colors } from '../../theme/mobile-theme'
 import { XTERM_ENGINE_CSS, XTERM_ENGINE_JS } from '../terminal-webview-engine.generated'
 
-export const TERMINAL_HTML_FRAGMENT_01 = `<!DOCTYPE html>
+export const TERMINAL_HTML_DOCUMENT_SHELL = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">

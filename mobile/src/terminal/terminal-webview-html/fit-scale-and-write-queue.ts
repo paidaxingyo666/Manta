@@ -1,6 +1,7 @@
 import { TERMINAL_WEBVIEW_THEME_JS } from '../terminal-webview-theme-injected'
 
-export const TERMINAL_HTML_FRAGMENT_03 = `${TERMINAL_WEBVIEW_THEME_JS}
+// Also carries the DECSET mouse-mode scanner: emitted-document order pins it between these two concerns.
+export const TERMINAL_HTML_FIT_SCALE_AND_WRITE_QUEUE = `${TERMINAL_WEBVIEW_THEME_JS}
 
   function getCellHeight() {
     if (!term || !term._core) return 15;

@@ -3,7 +3,8 @@ import { TERMINAL_SURFACE_SWAP_JS } from '../terminal-webview-surface-swap-injec
 import { TERMINAL_TEXT_SCALES } from '../../storage/preferences'
 import { DEFAULT_TERMINAL_THEME } from './theme'
 
-export const TERMINAL_HTML_FRAGMENT_02 = `  var PRIVATE_MODE_SCAN_TAIL_LIMIT = 4096;
+// Also carries the scroll-indicator painter, which reads the scale state declared here.
+export const TERMINAL_HTML_RUNTIME_STATE_AND_TEXT_SCALING = `  var PRIVATE_MODE_SCAN_TAIL_LIMIT = 4096;
   var term = null; ${TERMINAL_QUERY_REPLY_JS}
   ${TERMINAL_SURFACE_SWAP_JS}
   var scrollIndicator = document.getElementById('scroll-indicator');

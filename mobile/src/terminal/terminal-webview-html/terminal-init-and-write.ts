@@ -1,7 +1,7 @@
 import { TERMINAL_WEBGL_RECOVERY_JS } from '../terminal-webview-webgl-recovery-injected'
 import { MOBILE_TERMINAL_CARET_OPTIONS } from './theme'
 
-export const TERMINAL_HTML_FRAGMENT_04 = `${TERMINAL_WEBGL_RECOVERY_JS}
+export const TERMINAL_HTML_INIT_AND_WRITE = `${TERMINAL_WEBGL_RECOVERY_JS}
 
   function init(cols, rows, initialData, nextTheme, nextFontScale, preserveScroll, nextOscLinks) {
     if (typeof nextFontScale === 'number' && nextFontScale > 0) currentTextScale = nextFontScale;

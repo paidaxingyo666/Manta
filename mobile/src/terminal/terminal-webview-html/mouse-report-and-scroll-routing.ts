@@ -1,100 +1,6 @@
-import { TERMINAL_KEYBOARD_AVOIDANCE_METRICS_JS } from '../terminal-keyboard-avoidance-metrics-injected'
 import { TERMINAL_MOUSE_REPORT_CELL_JS } from '../terminal-webview-mouse-report-cell-injected'
 
-export const TERMINAL_HTML_FRAGMENT_06 = `  var linesEverWritten = 0;
-
-  function resetEvictionCounter() { linesEverWritten = 0; }
-
-  function isBufferFull() {
-    if (!term) return false;
-    return linesEverWritten >= 5000 + (term.rows || 0);
-  }
-
-  function checkEviction() {
-    if (selMode !== 'select' || !sel) return;
-    var oldest = Math.min(sel.anchor.row, sel.focus.row);
-    if (oldest < 0) {
-      notify({ type: 'selection-evicted' });
-      cancelSelect();
-    }
-  }
-
-  function logFeedAndEvict() {
-    linesEverWritten++;
-    if (initialOscLinkEvictionReady && isBufferFull()) initialOscLinkRowOffset += 1;
-    if (selMode === 'select' && sel && isBufferFull()) {
-      sel.anchor.row -= 1;
-      sel.focus.row -= 1;
-      checkEviction();
-      repositionOverlay();
-    }
-  }
-
-  function emitModesIfChanged() {
-    if (!term) return;
-    var bp = !!(term.modes && term.modes.bracketedPasteMode);
-    var alt = false;
-    var mouseTrackingMode = getMouseTrackingMode();
-    try { alt = term.buffer && term.buffer.active && term.buffer.active.type === 'alternate'; } catch (e) {}
-    if (
-      bp !== lastEmittedModes.bracketedPasteMode ||
-      alt !== lastEmittedModes.altScreen ||
-      mouseTrackingMode !== lastEmittedModes.mouseTrackingMode ||
-      sgrMouseMode !== lastEmittedModes.sgrMouseMode ||
-      sgrMousePixelsMode !== lastEmittedModes.sgrMousePixelsMode
-    ) {
-      lastEmittedModes = {
-        bracketedPasteMode: bp,
-        altScreen: alt,
-        mouseTrackingMode: mouseTrackingMode,
-        sgrMouseMode: sgrMouseMode,
-        sgrMousePixelsMode: sgrMousePixelsMode
-      };
-      notify({
-        type: 'modes',
-        bracketedPasteMode: bp,
-        altScreen: alt,
-        mouseTrackingMode: mouseTrackingMode,
-        sgrMouseMode: sgrMouseMode,
-        sgrMousePixelsMode: sgrMousePixelsMode
-      });
-    }
-  }
-  var lastEmittedModes = {
-    bracketedPasteMode: false,
-    altScreen: false,
-    mouseTrackingMode: 'none',
-    sgrMouseMode: false,
-    sgrMousePixelsMode: false
-  };
-
-  ${TERMINAL_KEYBOARD_AVOIDANCE_METRICS_JS}
-
-  function attachTermObservers() {
-    if (!term) return;
-    disposeTermObservers();
-    try { termObserverDisposables.push(term.onLineFeed(logFeedAndEvict)); } catch (e) {}
-    try {
-      termObserverDisposables.push(term.onScroll(function() { updateScrollIndicator(false); }));
-    } catch (e) {}
-    // Why: emit modes on every parsed write so RN's mirror stays current
-    // without round-trip; covers \\x1b[?2004h/l and alt-screen toggles.
-    try {
-      if (term.onWriteParsed) {
-        termObserverDisposables.push(term.onWriteParsed(function() {
-          emitModesIfChanged();
-          emitKeyboardAvoidanceMetrics();
-        }));
-      }
-    } catch (e) {}
-    // Initial emit once buffer settles.
-    afterWritesDrained(function() {
-      emitModesIfChanged();
-      emitKeyboardAvoidanceMetrics();
-    });
-  }
-
-  function viewportToCell(clientX, clientY) {
+export const TERMINAL_HTML_MOUSE_REPORT_AND_SCROLL_ROUTING = `  function viewportToCell(clientX, clientY) {
     if (!term) return null;
     var cellW = getCellWidth();
     var cellH = getCellHeight();
@@ -201,4 +107,82 @@ export const TERMINAL_HTML_FRAGMENT_06 = `  var linesEverWritten = 0;
     }
     if (sgrMouseMode) {
       // Why: xterm increments zero-based mouse cells before encoding reports.
+      var sgrCol = cell.col + 1;
+      var sgrRow = cell.row + 1;
+      if (!isSafeSgrMouseCoordinate(sgrCol) || !isSafeSgrMouseCoordinate(sgrRow)) return '';
+      var sgrPress = ESC + '[<0;' + sgrCol + ';' + sgrRow + 'M';
+      if (mouseTrackingMode === 'x10') return sgrPress;
+      return sgrPress + ESC + '[<0;' + sgrCol + ';' + sgrRow + 'm';
+    }
+    // Why: non-SGR click coordinates use printable ASCII bytes on the mobile
+    // bridge; unsafe wide-terminal cells must not turn into corrupted input.
+    var col = cell.col + 1 + 32;
+    var row = cell.row + 1 + 32;
+    if (col > 126 || row > 126) return '';
+    var press = ESC + '[M' + String.fromCharCode(32) + String.fromCharCode(col) + String.fromCharCode(row);
+    if (mouseTrackingMode === 'x10') return press;
+    return press + ESC + '[M' + String.fromCharCode(35) + String.fromCharCode(col) + String.fromCharCode(row);
+  }
+
+  function isClickMouseTrackingMode(mode) {
+    return mode !== 'none';
+  }
+
+  function isWheelMouseTrackingMode(mode) {
+    return mode !== 'none' && mode !== 'x10';
+  }
+
+  function shouldRouteScrollToTerminalInput() {
+    return isWheelMouseTrackingMode(getMouseTrackingMode()) || isAlternateBufferActive();
+  }
+
+  function buildMouseWheelScrollInput(lines, clientX, clientY) {
+    var count = Math.min(Math.abs(lines), 32);
+    if (count === 0) return '';
+    var sequence = buildMouseWheelSequence(lines, clientX, clientY);
+    if (!sequence) return '';
+    return repeatSequence(sequence, count);
+  }
+
+  function buildTuiScrollInput(lines, clientX, clientY) {
+    var count = Math.min(Math.abs(lines), 32);
+    if (count === 0) return '';
+    var mouseTrackingMode = getMouseTrackingMode();
+    var sequence = '';
+    if (isWheelMouseTrackingMode(mouseTrackingMode)) {
+      sequence = buildMouseWheelSequence(lines, clientX, clientY);
+    }
+    if (!sequence) sequence = buildArrowScrollSequence(lines);
+    return repeatSequence(sequence, count);
+  }
+
+  function routeScrollLines(lines, clientX, clientY) {
+    if (!term || lines === 0) return;
+    var mouseTrackingMode = getMouseTrackingMode();
+    var alternateBufferActive = isAlternateBufferActive();
+    if (isWheelMouseTrackingMode(mouseTrackingMode)) {
+      // Why: xterm sends wheel events to mouse-aware TUIs before considering
+      // scrollback, even if the app stays on the normal buffer.
+      var mouseInput = buildMouseWheelScrollInput(lines, clientX, clientY);
+      if (mouseInput) {
+        notify({ type: 'terminal-input', bytes: mouseInput });
+        return;
+      }
+      // Why: default mouse encoding can be unrepresentable in our ASCII-safe
+      // RPC path on wide terminals. Send bounded arrows instead of local
+      // scrollback/no-op while a mouse-aware app owns scroll gestures.
+      var fallbackInput = buildTuiScrollInput(lines, clientX, clientY);
+      if (fallbackInput) notify({ type: 'terminal-input', bytes: fallbackInput });
+      return;
+    }
+    if (alternateBufferActive) {
+      // Why: alternate-screen TUIs own their scroll state and xterm has no
+      // scrollback there, so mobile scroll gestures must become terminal input.
+      var input = buildTuiScrollInput(lines, clientX, clientY);
+      if (input) notify({ type: 'terminal-input', bytes: input });
+      return;
+    }
+    term.scrollLines(lines);
+  }
+
 `

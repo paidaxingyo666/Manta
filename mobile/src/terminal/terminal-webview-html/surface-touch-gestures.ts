@@ -2,7 +2,8 @@ import { TERMINAL_TAP_DISPATCH_JS } from '../terminal-webview-tap-dispatch-injec
 import { TERMINAL_WHEEL_SCROLL_JS } from '../terminal-webview-wheel-scroll-injected'
 import { TERMINAL_MOUSE_CLICK_DRAG_JS } from '../terminal-webview-mouse-click-drag-injected'
 
-export const TERMINAL_HTML_FRAGMENT_09 = `  ${TERMINAL_TAP_DISPATCH_JS}
+// Also wires the selection menu's Copy/Select All buttons, which sit here in the emitted document.
+export const TERMINAL_HTML_SURFACE_TOUCH_GESTURES = `  ${TERMINAL_TAP_DISPATCH_JS}
 
   // External mouse / trackpad scroll: see
   // terminal-webview-wheel-scroll-injected.ts (extracted for max-lines).
@@ -135,4 +136,93 @@ export const TERMINAL_HTML_FRAGMENT_09 = `  ${TERMINAL_TAP_DISPATCH_JS}
         if (term.element && term.element.scrollWidth * getTotalScale() > window.innerWidth + 1) {
           panX += x - ts.lastX;
           clampPan();
+          updateTransform();
+        }
+
+        var deltaY = ts.lastY - y;
+        ts.lastTime = now;
+        if (shouldRouteScrollToTerminalInput()) {
+          updateTouchVelocity(deltaY, dt);
+          resetSmoothScrollOffset();
+          var effectiveCellH = getCellHeight() * getTotalScale();
+          ts.accumDelta += deltaY;
+          var lines = Math.trunc(ts.accumDelta / effectiveCellH);
+          if (lines !== 0) {
+            ts.accumDelta -= lines * effectiveCellH;
+            routeScrollLines(lines, x, y);
+          }
+        } else {
+          if (enqueueNormalBufferScrollDelta(deltaY)) {
+            updateTouchVelocity(deltaY, dt);
+          } else {
+            ts.velY = 0;
+          }
+        }
+        ts.lastX = x;
+        ts.lastY = y;
+      }
+    }, { capture: true, passive: false });
+
+    targetSurface.addEventListener('touchend', function(e) {
+      if (dispatcherShouldBlockSurface()) return;
+      if (!term) return;
+
+      if (ts.isPinching && e.touches.length < 2) {
+        ts.isPinching = false;
+        // Why: a finished pinch snaps to the nearest preset and becomes the new
+        // font size (reflowing the grid), so pinch-to-zoom IS the in-terminal way
+        // to set the text size. The CSS pinch zoom (userScale) is reset; the real
+        // size change reflows columns and RN persists + resizes the PTY to match.
+        var target = snapToTextScalePreset(currentTextScale * userScale);
+        var changed = target !== currentTextScale;
+        userScale = 1;
+        panX = 0; panY = 0;
+        applyTextScale(target);
+        updateTransform();
+        notify({ type: 'font-scale-changed', fontScale: target });
+        if (changed) notify({ type: 'haptic', kind: 'selection' });
+        if (e.touches.length === 1) {
+          ts.lastX = e.touches[0].clientX;
+          ts.lastY = e.touches[0].clientY;
+          ts.lastTime = Date.now();
+          ts.velY = 0;
+          ts.accumDelta = 0;
+        }
+        return;
+      }
+
+      if (e.touches.length === 0) {
+        var vel = ts.velY;
+        var FRICTION = 0.972;
+        var MIN_VEL = 0.012;
+        function momentumStep() {
+          vel *= FRICTION;
+          if (Math.abs(vel) < MIN_VEL) { ts.momentumId = null; return; }
+          var delta = vel * 16;
+          if (shouldRouteScrollToTerminalInput()) {
+            resetSmoothScrollOffset();
+            var effectiveCellH = getCellHeight() * getTotalScale();
+            ts.accumDelta += delta;
+            var lines = Math.trunc(ts.accumDelta / effectiveCellH);
+            if (lines !== 0) {
+              ts.accumDelta -= lines * effectiveCellH;
+              routeScrollLines(lines, ts.lastX, ts.lastY);
+            }
+          } else {
+            if (!applyNormalBufferScrollDelta(delta)) {
+              ts.momentumId = null;
+              return;
+            }
+          }
+          ts.momentumId = requestAnimationFrame(momentumStep);
+        }
+        if (Math.abs(vel) > MIN_VEL) {
+          ts.momentumId = requestAnimationFrame(momentumStep);
+        }
+      }
+    }, { capture: true, passive: true });
+  }
+
+  attachSurfaceEventHandlers(surface);
+
 `

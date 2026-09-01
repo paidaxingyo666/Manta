@@ -1,7 +1,8 @@
 import { TERMINAL_PATH_TAP_JS } from '../terminal-path-tap-injected'
 import { URL_TAP_WEBVIEW_JS } from '../terminal-webview-url-tap'
 
-export const TERMINAL_HTML_FRAGMENT_08 = `  ${TERMINAL_PATH_TAP_JS}
+// Opens with the path/url tap matchers: they land at this point in the emitted document.
+export const TERMINAL_HTML_SELECTION_OVERLAY = `  ${TERMINAL_PATH_TAP_JS}
   ${URL_TAP_WEBVIEW_JS}
 
   function seedWordSelection(col, absRow) {
