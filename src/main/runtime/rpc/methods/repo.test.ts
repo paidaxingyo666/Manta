@@ -15,7 +15,7 @@ describe('repo RPC methods', () => {
     const runtime = {
       getRuntimeId: () => 'test-runtime',
       searchRepoRefs: vi.fn().mockResolvedValue({ refs: [], truncated: true })
-    } as unknown as OrcaRuntimeService
+    } as unknown as MantaRuntimeService
     const dispatcher = new RpcDispatcher({ runtime, methods: REPO_METHODS })
 
     const response = await dispatcher.dispatch(

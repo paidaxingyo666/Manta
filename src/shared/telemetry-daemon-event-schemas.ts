@@ -104,7 +104,7 @@ export const daemonAuditEligibilitySchema = z.discriminatedUnion('exact_incarnat
 ])
 
 // Rollout signal for granting Codex hook trust via codex app-server RPCs
-// instead of Orca's self-computed trusted_hash. `fallback`/`verify_failed`
+// instead of Manta's self-computed trusted_hash. `fallback`/`verify_failed`
 // spikes mean the RPC lane is not taking; steady-state ledger skips are not
 // reported (they would only measure launch volume). `lane` attributes the
 // grant surface (real ~/.codex vs managed home); `error_class`/`verify_class`

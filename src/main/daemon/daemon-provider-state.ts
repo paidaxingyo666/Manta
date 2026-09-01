@@ -66,7 +66,7 @@ export function getDaemonEndpointFacts(): DaemonEndpointFacts | null {
  *
  * Why the record and not this process's version: the daemon deliberately outlives the
  * runtime, so after an update the two can legitimately disagree — and a health surface that
- * reported orcad's version for both would hide exactly that.
+ * reported mantad's version for both would hide exactly that.
  */
 export function readDaemonPidRecord(): ParsedDaemonPid | null {
   const facts = getDaemonEndpointFacts()
@@ -122,7 +122,7 @@ export function replaceDaemonProvider(newAdapter: DaemonProvider): void {
 }
 
 // Disconnect without killing: the daemon survives app quit so sessions stay warm for reattach.
-// Leave history sessions marked "unclean" so a daemon crash while Orca is closed stays recoverable.
+// Leave history sessions marked "unclean" so a daemon crash while Manta is closed stays recoverable.
 export async function disconnectDaemon(): Promise<void> {
   await adapter?.disconnectOnly()
   adapter = null

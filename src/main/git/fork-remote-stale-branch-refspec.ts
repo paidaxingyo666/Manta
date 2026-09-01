@@ -1,4 +1,4 @@
-// Why: Orca's fork-remote refspecs (#17828) carry a trailing `*` specifically so a
+// Why: Manta's fork-remote refspecs (#17828) carry a trailing `*` specifically so a
 // deleted/renamed upstream branch degrades to a silent zero-match fetch, not a hard
 // failure -- see `buildNarrowForkFetchRefspec`'s comment. That is now the primary
 // defense. This wrapper is a cheap backstop for the one case the `*` doesn't cover: a

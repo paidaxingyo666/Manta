@@ -53,7 +53,7 @@ describe('findExistingWorktreeSymlinkPaths', () => {
   let worktree: string
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'orca-symlink-detection-'))
+    root = mkdtempSync(join(tmpdir(), 'manta-symlink-detection-'))
     primary = join(root, 'primary')
     worktree = join(root, 'worktree')
     mkdirSync(primary)

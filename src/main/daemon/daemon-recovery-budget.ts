@@ -25,7 +25,7 @@ export const DAEMON_RECOVERY_PROBE_MS = 8_000
 /**
  * One absolute wall-clock budget for adopting-or-replacing whatever daemon already owns the
  * endpoint at startup. Every caller of the out-of-process launcher shares it — the desktop
- * startup gate, orcad, and user-initiated restart — because a wedged endpoint costs the same
+ * startup gate, mantad, and user-initiated restart — because a wedged endpoint costs the same
  * wherever it is met.
  *
  * Both bounds matter and daemon-init-wedged-daemon-grace.test.ts pins them. Above

@@ -23,7 +23,7 @@ afterEach(async () => {
 
 describe('readCodexRolloutSessionMetaId', () => {
   it('reads the session id from the first rollout record', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-codex-session-meta-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-codex-session-meta-'))
     tempRoots.push(root)
     const rollout = join(root, 'rollout.jsonl')
     await writeFile(
@@ -35,7 +35,7 @@ describe('readCodexRolloutSessionMetaId', () => {
   })
 
   it('returns null for a missing or malformed rollout', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-codex-session-meta-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-codex-session-meta-'))
     tempRoots.push(root)
     const malformed = join(root, 'malformed.jsonl')
     await writeFile(malformed, '{"type":"session_meta"')
@@ -48,7 +48,7 @@ describe('readCodexRolloutSessionMetaId', () => {
   // rollout must fail on the transcript gate's deadline rather than block the
   // scan behind a stalled distro (#15453).
   it('reads through the gated transcript filesystem at interactive priority', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-codex-session-meta-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-codex-session-meta-'))
     tempRoots.push(root)
     const rollout = join(root, 'rollout.jsonl')
     await writeFile(rollout, JSON.stringify({ type: 'session_meta', payload: { id: 'gated' } }))
@@ -76,7 +76,7 @@ describe('readCodexRolloutSessionMetaId', () => {
   })
 
   it('surfaces an aborted read instead of reporting an unprovable rollout', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'orca-codex-session-meta-'))
+    const root = await mkdtemp(join(tmpdir(), 'manta-codex-session-meta-'))
     tempRoots.push(root)
     const rollout = join(root, 'rollout.jsonl')
     await writeFile(rollout, JSON.stringify({ type: 'session_meta', payload: { id: 'aborted' } }))

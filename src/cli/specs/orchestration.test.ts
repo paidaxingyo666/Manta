@@ -10,7 +10,7 @@ describe('orchestration send command spec', () => {
     expect(sendSpec?.notes).toEqual(
       expect.arrayContaining([
         'Valid --type values: status, dispatch, worker_done, merge_ready, escalation, handoff, decision_gate, question, heartbeat.',
-        'To answer a worker question, use orchestration reply --id <msg_id> --body <text> with the same Orca CLI executable.'
+        'To answer a worker question, use orchestration reply --id <msg_id> --body <text> with the same Manta CLI executable.'
       ])
     )
   })

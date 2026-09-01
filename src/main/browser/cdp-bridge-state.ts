@@ -57,7 +57,7 @@ export class CdpBridgeState {
     if (tabs.length === 0) {
       throw new BrowserError(
         'browser_no_tab',
-        'No browser tab is open. Use the Orca UI to open a browser tab first.'
+        'No browser tab is open. Use the Manta UI to open a browser tab first.'
       )
     }
     if (tabs.length === 1) {
@@ -65,7 +65,7 @@ export class CdpBridgeState {
     } else {
       throw new BrowserError(
         'browser_no_tab',
-        "Multiple browser tabs are open. Run 'orca tab list' and 'orca tab switch --index <n>' to select one."
+        "Multiple browser tabs are open. Run 'manta tab list' and 'manta tab switch --index <n>' to select one."
       )
     }
 
@@ -74,7 +74,7 @@ export class CdpBridgeState {
       this.activeWebContentsId = null
       throw new BrowserError(
         'browser_debugger_detached',
-        "The active browser tab was closed. Run 'orca tab list' to find remaining tabs."
+        "The active browser tab was closed. Run 'manta tab list' to find remaining tabs."
       )
     }
     return guest

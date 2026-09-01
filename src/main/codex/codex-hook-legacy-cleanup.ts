@@ -26,9 +26,9 @@ import { readCodexTrustGrantLedgerHomeForReconciliation } from './codex-managed-
 import { runExclusivelyForCodexTrustConfig } from './codex-trust-config-mutation-queue'
 import { mutateRealHomeHooksPreservingUserTrust } from './codex-user-hook-trust-rebase'
 
-const LEGACY_ORCA_PROFILE_NAME = 'orca-agent-status'
-const LEGACY_ORCA_PROFILE_BLOCK_START = '# BEGIN ORCA AGENT STATUS HOOKS'
-const LEGACY_ORCA_PROFILE_BLOCK_END = '# END ORCA AGENT STATUS HOOKS'
+const LEGACY_MANTA_PROFILE_NAME = 'manta-agent-status'
+const LEGACY_MANTA_PROFILE_BLOCK_START = '# BEGIN MANTA AGENT STATUS HOOKS'
+const LEGACY_MANTA_PROFILE_BLOCK_END = '# END MANTA AGENT STATUS HOOKS'
 
 // Why: when the real-home lane owns ~/.codex/hooks.json (system-default flag ON
 // with hooks enabled), the legacy system-home sweep must stand down or every
@@ -42,7 +42,7 @@ export function setSystemCodexHomeHookSweepSuppressed(gate: () => boolean): void
 }
 
 function getLegacyCodexProfileTomlPath(): string {
-  return join(getSystemCodexHomePath(), `${LEGACY_ORCA_PROFILE_NAME}.config.toml`)
+  return join(getSystemCodexHomePath(), `${LEGACY_MANTA_PROFILE_NAME}.config.toml`)
 }
 
 export function cleanupLegacySystemManagedHooks(): Promise<void> {
@@ -113,10 +113,10 @@ async function sweepLegacySystemManagedHooks(): Promise<void> {
     }
   }
 
-  // Why: Codex hooks moved to Orca's managed CODEX_HOME; stale ~/.codex entries would keep external Codex sessions reporting into Orca.
+  // Why: Codex hooks moved to Manta's managed CODEX_HOME; stale ~/.codex entries would keep external Codex sessions reporting into Manta.
   if (removedManagedHook) {
-    // Why: this is the user's system hooks file, not Orca's runtime copy.
-    // Remove only stale Orca hook entries and preserve other managers' metadata.
+    // Why: this is the user's system hooks file, not Manta's runtime copy.
+    // Remove only stale Manta hook entries and preserve other managers' metadata.
     const hooksWritePath = resolveHooksJsonWritePath(legacyConfigPath)
     const previousMode = statSync(hooksWritePath).mode
     await mutateRealHomeHooksPreservingUserTrust({
@@ -150,12 +150,12 @@ async function sweepLegacySystemManagedHooks(): Promise<void> {
 }
 
 function stripLegacyManagedProfileBlock(content: string): string {
-  const start = content.indexOf(LEGACY_ORCA_PROFILE_BLOCK_START)
+  const start = content.indexOf(LEGACY_MANTA_PROFILE_BLOCK_START)
   if (start === -1) {
     return content
   }
-  const endMarker = content.indexOf(LEGACY_ORCA_PROFILE_BLOCK_END, start)
-  const end = endMarker === -1 ? content.length : endMarker + LEGACY_ORCA_PROFILE_BLOCK_END.length
+  const endMarker = content.indexOf(LEGACY_MANTA_PROFILE_BLOCK_END, start)
+  const end = endMarker === -1 ? content.length : endMarker + LEGACY_MANTA_PROFILE_BLOCK_END.length
   const before = content.slice(0, start).replace(/[ \t]*(?:\r?\n)*$/, '')
   const after = content.slice(end).replace(/^(?:\r?\n)+/, '')
   if (!before) {
@@ -178,7 +178,7 @@ function cleanupLegacyCodexProfileHooks(): void {
   if (next === existing) {
     return
   }
-  // Why: #2778 wrote Orca hooks into a Codex profile file; runtime CODEX_HOME supersedes it, so remove only Orca's marked block.
+  // Why: #2778 wrote Manta hooks into a Codex profile file; runtime CODEX_HOME supersedes it, so remove only Manta's marked block.
   if (next.trim().length === 0) {
     unlinkSync(profilePath)
   } else {

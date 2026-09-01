@@ -1,5 +1,5 @@
 /**
- * A deep link can name a row that does not exist yet: panes such as Remote Orca
+ * A deep link can name a row that does not exist yet: panes such as Remote Manta
  * Servers render their rows only after an async fetch resolves. The scroll
  * effect parks its target in a ref, but nothing re-runs it when those rows
  * finally mount, so this watcher reports the moment they do.

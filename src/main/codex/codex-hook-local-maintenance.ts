@@ -29,7 +29,7 @@ export async function refreshCodexRuntimeUserHooksExclusively(
   getStatus: (runtimeHomePath: string) => AgentHookInstallStatus
 ): Promise<AgentHookInstallStatus> {
   const configPath = getConfigPath(runtimeHomePath)
-  // Why: same as install() — capture in-Orca approvals before this refresh
+  // Why: same as install() — capture in-Manta approvals before this refresh
   // rewrites the runtime files they are keyed against.
   promoteCodexRuntimeHookApprovalsToSystem(runtimeHomePath)
   const config = readHooksJson(configPath)
@@ -66,8 +66,8 @@ export async function refreshCodexRuntimeUserHooksExclusively(
       runtimeHomePath,
       systemHomePath: getSystemCodexHomePath()
     })
-    // Why: this path is used when Orca status hooks are disabled. The
-    // runtime CODEX_HOME should keep user hooks, but not Orca-managed trust.
+    // Why: this path is used when Manta status hooks are disabled. The
+    // runtime CODEX_HOME should keep user hooks, but not Manta-managed trust.
     // Write current mirrored user trust first so stale cleanup compares
     // against current hashes while deleting old managed hook keys.
     upsertHookTrustEntries(tomlPath, trustEntries)

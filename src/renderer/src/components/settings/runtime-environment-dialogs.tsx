@@ -41,7 +41,7 @@ export function RuntimeEnvironmentSwitchDialog({
           <DialogDescription>
             {translate(
               'auto.components.settings.RuntimeEnvironmentsPane.b2290ed203',
-              'Orca will focus this host and load its projects. Existing terminals and browser tabs on other hosts stay alive.'
+              'Manta will focus this host and load its projects. Existing terminals and browser tabs on other hosts stay alive.'
             )}
           </DialogDescription>
         </DialogHeader>
@@ -108,7 +108,7 @@ export function RuntimeEnvironmentRemoveDialog({
                 )
               : translate(
                   'auto.components.settings.RuntimeEnvironmentsPane.ed3e3f069d',
-                  'This removes the saved server from Orca. It does not change the active server.'
+                  'This removes the saved server from Manta. It does not change the active server.'
                 )}
           </DialogDescription>
         </DialogHeader>

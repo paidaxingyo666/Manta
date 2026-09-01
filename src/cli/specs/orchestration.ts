@@ -69,7 +69,7 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
     ],
     notes: [
       'Valid --type values: status, dispatch, worker_done, merge_ready, escalation, handoff, decision_gate, question, heartbeat.',
-      'To answer a worker question, use orchestration reply --id <msg_id> --body <text> with the same Orca CLI executable.',
+      'To answer a worker question, use orchestration reply --id <msg_id> --body <text> with the same Manta CLI executable.',
       'On Windows PowerShell, quote group addresses such as --to "@all" or --to "@worktree:<id>".',
       "worker_done and heartbeat are exact-Dispatch signals and cannot target groups; omit --to to use the Dispatch's Run mailbox.",
       'worker_done requires --outcome succeeded or --outcome failed.',
@@ -180,7 +180,7 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['orchestration', 'request-show'],
     summary: 'Ask whether one orchestration mutation request already took effect',
-    usage: 'orca orchestration request-show --request <request_id> [--json]',
+    usage: 'manta orchestration request-show --request <request_id> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'request'],
     notes: [
       'Read-only: it never starts, retries, or settles anything, so it is safe to run after any lost response.',

@@ -1,7 +1,7 @@
 // Why: remotes minted or reused before #17828's narrow-refspec fix are stuck on the
 // wide `+refs/heads/*:refs/remotes/<name>/*` default, so any later plain `git fetch`
 // keeps re-importing the fork's whole branch set. This sweep rewrites each surviving
-// Orca-provenance `pr-*` remote's refspec to only the branches Orca actually tracked
+// Manta-provenance `pr-*` remote's refspec to only the branches Manta actually tracked
 // for it, then deletes the refs the earlier wide fetch already imported for every other
 // branch (`git fetch --prune` cannot reclaim these once the refspec is narrow -- verified
 // against real git, see #17828 PR). It never deletes a remote (that is
@@ -15,7 +15,7 @@
 // wide forever. For those, there's nothing to narrow *to*, so the sweep clears the fetch
 // refspec entirely instead (stays pushable, imports nothing on a plain fetch) -- gated on
 // the remote still carrying the untouched stock wide default, since a `pr`-prefixed name
-// alone isn't proof of Orca provenance the way a metadata entry is.
+// alone isn't proof of Manta provenance the way a metadata entry is.
 //
 // Interaction with `worktree-push-target-reconciliation.ts` (#17842, orphaned `pr-*`
 // remote reclamation): the two sweeps fire from different lifecycle events (this one
@@ -58,7 +58,7 @@ async function listRemoteNames(execGit: GitRemoteExec, repoPath: string): Promis
   }
 }
 
-/** `pushTarget`-derived branches to keep per remote, gated on at least one entry proving Orca created it. */
+/** `pushTarget`-derived branches to keep per remote, gated on at least one entry proving Manta created it. */
 function collectProvenBranchesByRemote(
   store: WorktreePushTargetStore,
   repoId: string
@@ -151,7 +151,7 @@ export async function migrateForkRemoteRefspecsWithExec(
       // No metadata and no branch config pins this remote to anything -- there's nothing
       // to narrow *to*. Only act if it's still the untouched stock wide default: that's
       // the strongest available signal this came from a bare `git remote add` (ours or a
-      // pre-#17828 Orca's), not a `pr`-prefixed remote a user configured by hand. Clears
+      // pre-#17828 Manta's), not a `pr`-prefixed remote a user configured by hand. Clears
       // rather than deletes -- removing the remote outright stays #17842's job.
       if (!wasWide) {
         continue

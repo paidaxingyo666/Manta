@@ -168,7 +168,7 @@ export function useAutomationsPageDestinationForm({
   // A destination change can strand the chosen project on another host; clear
   // it so the draft/default-target effect can select a project the host owns.
   useEffect(() => {
-    if (!createOpen || editingAutomationId !== null || createTarget !== 'orca') {
+    if (!createOpen || editingAutomationId !== null || createTarget !== 'manta') {
       return
     }
     setDraft((current) =>

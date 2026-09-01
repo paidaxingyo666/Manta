@@ -37,8 +37,8 @@ export async function installCodexHooksRemote(
   // into stale trust keys. Plain SSH keeps its guest-home script contract.
   const redirectedCodexHome = options?.codexHomeDir?.replace(/\/$/, '')
   const remoteScriptPath = redirectedCodexHome
-    ? `${redirectedCodexHome}/.orca/agent-hooks/codex-hook.sh`
-    : `${remoteHome.replace(/\/$/, '')}/.orca/agent-hooks/codex-hook.sh`
+    ? `${redirectedCodexHome}/.manta/agent-hooks/codex-hook.sh`
+    : `${remoteHome.replace(/\/$/, '')}/.manta/agent-hooks/codex-hook.sh`
   try {
     const config = await readHooksJsonRemote(sftp, remoteConfigPath)
     if (!config) {
@@ -92,9 +92,9 @@ export async function installCodexHooksRemote(
 
     config.hooks = nextHooks
     // Why: write script/settings before trust TOML; a partial trust write leaves Codex asking approval instead of running a missing script.
-    // Why: SSH remotes use POSIX `.sh` paths even when Orca runs on Windows; never derive remote script syntax from local OS.
+    // Why: SSH remotes use POSIX `.sh` paths even when Manta runs on Windows; never derive remote script syntax from local OS.
     await writeManagedScriptRemote(sftp, remoteScriptPath, getManagedScript('posix'))
-    // Why: SSH edits the user's remote ~/.codex/hooks.json directly, so preserve non-Orca top-level metadata while replacing the hooks tree.
+    // Why: SSH edits the user's remote ~/.codex/hooks.json directly, so preserve non-Manta top-level metadata while replacing the hooks tree.
     await writeHooksJsonRemote(sftp, remoteConfigPath, { ...config, hooks: nextHooks })
     try {
       const existingTomlRaw = await readTextFileRemote(sftp, remoteTomlPath)

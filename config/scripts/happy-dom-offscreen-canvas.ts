@@ -2,7 +2,7 @@
 // and then cannot open in tests that already provide the HTML canvas text-metric stand-in.
 
 const OFFSCREEN_CANVAS_COMPATIBILITY_INSTALLED = Symbol.for(
-  'orca.happyDomOffscreenCanvasCompatibility'
+  'manta.happyDomOffscreenCanvasCompatibility'
 )
 
 type PatchableCanvas = {

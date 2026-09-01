@@ -38,7 +38,7 @@ async function renderRunsTab(historyUnavailable: boolean): Promise<HTMLButtonEle
         activePaneTab="runs"
         relativeNow={0}
         externalActionKey={null}
-        selectedRepoDisplayName="Orca"
+        selectedRepoDisplayName="Manta"
         selectedRepoDefaultBaseRef={null}
         selectedWorkspaceName="Workspace"
         selectedHostEntry={null}

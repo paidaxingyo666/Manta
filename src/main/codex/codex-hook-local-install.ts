@@ -49,7 +49,7 @@ export async function installCodexHooksExclusively(
   const configPath = getConfigPath(runtimeHomePath)
   const scriptPath = getManagedScriptPath()
   // Why: must run before this install rewrites hooks.json/config.toml —
-  // approvals the user made inside Orca-launched Codex are keyed to the
+  // approvals the user made inside Manta-launched Codex are keyed to the
   // previous launch's runtime layout, and stale-trust cleanup below would
   // delete them once the system config stops backing them.
   promoteCodexRuntimeHookApprovalsToSystem(runtimeHomePath)
@@ -163,7 +163,7 @@ export async function installCodexHooksExclusively(
     } else {
       // Why: system user hook approvals are mirrored into runtime CODEX_HOME.
       // If the user later revokes approval in ~/.codex/config.toml, preserving
-      // all old runtime [hooks.state.*] blocks would keep Orca Codex trusted.
+      // all old runtime [hooks.state.*] blocks would keep Manta Codex trusted.
       // Upsert first so duplicate repair can preserve a disabled managed copy
       // before stale cleanup removes old managed hook keys.
       upsertHookTrustEntries(tomlPath, trustEntries)

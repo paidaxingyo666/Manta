@@ -58,7 +58,7 @@ export const repoAddedSchema = z
   })
   .strict()
 
-export const appStarredOrcaSchema = z
+export const appStarredMantaSchema = z
   .object({
     source: appStarSourceSchema,
     nth_repo_added: nthRepoAddedSchema

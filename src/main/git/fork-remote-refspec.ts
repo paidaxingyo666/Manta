@@ -1,12 +1,12 @@
 // Why: a fork-PR remote added with a bare `git remote add` writes the default
 // `+refs/heads/*:refs/remotes/<name>/*` refspec, so any later plain `git fetch <name>`
-// (user, agent, or Orca's own Fetch action) imports the fork's entire branch set --
+// (user, agent, or Manta's own Fetch action) imports the fork's entire branch set --
 // a large fork can carry 1000+ branches. Every mint/reuse/migration path funnels
 // through `ensureRemoteTracksBranchNarrowly` so a fork remote never tracks more than
-// the branches Orca actually knows about (see #17828).
+// the branches Manta actually knows about (see #17828).
 //
 // The tracked-branch refspec source carries a trailing `*` (`refs/heads/<branch>*`)
-// rather than being a literal exact match. This is deliberate: Orca is terminal-centric
+// rather than being a literal exact match. This is deliberate: Manta is terminal-centric
 // (agents run raw git in worktrees), and a *bare* `git fetch` inside a fork-PR worktree
 // resolves to this remote via `branch.<name>.remote` -- it is the single most common
 // fetch shape here, more common than `git fetch <explicit-remote>`. A literal refspec

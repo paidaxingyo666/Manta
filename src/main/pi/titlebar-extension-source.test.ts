@@ -20,9 +20,9 @@ type Harness = {
   callHook: (name: string, event?: unknown) => Promise<void>
 }
 
-const CWD = '/repo/orca-app'
+const CWD = '/repo/manta-app'
 const SESSION = 'omp-session'
-const IDLE_TITLE = `π - ${SESSION} - orca-app`
+const IDLE_TITLE = `π - ${SESSION} - manta-app`
 
 function createHarness(options: { paneKey?: string; isIdle?: () => boolean } = {}): Harness {
   const titles: string[] = []
@@ -48,7 +48,7 @@ function createHarness(options: { paneKey?: string; isIdle?: () => boolean } = {
     module,
     exports: module.exports,
     process: {
-      env: { ORCA_PANE_KEY: options.paneKey ?? 'pane-1' },
+      env: { MANTA_PANE_KEY: options.paneKey ?? 'pane-1' },
       cwd: () => CWD
     },
     console: { warn: vi.fn(), error: vi.fn(), log: vi.fn() },
@@ -102,7 +102,7 @@ describe('getPiTitlebarExtensionSource', () => {
     vi.useRealTimers()
   })
 
-  it('registers nothing outside an Orca pane', () => {
+  it('registers nothing outside an Manta pane', () => {
     expect(createHarness({ paneKey: '' }).handlers).toEqual({})
   })
 

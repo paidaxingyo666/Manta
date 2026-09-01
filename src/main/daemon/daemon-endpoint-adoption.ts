@@ -88,7 +88,7 @@ export async function reconcileDaemonPidOwnership(
  * Publishing a repaired record without them makes a healthy daemon look permanently stale.
  * The values come from the authenticated hello rather than the owner's command line: a command
  * line is a single space-joined string, so any install path containing a space (`C:\Program
- * Files\...`, `/Applications/Orca 2.app/...`) cannot be split back into argv unambiguously.
+ * Files\...`, `/Applications/Manta 2.app/...`) cannot be split back into argv unambiguously.
  */
 async function readDaemonOwnerMetadata(
   identity: DaemonEndpointIdentity

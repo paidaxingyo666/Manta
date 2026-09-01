@@ -30,7 +30,7 @@ describe('orchestration.send invalid message type', () => {
       error: {
         code: 'invalid_argument',
         message:
-          'Invalid --type. Expected one of: status, dispatch, worker_done, merge_ready, escalation, handoff, decision_gate, question, heartbeat. To answer a worker question, use the same Orca CLI executable with orchestration reply --id <msg_id> --body <text>.'
+          'Invalid --type. Expected one of: status, dispatch, worker_done, merge_ready, escalation, handoff, decision_gate, question, heartbeat. To answer a worker question, use the same Manta CLI executable with orchestration reply --id <msg_id> --body <text>.'
       }
     })
   })

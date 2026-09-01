@@ -125,7 +125,7 @@ function makeRuntimeUploadTempPath(relativePath: string): string {
   const dir = slashIndex === -1 ? '' : normalized.slice(0, slashIndex + 1)
   const leaf = slashIndex === -1 ? normalized : normalized.slice(slashIndex + 1)
   const nonce = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
-  return `${dir}.${leaf}.orca-upload-${nonce}`
+  return `${dir}.${leaf}.manta-upload-${nonce}`
 }
 
 export async function ensureRuntimeDirectory(

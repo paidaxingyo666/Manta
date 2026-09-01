@@ -148,7 +148,7 @@ export async function prepareChromiumCookieImport(
   let colList: string | null = null
   let placeholders: string | null = null
   if (stagingAvailable) {
-    // Why: the staged file is Orca's own partition DB, also named "Cookies", so the same
+    // Why: the staged file is Manta's own partition DB, also named "Cookies", so the same
     // transient AV handle can make opening it throw — degrade instead of killing the import.
     try {
       stagingDb = new DatabaseSync(stagingCookiesPath)

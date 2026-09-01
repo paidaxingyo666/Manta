@@ -49,8 +49,8 @@ export const AGENT_KIND_VALUES = [
 export const agentKindSchema = z.enum(AGENT_KIND_VALUES)
 export type AgentKind = z.infer<typeof agentKindSchema>
 
-// Small set: only failures Orca's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
-// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Orca. See telemetry-plan.md §Defer per-incident error fields.
+// Small set: only failures Manta's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
+// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Manta. See telemetry-plan.md §Defer per-incident error fields.
 export const errorClassSchema = z.enum(['binary_not_found', 'paste_readiness_timeout', 'unknown'])
 export type ErrorClass = z.infer<typeof errorClassSchema>
 
@@ -176,7 +176,7 @@ export const featureWallExitActionSchema = z.enum(FEATURE_WALL_EXIT_ACTIONS)
 export const optInViaSchema = z.enum(['first_launch_banner', 'settings'])
 export type OptInVia = z.infer<typeof optInViaSchema>
 
-// Whitelist of settings emittable on `settings_changed`. `orca_channel` (build-time, not user-togglable) is absent.
+// Whitelist of settings emittable on `settings_changed`. `manta_channel` (build-time, not user-togglable) is absent.
 // The telemetry opt-in toggle is also absent — it fires dedicated `telemetry_opted_in/out` events; listing it would double-fire.
 export type BooleanGlobalSettingsKey = {
   // Why: new toggles may be optional for legacy-settings compat but are still boolean once defaulted.

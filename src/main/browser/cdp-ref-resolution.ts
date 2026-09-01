@@ -24,7 +24,7 @@ export class CdpRefResolution {
     if (!state.snapshotResult) {
       throw new BrowserError(
         'browser_stale_ref',
-        "No snapshot exists for this tab. Run 'orca snapshot' first."
+        "No snapshot exists for this tab. Run 'manta snapshot' first."
       )
     }
 
@@ -32,7 +32,7 @@ export class CdpRefResolution {
     if (!entry) {
       throw new BrowserError(
         'browser_ref_not_found',
-        `Element ref ${ref} was not found. Run 'orca snapshot' to see available refs.`
+        `Element ref ${ref} was not found. Run 'manta snapshot' to see available refs.`
       )
     }
 
@@ -44,7 +44,7 @@ export class CdpRefResolution {
         state.navigationId = null
         throw new BrowserError(
           'browser_stale_ref',
-          "The page has navigated since the last snapshot. Run 'orca snapshot' to get fresh refs."
+          "The page has navigated since the last snapshot. Run 'manta snapshot' to get fresh refs."
         )
       }
     }
@@ -63,7 +63,7 @@ export class CdpRefResolution {
       state.snapshotResult = null
       throw new BrowserError(
         'browser_stale_ref',
-        `Element ${ref} no longer exists in the DOM. Run 'orca snapshot' to get fresh refs.`
+        `Element ${ref} no longer exists in the DOM. Run 'manta snapshot' to get fresh refs.`
       )
     }
   }

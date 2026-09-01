@@ -17,7 +17,7 @@ import { callRuntimeRpc, getActiveRuntimeTarget, RuntimeRpcCallError } from './r
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 
 const QUICK_OPEN_REMOTE_UPDATE_REQUIRED_MESSAGE =
-  'Quick Open search requires a newer paired Orca host. Update the remote host and reconnect.'
+  'Quick Open search requires a newer paired Manta host. Update the remote host and reconnect.'
 
 export async function searchRuntimeFiles(
   context: RuntimeFileOperationArgs,

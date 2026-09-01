@@ -181,13 +181,13 @@ export class CodexHookService {
     return wslPlan ? refreshWslRuntimeUserHooks(wslPlan) : null
   }
 
-  getStatus(runtimeHomePath: string = getOrcaManagedCodexHomePath()): AgentHookInstallStatus {
+  getStatus(runtimeHomePath: string = getMantaManagedCodexHomePath()): AgentHookInstallStatus {
     return this.getStatusAfterInstall(null, runtimeHomePath)
   }
 
   private getStatusAfterInstall(
     recentGrantEntries: readonly CodexTrustEntry[] | null,
-    runtimeHomePath: string = getOrcaManagedCodexHomePath()
+    runtimeHomePath: string = getMantaManagedCodexHomePath()
   ): AgentHookInstallStatus {
     return getCodexHookStatusAfterInstall(recentGrantEntries, runtimeHomePath)
   }
@@ -196,7 +196,7 @@ export class CodexHookService {
   // account launching against its own self-contained CODEX_HOME passes that
   // per-account home so hooks.json/config.toml/trust land where codex reads.
   install(
-    runtimeHomePath: string = getOrcaManagedCodexHomePath()
+    runtimeHomePath: string = getMantaManagedCodexHomePath()
   ): Promise<AgentHookInstallStatus> {
     // Why: same lane as the grant it performs — see installManagedHooksIntoWslRuntime.
     return runExclusivelyForRuntimeAndSystemTrustConfig(runtimeHomePath, () =>
@@ -246,7 +246,7 @@ export class CodexHookService {
   }
 
   refreshRuntimeUserHooks(
-    runtimeHomePath: string = getOrcaManagedCodexHomePath()
+    runtimeHomePath: string = getMantaManagedCodexHomePath()
   ): Promise<AgentHookInstallStatus> {
     return runExclusivelyForRuntimeAndSystemTrustConfig(runtimeHomePath, () =>
       this.refreshRuntimeUserHooksExclusively(runtimeHomePath)
@@ -262,7 +262,7 @@ export class CodexHookService {
   }
 
   remove(): Promise<AgentHookInstallStatus> {
-    return runExclusivelyForRuntimeAndSystemTrustConfig(getOrcaManagedCodexHomePath(), () =>
+    return runExclusivelyForRuntimeAndSystemTrustConfig(getMantaManagedCodexHomePath(), () =>
       this.removeExclusively()
     )
   }

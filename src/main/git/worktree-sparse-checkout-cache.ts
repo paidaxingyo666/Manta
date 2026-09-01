@@ -3,13 +3,13 @@ import { canonicalWorktreePath } from './worktree-path-comparison'
 import { detectSparseCheckout } from './worktree-sparse-state'
 
 // Why: `git worktree list` only emits a `sparse` porcelain line on newer Git (annotateSparseCheckoutStatus
-// already skips rows where that's set), but Orca's compatibility baseline is Git 2.25, which predates it —
+// already skips rows where that's set), but Manta's compatibility baseline is Git 2.25, which predates it —
 // so every listing still paid a per-worktree fs.stat + config read on the fallback path, measured at ~9x
 // the cost of the `git worktree list` call it decorates on a 1000-worktree repo. Cache the result, scoped
 // per repo so churn in one repo can't evict another's warm entries.
 //
 // Invalidation coverage:
-//  - Orca-driven remove/move: explicit calls below (worktree-removal.ts, worktree-move.ts).
+//  - Manta-driven remove/move: explicit calls below (worktree-removal.ts, worktree-move.ts).
 //  - External `git sparse-checkout` toggle while extensions.worktreeConfig is on: it rewrites
 //    `config.worktree`, which the git-common-dir watcher already classifies as structural and
 //    routes through notifyWorktreesChanged -> the invalidator this module registers (repo-scoped).
@@ -128,7 +128,7 @@ async function revalidateInBackground(
   }
 }
 
-/** Drop one worktree's cached state; call when Orca itself removes or moves a worktree path. */
+/** Drop one worktree's cached state; call when Manta itself removes or moves a worktree path. */
 export function invalidateSparseCheckoutState(repoPath: string, worktreePath: string): void {
   deleteKeysWithPrefix(worktreeKeyPrefix(repoPath, worktreePath))
 }

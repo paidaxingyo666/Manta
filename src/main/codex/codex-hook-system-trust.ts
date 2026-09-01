@@ -28,7 +28,7 @@ export function getTrustedSystemUserHookSignatures(
   try {
     trustEntries = readHookTrustEntries(getSystemCodexConfigTomlPath())
   } catch (error) {
-    // Why: a hand-broken system config.toml should only disable user-hook trust mirroring, not block Orca's managed runtime hooks.
+    // Why: a hand-broken system config.toml should only disable user-hook trust mirroring, not block Manta's managed runtime hooks.
     console.warn('[codex-hook-service] failed to read system hook trust entries', error)
     return signatures
   }

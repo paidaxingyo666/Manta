@@ -11,7 +11,7 @@ type ExecMock = Mock<GitRemoteExec>
 
 const REPO_PATH = '/repo-root'
 const REPO_ID = 'repo-1'
-const FORK_REMOTE = 'pr-contributor-orca'
+const FORK_REMOTE = 'pr-contributor-manta'
 
 function worktreeId(suffix: string): string {
   return `${REPO_ID}::${suffix}`
@@ -21,7 +21,7 @@ function forkTarget(overrides: Partial<GitPushTarget> = {}): GitPushTarget {
   return {
     remoteName: FORK_REMOTE,
     branchName: 'contributor/fix',
-    remoteUrl: 'git@github.com:contributor/orca.git',
+    remoteUrl: 'git@github.com:contributor/manta.git',
     remoteCreated: true,
     ...overrides
   }
@@ -136,8 +136,8 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
       [FORK_REMOTE]: ['contributor/fix', 'contributor/unrelated-1', 'master']
     }
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] },
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] },
       trackingRefsByRemote
     })
 
@@ -154,7 +154,7 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
         'config',
         '--add',
         `remote.${FORK_REMOTE}.fetch`,
-        '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-orca/contributor/fix*'
+        '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-manta/contributor/fix*'
       ],
       REPO_PATH
     ])
@@ -168,8 +168,8 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
 
   it('unions branches from multiple worktrees sharing the same fork remote', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] }
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] }
     })
 
     await migrateForkRemoteRefspecsWithExec(
@@ -187,16 +187,16 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
       .map(([args]) => args[3])
     expect(addedRefspecs).toEqual(
       expect.arrayContaining([
-        '+refs/heads/branch-a*:refs/remotes/pr-contributor-orca/branch-a*',
-        '+refs/heads/branch-b*:refs/remotes/pr-contributor-orca/branch-b*'
+        '+refs/heads/branch-a*:refs/remotes/pr-contributor-manta/branch-a*',
+        '+refs/heads/branch-b*:refs/remotes/pr-contributor-manta/branch-b*'
       ])
     )
   })
 
   it('skips a remote with no provenance evidence (no metadata entry has remoteCreated: true)', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] }
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] }
     })
 
     const migrated = await migrateForkRemoteRefspecsWithExec(
@@ -211,7 +211,7 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
   })
 
   it('never touches origin or upstream even with malformed metadata', async () => {
-    const exec = makeExec({ urlByRemote: { origin: 'git@github.com:stablyai/orca.git\n' } })
+    const exec = makeExec({ urlByRemote: { origin: 'git@github.com:stablyai/manta.git\n' } })
 
     const migrated = await migrateForkRemoteRefspecsWithExec(
       REPO_PATH,
@@ -225,8 +225,8 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
 
   it('scopes provenance to the same repo (remotes are repo-local)', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] }
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] }
     })
 
     const migrated = await migrateForkRemoteRefspecsWithExec(
@@ -241,10 +241,10 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
 
   it('skips (does not re-fetch) a remote that is already narrow', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
       fetchByRemote: {
         [FORK_REMOTE]: [
-          '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-orca/contributor/fix*'
+          '+refs/heads/contributor/fix*:refs/remotes/pr-contributor-manta/contributor/fix*'
         ]
       }
     })
@@ -262,8 +262,8 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
 
   it('abandons and cleans up a remote reclaimed concurrently by #17842 reconciliation mid-migration', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] },
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] },
       removeUrlAfterFirstCheck: new Set([FORK_REMOTE])
     })
 
@@ -289,12 +289,12 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
   })
 
   it('clears the fetch refspec of a wide pr-* remote with zero worktree-metadata trace at all', async () => {
-    const ORPHAN_REMOTE = 'pr-ghost-orca'
+    const ORPHAN_REMOTE = 'pr-ghost-manta'
     const trackingRefsByRemote = { [ORPHAN_REMOTE]: ['some-branch', 'another-branch'] }
     const exec = makeExec({
       remoteNames: [ORPHAN_REMOTE],
-      urlByRemote: { [ORPHAN_REMOTE]: 'git@github.com:ghost/orca.git\n' },
-      fetchByRemote: { [ORPHAN_REMOTE]: ['+refs/heads/*:refs/remotes/pr-ghost-orca/*'] },
+      urlByRemote: { [ORPHAN_REMOTE]: 'git@github.com:ghost/manta.git\n' },
+      fetchByRemote: { [ORPHAN_REMOTE]: ['+refs/heads/*:refs/remotes/pr-ghost-manta/*'] },
       trackingRefsByRemote
     })
 
@@ -316,12 +316,12 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
   })
 
   it('leaves a zero-provenance pr-* remote alone if its refspec is not the stock wide default', async () => {
-    const CUSTOM_REMOTE = 'pr-custom-orca'
+    const CUSTOM_REMOTE = 'pr-custom-manta'
     const exec = makeExec({
       remoteNames: [CUSTOM_REMOTE],
-      urlByRemote: { [CUSTOM_REMOTE]: 'git@github.com:custom/orca.git\n' },
+      urlByRemote: { [CUSTOM_REMOTE]: 'git@github.com:custom/manta.git\n' },
       fetchByRemote: {
-        [CUSTOM_REMOTE]: ['+refs/heads/some-branch:refs/remotes/pr-custom-orca/some-branch']
+        [CUSTOM_REMOTE]: ['+refs/heads/some-branch:refs/remotes/pr-custom-manta/some-branch']
       }
     })
 
@@ -346,15 +346,15 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
 
   it('also narrows branches only referenced by surviving branch.*.remote config (no metadata left)', async () => {
     const exec = makeExec({
-      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/orca.git\n' },
-      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-orca/*'] },
+      urlByRemote: { [FORK_REMOTE]: 'git@github.com:contributor/manta.git\n' },
+      fetchByRemote: { [FORK_REMOTE]: ['+refs/heads/*:refs/remotes/pr-contributor-manta/*'] },
       branchConfig: `branch.contributor/preserved.remote ${FORK_REMOTE}`
     })
 
     const migrated = await migrateForkRemoteRefspecsWithExec(
       REPO_PATH,
       REPO_ID,
-      // Only proof of Orca provenance; the branch itself comes from local config.
+      // Only proof of Manta provenance; the branch itself comes from local config.
       storeOf({ [worktreeId('/wt/gone')]: forkTarget({ branchName: 'contributor/fix' }) }),
       exec
     )
@@ -365,7 +365,7 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
       .map(([args]) => args[3])
     expect(addedRefspecs).toEqual(
       expect.arrayContaining([
-        '+refs/heads/contributor/preserved*:refs/remotes/pr-contributor-orca/contributor/preserved*'
+        '+refs/heads/contributor/preserved*:refs/remotes/pr-contributor-manta/contributor/preserved*'
       ])
     )
   })

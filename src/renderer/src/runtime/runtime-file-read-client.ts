@@ -20,7 +20,7 @@ import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 
 const REMOTE_DOWNLOAD_CHUNK_BYTES = 384 * 1024
 const REMOTE_DOWNLOAD_UPDATE_REQUIRED_MESSAGE =
-  'Remote file download requires a newer Orca server. Update the headless server and try again.'
+  'Remote file download requires a newer Manta server. Update the headless server and try again.'
 
 type RemoteFileDownloadArgs = NonNullable<ReturnType<typeof getRemoteFileArgs>>
 
