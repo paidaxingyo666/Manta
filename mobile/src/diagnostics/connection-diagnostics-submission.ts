@@ -35,15 +35,22 @@ export async function submitConnectionDiagnostics(
       }),
       signal: controller.signal
     })
-    return response.ok ? { ok: true } : { ok: false, error: translate("m.connection.diagnostics.submission.d28cec3768", "status {{value0}}", { value0: response.status }) }
+    return response.ok
+      ? { ok: true }
+      : {
+          ok: false,
+          error: translate('m.connection.diagnostics.submission.d28cec3768', 'status {{value0}}', {
+            value0: response.status
+          })
+        }
   } catch (error) {
     return {
       ok: false,
       error: controller.signal.aborted
-        ? translate("m.connection.diagnostics.submission.519897e0d5", "request timed out")
+        ? translate('m.connection.diagnostics.submission.519897e0d5', 'request timed out')
         : error instanceof Error
           ? error.message
-          : translate("m.connection.diagnostics.submission.3712ed6691", "request failed")
+          : translate('m.connection.diagnostics.submission.3712ed6691', 'request failed')
     }
   } finally {
     clearTimeout(timeout)

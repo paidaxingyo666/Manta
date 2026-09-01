@@ -211,8 +211,14 @@ export function MobileSessionHeader({ controller }: { controller: MobileSessionC
               }
               showToast(
                 quickCommandsSupported === false
-                  ? translate("m.MobileSessionHeader.6ccffdeccd", "Desktop update required for quick commands")
-                  : translate("m.MobileSessionHeader.ff08ff24b1", "Checking desktop capabilities — try again in a moment"),
+                  ? translate(
+                      'm.MobileSessionHeader.6ccffdeccd',
+                      'Desktop update required for quick commands'
+                    )
+                  : translate(
+                      'm.MobileSessionHeader.ff08ff24b1',
+                      'Checking desktop capabilities — try again in a moment'
+                    ),
                 1600
               )
             }}

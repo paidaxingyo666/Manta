@@ -189,7 +189,9 @@ export default function ConnectionLogScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>{translate("m.connection.log.a74b2501d7", "Network diagnostics")}</Text>
+        <Text style={styles.heading}>
+          {translate('m.connection.log.a74b2501d7', 'Network diagnostics')}
+        </Text>
       </View>
 
       {hosts.length > 1 && (
@@ -218,7 +220,11 @@ export default function ConnectionLogScreen() {
           <View style={styles.statusRow}>
             <Text style={styles.statusText}>
               {state}
-              {reconnectAttempts > 0 ? translate("m.connection.log.9aee626b28", " · attempt {{value0}}", { value0: reconnectAttempts }) : ''}
+              {reconnectAttempts > 0
+                ? translate('m.connection.log.9aee626b28', ' · attempt {{value0}}', {
+                    value0: reconnectAttempts
+                  })
+                : ''}
             </Text>
             <Pressable style={styles.copyButton} onPress={() => void copyDiagnostics()}>
               {copied ? (
@@ -226,18 +232,27 @@ export default function ConnectionLogScreen() {
               ) : (
                 <Copy size={14} color={colors.textSecondary} />
               )}
-              <Text style={styles.copyButtonText}>{copied ? translate("m.connection.log.0d8cbd791b", "Copied") : translate("m.connection.log.364a248d79", "Copy report")}</Text>
+              <Text style={styles.copyButtonText}>
+                {copied
+                  ? translate('m.connection.log.0d8cbd791b', 'Copied')
+                  : translate('m.connection.log.364a248d79', 'Copy report')}
+              </Text>
             </Pressable>
           </View>
           {diagnosis && (
             <View style={styles.diagnosisCard}>
-              <Text style={styles.diagnosisHeading}>{translate("m.connection.log.2a4e5d28c5", "What this suggests")}</Text>
+              <Text style={styles.diagnosisHeading}>
+                {translate('m.connection.log.2a4e5d28c5', 'What this suggests')}
+              </Text>
               <Text style={styles.diagnosisText}>{diagnosis.likelyCause}</Text>
               <Text style={styles.diagnosisNext}>{diagnosis.nextStep}</Text>
               {diagnosis.reportability === 'manta-relay' && (
                 <>
                   <Text style={styles.privacyHint}>
-                    {translate("m.connection.log.68f76867a2", "Sends a size-limited redacted report including host name, endpoint, versions, connection state, and events—never terminal contents or credentials.")}
+                    {translate(
+                      'm.connection.log.68f76867a2',
+                      'Sends a size-limited redacted report including host name, endpoint, versions, connection state, and events—never terminal contents or credentials.'
+                    )}
                   </Text>
                   <Pressable
                     style={styles.sendButton}
@@ -251,12 +266,12 @@ export default function ConnectionLogScreen() {
                     )}
                     <Text style={styles.sendButtonText}>
                       {submissionState === 'sending'
-                        ? translate("m.connection.log.45bd68e67e", "Sending…")
+                        ? translate('m.connection.log.45bd68e67e', 'Sending…')
                         : submissionState === 'sent'
-                          ? translate("m.connection.log.37de5c5676", "Diagnostics sent")
+                          ? translate('m.connection.log.37de5c5676', 'Diagnostics sent')
                           : submissionState === 'failed'
-                            ? translate("m.connection.log.abfd913c55", "Retry sending")
-                            : translate("m.connection.log.e9f27427b4", "Send diagnostics to Manta")}
+                            ? translate('m.connection.log.abfd913c55', 'Retry sending')
+                            : translate('m.connection.log.e9f27427b4', 'Send diagnostics to Manta')}
                     </Text>
                   </Pressable>
                 </>
@@ -267,12 +282,17 @@ export default function ConnectionLogScreen() {
             <ConnectionLog entries={[...entries]} title={selected.name} fillAvailableHeight />
           ) : (
             <Text style={styles.emptyText}>
-              {translate("m.connection.log.8a647c3df9", "No connection events yet. Events appear as the app dials this host.")}
+              {translate(
+                'm.connection.log.8a647c3df9',
+                'No connection events yet. Events appear as the app dials this host.'
+              )}
             </Text>
           )}
         </>
       ) : (
-        <Text style={styles.emptyText}>{translate("m.connection.log.3ce523c653", "No paired hosts.")}</Text>
+        <Text style={styles.emptyText}>
+          {translate('m.connection.log.3ce523c653', 'No paired hosts.')}
+        </Text>
       )}
     </View>
   )

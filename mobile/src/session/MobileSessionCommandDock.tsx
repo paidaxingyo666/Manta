@@ -180,7 +180,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
                 <Text
                   style={[styles.accessoryKeyText, !canSend && styles.accessoryKeyTextDisabled]}
                 >
-                  {translate("m.MobileSessionCommandDock.267d90acf0", "Paste")}
+                  {translate('m.MobileSessionCommandDock.267d90acf0', 'Paste')}
                 </Text>
               </Pressable>
             )}

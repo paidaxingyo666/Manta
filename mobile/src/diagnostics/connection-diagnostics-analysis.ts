@@ -68,7 +68,9 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
       likelyCause: 'The active Relay session closed unexpectedly.',
       nextStep: 'Manta started Relay recovery; the event history includes the cell close reason.',
       reportability:
-        failure?.code === 'relay-session-failed' && failure.path === 'relay' ? 'manta-relay' : 'none'
+        failure?.code === 'relay-session-failed' && failure.path === 'relay'
+          ? 'manta-relay'
+          : 'none'
     }
   }
 

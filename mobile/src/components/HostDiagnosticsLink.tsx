@@ -11,7 +11,9 @@ export function HostDiagnosticsLink({ onPress }: { onPress: () => void }): React
       accessibilityRole="button"
       accessibilityLabel="View network diagnostics"
     >
-      <Text style={styles.text}>{translate("m.HostDiagnosticsLink.ceff9523b5", "View network diagnostics")}</Text>
+      <Text style={styles.text}>
+        {translate('m.HostDiagnosticsLink.ceff9523b5', 'View network diagnostics')}
+      </Text>
       <ChevronRight size={16} color={colors.textSecondary} />
     </Pressable>
   )

@@ -7,7 +7,11 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-import { TERMINAL_SHORTCUT_SPECIAL_KEYS, type TerminalShortcutModifier, type TerminalShortcutSpecialKey } from '../terminal/terminal-accessory-keys'
+import {
+  TERMINAL_SHORTCUT_SPECIAL_KEYS,
+  type TerminalShortcutModifier,
+  type TerminalShortcutSpecialKey
+} from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { localizedConstant } from '../i18n/localized-constant'
 

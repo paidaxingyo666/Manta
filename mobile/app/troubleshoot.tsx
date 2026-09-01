@@ -89,11 +89,23 @@ export default function TroubleshootScreen() {
       const hosts = await loadHosts()
       results.push(
         hosts.length > 0
-          ? { label: translate("m.troubleshoot.fc87d4676b", "Paired hosts"), status: 'pass', detail: `${hosts.length} paired` }
-          : { label: translate("m.troubleshoot.fc87d4676b", "Paired hosts"), status: 'fail', detail: 'None — scan a QR to pair' }
+          ? {
+              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
+              status: 'pass',
+              detail: `${hosts.length} paired`
+            }
+          : {
+              label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
+              status: 'fail',
+              detail: 'None — scan a QR to pair'
+            }
       )
     } catch {
-      results.push({ label: translate("m.troubleshoot.fc87d4676b", "Paired hosts"), status: 'warn', detail: 'Could not read host data' })
+      results.push({
+        label: translate('m.troubleshoot.fc87d4676b', 'Paired hosts'),
+        status: 'warn',
+        detail: 'Could not read host data'
+      })
     }
 
     if (!isCurrentRun()) {
@@ -112,14 +124,26 @@ export default function TroubleshootScreen() {
       }
       results.push(
         resp.ok
-          ? { label: translate("m.troubleshoot.de003da9ea", "Internet"), status: 'pass', detail: 'Connected' }
-          : { label: translate("m.troubleshoot.de003da9ea", "Internet"), status: 'warn', detail: 'Unexpected response' }
+          ? {
+              label: translate('m.troubleshoot.de003da9ea', 'Internet'),
+              status: 'pass',
+              detail: 'Connected'
+            }
+          : {
+              label: translate('m.troubleshoot.de003da9ea', 'Internet'),
+              status: 'warn',
+              detail: 'Unexpected response'
+            }
       )
     } catch {
       if (!isCurrentRun()) {
         return
       }
-      results.push({ label: translate("m.troubleshoot.de003da9ea", "Internet"), status: 'fail', detail: 'No connection' })
+      results.push({
+        label: translate('m.troubleshoot.de003da9ea', 'Internet'),
+        status: 'fail',
+        detail: 'No connection'
+      })
     } finally {
       internetCheck.dispose()
       if (activeInternetCheckRef.current === internetCheck) {
@@ -152,7 +176,11 @@ export default function TroubleshootScreen() {
         setChecks([...results])
       }
     } catch {
-      results.push({ label: translate("m.troubleshoot.21ef75f0f3", "Hosts"), status: 'warn', detail: 'Could not test' })
+      results.push({
+        label: translate('m.troubleshoot.21ef75f0f3', 'Hosts'),
+        status: 'warn',
+        detail: 'Could not test'
+      })
     }
 
     if (!isCurrentRun()) {
@@ -160,7 +188,7 @@ export default function TroubleshootScreen() {
     }
 
     results.push({
-      label: translate("m.troubleshoot.f2c3857280", "Platform"),
+      label: translate('m.troubleshoot.f2c3857280', 'Platform'),
       status: 'pass',
       detail: `${Platform.OS} ${Platform.Version ?? ''}`
     })
@@ -178,7 +206,9 @@ export default function TroubleshootScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>{translate("m.troubleshoot.0c81261ae3", "Troubleshooting")}</Text>
+        <Text style={styles.heading}>
+          {translate('m.troubleshoot.0c81261ae3', 'Troubleshooting')}
+        </Text>
       </View>
 
       <ScrollView
@@ -202,10 +232,10 @@ export default function TroubleshootScreen() {
           )}
           <Text style={styles.diagnosticButtonLabel}>
             {diagnosticStatus === 'running'
-              ? translate("m.troubleshoot.750b3cfa37", "Running…")
+              ? translate('m.troubleshoot.750b3cfa37', 'Running…')
               : diagnosticStatus === 'done'
-                ? translate("m.troubleshoot.0790b66aca", "Run again")
-                : translate("m.troubleshoot.e71414eafc", "Run diagnostics")}
+                ? translate('m.troubleshoot.0790b66aca', 'Run again')
+                : translate('m.troubleshoot.e71414eafc', 'Run diagnostics')}
           </Text>
         </Pressable>
 
@@ -217,7 +247,9 @@ export default function TroubleshootScreen() {
           onPress={() => router.push('/connection-log')}
         >
           <ScrollText size={16} color={colors.textPrimary} />
-          <Text style={styles.diagnosticButtonLabel}>{translate("m.troubleshoot.ac0976ca35", "View network diagnostics")}</Text>
+          <Text style={styles.diagnosticButtonLabel}>
+            {translate('m.troubleshoot.ac0976ca35', 'View network diagnostics')}
+          </Text>
         </Pressable>
 
         {checks.length > 0 && (
@@ -239,7 +271,9 @@ export default function TroubleshootScreen() {
           </View>
         )}
 
-        <Text style={styles.sectionHeading}>{translate("m.troubleshoot.d89f2f9bbd", "Common issues")}</Text>
+        <Text style={styles.sectionHeading}>
+          {translate('m.troubleshoot.d89f2f9bbd', 'Common issues')}
+        </Text>
 
         <View style={styles.section}>
           {troubleshootCommonIssues().map((section, i) => (

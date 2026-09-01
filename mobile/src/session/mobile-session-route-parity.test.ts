@@ -530,9 +530,6 @@ describe('mobile session route extraction parity', () => {
     expect(hash(compatibility.capabilities)).toBe(HEAD_CAPABILITY_SHA256)
   })
 
-
-
-
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
     expect(strings).toHaveLength(620)
