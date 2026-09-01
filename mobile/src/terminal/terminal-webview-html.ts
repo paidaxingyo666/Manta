@@ -1,6 +1,8 @@
 import { TERMINAL_HTML_DOCUMENT_SHELL } from './terminal-webview-html/document-shell'
 import { TERMINAL_HTML_RUNTIME_STATE_AND_TEXT_SCALING } from './terminal-webview-html/runtime-state-and-text-scaling'
-import { TERMINAL_HTML_FIT_SCALE_AND_WRITE_QUEUE } from './terminal-webview-html/fit-scale-and-write-queue'
+import { TERMINAL_HTML_FIT_SCALE } from './terminal-webview-html/terminal-fit-scale'
+import { TERMINAL_HTML_MOUSE_MODE_DECSET_SCAN } from './terminal-webview-html/mouse-mode-decset-scan'
+import { TERMINAL_HTML_WRITE_QUEUE } from './terminal-webview-html/write-queue'
 import { TERMINAL_HTML_INIT_AND_WRITE } from './terminal-webview-html/terminal-init-and-write'
 import { TERMINAL_HTML_HOST_MESSAGE_ROUTER } from './terminal-webview-html/host-message-router'
 import { TERMINAL_HTML_SELECTION_STATE_AND_EVICTION } from './terminal-webview-html/selection-state-and-eviction'
@@ -19,7 +21,9 @@ export { MOBILE_TERMINAL_CARET_OPTIONS } from './terminal-webview-html/theme'
 export const XTERM_HTML = [
   TERMINAL_HTML_DOCUMENT_SHELL,
   TERMINAL_HTML_RUNTIME_STATE_AND_TEXT_SCALING,
-  TERMINAL_HTML_FIT_SCALE_AND_WRITE_QUEUE,
+  TERMINAL_HTML_FIT_SCALE,
+  TERMINAL_HTML_MOUSE_MODE_DECSET_SCAN,
+  TERMINAL_HTML_WRITE_QUEUE,
   TERMINAL_HTML_INIT_AND_WRITE,
   TERMINAL_HTML_HOST_MESSAGE_ROUTER,
   TERMINAL_HTML_SELECTION_STATE_AND_EVICTION,
