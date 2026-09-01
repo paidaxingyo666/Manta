@@ -1,10 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAppStore } from '@/store'
-import { getComposerEligibleRepos, resolveComposerActiveRepoId } from '@/lib/new-workspace-composer-repo'
+import {
+  getComposerEligibleRepos,
+  resolveComposerActiveRepoId
+} from '@/lib/new-workspace-composer-repo'
 import { resolveWorkspaceCreationTarget } from '@/lib/project-host-workspace-target'
 import { lookupCmdJGitHubUrlWorkItem } from '@/lib/cmd-j-github-url-lookup'
 import { lookupLinearIssueUrl } from '@/lib/linear-issue-url-lookup'
-import { withResolvedCmdJGitHubPreview, type CmdJTaskSourceUrl, getCmdJTaskUrlCreatePreview } from '@/lib/worktree-palette-task-url-match'
+import {
+  withResolvedCmdJGitHubPreview,
+  type CmdJTaskSourceUrl,
+  getCmdJTaskUrlCreatePreview
+} from '@/lib/worktree-palette-task-url-match'
 import type { GitHubWorkItem } from '../../../shared/github/work-item-types'
 import type { LinearIssue } from '../../../shared/linear/issue-types'
 import type { TaskSourceContext } from '../../../shared/task-source-context'
@@ -60,8 +67,14 @@ export function useWorktreeJumpPaletteTaskUrl({
   const [linearIssuePreview, setLinearIssuePreview] = useState<CmdJLinearIssuePreview | null>(null)
   const [githubWorkItemPreview, setGithubWorkItemPreview] =
     useState<CmdJGitHubWorkItemPreview | null>(null)
-  const linearLookupRef = useRef<{ query: string; promise: Promise<CmdJLinearIssuePreview> } | null>(null)
-  const githubLookupRef = useRef<{ query: string; promise: Promise<CmdJGitHubWorkItemPreview> } | null>(null)
+  const linearLookupRef = useRef<{
+    query: string
+    promise: Promise<CmdJLinearIssuePreview>
+  } | null>(null)
+  const githubLookupRef = useRef<{
+    query: string
+    promise: Promise<CmdJGitHubWorkItemPreview>
+  } | null>(null)
   const linearGenerationRef = useRef(0)
   const githubGenerationRef = useRef(0)
 

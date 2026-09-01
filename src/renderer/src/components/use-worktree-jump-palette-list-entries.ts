@@ -44,11 +44,7 @@ export function useWorktreeJumpPaletteListEntries({
       multiPrimaryFirstScreen,
       multiPrimaryLayout
     } = paletteSections
-    const pushOverflowHint = (
-      id: string,
-      overflowCount: number,
-      onSeeMore?: () => void
-    ): void => {
+    const pushOverflowHint = (id: string, overflowCount: number, onSeeMore?: () => void): void => {
       if (overflowCount > 0) {
         entries.push({
           id,
@@ -238,8 +234,7 @@ export function useWorktreeJumpPaletteListEntries({
     openTabsLeadSections,
     paletteSections,
     showCreateAction,
-    taskSourceUrl,
-
+    taskSourceUrl
   ])
   const selectableItems = useMemo<PaletteItem[]>(
     () =>
