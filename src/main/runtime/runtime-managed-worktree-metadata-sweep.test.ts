@@ -61,6 +61,7 @@ describe('runtime detected-worktree listing sweeps missing local metadata', () =
     rmSync(testState.dir, { recursive: true, force: true })
   })
 
+  // Paired with the off-host case below: same fixture, no `connectionId`.
   it('drops a metadata row whose directory is gone and the scan does not list', async () => {
     const store = createStore()
     const repo = makeRepo({ id: 'repo-1', path: repoPath })
@@ -101,17 +102,22 @@ describe('runtime detected-worktree listing sweeps missing local metadata', () =
     expect(store.getWorktreeMeta(missingId)).toBeDefined()
   })
 
-  // The execution host owns this verdict: a runtime host cannot stat an SSH checkout, so a local
-  // miss is not evidence of absence. See docs/reference/ssh-execution-boundary.md.
+  // The execution host owns this verdict: this host cannot stat a checkout that lives behind an SSH
+  // connection, so a local miss is not evidence of absence. See docs/reference/ssh-execution-boundary.md.
+  //
+  // Deliberately identical to the first case except for `connectionId`, and the row is stamped
+  // `local` so it is a real prune candidate. That pairing is the proof: the same fixture without a
+  // connection loses the row, so the connection is the only reason this one keeps it. Removing any
+  // single gate would not show that -- four independent checks derive from `connectionId` here.
   it('never sweeps a repo whose git runs off-host', async () => {
     const store = createStore()
     const repo = makeRepo({ id: 'repo-1', path: repoPath, connectionId: 'build-box' })
     store.addRepo(repo)
     const missingId = `${repo.id}::${join(testState.dir, 'deleted-worktree')}`
-    store.setWorktreeMetaForHost(missingId, 'ssh:build-box', { displayName: 'Gone' })
+    store.setWorktreeMetaForHost(missingId, 'local', { displayName: 'Gone' })
 
     await queries(store, repo, [gitWorktree(repoPath)]).listDetected(repo)
 
-    expect(store.getWorktreeMetaForHost(missingId, 'ssh:build-box')).toBeDefined()
+    expect(store.getWorktreeMeta(missingId)).toBeDefined()
   })
 })
