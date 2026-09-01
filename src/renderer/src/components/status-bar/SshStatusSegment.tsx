@@ -99,7 +99,7 @@ export function SshStatusSegment({
         hasStatusEntry: Boolean(statusEntry),
         status: statusEntry?.status ?? null,
         active: settings?.activeRuntimeEnvironmentId === environment.id,
-        remoteControl: statusEntry?.status?.remoteControl ?? null
+        remoteControl: statusEntry?.remoteControl ?? statusEntry?.status?.remoteControl ?? null
       }
     })
   const runtimeHostRows = runtimeHosts.map((host) => ({

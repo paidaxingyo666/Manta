@@ -2,6 +2,7 @@ import { useState, type Dispatch, type MutableRefObject, type SetStateAction } f
 import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
 import { unwrapRuntimeRpcResult } from '@/runtime/runtime-rpc-client'
+import { extractRuntimeTransportDiagnostics } from '@/runtime/runtime-status-probe-diagnostics'
 import { useAppStore } from '@/store'
 import { describeRuntimeCompatBlock } from '../../../../shared/protocol-compat'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'
@@ -52,6 +53,7 @@ export function useRuntimeEnvironmentConnectionActions({
           [environment.id]: {
             status: 'error',
             runtimeStatus: null,
+            remoteControl: null,
             compatibility: null,
             error: null
           }
@@ -103,6 +105,7 @@ export function useRuntimeEnvironmentConnectionActions({
           [environment.id]: {
             status: 'ready',
             runtimeStatus,
+            remoteControl: runtimeStatus.remoteControl ?? null,
             compatibility,
             error: null
           }
@@ -134,8 +137,10 @@ export function useRuntimeEnvironmentConnectionActions({
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to connect server.'
+      const remoteControl = extractRuntimeTransportDiagnostics(error)
       useAppStore.getState().setRuntimeEnvironmentStatus(environment.id, {
         status: null,
+        ...(remoteControl ? { remoteControl } : {}),
         checkedAt: Date.now()
       })
       if (mountedRef.current) {
@@ -144,6 +149,7 @@ export function useRuntimeEnvironmentConnectionActions({
           [environment.id]: {
             status: 'error',
             runtimeStatus: null,
+            remoteControl: remoteControl ?? null,
             compatibility: null,
             error: message
           }
