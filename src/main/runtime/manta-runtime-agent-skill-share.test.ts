@@ -108,7 +108,7 @@ function runtimeWithCloud(options: {
   })
   const createShare = vi.fn(async () => ({
     status: 'ok' as const,
-    value: { id: 'share-id', url: 'https://share.manta.sh.cn/skills/share/share-id' }
+    value: { id: 'share-id', url: 'https://share.onmanta.dev/skills/share/share-id' }
   }))
   const runtime = new MantaRuntimeService({
     getSettings: () => ({
@@ -222,6 +222,27 @@ describe('agent skill sharing runtime', () => {
     controller.abort()
 
     await expect(publishing).rejects.toThrow('upload-aborted')
+    expect(await operationDirectories()).toEqual([])
+  })
+
+  it('honors cancellation that arrives while preparation is completing', async () => {
+    const alpha = await createSkill('alpha-id', 'alpha')
+    const { runtime, publishVersion } = runtimeWithCloud({ isEnabled: () => true })
+    let abortedReads = 0
+    const signal = {
+      get aborted() {
+        abortedReads += 1
+        return abortedReads > 1
+      },
+      reason: new Error('skill-share-cancelled'),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    } as unknown as AbortSignal
+
+    await expect(
+      runtime.publishDiscoveredSkillsFromAgent(request(['alpha-id']), [alpha], signal)
+    ).rejects.toThrow('skill-share-cancelled')
+    expect(publishVersion).not.toHaveBeenCalled()
     expect(await operationDirectories()).toEqual([])
   })
 })
