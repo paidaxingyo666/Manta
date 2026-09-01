@@ -205,7 +205,7 @@ export function JiraIssueMetadataBar({
                     { assignee: undefined }
                   )
                 }
-                className="px-2 py-1.5 text-xs"
+                className="jump-palette-item px-2 py-1.5 text-xs"
               >
                 {translate('auto.components.JiraIssueWorkspace.0b6b5646ed', 'Unassigned')}
               </CommandItem>

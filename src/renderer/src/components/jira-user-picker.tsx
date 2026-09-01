@@ -33,7 +33,7 @@ export function JiraUserOptionItems({
           key={user.accountId}
           value={`${user.displayName} ${user.accountId}`}
           onSelect={() => onSelect(user)}
-          className="px-2 py-1.5 text-xs"
+          className="jump-palette-item px-2 py-1.5 text-xs"
         >
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt="" className="size-5 rounded-full" />
@@ -127,7 +127,7 @@ export function JiraUserPicker({
             {triggerLabel}
           </span>
           {loading ? (
-            <Loader2 className="size-3 shrink-0 animate-spin" />
+            <Loader2 className="size-4 shrink-0 animate-spin" />
           ) : (
             <ChevronsUpDown className="size-3 shrink-0 opacity-50" />
           )}
@@ -141,7 +141,7 @@ export function JiraUserPicker({
             placeholder={translate('components.jiraUserPicker.search', 'Search users')}
             className="h-8 text-xs"
             wrapperClassName="px-2 py-0"
-            trailing={loading ? <Loader2 className="size-3 shrink-0 animate-spin" /> : null}
+            trailing={loading ? <Loader2 className="size-4 shrink-0 animate-spin" /> : null}
           />
           <CommandList className="max-h-60">
             {!loading ? (
