@@ -265,6 +265,9 @@ export class RemoteRuntimeSharedControlConnection {
       deviceToken: this.pairing.deviceToken,
       send: (payload) => this.sendEncrypted(payload)
     })
+    if (this.subscriptions.size === 0 && (this.options.isCapabilityPaused?.() ?? false)) {
+      this.reconnect.clear()
+    }
   }
 
   private sendEncrypted(payload: unknown): boolean {

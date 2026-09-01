@@ -63,6 +63,7 @@ describe('getEditorExternalWatchTargets', () => {
     rightSidebarExplorerView?: EditorExternalWatchTargetState['rightSidebarExplorerView']
     gitStatusHugeByWorktree?: EditorExternalWatchTargetState['gitStatusHugeByWorktree']
     sshConnectionStates?: EditorExternalWatchTargetState['sshConnectionStates']
+    runtimeStatusByEnvironmentId?: EditorExternalWatchTargetState['runtimeStatusByEnvironmentId']
   }): EditorExternalWatchTargetState => ({
     openFiles: args.openFiles ?? [],
     worktreesByRepo: { [args.repo.id]: [args.worktree] },
@@ -75,6 +76,7 @@ describe('getEditorExternalWatchTargets', () => {
     sshConnectionStates: args.sshConnectionStates ?? new Map(),
     folderWorkspaces: [],
     projectGroups: [],
+    runtimeStatusByEnvironmentId: args.runtimeStatusByEnvironmentId,
     settings:
       args.runtimeEnvironmentId === undefined
         ? null
@@ -483,6 +485,37 @@ describe('getEditorExternalWatchTargets', () => {
         runtimeEnvironmentId: 'env-1'
       }
     ])
+  })
+
+  it('rekeys runtime watch targets when the runtime connection generation advances', () => {
+    const repo = makeRepo('repo-runtime-generation')
+    const worktree = makeWorktree(repo.id, 'wt-runtime-generation')
+    const runtimeFile = {
+      ...makeOpenFile(worktree.id),
+      runtimeEnvironmentId: 'env-1'
+    }
+    const first = getEditorExternalWatchTargets(
+      makeState({
+        repo,
+        worktree,
+        openFiles: [runtimeFile],
+        runtimeStatusByEnvironmentId: new Map([['env-1', { connectionGeneration: 1 } as never]])
+      })
+    )
+    const second = getEditorExternalWatchTargets(
+      makeState({
+        repo,
+        worktree,
+        openFiles: [runtimeFile],
+        runtimeStatusByEnvironmentId: new Map([['env-1', { connectionGeneration: 2 } as never]])
+      })
+    )
+
+    expect(first.targetsKey).not.toBe(second.targetsKey)
+    expect(second.targets[0]).toMatchObject({
+      runtimeEnvironmentId: 'env-1',
+      runtimeConnectionGeneration: 2
+    })
   })
 
   it('keeps restored ownerless tabs local when an active runtime is selected', () => {

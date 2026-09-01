@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../../shared/pairing'
 import { listEnvironments } from '../../shared/runtime-environment-store'
-import { upsertEphemeralVmRuntime } from '../../shared/ephemeral-vm-runtime-store'
+import {
+  listEphemeralVmRuntimes,
+  upsertEphemeralVmRuntime
+} from '../../shared/ephemeral-vm-runtime-store'
 
 const handlers = new Map<string, (_event: unknown, args: never) => unknown>()
 const {
@@ -405,11 +408,37 @@ describe('registerEphemeralVmHandlers', () => {
       })
     )
 
+    const runtime = listEphemeralVmRuntimes(userDataPath)[0]
+    upsertEphemeralVmRuntime(userDataPath, {
+      ...runtime,
+      connectionMode: 'ssh',
+      sshTargetId: 'runtime-ssh-cleanup-fence'
+    })
+    let finishInvalidation: () => void = () => {}
+    invalidateRuntimeEnvironmentTransportMock.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishInvalidation = resolve
+        })
+    )
     store.updateSettings({ activeRuntimeEnvironmentId: result.environment!.id })
-    const cleaned = await handlers.get('ephemeralVm:cleanup')?.(null, {
-      runtimeId: result.runtime?.id
-    } as never)
+    const cleanup = Promise.resolve(
+      handlers.get('ephemeralVm:cleanup')?.(null, {
+        runtimeId: result.runtime?.id
+      } as never)
+    )
+    await vi.waitFor(() =>
+      expect(invalidateRuntimeEnvironmentTransportMock).toHaveBeenCalledWith(result.environment!.id)
+    )
+    expect(removeRuntimeOwnedSshTargetMock).not.toHaveBeenCalled()
+
+    finishInvalidation()
+    const cleaned = await cleanup
     expect(cleaned).toEqual(expect.objectContaining({ status: 'cleaned' }))
+    expect(removeRuntimeOwnedSshTargetMock).toHaveBeenCalledWith('runtime-ssh-cleanup-fence')
+    expect(invalidateRuntimeEnvironmentTransportMock).toHaveBeenCalledBefore(
+      removeRuntimeOwnedSshTargetMock
+    )
     expect(listEnvironments(userDataPath)).toEqual([])
     expect(store.getSettings().activeRuntimeEnvironmentId).toBe(result.environment!.id)
     expect(store.updateSettings).toHaveBeenCalledTimes(1)
