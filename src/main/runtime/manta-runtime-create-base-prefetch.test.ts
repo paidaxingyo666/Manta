@@ -17,7 +17,7 @@ vi.mock('../worktree-create-preparation', async (importOriginal) => ({
   prepareWorktreeCreateForRepo: mocks.prepareWorktreeCreateForRepo
 }))
 
-import { OrcaRuntimeService } from './orca-runtime'
+import { MantaRuntimeService } from './manta-runtime'
 
 const repo: Repo = {
   id: 'repo-1',
@@ -65,11 +65,11 @@ afterEach(() => {
 // The RPC/relay prefetch is the only warm-up a remote client reaches, so it has
 // to resolve the same project runtime the IPC handler does. Constructed through
 // the barrel because the split chain resolves selectors in a later subclass.
-describe('prefetchManagedWorktreeCreateBase (orca-runtime-get-worktree-terminal-provisioning-host)', () => {
+describe('prefetchManagedWorktreeCreateBase (manta-runtime-get-worktree-terminal-provisioning-host)', () => {
   it('warms up in the distro a WSL-routed project runs in', async () => {
     _setWslCachesForTests({ available: true, distros: ['Ubuntu'] })
     setPlatform('win32')
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await runtime.prefetchManagedWorktreeCreateBase({ repoSelector: 'repo-1' })
 
@@ -80,7 +80,7 @@ describe('prefetchManagedWorktreeCreateBase (orca-runtime-get-worktree-terminal-
 
   it('warms up on host git when no project runtime routes the repo', async () => {
     setPlatform('darwin')
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await runtime.prefetchManagedWorktreeCreateBase({ repoSelector: 'repo-1' })
 
@@ -93,7 +93,7 @@ describe('prefetchManagedWorktreeCreateBase (orca-runtime-get-worktree-terminal-
   it('does not surface a repair-required project runtime as a prefetch failure', async () => {
     _setWslCachesForTests({ available: true, distros: ['Debian'] })
     setPlatform('win32')
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await expect(
       runtime.prefetchManagedWorktreeCreateBase({ repoSelector: 'repo-1' })
@@ -108,7 +108,7 @@ describe('prefetchManagedWorktreeCreateBase (orca-runtime-get-worktree-terminal-
     _setWslCachesForTests({ available: true, distros: ['Ubuntu'] })
     setPlatform('win32')
     mocks.prefetchWorktreeCreateBase.mockResolvedValue('origin/main')
-    const runtime = new OrcaRuntimeService(makeStore() as never)
+    const runtime = new MantaRuntimeService(makeStore() as never)
 
     await runtime.prefetchManagedWorktreeCreateBase({ repoSelector: 'repo-1' })
 
