@@ -158,7 +158,8 @@ pnpm lint
 pnpm typecheck
 pnpm test
 
-cd mobile && pnpm install --frozen-lockfile && pnpm typecheck && pnpm test && cd ..
+cd mobile && pnpm install --frozen-lockfile && npx oxlint && npx oxfmt --check . \
+  && pnpm typecheck && pnpm test && cd ..
 ```
 
 **Run `sweep-brand.py` before anything else, every time.** It was skipped on the
@@ -192,6 +193,13 @@ rewrites the lockfile and hides the problem. The 2026-09-01 sync left
 while the package is `@manta/`, and carried neither `i18next` nor
 `react-i18next`, so the exact command mobile CI runs failed outright while
 `pnpm typecheck` and `pnpm test` passed against an older `node_modules`.
+
+`mobile/` has its own `oxlint` and its own `.oxlintrc.json`, and the root
+`pnpm lint` runs neither. A root lint that passes says nothing about the phone:
+the 2026-09-01 sync's own localization pushed `app/connection-log.tsx` from 399
+to 410 counted lines, and only mobile's oxlint said so — on CI, after the branch
+was already pushed. Format is split the same way: `verify` checks the whole
+tree, so `oxfmt --check` has to run in both.
 
 **Do not stop at `oxlint`.** It is the first of fifteen commands in `pnpm lint`
 and it exits non-zero, so the fourteen gates behind it never run. Two of them
