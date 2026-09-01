@@ -1,5 +1,4 @@
 /* eslint-disable max-lines -- main-process entry point; owns app lifecycle, service wiring, window creation, and hook/daemon startup with no cleaner split seam. */
-import { MobilePushEscalation } from './runtime/mobile-push-escalation'
 import { existsSync, statSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { isAbsolute, join } from 'node:path'
@@ -7,6 +6,7 @@ import os from 'node:os'
 import {
   app,
   BrowserWindow,
+  clipboard,
   dialog,
   ipcMain,
   nativeTheme,
@@ -39,14 +39,8 @@ import { setSecretStore } from '../shared/secret-store'
 import { ElectronSecretStore } from './host/electron-secret-store'
 import { scheduleSecretProtectionGapReport } from './host/deferred-secret-protection-report'
 import { initSessionParseCachePersistence } from './ai-vault/session-parse-cache-persistence'
-import {
-  ensureActiveMantaProfile,
-  initMantaProfilePaths
-} from './manta-profiles/profile-index-store'
-import {
-  getMantaCloudAuthConfig,
-  setMantaCloudEndpointOverrideSource
-} from './manta-profiles/profile-cloud-auth-config'
+import { ensureActiveMantaProfile, initMantaProfilePaths } from './manta-profiles/profile-index-store'
+import { getMantaCloudAuthConfig } from './manta-profiles/profile-cloud-auth-config'
 import { getProfileUserDataPath } from './manta-profiles/profile-storage-paths'
 import { applyAppIcon } from './app-icon'
 import { relaunchApp } from './app-relaunch'
@@ -130,21 +124,11 @@ import { resolveAdvertisedPairingEndpoint } from './runtime/pairing-endpoint'
 import { ServeReadinessPublisher } from './server/serve-readiness'
 import { reserveServeStdoutForReadiness } from './server/serve-stdout-boundary'
 import { DesktopRelayService } from './runtime/relay/desktop-relay-service'
-import { deriveRelayHostId } from './runtime/relay/relay-http-client'
-import {
-  publishThisMachineToRelay,
-  setRelayHostIdentityReader
-} from './runtime/relay/relay-host-directory'
 import type { RelayBrokerStatus } from './runtime/relay/relay-session-broker'
 import { awaitRuntimeFileWatcherUnsubscribes } from './runtime/manta-runtime-files'
 import { clearRuntimeMetadataIfOwned } from './runtime/runtime-metadata'
 import { scheduleAllPendingHistoryTreeRemovals } from './terminal-history-deletion'
-import {
-  ensureMainI18n,
-  setMainPluginLanguagePacks,
-  setMainUiLanguage,
-  translateMain
-} from './i18n/main-i18n'
+import { ensureMainI18n, setMainPluginLanguagePacks, setMainUiLanguage } from './i18n/main-i18n'
 import {
   getNextDefaultOnAppearanceSettingValue,
   registerAppMenu,
@@ -247,6 +231,11 @@ import {
 } from './startup/startup-diagnostics'
 import { ensureWindowsUserDataAclGrant } from './startup/windows-user-data-acl'
 import { probeWindowsInstallDirAcl } from './startup/windows-install-dir-acl-probe'
+import {
+  describeInstallDirAclPoison,
+  startWindowsInstallDirAclRepairIfPoisoned
+} from './startup/windows-install-dir-acl-recovery'
+import { presentRendererRecoveryPrompt } from './window/renderer-recovery-prompt'
 import { neutralizeLegacyTerminalShimDir } from './pty/legacy-terminal-shim-dir'
 import { shouldQuitWhenAllWindowsClosed } from './startup/window-all-closed-quit-policy'
 import { registerServeSignalHandlers } from './startup/serve-signal-handlers'
@@ -369,10 +358,7 @@ import { stopStructuredAgentSessionRuntime } from './runtime/structured-agent-se
 import { quitTeardownStartGate } from './quit-teardown-start-gate'
 import { beginSshShutdown } from './ipc/ssh-shutdown-drain'
 import { PluginService } from './plugins/plugin-service'
-import {
-  hasPluginKillListEndpoint,
-  PluginKillListService
-} from './plugins/plugin-kill-list-service'
+import { PluginKillListService } from './plugins/plugin-kill-list-service'
 import { getPluginsDataDir } from './plugins/plugin-discovery'
 import { PluginMarketplaceService } from './plugins/plugin-marketplace-service'
 import { PluginMarketplaceInstaller } from './plugins/plugin-marketplace-installer'
@@ -834,8 +820,6 @@ function requestDesktopActivation(argv: readonly string[] = []): void {
 }
 
 app.on('open-url', (event, url) => {
-  // This guard is now protocol + path shape only. Re-tighten here if the fork
-  // ever registers https/universal links — today only `manta` is registered.
   if (!parseSkillShareId(url)) {
     return
   }
@@ -1561,7 +1545,15 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
     })
     // Why here: read-only, and the install DACL is the one thing a 0x80000003
     // child death cannot tell us about itself. See electron/electron#51761.
-    probeWindowsInstallDirAcl({ isServeMode })
+    probeWindowsInstallDirAcl({
+      isServeMode,
+      onDone: (data) =>
+        startWindowsInstallDirAclRepairIfPoisoned(data, {
+          isServeMode,
+          userDataPath: app.getPath('userData'),
+          appVersion: app.getVersion()
+        })
+    })
   }
 
   const window = createMainWindow(store, {
@@ -1593,7 +1585,7 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
         exitCode: details.exitCode ?? null,
         recentRecoveryCount
       })
-      void presentRendererRecoveryPrompt(recentRecoveryCount)
+      void showRendererRecoveryPrompt(recentRecoveryCount)
     },
     deferLoad: true,
     ...(options.revealOnDidFinishLoad === true ? { revealOnDidFinishLoad: true } : {}),
@@ -1692,14 +1684,7 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
         desktopRelayService?.fenceAndCloseNow()
         await preserveAgentAuthBeforeRestart({ codexRuntimeHome, claudeRuntimeAuth, store })
       },
-      onMantaProfileAuthMutation: () => {
-        desktopRelayService?.authMutated()
-        // Signing in is when this machine can first claim its host id, and the
-        // startup attempt above ran while the profile was still signed out.
-        void publishThisMachineToRelay(getProfileUserDataPath(), app.getVersion()).catch(() => {
-          // Best effort: a relay without a directory simply leaves it out.
-        })
-      },
+      onMantaProfileAuthMutation: () => desktopRelayService?.authMutated(),
       onBeforeMantaProfileSignOut: () => desktopRelayService?.fenceAndCloseNow()
     },
     pluginService ?? undefined,
@@ -1890,30 +1875,29 @@ function sendOpenCrashReport(targetWindow?: BrowserWindow | null): void {
 }
 
 // Why: on renderer crash-loop the breaker stops auto-reloading and the window goes blank, so a main-process dialog is the only retry/quit surface.
-async function presentRendererRecoveryPrompt(recentRecoveryCount: number): Promise<void> {
-  if (isQuitting) {
-    return
-  }
-  const window = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
-  const options = {
-    type: 'error' as const,
-    buttons: ['Reload', 'Quit'],
-    defaultId: 0,
-    cancelId: 1,
-    title: 'Manta keeps failing to load',
-    message: 'The app window crashed repeatedly and stopped reloading automatically.',
-    detail: `Manta tried to recover ${recentRecoveryCount} times in a row without success. This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Manta.`
-  }
-  const { response } = window
-    ? await dialog.showMessageBox(window, options)
-    : await dialog.showMessageBox(options)
-  if (response === 0 && mainWindow && !mainWindow.isDestroyed()) {
-    recordDurableCrashBreadcrumb('renderer_recovery_manual_retry')
-    loadMainWindow(mainWindow)
-  } else if (response === 1) {
-    isQuitting = true
-    app.quit()
-  }
+async function showRendererRecoveryPrompt(recentRecoveryCount: number): Promise<void> {
+  await presentRendererRecoveryPrompt({
+    recentRecoveryCount,
+    isQuitting: () => isQuitting,
+    diagnose: describeInstallDirAclPoison,
+    showMessageBox: (options) => {
+      const window = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+      return window ? dialog.showMessageBox(window, options) : dialog.showMessageBox(options)
+    },
+    copyToClipboard: (text) => clipboard.writeText(text),
+    reload: () => {
+      if (!mainWindow || mainWindow.isDestroyed()) {
+        return
+      }
+      recordDurableCrashBreadcrumb('renderer_recovery_manual_retry')
+      // Why: leave the breaker open so a re-crash re-raises this prompt instead of resuming the auto-reload loop.
+      loadMainWindow(mainWindow)
+    },
+    quit: () => {
+      isQuitting = true
+      app.quit()
+    }
+  })
 }
 
 function getGpuFallbackEnvironment(): GpuFallbackEnvironment {
@@ -2256,7 +2240,10 @@ registerPaneKeyTeardownListener((paneKey) => {
   stopSyntheticTitleSpinner(paneKey)
 })
 
-// Synthetic titles mirror hook rows, including dismissals that bypass pane clears (#13890).
+// Why: the spinner is a stand-in for a live hook status, so it must retire with the row it
+// stands in for — otherwise a pane whose status was cleared or dismissed keeps rotating a
+// working title long after the agent finished (#13890). Both paths are covered: the
+// pane-scoped clear fan-out, and user dismissal, which never routes through it.
 agentHookServer.subscribePaneStatusClear((clear) => {
   const paneKey = getSyntheticTitleSpinnerPaneKeyToStop(clear)
   if (paneKey) {
@@ -2544,9 +2531,6 @@ void app.whenReady().then(async () => {
     }
   }
   wslHookRelayManager.setManagedHookSettingsResolver(() => store?.getSettings() ?? null)
-  // Why: lets packaged builds point sign-in/relay at a self-hosted server without
-  // shell env vars (macOS GUI launches never inherit them).
-  setMantaCloudEndpointOverrideSource(() => store?.getSettings().mantaCloudEndpoints ?? null)
   logStartupMilestone('store-loaded')
   // Why: apply initial fallback WSL distro from store settings for global git/CLI calls.
   setDefaultWslDistroOverride(store.getSettings().terminalWindowsWslDistro ?? null)
@@ -3161,7 +3145,7 @@ void app.whenReady().then(async () => {
       requestBundledPluginBootstrap()
       requestOfficialMarketplaceSeed()
     }
-    if (app.isPackaged && updates.pluginSystemEnabled === true && hasPluginKillListEndpoint()) {
+    if (app.isPackaged && updates.pluginSystemEnabled === true) {
       void pluginKillListService?.refresh().catch((error) => {
         console.warn('[plugins] failed to refresh plugin safety list; using cached state:', error)
       })
@@ -3189,11 +3173,7 @@ void app.whenReady().then(async () => {
     .catch((error) => {
       console.warn('[plugins] failed to initialize plugin service:', error)
     })
-  if (
-    app.isPackaged &&
-    store?.getSettings().pluginSystemEnabled === true &&
-    hasPluginKillListEndpoint()
-  ) {
+  if (app.isPackaged && store?.getSettings().pluginSystemEnabled === true) {
     void pluginKillListService.refresh().catch((error) => {
       console.warn('[plugins] failed to refresh plugin safety list; using cached state:', error)
     })
@@ -3614,47 +3594,6 @@ void app.whenReady().then(async () => {
         }
       })
       desktopRelayService = relayService
-      // The machine directory needs this id without opening a broker: a
-      // desktop with nothing paired never holds one, and that is exactly the
-      // machine the user is looking for from another computer.
-      setRelayHostIdentityReader(() => {
-        const keypair = runtimeRpc?.getE2EEKeypair()
-        return keypair ? deriveRelayHostId(keypair.publicKey) : null
-      })
-      void publishThisMachineToRelay(getProfileUserDataPath(), app.getVersion()).catch(() => {
-        // Best effort: a relay that predates accounts, or a signed-out
-        // profile, simply leaves this machine out of the list.
-      })
-      // Only now do all three pieces exist: the listener count lives on the
-      // runtime, the tokens on the device registry, and the wake on the relay.
-      runtime?.setPushEscalation(
-        new MobilePushEscalation({
-          hasLiveSubscriber: () => (runtime?.getMobileNotificationListenerCount() ?? 0) > 0,
-          pushTargets: () =>
-            (runtimeRpc?.getDeviceRegistry()?.listDevices() ?? [])
-              .filter((device) => device.scope === 'mobile' && device.pushToken)
-              .map((device) => ({
-                deviceId: device.deviceId,
-                deviceToken: device.pushToken!.value,
-                ...(device.pushToken!.encryptionKeyB64
-                  ? { encryptionKeyB64: device.pushToken!.encryptionKeyB64 }
-                  : {})
-              })),
-          wake: (input) => relayService.pushWake(input),
-          forgetToken: (deviceId) => {
-            runtimeRpc?.getDeviceRegistry()?.clearPushToken(deviceId)
-          },
-          text: (count) => ({
-            title: translateMain('main.push.activityTitle', 'Manta'),
-            body:
-              count === 1
-                ? translateMain('main.push.activityBodyOne', 'New activity on your desktop')
-                : translateMain('main.push.activityBodyMany', '{{count}} new notifications', {
-                    count
-                  })
-          })
-        })
-      )
       runtimeRpc.setMobileRelayPairingProvider({
         createPairingRelay: (relayDeviceId) => relayService.createPairingRelay(relayDeviceId),
         onDeviceRevokeQueued: (item) => relayService.onDeviceRevokeQueued(item),
