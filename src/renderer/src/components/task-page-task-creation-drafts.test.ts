@@ -49,11 +49,11 @@ describe('TaskPage Linear/Jira creation drafts', () => {
 
   it('restores dismissed typed text when each dialog reopens', () => {
     const linearFilters = readFileSync(
-      new URL('./TaskPageLinearFilters.tsx', import.meta.url),
+      new URL('./task-page/linear/Filters.tsx', import.meta.url),
       'utf8'
     )
     const jiraFilters = readFileSync(
-      new URL('./TaskPageJiraFilters.tsx', import.meta.url),
+      new URL('./task-page/jira/Filters.tsx', import.meta.url),
       'utf8'
     )
     expect(linearFilters).toContain("setNewLinearProjectName(draft?.name ?? '')")

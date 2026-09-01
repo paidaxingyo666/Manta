@@ -16,8 +16,8 @@ function sourceBetween(source: string, startPattern: string, endPattern: string)
 
 describe('GitHub Enterprise slug routing boundaries', () => {
   it('keeps work-item URL hosts on TaskPage metadata and issue mutations', () => {
-    const statusSection = componentSource('TaskPageGitHubStatusCell.tsx')
-    const assigneeSection = componentSource('TaskPageGitHubAssigneesCell.tsx')
+    const statusSection = componentSource('task-page/github/StatusCell.tsx')
+    const assigneeSection = componentSource('task-page/github/AssigneesCell.tsx')
 
     expect(statusSection).toContain('host: githubProjectHost(parsedOwnerRepo.host)')
     expect(assigneeSection).toContain('parsed?.slug.host')
@@ -25,9 +25,9 @@ describe('GitHub Enterprise slug routing boundaries', () => {
   })
 
   it('uses URL-host fallback for TaskPage reviewer and merge mutations', () => {
-    const reviewSection = componentSource('TaskPageGitHubReviewCell.tsx')
+    const reviewSection = componentSource('task-page/github/ReviewCell.tsx')
     const reviewActionsSection = componentSource('task-page-github-reviewer-actions.ts')
-    const mergeSection = componentSource('TaskPageGitHubMergeCell.tsx')
+    const mergeSection = componentSource('task-page/github/MergeCell.tsx')
 
     expect(reviewSection).toContain('resolveTaskPullRequestRepo(item)')
     expect(reviewSection).toContain('reviewRepo,')

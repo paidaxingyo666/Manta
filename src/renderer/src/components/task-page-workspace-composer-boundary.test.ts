@@ -114,8 +114,8 @@ describe('TaskPage workspace creation source boundaries', () => {
   })
 
   it('uses the shared composer handler from GitHub detail and start-new actions', () => {
-    const detail = readFileSync(join(__dirname, 'TaskPageContent.tsx'), 'utf8')
-    const actions = readFileSync(join(__dirname, 'TaskPageGitHubRows.tsx'), 'utf8')
+    const detail = readFileSync(join(__dirname, 'task-page/Content.tsx'), 'utf8')
+    const actions = readFileSync(join(__dirname, 'task-page/github/Rows.tsx'), 'utf8')
     expect(detail.match(/onUse=\{\(item\) => \{/g)).toHaveLength(2)
     expect(actions.match(/onSelect=\{\(\) => handleUseWorkItem\(item\)\}/g)).toHaveLength(2)
   })

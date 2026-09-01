@@ -84,10 +84,10 @@ describe('feature interaction writer boundaries', () => {
 
   it('threads GitHub task source context through inline task mutations', () => {
     const sections = [
-      componentSource('TaskPageGitHubStatusCell.tsx'),
-      componentSource('TaskPageGitHubAssigneesCell.tsx'),
-      componentSource('TaskPageGitHubReviewCell.tsx'),
-      componentSource('TaskPageGitHubMergeCell.tsx'),
+      componentSource('task-page/github/StatusCell.tsx'),
+      componentSource('task-page/github/AssigneesCell.tsx'),
+      componentSource('task-page/github/ReviewCell.tsx'),
+      componentSource('task-page/github/MergeCell.tsx'),
       sourceBetween(
         componentSource('use-task-page-github-issue-creation.ts'),
         'const handleCreateNewIssue',
@@ -98,7 +98,7 @@ describe('feature interaction writer boundaries', () => {
     for (const section of sections) {
       expect(section).toContain('sourceContext')
     }
-    const rowSource = componentSource('TaskPageGitHubRows.tsx')
+    const rowSource = componentSource('task-page/github/Rows.tsx')
     // Rows inline the repo lookup per cell rather than hoisting one const.
     expect(
       rowSource.match(/sourceContext=\{getTaskPageRepoSourceContext\(itemRepo, 'github'\)\}/g)
@@ -120,7 +120,7 @@ describe('feature interaction writer boundaries', () => {
         'const openRelatedLinearIssue'
       ),
       sourceBetween(
-        componentSource('TaskPageSourceBar.tsx'),
+        componentSource('task-page/SourceBar.tsx'),
         'taskSourceManuallyChangedRef.current = true',
         'void updateSettings'
       )
@@ -165,7 +165,7 @@ describe('feature interaction writer boundaries', () => {
 
     expect(
       sourceBetween(
-        componentSource('TaskPageGitLabItemList.tsx'),
+        componentSource('task-page/gitlab/ItemList.tsx'),
         '{displayedGitLabItems.map((item) => (',
         'handleUseGitLabItem(item)'
       ).match(/recordFeatureInteraction\('gitlab-tasks'\)/g)
@@ -200,7 +200,7 @@ describe('feature interaction writer boundaries', () => {
 
   it('keeps nested GitLab row actions from also opening task details by keyboard', () => {
     const rowSection = sourceBetween(
-      componentSource('TaskPageGitLabItemList.tsx'),
+      componentSource('task-page/gitlab/ItemList.tsx'),
       'onKeyDown={(e) => {',
       'className="grid w-full cursor-pointer'
     )
@@ -211,7 +211,7 @@ describe('feature interaction writer boundaries', () => {
   })
 
   it('keys GitLab rows by repository and item identity across hosts', () => {
-    expect(componentSource('TaskPageGitLabItemList.tsx')).toContain(
+    expect(componentSource('task-page/gitlab/ItemList.tsx')).toContain(
       'key={`${item.repoId}:${item.id}`}'
     )
   })

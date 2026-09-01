@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const newLinearIssueDialogSources = [
-  './TaskPageLinearIssueDialog.tsx',
-  './TaskPageLinearIssueAttributes.tsx'
+  './task-page/linear/IssueDialog.tsx',
+  './task-page/linear/IssueAttributes.tsx'
 ].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
 
 /** The extracted Linear "New Issue" dialog and its attribute pickers. */
