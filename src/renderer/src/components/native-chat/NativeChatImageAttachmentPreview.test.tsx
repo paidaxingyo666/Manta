@@ -61,9 +61,10 @@ describe('NativeChatImageAttachmentPreview', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'View image: example.png' }))
     expect(screen.getByRole('dialog')).toBeTruthy()
-    expect(screen.getAllByRole('img', { name: 'example.png' })).toHaveLength(2)
+    // The open dialog aria-hides the thumbnail, so both copies need hidden queries.
+    expect(screen.getAllByRole('img', { name: 'example.png', hidden: true })).toHaveLength(2)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove image: example.png' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove image: example.png', hidden: true }))
     expect(onRemove).toHaveBeenCalledWith('image-1')
   })
 

@@ -215,6 +215,6 @@ export function getFishShellReadyInitCommand(
   end\n`
     : ''
   return `function __manta_shell_ready_marker --on-event fish_prompt
- ${readyMarkerBlock}  functions -e __manta_shell_ready_marker
+${readyMarkerBlock}  functions -e __manta_shell_ready_marker
 ${startupCommandBlock}end`
 }

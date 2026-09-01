@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   AGENT_SESSION_DELTA_COALESCE_MS,
+  AGENT_SESSION_STREAMED_TEXT_TRUNCATION_MARKER,
   createAgentSessionDeltaCoalescer
 } from './agent-session-delta-coalescer'
 
@@ -189,9 +190,15 @@ describe('agent-session delta coalescer', () => {
 
   it('bounds retained UTF-8 text while continuing to count observed bytes', () => {
     const clock = manualClock()
+    const maxRetainedBytes = 40
+    // Derived, not hardcoded: renaming the marker moves the head budget with it.
+    const headBytes =
+      maxRetainedBytes - Buffer.byteLength(AGENT_SESSION_STREAMED_TEXT_TRUNCATION_MARKER, 'utf8')
+    const retainedHead = 'é'.repeat(Math.floor(headBytes / Buffer.byteLength('é', 'utf8')))
+    const boundedText = `${retainedHead}${AGENT_SESSION_STREAMED_TEXT_TRUNCATION_MARKER}`
     const emitted: { text: string; observedBytes: number; truncated: boolean }[] = []
     const instance = createAgentSessionDeltaCoalescer({
-      maxRetainedBytes: 40,
+      maxRetainedBytes,
       schedule: clock.schedule,
       emit: (_key, _text, snapshot) => emitted.push(snapshot)
     })
@@ -202,15 +209,16 @@ describe('agent-session delta coalescer', () => {
     instance.append('item-1', 'ignored')
     clock.fire()
 
+    expect(retainedHead.length).toBeGreaterThan(0)
     expect(emitted).toEqual([
       {
-        text: 'ééé\n[Manta: streamed output truncated]',
+        text: boundedText,
         observedBytes: 48,
         truncated: true
       }
     ])
     expect(instance.snapshot('item-1')).toEqual({
-      text: 'ééé\n[Manta: streamed output truncated]',
+      text: boundedText,
       observedBytes: 55,
       truncated: true
     })

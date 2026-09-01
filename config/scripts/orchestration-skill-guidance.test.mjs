@@ -381,7 +381,10 @@ describe('orchestration install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('GNOME Manta screen reader')
+    // Upstream warns about the GNOME Orca clash; this fork ships `manta-ide`, so the stub
+    // states the packaging reason bare `manta` is the wrong binary on Linux.
+    expect(stub).toContain('installs the executable as `manta-ide`')
+    expect(stub).toContain("`manta` is not on PATH outside Manta's terminals")
     expect(stub).not.toMatch(/^manta /mu)
   })
 

@@ -21,7 +21,8 @@ vi.mock('electron', () => ({ app: { getVersion: () => '1.0.51', quit: vi.fn() } 
 
 // Why reach for the slot directly: there is no uninstall API, and vitest-host-ports-setup installs
 // a fake before every test — so the uninstalled state this guards can only be reproduced this way.
-const APP_ENVIRONMENT_SLOT = Symbol.for('manta.host.appEnvironment')
+// Not a brand string: this must stay byte-identical to SLOT in src/shared/app-environment.ts.
+const APP_ENVIRONMENT_SLOT = Symbol.for('orca.host.appEnvironment')
 
 describe('serve supervisor disconnect quit', () => {
   const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!

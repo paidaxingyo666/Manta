@@ -152,13 +152,27 @@ otherwise. There is no general fix; run the tests.
 ## Finishing
 
 ```bash
+python3 .claude/skills/upstream-sync/sweep-brand.py main --apply   # FIRST, not last
 pnpm install                 # the sync may have brought new dependencies
 pnpm lint
 pnpm typecheck
 pnpm test
 
-cd mobile && pnpm install && pnpm typecheck && pnpm test && cd ..
+cd mobile && pnpm install --frozen-lockfile && pnpm typecheck && pnpm test && cd ..
 ```
+
+**Run `sweep-brand.py` before anything else, every time.** It was skipped on the
+2026-09-01 sync and 32 files had silently reverted to upstream's spelling. Not
+cosmetics: `tests/e2e/helpers/` imported `./orca-app` and `./orca-restart`,
+modules renamed here long ago, which broke `pnpm test` collection — the unit
+suite, not just Playwright. A PR-creation error told users to set `ORCA_*`
+tokens the app never reads. Its evidence rule (rename only where a Manta twin
+exists) means it cannot touch the deliberate remnants, so there is no reason to
+defer it, and running it late means re-running every check.
+
+Then confirm what it declined. That list is not noise — it is where a decision
+lives. A token with no Manta twin is either fine (GNOME Orca, `stablyai/orca`)
+or a file this fork should have renamed and has not.
 
 **The four root commands do not cover `mobile/`.** It is a separate pnpm project
 outside the root workspace, so `pnpm typecheck` there is a different tsc run
@@ -171,6 +185,29 @@ uncaught JS exception is `RCTFatal`, not a red box.
 Mobile Checks did report every one of them on the sync PR. Nothing enforced it —
 `main` has no branch protection — so the PR merged with the job red. **Read that
 job before merging a sync; a red Mobile Checks is not advisory.**
+
+`--frozen-lockfile` is the point of that mobile line: plain `pnpm install`
+rewrites the lockfile and hides the problem. The 2026-09-01 sync left
+`mobile/pnpm-lock.yaml` as upstream's — it named `@orca/expo-two-way-audio`
+while the package is `@manta/`, and carried neither `i18next` nor
+`react-i18next`, so the exact command mobile CI runs failed outright while
+`pnpm typecheck` and `pnpm test` passed against an older `node_modules`.
+
+**Do not stop at `oxlint`.** It is the first of fifteen commands in `pnpm lint`
+and it exits non-zero, so the fourteen gates behind it never run. Two of them
+catch what nothing else does: `check:max-lines-ratchet`, which fails when a
+pick brings in a file carrying upstream's own `eslint-disable max-lines`, and
+`verify:localization-coverage:mobile`, which is the only thing standing between
+this fork and an upstream feature landing entirely in English. The 2026-09-01
+sync brought a whole network-diagnostics surface that way: three unlocalized
+call sites, and 23 keys in `en.json` with no `zh.json` entry behind them.
+
+**A file that was one line under its budget is now over it.** `max-lines`
+counts non-blank, non-comment lines, so `wc -l` will not tell you. Five files
+sat at 298/300, 399/400, 299/300 and the like before that sync and every one
+crossed. Split them; never suppress — the ratchet exists to make that
+impossible, and `--prune` on the baseline can silently drop an entry for a file
+that still carries a suppression.
 
 Run the full suite, with the project's vitest config — a bare `vitest` misses
 the gates. Expect timeouts under load: a saturated machine fails
@@ -205,11 +242,13 @@ Two things the sync itself will not tell you:
 
 **Open a pull request. Do not push the sync straight to `main`.**
 
-Nothing in this repo's CI runs on a push to `main` — `pr.yml` and `mobile.yml`
-both trigger on `pull_request` only, and the release workflow builds without
-testing. A sync pushed directly is a few hundred files that no CI has ever
-seen; the 25 August one landed that way and its only evidence was a local
-test run.
+Almost nothing in this repo's CI runs on a push to `main`. `pr.yml` triggers on
+`pull_request` only and the release workflow builds without testing; `mobile.yml`
+gained a push trigger on 2026-09-01, so a merge that breaks mobile now says so
+within the hour — but that is a smoke alarm, not a gate, and it covers `mobile/`
+alone. A sync pushed straight to `main` is still a few hundred files whose
+desktop side no CI has ever seen; the 25 August one landed that way and its only
+evidence was a local test run.
 
 `mobile.yml` matters most here, because it is the only job that loads the
 Fastfile — the iOS signing config and the NSE target's provisioning. A local

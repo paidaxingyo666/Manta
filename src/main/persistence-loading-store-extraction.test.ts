@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { getDefaultPersistedState, getDefaultWorkspaceSession } from '../shared/constants'
 import type { PersistedState } from '../shared/persisted-state-types'
 import type * as StartupDiagnosticsModule from './startup/startup-diagnostics'
+import { STARTUP_DIAGNOSTICS_ENV } from './startup/startup-diagnostics'
 import type { Store as PersistenceStore } from './persistence/loading-store/store'
 import {
   createStore,
@@ -59,7 +60,7 @@ describe('loading Store extraction seams', () => {
 
   it('does not serialize the workspace session when startup diagnostics are disabled', () => {
     const sentinel = 'startup-diagnostics-workspace-session-sentinel-disabled'
-    vi.stubEnv('MANTA_STARTUP_DIAGNOSTICS', '')
+    vi.stubEnv(STARTUP_DIAGNOSTICS_ENV, '')
     const state = getDefaultPersistedState(testState.dir)
     state.workspaceSession = { ...state.workspaceSession, activeTabId: sentinel }
     writeDataFile(state)
@@ -85,7 +86,7 @@ describe('loading Store extraction seams', () => {
 
   it('reports the unchanged workspace-session byte count when startup diagnostics are enabled', () => {
     const sentinel = 'startup-diagnostics-workspace-session-sentinel-enabled'
-    vi.stubEnv('MANTA_STARTUP_DIAGNOSTICS', '1')
+    vi.stubEnv(STARTUP_DIAGNOSTICS_ENV, '1')
     const state = getDefaultPersistedState(testState.dir)
     state.workspaceSession = { ...state.workspaceSession, activeTabId: sentinel }
     writeDataFile(state)

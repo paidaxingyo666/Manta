@@ -16,9 +16,9 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
-  `manta` there — outside Manta's terminals it normally resolves to the
-  GNOME Manta screen reader (`/usr/bin/manta`) and starts speech on the user's machine.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package
+  installs the executable as `manta-ide`, so bare `manta` is not on PATH outside Manta's
+  terminals.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before

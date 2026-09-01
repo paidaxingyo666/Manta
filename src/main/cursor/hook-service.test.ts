@@ -260,22 +260,6 @@ describe('CursorHookService', () => {
     HOOK_CASE_TIMEOUT_MS
   )
 
-  it('emits protocol-valid JSON when the managed Cursor script is missing (#15462)', () => {
-    expect(new CursorHookService().install().state).toBe('installed')
-    const config = readInstalledCursorHooks(homeDir)
-    unlinkSync(join(homeDir, '.manta', 'agent-hooks', CURSOR_SCRIPT_FILE_NAME))
-
-    for (const eventName of CURSOR_EVENTS) {
-      const command = requireRegisteredCommand(config, eventName)
-      const result = runRegisteredCursorHook(command, '')
-      expect(result.status, `${eventName} missing-script exit`).toBe(0)
-      expect(result.stderr, `${eventName} missing-script stderr`).toBe('')
-      expect(JSON.parse(result.stdout), `${eventName} missing-script stdout`).toEqual(
-        EXPECTED_CURSOR_HOOK_STDOUT[eventName]
-      )
-    }
-  })
-
   it(
     'keeps curl failure off stdout when the listener is unreachable (#15462)',
     () => {

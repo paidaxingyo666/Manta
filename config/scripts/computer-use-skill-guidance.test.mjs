@@ -101,7 +101,7 @@ describe('computer-use install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('GNOME Manta screen reader')
+    expect(stub).toContain('installs the executable as `manta-ide`')
     expect(stub).not.toMatch(/^manta /mu)
   })
 

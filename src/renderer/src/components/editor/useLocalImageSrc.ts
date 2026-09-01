@@ -73,6 +73,17 @@ export type LocalImageSrcState = {
   retry: () => void
 }
 
+type LocalImageSrcSnapshot = Omit<LocalImageSrcState, 'retry'>
+
+// Why: object state is compared by reference, so re-setting an unchanged value
+// would still re-render — every mount repeats what the initializer computed.
+function nextLocalImageSrcState(
+  previous: LocalImageSrcSnapshot,
+  next: LocalImageSrcSnapshot
+): LocalImageSrcSnapshot {
+  return previous.src === next.src && previous.status === next.status ? previous : next
+}
+
 /** Resolves an image URL and exposes loading, failure, and retry state. */
 export function useLocalImageSrcState(
   rawSrc: string | undefined,
@@ -103,7 +114,7 @@ export function useLocalImageSrcState(
     return onImageCacheInvalidated(() => setGeneration(getLocalImageCacheGeneration()))
   }, [])
 
-  const [state, setState] = useState<Omit<LocalImageSrcState, 'retry'>>(() => {
+  const [state, setState] = useState<LocalImageSrcSnapshot>(() => {
     if (!rawSrc) {
       return { src: undefined, status: 'idle' }
     }
@@ -134,20 +145,22 @@ export function useLocalImageSrcState(
   useEffect(() => {
     if (!rawSrc) {
       activeCacheKeyRef.current = null
-      setState({ src: undefined, status: 'idle' })
+      setState((previous) => nextLocalImageSrcState(previous, { src: undefined, status: 'idle' }))
       return
     }
 
     if (isExternalUrl(rawSrc)) {
       activeCacheKeyRef.current = rawSrc
-      setState({ src: rawSrc, status: 'ready' })
+      setState((previous) => nextLocalImageSrcState(previous, { src: rawSrc, status: 'ready' }))
       return
     }
 
     const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
     if (!absolutePath) {
       activeCacheKeyRef.current = null
-      setState({ src: undefined, status: 'unavailable' })
+      setState((previous) =>
+        nextLocalImageSrcState(previous, { src: undefined, status: 'unavailable' })
+      )
       return
     }
 
@@ -155,7 +168,7 @@ export function useLocalImageSrcState(
     const cached = getCachedLocalImageBlobUrl(cacheKey)
     if (cached) {
       activeCacheKeyRef.current = cacheKey
-      setState({ src: cached, status: 'ready' })
+      setState((previous) => nextLocalImageSrcState(previous, { src: cached, status: 'ready' }))
       return
     }
 
@@ -163,28 +176,37 @@ export function useLocalImageSrcState(
     const effectGeneration = generation
     const previousCacheKey = activeCacheKeyRef.current
     activeCacheKeyRef.current = cacheKey
-    setState((previous) => ({
-      src: previousCacheKey === cacheKey ? previous.src : undefined,
-      status: 'loading'
-    }))
+    setState((previous) =>
+      nextLocalImageSrcState(previous, {
+        src: previousCacheKey === cacheKey ? previous.src : undefined,
+        status: 'loading'
+      })
+    )
     loadLocalImageAbsolutePathInternal(absolutePath, connectionId, runtimeContext)
       .then((result) => {
         if (cancelled) {
           return
         }
         if (result === LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED) {
-          setState({ src: undefined, status: 'capacity-blocked' })
+          setState((previous) =>
+            nextLocalImageSrcState(previous, { src: undefined, status: 'capacity-blocked' })
+          )
           return
         }
-        setState(
-          getLocalImageCacheGeneration() === effectGeneration && result
-            ? { src: result, status: 'ready' }
-            : { src: undefined, status: 'unavailable' }
+        setState((previous) =>
+          nextLocalImageSrcState(
+            previous,
+            getLocalImageCacheGeneration() === effectGeneration && result
+              ? { src: result, status: 'ready' }
+              : { src: undefined, status: 'unavailable' }
+          )
         )
       })
       .catch(() => {
         if (!cancelled) {
-          setState({ src: undefined, status: 'unavailable' })
+          setState((previous) =>
+            nextLocalImageSrcState(previous, { src: undefined, status: 'unavailable' })
+          )
         }
       })
 

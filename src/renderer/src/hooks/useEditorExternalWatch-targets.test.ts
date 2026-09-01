@@ -420,7 +420,8 @@ describe('getEditorExternalWatchTargets', () => {
         worktreeId: 'wt-paired',
         worktreePath: '/repo-paired/worktree',
         connectionId: undefined,
-        runtimeEnvironmentId: 'env-1'
+        runtimeEnvironmentId: 'env-1',
+        runtimeConnectionGeneration: 0
       }
     ])
   })
@@ -482,7 +483,8 @@ describe('getEditorExternalWatchTargets', () => {
         worktreeId: 'wt-mixed',
         worktreePath: '/repo-mixed/worktree',
         connectionId: undefined,
-        runtimeEnvironmentId: 'env-1'
+        runtimeEnvironmentId: 'env-1',
+        runtimeConnectionGeneration: 0
       }
     ])
   })
@@ -552,7 +554,8 @@ describe('getEditorExternalWatchTargets', () => {
         worktreeId: 'wt-restored',
         worktreePath: '/repo-restored/worktree',
         connectionId: undefined,
-        runtimeEnvironmentId: 'env-1'
+        runtimeEnvironmentId: 'env-1',
+        runtimeConnectionGeneration: 0
       }
     ])
   })
