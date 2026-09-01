@@ -122,7 +122,6 @@ export function useTerminalPaneLayoutBindings(controller: TerminalPaneLayoutCont
         ...(Object.keys(nextBindings).length > 0 ? { ptyIdsByLeafId: nextBindings } : {})
       })
     },
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- Preserve the pre-split dependency contract.
     [setTabLayout, tabId]
   )
   const clearExitedPanePtyLayoutBinding = useCallback(
