@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -104,6 +104,19 @@ describe('appimage extracted root', () => {
     expect(resolveAppImageExtractedRoot({ appImagePath, cacheRootPath })?.rootPath).toContain(
       resolveAppImageCacheKey(appImagePath) as string
     )
+  })
+
+  // Why: `chmod +x` is what every AppImage user is told to run, and a backup restore or SELinux
+  // relabel does the same thing. Re-keying on that cost a full re-extraction of an unchanged payload.
+  it('does not re-key the payload when only inode metadata changes', async () => {
+    const { appImagePath } = await makeFixture()
+    const before = resolveAppImageCacheKey(appImagePath)
+
+    await chmod(appImagePath, 0o700)
+    expect(resolveAppImageCacheKey(appImagePath)).toBe(before)
+
+    await chmod(appImagePath, 0o755)
+    expect(resolveAppImageCacheKey(appImagePath)).toBe(before)
   })
 
   // Why: a crashed extraction must not leave a directory that later reads treat

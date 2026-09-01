@@ -44,10 +44,19 @@ export function getAppImageCacheRootPath(homePath = homedir()): string {
   return join(cacheHome, ...CACHE_DIR_SEGMENTS)
 }
 
+/**
+ * Identity of the AppImage's *content*, used to key its extracted generation.
+ *
+ * Deliberately excludes ctime: it changes on any inode metadata write — `chmod +x` (which every
+ * AppImage user is told to run), `chown`, an ACL or SELinux relabel, a backup restore — none of
+ * which alter a byte of the payload. Including it re-keyed the cache on those, costing a full
+ * ~519 MB re-extraction and a multi-second stall for nothing. An in-place content change moves
+ * mtime and almost always size; a replacement moves the inode.
+ */
 export function resolveAppImageCacheKey(appImagePath: string): string | null {
   try {
     const stats = statSync(appImagePath)
-    return digest(`${stats.dev}\0${stats.ino}\0${stats.size}\0${stats.mtimeMs}\0${stats.ctimeMs}`)
+    return digest(`${stats.dev}\0${stats.ino}\0${stats.size}\0${stats.mtimeMs}`)
   } catch {
     return null
   }
