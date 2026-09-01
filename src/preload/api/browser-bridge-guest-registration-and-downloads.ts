@@ -7,7 +7,7 @@ import type {
 import { readBrowserClientHostIdArgument } from '../../shared/browser-client-host-id-argument'
 import { browserClientPageRendererRequests } from '../preload-runtime-support'
 
-export const browserApiPart1 = {
+export const browserGuestRegistrationAndDownloadsApi = {
   onClientPageRendererRequest: browserClientPageRendererRequests.subscribe,
   readClientHostId: (): string | null => readBrowserClientHostIdArgument(process.argv),
   registerGuest: (args: {

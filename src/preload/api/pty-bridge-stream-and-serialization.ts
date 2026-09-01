@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import type { PtyModelRestoreNeededEvent } from '../../shared/pty-model-restore-marker'
 import type { TerminalSideEffectBatch } from '../../shared/terminal-side-effect-facts'
 
-export const ptyApiPart2 = {
+export const ptyStreamAndSerializationApi = {
   inspectProcess: (
     id: string
   ): Promise<{

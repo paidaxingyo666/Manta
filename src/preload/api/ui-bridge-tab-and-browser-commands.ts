@@ -7,7 +7,7 @@ import type {
 } from '../../shared/worktree/launch-types'
 import { browserFindSubscriptions } from '../preload-runtime-support'
 
-export const uiApiPart2 = {
+export const uiTabAndBrowserCommandsApi = {
   onRequestTabSetProfile: (
     callback: (data: {
       requestId: string

@@ -10,7 +10,7 @@ import type { GitHubWorkItem, ListWorkItemsResult } from '../../shared/github/wo
 import type { GitHubCreateIssueResult } from '../../shared/issue-mutation-types'
 import type { TaskSourceContext } from '../../shared/task-source-context'
 
-export const ghApiPart1 = {
+export const ghPullRequestsAndWorkItemsApi = {
   viewer: (): Promise<unknown> => ipcRenderer.invoke('gh:viewer'),
   repoSlug: (args: { repoPath: string; repoId?: string }): Promise<unknown> =>
     ipcRenderer.invoke('gh:repoSlug', args),

@@ -16,7 +16,7 @@ import type { TerminalViewAttributes } from '../../shared/terminal-view-attribut
 import type { PtyMainDeliveryDiagnostics } from '../../shared/pty-delivery-diagnostics'
 import type { AgentKind, LaunchSource, RequestKind } from '../../shared/telemetry-events'
 
-export const ptyApiPart1 = {
+export const ptySessionControlApi = {
   spawn: (opts: {
     cols: number
     rows: number

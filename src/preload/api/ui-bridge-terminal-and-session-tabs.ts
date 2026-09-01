@@ -12,7 +12,7 @@ import type {
   RuntimeTerminalPresentation
 } from '../../shared/runtime-types'
 
-export const uiApiPart3 = {
+export const uiTerminalAndSessionTabsApi = {
   onCreateTerminal: (
     callback: (data: {
       requestId?: string

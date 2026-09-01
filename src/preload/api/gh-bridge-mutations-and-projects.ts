@@ -36,7 +36,7 @@ import type {
 } from '../../shared/github/project-request-types'
 import type { AppStarSource } from '../../shared/gh-star-source'
 
-export const ghApiPart2 = {
+export const ghMutationsAndProjectsApi = {
   setPRAutoMerge: (args: {
     repoPath: string
     repoId?: string

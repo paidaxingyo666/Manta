@@ -13,7 +13,7 @@ import type { NativeFileDropPayload } from '../../shared/native-file-drop'
 import type { ReadClipboardTextOptions } from '../../shared/clipboard-text'
 import { subscribeNativeFileDrop } from '../preload-runtime-support'
 
-export const uiApiPart4 = {
+export const uiClipboardAndWindowControlsApi = {
   onOpenDiffFromMobile: (
     callback: (data: {
       worktreeId: string
@@ -191,5 +191,8 @@ export const uiApiPart4 = {
   },
   confirmWindowClose: (): void => {
     ipcRenderer.send('window:confirm-close')
+  },
+  notifyWindowRevealed: (): void => {
+    ipcRenderer.send('ui:window-revealed')
   }
 }

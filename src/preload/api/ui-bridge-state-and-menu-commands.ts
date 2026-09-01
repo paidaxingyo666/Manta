@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
 import type { KeybindingActionId } from '../../shared/keybindings'
 
-export const uiApiPart1 = {
+export const uiStateAndMenuCommandsApi = {
   get: () => ipcRenderer.invoke('ui:get'),
   set: (args) => ipcRenderer.invoke('ui:set', args),
   setWithAck: (args) => ipcRenderer.invoke('ui:set', args),

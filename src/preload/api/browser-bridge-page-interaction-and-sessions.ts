@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 
-export const browserApiPart2 = {
+export const browserPageInteractionAndSessionsApi = {
   onContextMenuRequested: (
     callback: (event: {
       browserPageId: string
