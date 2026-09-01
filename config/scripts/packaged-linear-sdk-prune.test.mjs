@@ -46,7 +46,7 @@ async function createLinearSdkFixture(resourcesDir) {
 
 describe('packaged @linear/sdk pruning', () => {
   it('removes source maps while preserving SDK runtime files, metadata, and unrelated maps', async () => {
-    const resourcesDir = await mkdtemp(join(tmpdir(), 'orca-linear-sdk-prune-'))
+    const resourcesDir = await mkdtemp(join(tmpdir(), 'manta-linear-sdk-prune-'))
     try {
       const { packageDir, distDir, webhooksDir, unrelatedPackageDir } =
         await createLinearSdkFixture(resourcesDir)
@@ -77,7 +77,7 @@ describe('packaged @linear/sdk pruning', () => {
   })
 
   it('runs the SDK source-map prune through aggregate runtime cleanup', async () => {
-    const resourcesDir = await mkdtemp(join(tmpdir(), 'orca-linear-sdk-aggregate-prune-'))
+    const resourcesDir = await mkdtemp(join(tmpdir(), 'manta-linear-sdk-aggregate-prune-'))
     try {
       const { distDir } = await createLinearSdkFixture(resourcesDir)
       prunePackagedRuntimeNodeModules(resourcesDir, 'darwin', 'arm64')
