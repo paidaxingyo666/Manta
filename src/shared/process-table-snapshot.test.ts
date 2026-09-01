@@ -9,12 +9,14 @@ vi.mock('node:child_process', () => ({ execFile: execFileMock }))
 import {
   buildProcessTableIndex,
   createProcessTableSnapshotReader,
+  getProcessTableIndex,
   getProcessTableSnapshot,
   getStrictProcessTableSnapshot,
   parseProcessTableRows,
   parseStrictProcessTableRows,
   ProcessTableCaptureError,
-  resetProcessTableSnapshotForTests
+  resetProcessTableSnapshotForTests,
+  type ProcessTableIndexStats
 } from './process-table-snapshot'
 
 function deferred<T>(): {
@@ -370,5 +372,59 @@ describe('parseStrictProcessTableRows', () => {
     expect(() => parseStrictProcessTableRows('PID PPID PGID TPGID STAT COMMAND')).toThrow(
       ProcessTableCaptureError
     )
+  })
+})
+
+describe('getProcessTableIndex', () => {
+  it('reuses one index for the same snapshot identity', () => {
+    const rows = parseProcessTableRows(
+      ['100 1 Ss bash', '101 100 S node codex', '102 100 S vim'].join('\n')
+    )
+
+    const first = getProcessTableIndex(rows)
+    const second = getProcessTableIndex(rows)
+
+    expect(second).toBe(first)
+    expect(first.byPid.get(100)).toBe(rows[0])
+    expect(first.childrenByPpid.get(100)).toEqual([rows[1], rows[2]])
+  })
+
+  it('does not reuse an index across distinct snapshot arrays', () => {
+    const firstRows = parseProcessTableRows('100 1 Ss bash')
+    const secondRows = parseProcessTableRows('100 1 Ss bash')
+
+    expect(getProcessTableIndex(secondRows)).not.toBe(getProcessTableIndex(firstRows))
+  })
+
+  it('resolves a duplicated pid to the FIRST row, as `rows.find()` did', () => {
+    // Preserve rows.find() semantics if a malformed table repeats a pid: an argv
+    // newline makes `ps` print a continuation line that can parse as a spurious
+    // row, and that row always follows the real one it was split from.
+    const rows = parseProcessTableRows(['100 1 Ss bash', '100 1 Ss+ zsh'].join('\n'))
+
+    expect(getProcessTableIndex(rows).byPid.get(100)).toBe(rows[0])
+    expect(buildProcessTableIndex(rows).byPid.get(100)).toBe(rows[0])
+  })
+
+  it('materializes only the maps the descendant walk reads', () => {
+    // Why: this memo exists to cut relay CPU; four indexes for two readers would
+    // make a single-pane relay pay more per capture than the code it replaced.
+    const index = getProcessTableIndex(parseProcessTableRows('100 1 Ss bash'))
+
+    expect(Object.keys(index).sort()).toEqual(['byPid', 'childrenByPpid', 'rows', 'stats'])
+  })
+
+  it('keeps the memo out of measured builds so a cache hit cannot satisfy a perf gate', () => {
+    const rows = parseProcessTableRows('100 1 Ss bash')
+    const stats: ProcessTableIndexStats = { indexBuilds: 0, rowVisits: 0, indexLookups: 0 }
+
+    const memoized = getProcessTableIndex(rows)
+    const measured = buildProcessTableIndex(rows, stats)
+
+    expect(memoized.stats).toBeUndefined()
+    expect(measured).not.toBe(memoized)
+    expect(stats).toEqual({ indexBuilds: 1, rowVisits: 1, indexLookups: 0 })
+    // The measured build must not evict or replace the shared memo.
+    expect(getProcessTableIndex(rows)).toBe(memoized)
   })
 })
