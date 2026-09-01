@@ -1193,10 +1193,6 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
       return current?.id === mode.id && current.instanceId === mode.instanceId
     }
 
-    if (!stillCurrent()) {
-      return false
-    }
-
     if (result.status !== 'sent') {
       const message = activeAgentNotesSendFailureMessage(result.status, { explicitTarget: true })
       set((s) =>
@@ -1225,11 +1221,10 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
       return false
     }
 
-    const [{ toast }, { track }] = await Promise.all([import('sonner'), import('@/lib/telemetry')])
-    if (!stillCurrent()) {
-      return false
-    }
+    // Delivery ack, telemetry, and toast belong to the completed send, not to the
+    // picker that launched it; only the close below is scoped to this instance.
     mode.onPromptDelivered?.()
+    const [{ toast }, { track }] = await Promise.all([import('sonner'), import('@/lib/telemetry')])
     track('agent_prompt_sent', {
       agent_kind: agentKindForAgentType(target.entry.agentType),
       launch_source: mode.launchSource,
