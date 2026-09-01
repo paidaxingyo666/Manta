@@ -10,9 +10,10 @@ import {
   type BackgroundMountTerminalWorktreeDetail
 } from '@/constants/terminal'
 import { useAppStore } from '../store'
-import { folderWorkspaceKey } from '../../../shared/workspace-scope'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
-import { useAllWorktrees } from '../store/selectors'
+import { parseWorkspaceKey } from '../../../shared/workspace-scope'
+import { useWorktreeMap } from '../store/selectors'
+import { projectWorkspaceSurfaces } from './workspace-surface-projection'
 import { getConnectionId } from '../lib/connection-context'
 import { basename } from '../lib/path'
 import {
@@ -323,22 +324,28 @@ function Terminal(): React.JSX.Element | null {
   const measuringTerminalWorktreeIdsRef = useRef(new Set<string>())
   const terminalWorktreeParkCooldownUntilRef = useRef(new Map<string, number>())
   const terminalWorktreeParkingTimersRef = useRef(new Map<string, number>())
-  const allWorktrees = useAllWorktrees()
+  const worktreesById = useWorktreeMap()
   const folderWorkspaces = useAppStore((s) => s.folderWorkspaces)
-  const workspaceSurfaces = useMemo(
-    () => [
-      ...allWorktrees.map((worktree) => ({ id: worktree.id, path: worktree.path })),
-      ...folderWorkspaces.map((workspace) => ({
-        id: folderWorkspaceKey(workspace.id),
-        path: workspace.folderPath
-      }))
-    ],
-    [allWorktrees, folderWorkspaces]
-  )
   const activeWorktreeId = useAppStore((s) => s.activeWorktreeId)
   const renderedActiveWorktreeId = activeWorktreeId
   const activeWorktreeDeferralHostId = useAppStore((s) =>
     getResolvedExecutionHostIdForWorktree(s, renderedActiveWorktreeId)
+  )
+  // Why narrow it: only the folder-collision tie-break reads this host, so a git
+  // workspace's ownership settling must not re-identify the whole mount projection.
+  const activeFolderSurfaceHostId =
+    parseWorkspaceKey(renderedActiveWorktreeId ?? '')?.type === 'folder'
+      ? activeWorktreeDeferralHostId
+      : null
+  const workspaceSurfaces = useMemo(
+    () =>
+      projectWorkspaceSurfaces({
+        worktreesById,
+        folderWorkspaces,
+        activeWorkspaceId: renderedActiveWorktreeId,
+        activeWorkspaceResolvedHostId: activeFolderSurfaceHostId
+      }),
+    [worktreesById, folderWorkspaces, renderedActiveWorktreeId, activeFolderSurfaceHostId]
   )
   const activeView = useAppStore((s) => s.activeView)
   // Why: terminal titles are leaf chrome. The root host only subscribes to
