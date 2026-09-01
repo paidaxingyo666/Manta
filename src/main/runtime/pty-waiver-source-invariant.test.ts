@@ -19,7 +19,11 @@ const FILE_GROUPS = [
   },
   {
     label: 'runtime removal',
-    files: [join(__dirname, 'manta-runtime.ts')]
+    files: [
+      join(__dirname, 'manta-runtime-pty-foreground-process-reads.ts'),
+      join(__dirname, 'manta-runtime-resolve-worktree-removal-target.ts'),
+      join(__dirname, 'manta-runtime-remove-managed-worktree.ts')
+    ]
   }
 ] as const
 
