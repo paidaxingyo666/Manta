@@ -11,7 +11,10 @@ import {
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { isRuntimeOwnedSshTargetId } from '../../../shared/execution-host'
-import { isPaletteCurrentWorktree, resolvePaletteRepoForWorktree } from '@/lib/palette-repo-resolution'
+import {
+  isPaletteCurrentWorktree,
+  resolvePaletteRepoForWorktree
+} from '@/lib/palette-repo-resolution'
 import { formatPaletteSessionAge } from '@/components/cmd-j/palette-session-age'
 import type { WorktreePaletteItem } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteController } from './use-worktree-jump-palette-controller'
@@ -39,11 +42,7 @@ export function WorktreeJumpPaletteWorktreeRow({
     handleSelectItem
   } = controller
   const worktree = entry.worktree
-  const repo = resolvePaletteRepoForWorktree(
-    worktree,
-    repoMap,
-    controller.repoByHostIdentity
-  )
+  const repo = resolvePaletteRepoForWorktree(worktree, repoMap, controller.repoByHostIdentity)
   const repoName = repo?.displayName ?? ''
   const branch = resolveWorktreeBranchLabel(worktree)
   const worktreeLabel = resolveWorktreeDisplayName(worktree)

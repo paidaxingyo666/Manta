@@ -28,10 +28,7 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
   controller: WorktreeJumpPaletteController
 }): React.JSX.Element {
   const result = entry.result
-  const workspaceTabWorktree = controller.resolveWorktree(
-    result.worktreeId,
-    result.executionHostId
-  )
+  const workspaceTabWorktree = controller.resolveWorktree(result.worktreeId, result.executionHostId)
   const workspaceTabRepo = workspaceTabWorktree
     ? resolvePaletteRepoForWorktree(
         workspaceTabWorktree,
@@ -68,10 +65,7 @@ export function WorktreeJumpPaletteWorkspaceTabRow({
       )}
     >
       <div className="flex h-5 w-4 shrink-0 items-center justify-center self-start text-muted-foreground/85">
-        <PaletteRecentTabStatusDot
-          row={recentRow}
-          fallback={fallback}
-        />
+        <PaletteRecentTabStatusDot row={recentRow} fallback={fallback} />
       </div>
       <div className="min-w-0 flex-1 overflow-hidden">
         <div className="flex items-center justify-between gap-2.5">

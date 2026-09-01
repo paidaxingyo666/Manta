@@ -78,19 +78,39 @@ export function WorktreeJumpPaletteEntry({
     )
   }
   if (entry.type === 'worktree') {
-    return <WorktreeJumpPaletteWorktreeRow entry={entry} renderKey={renderKey} controller={controller} />
+    return (
+      <WorktreeJumpPaletteWorktreeRow entry={entry} renderKey={renderKey} controller={controller} />
+    )
   }
   if (entry.type === 'project-target') {
-    return <WorktreeJumpPaletteProjectRow entry={entry} renderKey={renderKey} controller={controller} />
+    return (
+      <WorktreeJumpPaletteProjectRow entry={entry} renderKey={renderKey} controller={controller} />
+    )
   }
   if (entry.type === 'settings' || entry.type === 'quick-action') {
-    return <WorktreeJumpPaletteActionRow entry={entry} renderKey={renderKey} controller={controller} />
+    return (
+      <WorktreeJumpPaletteActionRow entry={entry} renderKey={renderKey} controller={controller} />
+    )
   }
   if (entry.type === 'workspace-tab') {
-    return <WorktreeJumpPaletteWorkspaceTabRow entry={entry} renderKey={renderKey} controller={controller} />
+    return (
+      <WorktreeJumpPaletteWorkspaceTabRow
+        entry={entry}
+        renderKey={renderKey}
+        controller={controller}
+      />
+    )
   }
   if (entry.type === 'simulator-tab') {
-    return <WorktreeJumpPaletteSimulatorRow entry={entry} renderKey={renderKey} controller={controller} />
+    return (
+      <WorktreeJumpPaletteSimulatorRow
+        entry={entry}
+        renderKey={renderKey}
+        controller={controller}
+      />
+    )
   }
-  return <WorktreeJumpPaletteBrowserRow entry={entry} renderKey={renderKey} controller={controller} />
+  return (
+    <WorktreeJumpPaletteBrowserRow entry={entry} renderKey={renderKey} controller={controller} />
+  )
 }

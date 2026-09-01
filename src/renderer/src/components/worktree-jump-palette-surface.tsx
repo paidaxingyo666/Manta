@@ -42,8 +42,10 @@ export function WorktreeJumpPaletteSurface({
         onValueChange: controller.handleCommandSelectionChange,
         className: 'bg-transparent',
         onKeyDownCapture: (event: React.KeyboardEvent) => {
-          if (controller.selectionMovedByUserRef &&
-            ['ArrowDown', 'ArrowUp', 'Home', 'End', 'PageDown', 'PageUp'].includes(event.key)) {
+          if (
+            controller.selectionMovedByUserRef &&
+            ['ArrowDown', 'ArrowUp', 'Home', 'End', 'PageDown', 'PageUp'].includes(event.key)
+          ) {
             controller.selectionMovedByUserRef.current = true
           }
         }
