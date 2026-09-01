@@ -85,7 +85,6 @@ export function useAutomationsPageListState({
   const selected = selectedRow?.automation ?? null
   const {
     isListSearchQueryTooLarge,
-    isListSearchActive,
     filteredRows,
     filteredExternalAutomationEntries,
     hasListItems,
@@ -145,11 +144,7 @@ export function useAutomationsPageListState({
     selected,
     selectedAutomationRunsWithWorkspaceNames,
     isListSearchQueryTooLarge,
-    isListSearchActive,
     filteredRows,
-    // Keep the legacy projection available to integrations that still consume
-    // bare automations; the table itself uses host-qualified rows.
-    filteredAutomations: filteredRows.map((row) => row.automation),
     filteredExternalAutomationEntries,
     hasListItems,
     hasFilteredListItems,

@@ -90,10 +90,8 @@ export function AutomationsPageSurface({
     hostCatalog,
     hasListItems,
     hasFilteredListItems,
-    isListSearchActive,
     isListSearchQueryTooLarge,
     filteredRows,
-    filteredAutomations,
     filteredExternalAutomationEntries,
     selected,
     selectedRow,
@@ -319,7 +317,6 @@ export function AutomationsPageSurface({
           hasFilteredListItems={hasFilteredListItems}
           listSearchQuery={listSearchQuery}
           isListSearchQueryTooLarge={isListSearchQueryTooLarge}
-          isListSearchActive={isListSearchActive}
           onListSearchQueryChange={setListSearchQuery}
           listFilter={listFilter}
           onListFilterChange={onListFilterChange}
@@ -337,7 +334,6 @@ export function AutomationsPageSurface({
             }
           }}
           filteredRows={filteredRows}
-          filteredAutomations={filteredAutomations}
           filteredExternalAutomationEntries={filteredExternalAutomationEntries}
           selectedRowKey={selectedRow?.key ?? null}
           selectedExternalKey={local.selectedExternalKey}
