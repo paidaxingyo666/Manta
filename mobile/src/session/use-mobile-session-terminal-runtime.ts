@@ -76,7 +76,6 @@ export function useMobileSessionTerminalRuntime(scope: MobileSessionScreenStateM
   const activeHandleRef = useRef<string | null>(null)
   const bufferedTerminalDraftState = useBufferedTerminalDrafts({ activeHandle, activeHandleRef })
   const reconcileBufferedDraftsRef = useRef(bufferedTerminalDraftState.reconcileTerminalTabs)
-  reconcileBufferedDraftsRef.current = bufferedTerminalDraftState.reconcileTerminalTabs
   const activeSessionTabTypeRef = useRef<MobileSessionTabType | null>(null)
   const pendingActiveSessionTabIdRef = useRef<string | null>(null)
   const pendingActiveTerminalHandleRef = useRef<string | null>(null)

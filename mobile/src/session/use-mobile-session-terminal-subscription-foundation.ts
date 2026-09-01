@@ -61,6 +61,8 @@ export function useMobileSessionTerminalSubscriptionFoundation(
     [clearNativeChatInputLease, nativeChatInputLeaseReadyRef, showNativeChatRef]
   )
   const unsubscribeTerminalRef = useRef(unsubscribeTerminal)
+  // PTY event callbacks fire before passive effects flush, so they need the current unsubscribe.
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   unsubscribeTerminalRef.current = unsubscribeTerminal
 
   const clearTerminalCache = useCallback(() => {
