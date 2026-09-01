@@ -56,6 +56,7 @@ export function useSmartWorkspaceSecondarySearches({
   } = foundation
   // Read the latest metadata for URL resolution without making the search effect depend on object identity.
   const linearStatusRef = useRef(linearStatus)
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   linearStatusRef.current = linearStatus
   // Store action references can change with wiring; reads should only rerun for query/scope changes.
   const linearReadMethodsRef = useRef({
@@ -63,6 +64,7 @@ export function useSmartWorkspaceSecondarySearches({
     listLinearIssues,
     searchLinearIssues
   })
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   linearReadMethodsRef.current = {
     fetchLinearIssue,
     listLinearIssues,
