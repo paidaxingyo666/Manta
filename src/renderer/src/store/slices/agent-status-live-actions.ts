@@ -16,7 +16,7 @@ import {
   agentStatusTabAlreadyHasProtectedOrGeneratedTitle,
   getTabIdFromPaneKey,
   isRecentlyClosedAgentStatusTab
-} from './agent-status-pane-helpers'
+} from './agent-status-pane-key-tab-binding'
 import {
   getAgentRowGeneratedTitleText,
   getMantaDispatchTaskId,

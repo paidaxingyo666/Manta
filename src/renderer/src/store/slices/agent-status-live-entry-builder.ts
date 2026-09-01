@@ -26,8 +26,8 @@ import type {
   AgentStatusTiming
 } from './agent-status-contract'
 import { registryEntryMatchesStatus } from './agent-status-launch-config'
-import { findAgentPaneWorktreeId, getTabIdFromPaneKey } from './agent-status-pane-helpers'
-import { mergeCurrentOrchestrationContext } from './agent-status-map-helpers'
+import { findAgentPaneWorktreeId, getTabIdFromPaneKey } from './agent-status-pane-key-tab-binding'
+import { mergeCurrentOrchestrationContext } from './agent-status-orchestration-context'
 import { deriveAgentStatusLiveFacts } from './agent-status-live-facts'
 
 export type AgentStatusLiveEntryBuild = {

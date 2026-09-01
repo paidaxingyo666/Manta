@@ -8,7 +8,7 @@ import {
   type SleepingAgentSessionRecord
 } from '../../../../shared/agent-session-resume'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
-import { findTabForAgentEntry } from './agent-status-pane-helpers'
+import { findTabForAgentEntry } from './agent-status-pane-key-tab-binding'
 
 export function copyLaunchConfig(config: SleepingAgentLaunchConfig): SleepingAgentLaunchConfig {
   return {

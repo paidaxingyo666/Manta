@@ -7,11 +7,17 @@ import {
 import { translate } from '@/i18n/i18n'
 import {
   collectAcknowledgedAgentNotificationId,
-  createAgentSendTargetModeInstanceId,
   latestAgentTurnTimestamp,
   resolvePaneKeyWorktreeIdFromTabs,
   usableTimestamp
-} from './ui-slice-agent-helpers'
+} from './ui-slice-agent-notification-acknowledgement'
+
+let agentSendTargetModeInstanceCounter = 0
+
+function createAgentSendTargetModeInstanceId(): string {
+  agentSendTargetModeInstanceCounter += 1
+  return `${Date.now()}:${agentSendTargetModeInstanceCounter}`
+}
 
 export function createUiAgentActions(
   set: UISliceSet,

@@ -8,7 +8,7 @@ import type { WebSessionTabsSyncState, MirroredBrowserTab } from './state'
 import { readBrowserClientHostId } from '../browser-client-host-identity'
 import { peekWebSessionBrowserPlacementGroup } from '../web-session-browser-placement'
 import { browserPageEqual } from './state-equality-tabs'
-import { collectLayoutGroupIds } from './layout-helpers'
+import { collectLayoutGroupIds } from './tab-group-layout-tree'
 import { buildBrowserUnifiedTab } from './tab-builders'
 import { isReadyBrowserTab } from './terminal-surfaces'
 
