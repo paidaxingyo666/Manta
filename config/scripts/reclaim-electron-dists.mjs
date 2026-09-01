@@ -6,7 +6,15 @@
 
 import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { existsSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync
+} from 'node:fs'
 import path from 'node:path'
 import {
   hasAdoptedSharedElectronDist,
@@ -33,14 +41,24 @@ function listWorktrees(root) {
     .map((line) => line.slice('worktree '.length).trim())
 }
 
-function measure(distPath) {
+/** Apparent size, walked in Node: `du` does not exist on Windows, where it silently reported 0. */
+function measure(targetPath) {
+  let total = 0
+  let entries
   try {
-    return (
-      Number(execFileSync('du', ['-sk', distPath], { encoding: 'utf8' }).split(/\s+/)[0]) * 1024
-    )
+    entries = readdirSync(targetPath, { withFileTypes: true })
   } catch {
     return 0
   }
+  for (const entry of entries) {
+    const entryPath = path.join(targetPath, entry.name)
+    if (entry.isDirectory()) {
+      total += measure(entryPath)
+    } else if (!entry.isSymbolicLink()) {
+      total += statSync(entryPath, { throwIfNoEntry: false })?.size ?? 0
+    }
+  }
+  return total
 }
 
 /** Swap in a shared copy behind a rename, so an interrupted run never leaves a partial dist. */
