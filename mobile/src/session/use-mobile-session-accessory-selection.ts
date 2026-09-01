@@ -46,6 +46,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
   const repeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   // Why: ref keeps repeat firing the current callback; else a mid-hold tab switch/reconnect routes bytes to a stale terminal.
   const handleAccessoryKeyRef = useRef(handleAccessoryKey)
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   handleAccessoryKeyRef.current = handleAccessoryKey
   const stopAccessoryRepeat = useCallback(() => {
     if (repeatTimeoutRef.current) {

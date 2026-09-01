@@ -95,6 +95,8 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     worktreeId
   ])
 
+  // Every setTimeout goes through addTimer into `timers`, which the returned cleanup clears.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
     if (connState !== 'connected') {
       return

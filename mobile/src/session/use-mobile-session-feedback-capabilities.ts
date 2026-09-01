@@ -35,6 +35,7 @@ export function useMobileSessionFeedbackCapabilities(scope: MobileSessionTermina
   // Why: stable callbacks (handleFileTap) read the live value via this ref, since
   // the capability probe resolves after the callbacks are created.
   const browserScreencastSupportedRef = useRef(browserScreencastSupported)
+  // react-doctor-disable-next-line react-doctor/no-ref-current-in-render
   browserScreencastSupportedRef.current = browserScreencastSupported
   // Why: terminal gesture/input callbacks are stable/imperative, so keep their refs current before commit, not in a later effect.
   clientRef.current = client
@@ -49,6 +50,7 @@ export function useMobileSessionFeedbackCapabilities(scope: MobileSessionTermina
   )
   // Why: Expo can reuse this screen for a new route; reconcile before paint so a dismissed old warning doesn't flash.
   if (reconciledCreateWarningState !== createWarningState) {
+    // react-doctor-disable-next-line react-doctor/no-prop-callback-in-render
     setCreateWarningState(reconciledCreateWarningState)
   }
   const createWarning = reconciledCreateWarningState.visible
