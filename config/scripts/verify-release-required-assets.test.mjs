@@ -58,6 +58,10 @@ describe('getRequiredReleaseAssetNames', () => {
       ])
     )
   })
+
+  it('requires the release source-map archive', () => {
+    expect(getRequiredReleaseAssetNames('v1.4.27')).toContain('manta-sourcemaps-v1.4.27.zip')
+  })
 })
 
 describe('extractManifestAssetNames', () => {

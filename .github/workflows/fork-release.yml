@@ -424,6 +424,31 @@ jobs:
       - name: Build app
         run: pnpm build:release
 
+      # Main ships minified with hidden maps excluded from app.asar. One Linux
+      # leg publishes the platform-independent maps for crash decoding.
+      - name: Bundle main-process source maps
+        if: matrix.arch == 'x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$(find out/main -name '*.js.map' -print -quit)" ]; then
+            echo "::error::No main-process source maps in out/main. Did build.sourcemap regress in electron.vite.config.ts?"
+            exit 1
+          fi
+          find out/main -name '*.js.map' -print | sort | zip -q -X "$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip" -@
+          ls -l "$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip"
+
+      - name: Publish main-process source maps
+        if: matrix.arch == 'x64'
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: gh release upload "$RELEASE_TAG" "${{ runner.temp }}/manta-sourcemaps-$RELEASE_TAG.zip" --clobber --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Gate runtime file-watcher process isolation
         run: |
           node config/scripts/runtime-file-watcher-fault-harness.mjs
@@ -494,7 +519,7 @@ jobs:
       # Five green jobs is not the same as a complete release: electron-publish
       # skips an upload silently when it cannot resolve the release, and exits
       # zero having sent nothing. Now that this fork ships every slice upstream
-      # does, the shared checker describes exactly these twenty artifacts, so
+      # does, the shared checker describes exactly these twenty-one artifacts, so
       # the hand-written list is gone — it could not see an asset still
       # uploading or one that arrived empty, and two of its entries were about
       # to become no-ops, since the x64 mac zip carries no arch token and any

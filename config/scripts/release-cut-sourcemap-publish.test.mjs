@@ -7,6 +7,9 @@ const projectDir = resolve(import.meta.dirname, '../..')
 const buildSteps = parse(
   readFileSync(join(projectDir, '.github/workflows/release-cut.yml'), 'utf8')
 ).jobs.build.steps
+const forkLinuxSteps = parse(
+  readFileSync(join(projectDir, '.github/workflows/fork-release.yml'), 'utf8')
+).jobs.linux.steps
 
 function stepIndex(name) {
   const index = buildSteps.findIndex((step) => step.name === name)
@@ -27,7 +30,7 @@ describe('release-cut source map publication', () => {
 
     expect(bundle.run).toContain("find out/main -name '*.js.map'")
     expect(publish.with.command).toContain('gh release upload')
-    expect(publish.with.command).toContain('orca-sourcemaps-')
+    expect(publish.with.command).toContain('manta-sourcemaps-')
   })
 
   it('stages the bundle outside the checkout so packaging cannot absorb it', () => {
@@ -36,9 +39,19 @@ describe('release-cut source map publication', () => {
     const bundle = buildSteps[stepIndex('Bundle main-process source maps')]
     const publish = buildSteps[stepIndex('Publish main-process source maps')]
 
-    expect(bundle.run).toContain('"$RUNNER_TEMP/orca-sourcemaps-$TAG.zip"')
-    expect(bundle.run).not.toMatch(/zip[^\n]*\s"orca-sourcemaps-/)
+    expect(bundle.run).toContain('"$RUNNER_TEMP/manta-sourcemaps-$TAG.zip"')
+    expect(bundle.run).not.toMatch(/zip[^\n]*\s"manta-sourcemaps-/)
     expect(publish.with.command).toContain('runner.temp')
+  })
+
+  it('publishes the same source-map asset through the fork release path', () => {
+    const bundle = forkLinuxSteps.find((step) => step.name === 'Bundle main-process source maps')
+    const publish = forkLinuxSteps.find((step) => step.name === 'Publish main-process source maps')
+
+    expect(bundle.if).toContain("matrix.arch == 'x64'")
+    expect(bundle.run).toContain('"$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip"')
+    expect(publish.if).toContain("matrix.arch == 'x64'")
+    expect(publish.with.command).toContain('manta-sourcemaps-$RELEASE_TAG.zip')
   })
 
   it('fails the release when no source maps were emitted', () => {

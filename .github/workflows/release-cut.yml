@@ -1334,8 +1334,8 @@ jobs:
           # Why: every entry in electron-builder's `files` is a negation, so
           # app-builder prepends `**/*` and packs anything left in the workspace
           # root into app.asar. Stage the bundle outside the checkout instead.
-          find out/main -name '*.js.map' -print | sort | zip -q -X "$RUNNER_TEMP/orca-sourcemaps-$TAG.zip" -@
-          ls -l "$RUNNER_TEMP/orca-sourcemaps-$TAG.zip"
+          find out/main -name '*.js.map' -print | sort | zip -q -X "$RUNNER_TEMP/manta-sourcemaps-$TAG.zip" -@
+          ls -l "$RUNNER_TEMP/manta-sourcemaps-$TAG.zip"
 
       - name: Publish main-process source maps
         if: matrix.platform == 'linux-x64'
@@ -1344,7 +1344,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: gh release upload "${{ needs.cut.outputs.tag }}" "${{ runner.temp }}/orca-sourcemaps-${{ needs.cut.outputs.tag }}.zip" --clobber --repo "${{ github.repository }}"
+          command: gh release upload "${{ needs.cut.outputs.tag }}" "${{ runner.temp }}/manta-sourcemaps-${{ needs.cut.outputs.tag }}.zip" --clobber --repo "${{ github.repository }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
