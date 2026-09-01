@@ -66,15 +66,18 @@ export function rekeyOwnerKey(
   return null
 }
 
-export function ownerKeyBelongsToRepo(ownerKey: string, repoId: string): boolean {
-  const rawOwnerKey = isWorktreeHostIdentity(ownerKey)
-    ? getWorktreeIdFromHostIdentity(ownerKey)
-    : ownerKey
-  if (isRepoWorktreeId(repoId, rawOwnerKey)) {
-    return true
+/** The worktree locator an owner key names, or null when the key is not worktree-scoped. */
+export function ownerKeyWorktreeId(ownerKey: string): string | null {
+  const scope = parseWorkspaceKey(ownerKey)
+  if (scope) {
+    return scope.type === 'worktree' ? scope.worktreeId : null
   }
-  const parsed = parseWorkspaceKey(ownerKey)
-  return parsed?.type === 'worktree' && isRepoWorktreeId(repoId, parsed.worktreeId)
+  return isWorktreeHostIdentity(ownerKey) ? getWorktreeIdFromHostIdentity(ownerKey) : ownerKey
+}
+
+export function ownerKeyBelongsToRepo(ownerKey: string, repoId: string): boolean {
+  const worktreeId = ownerKeyWorktreeId(ownerKey)
+  return worktreeId !== null && isRepoWorktreeId(repoId, worktreeId)
 }
 
 export function removeRepoWorktreeRecord<T>(
