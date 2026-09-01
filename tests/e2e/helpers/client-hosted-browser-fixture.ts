@@ -298,31 +298,3 @@ export async function focusClientBrowserRow(
     { browserPageId: localPageId, worktreeId }
   )
 }
-
-export async function refreshAuthorityRuntimeId(
-  client: PairedElectronClient
-): Promise<string | null> {
-  return readRestartRendererState(() =>
-    client.page.evaluate(async (environmentId) => {
-      await window.api.runtimeEnvironments.connect({ selector: environmentId })
-      await window.__store?.getState().refreshRuntimeEnvironmentStatus(environmentId)
-      return (
-        window.__store?.getState().runtimeStatusByEnvironmentId.get(environmentId)?.status
-          ?.runtimeId ?? null
-      )
-    }, client.environmentId)
-  )
-}
-
-/** Waits until the client is talking to a genuinely new runtime process, not the one it paired to. */
-export async function waitForRelaunchedRuntime(
-  client: PairedElectronClient,
-  previousRuntimeId: string
-): Promise<void> {
-  await expect
-    .poll(() => refreshAuthorityRuntimeId(client), {
-      timeout: 180_000,
-      message: 'paired client never reconnected to a relaunched runtime process'
-    })
-    .toEqual(expect.not.stringMatching(`^${previousRuntimeId}$`))
-}
