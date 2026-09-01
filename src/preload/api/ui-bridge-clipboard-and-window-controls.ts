@@ -12,6 +12,7 @@ import {
 import type { NativeFileDropPayload } from '../../shared/native-file-drop'
 import type { ReadClipboardTextOptions } from '../../shared/clipboard-text'
 import { subscribeNativeFileDrop } from '../preload-runtime-support'
+import type { PreloadApi } from '../api-types'
 
 export const uiClipboardAndWindowControlsApi = {
   onOpenDiffFromMobile: (
@@ -195,4 +196,4 @@ export const uiClipboardAndWindowControlsApi = {
   notifyWindowRevealed: (): void => {
     ipcRenderer.send('ui:window-revealed')
   }
-}
+} satisfies Partial<PreloadApi['ui']>

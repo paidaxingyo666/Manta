@@ -17,6 +17,7 @@ import {
   admitSshDetectedPorts
 } from '../../shared/ssh-retained-payload-admission'
 import type { FilesystemPathFlavor } from '../../shared/filesystem-entry-types'
+import type { PreloadApi } from '../api-types'
 
 export const sshApi = {
   listTargets: (): Promise<SshTarget[]> => ipcRenderer.invoke('ssh:listTargets'),
@@ -180,4 +181,4 @@ export const sshApi = {
 
   submitCredential: (args: { requestId: string; value: string | null }): Promise<void> =>
     ipcRenderer.invoke('ssh:submitCredential', args)
-}
+} satisfies PreloadApi['ssh']

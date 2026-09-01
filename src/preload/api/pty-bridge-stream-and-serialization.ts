@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import type { PtyModelRestoreNeededEvent } from '../../shared/pty-model-restore-marker'
 import type { TerminalSideEffectBatch } from '../../shared/terminal-side-effect-facts'
+import type { PreloadApi } from '../api-types'
 
 export const ptyStreamAndSerializationApi = {
   inspectProcess: (
@@ -138,4 +139,4 @@ export const ptyStreamAndSerializationApi = {
     restart: () => ipcRenderer.invoke('pty:management:restart'),
     macTccAttribution: () => ipcRenderer.invoke('pty:management:macTccAttribution')
   }
-}
+} satisfies Partial<PreloadApi['pty']>
