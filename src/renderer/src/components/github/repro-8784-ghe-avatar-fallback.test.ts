@@ -47,7 +47,7 @@ describe('issue #8784 GHE avatar fallback (regression)', () => {
     expect(prPage).not.toMatch(/githubAvatarUrl\(workItem\.author\)/)
 
     const reviewChip = readFileSync(
-      join(__dirname, '../task-page/github/github-assignee-avatars.tsx'),
+      join(__dirname, '../TaskPageGitHubAvatars.tsx'),
       'utf8'
     )
     expect(reviewChip).toMatch(/GitHubUserAvatar/)
@@ -77,20 +77,20 @@ describe('issue #8784 GHE avatar fallback (regression)', () => {
       displayName: 'option.name'
     },
     {
-      file: 'task-page/github/github-assignee-avatars.tsx',
+      file: 'TaskPageGitHubAvatars.tsx',
       fn: 'GitHubAssigneeAvatar',
       login: 'assignee.login',
       displayName: 'assignee.name'
     },
     {
-      file: 'task-page/github/github-assignees-cell.tsx',
+      file: 'TaskPageGitHubAssigneesCell.tsx',
       fn: 'GHAssigneesCell',
       login: 'user.login',
       displayName: 'user.name'
     },
     {
-      file: 'task-page/github/pr-review-picker-panel.tsx',
-      fn: 'PRReviewPickerPanel',
+      file: 'TaskPageGitHubReviewerPicker.tsx',
+      fn: 'TaskPageGitHubReviewerPicker',
       login: 'reviewer.login',
       displayName: 'reviewer.name'
     }

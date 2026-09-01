@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { LoaderCircle, ChevronDown, Check } from 'lucide-react'
 import type { TaskPageGitHubWorkItemMutationRunner } from './task-page-linear-jira-list-model'
 import { GitHubAssigneeAvatar } from './TaskPageGitHubAvatars'
+import { GitHubUserAvatar } from '@/components/github/github-user-avatar'
 export function GHAssigneesCell({
   item,
   repo,
@@ -270,13 +271,12 @@ export function GHAssigneesCell({
                     <Check className="size-3" />
                   ) : null}
                 </span>
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="" className="size-5 shrink-0 rounded-full" />
-                ) : (
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-                    {user.login.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
+                <GitHubUserAvatar
+                  login={user.login}
+                  name={user.name}
+                  avatarUrl={user.avatarUrl}
+                  className="size-5"
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{user.login}</span>
                   {user.name ? (

@@ -8,6 +8,7 @@ import { PopoverContent } from '@/components/ui/popover'
 
 import type { GitHubAssignableUser } from '../../../shared/github/pull-request-types'
 import type { Repo } from '../../../shared/repo-types'
+import { GitHubUserAvatar } from '@/components/github/github-user-avatar'
 
 type ReviewerPickerProps = {
   actionableReviewerRows: GitHubAssignableUser[]
@@ -81,13 +82,12 @@ export function TaskPageGitHubReviewerPicker({
         <span className="flex size-4 shrink-0 items-center justify-center text-foreground">
           {selected ? <Check className="size-3.5" /> : null}
         </span>
-        {reviewer.avatarUrl ? (
-          <img src={reviewer.avatarUrl} alt="" className="size-5 shrink-0 rounded-full" />
-        ) : (
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-            {reviewer.login.slice(0, 1).toUpperCase()}
-          </span>
-        )}
+        <GitHubUserAvatar
+          login={reviewer.login}
+          name={reviewer.name}
+          avatarUrl={reviewer.avatarUrl}
+          className="size-5"
+        />
         <span className="min-w-0 flex-1">
           <span className="block truncate">
             <span className="font-semibold text-foreground">{reviewer.login}</span>

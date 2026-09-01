@@ -65,7 +65,10 @@ export function TaskPageLinearIssueDialog({
                     <ChevronDown className="size-3 text-muted-foreground" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="start" className="w-64 p-1">
+                <PopoverContent
+                  align="start"
+                  className="w-64 p-1 popover-scroll-content scrollbar-sleek"
+                >
                   <div className="text-[10px] font-semibold text-muted-foreground px-2 py-1.5 uppercase tracking-wider">
                     {translate('auto.components.TaskPage.4f3cb99f41', 'Switch Team')}
                   </div>

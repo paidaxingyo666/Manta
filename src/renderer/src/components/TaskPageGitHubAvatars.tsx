@@ -31,24 +31,13 @@ export function GitHubAssigneeAvatar({
 }: {
   assignee: GitHubAssignableUser
 }): React.JSX.Element {
-  if (assignee.avatarUrl) {
-    return (
-      <img
-        src={assignee.avatarUrl}
-        alt={assignee.login}
-        loading="lazy"
-        decoding="async"
-        title={assignee.name ? `${assignee.name} (${assignee.login})` : assignee.login}
-        className="size-5 rounded-full border border-border/40 bg-muted object-cover"
-      />
-    )
-  }
   return (
-    <span
-      title={assignee.login}
-      className="inline-flex size-5 items-center justify-center rounded-full border border-border/40 bg-muted text-[10px] font-medium text-muted-foreground"
-    >
-      {assignee.login.slice(0, 1).toUpperCase()}
-    </span>
+    <GitHubUserAvatar
+      login={assignee.login}
+      name={assignee.name}
+      avatarUrl={assignee.avatarUrl}
+      title={assignee.name ? `${assignee.name} (${assignee.login})` : assignee.login}
+      className="size-5"
+    />
   )
 }

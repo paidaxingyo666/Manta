@@ -71,12 +71,15 @@ export function TaskPageGitLabItemList({
             <div
               role="button"
               tabIndex={0}
-              key={item.id}
+              key={`${item.repoId}:${item.id}`}
               onClick={() => {
                 useAppStore.getState().recordFeatureInteraction('gitlab-tasks')
                 openGitLabDetailPage(item)
               }}
               onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) {
+                  return
+                }
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
                   useAppStore.getState().recordFeatureInteraction('gitlab-tasks')
