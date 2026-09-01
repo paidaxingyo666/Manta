@@ -154,14 +154,7 @@ export const chromeStyles = StyleSheet.create({
   toolbarIconDisabled: {
     opacity: 0.6
   },
-  searchToggle: {
+  toolbarIconButton: {
     padding: spacing.xs
-  },
-  searchBar: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderSubtle,
-    backgroundColor: colors.bgPanel
   }
 })
