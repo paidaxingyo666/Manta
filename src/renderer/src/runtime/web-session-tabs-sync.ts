@@ -1798,7 +1798,11 @@ function buildMirroredAgentStatusPatch(
             // (#12906). Host-first unlike providerSession: only the host can mint one.
             lastAssistantMessage:
               (hostIdentityPredatesCurrentTurn ? undefined : entry.lastAssistantMessage) ??
-              existing.lastAssistantMessage
+              existing.lastAssistantMessage,
+            lastAssistantMessageIsToolOutput:
+              hostIdentityPredatesCurrentTurn || entry.lastAssistantMessage === undefined
+                ? existing.lastAssistantMessageIsToolOutput
+                : entry.lastAssistantMessageIsToolOutput
           }
         : entry
     nextByPaneKey.set(entry.paneKey, nextEntry)
@@ -2643,6 +2647,7 @@ function agentStatusEntryEqual(a: AgentStatusEntry | undefined, b: AgentStatusEn
     a.toolInput === b.toolInput &&
     a.interactivePrompt === b.interactivePrompt &&
     a.lastAssistantMessage === b.lastAssistantMessage &&
+    a.lastAssistantMessageIsToolOutput === b.lastAssistantMessageIsToolOutput &&
     a.interrupted === b.interrupted &&
     a.promptInteractionKey === b.promptInteractionKey &&
     a.restoredUnconfirmed === b.restoredUnconfirmed &&
