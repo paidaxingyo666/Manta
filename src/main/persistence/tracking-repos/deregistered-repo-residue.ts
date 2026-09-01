@@ -3,7 +3,7 @@ import { getWorktreeIdFromHostIdentity } from '../../../shared/worktree/host-qua
 import { splitWorktreeId } from '../../../shared/worktree/id'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
 import { SESSION_FIELDS_PRUNED_BY_OWNER_KEY } from '../../manta-profiles/profile-project-session-field-disposition'
-import { ownerKeyWorktreeId } from '../../manta-profiles/profile-project-worktree-identity'
+import { ownerKeyWorktreeIds } from '../../manta-profiles/profile-project-worktree-identity'
 
 /**
  * Repo ids that still own persisted rows but no longer appear in `state.repos`.
@@ -24,8 +24,21 @@ export function collectDeregisteredRepoIds(state: PersistedState): Set<string> {
       orphanRepoIds.add(repoId)
     }
   }
+  /**
+   * Seed from an owner key, which can read as two different locators (see `ownerKeyWorktreeIds`).
+   * All or nothing: if either reading names a live repo the key is that repo's, and seeding the
+   * other reading would hand the removal pass -- which accepts either -- a live row to delete.
+   */
   const addOwnerKey = (ownerKey: string): void => {
-    addWorktreeId(ownerKeyWorktreeId(ownerKey))
+    const repoIds = ownerKeyWorktreeIds(ownerKey).flatMap((worktreeId) => {
+      const repoId = splitWorktreeId(worktreeId)?.repoId
+      return repoId ? [repoId] : []
+    })
+    if (repoIds.length > 0 && repoIds.every((repoId) => !liveRepoIds.has(repoId))) {
+      for (const repoId of repoIds) {
+        orphanRepoIds.add(repoId)
+      }
+    }
   }
 
   // Deliberately not seeded from `sparsePresetsByRepo` or `retiredWorktreeNamesByRepo`: both are
@@ -71,6 +84,19 @@ export function collectDeregisteredRepoIds(state: PersistedState): Set<string> {
     for (const ownerKey of Object.keys(session.browserTabsByWorktree ?? {})) {
       addOwnerKey(ownerKey)
     }
+    // Pruned by bespoke rules rather than by owner key, so the loop above never reaches them.
+    for (const ownerKey of [
+      session.activeWorktreeId,
+      session.activeWorkspaceKey,
+      ...(session.activeWorktreeIdsOnShutdown ?? [])
+    ]) {
+      if (ownerKey) {
+        addOwnerKey(ownerKey)
+      }
+    }
+    // Not seeded from `terminalTopologyRevisionByRepoId`: its keys are bare repo ids by contract,
+    // and a bare key is exactly what `addWorktreeId` refuses to trust. Rows there are removed once
+    // any locator seeds their repo id, which every repo that ever opened a terminal has.
     for (const record of Object.values(session.sleepingAgentSessionsByPaneKey ?? {})) {
       addWorktreeId(record.worktreeId)
     }

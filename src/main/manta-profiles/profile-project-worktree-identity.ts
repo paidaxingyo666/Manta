@@ -66,18 +66,33 @@ export function rekeyOwnerKey(
   return null
 }
 
-/** The worktree locator an owner key names, or null when the key is not worktree-scoped. */
-export function ownerKeyWorktreeId(ownerKey: string): string | null {
+/**
+ * Every worktree locator an owner key could name.
+ *
+ * Two readings, because one key can be both: with a repo literally named `worktree`,
+ * `worktree::/p` is a `<repoId>::<path>` locator AND parses as a `worktree:` workspace key naming
+ * repo `` (empty). `ownerKeyBelongsToRepo` accepts either, so a caller that reasons about a key
+ * without a repo id in hand has to consider both or it will disagree with the predicate.
+ */
+export function ownerKeyWorktreeIds(ownerKey: string): string[] {
+  const rawOwnerKey = isWorktreeHostIdentity(ownerKey)
+    ? getWorktreeIdFromHostIdentity(ownerKey)
+    : ownerKey
   const scope = parseWorkspaceKey(ownerKey)
-  if (scope) {
-    return scope.type === 'worktree' ? scope.worktreeId : null
-  }
-  return isWorktreeHostIdentity(ownerKey) ? getWorktreeIdFromHostIdentity(ownerKey) : ownerKey
+  return scope?.type === 'worktree' && scope.worktreeId !== rawOwnerKey
+    ? [rawOwnerKey, scope.worktreeId]
+    : [rawOwnerKey]
 }
 
 export function ownerKeyBelongsToRepo(ownerKey: string, repoId: string): boolean {
-  const worktreeId = ownerKeyWorktreeId(ownerKey)
-  return worktreeId !== null && isRepoWorktreeId(repoId, worktreeId)
+  const rawOwnerKey = isWorktreeHostIdentity(ownerKey)
+    ? getWorktreeIdFromHostIdentity(ownerKey)
+    : ownerKey
+  if (isRepoWorktreeId(repoId, rawOwnerKey)) {
+    return true
+  }
+  const parsed = parseWorkspaceKey(ownerKey)
+  return parsed?.type === 'worktree' && isRepoWorktreeId(repoId, parsed.worktreeId)
 }
 
 export function removeRepoWorktreeRecord<T>(

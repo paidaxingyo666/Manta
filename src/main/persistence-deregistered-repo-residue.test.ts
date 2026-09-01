@@ -38,6 +38,21 @@ const LIVE_WORKTREE = `${LIVE_REPO}::/workspace/live`
 const GONE_WORKTREE = `${GONE_REPO}::/workspace/orphan`
 const RUNTIME_HOST = 'runtime:env-a'
 
+const sleepingAgentFor = (worktreeId: string, tabId = 'tab-1') => ({
+  [`${tabId}:leaf-1`]: {
+    paneKey: `${tabId}:leaf-1`,
+    tabId,
+    worktreeId,
+    agent: 'codex' as const,
+    providerSession: { key: 'session_id' as const, id: 'sess-1' },
+    prompt: 'sleeping',
+    state: 'waiting' as const,
+    capturedAt: 1,
+    updatedAt: 1,
+    origin: 'worktree-sleep' as const
+  }
+})
+
 const sessionFor = (worktreeId: string, tabId = 'tab-1') => ({
   ...getDefaultWorkspaceSession(),
   tabsByWorktree: {
@@ -46,20 +61,7 @@ const sessionFor = (worktreeId: string, tabId = 'tab-1') => ({
   activeTabTypeByWorktree: { [worktreeId]: 'terminal' as const },
   lastVisitedAtByWorktreeId: { [worktreeId]: 123 },
   // The residue `profile-project-session-field-disposition` flags as leaking on repo removal.
-  sleepingAgentSessionsByPaneKey: {
-    [`${tabId}:leaf-1`]: {
-      paneKey: `${tabId}:leaf-1`,
-      tabId,
-      worktreeId,
-      agent: 'codex' as const,
-      providerSession: { key: 'session_id' as const, id: 'sess-1' },
-      prompt: 'sleeping',
-      state: 'waiting' as const,
-      capturedAt: 1,
-      updatedAt: 1,
-      origin: 'worktree-sleep' as const
-    }
-  }
+  sleepingAgentSessionsByPaneKey: sleepingAgentFor(worktreeId, tabId)
 })
 
 describe('deregistered repo residue', () => {
@@ -154,6 +156,30 @@ describe('deregistered repo residue', () => {
     expect(store.getWorkspaceSession('local').lastVisitedAtByWorktreeId).toEqual({
       [workspaceKey]: 7
     })
+  })
+
+  // Regression: the pane-keyed records are pruned by the worktreeId they name, not by their own key,
+  // so an orphan whose ONLY residue is a sleeping agent survived -- and re-seeded the sweep on every
+  // launch, so the store never self-cleared and every load scheduled another save.
+  it("drops a sleeping agent that is the orphan repo's only residue, and self-clears", async () => {
+    writeDataFile({
+      schemaVersion: 1,
+      repos: [makeRepo({ id: LIVE_REPO, path: '/workspace/live' })],
+      worktreeMeta: {},
+      workspaceSession: {
+        ...getDefaultWorkspaceSession(),
+        sleepingAgentSessionsByPaneKey: sleepingAgentFor(GONE_WORKTREE)
+      }
+    })
+
+    const store = await createStore()
+    store.flush()
+    expect(store.getWorkspaceSession('local').sleepingAgentSessionsByPaneKey ?? {}).toEqual({})
+
+    // Self-clearing: with the residue gone nothing re-seeds the orphan id, so the next launch has
+    // no work. Before the fix this stayed non-empty forever and every load scheduled another save.
+    const reloaded = await createStore()
+    expect(reloaded.sweepDeregisteredRepoResidue()).toEqual([])
   })
 
   // Why: a sweep that dirtied every launch would rewrite the profile forever and mask real changes.
