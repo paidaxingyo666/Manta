@@ -118,6 +118,12 @@ describe('electron-builder config', () => {
       to: 'plugins/launch'
     })
     for (const platform of ['mac', 'linux', 'win']) {
+      expect(electronBuilderConfig[platform].extraResources).toEqual(
+        expect.arrayContaining([
+          { from: 'LICENSE', to: 'LICENSE' },
+          { from: 'out/relay', to: 'relay' }
+        ])
+      )
       expect(electronBuilderConfig[platform].extraResources).toContainEqual({
         from: 'resources/skills',
         to: 'skills'
