@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { resolveGroupTabFromVisibleId } from '@/components/tab-group/tab-group-visible-id'
 import { getConnectionId } from '@/lib/connection-context'
 import { createUntitledMarkdownFileWithTemplateSelection } from '@/lib/create-untitled-markdown'
+import { ensureClientCreationActionAllowed } from '@/lib/client-creation-action-error'
 import { detectLanguage } from '@/lib/language-detect'
 import { extractIpcErrorMessage } from '@/lib/ipc-error'
 import { focusTerminalTabSurface } from '@/lib/focus-terminal-tab-surface'
@@ -74,6 +75,9 @@ export function useFloatingTerminalCreateActions({
   )
 
   const createFloatingBrowserTab = useCallback(() => {
+    if (!ensureClientCreationActionAllowed(FLOATING_TERMINAL_WORKTREE_ID, 'managed-browser')) {
+      return
+    }
     const url = browserDefaultUrl ?? 'about:blank'
     createBrowserTab(FLOATING_TERMINAL_WORKTREE_ID, url, {
       title: translate(
