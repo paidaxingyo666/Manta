@@ -211,7 +211,7 @@ describe('per-job path classification', () => {
     ]) {
       expectClassification([file], {
         mantad_browser: true,
-      relay: false,
+        relay: false,
         package: true,
         package_windows: true
       })

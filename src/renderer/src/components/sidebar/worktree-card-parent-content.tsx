@@ -105,7 +105,9 @@ export function WorktreeCardParentContent({
         }
         onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
         onOpenReviewInManta={
-          hoverReview?.url && hoverReview.provider === 'github' ? handleOpenReviewInManta : undefined
+          hoverReview?.url && hoverReview.provider === 'github'
+            ? handleOpenReviewInManta
+            : undefined
         }
         onOpenReviewInBrowser={hoverReview?.url ? handleOpenReviewInBrowser : undefined}
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}

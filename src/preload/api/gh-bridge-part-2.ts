@@ -149,7 +149,8 @@ export const ghApiPart2 = {
     return () => ipcRenderer.removeListener('gh:workItemMutated', listener)
   },
   checkMantaStarred: (): Promise<boolean | null> => ipcRenderer.invoke('gh:checkMantaStarred'),
-  starManta: (source: AppStarSource): Promise<boolean> => ipcRenderer.invoke('gh:starManta', source),
+  starManta: (source: AppStarSource): Promise<boolean> =>
+    ipcRenderer.invoke('gh:starManta', source),
   rateLimit: (args?: { force?: boolean }): Promise<GetRateLimitResult> =>
     ipcRenderer.invoke('gh:rateLimit', args),
   diagnoseAuth: (args?: { host?: string }): Promise<GhAuthDiagnostic> =>

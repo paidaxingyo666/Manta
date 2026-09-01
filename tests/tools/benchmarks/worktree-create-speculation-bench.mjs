@@ -127,7 +127,13 @@ function benchmark(options) {
       const cancelledPath = path.join(scratchRoot, `cancel-${index}`)
       git(repo, ['worktree', 'add', '--detach', '--no-checkout', cancelledPath, base])
       git(cancelledPath, ['reset', '--hard', base])
-      git(repo, ['worktree', 'lock', '--reason', 'manta-create-preparation:v1:bench', cancelledPath])
+      git(repo, [
+        'worktree',
+        'lock',
+        '--reason',
+        'manta-create-preparation:v1:bench',
+        cancelledPath
+      ])
       samples.cancel.push(time(() => removeWorktree(repo, cancelledPath, undefined, true)))
     }
   } finally {

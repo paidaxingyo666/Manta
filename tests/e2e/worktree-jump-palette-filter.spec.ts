@@ -180,7 +180,9 @@ test.describe('Worktree jump-palette filters', () => {
     await filterTrigger(mantaPage).click()
     await expect(palette(mantaPage).getByText('No results match the active filter')).toBeVisible()
     await expect(
-      palette(mantaPage).getByText('Clear the filter above, or widen it to more hosts and projects.')
+      palette(mantaPage).getByText(
+        'Clear the filter above, or widen it to more hosts and projects.'
+      )
     ).toBeVisible()
 
     // P3: clear restores both rows; closing drops the ephemeral filter.

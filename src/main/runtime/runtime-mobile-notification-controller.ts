@@ -51,11 +51,7 @@ export class RuntimeMobileNotificationController {
     }
     // Scheduling must not delay or throw into live delivery.
     this.pushEscalation?.schedule(sequenced)
-    notifyRuntimeListeners(
-      this.listeners,
-      (listener) => listener(sequenced),
-      'mobile-notification'
-    )
+    notifyRuntimeListeners(this.listeners, (listener) => listener(sequenced), 'mobile-notification')
   }
 
   getMissedSince(lastSeenSeq: number, epoch?: string) {

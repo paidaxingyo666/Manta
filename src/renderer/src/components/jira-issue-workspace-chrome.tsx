@@ -199,11 +199,7 @@ export function JiraIssueMetadataBar({
               <CommandItem
                 value="unassigned"
                 onSelect={() =>
-                  void mutateIssue(
-                    'assignee',
-                    { assigneeAccountId: null },
-                    { assignee: undefined }
-                  )
+                  void mutateIssue('assignee', { assigneeAccountId: null }, { assignee: undefined })
                 }
                 className="jump-palette-item px-2 py-1.5 text-xs"
               >

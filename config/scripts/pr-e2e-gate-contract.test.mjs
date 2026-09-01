@@ -627,7 +627,8 @@ describe('PR E2E gate contract', () => {
     // Why this shape: a spec gated on a native-IME env var that no runner sets is a skip that
     // reports as a pass. This repo already carries such specs; the point is that they are named
     // as gaps rather than counted as coverage.
-    const nativeGateExpression = /MANTA_E2E_NATIVE_(?:IBUS_HANGUL|MACOS_KOREAN)\s*[!=]==\s*['"]1['"]/
+    const nativeGateExpression =
+      /MANTA_E2E_NATIVE_(?:IBUS_HANGUL|MACOS_KOREAN)\s*[!=]==\s*['"]1['"]/
     const nativeGatedSpecs = readdirSync(join(projectDir, 'tests/e2e'))
       .filter((file) => file.endsWith('.spec.ts'))
       .map((file) => `tests/e2e/${file}`)

@@ -132,11 +132,12 @@ describe('resolveWorkspaceDocAddressTarget', () => {
   })
 
   it('resolves Windows relative, drive, and UNC paths against their workspace roots', () => {
-    expect(resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, '.\\docs\\report.html'))
-      .toMatchObject({
-        status: 'workspace-doc',
-        docLocation: { worktreeId: CURRENT, filePath: 'C:\\Repo\\docs\\report.html' }
-      })
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, '.\\docs\\report.html')
+    ).toMatchObject({
+      status: 'workspace-doc',
+      docLocation: { worktreeId: CURRENT, filePath: 'C:\\Repo\\docs\\report.html' }
+    })
     expect(
       resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, 'c:\\repo\\docs\\report.html')
     ).toMatchObject({

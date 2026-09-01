@@ -14,8 +14,7 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
 
   protected isReleaseNotReadyFailure(sourceError: unknown): boolean {
     return (
-      sourceError instanceof ReleaseFeedPreflightError &&
-      sourceError.reason === 'release-not-ready'
+      sourceError instanceof ReleaseFeedPreflightError && sourceError.reason === 'release-not-ready'
     )
   }
 

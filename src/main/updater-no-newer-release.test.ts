@@ -18,13 +18,8 @@ import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-load
  * assume.
  */
 
-const {
-  appMock,
-  autoUpdaterMock,
-  fetchNewerReleaseTagsMock,
-  moduleFactories,
-  resetUpdaterMocks
-} = await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
+const { appMock, autoUpdaterMock, fetchNewerReleaseTagsMock, moduleFactories, resetUpdaterMocks } =
+  await vi.hoisted(async () => (await import('./updater-test-harness')).createUpdaterMocks())
 
 vi.mock('electron', () => moduleFactories.electron())
 vi.mock('electron-updater', () => moduleFactories.electronUpdater())

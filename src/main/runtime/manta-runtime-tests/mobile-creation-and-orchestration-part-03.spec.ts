@@ -431,7 +431,8 @@ describe('MantaRuntimeService', () => {
       await Promise.resolve()
 
       const pointerWrites = write.mock.calls.filter(
-        ([, payload]) => typeof payload === 'string' && payload.includes('manta orchestration check')
+        ([, payload]) =>
+          typeof payload === 'string' && payload.includes('manta orchestration check')
       )
       expect(pointerWrites).toHaveLength(1)
 

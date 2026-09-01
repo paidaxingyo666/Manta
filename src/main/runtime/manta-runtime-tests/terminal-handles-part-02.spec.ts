@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { TEST_WINDOW_ID, TEST_WORKTREE_ID, createRuntime } from '../manta-runtime-test-fixtures.spec'
+import {
+  TEST_WINDOW_ID,
+  TEST_WORKTREE_ID,
+  createRuntime
+} from '../manta-runtime-test-fixtures.spec'
 import '../manta-runtime-test-mocks.spec'
 
 describe('MantaRuntimeService', () => {
