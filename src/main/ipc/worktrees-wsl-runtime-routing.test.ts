@@ -266,21 +266,50 @@ describe('registerWorktreeHandlers', () => {
       }
     })
 
+    const wslRoutingOptions = { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
       ['check-ref-format', '--branch', 'contributor/wsl-fork'],
-      { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
+      wslRoutingOptions
+    )
+    // Mint: `-t <branch> --no-tags` (see #17828) keeps the remote's own default off the
+    // wide wildcard, then `ensureRemoteTracksBranchNarrowly` rewrites it to the trailing-`*`
+    // form immediately after -- both routed through the same WSL project runtime.
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      [
+        'remote',
+        'add',
+        '-t',
+        'contributor/wsl-fork',
+        '--no-tags',
+        'pr-contributor-manta',
+        'git@github.com:contributor/manta.git'
+      ],
+      wslRoutingOptions
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
-      ['remote', 'add', 'pr-contributor-manta', 'git@github.com:contributor/manta.git'],
-      { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
+      ['config', '--get-all', 'remote.pr-contributor-manta.fetch'],
+      wslRoutingOptions
+    )
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      [
+        'config',
+        '--add',
+        'remote.pr-contributor-manta.fetch',
+        '+refs/heads/contributor/wsl-fork*:refs/remotes/pr-contributor-manta/contributor/wsl-fork*'
+      ],
+      wslRoutingOptions
+    )
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      ['config', 'remote.pr-contributor-manta.tagOpt', '--no-tags'],
+      wslRoutingOptions
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
       [
         'fetch',
         'pr-contributor-manta',
-        '+refs/heads/contributor/wsl-fork:refs/remotes/pr-contributor-manta/contributor/wsl-fork'
+        '+refs/heads/contributor/wsl-fork*:refs/remotes/pr-contributor-manta/contributor/wsl-fork*'
       ],
-      { cwd: '/workspace/repo', wslDistro: 'Ubuntu' }
+      wslRoutingOptions
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
       ['branch', '--set-upstream-to', 'pr-contributor-manta/contributor/wsl-fork', 'wsl-fork'],

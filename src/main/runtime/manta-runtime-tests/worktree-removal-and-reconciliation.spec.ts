@@ -412,7 +412,7 @@ describe('MantaRuntimeService', () => {
         [
           'fetch',
           'pr-contributor-manta',
-          '+refs/heads/contributor/runtime-wsl:refs/remotes/pr-contributor-manta/contributor/runtime-wsl'
+          '+refs/heads/contributor/runtime-wsl*:refs/remotes/pr-contributor-manta/contributor/runtime-wsl*'
         ],
         { cwd: TEST_REPO_PATH, wslDistro: 'Ubuntu' }
       )
