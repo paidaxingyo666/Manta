@@ -175,6 +175,10 @@ describe('deregistered repo residue', () => {
     const store = await createStore()
     store.flush()
     expect(store.getWorkspaceSession('local').sleepingAgentSessionsByPaneKey ?? {}).toEqual({})
+    // On disk, not just in memory: if the flush had not persisted the cleanup, the next load would
+    // silently redo it and the self-clearing assertion below would pass without meaning anything.
+    const persisted = readDataFile() as PersistedState
+    expect(persisted.workspaceSession.sleepingAgentSessionsByPaneKey ?? {}).toEqual({})
 
     // Self-clearing: with the residue gone nothing re-seeds the orphan id, so the next launch has
     // no work. Before the fix this stayed non-empty forever and every load scheduled another save.
