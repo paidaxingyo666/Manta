@@ -110,8 +110,88 @@ def keep_whole_file(path: str) -> bool:
     return any(path == k or path.startswith(k) for k in KEEP_PATH)
 
 
-def rebrand_text(text: str, ref: str = 'HEAD'):
+WORD_CORE = re.compile(r'^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$')
+
+
+def word_core(s: str) -> str:
+    """What `git grep -w -F` effectively tests: the token with the non-word
+    characters at either end stripped, so `../manta-x` and `manta-x` are the
+    same evidence."""
+    return WORD_CORE.sub('', s)
+
+
+class Evidence:
+    """The fork's vocabulary, read once, so a whole history can be transformed
+    without a `git grep` per token.
+
+    `twins` is every Manta-form candidate that exists in `ref` as a whole word.
+    Found with one ripgrep pass over a checkout of `ref`: `git grep -f` with
+    thousands of `-w` patterns is superlinear (500 patterns took 83s), and
+    ripgrep's alternation is leftmost-first, so patterns go in longest-first or
+    a short one shadows every longer one that starts with it. Verified against
+    the per-token `git grep -w -F` on 300 files: identical decisions.
+    """
+
+    def __init__(self, ref: str, tokens):
+        self.ref = ref
+        cands = set()
+        for tok in tokens:
+            core = tok.rstrip('.,')
+            for q in ([core] + (core.split('__') if '__' in core else [])):
+                if not q or q in KEEP or any(k in q for k in KEEP_SUBSTRING):
+                    continue
+                tw = rebrand_token(q if q == core else f'__{q}__')
+                if tw != q:
+                    for c in (tw, tw.rsplit('/', 1)[-1]):
+                        c = word_core(c)
+                        if c:
+                            cands.add(c)
+        import tempfile, os, shutil
+        tmp = tempfile.mkdtemp(prefix='brand-evidence-')
+        tree = os.path.join(tmp, 'tree')
+        pat = os.path.join(tmp, 'patterns')
+        try:
+            subprocess.run(['git', 'worktree', 'add', '-q', '--detach', tree, ref], check=True, capture_output=True)
+            with open(pat, 'w') as f:
+                f.write('\n'.join(sorted(cands, key=lambda s: (-len(s), s))) + '\n')
+            out = subprocess.run(['rg', '-F', '-w', '-o', '--no-filename', '--no-line-number', '-f', pat, '.'],
+                                 capture_output=True, text=True, cwd=tree).stdout
+            self.twins = set(line for line in out.splitlines() if line)
+            files = subprocess.run(['git', 'ls-tree', '-r', '--name-only', ref],
+                                   capture_output=True, text=True).stdout.splitlines()
+        finally:
+            subprocess.run(['git', 'worktree', 'remove', '--force', tree], capture_output=True)
+            shutil.rmtree(tmp, ignore_errors=True)
+        self.paths = set(files)
+        self.dirs = set()
+        for path in files:
+            parts = path.split('/')
+            for i in range(1, len(parts)):
+                self.dirs.add('/'.join(parts[:i]))
+
+    def twin_exists(self, token: str) -> bool:
+        if token in KEEP or any(k in token for k in KEEP_SUBSTRING):
+            return False
+        twin = rebrand_token(token)
+        if twin == token:
+            return False
+        return word_core(twin) in self.twins or word_core(twin.rsplit('/', 1)[-1]) in self.twins
+
+    def path_twin(self, path: str) -> str:
+        if 'orca' not in path.lower():
+            return path
+        twin = rebrand_token(path)
+        if twin in self.paths:
+            return twin
+        parent = twin.rsplit('/', 1)[0] if '/' in twin else ''
+        if parent and parent in self.dirs:
+            return twin
+        return path
+
+
+def rebrand_text(text: str, ref: str = 'HEAD', evidence: 'Evidence | None' = None):
     """Return (new_text, renamed_tokens, declined_tokens)."""
+    exists = evidence.twin_exists if evidence else (lambda tok: manta_twin_exists(tok, ref))
     for upstream, ours in IDENTITY:
         text = text.replace(upstream, ours)
     renamed, declined = set(), set()
@@ -130,7 +210,7 @@ def rebrand_text(text: str, ref: str = 'HEAD'):
         if any(ph in text[max(0, m.start() - 40):m.end() + 40] for ph in KEEP_PHRASE):
             declined.add(tok)
             return whole
-        if manta_twin_exists(tok, ref):
+        if exists(tok):
             renamed.add(tok)
             return rebrand_token(tok) + tail
         # Two brand-bearing names can sit flush against each other —
@@ -138,9 +218,9 @@ def rebrand_text(text: str, ref: str = 'HEAD'):
         # glued to a fixture name it did not. Judge the halves separately.
         if '__' in tok:
             parts = tok.split('__')
-            if any(manta_twin_exists(f'__{q}__', ref) for q in parts if q):
+            if any(exists(f'__{q}__') for q in parts if q):
                 out = '__'.join(
-                    rebrand_token(q) if manta_twin_exists(f'__{q}__', ref) else q for q in parts)
+                    rebrand_token(q) if exists(f'__{q}__') else q for q in parts)
                 if out != tok:
                     renamed.add(tok)
                     return out + tail
