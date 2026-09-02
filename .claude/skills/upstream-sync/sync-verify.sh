@@ -26,10 +26,13 @@ step() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
 fail() { printf '\033[31m✗ %s\033[0m\n' "$1"; FAIL=1; }
 ok()   { printf '\033[32m✓ %s\033[0m\n' "$1"; }
 
-step "1/7 brand sweep (evidence-ruled)"
-python3 "$HERE/sweep-brand.py" "$SINCE" --apply | tee /tmp/sync-sweep.txt | head -3
+step "1/7 brand sweep (report only)"
+# The mirror already speaks Manta, so nothing upstream brought in still needs
+# renaming; what this finds is a fork file that lost its spelling, or a fixture
+# path the evidence rule would rename for no gain. Read it; apply by hand.
+python3 "$HERE/sweep-brand.py" "$SINCE" | tee /tmp/sync-sweep.txt | head -3
 if grep -q '^改名: [1-9]' /tmp/sync-sweep.txt; then
-  printf '  sweep changed files — read /tmp/sync-sweep.txt, then the "未改名" list below it.\n'
+  printf '  candidates above — see /tmp/sync-sweep.txt. Apply only what is a real regression.\n'
 fi
 
 step "2/7 resurrection audit"

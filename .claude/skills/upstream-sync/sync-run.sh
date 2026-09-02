@@ -1,68 +1,85 @@
 #!/usr/bin/env bash
-# Drive the cherry-pick, letting rebrand-merge.py absorb the brand-shaped
-# conflicts and stopping the moment something needs a person.
+# Sync from upstream: rebuild the mirror, rebase the fork's commits onto it.
+#
+#   sync-run.sh [--fork main] [--upstream upstream/main] [--branch sync/upstream-YYYYMMDD]
+#
+# What it does, and why in this order:
+#   1. fetch upstream, and stop if refs/sync/base already mirrors its tip
+#   2. build refs/sync/mirror — upstream speaking Manta, evidence = the fork
+#   3. cut the work branch from the fork and rebase it:
+#        git rebase --onto refs/sync/mirror refs/sync/base <branch>
+#      With both sides speaking Manta, every conflict is a real one: the same
+#      code changed on both sides. The rename can no longer conflict, and a
+#      file upstream deleted cannot come back by accident — the fork's edit to
+#      it stops the rebase as modify/delete and someone decides.
+#   4. on a clean rebase, hand off to sync-finish.sh; on conflicts, print what
+#      to do and exit 1. Resolve, `git rebase --continue`, then run
+#      sync-finish.sh yourself.
+#
+# Never run this on main. It writes refs/sync/mirror and the work branch only.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-# Hooks off for the duration. lint-staged reformats what it is given, and a
-# sync must land upstream's bytes, not a locally reformatted version of them —
-# the gates at the end are where formatting gets settled.
-export HUSKY=0
-PRIOR_HOOKS_PATH="$(git config --get core.hooksPath || true)"
-restore_hooks() {
-  if [ -n "$PRIOR_HOOKS_PATH" ]; then
-    git config core.hooksPath "$PRIOR_HOOKS_PATH"
-  else
-    git config --unset core.hooksPath 2>/dev/null || true
-  fi
-}
-# Every exit, not just the happy one: this script stops on purpose whenever a
-# conflict needs a person, and leaving hooks pointed at /dev/null would make
-# every later commit skip pre-commit without saying so.
-trap restore_hooks EXIT
-git config core.hooksPath /dev/null
-PICKS="${1:?usage: sync-run.sh <file-of-commit-shas>}"
-LOG="${2:-/tmp/sync-status.txt}"
-: > "$LOG"
-total=$(grep -c . "$PICKS")
-n=0
-# `|| [ -n "$c" ]`: a list written without a trailing newline loses its last
-# entry to a bare `read`, and the loop still reports success. It happened on the
-# 23 August sync — the newest upstream commit was missing and only turned up
-# because someone counted.
-while read -r c || [ -n "$c" ]; do
-  [ -z "$c" ] && continue
-  n=$((n + 1))
-  subj=$(git log -1 --format=%s "$c")
-  printf '[%d/%d] %s %s\n' "$n" "$total" "${c:0:10}" "${subj:0:70}"
-  if git cherry-pick -x "$c" >/dev/null 2>&1; then
-    echo "OK       $c  $subj" >> "$LOG"
-    continue
-  fi
-  # Empty picks are the common case here: upstream rewrote history, so some of
-  # what looks missing is already in the tree under a different SHA.
-  if [ -z "$(git diff --name-only --diff-filter=U)" ]; then
-    if git cherry-pick --skip >/dev/null 2>&1; then
-      echo "EMPTY    $c  $subj" >> "$LOG"
-      continue
-    fi
-  fi
-  python3 "$HERE/rebrand-merge.py" --apply > /tmp/rebrand-out.txt 2>&1
-  if [ -z "$(git diff --name-only --diff-filter=U)" ]; then
-    if git -c core.editor=true cherry-pick --continue >/dev/null 2>&1; then
-      echo "REBRAND  $c  $subj" >> "$LOG"
-      continue
-    fi
-    # Resolution can leave nothing to commit: the change was already in the
-    # tree, or it only ever touched files this fork does not carry.
-    if git cherry-pick --skip >/dev/null 2>&1; then
-      echo "EMPTIED  $c  $subj" >> "$LOG"
-      continue
-    fi
-  fi
-  echo "STOP     $c  $subj" >> "$LOG"
-  echo "--- 需要人工，剩余冲突 ---"
-  git diff --name-only --diff-filter=U
-  cat /tmp/rebrand-out.txt
-  exit 1
-done < "$PICKS"
-echo "全部完成"
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+FORK=main; UPSTREAM=upstream/main; BRANCH="sync/upstream-$(date +%Y%m%d)"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fork) FORK="$2"; shift 2 ;;
+    --upstream) UPSTREAM="$2"; shift 2 ;;
+    --branch) BRANCH="$2"; shift 2 ;;
+    *) echo "unknown arg $1" >&2; exit 2 ;;
+  esac
+done
+[ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "working tree not clean" >&2; exit 1; }
+BASE="$(git rev-parse --verify refs/sync/base 2>/dev/null)" || { echo "refs/sync/base missing — run sync-bootstrap.sh first" >&2; exit 1; }
+
+echo "== 1/4 fetch $UPSTREAM"
+git fetch -q upstream
+UP="$(git rev-parse "$UPSTREAM")"
+BASE_UP="$(git log -1 --format=%B "$BASE" | sed -n 's/^Mirror-Of: //p' | tail -1)"
+if [ "$UP" = "$BASE_UP" ]; then
+  echo "   already at upstream ${UP:0:12}; nothing to sync"; exit 0
+fi
+echo "   base mirrors ${BASE_UP:0:12}; upstream is at ${UP:0:12} ($(git rev-list --count "$BASE_UP..$UP" 2>/dev/null || echo '?') new commits)"
+
+echo "== 2/4 build mirror (evidence = $FORK)"
+python3 "$HERE/build-mirror.py" --upstream "$UPSTREAM" --evidence "$FORK" --ref refs/sync/mirror 2>&1 | grep -vE '^\s+[0-9]+/[0-9]+ commits' | sed 's/^/  /'
+MIRROR="$(git rev-parse refs/sync/mirror)"
+
+echo "== 3/4 rebase $FORK → $BRANCH onto mirror ${MIRROR:0:12}"
+# Merge drivers for the files that must not be merged line by line. Local
+# config: the driver names are committed in .gitattributes, the commands are not.
+git config merge.keepfork.name "keep the fork's version"
+git config merge.keepfork.driver 'cp %B %A'
+git config merge.keepupstream.name "keep upstream's version, regenerate afterwards"
+git config merge.keepupstream.driver 'true'
+git branch -f "$BRANCH" "$FORK"
+git checkout -q "$BRANCH"
+if git -c core.hooksPath=/dev/null rebase -q --onto refs/sync/mirror "$BASE" "$BRANCH" 2>/tmp/sync-rebase.err; then
+  echo "   clean"
+  echo "== 4/4 finish"
+  exec "$HERE/sync-finish.sh"
+fi
+
+echo
+echo "   rebase stopped. Conflicts:"
+git diff --name-only --diff-filter=U | sed 's/^/     /'
+echo
+cat <<'EOF'
+   How to read them:
+     mobile/**/*.tsx, *.ts      usually the fork's translate() wrapper against an
+                                upstream edit to the same line. Take upstream's
+                                side and re-localize afterwards:
+                                  git checkout --ours -- <file>; git add <file>
+                                sync-finish.sh runs the localizer over mobile/.
+     modify/delete              upstream deleted a file the fork edited. If the
+                                fork's edit was a fix upstream has since absorbed,
+                                take the deletion: git rm <file>. If it is fork
+                                feature, move the edit to wherever upstream put
+                                that code, then git rm the old path.
+     anything else              a genuine two-sided change. Resolve by hand.
+   (--ours is upstream during a rebase; --theirs is the fork's commit.)
+
+   Then:  git rebase --continue   and when it ends:  .claude/skills/upstream-sync/sync-finish.sh
+EOF
+exit 1
