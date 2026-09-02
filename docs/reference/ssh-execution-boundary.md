@@ -40,6 +40,14 @@ Two ways remote work _can_ actually stop:
 
 Reconnect re-attaches to the same live PTYs and replays a bounded buffer (`REPLAY_BUFFER_MAX`, a 102,400-code-unit tail). Output beyond that while you were away is lost to the client even though the process was never interrupted: **the transcript is truncated; the work stays `live`.**
 
+## Updating Manta strands relay-backed terminals
+
+There is a third outcome that is neither of the two above, and the vocabulary matters: the work does not stop, it becomes permanently unreachable.
+
+The relay's install directory — and therefore its socket path — is namespaced by a content hash of the relay bundle (`computeRemoteRelayDir` in `src/main/ssh/ssh-relay-versioned-install.ts`, consumed by `resolveRemoteInstallState` in `src/main/ssh/ssh-relay-deploy.ts`), and the daemon refuses any client whose bundle hash differs (`handleDaemonHandshakeFrame` in `src/relay/relay-handshake.ts`, exit `EXIT_CODE_VERSION_MISMATCH` 42). Two builds whose relay protocol is byte-identical still refuse each other. So the first reconnect after an app update deploys a new relay at a path the incumbent was never listening on, and cannot reach it even in principle. Every PTY the incumbent owns is `unverifiable` — running, unreachable, and never `exited`. The client's leases are attempted against a relay that never minted their ids, expired on the not-found answer (`handlePtyReattachFailure` in `src/main/ssh/ssh-relay-session.ts`), and the pane falls back to a cold-restore agent resume — or to a bare shell when no resumable provider session was captured for it. The old relay keeps its directory pinned against GC, because its socket really is live (`hasLiveRelaySocket` in `src/main/ssh/remote-install-gc.ts`). See #13852.
+
+The peer model does not have this failure, and that is the concrete reason behind "One host, one model" below. The daemon's endpoint is namespaced by a **semantic protocol version** rather than a build (`daemon-v<N>.sock`, from `getDaemonSocketPath` in `src/main/daemon/daemon-spawner.ts`), every earlier protocol version stays attachable (`PROTOCOL_VERSION` in `src/main/daemon/daemon-protocol-version.ts`), and a daemon holding live sessions is preserved across a version change instead of replaced (`shouldPreserveDaemonWithLiveSessions` in `src/main/daemon/daemon-replacement-preflight.ts`).
+
 ## Control plane
 
 On an SSH host, `manta` is a shim (`~/.manta-relay/bin/manta`) that proxies **back to the client's runtime** over the relay socket. Your repository, processes, and files remain remote — only the control plane is on the client. This is correct for an SSH target, but it has a consequence worth stating plainly:
