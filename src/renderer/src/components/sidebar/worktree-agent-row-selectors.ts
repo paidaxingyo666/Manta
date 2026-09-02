@@ -13,11 +13,18 @@ import {
   recordLiveEntriesFullRebuild
 } from './worktree-agent-live-index-patch'
 import { selectWorktreeAgentOrchestration } from './worktree-agent-orchestration-index'
+import { createWorktreeRecordSelector } from './worktree-record-selector-cache'
 import type { TerminalLayoutSnapshot } from '../../../../shared/terminal-tab-types'
 
-const EMPTY_LIVE_ENTRIES: AgentStatusEntry[] = []
-const EMPTY_MIGRATION_UNSUPPORTED_ENTRIES: MigrationUnsupportedPtyEntry[] = []
-const EMPTY_RETAINED: RetainedAgentEntry[] = []
+// Why frozen and exported: card hooks return these from their inactive branch,
+// so the identity has to be shared app-wide and safe from stray writes.
+export const EMPTY_LIVE_ENTRIES = Object.freeze([]) as unknown as AgentStatusEntry[]
+export const EMPTY_MIGRATION_UNSUPPORTED_ENTRIES = Object.freeze(
+  []
+) as unknown as MigrationUnsupportedPtyEntry[]
+export const EMPTY_RETAINED = Object.freeze([]) as unknown as RetainedAgentEntry[]
+export const EMPTY_TERMINAL_LAYOUTS: Record<string, TerminalLayoutSnapshot | undefined> =
+  Object.freeze({})
 // Why: selector unit tests often pass partial store mocks; production state
 // owns these maps, but missing mock maps should behave like empty slices.
 const EMPTY_RECORD = {}
@@ -280,13 +287,20 @@ export function selectRuntimeAgentOrchestrationForWorktree(
   return selectWorktreeAgentOrchestration(state, worktreeId)
 }
 
-export function selectTerminalLayoutsForWorktree(
-  state: Pick<AppState, 'tabsByWorktree' | 'terminalLayoutsByTabId'>,
-  worktreeId: string
-): Record<string, TerminalLayoutSnapshot | undefined> {
-  const out: Record<string, TerminalLayoutSnapshot | undefined> = {}
-  for (const tab of (state.tabsByWorktree ?? EMPTY_RECORD)[worktreeId] ?? []) {
-    out[tab.id] = (state.terminalLayoutsByTabId ?? EMPTY_RECORD)[tab.id]
+export const selectTerminalLayoutsForWorktree = createWorktreeRecordSelector<
+  Pick<AppState, 'tabsByWorktree' | 'terminalLayoutsByTabId'>,
+  Record<string, TerminalLayoutSnapshot | undefined>
+>({
+  readSources: (state) => [
+    state.tabsByWorktree ?? EMPTY_RECORD,
+    state.terminalLayoutsByTabId ?? EMPTY_RECORD
+  ],
+  empty: EMPTY_TERMINAL_LAYOUTS,
+  build: (state, worktreeId) => {
+    const out: Record<string, TerminalLayoutSnapshot | undefined> = {}
+    for (const tab of (state.tabsByWorktree ?? EMPTY_RECORD)[worktreeId] ?? []) {
+      out[tab.id] = (state.terminalLayoutsByTabId ?? EMPTY_RECORD)[tab.id]
+    }
+    return out
   }
-  return out
-}
+})
