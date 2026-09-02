@@ -27,10 +27,10 @@ const mocks = vi.hoisted(() => ({
     sessionOptionsSnapshot?: SessionOptionDescriptor[]
     attachDisabled?: boolean
   } | null,
-  modelSwitchOutcome: 'applied' as 'applied' | 'rejected' | 'interaction-required' | 'unknown',
+  modelSwitchOutcome: 'applied' as 'applied' | 'rejected' | 'unknown',
   confirmationObserver: null as {
     ready: Promise<void>
-    result: Promise<'applied' | 'rejected' | 'interaction-required' | 'unknown'>
+    result: Promise<'applied' | 'rejected' | 'unknown'>
     arm: ReturnType<typeof vi.fn>
     startDetection: ReturnType<typeof vi.fn>
     dispose: ReturnType<typeof vi.fn>
@@ -729,33 +729,6 @@ describe('NativeChatComposer', () => {
     )
     expect(mocks.confirmationObserver?.dispose).toHaveBeenCalledOnce()
     expect(onSwitchToTerminal).not.toHaveBeenCalled()
-  })
-
-  it('reveals Claude interaction only when the model switch needs user input', async () => {
-    mocks.sendHandle.settleAfterMs = 0
-    mocks.modelSwitchOutcome = 'interaction-required'
-    const onSwitchToTerminal = vi.fn()
-    render(
-      <NativeChatComposer
-        terminalTabId="tab-1"
-        paneKey="tab-1:leaf-1"
-        targetPtyId="pty-1"
-        agent="claude"
-        onSwitchToTerminal={onSwitchToTerminal}
-      />
-    )
-
-    await act(async () => {
-      await mocks.fieldProps?.sessionOptionsSurface?.setOption('model', 'fable')
-    })
-
-    expect(mocks.sendNativeChatMessageVerified).toHaveBeenCalledWith(
-      {},
-      'pty-1',
-      '/model fable',
-      expect.any(AbortSignal)
-    )
-    expect(onSwitchToTerminal).toHaveBeenCalledOnce()
   })
 
   it('types the Codex picker command and switches to the terminal', async () => {
