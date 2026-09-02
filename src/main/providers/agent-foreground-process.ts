@@ -11,6 +11,7 @@ import {
   type AgentForegroundResolutionOptions
 } from './windows-agent-foreground-process'
 import { isShellProcess } from '../../shared/shell-process-detection'
+import { selectForegroundProcessCandidate } from '../../shared/foreground-process-selection'
 
 export type { AgentForegroundResolutionOptions } from './windows-agent-foreground-process'
 export {
@@ -120,13 +121,6 @@ export async function confirmShellForegroundProcess(
   }
 }
 
-function candidateScore(row: ProcessTableRow & { depth: number }): number {
-  // Why: foreground descendants carry `+` in `ps stat` on Unix PTYs. Prefer
-  // them, then prefer leaf/deeper wrappers so `node /path/bin/codex` beats the
-  // parent shell but still lets the native child confirm the same identity.
-  return (row.stat.includes('+') ? 10_000 : 0) + row.depth
-}
-
 export async function resolveAgentForegroundProcess(
   shellPid: number | null | undefined,
   fallbackProcess: string | null,
@@ -191,30 +185,30 @@ export async function resolveAgentForegroundProcessWithAvailability(
   }
 }
 
-function resolveAgentForegroundProcessFromPs(
+export function resolveAgentForegroundProcessFromPs(
   rows: ProcessTableRow[],
   shellPid: number
 ): string | null {
   const shellRow = rows.find((row) => row.pid === shellPid)
-  const candidates = collectDescendants(rows, shellPid).sort(
-    (a, b) => candidateScore(b) - candidateScore(a)
-  )
+  const candidates = collectDescendants(rows, shellPid)
   // Why: `+` in `ps stat` marks the process holding the terminal foreground.
   // The root shell can hold it after Ctrl-Z, so use the whole PTY tree as the
   // foreground gate; otherwise a stopped agent child still masquerades as live.
   const foregroundIsKnown =
     shellRow?.stat.includes('+') === true ||
     candidates.some((candidate) => candidate.stat.includes('+'))
-  for (const candidate of candidates) {
-    if (foregroundIsKnown && !candidate.stat.includes('+')) {
-      continue
-    }
-    const recognized = recognizeAgentProcessFromCommandLine(candidate.command)
-    if (recognized) {
-      // Why: return the outer wrapper (omp) rather than the deeper wrapped child
-      // (pi) of a shell→omp→pi tree — see resolveOuterWrapperForegroundProcess.
-      return resolveOuterWrapperForegroundProcess(recognized, candidate, candidates)
-    }
+  const foregroundCandidates = foregroundIsKnown
+    ? candidates.filter((candidate) => candidate.stat.includes('+'))
+    : candidates
+  // Keep the complete process tree for ancestry checks. A recognized agent can
+  // sit above a non-foreground helper before another recognized process; the
+  // helper is filtered from selection but must remain traversable.
+  const ancestryCandidates = shellRow ? [{ ...shellRow, depth: 0 }, ...candidates] : candidates
+  const selected = selectForegroundProcessCandidate(foregroundCandidates, ancestryCandidates)
+  if (selected) {
+    // Why: return the outer wrapper (omp) rather than the deeper wrapped child
+    // (pi) of a shell→omp→pi tree — see resolveOuterWrapperForegroundProcess.
+    return resolveOuterWrapperForegroundProcess(selected.recognized, selected.candidate, candidates)
   }
   return null
 }

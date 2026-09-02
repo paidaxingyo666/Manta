@@ -6,17 +6,16 @@ import { promisify } from 'node:util'
 import {
   isAgentForegroundWrapperProcess,
   isExpectedAgentProcess,
-  recognizeAgentProcess,
-  recognizeAgentProcessFromCommandLine
+  recognizeAgentProcess
 } from '../shared/agent-process-recognition'
 import { getFirstCommandToken } from '../shared/command-token-scanner'
 import {
   getProcessTableIndex,
   getProcessTableSnapshot,
-  scoreForegroundCandidateRow,
   type ProcessTableIndex,
   type ProcessTableRow
 } from '../shared/process-table-snapshot'
+import { selectForegroundProcessCandidate } from '../shared/foreground-process-selection'
 import {
   resolveOuterWrapperForegroundProcess,
   shouldInspectOuterWrapperForegroundProcess
@@ -240,9 +239,7 @@ function getForegroundProcessNameFromProcessTable(
   // snapshot no longer each rebuild the parent/child map over every row.
   const index = getProcessTableIndex(rows)
   const root = index.byPid.get(pid)
-  const candidates = collectDescendants(index, pid).sort(
-    (a, b) => scoreForegroundCandidateRow(b) - scoreForegroundCandidateRow(a)
-  )
+  const candidates = collectDescendants(index, pid)
   // Why: SSH relays do not have the daemon's async wrapper cache. Inspect the
   // remote process tree so node/python agent entrypoints become real agents.
   const foregroundIsKnown =
@@ -264,13 +261,12 @@ function getForegroundProcessNameFromProcessTable(
   ) {
     return null
   }
-  for (const candidate of inspectionCandidates) {
-    const recognized = recognizeAgentProcessFromCommandLine(candidate.command)
-    if (recognized) {
-      // Why: return the outer wrapper (omp) rather than the deeper wrapped child
-      // (pi) of a shell→omp→pi tree — see resolveOuterWrapperForegroundProcess.
-      return resolveOuterWrapperForegroundProcess(recognized, candidate, candidates)
-    }
+  const ancestryCandidates = root ? [{ ...root, depth: 0 }, ...candidates] : candidates
+  const selected = selectForegroundProcessCandidate(inspectionCandidates, ancestryCandidates)
+  if (selected) {
+    // Why: return the outer wrapper (omp) rather than a deeper recognized helper
+    // in the same process lineage.
+    return resolveOuterWrapperForegroundProcess(selected.recognized, selected.candidate, candidates)
   }
   return null
 }
