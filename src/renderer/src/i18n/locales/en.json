@@ -15962,7 +15962,8 @@
           "none": "None",
           "search": "Search",
           "showUnreadOnly": "Show unread only",
-          "showChildAgents": "Show child agents"
+          "showChildAgents": "Show child agents",
+          "activityOptions": "Activity options"
         },
         "clearCompleted": {
           "clearedOne": "Cleared 1 completed agent",
@@ -17259,7 +17260,9 @@
   "dashboard": {
     "sidebar": {
       "label": "Agents",
-      "dashboardLabel": "Agent Dashboard"
+      "dashboardLabel": "Agent Dashboard",
+      "openActivity": "View activity",
+      "closeActivity": "Turn off activity view"
     }
   },
   "runtimeRpc": {
