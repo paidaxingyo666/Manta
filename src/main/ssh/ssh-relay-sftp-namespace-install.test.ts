@@ -85,6 +85,7 @@ import {
   RELAY_DEPLOY_TIMEOUT_MS
 } from './ssh-relay-deploy-timing'
 import { parseUnameToRelayPlatform } from './relay-protocol'
+import { decodeRemotePowerShellScript } from './ssh-remote-powershell'
 import {
   abandonInstall,
   finalizeInstall,
@@ -155,8 +156,7 @@ function issuedMarkerNames(): string[] {
 }
 
 function decodeCommand(command: string): string {
-  const match = command.match(/-EncodedCommand\s+([A-Za-z0-9+/=]+)/)
-  return match ? Buffer.from(match[1], 'base64').toString('utf16le') : command
+  return decodeRemotePowerShellScript(command)
 }
 
 function execCommands(): string[] {
