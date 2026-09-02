@@ -60,14 +60,21 @@ async function doResetRelay(targetId: string, target: SshTarget): Promise<void> 
     assertSshConnectsNotFenced()
     conn = await connectionManager!.connect(target)
   }
+  let relayStopAcknowledged = false
   try {
     await forceStopRelayForTarget(conn, targetId)
+    relayStopAcknowledged = true
   } finally {
     const ptyIds = new Set(getPtyIdsForConnection(targetId))
     for (const lease of persistedStore!.getSshRemotePtyLeases(targetId)) {
       if (lease.state !== 'terminated' && lease.state !== 'expired') {
         ptyIds.add(lease.ptyId)
-        persistedStore!.markSshRemotePtyLease(targetId, lease.ptyId, 'expired')
+        // Why: only a host-acknowledged force-stop may retire a lease. When it threw we never
+        // observed those shells, so expiring them would record a verdict we do not hold; mirrors
+        // ssh:terminateSessions, and the next connect re-attaches (or expires) them on evidence.
+        if (relayStopAcknowledged) {
+          persistedStore!.markSshRemotePtyLease(targetId, lease.ptyId, 'expired')
+        }
       }
     }
     // Why: reset force-kills the remote relay, so every local PTY handle it owned is stale even if the reset command failed after SIGTERM.
