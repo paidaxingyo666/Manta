@@ -7,7 +7,7 @@ const position = (pageNumber: number): PdfViewPosition => ({ pageNumber, top: 0,
 describe('sweepClosedPdfViewPositions', () => {
   it('deletes the unscoped :pdf entry', () => {
     const cache = new Map([['/a.pdf:pdf', position(4)]])
-    sweepClosedPdfViewPositions(cache, '/a.pdf')
+    sweepClosedPdfViewPositions(cache, ['/a.pdf'])
     expect(cache.size).toBe(0)
   })
 
@@ -17,7 +17,7 @@ describe('sweepClosedPdfViewPositions', () => {
       ['/a.pdf::tab-2:pdf', position(9)],
       ['/a.pdf::tab-3:pdf', position(11)]
     ])
-    sweepClosedPdfViewPositions(cache, '/a.pdf')
+    sweepClosedPdfViewPositions(cache, ['/a.pdf'])
     expect(cache.size).toBe(0)
   })
 
@@ -27,7 +27,7 @@ describe('sweepClosedPdfViewPositions', () => {
       ['/b.pdf:pdf', position(7)],
       ['/b.pdf::tab-2:pdf', position(8)]
     ])
-    sweepClosedPdfViewPositions(cache, '/a.pdf')
+    sweepClosedPdfViewPositions(cache, ['/a.pdf'])
     expect([...cache.keys()]).toEqual(['/b.pdf:pdf', '/b.pdf::tab-2:pdf'])
   })
 
@@ -36,13 +36,13 @@ describe('sweepClosedPdfViewPositions', () => {
       ['/report.pdf:pdf', position(2)],
       ['/report.pdf.bak:pdf', position(3)]
     ])
-    sweepClosedPdfViewPositions(cache, '/report.pdf')
+    sweepClosedPdfViewPositions(cache, ['/report.pdf'])
     expect([...cache.keys()]).toEqual(['/report.pdf.bak:pdf'])
   })
 
   it('is a no-op when the file has no cached position', () => {
     const cache = new Map([['/b.pdf:pdf', position(7)]])
-    sweepClosedPdfViewPositions(cache, '/a.pdf')
+    sweepClosedPdfViewPositions(cache, ['/a.pdf'])
     expect(cache.size).toBe(1)
   })
 })
