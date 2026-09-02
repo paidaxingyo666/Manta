@@ -52,13 +52,16 @@ export class MantaRuntimeWithTerminalCreateDeduplication extends MantaRuntimeWit
 
   protected async reconcileRemoteTerminalCreate(
     worktreeId: string,
-    terminalHandle: string
+    terminalHandle: string,
+    // Why: an aggregate listing drops a non-answering SSH host silently, which would read as
+    // absence. Scoping to the owning host makes an unreachable relay throw instead.
+    connectionId?: string | null
   ): Promise<RuntimeTerminalCreate | null> {
     if (!this.ptyController?.listProcesses) {
       throw new Error('runtime_unavailable')
     }
     const listed = await withTimeoutResult(
-      this.ptyController.listProcesses(),
+      this.ptyController.listProcesses(connectionId),
       PTY_CONTROLLER_LIST_TIMEOUT_MS
     )
     if (!listed.ok) {
