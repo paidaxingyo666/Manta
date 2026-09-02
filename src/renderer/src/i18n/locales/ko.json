@@ -13775,6 +13775,35 @@
         }
       },
       "automations": {
+        "AutomationListToolbar": {
+          "runs": "실행"
+        },
+        "AutomationRunsDashboard": {
+          "search": "실행 검색…",
+          "filters": "필터",
+          "host": "호스트",
+          "status": "상태",
+          "refresh": "실행 새로 고침",
+          "successful24h": "성공 · 24시간",
+          "failed24h": "실패 · 24시간",
+          "successful7d": "성공 · 7일",
+          "failed7d": "실패 · 7일",
+          "historyUnavailableOne": "자동화 1개의 실행 기록을 사용할 수 없습니다. 집계에는 사용 가능한 기록만 포함됩니다.",
+          "historyUnavailableMany": "자동화 {{count}}개의 실행 기록을 사용할 수 없습니다. 집계에는 사용 가능한 기록만 포함됩니다.",
+          "automation": "자동화",
+          "triggered": "트리거됨",
+          "trigger": "트리거",
+          "loading": "실행 로드 중…",
+          "noRuns": "아직 실행이 없습니다",
+          "emptyDescription": "자동화를 트리거하면 여기에 실행이 표시됩니다.",
+          "runs": "실행",
+          "local": "로컬",
+          "remote": "원격"
+        },
+        "AutomationsPageBreadcrumb": {
+          "ariaLabel": "자동화 탐색경로",
+          "runDetails": "실행 세부정보"
+        },
         "AutomationCustomCronPanel": {
           "3e3b2c369f": "Cron 식",
           "e81a02d61b": "저장하기 전에 유효한 5개 필드 크론을 입력하세요.",
