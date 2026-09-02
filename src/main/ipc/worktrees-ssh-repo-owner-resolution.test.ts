@@ -486,7 +486,9 @@ describe('registerWorktreeHandlers', () => {
     )
   })
 
-  // A repo that reaches its checkouts over SSH is not the runtime host's to condemn.
+  // A repo that reaches its checkouts over SSH is not the runtime host's to condemn. The refusal
+  // comes from `findExactRepoOwner`: a runtime `executionHostId` beside a `connectionId` is
+  // contradictory ownership evidence, so no owner resolves at all.
   it('refuses to retire a connection-backed repo under a runtime host id', async () => {
     const runtimeHostId = toRuntimeExecutionHostId('env-1')
     store.getRepos.mockReturnValue([

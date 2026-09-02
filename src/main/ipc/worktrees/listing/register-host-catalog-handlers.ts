@@ -111,12 +111,13 @@ export function registerHostCatalogHandlers(context: WorktreeIpcContext): void {
       ) {
         return nothingForgotten
       }
+      // No runtime arm in the check below: `findExactRepoOwner` already refuses a repo carrying both
+      // a runtime `executionHostId` and a `connectionId`, because `resolveRepoOwnershipEvidence`
+      // calls that pair contradictory and one non-owned candidate voids the whole lookup. A second
+      // check would be unreachable, and unreachable code on a destructive path reads as a guarantee
+      // it is not making.
       const repo = findExactRepoOwner(store, args?.repoId ?? '', requestedExecutionHostId)
-      // The connection must be the one the host id names, so a caller cannot retire a row belonging
-      // to a repo that reaches its checkouts some other way.
-      const connectionMatchesHost =
-        parsedHost.kind === 'ssh' ? repo?.connectionId === parsedHost.targetId : !repo?.connectionId
-      if (!repo || !connectionMatchesHost) {
+      if (!repo || (parsedHost.kind === 'ssh' && repo.connectionId !== parsedHost.targetId)) {
         return nothingForgotten
       }
       // Why: a folder workspace's meta IS the workspace record, not a checkout row — gcStaleWorktreeMeta skips
