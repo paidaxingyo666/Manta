@@ -44,10 +44,14 @@ git diff --name-only --diff-filter=A "$FORK" "$MIRROR" -- . | while read -r p; d
   if git log --diff-filter=D --format=%h -1 "$FORK" -- "$p" | grep -q .; then
     git rm -q --ignore-unmatch -- "$p"; echo "  dropped (fork deleted it before): $p"; continue
   fi
+  # Only the app's own source trees: a self-contained subproject (docs/site)
+  # imports nothing from them and must be kept or dropped whole.
   case "$p" in
-    *.ts|*.tsx|*.mjs|*.cjs|*.js)
-      stem="$(basename "$p" | sed -E 's/(\.(test|spec))?\.(ts|tsx|mjs|cjs|js)$//')"
-      if ! git grep -q -E "['\"/]${stem}['\"]" HEAD -- src mobile/src mobile/app config tests relay-server 2>/dev/null; then
+    src/*.ts|src/*.tsx|mobile/src/*.ts|mobile/src/*.tsx|mobile/app/*.ts|mobile/app/*.tsx)
+      stem="$(basename "$p" | sed -E 's/(\.(test|spec))?\.(ts|tsx)$//')"
+      # No ref: search the working tree, which is the fork's tree by now; HEAD
+      # is still the mirror commit and would answer for upstream's imports.
+      if ! git grep -q -E "['\"/]${stem}['\"]" -- src mobile/src mobile/app 2>/dev/null; then
         git rm -q --ignore-unmatch -- "$p"; echo "  dropped (nothing imports it): $p"
       fi ;;
   esac
