@@ -8,6 +8,7 @@ import { PTY_CONTROLLER_LIST_TIMEOUT_MS } from './manta-runtime-postlude'
 import { inferWorktreeIdFromPtyId } from './runtime-worktree-path-identity'
 import { getRegisteredSshState } from '../ssh/ssh-target-registry'
 import { LOCAL_EXECUTION_HOST_ID, toSshExecutionHostId } from '../../shared/execution-host'
+import { resolveWorktreeLaunchHost } from './worktree-launch-host-repo'
 import type { TuiAgent } from '../../shared/tui-agent'
 
 export class MantaRuntimeWithTerminalCreateDeduplication extends MantaRuntimeWithCreateAgentSession {
@@ -143,12 +144,20 @@ export class MantaRuntimeWithTerminalCreateDeduplication extends MantaRuntimeWit
     opts: { agent: TuiAgent; prompt: string; title?: string }
   ): Promise<RuntimeTerminalCreate> {
     const worktree = await this.resolveWorktreeSelector(worktreeSelector)
-    const repo = this.store?.getRepo(worktree.repoId)
+    // Why: the trust write lands in an agent's config on the machine that runs it, keyed by the
+    // workspace path. `getRepo(id)` is host-blind, so reading `connectionId` off it wrote a remote
+    // path into the *client's* config — the agent on the host never sees the trust (#11163).
+    // Same shape as the folder-create trust write fixed alongside this; the agent-launch half.
+    const resolution = resolveWorktreeLaunchHost(this.store?.getRepos() ?? [], worktree)
+    if (resolution.kind === 'ambiguous') {
+      throw new Error('worktree_execution_host_unresolved')
+    }
+    const repo = resolution.repo ?? this.store?.getRepo(worktree.repoId)
     if (!repo) {
       throw new Error('Repository for the selected workspace is no longer available.')
     }
     const startup = this.buildStartupForAgent(repo, opts.agent, opts.prompt)
-    await this.markWorkspaceTrustedForAgent(opts.agent, repo.connectionId, worktree.path)
+    await this.markWorkspaceTrustedForAgent(opts.agent, resolution.connectionId, worktree.path)
     return await this.createTerminal(`id:${worktree.id}`, {
       command: startup.startup.command,
       env: startup.startup.env,

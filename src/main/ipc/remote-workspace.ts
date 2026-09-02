@@ -12,7 +12,10 @@ import {
 } from '../../shared/remote-workspace-types'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import { getRepoIdFromWorktreeId } from '../../shared/worktree/id'
-import { parseExecutionHostId } from '../../shared/execution-host'
+import {
+  createRepoRowExecutionHostLookup,
+  resolveWorktreeExecutionHost
+} from '../../shared/worktree-execution-host-resolution'
 import { getRemoteWorkspaceNamespace } from './remote-workspace-namespace'
 import { registerRemoteWorkspaceNotificationHandler } from './remote-workspace-events'
 import { CLIENT_ID } from './remote-workspace-client-identity'
@@ -108,12 +111,15 @@ function targetForWorktree(
   worktreeId: string,
   executionHostId?: string
 ): string | null {
-  const parsedHostId = parseExecutionHostId(executionHostId)
-  if (parsedHostId?.kind === 'ssh') {
-    return parsedHostId.targetId
-  }
-  const repoId = getRepoIdFromWorktreeId(worktreeId)
-  return store.getRepo(repoId)?.connectionId ?? null
+  // Why: this decides which SSH target a workspace session is exported to. The old fallback read
+  // `getRepo(id)?.connectionId`, which is host-blind — the same repo id can name rows on several
+  // hosts, so a session could be published to a machine that never owned the worktree (#11163).
+  // Unresolvable ownership exports to nobody rather than guessing.
+  const resolution = resolveWorktreeExecutionHost(
+    createRepoRowExecutionHostLookup(store.getRepos()),
+    { repoId: getRepoIdFromWorktreeId(worktreeId), hostId: executionHostId ?? null }
+  )
+  return resolution.kind === 'resolved' ? resolution.connectionId : null
 }
 
 function exportSessionForTarget(

@@ -19,7 +19,7 @@ import type { Repo } from '../../shared/repo-types'
 import type { ProjectExecutionRuntimeResolution } from '../../shared/project-execution-runtime'
 import type { RuntimeWorktreeScanResult } from './repo-worktree-resolution-scan'
 import { getSshGitProviderGeneration } from '../providers/ssh-git-dispatch'
-import { getRepoExecutionHostId } from '../../shared/execution-host'
+import { getRepoExecutionHostId, getRepoSshConnectionId } from '../../shared/execution-host'
 import type { RuntimeWorktreeScanCache } from './manta-runtime-core'
 import { resolveWorktreeScanCacheTtlMs } from './runtime-worktree-scan-cache'
 
@@ -135,17 +135,21 @@ export class MantaRuntimeWithListKnownResolvedWorktreesForExplicitTarget extends
     repo: Repo,
     projectRuntimeByRepoId?: ReadonlyMap<string, ProjectExecutionRuntimeResolution>
   ): Promise<RuntimeWorktreeScanResult> {
+    // Resolve the execution host, not the raw field: an `executionHostId: 'ssh:*'` row with no
+    // `connectionId` would otherwise get a local project runtime and a `local:default` cache key,
+    // so its scan neither routes remotely nor re-runs when the SSH provider is replaced.
+    const sshConnectionId = getRepoSshConnectionId(repo)
     const projectRuntime = projectRuntimeByRepoId
       ? projectRuntimeByRepoId.get(repo.id)
-      : !repo.connectionId
+      : !sshConnectionId
         ? resolveLocalProjectRuntimeForRepo(this.requireStore(), repo)
         : undefined
     const runtimeKey = projectRuntime
       ? projectRuntime.status === 'resolved'
         ? projectRuntime.runtime.cacheKey
         : projectRuntime.repair.cacheKey
-      : repo.connectionId
-        ? `ssh:${repo.connectionId}:${getSshGitProviderGeneration(repo.connectionId)}`
+      : sshConnectionId
+        ? `ssh:${sshConnectionId}:${getSshGitProviderGeneration(sshConnectionId)}`
         : 'local:default'
     const now = Date.now()
     const scanScopeKey = `${repo.id}\0${getRepoExecutionHostId(repo)}`
@@ -176,7 +180,7 @@ export class MantaRuntimeWithListKnownResolvedWorktreesForExplicitTarget extends
         return this.listRepoWorktreesForResolution(repo, projectRuntimeByRepoId)
       }
       if (
-        (refresh.result.ok || !repo.connectionId) &&
+        (refresh.result.ok || !sshConnectionId) &&
         this.worktreeScanInFlight.get(scanScopeKey)?.promise === promise
       ) {
         const entry: RuntimeWorktreeScanCache = {
