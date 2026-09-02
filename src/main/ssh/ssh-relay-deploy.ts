@@ -77,6 +77,8 @@ import {
 import { detectRemoteHostPlatform } from './ssh-remote-platform-detection'
 import { powerShellCommand, powerShellLiteral, powerShellNativeArg } from './ssh-remote-powershell'
 import { relaySocketNameForInstanceId } from './ssh-relay-instance-id'
+import { resolveRelayEndpointBeforeRelaunch } from './ssh-relay-endpoint-takeover'
+import { sweepSupersededRelayEndpoints } from './ssh-relay-superseded-endpoints'
 import { isSshSessionLimitError } from './ssh-session-limit-error'
 import {
   isWindowsRelayPipePath,
@@ -580,6 +582,17 @@ async function deployAndLaunchRelayAttempt(
     hostPlatform,
     recoverOneStaleRelayUploadStageCommand(hostPlatform, uploadStagePoolDir)
   )
+    .catch(() => {})
+    // Why before GC: a superseded relay pins its version dir via the live-socket probe, so the
+    // sweep has to settle first or GC keeps every orphan's tree forever.
+    .then(() =>
+      sweepSupersededRelayEndpoints(conn, hostPlatform, {
+        remoteHome,
+        currentRelayDir: remoteRelayDir,
+        sockName: relaySocketNameForInstanceId(relayInstanceId),
+        nodePath: launched.nodePath
+      })
+    )
     .catch(() => {})
     .then(() =>
       gcOldRelayVersions(conn, remoteHome, remoteRelayDir, hostPlatform, {
@@ -1457,17 +1470,15 @@ async function launchRelay(
       } catch (err) {
         signal?.throwIfAborted()
         console.warn(
-          '[ssh-relay] Socket reconnect failed, launching fresh relay:',
+          '[ssh-relay] Socket reconnect failed, establishing what owns the endpoint:',
           err instanceof Error ? err.message : String(err)
         )
-        // Why: stale socket from a crashed relay — remove it so the fresh launch can bind at the same path.
-        await execCommand(conn, `rm -f ${shellEscape(sockFile)}`, { signal }).catch(
-          (cleanupErr) => {
-            if (isUnconfirmedSshCommandTermination(cleanupErr)) {
-              throw cleanupErr
-            }
-          }
-        )
+        // Why not `rm -f`: unlinking does not close the listener the incumbent already holds,
+        // so a refused --connect (version mismatch, rotated credential) used to leave a live
+        // relay running forever with its PTYs while a replacement bound the same path (#8585).
+        await resolveRelayEndpointBeforeRelaunch(conn, hostPlatform, nodePath, sockFile, err, {
+          signal
+        })
         signal?.throwIfAborted()
       }
     }
