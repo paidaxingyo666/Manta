@@ -4,6 +4,10 @@ import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { resolvePullRequestDiffBase } from './git-pull-request-diff-base.mjs'
+import {
+  partitionByAuthor,
+  upstreamRefIsAvailable
+} from './react-doctor-upstream-line-attribution.mjs'
 
 const SOURCE_FILE_PATTERN = /\.(?:[cm]?[jt]sx?)$/
 export const OXLINT_SCANS = [
@@ -313,14 +317,34 @@ export function main(
   }
 
   const baseBlocks = collectBaseLineBlocks(root, comparisonBase)
+  // Why: this fork carries upstream's source verbatim apart from the rename, so
+  // a sync presents thousands of upstream-authored lines as "added". A finding
+  // whose exact line also exists in upstream's copy is upstream's; with the ref
+  // fetched (see pr.yml) it is reported and not counted.
+  const upstreamRef = process.env.MANTA_UPSTREAM_REF ?? 'upstream/main'
+  const canAttribute = upstreamRefIsAvailable(upstreamRef)
 
   let failures = 0
   for (const scan of OXLINT_SCANS) {
-    const diagnostics = runOxlintScan(root, scan, files).filter(
+    let diagnostics = runOxlintScan(root, scan, files).filter(
       (diagnostic) =>
         !isSuppressedDiagnostic(diagnostic, root) &&
         diagnosticTouchesAddedLines(diagnostic, rangesByFile, root, baseBlocks)
     )
+    if (canAttribute && diagnostics.length > 0) {
+      const keyed = diagnostics.map((diagnostic) => ({
+        diagnostic,
+        filePath: normalizedDiagnosticPath(root, diagnostic.filename),
+        line: diagnostic.labels?.[0]?.span?.line
+      }))
+      const { ours, upstream } = partitionByAuthor(keyed, upstreamRef)
+      if (upstream.length > 0) {
+        console.log(
+          `${scan.label}: ${upstream.length} finding(s) on lines that also exist in ${upstreamRef} — upstream's, not counted.`
+        )
+      }
+      diagnostics = ours.map((entry) => entry.diagnostic)
+    }
     for (const diagnostic of diagnostics) {
       printDiagnostic(diagnostic, root)
     }

@@ -1,4 +1,4 @@
-import { createElement, useEffect } from 'react'
+import { createElement, type ReactElement, useEffect } from 'react'
 import { act, create } from 'react-test-renderer'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RpcClient } from '../transport/rpc-client'
@@ -84,10 +84,12 @@ async function flush(): Promise<void> {
 }
 
 describe('useMobileTerminalInventoryRecovery', () => {
-  // ReturnType<typeof create>: the root type-aware gate cannot resolve
-  // ReactTestRenderer out of mobile/node_modules and reports it as `any`.
-  let renderer: ReturnType<typeof create> | null = null
-  let bridgeRenderer: ReturnType<typeof create> | null = null
+  // A structural type, not ReactTestRenderer: the root type-aware gate cannot
+  // resolve react-test-renderer out of mobile/node_modules and sees `any`,
+  // which the no-redundant-type-constituents rule refuses in a union.
+  type Renderer = { unmount(): void; update(element: ReactElement): void }
+  let renderer: Renderer | null = null
+  let bridgeRenderer: Renderer | null = null
 
   async function mount(scopeKey = 'host::worktree-a'): Promise<void> {
     await act(async () => {
