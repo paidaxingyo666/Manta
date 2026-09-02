@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
 import { resolvePullRequestDiffBase } from './git-pull-request-diff-base.mjs'
+import { resolvePnpmCliInvocation } from './pnpm-cli-invocation.mjs'
 import {
   partitionByAuthor,
   upstreamRefIsAvailable
@@ -15,7 +16,19 @@ const requestedBase =
   'origin/main'
 const base = resolvePullRequestDiffBase(process.cwd(), requestedBase)
 const upstreamRef = process.env.MANTA_UPSTREAM_REF ?? 'upstream/main'
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+// Why validate rather than trust: `base` arrives from argv or the environment and
+// below it can reach cmd.exe unquoted, because resolvePnpmCliInvocation still
+// falls back to a shell when it cannot find a directly spawnable pnpm. It accepts
+// SHAs, tags, ref paths and the ^ ~ .. suffixes -- not reflog syntax like HEAD@{1},
+// because braces stay out of anything bound for cmd.exe. The error names the base.
+const GIT_REVISION = /^[A-Za-z0-9._/@^~-]+$/
+if (!GIT_REVISION.test(base)) {
+  throw new Error(`Refusing to pass an unsafe diff base to pnpm: ${base}`)
+}
+// Why the shim and not a direct binary: `dlx` fetches react-doctor on demand, so
+// only the pnpm CLI can run it. resolvePnpmCliInvocation prefers whatever
+// npm_execpath exposes -- pnpm 12's own pnpm.exe, spawned with no shell.
+const { command, prefixArgs, shell } = resolvePnpmCliInvocation()
 
 // Why the fork owns everything when upstream is out of reach: a missing remote
 // must not quietly relax the gate. Without attribution this behaves exactly as
@@ -47,7 +60,11 @@ if (!canAttribute) {
   console.warn(
     `react-doctor: ${upstreamRef} is not available, so every finding is attributed to this fork.`
   )
-  const passthrough = spawnSync(pnpm, args, { stdio: 'inherit' })
+  const passthrough = spawnSync(command, [...prefixArgs, ...args], {
+    stdio: 'inherit',
+    shell,
+    windowsHide: true
+  })
   if (passthrough.error) {
     throw passthrough.error
   }
@@ -55,9 +72,11 @@ if (!canAttribute) {
   process.exit(passthrough.status ?? 1)
 }
 
-const result = spawnSync(pnpm, [...args.slice(0, -1), 'none', '--json', '--json-out', reportPath], {
-  stdio: 'inherit'
-})
+const result = spawnSync(
+  command,
+  [...prefixArgs, ...args.slice(0, -1), 'none', '--json', '--json-out', reportPath],
+  { stdio: 'inherit', shell, windowsHide: true }
+)
 if (result.error) {
   throw result.error
 }

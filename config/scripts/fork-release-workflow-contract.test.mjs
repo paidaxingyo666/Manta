@@ -28,8 +28,13 @@ describe('fork release workflow contract', () => {
         .flatMap((job) => job.steps ?? [])
         .filter((step) => String(step.uses ?? '').startsWith('pnpm/'))
         .map((step) => String(step.uses))
+    // Upstream's own workflows (gated on their repository slug) never run here
+    // and may pin whatever they like; the contract is with the ones that do.
+    const upstreamOnly = (file) =>
+      readFileSync(join(dir, file), 'utf8').includes("github.repository == 'stablyai/orca'")
     const shared = readdirSync(dir)
       .filter((f) => f.endsWith('.yml') && f !== 'fork-release.yml' && f !== 'relay-release.yml')
+      .filter((f) => !upstreamOnly(f))
       .flatMap(pnpmSteps)
     const canonical = [...new Set(shared)]
     expect(canonical, 'shared workflows disagree on the pnpm action').toHaveLength(1)

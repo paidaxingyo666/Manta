@@ -48,7 +48,7 @@ describe('packaged node-pty launcher-surviving grandchild', () => {
 
     expect(launch.program).toMatch(/wscript\.exe$/i)
     expect(launch.args).toEqual([
-      expect.stringMatching(/real-orca-detached-launcher\.vbs$/),
+      expect.stringMatching(/real-manta-detached-launcher\.vbs$/),
       process.execPath,
       probePath,
       '--grandchild-member',

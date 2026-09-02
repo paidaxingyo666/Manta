@@ -202,6 +202,7 @@ export function resolveWindowsShellLaunchArgs(
     const powerShellCommand = getPowerShellEncodedCommand(nativeCwd, startupCommand)
     // Why: foreground-process status on Windows depends on OSC 133 C/D, and
     // PowerShell needs a prompt/readline bootstrap after profiles finish.
+    // Why base64 and not -Command: see powershell-osc133-bootstrap.ts (MDE review).
     return {
       shellArgs: ['-NoLogo', '-NoExit', '-EncodedCommand', powerShellCommand.encodedCommand],
       ...(powerShellCommand.startupCommandDeliveredInShellArgs

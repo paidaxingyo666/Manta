@@ -9,7 +9,7 @@
  * node-pty only ever sees the one we picked.
  *
  * The prebuilds themselves are built from the PATCHED source (config/patches/node-pty@1.1.0.patch)
- * by config/scripts/build-orcad-prebuilds.mjs. An upstream tarball would not do: the patch
+ * by config/scripts/build-mantad-prebuilds.mjs. An upstream tarball would not do: the patch
  * carries the `.symver` pins and the `--no-as-needed` libutil/libpthread flags that hold the
  * Ubuntu 20.04 / glibc 2.31 floor (docs/reference/linux-glibc-compatibility.md).
  */

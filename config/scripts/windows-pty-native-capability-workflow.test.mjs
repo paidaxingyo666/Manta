@@ -81,7 +81,7 @@ describe('packaged Windows PTY native capability routing', () => {
     expect(source).not.toContain("from 'node:child_process'")
     expect(source).not.toContain("require('node:child_process')")
     expect(probe).toContain("'System32', 'wscript.exe'")
-    expect(probe).toContain('real-orca-detached-launcher.vbs')
+    expect(probe).toContain('real-manta-detached-launcher.vbs')
     expect(probe).not.toMatch(/cmd\.exe|start "" \/b/i)
     expect(probe).toContain('native.terminateJob(target._pty, target.pid)')
   })

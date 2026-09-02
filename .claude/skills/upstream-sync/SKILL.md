@@ -62,6 +62,13 @@ What conflicts look like, and what to do:
 | lockfiles, skill manifests | never — `.gitattributes` keeps upstream's; `sync-finish.sh` regenerates | — |
 | anything else | a genuine two-sided change | read both, resolve by hand |
 
+The first real sync on this model, 2026-09-02, crossed 86 upstream commits:
+11 files conflicted, 5 taken by rule, 6 read and resolved (two additive
+scripts, a docs section the fork owns, a styles file git correctly matched to
+the fork's rename, two tests where upstream's version was simply newer). The
+repair commit afterwards was 19 files, every one either a brand seam the rule
+now covers or an upstream pin re-based to the fork's bytes.
+
 After the rebase, **read what the mirror declined** (`build-mirror.py` prints
 the top of it; `sweep-brand.py refs/sync/base` lists it for the tree). A
 brand-bearing name upstream introduced this sync that neither rule could
@@ -146,6 +153,16 @@ All of them import one rule, `brand_rule.py`:
   ending in `-`/`_` (a mkdtemp prefix), or a `/tmp` path. On the replayed
   sync it covered 42% of what the direct rule declined, at 100% precision on
   a sample.
+- **SEGMENT** — a relative import (`../main/orcad/x`) never matches a
+  repository-relative family, but `mantad` being a directory here decides it.
+  Any path segment whose Manta form is a file or directory name the fork has
+  counts. Missed once: three typecheck errors and twenty test files that
+  could not load.
+- **DOTTED** — a token with two or more dots and no slash is a key, judged
+  segment by segment: `remote.<name>.orca-created` renames its last segment
+  because `manta-created` is what the desktop reads, while `orca.host.x`
+  stays because a bare brand segment proves nothing. One dot and a short
+  extension is a filename (`orca-installer-hooks.nsh`), never a key.
 - **KEEP** — the few that do and must still stay: `stablyai/orca` (guards the
   workflows this fork must never run), the skill aliases, `/usr/bin/orca` and
   the phrase `GNOME Orca` (Ubuntu's screen reader — the reason the Linux binary

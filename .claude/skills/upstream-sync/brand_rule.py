@@ -135,7 +135,7 @@ def _prefixes(word: str):
     return out
 
 
-_EXT = re.compile(r'\.(ts|tsx|js|mjs|cjs|json|jsonc|md|mdx|yml|yaml|png|jpg|gif|svg|txt|sh|py|vbs|cmd|ps1|plist|rb|toml|lock|html|css)$')
+_EXT = re.compile(r'\.[a-z0-9]{1,6}$')
 
 
 def _no_family(twin: str) -> bool:
@@ -144,7 +144,14 @@ def _no_family(twin: str) -> bool:
         return True
     if twin.startswith(('/tmp/', '/private/tmp/', '/var/folders/')):
         return True
-    return '.' in core and '/' not in core and not _EXT.search(core)
+    # A dotted key (`orca.web.onboarding.v1`, `orca.host.appEnvironment`) has two
+    # or more dots and no slash; a filename has one dot and a short extension.
+    # An allowlist of extensions missed `.nsh` and left a Windows installer
+    # include pointing at a file the mirror had already renamed.
+    if '/' in core:
+        return False
+    dots = core.count('.')
+    return dots >= 2 or (dots == 1 and not _EXT.search(core))
 
 
 def _qualified_family(prefix: str) -> bool:
@@ -210,10 +217,15 @@ class Evidence:
             shutil.rmtree(tmp, ignore_errors=True)
         self.paths = set(files)
         self.dirs = set()
+        # Every directory and file basename the fork has. A relative import such
+        # as `../main/orcad/x` never matches a repo-relative family, but the
+        # segment `mantad` being a directory here decides it just the same.
+        self.segments = set()
         for path in files:
             parts = path.split('/')
             for i in range(1, len(parts)):
                 self.dirs.add('/'.join(parts[:i]))
+            self.segments.update(parts)
 
     def twin_exists(self, token: str) -> bool:
         if token in KEEP or any(k in token for k in KEEP_SUBSTRING):
@@ -222,6 +234,11 @@ class Evidence:
         if twin == token:
             return False
         if word_core(twin) in self.twins or word_core(twin.rsplit('/', 1)[-1]) in self.twins:
+            return True
+        # A file or directory the fork already has, named in a path or on its own.
+        # A filename never appears as a word inside any file, so this is the only
+        # evidence a bare `real-orca-launcher.vbs` string can have.
+        if any(re.search(r'[Mm]anta', seg) and seg in self.segments for seg in word_core(twin).split('/')):
             return True
         return self.in_family(twin)
 
@@ -287,6 +304,23 @@ def rebrand_text(text: str, ref: str = 'HEAD', evidence: 'Evidence | None' = Non
         if exists(tok):
             renamed.add(tok)
             return rebrand_token(tok) + tail
+        # A dotted key is judged segment by segment. `remote.<name>.orca-created`
+        # is a git config key whose last segment the fork already renamed
+        # (`manta-created` is what the desktop reads), while `orca.host.x` must
+        # stay: a bare brand segment proves nothing, so only a segment that
+        # carries more than the brand and has a direct twin is renamed.
+        if '.' in tok and '/' not in tok and tok.count('.') >= 1:
+            segs = tok.split('.')
+            out_segs, changed = [], False
+            for seg in segs:
+                tw = rebrand_token(seg)
+                if tw != seg and tw.lower() != 'manta' and exists(seg):
+                    out_segs.append(tw); changed = True
+                else:
+                    out_segs.append(seg)
+            if changed:
+                renamed.add(tok)
+                return '.'.join(out_segs) + tail
         # Two brand-bearing names can sit flush against each other —
         # `__ORCA_AGENT_PATH__orca-fake-cli` is a sentinel this fork renamed
         # glued to a fixture name it did not. Judge the halves separately.

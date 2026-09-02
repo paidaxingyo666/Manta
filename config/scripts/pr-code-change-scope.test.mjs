@@ -216,7 +216,7 @@ describe('per-job path classification', () => {
         package_windows: true
       })
     }
-    expectClassification(['src/main/orcad/orcad-native-preflight.ts'], {
+    expectClassification(['src/main/mantad/mantad-native-preflight.ts'], {
       package: true,
       package_windows: true
     })

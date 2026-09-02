@@ -4,9 +4,8 @@ import { AuthFailedBanner } from '../components/AuthFailedBanner'
 import { HostDiagnosticsLink } from '../components/HostDiagnosticsLink'
 import { HostRouteNoticeBanner } from '../components/HostRouteNoticeBanner'
 import { MobileRepoIcon } from '../components/MobileRepoIcon'
-import { HostWorkspaceSearchBar } from '../components/HostWorkspaceSearchBar'
+import { MobileSearchField } from '../components/MobileSearchField'
 import { NewWorkspaceFab, FAB_SIZE } from '../components/NewWorkspaceFab'
-import { SearchWorkspacesFab } from '../components/SearchWorkspacesFab'
 import { WorktreeListRow } from '../components/WorktreeListRow'
 import { styles } from '../theme/host-home-styles'
 import { colors, spacing } from '../theme/mobile-theme'
@@ -15,6 +14,7 @@ import { HostWorkspaceListStates } from '../worktree/host-workspace-list-states'
 import { getWorktreeStatus } from '../worktree/workspace-list-sections'
 import { repoColor } from '../worktree/repo-color'
 import type { HostScreenController } from './use-host-screen-controller'
+import { translate } from '../i18n/i18n'
 
 export function HostWorkspaceList({ controller }: { controller: HostScreenController }) {
   const {
@@ -76,7 +76,17 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
 
       {/* Search bar */}
       {state.showSearch && (
-        <HostWorkspaceSearchBar value={state.search} onChangeText={state.setSearch} />
+        <View style={styles.searchBar}>
+          <MobileSearchField
+            value={state.search}
+            onChangeText={state.setSearch}
+            placeholder={translate('m.host.workspace.list.29ea335328', 'Search worktrees…')}
+            autoFocus
+            // Why: new key per open remounts the focus effect across rapid toggles so the keyboard reappears.
+            focusKey={state.showSearch}
+            accessibilityLabel="Search worktrees"
+          />
+        </View>
       )}
 
       <HostWorkspaceListStates
@@ -102,7 +112,7 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
           // Why: edge-to-edge under the system nav bar; insets.bottom keeps the last row above it.
           contentContainerStyle={[
             styles.list,
-            // Reserve room so the last phone row stays tappable above the floating actions.
+            // Reserve room so the last row stays tappable above the phone's floating "+" (embedded uses the toolbar +).
             { paddingBottom: (embedded ? spacing.lg : FAB_SIZE + spacing.xl) + insets.bottom },
             isWideLayout &&
               !embedded && { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' }
@@ -174,18 +184,12 @@ export function HostWorkspaceList({ controller }: { controller: HostScreenContro
         />
       )}
 
-      {/* Phone actions float above the safe area; embedded layouts use the toolbar. */}
+      {/* Floating "new workspace" button — phone only; embedded sidebars keep the toolbar +. */}
       {!embedded && (
-        <>
-          <SearchWorkspacesFab
-            active={state.showSearch}
-            onPress={() => state.setShowSearch((s) => !s)}
-          />
-          <NewWorkspaceFab
-            onPress={actions.openNewWorktreeModal}
-            disabled={connState !== 'connected'}
-          />
-        </>
+        <NewWorkspaceFab
+          onPress={actions.openNewWorktreeModal}
+          disabled={connState !== 'connected'}
+        />
       )}
     </>
   )

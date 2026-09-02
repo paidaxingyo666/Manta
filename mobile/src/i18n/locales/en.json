@@ -23,7 +23,8 @@
             "4b6ffdb276": "No matching worktrees",
             "26afe48a65": "worktree.ps failed ({{value0}}) — retrying automatically",
             "9f6f3e7d1c": "Could not load workspaces from this host"
-          }
+          },
+          "29ea335328": "Search worktrees…"
         }
       },
       "endpoint": {

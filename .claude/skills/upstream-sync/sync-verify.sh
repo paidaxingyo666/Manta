@@ -61,9 +61,11 @@ fi
 
 step "3/7 twin audit"
 # orca-X and manta-X side by side is a rename that landed as a copy.
-twins=$(git ls-files | grep -iE '(^|/)orca[-_]' | while read -r f; do
-  m="$(echo "$f" | sed -E 's/(^|\/)orca([-_])/\1manta\2/')"
-  [ -e "$m" ] && echo "$f  ↔  $m"; done)
+# Anywhere in a segment, not only at its start: `real-orca-launcher.vbs` beside
+# `real-manta-launcher.vbs` is the same copy-instead-of-rename.
+twins=$(git ls-files | grep -i 'orca' | while read -r f; do
+  m="$(echo "$f" | sed -E 's/ORCA/MANTA/g; s/Orca/Manta/g; s/orca/manta/g')"
+  [ "$m" != "$f" ] && [ -e "$m" ] && echo "$f  ↔  $m"; done)
 if [ -n "$twins" ]; then fail "orca-/manta- twins present:"; echo "$twins" | sed 's/^/    /'; else ok "no orca-/manta- twins"; fi
 
 step "4/7 regenerate generated artifacts"
