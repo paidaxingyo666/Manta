@@ -41,7 +41,7 @@ export default function SidebarAgentsList({
 }: SidebarAgentsListProps): React.JSX.Element {
   // The search row is owned here and mounts conditionally, so subscribe this host to locale changes.
   useTranslation()
-  // Why store-backed: these are persisted preferences (agents* UI fields), unlike the momentary read filter/search.
+  // Why store-backed: these are persisted preferences (agents* UI fields), unlike the momentary search.
   const compactMode = useAppStore((s) => s.agentsCompactMode)
   const setCompactMode = useAppStore((s) => s.setAgentsCompactMode)
   const showChildAgents = useAppStore((s) => s.agentsShowChildAgents)

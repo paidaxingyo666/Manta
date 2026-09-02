@@ -21,22 +21,20 @@ import {
   useActivityTerminalLoadingLabel,
   useActivityTerminalPortalStatus
 } from './activity-terminal-portal-status'
-import type {
-  ActivityGroupBy,
-  ActivityTerminalPortalSlotId,
-  ThreadReadFilter
-} from './activity-thread-types'
+import type { ActivityTerminalPortalSlotId } from './activity-thread-types'
 
 export * from './activity-prototype-page-exports'
 
 export default function ActivityPrototypePage(): React.JSX.Element {
-  const [readFilter, setReadFilter] = useState<ThreadReadFilter>('all')
-  const [groupBy, setGroupBy] = useState<ActivityGroupBy>('status')
   const [query, setQuery] = useState('')
   const activityFilterInputRef = useRef<HTMLInputElement | null>(null)
   // Why: bounds auto mark-read to one acknowledgement per selected thread turn.
   const autoAcknowledgedTurnRef = useRef<string | null>(null)
   // Why store-backed: persisted preferences shared with the sidebar agents list.
+  const readFilter = useAppStore((s) => s.agentsReadFilter)
+  const setReadFilter = useAppStore((s) => s.setAgentsReadFilter)
+  const groupBy = useAppStore((s) => s.agentsGroupBy)
+  const setGroupBy = useAppStore((s) => s.setAgentsGroupBy)
   const compactMode = useAppStore((s) => s.agentsCompactMode)
   const setCompactMode = useAppStore((s) => s.setAgentsCompactMode)
   const showChildAgents = useAppStore((s) => s.agentsShowChildAgents)
