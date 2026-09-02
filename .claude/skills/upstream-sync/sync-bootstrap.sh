@@ -46,7 +46,10 @@ done
 #    at this fork.
 python3 - <<'PY'
 import subprocess, pathlib, re
-files = subprocess.run(['git', 'grep', '-l', '-F', 'stablyai/manta', '--', '.'], capture_output=True, text=True).stdout.split()
+# The slug is spelled from parts so this script never matches itself: it did
+# once, rewrote its own search pattern into a no-op, and committed that.
+SLUG = 'stablyai/' + 'manta'
+files = subprocess.run(['git', 'grep', '-l', '-F', SLUG, '--', '.', ':!.claude/skills/upstream-sync'], capture_output=True, text=True).stdout.split()
 real = re.compile(r'(publish-complete-draft-releases|setup-hourly-release-token|macos-launch-diagnostics|latest-stable-release|create-draft-release)\.(mjs|sh|cjs)$')
 n_fix = n_real = 0
 for f in files:
@@ -55,7 +58,7 @@ for f in files:
         continue
     t = p.read_text()
     is_real = bool(real.search(f)) and not ('.test.' in f)
-    new = t.replace('stablyai/manta', 'paidaxingyo666/Manta' if is_real else 'stablyai/orca')
+    new = t.replace(SLUG, 'paidaxingyo666/Manta' if is_real else 'stablyai/orca')
     if new != t:
         p.write_text(new)
         n_real += is_real; n_fix += (not is_real)
