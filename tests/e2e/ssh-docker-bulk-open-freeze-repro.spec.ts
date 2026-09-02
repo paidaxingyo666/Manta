@@ -55,11 +55,11 @@ test.describe('R2 Docker SSH bulk-open freeze', () => {
   test('bulk-open many flooding SSH terminals and measure renderer lag @freeze-repro', async ({
     mantaPage,
     registerPostElectronShutdownCleanup
-  }) => {
+  }, testInfo) => {
     test.setTimeout(420_000)
     let target: DockerSshRelayTarget | null = null
     try {
-      target = startDockerSshRelayTarget()
+      target = startDockerSshRelayTarget(testInfo)
       registerPostElectronShutdownCleanup(async () => {
         if (target) {
           cleanupDockerSshRelayTarget(target)
