@@ -87,6 +87,21 @@ describe('PtyHandler', () => {
     expect(notifMethods).not.toContain('pty.ackData')
   })
 
+  it('rescans the process table for a close decision but not for a poll', async () => {
+    const hasChildren = vi.mocked(ptyShellUtils.processHasChildren)
+    const { id } = (await spawnPty({ cols: 80, rows: 24 })) as { id: string }
+    hasChildren.mockClear()
+
+    await dispatcher.callRequest('pty.inspectProcess', { id })
+    // The poll shares the TTL-cached table the foreground lookup already took.
+    expect(hasChildren).toHaveBeenLastCalledWith(mockPtyInstance.pid)
+
+    await dispatcher.callRequest('pty.hasChildProcesses', { id })
+    // This RPC only ever gates a destructive decision (window close, workspace
+    // cleanup), so it has to see a child started inside the 500ms window.
+    expect(hasChildren).toHaveBeenLastCalledWith(mockPtyInstance.pid, { fresh: true })
+  })
+
   it('rejects strict process inspection for a missing relay PTY', async () => {
     await expect(dispatcher.callRequest('pty.inspectProcess', { id: 'missing' })).rejects.toThrow(
       'terminal_gone'

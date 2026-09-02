@@ -1990,8 +1990,7 @@ export class PtyHandler {
     }
 
     // Why: verify liveness because shells can exit without node-pty onExit.
-    if (managed.pty.pid && !isProcessAlive(managed.pty.pid)) {
-      this.reapExitedPty(managed)
+    if (this.reapPtyProvenExited(managed)) {
       throw new Error(`PTY "${id}" not found`)
     }
 
@@ -2109,8 +2108,39 @@ export class PtyHandler {
     const cols = Math.max(1, Math.min(500, Math.floor(Number(params.cols) || 80)))
     const rows = Math.max(1, Math.min(500, Math.floor(Number(params.rows) || 24)))
     const managed = this.ptys.get(id)
-    if (managed && !managed.disposed) {
+    if (!managed || managed.disposed) {
+      return
+    }
+    // Why probe (same probe attach() and listProcesses() run): a shell that
+    // exited without node-pty's `onExit` leaves an undisposed entry behind, and
+    // while it stays the relay keeps advertising a dead shell and keeps holding
+    // `activePtyCount` above zero, which is what stops a relay with
+    // `relayGracePeriodSeconds: 0` from ever reaching its idle-no-ptys exit
+    // (#12423). This is retirement, not ioctl safety: only ESRCH from the host
+    // that owns the pid is evidence of `exited`.
+    if (this.reapPtyProvenExited(managed)) {
+      return
+    }
+    // The patched node-pty retires `_fd` in the same block that gives up the
+    // master (config/patches/node-pty@1.1.0.patch), which makes a resize past
+    // that point a no-op rather than a TIOCSWINSZ aimed at a reused descriptor.
+    // That covers only part of the window and does not cover this process at
+    // all: libuv closes the fd synchronously inside `uv_close`, before the JS
+    // `'close'` that runs `_close()`, and a relay host installs node-pty from
+    // npm, where the patch is not applied. So the catch below stays.
+    try {
       managed.pty.resize(cols, rows)
+    } catch (err) {
+      // A failed ioctl observed the handle, not the host's process table, so on
+      // its own it is `unverifiable`. Re-probe: a now-absent pid retires the
+      // entry, anything else keeps it and is contained here rather than
+      // escaping as a parse error on every later resize.
+      if (this.reapPtyProvenExited(managed)) {
+        return
+      }
+      process.stderr.write(
+        `[pty-handler] resize failed for PTY ${id} whose process is still live or unverifiable: ${err instanceof Error ? err.message : String(err)}\n`
+      )
     }
   }
 
@@ -2249,9 +2279,7 @@ export class PtyHandler {
       if (this.ptys.get(managed.id) !== managed || managed.disposed) {
         return
       }
-      const pid = managed.pty.pid
-      if (pid && !isProcessAlive(pid)) {
-        this.reapExitedPty(managed)
+      if (this.reapPtyProvenExited(managed)) {
         return
       }
       if (attemptsRemaining <= 0) {
@@ -2278,17 +2306,74 @@ export class PtyHandler {
     managed.reapTimer = timer
   }
 
-  /** Retire every record for a PTY whose process is proven gone. Shared by the attach probe, the
-   *  listing probe and the post-shutdown sweep so the three cannot drift on what "gone" retires. */
-  private reapExitedPty(managed: ManagedPty): void {
+  /**
+   * Retire every record for a PTY whose process is proven gone. Shared by the attach probe, the
+   * listing probe and the post-shutdown sweep so the three cannot drift on what "gone" retires.
+   *
+   * `evidence` is not decoration: `exited` publishes a verdict to the client, and only ESRCH from
+   * the host that owns the pid earns it. The disposed-record sweep retires off our own
+   * bookkeeping, which says we tore the record down — not that the shell died — so it stays
+   * silent (docs/reference/ssh-execution-boundary.md).
+   */
+  private reapExitedPty(managed: ManagedPty, evidence: 'exited' | 'record-torn-down'): void {
     managed.physicalExit?.markExited()
     this.releaseRelayIngress(managed)
     this.flushPtyOutput(managed.id)
+    if (evidence === 'exited') {
+      this.publishReapedExit(managed)
+    }
     this.notifyExitListener(managed)
     this.agentSessionOwners.release(managed.id)
     disposeManagedPty(managed)
     this.removePty(managed.id)
     this.clearPtyFlowState(managed.id)
+  }
+
+  /**
+   * A reap is an exit the client has to hear about. `notifyExitListener` is
+   * relay-internal, so a retirement that stops there leaves the pane mounted
+   * against a session the relay has already forgotten — the next attach answers
+   * `PTY "<id>" not found` and nothing before it said why. `resize` made that
+   * user-triggered.
+   *
+   * `-1` is this wire's "gone, status unrecoverable": the pid is proven absent
+   * (ESRCH from the host that owns it) but nothing waited on the shell, so no
+   * status exists. `ssh-relay-session` already publishes the same code for a
+   * dropped lease. Reached only from the proven-exited path — a client that acts
+   * on this retires the pane, so nothing weaker than ESRCH may reach it.
+   */
+  private publishReapedExit(managed: ManagedPty): void {
+    // Why the guard: node-pty's own `onExit` already queued and published this
+    // pty's real exit code before reaching here, and the sweep also reaps
+    // entries that path left behind.
+    if (managed.exitListenerNotified || this.pendingExitByPty.has(managed.id)) {
+      return
+    }
+    this.pendingExitByPty.set(managed.id, {
+      id: managed.id,
+      code: -1,
+      incarnationId: managed.incarnationId
+    })
+    this.publishPendingExit(managed.id)
+  }
+
+  /**
+   * Retire this entry when the host proves its pid is gone; report whether it was.
+   *
+   * `managed.disposed` is bookkeeping, not liveness: it says we tore the record
+   * down, not that the shell died. A shell can exit without node-pty producing
+   * `onExit`, which leaves a non-disposed entry holding a handle whose master fd
+   * is already closed. Only `isProcessAlive` (ESRCH, from the host that owns the
+   * process) is positive evidence of absence; every other outcome is
+   * `unverifiable` and keeps its record and owner claim
+   * (docs/reference/ssh-execution-boundary.md).
+   */
+  private reapPtyProvenExited(managed: ManagedPty): boolean {
+    if (!managed.pty.pid || isProcessAlive(managed.pty.pid)) {
+      return false
+    }
+    this.reapExitedPty(managed, 'exited')
+    return true
   }
 
   private async sendSignal(params: Record<string, unknown>): Promise<void> {
@@ -2429,7 +2514,12 @@ export class PtyHandler {
     if (!managed || managed.disposed) {
       return false
     }
-    return await processHasChildren(managed.pty.pid)
+    // Fresh, not TTL-cached: this RPC exists to gate destructive decisions (the
+    // window-close confirmation, workspace cleanup's idle evidence), which act
+    // on the answer once. `pty.inspectProcess` below stays on the shared
+    // snapshot because it is the polled path, where a scan per pane per tick is
+    // the fork storm the cache removed.
+    return await processHasChildren(managed.pty.pid, { fresh: true })
   }
 
   private async getForegroundProcess(params: Record<string, unknown>): Promise<string | null> {
@@ -2494,8 +2584,11 @@ export class PtyHandler {
       }
     }
     for (const [entryIndex, [id, managed]] of managedEntries.entries()) {
-      if (managed.disposed || (managed.pty.pid && !isProcessAlive(managed.pty.pid))) {
-        this.reapExitedPty(managed)
+      if (managed.disposed) {
+        this.reapExitedPty(managed, 'record-torn-down')
+        continue
+      }
+      if (this.reapPtyProvenExited(managed)) {
         continue
       }
       // Reuse batched correlation; per-PTY tree scans recreate O(PTY × rows) work.
