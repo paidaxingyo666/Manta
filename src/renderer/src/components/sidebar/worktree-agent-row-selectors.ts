@@ -80,7 +80,10 @@ export function reuseArrayIfEqual<T>(previous: T[] | undefined, next: T[]): T[] 
   return previous
 }
 
-function getTabIdToWorktreeId(
+// Why exported: the Settings -> Repositories runtime summary needs the same
+// tab -> worktree index, and rebuilding it there would re-walk every tab bucket
+// on each store write.
+export function getTabIdToWorktreeId(
   tabsByWorktree: WorktreeAgentRowsState['tabsByWorktree']
 ): Map<string, string> {
   if (tabWorktreeIndexCache?.tabsByWorktree === tabsByWorktree) {
