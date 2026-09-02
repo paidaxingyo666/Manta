@@ -14,7 +14,9 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 NEW="${1:-sync/mirror-bootstrap}"
-REPO="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+# From origin, not `gh repo view`: with an `upstream` remote configured, gh
+# answers for the parent repository and every API call below hits 404.
+REPO="$(git remote get-url origin | sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##')"
 git rev-parse --verify "$NEW" >/dev/null
 git rev-parse --verify refs/sync/base >/dev/null || { echo "refs/sync/base missing" >&2; exit 1; }
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "working tree not clean" >&2; exit 1; }
