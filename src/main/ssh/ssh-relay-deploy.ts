@@ -841,7 +841,7 @@ async function probeRequiredNativeDeps(
           hostPlatform,
           nodePath,
           remoteDir,
-          `try { & ${powerShellLiteral(nodePath)} -e ${powerShellNativeArg(probeJs)} } catch { 'MISSING' }`
+          `try { & ${powerShellLiteral(nodePath)} -e ${powerShellNativeArg(probeJs)}; if ($LASTEXITCODE -ne 0) { 'MISSING' } } catch { 'MISSING' }`
         )
       : // Why: no `2>/dev/null` — it discarded the only line that says why node never reached the
         // script. stderr stays its own stream so it can't be mistaken for the verdict, mirroring
