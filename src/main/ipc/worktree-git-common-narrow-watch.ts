@@ -24,7 +24,12 @@ export async function startGitCommonNarrowWatch(
   platform: NodeJS.Platform,
   visibility: WorktreePollerWindowVisibility,
   onFullScan?: () => void,
-  onWatchError?: (error: Error) => void
+  onWatchError?: (error: Error) => void,
+  // Why: a dropped event batch (>5,000 events, e.g. a fleet-wide bulk op) is a
+  // harder loss signal than a transient error — nothing about the prior state
+  // can be trusted, so this bypasses onWatchError's failure cooldown instead
+  // of reusing it.
+  onOverflow?: () => void
 ): Promise<WorktreeBaseSubscription> {
   const worktreesDir = join(target.path, 'worktrees')
   const watcherOptions = platform === 'win32' ? { backend: 'windows' as const } : {}
@@ -226,6 +231,23 @@ export async function startGitCommonNarrowWatch(
               } else {
                 onEvents([{ type: 'update', path: worktreesDir }])
               }
+            }
+          },
+          // Why: the watcher child drops the whole batch past 5,000 events
+          // (native FSEvents overflow maps to the same op) instead of reporting
+          // which paths changed. Unlike a transient error, this is definite
+          // proof of loss, so it always widens rather than falling back to the
+          // failure-cooldown-gated onWatchError path.
+          onOverflow: () => {
+            if (disposed || !active || generation !== nativeSubscriptionGeneration) {
+              return
+            }
+            if (onOverflow) {
+              onOverflow()
+            } else if (onWatchError) {
+              onWatchError(new Error('Git common watcher overflowed'))
+            } else {
+              onEvents([{ type: 'update', path: worktreesDir }])
             }
           }
         }

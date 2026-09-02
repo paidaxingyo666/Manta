@@ -31,7 +31,8 @@ export async function startGitCommonWatch(
   visibility: WorktreePollerWindowVisibility,
   onFullScan?: () => void,
   getStatusRefPaths: () => readonly string[] = () => [],
-  onWatchError?: (error: Error) => void
+  onWatchError?: (error: Error) => void,
+  onOverflow?: () => void
 ): Promise<WorktreeBaseSubscription> {
   if (supportsNarrowWatch(platform)) {
     const [narrowWatch, primaryWatch] = await Promise.all([
@@ -42,7 +43,8 @@ export async function startGitCommonWatch(
         platform,
         visibility,
         onFullScan,
-        onWatchError
+        onWatchError,
+        onOverflow
       ),
       startGitCommonPrimaryWatch(
         target.path,
