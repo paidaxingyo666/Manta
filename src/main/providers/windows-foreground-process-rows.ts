@@ -1,7 +1,4 @@
-import {
-  collectDescendantsFromIndex,
-  getProcessTableIndex
-} from '../../shared/process-table-snapshot'
+import { collectDescendantsFromIndex, getProcessTableIndex } from '../../shared/process-table-index'
 import {
   readWindowsProcessTable,
   readWindowsProcessTableFresh,

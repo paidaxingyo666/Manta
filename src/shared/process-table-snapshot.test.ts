@@ -7,18 +7,20 @@ const { execFileMock } = vi.hoisted(() => ({ execFileMock: vi.fn() }))
 vi.mock('node:child_process', () => ({ execFile: execFileMock }))
 
 import {
-  buildProcessTableIndex,
   createProcessTableSnapshotReader,
-  getProcessTableIndex,
   getProcessTableSnapshot,
   getStrictProcessTableSnapshot,
   parseProcessTableRows,
   parseStrictProcessTableRows,
   ProcessTableCaptureError,
   PS_MAX_BUFFER_BYTES,
-  resetProcessTableSnapshotForTests,
-  type ProcessTableIndexStats
+  resetProcessTableSnapshotForTests
 } from './process-table-snapshot'
+import {
+  buildProcessTableIndex,
+  getProcessTableIndex,
+  type ProcessTableIndexStats
+} from './process-table-index'
 
 function deferred<T>(): {
   promise: Promise<T>

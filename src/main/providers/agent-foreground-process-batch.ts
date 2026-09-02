@@ -7,13 +7,15 @@ import { resolveOuterWrapperForegroundProcess } from '../../shared/foreground-wr
 import { selectForegroundProcessCandidate } from '../../shared/foreground-process-selection'
 import type { ForegroundProcessEvidence } from '../../shared/foreground-process-evidence'
 import {
-  buildProcessTableIndex,
   getStrictProcessTableSnapshot,
-  lookupProcessTableIndex,
   type ProcessTableIndex,
-  type ProcessTableIndexStats,
   type ProcessTableRow
 } from '../../shared/process-table-snapshot'
+import {
+  buildProcessTableIndex,
+  lookupProcessTableIndex,
+  type ProcessTableIndexStats
+} from '../../shared/process-table-index'
 
 export type BatchedForegroundProcessRequest = {
   rootPid: number
