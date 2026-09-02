@@ -12,7 +12,7 @@ import type {
   CombinedDiffFileTreeEntry,
   CombinedDiffFileTreeMode
 } from '../resolve-changes/combined-diff-section-identity'
-import { CombinedDiffFileTreeRow } from './combined-diff-file-tree-row'
+import { CombinedDiffFileTreeRows } from './combined-diff-file-tree-rows'
 import { useCombinedDiffFileTreeResize } from './use-combined-diff-file-tree-resize'
 import { translate } from '@/i18n/i18n'
 import {
@@ -50,6 +50,8 @@ export function CombinedDiffFileTree({
   const [query, setQuery] = React.useState('')
   const [excludedExtensions, setExcludedExtensions] = React.useState<Set<string>>(() => new Set())
   const [includeViewed, setIncludeViewed] = React.useState(true)
+  // Why: state, not a ref — the virtualized row lists need the scroller on their own mount pass.
+  const [listScrollElement, setListScrollElement] = React.useState<HTMLDivElement | null>(null)
   const { handleResizeKeyDown, handleResizeStart, maxWidth, minWidth, treeRef, width } =
     useCombinedDiffFileTreeResize(collapsed)
   const toggleDirectory = React.useCallback((key: string) => {
@@ -171,6 +173,17 @@ export function CombinedDiffFileTree({
     return null
   }
 
+  const sharedRowProps = {
+    mode,
+    worktreePath,
+    activeSectionKey,
+    sectionIndexByKey,
+    collapsedDirectoryKeys,
+    scrollElement: listScrollElement,
+    onToggleDirectory: toggleDirectory,
+    onNavigate
+  }
+
   return (
     // Why: this column must be height-bounded so the file list, not the page,
     // owns overflow when review diffs have more files than fit on screen.
@@ -283,7 +296,7 @@ export function CombinedDiffFileTree({
           </Popover>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto py-1 scrollbar-sleek">
+      <div ref={setListScrollElement} className="min-h-0 flex-1 overflow-auto py-1 scrollbar-sleek">
         {visibleEntryCount === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
             {translate(
@@ -309,20 +322,11 @@ export function CombinedDiffFileTree({
                   <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                     {group.label}
                   </div>
-                  {rows.map((node) => (
-                    <CombinedDiffFileTreeRow
-                      key={node.key}
-                      node={node}
-                      mode={mode}
-                      worktreePath={worktreePath}
-                      activeSectionKey={activeSectionKey}
-                      sectionIndexByKey={sectionIndexByKey}
-                      isCollapsed={collapsedDirectoryKeys.has(node.key)}
-                      visibleFileCount={visibleFileCounts?.get(node.key)}
-                      onToggleDirectory={toggleDirectory}
-                      onNavigate={onNavigate}
-                    />
-                  ))}
+                  <CombinedDiffFileTreeRows
+                    rows={rows}
+                    visibleFileCounts={visibleFileCounts}
+                    {...sharedRowProps}
+                  />
                 </div>
               )
             })}
@@ -334,38 +338,20 @@ export function CombinedDiffFileTree({
                     'Committed on Branch'
                   )}
                 </div>
-                {(branchVisibleRows?.rows ?? branchRows).map((node) => (
-                  <CombinedDiffFileTreeRow
-                    key={node.key}
-                    node={node}
-                    mode={mode}
-                    worktreePath={worktreePath}
-                    activeSectionKey={activeSectionKey}
-                    sectionIndexByKey={sectionIndexByKey}
-                    isCollapsed={collapsedDirectoryKeys.has(node.key)}
-                    visibleFileCount={branchVisibleRows?.visibleFileCounts.get(node.key)}
-                    onToggleDirectory={toggleDirectory}
-                    onNavigate={onNavigate}
-                  />
-                ))}
+                <CombinedDiffFileTreeRows
+                  rows={branchVisibleRows?.rows ?? branchRows}
+                  visibleFileCounts={branchVisibleRows?.visibleFileCounts}
+                  {...sharedRowProps}
+                />
               </div>
             ) : null}
           </>
         ) : (
-          (branchVisibleRows?.rows ?? branchRows).map((node) => (
-            <CombinedDiffFileTreeRow
-              key={node.key}
-              node={node}
-              mode={mode}
-              worktreePath={worktreePath}
-              activeSectionKey={activeSectionKey}
-              sectionIndexByKey={sectionIndexByKey}
-              isCollapsed={collapsedDirectoryKeys.has(node.key)}
-              visibleFileCount={branchVisibleRows?.visibleFileCounts.get(node.key)}
-              onToggleDirectory={toggleDirectory}
-              onNavigate={onNavigate}
-            />
-          ))
+          <CombinedDiffFileTreeRows
+            rows={branchVisibleRows?.rows ?? branchRows}
+            visibleFileCounts={branchVisibleRows?.visibleFileCounts}
+            {...sharedRowProps}
+          />
         )}
       </div>
       <div
