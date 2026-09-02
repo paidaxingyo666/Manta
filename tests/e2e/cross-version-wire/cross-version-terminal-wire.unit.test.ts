@@ -32,8 +32,12 @@ import {
 
 // Why: a cold CI run extracts the baseline checkout before the first journey.
 const SUITE_TIMEOUT_MS = 180_000
-// Last stable release before SnapshotStart began publishing terminal mode metadata.
-const TERMINAL_MODE_METADATA_LEGACY_REF = 'v1.4.190'
+// Last shipped build before SnapshotStart began publishing terminal mode metadata.
+// Upstream names its v1.4.190; this fork's remote carries only its own tags, so
+// the hard-coded upstream ref fails on CI while passing on a clone that still
+// has them locally. v1.4.189-rc.10 is the fork's last release before the change
+// (terminalOwner first appears in its v1.4.191-rc.0) and is on origin.
+const TERMINAL_MODE_METADATA_LEGACY_REF = 'v1.4.189-rc.10'
 
 /**
  * The frames one journey must produce, named rather than numbered so a diff reads
