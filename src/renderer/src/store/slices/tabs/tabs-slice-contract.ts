@@ -152,6 +152,8 @@ export type TabsSlice = {
     renderableTabCount: number
     activeRenderableTabId: string | null
   }
+  /** Reconciles many workspaces through one store write instead of one per workspace. */
+  reconcileWorktreeTabModels: (worktreeIds: readonly string[]) => void
   hydrateTabsSession: (
     session: WorkspaceSessionState,
     options?: WorkspaceSessionHydrationOptions

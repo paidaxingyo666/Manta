@@ -198,7 +198,7 @@ export function useAppStartupHydration(onOnboardingLoaded: (state: OnboardingSta
             actions.hydrateBrowserSession(sessionRead.session, sessionHydrationOptions)
             reconcileHydratedWorkspaceTabModels(
               sessionRead.session,
-              useAppStore.getState().reconcileWorktreeTabModel
+              useAppStore.getState().reconcileWorktreeTabModels
             )
           })
           await timeRendererStartupStep('prepare-terminal-startup-restoration', () =>
