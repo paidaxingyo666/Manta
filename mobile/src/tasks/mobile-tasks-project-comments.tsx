@@ -23,6 +23,7 @@ import {
   renderCommentReactions,
   projectRowType
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProjectComments(model: ConnectionPresentationModel) {
   const {
@@ -53,13 +54,15 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
   return projectRowDetail?.provider === 'github' ? (
     <View style={styles.detailSection}>
       <View style={styles.detailSectionHeader}>
-        <Text style={styles.detailSectionTitle}>Discussion</Text>
+        <Text style={styles.detailSectionTitle}>
+          {translate('m.tasks.01798c4ff8', 'Discussion')}
+        </Text>
         <Text style={styles.detailSectionMeta}>
           {discussionSummary(projectRowDetail.comments.length)}
         </Text>
       </View>
       {projectRowDetail.comments.length === 0 ? (
-        <Text style={styles.detailMuted}>No comments.</Text>
+        <Text style={styles.detailMuted}>{translate('m.tasks.0fb53b901e', 'No comments.')}</Text>
       ) : (
         projectDetailCommentGroups.map((group) => {
           const groupId = detailCommentGroupId(group)
@@ -81,11 +84,16 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                 }
               >
                 <Text style={styles.resolvedCommentTitle} numberOfLines={1}>
-                  Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by{' ' as string}
-                  {commentAuthor(root)}
+                  {translate('m.tasks.6267438140', 'Resolved')}{' '}
+                  {group.kind === 'thread'
+                    ? translate('m.tasks.4f9ae79c6d', 'thread')
+                    : translate('m.tasks.a71fb209e4', 'comment')}{' '}
+                  {translate('m.tasks.364aac3cc7', 'by')} {commentAuthor(root)}
                 </Text>
                 <Text style={styles.detailSectionMeta}>
-                  {count > 1 ? `${count} comments` : 'Show'}
+                  {count > 1
+                    ? translate('m.tasks.52fd613db0', '{{value0}} comments', { value0: count })
+                    : translate('m.tasks.cf57cc3c02', 'Show')}
                 </Text>
               </Pressable>
             )
@@ -120,7 +128,7 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                       style={[styles.input, styles.commentInput]}
                       value={projectEditingCommentDraft}
                       onChangeText={setProjectEditingCommentDraft}
-                      placeholder="Edit comment"
+                      placeholder={translate('m.tasks.9683022203', 'Edit comment')}
                       placeholderTextColor={colors.textMuted}
                       multiline
                       textAlignVertical="top"
@@ -131,7 +139,9 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                         disabled={projectMutating || projectEditingCommentDraft.trim().length === 0}
                         onPress={() => void updateProjectRowComment(projectRowItem, comment)}
                       >
-                        <Text style={styles.inlineSaveText}>Save</Text>
+                        <Text style={styles.inlineSaveText}>
+                          {translate('m.tasks.c7158b292f', 'Save')}
+                        </Text>
                       </Pressable>
                       <Pressable
                         style={styles.inlineSaveButtonCompact}
@@ -141,7 +151,9 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                           setProjectEditingCommentDraft('')
                         }}
                       >
-                        <Text style={styles.inlineSaveText}>Cancel</Text>
+                        <Text style={styles.inlineSaveText}>
+                          {translate('m.tasks.16fee5cb7d', 'Cancel')}
+                        </Text>
                       </Pressable>
                     </View>
                   </>
@@ -160,7 +172,9 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                             }
                           >
                             <Text style={styles.inlineSaveText}>
-                              {comment.isResolved ? 'Reopen thread' : 'Resolve thread'}
+                              {comment.isResolved
+                                ? translate('m.tasks.a84735398a', 'Reopen thread')
+                                : translate('m.tasks.4638e5d620', 'Resolve thread')}
                             </Text>
                           </Pressable>
                         ) : null}
@@ -173,7 +187,7 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                               [commentId]: next
                             }))
                           }
-                          placeholder="Reply"
+                          placeholder={translate('m.tasks.d8cc91fe24', 'Reply')}
                           placeholderTextColor={colors.textMuted}
                           multiline
                           textAlignVertical="top"
@@ -183,7 +197,9 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                           disabled={projectMutating || !(itemReplyDrafts[commentId] ?? '').trim()}
                           onPress={() => void replyToProjectGitHubComment(projectRowItem, comment)}
                         >
-                          <Text style={styles.inlineSaveText}>Reply</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate('m.tasks.d8cc91fe24', 'Reply')}
+                          </Text>
                         </Pressable>
                         <Pressable
                           style={styles.inlineSaveButtonCompact}
@@ -193,14 +209,18 @@ export function renderMobileTasksProjectComments(model: ConnectionPresentationMo
                             setProjectEditingCommentDraft(comment.body)
                           }}
                         >
-                          <Text style={styles.inlineSaveText}>Edit</Text>
+                          <Text style={styles.inlineSaveText}>
+                            {translate('m.tasks.0614a095ba', 'Edit')}
+                          </Text>
                         </Pressable>
                         <Pressable
                           style={styles.inlineSaveButtonCompact}
                           disabled={projectMutating}
                           onPress={() => void deleteProjectRowComment(projectRowItem, comment)}
                         >
-                          <Text style={styles.inlineDeleteText}>Delete</Text>
+                          <Text style={styles.inlineDeleteText}>
+                            {translate('m.tasks.3151cad2a8', 'Delete')}
+                          </Text>
                         </Pressable>
                       </View>
                     ) : null}

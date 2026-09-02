@@ -14,6 +14,7 @@ export function legacyNotificationOptInDestination(
   const hostId = Array.isArray(params.hostId) ? params.hostId[0] : params.hostId
   return {
     pathname: '/mobile-onboarding',
+    // i18n-exempt: route param naming the onboarding step, not copy
     params: { steps: 'notifications', ...(hostId ? { hostId } : {}) }
   }
 }

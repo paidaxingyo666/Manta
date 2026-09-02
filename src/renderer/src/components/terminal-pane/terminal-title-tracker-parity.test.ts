@@ -119,8 +119,7 @@ describe('main title tracker parity with the renderer transport processor', () =
     expect(kinds.indexOf('became-working')).toBeLessThan(kinds.indexOf('became-idle'))
   })
 
-  // Why: OMP 17.2.12+ cannot animate under WSL/ConPTY, so it emits static state markers
-  // instead of braille frames (#13890). Both paths must see the same working→idle turn.
+  // OMP 17.2.12+ uses static WSL/ConPTY markers; both paths must see working→idle.
   it('derives identical facts from static OMP WSL state titles', () => {
     const chunk = `${ESC}]0;zsh | π : cwd${BEL}response text\r\n` + `${ESC}]0;zsh | π > cwd${BEL}`
     feedBoth(paths, chunk)
@@ -131,8 +130,7 @@ describe('main title tracker parity with the renderer transport processor', () =
     expect(kinds.indexOf('became-working')).toBeLessThan(kinds.indexOf('became-idle'))
   })
 
-  // Why: an OMP pane that stops emitting titles mid-turn must still leave working, or the
-  // stale native marker keeps the pane — and its synthetic spinner — pinned to working.
+  // A stale native marker must not leave either tracker pinned to working.
   it('clears a stale static OMP working title in both paths', () => {
     feedBoth(paths, `${ESC}]0;zsh | π : cwd${BEL}`)
     feedBoth(paths, 'title-free output')

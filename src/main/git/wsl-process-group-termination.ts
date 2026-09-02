@@ -69,11 +69,11 @@ export function createWslProcessGroupTermination(distro: string): WslProcessGrou
       // and the caller falls back to waiting for the root exit.
       const script = [
         'if setsid --wait true 2>/dev/null; then',
-        `  exec setsid --wait sh -c ${quotePosixShell(reportGroup)} manta-wsl-process-group "$@"`,
+        `  exec setsid --wait sh -c ${quotePosixShell(reportGroup)} orca-wsl-process-group "$@"`,
         'fi',
         'exec "$@"'
       ].join('\n')
-      return ['sh', '-c', script, 'manta-wsl-process-group', ...args]
+      return ['sh', '-c', script, 'orca-wsl-process-group', ...args]
     },
     stripControlOutput: (stderr) => stderr.replace(new RegExp(`${marker}\\d+\\r?\\n?`, 'g'), '')
   }

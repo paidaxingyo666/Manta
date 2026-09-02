@@ -54,7 +54,7 @@ export function addEnvironmentFromPairingCode(
   if (!offer) {
     throw new RuntimeEnvironmentStoreError(
       'invalid_argument',
-      'Invalid pairing code. Expected an manta://pair?... URL or bare pairing payload.'
+      'Invalid pairing code. Expected a manta://pair?... URL or bare pairing payload.'
     )
   }
   const store = readEnvironmentStore(userDataPath)
@@ -105,7 +105,7 @@ export function updateEnvironmentFromPairingCode(
   if (!offer) {
     throw new RuntimeEnvironmentStoreError(
       'invalid_argument',
-      'Invalid pairing code. Expected an manta://pair?... URL or bare pairing payload.'
+      'Invalid pairing code. Expected a manta://pair?... URL or bare pairing payload.'
     )
   }
   const store = readEnvironmentStore(userDataPath)

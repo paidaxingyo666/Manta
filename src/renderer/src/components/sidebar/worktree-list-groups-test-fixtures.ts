@@ -53,7 +53,7 @@ export const remoteWorktree: Worktree = {
 }
 
 export const project: Project = {
-  id: 'github:stablyai/orca',
+  id: 'github:stablyai/manta',
   displayName: 'Manta',
   badgeColor: '#737373',
   sourceRepoIds: [repo.id, remoteRepo.id],

@@ -1,0 +1,331 @@
+/**
+ * Accounts against a live cell.
+ *
+ * The HTTP-only half is covered in accounts.test.ts. These are the parts that
+ * need a real host proof: two accounts' desktops proving themselves with their
+ * own identity triples on the same relay, and the upgrade path for a
+ * deployment whose state was written before accounts existed.
+ */
+import { afterEach, describe, expect, it } from 'vitest'
+import {
+  PER_USER,
+  startTestRelay,
+  TEST_SECRET,
+  TEST_USER,
+  type TestRelay
+} from './testing/harness.js'
+import { issueRelayToken } from './shared/relay-token.js'
+import WebSocket from 'ws'
+import {
+  handshake,
+  httpFetch,
+  nextClose,
+  nextJson,
+  open,
+  newHostIdentity,
+  onlineHost,
+  postAuth,
+  register,
+  relayTokenFor,
+  signIn
+} from './testing/client.js'
+
+let current: TestRelay | null = null
+
+afterEach(async () => {
+  await current?.stop()
+  current = null
+})
+
+type HostRow = { relayHostId: string; online: boolean; displayName?: string }
+
+async function hostList(origin: string, accessToken: string): Promise<HostRow[]> {
+  const response = await postAuth(origin, 'hosts', accessToken)
+  expect(response.status).toBe(200)
+  return ((await response.json()) as { hosts: HostRow[] }).hosts
+}
+
+describe('two accounts on one relay', () => {
+  it('each proves with its own identity triple and sees only its own machines', async () => {
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const bob = await register(current.origin, {
+      email: 'bob@example.com',
+      password: 'correct-horse'
+    })
+    expect(ada.user.userId).not.toBe(bob.user.userId)
+
+    const adaHost = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+    const bobHost = await onlineHost(current.origin, {
+      accessToken: bob.session.accessToken,
+      user: bob.user
+    })
+
+    const adaRows = await hostList(current.origin, ada.session.accessToken)
+    expect(adaRows.map((row) => row.relayHostId)).toEqual([adaHost.identity.relayHostId])
+    // Online only once a control leg is actually up — the directory asks the
+    // cell rather than trusting a stored flag.
+    expect(adaRows[0]?.online).toBe(true)
+
+    const bobRows = await hostList(current.origin, bob.session.accessToken)
+    expect(bobRows.map((row) => row.relayHostId)).toEqual([bobHost.identity.relayHostId])
+
+    adaHost.control.close()
+    bobHost.control.close()
+  })
+
+  it('refuses a relay token for a host another account already claimed', async () => {
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const bob = await register(current.origin, {
+      email: 'bob@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+
+    const response = await postAuth(current.origin, 'relay-token', bob.session.accessToken, {
+      relayHostId: host.identity.relayHostId
+    })
+    expect(response.status).toBe(403)
+    host.control.close()
+  })
+
+  it('reports a machine offline once its control leg is gone', async () => {
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+    expect((await hostList(current.origin, ada.session.accessToken))[0]?.online).toBe(true)
+
+    await new Promise<void>((resolve) => {
+      host.control.once('close', () => resolve())
+      host.control.close()
+    })
+    // A session in its rebind grace window is not reachable, whatever the map
+    // still holds.
+    expect((await hostList(current.origin, ada.session.accessToken))[0]?.online).toBe(false)
+  })
+})
+
+describe('a proven control leg', () => {
+  it('refuses an auth-refresh that would change subject mid-session', async () => {
+    // The host proof was built against the identity in the *original* token and
+    // is never rebuilt, so accepting a refreshed token with a different subject
+    // would silently re-label an already-proven session as somebody else's.
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+
+    const forged = issueRelayToken(
+      {
+        userId: 'someone-else',
+        profileId: ada.user.profileId,
+        organizationId: '',
+        relayHostId: host.identity.relayHostId,
+        expiresAt: Date.now() + 60_000
+      },
+      TEST_SECRET
+    )
+    const reply = nextJson(host.control)
+    host.control.send(JSON.stringify({ type: 'auth-refresh', relayJwt: forged }))
+    expect(await reply).toMatchObject({ type: 'control-error', code: 'invalid_relay_token' })
+    host.control.close()
+  })
+
+  it('accepts an auth-refresh that keeps the same subject', async () => {
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+    const renewed = await relayTokenFor(
+      current.origin,
+      ada.session.accessToken,
+      host.identity.relayHostId
+    )
+    host.control.send(JSON.stringify({ type: 'auth-refresh', relayJwt: renewed }))
+    // Silence is the success signal here; a refusal arrives as control-error.
+    // Prove the leg is still usable by asking it for something.
+    const reply = nextJson(host.control)
+    host.control.send(JSON.stringify({ type: 'not-a-real-request', reqId: 'r1' }))
+    expect(await reply).toMatchObject({ type: 'control-error', code: 'unsupported_request' })
+    host.control.close()
+  })
+})
+
+describe('retiring a machine', () => {
+  it('cuts the live session and refuses the token it already handed out', async () => {
+    // A relay token is a stateless HMAC with an hour to live, so retiring a
+    // machine has to reach the cell. Otherwise "forget this machine" leaves the
+    // control leg forwarding and the cached token good for another hour.
+    current = await startTestRelay(() => PER_USER)
+    const ada = await register(current.origin, {
+      email: 'ada@example.com',
+      password: 'correct-horse'
+    })
+    const host = await onlineHost(current.origin, {
+      accessToken: ada.session.accessToken,
+      user: ada.user
+    })
+    const closed = nextClose(host.control)
+
+    expect(
+      (
+        await postAuth(current.origin, 'host-forget', ada.session.accessToken, {
+          relayHostId: host.identity.relayHostId
+        })
+      ).status
+    ).toBe(200)
+    // 4401, not a transport code: the credential really is gone, and a peer
+    // that read this as a transient drop would retry forever.
+    expect(await closed).toBe(4401)
+
+    // The token it already holds must not buy a fresh session either. Asserted
+    // on the close code rather than a timeout, so a regression fails loudly
+    // instead of slowly.
+    const retry = await open(
+      new WebSocket(`${current.wsOrigin}/v1/host/control`, {
+        headers: { authorization: `Bearer ${host.relayToken}` }
+      })
+    )
+    const retryClosed = nextClose(retry)
+    retry.send(
+      JSON.stringify({
+        type: 'host-hello',
+        v: 1,
+        relayHostId: host.identity.relayHostId,
+        assignmentEpoch: 1,
+        hostPublicKeyB64: host.identity.hostPublicKey.toString('base64')
+      })
+    )
+    expect(await retryClosed).toBe(4401)
+  })
+})
+
+describe('a shared relay', () => {
+  it('grants the environment identity with no account to sign in to', async () => {
+    // The original behaviour and the default: the enrolment secret is the whole
+    // credential, and every desktop paired against it signs that identity
+    // triple into its host proof byte for byte.
+    current = await startTestRelay()
+    const session = await signIn(current.origin)
+    const identity = newHostIdentity()
+    const relayToken = await relayTokenFor(
+      current.origin,
+      session.accessToken,
+      identity.relayHostId
+    )
+    const { ack, control } = await handshake({
+      origin: current.origin,
+      relayToken,
+      identity,
+      user: TEST_USER
+    })
+    expect(ack.type).toBe('host-hello-ack')
+    control.close()
+
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/capabilities`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${session.accessToken}`,
+        'content-type': 'application/json'
+      },
+      body: '{}'
+    })
+    expect(await response.json()).toMatchObject({
+      cloud: { userId: TEST_USER.userId, cloudProfileId: TEST_USER.profileId },
+      capabilities: { flags: { 'relay.use': true } }
+    })
+  })
+
+  it('has no account surface at all', async () => {
+    // Not a feature that happens to be switched off: on a shared relay there is
+    // nothing to register, nothing to sign in to, and no machine list, so the
+    // desktop must not draw a password form.
+    current = await startTestRelay()
+    for (const endpoint of [
+      'register',
+      'login',
+      'hosts',
+      'host-describe',
+      'host-forget',
+      'host-claim'
+    ]) {
+      const response = await httpFetch(`${current.origin}/v1/desktop/auth/${endpoint}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}'
+      })
+      expect(response.status).toBe(404)
+      expect(await response.json()).toMatchObject({ error: 'accounts_disabled' })
+    }
+  })
+})
+
+describe('how to sign in', () => {
+  it('says shared, so the desktop knows not to ask for a password', async () => {
+    current = await startTestRelay(() => ({ enrollmentSecret: 'open-sesame' }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/methods`)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      v: 1,
+      accounts: 'shared',
+      enrollmentSecretRequired: true
+    })
+  })
+
+  it('says per-user, and how registration is gated', async () => {
+    current = await startTestRelay(() => ({
+      ...PER_USER,
+      enrollmentSecret: 'open-sesame',
+      registrationMode: 'enrollment-secret'
+    }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/methods`)
+    expect(await response.json()).toEqual({
+      v: 1,
+      accounts: 'per-user',
+      registration: 'enrollment-secret',
+      enrollmentSecretRequired: true
+    })
+  })
+
+  it('refuses the shared grant once accounts are the point', async () => {
+    // Granting it here would hand someone an identity every other holder of the
+    // enrolment secret also has, from a button that says "sign in".
+    current = await startTestRelay(() => ({ ...PER_USER, enrollmentSecret: 'open-sesame' }))
+    const response = await httpFetch(`${current.origin}/v1/desktop/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ enrollmentSecret: 'open-sesame' })
+    })
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ error: 'accounts_required' })
+  })
+})

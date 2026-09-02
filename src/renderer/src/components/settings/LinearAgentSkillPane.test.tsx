@@ -11,13 +11,13 @@ import {
 import { getLinearUsageExamples } from '@/lib/linear-usage-examples'
 import { LinearAgentSkillPane } from './LinearAgentSkillPane'
 
-const UPDATE_COMMAND = 'npx skills update orca-linear --global'
+const UPDATE_COMMAND = 'npx skills update manta-linear --global'
 
 const mocks = vi.hoisted(() => ({
   panelProps: [] as Record<string, unknown>[],
   runtime: 'native' as 'native' | 'wsl',
   skillInstalled: true,
-  updateSkillName: 'orca-linear',
+  updateSkillName: 'manta-linear',
   linearConnected: true,
   visibleTaskProviders: ['github', 'linear'] as string[],
   openSettingsPage: vi.fn(),
@@ -135,7 +135,7 @@ describe('LinearAgentSkillPane', () => {
     mocks.panelProps.length = 0
     mocks.runtime = 'native'
     mocks.skillInstalled = true
-    mocks.updateSkillName = 'orca-linear'
+    mocks.updateSkillName = 'manta-linear'
     mocks.linearConnected = true
     mocks.visibleTaskProviders = ['github', 'linear']
     mocks.openSettingsPage.mockClear()
@@ -220,7 +220,7 @@ describe('LinearAgentSkillPane', () => {
     )
   })
 
-  it('passes the orca-linear install/update commands and freshness on a local runtime', async () => {
+  it('passes the manta-linear install/update commands and freshness on a local runtime', async () => {
     await renderPane()
 
     expect(mocks.panelProps.at(-1)).toEqual(

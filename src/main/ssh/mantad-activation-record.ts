@@ -16,7 +16,7 @@ export const MANTAD_ACTIVATION_FILENAME = 'mantad-active.json'
 export const MANTAD_ACTIVATION_SCHEMA_VERSION = 1
 
 /** Where a pre-activation copy of the shared data root lives, relative to `.manta-remote/`. */
-export const MANTAD_STATE_SNAPSHOT_DIR = 'mantad-state-snapshots'
+export const MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'
 
 export type OrcadStateSnapshot = {
   /** Directory name under `MANTAD_STATE_SNAPSHOT_DIR`. */
@@ -159,7 +159,7 @@ export function withRolledBackVersion(
  *
  * `previous` is here because a rollback target that GC deleted is not a rollback target.
  * `daemonEntryVersion` is here because an update preserves a live daemon forked from the
- * OUTGOING bundle (see mantad-update-plan.ts) — deleting the tree under a running process is
+ * OUTGOING bundle (see orcad-update-plan.ts) — deleting the tree under a running process is
  * how a later respawn finds no entry point.
  */
 export function orcadGcPinnedDirNames(
@@ -169,5 +169,7 @@ export function orcadGcPinnedDirNames(
   const versions = [record.active, record.previous, daemonEntryVersion ?? null].filter(
     (v): v is string => typeof v === 'string' && v.length > 0
   )
-  return [...new Set(versions)].map((version) => remoteInstallDirName(MANTAD_INSTALL_MODEL, version))
+  return [...new Set(versions)].map((version) =>
+    remoteInstallDirName(MANTAD_INSTALL_MODEL, version)
+  )
 }

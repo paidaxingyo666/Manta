@@ -53,7 +53,8 @@ export function resolvePiSourceAgentDir(
   }
 
   const overlayKey = kind === 'omp' ? 'MANTA_OMP_CODING_AGENT_DIR' : 'MANTA_PI_CODING_AGENT_DIR'
-  const otherOverlayKey = kind === 'omp' ? 'MANTA_PI_CODING_AGENT_DIR' : 'MANTA_OMP_CODING_AGENT_DIR'
+  const otherOverlayKey =
+    kind === 'omp' ? 'MANTA_PI_CODING_AGENT_DIR' : 'MANTA_OMP_CODING_AGENT_DIR'
 
   // Why: a mismatched Manta overlay shadow means this shell inherited the other
   // Pi-compatible agent's PTY overlay. Do not remirror that overlay into this

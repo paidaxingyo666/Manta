@@ -45,6 +45,7 @@ import { createCommitMessageGenerationSlice } from './commit-message-generation'
 import { createPinnedTabCloseConfirmSlice } from './pinned-tab-close-confirm'
 import { createRecentlyClosedTabsSlice } from './recently-closed-tabs'
 import { createMantaProfilesSlice } from './manta-profiles'
+import { createMantaRelayHostsSlice } from './manta-relay-hosts'
 import { createNewIssueDraftSlice } from './new-issue-draft'
 import { createTaskCreationDraftsSlice } from './task-creation-drafts'
 import { createRemoteServerUpdatesSlice } from './remote-server-updates'
@@ -100,6 +101,7 @@ export function createTestStore() {
     ...createPinnedTabCloseConfirmSlice(...a),
     ...createRecentlyClosedTabsSlice(...a),
     ...createMantaProfilesSlice(...a),
+    ...createMantaRelayHostsSlice(...a),
     ...createNewIssueDraftSlice(...a),
     ...createTaskCreationDraftsSlice(...a),
     ...createRemoteServerUpdatesSlice(...a),

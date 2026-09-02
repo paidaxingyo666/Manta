@@ -25,7 +25,7 @@ function command(repoId: string): TerminalQuickCommand {
 function setup(
   hostId: ExecutionHostId,
   repoId: string,
-  projectId = 'github:stablyai/orca'
+  projectId = 'github:stablyai/manta'
 ): ScopeSetup {
   return { hostId, projectId, repoId }
 }
@@ -59,9 +59,9 @@ describe('terminalQuickCommandMatchesWorkspaceProject', () => {
       addedAt: 100,
       kind: 'git',
       gitRemoteIdentity: {
-        canonicalKey: 'github.com/stablyai/orca',
+        canonicalKey: 'github.com/stablyai/manta',
         remoteName: 'origin',
-        remoteUrl: 'git@github.com:stablyai/orca.git'
+        remoteUrl: 'git@github.com:stablyai/manta.git'
       },
       ...(executionHostId ? { executionHostId } : {})
     })

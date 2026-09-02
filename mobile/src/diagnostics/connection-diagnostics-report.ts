@@ -25,6 +25,9 @@ export function buildConnectionDiagnosticsReport(args: {
   appVersion: string
   desktopAppVersion?: string | null
   entries: readonly ConnectionLogEntry[]
+  // The path the client is actually on. The paired endpoint is where this phone
+  // first met the host; once a relay is in play the two routinely disagree, and
+  // a report naming only the endpoint sends readers to the wrong network.
   activePath?: MobileConnectionDiagnosticPath
   pendingPath?: MobileConnectionDiagnosticPath | null
   nowMs?: number
@@ -46,7 +49,7 @@ export function buildConnectionDiagnosticsReport(args: {
   lines.push(`Host Manta version: ${desktopAppVersion ?? 'unknown'}`)
   lines.push(`Host: ${redactConnectionLogText(args.hostName)}`)
   lines.push(
-    `Endpoint: ${formatEndpoint(args.endpoint)}${isTailscaleEndpoint(args.endpoint) ? ' (Tailscale)' : ''}`
+    `Paired endpoint: ${formatEndpoint(args.endpoint)}${isTailscaleEndpoint(args.endpoint) ? ' (Tailscale)' : ''}`
   )
   lines.push(`State: ${args.state} (reconnect attempts: ${args.reconnectAttempts})`)
   if (args.activePath) {

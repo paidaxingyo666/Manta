@@ -1,11 +1,11 @@
 ---
-name: orca-emulator-android
+name: manta-emulator-android
 description: >
   Control an Android emulator / device from inside Manta using the `manta` CLI.
   Use for listing/booting AVDs, taps, swipes, typing, hardware buttons (incl. Back
   and Recents), rotation, app install/launch, runtime permissions, the accessibility
   tree, and logcat — driving a real adb-connected device or emulator. Cross-platform
-  (Windows, Linux, macOS). Complements the orca-emulator (iOS) and orca-cli skills.
+  (Windows, Linux, macOS). Complements the manta-emulator (iOS) and manta-cli skills.
 license: Apache-2.0
 ---
 
@@ -18,8 +18,8 @@ so it can never drift from the binary that will actually run your commands.
 Engage Manta whenever you drive an adb-connected Android emulator or device from inside the
 Manta app: listing/booting AVDs, taps, swipes, typing, hardware buttons (including Back and
 Recents), rotation, app install/launch, runtime permissions, the accessibility tree, and
-logcat. It is cross-platform (Windows, Linux, macOS) and complements the orca-emulator (iOS)
-and orca-cli skills.
+logcat. It is cross-platform (Windows, Linux, macOS) and complements the manta-emulator (iOS)
+and manta-cli skills.
 
 ## Resolve the CLI for this session
 
@@ -28,9 +28,8 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
-  `manta` there — outside Manta's terminals it normally resolves to the
-  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package installs the executable as `manta-ide`, so bare
+  `manta` is not on PATH outside Manta's terminals.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before
@@ -43,7 +42,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the full guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator-android
+MANTA skills get manta-emulator-android
 ```
 
 That prints the complete, version-matched guide for the exact binary that will handle your
@@ -69,5 +68,5 @@ MANTA emulator devices --json
 ```
 
 Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orca-emulator-android`. Beyond these commands, ask the user rather than
+`MANTA skills get manta-emulator-android`. Beyond these commands, ask the user rather than
 guessing a command surface this older binary may not support.

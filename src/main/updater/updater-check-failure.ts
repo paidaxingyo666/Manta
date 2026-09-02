@@ -12,11 +12,9 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
     )
   }
 
-  protected isStableReleaseNotReadyFailure(sourceError: unknown): boolean {
+  protected isReleaseNotReadyFailure(sourceError: unknown): boolean {
     return (
-      sourceError instanceof ReleaseFeedPreflightError &&
-      sourceError.reason === 'release-not-ready' &&
-      sourceError.releaseChannel === 'default'
+      sourceError instanceof ReleaseFeedPreflightError && sourceError.reason === 'release-not-ready'
     )
   }
 
@@ -81,7 +79,7 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
         if (userInitiated) {
           // Why: a user click needs visible feedback (idle looks broken); distinguish incomplete releases from transport failures.
           this.sendErrorStatus(
-            this.isStableReleaseNotReadyFailure(sourceError)
+            this.isReleaseNotReadyFailure(sourceError)
               ? "A newer release isn't available for this device yet. Check again later."
               : "Couldn't reach the update server. Try again in a few minutes.",
             true

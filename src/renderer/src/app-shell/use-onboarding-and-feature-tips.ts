@@ -113,7 +113,7 @@ export function useOnboardingAndFeatureTips() {
     }
 
     promptedThisSessionRef.current = true
-    if (featureTipsDecision.tipId === 'orca-cli') {
+    if (featureTipsDecision.tipId === 'manta-cli') {
       trackMantaCliFeatureTipShown('app_open')
     } else if (featureTipsDecision.tipId === 'cmd-j-palette') {
       trackCmdJPaletteFeatureTipShown('app_open')

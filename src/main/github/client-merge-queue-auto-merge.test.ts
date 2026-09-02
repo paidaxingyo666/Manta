@@ -71,7 +71,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
           number: 7,
           title: 'PR',
           state: 'OPEN',
-          url: 'https://github.com/stablyai/orca/pull/7',
+          url: 'https://github.com/stablyai/manta/pull/7',
           statusCheckRollup: [],
           updatedAt: '2026-04-01T00:00:00Z',
           isDraft: false,
@@ -99,10 +99,14 @@ describe('GitHub GraphQL rate-limit guard', () => {
     ).resolves.toBe(true)
 
     expect(getOwnerRepoMock).not.toHaveBeenCalled()
-    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, ['api', 'repos/stablyai/orca/pulls/7'], {
-      cwd: '/repo-root',
-      host: 'github.com'
-    })
+    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
+      1,
+      ['api', 'repos/stablyai/manta/pulls/7'],
+      {
+        cwd: '/repo-root',
+        host: 'github.com'
+      }
+    )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       2,
       [
@@ -110,7 +114,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
         'view',
         '7',
         '--repo',
-        'stablyai/orca',
+        'stablyai/manta',
         '--json',
         'number,title,state,url,statusCheckRollup,updatedAt,isDraft,mergeable,reviewDecision,mergeStateStatus,autoMergeRequest,baseRefName,headRefName,baseRefOid,headRefOid'
       ],
@@ -118,7 +122,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       3,
-      ['pr', 'merge', '7', '--squash', '--repo', 'stablyai/orca'],
+      ['pr', 'merge', '7', '--squash', '--repo', 'stablyai/manta'],
       expect.objectContaining({
         cwd: '/repo-root',
         env: expect.objectContaining({ GH_PROMPT_DISABLED: '1' }),
@@ -127,7 +131,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       4,
-      ['pr', 'edit', '7', '--title', 'New title', '--repo', 'stablyai/orca'],
+      ['pr', 'edit', '7', '--title', 'New title', '--repo', 'stablyai/manta'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })
@@ -155,12 +159,16 @@ describe('GitHub GraphQL rate-limit guard', () => {
       })
     ).resolves.toEqual({ ok: true })
 
-    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, ['api', 'repos/stablyai/orca/pulls/7'], {
-      host: 'github.com'
-    })
+    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
+      1,
+      ['api', 'repos/stablyai/manta/pulls/7'],
+      {
+        host: 'github.com'
+      }
+    )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       2,
-      ['pr', 'view', '7', '--json', 'id,headRefOid,baseRefName', '--repo', 'stablyai/orca'],
+      ['pr', 'view', '7', '--json', 'id,headRefOid,baseRefName', '--repo', 'stablyai/manta'],
       { host: 'github.com' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
@@ -182,7 +190,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       4,
-      ['pr', 'merge', '7', '--disable-auto', '--repo', 'stablyai/orca'],
+      ['pr', 'merge', '7', '--disable-auto', '--repo', 'stablyai/manta'],
       expect.objectContaining({
         env: expect.objectContaining({ GH_PROMPT_DISABLED: '1' }),
         host: 'github.com'
@@ -296,7 +304,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       4,
-      ['pr', 'merge', '7', '--auto', '--squash', '--repo', 'stablyai/orca'],
+      ['pr', 'merge', '7', '--auto', '--squash', '--repo', 'stablyai/manta'],
       expect.objectContaining({
         cwd: '/repo-root',
         env: expect.objectContaining({ GH_PROMPT_DISABLED: '1' }),
@@ -318,7 +326,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
           number: 7,
           title: 'PR',
           state: 'OPEN',
-          url: 'https://github.com/stablyai/orca/pull/7',
+          url: 'https://github.com/stablyai/manta/pull/7',
           statusCheckRollup: [],
           updatedAt: '2026-04-01T00:00:00Z',
           isDraft: false,
@@ -352,7 +360,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
       number: 7,
       title: 'PR',
       state: 'OPEN',
-      url: 'https://github.com/stablyai/orca/pull/7',
+      url: 'https://github.com/stablyai/manta/pull/7',
       statusCheckRollup: [],
       updatedAt: '2026-04-01T00:00:00Z',
       isDraft: false,
@@ -403,7 +411,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
       number: 7,
       title: 'PR',
       state: 'OPEN',
-      url: 'https://github.com/stablyai/orca/pull/7',
+      url: 'https://github.com/stablyai/manta/pull/7',
       statusCheckRollup: [],
       updatedAt: '2026-04-01T00:00:00Z',
       isDraft: false,
@@ -447,7 +455,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
           number: prViewCount,
           title: 'PR',
           state: 'OPEN',
-          url: `https://github.com/stablyai/orca/pull/${prViewCount}`,
+          url: `https://github.com/stablyai/manta/pull/${prViewCount}`,
           statusCheckRollup: [],
           updatedAt: '2026-04-01T00:00:00Z',
           isDraft: false,
@@ -553,7 +561,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
           number: 7,
           title: 'PR',
           state: 'OPEN',
-          url: 'https://github.com/stablyai/orca/pull/7',
+          url: 'https://github.com/stablyai/manta/pull/7',
           statusCheckRollup: [],
           updatedAt: '2026-04-01T00:00:00Z',
           isDraft: false,
@@ -596,7 +604,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
           number: 7,
           title: 'PR',
           state: 'OPEN',
-          url: 'https://github.com/stablyai/orca/pull/7',
+          url: 'https://github.com/stablyai/manta/pull/7',
           statusCheckRollup: [],
           updatedAt: '2026-04-01T00:00:00Z',
           isDraft: false,
@@ -619,7 +627,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
     expect(ghExecFileAsyncMock).toHaveBeenCalledTimes(3)
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       3,
-      ['pr', 'merge', '7', '--squash', '--repo', 'stablyai/orca'],
+      ['pr', 'merge', '7', '--squash', '--repo', 'stablyai/manta'],
       expect.objectContaining({
         env: expect.objectContaining({ GH_PROMPT_DISABLED: '1' })
       })

@@ -21,6 +21,7 @@ import {
   GITHUB_KIND_OPTIONS
 } from './mobile-tasks-legacy-foundation'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProviderPicker(model: ConnectionPresentationModel) {
   const {
@@ -44,7 +45,7 @@ export function renderMobileTasksProviderPicker(model: ConnectionPresentationMod
   return (
     <PickerModal
       visible={taskUiReady && showProviderPicker}
-      title="Task Source"
+      title={translate('m.tasks.2409df9415', 'Task Source')}
       options={providerOptions}
       selected={provider}
       onSelect={(next) => {
@@ -102,8 +103,10 @@ export function renderMobileTasksRepoPicker(model: ConnectionPresentationModel) 
   return (
     <BottomDrawer visible={taskUiReady && showRepoPicker} onClose={() => setShowRepoPicker(false)}>
       <View style={styles.sheetHeader}>
-        <Text style={styles.sheetTitle}>Repositories</Text>
-        <Text style={styles.sheetSubtitle}>Choose which repositories to query.</Text>
+        <Text style={styles.sheetTitle}>{translate('m.tasks.a4c5842b9c', 'Repositories')}</Text>
+        <Text style={styles.sheetSubtitle}>
+          {translate('m.tasks.79cf65e9fa', 'Choose which repositories to query.')}
+        </Text>
       </View>
 
       <View style={styles.repoPickerGroup}>
@@ -116,7 +119,9 @@ export function renderMobileTasksRepoPicker(model: ConnectionPresentationModel) 
           }}
         >
           <View style={styles.repoPickerTextWrap}>
-            <Text style={styles.repoPickerTitle}>All repositories</Text>
+            <Text style={styles.repoPickerTitle}>
+              {translate('m.tasks.1688454ca7', 'All repositories')}
+            </Text>
             <Text style={styles.repoPickerSubtitle}>{repositoryCount(hostedRepos.length)}</Text>
           </View>
           {selectedRepoIds.size === 0 ? <Check size={15} color={colors.textPrimary} /> : null}
@@ -166,16 +171,23 @@ export function renderMobileTasksGitHubIssueSourcePicker(model: ConnectionPresen
       onClose={() => setShowGitHubIssueSourcePicker(false)}
     >
       <View style={styles.sheetHeader}>
-        <Text style={styles.sheetTitle}>GitHub Issue Sources</Text>
+        <Text style={styles.sheetTitle}>
+          {translate('m.tasks.6aaadd7285', 'GitHub Issue Sources')}
+        </Text>
         <Text style={styles.sheetSubtitle}>
-          Choose whether each repository queries and creates work from upstream or origin.
+          {translate(
+            'm.tasks.2c65b26ef1',
+            'Choose whether each repository queries and creates work from upstream or origin.'
+          )}{' '}
         </Text>
       </View>
 
       <View style={styles.repoPickerGroup}>
         {githubIssueSourceRows.length === 0 ? (
           <View style={styles.drawerLoadingRow}>
-            <Text style={styles.detailMuted}>No alternate issue sources available.</Text>
+            <Text style={styles.detailMuted}>
+              {translate('m.tasks.6b995d38c5', 'No alternate issue sources available.')}
+            </Text>
           </View>
         ) : (
           githubIssueSourceRows.map(({ repo, sources }, index) => {
@@ -192,7 +204,7 @@ export function renderMobileTasksGitHubIssueSourcePicker(model: ConnectionPresen
                       {repo.displayName}
                     </Text>
                     <Text style={styles.issueSourceHint} numberOfLines={2}>
-                      Querying{' '}
+                      {translate('m.tasks.0be8e1a894', 'Querying')}{' '}
                       {issueSourceSlug(
                         selectedPreference === 'origin' ? sources.prs : sources.upstreamCandidate
                       )}
@@ -221,7 +233,9 @@ export function renderMobileTasksGitHubIssueSourcePicker(model: ConnectionPresen
                               selected && styles.issueSourceSegmentTextActive
                             ]}
                           >
-                            {preference === 'upstream' ? 'Upstream' : 'Origin'}
+                            {preference === 'upstream'
+                              ? translate('m.tasks.085f4e942e', 'Upstream')
+                              : translate('m.tasks.19b172b893', 'Origin')}
                           </Text>
                           <Text style={styles.issueSourceSlug} numberOfLines={1}>
                             {slug}
@@ -258,8 +272,8 @@ export function renderMobileTasksGitHubViewPicker(model: ConnectionPresentationM
   return (
     <PickerModal
       visible={taskUiReady && showGitHubKindPicker}
-      title="GitHub View"
-      options={GITHUB_KIND_OPTIONS}
+      title={translate('m.tasks.2e410a19af', 'GitHub View')}
+      options={GITHUB_KIND_OPTIONS()}
       selected={githubMode === 'project' ? 'project' : githubKind}
       onSelect={(kind) => {
         if (kind === 'project') {
@@ -305,7 +319,11 @@ export function renderMobileTasksGitHubPresetPicker(model: ConnectionPresentatio
   return (
     <PickerModal
       visible={taskUiReady && showGitHubPresetPicker}
-      title={githubKind === 'prs' ? 'Pull Requests' : 'Issues'}
+      title={
+        githubKind === 'prs'
+          ? translate('m.tasks.b10fa24be3', 'Pull Requests')
+          : translate('m.tasks.e3577861c3', 'Issues')
+      }
       options={githubPresetPickerOptions}
       selected={githubPreset}
       onSelect={(preset) => {
@@ -343,8 +361,10 @@ export function renderMobileTasksPagePicker(model: ConnectionPresentationModel) 
       onClose={() => setShowGitHubPagePicker(false)}
     >
       <View style={styles.sheetHeader}>
-        <Text style={styles.sheetTitle}>GitHub Pages</Text>
-        <Text style={styles.sheetSubtitle}>Jump to a loaded or available result page.</Text>
+        <Text style={styles.sheetTitle}>{translate('m.tasks.669b20d479', 'GitHub Pages')}</Text>
+        <Text style={styles.sheetSubtitle}>
+          {translate('m.tasks.2bcd15ef19', 'Jump to a loaded or available result page.')}
+        </Text>
       </View>
       <ScrollView style={styles.pagePickerList}>
         {githubPagePickerPages.map((index) => {
@@ -361,9 +381,14 @@ export function renderMobileTasksPagePicker(model: ConnectionPresentationModel) 
               }}
             >
               <View style={styles.pickerRowContent}>
-                <Text style={styles.pickerRowLabel}>Page {index + 1}</Text>
+                <Text style={styles.pickerRowLabel}>
+                  {translate('m.tasks.eda57a4655.fb0627', 'Page')}
+                  {index + 1}
+                </Text>
                 <Text style={styles.pickerRowSubtitle}>
-                  {loaded ? 'Loaded' : 'Loads older results'}
+                  {loaded
+                    ? translate('m.tasks.711ea5b96d', 'Loaded')
+                    : translate('m.tasks.e64ab47a47', 'Loads older results')}
                 </Text>
               </View>
               {selected ? <Check size={16} color={colors.textPrimary} /> : null}

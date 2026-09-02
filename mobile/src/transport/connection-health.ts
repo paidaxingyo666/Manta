@@ -1,6 +1,7 @@
 import { isTailscaleEndpoint } from '../../../src/shared/remote-runtime-tailscale-hint'
 import type { MobileConnectionPath } from './stable-logical-rpc-client'
 import type { ConnectionState } from './types'
+import { translate } from '../i18n/i18n'
 
 // Why: thresholds for escalating connection UX from neutral
 // "Reconnecting…" to alarming "host appears unreachable, re-pair?".
@@ -63,11 +64,20 @@ export function classifyConnection(args: {
   // Why: auth-failed means the desktop no longer recognizes this pairing (e.g. it
   // lost its device registry) — retrying can't fix it, only re-pairing can, so say so.
   if (state === 'auth-failed' || (args.pairingRejected && state !== 'connected')) {
-    return { kind: 'auth-failed', label: 'Pairing invalid — re-pair with your desktop' }
+    return {
+      kind: 'auth-failed',
+      label: translate(
+        'm.connection.health.d01be348a0',
+        'Pairing invalid — re-pair with your desktop'
+      )
+    }
   }
 
   if (state === 'connected') {
-    return { kind: 'normal', label: 'Connected' }
+    return {
+      kind: 'normal',
+      label: translate('m.connection.health.8e01ac6dae', 'Connected')
+    }
   }
 
   // A disconnected pending path can survive a cleared retry timer during a
@@ -76,17 +86,31 @@ export function classifyConnection(args: {
   if (args.pendingPath === 'relay' && (state !== 'disconnected' || reconnectAttempts > 0)) {
     if (reconnectAttempts >= UNREACHABLE_ATTEMPTS) {
       if (lastConnectedAt == null) {
-        return { kind: 'unreachable', label: "Can't connect via Relay", reason: 'never-connected' }
+        return {
+          kind: 'unreachable',
+          label: translate('m.connection.health.da16e47b5f', "Can't connect via Relay"),
+          reason: 'never-connected'
+        }
       }
       if (now - lastConnectedAt >= STALE_SINCE_LAST_CONNECT_MS) {
-        return { kind: 'unreachable', label: "Can't connect via Relay", reason: 'stale' }
+        return {
+          kind: 'unreachable',
+          label: translate('m.connection.health.da16e47b5f', "Can't connect via Relay"),
+          reason: 'stale'
+        }
       }
     }
-    return { kind: 'normal', label: 'Connecting via Relay…' }
+    return {
+      kind: 'normal',
+      label: translate('m.connection.health.dd4b030f53', 'Connecting via Relay…')
+    }
   }
 
   if (state === 'disconnected') {
-    return { kind: 'normal', label: 'Disconnected' }
+    return {
+      kind: 'normal',
+      label: translate('m.connection.health.1ba6b526a9', 'Disconnected')
+    }
   }
 
   // connecting / handshaking / reconnecting from here. The gates apply to all
@@ -97,7 +121,7 @@ export function classifyConnection(args: {
     if (lastConnectedAt == null) {
       return {
         kind: 'unreachable',
-        label: "Can't reach desktop",
+        label: translate('m.connection.health.6003e0c413', "Can't reach desktop"),
         reason: 'never-connected',
         hint
       }
@@ -105,7 +129,7 @@ export function classifyConnection(args: {
     if (now - lastConnectedAt >= STALE_SINCE_LAST_CONNECT_MS) {
       return {
         kind: 'unreachable',
-        label: "Can't reach desktop",
+        label: translate('m.connection.health.6003e0c413', "Can't reach desktop"),
         reason: 'stale',
         hint
       }
@@ -113,10 +137,20 @@ export function classifyConnection(args: {
   }
 
   if (reconnectAttempts >= WARNING_ATTEMPTS) {
-    return { kind: 'warning', label: "Can't connect", hint }
+    return {
+      kind: 'warning',
+      label: translate('m.connection.health.ebf49ea8c1', "Can't connect"),
+      hint
+    }
   }
 
-  return { kind: 'normal', label: state === 'reconnecting' ? 'Reconnecting…' : 'Connecting…' }
+  return {
+    kind: 'normal',
+    label:
+      state === 'reconnecting'
+        ? translate('m.connection.health.29b9a9719b', 'Reconnecting…')
+        : translate('m.connection.health.23ec1a2728', 'Connecting…')
+  }
 }
 
 // Why: single place that turns a verdict into display text so every screen

@@ -61,7 +61,9 @@ Object.assign(childEnv, {
 })
 
 console.error(`[headless-pairing] userData=${profileDir}`)
-console.error(`[headless-pairing] starting: manta-dev serve --json${formatForwardedArgs(serveArgs)}`)
+console.error(
+  `[headless-pairing] starting: manta-dev serve --json${formatForwardedArgs(serveArgs)}`
+)
 
 child = spawn(process.execPath, [mantaDevScript, 'serve', '--json', ...serveArgs], {
   cwd: repoRoot,

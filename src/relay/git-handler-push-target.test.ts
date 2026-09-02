@@ -123,7 +123,7 @@ describe('resolveRelayPushTarget', () => {
       branchRemote: forkUrl,
       remotes: ['origin', 'pr-contributor-manta'],
       remoteUrls: {
-        origin: 'https://github.com/stablyai/orca.git',
+        origin: 'https://github.com/stablyai/manta.git',
         'pr-contributor-manta': forkUrl
       }
     })
@@ -141,7 +141,7 @@ describe('resolveRelayPushTarget', () => {
       branchRemote: forkUrl,
       remotes: ['origin'],
       remoteUrls: {
-        origin: 'git@github.com:stablyai/orca.git'
+        origin: 'git@github.com:stablyai/manta.git'
       }
     })
 

@@ -4,16 +4,16 @@ description: >-
   Use Manta orchestration for structured multi-agent coordination: threaded
   messages, blocking ask/reply flows, task dispatch, worker_done/escalation
   waits, task DAGs, decision gates, coordinator loops, or decomposing work
-  across agents. Use `orca-cli` instead for full ownership handoffs, including
+  across agents. Use `manta-cli` instead for full ownership handoffs, including
   requests phrased as "hand off", "handoff", "handover", "give this to another
   agent", or "another worktree" when the user did not explicitly ask to
-  supervise, monitor, wait for results, or coordinate a DAG. Use `orca-cli` for
+  supervise, monitor, wait for results, or coordinate a DAG. Use `manta-cli` for
   terminal control, lightweight terminal prompts, shell commands, Manta
   worktree management, reading or waiting on terminals, and automation of the
   browser embedded inside Manta. Use Computer Use for external browser windows,
   webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when
   the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
   page-automation tool such as Playwright or CDP for external pages.
 ---
 
@@ -21,7 +21,7 @@ description: >-
 
 Orchestration is Manta's structured coordination layer for agent messages, task ownership, dispatch state, and worker completion tracking.
 
-Use this skill when coordination state matters. For lightweight terminal prompts or basic worktree/terminal/built-in-browser control, use `orca-cli`.
+Use this skill when coordination state matters. For lightweight terminal prompts or basic worktree/terminal/built-in-browser control, use `manta-cli`.
 
 ## Tool Boundary
 

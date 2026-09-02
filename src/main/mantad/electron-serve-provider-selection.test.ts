@@ -18,7 +18,7 @@ vi.mock('../../shared/child-process/run-process', async (importOriginal) => ({
 import { resolveMantadBrowserProvider, type MantadBrowserProvider } from './mantad-browser-provider'
 
 const FAKE_SIDECAR = join(import.meta.dirname, '__fixtures__', 'fake-mantad-electron-sidecar.cjs')
-const INSTALLED_EXECUTABLE = join('/Applications', 'Manta.app', 'Contents', 'MacOS', 'Manta')
+const INSTALLED_EXECUTABLE = join('/Applications', 'Orca.app', 'Contents', 'MacOS', 'Orca')
 
 let harnessRoot: string
 let controlPath: string

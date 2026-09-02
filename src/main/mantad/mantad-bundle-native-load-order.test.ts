@@ -14,7 +14,7 @@ import { runProcessSync } from '../../shared/child-process/run-process'
  *
  * Why this builds the bundle instead of skipping without one: no CI job builds mantad and
  * runs vitest. `smoke:mantad-terminal` builds it in the static-analysis job, which never
- * runs vitest; the `mantad_browser` job runs vitest but deliberately does not build mantad.
+ * runs vitest; the `orcad_browser` job runs vitest but deliberately does not build mantad.
  * A `runIf(existsSync(...))` guard therefore skips in every shard, forever — the same way
  * an unset MANTA_BROWSER_EXECUTABLE kept the browser provider uncovered.
  *

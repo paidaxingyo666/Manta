@@ -58,7 +58,7 @@ describe('manta cli worktree awareness', () => {
     const sourceContext = {
       kind: 'task-source',
       provider: 'github',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:gpu',
       projectHostSetupId: 'setup-gpu',
       repoId: 'repo-gpu',

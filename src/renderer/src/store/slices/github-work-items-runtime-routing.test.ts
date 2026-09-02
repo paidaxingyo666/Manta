@@ -159,7 +159,7 @@ describe('createGitHubSlice.fetchWorkItems source/error envelope', () => {
     const sourceContext = {
       kind: 'task-source' as const,
       provider: 'github' as const,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:source-runtime' as const,
       projectHostSetupId: 'setup-1',
       repoId: 'source-runtime-repo-id',

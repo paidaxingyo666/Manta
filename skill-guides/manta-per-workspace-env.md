@@ -1,5 +1,5 @@
 ---
-name: orca-per-workspace-env
+name: manta-per-workspace-env
 description: >-
   Set up, review, debug, or validate Manta per-workspace environment recipes —
   on-demand, disposable runtimes (cloud sandboxes, VMs, or local) created fresh
@@ -7,7 +7,7 @@ description: >-
   reusable base snapshot, the coding-agent auth snapshot, credentials, and
   state), not just the per-workspace lifecycle scripts. Use to stand up
   per-workspace environments, fix an `environmentRecipes` entry in `manta.yaml`, scaffold
-  provider lifecycle scripts, or resolve an `manta vm recipe doctor` failure.
+  provider lifecycle scripts, or resolve a `manta vm recipe doctor` failure.
 ---
 
 # Per-Workspace Environments
@@ -396,7 +396,7 @@ gh_token="${GH_TOKEN:-${GITHUB_TOKEN:-$(command -v gh >/dev/null 2>&1 && gh auth
 recipe_id="${MANTA_RECIPE_ID:-vercel-sandbox}"
 recipe_id="${recipe_id//./-}"  # Vercel names forbid dots.
 instance_id="${MANTA_VM_INSTANCE_ID:-$(date +%s)}"
-max_recipe_id_length=$((128 - ${#instance_id} - 6))  # Preserve the unique instance suffix.
+max_recipe_id_length=$((128 - ${#instance_id} - 7))  # Preserve the unique instance suffix.
 [ "$max_recipe_id_length" -gt 0 ] || { echo "MANTA_VM_INSTANCE_ID is too long for a Vercel sandbox name" >&2; exit 1; }
 name="manta-${recipe_id:0:max_recipe_id_length}-${instance_id}"
 

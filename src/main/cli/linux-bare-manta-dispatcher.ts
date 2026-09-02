@@ -30,7 +30,7 @@ export type LinuxBareMantaDispatcherResult = {
   target: string | null
 }
 
-// Why: on Linux the CLI installs as `manta-ide`, not bare `orca`, to avoid
+// Why: on Linux the CLI installs as `manta-ide`, not bare `manta`, to avoid
 // shadowing GNOME Orca's /usr/bin/orca. But the Claude Team launcher typed into
 // the initial managed terminal invokes the literal `manta claude-teams`, so a
 // headless serve box needs a bare-`manta` dispatcher on the managed-terminal PATH

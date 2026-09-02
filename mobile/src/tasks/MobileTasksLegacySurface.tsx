@@ -75,6 +75,7 @@ import {
   renderMobileTasksProjectDetailDrawer
 } from './mobile-tasks-project-detail-drawer'
 import { renderMobileTasksItemDetailDrawer } from './mobile-tasks-item-detail-drawer'
+import { translate } from '../i18n/i18n'
 
 export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentationModel }) {
   const {
@@ -121,8 +122,12 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
               style={styles.sourceNoticeBanner}
             >
               <Text style={styles.sourceNoticeText}>
-                Preferred issue source upstream is unavailable for {fallback.repoLabel}. Using
-                origin.
+                {translate(
+                  'm.tasks.38c9336758',
+                  'Preferred issue source upstream is unavailable for'
+                )}{' '}
+                {fallback.repoLabel}
+                {translate('m.tasks.3e537de5df', '. Using origin.')}{' '}
               </Text>
             </View>
           ))
@@ -138,7 +143,7 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
               >
                 <View style={styles.sourceErrorCopy}>
                   <Text style={styles.sourceErrorText}>
-                    Couldn't load issues from{' '}
+                    {translate('m.tasks.f75002b096', "Couldn't load issues from")}{' '}
                     <Text style={styles.sourceErrorSlug}>
                       {sourceError.source.owner}/{sourceError.source.repo}
                     </Text>
@@ -156,7 +161,9 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
                   onPress={() => void retryGitHubIssueSourceFetch(sourceError.repoPath)}
                 >
                   <Text style={styles.sourceErrorRetryText}>
-                    {isRetrying ? 'Retrying...' : 'Retry'}
+                    {isRetrying
+                      ? translate('m.tasks.682ce152d6', 'Retrying...')
+                      : translate('m.tasks.c85d1b19c4', 'Retry')}
                   </Text>
                 </Pressable>
               </View>
@@ -171,7 +178,7 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
         <View style={styles.projectDataNotice}>
           <AlertTriangle size={15} color={colors.statusAmber} />
           <Text style={styles.projectDataNoticeText}>
-            Sub-issue data is unavailable for your token.
+            {translate('m.tasks.2909172f4f', 'Sub-issue data is unavailable for your token.')}{' '}
           </Text>
         </View>
       ) : null}
@@ -252,8 +259,8 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
 
       <ActionSheetModal
         visible={taskUiReady && mergeMethodProjectRow != null}
-        title="Merge method"
-        message="Choose how this pull request should be merged."
+        title={translate('m.tasks.6b1e55d747', 'Merge method')}
+        message={translate('m.tasks.97bec2fda2', 'Choose how this pull request should be merged.')}
         actions={
           mergeMethodProjectRow
             ? (['squash', 'merge', 'rebase'] as const).map((method) => ({
@@ -269,11 +276,11 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
       />
       <ActionSheetModal
         visible={taskUiReady && mergeMethodTaskItem != null}
-        title="Merge method"
+        title={translate('m.tasks.6b1e55d747', 'Merge method')}
         message={
           mergeMethodTaskItem?.provider === 'gitlab'
-            ? 'Choose how this merge request should be merged.'
-            : 'Choose how this pull request should be merged.'
+            ? translate('m.tasks.0316f0659d', 'Choose how this merge request should be merged.')
+            : translate('m.tasks.97bec2fda2', 'Choose how this pull request should be merged.')
         }
         actions={
           mergeMethodTaskItem
@@ -283,7 +290,7 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
               ).map((method) => ({
                 label:
                   mergeMethodTaskItem.provider === 'gitlab' && method === 'merge'
-                    ? 'Merge'
+                    ? translate('m.tasks.017800c553', 'Merge')
                     : getHostedReviewMergeMethodLabel(method),
                 icon: GitBranch,
                 onPress: () => {
@@ -298,7 +305,9 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
       <ConfirmModal
         visible={taskUiReady && pendingHostedMerge != null}
         title={
-          pendingHostedMerge?.item.provider === 'gitlab' ? 'Merge Request' : 'Merge Pull Request'
+          pendingHostedMerge?.item.provider === 'gitlab'
+            ? translate('m.tasks.711e331043', 'Merge Request')
+            : translate('m.tasks.b12358de98', 'Merge Pull Request')
         }
         message={pendingHostedMerge ? getHostedMergeConfirmMessage(pendingHostedMerge) : undefined}
         confirmLabel={
@@ -314,7 +323,7 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
       />
       <ConfirmModal
         visible={taskUiReady && pendingProjectGitHubMerge != null}
-        title="Merge Pull Request"
+        title={translate('m.tasks.b12358de98', 'Merge Pull Request')}
         message={
           pendingProjectGitHubMerge
             ? getProjectGitHubMergeConfirmMessage(pendingProjectGitHubMerge)
@@ -341,7 +350,7 @@ export function MobileTasksLegacySurface({ model }: { model: ConnectionPresentat
         title={
           pendingHostedStateChange
             ? getHostedStateConfirmTitle(pendingHostedStateChange)
-            : 'Update Item'
+            : translate('m.tasks.6614e9b864', 'Update Item')
         }
         message={
           pendingHostedStateChange

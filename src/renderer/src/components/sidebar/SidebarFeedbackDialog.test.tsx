@@ -1,23 +1,13 @@
 // @vitest-environment happy-dom
 
-import React, { act, type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   getPlatform: vi.fn(),
   getVersion: vi.fn(),
-  readFeedbackImageFiles: vi.fn(),
-  submit: vi.fn(),
-  toastWarning: vi.fn()
-}))
-
-vi.mock('sonner', () => ({
-  toast: {
-    error: vi.fn(),
-    success: vi.fn(),
-    warning: mocks.toastWarning
-  }
+  openUrl: vi.fn()
 }))
 
 vi.mock('@/components/ui/dialog', async () => {
@@ -45,23 +35,14 @@ vi.mock('@/components/ui/dialog', async () => {
   }
 })
 
-vi.mock('@/lib/feedback-image-attachments', async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>()
-  return {
-    ...actual,
-    readFeedbackImageFiles: mocks.readFeedbackImageFiles
-  }
-})
-
 import { SidebarFeedbackDialog } from './SidebarFeedbackDialog'
 
+const SUBMIT = 'Open a GitHub issue'
+
 beforeEach(() => {
-  mocks.readFeedbackImageFiles.mockReset()
-  mocks.submit.mockReset()
-  mocks.toastWarning.mockReset()
   mocks.getPlatform.mockReset()
   mocks.getVersion.mockReset()
-  mocks.submit.mockResolvedValue({ ok: true })
+  mocks.openUrl.mockReset()
   mocks.getPlatform.mockReturnValue({
     platform: 'darwin',
     osRelease: '25.0.0',
@@ -69,17 +50,12 @@ beforeEach(() => {
     shell: '/bin/zsh',
     displayServer: null
   })
-  mocks.getVersion.mockResolvedValue('1.4.178-rc.2')
-  URL.revokeObjectURL = vi.fn()
+  mocks.getVersion.mockResolvedValue('1.4.189-rc.0')
   Object.defineProperty(window, 'api', {
     configurable: true,
     value: {
-      feedback: { submit: mocks.submit },
-      gh: { viewer: vi.fn().mockResolvedValue(null) },
-      shell: { openUrl: vi.fn() },
-      platform: {
-        get: mocks.getPlatform
-      },
+      shell: { openUrl: mocks.openUrl },
+      platform: { get: mocks.getPlatform },
       updater: { getVersion: mocks.getVersion }
     }
   })
@@ -89,261 +65,122 @@ afterEach(() => {
   cleanup()
 })
 
+function openDialog(): HTMLTextAreaElement {
+  render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+  return screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
+}
+
 describe('SidebarFeedbackDialog environment prefill', () => {
   it('pre-inserts Manta version and OS info when the dialog opens', async () => {
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
+    const textarea = openDialog()
 
     await waitFor(() => {
-      expect(textarea.value).toContain('Manta: 1.4.178-rc.2')
+      expect(textarea.value).toContain('Manta: 1.4.189-rc.0')
       expect(textarea.value).toContain('OS: darwin 25.0.0 (arm64)')
       expect(textarea.value).toContain('Shell: /bin/zsh')
     })
-    expect((screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true)
+    // The footer alone is not a report.
+    expect((screen.getByRole('button', { name: SUBMIT }) as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('keeps version info when the user types above the prefilled block', async () => {
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
-    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.178-rc.2'))
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
 
-    fireEvent.change(textarea, {
-      target: { value: `Tabs feel slow\n\n${textarea.value.trim()}` }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.change(textarea, { target: { value: `Terminal hangs.\n${textarea.value}` } })
 
-    await waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(1))
-    const submitted = mocks.submit.mock.calls[0]?.[0].feedback as string
-    expect(submitted).toContain('Tabs feel slow')
-    expect(submitted).toContain('Manta: 1.4.178-rc.2')
+    expect(textarea.value).toContain('Terminal hangs.')
+    expect(textarea.value).toContain('Manta: 1.4.189-rc.0')
   })
 
-  it('preserves early typing and appends the footer after version loading finishes', async () => {
-    let finishVersion: ((version: string) => void) | undefined
-    mocks.getVersion.mockReturnValue(
-      new Promise((resolve) => {
-        finishVersion = resolve
-      })
-    )
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
+  it('allows a report once the user writes below the footer', async () => {
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
 
-    fireEvent.change(textarea, { target: { value: 'Typed before loading' } })
-    textarea.focus()
-    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
-    await act(async () => finishVersion?.('1.4.178-rc.2'))
+    fireEvent.change(textarea, { target: { value: `${textarea.value}\nSteps: open a worktree.` } })
 
-    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.178-rc.2'))
-    expect(textarea.value).toContain('Typed before loading')
-    expect(textarea.selectionStart).toBe('Typed before loading'.length)
-  })
-
-  it('enables Send when the user types below the prefilled footer', async () => {
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
-    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.178-rc.2'))
-
-    fireEvent.change(textarea, {
-      target: { value: `${textarea.value.trim()}\nText below footer` }
-    })
-
-    expect((screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(false)
-  })
-
-  it('keeps Send disabled for an edited footer with no user text', async () => {
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
-    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.178-rc.2'))
-
-    fireEvent.change(textarea, {
-      target: { value: '---\nManta: custom build\nOS: edited' }
-    })
-
-    expect((screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true)
-  })
-
-  it('allows a real report after the prefilled footer is deleted', async () => {
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
-    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.178-rc.2'))
-    const send = screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement
-
-    fireEvent.change(textarea, { target: { value: '' } })
-    expect(send.disabled).toBe(true)
-    fireEvent.change(textarea, { target: { value: 'Tabs hang after waking the laptop.' } })
-    expect(send.disabled).toBe(false)
-  })
-
-  it('still prefills best-effort details when preload lookups fail', async () => {
-    mocks.getPlatform.mockImplementation(() => {
-      throw new Error('platform unavailable')
-    })
-    mocks.getVersion.mockRejectedValue(new Error('version unavailable'))
-
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-
-    await waitFor(() => {
-      const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
-      expect(textarea.value).toContain('Manta: unknown')
-    })
+    expect((screen.getByRole('button', { name: SUBMIT }) as HTMLButtonElement).disabled).toBe(false)
   })
 })
 
-describe('SidebarFeedbackDialog image submission', () => {
-  it('keeps the dialog scrollable within short windows', () => {
-    const { container } = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const content = container.querySelector('.scrollbar-sleek')
+describe('SidebarFeedbackDialog issue handoff', () => {
+  it('says the build has no feedback server', () => {
+    openDialog()
 
-    expect(content?.className).toContain('max-h-[calc(100vh-3rem)]')
-    expect(content?.className).toContain('overflow-y-auto')
+    expect(screen.getByText(/no feedback server/i)).toBeTruthy()
   })
 
-  it('waits for in-flight image reads before enabling Send', async () => {
-    let finishRead: ((value: unknown) => void) | undefined
-    mocks.readFeedbackImageFiles.mockReturnValue(
-      new Promise((resolve) => {
-        finishRead = resolve
-      })
-    )
-    const { container } = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    fireEvent.change(screen.getByPlaceholderText('What could we improve?'), {
-      target: { value: 'Screenshot attached' }
-    })
-    const file = new File(['image'], 'shot.png', { type: 'image/png' })
-    const input = container.querySelector<HTMLInputElement>('input[type="file"]')
-    expect(input).not.toBeNull()
-    fireEvent.change(input!, { target: { files: [file] } })
-
-    const send = screen.getByRole('button', { name: 'Send' })
-    expect((send as HTMLButtonElement).disabled).toBe(true)
-    fireEvent.click(send)
-    expect(mocks.submit).not.toHaveBeenCalled()
-
-    await act(async () => {
-      finishRead?.({
-        images: [
-          {
-            id: 'shot',
-            name: file.name,
-            contentType: file.type,
-            bytes: file.size,
-            data: new Uint8Array([1]),
-            previewUrl: 'blob:shot'
-          }
-        ],
-        errors: []
-      })
-    })
-
-    await waitFor(() => expect((send as HTMLButtonElement).disabled).toBe(false))
-    const remove = screen.getByRole('button', { name: 'Remove shot.png' })
-    expect(remove.dataset.slot).toBe('button')
-    expect(remove.dataset.size).toBe('icon-xs')
-    fireEvent.click(send)
-    await waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(1))
-    expect(mocks.submit.mock.calls[0]?.[0].images).toEqual([
-      { contentType: 'image/png', data: new Uint8Array([1]) }
-    ])
-  })
-
-  it('warns when the server cannot confirm image delivery', async () => {
-    mocks.readFeedbackImageFiles.mockResolvedValue({
-      images: [
-        {
-          id: 'shot',
-          name: 'shot.png',
-          contentType: 'image/png',
-          bytes: 1,
-          data: new Uint8Array([1]),
-          previewUrl: 'blob:shot'
-        }
-      ],
-      errors: []
-    })
-    mocks.submit.mockResolvedValue({ ok: true, imagesDelivered: false })
+  it('carries the typed report and the version footer into the issue body', async () => {
     const onOpenChange = vi.fn()
-    const { container } = render(<SidebarFeedbackDialog open onOpenChange={onOpenChange} />)
-    fireEvent.change(screen.getByPlaceholderText('What could we improve?'), {
-      target: { value: 'Screenshot attached' }
-    })
-    const input = container.querySelector<HTMLInputElement>('input[type="file"]')
-    fireEvent.change(input!, {
-      target: { files: [new File(['x'], 'shot.png', { type: 'image/png' })] }
-    })
-    await screen.findByRole('button', { name: 'Remove shot.png' })
+    render(<SidebarFeedbackDialog open onOpenChange={onOpenChange} />)
+    const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea, { target: { value: `Crashes on quit.\n${textarea.value}` } })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
 
-    await waitFor(() =>
-      expect(mocks.toastWarning).toHaveBeenCalledWith(
-        'Feedback sent, but image delivery could not be confirmed.'
+    const url = mocks.openUrl.mock.calls[0][0] as string
+    // template= is load-bearing: this repo disables blank issues, so a bare
+    // ?body= lands on the chooser with the text dropped.
+    expect(
+      url.startsWith(
+        'https://github.com/paidaxingyo666/Manta/issues/new?template=other.yml&details='
       )
-    )
+    ).toBe(true)
+    const body = decodeURIComponent(url.split('&details=')[1])
+    expect(body).toContain('Crashes on quit.')
+    expect(body).toContain('Manta: 1.4.189-rc.0')
+    // Nothing is left behind to submit, so the dialog closes with the handoff.
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
-  it('releases image previews when the sidebar unmounts the dialog', async () => {
-    mocks.readFeedbackImageFiles.mockResolvedValue({
-      images: [
-        {
-          id: 'shot',
-          name: 'shot.png',
-          contentType: 'image/png',
-          bytes: 1,
-          data: new Uint8Array([1]),
-          previewUrl: 'blob:shot'
-        }
-      ],
-      errors: []
-    })
-    const { container, unmount } = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const input = container.querySelector<HTMLInputElement>('input[type="file"]')
-    fireEvent.change(input!, {
-      target: { files: [new File(['x'], 'shot.png', { type: 'image/png' })] }
-    })
-    await screen.findByRole('button', { name: 'Remove shot.png' })
+  // `open` refuses a URL past a few thousand characters and GitHub answers 414,
+  // so a pasted log has to be cut. A silently dead button would be worse.
+  it('truncates a report too long to survive the URL', async () => {
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea, { target: { value: 'x'.repeat(9000) } })
 
-    unmount()
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
 
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:shot')
+    const encoded = (mocks.openUrl.mock.calls[0][0] as string).split('&details=')[1]
+    expect(encoded.length).toBeLessThanOrEqual(6000)
+    expect(decodeURIComponent(encoded)).toContain('truncated')
   })
 
-  it('does not consume text when the pasted image cannot be attached', () => {
-    mocks.readFeedbackImageFiles.mockResolvedValue({
-      images: [],
-      errors: ['huge.png is larger than 8.0 MB.']
-    })
-    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    const textarea = screen.getByPlaceholderText('What could we improve?')
-    const file = new File(['image'], 'huge.png', { type: 'image/png' })
-    Object.defineProperty(file, 'size', { value: 8 * 1024 * 1024 + 1 })
-    const paste = new Event('paste', { bubbles: true, cancelable: true })
-    Object.defineProperty(paste, 'clipboardData', {
-      value: { files: [file] }
-    })
+  // Percent-encoding is where a report gets big: one CJK character costs three
+  // bytes, so a Chinese report hits the URL limit ~9x sooner than an English
+  // one of the same length.
+  it('budgets a CJK report by encoded bytes, not characters', async () => {
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea, { target: { value: '终端卡死'.repeat(1000) } })
 
-    fireEvent(textarea, paste)
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
 
-    expect(paste.defaultPrevented).toBe(false)
-    expect(mocks.readFeedbackImageFiles).toHaveBeenCalledWith([file], 0)
+    expect(
+      (mocks.openUrl.mock.calls[0][0] as string).split('&details=')[1].length
+    ).toBeLessThanOrEqual(6000)
   })
 
-  it('rejects images added after submission starts instead of clearing them unsent', async () => {
-    mocks.submit.mockReturnValue(new Promise(() => {}))
-    const { container } = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
-    fireEvent.change(screen.getByPlaceholderText('What could we improve?'), {
-      target: { value: 'Initial report' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
-    await waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(1))
-    const file = new File(['image'], 'late.png', { type: 'image/png' })
-    const input = container.querySelector<HTMLInputElement>('input[type="file"]')
+  // Slicing between the halves of a surrogate pair makes encodeURIComponent
+  // throw URIError, which the user sees as a button that does nothing.
+  it('never cuts a surrogate pair in half', async () => {
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea, { target: { value: '🐛'.repeat(3000) } })
 
-    fireEvent.change(input!, { target: { files: [file] } })
+    expect(() => fireEvent.click(screen.getByRole('button', { name: SUBMIT }))).not.toThrow()
+    expect(mocks.openUrl).toHaveBeenCalled()
+  })
 
-    expect(mocks.readFeedbackImageFiles).not.toHaveBeenCalled()
-    expect(mocks.toastWarning).toHaveBeenCalledWith(
-      'Wait for the current feedback to finish sending before attaching more images.'
-    )
+  it('never reaches a feedback endpoint', async () => {
+    const textarea = openDialog()
+    await waitFor(() => expect(textarea.value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea, { target: { value: `Report.\n${textarea.value}` } })
+
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+
+    expect((window.api as Record<string, unknown>).feedback).toBeUndefined()
   })
 })

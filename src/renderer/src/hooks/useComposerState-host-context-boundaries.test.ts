@@ -66,7 +66,7 @@ describe('useComposerState host-context boundaries', () => {
       number: 42,
       title: 'Fix PR workspace creation',
       state: 'open' as const,
-      url: 'https://github.com/stablyai/orca/pull/42',
+      url: 'https://github.com/stablyai/manta/pull/42',
       labels: [],
       updatedAt: '2026-08-04T00:00:00.000Z',
       author: 'octocat',
@@ -98,7 +98,7 @@ describe('useComposerState host-context boundaries', () => {
           type: 'pr',
           number: 43,
           title: item.title,
-          url: 'https://github.com/stablyai/orca/pull/43'
+          url: 'https://github.com/stablyai/manta/pull/43'
         },
         repoId: 'repo-1'
       })
@@ -116,7 +116,7 @@ describe('useComposerState host-context boundaries', () => {
     expect(isExplicitWorkspaceNameInput({ name: '#1234', lastAutoName: '' })).toBe(false)
     expect(
       isExplicitWorkspaceNameInput({
-        name: 'https://github.com/stablyai/orca/pull/1234',
+        name: 'https://github.com/stablyai/manta/pull/1234',
         lastAutoName: ''
       })
     ).toBe(false)
@@ -149,7 +149,7 @@ describe('useComposerState host-context boundaries', () => {
         resolutionKind: 'pr-start-point',
         smartWorkspaceName: 'title-derived-name',
         smartDisplayName: 'Title derived name',
-        fallbackWorkspaceName: 'https://github.com/stablyai/orca/pull/6772',
+        fallbackWorkspaceName: 'https://github.com/stablyai/manta/pull/6772',
         nameIsAutoManaged: true
       })
     ).toEqual({ workspaceName: 'title-derived-name', displayName: 'Title derived name' })
@@ -172,7 +172,7 @@ describe('useComposerState host-context boundaries', () => {
           provider: 'github',
           number: 1234,
           title: 'Fix workspace name',
-          url: 'https://github.com/stablyai/orca/issues/1234'
+          url: 'https://github.com/stablyai/manta/issues/1234'
         }
       })
     ).toBe('fix-workspace-name')

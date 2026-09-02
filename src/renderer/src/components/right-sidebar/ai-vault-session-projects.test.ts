@@ -133,11 +133,11 @@ describe('buildAiVaultProjectContext', () => {
       repos: [repo],
       worktrees: [worktree],
       projectHostSetupProjection: makeProjection({
-        projects: [makeProject({ id: 'github:stablyai/orca', displayName: 'Canonical Manta' })],
+        projects: [makeProject({ id: 'github:stablyai/manta', displayName: 'Canonical Manta' })],
         setups: [
           makeSetup({
             repoId: repo.id,
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             path: repo.path
           })
         ]
@@ -147,10 +147,10 @@ describe('buildAiVaultProjectContext', () => {
       sessions: [session]
     })
 
-    expect(context.activeProjectKey).toBe('project:github:stablyai/orca')
+    expect(context.activeProjectKey).toBe('project:github:stablyai/manta')
     expect(context.sessionProjectById.get(session.id)).toMatchObject({
       kind: 'repo',
-      key: 'project:github:stablyai/orca',
+      key: 'project:github:stablyai/manta',
       label: 'Canonical Manta'
     })
   })
@@ -168,11 +168,11 @@ describe('buildAiVaultProjectContext', () => {
       repos: [repo],
       worktrees: [worktree],
       projectHostSetupProjection: makeProjection({
-        projects: [makeProject({ id: 'github:stablyai/orca', displayName: 'Canonical Manta' })],
+        projects: [makeProject({ id: 'github:stablyai/manta', displayName: 'Canonical Manta' })],
         setups: [
           makeSetup({
             repoId: repo.id,
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             path: repo.path
           })
         ]
@@ -182,8 +182,8 @@ describe('buildAiVaultProjectContext', () => {
       sessions: [session]
     })
 
-    expect(context.activeProjectKey).toBe('project:github:stablyai/orca')
-    expect(context.sessionProjectById.get(session.id)?.key).toBe('project:github:stablyai/orca')
+    expect(context.activeProjectKey).toBe('project:github:stablyai/manta')
+    expect(context.sessionProjectById.get(session.id)?.key).toBe('project:github:stablyai/manta')
   })
 
   it('inherits setup host ids for legacy worktrees without host metadata', () => {

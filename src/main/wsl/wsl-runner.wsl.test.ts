@@ -52,11 +52,11 @@ describeOnWsl('runWslProcess against a real distro', () => {
       loginPath: 'preferred',
       distro: DISTRO,
       program: '/bin/echo',
-      args: ['manta-probe-ok'],
+      args: ['orca-probe-ok'],
       timeoutMs: 15_000
     })
     const elapsed = Date.now() - started
-    expect(result.stdout.trim()).toContain('manta-probe-ok')
+    expect(result.stdout.trim()).toContain('orca-probe-ok')
     expect(elapsed).toBeLessThan(20_000)
   }, 60_000)
 

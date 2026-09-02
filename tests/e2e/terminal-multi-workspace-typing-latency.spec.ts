@@ -478,7 +478,9 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
     test.skip(!BENCH_ENABLED, 'Bench-only: run via pnpm bench:multi-workspace-typing')
     await waitForSessionReady(mantaPage)
     const typingWorktreeId = await waitForActiveWorktree(mantaPage)
-    const loadWorktreeId = (await getAllWorktreeIds(mantaPage)).find((id) => id !== typingWorktreeId)
+    const loadWorktreeId = (await getAllWorktreeIds(mantaPage)).find(
+      (id) => id !== typingWorktreeId
+    )
     expect(Boolean(loadWorktreeId), 'bench needs the seeded secondary worktree').toBe(true)
     if (!loadWorktreeId) {
       return

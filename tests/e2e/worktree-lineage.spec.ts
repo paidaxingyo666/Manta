@@ -262,7 +262,9 @@ test.describe('Worktree Lineage', () => {
     })
     await expect(sleepSubtree).toBeVisible()
     await expect(sleepSubtree).toBeEnabled()
-    await expect(mantaPage.getByRole('menuitem', { name: 'Delete with Descendants…' })).toBeVisible()
+    await expect(
+      mantaPage.getByRole('menuitem', { name: 'Delete with Descendants…' })
+    ).toBeVisible()
     await captureEvidence(mantaPage, 'workspace-descendant-actions.png')
     await sleepSubtree.click()
 

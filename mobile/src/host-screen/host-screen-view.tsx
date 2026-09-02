@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { hostScreenStyles as styles } from './host-screen-styles'
+import { styles } from '../theme/host-home-styles'
 import { HostScreenHeader } from './host-screen-header'
 import { HostScreenOverlays } from './host-screen-overlays'
 import { HostWorkspaceList } from './host-workspace-list'

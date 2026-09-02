@@ -516,7 +516,7 @@ describe('fetchWorktrees', () => {
       projectHostSetups: [
         {
           id: 'repo-remote',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'runtime:env-1',
           repoId: 'repo-remote',
           path: '/vercel/sandbox/manta',
@@ -542,7 +542,7 @@ describe('fetchWorktrees', () => {
         ...remote,
         hostId: 'runtime:env-1',
         runtimeOwnerEnvironmentId: 'env-1',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         projectHostSetupId: 'repo-remote'
       }
     ])
@@ -551,7 +551,7 @@ describe('fetchWorktrees', () => {
         id: remote.id,
         hostId: 'runtime:env-1',
         runtimeOwnerEnvironmentId: 'env-1',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         projectHostSetupId: 'repo-remote'
       })
     ])

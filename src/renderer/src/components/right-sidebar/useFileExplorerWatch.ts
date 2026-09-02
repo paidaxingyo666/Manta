@@ -94,6 +94,11 @@ export function useFileExplorerWatch({
   const activeRuntimeEnvironmentId = useAppStore((s) =>
     getFileExplorerWatchRuntimeEnvironmentId(s, activeWorktreeId, operationOwner)
   )
+  const activeRuntimeConnectionGeneration = useAppStore((s) =>
+    activeRuntimeEnvironmentId
+      ? (s.runtimeStatusByEnvironmentId?.get(activeRuntimeEnvironmentId)?.connectionGeneration ?? 0)
+      : 0
+  )
 
   // Keep refs for handler-accessed values so the IPC listener isn't re-subscribed on every render.
   const dirCacheRef = useRef(dirCache)
@@ -272,7 +277,14 @@ export function useFileExplorerWatch({
       deferredRef.current = []
       processPayloadRef.current = null
     }
-  }, [worktreePath, activeWorktreeId, activeRuntimeEnvironmentId, setDirCache, setSelectedPath])
+  }, [
+    worktreePath,
+    activeWorktreeId,
+    activeRuntimeEnvironmentId,
+    activeRuntimeConnectionGeneration,
+    setDirCache,
+    setSelectedPath
+  ])
 
   // ── Flush deferred events when interaction ends ────────────────────
   useEffect(() => {

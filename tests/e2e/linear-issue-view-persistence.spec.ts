@@ -439,7 +439,10 @@ test.describe('Linear issue view persistence', () => {
     await expect(mantaPage.getByText(STATE_A.name, { exact: true }).first()).toBeVisible()
   })
 
-  test('keeps attribute filters scoped per Linear workspace', async ({ electronApp, mantaPage }) => {
+  test('keeps attribute filters scoped per Linear workspace', async ({
+    electronApp,
+    mantaPage
+  }) => {
     await waitForSessionReady(mantaPage)
     await waitForActiveWorktree(mantaPage)
     await installLinearPersistenceBackend(electronApp, { multiWorkspace: true })

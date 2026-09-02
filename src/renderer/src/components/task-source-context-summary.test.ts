@@ -17,7 +17,7 @@ describe('task source context summary', () => {
         {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:devbox',
           projectHostSetupId: 'setup-1',
           repoId: 'repo-1',
@@ -26,8 +26,8 @@ describe('task source context summary', () => {
       ]
     })
 
-    expect(summary.label).toBe('GitHub · devbox · stablyai/orca')
-    expect(summary.title).toBe('GitHub · Host: devbox · Source: stablyai/orca')
+    expect(summary.label).toBe('GitHub · devbox · stablyai/manta')
+    expect(summary.title).toBe('GitHub · Host: devbox · Source: stablyai/manta')
   })
 
   it('shows repo-backed provider account labels when accounts can differ by host', () => {
@@ -39,7 +39,7 @@ describe('task source context summary', () => {
         {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'local',
           projectHostSetupId: 'setup-local',
           repoId: 'repo-local',
@@ -49,7 +49,7 @@ describe('task source context summary', () => {
         {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:builder',
           projectHostSetupId: 'setup-builder',
           repoId: 'repo-builder',
@@ -61,7 +61,7 @@ describe('task source context summary', () => {
 
     expect(summary.label).toBe(`GitHub · ${LOCAL_HOST_LABEL}, builder · personal-gh, work-gh`)
     expect(summary.title).toBe(
-      `GitHub · Host: ${LOCAL_HOST_LABEL}, builder · Account: personal-gh, work-gh · Source: stablyai/orca · 2 selected projects`
+      `GitHub · Host: ${LOCAL_HOST_LABEL}, builder · Account: personal-gh, work-gh · Source: stablyai/manta · 2 selected projects`
     )
   })
 
@@ -74,7 +74,7 @@ describe('task source context summary', () => {
         {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:devbox',
           repoId: 'repo-1',
           providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' }
@@ -83,9 +83,9 @@ describe('task source context summary', () => {
       hostAvailability: [{ hostId: 'ssh:devbox', status: 'disconnected' }]
     })
 
-    expect(summary.label).toBe('GitHub · devbox · disconnected · stablyai/orca')
+    expect(summary.label).toBe('GitHub · devbox · disconnected · stablyai/manta')
     expect(summary.title).toBe(
-      'GitHub · Host: devbox · Availability: devbox disconnected · Source: stablyai/orca'
+      'GitHub · Host: devbox · Availability: devbox disconnected · Source: stablyai/manta'
     )
   })
 
@@ -176,9 +176,9 @@ describe('task source context summary', () => {
       hostAvailability: [{ hostId: 'runtime:old-server', health: 'blocked' }]
     })
 
-    expect(summary.label).toBe('GitHub · old-server · server update needed · stablyai/orca')
+    expect(summary.label).toBe('GitHub · old-server · server update needed · stablyai/manta')
     expect(summary.title).toBe(
-      'GitHub · Host: old-server · Availability: old-server server update needed · Source: stablyai/orca'
+      'GitHub · Host: old-server · Availability: old-server server update needed · Source: stablyai/manta'
     )
   })
 
@@ -202,9 +202,11 @@ describe('task source context summary', () => {
       ]
     })
 
-    expect(summary.label).toBe('GitHub · old-server · checking server capabilities · stablyai/orca')
+    expect(summary.label).toBe(
+      'GitHub · old-server · checking server capabilities · stablyai/manta'
+    )
     expect(summary.title).toBe(
-      'GitHub · Host: old-server · Availability: old-server checking server capabilities · Source: stablyai/orca'
+      'GitHub · Host: old-server · Availability: old-server checking server capabilities · Source: stablyai/manta'
     )
   })
 
@@ -221,7 +223,7 @@ describe('task source context summary', () => {
           {
             kind: 'task-source',
             provider: 'github',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:03ef704c-b180-4b10-998d-e28fbd5de9a3',
             repoId: 'repo-runtime',
             providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' }
@@ -235,9 +237,9 @@ describe('task source context summary', () => {
         ]
       })
     ).toEqual({
-      label: 'GitHub · dev box · server update needed · stablyai/orca',
+      label: 'GitHub · dev box · server update needed · stablyai/manta',
       title:
-        'GitHub · Host: dev box · Availability: dev box server update needed · Source: stablyai/orca'
+        'GitHub · Host: dev box · Availability: dev box server update needed · Source: stablyai/manta'
     })
 
     expect(
@@ -341,7 +343,7 @@ describe('task source context summary', () => {
           {
             kind: 'task-source',
             provider: 'github',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'ssh:devbox',
             repoId: 'repo-1',
             providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' }
@@ -350,9 +352,9 @@ describe('task source context summary', () => {
         hostAvailability: [{ hostId: 'ssh:devbox', reason: 'missing-provider-auth' }]
       })
     ).toEqual({
-      label: 'GitHub · devbox · provider auth needed · stablyai/orca',
+      label: 'GitHub · devbox · provider auth needed · stablyai/manta',
       title:
-        'GitHub · Host: devbox · Availability: devbox provider auth needed · Source: stablyai/orca'
+        'GitHub · Host: devbox · Availability: devbox provider auth needed · Source: stablyai/manta'
     })
 
     expect(

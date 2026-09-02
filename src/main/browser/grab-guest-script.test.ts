@@ -7,11 +7,11 @@ import { clampGrabPayload } from './browser-grab-payload'
 
 describe('buildGuestOverlayScript', () => {
   it.each([
-    ['arm', '07cffca05c4c9dab10bdcf301deab24e033edd07c6cd235bb364e1a139720a0a'],
-    ['awaitClick', 'b6b65b2b53c8719f1d10f93954cf867d99e43e14dbd1ca0a92e5067b168a126c'],
-    ['finalize', '91bd9836b0536c9579e0d4648d30679c0b4a5893d9a43110a70e67d6804fd291'],
-    ['extractHover', 'cf0ee3ac61669daefa7db9389233c1abfe9f0fb9e7257300c761987aac914b02'],
-    ['teardown', '732efde1022745f26dd4250d2891a663023eecafdf025fd66dde87781a985d81']
+    ['arm', 'aab1eda2bfbb9e838b36143009938dd5a955074767885000c0cc6cdac2d56e4b'],
+    ['awaitClick', '4ae1fdd04de4d9dabce65d4f3e6a95a2bd32f721eb2af7f3dea9dbfb8b1d4218'],
+    ['finalize', 'c239b64e40efc34458dfba810f135adbea174bdf5d16f8c6218aa84527835cee'],
+    ['extractHover', '2043a82c624e475df45afffddd22bc0c7dca1961bf5dd0f482b658f094ec3ae1'],
+    ['teardown', 'cc114c175866d41467979507a0b2023d8700afff597ff4b82db262ee4b36f220']
   ] as const)('preserves the serialized %s guest script', (action, expectedSha256) => {
     expect(createHash('sha256').update(buildGuestOverlayScript(action)).digest('hex')).toBe(
       expectedSha256

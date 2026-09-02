@@ -225,7 +225,10 @@ describe('hasAbsoluteCommandPath', () => {
 
   it('recognizes a sentinel-marked command path amid shell startup and exit output', () => {
     expect(
-      hasAbsoluteCommandPath('welcome\n__MANTA_AGENT_PATH__/opt/bin/codex\nlogout-banner\n', 'linux')
+      hasAbsoluteCommandPath(
+        'welcome\n__MANTA_AGENT_PATH__/opt/bin/codex\nlogout-banner\n',
+        'linux'
+      )
     ).toBe(true)
   })
 

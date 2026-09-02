@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { Page } from '@stablyai/playwright-test'
 import { expect, test } from './helpers/manta-app'
 import { launchHeadlessPairedRuntimeHost } from './helpers/headless-paired-runtime-host'
@@ -11,6 +12,32 @@ import type { PairedQuickOpenLargeTreeFixture } from './helpers/paired-quick-ope
 import { waitForSessionReady } from './helpers/store'
 
 const QUICK_OPEN_SEARCH_DEBOUNCE_MS = 120
+
+/**
+ * The oracle's byte length and digest for a single-hit search.
+ *
+ * Derived rather than hard-coded, because both numbers are a function of the
+ * target path — and one of this fixture's two paths carries the product name.
+ * Renaming it for this fork moved the length by exactly the two characters the
+ * name grew by, so the upstream constants (89 / 9e7399e3…) describe a path this
+ * repository no longer creates. A literal here reads as a wire contract while
+ * actually asserting the brand's character count, and goes stale again on the
+ * next rename.
+ *
+ * The shape it pins — one file, no truncation — is what the three assertions
+ * above it check field by field; this keeps upstream's byte-level check without
+ * the coupling.
+ */
+function singleHitOracle(targetPath: string): { oracleByteLength: number; sha256: string } {
+  const encoded = Buffer.from(
+    JSON.stringify({ files: [targetPath], totalCount: 1, truncated: false }),
+    'utf8'
+  )
+  return {
+    oracleByteLength: encoded.byteLength,
+    sha256: createHash('sha256').update(encoded).digest('hex')
+  }
+}
 
 async function activateWorktree(page: Page, repoPath: string, timeout = 60_000): Promise<string> {
   await expect
@@ -120,17 +147,7 @@ async function expectQuickOpenAndRuntimeHealthy(
     expect(queryResult.totalCount).toBe(1)
     expect(queryResult.truncated).toBe(false)
     expect(queryResult.wireByteLength).toBeLessThan(4_096)
-    expect(queryResult).toMatchObject(
-      targetPath === fixture.gitIgnoredTargetPath
-        ? {
-            oracleByteLength: 95,
-            sha256: 'a6259174bf63bccb04ec461aed9b316f8ef78fe0474a6a101d4f11a383414125'
-          }
-        : {
-            oracleByteLength: 89,
-            sha256: '9e7399e32001d443105e0f612f0eb2eee88fba50902dc75c926c547538e93eb5'
-          }
-    )
+    expect(queryResult).toMatchObject(singleHitOracle(targetPath))
 
     // Why: control only the debounce; RPC deadlines and socket liveness stay on real time.
     const pauseAt = await client.page.evaluate(() => Date.now() + 1_000)

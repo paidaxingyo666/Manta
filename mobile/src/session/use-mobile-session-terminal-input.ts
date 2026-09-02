@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { translate } from '../i18n/i18n'
 import {
   clearTerminalLiveInputFocusTimer,
   scheduleTerminalLiveInputFocus
@@ -232,9 +233,9 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
       await client.sendRequest('terminal.clearBuffer', {
         terminal: target.handle
       })
-      showToast('Terminal cleared')
+      showToast(translate('m.worktreeId.f2173a95a7', 'Terminal cleared'))
     } catch {
-      showToast("Couldn't clear terminal", 1500)
+      showToast(translate('m.worktreeId.9b7df64511', "Couldn't clear terminal"), 1500)
     }
   }
   return {

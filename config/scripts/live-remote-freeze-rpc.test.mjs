@@ -7,7 +7,9 @@ import {
 
 describe('live remote freeze RPC', () => {
   it('resolves the Manta CLI for managed, dev, Linux, and default runtimes', () => {
-    expect(resolveMantaCliCommand({ env: { MANTA_CLI_COMMAND: 'custom-manta' } })).toBe('custom-manta')
+    expect(resolveMantaCliCommand({ env: { MANTA_CLI_COMMAND: 'custom-manta' } })).toBe(
+      'custom-manta'
+    )
     expect(resolveMantaCliCommand({ env: { MANTA_DEV_REPO_ROOT: '/repo' } })).toBe('manta-dev')
     expect(resolveMantaCliCommand({ env: {}, platform: 'linux' })).toBe('manta-ide')
     expect(resolveMantaCliCommand({ env: {}, platform: 'win32' })).toBe('manta')

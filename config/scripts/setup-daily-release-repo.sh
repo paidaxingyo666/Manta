@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Creates stablyai/orca-daily and grants the existing release App write access to
+# Creates paidaxingyo666/manta-daily and grants the existing release App write access to
 # it, so daily-mac-build.yml can publish there.
 #
 # Why a separate repo rather than reusing manta-hourly: the daily channel is a
@@ -20,6 +20,7 @@ set -euo pipefail
 ORG="stablyai"
 DAILY_REPO="$ORG/manta-daily"
 MAIN_REPO="$ORG/manta"
+# NOTE: GitHub App slug registered by upstream. Replace with your own App before running.
 APP_SLUG="orca-hourly-release"
 
 fail() {

@@ -20,11 +20,11 @@ vi.mock('../ui/dropdown-menu', () => ({
 }))
 
 const plugin: PluginHostListEntry = {
-  pluginKey: 'stablyai.orca-skills',
+  pluginKey: 'paidaxingyo666.manta-skills',
   consentFingerprint: 'sha256-consent',
   name: 'Manta Skills',
   version: '1.0.0',
-  publisher: 'stablyai',
+  publisher: 'paidaxingyo666',
   status: 'disabled',
   needsReconsent: false,
   isDev: false,
@@ -41,7 +41,7 @@ const plugin: PluginHostListEntry = {
   },
   source: {
     kind: 'bundled',
-    reference: 'bundled:stablyai.orca-skills',
+    reference: 'bundled:paidaxingyo666.manta-skills',
     resolvedCommit: null,
     contentHash: 'sha256-content'
   }

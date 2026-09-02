@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, Pressable, Linking, Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, Globe } from 'lucide-react-native'
+import { ChevronLeft } from 'lucide-react-native'
 import Svg, { Path } from 'react-native-svg'
 import Constants from 'expo-constants'
 import { MantaLogo } from '../src/components/MantaLogo'
 import { colors, spacing, typography } from '../src/theme/mobile-theme'
+import { translate } from '../src/i18n/i18n'
 
 // Why: read version + native build identifier from expo-constants at
 // runtime so the About screen never drifts out of sync with app.json.
@@ -28,14 +29,6 @@ function GithubIcon({ size = 16, color = colors.textSecondary }) {
   )
 }
 
-function XIcon({ size = 16, color = colors.textSecondary }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-      <Path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </Svg>
-  )
-}
-
 export default function AboutScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -46,38 +39,26 @@ export default function AboutScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>About</Text>
+        <Text style={styles.heading}>{translate('m.about.a81a8e76d8', 'About')}</Text>
       </View>
 
       <View style={styles.brand}>
         <MantaLogo size={28} />
-        <Text style={styles.brandName}>Manta</Text>
-        <Text style={styles.brandSub}>Open-source agent IDE for 100x builders</Text>
+        <Text style={styles.brandName}>{translate('m.about.eadba12858', 'Manta')}</Text>
+        <Text style={styles.brandSub}>
+          {translate('m.about.c117fccf80', 'Open-source agent IDE for 100x builders')}
+        </Text>
       </View>
 
       <View style={styles.section}>
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://onOrca.dev')}
-        >
-          <Globe size={16} color={colors.textSecondary} />
-          <Text style={styles.rowValue}>onOrca.dev</Text>
-        </Pressable>
-        <View style={styles.separator} />
-        <Pressable
-          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://github.com/stablyai/orca')}
+          onPress={() => void Linking.openURL('https://github.com/paidaxingyo666/Manta')}
         >
           <GithubIcon />
-          <Text style={styles.rowValue}>stablyai/orca</Text>
-        </Pressable>
-        <View style={styles.separator} />
-        <Pressable
-          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://x.com/orca_build')}
-        >
-          <XIcon />
-          <Text style={styles.rowValue}>@orca_build</Text>
+          <Text style={styles.rowValue}>
+            {translate('m.about.8830283fd4', 'paidaxingyo666/Manta')}
+          </Text>
         </Pressable>
       </View>
 

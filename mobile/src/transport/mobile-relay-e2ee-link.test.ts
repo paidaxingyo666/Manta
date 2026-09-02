@@ -65,7 +65,7 @@ describe('MobileRelayE2eeLink', () => {
     const onError = vi.fn()
     new MobileRelayE2eeLink({
       endpoint: {
-        cellUrl: 'https://relay-c1.manta.sh.cn',
+        cellUrl: 'https://relay-c1.onorca.dev',
         relayHostId: 'AbCdEf0123_-xyZ9'
       },
       credential: 'credential',
@@ -90,7 +90,7 @@ describe('MobileRelayE2eeLink', () => {
     const onError = vi.fn()
     new MobileRelayE2eeLink({
       endpoint: {
-        cellUrl: 'https://relay-c1.manta.sh.cn',
+        cellUrl: 'https://relay-c1.onorca.dev',
         relayHostId: 'AbCdEf0123_-xyZ9'
       },
       credential: 'credential',
@@ -117,7 +117,7 @@ describe('MobileRelayE2eeLink', () => {
       const onError = vi.fn()
       const link = new MobileRelayE2eeLink({
         endpoint: {
-          cellUrl: 'https://relay-c1.manta.sh.cn',
+          cellUrl: 'https://relay-c1.onorca.dev',
           relayHostId: 'AbCdEf0123_-xyZ9'
         },
         credential: 'credential',
@@ -147,7 +147,7 @@ describe('MobileRelayE2eeLink', () => {
       const onError = vi.fn()
       const link = new MobileRelayE2eeLink({
         endpoint: {
-          cellUrl: 'https://relay-c1.manta.sh.cn',
+          cellUrl: 'https://relay-c1.onorca.dev',
           relayHostId: 'AbCdEf0123_-xyZ9'
         },
         credential: 'credential',

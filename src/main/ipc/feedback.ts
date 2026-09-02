@@ -1,54 +1,64 @@
 import os from 'node:os'
-import { app, ipcMain, net } from 'electron'
+import { NO_FEEDBACK_ENDPOINT_ERROR } from '../../shared/crash-reporting'
+import { app, ipcMain } from 'electron'
 import {
-  appendFeedbackImagesToFormData,
   readFeedbackImagesDelivered,
   validateFeedbackImages,
   type FeedbackImageAttachment
 } from './feedback-image-attachments'
+import { postFeedback } from './feedback-request-transport'
+import type {
+  FeedbackDiagnosticBundleAttachment,
+  FeedbackSubmissionType,
+  FeedbackSubmitBody
+} from './feedback-submit-body'
 
 export type { FeedbackImageAttachment }
+export type {
+  FeedbackDiagnosticBundleAttachment,
+  FeedbackSubmissionType
+} from './feedback-submit-body'
 
-// Why: the production Mac build loads the renderer from a file:// origin, so a
-// cross-origin POST from fetch() triggers a CORS preflight that the feedback
-// endpoint rejects. Electron's net module runs in the main process and is not
-// subject to CORS, so we proxy the submission through IPC. This mirrors the
-// same pattern used by updater-changelog.ts and updater-nudge.ts.
-const FEEDBACK_API_URL = 'https://www.manta.sh.cn/v1/feedback'
-const FEEDBACK_REQUEST_TIMEOUT_MS = 10_000
+// Upstream serves this endpoint; this fork does not. The feedback dialog now
+// hands its text to a GitHub issue instead, and the crash reporter has nowhere
+// to send to — so with nothing configured the submit path answers immediately
+// rather than spending a 10s timeout plus a retry on a host that never resolves.
+// MANTA_FEEDBACK_API_URL points it at a collector the operator runs.
+export function hasFeedbackEndpoint(): boolean {
+  return resolveFeedbackApiUrl() !== null
+}
+
+function resolveFeedbackApiUrl(env: NodeJS.ProcessEnv = process.env): string | null {
+  const configured = env.MANTA_FEEDBACK_API_URL?.trim()
+  if (!configured) {
+    return null
+  }
+  // Reports carry the sender's GitHub identity, screenshots, and up to 4 MiB of
+  // diagnostic logs, so the same HTTPS floor the artifact endpoint has applies
+  // here. A malformed value is a configuration mistake, not a reason to put all
+  // that on the wire in the clear.
+  try {
+    const url = new URL(configured)
+    const loopback = ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)
+    if (url.protocol === 'https:' || (url.protocol === 'http:' && loopback)) {
+      return url.toString()
+    }
+  } catch {
+    // fall through
+  }
+  console.warn('[feedback] ignoring MANTA_FEEDBACK_API_URL: not an HTTPS (or loopback) URL')
+  return null
+}
 const FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS = 60_000
-const DIAGNOSTIC_BUNDLE_CONTENT_TYPE = 'application/x-ndjson'
 // Why: corporate filters can reject multipart with 403 while allowing the
 // small JSON report, so content-shaped failures should shed the attachment.
 const DIAGNOSTIC_BUNDLE_JSON_RETRY_STATUSES = new Set([400, 403, 408, 413, 415, 422])
-
-export type FeedbackSubmissionType = 'feedback' | 'crash'
 
 export type FeedbackSubmitArgs = {
   feedback: string
   submitAnonymously?: boolean
   githubLogin: string | null
   githubEmail: string | null
-  images?: FeedbackImageAttachment[]
-}
-
-export type FeedbackDiagnosticBundleAttachment = {
-  bundleSubmissionId: string
-  content: string
-  bytes: number
-  spanCount: number
-}
-
-type FeedbackSubmitBody = {
-  feedback: string
-  submissionType: FeedbackSubmissionType
-  githubLogin: string | null
-  githubEmail: string | null
-  appVersion: string
-  platform: NodeJS.Platform
-  osRelease: string
-  arch: string
-  diagnosticBundle?: FeedbackDiagnosticBundleAttachment
   images?: FeedbackImageAttachment[]
 }
 
@@ -103,90 +113,6 @@ function buildSubmitBody(args: InternalFeedbackSubmitArgs): FeedbackSubmitBody {
   }
 }
 
-async function postFeedback(
-  url: string,
-  body: FeedbackSubmitBody,
-  timeoutMs = FEEDBACK_REQUEST_TIMEOUT_MS,
-  readResponse?: (response: Response) => Promise<void>
-): Promise<Response> {
-  const controller = new AbortController()
-  // Why: a silent endpoint must not leave feedback IPC pending forever.
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const init: RequestInit = {
-      method: 'POST',
-      ...feedbackRequestBodyInit(body),
-      signal: controller.signal
-    }
-    const response = await net.fetch(url, init)
-    if (readResponse) {
-      await readResponse(response)
-    }
-    // Why: a response parser may tolerate malformed legacy bodies, but it must
-    // not turn the deadline's aborted body into a confirmed delivery.
-    if (controller.signal.aborted) {
-      throw new Error(`request timed out after ${timeoutMs / 1000} seconds`)
-    }
-    return response
-  } catch (error) {
-    // Why: Electron and Node report AbortError differently; keep deadline logs stable.
-    if (controller.signal.aborted) {
-      throw new Error(`request timed out after ${timeoutMs / 1000} seconds`)
-    }
-    throw error
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-function feedbackRequestBodyInit(body: FeedbackSubmitBody): Pick<RequestInit, 'body' | 'headers'> {
-  if (!body.diagnosticBundle && !body.images?.length) {
-    return {
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    }
-  }
-
-  const formData = new FormData()
-  appendFeedbackFormField(formData, 'feedback', body.feedback)
-  appendFeedbackFormField(formData, 'submissionType', body.submissionType)
-  appendFeedbackFormField(formData, 'githubLogin', body.githubLogin)
-  appendFeedbackFormField(formData, 'githubEmail', body.githubEmail)
-  appendFeedbackFormField(formData, 'appVersion', body.appVersion)
-  appendFeedbackFormField(formData, 'platform', body.platform)
-  appendFeedbackFormField(formData, 'osRelease', body.osRelease)
-  appendFeedbackFormField(formData, 'arch', body.arch)
-  if (body.diagnosticBundle) {
-    appendFeedbackFormField(
-      formData,
-      'diagnosticBundleSubmissionId',
-      body.diagnosticBundle.bundleSubmissionId
-    )
-    appendFeedbackFormField(formData, 'diagnosticBundleBytes', String(body.diagnosticBundle.bytes))
-    appendFeedbackFormField(
-      formData,
-      'diagnosticBundleSpanCount',
-      String(body.diagnosticBundle.spanCount)
-    )
-    formData.append(
-      'diagnosticBundleFile',
-      new Blob([body.diagnosticBundle.content], { type: DIAGNOSTIC_BUNDLE_CONTENT_TYPE }),
-      `manta-diagnostics-${body.diagnosticBundle.bundleSubmissionId}.ndjson`
-    )
-  }
-  appendFeedbackImagesToFormData(formData, body.images ?? [])
-
-  // Why: multipart avoids JSON-escaping a near-cap NDJSON bundle over the
-  // backend request limit while still submitting one feedback request.
-  return { body: formData }
-}
-
-function appendFeedbackFormField(formData: FormData, key: string, value: string | null): void {
-  if (value !== null) {
-    formData.append(key, value)
-  }
-}
-
 function messageFromError(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -200,11 +126,12 @@ function errorFailure(error: unknown): FeedbackRequestFailure {
 }
 
 async function retryFeedbackOnPrimary(
+  apiUrl: string,
   body: FeedbackSubmitBody,
   primaryError?: unknown
 ): Promise<FeedbackSubmitResult> {
   try {
-    const retry = await postFeedback(FEEDBACK_API_URL, body)
+    const retry = await postFeedback(apiUrl, body)
     if (retry.ok) {
       return { ok: true }
     }
@@ -237,11 +164,12 @@ function shouldRetryWithoutDiagnosticBundle(status: number): boolean {
 }
 
 async function submitFeedbackWithoutDiagnosticBundle(
+  apiUrl: string,
   body: FeedbackSubmitBody,
   diagnosticBundleFailure: FeedbackRequestFailure
 ): Promise<FeedbackSubmitResult> {
   try {
-    const response = await postFeedback(FEEDBACK_API_URL, body)
+    const response = await postFeedback(apiUrl, body)
     if (response.ok) {
       return { ok: true, diagnosticBundleFailure }
     }
@@ -252,29 +180,26 @@ async function submitFeedbackWithoutDiagnosticBundle(
 }
 
 async function submitFeedbackWithDiagnosticBundle(
+  apiUrl: string,
   body: FeedbackSubmitBody,
   bodyWithoutDiagnosticBundle: FeedbackSubmitBody | null
 ): Promise<FeedbackSubmitResult> {
   try {
     // Why: diagnostic bundles can approach 4 MiB and need more upload time than
     // the small JSON report-only path, especially on constrained connections.
-    const response = await postFeedback(
-      FEEDBACK_API_URL,
-      body,
-      FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS
-    )
+    const response = await postFeedback(apiUrl, body, FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS)
     if (response.ok) {
       return { ok: true }
     }
     const failure = responseFailure(response)
     if (bodyWithoutDiagnosticBundle && shouldRetryWithoutDiagnosticBundle(response.status)) {
-      return submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure)
+      return submitFeedbackWithoutDiagnosticBundle(apiUrl, bodyWithoutDiagnosticBundle, failure)
     }
     return { ok: false, ...failure }
   } catch (error) {
     const failure = errorFailure(error)
     return bodyWithoutDiagnosticBundle
-      ? submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure)
+      ? submitFeedbackWithoutDiagnosticBundle(apiUrl, bodyWithoutDiagnosticBundle, failure)
       : { ok: false, ...failure }
   }
 }
@@ -282,6 +207,14 @@ async function submitFeedbackWithDiagnosticBundle(
 export async function submitFeedback(
   args: InternalFeedbackSubmitArgs
 ): Promise<FeedbackSubmitResult> {
+  const apiUrl = resolveFeedbackApiUrl()
+  if (!apiUrl) {
+    return {
+      ok: false,
+      status: null,
+      error: NO_FEEDBACK_ENDPOINT_ERROR
+    }
+  }
   // Why: buildSubmitBody drops images on the crash lane, so validating them
   // there would abort a crash report over attachments it never meant to send.
   if (args.submissionType !== 'crash' && args.images !== undefined) {
@@ -295,7 +228,7 @@ export async function submitFeedback(
     try {
       let imagesDelivered = true
       const response = await postFeedback(
-        FEEDBACK_API_URL,
+        apiUrl,
         body,
         FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS,
         async (nextResponse) => {
@@ -322,21 +255,19 @@ export async function submitFeedback(
             diagnosticBundle: undefined
           })
         : null
-    return submitFeedbackWithDiagnosticBundle(body, bodyWithoutDiagnosticBundle)
+    return submitFeedbackWithDiagnosticBundle(apiUrl, body, bodyWithoutDiagnosticBundle)
   }
   try {
-    const res = await postFeedback(FEEDBACK_API_URL, body)
+    const res = await postFeedback(apiUrl, body)
     if (res.ok) {
       return { ok: true }
     }
-    // Why: api.manta.sh.cn serves a different product, so transient failures
-    // retry the endpoint that owns feedback and crash delivery.
     if (res.status >= 500) {
-      return retryFeedbackOnPrimary(body, new Error(`status ${res.status}`))
+      return retryFeedbackOnPrimary(apiUrl, body, new Error(`status ${res.status}`))
     }
     return { ok: false, status: res.status, error: `status ${res.status}` }
   } catch (error) {
-    return retryFeedbackOnPrimary(body, error)
+    return retryFeedbackOnPrimary(apiUrl, body, error)
   }
 }
 

@@ -11,7 +11,7 @@ function makeReview(overrides: Partial<HostedReviewInfo> = {}): HostedReviewInfo
     number: 13741,
     title: 'Parent review',
     state: 'open',
-    url: 'https://github.com/stablyai/orca/pull/13741',
+    url: 'https://github.com/stablyai/manta/pull/13741',
     status: 'success',
     updatedAt: '2026-08-11T00:00:00.000Z',
     mergeable: 'MERGEABLE',
@@ -51,7 +51,7 @@ describe('useHostedReviewStackParent', () => {
     })
     expect(result.current).toEqual({
       number: 13741,
-      url: 'https://github.com/stablyai/orca/pull/13741'
+      url: 'https://github.com/stablyai/manta/pull/13741'
     })
   })
 

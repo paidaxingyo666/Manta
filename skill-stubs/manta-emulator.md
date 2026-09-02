@@ -9,7 +9,7 @@ Manta app: taps, gestures, typing, hardware buttons, camera injection, runtime p
 the accessibility tree, and more — all while the live view stays in Manta's emulator pane.
 Prefer this over raw `serve-sim` or direct `simctl` when running agents inside Manta, which
 handles device scoping, helper lifecycle, and worktree context for you. It complements the
-orca-cli skill for terminals, worktrees, and the built-in browser.
+manta-cli skill for terminals, worktrees, and the built-in browser.
 
 ## Resolve the CLI for this session
 
@@ -18,9 +18,8 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
-  `manta` there — outside Manta's terminals it normally resolves to the
-  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package installs the executable as `manta-ide`, so bare
+  `manta` is not on PATH outside Manta's terminals.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before
@@ -33,7 +32,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the full guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator
+MANTA skills get manta-emulator
 ```
 
 That prints the complete, version-matched guide for the exact binary that will handle your
@@ -59,5 +58,5 @@ MANTA emulator list --json
 ```
 
 Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orca-emulator`. Beyond these commands, ask the user rather than guessing a
+`MANTA skills get manta-emulator`. Beyond these commands, ask the user rather than guessing a
 command surface this older binary may not support.

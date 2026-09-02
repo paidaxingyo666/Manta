@@ -122,7 +122,7 @@ jobs:
         env:
           # Why: on a driving failure the harness dumps a screenshot + DOM state
           # here so the actual post-onboarding UI is visible in the artifacts.
-          ORCA_E2E_DIAG_DIR: artifacts/diag
+          MANTA_E2E_DIAG_DIR: artifacts/diag
         run: |
           $log = "artifacts/harness-output.log"
           node tests/tools/win-update-e2e/run.mjs `

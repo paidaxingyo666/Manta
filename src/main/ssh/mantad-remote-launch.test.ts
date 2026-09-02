@@ -20,7 +20,7 @@ const posix = getRemoteHostPlatform('linux-x64')
 const windows = getRemoteHostPlatform('win32-x64')
 
 const SPEC = {
-  remoteInstallDir: '/home/u/.manta-remote/mantad-0.2.0+bb01',
+  remoteInstallDir: '/home/u/.orca-remote/orcad-0.2.0+bb01',
   nodePath: '/usr/bin/node',
   fullVersion: '0.2.0+bb01',
   userDataDir: '/home/u/.manta',

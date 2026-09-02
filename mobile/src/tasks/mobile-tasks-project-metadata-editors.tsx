@@ -14,6 +14,7 @@ import {
   MobileMarkdown
 } from './mobile-tasks-dependencies'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProjectLabelsEditor(model: ConnectionPresentationModel) {
   const {
@@ -31,23 +32,27 @@ export function renderMobileTasksProjectLabelsEditor(model: ConnectionPresentati
   return SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
     <View style={styles.detailSection}>
       <View style={styles.detailSectionHeader}>
-        <Text style={styles.detailSectionTitle}>Labels</Text>
+        <Text style={styles.detailSectionTitle}>{translate('m.tasks.1a11cb6c10', 'Labels')}</Text>
         <Text style={styles.detailSectionMeta}>
           {(projectRowDetail?.provider === 'github'
             ? projectRowDetail.labels
             : projectRowItem.content.labels.map((label) => label.name)
-          ).length || 'None'}
+          ).length || translate('m.tasks.a73061648e', 'None')}
         </Text>
       </View>
       {projectLabelsLoading ? (
         <View style={styles.detailLoadingInline}>
           <ActivityIndicator size="small" color={colors.textSecondary} />
-          <Text style={styles.detailMuted}>Loading labels...</Text>
+          <Text style={styles.detailMuted}>
+            {translate('m.tasks.bd87e0349f', 'Loading labels...')}
+          </Text>
         </View>
       ) : projectLabelsError ? (
         <Text style={styles.detailError}>{projectLabelsError}</Text>
       ) : projectAvailableLabels.length === 0 ? (
-        <Text style={styles.detailMuted}>No labels in this repository.</Text>
+        <Text style={styles.detailMuted}>
+          {translate('m.tasks.c920eee494', 'No labels in this repository.')}
+        </Text>
       ) : (
         <View style={styles.chipRow}>
           {[
@@ -104,23 +109,29 @@ export function renderMobileTasksProjectAssigneesEditor(model: ConnectionPresent
   return SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
     <View style={styles.detailSection}>
       <View style={styles.detailSectionHeader}>
-        <Text style={styles.detailSectionTitle}>Assignees</Text>
+        <Text style={styles.detailSectionTitle}>
+          {translate('m.tasks.a0bd27b1de', 'Assignees')}
+        </Text>
         <Text style={styles.detailSectionMeta}>
           {(projectRowDetail?.provider === 'github'
             ? projectRowDetail.assignees
             : projectRowItem.content.assignees.map((assignee) => assignee.login)
-          ).length || 'None'}
+          ).length || translate('m.tasks.a73061648e', 'None')}
         </Text>
       </View>
       {projectAssignableUsersLoading ? (
         <View style={styles.detailLoadingInline}>
           <ActivityIndicator size="small" color={colors.textSecondary} />
-          <Text style={styles.detailMuted}>Loading assignees...</Text>
+          <Text style={styles.detailMuted}>
+            {translate('m.tasks.817e16216e', 'Loading assignees...')}
+          </Text>
         </View>
       ) : projectAssignableUsersError ? (
         <Text style={styles.detailError}>{projectAssignableUsersError}</Text>
       ) : projectAssignableUsers.length === 0 ? (
-        <Text style={styles.detailMuted}>No assignable users found for this repository.</Text>
+        <Text style={styles.detailMuted}>
+          {translate('m.tasks.fbe1f46e84', 'No assignable users found for this repository.')}{' '}
+        </Text>
       ) : (
         <View style={styles.chipRow}>
           {[
@@ -185,12 +196,12 @@ export function renderMobileTasksProjectIssueMetadata(model: ConnectionPresentat
   return SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowType(projectRowItem) ? (
     <>
       <View style={styles.detailSection}>
-        <Text style={styles.detailSectionTitle}>Title</Text>
+        <Text style={styles.detailSectionTitle}>{translate('m.tasks.e9bd9ec727', 'Title')}</Text>
         <TextInput
           style={styles.input}
           value={projectTitleDraft}
           onChangeText={setProjectTitleDraft}
-          placeholder="Title"
+          placeholder={translate('m.tasks.e9bd9ec727', 'Title')}
           placeholderTextColor={colors.textMuted}
         />
         <Pressable
@@ -202,16 +213,18 @@ export function renderMobileTasksProjectIssueMetadata(model: ConnectionPresentat
             })
           }
         >
-          <Text style={styles.inlineSaveText}>Save title</Text>
+          <Text style={styles.inlineSaveText}>{translate('m.tasks.38ecea93a4', 'Save title')}</Text>
         </Pressable>
       </View>
       <View style={styles.detailSection}>
-        <Text style={styles.detailSectionTitle}>Description</Text>
+        <Text style={styles.detailSectionTitle}>
+          {translate('m.tasks.c57d82a7b7', 'Description')}
+        </Text>
         <TextInput
           style={[styles.input, styles.bodyInput]}
           value={projectBodyDraft}
           onChangeText={setProjectBodyDraft}
-          placeholder="Description"
+          placeholder={translate('m.tasks.c57d82a7b7', 'Description')}
           placeholderTextColor={colors.textMuted}
           multiline
           textAlignVertical="top"
@@ -231,7 +244,9 @@ export function renderMobileTasksProjectIssueMetadata(model: ConnectionPresentat
             })
           }
         >
-          <Text style={styles.inlineSaveText}>Save description</Text>
+          <Text style={styles.inlineSaveText}>
+            {translate('m.tasks.6e65c44219', 'Save description')}
+          </Text>
         </Pressable>
         <MobileMarkdown content={projectBodyDraft} fallback="No description." />
       </View>
@@ -239,11 +254,13 @@ export function renderMobileTasksProjectIssueMetadata(model: ConnectionPresentat
   ) : (
     <>
       <View style={styles.detailSection}>
-        <Text style={styles.detailSectionTitle}>Title</Text>
+        <Text style={styles.detailSectionTitle}>{translate('m.tasks.e9bd9ec727', 'Title')}</Text>
         <Text style={styles.detailLine}>{projectRowItem.content.title}</Text>
       </View>
       <View style={styles.detailSection}>
-        <Text style={styles.detailSectionTitle}>Description</Text>
+        <Text style={styles.detailSectionTitle}>
+          {translate('m.tasks.c57d82a7b7', 'Description')}
+        </Text>
         <MobileMarkdown content={projectBodyDraft} fallback="No description." />
       </View>
     </>

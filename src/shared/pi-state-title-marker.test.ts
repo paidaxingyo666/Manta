@@ -7,8 +7,7 @@ import {
   PI_STATE_MARKERS
 } from './pi-state-title-marker'
 
-// Why: OMP 17.2.12 swapped its animated braille frames for static markers on WSL/ConPTY
-// (#13890, upstream #8014). Every case below was idle before the marker table existed.
+// OMP 17.2.12 replaced animated WSL/ConPTY frames with static markers (#13890, #8014).
 describe('Pi/OMP native state-title markers', () => {
   it.each([
     // bare 17.2.12+ titles
@@ -35,8 +34,7 @@ describe('Pi/OMP native state-title markers', () => {
   })
 
   it.each([
-    // Why: the legacy no-space form is OMP's disabled title, not a working marker. It has
-    // always classified idle and must keep doing so on hosts still running 17.2.11.
+    // The legacy no-space form remains idle for OMP 17.2.11 hosts.
     ['π: my-project', 'idle'],
     ['π - my-project', 'idle'],
     ['⠋ π - my-project', 'working']
@@ -52,9 +50,7 @@ describe('Pi/OMP native state-title markers', () => {
     }
   )
 
-  // Why: an unrecognized marker means a protocol Manta has not been taught yet. Claiming a
-  // status from it would repeat this bug in the other direction, so the parser abstains
-  // and the pre-existing Pi gates decide.
+  // Unknown Pi/OMP markers defer to the existing Pi detectors.
   it('abstains on a marker the table does not define', () => {
     expect(PI_STATE_MARKERS).not.toContain('~')
     expect(getPiStateTitleStatus('π ~ my-project')).toBeNull()
@@ -79,8 +75,7 @@ describe('Pi/OMP native state-title markers', () => {
     )
   })
 
-  // Why: the table is the single source of truth. A new marker added there must reach
-  // detection without editing this file, or the two drift the way they did in #13890.
+  // Every table entry must reach detection without a second protocol list.
   it('routes every table marker through title detection', () => {
     for (const marker of PI_STATE_MARKERS) {
       const status = getPiStateTitleStatus(`π ${marker} my-project`)

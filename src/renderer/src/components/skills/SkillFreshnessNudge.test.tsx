@@ -26,8 +26,8 @@ function placement(
   overrides: Partial<SkillFreshnessInstallation> = {}
 ): SkillFreshnessInstallation {
   return {
-    id: 'orca-cli',
-    name: 'orca-cli',
+    id: 'manta-cli',
+    name: 'manta-cli',
     rootId: 'home-agents',
     providers: ['agent-skills'],
     sourceKind: 'home',
@@ -52,7 +52,7 @@ function eligibleInventory(): SkillFreshnessInventory {
   return {
     schemaVersion: 1,
     installations: [placement()],
-    eligibleUpdateNames: ['orca-cli'],
+    eligibleUpdateNames: ['manta-cli'],
     scanIssues: [],
     scannedAt: 1
   }
@@ -112,7 +112,7 @@ async function rerenderNudge(): Promise<void> {
   })
 }
 
-const DISMISSAL_KEY = ['physical-manta-cli', 'orca-cli', '2'].join('\0')
+const DISMISSAL_KEY = ['physical-manta-cli', 'manta-cli', '2'].join('\0')
 
 describe('SkillFreshnessNudge', () => {
   beforeEach(() => {
@@ -266,7 +266,7 @@ describe('SkillFreshnessNudge', () => {
           physicalIdentity: 'physical-repo-manta-cli'
         })
       ],
-      eligibleUpdateNames: ['orca-cli'],
+      eligibleUpdateNames: ['manta-cli'],
       scanIssues: [],
       scannedAt: 1
     }
@@ -292,7 +292,7 @@ describe('SkillFreshnessNudge', () => {
           physicalIdentity: 'physical-repo-manta-cli-after-checkout'
         })
       ],
-      eligibleUpdateNames: ['orca-cli'],
+      eligibleUpdateNames: ['manta-cli'],
       scanIssues: [],
       scannedAt: 2
     }

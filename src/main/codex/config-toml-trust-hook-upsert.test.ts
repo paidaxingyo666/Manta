@@ -121,7 +121,8 @@ describe('upsertHookTrustEntries', () => {
   })
 
   it('collapses duplicate blocks for the same hook key while preserving unrelated hook state', () => {
-    const sourcePath = 'C:\\Users\\me\\AppData\\Roaming\\manta\\codex-runtime-home\\home\\hooks.json'
+    const sourcePath =
+      'C:\\Users\\me\\AppData\\Roaming\\manta\\codex-runtime-home\\home\\hooks.json'
     const key = `${sourcePath}:session_start:0:0`
     const unrelatedSourcePath =
       'C:\\Users\\me\\AppData\\Roaming\\manta\\codex-runtime-home\\home\\hooks.json'
@@ -166,7 +167,8 @@ describe('upsertHookTrustEntries', () => {
   })
 
   it('collapses a literal-string hook table before writing the canonical Codex literal table', () => {
-    const sourcePath = 'C:\\Users\\me\\AppData\\Roaming\\manta\\codex-runtime-home\\home\\hooks.json'
+    const sourcePath =
+      'C:\\Users\\me\\AppData\\Roaming\\manta\\codex-runtime-home\\home\\hooks.json'
     const key = `${sourcePath}:session_start:0:0`
     const original = [
       `[hooks.state.'${key}']`,

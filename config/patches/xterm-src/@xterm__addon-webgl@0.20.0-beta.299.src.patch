@@ -21,7 +21,7 @@ index 742f0879ff4f04509e4a07c8efdf0d5743fe8ee5..885a206a394fff783737a412c0b75bf9
  }
  
 diff --git a/src/TextureAtlas.ts b/src/TextureAtlas.ts
-index 4977ad741065e26bbfd35bc50e7558a033b13340..f55805ddc3f266415f7f8e81e5b8c318e7db194c 100644
+index 4977ad741065e26bbfd35bc50e7558a033b13340..a956b9b8e75e4e8af72a8d46a34c2624dcd71a3a 100644
 --- a/src/TextureAtlas.ts
 +++ b/src/TextureAtlas.ts
 @@ -3,6 +3,7 @@

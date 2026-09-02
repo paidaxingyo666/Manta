@@ -415,7 +415,7 @@ describe('pre-profile pairing coordinator', () => {
         ts: now,
         level: 'info',
         message: 'Relay: dialing cell',
-        detail: 'relay-c1.manta.sh.cn'
+        detail: 'relay-c1.onorca.dev'
       })
       connectArgs.onLog?.({ id: 'relay-open', ts: now, level: 'info', message: 'Cell socket open' })
       return relay

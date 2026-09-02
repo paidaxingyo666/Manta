@@ -6,6 +6,29 @@ import { defineStreamingMethod, defineMethod, type RpcAnyMethod } from '../core'
 // notifications.subscribe calls landed on the same millisecond.
 let notificationsSubscriptionSeq = 0
 
+/**
+ * The phone reports its APNs token so the desktop can reach it while its socket
+ * is gone — which is every time the phone is asleep, and the reason a
+ * notification used to wait for the app to be opened.
+ *
+ * Hex, bounded: this value becomes a URL path segment on the way to Apple.
+ */
+const RegisterPushTokenParams = z.object({
+  deviceToken: z.string().regex(/^[0-9a-f]{64,200}$/, 'APNs device tokens are lowercase hex'),
+  platform: z.literal('ios'),
+  /**
+   * base64 of the 32-byte key this device will open a sealed push body with.
+   * Optional: a build without the notification service extension has nowhere to
+   * keep one, and its pushes stay generic rather than failing.
+   */
+  encryptionKeyB64: z
+    .string()
+    .regex(/^[A-Za-z0-9+/]{43}=$/, 'expected base64 of 32 bytes')
+    .optional(),
+  /** Set instead of the key when the phone could not produce one, naming the step that failed. */
+  keyUnavailableReason: z.string().max(200).optional()
+})
+
 const NotificationUnsubscribeParams = z.object({
   subscriptionId: z
     .unknown()
@@ -69,6 +92,40 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
     handler: async (params, { runtime }) => {
       runtime.cleanupSubscription(params.subscriptionId)
       return { unsubscribed: true }
+    }
+  }),
+  defineMethod({
+    name: 'notifications.registerPushToken',
+    params: RegisterPushTokenParams,
+    // Why keyed by pairedDeviceId and not the socket: the token has to outlive
+    // the connection to be worth anything, and pairedDeviceId is the revocable
+    // identity that unpairing actually removes.
+    handler: async (params, { pairedDeviceId, setDevicePushToken }) => {
+      // Why throw rather than report a false: a successful response carrying
+      // `registered: false` is indistinguishable from success to a caller that
+      // only checks `ok`, and that is precisely how this shipped storing
+      // nothing while both sides believed it had worked.
+      if (!pairedDeviceId) {
+        throw new Error('Push tokens can only be registered by a paired device.')
+      }
+      if (!setDevicePushToken) {
+        throw new Error('This runtime cannot store push tokens.')
+      }
+      if (params.keyUnavailableReason) {
+        // The only place this chain is observable from the desktop.
+        console.warn('[push] device reported no encryption key:', params.keyUnavailableReason)
+      }
+      if (
+        !setDevicePushToken(pairedDeviceId, {
+          value: params.deviceToken,
+          platform: params.platform,
+          updatedAt: Date.now(),
+          ...(params.encryptionKeyB64 ? { encryptionKeyB64: params.encryptionKeyB64 } : {})
+        })
+      ) {
+        throw new Error('No such paired device.')
+      }
+      return { registered: true }
     }
   }),
   defineMethod({

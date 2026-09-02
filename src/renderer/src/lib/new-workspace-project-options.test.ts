@@ -27,7 +27,7 @@ function repo(id: string, overrides: Partial<Repo> = {}): Repo {
 
 function project(overrides: Partial<Project> = {}): Project {
   return {
-    id: 'github:stablyai/orca',
+    id: 'github:stablyai/manta',
     displayName: 'manta',
     badgeColor: '#111111',
     providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' },
@@ -41,7 +41,7 @@ function project(overrides: Partial<Project> = {}): Project {
 function setup(overrides: Partial<ProjectHostSetup>): ProjectHostSetup {
   return {
     id: overrides.id ?? 'local-setup',
-    projectId: overrides.projectId ?? 'github:stablyai/orca',
+    projectId: overrides.projectId ?? 'github:stablyai/manta',
     hostId: overrides.hostId ?? 'local',
     repoId: overrides.repoId ?? 'local-repo',
     path: overrides.path ?? '/tmp/manta',
@@ -83,12 +83,12 @@ describe('buildNewWorkspaceProjectOptions', () => {
 
     expect(options).toEqual([
       {
-        id: 'github:stablyai/orca',
+        id: 'github:stablyai/manta',
         kind: 'project',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         displayName: 'manta',
         badgeColor: '#111111',
-        detail: 'stablyai/orca'
+        detail: 'stablyai/manta'
       }
     ])
   })
@@ -108,7 +108,7 @@ describe('buildNewWorkspaceProjectOptions', () => {
       eligibleRepos: [repo('local-repo'), repo('other-repo')]
     })
 
-    expect(options.map((option) => option.id)).toEqual(['github:stablyai/orca'])
+    expect(options.map((option) => option.id)).toEqual(['github:stablyai/manta'])
   })
 
   it('excludes projects configured only on removed hosts', () => {
@@ -136,7 +136,7 @@ describe('buildNewWorkspaceProjectOptions', () => {
     })
 
     expect(options).toEqual([
-      expect.objectContaining({ id: 'github:stablyai/orca', detail: 'stablyai/orca' })
+      expect.objectContaining({ id: 'github:stablyai/manta', detail: 'stablyai/manta' })
     ])
   })
 
@@ -399,7 +399,7 @@ describe('buildNewWorkspaceProjectOptions', () => {
         projectId: 'manta',
         displayName: 'Manta',
         badgeColor: '#111111',
-        detail: 'stablyai/orca'
+        detail: 'stablyai/manta'
       },
       {
         kind: 'project',
@@ -412,7 +412,7 @@ describe('buildNewWorkspaceProjectOptions', () => {
     ]
 
     expect(searchNewWorkspaceProjectOptions(options, 'docs')).toEqual([options[1]])
-    expect(searchNewWorkspaceProjectOptions(options, 'stablyai/orca')).toEqual([options[0]])
+    expect(searchNewWorkspaceProjectOptions(options, 'stablyai/manta')).toEqual([options[0]])
   })
 
   it('rejects oversized pasted searches before reading project options', () => {
@@ -478,7 +478,7 @@ describe('buildNewWorkspaceCreateTargetOptions', () => {
     })
 
     expect(options.map((option) => option.id).sort()).toEqual([
-      'github:stablyai/orca',
+      'github:stablyai/manta',
       'project-group:folder-group'
     ])
     expect(options.find((option) => option.id === 'project-group:folder-group')).toMatchObject({

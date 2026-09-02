@@ -121,7 +121,9 @@ test.describe('Terminal Panes', () => {
       .toBe(true)
   })
 
-  test('@headful resizing split panes forwards only the settled PTY size', async ({ mantaPage }) => {
+  test('@headful resizing split panes forwards only the settled PTY size', async ({
+    mantaPage
+  }) => {
     await splitActiveTerminalPane(mantaPage, 'vertical')
     const snapshot = await waitForPaneIdentitySnapshot(mantaPage, 2)
     const ptyIds = snapshot.panes

@@ -80,10 +80,21 @@ Download and make the AppImage executable:
 
 ```bash
 sudo mkdir -p /opt/manta
-sudo curl -L https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage \
+sudo curl -L https://github.com/paidaxingyo666/Manta/releases/latest/download/manta-linux.AppImage \
   -o /opt/manta/manta-linux.AppImage
 sudo chmod +x /opt/manta/manta-linux.AppImage
 ```
+
+`releases/latest` resolves to the newest **stable** release and skips
+pre-releases, so it 404s while this fork has only published release candidates.
+Until a stable tag exists, name the tag:
+
+```bash
+sudo curl -L https://github.com/paidaxingyo666/Manta/releases/download/v1.4.189-rc.0/manta-linux.AppImage \
+  -o /opt/manta/manta-linux.AppImage
+```
+
+On arm64 the asset is `manta-linux-arm64.AppImage`.
 
 If `Xvfb` was installed somewhere other than `/usr/bin`, confirm systemd can
 find it later:
@@ -374,7 +385,7 @@ replace the AppImage and restart the service.
 Two facts make this safe and predictable:
 
 - **State lives in the service user's home, not next to the binary.** Persisted
-  data is under `/home/manta/.config/` (Manta uses both an `manta` and an `Manta`
+  data is under `/home/manta/.config/` (Manta uses both a `manta` and an `Manta`
   directory there), fully independent of `/opt/manta/manta-linux.AppImage`.
   Replacing the binary never touches projects, worktree metadata, terminal
   history, orchestration state, or paired-device keys — so mobile and web
@@ -494,7 +505,7 @@ recover_failed_upgrade() {
 trap recover_failed_upgrade EXIT
 
 # 1. Stage and verify the new build while the server stays online
-sudo curl -fL --retry 3 "https://github.com/stablyai/orca/releases/download/${MANTA_VERSION}/${MANTA_ASSET}" \
+sudo curl -fL --retry 3 "https://github.com/paidaxingyo666/Manta/releases/download/${MANTA_VERSION}/${MANTA_ASSET}" \
   -o /opt/manta/manta-linux.AppImage.new
 sudo chown root:root /opt/manta/manta-linux.AppImage.new
 sudo chmod 755 /opt/manta/manta-linux.AppImage.new
@@ -813,8 +824,8 @@ use `manta skills install` instead:
 
 ```bash
 manta skills install                                      # list installable skills
-manta skills install --skill orca-cli --skill orchestration # install globally (default)
-manta skills install --skill orca-cli --local              # install into the current project only
+manta skills install --skill manta-cli --skill orchestration # install globally (default)
+manta skills install --skill manta-cli --local              # install into the current project only
 manta skills install --all                                 # install every bundled skill
 manta skills install --all --dry-run                       # print the npx command without running it
 ```
@@ -838,8 +849,8 @@ CLI installs into all ~75 agents it knows and leaves a config directory for each
 Override the targets yourself, or narrow to the shared directory alone:
 
 ```bash
-manta skills install --skill orca-cli --agent claude-code,codex
-manta skills install --skill orca-cli --agent universal
+manta skills install --skill manta-cli --agent claude-code,codex
+manta skills install --skill manta-cli --agent universal
 ```
 
 If Manta detects no agent at all, `manta skills install` stops and asks for
@@ -852,7 +863,7 @@ selection flags (`--skill`, `--all`, `--local`, `--dry-run`) and resolves to
 
 ```bash
 manta skills update --all                                  # update every bundled skill globally
-manta skills update --skill orca-cli --dry-run             # print the npx command without running it
+manta skills update --skill manta-cli --dry-run             # print the npx command without running it
 ```
 
 `manta skills update` only refreshes skills that are already installed — it exits

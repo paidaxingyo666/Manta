@@ -139,7 +139,9 @@ describe('captureLinuxPackageArtifact', () => {
 
   it('accepts an uppercase extension', () => {
     capture({ downloadedFile: path.join(downloadDir, 'Manta.DEB') })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'Manta.DEB'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'Manta.DEB')
+    )
   })
 
   it('requires a non-empty string version', () => {
@@ -258,7 +260,9 @@ describe('captureLinuxPackageArtifact', () => {
   it('keeps the retained artifact when a new download has no usable digest', () => {
     capture()
     capture({ files: [{ url: 'manta.deb' }] })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'manta.deb'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'manta.deb')
+    )
   })
 
   it('does not arm recovery from a download with no usable digest', () => {
@@ -276,7 +280,9 @@ describe('captureLinuxPackageArtifact', () => {
   it('keeps the retained artifact when an unrelated download event arrives', () => {
     capture()
     capture({ downloadedFile: path.join(downloadDir, 'manta.AppImage') })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'manta.deb'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'manta.deb')
+    )
   })
 })
 

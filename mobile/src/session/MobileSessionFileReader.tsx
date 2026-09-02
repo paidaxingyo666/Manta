@@ -20,6 +20,7 @@ import {
 } from './mobile-file-syntax'
 import { MobileHtmlPreview } from '../components/MobileHtmlPreview'
 import { colors } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 import { styles } from './mobile-session-styles'
 import type { DiffComment } from '../../../src/shared/diff-comment-types'
 import type {
@@ -29,7 +30,7 @@ import type {
   FileSyntaxState,
   RenderableDiffLine
 } from './mobile-session-route-types'
-import { DiffLineRow } from './MobileSessionDiffLineRow'
+import { DiffLineRow } from './MobileDiffLineRow'
 
 export function FileReader({
   doc,
@@ -200,8 +201,10 @@ export function FileReader({
               <MessageSquare size={14} color={colors.textSecondary} strokeWidth={2.2} />
               <Text style={styles.diffNotesTitle}>
                 {commentCount === 0
-                  ? 'No review notes'
-                  : `${commentCount} review ${commentCount === 1 ? 'note' : 'notes'}`}
+                  ? translate('m.worktreeId.6e387bdc73', 'No review notes')
+                  : translate('m.worktreeId.a34c28c593', '{{value0}} review notes', {
+                      value0: commentCount
+                    })}
               </Text>
             </View>
             <View style={styles.diffNotesActions}>
@@ -215,7 +218,9 @@ export function FileReader({
                 accessibilityLabel="Copy review notes"
               >
                 <Copy size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Copy</Text>
+                <Text style={styles.diffNotesActionText}>
+                  {translate('m.worktreeId.8bb984f167', 'Copy')}
+                </Text>
               </Pressable>
               <Pressable
                 style={[
@@ -227,7 +232,9 @@ export function FileReader({
                 accessibilityLabel="Send review notes to AI"
               >
                 <Send size={13} color={colors.textSecondary} strokeWidth={2.2} />
-                <Text style={styles.diffNotesActionText}>Send</Text>
+                <Text style={styles.diffNotesActionText}>
+                  {translate('m.worktreeId.c87b285cb3', 'Send')}
+                </Text>
               </Pressable>
             </View>
           </View>

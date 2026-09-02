@@ -11,7 +11,8 @@ function postedHookNames(fetchMock: ReturnType<typeof vi.fn>): string[] {
 const OMP_RUNTIME_CASES = [
   ['configured OMP', { kind: 'omp' as const }],
   ['title-routed OMP', { kind: 'pi' as const, title: 'omp' }],
-  ['argv-routed OMP', { kind: 'pi' as const, argv: ['node', '/usr/local/bin/omp'] }]
+  ['argv-routed OMP', { kind: 'pi' as const, argv: ['node', '/usr/local/bin/omp'] }],
+  ['shell-routed OMP', { kind: 'pi' as const, env: { _: '/usr/local/bin/omp' } }]
 ] as const
 
 describe('OMP agent_end contract', () => {

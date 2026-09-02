@@ -175,11 +175,11 @@ describe('project host setup projection', () => {
 
     expect(projection.projects).toHaveLength(1)
     expect(projection.projects[0]).toMatchObject({
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       sourceRepoIds: ['local-repo', 'remote-repo'],
       providerIdentity: { provider: 'github', owner: 'StablyAI', repo: 'Manta' }
     })
-    expect(getProjectHostSetupsForProject(projection.setups, 'github:stablyai/orca')).toHaveLength(
+    expect(getProjectHostSetupsForProject(projection.setups, 'github:stablyai/manta')).toHaveLength(
       2
     )
   })
@@ -260,7 +260,7 @@ describe('project host setup projection', () => {
           type: 'image',
           src: 'https://github.com/stablyai.png?size=64',
           source: 'github',
-          label: 'stablyai/orca'
+          label: 'stablyai/manta'
         }
       }),
       repo({
@@ -279,11 +279,11 @@ describe('project host setup projection', () => {
 
     expect(projection.projects).toHaveLength(1)
     expect(projection.projects[0]).toMatchObject({
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       sourceRepoIds: ['local-repo', 'remote-repo'],
       providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' }
     })
-    expect(getProjectHostSetupsForProject(projection.setups, 'github:stablyai/orca')).toHaveLength(
+    expect(getProjectHostSetupsForProject(projection.setups, 'github:stablyai/manta')).toHaveLength(
       2
     )
   })
@@ -295,9 +295,9 @@ describe('project host setup projection', () => {
         path: '/Users/alice/stably/manta',
         displayName: 'manta',
         gitRemoteIdentity: {
-          canonicalKey: 'github.com/stablyai/orca',
+          canonicalKey: 'github.com/stablyai/manta',
           remoteName: 'origin',
-          remoteUrl: 'git@github.com:stablyai/orca.git'
+          remoteUrl: 'git@github.com:stablyai/manta.git'
         }
       }),
       repo({
@@ -308,14 +308,14 @@ describe('project host setup projection', () => {
           type: 'image',
           src: 'https://github.com/stablyai.png?size=64',
           source: 'github',
-          label: 'stablyai/orca'
+          label: 'stablyai/manta'
         }
       })
     ])
 
     expect(projection.projects).toHaveLength(1)
     expect(projection.projects[0]).toMatchObject({
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       displayName: 'manta',
       sourceRepoIds: ['canonical-local-repo', 'old-branch-checkout'],
       providerIdentity: { provider: 'github', owner: 'stablyai', repo: 'manta' }
@@ -532,7 +532,7 @@ describe('project host setup projection', () => {
     const projection = projectHostSetupProjectionFromRepos([targetRepo])
 
     expect(getProjectHostSetupWorktreeMeta(projection.setups, targetRepo)).toEqual({
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:openclaw%202',
       projectHostSetupId: 'remote-repo'
     })
@@ -559,7 +559,7 @@ describe('isGitHubBackedRepo', () => {
         type: 'image',
         src: 'https://github.com/stablyai.png?size=64',
         source: 'github',
-        label: 'stablyai/orca'
+        label: 'stablyai/manta'
       }
     })
     expect(isGitHubBackedRepo(target)).toBe(true)

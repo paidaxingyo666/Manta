@@ -16,7 +16,8 @@ if (!existsSync(cliEntry)) {
   process.exit(1)
 }
 
-process.env.MANTA_USER_DATA_PATH = process.env.MANTA_DEV_USER_DATA_PATH ?? getDefaultDevUserDataPath()
+process.env.MANTA_USER_DATA_PATH =
+  process.env.MANTA_DEV_USER_DATA_PATH ?? getDefaultDevUserDataPath()
 // Why: custom dev profiles do not necessarily contain "manta-dev" in their path; carry explicit provenance into the CLI.
 process.env.MANTA_DEV_CLI_INVOCATION = '1'
 

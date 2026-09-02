@@ -603,7 +603,12 @@ describe('gcOldRelayVersions', () => {
       )
       .mockResolvedValueOnce('')
 
-    await gcOldRelayVersions(conn, 'C:/Users/u', 'C:/Users/u/.manta-remote/relay-0.1.0+bbb', windows)
+    await gcOldRelayVersions(
+      conn,
+      'C:/Users/u',
+      'C:/Users/u/.manta-remote/relay-0.1.0+bbb',
+      windows
+    )
 
     const removeScript = decodePowerShellCommand(mockExec.mock.calls[1]?.[1] ?? '')
     expect(removeScript).toContain('relay-v0.1.0.gc-tombstone.123.456')

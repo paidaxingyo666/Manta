@@ -29,7 +29,7 @@ import { getProcessStartedAtMs, startTimeMatches } from '../daemon/daemon-proces
 
 export const MANTAD_LOCK_FILE_NAME = 'orcad.lock'
 
-export type MantadInstanceLockCode =
+export type OrcadInstanceLockCode =
   | 'orcad_data_root_unusable'
   | 'orcad_data_root_wrong_owner'
   | 'orcad_data_root_shared'
@@ -38,7 +38,7 @@ export type MantadInstanceLockCode =
 
 export class MantadInstanceLockError extends Error {
   constructor(
-    readonly code: MantadInstanceLockCode,
+    readonly code: OrcadInstanceLockCode,
     message: string
   ) {
     super(message)
@@ -64,7 +64,7 @@ export type MantadInstanceLock = {
   release(): void
 }
 
-export type MantadInstanceLockHooks = {
+export type OrcadInstanceLockHooks = {
   identity?: () => string
   version?: () => string
   now?: () => Date
@@ -185,7 +185,7 @@ function assertDataRootIsPrivate(dataRoot: string): void {
  */
 export function acquireMantadInstanceLock(
   dataRoot: string,
-  hooks: MantadInstanceLockHooks = {}
+  hooks: OrcadInstanceLockHooks = {}
 ): MantadInstanceLock {
   const identity = (hooks.identity ?? defaultIdentity)()
   const isAlive = hooks.processIsAlive ?? defaultProcessIsAlive

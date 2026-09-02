@@ -137,7 +137,11 @@ function expectResourceLinked(targetPath: string, sourcePath: string): void {
 function writeLegacyCopyMarker(relativePath: string, sourcePath: string, targetPath: string): void {
   const sourceStat = lstatSync(sourcePath)
   const targetStat = lstatSync(targetPath)
-  const markerPath = join(getRuntimeCodexHomePath(), '.manta-session-copies', `${relativePath}.json`)
+  const markerPath = join(
+    getRuntimeCodexHomePath(),
+    '.manta-session-copies',
+    `${relativePath}.json`
+  )
   mkdirSync(dirname(markerPath), { recursive: true })
   writeFileSync(
     markerPath,

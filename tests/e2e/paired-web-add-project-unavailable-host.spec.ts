@@ -81,7 +81,9 @@ async function assertCreationActionsDisabled(args: {
     .locator('[cmdk-item][aria-disabled="true"]')
     .filter({ hasText: args.hostName })
   await expect(hostOption).toHaveAttribute('aria-disabled', 'true')
-  await expect(hostOption).toContainText(args.health === 'blocked' ? 'Update Manta' : 'Disconnected')
+  await expect(hostOption).toContainText(
+    args.health === 'blocked' ? 'Update Manta' : 'Disconnected'
+  )
   await args.page.keyboard.press('Escape')
   await args.page.screenshot({
     path: args.testInfo.outputPath(`${args.topology}-paired-web-add-project-${args.health}.png`),

@@ -169,7 +169,12 @@ describe('validateGitExecArgs', () => {
         'pr-contributor-manta',
         'https://github.com/contributor/manta.git'
       ])
-      expectAllowed(['remote', 'add', 'pr-contributor-manta', 'git@github.com:contributor/manta.git'])
+      expectAllowed([
+        'remote',
+        'add',
+        'pr-contributor-manta',
+        'git@github.com:contributor/manta.git'
+      ])
       expectAllowed(['remote', 'remove', 'pr-contributor-manta'])
     })
 
@@ -231,18 +236,18 @@ describe('validateGitExecArgs', () => {
 
   describe('git clone', () => {
     it('allows only the project setup clone shape', () => {
-      expectAllowed(['clone', '--', 'https://github.com/stablyai/orca.git', 'manta'])
-      expectAllowed(['clone', '--progress', '--', 'git@github.com:stablyai/orca.git', 'manta'])
+      expectAllowed(['clone', '--', 'https://github.com/stablyai/manta.git', 'manta'])
+      expectAllowed(['clone', '--progress', '--', 'git@github.com:stablyai/manta.git', 'manta'])
     })
 
     it.each([
-      [['clone', 'https://github.com/stablyai/orca.git']],
-      [['clone', 'https://github.com/stablyai/orca.git', 'manta']],
-      [['clone', '--depth=1', '--', 'https://github.com/stablyai/orca.git', 'manta']],
-      [['clone', '--', 'https://github.com/stablyai/orca.git', '.']],
-      [['clone', '--', 'https://github.com/stablyai/orca.git', '..']],
-      [['clone', '--', 'https://github.com/stablyai/orca.git', 'nested/manta']],
-      [['clone', '--', 'https://github.com/stablyai/orca.git', 'nested\\manta']]
+      [['clone', 'https://github.com/stablyai/manta.git']],
+      [['clone', 'https://github.com/stablyai/manta.git', 'manta']],
+      [['clone', '--depth=1', '--', 'https://github.com/stablyai/manta.git', 'manta']],
+      [['clone', '--', 'https://github.com/stablyai/manta.git', '.']],
+      [['clone', '--', 'https://github.com/stablyai/manta.git', '..']],
+      [['clone', '--', 'https://github.com/stablyai/manta.git', 'nested/manta']],
+      [['clone', '--', 'https://github.com/stablyai/manta.git', 'nested\\manta']]
     ])('rejects unsafe clone args %j', (args) => {
       expectBlocked(args, 'git clone')
     })

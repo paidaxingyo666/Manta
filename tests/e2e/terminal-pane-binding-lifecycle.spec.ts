@@ -144,7 +144,9 @@ test.describe('Terminal Panes', () => {
     )
     await expect(sourceHandle).toBeVisible({ timeout: 3_000 })
     const sourceBox = await sourceHandle.boundingBox()
-    const targetBox = await mantaPage.locator(`.pane[data-leaf-id="${target.leafId}"]`).boundingBox()
+    const targetBox = await mantaPage
+      .locator(`.pane[data-leaf-id="${target.leafId}"]`)
+      .boundingBox()
     expect(sourceBox).not.toBeNull()
     expect(targetBox).not.toBeNull()
 

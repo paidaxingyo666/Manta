@@ -169,7 +169,10 @@ async function parentMain() {
   const discardReport = hasFlag('discard-report')
   const marker = `marker_${randomUUID().replace(/-/g, '')}`
   const spec = buildLongSpec(sizeKb, marker)
-  const tempDir = path.join(tmpdir(), `manta-orchestration-long-prompt-${process.pid}-${Date.now()}`)
+  const tempDir = path.join(
+    tmpdir(),
+    `manta-orchestration-long-prompt-${process.pid}-${Date.now()}`
+  )
   await mkdir(tempDir, { recursive: true })
   const workerReportPath = path.join(tempDir, 'worker-report.json')
 

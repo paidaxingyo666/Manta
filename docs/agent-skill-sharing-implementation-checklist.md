@@ -149,22 +149,22 @@ Validated so far:
   approved skill-database secret, and rejects secret, Cloud SQL, service-account, scaling, CPU,
   memory, volume, mount, probe, or unexpected-environment drift before traffic promotion.
   Staging intentionally carries all four skill controls as `true`; production remains `false`.
-- The route-disabled baseline, API revision `manta-cloud-api-staging-00039-rek`, first proved the
+- The route-disabled baseline, API revision `orca-cloud-api-staging-00039-rek`, first proved the
   database-ready startup and anonymous `401`/`404` boundaries with zero revision errors.
 - Cloud PR `#313` passed run `31533988351`, merged as `d0bf926`, and passed `main` run
   `31534229437`. Guarded wake run `31534564230` restored exactly the two configured Relay cells.
-- Auth deploy run `31535179937` promoted revision `manta-cloud-auth-staging-00017-dug` at 100%
+- Auth deploy run `31535179937` promoted revision `orca-cloud-auth-staging-00017-dug` at 100%
   traffic. Health, JWKS, exact GitHub OIDC claim constraints, and zero deployment-window errors
   passed.
 - The historical ACL-era API deploy run `31535438327` promoted revision
-  `manta-cloud-api-staging-00042-hef` at 100%
+  `orca-cloud-api-staging-00042-hef` at 100%
   traffic with `authenticatedSmoke: true` and `skillSmoke: true`. The smoke covered artifact
   lifecycle; skill upload/finalize/download; two immutable versions; recipient and outsider
   authorization; local and remote grants; rollback selection; expiry; revocation; package
   deletion; and signed-object cleanup.
 - Cloud PR `#317` passed both required checks and merged as `be00db10`. Its historical ACL-era
   deploy run `31546194596`
-  promoted revision `manta-cloud-api-staging-00048-xom` at 100% traffic with
+  promoted revision `orca-cloud-api-staging-00048-xom` at 100% traffic with
   `authenticatedSmoke: true` and `skillSmoke: true`; canonical health and the immutable image
   digest independently matched after promotion.
 - The signed-in macOS desktop staging journey reached upload, finalize, durable share creation,
@@ -185,7 +185,7 @@ Validated so far:
   zero changes, and zero deletions. This prevents per-link Cloud Run request URLs from entering
   log storage while retaining route-template application telemetry.
 - Guarded wake run `31564370807` prepared the reviewed staging topology. Deploy run `31564803943`
-  promoted `manta-cloud-api-staging-00051-yoq` at 100% traffic with immutable image digest
+  promoted `orca-cloud-api-staging-00051-yoq` at 100% traffic with immutable image digest
   `sha256:511c0196511d2079bd9138092ad3cf065304b46a089b02d8df9318e0ae2e656a` and reported
   `authenticatedSmoke: true` and `skillSmoke: true`.
 - Candidate and canonical smoke produced 60 privacy-safe route-template events covering owner
@@ -206,7 +206,7 @@ Validated so far:
   removal, and Cloud package deletion without opening a login page.
 - Cloud PR `#330` passed required run `31578720429`, merged as `8045c85dad`, and passed merged-main
   run `31578942857`. Guarded wake `31579195133` brought SQL and all three Terraform-owned cells up;
-  deploy `31579844413` promoted `manta-cloud-api-staging-00057-kat` at 100% traffic with immutable
+  deploy `31579844413` promoted `orca-cloud-api-staging-00057-kat` at 100% traffic with immutable
   digest `sha256:f61745b21d00b111087620ab1108c9a96e9863ec9e902a424aaad01e9e945605`.
 - Recovery smoke `31580071168` published an isolated bundle, soft-deleted the exact published GCS
   generation, restored it with `ifGenerationMatch=0`, verified immutable metadata, transactionally
@@ -219,7 +219,7 @@ Validated so far:
   authorized its OIDC identity, fixed deterministic fixture ordering, and made retry settlement
   cleanup-safe. Their merge commits were `ac85d0690e`, `53559bd644`, `7e1d50a84b`, and
   `bb8bf8b9ac`; merged-main verification passed through run `31586525326`.
-- Auth deploy `31584318896` promoted `manta-cloud-auth-staging-00021-tuq` with digest
+- Auth deploy `31584318896` promoted `orca-cloud-auth-staging-00021-tuq` with digest
   `sha256:e17075d69dca36df427f02fa515481f359c8f67397c5ab16de9759f7f949c6be`; candidate and
   canonical smoke passed with one 100%-traffic revision and no remaining candidate tag.
 - Load run `31585710645` exercised 12 concurrent bundles with 30 skills and 3,949,317 extracted
@@ -241,7 +241,7 @@ Validated so far:
   one-time RSA-3072 key, grants no GCP permissions, retains ciphertext for at most one day, and
   passed PR run `31588982191` plus merged-main run `31589194501` as merge `8fce3298ef`.
 - Guarded wake `31589384191` restored SQL and the two configured Relay cells without waking C3.
-  Auth deploy `31589963244` promoted `manta-cloud-auth-staging-00025-zuz` at 100% traffic with
+  Auth deploy `31589963244` promoted `orca-cloud-auth-staging-00025-zuz` at 100% traffic with
   immutable digest `sha256:2b5cb04060a871f372298786dbed681054a076f5cf75966ea5e2130403db7254`.
 - The physical `windows 2` staging journey passed in 27.6 seconds using credential run
   `31591275227`. It installed v1 into the Windows-owned global path with the published digest and
@@ -293,7 +293,7 @@ Validated so far:
 - Cloud PR `#355` removed internal publisher and organization identifiers from anonymous skill
   responses, passed every code, Terraform, and PostgreSQL 16/17 check, and merged as
   `b3213bd34d1b224d8a3b11527eceaac883965400`. Guarded wake `31639920301` prepared staging. Deploy
-  `31640677572` promoted `manta-cloud-api-staging-00060-qay` at 100% traffic with immutable digest
+  `31640677572` promoted `orca-cloud-api-staging-00060-qay` at 100% traffic with immutable digest
   `sha256:31cb0a91a7abf1f82e4de08bd31e98fbd71519adc731a005fc95f60480658f73`; authenticated and skill
   candidate/canonical smoke passed. The unrelated post-promotion storage-monitor image update
   lacked `iam.serviceAccounts.actAs`; the unchanged prior monitor image remains serving, and the
@@ -792,9 +792,9 @@ does not mean the surrounding phase is complete.
 ### Database and secret
 
 - [x] Declare database `manta_skills` on existing regional PostgreSQL 17 instance
-      `manta-cloud-auth-db`.
+      `orca-cloud-auth-db`.
 - [x] Declare dedicated principal `manta_skills_app` with access only to `manta_skills`.
-- [x] Store its connection URL in Secret Manager as `manta-cloud-skills-database-url`.
+- [x] Store its connection URL in Secret Manager as `orca-cloud-skills-database-url`.
 - [x] Attach the existing Cloud SQL instance to `manta-cloud-api` without replacing the service.
 - [x] Inject only the skill database secret into the API service.
 - [x] Verify backups and point-in-time recovery cover the new database. `manta_skills` shares the
@@ -1562,13 +1562,13 @@ disconnect boundaries remain separate gates below.
       observability updates. No full plan or unrelated Relay drift was applied.
 - [x] Run production database migrations before routing skill traffic. Disabled-route bootstrap
       run `31648015091` completed the skill schema migration before any skill route was enabled.
-- [x] Deploy the API with all skill flags disabled. Bootstrap revision `manta-cloud-api-00016-yem`
+- [x] Deploy the API with all skill flags disabled. Bootstrap revision `orca-cloud-api-00016-yem`
       received 100% traffic and returned `404` for the disabled skill route while Artifact and Auth
       health remained green.
 - [x] After every first-release gate passes, enable the feature for all accounts in one launch.
       Production run `31650178315` initially enabled upload, download, remote install, and sharing
       together. Hardening run `31661421728` then passed candidate and canonical authenticated
-      artifact plus skill smoke and promoted `manta-cloud-api-00025-qup` at 100% traffic with digest
+      artifact plus skill smoke and promoted `orca-cloud-api-00025-qup` at 100% traffic with digest
       `sha256:e4f044105ff2345574bdceb36eec1629761428cc2edf9d743939390b857d61e0`.
 - [ ] Verify one complete share, local install, remote install, update, rollback, revoke, local
       removal, Cloud deletion, upload expiry, and soft-delete recovery journey. Production CI has
@@ -1578,7 +1578,7 @@ disconnect boundaries remain separate gates below.
 - [ ] Review error budgets, cost, authorization denials, saturation, orphan counts, and support
       signals. The hardened production revision has zero post-deploy error logs. All eight skill
       alerts route to the enabled dedicated `Manta skill sharing alerts` channel, and aggregate
-      monitor execution `manta-cloud-skill-storage-monitor-lfd26` passed on the serving API digest
+      monitor execution `orca-cloud-skill-storage-monitor-lfd26` passed on the serving API digest
       with zero overdue objects. Sustained-usage review remains post-launch.
 
 ### Launch operations

@@ -7,7 +7,7 @@
 export const DOC_PREVIEW_SCHEME = 'manta-preview'
 
 /** Why: non-persistent and its own partition — preview bytes never share storage with user browsing or workspace browser profiles. */
-export const DOC_PREVIEW_PARTITION = 'manta-doc-preview'
+export const DOC_PREVIEW_PARTITION = 'orca-doc-preview'
 
 export const DOC_PREVIEW_MINT_GRANT_CHANNEL = 'docPreview:mintGrant'
 export const DOC_PREVIEW_REVOKE_GRANT_CHANNEL = 'docPreview:revokeGrant'

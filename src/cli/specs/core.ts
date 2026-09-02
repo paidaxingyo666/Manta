@@ -125,7 +125,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     examples: [
       'manta worktree create --name agent-task --agent codex --prompt "hi" --json',
       'manta worktree create --repo id:<repoId> --name related-task --json',
-      'manta worktree create --project github:stablyai/orca --host runtime:03ef704c-b180-4b10-998d-e28fbd5de9a3 --name benchmark --json',
+      'manta worktree create --project github:stablyai/manta --host runtime:03ef704c-b180-4b10-998d-e28fbd5de9a3 --name benchmark --json',
       'manta worktree create --repo id:<repoId> --name linear-task --linear-issue https://linear.app/stably/issue/STA-335/test-issue --json',
       'manta worktree create --repo id:<repoId> --name agent-task --agent codex --prompt "hi" --json',
       'manta worktree create --repo id:<repoId> --name folder-child --parent-worktree folder:<folderId> --json',

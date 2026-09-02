@@ -6,6 +6,7 @@ import { MobileSyntaxSegments } from '../components/MobileSyntaxSegments'
 import { mobileDiffLineNumber, mobileDiffLinePrefix } from './mobile-diff-format'
 import type { MobileBranchDiffPreviewState } from './mobile-source-control-screen-state'
 import { styles } from './mobile-source-control-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   branchDiffPreview: MobileBranchDiffPreviewState | null
@@ -31,8 +32,10 @@ export function MobileBranchDiffPreviewDrawer({ branchDiffPreview, onClose }: Pr
           </Text>
           <Text style={styles.diffDrawerMeta} numberOfLines={1}>
             {branchDiffPreview.kind === 'ready'
-              ? `${branchDiffPreview.summary.baseRef}..HEAD`
-              : 'Committed on branch'}
+              ? translate('m.MobileBranchDiffPreviewDrawer.ea5ca6f964', '{{value0}}..HEAD', {
+                  value0: branchDiffPreview.summary.baseRef
+                })
+              : translate('m.MobileBranchDiffPreviewDrawer.23a1a340ef', 'Committed on branch')}
           </Text>
         </View>
         <Pressable
@@ -50,13 +53,20 @@ export function MobileBranchDiffPreviewDrawer({ branchDiffPreview, onClose }: Pr
         </View>
       ) : branchDiffPreview.kind === 'error' ? (
         <View style={styles.diffState}>
-          <Text style={styles.stateTitle}>Unable to Load Diff</Text>
+          <Text style={styles.stateTitle}>
+            {translate('m.MobileBranchDiffPreviewDrawer.9998f95c16', 'Unable to Load Diff')}
+          </Text>
           <Text style={styles.stateText}>{branchDiffPreview.message}</Text>
         </View>
       ) : (
         <View style={styles.diffLines}>
           {branchDiffPreview.truncated ? (
-            <Text style={styles.diffTruncatedText}>Diff truncated for mobile preview.</Text>
+            <Text style={styles.diffTruncatedText}>
+              {translate(
+                'm.MobileBranchDiffPreviewDrawer.0a05486f61',
+                'Diff truncated for mobile preview.'
+              )}
+            </Text>
           ) : null}
           {branchDiffPreview.lines.map((line, index) => (
             <View

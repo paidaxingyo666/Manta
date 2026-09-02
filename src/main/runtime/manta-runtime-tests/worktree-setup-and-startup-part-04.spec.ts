@@ -213,7 +213,7 @@ describe('MantaRuntimeService', () => {
     const result = await runtime.createManagedWorktree({
       repoSelector: TEST_REPO_ID,
       name: 'runtime-fallback-draft',
-      startupDraft: 'https://github.com/stablyai/orca/issues/456',
+      startupDraft: 'https://github.com/stablyai/manta/issues/456',
       createdWithAgent: 'codex',
       activate: true
     })
@@ -302,7 +302,7 @@ describe('MantaRuntimeService', () => {
     const result = await runtime.createManagedWorktree({
       repoSelector: 'id:repo-1',
       name: 'runtime-startup-setup-split',
-      startupDraft: 'https://github.com/stablyai/orca/issues/123',
+      startupDraft: 'https://github.com/stablyai/manta/issues/123',
       setupDecision: 'run',
       activate: true,
       awaitTerminalProvisioning: true
@@ -504,7 +504,7 @@ describe('MantaRuntimeService', () => {
       }
     ])
 
-    const draftUrl = 'https://github.com/stablyai/orca/issues/789'
+    const draftUrl = 'https://github.com/stablyai/manta/issues/789'
     const result = await runtime.createManagedWorktree({
       repoSelector: 'id:repo-1',
       name: 'runtime-explicit-draft',
@@ -587,7 +587,7 @@ describe('MantaRuntimeService', () => {
     const result = await runtime.createManagedWorktree({
       repoSelector: 'id:repo-1',
       name: 'runtime-blank-draft',
-      startupDraft: 'https://github.com/stablyai/orca/issues/123',
+      startupDraft: 'https://github.com/stablyai/manta/issues/123',
       activate: true
     })
 

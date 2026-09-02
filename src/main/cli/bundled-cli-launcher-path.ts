@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 
-// Why `orca-ide` on Linux: GNOME Orca ships /usr/bin/orca, so the CLI never claims that name.
+// Why `manta-ide` on Linux: GNOME Orca ships /usr/bin/orca, so the CLI never claims that name.
 export const LINUX_CLI_COMMAND_NAME = 'manta-ide'
 
 /** Absolute path of the CLI launcher this app ships in its own resources bundle.

@@ -566,10 +566,12 @@ test.describe('Terminal Shortcuts', () => {
     expect((await getPtyWrites(electronApp)).join('')).toBe('')
     await clearPtyWriteLog(electronApp)
 
-    expect(await dispatchCtrlCToActiveTerminalTextarea(mantaPage, { keyupCtrlKey: false })).toEqual({
-      keydownDefaultPrevented: false,
-      keyupDefaultPrevented: false
-    })
+    expect(await dispatchCtrlCToActiveTerminalTextarea(mantaPage, { keyupCtrlKey: false })).toEqual(
+      {
+        keydownDefaultPrevented: false,
+        keyupDefaultPrevented: false
+      }
+    )
 
     await expect
       .poll(async () => (await getPtyWrites(electronApp)).some((write) => write.includes('\x03')), {

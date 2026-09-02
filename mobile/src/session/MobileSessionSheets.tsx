@@ -4,6 +4,7 @@ import { Copy, FileText, Globe, RefreshCw, SquareTerminal } from 'lucide-react-n
 import { MobileSessionHeaderMoreActionsSheet } from './MobileSessionHeaderMoreActionsSheet'
 import { QuickCommandsSheet } from './QuickCommandsSheet'
 import { triggerSuccess, triggerError } from '../platform/haptics'
+import { translate } from '../i18n/i18n'
 import { ActionSheetModal } from '../components/ActionSheetModal'
 import { TextInputModal } from '../components/TextInputModal'
 import { ConfirmModal } from '../components/ConfirmModal'
@@ -112,11 +113,11 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={showCreateTabDrawer}
-        title="New Tab"
+        title={translate('m.worktreeId.fbde4b425c', 'New Tab')}
         actions={[
           ...createTabAgentActions,
           {
-            label: 'Terminal',
+            label: translate('m.worktreeId.d442e87c8d', 'Terminal'),
             icon: SquareTerminal,
             onPress: () => {
               setShowCreateTabDrawer(false)
@@ -130,7 +131,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
             ? []
             : [
                 {
-                  label: 'Browser',
+                  label: translate('m.worktreeId.bcbf07819a', 'Browser'),
                   icon: Globe,
                   closeBeforePress: true,
                   onPress: () => {
@@ -142,7 +143,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
                   }
                 },
                 {
-                  label: 'Markdown Note',
+                  label: translate('m.worktreeId.73f5cfed83', 'Markdown Note'),
                   icon: FileText,
                   onPress: () => {
                     setShowCreateTabDrawer(false)
@@ -155,12 +156,15 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={pendingDiffNotesDelivery !== null}
-        title="Send Review Notes"
-        message="Choose an agent session for the current notes."
+        title={translate('m.worktreeId.7816120bb0', 'Send Review Notes')}
+        message={translate(
+          'm.worktreeId.f92a3a2108',
+          'Choose an agent session for the current notes.'
+        )}
         actions={[
           ...sendDiffNotesAgentActions,
           {
-            label: 'Copy Notes',
+            label: translate('m.worktreeId.fd50e2b5c9', 'Copy Notes'),
             icon: Copy,
             onPress: () => {
               const delivery = pendingDiffNotesDelivery
@@ -171,11 +175,11 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
               void Clipboard.setStringAsync(delivery.prompt)
                 .then(() => {
                   triggerSuccess()
-                  showToast('Notes copied')
+                  showToast(translate('m.worktreeId.765dba3163', 'Notes copied'))
                 })
                 .catch(() => {
                   triggerError()
-                  showToast("Couldn't copy notes", 1500)
+                  showToast(translate('m.worktreeId.5c8a3179db', "Couldn't copy notes"), 1500)
                 })
             }
           }
@@ -184,7 +188,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={actionTarget != null}
-        title={actionTarget?.title || 'Terminal'}
+        title={actionTarget?.title || translate('m.worktreeId.d442e87c8d', 'Terminal')}
         actions={getMobileTerminalActionSheetActions({
           target: actionTarget,
           tabs: sessionTabs.filter((tab) => tab.type === 'terminal'),
@@ -204,10 +208,10 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={markdownActionTarget != null}
-        title={markdownActionTarget?.title || 'Markdown'}
+        title={markdownActionTarget?.title || translate('m.worktreeId.0f2f9c84e5', 'Markdown')}
         actions={[
           {
-            label: 'Refresh',
+            label: translate('m.worktreeId.6ba1410af3', 'Refresh'),
             icon: RefreshCw,
             // Why: dirty refresh opens ConfirmModal; wait for this sheet's native
             // Modal to unmount first (same dual-Modal race as tab Rename, #10331).
@@ -220,7 +224,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
             }
           },
           {
-            label: 'Copy Path',
+            label: translate('m.worktreeId.6bbf73240c', 'Copy Path'),
             icon: FileText,
             onPress: () => {
               const target = markdownActionTarget
@@ -237,10 +241,10 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={fileActionTarget != null}
-        title={fileActionTarget?.title || 'File'}
+        title={fileActionTarget?.title || translate('m.worktreeId.59a7a08ee4', 'File')}
         actions={[
           {
-            label: 'Refresh',
+            label: translate('m.worktreeId.6ba1410af3', 'Refresh'),
             icon: RefreshCw,
             onPress: () => {
               const target = fileActionTarget
@@ -263,11 +267,14 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={leaveDrafts != null}
-        title="Unsaved markdown changes"
-        message="Copy or discard phone drafts before leaving."
+        title={translate('m.worktreeId.dbc4374db6', 'Unsaved markdown changes')}
+        message={translate(
+          'm.worktreeId.9278e425a3',
+          'Copy or discard phone drafts before leaving.'
+        )}
         actions={[
           {
-            label: 'Copy All & Leave',
+            label: translate('m.worktreeId.232b53aca1', 'Copy All & Leave'),
             icon: FileText,
             onPress: () => {
               const drafts = leaveDrafts ?? []
@@ -286,7 +293,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
             }
           },
           {
-            label: 'Discard & Leave',
+            label: translate('m.worktreeId.a6c9f79254', 'Discard & Leave'),
             destructive: true,
             onPress: () => {
               setLeaveDrafts(null)
@@ -298,8 +305,11 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ConfirmModal
         visible={discardMarkdownTarget != null}
-        title="Discard Changes"
-        message="Replace the phone draft with the latest desktop file?"
+        title={translate('m.worktreeId.b4c492a050', 'Discard Changes')}
+        message={translate(
+          'm.worktreeId.81a869a91f',
+          'Replace the phone draft with the latest desktop file?'
+        )}
         confirmLabel="Discard"
         destructive
         onConfirm={confirmDiscardMarkdown}
@@ -307,18 +317,18 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <TextInputModal
         visible={renameTarget != null}
-        title="Rename Terminal"
+        title={translate('m.worktreeId.80a8bc0fbc', 'Rename Terminal')}
         defaultValue={renameTarget?.title || 'Terminal'}
-        placeholder="Terminal name"
+        placeholder={translate('m.worktreeId.a60f1627e9', 'Terminal name')}
         onSubmit={(value) => void handleRenameTerminal(value)}
         onCancel={() => setRenameTarget(null)}
       />
       <TextInputModal
         visible={showCreateBrowserModal}
-        title="New Browser"
-        message="Enter a URL, or leave blank for a new tab."
+        title={translate('m.worktreeId.b4a3a64a43', 'New Browser')}
+        message={translate('m.worktreeId.65a6cea15c', 'Enter a URL, or leave blank for a new tab.')}
         defaultValue=""
-        placeholder="https://example.com"
+        placeholder={translate('m.worktreeId.3ca49855db', 'https://example.com')}
         submitLabel="Open"
         allowEmpty
         selectTextOnFocus
@@ -346,11 +356,11 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={deleteKeyTarget != null}
-        title={deleteKeyTarget?.label ?? 'Shortcut'}
-        message="Remove this custom shortcut?"
+        title={deleteKeyTarget?.label ?? translate('m.worktreeId.295a82ca28', 'Shortcut')}
+        message={translate('m.worktreeId.44b5afaa7f', 'Remove this custom shortcut?')}
         actions={[
           {
-            label: 'Remove',
+            label: translate('m.worktreeId.8f7e0514ae', 'Remove'),
             destructive: true,
             onPress: () => {
               if (deleteKeyTarget) {

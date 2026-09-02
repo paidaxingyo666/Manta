@@ -2,6 +2,7 @@ import { Settings } from 'lucide-react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { MantaLogo } from '../components/MantaLogo'
 import { colors, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 export function MobileHomeTopBar({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
@@ -10,7 +11,7 @@ export function MobileHomeTopBar({ onOpenSettings }: { onOpenSettings: () => voi
         <View style={styles.logoMark}>
           <MantaLogo size={18} />
         </View>
-        <Text style={styles.brandName}>Manta</Text>
+        <Text style={styles.brandName}>{translate('m.index.8a7cdca657', 'Manta')}</Text>
       </View>
       <Pressable
         style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}

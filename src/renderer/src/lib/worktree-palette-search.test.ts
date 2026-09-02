@@ -41,7 +41,7 @@ const repoMap = new Map<string, Repo>([
     {
       id: 'repo-1',
       path: '/repo/manta',
-      displayName: 'stablyai/orca',
+      displayName: 'stablyai/manta',
       badgeColor: '#22c55e',
       addedAt: 0
     }
@@ -386,11 +386,9 @@ describe('worktree-palette-search', () => {
     ]
 
     // All three match on the repo name, order preserved from input.
-    expect(searchWorktrees(worktrees, 'manta', repoMap).map((result) => result.worktreeId)).toEqual([
-      'wt-feature',
-      'wt-bugfix',
-      'wt-main'
-    ])
+    expect(searchWorktrees(worktrees, 'manta', repoMap).map((result) => result.worktreeId)).toEqual(
+      ['wt-feature', 'wt-bugfix', 'wt-main']
+    )
   })
 
   it('supports "repo/worktree" composite queries and highlights both segments', () => {
@@ -408,7 +406,7 @@ describe('worktree-palette-search', () => {
     expect(results).toHaveLength(1)
     expect(results[0].worktreeId).toBe('wt-main')
     expect(results[0].matchedFields).toEqual(['repo', 'branch'])
-    expect(results[0].repoRanges).toEqual([{ start: 9, end: 13 }])
+    expect(results[0].repoRanges).toEqual([{ start: 9, end: 14 }])
     expect(results[0].branchRanges).toEqual([{ start: 0, end: 4 }])
   })
 
@@ -460,7 +458,7 @@ describe('worktree-palette-search', () => {
         makeWorktree({ id: 'wt-issue', linkedIssue: 14198 }),
         makeWorktree({ id: 'wt-other', linkedIssue: 7, displayName: 'github.com' })
       ],
-      'https://github.com/stablyai/orca/issues/14198',
+      'https://github.com/stablyai/manta/issues/14198',
       repoMap
     )
 
@@ -490,12 +488,12 @@ describe('worktree-palette-search', () => {
             type: 'pr',
             number: 12789,
             title: 'Perf',
-            url: 'https://github.com/stablyai/orca/pull/12789'
+            url: 'https://github.com/stablyai/manta/pull/12789'
           }
         }),
         makeWorktree({ id: 'wt-issue', linkedIssue: 12789 })
       ],
-      'https://github.com/stablyai/orca/pull/12789',
+      'https://github.com/stablyai/manta/pull/12789',
       repoMap
     )
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Creates stablyai/orca-adhoc and grants the existing release App write access to
+# Creates paidaxingyo666/manta-adhoc and grants the existing release App write access to
 # it, so adhoc-mac-build.yml can publish there.
 #
 # Why a separate repo rather than reusing manta-hourly: an adhoc build is somebody's
@@ -19,6 +19,7 @@ set -euo pipefail
 ORG="stablyai"
 ADHOC_REPO="$ORG/manta-adhoc"
 MAIN_REPO="$ORG/manta"
+# NOTE: GitHub App slug registered by upstream. Replace with your own App before running.
 APP_SLUG="orca-hourly-release"
 
 fail() {

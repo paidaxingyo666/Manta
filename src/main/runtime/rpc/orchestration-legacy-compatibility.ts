@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto'
 import type { LegacyCoordinatorAuthorityProof, RpcRequest } from './core'
-import type { MantaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../manta-runtime'
+import type {
+  MantaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../manta-runtime'
 import { CURRENT_CONTRACT_VERSION } from '../orchestration/db'
 import { LegacyCompatibilityAuthority } from './orchestration-legacy-authority'
 import { handleLegacyLifecycleSend } from './orchestration-legacy-lifecycle'

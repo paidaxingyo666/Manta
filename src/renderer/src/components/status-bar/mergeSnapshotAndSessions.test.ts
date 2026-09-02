@@ -543,7 +543,12 @@ describe('mergeSnapshotAndSessions', () => {
 
   it('uses repoDisplayNameById to humanize new project groups when available', () => {
     const ds: DaemonSession[] = [
-      { id: 'stably-ai/manta::/remote/Wt@@1', cwd: '', title: '', agentOwnership: 'absent' as const }
+      {
+        id: 'stably-ai/manta::/remote/Wt@@1',
+        cwd: '',
+        title: '',
+        agentOwnership: 'absent' as const
+      }
     ]
     const ctx = baseCtx({
       repoDisplayNameById: new Map([['stably-ai/manta', 'MANTA']])

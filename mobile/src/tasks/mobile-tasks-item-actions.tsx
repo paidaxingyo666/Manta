@@ -19,6 +19,7 @@ import {
   taskStatusActionLabel,
   isGitHubPrMergeBlocked
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksItemActions(model: ConnectionPresentationModel) {
   const {
@@ -53,7 +54,9 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
       >
         <Plus size={16} color={colors.textPrimary} />
         <Text style={styles.actionText}>
-          {creatingKey === actionItem.key ? 'Creating...' : 'Create Workspace'}
+          {creatingKey === actionItem.key
+            ? translate('m.tasks.7ed22602e7', 'Creating...')
+            : translate('m.tasks.d783b7fb2b', 'Create Workspace')}
         </Text>
       </Pressable>
 
@@ -77,7 +80,9 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
           >
             <Copy size={16} color={colors.textPrimary} />
             <Text style={styles.actionText}>
-              {copiedLinkKey === `linear-url:${actionItem.key}` ? 'Copied' : 'Copy Linear link'}
+              {copiedLinkKey === `linear-url:${actionItem.key}`
+                ? translate('m.tasks.c43f5c54e5', 'Copied')
+                : translate('m.tasks.b52e1248b3', 'Copy Linear link')}
             </Text>
           </Pressable>
         </>
@@ -92,7 +97,9 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
           >
             <Copy size={16} color={colors.textPrimary} />
             <Text style={styles.actionText}>
-              {copiedLinkKey === `task:${actionItem.key}` ? 'Copied' : 'Copy GitHub link'}
+              {copiedLinkKey === `task:${actionItem.key}`
+                ? translate('m.tasks.c43f5c54e5', 'Copied')
+                : translate('m.tasks.bd6efe9dde', 'Copy GitHub link')}
             </Text>
           </Pressable>
         </>
@@ -136,10 +143,14 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
             }
           >
             <GitBranch size={16} color={colors.textPrimary} />
-            <Text style={styles.actionText}>Merge pull request</Text>
+            <Text style={styles.actionText}>
+              {translate('m.tasks.30f30656e9', 'Merge pull request')}
+            </Text>
           </Pressable>
           {isGitHubPrMergeBlocked(actionItem) ? (
-            <Text style={styles.emptyInlineText}>GitHub reports merge conflicts.</Text>
+            <Text style={styles.emptyInlineText}>
+              {translate('m.tasks.42702c04ca', 'GitHub reports merge conflicts.')}
+            </Text>
           ) : null}
         </>
       ) : null}
@@ -184,7 +195,9 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
             }
           >
             <GitBranch size={16} color={colors.textPrimary} />
-            <Text style={styles.actionText}>Merge merge request</Text>
+            <Text style={styles.actionText}>
+              {translate('m.tasks.15cec74be7', 'Merge merge request')}
+            </Text>
           </Pressable>
         </>
       ) : null}
@@ -200,7 +213,9 @@ export function renderMobileTasksItemActions(model: ConnectionPresentationModel)
             }}
           >
             <GitBranch size={16} color={colors.textPrimary} />
-            <Text style={styles.actionText}>Change status</Text>
+            <Text style={styles.actionText}>
+              {translate('m.tasks.643c1e0332', 'Change status')}
+            </Text>
           </Pressable>
         </>
       ) : null}

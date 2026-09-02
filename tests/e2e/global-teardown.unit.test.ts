@@ -21,10 +21,10 @@ describe('E2E global teardown ownership', () => {
   it('removes every linked run worktree and preserves unrelated siblings', () => {
     const root = mkdtempSync(path.join(os.tmpdir(), 'orca-e2e-teardown-contract-'))
     roots.push(root)
-    const repoPath = path.join(root, 'manta-e2e-repo-run')
-    const firstWorktreePath = path.join(root, 'manta-e2e-worktree-owned')
+    const repoPath = path.join(root, 'orca-e2e-repo-run')
+    const firstWorktreePath = path.join(root, 'orca-e2e-worktree-owned')
     const secondWorktreePath = path.join(root, 'e2e-test-owned')
-    const concurrentWorktreePath = path.join(root, 'manta-e2e-worktree-concurrent')
+    const concurrentWorktreePath = path.join(root, 'orca-e2e-worktree-concurrent')
     const unrelatedTestPath = path.join(root, 'e2e-test-unrelated')
     mkdirSync(repoPath)
     mkdirSync(concurrentWorktreePath)

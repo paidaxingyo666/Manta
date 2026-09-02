@@ -283,7 +283,9 @@ describe('quit-path durable writes never park the main thread', () => {
         `${JSON.stringify({
           hooks: {
             SessionStart: [
-              { hooks: [{ type: 'command', command: '/home/test/.manta/agent-hooks/grok-hook.sh' }] }
+              {
+                hooks: [{ type: 'command', command: '/home/test/.manta/agent-hooks/grok-hook.sh' }]
+              }
             ]
           }
         })}\n`

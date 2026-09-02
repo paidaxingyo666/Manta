@@ -28,6 +28,7 @@ import {
   getGitHubReviewSummary,
   getGitHubMergeLabel
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProviderItemList(model: ConnectionPresentationModel) {
   const {
@@ -111,8 +112,13 @@ export function renderMobileTasksProviderItemList(model: ConnectionPresentationM
             >
               <Text style={styles.paginationLabel}>
                 {githubTotalCount === null
-                  ? `Page ${githubCurrentPage + 1}`
-                  : `Page ${githubCurrentPage + 1} of ${githubTotalPages}`}
+                  ? translate('m.tasks.eda57a4655.214538', 'Page {{value0}}', {
+                      value0: githubCurrentPage + 1
+                    })
+                  : translate('m.tasks.eda57a4655.2283a9', 'Page {{value0}} of {{value1}}', {
+                      value0: githubCurrentPage + 1,
+                      value1: githubTotalPages
+                    })}
               </Text>
             </Pressable>
             <Pressable
@@ -200,7 +206,8 @@ export function renderMobileTasksProviderItemList(model: ConnectionPresentationM
                     {branchSummary.head}
                   </Text>
                   <Text style={styles.branchMetaBase} numberOfLines={1}>
-                    into {branchSummary.base}
+                    {translate('m.tasks.d914d311ea', 'into')}
+                    {branchSummary.base}
                   </Text>
                 </View>
               ) : null}

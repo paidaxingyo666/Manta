@@ -321,7 +321,7 @@ describe('createFilePathLinkProvider range bounds', () => {
   it('does not intercept regular URL clicks in the file-path fallback', async () => {
     setPlatform('Macintosh')
     const rows = [
-      makeBufferLine('PR opened: https://github.com/stablyai/orca-marketing-website/pull/82')
+      makeBufferLine('PR opened: https://github.com/stablyai/manta-marketing-website/pull/82')
     ]
     const { terminal, element } = makeFallbackTerminal(rows)
     const disposable = installFilePathLinkClickFallback(1, terminal, {
@@ -360,7 +360,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     setPlatform('Macintosh')
     storeState.settings = { openLinksInApp: false }
     const rows = [
-      makeBufferLine('PR opened: https://github.com/stablyai/orca-marketing-website/pull/82')
+      makeBufferLine('PR opened: https://github.com/stablyai/manta-marketing-website/pull/82')
     ]
     const { terminal, element } = makeFallbackTerminal(rows)
     const disposable = installHttpLinkClickFallback(terminal, { worktreeId: 'wt-1' })
@@ -393,7 +393,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     setPlatform('Macintosh')
     storeState.settings = { openLinksInApp: false }
     const rows = [
-      makeBufferLine('PR opened: https://github.com/stablyai/orca-marketing-website/pull/82')
+      makeBufferLine('PR opened: https://github.com/stablyai/manta-marketing-website/pull/82')
     ]
     const { terminal, element } = makeFallbackTerminal(rows)
     const disposable = installHttpLinkClickFallback(terminal, { worktreeId: 'wt-1' })
@@ -414,7 +414,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     } as unknown as MouseEvent)
 
     expect(openUrlMock).toHaveBeenCalledWith(
-      'https://github.com/stablyai/orca-marketing-website/pull/82'
+      'https://github.com/stablyai/manta-marketing-website/pull/82'
     )
     expect(preventDefault).toHaveBeenCalled()
     expect(stopPropagation).not.toHaveBeenCalled()
@@ -427,7 +427,7 @@ describe('createFilePathLinkProvider range bounds', () => {
   it('does not steal macOS ctrl-click context-menu gestures in the URL fallback', async () => {
     setPlatform('Macintosh')
     storeState.settings = { openLinksInApp: false }
-    const rows = [makeBufferLine('Open https://github.com/stablyai/orca/pull/2914')]
+    const rows = [makeBufferLine('Open https://github.com/stablyai/manta/pull/2914')]
     const { terminal, element } = makeFallbackTerminal(rows)
     const disposable = installHttpLinkClickFallback(terminal, { worktreeId: 'wt-1' })
     const mouseUp = getRegisteredBubbleMouseUpHandler(element)
@@ -456,7 +456,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     setPlatform('Macintosh')
     storeState.settings = { openLinksInApp: false, openLinksInAppPreferencePrompted: false }
     const rows = [
-      makeBufferLine('PR opened: https://github.com/stablyai/orca-marketing-website/pull/82')
+      makeBufferLine('PR opened: https://github.com/stablyai/manta-marketing-website/pull/82')
     ]
     const requestOpenLinksInAppPreference = vi.fn(async () => {
       storeState.settings = { openLinksInApp: true, openLinksInAppPreferencePrompted: true }
@@ -483,7 +483,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     } as unknown as MouseEvent)
 
     expect(requestOpenLinksInAppPreference).toHaveBeenCalledWith(
-      'https://github.com/stablyai/orca-marketing-website/pull/82'
+      'https://github.com/stablyai/manta-marketing-website/pull/82'
     )
     expect(openUrlMock).not.toHaveBeenCalled()
     expect(createBrowserTabMock).not.toHaveBeenCalled()
@@ -492,7 +492,7 @@ describe('createFilePathLinkProvider range bounds', () => {
 
     expect(createBrowserTabMock).toHaveBeenCalledWith(
       'wt-1',
-      'https://github.com/stablyai/orca-marketing-website/pull/82',
+      'https://github.com/stablyai/manta-marketing-website/pull/82',
       { activate: true }
     )
     expect(preventDefault).toHaveBeenCalled()
@@ -504,7 +504,7 @@ describe('createFilePathLinkProvider range bounds', () => {
   it('does not double-open URLs when xterm already handled the mouseup', () => {
     setPlatform('Macintosh')
     storeState.settings = { openLinksInApp: false }
-    const rows = [makeBufferLine('Open https://github.com/stablyai/orca/pull/2914')]
+    const rows = [makeBufferLine('Open https://github.com/stablyai/manta/pull/2914')]
     const { terminal, element } = makeFallbackTerminal(rows)
     const disposable = installHttpLinkClickFallback(terminal, { worktreeId: 'wt-1' })
     const mouseUp = getRegisteredBubbleMouseUpHandler(element)
@@ -528,18 +528,18 @@ describe('createFilePathLinkProvider range bounds', () => {
   it('opens a deeply wrapped absolute path from its final short continuation row', async () => {
     setPlatform('Macintosh')
     const rows = [
-      makeBufferLine('/private/tmp/or'),
-      makeBufferLine('ca-setup-e2e.hO'),
-      makeBufferLine('W01f/workspaces'),
-      makeBufferLine('/test-wt-5/mob'),
-      makeBufferLine('ile/packages/ex'),
-      makeBufferLine('po-two-way-aud'),
-      makeBufferLine('io/android/src/'),
-      makeBufferLine('main/java/expo'),
-      makeBufferLine('/modules/twoway'),
-      makeBufferLine('audio/ExpoTwoW'),
-      makeBufferLine('ayAudioLifeCyc'),
-      makeBufferLine('leListener.kt')
+      makeBufferLine('/private/tmp/ma'),
+      makeBufferLine('nta-setup-e2e.h'),
+      makeBufferLine('OW01f/workspace'),
+      makeBufferLine('s/test-wt-5/mo'),
+      makeBufferLine('bile/packages/e'),
+      makeBufferLine('xpo-two-way-au'),
+      makeBufferLine('dio/android/src'),
+      makeBufferLine('/main/java/exp'),
+      makeBufferLine('o/modules/twowa'),
+      makeBufferLine('yaudio/ExpoTwo'),
+      makeBufferLine('WayAudioLifeCy'),
+      makeBufferLine('cleListener.kt')
     ]
 
     const opened = openFilePathLinkAtBufferPosition(makeBuffer(rows), { x: 4, y: 12 }, 15, {

@@ -1,3 +1,13 @@
+# This repo IS the Homebrew tap — `brew tap` reads casks straight out of Casks/,
+# so there is no second repository. `fork-release.yml` rewrites the version and
+# both hashes from the published release and commits the result back to main.
+#
+#   brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta
+#   brew install --cask paidaxingyo666/manta/manta
+#
+# No stable release exists yet — the fork has published only v1.4.189-rc.0, a
+# pre-release, which belongs to manta@rc.rb. The literals below are placeholders
+# the rewrite needs something to match, not a release anyone can install.
 cask "manta" do
   arch arm: "arm64", intel: "x64"
 
@@ -5,11 +15,11 @@ cask "manta" do
   sha256 arm:   "fc707f290ff3b631b7b7947bf339885b61a43d2e89475997c125b61268ed4966",
          intel: "5f677c13a08f7a5740442e29d388285a86488c8c1f7aa5f10a8721a2c6ede8e4"
 
-  url "https://github.com/stablyai/orca/releases/download/v#{version}/manta-macos-#{arch}.dmg",
-      verified: "github.com/stablyai/orca/"
+  url "https://github.com/paidaxingyo666/Manta/releases/download/v#{version}/manta-macos-#{arch}.dmg",
+      verified: "github.com/paidaxingyo666/Manta/"
   name "Manta"
   desc "IDE for orchestrating AI coding agents across terminals and worktrees"
-  homepage "https://manta.sh.cn/"
+  homepage "https://github.com/paidaxingyo666/Manta"
 
   livecheck do
     url :url

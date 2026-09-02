@@ -53,7 +53,7 @@ describe('githubProjectKeys', () => {
       gitlabRepo('b'),
       folderRepo('c')
     ])
-    expect(keys).toEqual(['github:stablyai/orca'])
+    expect(keys).toEqual(['github:stablyai/manta'])
   })
 
   it('de-dupes the same GitHub project added twice and sorts deterministically', () => {
@@ -62,7 +62,7 @@ describe('githubProjectKeys', () => {
       githubRepo('a1', 'stablyai', 'manta'),
       githubRepo('z', 'octocat', 'hello')
     ])
-    expect(keys).toEqual(['github:octocat/hello', 'github:stablyai/orca'])
+    expect(keys).toEqual(['github:octocat/hello', 'github:stablyai/manta'])
   })
 
   it('is empty for a GitLab-only / folder-only workspace', () => {

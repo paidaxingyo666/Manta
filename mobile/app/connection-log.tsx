@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
-import { View, Text, StyleSheet, Pressable, Platform } from 'react-native'
+import { View, Text, Pressable, Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as Clipboard from 'expo-clipboard'
 import Constants from 'expo-constants'
 import { ChevronLeft, Copy, Check, Send } from 'lucide-react-native'
-import { colors, spacing, typography } from '../src/theme/mobile-theme'
+import { colors, spacing } from '../src/theme/mobile-theme'
+import { styles } from '../src/theme/connection-log-styles'
 import { ConnectionLog } from '../src/components/ConnectionLog'
 import { loadHosts } from '../src/transport/host-store'
 import { connectionLogStore } from '../src/transport/persisted-connection-log-store'
@@ -31,6 +32,7 @@ import {
 import { useHostStatusGates } from '../src/transport/host-status-gates'
 import { loadHostAppVersion } from '../src/transport/host-app-version-store'
 import type { ConnectionLogEntry, HostProfile } from '../src/transport/types'
+import { translate } from '../src/i18n/i18n'
 
 // Why: getSnapshot must be referentially stable when there's no data —
 // a fresh [] per call would make useSyncExternalStore re-render forever.
@@ -188,7 +190,9 @@ export default function ConnectionLogScreen() {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Network diagnostics</Text>
+        <Text style={styles.heading}>
+          {translate('m.connection.log.a74b2501d7', 'Network diagnostics')}
+        </Text>
       </View>
 
       {hosts.length > 1 && (
@@ -217,7 +221,11 @@ export default function ConnectionLogScreen() {
           <View style={styles.statusRow}>
             <Text style={styles.statusText}>
               {state}
-              {reconnectAttempts > 0 ? ` · attempt ${reconnectAttempts}` : ''}
+              {reconnectAttempts > 0
+                ? translate('m.connection.log.9aee626b28', ' · attempt {{value0}}', {
+                    value0: reconnectAttempts
+                  })
+                : ''}
             </Text>
             <Pressable style={styles.copyButton} onPress={() => void copyDiagnostics()}>
               {copied ? (
@@ -225,19 +233,27 @@ export default function ConnectionLogScreen() {
               ) : (
                 <Copy size={14} color={colors.textSecondary} />
               )}
-              <Text style={styles.copyButtonText}>{copied ? 'Copied' : 'Copy report'}</Text>
+              <Text style={styles.copyButtonText}>
+                {copied
+                  ? translate('m.connection.log.0d8cbd791b', 'Copied')
+                  : translate('m.connection.log.364a248d79', 'Copy report')}
+              </Text>
             </Pressable>
           </View>
           {diagnosis && (
             <View style={styles.diagnosisCard}>
-              <Text style={styles.diagnosisHeading}>What this suggests</Text>
+              <Text style={styles.diagnosisHeading}>
+                {translate('m.connection.log.2a4e5d28c5', 'What this suggests')}
+              </Text>
               <Text style={styles.diagnosisText}>{diagnosis.likelyCause}</Text>
               <Text style={styles.diagnosisNext}>{diagnosis.nextStep}</Text>
               {diagnosis.reportability === 'manta-relay' && (
                 <>
                   <Text style={styles.privacyHint}>
-                    Sends a size-limited redacted report including host name, endpoint, versions,
-                    connection state, and events—never terminal contents or credentials.
+                    {translate(
+                      'm.connection.log.68f76867a2',
+                      'Sends a size-limited redacted report including host name, endpoint, versions, connection state, and events—never terminal contents or credentials.'
+                    )}
                   </Text>
                   <Pressable
                     style={styles.sendButton}
@@ -251,12 +267,12 @@ export default function ConnectionLogScreen() {
                     )}
                     <Text style={styles.sendButtonText}>
                       {submissionState === 'sending'
-                        ? 'Sending…'
+                        ? translate('m.connection.log.45bd68e67e', 'Sending…')
                         : submissionState === 'sent'
-                          ? 'Diagnostics sent'
+                          ? translate('m.connection.log.37de5c5676', 'Diagnostics sent')
                           : submissionState === 'failed'
-                            ? 'Retry sending'
-                            : 'Send diagnostics to Manta'}
+                            ? translate('m.connection.log.abfd913c55', 'Retry sending')
+                            : translate('m.connection.log.e9f27427b4', 'Send diagnostics to Manta')}
                     </Text>
                   </Pressable>
                 </>
@@ -267,141 +283,18 @@ export default function ConnectionLogScreen() {
             <ConnectionLog entries={[...entries]} title={selected.name} fillAvailableHeight />
           ) : (
             <Text style={styles.emptyText}>
-              No connection events yet. Events appear as the app dials this host.
+              {translate(
+                'm.connection.log.8a647c3df9',
+                'No connection events yet. Events appear as the app dials this host.'
+              )}
             </Text>
           )}
         </>
       ) : (
-        <Text style={styles.emptyText}>No paired hosts.</Text>
+        <Text style={styles.emptyText}>
+          {translate('m.connection.log.3ce523c653', 'No paired hosts.')}
+        </Text>
       )}
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgBase,
-    padding: spacing.lg
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.lg
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.textPrimary
-  },
-  hostPicker: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.md
-  },
-  hostChip: {
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: 16,
-    backgroundColor: colors.bgRaised
-  },
-  hostChipActive: {
-    backgroundColor: colors.bgPanel,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle
-  },
-  hostChipText: {
-    fontSize: typography.metaSize,
-    color: colors.textSecondary,
-    maxWidth: 160
-  },
-  hostChipTextActive: {
-    color: colors.textPrimary,
-    fontWeight: '600'
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm
-  },
-  statusText: {
-    fontSize: typography.metaSize,
-    color: colors.textSecondary
-  },
-  diagnosisCard: {
-    backgroundColor: colors.bgPanel,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderSubtle,
-    borderRadius: 10,
-    padding: spacing.md,
-    marginBottom: spacing.md
-  },
-  diagnosisHeading: {
-    fontSize: typography.metaSize,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs
-  },
-  diagnosisText: {
-    fontSize: typography.metaSize,
-    color: colors.textPrimary,
-    lineHeight: 18
-  },
-  diagnosisNext: {
-    fontSize: typography.metaSize,
-    color: colors.textSecondary,
-    lineHeight: 18,
-    marginTop: spacing.xs
-  },
-  privacyHint: {
-    marginTop: spacing.sm,
-    fontSize: 11,
-    lineHeight: 15,
-    color: colors.textMuted
-  },
-  sendButton: {
-    marginTop: spacing.md,
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.bgRaised
-  },
-  sendButtonText: {
-    fontSize: typography.metaSize,
-    fontWeight: '600',
-    color: colors.textPrimary
-  },
-  copyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: 8,
-    backgroundColor: colors.bgRaised
-  },
-  copyButtonText: {
-    fontSize: typography.metaSize,
-    fontWeight: '600',
-    color: colors.textPrimary
-  },
-  emptyText: {
-    fontSize: typography.metaSize,
-    color: colors.textMuted,
-    lineHeight: 18
-  }
-})

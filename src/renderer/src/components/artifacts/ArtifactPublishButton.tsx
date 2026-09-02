@@ -1,3 +1,4 @@
+import { ArtifactsSelfHostNotice } from './ArtifactsSelfHostNotice'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Loader2, Share2 } from 'lucide-react'
 import type { ArtifactWriteRequest } from '../../../../shared/artifacts'
@@ -92,7 +93,11 @@ export function ArtifactPublishButton({
       const result = await publishArtifactFromSurface(createRequest)
       if (result) {
         if (lookupKey) {
-          setLinkLookup({ key: lookupKey, status: 'loaded', shareUrl: result.item.shareUrl })
+          setLinkLookup({
+            key: lookupKey,
+            status: 'loaded',
+            shareUrl: result.item.shareUrl
+          })
         }
       }
     } finally {
@@ -164,6 +169,7 @@ export function ArtifactPublishButton({
         </div>
 
         <div className="space-y-3 p-4">
+          <ArtifactsSelfHostNotice />
           {!signedIn ? (
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 space-y-0.5">

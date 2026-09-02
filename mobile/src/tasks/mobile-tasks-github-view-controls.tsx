@@ -1,6 +1,7 @@
 import type { ConnectionPresentationModel } from './use-mobile-tasks-connection-presentation'
 import { Pressable, Text, View, Linking, ExternalLink, colors } from './mobile-tasks-dependencies'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksGitHubViewControls(model: ConnectionPresentationModel) {
   const {
@@ -67,7 +68,10 @@ export function renderMobileTasksGitHubViewControls(model: ConnectionPresentatio
                   setShowGitHubIssueSourcePicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Source: {githubIssueSourceLabel}</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('m.tasks.76c0041b44', 'Source:')}
+                  {githubIssueSourceLabel}
+                </Text>
               </Pressable>
             ) : null}
           </>
@@ -110,7 +114,10 @@ export function renderMobileTasksGitHubViewControls(model: ConnectionPresentatio
                   setShowGitHubProjectSortPicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Sort: {githubProjectSortLabel}</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('m.tasks.f3958ba4ea', 'Sort:')}
+                  {githubProjectSortLabel}
+                </Text>
               </Pressable>
             ) : null}
             {githubProjectAvailableSummaryFields.length > 0 ? (
@@ -124,7 +131,10 @@ export function renderMobileTasksGitHubViewControls(model: ConnectionPresentatio
                   setShowGitHubProjectFieldsPicker(true)
                 }}
               >
-                <Text style={styles.segmentSecondaryText}>Fields: {githubProjectFieldsLabel}</Text>
+                <Text style={styles.segmentSecondaryText}>
+                  {translate('m.tasks.fc70101ee7', 'Fields:')}
+                  {githubProjectFieldsLabel}
+                </Text>
               </Pressable>
             ) : null}
             {githubProjectTable ? (

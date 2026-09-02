@@ -73,7 +73,7 @@ describe('decodeGrokTranscriptLine', () => {
   })
 
   it('preserves ordinary prompts that mention pasted-image filenames', () => {
-    const text = 'Explain what an manta-paste-123-example.png file is'
+    const text = 'Explain what a manta-paste-123-example.png file is'
     const line = JSON.stringify({
       type: 'user',
       content: [{ type: 'text', text: `<user_query>${text}</user_query>` }]

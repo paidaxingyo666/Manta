@@ -13,7 +13,7 @@ name: Hourly macOS Dev Build
 #     a ticket every hourly reads as a new client and silently loses file access
 #     under Documents/Desktop/Downloads — 24 times a day.
 #
-# Artifacts publish to stablyai/orca-hourly, never to stablyai/orca: the main
+# Artifacts publish to paidaxingyo666/manta-hourly, never to paidaxingyo666/Manta: the main
 # repo's releases atom feed exposes only its 10 newest entries, so 24 hourly
 # tags a day would evict every stable/RC entry and break updates for real users.
 #
@@ -35,10 +35,17 @@ name: Hourly macOS Dev Build
 # invisible draft — and the build-number query counts drafts, so it holds its
 # number and the next run does not reuse it.
 
+# The cron is commented out rather than deleted. This fork has none of what the
+# job needs: `runs-on: blacksmith-6vcpu-macos-15` is upstream's paid runner
+# fleet, so every scheduled run queued for a machine that never arrived and was
+# cancelled by the next hour's `cancel-in-progress` — an Actions page of red X's
+# for work that never started. It would fail at the end regardless, because the
+# `HOURLY_REPO` below does not exist. Restoring the schedule means creating that
+# repo and putting a real macOS runner label here first.
 on:
-  schedule:
-    # Top of every hour. Skipped automatically when main has not moved.
-    - cron: '0 * * * *'
+  # schedule:
+  #   # Top of every hour. Skipped automatically when main has not moved.
+  #   - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -55,12 +62,24 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  HOURLY_REPO: stablyai/orca-hourly
+  HOURLY_REPO: paidaxingyo666/manta-hourly
   # Keep ~3 days of history so a regression can be bisected across a weekend.
   HOURLY_RETAIN_COUNT: 72
 
 jobs:
   build-hourly-mac:
+    # Guarded off in this fork, deliberately. Two things make that necessary:
+    # this job runs on `blacksmith-6vcpu-macos-15`, a runner fleet only upstream
+    # has, and it publishes into a dev-channel repo that does not exist here. So
+    # it can never succeed — but it CAN sign. Every step below is wired to
+    # MAC_CERTS and a personal Apple ID, and the schedule is hourly. Repointing
+    # the runner label without also repointing this line would start twenty-four
+    # real notarization submissions a day against one person's Apple account.
+    #
+    # Turning it back on is therefore two deliberate edits, not one: a runner
+    # this fork actually has, and a dev-channel repo that exists. The Apple
+    # credentials are additionally scoped to an environment that only `v*` tags
+    # can read, so a scheduled run on a branch cannot reach them either.
     if: github.repository == 'stablyai/orca'
     outputs:
       tag: ${{ steps.release.outputs.tag }}
@@ -81,7 +100,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          # Why: this job only reads stablyai/orca and never pushes; every write
+          # Why: this job only reads paidaxingyo666/Manta and never pushes; every write
           # goes to the hourly repo through a minted App token passed by env.
           # Not persisting the checkout credential shrinks the blast radius if a
           # build step is compromised (zizmor: artipacked).
@@ -207,7 +226,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts \
             --json tagName --jq '.[].tagName' || true)"
           echo "Highest published tag seen: $(head -1 <<<"$published")"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_HOURLY_RELEASE_NAMES="$names" \
+          MANTA_PUBLISHED_VERSIONS="$published" MANTA_HOURLY_RELEASE_NAMES="$names" \
             node config/scripts/hourly-build-version.mjs \
             >"$RUNNER_TEMP/hourly-identity.txt"
           grep -E '^(version|build_number)=' "$RUNNER_TEMP/hourly-identity.txt"
@@ -230,7 +249,7 @@ jobs:
           # Why: hourly builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted dev artifacts.
-          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.onmanta.dev/diagnostics/token
 
       # Why a second mint: everything from here on writes to the hourly repo, and
       # the notary round trip inside the publish step can be tens of minutes. The
@@ -277,7 +296,7 @@ jobs:
             --draft \
             --notes "Automated hourly macOS and Windows dev build from commit \`$short_sha\`.
 
-          Built from [\`stablyai/orca@$short_sha\`](https://github.com/stablyai/orca/commit/$SHA).
+          Built from [\`paidaxingyo666/Manta@$short_sha\`](https://github.com/paidaxingyo666/Manta/commit/$SHA).
 
           **Unvetted.** No tests ran. The macOS build is signed and notarized like a
           release, so it installs through Manta's in-app updater and opens from a manual

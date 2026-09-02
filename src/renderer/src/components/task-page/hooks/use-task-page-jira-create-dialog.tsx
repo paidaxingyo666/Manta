@@ -62,8 +62,7 @@ export function useTaskPageJiraCreateDialog({
   const [newJiraIssueCustomFieldValues, setNewJiraIssueCustomFieldValues] = useState<
     Record<string, string>
   >({})
-  // Display names for the ids held in newJiraIssueCustomFieldValues, so the
-  // picker trigger shows a person rather than a raw accountId.
+  // Retain display metadata beside submitted IDs for picker labels.
   const [jiraUserFieldSelections, setJiraUserFieldSelections] = useState<Record<string, JiraUser>>(
     {}
   )
@@ -255,15 +254,11 @@ export function useTaskPageJiraCreateDialog({
           return
         }
         setJiraCreateFields(fields)
-        // Jira defaults the reporter to the authenticated user; match that so a
-        // required reporter is satisfied without forcing a lookup. Only reporter
-        // is seeded — Jira defaults no other user field, so filling one would
-        // write a person the user never chose.
+        // Jira only defaults reporter to the authenticated user.
         if (!jiraViewer) {
           return
         }
-        // The viewer belongs to the active site; an id from another site names a
-        // different person there (or, on Server/DC, silently collides by username).
+        // Viewer IDs are site-scoped; never seed them into another site.
         const targetSiteId = newJiraIssueTargetProject.siteId
         if (targetSiteId && jiraViewerSiteId && targetSiteId !== jiraViewerSiteId) {
           return

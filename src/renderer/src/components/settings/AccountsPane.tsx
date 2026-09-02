@@ -93,6 +93,11 @@ export function AccountsPane({
   // (see #7973); every list/select/remove below must scope to it, not host/WSL.
   const isRemoteAccountScope = hasRemoteProviderAccountOwner(settings)
   const activeRuntimeEnvironmentId = settings.activeRuntimeEnvironmentId?.trim() || null
+  const activeRuntimeConnectionGeneration = useAppStore((s) =>
+    activeRuntimeEnvironmentId
+      ? (s.runtimeStatusByEnvironmentId.get(activeRuntimeEnvironmentId)?.connectionGeneration ?? 0)
+      : 0
+  )
   // Why: keep the real name separate from the prose fallback below; the scope
   // label must not interpolate the fallback.
   const remoteServerName = isRemoteAccountScope
@@ -271,7 +276,7 @@ export function AccountsPane({
     return () => {
       watcher.close()
     }
-  }, [activeRuntimeEnvironmentId])
+  }, [activeRuntimeEnvironmentId, activeRuntimeConnectionGeneration])
 
   const runCodexAccountAction = createCodexAccountActionRunner({
     settings,

@@ -1,0 +1,8 @@
+[Unit]
+Description=Obtain the relay certificate out of band, then hand it to Caddy
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/manta-acme-bootstrap.sh

@@ -78,7 +78,7 @@ export function resolveAutomationSetupDecisionForSave(args: {
   }
 
   if (args.yamlHooks === undefined) {
-    // Why: automations cannot pause later for an manta.yaml trust prompt; when
+    // Why: automations cannot pause later for a manta.yaml trust prompt; when
     // hook inspection is unavailable, fail closed instead of inheriting setup.
     return 'skip'
   }

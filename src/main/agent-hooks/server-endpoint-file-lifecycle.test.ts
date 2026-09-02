@@ -300,7 +300,10 @@ describe('Endpoint file lifecycle', () => {
       const filePath = server.endpointFilePath!
       const expectedPort = server.buildPtyEnv().MANTA_AGENT_HOOK_PORT
       // Why: source the file exactly as the managed hook script does, catching drift from the KEY=VALUE shape before users do.
-      const out = execFileSync('/bin/sh', ['-c', `. "${filePath}" && echo "$MANTA_AGENT_HOOK_PORT"`])
+      const out = execFileSync('/bin/sh', [
+        '-c',
+        `. "${filePath}" && echo "$MANTA_AGENT_HOOK_PORT"`
+      ])
         .toString()
         .trim()
       expect(out).toBe(expectedPort)

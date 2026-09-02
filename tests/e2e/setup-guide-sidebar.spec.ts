@@ -119,7 +119,7 @@ async function installBlockedCompletedCapabilityFakes(
       await waitForSkillDiscoveryRelease()
       return {
         skills: [
-          makeSkill('orca-cli', 'e2e-manta-cli'),
+          makeSkill('manta-cli', 'e2e-manta-cli'),
           makeSkill('computer-use', 'e2e-computer-use'),
           makeSkill('orchestration', 'e2e-orchestration')
         ],

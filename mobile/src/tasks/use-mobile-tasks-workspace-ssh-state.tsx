@@ -14,6 +14,7 @@ import {
   type SetupDecision,
   isSuccess
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function useMobileTasksWorkspaceSshState(model: WorkspaceSparseActionsModel) {
   const {
@@ -68,7 +69,10 @@ export function useMobileTasksWorkspaceSshState(model: WorkspaceSparseActionsMod
       setWorkspaceSshState({
         targetId: workspaceCreateTargetConnectionId,
         status: 'error',
-        error: err instanceof Error ? err.message : 'Failed to connect to SSH repository.',
+        error:
+          err instanceof Error
+            ? err.message
+            : translate('m.tasks.78272920be', 'Failed to connect to SSH repository.'),
         reconnectAttempt: 0
       })
     } finally {

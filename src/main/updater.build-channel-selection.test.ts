@@ -225,7 +225,7 @@ describe('updater', () => {
       expect(autoUpdaterMock.disableDifferentialDownload).toBe(false)
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -268,7 +268,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -308,7 +308,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -365,7 +365,7 @@ describe('updater', () => {
       expect(send).toHaveBeenCalledWith('updater:status', { state: 'not-available' })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -411,7 +411,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
       })
     }
   )
@@ -479,7 +479,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.3.18-rc.1'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.3.18-rc.1'
       })
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -506,7 +506,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.4.121-rc.6.perf'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.121-rc.6.perf'
       })
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -560,7 +560,9 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
-        message: "Couldn't reach the update server. Try again in a few minutes.",
+        // Fork behavior: a not-ready release is not a transport failure, so the
+        // message says so on every channel, not only the default one.
+        message: "A newer release isn't available for this device yet. Check again later.",
         userInitiated: true
       })
     })
@@ -573,7 +575,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.4.121'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.121'
       })
     })
   })
@@ -593,7 +595,9 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(sendMock).toHaveBeenCalledWith('updater:status', {
         state: 'error',
-        message: "Couldn't reach the update server. Try again in a few minutes.",
+        // Fork behavior: a not-ready release is not a transport failure, so the
+        // message says so on every channel, not only the default one.
+        message: "A newer release isn't available for this device yet. Check again later.",
         userInitiated: true
       })
     })

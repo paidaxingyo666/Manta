@@ -10,7 +10,7 @@ import { WORK_ITEM_LINK_QUERY_MAX_BYTES } from './work-item-link-query-bounds'
 describe('buildGitHubRepoUrl', () => {
   it('builds a GitHub repository URL from an owner/repo slug', () => {
     expect(buildGitHubRepoUrl({ owner: 'stablyai', repo: 'manta' })).toBe(
-      'https://github.com/stablyai/orca'
+      'https://github.com/stablyai/manta'
     )
   })
 
@@ -31,8 +31,8 @@ describe('parseGitHubIssueOrPRNumber', () => {
   it('parses plain issue numbers and GitHub pull request URLs', () => {
     expect(parseGitHubIssueOrPRNumber('42')).toBe(42)
     expect(parseGitHubIssueOrPRNumber('#42')).toBe(42)
-    expect(parseGitHubIssueOrPRNumber('https://github.com/stablyai/orca/pull/123')).toBe(123)
-    expect(parseGitHubIssueOrPRNumber('https://github.com/stablyai/orca/issues/923')).toBe(923)
+    expect(parseGitHubIssueOrPRNumber('https://github.com/stablyai/manta/pull/123')).toBe(123)
+    expect(parseGitHubIssueOrPRNumber('https://github.com/stablyai/manta/issues/923')).toBe(923)
     expect(parseGitHubIssueOrPRNumber('https://github.my-company.net/MyOrg/my_repo/pull/395')).toBe(
       395
     )
@@ -71,7 +71,7 @@ describe('parseGitHubIssueOrPRNumber', () => {
 
 describe('parseGitHubIssueOrPRLink', () => {
   it('parses slug, number, and type for direct item URLs', () => {
-    expect(parseGitHubIssueOrPRLink('https://github.com/stablyai/orca/pull/123')).toEqual({
+    expect(parseGitHubIssueOrPRLink('https://github.com/stablyai/manta/pull/123')).toEqual({
       slug: { owner: 'stablyai', repo: 'manta', host: 'github.com' },
       number: 123,
       type: 'pr'
@@ -90,7 +90,7 @@ describe('parseGitHubIssueOrPRLink', () => {
       number: 395,
       type: 'pr'
     })
-    expect(parseGitHubIssueOrPRLink('https://github.com/stablyai/orca/issues/923')).toEqual({
+    expect(parseGitHubIssueOrPRLink('https://github.com/stablyai/manta/issues/923')).toEqual({
       slug: { owner: 'stablyai', repo: 'manta', host: 'github.com' },
       number: 923,
       type: 'issue'
@@ -137,8 +137,8 @@ describe('parseGitHubIssueOrPRLink', () => {
 
 describe('normalizeGitHubLinkQuery', () => {
   it('accepts full GitHub URLs whose slug differs from the selected repo slug', () => {
-    expect(normalizeGitHubLinkQuery('https://github.com/stablyai/orca/issues/923')).toEqual({
-      query: 'https://github.com/stablyai/orca/issues/923',
+    expect(normalizeGitHubLinkQuery('https://github.com/stablyai/manta/issues/923')).toEqual({
+      query: 'https://github.com/stablyai/manta/issues/923',
       directNumber: 923,
       directLink: {
         slug: { owner: 'stablyai', repo: 'manta', host: 'github.com' },
@@ -149,8 +149,8 @@ describe('normalizeGitHubLinkQuery', () => {
   })
 
   it('preserves PR route intent for full GitHub URLs', () => {
-    expect(normalizeGitHubLinkQuery('https://github.com/stablyai/orca/pull/6934')).toEqual({
-      query: 'https://github.com/stablyai/orca/pull/6934',
+    expect(normalizeGitHubLinkQuery('https://github.com/stablyai/manta/pull/6934')).toEqual({
+      query: 'https://github.com/stablyai/manta/pull/6934',
       directNumber: 6934,
       directLink: {
         slug: { owner: 'stablyai', repo: 'manta', host: 'github.com' },
@@ -161,8 +161,8 @@ describe('normalizeGitHubLinkQuery', () => {
   })
 
   it('preserves route intent for URLs with uppercase schemes', () => {
-    expect(normalizeGitHubLinkQuery('HTTPS://github.com/stablyai/orca/pull/6934')).toEqual({
-      query: 'HTTPS://github.com/stablyai/orca/pull/6934',
+    expect(normalizeGitHubLinkQuery('HTTPS://github.com/stablyai/manta/pull/6934')).toEqual({
+      query: 'HTTPS://github.com/stablyai/manta/pull/6934',
       directNumber: 6934,
       directLink: {
         slug: { owner: 'stablyai', repo: 'manta', host: 'github.com' },

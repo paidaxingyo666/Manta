@@ -170,7 +170,8 @@ describe('registerPtyHandlers', () => {
         MANTA_AGENT_HOOK_ENV: 'production',
         MANTA_AGENT_HOOK_VERSION: 'stale-version',
         MANTA_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env',
-        MANTA_CLAUDE_AGENT_STATUS_SETTINGS: '/tmp/manta/agent-hooks/claude-agent-status-settings.json'
+        MANTA_CLAUDE_AGENT_STATUS_SETTINGS:
+          '/tmp/manta/agent-hooks/claude-agent-status-settings.json'
       })
 
       expect(env.MANTA_AGENT_HOOK_PORT).toBe('5678')
@@ -189,7 +190,8 @@ describe('registerPtyHandlers', () => {
         MANTA_AGENT_HOOK_ENV: 'production',
         MANTA_AGENT_HOOK_VERSION: 'stale-version',
         MANTA_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env',
-        MANTA_CLAUDE_AGENT_STATUS_SETTINGS: '/tmp/manta/agent-hooks/claude-agent-status-settings.json'
+        MANTA_CLAUDE_AGENT_STATUS_SETTINGS:
+          '/tmp/manta/agent-hooks/claude-agent-status-settings.json'
       })
 
       expect(env.MANTA_AGENT_HOOK_PORT).toBeUndefined()

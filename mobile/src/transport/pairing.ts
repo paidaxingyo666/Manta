@@ -49,7 +49,7 @@ export function extractPairingCodeFromUrl(url: string): string | null {
   return null
 }
 
-// Why: accept either an `manta://pair?...` URL or the bare base64
+// Why: accept either a `manta://pair?...` URL or the bare base64
 // string so the paste-pair flow can take whichever the user actually
 // copied from desktop.
 export function parsePairingCode(input: string): PairingOffer | null {

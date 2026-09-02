@@ -13,6 +13,7 @@ import {
   Check
 } from './mobile-tasks-dependencies'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationModel) {
   const {
@@ -51,12 +52,12 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
         detailPayload.provider === 'gitlab')) ? (
     <>
       <View style={styles.detailSection}>
-        <Text style={styles.detailSectionTitle}>Title</Text>
+        <Text style={styles.detailSectionTitle}>{translate('m.tasks.e9bd9ec727', 'Title')}</Text>
         <TextInput
           style={styles.input}
           value={itemTitleDraft}
           onChangeText={setItemTitleDraft}
-          placeholder="Title"
+          placeholder={translate('m.tasks.e9bd9ec727', 'Title')}
           placeholderTextColor={colors.textMuted}
         />
         <Pressable
@@ -86,25 +87,31 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
             }
           }}
         >
-          <Text style={styles.inlineSaveText}>Save title</Text>
+          <Text style={styles.inlineSaveText}>{translate('m.tasks.38ecea93a4', 'Save title')}</Text>
         </Pressable>
       </View>
 
       <View style={styles.detailSection}>
         <View style={styles.detailSectionHeader}>
-          <Text style={styles.detailSectionTitle}>Labels</Text>
-          <Text style={styles.detailSectionMeta}>{detailPayload.labels.length || 'None'}</Text>
+          <Text style={styles.detailSectionTitle}>{translate('m.tasks.1a11cb6c10', 'Labels')}</Text>
+          <Text style={styles.detailSectionMeta}>
+            {detailPayload.labels.length || translate('m.tasks.a73061648e', 'None')}
+          </Text>
         </View>
         {actionItem.provider === 'github' ? (
           itemLabelsLoading ? (
             <View style={styles.detailLoadingInline}>
               <ActivityIndicator size="small" color={colors.textSecondary} />
-              <Text style={styles.detailMuted}>Loading labels...</Text>
+              <Text style={styles.detailMuted}>
+                {translate('m.tasks.bd87e0349f', 'Loading labels...')}
+              </Text>
             </View>
           ) : itemLabelsError ? (
             <Text style={styles.detailError}>{itemLabelsError}</Text>
           ) : itemAvailableLabels.length === 0 ? (
-            <Text style={styles.detailMuted}>No labels in this repository.</Text>
+            <Text style={styles.detailMuted}>
+              {translate('m.tasks.c920eee494', 'No labels in this repository.')}
+            </Text>
           ) : (
             <View style={styles.chipRow}>
               {[...new Set([...itemAvailableLabels, ...detailPayload.labels])].map((label) => {
@@ -136,7 +143,7 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
               style={styles.input}
               value={itemAddLabelsDraft}
               onChangeText={setItemAddLabelsDraft}
-              placeholder="Add labels, comma separated"
+              placeholder={translate('m.tasks.07227f6aa3', 'Add labels, comma separated')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
             />
@@ -144,7 +151,7 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
               style={[styles.input, styles.stackedInput]}
               value={itemRemoveLabelsDraft}
               onChangeText={setItemRemoveLabelsDraft}
-              placeholder="Remove labels, comma separated"
+              placeholder={translate('m.tasks.832bb443ac', 'Remove labels, comma separated')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
             />
@@ -162,7 +169,9 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
                 })
               }
             >
-              <Text style={styles.inlineSaveText}>Update labels</Text>
+              <Text style={styles.inlineSaveText}>
+                {translate('m.tasks.2bd3b109f8', 'Update labels')}
+              </Text>
             </Pressable>
           </>
         )}
@@ -170,19 +179,30 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
 
       <View style={styles.detailSection}>
         <View style={styles.detailSectionHeader}>
-          <Text style={styles.detailSectionTitle}>Assignees</Text>
-          <Text style={styles.detailSectionMeta}>{detailPayload.assignees.length || 'None'}</Text>
+          <Text style={styles.detailSectionTitle}>
+            {translate('m.tasks.a0bd27b1de', 'Assignees')}
+          </Text>
+          <Text style={styles.detailSectionMeta}>
+            {detailPayload.assignees.length || translate('m.tasks.a73061648e', 'None')}
+          </Text>
         </View>
         {actionItem.provider === 'github' ? (
           itemAssignableUsersLoading ? (
             <View style={styles.detailLoadingInline}>
               <ActivityIndicator size="small" color={colors.textSecondary} />
-              <Text style={styles.detailMuted}>Loading assignees...</Text>
+              <Text style={styles.detailMuted}>
+                {translate('m.tasks.817e16216e', 'Loading assignees...')}
+              </Text>
             </View>
           ) : itemAssignableUsersError ? (
             <Text style={styles.detailError}>{itemAssignableUsersError}</Text>
           ) : itemAssignableUsers.length === 0 ? (
-            <Text style={styles.detailMuted}>No assignable users found for this repository.</Text>
+            <Text style={styles.detailMuted}>
+              {translate(
+                'm.tasks.fbe1f46e84',
+                'No assignable users found for this repository.'
+              )}{' '}
+            </Text>
           ) : (
             <View style={styles.chipRow}>
               {[
@@ -227,7 +247,7 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
               style={styles.input}
               value={itemAddAssigneesDraft}
               onChangeText={setItemAddAssigneesDraft}
-              placeholder="Add usernames, comma separated"
+              placeholder={translate('m.tasks.2bda2dac44', 'Add usernames, comma separated')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
             />
@@ -235,7 +255,7 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
               style={[styles.input, styles.stackedInput]}
               value={itemRemoveAssigneesDraft}
               onChangeText={setItemRemoveAssigneesDraft}
-              placeholder="Remove usernames, comma separated"
+              placeholder={translate('m.tasks.5ff03f2b54', 'Remove usernames, comma separated')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
             />
@@ -253,7 +273,9 @@ export function renderMobileTasksItemFieldEditors(model: ConnectionPresentationM
                 })
               }
             >
-              <Text style={styles.inlineSaveText}>Update assignees</Text>
+              <Text style={styles.inlineSaveText}>
+                {translate('m.tasks.150447f1f6', 'Update assignees')}
+              </Text>
             </Pressable>
           </>
         ) : null}

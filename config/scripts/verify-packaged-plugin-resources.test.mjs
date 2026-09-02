@@ -31,12 +31,12 @@ describe('verify packaged plugin resources', () => {
         recursive: true
       })
       await writeFile(
-        join(launchRoot, 'stablyai.orca-navigation-shortcuts', 'extra.json'),
+        join(launchRoot, 'paidaxingyo666.manta-navigation-shortcuts', 'extra.json'),
         '{"mutated":true}\n'
       )
 
       expect(() => verifyPackagedPluginResources(resourcesDir)).toThrow(
-        'packaged bytes do not match stablyai.orca-navigation-shortcuts'
+        'packaged bytes do not match paidaxingyo666.manta-navigation-shortcuts'
       )
     } finally {
       await rm(resourcesDir, { recursive: true, force: true })
@@ -68,7 +68,7 @@ describe('verify packaged plugin resources', () => {
       // Every file is rewritten, so the first mismatch is whichever plugin sorts
       // first — don't pin a name a later branch can reorder.
       expect(() => verifyPackagedPluginResources(resourcesDir)).toThrow(
-        /packaged bytes do not match stablyai\./
+        /packaged bytes do not match paidaxingyo666\./
       )
     } finally {
       await rm(resourcesDir, { recursive: true, force: true })

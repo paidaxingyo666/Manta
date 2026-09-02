@@ -562,7 +562,7 @@ describe('mergeWorktree', () => {
       linkedIssue: 42,
       linkedPR: 10,
       linkedLinearIssue: null,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:openclaw-2' as const,
       projectHostSetupId: 'remote-repo',
       linkedGitLabMR: null,
@@ -584,7 +584,7 @@ describe('mergeWorktree', () => {
         createdAt: 123,
         executionTargetType: 'ssh' as const,
         executionTargetId: 'openclaw-2',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: 'repo1',
         hostId: 'ssh:openclaw-2' as const
       }
@@ -614,7 +614,7 @@ describe('mergeWorktree', () => {
       linkedWorkItem: null,
       linkedTaskSourceContext: null,
       mobileDiffReview: undefined,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:openclaw-2',
       projectHostSetupId: 'remote-repo',
       isArchived: true,
@@ -634,7 +634,7 @@ describe('mergeWorktree', () => {
         createdAt: 123,
         executionTargetType: 'ssh',
         executionTargetId: 'openclaw-2',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: 'repo1',
         hostId: 'ssh:openclaw-2'
       }

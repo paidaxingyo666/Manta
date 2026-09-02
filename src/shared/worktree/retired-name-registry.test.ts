@@ -75,7 +75,7 @@ describe('compactRetiredNames', () => {
 
   it('drops names a higher watermark already covers', () => {
     expect(
-      compactRetiredNames({ exhaustedTiers: 2, names: ['nautilus', 'manta-2', 'orca-3'] })
+      compactRetiredNames({ exhaustedTiers: 2, names: ['nautilus', 'orca-2', 'orca-3'] })
     ).toEqual({ exhaustedTiers: 2, names: ['orca-3'] })
   })
 
@@ -138,7 +138,7 @@ describe('mergeRetiredNameRegistries', () => {
     expect(
       mergeRetiredNameRegistries(
         { exhaustedTiers: 2, names: ['nautilus-3'] },
-        { exhaustedTiers: 0, names: ['nautilus', 'manta-2', 'seahorse-4'] }
+        { exhaustedTiers: 0, names: ['nautilus', 'orca-2', 'seahorse-4'] }
       )
     ).toEqual({ exhaustedTiers: 2, names: ['nautilus-3', 'seahorse-4'] })
   })

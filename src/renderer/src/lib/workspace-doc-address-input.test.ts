@@ -35,6 +35,15 @@ function makeState(): AppState {
   } as unknown as AppState
 }
 
+function makeWindowsState(): AppState {
+  return {
+    getKnownWorktreeById: (id: string) =>
+      id === CURRENT ? { id: CURRENT, path: 'C:\\Repo' } : undefined,
+    allWorktrees: () => [{ id: CURRENT, path: 'C:\\Repo' }],
+    folderWorkspaces: [{ id: 'folder-1', folderPath: '\\\\Server\\Share\\Site' }]
+  } as unknown as AppState
+}
+
 beforeEach(() => {
   plan.result = { status: 'doc-preview' }
   plan.calls.length = 0
@@ -102,6 +111,16 @@ describe('resolveWorkspaceDocAddressTarget', () => {
     expect(resolveWorkspaceDocAddressTarget(makeState(), CURRENT, '/etc/motd.html')).toEqual({
       status: 'not-a-workspace-doc'
     })
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, 'D:\\Elsewhere\\report.html')
+    ).toEqual({ status: 'not-a-workspace-doc' })
+    expect(
+      resolveWorkspaceDocAddressTarget(
+        makeWindowsState(),
+        CURRENT,
+        '\\\\OtherServer\\OtherShare\\report.html'
+      )
+    ).toEqual({ status: 'not-a-workspace-doc' })
   })
 
   it('resolves a ./ relative path against the current worktree', () => {
@@ -109,6 +128,34 @@ describe('resolveWorkspaceDocAddressTarget', () => {
     expect(target).toMatchObject({
       status: 'workspace-doc',
       docLocation: { worktreeId: CURRENT, filePath: '/home/alice/wt1/docs/report.html' }
+    })
+  })
+
+  it('resolves Windows relative, drive, and UNC paths against their workspace roots', () => {
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, '.\\docs\\report.html')
+    ).toMatchObject({
+      status: 'workspace-doc',
+      docLocation: { worktreeId: CURRENT, filePath: 'C:\\Repo\\docs\\report.html' }
+    })
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, 'c:\\repo\\docs\\report.html')
+    ).toMatchObject({
+      status: 'workspace-doc',
+      docLocation: { worktreeId: CURRENT, filePath: 'c:\\repo\\docs\\report.html' }
+    })
+    expect(
+      resolveWorkspaceDocAddressTarget(
+        makeWindowsState(),
+        CURRENT,
+        '\\\\server\\share\\site\\index.html'
+      )
+    ).toMatchObject({
+      status: 'workspace-doc',
+      docLocation: {
+        worktreeId: 'folder:folder-1',
+        filePath: '\\\\server\\share\\site\\index.html'
+      }
     })
   })
 
@@ -120,6 +167,17 @@ describe('resolveWorkspaceDocAddressTarget', () => {
     expect(
       resolveWorkspaceDocAddressTarget(makeState(), CURRENT, '/home/alice/wt1/../wt9/x.html')
     ).toEqual({ status: 'not-a-workspace-doc' })
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, '.\\a\\..\\outside.html')
+    ).toEqual({ status: 'not-a-workspace-doc' })
+    expect(
+      resolveWorkspaceDocAddressTarget(
+        makeWindowsState(),
+        CURRENT,
+        'C:\\Repo\\..\\Elsewhere\\outside.html'
+      )
+    ).toEqual({ status: 'not-a-workspace-doc' })
+    expect(plan.calls).toEqual([])
   })
 
   // "docs/report.html" is indistinguishable from a hostname with a path.
@@ -127,6 +185,9 @@ describe('resolveWorkspaceDocAddressTarget', () => {
     expect(resolveWorkspaceDocAddressTarget(makeState(), CURRENT, 'docs/report.html')).toEqual({
       status: 'not-a-workspace-doc'
     })
+    expect(
+      resolveWorkspaceDocAddressTarget(makeWindowsState(), CURRENT, 'docs\\report.html')
+    ).toEqual({ status: 'not-a-workspace-doc' })
     expect(
       resolveWorkspaceDocAddressTarget(makeState(), CURRENT, '/home/alice/wt1/notes.md')
     ).toEqual({ status: 'not-a-workspace-doc' })

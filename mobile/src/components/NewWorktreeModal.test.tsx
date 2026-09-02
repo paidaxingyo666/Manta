@@ -124,7 +124,7 @@ describe('NewWorktreeModal project targets', () => {
 
     expect(sendRequest).toHaveBeenCalledWith('repo.list')
     expect(pickerItems(renderer, 'Project')).toEqual([
-      expect.objectContaining({ label: 'manta', detail: 'stablyai/orca' })
+      expect.objectContaining({ label: 'manta', detail: 'stablyai/manta' })
     ])
     expect(pickerItems(renderer, 'Run on')).toEqual([
       expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/manta' })
@@ -169,7 +169,7 @@ describe('NewWorktreeModal project targets', () => {
     })
 
     expect(pickerItems(renderer, 'Project')).toEqual([
-      expect.objectContaining({ label: 'manta', detail: 'stablyai/orca' })
+      expect.objectContaining({ label: 'manta', detail: 'stablyai/manta' })
     ])
     expect(pickerItems(renderer, 'Run on')).toEqual([
       expect.objectContaining({ label: LOCAL_HOST_LABEL, detail: '/src/manta' }),

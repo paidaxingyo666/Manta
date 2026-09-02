@@ -22,7 +22,7 @@ describe('local ssh browser partition identity', () => {
     // composition silently logs every SSH workspace out. Recompute only for a
     // deliberate, migration-accompanied identity change.
     expect(derive('local-default', 'default', 'ssh-target-1').partition).toBe(
-      'persist:manta-browser-v1-5bd50510715cb753c62637e02be1e3e480ce8a5b1d8fc5d8b71205a2ff6181a4'
+      'persist:manta-browser-v1-8a415709cb5e78051d8b261d9e8890380fc6c488feaf4e819c647bdf248720cd'
     )
   })
 

@@ -1,3 +1,4 @@
+import { translate } from '../i18n/i18n'
 import type { ProviderLoadActionsModel } from './use-mobile-tasks-provider-load-actions'
 import {
   extractLinearIssueReadItems,
@@ -183,7 +184,10 @@ export function useMobileTasksTaskListLoading(model: ProviderLoadActionsModel) {
                 console.warn(`[mobile tasks] failed to fetch ${provider} work items`, repo.id, err)
                 return {
                   items: [] as TaskItem[],
-                  error: err instanceof Error ? err.message : 'Failed to load GitLab tasks'
+                  error:
+                    err instanceof Error
+                      ? err.message
+                      : translate('m.tasks.6cdb51c354', 'Failed to load GitLab tasks')
                 }
               }
             }

@@ -7,7 +7,7 @@ import {
   recoverActiveTerminalAfterForeground,
   shouldRecoverTerminalOnAppStateChange
 } from '../terminal/terminal-foreground-recovery'
-import { loadCustomKeys } from '../components/CustomKeyModal'
+import { loadCustomKeys } from '../components/custom-key-modal-catalog'
 import type { MobileSessionTabReconciliationModel } from './use-mobile-session-tab-reconciliation'
 
 export function useMobileSessionLifecycle(scope: MobileSessionTabReconciliationModel) {

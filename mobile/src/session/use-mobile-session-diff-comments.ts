@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import * as Clipboard from 'expo-clipboard'
 import type { RpcFailure, RpcSuccess } from '../transport/types'
+import { translate } from '../i18n/i18n'
 import { triggerSelection, triggerSuccess, triggerError } from '../platform/haptics'
 import {
   addMobileDiffComment,
@@ -85,12 +86,17 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
       try {
         await persistDiffComments(result.comments)
         triggerSuccess()
-        showToast('Note added')
+        showToast(translate('m.worktreeId.4d7d1880f9', 'Note added'))
         return true
       } catch (err) {
         setDiffComments(previous)
         triggerError()
-        showToast(err instanceof Error ? err.message : 'Failed to save note', 1600)
+        showToast(
+          err instanceof Error
+            ? err.message
+            : translate('m.worktreeId.c9adeb8139', 'Failed to save note'),
+          1600
+        )
         return false
       } finally {
         setDiffCommentBusy(false)
@@ -117,7 +123,12 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
       } catch (err) {
         setDiffComments(previous)
         triggerError()
-        showToast(err instanceof Error ? err.message : 'Failed to delete note', 1600)
+        showToast(
+          err instanceof Error
+            ? err.message
+            : translate('m.worktreeId.4c360ea739', 'Failed to delete note'),
+          1600
+        )
       } finally {
         setDiffCommentBusy(false)
       }
@@ -133,10 +144,10 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
     try {
       await Clipboard.setStringAsync(formatDiffComments(comments))
       triggerSuccess()
-      showToast('Notes copied')
+      showToast(translate('m.worktreeId.765dba3163', 'Notes copied'))
     } catch {
       triggerError()
-      showToast("Couldn't copy notes", 1600)
+      showToast(translate('m.worktreeId.5c8a3179db', "Couldn't copy notes"), 1600)
     }
   }, [showToast])
 

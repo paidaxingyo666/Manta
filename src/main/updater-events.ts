@@ -193,16 +193,18 @@ export function registerAutoUpdaterHandlers({
     // momentarily resolves an older tag must not destroy a still-valid recovery path.
     clearTrackedLinuxPackageArtifactForOtherVersion(info.version)
 
-    // Why: fetch the changelog in main to avoid renderer-side CORS on manta.sh.cn.
+    // The notes ride along in the manifest the updater already downloaded, so
+    // this no longer reaches the network at all.
     markUpdateAvailableEventPending(attemptId)
+    const notes = info.releaseNotes
     void (async () => {
       try {
-        const changelog =
-          isLocalBuildCheck() || isPinnedBuildCheck()
-            ? null
-            : await fetchChangelog(info.version, app.getVersion()).catch(() => null)
+        const skip = isLocalBuildCheck() || isPinnedBuildCheck()
+        const changelog = skip
+          ? null
+          : await fetchChangelog(info.version, app.getVersion(), notes).catch(() => null)
 
-        // Why: async fetch may take seconds; bail if a newer event superseded this attempt to avoid a stale 'available' broadcast.
+        // Why: bail if a newer event superseded this attempt to avoid a stale 'available' broadcast.
         if (!isActiveUpdateCheckAttempt(attemptId)) {
           return
         }

@@ -1,3 +1,4 @@
+import { translate } from '../i18n/i18n'
 import type { RuntimeHydrationModel } from './use-mobile-tasks-runtime-hydration'
 import {
   CROSS_REPO_DISPLAY_LIMIT,
@@ -141,7 +142,10 @@ export function useMobileTasksProviderLoadActions(model: RuntimeHydrationModel) 
             return {
               items: [] as Array<Extract<TaskItem, { provider: 'github' }>>,
               repoId: repo.id,
-              error: err instanceof Error ? err.message : 'Failed to load GitHub tasks'
+              error:
+                err instanceof Error
+                  ? err.message
+                  : translate('m.tasks.06dfeb18e2', 'Failed to load GitHub tasks')
             }
           }
         }

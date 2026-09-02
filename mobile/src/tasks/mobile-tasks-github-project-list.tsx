@@ -19,6 +19,7 @@ import {
   projectFieldDisplayLabel,
   projectRowStatusLabel
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksGitHubProjectList(model: ConnectionPresentationModel) {
   const {
@@ -44,7 +45,9 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
     </View>
   ) : !activeGitHubProject ? (
     <View style={styles.centered}>
-      <Text style={styles.emptyText}>Choose a GitHub project</Text>
+      <Text style={styles.emptyText}>
+        {translate('m.tasks.52a44bc039', 'Choose a GitHub project')}
+      </Text>
       <Pressable
         style={[styles.targetButton, styles.centerActionButton]}
         disabled={!taskUiReady}
@@ -55,7 +58,9 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
           setShowGitHubProjectPicker(true)
         }}
       >
-        <Text style={styles.targetButtonText}>Browse projects</Text>
+        <Text style={styles.targetButtonText}>
+          {translate('m.tasks.17b0e864d5', 'Browse projects')}
+        </Text>
       </Pressable>
     </View>
   ) : githubProjectError ? (
@@ -68,7 +73,7 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
     </View>
   ) : !githubProjectTable || visibleGitHubProjectRows.length === 0 ? (
     <View style={styles.centered}>
-      <Text style={styles.emptyText}>No project items</Text>
+      <Text style={styles.emptyText}>{translate('m.tasks.5c76505007', 'No project items')}</Text>
     </View>
   ) : (
     <FlatList
@@ -101,7 +106,7 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
                 style={entry.collapsed ? styles.projectGroupChevronCollapsed : undefined}
               />
               <Text style={styles.projectGroupTitle} numberOfLines={1}>
-                {entry.group.label || 'Items'}
+                {entry.group.label || translate('m.tasks.5a0d82fa5a', 'Items')}
               </Text>
               <Text style={styles.projectGroupMeta}>{projectGroupMeta(entry.group)}</Text>
             </Pressable>
@@ -141,10 +146,10 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
                 />
                 <Text style={styles.subtitle} numberOfLines={1}>
                   {row.itemType === 'PULL_REQUEST'
-                    ? 'Pull request'
+                    ? translate('m.tasks.05ac26f906', 'Pull request')
                     : row.itemType === 'ISSUE'
-                      ? 'Issue'
-                      : 'Project item'}{' '}
+                      ? translate('m.tasks.c5c83a9af1', 'Issue')
+                      : translate('m.tasks.367621449b', 'Project item')}{' '}
                   · {row.content.repository ?? githubProjectTable.project.title}
                   {row.content.number ? ` #${row.content.number}` : ''}
                 </Text>
@@ -168,7 +173,8 @@ export function renderMobileTasksGitHubProjectList(model: ConnectionPresentation
                   {githubProjectSummaryFields.length > 4 ? (
                     <View style={styles.projectFieldPill}>
                       <Text style={styles.projectFieldPillText}>
-                        +{githubProjectSummaryFields.length - 4} fields
+                        +{githubProjectSummaryFields.length - 4}{' '}
+                        {translate('m.tasks.04952594ab.70f132', 'fields')}{' '}
                       </Text>
                     </View>
                   ) : null}

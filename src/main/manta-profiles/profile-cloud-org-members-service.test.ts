@@ -130,10 +130,16 @@ describe('Manta cloud org members service (configured)', () => {
   it('maps a 409 already_member invite conflict', async () => {
     configureCloudEnv()
     runOperationDirectly()
-    inviteMantaCloudOrgMemberMock.mockRejectedValue(new MantaCloudRequestError(409, 'already_member'))
+    inviteMantaCloudOrgMemberMock.mockRejectedValue(
+      new MantaCloudRequestError(409, 'already_member')
+    )
 
     await expect(
-      inviteMantaProfileOrgMember(userDataPath, { orgId: 'org-1', email: 'a@b.com', role: 'member' })
+      inviteMantaProfileOrgMember(userDataPath, {
+        orgId: 'org-1',
+        email: 'a@b.com',
+        role: 'member'
+      })
     ).resolves.toEqual({ status: 'conflict', reason: 'already_member' })
   })
 
@@ -223,7 +229,9 @@ describe('Manta cloud org members service (dev auth)', () => {
     if (afterInvite.status !== 'ok') {
       throw new Error('expected ok')
     }
-    expect(afterInvite.roster.pendingInvites.some((i) => i.email === 'fresh@manta.local')).toBe(true)
+    expect(afterInvite.roster.pendingInvites.some((i) => i.email === 'fresh@manta.local')).toBe(
+      true
+    )
 
     await expect(
       inviteMantaProfileOrgMember(userDataPath, {

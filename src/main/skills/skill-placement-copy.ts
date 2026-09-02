@@ -32,7 +32,8 @@ export async function replaceOwnedSkillPlacementCopy(
   fileModes?: readonly SkillInstalledFileMode[],
   transaction?: { replacementPath: string; backupPath: string; retainBackup: boolean }
 ): Promise<void> {
-  const replacement = transaction?.replacementPath ?? `${destinationPath}.manta-copy-${randomUUID()}`
+  const replacement =
+    transaction?.replacementPath ?? `${destinationPath}.manta-copy-${randomUUID()}`
   const backup = transaction?.backupPath ?? `${destinationPath}.manta-backup-${randomUUID()}`
   try {
     await (transaction

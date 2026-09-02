@@ -52,6 +52,29 @@ describe('shared-control standing intent', () => {
     connection.close()
   })
 
+  it('releases recovery after the last subscription migrates from a paused capability', () => {
+    vi.useFakeTimers()
+    const connection = testConnection({ paused: true })
+    const open = replaceOpen(connection)
+    addLogicalSubscription(connection)
+    closeCurrentGeneration(connection)
+
+    expect(connection.getDiagnostics()).toMatchObject({
+      state: 'reconnecting',
+      subscriptionCount: 1
+    })
+    closeLogicalSubscription(connection, 'subscription-1')
+
+    expect(connection.getDiagnostics()).toMatchObject({
+      state: 'closed',
+      subscriptionCount: 0
+    })
+    expect(connection.retryNow()).toBe(false)
+    vi.runAllTimers()
+    expect(open).not.toHaveBeenCalled()
+    connection.close()
+  })
+
   it('selects the 5-minute idle ceiling and preserves the 30-second active ceiling', () => {
     vi.useFakeTimers()
     vi.spyOn(Math, 'random').mockReturnValue(0)
@@ -216,12 +239,20 @@ function replaceOpen(connection: RemoteRuntimeSharedControlConnection): ReturnTy
   return open
 }
 
+function closeLogicalSubscription(
+  connection: RemoteRuntimeSharedControlConnection,
+  requestId: string
+): void {
+  unsafeConnection(connection).closeSubscription(requestId)
+}
+
 function unsafeConnection(connection: RemoteRuntimeSharedControlConnection): {
   open: () => void
   handleSocketClosed: (error: RemoteRuntimeClientError, generation: number) => void
   socketGeneration: { begin: () => number }
   subscriptions: Map<string, SharedControlLogicalSubscription>
   reconnect: { attempt: number }
+  closeSubscription: (requestId: string) => void
 } {
   return connection as never
 }

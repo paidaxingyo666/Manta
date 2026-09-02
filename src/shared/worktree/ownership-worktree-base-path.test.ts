@@ -109,13 +109,13 @@ describe('repo-specific worktree ownership layouts', () => {
   it('resolves an absolute Linux base path of a WSL repo into its distro layout (STA-4772)', () => {
     const repo = makeRepo({
       path: '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\repo',
-      worktreeBasePath: '/home/jin/src/.manta-worktrees'
+      worktreeBasePath: '/home/jin/src/.orca-worktrees'
     })
     const settings = makeSettings({ workspaceDir: 'C:\\global' })
     const layouts = buildKnownMantaWorkspaceLayouts(settings, repo)
 
     expect(layouts[0]).toEqual({
-      path: '//wsl.localhost/Ubuntu-24.04/home/jin/src/.manta-worktrees',
+      path: '//wsl.localhost/Ubuntu-24.04/home/jin/src/.orca-worktrees',
       nestWorkspaces: true
     })
     expect(
@@ -123,7 +123,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo,
         settings,
         worktree: makeWorktree(
-          '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\.manta-worktrees\\repo\\feature'
+          '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\.orca-worktrees\\repo\\feature'
         ),
         knownMantaLayouts: layouts
       })
@@ -133,13 +133,13 @@ describe('repo-specific worktree ownership layouts', () => {
   it('classifies worktrees under a dotted Linux base exactly where creation collapses it', () => {
     const repo = makeRepo({
       path: '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\repo',
-      worktreeBasePath: '/home/jin/src/../.manta-worktrees'
+      worktreeBasePath: '/home/jin/src/../.orca-worktrees'
     })
     const settings = makeSettings({ workspaceDir: 'C:\\global' })
     const layouts = buildKnownMantaWorkspaceLayouts(settings, repo)
 
     expect(layouts[0]).toEqual({
-      path: '//wsl.localhost/Ubuntu-24.04/home/jin/.manta-worktrees',
+      path: '//wsl.localhost/Ubuntu-24.04/home/jin/.orca-worktrees',
       nestWorkspaces: true
     })
     expect(
@@ -147,7 +147,7 @@ describe('repo-specific worktree ownership layouts', () => {
         repo,
         settings,
         worktree: makeWorktree(
-          '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.manta-worktrees\\repo\\feature'
+          '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.orca-worktrees\\repo\\feature'
         ),
         knownMantaLayouts: layouts
       })

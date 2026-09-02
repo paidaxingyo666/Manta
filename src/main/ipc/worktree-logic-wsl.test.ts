@@ -169,7 +169,10 @@ describe('computeWorktreePath WSL layout', () => {
         repo.path,
         getWorktreePathSettings(repo, settings)
       )
-      const layouts = buildKnownMantaWorkspaceLayouts({ ...settings, workspaceDirHistory: [] }, repo)
+      const layouts = buildKnownMantaWorkspaceLayouts(
+        { ...settings, workspaceDirHistory: [] },
+        repo
+      )
       // Why containment, not just ownership: a regressed resolver lands in the
       // ~/manta/workspaces mirror layout, which also classifies 'external'.
       // layouts[0] is the repo-base layout — it is always pushed first.

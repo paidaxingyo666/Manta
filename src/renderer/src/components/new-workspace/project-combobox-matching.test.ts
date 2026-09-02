@@ -11,8 +11,8 @@ function project(id: string, displayName: string, detail: string): NewWorkspaceP
   return { kind: 'project', id, projectId: id, displayName, badgeColor: '#111', detail }
 }
 
-const manta = project('manta', 'manta', 'stablyai/orca')
-const relay = project('relay', 'manta-relay', 'stablyai/orca-relay')
+const manta = project('manta', 'manta', 'stablyai/manta')
+const relay = project('relay', 'manta-relay', 'stablyai/manta-relay')
 const gateway = project('gateway', 'api-gateway', 'acme/api-gateway')
 
 describe('rankProjectOptions', () => {
@@ -84,7 +84,7 @@ describe('splitDetailForElision', () => {
   })
 
   it('leaves short or shallow details alone', () => {
-    expect(splitDetailForElision('stablyai/orca')).toBeNull()
+    expect(splitDetailForElision('stablyai/manta')).toBeNull()
     expect(splitDetailForElision('3 hosts configured')).toBeNull()
   })
 })

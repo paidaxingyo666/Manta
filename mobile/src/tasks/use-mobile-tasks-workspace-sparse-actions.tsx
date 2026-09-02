@@ -6,6 +6,7 @@ import {
   useEffect
 } from './mobile-tasks-dependencies'
 import { isSuccess, sortSparsePresetsByName } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function useMobileTasksWorkspaceSparseActions(model: WorkspaceSourceEffectsModel) {
   const {
@@ -154,7 +155,10 @@ export function useMobileTasksWorkspaceSparseActions(model: WorkspaceSourceEffec
           setWorkspaceSshState({
             targetId: workspaceCreateTargetConnectionId,
             status: 'error',
-            error: err instanceof Error ? err.message : 'Failed to read SSH connection state.',
+            error:
+              err instanceof Error
+                ? err.message
+                : translate('m.tasks.0b24cac278', 'Failed to read SSH connection state.'),
             reconnectAttempt: 0
           })
         }

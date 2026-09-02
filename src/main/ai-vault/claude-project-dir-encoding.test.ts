@@ -8,8 +8,12 @@ import {
 describe('encodeClaudeProjectPath', () => {
   it('emits one dash per non-alphanumeric character rather than per run', () => {
     // The distinction is the whole contract: collapsing runs stops matching real bucket names.
-    expect(encodeClaudeProjectPath('/Users/ada/manta/workspaces')).toBe('-Users-ada-manta-workspaces')
-    expect(encodeClaudeProjectPath('/Users/ada/.manta/worktrees')).toBe('-Users-ada--manta-worktrees')
+    expect(encodeClaudeProjectPath('/Users/ada/manta/workspaces')).toBe(
+      '-Users-ada-manta-workspaces'
+    )
+    expect(encodeClaudeProjectPath('/Users/ada/.manta/worktrees')).toBe(
+      '-Users-ada--manta-worktrees'
+    )
   })
 
   it('encodes a Windows drive path', () => {

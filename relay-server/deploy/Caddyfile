@@ -1,0 +1,54 @@
+# Standard ports, since the ICP filing cleared.
+#
+# Before that this host's provider hijacked 80 and 443 for the unfiled domain:
+# the filter inspected cleartext HTTP by Host header on any port — 9443 included,
+# which 302'd to a block page — while leaving TLS alone elsewhere. So the site
+# listened on 9443, served TLS only, and pinned a certificate it could not renew,
+# because ACME needs 80 or 443. All three workarounds are gone with the filing.
+#
+# Two names, not two paths. The filing is for the registered domain and the relay
+# has always lived on a subdomain of it, so they split on the name they already
+# had. Nothing here has to stay in sync with the relay's route table — a path
+# matcher would, and a route added on one side but not the other would answer
+# HTML to a client expecting JSON.
+
+(hardened) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	# No query-string filtering needed: the enrolment secret moved into the POST
+	# body of /session, so it never appears in a URL, a log, or browser history
+	# in the first place.
+	log {
+		output stdout
+		format json
+	}
+}
+
+# The filing is for a website, so the registered domain has to serve something
+# over HTTP. It carries the filing number and nothing else — the relay has no
+# public surface worth documenting.
+{$SITE_DOMAIN}, www.{$SITE_DOMAIN} {
+	import hardened
+
+	root * /srv/site
+	file_server
+}
+
+{$RELAY_DOMAIN} {
+	import hardened
+
+	@metrics path /metrics
+	respond @metrics 404
+
+	# WebSocket upgrades pass through unchanged; the relay needs the original
+	# Authorization header on the control leg. flush_interval -1 disables
+	# response buffering, which would otherwise add latency to every frame.
+	reverse_proxy relay:8787 {
+		flush_interval -1
+	}
+}

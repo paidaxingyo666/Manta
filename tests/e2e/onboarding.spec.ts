@@ -486,7 +486,9 @@ test.describe('Onboarding flow', () => {
     await expectAddProjectDialog(mantaPage)
     // The runtime env is selected as the Add Project host and the browse action
     // is host-scoped, proving the server project-setup UI is preserved on skip.
-    await expect(mantaPage.getByText('Existing Git repository or folder on this host')).toBeVisible()
+    await expect(
+      mantaPage.getByText('Existing Git repository or folder on this host')
+    ).toBeVisible()
     await expect(mantaPage.getByRole('button', { name: /Browse folder/i })).toBeVisible()
     await expect(mantaPage.getByRole('button', { name: /Clone from URL/i })).toBeVisible()
     await expect(mantaPage.getByRole('button', { name: /Create new project/i })).toBeVisible()
@@ -518,7 +520,9 @@ test.describe('Onboarding flow', () => {
     await expect
       .poll(
         async () =>
-          mantaPage.evaluate(() => localStorage.getItem('manta.e2e.notificationPermissionRequested')),
+          mantaPage.evaluate(() =>
+            localStorage.getItem('manta.e2e.notificationPermissionRequested')
+          ),
         { timeout: 5_000 }
       )
       .toBeNull()
@@ -626,7 +630,9 @@ test.describe('Onboarding flow', () => {
       .toBe(1)
   })
 
-  test('final notification step can be dismissed via Escape or click-off', async ({ mantaPage }) => {
+  test('final notification step can be dismissed via Escape or click-off', async ({
+    mantaPage
+  }) => {
     await expect(mantaPage.getByRole('heading', { name: /Pick your default agent/i })).toBeVisible({
       timeout: 15_000
     })

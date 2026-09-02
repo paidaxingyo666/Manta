@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Check } from 'lucide-react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
+import { translate } from '../i18n/i18n'
 
 export type SetupTrustPrompt = {
   repoId: string
@@ -40,18 +41,28 @@ export function SetupHookTrustDrawer({
           <View style={styles.trustHeader}>
             <Text style={styles.title}>
               {prompt.previouslyApproved
-                ? `${prompt.repoName}'s setup script changed`
-                : `Run setup from ${prompt.repoName}?`}
+                ? translate(
+                    'm.SetupHookTrustDrawer.7a043eaa04',
+                    "{{value0}}'s setup script changed",
+                    { value0: prompt.repoName }
+                  )
+                : translate('m.SetupHookTrustDrawer.4923252ebf', 'Run setup from {{value0}}?', {
+                    value0: prompt.repoName
+                  })}
             </Text>
             <Text style={styles.subtitle}>
-              This repository's manta.yaml runs before the workspace starts. Only run it if you trust
-              this repository.
+              {translate(
+                'm.SetupHookTrustDrawer.3fce3cbaa8',
+                "This repository's manta.yaml runs before the workspace starts. Only run it if you trust this repository."
+              )}{' '}
             </Text>
           </View>
 
           <View style={styles.trustScriptBox}>
             <Text style={styles.trustScriptLabel}>
-              {prompt.previouslyApproved ? 'New setup script' : 'Setup script'}
+              {prompt.previouslyApproved
+                ? translate('m.SetupHookTrustDrawer.8315ed1a92', 'New setup script')
+                : translate('m.SetupHookTrustDrawer.9bb8f1626f', 'Setup script')}
             </Text>
             <Text style={styles.trustScriptText}>{prompt.scriptContent}</Text>
           </View>
@@ -59,16 +70,22 @@ export function SetupHookTrustDrawer({
           <View style={styles.trustActionGroup}>
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onRunOnce}>
               <Check size={16} color={colors.textPrimary} />
-              <Text style={styles.trustActionText}>Run hooks</Text>
+              <Text style={styles.trustActionText}>
+                {translate('m.SetupHookTrustDrawer.c0e0ace4b0', 'Run hooks')}
+              </Text>
             </Pressable>
             <View style={styles.trustActionSeparator} />
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onAlwaysTrust}>
               <Check size={16} color={colors.textPrimary} />
-              <Text style={styles.trustActionText}>Always trust and run</Text>
+              <Text style={styles.trustActionText}>
+                {translate('m.SetupHookTrustDrawer.854491abb2', 'Always trust and run')}
+              </Text>
             </Pressable>
             <View style={styles.trustActionSeparator} />
             <Pressable style={styles.trustActionRow} disabled={busy} onPress={onDontRun}>
-              <Text style={styles.trustActionText}>Don't run</Text>
+              <Text style={styles.trustActionText}>
+                {translate('m.SetupHookTrustDrawer.3def439a17', "Don't run")}
+              </Text>
             </Pressable>
           </View>
         </View>

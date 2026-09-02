@@ -12,6 +12,7 @@ import {
 } from './mobile-tasks-dependencies'
 import { TASK_SECONDARY_DRAWER_Z_INDEX, setupSourceLabel } from './mobile-tasks-legacy-foundation'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresentationModel) {
   const {
@@ -39,17 +40,21 @@ export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresenta
         <View>
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>
-              {workspaceSparseDraft.mode === 'new' ? 'New Sparse Preset' : 'Edit Sparse Preset'}
+              {workspaceSparseDraft.mode === 'new'
+                ? translate('m.tasks.9ba7ca6a72', 'New Sparse Preset')
+                : translate('m.tasks.6a5da1393a', 'Edit Sparse Preset')}
             </Text>
           </View>
           <View style={styles.detailGroup}>
             <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Name</Text>
+              <Text style={styles.detailSectionTitle}>
+                {translate('m.tasks.edd08de8b9', 'Name')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={workspaceSparseDraft.name}
                 onChangeText={(name) => setWorkspaceSparseDraft({ ...workspaceSparseDraft, name })}
-                placeholder="Renderer UI"
+                placeholder={translate('m.tasks.a21f24f4c3', 'Renderer UI')}
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -57,14 +62,16 @@ export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresenta
               />
             </View>
             <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Directories</Text>
+              <Text style={styles.detailSectionTitle}>
+                {translate('m.tasks.721916c122', 'Directories')}
+              </Text>
               <TextInput
                 style={[styles.input, styles.bodyInput, styles.monoInput]}
                 value={workspaceSparseDraft.directoriesText}
                 onChangeText={(directoriesText) =>
                   setWorkspaceSparseDraft({ ...workspaceSparseDraft, directoriesText })
                 }
-                placeholder={'src/renderer\npackages/ui'}
+                placeholder={translate('m.tasks.83698fde61', 'src/renderer packages/ui')}
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -75,8 +82,10 @@ export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresenta
             <Text style={workspaceSparseDraftError ? styles.detailError : styles.detailMuted}>
               {workspaceSparseDraftError ??
                 (workspaceSparseDraftParsed?.directories.length === 1
-                  ? '1 directory'
-                  : `${workspaceSparseDraftParsed?.directories.length ?? 0} directories`)}
+                  ? translate('m.tasks.0efb8013dd', '1 directory')
+                  : translate('m.tasks.a63af13a45', '{{value0}} directories', {
+                      value0: workspaceSparseDraftParsed?.directories.length ?? 0
+                    }))}
             </Text>
           </View>
           <View style={styles.drawerActionRow}>
@@ -85,7 +94,9 @@ export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresenta
               disabled={workspaceSparseSaving}
               onPress={() => setWorkspaceSparseDraft(null)}
             >
-              <Text style={styles.secondaryActionText}>Cancel</Text>
+              <Text style={styles.secondaryActionText}>
+                {translate('m.tasks.16fee5cb7d', 'Cancel')}
+              </Text>
             </Pressable>
             <Pressable
               style={[
@@ -98,7 +109,9 @@ export function renderMobileTasksWorkspaceSparseDrawer(model: ConnectionPresenta
               {workspaceSparseSaving ? (
                 <ActivityIndicator size="small" color={colors.bgBase} />
               ) : null}
-              <Text style={styles.primaryActionText}>Save</Text>
+              <Text style={styles.primaryActionText}>
+                {translate('m.tasks.c7158b292f', 'Save')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -118,9 +131,15 @@ export function renderMobileTasksSetupTrustDrawer(model: ConnectionPresentationM
       {setupPrompt ? (
         <View>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Run Setup Script?</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('m.tasks.374a5075f8', 'Run Setup Script?')}
+            </Text>
             <Text style={styles.sheetSubtitle}>
-              {setupPrompt.repoName} requires a setup choice before creating this workspace.
+              {setupPrompt.repoName}{' '}
+              {translate(
+                'm.tasks.caf1f1c3f9',
+                'requires a setup choice before creating this workspace.'
+              )}{' '}
             </Text>
           </View>
 
@@ -151,7 +170,9 @@ export function renderMobileTasksSetupTrustDrawer(model: ConnectionPresentationM
             >
               <Check size={16} color={colors.textPrimary} />
               <Text style={styles.actionText}>
-                {creatingKey === setupPrompt.item.key ? 'Creating...' : 'Run setup and create'}
+                {creatingKey === setupPrompt.item.key
+                  ? translate('m.tasks.7ed22602e7', 'Creating...')
+                  : translate('m.tasks.6f4021e6d8', 'Run setup and create')}
               </Text>
             </Pressable>
             <View style={styles.actionSeparator} />
@@ -173,7 +194,9 @@ export function renderMobileTasksSetupTrustDrawer(model: ConnectionPresentationM
               }
             >
               <X size={16} color={colors.textPrimary} />
-              <Text style={styles.actionText}>Skip setup and create</Text>
+              <Text style={styles.actionText}>
+                {translate('m.tasks.c5dd55b98b', 'Skip setup and create')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -203,19 +226,27 @@ export function renderMobileTasksMantaYamlTrustDrawer(model: ConnectionPresentat
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>
               {mantaYamlTrustPrompt.previouslyApproved
-                ? `${mantaYamlTrustPrompt.repoName}'s setup script changed`
-                : `Run setup from ${mantaYamlTrustPrompt.repoName}?`}
+                ? translate('m.tasks.41eb5d08a7', "{{value0}}'s setup script changed", {
+                    value0: mantaYamlTrustPrompt.repoName
+                  })
+                : translate('m.tasks.33f3eab28c', 'Run setup from {{value0}}?', {
+                    value0: mantaYamlTrustPrompt.repoName
+                  })}
             </Text>
             <Text style={styles.sheetSubtitle}>
-              This repository's manta.yaml runs on your machine before the workspace starts. Only run
-              it if you trust this repository.
+              {translate(
+                'm.tasks.0067e101da',
+                "This repository's manta.yaml runs on your machine before the workspace starts. Only run it if you trust this repository."
+              )}{' '}
             </Text>
           </View>
 
           <View style={styles.setupPromptBox}>
             <View style={styles.detailSectionHeader}>
               <Text style={styles.detailSectionTitle}>
-                {mantaYamlTrustPrompt.previouslyApproved ? 'New setup script' : 'Setup script'}
+                {mantaYamlTrustPrompt.previouslyApproved
+                  ? translate('m.tasks.bed7484165', 'New setup script')
+                  : translate('m.tasks.5cfbadc7ae', 'Setup script')}
               </Text>
             </View>
             <Text style={styles.setupPromptCommand}>{mantaYamlTrustPrompt.scriptContent}</Text>
@@ -253,7 +284,7 @@ export function renderMobileTasksMantaYamlTrustDrawer(model: ConnectionPresentat
               }
             >
               <Check size={16} color={colors.textPrimary} />
-              <Text style={styles.actionText}>Run hooks</Text>
+              <Text style={styles.actionText}>{translate('m.tasks.9be7d57af4', 'Run hooks')}</Text>
             </Pressable>
             <View style={styles.actionSeparator} />
             <Pressable
@@ -287,7 +318,9 @@ export function renderMobileTasksMantaYamlTrustDrawer(model: ConnectionPresentat
               }
             >
               <Check size={16} color={colors.textPrimary} />
-              <Text style={styles.actionText}>Always trust and run</Text>
+              <Text style={styles.actionText}>
+                {translate('m.tasks.965cfe1733', 'Always trust and run')}
+              </Text>
             </Pressable>
             <View style={styles.actionSeparator} />
             <Pressable
@@ -310,7 +343,7 @@ export function renderMobileTasksMantaYamlTrustDrawer(model: ConnectionPresentat
               }}
             >
               <X size={16} color={colors.textPrimary} />
-              <Text style={styles.actionText}>Don't run</Text>
+              <Text style={styles.actionText}>{translate('m.tasks.78dc8d99b5', "Don't run")}</Text>
             </Pressable>
           </View>
         </View>

@@ -52,7 +52,7 @@ describe('dev-instance-identity', () => {
     })
     expect(identity.name).toBe('Manta: nwparker/dev-indicator')
     expect(identity.dockBadgeLabel).toBeNull()
-    expect(identity.appUserModelId).toMatch(/^com\.stablyai\.manta\.dev\.[a-f0-9]{10}$/)
+    expect(identity.appUserModelId).toMatch(/^cn\.sh\.manta\.dev\.[a-f0-9]{10}$/)
   })
 
   it('includes the branch when it differs from the worktree basename', () => {

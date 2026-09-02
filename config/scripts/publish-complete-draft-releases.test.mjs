@@ -143,7 +143,7 @@ describe('publishCompleteDraftReleases', () => {
     const log = vi.fn()
 
     const result = await publishCompleteDraftReleases({
-      repo: 'stablyai/orca',
+      repo: 'paidaxingyo666/Manta',
       token: 'token',
       fetchImpl,
       verifyReleaseAssets,
@@ -161,7 +161,7 @@ describe('publishCompleteDraftReleases', () => {
       ]
     })
     expect(fetchImpl).toHaveBeenLastCalledWith(
-      'https://api.github.com/repos/stablyai/orca/releases/7',
+      'https://api.github.com/repos/paidaxingyo666/Manta/releases/7',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ draft: false, prerelease: true })
@@ -185,7 +185,7 @@ describe('publishCompleteDraftReleases', () => {
     const log = vi.fn()
 
     const result = await publishCompleteDraftReleases({
-      repo: 'stablyai/orca',
+      repo: 'paidaxingyo666/Manta',
       token: 'token',
       fetchImpl,
       verifyReleaseAssets,

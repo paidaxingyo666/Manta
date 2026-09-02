@@ -1,5 +1,5 @@
 import { execFileAsync, acquire, release } from '../../gh-utils'
-export const MANTA_REPO = 'stablyai/orca'
+export const MANTA_REPO = 'stablyai/manta'
 
 /**
  * Check if the authenticated user has starred the Manta repo.

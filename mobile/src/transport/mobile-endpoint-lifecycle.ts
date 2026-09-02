@@ -1,5 +1,6 @@
 import * as ExpoCrypto from 'expo-crypto'
 import type { ConnectionLogSink, ForegroundNudgeReason, HostProfile } from './types'
+import { directProbeConnectionLog } from './direct-probe-connection-log'
 import { connect } from './rpc-client'
 import { MobileEndpointSupervisor } from './mobile-endpoint-supervisor'
 import { connectMobileRelayRpcSession } from './mobile-relay-rpc-session'
@@ -85,7 +86,10 @@ function createSupervisor(
   onLog: ConnectionLogSink
 ): MobileEndpointSupervisor {
   return new MobileEndpointSupervisor(logical, host, {
-    openDirect: (endpoint) => connect(endpoint, host.deviceToken, host.publicKeyB64, { onLog }),
+    openDirect: (endpoint) =>
+      connect(endpoint, host.deviceToken, host.publicKeyB64, {
+        onLog: directProbeConnectionLog(onLog)
+      }),
     openRelay: (relay, credential, confirmReqId) =>
       connectMobileRelayRpcSession({
         relay,

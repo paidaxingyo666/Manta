@@ -344,7 +344,7 @@ describe('LinearAgentSkillSetupPrompt', () => {
     expect(document.body.textContent).toContain('npx skills add')
     expect(mocks.panelProps.at(-1)).toEqual(
       expect.objectContaining({
-        installedCommand: 'npx skills update orca-linear --global',
+        installedCommand: 'npx skills update manta-linear --global',
         terminalShellOverride: 'powershell.exe',
         terminalRuntime: expect.objectContaining({ runtime: 'wsl', wslDistro: 'Fedora' }),
         getPrerequisiteStatus: expect.any(Function)
@@ -436,7 +436,7 @@ describe('LinearAgentSkillSetupPrompt', () => {
     await settleRender()
 
     expect(document.body.querySelector('[data-testid="linear-skill-inline-panel"]')).not.toBeNull()
-    expect(document.body.textContent).toContain('orca-linear')
+    expect(document.body.textContent).toContain('manta-linear')
 
     const installButton = Array.from(document.body.querySelectorAll('button')).find(
       (button) => button.textContent === 'Mock install'

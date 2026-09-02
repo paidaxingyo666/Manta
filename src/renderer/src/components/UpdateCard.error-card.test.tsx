@@ -103,7 +103,7 @@ describe('UpdateCard Windows signature failures', () => {
     expect(screen.queryByText(message)).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Check official releases' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca/releases')
+    expect(openUrl).toHaveBeenCalledWith('https://github.com/paidaxingyo666/Manta/releases')
     expect(openUrl).not.toHaveBeenCalledWith(expect.stringContaining('/tag/'))
   })
 
@@ -160,7 +160,7 @@ describe('UpdateCard hourly builds', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Release notes' }))
     expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/stablyai/orca-hourly/releases/tag/v1.4.160-hourly.202607281400'
+      'https://github.com/paidaxingyo666/manta-hourly/releases/tag/v1.4.160-hourly.202607281400'
     )
   })
 })
@@ -259,7 +259,9 @@ describe('UpdateCard Linux package-install recovery', () => {
     await flushActions()
 
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca/releases/tag/v1.4.200')
+    expect(openUrl).toHaveBeenCalledWith(
+      'https://github.com/paidaxingyo666/Manta/releases/tag/v1.4.200'
+    )
   })
 
   it('keeps generic errors on the generic card when no recovery is attached', () => {

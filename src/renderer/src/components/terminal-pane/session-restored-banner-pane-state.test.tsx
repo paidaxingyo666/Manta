@@ -4,8 +4,8 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
-  SESSION_RESTORED_BANNER_TEXT,
-  SESSION_RESUME_UNAVAILABLE_BANNER_TEXT
+  sessionRestoredBannerText,
+  sessionResumeUnavailableBannerText
 } from './SessionRestoredBanner'
 import { SessionRestoredBannerPortals } from './SessionRestoredBannerPortals'
 import {
@@ -81,7 +81,7 @@ describe('session restored banner pane state', () => {
 
     expect(paneIds).toEqual(new Map([[createdPane.id, 'restored']]))
     expect(paneText(firstPane)).toBe('')
-    expect(paneText(createdPane)).toBe(SESSION_RESTORED_BANNER_TEXT)
+    expect(paneText(createdPane)).toBe(sessionRestoredBannerText())
   })
 
   it('does not reserve title space for chromeless always-on pane headers', () => {
@@ -133,7 +133,7 @@ describe('session restored banner pane state', () => {
     expect(activePane.container.hasAttribute('data-has-title')).toBe(false)
     expect(inactiveRestoredPane.container.hasAttribute('data-has-title')).toBe(true)
     expect(paneText(activePane)).toBe('')
-    expect(paneText(inactiveRestoredPane)).toBe(SESSION_RESTORED_BANNER_TEXT)
+    expect(paneText(inactiveRestoredPane)).toBe(sessionRestoredBannerText())
   })
 
   it('names a fresh session when the requested resume could not be verified', async () => {
@@ -148,8 +148,8 @@ describe('session restored banner pane state', () => {
       ])
     )
 
-    expect(paneText(restoredPane)).toBe(SESSION_RESTORED_BANNER_TEXT)
-    expect(paneText(freshPane)).toBe(SESSION_RESUME_UNAVAILABLE_BANNER_TEXT)
+    expect(paneText(restoredPane)).toBe(sessionRestoredBannerText())
+    expect(paneText(freshPane)).toBe(sessionResumeUnavailableBannerText())
   })
 
   it('upgrades a restored pane to resume-unavailable and keeps identity otherwise', () => {

@@ -58,7 +58,7 @@ function forkTarget(overrides: Partial<GitPushTarget> = {}): GitPushTarget {
 
 describe('prepareWorktreePushTargetWithExec', () => {
   it('adds a new fork remote and fetches its head when none matches', async () => {
-    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/orca.git' })
+    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/manta.git' })
 
     const result = await prepareWorktreePushTargetWithExec(exec, REPO, forkTarget(), () => false)
 
@@ -82,7 +82,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
 
   it('reuses an existing remote pointing at the same fork (SSH vs HTTPS) without adding', async () => {
     const exec = makeRepoExec({
-      origin: 'git@github.com:stablyai/orca.git',
+      origin: 'git@github.com:stablyai/manta.git',
       'pr-contributor-manta': FORK_HTTPS
     })
 
@@ -126,7 +126,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
   })
 
   it('strips an incoming remoteCreated flag and fetches the given remote when there is no remoteUrl', async () => {
-    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/orca.git' })
+    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/manta.git' })
 
     const result = await prepareWorktreePushTargetWithExec(
       exec,
@@ -146,14 +146,14 @@ describe('prepareWorktreePushTargetWithExec', () => {
 describe('findRemoteForUrl', () => {
   it('matches by GitHub owner/repo across URL protocols', async () => {
     const exec = makeRepoExec({
-      origin: 'git@github.com:stablyai/orca.git',
+      origin: 'git@github.com:stablyai/manta.git',
       fork: FORK_SSH
     })
     await expect(findRemoteForUrl(exec, REPO, FORK_HTTPS)).resolves.toBe('fork')
   })
 
   it('returns null when no remote points at the fork', async () => {
-    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/orca.git' })
+    const exec = makeRepoExec({ origin: 'git@github.com:stablyai/manta.git' })
     await expect(findRemoteForUrl(exec, REPO, FORK_SSH)).resolves.toBeNull()
   })
 })
@@ -192,7 +192,7 @@ describe('configureCreatedWorktreePushTargetWithExec', () => {
 
 describe('prepareWorktreePushTargetWithExec rollback', () => {
   it('removes the remote it just added when the fetch fails', async () => {
-    const remotes: Record<string, string> = { origin: 'git@github.com:stablyai/orca.git' }
+    const remotes: Record<string, string> = { origin: 'git@github.com:stablyai/manta.git' }
     const exec = vi.fn<GitRemoteExec>(async (args: string[]) => {
       if (args[0] === 'fetch') {
         throw new Error('network unreachable')
@@ -217,7 +217,7 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
 
   it('keeps a reused remote Manta did not add when the fetch fails', async () => {
     const remotes: Record<string, string> = {
-      origin: 'git@github.com:stablyai/orca.git',
+      origin: 'git@github.com:stablyai/manta.git',
       existing: FORK_SSH
     }
     const exec = vi.fn<GitRemoteExec>(async (args: string[]) => {
@@ -244,7 +244,7 @@ describe('prepareWorktreePushTargetWithExec rollback', () => {
   // remote a live sibling worktree was still pushing through.
   it('keeps a reused remote a sibling worktree owns when the fetch fails', async () => {
     const remotes: Record<string, string> = {
-      origin: 'git@github.com:stablyai/orca.git',
+      origin: 'git@github.com:stablyai/manta.git',
       'pr-contributor-manta': FORK_HTTPS
     }
     const exec = vi.fn<GitRemoteExec>(async (args: string[]) => {

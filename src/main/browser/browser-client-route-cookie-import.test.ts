@@ -51,7 +51,7 @@ const { importCookiesIntoClientRoutePartition } =
   await import('./browser-client-route-cookie-import')
 
 const routeIdentity = {
-  mantaProfileId: 'manta-profile-a',
+  mantaProfileId: 'orca-profile-a',
   authorityConnectionIdentity: 'paired-runtime:authority-a',
   executionHostIdentity: 'execution-host-a',
   legacyAuthorityConnectionIdentity: 'paired-runtime:legacy-authority-a',

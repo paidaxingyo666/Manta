@@ -61,7 +61,7 @@ describe('parseEphemeralVmRecipeResult', () => {
     }
   })
 
-  it('parses an manta-server connection result', () => {
+  it('parses a manta-server connection result', () => {
     const pairingCode = makePairingCode()
 
     expect(

@@ -11,6 +11,7 @@ import { styles } from './mobile-tasks-legacy-styles'
 import { renderMobileTasksGitHubProjectList } from './mobile-tasks-github-project-list'
 import { renderMobileTasksLinearList } from './mobile-tasks-linear-list'
 import { renderMobileTasksProviderItemList } from './mobile-tasks-provider-item-list'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksListSurface(model: ConnectionPresentationModel) {
   const {
@@ -28,9 +29,14 @@ export function renderMobileTasksListSurface(model: ConnectionPresentationModel)
   return !tasksSupported ? (
     tasksUnsupported ? (
       <View style={styles.centered}>
-        <Text style={styles.emptyText}>Update Manta desktop</Text>
+        <Text style={styles.emptyText}>
+          {translate('m.tasks.d2f46b812e', 'Update Manta desktop')}
+        </Text>
         <Text style={styles.centeredHint}>
-          This mobile Tasks view needs a newer desktop runtime.
+          {translate(
+            'm.tasks.27bde2bf6c',
+            'This mobile Tasks view needs a newer desktop runtime.'
+          )}{' '}
         </Text>
       </View>
     ) : (
@@ -41,9 +47,14 @@ export function renderMobileTasksListSurface(model: ConnectionPresentationModel)
   ) : provider === 'linear' && !linearConnected ? (
     <View style={styles.centered}>
       <TaskProviderLogo provider="linear" size={32} color={colors.textSecondary} />
-      <Text style={styles.emptyText}>Connect your Linear account</Text>
+      <Text style={styles.emptyText}>
+        {translate('m.tasks.2fda0f4da8', 'Connect your Linear account')}
+      </Text>
       <Text style={styles.centeredHint}>
-        Browse and start work on your assigned Linear issues directly from Tasks.
+        {translate(
+          'm.tasks.e360d80713',
+          'Browse and start work on your assigned Linear issues directly from Tasks.'
+        )}{' '}
       </Text>
       <Pressable
         style={[styles.targetButton, styles.centerActionButton]}
@@ -58,7 +69,9 @@ export function renderMobileTasksListSurface(model: ConnectionPresentationModel)
           setShowLinearConnect(true)
         }}
       >
-        <Text style={styles.targetButtonText}>Connect Linear</Text>
+        <Text style={styles.targetButtonText}>
+          {translate('m.tasks.210a7848ff', 'Connect Linear')}
+        </Text>
       </Pressable>
     </View>
   ) : provider === 'github' && githubMode === 'project' ? (

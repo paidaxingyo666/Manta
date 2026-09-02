@@ -1,6 +1,6 @@
 export const APP_ICON_OPTIONS = [
   { id: 'classic', label: 'Classic Manta' },
-  { id: 'watercolor', label: 'Watercolor Manta' },
+  { id: 'watercolor', label: 'Light Manta' },
   { id: 'blue', label: 'Blue Manta' }
 ] as const
 

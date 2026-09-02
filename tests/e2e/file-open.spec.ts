@@ -180,7 +180,9 @@ test.describe('File Open & Markdown Preview', () => {
 
     // Switch to a terminal tab
     await switchToTerminal(mantaPage, worktreeId)
-    await expect.poll(async () => getActiveTabType(mantaPage), { timeout: 3_000 }).not.toBe('editor')
+    await expect
+      .poll(async () => getActiveTabType(mantaPage), { timeout: 3_000 })
+      .not.toBe('editor')
 
     // Switch back to the same editor tab
     await switchToEditor(mantaPage, editorFileId)

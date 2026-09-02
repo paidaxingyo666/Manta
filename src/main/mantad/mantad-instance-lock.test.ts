@@ -14,7 +14,7 @@ import {
   acquireMantadInstanceLock,
   MANTAD_LOCK_FILE_NAME,
   MantadInstanceLockError,
-  type MantadInstanceLockHooks
+  type OrcadInstanceLockHooks
 } from './mantad-instance-lock'
 
 const roots: string[] = []
@@ -26,7 +26,7 @@ function makeRoot(): string {
 }
 
 /** Deterministic identity/liveness so the assertions do not depend on this machine's pids. */
-function hooks(overrides: MantadInstanceLockHooks = {}): MantadInstanceLockHooks {
+function hooks(overrides: OrcadInstanceLockHooks = {}): OrcadInstanceLockHooks {
   return {
     identity: () => 'uid-1000',
     version: () => '1.0.0-test',

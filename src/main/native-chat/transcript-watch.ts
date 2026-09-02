@@ -1,12 +1,11 @@
-import { extname } from 'node:path'
 import type { NativeChatMessage } from '../../shared/native-chat-types'
 import {
   needsWslHostResolution,
   toHostReadableTranscriptPath,
   type WslTranscriptResolutionSnapshot
 } from './host-readable-transcript-path'
-import { resolveSessionFilePath } from './session-file-resolver'
-import { installTranscriptWatcher } from './transcript-watch-engine'
+import { watchForTranscriptRebind, type RebindWatch } from './transcript-rebind-watch'
+import { attemptInstall, exactTranscriptPath, followRolls } from './transcript-watch-binding'
 import type {
   NativeChatTranscriptSubscription,
   SubscribeNativeChatTranscriptArgs
@@ -22,27 +21,6 @@ export type {
   SubscribeNativeChatTranscriptArgs
 } from './transcript-watch-contract'
 
-/** One resolve+install attempt. Returns null while the transcript file itself
- *  is unresolved; native-watch failure degrades to reconciliation-only mode. */
-async function attemptInstall(
-  args: SubscribeNativeChatTranscriptArgs,
-  decode: (line: string, fallbackId: string) => NativeChatMessage | null,
-  signal?: AbortSignal
-): Promise<NativeChatTranscriptSubscription | null> {
-  const filePath =
-    args.filePath ?? (await resolveSessionFilePath(args.agent, args.sessionId, args, signal))
-  signal?.throwIfAborted()
-  if (!filePath) {
-    return null
-  }
-  const installed = await installTranscriptWatcher(filePath, decode, args, signal)
-  if (signal?.aborted) {
-    installed?.unsubscribe()
-    signal.throwIfAborted()
-  }
-  return installed
-}
-
 // Why: Claude Code (and other agents) can take from ~3s to minutes to flush a
 // brand-new session's first JSONL line (#8401) — resolveSessionFilePath
 // genuinely has nothing to find yet. Poll for it instead of going deaf. Exact
@@ -56,11 +34,6 @@ const FALLBACK_RESOLVE_POLL_MS = 5_000
 // spinner is permanent. Long enough that a merely slow resolve still wins the
 // race and paints history directly.
 const UNFLUSHED_SETTLE_MS = 1_500
-
-function exactTranscriptPath(args: SubscribeNativeChatTranscriptArgs): string | null {
-  const path = args.transcriptPath?.trim()
-  return path && extname(path) === '.jsonl' ? path : null
-}
 
 /**
  * Background retry loop for a transcript that hasn't been resolvable yet.
@@ -78,11 +51,14 @@ function subscribeViaResolvePoll(
 ): NativeChatTranscriptSubscription {
   let closed = false
   let installed: NativeChatTranscriptSubscription | null = null
+  let rebindWatch: RebindWatch | null = null
+  /** The session the bound file belongs to; advances each time it rolls. */
+  let rebindSessionId = args.sessionId
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let delay = args.resolvePollIntervalMs ?? INITIAL_RESOLVE_POLL_MS
   let lastFallbackResolveAt = Date.now()
-  const exactPath = exactTranscriptPath(args)
-  const exactPathNeedsWslResolution = exactPath !== null && needsWslHostResolution(exactPath)
+  let exactPath = exactTranscriptPath(args)
+  let exactPathNeedsWslResolution = exactPath !== null && needsWslHostResolution(exactPath)
   // Why: WSL hooks report guest Linux paths the Windows host cannot open; the
   // UNC twin is resolved lazily (the distro may still be cold) and memoized so
   // the exact-path install doesn't wait on the slower id-glob (#10326).
@@ -119,6 +95,49 @@ function subscribeViaResolvePoll(
   if (args.onTranscriptPending) {
     settleTimer = setTimeout(settleUnflushed, UNFLUSHED_SETTLE_MS)
     settleTimer.unref?.()
+  }
+
+  /**
+   * Follow the session if its transcript rolls to a new file.
+   *
+   * A watcher binds once and then holds that descriptor. When the bound file
+   * stops being the one the agent writes, the watcher stays healthy, keeps
+   * reporting watching:true, and delivers nothing — indistinguishable from an
+   * idle conversation. See transcript-rebind-watch.ts for what that cost.
+   */
+  function armRebindWatch(boundPath: string | null): void {
+    rebindWatch?.stop()
+    rebindWatch = null
+    // An explicit filePath is a caller pinning one file on purpose.
+    if (!boundPath || args.filePath) {
+      return
+    }
+    rebindWatch = watchForTranscriptRebind({
+      agent: args.agent,
+      sessionId: rebindSessionId,
+      boundPath,
+      signal: resolveController.signal,
+      ...(args.rebindCheckIntervalMs === undefined
+        ? {}
+        : { intervalMs: args.rebindCheckIntervalMs }),
+      onMoved: (next) => {
+        if (closed) {
+          return
+        }
+        // Pin the successor rather than re-resolving: the id we hold still
+        // resolves to the dead file, which is the whole reason we are here.
+        // Track the new id too, so a second roll is still findable.
+        rebindSessionId = next.sessionId
+        args.onRebound?.({ sessionId: next.sessionId, transcriptPath: next.path })
+        installed?.unsubscribe()
+        installed = null
+        exactPath = next.path
+        exactPathNeedsWslResolution = needsWslHostResolution(next.path)
+        hostReadableExactPath = null
+        delay = args.resolvePollIntervalMs ?? INITIAL_RESOLVE_POLL_MS
+        beginResolutionPolling()
+      }
+    })
   }
 
   function scheduleAttempt(): void {
@@ -212,18 +231,25 @@ function subscribeViaResolvePoll(
       stopWslObservation()
       stopWslObservation = () => {}
       stopSettleTimer()
+      armRebindWatch(hostReadableExactPath ?? exactPath ?? null)
       return
     }
     scheduleAttempt()
   }
 
-  if (exactPathNeedsWslResolution) {
-    stopWslObservation = observeRunningWslDistros((runningDistros) =>
-      runAttempt({ runningDistros: [...runningDistros] })
-    )
-  } else {
+  function beginResolutionPolling(): void {
+    stopWslObservation()
+    stopWslObservation = () => {}
+    if (exactPathNeedsWslResolution) {
+      stopWslObservation = observeRunningWslDistros((runningDistros) =>
+        runAttempt({ runningDistros: [...runningDistros] })
+      )
+      return
+    }
     scheduleAttempt()
   }
+
+  beginResolutionPolling()
 
   return {
     watching: true,
@@ -236,6 +262,8 @@ function subscribeViaResolvePoll(
       stopWslObservation()
       stopWslObservation = () => {}
       stopSettleTimer()
+      rebindWatch?.stop()
+      rebindWatch = null
       if (pollTimer) {
         clearTimeout(pollTimer)
         pollTimer = null
@@ -287,7 +315,11 @@ export async function subscribeNativeChatTranscript(
     installed = null
   }
   if (installed) {
-    return installed
+    // Why not just return it: the path a hook reports usually EXISTS — a rolled
+    // session's old file is not deleted, it just stops growing — so this fast
+    // path is the one a frozen chat actually takes. Returning the bare
+    // subscription leaves it bound there for good.
+    return followRolls(installed, args, decode)
   }
   setupSignal?.throwIfAborted()
   return subscribeViaResolvePoll(args, decode)

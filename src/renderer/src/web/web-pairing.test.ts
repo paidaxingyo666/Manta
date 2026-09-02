@@ -34,7 +34,9 @@ describe('web pairing input', () => {
 
   it('preserves optional paired device identity', () => {
     expect(
-      parseWebPairingInput(`manta://pair?code=${encodeOffer({ pairedDeviceId: 'paired-device-a' })}`)
+      parseWebPairingInput(
+        `manta://pair?code=${encodeOffer({ pairedDeviceId: 'paired-device-a' })}`
+      )
     ).toEqual({
       ...offer,
       pairedDeviceId: 'paired-device-a'

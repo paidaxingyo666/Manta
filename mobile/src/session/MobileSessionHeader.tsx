@@ -14,6 +14,7 @@ import { MobileSessionHeaderIconButton } from './MobileSessionHeaderIconButton'
 import { triggerMediumImpact } from '../platform/haptics'
 import { StatusDot } from '../components/StatusDot'
 import { MobileAgentIcon } from '../components/MobileAgentIcon'
+import { translate } from '../i18n/i18n'
 import {
   getMobileSessionTabTitle,
   resolveMobileTerminalTabAgentId
@@ -72,7 +73,7 @@ export function MobileSessionHeader({ controller }: { controller: MobileSessionC
 
         <View style={styles.sessionTitleBlock}>
           <Text style={styles.sessionTitle} numberOfLines={1}>
-            {worktreeName || 'Terminal'}
+            {worktreeName || translate('m.worktreeId.d442e87c8d', 'Terminal')}
           </Text>
           <Pressable
             style={styles.sessionMetaRow}
@@ -210,8 +211,14 @@ export function MobileSessionHeader({ controller }: { controller: MobileSessionC
               }
               showToast(
                 quickCommandsSupported === false
-                  ? 'Desktop update required for quick commands'
-                  : 'Checking desktop capabilities — try again in a moment',
+                  ? translate(
+                      'm.MobileSessionHeader.6ccffdeccd',
+                      'Desktop update required for quick commands'
+                    )
+                  : translate(
+                      'm.MobileSessionHeader.ff08ff24b1',
+                      'Checking desktop capabilities — try again in a moment'
+                    ),
                 1600
               )
             }}

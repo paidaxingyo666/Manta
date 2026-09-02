@@ -59,7 +59,7 @@ describe('terminal path helpers', () => {
     it('does not treat regular URL hosts as local file paths', () => {
       expect(
         extractTerminalFileLinks(
-          'PR opened: https://github.com/stablyai/orca-marketing-website/pull/82'
+          'PR opened: https://github.com/stablyai/manta-marketing-website/pull/82'
         )
       ).toEqual([])
     })

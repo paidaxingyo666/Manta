@@ -20,7 +20,7 @@ name: Daily macOS Dev Build
 #     a ticket every daily reads as a new client and silently loses file access
 #     under Documents/Desktop/Downloads.
 #
-# Artifacts publish to stablyai/orca-daily, never to stablyai/orca: the main
+# Artifacts publish to paidaxingyo666/manta-daily, never to paidaxingyo666/Manta: the main
 # repo's releases atom feed exposes only its 10 newest entries, so high-volume
 # dev tags would evict every stable/RC entry and break updates for real users.
 # Separate from manta-hourly so someone riding main's hourlies never sees the
@@ -45,10 +45,13 @@ name: Daily macOS Dev Build
 # worst case is still an invisible draft — and the build-number query counts
 # drafts, so it holds its number and the next run does not reuse it.
 
+# Cron commented out for the same reason as hourly-mac-build.yml: no Blacksmith
+# runner and no `manta-daily` repo to publish into, so a scheduled run can only
+# queue and then be cancelled.
 on:
-  schedule:
-    # Once a day, late morning Pacific. Single cron — no DST twin, no clock gate.
-    - cron: '15 18 * * *'
+  # schedule:
+  #   # Once a day, late morning Pacific. Single cron — no DST twin, no clock gate.
+  #   - cron: '15 18 * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -65,12 +68,24 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DAILY_REPO: stablyai/orca-daily
+  DAILY_REPO: paidaxingyo666/manta-daily
   # Keep ~30 days so a regression can be bisected without holding a full year.
   DAILY_RETAIN_COUNT: 30
 
 jobs:
   build-daily-mac:
+    # Guarded off in this fork, deliberately. Two things make that necessary:
+    # this job runs on `blacksmith-6vcpu-macos-15`, a runner fleet only upstream
+    # has, and it publishes into a dev-channel repo that does not exist here. So
+    # it can never succeed — but it CAN sign. Every step below is wired to
+    # MAC_CERTS and a personal Apple ID, and the schedule is hourly. Repointing
+    # the runner label without also repointing this line would start twenty-four
+    # real notarization submissions a day against one person's Apple account.
+    #
+    # Turning it back on is therefore two deliberate edits, not one: a runner
+    # this fork actually has, and a dev-channel repo that exists. The Apple
+    # credentials are additionally scoped to an environment that only `v*` tags
+    # can read, so a scheduled run on a branch cannot reach them either.
     if: github.repository == 'stablyai/orca'
     outputs:
       tag: ${{ steps.release.outputs.tag }}
@@ -91,7 +106,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          # Why: this job only reads stablyai/orca and never pushes; every write
+          # Why: this job only reads paidaxingyo666/Manta and never pushes; every write
           # goes to the daily repo through a minted App token passed by env.
           # Not persisting the checkout credential shrinks the blast radius if a
           # build step is compromised (zizmor: artipacked).
@@ -217,7 +232,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts \
             --json tagName --jq '.[].tagName' || true)"
           echo "Highest published tag seen: $(head -1 <<<"$published")"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_DAILY_RELEASE_NAMES="$names" \
+          MANTA_PUBLISHED_VERSIONS="$published" MANTA_DAILY_RELEASE_NAMES="$names" \
             node config/scripts/daily-build-version.mjs \
             >"$RUNNER_TEMP/daily-identity.txt"
           grep -E '^(version|build_number)=' "$RUNNER_TEMP/daily-identity.txt"
@@ -240,7 +255,7 @@ jobs:
           # Why: daily builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted dev artifacts.
-          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.onmanta.dev/diagnostics/token
 
       # Why a second mint: everything from here on writes to the daily repo, and
       # the notary round trip inside the publish step can be tens of minutes. The
@@ -278,7 +293,7 @@ jobs:
           cat >"$notes_file" <<EOF
           Automated daily macOS and Windows dev build from commit \`$short_sha\`.
 
-          Built from [\`stablyai/orca@$short_sha\`](https://github.com/stablyai/orca/commit/$SHA).
+          Built from [\`paidaxingyo666/Manta@$short_sha\`](https://github.com/paidaxingyo666/Manta/commit/$SHA).
 
           **Unvetted.** No tests ran. The macOS build is signed and notarized like a
           release, so it installs through Manta's in-app updater and opens from a manual

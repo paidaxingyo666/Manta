@@ -1,0 +1,599 @@
+name: Release
+
+run-name: Release ${{ github.ref_name }}
+
+# The fork's own release path. Deliberately not release-cut.yml: that workflow
+# is built around SignPath's two-round Windows signing with hours of approval
+# waits, a GitHub App that belongs to upstream, and Blacksmith runners this fork
+# does not have. None of that applies here, and none of it is worth emulating.
+#
+# What this does instead:
+#   - macOS is signed with the fork's own Developer ID and notarized.
+#   - Windows ships unsigned. See "no Windows certificate" below — it is a
+#     supported configuration, not a degradation, but it has one consequence.
+#   - Both legs upload into one draft release, which a final job publishes only
+#     after every leg has succeeded. A half-uploaded release is never visible.
+#
+# Cutting a release:
+#   1. Bump `version` in package.json and push it.
+#   2. git tag v1.2.3 && git push origin v1.2.3
+#
+# The tag must match package.json exactly. They disagree only by mistake, and
+# the mistake is expensive: electron-updater compares the version inside the
+# artifact, so a tag that says one thing and an app that says another produces
+# an update that installs and then offers itself again forever.
+#
+# Rebuilding a tag whose draft is still open — the --ref is not optional, and it
+# is not decoration. It is what makes the run a tag run, which is the only thing
+# the Apple credentials' environment will admit (see `environment:` on macos):
+#
+#   gh workflow run Release --repo paidaxingyo666/Manta --ref refs/tags/v1.5.0
+#
+# There is deliberately no `tag` input. One would let a dispatch from a branch
+# look correct — prepare resolves, Windows builds for forty minutes — and then
+# die at the environment gate with nothing published. The ref is the tag, and
+# there is one way to say so.
+#
+# Note that a dispatch runs the workflow file as it was at that tag, not as it
+# is on main. A tag cut before this file existed cannot be rebuilt this way.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.ref_name }}
+
+jobs:
+  prepare:
+    if: github.repository == 'paidaxingyo666/Manta'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      prerelease: ${{ steps.resolve.outputs.prerelease }}
+    steps:
+      # Before the checkout, because the checkout is what fails badly. Dispatched
+      # from a branch, RELEASE_TAG is that branch's name, and `ref: refs/tags/main`
+      # is a fatal git error with no hint about what was actually wrong.
+      - name: Check the ref is a release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.ref_type }}" != "tag" ]]; then
+            echo "::error::This must run on a tag. Dispatch with --ref refs/tags/<tag>."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::Tag $RELEASE_TAG is not vX.Y.Z or vX.Y.Z-rc.N"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Resolve and check the version
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$RELEASE_TAG"
+          version="${tag#v}"
+          packaged="$(node -p "require('./package.json').version")"
+          if [[ "$version" != "$packaged" ]]; then
+            echo "::error::Tag $tag does not match package.json ($packaged). Bump package.json, push it, then retag."
+            exit 1
+          fi
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          # An -rc tag is a prerelease; electron-updater keeps the two channels
+          # apart by version string, so this only affects what GitHub shows.
+          if [[ "$tag" == *-rc.* ]]; then
+            echo "prerelease=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Open the draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if state="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null)"; then
+            # Refusing here is the whole point of checking this early. Further
+            # down, the mac leg would spend an hour rebuilding and then overwrite
+            # the assets of a release people can already download, and only after
+            # that notice it was published. Cut a new tag instead.
+            if [[ "$state" != "true" ]]; then
+              echo "::error::Release $RELEASE_TAG is already published. Cut a new tag rather than rebuilding this one."
+              exit 1
+            fi
+            echo "Draft for $RELEASE_TAG already exists; reusing it."
+            exit 0
+          fi
+          # Generated notes need a previous release to diff against. With none,
+          # GitHub produces a bare "Full Changelog" link and nothing else, which
+          # is a poor thing for a first release to say.
+          notes=(--generate-notes)
+          if [[ -z "$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[].tagName')" ]]; then
+            notes=(--notes "First Manta release.")
+          fi
+          # Draft, always: electron-builder uploads asset by asset, and a
+          # visible release with three of five files is worse than no release.
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Manta $RELEASE_TAG" \
+            --draft \
+            "${notes[@]}"
+
+  macos:
+    needs: prepare
+    runs-on: macos-15
+    timeout-minutes: 300
+    # The Apple credentials live here, not in repository secrets, and this
+    # environment admits only refs matching the tag pattern `v*`. That is what
+    # stops a scheduled or branch-triggered run from ever reaching them —
+    # including one of upstream's dev-channel workflows if someone were to
+    # repoint it at this fork. There is no reviewer and no wait timer, so a real
+    # release pays nothing for it; a run from anywhere but a `v*` tag simply
+    # cannot read the secrets.
+    environment: apple-signing
+    env:
+      # Vite's web build crossed Node's default old-space ceiling on a macOS
+      # release runner once and left the release an incomplete draft.
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: electron-builder-mac-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            electron-builder-mac-
+
+      # electron's postinstall pulls its binary from GitHub release assets, and
+      # that CDN returns the occasional 504. Retrying beats failing a release.
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      # Fails before the twenty minutes of packaging rather than after, and
+      # before an unsigned app can look like a successful release.
+      - name: Verify signing environment
+        run: node config/scripts/verify-macos-release-env.mjs
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERTS }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      # `plutil -lint` accepts duplicate plist keys; codesign rejects duplicate
+      # entitlements, and only after the app is built.
+      - name: Verify entitlements
+        run: pnpm verify:macos-entitlements
+
+      # MANTA_BUILD_IDENTITY is deliberately unset. It is the telemetry
+      # transport gate, and the PostHog project behind it is upstream's — a
+      # fork that set it would ship its users' events to someone else.
+      - name: Build app
+        run: pnpm build:release
+
+      - name: Gate runtime file-watcher process isolation
+        run: |
+          node config/scripts/runtime-file-watcher-fault-harness.mjs
+          ELECTRON_RUN_AS_NODE=1 pnpm exec electron config/scripts/runtime-file-watcher-fault-harness.mjs
+
+      - name: Gate SSH relay watcher process isolation
+        run: node config/scripts/relay-watcher-fault-harness.mjs
+
+      # Notarization is a round trip to Apple and occasionally just stalls, which
+      # is what the retries are for. The job ceiling has to leave room for them:
+      # at 60 × 3 on a 120-minute job the second attempt was cut off partway and
+      # the third never ran, and the failure read as a job timeout rather than as
+      # a notary stall. Two architectures means two independent notary round
+      # trips inside one attempt, hence 90 rather than 60.
+      - name: Package, sign, notarize and upload
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 90
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_MAC_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.MAC_CERTS }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Verify the release is still a draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::Release $RELEASE_TAG went public during the macOS upload."
+            exit 1
+          fi
+
+  windows:
+    needs: prepare
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      # No Windows certificate. This is what makes that safe: electron-updater
+      # Authenticode-verifies every installer it downloads against the
+      # publisherName recorded in the *installed* app's app-update.yml, and
+      # skips verification entirely when that name is absent. Setting it here
+      # would make every installed copy reject its own next update, permanently
+      # — so the config omits it under this flag. The one real consequence is
+      # that the first install must be run by hand past SmartScreen; every
+      # update after that goes through the in-app updater.
+      MANTA_WIN_UNSIGNED: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: electron-builder-win-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            electron-builder-win-
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build:release
+
+      # `;` and $LASTEXITCODE rather than `&&`: nick-fields/retry runs Windows
+      # commands under Windows PowerShell 5.1, whose parser does not know `&&`
+      # at all. It is a parse error, so neither command runs and all three
+      # attempts fail in the same second. Every other Windows leg in this repo
+      # is written this way for exactly that reason, and a contract test now
+      # covers this file too.
+      #
+      # Budget: 30 × 2 fits inside the job's 120, which 45 × 3 did not — a
+      # stall would have been cut off mid-second-attempt and reported as a job
+      # timeout rather than as what it was.
+      - name: Package and upload
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; pnpm exec electron-builder --config config/electron-builder.config.cjs --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify the release is still a draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::Release $RELEASE_TAG went public during the Windows upload."
+            exit 1
+          fi
+
+  linux:
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    # 10×3 install + 30×3 package + 10×3 floor smoke = 150, inside 180.
+    timeout-minutes: 180
+    strategy:
+      # One architecture failing must not cancel the other: the draft then shows
+      # exactly which slice is missing instead of neither.
+      fail-fast: false
+      matrix:
+        include:
+          # Pinned rather than ubuntu-latest. runner-images already carries an
+          # Ubuntu 26.04 image, and the glibc floor gate would catch that bump
+          # by failing the package step — on release day, which is not when to
+          # find out.
+          - os: ubuntu-24.04
+            arch: x64
+            arm64_release: ''
+            unpacked_dir: dist/linux-unpacked
+          - os: ubuntu-24.04-arm
+            arch: arm64
+            arm64_release: '1'
+            unpacked_dir: dist/linux-arm64-unpacked
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      # One reader: the config names the arm64 AppImage manta-linux-arm64
+      # while x64 keeps the historical manta-linux.AppImage — an ${arch} macro
+      # would render manta-linux-x86_64 and orphan every installed x64 client's
+      # latest-linux.yml. Drop this and both legs emit the same filename, and
+      # the second upload deletes the first before replacing it. deb and rpm
+      # are safe; they carry a real arch macro.
+      MANTA_LINUX_ARM64_RELEASE: ${{ matrix.arm64_release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: electron-builder-linux-${{ matrix.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            electron-builder-linux-${{ matrix.arch }}-
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      # Before Build app, not after. `pnpm build:release` runs
+      # verify:computer-native, which evaluates native/computer-use-linux's
+      # runtime.py, and that file imports gi at the top. Missing packages
+      # surface as a bare Python ImportError with nothing pointing at ordering.
+      # rpm feeds electron-builder's fpm backend. All of these are preinstalled
+      # on both images; installed anyway so an image change cannot quietly
+      # remove one.
+      - name: Install Linux packaging and computer-use dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-gi gir1.2-atspi-2.0 at-spi2-core xclip xdotool rpm
+
+      # MANTA_BUILD_IDENTITY and MANTA_POSTHOG_WRITE_KEY stay unset here for the
+      # same reason as on macOS: the analytics project behind them is upstream's.
+      - name: Build app
+        run: pnpm build:release
+
+      # Main ships minified with hidden maps excluded from app.asar. One Linux
+      # leg publishes the platform-independent maps for crash decoding.
+      - name: Bundle main-process source maps
+        if: matrix.arch == 'x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$(find out/main -name '*.js.map' -print -quit)" ]; then
+            echo "::error::No main-process source maps in out/main. Did build.sourcemap regress in electron.vite.config.ts?"
+            exit 1
+          fi
+          find out/main -name '*.js.map' -print | sort | zip -q -X "$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip" -@
+          ls -l "$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip"
+
+      - name: Publish main-process source maps
+        if: matrix.arch == 'x64'
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: gh release upload "$RELEASE_TAG" "${{ runner.temp }}/manta-sourcemaps-$RELEASE_TAG.zip" --clobber --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Gate runtime file-watcher process isolation
+        run: |
+          node config/scripts/runtime-file-watcher-fault-harness.mjs
+          ELECTRON_RUN_AS_NODE=1 pnpm exec electron config/scripts/runtime-file-watcher-fault-harness.mjs
+
+      - name: Gate SSH relay watcher process isolation
+        run: node config/scripts/relay-watcher-fault-harness.mjs
+
+      # The target list here replaces the config's outright — a CLI target list
+      # makes electron-builder return before it ever reads the config, which is
+      # the only way rpm gets built. `--x64` / `--arm64` is not decoration
+      # either: it decides the unpacked directory name the next step reads.
+      #
+      # The glibc floor gate fires inside this step from electron-builder's
+      # afterPack hook. It needs no step of its own and cannot be skipped.
+      - name: Package and upload
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --${{ matrix.arch }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The other half of the floor contract. The afterPack gate is static: it
+      # reads version references and cannot see a dlopen-only dependency, or a
+      # library that simply does not exist on 20.04. This boots the packaged
+      # binary inside a real ubuntu:20.04 container, loads the packaged node-pty
+      # and forks a shell — the only step in the pipeline that starts the thing
+      # it just built. node-pty is imported at the top of the main process, so
+      # failing this is a double-click that does nothing, with no window and no
+      # error.
+      - name: Load packaged node-pty on the Ubuntu 20.04 floor
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node config/scripts/run-linux-packaged-node-pty-floor-smoke.mjs --app-dir ${{ matrix.unpacked_dir }}
+
+      - name: Verify the release is still a draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::Release $RELEASE_TAG went public during the Linux upload."
+            exit 1
+          fi
+
+  publish:
+    needs: [prepare, macos, windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+
+      # Five green jobs is not the same as a complete release: electron-publish
+      # skips an upload silently when it cannot resolve the release, and exits
+      # zero having sent nothing. Now that this fork ships every slice upstream
+      # does, the shared checker describes exactly these twenty-one artifacts, so
+      # the hand-written list is gone — it could not see an asset still
+      # uploading or one that arrived empty, and two of its entries were about
+      # to become no-ops, since the x64 mac zip carries no arch token and any
+      # pattern loose enough to match it also matches the arm64 one.
+      - name: Verify every artifact arrived
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node config/scripts/verify-release-required-assets.mjs "$RELEASE_TAG"
+
+      # Only now, with every platform's assets in place, does the release stop
+      # being a draft.
+      - name: Publish the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh release edit "$RELEASE_TAG" \
+            --draft=false \
+            --prerelease="${{ needs.prepare.outputs.prerelease }}" \
+            --latest="${{ needs.prepare.outputs.prerelease == 'false' }}"
+
+      # Why this repo is the tap: `brew tap <name> <url>` reads casks straight
+      # out of Casks/, so the fork needs no second repository, no GitHub App,
+      # and no PAT — GITHUB_TOKEN can write to main, which is not protected.
+      # Upstream's homebrew-bump.yml PRs into a separate tap it owns; that path
+      # was never reachable here.
+      #
+      # Runs on main rather than the tag: a tag is where the release is cut, but
+      # the cask has to live on the branch a tap fetches.
+      - name: Update the Homebrew cask
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          if [ "$PRERELEASE" = 'true' ]; then cask='manta@rc'; else cask='manta'; fi
+
+          mkdir -p dmgs
+          for arch in arm64 x64; do
+            gh release download "$RELEASE_TAG" \
+              --pattern "manta-macos-${arch}.dmg" --dir dmgs --clobber
+          done
+          arm=$(sha256sum "dmgs/manta-macos-arm64.dmg" | awk '{print $1}')
+          intel=$(sha256sum "dmgs/manta-macos-x64.dmg" | awk '{print $1}')
+
+          # Why the API and not git: this job checked out a tag, so main is not
+          # a local branch and the clone is shallow — fetch/checkout/push here
+          # is three ways to fail. The contents API needs neither.
+          path="Casks/${cask}.rb"
+          gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
+            | base64 -d > current.rb
+          sha=$(gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.sha')
+
+          CASK=current.rb VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
+          import os, pathlib, re
+          p = pathlib.Path(os.environ['CASK'])
+          src = p.read_text()
+          src = re.sub(r'version "[^"]+"', f'version "{os.environ["VERSION"]}"', src, count=1)
+          src = re.sub(
+              r'sha256 arm:\s*"[0-9a-f]+",\s*\n\s*intel:\s*"[0-9a-f]+"',
+              f'sha256 arm:   "{os.environ["ARM"]}",\n         intel: "{os.environ["INTEL"]}"',
+              src, count=1)
+          p.write_text(src)
+          PY
+
+          if gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
+            | base64 -d | diff -q - current.rb >/dev/null; then
+            echo "cask already at ${version}"
+            exit 0
+          fi
+          gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
+            -f message="chore(cask): ${cask} ${version}" \
+            -f branch=main \
+            -f sha="$sha" \
+            -f content="$(base64 -w0 < current.rb)"

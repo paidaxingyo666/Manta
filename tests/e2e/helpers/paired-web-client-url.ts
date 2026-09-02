@@ -14,10 +14,16 @@ export function createPairedWebClientUrl(
     clientUrl.searchParams.set('mantaE2EDisableRemoteTerminalStallRecovery', '1')
   }
   if (options.terminalParkingDelayMs !== undefined) {
-    clientUrl.searchParams.set('mantaE2ETerminalParkingDelayMs', `${options.terminalParkingDelayMs}`)
+    clientUrl.searchParams.set(
+      'mantaE2ETerminalParkingDelayMs',
+      `${options.terminalParkingDelayMs}`
+    )
   }
   if (options.terminalRetentionLimit !== undefined) {
-    clientUrl.searchParams.set('mantaE2ETerminalRetentionLimit', `${options.terminalRetentionLimit}`)
+    clientUrl.searchParams.set(
+      'mantaE2ETerminalRetentionLimit',
+      `${options.terminalRetentionLimit}`
+    )
   }
   return clientUrl.href
 }

@@ -117,8 +117,14 @@ export function attachEditorAutosaveController(store: AppStoreApi): () => void {
   })
   syncAutoSave()
 
-  window.addEventListener(MANTA_EDITOR_SAVE_DIRTY_FILES_EVENT, handleSaveDirtyFiles as EventListener)
-  window.addEventListener(MANTA_EDITOR_PREPARE_HOT_EXIT_EVENT, handlePrepareHotExit as EventListener)
+  window.addEventListener(
+    MANTA_EDITOR_SAVE_DIRTY_FILES_EVENT,
+    handleSaveDirtyFiles as EventListener
+  )
+  window.addEventListener(
+    MANTA_EDITOR_PREPARE_HOT_EXIT_EVENT,
+    handlePrepareHotExit as EventListener
+  )
   window.addEventListener(MANTA_EDITOR_SAVE_AND_CLOSE_EVENT, handleSaveAndClose as EventListener)
   window.addEventListener(MANTA_EDITOR_SAVE_FILE_EVENT, handleSaveFile as EventListener)
   window.addEventListener(MANTA_EDITOR_QUIESCE_FILE_SAVES_EVENT, handleQuiesce as EventListener)
@@ -142,7 +148,10 @@ export function attachEditorAutosaveController(store: AppStoreApi): () => void {
       handleSaveAndClose as EventListener
     )
     window.removeEventListener(MANTA_EDITOR_SAVE_FILE_EVENT, handleSaveFile as EventListener)
-    window.removeEventListener(MANTA_EDITOR_QUIESCE_FILE_SAVES_EVENT, handleQuiesce as EventListener)
+    window.removeEventListener(
+      MANTA_EDITOR_QUIESCE_FILE_SAVES_EVENT,
+      handleQuiesce as EventListener
+    )
     window.removeEventListener(
       MANTA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
       handleExternalFileChange as EventListener

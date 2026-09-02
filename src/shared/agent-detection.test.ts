@@ -167,8 +167,7 @@ describe('Pi-compatible title detection', () => {
     expect(detectAgentStatusFromTitle(title)).toBe(expectedStatus)
   })
 
-  // Why: OMP 17.2.12+ writes static state markers on WSL/ConPTY (#13890). The label after
-  // the marker is cwd/session text, so glyphs another agent uses for status must not win.
+  // Explicit OMP markers outrank agent-like glyphs in the free-form label (#13890).
   it.each([
     ['π : my-project', 'working', 'π : my-project'],
     ['π > my-project', 'idle', 'π > my-project'],

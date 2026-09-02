@@ -75,7 +75,7 @@ describe('mantad GC', () => {
       conn,
       host,
       remoteHome: '/home/u',
-      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.2.0+bb',
+      currentDirAbsPath: '/home/u/.orca-remote/orcad-0.2.0+bb',
       record: emptyOrcadActivationRecord()
     })
     const listCommand = mockExec.mock.calls
@@ -96,7 +96,7 @@ describe('mantad GC', () => {
       conn,
       host,
       remoteHome: '/home/u',
-      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.2.0+bb',
+      currentDirAbsPath: '/home/u/.orca-remote/orcad-0.2.0+bb',
       record: emptyOrcadActivationRecord()
     })
     expect(removed).toEqual(['mantad-0.1.0+aa'])
@@ -112,7 +112,7 @@ describe('mantad GC', () => {
       conn,
       host,
       remoteHome: '/home/u',
-      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.3.0+cc0',
+      currentDirAbsPath: '/home/u/.orca-remote/orcad-0.3.0+cc0',
       record: {
         ...emptyOrcadActivationRecord(),
         active: '0.3.0+cc0',
@@ -129,7 +129,7 @@ describe('mantad GC', () => {
       conn,
       host,
       remoteHome: '/home/u',
-      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.3.0+cc0',
+      currentDirAbsPath: '/home/u/.orca-remote/orcad-0.3.0+cc0',
       record: { ...emptyOrcadActivationRecord(), active: '0.3.0+cc0' },
       liveDaemonVersion: '0.1.0+01d'
     })
@@ -147,7 +147,7 @@ describe('mantad GC', () => {
       conn,
       host,
       remoteHome: '/home/u',
-      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.3.0+cc0',
+      currentDirAbsPath: '/home/u/.orca-remote/orcad-0.3.0+cc0',
       record: emptyOrcadActivationRecord()
     })
     expect(removed).toEqual(['mantad-0.0.9+dead'])

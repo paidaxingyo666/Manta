@@ -183,7 +183,11 @@ describe('verify-windows-inner-signature', () => {
     )
 
     expect(() =>
-      getPowerShellSignatureJson('Manta.exe', () => ({ status: 0, stdout: '{}', stderr: 'warning' }))
+      getPowerShellSignatureJson('Manta.exe', () => ({
+        status: 0,
+        stdout: '{}',
+        stderr: 'warning'
+      }))
     ).toThrow(/stderr/)
     expect(() =>
       getPowerShellSignatureJson('Manta.exe', () => ({ status: 7, stdout: '', stderr: '' }))

@@ -78,7 +78,7 @@ describe('getPRForBranch', () => {
         'view',
         '99',
         '--repo',
-        'stablyai/orca',
+        'stablyai/manta',
         '--json',
         'number,title,state,url,statusCheckRollup,updatedAt,isDraft,mergeable,reviewDecision,mergeStateStatus,autoMergeRequest,baseRefName,headRefName,baseRefOid,headRefOid'
       ],

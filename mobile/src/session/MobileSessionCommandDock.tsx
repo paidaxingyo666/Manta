@@ -9,6 +9,7 @@ import {
   Smartphone
 } from 'lucide-react-native'
 import { triggerMediumImpact } from '../platform/haptics'
+import { translate } from '../i18n/i18n'
 import { createTerminalLiveAccessoryInput } from '../terminal/terminal-live-accessory-input'
 import {
   getTerminalCommandKeyboardType,
@@ -179,7 +180,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
                 <Text
                   style={[styles.accessoryKeyText, !canSend && styles.accessoryKeyTextDisabled]}
                 >
-                  Paste
+                  {translate('m.MobileSessionCommandDock.267d90acf0', 'Paste')}
                 </Text>
               </Pressable>
             )}
@@ -343,7 +344,7 @@ export function MobileSessionCommandDock({ controller }: { controller: MobileSes
               value={bufferedTerminalDraftState.input}
               // Why: iOS kills active dictation/IME if JS writes a value differing from native text; store raw, normalize at send.
               onChangeText={bufferedTerminalDraftState.setInput}
-              placeholder="Type a command…"
+              placeholder={translate('m.worktreeId.5cdc347a0d', 'Type a command…')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={autocompleteEnabled}

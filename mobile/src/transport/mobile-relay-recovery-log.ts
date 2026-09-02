@@ -10,6 +10,9 @@ let relayLoggerInstanceSequence = 0
 
 // Why: relay recovery failed silently in production for weeks; every decision
 // must reach logcat and the in-app connection log.
+// i18n-exempt: connection-log copy stays English — the log is a
+// diagnostic transcript that gets pasted into bug reports, and a
+// half-translated line reads worse than an English one.
 export function createRelayRecoveryLog(
   now: () => number,
   onLog?: ConnectionLogSink

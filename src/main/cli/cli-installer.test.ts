@@ -263,7 +263,10 @@ describe('CliInstaller', () => {
         encoding: 'utf8',
         mode: 0o755
       })
-      await symlink(join('/tmp', '.mount_Manta1234', 'resources', 'bin', 'manta'), legacyCommandPath)
+      await symlink(
+        join('/tmp', '.mount_Manta1234', 'resources', 'bin', 'manta'),
+        legacyCommandPath
+      )
 
       const installer = new CliInstaller({
         platform: 'linux',

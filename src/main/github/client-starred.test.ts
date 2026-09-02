@@ -47,7 +47,7 @@ describe('checkMantaStarred', () => {
 
     expect(execFileAsyncMock).toHaveBeenCalledWith(
       'gh',
-      ['api', '--include', 'user/starred/stablyai/orca'],
+      ['api', '--include', 'user/starred/stablyai/manta'],
       { encoding: 'utf-8' }
     )
   })

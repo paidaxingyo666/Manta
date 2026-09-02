@@ -6,7 +6,7 @@ never drift from the binary that will actually run your commands.
 
 Engage Manta's computer-use surface when a task requires desktop-level access to a visible local
 app or window, including a native app or an external browser window/webview. Do not use for
-Manta's embedded browser or page-only browser automation. Use `orca-cli` for Manta's embedded
+Manta's embedded browser or page-only browser automation. Use `manta-cli` for Manta's embedded
 pages and a page-automation tool such as Playwright or CDP for external pages.
 
 ## Resolve the CLI for this session
@@ -16,9 +16,9 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
-  `manta` there — outside Manta's terminals it normally resolves to the
-  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package
+  installs the executable as `manta-ide`, so bare `manta` is not on PATH outside Manta's
+  terminals.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before

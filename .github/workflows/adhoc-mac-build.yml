@@ -11,7 +11,7 @@ name: Adhoc macOS + Windows Dev Build
 #   - Windows is unsigned; the published release notes explain the one-time
 #     SmartScreen/manual-install requirement.
 #
-# Artifacts publish to stablyai/orca-adhoc — separate from both manta and
+# Artifacts publish to paidaxingyo666/manta-adhoc — separate from both manta and
 # manta-hourly. Separate from manta because the main repo's releases atom feed
 # exposes only its 10 newest entries. Separate from manta-hourly because a build
 # from someone's branch must never be picked up by a developer who only meant to
@@ -51,7 +51,7 @@ on:
         # than the one the workflow file itself is read from — normally leave the
         # picker on main and name your branch here, so a stale copy of this
         # workflow on an old branch is not what runs.
-        description: 'Branch, tag, or SHA to build — must live in stablyai/orca; PR refs are refused (default: the branch selected above)'
+        description: 'Branch, tag, or SHA to build — must live in paidaxingyo666/Manta; PR refs are refused (default: the branch selected above)'
         required: false
         default: ''
         type: string
@@ -73,7 +73,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ADHOC_REPO: stablyai/orca-adhoc
+  ADHOC_REPO: paidaxingyo666/manta-adhoc
   # Why age and not a count like hourly: this channel is low-volume and bursty, so
   # a count would either hold one week's experiments forever or evict a build
   # someone is still running after a busy afternoon. A month is well past the "few
@@ -82,14 +82,26 @@ env:
 
 jobs:
   build-adhoc-mac:
+    # Guarded off in this fork, deliberately. Two things make that necessary:
+    # this job runs on `blacksmith-6vcpu-macos-15`, a runner fleet only upstream
+    # has, and it publishes into a dev-channel repo that does not exist here. So
+    # it can never succeed — but it CAN sign. Every step below is wired to
+    # MAC_CERTS and a personal Apple ID, and the schedule is hourly. Repointing
+    # the runner label without also repointing this line would start twenty-four
+    # real notarization submissions a day against one person's Apple account.
+    #
+    # Turning it back on is therefore two deliberate edits, not one: a runner
+    # this fork actually has, and a dev-channel repo that exists. The Apple
+    # credentials are additionally scoped to an environment that only `v*` tags
+    # can read, so a scheduled run on a branch cannot reach them either.
     if: github.repository == 'stablyai/orca'
-    # Why an environment: it gives the signing/notary/App secrets somewhere to
-    # live that a stale copy of this workflow on an old branch cannot reach.
-    # Referencing it is a no-op until repo settings give it teeth; the intended
-    # follow-up is to move MAC_CERTS, MAC_CERTS_PASSWORD, APPLE_ID,
-    # APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID, HOURLY_RELEASE_APP_ID, and
-    # HOURLY_RELEASE_APP_PRIVATE_KEY into it, then pin its deployment branch
-    # policy to main so only main's copy of this file can read them.
+    # Do not put credentials here. This environment does not exist in the fork,
+    # and GitHub creates a referenced-but-missing environment on first use with
+    # no protection rules at all — so anything moved into it would be readable
+    # from any ref. The Apple credentials live in `apple-signing`, whose
+    # deployment policy admits only `v*` tags, and only fork-release.yml reads
+    # them. Upstream's own intent for this environment is preserved below; it is
+    # inert here because the job is guarded off.
     environment: adhoc-mac-build
     outputs:
       tag: ${{ steps.release.outputs.tag }}
@@ -121,7 +133,7 @@ jobs:
           set -euo pipefail
           case "$REQUESTED_REF" in
             refs/pull/*|pull/*)
-              echo "::error::Refusing to build PR ref '$REQUESTED_REF': this workflow signs with release credentials, so it only builds branches, tags, or commits of stablyai/orca. Push the code to a branch of this repo instead."
+              echo "::error::Refusing to build PR ref '$REQUESTED_REF': this workflow signs with release credentials, so it only builds branches, tags, or commits of paidaxingyo666/Manta. Push the code to a branch of this repo instead."
               exit 1
               ;;
           esac
@@ -141,7 +153,7 @@ jobs:
             sha=""
           done
           if [[ -z "$sha" ]]; then
-            echo "::error::'$REQUESTED_REF' does not resolve to a branch, tag, or commit of stablyai/orca."
+            echo "::error::'$REQUESTED_REF' does not resolve to a branch, tag, or commit of paidaxingyo666/Manta."
             exit 1
           fi
           # The object resolving locally is not proof a branch or tag reaches
@@ -149,7 +161,7 @@ jobs:
           # GitHub serves PR-only commits by SHA. Reachability is the actual
           # trust test.
           if [[ -z "$(git -C "$scratch" for-each-ref --contains "$sha" refs/heads refs/tags | head -1)" ]]; then
-            echo "::error::Commit $REQUESTED_REF is not reachable from any branch or tag of stablyai/orca; refusing to build it with release credentials."
+            echo "::error::Commit $REQUESTED_REF is not reachable from any branch or tag of paidaxingyo666/Manta; refusing to build it with release credentials."
             exit 1
           fi
           echo "Vetted $REQUESTED_REF -> $sha"
@@ -164,7 +176,7 @@ jobs:
           # applies main's current copy of this file to an arbitrary branch.
           ref: ${{ steps.vetted.outputs.sha }}
           fetch-depth: 0
-          # This job only reads stablyai/orca and never pushes; every write goes
+          # This job only reads paidaxingyo666/Manta and never pushes; every write goes
           # to the adhoc repo through a minted App token passed by env. Not
           # persisting the checkout credential shrinks the blast radius if a build
           # step is compromised (zizmor: artipacked).
@@ -234,7 +246,7 @@ jobs:
           published="$(GH_TOKEN="$MAIN_REPO_TOKEN" gh release list \
             --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts \
             --json tagName --jq '.[].tagName' || true)"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_ADHOC_LABEL="${LABEL:-$REF}" \
+          MANTA_PUBLISHED_VERSIONS="$published" MANTA_ADHOC_LABEL="${LABEL:-$REF}" \
             node config/scripts/adhoc-build-version.mjs \
             >"$RUNNER_TEMP/adhoc-identity.txt"
           if ! grep -q '^name=' "$RUNNER_TEMP/adhoc-identity.txt"; then
@@ -250,7 +262,7 @@ jobs:
           # Why: adhoc builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted branch artifacts.
-          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.onmanta.dev/diagnostics/token
 
       # Why the token is minted here and not at the top: installation tokens live
       # one hour, everything before this point writes nothing, and the notary round
@@ -296,7 +308,7 @@ jobs:
             --draft \
             --notes "Adhoc macOS and Windows dev build of \`$REF\` at commit \`$short_sha\`.
 
-          Built from [\`stablyai/orca@$short_sha\`](https://github.com/stablyai/orca/commit/$SHA), cut by @$ACTOR.
+          Built from [\`paidaxingyo666/Manta@$short_sha\`](https://github.com/paidaxingyo666/Manta/commit/$SHA), cut by @$ACTOR.
 
           **Unlanded and unvetted.** This is somebody's branch, not main. No tests
           ran. The macOS build is signed and notarized like a release, so it installs

@@ -49,7 +49,9 @@ describe('ArtifactCloudService committed response loss recovery', () => {
     expect(server.createMutations).toBe(1)
     expect(server.artifactSlugs()).toEqual(['artifact-1'])
     expect(server.artifactContent('artifact-1')).toBe('<h1>Changed after loss</h1>')
-    await expect(publishedLink(userDataPath)).resolves.toBe('https://share.manta.sh.cn/a/artifact-1')
+    await expect(publishedLink(userDataPath)).resolves.toBe(
+      'https://share.manta.sh.cn/a/artifact-1'
+    )
   })
 
   it('replays the exact create when content is unchanged after response loss', async () => {
@@ -119,7 +121,9 @@ describe('ArtifactCloudService committed response loss recovery', () => {
     ).rejects.toThrow('response lost')
     expect(server.deleteMutations).toBe(1)
     expect(server.artifactSlugs()).toEqual([])
-    await expect(publishedLink(userDataPath)).resolves.toBe('https://share.manta.sh.cn/a/artifact-1')
+    await expect(publishedLink(userDataPath)).resolves.toBe(
+      'https://share.manta.sh.cn/a/artifact-1'
+    )
 
     await expect(
       service(userDataPath).unshare({
@@ -149,7 +153,9 @@ describe('ArtifactCloudService committed response loss recovery', () => {
     ).rejects.toMatchObject({ statusCode: 404, errorCode: 'not_found' })
     expect(server.deleteMutations).toBe(0)
     expect(server.artifactSlugs()).toEqual(['artifact-1'])
-    await expect(publishedLink(userDataPath)).resolves.toBe('https://share.manta.sh.cn/a/artifact-1')
+    await expect(publishedLink(userDataPath)).resolves.toBe(
+      'https://share.manta.sh.cn/a/artifact-1'
+    )
   })
 
   it('drops an uncommitted validation failure so corrected content can create', async () => {

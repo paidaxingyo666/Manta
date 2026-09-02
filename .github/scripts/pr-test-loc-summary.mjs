@@ -60,7 +60,7 @@ function writeGithubOutput(totals) {
   const block = `${renderLocBlock(totals)}\n`
   const outputPath = process.env.GITHUB_OUTPUT
   if (outputPath != null) {
-    appendFileSync(outputPath, `summary<<ORCA_PR_LOC_EOF\n${block}ORCA_PR_LOC_EOF\n`)
+    appendFileSync(outputPath, `summary<<MANTA_PR_LOC_EOF\n${block}MANTA_PR_LOC_EOF\n`)
   }
   const summaryPath = process.env.GITHUB_STEP_SUMMARY
   if (summaryPath != null) {

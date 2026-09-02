@@ -150,9 +150,9 @@ describe('partition download policy', () => {
 
   it('cancels a download on a partition that asked for the deny, routing nothing', async () => {
     const install = await loadInstaller()
-    install(profileFor('manta-doc-preview'), { downloads: 'deny' })
+    install(profileFor('orca-doc-preview'), { downloads: 'deny' })
 
-    expect(fireWillDownload('manta-doc-preview').cancelled).toBe(true)
+    expect(fireWillDownload('orca-doc-preview').cancelled).toBe(true)
     expect(mocks.handleGuestWillDownload).not.toHaveBeenCalled()
   })
 
@@ -161,13 +161,13 @@ describe('partition download policy', () => {
   // is about to arrive normally.
   it('tells the reader about the refusal, and only on the partition that refused', async () => {
     const install = await loadInstaller()
-    install(profileFor('manta-doc-preview'), { downloads: 'deny' })
+    install(profileFor('orca-doc-preview'), { downloads: 'deny' })
     install(profileFor('persist:browsing-1'))
 
     fireWillDownload('persist:browsing-1')
     expect(mocks.noticeDocPreviewDownloadBlocked).not.toHaveBeenCalled()
 
-    fireWillDownload('manta-doc-preview')
+    fireWillDownload('orca-doc-preview')
     expect(mocks.noticeDocPreviewDownloadBlocked).toHaveBeenCalledWith(
       expect.objectContaining({ id: 42 })
     )
@@ -177,10 +177,10 @@ describe('partition download policy', () => {
   // installed for one partition must not follow the next partition that installs after it.
   it('keeps each partition on its own decision', async () => {
     const install = await loadInstaller()
-    install(profileFor('manta-doc-preview'), { downloads: 'deny' })
+    install(profileFor('orca-doc-preview'), { downloads: 'deny' })
     install(profileFor('persist:browsing-1'))
 
-    expect(fireWillDownload('manta-doc-preview').cancelled).toBe(true)
+    expect(fireWillDownload('orca-doc-preview').cancelled).toBe(true)
     expect(fireWillDownload('persist:browsing-1').cancelled).toBe(false)
     expect(mocks.handleGuestWillDownload).toHaveBeenCalledTimes(1)
   })
@@ -199,8 +199,8 @@ describe('partition permission policy', () => {
 
   it('denies every request and check on a strict partition without WebAuthn handlers', async () => {
     const install = await loadInstaller()
-    install(profileFor('manta-doc-preview'), { permissions: 'deny' })
-    const sess = sessionsByPartition.get('manta-doc-preview')
+    install(profileFor('orca-doc-preview'), { permissions: 'deny' })
+    const sess = sessionsByPartition.get('orca-doc-preview')
     if (!sess) {
       throw new Error('Expected the preview session')
     }

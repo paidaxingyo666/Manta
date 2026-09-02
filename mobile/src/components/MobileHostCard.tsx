@@ -8,6 +8,7 @@ import type { ConnectionState, HostCatalogEntry, HostProfile } from '../transpor
 import { colors, radii, spacing } from '../theme/mobile-theme'
 import { homeHostWorktreeSummary, type HostWorktreeInfo } from '../worktree/home-worktree-info'
 import { StatusDot } from './StatusDot'
+import { translate } from '../i18n/i18n'
 
 export function MobileHostCard(props: {
   host: HostProfile | HostCatalogEntry
@@ -28,9 +29,9 @@ export function MobileHostCard(props: {
   const isError =
     credentialMissing || ['warning', 'unreachable', 'auth-failed'].includes(props.verdict.kind)
   const statusLabel = credentialMissing
-    ? 'Pairing invalid'
+    ? translate('m.MobileHostCard.7d7a9a4f62', 'Pairing invalid')
     : credentialUnavailable
-      ? 'Pairing temporarily unavailable'
+      ? translate('m.MobileHostCard.6afb830179', 'Pairing temporarily unavailable')
       : verdictDisplayLabel(props.verdict)
   const statusVerdict: ConnectionVerdict = credentialMissing
     ? { kind: 'auth-failed', label: statusLabel }
@@ -44,12 +45,15 @@ export function MobileHostCard(props: {
       : null
   const discoveryHint =
     props.verdict.kind === 'unreachable' && !props.host.relay
-      ? 'Update desktop Manta and sign in to connect from anywhere'
+      ? translate(
+          'm.MobileHostCard.fa4cf14def',
+          'Update desktop Manta and sign in to connect from anywhere'
+        )
       : null
   const credentialHint = credentialMissing
-    ? 'Tap to re-pair with your desktop'
+    ? translate('m.MobileHostCard.6bb2cc40c6', 'Tap to re-pair with your desktop')
     : credentialUnavailable
-      ? 'Unlock your phone, then tap to retry'
+      ? translate('m.MobileHostCard.ed956cf562', 'Unlock your phone, then tap to retry')
       : null
   const accessibilityLabel = [
     `Open ${props.host.name}`,

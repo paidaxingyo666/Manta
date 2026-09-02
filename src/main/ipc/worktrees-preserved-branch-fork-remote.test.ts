@@ -252,9 +252,12 @@ describe('registerWorktreeHandlers', () => {
       worktreeId: 'repo-1::/workspace/feature-wt'
     })
 
-    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-manta'], {
-      cwd: '/workspace/repo'
-    })
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      ['remote', 'remove', 'pr-contributor-manta'],
+      {
+        cwd: '/workspace/repo'
+      }
+    )
   })
 
   it('keeps a Manta-created fork remote while another worktree still uses it', async () => {
@@ -320,8 +323,11 @@ describe('registerWorktreeHandlers', () => {
       worktreeId: 'repo-1::/workspace/feature-wt'
     })
 
-    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'remove', 'pr-contributor-manta'], {
-      cwd: '/workspace/repo'
-    })
+    expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
+      ['remote', 'remove', 'pr-contributor-manta'],
+      {
+        cwd: '/workspace/repo'
+      }
+    )
   })
 })

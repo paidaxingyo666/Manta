@@ -24,6 +24,14 @@ import type {
   TransferMantaProfileProjectArgs,
   TransferMantaProfileProjectResult
 } from '../../shared/manta-profiles'
+import type { ConnectCurrentMantaProfileArgs } from '../../shared/manta-cloud-credentials'
+import type { MantaCloudEndpointOverrides } from '../../shared/manta-cloud-endpoints'
+import type {
+  ForgetMantaRelayHostArgs,
+  ForgetMantaRelayHostResult,
+  ListMantaRelayHostsResult
+} from '../../shared/manta-relay-hosts'
+import type { MantaRelaySignInMethods } from '../../shared/manta-relay-sign-in-methods'
 
 export type MantaProfileApi = {
   list: () => Promise<MantaProfileListResult>
@@ -39,11 +47,22 @@ export type MantaProfileApi = {
   findProjectProfiles: (
     args: FindMantaProfileProjectsByPathArgs
   ) => Promise<FindMantaProfileProjectsByPathResult>
-  connectCurrent: () => Promise<ConnectCurrentMantaProfileResult>
+  connectCurrent: (
+    args?: ConnectCurrentMantaProfileArgs
+  ) => Promise<ConnectCurrentMantaProfileResult>
+  /** How the configured relay expects to be signed in to. */
+  relaySignInMethods: () => Promise<MantaRelaySignInMethods>
+  listRelayHosts: () => Promise<ListMantaRelayHostsResult>
+  forgetRelayHost: (args: ForgetMantaRelayHostArgs) => Promise<ForgetMantaRelayHostResult>
   refreshAuth: () => Promise<RefreshCurrentMantaProfileAuthResult>
   signOutCurrent: () => Promise<SignOutCurrentMantaProfileResult>
+  applyCloudEndpoints: (
+    overrides: MantaCloudEndpointOverrides | undefined
+  ) => Promise<{ status: 'restarting' }>
   selectOrg: (args: SelectMantaProfileOrgArgs) => Promise<SelectMantaProfileOrgResult>
-  orgMembersList: (args: MantaProfileOrgMembersListArgs) => Promise<MantaProfileOrgMembersListResult>
+  orgMembersList: (
+    args: MantaProfileOrgMembersListArgs
+  ) => Promise<MantaProfileOrgMembersListResult>
   orgMemberInvite: (
     args: MantaProfileOrgMemberInviteArgs
   ) => Promise<MantaProfileOrgMemberMutationResult>

@@ -1,5 +1,5 @@
 ---
-name: orca-linear
+name: manta-linear
 description: >-
   Use Manta's Linear CLI through `manta linear ...` commands to read linked
   ticket context with `manta linear issue --current --full --json`, post
@@ -16,7 +16,7 @@ description: >-
 
 Use `manta linear` when Linear is the source of task context or ticket updates. On Linux, use `manta-ide` wherever this file says `manta`.
 
-`orca-linear` and `linear-tickets` are skill names, not CLI namespaces. Always run `manta linear ...` commands.
+`manta-linear` and `linear-tickets` are skill names, not CLI namespaces. Always run `manta linear ...` commands.
 
 Prefer `--json` for agent-driven calls. Use plain chat updates when no Linear-linked task exists or when the user did not ask to touch Linear.
 

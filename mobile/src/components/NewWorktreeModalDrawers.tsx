@@ -17,6 +17,7 @@ import { PickerListDrawer } from './PickerListDrawer'
 import { SetupHookTrustDrawer, type SetupTrustPrompt } from './SetupHookTrustDrawer'
 import { SmartWorkspaceSourceDrawer } from './SmartWorkspaceSourceDrawer'
 import type { NewWorktreeDrawerView } from './use-new-worktree-drawer-navigation'
+import { translate } from '../i18n/i18n'
 
 type Composer = ReturnType<typeof useMobileComposerSource>
 
@@ -66,7 +67,7 @@ export function NewWorktreeModalDrawers(props: {
 
       <PickerListDrawer
         visible={props.visible && props.drawerView === 'project'}
-        title="Project"
+        title={translate('m.NewWorktreeModal.28c9634f55', 'Project')}
         items={props.projectPickerItems}
         selectedId={props.selectedProjectId ?? ''}
         onSelect={(item) => props.onRepoChange(item.repo)}
@@ -83,7 +84,7 @@ export function NewWorktreeModalDrawers(props: {
 
       <PickerListDrawer
         visible={props.visible && props.drawerView === 'runTarget'}
-        title="Run on"
+        title={translate('m.NewWorktreeModal.07abe6788b', 'Run on')}
         items={props.runTargetPickerItems}
         selectedId={props.selectedRepo?.id ?? ''}
         onSelect={(item) => props.onRepoChange(item.repo)}
@@ -93,7 +94,7 @@ export function NewWorktreeModalDrawers(props: {
 
       <PickerListDrawer
         visible={props.visible && props.drawerView === 'agent'}
-        title="Agent"
+        title={translate('m.NewWorktreeModal.5442bc67b1', 'Agent')}
         items={props.pickerAgentOptions}
         selectedId={props.selectedAgent.id}
         onSelect={props.onAgentChange}

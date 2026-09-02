@@ -30,6 +30,7 @@ import {
   renderMobileTasksProjectAssigneesEditor
 } from './mobile-tasks-project-metadata-editors'
 import { renderMobileTasksProjectLoadedDetail } from './mobile-tasks-project-detail-content'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPresentationModel) {
   const {
@@ -49,10 +50,15 @@ export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPrese
       {projectRepoNotInManta ? (
         <View>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Repository not in Manta</Text>
+            <Text style={styles.sheetTitle}>
+              {translate('m.tasks.ffc86dd787', 'Repository not in Manta')}
+            </Text>
             <Text style={styles.sheetSubtitle}>
-              {projectRepoNotInManta.owner}/{projectRepoNotInManta.repo} is not added to Manta. Add
-              this repository from the desktop app, then refresh mobile Tasks.
+              {projectRepoNotInManta.owner}/{projectRepoNotInManta.repo}{' '}
+              {translate(
+                'm.tasks.79f69cf413',
+                'is not added to Manta. Add this repository from the desktop app, then refresh mobile Tasks.'
+              )}{' '}
             </Text>
           </View>
 
@@ -67,7 +73,9 @@ export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPrese
                 }}
               >
                 <ExternalLink size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Open in GitHub</Text>
+                <Text style={styles.actionText}>
+                  {translate('m.tasks.8ca7f70cf2', 'Open in GitHub')}
+                </Text>
               </Pressable>
             ) : null}
             {projectRepoNotInManta.url ? <View style={styles.actionSeparator} /> : null}
@@ -84,8 +92,8 @@ export function renderMobileTasksProjectMissingRepoDrawer(model: ConnectionPrese
               <Text style={styles.actionText}>
                 {copiedLinkKey ===
                 `project-repo:${projectRepoNotInManta.owner}/${projectRepoNotInManta.repo}`
-                  ? 'Copied'
-                  : 'Copy repository'}
+                  ? translate('m.tasks.c43f5c54e5', 'Copied')
+                  : translate('m.tasks.7864fc2cd3', 'Copy repository')}
               </Text>
             </Pressable>
           </View>
@@ -130,7 +138,8 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
               </Text>
             </View>
             <Text style={styles.sheetSubtitle}>
-              GitHub Project · {projectRowItem.content.repository ?? activeProjectLabel}
+              {translate('m.tasks.fdacd01fb3', 'GitHub Project ·')}{' '}
+              {projectRowItem.content.repository ?? activeProjectLabel}
               {projectRowItem.content.number ? ` #${projectRowItem.content.number}` : ''}
             </Text>
           </View>
@@ -138,19 +147,23 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
           <View style={styles.detailGroup}>
             <View style={styles.detailMetaGrid}>
               <View style={styles.detailMetaItem}>
-                <Text style={styles.detailMetaLabel}>Type</Text>
+                <Text style={styles.detailMetaLabel}>
+                  {translate('m.tasks.a36f9052f5', 'Type')}
+                </Text>
                 <Text style={styles.detailMetaValue}>
                   {projectRowItem.itemType === 'PULL_REQUEST'
-                    ? 'Pull request'
+                    ? translate('m.tasks.05ac26f906', 'Pull request')
                     : projectRowItem.itemType === 'ISSUE'
-                      ? 'Issue'
+                      ? translate('m.tasks.c5c83a9af1', 'Issue')
                       : projectRowItem.itemType === 'DRAFT_ISSUE'
-                        ? 'Draft issue'
-                        : 'Project item'}
+                        ? translate('m.tasks.8c666876cf', 'Draft issue')
+                        : translate('m.tasks.367621449b', 'Project item')}
                 </Text>
               </View>
               <View style={styles.detailMetaItem}>
-                <Text style={styles.detailMetaLabel}>Status</Text>
+                <Text style={styles.detailMetaLabel}>
+                  {translate('m.tasks.15ae8aef22', 'Status')}
+                </Text>
                 <Text style={styles.detailMetaValue}>{projectRowStatusLabel(projectRowItem)}</Text>
               </View>
             </View>
@@ -175,21 +188,29 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
             {SHOW_MOBILE_PROJECT_METADATA_EDITORS && projectRowItem.itemType === 'ISSUE' ? (
               <View style={styles.detailSection}>
                 <View style={styles.detailSectionHeader}>
-                  <Text style={styles.detailSectionTitle}>Issue type</Text>
+                  <Text style={styles.detailSectionTitle}>
+                    {translate('m.tasks.d58b83808f', 'Issue type')}
+                  </Text>
                   <Text style={styles.detailSectionMeta}>
-                    {projectRowItem.content.issueType?.name ?? 'No type'}
+                    {projectRowItem.content.issueType?.name ??
+                      translate('m.tasks.234befedac', 'No type')}
                   </Text>
                 </View>
                 {projectIssueTypesLoading ? (
                   <View style={styles.detailLoadingInline}>
                     <ActivityIndicator size="small" color={colors.textSecondary} />
-                    <Text style={styles.detailMuted}>Loading issue types...</Text>
+                    <Text style={styles.detailMuted}>
+                      {translate('m.tasks.c36deb9937', 'Loading issue types...')}
+                    </Text>
                   </View>
                 ) : projectIssueTypesError ? (
                   <Text style={styles.detailError}>{projectIssueTypesError}</Text>
                 ) : projectIssueTypes.length === 0 ? (
                   <Text style={styles.detailMuted}>
-                    No issue types configured for this repository.
+                    {translate(
+                      'm.tasks.e43106b8ae',
+                      'No issue types configured for this repository.'
+                    )}{' '}
                   </Text>
                 ) : (
                   <View style={styles.chipRow}>
@@ -223,7 +244,9 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                         disabled={projectMutating}
                         onPress={() => void mutateProjectRowIssueType(projectRowItem, null)}
                       >
-                        <Text style={styles.detailChipText}>Clear type</Text>
+                        <Text style={styles.detailChipText}>
+                          {translate('m.tasks.de9e1030f7', 'Clear type')}
+                        </Text>
                       </Pressable>
                     ) : null}
                   </View>
@@ -244,11 +267,16 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                 onPress={() => void createWorkspaceFromProjectRow(projectRowItem)}
               >
                 <Plus size={16} color={colors.textPrimary} />
-                <Text style={styles.actionText}>Create Workspace</Text>
+                <Text style={styles.actionText}>
+                  {translate('m.tasks.d783b7fb2b', 'Create Workspace')}
+                </Text>
               </Pressable>
             ) : (
               <Text style={styles.emptyInlineText}>
-                Workspaces can only be created from GitHub issues and pull requests.
+                {translate(
+                  'm.tasks.7e7816b5ce',
+                  'Workspaces can only be created from GitHub issues and pull requests.'
+                )}{' '}
               </Text>
             )}
 
@@ -266,7 +294,9 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                   }}
                 >
                   <ExternalLink size={16} color={colors.textPrimary} />
-                  <Text style={styles.actionText}>Open in GitHub</Text>
+                  <Text style={styles.actionText}>
+                    {translate('m.tasks.8ca7f70cf2', 'Open in GitHub')}
+                  </Text>
                 </Pressable>
                 <View style={styles.actionSeparator} />
                 <Pressable
@@ -283,8 +313,8 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                   <Copy size={16} color={colors.textPrimary} />
                   <Text style={styles.actionText}>
                     {copiedLinkKey === `github-project:${projectRowItem.id}`
-                      ? 'Copied'
-                      : 'Copy GitHub link'}
+                      ? translate('m.tasks.c43f5c54e5', 'Copied')
+                      : translate('m.tasks.bd6efe9dde', 'Copy GitHub link')}
                   </Text>
                 </Pressable>
               </>
@@ -320,7 +350,9 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                     <X size={16} color={colors.textPrimary} />
                   )}
                   <Text style={styles.actionText}>
-                    {projectRowItem.content.state === 'CLOSED' ? 'Reopen item' : 'Close item'}
+                    {projectRowItem.content.state === 'CLOSED'
+                      ? translate('m.tasks.bde826cb6c', 'Reopen item')
+                      : translate('m.tasks.f5b7df9238', 'Close item')}
                   </Text>
                 </Pressable>
               </>
@@ -336,11 +368,16 @@ export function renderMobileTasksProjectDetailDrawer(model: ConnectionPresentati
                   onPress={() => setMergeMethodProjectRow(projectRowItem)}
                 >
                   <GitBranch size={16} color={colors.textPrimary} />
-                  <Text style={styles.actionText}>Merge pull request</Text>
+                  <Text style={styles.actionText}>
+                    {translate('m.tasks.30f30656e9', 'Merge pull request')}
+                  </Text>
                 </Pressable>
                 {!projectRowHostedRepo ? (
                   <Text style={styles.emptyInlineText}>
-                    Merge requires this repository in Manta.
+                    {translate(
+                      'm.tasks.62e4e4fab6',
+                      'Merge requires this repository in Manta.'
+                    )}{' '}
                   </Text>
                 ) : null}
               </>

@@ -72,7 +72,11 @@ describe('Windows CLI launcher', () => {
     try {
       const result = spawnSync(
         process.execPath,
-        ['config/scripts/build-windows-cli-launcher.mjs', '--output', join(outputRoot, 'manta.exe')],
+        [
+          'config/scripts/build-windows-cli-launcher.mjs',
+          '--output',
+          join(outputRoot, 'manta.exe')
+        ],
         { cwd: projectRoot, encoding: 'utf8' }
       )
 
@@ -86,7 +90,7 @@ describe('Windows CLI launcher', () => {
 
   itCrossHost('never materializes the child environment block from ProcessStartInfo', () => {
     // Why: both ProcessStartInfo env properties copy the process block into a case-insensitive
-    // dictionary that throws when the inherited block holds PATH and Path (stablyai/orca#12046).
+    // dictionary that throws when the inherited block holds PATH and Path (stablyai/manta#12046).
     const source = readFileSync(
       join(projectRoot, 'native', 'windows-cli-launcher', 'MantaCliLauncher.cs'),
       'utf8'

@@ -14,6 +14,7 @@ import type {
   LinearIssue,
   LinearTeam
 } from './mobile-tasks-provider-detail-types'
+import { translate } from '../i18n/i18n'
 
 export function mergeGitHubAssignableUsers(
   users: GitHubAssignableUser[],
@@ -126,7 +127,7 @@ export function getLinearIssueGroup(
   if (groupBy === 'team') {
     return { key: `team:${issue.team.id}`, label: issue.team.name, color: issue.state.color }
   }
-  return { key: 'all', label: 'Issues', color: colors.accentBlue }
+  return { key: 'all', label: translate('m.tasks.e3577861c3', 'Issues'), color: colors.accentBlue }
 }
 
 export function groupLinearIssues(
@@ -136,7 +137,14 @@ export function groupLinearIssues(
 ): LinearIssueSection[] {
   const sorted = [...issues].sort((a, b) => compareLinearIssues(a, b, orderBy))
   if (groupBy === 'none') {
-    return [{ key: 'all', label: 'Issues', color: colors.accentBlue, issues: sorted }]
+    return [
+      {
+        key: 'all',
+        label: translate('m.tasks.e3577861c3', 'Issues'),
+        color: colors.accentBlue,
+        issues: sorted
+      }
+    ]
   }
   const sections = new Map<
     string,

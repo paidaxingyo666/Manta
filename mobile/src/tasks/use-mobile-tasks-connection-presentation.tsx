@@ -1,5 +1,6 @@
 import type { ProviderViewProjectionModel } from './use-mobile-tasks-provider-view-projection'
 import { classifyConnection } from './mobile-tasks-dependencies'
+import { translate } from '../i18n/i18n'
 
 export function useMobileTasksConnectionPresentation(model: ProviderViewProjectionModel) {
   const {
@@ -19,14 +20,14 @@ export function useMobileTasksConnectionPresentation(model: ProviderViewProjecti
   })
   const emptyLabel =
     connState !== 'connected'
-      ? 'Connect to a host to load tasks'
+      ? translate('m.tasks.43d60ddc79', 'Connect to a host to load tasks')
       : query
-        ? 'No matching tasks'
+        ? translate('m.tasks.38291ebaa5', 'No matching tasks')
         : provider === 'github'
-          ? 'No GitHub tasks'
+          ? translate('m.tasks.85a194d9e6', 'No GitHub tasks')
           : provider === 'gitlab'
-            ? 'No GitLab tasks'
-            : 'No Linear tasks'
+            ? translate('m.tasks.89fb848688', 'No GitLab tasks')
+            : translate('m.tasks.b862e0e556', 'No Linear tasks')
   const isGithubProjectSearch = provider === 'github' && githubMode === 'project'
   return Object.assign(model, { headerVerdict, emptyLabel, isGithubProjectSearch })
 }

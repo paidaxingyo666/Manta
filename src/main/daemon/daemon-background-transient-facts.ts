@@ -28,7 +28,8 @@ import type { DaemonTransientFact } from './types'
 
 // Kill switch for the whole background keep-tail mechanism (thinning +
 // daemon-side fact authority): MANTA_DAEMON_BACKGROUND_STREAM_DROP=0.
-export const BACKGROUND_STREAM_DROP_ENABLED = process.env.MANTA_DAEMON_BACKGROUND_STREAM_DROP !== '0'
+export const BACKGROUND_STREAM_DROP_ENABLED =
+  process.env.MANTA_DAEMON_BACKGROUND_STREAM_DROP !== '0'
 
 export class BackgroundTransientFactRelay {
   private trackersBySessionId = new Map<string, TerminalTitleTracker>()

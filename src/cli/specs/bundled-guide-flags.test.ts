@@ -34,7 +34,7 @@ function collectGuideInvocations(): GuideInvocation[] {
       if (!spec) {
         continue
       }
-      // Why: a quoted flag value belongs to the nested program (`--command 'codex --model ...'`), not to manta.
+      // Why: a quoted flag value belongs to the nested program (`--command 'codex --model ...'`), not to Manta.
       const mantaArgs = invocation.replace(/'[^']*'|"[^"]*"/g, ' ')
       const flags = [...mantaArgs.matchAll(/(?:^|[\s[(])--([a-z][a-z0-9-]*)/g)].map(
         (flag) => flag[1]

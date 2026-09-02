@@ -58,6 +58,10 @@ describe('getRequiredReleaseAssetNames', () => {
       ])
     )
   })
+
+  it('requires the release source-map archive', () => {
+    expect(getRequiredReleaseAssetNames('v1.4.27')).toContain('manta-sourcemaps-v1.4.27.zip')
+  })
 })
 
 describe('extractManifestAssetNames', () => {
@@ -100,7 +104,7 @@ describe('verifyRequiredReleaseAssets', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      verifyRequiredReleaseAssets({ repo: 'stablyai/orca', tag, token: 'token' })
+      verifyRequiredReleaseAssets({ repo: 'paidaxingyo666/Manta', tag, token: 'token' })
     ).rejects.toThrow('Missing: Manta-1.4.27-arm64-mac.zip')
     expect(latestMacAsset).toBeTruthy()
   })
@@ -128,7 +132,7 @@ describe('verifyRequiredReleaseAssets', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      verifyRequiredReleaseAssets({ repo: 'stablyai/orca', tag, token: 'token' })
+      verifyRequiredReleaseAssets({ repo: 'paidaxingyo666/Manta', tag, token: 'token' })
     ).rejects.toThrow('Missing: manta-linux-arm64.AppImage.blockmap')
     expect(arm64Manifest).toBeTruthy()
   })

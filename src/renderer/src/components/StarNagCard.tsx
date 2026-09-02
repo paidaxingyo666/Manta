@@ -6,7 +6,7 @@ import { useAppStore } from '../store'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { translate } from '@/i18n/i18n'
 
-const MANTA_REPO_URL = 'https://github.com/stablyai/orca'
+const MANTA_REPO_URL = 'https://github.com/stablyai/manta'
 type StarNagMode = 'gh' | 'web'
 
 /**

@@ -379,7 +379,10 @@ describe('deriveAiVaultWorkspaceScopePaths', () => {
         path: '/Users/ada/workspaces/manta/fix-agent-history',
         priorWorktreeIds: ['repo1::/Users/ada/workspaces/manta/bream']
       })
-    ).toEqual(['/Users/ada/workspaces/manta/fix-agent-history', '/Users/ada/workspaces/manta/bream'])
+    ).toEqual([
+      '/Users/ada/workspaces/manta/fix-agent-history',
+      '/Users/ada/workspaces/manta/bream'
+    ])
   })
 
   it('strips folder-workspace instance suffixes from prior ids', () => {

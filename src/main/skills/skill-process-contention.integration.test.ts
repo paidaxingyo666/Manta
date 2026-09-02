@@ -179,8 +179,8 @@ describe.runIf(RUN_REAL_PROCESS)('skill multi-process contention', () => {
       status: 'unchanged'
     })
     expect(await readdir(join(root, 'state', 'receipts'))).toHaveLength(1)
-    expect((await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))).toEqual(
-      []
-    )
+    expect(
+      (await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))
+    ).toEqual([])
   }, 30_000)
 })

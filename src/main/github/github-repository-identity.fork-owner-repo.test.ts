@@ -40,14 +40,14 @@ const SSH_FORK_PATH = '/tmp/ssh-fork-checkout'
 const REMOTE_URLS_BY_REPO: Record<string, Record<string, string>> = {
   [FORK_PATH]: {
     origin: 'https://github.com/fsdwen/manta.git',
-    upstream: 'https://github.com/stablyai/orca.git'
+    upstream: 'https://github.com/stablyai/manta.git'
   },
   [NON_FORK_PATH]: {
-    origin: 'https://github.com/stablyai/orca.git'
+    origin: 'https://github.com/stablyai/manta.git'
   },
   [SSH_FORK_PATH]: {
     origin: 'git@github.com:fsdwen/manta.git',
-    upstream: 'git@github.com:stablyai/orca.git'
+    upstream: 'git@github.com:stablyai/manta.git'
   }
 }
 

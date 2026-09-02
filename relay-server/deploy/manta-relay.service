@@ -1,0 +1,62 @@
+# Install to /etc/systemd/system/manta-relay.service
+#
+#   install -d -o manta -g manta -m 0750 /var/lib/manta-relay
+#   install -o root -g manta -m 0640 /dev/null /etc/manta-relay.env
+#   $EDITOR /etc/manta-relay.env
+#   systemctl enable --now manta-relay
+#
+# WorkingDirectory and ExecStart both point at the relay-server directory of the
+# checkout, which is where package.json and dist/ actually live.
+[Unit]
+Description=Manta self-hosted relay
+Documentation=file:///opt/manta-relay/relay-server/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=manta
+Group=manta
+WorkingDirectory=/opt/manta-relay/relay-server
+Environment=NODE_ENV=production
+Environment=PORT=8787
+Environment=MANTA_RELAY_DATA_DIR=/var/lib/manta-relay
+# Secrets live in a root-owned, group-readable file rather than in the unit:
+# `systemctl show` and `ps -e` both expose Environment= values to any local user.
+EnvironmentFile=/etc/manta-relay.env
+ExecStart=/usr/bin/node /opt/manta-relay/relay-server/dist/main.js
+Restart=on-failure
+RestartSec=5
+# Long enough for the drain window plus the process to flush its state.
+TimeoutStopSec=30
+
+# The relay opens one listening socket and writes one directory. Everything
+# below is refused capability rather than trusted-and-audited.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6
+LockPersonality=true
+# Node's JIT needs writable-executable pages, so this one stays off.
+MemoryDenyWriteExecute=false
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+ReadWritePaths=/var/lib/manta-relay
+
+[Install]
+WantedBy=multi-user.target

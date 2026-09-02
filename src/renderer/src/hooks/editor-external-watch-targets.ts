@@ -15,6 +15,7 @@ export type EditorExternalWatchTarget = {
   worktreePath: string
   connectionId: string | undefined
   runtimeEnvironmentId: string | null
+  runtimeConnectionGeneration?: number
   allowLocalWindowsWslAliases?: true
 }
 
@@ -32,7 +33,8 @@ export type EditorExternalWatchTargetState = Pick<
   | 'sshConnectionStates'
   | 'folderWorkspaces'
   | 'projectGroups'
->
+> &
+  Partial<Pick<AppState, 'runtimeStatusByEnvironmentId'>>
 
 type WatchedTargetsSnapshot = {
   targets: EditorExternalWatchTarget[]
@@ -51,11 +53,12 @@ let cachedGitStatusHugeByWorktree: AppState['gitStatusHugeByWorktree'] | null = 
 let cachedSshConnectionStates: AppState['sshConnectionStates'] | null = null
 let cachedFolderWorkspaces: AppState['folderWorkspaces'] | null = null
 let cachedProjectGroups: AppState['projectGroups'] | null = null
+let cachedRuntimeStatusByEnvironmentId: AppState['runtimeStatusByEnvironmentId'] | null = null
 let cachedWatchedTargetsSnapshot: WatchedTargetsSnapshot = { targets: [], targetsKey: '' }
 
 export function getEditorExternalWatchTargetKey(target: EditorExternalWatchTarget): string {
   // Why: include connectionId so a local placeholder watch is replaced by the real SSH watch once an SSH worktree's provider metadata hydrates.
-  return `${target.worktreeId}::${target.worktreePath}::${target.connectionId ?? 'local'}::${target.runtimeEnvironmentId ?? 'client'}::${target.allowLocalWindowsWslAliases === true ? 'wsl-aliases' : 'literal'}`
+  return `${target.worktreeId}::${target.worktreePath}::${target.connectionId ?? 'local'}::${target.runtimeEnvironmentId ?? 'client'}::${target.runtimeConnectionGeneration ?? 0}::${target.allowLocalWindowsWslAliases === true ? 'wsl-aliases' : 'literal'}`
 }
 
 export function getOpenFileRuntimeOwner(
@@ -123,7 +126,8 @@ export function selectEditorExternalWatchTargets(
     cachedGitStatusHugeByWorktree === state.gitStatusHugeByWorktree &&
     cachedSshConnectionStates === state.sshConnectionStates &&
     cachedFolderWorkspaces === state.folderWorkspaces &&
-    cachedProjectGroups === state.projectGroups
+    cachedProjectGroups === state.projectGroups &&
+    cachedRuntimeStatusByEnvironmentId === state.runtimeStatusByEnvironmentId
   ) {
     return cachedWatchedTargetsSnapshot
   }
@@ -220,6 +224,12 @@ export function selectEditorExternalWatchTargets(
         worktreePath: worktree?.path ?? folderWorkspace!.folderPath,
         connectionId: connectionId ?? undefined,
         runtimeEnvironmentId: owner,
+        ...(owner
+          ? {
+              runtimeConnectionGeneration:
+                state.runtimeStatusByEnvironmentId?.get(owner)?.connectionGeneration ?? 0
+            }
+          : {}),
         ...(canWatchLocalWindowsWslAliases({
           worktreePath: worktree?.path ?? folderWorkspace!.folderPath,
           runtimeEnvironmentId: owner,
@@ -250,6 +260,7 @@ export function selectEditorExternalWatchTargets(
   cachedSshConnectionStates = state.sshConnectionStates
   cachedFolderWorkspaces = state.folderWorkspaces
   cachedProjectGroups = state.projectGroups
+  cachedRuntimeStatusByEnvironmentId = state.runtimeStatusByEnvironmentId ?? null
 
   if (targetsKey === cachedWatchedTargetsSnapshot.targetsKey) {
     return cachedWatchedTargetsSnapshot

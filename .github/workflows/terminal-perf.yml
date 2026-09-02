@@ -92,7 +92,7 @@ jobs:
 
       - name: Run terminal scale perf report gate
         env:
-          ORCA_TERMINAL_PERF_GREP: ${{ inputs.grep }}
+          MANTA_TERMINAL_PERF_GREP: ${{ inputs.grep }}
           MANTA_TERMINAL_PERF_FRAME_COUNT: ${{ inputs.frame_count }}
           MANTA_TERMINAL_PERF_FRAME_INTERVAL_MS: ${{ inputs.frame_interval_ms }}
           MANTA_TERMINAL_PERF_PRESSURE_OUTPUT_CHARS: ${{ inputs.pressure_output_chars }}
@@ -103,8 +103,8 @@ jobs:
         run: |
           set -euo pipefail
           args=()
-          if [ -n "${ORCA_TERMINAL_PERF_GREP:-}" ]; then
-            args+=(--grep "$ORCA_TERMINAL_PERF_GREP")
+          if [ -n "${MANTA_TERMINAL_PERF_GREP:-}" ]; then
+            args+=(--grep "$MANTA_TERMINAL_PERF_GREP")
           fi
           if [ -n "${MANTA_TERMINAL_PERF_FRAME_COUNT:-}" ]; then
             export MANTA_E2E_OPENCODE_FRAME_COUNT="$MANTA_TERMINAL_PERF_FRAME_COUNT"

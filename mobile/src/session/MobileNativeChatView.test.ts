@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import { MobileNativeChatView } from './MobileNativeChatView'
 
@@ -72,6 +72,9 @@ type Overrides = {
   inputLockReason?: 'disconnected' | 'waiting' | null
   onSend?: (text: string) => Promise<boolean>
   pending?: Parameters<typeof MobileNativeChatView>[0]['pending']
+  hasMore?: boolean
+  loadingEarlier?: boolean
+  onLoadEarlier?: () => void
 }
 
 function assistantTurn(id: string, text: string): NativeChatMessage {
@@ -102,9 +105,15 @@ describe('MobileNativeChatView', () => {
     renderer = null
   })
 
+  /** Stands in for the FlatList the view holds a ref to, so scrolls are visible. */
+  let listMock: { scrollToOffset: Mock; scrollToEnd: Mock; scrollToIndex: Mock }
+
   async function render(overrides: Overrides = {}): Promise<void> {
+    listMock = { scrollToOffset: vi.fn(), scrollToEnd: vi.fn(), scrollToIndex: vi.fn() }
     await act(async () => {
-      renderer = create(chatViewElement(overrides))
+      renderer = create(chatViewElement(overrides), {
+        createNodeMock: (element) => (element.type === 'FlatList' ? listMock : null)
+      })
     })
   }
 
@@ -242,5 +251,114 @@ describe('MobileNativeChatView', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+  describe('paging in older history', () => {
+    function list(): ReactTestInstance {
+      return renderer!.root.find((node) => node.type === 'FlatList')
+    }
+
+    /** The jump-to-latest control; empty means the view is following the tail. */
+    function jumpToLatestButtons(): ReactTestInstance[] {
+      return renderer!.root.findAll((node) => node.props.accessibilityLabel === 'Scroll to latest')
+    }
+
+    async function scrollTo(offsetY: number): Promise<void> {
+      await act(async () => {
+        list().props.onScroll({
+          nativeEvent: {
+            contentOffset: { y: offsetY },
+            contentSize: { height: 4000 },
+            layoutMeasurement: { height: 800 }
+          }
+        })
+      })
+    }
+
+    /**
+     * The view fires its own scrollToEnd on open, starting from offset 0. Its
+     * first throttled sample reads as "near the top", so a trigger that only
+     * looks at the offset pages in history nobody asked for — and because that
+     * prepends PAGE rows above the viewport, the reader lands mid-session.
+     */
+    it('does not page in history for a scroll the user did not start', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await scrollTo(10)
+
+      expect(onLoadEarlier).not.toHaveBeenCalled()
+    })
+
+    it('pages in history once the user drags to the top', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(10)
+
+      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
+    })
+
+    it('stops paging again once the list comes to rest', async () => {
+      const onLoadEarlier = vi.fn()
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(10)
+      await act(async () => list().props.onMomentumScrollEnd())
+      await scrollTo(10)
+
+      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * `maintainVisibleContentPosition` looked like the right way to stop a
+     * prepend moving the reader, and it fought the scrollToEnd this view fires
+     * on every new message: each reply bounced the reader up the transcript.
+     * Paging is guarded by the drag flag above, so the anchor is not needed.
+     */
+    it('does not anchor content position', async () => {
+      await render({ folded: [assistantTurn('a', 'one')], hasMore: true })
+
+      expect(list().props.maintainVisibleContentPosition).toBeUndefined()
+    })
+
+    /**
+     * scrollToEnd emits samples on its way down. Reading those as "the user
+     * left the bottom" turns following off mid-flight, and then nothing re-pins
+     * — which is how the jump-to-latest button appeared on every reply.
+     */
+    it('keeps following the tail through its own scroll', async () => {
+      await render({ folded: [assistantTurn('a', 'one')] })
+
+      // A mid-animation sample: still far from the bottom, no drag in progress.
+      await scrollTo(0)
+
+      expect(jumpToLatestButtons()).toHaveLength(0)
+    })
+
+    /**
+     * scrollToEnd reads the list's cached scroll metrics, and a streaming reply
+     * changes height faster than those refresh — so the pin kept landing at a
+     * bottom that had already moved, and the reader drifted up mid-answer.
+     */
+    it('re-pins from the measured height, not the list cached metrics', async () => {
+      await render({ folded: [assistantTurn('a', 'one')] })
+
+      await act(async () => list().props.onLayout({ nativeEvent: { layout: { height: 800 } } }))
+      await act(async () => list().props.onContentSizeChange(400, 3000))
+
+      expect(listMock.scrollToEnd).not.toHaveBeenCalled()
+      expect(listMock.scrollToOffset).toHaveBeenCalledWith({ offset: 2200, animated: false })
+    })
+
+    it('stops following once the user drags away from the bottom', async () => {
+      await render({ folded: [assistantTurn('a', 'one')] })
+
+      await act(async () => list().props.onScrollBeginDrag())
+      await scrollTo(0)
+
+      expect(jumpToLatestButtons()).toHaveLength(1)
+    })
   })
 })

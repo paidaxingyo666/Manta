@@ -21,6 +21,7 @@ import {
   taskWorkspaceSuggestedName,
   workspaceAgentIconId
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function useMobileTasksWorkspaceCreateProjection(model: ProjectMetadataLoadingModel) {
   const {
@@ -120,11 +121,13 @@ export function useMobileTasksWorkspaceCreateProjection(model: ProjectMetadataLo
       : null
   const workspaceSparseDraftError =
     workspaceSparseDraft && workspaceSparseDraftName.length === 0
-      ? 'Name is required.'
+      ? translate('m.tasks.453d473ddb', 'Name is required.')
       : workspaceSparseDraftName.length > 80
-        ? 'Name must be 80 characters or fewer.'
+        ? translate('m.tasks.8c1857dafe', 'Name must be 80 characters or fewer.')
         : workspaceSparseDraftNameCollision
-          ? `"${workspaceSparseDraftNameCollision.name}" already exists.`
+          ? translate('m.tasks.391d118765', '"{{value0}}" already exists.', {
+              value0: workspaceSparseDraftNameCollision.name
+            })
           : (workspaceSparseDraftParsed?.error ?? null)
   const canSaveWorkspaceSparseDraft =
     workspaceSparseDraft !== null &&
@@ -164,7 +167,7 @@ export function useMobileTasksWorkspaceCreateProjection(model: ProjectMetadataLo
       {
         value: 'blank' as const,
         label: workspaceAgentLabel('blank'),
-        subtitle: 'Open a shell',
+        subtitle: translate('m.tasks.586fb25e03', 'Open a shell'),
         renderIcon: () => <MobileAgentIcon agentId="__blank__" size={18} />
       }
     ]

@@ -52,7 +52,7 @@ export type TuiAgentConfig = {
   ctrlEnterEncoding?: 'csi-u'
 }
 
-/** Authoring form: `launchCmd` and `expectedProcess` default to `detectCmd` (true for most agents). */
+/** Authoring form with command defaults derived from `detectCmd`. */
 type TuiAgentConfigSource = Omit<TuiAgentConfig, 'launchCmd' | 'expectedProcess'> & {
   launchCmd?: string
   expectedProcess?: string
@@ -70,7 +70,7 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   claude: {
     detectCmd: 'claude',
     promptInjectionMode: 'argv',
-    // Why: `claude --prefill <text>` seeds the input without submitting, avoiding the paste-after-ready race (PR https://github.com/stablyai/orca/pull/926).
+    // Why: `claude --prefill <text>` seeds the input without submitting, avoiding the paste-after-ready race (PR https://github.com/stablyai/manta/pull/926).
     draftPromptFlag: '--prefill'
   },
   'claude-agent-teams': {
@@ -308,7 +308,7 @@ export function getTuiAgentLaunchCommand(
   platform: NodeJS.Platform,
   opts?: { isRemote?: boolean }
 ): string {
-  // Why: local-only orca-ide rename (avoids GNOME Orca clash) must not leak to Linux remotes, whose relay shim is always `manta`.
+  // Why: local-only manta-ide rename (avoids GNOME Orca clash) must not leak to Linux remotes, whose relay shim is always `manta`.
   if (opts?.isRemote && platform === 'linux') {
     return config.launchCmd
   }

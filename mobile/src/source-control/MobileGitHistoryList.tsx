@@ -12,6 +12,7 @@ import {
 } from './mobile-git-history'
 import { resolveMobileHistoryScreenView } from './mobile-history-screen-state'
 import type { GitBranchChangeEntry } from '../../../src/shared/git-diff-compare-types'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   client: RpcClient | null
@@ -161,10 +162,14 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
                 connected ? (
                   <ActivityIndicator size="small" color={colors.textSecondary} />
                 ) : (
-                  <Text style={styles.empty}>Waiting for desktop...</Text>
+                  <Text style={styles.empty}>
+                    {translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')}
+                  </Text>
                 )
               ) : files.length === 0 ? (
-                <Text style={styles.empty}>No file changes</Text>
+                <Text style={styles.empty}>
+                  {translate('m.MobileGitHistoryList.cb46c1e3eb', 'No file changes')}
+                </Text>
               ) : (
                 files.map((file) => (
                   <View key={file.path} style={styles.fileRow}>
@@ -192,10 +197,14 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
     return (
       <View style={styles.state}>
         <Text style={styles.stateText}>
-          {view.kind === 'waiting' ? 'Waiting for desktop...' : view.message}
+          {view.kind === 'waiting'
+            ? translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')
+            : view.message}
         </Text>
         <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>
+            {translate('m.MobileGitHistoryList.41bdc2a206', 'Retry')}
+          </Text>
         </Pressable>
       </View>
     )
@@ -210,7 +219,9 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
   if (view.kind === 'empty') {
     return (
       <View style={styles.state}>
-        <Text style={styles.stateText}>No commits.</Text>
+        <Text style={styles.stateText}>
+          {translate('m.MobileGitHistoryList.7dc0c76755', 'No commits.')}
+        </Text>
       </View>
     )
   }

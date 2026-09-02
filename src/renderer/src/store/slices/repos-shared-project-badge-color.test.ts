@@ -10,7 +10,7 @@ import { clearRuntimeCompatibilityCacheForTests } from '../../runtime/runtime-rp
 
 // Mirrors the real report: one project name ("manta") set up on the local Mac and on a
 // remote Manta server, where only the local repo row carries the user's chosen color.
-const SHARED_PROJECT_ID = 'github:stablyai/orca'
+const SHARED_PROJECT_ID = 'github:stablyai/manta'
 const LOCAL_GREEN = '#22c55e'
 const REMOTE_NEUTRAL = '#737373'
 

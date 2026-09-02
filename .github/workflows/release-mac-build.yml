@@ -118,7 +118,7 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
           MANTA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
-          MANTA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
+          MANTA_POSTHOG_WRITE_KEY: ${{ secrets.MANTA_POSTHOG_WRITE_KEY }}
 
       - name: Gate runtime file-watcher process isolation
         run: |

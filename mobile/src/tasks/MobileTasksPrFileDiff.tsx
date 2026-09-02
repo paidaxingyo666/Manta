@@ -15,6 +15,7 @@ import {
 import { MAX_RENDERED_PR_DIFF_LINES } from './mobile-tasks-options'
 import type { GitHubPRFileContents } from './mobile-tasks-provider-detail-types'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function formatDiffLineNumber(value: number | undefined): string {
   return value === undefined ? '    ' : value.toString().padStart(4, ' ')
@@ -62,14 +63,20 @@ export function GitHubPrFileDiff({
   const hiddenDiffLineCount = Math.max(0, diffPreview.totalLineCount - visibleDiffLines.length)
 
   if (diffPreview.totalLineCount === 0) {
-    return <Text style={styles.detailMuted}>No text changes found.</Text>
+    return (
+      <Text style={styles.detailMuted}>
+        {translate('m.tasks.4f60b77ecb', 'No text changes found.')}
+      </Text>
+    )
   }
 
   return (
     <View style={styles.fileDiff}>
       {hiddenDiffLineCount > 0 ? (
         <Text style={styles.detailMuted}>
-          Showing first {MAX_RENDERED_PR_DIFF_LINES} of {diffPreview.totalLineCount} diff lines.
+          {translate('m.tasks.98eaa94b14', 'Showing first')} {MAX_RENDERED_PR_DIFF_LINES}{' '}
+          {translate('m.tasks.8c6d399553', 'of')} {diffPreview.totalLineCount}{' '}
+          {translate('m.tasks.978d06c3da', 'diff lines.')}{' '}
         </Text>
       ) : null}
       {visibleDiffLines.map((line) => {
@@ -113,7 +120,7 @@ export function GitHubPrFileDiff({
                   style={[styles.input, styles.replyInput]}
                   value={commentDrafts[draftKey] ?? ''}
                   onChangeText={(next) => onCommentDraftChange(draftKey, next)}
-                  placeholder="Add review comment"
+                  placeholder={translate('m.tasks.fd22280789', 'Add review comment')}
                   placeholderTextColor={colors.textMuted}
                   multiline
                   textAlignVertical="top"
@@ -123,7 +130,9 @@ export function GitHubPrFileDiff({
                   disabled={disabled || !(commentDrafts[draftKey] ?? '').trim()}
                   onPress={() => onSubmitComment(commentLine)}
                 >
-                  <Text style={styles.inlineSaveText}>Comment on line {commentLine}</Text>
+                  <Text style={styles.inlineSaveText}>
+                    {translate('m.tasks.ae64bd16d3', 'Comment on line')} {commentLine}
+                  </Text>
                 </Pressable>
               </>
             ) : null}

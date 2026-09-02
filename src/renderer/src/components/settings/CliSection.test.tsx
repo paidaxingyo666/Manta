@@ -80,7 +80,7 @@ describe('CliSection project runtime defaults', () => {
   it('exposes freshness only for a resolved local host runtime', () => {
     const settings = getDefaultSettings('/tmp')
     renderToStaticMarkup(<CliSection currentPlatform="darwin" settings={settings} />)
-    expect(capturedPanel.props?.freshnessSkillName).toBe('orca-cli')
+    expect(capturedPanel.props?.freshnessSkillName).toBe('manta-cli')
 
     capturedPanel.canUseLocalSkillFreshness = false
     renderToStaticMarkup(<CliSection currentPlatform="darwin" settings={settings} />)
@@ -134,7 +134,7 @@ describe('CliSection project runtime defaults', () => {
     await capturedPanel.props?.onBeforeOpenTerminal()
 
     expect(capturedPanel.useInstalledAgentSkill).toHaveBeenCalledWith(
-      'orca-cli',
+      'manta-cli',
       expect.objectContaining({
         discoveryTarget: { runtime: 'wsl', wslDistro: 'Ubuntu' },
         sourceKinds: ['global']

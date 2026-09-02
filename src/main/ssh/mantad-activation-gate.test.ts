@@ -12,7 +12,7 @@ function daemon(overrides: Partial<TerminalDaemonHealth> = {}): TerminalDaemonHe
     ownsFreshSessions: true,
     pid: 4242,
     buildVersion: '0.2.0+bb01',
-    entryPath: '/home/u/.manta-remote/mantad-0.2.0+bb01/daemon-entry.js',
+    entryPath: '/home/u/.orca-remote/orcad-0.2.0+bb01/daemon-entry.js',
     protocolVersion: 3,
     selfTest: { ok: true, coverage: 'pty-spawn', verdict: 'healthy', durationMs: 12 },
     ...overrides

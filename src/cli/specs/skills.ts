@@ -55,7 +55,7 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
       'Use --full to include bundled reference documents when the guide provides them.',
       'Use --json for a deterministic object containing canonical topic metadata and content.'
     ],
-    examples: ['manta skills get orca-cli', 'manta skills get orchestration --full']
+    examples: ['manta skills get manta-cli', 'manta skills get orchestration --full']
   },
   {
     path: ['skills', 'install'],
@@ -85,9 +85,9 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
     ],
     examples: [
       'manta skills install',
-      'manta skills install --skill orca-cli --skill orchestration',
-      'manta skills install --skill orca-cli --local',
-      'manta skills install --skill orca-cli --agent claude-code,codex',
+      'manta skills install --skill manta-cli --skill orchestration',
+      'manta skills install --skill manta-cli --local',
+      'manta skills install --skill manta-cli --agent claude-code,codex',
       'manta skills install --all --dry-run'
     ]
   },
@@ -112,8 +112,8 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
     ],
     examples: [
       'manta skills update',
-      'manta skills update --skill orca-cli --skill orchestration',
-      'manta skills update --skill orca-cli --local',
+      'manta skills update --skill manta-cli --skill orchestration',
+      'manta skills update --skill manta-cli --local',
       'manta skills update --all --dry-run'
     ]
   }

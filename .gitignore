@@ -32,6 +32,10 @@ native/**/.build/
 # pnpm
 .pnpm-store/
 package-lock.json
+# relay-server is a standalone npm project, not part of the pnpm workspace: its
+# Dockerfile and release workflow both run `npm ci`, which needs the lockfile
+# committed. Without this exception the image builds from an unpinned tree.
+!relay-server/package-lock.json
 
 # Environment
 .env
@@ -92,9 +96,6 @@ design-docs/
 # and the tracked reference docs linked from AGENTS.md / README.md).
 docs/**
 !docs/
-# The deployable docs app is source, not local engineering notes.
-!docs/site/
-!docs/site/**
 !docs/assets/
 !docs/assets/**
 !docs/readme/
@@ -102,6 +103,10 @@ docs/**
 !docs/STYLEGUIDE.md
 !docs/agent-skill-sharing-implementation-checklist.md
 !docs/mobile-terminal-shortcut-bar.md
+# Release notes are read at package time by electron-builder and shipped inside
+# every latest*.yml, so CI must be able to check them out.
+!docs/release-notes/
+!docs/release-notes/**
 !docs/reference/
 !docs/reference/git-compatibility.md
 !docs/reference/headless-linux-server.md
@@ -139,8 +144,13 @@ validation-screenshots/
 test-results/
 playwright-report/
 
-# Agent skill installations (machine-local, populated by agent tooling)
-/.claude/skills/
+# Agent skill installations (machine-local, populated by agent tooling).
+# The glob rather than the bare directory so a repo-owned skill can be carved
+# back out — git cannot re-include anything under an excluded directory.
+/.claude/skills/*
+# Kept in the repo: syncing from upstream is a process this fork has to repeat,
+# and the tooling only makes sense next to the notes explaining it.
+!/.claude/skills/upstream-sync/
 /.agents/skills/
 /skills-lock.json
 
@@ -168,3 +178,7 @@ tests/e2e/.cross-version-checkouts/
 # IS committed). Also keeps oxfmt/oxlint, which honor this file, from walking
 # vendored gems.
 /mobile/vendor/
+
+# The sync skill runs Python; its bytecode is not source.
+__pycache__/
+*.pyc

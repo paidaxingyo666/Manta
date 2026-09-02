@@ -16,7 +16,8 @@ vi.mock('./ui', () => mocks.ui)
 import { registerGitHubHandlers } from './github'
 import { createGitHubIpcHarness } from './github-ipc-test-harness'
 
-const { getAuthenticatedViewer: getAuthenticatedViewerMock, starManta: starMantaMock } = mocks.client
+const { getAuthenticatedViewer: getAuthenticatedViewerMock, starManta: starMantaMock } =
+  mocks.client
 const { track: trackMock } = mocks.telemetry
 const { getCohortAtEmit: getCohortAtEmitMock } = mocks.cohort
 

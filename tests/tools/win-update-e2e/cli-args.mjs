@@ -105,7 +105,9 @@ function pathsOverlap(a, b) {
 
 /** A prior harness install directory carries both the app exe and its uninstaller. */
 function looksLikeHarnessInstall(dir) {
-  return existsSync(path.join(dir, 'Manta.exe')) && existsSync(path.join(dir, 'Uninstall Manta.exe'))
+  return (
+    existsSync(path.join(dir, 'Manta.exe')) && existsSync(path.join(dir, 'Uninstall Manta.exe'))
+  )
 }
 
 /**

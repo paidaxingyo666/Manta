@@ -108,7 +108,7 @@ function runtimeWithCloud(options: {
   })
   const createShare = vi.fn(async () => ({
     status: 'ok' as const,
-    value: { id: 'share-id', url: 'https://share.manta.sh.cn/skills/share/share-id' }
+    value: { id: 'share-id', url: 'https://share.onmanta.dev/skills/share/share-id' }
   }))
   const runtime = new MantaRuntimeService({
     getSettings: () => ({

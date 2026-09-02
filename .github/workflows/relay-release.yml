@@ -1,0 +1,338 @@
+# Publishes the relay image on a `relay-v*` tag.
+#
+# Why one build pushed to three registries rather than three builds: the digest
+# has to match across them. An operator who pins a digest from Docker Hub and
+# pulls from Aliyun should get the identical image, and rebuilding per registry
+# cannot promise that.
+#
+# Registries are opt-in per secret. A fork with only Docker Hub configured
+# publishes there and skips the rest instead of failing the run.
+name: Relay release
+
+on:
+  push:
+    tags:
+      - 'relay-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish, without the leading v (e.g. 1.0.0)'
+        required: true
+      dry_run:
+        description: 'Build and verify without pushing'
+        type: boolean
+        default: true
+
+concurrency:
+  group: relay-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Two native builders rather than one emulated. arm64 under QEMU on an x86
+  # runner spends forty minutes on `npm ci` and `tsc` alone; each arch on its
+  # own hardware takes a couple. They publish arch-suffixed tags, and the
+  # manifest job below joins them under the real one.
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      failed: ${{ steps.tags.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            version="${{ inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#relay-v}"
+          fi
+          # A tag that does not parse is a typo, not a prerelease to guess at.
+          if ! printf '%s' "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::'$version' is not semver" && exit 1
+          fi
+          # The image must not claim a version the source does not carry.
+          declared=$(node -p "require('./relay-server/package.json').version")
+          if [ "$declared" != "$version" ]; then
+            echo "::error::relay-server/package.json says $declared, tag says $version" && exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$(printf '%s' "$version" | grep -q -- '-' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      # The standalone subset only. Most of the suite imports the desktop's
+      # protocol code — deliberately, to prove both sides agree — and that needs
+      # the parent workspace installed, which is minutes of Electron for a check
+      # PR CI already ran on this commit. Typecheck and the image build below
+      # cover the rest.
+      - name: Verify before publishing
+        working-directory: relay-server
+        run: |
+          npm ci --no-audit --no-fund
+          npm run check:standalone
+
+      - name: Which registries are configured
+        id: registries
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+        run: |
+          set -euo pipefail
+          echo "dockerhub=$([ -n "$DOCKERHUB_REPO" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "aliyun=$([ -n "$ALIYUN_REGISTRY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "tencent=$([ -n "$TENCENT_REGISTRY" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      # Each login is skipped when its secret is absent, so a fork configures
+      # only the registries it actually uses.
+      - name: Log in to Docker Hub
+        id: login_dockerhub
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
+        if: steps.registries.outputs.dockerhub == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Aliyun ACR
+        id: login_aliyun
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
+        if: steps.registries.outputs.aliyun == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Log in to Tencent TCR
+        id: login_tencent
+        # One registry rejecting credentials must not strip the others of a
+        # release. The push below skips whatever failed here, and the summary
+        # names it; the job still ends red so the bad credential gets fixed.
+        continue-on-error: true
+        if: steps.registries.outputs.tencent == 'true' && !inputs.dry_run
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.TENCENT_REGISTRY }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+
+      - name: Assemble tags
+        id: tags
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARCH: ${{ matrix.arch }}
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+          TENCENT_REPO: ${{ secrets.TENCENT_REPO }}
+          DOCKERHUB_OK: ${{ steps.login_dockerhub.outcome }}
+          ALIYUN_OK: ${{ steps.login_aliyun.outcome }}
+          TENCENT_OK: ${{ steps.login_tencent.outcome }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          tags=""
+          failed=""
+          # A dry run never logs in, so outcome is empty there and everything is
+          # taggable; a real run only tags what accepted our credentials.
+          usable() {
+            [ "$DRY_RUN" = "true" ] && return 0
+            [ "$1" = "success" ]
+          }
+          # Arch-suffixed only. A bare `:1.0.0` here would be half a manifest,
+          # and whoever pulled it between the two builds would get an image that
+          # does not run on their machine.
+          add() { tags="${tags}${1}:${VERSION}-${ARCH}"$'\n'; }
+          # `if`, not `cond && add`: under `set -e` a false condition makes the
+          # whole line return non-zero and kills the step.
+          if [ -n "$DOCKERHUB_REPO" ]; then
+            if usable "$DOCKERHUB_OK"; then add "$DOCKERHUB_REPO"; else failed="${failed}Docker Hub "; fi
+          fi
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_REPO" ]; then
+            if usable "$ALIYUN_OK"; then add "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"; else failed="${failed}Aliyun "; fi
+          fi
+          if [ -n "$TENCENT_REGISTRY" ] && [ -n "$TENCENT_REPO" ]; then
+            if usable "$TENCENT_OK"; then add "${TENCENT_REGISTRY}/${TENCENT_REPO}"; else failed="${failed}Tencent "; fi
+          fi
+          if [ -n "$failed" ]; then
+            echo "::warning::Sign-in failed, skipping: ${failed}"
+          fi
+          echo "failed=${failed}" >> "$GITHUB_OUTPUT"
+          if [ -z "$tags" ]; then
+            echo "::error::No registry accepted our credentials." && exit 1
+          fi
+          # A repository path missing its namespace logs in fine and is refused
+          # at push, after a full build. Catch the shape here instead.
+          check_path() {
+            case "$2" in
+              */*) ;;
+              '') ;;
+              *) echo "::error::$1 needs namespace/repository, got a single segment" && exit 1 ;;
+            esac
+            case "$2" in
+              */) echo "::error::$1 has a trailing slash" && exit 1 ;;
+              http*) echo "::error::$1 must not include a scheme" && exit 1 ;;
+            esac
+          }
+          check_path DOCKERHUB_REPO "$DOCKERHUB_REPO"
+          check_path ALIYUN_REPO "$ALIYUN_REPO"
+          check_path TENCENT_REPO "$TENCENT_REPO"
+          { echo 'tags<<EOF'; printf '%s' "$tags"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: relay-server
+          platforms: linux/${{ matrix.arch }}
+          push: ${{ !inputs.dry_run }}
+          tags: ${{ steps.tags.outputs.tags }}
+          # Attestation manifests confuse registries that only understand the
+          # classic multi-arch index; Aliyun ACR is one of them.
+          provenance: false
+          build-args: |
+            MANTA_RELAY_VERSION=${{ steps.version.outputs.version }}
+            MANTA_RELAY_REVISION=${{ github.sha }}
+            MANTA_RELAY_BUILT_AT=${{ steps.version.outputs.built_at }}
+          cache-from: type=gha,scope=relay-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=relay-${{ matrix.arch }}
+
+      - name: Report
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          FAILED: ${{ steps.tags.outputs.failed }}
+        run: |
+          {
+            echo "### Relay ${{ steps.version.outputs.version }}"
+            echo
+            if [ "${{ inputs.dry_run }}" = "true" ]; then echo "_Dry run — nothing pushed._"; echo; fi
+            echo "Digest: \`${DIGEST:-n/a}\`"
+            echo
+            echo '```'
+            printf '%s\n' "${{ steps.tags.outputs.tags }}"
+            echo '```'
+            if [ -n "$FAILED" ]; then
+              echo
+              echo "**Not published — sign-in rejected:** $FAILED"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Published where it could, but a configured registry that refused us
+          # is a broken release, not a partial success.
+          if [ -n "$FAILED" ]; then
+            echo "::error::Sign-in failed for: $FAILED" && exit 1
+          fi
+
+  # Joins the per-arch tags into the one people actually pull. Runs even if an
+  # arch failed, so a working amd64 image is still published — but only over the
+  # arches that succeeded, and it says which are missing.
+  manifest:
+    needs: build
+    if: ${{ !inputs.dry_run && !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        id: login_dockerhub
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to Aliyun ACR
+        id: login_aliyun
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Log in to Tencent TCR
+        id: login_tencent
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.TENCENT_REGISTRY }}
+          username: ${{ secrets.TENCENT_USERNAME }}
+          password: ${{ secrets.TENCENT_PASSWORD }}
+
+      - name: Create manifests
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_REPO }}
+          ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+          ALIYUN_REPO: ${{ secrets.ALIYUN_REPO }}
+          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
+          TENCENT_REPO: ${{ secrets.TENCENT_REPO }}
+        run: |
+          set -euo pipefail
+          published=""
+          join() {
+            repo="$1"
+            sources=""
+            for arch in amd64 arm64; do
+              if docker buildx imagetools inspect "${repo}:${VERSION}-${arch}" >/dev/null 2>&1; then
+                sources="${sources} ${repo}:${VERSION}-${arch}"
+              else
+                echo "::warning::${repo}:${VERSION}-${arch} is missing; leaving it out"
+              fi
+            done
+            if [ -z "$sources" ]; then
+              echo "::warning::no architectures published for ${repo}"
+              return 0
+            fi
+            # shellcheck disable=SC2086
+            docker buildx imagetools create --tag "${repo}:${VERSION}" $sources
+            # `latest` only for a real release: a prerelease that claimed it
+            # would be served to every `docker pull <repo>` with no tag.
+            if [ "$PRERELEASE" = "false" ]; then
+              # shellcheck disable=SC2086
+              docker buildx imagetools create --tag "${repo}:latest" $sources
+            fi
+            published="${published}${repo}:${VERSION}"$'\n'
+          }
+          if [ -n "$DOCKERHUB_REPO" ]; then join "$DOCKERHUB_REPO"; fi
+          if [ -n "$ALIYUN_REGISTRY" ] && [ -n "$ALIYUN_REPO" ]; then
+            join "${ALIYUN_REGISTRY}/${ALIYUN_REPO}"
+          fi
+          if [ -n "$TENCENT_REGISTRY" ] && [ -n "$TENCENT_REPO" ]; then
+            join "${TENCENT_REGISTRY}/${TENCENT_REPO}"
+          fi
+          if [ -z "$published" ]; then
+            echo "::error::nothing was published" && exit 1
+          fi
+          {
+            echo "### Relay ${VERSION}"
+            echo
+            echo '```'
+            printf '%s' "$published"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

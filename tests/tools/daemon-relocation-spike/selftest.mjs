@@ -130,7 +130,10 @@ function run() {
   ]
   const resident = findAppDirResidentModules(modules, appDir)
   check('detects app-dir module', resident.length === 1)
-  check('detects the right module', resident[0].toLowerCase().includes('programs\\manta\\manta.exe'))
+  check(
+    'detects the right module',
+    resident[0].toLowerCase().includes('programs\\manta\\manta.exe')
+  )
   // Sibling-prefix must NOT match (C:\...\manta vs C:\...\manta-daemon-host).
   check(
     'sibling prefix not matched',

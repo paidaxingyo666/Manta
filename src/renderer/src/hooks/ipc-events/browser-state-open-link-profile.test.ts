@@ -68,7 +68,7 @@ describe('link-opened Manta tabs', () => {
           {
             id: 'workspace-1',
             sessionProfileId: 'profile-client-a',
-            sessionPartition: 'persist:manta-browser-session-client-a'
+            sessionPartition: 'persist:orca-browser-session-client-a'
           }
         ]
       },
@@ -82,7 +82,7 @@ describe('link-opened Manta tabs', () => {
       'https://docs.example.com/guide',
       expect.objectContaining({
         sessionProfileId: 'profile-client-a',
-        sessionPartition: 'persist:manta-browser-session-client-a'
+        sessionPartition: 'persist:orca-browser-session-client-a'
       })
     )
   })

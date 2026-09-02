@@ -118,6 +118,12 @@ describe('electron-builder config', () => {
       to: 'plugins/launch'
     })
     for (const platform of ['mac', 'linux', 'win']) {
+      expect(electronBuilderConfig[platform].extraResources).toEqual(
+        expect.arrayContaining([
+          { from: 'LICENSE', to: 'LICENSE' },
+          { from: 'out/relay', to: 'relay' }
+        ])
+      )
       expect(electronBuilderConfig[platform].extraResources).toContainEqual({
         from: 'resources/skills',
         to: 'skills'
@@ -626,7 +632,7 @@ describe('electron-builder config', () => {
           join(unpackedCliDir, 'index.js'),
           [
             'const args = process.argv.slice(2)',
-            "if (args[1] === 'list') console.log(JSON.stringify({ topics: [{ name: 'orca-cli' }, { name: 'computer-use' }] }))",
+            "if (args[1] === 'list') console.log(JSON.stringify({ topics: [{ name: 'manta-cli' }, { name: 'computer-use' }] }))",
             "else if (args[1] === 'get') console.log(`---\\nname: ${args[2]}\\n---`)",
             'else console.log(JSON.stringify({ executed: false }))'
           ].join('\n'),
@@ -680,5 +686,19 @@ describe('electron-builder config', () => {
         expect(source).toContain(`value === '${target}'`)
       }
     })
+  })
+})
+
+describe('macOS release architectures', () => {
+  // Restored after a local-build convenience shrank it to arm64 alone and the
+  // comment made that read as a shipping decision. Intel Macs get a build.
+  it('ships x64 and arm64 from one invocation', () => {
+    expect(electronBuilderConfig.mac.target.map((entry) => entry.target).sort()).toEqual([
+      'dmg',
+      'zip'
+    ])
+    for (const entry of electronBuilderConfig.mac.target) {
+      expect(entry.arch).toEqual(['x64', 'arm64'])
+    }
   })
 })

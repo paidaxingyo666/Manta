@@ -73,7 +73,9 @@ async function runOrgMemberCall<T>(
   }
 }
 
-function mapMutationRequestError(error: MantaCloudRequestError): MantaProfileOrgMemberMutationResult {
+function mapMutationRequestError(
+  error: MantaCloudRequestError
+): MantaProfileOrgMemberMutationResult {
   switch (error.statusCode) {
     case 403:
       return { status: 'forbidden' }

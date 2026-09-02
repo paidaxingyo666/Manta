@@ -53,7 +53,7 @@ function renderHeader({
         state: 'open',
         url: isGitLab
           ? 'https://gitlab.com/acme/manta/-/merge_requests/31'
-          : 'https://github.com/stablyai/orca/pull/2964',
+          : 'https://github.com/stablyai/manta/pull/2964',
         status: 'pending',
         updatedAt: '2026-05-31T22:58:01Z',
         mergeable: 'UNKNOWN'
@@ -100,7 +100,9 @@ describe('ChecksPanelReviewHeader', () => {
   // Why: with inverting on and Link Routing off the modifier reaches Manta here, so the
   // hint must name Manta rather than the destination a plain click already uses.
   it('names Manta when the modifier inverts toward the built-in browser', () => {
-    expect(renderHeader({ modifierHintDestination: 'manta' })).toContain('⇧⌘+click to open in Manta')
+    expect(renderHeader({ modifierHintDestination: 'manta' })).toContain(
+      '⇧⌘+click to open in Manta'
+    )
 
     vi.stubGlobal('navigator', { userAgent: 'Windows' })
     expect(renderHeader({ modifierHintDestination: 'manta' })).toContain(

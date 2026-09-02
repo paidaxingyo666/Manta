@@ -84,7 +84,7 @@ describe('reportSecretProtectionGap', () => {
 
   it('re-reports when the stored state is corrupt rather than trusting it', () => {
     installStore(WEAK)
-    writeFileSync(join(dir, 'manta-secret-protection.json'), '{ not json', 'utf-8')
+    writeFileSync(join(dir, 'orca-secret-protection.json'), '{ not json', 'utf-8')
     expect(report()).toBe(WEAK)
     expect(logged).toHaveLength(1)
   })

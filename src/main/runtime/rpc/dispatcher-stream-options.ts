@@ -1,3 +1,4 @@
+import type { DevicePushTokenRecord } from '../device-registry'
 import type { RuntimeCapability } from '../../../shared/protocol-version'
 import type { TerminalStreamFrame } from '../../../shared/terminal-stream-protocol'
 import type { PairingRpcContext } from './core'
@@ -8,6 +9,7 @@ export type RpcDispatchStreamingOptions = {
   signal?: AbortSignal
   clientId?: string
   pairedDeviceId?: string
+  setDevicePushToken?: (deviceId: string, token: DevicePushTokenRecord) => boolean
   clientKind?: 'mobile' | 'runtime'
   clientCapabilities?: readonly RuntimeCapability[]
   pairing?: PairingRpcContext

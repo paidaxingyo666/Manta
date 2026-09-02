@@ -3,6 +3,7 @@ import { ArrowRight, Files } from 'lucide-react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { Button } from '@/components/ui/button'
 import { SettingsSwitchRow } from './SettingsFormControls'
+import { ArtifactsSelfHostNotice } from '../artifacts/ArtifactsSelfHostNotice'
 import { useAppStore } from '@/store'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import { translate } from '@/i18n/i18n'
@@ -85,6 +86,7 @@ export function ArtifactsSettingsPane({
 
   return (
     <div className="divide-y divide-border">
+      <ArtifactsSelfHostNotice className="my-4" />
       <SettingsSwitchRow
         label={translate(
           'auto.components.settings.artifacts.allowPublishing',
@@ -112,7 +114,11 @@ export function ArtifactsSettingsPane({
           'Show the Artifacts shortcut in the sidebar.'
         )}
         checked={settings.showArtifactsButton === true}
-        onChange={() => void updateSettings({ showArtifactsButton: !settings.showArtifactsButton })}
+        onChange={() =>
+          void updateSettings({
+            showArtifactsButton: !settings.showArtifactsButton
+          })
+        }
       />
       {!signedIn ? (
         <section className="flex flex-wrap items-center gap-4 py-5">

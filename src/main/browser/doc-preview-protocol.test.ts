@@ -27,7 +27,7 @@ vi.mock('electron', () => ({
       return defaultSession
     },
     fromPartition: (partition: string) => {
-      if (partition !== 'manta-doc-preview') {
+      if (partition !== 'orca-doc-preview') {
         throw new Error(`unexpected partition ${partition}`)
       }
       return previewSession
@@ -132,7 +132,9 @@ describe('handleDocPreviewRequest', () => {
   })
 
   it('404s a malformed grant id', async () => {
-    const response = await handleDocPreviewRequest(new Request('manta-preview://not-a-grant/x.html'))
+    const response = await handleDocPreviewRequest(
+      new Request('manta-preview://not-a-grant/x.html')
+    )
 
     expect(response.status).toBe(404)
     expect(mocks.readDocPreviewFile).not.toHaveBeenCalled()
@@ -267,7 +269,7 @@ describe('installDocPreviewProtocolHandler', () => {
     installDocPreviewProtocolHandler()
 
     expect(mocks.installBrowserSessionPartitionPolicies).toHaveBeenCalledWith(
-      expect.objectContaining({ partition: 'manta-doc-preview', userAgentMode: 'clean' }),
+      expect.objectContaining({ partition: 'orca-doc-preview', userAgentMode: 'clean' }),
       expect.anything()
     )
   })

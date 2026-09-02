@@ -4,7 +4,9 @@ import { TASK_SEARCH_DEBOUNCE_MS, LINEAR_ITEM_LIMIT } from './task-page-source-c
 import { clampLinearIssueListLimit } from '../../../shared/linear/issue-read-limits'
 import { useTaskPageLinearCustomViewEffects } from './use-task-page-linear-custom-view-effects'
 export type TaskPageLinearCollectionEffectsPreludeModel = TaskPageLinearInMantaEffectsModel
-export function useTaskPageLinearCollectionEffectsPrelude(model: TaskPageLinearInMantaEffectsModel) {
+export function useTaskPageLinearCollectionEffectsPrelude(
+  model: TaskPageLinearInMantaEffectsModel
+) {
   const {
     setTaskResumeState,
     getCachedLinearProjects,

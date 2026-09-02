@@ -135,7 +135,8 @@ describe('addMantaWslInteropEnv', () => {
 
   it('path-translates a Windows hook endpoint but passes a guest-side one untouched', () => {
     const windowsEnv: Record<string, string> = {
-      MANTA_AGENT_HOOK_ENDPOINT: 'C:\\Users\\jin\\AppData\\Roaming\\Manta\\agent-hooks\\endpoint.cmd'
+      MANTA_AGENT_HOOK_ENDPOINT:
+        'C:\\Users\\jin\\AppData\\Roaming\\Manta\\agent-hooks\\endpoint.cmd'
     }
     addMantaWslInteropEnv(windowsEnv)
     expect(windowsEnv.WSLENV).toContain('MANTA_AGENT_HOOK_ENDPOINT/p')

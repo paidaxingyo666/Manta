@@ -326,14 +326,14 @@ describe('buildRows workspace lineage nesting', () => {
       ...parent,
       repoId: 'repo-1',
       hostId: 'local' as const,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       ...boundary
     }
     const boundedChild: ResolvedLineageWorktree = {
       ...child,
       repoId: 'repo-1',
       hostId: 'local' as const,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       lineage
     }
     const rows = buildRows(

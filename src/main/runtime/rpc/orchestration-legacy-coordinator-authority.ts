@@ -1,4 +1,7 @@
-import type { MantaRuntimeService, OrchestrationCompatibilityCallerAuthority } from '../manta-runtime'
+import type {
+  MantaRuntimeService,
+  OrchestrationCompatibilityCallerAuthority
+} from '../manta-runtime'
 import type { OrchestrationDb } from '../orchestration/db'
 import type { LegacyCompatibilityPrincipalRow } from '../orchestration/types'
 import type { LegacyCoordinatorAuthorityProof, RpcRequest } from './core'

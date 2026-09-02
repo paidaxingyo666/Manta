@@ -26,7 +26,8 @@ export function getRequiredReleaseAssetNames(tag) {
     'manta-macos-x64.dmg',
     'manta-macos-x64.dmg.blockmap',
     'manta-macos-arm64.dmg',
-    'manta-macos-arm64.dmg.blockmap'
+    'manta-macos-arm64.dmg.blockmap',
+    `manta-sourcemaps-${tag}.zip`
   ]
 }
 
@@ -150,7 +151,7 @@ async function main() {
   if (!token) {
     throw new Error('GH_TOKEN or GITHUB_TOKEN must be set')
   }
-  const repo = process.env.GITHUB_REPOSITORY || 'stablyai/orca'
+  const repo = process.env.GITHUB_REPOSITORY || 'paidaxingyo666/Manta'
   const result = await verifyRequiredReleaseAssets({ repo, tag, token })
   console.log(`Verified ${result.checked.length} required release assets for ${repo}@${tag}`)
 }

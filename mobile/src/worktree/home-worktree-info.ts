@@ -1,3 +1,4 @@
+import { translate } from '../i18n/i18n'
 export type HomeWorktreeSummary = {
   worktreeId: string
   repo: string
@@ -57,15 +58,34 @@ export function homeHostWorktreeSummary(
   }
   // Why (STA-3123): a catalog that never loaded must not assert a count the host has not proven.
   if (info.catalogUnavailable && !info.staleCounts) {
-    return 'Worktree list unavailable'
+    return translate('mobile.hostCard.worktrees.unavailable', 'Worktree list unavailable')
   }
-  const counts = `${info.totalWorktrees} worktree${info.totalWorktrees === 1 ? '' : 's'}${
-    info.activeCount > 0 ? ` · ${info.activeCount} active` : ''
-  }`
+  // Assembled from catalog entries rather than concatenation: a language that
+  // does not pluralise with "s", or orders count and noun differently, cannot
+  // be expressed by appending to an English fragment.
+  // i18next picks the _one/_other entry from `count`; Chinese has only _other,
+  // so the plural split lives in the catalog instead of in an appended "s".
+  const counts =
+    info.activeCount > 0
+      ? translate(
+          'mobile.hostCard.worktrees.withActive',
+          '{{total}} worktrees · {{active}} active',
+          {
+            total: info.totalWorktrees,
+            active: info.activeCount,
+            count: info.totalWorktrees
+          }
+        )
+      : translate('mobile.hostCard.worktrees.total', '{{total}} worktrees', {
+          total: info.totalWorktrees,
+          count: info.totalWorktrees
+        })
   // Age bounds liveness, not the counts themselves: a failed refresh — or a rehydrated snapshot the
   // host has not re-confirmed — is still the last thing it told us, so keep it and drop the claim
   // that it is current.
-  return info.staleCounts || !provenRecently(info, now) ? `Last known: ${counts}` : counts
+  return info.staleCounts || !provenRecently(info, now)
+    ? translate('mobile.hostCard.worktrees.lastKnown', 'Last known: {{counts}}', { counts })
+    : counts
 }
 
 function provenRecently(info: HostWorktreeInfo, now: number): boolean {

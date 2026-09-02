@@ -308,7 +308,9 @@ describe('registerPtyHandlers', () => {
           env: { MANTA_SEQUENCED_STARTUP_COMMAND: sequenced }
         })
 
-        expect(daemonSpawn.mock.calls.at(-1)![0].env.MANTA_SEQUENCED_STARTUP_COMMAND).toBe(sequenced)
+        expect(daemonSpawn.mock.calls.at(-1)![0].env.MANTA_SEQUENCED_STARTUP_COMMAND).toBe(
+          sequenced
+        )
       })
       posixOnlyIt(
         'strips the sequenced startup command on the local-provider spawn path too',

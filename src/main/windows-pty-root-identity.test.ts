@@ -81,7 +81,9 @@ describe('classifyWindowsTreeKillTarget', () => {
   })
 
   it.each([0, -1, 1.5, Number.NaN])('rejects the invalid root pid %s', (rootPid) => {
-    expect(classifyWindowsTreeKillTarget(rootPid, [link(4242, MANTA_PID)], MANTA_PID)).toBe('foreign')
+    expect(classifyWindowsTreeKillTarget(rootPid, [link(4242, MANTA_PID)], MANTA_PID)).toBe(
+      'foreign'
+    )
   })
 
   it('treats duplicate rows for the root as unknown, not as ownership', () => {

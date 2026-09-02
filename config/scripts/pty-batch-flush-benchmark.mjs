@@ -7,7 +7,10 @@ const PAYLOAD_CHARS = Number.parseInt(process.env.MANTA_PTY_BENCH_PAYLOAD_CHARS 
 const RUNS = Number.parseInt(process.env.MANTA_PTY_BENCH_RUNS ?? '30', 10)
 const MEASURE_TIMER_DELAYS = process.env.MANTA_PTY_BENCH_MEASURE_TIMER_DELAYS !== '0'
 const INGRESS_CHUNKS = Number.parseInt(process.env.MANTA_PTY_BENCH_INGRESS_CHUNKS ?? '96', 10)
-const INGRESS_CHUNK_CHARS = Number.parseInt(process.env.MANTA_PTY_BENCH_INGRESS_CHARS ?? '65536', 10)
+const INGRESS_CHUNK_CHARS = Number.parseInt(
+  process.env.MANTA_PTY_BENCH_INGRESS_CHARS ?? '65536',
+  10
+)
 const CHUNK_CHARS = 16 * 1024
 const MAX_WRITES_PER_SLICE = 2
 const RECENT_PTY_OUTPUT_LIMIT = 4096

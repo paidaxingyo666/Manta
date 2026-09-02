@@ -106,13 +106,13 @@ describe('Claude compact hook registration', () => {
   it('writes PostCompact, and no PreCompact, into the settings Claude actually reads', () => {
     const written = applyManagedHooks(
       { hooks: {} },
-      { type: 'command', command: 'manta-claude-hook' },
+      { type: 'command', command: 'orca-claude-hook' },
       'claude-hook.sh'
     )
     const postCompact = written.hooks?.PostCompact ?? []
     expect(
       postCompact.some((definition) =>
-        (definition.hooks ?? []).some((entry) => entry.command === 'manta-claude-hook')
+        (definition.hooks ?? []).some((entry) => entry.command === 'orca-claude-hook')
       )
     ).toBe(true)
     expect(written.hooks?.PreCompact).toBeUndefined()

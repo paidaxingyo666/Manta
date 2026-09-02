@@ -24,7 +24,7 @@ restoreUserDataPathAfterEach()
 
 describe('ensureShellReadyWrappersAt', () => {
   it('keeps required wrapper paths aligned with generated files', () => {
-    const root = '/tmp/manta-shell-ready'
+    const root = join(tmpdir(), 'manta-shell-ready')
     expect(getRequiredShellReadyWrapperPaths(root)).toEqual(
       buildLocalShellReadyWrapperFiles(root).map(([path]) => path)
     )

@@ -269,7 +269,7 @@ export function CommentCodeContext({
                   )
                 }
                 aria-label={translate(
-                  'auto.components.GitHubItemDialog.307c98e8e3',
+                  'auto.components.GitHubItemDialog.307c98e8e3.24fdee',
                   'Show {{value0}} more lines above',
                   { value0: CODE_CONTEXT_EXPAND_STEP }
                 )}
@@ -295,7 +295,7 @@ export function CommentCodeContext({
                   )
                 }
                 aria-label={translate(
-                  'auto.components.GitHubItemDialog.307c98e8e3',
+                  'auto.components.GitHubItemDialog.307c98e8e3.752457',
                   'Show {{value0}} more lines below',
                   { value0: CODE_CONTEXT_EXPAND_STEP }
                 )}

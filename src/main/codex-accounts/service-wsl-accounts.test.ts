@@ -198,7 +198,8 @@ describe('CodexAccountService config sync', () => {
     const wslManagedHomePath = join(testState.userDataDir, 'wsl-managed-home')
     const wslConfigHomePath = join(testState.userDataDir, 'wsl-config-home')
     const wslConfigPath = join(wslConfigHomePath, 'config.toml')
-    const wslLinuxHomePath = '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
+    const wslLinuxHomePath =
+      '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
     mkdirSync(wslConfigHomePath, { recursive: true })
     writeFileSync(
       wslConfigPath,
@@ -337,7 +338,8 @@ describe('CodexAccountService config sync', () => {
     })
 
     const wslManagedHomePath = join(testState.userDataDir, 'wsl-managed-home')
-    const wslLinuxHomePath = '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
+    const wslLinuxHomePath =
+      '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
 
     const execFileSyncMock = vi.fn((_command: string, args: string[]) => {
       const script = decodeEncodedWslBashCommand(String(args.at(-1)))
@@ -415,7 +417,8 @@ describe('CodexAccountService config sync', () => {
     })
 
     const wslManagedHomePath = join(testState.userDataDir, 'wsl-managed-home')
-    const wslLinuxHomePath = '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
+    const wslLinuxHomePath =
+      '/home/alice/.local/share/manta/codex-accounts/account-id-for-test/home'
 
     const execFileSyncMock = vi.fn((_command: string, args: string[]) => {
       const script = decodeEncodedWslBashCommand(String(args.at(-1)))

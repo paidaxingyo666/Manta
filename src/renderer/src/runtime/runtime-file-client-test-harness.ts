@@ -3,6 +3,7 @@ import type { Mock } from 'vitest'
 import { clearRuntimeCompatibilityCacheForTests } from './runtime-rpc-client'
 import { replaceRuntimeEnvironmentRevisions } from './runtime-environment-revision'
 import { clearLegacyQuickOpenInventoryCacheForTests } from './runtime-legacy-quick-open-inventory'
+import { clearRuntimeEnvironmentConnectionGenerationsForTests } from '@/store/slices/runtime-status'
 import {
   FILE_MUTATION_OWNERSHIP_RUNTIME_CAPABILITY,
   MIN_COMPATIBLE_RUNTIME_CLIENT_VERSION,
@@ -64,6 +65,7 @@ export function installRuntimeFileClientEnvironment(): void {
     delete (globalThis as { __MANTA_WEB_CLIENT__?: boolean }).__MANTA_WEB_CLIENT__
     clearRuntimeCompatibilityCacheForTests()
     clearLegacyQuickOpenInventoryCacheForTests()
+    clearRuntimeEnvironmentConnectionGenerationsForTests()
     replaceRuntimeEnvironmentRevisions([])
     fsReadFile.mockReset()
     fsWriteFile.mockReset()

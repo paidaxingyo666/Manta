@@ -78,11 +78,18 @@ describe('browser route partition identity', () => {
 
   // Why: both names are persisted, so a changed hash input, order, tag, or version relocates
   // every existing user's cookie jar instead of failing.
+  //
+  // These differ from upstream's by exactly one thing: the component tag reads
+  // `manta-profile` and the version prefix `manta-browser-v1`, where upstream
+  // says orca. Free to change here only because this module arrived in the same
+  // sync that renamed it — no build of this fork has ever written a partition
+  // under the old name, so there is nothing to relocate. Anything that moves
+  // them after this point does relocate real cookie jars.
   it('pins the derived partition and fingerprint against silent relocation', () => {
     expect(deriveBrowserRoutePartition(pinnedIdentity)).toEqual({
       partition:
-        'persist:manta-browser-v1-955a5db671b210d053d64d1e557d8cdf1e60e1e6cb710a033f1b5cd1b61e6586',
-      bindingFingerprint: 'fe69d9d83ab889b68eeb185f12821e4e0e77dcc91fc4cb7672c88e7818a4ded7'
+        'persist:manta-browser-v1-e054b77296faa69b8da1acaaf2b3fbbc3dac3a2dc7f2d5a50ffda1e327126d2d',
+      bindingFingerprint: 'fb75d2cc662fedd2a0ffdf5a149e117aa20068656b16dfd5ead92415ec2a87fa'
     })
   })
 
@@ -100,7 +107,7 @@ describe('browser route partition identity', () => {
       environmentId: 'environment-a'
     })
 
-    expect(scope).toBe('2821c92c85c9724ddb6136aeeec266a84fc5a9ea00f61faacef8db89bea79fb4')
+    expect(scope).toBe('805fa06af660887e3b788fa45f1b53a1351337b23796d592b14625c5c3317e13')
     expect(
       deriveBrowserRoutePartitionStorageScope({
         mantaProfileId: 'manta/profile:alpha',

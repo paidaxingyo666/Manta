@@ -11,10 +11,10 @@ import {
 import type { RpcClient } from '../transport/rpc-client'
 import type { SmartWorkspaceSourceRow as SourceRow } from '../../../src/shared/new-workspace/smart-workspace-source-results'
 import {
-  MR_STATE_FILTER_OPTIONS,
+  mrStateFilterOptions,
   resolveAvailableSmartModes,
   resolveDefaultSmartMode,
-  SMART_MODE_OPTIONS,
+  smartModeOptions,
   type SmartModeAvailabilityInput,
   type SmartModeOption
 } from '../tasks/mobile-smart-source-modes'
@@ -30,6 +30,7 @@ import { BottomDrawer } from './BottomDrawer'
 import { smartWorkspaceSourceDrawerStyles as styles } from './smart-workspace-source-drawer-styles'
 import { SmartSourceModeIcon } from './SmartSourceModeIcon'
 import { SmartWorkspaceSourceRow } from './SmartWorkspaceSourceRow'
+import { translate } from '../i18n/i18n'
 
 // Why: match MobileSearchField — native autoFocus alone often fails to raise
 // the soft keyboard when the drawer is mid-present animation.
@@ -176,7 +177,7 @@ export function SmartWorkspaceSourceDrawer({
   const showEmpty =
     !loading && !error && !needsGitHubRemote && effectiveMode !== 'text' && rows.length === 0
 
-  const modeTabs = SMART_MODE_OPTIONS.filter((option: SmartModeOption) =>
+  const modeTabs = smartModeOptions().filter((option: SmartModeOption) =>
     availableModes.includes(option.id)
   )
 
@@ -196,9 +197,13 @@ export function SmartWorkspaceSourceDrawer({
           top; dock must stay a non-flex sibling so FlatList cannot clip it. */}
       <View style={styles.root}>
         <View style={styles.header}>
-          <Text style={styles.title}>Name or &apos;Create From&apos;</Text>
+          <Text style={styles.title}>
+            {translate('m.SmartWorkspaceSourceDrawer.e62b83862e', "Name or 'Create From'")}
+          </Text>
           <Pressable onPress={onClose} hitSlop={8}>
-            <Text style={styles.done}>Done</Text>
+            <Text style={styles.done}>
+              {translate('m.SmartWorkspaceSourceDrawer.03acecfbb2', 'Done')}
+            </Text>
           </Pressable>
         </View>
 
@@ -206,19 +211,22 @@ export function SmartWorkspaceSourceDrawer({
           {crossRepoPrompt ? (
             <View style={styles.crossRepo}>
               <Text style={styles.crossRepoText}>
-                This item lives in {crossRepoPrompt.link.slug.owner}/
-                {crossRepoPrompt.link.slug.repo}.
+                {translate('m.SmartWorkspaceSourceDrawer.db63c6e582', 'This item lives in')}{' '}
+                {crossRepoPrompt.link.slug.owner}/{crossRepoPrompt.link.slug.repo}.
               </Text>
               <View style={styles.crossRepoActions}>
                 <Pressable style={styles.crossRepoDismiss} onPress={dismissCrossRepoPrompt}>
-                  <Text style={styles.crossRepoDismissText}>Cancel</Text>
+                  <Text style={styles.crossRepoDismissText}>
+                    {translate('m.SmartWorkspaceSourceDrawer.87c5ca6ae6', 'Cancel')}
+                  </Text>
                 </Pressable>
                 <Pressable
                   style={styles.crossRepoSwitch}
                   onPress={() => void handleAcceptCrossRepo()}
                 >
                   <Text style={styles.crossRepoSwitchText}>
-                    Switch to {crossRepoPrompt.matchingRepo.displayName}
+                    {translate('m.SmartWorkspaceSourceDrawer.4e42fd4474', 'Switch to')}{' '}
+                    {crossRepoPrompt.matchingRepo.displayName}
                   </Text>
                 </Pressable>
               </View>
@@ -226,10 +234,18 @@ export function SmartWorkspaceSourceDrawer({
           ) : null}
 
           {!sshReady && effectiveMode !== 'text' && effectiveMode !== 'linear' ? (
-            <Text style={styles.notice}>Connect the repository to search sources.</Text>
+            <Text style={styles.notice}>
+              {translate(
+                'm.SmartWorkspaceSourceDrawer.dac35958b2',
+                'Connect the repository to search sources.'
+              )}
+            </Text>
           ) : needsGitHubRemote ? (
             <Text style={styles.notice}>
-              This SSH repo needs a GitHub remote to list issues and PRs.
+              {translate(
+                'm.SmartWorkspaceSourceDrawer.2db388fb01',
+                'This SSH repo needs a GitHub remote to list issues and PRs.'
+              )}{' '}
             </Text>
           ) : error ? (
             <Text style={styles.errorNotice}>{error}</Text>
@@ -249,9 +265,17 @@ export function SmartWorkspaceSourceDrawer({
                   <ActivityIndicator size="small" color={colors.textSecondary} />
                 </View>
               ) : showEmpty ? (
-                <Text style={styles.empty}>{emptyHint || 'No results found.'}</Text>
+                <Text style={styles.empty}>
+                  {emptyHint ||
+                    translate('m.SmartWorkspaceSourceDrawer.4234b3bdce', 'No results found.')}
+                </Text>
               ) : rows.length === 0 && effectiveMode === 'text' ? (
-                <Text style={styles.empty}>Type a workspace name in the field below.</Text>
+                <Text style={styles.empty}>
+                  {translate(
+                    'm.SmartWorkspaceSourceDrawer.a8d3d7ff0b',
+                    'Type a workspace name in the field below.'
+                  )}
+                </Text>
               ) : null
             }
             renderItem={({ item }) => (
@@ -263,7 +287,7 @@ export function SmartWorkspaceSourceDrawer({
         <View style={styles.dock}>
           {effectiveMode === 'gitlab' ? (
             <View style={styles.chipRow}>
-              {MR_STATE_FILTER_OPTIONS.map((option) => {
+              {mrStateFilterOptions().map((option) => {
                 const selected = option.id === mrStateFilter
                 return (
                   <Pressable
@@ -304,7 +328,10 @@ export function SmartWorkspaceSourceDrawer({
             style={styles.search}
             value={composer.name}
             onChangeText={composer.setName}
-            placeholder="Type a name or search a source"
+            placeholder={translate(
+              'm.SmartWorkspaceSourceDrawer.a8eb2a26fd',
+              'Type a name or search a source'
+            )}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}

@@ -93,10 +93,12 @@ concurrency:
 
 jobs:
   build-win:
-    if: github.repository == 'stablyai/orca'
+    if: github.repository == 'paidaxingyo666/Manta'
     # Why the same environment as the mac workflows: this needs the App token
     # that can write to the dev-channel repos, and it should be reachable from
-    # exactly the same place those secrets already live.
+    # exactly the same place those secrets already live. In the fork that
+    # environment does not exist and must stay empty — see the note in
+    # adhoc-mac-build.yml. Apple credentials belong in `apple-signing`.
     environment: adhoc-mac-build
     # Why windows-2022 and not windows-latest: windows-latest moved to the
     # Windows 2025 / VS 2026 image before node-gyp could detect VS 18, breaking
@@ -154,11 +156,11 @@ jobs:
           git init -q --bare "$scratch"
           git -C "$scratch" fetch -q --filter=tree:0 "$REPO_URL" '+refs/heads/*:refs/heads/*' '+refs/tags/*:refs/tags/*'
           if ! git -C "$scratch" rev-parse --verify --quiet "$REQUESTED_SHA^{commit}" >/dev/null; then
-            echo "::error::Commit $REQUESTED_SHA is not in stablyai/orca."
+            echo "::error::Commit $REQUESTED_SHA is not in stablyai/manta."
             exit 1
           fi
           if [[ -z "$(git -C "$scratch" for-each-ref --contains "$REQUESTED_SHA" refs/heads refs/tags | head -1)" ]]; then
-            echo "::error::Commit $REQUESTED_SHA is not reachable from any branch or tag of stablyai/orca; refusing to build it."
+            echo "::error::Commit $REQUESTED_SHA is not reachable from any branch or tag of stablyai/manta; refusing to build it."
             exit 1
           fi
           echo "Vetted $CHANNEL $TAG at $REQUESTED_SHA"
@@ -167,7 +169,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
-          # This job only reads stablyai/orca and never pushes; every write goes
+          # This job only reads stablyai/manta and never pushes; every write goes
           # to the dev-channel repo through a minted App token passed by env
           # (zizmor: artipacked).
           persist-credentials: false
@@ -250,7 +252,7 @@ jobs:
           # Why unset MANTA_BUILD_IDENTITY: telemetry's transport gate accepts only
           # 'stable' or 'rc', so leaving it unset keeps dev builds silent — which
           # is correct for unvetted artifacts. Same as the mac dev channels.
-          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          MANTA_DIAGNOSTICS_TOKEN_URL: https://www.onmanta.dev/diagnostics/token
 
       # Why the token is minted here and not at the top: installation tokens live
       # one hour and nothing before this point writes anything.
@@ -273,8 +275,8 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           set -euo pipefail
-          if ! gh release view "$TAG" --repo "stablyai/orca-$CHANNEL" --json tagName >/dev/null 2>&1; then
-            echo "::error::Release $TAG no longer exists in stablyai/orca-$CHANNEL; the mac leg most likely failed and discarded it. Not creating a Windows-only release."
+          if ! gh release view "$TAG" --repo "stablyai/manta-$CHANNEL" --json tagName >/dev/null 2>&1; then
+            echo "::error::Release $TAG no longer exists in stablyai/manta-$CHANNEL; the mac leg most likely failed and discarded it. Not creating a Windows-only release."
             exit 1
           fi
 
@@ -305,7 +307,7 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           set -euo pipefail
-          assets="$(gh release view "$TAG" --repo "stablyai/orca-$CHANNEL" --json assets --jq '.assets[].name')"
+          assets="$(gh release view "$TAG" --repo "stablyai/manta-$CHANNEL" --json assets --jq '.assets[].name')"
           echo "Assets on $TAG:"
           echo "$assets"
           for required in latest.yml manta-windows-setup.exe; do

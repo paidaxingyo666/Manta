@@ -123,7 +123,10 @@ const MantaYamlTrustDialog = React.memo(function MantaYamlTrustDialog() {
             {previouslyApproved ? (
               <>
                 <code>
-                  {translate('auto.components.sidebar.MantaYamlTrustDialog.79afc6772b', 'manta.yaml')}
+                  {translate(
+                    'auto.components.sidebar.MantaYamlTrustDialog.79afc6772b',
+                    'manta.yaml'
+                  )}
                 </code>{' '}
                 {translate(
                   'auto.components.sidebar.MantaYamlTrustDialog.c55beddbf8',
@@ -138,7 +141,10 @@ const MantaYamlTrustDialog = React.memo(function MantaYamlTrustDialog() {
                   "This repository's"
                 )}{' '}
                 <code>
-                  {translate('auto.components.sidebar.MantaYamlTrustDialog.79afc6772b', 'manta.yaml')}
+                  {translate(
+                    'auto.components.sidebar.MantaYamlTrustDialog.79afc6772b',
+                    'manta.yaml'
+                  )}
                 </code>{' '}
                 {translate(
                   'auto.components.sidebar.MantaYamlTrustDialog.831f2cd9f0',

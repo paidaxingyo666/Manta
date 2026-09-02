@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildTerminalShortcutKey, TERMINAL_ACCESSORY_KEYS } from './terminal-accessory-keys'
+import { buildTerminalShortcutKey, terminalAccessoryKeys } from './terminal-accessory-keys'
 
 describe('TERMINAL_ACCESSORY_KEYS', () => {
   it('sends reverse-tab with a non-repeatable Shift+Tab key', () => {
-    const key = TERMINAL_ACCESSORY_KEYS.find((candidate) => candidate.id === 'shiftTab')
+    const key = terminalAccessoryKeys().find((candidate) => candidate.id === 'shiftTab')
 
     expect(key).toEqual({
       id: 'shiftTab',
@@ -15,7 +15,7 @@ describe('TERMINAL_ACCESSORY_KEYS', () => {
   })
 
   it('includes a non-repeatable Enter default key', () => {
-    expect(TERMINAL_ACCESSORY_KEYS.find((candidate) => candidate.id === 'enter')).toEqual({
+    expect(terminalAccessoryKeys().find((candidate) => candidate.id === 'enter')).toEqual({
       id: 'enter',
       label: 'Enter',
       bytes: '\r',
@@ -24,9 +24,9 @@ describe('TERMINAL_ACCESSORY_KEYS', () => {
   })
 
   it('includes a non-repeatable Space default key near the primary editing keys', () => {
-    const ids = TERMINAL_ACCESSORY_KEYS.map((key) => key.id)
+    const ids = terminalAccessoryKeys().map((key) => key.id)
 
-    expect(TERMINAL_ACCESSORY_KEYS.find((candidate) => candidate.id === 'space')).toEqual({
+    expect(terminalAccessoryKeys().find((candidate) => candidate.id === 'space')).toEqual({
       id: 'space',
       label: 'Space',
       bytes: ' ',
@@ -39,14 +39,14 @@ describe('TERMINAL_ACCESSORY_KEYS', () => {
   })
 
   it('has unique non-empty built-in ids', () => {
-    const ids = TERMINAL_ACCESSORY_KEYS.map((key) => key.id)
+    const ids = terminalAccessoryKeys().map((key) => key.id)
 
     expect(ids.every((id) => id.length > 0)).toBe(true)
     expect(new Set(ids).size).toBe(ids.length)
   })
 
   it('keeps all built-in terminal keys byte-backed', () => {
-    expect(TERMINAL_ACCESSORY_KEYS.every((key) => key.bytes.length > 0)).toBe(true)
+    expect(terminalAccessoryKeys().every((key) => key.bytes.length > 0)).toBe(true)
   })
 
   it('keeps repeat behavior explicit for built-in terminal keys', () => {
@@ -59,7 +59,7 @@ describe('TERMINAL_ACCESSORY_KEYS', () => {
       'arrowRight'
     ])
 
-    for (const key of TERMINAL_ACCESSORY_KEYS) {
+    for (const key of terminalAccessoryKeys()) {
       expect(key.repeatable === true).toBe(repeatableIds.has(key.id))
     }
   })

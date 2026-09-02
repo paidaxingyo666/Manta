@@ -179,17 +179,17 @@ describe('MantaRuntimeService', () => {
     try {
       execFileSync('git', ['init'], { cwd: tempRoot, stdio: 'ignore' })
       const result = await runtime.setupProjectExistingFolder({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-1',
         path: tempRoot,
         kind: 'git',
         setupMethod: 'imported-existing-folder'
       })
 
-      expect(result.project.id).toBe('github:stablyai/orca')
+      expect(result.project.id).toBe('github:stablyai/manta')
       expect(result.repo.path).toBe(tempRoot)
       expect(result.setup).toMatchObject({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         path: tempRoot,
         setupMethod: 'imported-existing-folder'
       })
@@ -365,14 +365,14 @@ describe('MantaRuntimeService', () => {
     try {
       execFileSync('git', ['init'], { cwd: tempRoot, stdio: 'ignore' })
       const first = await runtime.setupProjectExistingFolder({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-1',
         path: tempRoot,
         kind: 'git',
         setupMethod: 'imported-existing-folder'
       })
       const second = await runtime.setupProjectExistingFolder({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-2',
         path: tempRoot,
         kind: 'git',
@@ -565,7 +565,7 @@ describe('MantaRuntimeService', () => {
 
     try {
       const result = await runtime.setupProjectClone({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-1',
         url: 'https://example.com/manta.git',
         destination
@@ -619,7 +619,7 @@ describe('MantaRuntimeService', () => {
     try {
       const cloneError = await runtime
         .setupProjectClone({
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:openclaw',
           url: 'https://example.com/manta.git',
           destination
@@ -627,7 +627,7 @@ describe('MantaRuntimeService', () => {
         .catch((error: unknown) => error)
       const existingFolderError = await runtime
         .setupProjectExistingFolder({
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:openclaw',
           path: existingFolder,
           kind: 'git'

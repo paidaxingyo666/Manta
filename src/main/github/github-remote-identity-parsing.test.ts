@@ -151,7 +151,10 @@ describe('SSH Host alias identity (#10284)', () => {
 
   it('returns owner/repo when resolved HostName is ssh.github.com (SSH-over-HTTPS)', () => {
     expect(
-      parseGitHubOwnerRepoWithResolvedSshHostname('git@github-work:team/manta.git', 'ssh.github.com')
+      parseGitHubOwnerRepoWithResolvedSshHostname(
+        'git@github-work:team/manta.git',
+        'ssh.github.com'
+      )
     ).toEqual({ owner: 'team', repo: 'manta' })
   })
 
@@ -169,7 +172,10 @@ describe('SSH Host alias identity (#10284)', () => {
 
   it('does not apply SSH HostName resolution to HTTPS remotes', () => {
     expect(
-      parseGitHubOwnerRepoWithResolvedSshHostname('https://github-work/team/manta.git', 'github.com')
+      parseGitHubOwnerRepoWithResolvedSshHostname(
+        'https://github-work/team/manta.git',
+        'github.com'
+      )
     ).toBeNull()
   })
 

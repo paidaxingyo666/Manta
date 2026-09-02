@@ -23,7 +23,7 @@ describe('new workspace project targets', () => {
     ])
 
     expect(options).toHaveLength(1)
-    expect(options[0]).toMatchObject({ label: 'manta', detail: 'stablyai/orca' })
+    expect(options[0]).toMatchObject({ label: 'manta', detail: 'stablyai/manta' })
   })
 
   it('shows the provider slug recovered from canonical git identity', () => {
@@ -33,14 +33,14 @@ describe('new workspace project targets', () => {
         displayName: 'manta',
         path: '/src/manta',
         gitRemoteIdentity: {
-          canonicalKey: 'github.com/stablyai/orca',
+          canonicalKey: 'github.com/stablyai/manta',
           remoteName: 'origin',
-          remoteUrl: 'git@github.com:stablyai/orca.git'
+          remoteUrl: 'git@github.com:stablyai/manta.git'
         }
       }
     ])
 
-    expect(options[0]).toMatchObject({ label: 'manta', detail: 'stablyai/orca' })
+    expect(options[0]).toMatchObject({ label: 'manta', detail: 'stablyai/manta' })
   })
 
   it('labels local, SSH, and paired runtime targets', () => {
@@ -51,7 +51,10 @@ describe('new workspace project targets', () => {
       getNewWorkspaceRunTarget({ id: 'local', displayName: 'manta', path: 'C:\\src\\manta' })
     ).toEqual({ label: 'This computer', detail: 'C:\\src\\manta' })
     expect(
-      getNewWorkspaceRunTarget({ id: 'local', displayName: 'manta', path: 'C:\\src\\manta' }, 'win32')
+      getNewWorkspaceRunTarget(
+        { id: 'local', displayName: 'manta', path: 'C:\\src\\manta' },
+        'win32'
+      )
     ).toEqual({ label: 'Local Windows', detail: 'C:\\src\\manta' })
     expect(
       getNewWorkspaceRunTarget({

@@ -18,6 +18,7 @@ import {
   compareLinearIssues,
   groupLinearIssues
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function useMobileTasksProviderViewProjection(model: PickerProjectionModel) {
   const {
@@ -48,39 +49,52 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
     setAppliedGithubProjectSearch,
     setSelectedRepoIds
   } = model
-  const githubPresetOptions = githubKind === 'prs' ? PR_PRESETS : ISSUE_PRESETS
+  const githubPresetOptions = githubKind === 'prs' ? PR_PRESETS() : ISSUE_PRESETS()
   const githubPresetPickerOptions = useMemo(
     () =>
       githubPresetOptions.map((option) =>
         option.value === defaultGitHubPreset
-          ? { ...option, subtitle: option.subtitle ? `${option.subtitle} · Default` : 'Default' }
+          ? {
+              ...option,
+              subtitle: option.subtitle
+                ? translate('m.tasks.3f1f686c4b', '{{value0}} · Default', {
+                    value0: option.subtitle
+                  })
+                : translate('m.tasks.4cd77a3e30', 'Default')
+            }
           : option
       ),
     [defaultGitHubPreset, githubPresetOptions]
   )
   const githubPresetLabel =
-    githubPresetOptions.find((preset) => preset.value === githubPreset)?.label ?? 'Open'
+    githubPresetOptions.find((preset) => preset.value === githubPreset)?.label ??
+    translate('m.tasks.733c49ee24', 'Open')
   const gitlabFilterLabel =
-    GITLAB_FILTER_OPTIONS.find((filter) => filter.value === gitlabFilter)?.label ?? 'Open'
+    GITLAB_FILTER_OPTIONS().find((filter) => filter.value === gitlabFilter)?.label ??
+    translate('m.tasks.733c49ee24', 'Open')
   const linearFilterLabel =
-    LINEAR_FILTER_OPTIONS.find((filter) => filter.value === linearFilter)?.label ?? 'All'
+    LINEAR_FILTER_OPTIONS().find((filter) => filter.value === linearFilter)?.label ??
+    translate('m.tasks.80817ce75f', 'All')
   const linearViewLabel =
-    LINEAR_VIEW_OPTIONS.find((option) => option.value === linearViewMode)?.label ?? 'List'
+    LINEAR_VIEW_OPTIONS().find((option) => option.value === linearViewMode)?.label ??
+    translate('m.tasks.b48817d5a9', 'List')
   const linearGroupLabel =
-    LINEAR_GROUP_OPTIONS.find((option) => option.value === linearGroupBy)?.label ?? 'No grouping'
+    LINEAR_GROUP_OPTIONS().find((option) => option.value === linearGroupBy)?.label ??
+    translate('m.tasks.0ddf93cd70', 'No grouping')
   const linearOrderLabel =
-    LINEAR_ORDER_OPTIONS.find((option) => option.value === linearOrderBy)?.label ?? 'Priority'
+    LINEAR_ORDER_OPTIONS().find((option) => option.value === linearOrderBy)?.label ??
+    translate('m.tasks.212212945a', 'Priority')
   const linearWorkspaceLabel =
     selectedLinearWorkspaceId === 'all'
-      ? 'All workspaces'
+      ? translate('m.tasks.f90aaca3ed', 'All workspaces')
       : (linearWorkspaces.find((workspace) => workspace.id === selectedLinearWorkspaceId)
           ?.organizationName ??
         linearWorkspaces.find((workspace) => workspace.id === selectedLinearWorkspaceId)
           ?.displayName ??
-        'Workspace')
+        translate('m.tasks.e54d4a0b70', 'Workspace'))
   const linearWorkspaceOptions = useMemo<PickerOption<string>[]>(
     () => [
-      { value: 'all', label: 'All workspaces' },
+      { value: 'all', label: translate('m.tasks.f90aaca3ed', 'All workspaces') },
       ...linearWorkspaces.map((workspace) => ({
         value: workspace.id,
         label: workspace.organizationName ?? workspace.displayName ?? workspace.id
@@ -90,10 +104,13 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
   )
   const linearTeamLabel =
     selectedLinearTeamIds.size === 0 || selectedLinearTeamIds.size === linearTeams.length
-      ? 'All teams'
+      ? translate('m.tasks.744206341a', 'All teams')
       : selectedLinearTeamIds.size === 1
-        ? (linearTeams.find((team) => selectedLinearTeamIds.has(team.id))?.name ?? '1 team')
-        : `${selectedLinearTeamIds.size} teams`
+        ? (linearTeams.find((team) => selectedLinearTeamIds.has(team.id))?.name ??
+          translate('m.tasks.aeac94e98a', '1 team'))
+        : translate('m.tasks.ef7fa30ea8.36939c', '{{value0}} teams', {
+            value0: selectedLinearTeamIds.size
+          })
   const effectiveLinearDisplayProperties = useMemo(() => {
     const next = new Set(linearDisplayProperties)
     if (linearGroupBy === 'status') {
@@ -158,12 +175,16 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
     [linearGroupBy, linearIssuesForView, linearOrderBy]
   )
   const githubModeLabel =
-    githubMode === 'project' ? 'Projects' : githubKind === 'prs' ? 'PRs' : 'Issues'
+    githubMode === 'project'
+      ? translate('m.tasks.2c1f90ca13', 'Projects')
+      : githubKind === 'prs'
+        ? translate('m.tasks.5e3fb77dd8', 'PRs')
+        : translate('m.tasks.e3577861c3', 'Issues')
   const activeProjectLabel = githubProjectTable
     ? githubProjectTable.project.title
     : activeGitHubProject
       ? `${activeGitHubProject.owner} #${activeGitHubProject.number}`
-      : 'Choose project'
+      : translate('m.tasks.8a7c831c1d', 'Choose project')
   const selectedGitHubProjectViewUrl = githubProjectTable
     ? `${githubProjectTable.project.url}/views/${githubProjectTable.selectedView.number}`
     : null

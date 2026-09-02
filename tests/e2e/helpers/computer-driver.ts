@@ -21,7 +21,13 @@ let geditProcess: ChildProcess | null = null
 let notepadProcess: ChildProcess | null = null
 let notepadAppSelector: string | null = null
 
-export { ensureMantaRuntimeLaunched, parseJsonOutput, runMantaCli, stopMantaRuntime, type CliResult }
+export {
+  ensureMantaRuntimeLaunched,
+  parseJsonOutput,
+  runMantaCli,
+  stopMantaRuntime,
+  type CliResult
+}
 
 export async function ensureTextEditLaunched(): Promise<void> {
   await killTextEdit()

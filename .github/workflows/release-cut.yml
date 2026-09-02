@@ -976,7 +976,7 @@ jobs:
       - name: Run skill package, transaction, and compatibility suites
         env:
           MANTA_REAL_PROCESS_SKILL_TEST: '1'
-          ORCA_REAL_WINDOWS_SKILL_TEST: ${{ runner.os == 'Windows' && '1' || '0' }}
+          MANTA_REAL_WINDOWS_SKILL_TEST: ${{ runner.os == 'Windows' && '1' || '0' }}
         run: pnpm test:skill-sharing:release --reporter=json --outputFile=skill-sharing-release-results.json
 
       - name: Archive bounded skill-sharing results
@@ -1333,7 +1333,7 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=4096
           MANTA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
-          MANTA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
+          MANTA_POSTHOG_WRITE_KEY: ${{ secrets.MANTA_POSTHOG_WRITE_KEY }}
 
       - name: Gate runtime file-watcher process isolation
         if: runner.os == 'Linux'
@@ -1503,7 +1503,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: orca-windows-inner-unsigned-${{ needs.cut.outputs.tag }}
+          name: manta-windows-inner-unsigned-${{ needs.cut.outputs.tag }}
           path: signing-stage/**
           if-no-files-found: error
 
@@ -1515,6 +1515,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: c37aa192-a27a-4377-9c90-5d6c95912dc0
+          # NOTE: SignPath project registered by upstream (stablyai). Replace with your own before enabling.
           project-slug: manta
           signing-policy-slug: release-signing
           artifact-configuration-slug: windows-inner-binaries-zip
@@ -1713,7 +1714,7 @@ jobs:
         id: upload-unsigned-windows-installer
         uses: actions/upload-artifact@v7
         with:
-          name: orca-windows-unsigned-${{ needs.cut.outputs.tag }}
+          name: manta-windows-unsigned-${{ needs.cut.outputs.tag }}
           path: dist/manta-windows-setup.exe
           if-no-files-found: error
 
@@ -1726,6 +1727,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: c37aa192-a27a-4377-9c90-5d6c95912dc0
+          # NOTE: SignPath project registered by upstream (stablyai). Replace with your own before enabling.
           project-slug: manta
           signing-policy-slug: release-signing
           artifact-configuration-slug: github-actions-windows-installer
@@ -1865,18 +1867,18 @@ jobs:
           $signature.SignerCertificate | Format-List Subject,Issuer,NotBefore,NotAfter,Thumbprint
 
       # Why: evidence gate for inner-binary signing (issue #7785, supersedes
-      # PR #7170's Orca.exe-only gate — this covers every staged .exe/.dll/.node
+      # PR #7170's Manta.exe-only gate — this covers every staged .exe/.dll/.node
       # by extracting the shipped installer). Warn-only until the flow has been
-      # proven on a real release, then flip ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED
+      # proven on a real release, then flip MANTA_WINDOWS_INNER_SIGNATURE_REQUIRED
       # to 'true' so unsigned inner binaries block the release.
       - name: Verify Windows inner binary signatures
         if: matrix.platform == 'win' && github.run_attempt == 1
         shell: pwsh
         env:
-          ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED: 'false'
+          MANTA_WINDOWS_INNER_SIGNATURE_REQUIRED: 'false'
           INNER_SIGNING_COMPLETED: ${{ steps.rebuild-nsis-signed.outcome == 'success' }}
         run: |
-          $required = $env:ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED -eq 'true'
+          $required = $env:MANTA_WINDOWS_INNER_SIGNATURE_REQUIRED -eq 'true'
 
           # Why: a fail-open gate that writes nothing is indistinguishable from a
           # gate that passed. Always leave a verdict in the evidence artifact and
@@ -1982,7 +1984,7 @@ jobs:
               if ($required) {
                 $policyFailure = $message
               } else {
-                Write-Host "::warning::$message Fail-open until ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED is 'true'."
+                Write-Host "::warning::$message Fail-open until MANTA_WINDOWS_INNER_SIGNATURE_REQUIRED is 'true'."
               }
               Add-GateEvidence "VERDICT: FAILED — $message"
               Add-GateSummary "FAILED — $message"
@@ -2005,7 +2007,7 @@ jobs:
         if: always() && matrix.platform == 'win' && github.run_attempt == 1
         uses: actions/upload-artifact@v7
         with:
-          name: orca-windows-inner-signing-evidence-${{ needs.cut.outputs.tag }}
+          name: manta-windows-inner-signing-evidence-${{ needs.cut.outputs.tag }}
           path: |
             inner-signing-evidence.txt
             inner-signing-list.txt
@@ -2192,42 +2194,6 @@ jobs:
             [[ "$attempt" -eq 3 ]] || sleep "$((attempt * 5))"
           done
           echo "::warning::Failed to dispatch post-release E2E for $TAG after 3 attempts."
-
-  docs-production-dispatch:
-    needs:
-      - cut
-      - publish-release
-    # A release created with GITHUB_TOKEN does not reliably emit a release
-    # event to other workflows. Dispatch the trusted default-branch workflow;
-    # it validates and checks out the released tag before deploying.
-    if: ${{ needs.cut.outputs.tag != '' }}
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - name: Dispatch docs deployment for stable desktop tags
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.cut.outputs.tag }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          set -euo pipefail
-          if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Skipping docs deployment for non-stable tag $TAG."
-            exit 0
-          fi
-          for attempt in 1 2 3; do
-            if gh workflow run docs.yml \
-              --repo "$GITHUB_REPOSITORY" \
-              --ref "$DEFAULT_BRANCH" \
-              --field "tag=$TAG"; then
-              echo "Dispatched docs deployment for $TAG."
-              exit 0
-            fi
-            [[ "$attempt" -eq 3 ]] || sleep "$((attempt * 5))"
-          done
-          echo "::error::Failed to dispatch docs deployment for $TAG after 3 attempts."
-          exit 1
 
   homebrew-bump-published-rc-draft:
     needs:

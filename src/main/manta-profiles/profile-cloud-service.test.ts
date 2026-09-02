@@ -8,11 +8,15 @@ import type {
   MantaProfileCloudSummary
 } from '../../shared/manta-profiles'
 import type { MantaCloudSessionExchangeResponse } from './profile-cloud-session-exchange'
+import type { MantaCloudRequestError as MantaCloudRequestErrorType } from './profile-cloud-client'
+
+type ProfileCloudClientModule = { MantaCloudRequestError: typeof MantaCloudRequestErrorType }
 
 const {
   beginMantaCloudPkceFlowMock,
   createMantaCloudProfileMock,
   exchangeMantaCloudAuthCodeMock,
+  grantMantaCloudSessionDirectlyMock,
   revokeMantaCloudSessionMock,
   selectMantaCloudOrgMock,
   safeStorageMock
@@ -20,6 +24,7 @@ const {
   beginMantaCloudPkceFlowMock: vi.fn(),
   createMantaCloudProfileMock: vi.fn(),
   exchangeMantaCloudAuthCodeMock: vi.fn(),
+  grantMantaCloudSessionDirectlyMock: vi.fn(),
   revokeMantaCloudSessionMock: vi.fn(),
   selectMantaCloudOrgMock: vi.fn(),
   safeStorageMock: {
@@ -42,13 +47,18 @@ vi.mock('./profile-cloud-pkce', () => ({
   beginMantaCloudPkceFlow: beginMantaCloudPkceFlowMock
 }))
 
-vi.mock('./profile-cloud-client', () => ({
+vi.mock('./profile-cloud-client', async (importOriginal) => ({
+  // The real error class: the service branches on `instanceof`, so a stub
+  // would make the branch unreachable and the test vacuous.
+  MantaCloudRequestError: (await importOriginal<ProfileCloudClientModule>()).MantaCloudRequestError,
   createMantaCloudProfile: createMantaCloudProfileMock,
   exchangeMantaCloudAuthCode: exchangeMantaCloudAuthCodeMock,
+  grantMantaCloudSessionDirectly: grantMantaCloudSessionDirectlyMock,
   revokeMantaCloudSession: revokeMantaCloudSessionMock,
   selectMantaCloudOrg: selectMantaCloudOrgMock
 }))
 
+import { MantaCloudRequestError } from './profile-cloud-client'
 import {
   connectCurrentMantaProfile,
   createCloudLinkedMantaProfile,
@@ -164,6 +174,27 @@ describe('Manta cloud profile service', () => {
     })
   })
 
+  it('explains a per-user relay instead of quoting its status code', async () => {
+    // Sharing an artifact, publishing a skill and five other places call
+    // connect() with no form. On a relay that gives each person an account the
+    // relay refuses, and 'manta_cloud_request_failed_409' names nothing anyone
+    // can act on.
+    configureCloudEnv()
+    vi.stubEnv('MANTA_CLOUD_ENROLLMENT_SECRET', 'enrol')
+    grantMantaCloudSessionDirectlyMock.mockRejectedValue(
+      new MantaCloudRequestError(409, 'accounts_required')
+    )
+
+    const result = await connectCurrentMantaProfile(userDataPath)
+
+    expect(result).toMatchObject({
+      status: 'failed',
+      errorCode: 'accounts_required',
+      error:
+        'This relay gives each person their own account. Sign in from Settings → Manta Account.'
+    })
+  })
+
   it('treats provider-denied sign-in as a cancelled connect attempt', async () => {
     configureCloudEnv()
     beginMantaCloudPkceFlowMock.mockRejectedValue(new Error('manta_cloud_auth_denied'))
@@ -190,7 +221,8 @@ describe('Manta cloud profile service', () => {
       state: 'unconfigured',
       persistence: 'encrypted',
       cloud: cloudSummary,
-      setupMessage: 'Manta Cloud sign-in is not configured for this build.'
+      setupMessage:
+        'No relay is configured. Set one in Settings → Advanced → Manta Cloud endpoints, or run your own from relay-server/.'
     })
     expect(getCurrentMantaProfileAuthStatus(userDataPath).organizations).toBeUndefined()
     expect(getCurrentMantaProfileAuthStatus(userDataPath).capabilities).toBeUndefined()

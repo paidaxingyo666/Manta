@@ -87,7 +87,7 @@ async function waitForPairingRuntime({ child, userData, pairingAddress, logSucce
       ...process.env,
       MANTA_USER_DATA_PATH: userData,
       // Why: `manta-dev` derives its own profile and ignores MANTA_USER_DATA_PATH, so
-      // without this an MANTA_CLI=manta-dev run would address the dev profile instead
+      // without this a MANTA_CLI=manta-dev run would address the dev profile instead
       // of this disposable runtime. Plain `manta` ignores it.
       MANTA_DEV_USER_DATA_PATH: userData
     },

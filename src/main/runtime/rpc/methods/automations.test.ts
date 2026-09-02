@@ -36,7 +36,7 @@ describe('automation RPC methods', () => {
         agentId: 'codex',
         runContext: {
           kind: 'workspace-run',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'runtime:gpu',
           projectHostSetupId: 'setup-gpu',
           repoId: 'repo-gpu',
@@ -45,7 +45,7 @@ describe('automation RPC methods', () => {
         sourceContext: {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'local',
           projectHostSetupId: 'setup-local',
           repoId: 'repo-local',

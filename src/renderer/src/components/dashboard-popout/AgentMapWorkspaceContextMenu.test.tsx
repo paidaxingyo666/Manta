@@ -314,7 +314,9 @@ describe('Agent Map workspace context menu', () => {
       clientX: 100,
       clientY: 110
     })
-    fireEvent.click(await screen.findByText('Create new worktree for Manta', {}, { timeout: 5_000 }))
+    fireEvent.click(
+      await screen.findByText('Create new worktree for Manta', {}, { timeout: 5_000 })
+    )
 
     expect(useAppStore.getState().activeModal).toBe('new-workspace-composer')
     expect(useAppStore.getState().modalData).toEqual({

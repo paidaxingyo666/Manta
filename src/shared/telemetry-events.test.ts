@@ -150,7 +150,7 @@ describe('app_starred_manta schema', () => {
   it('rejects extra keys via .strict()', () => {
     const parsed = eventSchemas.app_starred_manta.safeParse({
       source: 'landing',
-      repo: 'stablyai/orca'
+      repo: 'stablyai/manta'
     })
     expect(parsed.success).toBe(false)
   })

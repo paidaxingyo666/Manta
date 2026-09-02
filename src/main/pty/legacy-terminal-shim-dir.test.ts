@@ -338,9 +338,9 @@ describe('legacy terminal shim neutralization', () => {
     // it as the shim directory deletes a legitimate PATH entry and leaves git unresolvable.
     // Resolving for real is not available here either: this env is also built for remote and WSL
     // panes whose paths do not exist on the local filesystem.
-    expect(isLegacyTerminalShimPathEntry('/tmp/old/manta-terminal-attribution/posix/../posix')).toBe(
-      false
-    )
+    expect(
+      isLegacyTerminalShimPathEntry('/tmp/old/manta-terminal-attribution/posix/../posix')
+    ).toBe(false)
     expect(isLegacyTerminalShimPathEntry('/tmp/old/manta-terminal-attribution/posix')).toBe(true)
     expect(isLegacyTerminalShimPathEntry('/tmp/old/manta-terminal-attribution/win32//')).toBe(true)
     expect(isLegacyTerminalShimPathEntry('/usr/local/bin')).toBe(false)

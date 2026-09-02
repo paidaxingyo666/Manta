@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BULK_TAB_CLOSE_ACTIONS, selectBulkCloseTabs } from './mobile-tab-close-selection'
+import { bulkTabCloseActions, selectBulkCloseTabs } from './mobile-tab-close-selection'
 
 const tab = (id: string, isDirty?: boolean, isPinned?: boolean) => ({
   id,
@@ -10,8 +10,11 @@ const tab = (id: string, isDirty?: boolean, isPinned?: boolean) => ({
 describe('selectBulkCloseTabs', () => {
   const tabs = [tab('a'), tab('b'), tab('c'), tab('d')]
 
+  // Called, not read: this fork wraps the list in a localized factory so the
+  // labels follow the active language. The English defaults are what an
+  // untranslated run returns, which is what upstream's constant held.
   it('offers only close-others and close-left actions', () => {
-    expect(BULK_TAB_CLOSE_ACTIONS).toEqual([
+    expect(bulkTabCloseActions()).toEqual([
       { mode: 'others', label: 'Close Other Tabs' },
       { mode: 'left', label: 'Close Tabs to the Left' }
     ])

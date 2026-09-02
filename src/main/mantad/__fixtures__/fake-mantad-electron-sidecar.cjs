@@ -1,5 +1,5 @@
 /**
- * Stands in for an installed Manta app running `--serve`, so the mantad Electron
+ * Stands in for an installed Orca app running `--serve`, so the mantad Electron
  * provider can be driven over a real socket by a real child process.
  *
  * Contract with the provider under test: read `--user-data-dir=` from argv,

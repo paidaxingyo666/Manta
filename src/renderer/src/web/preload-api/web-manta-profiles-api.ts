@@ -22,6 +22,22 @@ export function createWebMantaProfilesApi(): Partial<PreloadApi> {
           multiProfileUi: false
         }),
       authStatus: webMantaProfileAuthStatus,
+      // Fork-owned: the browser fallback has no host key, so nothing here can
+      // sign a per-account identity. Reporting 'shared' keeps the sign-in UI
+      // consistent with a relay deployed in either mode.
+      relaySignInMethods: async () => ({
+        accounts: 'shared' as const,
+        enrollmentSecretRequired: true
+      }),
+      // The relay directory is desktop-only: a browser client has no host key,
+      // so it is never a machine on anyone's list.
+      listRelayHosts: async () => ({ status: 'unconfigured' as const }),
+      forgetRelayHost: async () => ({ status: 'unconfigured' as const }),
+      applyCloudEndpoints: async () => {
+        // Why: the web client cannot restart the desktop app; endpoints are a
+        // desktop-only setting.
+        throw new Error('Self-hosted endpoints can only be changed in the desktop app.')
+      },
       createLocal: () =>
         Promise.resolve({
           activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,

@@ -12,7 +12,7 @@ export function pluginInstallTrustError(
   if (source.kind === 'bundled') {
     return source.bundleId === pluginKey && isOfficialPluginIdentity(pluginKey)
       ? null
-      : 'bundled plugins must use an official stablyai.orca-* identity'
+      : 'bundled plugins must use an official paidaxingyo666.manta-* identity'
   }
   if (!isReservedPluginIdentity(pluginKey)) {
     return null
@@ -23,5 +23,5 @@ export function pluginInstallTrustError(
   const url = source.kind === 'git' ? source.url : source.plugin.url
   return isOfficialOrganizationGitSource(url)
     ? null
-    : `reserved plugin identity ${pluginKey} must resolve to the stablyai organization`
+    : `reserved plugin identity ${pluginKey} must resolve to the paidaxingyo666 organization`
 }

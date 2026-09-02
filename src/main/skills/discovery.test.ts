@@ -442,8 +442,8 @@ describe('skill discovery', () => {
   it('discovers skill packages through symlinked skill directories', async () => {
     const root = await mkdtemp(join(tmpdir(), 'manta-skills-'))
     const home = join(root, 'home')
-    const realSkill = join(root, 'central-skills', 'orca-cli')
-    const linkedSkill = join(home, '.agents', 'skills', 'orca-cli')
+    const realSkill = join(root, 'central-skills', 'manta-cli')
+    const linkedSkill = join(home, '.agents', 'skills', 'manta-cli')
     await mkdir(realSkill, { recursive: true })
     await mkdir(join(home, '.agents', 'skills'), { recursive: true })
     await writeFile(join(realSkill, 'SKILL.md'), '# Manta CLI\n\nUse the Manta CLI.')
@@ -576,11 +576,11 @@ describe('skill discovery', () => {
   it('keeps home classification when cwd points at the same directory as home', async () => {
     const root = await mkdtemp(join(tmpdir(), 'manta-skills-'))
     const home = join(root, 'home')
-    const skillDir = join(home, '.agents', 'skills', 'orca-cli')
+    const skillDir = join(home, '.agents', 'skills', 'manta-cli')
     await mkdir(skillDir, { recursive: true })
     await writeFile(
       join(skillDir, 'SKILL.md'),
-      ['---', 'name: orca-cli', 'description: Use the Manta CLI.', '---', ''].join('\n')
+      ['---', 'name: manta-cli', 'description: Use the Manta CLI.', '---', ''].join('\n')
     )
 
     const result = await discoverSkills({
@@ -589,7 +589,7 @@ describe('skill discovery', () => {
       repos: []
     })
 
-    expect(result.skills.filter((entry) => entry.name === 'orca-cli')).toMatchObject([
+    expect(result.skills.filter((entry) => entry.name === 'manta-cli')).toMatchObject([
       {
         sourceKind: 'home',
         sourceLabel: 'Agent skills home',

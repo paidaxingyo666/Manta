@@ -13,9 +13,10 @@ import {
   X
 } from 'lucide-react-native'
 import { StatusDot } from '../components/StatusDot'
+import { translate } from '../i18n/i18n'
 import { classifyConnection, type ConnectionVerdict } from '../transport/connection-health'
+import { styles } from '../theme/host-home-styles'
 import { colors } from '../theme/mobile-theme'
-import { hostScreenStyles as styles } from './host-screen-styles'
 import type { HostScreenController } from './use-host-screen-controller'
 
 function isErrorVerdict(v: ConnectionVerdict): boolean {
@@ -62,7 +63,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
               <View style={styles.hostIdentity}>
                 <StatusDot state={connState} verdict={headerVerdict} />
                 <Text style={styles.hostNameText} numberOfLines={1}>
-                  {state.hostName || 'Host'}
+                  {state.hostName || translate('m.index.dc676c5d54', 'Host')}
                 </Text>
               </View>
               {connState !== 'connected' &&
@@ -80,7 +81,9 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                       onPress={() => void forceReconnectHost(hostId!)}
                       hitSlop={8}
                     >
-                      <Text style={styles.reconnectButtonText}>Reconnect</Text>
+                      <Text style={styles.reconnectButtonText}>
+                        {translate('m.index.d85142e8e8', 'Reconnect')}
+                      </Text>
                     </Pressable>
                   )
                 })()}
@@ -143,7 +146,8 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 ]}
                 numberOfLines={1}
               >
-                Filter{settings.activeFilterCount > 0 ? ` ${settings.activeFilterCount}` : ''}
+                {translate('m.index.4bc8c9f6fe', 'Filter')}
+                {settings.activeFilterCount > 0 ? ` ${settings.activeFilterCount}` : ''}
               </Text>
             </Pressable>
 
@@ -168,12 +172,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
               <Layers size={14} color={colors.textSecondary} />
               <Text style={styles.sortLabel} numberOfLines={1}>
                 {state.groupMode === 'none'
-                  ? 'Group'
+                  ? translate('m.index.999e4d9525', 'Group')
                   : state.groupMode === 'workspaceStatus'
-                    ? 'Status'
+                    ? translate('m.index.1805187d69', 'Status')
                     : state.groupMode === 'repo'
-                      ? 'Repo'
-                      : 'PR'}
+                      ? translate('m.index.0b319420ff', 'Repo')
+                      : translate('m.index.b14c7e89dd', 'PR')}
               </Text>
             </Pressable>
           </View>
@@ -275,7 +279,8 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 settings.activeFilterCount > 0 && styles.filterChipTextActive
               ]}
             >
-              Filter{settings.activeFilterCount > 0 ? ` (${settings.activeFilterCount})` : ''}
+              {translate('m.index.4bc8c9f6fe', 'Filter')}
+              {settings.activeFilterCount > 0 ? ` (${settings.activeFilterCount})` : ''}
             </Text>
           </Pressable>
 
@@ -290,12 +295,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
             <Layers size={14} color={colors.textSecondary} />
             <Text style={styles.sortLabel} numberOfLines={1}>
               {state.groupMode === 'none'
-                ? 'Group'
+                ? translate('m.index.999e4d9525', 'Group')
                 : state.groupMode === 'workspaceStatus'
-                  ? 'Status'
+                  ? translate('m.index.1805187d69', 'Status')
                   : state.groupMode === 'repo'
-                    ? 'Repo'
-                    : 'PR'}
+                    ? translate('m.index.0b319420ff', 'Repo')
+                    : translate('m.index.b14c7e89dd', 'PR')}
             </Text>
           </Pressable>
 

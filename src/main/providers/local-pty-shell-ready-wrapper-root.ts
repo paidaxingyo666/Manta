@@ -29,7 +29,9 @@ function getShellReadyWrapperBaseDir(): string {
   // reaches it -- MANTA_USER_DATA_PATH is seeded before anything spawns and the
   // daemon fork inherits it -- so this stays a documented trust boundary rather
   // than an ownership check on the spawn path.
-  return userDataPath ? join(userDataPath, 'shell-wrappers') : join(tmpdir(), 'manta-shell-wrappers')
+  return userDataPath
+    ? join(userDataPath, 'shell-wrappers')
+    : join(tmpdir(), 'manta-shell-wrappers')
 }
 
 // Why memoized: the digest is stable for a given base dir and every shell launch

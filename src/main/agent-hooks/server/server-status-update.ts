@@ -129,12 +129,16 @@ export abstract class AgentHookServerStatusUpdate extends AgentHookServerStatusA
     ) {
       return previous
     }
+    // An inherited subagent must not repoint the pane at its own transcript.
+    const fencedPayload = identity.inheritedFromActivePane
+      ? { ...rootContextPreservingPayload, providerSession: previous?.providerSession }
+      : rootContextPreservingPayload
     const identityResolvedPayload =
-      identity.agentType === rootContextPreservingPayload.payload.agentType
-        ? rootContextPreservingPayload
+      identity.agentType === fencedPayload.payload.agentType
+        ? fencedPayload
         : {
-            ...rootContextPreservingPayload,
-            payload: { ...rootContextPreservingPayload.payload, agentType: identity.agentType }
+            ...fencedPayload,
+            payload: { ...fencedPayload.payload, agentType: identity.agentType }
           }
     const effectivePayload = attachClaudePermissionToolUseId(previous, identityResolvedPayload)
     const boundaryAwarePayload = attachClaudeChildOnlyBoundary(previous, effectivePayload)

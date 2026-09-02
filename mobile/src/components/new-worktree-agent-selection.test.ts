@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  NEW_WORKTREE_BLANK_AGENT,
+  newWorktreeBlankAgent,
   newWorktreeAgentOptionFor,
   pickPreferredNewWorktreeAgent,
   resolveNewWorktreeAgentSelection
@@ -70,14 +70,14 @@ describe('new worktree agent selection', () => {
   it('keeps blank terminal as an explicit override', () => {
     const resolved = resolveNewWorktreeAgentSelection({
       visible: true,
-      selectedAgent: NEW_WORKTREE_BLANK_AGENT,
+      selectedAgent: newWorktreeBlankAgent(),
       agentOverridden: true,
       runtimeSettings: { defaultTuiAgent: 'claude' },
       detectedAgentIds: new Set(['claude'])
     })
 
     expect(resolved).toEqual({
-      selectedAgent: NEW_WORKTREE_BLANK_AGENT,
+      selectedAgent: newWorktreeBlankAgent(),
       agentOverridden: true
     })
   })

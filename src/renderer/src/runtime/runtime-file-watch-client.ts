@@ -7,6 +7,7 @@ import {
   unwrapRuntimeRpcResult
 } from './runtime-rpc-client'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
+import { getRuntimeEnvironmentConnectionGeneration } from '@/store/slices/runtime-status'
 
 type RuntimeFileWatchEvent =
   | { type: 'starting'; subscriptionId: string }
@@ -36,9 +37,10 @@ const sharedRuntimeFileWatches = new Map<string, SharedRuntimeFileWatch>()
 function getSharedRuntimeFileWatchKey(
   environmentId: string,
   worktreeId: string,
-  worktreePath: string
+  worktreePath: string,
+  connectionGeneration: number
 ): string {
-  return `${environmentId}\0${worktreeId}\0${worktreePath}`
+  return `${environmentId}\0${worktreeId}\0${worktreePath}\0${connectionGeneration}`
 }
 
 export async function subscribeRuntimeFileChanges(
@@ -55,7 +57,8 @@ export async function subscribeRuntimeFileChanges(
   const key = getSharedRuntimeFileWatchKey(
     target.environmentId,
     context.worktreeId,
-    context.worktreePath
+    context.worktreePath,
+    getRuntimeEnvironmentConnectionGeneration(target.environmentId)
   )
   let shared = sharedRuntimeFileWatches.get(key)
   if (!shared) {

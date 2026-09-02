@@ -172,6 +172,7 @@ export const MOBILE_RPC_METHOD_ALLOWLIST = new Set([
   'markdown.readTab',
   'markdown.saveTab',
   'notifications.getMissedSince',
+  'notifications.registerPushToken',
   'notifications.subscribe',
   'notifications.unsubscribe',
   'pairing.getEndpoints',

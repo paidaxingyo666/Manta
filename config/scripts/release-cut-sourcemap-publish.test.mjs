@@ -7,6 +7,9 @@ const projectDir = resolve(import.meta.dirname, '../..')
 const buildSteps = parse(
   readFileSync(join(projectDir, '.github/workflows/release-cut.yml'), 'utf8')
 ).jobs.build.steps
+const forkLinuxSteps = parse(
+  readFileSync(join(projectDir, '.github/workflows/fork-release.yml'), 'utf8')
+).jobs.linux.steps
 
 function stepIndex(name) {
   const index = buildSteps.findIndex((step) => step.name === name)
@@ -39,6 +42,16 @@ describe('release-cut source map publication', () => {
     expect(bundle.run).toContain('"$RUNNER_TEMP/manta-sourcemaps-$TAG.zip"')
     expect(bundle.run).not.toMatch(/zip[^\n]*\s"manta-sourcemaps-/)
     expect(publish.with.command).toContain('runner.temp')
+  })
+
+  it('publishes the same source-map asset through the fork release path', () => {
+    const bundle = forkLinuxSteps.find((step) => step.name === 'Bundle main-process source maps')
+    const publish = forkLinuxSteps.find((step) => step.name === 'Publish main-process source maps')
+
+    expect(bundle.if).toContain("matrix.arch == 'x64'")
+    expect(bundle.run).toContain('"$RUNNER_TEMP/manta-sourcemaps-$RELEASE_TAG.zip"')
+    expect(publish.if).toContain("matrix.arch == 'x64'")
+    expect(publish.with.command).toContain('manta-sourcemaps-$RELEASE_TAG.zip')
   })
 
   it('fails only when a map-enabled cut emits no source maps', () => {

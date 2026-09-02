@@ -424,7 +424,10 @@ async function measureCrossWorkspaceTypingDuringHiddenLoad({
   const typingPtyId = await waitForActivePanePtyId(mantaPage)
 
   const runId = randomUUID()
-  const scriptPath = path.join(testRepoPath, `.manta-opencode-cross-${hiddenPaneCount}-${runId}.mjs`)
+  const scriptPath = path.join(
+    testRepoPath,
+    `.manta-opencode-cross-${hiddenPaneCount}-${runId}.mjs`
+  )
   writeInteractivePromptScript(scriptPath, runId)
   await resetTerminalPtyOutputDebug(mantaPage)
   const load = await startSyntheticOpenCodeInjection({

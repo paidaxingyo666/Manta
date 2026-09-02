@@ -257,7 +257,7 @@ describe('configureDevUserDataPath', () => {
     expect(app.setPath).toHaveBeenCalledWith('userData', '/tmp/manta-dev-repro')
   })
 
-  it('moves dev runs onto an manta-dev userData path', async () => {
+  it('moves dev runs onto a manta-dev userData path', async () => {
     const { app } = await import('electron')
     const { configureDevUserDataPath } = await import('./configure-process')
 

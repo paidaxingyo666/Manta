@@ -33,7 +33,7 @@ type LinearAgentSkillInstallCtaProps = {
   settings: LinearAgentSkillPromptSettings | null | undefined
 }
 
-// Why: the Linear task provider and the orca-linear agent skill are decoupled
+// Why: the Linear task provider and the manta-linear agent skill are decoupled
 // setups; this section bridges them so connecting the provider also surfaces
 // the skill agents need to read and edit Linear tasks.
 export function LinearAgentSkillInstallCta({

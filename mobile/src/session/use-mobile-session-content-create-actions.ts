@@ -1,4 +1,5 @@
 import type { RpcFailure, RpcSuccess } from '../transport/types'
+import { translate } from '../i18n/i18n'
 import { normalizeBrowserUrl } from '../browser/browser-url'
 import { captureMobileFileMutationOwnership } from '../files/mobile-file-mutation-ownership'
 import { isFileExistsErrorMessage } from './mobile-session-route-helpers'
@@ -77,7 +78,13 @@ export function useMobileSessionContentCreateActions(
     }
     // Why: read via ref so a tap before the capability probe resolves (or a stale callback) still sees the live value.
     if (browserScreencastSupportedRef.current !== true) {
-      showToast('Desktop update required for mobile browser streaming', 1600)
+      showToast(
+        translate(
+          'm.worktreeId.c5d273023f',
+          'Desktop update required for mobile browser streaming'
+        ),
+        1600
+      )
       return false
     }
     const url = normalizeBrowserUrl(rawUrl)
@@ -130,7 +137,7 @@ export function useMobileSessionContentCreateActions(
     method: 'browser.back' | 'browser.forward' | 'browser.reload'
   ) {
     if (!client || !tab.browserPageId) {
-      showToast('Browser page is not available yet.', 1500)
+      showToast(translate('m.worktreeId.1a0af43c68', 'Browser page is not available yet.'), 1500)
       return
     }
     try {

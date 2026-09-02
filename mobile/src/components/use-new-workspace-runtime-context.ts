@@ -59,7 +59,8 @@ export function useNewWorkspaceRuntimeContext(
       }
       const uiResult = settledSuccess(uiRes)
       if (uiResult) {
-        const ui = (uiResult.result as { ui?: { trustedMantaHooks?: PersistedTrustedMantaHooks } }).ui
+        const ui = (uiResult.result as { ui?: { trustedMantaHooks?: PersistedTrustedMantaHooks } })
+          .ui
         setTrustedMantaHooks(ui?.trustedMantaHooks ?? {})
       }
 

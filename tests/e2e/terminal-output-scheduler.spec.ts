@@ -397,6 +397,8 @@ test.describe('Terminal output scheduler', () => {
       })
       .toBe(true)
 
-    expect(await getTerminalContent(mantaPage)).not.toContain('Manta skipped hidden terminal output')
+    expect(await getTerminalContent(mantaPage)).not.toContain(
+      'Manta skipped hidden terminal output'
+    )
   })
 })

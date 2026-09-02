@@ -655,7 +655,9 @@ describe('wrapWindowsHookCommand', () => {
   // #6078 — the raw path used to be split at the space. The wrapper must keep
   // the whole path inside the encoded command so shells do not split it.
   it('preserves spaces in the script path (user profile with space case)', () => {
-    const cmd = wrapWindowsHookCommand('C:\\Users\\Jorge Silva\\.manta\\agent-hooks\\codex-hook.cmd')
+    const cmd = wrapWindowsHookCommand(
+      'C:\\Users\\Jorge Silva\\.manta\\agent-hooks\\codex-hook.cmd'
+    )
     expect(cmd).toMatch(qualifiedWindowsPowerShellCommand)
     expect(decodeWindowsHookCommand(cmd)).toBe(
       expectedDecodedWindowsHookCommand(

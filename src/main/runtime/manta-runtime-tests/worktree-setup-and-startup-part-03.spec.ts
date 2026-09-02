@@ -391,7 +391,7 @@ describe('MantaRuntimeService', () => {
       }
     ])
 
-    const draftUrl = 'https://github.com/stablyai/orca/issues/123'
+    const draftUrl = 'https://github.com/stablyai/manta/issues/123'
     const result = await runtime.createManagedWorktree({
       repoSelector: 'id:repo-1',
       name: 'runtime-startup-draft',
@@ -474,7 +474,7 @@ describe('MantaRuntimeService', () => {
     await runtime.createManagedWorktree({
       repoSelector: 'id:repo-1',
       name: 'runtime-opencode-draft-timeout',
-      startupDraft: 'https://github.com/stablyai/orca/issues/456'
+      startupDraft: 'https://github.com/stablyai/manta/issues/456'
     })
 
     await vi.advanceTimersByTimeAsync(7999)

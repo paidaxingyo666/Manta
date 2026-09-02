@@ -17,6 +17,7 @@ import { applyElectronProxySettings } from '../network/proxy-settings'
 import { applyBrowserSessionProxies } from '../browser/browser-session-proxy'
 import { browserSessionRegistry } from '../browser/browser-session-registry'
 import { normalizeProxyBypassRules, normalizeProxyUrl } from '../../shared/network-proxy'
+import { normalizeMantaCloudEndpointOverrides } from '../../shared/manta-cloud-endpoints'
 import { normalizeAppIconId } from '../../shared/app-icon'
 import { normalizeUiLanguage } from '../../shared/ui-language'
 import { applyAppIcon } from '../app-icon'
@@ -156,6 +157,14 @@ export function registerSettingsHandlers(
     }
     if ('httpProxyBypassRules' in args) {
       sanitizedArgs.httpProxyBypassRules = normalizeProxyBypassRules(args.httpProxyBypassRules)
+    }
+    // Why: sanitizeRendererSettingsUpdate is a denylist, so any new field would
+    // otherwise reach disk unvalidated. This is the single trust boundary for
+    // self-hosted endpoints regardless of which write path delivered them.
+    if ('mantaCloudEndpoints' in args) {
+      sanitizedArgs.mantaCloudEndpoints = normalizeMantaCloudEndpointOverrides(
+        args.mantaCloudEndpoints
+      )
     }
     if ('appIcon' in args) {
       sanitizedArgs.appIcon = normalizeAppIconId(args.appIcon)

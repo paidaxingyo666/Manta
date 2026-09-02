@@ -37,8 +37,7 @@ import { isGrokRotatingWorkingTitle } from './terminal-title-agent-type'
  * Strip working-status indicators so stale exit titles stop reporting working.
  */
 export function clearWorkingIndicators(title: string): string {
-  // Why: Pi/OMP's static working marker survives every strip below, so a stale native
-  // title would keep re-arming the 3s clear timer without ever leaving working (#13890).
+  // Clear Pi/OMP first so stale markers cannot re-arm the working timer (#13890).
   const clearedPiStateMarker = clearPiStateWorkingMarker(title)
   if (clearedPiStateMarker) {
     return clearedPiStateMarker
@@ -131,8 +130,7 @@ export function normalizeTerminalTitle(title: string): string {
     return title
   }
 
-  // Why: a Pi/OMP label is cwd/session text that may contain Gemini's glyphs; its own
-  // state marker is explicit, so it outranks glyph sniffing here as it does in detection.
+  // Pi/OMP's explicit marker outranks agent-like glyphs in its free-form label.
   if (!getPiStateTitleStatus(title) && isGeminiTerminalTitle(title)) {
     const status = detectAgentStatusFromTitle(title)
     if (status === 'permission') {
@@ -190,8 +188,7 @@ export function detectAgentStatusFromTitle(title: string): AgentStatus | null {
     return containsAgentSpinnerGlyph(title) ? 'working' : 'idle'
   }
 
-  // Why: Pi/OMP's marker is an explicit state protocol, so it wins over the glyph and
-  // keyword gates below — its label is free-form cwd/session text that can carry either.
+  // Pi/OMP's explicit state marker outranks glyph and keyword heuristics.
   const piStateStatus = getPiStateTitleStatus(title)
   if (piStateStatus) {
     return piStateStatus

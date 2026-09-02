@@ -25,7 +25,8 @@ const TELEMETRY_ENABLED = true
 const BUILD_IDENTITY: 'stable' | 'rc' | null =
   typeof MANTA_BUILD_IDENTITY !== 'undefined'
     ? MANTA_BUILD_IDENTITY
-    : ((globalThis as { MANTA_BUILD_IDENTITY?: 'stable' | 'rc' | null }).MANTA_BUILD_IDENTITY ?? null)
+    : ((globalThis as { MANTA_BUILD_IDENTITY?: 'stable' | 'rc' | null }).MANTA_BUILD_IDENTITY ??
+      null)
 const WRITE_KEY: string | null =
   typeof MANTA_POSTHOG_WRITE_KEY !== 'undefined'
     ? MANTA_POSTHOG_WRITE_KEY

@@ -17,7 +17,11 @@ import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveMantadBrowserProvider, type MantadBrowserProvider } from './mantad-browser-provider'
-import { resolveMantadInstallRoot, resolveMantadPath, resolveUserDataPath } from './mantad-app-paths'
+import {
+  resolveMantadInstallRoot,
+  resolveMantadPath,
+  resolveUserDataPath
+} from './mantad-app-paths'
 import {
   describeMantadBindExposure,
   MantadBindAddressError,

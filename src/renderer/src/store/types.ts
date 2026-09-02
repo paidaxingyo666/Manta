@@ -39,6 +39,7 @@ import type { CommitMessageGenerationSlice } from './slices/commit-message-gener
 import type { PinnedTabCloseConfirmSlice } from './slices/pinned-tab-close-confirm'
 import type { RecentlyClosedTabsSlice } from './slices/recently-closed-tabs'
 import type { MantaProfilesSlice } from './slices/manta-profiles'
+import type { MantaRelayHostsSlice } from './slices/manta-relay-hosts'
 import type { NewIssueDraftSlice } from './slices/new-issue-draft'
 import type { TaskCreationDraftsSlice } from './slices/task-creation-drafts'
 import type { RemoteServerUpdatesSlice } from './slices/remote-server-updates'
@@ -83,6 +84,7 @@ export type AppState = RepoSlice &
   PinnedTabCloseConfirmSlice &
   RecentlyClosedTabsSlice &
   MantaProfilesSlice &
+  MantaRelayHostsSlice &
   NewIssueDraftSlice &
   TaskCreationDraftsSlice &
   RemoteServerUpdatesSlice &

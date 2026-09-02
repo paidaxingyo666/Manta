@@ -46,7 +46,7 @@ export function loadHooks(repoPath: string): MantaHooks | null {
 }
 
 /**
- * Check whether an manta.yaml exists for a repo.
+ * Check whether a manta.yaml exists for a repo.
  */
 export function hasHooksFile(repoPath: string): boolean {
   return existsSync(join(repoPath, 'manta.yaml'))

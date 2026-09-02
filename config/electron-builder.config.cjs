@@ -34,7 +34,11 @@ const isWinHourly = process.env.MANTA_WIN_HOURLY === '1'
 const isWinDaily = process.env.MANTA_WIN_DAILY === '1'
 const isWinAdhoc = process.env.MANTA_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
-const isMacRelease = process.env.MANTA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
+// Whether this Windows build will end up Authenticode-signed. Dev channels never
+// are, and neither is a build from a fork with no code-signing certificate.
+const isWinUnsigned = isWinDevChannel || process.env.MANTA_WIN_UNSIGNED === '1'
+const isMacRelease =
+  process.env.MANTA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.MANTA_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.MANTA_LOCAL_BUILD_VERSION
@@ -48,6 +52,30 @@ const devChannelBuildVersion = isHourlyChannel
     : isAdhocChannel
       ? process.env.MANTA_ADHOC_BUILD_VERSION
       : undefined
+// Release notes for the in-app update card. electron-builder copies this into
+// every platform's latest*.yml, and electron-updater hands it back on the
+// update-available event — so the card needs no second host and no timeout.
+// Missing file means no releaseNotes in the manifest, which the card already
+// handles by staying plain; that is why this is guarded rather than required.
+//
+// The version has to match what extraMetadata below actually ships, or an
+// hourly build's manifest carries the RC's notes.
+const releaseNotesVersion =
+  devChannelBuildVersion || localBuildVersion || require('../package.json').version
+const releaseNotesPath = join(__dirname, '..', 'docs', 'release-notes', `${releaseNotesVersion}.md`)
+const releaseNotes = existsSync(releaseNotesPath)
+  ? { releaseInfo: { releaseNotesFile: releaseNotesPath } }
+  : {}
+// Why say something: this guard is meant to cover a local build with no notes
+// written yet, but it cannot tell that apart from notes that exist and were not
+// checked out — which is exactly what happened when docs/release-notes/ was
+// still inside the docs/** ignore rule. The release shipped, the manifest
+// carried no releaseNotes, and nothing anywhere said so.
+if (!existsSync(releaseNotesPath)) {
+  console.warn(
+    `[release-notes] none for ${releaseNotesVersion}; the update card will stay plain. Expected ${releaseNotesPath}`
+  )
+}
 // Why each dev channel gets its own repo rather than tagging into the main one:
 // the releases atom feed exposes only the 10 newest entries, so 24 hourly tags a
 // day would evict every stable/RC entry and strand users on a feed with nothing
@@ -89,7 +117,16 @@ const bundledPluginResources = {
 // from package directories where pnpm's symlink farm is absent. Copy the exact
 // runtime dependency closure to Resources/node_modules so bare require() calls
 // do not fall through to a developer checkout's node_modules.
-const commonExtraResources = [relayExtraResource, bundledPluginResources, skillFreshnessResources]
+// Why: MIT requires the copyright notice and permission text to travel with
+// every distributed copy. Nothing else placed LICENSE in the packaged app, so
+// a downloaded build carried the code without its licence.
+const licenseResource = { from: 'LICENSE', to: 'LICENSE' }
+const commonExtraResources = [
+  licenseResource,
+  relayExtraResource,
+  bundledPluginResources,
+  skillFreshnessResources
+]
 // Why: native speech addons must be real files outside app.asar; copy only the
 // package matching the artifact target instead of every optional variant.
 const macSpeechNativeResource = {
@@ -128,6 +165,10 @@ module.exports = {
     '!mobile{,/**/*}',
     '!native{,/**/*}',
     '!skills{,/**/*}',
+    // Why: the self-hosted relay is a separate deployable that the desktop only
+    // ever talks to over the network. Bundling it shipped 102 files into
+    // app.asar — including its own compiled dist/ and its deployment README.
+    '!relay-server{,/**/*}',
     // Why: guide/stub authoring sources are compiled into runtime artifacts; shipping
     // either source tree would duplicate content without a runtime consumer.
     '!skill-guides{,/**/*}',
@@ -337,15 +378,16 @@ module.exports = {
     // Why: Windows installers are signed after electron-builder packaging by
     // SignPath, so the packager cannot infer the updater publisherName.
     //
-    // Why dev channels drop it instead: they ship unsigned, because SignPath's
-    // approval waits are budgeted in hours and cannot fit an hourly cadence.
+    // Why unsigned builds drop it instead: dev channels ship unsigned because
+    // SignPath's approval waits are budgeted in hours and cannot fit an hourly
+    // cadence, and a fork ships unsigned because it has no certificate at all.
     // electron-updater Authenticode-verifies every installer it downloads
     // against the publisherName baked into the *installed* app's app-update.yml
     // (NsisUpdater.verifySignature), and skips verification entirely when that
     // name is absent. An unsigned build that still claimed 'SignPath Foundation'
     // would therefore reject its own channel's next build — and its way back to
-    // stable with it. Dropping it is what makes dev→dev and dev→stable work.
-    ...(isWinDevChannel
+    // stable with it, with no way to fix the copies already installed.
+    ...(isWinUnsigned
       ? { verifyUpdateCodeSignature: false }
       : { signtoolOptions: { publisherName: 'SignPath Foundation' } }),
     extraResources: [
@@ -450,6 +492,17 @@ module.exports = {
         to: 'MacOS/manta-keyboard-layout'
       }
     ],
+    // Both architectures ship. The second Manta.app that x64 leaves one
+    // directory over is a real hazard — opening it on Apple Silicon runs the
+    // whole app under Rosetta, which reads as a hang rather than as the wrong
+    // build — but it is a hazard of building locally, and build-mac-local.mjs
+    // is where it is handled. Release truth lives here.
+    //
+    // Both arches must come out of one electron-builder invocation:
+    // latest-mac.yml is written once at the end with every arch's entry merged.
+    // Split across two jobs and the second upload overwrites the first's
+    // manifest, leaving one architecture permanently unable to update while all
+    // nine files sit there looking complete.
     target: [
       {
         target: 'dmg',
@@ -500,7 +553,7 @@ module.exports = {
       featureWallResources
     ],
     target: ['AppImage', 'deb'],
-    maintainer: 'stablyai',
+    maintainer: 'paidaxingyo666',
     category: 'Utility'
   },
   appImage: {
@@ -553,10 +606,11 @@ module.exports = {
   // on Intel Macs. The beforeBuild hook performs Manta's targeted rebuild and
   // returns false so electron-builder does not rebuild optional cpu-features.
   npmRebuild: true,
+  ...releaseNotes,
   publish: {
     provider: 'github',
-    owner: 'stablyai',
-    repo: devChannelRepo ?? 'manta',
+    owner: 'paidaxingyo666',
+    repo: devChannelRepo ?? 'Manta',
     releaseType: devChannelRepo ? 'prerelease' : 'release'
   }
 }

@@ -626,8 +626,18 @@ test.describe('Browser Tab', () => {
     ])
     try {
       const worktreeId = (await getActiveWorktreeId(mantaPage))!
-      const tabA = await createBrowserTab(mantaPage, worktreeId, formServerA.url('Zoom A'), 'Zoom A')
-      const tabB = await createBrowserTab(mantaPage, worktreeId, formServerB.url('Zoom B'), 'Zoom B')
+      const tabA = await createBrowserTab(
+        mantaPage,
+        worktreeId,
+        formServerA.url('Zoom A'),
+        'Zoom A'
+      )
+      const tabB = await createBrowserTab(
+        mantaPage,
+        worktreeId,
+        formServerB.url('Zoom B'),
+        'Zoom B'
+      )
       expect(tabA?.id).toBeTruthy()
       expect(tabB?.id).toBeTruthy()
       for (const tab of [tabA, tabB]) {

@@ -210,7 +210,7 @@ describe('formatAutomationShow', () => {
       automation: automation({
         runContext: {
           kind: 'workspace-run',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'runtime:gpu',
           projectHostSetupId: 'setup-gpu',
           repoId: 'repo-gpu',
@@ -219,7 +219,7 @@ describe('formatAutomationShow', () => {
       })
     })
 
-    expect(output).toContain('runProjectId: github:stablyai/orca')
+    expect(output).toContain('runProjectId: github:stablyai/manta')
     expect(output).toContain('runHostId: runtime:gpu')
     expect(output).toContain('projectHostSetupId: setup-gpu')
     expect(output).toContain('runRepoId: repo-gpu')

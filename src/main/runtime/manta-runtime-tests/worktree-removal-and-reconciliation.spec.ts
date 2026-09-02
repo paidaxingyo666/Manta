@@ -347,7 +347,7 @@ describe('MantaRuntimeService', () => {
         return { stdout: 'origin\n', stderr: '' }
       }
       if (args[0] === 'remote' && args[1] === 'get-url') {
-        return { stdout: 'git@github.com:stablyai/orca.git\n', stderr: '' }
+        return { stdout: 'git@github.com:stablyai/manta.git\n', stderr: '' }
       }
       return { stdout: '', stderr: '' }
     })

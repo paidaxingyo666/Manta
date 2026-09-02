@@ -11,7 +11,10 @@ import {
   recordCloudSessionIdentityMutationIfCurrent
 } from './profile-cloud-session-mutation'
 import { runWithFreshMantaCloudSession } from './profile-cloud-session-refresh'
-import { readMantaCloudSession, saveMantaCloudSessionIfCurrent } from './profile-cloud-session-store'
+import {
+  readMantaCloudSession,
+  saveMantaCloudSessionIfCurrent
+} from './profile-cloud-session-store'
 
 export async function refreshCurrentMantaProfileAuth(
   userDataPath: string

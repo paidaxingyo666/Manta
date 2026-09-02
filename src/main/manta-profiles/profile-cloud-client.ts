@@ -142,7 +142,10 @@ function normalizeCloudSummary(value: unknown): MantaProfileCloudSummary {
   }
 }
 
-function normalizeSessionResponse(value: unknown): MantaCloudSessionExchangeResponse {
+/** Exported so the account endpoints share one definition of a valid session. */
+export function normalizeMantaCloudSessionResponse(
+  value: unknown
+): MantaCloudSessionExchangeResponse {
   if (!value || typeof value !== 'object') {
     throw new Error('invalid_manta_cloud_session')
   }
@@ -184,14 +187,42 @@ export async function exchangeMantaCloudAuthCode(
   config: MantaCloudAuthConfig,
   args: ExchangeCodeArgs
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(config.sessionEndpoint, {
       code: args.code,
       codeVerifier: args.codeVerifier,
       nonce: args.nonce,
       redirectUri: args.redirectUri,
       state: args.state,
-      localProfileId: args.localProfileId
+      localProfileId: args.localProfileId,
+      // Body, not query: the authorize URL is opened in a browser, so a secret
+      // on it would land in history and in every proxy log en route. Omitted
+      // entirely when unset, so the official service sees no unexpected field.
+      ...(config.enrollmentSecret ? { enrollmentSecret: config.enrollmentSecret } : {})
+    })
+  )
+}
+
+/**
+ * Exchanges the enrolment secret for a session, with no browser step.
+ *
+ * The authorization-code flow exists for a hosted service with a real identity
+ * provider and a human to sign in. A single-user self-hosted relay has neither,
+ * so the browser round trip would only bounce a code straight back. The secret
+ * is the credential either way, and skipping the trip means no code ever
+ * transits a browser or a loopback listener.
+ */
+export async function grantMantaCloudSessionDirectly(
+  config: MantaCloudAuthConfig,
+  localProfileId: string
+): Promise<MantaCloudSessionExchangeResponse> {
+  if (!config.enrollmentSecret) {
+    throw new Error('manta_cloud_direct_grant_unavailable')
+  }
+  return normalizeMantaCloudSessionResponse(
+    await postJson(config.sessionEndpoint, {
+      enrollmentSecret: config.enrollmentSecret,
+      localProfileId
     })
   )
 }
@@ -216,7 +247,7 @@ export async function refreshMantaCloudSession(
   config: MantaCloudAuthConfig,
   session: MantaCloudSession
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(config.refreshEndpoint, {
       refreshToken: session.refreshToken
     })
@@ -228,7 +259,7 @@ export async function createMantaCloudProfile(
   session: MantaCloudSession,
   args: CreateCloudProfileArgs
 ): Promise<MantaCloudSessionExchangeResponse> {
-  return normalizeSessionResponse(
+  return normalizeMantaCloudSessionResponse(
     await postJson(
       config.profileEndpoint,
       {

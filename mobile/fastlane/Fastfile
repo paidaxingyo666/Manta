@@ -28,9 +28,24 @@ APP_CONFIG_PATH = File.join(MOBILE_ROOT, "app.json")
 WORKSPACE = File.join(MOBILE_ROOT, "ios", "Manta.xcworkspace")
 BUILD_OUTPUT_DIRECTORY = File.join(MOBILE_ROOT, "build")
 SCHEME = "Manta"
-BUNDLE_ID = "com.stably.orca.mobile"
-TESTFLIGHT_GROUPS = ["peeps"].freeze
+BUNDLE_ID = "cn.sh.manta.mobile"
+# The notification service extension. iOS requires an extension's bundle id to
+# start with its host app's, and Apple requires it to be its own registered App
+# ID with its own provisioning profile.
+NSE_BUNDLE_ID = "cn.sh.manta.mobile.NotificationService"
+# The external group in App Store Connect, matched by name. Testers see this
+# name in TestFlight, so it is in the language they read. It must exist on
+# the app before this lane runs, and an external group cannot be created
+# until a build has been uploaded — so the first release necessarily fails
+# here, after ios-build has already done its job.
+TESTFLIGHT_GROUPS = ["外部测试"].freeze
 DEFAULT_TESTFLIGHT_CHANGELOG = "Latest Manta Mobile updates and fixes.".freeze
+# App Store Connect refuses an external-testing submission while Test Information
+# is blank ("Beta App Description is required to submit a build for external
+# testing"). Every distribute run failed there from the first release onward,
+# after the build itself had uploaded fine. Sent on each run, so a fresh app — or
+# one whose field was cleared — needs no console visit.
+BETA_APP_DESCRIPTION = "Manta Mobile pairs with the Manta desktop app over your own relay: watch agent sessions, read chat transcripts, and reply from your phone.".freeze
 TESTFLIGHT_PROCESSING_TIMEOUT_SECONDS = 20 * 60
 
 # App Store version states in which the version "train" is terminally closed to
@@ -74,6 +89,36 @@ end
 
 def current_mobile_version(config)
   config.fetch("expo").fetch("version")
+end
+
+# Why an env var rather than a constant: Test Information wants a reachable
+# address, and a personal one does not belong in the repo. Only the description
+# is required for external submission, so an unset address is fine.
+#
+# nil, never "": pilot guards this field with a bare truthiness check, and an
+# empty string is truthy in Ruby — it would submit a blank address as if it were
+# a real one, which App Store Connect rejects.
+def beta_feedback_email
+  value = ENV.fetch("TESTFLIGHT_FEEDBACK_EMAIL", "").strip
+  value.empty? ? nil : value
+end
+
+# Keyed by an explicit locale, NOT passed as beta_app_description.
+#
+# pilot's default_info path only walks the localizations the app ALREADY has
+# (build_manager.rb: it seeds the map from `app.get_beta_app_localizations` and
+# iterates that), so on an app with none it updates nothing — and still prints
+# "Successfully set the beta_app_description", which is why this looked fixed
+# while every external submission kept failing on "Beta App Description is
+# missing". A named locale gives the map an entry with a nil localization, and
+# that is the branch that POSTs a new one.
+def beta_test_info_for(app)
+  locale = app.primary_locale.to_s.strip
+  locale = "en-US" if locale.empty?
+  info = { description: BETA_APP_DESCRIPTION }
+  email = beta_feedback_email
+  info[:feedback_email] = email if email
+  { locale => info }
 end
 
 def testflight_changelog
@@ -197,23 +242,55 @@ platform :ios do
     # doesn't exist in this fastlane version).
     profile_name = lane_context[SharedValues::SIGH_NAME]
 
+    # The notification service extension is a second target with its own bundle
+    # id, and therefore its own profile. Manual signing means nothing is fetched
+    # implicitly: without this the archive fails at the extension with "No
+    # profiles for 'cn.sh.manta.mobile.NotificationService' were found".
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: NSE_BUNDLE_ID,
+      force: true,
+    )
+    nse_profile_name = lane_context[SharedValues::SIGH_NAME]
+
     # Manual signing: the archive needs the team, profile, and signing style set
     # explicitly (no -allowProvisioningUpdates). Without DEVELOPMENT_TEAM the
     # archive fails: "Signing for Manta requires a development team".
+    # export_options is consumed by -exportArchive only; the ARCHIVE still needs
+    # a specifier per target, and xcargs is global so it cannot supply two.
+    # Writing them into the pbxproj is the only way to give each target its own.
+    update_code_signing_settings(
+      path: File.join(MOBILE_ROOT, "ios", "Manta.xcodeproj"),
+      targets: [SCHEME],
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name,
+      team_id: team_id,
+      use_automatic_signing: false,
+    )
+    update_code_signing_settings(
+      path: File.join(MOBILE_ROOT, "ios", "Manta.xcodeproj"),
+      targets: ["NotificationService"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: nse_profile_name,
+      team_id: team_id,
+      use_automatic_signing: false,
+    )
+
     build_app(
       workspace: WORKSPACE,
       scheme: SCHEME,
       configuration: "Release",
       export_method: "app-store",
+  
       xcargs: "DEVELOPMENT_TEAM=#{team_id} " \
         "CODE_SIGN_STYLE=Manual " \
-        "CODE_SIGN_IDENTITY='Apple Distribution' " \
-        "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
+        "CODE_SIGN_IDENTITY='Apple Distribution'",
       export_options: {
         teamID: team_id,
         signingStyle: "manual",
         provisioningProfiles: {
           BUNDLE_ID => profile_name,
+          NSE_BUNDLE_ID => nse_profile_name,
         },
       },
       output_directory: BUILD_OUTPUT_DIRECTORY,
@@ -271,6 +348,7 @@ platform :ios do
       groups: TESTFLIGHT_GROUPS,
       notify_external_testers: true,
       changelog: testflight_changelog,
+      localized_app_info: beta_test_info_for(app),
     )
   end
 

@@ -395,7 +395,8 @@ describe('web settings preload API', () => {
       sourcePreferences: { builtIn: { claude: 'hide' } }
     })
     expect(
-      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}').worktreeVisibilityDefaults
+      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}')
+        .worktreeVisibilityDefaults
     ).toEqual({
       external: 'show',
       customSources: [{ id: 'local', rootPath: '/srv/local' }]
@@ -415,7 +416,8 @@ describe('web settings preload API', () => {
       sourcePreferences: { builtIn: { claude: 'show' } }
     })
     expect(
-      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}').worktreeVisibilityDefaults
+      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}')
+        .worktreeVisibilityDefaults
     ).toEqual({
       external: 'show',
       customSources: [{ id: 'local', rootPath: '/srv/local' }]
@@ -472,7 +474,8 @@ describe('web settings preload API', () => {
     })
 
     expect(
-      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}').worktreeVisibilityDefaults
+      JSON.parse(globals.storage.getItem('manta.web.settings.v1') ?? '{}')
+        .worktreeVisibilityDefaults
     ).toEqual({ external: 'hide' })
   })
 

@@ -226,7 +226,9 @@ test.describe('Terminal Panes', () => {
       .locator('.pane-title-drag-handle')
     await expect(titleDragHandle).toBeVisible({ timeout: 3_000 })
     const sourceBox = await titleDragHandle.boundingBox()
-    const targetBox = await mantaPage.locator(`.pane[data-leaf-id="${target.leafId}"]`).boundingBox()
+    const targetBox = await mantaPage
+      .locator(`.pane[data-leaf-id="${target.leafId}"]`)
+      .boundingBox()
     expect(sourceBox).not.toBeNull()
     expect(targetBox).not.toBeNull()
     const sourceIndex = beforeOrder.indexOf(titledLeafId)

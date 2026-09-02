@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import { MobileSearchField } from './MobileSearchField'
+import { translate } from '../i18n/i18n'
 import { colors, spacing } from '../theme/mobile-theme'
 
 type HostWorkspaceSearchBarProps = {
@@ -16,7 +17,7 @@ export function HostWorkspaceSearchBar({
       <MobileSearchField
         value={value}
         onChangeText={onChangeText}
-        placeholder="Search worktrees…"
+        placeholder={translate('m.index.4e1194291f', 'Search worktrees…')}
         autoFocus
         accessibilityLabel="Search worktrees"
       />

@@ -459,6 +459,9 @@ describe('PR workflow parallelism', () => {
       'shell_contracts',
       'test',
       'mantad_browser',
+      // This fork's relay is a separate npm project with its own suite; upstream
+      // has no such job, so it is absent from their matrix.
+      'relay',
       'cross-version-wire',
       'managed_hook_node18',
       'package',

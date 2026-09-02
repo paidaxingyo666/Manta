@@ -28,11 +28,10 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
           '  if (!process.env.PRIME_AGENT_INTERNAL_DAEMON_WORKER) return'
         ]
       : []
-  const ownerEnv = kind === 'prime-agent' ? 'MANTA_PRIME_AGENT_STATUS_OWNED' : 'MANTA_PI_STATUS_OWNED'
+  const ownerEnv =
+    kind === 'prime-agent' ? 'MANTA_PRIME_AGENT_STATUS_OWNED' : 'MANTA_PI_STATUS_OWNED'
 
-  // Why: OMP suppresses its approval lifecycle unless an extension listens for it,
-  // and it is the only signal that the run is parked on a permission prompt rather
-  // than still working. Prime has no OMP runtime, so the handlers would be dead there.
+  // OMP emits permission-state approval events only when subscribed; Prime has no OMP runtime.
   const approvalHandlers =
     kind === 'prime-agent'
       ? []

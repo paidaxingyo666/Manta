@@ -108,7 +108,7 @@ describe('registerMantaProfileHandlers auth channels', () => {
     await expect(
       Promise.resolve(handlers.get('mantaProfiles:signOutCurrent')?.(null))
     ).resolves.toBe(signOutResult)
-    expect(connectCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data')
+    expect(connectCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data', undefined)
     expect(signOutCurrentMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data')
   })
 
@@ -163,7 +163,10 @@ describe('registerMantaProfileHandlers auth channels', () => {
 
     await expect(
       Promise.resolve(
-        handlers.get('mantaProfiles:createCloudLinked')?.(null, { orgId: ' org-1 ', name: ' Acme ' })
+        handlers.get('mantaProfiles:createCloudLinked')?.(null, {
+          orgId: ' org-1 ',
+          name: ' Acme '
+        })
       )
     ).resolves.toBe(createResult)
     expect(createCloudLinkedMantaProfileMock).toHaveBeenCalledWith('/tmp/manta-user-data', {

@@ -84,7 +84,7 @@ describe('landing preflight issues', () => {
             type: 'image',
             src: 'https://github.com/stablyai.png?size=64',
             source: 'github',
-            label: 'stablyai/orca'
+            label: 'stablyai/manta'
           }
         })
       ])

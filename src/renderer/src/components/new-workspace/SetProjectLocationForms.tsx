@@ -87,7 +87,10 @@ export function ExistingFolderForm({
         >
           {isSubmitting ? <LoaderCircle className="size-3.5 animate-spin" /> : null}
           {isSubmitting
-            ? translate('auto.components.settings.RepositoryPane.settingUpHost', 'Importing...')
+            ? translate(
+                'auto.components.settings.RepositoryPane.settingUpHost.b7353a',
+                'Importing...'
+              )
             : translate(
                 'auto.components.new.workspace.SetProjectLocationDialog.saveLocation',
                 'Set location'

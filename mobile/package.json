@@ -18,8 +18,8 @@
     "start:emulator": "node scripts/start-emulator.mjs"
   },
   "dependencies": {
-    "@noble/hashes": "1.8.0",
     "@manta/expo-two-way-audio": "file:./packages/expo-two-way-audio",
+    "@noble/hashes": "1.8.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@xterm/addon-unicode11": "0.10.0-beta.300",
     "@xterm/addon-webgl": "0.20.0-beta.299",
@@ -46,11 +46,13 @@
     "expo-secure-store": "^55.0.18",
     "expo-splash-screen": "^55.0.25",
     "expo-status-bar": "^55.0.6",
+    "i18next": "^26.4.0",
     "lowlight": "^3.3.0",
     "lucide-react-native": "^1.14.0",
     "mermaid": "11.17.2",
     "react": "^19.2.8",
     "react-dom": "19.2.8",
+    "react-i18next": "^17.0.12",
     "react-native": "^0.83.10",
     "react-native-gesture-handler": "^2.31.2",
     "react-native-reanimated": "4.3.4",

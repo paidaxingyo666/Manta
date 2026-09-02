@@ -27,7 +27,7 @@ const repo: Repo = {
   executionHostId: 'runtime:hub'
 }
 const project: Project = {
-  id: 'github:stablyai/orca',
+  id: 'github:stablyai/manta',
   displayName: 'Manta',
   badgeColor: '#737373',
   sourceRepoIds: [repo.id],

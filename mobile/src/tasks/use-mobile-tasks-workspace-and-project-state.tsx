@@ -87,7 +87,9 @@ export function useMobileTasksWorkspaceAndProjectState(model: RouteAndItemStateM
   const [taskStateHydrated, setTaskStateHydrated] = useState(false)
   const [runtimeTaskSettings, setRuntimeTaskSettings] = useState<RuntimeTaskSettings>({})
   const [trustedMantaHooks, setTrustedMantaHooks] = useState<PersistedTrustedMantaHooks>({})
-  const [mantaYamlTrustPrompt, setMantaYamlTrustPrompt] = useState<MantaYamlTrustPrompt | null>(null)
+  const [mantaYamlTrustPrompt, setMantaYamlTrustPrompt] = useState<MantaYamlTrustPrompt | null>(
+    null
+  )
   const [githubProjectSettings, setGithubProjectSettings] = useState<GitHubProjectSettings>(
     EMPTY_GITHUB_PROJECT_SETTINGS
   )

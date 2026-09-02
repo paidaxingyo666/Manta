@@ -45,7 +45,7 @@ describe('BrowserClientPageCommandExecutor integration', () => {
     })
     const rendererRekey = vi.fn(async () => {})
     const executor = new BrowserClientPageCommandExecutor({
-      mantaProfileId: 'manta-profile-a',
+      mantaProfileId: 'orca-profile-a',
       authorityConnectionIdentity: 'authority-record-a',
       legacyAuthorityConnectionIdentity: 'legacy-authority-record-a',
       storageScope: 'a'.repeat(64),

@@ -46,7 +46,7 @@ describe('updater', () => {
     // Setup pins the default generic feed; resolver only runs per check.
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
 
@@ -58,7 +58,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.3.17-rc.2'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.3.17-rc.2'
       })
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -80,14 +80,14 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.3.19'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.3.19'
       })
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
   })
 
   // Why: if the atom resolver fails or finds nothing newer, fall back to /releases/latest/download so the check completes as "not-available" instead of erroring.
-  it('falls back to /releases/latest/download when the atom resolver returns null', async () => {
+  it('pins this build own release when the atom resolver returns null', async () => {
     appMock.getVersion.mockReturnValue('1.3.19-rc.6')
     fetchNewerReleaseTagsMock.mockResolvedValue([])
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
@@ -104,7 +104,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: `https://github.com/paidaxingyo666/Manta/releases/download/v${appMock.getVersion()}`
     })
   })
 
@@ -135,7 +135,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
       }
     ])
   })
@@ -159,7 +159,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
     })
     expect(sendMock).not.toHaveBeenCalledWith(
       'updater:status',
@@ -201,16 +201,16 @@ describe('updater', () => {
     expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.26'
     })
     expect(autoUpdaterMock.setFeedURL).not.toHaveBeenCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.27'
     })
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
       }
     ])
     expect(sendMock).not.toHaveBeenCalledWith(
@@ -253,7 +253,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.26'
     })
   })
 
@@ -288,7 +288,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.26'
     })
     expect(setLastUpdateCheckAt).not.toHaveBeenCalled()
 
@@ -308,7 +308,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.27'
     })
   })
 
@@ -358,7 +358,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.27'
     })
   })
 
@@ -397,7 +397,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.27'
     })
   })
 

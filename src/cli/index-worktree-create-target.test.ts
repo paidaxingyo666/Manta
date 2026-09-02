@@ -96,7 +96,7 @@ describe('manta cli worktree awareness', () => {
         setups: [
           {
             id: 'setup-local',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'local',
             repoId: 'repo-local',
             path: '/tmp/manta',
@@ -108,7 +108,7 @@ describe('manta cli worktree awareness', () => {
           },
           {
             id: 'setup-gpu',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: 'repo-gpu',
             path: '/srv/manta',
@@ -133,7 +133,7 @@ describe('manta cli worktree awareness', () => {
         'worktree',
         'create',
         '--project',
-        'github:stablyai/orca',
+        'github:stablyai/manta',
         '--host',
         'runtime:gpu',
         '--name',
@@ -170,7 +170,7 @@ describe('manta cli worktree awareness', () => {
         setups: [
           {
             id: 'setup-gpu',
-            projectId: 'github:stablyai/orca',
+            projectId: 'github:stablyai/manta',
             hostId: 'runtime:gpu',
             repoId: 'repo-gpu',
             path: '/srv/manta',
@@ -223,7 +223,7 @@ describe('manta cli worktree awareness', () => {
         '--repo',
         'id:repo-local',
         '--project',
-        'github:stablyai/orca',
+        'github:stablyai/manta',
         '--name',
         'feature',
         '--json'

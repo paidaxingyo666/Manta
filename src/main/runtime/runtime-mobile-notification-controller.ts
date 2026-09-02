@@ -27,6 +27,11 @@ export type MobileNotificationEvent =
 export class RuntimeMobileNotificationController {
   private readonly listeners = new Set<(event: MobileNotificationEvent) => void>()
   private readonly replay = new MobileNotificationReplayBuffer()
+  private pushEscalation: { schedule: (event: MobileNotificationEvent) => void } | null = null
+
+  setPushEscalation(escalation: { schedule: (event: MobileNotificationEvent) => void }): void {
+    this.pushEscalation = escalation
+  }
 
   onDispatched(listener: (event: MobileNotificationEvent) => void): () => void {
     this.listeners.add(listener)
@@ -39,16 +44,14 @@ export class RuntimeMobileNotificationController {
 
   dispatch(event: MobileNotificationEvent): void {
     const seq = this.replay.record(event)
-    notifyRuntimeListeners(
-      this.listeners,
-      (listener) =>
-        listener({
-          ...event,
-          notificationSeq: seq,
-          notificationEpoch: this.replay.epoch
-        }),
-      'mobile-notification'
-    )
+    const sequenced = {
+      ...event,
+      notificationSeq: seq,
+      notificationEpoch: this.replay.epoch
+    }
+    // Scheduling must not delay or throw into live delivery.
+    this.pushEscalation?.schedule(sequenced)
+    notifyRuntimeListeners(this.listeners, (listener) => listener(sequenced), 'mobile-notification')
   }
 
   getMissedSince(lastSeenSeq: number, epoch?: string) {

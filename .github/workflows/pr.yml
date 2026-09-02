@@ -35,7 +35,8 @@ jobs:
       xterm_patch_sync: ${{ steps.filter.outputs.xterm_patch_sync }}
       shell_contracts: ${{ steps.filter.outputs.shell_contracts }}
       test: ${{ steps.filter.outputs.test }}
-      mantad_browser: ${{ steps.filter.outputs.orcad_browser }}
+      mantad_browser: ${{ steps.filter.outputs.mantad_browser }}
+      relay: ${{ steps.filter.outputs.relay }}
       cross-version-wire: ${{ steps.filter.outputs.cross-version-wire }}
       managed_hook_node18: ${{ steps.filter.outputs.managed_hook_node18 }}
       package: ${{ steps.filter.outputs.package }}
@@ -94,6 +95,18 @@ jobs:
 
       - name: Enforce type-aware code-quality baseline
         run: pnpm run audit:code-quality:type-aware
+
+      # Why: the changed-lines gate cannot tell upstream's code from this fork's,
+      # and a sync PR presents thousands of upstream-authored lines as changed.
+      # With this ref present, a finding whose exact line also exists upstream is
+      # reported as upstream's and not counted; without it every finding is this
+      # fork's, which is the stricter reading. Never fatal — a fetch that fails
+      # tightens the gate, it does not open it.
+      - name: Fetch upstream for line attribution
+        continue-on-error: true
+        run: |
+          git remote add upstream https://github.com/stablyai/orca.git 2>/dev/null || true
+          git fetch --no-tags --filter=blob:none upstream main:refs/remotes/upstream/main
 
       - name: Enforce changed-code quality
         run: pnpm run check:code-quality:changed -- "${{ github.event.pull_request.base.sha }}"
@@ -165,6 +178,17 @@ jobs:
       # from @electron-toolkit/tsconfig) silently widens unresolved names
       # in .d.ts to `any`, which is how #1186 shipped a broken IPC signature
       # past typecheck. See .github/CONTRIBUTING.md#type-declarations-prefer-ts-over-dts.
+      # This fork ships a second locale catalog for the Expo tree; upstream has
+      # none, so its lint matrix has no entry for these.
+      - name: Verify mobile localization catalog
+        run: pnpm run verify:localization-catalog:mobile
+
+      - name: Verify mobile localization extraction
+        run: pnpm run verify:localization-extraction:mobile
+
+      - name: Verify mobile localization coverage
+        run: pnpm run verify:localization-coverage:mobile
+
       - name: Guard against project-owned .d.ts in preload/shared
         run: |
           matches=$(find src/preload src/shared -name '*.d.ts' 2>/dev/null || true)
@@ -273,7 +297,7 @@ jobs:
               # produced them are most of the tree and would bloat the cache entry.
               find "$source" -name '*.o' -delete
             fi
-            MANTA_GIT_COMPAT_BINARY="$source/git" ORCA_GIT_COMPAT_VERSION="2.25.5" \
+            MANTA_GIT_COMPAT_BINARY="$source/git" MANTA_GIT_COMPAT_VERSION="2.25.5" \
               pnpm exec vitest run --config config/vitest.config.ts \
               src/shared/git-binary-compatibility.test.ts
           ) &
@@ -285,7 +309,7 @@ jobs:
             (
               image="${spec%%|*}"
               version="${spec#*|}"
-              MANTA_GIT_COMPAT_IMAGE="$image" ORCA_GIT_COMPAT_VERSION="$version" \
+              MANTA_GIT_COMPAT_IMAGE="$image" MANTA_GIT_COMPAT_VERSION="$version" \
                 pnpm exec vitest run --config config/vitest.config.ts \
                 src/shared/git-binary-compatibility.test.ts
             ) &
@@ -332,7 +356,7 @@ jobs:
           # reports success. This turns a failed or missing install into a red test
           # instead of a green no-op.
           MANTA_CODEX_CONTRACT_REQUIRED: '1'
-          ORCA_CODEX_CONTRACT_VERSION: ${{ env.CODEX_CLI_VERSION }}
+          MANTA_CODEX_CONTRACT_VERSION: ${{ env.CODEX_CLI_VERSION }}
         run: |
           set -euo pipefail
           MANTA_CODEX_CONTRACT_BINARY="$RUNNER_TEMP/codex-cli/node_modules/.bin/codex" \
@@ -525,7 +549,7 @@ jobs:
   mantad_browser:
     name: mantad browser provider
     needs: [code_paths]
-    if: needs.code_paths.outputs.orcad_browser == 'true'
+    if: needs.code_paths.outputs.mantad_browser == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -558,6 +582,34 @@ jobs:
           pnpm exec vitest run --config config/vitest.config.ts \
             src/main/mantad/external-chromium-browser-process.integration.test.ts
 
+  relay:
+    # The relay is a separate npm project with its own vitest config, so the
+    # sharded suite above never touches it. Most of its tests import the
+    # desktop's protocol implementation to prove the two agree byte for byte —
+    # which is exactly why they belong here, where both trees are installed,
+    # and why the release workflow can only run the standalone subset.
+    name: relay tests
+    needs: [code_paths]
+    if: needs.code_paths.outputs.relay == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+
+      - name: Install relay dependencies
+        working-directory: relay-server
+        run: npm ci --no-audit --no-fund
+
+      - name: Relay check
+        working-directory: relay-server
+        run: npm run check
+
   cross-version-wire:
     name: cross-version wire compatibility
     needs: [code_paths]
@@ -577,6 +629,52 @@ jobs:
           fetch-depth: 0
           filter: blob:none
           persist-credentials: false
+
+      # Why: the baseline the harness skews against is an UPSTREAM release tag.
+      # This fork's own tags start well after it, and the tags a clone of upstream
+      # carries locally are never pushed here — so on CI the ref does not resolve
+      # and the whole lane fails on `git rev-parse`.
+      #
+      # Fetched one tag at a time, never `--tags`: a sibling test picks "the newest
+      # release tag", and dragging upstream's tag line in would silently change
+      # which release that is. Full blobs, because the harness extracts the tree
+      # with `git archive`, which needs every blob present.
+      #
+      # The ref is read out of the test rather than repeated here, so a baseline
+      # bump stays a one-line change in the file that owns it.
+      - name: Fetch the upstream baseline refs
+        run: |
+          set -euo pipefail
+          # Every pinned baseline in the lane, read out of the tests rather than
+          # repeated here, so a bump stays a one-line change in the file that owns it.
+          refs="$(sed -n "s/.*RELEASE_REF = '\([^']*\)'.*/\1/p" \
+            tests/e2e/cross-version-wire/*.unit.test.ts | sort -u)"
+          if [ -z "$refs" ]; then
+            echo "::error::could not read any baseline release ref out of the cross-version tests"
+            exit 1
+          fi
+          for ref in $refs; do
+            if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
+              echo "$ref already present"
+              continue
+            fi
+            # Only upstream tags need fetching; this fork's own are already here.
+            git remote add baseline https://github.com/stablyai/orca.git 2>/dev/null || true
+            git fetch --no-tags --depth=1 baseline "refs/tags/$ref:refs/tags/$ref"
+            git rev-parse -q --verify "$ref^{commit}" >/dev/null
+          done
+
+          commit_refs="$(sed -n "s/^const .*_REF = '\([0-9a-f]\{40\}\)'.*/\1/p" \
+            tests/e2e/cross-version-wire/reported-lossy-initial-snapshot.unit.test.ts | sort -u)"
+          for ref in $commit_refs; do
+            if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
+              echo "$ref already present"
+              continue
+            fi
+            git remote add baseline https://github.com/stablyai/orca.git 2>/dev/null || true
+            git fetch --no-tags --depth=1 baseline "$ref:refs/manta-cross-version/$ref"
+            git rev-parse -q --verify "$ref^{commit}" >/dev/null
+          done
 
       - uses: ./.github/actions/install-node-dependencies
         with:
@@ -774,7 +872,7 @@ jobs:
 
       - name: Build package inputs
         env:
-          ORCA_REUSE_WINDOWS_CLI_LAUNCHER: '1'
+          MANTA_REUSE_WINDOWS_CLI_LAUNCHER: '1'
         run: pnpm run build:release:parallel
 
       - name: Restore compiled Electron native modules
@@ -895,6 +993,7 @@ jobs:
       - shell_contracts
       - test
       - mantad_browser
+      - relay
       - cross-version-wire
       - managed_hook_node18
       - package
@@ -930,7 +1029,12 @@ jobs:
           TEST: ${{ needs.test.result }}
           TEST_SHOULD_RUN: ${{ needs.code_paths.outputs.test }}
           MANTAD_BROWSER: ${{ needs.mantad_browser.result }}
-          ORCAD_BROWSER_SHOULD_RUN: ${{ needs.code_paths.outputs.orcad_browser }}
+          MANTAD_BROWSER_SHOULD_RUN: ${{ needs.code_paths.outputs.mantad_browser }}
+          # Why should_run and not a per-job filter output: this fork's relay job
+          # gates on the broad code-relevant filter, and upstream's outputs have
+          # no entry for it — the relay is not in their matrix.
+          RELAY: ${{ needs.relay.result }}
+          RELAY_SHOULD_RUN: ${{ needs.code_paths.outputs.relay }}
           CROSS_VERSION_WIRE: ${{ needs.cross-version-wire.result }}
           CROSS_VERSION_WIRE_SHOULD_RUN: ${{ needs.code_paths.outputs.cross-version-wire }}
           MANAGED_HOOK_NODE18: ${{ needs.managed_hook_node18.result }}
@@ -972,7 +1076,8 @@ jobs:
           check_job xterm_patch_sync "$XTERM_PATCH_SYNC" "$XTERM_PATCH_SYNC_SHOULD_RUN"
           check_job shell_contracts "$SHELL_CONTRACTS" "$SHELL_CONTRACTS_SHOULD_RUN"
           check_job test "$TEST" "$TEST_SHOULD_RUN"
-          check_job mantad_browser "$MANTAD_BROWSER" "$ORCAD_BROWSER_SHOULD_RUN"
+          check_job mantad_browser "$MANTAD_BROWSER" "$MANTAD_BROWSER_SHOULD_RUN"
+          check_job relay "$RELAY" "$RELAY_SHOULD_RUN"
           check_job cross-version-wire "$CROSS_VERSION_WIRE" "$CROSS_VERSION_WIRE_SHOULD_RUN"
           check_job managed_hook_node18 "$MANAGED_HOOK_NODE18" "$MANAGED_HOOK_NODE18_SHOULD_RUN"
           check_job package "$PACKAGE" "$PACKAGE_SHOULD_RUN"

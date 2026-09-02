@@ -1,18 +1,24 @@
+# This repo IS the Homebrew tap — see manta.rb. `fork-release.yml` keeps the
+# version and hashes below in sync with the newest pre-release.
+#
+#   brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta
+#   brew install --cask paidaxingyo666/manta/manta@rc
+#
 cask "manta@rc" do
   arch arm: "arm64", intel: "x64"
 
-  version "1.4.36-rc.3"
-  sha256 arm:   "563b6b14323fc9d5489299c82442d514bc12cabffc9d06d3964ed572af4b3955",
-         intel: "457088c7021f07de1a419197f7b2bd00092741ad4727d4fef3d86af38a6831e7"
+  version "1.4.193-rc.0"
+  sha256 arm:   "63c36e288654ab2c3789a9d014d3f92d515d3e9535e0fb649790529ad9841b9b",
+         intel: "c05420d609735f5f7ef37faaf1aa72aa27c3ad265bcbe7e11a36b39c1d41d2b5"
 
-  url "https://github.com/stablyai/orca/releases/download/v#{version}/manta-macos-#{arch}.dmg",
-      verified: "github.com/stablyai/orca/"
+  url "https://github.com/paidaxingyo666/Manta/releases/download/v#{version}/manta-macos-#{arch}.dmg",
+      verified: "github.com/paidaxingyo666/Manta/"
   name "Manta RC"
   desc "IDE for orchestrating AI coding agents across terminals and worktrees"
-  homepage "https://manta.sh.cn/"
+  homepage "https://github.com/paidaxingyo666/Manta"
 
   livecheck do
-    url "https://github.com/stablyai/orca"
+    url "https://github.com/paidaxingyo666/Manta"
     regex(/^v?(\d+(?:\.\d+)+-rc\.\d+)$/i)
     strategy :github_releases do |json, regex|
       json.map do |release|

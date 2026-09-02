@@ -194,7 +194,9 @@ async function waitForCodexComposer(page: Page): Promise<string> {
 }
 
 test.describe('local Codex terminal typing latency', () => {
-  test('keeps Codex prompt typing responsive @local-real-codex', async ({ mantaPage }, testInfo) => {
+  test('keeps Codex prompt typing responsive @local-real-codex', async ({
+    mantaPage
+  }, testInfo) => {
     test.skip(
       process.env.MANTA_E2E_REAL_CODEX !== '1',
       'Set MANTA_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'

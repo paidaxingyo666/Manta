@@ -75,7 +75,7 @@ describe('pending worktree creation state', () => {
         taskSourceContext: {
           kind: 'task-source',
           provider: 'github',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'local',
           projectHostSetupId: 'setup-local',
           repoId: 'repo-local',
@@ -83,7 +83,7 @@ describe('pending worktree creation state', () => {
         },
         workspaceRunContext: {
           kind: 'workspace-run',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           hostId: 'ssh:ssh-1',
           projectHostSetupId: 'setup-ssh',
           repoId: 'repo-ssh',

@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runProcess, spawnProcess } from '../../shared/child-process/run-process'
 import { ExternalChromiumBrowserProcess } from './external-chromium-browser-process'
-import { installedElectronCandidates, resolveMantadBrowserProvider } from './mantad-browser-provider'
+import {
+  installedElectronCandidates,
+  resolveMantadBrowserProvider
+} from './mantad-browser-provider'
 import { mantadAgentBrowserNativeName } from './mantad-agent-browser-binary'
 import {
   runtimeBrowserUnavailableCause,

@@ -12,6 +12,7 @@ import {
 import { styles } from './mobile-tasks-legacy-styles'
 import { renderMobileTasksProviderControls } from './mobile-tasks-provider-controls'
 import { renderMobileTasksSearchControl } from './mobile-tasks-search-control'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksChrome(model: ConnectionPresentationModel) {
   const { setTaskCopyFeedbackRootRef } = model
@@ -56,7 +57,7 @@ export function renderMobileTasksStatusBar(model: ConnectionPresentationModel) {
       </Pressable>
       <View style={styles.titleWrap}>
         <StatusDot state={connState} verdict={headerVerdict} />
-        <Text style={styles.title}>Tasks</Text>
+        <Text style={styles.title}>{translate('m.tasks.fd3792748f', 'Tasks')}</Text>
       </View>
       <Pressable
         style={styles.iconButton}

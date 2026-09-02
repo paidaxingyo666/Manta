@@ -271,7 +271,7 @@ describe('repo slice project runtime updates', () => {
   // epoch. Merging it with the host that does know the timestamp must keep the real one.
   it('prefers a known createdAt over an unknown 0 when merging the same project id', async () => {
     const project: Project = {
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       displayName: 'Manta',
       badgeColor: '#000',
       sourceRepoIds: ['remote-repo'],
@@ -298,7 +298,7 @@ describe('repo slice project runtime updates', () => {
 
   it('preserves shared project source repos when updating local runtime preferences', async () => {
     const project: Project = {
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       displayName: 'Manta',
       badgeColor: '#000',
       sourceRepoIds: ['local-repo', 'remote-repo'],
@@ -326,7 +326,7 @@ describe('repo slice project runtime updates', () => {
 
   it('clears local runtime preferences without dropping shared project source repos', async () => {
     const project: Project = {
-      id: 'github:stablyai/orca',
+      id: 'github:stablyai/manta',
       displayName: 'Manta',
       badgeColor: '#000',
       sourceRepoIds: ['local-repo', 'remote-repo'],

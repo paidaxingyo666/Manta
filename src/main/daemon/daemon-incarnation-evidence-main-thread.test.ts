@@ -23,7 +23,9 @@ const { execFileMock, execFileSyncMock, readFileMock } = vi.hoisted(() => ({
   ),
   execFileSyncMock: vi.fn(() => ''),
   readFileMock: vi.fn(async (path: string) =>
-    path === '/proc/stat' ? 'btime 1699000000\n' : `42 (manta-daemon) S${' 0'.repeat(18)} 1234 0 0\n`
+    path === '/proc/stat'
+      ? 'btime 1699000000\n'
+      : `42 (manta-daemon) S${' 0'.repeat(18)} 1234 0 0\n`
   )
 }))
 

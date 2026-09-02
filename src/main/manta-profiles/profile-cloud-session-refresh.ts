@@ -30,7 +30,8 @@ function shouldRefreshCloudSession(session: MantaCloudSession, now = Date.now())
 
 export function isMantaCloudAuthFailure(error: unknown): boolean {
   return (
-    error instanceof MantaCloudRequestError && (error.statusCode === 401 || error.statusCode === 403)
+    error instanceof MantaCloudRequestError &&
+    (error.statusCode === 401 || error.statusCode === 403)
   )
 }
 
@@ -110,7 +111,8 @@ async function refreshStoredCloudSession(
       capabilities: refreshed.capabilities
     }
     if (
-      saveMantaCloudSessionIfCurrent(active.profile.id, userDataPath, nextSession, snapshot) === null
+      saveMantaCloudSessionIfCurrent(active.profile.id, userDataPath, nextSession, snapshot) ===
+      null
     ) {
       throw new StaleCloudSessionMutationError()
     }

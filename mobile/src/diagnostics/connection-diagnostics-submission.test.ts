@@ -14,7 +14,7 @@ describe('submitConnectionDiagnostics', () => {
 
     expect(result).toEqual({ ok: true })
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://www.manta.sh.cn/v1/feedback',
+      'https://www.onmanta.dev/v1/feedback',
       expect.objectContaining({ method: 'POST' })
     )
     const request = fetchImpl.mock.calls[0]?.[1]

@@ -95,7 +95,7 @@ describe('MantaRuntimeService', () => {
       getForegroundProcess: async () => null
     })
 
-    const draftUrl = 'https://github.com/stablyai/orca/pull/456'
+    const draftUrl = 'https://github.com/stablyai/manta/pull/456'
     const result = await runtime.createManagedWorktree({
       repoSelector: TEST_REPO_ID,
       name: 'nautilus',
@@ -208,7 +208,7 @@ describe('MantaRuntimeService', () => {
       const result = await runtime.createManagedWorktree({
         repoSelector: TEST_REPO_ID,
         name: 'mobile-codex-draft',
-        startupDraft: 'https://github.com/stablyai/orca/issues/789'
+        startupDraft: 'https://github.com/stablyai/manta/issues/789'
       })
 
       expect(detectRemoteAgentsMock).not.toHaveBeenCalled()

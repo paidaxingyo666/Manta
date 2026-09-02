@@ -1,11 +1,11 @@
 ---
-name: orca-emulator-android
+name: manta-emulator-android
 description: >
   Control an Android emulator / device from inside Manta using the `manta` CLI.
   Use for listing/booting AVDs, taps, swipes, typing, hardware buttons (incl. Back
   and Recents), rotation, app install/launch, runtime permissions, the accessibility
   tree, and logcat — driving a real adb-connected device or emulator. Cross-platform
-  (Windows, Linux, macOS). Complements the orca-emulator (iOS) and orca-cli skills.
+  (Windows, Linux, macOS). Complements the manta-emulator (iOS) and manta-cli skills.
 license: Apache-2.0
 ---
 
@@ -14,7 +14,7 @@ license: Apache-2.0
 Drive an Android emulator or adb-connected device **from within Manta** using
 `MANTA emulator ...` commands. The Android backend shells out to the Android SDK
 (`adb`, `emulator`, `avdmanager`) that Android Studio installs, so it works on
-Windows, Linux, and macOS — unlike the iOS backend (`orca-emulator`), which is
+Windows, Linux, and macOS — unlike the iOS backend (`manta-emulator`), which is
 macOS-only. Device control uses `adb shell input`, so it works without any extra
 streaming server.
 
@@ -46,7 +46,7 @@ shell-neutral for POSIX shells, PowerShell, and cmd.exe.
 
 ## When NOT to use
 
-- iOS simulators → use the `orca-emulator` skill (macOS only).
+- iOS simulators → use the `manta-emulator` skill (macOS only).
 - Building the app → use Gradle / `./gradlew assembleDebug`, then `install`.
 - Camera/sensor injection → not supported yet (Android virtual-scene is out of
   scope for now).
@@ -151,5 +151,5 @@ MANTA emulator logcat --lines 100 --device emulator-5554 --json
 Run `MANTA emulator devices --json` to find a booted device, then drive it with
 `--device <serial>` while watching the emulator window.
 
-See also: `orca-emulator` (iOS, macOS-only), `orca-cli` (terminals, worktrees,
+See also: `manta-emulator` (iOS, macOS-only), `manta-cli` (terminals, worktrees,
 built-in browser), `computer-use` (desktop UI outside the emulator).

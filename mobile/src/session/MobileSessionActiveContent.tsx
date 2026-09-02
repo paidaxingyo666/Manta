@@ -4,10 +4,11 @@ import { MobileBrowserPane } from '../browser/MobileBrowserPane'
 import { TerminalPaneView } from './TerminalPaneView'
 import { MobileNativeChatOverlay } from './MobileNativeChatOverlay'
 import { colors } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 import { styles } from './mobile-session-styles'
 import type { MobileSessionController } from './use-mobile-session-controller'
 import { FileReader } from './MobileSessionFileReader'
-import { MarkdownReader } from './MobileSessionMarkdownReader'
+import { MobileMarkdownReader } from './MobileMarkdownReader'
 
 export function MobileSessionActiveContent({
   controller
@@ -87,7 +88,9 @@ export function MobileSessionActiveContent({
     </View>
   ) : showEmptyState ? (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyText}>No tabs in this session</Text>
+      <Text style={styles.emptyText}>
+        {translate('m.worktreeId.5dbe1f32cd', 'No tabs in this session')}
+      </Text>
       {createError ? <Text style={styles.createError}>{createError}</Text> : null}
       <View style={styles.emptyActions}>
         <Pressable
@@ -102,14 +105,16 @@ export function MobileSessionActiveContent({
           }}
         >
           <Text style={styles.createButtonText}>
-            {createTabBusy ? 'Creating...' : 'Create Tab'}
+            {createTabBusy
+              ? translate('m.worktreeId.4b662fd6b5', 'Creating...')
+              : translate('m.worktreeId.21d8c24b45', 'Create Tab')}
           </Text>
         </Pressable>
       </View>
     </View>
   ) : activeMarkdownTab ? (
     <View style={styles.markdownFrame}>
-      <MarkdownReader
+      <MobileMarkdownReader
         documentId={activeMarkdownTab.id}
         doc={markdownDocs.get(activeMarkdownTab.id)}
         onRefresh={() => void readMarkdownTab(activeMarkdownTab)}
@@ -129,7 +134,7 @@ export function MobileSessionActiveContent({
     <View style={styles.markdownFrame}>
       <FileReader
         doc={fileDocs.get(activeFileTab.id)}
-        title={activeFileTab.title || 'File'}
+        title={activeFileTab.title || translate('m.worktreeId.59a7a08ee4', 'File')}
         relativePath={activeFileTab.relativePath}
         language={activeFileTab.language}
         diffCommentActions={
@@ -177,8 +182,9 @@ export function MobileSessionActiveContent({
       )}
       <Text style={styles.emptyText}>
         {isPendingTerminalRecoveryParked
-          ? 'Terminal is taking longer than expected'
-          : activePendingTerminalTab.title || 'Loading terminal'}
+          ? translate('m.worktreeId.d1d5a995dd', 'Terminal is taking longer than expected')
+          : activePendingTerminalTab.title ||
+            translate('m.worktreeId.d447fa8c0f', 'Loading terminal')}
       </Text>
       {isPendingTerminalRecoveryParked && (
         <Pressable
@@ -187,7 +193,9 @@ export function MobileSessionActiveContent({
           style={({ pressed }) => [styles.createButton, pressed && styles.newTerminalButtonPressed]}
           onPress={() => void retryPendingTerminalRecovery()}
         >
-          <Text style={styles.createButtonText}>Retry</Text>
+          <Text style={styles.createButtonText}>
+            {translate('m.worktreeId.f14ae8d9fd', 'Retry')}
+          </Text>
         </Pressable>
       )}
     </View>

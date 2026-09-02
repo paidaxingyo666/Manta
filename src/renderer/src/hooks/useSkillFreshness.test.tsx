@@ -105,7 +105,7 @@ describe('useSkillFreshness', () => {
     const second = deferred<SkillFreshnessInventory>()
     const freshnessInventory = vi
       .fn()
-      .mockResolvedValueOnce(inventory(1, ['orca-cli']))
+      .mockResolvedValueOnce(inventory(1, ['manta-cli']))
       .mockReturnValueOnce(second.promise)
     window.api = { skills: { freshnessInventory } } as never
     const renderProbes = (enabled: boolean): void => {
@@ -119,7 +119,7 @@ describe('useSkillFreshness', () => {
 
     await act(async () => renderProbes(true))
     expect(freshnessInventory).toHaveBeenCalledTimes(1)
-    expect(state?.inventory?.eligibleUpdateNames).toEqual(['orca-cli'])
+    expect(state?.inventory?.eligibleUpdateNames).toEqual(['manta-cli'])
 
     await act(async () => renderProbes(true))
     expect(freshnessInventory).toHaveBeenCalledTimes(1)
@@ -170,12 +170,12 @@ describe('useSkillFreshness', () => {
     const second = deferred<SkillFreshnessInventory>()
     const freshnessInventory = vi
       .fn()
-      .mockResolvedValueOnce(inventory(1, ['orca-cli']))
+      .mockResolvedValueOnce(inventory(1, ['manta-cli']))
       .mockReturnValueOnce(second.promise)
     window.api = { skills: { freshnessInventory } } as never
 
     await act(async () => root?.render(<Probe />))
-    expect(state?.inventory?.eligibleUpdateNames).toEqual(['orca-cli'])
+    expect(state?.inventory?.eligibleUpdateNames).toEqual(['manta-cli'])
 
     await act(async () => window.dispatchEvent(new Event('focus')))
     expect(freshnessInventory).toHaveBeenCalledTimes(1)
@@ -286,7 +286,9 @@ describe('useSkillFreshness', () => {
 
     expect(addEventListener.mock.calls.filter(([name]) => name === 'focus')).toHaveLength(1)
     expect(
-      addEventListener.mock.calls.filter(([name]) => name === 'manta:installed-agent-skills-changed')
+      addEventListener.mock.calls.filter(
+        ([name]) => name === 'manta:installed-agent-skills-changed'
+      )
     ).toHaveLength(1)
 
     await act(async () => root?.unmount())

@@ -11,6 +11,7 @@ import {
   type ViewStyle
 } from 'react-native'
 import { ArrowUp, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react-native'
+import { translate } from '../i18n/i18n'
 import { colors } from '../theme/mobile-theme'
 import { MobileBrowserAddressField } from './MobileBrowserAddressField'
 import { MobileBrowserKeyRow } from './MobileBrowserKeyRow'
@@ -113,21 +114,21 @@ export function MobileBrowserPaneView(props: MobileBrowserPaneViewProps) {
       <View style={styles.toolbar}>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoBack}
-          label="Back"
+          label={translate('m.MobileBrowserPane.6bf3c4656f', 'Back')}
           onPress={goBack}
         >
           <ChevronLeft size={15} color={buttonColor(!controlsDisabled && tab.canGoBack)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled || !tab.canGoForward}
-          label="Forward"
+          label={translate('m.MobileBrowserPane.f9830183d5', 'Forward')}
           onPress={goForward}
         >
           <ChevronRight size={15} color={buttonColor(!controlsDisabled && tab.canGoForward)} />
         </MobileBrowserToolbarIconButton>
         <MobileBrowserToolbarIconButton
           disabled={controlsDisabled}
-          label="Reload"
+          label={translate('m.MobileBrowserPane.195080774d', 'Reload')}
           onPress={reloadPage}
         >
           <RefreshCw size={15} color={buttonColor(!controlsDisabled)} />
@@ -249,7 +250,9 @@ export function MobileBrowserPaneView(props: MobileBrowserPaneViewProps) {
         {dialog ? (
           <View style={styles.dialogOverlay}>
             <View style={styles.dialogCard}>
-              <Text style={styles.dialogTitle}>Browser Dialog</Text>
+              <Text style={styles.dialogTitle}>
+                {translate('m.MobileBrowserPane.cf59e404bc', 'Browser Dialog')}
+              </Text>
               <Text style={styles.dialogMessage}>{dialog.message}</Text>
               <View style={styles.dialogActions}>
                 {dialog.dialogType !== 'alert' ? (
@@ -260,7 +263,9 @@ export function MobileBrowserPaneView(props: MobileBrowserPaneViewProps) {
                     ]}
                     onPress={() => void sendDialogCommand('browser.dialogDismiss')}
                   >
-                    <Text style={styles.dialogButtonText}>Cancel</Text>
+                    <Text style={styles.dialogButtonText}>
+                      {translate('m.MobileBrowserPane.45711f1d50', 'Cancel')}
+                    </Text>
                   </Pressable>
                 ) : null}
                 <Pressable
@@ -271,7 +276,9 @@ export function MobileBrowserPaneView(props: MobileBrowserPaneViewProps) {
                   ]}
                   onPress={() => void sendDialogCommand('browser.dialogAccept')}
                 >
-                  <Text style={[styles.dialogButtonText, styles.dialogButtonPrimaryText]}>OK</Text>
+                  <Text style={[styles.dialogButtonText, styles.dialogButtonPrimaryText]}>
+                    {translate('m.MobileBrowserPane.e3c7ac5a87', 'OK')}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -299,7 +306,7 @@ export function MobileBrowserPaneView(props: MobileBrowserPaneViewProps) {
             style={styles.keyboardInput}
             value={keyboardValue}
             onChangeText={setKeyboardValue}
-            placeholder="Type on page…"
+            placeholder={translate('m.MobileBrowserPane.8371afb0eb', 'Type on page…')}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}

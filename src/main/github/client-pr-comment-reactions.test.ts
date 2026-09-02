@@ -136,7 +136,7 @@ describe('GitHub GraphQL rate-limit guard', () => {
             user: { login: 'octo', avatar_url: 'https://avatar', type: 'User' },
             body: 'top-level',
             created_at: '2026-04-01T00:00:00Z',
-            html_url: 'https://github.com/stablyai/orca/pull/7#issuecomment-10'
+            html_url: 'https://github.com/stablyai/manta/pull/7#issuecomment-10'
           }
         ])
       })
@@ -152,12 +152,12 @@ describe('GitHub GraphQL rate-limit guard', () => {
     expect(getOwnerRepoMock).not.toHaveBeenCalled()
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       1,
-      ['api', '--cache', '60s', 'repos/stablyai/orca/issues/7/comments?per_page=100'],
+      ['api', '--cache', '60s', 'repos/stablyai/manta/issues/7/comments?per_page=100'],
       { cwd: '/repo-root', host: 'github.com' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       2,
-      ['api', '--cache', '60s', 'repos/stablyai/orca/pulls/7/reviews?per_page=100'],
+      ['api', '--cache', '60s', 'repos/stablyai/manta/pulls/7/reviews?per_page=100'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })

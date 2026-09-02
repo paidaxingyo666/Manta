@@ -216,7 +216,6 @@ export function normalizeCompatibleAgentStatusEntryForOwner(
   }
 }
 
-/** Returns whether two agents share the same title identity group. */
 export function shareCompatibleTitleIdentityGroup(
   left: AgentType | null | undefined,
   right: AgentType | null | undefined

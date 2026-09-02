@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { RpcSuccess } from '../transport/types'
+import { translate } from '../i18n/i18n'
 import { headlessActivationNeedsHostRenderer } from '../worktree/worktree-activation-result'
 import { createInitialSessionAutoCreateState } from './use-initial-session-terminal-autocreate'
 import type { MobileSessionKeyboardStateModel } from './use-mobile-session-keyboard-state'
@@ -118,7 +119,10 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     void (async () => {
       const reportActivationOutcome = (response: RpcSuccess | null): void => {
         if (!disposed && response && headlessActivationNeedsHostRenderer(response.result)) {
-          showToast('Open Manta on the host to wake sleeping agents.', 3000)
+          showToast(
+            translate('m.worktreeId.9cae6a7f4c', 'Open Manta on the host to wake sleeping agents.'),
+            3000
+          )
         }
       }
       if (client && created !== '1' && !isFloatingWorkspaceRoute) {

@@ -10,7 +10,12 @@
 
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { comparePublishedFieldOccurrences, publishedFieldNames } from './published-field-shape'
-import { resolveBaselineReleaseRef, selectLatestStableReleaseTag } from './release-checkout'
+import {
+  resolveBaselineReleaseRef,
+  selectBaselineReleaseTag,
+  selectLatestPrereleaseTag,
+  selectLatestStableReleaseTag
+} from './release-checkout'
 import {
   CrossVersionJourneyStall,
   JOURNEY_INPUTS,
@@ -27,8 +32,12 @@ import {
 
 // Why: a cold CI run extracts the baseline checkout before the first journey.
 const SUITE_TIMEOUT_MS = 180_000
-// Last stable release before SnapshotStart began publishing terminal mode metadata.
-const TERMINAL_MODE_METADATA_LEGACY_REF = 'v1.4.190'
+// Last shipped build before SnapshotStart began publishing terminal mode metadata.
+// Upstream names its v1.4.190; this fork's remote carries only its own tags, so
+// the hard-coded upstream ref fails on CI while passing on a clone that still
+// has them locally. v1.4.189-rc.10 is the fork's last release before the change
+// (terminalOwner first appears in its v1.4.191-rc.0) and is on origin.
+const TERMINAL_MODE_METADATA_LEGACY_REF = 'v1.4.189-rc.10'
 
 /**
  * The frames one journey must produce, named rather than numbered so a diff reads
@@ -148,6 +157,35 @@ describe('cross-version remote terminal wire', () => {
         'v1.4.176'
       ])
     ).toBe('v1.4.176')
+  })
+
+  // This fork has published only release candidates, so a stable-only baseline
+  // leaves the lane with nothing to pair against.
+  it('falls back to the newest prerelease when no stable release exists', () => {
+    const tags = ['v799', 'mobile-v9.0.0', 'v1.4.189-rc.0', 'v1.4.189-rc.7', 'v1.4.189-rc.2']
+
+    expect(selectLatestStableReleaseTag(tags)).toBeNull()
+    expect(selectLatestPrereleaseTag(tags)).toBe('v1.4.189-rc.7')
+  })
+
+  // Sorting these as strings puts rc.9 above rc.10.
+  it('orders release candidates numerically', () => {
+    expect(selectLatestPrereleaseTag(['v1.4.189-rc.9', 'v1.4.189-rc.10'])).toBe('v1.4.189-rc.10')
+    expect(selectLatestPrereleaseTag(['v1.4.190-rc.1', 'v1.4.189-rc.9'])).toBe('v1.4.190-rc.1')
+  })
+
+  // A stable release, once cut, must win over any candidate.
+  it('prefers a stable release over a newer-looking candidate', () => {
+    expect(selectLatestStableReleaseTag(['v1.4.188', 'v1.4.189-rc.7'])).toBe('v1.4.188')
+  })
+
+  // What the lane actually resolves. CI sees only this fork's tags — all rc —
+  // while a local `git tag --list` also carries upstream's stable ones, so this
+  // is the only place the CI case can be pinned.
+  it('resolves a baseline from candidates alone, and prefers stable when present', () => {
+    expect(selectBaselineReleaseTag(['v1.4.189-rc.0', 'v1.4.189-rc.7'])).toBe('v1.4.189-rc.7')
+    expect(selectBaselineReleaseTag(['v1.4.188', 'v1.4.189-rc.7'])).toBe('v1.4.188')
+    expect(selectBaselineReleaseTag(['v799', 'mobile-v9.0.0'])).toBeNull()
   })
 
   it(

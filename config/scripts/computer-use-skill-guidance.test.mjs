@@ -20,7 +20,7 @@ describe('computer-use skill guidance', () => {
     expect(description).toContain('external browser window')
     expect(description).toContain("Do not use for Manta's embedded browser")
     expect(description).toContain('page-only browser automation')
-    expect(description).toContain("`orca-cli` for Manta's embedded pages")
+    expect(description).toContain("`manta-cli` for Manta's embedded pages")
     expect(description).toContain(
       'page-automation tool such as Playwright or CDP for external pages'
     )
@@ -101,7 +101,7 @@ describe('computer-use install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('GNOME Orca screen reader')
+    expect(stub).toContain('installs the executable as `manta-ide`')
     expect(stub).not.toMatch(/^manta /mu)
   })
 

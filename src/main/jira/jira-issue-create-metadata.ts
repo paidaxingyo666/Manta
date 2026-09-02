@@ -127,11 +127,7 @@ export async function listPriorities(siteId?: string | null): Promise<JiraPriori
   }
 }
 
-/**
- * Searches all users on the site. Reporter and user-picker create fields are not
- * limited to assignable users and no issue key exists before create, so neither
- * `/user/assignable/search` variant fits. Returns `[]` when browse-users is denied.
- */
+/** Searches site users for pre-create user fields. */
 export async function searchUsers(query?: string, siteId?: string | null): Promise<JiraUser[]> {
   const entry = getClients(siteId)[0]
   if (!entry) {
@@ -139,8 +135,7 @@ export async function searchUsers(query?: string, siteId?: string | null): Promi
   }
   const isServer = entry.site.authType === 'server'
   const params = new URLSearchParams({ maxResults: '50' })
-  // Server/DC filters by `username`; `query` is Cloud-only. Server rejects an
-  // empty username, so fall back to the wildcard it accepts for "list everyone".
+  // Server/DC requires `username`; `.` is its accepted list-all fallback.
   params.set(isServer ? 'username' : 'query', query?.trim() || (isServer ? '.' : ''))
   await acquire()
   try {
@@ -154,7 +149,7 @@ export async function searchUsers(query?: string, siteId?: string | null): Promi
       clearToken(entry.site.id)
       throw error
     }
-    // Browse-users permission is optional; the dialog falls back to a text field.
+    // Browse-users permission is optional; expose an empty picker instead of a hard error.
     console.warn('[jira] searchUsers failed:', error)
     return []
   } finally {

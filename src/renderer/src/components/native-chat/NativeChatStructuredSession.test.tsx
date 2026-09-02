@@ -3,6 +3,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import React, { forwardRef, useImperativeHandle } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { APP_MENU_PASTE_EVENT } from '@/lib/app-menu-paste'
 
 const mocks = vi.hoisted(() => ({
   call: vi.fn(),
@@ -155,7 +156,7 @@ describe('NativeChatStructuredSession', () => {
 
     const composer = screen.getByTestId('structured-composer')
     composer.focus()
-    window.dispatchEvent(new Event('manta-app-menu-paste', { cancelable: true }))
+    window.dispatchEvent(new Event(APP_MENU_PASTE_EVENT, { cancelable: true }))
 
     expect(mocks.pasteFromClipboard).toHaveBeenCalledOnce()
   })

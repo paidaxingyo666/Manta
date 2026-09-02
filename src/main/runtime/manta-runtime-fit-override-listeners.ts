@@ -36,6 +36,12 @@ export class MantaRuntimeWithFitOverrideListeners extends MantaRuntimeWithStopRe
 
   protected readonly mobileNotifications = new RuntimeMobileNotificationController()
 
+  setPushEscalation(
+    escalation: Parameters<RuntimeMobileNotificationController['setPushEscalation']>[0]
+  ): void {
+    this.mobileNotifications.setPushEscalation(escalation)
+  }
+
   protected ptysById = new Map<string, RuntimePtyWorktreeRecord>()
 
   protected readonly pairedRendererSessionOwnedPtyIds = new Set<string>()

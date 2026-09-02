@@ -26,7 +26,10 @@ export function MantaProfileSignOutConfirmDialog({
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>
-            {translate('auto.components.manta.profiles.signout.confirm.title', 'Sign out of Manta?')}
+            {translate(
+              'auto.components.manta.profiles.signout.confirm.title',
+              'Sign out of Manta?'
+            )}
           </DialogTitle>
           <DialogDescription>
             {translate(

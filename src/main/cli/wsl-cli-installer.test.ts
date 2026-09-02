@@ -38,7 +38,7 @@ function makeHostStatus(
 const PRE_RC4_MANAGED_WSL_LAUNCHER = `#!/usr/bin/env bash
 set -euo pipefail
 # Manta managed WSL CLI launcher
-# MANTA_WIN_LAUNCHER_B64=QzpcUHJvZ3JhbSBGaWxlc1xPcmNhXHJlc291cmNlc1xiaW5cb3JjYS5jbWQ=
+# MANTA_WIN_LAUNCHER_B64=QzpcUHJvZ3JhbSBGaWxlc1xNYW50YVxyZXNvdXJjZXNcYmluXG1hbnRhLmNtZA==
 MANTA_WIN_LAUNCHER='C:\\Program Files\\Manta\\resources\\bin\\manta.cmd'
 MANTA_BRIDGE_PS1='/home/alice/.local/share/manta/manta-wsl-bridge.ps1'
 if command -v powershell.exe >/dev/null 2>&1; then
@@ -99,7 +99,8 @@ function createWslRunner(
         throw new Error('__MANTA_CONFLICT__')
       }
       const launcher =
-        command.match(/cat > "\$command_tmp" <<'MANTA_WSL_CLI'\n([\s\S]*)\nMANTA_WSL_CLI/)?.[1] ?? ''
+        command.match(/cat > "\$command_tmp" <<'MANTA_WSL_CLI'\n([\s\S]*)\nMANTA_WSL_CLI/)?.[1] ??
+        ''
       const bridge =
         command.match(
           /cat > "\$bridge_tmp" <<'MANTA_WSL_BRIDGE'\n([\s\S]*)\nMANTA_WSL_BRIDGE/
@@ -725,7 +726,8 @@ describe('WslCliInstaller', () => {
         platform: 'win32',
         distro: 'Ubuntu',
         hostInstaller: {
-          getStatus: async () => makeHostStatus('C:\\Program Files\\Manta\\resources\\bin\\manta.exe')
+          getStatus: async () =>
+            makeHostStatus('C:\\Program Files\\Manta\\resources\\bin\\manta.exe')
         },
         wslRunner: runner
       })
@@ -769,7 +771,9 @@ describe('WslCliInstaller', () => {
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: true })
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: false })
     expect(wsl.calls.filter((command) => command.includes('cat > "$command_tmp"'))).toHaveLength(1)
-    expect(wsl.getFile()).toContain("MANTA_WIN_LAUNCHER='D:\\Custom Manta\\resources\\bin\\manta.exe'")
+    expect(wsl.getFile()).toContain(
+      "MANTA_WIN_LAUNCHER='D:\\Custom Manta\\resources\\bin\\manta.exe'"
+    )
   })
 
   it('settles when wsl.exe never reports completion', async () => {

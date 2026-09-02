@@ -3,12 +3,12 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-// Why: orca-cli now ships a hybrid discovery stub, so its version-sensitive command
+// Why: manta-cli now ships a hybrid discovery stub, so its version-sensitive command
 // guidance lives in the authoritative guide source — assert that content there. The
 // installable stub projection is checked separately below.
 const guidePath = join(projectDir, 'skill-guides', 'manta-cli.md')
-const stubPath = join(projectDir, 'skills', 'orca-cli', 'SKILL.md')
-// Why: orchestration and orca-emulator also ship hybrid stubs now, so their version-sensitive
+const stubPath = join(projectDir, 'skills', 'manta-cli', 'SKILL.md')
+// Why: orchestration and manta-emulator also ship hybrid stubs now, so their version-sensitive
 // command guidance lives in the guide sources — read the cross-guide worktree-id contract there.
 const orchestrationSkillPath = join(projectDir, 'skill-guides', 'orchestration.md')
 const emulatorSkillPath = join(projectDir, 'skill-guides', 'manta-emulator.md')
@@ -26,13 +26,13 @@ describe('manta CLI skill guidance', () => {
       'Use Computer Use for external browser windows, webviews, or desktop UI only when the task requires OS/window-level control such as focus, menus, dialogs, coordinates, or screenshots.'
     )
     expect(description).toContain(
-      "`orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
+      "`manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
     )
     expect(skill).toContain(
       'For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control'
     )
     expect(skill).toContain(
-      "Use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
+      "Use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
     )
   })
 
@@ -146,12 +146,12 @@ describe('manta CLI install stub', () => {
     const stub = readSkill(stubPath)
 
     expect(stub).toContain('discovery stub')
-    expect(stub).toContain('MANTA skills get orca-cli')
+    expect(stub).toContain('MANTA skills get manta-cli')
     // The safe CLI-resolution contract must survive in the stub, never a bare `manta`.
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('GNOME Orca screen reader')
+    expect(stub).toContain('installs the executable as `manta-ide`')
     expect(stub).not.toMatch(/^manta /mu)
   })
 

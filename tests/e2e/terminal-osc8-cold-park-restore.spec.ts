@@ -120,7 +120,9 @@ async function activateTerminalTab(page: Page, tabId: string): Promise<void> {
   await waitForActiveTerminalManager(page, 30_000)
 }
 
-test('restores and opens an OSC 8 link after its terminal is cold-parked', async ({ mantaPage }) => {
+test('restores and opens an OSC 8 link after its terminal is cold-parked', async ({
+  mantaPage
+}) => {
   await waitForSessionReady(mantaPage)
   const worktreeId = await waitForActiveWorktree(mantaPage)
   await mantaPage.evaluate(async () => {
@@ -184,7 +186,9 @@ test('restores and opens an OSC 8 link after its terminal is cold-parked', async
     await mantaPage.mouse.up()
     await mantaPage.keyboard.up(modifier)
     await expect
-      .poll(async () => (await getBrowserTabs(mantaPage, worktreeId)).some((tab) => tab.url === url))
+      .poll(async () =>
+        (await getBrowserTabs(mantaPage, worktreeId)).some((tab) => tab.url === url)
+      )
       .toBe(true)
   } finally {
     await sendToTerminal(mantaPage, ptyId, '\x03').catch(() => undefined)

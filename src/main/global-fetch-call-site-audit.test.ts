@@ -20,9 +20,11 @@ const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   ['main/bitbucket/client.ts', 1],
   ['main/bitbucket/user-request.ts', 1],
   ['main/gitea/client.ts', 1],
+  ['main/manta-profiles/profile-cloud-account-client.ts', 2],
   ['main/manta-profiles/profile-cloud-client.ts', 1],
   ['main/manta-profiles/profile-cloud-org-members-client.ts', 1],
   ['main/rate-limits/codex-fetcher.ts', 3],
+  ['main/runtime/relay/relay-host-directory.ts', 1],
   ['main/runtime/relay/relay-http-client.ts', 2],
   ['main/runtime/relay/relay-region-preference.ts', 3],
   ['main/source-control/hosted-review-api-request.ts', 1],
@@ -44,7 +46,7 @@ const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   ['main/ipc/worktree-remote.ts', 2],
   ['relay/git-handler-fetch-operations.ts', 1],
   // fetch mentioned only in a comment
-  ['main/ipc/feedback.ts', 1]
+  ['main/ipc/feedback-request-transport.ts', 1]
 ])
 
 // A line is a hit when it calls bare `fetch(` or touches `globalThis.fetch` /

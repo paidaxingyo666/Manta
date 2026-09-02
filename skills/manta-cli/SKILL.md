@@ -1,9 +1,9 @@
 ---
-name: orca-cli
+name: manta-cli
 description: >-
   Use the public `manta` CLI to operate Manta-managed worktrees, folder contexts,
   terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser
-  embedded inside the Manta app. Use when the user says "$orca-cli", "use manta cli",
+  embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
   "Manta worktree", "child worktree", "cardStatus", "spawn codex/claude in a worktree",
   "read/wait/send Manta terminal", "terminal send", "full handoff", "handover",
   "give this to another agent", "another worktree", "Manta browser", "manta artifacts",
@@ -12,7 +12,7 @@ description: >-
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
   Use Computer Use for external browser windows, webviews, or desktop UI only
   when the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
   page-automation tool such as Playwright or CDP for external pages.
 ---
 
@@ -24,7 +24,7 @@ can never drift from the binary that will actually run your commands.
 
 Engage Manta whenever its running editor/runtime is the source of truth: Manta-managed
 worktrees, folder contexts, terminals, repos, automations, worktree comments, and the
-browser embedded inside the Manta app. Triggers include "$orca-cli", "Manta worktree",
+browser embedded inside the Manta app. Triggers include "$manta-cli", "Manta worktree",
 "child worktree", "spawn codex/claude in a worktree", "read/wait/send Manta terminal",
 "full handoff" / "handover" / "give this to another agent", and "control the browser
 inside Manta". Use plain shell tools when Manta state does not matter.
@@ -36,9 +36,8 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
-  `manta` there — outside Manta's terminals it normally resolves to the
-  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package installs the executable as `manta-ide`, so bare
+  `manta` is not on PATH outside Manta's terminals.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before
@@ -51,7 +50,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the full guide before running Manta commands
 
 ```text
-MANTA skills get orca-cli
+MANTA skills get manta-cli
 ```
 
 That prints the complete, version-matched guide for the exact binary that will handle your
@@ -77,5 +76,5 @@ MANTA terminal list --json
 ```
 
 Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orca-cli`. Beyond these commands, ask the user rather than guessing a
+`MANTA skills get manta-cli`. Beyond these commands, ask the user rather than guessing a
 command surface this older binary may not support.

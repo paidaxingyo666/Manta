@@ -1,5 +1,3 @@
-import { isTailscaleEndpoint } from '../../../src/shared/remote-runtime-tailscale-hint'
-
 const HOST_REACHABILITY_TIMEOUT_MS = 4000
 
 // Why: troubleshooting needs a cheap endpoint probe without completing the
@@ -57,14 +55,4 @@ export function formatEndpoint(endpoint: string): string {
   } catch {
     return 'invalid endpoint'
   }
-}
-
-// Why: an unreachable 100.x/*.ts.net host almost always means the phone's
-// Tailscale tunnel is down or wedged (known iOS failure mode, fixed by
-// toggling the VPN) — point at that instead of a bare "Cannot reach".
-export function unreachableHostDetail(endpoint: string): string {
-  if (isTailscaleEndpoint(endpoint)) {
-    return `Cannot reach ${formatEndpoint(endpoint)} — check Tailscale`
-  }
-  return `Cannot reach ${formatEndpoint(endpoint)}`
 }

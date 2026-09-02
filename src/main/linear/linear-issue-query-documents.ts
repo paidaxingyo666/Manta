@@ -128,7 +128,7 @@ export const ALL_ISSUES_QUERY = `
 `
 
 export const VIEWER_ASSIGNED_ISSUES_QUERY = `
-  query MantaLinearViewerAssignedIssues(
+  query OrcaLinearViewerAssignedIssues(
     $first: Int,
     $after: String,
     $filter: IssueFilter,
@@ -149,7 +149,7 @@ export const VIEWER_ASSIGNED_ISSUES_QUERY = `
 `
 
 export const VIEWER_CREATED_ISSUES_QUERY = `
-  query MantaLinearViewerCreatedIssues(
+  query OrcaLinearViewerCreatedIssues(
     $first: Int,
     $after: String,
     $filter: IssueFilter,
@@ -208,7 +208,7 @@ export const COMMENT_BY_UUID_QUERY = `
 `
 
 export const ATTACHMENT_BY_UUID_QUERY = `
-  query MantaLinearAttachmentByUuid($id: String!) {
+  query OrcaLinearAttachmentByUuid($id: String!) {
     attachment(id: $id) {
       id
       title

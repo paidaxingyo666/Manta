@@ -89,7 +89,7 @@ describe('buildRows with pinned worktrees', () => {
 
     expect(rows.filter((row) => row.type === 'header')).toMatchObject([
       {
-        key: 'project:github:stablyai/orca',
+        key: 'project:github:stablyai/manta',
         label: 'Manta',
         count: 2
       }
@@ -149,7 +149,7 @@ describe('buildRows with pinned worktrees', () => {
     )
 
     expect(rows).toMatchObject([
-      { type: 'header', key: 'project:github:stablyai/orca', label: 'Manta', count: 2 },
+      { type: 'header', key: 'project:github:stablyai/manta', label: 'Manta', count: 2 },
       { type: 'item', worktree: { id: worktree.id }, hostContextLabel: LOCAL_HOST_LABEL },
       { type: 'item', worktree: { id: runtimeWorktree.id }, hostContextLabel: 'dev box' }
     ])
@@ -248,7 +248,7 @@ describe('buildRows with pinned worktrees', () => {
     )
 
     expect(rows).toMatchObject([
-      { type: 'header', key: 'project:github:stablyai/orca', label: 'Manta', count: 2 },
+      { type: 'header', key: 'project:github:stablyai/manta', label: 'Manta', count: 2 },
       { type: 'item', worktree: { id: worktree.id } },
       { type: 'item', worktree: { id: secondLocalWorktree.id } }
     ])
@@ -291,6 +291,6 @@ describe('buildRows with pinned worktrees', () => {
           projectHostSetups
         }
       )
-    ).toBe('project:github:stablyai/orca')
+    ).toBe('project:github:stablyai/manta')
   })
 })

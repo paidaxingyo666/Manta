@@ -47,7 +47,8 @@ export const BROWSER_BASIC_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['scroll'],
     summary: 'Scroll the browser viewport',
-    usage: 'manta scroll --direction <up|down> [--amount <pixels>] [--worktree <selector>] [--json]',
+    usage:
+      'manta scroll --direction <up|down> [--amount <pixels>] [--worktree <selector>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'direction', 'amount', 'worktree']
   },
   {
@@ -178,7 +179,8 @@ export const BROWSER_BASIC_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['tab', 'switch'],
     summary: 'Switch the active browser tab',
-    usage: 'manta tab switch (--index <n> | --page <id>) [--worktree <selector>] [--focus] [--json]',
+    usage:
+      'manta tab switch (--index <n> | --page <id>) [--worktree <selector>] [--focus] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'index', 'page', 'worktree', 'focus']
   },
   {

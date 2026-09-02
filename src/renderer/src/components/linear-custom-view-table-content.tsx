@@ -154,7 +154,7 @@ export function LinearCustomViewTableContent({
                       onOpenView(view)
                     }}
                     aria-label={translate(
-                      'auto.components.linear.project.view.surfaces.7616c986c6',
+                      'auto.components.linear.project.view.surfaces.7616c986c6.5eb5e9',
                       'Open {{value0}} in Linear',
                       { value0: view.name }
                     )}

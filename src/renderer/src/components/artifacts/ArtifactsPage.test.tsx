@@ -176,7 +176,9 @@ describe('ArtifactsPage', () => {
 
     fireEvent.click(copyButton)
     await waitFor(() =>
-      expect(mocks.writeClipboardText).toHaveBeenCalledWith('https://share.manta.sh.cn/a/report-123')
+      expect(mocks.writeClipboardText).toHaveBeenCalledWith(
+        'https://share.manta.sh.cn/a/report-123'
+      )
     )
     expect(mocks.toastSuccess).toHaveBeenCalledWith('Artifact link copied')
 
@@ -357,7 +359,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Manta again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Manta again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 
@@ -397,7 +401,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Manta again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Manta again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 

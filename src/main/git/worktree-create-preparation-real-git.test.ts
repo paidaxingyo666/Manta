@@ -1,8 +1,8 @@
-import { execFileSync } from 'node:child_process'
 import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { runProcessSync } from '../../shared/child-process/run-process'
 import {
   createWorktreePreparationLockReason,
   isWorktreeCreatePreparation,
@@ -19,18 +19,18 @@ import { areWorktreePathsEqual } from './worktree-path-comparison'
 const tempRoots: string[] = []
 
 function git(cwd: string, args: string[]): string {
-  return execFileSync('git', args, {
-    cwd,
-    encoding: 'utf8',
-    stdio: ['pipe', 'pipe', 'pipe']
-  }).trim()
+  const result = runProcessSync({ program: 'git', args, cwd })
+  if (result.code !== 0) {
+    throw new Error(`git ${args[0] ?? ''} failed: ${result.stderr}`)
+  }
+  return result.stdout.trim()
 }
 
 async function createRepo(): Promise<{ repoPath: string; root: string }> {
   const root = await mkdtemp(join(tmpdir(), 'manta-prepared-worktree-'))
   tempRoots.push(root)
   const repoPath = join(root, 'repo')
-  execFileSync('git', ['init', '--quiet', repoPath])
+  git(root, ['init', '--quiet', repoPath])
   git(repoPath, ['symbolic-ref', 'HEAD', 'refs/heads/main'])
   git(repoPath, ['config', 'user.email', 'test@example.com'])
   git(repoPath, ['config', 'user.name', 'Test User'])

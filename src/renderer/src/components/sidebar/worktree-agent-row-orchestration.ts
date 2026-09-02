@@ -42,8 +42,6 @@ export function entryWithRuntimeOrchestration(
   if (entry.orchestration && orchestrationContextsEqual(entry.orchestration, orchestration)) {
     return entry
   }
-  // Why: runtime graph metadata can arrive after a hook status ping. Keep old
-  // fields only for the same dispatch; a reused terminal must not inherit a
-  // previous worker's stale parent.
+  // Merge late runtime metadata only within a dispatch to prevent stale parent reuse.
   return { ...entry, orchestration }
 }

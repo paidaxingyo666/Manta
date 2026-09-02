@@ -117,13 +117,14 @@ The scheduled 2x/day RC cron in [`release-rc.yml`](../../actions/workflows/relea
 The public Homebrew cask tracks stable desktop releases:
 
 ```bash
-brew install --cask stablyai/orca/orca
+brew tap paidaxingyo666/manta https://github.com/paidaxingyo666/Manta
+brew install --cask manta
 ```
 
 Release candidates use a separate cask token:
 
 ```bash
-brew install --cask stablyai/orca/orca@rc
+brew install --cask manta@rc
 ```
 
 The two casks conflict because both install `Manta.app`. Switch channels with a

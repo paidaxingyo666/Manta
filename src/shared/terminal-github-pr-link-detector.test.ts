@@ -190,9 +190,9 @@ describe('createTerminalGitHubPRLinkDetector', () => {
   it('still joins a PR URL split across chunks after a large scheme-free chunk', () => {
     const observe = createTerminalGitHubPRLinkDetector()
 
-    expect(observe(`${'filler output\n'.repeat(5_000)}https://github.com/acme/manta/pull/`)).toEqual(
-      []
-    )
+    expect(
+      observe(`${'filler output\n'.repeat(5_000)}https://github.com/acme/manta/pull/`)
+    ).toEqual([])
     expect(observe('7\r\n')).toEqual([
       {
         url: 'https://github.com/acme/manta/pull/7',

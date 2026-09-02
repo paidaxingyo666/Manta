@@ -49,7 +49,7 @@ describe('owner/repo identity cache', () => {
     vi.useFakeTimers()
     await expect(getOwnerRepoForRemote(REPO, 'origin')).resolves.toEqual({
       owner: 'stablyai',
-      repo: 'manta'
+      repo: 'orca'
     })
     expect(remoteGetUrlCalls()).toBe(1)
 
@@ -57,7 +57,7 @@ describe('owner/repo identity cache', () => {
     vi.setSystemTime(Date.now() + FOUR_MINUTES)
     await expect(getOwnerRepoForRemote(REPO, 'origin')).resolves.toEqual({
       owner: 'stablyai',
-      repo: 'manta'
+      repo: 'orca'
     })
     expect(remoteGetUrlCalls()).toBe(1)
     vi.useRealTimers()
@@ -99,7 +99,7 @@ describe('owner/repo identity cache', () => {
       getOwnerRepoForRemote(REPO, 'origin'),
       getOwnerRepoForRemote(REPO, 'origin')
     ])
-    expect(first).toEqual({ owner: 'stablyai', repo: 'manta' })
+    expect(first).toEqual({ owner: 'stablyai', repo: 'orca' })
     expect(second).toEqual(first)
     expect(remoteGetUrlCalls()).toBe(1)
   })

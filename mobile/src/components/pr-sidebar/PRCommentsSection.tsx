@@ -18,7 +18,7 @@ import {
   type PRCommentAudienceFilter
 } from '../../../../src/shared/pr-comment-audience'
 import {
-  PR_COMMENT_AUDIENCE_FILTERS,
+  prCommentAudienceFilters,
   getPRCommentAudienceEmptyLabel
 } from './pr-comment-audience-labels'
 import {
@@ -31,6 +31,7 @@ import {
 } from '../../../../src/shared/pr-comment-groups'
 import { prCommentsStyles as styles } from './pr-comments-styles'
 import { mobilePrSidebarStyles as shared } from './mobile-pr-sidebar-styles'
+import { translate } from '../../i18n/i18n'
 import { useNow } from '../../hooks/use-now'
 
 type Props = {
@@ -123,22 +124,27 @@ export function PRCommentsSection({
 
   return (
     <>
-      <PRSection title="Description">
+      <PRSection title={translate('m.PRCommentsSection.e9592a7109', 'Description')}>
         {loadingDetails ? (
           <ActivityIndicator color={colors.textSecondary} />
         ) : detailsFailed ? (
           <Text style={styles.noDescription}>
-            Could not load description. Tap refresh to try again.
+            {translate(
+              'm.PRCommentsSection.84ed9e79c2',
+              'Could not load description. Tap refresh to try again.'
+            )}{' '}
           </Text>
         ) : body.trim() ? (
           <CommentMarkdown content={body} variant="document" />
         ) : (
-          <Text style={styles.noDescription}>No description provided.</Text>
+          <Text style={styles.noDescription}>
+            {translate('m.PRCommentsSection.bdd7d0b5bb', 'No description provided.')}
+          </Text>
         )}
       </PRSection>
 
       <PRSection
-        title="Comments"
+        title={translate('m.PRCommentsSection.fe5d1368ed', 'Comments')}
         trailing={
           comments.length > 0 ? (
             <View style={styles.countChip}>
@@ -150,16 +156,23 @@ export function PRCommentsSection({
         {loadingDetails ? (
           <ActivityIndicator color={colors.textSecondary} />
         ) : detailsFailed ? (
-          <Text style={styles.empty}>Could not load comments. Tap refresh to try again.</Text>
+          <Text style={styles.empty}>
+            {translate(
+              'm.PRCommentsSection.15575e7e07',
+              'Could not load comments. Tap refresh to try again.'
+            )}
+          </Text>
         ) : (
           <View style={styles.list}>
             {comments.length === 0 ? (
-              <Text style={styles.empty}>No comments yet.</Text>
+              <Text style={styles.empty}>
+                {translate('m.PRCommentsSection.c57f1e6617', 'No comments yet.')}
+              </Text>
             ) : (
               <>
                 {isPr ? (
                   <View style={styles.audienceTabs}>
-                    {PR_COMMENT_AUDIENCE_FILTERS.map((tab) => {
+                    {prCommentAudienceFilters().map((tab) => {
                       const active = tab.value === filter
                       return (
                         <Pressable
@@ -203,8 +216,14 @@ export function PRCommentsSection({
                         accessibilityRole="button"
                       >
                         <Text style={styles.showMoreText}>
-                          Show {Math.min(remaining, COMMENT_PAGE)} more
-                          {remaining > COMMENT_PAGE ? ` of ${remaining}` : ''}
+                          {translate('m.PRCommentsSection.374d1a8a08', 'Show')}{' '}
+                          {Math.min(remaining, COMMENT_PAGE)}{' '}
+                          {translate('m.PRCommentsSection.a5fb2d4b6e', 'more')}{' '}
+                          {remaining > COMMENT_PAGE
+                            ? translate('m.PRCommentsSection.57fbb91a1e', ' of {{value0}}', {
+                                value0: remaining
+                              })
+                            : ''}
                         </Text>
                       </Pressable>
                     ) : null}
@@ -216,7 +235,7 @@ export function PRCommentsSection({
             {canComment && actions ? (
               <View style={styles.rootComposer}>
                 <PRCommentComposer
-                  placeholder="Add a comment…"
+                  placeholder={translate('m.PRCommentsSection.d8cadfab1d', 'Add a comment…')}
                   submitLabel="Comment"
                   submitting={actions.isRootBusy}
                   onSubmit={actions.addRootComment}
@@ -274,7 +293,11 @@ function CommentGroupView({
       >
         <Chevron size={14} color={colors.textSecondary} strokeWidth={2.2} />
         <Text style={styles.resolvedHeaderText} numberOfLines={1}>
-          Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by {root.author}
+          {translate('m.PRCommentsSection.2e0f427685', 'Resolved')}{' '}
+          {group.kind === 'thread'
+            ? translate('m.PRCommentsSection.9514e1f710', 'thread')
+            : translate('m.PRCommentsSection.4c78c7b55f', 'comment')}{' '}
+          {translate('m.PRCommentsSection.76d07d0b8c', 'by')} {root.author}
           {count > 1 ? ` (${count})` : ''}
         </Text>
       </Pressable>

@@ -21,7 +21,7 @@ function remoteRepo(id: string, path = `/repos/${id}`): Repo {
 function setup(overrides: Partial<ProjectHostSetup> = {}): ProjectHostSetup {
   return {
     id: 'setup-builder',
-    projectId: 'github:stablyai/orca',
+    projectId: 'github:stablyai/manta',
     hostId: 'ssh:builder',
     repoId: 'repo-builder',
     path: '/remote/manta',
@@ -55,7 +55,7 @@ describe('buildAutomationRunContextForRepo', () => {
       })
     ).toEqual({
       kind: 'workspace-run',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:builder',
       projectHostSetupId: 'setup-builder',
       repoId: 'repo-builder',

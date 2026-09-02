@@ -67,12 +67,12 @@ describe('gitlab project ref resolution', () => {
 
   it('prefers upstream for issue project ref resolution', async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@gitlab.com:stablyai/orca.git\n'
+      stdout: 'git@gitlab.com:stablyai/manta.git\n'
     })
 
     await expect(getIssueProjectRef('/repo')).resolves.toEqual({
       host: 'gitlab.com',
-      path: 'stablyai/orca'
+      path: 'stablyai/manta'
     })
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['remote', 'get-url', 'upstream'], {
       cwd: '/repo',
@@ -82,7 +82,7 @@ describe('gitlab project ref resolution', () => {
 
   it('falls back to origin when upstream is missing or non-GitLab', async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/manta.git\n' })
       .mockResolvedValueOnce({ stdout: 'git@gitlab.com:fork/manta.git\n' })
 
     await expect(getIssueProjectRef('/repo')).resolves.toEqual({
@@ -94,7 +94,7 @@ describe('gitlab project ref resolution', () => {
   it('does not mix origin and upstream cache entries for the same repo path', async () => {
     gitExecFileAsyncMock
       .mockResolvedValueOnce({ stdout: 'git@gitlab.com:fork/manta.git\n' })
-      .mockResolvedValueOnce({ stdout: 'git@gitlab.com:stablyai/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@gitlab.com:stablyai/manta.git\n' })
 
     await expect(getProjectRef('/repo')).resolves.toEqual({
       host: 'gitlab.com',
@@ -102,7 +102,7 @@ describe('gitlab project ref resolution', () => {
     })
     await expect(getIssueProjectRef('/repo')).resolves.toEqual({
       host: 'gitlab.com',
-      path: 'stablyai/orca'
+      path: 'stablyai/manta'
     })
   })
 
@@ -182,7 +182,7 @@ describe('gitlab project ref resolution', () => {
 
   it('bounds cached project refs for distinct repo paths', async () => {
     gitExecFileAsyncMock.mockResolvedValue({
-      stdout: 'git@gitlab.com:stablyai/orca.git\n',
+      stdout: 'git@gitlab.com:stablyai/manta.git\n',
       stderr: ''
     })
 
@@ -359,18 +359,18 @@ describe('resolveIssueSource', () => {
 
   it("'auto' + upstream exists → upstream, fellBack=false", async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@gitlab.com:stablyai/orca.git\n'
+      stdout: 'git@gitlab.com:stablyai/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', 'auto')).resolves.toEqual({
-      source: { host: 'gitlab.com', path: 'stablyai/orca' },
+      source: { host: 'gitlab.com', path: 'stablyai/manta' },
       fellBack: false
     })
   })
 
   it("'auto' + no upstream → origin, fellBack=false", async () => {
     gitExecFileAsyncMock
-      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/orca.git\n' })
+      .mockResolvedValueOnce({ stdout: 'git@example.com:stablyai/manta.git\n' })
       .mockResolvedValueOnce({ stdout: 'git@gitlab.com:solo/manta.git\n' })
 
     await expect(resolveIssueSource('/repo', 'auto')).resolves.toEqual({
@@ -408,11 +408,11 @@ describe('resolveIssueSource', () => {
 
   it('undefined preference is treated identically to auto', async () => {
     gitExecFileAsyncMock.mockResolvedValueOnce({
-      stdout: 'git@gitlab.com:stablyai/orca.git\n'
+      stdout: 'git@gitlab.com:stablyai/manta.git\n'
     })
 
     await expect(resolveIssueSource('/repo', undefined)).resolves.toEqual({
-      source: { host: 'gitlab.com', path: 'stablyai/orca' },
+      source: { host: 'gitlab.com', path: 'stablyai/manta' },
       fellBack: false
     })
   })

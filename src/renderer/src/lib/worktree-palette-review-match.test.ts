@@ -42,7 +42,7 @@ const repoMap = new Map<string, Repo>([
     {
       id: 'repo-1',
       path: '/repo/manta',
-      displayName: 'stablyai/orca',
+      displayName: 'stablyai/manta',
       badgeColor: '#22c55e',
       addedAt: 0
     }

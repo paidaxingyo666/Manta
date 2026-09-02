@@ -3,6 +3,7 @@ import { BackHandler, Keyboard } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import type { RpcFailure, RpcSuccess } from '../transport/types'
 import { triggerSuccess, triggerError } from '../platform/haptics'
+import { translate } from '../i18n/i18n'
 import type { DirtyMarkdownDraft, MobileSessionTab } from './mobile-session-route-types'
 import type { MobileSessionDiffCommentsModel } from './use-mobile-session-diff-comments'
 
@@ -48,7 +49,7 @@ export function useMobileSessionMarkdownActions(scope: MobileSessionDiffComments
       }
       await Clipboard.setStringAsync(current.localContent)
       triggerSuccess()
-      showToast('Copied')
+      showToast(translate('m.worktreeId.03a999d86d', 'Copied'))
     },
     [markdownDocs, showToast]
   )
@@ -167,7 +168,7 @@ export function useMobileSessionMarkdownActions(scope: MobileSessionDiffComments
         )
         markdownSaveSeqRef.current.delete(tab.id)
         triggerSuccess()
-        showToast('Saved')
+        showToast(translate('m.worktreeId.2670eea578', 'Saved'))
       } catch (error) {
         triggerError()
         const message = error instanceof Error ? error.message : 'Save failed'

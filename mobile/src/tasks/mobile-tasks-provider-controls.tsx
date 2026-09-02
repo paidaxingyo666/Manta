@@ -12,6 +12,7 @@ import { styles } from './mobile-tasks-legacy-styles'
 import { getRepoBadgeColor } from './mobile-tasks-legacy-foundation'
 import { renderMobileTasksGitHubViewControls } from './mobile-tasks-github-view-controls'
 import { renderMobileTasksLinearViewControls } from './mobile-tasks-linear-view-controls'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProviderControls(model: ConnectionPresentationModel) {
   const {
@@ -94,7 +95,9 @@ export function renderMobileTasksProviderControls(model: ConnectionPresentationM
             }}
           >
             <Text style={styles.segmentSecondaryText}>
-              {gitlabView === 'project' ? 'Project MRs' : 'My Todos'}
+              {gitlabView === 'project'
+                ? translate('m.tasks.7f18577bdf', 'Project MRs')
+                : translate('m.tasks.b8b23d4005', 'My Todos')}
             </Text>
           </Pressable>
           {gitlabView === 'project' && (
@@ -128,7 +131,10 @@ export function renderMobileTasksProviderControls(model: ConnectionPresentationM
           }}
         >
           <GitBranch size={14} color={colors.textSecondary} />
-          <Text style={styles.segmentSecondaryText}>Sort: {sortLabel}</Text>
+          <Text style={styles.segmentSecondaryText}>
+            {translate('m.tasks.f3958ba4ea', 'Sort:')}
+            {sortLabel}
+          </Text>
         </Pressable>
       ) : null}
     </ScrollView>

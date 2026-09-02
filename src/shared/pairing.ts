@@ -59,7 +59,7 @@ function extractPairingCodeFromUrl(url: string): string | null {
   return parsed.hash ? parsed.hash.slice(1) || null : null
 }
 
-// Why: accept either an `manta://pair?...` URL or the bare base64
+// Why: accept either a `manta://pair?...` URL or the bare base64
 // string so the mobile paste-pair flow can take whichever the user
 // actually copied from desktop.
 export function parsePairingCode(input: string): PairingOffer | null {

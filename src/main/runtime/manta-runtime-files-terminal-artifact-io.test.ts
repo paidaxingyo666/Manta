@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { link, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { renameMock, resolveAuthorizedPathMock, statMock } from './manta-runtime-files-mock-registry'
+import {
+  renameMock,
+  resolveAuthorizedPathMock,
+  statMock
+} from './manta-runtime-files-mock-registry'
 import {
   createRuntimeFileCommands,
   useRuntimeFileCommandsLifecycle

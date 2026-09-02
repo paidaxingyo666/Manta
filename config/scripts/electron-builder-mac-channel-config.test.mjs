@@ -79,7 +79,7 @@ describe('electron-builder mac channel config', () => {
       expect(config.publish).toMatchObject({ repo: 'manta-hourly', releaseType: 'prerelease' })
     })
     expect(electronBuilderConfig.publish).toMatchObject({
-      repo: 'manta',
+      repo: 'Manta',
       releaseType: 'release'
     })
   })

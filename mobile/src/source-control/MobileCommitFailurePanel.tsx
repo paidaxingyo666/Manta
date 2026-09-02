@@ -5,6 +5,7 @@ import { colors } from '../theme/mobile-theme'
 import type { MobileCommitFailureRecovery } from './mobile-commit-failure-recovery'
 import type { MobileCommitFailureRecoveryAction } from './use-mobile-commit-failure-recovery'
 import { styles } from './mobile-source-control-styles'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   failure: MobileCommitFailureRecovery
@@ -20,9 +21,11 @@ export function MobileCommitFailurePanel({ failure, action }: Props) {
     <View style={styles.commitFailurePanel}>
       <View style={styles.commitFailureHeader}>
         <View style={styles.commitFailureTextBlock}>
-          <Text style={styles.commitFailureTitle}>Commit failed</Text>
+          <Text style={styles.commitFailureTitle}>
+            {translate('m.MobileCommitFailurePanel.1e8978aed2', 'Commit failed')}
+          </Text>
           <Text style={styles.commitFailureSummary} numberOfLines={2}>
-            {action.summary ?? 'Commit failed.'}
+            {action.summary ?? translate('m.MobileCommitFailurePanel.aab7681cb3', 'Commit failed.')}
           </Text>
         </View>
         <Pressable
@@ -41,7 +44,9 @@ export function MobileCommitFailurePanel({ failure, action }: Props) {
           ) : (
             <Sparkles size={14} color={colors.bgBase} strokeWidth={2.2} />
           )}
-          <Text style={styles.commitFailureFixButtonText}>Fix</Text>
+          <Text style={styles.commitFailureFixButtonText}>
+            {translate('m.MobileCommitFailurePanel.f916c423a3', 'Fix')}
+          </Text>
         </Pressable>
       </View>
       {action.hasDetails && detailsText ? (
@@ -59,7 +64,9 @@ export function MobileCommitFailurePanel({ failure, action }: Props) {
           >
             <Chevron size={14} color={colors.textSecondary} strokeWidth={2.2} />
             <Text style={styles.commitFailureDetailsButtonText}>
-              {expanded ? 'Hide details' : 'Show details'}
+              {expanded
+                ? translate('m.MobileCommitFailurePanel.7b2b0ff9f2', 'Hide details')
+                : translate('m.MobileCommitFailurePanel.3f67db6ee8', 'Show details')}
             </Text>
           </Pressable>
           {expanded ? <Text style={styles.commitFailureDetailsText}>{detailsText}</Text> : null}

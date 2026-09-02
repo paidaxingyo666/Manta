@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react'
 import { Keyboard, Platform, type View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import { translate } from '../i18n/i18n'
 import type { RpcFailure, RpcSuccess } from '../transport/types'
 import {
   triggerSelection,
@@ -119,7 +120,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
         triggerSuccess()
         // Why: Android 13+ shows its own system copy toast; iOS shows none, so only iOS needs our in-app toast.
         if (Platform.OS === 'ios') {
-          showToast('Copied')
+          showToast(translate('m.worktreeId.03a999d86d', 'Copied'))
         }
         terminalRefs.current.get(handle)?.cancelSelect()
       } catch (e) {
@@ -130,7 +131,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
           name: err.name,
           message: err.message
         })
-        showToast("Couldn't copy", 1500)
+        showToast(translate('m.worktreeId.ff4ac128b0', "Couldn't copy"), 1500)
       }
     },
     [showToast]
@@ -143,7 +144,10 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
       }
       // eslint-disable-next-line no-console
       console.warn('[mobile-clip] selection evicted')
-      showToast('Selection cleared (scrolled out of buffer)', 1500)
+      showToast(
+        translate('m.worktreeId.0589af040a', 'Selection cleared (scrolled out of buffer)'),
+        1500
+      )
       setSelectModeActive(false)
     },
     [showToast]

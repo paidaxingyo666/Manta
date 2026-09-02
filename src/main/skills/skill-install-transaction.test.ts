@@ -298,9 +298,9 @@ describe('skill install transaction', () => {
     expect(await readFile(join(root, 'skills', 'test-skill', 'SKILL.md'), 'utf8')).toContain(
       '# Concurrent'
     )
-    expect((await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))).toEqual(
-      []
-    )
+    expect(
+      (await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))
+    ).toEqual([])
     expect(await readdir(join(root, 'state', 'receipts'))).toHaveLength(1)
   })
 
@@ -330,9 +330,9 @@ describe('skill install transaction', () => {
       errorCategory: 'skill-install-conflict-stale-preview'
     })
     expect(await readFile(join(canonicalPath, 'SKILL.md'), 'utf8')).toBe('local content')
-    expect((await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))).toEqual(
-      []
-    )
+    expect(
+      (await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))
+    ).toEqual([])
   })
 
   it('restores the old version when cancellation arrives before canonical placement', async () => {
@@ -391,9 +391,9 @@ describe('skill install transaction', () => {
     await expect(lstat(join(root, 'skills', 'test-skill'))).rejects.toMatchObject({
       code: 'ENOENT'
     })
-    expect((await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))).toEqual(
-      []
-    )
+    expect(
+      (await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))
+    ).toEqual([])
   })
 
   it('finishes provenance safely when cancellation arrives after canonical commit', async () => {
@@ -451,9 +451,9 @@ describe('skill install transaction', () => {
 
     const skillMarkdown = await readFile(join(root, 'skills', 'test-skill', 'SKILL.md'), 'utf8')
     expect(skillMarkdown.includes('# First') || skillMarkdown.includes('# Second')).toBe(true)
-    expect((await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))).toEqual(
-      []
-    )
+    expect(
+      (await readdir(join(root, 'skills'))).filter((name) => name.includes('.manta-'))
+    ).toEqual([])
     expect(await readdir(join(root, 'state', 'journals'))).toEqual([])
     await expect(installLocalSkillPackage(installInput(root, second))).resolves.toMatchObject({
       status: expect.stringMatching(/^(updated|unchanged)$/)

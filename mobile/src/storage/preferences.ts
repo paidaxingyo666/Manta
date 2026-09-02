@@ -200,7 +200,9 @@ export const DEFAULT_TERMINAL_LINK_OPEN_MODE: MobileTerminalLinkOpenMode = 'mant
 export async function loadTerminalLinkOpenMode(): Promise<MobileTerminalLinkOpenMode> {
   try {
     const raw = await AsyncStorage.getItem(TERMINAL_LINK_OPEN_MODE_KEY)
-    return raw === 'phone-browser' || raw === 'manta-browser' ? raw : DEFAULT_TERMINAL_LINK_OPEN_MODE
+    return raw === 'phone-browser' || raw === 'manta-browser'
+      ? raw
+      : DEFAULT_TERMINAL_LINK_OPEN_MODE
   } catch {
     return DEFAULT_TERMINAL_LINK_OPEN_MODE
   }

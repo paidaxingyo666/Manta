@@ -247,27 +247,13 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('GitHub')
   })
 
-  it('renders Discord link', () => {
+  // Upstream's Discord and @orca_build are upstream's, under upstream's name.
+  // A fork's Help menu pointing there sends its users somewhere that cannot
+  // answer for this build — and the mobile About screen already dropped them.
+  it('offers no community links this fork does not own', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Discord')
-    expect(html).toContain('viewBox="0 0 20 20"')
-    expect(html).toContain('M16.0742 4.45014C14.9244 3.92097 13.7106 3.54556 12.4638 3.3335')
-  })
-
-  it('opens Discord invite through the shell bridge', async () => {
-    const container = await renderMenu()
-    const discordButton = findMenuItem(container, 'Discord')
-
-    await act(async () => {
-      discordButton.click()
-    })
-
-    expect(mocks.shellOpenUrl).toHaveBeenCalledWith('https://discord.gg/fzjDKHxv8Q')
-  })
-
-  it('renders X link', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('>X<')
+    expect(html).not.toContain('Discord')
+    expect(html).not.toContain('>X<')
   })
 
   it('renders Check for Updates menu item', () => {

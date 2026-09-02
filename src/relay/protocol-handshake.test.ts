@@ -9,7 +9,7 @@ import {
 } from './protocol'
 
 describe('handshake framing', () => {
-  it('round-trips an manta-relay-handshake envelope through the existing framing', () => {
+  it('round-trips a manta-relay-handshake envelope through the existing framing', () => {
     const sent = encodeHandshakeFrame({
       type: 'manta-relay-handshake',
       version: '0.1.0+deadbeef'
@@ -27,7 +27,7 @@ describe('handshake framing', () => {
     expect(msg).toEqual({ type: 'manta-relay-handshake', version: '0.1.0+deadbeef' })
   })
 
-  it('round-trips an manta-relay-handshake-ok reply', () => {
+  it('round-trips a manta-relay-handshake-ok reply', () => {
     const sent = encodeHandshakeFrame({
       type: 'manta-relay-handshake-ok',
       version: '0.1.0+deadbeef'
@@ -39,7 +39,7 @@ describe('handshake framing', () => {
     expect(msg).toEqual({ type: 'manta-relay-handshake-ok', version: '0.1.0+deadbeef' })
   })
 
-  it('round-trips an manta-relay-handshake-mismatch reply', () => {
+  it('round-trips a manta-relay-handshake-mismatch reply', () => {
     const sent = encodeHandshakeFrame({
       type: 'manta-relay-handshake-mismatch',
       expected: '0.1.0+aaa',

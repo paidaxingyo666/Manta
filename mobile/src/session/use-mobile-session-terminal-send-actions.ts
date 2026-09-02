@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { Keyboard } from 'react-native'
 import { triggerError } from '../platform/haptics'
+import { translate } from '../i18n/i18n'
 import type { createTerminalLiveAccessoryInput } from '../terminal/terminal-live-accessory-input'
 import { sendTerminalLiveAccessoryRawBytes } from '../terminal/terminal-live-accessory-raw-send'
 import {
@@ -138,7 +139,7 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
       }
       if (!isTerminalLiveInputWithinByteLimit(text)) {
         triggerError()
-        showToast('Input too large (max 256 KiB)', 1500)
+        showToast(translate('m.worktreeId.e76f29736f', 'Input too large (max 256 KiB)'), 1500)
         return false
       }
       const rpc = clientRef.current

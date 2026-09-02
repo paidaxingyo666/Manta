@@ -15,6 +15,6 @@ same local broker and do not run probes on remote hosts. The phone continues to 
 exact cell URL in the desktop pairing payload, so its location is not measured independently and
 no mobile protocol update is required.
 
-For deterministic local diagnostics, set `ORCA_RELAY_REGION_OVERRIDE` to `us-central1` or
+For deterministic local diagnostics, set `MANTA_RELAY_REGION_OVERRIDE` to `us-central1` or
 `asia-east2` before launching Manta. The override is not an end-user setting and is not written to
 the preference cache.

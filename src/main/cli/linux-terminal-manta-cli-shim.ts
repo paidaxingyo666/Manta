@@ -17,13 +17,12 @@ export type LinuxTerminalMantaCliShimOptions = {
   appImagePath?: string | null
 }
 
-// Why: on Linux the CLI installs as `manta-ide` so it never shadows the GNOME
-// Manta screen reader at /usr/bin/orca — but agent-facing surfaces (skills,
-// dispatch preambles, CLI hints) all invoke bare `manta`, so on stock Ubuntu an
-// agent inside a Manta terminal would launch the screen reader instead
-// (stablyai/orca#7904). Prepending this userData-scoped shim dir to managed-PTY
-// PATH makes bare `manta` resolve to the Manta CLI inside Manta terminals only,
-// leaving the user's own shells (and their screen reader) untouched.
+// Why: the Linux package installs the CLI as `manta-ide` — a name inherited from
+// upstream, whose CLI name would shadow the GNOME Orca screen reader at
+// /usr/bin/orca — so bare `manta` is not on PATH. Agent-facing surfaces (skills,
+// dispatch preambles, CLI hints) invoke bare `manta` anyway (stablyai/orca#7904).
+// Prepending this userData-scoped shim dir to managed-PTY PATH makes bare `manta`
+// resolve inside Manta terminals only, leaving the user's own shells untouched.
 export function ensureLinuxTerminalMantaCliShimDir(
   options: LinuxTerminalMantaCliShimOptions
 ): string | null {

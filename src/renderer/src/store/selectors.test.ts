@@ -463,7 +463,7 @@ describe('store selectors', () => {
     ]
     const projects = [
       {
-        id: 'github:stablyai/orca',
+        id: 'github:stablyai/manta',
         displayName: 'manta',
         badgeColor: '#737373',
         sourceRepoIds: ['local-manta'],
@@ -482,7 +482,7 @@ describe('store selectors', () => {
     const projectHostSetups = [
       {
         id: 'local-setup',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'local' as const,
         repoId: 'local-manta',
         path: '/Users/alice/stably/manta',
@@ -512,11 +512,11 @@ describe('store selectors', () => {
       projectHostSetups
     })
 
-    expect(projection.projects.map((project) => project.id)).toEqual(['github:stablyai/orca'])
+    expect(projection.projects.map((project) => project.id)).toEqual(['github:stablyai/manta'])
     expect(projection.setups).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'local-setup', projectId: 'github:stablyai/orca' }),
-        expect.objectContaining({ id: 'vm-setup', projectId: 'github:stablyai/orca' })
+        expect.objectContaining({ id: 'local-setup', projectId: 'github:stablyai/manta' }),
+        expect.objectContaining({ id: 'vm-setup', projectId: 'github:stablyai/manta' })
       ])
     )
   })
@@ -539,14 +539,14 @@ describe('store selectors', () => {
 
     expect(projection.projects).toEqual([
       expect.objectContaining({
-        id: 'github:stablyai/orca',
+        id: 'github:stablyai/manta',
         sourceRepoIds: ['repo-1']
       })
     ])
     expect(projection.setups).toEqual([
       expect.objectContaining({
         id: 'repo-1',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: 'repo-1',
         hostId: 'local',
         path: '/Users/alice/manta'

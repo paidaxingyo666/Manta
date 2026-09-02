@@ -13,7 +13,11 @@ const TRANSPORT_SUFFIX = ']]'
 const KEY_PATTERN = /^[a-f0-9]{32}$/
 const TRANSPORT_BODY_PATTERN =
   /^MANTA_RICH_MD:[a-f0-9]{32}:(?:literal|inline-html|block-html|document-link|html-superscript-link):/
-const LEGACY_PREFIXES = ['MANTA_RAW_HTML_INLINE:', 'MANTA_RAW_HTML_BLOCK:', 'MANTA_DOC_LINK:'] as const
+const LEGACY_PREFIXES = [
+  'MANTA_RAW_HTML_INLINE:',
+  'MANTA_RAW_HTML_BLOCK:',
+  'MANTA_DOC_LINK:'
+] as const
 
 export type RichMarkdownSourceTransport = {
   readonly key: string

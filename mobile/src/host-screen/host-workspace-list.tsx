@@ -8,12 +8,12 @@ import { HostWorkspaceSearchBar } from '../components/HostWorkspaceSearchBar'
 import { NewWorkspaceFab, FAB_SIZE } from '../components/NewWorkspaceFab'
 import { SearchWorkspacesFab } from '../components/SearchWorkspacesFab'
 import { WorktreeListRow } from '../components/WorktreeListRow'
+import { styles } from '../theme/host-home-styles'
 import { colors, spacing } from '../theme/mobile-theme'
 import { getWorktreeRowIdentity } from '../worktree/worktree-host-row-identity'
 import { HostWorkspaceListStates } from '../worktree/host-workspace-list-states'
 import { getWorktreeStatus } from '../worktree/workspace-list-sections'
 import { repoColor } from '../worktree/repo-color'
-import { hostScreenStyles as styles } from './host-screen-styles'
 import type { HostScreenController } from './use-host-screen-controller'
 
 export function HostWorkspaceList({ controller }: { controller: HostScreenController }) {

@@ -382,7 +382,10 @@ describe('installPluginFromLocalPath', () => {
     const lock = JSON.parse(await readFile(join(pluginsDir, 'plugins.lock.json'), 'utf8')) as {
       plugins: Record<string, unknown>
     }
-    expect(Object.keys(lock.plugins).sort()).toEqual(['manta-samples.first', 'manta-samples.second'])
+    expect(Object.keys(lock.plugins).sort()).toEqual([
+      'manta-samples.first',
+      'manta-samples.second'
+    ])
   })
 
   it('serializes concurrent lockfile publications without temporary-file collisions', async () => {

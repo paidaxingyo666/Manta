@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CircleCheck, Copy, MessageSquarePlus, Pencil, Send, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +85,7 @@ export function BrowserPageAnnotationTray({
   }
 
   return (
-    <div className="absolute right-3 bottom-3 z-30 flex max-h-[45%] w-[min(20rem,calc(100%-1.5rem))] flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+    <div className="absolute right-3 bottom-3 z-30 flex max-h-[45%] w-[min(20rem,calc(100%-1.5rem))] flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-floating">
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
         <MessageSquarePlus className="size-4 text-muted-foreground" />
         <div className="min-w-0 flex-1 text-sm font-medium">
@@ -173,6 +174,16 @@ export function BrowserPageAnnotationTray({
       <div className="scrollbar-sleek min-h-0 flex-1 overflow-auto p-1.5">
         {browserAnnotations.map((annotation, index) => {
           const isEditing = annotation.id === editingAnnotationId
+          const editLabel = translate(
+            'auto.components.browser.pane.annotate.browser.page.annotation.tray.09a7c1df70',
+            'Edit annotation {{value0}}',
+            { value0: index + 1 }
+          )
+          const deleteLabel = translate(
+            'auto.components.browser.pane.BrowserPane.f2d0c22d67',
+            'Delete annotation {{value0}}',
+            { value0: index + 1 }
+          )
           return (
             <div
               key={annotation.id}
@@ -186,19 +197,19 @@ export function BrowserPageAnnotationTray({
                   className="min-w-0 flex-1"
                   data-slot="annotation-edit"
                   onKeyDown={(event) => {
-                    // Why: bail-out selector in useGrabMode lets this reach any focused child, not just the textarea.
-                    if (event.key === 'Escape') {
+                    // The ancestor exemption keeps Escape local to each focused edit control.
+                    if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
                       event.preventDefault()
                       event.stopPropagation()
                       handleCancelEdit()
                     }
                   }}
                 >
-                  <textarea
+                  <Textarea
                     value={editComment}
                     onChange={(event) => setEditComment(event.target.value)}
                     maxLength={GRAB_BUDGET.annotationCommentMaxLength}
-                    className="h-16 w-full resize-none rounded-md border border-input bg-background px-2 py-1.5 text-xs outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-16 min-h-16 resize-none px-2 py-1.5 text-xs"
                     autoFocus
                     aria-label={translate(
                       'auto.components.browser.pane.BrowserPane.d2a7092e6e',
@@ -274,32 +285,38 @@ export function BrowserPageAnnotationTray({
                     </div>
                   </div>
                   <div className="flex shrink-0 items-start gap-0.5">
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      className="can-hover:opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100"
-                      onClick={() => handleStartEdit(annotation)}
-                      aria-label={translate(
-                        'auto.components.browser.pane.annotate.browser.page.annotation.tray.09a7c1df70',
-                        'Edit annotation {{value0}}',
-                        { value0: index + 1 }
-                      )}
-                    >
-                      <Pencil className="size-3" />
-                    </Button>
-                    <Button
-                      size="icon-xs"
-                      variant="ghost"
-                      className="can-hover:opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100"
-                      onClick={() => handleDeleteBrowserAnnotation(annotation.id)}
-                      aria-label={translate(
-                        'auto.components.browser.pane.BrowserPane.f2d0c22d67',
-                        'Delete annotation {{value0}}',
-                        { value0: index + 1 }
-                      )}
-                    >
-                      <Trash2 className="size-3" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon-xs"
+                          variant="ghost"
+                          className="can-hover:opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100"
+                          onClick={() => handleStartEdit(annotation)}
+                          aria-label={editLabel}
+                        >
+                          <Pencil className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" sideOffset={4}>
+                        {editLabel}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon-xs"
+                          variant="ghost"
+                          className="can-hover:opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100"
+                          onClick={() => handleDeleteBrowserAnnotation(annotation.id)}
+                          aria-label={deleteLabel}
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" sideOffset={4}>
+                        {deleteLabel}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </>
               )}

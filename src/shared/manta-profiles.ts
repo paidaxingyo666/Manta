@@ -168,6 +168,8 @@ export type ConnectCurrentMantaProfileResult =
       status: 'failed'
       auth: MantaProfileAuthStatus
       error: string
+      /** The relay's own discriminator, so the UI can say what actually went wrong. */
+      errorCode?: string
     }
 
 export type CreateCloudLinkedMantaProfileResult =

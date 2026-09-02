@@ -1,7 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { ChevronsUpDown, Loader2 } from 'lucide-react'
 
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { jiraSearchUsers } from '@/runtime/runtime-jira-client'
 import { translate } from '@/i18n/i18n'
@@ -11,8 +18,8 @@ import type { TaskSourceContext } from '../../../shared/task-source-context'
 
 const USER_SEARCH_DEBOUNCE_MS = 250
 
-/** Renders the selectable user rows inside the picker popover. */
-export function JiraUserOptionList({
+/** Renders selectable user rows inside a picker. */
+export function JiraUserOptionItems({
   users,
   onSelect
 }: {
@@ -22,27 +29,23 @@ export function JiraUserOptionList({
   return (
     <>
       {users.map((user) => (
-        <button
+        <CommandItem
           key={user.accountId}
-          type="button"
-          onClick={() => onSelect(user)}
-          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-accent"
+          value={`${user.displayName} ${user.accountId}`}
+          onSelect={() => onSelect(user)}
+          className="jump-palette-item px-2 py-1.5 text-xs"
         >
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt="" className="size-5 rounded-full" />
           ) : null}
           <span className="truncate">{user.displayName}</span>
-        </button>
+        </CommandItem>
       ))}
     </>
   )
 }
 
-/**
- * Searchable single-user combobox for Jira user fields. These need an accountId,
- * not the display name a plain text box would collect, since Jira rejects a bare
- * string for user fields.
- */
+/** Selects the account ID required by a scalar Jira user field. */
 export function JiraUserPicker({
   providerSettings,
   siteId,
@@ -110,39 +113,51 @@ export function JiraUserPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           disabled={disabled}
           aria-label={label}
-          className="flex h-8 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-2 text-left text-[12px] transition hover:bg-muted/40 disabled:opacity-50"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between px-2 text-xs font-normal"
         >
           <span className={value ? 'truncate' : 'truncate text-muted-foreground'}>
             {triggerLabel}
           </span>
-          {loading ? <LoaderCircle className="size-3 shrink-0 animate-spin" /> : null}
-        </button>
+          {loading ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" />
+          ) : (
+            <ChevronsUpDown className="size-3 shrink-0 opacity-50" />
+          )}
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="popover-scroll-content scrollbar-sleek w-64 p-1" align="start">
-        <Input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={translate('components.jiraUserPicker.search', 'Search users')}
-          className="mb-1 h-7 text-[12px]"
-          autoFocus
-        />
-        {users.length === 0 && !loading ? (
-          <p className="px-2 py-1.5 text-[12px] text-muted-foreground">
-            {translate('components.jiraUserPicker.empty', 'No users found')}
-          </p>
-        ) : (
-          <JiraUserOptionList
-            users={users}
-            onSelect={(user) => {
-              onSelect(user)
-              setOpen(false)
-            }}
+      <PopoverContent className="w-64 p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            value={query}
+            onValueChange={setQuery}
+            placeholder={translate('components.jiraUserPicker.search', 'Search users')}
+            className="h-8 text-xs"
+            wrapperClassName="px-2 py-0"
+            trailing={loading ? <Loader2 className="size-4 shrink-0 animate-spin" /> : null}
           />
-        )}
+          <CommandList className="max-h-60">
+            {!loading ? (
+              <CommandEmpty>
+                {translate('components.jiraUserPicker.empty', 'No users found')}
+              </CommandEmpty>
+            ) : null}
+            <JiraUserOptionItems
+              users={users}
+              onSelect={(user) => {
+                onSelect(user)
+                setOpen(false)
+              }}
+            />
+          </CommandList>
+        </Command>
       </PopoverContent>
     </Popover>
   )

@@ -98,7 +98,7 @@ finds is published in `status.get`'s `degradations[]` under `terminal_unavailabl
 **4. Ship the binary, built from patched sources.**
 [`config/scripts/build-mantad-prebuilds.mjs`](../../config/scripts/build-mantad-prebuilds.mjs)
 (`pnpm run build:mantad-prebuilds`, after `build:mantad`) compiles node-pty for the current
-host and files it under `out/mantad/prebuilds/<slot>/`, where a slot is
+host and files it under `out/orcad/prebuilds/<slot>/`, where a slot is
 `linux-{x64,arm64}-{glibc,musl}` or `darwin-{x64,arm64}`. libc is part of the slot name
 because node-pty's own loader falls back to `prebuilds/<platform>-<arch>` and cannot tell
 glibc from musl — a glibc binary parked there is loaded on Alpine and dies at `dlopen`.

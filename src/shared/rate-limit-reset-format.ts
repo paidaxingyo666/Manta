@@ -25,10 +25,32 @@ export function formatResetDuration(ms: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+/**
+ * Copy for the countdown, so each app can supply its own translation.
+ *
+ * This module is shared by the renderer and the mobile app and must stay free
+ * of platform imports, so it cannot reach either i18n runtime itself. Callers
+ * that omit `labels` keep the English wording.
+ */
+export type ResetCountdownLabels = {
+  /** Shown when the window has already reset. */
+  now: string
+  /** Takes the formatted duration, e.g. "3h 54m". */
+  inDuration: (duration: string) => string
+}
+
+const ENGLISH_RESET_COUNTDOWN: ResetCountdownLabels = {
+  now: 'Resets now',
+  inDuration: (duration) => `Resets in ${duration}`
+}
+
 /** "Resets in 3h 54m" / "Resets now" for a window's time-until-reset (ms). */
-export function formatResetCountdown(ms: number): string {
+export function formatResetCountdown(
+  ms: number,
+  labels: ResetCountdownLabels = ENGLISH_RESET_COUNTDOWN
+): string {
   const duration = formatResetDuration(ms)
-  return duration === 'now' ? 'Resets now' : `Resets in ${duration}`
+  return duration === 'now' ? labels.now : labels.inDuration(duration)
 }
 
 const MINUTE_MS = 60_000

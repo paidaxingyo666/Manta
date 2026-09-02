@@ -153,4 +153,17 @@ describe('BrowserPageAnnotationTray edit mode', () => {
     expect(screen.getByText('Fix this button')).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Annotation comment' })).not.toBeInTheDocument()
   })
+
+  it('keeps the editor open when IME composition owns Escape', () => {
+    const { handleUpdateBrowserAnnotation } = renderTray()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit annotation 1' }))
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Annotation comment' }), {
+      key: 'Escape',
+      isComposing: true
+    })
+
+    expect(handleUpdateBrowserAnnotation).not.toHaveBeenCalled()
+    expect(screen.getByRole('textbox', { name: 'Annotation comment' })).toBeInTheDocument()
+  })
 })

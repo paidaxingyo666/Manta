@@ -11,7 +11,7 @@ export type WorkspaceDocAddressTarget =
   | { status: 'not-a-workspace-doc' }
 
 /** Only what the doc preview renders. Bare relative input ("docs/x.html") is indistinguishable
- *  from a hostname, so it stays a URL; the explicit ./ prefix is the reader saying "path". */
+ *  from a hostname, so it stays a URL; an explicit ./ or .\ prefix says "path". */
 const PREVIEWABLE_PATH_PATTERN = /\.html?$/i
 
 function ownedWorktreeRoots(
@@ -60,8 +60,8 @@ function planToTarget(
  * Decides whether typed address-bar input names a previewable workspace document, BEFORE the URL
  * pipeline turns paths into file:// (which a client-hosted guest refuses and which would resolve
  * on the wrong machine for a remote worktree). An absolute path is resolved against the current
- * tab's worktree first, then every other known workspace root; a ./-relative path resolves against
- * the current worktree only. Anything else — including bare relative text, which is
+ * tab's worktree first, then every other known workspace root; a ./- or .\-relative path resolves
+ * against the current worktree only. Anything else — including bare relative text, which is
  * indistinguishable from a hostname — falls through to the URL pipeline untouched.
  */
 export function resolveWorkspaceDocAddressTarget(
@@ -88,7 +88,7 @@ export function resolveWorkspaceDocAddressTarget(
     return { status: 'not-a-workspace-doc' }
   }
 
-  if (input.startsWith('./')) {
+  if (input.startsWith('./') || input.startsWith('.\\')) {
     const relative = input.slice(2)
     const root = state.getKnownWorktreeById(currentWorktreeId)?.path ?? null
     if (!root || relative.length === 0) {

@@ -3,7 +3,7 @@ import { expect } from '@stablyai/playwright-test'
 
 const TOGGLE_RENDER_TIMEOUT_MS = 10_000
 
-export const NESTED_TOGGLE_FIXTURE_DIRECTORY = '.manta-e2e-markdown-nested-toggle'
+export const NESTED_TOGGLE_FIXTURE_DIRECTORY = '.orca-e2e-markdown-nested-toggle'
 
 export const NESTED_TOGGLE_BODY_TEXT = 'Get back to ppl'
 

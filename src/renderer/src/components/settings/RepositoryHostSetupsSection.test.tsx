@@ -132,18 +132,18 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo, remoteRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
         }),
         makeSetup({
           id: 'remote-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'remote-repo',
           hostId: toSshExecutionHostId('openclaw 2'),
           path: '/home/alice/manta'
@@ -175,18 +175,18 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo, remoteRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
         }),
         makeSetup({
           id: 'remote-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'remote-repo',
           hostId: toSshExecutionHostId('openclaw 2'),
           path: '/home/alice/manta'
@@ -211,7 +211,7 @@ describe('RepositoryHostSetupsSection', () => {
 
     // The single project pane switches host in place — no navigation.
     expect(setSettingsProjectHostSelection).toHaveBeenCalledWith(
-      'github:stablyai/orca',
+      'github:stablyai/manta',
       toSshExecutionHostId('openclaw 2'),
       'remote-repo'
     )
@@ -228,11 +228,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [remoteRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca', sourceRepoIds: ['remote-repo'] })],
+      projects: [makeProject({ id: 'github:stablyai/manta', sourceRepoIds: ['remote-repo'] })],
       projectHostSetups: [
         makeSetup({
           id: 'direct-setup',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'remote-repo',
           hostId: 'runtime:hub',
           executionHostId: 'ssh:direct',
@@ -241,7 +241,7 @@ describe('RepositoryHostSetupsSection', () => {
         }),
         makeSetup({
           id: 'jump-setup',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'remote-repo',
           hostId: 'runtime:hub',
           executionHostId: 'ssh:jump',
@@ -328,11 +328,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [remoteRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca', sourceRepoIds: ['remote-repo'] })],
+      projects: [makeProject({ id: 'github:stablyai/manta', sourceRepoIds: ['remote-repo'] })],
       projectHostSetups: [
         makeSetup({
           id: 'hub-local-setup',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'remote-repo',
           hostId: 'runtime:hub',
           executionHostId: 'local',
@@ -351,10 +351,10 @@ describe('RepositoryHostSetupsSection', () => {
 
   it('removes independent setup metadata instead of opening an empty repo target', async () => {
     const deleteProjectHostSetup = vi.fn().mockResolvedValue({
-      project: makeProject({ id: 'github:stablyai/orca' }),
+      project: makeProject({ id: 'github:stablyai/manta' }),
       setup: makeSetup({
         id: 'gpu-setup',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: '',
         hostId: 'runtime:gpu',
         path: ''
@@ -369,18 +369,18 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
         }),
         makeSetup({
           id: 'gpu-setup',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: '',
           hostId: 'runtime:gpu',
           path: '',
@@ -415,10 +415,10 @@ describe('RepositoryHostSetupsSection', () => {
     const openSettingsTarget = vi.fn()
     const setSettingsProjectHostSelection = vi.fn()
     const setupProjectExistingFolder = vi.fn().mockResolvedValue({
-      project: makeProject({ id: 'github:stablyai/orca' }),
+      project: makeProject({ id: 'github:stablyai/manta' }),
       setup: makeSetup({
         id: 'remote-repo',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: 'remote-repo',
         hostId: toSshExecutionHostId('openclaw 2'),
         path: '/home/alice/manta'
@@ -437,11 +437,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -473,14 +473,14 @@ describe('RepositoryHostSetupsSection', () => {
     })
 
     expect(setupProjectExistingFolder).toHaveBeenCalledWith({
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:openclaw%202',
       path: '/home/alice/manta',
       kind: 'git',
       displayName: 'Manta'
     })
     expect(setSettingsProjectHostSelection).toHaveBeenCalledWith(
-      'github:stablyai/orca',
+      'github:stablyai/manta',
       'ssh:openclaw%202'
     )
     expect(openSettingsPage).not.toHaveBeenCalled()
@@ -492,10 +492,10 @@ describe('RepositoryHostSetupsSection', () => {
     const openSettingsTarget = vi.fn()
     const setSettingsProjectHostSelection = vi.fn()
     const setupProjectClone = vi.fn().mockResolvedValue({
-      project: makeProject({ id: 'github:stablyai/orca' }),
+      project: makeProject({ id: 'github:stablyai/manta' }),
       setup: makeSetup({
         id: 'remote-repo',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: 'remote-repo',
         hostId: toSshExecutionHostId('openclaw 2'),
         path: '/home/alice/manta'
@@ -514,11 +514,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -544,7 +544,7 @@ describe('RepositoryHostSetupsSection', () => {
     )
     expect(urlInput).toBeTruthy()
     expect(destinationInput).toBeTruthy()
-    typeIntoInput(urlInput!, 'https://github.com/stablyai/orca.git')
+    typeIntoInput(urlInput!, 'https://github.com/stablyai/manta.git')
     typeIntoInput(destinationInput!, '/home/alice')
 
     const cloneButton = findButton('Clone')
@@ -555,14 +555,14 @@ describe('RepositoryHostSetupsSection', () => {
     })
 
     expect(setupProjectClone).toHaveBeenCalledWith({
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'ssh:openclaw%202',
-      url: 'https://github.com/stablyai/orca.git',
+      url: 'https://github.com/stablyai/manta.git',
       destination: '/home/alice',
       displayName: 'Manta'
     })
     expect(setSettingsProjectHostSelection).toHaveBeenCalledWith(
-      'github:stablyai/orca',
+      'github:stablyai/manta',
       'ssh:openclaw%202'
     )
     expect(openSettingsPage).not.toHaveBeenCalled()
@@ -577,11 +577,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -610,10 +610,10 @@ describe('RepositoryHostSetupsSection', () => {
 
   it('creates pending setup metadata for a known host without requiring a path', async () => {
     const createProjectHostSetup = vi.fn().mockResolvedValue({
-      project: makeProject({ id: 'github:stablyai/orca' }),
+      project: makeProject({ id: 'github:stablyai/manta' }),
       setup: makeSetup({
         id: 'gpu-setup',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: '',
         hostId: 'runtime:gpu',
         path: '',
@@ -628,11 +628,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -678,7 +678,7 @@ describe('RepositoryHostSetupsSection', () => {
     })
 
     expect(createProjectHostSetup).toHaveBeenCalledWith({
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:gpu',
       displayName: 'Manta',
       setupState: 'not-set-up',
@@ -697,11 +697,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -753,10 +753,10 @@ describe('RepositoryHostSetupsSection', () => {
 
   it('offers inactive runtime hosts discovered from hydrated runtime status', async () => {
     const createProjectHostSetup = vi.fn().mockResolvedValue({
-      project: makeProject({ id: 'github:stablyai/orca' }),
+      project: makeProject({ id: 'github:stablyai/manta' }),
       setup: makeSetup({
         id: 'gpu-setup',
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         repoId: '',
         hostId: 'runtime:gpu',
         path: '',
@@ -771,11 +771,11 @@ describe('RepositoryHostSetupsSection', () => {
     })
     useAppStore.setState({
       repos: [localRepo],
-      projects: [makeProject({ id: 'github:stablyai/orca' })],
+      projects: [makeProject({ id: 'github:stablyai/manta' })],
       projectHostSetups: [
         makeSetup({
           id: 'local-repo',
-          projectId: 'github:stablyai/orca',
+          projectId: 'github:stablyai/manta',
           repoId: 'local-repo',
           hostId: 'local',
           path: '/Users/alice/manta'
@@ -820,7 +820,7 @@ describe('RepositoryHostSetupsSection', () => {
     })
 
     expect(createProjectHostSetup).toHaveBeenCalledWith({
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:gpu',
       displayName: 'Manta',
       setupState: 'not-set-up',

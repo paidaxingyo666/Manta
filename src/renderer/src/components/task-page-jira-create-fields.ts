@@ -11,10 +11,7 @@ export function isVisibleJiraCreateField(field: JiraCreateField): boolean {
   return field.required && !JIRA_CREATE_SYSTEM_FIELD_KEYS.has(field.key)
 }
 
-/**
- * True for any user-typed field, scalar or array. User pickers carry no
- * allowedValues, so schema type is the only way to tell them from free text.
- */
+/** Detects scalar and array Jira user fields by schema. */
 export function isJiraUserCreateField(field: JiraCreateField): boolean {
   return (
     field.schema?.type === 'user' ||
@@ -22,19 +19,12 @@ export function isJiraUserCreateField(field: JiraCreateField): boolean {
   )
 }
 
-/**
- * True only for single-user fields. `JiraUserPicker` holds one user, so
- * array-of-user fields stay on the comma-separated text path until the dialog
- * can collect and submit several.
- */
+/** Detects single-user fields supported by `JiraUserPicker`. */
 export function isJiraScalarUserCreateField(field: JiraCreateField): boolean {
   return field.schema?.type === 'user'
 }
 
-/**
- * Collects the user-typed field keys for the host to shape, which it cannot
- * infer from the values alone since a user id is just a string.
- */
+/** Lists user-field keys that the host must shape. */
 export function getJiraUserCreateFieldKeys(fields: readonly JiraCreateField[]): string[] {
   return fields.filter(isJiraUserCreateField).map((field) => field.key)
 }

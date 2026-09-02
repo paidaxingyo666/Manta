@@ -201,9 +201,19 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
       }
       throw new Error('Could not resolve perf update feed')
     }
+    if (releaseTagsResult.state === 'no-newer') {
+      this.clearPrereleaseFallbackContext()
+      this.clearPublishingWindowLastGoodCheck()
+      const url = getReleaseDownloadUrl(`v${currentVersion}`)
+      console.info(
+        `[updater] release feed: current=${currentVersion} includePrerelease=${includePrerelease}; nothing newer → ${url}`
+      )
+      autoUpdater.setFeedURL({ provider: 'generic', url })
+      return 'ready'
+    }
     this.clearPrereleaseFallbackContext()
     this.clearPublishingWindowLastGoodCheck()
-    const url = 'https://github.com/stablyai/orca/releases/latest/download'
+    const url = 'https://github.com/paidaxingyo666/Manta/releases/latest/download'
     console.info(
       `[updater] release feed fallback: current=${currentVersion} includePrerelease=${includePrerelease} → ${url}`
     )

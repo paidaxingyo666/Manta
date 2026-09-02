@@ -16,8 +16,8 @@ import {
   assertElectronResolvedIsolatedHome,
   createElectronHomeIsolation
 } from './electron-home-isolation'
-import { retryTransientMainEvaluate } from './electron-main-evaluate-retry'
 import { forwardElectronProcessLogs } from './manta-app'
+import { retryTransientMainEvaluate } from './electron-main-evaluate-retry'
 import {
   replaceRuntimePairingInPlace,
   type SameIdPairingReplacement

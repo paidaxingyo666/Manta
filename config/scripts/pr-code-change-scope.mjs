@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
@@ -25,6 +24,8 @@ export const PR_CHECK_JOBS = [
   'shell_contracts',
   'test',
   'mantad_browser',
+  // This fork ships a self-hosted relay upstream has no counterpart for.
+  'relay',
   'cross-version-wire',
   'managed_hook_node18',
   'package',
@@ -271,8 +272,21 @@ export function classifyPrJobs(changedFiles) {
   }
 }
 
+// The two shared entries are the only desktop modules the relay imports;
+// `src/shared/` as a whole would fire this job on nearly every PR.
+const RELAY_PREFIXES = [
+  'relay-server/',
+  'src/relay/',
+  'src/shared/mobile-relay-phone-protocol',
+  'src/shared/host-proof'
+]
+
 function jobDetector(job) {
   switch (job) {
+    // Why src/shared too: most relay tests import the desktop's protocol
+    // implementation to prove the two agree byte for byte.
+    case 'relay':
+      return (files) => files.some((file) => matchesPrefix(file, RELAY_PREFIXES))
     case 'git_compatibility':
       return (files) => files.some((file) => matchesPrefix(file, GIT_COMPAT_PREFIXES))
     case 'codex_index_heal_contract':
@@ -335,8 +349,25 @@ function matchesPrefix(file, prefixes) {
   return prefixes.some((prefix) => file === prefix || file.startsWith(prefix))
 }
 
+/**
+ * Reads stdin to EOF asynchronously.
+ *
+ * Not `readFileSync(0)`: on a pipe that exceeds the kernel buffer, the reader
+ * has to wait, and a sync read throws EAGAIN instead. macOS masked it by
+ * delivering the changed-path list in one write where Linux did not, so this
+ * failed only on CI, and only once a PR touched enough files.
+ */
+async function readStdin() {
+  let text = ''
+  process.stdin.setEncoding('utf8')
+  for await (const chunk of process.stdin) {
+    text += chunk
+  }
+  return text
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const files = readFileSync(0, 'utf8').split('\n').filter(Boolean)
+  const files = (await readStdin()).split('\n').filter(Boolean)
   const classification = classifyPrJobs(files)
   for (const [name, value] of Object.entries(classification)) {
     process.stdout.write(`${name}=${value ? 'true' : 'false'}\n`)

@@ -6,89 +6,22 @@ import process from 'node:process'
 // TypeScript 7 is a native CLI; AST consumers still need the legacy JavaScript API.
 import ts from 'typescript-api'
 
+import {
+  classifyStringNode,
+  compactText,
+  decodeJsxEntities,
+  hasHumanLanguageText,
+  isInsideLocalizationCall,
+  lineAndColumn,
+  renderedLocalNames,
+  stringParts
+} from './localization-copy-classification.mjs'
+
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
 // Why: test-only modules live beside their spec as `*-test-harness.ts` / `*-fixtures.ts` here, not under `__tests__/`.
 const TEST_SUPPORT_FILE_PATTERN =
   /[.-](?:test-harness|test-fixtures?|test-state|test-support|fixtures?)\.[cm]?[jt]sx?$/
 const SKIP_PATH_PARTS = new Set(['.git', 'dist', 'node_modules', 'out', '__snapshots__', 'assets'])
-const LOCALIZATION_CALL_NAMES = new Set(['t', 'translate'])
-const USER_VISIBLE_JSX_ATTRIBUTES = new Set([
-  'ariaLabel',
-  'aria-label',
-  'aria-description',
-  'alt',
-  'description',
-  'emptyText',
-  'helperText',
-  'keywords',
-  'label',
-  'message',
-  'placeholder',
-  'subtitle',
-  'text',
-  'title',
-  'toggleDescription',
-  'tooltip'
-])
-const USER_VISIBLE_OBJECT_KEYS = new Set([
-  'ariaLabel',
-  'badge',
-  'description',
-  'emptyText',
-  'error',
-  'helperText',
-  'keywords',
-  'label',
-  'message',
-  'placeholder',
-  'subtitle',
-  'title',
-  'toggleDescription',
-  'tooltip'
-])
-const USER_VISIBLE_FUNCTION_NAMES = new Set([
-  'alert',
-  'confirm',
-  'prompt',
-  'showError',
-  'showToast'
-])
-const USER_VISIBLE_OBJECT_METHODS = new Set([
-  'error',
-  'info',
-  'loading',
-  'message',
-  'promise',
-  'success',
-  'warning'
-])
-const USER_VISIBLE_OBJECT_NAMES = new Set(['toast'])
-// Why: only comparison operands are code, not copy. Bailing on every non-`+`
-// operator hid whole subtrees behind `cond && <JSX/>` guards and `?? 'fallback'`.
-const COPY_PRESERVING_BINARY_OPERATORS = new Set([
-  ts.SyntaxKind.PlusToken,
-  ts.SyntaxKind.QuestionQuestionToken,
-  ts.SyntaxKind.BarBarToken,
-  ts.SyntaxKind.AmpersandAmpersandToken
-])
-
-function normalizePath(root, filePath) {
-  return path.relative(root, filePath).split(path.sep).join('/')
-}
-
-export function isSkippedFile(root, filePath) {
-  const relative = normalizePath(root, filePath)
-  if (
-    relative.endsWith('.d.ts') ||
-    relative.includes('.test.') ||
-    relative.includes('.spec.') ||
-    relative.includes('/__tests__/') ||
-    TEST_SUPPORT_FILE_PATTERN.test(relative)
-  ) {
-    return true
-  }
-  return relative.split('/').some((part) => SKIP_PATH_PARTS.has(part))
-}
 
 async function collectSourceFiles(root, dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true })
@@ -114,270 +47,22 @@ async function collectSourceFiles(root, dir) {
   return files
 }
 
-function hasHumanLanguageText(text) {
-  const trimmed = text.replace(/\s+/g, ' ').trim()
-  if (trimmed.length < 2) {
-    return false
-  }
-  if (/^[\d\s!-/:-@[-`{-~]+$/.test(trimmed)) {
-    return false
-  }
-  return /[A-Za-z\u00C0-\u024F\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(trimmed)
+function normalizePath(root, filePath) {
+  return path.relative(root, filePath).split(path.sep).join('/')
 }
 
-function compactText(text) {
-  return text.replace(/\s+/g, ' ').trim()
-}
-
-function lineAndColumn(sourceFile, node) {
-  const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
-  return { line: position.line + 1, column: position.character + 1 }
-}
-
-function propertyNameText(name) {
-  if (ts.isIdentifier(name) || ts.isStringLiteralLike(name) || ts.isNumericLiteral(name)) {
-    return name.text
-  }
-  if (ts.isComputedPropertyName(name) && ts.isStringLiteralLike(name.expression)) {
-    return name.expression.text
-  }
-  return undefined
-}
-
-function expressionNameText(node) {
-  if (ts.isIdentifier(node)) {
-    return node.text
-  }
-  if (ts.isPropertyAccessExpression(node)) {
-    return `${expressionNameText(node.expression) ?? ''}.${node.name.text}`.replace(/^\./, '')
-  }
-  return undefined
-}
-
-function stringParts(node) {
-  if (ts.isStringLiteralLike(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-    return [{ text: node.text, dynamic: false }]
-  }
-  if (!ts.isTemplateExpression(node)) {
-    return []
-  }
-  return [
-    { text: node.head.text, dynamic: true },
-    ...node.templateSpans.map((span) => ({ text: span.literal.text, dynamic: true }))
-  ]
-}
-
-function isInsideLocalizationCall(node) {
-  let current = node.parent
-  while (current) {
-    if (ts.isCallExpression(current)) {
-      const name = expressionNameText(current.expression)
-      if (name && LOCALIZATION_CALL_NAMES.has(name.split('.').at(-1) ?? name)) {
-        return true
-      }
-    }
-    current = current.parent
-  }
-  return false
-}
-
-function isJsxAttributeValue(node) {
-  const parent = node.parent
-  if (!parent) {
-    return undefined
-  }
-  if (ts.isJsxAttribute(parent)) {
-    return propertyNameText(parent.name)
-  }
-  if (parent && ts.isJsxExpression(parent) && parent.parent && ts.isJsxAttribute(parent.parent)) {
-    return propertyNameText(parent.parent.name)
-  }
-  return undefined
-}
-
-function ancestorJsxAttributeName(node) {
-  let current = node.parent
-  while (current) {
-    if (ts.isJsxAttribute(current)) {
-      return propertyNameText(current.name)
-    }
-    if (
-      ts.isJsxExpression(current) ||
-      ts.isConditionalExpression(current) ||
-      ts.isParenthesizedExpression(current) ||
-      ts.isBinaryExpression(current)
-    ) {
-      current = current.parent
-      continue
-    }
-    return undefined
-  }
-  return undefined
-}
-
-function isRenderedJsxExpression(node) {
-  let current = node.parent
-  while (current) {
-    if (ts.isJsxExpression(current)) {
-      return (
-        ts.isJsxElement(current.parent) ||
-        ts.isJsxFragment(current.parent) ||
-        ts.isJsxSelfClosingElement(current.parent)
-      )
-    }
-    if (
-      ts.isConditionalExpression(current) ||
-      ts.isParenthesizedExpression(current) ||
-      ts.isTemplateExpression(current) ||
-      ts.isNoSubstitutionTemplateLiteral(current)
-    ) {
-      if (ts.isConditionalExpression(current) && current.condition === node) {
-        return false
-      }
-      current = current.parent
-      continue
-    }
-    if (ts.isBinaryExpression(current)) {
-      if (!COPY_PRESERVING_BINARY_OPERATORS.has(current.operatorToken.kind)) {
-        return false
-      }
-      current = current.parent
-      continue
-    }
-    return false
-  }
-  return false
-}
-
-function nearestObjectPropertyName(node) {
-  let current = node.parent
-  while (current) {
-    if (ts.isPropertyAssignment(current) || ts.isShorthandPropertyAssignment(current)) {
-      return propertyNameText(current.name)
-    }
-    if (ts.isObjectLiteralExpression(current) || ts.isArrayLiteralExpression(current)) {
-      current = current.parent
-      continue
-    }
-    return undefined
-  }
-  return undefined
-}
-
-function hasAncestorObjectPropertyName(node, names) {
-  let current = node.parent
-  while (current) {
-    if (
-      (ts.isPropertyAssignment(current) || ts.isShorthandPropertyAssignment(current)) &&
-      names.has(propertyNameText(current.name) ?? '')
-    ) {
-      return true
-    }
-    current = current.parent
-  }
-  return false
-}
-
-function nearestAncestorObjectPropertyName(node) {
-  let current = node.parent
-  while (current) {
-    if (ts.isPropertyAssignment(current) || ts.isShorthandPropertyAssignment(current)) {
-      return propertyNameText(current.name)
-    }
-    current = current.parent
-  }
-  return undefined
-}
-
-function findAncestor(node, predicate) {
-  let current = node.parent
-  while (current) {
-    if (predicate(current)) {
-      return current
-    }
-    current = current.parent
-  }
-  return undefined
-}
-
-function isUserVisibleCallArgument(node) {
-  const call = findAncestor(node, ts.isCallExpression)
-  if (!call) {
-    return false
-  }
-  const expressionName = expressionNameText(call.expression)
-  if (!expressionName) {
-    return false
-  }
-  const parts = expressionName.split('.')
-  const methodName = parts.at(-1)
-  const objectName = parts.at(-2)
-  return (
-    USER_VISIBLE_FUNCTION_NAMES.has(expressionName) ||
-    USER_VISIBLE_FUNCTION_NAMES.has(methodName ?? '') ||
-    (objectName !== undefined &&
-      USER_VISIBLE_OBJECT_NAMES.has(objectName) &&
-      USER_VISIBLE_OBJECT_METHODS.has(methodName ?? ''))
-  )
-}
-
-function classifyStringNode(node) {
-  if (hasAncestorObjectPropertyName(node, new Set(['className', 'classNames']))) {
-    return undefined
-  }
-
+export function isSkippedFile(root, filePath) {
+  const relative = normalizePath(root, filePath)
   if (
-    findAncestor(
-      node,
-      (ancestor) =>
-        ts.isBinaryExpression(ancestor) &&
-        !COPY_PRESERVING_BINARY_OPERATORS.has(ancestor.operatorToken.kind)
-    )
+    relative.endsWith('.d.ts') ||
+    relative.includes('.test.') ||
+    relative.includes('.spec.') ||
+    relative.includes('/__tests__/') ||
+    TEST_SUPPORT_FILE_PATTERN.test(relative)
   ) {
-    return undefined
+    return true
   }
-
-  const jsxAttributeName = isJsxAttributeValue(node)
-  if (jsxAttributeName) {
-    return USER_VISIBLE_JSX_ATTRIBUTES.has(jsxAttributeName)
-      ? `jsx-attribute:${jsxAttributeName}`
-      : undefined
-  }
-
-  const ancestorAttributeName = ancestorJsxAttributeName(node)
-  if (ancestorAttributeName) {
-    return USER_VISIBLE_JSX_ATTRIBUTES.has(ancestorAttributeName)
-      ? `jsx-attribute:${ancestorAttributeName}`
-      : undefined
-  }
-
-  if (ts.isJsxText(node)) {
-    return 'jsx-text'
-  }
-
-  const objectPropertyName = nearestObjectPropertyName(node)
-  if (objectPropertyName && !USER_VISIBLE_OBJECT_KEYS.has(objectPropertyName)) {
-    return undefined
-  }
-
-  const ancestorObjectPropertyName = nearestAncestorObjectPropertyName(node)
-  if (ancestorObjectPropertyName && !USER_VISIBLE_OBJECT_KEYS.has(ancestorObjectPropertyName)) {
-    return undefined
-  }
-
-  if (isRenderedJsxExpression(node)) {
-    return 'jsx-expression'
-  }
-
-  if (isUserVisibleCallArgument(node)) {
-    return 'user-visible-call'
-  }
-
-  if (objectPropertyName) {
-    return `object-property:${objectPropertyName}`
-  }
-
-  return undefined
+  return relative.split('/').some((part) => SKIP_PATH_PARTS.has(part))
 }
 
 function areaForFile(relativePath) {
@@ -394,7 +79,15 @@ function areaForFile(relativePath) {
   return `renderer/${parts[0] ?? 'root'}`
 }
 
-export function collectLocalizationCandidates(filePath, sourceText, root = process.cwd()) {
+// `extraCopyRules` is opt-in per tree. It finds real copy the JSX-only rules
+// miss, but it also surfaces a large existing backlog in the renderer that is
+// upstream's to work through — turning it on there would just wedge the gate.
+export function collectLocalizationCandidates(
+  filePath,
+  sourceText,
+  root = process.cwd(),
+  options = {}
+) {
   const sourceKind =
     filePath.endsWith('.tsx') || filePath.endsWith('.jsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
   const sourceFile = ts.createSourceFile(
@@ -404,11 +97,39 @@ export function collectLocalizationCandidates(filePath, sourceText, root = proce
     true,
     sourceKind
   )
+  const rendered = options.extraCopyRules ? renderedLocalNames(sourceFile) : new Set()
   const reports = []
   const relativePath = normalizePath(root, filePath)
 
+  // Opt-out for a string that reaches the screen through some other call site:
+  // translating it here would either double-translate or freeze a discriminant.
+  function isExempt(node) {
+    const { line } = lineAndColumn(sourceFile, node)
+    const lines = sourceFile.text.split('\n')
+    if ([lines[line - 1], lines[line - 2]].some((entry) => entry?.includes('i18n-exempt'))) {
+      return true
+    }
+    // Also honour the marker on an enclosing statement, so one comment can
+    // cover a whole literal table rather than every line inside it.
+    for (let parent = node.parent; parent; parent = parent.parent) {
+      if (!ts.isStatement(parent)) {
+        continue
+      }
+      const ranges = ts.getLeadingCommentRanges(sourceFile.text, parent.getFullStart()) ?? []
+      if (
+        ranges.some((range) => sourceFile.text.slice(range.pos, range.end).includes('i18n-exempt'))
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
   function pushReport(node, kind, text, dynamic = false) {
-    const value = compactText(text)
+    if (isExempt(node)) {
+      return
+    }
+    const value = kind === 'jsx-text' ? decodeJsxEntities(compactText(text)) : compactText(text)
     if (!hasHumanLanguageText(value) || isInsideLocalizationCall(node)) {
       return
     }
@@ -432,7 +153,7 @@ export function collectLocalizationCandidates(filePath, sourceText, root = proce
       return
     }
 
-    const kind = classifyStringNode(node)
+    const kind = classifyStringNode(node, rendered, options)
     if (kind) {
       for (const part of stringParts(node)) {
         pushReport(node, kind, part.text, part.dynamic)
@@ -520,6 +241,8 @@ function parseArgs(argv) {
     } else if (arg === '--output') {
       options.outputPath = argv[index + 1] ?? null
       index += 1
+    } else if (arg === '--extra-copy-rules') {
+      options.extraCopyRules = true
     } else if (arg === '--source-root') {
       options.sourceRoot = argv[index + 1] ?? options.sourceRoot
       index += 1
@@ -589,7 +312,11 @@ export async function main(root = process.cwd(), argv = process.argv.slice(2)) {
 
   for (const filePath of files) {
     const sourceText = await fs.readFile(filePath, 'utf8')
-    reports.push(...collectLocalizationCandidates(filePath, sourceText, root))
+    reports.push(
+      ...collectLocalizationCandidates(filePath, sourceText, root, {
+        extraCopyRules: options.extraCopyRules === true
+      })
+    )
   }
 
   if (options.check) {

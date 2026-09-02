@@ -26,7 +26,7 @@ set -euo pipefail
 UDID="${1:?simulator udid}"
 PORT="${2:?port of the paired host, from the [net] logs}"
 LOG="${3:-/tmp/manta-emulator-boot.log}"
-BUNDLE_ID=com.stably.orca.mobile
+BUNDLE_ID=cn.sh.manta.mobile
 # Long enough for the tiered backoff to reach its 30s/60s tail.
 ESCALATE_SECONDS=200
 

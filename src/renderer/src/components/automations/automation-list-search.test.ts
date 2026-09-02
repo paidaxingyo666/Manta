@@ -137,7 +137,14 @@ describe('automation-list-search', () => {
       host: 'build-box',
       prompt: 'Assign reviewers for open PRs'
     }
-    for (const query of ['assignment', 'MANTA', 'login-retry', 'claude', 'build-box', 'reviewers']) {
+    for (const query of [
+      'assignment',
+      'MANTA',
+      'login-retry',
+      'claude',
+      'build-box',
+      'reviewers'
+    ]) {
       expect(automationListSearchFieldsMatch(fields, query)).toBe(true)
     }
     expect(automationListSearchFieldsMatch(fields, 'missing')).toBe(false)

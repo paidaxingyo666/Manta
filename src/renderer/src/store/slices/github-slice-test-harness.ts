@@ -212,7 +212,7 @@ export function githubSourceContext(
   return {
     kind: 'task-source',
     provider: 'github',
-    projectId: 'github:stablyai/orca',
+    projectId: 'github:stablyai/manta',
     hostId,
     projectHostSetupId: 'setup-1',
     repoId,

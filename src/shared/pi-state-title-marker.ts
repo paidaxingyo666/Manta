@@ -1,14 +1,8 @@
 import type { AgentStatus } from './agent-title-core'
 
 /**
- * Markers Pi/OMP write between the `π` prefix and their label to encode turn state
- * (`π : cwd` working, `π > cwd` idle, `π ! cwd` needs input).
- *
- * Kept as a table because upstream re-punctuates this channel between releases: OMP
- * 17.2.12 replaced its animated braille frames with these static markers on WSL/ConPTY,
- * where the console host cannot repaint fast enough to animate (#13890, #8014). Every
- * consumer — status detection, the display-title normalizer, and the stale-title clear —
- * reads this one table, so teaching Manta a later protocol is a row, not a reparse.
+ * Pi/OMP title-state markers. OMP 17.2.12 replaced animated WSL/ConPTY frames;
+ * every consumer uses this table so protocol updates stay atomic (#13890, #8014).
  */
 const PI_STATE_MARKER_STATUS = {
   ':': 'working',
@@ -27,9 +21,7 @@ function escapeForCharacterClass(marker: string): string {
   return marker.replace(/[\\\]^-]/g, '\\$&')
 }
 
-// Why: `π` must sit at a token boundary so wrapper prefixes of any shape (`zsh | π : cwd`,
-// `tmux: π : cwd`) still expose the marker, and whitespace must separate the marker so the
-// legacy no-space `π: cwd` disabled title keeps its historical idle classification.
+// Require whitespace so wrappers work while legacy `π: cwd` stays on its idle path.
 const PI_STATE_TITLE_RE = new RegExp(
   `(?:^|[\\s|])π[ \\t]+([${PI_STATE_MARKERS.map(escapeForCharacterClass).join('')}])(?=\\s|$)`,
   'u'
@@ -40,10 +32,7 @@ type PiStateTitleMatch = {
   markerIndex: number
 }
 
-/**
- * Leftmost marker wins: everything after it is Pi/OMP's own label, which legally contains
- * the wrapper separator and marker-shaped punctuation of its own (`π > release | π : note`).
- */
+/** The leftmost marker wins because the remaining label may contain marker-like text. */
 function matchPiStateTitle(title: string): PiStateTitleMatch | null {
   const match = PI_STATE_TITLE_RE.exec(title)
   if (!match) {
@@ -61,11 +50,7 @@ export function getPiStateTitleStatus(title: string): AgentStatus | null {
   return match ? PI_STATE_MARKER_STATUS[match.marker] : null
 }
 
-/**
- * Rewrite a working marker to the idle marker so a title left behind by an agent that
- * stopped emitting stops reporting working. Returns null when there is nothing to clear —
- * the caller's other strip passes still apply.
- */
+/** Rewrites working to idle; null lets callers apply their remaining strip passes. */
 export function clearPiStateWorkingMarker(title: string): string | null {
   const match = matchPiStateTitle(title)
   if (!match || PI_STATE_MARKER_STATUS[match.marker] !== 'working') {

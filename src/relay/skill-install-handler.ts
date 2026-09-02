@@ -1,3 +1,4 @@
+import { resolveSkillPackageDownloadOrigins } from '../shared/skill-package-download-origins'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -113,7 +114,7 @@ export class SkillInstallHandler {
         executeSkillInstallRequest(input.request, {
           authority: this.authority(input.workspace),
           stateDirectory: this.stateDirectory,
-          allowedDownloadOrigins: ['https://storage.googleapis.com'],
+          allowedDownloadOrigins: resolveSkillPackageDownloadOrigins(),
           requireHttps: true,
           resolveStagedUpload: (uploadId, identity) => this.uploads.take(uploadId, identity),
           detectProviders: this.detectProviders,
@@ -129,7 +130,7 @@ export class SkillInstallHandler {
           return await executeSkillBundleInstallRequest(input.request, {
             authority: this.authority(input.workspace),
             stateDirectory: this.stateDirectory,
-            allowedDownloadOrigins: ['https://storage.googleapis.com'],
+            allowedDownloadOrigins: resolveSkillPackageDownloadOrigins(),
             requireHttps: true,
             resolveStagedUpload: (uploadId, identity) => this.uploads.take(uploadId, identity),
             detectProviders: this.detectProviders,

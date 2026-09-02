@@ -362,7 +362,9 @@ test.describe('Activity Agent Pane Isolation', () => {
     await expect(mantaPage.getByRole('button', { name: /^Agents\s+1$/ })).toHaveCount(0)
   })
 
-  test('workspace card agent rows focus the matching terminal split pane', async ({ mantaPage }) => {
+  test('workspace card agent rows focus the matching terminal split pane', async ({
+    mantaPage
+  }) => {
     await splitActiveTerminalPane(mantaPage, 'vertical')
     await waitForPaneCount(mantaPage, 2)
     const snapshot = await waitForPaneIdentitySnapshot(mantaPage, 2)

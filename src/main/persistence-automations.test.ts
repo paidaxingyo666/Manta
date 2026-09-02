@@ -258,7 +258,7 @@ describe('Store', () => {
 
     expect(automation.runContext).toMatchObject({
       kind: 'workspace-run',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: toSshExecutionHostId('builder'),
       projectHostSetupId: 'r1',
       repoId: 'r1',
@@ -267,7 +267,7 @@ describe('Store', () => {
     expect(automation.sourceContext).toMatchObject({
       kind: 'task-source',
       provider: 'github',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: toSshExecutionHostId('builder'),
       projectHostSetupId: 'r1',
       repoId: 'r1',
@@ -432,7 +432,7 @@ describe('Store', () => {
 
     expect(migratedAutomation?.runContext).toMatchObject({
       kind: 'workspace-run',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: toSshExecutionHostId('builder'),
       projectHostSetupId: 'r1',
       repoId: 'r1',
@@ -441,7 +441,7 @@ describe('Store', () => {
     expect(migratedAutomation?.sourceContext).toMatchObject({
       kind: 'task-source',
       provider: 'github',
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: toSshExecutionHostId('builder'),
       projectHostSetupId: 'r1',
       repoId: 'r1',

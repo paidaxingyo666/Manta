@@ -53,7 +53,7 @@ describe('PluginLanguagePackRegistry', () => {
       {
         id: 'plugin:manta-samples.portuguese/pt-BR',
         resourceLanguage:
-          'plugin0070006c007500670069006e003a006f007200630061002d00730061006d0070006c00650073002e0070006f00720074007500670075006500730065002f00700074002d00420052',
+          'plugin0070006c007500670069006e003a006d0061006e00740061002d00730061006d0070006c00650073002e0070006f00720074007500670075006500730065002f00700074002d00420052',
         pluginKey: 'manta-samples.portuguese',
         locale: 'pt-BR',
         catalog: { common: { save: 'Salvar' } }

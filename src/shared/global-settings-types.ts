@@ -41,6 +41,7 @@ import type {
   ExternalWorktreeVisibility,
   WorktreeVisibilitySourcePreferences
 } from './repo-types'
+import type { MantaCloudEndpointOverrides } from './manta-cloud-endpoints'
 
 export type WorktreeVisibilityDefaults = {
   /** Default for worktrees outside a recognized source. */
@@ -191,6 +192,12 @@ export type GlobalSettings = {
   httpProxyBypassRules?: string
   /** Why: corporate TLS-intercepting proxies can break HTTP/2 downloads; opt-in Chromium process-wide HTTP/1.1 switch. */
   electronHttp1CompatibilityMode?: boolean
+  /**
+   * Self-hosted Manta Cloud / Relay endpoints. Empty means the built-in
+   * official endpoints. Lower precedence than MANTA_CLOUD_* env vars; changing
+   * these requires a restart because the relay service snapshots the config.
+   */
+  mantaCloudEndpoints?: MantaCloudEndpointOverrides
   /** Opt-in in-app browsing (isolated guest surface); default keeps links opening in the system browser. */
   openLinksInApp: boolean
   /** Worktree-scoped localhost hostnames to distinguish tabs; opt-in since a non-localhost host can break apps binding cookies/sessions to localhost. */

@@ -1,119 +1,35 @@
+import type {
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier
+} from './terminal-shortcut-types'
 import {
+  CSI_FINAL_SPECIAL_KEYS,
+  CSI_TILDE_SPECIAL_KEYS,
+  CTRL_PRINTABLE_BYTES,
+  ESC,
+  MODIFIER_LABELS,
+  MODIFIER_ORDER,
+  SHIFTED_PRINTABLE,
   SPECIAL_KEY_LABELS,
-  TERMINAL_ACCESSORY_KEY_DEFINITIONS,
-  TERMINAL_SHORTCUT_SPECIAL_KEY_DEFINITIONS
-} from './terminal-key-definitions'
+  SS3_BASE_SPECIAL_KEYS
+} from './terminal-key-encoding-tables'
 
-export type TerminalAccessoryKey = {
-  id: string
-  label: string
-  bytes: string
-  accessibilityLabel?: string
-  repeatable?: boolean
-}
+// Re-exported so callers keep importing key definitions and the encoder from one
+// place; the definitions live apart only because they are localized.
+export {
+  TERMINAL_SHORTCUT_SPECIAL_KEYS,
+  terminalAccessoryKeys
+} from './terminal-accessory-key-definitions'
 
-export type TerminalShortcutModifier = 'ctrl' | 'alt' | 'shift'
-
-export type TerminalShortcutBinding = {
-  key: string
-  modifiers: TerminalShortcutModifier[]
-}
-
-export type TerminalShortcutBuildResult = {
-  label: string
-  bytes: string
-  accessibilityLabel: string
-}
-
-export type TerminalShortcutSpecialKey = {
-  id: string
-  label: string
-  accessibilityLabel: string
-}
-
-const ESC = '\x1b'
-
-const MODIFIER_LABELS: Record<TerminalShortcutModifier, string> = {
-  ctrl: 'Ctrl',
-  alt: 'Alt',
-  shift: 'Shift'
-}
-
-const MODIFIER_ORDER: TerminalShortcutModifier[] = ['ctrl', 'alt', 'shift']
-
-const SHIFTED_PRINTABLE: Record<string, string> = {
-  '`': '~',
-  '1': '!',
-  '2': '@',
-  '3': '#',
-  '4': '$',
-  '5': '%',
-  '6': '^',
-  '7': '&',
-  '8': '*',
-  '9': '(',
-  '0': ')',
-  '-': '_',
-  '=': '+',
-  '[': '{',
-  ']': '}',
-  '\\': '|',
-  ';': ':',
-  "'": '"',
-  ',': '<',
-  '.': '>',
-  '/': '?'
-}
-
-const CTRL_PRINTABLE_BYTES: Record<string, string> = {
-  ' ': '\x00',
-  '@': '\x00',
-  '`': '\x00',
-  '[': '\x1b',
-  '{': '\x1b',
-  '\\': '\x1c',
-  '|': '\x1c',
-  ']': '\x1d',
-  '}': '\x1d',
-  '^': '\x1e',
-  '~': '\x1e',
-  _: '\x1f',
-  '?': '\x7f'
-}
-
-const CSI_FINAL_SPECIAL_KEYS: Record<string, string> = {
-  arrowUp: 'A',
-  arrowDown: 'B',
-  arrowRight: 'C',
-  arrowLeft: 'D',
-  home: 'H',
-  end: 'F',
-  f1: 'P',
-  f2: 'Q',
-  f3: 'R',
-  f4: 'S'
-}
-
-const SS3_BASE_SPECIAL_KEYS = new Set(['f1', 'f2', 'f3', 'f4'])
-
-const CSI_TILDE_SPECIAL_KEYS: Record<string, number> = {
-  insert: 2,
-  delete: 3,
-  pageUp: 5,
-  pageDown: 6,
-  f5: 15,
-  f6: 17,
-  f7: 18,
-  f8: 19,
-  f9: 20,
-  f10: 21,
-  f11: 23,
-  f12: 24
-}
-
-export const TERMINAL_SHORTCUT_SPECIAL_KEYS = TERMINAL_SHORTCUT_SPECIAL_KEY_DEFINITIONS
-
-export const TERMINAL_ACCESSORY_KEYS = TERMINAL_ACCESSORY_KEY_DEFINITIONS
+// The types live apart from the encoder, but callers want one import site.
+export type {
+  TerminalAccessoryKey,
+  TerminalShortcutBinding,
+  TerminalShortcutBuildResult,
+  TerminalShortcutModifier,
+  TerminalShortcutSpecialKey
+} from './terminal-shortcut-types'
 
 export function buildTerminalShortcutKey(
   binding: TerminalShortcutBinding

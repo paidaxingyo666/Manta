@@ -261,7 +261,7 @@ describe('CopilotHookService', () => {
     expect(nextHooks.SessionStart).toBeUndefined()
   })
 
-  it('remove does not create an manta.json file when nothing is installed', () => {
+  it('remove does not create a manta.json file when nothing is installed', () => {
     const status = new CopilotHookService().remove()
 
     expect(status.state).toBe('not_installed')

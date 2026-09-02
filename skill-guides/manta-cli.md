@@ -1,9 +1,9 @@
 ---
-name: orca-cli
+name: manta-cli
 description: >-
   Use the public `manta` CLI to operate Manta-managed worktrees, folder contexts,
   terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser
-  embedded inside the Manta app. Use when the user says "$orca-cli", "use manta cli",
+  embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
   "Manta worktree", "child worktree", "cardStatus", "spawn codex/claude in a worktree",
   "read/wait/send Manta terminal", "terminal send", "full handoff", "handover",
   "give this to another agent", "another worktree", "Manta browser", "manta artifacts",
@@ -12,13 +12,13 @@ description: >-
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
   Use Computer Use for external browser windows, webviews, or desktop UI only
   when the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
   page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta CLI
 
-Use `manta` when Manta's running editor/runtime is the source of truth. Inside Manta-managed terminals, `manta` always resolves to the Manta CLI on every platform. In any other shell on Linux, use `manta-ide` wherever this file says `manta` — outside Manta's terminals, bare `orca` on Linux is usually the GNOME Orca screen reader (`/usr/bin/orca`), and running it starts speech on the user's machine.
+Use `manta` when Manta's running editor/runtime is the source of truth. Inside Manta-managed terminals, `manta` always resolves to the Manta CLI on every platform. In any other shell on Linux, use `manta-ide` wherever this file says `manta` — the Linux package installs the executable under that name, so bare `manta` is not on PATH there.
 
 **Dev builds (`pnpm dev`):** after `pnpm build:cli`, the dev CLI is exposed as `manta-dev` (the global shim points at this checkout's wrapper + out/cli). Inside a dev Manta's terminals use `manta-dev emulator ...` (or `./config/scripts/manta-dev.mjs emulator ...` for worktree-local invocation that does not depend on the /usr/local/bin symlink). Plain `manta` targets any installed production Manta. The app's own agent preambles use `manta-dev` automatically in dev mode.
 
@@ -311,7 +311,7 @@ MANTA skills share --skill <selector> [--skill <selector> ...] --bundle-name <na
 
 The built-in browser is Manta's embedded browser tab surface, scoped to Manta worktrees; it is not Chrome/Safari or desktop app UI.
 
-These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control. Use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
+These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control. Use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
 
 Use a snapshot-interact-re-snapshot loop:
 
@@ -386,7 +386,7 @@ Confirm `manta status --json` unless already checked this turn, then choose the 
 
 The mobile emulator surface is workspace-scoped like browser tabs (active per worktree for unqualified; explicit --worktree/--device/--emulator for targeting). Always prefer `manta emulator ...` over raw `npx serve-sim` or simctl when inside Manta (the bridge owns lifecycle, scoping, and registration with the live pane).
 
-See the dedicated `orca-emulator` skill for the full table (tap/type/gesture/button/rotate/camera/permissions/ax/list/attach/exec/kill + --json + gotchas like tap preferred, normalized 0-1, name->UDID early resolve in bridge, US ASCII type, camera one-time builds, stale state cleanup, no auto-focus on attach except --focus flag mirroring browser exactly, AX via HTTP endpoint from state).
+See the dedicated `manta-emulator` skill for the full table (tap/type/gesture/button/rotate/camera/permissions/ax/list/attach/exec/kill + --json + gotchas like tap preferred, normalized 0-1, name->UDID early resolve in bridge, US ASCII type, camera one-time builds, stale state cleanup, no auto-focus on attach except --focus flag mirroring browser exactly, AX via HTTP endpoint from state).
 
 Common:
 
@@ -407,7 +407,7 @@ Rules (mirror browser):
 - Explicit: --device <udid|name> or --emulator <MantaId from list> (bridge resolves names early to avoid serve-sim control bug).
 - --worktree all only for list.
 - Recoveries: 'emulator_no_active' → manta emulator attach or open pane; stale → list/kill/attach.
-- No raw serve-sim in agent prompts/skills (use manta wrappers; see orca-emulator skill).
+- No raw serve-sim in agent prompts/skills (use manta wrappers; see manta-emulator skill).
 
 The live pane (when implemented) registers its stream with the bridge for default targeting (seamless, recommended option per design).
 

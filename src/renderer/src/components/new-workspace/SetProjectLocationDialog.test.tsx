@@ -59,7 +59,7 @@ function renderDialog(
       option={option}
       projectName="manta"
       projectKind="git"
-      defaultCloneUrl="git@github.com:stablyai/orca.git"
+      defaultCloneUrl="git@github.com:stablyai/manta.git"
       onClose={vi.fn()}
       onReady={vi.fn()}
       {...overrides}
@@ -121,7 +121,7 @@ describe('SetProjectLocationDialog', () => {
     expect(storeMocks.setupProjectClone).toHaveBeenCalledWith({
       projectId: 'project-manta',
       hostId: 'ssh:openclaw',
-      url: 'git@github.com:stablyai/orca.git',
+      url: 'git@github.com:stablyai/manta.git',
       destination: '/remote/manta',
       displayName: 'manta'
     })
@@ -181,7 +181,7 @@ describe('SetProjectLocationDialog', () => {
         option={option}
         projectName="manta"
         projectKind="git"
-        defaultCloneUrl="https://github.com/stablyai/orca.git"
+        defaultCloneUrl="https://github.com/stablyai/manta.git"
         onClose={onClose}
         onReady={onReady}
       />
@@ -198,7 +198,7 @@ describe('SetProjectLocationDialog', () => {
         option={null}
         projectName="manta"
         projectKind="git"
-        defaultCloneUrl="https://github.com/stablyai/orca.git"
+        defaultCloneUrl="https://github.com/stablyai/manta.git"
         onClose={onClose}
         onReady={onReady}
       />
@@ -218,7 +218,7 @@ describe('SetProjectLocationDialog', () => {
           option={option}
           projectName="manta"
           projectKind="git"
-          defaultCloneUrl="git@github.com:stablyai/orca.git"
+          defaultCloneUrl="git@github.com:stablyai/manta.git"
           onClose={vi.fn()}
           onReady={onReady}
         />

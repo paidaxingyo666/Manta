@@ -107,6 +107,17 @@ export const RelayDeviceCredentialInstallStatusResultMessageSchema = z.union([
     .strict()
 ])
 
+export const RelayPushWakeResultMessageSchema = z
+  .object({
+    type: z.literal('push-wake-result'),
+    reqId: z.string(),
+    ok: z.boolean(),
+    // The relay stores nothing about devices, so a dead token can only travel
+    // back here — dropping this field means retrying it forever.
+    discardToken: z.boolean()
+  })
+  .strict()
+
 export const RelayDeviceResumeConfirmedMessageSchema = DeviceResumeConfirmedSchema.extend({
   type: z.literal('device-resume-confirmed')
 }).strict()

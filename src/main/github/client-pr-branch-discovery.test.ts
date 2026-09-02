@@ -87,7 +87,7 @@ describe('getPRForBranch', () => {
           number: 1738,
           title: 'Fork PR',
           state: 'open',
-          html_url: 'https://github.com/stablyai/orca/pull/1738',
+          html_url: 'https://github.com/stablyai/manta/pull/1738',
           updated_at: '2026-03-28T00:00:00Z',
           draft: false,
           mergeable_state: 'clean',
@@ -100,7 +100,7 @@ describe('getPRForBranch', () => {
     const pr = await getPRForBranch('/repo-root', 'feature/test')
 
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', 'repos/stablyai/orca/pulls?head=fork%3Afeature%2Ftest&state=all&per_page=1'],
+      ['api', 'repos/stablyai/manta/pulls?head=fork%3Afeature%2Ftest&state=all&per_page=1'],
       { cwd: '/repo-root' }
     )
     expect(pr).toMatchObject({

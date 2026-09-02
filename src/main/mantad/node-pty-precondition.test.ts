@@ -269,7 +269,7 @@ describe('checkNodePtyPrecondition', () => {
       abi.libc === 'none'
         ? `${abi.platform}-${abi.arch}`
         : `${abi.platform}-${abi.arch}-${abi.libc}`
-    const prebuildsDir = mkdtempSync(join(tmpdir(), 'mantad-prebuilds-'))
+    const prebuildsDir = mkdtempSync(join(tmpdir(), 'orcad-prebuilds-'))
     temporaryDirs.push(prebuildsDir)
     mkdirSync(join(prebuildsDir, slot), { recursive: true })
     writeFileSync(join(prebuildsDir, slot, 'pty.node'), 'not a real binding')
@@ -294,7 +294,7 @@ describe('checkNodePtyPrecondition', () => {
         abi.libc === 'none'
           ? `${abi.platform}-${abi.arch}`
           : `${abi.platform}-${abi.arch}-${abi.libc}`
-      const prebuildsDir = mkdtempSync(join(tmpdir(), 'mantad-prebuilds-'))
+      const prebuildsDir = mkdtempSync(join(tmpdir(), 'orcad-prebuilds-'))
       temporaryDirs.push(prebuildsDir)
       mkdirSync(join(prebuildsDir, slot), { recursive: true })
       cpSync(REAL_PTY_NODE, join(prebuildsDir, slot, 'pty.node'))

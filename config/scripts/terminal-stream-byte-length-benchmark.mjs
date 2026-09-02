@@ -38,7 +38,9 @@ let resultChecksum = 0
 let validatedPairs = 0
 
 if (!Number.isSafeInteger(ITERATIONS) || ITERATIONS <= 0) {
-  throw new Error(`MANTA_BYTE_LENGTH_BENCH_ITERATIONS must be a positive integer, got ${ITERATIONS}`)
+  throw new Error(
+    `MANTA_BYTE_LENGTH_BENCH_ITERATIONS must be a positive integer, got ${ITERATIONS}`
+  )
 }
 
 function readSource(relative) {

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import type { RpcFailure, RpcSuccess } from '../transport/types'
+import { translate } from '../i18n/i18n'
 import { resolveMobileFileTabDoc } from '../files/mobile-file-tab-doc'
 import {
   buildMarkdownDiskFallbackDoc,
@@ -73,7 +74,7 @@ export function useMobileSessionDocumentReaders(scope: MobileSessionTabApplicati
         setMarkdownDocs((prev) =>
           new Map(prev).set(tab.id, {
             status: 'error',
-            message: "Couldn't load markdown"
+            message: translate('m.worktreeId.12548ed01b', "Couldn't load markdown")
           })
         )
       }

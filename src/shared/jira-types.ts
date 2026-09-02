@@ -150,8 +150,7 @@ export type JiraCreateIssueArgs = {
   title: string
   description?: string
   customFields?: Record<string, unknown>
-  // Keys in customFields holding user ids; the host shapes them into the
-  // {accountId} / {name} object Jira requires. Omitted by older clients.
+  // Optional for wire compatibility; hosts shape these IDs into Jira user references.
   userFieldKeys?: string[]
 }
 

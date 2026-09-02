@@ -7,7 +7,31 @@ import {
 } from '../../shared/plugins/plugin-kill-list'
 import { PluginKillListStore } from './plugin-kill-list-store'
 
-export const PLUGIN_KILL_LIST_URL = 'https://manta.sh.cn/plugins/kill-list.json'
+/**
+ * Null because this fork runs no safety-list service.
+ *
+ * The list is how a plugin already installed on someone's machine gets stopped
+ * — worker shutdown, capability refusal, content-pack revocation. Pointing it
+ * at a host that answers nothing bought a timeout on every launch with the
+ * plugin system on, and the same empty list either way. Worse, the path sat
+ * unclaimed: whoever could answer for it could disable any plugin on every
+ * install that trusted it.
+ *
+ * Revocation still works, at the granularity a fork without servers actually
+ * has: ship a new version. Set this to a URL you control to get back the
+ * faster channel.
+ */
+export const PLUGIN_KILL_LIST_URL: string | null = null
+
+/**
+ * Callers check this before scheduling a refresh. The default fetcher rejects
+ * rather than returning an empty list — an empty list would overwrite a cached
+ * one and silently un-revoke every plugin it had killed — but a rejection every
+ * launch reads as a failure when it is a deliberate configuration.
+ */
+export function hasPluginKillListEndpoint(): boolean {
+  return PLUGIN_KILL_LIST_URL !== null
+}
 const PLUGIN_KILL_LIST_DOWNLOAD_LIMIT = 4 * 1024 * 1024
 
 type PluginKillListFetcher = () => Promise<PluginKillList>
@@ -30,7 +54,11 @@ export class PluginKillListService {
     fetcher?: PluginKillListFetcher
   }) {
     this.store = options.store ?? new PluginKillListStore(options.pluginsDataDir)
-    this.fetcher = options.fetcher ?? (() => fetchPluginKillList())
+    this.fetcher =
+      options.fetcher ??
+      (PLUGIN_KILL_LIST_URL === null
+        ? () => Promise.reject(new Error('no plugin kill-list endpoint is configured'))
+        : () => fetchPluginKillList(PLUGIN_KILL_LIST_URL))
   }
 
   async initialize(): Promise<void> {
@@ -95,8 +123,8 @@ export class PluginKillListService {
 }
 
 export async function fetchPluginKillList(
-  fetcher: typeof fetch = fetch,
-  url = PLUGIN_KILL_LIST_URL
+  url: string,
+  fetcher: typeof fetch = fetch
 ): Promise<PluginKillList> {
   const response = await fetcher(url, { cache: 'no-store' })
   if (!response.ok) {

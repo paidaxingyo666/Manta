@@ -77,21 +77,21 @@ describe('PR test LoC summary', () => {
   it('reads the next page from a GitHub Link header', () => {
     expect(
       nextLink(
-        '<https://api.github.com/repos/stablyai/orca/pulls/1/files?page=2>; rel="next", <https://api.github.com/repos/stablyai/orca/pulls/1/files?page=3>; rel="last"'
+        '<https://api.github.com/repos/stablyai/manta/pulls/1/files?page=2>; rel="next", <https://api.github.com/repos/stablyai/manta/pulls/1/files?page=3>; rel="last"'
       )
-    ).toBe('https://api.github.com/repos/stablyai/orca/pulls/1/files?page=2')
+    ).toBe('https://api.github.com/repos/stablyai/manta/pulls/1/files?page=2')
     expect(
-      nextLink('<https://api.github.com/repos/stablyai/orca/pulls/1/files?page=1>; rel="prev"')
+      nextLink('<https://api.github.com/repos/stablyai/manta/pulls/1/files?page=1>; rel="prev"')
     ).toBe(undefined)
   })
 
   it('paginates pull files until Link rel=next is gone', async () => {
     const pages = {
-      'https://api.github.com/repos/stablyai/orca/pulls/9/files?per_page=100': {
+      'https://api.github.com/repos/stablyai/manta/pulls/9/files?per_page=100': {
         body: [{ filename: 'src/app.ts', additions: 2, deletions: 0 }],
-        link: '<https://api.github.com/repos/stablyai/orca/pulls/9/files?page=2>; rel="next"'
+        link: '<https://api.github.com/repos/stablyai/manta/pulls/9/files?page=2>; rel="next"'
       },
-      'https://api.github.com/repos/stablyai/orca/pulls/9/files?page=2': {
+      'https://api.github.com/repos/stablyai/manta/pulls/9/files?page=2': {
         body: [{ filename: 'src/app.test.ts', additions: 5, deletions: 1 }],
         link: null
       }

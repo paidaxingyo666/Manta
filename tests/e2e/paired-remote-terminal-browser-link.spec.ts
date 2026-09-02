@@ -236,7 +236,9 @@ test('opens a paired-runtime terminal link on its owning host', async ({
     await expect(
       actionPopover.getByRole('button').filter({ hasText: 'System Browser' })
     ).toBeVisible()
-    const mantaBrowserAction = actionPopover.getByRole('button').filter({ hasText: 'Manta Browser' })
+    const mantaBrowserAction = actionPopover
+      .getByRole('button')
+      .filter({ hasText: 'Manta Browser' })
     await expect(mantaBrowserAction).toBeVisible()
     await mantaBrowserAction.click()
 

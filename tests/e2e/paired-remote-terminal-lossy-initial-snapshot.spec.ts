@@ -243,8 +243,7 @@ test('paints a nonempty lossy initial snapshot on a paired Electron client @head
       .toEqual({ initialMarkerCount: 1, liveMarkerCount: 1 })
     const clientWindow = await client.app.browserWindow(client.page)
     await clientWindow.evaluate((window) => {
-      window.show()
-      window.focus()
+      window.showInactive()
     })
     await expect.poll(() => clientWindow.evaluate((window) => window.isVisible())).toBe(true)
     await client.page.evaluate(

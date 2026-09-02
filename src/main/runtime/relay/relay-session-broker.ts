@@ -133,6 +133,15 @@ export class RelaySessionBroker {
     return control.revokeDevice(relayDeviceId, reqId)
   }
 
+  pushWake(input: {
+    deviceToken: string
+    payload: Record<string, unknown>
+    collapseId?: string
+  }): Promise<{ ok: boolean; discardToken: boolean }> {
+    const control = this.originPool.activeControl
+    return control ? control.pushWake(input) : Promise.reject(new Error('relay_control_not_active'))
+  }
+
   async installCredential(
     relayDeviceId: string,
     params: PairingProvisionRelayParams,

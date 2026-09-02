@@ -6,6 +6,7 @@ import type {
   SelectMantaProfileOrgResult,
   SignOutCurrentMantaProfileResult
 } from '../../shared/manta-profiles'
+import type { ConnectCurrentMantaProfileArgs } from '../../shared/manta-cloud-credentials'
 import { ensureActiveMantaProfile } from './profile-index-store'
 import { getMantaCloudAuthConfig, isMantaCloudDevAuthEnabled } from './profile-cloud-auth-config'
 import {
@@ -17,9 +18,15 @@ import { cloudSessionIdentity, tombstoneCloudSession } from './profile-cloud-ses
 import {
   createMantaCloudProfile,
   exchangeMantaCloudAuthCode,
+  grantMantaCloudSessionDirectly,
+  MantaCloudRequestError,
   revokeMantaCloudSession
 } from './profile-cloud-client'
 import { beginMantaCloudPkceFlow } from './profile-cloud-pkce'
+import {
+  exchangeMantaCloudCredentials,
+  MantaCloudCredentialError
+} from './profile-cloud-credential-connect'
 import {
   createCloudLinkedMantaProfileRecord,
   linkMantaProfileToCloud,
@@ -52,10 +59,13 @@ export function getCurrentMantaProfileAuthStatus(userDataPath: string): MantaPro
 }
 
 export async function connectCurrentMantaProfile(
-  userDataPath: string
+  userDataPath: string,
+  args?: ConnectCurrentMantaProfileArgs
 ): Promise<ConnectCurrentMantaProfileResult> {
   const active = ensureActiveMantaProfile(userDataPath)
-  if (isMantaCloudDevAuthEnabled()) {
+  // Credentials bypass the dev shortcut deliberately: a user who typed an
+  // address and a password is asking to reach a real relay, not a stub.
+  if (isMantaCloudDevAuthEnabled() && !args?.credentials) {
     const list = connectDevMantaCloudProfile(active, userDataPath)
     return {
       status: 'connected',
@@ -74,11 +84,16 @@ export async function connectCurrentMantaProfile(
   }
 
   try {
-    const code = await beginMantaCloudPkceFlow(configState.config, active.profile.id)
-    const exchange = await exchangeMantaCloudAuthCode(configState.config, {
-      ...code,
-      localProfileId: active.profile.id
-    })
+    // Three ways in, in order of specificity: an account the user named, the
+    // deployment-wide enrolment secret, and finally the browser code flow.
+    const exchange = args?.credentials
+      ? await exchangeMantaCloudCredentials(configState.config, args.credentials)
+      : configState.config.enrollmentSecret
+        ? await grantMantaCloudSessionDirectly(configState.config, active.profile.id)
+        : await exchangeMantaCloudAuthCode(configState.config, {
+            ...(await beginMantaCloudPkceFlow(configState.config, active.profile.id)),
+            localProfileId: active.profile.id
+          })
     saveMantaCloudSessionExchange(active.profile.id, userDataPath, exchange)
     const list = linkMantaProfileToCloud(active.profile.id, exchange.cloud, userDataPath)
     return {
@@ -95,10 +110,20 @@ export async function connectCurrentMantaProfile(
         auth: getCurrentMantaProfileAuthStatus(userDataPath)
       }
     }
+    const errorCode =
+      error instanceof MantaCloudCredentialError || error instanceof MantaCloudRequestError
+        ? error.errorCode
+        : undefined
     return {
       status: 'failed',
       auth: getCurrentMantaProfileAuthStatus(userDataPath),
-      error: message
+      // Every surface that offers "sign in" with no form ends up here, and
+      // 'manta_cloud_request_failed_409' names nothing a person can act on.
+      error:
+        errorCode === 'accounts_required'
+          ? 'This relay gives each person their own account. Sign in from Settings → Manta Account.'
+          : message,
+      ...(errorCode ? { errorCode } : {})
     }
   }
 }

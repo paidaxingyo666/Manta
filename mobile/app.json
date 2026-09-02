@@ -2,7 +2,7 @@
   "expo": {
     "name": "Manta",
     "slug": "manta-mobile",
-    "version": "0.0.47",
+    "version": "0.0.44",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -11,11 +11,11 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#111111"
+      "backgroundColor": "#0A1020"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.stably.orca.mobile",
+      "bundleIdentifier": "cn.sh.manta.mobile",
       "buildNumber": "1",
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Manta connects to the desktop app on your LAN.",
@@ -64,18 +64,21 @@
             "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
           }
         ]
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#111111"
+        "backgroundColor": "#0A1020"
       },
       "usesCleartextTraffic": true,
       "allowBackup": false,
       "permissions": ["RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
-      "package": "com.stably.orca.mobile",
-      "versionCode": 15
+      "package": "cn.sh.manta.mobile",
+      "versionCode": 13
     },
     "plugins": [
       "expo-router",
@@ -84,7 +87,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "backgroundColor": "#111111"
+          "backgroundColor": "#0A1020"
         }
       ],
       [
@@ -111,7 +114,9 @@
             "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "expo-notifications",
+      "./plugins/notification-service"
     ]
   }
 }

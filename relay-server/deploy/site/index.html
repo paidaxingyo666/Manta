@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manta 中继</title>
+    <meta name="description" content="Manta 桌面端与移动端之间的自建中继服务。" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fbfbfa;
+        --fg: #1c1b19;
+        --muted: #6b6862;
+        --line: #e5e2dc;
+        --accent: #1f6f6b;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #17181a;
+          --fg: #ececea;
+          --muted: #9a9792;
+          --line: #2c2e31;
+          --accent: #6fd3cc;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+      main {
+        flex: 1;
+        width: 100%;
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: clamp(3rem, 12vw, 7rem) 1.5rem 4rem;
+      }
+      .mark {
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.9rem;
+        background: var(--accent);
+        display: grid;
+        place-items: center;
+        margin-bottom: 2rem;
+      }
+      .mark svg { width: 1.6rem; height: 1.6rem; display: block; }
+      h1 { margin: 0 0 0.75rem; font-size: clamp(1.6rem, 5vw, 2.1rem); letter-spacing: -0.01em; }
+      .lede { margin: 0 0 3rem; color: var(--muted); font-size: 1.05rem; }
+      h2 {
+        margin: 2.5rem 0 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      p { margin: 0 0 1rem; }
+      ul { margin: 0; padding-left: 1.2rem; color: var(--muted); }
+      li { margin-bottom: 0.4rem; }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+      footer a:hover { color: var(--fg); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12c3.5-4 6.5-4 9 0s5.5 4 9 0" />
+          <path d="M3 17c3.5-4 6.5-4 9 0s5.5 4 9 0" opacity="0.55" />
+        </svg>
+      </div>
+
+      <h1>Manta 中继</h1>
+      <p class="lede">这是一台自建的中继服务器，负责在桌面端与手机端之间转发会话数据。</p>
+
+      <h2>它做什么</h2>
+      <p>
+        当桌面端与手机端不在同一个网络里时，两端各自与这台服务器建立连接，由它在中间转发。
+        服务器只负责传递，不解析、不留存会话内容。
+      </p>
+
+      <h2>它不做什么</h2>
+      <ul>
+        <li>不提供注册、下载或任何面向公众的功能</li>
+        <li>不接受未经配对的连接</li>
+        <li>不存储转发过的会话内容</li>
+      </ul>
+
+      <h2>关于本站</h2>
+      <p>
+        本页面仅用于说明该域名的用途。中继服务本身通过程序接口访问，没有网页界面。
+      </p>
+    </main>
+
+    <footer>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026033914号</a>
+    </footer>
+  </body>
+</html>

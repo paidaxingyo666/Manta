@@ -84,11 +84,11 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'native-chat-does-not-auto-open',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@github.com:stablyai/orca.git',
+        repoRemoteUrl: 'git@github.com:stablyai/manta.git',
         upstreamName: 'origin/native-chat-does-not-auto-open'
       })
     ).toBe(
-      'https://github.com/stablyai/orca/compare/main...native-chat-does-not-auto-open?expand=1'
+      'https://github.com/stablyai/manta/compare/main...native-chat-does-not-auto-open?expand=1'
     )
   })
 
@@ -98,14 +98,16 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/upstream/main',
         branchName: 'feature/fork-head',
         repoRemoteName: 'upstream',
-        repoRemoteUrl: 'https://github.com/stablyai/orca.git',
+        repoRemoteUrl: 'https://github.com/stablyai/manta.git',
         pushTarget: {
           remoteName: 'fork',
           branchName: 'feature/fork-head',
           remoteUrl: 'git@github.com:contributor/manta.git'
         }
       })
-    ).toBe('https://github.com/stablyai/orca/compare/main...contributor:feature/fork-head?expand=1')
+    ).toBe(
+      'https://github.com/stablyai/manta/compare/main...contributor:feature/fork-head?expand=1'
+    )
   })
 
   it('keeps slashes literal in a GitHub compare URL for a slash-containing branch name', () => {
@@ -114,11 +116,11 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'slashdevcorpse/identifying-pwsh.exe-error',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@github.com:stablyai/orca.git',
+        repoRemoteUrl: 'git@github.com:stablyai/manta.git',
         upstreamName: 'origin/slashdevcorpse/identifying-pwsh.exe-error'
       })
     ).toBe(
-      'https://github.com/stablyai/orca/compare/main...slashdevcorpse/identifying-pwsh.exe-error?expand=1'
+      'https://github.com/stablyai/manta/compare/main...slashdevcorpse/identifying-pwsh.exe-error?expand=1'
     )
   })
 
@@ -206,7 +208,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'quick-commands',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'https://github.com/stablyai/orca.git',
+        repoRemoteUrl: 'https://github.com/stablyai/manta.git',
         upstreamName: 'pr-devajmeireles-manta/quick-commands'
       })
     ).toBeNull()
@@ -218,10 +220,10 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'local-wip-name',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@github.com:stablyai/orca.git',
+        repoRemoteUrl: 'git@github.com:stablyai/manta.git',
         upstreamName: 'origin/feature/pushed-name'
       })
-    ).toBe('https://github.com/stablyai/orca/compare/main...feature/pushed-name?expand=1')
+    ).toBe('https://github.com/stablyai/manta/compare/main...feature/pushed-name?expand=1')
   })
 
   it('still qualifies the fork head when Manta resolved the fork push URL', () => {
@@ -230,7 +232,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'quick-commands',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'https://github.com/stablyai/orca.git',
+        repoRemoteUrl: 'https://github.com/stablyai/manta.git',
         upstreamName: 'pr-devajmeireles-manta/quick-commands',
         pushTarget: {
           remoteName: 'pr-devajmeireles-manta',
@@ -238,7 +240,7 @@ describe('buildSourceControlManualReviewUrl', () => {
           remoteUrl: 'git@github.com:devajmeireles/manta.git'
         }
       })
-    ).toBe('https://github.com/stablyai/orca/compare/main...devajmeireles:quick-commands?expand=1')
+    ).toBe('https://github.com/stablyai/manta/compare/main...devajmeireles:quick-commands?expand=1')
   })
 
   it('does not guess a provider for unknown hosts without a provider hint', () => {
@@ -261,7 +263,7 @@ describe('buildSourceControlManualReviewUrl', () => {
         baseRef: 'refs/remotes/origin/main',
         branchName: 'codex-runtime-home-refactor-design',
         repoRemoteName: 'origin',
-        repoRemoteUrl: 'git@github.com:stablyai/orca.git',
+        repoRemoteUrl: 'git@github.com:stablyai/manta.git',
         upstreamName: null
       })
     ).toBeNull()

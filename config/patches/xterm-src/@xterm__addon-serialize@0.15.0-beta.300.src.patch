@@ -1,5 +1,5 @@
 diff --git a/src/SerializeAddon.ts b/src/SerializeAddon.ts
-index e1728feb219c362dfa2ecb602ff99f830d520757..957da98c8b30835cc2d114b4b66b228b01fdff0a 100644
+index e1728feb219c362dfa2ecb602ff99f830d520757..61a0d90decb3b31edd14235d05d14393cd140b12 100644
 --- a/src/SerializeAddon.ts
 +++ b/src/SerializeAddon.ts
 @@ -12,6 +12,36 @@ import { IAttributeData } from 'common/buffer/Types';

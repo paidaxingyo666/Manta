@@ -190,7 +190,7 @@ describe('GitHub issue source split', () => {
             number: 923,
             title: 'Use upstream issues',
             state: 'open',
-            html_url: 'https://github.com/stablyai/orca/issues/923',
+            html_url: 'https://github.com/stablyai/manta/issues/923',
             labels: [],
             updated_at: '2026-04-01T00:00:00Z',
             user: { login: 'octocat' }
@@ -216,7 +216,7 @@ describe('GitHub issue source split', () => {
 
     await listWorkItems('/repo-root', 10)
 
-    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/orca'), {
+    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/manta'), {
       cwd: '/repo-root'
     })
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(2, prListArgs('fork/manta'), {
@@ -235,7 +235,7 @@ describe('GitHub issue source split', () => {
 
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       1,
-      issueSearchArgs('stablyai/orca', { noCache: true }),
+      issueSearchArgs('stablyai/manta', { noCache: true }),
       { cwd: '/repo-root' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(2, prListArgs('fork/manta'), {
@@ -262,7 +262,7 @@ describe('GitHub issue source split', () => {
       {}
     )
     expect(getOwnerRepoMock).toHaveBeenCalledWith('/home/jinwoo/manta', 'openclaw-2', {})
-    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/orca'), {})
+    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/manta'), {})
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(2, prListArgs('fork/manta'), {})
   })
 
@@ -273,7 +273,7 @@ describe('GitHub issue source split', () => {
 
     await listWorkItems('/repo-root', 10, 'is:issue')
 
-    expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orca is:issue')
+    expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/manta is:issue')
 
     ghExecFileAsyncMock.mockClear()
     getIssueOwnerRepoMock.mockResolvedValueOnce({ owner: 'stablyai', repo: 'manta' })
@@ -332,7 +332,7 @@ describe('GitHub issue source split', () => {
 
     await listWorkItems('/repo-root', 10, undefined, undefined, 'upstream')
 
-    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(2, prListArgs('stablyai/orca'), {
+    expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(2, prListArgs('stablyai/manta'), {
       cwd: '/repo-root'
     })
   })
@@ -349,7 +349,7 @@ describe('GitHub issue source split', () => {
     await listWorkItems('/repo-root', 10, 'is:pr is:open', undefined, 'upstream')
 
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      expect.arrayContaining(['--repo', 'stablyai/orca']),
+      expect.arrayContaining(['--repo', 'stablyai/manta']),
       { cwd: '/repo-root' }
     )
   })
@@ -372,7 +372,7 @@ describe('GitHub issue source split', () => {
         'api',
         '--cache',
         '120s',
-        `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:pull-request is:open')}&per_page=1`,
+        `search/issues?q=${encodeURIComponent('repo:stablyai/manta is:pull-request is:open')}&per_page=1`,
         '--jq',
         '.total_count'
       ],
@@ -421,7 +421,7 @@ describe('GitHub issue source split', () => {
         'api',
         '--cache',
         '120s',
-        `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:issue is:open')}&per_page=1`,
+        `search/issues?q=${encodeURIComponent('repo:stablyai/manta is:issue is:open')}&per_page=1`,
         '--jq',
         '.total_count'
       ],
@@ -488,7 +488,7 @@ describe('GitHub issue source split', () => {
         number: 42,
         title: 'Upstream PR',
         state: 'open',
-        url: 'https://github.com/stablyai/orca/pull/42',
+        url: 'https://github.com/stablyai/manta/pull/42',
         labels: [],
         updatedAt: '2026-04-02T00:00:00Z',
         author: { login: 'octocat' },
@@ -504,7 +504,7 @@ describe('GitHub issue source split', () => {
         'view',
         '42',
         '--repo',
-        'stablyai/orca',
+        'stablyai/manta',
         '--json',
         expect.stringContaining('reviewDecision')
       ],
@@ -617,7 +617,7 @@ describe('GitHub issue source split', () => {
 
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       1,
-      ['api', 'repos/stablyai/orca/issues/42'],
+      ['api', 'repos/stablyai/manta/issues/42'],
       { cwd: '/repo-root' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
@@ -721,7 +721,7 @@ describe('GitHub issue source split', () => {
       const result = await listWorkItems('/repo-root', 10, undefined, undefined, 'auto')
 
       expect(resolveIssueSourceMock).toHaveBeenCalledWith('/repo-root', 'auto', undefined, {})
-      expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/orca'), {
+      expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(1, issueSearchArgs('stablyai/manta'), {
         cwd: '/repo-root'
       })
       expect(result.issueSourceFellBack).toBeUndefined()
@@ -762,7 +762,7 @@ describe('GitHub issue source split', () => {
 
       expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
         2,
-        expect.arrayContaining(['--repo', 'stablyai/orca']),
+        expect.arrayContaining(['--repo', 'stablyai/manta']),
         { cwd: '/repo-root' }
       )
       expect(result.sources).toEqual({
@@ -788,7 +788,7 @@ describe('GitHub issue source split', () => {
           'api',
           '--cache',
           '120s',
-          `search/issues?q=${encodeURIComponent('repo:stablyai/orca is:open')}&per_page=1`,
+          `search/issues?q=${encodeURIComponent('repo:stablyai/manta is:open')}&per_page=1`,
           '--jq',
           '.total_count'
         ],
@@ -808,7 +808,7 @@ describe('GitHub issue source split', () => {
 
       const result = await listWorkItems('/repo-root', 10, undefined, undefined, 'upstream')
 
-      expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/orca is:issue is:open')
+      expect(decodedIssueSearchPath(0)).toContain('q=repo:stablyai/manta is:issue is:open')
       expect(result.issueSourceFellBack).toBeUndefined()
     })
 

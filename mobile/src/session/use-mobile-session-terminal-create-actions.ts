@@ -4,6 +4,7 @@ import {
 } from '../terminal/quick-commands'
 import type { RpcFailure, RpcSuccess } from '../transport/types'
 import { triggerSuccess, triggerError } from '../platform/haptics'
+import { translate } from '../i18n/i18n'
 import { buildTerminalSendParams } from '../terminal/terminal-send-request'
 import { terminalRecordsEqual } from './mobile-terminal-records'
 import type { MobileNewTabAgentOption } from './mobile-new-tab-agent-options'
@@ -144,14 +145,18 @@ export function useMobileSessionTerminalCreateActions(scope: MobileSessionAttach
                   throw new Error('Terminal input is locked by another client.')
                 }
                 triggerSuccess()
-                showToast(options.successToast ?? 'Notes sent')
+                showToast(
+                  options.successToast ?? translate('m.worktreeId.e0127c0749', 'Notes sent')
+                )
                 options.onPromptSent?.()
               })
               .catch((err) => {
                 triggerError()
                 showToast(
                   options.errorToast ??
-                    (err instanceof Error ? err.message : "Couldn't send notes"),
+                    (err instanceof Error
+                      ? err.message
+                      : translate('m.worktreeId.39c53677ab', "Couldn't send notes")),
                   1800
                 )
               })
@@ -203,7 +208,10 @@ export function useMobileSessionTerminalCreateActions(scope: MobileSessionAttach
     const launch = buildMobileQuickCommandLaunch(command)
     if (!launch) {
       triggerError()
-      showToast('Edit this quick command before running it', 1800)
+      showToast(
+        translate('m.worktreeId.ea472ad53f', 'Edit this quick command before running it'),
+        1800
+      )
       return false
     }
     const label = command.label.trim() || 'Quick command'

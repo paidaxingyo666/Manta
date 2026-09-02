@@ -28,7 +28,7 @@ const release = (tag: string, extra: Record<string, unknown> = {}) => ({
   tag_name: tag,
   draft: false,
   published_at: '2026-07-28T14:00:00Z',
-  html_url: `https://github.com/stablyai/orca/releases/tag/${tag}`,
+  html_url: `https://github.com/paidaxingyo666/Manta/releases/tag/${tag}`,
   assets: allPlatformAssets,
   ...extra
 })
@@ -49,7 +49,7 @@ describe('listReleaseBuilds', () => {
 
     const builds = await listReleaseBuilds('hourly', 'darwin')
 
-    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/orca-hourly')
+    expect(fetchMock.mock.calls[0][0]).toContain('paidaxingyo666/manta-hourly')
     expect(builds.map((build) => build.version)).toEqual([
       '1.4.160-hourly.202607281400',
       '1.4.160-hourly.202607281000',
@@ -68,7 +68,7 @@ describe('listReleaseBuilds', () => {
 
     const builds = await listReleaseBuilds('daily', 'darwin')
 
-    expect(fetchMock.mock.calls[0][0]).toContain('stablyai/orca-daily')
+    expect(fetchMock.mock.calls[0][0]).toContain('paidaxingyo666/manta-daily')
     expect(builds.map((build) => build.version)).toEqual([
       '1.4.160-daily.202607291300',
       '1.4.160-daily.202607281300',
@@ -184,7 +184,7 @@ describe('listReleaseBuilds', () => {
     const [build] = await listReleaseBuilds('hourly', 'win32')
 
     expect(build.installerUrl).toBe(
-      'https://github.com/stablyai/orca-hourly/releases/download/v1.4.163-hourly.202607312054/orca-windows-setup.exe'
+      'https://github.com/paidaxingyo666/manta-hourly/releases/download/v1.4.163-hourly.202607312054/manta-windows-setup.exe'
     )
   })
 
@@ -226,7 +226,7 @@ describe('resolveTargetBuild', () => {
       tag: 'v1.4.160-hourly.202607281400',
       version: '1.4.160-hourly.202607281400',
       feedUrl:
-        'https://github.com/stablyai/orca-hourly/releases/download/v1.4.160-hourly.202607281400'
+        'https://github.com/paidaxingyo666/manta-hourly/releases/download/v1.4.160-hourly.202607281400'
     })
   })
 
@@ -235,13 +235,13 @@ describe('resolveTargetBuild', () => {
       tag: 'v1.4.160-daily.202607281300',
       version: '1.4.160-daily.202607281300',
       feedUrl:
-        'https://github.com/stablyai/orca-daily/releases/download/v1.4.160-daily.202607281300'
+        'https://github.com/paidaxingyo666/manta-daily/releases/download/v1.4.160-daily.202607281300'
     })
   })
 
   it('pins a stable tag at the main repo download path', () => {
     expect(resolveTargetBuild('stable', 'v1.4.159').feedUrl).toBe(
-      'https://github.com/stablyai/orca/releases/download/v1.4.159'
+      'https://github.com/paidaxingyo666/Manta/releases/download/v1.4.159'
     )
   })
 

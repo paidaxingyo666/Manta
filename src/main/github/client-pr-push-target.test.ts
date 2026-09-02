@@ -60,11 +60,11 @@ describe('getPRForBranch', () => {
         }
       })
     })
-    getRemoteUrlForRepoMock.mockResolvedValueOnce('git@github.com:stablyai/orca.git')
+    getRemoteUrlForRepoMock.mockResolvedValueOnce('git@github.com:stablyai/manta.git')
 
     const target = await getPullRequestPushTarget('/repo-root', 1738)
 
-    expect(ghExecFileAsyncMock).toHaveBeenCalledWith(['api', 'repos/stablyai/orca/pulls/1738'], {
+    expect(ghExecFileAsyncMock).toHaveBeenCalledWith(['api', 'repos/stablyai/manta/pulls/1738'], {
       cwd: '/repo-root'
     })
     expect(target).toEqual({
@@ -132,7 +132,7 @@ describe('getPRForBranch', () => {
         }
       })
     })
-    getRemoteUrlForRepoMock.mockResolvedValueOnce('git@github.com:stablyai/orca.git')
+    getRemoteUrlForRepoMock.mockResolvedValueOnce('git@github.com:stablyai/manta.git')
 
     await expect(getPullRequestPushTarget('/repo-root', 1738)).resolves.toEqual({
       pushTarget: {
@@ -152,10 +152,10 @@ describe('getPRForBranch', () => {
         head: {
           ref: 'fix-sidebar',
           repo: {
-            full_name: 'stablyai/orca',
+            full_name: 'stablyai/manta',
             name: 'manta',
-            clone_url: 'https://github.com/stablyai/orca.git',
-            ssh_url: 'git@github.com:stablyai/orca.git',
+            clone_url: 'https://github.com/stablyai/manta.git',
+            ssh_url: 'git@github.com:stablyai/manta.git',
             owner: { login: 'stablyai' }
           }
         }
@@ -178,10 +178,10 @@ describe('getPRForBranch', () => {
         head: {
           ref: 'fix-sidebar',
           repo: {
-            full_name: 'stablyai/orca',
+            full_name: 'stablyai/manta',
             name: 'manta',
-            clone_url: 'https://github.com/stablyai/orca.git',
-            ssh_url: 'git@github.com:stablyai/orca.git',
+            clone_url: 'https://github.com/stablyai/manta.git',
+            ssh_url: 'git@github.com:stablyai/manta.git',
             owner: { login: 'stablyai' }
           }
         }
@@ -388,7 +388,7 @@ describe('getPRForBranch', () => {
     })
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       2,
-      ['api', 'repos/stablyai/orca/pulls/1849'],
+      ['api', 'repos/stablyai/manta/pulls/1849'],
       { cwd: '/repo-root' }
     )
   })

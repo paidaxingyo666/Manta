@@ -156,7 +156,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   )
 
   it('preflights npx before Windows-host skill installs', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration'])
 
     expect(
       buildSkillCommandForRuntime(
@@ -171,7 +171,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   })
 
   it('treats missing runtime as a preflighted Windows host fallback for skill installs', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration'])
 
     expect(buildSkillCommandForRuntime(installCommand, undefined, 'win32')).toBe(
       `${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`
@@ -194,10 +194,10 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
   })
 
   it('treats missing runtime as a preflighted Windows host fallback for skill updates', () => {
-    const installCommand = buildAgentFeatureSkillInstallCommand(['orca-cli'])
+    const installCommand = buildAgentFeatureSkillInstallCommand(['manta-cli'])
 
     expect(
-      buildSkillCommandForRuntime('npx skills update orca-cli --global', undefined, 'win32')
+      buildSkillCommandForRuntime('npx skills update manta-cli --global', undefined, 'win32')
     ).toBe(`${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`)
   })
 
@@ -404,7 +404,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
 
   it('emits a cmd.exe payload that cannot break its own if/else block', () => {
     const wrapped = buildSkillCommandForRuntime(
-      buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration']),
+      buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration']),
       { runtime: 'host', label: 'Windows' },
       'win32'
     )

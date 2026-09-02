@@ -75,10 +75,10 @@ describe('project-host workspace target resolution', () => {
 
   it('chooses the focused host setup when one project exists on multiple hosts', () => {
     const repos = [makeRepo('manta-local'), makeRepo('manta-ssh', { connectionId: 'openclaw-2' })]
-    const projects = [makeProject('github:stablyai/orca', ['manta-local', 'manta-ssh'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta-local', 'manta-ssh'])]
     const projectHostSetups = [
-      makeSetup('manta-local', 'github:stablyai/orca', 'local', 'manta-local'),
-      makeSetup('manta-ssh', 'github:stablyai/orca', 'ssh:openclaw-2', 'manta-ssh')
+      makeSetup('manta-local', 'github:stablyai/manta', 'local', 'manta-local'),
+      makeSetup('manta-ssh', 'github:stablyai/manta', 'ssh:openclaw-2', 'manta-ssh')
     ]
 
     expect(
@@ -86,7 +86,7 @@ describe('project-host workspace target resolution', () => {
         eligibleRepos: repos,
         projects,
         projectHostSetups,
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         focusedHostScope: 'ssh:openclaw-2'
       })
     ).toBe('manta-ssh')
@@ -98,10 +98,10 @@ describe('project-host workspace target resolution', () => {
       path: '/remote/manta',
       connectionId: 'builder'
     })
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
     const projectHostSetups = [
-      makeSetup('local-setup', 'github:stablyai/orca', 'local', 'manta'),
-      makeSetup('ssh-setup', 'github:stablyai/orca', 'ssh:builder', 'manta')
+      makeSetup('local-setup', 'github:stablyai/manta', 'local', 'manta'),
+      makeSetup('ssh-setup', 'github:stablyai/manta', 'ssh:builder', 'manta')
     ]
 
     const resolution = resolveWorkspaceCreationTarget({
@@ -123,10 +123,10 @@ describe('project-host workspace target resolution', () => {
   it('keeps a focused duplicate repo id on its selected host', () => {
     const localRepo = makeRepo('manta', { path: '/local/manta' })
     const sshRepo = makeRepo('manta', { path: '/remote/manta', connectionId: 'builder' })
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
     const projectHostSetups = [
-      makeSetup('local-setup', 'github:stablyai/orca', 'local', 'manta'),
-      makeSetup('ssh-setup', 'github:stablyai/orca', 'ssh:builder', 'manta')
+      makeSetup('local-setup', 'github:stablyai/manta', 'local', 'manta'),
+      makeSetup('ssh-setup', 'github:stablyai/manta', 'ssh:builder', 'manta')
     ]
 
     expect(
@@ -150,10 +150,10 @@ describe('project-host workspace target resolution', () => {
   it('resolves duplicate repo ids to a ready setup when no host is focused', () => {
     const localRepo = makeRepo('manta', { path: '/local/manta' })
     const sshRepo = makeRepo('manta', { path: '/remote/manta', connectionId: 'builder' })
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
     const projectHostSetups = [
-      makeSetup('local-setup', 'github:stablyai/orca', 'local', 'manta'),
-      makeSetup('ssh-setup', 'github:stablyai/orca', 'ssh:builder', 'manta')
+      makeSetup('local-setup', 'github:stablyai/manta', 'local', 'manta'),
+      makeSetup('ssh-setup', 'github:stablyai/manta', 'ssh:builder', 'manta')
     ]
 
     expect(
@@ -181,24 +181,24 @@ describe('project-host workspace target resolution', () => {
       makeRepo('manta-local'),
       makeRepo('manta-runtime', { executionHostId: 'runtime:gpu-1' })
     ]
-    const projects = [makeProject('github:stablyai/orca', ['manta-local', 'manta-runtime'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta-local', 'manta-runtime'])]
     const projectHostSetups = [
-      makeSetup('manta-local', 'github:stablyai/orca', 'local', 'manta-local'),
-      makeSetup('manta-runtime', 'github:stablyai/orca', 'runtime:gpu-1', 'manta-runtime')
+      makeSetup('manta-local', 'github:stablyai/manta', 'local', 'manta-local'),
+      makeSetup('manta-runtime', 'github:stablyai/manta', 'runtime:gpu-1', 'manta-runtime')
     ]
 
     const resolution = resolveWorkspaceCreationTarget({
       eligibleRepos: repos,
       projects,
       projectHostSetups,
-      projectId: 'github:stablyai/orca',
+      projectId: 'github:stablyai/manta',
       hostId: 'runtime:gpu-1'
     })
 
     expect(resolution).toMatchObject({
       status: 'ready',
       target: {
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:gpu-1',
         projectHostSetupId: 'manta-runtime',
         repoId: 'manta-runtime'
@@ -211,10 +211,10 @@ describe('project-host workspace target resolution', () => {
     // can still name a duplicate local setup; creation must land in the displayed path, not a
     // transient worktree path the user never sees.
     const repos = [makeRepo('manta-main'), makeRepo('manta-worktree')]
-    const projects = [makeProject('github:stablyai/orca', ['manta-main', 'manta-worktree'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta-main', 'manta-worktree'])]
     const projectHostSetups = [
-      makeSetup('manta-main', 'github:stablyai/orca', 'local', 'manta-main'),
-      makeSetup('manta-worktree', 'github:stablyai/orca', 'local', 'manta-worktree')
+      makeSetup('manta-main', 'github:stablyai/manta', 'local', 'manta-main'),
+      makeSetup('manta-worktree', 'github:stablyai/manta', 'local', 'manta-worktree')
     ]
 
     const resolution = resolveWorkspaceCreationTarget({
@@ -232,10 +232,10 @@ describe('project-host workspace target resolution', () => {
 
   it('keeps an explicit setup id that is the only one on its host', () => {
     const repos = [makeRepo('manta-local'), makeRepo('manta-ssh', { connectionId: 'builder' })]
-    const projects = [makeProject('github:stablyai/orca', ['manta-local', 'manta-ssh'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta-local', 'manta-ssh'])]
     const projectHostSetups = [
-      makeSetup('manta-local', 'github:stablyai/orca', 'local', 'manta-local'),
-      makeSetup('manta-ssh', 'github:stablyai/orca', 'ssh:builder', 'manta-ssh')
+      makeSetup('manta-local', 'github:stablyai/manta', 'local', 'manta-local'),
+      makeSetup('manta-ssh', 'github:stablyai/manta', 'ssh:builder', 'manta-ssh')
     ]
 
     expect(
@@ -268,15 +268,15 @@ describe('project-host workspace target resolution', () => {
 
   it('reports unavailable when the project is not set up on the selected host', () => {
     const repo = makeRepo('manta')
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
-    const projectHostSetups = [makeSetup('manta', 'github:stablyai/orca', 'local', 'manta')]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
+    const projectHostSetups = [makeSetup('manta', 'github:stablyai/manta', 'local', 'manta')]
 
     expect(
       resolveWorkspaceCreationTarget({
         eligibleRepos: [repo],
         projects,
         projectHostSetups,
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'ssh:openclaw-2'
       })
     ).toEqual({
@@ -288,9 +288,9 @@ describe('project-host workspace target resolution', () => {
   it('does not fall back to another host when only a host is selected', () => {
     const localRepo = makeRepo('manta-local')
     const remoteRepo = makeRepo('manta-ssh', { connectionId: 'builder' })
-    const projects = [makeProject('github:stablyai/orca', ['manta-local', 'manta-ssh'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta-local', 'manta-ssh'])]
     const projectHostSetups = [
-      makeSetup('manta-local', 'github:stablyai/orca', 'local', 'manta-local')
+      makeSetup('manta-local', 'github:stablyai/manta', 'local', 'manta-local')
     ]
 
     expect(
@@ -310,10 +310,10 @@ describe('project-host workspace target resolution', () => {
 
   it('reports setup-not-ready when the selected host has pending setup metadata', () => {
     const repo = makeRepo('manta')
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
     const projectHostSetups = [
-      makeSetup('manta', 'github:stablyai/orca', 'local', 'manta'),
-      makeSetup('gpu-pending', 'github:stablyai/orca', 'runtime:gpu', '', {
+      makeSetup('manta', 'github:stablyai/manta', 'local', 'manta'),
+      makeSetup('gpu-pending', 'github:stablyai/manta', 'runtime:gpu', '', {
         path: '',
         setupState: 'setting-up',
         setupMethod: 'provisioned'
@@ -325,7 +325,7 @@ describe('project-host workspace target resolution', () => {
         eligibleRepos: [repo],
         projects,
         projectHostSetups,
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:gpu'
       })
     ).toEqual({
@@ -336,9 +336,9 @@ describe('project-host workspace target resolution', () => {
 
   it('reports unavailable when an explicit setup is not ready', () => {
     const repo = makeRepo('manta')
-    const projects = [makeProject('github:stablyai/orca', ['manta'])]
+    const projects = [makeProject('github:stablyai/manta', ['manta'])]
     const projectHostSetups = [
-      makeSetup('manta', 'github:stablyai/orca', 'local', 'manta', { setupState: 'setting-up' })
+      makeSetup('manta', 'github:stablyai/manta', 'local', 'manta', { setupState: 'setting-up' })
     ]
 
     expect(

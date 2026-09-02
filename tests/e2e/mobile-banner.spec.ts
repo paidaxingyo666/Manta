@@ -126,7 +126,10 @@ test('held phone-fit state mounts restore overlay without collapse', async ({
   await expect(overlay).toBeHidden({ timeout: 15_000 })
 })
 
-test('restore this terminal refits the active restored pane', async ({ mantaPage, electronApp }) => {
+test('restore this terminal refits the active restored pane', async ({
+  mantaPage,
+  electronApp
+}) => {
   await waitForSessionReady(mantaPage)
   await waitForActiveWorktree(mantaPage)
   await ensureTerminalVisible(mantaPage)

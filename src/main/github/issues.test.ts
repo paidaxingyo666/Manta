@@ -106,7 +106,7 @@ describe('issue source operations', () => {
         number: 923,
         title: 'Use upstream issues',
         state: 'open',
-        html_url: 'https://github.com/stablyai/orca/issues/923',
+        html_url: 'https://github.com/stablyai/manta/issues/923',
         labels: [],
         body: 'The issue body'
       })
@@ -117,7 +117,7 @@ describe('issue source operations', () => {
       description: 'The issue body'
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', '--cache', '300s', 'repos/stablyai/orca/issues/923'],
+      ['api', '--cache', '300s', 'repos/stablyai/manta/issues/923'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })
@@ -135,7 +135,7 @@ describe('issue source operations', () => {
           number: 923,
           title: 'Use upstream issues',
           state: 'open',
-          html_url: 'https://github.com/stablyai/orca/issues/923',
+          html_url: 'https://github.com/stablyai/manta/issues/923',
           labels: []
         })
       })
@@ -143,7 +143,7 @@ describe('issue source operations', () => {
       .mockResolvedValueOnce({
         stdout: JSON.stringify({
           number: 924,
-          html_url: 'https://github.com/stablyai/orca/issues/924'
+          html_url: 'https://github.com/stablyai/manta/issues/924'
         })
       })
       .mockResolvedValueOnce({ stdout: '' })
@@ -153,7 +153,7 @@ describe('issue source operations', () => {
           user: { login: 'octo', avatar_url: '', type: 'User' },
           body: 'Comment',
           created_at: '2026-06-16T00:00:00.000Z',
-          html_url: 'https://github.com/stablyai/orca/issues/923#issuecomment-1'
+          html_url: 'https://github.com/stablyai/manta/issues/923#issuecomment-1'
         })
       })
       .mockResolvedValueOnce({ stdout: 'bug\nfrontend\n' })
@@ -234,7 +234,7 @@ describe('issue source operations', () => {
         'api',
         '--cache',
         '120s',
-        'repos/stablyai/orca/issues?per_page=5&state=open&sort=updated&direction=desc'
+        'repos/stablyai/manta/issues?per_page=5&state=open&sort=updated&direction=desc'
       ],
       { cwd: '/repo-root', host: 'github.com' }
     )
@@ -260,21 +260,21 @@ describe('issue source operations', () => {
     ghExecFileAsyncMock.mockResolvedValueOnce({
       stdout: JSON.stringify({
         number: 924,
-        html_url: 'https://github.com/stablyai/orca/issues/924'
+        html_url: 'https://github.com/stablyai/manta/issues/924'
       })
     })
 
     await expect(createIssue('/repo-root', 'New issue', 'Body')).resolves.toEqual({
       ok: true,
       number: 924,
-      url: 'https://github.com/stablyai/orca/issues/924'
+      url: 'https://github.com/stablyai/manta/issues/924'
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
       [
         'api',
         '-X',
         'POST',
-        'repos/stablyai/orca/issues',
+        'repos/stablyai/manta/issues',
         '--raw-field',
         'title=New issue',
         '--raw-field',
@@ -289,7 +289,7 @@ describe('issue source operations', () => {
     ghExecFileAsyncMock.mockResolvedValueOnce({
       stdout: JSON.stringify({
         number: 925,
-        html_url: 'https://github.com/stablyai/orca/issues/925'
+        html_url: 'https://github.com/stablyai/manta/issues/925'
       })
     })
 
@@ -301,14 +301,14 @@ describe('issue source operations', () => {
     ).resolves.toEqual({
       ok: true,
       number: 925,
-      url: 'https://github.com/stablyai/orca/issues/925'
+      url: 'https://github.com/stablyai/manta/issues/925'
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
       [
         'api',
         '-X',
         'POST',
-        'repos/stablyai/orca/issues',
+        'repos/stablyai/manta/issues',
         '--raw-field',
         'title=New issue',
         '--raw-field',
@@ -336,7 +336,7 @@ describe('issue source operations', () => {
       .mockResolvedValueOnce({
         stdout: JSON.stringify({
           number: 926,
-          html_url: 'https://github.com/stablyai/orca/issues/926'
+          html_url: 'https://github.com/stablyai/manta/issues/926'
         })
       })
       .mockResolvedValueOnce({ stdout: '' })
@@ -349,7 +349,7 @@ describe('issue source operations', () => {
     ).resolves.toEqual({
       ok: true,
       number: 926,
-      url: 'https://github.com/stablyai/orca/issues/926'
+      url: 'https://github.com/stablyai/manta/issues/926'
     })
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       1,
@@ -368,7 +368,7 @@ describe('issue source operations', () => {
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       3,
-      ['api', '-X', 'PATCH', 'repos/stablyai/orca/issues/926', '--raw-field', `body=${body}`],
+      ['api', '-X', 'PATCH', 'repos/stablyai/manta/issues/926', '--raw-field', `body=${body}`],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })
@@ -384,7 +384,7 @@ describe('issue source operations', () => {
       .mockResolvedValueOnce({
         stdout: JSON.stringify({
           number: 929,
-          html_url: 'https://github.com/stablyai/orca/issues/929'
+          html_url: 'https://github.com/stablyai/manta/issues/929'
         })
       })
       .mockResolvedValueOnce({ stdout: '' })
@@ -392,7 +392,7 @@ describe('issue source operations', () => {
     await expect(createIssue('/repo-root', 'Image issue', 'data:image')).resolves.toEqual({
       ok: true,
       number: 929,
-      url: 'https://github.com/stablyai/orca/issues/929'
+      url: 'https://github.com/stablyai/manta/issues/929'
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledTimes(3)
   })
@@ -467,7 +467,7 @@ describe('issue source operations', () => {
       .mockResolvedValueOnce({
         stdout: JSON.stringify({
           number: 928,
-          html_url: 'https://github.com/stablyai/orca/issues/928'
+          html_url: 'https://github.com/stablyai/manta/issues/928'
         })
       })
       .mockRejectedValueOnce(new Error('HTTP 500: update failed'))
@@ -475,9 +475,9 @@ describe('issue source operations', () => {
     await expect(createIssue('/repo-root', 'Partial issue', 'data:image')).resolves.toEqual({
       ok: true,
       number: 928,
-      url: 'https://github.com/stablyai/orca/issues/928',
+      url: 'https://github.com/stablyai/manta/issues/928',
       bodySaveWarning:
-        'Issue https://github.com/stablyai/orca/issues/928 was created, but saving its body failed: HTTP 500: update failed'
+        'Issue https://github.com/stablyai/manta/issues/928 was created, but saving its body failed: HTTP 500: update failed'
     })
   })
 
@@ -489,7 +489,7 @@ describe('issue source operations', () => {
       ok: true
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      ['api', '-X', 'PATCH', 'repos/stablyai/orca/issues/924', '--raw-field', 'body=Updated body'],
+      ['api', '-X', 'PATCH', 'repos/stablyai/manta/issues/924', '--raw-field', 'body=Updated body'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })
@@ -514,17 +514,17 @@ describe('issue source operations', () => {
 
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       1,
-      ['issue', 'close', '924', '--repo', 'stablyai/orca', '--reason', 'completed'],
+      ['issue', 'close', '924', '--repo', 'stablyai/manta', '--reason', 'completed'],
       { cwd: '/repo-root', host: 'github.com' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       2,
-      ['issue', 'close', '925', '--repo', 'stablyai/orca', '--reason', 'not planned'],
+      ['issue', 'close', '925', '--repo', 'stablyai/manta', '--reason', 'not planned'],
       { cwd: '/repo-root', host: 'github.com' }
     )
     expect(ghExecFileAsyncMock).toHaveBeenNthCalledWith(
       3,
-      ['issue', 'close', '926', '--repo', 'stablyai/orca', '--duplicate-of', '99'],
+      ['issue', 'close', '926', '--repo', 'stablyai/manta', '--duplicate-of', '99'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })
@@ -537,7 +537,7 @@ describe('issue source operations', () => {
       ok: true
     })
     expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
-      ['issue', 'reopen', '924', '--repo', 'stablyai/orca'],
+      ['issue', 'reopen', '924', '--repo', 'stablyai/manta'],
       { cwd: '/repo-root', host: 'github.com' }
     )
   })

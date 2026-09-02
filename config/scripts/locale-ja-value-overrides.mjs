@@ -385,7 +385,8 @@ const JA_AUDIT_OVERRIDES = {
     '[プロジェクトの追加] から、選択したホスト上のパスを入力します。',
   'Use repo-relative paths like packages/web or apps/api.':
     'packages/web や apps/api などのリポジトリ相対パスを使用します。',
-  'manta.yaml first, then your local commands.': 'まず manta.yaml、次にローカルのコマンドの順です。',
+  'manta.yaml first, then your local commands.':
+    'まず manta.yaml、次にローカルのコマンドの順です。',
   'Rename Manta-created branches from the initial agent task.':
     'Manta が作成したブランチの名前を、最初の Agent タスクに基づいて変更します。',
   'Dim files matched by .gitignore in the file explorer.':

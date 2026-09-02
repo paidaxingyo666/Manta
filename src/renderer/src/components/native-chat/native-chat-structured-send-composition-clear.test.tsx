@@ -34,6 +34,14 @@ vi.mock('@/runtime/runtime-terminal-inspection', () => ({
 vi.mock('@/lib/agent-paste-draft', () => ({
   getSettingsForAgentTabRuntimeOwner: () => ({})
 }))
+vi.mock('./native-chat-attachment-upload', () => ({
+  getNativeChatAttachmentOwnerIdentity: () => 'local',
+  nativeChatLocalAttachmentUnsupportedNotice: () => 'Attachments unavailable',
+  nativeChatWorktreeNotReadyNotice: () => 'Worktree not ready',
+  resolveNativeChatAttachmentOwner: () => ({ kind: 'local' }),
+  resolveNativeChatAttachmentOwnerForWorktree: () => ({ kind: 'local' }),
+  uploadNativeChatAttachmentPaths: async (paths: string[]) => paths
+}))
 vi.mock('./native-chat-runtime-send', () => ({
   sendNativeChatMessage: vi.fn(),
   sendNativeChatTypedCommand: vi.fn(),

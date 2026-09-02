@@ -25,7 +25,7 @@ body:
       required: true
 
   - type: input
-    id: orca_version
+    id: manta_version
     attributes:
       label: Manta version
       description: Include the exact Manta version if you can. You can find it in `Manta > About Manta`.

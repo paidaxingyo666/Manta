@@ -25,7 +25,10 @@ describe('dev CLI terminal wrappers', () => {
   })
 
   it('escapes literal percent signs in every Windows batch path', () => {
-    const root = path.join(mkdtempSync(path.join(tmpdir(), 'manta-dev-terminal-wrapper-')), '%repo%')
+    const root = path.join(
+      mkdtempSync(path.join(tmpdir(), 'manta-dev-terminal-wrapper-')),
+      '%repo%'
+    )
     const userDataPath = path.join(root, '%profile%')
     const electronExecutable = path.join(root, '%electron%', 'electron.exe')
     prepareDevCliTerminalWrappers({

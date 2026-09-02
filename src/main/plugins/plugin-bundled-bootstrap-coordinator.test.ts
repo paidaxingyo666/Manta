@@ -4,7 +4,7 @@ import { PluginBundledBootstrapCoordinator } from './plugin-bundled-bootstrap-co
 
 const unchanged: PluginBundledBootstrapResult = {
   installed: [],
-  unchanged: ['stablyai.orca-theme'],
+  unchanged: ['paidaxingyo666.manta-theme'],
   errors: []
 }
 
@@ -15,7 +15,7 @@ describe('PluginBundledBootstrapCoordinator', () => {
       .fn()
       .mockResolvedValueOnce(unchanged)
       .mockResolvedValueOnce({
-        installed: ['stablyai.orca-theme'],
+        installed: ['paidaxingyo666.manta-theme'],
         unchanged: [],
         errors: []
       })

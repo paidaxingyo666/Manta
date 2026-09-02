@@ -2,6 +2,7 @@ import type { ConnectionPresentationModel } from './use-mobile-tasks-connection-
 import { View, MobileSearchField } from './mobile-tasks-dependencies'
 import { styles } from './mobile-tasks-legacy-styles'
 import { getTaskPresetQuery, scopeGitHubTaskSearch } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksSearchControl(model: ConnectionPresentationModel) {
   const {
@@ -31,7 +32,11 @@ export function renderMobileTasksSearchControl(model: ConnectionPresentationMode
         value={isGithubProjectSearch ? githubProjectSearch : query}
         onChangeText={isGithubProjectSearch ? setGithubProjectSearch : setQuery}
         placeholder={
-          isGithubProjectSearch ? 'Search project view...' : `Search ${providerLabel} tasks...`
+          isGithubProjectSearch
+            ? translate('m.tasks.473b2b2807', 'Search project view...')
+            : translate('m.tasks.ed61fb8b63', 'Search {{value0}} tasks...', {
+                value0: providerLabel
+              })
         }
         // Why: GitHub items seed the field with a preset query, so a bare
         // value.length check would always show clear. Project mode shows clear

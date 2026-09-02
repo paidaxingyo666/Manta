@@ -7,9 +7,19 @@ export type NudgeConfig = {
   maxVersion?: string
 }
 
-export async function fetchNudge(): Promise<NudgeConfig | null> {
+/** Set to a URL you host to turn the nudge back on. */
+const NUDGE_URL: string | null = null
+
+export async function fetchNudge(url: string | null = NUDGE_URL): Promise<NudgeConfig | null> {
+  // Same shape as the changelog was: a marketing endpoint this fork does not
+  // run, costing five seconds of timeout per check to arrive at the null it
+  // would have returned anyway. The parsing below still earns its tests —
+  // point the constant at a host you run and it all comes back.
+  if (url === null) {
+    return null
+  }
   try {
-    const res = await net.fetch('https://manta.sh.cn/whats-new/nudge.json', {
+    const res = await net.fetch(url, {
       signal: AbortSignal.timeout(5000)
     })
     if (!res.ok) {

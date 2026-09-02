@@ -83,7 +83,11 @@ export async function selectCloudOrgWithMutationFence(input: {
     ) {
       throw new Error('stale_cloud_session_mutation')
     }
-    const list = linkMantaProfileToCloud(input.active.profile.id, selected.cloud, input.userDataPath)
+    const list = linkMantaProfileToCloud(
+      input.active.profile.id,
+      selected.cloud,
+      input.userDataPath
+    )
     return list
   } catch (error) {
     recordCloudSessionIdentityMutationIfCurrent(oldIdentity, input.userDataPath, snapshot)

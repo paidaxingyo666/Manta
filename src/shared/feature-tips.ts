@@ -4,7 +4,7 @@ import {
   type FeatureInteractionState
 } from './feature-interactions'
 
-export type FeatureTipId = 'voice-dictation' | 'orca-cli' | 'cmd-j-palette'
+export type FeatureTipId = 'voice-dictation' | 'manta-cli' | 'cmd-j-palette'
 
 export type FeatureTipPriority = 'new' | 'unseen'
 
@@ -30,7 +30,7 @@ export type CompletedFeatureTipState = {
 
 export const FEATURE_TIPS = [
   {
-    id: 'orca-cli',
+    id: 'manta-cli',
     priority: 'new',
     eyebrow: 'Tip',
     title: 'Let agents drive Manta with the Manta CLI',
@@ -87,7 +87,7 @@ export function normalizeFeatureTipIds(value: unknown): FeatureTipId[] {
 export function getCompletedFeatureTipIds(state: CompletedFeatureTipState): Set<FeatureTipId> {
   const completedIds = new Set<FeatureTipId>()
   if (state.cliInstalled) {
-    completedIds.add('orca-cli')
+    completedIds.add('manta-cli')
   }
   if (state.voiceDictationEnabled) {
     completedIds.add('voice-dictation')

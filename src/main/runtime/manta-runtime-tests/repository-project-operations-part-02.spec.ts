@@ -73,7 +73,7 @@ describe('MantaRuntimeService', () => {
       expect(cloned).not.toHaveProperty('executionHostId')
 
       const result = await runtime.setupProjectExistingFolder({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-1',
         path: clonePath,
         kind: 'git',
@@ -147,7 +147,7 @@ describe('MantaRuntimeService', () => {
 
     try {
       const result = await runtime.setupProjectClone({
-        projectId: 'github:stablyai/orca',
+        projectId: 'github:stablyai/manta',
         hostId: 'runtime:env-2',
         url: 'https://example.com/manta.git',
         destination

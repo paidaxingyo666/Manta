@@ -42,7 +42,7 @@ function validManifest(overrides = {}) {
           coveredPlatforms: ['macos'],
           coveredProviders: ['local'],
           coverageNotes: 'One local macOS unit run covers the local decision-layer fixture only.',
-          motivatingLinks: ['https://github.com/stablyai/orca/issues/6773'],
+          motivatingLinks: ['https://github.com/stablyai/manta/issues/6773'],
           invariant: 'A stale snapshot cannot close a newer binding.',
           oracle: 'The test rejects reconciliation when the binding is newer than the snapshot.',
           commands: ['pnpm exec vitest run some.test.ts'],

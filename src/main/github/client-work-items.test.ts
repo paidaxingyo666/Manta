@@ -768,7 +768,7 @@ describe('listWorkItems', () => {
           number: 1849,
           title: 'Fork PR with missing head repo',
           state: 'open',
-          html_url: 'https://github.com/stablyai/orca/pull/1849',
+          html_url: 'https://github.com/stablyai/manta/pull/1849',
           updated_at: '2026-04-01T00:00:00Z',
           user: { login: 'contributor' },
           head: {
@@ -790,7 +790,7 @@ describe('listWorkItems', () => {
         number: 1849,
         title: 'Fork PR with missing head repo',
         state: 'open',
-        url: 'https://github.com/stablyai/orca/pull/1849',
+        url: 'https://github.com/stablyai/manta/pull/1849',
         labels: [],
         updatedAt: '2026-04-01T00:00:00Z',
         author: 'contributor',

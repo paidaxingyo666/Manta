@@ -26,7 +26,7 @@ describe('getProjectHostCloneUrl', () => {
           }
         })
       )
-    ).toBe('https://github.com/stablyai/orca.git')
+    ).toBe('https://github.com/stablyai/manta.git')
   })
 
   it('preserves an authenticated Enterprise host and port', () => {

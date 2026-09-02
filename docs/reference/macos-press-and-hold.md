@@ -5,7 +5,7 @@ domain. That prevents held keys from repeating in terminal applications such as 
 eligible launch, Manta writes:
 
 ```sh
-defaults write cn.sh.manta ApplePressAndHoldEnabled -bool false
+defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool false
 ```
 
 The write is scoped to Manta's packaged bundle domain. Bare Electron development bundles and
@@ -33,14 +33,14 @@ timeouts, and other exit statuses leave the preference alone.
 Set the preference explicitly, then restart Manta:
 
 ```sh
-defaults write cn.sh.manta ApplePressAndHoldEnabled -bool true
+defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool true
 ```
 
 After Manta has recorded its one-time decision, deleting the key also restores the macOS default
 without Manta recreating it:
 
 ```sh
-defaults delete cn.sh.manta ApplePressAndHoldEnabled
+defaults delete com.stablyai.orca ApplePressAndHoldEnabled
 ```
 
 Development and prerelease channels may use a channel-suffixed Manta bundle identifier; use that

@@ -11,7 +11,7 @@ import { clearRuntimeCompatibilityCacheForTests } from '../../runtime/runtime-rp
 // One project cloned on the local Mac and on a remote Manta server under distinct repo ids —
 // the shape the compat merge exists to serve, and the only shape whose sourceRepoIds are
 // assembled from two hosts.
-const SHARED_PROJECT_ID = 'github:stablyai/orca'
+const SHARED_PROJECT_ID = 'github:stablyai/manta'
 
 const localRepo: Repo = {
   id: 'local-repo',

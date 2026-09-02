@@ -14,8 +14,8 @@ import { emulatorProbe, emulatorProbeError } from '../../emulator/emulator-probe
 import type { MantaRuntimeService } from '../manta-runtime'
 import {
   getOrchestrationMutationExecutor,
-  type OrchestrationMutationExecutor,
-  type DurableMutationInvocation
+  type DurableMutationInvocation,
+  type OrchestrationMutationExecutor
 } from './orchestration-mutation-executor'
 import { orchestrationMigrationFence } from './orchestration-contract-fence'
 import { recordRuntimeFeatureInteraction } from './runtime-feature-interaction'

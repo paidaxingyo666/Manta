@@ -25,7 +25,7 @@ vi.mock('./browser-route-guest-guard', () => ({ closeRouteGuest: vi.fn() }))
 vi.mock('./browser-route-partition-binding-runtime', () => {
   const fingerprints = new Map<string, string>()
   return {
-    activeBrowserRoutePartitionOrcaProfileId: () => 'manta-profile-1',
+    activeBrowserRoutePartitionOrcaProfileId: () => 'orca-profile-1',
     currentBrowserRoutePartitionBindingStore: () => ({
       get: (partition: string) => fingerprints.get(partition) ?? null,
       set: (partition: string, fingerprint: string) => {

@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry the relay certificate every 20 minutes until it lands
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=20min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

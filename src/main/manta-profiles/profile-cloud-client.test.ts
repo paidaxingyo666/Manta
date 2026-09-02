@@ -5,6 +5,7 @@ import type { MantaCloudSession } from './profile-cloud-session-store'
 import {
   createMantaCloudProfile,
   exchangeMantaCloudAuthCode,
+  grantMantaCloudSessionDirectly,
   refreshMantaCloudCapabilities,
   refreshMantaCloudSession,
   selectMantaCloudOrg
@@ -22,6 +23,13 @@ const config: MantaCloudAuthConfig = {
   orgEndpoint: 'https://manta-cloud.example/v1/desktop/auth/org',
   logoutEndpoint: 'https://manta-cloud.example/v1/desktop/auth/logout',
   relayTokenEndpoint: 'https://manta-cloud.example/v1/desktop/auth/relay-token',
+  registerEndpoint: 'https://manta-cloud.example/v1/desktop/auth/register',
+  loginEndpoint: 'https://manta-cloud.example/v1/desktop/auth/login',
+  hostsEndpoint: 'https://manta-cloud.example/v1/desktop/auth/hosts',
+  hostDescribeEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-describe',
+  hostForgetEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-forget',
+  hostClaimEndpoint: 'https://manta-cloud.example/v1/desktop/auth/host-claim',
+  methodsEndpoint: 'https://manta-cloud.example/v1/desktop/auth/methods',
   relayDirectorUrl: 'https://relay.example',
   clientId: 'desktop-client',
   scope: 'openid profile email offline_access'
@@ -260,5 +268,89 @@ describe('Manta cloud client', () => {
 
     await expect(refreshMantaCloudCapabilities(config, session)).rejects.toThrow()
     expect(cancelledBodies).toBe(1)
+  })
+})
+
+describe('enrolment secret', () => {
+  beforeEach(() => {
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  const args = {
+    code: 'code',
+    codeVerifier: 'verifier',
+    nonce: 'nonce',
+    redirectUri: 'http://127.0.0.1:4100/auth/callback',
+    state: 'state',
+    localProfileId: 'local-default'
+  }
+
+  const sessionPayload = {
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+    expiresAt: 999,
+    cloud: { cloudProfileId: 'cloud-profile-1', userId: 'user-1', email: 'nina@example.com' },
+    capabilities: { flags: {}, refreshedAt: 1 }
+  }
+
+  it('rides in the exchange body, never on a URL', async () => {
+    // A self-hosted relay may gate code redemption. The authorize URL opens in
+    // a browser, so a secret placed there lands in history and in every proxy
+    // log en route — the body is the only place it can travel safely.
+    mockFetchJson(sessionPayload)
+    await exchangeMantaCloudAuthCode({ ...config, enrollmentSecret: 'open-sesame' }, args)
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(String(init.body))).toMatchObject({ enrollmentSecret: 'open-sesame' })
+    expect(url).not.toContain('open-sesame')
+  })
+
+  it('omits the field when no secret is configured', async () => {
+    // The official service must not receive a field it does not know.
+    mockFetchJson(sessionPayload)
+    await exchangeMantaCloudAuthCode(config, args)
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(String(init.body))).not.toHaveProperty('enrollmentSecret')
+  })
+})
+
+describe('direct grant', () => {
+  beforeEach(() => {
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  it('exchanges the secret for a session without a code', async () => {
+    mockFetchJson({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      expiresAt: 999,
+      cloud: { cloudProfileId: 'p', userId: 'u', email: 'e@x.y' },
+      capabilities: { flags: {}, refreshedAt: 1 }
+    })
+    await grantMantaCloudSessionDirectly(
+      { ...config, enrollmentSecret: 'open-sesame' },
+      'local-default'
+    )
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(String(init.body))
+    expect(body).toMatchObject({ enrollmentSecret: 'open-sesame', localProfileId: 'local-default' })
+    // No code, no verifier, no redirect: there was no browser in this flow.
+    expect(body).not.toHaveProperty('code')
+    expect(body).not.toHaveProperty('codeVerifier')
+    expect(body).not.toHaveProperty('redirectUri')
+    expect(url).toBe(config.sessionEndpoint)
+  })
+
+  it('refuses to attempt a direct grant with no secret configured', async () => {
+    // The caller should have taken the browser path; failing loudly beats
+    // sending an unauthenticated exchange to the hosted service.
+    await expect(grantMantaCloudSessionDirectly(config, 'local-default')).rejects.toThrow(
+      'manta_cloud_direct_grant_unavailable'
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

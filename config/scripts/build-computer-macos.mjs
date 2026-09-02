@@ -73,14 +73,24 @@ function resolveSigningIdentity() {
   if (identities.status !== 0 || !identities.stdout) {
     return '-'
   }
-  const developmentMatch = identities.stdout.match(/"([^"]*Apple Development:[^"]+)"/)
-  if (process.env.MANTA_MAC_RELEASE !== '1' && developmentMatch) {
-    return developmentMatch[1]
+  // Sign with the SHA-1, not the common name. Two valid certificates can carry
+  // an identical name — Xcode issues a fresh one without retiring the old — and
+  // codesign then refuses the name as "ambiguous" instead of picking one,
+  // which fails the build with nothing wrong in the project.
+  const entries = [...identities.stdout.matchAll(/^\s*\d+\)\s+([0-9A-F]{40})\s+"([^"]+)"/gim)].map(
+    ([, hash, name]) => ({ hash, name })
+  )
+  const firstOfKind = (kind) => entries.find((entry) => entry.name.includes(kind))?.hash
+  const development = firstOfKind('Apple Development:')
+  if (process.env.MANTA_MAC_RELEASE !== '1' && development) {
+    return development
   }
-  const releaseMatch =
-    identities.stdout.match(/"([^"]*Developer ID Application:[^"]+)"/) ??
-    identities.stdout.match(/"([^"]*Apple Distribution:[^"]+)"/)
-  return releaseMatch?.[1] ?? developmentMatch?.[1] ?? '-'
+  return (
+    firstOfKind('Developer ID Application:') ??
+    firstOfKind('Apple Distribution:') ??
+    development ??
+    '-'
+  )
 }
 
 function run(command, args) {

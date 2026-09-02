@@ -208,7 +208,8 @@ const MantaDetails = Details.extend({
       ...this.parent?.(),
       variant: {
         default: null,
-        parseHTML: (element) => parseToggleHeadingVariant(element.getAttribute('data-manta-toggle')),
+        parseHTML: (element) =>
+          parseToggleHeadingVariant(element.getAttribute('data-manta-toggle')),
         renderHTML: ({ variant }) => {
           const parsed = parseToggleHeadingVariant(variant)
           return parsed ? { 'data-manta-toggle': parsed } : {}

@@ -6,6 +6,7 @@ import {
 } from './mobile-tasks-legacy-foundation'
 import { View, Text, Pressable, Check, colors, TextInput } from './mobile-tasks-dependencies'
 import { styles } from './mobile-tasks-legacy-styles'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentationModel) {
   const {
@@ -23,7 +24,9 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
   return SHOW_MOBILE_PROJECT_METADATA_EDITORS &&
     editableProjectFields(githubProjectTable).length > 0 ? (
     <View style={styles.detailSection}>
-      <Text style={styles.detailSectionTitle}>Project fields</Text>
+      <Text style={styles.detailSectionTitle}>
+        {translate('m.tasks.255d57b1db', 'Project fields')}
+      </Text>
       {editableProjectFields(githubProjectTable).map((field) => {
         const currentLabel = projectFieldValueLabel(projectRowItem, field)
         const draftValue = projectFieldDrafts[field.id] ?? ''
@@ -92,7 +95,9 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
             ) : field.dataType === 'ITERATION' && field.kind === 'iteration' ? (
               <View style={styles.projectIterationList}>
                 {field.iterations.length === 0 ? (
-                  <Text style={styles.detailMuted}>No iterations available.</Text>
+                  <Text style={styles.detailMuted}>
+                    {translate('m.tasks.097429f0fc', 'No iterations available.')}
+                  </Text>
                 ) : (
                   field.iterations.map((iteration) => {
                     const fieldValue = projectRowItem.fieldValuesByFieldId?.[field.id]
@@ -114,8 +119,10 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
                         <View style={styles.projectIterationCopy}>
                           <Text style={styles.actionText}>{iteration.title}</Text>
                           <Text style={styles.detailMuted}>
-                            {iteration.completed ? 'Completed' : 'Current & upcoming'} ·{' '}
-                            {iteration.startDate} · {iteration.duration}d
+                            {iteration.completed
+                              ? translate('m.tasks.1dabaa2f96', 'Completed')
+                              : translate('m.tasks.a9c15e3103', 'Current & upcoming')}{' '}
+                            · {iteration.startDate} · {iteration.duration}d
                           </Text>
                         </View>
                         {selected ? <Check size={14} color={colors.textSecondary} /> : null}
@@ -137,10 +144,10 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
                   }
                   placeholder={
                     field.dataType === 'DATE'
-                      ? 'YYYY-MM-DD'
+                      ? translate('m.tasks.2ae972cc96', 'YYYY-MM-DD')
                       : field.dataType === 'NUMBER'
-                        ? 'Number'
-                        : 'Text'
+                        ? translate('m.tasks.d633598c54', 'Number')
+                        : translate('m.tasks.e60ce46b41', 'Text')
                   }
                   placeholderTextColor={colors.textMuted}
                   keyboardType={field.dataType === 'NUMBER' ? 'numeric' : 'default'}
@@ -151,7 +158,9 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
                   disabled={projectMutating}
                   onPress={saveTextField}
                 >
-                  <Text style={styles.inlineSaveText}>Save field</Text>
+                  <Text style={styles.inlineSaveText}>
+                    {translate('m.tasks.6a40f49194', 'Save field')}
+                  </Text>
                 </Pressable>
               </>
             )}
@@ -160,7 +169,9 @@ export function renderMobileTasksProjectFieldEditors(model: ConnectionPresentati
               disabled={projectMutating || currentLabel === 'Empty'}
               onPress={() => void mutateProjectRowField(projectRowItem, field, null)}
             >
-              <Text style={styles.inlineSaveText}>Clear field</Text>
+              <Text style={styles.inlineSaveText}>
+                {translate('m.tasks.18a48f936d', 'Clear field')}
+              </Text>
             </Pressable>
           </View>
         )

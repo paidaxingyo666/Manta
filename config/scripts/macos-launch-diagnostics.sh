@@ -6,7 +6,7 @@
 #   bash config/scripts/macos-launch-diagnostics.sh --tag v1.4.42-rc.1
 set -euo pipefail
 
-REPO="${MANTA_DIAGNOSTIC_REPO:-stablyai/orca}"
+REPO="${MANTA_DIAGNOSTIC_REPO:-stablyai/manta}"
 TAG="${MANTA_DIAGNOSTIC_TAG:-}"
 KEEP=0
 

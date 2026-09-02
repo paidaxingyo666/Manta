@@ -1,7 +1,7 @@
 # Issue #5049: Android Remote Session Unresponsiveness — Findings
 
 Date: 2026-06-09
-Issue: https://github.com/stablyai/orca/issues/5049
+Issue: https://github.com/stablyai/manta/issues/5049
 
 ## Reported symptoms
 

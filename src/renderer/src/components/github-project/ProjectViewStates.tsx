@@ -8,7 +8,7 @@ import { GhAuthErrorHelp } from './GhAuthErrorHelp'
 import type { GitHubProjectViewSummary } from '../../../../shared/github/project-types'
 import type { GitHubProjectViewError } from '../../../../shared/github/project-result-types'
 
-const MANTA_FEATURE_REQUEST_URL = 'https://github.com/stablyai/orca/issues/new'
+const MANTA_FEATURE_REQUEST_URL = 'https://github.com/paidaxingyo666/Manta/issues/new'
 
 export function ProjectViewTabStrip({
   views,

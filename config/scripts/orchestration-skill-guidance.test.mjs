@@ -32,7 +32,7 @@ describe('orchestration skill guidance', () => {
       "Use Computer Use for external browser windows, webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when the task requires OS/window-level control such as focus, menus, dialogs, coordinates, or screenshots."
     )
     expect(description).toContain(
-      "`orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
+      "`manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
     )
   })
 
@@ -275,7 +275,9 @@ describe('orchestration skill guidance', () => {
         'explicitly asked to keep that worker live.'
     )
     expect(workerLoop).toContain('Release is post-completion cleanup, not cancellation')
-    expect(workerLoop).toContain('manta orchestration worker-retain --dispatch <dispatch_id> --json')
+    expect(workerLoop).toContain(
+      'manta orchestration worker-retain --dispatch <dispatch_id> --json'
+    )
     expect(workerLoop).toContain(
       'the same Dispatch can be passed to `worker-release`, which clears the requested retention'
     )
@@ -379,7 +381,10 @@ describe('orchestration install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('GNOME Orca screen reader')
+    // Upstream warns about the GNOME Orca clash; this fork ships `manta-ide`, so the stub
+    // states the packaging reason bare `manta` is the wrong binary on Linux.
+    expect(stub).toContain('installs the executable as `manta-ide`')
+    expect(stub).toContain("`manta` is not on PATH outside Manta's terminals")
     expect(stub).not.toMatch(/^manta /mu)
   })
 

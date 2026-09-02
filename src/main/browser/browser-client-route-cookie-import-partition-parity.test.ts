@@ -60,7 +60,7 @@ import {
   type BrowserRouteElectronSession
 } from './browser-route-session-registry'
 
-const mantaProfileId = 'manta-profile-a'
+const mantaProfileId = 'orca-profile-a'
 const browserProfileId = 'default'
 const authorityConnectionIdentity = 'paired-runtime:authority-a'
 const authorityRuntimeId = 'runtime-a'

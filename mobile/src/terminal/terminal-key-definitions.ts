@@ -1,5 +1,8 @@
 import type { TerminalAccessoryKey, TerminalShortcutSpecialKey } from './terminal-accessory-keys'
 
+// i18n-exempt: `label` is the keycap — someone hunting for Ctrl+U on their
+// keyboard needs to read "Ctrl+U". The description beside it is
+// accessibilityLabel, which does go through the catalog.
 export const SPECIAL_KEY_LABELS: Record<string, string> = {
   escape: 'Esc',
   tab: 'Tab',
@@ -60,6 +63,9 @@ const SPECIAL_KEY_ACCESSIBILITY_LABELS: Record<string, string> = {
   f12: 'F12'
 }
 
+// i18n-exempt: `label` is the keycap — someone hunting for Ctrl+U on their
+// keyboard needs to read "Ctrl+U". The description beside it is
+// accessibilityLabel, which does go through the catalog.
 export const TERMINAL_SHORTCUT_SPECIAL_KEY_DEFINITIONS: TerminalShortcutSpecialKey[] = [
   'escape',
   'tab',
@@ -94,6 +100,9 @@ export const TERMINAL_SHORTCUT_SPECIAL_KEY_DEFINITIONS: TerminalShortcutSpecialK
   accessibilityLabel: SPECIAL_KEY_ACCESSIBILITY_LABELS[id]!
 }))
 
+// i18n-exempt: `label` is the keycap — someone hunting for Ctrl+U on their
+// keyboard needs to read "Ctrl+U". The description beside it is
+// accessibilityLabel, which does go through the catalog.
 export const TERMINAL_ACCESSORY_KEY_DEFINITIONS: TerminalAccessoryKey[] = [
   { id: 'escape', label: 'Esc', bytes: '\x1b', accessibilityLabel: 'Escape' },
   { id: 'tab', label: 'Tab', bytes: '\t', accessibilityLabel: 'Tab' },

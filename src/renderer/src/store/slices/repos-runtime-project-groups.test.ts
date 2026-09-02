@@ -27,9 +27,9 @@ beforeEach(() => {
 describe('repo slice runtime project groups', () => {
   it('keeps runtime copies of a grouped canonical project in the same project group', async () => {
     const gitRemoteIdentity = {
-      canonicalKey: 'github.com/stablyai/orca',
+      canonicalKey: 'github.com/stablyai/manta',
       remoteName: 'origin',
-      remoteUrl: 'https://github.com/stablyai/orca.git'
+      remoteUrl: 'https://github.com/stablyai/manta.git'
     }
     const localManta: Repo = {
       id: 'local-manta',

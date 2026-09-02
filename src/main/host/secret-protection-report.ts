@@ -30,7 +30,7 @@ type ReportOptions = {
 type ReportState = { lastReportedGap: string | null }
 
 function stateFile(dataFile: string): string {
-  return join(dirname(dataFile), 'manta-secret-protection.json')
+  return join(dirname(dataFile), 'orca-secret-protection.json')
 }
 
 function readState(path: string): ReportState | null {

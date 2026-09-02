@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { Alert } from 'react-native'
 import type { useRouter } from 'expo-router'
+import { translate } from '../i18n/i18n'
 import { floatingWorkspaceSessionPath } from '../session/floating-workspace'
 import { savePinnedIds } from '../storage/preferences'
 import type { useForgetHostClient } from '../transport/client-context'
@@ -150,7 +151,10 @@ export function useHostWorktreeActions(args: {
     } catch {
       // Why: removal can fail while still paired; re-open confirm (ConfirmModal closes on confirm).
       setConfirmRemoveHost(true)
-      Alert.alert('Could not remove host', 'Please try again.')
+      Alert.alert(
+        translate('m.index.3ff3938f5e', 'Could not remove host'),
+        translate('m.index.407050f322', 'Please try again.')
+      )
     }
   }, [hostId, leaveHost, forgetHostClient])
 

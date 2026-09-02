@@ -65,7 +65,9 @@ function doctorRecipe(repoPath: string, recipeId: string): DoctorResult {
   const parseCheck: EphemeralVmRecipeDoctorCheck = {
     id: 'manta_yaml.parse',
     status: hooks ? 'pass' : 'fail',
-    message: hooks ? 'manta.yaml parsed successfully.' : 'manta.yaml has no supported Manta config.',
+    message: hooks
+      ? 'manta.yaml parsed successfully.'
+      : 'manta.yaml has no supported Manta config.',
     ...(hooks ? {} : { remediation: 'Add an environmentRecipes entry to manta.yaml.' })
   }
   const result = doctorEphemeralVmRecipe({

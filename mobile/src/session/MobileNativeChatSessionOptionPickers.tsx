@@ -21,6 +21,7 @@ import {
 } from './MobileNativeChatSessionOptionRows'
 import { sortNativeChatSessionOptions } from '../../../src/shared/native-chat-session-option-snapshot'
 import type { MobileNativeChatSessionOptionsController } from './use-mobile-native-chat-session-options'
+import { translate } from '../i18n/i18n'
 
 export type MobileNativeChatSessionOptionPickersProps = {
   controller: MobileNativeChatSessionOptionsController
@@ -111,7 +112,13 @@ export function MobileNativeChatSessionOptionPickers({
                 )}
               </Pressable>
               <Text style={styles.sheetTitle}>
-                {modelView ? 'Select model' : `Select ${activeDescriptor.label.toLowerCase()}`}
+                {modelView
+                  ? translate('m.MobileNativeChatSessionOptionPickers.4a170ffab9', 'Select model')
+                  : translate(
+                      'm.MobileNativeChatSessionOptionPickers.0878f79a86',
+                      'Select {{value0}}',
+                      { value0: activeDescriptor.label.toLowerCase() }
+                    )}
               </Text>
               <View style={styles.sheetHeaderSide}>
                 {pendingId !== null ? (
@@ -120,7 +127,12 @@ export function MobileNativeChatSessionOptionPickers({
               </View>
             </View>
             {activeDescriptor.valueSource === 'dispatched' ? (
-              <SessionOptionCaption>Sent to the agent — not confirmed</SessionOptionCaption>
+              <SessionOptionCaption>
+                {translate(
+                  'm.MobileNativeChatSessionOptionPickers.ecdc66f24d',
+                  'Sent to the agent — not confirmed'
+                )}
+              </SessionOptionCaption>
             ) : null}
             {reason ? <SessionOptionCaption>{reason}</SessionOptionCaption> : null}
             <View style={styles.choiceGroup}>

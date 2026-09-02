@@ -4,7 +4,7 @@ import type { WorkspaceStatusDefinition } from '../../../src/shared/worktree/typ
 import { getCachedWorktrees } from '../cache/worktree-cache'
 import { createInitialHostRouteActionState } from '../host-route-action-state'
 import type { RpcClient } from '../transport/rpc-client'
-import { DEFAULT_MOBILE_WORKSPACE_STATUSES } from '../worktree/mobile-workspace-statuses'
+import { defaultMobileWorkspaceStatuses } from '../worktree/mobile-workspace-statuses'
 import { WorktreeCatalogSnapshotClient } from '../worktree/worktree-catalog-snapshot-client'
 import type {
   MobileGroupMode,
@@ -52,7 +52,7 @@ export function useHostScreenState(hostId: string | undefined, action: string | 
   })
   const [groupMode, setGroupMode] = useState<MobileGroupMode>('repo')
   const [workspaceStatuses, setWorkspaceStatuses] = useState<readonly WorkspaceStatusDefinition[]>(
-    DEFAULT_MOBILE_WORKSPACE_STATUSES
+    defaultMobileWorkspaceStatuses()
   )
   // displayName → repo id: filters key on repo id, but section headers/rows key on displayName, so bridge the two.
   const [repoIdsByName, setRepoIdsByName] = useState<Map<string, string>>(new Map())
@@ -77,7 +77,7 @@ export function useHostScreenState(hostId: string | undefined, action: string | 
     alwaysShowDefaultBranch: true,
     filterRepoIds: [],
     collapsedGroups: [],
-    workspaceStatuses: DEFAULT_MOBILE_WORKSPACE_STATUSES
+    workspaceStatuses: defaultMobileWorkspaceStatuses()
   })
 
   return {

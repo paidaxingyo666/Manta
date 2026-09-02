@@ -15,6 +15,7 @@ import { normalizeSshRelaySkillDestination } from '../skills/skill-ssh-relay-des
 import { installSkillOnSshHost } from '../skills/skill-ssh-relay-service'
 import type { SkillInstallRequest, SkillInstallResult } from './runtime-skill-types'
 import type { RuntimeSkillCommandHost } from './runtime-skill-command-surface'
+import { resolveSkillPackageDownloadOrigins } from '../../shared/skill-package-download-origins'
 import {
   createSkillInstallAuthority,
   folderExecutionHostId,
@@ -86,18 +87,13 @@ export class RuntimeSkillInstallCommands {
       })
     }
     await this.host.skillTransactionRecovery
-    const origins = ['https://storage.googleapis.com']
-    if (!this.host.isPackaged() && process.env.ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS) {
-      origins.push(
-        ...process.env.ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS.split(',')
-          .map((value) => value.trim())
-          .filter(Boolean)
-      )
-    }
+    const allowedDownloadOrigins = resolveSkillPackageDownloadOrigins({
+      allowLoopbackHttp: !this.host.isPackaged()
+    })
     return executeSkillInstallRequest(request, {
       authority: this.authority(),
       stateDirectory: this.userDataPath(),
-      allowedDownloadOrigins: [...new Set(origins)],
+      allowedDownloadOrigins,
       requireHttps: this.host.isPackaged(),
       resolveStagedUpload: (uploadId, identity) => this.requireUploads().take(uploadId, identity),
       detectProviders: detectInstalledAgentsWithShellPathHydration,
@@ -168,18 +164,13 @@ export class RuntimeSkillInstallCommands {
         })
       }
       await this.host.skillTransactionRecovery
-      const origins = ['https://storage.googleapis.com']
-      if (!this.host.isPackaged() && process.env.ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS) {
-        origins.push(
-          ...process.env.ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS.split(',')
-            .map((value) => value.trim())
-            .filter(Boolean)
-        )
-      }
+      const allowedDownloadOrigins = resolveSkillPackageDownloadOrigins({
+        allowLoopbackHttp: !this.host.isPackaged()
+      })
       return await executeSkillBundleInstallRequest(request, {
         authority: this.authority(),
         stateDirectory: this.userDataPath(),
-        allowedDownloadOrigins: [...new Set(origins)],
+        allowedDownloadOrigins,
         requireHttps: this.host.isPackaged(),
         resolveStagedUpload: (uploadId, identity) => this.requireUploads().take(uploadId, identity),
         detectProviders: detectInstalledAgentsWithShellPathHydration,

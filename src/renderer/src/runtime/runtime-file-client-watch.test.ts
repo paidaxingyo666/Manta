@@ -6,6 +6,7 @@ import {
   runtimeEnvironmentSubscribe,
   installRuntimeFileClientEnvironment
 } from './runtime-file-client-test-harness'
+import { setRuntimeEnvironmentConnectionGenerationForTests } from '@/store/slices/runtime-status'
 
 installRuntimeFileClientEnvironment()
 
@@ -310,6 +311,24 @@ describe('runtime file client', () => {
         timeoutMs: 5_000
       })
     )
+  })
+
+  it('opens a fresh shared watch after the runtime connection generation advances', async () => {
+    runtimeEnvironmentSubscribe.mockResolvedValue({ unsubscribe: vi.fn(), sendBinary: vi.fn() })
+    const context = {
+      settings: { activeRuntimeEnvironmentId: 'env-1' },
+      worktreeId: 'wt-1',
+      worktreePath: '/remote/repo'
+    }
+    setRuntimeEnvironmentConnectionGenerationForTests('env-1', 1)
+    const stopFirst = await subscribeRuntimeFileChanges(context, vi.fn())
+
+    setRuntimeEnvironmentConnectionGenerationForTests('env-1', 2)
+    const stopSecond = await subscribeRuntimeFileChanges(context, vi.fn())
+
+    expect(runtimeEnvironmentSubscribe).toHaveBeenCalledTimes(2)
+    stopFirst()
+    stopSecond()
   })
 
   it('delegates stopped pre-ready web shared file watch cleanup to the subscription handle', async () => {

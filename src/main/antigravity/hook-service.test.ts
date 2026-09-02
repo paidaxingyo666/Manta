@@ -84,7 +84,9 @@ describe('AntigravityHookService', () => {
       ANTIGRAVITY_PRE_INVOCATION_COMMAND
     )
     if (process.platform === 'win32') {
-      expect(config['manta-status'].PreInvocation[0].command).not.toContain('MANTA_ANTIGRAVITY_EVENT')
+      expect(config['manta-status'].PreInvocation[0].command).not.toContain(
+        'MANTA_ANTIGRAVITY_EVENT'
+      )
     } else {
       expect(config['manta-status'].PreInvocation[0].command).toContain(
         "MANTA_ANTIGRAVITY_EVENT='PreInvocation'"
@@ -260,7 +262,10 @@ describe('AntigravityHookService', () => {
         expect(command).not.toContain('cmd /d /s /c')
         expect(command).not.toContain('MANTA_ANTIGRAVITY_EVENT')
 
-        const wrapper = readFileSync(join(homeDir, '.manta', 'agent-hooks', wrapperFileName), 'utf8')
+        const wrapper = readFileSync(
+          join(homeDir, '.manta', 'agent-hooks', wrapperFileName),
+          'utf8'
+        )
         expect(wrapper).toContain(`set "MANTA_ANTIGRAVITY_EVENT=${eventName}"`)
         expect(wrapper).toContain('call "%MANTA_ANTIGRAVITY_CORE%"')
         // Why: the wrapper is the stdin owner when the core script is gone, so it must answer the gate itself.

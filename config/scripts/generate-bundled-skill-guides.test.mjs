@@ -77,10 +77,10 @@ describe('bundled skill guide generator', () => {
     const expectedFallbackCommands = {
       'computer-use': ['MANTA computer capabilities --json', 'MANTA computer list-apps --json'],
       'linear-tickets': ['MANTA linear --help', 'MANTA linear issue --current --full --json'],
-      'orca-emulator': ['MANTA emulator list --json'],
-      'orca-emulator-android': ['MANTA emulator devices --json'],
-      'orca-linear': ['MANTA linear --help', 'MANTA linear issue --current --full --json'],
-      'orca-per-workspace-env': ['MANTA vm recipe doctor <recipe-id> --repo-path <repo> --json'],
+      'manta-emulator': ['MANTA emulator list --json'],
+      'manta-emulator-android': ['MANTA emulator devices --json'],
+      'manta-linear': ['MANTA linear --help', 'MANTA linear issue --current --full --json'],
+      'manta-per-workspace-env': ['MANTA vm recipe doctor <recipe-id> --repo-path <repo> --json'],
       orchestration: ['MANTA orchestration task-list --json', 'MANTA terminal list --json']
     }
 
@@ -105,7 +105,7 @@ describe('bundled skill guide generator', () => {
     expect(source).toContain('MANTA_RECIPE_ID')
     expect(source).not.toContain('MANTA_VM_RECIPE_ID')
     expect(source).toContain('recipe_id="${recipe_id//./-}"')
-    expect(source).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 6))')
+    expect(source).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 7))')
     expect(source).toContain('name="manta-${recipe_id:0:max_recipe_id_length}-${instance_id}"')
   })
 
@@ -200,7 +200,7 @@ describe('bundled skill guide generator', () => {
   })
 
   it('keeps CLI guide examples safe across shells and Linux command names', async () => {
-    for (const name of ['orca-cli', 'computer-use', 'orca-emulator', 'orca-emulator-android']) {
+    for (const name of ['manta-cli', 'computer-use', 'manta-emulator', 'manta-emulator-android']) {
       const source = await readFile(path.join(projectDir, 'skill-guides', `${name}.md`), 'utf8')
 
       expect(source).toContain('MANTA_CLI_COMMAND')

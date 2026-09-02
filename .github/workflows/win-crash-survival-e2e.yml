@@ -130,7 +130,7 @@ jobs:
         id: harness
         shell: pwsh
         env:
-          ORCA_E2E_DIAG_DIR: artifacts/diag
+          MANTA_E2E_DIAG_DIR: artifacts/diag
         run: |
           New-Item -ItemType Directory -Force artifacts | Out-Null
           $log = "artifacts/crash-survival-output.log"

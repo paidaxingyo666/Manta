@@ -6,7 +6,6 @@ import { ChevronLeft, RefreshCw } from 'lucide-react-native'
 import { colors } from '../theme/mobile-theme'
 import { useHostClient } from '../transport/client-context'
 import type { RpcSuccess } from '../transport/types'
-import type { RpcClient } from '../transport/rpc-client'
 import { readMobileRuntimeHostPlatform } from '../transport/mobile-runtime-host-platform'
 import { getWorktreeLabel } from '../session/worktree-label'
 import {
@@ -14,13 +13,9 @@ import {
   createMobileAiVaultResumeMutationRegistry,
   readMobileRuntimeTerminalWindowsShell,
   resolveMobileAiVaultResumePlatform,
-  resumeAiVaultSessionInTerminal,
-  type MobileAiVaultResumeSettings
+  resumeAiVaultSessionInTerminal
 } from '../session/ai-vault-resume-launch'
-import {
-  prepareMobileAiVaultSessionResume,
-  RESUME_RPC_TIMEOUT_MS
-} from '../session/ai-vault-resume-preparation'
+import { prepareMobileAiVaultSessionResume } from '../session/ai-vault-resume-preparation'
 import { triggerError, triggerSuccess } from '../platform/haptics'
 import type { AiVaultScope, AiVaultSession } from '../../../src/shared/ai-vault-types'
 import type { Worktree } from '../worktree/workspace-list-types'
@@ -28,14 +23,15 @@ import { useMobileAgentHistoryState } from './use-mobile-agent-history-state'
 import { buildMobileAgentHistorySections } from './agent-history-sections'
 import { shouldShowMobileCurrentWorktreeBadge } from './agent-history-current-worktree-badge'
 import { MobileAgentSessionHistoryList } from './MobileAgentSessionHistoryList'
-import {
-  resolveMobileAiVaultSessionResumeTarget,
-  type MobileAiVaultResumeFolderWorkspace,
-  type MobileAiVaultResumeProjectGroup,
-  type MobileAiVaultResumeRepo
-} from './agent-history-resume-target'
+import { resolveMobileAiVaultSessionResumeTarget } from './agent-history-resume-target'
 import { buildMobileAgentHistoryResumeActionState } from './agent-history-session-card'
 import { styles } from './agent-history-styles'
+import { translate } from '../i18n/i18n'
+import { localizedConstant } from '../i18n/localized-constant'
+import {
+  createMobileAiVaultResumeMutationId,
+  loadMobileResumeMetadata
+} from './mobile-resume-metadata'
 import { useNow } from '../hooks/use-now'
 
 export type MobileAgentSessionHistoryPanelProps = {
@@ -44,11 +40,20 @@ export type MobileAgentSessionHistoryPanelProps = {
   name?: string
 }
 
-const SCOPE_TABS: { scope: AiVaultScope; label: string }[] = [
-  { scope: 'workspace', label: 'Workspace' },
-  { scope: 'project', label: 'Project' },
-  { scope: 'all', label: 'All' }
-]
+const scopeTabs = localizedConstant((): { scope: AiVaultScope; label: string }[] => [
+  {
+    scope: 'workspace',
+    label: translate('m.MobileAgentSessionHistoryPanel.d24e997219', 'Workspace')
+  },
+  {
+    scope: 'project',
+    label: translate('m.MobileAgentSessionHistoryPanel.76181e3ffa', 'Project')
+  },
+  {
+    scope: 'all',
+    label: translate('m.MobileAgentSessionHistoryPanel.adc3dfc6d1', 'All')
+  }
+])
 
 export function MobileAgentSessionHistoryPanel({
   hostId,
@@ -255,7 +260,10 @@ export function MobileAgentSessionHistoryPanel({
           </Pressable>
           <View style={styles.titleBlock}>
             <Text style={styles.title} numberOfLines={1}>
-              Agent Session History
+              {translate(
+                'm.MobileAgentSessionHistoryPanel.cf628e5d91',
+                'Agent Session History'
+              )}{' '}
             </Text>
             <Text style={styles.meta} numberOfLines={1}>
               {worktreeLabel}
@@ -278,23 +286,35 @@ export function MobileAgentSessionHistoryPanel({
         </View>
       ) : screenState.kind === 'unsupported' ? (
         <View style={styles.state}>
-          <Text style={styles.stateTitle}>Agent Session History Unavailable</Text>
+          <Text style={styles.stateTitle}>
+            {translate(
+              'm.MobileAgentSessionHistoryPanel.c9196c1d89',
+              'Agent Session History Unavailable'
+            )}
+          </Text>
           <Text style={styles.stateText}>
-            Update Manta on this host to browse agent session history.
+            {translate(
+              'm.MobileAgentSessionHistoryPanel.1c6ecaac69',
+              'Update Manta on this host to browse agent session history.'
+            )}{' '}
           </Text>
         </View>
       ) : screenState.kind === 'error' ? (
         <View style={styles.state}>
-          <Text style={styles.stateTitle}>Unable to Load</Text>
+          <Text style={styles.stateTitle}>
+            {translate('m.MobileAgentSessionHistoryPanel.205877f249', 'Unable to Load')}
+          </Text>
           <Text style={styles.stateText}>{screenState.message}</Text>
           <Pressable style={styles.retryButton} onPress={retry}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>
+              {translate('m.MobileAgentSessionHistoryPanel.ece2f4dedf', 'Retry')}
+            </Text>
           </Pressable>
         </View>
       ) : (
         <>
           <View style={styles.scopeTabs}>
-            {SCOPE_TABS.map((tab) => {
+            {scopeTabs().map((tab) => {
               const active = scope === tab.scope
               return (
                 <Pressable
@@ -314,7 +334,10 @@ export function MobileAgentSessionHistoryPanel({
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
-              placeholder="Search sessions, repo:, path:"
+              placeholder={translate(
+                'm.MobileAgentSessionHistoryPanel.51cef69b11',
+                'Search sessions, repo:, path:'
+              )}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -323,7 +346,11 @@ export function MobileAgentSessionHistoryPanel({
           {issues.length > 0 ? (
             <View style={styles.noticeBanner}>
               <Text style={styles.noticeText}>
-                {issues.length} {issues.length === 1 ? 'transcript' : 'transcripts'} skipped
+                {issues.length}{' '}
+                {issues.length === 1
+                  ? translate('m.MobileAgentSessionHistoryPanel.ddb3315bf5', 'transcript')
+                  : translate('m.MobileAgentSessionHistoryPanel.5820d160a5', 'transcripts')}{' '}
+                {translate('m.MobileAgentSessionHistoryPanel.94da199071', 'skipped')}{' '}
               </Text>
             </View>
           ) : null}
@@ -334,9 +361,19 @@ export function MobileAgentSessionHistoryPanel({
           ) : null}
           {sections.length === 0 ? (
             <View style={styles.state}>
-              <Text style={styles.stateTitle}>No agent sessions</Text>
+              <Text style={styles.stateTitle}>
+                {translate('m.MobileAgentSessionHistoryPanel.2a48123bc9', 'No agent sessions')}
+              </Text>
               <Text style={styles.stateText}>
-                {query ? 'No sessions match your search.' : 'No past agent sessions in this scope.'}
+                {query
+                  ? translate(
+                      'm.MobileAgentSessionHistoryPanel.5fcef8f07b',
+                      'No sessions match your search.'
+                    )
+                  : translate(
+                      'm.MobileAgentSessionHistoryPanel.2fff2aa6b2',
+                      'No past agent sessions in this scope.'
+                    )}
               </Text>
             </View>
           ) : (
@@ -358,70 +395,3 @@ export function MobileAgentSessionHistoryPanel({
 
 const EMPTY_SESSIONS: AiVaultSession[] = []
 const EMPTY_ISSUES: { agent: AiVaultSession['agent']; path: string; message: string }[] = []
-
-async function loadMobileResumeMetadata(client: Pick<RpcClient, 'sendRequest'>): Promise<{
-  repos: MobileAiVaultResumeRepo[]
-  folderWorkspaces: MobileAiVaultResumeFolderWorkspace[]
-  projectGroups: MobileAiVaultResumeProjectGroup[]
-  settings: MobileAiVaultResumeSettings | null
-  worktrees: Worktree[] | null
-}> {
-  // Why: repo.list can enrich repo remote identities, so fetch resume-only
-  // metadata after explicit user intent instead of delaying history browsing.
-  // timeoutMs: without it a socket drop parks these on the reconnect waiter
-  // for minutes, pinning the resume spinner (see RESUME_RPC_TIMEOUT_MS).
-  const [
-    repoResponse,
-    folderWorkspaceResponse,
-    projectGroupResponse,
-    settingsResponse,
-    worktreeResponse
-  ] = await Promise.all([
-    client.sendRequest('repo.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS }),
-    client
-      .sendRequest('folderWorkspace.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    client
-      .sendRequest('projectGroup.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    client
-      .sendRequest('settings.get', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    client
-      .sendRequest('worktree.ps', { limit: 10000 }, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null)
-  ])
-  if (!repoResponse.ok) {
-    throw new Error(repoResponse.error?.message || 'Unable to load workspace metadata.')
-  }
-  const repoResult = repoResponse.result as { repos?: MobileAiVaultResumeRepo[] }
-  const folderWorkspaceResult =
-    folderWorkspaceResponse?.ok === true
-      ? (folderWorkspaceResponse.result as {
-          folderWorkspaces?: MobileAiVaultResumeFolderWorkspace[]
-        })
-      : null
-  const projectGroupResult =
-    projectGroupResponse?.ok === true
-      ? (projectGroupResponse.result as { groups?: MobileAiVaultResumeProjectGroup[] })
-      : null
-  const settingsResult =
-    settingsResponse?.ok === true
-      ? (settingsResponse.result as { settings?: MobileAiVaultResumeSettings })
-      : null
-  const worktreeResult =
-    worktreeResponse?.ok === true ? (worktreeResponse.result as { worktrees?: Worktree[] }) : null
-  return {
-    repos: repoResult.repos ?? [],
-    folderWorkspaces: folderWorkspaceResult?.folderWorkspaces ?? [],
-    projectGroups: projectGroupResult?.groups ?? [],
-    settings: settingsResult?.settings ?? null,
-    worktrees: worktreeResult?.worktrees ?? null
-  }
-}
-
-function createMobileAiVaultResumeMutationId(sessionId: string): string {
-  const sessionPart = sessionId.replace(/[^a-zA-Z0-9_.:-]/g, '_').slice(0, 64) || 'session'
-  const randomPart = Math.random().toString(36).slice(2, 10)
-  return `ai-vault-resume:${sessionPart}:${Date.now().toString(36)}:${randomPart}`
-}

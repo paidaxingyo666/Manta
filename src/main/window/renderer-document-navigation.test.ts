@@ -28,7 +28,7 @@ describe('renderer document navigation', () => {
   it('accepts the packaged renderer document but not a blocked external load', () => {
     const fixture = createFixture('file:///opt/manta/renderer/index.html')
 
-    fixture.navigate?.({}, 'https://github.com/stablyai/orca/issues', false, true)
+    fixture.navigate?.({}, 'https://github.com/stablyai/manta/issues', false, true)
     expect(fixture.onStarted).not.toHaveBeenCalled()
     fixture.navigate?.({}, 'file:///opt/manta/renderer/index.html?reload=1', false, true)
     expect(fixture.onStarted).toHaveBeenCalledOnce()

@@ -27,7 +27,8 @@ vi.mock('./ssh-remote-node-resolution', () => ({
 }))
 vi.mock('./ssh-relay-versioned-install', () => ({
   readLocalFullVersion: vi.fn().mockReturnValue('0.1.0+gc-retry'),
-  computeRemoteRelayDir: (home: string, version: string) => `${home}/.manta-remote/relay-${version}`,
+  computeRemoteRelayDir: (home: string, version: string) =>
+    `${home}/.manta-remote/relay-${version}`,
   isRelayAlreadyInstalled: vi.fn().mockResolvedValue(true),
   finalizeInstall: vi.fn(),
   abandonInstall: vi.fn(),

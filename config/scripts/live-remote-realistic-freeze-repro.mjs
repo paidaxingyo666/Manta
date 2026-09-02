@@ -55,7 +55,10 @@ const hardMs = readFreezeNumberEnv('MANTA_FREEZE_HARD_MS', DEFAULT_HARD_MS)
 const stormParallel = Math.max(1, readFreezeNumberEnv('MANTA_FREEZE_STORM_PARALLEL', 16))
 /** Kill a switch if it exceeds this — counts toward permanent lockup. */
 const opTimeoutMs = Math.max(10_000, readFreezeNumberEnv('MANTA_FREEZE_OP_TIMEOUT_MS', 60_000))
-const permanentTimeoutMs = Math.max(15_000, readFreezeNumberEnv('MANTA_FREEZE_PERMANENT_MS', 60_000))
+const permanentTimeoutMs = Math.max(
+  15_000,
+  readFreezeNumberEnv('MANTA_FREEZE_PERMANENT_MS', 60_000)
+)
 const foreverWindowMs = Math.max(
   10_000,
   readFreezeNumberEnv('MANTA_FREEZE_FOREVER_WINDOW_MS', DEFAULT_FOREVER_WINDOW_MS)

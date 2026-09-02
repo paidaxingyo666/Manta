@@ -87,7 +87,7 @@ function createHarness(
   const releaseRouteSession = vi.fn(() => {})
   const releaseNetworkRoute = vi.fn(async () => {})
   const executor = new BrowserClientPageCommandExecutor({
-    mantaProfileId: 'manta-profile-a',
+    mantaProfileId: 'orca-profile-a',
     authorityConnectionIdentity: 'authority-a',
     retainNetworkRoute: async () => ({
       key: 'execution-a',

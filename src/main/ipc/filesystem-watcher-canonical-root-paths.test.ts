@@ -116,7 +116,9 @@ describe('local filesystem watcher canonical root paths', () => {
         { path: resolve('/tmp/manta-case/Repo/src/agent-edit.ts'), type: 'update' }
       ])
 
-      expect(payload.events[0]!.absolutePath).toBe(resolve('/tmp/manta-case/repo/src/agent-edit.ts'))
+      expect(payload.events[0]!.absolutePath).toBe(
+        resolve('/tmp/manta-case/repo/src/agent-edit.ts')
+      )
     }
   )
 

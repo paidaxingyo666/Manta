@@ -735,7 +735,11 @@ test('restores a paired nested SSH route after the HUB restarts', async ({
     )
     expect(afterRestartWithoutRepair.runtimeOwnerEnvironmentId).toBe(preRestartEnvironmentId)
     expect(
-      await readRemoteShellPid(client, afterRestartWithoutRepair.ptyId, 'MANTA_SHELL_AFTER_RESTART_')
+      await readRemoteShellPid(
+        client,
+        afterRestartWithoutRepair.ptyId,
+        'MANTA_SHELL_AFTER_RESTART_'
+      )
     ).toBe(shellPidBeforeRestart)
 
     const restartedOffer = await createRuntimeDesktopPairingOffer(hubLaunch.page)

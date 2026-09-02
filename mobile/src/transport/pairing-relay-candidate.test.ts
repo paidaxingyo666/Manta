@@ -171,7 +171,7 @@ describe('recovering pairing relay candidate', () => {
     const sleep = vi.fn(async () => {})
     const resolveDirector = vi.fn(async (relay) => {
       throw new RelayDirectorMoveNotNewerError({
-        cellUrl: 'https://relay-c2.manta.sh.cn',
+        cellUrl: 'https://relay-c2.onorca.dev',
         assignmentEpoch: relay.assignmentEpoch,
         currentCellUrl: relay.cellUrl,
         currentAssignmentEpoch: relay.assignmentEpoch
@@ -202,7 +202,7 @@ describe('recovering pairing relay candidate', () => {
     const stale = client(Promise.reject(new RelayOuterError(1006)))
     const resolveDirector = vi.fn(async (relay) => {
       throw new RelayDirectorMoveNotNewerError({
-        cellUrl: 'https://relay-c2.manta.sh.cn',
+        cellUrl: 'https://relay-c2.onorca.dev',
         assignmentEpoch: relay.assignmentEpoch - 1,
         currentCellUrl: relay.cellUrl,
         currentAssignmentEpoch: relay.assignmentEpoch

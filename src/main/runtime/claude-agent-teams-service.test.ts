@@ -14,7 +14,7 @@ function createServiceWithLeader(): {
     leaderHandle: 'leader-handle',
     baseEnv: { PATH: '/usr/bin' },
     shimDir: '/tmp/manta-shim',
-    shimBin: '/usr/bin/orca'
+    shimBin: '/usr/bin/manta'
   })
   expect(launch.env.MANTA_AGENT_TEAMS_SHIM_DIR).toBe('/tmp/manta-shim')
   const splitCalls: { handle: string; direction?: string; command?: string; envPane?: string }[] =

@@ -31,9 +31,9 @@ function placement(
 
 describe('groupSkillFreshness', () => {
   it('marks an eligible outdated skill as update-available with one location', () => {
-    const groups = groupSkillFreshness([placement('orca-cli')], ['orca-cli'])
+    const groups = groupSkillFreshness([placement('manta-cli')], ['manta-cli'])
     expect(groups).toHaveLength(1)
-    expect(groups[0]).toMatchObject({ name: 'orca-cli', status: 'update-available' })
+    expect(groups[0]).toMatchObject({ name: 'manta-cli', status: 'update-available' })
     expect(groups[0]?.locations).toEqual([
       {
         id: expect.any(String),
@@ -47,8 +47,8 @@ describe('groupSkillFreshness', () => {
   it('hides skills whose every copy is current', () => {
     const groups = groupSkillFreshness(
       [
-        placement('orca-cli', { status: 'current' }),
-        placement('orca-cli', { status: 'current', topology: 'provider-alias' })
+        placement('manta-cli', { status: 'current' }),
+        placement('manta-cli', { status: 'current', topology: 'provider-alias' })
       ],
       []
     )

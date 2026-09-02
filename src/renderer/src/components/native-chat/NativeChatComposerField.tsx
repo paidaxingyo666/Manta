@@ -57,6 +57,7 @@ export type NativeChatComposerImageAttachment = {
   id: string
   path: string
   connectionId?: string
+  ownerIdentity?: string
 }
 
 /**
@@ -183,7 +184,7 @@ export function NativeChatComposerField({
             )}
           >
             {imageAttachments.length > 0 ? (
-              <div className="mb-2 flex flex-wrap gap-2 px-1 pt-1.5">
+              <div className="scrollbar-sleek mb-2 flex max-h-36 flex-wrap content-start gap-2 overflow-y-auto px-1 pt-1.5 pr-2">
                 {imageAttachments.map((attachment) => (
                   <NativeChatImageAttachmentPreview
                     key={attachment.id}

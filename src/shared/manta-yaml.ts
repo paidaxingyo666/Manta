@@ -165,7 +165,11 @@ function normalizeVmRecipes(value: unknown): VmRecipeParseResult {
       seenIds.add(id)
       const description = asTrimmedString(record.description)
       const checkoutMode = asTrimmedString(record.checkoutMode)
-      if (checkoutMode && checkoutMode !== 'manta-worktree' && checkoutMode !== 'provisioned-root') {
+      if (
+        checkoutMode &&
+        checkoutMode !== 'manta-worktree' &&
+        checkoutMode !== 'provisioned-root'
+      ) {
         diagnostics.push({
           index,
           field: 'checkoutMode',

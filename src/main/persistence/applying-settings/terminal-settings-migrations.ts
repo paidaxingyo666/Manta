@@ -124,8 +124,7 @@ export function migrateAgentYoloDefaults(
   const existingArgs = normalizeTuiAgentArgsRecord(settings?.agentDefaultArgs)
   const existingEnv = normalizeTuiAgentEnvRecord(settings?.agentDefaultEnv)
   if (settings?.agentYoloDefaultsMigrated === true) {
-    // Keep newly added agents manual for profiles migrated by an older build.
-    // Missing keys otherwise fall through to the current (possibly yolo) defaults.
+    // Keep new agents manual because missing keys fall through to current defaults.
     for (const agent of Object.keys(DEFAULT_TUI_AGENT_ARGS)) {
       if (!(agent in existingArgs)) {
         existingArgs[agent as keyof typeof DEFAULT_TUI_AGENT_ARGS] = ''

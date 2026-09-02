@@ -16,6 +16,7 @@ import {
   LINEAR_DISPLAY_OPTIONS,
   SORT_OPTIONS
 } from './mobile-tasks-legacy-foundation'
+import { translate } from '../i18n/i18n'
 
 export function renderMobileTasksLinearViewPicker(model: ConnectionPresentationModel) {
   const {
@@ -28,8 +29,8 @@ export function renderMobileTasksLinearViewPicker(model: ConnectionPresentationM
   return (
     <PickerModal
       visible={taskUiReady && showLinearViewPicker}
-      title="Linear View"
-      options={LINEAR_VIEW_OPTIONS}
+      title={translate('m.tasks.e7dfe89092', 'Linear View')}
+      options={LINEAR_VIEW_OPTIONS()}
       selected={linearViewMode}
       onSelect={setLinearViewMode}
       onClose={() => setShowLinearViewPicker(false)}
@@ -48,8 +49,8 @@ export function renderMobileTasksLinearGroupPicker(model: ConnectionPresentation
   return (
     <PickerModal
       visible={taskUiReady && showLinearGroupPicker}
-      title="Group Linear Issues"
-      options={LINEAR_GROUP_OPTIONS}
+      title={translate('m.tasks.e308c78c55', 'Group Linear Issues')}
+      options={LINEAR_GROUP_OPTIONS()}
       selected={linearGroupBy}
       onSelect={setLinearGroupBy}
       onClose={() => setShowLinearGroupPicker(false)}
@@ -68,8 +69,8 @@ export function renderMobileTasksLinearOrderPicker(model: ConnectionPresentation
   return (
     <PickerModal
       visible={taskUiReady && showLinearOrderPicker}
-      title="Order Linear Issues"
-      options={LINEAR_ORDER_OPTIONS}
+      title={translate('m.tasks.b24b2505c1', 'Order Linear Issues')}
+      options={LINEAR_ORDER_OPTIONS()}
       selected={linearOrderBy}
       onSelect={setLinearOrderBy}
       onClose={() => setShowLinearOrderPicker(false)}
@@ -92,10 +93,12 @@ export function renderMobileTasksLinearDisplayPicker(model: ConnectionPresentati
       onClose={() => setShowLinearDisplayPicker(false)}
     >
       <View style={styles.sheetHeader}>
-        <Text style={styles.sheetTitle}>Display Properties</Text>
+        <Text style={styles.sheetTitle}>
+          {translate('m.tasks.2618a68b59', 'Display Properties')}
+        </Text>
       </View>
       <View style={styles.repoPickerGroup}>
-        {LINEAR_DISPLAY_OPTIONS.map((property, index) => {
+        {LINEAR_DISPLAY_OPTIONS().map((property, index) => {
           const selected = effectiveLinearDisplayProperties.has(property.value)
           return (
             <View key={property.value}>
@@ -135,8 +138,8 @@ export function renderMobileTasksSortPicker(model: ConnectionPresentationModel) 
   return (
     <PickerModal
       visible={taskUiReady && showSortPicker}
-      title="Sort Tasks"
-      options={SORT_OPTIONS}
+      title={translate('m.tasks.4282de9552', 'Sort Tasks')}
+      options={SORT_OPTIONS()}
       selected={taskSort}
       onSelect={setTaskSort}
       onClose={() => setShowSortPicker(false)}

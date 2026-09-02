@@ -316,6 +316,10 @@
             "f518e89aa5": "该项目已存在于那个配置文件中",
             "f03ae7f27b": "转移项目失败"
           }
+        },
+        "mantaRelayHosts": {
+          "forgotten": "已从中继移除该设备",
+          "forgetFailed": "无法移除该设备"
         }
       }
     },
@@ -965,7 +969,6 @@
         "58c73cb0d8": "无法更新描述。",
         "5221548274": "描述已更新。",
         "06c06e58ba": "显示下面更多行",
-        "307c98e8e3": "在上面显示 {{value0}} 更多行",
         "5664681624": "显示上面的更多行",
         "b1574e8ac2": "重置代码上下文",
         "d43736d09c": "代码上下文控制",
@@ -1055,7 +1058,11 @@
           "activity": "活动",
           "noActivity": "暂无活动。"
         },
-        "checkActionRequiredHint": "此检查需要在 GitHub 上执行手动操作（例如批准工作流运行）后才能解除合并阻止。"
+        "checkActionRequiredHint": "此检查需要在 GitHub 上执行手动操作（例如批准工作流运行）后才能解除合并阻止。",
+        "307c98e8e3": {
+          "24fdee": "在上面显示 {{value0}} 更多行",
+          "752457": "显示下面更多 {{value0}} 行"
+        }
       },
       "GitLabItemDialog": {
         "65e784c1f1": "重新打开",
@@ -2400,7 +2407,6 @@
               "ee3d2caabd": "议题",
               "5f79bc76b0": "返回项目",
               "aac9a4afc6": "在 Linear 中打开",
-              "7616c986c6": "打开 {{value0}} 议题",
               "93e1f6bfca": "加载中",
               "98730088a6": "。在 Linear 中搜索或打开以查看完整列表。",
               "06b887d622": "首先显示",
@@ -2418,7 +2424,11 @@
               "df4bd63c1d": "未分配",
               "30402d2c6e": "尝试搜索或刷新。",
               "a2f31c4cd6": "未找到 Linear 项目",
-              "c9b6e9f90d": "无法加载 Linear 项目"
+              "c9b6e9f90d": "无法加载 Linear 项目",
+              "7616c986c6": {
+                "ac1f4e": "打开 {{value0}} 议题",
+                "5eb5e9": "在 Linear 中打开 {{value0}}"
+              }
             }
           }
         },
@@ -2834,14 +2844,17 @@
               "handler": {
                 "1e072f611e": "无法上传 {{value0}} {{value1}}。",
                 "53f015fd85": "跳过 {{value0}} 符号链接 {{value1}}。",
-                "29c031b49a": "正在上传 {{value0}} 文件{{value1}} 到运行时...",
                 "0c77693641": "工作树尚未准备好 - 请稍后再试。",
                 "ce8248b835": "工作树路径不可用。",
                 "internalTooManyPaths": "拖放的路径过多，无法安全粘贴到终端。",
                 "internalPathsTooLarge": "拖放的路径列表过大，无法安全粘贴到终端。",
                 "b4cf68e889": "已跳过 {{value0}} {{value1}}。",
                 "writeTimeout": "文件拖放已取消：终端在安全超时前未接受路径。",
-                "writeRejected": "文件拖放已取消：终端无法接受路径。"
+                "writeRejected": "文件拖放已取消：终端无法接受路径。",
+                "29c031b49a": {
+                  "e09913": "正在上传 {{value0}} 文件{{value1}} 到运行时...",
+                  "ac0575": "正在向远端上传 {{value0}} 个文件{{value1}}…"
+                }
               }
             }
           },
@@ -2898,6 +2911,10 @@
             "retryingBody": "Manta 将重试最多一分钟。如果连接恢复，此终端将恢复。",
             "disconnectedBody": "自动重试已停止。重新连接以恢复此终端会话。",
             "reconnectButton": "重新连接"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- 会话已恢复 ---",
+            "139e3d1083": "--- 上一个会话不可用,已重新开始 ---"
           }
         }
       },
@@ -2960,7 +2977,10 @@
             "1d04b1630b": "向下拆分",
             "6b3efb106e": "向上拆分",
             "fdd29eb669": "固定标签",
-            "8e9d603a09": "取消固定标签"
+            "8e9d603a09": "取消固定标签",
+            "fe23001e60": "打开所在文件夹",
+            "3da91e073d": "在文件资源管理器中显示",
+            "6ffb7f7bce": "在访达中显示"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "智能体设置...",
@@ -3251,6 +3271,16 @@
             "autoDescription": "智能体工作时防止电脑进入睡眠状态",
             "offDescription": "允许系统正常进入睡眠状态"
           },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "上一次连接已断开",
+            "workspace_window_closed": "工作区窗口已关闭",
+            "checking_host": "Manta 正在检查此主机是否可达",
+            "restoring_connection": "Manta 正在尝试恢复连接",
+            "host_unreachable": "无法连接此主机上的 Manta",
+            "contact_note": "主机可能仍在运行；当前仅 Manta 连接不可用。",
+            "last_connected": "上次连接：{{value0}}",
+            "reconnect_attempt": "第 {{value0}} 次尝试"
+          },
           "StatusBar": {
             "9659e38343": "端口",
             "d1e1a7a6bf": "资源管理器",
@@ -3346,8 +3376,11 @@
             "2837dc7c72": "取消",
             "0583c806ac": "不扫描工作区磁盘使用情况。",
             "39786e3b73": "扫描工作区大小。",
-            "bef4dc0457": "{{value0}} 可回收 · {{value1}} 不可用",
-            "3d8d47ce77": "{{value0}} · 保留最后的结果"
+            "3d8d47ce77": "{{value0}} · 保留最后的结果",
+            "bef4dc0457": {
+              "02d421": "{{value0}} 可回收 · {{value1}} 不可用",
+              "db101b": "{{value0}} 可回收 · {{value1}} 个工作区"
+            }
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "强制删除失败",
@@ -3766,7 +3799,7 @@
         "share": {
           "card": {
             "utils": {
-              "19f4b4dc75": "github.com/stablyai/orca",
+              "19f4b4dc75": "github.com/stablyai/manta",
               "d864fc5f98": "输出",
               "5d66fdd7c2": "输入",
               "7080aeaebb": "推理",
@@ -4396,7 +4429,9 @@
           "69969ba364": "正在发送...",
           "imageReadFailed": "无法读取附加的图片。请重新附加。",
           "attachWhileSending": "请等待当前反馈发送完成，再附加更多图片。",
-          "imagesNotDelivered": "反馈已发送，但无法确认图片已送达。"
+          "imagesNotDelivered": "反馈已发送，但无法确认图片已送达。",
+          "selfHostedNotice": "这个自建版本没有反馈服务器。你在这里写的内容，连同下方的版本信息，会一并带进一个 GitHub issue。截图请在 GitHub 页面上直接拖进去。",
+          "openGitHubIssue": "提交 GitHub issue"
         },
         "SidebarFilter": {
           "e3b3898218": "添加项目",
@@ -4455,7 +4490,6 @@
         "SidebarSettingsHelpMenu": {
           "ad3d3ed7f1": "重启 Manta",
           "29c56f30ee": "检查更新",
-          "eb9884e55b": "Discord",
           "5687ab246a": "GitHub",
           "5f83d86d92": "变更日志",
           "cdc87f897e": "文档",
@@ -4467,8 +4501,7 @@
           "5161eef55d": "正在重启 Manta…",
           "d396773ef0": "检查中",
           "f8a2c91d4e": "里程碑",
-          "b7e4d2a19c": "入门引导",
-          "c4f8e1b72a": "X"
+          "b7e4d2a19c": "入门引导"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "打开文件夹选择器以添加项目",
@@ -4499,7 +4532,6 @@
           "7bada3b1ab": "排序方式",
           "dc0bb670bc": "分组依据",
           "9919ae1082": "工作区选项",
-          "bc96dbd041": "工作区选项 ({{value0}})",
           "af9249c505": "最近的工作区活动",
           "b451c8b162": "最近的",
           "6664282a7b": "拖动项目进行排列",
@@ -4544,7 +4576,11 @@
           "219ebf1961": "分支名称",
           "automation": "自动化",
           "folderPathIdentity": "分支 / 文件夹路径",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "bc96dbd041": {
+            "5de9a9": "工作区选项 ({{value0}})",
+            "d8404d": "工作区选项({{value0}} 个活动)"
+          }
         },
         "SshTargetRow": {
           "4677394048": "正在连接…",
@@ -4566,13 +4602,16 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "添加状态",
           "054cb50df7": "删除 {{value0}}",
-          "b45b350eb0": "向左手机 {{value0}}",
           "8ce44af9a8": "重命名 {{value0}}",
           "395e541d5d": "状态",
           "34f03eb0de": "董事会设置",
           "26cbc92150": "工作区板设置",
           "87d24a0c2f": "同步看板和议题状态",
-          "4c2eaa78cc": "移动已关联的工作区时，如果存在匹配的工作流状态，将更新其 Linear 议题状态。"
+          "4c2eaa78cc": "移动已关联的工作区时，如果存在匹配的工作流状态，将更新其 Linear 议题状态。",
+          "b45b350eb0": {
+            "9bb3fd": "向左手机 {{value0}}",
+            "a4b8c6": "将 {{value0}} 右移"
+          }
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "空的",
@@ -4580,11 +4619,14 @@
           "2df01a03ff": "没有匹配项"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "将 {{value0}} 颜色设置为 {{value1}}",
           "8be427206b": "图标",
           "2ac106f6b2": "颜色",
           "74b1413279": "外观",
-          "ccbd1e2c69": "自定义 {{value0}} 外观"
+          "ccbd1e2c69": "自定义 {{value0}} 外观",
+          "514be2f569": {
+            "a9ca01": "将 {{value0}} 颜色设置为 {{value1}}",
+            "dd358d": "将 {{value0}} 图标设为 {{value1}}"
+          }
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}} 已存在。",
@@ -5494,7 +5536,9 @@
           "8b7a8df299": "支持故障排除的低级解决方法。",
           "8d8d8ac599": "兼容性",
           "network": "网络",
-          "networkDescription": "用于代理和企业环境的应用级网络路由。"
+          "networkDescription": "用于代理和企业环境的应用级网络路由。",
+          "mantaCloud": "Manta 云",
+          "mantaCloudDescription": "使用自建的登录与中继服务器,替代官方服务。"
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL 默认值",
@@ -6699,7 +6743,6 @@
           "waitForSetupBeforeAgentHelp": "如果设置会安装依赖、MCP 服务器或智能体启动时需要的配置文件，请开启此选项。"
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "使用 {{value0}} 仓库颜色",
           "fde066a63b": "PNG 上传必须为 256KB 或更小。",
           "cc1286e263": "网站图标",
           "03ca1a4e9b": "example.com",
@@ -6721,7 +6764,11 @@
           "868c5c9b56": "无法导入仓库图标",
           "emojiTooLongForRepoIcon": "此表情符号无法用作仓库图标。",
           "currentEmojiSelection": "当前：{{value0}}",
-          "searchEmojiPlaceholder": "搜索表情符号"
+          "searchEmojiPlaceholder": "搜索表情符号",
+          "2b7d27b93c": {
+            "cd676f": "使用 {{value0}} 仓库颜色",
+            "59fda8": "使用 {{value0}} 仓库图标"
+          }
         },
         "RepositoryPane": {
           "15a99d9b9f": "相对路径从该项目根解析。",
@@ -6764,7 +6811,6 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git 仓库",
           "setupKindFolder": "文件夹",
-          "settingUpHost": "导入中...",
           "setupHost": "导入",
           "cloningHost": "克隆中...",
           "cloneHost": "克隆",
@@ -6799,7 +6845,11 @@
           "show": "显示",
           "hide": "隐藏",
           "externalWorktreesGlobal": "全局默认值：{{value0}}",
-          "useGlobal": "使用全局设置"
+          "useGlobal": "使用全局设置",
+          "settingUpHost": {
+            "b7353a": "导入中...",
+            "268c06": "添加..."
+          }
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "提示词模板",
@@ -8064,7 +8114,7 @@
               "cee44fb442": "自动化",
               "a57c2172dc": "智能体浏览器",
               "6ea88e5206": "恩克斯",
-              "f5b8fdddf5": "orca-cli",
+              "f5b8fdddf5": "manta-cli",
               "e5a784bc54": "安装",
               "9d97446873": "智能体",
               "a2d489263e": "技能",
@@ -10321,6 +10371,69 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "MantaCloudEndpointsSection": {
+          "enrollmentSaved": "已保存 —— 输入可替换"
+        },
+        "mantaAccount": {
+          "connected": "已连接",
+          "reconnectRequired": "会话已过期。重新登录后才能使用云端功能。",
+          "unavailable": "此版本不支持 Manta 登录。",
+          "signedOut": "登录后即可使用 Artifacts、Manta Relay 等云端功能。",
+          "checking": "正在检查账号状态…",
+          "account": "Manta 账户",
+          "signOut": "退出登录",
+          "signingIn": "正在登录…",
+          "signInAgain": "重新登录",
+          "signIn": "登录 Manta",
+          "title": "Manta 账户",
+          "description": "即刻分享成果，随时随地用 Manta Mobile 连回这台电脑。",
+          "searchDescription": "登录或退出 Artifacts 与 Manta Relay 所用的账号。",
+          "benefitsTitle": "账号包含的功能",
+          "artifactsTitle": "Artifact 分享",
+          "artifactsDescription": "发布 HTML 与 Markdown 文件，并在 Manta 里管理每一个分享链接。",
+          "relayTitle": "Manta Relay",
+          "relayDescription": "通过蜂窝网络或任意 Wi-Fi，把 Manta Mobile 连到这台电脑。",
+          "skillsTitle": "技能分享",
+          "skillsDescription": "把单个技能或整套技能藏在一个未公开链接后面，在你用的任何机器上安装。",
+          "signInTitle": "登录",
+          "signInFailed": "无法连接到中继。",
+          "emailLabel": "邮箱",
+          "passwordLabel": "密码",
+          "displayNameLabel": "显示名称",
+          "displayNameOptional": "可选",
+          "createAccount": "创建账号",
+          "haveAccount": "我已有账号",
+          "needAccount": "在此中继创建账号",
+          "emailPlaceholder": "you@example.com",
+          "errorInvalidCredentials": "该中继上没有匹配此邮箱和密码的账号。",
+          "errorEmailTaken": "该中继上已有账号使用此邮箱，请直接登录。",
+          "errorWeakPassword": "密码至少需要 8 个字符。",
+          "errorInvalidEmail": "请输入有效的邮箱地址。",
+          "errorRegistrationDisabled": "该中继不接受新账号注册，请联系运维人员为你创建。",
+          "errorEnrollmentSecret": "在该中继创建账号需要注册密钥。请在 设置 → 高级 → Manta 云端点 中填写。",
+          "errorTooManyAccounts": "该中继的账号数量已达上限。",
+          "errorTooManyHosts": "此账号的设备数量已达中继允许的上限。",
+          "errorRateLimited": "尝试次数过多，请稍后再试。",
+          "errorRelayTooOldRegister": "该中继版本过旧，无法创建账号。请升级中继，或改用中继凭据连接。",
+          "errorRelayTooOldSignIn": "该中继版本过旧，不支持密码登录。请升级中继，或改用中继凭据连接。",
+          "switchTitle": "换一个账号",
+          "switchAccount": "换一个账号"
+        },
+        "relayMachines": {
+          "unnamed": "未命名设备",
+          "online": "当前在线",
+          "neverSeen": "尚未连接",
+          "lastSeen": "最后在线 {{when}}",
+          "unsupported": "该中继版本过旧，无法列出设备。升级后即可看到账号下的所有电脑。",
+          "signedOut": "登录后可查看账号下的设备。",
+          "unconfigured": "尚未配置中继，因此没有可列出的设备。",
+          "failed": "无法从中继读取设备列表。",
+          "empty": "暂无设备。在另一台电脑上登录同一个中继，它就会出现在这里。",
+          "title": "我的设备",
+          "refresh": "刷新",
+          "thisMachine": "本机",
+          "onlineBadge": "在线"
         }
       },
       "right": {
@@ -13097,12 +13210,12 @@
           "13822cdfda": "纯文本"
         },
         "RichMarkdownDocLinkMenu": {
-          "e17b987473": "↑↓ 导航↵ 选择 esc 关闭",
           "90c5f0e1e4": "的",
           "2aaf7d9678": "显示中",
           "63ced7cb9b": "没有找到文件",
           "0e8489bc11": "Markdown 文档链接",
-          "142a7d51cd": "文档"
+          "142a7d51cd": "文档",
+          "b0f0efcfce": "↑↓ 导航↵ 选择 esc 关闭"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "重试",
@@ -13496,7 +13609,9 @@
               "notSent": "崩溃报告未发送",
               "copyDetails": "Copy Details",
               "sentWithoutDiagnostics": "崩溃报告已发送，但未附带诊断日志",
-              "diagnosticsReason": "诊断日志未附加：{{value0}}"
+              "diagnosticsReason": "诊断日志未附加：{{value0}}",
+              "noEndpointTitle": "这个版本没有可以接收崩溃报告的地方",
+              "noEndpointBody": "Manta 不运行崩溃报告服务。请复制详情，到 github.com/paidaxingyo666/Manta/issues 提一个 issue。"
             }
           },
           "copy": {
@@ -13744,6 +13859,20 @@
             "50f7114f99": "附加前请先检查。捕获的页面上下文可以包括可见的站点内容。",
             "f3575229df": "抓住",
             "405bb315da": "无题"
+          },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "编辑批注 {{value0}}",
+                    "c16f932cb3": "保存",
+                    "024467ceac": "取消",
+                    "449d2c2629": "批注意图"
+                  }
+                }
+              }
+            }
           },
           "browser": {
             "address": {
@@ -14499,6 +14628,9 @@
           "deleteTitle": "删除工件？",
           "deleteDescription": "“{{name}}” 将无法再通过其公共链接访问。",
           "delete": "删除"
+        },
+        "ArtifactsSelfHostNotice": {
+          "body": "这个自建版本没有附带产物（Artifacts）服务。发布时会上传到 MANTA_ARTIFACTS_API_URL 指向的地址；不设它的话，链接会建到一个本 fork 并不运行的主机上，上传必然失败。要么自己跑一个并设好这个变量，要么就把分享关掉。"
         }
       },
       "ComposerParentWorktreePicker": {
@@ -14568,6 +14700,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "选择{{value0}}",
+      "search": "搜索用户",
+      "empty": "未找到用户"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "此智能体不支持粘贴图片。",
@@ -14586,6 +14723,13 @@
         "imagePasteFailed": "图片粘贴失败。",
         "worktreeNotReady": "工作树未就绪 — 请稍后重试。",
         "uploadingAttachments": "正在将 {{value0}} 个文件上传到远端…",
+        "viewAttachment": "查看图片：{{value0}}",
+        "removeNamedAttachment": "移除图片：{{value0}}",
+        "imagePreview": "全尺寸图片预览",
+        "imagePreviewLoading": "正在加载图片预览…",
+        "imagePreviewUnavailable": "无法预览",
+        "retryImagePreview": "重试",
+        "imageAttachmentLimit": "最多可附加 {{value0}} 张图片。",
         "model": "模型",
         "effort": "推理强度",
         "fastMode": "快速模式",
@@ -14935,6 +15079,13 @@
         "addressInUse": "另一个进程可能占用了端口。请重启 Manta 以重试。",
         "unknown": "请重启 Manta 以重试。"
       }
+    }
+  },
+  "main": {
+    "push": {
+      "activityTitle": "Manta",
+      "activityBodyOne": "桌面端有新动态",
+      "activityBodyMany": "{{count}} 条新通知"
     }
   }
 }

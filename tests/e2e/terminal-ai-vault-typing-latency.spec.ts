@@ -210,7 +210,9 @@ test.describe('Terminal typing during AI Vault refresh bench', () => {
         const scenarios: ArmResult['scenario'][] =
           iteration % 2 === 0 ? ['control', 'vault-refresh'] : ['vault-refresh', 'control']
         for (const [order, scenario] of scenarios.entries()) {
-          arms.push(await runArm({ page: mantaPage, ptyId, scriptPath, iteration, scenario, order }))
+          arms.push(
+            await runArm({ page: mantaPage, ptyId, scriptPath, iteration, scenario, order })
+          )
           if (scenario === 'vault-refresh') {
             await expect(
               mantaPage.getByText(batch.newestTitle, { exact: true }).first()

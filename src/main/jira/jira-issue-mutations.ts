@@ -11,19 +11,12 @@ import { clearToken, getClients, isAuthError } from './client'
 import { issueUrl, toBodyText } from './jira-issue-mapping'
 import type { JiraRecord } from './jira-record-pages'
 
-/**
- * Wraps a user id in the reference object the site expects: `{accountId}` on
- * Cloud, `{name}` on Server/DC, which identifies users by username and whose
- * ids `mapUser` stores in the accountId slot.
- */
+/** Builds a Cloud or Server/DC user reference. */
 export function userFieldRef(site: JiraSite, id: string | null): JiraRecord {
   return site.authType === 'server' ? { name: id } : { accountId: id }
 }
 
-/**
- * Shapes a user-typed create value (scalar or array) into Jira's user reference
- * objects. Jira rejects a bare string here and reports the field as missing.
- */
+/** Shapes scalar and array user IDs into Jira references. */
 function toUserFieldValue(site: JiraSite, value: unknown): unknown {
   if (typeof value === 'string') {
     return userFieldRef(site, value)

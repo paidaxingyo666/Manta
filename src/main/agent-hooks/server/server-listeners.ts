@@ -142,6 +142,36 @@ export abstract class AgentHookServerListeners extends AgentHookServerState {
     return this.buildStatusChangeNotification().providerSessions
   }
 
+  /** Rebinds a pane after Claude rolls a transcript to a successor session. */
+  noteSessionContinued(
+    previousSessionId: string,
+    next: { sessionId: string; transcriptPath: string }
+  ): void {
+    const from = previousSessionId.trim()
+    if (!from || !next.sessionId.trim() || from === next.sessionId) {
+      return
+    }
+    let changed = false
+    for (const [paneKey, entry] of this.state.lastStatusByPaneKey) {
+      const enriched = entry as EnrichedAgentHookEventPayload
+      if (enriched.providerSession?.id !== from) {
+        continue
+      }
+      this.state.lastStatusByPaneKey.set(paneKey, {
+        ...enriched,
+        providerSession: {
+          ...enriched.providerSession,
+          id: next.sessionId,
+          transcriptPath: next.transcriptPath
+        }
+      })
+      changed = true
+    }
+    if (changed) {
+      this.notifyStatusChangeListeners()
+    }
+  }
+
   getStatusSnapshotForPane(paneKey: string): AgentStatusIpcPayload[] {
     const entry = this.state.lastStatusByPaneKey.get(paneKey)
     return entry ? [toAgentStatusIpcPayload(entry as EnrichedAgentHookEventPayload)] : []

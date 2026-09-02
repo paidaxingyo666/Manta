@@ -131,7 +131,7 @@ export const TERMINAL_HANDLERS: Record<string, CommandHandler> = {
       enter,
       interrupt,
       ...(text && enter && !interrupt ? { agentPrompt: true } : {}),
-      client: { id: 'orca-cli', type: 'desktop' }
+      client: { id: 'manta-cli', type: 'desktop' }
     })
     printResult(result, json, formatTerminalSend)
     if (!result.result.send.accepted) {

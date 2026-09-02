@@ -225,7 +225,10 @@ describe('PiTitlebarExtensionService', () => {
     writeFileSync(join(overlayDir, 'auth.json'), 'legacy token should not overwrite')
     writeFileSync(join(overlayDir, 'settings.json'), '{"overlayOnly":true}')
     writeFileSync(join(overlayDir, '.manta-pi-overlay-manifest.json'), '{}')
-    writeFileSync(join(overlayDir, 'extensions', 'manta-agent-status.ts'), 'stale managed extension')
+    writeFileSync(
+      join(overlayDir, 'extensions', 'manta-agent-status.ts'),
+      'stale managed extension'
+    )
     writeFileSync(join(overlayDir, 'extensions', 'legacy-user-ext.ts'), 'legacy user extension')
     mkdirSync(join(overlayDir, 'extensions', 'legacy-package'), { recursive: true })
     writeFileSync(

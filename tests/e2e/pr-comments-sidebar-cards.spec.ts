@@ -48,7 +48,9 @@ test.describe('PR comments sidebar cards view', () => {
     await waitForActiveWorktree(mantaPage)
   })
 
-  test('groups open, conversation, and resolved comments in cards layout', async ({ mantaPage }) => {
+  test('groups open, conversation, and resolved comments in cards layout', async ({
+    mantaPage
+  }) => {
     const { worktreeId } = await seedPRCommentsSidebarFixture(mantaPage)
     await openChecks(mantaPage, worktreeId)
 

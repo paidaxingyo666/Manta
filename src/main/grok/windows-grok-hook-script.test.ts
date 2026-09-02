@@ -66,7 +66,9 @@ describe('buildWindowsGrokHookScript', () => {
     )
 
     expect(appended).toBeGreaterThan(-1)
-    expect(lines[appended + 1]).toBe('if not "%MANTA_GROK_HOME:~4096,1%"=="" set "MANTA_GROK_HOME="')
+    expect(lines[appended + 1]).toBe(
+      'if not "%MANTA_GROK_HOME:~4096,1%"=="" set "MANTA_GROK_HOME="'
+    )
   })
 })
 
