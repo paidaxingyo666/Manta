@@ -1,256 +1,191 @@
 ---
 name: upstream-sync
-description: Pull new work from stablyai/orca into this fork. Use whenever upstream has moved and Manta should pick up their bug fixes and features — before cutting a release, or on a schedule. Handles the rebrand collision that makes a plain `git merge` unusable here.
+description: Pull new work from stablyai/orca into this fork. Use whenever upstream has moved and Manta should pick up their bug fixes and features — before cutting a release, or on a schedule. The fork lives on a generated, rebranded mirror of upstream, so a sync is a rebase, not a cherry-pick campaign.
 ---
 
 # Syncing from upstream
 
 Manta is a fork of `stablyai/orca` that renamed the product throughout and
 added three things of its own: the self-hosted relay, the mobile
-internationalization, and its own release CI. The job of a sync is to take
-upstream's fixes and features while leaving those three alone.
+internationalization, and its own release CI. A sync takes upstream's fixes
+and features and leaves those three alone.
 
-## The thing that makes this hard
+## The shape of the fork
 
-**Upstream rewrites `main`.** The commit this fork merged on 19 August as
-`62469e4415` is `73f7767edd` upstream today — same pull request, different
-SHA. So `git merge-base` walks back to the last point where SHAs still line
-up, which is weeks old, and `git merge upstream/main` offers hundreds of
-commits this fork already has.
+Measured on 2026-09-02 (22,774 comparable files, every number reproduced by a
+second agent): **95.6% of the fork is identical to upstream once the brand is
+normalized**, 86.4% of the rest differs by the rename alone, and the evidence
+rule below reproduces 5,805 of those files with zero error. The fork's real
+work is about 400 shared files and 234 of its own.
 
-Merging them replays every one against the rebrand. Measured on 23 August:
-275 offered, 194 already present, **564 conflicted files and 1715 hunks**,
-almost all of them ghosts. It also recurs — every sync fights the same
-conflicts again, and `fix: repair rename fallout the merge surfaced` in this
-fork's history is the residue of one such attempt.
+So the fork is kept as **upstream + a generated transform + a small patch set**:
 
-So: **never `git merge upstream/main`.** Match by subject, cherry-pick the
-difference.
+- `refs/sync/mirror` — upstream's history with `brand_rule.py` applied to
+  every commit, paths included. Upstream speaking Manta. Regenerated from
+  scratch on every sync (it is deterministic, and upstream rewrites its history
+  anyway); each commit carries a `Mirror-Of:` trailer naming its source.
+- `refs/sync/base` — the mirror commit the fork's `main` currently sits on.
+- `main` — the mirror, then the fork's own commits on top.
+
+A sync rebuilds the mirror and rebases the fork's commits from the old base to
+the new one. With both sides speaking Manta, **every conflict is a real one**:
+the same code changed on both sides. The rename cannot conflict, a file
+upstream deleted cannot come back by accident, and there is no
+conflict-time rebrand to get wrong.
 
 ## Doing it
 
 ```bash
-git fetch upstream --tags
-git checkout -b sync/upstream-$(date +%Y%m%d)
+.claude/skills/upstream-sync/sync-run.sh            # from a clean tree, any branch
 ```
 
-Find what is genuinely new. Subject is the only stable identity across a
-rewritten history — patch-ids do not survive the rebrand either:
+It fetches upstream, stops if `refs/sync/base` already mirrors the tip, rebuilds
+the mirror (evidence = `main`), cuts `sync/upstream-YYYYMMDD` from `main`, and
+runs
 
-```python
-python3 - <<'PY'
-import subprocess, pathlib
-ours = set(subprocess.run(['git','log','--format=%s','HEAD'],
-                          capture_output=True, text=True).stdout.splitlines())
-up = subprocess.run(['git','log','--format=%H\t%s','--reverse','upstream/main'],
-                    capture_output=True, text=True).stdout.splitlines()
-new = [l.split('\t')[0] for l in up if l.split('\t', 1)[1] not in ours]
-pathlib.Path('/tmp/picks.txt').write_text('\n'.join(new))
-print('genuinely new:', len(new))
-PY
+```
+git rebase --onto refs/sync/mirror refs/sync/base sync/upstream-YYYYMMDD
 ```
 
-> Do not use "the newest upstream commit whose subject we already have" as a
-> cut point. A rewritten history interleaves, so commits *before* that point
-> can still be missing — the 23 August sync would have skipped the whole
-> `src/main/wsl/` module that way, and the commit that needs it landed anyway.
+On a clean rebase it continues into `sync-finish.sh`. On conflicts it prints
+them and stops. Resolve, `git rebase --continue`, then run `sync-finish.sh`
+yourself. During a rebase **`--ours` is upstream's side and `--theirs` is the
+fork's commit** — the opposite of a merge.
 
-Then drive the picks. `sync-run.sh` stops the moment something needs a person:
+What conflicts look like, and what to do:
 
-```bash
-bash .claude/skills/upstream-sync/sync-run.sh /tmp/picks.txt /tmp/status.txt
-```
-
-It disables hooks for the duration — lint-staged reformats what it is given,
-and a sync must land upstream's bytes. The gates at the end settle formatting.
-
-When it stops: resolve the file, `git add` it, then either
-`git -c core.editor=true cherry-pick --continue` or, if the pick emptied out,
-`git cherry-pick --skip`. Recompute the remaining list (the subject snippet
-above) and run the driver again — it is idempotent.
-
-## What the tools do
-
-All three brand tools import one rule, `brand_rule.py`. Before 2026-09-02 there
-were two copies with different rules: `rebrand-merge.py` renamed blindly at
-conflict time, with no KEEP list and an identity map that pointed at a bundle
-id upstream never used — and that is precisely where "GNOME Manta screen
-reader" and the bundle id `com.stablyai.manta` came from. Change the rule in
-one place, and every tool changes with it.
-
-**`rebrand-merge.py`** — the reason most conflicts are not real ones. Upstream's
-file says Orca, ours says Manta, so git sees two different lines where there is
-one change. Rewriting the base and the incoming side into Manta *first* turns
-the conflict back into the ordinary three-way merge it actually is. It also
-knows four shapes that have no stages to merge:
-
-| git status | meaning | what it does |
+| where | usually | resolution |
 | --- | --- | --- |
-| `UU` | both changed | three-way merge with both non-ours sides rebranded |
-| `UD` | upstream deleted, we changed | accept the deletion **only** if our copy differs from theirs by brand alone |
-| `DU` + renamed twin exists | the rebrand renamed the file | merge upstream's change onto the twin, drop the old path |
-| `DU` + our history has the delete | the fork dropped it on purpose | stay deleted |
+| `mobile/**` | the fork's `translate()` wrapper against an upstream edit to the same line | `git checkout --ours -- <file>` (take upstream), `git add`; `sync-finish.sh` re-localizes |
+| modify/delete | upstream deleted a file the fork edited | if the edit was a fix upstream absorbed, `git rm` it; if it is fork feature, move it to where upstream put that code, then `git rm` the old path |
+| `README.md`, `docs/readme/README.zh-CN.md` | never — `.gitattributes` keeps the fork's | — |
+| lockfiles, skill manifests | never — `.gitattributes` keeps upstream's; `sync-finish.sh` regenerates | — |
+| anything else | a genuine two-sided change | read both, resolve by hand |
 
-That last distinction matters: "we deliberately deleted it" (the README
-translations this fork does not maintain) and "we never received the commit
-that added it" look identical in the index. Our own history carrying the
-delete is what separates them, and only the first may be resolved by deleting.
+After the rebase, **read what the mirror declined** (`build-mirror.py` prints
+the top of it; `sweep-brand.py refs/sync/base` lists it for the tree). A
+brand-bearing name upstream introduced this sync that neither rule could
+decide — a new env var, a new CamelCase family — stays upstream-spelled until
+a fork commit renames it; from then on the mirror follows that decision. Most
+of the list is fixture strings that should stay as upstream wrote them.
 
-`pnpm-lock.yaml` takes upstream's outright — a merged lockfile resolves to
-nothing real. Run `pnpm install --lockfile-only` afterwards to fold this fork's
-package.json back in, then `pnpm install`.
+`sync-finish.sh` refolds the lockfiles, runs the mobile localizer over what
+upstream added and fills `zh.json` from the translation memory
+(`mobile/src/i18n/translation-memory.zh.json`, keyed by English text — a
+string upstream moved keeps its translation), prints what still needs a
+human translation, records the new `refs/sync/base`, commits the
+regeneration, and runs `sync-verify.sh`.
 
-`README.md` and `docs/readme/README.zh-CN.md` keep ours. They are rewrites, and
-upstream's edits to them are about upstream's App Store listing and cloud. Every
-skip is printed, so an upstream change worth porting is visible rather than
-silent.
-
-**`sweep-brand.py`** — for what the *clean* picks bring in, which is the part
-that bites. A commit that applies without conflict lands upstream's spelling
-verbatim, and the build dies on a path this fork renamed long ago:
-
-```
-error: Could not resolve ".../src/main/runtime/orca-runtime.ts"
-```
+## Verifying
 
 ```bash
-python3 .claude/skills/upstream-sync/sweep-brand.py <rev-before-the-sync>          # dry run
-python3 .claude/skills/upstream-sync/sweep-brand.py <rev-before-the-sync> --apply
+.claude/skills/upstream-sync/sync-verify.sh refs/sync/base
 ```
 
-The rule is evidence: a token is renamed only when its Manta counterpart
-already exists in the tree **as a whole word**. That preserves the deliberate
-remnants without enumerating them, because none of them has a Manta twin. A
-short KEEP list covers the handful that do and must still stay:
+One command, seven steps, in the only order that works, exiting non-zero on
+the first thing wrong. `sync-finish.sh` runs it; run it again after every
+repair. Each step is there because skipping it once let something through:
 
-- `stablyai/orca` — guards the workflows this fork must never run
-- `orca-cli`, `orca-emulator`, `orca-emulator-android`, `orca-linear`,
-  `orca-per-workspace-env` — backwards-compatible skill aliases; renaming them
-  makes already-installed skills unresolvable
-- `GNOME Orca`, `/usr/bin/orca` — Ubuntu's screen reader, and the reason the
-  Linux binary is `manta-ide` and not `manta`
-
-Everything it declines is printed. That list is where the next decision lives —
-it is how `orcad`, upstream's new plain-Node runtime daemon, surfaced as a
-naming question rather than as a silent import of upstream's brand.
-
-## Where the rename hides
-
-Three syncs have now found fallout in the test suite rather than the build.
-These are the shapes that a search misses:
-
-**Article agreement.** Upstream writes "an Orca"; a substitution leaves "an
-Manta". Both tools fix this, but only on lines they already touch.
-
-**Offsets into strings that contain the brand.** `stablyai/orca` puts "orca" at
-9–13; `paidaxingyo666/Manta` does not. Palette-search tests assert character
-ranges, and the numbers go stale while the implementation stays right.
-
-**Adjacent brand names.** `'__ORCA_AGENT_PATH__orca-fake-cli'` is one token to a
-tokenizer but two names to a person — a sentinel this fork renamed glued to a
-fixture it did not. `sweep-brand.py` now splits on `__` and judges the halves
-separately.
-
-**Prefixes asserted through a regexp.** `/^manta\.linear\.v1\./` contains
-escapes, so a fixed-string search for `manta.linear.v1.` does not find it. The
-implementation kept emitting `orca.linear.v1.` while its own test demanded
-otherwise. There is no general fix; run the tests.
-
-## Finishing
-
-```bash
-.claude/skills/upstream-sync/sync-verify.sh main
-```
-
-One command, seven steps, in the only order that works, and it exits non-zero
-on the first thing wrong. Do not run its pieces by hand; every step exists
-because skipping it once let something through:
-
-1. **sweep-brand, first.** A clean pick lands upstream's spelling verbatim.
-   Skipped on 2026-09-01: 32 files, including e2e helpers importing
-   `./orca-app`, which broke `pnpm test` collection — the unit suite, not just
-   Playwright.
-2. **Resurrection audit.** Files a picked upstream commit deleted but which are
-   still in the tree. A modify/delete conflict "resolved" by keeping the file
-   brought back `src/main/linear/issues.ts` — 1400 lines upstream had split into
-   seven modules this fork already carried, plus the `eslint-disable max-lines`
-   the ratchet then failed on. Matched by subject, not the `-x` trailer, because
-   two thirds of the picks lose the trailer to conflict resolution.
-3. **Twin audit.** `orca-X` beside `manta-X` is a rename that landed as a copy.
-4. **Regenerate generated artifacts** — skill manifest, the mobile localizer,
-   and a check that every `en.json` key has a `zh.json` entry. The sync brought
-   a whole network-diagnostics surface in English: 3 unlocalized call sites and
-   23 keys behind them.
-5. **Root gates, all fifteen.** `pnpm lint` is fifteen commands and `oxlint` is
-   the first; when it exits non-zero the other fourteen never run.
-   `check:max-lines-ratchet` and `verify:localization-coverage:mobile` catch
-   what nothing else does.
+1. **Brand sweep, report only.** The mirror already speaks Manta; what this
+   finds is a fork file that lost its spelling. Read the list; apply by hand.
+2. **Resurrection audit** — files a picked upstream commit deleted but which
+   are still in the tree. Cannot happen under a rebase; cheap to keep.
+3. **Twin audit** — `orca-X` beside `manta-X` is a rename that landed as a copy.
+4. **Regenerate** the skill manifest and mobile localization, and check every
+   `en.json` key has a `zh.json` entry.
+5. **Root gates, all fifteen.** `pnpm lint` is fifteen commands and `oxlint`
+   is the first; when it exits non-zero the other fourteen never run.
 6. **Mobile gates, separately.** `mobile/` has its own oxlint, oxfmt config and
    lockfile; the root commands touch none of them. `--frozen-lockfile` is the
    point — plain `pnpm install` rewrites the lockfile and hides that it was
-   upstream's, which is exactly what mobile CI then failed on.
+   upstream's.
 7. **Root tests.** Re-run any failure serially before believing it: the
    `.electron` tests launch real Electron and time out at 32s under parallel
-   load.
-
-Then read what the sweep **declined**. That list is not noise — a token with no
-Manta twin is either fine (GNOME Orca, `stablyai/orca`) or a file this fork
-should have renamed and has not.
+   load. `browser-route-tcp-egress` fails on any machine whose DNS answers
+   `remote-browser.test`.
 
 **What the script cannot see** — the layer where identity is a machine-readable
 key rather than a word: `Symbol.for` slots, `localStorage`/`AsyncStorage` keys,
 HTTP header names, on-disk file names. `tsc` does not check them and the
 evidence rule needs a Manta twin that a key nobody tests never has. Three are
 known and each is a migration decision, not a rename: `orca.web.onboarding.v1`
-/ `orca.web.githubCache.v1` beside four `manta.web.*` keys in
-`src/renderer/src/web/preload-api/web-storage.ts`; `orca.mobile.connection-log.v1.`
-in `mobile/src/transport/persisted-connection-log-store.ts`; and
-`MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'` under `.manta-remote/` on
-every remote host. Renaming any of them strands existing users' data.
+/ `orca.web.githubCache.v1` in `src/renderer/src/web/preload-api/web-storage.ts`;
+`orca.mobile.connection-log.v1.` in `mobile/src/transport/persisted-connection-log-store.ts`;
+`MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'` under `.manta-remote/`.
+
+## Landing it
+
+Open a pull request; merge without squash. Nothing in CI runs on a push to
+`main` except Mobile Checks, and a red check does not block a merge — the
+2026-08-30 sync merged with 28 mobile type errors visible in CI. Read the
+checks. `cross-version wire compatibility` needs an upstream release tag the
+fork's remote does not carry and will stay red until that is decided.
 
 Two things the sync itself will not tell you:
 
 - **The version follows upstream's line.** Read their newest tag, not
-  `package.json` on their main — their release-cut writes the version in a
-  separate commit, so main always lags.
+  `package.json` on their main.
 - **Seal the skill bundle manifest** for the release with
   `node config/scripts/generate-skill-bundle-manifest.mjs --release <version>`.
-  Left unsealed, the next regeneration reassigns a revision number to different
-  bytes and every installed copy stops matching a known snapshot.
 
-## Landing it
+## The tools
 
-**Open a pull request. Do not push the sync straight to `main`.**
+All of them import one rule, `brand_rule.py`:
 
-Almost nothing in this repo's CI runs on a push to `main`. `pr.yml` triggers on
-`pull_request` only and the release workflow builds without testing; `mobile.yml`
-gained a push trigger on 2026-09-01, so a merge that breaks mobile now says so
-within the hour — but that is a smoke alarm, not a gate, and it covers `mobile/`
-alone. A sync pushed straight to `main` is still a few hundred files whose
-desktop side no CI has ever seen; the 25 August one landed that way and its only
-evidence was a local test run.
+- **IDENTITY** — values that are not a word swap: `com.stablyai.orca →
+  cn.sh.manta`, `onorca.dev → manta.sh.cn`. Verified against upstream's tree.
+- **EVIDENCE** — a brand token is renamed only if the fork already uses its
+  Manta form as a whole word. That keeps the deliberate remnants without
+  enumerating most of them, because none has a Manta twin.
+- **FAMILY** — second tier, for the mirror only: a file upstream adds this
+  week has no Manta twin yet, but if the fork has forty `manta-runtime-*`
+  files, `orca-runtime-bind-pty-incarnation-handle` is decided. A prefix that
+  carries the brand plus at least one more segment (`manta-runtime`,
+  `MantaRuntime`, never the bare word) counts. Never for a dotted key without
+  a file extension (a storage slot — renaming one strands data), a token
+  ending in `-`/`_` (a mkdtemp prefix), or a `/tmp` path. On the replayed
+  sync it covered 42% of what the direct rule declined, at 100% precision on
+  a sample.
+- **KEEP** — the few that do and must still stay: `stablyai/orca` (guards the
+  workflows this fork must never run), the skill aliases, `/usr/bin/orca` and
+  the phrase `GNOME Orca` (Ubuntu's screen reader — the reason the Linux binary
+  is `manta-ide`), the App Store URL. **KEEP_PATH** — files that are *about*
+  upstream, or where Orca is the whale.
 
-`mobile.yml` matters most here, because it is the only job that loads the
-Fastfile — the iOS signing config and the NSE target's provisioning. A local
-`vitest` pass over `mobile/` does not cover any of that, and this sync changed
-67 files under `mobile/`.
+Before this module there were two copies with different rules, and the
+conflict-time one renamed blindly with an identity map pointing at a bundle id
+upstream never used. That is where "GNOME Manta screen reader" and
+`com.stablyai.manta` came from.
 
-```bash
-git push -u origin sync/upstream-<date>
-gh pr create --repo <fork> --base main --fill
-gh pr checks --repo <fork> --watch
-```
+**`build-mirror.py`** streams upstream's history through `git fast-import`,
+referencing unchanged blobs by SHA and emitting only transformed ones. Evidence
+is read once with a single ripgrep pass over a checkout of the fork — `git grep
+-f` with the same patterns is superlinear, 500 took 83 seconds — with patterns
+longest-first, because ripgrep's alternation is leftmost-first and a short
+pattern shadows every longer one it prefixes. 387 commits in eight minutes.
+`--report` prints how much of the fork the mirror reproduces; expect ≥95%.
 
-Merge once the checks are green, then cut the tag per
-`docs/reference/release-secrets.md`.
+**`sync-bootstrap.sh`** is the one-time move onto the mirror: the fork's tree
+over the mirror's, dropping only what the fork's history deleted on purpose
+and code files nothing imports (upstream's parallel splits of components the
+fork had already replaced — found by resolving imports, since a basename
+match cannot tell `../src/pair-scan-styles` from `../src/theme/pair-scan-styles`).
+It edits no content; a bootstrap that also cleans up cannot be checked against
+the fork it came from.
 
-Push the tag only after `main` is where you want it. Pushing the tag first and
-rebasing afterwards leaves the tag on an orphaned commit, and moving it means
-force-updating a ref that a published release already points at.
+**`sync-selftest.sh`** replays a sync the fork already absorbed by hand and
+diffs the outcome against it; run it after changing any tool. Replaying this
+week's — 371 upstream commits — as a rebase: 40 files conflicted, 16 resolved
+by rule, 24 for a person, of which two more go to rules once `.gitattributes`
+is in the base and the rest are relay hooks and skill prose upstream also
+edited. The cherry-pick path had produced 372 blind-rebranded picks, a 92-file
+repair commit and 24 failing tests for the same range.
+**`sweep-brand.py`** and **`rebrand-merge.py`** remain for reading and for
+the old cherry-pick path; neither is part of the sync now.
 
 ## What this fork owns
 
-Upstream must never overwrite these. If a pick touches one, stop and think:
+Upstream must never overwrite these. If a conflict touches one, stop and think:
 
 - `relay-server/` and everything about the self-hosted relay
 - `mobile/src/i18n/` and the `translate()` wrappers throughout `mobile/`
@@ -259,72 +194,31 @@ Upstream must never overwrite these. If a pick touches one, stop and think:
   `stablyai/orca` on purpose so this fork never runs them
 - `README.md`, `docs/readme/README.zh-CN.md`
 
-## Why every sync has needed a repair commit
+## Moving `main` onto the mirror (once)
 
-Every sync so far has ended with a commit of a few hundred files repairing
-what the picks broke: 344 files, 324, 380, 92. That is not bad luck. It is the
-cost of the shape this fork is in, and on 2026-09-02 it was measured
-(`upstream/main` 5aa02ead59 against fork e8fdc1c84b, every number reproduced by
-a second, independent agent):
+`sync/mirror-bootstrap` is `main`'s content on the mirror's history. To make
+it `main`:
 
-- **22,774 comparable files. 95.6% are identical once the brand is
-  normalized.** Of the 7,355 files that are not byte-identical, 86.4% differ
-  *only* by the rename. Real customization is under 14%.
-- **5,805 files are reproduced with zero error by the evidence rule alone.**
-  The rename is a deterministic function of upstream's tree, not a fact of
-  history — and today it is stored as history: 6,100 files of diff, replayed
-  against every pick.
-- **The fork's real work is small and concentrated**: 401 shared files carry
-  the three owned features (mobile i18n 278, relay endpoints 94, release CI 29),
-  plus 234 fork-only files. Relay's touch on shared code is ~94 files of
-  few-line hooks; release CI is almost entirely under `.github/` and
-  `config/scripts/`.
-- **Mobile i18n is itself a generator's output.** Replaying `sweep-brand →
-  localize-renderer-strings.mjs --target mobile → oxfmt` on upstream's tree
-  reproduces about two thirds of the fork's 1,541 `translate()` call sites
-  mechanically. The rest is one design choice: keys are `sha1(path:text)`, so
-  every time upstream moves code the key changes and `zh.json` orphans the
-  translation — 661 keys orphaned in that experiment. Keyed by text alone,
-  99.4% survive.
-- **Identity lives as 9,941 bare literals against 163 named constants**, and
-  upstream writes it the same way, so centralizing on the fork side would turn
-  every upstream hunk into a conflict. The tool has to be right instead.
-- **Subject matching is lossy.** Of 377 same-subject twins, 58 (15.4%) carry
-  different content — #17517 landed here with 1,300 lines upstream's squash
-  does not have. Upstream's main is a fresh squash history since 2026-08-28
-  and will be rewritten again. The PR number in the subject (`#NNNNN`) is a
-  stabler identity than the subject; a same-subject pick whose diff differs
-  from upstream's should be a warning, not silence.
-- **The max-lines ratchet is self-inflicted drift.** Forbidding upstream's own
-  `eslint-disable max-lines` made this fork split 21 files (1,873 lines) that
-  upstream later split differently. Grandfather upstream's suppressions in the
-  baseline; forbid only new fork-authored ones.
+```bash
+git branch main-legacy main                      # the cherry-pick era, kept
+git branch -f main sync/mirror-bootstrap
+git push origin main-legacy
+git push --force-with-lease origin main          # history changes: one-time
+```
 
-### The way out
+Every open branch based on the old `main` must be rebased onto the new one
+(`git rebase --onto main main-legacy <branch>`) — the trees match, so that is
+mechanical. Publish the sync refs so a fresh clone can pick up where this one
+left off: `git push origin refs/sync/base refs/sync/mirror`. `sync-run.sh`
+fetches them from origin before it starts, and `sync-finish.sh` says when to
+push them again.
 
-Given those numbers, the fork should stop *being* a rebranded copy and become
-**upstream + a generated transform + a small patch set**:
+## How it got here
 
-1. **Generate the rebrand instead of storing it.** Keep a mirror branch,
-   `upstream-manta`, that is `upstream/main` with `brand_rule.py` applied to
-   every commit (paths included). Regenerate it from scratch on each fetch — it
-   is deterministic, upstream's whole history is 387 commits, and the census
-   is the acceptance test: the mirror must match the fork on ≥95% of files.
-2. **Rebase the patch set onto the mirror.** With both sides speaking Manta,
-   `git rebase` of the fork's own commits onto the fresh mirror conflicts only
-   where upstream edited a file the fork also edited — a few hundred files, not
-   six thousand. Half-renames cannot happen because there is no brand conflict
-   to resolve; resurrections cannot happen because deletions are real merges.
-3. **Regenerate mobile i18n rather than rebasing it.** Run the localizer on
-   the fresh tree, fill `zh.json` from a translation memory keyed by English
-   text, and keep the residual (module-scope constants, strings the localizer
-   cannot see, exemptions) as a rule file that replays — not as hand edits
-   inside upstream's files.
-4. **Keep `sync-verify.sh` as the single gate**, and put branch protection on
-   `main` with `verify` and `Mobile Checks` required. The 2026-08-30 sync
-   merged with 28 mobile type errors visible in CI; nothing enforced them.
-
-Until the mirror exists, the current flow stands, with the unified rule and
-`sync-verify.sh` closing the gaps the last sync exposed. Steps 1–3 are a
-change to how the fork is kept, not to what it ships, and they are the user's
-call.
+Until 2026-09-02 a sync matched upstream commits by subject and cherry-picked
+the difference, with a blind rebrand at conflict time and a manual sweep after.
+Every sync ended with a repair commit of a few hundred files — 344, 324, 380,
+92 — because the rename was stored as 6,100 files of history and replayed
+against every pick. Half-renames, resurrected deletions, un-localized upstream
+features and a release workflow left on the wrong pnpm were all one week's
+fallout. The census above is what made the mirror the obvious shape.

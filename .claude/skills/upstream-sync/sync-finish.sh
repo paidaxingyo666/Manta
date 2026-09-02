@@ -18,6 +18,7 @@ python3 "$HERE/sync-i18n.py" | sed 's/^/   /'
 
 echo "== record the new base"
 git update-ref refs/sync/base "$MIRROR"
+echo "   when the sync lands, publish it:  git push origin refs/sync/base refs/sync/mirror"
 echo "   refs/sync/base = ${MIRROR:0:12}  (Mirror-Of $(git log -1 --format=%B "$MIRROR" | sed -n 's/^Mirror-Of: //p' | cut -c1-12))"
 
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then

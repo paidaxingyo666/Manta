@@ -35,6 +35,9 @@ BASE="$(git rev-parse --verify refs/sync/base 2>/dev/null)" || { echo "refs/sync
 
 echo "== 1/4 fetch $UPSTREAM"
 git fetch -q upstream
+# refs/sync/* live on origin too, so a fresh clone can sync without rebuilding
+# the base it started from. sync-finish.sh says when to push them back.
+git fetch -q origin '+refs/sync/*:refs/sync/*' 2>/dev/null || true
 UP="$(git rev-parse "$UPSTREAM")"
 BASE_UP="$(git log -1 --format=%B "$BASE" | sed -n 's/^Mirror-Of: //p' | tail -1)"
 if [ "$UP" = "$BASE_UP" ]; then
