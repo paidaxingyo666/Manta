@@ -7002,6 +7002,8 @@
           "45c6e85c4d": "Editor",
           "8f1afdfbd8": "Diff Word Wrap",
           "4aa4d9fb73": "Wrap long lines in diff editors instead of requiring horizontal scrolling.",
+          "f1b3ceeb98": "Diff Show Whitespace",
+          "94a479cef3": "Show leading and trailing whitespace differences in diffs.",
           "bf16ef0af2": "Off",
           "3f6892f307": "On",
           "b82f86d7d2": "Rich Markdown Spellcheck",
@@ -14299,7 +14301,9 @@
           "724a13568d": " in {{value0}}",
           "6094135eec": " vs {{value0}}",
           "a4420ca1f7": "Wrap On",
-          "dde325ddfe": "Wrap Off"
+          "dde325ddfe": "Wrap Off",
+          "2e91bc89d1": "Whitespace On",
+          "2bf19c54ad": "Whitespace Off"
         },
         "ConflictComponents": {
           "f338288514": "Loading conflict contents...",
@@ -14390,7 +14394,8 @@
           "561251019a": "More actions",
           "8c8b7f5ff5": "Show front matter",
           "10c39d58c1": "Hide front matter",
-          "1eef809708": "Word Wrap"
+          "1eef809708": "Word Wrap",
+          "4dedd55efa": "Show Whitespace"
         },
         "EditorPanelShell": {
           "e2c4dec350": "Loading editor..."
