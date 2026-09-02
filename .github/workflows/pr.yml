@@ -897,6 +897,9 @@ jobs:
       contents: read
     uses: ./.github/workflows/e2e.yml
     with:
+      # The synthetic pull-request merge ref can disappear while this reusable
+      # workflow is queued. The head SHA is immutable and works for every PR.
+      ref: ${{ github.event.pull_request.head.sha }}
       test_files: ${{ needs.e2e-paths.outputs.test_files }}
       ssh_source_changed: ${{ needs.e2e-paths.outputs.ssh_source_changed }}
 
