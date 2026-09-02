@@ -135,6 +135,18 @@ def _prefixes(word: str):
     return out
 
 
+_EXT = re.compile(r'\.(ts|tsx|js|mjs|cjs|json|jsonc|md|mdx|yml|yaml|png|jpg|gif|svg|txt|sh|py|vbs|cmd|ps1|plist|rb|toml|lock|html|css)$')
+
+
+def _no_family(twin: str) -> bool:
+    core = word_core(twin)
+    if core.endswith(('-', '_')) or twin.endswith(('-', '_')):
+        return True
+    if twin.startswith(('/tmp/', '/private/tmp/', '/var/folders/')):
+        return True
+    return '.' in core and '/' not in core and not _EXT.search(core)
+
+
 def _qualified_family(prefix: str) -> bool:
     """Brand word plus at least one more segment after it."""
     m = re.search(r'[Mm]anta', prefix)
@@ -153,8 +165,12 @@ class Evidence:
     the per-token `git grep -w -F` on 300 files: identical decisions.
     """
 
-    def __init__(self, ref: str, tokens):
+    def __init__(self, ref: str, tokens, families: bool = True):
         self.ref = ref
+        # Families are for transforming upstream's code wholesale (the mirror),
+        # where both sides of every reference move together. On the fork's own
+        # tree a family match can split a decision the fork made on purpose.
+        self.use_families = families
         cands = set()
         for tok in tokens:
             core = tok.rstrip('.,')
@@ -212,6 +228,13 @@ class Evidence:
     def in_family(self, twin: str) -> bool:
         """Second tier of evidence: the fork renamed this *family*.
 
+        Never for three shapes, where a family match is not a decision:
+          - a dotted key with no file extension (`orca.host.appEnvironment`,
+            `orca.mobile.connection-log.v1`): a storage or registry slot, and
+            renaming one strands data — that is a migration, not a sync;
+          - a token ending in `-` or `_`: a mkdtemp/label prefix in a fixture;
+          - a temp path (`/tmp/orca-…`): fixture noise, kept as upstream wrote it.
+
         `orca-runtime-bind-pty-incarnation-handle` is new upstream; the fork has
         no such file yet, but it has forty `manta-runtime-*` files, so the name
         is decided. A family is a prefix that carries the brand plus at least
@@ -221,6 +244,8 @@ class Evidence:
         sample; the rest are fixture strings that should stay as upstream wrote
         them.
         """
+        if not self.use_families or _no_family(twin):
+            return False
         for pre in sorted(_prefixes(word_core(twin)), key=len, reverse=True):
             if _qualified_family(pre) and (pre in self.families or pre.rsplit('/', 1)[-1] in self.families):
                 return True

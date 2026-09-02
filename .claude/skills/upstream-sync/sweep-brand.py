@@ -40,7 +40,7 @@ def main():
             except UnicodeDecodeError:
                 pass
     tokens = {m.group(0) for text in texts.values() for m in TOKEN.finditer(text)}
-    evidence = Evidence('HEAD', tokens) if tokens else None
+    evidence = Evidence('HEAD', tokens, families=False) if tokens else None
 
     renamed, declined = {}, {}
     for path in changed:
