@@ -187,6 +187,8 @@ export function activateAndRevealWorktree(
      *  runtime-owned workspace with a live web session the host owns terminal creation,
      *  so ensureWebRuntimeWorktreeTerminalAfterWake may still seed one (matches main). */
     providesInitialSurface?: boolean
+    /** Keep sidebar filters intact when navigating to a hidden target. */
+    clearSidebarFilters?: boolean
   }
 ): ActivateAndRevealResult | false {
   const state = useAppStore.getState()
@@ -283,20 +285,22 @@ export function activateAndRevealWorktree(
   }
 
   // 5. Clear sidebar filters hiding the target — reveal needs the card rendered, else it silently no-ops.
-  if (state.filterRepoIds.length > 0 && !state.filterRepoIds.includes(wt.repoId)) {
-    state.setFilterRepoIds([])
-  }
-  if (
-    state.hideAutomationGeneratedWorkspaces &&
-    wt.automationProvenance?.kind === 'created-by-automation'
-  ) {
-    state.setHideAutomationGeneratedWorkspaces(false)
-  }
-  if (state.hideCliCreatedWorkspaces && wt.cliProvenance?.kind === 'created-by-cli') {
-    state.setHideCliCreatedWorkspaces(false)
-  }
-  if (state.hideDetachedHeadWorkspaces && isDetachedHeadWorkspace(wt)) {
-    state.setHideDetachedHeadWorkspaces(false)
+  if (opts?.clearSidebarFilters !== false) {
+    if (state.filterRepoIds.length > 0 && !state.filterRepoIds.includes(wt.repoId)) {
+      state.setFilterRepoIds([])
+    }
+    if (
+      state.hideAutomationGeneratedWorkspaces &&
+      wt.automationProvenance?.kind === 'created-by-automation'
+    ) {
+      state.setHideAutomationGeneratedWorkspaces(false)
+    }
+    if (state.hideCliCreatedWorkspaces && wt.cliProvenance?.kind === 'created-by-cli') {
+      state.setHideCliCreatedWorkspaces(false)
+    }
+    if (state.hideDetachedHeadWorkspaces && isDetachedHeadWorkspace(wt)) {
+      state.setHideDetachedHeadWorkspaces(false)
+    }
   }
 
   // 6. Reveal in sidebar
@@ -326,11 +330,18 @@ export function activateAndRevealWorktree(
  */
 export function activateAndRevealWorkspace(
   workspaceId: string,
-  opts?: { executionHostId?: ExecutionHostId; providesInitialSurface?: boolean }
+  opts?: {
+    executionHostId?: ExecutionHostId
+    providesInitialSurface?: boolean
+    /** Worktree-only: folder workspaces are never filter-hidden, so these are dropped there. */
+    revealInSidebar?: boolean
+    clearSidebarFilters?: boolean
+  }
 ): ActivateAndRevealResult | false {
   const workspaceScope = parseWorkspaceKey(workspaceId)
   if (workspaceScope?.type === 'folder') {
-    return activateAndRevealFolderWorkspace(workspaceScope.folderWorkspaceId, opts)
+    const { revealInSidebar: _reveal, clearSidebarFilters: _clear, ...folderOpts } = opts ?? {}
+    return activateAndRevealFolderWorkspace(workspaceScope.folderWorkspaceId, folderOpts)
   }
   return activateAndRevealWorktree(workspaceId, opts)
 }

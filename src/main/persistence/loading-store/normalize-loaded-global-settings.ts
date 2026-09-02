@@ -1,4 +1,5 @@
 import { getDefaultVoiceSettings } from '../../../shared/constants'
+import { resolveAgentsSidebarVisible } from '../../../shared/agents-sidebar-visibility'
 import { normalizePRBotAuthorOverrides } from '../../../shared/pr-bot-author-overrides'
 import { normalizeTerminalQuickCommands } from '../../../shared/terminal-quick-commands'
 import { normalizeOpenInApplications } from '../../../shared/open-in-applications'
@@ -85,6 +86,16 @@ export function normalizeLoadedGlobalSettings(
     ...migratedTerminalTuiScrollSensitivity.settings,
     experimentalActivity: migratedExperimentalActivity,
     experimentalActivityDefaultedOffForAllUsers: true,
+    // Keep the experimental Agents tab's rollout default for older profiles while
+    // preserving any choice made through its dedicated Experimental setting.
+    showAgentsSidebar: resolveAgentsSidebarVisible({
+      showAgentsSidebar: parsed.settings?.showAgentsSidebar
+    }),
+    // Preserve the legacy opt-in before the experimental setting is normalized away. This
+    // drives the migration-specific introduction copy without changing runtime behavior.
+    agentsSidebarMigratedFromExperimental:
+      parsed.settings?.agentsSidebarMigratedFromExperimental === true ||
+      migratedExperimentalActivity,
     // Why: compact worktree cards graduated from Experimental; preserve the old opt-in for rollout-era profiles.
     compactWorktreeCards: loadedCompactWorktreeCards,
     experimentalCompactWorktreeCards: undefined,

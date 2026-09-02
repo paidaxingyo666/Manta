@@ -37,6 +37,10 @@ type TabWorktreeIndexCache = {
   tabIdToWorktreeId: Map<string, string>
 }
 
+type LiveTabWorktreeIndexCache = TabWorktreeIndexCache & {
+  unifiedTabsByWorktree: WorktreeAgentRowsState['unifiedTabsByWorktree']
+}
+
 type MigrationUnsupportedByWorktreeCache = {
   tabsByWorktree: WorktreeAgentRowsState['tabsByWorktree']
   migrationUnsupportedByPtyId: WorktreeAgentRowsState['migrationUnsupportedByPtyId']
@@ -49,6 +53,7 @@ type RetainedEntriesByWorktreeCache = {
 }
 
 let tabWorktreeIndexCache: TabWorktreeIndexCache | null = null
+let liveTabWorktreeIndexCache: LiveTabWorktreeIndexCache | null = null
 let liveEntriesByWorktreeCache: LiveEntriesByWorktreeCache | null = null
 let migrationUnsupportedByWorktreeCache: MigrationUnsupportedByWorktreeCache | null = null
 let retainedEntriesByWorktreeCache: RetainedEntriesByWorktreeCache | null = null
@@ -88,6 +93,12 @@ function getLiveTabIdToWorktreeId(
   tabsByWorktree: WorktreeAgentRowsState['tabsByWorktree'],
   unifiedTabsByWorktree: WorktreeAgentRowsState['unifiedTabsByWorktree']
 ): Map<string, string> {
+  if (
+    liveTabWorktreeIndexCache?.tabsByWorktree === tabsByWorktree &&
+    liveTabWorktreeIndexCache.unifiedTabsByWorktree === unifiedTabsByWorktree
+  ) {
+    return liveTabWorktreeIndexCache.tabIdToWorktreeId
+  }
   const tabIdToWorktreeId = new Map(getTabIdToWorktreeId(tabsByWorktree))
   for (const [worktreeId, tabs] of Object.entries(unifiedTabsByWorktree ?? {})) {
     for (const tab of tabs) {
@@ -96,6 +107,7 @@ function getLiveTabIdToWorktreeId(
       }
     }
   }
+  liveTabWorktreeIndexCache = { tabsByWorktree, unifiedTabsByWorktree, tabIdToWorktreeId }
   return tabIdToWorktreeId
 }
 

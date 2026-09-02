@@ -4404,12 +4404,15 @@
           "keepDefaultBranchAria": "Mantener visible la rama predeterminada al ocultar los espacios de trabajo en reposo"
         },
         "SidebarHeader": {
+          "projects": "Proyectos",
           "92154beb7e": "Nuevo espacio de trabajo",
           "49f62c5665": "Tablero de espacios de trabajo",
           "5c9c7c16aa": "Agregar un proyecto para crear espacios de trabajo",
           "ca6f729da2": "Nuevo espacio de trabajo ({{value0}})",
           "a30e34eb5c": "Cerrar tablero del espacio de trabajo",
-          "25a95899c9": "Agregar proyecto"
+          "25a95899c9": "Agregar proyecto",
+          "spaces": "Espacios",
+          "views": "Vista de la barra lateral"
         },
         "SidebarNav": {
           "80611a8b10": "Buscar",
@@ -8231,7 +8234,8 @@
             },
             "agentDashboard": {
               "title": "Panel de agentes",
-              "description": "Tablero Kanban para monitorear agentes en diferentes worktrees, en ventana o como ventana emergente."
+              "description": "Tablero Kanban para monitorear agentes en diferentes worktrees, en ventana o como ventana emergente.",
+              "dashboard": "panel"
             }
           }
         },
@@ -14143,9 +14147,10 @@
           "b29191b3e0": "worktree",
           "8c3b621ddf": "Proyecto",
           "4a3986b200": "Estado",
-          "770d458144": "Agrupar actividad del agente por",
+          "770d458144": "Agrupar por",
           "795cbf26e2": "Filtrar...",
           "4616ea39fd": "Ir al workspace",
+          "markThreadRead": "Marcar hilo como leído",
           "59b131fbd9": "Marcar hilo como no leído",
           "beb2c19173": "No leído",
           "5651b216c6": "Proyecto desconocido",
@@ -14795,7 +14800,8 @@
   },
   "dashboard": {
     "sidebar": {
-      "label": "Panel de agentes"
+      "label": "Agentes",
+      "dashboardLabel": "Panel de agentes"
     }
   },
   "browser": {
@@ -14835,6 +14841,21 @@
         "addressInUse": "Another process may be holding the port. Restart Manta to try again.",
         "unknown": "Restart Manta to try again."
       }
+    }
+  },
+  "agentsSidebarIntro": {
+    "migrated": {
+      "title": "Los agentes son más fáciles de encontrar",
+      "description": "Tu vista de Agentes ahora es una pestaña dedicada de la barra lateral. Tu actividad y filtros se conservan.",
+      "dismiss": "Entendido",
+      "action": "Abrir Agentes"
+    },
+    "new": {
+      "title": "Conoce tu pestaña de Agentes",
+      "description": "Ve en qué están trabajando tus agentes, qué está terminado y dónde necesitas intervenir.",
+      "hide": "Ocultar Agentes",
+      "action": "Probar Agentes",
+      "hiddenToast": "La pestaña Agentes está oculta. Vuelve a activarla en Configuración → Experimental."
     }
   }
 }

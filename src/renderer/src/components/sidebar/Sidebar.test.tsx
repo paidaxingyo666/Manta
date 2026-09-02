@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tmpdir } from 'node:os'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
@@ -32,11 +32,31 @@ vi.mock('@/hooks/useSidebarResize', () => ({
 }))
 
 vi.mock('@/components/ui/tooltip', () => ({
-  TooltipProvider: ({ children }: { children: ReactNode }) => <>{children}</>
+  TooltipProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  Tooltip: ({ children }: { children: ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  TooltipContent: ({ children }: { children: ReactNode }) => <>{children}</>
 }))
 
 vi.mock('./SidebarHeader', () => ({
-  default: () => <div data-testid="sidebar-header" />
+  default: ({
+    agentToolbar,
+    agentSearchRow
+  }: {
+    agentToolbar?: ReactNode
+    agentSearchRow?: ReactNode
+  }) => (
+    <div data-testid="sidebar-header">
+      {agentToolbar}
+      {agentSearchRow}
+    </div>
+  )
+}))
+
+vi.mock('./SidebarAgentsList', () => ({
+  default: ({ query }: { query: string }) => (
+    <div data-testid="sidebar-agents-list" data-query={query} />
+  )
 }))
 
 vi.mock('./SidebarNav', () => ({
@@ -218,5 +238,48 @@ describe('Sidebar', () => {
     }
 
     expect(fetchAllWorktrees).not.toHaveBeenCalled()
+  })
+
+  it('clears the agents search query when the search row closes', async () => {
+    setSidebarState(getDefaultSettings(tmpdir()))
+    mocks.state = { ...mocks.state, sidebarBody: 'agents' }
+    const view = render(sidebarElement())
+    const agentsList = await view.findByTestId('sidebar-agents-list')
+
+    const searchToggle = view.getAllByRole('button', { name: 'Search' })[0]
+    fireEvent.click(searchToggle)
+    const searchInput = view.getByPlaceholderText('Filter...')
+    fireEvent.change(searchInput, { target: { value: 'deploy' } })
+    expect(agentsList.getAttribute('data-query')).toBe('deploy')
+
+    // Escape hides the row; a lingering query would silently keep filtering the list.
+    fireEvent.keyDown(searchInput, { key: 'Escape' })
+    expect(view.queryByPlaceholderText('Filter...')).toBeNull()
+    expect(agentsList.getAttribute('data-query')).toBe('')
+
+    fireEvent.click(searchToggle)
+    fireEvent.change(view.getByPlaceholderText('Filter...'), { target: { value: 'again' } })
+    expect(agentsList.getAttribute('data-query')).toBe('again')
+    fireEvent.click(searchToggle)
+    expect(view.queryByPlaceholderText('Filter...')).toBeNull()
+    expect(agentsList.getAttribute('data-query')).toBe('')
+  })
+
+  it('closes the dashboard drawer when the dashboard experiment is disabled', async () => {
+    setSidebarState({
+      ...getDefaultSettings(tmpdir()),
+      showAgentsSidebar: true,
+      experimentalAgentDashboardPopout: false
+    })
+    const setAgentDashboardDrawerOpen = vi.fn()
+    mocks.state = {
+      ...mocks.state,
+      agentDashboardDrawerOpen: true,
+      setAgentDashboardDrawerOpen
+    }
+
+    render(sidebarElement())
+
+    await waitFor(() => expect(setAgentDashboardDrawerOpen).toHaveBeenCalledWith(false))
   })
 })

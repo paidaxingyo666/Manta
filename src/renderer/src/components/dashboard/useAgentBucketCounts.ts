@@ -1,8 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useAppStore } from '@/store'
 import { useShallow } from 'zustand/react/shallow'
 import type { DashboardBucket } from '../../../../shared/dashboard-snapshot'
-import { buildDashboardBucketCounts } from './build-dashboard-bucket-counts'
+import {
+  buildDashboardBucketCounts,
+  createDashboardBucketCountsCache
+} from './build-dashboard-bucket-counts'
 
 export type AgentBucketCounts = Record<DashboardBucket, number>
 
@@ -46,6 +49,9 @@ export function useAgentBucketCounts(): AgentBucketCounts {
     }))
   )
 
+  // Why a per-hook cache: unrelated status/title writes change one worktree's inputs;
+  // the cache keeps every other worktree's counts without rerunning its row pipeline.
+  const cacheRef = useRef(createDashboardBucketCountsCache())
   return useMemo(() => {
     return buildDashboardBucketCounts(
       {
@@ -66,7 +72,11 @@ export function useAgentBucketCounts(): AgentBucketCounts {
         // generated-title gate is moot and the sidebar stays off settings.
         settings: null
       },
-      Date.now()
+      Date.now(),
+      cacheRef.current,
+      // Why: time-based freshness decay is signaled by agentStatusEpoch; it invalidates
+      // every cached worktree so stale-decayed buckets recount.
+      agentStatusEpoch
     )
     // Why: Date.now() is read inside the memo (not a dep) so idle-decay tracks
     // agentStatusEpoch ticks, matching useDashboardData.

@@ -3912,7 +3912,9 @@
           "searchLinks": "링크 검색",
           "deleteSkills": "스킬 삭제…"
         },
-        "SkillShareSelectionControls": { "01c5a15e02": "스킬 공유" },
+        "SkillShareSelectionControls": {
+          "01c5a15e02": "스킬 공유"
+        },
         "SkillRow": {
           "updatedUnknown": "날짜 없음",
           "pathCopied": "경로 복사됨",
@@ -3922,13 +3924,17 @@
           "viewDetails": "세부 정보 보기",
           "deleteSkill": "삭제…"
         },
-        "SkillsList": { "listLabel": "스킬" },
+        "SkillsList": {
+          "listLabel": "스킬"
+        },
         "sourceStatus": {
           "missing": "폴더를 찾을 수 없음",
           "remoteRepo": "원격 리포지토리 — 검색 안 됨",
           "unavailable": "검색 안 됨"
         },
-        "sources": { "heading": "스킬 폴더" },
+        "sources": {
+          "heading": "스킬 폴더"
+        },
         "sourceKind": {
           "home": "홈",
           "workspace": "워크스페이스",
@@ -3950,7 +3956,10 @@
           "linkOne": "링크 {{count}}개",
           "linkOther": "링크 {{count}}개"
         },
-        "filter": { "allAgents": "모든 에이전트", "sharedAgent": "공유됨 (.agents)" },
+        "filter": {
+          "allAgents": "모든 에이전트",
+          "sharedAgent": "공유됨 (.agents)"
+        },
         "SkillsSelectionHeader": {
           "exit": "선택 나가기",
           "exitTooltip": "선택 나가기 · Esc",
@@ -3959,7 +3968,11 @@
           "clear": "지우기",
           "deleteTitle": "삭제할 스킬 선택"
         },
-        "SkillDetailDialog": { "agents": "에이전트", "updated": "업데이트됨", "copy": "복사" },
+        "SkillDetailDialog": {
+          "agents": "에이전트",
+          "updated": "업데이트됨",
+          "copy": "복사"
+        },
         "SkillFreshnessNudge": {
           "titleOne": "설치된 Manta 스킬이 오래되었습니다",
           "titleMany": "설치된 Manta 스킬 {{value0}}개가 오래되었습니다",
@@ -4377,12 +4390,15 @@
           "keepDefaultBranchAria": "슬립 중인 워크스페이스를 숨겨도 기본 브랜치는 계속 표시"
         },
         "SidebarHeader": {
+          "projects": "프로젝트",
           "92154beb7e": "새로운 워크스페이스",
           "49f62c5665": "워크스페이스 보드",
           "5c9c7c16aa": "워크스페이스를 만들려면 프로젝트를 추가하세요.",
           "ca6f729da2": "새 워크스페이스({{value0}})",
           "a30e34eb5c": "워크스페이스 보드 닫기",
-          "25a95899c9": "프로젝트 추가"
+          "25a95899c9": "프로젝트 추가",
+          "spaces": "스페이스",
+          "views": "사이드바 보기"
         },
         "SidebarNav": {
           "80611a8b10": "검색",
@@ -8208,7 +8224,8 @@
             },
             "agentDashboard": {
               "title": "에이전트 대시보드",
-              "description": "워크트리 전반에 걸친 에이전트를 모니터링하는 칸반 보드. 윈도우 내 또는 팝업으로 표시됩니다."
+              "description": "워크트리 전반에 걸친 에이전트를 모니터링하는 칸반 보드. 윈도우 내 또는 팝업으로 표시됩니다.",
+              "dashboard": "대시보드"
             }
           }
         },
@@ -14186,9 +14203,10 @@
           "b29191b3e0": "워크트리",
           "8c3b621ddf": "프로젝트",
           "4a3986b200": "상태",
-          "770d458144": "agent 활동 그룹화 기준",
+          "770d458144": "그룹화 기준",
           "795cbf26e2": "필터...",
           "4616ea39fd": "워크스페이스로 이동",
+          "markThreadRead": "스레드를 읽은 것으로 표시",
           "59b131fbd9": "스레드를 읽지 않은 것으로 표시",
           "beb2c19173": "읽지 않음",
           "5651b216c6": "알 수 없는 프로젝트",
@@ -14899,7 +14917,8 @@
   },
   "dashboard": {
     "sidebar": {
-      "label": "에이전트 대시보드"
+      "label": "에이전트",
+      "dashboardLabel": "에이전트 대시보드"
     }
   },
   "browser": {
@@ -14939,6 +14958,21 @@
         "addressInUse": "Another process may be holding the port. Restart Manta to try again.",
         "unknown": "Restart Manta to try again."
       }
+    }
+  },
+  "agentsSidebarIntro": {
+    "migrated": {
+      "title": "에이전트를 더 쉽게 찾을 수 있습니다",
+      "description": "에이전트 보기가 이제 사이드바 전용 탭이 되었습니다. 활동과 필터는 그대로 유지됩니다.",
+      "dismiss": "확인",
+      "action": "에이전트 열기"
+    },
+    "new": {
+      "title": "에이전트 탭을 만나보세요",
+      "description": "에이전트가 무엇을 작업 중인지, 무엇이 완료되었는지, 어디에 개입이 필요한지 확인하세요.",
+      "hide": "에이전트 숨기기",
+      "action": "에이전트 사용해 보기",
+      "hiddenToast": "에이전트 탭이 숨겨졌습니다. 설정 → 실험 기능에서 다시 활성화하세요."
     }
   }
 }

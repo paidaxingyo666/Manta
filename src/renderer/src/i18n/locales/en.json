@@ -137,6 +137,10 @@
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
         "description": "Keep a Manta shortcut and activity indicator in the macOS menu bar."
+      },
+      "agentsSidebar": {
+        "title": "Show Agents Button",
+        "description": "Control whether the Agents tab appears in the left sidebar so you can monitor agent activity."
       }
     },
     "browser": {
@@ -944,6 +948,9 @@
       },
       "ephemeralVmWorktreeCreation": {
         "sparseCheckoutUnsupported": "Provisioned-root recipes do not support sparse checkout."
+      },
+      "worktreeJumpNavigation": {
+        "filteredNotice": "This worktree is hidden by sidebar filters. The workspace was opened, but it is not shown in Spaces."
       },
       "file": {
         "preview": {
@@ -5231,12 +5238,16 @@
           "keepDefaultBranchAria": "Keep the default branch visible while hiding sleeping workspaces"
         },
         "SidebarHeader": {
+          "projects": "Projects",
+          "spaces": "Spaces",
           "25a95899c9": "Add Project",
           "92154beb7e": "New workspace",
           "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
           "ca6f729da2": "New workspace ({{value0}})",
-          "a30e34eb5c": "Close workspace board"
+          "a30e34eb5c": "Close workspace board",
+          "views": "Sidebar view",
+          "moreActions": "More workspace actions"
         },
         "SidebarNav": {
           "80611a8b10": "Search",
@@ -5368,7 +5379,8 @@
           "65a9820bd1": "Agent statuses",
           "219ebf1961": "Branch name",
           "folderPathIdentity": "Branch / folder path",
-          "cli": "Manta CLI"
+          "cli": "Manta CLI",
+          "workspaceOptions": "Workspace options"
         },
         "SshTargetRow": {
           "4677394048": "Connecting…",
@@ -9305,7 +9317,8 @@
             },
             "agentDashboard": {
               "title": "Agent Dashboard",
-              "description": "Kanban board for monitoring agents across worktrees, in-window or as a pop-out."
+              "description": "Kanban board for monitoring agents across worktrees, in-window or as a pop-out.",
+              "dashboard": "dashboard"
             }
           }
         },
@@ -15909,19 +15922,48 @@
           "b29191b3e0": "Worktree",
           "8c3b621ddf": "Project",
           "4a3986b200": "Status",
-          "770d458144": "Group agent activity by",
+          "770d458144": "Group by",
           "795cbf26e2": "Filter...",
           "4616ea39fd": "Jump to workspace",
+          "markThreadRead": "Mark thread as read",
           "59b131fbd9": "Mark thread unread",
           "beb2c19173": "Unread",
           "5651b216c6": "Unknown project",
           "22b22034bc": "Standalone terminal unavailable in Activity.",
-          "afdc2139a8": "Agent terminal closed. Open a new terminal in this workspace to continue."
+          "afdc2139a8": "Agent terminal closed. Open a new terminal in this workspace to continue.",
+          "compactModeDescription": "Shows shorter thread rows with one-line titles and two-line status messages.",
+          "unreadOnlyDescription": "Filters the activity list to show only threads with unread updates.",
+          "clearCompleted": "Clear completed",
+          "none": "None",
+          "search": "Search",
+          "showUnreadOnly": "Show unread only",
+          "showChildAgents": "Show child agents"
+        },
+        "clearCompleted": {
+          "clearedOne": "Cleared 1 completed agent",
+          "clearedMany": "Cleared {{count}} completed agents",
+          "undo": "Undo"
+        },
+        "standaloneWorktree": {
+          "floatingTerminal": "Floating terminal",
+          "standaloneTerminal": "Standalone terminal"
         },
         "ActivityTitlebarControls": {
           "f915168c8e": "unread",
           "d6a8de3934": "agents",
           "dc708f3eff": "Close agents"
+        },
+        "ActivityScopeFilterControls": {
+          "clearHostFilter": "Show all hosts",
+          "clearProjectFilter": "Show all projects",
+          "hiddenCount": "{{value0}} hidden"
+        },
+        "ActivityThreadHoverCard": {
+          "pathCopied": "Path copied to clipboard",
+          "copyPathFailed": "Failed to copy path",
+          "workspace": "Workspace",
+          "copyPath": "Copy path",
+          "jumpToWorkspace": "Jump to workspace"
         }
       },
       "confirmation": {
@@ -17186,7 +17228,8 @@
   },
   "dashboard": {
     "sidebar": {
-      "label": "Agent Dashboard"
+      "label": "Agents",
+      "dashboardLabel": "Agent Dashboard"
     }
   },
   "runtimeRpc": {
@@ -17232,6 +17275,21 @@
   "sourceControl": {
     "unlinkedPr": {
       "status": "PR #{{number}} unlinked"
+    }
+  },
+  "agentsSidebarIntro": {
+    "migrated": {
+      "title": "Agents are easier to find",
+      "description": "Your Agents view is now a dedicated sidebar tab. Your activity and filters are preserved.",
+      "dismiss": "Got it",
+      "action": "Open Agents"
+    },
+    "new": {
+      "title": "Meet your Agents tab",
+      "description": "See what your agents are working on, what is done, and where you need to step in.",
+      "hide": "Hide Agents",
+      "action": "Try Agents",
+      "hiddenToast": "Agents tab hidden. Re-enable it in Settings → Experimental."
     }
   }
 }

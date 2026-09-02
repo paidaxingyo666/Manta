@@ -10,7 +10,7 @@ import type { Worktree } from '../../../../shared/worktree/types'
 import type { ActivityPortalReadinessStatus } from './activity-portal-readiness-oscillation'
 
 export type ThreadReadFilter = 'all' | 'unread'
-export type ActivityGroupBy = 'status' | 'project' | 'worktree' | 'agent'
+export type ActivityGroupBy = 'none' | 'status' | 'project' | 'worktree' | 'agent'
 export type ActivityEventState = Extract<AgentStatusState, 'done' | 'blocked' | 'waiting'>
 export type ActivityHookLiveAgentState = Extract<
   AgentStatusState,

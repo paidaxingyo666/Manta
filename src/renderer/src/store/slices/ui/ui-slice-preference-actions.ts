@@ -36,6 +36,9 @@ import {
 
 export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
+    sidebarBody: 'workspaces',
+    setSidebarBody: (body) => set({ sidebarBody: body }),
+
     groupBy: 'repo',
     // Why: group keys are mode-specific, so clear collapsed state on mode switch — stale keys are meaningless and accumulate.
     setGroupBy: (g) => {
@@ -145,6 +148,28 @@ export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Par
 
     filterRepoIds: [],
     setFilterRepoIds: (ids) => set({ filterRepoIds: ids }),
+
+    agentsVisibleHostIds: null,
+    setAgentsVisibleHostIds: (ids) => {
+      const agentsVisibleHostIds = normalizeVisibleExecutionHostIds(ids)
+      set({ agentsVisibleHostIds })
+      window.api.ui.set({ agentsVisibleHostIds }).catch(console.error)
+    },
+    agentsFilterRepoIds: [],
+    setAgentsFilterRepoIds: (ids) => {
+      set({ agentsFilterRepoIds: ids })
+      window.api.ui.set({ agentsFilterRepoIds: [...ids] }).catch(console.error)
+    },
+    agentsShowChildAgents: false,
+    setAgentsShowChildAgents: (v) => {
+      set({ agentsShowChildAgents: v })
+      window.api.ui.set({ agentsShowChildAgents: v }).catch(console.error)
+    },
+    agentsCompactMode: true,
+    setAgentsCompactMode: (v) => {
+      set({ agentsCompactMode: v })
+      window.api.ui.set({ agentsCompactMode: v }).catch(console.error)
+    },
 
     collapsedGroups: new Set<string>(),
     toggleCollapsedGroup: (key) =>
