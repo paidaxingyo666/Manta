@@ -18,7 +18,7 @@ export type LinuxTerminalMantaCliShimOptions = {
 }
 
 // Why: the Linux package installs the CLI as `manta-ide` — a name inherited from
-// upstream, where bare `orca` would shadow the GNOME Orca screen reader at
+// upstream, whose CLI name would shadow the GNOME Orca screen reader at
 // /usr/bin/orca — so bare `manta` is not on PATH. Agent-facing surfaces (skills,
 // dispatch preambles, CLI hints) invoke bare `manta` anyway (stablyai/orca#7904).
 // Prepending this userData-scoped shim dir to managed-PTY PATH makes bare `manta`

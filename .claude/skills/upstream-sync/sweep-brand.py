@@ -14,60 +14,12 @@ next decision lives.
 
 Usage:  sweep-brand.py <since-rev> [--apply]
 """
-import re, subprocess, sys, pathlib, functools
-
-TOKEN = re.compile(r'[A-Za-z0-9_.@/-]*(?:[Oo]rca|ORCA)[A-Za-z0-9_.@/-]*')
-
-# Deliberate remnants that DO have a Manta twin, so the evidence rule alone
-# would rename them. Each is load-bearing exactly as spelled:
-#   - upstream's repo slug guards workflows this fork must never run
-#   - the five skill aliases keep already-installed skills resolvable
-#   - GNOME Orca is Ubuntu's screen reader, and the reason the Linux binary is
-#     called manta-ide rather than manta
-KEEP = {
-    'stablyai/orca',
-    'github.com/stablyai/orca',
-    'orca-cli',
-    'orca-emulator',
-    'orca-emulator-android',
-    'orca-linear',
-    'orca-per-workspace-env',
-    'orca-hourly-release',
-    'onorca-cloud',
-}
-KEEP_SUBSTRING = ('stablyai/orca', '/usr/bin/orca', 'onorca-cloud')
-# Phrases where the brand is a bare word with a space in front of it, so the
-# token scanner never sees them as one unit. GNOME Orca is Ubuntu's screen
-# reader and the whole reason the Linux binary is manta-ide; renaming it in a
-# comment turns the explanation into its own contradiction.
-KEEP_PHRASE = ('GNOME Orca',)
-
-def rebrand_token(tok):
-    return tok.replace('ORCA', 'MANTA').replace('Orca', 'Manta').replace('orca', 'manta')
+import re, subprocess, sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from brand_rule import rebrand_text, keep_whole_file  # noqa: E402
 
 def run(*args):
     return subprocess.run(args, capture_output=True, text=True).stdout
-
-@functools.lru_cache(maxsize=None)
-def manta_twin_exists(token):
-    """Does this fork already speak the Manta form of this token, as a token?
-
-    Whole-word, not substring: `mantad` turns up inside unrelated identifiers,
-    and a substring hit is not evidence that the fork uses that name.
-    """
-    if token in KEEP or any(k in token for k in KEEP_SUBSTRING):
-        return False
-    twin = rebrand_token(token)
-    if twin == token:
-        return False
-    # The token often carries a path prefix (`../runtime/orca-runtime-browser`)
-    # that no import in this tree spells the same way. The basename is what
-    # identifies the module, so ask about that too.
-    for candidate in (twin, twin.rsplit('/', 1)[-1]):
-        hit = subprocess.run(['git', 'grep', '-q', '-w', '-F', candidate, 'HEAD'], capture_output=True)
-        if hit.returncode == 0:
-            return True
-    return False
 
 def main():
     since = sys.argv[1]
@@ -75,7 +27,7 @@ def main():
     changed = [p for p in run('git', 'diff', '--name-only', f'{since}..HEAD').splitlines() if p]
     # This skill's own prose is *about* upstream, so renaming Orca inside it
     # inverts what it says — `orcad` became "upstream's new daemon named mantad".
-    changed = [p for p in changed if not p.startswith('.claude/skills/upstream-sync/')]
+    changed = [p for p in changed if not keep_whole_file(p)]
 
     renamed, declined = {}, {}
     for path in changed:
@@ -87,31 +39,11 @@ def main():
         except (UnicodeDecodeError, IsADirectoryError):
             continue
 
-        def replace(m):
-            tok = m.group(0)
-            if any(ph in text[max(0, m.start() - 12):m.end() + 12] for ph in KEEP_PHRASE):
-                declined.setdefault(tok, set()).add(path)
-                return tok
-            if manta_twin_exists(tok):
-                renamed.setdefault(path, set()).add(tok)
-                return rebrand_token(tok)
-            # Two brand-bearing names can sit flush against each other —
-            # `__ORCA_AGENT_PATH__orca-fake-cli` is a sentinel this fork renamed
-            # glued to a fixture name it did not. Judge the halves separately.
-            if '__' in tok:
-                parts = tok.split('__')
-                if any(manta_twin_exists(f'__{q}__') for q in parts if q):
-                    out = '__'.join(
-                        rebrand_token(q) if manta_twin_exists(f'__{q}__') else q for q in parts)
-                    if out != tok:
-                        renamed.setdefault(path, set()).add(tok)
-                        return out
+        new, toks, decl = rebrand_text(text)
+        if toks:
+            renamed[path] = toks
+        for tok in decl:
             declined.setdefault(tok, set()).add(path)
-            return tok
-
-        new = TOKEN.sub(replace, text)
-        new = re.sub(r'\ban Manta\b', 'a Manta', new)
-        new = re.sub(r'\bAn Manta\b', 'A Manta', new)
         if new != text and apply:
             p.write_text(new)
 

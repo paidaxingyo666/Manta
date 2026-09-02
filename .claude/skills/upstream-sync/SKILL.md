@@ -71,6 +71,13 @@ above) and run the driver again — it is idempotent.
 
 ## What the tools do
 
+All three brand tools import one rule, `brand_rule.py`. Before 2026-09-02 there
+were two copies with different rules: `rebrand-merge.py` renamed blindly at
+conflict time, with no KEEP list and an identity map that pointed at a bundle
+id upstream never used — and that is precisely where "GNOME Manta screen
+reader" and the bundle id `com.stablyai.manta` came from. Change the rule in
+one place, and every tool changes with it.
+
 **`rebrand-merge.py`** — the reason most conflicts are not real ones. Upstream's
 file says Orca, ours says Manta, so git sees two different lines where there is
 one change. Rewriting the base and the incoming side into Manta *first* turns
@@ -152,96 +159,61 @@ otherwise. There is no general fix; run the tests.
 ## Finishing
 
 ```bash
-python3 .claude/skills/upstream-sync/sweep-brand.py main --apply   # FIRST, not last
-pnpm install                 # the sync may have brought new dependencies
-pnpm lint
-pnpm typecheck
-pnpm test
-
-cd mobile && pnpm install --frozen-lockfile && npx oxlint && npx oxfmt --check . \
-  && pnpm typecheck && pnpm test && cd ..
+.claude/skills/upstream-sync/sync-verify.sh main
 ```
 
-**Run `sweep-brand.py` before anything else, every time.** It was skipped on the
-2026-09-01 sync and 32 files had silently reverted to upstream's spelling. Not
-cosmetics: `tests/e2e/helpers/` imported `./orca-app` and `./orca-restart`,
-modules renamed here long ago, which broke `pnpm test` collection — the unit
-suite, not just Playwright. A PR-creation error told users to set `ORCA_*`
-tokens the app never reads. Its evidence rule (rename only where a Manta twin
-exists) means it cannot touch the deliberate remnants, so there is no reason to
-defer it, and running it late means re-running every check.
+One command, seven steps, in the only order that works, and it exits non-zero
+on the first thing wrong. Do not run its pieces by hand; every step exists
+because skipping it once let something through:
 
-Then confirm what it declined. That list is not noise — it is where a decision
-lives. A token with no Manta twin is either fine (GNOME Orca, `stablyai/orca`)
-or a file this fork should have renamed and has not.
+1. **sweep-brand, first.** A clean pick lands upstream's spelling verbatim.
+   Skipped on 2026-09-01: 32 files, including e2e helpers importing
+   `./orca-app`, which broke `pnpm test` collection — the unit suite, not just
+   Playwright.
+2. **Resurrection audit.** Files a picked upstream commit deleted but which are
+   still in the tree. A modify/delete conflict "resolved" by keeping the file
+   brought back `src/main/linear/issues.ts` — 1400 lines upstream had split into
+   seven modules this fork already carried, plus the `eslint-disable max-lines`
+   the ratchet then failed on. Matched by subject, not the `-x` trailer, because
+   two thirds of the picks lose the trailer to conflict resolution.
+3. **Twin audit.** `orca-X` beside `manta-X` is a rename that landed as a copy.
+4. **Regenerate generated artifacts** — skill manifest, the mobile localizer,
+   and a check that every `en.json` key has a `zh.json` entry. The sync brought
+   a whole network-diagnostics surface in English: 3 unlocalized call sites and
+   23 keys behind them.
+5. **Root gates, all fifteen.** `pnpm lint` is fifteen commands and `oxlint` is
+   the first; when it exits non-zero the other fourteen never run.
+   `check:max-lines-ratchet` and `verify:localization-coverage:mobile` catch
+   what nothing else does.
+6. **Mobile gates, separately.** `mobile/` has its own oxlint, oxfmt config and
+   lockfile; the root commands touch none of them. `--frozen-lockfile` is the
+   point — plain `pnpm install` rewrites the lockfile and hides that it was
+   upstream's, which is exactly what mobile CI then failed on.
+7. **Root tests.** Re-run any failure serially before believing it: the
+   `.electron` tests launch real Electron and time out at 32s under parallel
+   load.
 
-**The four root commands do not cover `mobile/`.** It is a separate pnpm project
-outside the root workspace, so `pnpm typecheck` there is a different tsc run
-against a different tsconfig — which is why the 142-commit sync on 2026-08-30
-landed 28 type errors in mobile source. Nine of them were imports of symbols a
-file split had moved, and one of those, `loadCustomKeys` in the session screen,
-crashed the phone on entering any session: mobile ships no error boundary, so an
-uncaught JS exception is `RCTFatal`, not a red box.
+Then read what the sweep **declined**. That list is not noise — a token with no
+Manta twin is either fine (GNOME Orca, `stablyai/orca`) or a file this fork
+should have renamed and has not.
 
-Mobile Checks did report every one of them on the sync PR. Nothing enforced it —
-`main` has no branch protection — so the PR merged with the job red. **Read that
-job before merging a sync; a red Mobile Checks is not advisory.**
-
-`--frozen-lockfile` is the point of that mobile line: plain `pnpm install`
-rewrites the lockfile and hides the problem. The 2026-09-01 sync left
-`mobile/pnpm-lock.yaml` as upstream's — it named `@orca/expo-two-way-audio`
-while the package is `@manta/`, and carried neither `i18next` nor
-`react-i18next`, so the exact command mobile CI runs failed outright while
-`pnpm typecheck` and `pnpm test` passed against an older `node_modules`.
-
-`mobile/` has its own `oxlint` and its own `.oxlintrc.json`, and the root
-`pnpm lint` runs neither. A root lint that passes says nothing about the phone:
-the 2026-09-01 sync's own localization pushed `app/connection-log.tsx` from 399
-to 410 counted lines, and only mobile's oxlint said so — on CI, after the branch
-was already pushed. Format is split the same way: `verify` checks the whole
-tree, so `oxfmt --check` has to run in both.
-
-**Do not stop at `oxlint`.** It is the first of fifteen commands in `pnpm lint`
-and it exits non-zero, so the fourteen gates behind it never run. Two of them
-catch what nothing else does: `check:max-lines-ratchet`, which fails when a
-pick brings in a file carrying upstream's own `eslint-disable max-lines`, and
-`verify:localization-coverage:mobile`, which is the only thing standing between
-this fork and an upstream feature landing entirely in English. The 2026-09-01
-sync brought a whole network-diagnostics surface that way: three unlocalized
-call sites, and 23 keys in `en.json` with no `zh.json` entry behind them.
-
-**A file that was one line under its budget is now over it.** `max-lines`
-counts non-blank, non-comment lines, so `wc -l` will not tell you. Five files
-sat at 298/300, 399/400, 299/300 and the like before that sync and every one
-crossed. Split them; never suppress — the ratchet exists to make that
-impossible, and `--prune` on the baseline can silently drop an entry for a file
-that still carries a suppression.
-
-Run the full suite, with the project's vitest config — a bare `vitest` misses
-the gates. Expect timeouts under load: a saturated machine fails
-`check-root-directory-entries` at 128 seconds for a test that is normally
-instant. Re-run anything that failed with `--maxWorkers=3` before believing it,
-and check a suspect against the pre-sync branch before treating it as new.
+**What the script cannot see** — the layer where identity is a machine-readable
+key rather than a word: `Symbol.for` slots, `localStorage`/`AsyncStorage` keys,
+HTTP header names, on-disk file names. `tsc` does not check them and the
+evidence rule needs a Manta twin that a key nobody tests never has. Three are
+known and each is a migration decision, not a rename: `orca.web.onboarding.v1`
+/ `orca.web.githubCache.v1` beside four `manta.web.*` keys in
+`src/renderer/src/web/preload-api/web-storage.ts`; `orca.mobile.connection-log.v1.`
+in `mobile/src/transport/persisted-connection-log-store.ts`; and
+`MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'` under `.manta-remote/` on
+every remote host. Renaming any of them strands existing users' data.
 
 Two things the sync itself will not tell you:
 
 - **The version follows upstream's line.** Read their newest tag, not
   `package.json` on their main — their release-cut writes the version in a
-  separate commit, so main always lags. After 79 commits on 23 August,
-  upstream's newest was `v1.4.188`, so this fork went to `1.4.189-rc.0`.
-
-  Ask the remote, not the local tag list. `git fetch upstream --tags` pulls
-  2000+ of their tags in beside this fork's own, and `git tag -l` then reports
-  whichever sorts highest — on 25 August that was `v1.4.189-rc.6`, which is
-  *ours*. Upstream was still on `v1.4.188`.
-
-  ```bash
-  git ls-remote --tags upstream | grep -v '\^{}' |
-    grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$' | sort -V | tail -1
-  ```
-- **Skill revisions need sealing at the new version.** Compare
-  `resources/skills/current-manifest.json` against the last row of
-  `release-mapping.json`; if they disagree, run
+  separate commit, so main always lags.
+- **Seal the skill bundle manifest** for the release with
   `node config/scripts/generate-skill-bundle-manifest.mjs --release <version>`.
   Left unsealed, the next regeneration reassigns a revision number to different
   bytes and every installed copy stops matching a known snapshot.
@@ -286,3 +258,73 @@ Upstream must never overwrite these. If a pick touches one, stop and think:
 - the three dev-channel mac workflows, whose job guards point at
   `stablyai/orca` on purpose so this fork never runs them
 - `README.md`, `docs/readme/README.zh-CN.md`
+
+## Why every sync has needed a repair commit
+
+Every sync so far has ended with a commit of a few hundred files repairing
+what the picks broke: 344 files, 324, 380, 92. That is not bad luck. It is the
+cost of the shape this fork is in, and on 2026-09-02 it was measured
+(`upstream/main` 5aa02ead59 against fork e8fdc1c84b, every number reproduced by
+a second, independent agent):
+
+- **22,774 comparable files. 95.6% are identical once the brand is
+  normalized.** Of the 7,355 files that are not byte-identical, 86.4% differ
+  *only* by the rename. Real customization is under 14%.
+- **5,805 files are reproduced with zero error by the evidence rule alone.**
+  The rename is a deterministic function of upstream's tree, not a fact of
+  history — and today it is stored as history: 6,100 files of diff, replayed
+  against every pick.
+- **The fork's real work is small and concentrated**: 401 shared files carry
+  the three owned features (mobile i18n 278, relay endpoints 94, release CI 29),
+  plus 234 fork-only files. Relay's touch on shared code is ~94 files of
+  few-line hooks; release CI is almost entirely under `.github/` and
+  `config/scripts/`.
+- **Mobile i18n is itself a generator's output.** Replaying `sweep-brand →
+  localize-renderer-strings.mjs --target mobile → oxfmt` on upstream's tree
+  reproduces about two thirds of the fork's 1,541 `translate()` call sites
+  mechanically. The rest is one design choice: keys are `sha1(path:text)`, so
+  every time upstream moves code the key changes and `zh.json` orphans the
+  translation — 661 keys orphaned in that experiment. Keyed by text alone,
+  99.4% survive.
+- **Identity lives as 9,941 bare literals against 163 named constants**, and
+  upstream writes it the same way, so centralizing on the fork side would turn
+  every upstream hunk into a conflict. The tool has to be right instead.
+- **Subject matching is lossy.** Of 377 same-subject twins, 58 (15.4%) carry
+  different content — #17517 landed here with 1,300 lines upstream's squash
+  does not have. Upstream's main is a fresh squash history since 2026-08-28
+  and will be rewritten again. The PR number in the subject (`#NNNNN`) is a
+  stabler identity than the subject; a same-subject pick whose diff differs
+  from upstream's should be a warning, not silence.
+- **The max-lines ratchet is self-inflicted drift.** Forbidding upstream's own
+  `eslint-disable max-lines` made this fork split 21 files (1,873 lines) that
+  upstream later split differently. Grandfather upstream's suppressions in the
+  baseline; forbid only new fork-authored ones.
+
+### The way out
+
+Given those numbers, the fork should stop *being* a rebranded copy and become
+**upstream + a generated transform + a small patch set**:
+
+1. **Generate the rebrand instead of storing it.** Keep a mirror branch,
+   `upstream-manta`, that is `upstream/main` with `brand_rule.py` applied to
+   every commit (paths included). Regenerate it from scratch on each fetch — it
+   is deterministic, upstream's whole history is 387 commits, and the census
+   is the acceptance test: the mirror must match the fork on ≥95% of files.
+2. **Rebase the patch set onto the mirror.** With both sides speaking Manta,
+   `git rebase` of the fork's own commits onto the fresh mirror conflicts only
+   where upstream edited a file the fork also edited — a few hundred files, not
+   six thousand. Half-renames cannot happen because there is no brand conflict
+   to resolve; resurrections cannot happen because deletions are real merges.
+3. **Regenerate mobile i18n rather than rebasing it.** Run the localizer on
+   the fresh tree, fill `zh.json` from a translation memory keyed by English
+   text, and keep the residual (module-scope constants, strings the localizer
+   cannot see, exemptions) as a rule file that replays — not as hand edits
+   inside upstream's files.
+4. **Keep `sync-verify.sh` as the single gate**, and put branch protection on
+   `main` with `verify` and `Mobile Checks` required. The 2026-08-30 sync
+   merged with 28 mobile type errors visible in CI; nothing enforced them.
+
+Until the mirror exists, the current flow stands, with the unified rule and
+`sync-verify.sh` closing the gaps the last sync exposed. Steps 1–3 are a
+change to how the fork is kept, not to what it ships, and they are the user's
+call.
