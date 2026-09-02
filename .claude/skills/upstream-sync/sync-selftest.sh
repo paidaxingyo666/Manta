@@ -37,28 +37,29 @@ echo "== bootstrap fork-before onto it"
 "$HERE/sync-bootstrap.sh" "$BEFORE" selftest/work 2>&1 | grep -E '^==|fork patch' | sed 's/^/   /'
 
 echo "== mirror of upstream-to ${UP1:0:12} (evidence: fork-before)"
-python3 "$HERE/build-mirror.py" --upstream "$UP1" --evidence "$BEFORE" --ref refs/sync/selftest-mirror 2>&1 | grep -E 'commits ·|Manta twins' | sed 's/^/   /'
+python3 "$HERE/build-mirror.py" --upstream "$UP1" --evidence "$BEFORE" --ref refs/sync/selftest-mirror   # extends M0 2>&1 | grep -E 'commits ·|Manta twins' | sed 's/^/   /'
 M1="$(git rev-parse refs/sync/selftest-mirror)"
 echo "   $(git rev-list --count "$M0..$M1") upstream commits to cross"
 
-echo "== rebase the fork patch across them"
-git config merge.keepfork.driver 'cp %B %A'
-git config merge.keepupstream.driver 'true'
-if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false rebase -q --onto "$M1" "$M0" selftest/work 2>/dev/null; then
+echo "== merge the new mirror into the bootstrapped fork"
+git config merge.keepfork.driver 'true'
+git config merge.keepupstream.driver 'cp %B %A'
+git checkout -q selftest/work
+if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false merge -q --no-ff --no-edit -m "selftest merge" "$M1" 2>/dev/null; then
   echo "   clean — no conflicts at all"
 else
   conf="$(git diff --name-only --diff-filter=U)"
   n="$(printf '%s\n' "$conf" | grep -c .)"
   echo "   $n files conflicted:"
   printf '%s\n' "$conf" | awk -F/ '{print "     " ($1=="mobile"||$1=="src"||$1=="tests"||$1=="config" ? $1"/"$2 : $1)}' | sort | uniq -c | sort -rn | head -12
-  # Documented resolutions.
+  # Documented resolutions. In a merge --theirs is upstream and --ours the fork.
   auto=0
   for f in $conf; do
     case "$f" in
       mobile/*.ts|mobile/*.tsx|pnpm-lock.yaml|mobile/pnpm-lock.yaml|resources/skills/*.json)
-        git checkout --ours -- "$f" 2>/dev/null && git add -- "$f" && auto=$((auto+1)) ;;
-      README.md|docs/readme/README.zh-CN.md)
         git checkout --theirs -- "$f" 2>/dev/null && git add -- "$f" && auto=$((auto+1)) ;;
+      README.md|docs/readme/README.zh-CN.md)
+        git checkout --ours -- "$f" 2>/dev/null && git add -- "$f" && auto=$((auto+1)) ;;
       *)
         # modify/delete where the fork's history deleted it: stay deleted.
         if ! git cat-file -e ":3:$f" 2>/dev/null && git log --diff-filter=D --format=%h -1 "$BEFORE" -- "$f" | grep -q .; then
@@ -69,9 +70,9 @@ else
   left="$(git diff --name-only --diff-filter=U)"
   echo "   $auto resolved by rule; $(printf '%s\n' "$left" | grep -c .) need a person:"
   printf '%s\n' "$left" | head -30 | sed 's/^/     /'
-  # For the report, take the fork's side of the rest so the rebase can finish.
-  for f in $left; do git checkout --theirs -- "$f" 2>/dev/null; git add -- "$f"; done
-  GIT_EDITOR=true git -c core.hooksPath=/dev/null rebase --continue >/dev/null 2>&1 || true
+  # For the report, take the fork's side of the rest so the merge can finish.
+  for f in $left; do git checkout --ours -- "$f" 2>/dev/null; git add -- "$f"; done
+  git -c core.hooksPath=/dev/null commit -q --no-edit -m "selftest merge" >/dev/null 2>&1 || true
 fi
 
 echo "== distance from the hand-made result ${AFTER:0:12}"
