@@ -869,10 +869,17 @@ async function probeRequiredNativeDeps(
       return { status: 'unverifiable', missing: [] }
     }
     return { status: 'blocked', missing }
-  } catch {
+  } catch (error) {
     signal?.throwIfAborted()
     // Why: an unanswered probe says nothing about the deps; reporting MISSING here reset and
     // recompiled healthy relays, turning one dropped exec channel into a multi-minute reconnect.
+    // Why: the wrongful rebuild was the only visible symptom, so without this line a dropped exec
+    // channel leaves no trace at all.
+    console.warn(
+      `[ssh-relay] Native deps probe unanswered at ${remoteDir}; treating as unverifiable: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    )
     return { status: 'unverifiable', missing: [] }
   }
 }
