@@ -8,6 +8,7 @@ import {
 import type { FolderWorkspace } from '../../shared/folder-workspace-types'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import { getRepoIdFromWorktreeId } from '../../shared/worktree/id'
+import { workspaceSessionPartitionHostId } from '../../shared/workspace-session-partition-owner'
 import { parseWorkspaceKey } from '../../shared/workspace-scope'
 import type { RuntimeStore } from './runtime-store-contract'
 
@@ -44,7 +45,11 @@ export class RuntimeWorkspaceSessionController {
     }
     const resolvedWorktreeId = scope?.type === 'worktree' ? scope.worktreeId : worktreeId
     const repo = store?.getRepo?.(getRepoIdFromWorktreeId(resolvedWorktreeId))
-    return repo ? getRepoExecutionHostId(repo) : LOCAL_EXECUTION_HOST_ID
+    // Why: SSH worktrees keep their own `ssh:<targetId>` partition here while the renderer writes
+    // them to 'local'; the shared owner map records that divergence (#12723).
+    return repo
+      ? workspaceSessionPartitionHostId(getRepoExecutionHostId(repo), 'host-partition')
+      : LOCAL_EXECUTION_HOST_ID
   }
 
   getHostId(worktreeId: string): ExecutionHostId {
