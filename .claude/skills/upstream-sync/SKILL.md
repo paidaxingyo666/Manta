@@ -200,11 +200,12 @@ Upstream must never overwrite these. If a conflict touches one, stop and think:
 it `main`:
 
 ```bash
-git branch main-legacy main                      # the cherry-pick era, kept
-git branch -f main sync/mirror-bootstrap
-git push origin main-legacy
-git push --force-with-lease origin main          # history changes: one-time
+.claude/skills/upstream-sync/sync-cutover.sh     # asks before it does anything
 ```
+
+It keeps the old `main` as `main-legacy`, lifts the force-push block for one
+push and restores it, and publishes the sync refs. `main` is protected:
+`verify` and `Mobile Checks` must pass before a merge.
 
 Every open branch based on the old `main` must be rebased onto the new one
 (`git rebase --onto main main-legacy <branch>`) — the trees match, so that is
