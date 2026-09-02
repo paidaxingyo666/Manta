@@ -16781,10 +16781,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "Switch to terminal view",
           "switchToChatView": "Switch to chat view",
-          "closeTabsToLeft": "Close Tabs To The Left",
-          "copySessionId": "Copy Session ID",
-          "copySessionIdSuccess": "Session ID copied",
-          "copySessionIdError": "Failed to copy Session ID"
+          "closeTabsToLeft": "Close Tabs To The Left"
         },
         "BrowserTab": {
           "closeOthers": "Close Others",
@@ -17072,6 +17069,13 @@
         "hours": "{{value0}}h",
         "days": "{{value0}}d",
         "underOneMinute": "<1m"
+      }
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "Copy Session ID",
+        "copySessionIdSuccess": "Session ID copied",
+        "copySessionIdError": "Unable to copy session ID"
       }
     }
   },

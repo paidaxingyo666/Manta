@@ -14652,10 +14652,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "ターミナルビューに切り替える",
           "switchToChatView": "チャットビューに切り替える",
-          "closeTabsToLeft": "左側のタブを閉じる",
-          "copySessionId": "セッション ID をコピー",
-          "copySessionIdSuccess": "セッション ID をコピーしました",
-          "copySessionIdError": "セッション ID のコピーに失敗しました"
+          "closeTabsToLeft": "左側のタブを閉じる"
         },
         "BrowserTab": {
           "closeOthers": "その他を閉じる",
@@ -14703,6 +14700,13 @@
       "sent": "セッションコンテキストを新規 {{agent}} セッションに送信しました。",
       "deliveryFailed": "新規 {{agent}} セッションは開始しましたが、コンテキストを送信できませんでした。",
       "launchFailed": "新規 {{agent}} セッションを開始できませんでした。"
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "セッション ID をコピー",
+        "copySessionIdSuccess": "セッション ID をコピーしました",
+        "copySessionIdError": "セッション ID のコピーに失敗しました"
+      }
     }
   },
   "dashboardPopout": {

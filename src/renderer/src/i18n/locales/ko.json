@@ -14708,10 +14708,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "terminal 보기로 전환",
           "switchToChatView": "채팅 보기로 전환",
-          "closeTabsToLeft": "왼쪽으로 탭 닫기",
-          "copySessionId": "세션 ID 복사",
-          "copySessionIdSuccess": "세션 ID를 복사했습니다",
-          "copySessionIdError": "세션 ID를 복사하지 못했습니다"
+          "closeTabsToLeft": "왼쪽으로 탭 닫기"
         },
         "BrowserTab": {
           "closeOthers": "다른 탭 닫기",
@@ -14820,6 +14817,13 @@
       "sent": "세션 컨텍스트를 새 {{agent}} 세션으로 보냈습니다.",
       "deliveryFailed": "새 {{agent}} 세션은 시작되었지만 컨텍스트를 보내지 못했습니다.",
       "launchFailed": "새 {{agent}} 세션을 시작할 수 없습니다."
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "세션 ID 복사",
+        "copySessionIdSuccess": "세션 ID를 복사했습니다",
+        "copySessionIdError": "세션 ID를 복사하지 못했습니다"
+      }
     }
   },
   "dashboardPopout": {

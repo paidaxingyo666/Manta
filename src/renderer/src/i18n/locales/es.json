@@ -14652,10 +14652,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "Cambiar a la vista de terminal",
           "switchToChatView": "Cambiar a vista de chat",
-          "closeTabsToLeft": "Cerrar pestañas a la izquierda",
-          "copySessionId": "Copiar ID de sesión",
-          "copySessionIdSuccess": "ID de sesión copiado",
-          "copySessionIdError": "No se pudo copiar el ID de sesión"
+          "closeTabsToLeft": "Cerrar pestañas a la izquierda"
         },
         "BrowserTab": {
           "closeOthers": "Cerrar otras",
@@ -14703,6 +14700,13 @@
       "sent": "El contexto de la sesión se envió a {{agent}} en una sesión nueva.",
       "deliveryFailed": "La nueva sesión de {{agent}} se inició, pero no se pudo enviar su contexto.",
       "launchFailed": "No se pudo iniciar una sesión nueva de {{agent}}."
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "Copiar ID de sesión",
+        "copySessionIdSuccess": "ID de sesión copiado",
+        "copySessionIdError": "No se pudo copiar el ID de sesión"
+      }
     }
   },
   "dashboardPopout": {

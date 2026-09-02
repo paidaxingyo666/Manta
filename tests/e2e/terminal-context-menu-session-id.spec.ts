@@ -1,7 +1,4 @@
-/**
- * E2E coverage for copying an agent provider session ID from a terminal tab's
- * context menu.
- */
+/** E2E coverage for copying provider identity from the exact terminal pane. */
 
 import { test, expect } from './helpers/manta-app'
 import {
@@ -11,10 +8,11 @@ import {
   waitForSessionReady
 } from './helpers/store'
 import { waitForPaneIdentitySnapshot } from './helpers/terminal'
+import { openTerminalContextMenu } from './helpers/terminal-pane-title-actions'
 
-const SESSION_ID = 'e2e-terminal-tab-session'
+const SESSION_ID = 'e2e-terminal-pane-session'
 
-test('terminal tab context menu copies the active agent session ID', async ({ mantaPage }) => {
+test('terminal pane context menu copies its agent session ID', async ({ mantaPage }) => {
   await waitForSessionReady(mantaPage)
   const worktreeId = await waitForActiveWorktree(mantaPage)
   await ensureTerminalVisible(mantaPage)
@@ -30,21 +28,20 @@ test('terminal tab context menu copies the active agent session ID', async ({ ma
   }
   const paneKey = `${tabId}:${leafId}`
 
-  // Seed the same renderer state a live agent hook produces while keeping the
-  // test independent of an installed provider CLI.
+  // Keep this independent of an installed provider CLI while exercising the
+  // durable pane identity used when transient live status has been cleared.
   await mantaPage.evaluate(
     ({ paneKey, tabId, worktreeId, sessionId }) => {
       const state = window.__store?.getState()
       if (!state) {
         throw new Error('Store unavailable')
       }
-      state.setAgentStatus(
+      state.recordAgentProviderSession(
         paneKey,
-        { state: 'working', prompt: 'copy session id', agentType: 'claude' },
-        'Claude',
+        'claude',
+        { key: 'session_id', id: sessionId },
         undefined,
-        { tabId, worktreeId },
-        { providerSession: { key: 'session_id', id: sessionId } }
+        { tabId, worktreeId }
       )
     },
     { paneKey, tabId, worktreeId, sessionId: SESSION_ID }
@@ -55,16 +52,22 @@ test('terminal tab context menu copies the active agent session ID', async ({ ma
       () =>
         mantaPage.evaluate(
           ({ paneKey }) =>
-            window.__store?.getState().agentStatusByPaneKey[paneKey]?.providerSession?.id,
+            window.__store?.getState().sleepingAgentSessionsByPaneKey[paneKey]?.providerSession.id,
           { paneKey }
         ),
       { timeout: 3_000 }
     )
     .toBe(SESSION_ID)
 
-  const tab = mantaPage.locator(`[data-testid="sortable-tab"][data-tab-id="${tabId}"]`)
-  await expect(tab).toBeVisible()
-  await tab.click({ button: 'right' })
+  await openTerminalContextMenu(mantaPage)
+
+  const identityItems = await mantaPage.getByRole('menuitem').allInnerTexts()
+  const sessionIdIndex = identityItems.indexOf('Copy Session ID')
+  expect(identityItems.slice(sessionIdIndex, sessionIdIndex + 3)).toEqual([
+    'Copy Session ID',
+    'Copy Terminal ID',
+    'Copy Pane ID'
+  ])
 
   const copyItem = mantaPage.getByRole('menuitem', { name: 'Copy Session ID', exact: true })
   await expect(copyItem).toBeVisible()
