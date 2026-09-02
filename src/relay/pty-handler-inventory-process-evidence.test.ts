@@ -157,22 +157,32 @@ describe('PtyHandler inventory foreground evidence', () => {
     expect((await listProcesses())[0].title).toBe('node')
   })
 
-  it.each([1, 8])('visits the host table exactly once for %s panes', async (paneCount) => {
-    const table = Array.from({ length: paneCount }, (_, index) =>
-      paneRows(10_000 + index * 10, ['node /opt/codex'])
-    ).flat()
-    const { rows, reads } = countingRows(table)
-    mockGetStrictProcessTableSnapshot.mockResolvedValue(rows)
-    for (let index = 0; index < paneCount; index += 1) {
-      await spawnPane(10_000 + index * 10, 'zsh')
+  // The cost that matters is per-CAPTURE, not per-pane: the defect this guards against is a
+  // full-table walk for every pane, which is what an O(PTY x rows) inventory looked like. Two
+  // linear passes build the two indexes the resolver reads — parent/child correlation, and which
+  // process groups occupy each controlling terminal — and neither grows with the pane count.
+  const CAPTURE_PASSES = 2
+
+  it.each([1, 8])(
+    'walks the host table a fixed number of times for %s panes',
+    async (paneCount) => {
+      const table = Array.from({ length: paneCount }, (_, index) =>
+        paneRows(10_000 + index * 10, ['node /opt/codex'])
+      ).flat()
+      const { rows, reads } = countingRows(table)
+      mockGetStrictProcessTableSnapshot.mockResolvedValue(rows)
+      for (let index = 0; index < paneCount; index += 1) {
+        await spawnPane(10_000 + index * 10, 'zsh')
+      }
+
+      const listed = await listProcesses()
+
+      expect(listed).toHaveLength(paneCount)
+      expect(listed.every((entry) => entry.title === 'codex')).toBe(true)
+      expect(mockGetStrictProcessTableSnapshot).toHaveBeenCalledTimes(1)
+      // Linear in the capture — NOT one full-table walk per pane, which would be
+      // `table.length * paneCount` here.
+      expect(reads()).toBe(table.length * CAPTURE_PASSES)
     }
-
-    const listed = await listProcesses()
-
-    expect(listed).toHaveLength(paneCount)
-    expect(listed.every((entry) => entry.title === 'codex')).toBe(true)
-    expect(mockGetStrictProcessTableSnapshot).toHaveBeenCalledTimes(1)
-    // One linear index pass — NOT one full-table walk per pane.
-    expect(reads()).toBe(table.length)
-  })
+  )
 })

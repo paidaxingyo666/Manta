@@ -323,6 +323,11 @@ const processTableReader = createProcessTableSnapshotReader<ProcessTableCapture>
   now: () => Date.now()
 })
 
+/** How much older than its own await a snapshot from the shared reader may be. The reader serves a
+ *  capture from its TTL cache, so a caller that needs to state the observation's age must assume
+ *  this whole window rather than the instant its await settled. */
+export const PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS = DEFAULT_SNAPSHOT_TTL_MS
+
 /**
  * Run (or reuse a recent) `ps -axo` process-table scan and return
  * its parsed rows. Per-process singleton: the relay and local main processes

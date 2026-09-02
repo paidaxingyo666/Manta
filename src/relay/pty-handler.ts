@@ -70,6 +70,7 @@ import {
 } from '../main/providers/agent-foreground-process'
 import {
   getStrictProcessTableSnapshot,
+  PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS,
   type ProcessTableRow
 } from '../shared/process-table-snapshot'
 import type { ForegroundProcessEvidence } from '../shared/foreground-process-evidence'
@@ -102,7 +103,7 @@ import {
   injectRelayFishHistoryEnv,
   injectRelayHistoryEnv
 } from './terminal-history'
-import { isFlattenedNodePtyLoaderMessage } from '../main/orcad/node-pty-loader-diagnosis'
+import { isFlattenedNodePtyLoaderMessage } from '../main/mantad/node-pty-loader-diagnosis'
 import { collectNodePtyUnavailableDiagnosis } from './node-pty-binding-survey'
 import {
   formatNodePtyUnavailableMessage,
@@ -190,6 +191,13 @@ type ManagedPty = {
   startupIngressIntent?: ReturnType<typeof parsePtyStartupIngressIntent>
   ownerBackend: PtyOwnerBackend
   agentSessionOwners?: AgentSessionOwnerBinding[]
+  /** Host clock, host-relative only: published as an age so no client has to trust our wall clock. */
+  createdAt: number
+  /** The authenticated consumer identity that asked this host to create this PTY, read from the
+   *  live grant rather than from a spawn parameter. Absent whenever the host could not attest one
+   *  (no consumer session, or a revive replaying state some other client serialized), and absence
+   *  must never be read as "nobody owns it". */
+  ownerClientInstanceId?: string
 }
 
 type RelayAgentSessionCreateResult = {
@@ -369,6 +377,14 @@ type PtyProcessSummary = {
   terminalHandle?: string
   foregroundProcessEvidence?: ForegroundProcessEvidence
   agentSessionOwners?: AgentSessionOwnerBinding[]
+  /** Age on the HOST's clock. Published instead of a creation timestamp so a client with a skewed
+   *  clock cannot compute a negative or enormous age and act on it. */
+  hostAgeMs?: number
+  /** True when this PTY was spawned for a Manta pane (`MANTA_PANE_KEY`). False means a bare relay
+   *  shell. Absent from a host that predates the field — which is neither. */
+  paneBound?: boolean
+  /** See {@link ManagedPty.ownerClientInstanceId}. Omitted when this host cannot attest one. */
+  ownerClientInstanceId?: string
 }
 
 type SerializedPtyEntry = {
@@ -456,6 +472,7 @@ export class PtyHandler {
   private consumerPausedOutputPtys = new Set<string>()
   private removeLegacyCapacityListener: (() => void) | null = null
   private sourcePublication: RelayPtySourcePublication | null = null
+  private consumerIdentityResolver: ((clientId: number) => string | null) | null = null
   private lastInputAtByPty = new Map<string, number>()
   private interactiveOutputCharsByPty = new Map<string, number>()
   private pendingSpawnCount = 0
@@ -508,6 +525,12 @@ export class PtyHandler {
 
   setSourcePublication(publication: RelayPtySourcePublication): void {
     this.sourcePublication = publication
+  }
+
+  /** Supplies the authenticated client identity behind a transport connection, so a spawn can be
+   *  attributed to the consumer session that requested it. */
+  setConsumerIdentityResolver(resolve: ((clientId: number) => string | null) | null): void {
+    this.consumerIdentityResolver = resolve
   }
 
   handleSourceCreditAvailable(id: string): void {
@@ -991,7 +1014,7 @@ export class PtyHandler {
   private registerHandlers(): void {
     this.dispatcher.onRequest('pty.spawn', (p, context) => this.spawn(p, context))
     this.dispatcher.onRequest('pty.attach', (p, context) => this.attach(p, context))
-    this.dispatcher.onRequest('pty.shutdown', (p) => this.shutdown(p))
+    this.dispatcher.onRequest('pty.shutdown', (p, context) => this.shutdown(p, context))
     this.dispatcher.onRequest('pty.sendSignal', (p) => this.sendSignal(p))
     this.dispatcher.onRequest('pty.getCwd', (p) => this.getCwd(p))
     this.dispatcher.onRequest('pty.getInitialCwd', (p) => this.getInitialCwd(p))
@@ -1871,11 +1894,15 @@ export class PtyHandler {
       params.startupIngressVersion === PTY_STARTUP_INGRESS_VERSION
         ? parsePtyStartupIngressIntent(params.startupIngress)
         : undefined
+    const ownerClientInstanceId =
+      context === undefined ? null : (this.consumerIdentityResolver?.(context.clientId) ?? null)
     const managed: ManagedPty = {
       id,
       incarnationId: randomUUID(),
       pty: term,
       initialCwd: cwd,
+      createdAt: Date.now(),
+      ...(ownerClientInstanceId ? { ownerClientInstanceId } : {}),
       buffered: new RecentPtyOutputBuffer({
         preserveChunkBoundaries: false,
         limit: REPLAY_BUFFER_MAX
@@ -2097,7 +2124,7 @@ export class PtyHandler {
     return { cols: managed.pty.cols, rows: managed.pty.rows }
   }
 
-  private async shutdown(params: Record<string, unknown>): Promise<void> {
+  private async shutdown(params: Record<string, unknown>, context?: RequestContext): Promise<void> {
     const id = params.id as string
     const immediate = params.immediate as boolean
     const expectedIncarnationId = params.expectedIncarnationId
@@ -2107,12 +2134,23 @@ export class PtyHandler {
     ) {
       throw new Error('Invalid expectedIncarnationId')
     }
+    const expectedOwnerClientInstanceId = params.expectedOwnerClientInstanceId
+    if (
+      expectedOwnerClientInstanceId !== undefined &&
+      (typeof expectedOwnerClientInstanceId !== 'string' ||
+        expectedOwnerClientInstanceId.length === 0)
+    ) {
+      throw new Error('Invalid expectedOwnerClientInstanceId')
+    }
     const managed = this.ptys.get(id)
     if (!managed) {
       return
     }
     if (expectedIncarnationId !== undefined && expectedIncarnationId !== managed.incarnationId) {
       throw new Error(`PTY incarnation mismatch for ${id}`)
+    }
+    if (expectedOwnerClientInstanceId !== undefined) {
+      this.assertShutdownOwnership(id, managed, expectedOwnerClientInstanceId, context)
     }
     // Why: `pty.shutdown` is the only authoritative statement this host ever gets that a tab is
     // gone. Record it before the kill request, because the kill is the part that can fail: an agent
@@ -2135,6 +2173,34 @@ export class PtyHandler {
     } else {
       this.releaseStartupCommand(managed)
       this.requestGracefulKill(managed, 'force-kill')
+    }
+  }
+
+  /** Re-decide, on the host, whether the caller may destroy this PTY.
+   *
+   *  `pty.shutdown` is irreversible and its siblings `pty.spawn`/`pty.attach` already take a
+   *  request context; without this the whole ownership rule lived on the client, on the one call
+   *  that cannot be taken back. Both halves are checked here because either alone is an echo: the
+   *  connection must still authenticate as that consumer identity (so a claim cannot be asserted),
+   *  and this host must have recorded that same identity as the PTY's creator at spawn (so the
+   *  caller cannot reach a PTY it never made).
+   *
+   *  Only callers that opt in are checked. An ordinary pane teardown does not pass the field, and
+   *  must not: a revived PTY carries no attested owner at all, and a host predating the attestation
+   *  would refuse stops it is obliged to honour. */
+  private assertShutdownOwnership(
+    id: string,
+    managed: ManagedPty,
+    expectedOwnerClientInstanceId: string,
+    context: RequestContext | undefined
+  ): void {
+    const requester =
+      context === undefined ? null : (this.consumerIdentityResolver?.(context.clientId) ?? null)
+    if (requester !== expectedOwnerClientInstanceId) {
+      throw new Error(`PTY "${id}" stop refused: requester is not the attested owner`)
+    }
+    if (managed.ownerClientInstanceId !== expectedOwnerClientInstanceId) {
+      throw new Error(`PTY "${id}" stop refused: this host attested no such owner`)
     }
   }
 
@@ -2406,9 +2472,15 @@ export class PtyHandler {
     let evidenceRows: readonly ProcessTableRow[] | null = null
     let evidenceResults: BatchedForegroundProcessResult[] = []
     const evidenceEpoch = ++this.foregroundEvidenceEpoch
+    // Worst-case capture time for the snapshot below, not the instant its await settled: the
+    // reader may serve a TTL-cached table, so the observation can already be one window old. The
+    // loop that follows can await per entry, so each record is stamped against this rather than
+    // carrying a shared constant.
+    let evidenceCapturedAtMs = Date.now()
     if (process.platform !== 'win32' && managedEntries.length > 0) {
       try {
         evidenceRows = await getStrictProcessTableSnapshot()
+        evidenceCapturedAtMs = Date.now() - PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS
         evidenceResults = await resolveAgentForegroundProcessesBatch(
           managedEntries.map(([, managed]) => ({
             rootPid: managed.pty.pid,
@@ -2442,7 +2514,7 @@ export class PtyHandler {
               {
                 authorityGeneration: this.ptyIdMintEpoch,
                 observationEpoch: evidenceEpoch,
-                capturedAgeMs: 0
+                capturedAgeMs: Math.max(0, Date.now() - evidenceCapturedAtMs)
               }
             )
           : undefined
@@ -2451,6 +2523,11 @@ export class PtyHandler {
         incarnationId: managed.incarnationId,
         cwd: managed.initialCwd,
         title,
+        hostAgeMs: Math.max(0, Date.now() - managed.createdAt),
+        paneBound: Boolean(managed.paneKey ?? managed.attachIdentity?.paneKey),
+        ...(managed.ownerClientInstanceId
+          ? { ownerClientInstanceId: managed.ownerClientInstanceId }
+          : {}),
         ...(managed.worktreeId ? { worktreeId: managed.worktreeId } : {}),
         ...(managed.terminalHandle ? { terminalHandle: managed.terminalHandle } : {}),
         ...(foregroundProcessEvidence ? { foregroundProcessEvidence } : {}),
@@ -2624,6 +2701,10 @@ export class PtyHandler {
       incarnationId: randomUUID(),
       pty: term,
       initialCwd: entry.cwd,
+      createdAt: Date.now(),
+      // Deliberately no ownerClientInstanceId: revive replays state a client serialized, which is
+      // not this host observing who asked for the shell. Unattested means never swept.
+
       buffered: new RecentPtyOutputBuffer({
         preserveChunkBoundaries: false,
         limit: REPLAY_BUFFER_MAX

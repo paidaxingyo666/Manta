@@ -225,15 +225,17 @@ export class SshPtyProvider implements IPtyProvider {
   }
 
   async shutdown(id: string, opts: Parameters<IPtyProvider['shutdown']>[1]): Promise<void> {
+    // Both fences are omitted rather than sent undefined: a host that predates either must see no
+    // key at all, and the owner fence in particular must never reach it as a falsy claim.
+    const { expectedIncarnationId, expectedOwnerClientInstanceId } = opts
     await this.mux.request(
       'pty.shutdown',
       {
         id: this.toRelayPtyId(id),
         immediate: opts.immediate ?? false,
         keepHistory: opts.keepHistory ?? false,
-        ...(opts.expectedIncarnationId === undefined
-          ? {}
-          : { expectedIncarnationId: opts.expectedIncarnationId })
+        ...(expectedIncarnationId === undefined ? {} : { expectedIncarnationId }),
+        ...(expectedOwnerClientInstanceId === undefined ? {} : { expectedOwnerClientInstanceId })
       },
       relayTimeoutOptions(opts.deadlineMs)
     )
