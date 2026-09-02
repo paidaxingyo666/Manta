@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { getDefaultWorkspaceSession } from '../shared/constants'
 import { composeWorktreeHostIdentity } from '../shared/worktree/host-qualified-identity'
-import { folderWorkspaceKey } from '../shared/workspace-scope'
+import { folderWorkspaceKey, worktreeWorkspaceKey } from '../shared/workspace-scope'
 import type { PersistedState } from '../shared/persisted-state-types'
 import {
   testState,
@@ -182,6 +182,40 @@ describe('deregistered repo residue', () => {
 
     // Self-clearing: with the residue gone nothing re-seeds the orphan id, so the next launch has
     // no work. Before the fix this stayed non-empty forever and every load scheduled another save.
+    const reloaded = await createStore()
+    expect(reloaded.sweepDeregisteredRepoResidue()).toEqual([])
+  })
+
+  // The session scalars are pruned by bespoke rules, not by owner key, so no owner-key loop reaches
+  // them. Each has to be able to seed the sweep on its own or an orphan named only there is stuck.
+  it.each([
+    { label: 'activeWorktreeId', session: { activeWorktreeId: GONE_WORKTREE } },
+    // Canonical `worktree:<id>` form, which needs unwrapping before the repo id is visible.
+    {
+      label: 'activeWorkspaceKey',
+      session: { activeWorkspaceKey: worktreeWorkspaceKey(GONE_WORKTREE) }
+    },
+    {
+      label: 'activeWorktreeIdsOnShutdown',
+      session: { activeWorktreeIdsOnShutdown: [GONE_WORKTREE] }
+    }
+  ])("clears $label when it is the orphan repo's only residue", async ({ session }) => {
+    writeDataFile({
+      schemaVersion: 1,
+      repos: [makeRepo({ id: LIVE_REPO, path: '/workspace/live' })],
+      worktreeMeta: {},
+      workspaceSessionsByHostId: {
+        [RUNTIME_HOST]: { ...getDefaultWorkspaceSession(), ...session }
+      }
+    })
+
+    const store = await createStore()
+    store.flush()
+
+    const partition = store.getWorkspaceSession(RUNTIME_HOST)
+    expect(partition.activeWorktreeId ?? null).toBeNull()
+    expect(partition.activeWorkspaceKey ?? null).toBeNull()
+    expect(partition.activeWorktreeIdsOnShutdown ?? []).toEqual([])
     const reloaded = await createStore()
     expect(reloaded.sweepDeregisteredRepoResidue()).toEqual([])
   })
