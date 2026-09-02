@@ -10,6 +10,11 @@ const execFile = promisify(execFileCb)
 /** Columns used by the evidence reader. Keep command last so its spaces survive parsing. */
 export const PS_ARGS = ['-axo', 'pid=,ppid=,pgid=,tpgid=,stat=,command='] as const
 const PS_TIMEOUT_MS = 3000
+// Why: execFile's 1MB default leaves ~3x headroom (326KB / 1,460 processes, and
+// a single 5KB argv row is ordinary), so a busy host overflows it and then EVERY
+// capture fails — a readable process table degrading into permanent
+// "unverifiable". Matches the sibling reader in pty-descendant-termination.ts.
+export const PS_MAX_BUFFER_BYTES = 32 * 1024 * 1024
 
 // Why: 500ms is below the active cadence poll's minimum inter-poll gap (~675ms
 // = 750ms less jitter), so a cadence-driven pane never reuses a snapshot older
@@ -388,13 +393,44 @@ function createProcessTableCapture(stdout: string): ProcessTableCapture {
   }
 }
 
+/**
+ * Reject a capture that cannot be a whole process table.
+ *
+ * Why this is not redundant with the buffer ceiling: `parseProcessTableRows`
+ * drops unparseable lines, so a short capture reads as a *complete* table whose
+ * missing processes simply are not running — a false "no agent"/"no children",
+ * i.e. the `unverifiable` -> `exited` collapse the execution boundary forbids.
+ * Only the strict view would notice today; the lenient view would not. A capture
+ * that stopped at the ceiling, or that carries no rows at all, is unreadable
+ * evidence and must fail loudly on both views.
+ */
+function assertWholeCapture(stdout: string): string {
+  if (Buffer.byteLength(stdout, 'utf-8') >= PS_MAX_BUFFER_BYTES) {
+    throw new ProcessTableCaptureError('capture_truncated')
+  }
+  if (!/\S/.test(stdout)) {
+    throw new ProcessTableCaptureError('empty_capture')
+  }
+  return stdout
+}
+
 const processTableReader = createProcessTableSnapshotReader<ProcessTableCapture>({
   runPs: async () => {
-    const { stdout } = await execFile('ps', [...PS_ARGS], {
-      encoding: 'utf-8',
-      timeout: PS_TIMEOUT_MS
-    })
-    return createProcessTableCapture(stdout)
+    let stdout: string
+    try {
+      ;({ stdout } = await execFile('ps', [...PS_ARGS], {
+        encoding: 'utf-8',
+        timeout: PS_TIMEOUT_MS,
+        maxBuffer: PS_MAX_BUFFER_BYTES
+      }))
+    } catch (error) {
+      // A ceiling hit is truncation, not absence: name it in the domain vocabulary.
+      if ((error as { code?: unknown } | null)?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') {
+        throw new ProcessTableCaptureError('capture_truncated')
+      }
+      throw error
+    }
+    return createProcessTableCapture(assertWholeCapture(stdout))
   },
   now: () => Date.now()
 })
