@@ -3088,7 +3088,8 @@
             "42b283ecfc": "Manta couldn't safely reconnect this terminal because the host couldn't verify its saved session. Manta left the saved session unchanged. Click Retry to try reconnecting now. If it still cannot reconnect, open a new terminal.",
             "e16012e31e": "The terminal daemon that owned this session exited, so the session and its scrollback could not be recovered. Open a new terminal to continue.",
             "sessionUnavailable": "Manta couldn't reattach to this pane's terminal session on the host. Open a new terminal to continue.",
-            "sourceRestoring": "Reconnecting this terminal — its output is being re-established. The session is still running."
+            "sourceRestoring": "Reconnecting this terminal — its output is being re-established. The session is still running.",
+            "remoteTerminalClosed": "Remote terminal was closed."
           },
           "TerminalProcessExitOverlay": {
             "capacityTitle": "Git Bash console limit reached",
