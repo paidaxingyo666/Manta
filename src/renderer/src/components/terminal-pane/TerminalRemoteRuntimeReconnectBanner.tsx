@@ -50,7 +50,7 @@ export function TerminalRemoteRuntimeReconnectBanner({
             {retrying
               ? translate(
                   'auto.components.terminal.pane.TerminalRemoteRuntimeReconnectBanner.retryingBody',
-                  'Manta will retry for up to one minute. This terminal will resume if the connection returns.'
+                  'Manta is retrying automatically. This terminal will resume if the connection returns.'
                 )
               : translate(
                   'auto.components.terminal.pane.TerminalRemoteRuntimeReconnectBanner.disconnectedBody',

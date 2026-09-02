@@ -2896,7 +2896,7 @@
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingTitle": "正在重新连接到远程运行时",
             "disconnectedTitle": "远程运行时已断开连接",
-            "retryingBody": "Manta 将重试最多一分钟。如果连接恢复，此终端将恢复。",
+            "retryingBody": "Manta 正在自动重试。如果连接恢复，此终端将恢复。",
             "disconnectedBody": "自动重试已停止。重新连接以恢复此终端会话。",
             "reconnectButton": "重新连接"
           }

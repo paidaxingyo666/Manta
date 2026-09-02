@@ -2881,7 +2881,7 @@
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingTitle": "リモートランタイムに再接続中",
             "disconnectedTitle": "リモートランタイムが切断されました",
-            "retryingBody": "Manta は最大1分間再試行します。接続が復元されると、このターミナルが再開されます。",
+            "retryingBody": "Manta は自動的に再試行します。接続が復元されると、このターミナルが再開されます。",
             "disconnectedBody": "自動再試行が停止しました。このターミナルセッションを再開するには再接続してください。",
             "reconnectButton": "再接続"
           }

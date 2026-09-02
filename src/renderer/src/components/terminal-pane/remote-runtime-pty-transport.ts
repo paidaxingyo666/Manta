@@ -90,6 +90,10 @@ const HOST_SESSION_POLL_MAX_MS = 1_000
 const HOST_SESSION_ATTACH_TIMEOUT_MS = 15_000
 const HOST_SESSION_INVENTORY_MAX_WINDOWS_PER_RECOVERY = 2
 const HOST_SESSION_SAME_HANDLE_END_REUSE_LIMIT = 2
+// Why its own constant: this fences how long an end-then-reattach on the same handle still counts as
+// one recovery, which is unrelated to how long auto-recovery keeps retrying. It read the recovery
+// budget before that budget became a derived value, and must not drift with it.
+const HOST_SESSION_SAME_HANDLE_END_REUSE_WINDOW_MS = 60_000
 const MAX_SURFACED_TERMINAL_ERRORS = 8
 const TERMINAL_CREATE_RETRY_DELAYS_MS = [250, 500, 1000, 2000, 4000, 8000, 15_000, 30_000] as const
 
@@ -247,7 +251,9 @@ export function createRemoteRuntimePtyTransport(
       clearPublishedHandleWait()
     }
     if (recovery.currentPhase === 'disconnected') {
-      autoRecoveryWindowSpent = true
+      // Why: only the wall-clock deadline is evidence the window was spent; a UI latch from a fatal
+      // resubscribe must not license reattaching a fenced same handle (#12683).
+      autoRecoveryWindowSpent ||= recovery.autoRecoveryDeadlineExpired
       // Why: cached pixels may remain, but no stream from the exhausted epoch may keep delivering or accepting terminal traffic.
       subscriptionGeneration += 1
       closeMultiplexedStream()
@@ -326,7 +332,7 @@ export function createRemoteRuntimePtyTransport(
     if (
       sameHandleEndReuseHandle !== targetHandle ||
       sameHandleEndReuseAttachedAt === null ||
-      Date.now() - sameHandleEndReuseAttachedAt >= REMOTE_RUNTIME_AUTO_RECOVERY_TIMEOUT_MS
+      Date.now() - sameHandleEndReuseAttachedAt >= HOST_SESSION_SAME_HANDLE_END_REUSE_WINDOW_MS
     ) {
       resetSameHandleEndReuse()
       return 'prefer-replacement'
@@ -870,6 +876,43 @@ export function createRemoteRuntimePtyTransport(
     return false
   }
 
+  // Why: a recoverable connect failure is unverifiable contact loss, not a dead terminal, so retry
+  // whichever path can still reach the pane instead of latching with nothing armed (#12684).
+  function retryAfterRecoverableConnectFailure(nextEpoch: number): void {
+    if (destroyed || terminalEnded) {
+      return
+    }
+    if (connected && handle) {
+      scheduleResubscribeAfterTransportClose(getRecoveryReplacementPolicy(handle), nextEpoch)
+      return
+    }
+    replayLastTransportEntryPoint()
+  }
+
+  // Why: schedule() both auto-retries inside the window and leaves the retry parked when the deadline
+  // latches, so online/resume and the Reconnect button always find something to fire.
+  function scheduleConnectRetryAfterRecoverableFailure(): void {
+    if (destroyed) {
+      return
+    }
+    // Why: an ambiguous create already owns a reconciliation-gated retry that only Reconnect may
+    // re-enter; auto-replaying here would just re-probe a runtime that cannot reconcile.
+    if (terminalCreateNeedsReconciliation || agentSessionRequiresHostAuthorityReplay) {
+      recovery.markDisconnected()
+      return
+    }
+    // Why: the last attempt's RPC budget expires at the same instant as the deadline, so a silent drop
+    // rejects after the latch. Beginning a new epoch there re-arms the whole window, so park instead.
+    if (recovery.currentPhase === 'disconnected') {
+      recovery.parkRetryAfterDeadline(retryAfterRecoverableConnectFailure)
+      return
+    }
+    const recoveryEpoch = recovery.isActive ? recovery.currentEpoch : recovery.begin()
+    if (!recovery.schedule(recoveryEpoch, retryAfterRecoverableConnectFailure)) {
+      recovery.markDisconnected()
+    }
+  }
+
   async function attachHostSessionMirror(
     options: { cols?: number; rows?: number },
     notifySpawn = true,
@@ -1033,6 +1076,8 @@ export function createRemoteRuntimePtyTransport(
       kind === 'agent-session'
         ? agentSessionRequiresHostAuthorityReplay
         : terminalCreateNeedsReconciliation
+    // Why the same budget: this loop calls recovery.begin(), so a shorter local deadline would abandon
+    // the create while the recovery state still reports 'recovering' with nothing in flight.
     let recoveryDeadlineAt: number | null = recovery.isActive
       ? Date.now() + REMOTE_RUNTIME_AUTO_RECOVERY_TIMEOUT_MS
       : null
@@ -2314,7 +2359,7 @@ export function createRemoteRuntimePtyTransport(
           } else if (
             isRecoverableRemoteRuntimeConnectionError(toRemoteRuntimeClientErrorLike(error))
           ) {
-            recovery.markDisconnected()
+            scheduleConnectRetryAfterRecoverableFailure()
           } else {
             recovery.cancel()
             emitRecoveryState()
@@ -2615,6 +2660,12 @@ export function createRemoteRuntimePtyTransport(
         recovery.begin()
         void transport.connect(lastConnectOptions)
         return true
+      }
+      // Why: online/resume fires a parked retry; the button must not be weaker than an event (#12684).
+      if (!destroyed && !terminalEnded && recovery.currentPhase === 'disconnected') {
+        if (recovery.retryNow()) {
+          return true
+        }
       }
       if (
         destroyed ||
