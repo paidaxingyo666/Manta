@@ -203,12 +203,17 @@ export abstract class RelayDispatcherRpcRouting extends RelayDispatcherFrameCode
     const frame = this.prepareFrame(msg)
     const lane =
       frame.frameBytes > DISPATCHER_CONTROL_QUEUE_MAX_BYTES ? 'legacy-response' : 'control'
-    const accepted = this.enqueuePreparedFrame(client, frame, lane, onSettled)
+    // Why 'reject': the control lane is a shared budget, so a reply that fits the 1 MiB ceiling alone
+    // still overflows it under concurrent traffic. Fatal admission would close the connection — every
+    // pane on the host — over one listing. A response is the droppable class of control frame: it
+    // carries an id, so the substitute below tells that one caller, and pty.replay/notifyControl keep
+    // the fatal default because a silent drop there desyncs the client with nothing to retry.
+    const accepted = this.enqueuePreparedFrame(client, frame, lane, onSettled, 'reject')
     if (accepted) {
       return true
     }
     // Why: an oversized response must fail its own request; closing would kill every pane on the host.
-    // A rejected first enqueue either left onSettled untouched or closed the client, so exactly one settlement happens.
+    // A rejected first enqueue leaves onSettled untouched, so exactly one settlement happens.
     return this.enqueuePreparedFrame(
       client,
       this.prepareFrame({
@@ -227,7 +232,10 @@ export abstract class RelayDispatcherRpcRouting extends RelayDispatcherFrameCode
           settlement.ok
             ? { ok: false, error: new Error(RESPONSE_OVER_CAPACITY_MESSAGE) }
             : settlement
-        )
+        ),
+      // Why 'reject': if even ~150 bytes will not fit, the caller's own request timeout settles it.
+      // Closing to report that one request failed is the outcome this whole path exists to avoid.
+      'reject'
     )
   }
 
