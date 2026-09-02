@@ -357,6 +357,21 @@ the command:
 This disables a security boundary. Prefer a dedicated unprivileged service
 user, especially when the listener is reachable beyond localhost.
 
+The Linux CLI is named `manta-ide`, not `manta`, so it never shadows the GNOME
+Manta screen reader at `/usr/bin/orca`. The `.deb` and `.rpm` packages put
+`manta-ide` on `PATH` themselves at install time; with the AppImage it arrives
+as `~/.local/bin/manta-ide` when the CLI is registered.
+
+A packaged `manta serve` start also writes a bare `manta` into `~/.local/bin`
+that execs the same launcher, which is why the skills commands below can be
+typed as `manta`. It writes it while starting, so it is never the command that
+starts the server — the first launch is `manta-ide serve`, or the AppImage
+invoked directly as above. The write is best-effort: it is gated on a packaged
+build, it is skipped when no bundled launcher resolves, and it is skipped when
+a file Manta does not own already holds that name (ownership is a marker on the
+second line of the file). A host that really does run the screen reader keeps
+its own `manta`.
+
 ## Pairing troubleshooting
 
 - A pairing offer is a capability containing a device credential and E2EE

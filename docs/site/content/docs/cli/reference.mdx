@@ -9,11 +9,27 @@ The `manta` CLI talks to a running Manta runtime. Use it when a shell script or 
 
 ## Verify the runtime
 
-Register the CLI under [Settings → General → Manta CLI](/docs/settings), then check that it can reach Manta:
+Register the CLI under [Settings → General → Manta CLI](/docs/settings), then check that it can reach Manta.
+
+<Callout title="On Linux the command is orca-ide">
+  GNOME Orca — the screen reader that ships with most GNOME desktops — already owns `/usr/bin/orca`,
+  so Manta's Linux CLI installs as `manta-ide`. Do not check for it with `command -v manta`: that
+  succeeds on a GNOME desktop and resolves to the screen reader, not to Manta. This page writes
+  `manta` throughout — read it as `manta-ide` on Linux. See [Install → Linux](/docs/install#linux).
+</Callout>
+
+On macOS and Windows:
 
 ```bash
 command -v manta
 manta status --json
+```
+
+On Linux:
+
+```bash
+command -v manta-ide
+manta-ide status --json
 ```
 
 If Manta is not already running:
