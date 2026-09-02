@@ -10,6 +10,8 @@ import {
 } from '../../shared/terminal-quick-commands'
 import { haveSameDisabledTuiAgents } from '../../shared/tui-agent-selection'
 import type { GlobalSettings } from '../../shared/global-settings-types'
+import { getHostDisplayLabelOverrides } from '../../shared/host-setting-overrides'
+import type { ExecutionHostId } from '../../shared/execution-host'
 import type { TerminalQuickCommand } from '../../shared/terminal-quick-command-types'
 import { recordManagedHookInstallFailure } from '../agent-hooks/install-telemetry'
 import { applyAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
@@ -37,6 +39,13 @@ export type RuntimeClientSettings = Pick<
   | 'artifactSharingEnabled'
   | 'worktreeVisibilityDefaults'
   | 'agentSkillSharingEnabled'
+> & {
+  hostSettingOverrides: RuntimeHostDisplayLabelOverrides
+}
+
+/** Safe paired projection: host labels only; filesystem defaults stay host-private. */
+export type RuntimeHostDisplayLabelOverrides = Partial<
+  Record<ExecutionHostId, { displayLabel: string }>
 >
 
 export type RuntimeClientSettingsUpdate = Pick<
@@ -94,7 +103,12 @@ export class RuntimeClientSettingsController {
       prBotAuthorOverrides: settings.prBotAuthorOverrides ?? [],
       artifactSharingEnabled: isArtifactSharingEnabled(settings),
       worktreeVisibilityDefaults: settings.worktreeVisibilityDefaults ?? { external: 'hide' },
-      agentSkillSharingEnabled: isAgentSkillSharingEnabled(settings)
+      agentSkillSharingEnabled: isAgentSkillSharingEnabled(settings),
+      hostSettingOverrides: Object.fromEntries(
+        [
+          ...getHostDisplayLabelOverrides({ hostSettingOverrides: settings.hostSettingOverrides })
+        ].map(([hostId, displayLabel]) => [hostId, { displayLabel }])
+      ) as RuntimeHostDisplayLabelOverrides
     }
   }
 
