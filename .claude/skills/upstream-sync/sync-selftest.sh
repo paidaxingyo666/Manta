@@ -44,7 +44,7 @@ echo "   $(git rev-list --count "$M0..$M1") upstream commits to cross"
 echo "== rebase the fork patch across them"
 git config merge.keepfork.driver 'cp %B %A'
 git config merge.keepupstream.driver 'true'
-if git -c core.hooksPath=/dev/null rebase -q --onto "$M1" "$M0" selftest/work 2>/dev/null; then
+if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false rebase -q --onto "$M1" "$M0" selftest/work 2>/dev/null; then
   echo "   clean — no conflicts at all"
 else
   conf="$(git diff --name-only --diff-filter=U)"

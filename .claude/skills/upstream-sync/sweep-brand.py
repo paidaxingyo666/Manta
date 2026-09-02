@@ -16,7 +16,7 @@ Usage:  sweep-brand.py <since-rev> [--apply]
 """
 import re, subprocess, sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from brand_rule import rebrand_text, keep_whole_file  # noqa: E402
+from brand_rule import rebrand_text, keep_whole_file, Evidence, TOKEN  # noqa: E402
 
 def run(*args):
     return subprocess.run(args, capture_output=True, text=True).stdout
@@ -29,6 +29,19 @@ def main():
     # inverts what it says — `orcad` became "upstream's new daemon named mantad".
     changed = [p for p in changed if not keep_whole_file(p)]
 
+    # One evidence pass for every token in every changed file, instead of a
+    # `git grep` per token; the same rule build-mirror.py applies.
+    texts = {}
+    for path in changed:
+        p = pathlib.Path(path)
+        if p.exists() and p.is_file():
+            try:
+                texts[path] = p.read_text()
+            except UnicodeDecodeError:
+                pass
+    tokens = {m.group(0) for text in texts.values() for m in TOKEN.finditer(text)}
+    evidence = Evidence('HEAD', tokens) if tokens else None
+
     renamed, declined = {}, {}
     for path in changed:
         p = pathlib.Path(path)
@@ -39,7 +52,7 @@ def main():
         except (UnicodeDecodeError, IsADirectoryError):
             continue
 
-        new, toks, decl = rebrand_text(text)
+        new, toks, decl = rebrand_text(text, evidence=evidence)
         if toks:
             renamed[path] = toks
         for tok in decl:

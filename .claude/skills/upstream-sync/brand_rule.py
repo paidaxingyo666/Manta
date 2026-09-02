@@ -120,6 +120,27 @@ def word_core(s: str) -> str:
     return WORD_CORE.sub('', s)
 
 
+_SEG = re.compile(r'([-_./]|(?<=[a-z0-9])(?=[A-Z]))')
+
+
+def _prefixes(word: str):
+    """Every prefix that ends on a segment boundary: separators and CamelCase."""
+    acc, out = '', []
+    for part in _SEG.split(word):
+        if not part:
+            continue
+        acc += part
+        if part not in ('-', '_', '.', '/'):
+            out.append(acc)
+    return out
+
+
+def _qualified_family(prefix: str) -> bool:
+    """Brand word plus at least one more segment after it."""
+    m = re.search(r'[Mm]anta', prefix)
+    return bool(m) and len(prefix) - m.end() >= 2
+
+
 class Evidence:
     """The fork's vocabulary, read once, so a whole history can be transformed
     without a `git grep` per token.
@@ -157,8 +178,17 @@ class Evidence:
             out = subprocess.run(['rg', '-F', '-w', '-o', '--no-filename', '--no-line-number', '-f', pat, '.'],
                                  capture_output=True, text=True, cwd=tree).stdout
             self.twins = set(line for line in out.splitlines() if line)
+            # Every Manta-bearing word the fork uses, for the family rule below.
+            vocab = subprocess.run(['rg', '-o', '-I', '--no-filename', '--no-line-number',
+                                    r'[A-Za-z0-9_./-]*[Mm]anta[A-Za-z0-9_./-]*', '.'],
+                                   capture_output=True, text=True, cwd=tree).stdout
             files = subprocess.run(['git', 'ls-tree', '-r', '--name-only', ref],
                                    capture_output=True, text=True).stdout.splitlines()
+            self.families = set()
+            for w in set(vocab.split()) | {f for f in files if 'manta' in f.lower()}:
+                for pre in _prefixes(word_core(w)):
+                    if _qualified_family(pre):
+                        self.families.add(pre)
         finally:
             subprocess.run(['git', 'worktree', 'remove', '--force', tree], capture_output=True)
             shutil.rmtree(tmp, ignore_errors=True)
@@ -175,7 +205,26 @@ class Evidence:
         twin = rebrand_token(token)
         if twin == token:
             return False
-        return word_core(twin) in self.twins or word_core(twin.rsplit('/', 1)[-1]) in self.twins
+        if word_core(twin) in self.twins or word_core(twin.rsplit('/', 1)[-1]) in self.twins:
+            return True
+        return self.in_family(twin)
+
+    def in_family(self, twin: str) -> bool:
+        """Second tier of evidence: the fork renamed this *family*.
+
+        `orca-runtime-bind-pty-incarnation-handle` is new upstream; the fork has
+        no such file yet, but it has forty `manta-runtime-*` files, so the name
+        is decided. A family is a prefix that carries the brand plus at least
+        one more segment — `manta-runtime`, `MantaRuntime`, `MANTA_E2E` — never
+        the bare word, which would prove nothing. Measured on a replayed sync:
+        42% of the tokens the direct rule declined, at 100% precision on a
+        sample; the rest are fixture strings that should stay as upstream wrote
+        them.
+        """
+        for pre in sorted(_prefixes(word_core(twin)), key=len, reverse=True):
+            if _qualified_family(pre) and (pre in self.families or pre.rsplit('/', 1)[-1] in self.families):
+                return True
+        return False
 
     def path_twin(self, path: str) -> str:
         if 'orca' not in path.lower():

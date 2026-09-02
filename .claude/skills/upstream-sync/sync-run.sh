@@ -55,7 +55,7 @@ git config merge.keepupstream.name "keep upstream's version, regenerate afterwar
 git config merge.keepupstream.driver 'true'
 git branch -f "$BRANCH" "$FORK"
 git checkout -q "$BRANCH"
-if git -c core.hooksPath=/dev/null rebase -q --onto refs/sync/mirror "$BASE" "$BRANCH" 2>/tmp/sync-rebase.err; then
+if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false rebase -q --onto refs/sync/mirror "$BASE" "$BRANCH" 2>/tmp/sync-rebase.err; then
   echo "   clean"
   echo "== 4/4 finish"
   exec "$HERE/sync-finish.sh"
