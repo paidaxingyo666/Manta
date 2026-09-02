@@ -26,7 +26,8 @@ export function getRequiredReleaseAssetNames(tag) {
     'manta-macos-x64.dmg',
     'manta-macos-x64.dmg.blockmap',
     'manta-macos-arm64.dmg',
-    'manta-macos-arm64.dmg.blockmap'
+    'manta-macos-arm64.dmg.blockmap',
+    `manta-sourcemaps-${tag}.zip`
   ]
 }
 

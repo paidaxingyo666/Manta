@@ -17,6 +17,7 @@ import {
   createElectronHomeIsolation
 } from './electron-home-isolation'
 import { forwardElectronProcessLogs } from './manta-app'
+import { retryTransientMainEvaluate } from './electron-main-evaluate-retry'
 import {
   replaceRuntimePairingInPlace,
   type SameIdPairingReplacement
@@ -178,12 +179,16 @@ export async function launchPairedElectronClient(
     }
   })
 
+  // Why before the home assert: forwarding starts here, so a client that fails during startup
+  // otherwise reaches CI as a bare Playwright error with none of its own output attached.
+  forwardElectronProcessLogs(app, testInfo)
   try {
     assertElectronResolvedIsolatedHome(
-      await app.evaluate(({ app: electronApp }) => electronApp.getPath('home')),
+      await retryTransientMainEvaluate(() =>
+        app.evaluate(({ app: electronApp }) => electronApp.getPath('home'))
+      ),
       homeIsolation
     )
-    forwardElectronProcessLogs(app, testInfo)
     const page = await app.firstWindow({ timeout: 120_000 })
     await page.waitForLoadState('domcontentloaded')
     await page.waitForFunction(() => Boolean(window.__store), null, { timeout: 30_000 })

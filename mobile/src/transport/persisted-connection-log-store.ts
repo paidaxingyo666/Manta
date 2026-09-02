@@ -35,7 +35,10 @@ export function recordConnectionRevival(
     ts: now,
     level: 'info',
     code: reason === 'app-resume' ? 'app-resumed' : 'network-changed',
-    message: reason === 'app-resume' ? translate("m.persisted.connection.log.store.de6c1a64dd", "App returned to foreground") : translate("m.persisted.connection.log.store.58dd04eee9", "Network changed"),
+    message:
+      reason === 'app-resume'
+        ? translate('m.persisted.connection.log.store.de6c1a64dd', 'App returned to foreground')
+        : translate('m.persisted.connection.log.store.58dd04eee9', 'Network changed'),
     detail: 'Connection recovery notified'
   })
 }
@@ -51,7 +54,10 @@ export function recordConnectionClientSessionStart(hostId: string): void {
     ts: now,
     level: 'info',
     code: 'client-session-started',
-    message: translate("m.persisted.connection.log.store.c28191823b", "Mobile client session started")
+    message: translate(
+      'm.persisted.connection.log.store.c28191823b',
+      'Mobile client session started'
+    )
   })
 }
 

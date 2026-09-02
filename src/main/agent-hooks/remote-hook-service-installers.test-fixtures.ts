@@ -7,7 +7,6 @@
 import type { SFTPWrapper } from 'ssh2'
 import type { CursorEvent } from '../cursor/hook-events'
 
-
 type FakeFs = {
   files: Map<string, string>
   dirs: Set<string>

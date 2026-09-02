@@ -5,6 +5,7 @@ import type { AgentType } from '../../../../shared/agent-status-types'
 import { resolveImagePaste } from './native-chat-image-paste'
 import { NATIVE_CHAT_CONTEXT_PASTE_MAX_BYTES } from './native-chat-composer-target'
 import {
+  getNativeChatAttachmentOwnerIdentity,
   nativeChatLocalAttachmentUnsupportedNotice,
   nativeChatWorktreeNotReadyNotice,
   type NativeChatAttachmentOwner
@@ -19,7 +20,7 @@ export type UseNativeChatComposerPasteArgs = {
   /** Resolved at paste time: SSH panes must save the clipboard image on the
    *  remote host, or the attached path names a file the agent cannot read. */
   resolveAttachmentOwner: () => NativeChatAttachmentOwner
-  attachResolvedPaths: (paths: string[]) => void
+  attachResolvedPaths: (paths: string[], owner?: NativeChatAttachmentOwner) => void
   insertTypedText: (text: string) => boolean
   setCaret: (caret: number) => void
   setNotice: (notice: string | null) => void
@@ -103,7 +104,7 @@ export function useNativeChatComposerPaste({
   )
 
   const attachClipboardImageTempFile = useCallback(
-    (tempPath: string) => {
+    (tempPath: string, owner: NativeChatAttachmentOwner) => {
       const result = resolveImagePaste(agent, tempPath)
       if (result.kind === 'unsupported') {
         setNotice(
@@ -114,8 +115,7 @@ export function useNativeChatComposerPaste({
         )
         return
       }
-      attachResolvedPaths([result.path])
-      setNotice(null)
+      attachResolvedPaths([result.path], owner)
     },
     [agent, attachResolvedPaths, setNotice]
   )
@@ -148,7 +148,14 @@ export function useNativeChatComposerPaste({
         if (saved.status !== 'saved' || disabledRef.current) {
           return
         }
-        attachClipboardImageTempFile(saved.tempPath)
+        if (
+          getNativeChatAttachmentOwnerIdentity(resolveAttachmentOwner()) !==
+          getNativeChatAttachmentOwnerIdentity(owner)
+        ) {
+          setNotice(nativeChatWorktreeNotReadyNotice())
+          return
+        }
+        attachClipboardImageTempFile(saved.tempPath, owner)
         setCaret(caretAtPaste)
       })()
     },
@@ -178,7 +185,14 @@ export function useNativeChatComposerPaste({
           setNotice(nativeChatWorktreeNotReadyNotice())
           return
         }
-        attachClipboardImageTempFile(saved.tempPath)
+        if (
+          getNativeChatAttachmentOwnerIdentity(resolveAttachmentOwner()) !==
+          getNativeChatAttachmentOwnerIdentity(owner)
+        ) {
+          setNotice(nativeChatWorktreeNotReadyNotice())
+          return
+        }
+        attachClipboardImageTempFile(saved.tempPath, owner)
         return
       }
       const text = await window.api.ui

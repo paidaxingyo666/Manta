@@ -450,7 +450,12 @@
               "meta": {
                 "persist": {
                   "877e3638d8": "Update the remote runtime to change this workspace’s linked issue",
-                  "4367540861": "Update the remote runtime to link Linear issues"
+                  "4367540861": "Update the remote runtime to link Linear issues",
+                  "github": {
+                    "pr": {
+                      "suppression": "Update the remote runtime to unlink GitHub pull requests"
+                    }
+                  }
                 }
               }
             }
@@ -472,7 +477,9 @@
           "15cf5319ec": "{{path}} was checked on {{hostName}}, but that host did not report a usable folder.",
           "2dcd706774": "Project also exists in another profile",
           "presenceProfileOverflow": "{{names}} +{{count}} more",
-          "removeProjectFailed": "Failed to remove project"
+          "removeProjectFailed": "Failed to remove project",
+          "wslFilesystemBoundaryTitle": "This project is stored on a Windows drive",
+          "wslFilesystemBoundaryDescription": "Git for this project runs in {{distro}}, which reaches Windows drives over the WSL filesystem bridge. Expect git to be roughly 20x slower than it would be on a copy stored inside {{distro}}."
         },
         "settings": {
           "e12dab333b": "Failed to switch servers",
@@ -3379,14 +3386,15 @@
             "25dc1cd653": "Open file",
             "7cdf8ee0c8": "Open URL",
             "b27864279e": "Launch agent",
-            "0e5b7a3f16": "Search open tabs, files, URLs, agents…",
             "8f0a1c4d92": "Switch to tab",
             "2c38630a01": "Workspace no longer exists",
             "4f0d9a71c2": "Tab no longer exists",
             "d7d496a451": "Browser page no longer exists",
             "7726ce9970": "Mobile emulator tab no longer exists",
             "chooseAction": "Choose an action.",
-            "searchProvider": "Search {{value0}}"
+            "searchProvider": "Search {{value0}}",
+            "openPage": "Open page",
+            "omniboxPlaceholderWithHistory": "Search open tabs, history, files, URLs, agents…"
           },
           "TabBarQuickCommandsButton": {
             "a2c7a33831": "Command",
@@ -3425,7 +3433,6 @@
                 "classifier": {
                   "42e6262ae9": "No action available.",
                   "097a982ee0": "Loading files...",
-                  "c41f8d20b7": "Search open tabs, files, URLs, agents…",
                   "90eb94dc48": "Enter an http:// or https:// URL.",
                   "5553b283ce": "Enter a URL or file path.",
                   "queryTooLarge": "Search text is too large.",
@@ -3591,6 +3598,7 @@
             "remote_server": "Remote Server",
             "runtime_checking": "Checking",
             "runtime_online": "Connected",
+            "runtime_unavailable_transport_up": "Manta unavailable",
             "runtime_unavailable": "Disconnected",
             "runtime_connect_unavailable": "Remote host is not reachable",
             "runtime_disconnect_failed": "Disconnect failed",
@@ -3919,6 +3927,18 @@
             "onDescription": "Keep this computer awake continuously",
             "autoDescription": "Stay awake while an agent is working",
             "offDescription": "Allow normal system sleep behavior"
+          },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "The previous connection closed",
+            "workspace_window_closed": "The workspace window is closed",
+            "checking_host": "Manta is checking whether this host is reachable",
+            "restoring_connection": "Manta is trying to restore the connection",
+            "host_unreachable": "Manta isn’t reachable on this host",
+            "runtime_unavailable": "SSH transport is connected, but the Manta runtime is unavailable",
+            "runtime_unavailable_explanation": "The remote host may still be running; only the Manta runtime connection is unavailable.",
+            "contact_note": "The host may still be running; only the Manta connection is unavailable.",
+            "last_connected": "Last connected {{value0}}",
+            "reconnect_attempt": "Attempt {{value0}}"
           }
         }
       },
@@ -5449,6 +5469,7 @@
           "eace1d2cf6": "neutral",
           "dbe2d18972": "More {{value0}} actions",
           "ae76907ca6": "Unlink {{value0}}",
+          "openInMantaBrowser": "Open in Manta browser",
           "ad25c3ff05": "View on {{value0}}",
           "2c67730e07": "Open in Manta",
           "e42941631a": "View on Linear",
@@ -7970,7 +7991,11 @@
           "3f67e8078a": "Use this computer by default. Choose a saved server only when you want supported projects, files, terminals, provider checks, and browser/mobile handoff to run through that server.",
           "2c85efb3e8": "Selecting a saved server makes this browser use that paired Manta runtime as its default Host.",
           "serverConnected": "Connected",
+          "serverWorkspaceWindowClosed": "Workspace window closed",
+          "serverRuntimeUnavailable": "Manta unavailable",
+          "serverRuntimeUnavailableDescription": "SSH transport is connected, but the Manta runtime did not answer. The host may still be running.",
           "serverChecking": "Checking…",
+          "serverReconnecting": "Reconnecting",
           "serverDisconnected": "Disconnected",
           "disconnectedServer": "Disconnected from {{value0}}.",
           "connectToRemoteServers": "Connect to remote servers",
@@ -8302,7 +8327,11 @@
           "8a349e3fac": "Passphrase for {{value0}}",
           "cab3d5f5a5": "Password for {{value0}}",
           "1f3dde805d": "SSH Key Passphrase",
-          "106bd57f4a": "SSH Password"
+          "106bd57f4a": "SSH Password",
+          "a21f9e74c0": "SSH Verification",
+          "981352fb42": "Complete the verification challenge for",
+          "456516603b": "Enter response",
+          "c624f64b86": "Continue"
         },
         "SshTargetCard": {
           "a883f5a00f": "terminal timeout: {{value0}}",
@@ -14334,8 +14363,9 @@
           "7e7ca60816": "changed files",
           "b6c3b84476": "Show file tree",
           "39f8007549": "Review conflicts",
-          "39e73e7181": "were excluded from this diff view.",
-          "689b99f8ad": "unresolved conflict",
+          "skippedConflictsExcluded": "{{count}} unresolved conflicts were excluded from this diff view.",
+          "skippedConflictsExcluded_one": "{{count}} unresolved conflict was excluded from this diff view.",
+          "skippedConflictsExcluded_other": "{{count}} unresolved conflicts were excluded from this diff view.",
           "820ec01f24": "Conflicted files are reviewed separately",
           "fd8892b120": "No changes to display",
           "eb5f40e49c": "This diff view excludes unresolved conflicts because the normal two-way diff pipeline is not conflict-safe.",
@@ -14960,7 +14990,8 @@
           "allowDirectory": "Allow folder",
           "directoryAccessRequestOverflow": "{{folders}}, and {{count}} more",
           "directoryAccessRequestMultiple": "This preview wants to read files in {{folders}}.",
-          "allowDirectories": "Allow {{count}} folders"
+          "allowDirectories": "Allow {{count}} folders",
+          "editAddressControl": "Edit address"
         },
         "CheckRunAnnotations": {
           "copy": "Copy annotations"
@@ -14969,6 +15000,11 @@
           "copied": "Copied",
           "failed": "Couldn't copy",
           "empty": "Nothing to copy"
+        },
+        "LargeDiffLoadPrompt": {
+          "a0af0198aa": "Large diffs are not rendered by default.",
+          "c3d9f4a712": "This diff's size isn't known yet, so it loads on request.",
+          "f7fa7a40d0": "Load diff"
         }
       },
       "diff": {
@@ -15359,6 +15395,18 @@
                   }
                 }
               }
+            },
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "Edit annotation {{value0}}",
+                    "c16f932cb3": "Save",
+                    "024467ceac": "Cancel",
+                    "449d2c2629": "Annotation intent"
+                  }
+                }
+              }
             }
           },
           "navigate": {
@@ -15509,7 +15557,7 @@
           "53fc5f07ab": "Run history",
           "a00e38d1a3": "n/a",
           "fdb3caa8fb": "known",
-          "historyUnavailable": "Run history could not be loaded for this automation."
+          "historyUnavailable": "Run history is unavailable from this host. This does not mean the automation failed or has no runs."
         },
         "AutomationRunPageFrame": {
           "40a511bed4": "Run context",
@@ -15636,7 +15684,8 @@
           "rowActions": "Automation actions",
           "tableLastRun": "Last run",
           "noListMatches": "No automations match.",
-          "destinationProjectUnavailable": "Choose a project owned by the selected automation destination."
+          "destinationProjectUnavailable": "Choose a project owned by the selected automation destination.",
+          "ownerChanged": "This automation changed hosts. Refresh and try again."
         },
         "AutomationsPageSkeleton": {
           "55527b7bcf": "Loading automations"
@@ -15831,7 +15880,7 @@
         },
         "capturedOwner": {
           "orphan": "This automation has no host to run on. Delete it, or re-add the host it belongs to.",
-          "unfenced": "This host cannot confirm which automation it is changing, so this automation is read-only here."
+          "unfenced": "Manta on this host needs an update before you can view run history or manage this automation. Scheduled runs may still continue on the host."
         },
         "hostStatus": {
           "authority": {
@@ -16288,7 +16337,15 @@
         "allWorkspacesTitle": "Select one workspace",
         "allWorkspacesBody": "Status, assignee, and label filters use ids from a single Linear workspace. Choose one workspace to filter by those attributes.",
         "optionsFromTeam": "Options from {{team}}",
-        "clearAll": "Clear all filters"
+        "clearAll": "Clear all filters",
+        "partialCoverage": "partial",
+        "partialCoverageTitle": "Some teams may be left out of this filter. Open Filters for details."
+      },
+      "linear-issue-attribute-filter-coverage-notice": {
+        "statusPartialTeamCoverage": "Filtering {{value0}} of {{value1}} team statuses — issues from the remaining teams are not included.",
+        "labelsPartialTeamCoverage": "Filtering {{value0}} of {{value1}} team labels — issues from the remaining teams are not included.",
+        "statusAtIdLimit": "Filtering the most this can carry: {{value0}} team statuses. Rows picked past that are left out.",
+        "labelsAtIdLimit": "Filtering the most this can carry: {{value0}} team labels. Rows picked past that are left out."
       },
       "linear-issue-attribute-filter-sections": {
         "status": "Status",
@@ -16297,6 +16354,7 @@
         "unassigned": "Unassigned",
         "labels": "Labels",
         "countSelected": "{{count}} selected",
+        "partialCoverageMarker": "· partial",
         "selected": "selected",
         "searchPriority": "Filter priority…",
         "searchStatus": "Filter status…",
@@ -16468,7 +16526,7 @@
           "2fc727c831": "Artifact updated",
           "5cb4f5ec36": "Copy link",
           "fbb5018602": "This file is empty.",
-          "6112db5a1c": "Artifacts shared from Manta must be smaller than 800 KB.",
+          "6112db5a1c": "This artifact is too large to share.",
           "e2ed5acd8c": "Manta couldn't read this file. Open it from a workspace and try again.",
           "6d475e9b25": "Only local HTML and Markdown files can be shared as artifacts.",
           "29a406be09": "Artifacts must contain text."
@@ -16524,6 +16582,10 @@
           "externalLinkConfirm": "Open link",
           "externalLinkCancel": "Cancel"
         }
+      },
+      "HostedReviewUnlinkMenuItem": {
+        "label": "Unlink {{value0}} from workspace",
+        "description": "Manta will hide {{value0}} {{value1}} details for this workspace. The {{value0}} and branch on {{value2}} won’t be changed."
       },
       "native": {
         "chat": {
@@ -16600,6 +16662,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "Select {{value0}}",
+      "search": "Search users",
+      "empty": "No users found"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "Image paste is not supported for this agent.",
@@ -16633,6 +16700,13 @@
         "imagePasteFailed": "Image paste failed.",
         "worktreeNotReady": "Worktree not ready — try again in a moment.",
         "uploadingAttachments": "Uploading {{value0}} file(s) to remote…",
+        "viewAttachment": "View image: {{value0}}",
+        "removeNamedAttachment": "Remove image: {{value0}}",
+        "imagePreview": "Full-size image preview",
+        "imagePreviewLoading": "Loading image preview…",
+        "imagePreviewUnavailable": "Preview unavailable",
+        "retryImagePreview": "Retry",
+        "imageAttachmentLimit": "You can attach up to {{value0}} images.",
         "model": "Model",
         "effort": "Effort",
         "fastMode": "Fast mode",
@@ -16658,16 +16732,32 @@
           "ultra": "Ultra",
           "on": "On",
           "off": "Off"
-        }
+        },
+        "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more."
       },
       "tool": {
         "running": "Running…",
         "result": "Result",
         "countOne": "1 tool call",
-        "countN": "{{value0}} tool calls"
+        "countN": "{{value0}} tool calls",
+        "runningPreview": "Running {{preview}}",
+        "runningCommand": "Running command",
+        "runningNamedPreview": "Running {{toolName}} {{preview}}",
+        "runningNamed": "Running {{toolName}}",
+        "ranCommandOneToolSummary": "Ran {{commandCount}} command and used {{toolCount}} tool",
+        "ranCommandManyToolsSummary": "Ran {{commandCount}} command and used {{toolCount}} tools",
+        "ranCommandsOneToolSummary": "Ran {{commandCount}} commands and used {{toolCount}} tool",
+        "ranCommandsManyToolsSummary": "Ran {{commandCount}} commands and used {{toolCount}} tools",
+        "usedOneSummary": "Used 1 tool",
+        "usedManySummary": "Used {{toolCount}} tools"
       },
       "status": {
-        "responding": "Agent is responding"
+        "responding": "Agent is responding",
+        "working": "Working…",
+        "thinking": "Thinking",
+        "workingFor": "Working for {{value0}} seconds",
+        "workedFor": "Worked for {{value0}} seconds",
+        "toggleDetails": "Toggle turn details"
       },
       "jumpToLatest": "Jump to latest",
       "toggle": {
@@ -17219,6 +17309,18 @@
       "activityTitle": "Manta",
       "activityBodyOne": "New activity on your desktop",
       "activityBodyMany": "{{count}} new notifications"
+    }
+  },
+  "checksPanel": {
+    "unlinked": {
+      "title": "Pull request unlinked",
+      "description": "PR #{{number}} is hidden for this workspace. Link it again to restore checks and review details.",
+      "relink": "Link PR #{{number}}"
+    }
+  },
+  "sourceControl": {
+    "unlinkedPr": {
+      "status": "PR #{{number}} unlinked"
     }
   }
 }

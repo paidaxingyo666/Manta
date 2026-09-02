@@ -9,6 +9,7 @@ import { getDefaultRepoHookSettings } from './constants'
 import {
   createSequencedSetupAgentCommands,
   createSetupAgentSequenceNonce,
+  SETUP_COMPLETE_MESSAGE,
   getSetupAgentSequenceShellForTests,
   resolveSetupAgentSequenceLaunchCommand,
   SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV,
@@ -87,6 +88,52 @@ describe('createSequencedSetupAgentCommands', () => {
         [SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV]: startupScript
       })
     )
+  })
+
+  it('announces success so the pane stops showing the waiting line', () => {
+    const commands = createSequencedSetupAgentCommands({
+      runnerScriptPath: '/repo/.git/manta/setup-runner.sh',
+      startupCommand: 'codex',
+      platform: 'posix',
+      nonce: 'nonce-1'
+    })
+    const script = commands.startupEnv?.[SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV] ?? ''
+    // Why ordering: `eval`/`exec` never returns, so a later message never renders.
+    expect(script.indexOf(SETUP_COMPLETE_MESSAGE)).toBeGreaterThan(-1)
+    expect(script.indexOf(SETUP_COMPLETE_MESSAGE)).toBeLessThan(
+      script.indexOf(`eval "$${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}"`)
+    )
+  })
+
+  it('announces success on the native Windows gate too', () => {
+    const commands = createSequencedSetupAgentCommands({
+      runnerScriptPath: 'C:\\repo\\.git\\manta\\setup-runner.cmd',
+      platform: 'windows',
+      startupCommand: 'codex',
+      nonce: 'nonce-2'
+    })
+    const decoded = Buffer.from(
+      commands.startupCommand.split('-EncodedCommand ')[1] ?? '',
+      'base64'
+    ).toString('utf16le')
+    expect(decoded).toContain(SETUP_COMPLETE_MESSAGE)
+    expect(decoded.indexOf(SETUP_COMPLETE_MESSAGE)).toBeLessThan(
+      decoded.indexOf('Invoke-Expression $startup')
+    )
+  })
+
+  it('leaves the failure and timeout messages as the only other outcomes', () => {
+    const script =
+      createSequencedSetupAgentCommands({
+        runnerScriptPath: '/repo/.git/manta/setup-runner.sh',
+        startupCommand: 'codex',
+        platform: 'posix',
+        nonce: 'nonce-3'
+      }).startupEnv?.[SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV] ?? ''
+    // Silence on success is what made a healthy worktree look stuck.
+    expect(script).toContain(SETUP_COMPLETE_MESSAGE)
+    expect(script).toContain('Setup failed; skipping agent startup.')
+    expect(script).toContain('Timed out waiting for setup before starting agent.')
   })
 
   it('keeps the POSIX terminal submission below the canonical input floor', () => {
@@ -272,7 +319,7 @@ describe('createSequencedSetupAgentCommands', () => {
     expect(result.startupCommand).toMatch(/^bash -lc /)
     expect(result.startupCommand).not.toContain('Invoke-Expression')
     expect(result.startupEnv?.[SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV]).toContain(
-      'eval "$MANTA_SEQUENCED_STARTUP_COMMAND"'
+      `eval "$${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}"`
     )
     // Why: bash writes and reads the marker here, so it needs the /c/... form of the path.
     expect(result.setupCommand).toContain(

@@ -32,6 +32,7 @@ import {
 import { prCommentsStyles as styles } from './pr-comments-styles'
 import { mobilePrSidebarStyles as shared } from './mobile-pr-sidebar-styles'
 import { translate } from '../../i18n/i18n'
+import { useNow } from '../../hooks/use-now'
 
 type Props = {
   details: GitHubWorkItemDetails | null
@@ -105,6 +106,7 @@ export function PRCommentsSection({
     [botAuthorOverrides, comments, filter]
   )
   const groups = useMemo(() => groupPRComments(visible), [visible])
+  const now = useNow(60_000, comments.length > 0)
 
   // Bounded render window; reset to the first page when the user selects another filter.
   const [limit, setLimit] = useState(COMMENT_PAGE)
@@ -204,6 +206,7 @@ export function PRCommentsSection({
                         key={getPRCommentGroupId(group)}
                         group={group}
                         actions={cardActions}
+                        now={now}
                       />
                     ))}
                     {remaining > 0 ? (
@@ -248,21 +251,30 @@ export function PRCommentsSection({
 
 function CommentGroupView({
   group,
-  actions
+  actions,
+  now
 }: {
   group: PRCommentGroup
   actions?: PRCommentCardActions
+  now: number
 }) {
   const [expanded, setExpanded] = useState(false)
   const cards =
     group.kind === 'thread'
       ? [
-          <PRCommentCard key={group.root.id} comment={group.root} actions={actions} />,
+          <PRCommentCard key={group.root.id} comment={group.root} actions={actions} now={now} />,
           ...group.replies.map((reply) => (
-            <PRCommentCard key={reply.id} comment={reply} isReply actions={actions} />
+            <PRCommentCard key={reply.id} comment={reply} isReply actions={actions} now={now} />
           ))
         ]
-      : [<PRCommentCard key={group.comment.id} comment={group.comment} actions={actions} />]
+      : [
+          <PRCommentCard
+            key={group.comment.id}
+            comment={group.comment}
+            actions={actions}
+            now={now}
+          />
+        ]
 
   if (!isResolvedPRCommentGroup(group)) {
     return <View style={styles.group}>{cards}</View>

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import {
   collectMobileBumps,
+  collectUpstreamSuppressions,
   defaultLimitForPath,
   diffBaseline,
   hasMaxLinesDisable,
@@ -111,5 +117,41 @@ describe('diffBaseline', () => {
     const { added, stale } = diffBaseline(['inline a.ts'], new Set(['inline a.ts']))
     expect(added).toEqual([])
     expect(stale).toEqual([])
+  })
+})
+
+describe('collectUpstreamSuppressions', () => {
+  function git(cwd, ...args) {
+    return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim()
+  }
+
+  it('reads the suppressions upstream carries from the mirror ref, and nothing else', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ratchet-upstream-'))
+    git(root, 'init', '-q')
+    git(root, 'config', 'user.email', 't@example.com')
+    git(root, 'config', 'user.name', 't')
+    mkdirSync(join(root, 'src'), { recursive: true })
+    writeFileSync(
+      join(root, 'src', 'kept.ts'),
+      '/* eslint-disable max-lines -- Why: upstream keeps it whole. */\nexport const a = 1\n'
+    )
+    writeFileSync(join(root, 'src', 'plain.ts'), 'export const b = 2\n')
+    git(root, 'add', '.')
+    git(root, 'commit', '-q', '-m', 'mirror')
+    git(root, 'update-ref', 'refs/sync/mirror', 'HEAD')
+    // The working tree then diverges: a fork-added bypass must not be inherited.
+    writeFileSync(
+      join(root, 'src', 'plain.ts'),
+      '/* eslint-disable max-lines */\nexport const b = 2\n'
+    )
+
+    const upstream = collectUpstreamSuppressions(root)
+    expect([...upstream]).toEqual(['inline src/kept.ts'])
+  })
+
+  it('is empty when there is no mirror ref', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ratchet-no-mirror-'))
+    git(root, 'init', '-q')
+    expect(collectUpstreamSuppressions(root).size).toBe(0)
   })
 })

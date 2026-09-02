@@ -17,6 +17,7 @@ const expensiveJobs = [
   'static_analysis',
   'typecheck',
   'git_compatibility',
+  'codex_index_heal_contract',
   'xterm_patch_sync',
   'shell_contracts',
   'test',
@@ -118,6 +119,49 @@ describe('per-job path classification', () => {
     })
   })
 
+  it('runs the Codex index-heal contract only when the heal or its transport changes', () => {
+    expectClassification(['src/main/codex/codex-session-index-heal.ts'], {
+      codex_index_heal_contract: true,
+      package: true,
+      package_windows: true
+    })
+    expectClassification(['src/main/sqlite/sync-database.ts'], {
+      codex_index_heal_contract: true,
+      package: true,
+      package_windows: true
+    })
+    expectClassification(['src/main/codex/codex-app-server-session.ts'], {
+      codex_index_heal_contract: true,
+      package: true,
+      package_windows: true
+    })
+    expectClassification(['src/main/codex/codex-index-heal-binary-contract.test.ts'], {
+      codex_index_heal_contract: true
+    })
+    // Keep the real-binary gate live when a transport or launch dependency changes.
+    for (const file of [
+      'src/main/codex/codex-app-server-capability-signal.ts',
+      'src/main/codex/codex-process-exit-deadline.ts',
+      'src/main/codex/codex-session-backfill.ts',
+      'src/main/codex/codex-session-index-heal-state.ts',
+      'src/main/codex-cli/command.ts',
+      'src/main/win32-utils.ts',
+      'src/shared/node-cli-command-resolution.ts',
+      'src/shared/windows-batch-spawn.ts'
+    ]) {
+      expectClassification([file], {
+        codex_index_heal_contract: true,
+        package: true,
+        package_windows: true
+      })
+    }
+    // A neighbouring Codex module must not drag the real-binary job in.
+    expectClassification(['src/main/codex/codex-home-paths.ts'], {
+      package: true,
+      package_windows: true
+    })
+  })
+
   it('runs xterm patch sync only when xterm inputs change', () => {
     expectClassification(['config/patches/xterm-upstream.json'], {
       xterm_patch_sync: true
@@ -167,7 +211,7 @@ describe('per-job path classification', () => {
     ]) {
       expectClassification([file], {
         mantad_browser: true,
-      relay: false,
+        relay: false,
         package: true,
         package_windows: true
       })

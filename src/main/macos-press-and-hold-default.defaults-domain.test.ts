@@ -23,7 +23,7 @@ import {
  * them apart, so if `defaults` could not either, "only write when unset" would be unimplementable.
  *
  * Every domain used here is a throwaway UUID under Manta's own prefix, deleted along with its plist
- * in `afterEach`; the real `com.stablyai.orca` domain is never read or written.
+ * in `afterEach`; the real `cn.sh.manta` domain is never read or written.
  */
 
 // Why a real Manta-owned domain shape: the ownership guard rejects anything else, so a fake prefix
@@ -34,7 +34,7 @@ const domains: string[] = []
 const DEFAULTS_MISSING_EXIT_CODE = 1
 
 function throwawayDomain(): string {
-  const domain = `com.stablyai.orca.defaults-domain-test.${randomUUID()}`
+  const domain = `cn.sh.manta.defaults-domain-test.${randomUUID()}`
   domains.push(domain)
   return domain
 }
@@ -142,7 +142,7 @@ describe.skipIf(process.platform !== 'darwin')(
     it.skipIf(process.getuid?.() === 0)('reports a write the binary refused', () => {
       // Why a real refusal: `defaults write` exits non-zero instead of throwing, so a caller that
       // only caught exceptions would record 'applied' for a value that never reached the plist.
-      const readOnly = join(mkdtempSync(join(tmpdir(), 'orca-press-hold-ro-')), 'locked')
+      const readOnly = join(mkdtempSync(join(tmpdir(), 'manta-press-hold-ro-')), 'locked')
       mkdirSync(readOnly)
       chmodSync(readOnly, 0o500)
       try {

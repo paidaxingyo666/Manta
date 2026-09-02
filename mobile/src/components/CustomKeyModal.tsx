@@ -3,7 +3,11 @@ import { View, Text, Pressable, TextInput, Switch } from 'react-native'
 import { ChevronLeft } from 'lucide-react-native'
 import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
-import { buildTerminalShortcutKey, normalizeShortcutKeyInput, type TerminalShortcutModifier } from '../terminal/terminal-accessory-keys'
+import {
+  buildTerminalShortcutKey,
+  normalizeShortcutKeyInput,
+  type TerminalShortcutModifier
+} from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { styles } from './custom-key-modal-styles'
 import {

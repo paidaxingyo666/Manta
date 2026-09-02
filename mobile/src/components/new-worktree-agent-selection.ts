@@ -18,12 +18,10 @@ export type NewWorktreeAgentOption = {
 
 export const NEW_WORKTREE_AGENT_OPTIONS: NewWorktreeAgentOption[] = MOBILE_AGENT_CATALOG
 
-export const newWorktreeBlankAgent = localizedConstant(
-  (): NewWorktreeAgentOption => ({
-    id: '__blank__',
-    label: translate('m.new.worktree.agent.selection.f38095bad3', 'Blank Terminal')
-  })
-)
+export const newWorktreeBlankAgent = localizedConstant((): NewWorktreeAgentOption => ({
+  id: '__blank__',
+  label: translate('m.new.worktree.agent.selection.f38095bad3', 'Blank Terminal')
+}))
 
 export function newWorktreeAgentOptionFor(id: string | null | undefined): NewWorktreeAgentOption {
   if (id === 'blank' || id === '__blank__') {

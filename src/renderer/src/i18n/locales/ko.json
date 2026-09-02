@@ -3033,7 +3033,8 @@
             "25dc1cd653": "파일 열기",
             "7cdf8ee0c8": "URL 열기",
             "b27864279e": "agent 실행",
-            "0e5b7a3f16": "열린 탭, 파일, URL, agent 검색…",
+            "omniboxPlaceholderWithHistory": "열린 탭, 방문 기록, 파일, URL, agent 검색…",
+            "openPage": "페이지 열기",
             "8f0a1c4d92": "탭으로 전환",
             "2c38630a01": "워크스페이스가 더 이상 존재하지 않습니다",
             "4f0d9a71c2": "탭이 더 이상 존재하지 않습니다",
@@ -3079,7 +3080,6 @@
                 "classifier": {
                   "42e6262ae9": "사용할 수 있는 작업이 없습니다.",
                   "097a982ee0": "파일 로드 중...",
-                  "c41f8d20b7": "열린 탭, 파일, URL, agent 검색…",
                   "90eb94dc48": "http:// 또는 https:// URL을 입력하세요.",
                   "5553b283ce": "URL 또는 파일 경로를 입력하세요.",
                   "queryTooLarge": "검색 텍스트가 너무 큽니다.",
@@ -3256,6 +3256,16 @@
             "onDescription": "이 컴퓨터가 절전 모드로 전환되지 않도록 항상 유지",
             "autoDescription": "에이전트가 작업하는 동안 절전 모드로 전환되지 않도록 유지",
             "offDescription": "시스템의 기본 절전 동작 허용"
+          },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "이전 연결이 종료되었습니다",
+            "workspace_window_closed": "워크스페이스 창이 닫혀 있습니다",
+            "checking_host": "Manta가 이 호스트에 연결할 수 있는지 확인하는 중입니다",
+            "restoring_connection": "Manta가 연결 복구를 시도하는 중입니다",
+            "host_unreachable": "이 호스트의 Manta에 연결할 수 없습니다",
+            "contact_note": "호스트는 계속 실행 중일 수 있으며, Manta 연결만 사용할 수 없습니다.",
+            "last_connected": "마지막 연결: {{value0}}",
+            "reconnect_attempt": "{{value0}}번째 시도"
           },
           "StatusBar": {
             "9659e38343": "포트",
@@ -12836,8 +12846,9 @@
           "7e7ca60816": "변경된 파일",
           "b6c3b84476": "파일 트리 표시",
           "39f8007549": "충돌 리뷰",
-          "39e73e7181": "이 차이점 보기에서 제외되었습니다.",
-          "689b99f8ad": "미해결 충돌",
+          "skippedConflictsExcluded": "미해결 충돌 {{count}}개가 이 차이점 보기에서 제외되었습니다.",
+          "skippedConflictsExcluded_one": "미해결 충돌 {{count}}개가 이 차이점 보기에서 제외되었습니다.",
+          "skippedConflictsExcluded_other": "미해결 충돌 {{count}}개가 이 차이점 보기에서 제외되었습니다.",
           "820ec01f24": "충돌하는 파일은 별도로 리뷰됩니다.",
           "fd8892b120": "표시할 변경사항이 없습니다.",
           "eb5f40e49c": "일반적인 양방향 diff 파이프라인은 충돌로부터 안전하지 않기 때문에 이 diff 보기는 해결되지 않은 충돌을 제외합니다.",
@@ -13781,6 +13792,20 @@
             "f3575229df": "가져오기",
             "405bb315da": "제목 없음"
           },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "주석 {{value0}} 편집",
+                    "c16f932cb3": "저장",
+                    "024467ceac": "취소",
+                    "449d2c2629": "주석 의도"
+                  }
+                }
+              }
+            }
+          },
           "browser": {
             "address": {
               "bar": {
@@ -14604,6 +14629,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "{{value0}} 선택",
+      "search": "사용자 검색",
+      "empty": "사용자를 찾을 수 없습니다"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "이 에이전트는 이미지 붙여넣기를 지원하지 않습니다.",
@@ -14622,6 +14652,13 @@
         "imagePasteFailed": "이미지 붙여넣기 실패.",
         "worktreeNotReady": "워크트리가 준비되지 않았습니다 — 잠시 후 다시 시도하세요.",
         "uploadingAttachments": "{{value0}}개 파일을 원격으로 업로드 중…",
+        "viewAttachment": "이미지 보기: {{value0}}",
+        "removeNamedAttachment": "이미지 삭제: {{value0}}",
+        "imagePreview": "전체 크기 이미지 미리보기",
+        "imagePreviewLoading": "이미지 미리보기를 불러오는 중…",
+        "imagePreviewUnavailable": "미리보기를 사용할 수 없음",
+        "retryImagePreview": "다시 시도",
+        "imageAttachmentLimit": "이미지는 최대 {{value0}}개까지 첨부할 수 있습니다.",
         "model": "모델",
         "effort": "추론 수준",
         "fastMode": "빠른 모드",

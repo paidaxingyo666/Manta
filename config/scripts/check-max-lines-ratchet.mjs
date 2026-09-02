@@ -91,6 +91,68 @@ export function diffBaseline(current, baseline) {
   return { added, stale }
 }
 
+// Suppressions upstream itself carries, read from the rebranded mirror of its
+// tree (refs/sync/mirror, built by the sync). A file that arrives with
+// upstream's own `eslint-disable max-lines` is upstream's decision to keep
+// whole; forbidding it here only makes this fork split files upstream later
+// splits differently, and every sync conflicts on the seam. The ratchet still
+// forbids a bypass the fork adds. Empty when there is no mirror.
+export function collectUpstreamSuppressions(root = process.cwd(), ref = 'refs/sync/mirror') {
+  const entries = new Set()
+  let files
+  try {
+    execFileSync('git', ['rev-parse', '-q', '--verify', ref], { cwd: root, stdio: 'ignore' })
+    files = execFileSync(
+      'git',
+      [
+        'grep',
+        '-l',
+        '-E',
+        '(eslint|oxlint)-disable[^\\n]*max-lines',
+        ref,
+        '--',
+        '*.ts',
+        '*.tsx',
+        '*.mjs'
+      ],
+      { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
+    )
+  } catch {
+    return entries
+  }
+  for (const line of files.split('\n')) {
+    const rel = line.slice(line.indexOf(':') + 1)
+    if (!rel || SELF_FILES.has(rel)) {
+      continue
+    }
+    let src
+    try {
+      src = execFileSync('git', ['show', `${ref}:${rel}`], {
+        cwd: root,
+        encoding: 'utf8',
+        maxBuffer: 16 * 1024 * 1024
+      })
+    } catch {
+      continue
+    }
+    if (hasMaxLinesDisable(src)) {
+      entries.add(`inline ${rel}`)
+    }
+  }
+  try {
+    const cfg = execFileSync('git', ['show', `${ref}:${MOBILE_CONFIG_PATH}`], {
+      cwd: root,
+      encoding: 'utf8'
+    })
+    for (const e of collectMobileBumps(cfg)) {
+      entries.add(e)
+    }
+  } catch {
+    // no mobile config upstream at that ref
+  }
+  return entries
+}
+
 // Collect every current suppression entry from the tracked tree.
 export function collectCurrentSuppressions(root = process.cwd()) {
   const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx', '*.mjs'], {
@@ -189,7 +251,15 @@ export function main(root = process.cwd()) {
   }
   const baseline = parseBaseline(fs.readFileSync(baselineFile, 'utf8'))
   const current = collectCurrentSuppressions(root)
-  const { added, stale } = diffBaseline(current, baseline)
+  const upstream = collectUpstreamSuppressions(root)
+  let { added, stale } = diffBaseline(current, baseline)
+  const inherited = added.filter((e) => upstream.has(e))
+  added = added.filter((e) => !upstream.has(e))
+  if (inherited.length > 0) {
+    console.log(
+      `max-lines ratchet: ${inherited.length} suppression(s) are upstream's own — inherited, not new.`
+    )
+  }
 
   if (added.length > 0) {
     printAddedFailure(added)

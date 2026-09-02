@@ -157,7 +157,7 @@ export function connectMobileRelayRpcSession(args: {
         level: 'error',
         code: 'liveness-timeout',
         path: 'relay',
-        message: translate("m.mobile.relay.rpc.session.e13b42eb6e", "Relay health check failed"),
+        message: translate('m.mobile.relay.rpc.session.e13b42eb6e', 'Relay health check failed'),
         detail: `${evidence.reason}; ${evidence.missedProbes}/${evidence.missedProbeLimit} probes missed; last authenticated activity ${evidence.lastInboundAgeMs}ms ago`
       })
     },

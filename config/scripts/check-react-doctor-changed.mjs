@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
@@ -69,7 +69,34 @@ try {
   rmSync(reportDir, { recursive: true, force: true })
 }
 
-const errors = (report.diagnostics ?? []).filter((diagnostic) => diagnostic.severity === 'error')
+// Why: react-doctor reports a file inside a nested package once relative to
+// that package (`src/terminal/x.test.tsx`) and once from the root. The first
+// form resolves to nothing from here, so attribution could not read the line
+// and counted upstream's code as this fork's. Re-root it, then drop the
+// duplicate the root-relative report already carries.
+const seen = new Set()
+const errors = (report.diagnostics ?? [])
+  .filter((diagnostic) => diagnostic.severity === 'error')
+  .map((diagnostic) => {
+    if (existsSync(diagnostic.filePath)) {
+      return diagnostic
+    }
+    for (const pkg of ['mobile', 'relay-server']) {
+      const rerooted = `${pkg}/${diagnostic.filePath}`
+      if (existsSync(rerooted)) {
+        return { ...diagnostic, filePath: rerooted }
+      }
+    }
+    return diagnostic
+  })
+  .filter((diagnostic) => {
+    const key = `${diagnostic.filePath}:${diagnostic.line}:${diagnostic.rule}`
+    if (seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
 const { ours, upstream } = partitionByAuthor(errors, upstreamRef)
 
 // Never silent: a gate that drops findings without saying so reads as "clean".

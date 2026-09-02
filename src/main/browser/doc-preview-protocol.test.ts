@@ -132,7 +132,9 @@ describe('handleDocPreviewRequest', () => {
   })
 
   it('404s a malformed grant id', async () => {
-    const response = await handleDocPreviewRequest(new Request('manta-preview://not-a-grant/x.html'))
+    const response = await handleDocPreviewRequest(
+      new Request('manta-preview://not-a-grant/x.html')
+    )
 
     expect(response.status).toBe(404)
     expect(mocks.readDocPreviewFile).not.toHaveBeenCalled()

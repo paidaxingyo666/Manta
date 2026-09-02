@@ -21,11 +21,14 @@ const root = process.cwd()
  * clean, so a green run never implies the rollback was actually exercised. Drop
  * this guard the moment this fork has its own store-format change to pin.
  */
-if (!execFileSync('git', ['cat-file', '-t', BASELINE_COMMIT], { encoding: 'utf8', cwd: root }).trim()) {
+if (
+  !execFileSync('git', ['cat-file', '-t', BASELINE_COMMIT], { encoding: 'utf8', cwd: root }).trim()
+) {
   process.exit(0)
 }
 const baselineHasFork =
-  spawnSync('git', ['merge-base', '--is-ancestor', BASELINE_COMMIT, 'HEAD'], { cwd: root }).status === 0
+  spawnSync('git', ['merge-base', '--is-ancestor', BASELINE_COMMIT, 'HEAD'], { cwd: root })
+    .status === 0
 if (!baselineHasFork) {
   console.log(
     `SKIP rollback oracle: baseline ${BASELINE_COMMIT.slice(0, 10)} is not in this fork's history ` +

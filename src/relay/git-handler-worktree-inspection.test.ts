@@ -49,16 +49,41 @@ describe('GitHandler', () => {
         .spyOn(handler as unknown as GitSpyTarget, 'git')
         .mockRejectedValue(new Error('aborted'))
 
-      const result = await dispatcher.callRequest(
-        'git.listWorktrees',
-        { repoPath: tmpDir },
-        { isStale: () => false, signal: controller.signal }
-      )
-
-      expect(result).toEqual([])
+      await expect(
+        dispatcher.callRequest(
+          'git.listWorktrees',
+          { repoPath: tmpDir },
+          { isStale: () => false, signal: controller.signal }
+        )
+      ).rejects.toThrow('aborted')
       expect(gitSpy).toHaveBeenCalledWith(['worktree', 'list', '--porcelain', '-z'], tmpDir, {
         signal: controller.signal
       })
+    })
+
+    it('propagates failures from the cached Git 2.25 fallback', async () => {
+      const unsupported = Object.assign(new Error('unknown switch z'), { code: 129 })
+      const gitSpy = vi
+        .spyOn(handler as unknown as GitSpyTarget, 'git')
+        .mockImplementation(async (args) => {
+          if (args.includes('-z')) {
+            throw unsupported
+          }
+          throw new Error('fallback list failed')
+        })
+
+      await expect(
+        dispatcher.callRequest('git.listWorktrees', { repoPath: tmpDir })
+      ).rejects.toThrow('fallback list failed')
+      await expect(
+        dispatcher.callRequest('git.listWorktrees', { repoPath: tmpDir })
+      ).rejects.toThrow('fallback list failed')
+
+      expect(gitSpy.mock.calls.map(([args]) => args)).toEqual([
+        ['worktree', 'list', '--porcelain', '-z'],
+        ['worktree', 'list', '--porcelain'],
+        ['worktree', 'list', '--porcelain']
+      ])
     })
 
     it.skipIf(process.platform === 'win32')(

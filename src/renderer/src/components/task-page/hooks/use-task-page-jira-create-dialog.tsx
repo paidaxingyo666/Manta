@@ -9,27 +9,38 @@ import {
   compareJiraProjectsByDisplayLabel,
   getJiraProjectSelectionKey
 } from '@/components/task-page-jira-project-selection'
-import { isVisibleJiraCreateField } from '@/components/task-page-jira-create-fields'
+import {
+  JIRA_REPORTER_FIELD_KEY,
+  isJiraScalarUserCreateField,
+  isVisibleJiraCreateField
+} from '@/components/task-page-jira-create-fields'
 import { writeNewJiraIssueDraft } from '@/components/task-page/dialogs/task-creation-draft-writers'
 import type { GlobalSettings } from '../../../../../shared/global-settings-types'
 import type {
   JiraCreateField,
   JiraIssueType,
   JiraProject,
-  JiraSiteSelection
+  JiraSiteSelection,
+  JiraUser,
+  JiraViewer
 } from '../../../../../shared/jira-types'
 import type { TaskSourceContext } from '../../../../../shared/task-source-context'
 
+/** Owns new-issue dialog state: project and type selection, create fields, and reporter seeding. */
 export function useTaskPageJiraCreateDialog({
   selectedJiraSiteId,
   availableJiraProjects,
   jiraConnected,
+  jiraViewer,
+  jiraViewerSiteId,
   settings,
   jiraTaskSourceContext
 }: {
   selectedJiraSiteId: JiraSiteSelection | null
   availableJiraProjects: JiraProject[]
   jiraConnected: boolean
+  jiraViewer: JiraViewer | null
+  jiraViewerSiteId: string | null
   settings: GlobalSettings | null
   jiraTaskSourceContext: TaskSourceContext | null
 }) {
@@ -51,6 +62,10 @@ export function useTaskPageJiraCreateDialog({
   const [newJiraIssueCustomFieldValues, setNewJiraIssueCustomFieldValues] = useState<
     Record<string, string>
   >({})
+  // Retain display metadata beside submitted IDs for picker labels.
+  const [jiraUserFieldSelections, setJiraUserFieldSelections] = useState<Record<string, JiraUser>>(
+    {}
+  )
 
   const discardNewJiraIssueDraft = useTaskCreationDraftRetention({
     open: newJiraIssueOpen,
@@ -219,6 +234,7 @@ export function useTaskPageJiraCreateDialog({
       setJiraCreateFieldsLoading(false)
       setJiraCreateFieldsError(null)
       setNewJiraIssueCustomFieldValues({})
+      setJiraUserFieldSelections({})
       return
     }
     let cancelled = false
@@ -226,6 +242,7 @@ export function useTaskPageJiraCreateDialog({
     setJiraCreateFieldsLoading(true)
     setJiraCreateFieldsError(null)
     setNewJiraIssueCustomFieldValues({})
+    setJiraUserFieldSelections({})
     void jiraListCreateFields(
       jiraTaskSourceContext ?? settings,
       newJiraIssueTargetProject.id,
@@ -233,9 +250,42 @@ export function useTaskPageJiraCreateDialog({
       newJiraIssueTargetProject.siteId
     )
       .then((fields) => {
-        if (!cancelled) {
-          setJiraCreateFields(fields)
+        if (cancelled) {
+          return
         }
+        setJiraCreateFields(fields)
+        // Jira only defaults reporter to the authenticated user.
+        if (!jiraViewer) {
+          return
+        }
+        // Viewer IDs are site-scoped; never seed them into another site.
+        const targetSiteId = newJiraIssueTargetProject.siteId
+        if (targetSiteId && jiraViewerSiteId && targetSiteId !== jiraViewerSiteId) {
+          return
+        }
+        const reporterField = fields.find(
+          (field) =>
+            field.key === JIRA_REPORTER_FIELD_KEY &&
+            isVisibleJiraCreateField(field) &&
+            isJiraScalarUserCreateField(field)
+        )
+        if (!reporterField) {
+          return
+        }
+        const seededUser: JiraUser = {
+          accountId: jiraViewer.accountId,
+          displayName: jiraViewer.displayName,
+          email: jiraViewer.email,
+          avatarUrl: jiraViewer.avatarUrl
+        }
+        setNewJiraIssueCustomFieldValues((prev) => ({
+          [reporterField.key]: seededUser.accountId,
+          ...prev
+        }))
+        setJiraUserFieldSelections((prev) => ({
+          [reporterField.key]: seededUser,
+          ...prev
+        }))
       })
       .catch(() => {
         if (!cancelled) {
@@ -259,6 +309,8 @@ export function useTaskPageJiraCreateDialog({
   }, [
     settings,
     jiraConnected,
+    jiraViewer,
+    jiraViewerSiteId,
     newJiraIssueOpen,
     newJiraIssueTargetProject,
     newJiraIssueTargetType,
@@ -297,6 +349,8 @@ export function useTaskPageJiraCreateDialog({
     setJiraCreateFieldsError,
     newJiraIssueCustomFieldValues,
     setNewJiraIssueCustomFieldValues,
+    jiraUserFieldSelections,
+    setJiraUserFieldSelections,
     discardNewJiraIssueDraft,
     includeJiraSiteNameInProjectLabel,
     sortedAvailableJiraProjects,

@@ -21,7 +21,10 @@ import { devinHookService } from '../devin/hook-service'
 import { kimiHookService } from '../kimi/hook-service'
 import { openClaudeHookService } from '../openclaude/hook-service'
 import { MANAGED_AGENT_HOOK_INSTALLERS } from './managed-agent-hook-controls'
-import { installRemoteManagedAgentHooks, REMOTE_MANAGED_HOOK_INSTALLER_AGENTS } from './remote-managed-hook-installers'
+import {
+  installRemoteManagedAgentHooks,
+  REMOTE_MANAGED_HOOK_INSTALLER_AGENTS
+} from './remote-managed-hook-installers'
 import { createFakeSftp } from './remote-hook-service-installers.test-fixtures'
 
 describe('remote hook service installers, provider matrix', () => {

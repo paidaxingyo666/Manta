@@ -29,6 +29,7 @@ import {
   getPiCompatibleTitleSeparatorStatus,
   getPiCompatibleSyntheticAgentStatus
 } from './pi-compatible-synthetic-title'
+import { clearPiStateWorkingMarker, getPiStateTitleStatus } from './pi-state-title-marker'
 import { getWrapperTitleSegments } from './terminal-title-wrapper-segments'
 import { isGrokRotatingWorkingTitle } from './terminal-title-agent-type'
 
@@ -36,6 +37,12 @@ import { isGrokRotatingWorkingTitle } from './terminal-title-agent-type'
  * Strip working-status indicators so stale exit titles stop reporting working.
  */
 export function clearWorkingIndicators(title: string): string {
+  // Clear Pi/OMP first so stale markers cannot re-arm the working timer (#13890).
+  const clearedPiStateMarker = clearPiStateWorkingMarker(title)
+  if (clearedPiStateMarker) {
+    return clearedPiStateMarker
+  }
+
   let cleaned = title
 
   cleaned = cleaned.replace(GEMINI_WORKING, '')
@@ -123,7 +130,8 @@ export function normalizeTerminalTitle(title: string): string {
     return title
   }
 
-  if (isGeminiTerminalTitle(title)) {
+  // Pi/OMP's explicit marker outranks agent-like glyphs in its free-form label.
+  if (!getPiStateTitleStatus(title) && isGeminiTerminalTitle(title)) {
     const status = detectAgentStatusFromTitle(title)
     if (status === 'permission') {
       return `${GEMINI_PERMISSION} Gemini CLI`
@@ -178,6 +186,12 @@ export function detectAgentStatusFromTitle(title: string): AgentStatus | null {
 
   if (isOpenCodeNativeTitle(title)) {
     return containsAgentSpinnerGlyph(title) ? 'working' : 'idle'
+  }
+
+  // Pi/OMP's explicit state marker outranks glyph and keyword heuristics.
+  const piStateStatus = getPiStateTitleStatus(title)
+  if (piStateStatus) {
+    return piStateStatus
   }
 
   if (title.includes(GEMINI_PERMISSION)) {

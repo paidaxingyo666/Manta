@@ -1,17 +1,17 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import {
+  readTaskPageSource,
+  readTaskPageSourceFamily
+} from './task-page-source-family.test-support'
 
-const taskPageSource = readFileSync(new URL('./TaskPage.tsx', import.meta.url), 'utf8')
+const taskPageSource = readTaskPageSourceFamily()
 const linearCreateDialogsSource = readFileSync(
   new URL('./task-page/hooks/use-task-page-linear-create-dialogs.ts', import.meta.url),
   'utf8'
 )
 const jiraCreateDialogSource = readFileSync(
   new URL('./task-page/hooks/use-task-page-jira-create-dialog.tsx', import.meta.url),
-  'utf8'
-)
-const linearCreateSubmitSource = readFileSync(
-  new URL('./task-page/hooks/use-task-page-create-linear-submits.tsx', import.meta.url),
   'utf8'
 )
 const jiraCreateSubmitSource = readFileSync(
@@ -67,23 +67,23 @@ describe('TaskPage Linear/Jira creation drafts', () => {
 
   it('discards each recovery draft only on a successful create', () => {
     const linearProjectSection = sectionBetween(
-      linearCreateSubmitSource,
+      readTaskPageSource('use-task-page-linear-project-creation.ts'),
       'const handleCreateNewLinearProject',
-      'const handleCreateNewLinearIssue'
+      'const nextModel'
     )
     expect(linearProjectSection).toContain('discardNewLinearProjectDraft()')
 
     const linearIssueSection = sectionBetween(
-      linearCreateSubmitSource,
+      readTaskPageSource('use-task-page-linear-issue-creation.ts'),
       'const handleCreateNewLinearIssue',
-      'return {'
+      'const nextModel'
     )
     expect(linearIssueSection).toContain('discardNewLinearIssueDraft()')
 
     const jiraIssueSection = sectionBetween(
-      jiraCreateSubmitSource,
+      readTaskPageSource('use-task-page-jira-issue-creation.ts'),
       'const handleCreateNewJiraIssue',
-      'return { handleCreateNewJiraIssue }'
+      'const nextModel'
     )
     expect(jiraIssueSection).toContain('discardNewJiraIssueDraft()')
   })

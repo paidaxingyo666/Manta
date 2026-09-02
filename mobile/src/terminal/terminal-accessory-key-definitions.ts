@@ -7,7 +7,10 @@
  */
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
-import { SPECIAL_KEY_ACCESSIBILITY_LABELS, SPECIAL_KEY_LABELS } from './terminal-key-encoding-tables'
+import {
+  SPECIAL_KEY_ACCESSIBILITY_LABELS,
+  SPECIAL_KEY_LABELS
+} from './terminal-key-encoding-tables'
 export type {
   TerminalAccessoryKey,
   TerminalShortcutBinding,

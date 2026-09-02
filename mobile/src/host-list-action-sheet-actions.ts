@@ -30,7 +30,10 @@ export function getHostListActionSheetActions(args: {
 
   return [
     {
-      label: args.hasEverConnected && isLive ? translate("m.host.list.action.sheet.actions.0641634e14", "Reconnect") : translate("m.host.list.action.sheet.actions.072e40b005", "Connect"),
+      label:
+        args.hasEverConnected && isLive
+          ? translate('m.host.list.action.sheet.actions.0641634e14', 'Reconnect')
+          : translate('m.host.list.action.sheet.actions.072e40b005', 'Connect'),
       icon: RefreshCw,
       onPress: () => {
         args.onDismiss()
@@ -40,7 +43,7 @@ export function getHostListActionSheetActions(args: {
     ...(isLive
       ? [
           {
-            label: translate("m.host.list.action.sheet.actions.57290dfe4b", "Disconnect"),
+            label: translate('m.host.list.action.sheet.actions.57290dfe4b', 'Disconnect'),
             icon: PowerOff,
             onPress: () => {
               args.onDismiss()
@@ -50,7 +53,7 @@ export function getHostListActionSheetActions(args: {
         ]
       : []),
     {
-      label: translate("m.host.list.action.sheet.actions.b9ce652dd1", "Network diagnostics"),
+      label: translate('m.host.list.action.sheet.actions.b9ce652dd1', 'Network diagnostics'),
       icon: Activity,
       closeBeforePress: true,
       onPress: () => {
@@ -58,7 +61,7 @@ export function getHostListActionSheetActions(args: {
       }
     },
     {
-      label: translate("m.host.list.action.sheet.actions.9c12136964", "Edit host"),
+      label: translate('m.host.list.action.sheet.actions.9c12136964', 'Edit host'),
       icon: Edit3,
       closeBeforePress: true,
       onPress: () => {
@@ -67,7 +70,7 @@ export function getHostListActionSheetActions(args: {
       }
     },
     {
-      label: translate("m.host.list.action.sheet.actions.d380ec81a0", "Remove"),
+      label: translate('m.host.list.action.sheet.actions.d380ec81a0', 'Remove'),
       destructive: true,
       closeBeforePress: true,
       onPress: () => {

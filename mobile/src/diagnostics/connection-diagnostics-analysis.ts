@@ -68,7 +68,9 @@ export function diagnoseConnection(args: DiagnoseConnectionArgs): ConnectionDiag
       likelyCause: 'The active Relay session closed unexpectedly.',
       nextStep: 'Manta started Relay recovery; the event history includes the cell close reason.',
       reportability:
-        failure?.code === 'relay-session-failed' && failure.path === 'relay' ? 'manta-relay' : 'none'
+        failure?.code === 'relay-session-failed' && failure.path === 'relay'
+          ? 'manta-relay'
+          : 'none'
     }
   }
 
@@ -127,7 +129,9 @@ function findCurrentDiagnosticFailure(
   entries: readonly ConnectionLogEntry[]
 ): ConnectionLogEntry | undefined {
   const boundaryIndex = entries.findLastIndex(isDiagnosticBoundary)
-  return [...entries.slice(boundaryIndex + 1)].reverse().find(isDiagnosticFailure)
+  // findLast, not reverse+find: Hermes has no toReversed, and the lint rule that
+  // bans reverse() would push it right back in.
+  return entries.slice(boundaryIndex + 1).findLast(isDiagnosticFailure)
 }
 
 function isDiagnosticBoundary(entry: ConnectionLogEntry): boolean {

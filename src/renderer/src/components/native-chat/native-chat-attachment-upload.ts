@@ -36,6 +36,25 @@ export type NativeChatAttachmentOwner =
    *  agent would silently receive paths it cannot read (see #6648). */
   | { kind: 'not-ready' }
 
+/** Stable attachment provenance; reconnect generations intentionally do not change it. */
+export function getNativeChatAttachmentOwnerIdentity(
+  owner: NativeChatAttachmentOwner
+): string | null {
+  if (owner.kind === 'local' || owner.kind === 'runtime') {
+    return owner.kind
+  }
+  if (owner.kind === 'not-ready') {
+    return null
+  }
+  return JSON.stringify([
+    'ssh',
+    owner.connectionId,
+    owner.expectedExecutionHostId,
+    owner.expectedSshTargetId,
+    owner.worktreePath
+  ])
+}
+
 type NativeChatAttachmentOwnerState = Pick<
   AppState,
   | 'folderWorkspaces'
@@ -80,6 +99,9 @@ export function resolveNativeChatAttachmentOwnerForWorktree(
     ? resolveNativeChatFileLinkContext(state, terminalTabId)?.worktreePath
     : state.getKnownWorktreeById(worktreeId)?.path
   if (!worktreePath) {
+    return { kind: 'not-ready' }
+  }
+  if (state.sshConnectionStates.get(connectionId)?.connectionGeneration === undefined) {
     return { kind: 'not-ready' }
   }
   return {

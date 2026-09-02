@@ -1911,7 +1911,7 @@
       "12548ed01b": "Couldn't load markdown",
       "c87b285cb3": "Send",
       "8bb984f167": "Copy",
-      "a34c28c593": "{{value0}} review {{value1}}",
+      "a34c28c593": "{{value0}} review notes",
       "6e387bdc73": "No review notes",
       "6cdae0c3b4": "Save note",
       "009398e286": "Cancel",
@@ -1935,6 +1935,13 @@
     },
     "HostDiagnosticsLink": {
       "ceff9523b5": "View network diagnostics"
+    },
+    "MobileSessionCommandDock": {
+      "267d90acf0": "Paste"
+    },
+    "MobileSessionHeader": {
+      "ff08ff24b1": "Checking desktop capabilities — try again in a moment",
+      "6ccffdeccd": "Desktop update required for quick commands"
     }
   },
   "mobile": {

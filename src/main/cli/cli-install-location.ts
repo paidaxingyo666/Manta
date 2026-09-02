@@ -185,7 +185,13 @@ export abstract class CliInstallLocation {
         return join(this.homePath, '.local', 'bin', DEV_COMMAND_NAME)
       }
       if (this.platform === 'win32') {
-        return join(this.localAppDataPath, 'Programs', 'Manta Dev', 'bin', `${DEV_COMMAND_NAME}.cmd`)
+        return join(
+          this.localAppDataPath,
+          'Programs',
+          'Manta Dev',
+          'bin',
+          `${DEV_COMMAND_NAME}.cmd`
+        )
       }
     }
 

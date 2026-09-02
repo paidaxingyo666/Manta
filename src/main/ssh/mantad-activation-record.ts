@@ -169,5 +169,7 @@ export function orcadGcPinnedDirNames(
   const versions = [record.active, record.previous, daemonEntryVersion ?? null].filter(
     (v): v is string => typeof v === 'string' && v.length > 0
   )
-  return [...new Set(versions)].map((version) => remoteInstallDirName(MANTAD_INSTALL_MODEL, version))
+  return [...new Set(versions)].map((version) =>
+    remoteInstallDirName(MANTAD_INSTALL_MODEL, version)
+  )
 }

@@ -9,6 +9,7 @@ type TestWatchTarget = {
   worktreePath: string
   connectionId: string | undefined
   runtimeEnvironmentId: string | null
+  runtimeConnectionGeneration?: number
   allowLocalWindowsWslAliases?: true
 }
 
@@ -32,6 +33,7 @@ vi.mock('./editor-external-watch-targets', () => ({
       target.worktreePath,
       target.connectionId ?? 'local',
       target.runtimeEnvironmentId ?? 'client',
+      target.runtimeConnectionGeneration ?? 0,
       target.allowLocalWindowsWslAliases ? 'wsl-aliases' : 'literal'
     ].join('::')
 }))
@@ -183,5 +185,29 @@ describe('useEditorExternalWatch subscriptions', () => {
 
     await act(async () => root.unmount())
     expect(unsubscribeCurrent).toHaveBeenCalledTimes(1)
+  })
+
+  it('replaces a runtime watch when its connection generation advances', async () => {
+    const unsubscribeFirst = vi.fn()
+    const unsubscribeSecond = vi.fn()
+    subscriptionState.subscribeRuntimeFileChanges
+      .mockResolvedValueOnce(unsubscribeFirst)
+      .mockResolvedValueOnce(unsubscribeSecond)
+    subscriptionState.snapshot = {
+      targets: [{ ...runtimeTarget(), runtimeConnectionGeneration: 1 }],
+      targetsKey: 'runtime-watch-generation-1'
+    }
+    await act(async () => root.render(createElement(WatchProbe)))
+
+    subscriptionState.snapshot = {
+      targets: [{ ...runtimeTarget(), runtimeConnectionGeneration: 2 }],
+      targetsKey: 'runtime-watch-generation-2'
+    }
+    await act(async () => root.render(createElement(WatchProbe)))
+
+    expect(unsubscribeFirst).toHaveBeenCalledTimes(1)
+    expect(subscriptionState.subscribeRuntimeFileChanges).toHaveBeenCalledTimes(2)
+    await act(async () => root.unmount())
+    expect(unsubscribeSecond).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   foldWslUncPathCaseInsensitiveParts,
+  getWslFilesystemBoundaryDistro,
+  isDrvfsLinuxPath,
   isWslUncPath,
   parseWslUncPath,
   resolveWslRepoWorktreeBasePath,
-  toWindowsWslPath
+  toWindowsWslDrivePath,
+  toWindowsWslPath,
+  toWindowsWslUncPath
 } from './wsl-paths'
 
 describe('wsl path helpers', () => {
@@ -33,14 +37,45 @@ describe('wsl path helpers', () => {
   ])('converts %s without folding case-sensitive Linux paths', (linuxPath, expected) => {
     expect(toWindowsWslPath(linuxPath, 'Ubuntu')).toBe(expected)
   })
+
+  it.each([
+    ['/mnt/c/Users/jin', 'C:\\Users\\jin'],
+    ['/mnt/d', 'D:\\'],
+    ['/mnt/d/', 'D:\\'],
+    ['/MNT/c/Users/jin', null],
+    ['/mnt/C/Repo', null],
+    ['/home/jin', null],
+    // A drvfs prefix on a line that still carries a terminator is not a drive path.
+    ['/mnt/c/Users/jin\r', null],
+    ['/mnt/c/Users/jin\n', null],
+    ['/mnt/c/Users/jin\u2028', null],
+    ['/mnt/c/Users/jin\u2029', null]
+  ] as const)('converts the DrvFs path %j without a distro lookup', (linuxPath, expected) => {
+    expect(toWindowsWslDrivePath(linuxPath)).toBe(expected)
+  })
+
+  it.each(['\r', '\n', '\u2028', '\u2029'])(
+    'leaves a DrvFs line ending in %j on the distro UNC view',
+    (terminator) => {
+      expect(toWindowsWslPath(`/mnt/c/Users/jin${terminator}`, 'Ubuntu')).toBe(
+        `\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\jin${terminator}`
+      )
+    }
+  )
+
+  it('keeps mounted-drive paths on the distro UNC view when requested', () => {
+    expect(toWindowsWslUncPath('/mnt/c/Users/jin', 'Ubuntu')).toBe(
+      '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\jin'
+    )
+  })
 })
 
 describe('resolveWslRepoWorktreeBasePath', () => {
   const WSL_REPO = '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\src\\repo'
 
   it('resolves an absolute Linux base path into the repo distro (STA-4772)', () => {
-    expect(resolveWslRepoWorktreeBasePath(WSL_REPO, '/home/jin/project/.orca-worktrees')).toBe(
-      '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\project\\.orca-worktrees'
+    expect(resolveWslRepoWorktreeBasePath(WSL_REPO, '/home/jin/project/.manta-worktrees')).toBe(
+      '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\project\\.manta-worktrees'
     )
     expect(resolveWslRepoWorktreeBasePath('\\\\wsl$\\Debian\\srv\\repo', '/srv/trees')).toBe(
       '\\\\wsl.localhost\\Debian\\srv\\trees'
@@ -114,5 +149,60 @@ describe('foldWslUncPathCaseInsensitiveParts', () => {
     expect(foldWslUncPathCaseInsensitiveParts('C:\\Users\\jin')).toBeNull()
     expect(foldWslUncPathCaseInsensitiveParts('//server/share/x')).toBeNull()
     expect(foldWslUncPathCaseInsensitiveParts('/home/jin')).toBeNull()
+  })
+})
+
+describe('getWslFilesystemBoundaryDistro', () => {
+  it('names the runtime distro for a Windows drive project running WSL git', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: 'C:\\Users\\alice\\manta',
+        wslRuntimeDistro: 'Ubuntu-24.04'
+      })
+    ).toBe('Ubuntu-24.04')
+  })
+
+  it('stays silent for a Windows drive project running host git', () => {
+    for (const wslRuntimeDistro of [undefined, null, '']) {
+      expect(
+        getWslFilesystemBoundaryDistro({ projectPath: 'C:/Users/alice/manta', wslRuntimeDistro })
+      ).toBeNull()
+    }
+  })
+
+  it('stays silent for a project already inside the distro', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\home\\alice\\manta',
+        wslRuntimeDistro: 'Ubuntu'
+      })
+    ).toBeNull()
+  })
+
+  // The UNC spelling of drvfs is still the Windows drive, so it crosses the boundary even though
+  // the path names no runtime preference at all.
+  it('names the path distro for the UNC spelling of a drvfs mount', () => {
+    expect(
+      getWslFilesystemBoundaryDistro({
+        projectPath: '\\\\wsl.localhost\\Ubuntu\\mnt\\c\\Users\\alice\\manta'
+      })
+    ).toBe('Ubuntu')
+  })
+
+  it('stays silent for POSIX, relative, and plain UNC share paths', () => {
+    for (const projectPath of ['/home/alice/manta', 'manta', '\\\\fileserver\\share\\manta']) {
+      expect(getWslFilesystemBoundaryDistro({ projectPath, wslRuntimeDistro: 'Ubuntu' })).toBeNull()
+    }
+  })
+})
+
+describe('isDrvfsLinuxPath', () => {
+  it('accepts the automount root and its descendants only', () => {
+    expect(isDrvfsLinuxPath('/mnt/c')).toBe(true)
+    expect(isDrvfsLinuxPath('/mnt/c/Users')).toBe(true)
+    expect(isDrvfsLinuxPath('/mnt/cdrom')).toBe(false)
+    // Why: /MNT and /mnt/C are ordinary case-sensitive Linux directories, not the drvfs automount.
+    expect(isDrvfsLinuxPath('/MNT/c')).toBe(false)
+    expect(isDrvfsLinuxPath('/mnt/C/Users')).toBe(false)
   })
 })

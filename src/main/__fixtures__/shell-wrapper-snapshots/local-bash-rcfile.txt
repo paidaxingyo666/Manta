@@ -48,11 +48,14 @@ __manta_omp_should_skip_extension() {
   return 1
 }
 __manta_omp_cwd_is_usable() {
+  local __manta_physical_cwd
   [[ -x . ]] || return 1
-  if [[ -n "${PWD:-}" ]]; then
-    [[ -d "${PWD}" && "${PWD}" -ef . ]]
+  if [[ -n "${PWD:-}" && -d "${PWD:-}" ]]; then
+    [[ "${PWD}" -ef . ]]
   else
-    builtin pwd -P >/dev/null 2>&1
+    # Why compare the path: shell builtins can print a cached path for a deleted cwd.
+    __manta_physical_cwd="$(builtin pwd -P 2>/dev/null)" || return 1
+    [[ -d "$__manta_physical_cwd" && "$__manta_physical_cwd" -ef . ]]
   fi
 }
 __manta_omp_invoke() {
@@ -72,7 +75,7 @@ __manta_omp_invoke() {
 __manta_omp() {
   local __manta_use_extension=1
   __manta_omp_should_skip_extension "${1:-}" && __manta_use_extension=0
-  if [[ $__manta_use_extension -eq 1 ]] && ! __manta_omp_cwd_is_usable; then
+  if ! __manta_omp_cwd_is_usable; then
     local __manta_logical_cwd="${PWD:-${MANTA_WORKTREE_PATH:-${MANTA_ROOT_PATH:-}}}"
     # Why: a restored shell can retain the deleted directory inode after its path is recreated.
     (
@@ -362,6 +365,37 @@ if [[ -n "$__manta_ready_marker" ]]; then
 fi
 __manta_append_prompt_command '__manta_in_debug_capture=1; __manta_prompt_had_functrace=""; if [[ -o functrace ]]; then __manta_prompt_had_functrace=1; set +T; fi; __manta_outer_debug_trap_spec="$(trap -p DEBUG)"; [[ -z "$__manta_prompt_had_functrace" ]] || set -T; unset __manta_prompt_had_functrace __manta_in_debug_capture'
 __manta_append_prompt_command "__manta_osc133_prompt_done"
+if [[ ${MANTA_POSIX_SHELL_STARTUP_COMMAND+present} == present ]]; then
+  __manta_remove_startup_command_prompt_hook() {
+    local __manta_item
+    local -a __manta_remaining=()
+    if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1) )); then
+      for __manta_item in "${PROMPT_COMMAND[@]+"${PROMPT_COMMAND[@]}"}"; do
+        [[ "$__manta_item" == "__manta_run_startup_command" ]] || __manta_remaining+=("$__manta_item")
+      done
+      PROMPT_COMMAND=("${__manta_remaining[@]+"${__manta_remaining[@]}"}")
+    else
+      for __manta_item in "${__manta_prompt_command_suffix[@]+"${__manta_prompt_command_suffix[@]}"}"; do
+        [[ "$__manta_item" == "__manta_run_startup_command" ]] || __manta_remaining+=("$__manta_item")
+      done
+      __manta_prompt_command_suffix=("${__manta_remaining[@]+"${__manta_remaining[@]}"}")
+    fi
+  }
+  __manta_run_startup_command() {
+    local __manta_command="$MANTA_POSIX_SHELL_STARTUP_COMMAND" __manta_status
+    unset MANTA_POSIX_SHELL_STARTUP_COMMAND
+    __manta_remove_startup_command_prompt_hook
+    unset -f __manta_remove_startup_command_prompt_hook
+    builtin history -s "$__manta_command" 2>/dev/null || true
+    builtin printf '%s
+' "$__manta_command"
+    eval "$__manta_command"
+    __manta_status=$?
+    unset -f __manta_run_startup_command
+    return "$__manta_status"
+  }
+  __manta_append_prompt_command "__manta_run_startup_command"
+fi
 __manta_had_functrace=""
 [[ -o functrace ]] && __manta_had_functrace=1
 set +T

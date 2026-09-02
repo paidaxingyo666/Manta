@@ -22,3 +22,16 @@
 # the reviewable change, and pin LF because they are compared byte-for-byte.
 # Not -diff: the shell diff is the review surface when a wrapper does change.
 /src/main/__fixtures__/shell-wrapper-snapshots/*.txt linguist-generated=true text eol=lf
+
+# Sync merge drivers (drivers are configured by sync-run.sh; names live here).
+# keepfork: the fork rewrote these; upstream's edits are about upstream's product.
+# keepupstream: generated — take upstream's, sync-finish.sh regenerates.
+README.md merge=keepfork
+docs/readme/README.zh-CN.md merge=keepfork
+pnpm-lock.yaml merge=keepupstream
+mobile/pnpm-lock.yaml merge=keepupstream
+resources/skills/current-manifest.json merge=keepupstream
+resources/skills/snapshot-registry.json merge=keepupstream
+resources/skills/release-mapping.json merge=keepupstream
+config/max-lines-baseline.txt merge=keepupstream
+src/renderer/src/i18n/locales/*.json merge=keepupstream

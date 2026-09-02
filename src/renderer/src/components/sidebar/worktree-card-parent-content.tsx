@@ -44,12 +44,14 @@ export function WorktreeCardParentContent({
     handleEditIssue,
     handleEditComment,
     handleOpenGitHubIssueInManta,
+    handleOpenIssueInBrowser,
     linearIssue,
     handleOpenLinearIssueInManta,
     handleOpenReviewInManta,
+    handleOpenReviewInBrowser,
     handleOpenAutomation,
     handleOpenAutomationRun,
-    hasExplicitLinkedReview,
+    canUnlinkReview,
     handleUnlinkReview
   } = card
   const {
@@ -98,15 +100,19 @@ export function WorktreeCardParentContent({
             ? handleOpenGitHubIssueInManta
             : undefined
         }
+        onOpenIssueInBrowser={
+          hoverIssue && 'url' in hoverIssue && hoverIssue.url ? handleOpenIssueInBrowser : undefined
+        }
         onOpenLinearIssueInManta={linearIssue?.url ? handleOpenLinearIssueInManta : undefined}
         onOpenReviewInManta={
-          hoverReview?.url && hoverReview.provider === 'github' ? handleOpenReviewInManta : undefined
+          hoverReview?.url && hoverReview.provider === 'github'
+            ? handleOpenReviewInManta
+            : undefined
         }
+        onOpenReviewInBrowser={hoverReview?.url ? handleOpenReviewInBrowser : undefined}
         onOpenAutomation={affiliateListMode ? undefined : handleOpenAutomation}
         onOpenAutomationRun={affiliateListMode ? undefined : handleOpenAutomationRun}
-        onUnlinkReview={
-          !affiliateListMode && hasExplicitLinkedReview ? handleUnlinkReview : undefined
-        }
+        onUnlinkReview={!affiliateListMode && canUnlinkReview ? handleUnlinkReview : undefined}
       >
         {identityContent}
       </WorktreeCardDetailsHover>

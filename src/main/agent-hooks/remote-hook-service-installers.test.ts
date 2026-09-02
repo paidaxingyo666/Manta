@@ -22,7 +22,10 @@ import { CopilotHookService } from '../copilot/hook-service'
 import { DevinHookService } from '../devin/hook-service'
 import { KimiHookService } from '../kimi/hook-service'
 import { openClaudeHookService } from '../openclaude/hook-service'
-import { createFakeSftp, EXPECTED_CURSOR_HOOK_RESPONSES } from './remote-hook-service-installers.test-fixtures'
+import {
+  createFakeSftp,
+  EXPECTED_CURSOR_HOOK_RESPONSES
+} from './remote-hook-service-installers.test-fixtures'
 
 describe('remote hook service installers', () => {
   it('always writes POSIX scripts for SSH remotes even from a Windows host', async () => {

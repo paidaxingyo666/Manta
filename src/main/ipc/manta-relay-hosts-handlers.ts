@@ -14,14 +14,12 @@ import {
 
 /** The machines the signed-in account has on its relay. */
 export function registerMantaRelayHostHandlers(): void {
-  ipcMain.handle(
-    'mantaRelay:signInMethods',
-    (): Promise<MantaRelaySignInMethods> => readRelaySignInMethods()
+  ipcMain.handle('mantaRelay:signInMethods', (): Promise<MantaRelaySignInMethods> =>
+    readRelaySignInMethods()
   )
 
-  ipcMain.handle(
-    'mantaRelay:listHosts',
-    (): Promise<ListMantaRelayHostsResult> => listRelayHostsForAccount(getProfileUserDataPath())
+  ipcMain.handle('mantaRelay:listHosts', (): Promise<ListMantaRelayHostsResult> =>
+    listRelayHostsForAccount(getProfileUserDataPath())
   )
 
   ipcMain.handle(

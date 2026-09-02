@@ -10,8 +10,10 @@ description: >-
   "share HTML/Markdown", "public artifact link", "share skills", or "control the browser inside
   Manta". Prefer this over raw `git worktree`, ad hoc
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
-  Use Computer Use for browser windows, webviews, or desktop UI outside Manta's
-  embedded browser.
+  Use Computer Use for external browser windows, webviews, or desktop UI only
+  when the task requires OS/window-level control such as focus, menus, dialogs,
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
+  page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta CLI
@@ -199,7 +201,7 @@ Terminal rules:
 - `terminal list --json` omits `visualLayouts` to keep the common agent payload bounded. Add `--include-visual-layouts` only when tab and pane topology is required.
 - Use `terminal read` before `terminal send` unless the next input is obvious.
 - Use `terminal send` only for direct terminal input or one-off prompts where no task state, inbox, or reply tracking is needed.
-- For structured coordination, invoke the `orchestration` skill; it uses `manta orchestration ...` commands for messages, handoffs, task DAGs, dispatches, inbox/reply flows, and coordinator loops. A receiving agent can run `manta orchestration check --unread --inject` to render its unread mail in agent-readable form; this checks the caller's inbox and does not remotely deliver input to another terminal.
+- For structured coordination, invoke the `orchestration` skill; it uses `manta orchestration ...` commands for messages, handoffs, task DAGs, dispatches, inbox/reply flows, and coordinator loops. A receiving agent can run `manta orchestration check --unread --format` to render its unread mail in agent-readable form; this checks the caller's inbox and does not remotely deliver input to another terminal.
 - Use `terminal create --worktree active --command "<agent>"` for a fresh agent in the current worktree. Use `worktree create --agent <agent>` only for a separate checkout (agent in the first terminal — do not also `terminal create` the same agent).
 - Use `terminal wait --for tui-idle` for agent CLIs such as Claude Code, Gemini, Codex, OMP, Pi, and Grok; always pass `--timeout-ms`.
 - Terminal handles are runtime-scoped. Use `startupTerminal.handle` as the sole agent handle when `worktree create --agent` returns it; if Manta restarts, omits the handle, or returns `terminal_handle_stale`, reacquire with `terminal list` and continue with the replacement only.
@@ -309,7 +311,7 @@ MANTA skills share --skill <selector> [--skill <selector> ...] --bundle-name <na
 
 The built-in browser is Manta's embedded browser tab surface, scoped to Manta worktrees; it is not Chrome/Safari or desktop app UI.
 
-These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
+These commands control only Manta's embedded browser tabs. For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control. Use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages. If the user explicitly asks for Manta CLI desktop control, use `manta computer ...`; do not use browser commands for desktop UI.
 
 Use a snapshot-interact-re-snapshot loop:
 

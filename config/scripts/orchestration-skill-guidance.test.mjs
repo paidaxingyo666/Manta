@@ -25,6 +25,17 @@ function getSection(markdown, heading) {
 }
 
 describe('orchestration skill guidance', () => {
+  it('keeps external browser routing at the OS/page boundary', () => {
+    const description = readFileSync(guidePath, 'utf8').replace(/\s+/gu, ' ')
+
+    expect(description).toContain(
+      "Use Computer Use for external browser windows, webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when the task requires OS/window-level control such as focus, menus, dialogs, coordinates, or screenshots."
+    )
+    expect(description).toContain(
+      "`manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
+    )
+  })
+
   it('requires Manta runtime state before claiming a worker was orchestrated', () => {
     const skill = readSkill()
     const toolBoundary = getSection(skill, 'Tool Boundary')
@@ -370,7 +381,10 @@ describe('orchestration install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
+    // Upstream warns about the GNOME Orca clash; this fork ships `manta-ide`, so the stub
+    // states the packaging reason bare `manta` is the wrong binary on Linux.
     expect(stub).toContain('installs the executable as `manta-ide`')
+    expect(stub).toContain("`manta` is not on PATH outside Manta's terminals")
     expect(stub).not.toMatch(/^manta /mu)
   })
 

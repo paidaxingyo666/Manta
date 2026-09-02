@@ -52,11 +52,14 @@ __manta_omp_should_skip_extension() {
   return 1
 }
 __manta_omp_cwd_is_usable() {
+  local __manta_physical_cwd
   [[ -x . ]] || return 1
-  if [[ -n "\${PWD:-}" ]]; then
-    [[ -d "\${PWD}" && "\${PWD}" -ef . ]]
+  if [[ -n "\${PWD:-}" && -d "\${PWD:-}" ]]; then
+    [[ "\${PWD}" -ef . ]]
   else
-    builtin pwd -P >/dev/null 2>&1
+    # Why compare the path: shell builtins can print a cached path for a deleted cwd.
+    __manta_physical_cwd="$(builtin pwd -P 2>/dev/null)" || return 1
+    [[ -d "$__manta_physical_cwd" && "$__manta_physical_cwd" -ef . ]]
   fi
 }
 __manta_omp_invoke() {
@@ -76,7 +79,7 @@ __manta_omp_invoke() {
 __manta_omp() {
   local __manta_use_extension=1
   __manta_omp_should_skip_extension "\${1:-}" && __manta_use_extension=0
-  if [[ $__manta_use_extension -eq 1 ]] && ! __manta_omp_cwd_is_usable; then
+  if ! __manta_omp_cwd_is_usable; then
     local __manta_logical_cwd="\${PWD:-\${MANTA_WORKTREE_PATH:-\${MANTA_ROOT_PATH:-}}}"
     # Why: a restored shell can retain the deleted directory inode after its path is recreated.
     (

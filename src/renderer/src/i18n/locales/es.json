@@ -3028,7 +3028,8 @@
             "25dc1cd653": "Abrir archivo",
             "7cdf8ee0c8": "Abrir URL",
             "b27864279e": "Iniciar agente",
-            "0e5b7a3f16": "Buscar pestañas abiertas, archivos, URL y agentes…",
+            "omniboxPlaceholderWithHistory": "Buscar pestañas abiertas, historial, archivos, URL y agentes…",
+            "openPage": "Abrir página",
             "8f0a1c4d92": "Cambiar a la pestaña",
             "2c38630a01": "El espacio de trabajo ya no existe",
             "4f0d9a71c2": "La pestaña ya no existe",
@@ -3074,7 +3075,6 @@
                 "classifier": {
                   "42e6262ae9": "No hay acción disponible.",
                   "097a982ee0": "Cargando archivos...",
-                  "c41f8d20b7": "Buscar pestañas abiertas, archivos, URL y agentes…",
                   "90eb94dc48": "Introduce una URL http:// o https://.",
                   "5553b283ce": "Introduce una URL o ruta de archivo.",
                   "queryTooLarge": "El texto de búsqueda es demasiado grande.",
@@ -3251,6 +3251,16 @@
             "onDescription": "Mantener esta computadora activa en todo momento",
             "autoDescription": "Mantener la computadora activa mientras un agente está trabajando",
             "offDescription": "Permitir que el sistema entre en suspensión normalmente"
+          },
+          "RuntimeHostStatusRow": {
+            "previous_connection_closed": "La conexión anterior se cerró",
+            "workspace_window_closed": "La ventana del espacio de trabajo está cerrada",
+            "checking_host": "Manta está comprobando si se puede acceder a este host",
+            "restoring_connection": "Manta está intentando restablecer la conexión",
+            "host_unreachable": "No se puede acceder a Manta en este host",
+            "contact_note": "Es posible que el host siga en ejecución; solo la conexión de Manta no está disponible.",
+            "last_connected": "Última conexión: {{value0}}",
+            "reconnect_attempt": "Intento {{value0}}"
           },
           "StatusBar": {
             "9659e38343": "Puertos",
@@ -12804,8 +12814,9 @@
           "7e7ca60816": "archivos cambiados",
           "b6c3b84476": "Mostrar árbol de archivos",
           "39f8007549": "Revisar conflictos",
-          "39e73e7181": "se excluyeron de esta vista de diff.",
-          "689b99f8ad": "conflicto no resuelto",
+          "skippedConflictsExcluded": "Se excluyeron {{count}} conflictos no resueltos de esta vista de diff.",
+          "skippedConflictsExcluded_one": "Se excluyó {{count}} conflicto no resuelto de esta vista de diff.",
+          "skippedConflictsExcluded_other": "Se excluyeron {{count}} conflictos no resueltos de esta vista de diff.",
           "820ec01f24": "Los archivos en conflicto se revisan por separado",
           "fd8892b120": "No hay cambios para mostrar",
           "eb5f40e49c": "Esta vista de diff excluye los conflictos sin resolver porque el pipeline normal de diff de dos vías no es seguro para conflictos.",
@@ -13738,6 +13749,20 @@
             "f3575229df": "Agarrar",
             "405bb315da": "Intitulado"
           },
+          "annotate": {
+            "browser": {
+              "page": {
+                "annotation": {
+                  "tray": {
+                    "09a7c1df70": "Editar anotación {{value0}}",
+                    "c16f932cb3": "Guardar",
+                    "024467ceac": "Cancelar",
+                    "449d2c2629": "Intención de la anotación"
+                  }
+                }
+              }
+            }
+          },
           "browser": {
             "address": {
               "bar": {
@@ -14561,6 +14586,11 @@
     }
   },
   "components": {
+    "jiraUserPicker": {
+      "select": "Seleccionar {{value0}}",
+      "search": "Buscar usuarios",
+      "empty": "No se encontraron usuarios"
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "Este agente no admite pegar imágenes.",
@@ -14579,6 +14609,13 @@
         "imagePasteFailed": "Error al pegar imagen.",
         "worktreeNotReady": "Worktree no está listo — intenta de nuevo en un momento.",
         "uploadingAttachments": "Subiendo {{value0}} archivo(s) al remoto…",
+        "viewAttachment": "Ver imagen: {{value0}}",
+        "removeNamedAttachment": "Quitar imagen: {{value0}}",
+        "imagePreview": "Vista previa de imagen a tamaño completo",
+        "imagePreviewLoading": "Cargando vista previa de la imagen…",
+        "imagePreviewUnavailable": "Vista previa no disponible",
+        "retryImagePreview": "Reintentar",
+        "imageAttachmentLimit": "Puedes adjuntar hasta {{value0}} imágenes.",
         "model": "Modelo",
         "effort": "Esfuerzo",
         "fastMode": "Modo rápido",

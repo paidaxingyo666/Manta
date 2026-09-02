@@ -9,6 +9,8 @@ ordinary three-way merges they actually are.
 Usage:  rebrand-merge.py [--apply]     (default is a dry run)
 """
 import re, subprocess, sys, pathlib, os
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from brand_rule import rebrand_text, rebrand_path as _rebrand_path  # noqa: E402
 
 # Files this fork rewrote rather than adapted. Upstream's edits to them are
 # about upstream's product — its App Store listing, its APK links, its cloud —
@@ -19,24 +21,20 @@ FORK_OWNED = {
     'docs/readme/README.zh-CN.md',
 }
 
-IDENTITY = [
-    ('stablyai/orca', 'paidaxingyo666/Manta'),
-    ('ai.stably.orca', 'cn.sh.manta'),
-    ('onorca.dev', 'manta.sh.cn'),
-]
-
 def rebrand(data: bytes) -> bytes:
+    """Speak Manta to a base or upstream blob, by the one shared rule.
+
+    Evidence-ruled, not blind: a token is renamed only when this fork already
+    carries its Manta form, so GNOME Orca, upstream's repo slug and the bundle
+    id survive as themselves. The blind version this replaced is where
+    `com.stablyai.manta` and "GNOME Manta screen reader" came from.
+    """
     try:
         text = data.decode('utf-8')
     except UnicodeDecodeError:
         return data
-    for upstream, ours in IDENTITY:
-        text = text.replace(upstream, ours)
-    text = text.replace('ORCA', 'MANTA').replace('Orca', 'Manta').replace('orca', 'manta')
-    # Upstream writes "an Orca"; the rename leaves the article behind.
-    text = re.sub(r'\ban Manta\b', 'a Manta', text)
-    text = re.sub(r'\bAn Manta\b', 'A Manta', text)
-    return text.encode('utf-8')
+    new, _renamed, _declined = rebrand_text(text)
+    return new.encode('utf-8')
 
 def stage(n, path):
     r = subprocess.run(['git', 'show', f':{n}:{path}'], capture_output=True)
@@ -61,7 +59,7 @@ def blob_at(rev, path):
     return None if r.returncode else r.stdout
 
 def rebrand_path(path):
-    return path.replace('ORCA', 'MANTA').replace('Orca', 'Manta').replace('orca', 'manta')
+    return _rebrand_path(path)
 
 def main():
     apply = '--apply' in sys.argv
