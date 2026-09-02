@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { act, createElement, Fragment } from 'react'
+import { act, createElement, Fragment, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -89,7 +89,11 @@ function StateHookProbe({
     undefined,
     reloadKey
   )
-  onRender({ src, status })
+  // After commit, not during render: the assertions read the last committed
+  // state, and a render-phase callback is what React Doctor forbids.
+  useEffect(() => {
+    onRender({ src, status })
+  })
   return null
 }
 

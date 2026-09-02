@@ -126,7 +126,8 @@ export function useLocalImageSrcState(
       const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
       const cached = getCachedLocalImageBlobUrl(cacheKey)
       if (cached) {
-        activeCacheKeyRef.current = cacheKey
+        // The mount effect below takes this same branch and sets the ref;
+        // doing it here mutates a ref during render for nothing.
         return { src: cached, status: 'ready' }
       }
     }
