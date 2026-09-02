@@ -118,12 +118,13 @@ function execHostCommand(
   conn: SshConnection,
   hostPlatform: RemoteHostPlatform,
   command: string,
-  options?: { timeoutMs?: number; signal?: AbortSignal }
+  options?: { timeoutMs?: number; signal?: AbortSignal; onStderr?: (stderr: string) => void }
 ): Promise<string> {
   return execCommand(conn, command, {
     wrapCommand: !isWindowsRemoteHost(hostPlatform),
     timeoutMs: options?.timeoutMs,
-    signal: options?.signal
+    signal: options?.signal,
+    onStderr: options?.onStderr
   })
 }
 
@@ -735,24 +736,34 @@ function nativeDepsProbeJs(successToken: string): string {
   return `(()=>{const missing=[];try{${loadNodePty}}catch{missing.push("node-pty")}try{require("@parcel/watcher")}catch{missing.push("@parcel/watcher")}if(missing.length){console.log("${NATIVE_DEPS_MISSING_PREFIX}"+missing.join(","));process.exitCode=1}else{console.log(${JSON.stringify(successToken)})}})()`
 }
 
-function missingNativeDepsFromProbe(output: string): RelayNativeDepName[] {
+/**
+ * Which deps the probe *named* as unloadable, or `undefined` when the answer names none.
+ *
+ * Only the probe's own marker line is evidence about the deps. An answer without one (node never
+ * ran, was killed, exited before the script) says nothing, so it must not be read as "all of them" —
+ * that inference deleted both native modules on every reconnect of an affected host.
+ */
+function missingNativeDepsFromProbe(output: string): RelayNativeDepName[] | undefined {
   const marker = output
     .split(/\r?\n/)
     .find((line) => line.trim().startsWith(NATIVE_DEPS_MISSING_PREFIX))
   if (!marker) {
-    return [...RELAY_NATIVE_DEP_NAMES]
+    return undefined
   }
   const reported = marker.trim().slice(NATIVE_DEPS_MISSING_PREFIX.length).split(',')
-  return RELAY_NATIVE_DEP_NAMES.filter((name) => reported.includes(name))
+  const named = RELAY_NATIVE_DEP_NAMES.filter((name) => reported.includes(name))
+  return named.length > 0 ? named : undefined
 }
 
 /**
- * `ok` — the probe answered and both deps loaded. `blocked` — the probe answered and named deps
- * that failed to load. `unverifiable` — the probe never answered, which is evidence about the
- * transport, not about the deps.
+ * `ok` — the probe answered and both deps loaded. `blocked` — the probe answered with a marker
+ * naming deps that failed to load. `unverifiable` — the probe never answered, or answered nothing
+ * that names a dep; both are evidence about the probe, not about the deps.
  *
  * Why `unverifiable` is not `blocked`: repairing on it does `rm -rf node_modules/node-pty` and a
- * node-gyp source build (no Linux prebuild) against a relay that was never shown to be broken.
+ * node-gyp source build (no Linux prebuild) against a relay that was never shown to be broken. An
+ * unparseable answer is the worse half of that — it is deterministic and per-host, so a node that
+ * cannot start (bad NODE_OPTIONS, OOM, exit 127) deleted both modules on every reconnect forever.
  * Same verdict discipline as `src/main/mantad/node-pty-precondition.ts` and
  * docs/reference/ssh-execution-boundary.md — loss of contact is not evidence.
  */
@@ -767,6 +778,7 @@ async function probeRequiredNativeDeps(
 ): Promise<{ status: RelayNativeDepsProbeStatus; missing: RelayNativeDepName[] }> {
   const escapedNode = shellEscape(nodePath)
   const probeJs = nativeDepsProbeJs('MANTA-NATIVE-DEPS-OK')
+  let probeStderr = ''
   try {
     const command = isWindowsRemoteHost(hostPlatform)
       ? commandWithNodePath(
@@ -775,16 +787,32 @@ async function probeRequiredNativeDeps(
           remoteDir,
           `try { & ${powerShellLiteral(nodePath)} -e ${powerShellNativeArg(probeJs)} } catch { 'MISSING' }`
         )
-      : commandWithNodePath(
+      : // Why: no `2>/dev/null` — it discarded the only line that says why node never reached the
+        // script. stderr stays its own stream so it can't be mistaken for the verdict, mirroring
+        // src/main/mantad/node-pty-precondition.ts.
+        commandWithNodePath(
           hostPlatform,
           nodePath,
           remoteDir,
-          `(${escapedNode} -e ${shellEscape(probeJs)} 2>/dev/null || echo MISSING)`
+          `(${escapedNode} -e ${shellEscape(probeJs)} || echo MISSING)`
         )
-    const probe = await execHostCommand(conn, hostPlatform, command, { signal })
-    return probe.includes('MANTA-NATIVE-DEPS-OK')
-      ? { status: 'ok', missing: [] }
-      : { status: 'blocked', missing: missingNativeDepsFromProbe(probe) }
+    const probe = await execHostCommand(conn, hostPlatform, command, {
+      signal,
+      onStderr: (text) => {
+        probeStderr = text
+      }
+    })
+    if (probe.includes('MANTA-NATIVE-DEPS-OK')) {
+      return { status: 'ok', missing: [] }
+    }
+    const missing = missingNativeDepsFromProbe(probe)
+    if (!missing) {
+      console.warn(
+        `[ssh-relay][NATIVE-DEPS-PROBE-UNPARSEABLE] Probe at ${remoteDir} answered without naming a dep; launching as-is. stdout=${probe.trim().slice(-200)} stderr=${probeStderr.trim().slice(-500)}`
+      )
+      return { status: 'unverifiable', missing: [] }
+    }
+    return { status: 'blocked', missing }
   } catch {
     signal?.throwIfAborted()
     // Why: an unanswered probe says nothing about the deps; reporting MISSING here reset and
@@ -1350,7 +1378,8 @@ async function probeInstalledNativeDeps(
   }
   return {
     available: probeOutput.includes(PROBE_OK),
-    missing: probeOutput.includes(PROBE_OK) ? [] : missingNativeDepsFromProbe(probeOutput),
+    // A markerless answer names no dep, so it reports none; `available` already carries the failure.
+    missing: probeOutput.includes(PROBE_OK) ? [] : (missingNativeDepsFromProbe(probeOutput) ?? []),
     output: probeOutput,
     stderr: remoteStderr
   }

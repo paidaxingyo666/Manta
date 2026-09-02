@@ -54,6 +54,11 @@ export function makeMockConnection(capture: SftpWriteCapture): SshConnection {
 
 export type ExecResponse = string | { reject: string }
 
+// The answer a genuinely broken pair produces: a marker line naming both deps. A bare `MISSING`
+// names none, so it is unverifiable and must never stand in for this.
+export const BOTH_NATIVE_DEPS_MISSING_PROBE =
+  'MANTA-NATIVE-DEPS-MISSING:node-pty,@parcel/watcher\nMISSING'
+
 const STAGE_OWNER = '.sftp-namespace-00000000000000000000000000000000'
 
 export function makeStagedFirstInstallExecPrefix(): ExecResponse[] {
@@ -71,12 +76,11 @@ export function makeStagedFirstInstallExecPrefix(): ExecResponse[] {
 // Repair reconnect (isRelayAlreadyInstalled → true) where BOTH native deps are broken and the host
 // cannot compile node-pty, so the caller's resets must survive into the node-pty-less reinstall.
 export function makeRepairToolchainSkipExecResponses(): ExecResponse[] {
-  const bothMissing = 'MANTA-NATIVE-DEPS-MISSING:node-pty,@parcel/watcher\nMISSING'
   return [
     '__MANTA_REMOTE_PLATFORM__ Linux x86_64',
     '/home/u',
-    bothMissing, // health probe before lock
-    bothMissing, // re-probe under the repair lock
+    BOTH_NATIVE_DEPS_MISSING_PROBE, // health probe before lock
+    BOTH_NATIVE_DEPS_MISSING_PROBE, // re-probe under the repair lock
     '', // SFTP-namespace install-owner marker (repair)
     { reject: 'gyp ERR! stack Error: not found: make' },
     'PKG apk', // toolchain probe: no HAVE lines
@@ -139,7 +143,7 @@ export function makeExecResponses(opts: {
       '', // rm -rf node-pty + reinstall without it
       // node-pty is always reported missing here; the probe never resolves OK, so cat + rm both run.
       opts.nodePtySkipWatcher === 'missing'
-        ? 'MANTA-NATIVE-DEPS-MISSING:node-pty,@parcel/watcher\nMISSING\n'
+        ? `${BOTH_NATIVE_DEPS_MISSING_PROBE}\n`
         : 'MANTA-NATIVE-DEPS-MISSING:node-pty\nMISSING\n',
       '', // cat probe stderr
       '', // rm -f probe stderr
