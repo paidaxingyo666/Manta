@@ -1922,6 +1922,12 @@ export function createRemoteRuntimePtyTransport(
                 : {}),
               ...(meta?.alternateScreen !== undefined && meta.seq !== undefined
                 ? { alternateScreen: meta.alternateScreen }
+                : {}),
+              // Why unconditional on seq: the grid describes the image itself,
+              // not a stream boundary, so it is valid for every snapshot the
+              // host dimensions. Absent/zero degrades to the pane's own grid.
+              ...(meta?.cols !== undefined && meta.rows !== undefined
+                ? { snapshotCols: meta.cols, snapshotRows: meta.rows }
                 : {})
             })
           }

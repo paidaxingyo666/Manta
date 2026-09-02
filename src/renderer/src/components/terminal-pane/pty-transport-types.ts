@@ -60,6 +60,10 @@ export type PtyReplayDataMeta = {
   snapshotSeq?: number
   alternateScreen?: boolean
   terminalOwner?: 'shell'
+  /** Grid the payload was serialized at. Present only when the producer proved
+   *  it; the drain replays there and fits back to the pane afterwards. */
+  snapshotCols?: number
+  snapshotRows?: number
 }
 
 export type LocalPtySessionMetadata = {
