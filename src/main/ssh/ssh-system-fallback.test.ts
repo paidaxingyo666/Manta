@@ -105,6 +105,13 @@ type EventedProcess = EventEmitter & {
   killed: boolean
 }
 
+// Windows writes read their source asynchronously before spawning, so a close emitted straight
+// after the call can beat the listener. Emit it from the spawn instead.
+function closeOnceSpawned(proc: EventedProcess): EventedProcess {
+  setImmediate(() => proc.emit('close', 0, null))
+  return proc
+}
+
 function createEventedProcess(): EventedProcess {
   const proc = new EventEmitter() as EventedProcess
   proc.stdin = Object.assign(new EventEmitter(), {
@@ -704,7 +711,7 @@ describe('spawnSystemSsh', () => {
 
   it('writes files to Windows system SSH targets with PowerShell stdin bytes', async () => {
     const proc = createEventedProcess()
-    spawnMock.mockReturnValue(proc)
+    spawnMock.mockImplementation(() => closeOnceSpawned(proc))
     const hostPlatform = getRemoteHostPlatform('win32-x64')
 
     const promise = writeFileViaSystemSsh(
@@ -713,7 +720,6 @@ describe('spawnSystemSsh', () => {
       '0.1.0',
       { hostPlatform }
     )
-    proc.emit('close', 0, null)
 
     await expect(promise).resolves.toBeUndefined()
     const args = spawnMock.mock.calls[0][1] as string[]
@@ -725,7 +731,7 @@ describe('spawnSystemSsh', () => {
 
   it('writes binary buffers to Windows system SSH targets with CreateNew mode', async () => {
     const proc = createEventedProcess()
-    spawnMock.mockReturnValue(proc)
+    spawnMock.mockImplementation(() => closeOnceSpawned(proc))
     const hostPlatform = getRemoteHostPlatform('win32-x64')
 
     const promise = writeBufferViaSystemSsh(
@@ -734,7 +740,6 @@ describe('spawnSystemSsh', () => {
       Buffer.from('png'),
       { hostPlatform, exclusive: true }
     )
-    proc.emit('close', 0, null)
 
     await expect(promise).resolves.toBeUndefined()
     const args = spawnMock.mock.calls[0][1] as string[]
@@ -775,7 +780,7 @@ describe('spawnSystemSsh', () => {
 
   it('forces standalone SSH for Windows file writes when requested', async () => {
     const proc = createEventedProcess()
-    spawnMock.mockReturnValue(proc)
+    spawnMock.mockImplementation(() => closeOnceSpawned(proc))
     const hostPlatform = getRemoteHostPlatform('win32-x64')
 
     const promise = writeFileViaSystemSsh(
@@ -784,7 +789,6 @@ describe('spawnSystemSsh', () => {
       '0.1.0',
       { hostPlatform, disableControlMaster: true }
     )
-    proc.emit('close', 0, null)
 
     await expect(promise).resolves.toBeUndefined()
     const args = spawnMock.mock.calls[0][1] as string[]
@@ -793,7 +797,7 @@ describe('spawnSystemSsh', () => {
     expect(args[standaloneControlIdx + 1]).toBe('none')
   })
 
-  it('uploads directories to Windows system SSH targets in one PowerShell batch', async () => {
+  it('uploads a Windows directory as a mkdir batch plus per-file writes, never one blob', async () => {
     const localDir = mkdtempSync(join(tmpdir(), 'manta-system-ssh-upload-'))
     writeFileSync(join(localDir, 'relay.js'), 'console.log("relay")')
     const spawned: EventedProcess[] = []
@@ -816,24 +820,17 @@ describe('spawnSystemSsh', () => {
     }
 
     const commands = spawnMock.mock.calls.map((call) => (call[1] as string[]).at(-1) ?? '')
-    expect(commands).toHaveLength(1)
+    // #16432: directories first (metadata only), then the file bytes on their own stdin. One batch
+    // meant base64-ing the whole bundle into a single PowerShell string, which the remote never read.
+    expect(commands).toHaveLength(2)
     expect(commands.every((command) => command.includes('powershell.exe'))).toBe(true)
     expect(commands.every((command) => !command.includes('/bin/sh'))).toBe(true)
     expect(commands.join('\n')).not.toContain('tar -xzf')
-    const payload = JSON.parse(spawned[0].stdin.end.mock.calls[0]?.[0] as string) as {
-      kind: string
-      path: string
-      contentsBase64?: string
-    }[]
-    expect(payload).toEqual(
-      expect.arrayContaining([
-        { kind: 'directory', path: 'C:/Users/me/.manta-remote/relay' },
-        {
-          kind: 'file',
-          path: 'C:/Users/me/.manta-remote/relay/relay.js',
-          contentsBase64: Buffer.from('console.log("relay")').toString('base64')
-        }
-      ])
+    expect(JSON.parse(spawned[0].stdin.end.mock.calls[0]?.[0] as string)).toEqual([
+      'C:/Users/me/.manta-remote/relay'
+    ])
+    expect(Buffer.from(spawned[1].stdin.end.mock.calls[0]?.[0] as Buffer).toString('utf-8')).toBe(
+      'console.log("relay")'
     )
   })
 
