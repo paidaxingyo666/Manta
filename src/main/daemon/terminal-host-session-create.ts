@@ -1,3 +1,4 @@
+import { accessSync, constants as fsConstants } from 'node:fs'
 import { buildStartupCommandSubmission } from '../../shared/startup-command-submission'
 import { resolvePtyOwnerBackend } from '../../shared/pty-owner-backend'
 import { getDaemonSessionResultMetadata } from './daemon-create-or-attach-result'
@@ -88,6 +89,8 @@ async function spawnAndPublishSession(
   ctx: { size: { cols: number; rows: number }; wslDistro: string | undefined }
 ): Promise<CreateOrAttachResult> {
   const { size, wslDistro } = ctx
+  // Why before the fork: the shell's own cwd may already have fallen back, so probe the requested path.
+  const cwdReadableByDaemon = opts.cwd && !wslDistro ? isCwdReadableByThisProcess(opts.cwd) : null
   const subprocess = await deps.spawnSubprocess({
     sessionId: opts.sessionId,
     cols: size.cols,
@@ -184,6 +187,20 @@ async function spawnAndPublishSession(
     shellState: session.shellState,
     incarnationId: session.incarnationId,
     ...getDaemonSessionResultMetadata(session),
+    ...(cwdReadableByDaemon !== null ? { cwdReadableByDaemon } : {}),
     attachToken: token
+  }
+}
+
+// Why R_OK|X_OK: listing a directory needs read, and entering it needs search — both are what
+// TCC withholds. A non-permission failure (ENOENT, ENOTDIR) reads as readable so it can never
+// masquerade as a permission denial.
+function isCwdReadableByThisProcess(cwd: string): boolean {
+  try {
+    accessSync(cwd, fsConstants.R_OK | fsConstants.X_OK)
+    return true
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    return code !== 'EACCES' && code !== 'EPERM'
   }
 }
