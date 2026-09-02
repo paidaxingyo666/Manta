@@ -36,36 +36,28 @@ if grep -q '^改名: [1-9]' /tmp/sync-sweep.txt; then
 fi
 
 step "2/7 resurrection audit"
-# Files a picked upstream commit deleted but which are present in HEAD. Upstream
-# deleting a file is a decision; a pick that keeps it is a conflict resolved
-# the wrong way, not a fork feature.
-python3 - "$SINCE" <<'PY' || FAIL=1
-import subprocess, sys, pathlib
-since = sys.argv[1]
+# Files upstream deleted at some point in the mirror's history that are still
+# in this tree. Under a rebase that can only happen through a modify/delete
+# conflict someone resolved by keeping the file — which is sometimes right
+# (fork feature) and must then be said so in the PR.
+if git rev-parse -q --verify refs/sync/mirror >/dev/null 2>&1; then
+  python3 - <<'PY' || FAIL=1
+import subprocess, pathlib
 def git(*a): return subprocess.run(['git', *a], capture_output=True, text=True).stdout
-# Match by SUBJECT, not the -x trailer: two thirds of the last sync's picks lost
-# the trailer to conflict resolution, and subject is the only identity that
-# survives upstream's rewritten history anyway.
-up = {}
-for line in git('log', '--format=%H%x09%s', 'upstream/main').splitlines():
-    h, _, s = line.partition('\t')
-    up.setdefault(s, h)
-deleted = {}
-for line in git('log', '--format=%H%x09%s', f'{since}..HEAD').splitlines():
-    h, _, s = line.partition('\t')
-    src = up.get(s)
-    if not src:
-        continue
-    for pth in git('show', '--diff-filter=D', '--name-only', '--format=', src).split('\n'):
-        if pth: deleted.setdefault(pth, s)
-alive = sorted(pth for pth in deleted if pathlib.Path(pth).exists())
+deleted = set(git('log', '--diff-filter=D', '--name-only', '--format=', 'refs/sync/mirror').split('\n')) - {''}
+present = set(git('ls-tree', '-r', '--name-only', 'refs/sync/mirror').split('\n'))
+gone = deleted - present                      # deleted and never re-added upstream
+alive = sorted(p for p in gone if pathlib.Path(p).exists())
 if alive:
     print(f'✗ {len(alive)} file(s) upstream deleted are still in the tree:')
-    for pth in alive: print(f'    {pth}\n        deleted upstream by: {deleted[pth][:70]}')
+    for p in alive: print(f'    {p}')
     print('  Each is either a resurrection (delete it) or a deliberate fork keep (say so in the PR).')
-    sys.exit(1)
-print(f'✓ none of the {len(deleted)} paths upstream deleted survive here')
+    raise SystemExit(1)
+print(f'✓ none of the {len(gone)} paths upstream deleted survive here')
 PY
+else
+  printf '  no refs/sync/mirror — skipped (cherry-pick era tree)\n'
+fi
 
 step "3/7 twin audit"
 # orca-X and manta-X side by side is a rename that landed as a copy.

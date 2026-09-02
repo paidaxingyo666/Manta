@@ -5,7 +5,7 @@
  * upstream's release path and grows every time upstream adds a platform. Two
  * files that upstream never touches stay mergeable; one shared file does not.
  */
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
@@ -15,6 +15,33 @@ const workflow = () =>
   parse(readFileSync(join(projectDir, '.github/workflows/fork-release.yml'), 'utf8'))
 
 describe('fork release workflow contract', () => {
+  // Upstream's pnpm 12 upgrade migrated the twenty workflows that exist
+  // upstream to `pnpm/setup@v2`; this file exists only here, so nothing
+  // migrated it, and the version pin it kept fought the packageManager field.
+  // Whatever pnpm action the shared workflows use, the fork's must use too —
+  // the check reads the answer from a workflow upstream maintains rather than
+  // hard-coding a version that will move again.
+  it("sets up pnpm the same way upstream's workflows do", () => {
+    const dir = join(projectDir, '.github/workflows')
+    const pnpmSteps = (file) =>
+      Object.values(parse(readFileSync(join(dir, file), 'utf8')).jobs ?? {})
+        .flatMap((job) => job.steps ?? [])
+        .filter((step) => /^pnpm\//.test(String(step.uses ?? '')))
+        .map((step) => String(step.uses))
+    const shared = readdirSync(dir)
+      .filter((f) => f.endsWith('.yml') && f !== 'fork-release.yml' && f !== 'relay-release.yml')
+      .flatMap(pnpmSteps)
+    const canonical = [...new Set(shared)]
+    expect(canonical, 'shared workflows disagree on the pnpm action').toHaveLength(1)
+    for (const own of ['fork-release.yml', 'relay-release.yml']) {
+      for (const uses of pnpmSteps(own)) {
+        expect(uses, `${own} must use the same pnpm action as the shared workflows`).toBe(
+          canonical[0]
+        )
+      }
+    }
+  })
+
   // The fork's own release path is a separate file, and it escaped the check
   // above by exactly the margin that matters: it shipped `&&` on the Windows
   // leg, which Windows PowerShell 5.1 rejects while parsing — before either
