@@ -103,6 +103,9 @@ const ABI_MISMATCH: TerminalUnavailableCause = {
 
 // The relay dir is complete but node-pty will not load, which is exactly what the spawn-time cause
 // describes. @parcel/watcher is healthy, so only node-pty is reset and rebuilt.
+// Stdout of the relay-side pty-master cloexec patch, which runs on Linux hosts once a
+// freshly installed node-pty loads (#17915).
+const NPTY_CLOEXEC_PATCHED = 'ORCA-NPTY-CLOEXEC:patched\n'
 const NODE_PTY_BROKEN = 'MANTA-NATIVE-DEPS-MISSING:node-pty\nMISSING'
 
 function repairSucceedsResponses(): ExecResponse[] {
@@ -116,6 +119,7 @@ function repairSucceedsResponses(): ExecResponse[] {
     '', // chmod prebuilds
     'MANTA-NPTY-PROBE-OK\n', // node-pty loads again
     '', // rm -f probe stderr
+    NPTY_CLOEXEC_PATCHED,
     'DEAD',
     '', // publish the per-launch credential
     'READY'

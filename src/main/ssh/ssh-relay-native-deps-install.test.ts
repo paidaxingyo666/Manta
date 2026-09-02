@@ -630,6 +630,7 @@ describe('installNativeDeps (via deployAndLaunchRelay)', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      'ORCA-NPTY-CLOEXEC:patched\n', // pty-master cloexec patch on the loadable node-pty
       'DEAD',
       '', // publish the per-launch credential
       'READY'

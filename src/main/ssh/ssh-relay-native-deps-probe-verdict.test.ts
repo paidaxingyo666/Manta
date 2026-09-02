@@ -85,6 +85,9 @@ import {
   type SftpWriteCapture
 } from './ssh-relay-native-deps-install-fixture'
 
+// Stdout of the relay-side pty-master cloexec patch, which runs on Linux hosts once a
+// freshly installed node-pty loads (#17915).
+const NPTY_CLOEXEC_PATCHED = 'ORCA-NPTY-CLOEXEC:patched\n'
 const NODE_PTY_RESET = "rm -rf 'node_modules/node-pty'"
 const WATCHER_RESET = "rm -rf 'node_modules/@parcel/watcher'"
 
@@ -225,6 +228,7 @@ describe('native-deps repair probe verdicts', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // publish the per-launch credential
       'READY'
@@ -281,6 +285,7 @@ describe('native-deps repair probe verdicts', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // publish the per-launch credential
       'READY'
@@ -324,6 +329,7 @@ describe('native-deps repair probe verdicts', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // publish the per-launch credential
       'READY'
