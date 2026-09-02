@@ -16,7 +16,10 @@ import {
 // (Moved here from agent-status.ts so the evidence resolvers below and the
 // aggregate consumers share one gate without an import cycle.)
 export function isExplicitAgentStatusFresh(
-  entry: Pick<AgentStatusEntry, 'updatedAt' | 'evidenceObservedAt' | 'restoredUnconfirmed'>,
+  entry: Pick<
+    AgentStatusEntry,
+    'updatedAt' | 'evidenceObservedAt' | 'mirroredEvidenceReceivedAt' | 'restoredUnconfirmed'
+  >,
   now: number,
   staleAfterMs: number
 ): boolean {

@@ -256,36 +256,14 @@ export const AGENT_STATUS_ASSISTANT_MESSAGE_MAX_LENGTH = 8000
 /** Maximum character length for the interactivePrompt field.
  *  Why: holds full AskUserQuestion JSON — truncating to a preview like toolInput would corrupt it and drop options; capped to still bound cache growth. */
 export const AGENT_STATUS_INTERACTIVE_PROMPT_MAX_LENGTH = 16000
-/**
- * Freshness threshold for explicit agent status: retained past this so WorktreeCard's
- * sidebar dot can decay "working" back to "active" when the hook stream goes silent.
- */
-export const AGENT_STATUS_STALE_AFTER_MS = 30 * 60 * 1000
-
-/** Age the staleness window measures: when the evidence was observed, not when it was delivered.
- *  A relay reconnect replays a cached row and must restamp `updatedAt`, so measuring against it
- *  pushes the deadline out by another window on every reconnect. */
-export function agentStatusEvidenceObservedAt(
-  entry: Pick<AgentStatusEntry, 'updatedAt' | 'evidenceObservedAt'>
-): number {
-  return entry.evidenceObservedAt ?? entry.updatedAt
-}
-
-export function isFreshNonDoneAgentStatus(
-  entry:
-    | Pick<AgentStatusEntry, 'state' | 'updatedAt' | 'evidenceObservedAt' | 'restoredUnconfirmed'>
-    | undefined,
-  now = Date.now(),
-  staleAfterMs = AGENT_STATUS_STALE_AFTER_MS
-): boolean {
-  // Why: an unconfirmed hydrated row may describe a turn that ended while no receiver was up; never fresh.
-  return Boolean(
-    entry &&
-    entry.state !== 'done' &&
-    entry.restoredUnconfirmed !== true &&
-    now - agentStatusEvidenceObservedAt(entry) <= staleAfterMs
-  )
-}
+// Re-exported here because every consumer reaches for the entry type and its freshness gate
+// together; the clock rules themselves live in agent-status-freshness.ts.
+export {
+  AGENT_STATUS_STALE_AFTER_MS,
+  agentStatusAuthorityObservedAt,
+  agentStatusEvidenceObservedAt,
+  isFreshNonDoneAgentStatus
+} from './agent-status-freshness'
 
 // Why: ReadonlySet<string> so .has() accepts any string without a cast here; the narrowing cast stays on the return line where it's proven safe.
 const VALID_STATES: ReadonlySet<string> = new Set<string>(AGENT_STATUS_STATES)
