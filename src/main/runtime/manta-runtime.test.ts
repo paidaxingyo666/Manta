@@ -57,6 +57,7 @@ await import('./manta-runtime-tests/terminal-output-and-worker-recovery-part-06.
 await import('./manta-runtime-tests/terminal-output-and-worker-recovery-part-07.spec')
 await import('./manta-runtime-tests/terminal-handles-and-agent-status.spec')
 await import('./manta-runtime-tests/terminal-handles-and-agent-status-part-02.spec')
+await import('./manta-runtime-tests/terminal-settled-prompt-foreground-confirmation.spec')
 await import('./manta-runtime-tests/terminal-handles-and-agent-status-part-03.spec')
 await import('./manta-runtime-tests/terminal-handles-and-agent-status-part-04.spec')
 await import('./manta-runtime-tests/terminal-handles-and-agent-status-part-05.spec')
