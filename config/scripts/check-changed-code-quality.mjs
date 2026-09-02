@@ -4,6 +4,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { resolvePullRequestDiffBase } from './git-pull-request-diff-base.mjs'
+import { resolveOxlintInvocation } from './oxlint-cli-invocation.mjs'
 
 const SOURCE_FILE_PATTERN = /\.(?:[cm]?[jt]sx?)$/
 export const OXLINT_SCANS = [
@@ -285,11 +286,12 @@ function isSuppressedDiagnostic(diagnostic, root) {
 }
 
 function runOxlintScan(root, scan, files) {
-  const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
-  const result = spawnSync(pnpm, ['exec', 'oxlint', ...scan.args, '--format', 'json', ...files], {
+  const { command, prefixArgs } = resolveOxlintInvocation(root)
+  const result = spawnSync(command, [...prefixArgs, ...scan.args, '--format', 'json', ...files], {
     cwd: root,
     encoding: 'utf8',
-    maxBuffer: 128 * 1024 * 1024
+    maxBuffer: 128 * 1024 * 1024,
+    windowsHide: true
   })
   if (result.error) {
     throw result.error
