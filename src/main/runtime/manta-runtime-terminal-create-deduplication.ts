@@ -40,7 +40,14 @@ export class MantaRuntimeWithTerminalCreateDeduplication extends MantaRuntimeWit
       clientMutationId,
       async () => {
         if (reconcileExisting) {
-          const adopted = await this.reconcileRemoteTerminalCreate(workspace.id, preAllocatedHandle)
+          const adopted = await this.reconcileRemoteTerminalCreate(
+            workspace.id,
+            preAllocatedHandle,
+            // Why: an unreachable SSH host vanishes from the aggregate listing, which would read
+            // as absence and respawn over live remote work. Local/folder workspaces have no
+            // connection and keep the aggregate listing.
+            workspace.connectionId ?? undefined
+          )
           if (adopted) {
             return adopted
           }
