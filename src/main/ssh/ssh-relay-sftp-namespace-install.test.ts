@@ -251,10 +251,12 @@ const POSIX_FIRST_INSTALL = [
   '', // chmod staged node
   '', // final install namespace marker
   STAGE_PROMOTED,
+  '', // shared native-deps cache probe (miss)
   '', // npm install native deps
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
   '', // publish the per-launch credential
@@ -268,10 +270,12 @@ const POSIX_SYSTEM_SSH_FIRST_INSTALL = [
   STAGE_RESERVED,
   '', // chmod staged node
   STAGE_PROMOTED,
+  '', // shared native-deps cache probe (miss)
   '', // npm install native deps
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
   '', // publish the per-launch credential

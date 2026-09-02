@@ -69,7 +69,9 @@ export function makeStagedFirstInstallExecPrefix(): ExecResponse[] {
     `__MANTA_UPLOAD_STAGE_SLOT__${STAGE_OWNER}:slot-0`,
     '', // chmod staged node
     '', // final install namespace marker
-    `__MANTA_UPLOAD_STAGE_PROMOTION__${STAGE_OWNER}:PROMOTED`
+    `__MANTA_UPLOAD_STAGE_PROMOTION__${STAGE_OWNER}:PROMOTED`,
+    // Shared native-deps cache probe; an empty answer is a miss, so the per-directory install runs.
+    ''
   ]
 }
 
@@ -172,8 +174,10 @@ export function makeExecResponses(opts: {
   ]
   // Cleanup execs only run when the probe resolved (not when it rejected).
   const probeResolved = typeof probeSlot === 'string'
+  let loadable = false
   if (probeResolved) {
     const probeOk = probeSlot.includes('MANTA-NPTY-PROBE-OK')
+    loadable = probeOk
     if (!probeOk) {
       slots.push('') // cat stderr (graceful failure path captures detail)
     }
@@ -183,11 +187,16 @@ export function makeExecResponses(opts: {
       slots.push('') // chmod prebuilds after rebuild
       const repairProbe = opts.repairProbe === 'ok' ? 'MANTA-NPTY-PROBE-OK\n' : 'MISSING\n'
       slots.push(repairProbe)
-      if (!repairProbe.includes('MANTA-NPTY-PROBE-OK')) {
+      loadable = repairProbe.includes('MANTA-NPTY-PROBE-OK')
+      if (!loadable) {
         slots.push('') // cat stderr after unsuccessful rebuild
       }
       slots.push('') // rm -f stderr after rebuild probe
     }
+  }
+  // Publication is gated on the probe: only a tree this host actually loaded is shared.
+  if (loadable) {
+    slots.push('') // promote the private tree into the shared native-deps cache
   }
   slots.push('', 'DEAD', '', 'READY') // clean stage root, launch, credential, readiness
   return slots
