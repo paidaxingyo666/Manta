@@ -26,7 +26,7 @@ describe('fork release workflow contract', () => {
     const pnpmSteps = (file) =>
       Object.values(parse(readFileSync(join(dir, file), 'utf8')).jobs ?? {})
         .flatMap((job) => job.steps ?? [])
-        .filter((step) => /^pnpm\//.test(String(step.uses ?? '')))
+        .filter((step) => String(step.uses ?? '').startsWith('pnpm/'))
         .map((step) => String(step.uses))
     const shared = readdirSync(dir)
       .filter((f) => f.endsWith('.yml') && f !== 'fork-release.yml' && f !== 'relay-release.yml')
