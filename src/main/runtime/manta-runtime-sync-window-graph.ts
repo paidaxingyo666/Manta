@@ -79,7 +79,8 @@ export class MantaRuntimeWithSyncWindowGraph extends MantaRuntimeWithAttachWindo
     const changedMobileWorktrees = this.syncMobileSessionTabs(
       graph.mobileSessionTabs,
       graph.unchangedMobileSessionWorktrees,
-      mobileSessionResyncWorktrees
+      mobileSessionResyncWorktrees,
+      rendererGeneration
     )
     const nextLeaves = new Map<string, RuntimeLeafRecord>()
     const graphSyncedAt = this.nextTitleObservationSequence()
