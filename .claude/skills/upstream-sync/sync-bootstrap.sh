@@ -39,7 +39,10 @@ git checkout -q "$FORK" -- .
 #    "We never received the commit that added it" and "we dropped it" look the
 #    same in a tree diff; only a deletion in our history, or nothing importing
 #    it, may delete.
-git diff --name-only --diff-filter=A "$FORK" "$MIRROR" -- . > /tmp/sync-mirror-only.txt
+# --no-renames: git would otherwise pair upstream's parallel split with the
+# fork's file of the same name under another path and report a rename, not an
+# addition, and the orphan check would never see it.
+git diff --name-only --no-renames --diff-filter=A "$FORK" "$MIRROR" -- . > /tmp/sync-mirror-only.txt
 while read -r p; do
   [ -z "$p" ] && continue
   if git log --diff-filter=D --format=%h -1 "$FORK" -- "$p" | grep -q .; then
