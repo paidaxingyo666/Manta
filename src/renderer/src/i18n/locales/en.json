@@ -2264,7 +2264,7 @@
         "8acbdd3961": "Minimize to status bar",
         "17412483da": "Ready to Install",
         "47126bcf57": "Download Manually",
-        "3553a8672f": "Last error",
+        "3553a8672f": "Details",
         "90559b14e3": "This turns on a process-wide Electron networking switch after restart. Use it for corporate VPNs or proxies that reject HTTP/2 update downloads.",
         "6e45bfa2e0": "Downloading...",
         "558842597d": "Downloading Update",
@@ -2303,7 +2303,8 @@
         "a4650b0dc4": "Could Not Use Local Build",
         "b1e390250d": "Could not complete the local build switch.",
         "d29740d175": "The selected build could not be used.",
-        "37d45c9ec1": "Choose Another Build"
+        "37d45c9ec1": "Choose Another Build",
+        "7f1a4c9e02": "Your system package manager installed Manta, so update it from there — Manta cannot install this release itself."
       },
       "WorktreeJumpPalette": {
         "ac037cfac2": "Move",
@@ -7055,9 +7056,9 @@
           "8a52ca1d02": "Release notes",
           "d89806cc89": "is ready to install.",
           "a6b37929dc": "Version",
-          "8311da27ba": "is available. Click \"Install Update\" to download and install it.",
+          "8311da27ba": "is available. Click \"Download Update\" to download it.",
           "f44299636f": "Restart to Update (",
-          "42717918f4": "Install Update (",
+          "42717918f4": "Download Update (",
           "02dc082e70": "Could not start the update download.",
           "e1a647adc5": "Check for Updates",
           "ceb579abaf": "Check for app updates and install a newer Manta version.",
@@ -7075,7 +7076,8 @@
           "31fd7150cf": "Checking for updates...",
           "3394d1f663": "checking",
           "d69a09b672": "Updates are checked automatically on launch.",
-          "7173352632": "idle"
+          "7173352632": "idle",
+          "e3b9d21c07": "is available. Update Manta through your system package manager — Manta cannot install this release itself."
         },
         "GeneralWorkspaceSettingsSection": {
           "3d538a98f7": "Choose apps available from a workspace's Open in menu.",
@@ -10963,7 +10965,7 @@
           "restarting": "Restarting…",
           "updated": "Updated",
           "failed": "Update failed",
-          "serviceManagerHelp": "Update Manta through the service manager that starts this server.",
+          "serviceManagerHelp": "Update Manta on the server host — through its system package manager if it was installed from a .deb or .rpm, otherwise through the service manager that starts it.",
           "unpackedHelp": "Development builds must be updated from their source checkout.",
           "legacyHelp": "Update this server manually once to enable remote updates."
         },
@@ -16342,14 +16344,13 @@
       },
       "LinuxPackageInstallRecoveryCard": {
         "e3de29c86a": "Show Package",
-        "3da99454c6": "Try Automatic Install Again",
         "55c86654b7": "Copy Install Command",
-        "53e1559f99": "Automatic Install Failed",
-        "a7ac6ec78b": "Manta downloaded the update but could not install the system package automatically.",
-        "82c6dbea00": "Copy the command and run it in a system terminal on the computer where Manta is installed. After it finishes, quit and reopen Manta to run the new version.",
+        "53e1559f99": "Manual Install Required",
+        "a7ac6ec78b": "Manta downloaded the system package. Quit Manta before finishing the update from a terminal.",
+        "82c6dbea00": "Copy the command, quit Manta, and run it in a system terminal on the computer where Manta is installed. Reopen Manta after it finishes.",
         "53c4b8e148": "No usable authentication agent answered the privileged install request.",
         "c732bcbf8f": "Checking package...",
-        "aa57fa4f80": "Command copied. Run it in a system terminal to install {{value0}}, then quit and reopen Manta.",
+        "aa57fa4f80": "Command copied. Quit Manta, run it in a system terminal to install {{value0}}, then reopen Manta.",
         "b7e7c5bc95": "Manta checks the downloaded file against the release metadata at the moment it builds this command. The system package itself is not signature-checked, and Manta cannot vouch for the file after that point."
       },
       "pr-check-counts": {
