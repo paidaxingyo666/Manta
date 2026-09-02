@@ -60,6 +60,8 @@ export async function startGitCommonWatch(
       }
     }
   }
+  // Why: Electron only ships darwin/linux/win32, all covered by NARROW_WATCH_PLATFORMS
+  // above, so this branch is defensive dead code in production, not a reachable fallback.
   return startGitCommonPolling(
     target.path,
     onEvents,
