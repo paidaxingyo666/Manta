@@ -466,4 +466,51 @@ describe('worktree create preparation registry', () => {
     expect(mocks.mkdir).toHaveBeenCalledWith('/workspace', { recursive: true })
     expect(mocks.discard).toHaveBeenCalledTimes(1)
   })
+
+  function consumeOnce(name: string): ReturnType<typeof consumePreparedWorktreeCreate> {
+    return consumePreparedWorktreeCreate({
+      repoPath: repo.path,
+      workspaceRoot: '/workspace',
+      worktreePath: `/workspace/${name}`,
+      branch: `feature/${name}`,
+      baseBranch: 'origin/main'
+    })
+  }
+
+  it('does not re-arm after an isolated create', async () => {
+    await prepareWorktreeCreateForRepo(store, repo, 'origin/main')
+    await expect(consumeOnce('only')).resolves.toEqual({})
+
+    // Why: a lone create would otherwise leave a full spare checkout on disk for the whole TTL.
+    expect(mocks.prepareCheckout).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-arms a preparation once creates arrive in a burst', async () => {
+    await prepareWorktreeCreateForRepo(store, repo, 'origin/main')
+    await expect(consumeOnce('first')).resolves.toEqual({})
+    expect(mocks.prepareCheckout).toHaveBeenCalledTimes(1)
+
+    await prepareWorktreeCreateForRepo(store, repo, 'origin/main')
+    expect(mocks.prepareCheckout).toHaveBeenCalledTimes(2)
+
+    // No arming call follows this consume: the third checkout can only come from the re-arm.
+    await expect(consumeOnce('second')).resolves.toEqual({})
+    expect(mocks.prepareCheckout).toHaveBeenCalledTimes(3)
+
+    // The replacement is claimable, so a third create still skips the cold add.
+    await expect(consumeOnce('third')).resolves.toEqual({})
+    expect(mocks.finalize).toHaveBeenCalledTimes(3)
+  })
+
+  it('does not re-arm when finalization failed', async () => {
+    await prepareWorktreeCreateForRepo(store, repo, 'origin/main')
+    await expect(consumeOnce('first')).resolves.toEqual({})
+    await prepareWorktreeCreateForRepo(store, repo, 'origin/main')
+    mocks.prepareCheckout.mockClear()
+    mocks.finalize.mockRejectedValueOnce(new Error('submodules prevent worktree move'))
+
+    await expect(consumeOnce('second')).resolves.toBeNull()
+
+    expect(mocks.prepareCheckout).not.toHaveBeenCalled()
+  })
 })
