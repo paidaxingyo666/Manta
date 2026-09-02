@@ -226,6 +226,30 @@ describe('disposeClosedEditorTabs', () => {
     expect(scrollTopCache.size).toBe(0)
   })
 
+  // Why this is not covered by the parity test above: `buildScenario` closes tab-0..tab-99, so
+  // tab-10 is in the closed batch too. Prefix bleed from tab-1 would dispose tab-10's models, but
+  // the per-tab oracle disposes them as well via tab-10's own prefix, so the two agree and the
+  // assertion still passes. Isolating it needs a still-OPEN tab whose id extends a closed one.
+  it('does not dispose a still-open tab whose id extends a closed tab id', () => {
+    const closed = getDiffViewerMonacoModelPaths({ modelKey: 'tab-1', generationSuffix: '' })
+    const stillOpen = getDiffViewerMonacoModelPaths({ modelKey: 'tab-10', generationSuffix: '' })
+    const models = [
+      createModel(closed.originalModelPath),
+      createModel(closed.modifiedModelPath),
+      createModel(stillOpen.originalModelPath),
+      createModel(stillOpen.modifiedModelPath)
+    ]
+
+    // Batched entry point on purpose: the owned prefixes become a Set probed at the URI's own `:`
+    // boundaries, which is a different predicate from the pre-batch per-prefix `startsWith`.
+    disposeClosedEditorTabs(createRegistry(models), [diffTab('tab-1'), diffTab('tab-2')])
+
+    expect(models.filter((m) => m.disposed).map((m) => m.path)).toEqual([
+      closed.originalModelPath,
+      closed.modifiedModelPath
+    ])
+  })
+
   it('is a no-op when nothing closed', () => {
     const registry = createRegistry([createModel('diff:original:tab-1:tab-1')])
     disposeClosedEditorTabs(registry, [])

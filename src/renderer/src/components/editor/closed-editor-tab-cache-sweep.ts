@@ -26,6 +26,9 @@ function hasPaneScopeOwner(key: string, owners: ReadonlySet<string>): boolean {
   for (
     let boundary = key.indexOf('::');
     boundary !== -1;
+    // `+ 1`, not `+ 2`: in a `:::` run the second `::` starts one char after the first, and it can
+    // be the only boundary an owner ends at (owner `a:` against key `a:::b`). Skipping to `+ 2`
+    // steps over it and silently leaks that entry.
     boundary = key.indexOf('::', boundary + 1)
   ) {
     if (owners.has(key.slice(0, boundary))) {

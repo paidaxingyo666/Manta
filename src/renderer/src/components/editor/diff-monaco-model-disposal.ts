@@ -79,13 +79,6 @@ export function disposeUnattachedMonacoModelPaths(
   }
 }
 
-export function disposeUnattachedMonacoModelsByPathPrefix(
-  monacoRegistry: MonacoModelRegistry,
-  modelPathPrefix: string
-): void {
-  disposeUnattachedMonacoModelsByPathPrefixes(monacoRegistry, [modelPathPrefix])
-}
-
 /**
  * Sweeps every owned prefix in a single scan of the global model registry.
  *
