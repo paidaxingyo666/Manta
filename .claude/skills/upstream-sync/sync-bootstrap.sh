@@ -39,22 +39,20 @@ git checkout -q "$FORK" -- .
 #    "We never received the commit that added it" and "we dropped it" look the
 #    same in a tree diff; only a deletion in our history, or nothing importing
 #    it, may delete.
-git diff --name-only --diff-filter=A "$FORK" "$MIRROR" -- . | while read -r p; do
+git diff --name-only --diff-filter=A "$FORK" "$MIRROR" -- . > /tmp/sync-mirror-only.txt
+while read -r p; do
   [ -z "$p" ] && continue
   if git log --diff-filter=D --format=%h -1 "$FORK" -- "$p" | grep -q .; then
-    git rm -q --ignore-unmatch -- "$p"; echo "  dropped (fork deleted it before): $p"; continue
+    git rm -q --ignore-unmatch -- "$p"; echo "  dropped (fork deleted it before): $p"
   fi
-  # Only the app's own source trees: a self-contained subproject (docs/site)
-  # imports nothing from them and must be kept or dropped whole.
-  case "$p" in
-    src/*.ts|src/*.tsx|mobile/src/*.ts|mobile/src/*.tsx|mobile/app/*.ts|mobile/app/*.tsx)
-      stem="$(basename "$p" | sed -E 's/(\.(test|spec))?\.(ts|tsx)$//')"
-      # No ref: search the working tree, which is the fork's tree by now; HEAD
-      # is still the mirror commit and would answer for upstream's imports.
-      if ! git grep -q -E "['\"/]${stem}['\"]" -- src mobile/src mobile/app 2>/dev/null; then
-        git rm -q --ignore-unmatch -- "$p"; echo "  dropped (nothing imports it): $p"
-      fi ;;
-  esac
+done < /tmp/sync-mirror-only.txt
+# Orphans, by resolving every relative import in the app's source trees to a
+# real path. A basename match is not enough: ../src/pair-scan-styles and
+# ../src/theme/pair-scan-styles share one, and only the second exists here.
+# Scoped to src/ and mobile/ — a self-contained subproject (docs/site) imports
+# nothing from them and is kept whole.
+python3 "$HERE/orphan-imports.py" /tmp/sync-mirror-only.txt | while read -r p; do
+  git rm -q --ignore-unmatch -- "$p"; echo "  dropped (nothing imports it): $p"
 done
 
 # The tree is now the fork's, minus the drops above — nothing else changes.
