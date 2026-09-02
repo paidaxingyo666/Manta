@@ -268,6 +268,52 @@ describe('spawnSystemSsh', () => {
     expect(args).not.toContain('ProxyCommand=ignored')
   })
 
+  it('states the stored endpoint when no Host block claims the alias', () => {
+    // A wildcard `Host *` supplies the proxy for every alias, so an alias whose own block is gone
+    // still reads as config-backed and gets dialled bare - the #11746 P1.
+    const args = buildSshArgs(
+      createTarget({
+        source: 'ssh-config',
+        configHost: 'prod',
+        host: '10.0.0.5',
+        port: 2222,
+        username: 'deploy'
+      }),
+      { aliasClaimedByConfig: false }
+    )
+
+    expect(args).toContain('Hostname=10.0.0.5')
+    expect(args.slice(args.indexOf('-p'))).toContain('2222')
+    expect(args.slice(args.indexOf('-l'))).toContain('deploy')
+    // The alias is still the destination so OpenSSH keeps applying the wildcard's proxy.
+    expect(args.at(-1)).toBe('prod')
+    expect(args).not.toContain('deploy@prod')
+    expect(args).not.toContain('-i')
+    expect(args).not.toContain('-J')
+  })
+
+  it('stays a no-op when the stored endpoint matches the unclaimed alias', () => {
+    const args = buildSshArgs(
+      createTarget({ source: 'ssh-config', configHost: 'prod', host: 'prod', username: '' }),
+      { aliasClaimedByConfig: false }
+    )
+
+    expect(args.some((arg) => arg.startsWith('Hostname='))).toBe(false)
+    expect(args).not.toContain('-p')
+    expect(args).not.toContain('-l')
+    expect(args.at(-1)).toBe('prod')
+  })
+
+  it('leaves a manual target alone even when nothing claims its alias', () => {
+    const args = buildSshArgs(
+      createTarget({ source: 'manual', configHost: 'prod', host: '10.0.0.5', port: 2222 }),
+      { aliasClaimedByConfig: false }
+    )
+
+    expect(args.some((arg) => arg.startsWith('Hostname='))).toBe(false)
+    expect(args).toContain('deploy@prod')
+  })
+
   it('passes an explicit main-owned OpenSSH config as one argument', () => {
     const args = buildSshArgs(createTarget({ configHost: 'isolated-host', source: 'ssh-config' }), {
       configFile: '/tmp/manta isolated/ssh_config'
