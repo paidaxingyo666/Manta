@@ -46,7 +46,7 @@ export class MantaRuntimeWithTerminalCreateDeduplication extends MantaRuntimeWit
             // Why: an unreachable SSH host vanishes from the aggregate listing, which would read
             // as absence and respawn over live remote work. Local/folder workspaces have no
             // connection and keep the aggregate listing.
-            workspace.connectionId ?? undefined
+            workspace.connectionId ?? null
           )
           if (adopted) {
             return adopted

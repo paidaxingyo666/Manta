@@ -346,7 +346,7 @@ describe('terminal create reconciliation scopes inventory to the owning executio
     expect(listProcesses).toHaveBeenCalledWith('ssh-1')
   })
 
-  it('keeps the aggregate listing for a local workspace with no connection', async () => {
+  it('scopes the listing to the local host for a workspace with no connection', async () => {
     const handle = deriveRemoteRuntimeTerminalCreateHandle('device-a', 'worktree-1', 'mutation-1')
     const listProcesses = createHostScopedInventory({
       local: [{ ...remoteSession(handle), cwd: '/local/workspace', title: 'pwsh' }]
@@ -357,11 +357,11 @@ describe('terminal create reconciliation scopes inventory to the owning executio
     await expect(
       runtime.dedupeTerminalCreate('device-a', 'id:worktree-1', 'mutation-1', true, create)
     ).resolves.toMatchObject({ handle, ptyId: 'worktree-1@@session-a' })
-    expect(listProcesses).toHaveBeenCalledWith(undefined)
+    expect(listProcesses).toHaveBeenCalledWith(null)
     expect(create).not.toHaveBeenCalled()
   })
 
-  it('keeps the aggregate listing for a folder workspace with no connection', async () => {
+  it('scopes the listing to the local host for a folder workspace with no connection', async () => {
     const listProcesses = createHostScopedInventory({})
     const { runtime } = createRuntimeForDedupe(listProcesses, { connectionId: null })
     const create = vi.fn<CreateRun>(async (_selector, handle) =>
@@ -377,6 +377,6 @@ describe('terminal create reconciliation scopes inventory to the owning executio
     )
 
     expect(create).toHaveBeenCalledWith('id:folder:folder-1', result.handle)
-    expect(listProcesses).toHaveBeenCalledWith(undefined)
+    expect(listProcesses).toHaveBeenCalledWith(null)
   })
 })
