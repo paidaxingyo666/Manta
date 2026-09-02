@@ -137,10 +137,6 @@
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
         "description": "Keep a Manta shortcut and activity indicator in the macOS menu bar."
-      },
-      "agentsSidebar": {
-        "title": "Show Agents Button",
-        "description": "Control whether the Agents tab appears in the left sidebar so you can monitor agent activity."
       }
     },
     "browser": {
