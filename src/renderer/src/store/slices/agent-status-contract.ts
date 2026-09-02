@@ -81,7 +81,12 @@ export type AgentStatusPayload = ParsedAgentStatusPayload & {
   observation?: AgentStatusObservation
 }
 
-export type AgentStatusTiming = { updatedAt?: number; stateStartedAt?: number }
+export type AgentStatusTiming = {
+  updatedAt?: number
+  /** Observation clock for staleness; see `AgentStatusEntry.evidenceObservedAt`. */
+  evidenceObservedAt?: number
+  stateStartedAt?: number
+}
 
 export type AgentStatusRouting = {
   tabId?: string

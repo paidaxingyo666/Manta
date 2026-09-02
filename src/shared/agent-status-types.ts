@@ -106,6 +106,10 @@ export type AgentStatusEntry = {
   prompt: string
   /** Timestamp (ms) of the last status update. */
   updatedAt: number
+  /** Timestamp (ms) the reported evidence was first observed. Separate from `updatedAt`,
+   *  which is the delivery/ordering clock a relay reconnect must restamp to stay monotonic.
+   *  Absent for locally derived rows and old hosts; freshness falls back to `updatedAt`. */
+  evidenceObservedAt?: number
   /** Timestamp (ms) when the current `state` was first reported.
    *  Why: separate from updatedAt so tool/prompt pings (which reset updatedAt) don't move it. */
   stateStartedAt: number
@@ -258,8 +262,19 @@ export const AGENT_STATUS_INTERACTIVE_PROMPT_MAX_LENGTH = 16000
  */
 export const AGENT_STATUS_STALE_AFTER_MS = 30 * 60 * 1000
 
+/** Age the staleness window measures: when the evidence was observed, not when it was delivered.
+ *  A relay reconnect replays a cached row and must restamp `updatedAt`, so measuring against it
+ *  pushes the deadline out by another window on every reconnect. */
+export function agentStatusEvidenceObservedAt(
+  entry: Pick<AgentStatusEntry, 'updatedAt' | 'evidenceObservedAt'>
+): number {
+  return entry.evidenceObservedAt ?? entry.updatedAt
+}
+
 export function isFreshNonDoneAgentStatus(
-  entry: Pick<AgentStatusEntry, 'state' | 'updatedAt' | 'restoredUnconfirmed'> | undefined,
+  entry:
+    | Pick<AgentStatusEntry, 'state' | 'updatedAt' | 'evidenceObservedAt' | 'restoredUnconfirmed'>
+    | undefined,
   now = Date.now(),
   staleAfterMs = AGENT_STATUS_STALE_AFTER_MS
 ): boolean {
@@ -268,7 +283,7 @@ export function isFreshNonDoneAgentStatus(
     entry &&
     entry.state !== 'done' &&
     entry.restoredUnconfirmed !== true &&
-    now - entry.updatedAt <= staleAfterMs
+    now - agentStatusEvidenceObservedAt(entry) <= staleAfterMs
   )
 }
 
