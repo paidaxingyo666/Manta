@@ -31,6 +31,10 @@ on:
 
 jobs:
   verify:
+    # Why a display name: pr.yml's gate job is also `verify`, and two jobs with
+    # one context name are one required check to branch protection — a red
+    # mobile run hid behind a green desktop one.
+    name: Mobile Checks
     runs-on: ubuntu-latest
 
     env:
