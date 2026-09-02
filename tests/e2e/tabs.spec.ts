@@ -29,7 +29,8 @@ import {
   getActiveTabType,
   getWorktreeTabs,
   getTabBarOrder,
-  ensureTerminalVisible
+  ensureTerminalVisible,
+  waitForStartupWorktreeRefresh
 } from './helpers/store'
 
 const SORTABLE_TAB = '[data-testid="sortable-tab"]'
@@ -69,6 +70,7 @@ async function getFocusedTerminalTabId(page: Page): Promise<string | null> {
 test.describe('Tabs', () => {
   test.beforeEach(async ({ mantaPage }) => {
     await waitForSessionReady(mantaPage)
+    await waitForStartupWorktreeRefresh(mantaPage)
     await waitForActiveWorktree(mantaPage)
     await ensureTerminalVisible(mantaPage)
   })
