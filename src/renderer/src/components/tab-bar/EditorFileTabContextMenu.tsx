@@ -34,7 +34,10 @@ const isLinux = navigator.userAgent.includes('Linux')
 /** Platform-appropriate label: macOS → Finder, Windows → File Explorer, Linux → Files */
 function revealLabel(): string {
   if (isMac) {
-    return translate('auto.components.tab.bar.EditorFileTabContextMenu.6ffb7f7bce', 'Reveal in Finder')
+    return translate(
+      'auto.components.tab.bar.EditorFileTabContextMenu.6ffb7f7bce',
+      'Reveal in Finder'
+    )
   }
   return isLinux
     ? translate(

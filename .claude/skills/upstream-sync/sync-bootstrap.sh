@@ -17,7 +17,10 @@ ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 FORK="${1:?usage: sync-bootstrap.sh <fork-ref> [<new-branch>]}"
 BRANCH="${2:-sync/mirror-bootstrap}"
-MIRROR="$(git rev-parse --verify refs/sync/mirror 2>/dev/null || { echo "refs/sync/mirror missing — run build-mirror.py first" >&2; exit 1; })"
+# MIRROR_REF / BASE_REF: overridable so sync-selftest.sh can replay a sync on
+# throwaway refs without touching the real ones.
+MIRROR_REF="${MIRROR_REF:-refs/sync/mirror}"; BASE_REF="${BASE_REF:-refs/sync/base}"
+MIRROR="$(git rev-parse --verify "$MIRROR_REF" 2>/dev/null || { echo "$MIRROR_REF missing — run build-mirror.py first" >&2; exit 1; })"
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "working tree not clean" >&2; exit 1; }
 
 echo "== mirror $MIRROR  fork $(git rev-parse --short "$FORK")  → $BRANCH"
@@ -77,8 +80,8 @@ in one commit, so a sync can rebase it as one unit onto the next mirror.
 Mirror-Base: $MIRROR
 Fork-Source: $(git rev-parse "$FORK")
 MSG
-git update-ref refs/sync/base "$MIRROR"
-echo "== $BRANCH = $(git rev-parse --short HEAD)   refs/sync/base = ${MIRROR:0:12}"
+git update-ref "$BASE_REF" "$MIRROR"
+echo "== $BRANCH = $(git rev-parse --short HEAD)   $BASE_REF = ${MIRROR:0:12}"
 echo
 git diff --shortstat "$MIRROR" HEAD | sed 's/^/  fork patch: /'
 echo

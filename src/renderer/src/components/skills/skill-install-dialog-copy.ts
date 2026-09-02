@@ -35,14 +35,8 @@ export function skillInstallDialogCopy() {
       'auto.components.skills.SkillInstallDialog.fcbec627cc',
       'Install shared skill'
     ),
-    opening: translate(
-      'auto.components.skills.SkillInstallDialog.opening',
-      'Opening this link…'
-    ),
-    d198ec91e5: translate(
-      'auto.components.skills.SkillInstallDialog.d198ec91e5',
-      'Close'
-    ),
+    opening: translate('auto.components.skills.SkillInstallDialog.opening', 'Opening this link…'),
+    d198ec91e5: translate('auto.components.skills.SkillInstallDialog.d198ec91e5', 'Close'),
     k69236de8d6: translate(
       'auto.components.skills.SkillInstallReviewContent.69236de8d6',
       'Checking…'
@@ -55,17 +49,8 @@ export function skillInstallDialogCopy() {
       'auto.components.skills.SkillInstallDialog.05588076a9',
       'Cancel installation'
     ),
-    k241e72f9d6: translate(
-      'auto.components.skills.SkillInstallDialog.241e72f9d6',
-      'Installing…'
-    ),
-    k59c3b76cdd: translate(
-      'auto.components.skills.SkillInstallDialog.59c3b76cdd',
-      'Retry install'
-    ),
-    k39acb9e8f4: translate(
-      'auto.components.skills.SkillInstallDialog.39acb9e8f4',
-      'Install skill'
-    ),
+    k241e72f9d6: translate('auto.components.skills.SkillInstallDialog.241e72f9d6', 'Installing…'),
+    k59c3b76cdd: translate('auto.components.skills.SkillInstallDialog.59c3b76cdd', 'Retry install'),
+    k39acb9e8f4: translate('auto.components.skills.SkillInstallDialog.39acb9e8f4', 'Install skill')
   }
 }

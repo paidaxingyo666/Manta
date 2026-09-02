@@ -293,9 +293,11 @@ describe('release checkout materialization', () => {
   })
 
   it('keeps an import live while another colliding release label materializes', async () => {
+    // Two distinct commits reachable from HEAD. A merge offers two parents; a
+    // linear history — this fork sits on a generated mirror of upstream — has
+    // none, so fall back to consecutive ancestors.
     const merge = git(['rev-list', '--merges', '-1', 'HEAD'])
-    const firstRef = `${merge}~2`
-    const secondRef = `${merge}^2`
+    const [firstRef, secondRef] = merge ? [`${merge}~2`, `${merge}^2`] : ['HEAD~2', 'HEAD~1']
     expect(git(['rev-parse', `${firstRef}^{commit}`])).not.toBe(
       git(['rev-parse', `${secondRef}^{commit}`])
     )

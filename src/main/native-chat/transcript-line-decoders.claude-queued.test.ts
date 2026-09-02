@@ -62,7 +62,9 @@ describe('decodeClaudeTranscriptLine, queued human input', () => {
 
   // Queued commands are also how injected and automated prompts reach the agent.
   it('ignores a queued command that is not the user speaking', () => {
-    expect(decodeClaudeTranscriptLine(queuedCommandLine({ origin: { kind: 'system' } }), 'fb-3')).toBeNull()
+    expect(
+      decodeClaudeTranscriptLine(queuedCommandLine({ origin: { kind: 'system' } }), 'fb-3')
+    ).toBeNull()
     expect(decodeClaudeTranscriptLine(queuedCommandLine({ origin: {} }), 'fb-4')).toBeNull()
   })
 
