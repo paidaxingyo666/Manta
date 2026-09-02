@@ -16,6 +16,13 @@ const REPO = '/repo-root'
 const FORK_SSH = 'git@github.com:contributor/manta.git'
 const FORK_HTTPS = 'https://github.com/contributor/manta.git'
 
+/** Real `git remote -v` shape: a fetch row and a push row per remote, tab-separated. */
+export function renderRemoteVerbose(remotes: Record<string, string>): string {
+  return Object.entries(remotes)
+    .flatMap(([name, url]) => [`${name}\t${url} (fetch)`, `${name}\t${url} (push)`])
+    .join('\n')
+}
+
 // A stateful fake git: `remotes` maps name -> url. `remote add` mutates it so
 // later lookups see the new remote, matching real git behavior. Defaults
 // `symbolic-ref --short HEAD` to a real branch name, since a worktree's HEAD
@@ -30,6 +37,9 @@ function makeRepoExec(
     }
     if (args[0] === 'remote' && args.length === 1) {
       return { stdout: Object.keys(remotes).join('\n'), stderr: '' }
+    }
+    if (args[0] === 'remote' && args[1] === '-v' && args.length === 2) {
+      return { stdout: renderRemoteVerbose(remotes), stderr: '' }
     }
     if (args[0] === 'remote' && args[1] === 'get-url') {
       const url = remotes[args[2]!]
@@ -97,8 +107,8 @@ describe('prepareWorktreePushTargetWithExec', () => {
 
     // Why: cleanup's ownership check must survive a store purge (worktree-push-target-cleanup.ts).
     // Narrowing the refspec (#17887) also writes `config` calls, so scope to the marker itself.
-    expect(callsMatching(exec, ['config', 'remote.pr-contributor-orca.orca-created'])).toEqual([
-      ['config', 'remote.pr-contributor-orca.orca-created', 'true']
+    expect(callsMatching(exec, ['config', 'remote.pr-contributor-manta.manta-created'])).toEqual([
+      ['config', 'remote.pr-contributor-manta.manta-created', 'true']
     ])
   })
 
@@ -110,7 +120,7 @@ describe('prepareWorktreePushTargetWithExec', () => {
 
     await prepareWorktreePushTargetWithExec(exec, REPO, forkTarget(), () => false)
 
-    expect(callsMatching(exec, ['config', 'remote.pr-contributor-orca.orca-created'])).toEqual([])
+    expect(callsMatching(exec, ['config', 'remote.pr-contributor-manta.manta-created'])).toEqual([])
   })
 
   it('reuses an existing remote pointing at the same fork (SSH vs HTTPS) without adding', async () => {
