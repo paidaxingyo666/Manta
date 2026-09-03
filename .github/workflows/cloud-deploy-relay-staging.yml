@@ -63,7 +63,7 @@ jobs:
           terraform -chdir=infra/terraform init -reconfigure \
             -backend-config=backend/staging.hcl -input=false
           IMAGE="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             <<< 'var.relay_gce_cells["staging-gce-c4"].image' | jq -er '.')"
           test "${IMAGE}" = \
             "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REPOSITORY_ID}/${IMAGE_NAME}@${EXPECTED_IMAGE_DIGEST}"

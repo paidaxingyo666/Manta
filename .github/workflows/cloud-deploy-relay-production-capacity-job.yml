@@ -274,7 +274,6 @@ jobs:
           CELL_ORIGIN="https://${TARGET_HOSTNAME}.relay.manta.sh.cn"
           CELLS_JSON="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
-            -var manage_artifact_dns=false \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
           OVERRIDE_CELLS_JSON="$(jq -ce \
             --arg cell "${TARGET_CELL_ID}" \
@@ -287,19 +286,16 @@ jobs:
             '{relay_gce_cells:$cells}' > "${RUNNER_TEMP}/relay-capacity.tfvars.json"
           BASE_CELLS_JSON="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
-            -var manage_artifact_dns=false \
             <<< 'local.relay_director_cells_json' | jq -er '.')"
           IMAGE_EXPRESSION="var.relay_gce_cells[\"${TARGET_CELL_ID}\"].image"
           ZONE_EXPRESSION="var.relay_gce_cells[\"${TARGET_CELL_ID}\"].zone"
           DESIRED_IMAGE="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
             -var-file="${RUNNER_TEMP}/relay-capacity.tfvars.json" \
-            -var manage_artifact_dns=false \
             <<< "${IMAGE_EXPRESSION}" | jq -r '.')"
           TARGET_ZONE="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
             -var-file="${RUNNER_TEMP}/relay-capacity.tfvars.json" \
-            -var manage_artifact_dns=false \
             <<< "${ZONE_EXPRESSION}" | jq -r '.')"
           MIG_NAME="$(terraform -chdir=infra/terraform output -json relay_gce_cell_deployments \
             | jq -r --arg cell "${TARGET_CELL_ID}" '.[$cell].mig_name')"
@@ -700,7 +696,6 @@ jobs:
           terraform -chdir=infra/terraform plan \
             -var-file=environments/production.tfvars \
             -var-file="${RUNNER_TEMP}/relay-capacity.tfvars.json" \
-            -var manage_artifact_dns=false \
             "-target=google_compute_instance_template.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             "-target=google_compute_instance_group_manager.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             -out="${RUNNER_TEMP}/relay-capacity-cell.tfplan"

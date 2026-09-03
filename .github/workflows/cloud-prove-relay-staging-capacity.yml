@@ -655,7 +655,7 @@ jobs:
         run: |
           set -euo pipefail
           cells="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
           shape="$(jq -cer --arg cell "${TARGET_CELL_ID}" '.[$cell]' <<< "${cells}")"
           test "$(jq -r '.hostname' <<< "${shape}")" = c4
@@ -690,7 +690,7 @@ jobs:
           set -euo pipefail
           plan="${RUNNER_TEMP}/relay-c4-image-refresh.tfplan"
           terraform -chdir=infra/terraform plan \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             '-target=google_compute_instance_template.relay_gce_cell["staging-gce-c4"]' \
             '-target=google_compute_instance_group_manager.relay_gce_cell["staging-gce-c4"]' \
             -out="${plan}"
@@ -905,7 +905,7 @@ jobs:
           set -euo pipefail
           plan="${RUNNER_TEMP}/relay-c4-image-readback.tfplan"
           terraform -chdir=infra/terraform plan \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             '-target=google_compute_instance_template.relay_gce_cell["staging-gce-c4"]' \
             '-target=google_compute_instance_group_manager.relay_gce_cell["staging-gce-c4"]' \
             -out="${plan}"

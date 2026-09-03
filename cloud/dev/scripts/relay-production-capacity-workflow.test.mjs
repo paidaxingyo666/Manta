@@ -265,7 +265,7 @@ test('Terraform mutation targets only the selected cell and has fail-closed reco
   assert.match(workflow, /test "\$\{MUTATION_STARTED:-false\}" = true \|\| exit 0/)
   assert.match(workflow, /--mode isolate/)
   assert.doesNotMatch(workflow, /rolling-action restart/)
-  assert.equal(workflow.match(/manage_artifact_dns=false/g)?.length, 5)
+  assert.doesNotMatch(workflow, /manage_artifact_dns/)
   assert.match(workflow, /OFFLINE_ROLLBACK=true/)
   assert.match(workflow, /--runtime unavailable/)
   assert.equal(workflow.match(/--expected-image-digests/g)?.length, 7)

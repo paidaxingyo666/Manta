@@ -165,13 +165,13 @@ jobs:
             --project "${GCP_PROJECT_ID}" --format='value(image_summary.digest)')"
           test "${served_digest}" = "${PREDECESSOR_IMAGE_DIGEST}"
           cells="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
           test "$(jq -r --arg cell "${TARGET_CELL_ID}" '.[$cell].image' <<< "${cells}")" = \
             "${target_image}"
           target_plan="${RUNNER_TEMP}/relay-c4-image-target.tfplan"
           terraform -chdir=infra/terraform plan \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false -lock-timeout=5m \
+            -var-file=environments/staging.tfvars -lock-timeout=5m \
             '-target=google_compute_instance_template.relay_gce_cell["staging-gce-c4"]' \
             '-target=google_compute_instance_group_manager.relay_gce_cell["staging-gce-c4"]' \
             -out="${target_plan}"
@@ -193,7 +193,7 @@ jobs:
           terraform -chdir=infra/terraform plan \
             -var-file=environments/staging.tfvars \
             -var-file="${RUNNER_TEMP}/relay-c4-recovery.tfvars.json" \
-            -var manage_artifact_dns=false -lock-timeout=5m \
+            -lock-timeout=5m \
             '-target=google_compute_instance_template.relay_gce_cell["staging-gce-c4"]' \
             '-target=google_compute_instance_group_manager.relay_gce_cell["staging-gce-c4"]' \
             -out="${plan}"
@@ -339,7 +339,7 @@ jobs:
             other_image="${image_repository}@${PREDECESSOR_IMAGE_DIGEST}"
           fi
           cells="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/staging.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/staging.tfvars \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
           recovery_cells="$(jq -ce --arg cell "${TARGET_CELL_ID}" --arg image "${recovery_image}" \
             '.[$cell].image = $image' <<< "${cells}")"
@@ -349,7 +349,7 @@ jobs:
           terraform -chdir=infra/terraform plan \
             -var-file=environments/staging.tfvars \
             -var-file="${RUNNER_TEMP}/relay-c4-readback.tfvars.json" \
-            -var manage_artifact_dns=false -lock-timeout=5m \
+            -lock-timeout=5m \
             '-target=google_compute_instance_template.relay_gce_cell["staging-gce-c4"]' \
             '-target=google_compute_instance_group_manager.relay_gce_cell["staging-gce-c4"]' \
             -out="${readback}"

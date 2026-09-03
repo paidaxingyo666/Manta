@@ -218,10 +218,10 @@ jobs:
           EXPECTED_UNOBSERVED_BOUND=60
           CELL_ORIGIN="https://${TARGET_HOSTNAME}.relay.manta.sh.cn"
           CELLS_JSON="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/production.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/production.tfvars \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
           SOURCE_CELLS="$(terraform -chdir=infra/terraform console \
-            -var-file=environments/production.tfvars -var manage_artifact_dns=false \
+            -var-file=environments/production.tfvars \
             <<< 'jsonencode(var.relay_region_rehome_source_cell_ids)' | jq -er '.')"
           if test "${EXPECTED_REGION}" = us-central1; then
             jq -e --arg cell "${TARGET_CELL_ID}" 'index($cell) != null' \
@@ -452,7 +452,6 @@ jobs:
           terraform -chdir=infra/terraform plan \
             -var-file=environments/production.tfvars \
             -var-file="${RUNNER_TEMP}/relay-same-cap.tfvars.json" \
-            -var manage_artifact_dns=false \
             "-target=google_compute_instance_template.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             "-target=google_compute_instance_group_manager.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             -out="${RUNNER_TEMP}/relay-same-cap-resume.tfplan"
@@ -502,7 +501,6 @@ jobs:
           terraform -chdir=infra/terraform plan \
             -var-file=environments/production.tfvars \
             -var-file="${RUNNER_TEMP}/relay-same-cap.tfvars.json" \
-            -var manage_artifact_dns=false \
             "-target=google_compute_instance_template.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             "-target=google_compute_instance_group_manager.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             -out="${RUNNER_TEMP}/relay-same-cap.tfplan"

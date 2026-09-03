@@ -36,7 +36,7 @@ test('uses only its exact workflow-bound topology identity', () => {
 })
 
 test('plans only additive Asia topology and applies the saved plan', () => {
-  assert.equal((workflow.match(/manage_artifact_dns=false/g) ?? []).length, 2)
+  assert.doesNotMatch(workflow, /manage_artifact_dns/)
   for (const target of [
     'relay_gce_additional',
     'google_compute_instance_template.relay_gce_cell',

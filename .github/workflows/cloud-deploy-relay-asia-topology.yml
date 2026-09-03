@@ -176,7 +176,6 @@ jobs:
           mapfile -t targets < "${{ steps.targets.outputs.file }}"
           terraform -chdir=infra/terraform plan -input=false -lock-timeout=30s \
             -var-file="${TF_VARS}" \
-            -var manage_artifact_dns=false \
             "${targets[@]}" -out="${plan}"
           terraform -chdir=infra/terraform show -json "${plan}" > "${plan_json}"
           committed="${RUNNER_TEMP}/relay-committed-asia-topology.json"
@@ -223,7 +222,6 @@ jobs:
           plan_json="${RUNNER_TEMP}/relay-asia-topology-readback.json"
           terraform -chdir=infra/terraform plan -input=false -lock-timeout=30s \
             -var-file="${TF_VARS}" \
-            -var manage_artifact_dns=false \
             "${targets[@]}" -out="${plan}"
           terraform -chdir=infra/terraform show -json "${plan}" > "${plan_json}"
           result="$(node dev/scripts/validate-relay-asia-topology-plan.mjs \
