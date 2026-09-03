@@ -559,13 +559,22 @@ jobs:
           version="${RELEASE_TAG#v}"
           if [ "$PRERELEASE" = 'true' ]; then cask='manta@rc'; else cask='manta'; fi
 
-          mkdir -p dmgs
-          for arch in arm64 x64; do
-            gh release download "$RELEASE_TAG" \
-              --pattern "manta-macos-${arch}.dmg" --dir dmgs --clobber
+          # Why the API digest and not sha256sum: the release API already carries
+          # each asset's sha256, so downloading 400MB of disk images to compute
+          # what the server has already computed buys nothing but minutes.
+          digest() {
+            gh api "repos/${GH_REPO}/releases/tags/${RELEASE_TAG}" \
+              --jq ".assets[] | select(.name == \"manta-macos-$1.dmg\") | .digest" \
+              | sed 's/^sha256://'
+          }
+          arm=$(digest arm64)
+          intel=$(digest x64)
+          for value in "$arm" "$intel"; do
+            if ! [[ "$value" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::release asset digest missing or malformed: '$value'"
+              exit 1
+            fi
           done
-          arm=$(sha256sum "dmgs/manta-macos-arm64.dmg" | awk '{print $1}')
-          intel=$(sha256sum "dmgs/manta-macos-x64.dmg" | awk '{print $1}')
 
           # Why the API and not git: this job checked out a tag, so main is not
           # a local branch and the clone is shallow — fetch/checkout/push here
@@ -592,8 +601,23 @@ jobs:
             echo "cask already at ${version}"
             exit 0
           fi
-          gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
+          # Why this may fail and why that is not a failed release: main requires
+          # `verify` and `Mobile Checks`, and a direct write has no pull request
+          # for them to run on, so protection answers 409 "N of N required status
+          # checks are expected". The release itself is already published by the
+          # step above — turning the whole run red over a tap file that trails by
+          # one version would hide that. Say what is missing and how to finish it.
+          if ! gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
             -f message="chore(cask): ${cask} ${version}" \
             -f branch=main \
             -f sha="$sha" \
-            -f content="$(base64 -w0 < current.rb)"
+            -f content="$(base64 -w0 < current.rb)" 2>cask-error.txt; then
+            cat cask-error.txt
+            if grep -q 'required status checks' cask-error.txt; then
+              echo "::warning::${RELEASE_TAG} is published, but branch protection refused the cask" \
+                "update. Land Casks/${cask}.rb (version ${version}, arm ${arm}, intel ${intel})" \
+                "through a pull request, or see docs/reference/fork-release-automation.md."
+              exit 0
+            fi
+            exit 1
+          fi
