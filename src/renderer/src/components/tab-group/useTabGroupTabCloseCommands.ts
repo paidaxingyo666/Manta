@@ -121,6 +121,7 @@ export function useTabGroupTabCloseCommands({
         worktreeId
       )
       if (item.contentType === 'agent-session') {
+        cancelStructuredCodexLaunch(worktreeId, item.entityId)
         // Why: the structured session lives on the host, so the local tab close must also
         // retire the host's canonical row or it reappears on the next sync.
         // Cancel a still-reconciling create before closing its owner; otherwise a missing

@@ -145,4 +145,16 @@ describe('structured agent-session close ordering', () => {
     expect(mocks.callRuntimeRpc).not.toHaveBeenCalled()
     expect(mocks.closeUnifiedTab).not.toHaveBeenCalled()
   })
+
+  it('cancels reconciling launches before a bulk close', async () => {
+    const { closeMany } = useTabGroupTabCloseCommands({
+      worktreeId: 'wt-1',
+      groupTabs: [AGENT_TAB]
+    })
+
+    closeMany([AGENT_TAB.id])
+
+    expect(mocks.cancelStructuredCodexLaunch).toHaveBeenCalledWith('wt-1', 'session-1')
+    await vi.waitFor(() => expect(mocks.closeUnifiedTab).toHaveBeenCalledWith(AGENT_TAB.id))
+  })
 })

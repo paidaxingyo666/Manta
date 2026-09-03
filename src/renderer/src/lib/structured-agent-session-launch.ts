@@ -1,29 +1,61 @@
 import { useSyncExternalStore } from 'react'
 import { toast } from 'sonner'
-import {
-  createStructuredCodexSessionLaunchIntent,
-  abandonStructuredAgentSessionLaunchIntent,
-  launchStructuredCodexSession,
-  StructuredAgentSessionCreateRefusalError,
-  type StructuredAgentSessionLaunchIntent
-} from '@/lib/launch-structured-codex-session'
-import { refreshLocalStructuredSessionTabs } from '@/runtime/local-structured-session-tabs-sync'
 import { translate } from '@/i18n/i18n'
-import { useAppStore } from '@/store'
-import type { RuntimeMobileSessionTabsResult } from '../../../shared/runtime-types'
+import {
+  abandonStructuredAgentSessionLaunchIntent,
+  createStructuredCodexSessionLaunchIntent,
+  StructuredAgentSessionCreateRefusalError
+} from '@/lib/launch-structured-codex-session'
+import {
+  discardStructuredAgentSessionLaunchOutbox,
+  enqueueStructuredAgentSessionLaunchPrompt
+} from '@/components/native-chat/structured-agent-session-outbox-storage'
+import {
+  launchAndReconcile,
+  reconcileUnknownLaunch,
+  StructuredAgentSessionLaunchCancelledError,
+  type StructuredCodexLaunchReceipt,
+  type StructuredLaunchRecoveryState
+} from '@/lib/structured-agent-session-launch-recovery'
+import type { StructuredPromptDeliveryResult } from '@/lib/structured-agent-session-launch-prompt'
+import {
+  addStructuredLaunchCaller,
+  claimStructuredLaunchCallerFallback,
+  createStructuredLaunchCallerGroup,
+  releaseStructuredLaunchCallerAfterUnknownOutcome,
+  settleStructuredLaunchCallersWithFallback,
+  settleStructuredLaunchCallersWithoutFallback,
+  structuredLaunchCallersHavePendingWork,
+  type StructuredCodexLaunchOptions,
+  type StructuredLaunchCaller,
+  type StructuredLaunchCallerGroup,
+  type StructuredRefusalFallback
+} from '@/lib/structured-agent-session-launch-callers'
 
-type StructuredLaunchState = {
-  intent: StructuredAgentSessionLaunchIntent
-  promise: Promise<string>
-  visibilityUnknown: boolean
-  cancelled: boolean
-  cancelWaiters: Set<() => void>
-  lastError: unknown
+export type { StructuredCodexLaunchOptions, StructuredCodexLaunchReceipt }
+
+type StructuredLaunchState = StructuredLaunchRecoveryState & {
+  identity: string
+  callers: StructuredLaunchCallerGroup
+}
+
+type StructuredLaunchStateResult = {
+  state: StructuredLaunchState
+  caller: StructuredLaunchCaller
+}
+
+export type StructuredCodexLaunchResult = {
+  sessionId: string
+  launchResult: Promise<StructuredCodexLaunchReceipt>
+  promptDeliveryResult?: Promise<StructuredPromptDeliveryResult>
+  isVisibilityUnknown: () => boolean
+  releaseCallerAfterUnknownOutcome: () => boolean
+  claimDefinitiveRefusalFallback: (fallback: StructuredRefusalFallback) => Promise<boolean>
 }
 
 export type StructuredCodexLaunchStatus = 'idle' | 'pending' | 'unknown'
 
-const pendingStructuredLaunchesByWorktree = new Map<string, StructuredLaunchState>()
+const pendingStructuredLaunchesByIdentity = new Map<string, StructuredLaunchState>()
 const structuredLaunchListeners = new Set<() => void>()
 
 function notifyStructuredLaunchListeners(): void {
@@ -38,7 +70,7 @@ export function subscribeStructuredCodexLaunchStatus(listener: () => void): () =
 }
 
 export function getStructuredCodexLaunchStatus(worktreeId: string): StructuredCodexLaunchStatus {
-  const state = pendingStructuredLaunchesByWorktree.get(worktreeId)
+  const state = pendingStructuredLaunchesByIdentity.get(worktreeId)
   if (!state) {
     return 'idle'
   }
@@ -53,255 +85,71 @@ export function useStructuredCodexLaunchStatus(worktreeId: string): StructuredCo
   )
 }
 
-class StructuredAgentSessionLaunchCancelledError extends Error {
-  constructor() {
-    super('structured session launch cancelled')
-    this.name = 'StructuredAgentSessionLaunchCancelledError'
+function launchIdentity(worktreeId: string): string {
+  return worktreeId
+}
+
+function cleanupLaunchState(state: StructuredLaunchState): void {
+  if (pendingStructuredLaunchesByIdentity.get(state.identity) === state) {
+    pendingStructuredLaunchesByIdentity.delete(state.identity)
+    notifyStructuredLaunchListeners()
   }
 }
 
-function throwIfLaunchCancelled(state: StructuredLaunchState): void {
-  if (state.cancelled) {
-    throw new StructuredAgentSessionLaunchCancelledError()
+function maybeCleanupLaunchState(state: StructuredLaunchState): void {
+  if (structuredLaunchCallersHavePendingWork(state.callers)) {
+    return
   }
+  cleanupLaunchState(state)
+}
+
+function settleDefinitiveRefusalFallback(state: StructuredLaunchState): void {
+  if (state.callers.outcome === 'refused') {
+    return
+  }
+  abandonStructuredAgentSessionLaunchIntent(state.intent)
+  discardStructuredAgentSessionLaunchOutbox(state.intent.sessionId)
+  settleStructuredLaunchCallersWithFallback(state.callers)
 }
 
 function trackLaunchSettlement(
-  worktreeId: string,
   state: StructuredLaunchState,
-  promise: Promise<string>
+  promise: Promise<StructuredCodexLaunchReceipt>
 ): void {
   void promise.then(
     () => {
-      if (
-        state.promise === promise &&
-        pendingStructuredLaunchesByWorktree.get(worktreeId) === state
-      ) {
-        pendingStructuredLaunchesByWorktree.delete(worktreeId)
-        notifyStructuredLaunchListeners()
-      }
-    },
-    () => {
-      if (
-        state.promise === promise &&
-        !state.visibilityUnknown &&
-        pendingStructuredLaunchesByWorktree.get(worktreeId) === state
-      ) {
-        pendingStructuredLaunchesByWorktree.delete(worktreeId)
-        notifyStructuredLaunchListeners()
-      }
-    }
-  )
-}
-
-function hasAdoptedStructuredSession(intent: StructuredAgentSessionLaunchIntent): boolean {
-  return Boolean(
-    useAppStore
-      .getState()
-      .unifiedTabsByWorktree[intent.worktreeId]?.some(
-        (tab) =>
-          tab.contentType === 'agent-session' &&
-          tab.entityId === intent.sessionId &&
-          tab.worktreeId === intent.worktreeId
-      )
-  )
-}
-
-/** Wait for the host-emitted projection; this is the normal launch completion path. */
-function waitForStructuredSessionAdoption(
-  state: StructuredLaunchState,
-  timeoutMs = 3000
-): Promise<string> {
-  if (hasAdoptedStructuredSession(state.intent)) {
-    return Promise.resolve(state.intent.sessionId)
-  }
-  // Keep unit-test and degraded harnesses deterministic when no store API is installed.
-  if (typeof useAppStore.subscribe !== 'function') {
-    return Promise.reject(new Error('structured session tab adoption unavailable'))
-  }
-  return new Promise((resolve, reject) => {
-    let settled = false
-    const finish = (error?: Error): void => {
-      if (settled) {
+      if (state.promise !== promise) {
         return
       }
-      settled = true
-      unsubscribe()
-      clearTimeout(timeout)
-      state.cancelWaiters.delete(cancel)
-      if (error) {
-        reject(error)
+      settleStructuredLaunchCallersWithoutFallback(state.callers, 'published')
+      maybeCleanupLaunchState(state)
+    },
+    (error) => {
+      if (state.promise !== promise || state.cancelled) {
+        return
+      }
+      if (error instanceof StructuredAgentSessionCreateRefusalError) {
+        settleDefinitiveRefusalFallback(state)
+      } else if (!state.visibilityUnknown) {
+        settleStructuredLaunchCallersWithoutFallback(state.callers, 'failed')
+        maybeCleanupLaunchState(state)
       } else {
-        resolve(state.intent.sessionId)
+        state.callers.outcome = 'unknown'
+        notifyStructuredLaunchListeners()
       }
     }
-    const cancel = (): void => finish(new StructuredAgentSessionLaunchCancelledError())
-    const unsubscribe = useAppStore.subscribe((nextState) => {
-      if (
-        nextState.unifiedTabsByWorktree[state.intent.worktreeId]?.some(
-          (tab) =>
-            tab.contentType === 'agent-session' &&
-            tab.entityId === state.intent.sessionId &&
-            tab.worktreeId === state.intent.worktreeId
-        )
-      ) {
-        finish()
-      }
-    })
-    const timeout = setTimeout(
-      () => finish(new Error('structured session tab adoption timed out')),
-      timeoutMs
-    )
-    state.cancelWaiters.add(cancel)
-    if (state.cancelled) {
-      cancel()
-    }
-  })
-}
-
-async function recoverStructuredSessionFromInventory(
-  state: StructuredLaunchState,
-  priorError: unknown
-): Promise<string> {
-  state.lastError = priorError
-  throwIfLaunchCancelled(state)
-  try {
-    const snapshots = await refreshLocalStructuredSessionTabs()
-    throwIfLaunchCancelled(state)
-    const published = inventoryContainsIntent(snapshots, state.intent)
-    if (published && hasAdoptedStructuredSession(state.intent)) {
-      return state.intent.sessionId
-    }
-  } catch (error) {
-    if (error instanceof StructuredAgentSessionLaunchCancelledError) {
-      throw error
-    }
-  }
-  state.visibilityUnknown = true
-  notifyStructuredLaunchListeners()
-  throw priorError instanceof Error ? priorError : new Error(String(priorError))
-}
-
-function inventoryContainsIntent(
-  snapshots: readonly RuntimeMobileSessionTabsResult[],
-  intent: StructuredAgentSessionLaunchIntent
-): boolean {
-  return snapshots.some(
-    (snapshot) =>
-      snapshot.worktree === intent.worktreeId &&
-      snapshot.tabs.some(
-        (tab) => tab.type === 'agent-session' && tab.sessionId === intent.sessionId
-      )
   )
 }
 
-async function reconcileUnknownLaunch(state: StructuredLaunchState): Promise<string> {
-  throwIfLaunchCancelled(state)
-  state.visibilityUnknown = false
-  notifyStructuredLaunchListeners()
-  try {
-    return await waitForStructuredSessionAdoption(state, 1000)
-  } catch (error) {
+function trackLaunchFailureToast(state: StructuredLaunchState): void {
+  void state.promise.catch(async (error) => {
     if (error instanceof StructuredAgentSessionLaunchCancelledError) {
-      throw error
+      return
     }
-    try {
-      const snapshots = await refreshLocalStructuredSessionTabs()
-      if (inventoryContainsIntent(snapshots, state.intent)) {
-        return await waitForStructuredSessionAdoption(state, 1000)
-      }
-      await launchStructuredCodexSession(state.intent)
-      return await waitForStructuredSessionAdoption(state)
-    } catch (retryError) {
-      if (retryError instanceof StructuredAgentSessionLaunchCancelledError) {
-        throw retryError
-      }
-      if (retryError instanceof StructuredAgentSessionCreateRefusalError) {
-        throw retryError
-      }
-      return recoverStructuredSessionFromInventory(
-        state,
-        state.lastError instanceof Error ? state.lastError : retryError
-      )
-    }
-  }
-}
-
-async function launchAndReconcile(state: StructuredLaunchState): Promise<string> {
-  throwIfLaunchCancelled(state)
-  try {
-    await launchStructuredCodexSession(state.intent)
-  } catch (error) {
-    if (state.cancelled) {
-      throw new StructuredAgentSessionLaunchCancelledError()
-    }
-    if (error instanceof StructuredAgentSessionCreateRefusalError) {
-      throw error
-    }
-    try {
-      return await waitForStructuredSessionAdoption(state)
-    } catch (adoptionError) {
-      if (adoptionError instanceof StructuredAgentSessionLaunchCancelledError) {
-        throw adoptionError
-      }
-      return recoverStructuredSessionFromInventory(state, error)
-    }
-  }
-  try {
-    throwIfLaunchCancelled(state)
-    return await waitForStructuredSessionAdoption(state)
-  } catch (error) {
-    if (error instanceof StructuredAgentSessionLaunchCancelledError) {
-      throw error
-    }
-    return recoverStructuredSessionFromInventory(state, error)
-  }
-}
-
-function launchStructuredCodexSessionOnce(worktreeId: string): Promise<string> {
-  const existing = pendingStructuredLaunchesByWorktree.get(worktreeId)
-  if (existing) {
-    if (existing.visibilityUnknown) {
-      existing.promise = reconcileUnknownLaunch(existing)
-      trackLaunchSettlement(worktreeId, existing, existing.promise)
-    }
-    return existing.promise
-  }
-  const state: StructuredLaunchState = {
-    intent: createStructuredCodexSessionLaunchIntent(worktreeId),
-    promise: Promise.resolve(''),
-    visibilityUnknown: false,
-    cancelled: false,
-    cancelWaiters: new Set(),
-    lastError: null
-  }
-  state.promise = launchAndReconcile(state)
-  pendingStructuredLaunchesByWorktree.set(worktreeId, state)
-  notifyStructuredLaunchListeners()
-  trackLaunchSettlement(worktreeId, state, state.promise)
-  return state.promise
-}
-
-/** Stop retries for a launch whose tab the user explicitly closed. */
-export function cancelStructuredCodexLaunch(worktreeId: string, sessionId: string): boolean {
-  const state = pendingStructuredLaunchesByWorktree.get(worktreeId)
-  if (!state || state.intent.sessionId !== sessionId) {
-    return false
-  }
-  state.cancelled = true
-  for (const cancel of state.cancelWaiters) {
-    cancel()
-  }
-  state.cancelWaiters.clear()
-  pendingStructuredLaunchesByWorktree.delete(worktreeId)
-  notifyStructuredLaunchListeners()
-  abandonStructuredAgentSessionLaunchIntent(state.intent)
-  return true
-}
-
-export function startStructuredCodexLaunch(worktreeId: string): void {
-  void launchStructuredCodexSessionOnce(worktreeId).catch((error) => {
-    if (error instanceof StructuredAgentSessionLaunchCancelledError) {
+    if (
+      error instanceof StructuredAgentSessionCreateRefusalError &&
+      (await state.callers.refusalSettlement.promise.catch(() => false))
+    ) {
       return
     }
     toast.error(
@@ -312,4 +160,108 @@ export function startStructuredCodexLaunch(worktreeId: string): void {
       { description: error instanceof Error ? error.message : String(error) }
     )
   })
+}
+
+function structuredCodexLaunchState(
+  worktreeId: string,
+  options: StructuredCodexLaunchOptions
+): StructuredLaunchStateResult {
+  const identity = launchIdentity(worktreeId)
+  const existing = pendingStructuredLaunchesByIdentity.get(identity)
+  if (existing) {
+    if (existing.visibilityUnknown) {
+      existing.callers.outcome = 'pending'
+      existing.promise = reconcileUnknownLaunch(existing)
+      trackLaunchSettlement(existing, existing.promise)
+      trackLaunchFailureToast(existing)
+      notifyStructuredLaunchListeners()
+    }
+    const text = options.prompt?.trim() ?? ''
+    const stagedPrompt =
+      text && existing.callers.outcome !== 'refused'
+        ? enqueueStructuredAgentSessionLaunchPrompt(existing.intent.sessionId, text)
+        : null
+    return {
+      state: existing,
+      caller: addStructuredLaunchCaller({
+        group: existing.callers,
+        launchResult: existing.promise,
+        options,
+        stagedEntry: stagedPrompt
+      })
+    }
+  }
+
+  const intent = createStructuredCodexSessionLaunchIntent(worktreeId)
+  const text = options.prompt?.trim() ?? ''
+  const stagedPrompt = text
+    ? enqueueStructuredAgentSessionLaunchPrompt(intent.sessionId, text)
+    : null
+  const callers = createStructuredLaunchCallerGroup()
+  const state: StructuredLaunchState = {
+    identity,
+    intent,
+    promise: Promise.resolve({ sessionId: '', fence: 0 }),
+    visibilityUnknown: false,
+    cancelled: false,
+    onVisibilityChanged: notifyStructuredLaunchListeners,
+    callers
+  }
+  callers.onSettled = () => maybeCleanupLaunchState(state)
+  state.promise =
+    text && !stagedPrompt
+      ? Promise.reject(
+          new StructuredAgentSessionCreateRefusalError(
+            'Could not durably stage the Codex launch prompt.'
+          )
+        )
+      : launchAndReconcile(state)
+  const caller = addStructuredLaunchCaller({
+    group: state.callers,
+    launchResult: state.promise,
+    options,
+    stagedEntry: stagedPrompt
+  })
+  pendingStructuredLaunchesByIdentity.set(identity, state)
+  notifyStructuredLaunchListeners()
+  trackLaunchSettlement(state, state.promise)
+  trackLaunchFailureToast(state)
+  return {
+    state,
+    caller
+  }
+}
+
+export function cancelStructuredCodexLaunch(worktreeId: string, sessionId: string): boolean {
+  const state = [...pendingStructuredLaunchesByIdentity.values()].find(
+    (candidate) =>
+      candidate.intent.worktreeId === worktreeId && candidate.intent.sessionId === sessionId
+  )
+  if (!state) {
+    return false
+  }
+  state.cancelled = true
+  settleStructuredLaunchCallersWithoutFallback(state.callers, 'cancelled')
+  cleanupLaunchState(state)
+  discardStructuredAgentSessionLaunchOutbox(state.intent.sessionId)
+  abandonStructuredAgentSessionLaunchIntent(state.intent)
+  notifyStructuredLaunchListeners()
+  return true
+}
+
+export function startStructuredCodexLaunch(
+  worktreeId: string,
+  options: StructuredCodexLaunchOptions = {}
+): StructuredCodexLaunchResult {
+  const { state, caller } = structuredCodexLaunchState(worktreeId, options)
+  return {
+    sessionId: state.intent.sessionId,
+    launchResult: state.promise,
+    ...(caller.promptDeliveryResult ? { promptDeliveryResult: caller.promptDeliveryResult } : {}),
+    isVisibilityUnknown: () => state.visibilityUnknown,
+    releaseCallerAfterUnknownOutcome: () =>
+      releaseStructuredLaunchCallerAfterUnknownOutcome(state.callers, caller),
+    claimDefinitiveRefusalFallback: (fallback) =>
+      claimStructuredLaunchCallerFallback(state.callers, caller, fallback)
+  }
 }

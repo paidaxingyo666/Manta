@@ -12,6 +12,7 @@ import {
   sameSessionTabsPublicationLineage
 } from './web-session-tabs-sync/publisher-identity-fences'
 import type { SessionTabsPublicationEpochHistory } from './web-session-tabs-sync/state'
+import { refreshLocalRuntimeCapabilities } from './local-runtime-capabilities'
 
 export const LOCAL_STRUCTURED_SESSION_OWNER = 'local-structured-session'
 let localStructuredSessionTabsRestorePromise: Promise<void> | null = null
@@ -42,7 +43,7 @@ export function projectLocalStructuredSessionTabs(
   )
   const visibleHostTabIds = structuredIds
   const visibleIds = structuredIds
-  let projectedTabGroups = snapshot.tabGroups
+  const projectedTabGroups = snapshot.tabGroups
     ?.map((group) => ({
       ...group,
       tabOrder: group.tabOrder.filter((id) => visibleHostTabIds.has(id)),
@@ -152,7 +153,8 @@ export function applyLocalStructuredSessionTabSnapshots<
 }
 
 export function restoreLocalStructuredSessionTabsOnce(): Promise<void> {
-  localStructuredSessionTabsRestorePromise ??= refreshLocalStructuredSessionTabs()
+  localStructuredSessionTabsRestorePromise ??= refreshLocalRuntimeCapabilities()
+    .then(() => refreshLocalStructuredSessionTabs())
     .then(() => undefined)
     .catch((error) => {
       localStructuredSessionTabsRestorePromise = null
@@ -180,11 +182,11 @@ export async function startLocalStructuredSessionTabsSync(args: {
   isDisposed: () => boolean
   setUnsubscribe: (unsubscribe: () => void) => void
 }): Promise<void> {
-  const status = await window.api.runtime.getStatus()
+  const capabilities = await refreshLocalRuntimeCapabilities()
   if (args.isDisposed()) {
     return
   }
-  const supported = status.capabilities?.includes(STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY)
+  const supported = capabilities.includes(STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY)
   await restoreLocalStructuredSessionTabsOnce()
   if (args.isDisposed()) {
     return

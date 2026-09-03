@@ -809,6 +809,15 @@
         },
         "activation": {
           "cannotOpenFolderWorkspace": "Cannot open folder workspace"
+        },
+        "creation": {
+          "flow": {
+            "structured": {
+              "launch": {
+                "unknown": "Could not confirm whether Codex chat opened. Retry to check again."
+              }
+            }
+          }
         }
       },
       "folderWorkspacePathStatus": {
