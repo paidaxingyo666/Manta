@@ -83,9 +83,11 @@ export function draftReleaseNotes(entries, version, upstreamBase) {
 
   const bullets = [...fixesByLabel.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, 5)
+    .slice(0, 4)
     .map(([label, count]) => `- ${label} \u2014 ${count} ${count === 1 ? 'fix' : 'fixes'}`)
-  for (const feature of features.slice(0, 3)) {
+  // Six bullets is the ceiling, not a target: a release note is read by someone
+  // deciding whether to install, and a sixth line has never changed that answer.
+  for (const feature of features.slice(0, 2)) {
     bullets.push(`- New: ${feature}`)
   }
   if (bullets.length === 0) {
