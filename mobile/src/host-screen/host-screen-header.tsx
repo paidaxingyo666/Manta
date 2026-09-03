@@ -307,7 +307,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
           <View style={styles.toolbarSpacer} />
 
           <Pressable
-            style={styles.toolbarIconButton}
+            style={styles.searchToggle}
             onPress={() => actions.navigateFromHostList(`/h/${hostId}/accounts`)}
             disabled={connState !== 'connected'}
           >
@@ -318,7 +318,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
           </Pressable>
 
           <Pressable
-            style={styles.toolbarIconButton}
+            style={styles.searchToggle}
             onPress={() => actions.navigateFromHostList(`/h/${hostId}/tasks`)}
             disabled={connState !== 'connected'}
           >
@@ -326,6 +326,14 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
               size={16}
               color={connState === 'connected' ? colors.textSecondary : colors.textMuted}
             />
+          </Pressable>
+
+          <Pressable style={styles.searchToggle} onPress={() => state.setShowSearch((s) => !s)}>
+            {state.showSearch ? (
+              <X size={16} color={colors.textSecondary} />
+            ) : (
+              <Search size={16} color={colors.textSecondary} />
+            )}
           </Pressable>
         </View>
       )}

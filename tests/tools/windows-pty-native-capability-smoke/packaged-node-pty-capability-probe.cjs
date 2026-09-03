@@ -62,7 +62,7 @@ function buildGrandchildLaunch(channel, fixtureToken) {
   return {
     program: path.join(process.env.SystemRoot, 'System32', 'wscript.exe'),
     args: [
-      path.join(__dirname, 'real-orca-detached-launcher.vbs'),
+      path.join(__dirname, 'real-manta-detached-launcher.vbs'),
       process.execPath,
       __filename,
       '--grandchild-member',

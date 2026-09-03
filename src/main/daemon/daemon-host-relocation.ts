@@ -34,7 +34,7 @@ export type RelocatedDaemonHost = {
 const HOST_SUBDIR = 'daemon-host'
 const MARKER_NAME = '.materialized.json'
 
-// LOCAL appData (not roaming) so OneDrive/roaming never syncs this ~260MB runtime. Shared with NSIS uninstall (config/nsis/daemon-host-uninstall.nsh) — keep in sync.
+// LOCAL appData (not roaming) so OneDrive/roaming never syncs this ~260MB runtime. Shared with NSIS uninstall (config/nsis/manta-installer-hooks.nsh) — keep in sync.
 const LOCAL_HOST_ROOT_NAME = 'Manta'
 
 // Copy of Manta.exe renamed to a distinct image name so the NSIS updater's `taskkill /IM Manta.exe` can't match it.

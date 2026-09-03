@@ -8,9 +8,15 @@ would look like if it had been this fork all along, so a sync is a real rebase
 of the fork's own commits onto it: conflicts are only where both sides changed
 the same code, never where one side spells the product differently.
 
-The mirror is regenerated from scratch every time. It is deterministic in
-(upstream tree, evidence ref), and upstream rewrites its history anyway, so
-there is nothing to preserve.
+The mirror is extended, not regenerated: an upstream commit that already has
+a mirror commit (matched by the `Mirror-Of:` trailer) keeps it, SHA and all,
+and only commits upstream added since are transformed. That keeps every sync
+branch related to `main` — a mirror rebuilt from scratch changes the SHA of
+every commit whose blobs the newer evidence renames differently, and a pull
+request between two such histories has no merge base, so GitHub can neither
+diff it nor run its checks. When upstream rewrites its history (a squash),
+no trailer matches and the mirror is rebuilt whole; that sync is a
+bootstrap-shaped event and the skill says so.
 
 Evidence for the rename is the fork's own tree (`--evidence`, default main):
 a token is renamed only if the fork already uses its Manta form. That is read
@@ -101,6 +107,8 @@ class Mirror:
         self.declined = {}
         self.renamed_tokens = set()
         self.stats = {'blobs_seen': 0, 'blobs_transformed': 0, 'paths_renamed': 0, 'commits': 0}
+        self.resume_from = None
+        self.resume_rev = None
 
     # ---- evidence -------------------------------------------------------
     def collect_tokens(self, revs):
@@ -169,17 +177,60 @@ class Mirror:
         return mark
 
     # ---- build ----------------------------------------------------------
+    def existing_mirror(self, ref):
+        """{upstream sha: mirror sha} for every commit the mirror already carries."""
+        try:
+            out = git('log', '--format=%H%x00%B%x1e', ref).stdout.decode('utf-8', 'surrogateescape')
+        except subprocess.CalledProcessError:
+            return {}
+        found = {}
+        for rec in out.split('\x1e'):
+            if '\0' not in rec:
+                continue
+            sha, body = rec.strip('\n').split('\0', 1)
+            for line in body.splitlines():
+                if line.startswith('Mirror-Of: '):
+                    found[line[len('Mirror-Of: '):].strip()] = sha.strip()
+        return found
+
     def build(self, ref):
         revs = commits(self.upstream)
-        print(f'  upstream {self.upstream}: {len(revs)} commits', file=sys.stderr)
-        tokens = self.collect_tokens(revs)
+        have = self.existing_mirror(ref)
+        # The mirror is a straight line; reuse the longest prefix of upstream's
+        # history that is already mirrored, in order, and append the rest.
+        keep = 0
+        while keep < len(revs) and revs[keep] in have:
+            keep += 1
+        if keep and keep == len(revs):
+            tip = have[revs[-1]]
+            print(f'  {ref} already mirrors {self.upstream} ({keep} commits); nothing to do', file=sys.stderr)
+            git('update-ref', ref, tip)
+            return tip
+        if keep:
+            print(f'  {ref}: {keep} commits already mirrored, {len(revs) - keep} new', file=sys.stderr)
+        else:
+            print(f'  {ref}: no reusable prefix — building all {len(revs)} commits', file=sys.stderr)
+        self.resume_from = have[revs[keep - 1]] if keep else None
+        self.resume_rev = revs[keep - 1] if keep else None
+        revs = revs[keep:]
+        print(f'  upstream {self.upstream}: {len(revs)} commits to transform', file=sys.stderr)
+        tokens = self.collect_tokens(revs if not self.resume_rev else [self.resume_rev] + revs)
         print(f'  {len(self.brand_blobs)} brand-bearing blobs, {len(tokens)} distinct tokens', file=sys.stderr)
         self.evidence = Evidence(self.evidence_ref, tokens)
         print(f'  evidence {self.evidence_ref}: {len(self.evidence.twins)} Manta twins present', file=sys.stderr)
 
         proc = subprocess.Popen(['git', 'fast-import', '--quiet', '--force'], stdin=subprocess.PIPE)
         w = proc.stdin
-        prev_rev, prev_mark = None, None
+        prev_rev, prev_mark = self.resume_rev, self.resume_from
+        if self.resume_rev:
+            # Paths and blobs already in the mirror keep their names: seed the
+            # caches from the mirrored tree so an unchanged file is referenced,
+            # not re-decided under newer evidence.
+            mirrored = {p: (mode, sha) for mode, sha, p in ls_tree(self.resume_from)}
+            for mode, sha, path in ls_tree(self.resume_rev):
+                out_p = self.out_path(path)
+                if out_p in mirrored:
+                    self.blob_out[sha] = mirrored[out_p][1]
         for n, rev in enumerate(revs, 1):
             if prev_rev is None:
                 changes = [('A', mode, sha, path) for mode, sha, path in ls_tree(rev)]
@@ -216,7 +267,7 @@ class Mirror:
             w.write(f'data {len(body_b)}\n'.encode())
             w.write(body_b + b'\n')
             if prev_mark:
-                w.write(f'from {prev_mark}\n'.encode())
+                w.write(f'from {prev_mark}\n'.encode())   # a mark, or the reused mirror sha
             for line in lines:
                 w.write(line)
             w.write(b'\n')

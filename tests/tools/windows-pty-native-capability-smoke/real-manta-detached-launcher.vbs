@@ -2,7 +2,7 @@ Option Explicit
 
 Function QuoteArgument(value)
   If InStr(value, Chr(34)) > 0 Or InStr(value, vbCr) > 0 Or InStr(value, vbLf) > 0 Then
-    Err.Raise vbObjectError + 1, "real-orca-detached-launcher", "Invalid argument"
+    Err.Raise vbObjectError + 1, "real-manta-detached-launcher", "Invalid argument"
   End If
   QuoteArgument = Chr(34) & value & Chr(34)
 End Function
@@ -10,7 +10,7 @@ End Function
 Dim args, command, index, shell, status
 Set args = WScript.Arguments
 If args.Count = 0 Then
-  Err.Raise vbObjectError + 2, "real-orca-detached-launcher", "Missing executable"
+  Err.Raise vbObjectError + 2, "real-manta-detached-launcher", "Missing executable"
 End If
 
 command = ""

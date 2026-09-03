@@ -91,6 +91,7 @@ import {
   isRelayAlreadyInstalled
 } from './ssh-relay-versioned-install'
 import { tryAcquireRelayRepairLock } from './ssh-relay-repair-lock'
+import { BOTH_NATIVE_DEPS_MISSING_PROBE } from './ssh-relay-native-deps-install-fixture'
 import type { SshConnection } from './ssh-connection'
 import type { SftpNamespacePathMapping } from './sftp-namespace-resolution'
 
@@ -250,10 +251,12 @@ const POSIX_FIRST_INSTALL = [
   '', // chmod staged node
   '', // final install namespace marker
   STAGE_PROMOTED,
+  '', // shared native-deps cache probe (miss)
   '', // npm install native deps
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
   '', // publish the per-launch credential
@@ -267,10 +270,12 @@ const POSIX_SYSTEM_SSH_FIRST_INSTALL = [
   STAGE_RESERVED,
   '', // chmod staged node
   STAGE_PROMOTED,
+  '', // shared native-deps cache probe (miss)
   '', // npm install native deps
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
   '', // publish the per-launch credential
@@ -281,8 +286,8 @@ const POSIX_SYSTEM_SSH_FIRST_INSTALL = [
 const POSIX_REPAIR = [
   '__MANTA_REMOTE_PLATFORM__ Linux x86_64',
   SHELL_HOME,
-  'MISSING', // probe before the repair lock
-  'MISSING', // re-probe under the lock
+  BOTH_NATIVE_DEPS_MISSING_PROBE, // probe before the repair lock: the marker names both deps
+  BOTH_NATIVE_DEPS_MISSING_PROBE, // re-probe under the lock
   '', // install-owner marker
   '', // npm install native deps
   '', // chmod prebuilds
@@ -692,8 +697,8 @@ describe('relay repair writes on a split SFTP namespace', () => {
     feed([
       '__MANTA_REMOTE_PLATFORM__ Linux x86_64',
       SHELL_HOME,
-      'MISSING',
-      'MISSING',
+      BOTH_NATIVE_DEPS_MISSING_PROBE,
+      BOTH_NATIVE_DEPS_MISSING_PROBE,
       '', // npm install native deps
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
@@ -716,7 +721,12 @@ describe('relay repair writes on a split SFTP namespace', () => {
 
   it('degrades to shell paths when marker creation fails outright', async () => {
     const conn = makeConnection(capture)
-    feed(['__MANTA_REMOTE_PLATFORM__ Linux x86_64', SHELL_HOME, 'MISSING', 'MISSING'])
+    feed([
+      '__MANTA_REMOTE_PLATFORM__ Linux x86_64',
+      SHELL_HOME,
+      BOTH_NATIVE_DEPS_MISSING_PROBE,
+      BOTH_NATIVE_DEPS_MISSING_PROBE
+    ])
     vi.mocked(execCommand).mockRejectedValueOnce(new Error('read-only file system'))
     feed([
       '', // npm install native deps
@@ -742,7 +752,12 @@ describe('relay repair writes on a split SFTP namespace', () => {
 
   it('keeps the repair lock when marker creation has unconfirmed termination', async () => {
     const conn = makeConnection(capture)
-    feed(['__MANTA_REMOTE_PLATFORM__ Linux x86_64', SHELL_HOME, 'MISSING', 'MISSING'])
+    feed([
+      '__MANTA_REMOTE_PLATFORM__ Linux x86_64',
+      SHELL_HOME,
+      BOTH_NATIVE_DEPS_MISSING_PROBE,
+      BOTH_NATIVE_DEPS_MISSING_PROBE
+    ])
     vi.mocked(execCommand).mockRejectedValueOnce(
       Object.assign(new Error('marker teardown unconfirmed'), { sshChannelCloseConfirmed: false })
     )

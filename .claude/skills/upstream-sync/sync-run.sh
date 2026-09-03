@@ -5,16 +5,17 @@
 #
 # What it does, and why in this order:
 #   1. fetch upstream, and stop if refs/sync/base already mirrors its tip
-#   2. build refs/sync/mirror — upstream speaking Manta, evidence = the fork
-#   3. cut the work branch from the fork and rebase it:
-#        git rebase --onto refs/sync/mirror refs/sync/base <branch>
+#   2. extend refs/sync/mirror — upstream speaking Manta, evidence = the fork.
+#      Extended, never rebuilt: mirrored commits keep their SHA, so the work
+#      branch stays related to main and a pull request can diff it.
+#   3. cut the work branch from the fork and merge the mirror into it:
+#        git merge --no-ff refs/sync/mirror
 #      With both sides speaking Manta, every conflict is a real one: the same
 #      code changed on both sides. The rename can no longer conflict, and a
 #      file upstream deleted cannot come back by accident — the fork's edit to
-#      it stops the rebase as modify/delete and someone decides.
-#   4. on a clean rebase, hand off to sync-finish.sh; on conflicts, print what
-#      to do and exit 1. Resolve, `git rebase --continue`, then run
-#      sync-finish.sh yourself.
+#      it stops the merge as modify/delete and someone decides.
+#   4. on a clean merge, hand off to sync-finish.sh; on conflicts, print what
+#      to do and exit 1. Resolve, `git commit`, then run sync-finish.sh.
 #
 # Never run this on main. It writes refs/sync/mirror and the work branch only.
 set -uo pipefail
@@ -49,23 +50,25 @@ echo "== 2/4 build mirror (evidence = $FORK)"
 python3 "$HERE/build-mirror.py" --upstream "$UPSTREAM" --evidence "$FORK" --ref refs/sync/mirror 2>&1 | grep -vE '^\s+[0-9]+/[0-9]+ commits' | sed 's/^/  /'
 MIRROR="$(git rev-parse refs/sync/mirror)"
 
-echo "== 3/4 rebase $FORK → $BRANCH onto mirror ${MIRROR:0:12}"
-# Merge drivers for the files that must not be merged line by line. Local
-# config: the driver names are committed in .gitattributes, the commands are not.
+echo "== 3/4 merge mirror ${MIRROR:0:12} into $BRANCH (from $FORK)"
+# Merge drivers for the files that must not be merged line by line. The driver
+# names are committed in .gitattributes, the commands are local config. In a
+# merge, %A is the fork's side and %B upstream's.
 git config merge.keepfork.name "keep the fork's version"
-git config merge.keepfork.driver 'cp %B %A'
+git config merge.keepfork.driver 'true'
 git config merge.keepupstream.name "keep upstream's version, regenerate afterwards"
-git config merge.keepupstream.driver 'true'
+git config merge.keepupstream.driver 'cp %B %A'
 git branch -f "$BRANCH" "$FORK"
 git checkout -q "$BRANCH"
-if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false rebase -q --onto refs/sync/mirror "$BASE" "$BRANCH" 2>/tmp/sync-rebase.err; then
+if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false merge -q --no-ff --no-edit \
+     -m "sync: merge upstream ${UP:0:12} through the mirror" refs/sync/mirror 2>/tmp/sync-merge.err; then
   echo "   clean"
   echo "== 4/4 finish"
   exec "$HERE/sync-finish.sh"
 fi
 
 echo
-echo "   rebase stopped. Conflicts:"
+echo "   merge stopped. Conflicts:"
 git diff --name-only --diff-filter=U | sed 's/^/     /'
 echo
 cat <<'EOF'
@@ -73,7 +76,7 @@ cat <<'EOF'
      mobile/**/*.tsx, *.ts      usually the fork's translate() wrapper against an
                                 upstream edit to the same line. Take upstream's
                                 side and re-localize afterwards:
-                                  git checkout --ours -- <file>; git add <file>
+                                  git checkout --theirs -- <file>; git add <file>
                                 sync-finish.sh runs the localizer over mobile/.
      modify/delete              upstream deleted a file the fork edited. If the
                                 fork's edit was a fix upstream has since absorbed,
@@ -81,8 +84,8 @@ cat <<'EOF'
                                 feature, move the edit to wherever upstream put
                                 that code, then git rm the old path.
      anything else              a genuine two-sided change. Resolve by hand.
-   (--ours is upstream during a rebase; --theirs is the fork's commit.)
+   (--ours is the fork in a merge; --theirs is upstream. The reverse of a rebase.)
 
-   Then:  git rebase --continue   and when it ends:  .claude/skills/upstream-sync/sync-finish.sh
+   Then:  git commit   and:  .claude/skills/upstream-sync/sync-finish.sh
 EOF
 exit 1
