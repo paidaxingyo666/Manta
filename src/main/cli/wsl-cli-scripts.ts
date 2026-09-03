@@ -88,7 +88,8 @@ try {
   } else {
     $env:MANTA_CLI_CWD = $WslCwd
   }
-  Push-Location -LiteralPath (Split-Path -Parent $MantaLauncher)
+  $LauncherDirectory = Split-Path -Parent $MantaLauncher
+  Push-Location -LiteralPath $LauncherDirectory
   # Why: Windows PowerShell 5.1 cannot losslessly splat strings to native argv.
   $StartInfo = [System.Diagnostics.ProcessStartInfo]::new()
   $StartInfo.FileName = $MantaLauncher
@@ -96,6 +97,13 @@ try {
     ConvertTo-NativeCommandLineArgument $_
   }) -join ' ')
   $StartInfo.UseShellExecute = $false
+  # Why (#16463): Push-Location moves the PowerShell provider location, not the
+  # Win32 current directory, and an empty WorkingDirectory with UseShellExecute
+  # disabled means "inherit the caller's". Launched from a WSL shell that is the
+  # user's worktree on the 9P share, so without this the app stands in a
+  # directory Linux can delete -- after which every CreateProcessW it makes
+  # fails ERROR_PATH_NOT_FOUND, reported as: spawn wsl.exe ENOENT.
+  $StartInfo.WorkingDirectory = $LauncherDirectory
   $Process = [System.Diagnostics.Process]::Start($StartInfo)
   if ($null -eq $Process) {
     throw 'Unable to start the Manta Windows CLI launcher.'

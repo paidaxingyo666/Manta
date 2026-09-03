@@ -126,6 +126,14 @@ Use `manta serve` when the host should run without the desktop window—for exam
 
 Install Manta and its bundled CLI on the server, then run:
 
+<Callout title="On Linux, start it with manta-ide serve">
+  The Linux CLI is named `orca-ide`, because GNOME Orca's screen reader already owns
+  `/usr/bin/orca`. A packaged `manta serve` does write a bare `manta` into `~/.local/bin`, but only
+  while it is starting, so that shim can never be the command that starts the server. Read
+  `manta serve` as `manta-ide serve` throughout this page when the host is Linux. See
+  [Install → Linux](/docs/install#linux).
+</Callout>
+
 ```bash
 manta serve --pairing-address <server-tailscale-ip-or-hostname>
 ```

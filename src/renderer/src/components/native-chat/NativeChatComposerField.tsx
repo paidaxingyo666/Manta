@@ -55,9 +55,14 @@ export type NativeChatComposerFieldProps = {
 
 export type NativeChatComposerImageAttachment = {
   id: string
+  /** Empty while `pending`: the clipboard image has no agent-readable path yet. */
   path: string
   connectionId?: string
-  ownerIdentity?: string
+  /** Clipboard thumbnail (blob/data URL) rendered before — and after — the file
+   *  lands, so the chip never waits on a disk round-trip to show something. */
+  previewUrl?: string
+  /** True while the pasted image is still being written to disk or uploaded. */
+  pending?: boolean
 }
 
 /**
@@ -184,7 +189,7 @@ export function NativeChatComposerField({
             )}
           >
             {imageAttachments.length > 0 ? (
-              <div className="scrollbar-sleek mb-2 flex max-h-36 flex-wrap content-start gap-2 overflow-y-auto px-1 pt-1.5 pr-2">
+              <div className="mb-2 flex flex-wrap gap-2 px-1 pt-1.5">
                 {imageAttachments.map((attachment) => (
                   <NativeChatImageAttachmentPreview
                     key={attachment.id}

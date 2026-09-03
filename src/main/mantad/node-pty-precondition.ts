@@ -19,6 +19,7 @@ import { existsSync, accessSync, constants } from 'node:fs'
 import { dirname, join } from 'node:path'
 import process from 'node:process'
 import { runProcessSync, type ProcessResult } from '../../shared/child-process/run-process'
+import { usesNodePtySpawnHelper } from '../../shared/node-pty-spawn-helper'
 import type { RuntimeTerminalUnavailableReason } from '../../shared/runtime-types'
 import {
   buildToolchainProbeCommand,
@@ -302,12 +303,12 @@ export function checkNodePtyPrecondition(
     }
   }
 
-  // Loaded. The remaining way terminals fail is spawn-time: node-pty posix_spawns
+  // Loaded. The remaining way terminals fail is spawn-time: on macOS node-pty posix_spawns
   // build/Release/spawn-helper, and a missing one turns every terminal.create into ENOENT
   // on a host that otherwise looks healthy. That is a degradation, not a boot blocker.
   const outcome = readNodePtyProbeOutcome(result)
   const loadedDir = outcome.kind === 'loaded' ? outcome.loadedDir : null
-  if (abi.platform !== 'win32') {
+  if (usesNodePtySpawnHelper(abi.platform)) {
     const helper = join(loadedDir || join(nodePtyDir, 'build', 'Release'), 'spawn-helper')
     if (!isExecutableFile(helper)) {
       return {

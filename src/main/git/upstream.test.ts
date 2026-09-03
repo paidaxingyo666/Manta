@@ -363,6 +363,16 @@ describe('getUpstreamStatus', () => {
       if (args[0] === 'remote' && args[1] === 'get-url' && args[2] === 'pr-pynickle-manta') {
         return Promise.resolve({ stdout: 'https://github.com/pynickle/manta.git\n' })
       }
+      if (args[0] === 'remote' && args[1] === '-v') {
+        return Promise.resolve({
+          stdout: [
+            'origin\thttps://github.com/stablyai/orca.git (fetch)',
+            'origin\thttps://github.com/stablyai/orca.git (push)',
+            'pr-pynickle-manta\thttps://github.com/pynickle/manta.git (fetch)',
+            'pr-pynickle-manta\thttps://github.com/pynickle/manta.git (push)'
+          ].join('\n')
+        })
+      }
       if (args[0] === 'remote') {
         return Promise.resolve({ stdout: 'origin\npr-pynickle-manta\n' })
       }

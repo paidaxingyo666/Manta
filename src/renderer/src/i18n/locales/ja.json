@@ -1051,11 +1051,7 @@
           "activity": "アクティビティ",
           "noActivity": "まだアクティビティはありません。"
         },
-        "checkActionRequiredHint": "マージのブロックが解除されるまでに、このチェックには GitHub 上での手動操作（例: ワークフロー実行の承認）が必要です。",
-        "307c98e8e3": {
-          "24fdee": "上に {{value0}} 行をさらに表示",
-          "752457": "下にさらに {{value0}} 行を表示"
-        }
+        "checkActionRequiredHint": "マージのブロックが解除されるまでに、このチェックには GitHub 上での手動操作（例: ワークフロー実行の承認）が必要です。"
       },
       "GitLabItemDialog": {
         "65e784c1f1": "再度開く",
@@ -2417,11 +2413,7 @@
               "df4bd63c1d": "未割り当て",
               "30402d2c6e": "検索または更新してみてください。",
               "a2f31c4cd6": "Linear プロジェクトが見つかりません",
-              "c9b6e9f90d": "Linear プロジェクトをロードできません",
-              "7616c986c6": {
-                "ac1f4e": "{{value0}} Issue を開く",
-                "5eb5e9": "{{value0}} を Linear で開く"
-              }
+              "c9b6e9f90d": "Linear プロジェクトをロードできません"
             }
           }
         },
@@ -2747,7 +2739,8 @@
             "e4aa243f8c": "デーモンを再起動します",
             "a7e2fd2699": "Issue を登録",
             "5c8ce20be6": "この状態が続く場合は、",
-            "cc6d997c65": "ここからターミナルデーモンを再起動して、古いデーモン状態をクリアします。"
+            "cc6d997c65": "ここからターミナルデーモンを再起動して、古いデーモン状態をクリアします。",
+            "remoteTerminalClosed": "リモートターミナルが閉じられました。"
           },
           "TerminalProcessExitOverlay": {
             "capacityTitle": "Git Bash のコンソール上限に達しました",
@@ -2831,11 +2824,7 @@
                 "internalPathsTooLarge": "安全にターミナルへ貼り付けるにはパス一覧が大きすぎます。",
                 "b4cf68e889": "{{value0}} {{value1}} をスキップしました。",
                 "writeTimeout": "ファイルドロップをキャンセルしました: 安全タイムアウト前にターミナルがパスを受け付けませんでした。",
-                "writeRejected": "ファイルドロップをキャンセルしました: ターミナルがパスを受け付けられませんでした。",
-                "29c031b49a": {
-                  "e09913": "{{value0}} ファイル{{value1}} をランタイムにアップロードしています…",
-                  "ac0575": "{{value0}} 件のファイル{{value1}}をリモートにアップロード中…"
-                }
+                "writeRejected": "ファイルドロップをキャンセルしました: ターミナルがパスを受け付けられませんでした。"
               }
             }
           },
@@ -2889,13 +2878,9 @@
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingTitle": "リモートランタイムに再接続中",
             "disconnectedTitle": "リモートランタイムが切断されました",
-            "retryingBody": "Manta は最大1分間再試行します。接続が復元されると、このターミナルが再開されます。",
+            "retryingBody": "Manta は自動的に再試行します。接続が復元されると、このターミナルが再開されます。",
             "disconnectedBody": "自動再試行が停止しました。このターミナルセッションを再開するには再接続してください。",
             "reconnectButton": "再接続"
-          },
-          "SessionRestoredBanner": {
-            "f4d06c346b": "--- セッションを復元しました ---",
-            "139e3d1083": "--- 前のセッションを利用できないため、新規開始しました ---"
           }
         }
       },
@@ -2958,10 +2943,7 @@
             "1d04b1630b": "下に分割",
             "6b3efb106e": "上に分割",
             "fdd29eb669": "ピンタブ",
-            "8e9d603a09": "タブの固定を解除する",
-            "fe23001e60": "含まれるフォルダを開く",
-            "3da91e073d": "エクスプローラーで表示",
-            "6ffb7f7bce": "Finder で表示"
+            "8e9d603a09": "タブの固定を解除する"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent 設定…",
@@ -3252,16 +3234,6 @@
             "autoDescription": "Agent の作業中はスリープさせない",
             "offDescription": "通常のシステムスリープを許可する"
           },
-          "RuntimeHostStatusRow": {
-            "previous_connection_closed": "前回の接続は切断されました",
-            "workspace_window_closed": "ワークスペースウィンドウが閉じています",
-            "checking_host": "Manta がこのホストに接続可能か確認しています",
-            "restoring_connection": "Manta が接続の復元を試みています",
-            "host_unreachable": "このホストの Manta に接続できません",
-            "contact_note": "ホストは引き続き稼働している可能性があります。利用できないのは Manta の接続のみです。",
-            "last_connected": "最終接続：{{value0}}",
-            "reconnect_attempt": "試行 {{value0}}"
-          },
           "StatusBar": {
             "9659e38343": "ポート",
             "d1e1a7a6bf": "リソースマネージャー",
@@ -3357,11 +3329,7 @@
             "2837dc7c72": "キャンセル中",
             "0583c806ac": "ワークスペースのディスク使用量はスキャンされません。",
             "39786e3b73": "ワークスペースのサイズをスキャンしています。",
-            "3d8d47ce77": "{{value0}} · 最後の結果が保持される",
-            "bef4dc0457": {
-              "02d421": "{{value0}} は回収可能ですが、{{value1}} は利用できません",
-              "db101b": "{{value0}} 回収可能 · {{value1}} 個のワークスペース"
-            }
+            "3d8d47ce77": "{{value0}} · 最後の結果が保持される"
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "強制削除に失敗しました",
@@ -3780,7 +3748,7 @@
         "share": {
           "card": {
             "utils": {
-              "19f4b4dc75": "github.com/stablyai/manta",
+              "19f4b4dc75": "github.com/stablyai/orca",
               "d864fc5f98": "出力",
               "5d66fdd7c2": "入力",
               "7080aeaebb": "推論",
@@ -4158,7 +4126,7 @@
           "007651bdf9": "ディレクトリに移動し、「選択」をクリックして選択します。",
           "dd3ff65486": "リモートファイルシステムを参照する",
           "36d427bb66": "リモートプロジェクトを追加",
-          "35831a7312": "追加中...",
+          "35831a7312": "追加中…",
           "lockedDescription": "{{value0}} 上の Git リポジトリへのパスを入力してください。",
           "lockedDisconnected": "{{value0}} は切断されています。",
           "93e0221434": "接続"
@@ -4413,12 +4381,15 @@
           "keepDefaultBranchAria": "スリープ中のワークスペースを非表示にしてもデフォルトのブランチは表示したままにする"
         },
         "SidebarHeader": {
+          "projects": "プロジェクト",
           "92154beb7e": "新規ワークスペース",
           "49f62c5665": "ワークスペースボード",
           "5c9c7c16aa": "プロジェクトを追加してワークスペースを作成する",
           "ca6f729da2": "新規ワークスペース ({{value0}})",
           "a30e34eb5c": "ワークスペースボードを閉じる",
-          "25a95899c9": "プロジェクトを追加"
+          "25a95899c9": "プロジェクトを追加",
+          "spaces": "スペース",
+          "views": "サイドバービュー"
         },
         "SidebarNav": {
           "80611a8b10": "検索",
@@ -4449,6 +4420,7 @@
         "SidebarSettingsHelpMenu": {
           "ad3d3ed7f1": "Manta を再起動",
           "29c56f30ee": "アップデートをチェックする",
+          "eb9884e55b": "Discord",
           "5687ab246a": "GitHub",
           "5f83d86d92": "変更履歴",
           "cdc87f897e": "ドキュメント",
@@ -4460,7 +4432,8 @@
           "5161eef55d": "Manta を再起動しています…",
           "d396773ef0": "チェック中",
           "f8a2c91d4e": "マイルストーン",
-          "b7e4d2a19c": "オンボーディング"
+          "b7e4d2a19c": "オンボーディング",
+          "c4f8e1b72a": "X"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "フォルダーピッカーを開いてプロジェクトを追加します",
@@ -4535,11 +4508,7 @@
           "219ebf1961": "ブランチ名",
           "automation": "オートメーション",
           "folderPathIdentity": "ブランチ / フォルダーパス",
-          "cli": "Manta CLI",
-          "bc96dbd041": {
-            "5de9a9": "ワークスペースオプション ({{value0}})",
-            "d8404d": "ワークスペースオプション(アクティブ {{value0}} 件)"
-          }
+          "cli": "Manta CLI"
         },
         "SshTargetRow": {
           "4677394048": "接続中…",
@@ -4566,11 +4535,7 @@
           "34f03eb0de": "ボード設定",
           "26cbc92150": "ワークスペースボードの設定",
           "87d24a0c2f": "ボードと Issue のステータスを同期",
-          "4c2eaa78cc": "リンク済みワークスペースを移動すると、一致するワークフロー状態がある場合に Linear Issue のステータスが更新されます。",
-          "b45b350eb0": {
-            "9bb3fd": "{{value0}} を左に移動",
-            "a4b8c6": "{{value0}} を右へ移動"
-          }
+          "4c2eaa78cc": "リンク済みワークスペースを移動すると、一致するワークフロー状態がある場合に Linear Issue のステータスが更新されます。"
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "空の",
@@ -4581,11 +4546,7 @@
           "8be427206b": "アイコン",
           "2ac106f6b2": "色",
           "74b1413279": "外観",
-          "ccbd1e2c69": "{{value0}} の外観をカスタマイズする",
-          "514be2f569": {
-            "a9ca01": "{{value0}} の色を {{value1}} に設定します",
-            "dd358d": "{{value0}} のアイコンを {{value1}} に設定"
-          }
+          "ccbd1e2c69": "{{value0}} の外観をカスタマイズする"
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}} はすでに存在します。",
@@ -5495,9 +5456,7 @@
           "8b7a8df299": "サポートのトラブルシューティングのための低レベルの回避策。",
           "8d8d8ac599": "互換性",
           "network": "ネットワーク",
-          "networkDescription": "プロキシや企業環境向けのアプリレベルのネットワークルーティング。",
-          "mantaCloud": "Manta Cloud",
-          "mantaCloudDescription": "公式のものではなく、セルフホストのサインインおよびリレーサーバーを使用します。"
+          "networkDescription": "プロキシや企業環境向けのアプリレベルのネットワークルーティング。"
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL のデフォルト",
@@ -6760,11 +6719,7 @@
           "868c5c9b56": "リポジトリアイコンのインポートに失敗しました",
           "emojiTooLongForRepoIcon": "この絵文字はリポジトリアイコンとして使用できません。",
           "currentEmojiSelection": "現在: {{value0}}",
-          "searchEmojiPlaceholder": "絵文字を検索",
-          "2b7d27b93c": {
-            "cd676f": "{{value0}} リポジトリカラーを使用する",
-            "59fda8": "{{value0}} リポジトリのアイコンを使用"
-          }
+          "searchEmojiPlaceholder": "絵文字を検索"
         },
         "RepositoryPane": {
           "15a99d9b9f": "相対パスは、このプロジェクトのルートから解決されます。",
@@ -6841,11 +6796,7 @@
           "show": "表示",
           "hide": "非表示",
           "externalWorktreesGlobal": "グローバルデフォルト: {{value0}}",
-          "useGlobal": "グローバル設定を使用",
-          "settingUpHost": {
-            "b7353a": "インポート中…",
-            "268c06": "追加中..."
-          }
+          "useGlobal": "グローバル設定を使用"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "コマンドテンプレート",
@@ -8110,7 +8061,7 @@
               "cee44fb442": "オートメーション",
               "a57c2172dc": "Agent ブラウザ",
               "6ea88e5206": "npx",
-              "f5b8fdddf5": "manta-cli",
+              "f5b8fdddf5": "orca-cli",
               "e5a784bc54": "インストール",
               "9d97446873": "Agent",
               "a2d489263e": "スキル",
@@ -8296,7 +8247,8 @@
             },
             "agentDashboard": {
               "title": "Agent ダッシュボード",
-              "description": "ワークツリー Agent を監視するカンバンボード。ウィンドウ内またはポップアウトで表示できます。"
+              "description": "ワークツリー Agent を監視するカンバンボード。ウィンドウ内またはポップアウトで表示できます。",
+              "dashboard": "ダッシュボード"
             }
           }
         },
@@ -10322,9 +10274,6 @@
           "saveFailed": "表示設定のデフォルトを保存できませんでした。",
           "updateServer": "ソースのデフォルトを設定するには、このサーバーを更新してください。",
           "updateServerDefaults": "表示のデフォルトを設定するには、このサーバーを更新してください。"
-        },
-        "MantaCloudEndpointsSection": {
-          "enrollmentSaved": "保存済み — 入力すると置き換わります"
         }
       },
       "right": {
@@ -13101,12 +13050,12 @@
           "13822cdfda": "プレーンテキスト"
         },
         "RichMarkdownDocLinkMenu": {
+          "e17b987473": "↑↓ 移動 ↵ 選択 esc 閉じる",
           "90c5f0e1e4": "の",
           "2aaf7d9678": "表示中",
           "63ced7cb9b": "文書が見つかりませんでした",
           "0e8489bc11": "Markdown ドキュメントのリンク",
-          "142a7d51cd": "書類",
-          "b0f0efcfce": "↑↓ 移動 ↵ 選択 esc 閉じる"
+          "142a7d51cd": "書類"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "再試行",
@@ -13749,20 +13698,6 @@
             "f3575229df": "取得",
             "405bb315da": "無題"
           },
-          "annotate": {
-            "browser": {
-              "page": {
-                "annotation": {
-                  "tray": {
-                    "09a7c1df70": "注釈 {{value0}} を編集",
-                    "c16f932cb3": "保存",
-                    "024467ceac": "キャンセル",
-                    "449d2c2629": "注釈の意図"
-                  }
-                }
-              }
-            }
-          },
           "browser": {
             "address": {
               "bar": {
@@ -13775,6 +13710,35 @@
         }
       },
       "automations": {
+        "AutomationListToolbar": {
+          "runs": "実行"
+        },
+        "AutomationRunsDashboard": {
+          "search": "実行を検索…",
+          "filters": "フィルター",
+          "host": "ホスト",
+          "status": "ステータス",
+          "refresh": "実行を更新",
+          "successful24h": "成功 · 24時間",
+          "failed24h": "失敗 · 24時間",
+          "successful7d": "成功 · 7日間",
+          "failed7d": "失敗 · 7日間",
+          "historyUnavailableOne": "1件の自動化で実行履歴を利用できません。カウントには利用可能な履歴のみが含まれます。",
+          "historyUnavailableMany": "{{count}}件の自動化で実行履歴を利用できません。カウントには利用可能な履歴のみが含まれます。",
+          "automation": "自動化",
+          "triggered": "トリガー済み",
+          "trigger": "トリガー",
+          "loading": "実行を読み込み中…",
+          "noRuns": "実行はまだありません",
+          "emptyDescription": "自動化がトリガーされると、ここに実行が表示されます。",
+          "runs": "実行",
+          "local": "ローカル",
+          "remote": "リモート"
+        },
+        "AutomationsPageBreadcrumb": {
+          "ariaLabel": "自動化のパンくずリスト",
+          "runDetails": "実行の詳細"
+        },
         "AutomationCustomCronPanel": {
           "3e3b2c369f": "クロン式",
           "e81a02d61b": "保存する前に、有効な 5 フィールドの cron を入力してください。",
@@ -14203,9 +14167,10 @@
           "b29191b3e0": "ワークツリー",
           "8c3b621ddf": "プロジェクト",
           "4a3986b200": "状態",
-          "770d458144": "Agent のアクティビティをグループ化する",
+          "770d458144": "グループ化",
           "795cbf26e2": "フィルター…",
           "4616ea39fd": "ワークスペースにジャンプ",
+          "markThreadRead": "スレッドを既読としてマーク",
           "59b131fbd9": "スレッドを未読としてマークする",
           "beb2c19173": "未読",
           "5651b216c6": "不明なプロジェクト",
@@ -14586,11 +14551,6 @@
     }
   },
   "components": {
-    "jiraUserPicker": {
-      "select": "{{value0}} を選択",
-      "search": "ユーザーを検索",
-      "empty": "ユーザーが見つかりません"
-    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "この Agent では画像の貼り付けはサポートされていません。",
@@ -14609,13 +14569,6 @@
         "imagePasteFailed": "画像の貼り付けに失敗しました。",
         "worktreeNotReady": "ワークツリーが準備できていません — しばらくしてから再試行してください。",
         "uploadingAttachments": "{{value0}}個のファイルをリモートにアップロード中…",
-        "viewAttachment": "画像を表示: {{value0}}",
-        "removeNamedAttachment": "画像を削除: {{value0}}",
-        "imagePreview": "フルサイズの画像プレビュー",
-        "imagePreviewLoading": "画像プレビューを読み込み中…",
-        "imagePreviewUnavailable": "プレビューを表示できません",
-        "retryImagePreview": "再試行",
-        "imageAttachmentLimit": "添付できる画像は最大{{value0}}枚です。",
         "model": "モデル",
         "effort": "推論レベル",
         "fastMode": "高速モード",
@@ -14719,10 +14672,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "ターミナルビューに切り替える",
           "switchToChatView": "チャットビューに切り替える",
-          "closeTabsToLeft": "左側のタブを閉じる",
-          "copySessionId": "セッション ID をコピー",
-          "copySessionIdSuccess": "セッション ID をコピーしました",
-          "copySessionIdError": "セッション ID のコピーに失敗しました"
+          "closeTabsToLeft": "左側のタブを閉じる"
         },
         "BrowserTab": {
           "closeOthers": "その他を閉じる",
@@ -14770,6 +14720,13 @@
       "sent": "セッションコンテキストを新規 {{agent}} セッションに送信しました。",
       "deliveryFailed": "新規 {{agent}} セッションは開始しましたが、コンテキストを送信できませんでした。",
       "launchFailed": "新規 {{agent}} セッションを開始できませんでした。"
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "セッション ID をコピー",
+        "copySessionIdSuccess": "セッション ID をコピーしました",
+        "copySessionIdError": "セッション ID のコピーに失敗しました"
+      }
     }
   },
   "dashboardPopout": {
@@ -14867,7 +14824,8 @@
   },
   "dashboard": {
     "sidebar": {
-      "label": "Agent ダッシュボード"
+      "label": "Agent",
+      "dashboardLabel": "Agent ダッシュボード"
     }
   },
   "browser": {
@@ -14907,6 +14865,21 @@
         "addressInUse": "別のプロセスがポートを使用している可能性があります。Manta を再起動してから、もう一度お試しください。",
         "unknown": "Manta を再起動してから、もう一度お試しください。"
       }
+    }
+  },
+  "agentsSidebarIntro": {
+    "migrated": {
+      "title": "Agent が見つけやすくなりました",
+      "description": "Agent ビューはサイドバーの専用タブになりました。アクティビティとフィルターはそのまま引き継がれます。",
+      "dismiss": "OK",
+      "action": "Agent を開く"
+    },
+    "new": {
+      "title": "Agent タブのご紹介",
+      "description": "Agent が何に取り組んでいるか、何が完了したか、どこで対応が必要かを確認できます。",
+      "hide": "Agent を隠す",
+      "action": "Agent を試す",
+      "hiddenToast": "Agent タブを非表示にしました。設定 → 実験的機能で再度有効にできます。"
     }
   }
 }

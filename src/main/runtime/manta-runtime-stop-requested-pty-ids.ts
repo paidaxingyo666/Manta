@@ -57,7 +57,7 @@ export class MantaRuntimeWithStopRequestedPtyIds extends MantaRuntimeWithRuntime
     resolveOwner: (handle) => this.resolveNativeChatLaunchDraftOwner(handle),
     listMobileSnapshots: () => this.mobileSessionTabsByWorktree,
     setMobileSnapshot: (worktreeId, snapshot) =>
-      this.mobileSessionTabsByWorktree.set(worktreeId, snapshot),
+      this.storeMobileSessionSnapshot(worktreeId, snapshot),
     scheduleMobileSnapshot: (worktreeId) => this.scheduleMobileSessionTabsChanged(worktreeId),
     notifyResolved: (tabId, resolution, event) => {
       this.notifier?.nativeChatLaunchDraftResolved?.(tabId, resolution)

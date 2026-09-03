@@ -205,6 +205,18 @@ class Evidence:
             vocab = subprocess.run(['rg', '-o', '-I', '--no-filename', '--no-line-number',
                                     r'[A-Za-z0-9_./-]*[Mm]anta[A-Za-z0-9_./-]*', '.'],
                                    capture_output=True, text=True, cwd=tree).stdout
+            # Path-shaped tokens are evidence one segment at a time. The fork
+            # writing `/tmp/.mount_manta` somewhere makes `.mount_manta` a name
+            # it uses; `relative/.mount_orca` in a fixture is then the same name
+            # under a different parent and must rename too. Judging the whole
+            # string instead left exactly those halves behind, and the seam is
+            # silent — it lands on the negative side of a test, which still
+            # passes, for the wrong reason.
+            self.name_segments = set()
+            for w in vocab.split():
+                for seg in word_core(w).split('/'):
+                    if seg and re.search(r'[Mm]anta', seg):
+                        self.name_segments.add(seg)
             files = subprocess.run(['git', 'ls-tree', '-r', '--name-only', ref],
                                    capture_output=True, text=True).stdout.splitlines()
             self.families = set()
@@ -238,7 +250,8 @@ class Evidence:
         # A file or directory the fork already has, named in a path or on its own.
         # A filename never appears as a word inside any file, so this is the only
         # evidence a bare `real-orca-launcher.vbs` string can have.
-        if any(re.search(r'[Mm]anta', seg) and seg in self.segments for seg in word_core(twin).split('/')):
+        segs = word_core(twin).split('/')
+        if any(re.search(r'[Mm]anta', s) and (s in self.segments or s in self.name_segments) for s in segs):
             return True
         return self.in_family(twin)
 

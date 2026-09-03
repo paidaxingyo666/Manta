@@ -8,11 +8,9 @@
 import { createRef } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { TooltipProvider } from '@/components/ui/tooltip'
 
 vi.mock('@/i18n/i18n', () => ({
-  translate: (_key: string, fallback: string, values?: Record<string, string>) =>
-    fallback.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => values?.[key] ?? '')
+  translate: (_key: string, fallback: string) => fallback
 }))
 
 vi.mock('./NativeChatComposerActions', () => ({
@@ -25,11 +23,7 @@ vi.mock('./NativeChatAutocompleteMenus', () => ({
 }))
 
 vi.mock('@/components/editor/useLocalImageSrc', () => ({
-  useLocalImageSrcState: (src?: string) => ({
-    src: src ? 'blob:attachment-preview' : undefined,
-    status: src ? 'ready' : 'idle',
-    retry: vi.fn()
-  })
+  useLocalImageSrc: (src?: string) => (src ? 'blob:attachment-preview' : undefined)
 }))
 
 import { NativeChatComposerField } from './NativeChatComposerField'
@@ -50,45 +44,42 @@ function TestField({
   imageAttachments?: { id: string; path: string }[]
 }): React.JSX.Element {
   const imeEnterGesture = useImeEnterGestureOwnership()
-  // Attachment previews label their buttons with tooltips, which Radix roots on a provider.
   return (
-    <TooltipProvider>
-      <NativeChatComposerField
-        textareaRef={createRef<HTMLTextAreaElement>()}
-        draft={draft}
-        disabled={false}
-        hasPty
-        canSend
-        autocomplete={{ mode: 'none' }}
-        activeSuggestion={0}
-        notice={null}
-        imageAttachments={imageAttachments}
-        sendButtonDisabled={false}
-        isWorking={false}
-        attachDisabled={false}
-        dictationDisabled={false}
-        isDictating={false}
-        isDictationHoldMode={false}
-        imeEnterGesture={imeEnterGesture}
-        onDraftChange={vi.fn()}
-        onTextareaSelect={vi.fn()}
-        onKeyDown={vi.fn()}
-        onImeSettled={vi.fn()}
-        onPaste={vi.fn()}
-        pickerListboxId="picker"
-        onChoosePickerItem={vi.fn()}
-        onRetrySkills={vi.fn()}
-        onAcceptMention={vi.fn()}
-        onRemoveImageAttachment={vi.fn()}
-        onAttach={vi.fn()}
-        onDictationToggle={vi.fn()}
-        onDictationHoldStart={vi.fn()}
-        onDictationHoldEnd={vi.fn()}
-        onSend={vi.fn()}
-        sessionOptionsSurface={null}
-        sessionOptionsSnapshot={[]}
-      />
-    </TooltipProvider>
+    <NativeChatComposerField
+      textareaRef={createRef<HTMLTextAreaElement>()}
+      draft={draft}
+      disabled={false}
+      hasPty
+      canSend
+      autocomplete={{ mode: 'none' }}
+      activeSuggestion={0}
+      notice={null}
+      imageAttachments={imageAttachments}
+      sendButtonDisabled={false}
+      isWorking={false}
+      attachDisabled={false}
+      dictationDisabled={false}
+      isDictating={false}
+      isDictationHoldMode={false}
+      imeEnterGesture={imeEnterGesture}
+      onDraftChange={vi.fn()}
+      onTextareaSelect={vi.fn()}
+      onKeyDown={vi.fn()}
+      onImeSettled={vi.fn()}
+      onPaste={vi.fn()}
+      pickerListboxId="picker"
+      onChoosePickerItem={vi.fn()}
+      onRetrySkills={vi.fn()}
+      onAcceptMention={vi.fn()}
+      onRemoveImageAttachment={vi.fn()}
+      onAttach={vi.fn()}
+      onDictationToggle={vi.fn()}
+      onDictationHoldStart={vi.fn()}
+      onDictationHoldEnd={vi.fn()}
+      onSend={vi.fn()}
+      sessionOptionsSurface={null}
+      sessionOptionsSnapshot={[]}
+    />
   )
 }
 

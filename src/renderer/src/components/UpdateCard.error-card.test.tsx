@@ -2,7 +2,8 @@
 import { act, cleanup, fireEvent, render, screen, type RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { LinuxPackageInstallRecovery } from '../../../shared/update-status-types'
+import { HOURLY_RELEASE_REPO, MAIN_RELEASE_REPO } from '../../../shared/release-channel'
+import type { LinuxPackageInstallRecovery, UpdateStatus } from '../../../shared/update-status-types'
 import { useAppStore } from '../store'
 import { UpdateCard } from './UpdateCard'
 
@@ -16,26 +17,29 @@ const writeClipboardText = vi.fn()
 const relaunch = vi.fn()
 const setSettings = vi.fn()
 
+const MAIN_RELEASES_URL = `https://github.com/${MAIN_RELEASE_REPO}/releases`
+const RELEASE_TAG_URL = `https://github.com/${MAIN_RELEASE_REPO}/releases/tag/v1.4.200`
+
 const PACKAGE_RECOVERY: LinuxPackageInstallRecovery = {
   kind: 'linux-package-install',
   packageType: 'deb',
-  reason: 'authentication-agent-unavailable',
+  reason: 'manual-install-required',
   version: '1.4.200'
 }
 
-function renderAfterAvailableStatus(): RenderResult {
+function renderWithInitialStatus(updateStatus: UpdateStatus): RenderResult {
   useAppStore.setState({
-    updateStatus: {
-      state: 'available',
-      version: '1.4.200',
-      changelog: null
-    },
+    updateStatus,
     updateChangelog: null,
     dismissedUpdateVersion: null,
     updateCardCollapsed: false,
     updateReassuranceSeen: true
   })
   return render(<UpdateCard />)
+}
+
+function renderAfterAvailableStatus(): RenderResult {
+  return renderWithInitialStatus({ state: 'available', version: '1.4.200', changelog: null })
 }
 
 function mockReducedMotion(matches: boolean): void {
@@ -51,7 +55,7 @@ function mockReducedMotion(matches: boolean): void {
 
 beforeEach(() => {
   useAppStore.setState(useAppStore.getInitialState(), true)
-  openUrl.mockReset()
+  openUrl.mockReset().mockResolvedValue(undefined)
   download.mockReset()
   check.mockReset()
   quitAndInstall.mockReset().mockResolvedValue(undefined)
@@ -103,7 +107,7 @@ describe('UpdateCard Windows signature failures', () => {
     expect(screen.queryByText(message)).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Check official releases' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/paidaxingyo666/Manta/releases')
+    expect(openUrl).toHaveBeenCalledWith(MAIN_RELEASES_URL)
     expect(openUrl).not.toHaveBeenCalledWith(expect.stringContaining('/tag/'))
   })
 
@@ -160,7 +164,7 @@ describe('UpdateCard hourly builds', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Release notes' }))
     expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/paidaxingyo666/manta-hourly/releases/tag/v1.4.160-hourly.202607281400'
+      `https://github.com/${HOURLY_RELEASE_REPO}/releases/tag/v1.4.160-hourly.202607281400`
     )
   })
 })
@@ -213,23 +217,58 @@ function showPackageRecovery(recovery = PACKAGE_RECOVERY): void {
   act(() =>
     useAppStore.getState().setUpdateStatus({
       state: 'error',
-      message: 'pkexec: no polkit authentication agent found',
+      message: 'Quit Manta before running the system package install command.',
       recovery
     })
   )
 }
 
 describe('UpdateCard Linux package-install recovery', () => {
-  it('routes package-install errors to the recovery card instead of the generic one', () => {
+  it('routes root-package downloads to the manual-install card instead of the generic one', () => {
     renderAfterAvailableStatus()
 
     showPackageRecovery()
 
-    expect(screen.getByText('Automatic Install Failed')).toBeTruthy()
+    expect(screen.getByText('Manual Install Required')).toBeTruthy()
     expect(screen.queryByText('Update Error')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Retry Download' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Copy Install Command' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Try Automatic Install Again' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Show Package' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Download Manually' })).toBeTruthy()
+    expect(quitAndInstall).not.toHaveBeenCalled()
+  })
+
+  it('renders an initial recovery snapshot with its versioned release fallback', () => {
+    renderWithInitialStatus({
+      state: 'error',
+      message: 'Quit Manta before running the system package install command.',
+      recovery: PACKAGE_RECOVERY
+    })
+
+    expect(screen.getByText('Manual Install Required')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
+  })
+
+  it('uses the recovery version when cached update state is stale', () => {
+    renderWithInitialStatus({ state: 'available', version: '1.4.199', changelog: null })
+    showPackageRecovery()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
+  })
+
+  it.each([
+    'authentication-agent-unavailable',
+    'authentication-denied',
+    'package-install-failed'
+  ] as const)('keeps recovery usable for the legacy %s reason', (reason) => {
+    renderAfterAvailableStatus()
+
+    showPackageRecovery({ ...PACKAGE_RECOVERY, reason })
+
+    expect(screen.getByText('Manual Install Required')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Copy Install Command' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Show Package' })).toBeTruthy()
   })
 
@@ -259,9 +298,46 @@ describe('UpdateCard Linux package-install recovery', () => {
     await flushActions()
 
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/paidaxingyo666/Manta/releases/tag/v1.4.200'
-    )
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
+  })
+
+  it('resets command discovery when a newer package cycle replaces the recovery', async () => {
+    getInstructions.mockResolvedValueOnce({
+      ok: false,
+      reason: 'no-package-manager',
+      message: 'No supported package manager was found.'
+    })
+    renderAfterAvailableStatus()
+    showPackageRecovery()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Install Command' }))
+    await flushActions()
+    expect(screen.queryByRole('button', { name: 'Copy Install Command' })).toBeNull()
+
+    showPackageRecovery({ ...PACKAGE_RECOVERY, version: '1.4.201' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Install Command' }))
+    await flushActions()
+    expect(getInstructions).toHaveBeenCalledTimes(2)
+    expect(writeClipboardText).toHaveBeenCalledTimes(1)
+  })
+
+  it('links unusable package metadata to the release without offering a futile retry', () => {
+    const message =
+      'The downloaded package metadata could not be verified. Quit Manta before downloading and installing the update from the official release page.'
+    renderWithInitialStatus({
+      state: 'error',
+      message,
+      version: '1.4.200',
+      retryable: false
+    })
+
+    expect(screen.getByText('Update Error')).toBeTruthy()
+    expect(screen.getByText(message)).toBeTruthy()
+    expect(screen.queryByText('Manual Install Required')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Retry Download' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
   })
 
   it('keeps generic errors on the generic card when no recovery is attached', () => {
@@ -270,7 +346,7 @@ describe('UpdateCard Linux package-install recovery', () => {
     act(() => useAppStore.getState().setUpdateStatus({ state: 'error', message: 'ENOSPC' }))
 
     expect(screen.getByText('Update Error')).toBeTruthy()
-    expect(screen.queryByText('Automatic Install Failed')).toBeNull()
+    expect(screen.queryByText('Manual Install Required')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Retry Download' }))
     expect(download).toHaveBeenCalledTimes(1)
   })
@@ -297,7 +373,7 @@ describe('UpdateCard Linux package-install recovery', () => {
     )
 
     expect(screen.getByText('HTTP/2 Download Blocked')).toBeTruthy()
-    expect(screen.queryByText('Automatic Install Failed')).toBeNull()
+    expect(screen.queryByText('Manual Install Required')).toBeNull()
     expect(screen.getByRole('button', { name: 'Enable & Restart' })).toBeTruthy()
   })
 
@@ -362,7 +438,7 @@ describe('UpdateCard recovery keyboard and motion', () => {
     fireEvent.keyDown(screen.getByRole('complementary'), { key: 'Escape' })
 
     expect(useAppStore.getState().updateCardCollapsed).toBe(true)
-    expect(screen.queryByText('Automatic Install Failed')).toBeNull()
+    expect(screen.queryByText('Manual Install Required')).toBeNull()
   })
 
   it('plays the exit animation before minimizing when motion is allowed', () => {

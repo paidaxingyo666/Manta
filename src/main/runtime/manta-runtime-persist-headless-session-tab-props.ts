@@ -95,7 +95,7 @@ export class MantaRuntimeWithPersistHeadlessSessionTabProps extends MantaRuntime
       snapshotVersion: snapshot.snapshotVersion + 1,
       tabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
   }
 
@@ -181,7 +181,7 @@ export class MantaRuntimeWithPersistHeadlessSessionTabProps extends MantaRuntime
       snapshotVersion: snapshot.snapshotVersion + 1,
       tabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
   }
 }

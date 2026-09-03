@@ -147,8 +147,13 @@ test.describe('Issue #12656 terminal link tooltip', () => {
     expect(Math.abs(idle.paneBottom - idle.terminalBottom)).toBeLessThanOrEqual(1)
     await expect
       .poll(async () => {
-        await moveToLink(mantaPage, probe)
-        return readTooltipState(mantaPage, probe.tabId)
+        const currentProbe = await locateUrl(mantaPage, url)
+        if (!currentProbe) {
+          return { display: 'none', text: '' }
+        }
+        probe = currentProbe
+        await moveToLink(mantaPage, currentProbe)
+        return readTooltipState(mantaPage, currentProbe.tabId)
       })
       .toMatchObject({ display: '', text: expect.stringContaining(url) })
 

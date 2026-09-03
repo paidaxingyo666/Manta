@@ -39,7 +39,7 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
       })),
       tabs: nextTabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
   }
 
@@ -49,7 +49,7 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
   protected republishMobileSessionTabsSnapshot(worktreeId: string): void {
     const snapshot = this.mobileSessionTabsByWorktree.get(worktreeId)
     if (snapshot) {
-      this.mobileSessionTabsByWorktree.set(worktreeId, {
+      this.storeMobileSessionSnapshot(worktreeId, {
         ...snapshot,
         snapshotVersion: snapshot.snapshotVersion + 1
       })
@@ -161,7 +161,7 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
       })),
       tabs: nextTabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
     return true
   }
@@ -203,7 +203,7 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
       focusesHost,
       publicationEpoch: `headless:${Date.now().toString(36)}`
     })
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     // Why: browser group membership is otherwise live-only; persist it so a
     // later rebuild keeps the browser in its group instead of coalescing left.
     if (placedInTargetGroup && nextSnapshot.tabGroupLayout) {

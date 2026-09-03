@@ -1,64 +1,58 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { resolveImageAbsolutePath } from './markdown-preview-links'
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client'
-import { readRuntimeFilePreview } from '@/runtime/runtime-file-client'
+import { readLocalImagePreview } from './local-image-src-reader'
 import {
-  cacheLocalImageBlobUrl,
-  deleteInFlightLocalImageLoad,
-  getCachedLocalImageBlobUrl,
-  getInFlightLocalImageLoad,
+  blobUrlCache,
+  cacheLocalImageBlob,
+  cleanupLocalImageCacheKeyVersion,
   getLocalImageCacheGeneration,
+  getLocalImageCacheKeyVersion,
+  inFlightBlobUrlLoads,
   invalidateLocalImageCache,
-  LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED,
-  onImageCacheInvalidated,
-  onLocalImageCacheCapacityAvailable,
-  pinLocalImageBlobUrl,
-  releaseLocalImageCacheSlot,
-  reserveLocalImageCacheSlot,
-  resetLocalImageBlobCache,
-  setInFlightLocalImageLoad,
-  unpinLocalImageBlobUrl
-} from './local-image-blob-cache'
-
-// Why: the renderer is served from http://localhost in dev mode, so file://
-// URLs in <img> tags are blocked by cross-origin restrictions. Loading images
-// via the existing fs.readFile IPC and converting to blob URLs bypasses this
-// limitation and works identically in both dev and production modes.
-
-type LocalImageLoadResult = string | null | typeof LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED
-type LocalImageRuntimeContext = Omit<RuntimeFileOperationArgs, 'connectionId'> & {
-  connectionId?: string | null
-}
+  pinLocalImageCache,
+  releaseLocalImageBlob,
+  resetLocalImageCacheState,
+  subscribeToLocalImageCacheInvalidation,
+  unpinLocalImageCache
+} from './local-image-src-cache'
 
 export function getLocalImageCacheKey(
   absolutePath: string,
   connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
+  runtimeContext?: Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null }
 ): string {
   const runtimeEnvironmentId =
     runtimeContext?.settings?.activeRuntimeEnvironmentId?.trim() ?? 'client'
   return [
     runtimeEnvironmentId,
     runtimeContext?.connectionId ?? connectionId ?? 'local',
+    runtimeContext?.expectedExecutionHostId ?? 'unknown-host',
+    runtimeContext?.expectedSshTargetId ?? '',
+    runtimeContext?.expectedSshConnectionGeneration?.toString() ?? '',
     runtimeContext?.expectedExternalSshTargetId ?? '',
     runtimeContext?.worktreeId ?? 'unknown-worktree',
+    runtimeContext?.worktreePath ?? '',
     absolutePath
   ].join('\0')
 }
 
-function base64ToBlobUrl(base64: string, mimeType: string): string {
+function base64ToBlobUrl(base64: string, mimeType: string): { url: string; byteLength: number } {
   const binary = atob(base64.replace(/\s/g, ''))
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i)
   }
-  return URL.createObjectURL(new Blob([bytes], { type: mimeType }))
+  return {
+    url: URL.createObjectURL(new Blob([bytes], { type: mimeType })),
+    byteLength: bytes.byteLength
+  }
 }
 
-export { onImageCacheInvalidated }
+export const onImageCacheInvalidated = subscribeToLocalImageCacheInvalidation
 
 function isExternalUrl(src: string): boolean {
-  return /^(?:https?:\/\/|data:|blob:)/.test(src)
+  return /^(?:https?|data|blob):/i.test(src)
 }
 
 /**
@@ -67,165 +61,85 @@ function isExternalUrl(src: string): boolean {
  * returns the URL directly. Re-validates on window re-focus so deleted or
  * replaced images are picked up.
  */
-export type LocalImageSrcState = {
-  src: string | undefined
-  status: 'idle' | 'loading' | 'ready' | 'unavailable' | 'capacity-blocked'
-  retry: () => void
-}
-
-type LocalImageSrcSnapshot = Omit<LocalImageSrcState, 'retry'>
-
-// Why: object state is compared by reference, so re-setting an unchanged value
-// would still re-render — every mount repeats what the initializer computed.
-function nextLocalImageSrcState(
-  previous: LocalImageSrcSnapshot,
-  next: LocalImageSrcSnapshot
-): LocalImageSrcSnapshot {
-  return previous.src === next.src && previous.status === next.status ? previous : next
-}
-
-/** Resolves an image URL and exposes loading, failure, and retry state. */
-export function useLocalImageSrcState(
+export function useLocalImageSrc(
   rawSrc: string | undefined,
   filePath: string,
   connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext,
-  reloadKey?: string | number
-): LocalImageSrcState {
+  runtimeContext?:
+    | (Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null })
+    | null
+): string | undefined {
   const [generation, setGeneration] = useState(getLocalImageCacheGeneration())
-  const [retryGeneration, setRetryGeneration] = useState(0)
-  const activeCacheKeyRef = useRef<string | null>(null)
-  const retry = useCallback(() => setRetryGeneration((value) => value + 1), [])
 
   useEffect(() => {
-    if (!rawSrc || isExternalUrl(rawSrc)) {
-      return
-    }
-    const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
-    if (!absolutePath) {
-      return
-    }
-    const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
-    pinLocalImageBlobUrl(cacheKey)
-    return () => unpinLocalImageBlobUrl(cacheKey)
+    return acquireLocalImageSrcLease(rawSrc, filePath, connectionId, runtimeContext)
   }, [rawSrc, filePath, connectionId, runtimeContext])
 
   useEffect(() => {
     return onImageCacheInvalidated(() => setGeneration(getLocalImageCacheGeneration()))
   }, [])
 
-  const [state, setState] = useState<LocalImageSrcSnapshot>(() => {
-    if (!rawSrc) {
-      return { src: undefined, status: 'idle' }
+  const [displaySrc, setDisplaySrc] = useState<string | undefined>(() => {
+    if (!rawSrc || runtimeContext === null) {
+      return undefined
     }
     if (isExternalUrl(rawSrc)) {
-      return { src: rawSrc, status: 'ready' }
+      return rawSrc
     }
     const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
     if (absolutePath) {
       const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
-      const cached = getCachedLocalImageBlobUrl(cacheKey)
-      if (cached) {
-        // The mount effect below takes this same branch and sets the ref;
-        // doing it here mutates a ref during render for nothing.
-        return { src: cached, status: 'ready' }
+      if (blobUrlCache.has(cacheKey)) {
+        return blobUrlCache.get(cacheKey)
       }
     }
-    return { src: undefined, status: 'loading' }
+    return undefined
   })
 
   useEffect(() => {
-    if (state.status !== 'capacity-blocked') {
-      return
-    }
-    return onLocalImageCacheCapacityAvailable(() => {
-      setRetryGeneration((value) => value + 1)
-    })
-  }, [state.status])
-
-  useEffect(() => {
-    if (!rawSrc) {
-      activeCacheKeyRef.current = null
-      setState((previous) => nextLocalImageSrcState(previous, { src: undefined, status: 'idle' }))
+    if (!rawSrc || runtimeContext === null) {
+      setDisplaySrc(undefined)
       return
     }
 
     if (isExternalUrl(rawSrc)) {
-      activeCacheKeyRef.current = rawSrc
-      setState((previous) => nextLocalImageSrcState(previous, { src: rawSrc, status: 'ready' }))
+      setDisplaySrc(rawSrc)
       return
     }
 
     const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
     if (!absolutePath) {
-      activeCacheKeyRef.current = null
-      setState((previous) =>
-        nextLocalImageSrcState(previous, { src: undefined, status: 'unavailable' })
-      )
+      setDisplaySrc(undefined)
       return
     }
 
     const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
-    const cached = getCachedLocalImageBlobUrl(cacheKey)
-    if (cached) {
-      activeCacheKeyRef.current = cacheKey
-      setState((previous) => nextLocalImageSrcState(previous, { src: cached, status: 'ready' }))
+    if (blobUrlCache.has(cacheKey)) {
+      setDisplaySrc(blobUrlCache.get(cacheKey))
       return
     }
 
     let cancelled = false
     const effectGeneration = generation
-    const previousCacheKey = activeCacheKeyRef.current
-    activeCacheKeyRef.current = cacheKey
-    setState((previous) =>
-      nextLocalImageSrcState(previous, {
-        src: previousCacheKey === cacheKey ? previous.src : undefined,
-        status: 'loading'
-      })
-    )
-    loadLocalImageAbsolutePathInternal(absolutePath, connectionId, runtimeContext)
-      .then((result) => {
+    loadLocalImageAbsolutePath(absolutePath, connectionId, runtimeContext)
+      .then((url) => {
         if (cancelled) {
           return
         }
-        if (result === LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED) {
-          setState((previous) =>
-            nextLocalImageSrcState(previous, { src: undefined, status: 'capacity-blocked' })
-          )
-          return
-        }
-        setState((previous) =>
-          nextLocalImageSrcState(
-            previous,
-            getLocalImageCacheGeneration() === effectGeneration && result
-              ? { src: result, status: 'ready' }
-              : { src: undefined, status: 'unavailable' }
-          )
-        )
+        setDisplaySrc(getLocalImageCacheGeneration() === effectGeneration && url ? url : undefined)
       })
       .catch(() => {
         if (!cancelled) {
-          setState((previous) =>
-            nextLocalImageSrcState(previous, { src: undefined, status: 'unavailable' })
-          )
+          setDisplaySrc(undefined)
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [rawSrc, filePath, generation, connectionId, runtimeContext, reloadKey, retryGeneration])
+  }, [rawSrc, filePath, generation, connectionId, runtimeContext])
 
-  return { ...state, retry }
-}
-
-export function useLocalImageSrc(
-  rawSrc: string | undefined,
-  filePath: string,
-  connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
-): string | undefined {
-  return useLocalImageSrcState(rawSrc, filePath, connectionId, runtimeContext).src
+  return displaySrc
 }
 
 /**
@@ -237,10 +151,15 @@ export async function loadLocalImageSrc(
   rawSrc: string,
   filePath: string,
   connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
+  runtimeContext?:
+    | (Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null })
+    | null
 ): Promise<string | null> {
   if (isExternalUrl(rawSrc)) {
     return rawSrc
+  }
+  if (runtimeContext === null) {
+    return null
   }
 
   const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
@@ -248,101 +167,109 @@ export async function loadLocalImageSrc(
     return null
   }
 
-  const result = await loadLocalImageAbsolutePathInternal(
-    absolutePath,
-    connectionId,
-    runtimeContext
-  )
-  return result === LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED ? null : result
+  const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
+  const cached = blobUrlCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  return loadLocalImageAbsolutePath(absolutePath, connectionId, runtimeContext)
 }
 
 export function loadLocalImageAbsolutePath(
   absolutePath: string,
   connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
+  runtimeContext?:
+    | (Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null })
+    | null
 ): Promise<string | null> {
-  return loadLocalImageAbsolutePathInternal(absolutePath, connectionId, runtimeContext).then(
-    (result) => (result === LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED ? null : result)
-  )
-}
-
-function loadLocalImageAbsolutePathInternal(
-  absolutePath: string,
-  connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
-): Promise<LocalImageLoadResult> {
+  if (runtimeContext === null) {
+    return Promise.resolve(null)
+  }
   const cacheKey = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
-  const cached = getCachedLocalImageBlobUrl(cacheKey)
+  const cached = blobUrlCache.get(cacheKey)
   if (cached) {
     return Promise.resolve(cached)
   }
 
-  const inFlight = getInFlightLocalImageLoad(cacheKey)
+  const inFlight = inFlightBlobUrlLoads.get(cacheKey)
   if (inFlight) {
     return inFlight
   }
 
-  const reservation = reserveLocalImageCacheSlot(cacheKey)
-  if (!reservation) {
-    return Promise.resolve(LOCAL_IMAGE_CACHE_CAPACITY_BLOCKED)
-  }
   const readGeneration = getLocalImageCacheGeneration()
-  const loadPromise = readImagePreview(absolutePath, connectionId, runtimeContext)
+  const readLeaseVersion = getLocalImageCacheKeyVersion(cacheKey)
+  const loadPromise = readLocalImagePreview(absolutePath, connectionId, runtimeContext)
     .then((result) => {
       if (
         !result.isBinary ||
         !result.content ||
         getLocalImageCacheGeneration() !== readGeneration
       ) {
-        // Why: local image paths must stay behind IPC/runtime authorization;
-        // handing raw file: or relative paths back to Chromium can escape it.
         return null
       }
-      const url = base64ToBlobUrl(result.content, result.mimeType ?? 'image/png')
+      const { url, byteLength } = base64ToBlobUrl(result.content, result.mimeType ?? 'image/png')
       if (getLocalImageCacheGeneration() !== readGeneration) {
         URL.revokeObjectURL(url)
         return null
       }
-      cacheLocalImageBlobUrl(cacheKey, url)
-      return url
+      return cacheLocalImageBlob(cacheKey, url, byteLength, readLeaseVersion) ? url : null
     })
     .catch(() => null)
     .finally(() => {
-      deleteInFlightLocalImageLoad(cacheKey, loadPromise)
-      releaseLocalImageCacheSlot(cacheKey, reservation)
+      if (inFlightBlobUrlLoads.get(cacheKey) === loadPromise) {
+        inFlightBlobUrlLoads.delete(cacheKey)
+      }
+      cleanupLocalImageCacheKeyVersion(cacheKey)
     })
-  setInFlightLocalImageLoad(cacheKey, loadPromise)
+  inFlightBlobUrlLoads.set(cacheKey, loadPromise)
   return loadPromise
 }
 
 export function resetLocalImageSrcStateForTests(): void {
-  resetLocalImageBlobCache()
+  resetLocalImageCacheState()
 }
 
 export function invalidateLocalImageSrcCacheForTests(): void {
   invalidateLocalImageCache()
 }
 
-function readImagePreview(
-  absolutePath: string,
+export function acquireLocalImageSrcLease(
+  rawSrc: string | undefined,
+  filePath: string,
   connectionId?: string | null,
-  runtimeContext?: LocalImageRuntimeContext
-) {
-  try {
-    if (!runtimeContext) {
-      return window.api.fs.readFile({
-        filePath: absolutePath,
-        connectionId: connectionId ?? undefined
-      })
-    }
-    return readRuntimeFilePreview(
-      {
-        ...runtimeContext,
-        connectionId: runtimeContext.connectionId ?? connectionId ?? undefined
-      },
-      absolutePath
-    )
-  } catch (error) {
-    return Promise.reject(error)
+  runtimeContext?:
+    | (Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null })
+    | null
+): (() => void) | undefined {
+  if (!rawSrc || isExternalUrl(rawSrc) || runtimeContext === null) {
+    return undefined
   }
+  const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
+  if (!absolutePath) {
+    return undefined
+  }
+  const key = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
+  pinLocalImageCache(key)
+  return () => unpinLocalImageCache(key)
+}
+
+/** Evict one no-longer-visible transcript preview immediately. */
+export function releaseLocalImageSrc(
+  rawSrc: string,
+  filePath: string,
+  connectionId?: string | null,
+  runtimeContext?:
+    | (Omit<RuntimeFileOperationArgs, 'connectionId'> & { connectionId?: string | null })
+    | null
+): void {
+  if (!rawSrc || isExternalUrl(rawSrc) || runtimeContext === null) {
+    return
+  }
+  const absolutePath = resolveImageAbsolutePath(rawSrc, filePath)
+  if (!absolutePath) {
+    return
+  }
+  const key = getLocalImageCacheKey(absolutePath, connectionId, runtimeContext)
+  releaseLocalImageBlob(key)
 }

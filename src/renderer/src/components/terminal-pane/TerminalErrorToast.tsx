@@ -19,6 +19,10 @@ const STALE_DAEMON_CWD_MARKERS = [
 ]
 // Thrown by ipc/pty.ts when a persisted pane owner can't be proven alive or dead (STA-3536).
 const PANE_OWNER_UNVERIFIED_MARKER = 'terminal_pane_owner_unverified'
+// remote-runtime-pty-transport.ts surfaces this English literal as a wire-level marker, so it is
+// translated here rather than at the source -- otherwise the banner mixes English with the
+// localized chrome around it (#9194).
+const REMOTE_TERMINAL_CLOSED_MARKER = 'Remote terminal was closed.'
 // Why one source: the test and replace forms must match the same token, and a lone /g regex carries
 // lastIndex state across .test() calls. Capture the leading boundary so replacement can restore it.
 const TERMINAL_HOST_GONE_SOURCE = '(^|[^a-z0-9_])terminal_host_gone(?=$|[^a-z0-9_])'
@@ -127,6 +131,14 @@ export function humanizeTerminalError(error: string): string {
       'Reconnecting this terminal — its output is being re-established. The session is still running.'
     )
   )
+  if (humanized.includes(REMOTE_TERMINAL_CLOSED_MARKER)) {
+    humanized = humanized.replaceAll(REMOTE_TERMINAL_CLOSED_MARKER, () =>
+      translate(
+        'auto.components.terminal.pane.TerminalErrorToast.remoteTerminalClosed',
+        'Remote terminal was closed.'
+      )
+    )
+  }
   humanized = humanizeUnreattachableSession(humanized)
   if (!isExplainedTerminalError(humanized)) {
     return humanized
@@ -167,6 +179,11 @@ export function TerminalErrorToast({
   const showIssueLink =
     !ssh && !paneOwnerUnverified && !showDaemonRestart && !isExplainedTerminalError(error)
   const displayError = humanizeTerminalError(error)
+  const tint = paneOwnerUnverified
+    ? null
+    : ssh
+      ? 'color-mix(in srgb, var(--color-amber-500) 20%, var(--popover))'
+      : 'color-mix(in srgb, var(--destructive) 20%, var(--popover))'
   const [retrying, setRetrying] = useState(false)
   const [retryFailed, setRetryFailed] = useState(false)
   const [environmentFooter, setEnvironmentFooter] = useState<{
@@ -219,17 +236,14 @@ export function TerminalErrorToast({
         zIndex: 50,
         padding: '10px 14px',
         borderRadius: 6,
-        background: paneOwnerUnverified
-          ? 'var(--popover)'
-          : ssh
-            ? 'rgba(234, 179, 8, 0.12)'
-            : 'rgba(220, 38, 38, 0.15)',
+        background: 'var(--popover)',
+        backgroundImage: tint ? `linear-gradient(${tint}, ${tint})` : undefined,
         border: paneOwnerUnverified
           ? '1px solid var(--color-amber-500)'
           : ssh
             ? '1px solid rgba(234, 179, 8, 0.35)'
             : '1px solid rgba(220, 38, 38, 0.4)',
-        color: paneOwnerUnverified ? 'var(--popover-foreground)' : ssh ? '#fde68a' : '#fca5a5',
+        color: 'var(--popover-foreground)',
         fontSize: 12,
         fontFamily: 'monospace',
         whiteSpace: 'pre-wrap',
@@ -256,7 +270,7 @@ export function TerminalErrorToast({
               )}{' '}
               <a
                 href="https://github.com/stablyai/manta/issues"
-                style={{ color: '#fca5a5', textDecoration: 'underline' }}
+                style={{ color: 'inherit', textDecoration: 'underline' }}
               >
                 {translate(
                   'auto.components.terminal.pane.TerminalErrorToast.a7e2fd2699',
@@ -314,7 +328,7 @@ export function TerminalErrorToast({
           style={{
             background: 'none',
             border: 'none',
-            color: paneOwnerUnverified ? 'var(--popover-foreground)' : ssh ? '#fde68a' : '#fca5a5',
+            color: 'inherit',
             cursor: 'pointer',
             fontSize: 14,
             padding: '0 0 0 8px',

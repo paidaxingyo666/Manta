@@ -1,7 +1,6 @@
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { useAppStore } from '@/store'
 import {
-  getNativeChatAttachmentOwnerIdentity,
   nativeChatLocalAttachmentUnsupportedNotice,
   nativeChatWorktreeNotReadyNotice,
   resolveNativeChatAttachmentOwner,
@@ -16,7 +15,7 @@ export type UseNativeChatExternalAttachmentsArgs = {
   /** Live composer-disabled state; read at await-resume via a ref so a flip
    *  mid-upload doesn't attach into a guarded composer. */
   disabled: boolean
-  attachResolvedPaths: (paths: string[], owner?: NativeChatAttachmentOwner) => void
+  attachResolvedPaths: (paths: string[], connectionId?: string | null) => void
   setNotice: (notice: string | null) => void
 }
 
@@ -63,7 +62,7 @@ export function useNativeChatExternalAttachments({
         return
       }
       if (owner.kind !== 'ssh') {
-        attachResolvedPaths(paths, owner)
+        attachResolvedPaths(paths)
         return
       }
       void (async () => {
@@ -71,13 +70,7 @@ export function useNativeChatExternalAttachments({
         if (!remotePaths || remotePaths.length === 0 || disabledRef.current) {
           return
         }
-        if (
-          getNativeChatAttachmentOwnerIdentity(resolveAttachmentOwner()) !==
-          getNativeChatAttachmentOwnerIdentity(owner)
-        ) {
-          return
-        }
-        attachResolvedPaths(remotePaths, owner)
+        attachResolvedPaths(remotePaths, owner.connectionId)
       })()
     },
     [attachResolvedPaths, resolveAttachmentOwner, setNotice]

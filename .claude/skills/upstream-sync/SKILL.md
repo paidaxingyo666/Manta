@@ -68,6 +68,30 @@ What conflicts look like, and what to do:
 | lockfiles, skill manifests | never — `.gitattributes` keeps upstream's; `sync-finish.sh` regenerates | — |
 | anything else | a genuine two-sided change | read both, resolve by hand |
 
+**A cluster resolves as one revision.** The fork's cherry-pick era left
+half-landed versions of upstream features — #17517's image attachments spans
+nine files across `editor/` and `native-chat/`. Taking upstream's side for the
+files that happen to conflict, while the ones that auto-merged keep the fork's
+older shape, produces a tree where a hook's caller and its callee disagree.
+When a conflict turns out to be an intermediate revision, find every sibling
+that moved with it — `git diff --numstat refs/sync/mirror HEAD -- <dir>` — and
+take upstream's for all of them.
+
+**Patch hashes travel with the patches.** `pnpm` records a sha256 of every file
+in `patchedDependencies`; upstream changing what a patch does leaves the
+lockfile disagreeing with the tree, and `--frozen-lockfile` refuses it.
+`sync-finish.sh` recomputes them. It does not re-resolve: resolution fails for
+reasons unrelated to the sync — on 2026-09-03 `sherpa-onnx-darwin-x64@1.12.37`
+had been unpublished from npm, so `minimumReleaseAge` could not evaluate it and
+rejected the lockfile outright. `main` never saw it because pnpm skips
+verification when the lockfile has not changed.
+
+The second, 2026-09-03, crossed 120: 29 files conflicted, 8 taken by rule
+(everything the fork had deleted on purpose), 10 more were one cluster
+resolved as a unit, and 11 were read individually — every one of those a
+two-sided change where upstream reworked a mechanism and the fork owned an
+identity value inside it. The mirror extension took seconds.
+
 The first real sync on this model, 2026-09-02, crossed 86 upstream commits:
 10 files conflicted, 4 taken by rule (the lockfile driver, a fork-deleted
 asset, two files upstream deleted that the fork had only localized or
@@ -119,6 +143,19 @@ repair. Each step is there because skipping it once let something through:
    `.electron` tests launch real Electron and time out at 32s under parallel
    load. `browser-route-tcp-egress` fails on any machine whose DNS answers
    `remote-browser.test`.
+
+**A KEEP entry is a decision the rule cannot make twice.** `orca-cli` is on
+the keep list because it is a backwards-compatible skill alias — renaming it
+makes installed skills unresolvable. But the same string appears in a stub CLI
+inside `electron-builder-runtime-resources.test.mjs`, where it stands for the
+skill the packaged build must list, and there it has to say `manta-cli`. No
+rule distinguishes those; only a test does. When a KEEP entry turns up in a
+fixture, read what it stands for in that spot.
+
+That one also shows why `pnpm test` on this machine is not the whole gate:
+the packaged-runtime probes skip on a cross-arch slice, so on an arm64 Mac the
+stub is never executed and the test passes for a reason CI does not share.
+Flip `arch:` in the case to the host's to reproduce a CI-only failure locally.
 
 **What the script cannot see** — the layer where identity is a machine-readable
 key rather than a word: `Symbol.for` slots, `localStorage`/`AsyncStorage` keys,

@@ -32,6 +32,7 @@ import {
 import { clearPiStateWorkingMarker, getPiStateTitleStatus } from './pi-state-title-marker'
 import { getWrapperTitleSegments } from './terminal-title-wrapper-segments'
 import { isGrokRotatingWorkingTitle } from './terminal-title-agent-type'
+import { memoizeTitleClassification } from './terminal-title-classification-memo'
 
 /**
  * Strip working-status indicators so stale exit titles stop reporting working.
@@ -176,7 +177,7 @@ function canonicalizeBrailleSpinnerFrame(title: string): string {
   return canonical
 }
 
-export function detectAgentStatusFromTitle(title: string): AgentStatus | null {
+function computeAgentStatusFromTitle(title: string): AgentStatus | null {
   if (!title || isClaudeManagementTitle(title)) {
     return null
   }
@@ -258,6 +259,13 @@ export function detectAgentStatusFromTitle(title: string): AgentStatus | null {
 
   return 'idle'
 }
+
+/**
+ * Pure in `title`, so it is memoized on the title string: sidebar/tab selectors
+ * re-ask for the same unchanged titles on every store write.
+ */
+export const detectAgentStatusFromTitle: (title: string) => AgentStatus | null =
+  memoizeTitleClassification(computeAgentStatusFromTitle)
 
 /**
  * True when a quarter-circle spinner frame is the only agent evidence a title carries.

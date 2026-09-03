@@ -1056,11 +1056,7 @@
           "activity": "활동",
           "noActivity": "아직 활동이 없습니다."
         },
-        "checkActionRequiredHint": "머지가 해제되려면 이 검사에 대해 GitHub에서 수동 작업(예: 워크플로우 실행 승인)이 필요합니다.",
-        "307c98e8e3": {
-          "24fdee": "위에 {{value0}}줄 더 표시",
-          "752457": "아래에 {{value0}}줄 더 표시"
-        }
+        "checkActionRequiredHint": "머지가 해제되려면 이 검사에 대해 GitHub에서 수동 작업(예: 워크플로우 실행 승인)이 필요합니다."
       },
       "GitLabItemDialog": {
         "65e784c1f1": "다시 열기",
@@ -2422,11 +2418,7 @@
               "df4bd63c1d": "할당되지 않음",
               "30402d2c6e": "검색하거나 새로고침해 보세요.",
               "a2f31c4cd6": "Linear 프로젝트를 찾을 수 없습니다.",
-              "c9b6e9f90d": "Linear 프로젝트를 로드할 수 없습니다.",
-              "7616c986c6": {
-                "ac1f4e": "열린 이슈 {{value0}}개",
-                "5eb5e9": "Linear에서 {{value0}} 열기"
-              }
+              "c9b6e9f90d": "Linear 프로젝트를 로드할 수 없습니다."
             }
           }
         },
@@ -2752,7 +2744,8 @@
             "e4aa243f8c": "데몬 재시작",
             "a7e2fd2699": "이슈 등록",
             "5c8ce20be6": "문제가 계속되면",
-            "cc6d997c65": "오래된 데몬 상태를 지우려면 여기에서 terminal 데몬을 다시 시작하세요."
+            "cc6d997c65": "오래된 데몬 상태를 지우려면 여기에서 terminal 데몬을 다시 시작하세요.",
+            "remoteTerminalClosed": "원격 터미널이 종료되었습니다."
           },
           "TerminalProcessExitOverlay": {
             "capacityTitle": "Git Bash 콘솔 한도에 도달했습니다",
@@ -2836,11 +2829,7 @@
                 "internalPathsTooLarge": "터미널에 안전하게 붙여넣기에는 경로 목록이 너무 큽니다.",
                 "b4cf68e889": "{{value0}} {{value1}}을(를) 건너뛰었습니다.",
                 "writeTimeout": "파일 드롭이 취소되었습니다. 안전 시간 제한 전에 터미널이 경로를 받지 않았습니다.",
-                "writeRejected": "파일 드롭이 취소되었습니다. 터미널이 경로를 받을 수 없습니다.",
-                "29c031b49a": {
-                  "e09913": "{{value0}} 파일{{value1}}을 런타임에 업로드하는 중…",
-                  "ac0575": "원격으로 파일 {{value0}}개{{value1}} 업로드 중…"
-                }
+                "writeRejected": "파일 드롭이 취소되었습니다. 터미널이 경로를 받을 수 없습니다."
               }
             }
           },
@@ -2894,13 +2883,9 @@
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingTitle": "원격 런타임에 다시 연결 중",
             "disconnectedTitle": "원격 런타임 연결 끊김",
-            "retryingBody": "Manta는 최대 1분간 재시도합니다. 연결이 복원되면 이 터미널이 재개됩니다.",
+            "retryingBody": "Manta가 자동으로 재시도합니다. 연결이 복원되면 이 터미널이 재개됩니다.",
             "disconnectedBody": "자동 재시도가 중지되었습니다. 이 터미널 세션을 재개하려면 다시 연결하세요.",
             "reconnectButton": "다시 연결"
-          },
-          "SessionRestoredBanner": {
-            "f4d06c346b": "--- 세션이 복원되었습니다 ---",
-            "139e3d1083": "--- 이전 세션을 사용할 수 없어 새로 시작했습니다 ---"
           }
         }
       },
@@ -2963,10 +2948,7 @@
             "1d04b1630b": "아래로 분할",
             "6b3efb106e": "위로 분할",
             "fdd29eb669": "탭 고정",
-            "8e9d603a09": "탭 고정 해제",
-            "fe23001e60": "상위 폴더 열기",
-            "3da91e073d": "파일 탐색기에서 보기",
-            "6ffb7f7bce": "Finder에서 보기"
+            "8e9d603a09": "탭 고정 해제"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent 설정…",
@@ -3257,16 +3239,6 @@
             "autoDescription": "에이전트가 작업하는 동안 절전 모드로 전환되지 않도록 유지",
             "offDescription": "시스템의 기본 절전 동작 허용"
           },
-          "RuntimeHostStatusRow": {
-            "previous_connection_closed": "이전 연결이 종료되었습니다",
-            "workspace_window_closed": "워크스페이스 창이 닫혀 있습니다",
-            "checking_host": "Manta가 이 호스트에 연결할 수 있는지 확인하는 중입니다",
-            "restoring_connection": "Manta가 연결 복구를 시도하는 중입니다",
-            "host_unreachable": "이 호스트의 Manta에 연결할 수 없습니다",
-            "contact_note": "호스트는 계속 실행 중일 수 있으며, Manta 연결만 사용할 수 없습니다.",
-            "last_connected": "마지막 연결: {{value0}}",
-            "reconnect_attempt": "{{value0}}번째 시도"
-          },
           "StatusBar": {
             "9659e38343": "포트",
             "d1e1a7a6bf": "리소스 관리자",
@@ -3362,11 +3334,7 @@
             "2837dc7c72": "취소 중",
             "0583c806ac": "워크스페이스 디스크 사용량은 스캔되지 않습니다.",
             "39786e3b73": "워크스페이스 크기를 스캔하는 중입니다.",
-            "3d8d47ce77": "{{value0}} · 마지막 결과가 유지됨",
-            "bef4dc0457": {
-              "02d421": "{{value0}} 회수 가능 · {{value1}} 사용 불가",
-              "db101b": "{{value0}} 회수 가능 · 작업 공간 {{value1}}개"
-            }
+            "3d8d47ce77": "{{value0}} · 마지막 결과가 유지됨"
           },
           "WorkspaceSpaceManagerPanel": {
             "2965415393": "강제 삭제 실패",
@@ -3785,7 +3753,7 @@
         "share": {
           "card": {
             "utils": {
-              "19f4b4dc75": "github.com/stablyai/manta",
+              "19f4b4dc75": "github.com/stablyai/orca",
               "d864fc5f98": "출력",
               "5d66fdd7c2": "입력",
               "7080aeaebb": "추론",
@@ -3940,7 +3908,9 @@
           "searchLinks": "링크 검색",
           "deleteSkills": "스킬 삭제…"
         },
-        "SkillShareSelectionControls": { "01c5a15e02": "스킬 공유" },
+        "SkillShareSelectionControls": {
+          "01c5a15e02": "스킬 공유"
+        },
         "SkillRow": {
           "updatedUnknown": "날짜 없음",
           "pathCopied": "경로 복사됨",
@@ -3950,13 +3920,17 @@
           "viewDetails": "세부 정보 보기",
           "deleteSkill": "삭제…"
         },
-        "SkillsList": { "listLabel": "스킬" },
+        "SkillsList": {
+          "listLabel": "스킬"
+        },
         "sourceStatus": {
           "missing": "폴더를 찾을 수 없음",
           "remoteRepo": "원격 리포지토리 — 검색 안 됨",
           "unavailable": "검색 안 됨"
         },
-        "sources": { "heading": "스킬 폴더" },
+        "sources": {
+          "heading": "스킬 폴더"
+        },
         "sourceKind": {
           "home": "홈",
           "workspace": "워크스페이스",
@@ -3978,7 +3952,10 @@
           "linkOne": "링크 {{count}}개",
           "linkOther": "링크 {{count}}개"
         },
-        "filter": { "allAgents": "모든 에이전트", "sharedAgent": "공유됨 (.agents)" },
+        "filter": {
+          "allAgents": "모든 에이전트",
+          "sharedAgent": "공유됨 (.agents)"
+        },
         "SkillsSelectionHeader": {
           "exit": "선택 나가기",
           "exitTooltip": "선택 나가기 · Esc",
@@ -3987,7 +3964,11 @@
           "clear": "지우기",
           "deleteTitle": "삭제할 스킬 선택"
         },
-        "SkillDetailDialog": { "agents": "에이전트", "updated": "업데이트됨", "copy": "복사" },
+        "SkillDetailDialog": {
+          "agents": "에이전트",
+          "updated": "업데이트됨",
+          "copy": "복사"
+        },
         "SkillFreshnessNudge": {
           "titleOne": "설치된 Manta 스킬이 오래되었습니다",
           "titleMany": "설치된 Manta 스킬 {{value0}}개가 오래되었습니다",
@@ -4405,12 +4386,15 @@
           "keepDefaultBranchAria": "슬립 중인 워크스페이스를 숨겨도 기본 브랜치는 계속 표시"
         },
         "SidebarHeader": {
+          "projects": "프로젝트",
           "92154beb7e": "새로운 워크스페이스",
           "49f62c5665": "워크스페이스 보드",
           "5c9c7c16aa": "워크스페이스를 만들려면 프로젝트를 추가하세요.",
           "ca6f729da2": "새 워크스페이스({{value0}})",
           "a30e34eb5c": "워크스페이스 보드 닫기",
-          "25a95899c9": "프로젝트 추가"
+          "25a95899c9": "프로젝트 추가",
+          "spaces": "스페이스",
+          "views": "사이드바 보기"
         },
         "SidebarNav": {
           "80611a8b10": "검색",
@@ -4441,6 +4425,7 @@
         "SidebarSettingsHelpMenu": {
           "ad3d3ed7f1": "Manta 재시작",
           "29c56f30ee": "업데이트 확인",
+          "eb9884e55b": "Discord",
           "5687ab246a": "GitHub",
           "5f83d86d92": "변경 내역",
           "cdc87f897e": "문서",
@@ -4452,7 +4437,8 @@
           "5161eef55d": "Manta를 다시 시작하는 중…",
           "d396773ef0": "확인 중",
           "f8a2c91d4e": "마일스톤",
-          "b7e4d2a19c": "온보딩"
+          "b7e4d2a19c": "온보딩",
+          "c4f8e1b72a": "X"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "폴더 선택기를 열어 프로젝트를 추가하세요.",
@@ -4527,11 +4513,7 @@
           "219ebf1961": "브랜치 이름",
           "automation": "자동화",
           "folderPathIdentity": "브랜치 / 폴더 경로",
-          "cli": "Manta CLI",
-          "bc96dbd041": {
-            "5de9a9": "워크스페이스 옵션({{value0}})",
-            "d8404d": "작업 공간 옵션(활성 {{value0}}개)"
-          }
+          "cli": "Manta CLI"
         },
         "SshTargetRow": {
           "4677394048": "연결 중…",
@@ -4558,11 +4540,7 @@
           "34f03eb0de": "보드 설정",
           "26cbc92150": "워크스페이스 보드 설정",
           "87d24a0c2f": "보드와 이슈 상태 동기화",
-          "4c2eaa78cc": "연결된 워크스페이스를 이동하면 일치하는 워크플로 상태가 있을 때 Linear 이슈 상태가 업데이트됩니다.",
-          "b45b350eb0": {
-            "9bb3fd": "{{value0}} 왼쪽으로 이동",
-            "a4b8c6": "{{value0}} 오른쪽으로 이동"
-          }
+          "4c2eaa78cc": "연결된 워크스페이스를 이동하면 일치하는 워크플로 상태가 있을 때 Linear 이슈 상태가 업데이트됩니다."
         },
         "WorkspaceKanbanStatusLane": {
           "8ad104642b": "비어 있음",
@@ -4573,11 +4551,7 @@
           "8be427206b": "아이콘",
           "2ac106f6b2": "색상",
           "74b1413279": "외관",
-          "ccbd1e2c69": "{{value0}} 모양 맞춤설정",
-          "514be2f569": {
-            "a9ca01": "{{value0}} 색상을 {{value1}}로 설정",
-            "dd358d": "{{value0}} 아이콘을 {{value1}}(으)로 설정"
-          }
+          "ccbd1e2c69": "{{value0}} 모양 맞춤설정"
         },
         "WorktreeCard": {
           "a88c92d0e3": "{{value0}}/{{value1}}이(가) 이미 있습니다.",
@@ -5487,9 +5461,7 @@
           "8b7a8df299": "지원 문제 해결을 위한 낮은 수준의 해결 방법입니다.",
           "8d8d8ac599": "호환성",
           "network": "네트워크",
-          "networkDescription": "프록시 및 기업 환경을 위한 앱 수준 네트워크 라우팅.",
-          "mantaCloud": "Manta Cloud",
-          "mantaCloudDescription": "공식 서버 대신 자체 호스팅한 로그인 및 릴레이 서버를 사용합니다."
+          "networkDescription": "프록시 및 기업 환경을 위한 앱 수준 네트워크 라우팅."
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL 기본값",
@@ -6715,11 +6687,7 @@
           "868c5c9b56": "repo 아이콘을 가져오지 못했습니다.",
           "emojiTooLongForRepoIcon": "이 이모티콘은 repo 아이콘으로 사용할 수 없습니다.",
           "currentEmojiSelection": "현재: {{value0}}",
-          "searchEmojiPlaceholder": "이모티콘 검색",
-          "2b7d27b93c": {
-            "cd676f": "{{value0}} repo 색상 사용",
-            "59fda8": "{{value0}} 저장소 아이콘 사용"
-          }
+          "searchEmojiPlaceholder": "이모티콘 검색"
         },
         "RepositoryPane": {
           "15a99d9b9f": "상대 경로는 이 프로젝트 루트에서 확인됩니다.",
@@ -6796,11 +6764,7 @@
           "show": "표시",
           "hide": "숨기기",
           "externalWorktreesGlobal": "전역 기본값: {{value0}}",
-          "useGlobal": "전역 설정 사용",
-          "settingUpHost": {
-            "b7353a": "가져오는 중...",
-            "268c06": "추가 중..."
-          }
+          "useGlobal": "전역 설정 사용"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "명령 템플릿",
@@ -8065,7 +8029,7 @@
               "cee44fb442": "오토메이션",
               "a57c2172dc": "agent-browser",
               "6ea88e5206": "npx",
-              "f5b8fdddf5": "manta-cli",
+              "f5b8fdddf5": "orca-cli",
               "e5a784bc54": "설치",
               "9d97446873": "agent",
               "a2d489263e": "스킬",
@@ -8251,7 +8215,8 @@
             },
             "agentDashboard": {
               "title": "에이전트 대시보드",
-              "description": "워크트리 전반에 걸친 에이전트를 모니터링하는 칸반 보드. 윈도우 내 또는 팝업으로 표시됩니다."
+              "description": "워크트리 전반에 걸친 에이전트를 모니터링하는 칸반 보드. 윈도우 내 또는 팝업으로 표시됩니다.",
+              "dashboard": "대시보드"
             }
           }
         },
@@ -10330,9 +10295,6 @@
           "reviewStepDescription": "최근 실행을 검토하고 필요할 때 언제든지 작업을 계속할 수 있습니다.",
           "openAutomations": "자동화 열기",
           "openAutomationsDescription": "일정을 생성하고 최근 실행을 확인합니다."
-        },
-        "MantaCloudEndpointsSection": {
-          "enrollmentSaved": "저장됨 — 입력하면 교체됩니다"
         }
       },
       "right": {
@@ -13133,12 +13095,12 @@
           "13822cdfda": "일반 텍스트"
         },
         "RichMarkdownDocLinkMenu": {
+          "e17b987473": "↑↓ 탐색  ↵ 선택  esc 해제",
           "90c5f0e1e4": "/",
           "2aaf7d9678": "표시 중",
           "63ced7cb9b": "문서를 찾을 수 없습니다.",
           "0e8489bc11": "Markdown 문서 링크",
-          "142a7d51cd": "문서",
-          "b0f0efcfce": "↑↓ 탐색  ↵ 선택  esc 해제"
+          "142a7d51cd": "문서"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "다시 시도",
@@ -13792,20 +13754,6 @@
             "f3575229df": "가져오기",
             "405bb315da": "제목 없음"
           },
-          "annotate": {
-            "browser": {
-              "page": {
-                "annotation": {
-                  "tray": {
-                    "09a7c1df70": "주석 {{value0}} 편집",
-                    "c16f932cb3": "저장",
-                    "024467ceac": "취소",
-                    "449d2c2629": "주석 의도"
-                  }
-                }
-              }
-            }
-          },
           "browser": {
             "address": {
               "bar": {
@@ -13818,6 +13766,35 @@
         }
       },
       "automations": {
+        "AutomationListToolbar": {
+          "runs": "실행"
+        },
+        "AutomationRunsDashboard": {
+          "search": "실행 검색…",
+          "filters": "필터",
+          "host": "호스트",
+          "status": "상태",
+          "refresh": "실행 새로 고침",
+          "successful24h": "성공 · 24시간",
+          "failed24h": "실패 · 24시간",
+          "successful7d": "성공 · 7일",
+          "failed7d": "실패 · 7일",
+          "historyUnavailableOne": "자동화 1개의 실행 기록을 사용할 수 없습니다. 집계에는 사용 가능한 기록만 포함됩니다.",
+          "historyUnavailableMany": "자동화 {{count}}개의 실행 기록을 사용할 수 없습니다. 집계에는 사용 가능한 기록만 포함됩니다.",
+          "automation": "자동화",
+          "triggered": "트리거됨",
+          "trigger": "트리거",
+          "loading": "실행 로드 중…",
+          "noRuns": "아직 실행이 없습니다",
+          "emptyDescription": "자동화를 트리거하면 여기에 실행이 표시됩니다.",
+          "runs": "실행",
+          "local": "로컬",
+          "remote": "원격"
+        },
+        "AutomationsPageBreadcrumb": {
+          "ariaLabel": "자동화 탐색경로",
+          "runDetails": "실행 세부정보"
+        },
         "AutomationCustomCronPanel": {
           "3e3b2c369f": "Cron 식",
           "e81a02d61b": "저장하기 전에 유효한 5개 필드 크론을 입력하세요.",
@@ -14246,9 +14223,10 @@
           "b29191b3e0": "워크트리",
           "8c3b621ddf": "프로젝트",
           "4a3986b200": "상태",
-          "770d458144": "agent 활동 그룹화 기준",
+          "770d458144": "그룹화 기준",
           "795cbf26e2": "필터...",
           "4616ea39fd": "워크스페이스로 이동",
+          "markThreadRead": "스레드를 읽은 것으로 표시",
           "59b131fbd9": "스레드를 읽지 않은 것으로 표시",
           "beb2c19173": "읽지 않음",
           "5651b216c6": "알 수 없는 프로젝트",
@@ -14629,11 +14607,6 @@
     }
   },
   "components": {
-    "jiraUserPicker": {
-      "select": "{{value0}} 선택",
-      "search": "사용자 검색",
-      "empty": "사용자를 찾을 수 없습니다"
-    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "이 에이전트는 이미지 붙여넣기를 지원하지 않습니다.",
@@ -14652,13 +14625,6 @@
         "imagePasteFailed": "이미지 붙여넣기 실패.",
         "worktreeNotReady": "워크트리가 준비되지 않았습니다 — 잠시 후 다시 시도하세요.",
         "uploadingAttachments": "{{value0}}개 파일을 원격으로 업로드 중…",
-        "viewAttachment": "이미지 보기: {{value0}}",
-        "removeNamedAttachment": "이미지 삭제: {{value0}}",
-        "imagePreview": "전체 크기 이미지 미리보기",
-        "imagePreviewLoading": "이미지 미리보기를 불러오는 중…",
-        "imagePreviewUnavailable": "미리보기를 사용할 수 없음",
-        "retryImagePreview": "다시 시도",
-        "imageAttachmentLimit": "이미지는 최대 {{value0}}개까지 첨부할 수 있습니다.",
         "model": "모델",
         "effort": "추론 수준",
         "fastMode": "빠른 모드",
@@ -14762,10 +14728,7 @@
         "SortableTabContextMenu": {
           "switchToTerminalView": "terminal 보기로 전환",
           "switchToChatView": "채팅 보기로 전환",
-          "closeTabsToLeft": "왼쪽으로 탭 닫기",
-          "copySessionId": "세션 ID 복사",
-          "copySessionIdSuccess": "세션 ID를 복사했습니다",
-          "copySessionIdError": "세션 ID를 복사하지 못했습니다"
+          "closeTabsToLeft": "왼쪽으로 탭 닫기"
         },
         "BrowserTab": {
           "closeOthers": "다른 탭 닫기",
@@ -14874,6 +14837,13 @@
       "sent": "세션 컨텍스트를 새 {{agent}} 세션으로 보냈습니다.",
       "deliveryFailed": "새 {{agent}} 세션은 시작되었지만 컨텍스트를 보내지 못했습니다.",
       "launchFailed": "새 {{agent}} 세션을 시작할 수 없습니다."
+    },
+    "terminalPane": {
+      "TerminalContextMenu": {
+        "copySessionId": "세션 ID 복사",
+        "copySessionIdSuccess": "세션 ID를 복사했습니다",
+        "copySessionIdError": "세션 ID를 복사하지 못했습니다"
+      }
     }
   },
   "dashboardPopout": {
@@ -14971,7 +14941,8 @@
   },
   "dashboard": {
     "sidebar": {
-      "label": "에이전트 대시보드"
+      "label": "에이전트",
+      "dashboardLabel": "에이전트 대시보드"
     }
   },
   "browser": {
@@ -15011,6 +14982,21 @@
         "addressInUse": "Another process may be holding the port. Restart Manta to try again.",
         "unknown": "Restart Manta to try again."
       }
+    }
+  },
+  "agentsSidebarIntro": {
+    "migrated": {
+      "title": "에이전트를 더 쉽게 찾을 수 있습니다",
+      "description": "에이전트 보기가 이제 사이드바 전용 탭이 되었습니다. 활동과 필터는 그대로 유지됩니다.",
+      "dismiss": "확인",
+      "action": "에이전트 열기"
+    },
+    "new": {
+      "title": "에이전트 탭을 만나보세요",
+      "description": "에이전트가 무엇을 작업 중인지, 무엇이 완료되었는지, 어디에 개입이 필요한지 확인하세요.",
+      "hide": "에이전트 숨기기",
+      "action": "에이전트 사용해 보기",
+      "hiddenToast": "에이전트 탭이 숨겨졌습니다. 설정 → 실험 기능에서 다시 활성화하세요."
     }
   }
 }

@@ -9,6 +9,14 @@ cd "$ROOT"
 MIRROR="$(git rev-parse refs/sync/mirror)"
 git merge-base --is-ancestor "$MIRROR" HEAD || { echo "HEAD is not on top of refs/sync/mirror — was the rebase finished?" >&2; exit 1; }
 
+echo "== patched dependency hashes"
+# Upstream changes what its patches do, and the lockfile records a hash of each
+# patch file. The merge brings the new patch but the old hash, and
+# --frozen-lockfile refuses the tree. Recompute from the files on disk rather
+# than re-resolving: re-resolution can fail for reasons that have nothing to do
+# with this sync (an unpublished pin, a policy gate), and nothing here needs it.
+node "$HERE/refresh-patch-hashes.mjs" | sed 's/^/   /'
+
 echo "== lockfiles: upstream's, with the fork's package.json folded back in"
 pnpm install --lockfile-only >/dev/null 2>&1 && echo "   root ok" || echo "   root: pnpm install --lockfile-only failed"
 ( cd mobile && pnpm install --lockfile-only >/dev/null 2>&1 && echo "   mobile ok" || echo "   mobile: pnpm install --lockfile-only failed" )

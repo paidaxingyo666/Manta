@@ -159,7 +159,7 @@ export function withRolledBackVersion(
  *
  * `previous` is here because a rollback target that GC deleted is not a rollback target.
  * `daemonEntryVersion` is here because an update preserves a live daemon forked from the
- * OUTGOING bundle (see orcad-update-plan.ts) — deleting the tree under a running process is
+ * OUTGOING bundle (see mantad-update-plan.ts) — deleting the tree under a running process is
  * how a later respawn finds no entry point.
  */
 export function orcadGcPinnedDirNames(
