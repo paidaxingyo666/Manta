@@ -42,9 +42,11 @@ export type RuntimeFileCommandHost = {
     pathText: string,
     absolutePath: string
   ): boolean | Promise<boolean>
+  // `executionHostId`, not `connectionId`: a repo row's connection cannot tell `runtime:` from
+  // `local`, and this contract must not re-introduce that spelling. See runtime-git-command-target.
   resolveRuntimeGitTarget(
     selector: string
-  ): Promise<{ worktree: ResolvedRuntimeFileWorktree; connectionId?: string }>
+  ): Promise<{ worktree: ResolvedRuntimeFileWorktree; executionHostId: ExecutionHostId }>
   openFile(
     worktreeId: string,
     filePath: string,

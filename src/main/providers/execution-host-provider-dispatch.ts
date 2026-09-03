@@ -45,6 +45,7 @@ import {
   type ParsedExecutionHost
 } from '../../shared/execution-host'
 import { getSshGitProvider, SSH_GIT_PROVIDER_UNAVAILABLE_MESSAGE } from './ssh-git-dispatch'
+import type { SshGitProvider } from './ssh-git-provider'
 import {
   getSshFilesystemProvider,
   SSH_FILESYSTEM_PROVIDER_UNAVAILABLE_MESSAGE
@@ -80,7 +81,9 @@ type SshRoute<TProvider> = {
   provider: TProvider | null
 }
 
-export type ExecutionHostGitRoute = LocalRoute | RuntimeRoute | SshRoute<IGitProvider>
+// The SSH table stores `SshGitProvider`; narrowing the route to `IGitProvider` would drop the
+// remote-only methods (commit-message plans, push-target materialization) that callers need.
+export type ExecutionHostGitRoute = LocalRoute | RuntimeRoute | SshRoute<SshGitProvider>
 export type ExecutionHostFilesystemRoute = LocalRoute | RuntimeRoute | SshRoute<IFilesystemProvider>
 
 // Takes an unvalidated string rather than `ExecutionHostId`: validating is the point, and host
