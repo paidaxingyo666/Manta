@@ -10,6 +10,13 @@ minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - pdfjs-dist@6.3.289
   - zod@4.5.4
+  # Unpublished from npm after we pinned it: the registry manifest no longer
+  # lists 1.12.37, so the age gate cannot evaluate it and rejects the entry
+  # outright. The lockfile still carries its integrity hash, so what installs is
+  # the same bytes it always was. Its five sibling platform packages are all
+  # still published at 1.12.37 — only darwin-x64 went. Drop this line when the
+  # sherpa-onnx pin moves.
+  - sherpa-onnx-darwin-x64@1.12.37
 shamefullyHoist: true
 
 supportedArchitectures:

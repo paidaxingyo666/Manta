@@ -111,12 +111,11 @@ overrides:
 patchedDependencies:
   '@vscode/windows-process-tree@0.8.0': 9217ef36c01ed74127fef5512b0c92089cdbf820fd6c109dd671137eebdc7585
   '@xterm/addon-ligatures@0.11.0-beta.300': 47405b9994b5acf1b4e90b49250358c1ca03649854d59560e7732b72fe336920
-  '@xterm/addon-serialize@0.15.0-beta.300': 851eac3d75e6d8c013b9f4c053e61d824b23965cb19ecc28e335e05059f3a294
-  '@xterm/addon-webgl@0.20.0-beta.299': 94687e89a0115e6e6aa102837f986debdc029c091527ee5eb4a4e17ceaf9473e
-  '@xterm/xterm@6.1.0-beta.303': 98756bcedc402bcdb7c6ab7b015d2e59cd18e97b03a2c06a27e95bb3ba429d9d
+  '@xterm/addon-serialize@0.15.0-beta.300': 0aa28da12f76efc06dbdf2818297e4ce98d8e8c89b33a1b1967c5b0cbeeee7df
+  '@xterm/addon-webgl@0.20.0-beta.299': 7721429a9dc0b5976e65e611f1af2e6f0b3aab356d49540bdd52801d348abda6
+  '@xterm/xterm@6.1.0-beta.303': cb83aebc6fd4f1b4a8f195b3b7740d1e53e2a046c3e0c32199f9aaf1177750ec
   lint-staged@16.4.0: 7333b3837f80a7fbd045964db6d76ba4fc118e49134bdbabb00585b6b7b60673
-  node-pty@1.1.0: e262847f57a1d4d3f2287a843822f7dcf3c9d8655892b07a69eba464e1317eaa
-
+  node-pty@1.1.0: 6fbcc483faba78dc7a739ffd3bfe2fe953934825b194a4c0e9da8f3691757a16
 importers:
 
   .:
