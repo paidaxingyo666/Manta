@@ -52,6 +52,7 @@ import {
   RELAY_DEPLOY_TIMEOUT_MS
 } from './ssh-relay-deploy-timing'
 import { createSshOperationAbortError, shellEscape } from './ssh-connection-utils'
+import { isWindowsRelayPlatform } from '../../shared/relay-artifacts'
 import {
   probeBuildToolchain,
   formatMissingToolchainError,
@@ -745,27 +746,29 @@ const NODE_PTY_CONSOLE_LIST_PATCH_FILENAME = 'node-pty-1.1.0-console-list-agent-
 const NODE_PTY_MASTER_CLOEXEC_PATCH_FILENAME = 'node-pty-1.1.0-master-cloexec-patch.cjs'
 const NODE_PTY_CLOEXEC_STATUS_PREFIX = 'ORCA-NPTY-CLOEXEC:'
 /**
- * Whether the tree the patch left behind still leaks the pty master into every later child.
- * `fixed` is the only outcome a shared cache entry may be published from.
+ * Whether the tree the patch left behind still leaks a pty fd -- the master into every later child
+ * on Linux, a throwaway /dev/ptmx per spawn on macOS. `fixed` is the only outcome a shared cache
+ * entry may be published from.
  */
 type NodePtyMasterCloexecOutcome = 'fixed' | 'unfixed'
 /**
  * The statuses that leave a non-leaking tree. Deliberately an allowlist, not a `failed:` denylist:
- * the script's `skipped:` family is mixed. `skipped:not-linux` is a platform that never leaks, but
- * `skipped:earlier-attempt-failed`, `skipped:no-compiled-build`, `skipped:unexpected-source` and
- * the two `skipped:<errno>` forms all mean the patch was refused and the leaky build is still on
- * disk -- indistinguishable from `failed:` as far as what gets published.
+ * the script's `skipped:` family is mixed. `skipped:unsupported-platform` is a platform that never
+ * leaks, but `skipped:earlier-attempt-failed`, `skipped:no-compiled-build`, `skipped:no-prebuild`,
+ * `skipped:unexpected-source` and the two `skipped:<errno>` forms all mean the patch was refused
+ * and the leaky build is still on disk -- indistinguishable from `failed:` as far as what gets
+ * published.
  */
 const NODE_PTY_CLOEXEC_FIXED_STATUSES: ReadonlySet<string> = new Set([
   'patched',
-  // The rebuild ran from patched source; only the isolation check could not observe the result.
-  // An unobservable check is not a failed patch, and treating it as one would disable the shared
-  // cache on every host without `lsof`.
+  // The rebuild ran from patched source; only the leak check could not observe the result. An
+  // unobservable check is not a failed patch, and treating it as one would disable the shared
+  // cache on every host without `/proc` or `lsof`.
   'patched-unverified',
   'already-patched',
-  // Unreachable while the platform gate below short-circuits first, but it is the one `skipped:`
-  // that means "nothing to fix" rather than "would not fix it".
-  'skipped:not-linux'
+  // Unreachable while the platform gate below short-circuits Windows first, but it is the one
+  // `skipped:` that means "nothing to fix" rather than "would not fix it".
+  'skipped:unsupported-platform'
 ])
 // Exported for the relay-native-dependency-coverage test, which asserts every
 // native addon the relay bundle imports is either installed here or explicitly
@@ -1300,7 +1303,7 @@ async function installNativeDeps(
 }
 
 /**
- * Re-apply the pty-master FD_CLOEXEC patch the app gets from pnpm to the host's npm copy (#17915).
+ * Re-apply the pty fd-leak patch the app gets from pnpm to the host's npm copy (#17915).
  *
  * Why it is safe to rebuild under a live relay: this only runs from installNativeDeps, so only on a
  * freshly created directory or a locked repair, and a relay already serving PTYs has pty.node mapped
@@ -1324,9 +1327,11 @@ async function applyNodePtyMasterCloexecPatch(
   nodePath: string,
   signal?: AbortSignal
 ): Promise<NodePtyMasterCloexecOutcome> {
-  // Linux is the only relay platform that takes forkpty()'s no-O_CLOEXEC path; macOS and Windows
-  // ship prebuilds, so forcing a rebuild there would add a first compile to fix nothing.
-  if (isWindowsRemoteHost(hostPlatform) || !platform.startsWith('linux')) {
+  // Both Unix relay platforms leak, by different bugs: Linux inherits the master through forkpty()'s
+  // no-O_CLOEXEC path, macOS orphans one throwaway /dev/ptmx fd per spawn in pty_posix_spawn. Only
+  // Windows, which has no fds, is short-circuited -- and answering 'fixed' from a gate that ran
+  // nothing is exactly how a leaking darwin tree got published to the shared cache.
+  if (isWindowsRemoteHost(hostPlatform) || isWindowsRelayPlatform(platform)) {
     return 'fixed'
   }
   try {
