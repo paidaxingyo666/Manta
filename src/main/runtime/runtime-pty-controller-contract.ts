@@ -126,7 +126,7 @@ export type RuntimePtyController = {
   }>
   serializeBuffer?(
     ptyId: string,
-    opts?: { scrollbackRows?: number; altScreenForcesZeroRows?: boolean }
+    opts?: { scrollbackRows?: number }
   ): Promise<{
     data: string
     cols: number

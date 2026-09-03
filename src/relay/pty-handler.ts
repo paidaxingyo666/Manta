@@ -9,7 +9,6 @@ import { WINDOWS_GIT_BASH_SHELL } from '../shared/windows-terminal-shell'
 import type { RelayDispatcher, RequestContext } from './dispatcher'
 import {
   resolveDefaultShell,
-  resolveDefaultCwd,
   resolveProcessCwd,
   processHasChildren,
   getForegroundProcessName,
@@ -28,7 +27,12 @@ import {
   isPathInsideOrEqual,
   normalizeRuntimePathForComparison
 } from '../shared/cross-platform-path'
-import { splitWorktreeId } from '../shared/worktree/id'
+import { splitWorktreeIdForFilesystem } from '../shared/worktree/id'
+import {
+  formatUnresolvedRelaySpawnCwdMessage,
+  resolveRelaySpawnCwd,
+  type RelaySpawnCwdResolution
+} from './pty-spawn-cwd'
 import { PhysicalExitTracker } from '../shared/physical-exit-tracker'
 import { SHELL_READY_MARKER_PREFIX } from '../main/shell-ready-marker-scanner'
 import {
@@ -110,6 +114,44 @@ import {
   toTerminalUnavailableCause
 } from './node-pty-unavailable-diagnosis'
 import { TERMINAL_UNAVAILABLE_RPC_ERROR_CODE } from '../shared/terminal-unavailable-cause'
+
+/**
+ * The shell a spawn will actually launch, resolved the same way `spawnAfterAdmission` resolves it.
+ *
+ * Non-throwing on an unsupported override: that override fails the spawn later regardless, and this
+ * is only asked in order to decide whose filesystem the cwd lives on.
+ */
+function resolveRelaySpawnShell(
+  params: Record<string, unknown>,
+  env: Record<string, string> | undefined
+): string {
+  const shellOverride = typeof params.shellOverride === 'string' ? params.shellOverride.trim() : ''
+  const requestedEnvShell =
+    process.platform !== 'win32' && typeof env?.SHELL === 'string' ? env.SHELL.trim() : ''
+  return resolveRevivedShellOverride(shellOverride) || requestedEnvShell || resolveDefaultShell()
+}
+
+/**
+ * Spawn cwd, or a refusal. Both `spawnOnce` (admission fence) and `spawnAfterAdmission` (the native
+ * spawn) resolve through here so the fence can never be keyed on a directory the spawn won't use.
+ */
+function requireRelaySpawnCwd(
+  params: Record<string, unknown>,
+  env: Record<string, string> | undefined
+): string {
+  const resolution: RelaySpawnCwdResolution = resolveRelaySpawnCwd({
+    requestedCwd: params.cwd,
+    worktreeId: typeof params.worktreeId === 'string' ? params.worktreeId : env?.MANTA_WORKTREE_ID,
+    env,
+    launchAgent: isTuiAgent(params.launchAgent) ? params.launchAgent : undefined,
+    // A WSL shell executes in a guest, so the relay's own statSync is not the right question.
+    executesOnRelayFilesystem: !isRelayWslShell(resolveRelaySpawnShell(params, env))
+  })
+  if (resolution.kind === 'unresolved') {
+    throw new Error(formatUnresolvedRelaySpawnCwdMessage(resolution.workspaceId))
+  }
+  return resolution.cwd
+}
 
 function isMissingNodePtyNativeBinding(error: unknown): boolean {
   return error instanceof Error && isFlattenedNodePtyLoaderMessage(error.message)
@@ -638,7 +680,7 @@ export class PtyHandler {
     const matchingIds = [...this.ptys.values()]
       .filter((managed) => {
         const ownedPath = managed.worktreeId
-          ? splitWorktreeId(managed.worktreeId)?.worktreePath
+          ? splitWorktreeIdForFilesystem(managed.worktreeId)?.worktreePath
           : undefined
         return (
           (ownedPath !== undefined && isPathInsideOrEqual(rootPath, ownedPath)) ||
@@ -1669,8 +1711,12 @@ export class PtyHandler {
     const env = params.env as Record<string, string> | undefined
     const worktreeId =
       typeof params.worktreeId === 'string' ? params.worktreeId : env?.MANTA_WORKTREE_ID
-    const worktreePath = worktreeId ? splitWorktreeId(worktreeId)?.worktreePath : undefined
-    const cwd = typeof params.cwd === 'string' ? params.cwd : resolveDefaultCwd()
+    // Must be the filesystem split, matching requireRelaySpawnCwd: a `::workspace:<uuid>` id would
+    // otherwise fence a directory the spawn never enters.
+    const worktreePath = worktreeId
+      ? splitWorktreeIdForFilesystem(worktreeId)?.worktreePath
+      : undefined
+    const cwd = requireRelaySpawnCwd(params, env)
     const finishCreation = this.beginPtyCreation([worktreePath, cwd])
     let physicalSpawnCommitted = false
     const markPhysicalSpawnCommitted = (): void => {
@@ -1770,8 +1816,8 @@ export class PtyHandler {
 
     const cols = (params.cols as number) || 80
     const rows = (params.rows as number) || 24
-    const cwd = (params.cwd as string) || resolveDefaultCwd()
     const env = params.env as Record<string, string> | undefined
+    const cwd = requireRelaySpawnCwd(params, env)
     const envToDelete = sanitizeEnvToDelete(params.envToDelete)
     const explicitTerm =
       !envToDelete.includes('TERM') &&
@@ -2680,7 +2726,7 @@ export class PtyHandler {
         continue
       }
       const ownedPath = entry.worktreeId
-        ? splitWorktreeId(entry.worktreeId)?.worktreePath
+        ? splitWorktreeIdForFilesystem(entry.worktreeId)?.worktreePath
         : undefined
       const finishCreation = this.beginPtyCreation([ownedPath, entry.cwd])
       this.pendingReviveIds.add(entry.id)
