@@ -41,4 +41,8 @@ EOF
 fi
 
 echo "== verify"
-exec "$HERE/sync-verify.sh" "$MIRROR"
+"$HERE/sync-verify.sh" "$MIRROR" || exit $?
+
+# A sync that lands and never ships is upstream's fixes sitting in a branch.
+node "$ROOT/config/scripts/cut-fork-release.mjs" --dry-run 2>/dev/null | sed 's/^/   /' || true
+echo "   after the PR merges:  node config/scripts/cut-fork-release.mjs"

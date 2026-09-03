@@ -166,6 +166,35 @@ known and each is a migration decision, not a rename: `orca.web.onboarding.v1`
 `orca.mobile.connection-log.v1.` in `mobile/src/transport/persisted-connection-log-store.ts`;
 `MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'` under `.manta-remote/`.
 
+## Releasing
+
+A sync that lands and never ships is upstream's fixes sitting in a branch. The
+fork was three upstream releases behind when this step did not exist.
+
+```bash
+node config/scripts/cut-fork-release.mjs --dry-run   # what it would cut
+node config/scripts/cut-fork-release.mjs             # commit + tag, no push
+```
+
+It reads upstream's newest **stable** release — their line is what this fork's
+version follows, so upstream at `1.4.196` means this fork ships `1.4.196-rc.N`
+once it has merged that work — takes the rc after the highest already cut
+(from tags and release subjects, not from `package.json`, which is a working
+file and lies after a revert), never moves the base backwards, seals the skill
+bundle manifest for the version, drafts release notes from the commit subjects
+and refuses to proceed if they carry a personal identifier.
+
+**Read the drafted notes and trim them.** The draft is a changelog; a release
+note is a line of title, a sentence, and three to five bullets. Nothing about
+rationale, tradeoffs or implementation — those live in the commits.
+
+Pushing the tag is what publishes: `fork-release.yml` triggers on `v*`, builds
+all three desktop platforms, and installed copies auto-update to the result.
+The script stops before that and prints the command; `--push` does it.
+
+Mobile is a separate line (`mobile-ios-v*`, `mobile-android-v*`) and its own
+decision — a desktop sync does not imply a phone build.
+
 ## Landing it
 
 Open a pull request; merge without squash. Nothing in CI runs on a push to
