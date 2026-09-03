@@ -90,6 +90,22 @@ function supersedeSiblingLeasesForPane(
   }
 }
 
+/**
+ * Only `terminated` unbinds a pane. It is the operator-close state and the one written after a
+ * host-acknowledged stop; `expired` records that the CLIENT lost its route and says nothing about
+ * the remote shell (docs/reference/ssh-execution-boundary.md). Wiping the binding on `expired` made
+ * `resolvePersistedStablePaneOwner` return null, so `adoptStablePane` gave up and `createTerminal`
+ * spawned a replacement over a process that was still running. Keeping it buys a reattach ATTEMPT
+ * only — a genuinely dead shell is retired by `attachStablePaneOwner` on the relay's own absence
+ * answer, which then falls through to a fresh spawn.
+ *
+ * Supersession is the one place `expired` still scrubs a binding, and it does so explicitly in
+ * `supersedeSiblingLeasesForPane`: there a NEWER lease for the same pane is the evidence.
+ */
+function leaseStateWithdrawsBinding(state: SshRemotePtyLease['state']): boolean {
+  return state === 'terminated'
+}
+
 export function getSshRemotePtyLeases(
   state: PersistedState,
   targetId?: string
@@ -149,7 +165,7 @@ function updateSshRemotePtyLeaseStates(
 ): boolean {
   const now = Date.now()
   let changed = false
-  const shouldClearBindings = state === 'terminated' || state === 'expired'
+  const shouldClearBindings = leaseStateWithdrawsBinding(state)
   const leasesToClear: SshRemotePtyLease[] = []
   operations.state.sshRemotePtyLeases ??= []
   for (const lease of operations.state.sshRemotePtyLeases) {
@@ -237,7 +253,7 @@ export function markSshRemotePtyLease(
   if (!lease) {
     return
   }
-  const shouldClearBindings = state === 'terminated' || state === 'expired'
+  const shouldClearBindings = leaseStateWithdrawsBinding(state)
   if (lease.state === state) {
     if (shouldClearBindings && operations.clearBindingsForLeases(targetId, [lease])) {
       operations.flush()
