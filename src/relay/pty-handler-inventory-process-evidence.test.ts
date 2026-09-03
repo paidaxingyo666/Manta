@@ -9,11 +9,13 @@ const {
   mockPtySpawn,
   mockPtyInstance,
   mockCreateShellPromptReadinessProbe,
-  mockGetStrictProcessTableSnapshot
+  mockGetStrictProcessTableSnapshot,
+  mockGetStrictProcessTableSnapshotWithAge
 } = vi.hoisted(() => ({
   mockPtySpawn: vi.fn(),
   mockCreateShellPromptReadinessProbe: vi.fn(),
   mockGetStrictProcessTableSnapshot: vi.fn(),
+  mockGetStrictProcessTableSnapshotWithAge: vi.fn(),
   mockPtyInstance: {
     pid: process.pid,
     process: 'zsh',
@@ -40,12 +42,16 @@ vi.mock('../main/shell-prompt-readiness-probe', () => ({
   createShellPromptReadinessProbe: mockCreateShellPromptReadinessProbe
 }))
 
-vi.mock('../shared/process-table-snapshot', async (importOriginal) => {
+vi.mock('../shared/process-table-snapshot-reader', async (importOriginal) => {
   const actual = await importOriginal<ProcessTableSnapshotModule>()
-  return { ...actual, getStrictProcessTableSnapshot: mockGetStrictProcessTableSnapshot }
+  return {
+    ...actual,
+    getStrictProcessTableSnapshot: mockGetStrictProcessTableSnapshot,
+    getStrictProcessTableSnapshotWithAge: mockGetStrictProcessTableSnapshotWithAge
+  }
 })
 
-import type * as processTableSnapshotModule from '../shared/process-table-snapshot'
+import type * as processTableSnapshotModule from '../shared/process-table-snapshot-reader'
 import type { ProcessTableRow } from '../shared/process-table-snapshot'
 
 type ProcessTableSnapshotModule = typeof processTableSnapshotModule
@@ -130,6 +136,11 @@ describe('PtyHandler inventory foreground evidence', () => {
       mockCreateShellPromptReadinessProbe
     }))
     mockGetStrictProcessTableSnapshot.mockReset()
+    mockGetStrictProcessTableSnapshotWithAge.mockReset()
+    mockGetStrictProcessTableSnapshotWithAge.mockImplementation(async () => ({
+      rows: await mockGetStrictProcessTableSnapshot(),
+      capturedAgeMs: 0
+    }))
     vi.spyOn(ptyShellUtils, 'isProcessAlive').mockReturnValue(true)
   })
 
@@ -185,4 +196,72 @@ describe('PtyHandler inventory foreground evidence', () => {
       expect(reads()).toBe(table.length * CAPTURE_PASSES)
     }
   )
+
+  it('returns fenced inspect evidence and echoes the PTY incarnation', async () => {
+    mockPtySpawn.mockReturnValue({
+      ...mockPtyInstance,
+      pid: 4000,
+      process: 'zsh',
+      onData: vi.fn(),
+      onExit: vi.fn(),
+      kill: vi.fn()
+    })
+    const spawned = await spawnPty({ cols: 80, rows: 24 })
+    mockGetStrictProcessTableSnapshot.mockResolvedValue([
+      {
+        pid: 4000,
+        ppid: 1,
+        pgid: 4000,
+        tpgid: 4001,
+        tty: '/dev/pts/9',
+        startTime: 'anchor-start',
+        stat: 'Ss',
+        command: '/bin/zsh'
+      },
+      {
+        pid: 4001,
+        ppid: 4000,
+        pgid: 4001,
+        tpgid: 4001,
+        tty: '/dev/pts/9',
+        startTime: 'candidate-start',
+        stat: 'S+',
+        command: 'node /opt/codex'
+      }
+    ])
+    const inspection = await dispatcher.callRequest('pty.inspectProcess', {
+      id: spawned.id,
+      expectedIncarnationId: spawned.incarnationId
+    })
+
+    expect(inspection).toMatchObject({
+      foregroundProcess: 'codex',
+      foregroundProcessEvidence: {
+        verdict: 'live',
+        ptyId: spawned.id,
+        ptyIncarnationId: spawned.incarnationId,
+        fence: {
+          platform: 'posix',
+          shellPid: 4000,
+          shellStartTime: 'anchor-start',
+          tty: '/dev/pts/9',
+          foregroundPgid: 4001,
+          process: { pid: 4001, startTime: 'candidate-start' }
+        }
+      }
+    })
+    expect(mockGetStrictProcessTableSnapshot).toHaveBeenCalledOnce()
+  })
+
+  it('skips process capture for the no-evidence inventory projection', async () => {
+    await spawnPane(5000, 'zsh')
+    mockGetStrictProcessTableSnapshot.mockReset()
+
+    const result = await dispatcher.callRequest('pty.listProcesses', {
+      includeForegroundProcessEvidence: false
+    })
+
+    expect(result).toHaveLength(1)
+    expect(mockGetStrictProcessTableSnapshot).not.toHaveBeenCalled()
+  })
 })

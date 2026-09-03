@@ -9,13 +9,12 @@ import {
   recognizeAgentProcess
 } from '../shared/agent-process-recognition'
 import { getFirstCommandToken } from '../shared/command-token-scanner'
+import { getProcessTableIndex, type ProcessTableIndex } from '../shared/process-table-index'
+import { PS_MAX_BUFFER_BYTES, type ProcessTableRow } from '../shared/process-table-snapshot'
 import {
   getFreshProcessTableSnapshot,
-  getProcessTableSnapshot,
-  type ProcessTableIndex,
-  type ProcessTableRow
-} from '../shared/process-table-snapshot'
-import { getProcessTableIndex } from '../shared/process-table-index'
+  getProcessTableSnapshot
+} from '../shared/process-table-snapshot-reader'
 import { selectForegroundProcessCandidate } from '../shared/foreground-process-selection'
 import {
   resolveOuterWrapperForegroundProcess,
@@ -342,7 +341,8 @@ export async function getForegroundProcessName(
   try {
     const { stdout } = await execFile('ps', ['-o', 'comm=', '-p', String(pid)], {
       encoding: 'utf-8',
-      timeout: 3000
+      timeout: 3000,
+      maxBuffer: PS_MAX_BUFFER_BYTES
     })
     return stdout.trim() || null
   } catch {

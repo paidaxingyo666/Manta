@@ -1,8 +1,6 @@
 import { recognizeAgentProcessFromCommandLine } from '../../shared/agent-process-recognition'
-import {
-  getFreshProcessTableSnapshot,
-  type ProcessTableRow
-} from '../../shared/process-table-snapshot'
+import { getFreshProcessTableSnapshot } from '../../shared/process-table-snapshot-reader'
+import type { ProcessTableRow } from '../../shared/process-table-snapshot'
 import type { AgentSessionProcessIdentity } from '../../shared/agent-session-record'
 import type { AgentSessionHandleProvider } from '../../shared/agent-session-provider-handle'
 import { queryWindowsProcessRowsFresh } from '../providers/windows-foreground-process-rows'

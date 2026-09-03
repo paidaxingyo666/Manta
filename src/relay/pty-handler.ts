@@ -70,16 +70,18 @@ import { resolvePtyOwnerBackend, type PtyOwnerBackend } from '../shared/pty-owne
 import { RecentPtyOutputBuffer } from '../main/runtime/recent-pty-output-buffer'
 import {
   resolveAgentForegroundProcessesBatch,
+  resolveRemoteForegroundEvidence,
   toForegroundProcessEvidence,
   type BatchedForegroundProcessResult
 } from '../main/providers/agent-foreground-process'
-import {
-  getStrictProcessTableSnapshot,
-  PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS,
-  type ProcessTableRow
-} from '../shared/process-table-snapshot'
-import type { ForegroundProcessEvidence } from '../shared/foreground-process-evidence'
+import type { ProcessTableRow } from '../shared/process-table-snapshot'
+import { getStrictProcessTableSnapshotWithAge } from '../shared/process-table-snapshot-reader'
+import type {
+  ForegroundProcessEvidence,
+  RemoteForegroundEvidence
+} from '../shared/foreground-process-evidence'
 import { expandWindowsPathEnvironmentVariables } from '../shared/windows-environment-expansion'
+import { pruneRetiredPtyIncarnations } from '../shared/retired-pty-incarnations'
 import {
   agentSessionOwnerBindingsEqual,
   ClaimedAgentPtyOwnerRegistry
@@ -511,6 +513,10 @@ export class PtyHandler {
   private pendingOutputByPty = new Map<string, PendingPtyOutput[]>()
   private pendingProducerBytesByPty = new Map<string, number>()
   private pendingExitByPty = new Map<string, { id: string; code: number; incarnationId: string }>()
+  private retiredIncarnations = new Map<
+    string,
+    { id: string; code: number; incarnationId: string; expiresAt: number }
+  >()
   private pausedOutputPtys = new Set<string>()
   private consumerPausedOutputPtys = new Set<string>()
   private removeLegacyCapacityListener: (() => void) | null = null
@@ -1016,6 +1022,13 @@ export class PtyHandler {
         code: exitCode,
         incarnationId: managed.incarnationId
       })
+      this.retiredIncarnations.set(managed.id, {
+        id: managed.id,
+        code: exitCode,
+        incarnationId: managed.incarnationId,
+        expiresAt: Date.now() + 5_000
+      })
+      pruneRetiredPtyIncarnations(this.retiredIncarnations)
       this.publishPendingExit(managed.id)
       this.notifyExitListener(managed)
       this.agentSessionOwners.release(managed.id)
@@ -1069,9 +1082,12 @@ export class PtyHandler {
     this.dispatcher.onRequest('pty.getCapabilities', async () => ({
       startupIngressVersion: PTY_STARTUP_INGRESS_VERSION,
       agentSessionClaimVersion: AGENT_SESSION_EXECUTION_OWNER_PROTOCOL_VERSION,
-      agentSessionCreateOperationVersion: AGENT_SESSION_CREATE_OPERATION_PROTOCOL_VERSION
+      agentSessionCreateOperationVersion: AGENT_SESSION_CREATE_OPERATION_PROTOCOL_VERSION,
+      // Additive capability: clients may request the no-process-table inventory
+      // projection and consume fenced inspect evidence on this host.
+      foregroundProcessEvidenceVersion: 1
     }))
-    this.dispatcher.onRequest('pty.listProcesses', () => this.listProcesses())
+    this.dispatcher.onRequest('pty.listProcesses', (params) => this.listProcesses(params))
     this.dispatcher.onRequest('pty.getDefaultShell', async () => resolveDefaultShell())
     this.dispatcher.onRequest('pty.serialize', (p) => this.serialize(p))
     this.dispatcher.onRequest('pty.revive', (p) => this.revive(p))
@@ -1993,6 +2009,7 @@ export class PtyHandler {
           }
         : {})
     }
+    this.retiredIncarnations.delete(id)
     this.sourcePublication?.activate(id, managed.incarnationId, context)
     const sourceActivation =
       context && this.sourcePublication?.receivingActivation?.(id, context.clientId)
@@ -2371,6 +2388,13 @@ export class PtyHandler {
     }
     this.notifyExitListener(managed)
     this.agentSessionOwners.release(managed.id)
+    this.retiredIncarnations.set(managed.id, {
+      id: managed.id,
+      code: 0,
+      incarnationId: managed.incarnationId,
+      expiresAt: Date.now() + 5_000
+    })
+    pruneRetiredPtyIncarnations(this.retiredIncarnations)
     disposeManagedPty(managed)
     this.removePty(managed.id)
     this.clearPtyFlowState(managed.id)
@@ -2581,23 +2605,125 @@ export class PtyHandler {
   private async inspectProcess(params: Record<string, unknown>): Promise<{
     foregroundProcess: string | null
     hasChildProcesses: boolean
+    foregroundProcessEvidence?: RemoteForegroundEvidence
   }> {
+    pruneRetiredPtyIncarnations(this.retiredIncarnations)
     const id = params.id as string
     const managed = this.ptys.get(id)
     if (!managed || managed.disposed) {
+      const tombstone = this.retiredIncarnations.get(id)
+      if (
+        tombstone &&
+        tombstone.expiresAt > Date.now() &&
+        typeof params.expectedIncarnationId === 'string' &&
+        params.expectedIncarnationId === tombstone.incarnationId
+      ) {
+        return {
+          foregroundProcess: null,
+          hasChildProcesses: false,
+          foregroundProcessEvidence: {
+            authorityGeneration: this.ptyIdMintEpoch,
+            observationEpoch: ++this.foregroundEvidenceEpoch,
+            capturedAgeMs: 0,
+            ptyId: id,
+            ptyIncarnationId: tombstone.incarnationId,
+            verdict: 'exited',
+            reason: `pty_exit_${tombstone.code}`
+          }
+        }
+      }
       throw new Error('terminal_gone')
     }
-    const foregroundProcess = await getForegroundProcessName(
-      managed.pty.pid,
-      managed.pty.process || null
-    )
+    const expectedIncarnationId = params.expectedIncarnationId
+    if (
+      expectedIncarnationId !== undefined &&
+      (typeof expectedIncarnationId !== 'string' ||
+        expectedIncarnationId.length === 0 ||
+        expectedIncarnationId !== managed.incarnationId)
+    ) {
+      return {
+        foregroundProcess: null,
+        hasChildProcesses: false,
+        foregroundProcessEvidence: {
+          authorityGeneration: this.ptyIdMintEpoch,
+          observationEpoch: ++this.foregroundEvidenceEpoch,
+          capturedAgeMs: 0,
+          ptyId: id,
+          ptyIncarnationId: managed.incarnationId,
+          verdict: 'unverifiable',
+          reason: 'incarnation_mismatch'
+        }
+      }
+    }
+    let rows: readonly ProcessTableRow[] | null = null
+    let evidence: RemoteForegroundEvidence | undefined
+    if (process.platform === 'win32') {
+      // Why SSH-to-Windows is always unverifiable: POSIX has a real foreground primitive
+      // (the controlling terminal's foreground process group, tpgid/pgid), so the host can
+      // read which process is in front. Windows has no equivalent. Local Windows approximates
+      // it by reading the native process table and walking descendants of the PTY root pid
+      // (windows-foreground-process-rows.ts), but the relay has neither piece: it does not
+      // import windows-process-table, its getForegroundProcessName is POSIX-shaped
+      // (/proc, pgrep, lsof), and relay hosts run stock node-pty, so no ConPTY job/console
+      // association is available. Returning a descendant name without a creation-time and
+      // session fence would be a guess. Lifting this requires teaching the relay the Windows
+      // process table plus a measured creation-time/session fence - a separate change.
+      evidence = {
+        authorityGeneration: this.ptyIdMintEpoch,
+        observationEpoch: ++this.foregroundEvidenceEpoch,
+        capturedAgeMs: 0,
+        ptyId: id,
+        ptyIncarnationId: managed.incarnationId,
+        verdict: 'unverifiable',
+        reason: 'windows_ssh_foreground_unavailable'
+      }
+    } else {
+      try {
+        const snapshot = await getStrictProcessTableSnapshotWithAge()
+        rows = snapshot.rows
+        evidence = resolveRemoteForegroundEvidence(
+          { rootPid: managed.pty.pid, fallbackProcess: managed.pty.process || null },
+          {
+            ptyId: id,
+            ptyIncarnationId: managed.incarnationId,
+            authorityGeneration: this.ptyIdMintEpoch,
+            observationEpoch: ++this.foregroundEvidenceEpoch,
+            capturedAgeMs: snapshot.capturedAgeMs,
+            platform: process.platform
+          },
+          rows
+        )
+      } catch {
+        evidence = {
+          authorityGeneration: this.ptyIdMintEpoch,
+          observationEpoch: ++this.foregroundEvidenceEpoch,
+          capturedAgeMs: 0,
+          ptyId: id,
+          ptyIncarnationId: managed.incarnationId,
+          verdict: 'unverifiable',
+          reason: 'process_table_unreadable'
+        }
+      }
+    }
+    // Preserve the compatibility field for older clients. New remote identity
+    // consumers ignore it unless the fenced evidence member is also accepted.
+    const foregroundProcess =
+      evidence?.verdict === 'live'
+        ? (evidence.processName ?? managed.pty.process) || null
+        : managed.pty.process || null
     return {
       foregroundProcess,
-      hasChildProcesses: await processHasChildren(managed.pty.pid)
+      // Derive child liveness from the same capture; do not fork a second
+      // process-table probe for each field/pane in an event burst. Windows
+      // has no evidence capture, so preserve the compatibility child probe.
+      hasChildProcesses: rows
+        ? rows.some((row) => row.ppid === managed.pty.pid)
+        : await processHasChildren(managed.pty.pid),
+      ...(evidence ? { foregroundProcessEvidence: evidence } : {})
     }
   }
 
-  private async listProcesses(): Promise<PtyProcessSummary[]> {
+  private async listProcesses(params: Record<string, unknown> = {}): Promise<PtyProcessSummary[]> {
     const results: PtyProcessSummary[] = []
     // Why (SSH-v3 P2 — the host is the authoritative liveness source, so it has to look): this
     // listing is what publishes `agentSessionOwners`, i.e. "there is a live agent session here you
@@ -2606,18 +2732,26 @@ export class PtyHandler {
     const managedEntries = Array.from(this.ptys)
     // R1 seed evidence is additive and POSIX-only. Windows authorities retain
     // the existing title/liveness path until the measured relay adapter lands.
+    // Desktop callers omit this additive field and retain the shipped list
+    // shape/cost; automatic inventory callers pass false explicitly to skip
+    // process-table work on the host.
+    const includeForegroundProcessEvidence = params.includeForegroundProcessEvidence !== false
     let evidenceRows: readonly ProcessTableRow[] | null = null
     let evidenceResults: BatchedForegroundProcessResult[] = []
     const evidenceEpoch = ++this.foregroundEvidenceEpoch
     // Worst-case capture time for the snapshot below, not the instant its await settled: the
-    // reader may serve a TTL-cached table, so the observation can already be one window old. The
-    // loop that follows can await per entry, so each record is stamped against this rather than
-    // carrying a shared constant.
+    // reader may serve a TTL-cached table. The WithAge reader returns the real age, so the
+    // stamp is exact rather than assuming the full staleness window.
     let evidenceCapturedAtMs = Date.now()
-    if (process.platform !== 'win32' && managedEntries.length > 0) {
+    if (
+      includeForegroundProcessEvidence &&
+      process.platform !== 'win32' &&
+      managedEntries.length > 0
+    ) {
       try {
-        evidenceRows = await getStrictProcessTableSnapshot()
-        evidenceCapturedAtMs = Date.now() - PROCESS_TABLE_SNAPSHOT_MAX_STALENESS_MS
+        const evidenceSnapshot = await getStrictProcessTableSnapshotWithAge()
+        evidenceRows = evidenceSnapshot.rows
+        evidenceCapturedAtMs = Date.now() - evidenceSnapshot.capturedAgeMs
         evidenceResults = await resolveAgentForegroundProcessesBatch(
           managedEntries.map(([, managed]) => ({
             rootPid: managed.pty.pid,
@@ -2642,9 +2776,11 @@ export class PtyHandler {
       const title =
         (evidenceRows
           ? (evidenceResults[entryIndex]?.processName ?? managed.pty.process ?? null)
-          : await getForegroundProcessName(managed.pty.pid, managed.pty.process || null)) || 'shell'
+          : includeForegroundProcessEvidence
+            ? await getForegroundProcessName(managed.pty.pid, managed.pty.process || null)
+            : managed.pty.process || null) || 'shell'
       const foregroundProcessEvidence =
-        process.platform !== 'win32'
+        includeForegroundProcessEvidence && process.platform !== 'win32'
           ? toForegroundProcessEvidence(
               evidenceResults[entryIndex] ?? {
                 available: false,

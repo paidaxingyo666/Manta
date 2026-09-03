@@ -13,7 +13,7 @@ vi.mock('child_process', () => ({
 
 import { resetWindowsProcessRowsSnapshotForTests } from '../main/providers/windows-foreground-process-rows'
 import { __setWindowsProcessTreeLoaderForTests } from '../main/windows/windows-process-table'
-import { resetProcessTableSnapshotForTests } from '../shared/process-table-snapshot'
+import { resetProcessTableSnapshotForTests } from '../shared/process-table-snapshot-reader'
 import {
   getForegroundProcessName,
   isProcessAlive,

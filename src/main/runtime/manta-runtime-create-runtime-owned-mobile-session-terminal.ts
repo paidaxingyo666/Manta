@@ -95,6 +95,7 @@ export class MantaRuntimeWithCreateRuntimeOwnedMobileSessionTerminal extends Man
       parentTabId,
       leafId,
       ptyId: livePty.pty.ptyId,
+      incarnationId: livePty.pty.incarnationId,
       title: terminal.title ?? livePty.pty.title ?? 'Terminal',
       ...(cwd ? { startupCwd: cwd } : {}),
       ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),

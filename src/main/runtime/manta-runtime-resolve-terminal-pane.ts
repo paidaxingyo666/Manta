@@ -124,7 +124,8 @@ export class MantaRuntimeWithResolveTerminalPane extends MantaRuntimeWithGetTerm
       tabId: parsed.tabId,
       leafId: parsed.leafId,
       ptyId: terminal.ptyId ?? null,
-      worktreeId: expectedWorktreeId
+      worktreeId: expectedWorktreeId,
+      ...(terminal.incarnationId ? { incarnationId: terminal.incarnationId } : {})
     }))
     this.terminalPaneRecoveryByIdentity.set(recoveryKey, recovery)
     const clearRecovery = (): void => {

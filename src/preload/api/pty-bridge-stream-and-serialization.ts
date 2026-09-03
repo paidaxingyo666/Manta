@@ -2,15 +2,14 @@ import { ipcRenderer } from 'electron'
 import type { PtyModelRestoreNeededEvent } from '../../shared/pty-model-restore-marker'
 import type { TerminalSideEffectBatch } from '../../shared/terminal-side-effect-facts'
 import type { PreloadApi } from '../api-types'
+import type { TerminalProcessInspection } from '../../shared/terminal-process-inspection'
 
 export const ptyStreamAndSerializationApi = {
   inspectProcess: (
-    id: string
-  ): Promise<{
-    foregroundProcess: string | null
-    hasChildProcesses: boolean
-    unavailable?: true
-  }> => ipcRenderer.invoke('pty:inspectProcess', { id }),
+    id: string,
+    options?: { expectedIncarnationId?: string }
+  ): Promise<TerminalProcessInspection> =>
+    ipcRenderer.invoke('pty:inspectProcess', { id, ...options }),
   confirmForegroundProcess: (id: string): Promise<string | null> =>
     ipcRenderer.invoke('pty:confirmForegroundProcess', { id }),
   getCwd: (id: string): Promise<string> => ipcRenderer.invoke('pty:getCwd', { id }),

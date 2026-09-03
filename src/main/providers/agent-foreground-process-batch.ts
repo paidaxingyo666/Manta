@@ -5,17 +5,19 @@ import {
 import { getFirstCommandToken } from '../../shared/command-token-scanner'
 import { resolveOuterWrapperForegroundProcess } from '../../shared/foreground-wrapper-agent'
 import { selectForegroundProcessCandidate } from '../../shared/foreground-process-selection'
-import type { ForegroundProcessEvidence } from '../../shared/foreground-process-evidence'
-import {
-  getStrictProcessTableSnapshot,
-  type ProcessTableIndex,
-  type ProcessTableRow
-} from '../../shared/process-table-snapshot'
+import type {
+  ForegroundProcessEvidence,
+  RemoteForegroundEvidence
+} from '../../shared/foreground-process-evidence'
 import {
   buildProcessTableIndex,
   lookupProcessTableIndex,
+  type ProcessTableIndex,
   type ProcessTableIndexStats
 } from '../../shared/process-table-index'
+import type { ProcessTableRow } from '../../shared/process-table-snapshot'
+import { getStrictProcessTableSnapshot } from '../../shared/process-table-snapshot-reader'
+import { resolveRemoteForegroundEvidenceFromRows } from './agent-foreground-process-remote-evidence'
 
 export type BatchedForegroundProcessRequest = {
   rootPid: number
@@ -29,6 +31,29 @@ export type BatchedForegroundProcessResult = {
   /** Set only when the table was readable: every process group attached to this PTY's terminal is
    *  the shell's own, and none of them is stopped. Left absent when we could not observe it. */
   shellOwnsEveryTtyProcessGroup?: boolean
+}
+
+export type RemoteForegroundEvidenceOptions = {
+  ptyId: string
+  ptyIncarnationId: string
+  authorityGeneration: string
+  observationEpoch: number
+  capturedAgeMs: number
+  platform?: NodeJS.Platform
+}
+
+/** Resolve a host-stamped, fenced observation from one complete process-table capture. */
+export function resolveRemoteForegroundEvidence(
+  request: BatchedForegroundProcessRequest,
+  options: RemoteForegroundEvidenceOptions,
+  rows: readonly ProcessTableRow[]
+): RemoteForegroundEvidence {
+  return resolveRemoteForegroundEvidenceFromRows(
+    request,
+    options,
+    rows,
+    resolveAgentForegroundProcessesFromIndex
+  )
 }
 
 export type BatchedForegroundProcessOptions = {

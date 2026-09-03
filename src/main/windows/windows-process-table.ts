@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import { createProcessTableSnapshotReader } from '../../shared/process-table-snapshot'
+import { createProcessTableSnapshotReader } from '../../shared/process-table-snapshot-reader'
 import { readWindowsProcessRowsWithCim } from './windows-process-table-cim-scan'
 
 /**

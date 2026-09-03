@@ -193,6 +193,8 @@ export type IPtyProvider = {
    * providers without an authoritative size source can omit it.
    */
   getAppliedSize?: (id: string) => Promise<{ cols: number; rows: number } | null>
+  /** Optional host capability used to suppress expensive legacy remote inventory polls. */
+  supportsForegroundProcessEvidence?(options?: { signal?: AbortSignal }): Promise<boolean>
 
   // Why: deadlineMs (absolute epoch ms) bounds the underlying RPCs so destructive
   // teardown fails fast inside its sweep budget instead of tripping the outer sweep
@@ -228,7 +230,10 @@ export type IPtyProvider = {
   serialize(ids: string[]): Promise<string>
   revive(state: string): Promise<void>
   // Why: deadlineMs bounds the underlying RPC exactly like shutdown's deadlineMs.
-  listProcesses(opts?: { deadlineMs?: number }): Promise<PtyProcessInfo[]>
+  listProcesses(opts?: {
+    deadlineMs?: number
+    includeForegroundProcessEvidence?: boolean
+  }): Promise<PtyProcessInfo[]>
   getDefaultShell(): Promise<string>
   getProfiles(): Promise<{ name: string; path: string }[]>
   onData(callback: (payload: PtyDataEvent) => void): () => void

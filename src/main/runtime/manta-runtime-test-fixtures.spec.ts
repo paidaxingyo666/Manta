@@ -26,6 +26,7 @@ import type {
   WorktreeMeta
 } from './manta-runtime-test-mocks.spec'
 import type { OrchestrationDb } from './orchestration/db'
+import type { PtyProcessInspection } from '../providers/pty-process-inspection'
 
 type RuntimeService = InstanceType<typeof MantaRuntimeService>
 type HeadlessTerminal = InstanceType<typeof HeadlessEmulator>
@@ -628,9 +629,7 @@ function createRuntimeWithSshLease(
 
 async function createExplicitAgentStatusHarness(options: {
   getForegroundProcess: (ptyId: string) => Promise<string | null>
-  inspectProcess?: (
-    ptyId: string
-  ) => Promise<{ foregroundProcess: string | null; hasChildProcesses: boolean; unavailable?: true }>
+  inspectProcess?: (ptyId: string) => Promise<PtyProcessInspection>
   confirmForegroundProcess?: (ptyId: string) => Promise<string | null>
   title?: string
 }): Promise<{

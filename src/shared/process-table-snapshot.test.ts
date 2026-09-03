@@ -10,11 +10,13 @@ import {
   createProcessTableSnapshotReader,
   getProcessTableSnapshot,
   getStrictProcessTableSnapshot,
-  parseProcessTableRows,
-  parseStrictProcessTableRows,
-  ProcessTableCaptureError,
   PS_MAX_BUFFER_BYTES,
   resetProcessTableSnapshotForTests
+} from './process-table-snapshot-reader'
+import {
+  parseProcessTableRows,
+  parseStrictProcessTableRows,
+  ProcessTableCaptureError
 } from './process-table-snapshot'
 import {
   buildProcessTableIndex,

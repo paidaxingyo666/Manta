@@ -20,6 +20,8 @@ import { getAgentLaunchPlatformForRepo } from './runtime-agent-launch-resolution
 import type { TerminalWorkspaceLaunchScope } from './runtime-legacy-worker-terminal-recovery-types'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import { isWslUncPath } from '../../shared/wsl-paths'
+import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
+import type { PtyProcessInspection } from '../providers/pty-process-inspection'
 
 export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends MantaRuntimeWithResolveRecoveredStructuredTuiTranscript {
   protected async restoreStructuredAgentSessionTabsOnce(): Promise<void> {
@@ -150,14 +152,30 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
   }
 
   async inspectTerminalProcess(
-    terminalSelector: string
-  ): Promise<{ foregroundProcess: string | null; hasChildProcesses: boolean; unavailable?: true }> {
+    terminalSelector: string,
+    options?: { expectedIncarnationId?: string }
+  ): Promise<PtyProcessInspection> {
     const leaf = this.resolveLiveLeafForHandle(terminalSelector)
     if (!leaf?.ptyId || !this.ptyController) {
       throw new Error('terminal_gone')
     }
     if (this.ptyController.inspectProcess) {
-      return this.ptyController.inspectProcess(leaf.ptyId)
+      // Preserve the legacy one-argument call shape when no incarnation
+      // fence was requested; some providers use arity to distinguish the
+      // compatibility path from the fenced remote inspection.
+      const inspection =
+        options === undefined
+          ? await this.ptyController.inspectProcess(leaf.ptyId)
+          : await this.ptyController.inspectProcess(leaf.ptyId, options)
+      const evidence = inspection.foregroundProcessEvidence
+      // The runtime handle is the request identity on this wire; keep the
+      // host-owned leaf PTY id out of the client-facing comparison.
+      const relayPtyId = parseAppSshPtyId(leaf.ptyId)?.relayPtyId
+      const evidenceBelongsToLeaf =
+        evidence !== undefined && (evidence.ptyId === leaf.ptyId || evidence.ptyId === relayPtyId)
+      return evidenceBelongsToLeaf
+        ? { ...inspection, foregroundProcessEvidence: { ...evidence, ptyId: terminalSelector } }
+        : inspection
     }
     const foregroundProcess = await this.ptyController.getForegroundProcess(leaf.ptyId)
     const hasChildProcesses = (await this.ptyController.hasChildProcesses?.(leaf.ptyId)) ?? false
