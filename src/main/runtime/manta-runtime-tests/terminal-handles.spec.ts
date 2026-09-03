@@ -521,15 +521,18 @@ describe('MantaRuntimeService', () => {
   })
 
   it('does not recover a pane whose authoritative SSH lease was terminated', async () => {
+    // An SSH pane, so this exercises the same id-form path recovery now travels: `terminated` is
+    // also the operator-close state (ssh:terminateSessions), so it must never resurrect a pane.
     const tabId = 'tab-terminated'
-    const runtime = createRuntimeWithSshLease('pty-terminated', tabId, 'terminated')
+    const appPtyId = 'ssh:ssh-target@@pty-terminated'
+    const runtime = createRuntimeWithSshLease(appPtyId, tabId, 'terminated')
     const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
-    runtime.registerPty('pty-terminated', TEST_WORKTREE_ID, null, {
+    runtime.registerPty(appPtyId, TEST_WORKTREE_ID, 'ssh-target', {
       tabId,
       leafId: HEADLESS_LEAF_ID
     })
     const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
-    runtime.onPtyExit('pty-terminated', 0)
+    runtime.onPtyExit(appPtyId, 0)
     const createTerminal = vi.spyOn(runtime, 'createTerminal')
 
     await expect(runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)).rejects.toThrow(
@@ -538,16 +541,14 @@ describe('MantaRuntimeService', () => {
     expect(createTerminal).not.toHaveBeenCalled()
   })
 
-  it('never matches an SSH pane against its own lease, because the two ids are in different forms', async () => {
-    // Characterization, not an endorsement. Leases are stored in RELAY form: upsertSshRemotePtyLease
-    // and markSshRemotePtyLease both run ids through toStoredPtyId -> toRelaySshPtyId ("pty-3").
-    // getRecentExpiredSshLease compares that against the runtime's APP-form pty id
-    // ("ssh:target@@pty-3") with a raw ===, so for a real SSH pane the lease is never found and
-    // recoverTerminalPane refuses before it can spawn anything. That makes the expired-lease branch
-    // unreachable for exactly the panes it names — see the report accompanying this change.
+  it('matches an SSH pane against its own lease across the relay/app id forms', async () => {
+    // Leases are stored in RELAY form: upsertSshRemotePtyLease and markSshRemotePtyLease both run
+    // ids through toStoredPtyId -> toRelaySshPtyId ("pty-3"). The runtime holds the APP form
+    // ("ssh:ssh-target@@pty-3"). getRecentExpiredSshLease compared the two raw, so this branch was
+    // unreachable for exactly the panes it names; it now normalizes before comparing.
     const tabId = 'tab-id-form'
     const appPtyId = 'ssh:ssh-target@@pty-3'
-    const runtime = createRuntimeWithSshLease('pty-3', tabId)
+    const runtime = createRuntimeWithSshLease(appPtyId, tabId)
     const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
     runtime.registerPty(appPtyId, TEST_WORKTREE_ID, 'ssh-target', {
       tabId,
@@ -564,6 +565,57 @@ describe('MantaRuntimeService', () => {
       title: null,
       surface: 'background'
     })
+
+    await expect(
+      runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)
+    ).resolves.toMatchObject({ handle: 'term-replacement' })
+    // createTerminal is the re-adopt entry point, not a bare spawn: it calls adoptStablePane first,
+    // so a surviving orphan is reattached and only a host-confirmed absence falls through to a
+    // fresh shell.
+    expect(createTerminal).toHaveBeenCalledWith(`id:${TEST_WORKTREE_ID}`, {
+      tabId,
+      leafId: HEADLESS_LEAF_ID,
+      focus: false
+    })
+  })
+
+  it('does not recover a pane whose expired lease was superseded by a newer one', async () => {
+    // #17966 split supersession out of plain `expired`: `supersededBy` names the lease that won
+    // this pane, so this id no longer routes to the shell the lease describes.
+    const tabId = 'tab-superseded'
+    const appPtyId = 'ssh:ssh-target@@pty-5'
+    const runtime = createRuntimeWithSshLease(appPtyId, tabId, 'expired', {
+      supersededBy: 'pty-6'
+    })
+    const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
+    runtime.registerPty(appPtyId, TEST_WORKTREE_ID, 'ssh-target', {
+      tabId,
+      leafId: HEADLESS_LEAF_ID
+    })
+    const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
+    runtime.onPtyExit(appPtyId, 0)
+    const createTerminal = vi.spyOn(runtime, 'createTerminal')
+
+    await expect(runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)).rejects.toThrow(
+      'terminal_not_recoverable'
+    )
+    expect(createTerminal).not.toHaveBeenCalled()
+  })
+
+  it('does not recover a pane whose expired lease had its relay id recycled', async () => {
+    const tabId = 'tab-recycled'
+    const appPtyId = 'ssh:ssh-target@@pty-7'
+    const runtime = createRuntimeWithSshLease(appPtyId, tabId, 'expired', {
+      relayIdRecycled: true
+    })
+    const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
+    runtime.registerPty(appPtyId, TEST_WORKTREE_ID, 'ssh-target', {
+      tabId,
+      leafId: HEADLESS_LEAF_ID
+    })
+    const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
+    runtime.onPtyExit(appPtyId, 0)
+    const createTerminal = vi.spyOn(runtime, 'createTerminal')
 
     await expect(runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)).rejects.toThrow(
       'terminal_not_recoverable'

@@ -1,6 +1,6 @@
 import type { TerminalPaneLayoutNode } from '../../../shared/terminal-tab-types'
 import type { SshRemotePtyLease } from '../../../shared/ssh-types'
-import { toRelaySshPtyId } from '../../providers/ssh-pty-id'
+import { toComparableRelaySshPtyId, toRelaySshPtyId } from '../../providers/ssh-pty-id'
 import { isTerminalLeafId } from '../../../shared/stable-pane-id'
 import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
 
@@ -60,11 +60,7 @@ export class TerminalBindingRecoveryOperations {
   }
 
   getRelayPtyIdForSshLeaseComparison(targetId: string, ptyId: string): string {
-    try {
-      return toRelaySshPtyId(targetId, ptyId)
-    } catch {
-      return ptyId
-    }
+    return toComparableRelaySshPtyId(targetId, ptyId)
   }
 
   getRelayPtyIdForSshLeaseStorage(targetId: string, ptyId: string): string {

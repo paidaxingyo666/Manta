@@ -8,6 +8,7 @@ import {
 } from '../../shared/agent-prompt-injection'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import { makePaneKey } from '../../shared/stable-pane-id'
+import { toComparableRelaySshPtyId } from '../../shared/ssh-pty-id'
 import {
   computeWorktreePathMock,
   ensurePathWithinWorkspaceMock
@@ -598,10 +599,13 @@ const store = {
   getProjects: () => []
 }
 
+// Callers pass the pane's APP-form pty id; the lease stores RELAY form, exactly as
+// upsertSshRemotePtyLease does through toStoredPtyId. Non-SSH ids pass through untouched.
 function createRuntimeWithSshLease(
   ptyId: string,
   tabId: string,
-  state: 'expired' | 'terminated' = 'expired'
+  state: 'expired' | 'terminated' = 'expired',
+  marks: { supersededBy?: string; relayIdRecycled?: true } = {}
 ): RuntimeService {
   const now = Date.now()
   return new MantaRuntimeService({
@@ -609,13 +613,14 @@ function createRuntimeWithSshLease(
     getSshRemotePtyLeases: () => [
       {
         targetId: 'ssh-target',
-        ptyId,
+        ptyId: toComparableRelaySshPtyId('ssh-target', ptyId),
         worktreeId: TEST_WORKTREE_ID,
         tabId,
         leafId: HEADLESS_LEAF_ID,
         state,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        ...marks
       }
     ]
   })

@@ -8,7 +8,7 @@ import type {
 } from '../../shared/runtime-types'
 import { headlessBrowserTabsUnchanged } from './mobile-session-browser-equality'
 import { appendBrowserTabOrder } from './mobile-session-browser-group-projection'
-import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
+import { parseAppSshPtyId, toComparableRelaySshPtyId } from '../../shared/ssh-pty-id'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import type { RuntimeStore } from './runtime-store-contract'
 import { SSH_PANE_RECOVERY_GRACE_MS } from './manta-runtime-core'
@@ -100,18 +100,20 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
   ): ReturnType<NonNullable<RuntimeStore['getSshRemotePtyLeases']>>[number] | null {
     const now = Date.now()
     return (
-      this.store
-        ?.getSshRemotePtyLeases?.()
-        .find(
-          (lease) =>
-            lease.state === 'expired' &&
-            lease.worktreeId === worktreeId &&
-            lease.tabId === tabId &&
-            (ptyId === undefined || lease.ptyId === ptyId) &&
-            (leafId === undefined || lease.leafId === undefined || lease.leafId === leafId) &&
-            lease.updatedAt <= now &&
-            now - lease.updatedAt <= SSH_PANE_RECOVERY_GRACE_MS
-        ) ?? null
+      this.store?.getSshRemotePtyLeases?.().find(
+        (lease) =>
+          lease.state === 'expired' &&
+          lease.worktreeId === worktreeId &&
+          lease.tabId === tabId &&
+          // Leases store RELAY form (`toStoredPtyId` -> `toRelaySshPtyId`); the runtime hands us
+          // the APP form (`ssh:<target>@@pty-3`). A raw `===` therefore never held for an SSH
+          // pane, which is what kept this reader's only ptyId-qualified caller inert.
+          (ptyId === undefined ||
+            lease.ptyId === toComparableRelaySshPtyId(lease.targetId, ptyId)) &&
+          (leafId === undefined || lease.leafId === undefined || lease.leafId === leafId) &&
+          lease.updatedAt <= now &&
+          now - lease.updatedAt <= SSH_PANE_RECOVERY_GRACE_MS
+      ) ?? null
     )
   }
 
