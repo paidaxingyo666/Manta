@@ -5,19 +5,11 @@ region      = "us-central1"
 
 artifact_repository_id = "manta-cloud"
 
-# Dual accept while the relay source moves to the public stablyai/orca repository: the same
-# workflows are trusted from both repos, and the public copies carry a `cloud-` file prefix.
-# Remove this entry once the private workflows are retired and point github_owner/github_repo,
-# github_repo_id, and github_owner_id at the surviving repository.
-github_accepted_repositories = [
-  {
-    owner                = "stablyai"
-    repo                 = "manta"
-    repo_id              = "1183888342"
-    owner_id             = "127256420"
-    workflow_file_prefix = "cloud-"
-  }
-]
+# The relay source lives in the public stablyai/orca repository, where the workflows carry a
+# `cloud-` file prefix. github_owner and github_owner_id keep their defaults.
+github_repo                 = "manta"
+github_repo_id              = "1183888342"
+github_workflow_file_prefix = "cloud-"
 
 # Our first-party auth service. auth.manta.sh.cn is PropelAuth's prod domain, so
 # our service lives at login.manta.sh.cn (desktop points MANTA_CLOUD_API_URL here).
