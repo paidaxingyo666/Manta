@@ -609,10 +609,10 @@ describe('SshRelaySession', () => {
     expect(clearProviderPtyState).not.toHaveBeenCalledWith('ssh:target-1@@pty-1')
     expect(deletePtyOwnership).not.toHaveBeenCalledWith('ssh:target-1@@pty-1')
     expect(mockStore.markSshRemotePtyLease).not.toHaveBeenCalledWith('target-1', 'pty-1', 'expired')
-    expect(mockWindow.webContents.send).not.toHaveBeenCalledWith('pty:exit', {
-      id: 'ssh:target-1@@pty-1',
-      code: -1
-    })
+    expect(mockWindow.webContents.send).not.toHaveBeenCalledWith(
+      'pty:exit',
+      expect.objectContaining({ id: 'ssh:target-1@@pty-1' })
+    )
   })
 
   it('rejects establish if detach wins while reattach is in flight', async () => {
@@ -697,7 +697,8 @@ describe('SshRelaySession', () => {
     expect(deletePtyOwnership).toHaveBeenCalledWith('ssh:target-1@@pty-stale')
     expect(mockWindow.webContents.send).toHaveBeenCalledWith('pty:exit', {
       id: 'ssh:target-1@@pty-stale',
-      code: -1
+      code: -1,
+      ptySourceDisowned: true
     })
   })
 

@@ -187,12 +187,11 @@ describe('SshRelaySession abandoned remote PTYs', () => {
     expect(clearProviderPtyState).not.toHaveBeenCalledWith(APP_PTY_ID)
   })
 
-  it('stops claiming the id without asserting an exit when the relay answers not-found', async () => {
-    // pty.attach answers not-found both when it verified the pid is dead AND when its session map
-    // simply has no such id — which is every id after a relay restart, since the relay renumbers
-    // from pty-1. The client cannot tell those apart, so this branch may release the id but must
-    // not certify a death: the exit it publishes carries the unverified-loss sentinel, never a
-    // status the renderer would read as a real exit.
+  it('publishes a disowned-source signal when the relay answers not-found', async () => {
+    // A reachable relay answered for this exact id and disowned it. That licenses replacing the
+    // pane — respawning leaks the old process rather than killing it — but a restarted relay
+    // answers the same way for ids it never minted, so this is not an `exited` verdict
+    // (docs/reference/ssh-execution-boundary.md).
     const { deps, shutdown } = await establishWithFailingReattach(
       new Error('PTY "pty-live" not found')
     )
@@ -207,7 +206,8 @@ describe('SshRelaySession abandoned remote PTYs', () => {
     expect(clearProviderPtyState).toHaveBeenCalledWith(APP_PTY_ID)
     expect(deps.mockWindow.webContents.send).toHaveBeenCalledWith('pty:exit', {
       id: APP_PTY_ID,
-      code: -1
+      code: -1,
+      ptySourceDisowned: true
     })
     const exitCall = vi
       .mocked(deps.mockWindow.webContents.send)
@@ -215,8 +215,9 @@ describe('SshRelaySession abandoned remote PTYs', () => {
     if (!exitCall) {
       throw new Error('expected a pty:exit publication')
     }
-    // The ratchet that makes the above safe: swapping -1 for any provable status would turn an
-    // unreachable relay into a death certificate, closing tabs and dropping leaf↔PTY bindings.
+    // The ratchet: the verdict rides its own field, never the code. Swapping -1 for a provable
+    // status would make every reader that keys off the code close the tab and drop its leaf↔PTY
+    // binding, which is a far wider claim than "this id is gone from this relay".
     expect(isProvenProcessExit((exitCall[1] as { code: number }).code)).toBe(false)
   })
 

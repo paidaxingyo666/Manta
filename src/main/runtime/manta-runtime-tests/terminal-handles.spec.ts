@@ -538,6 +538,103 @@ describe('MantaRuntimeService', () => {
     expect(createTerminal).not.toHaveBeenCalled()
   })
 
+  it('never matches an SSH pane against its own lease, because the two ids are in different forms', async () => {
+    // Characterization, not an endorsement. Leases are stored in RELAY form: upsertSshRemotePtyLease
+    // and markSshRemotePtyLease both run ids through toStoredPtyId -> toRelaySshPtyId ("pty-3").
+    // getRecentExpiredSshLease compares that against the runtime's APP-form pty id
+    // ("ssh:target@@pty-3") with a raw ===, so for a real SSH pane the lease is never found and
+    // recoverTerminalPane refuses before it can spawn anything. That makes the expired-lease branch
+    // unreachable for exactly the panes it names — see the report accompanying this change.
+    const tabId = 'tab-id-form'
+    const appPtyId = 'ssh:ssh-target@@pty-3'
+    const runtime = createRuntimeWithSshLease('pty-3', tabId)
+    const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
+    runtime.registerPty(appPtyId, TEST_WORKTREE_ID, 'ssh-target', {
+      tabId,
+      leafId: HEADLESS_LEAF_ID
+    })
+    const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
+    runtime.onPtyExit(appPtyId, 0)
+    const createTerminal = vi.spyOn(runtime, 'createTerminal').mockResolvedValue({
+      handle: 'term-replacement',
+      tabId,
+      paneKey,
+      ptyId: 'pty-replacement',
+      worktreeId: TEST_WORKTREE_ID,
+      title: null,
+      surface: 'background'
+    })
+
+    await expect(runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)).rejects.toThrow(
+      'terminal_not_recoverable'
+    )
+    expect(createTerminal).not.toHaveBeenCalled()
+  })
+
+  it('does not recreate a shell for an expired lease whose PTY liveness is unverifiable', async () => {
+    // The production sequence this guards: a relay reattach fails, so ssh-relay-session marks the
+    // lease 'expired' AND sends a synthetic pty:exit code -1. Neither observed the process — every
+    // writer of 'expired' documents it as "the client lost its route", and code -1 with no host
+    // confirmation is recorded 'unverifiable'. Spawning a replacement there rebinds the pane away
+    // from a remote shell still running on the host and duplicates its agent.
+    const tabId = 'tab-unverifiable'
+    const ptyId = 'ssh:ssh-target@@pty-3'
+    const runtime = createRuntimeWithSshLease(ptyId, tabId)
+    const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
+    runtime.registerPty(ptyId, TEST_WORKTREE_ID, 'ssh-target', {
+      tabId,
+      leafId: HEADLESS_LEAF_ID
+    })
+    const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
+    runtime.onPtyExit(ptyId, -1)
+    expect(runtime.getPtyLivenessVerdict(ptyId)?.status).toBe('unverifiable')
+    // Resolve rather than call through, so a regression shows up as "spawned a second shell"
+    // rather than as whatever createTerminal happens to throw in the fixture.
+    const createTerminal = vi.spyOn(runtime, 'createTerminal').mockResolvedValue({
+      handle: 'term-replacement',
+      tabId,
+      paneKey,
+      ptyId: 'pty-replacement',
+      worktreeId: TEST_WORKTREE_ID,
+      title: null,
+      surface: 'background'
+    })
+
+    await expect(runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)).rejects.toThrow(
+      'terminal_not_recoverable'
+    )
+    expect(createTerminal).not.toHaveBeenCalled()
+  })
+
+  it('still recreates a shell for an SSH pane whose host confirmed the exit', async () => {
+    // The other direction: a host-confirmed exit leaves no unverifiable verdict, so the pane a
+    // paired client asks about must still get a replacement shell.
+    const tabId = 'tab-ssh-exited'
+    const ptyId = 'ssh:ssh-target@@pty-4'
+    const runtime = createRuntimeWithSshLease(ptyId, tabId)
+    const paneKey = makePaneKey(tabId, HEADLESS_LEAF_ID)
+    runtime.registerPty(ptyId, TEST_WORKTREE_ID, 'ssh-target', {
+      tabId,
+      leafId: HEADLESS_LEAF_ID
+    })
+    const handle = runtime.resolveTerminalPane(paneKey, TEST_WORKTREE_ID).handle
+    runtime.onPtyExit(ptyId, -1, undefined, { hostExitConfirmed: true })
+    const createTerminal = vi.spyOn(runtime, 'createTerminal').mockResolvedValue({
+      handle: 'term-replacement',
+      tabId,
+      paneKey,
+      ptyId: 'pty-replacement',
+      worktreeId: TEST_WORKTREE_ID,
+      title: null,
+      surface: 'background'
+    })
+
+    await expect(
+      runtime.recoverTerminalPane(paneKey, TEST_WORKTREE_ID, handle)
+    ).resolves.toMatchObject({ handle: 'term-replacement' })
+    expect(createTerminal).toHaveBeenCalledOnce()
+  })
+
   it('drops a stale leaf when a woken agent PTY is re-keyed to a new leaf on renderer reload', async () => {
     const runtime = createRuntime()
     const tabId = 'tab-1'

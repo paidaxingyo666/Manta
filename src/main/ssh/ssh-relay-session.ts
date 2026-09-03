@@ -2766,6 +2766,11 @@ export class SshRelaySession {
       if (bound === false) {
         // Topology absence alone is not authority to kill a process, but neither refusal may
         // publish or replay into a missing pane.
+        // We only got here because pty.attach succeeded, so the host just proved this PTY alive.
+        // Record that before the lease write: `expired` reads downstream as "reattach gave up",
+        // and terminal.recoverPane would otherwise treat this refusal as licence to spawn a
+        // replacement shell over a process the host attested is still running.
+        this.runtime?.markPtyLivenessLive(appPtyId)
         this.store.markSshRemotePtyLease(this.targetId, appPtyId, 'expired')
         return 'missing-surface'
       }
@@ -2897,7 +2902,12 @@ export class SshRelaySession {
     this.store.markSshRemotePtyLease(this.targetId, ptyId, 'expired')
     const win = this.getMainWindow()
     if (win && !win.isDestroyed()) {
-      win.webContents.send('pty:exit', { id: appPtyId, code: -1 })
+      // Why a separate flag and not the code: `-1` is the stop sentinel every reader resolves to
+      // `stop_unverified`, so this branch — the one place a reachable relay answered for this exact
+      // id and reported it absent — was indistinguishable from a lost link. It says only that the
+      // relay disowned the id, which a restarted relay also does for ids it never minted, so it is
+      // deliberately not the `exited` verdict (docs/reference/ssh-execution-boundary.md).
+      win.webContents.send('pty:exit', { id: appPtyId, code: -1, ptySourceDisowned: true })
     }
   }
 

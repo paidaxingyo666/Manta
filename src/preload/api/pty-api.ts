@@ -204,6 +204,8 @@ export type PtyApi = {
       preserveRendererBinding?: boolean
       /** Which lifetime of `id` died; absent when the execution host predates the field. */
       incarnationId?: string
+      /** Set only when the owning relay disowned this id; never a claim that the process died. */
+      ptySourceDisowned?: true
     }) => void
   ) => () => void
   onSpawned: (callback: (data: { id: string }) => void) => () => void

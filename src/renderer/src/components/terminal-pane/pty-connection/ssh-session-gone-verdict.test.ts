@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { isSshSessionGoneError } from './pty-connect-limits'
 
 // The only gate the renderer has for "retire this pane's binding and cold-restore the agent into a
-// fresh shell". Anything it accepts that is not host-attested absence puts a second `--resume` on a
+// fresh shell". Anything it accepts that the relay did not disown puts a second `--resume` on a
 // running agent's transcript (docs/reference/ssh-execution-boundary.md).
 describe('the renderer verdict that licenses replacing a pane PTY', () => {
   it('accepts the relay answering that this pane PTY is gone', () => {

@@ -180,14 +180,21 @@ function handleConnectError(
     error,
     error instanceof Error ? error.message : String(error)
   )
-  if (
-    connectionId &&
-    options.sessionId &&
-    (isSshSessionGoneError(message) || message.includes(SSH_PTY_CONNECTION_MISMATCH_MARKER))
-  ) {
+  if (connectionId && options.sessionId && isSshSessionGoneError(message)) {
     return { id: options.sessionId, sessionExpired: true }
   }
   if (message.includes('was explicitly killed')) {
+    return undefined
+  }
+  if (connectionId && options.sessionId && message.includes(SSH_PTY_CONNECTION_MISMATCH_MARKER)) {
+    // Why not `sessionExpired`: this string is minted by `toRelaySshPtyId`/`toAppSshPtyId` from a
+    // pure client-side id comparison, before any relay is contacted — it reports that the id is not
+    // addressable through THIS connection, never that its process died. Respawning here cold-restores
+    // the agent, and after an SSH target re-adoption the "other" connection is the same machine, so
+    // that puts a second `claude --resume` on the transcript the surviving PTY still owns
+    // (docs/reference/ssh-execution-boundary.md — an unaddressable id is `unverifiable`, not `exited`).
+    // Returning undefined without an error keeps #7661's no-red-toast outcome while routing the pane
+    // to the remount-and-reattach recovery instead of a fresh shell.
     return undefined
   }
   if (connectionId && message.includes('No PTY provider for connection')) {
