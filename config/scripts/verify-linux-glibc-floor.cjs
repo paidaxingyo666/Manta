@@ -209,10 +209,18 @@ const ARCH_BY_TOKEN = Object.freeze({ arm64: 'arm64', aarch64: 'arm64', x64: 'x6
  * Why this matters: some dependencies ship every architecture and let their loader pick
  * (`@parcel/watcher-linux-arm64-glibc/watcher.node` is arm64 on purpose inside an x64 build). Those
  * must be judged against the arch their own path declares, not against the slice.
+ *
+ * Why the last token and not the first: these paths are absolute, and the arm64 slice unpacks into
+ * `dist/linux-arm64-unpacked/`, so the output directory announces an arch before the package does.
+ * Reading the first token made every per-arch dependency in that slice look like it claimed arm64 —
+ * `@parcel/watcher-linux-x64-glibc/watcher.node` was reported as "x64, expected arm64 (from its own
+ * path)", which its path plainly does not say. The x64 slice unpacks into `linux-unpacked/`, which
+ * names no arch, so the bug was invisible there and only the arm64 release leg failed.
  */
 function declaredArchFromPath(filePath) {
-  const match = ARCH_TOKEN_PATTERN.exec(filePath)
-  return match ? ARCH_BY_TOKEN[match[1].toLowerCase()] : null
+  const matches = [...String(filePath).matchAll(new RegExp(ARCH_TOKEN_PATTERN, 'gi'))]
+  const last = matches.at(-1)
+  return last ? ARCH_BY_TOKEN[last[1].toLowerCase()] : null
 }
 
 function findArchViolation(filePath, targetArch) {
