@@ -362,6 +362,30 @@ describe('bundled native binary architecture', () => {
     await rm(dir, { recursive: true, force: true })
   })
 
+  // The arm64 release leg failed here, and only that leg: the slice unpacks into
+  // `dist/linux-arm64-unpacked/`, so the output directory announced an arch before the package did,
+  // and every per-arch dependency inside it looked like it claimed arm64. The x64 slice unpacks
+  // into `linux-unpacked/`, which names none, so the same code read the package name and passed.
+  // @parcel/watcher arriving from upstream is what first put a mismatched pair in the tree.
+  it('reads the package\u2019s arch, not the one the output directory announces', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'orca-elf-arch-'))
+    const pkg = join(
+      dir,
+      'dist',
+      'linux-arm64-unpacked',
+      'resources',
+      'node_modules',
+      '@parcel',
+      'watcher-linux-x64-glibc'
+    )
+    await mkdir(pkg, { recursive: true })
+    const file = join(pkg, 'watcher.node')
+    await writeFile(file, elfHeader(ELF_MACHINE_BY_ARCH.x64))
+    expect(declaredArchFromPath(file)).toBe('x64')
+    expect(findArchViolation(file, 'arm64')).toBeNull()
+    await rm(dir, { recursive: true, force: true })
+  })
+
   // But a path that names an arch must actually hold it — this is the Pi 5 failure.
   it('flags a binary that contradicts the architecture its own path names', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'orca-elf-arch-'))
@@ -372,6 +396,18 @@ describe('bundled native binary architecture', () => {
     expect(findArchViolation(file, 'arm64')).toMatchObject({ actual: 'x64', expectedArch: 'arm64' })
     // Still caught even when the slice being built is x64.
     expect(findArchViolation(file, 'x64')).toMatchObject({ actual: 'x64', expectedArch: 'arm64' })
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('still flags a mismatch the package\u2019s own name promises', async () => {
+    // The output directory must not excuse a violation either: a package that says arm64 and holds
+    // x86-64 is the Pi 5 failure wherever it is unpacked.
+    const dir = await mkdtemp(join(tmpdir(), 'orca-elf-arch-'))
+    const nested = join(dir, 'dist', 'linux-arm64-unpacked', 'bin', 'linux-arm64-148')
+    await mkdir(nested, { recursive: true })
+    const file = join(nested, 'node-pty.node')
+    await writeFile(file, elfHeader(ELF_MACHINE_BY_ARCH.x64))
+    expect(findArchViolation(file, 'arm64')).toMatchObject({ actual: 'x64', expectedArch: 'arm64' })
     await rm(dir, { recursive: true, force: true })
   })
 
