@@ -3,7 +3,7 @@ import type { Store } from '../persistence'
 import type {
   ResolvedRuntimeFileTarget,
   ResolvedRuntimeFileWorktree
-} from './runtime-file-watcher-leases'
+} from './runtime-file-command-target'
 import type { ExecutionHostId } from '../../shared/execution-host'
 import type { RuntimeNativeChatFileContext } from '../../shared/runtime-types'
 import type { FsChangeEvent } from '../../shared/filesystem-entry-types'
@@ -42,8 +42,9 @@ export type RuntimeFileCommandHost = {
     pathText: string,
     absolutePath: string
   ): boolean | Promise<boolean>
-  // `executionHostId`, not `connectionId`: a repo row's connection cannot tell `runtime:` from
-  // `local`, and this contract must not re-introduce that spelling. See runtime-git-command-target.
+  // `executionHostId`, not `connectionId`, on both target contracts: a repo row's connection cannot
+  // tell `runtime:` from `local`, and neither may re-introduce that spelling. See
+  // runtime-git-command-target and runtime-file-command-target.
   resolveRuntimeGitTarget(
     selector: string
   ): Promise<{ worktree: ResolvedRuntimeFileWorktree; executionHostId: ExecutionHostId }>
