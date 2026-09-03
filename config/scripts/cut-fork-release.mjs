@@ -119,17 +119,54 @@ export function upstreamMobileVersion(releases) {
   return versions.at(-1) ?? null
 }
 
+function githubToken() {
+  const fromEnv = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN
+  if (fromEnv) {
+    return fromEnv
+  }
+  try {
+    return execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim()
+  } catch {
+    return fail('no GitHub token: set GITHUB_TOKEN or run `gh auth login`')
+  }
+}
+
+/** This fork's own repo; `gh repo view` answers upstream when an upstream remote exists. */
+function forkRepo() {
+  const url = git('remote', 'get-url', 'origin')
+  return /[:/]([^/:]+\/[^/]+?)(?:\.git)?$/.exec(url)?.[1] ?? null
+}
+
+/** The newest release this fork actually published, as a tag name. */
+async function newestPublishedTag() {
+  const repo = forkRepo()
+  if (!repo) {
+    return null
+  }
+  try {
+    const releases = await fetchReleases(repo, githubToken())
+    return (
+      releases
+        .filter((release) => release.draft !== true && typeof release.tag_name === 'string')
+        .map((release) => /^v([0-9]+\.[0-9]+\.[0-9]+)(?:-rc\.([0-9]+))?$/.exec(release.tag_name))
+        .filter(Boolean)
+        // A stable X.Y.Z outranks every X.Y.Z-rc.N, which is what Infinity says.
+        .sort(
+          (a, b) =>
+            compareBases(a[1], b[1]) ||
+            (a[2] === undefined ? Infinity : Number(a[2])) -
+              (b[2] === undefined ? Infinity : Number(b[2]))
+        )
+        .at(-1)?.[0] ?? null
+    )
+  } catch {
+    return null
+  }
+}
+
 /** Upstream's newest shipped release, which is the line this fork's version follows. */
 async function upstreamStableBase() {
-  let token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN
-  if (!token) {
-    try {
-      token = execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim()
-    } catch {
-      fail('no GitHub token: set GITHUB_TOKEN or run `gh auth login`')
-    }
-  }
-  const releases = await fetchReleases(UPSTREAM_REPO, token)
+  const releases = await fetchReleases(UPSTREAM_REPO, githubToken())
   const tag = latestStableDesktopReleaseTag(releases)
   if (!tag) {
     fail(`${UPSTREAM_REPO} has no stable vX.Y.Z release`)
@@ -263,11 +300,18 @@ async function main() {
   const tag = `v${version}`
   assertTagIsFree(tag)
 
-  // Not `--merged HEAD`: the 2026-09-02 cutover put main on a generated mirror
-  // of upstream, so every tag cut before it is reachable only from main-legacy.
-  // Newest by version is what "since the last release" means here regardless.
+  // The newest *published* release, not the newest tag. A tag whose build failed
+  // published nothing, so a reader of these notes is coming from the release
+  // before it and needs what that one missed: rc.0's arm64 leg failed, and
+  // rc.1's draft read "2 changes" — true of the tag range and useless to them.
+  //
+  // Not `--merged HEAD` for the fallback either: the 2026-09-02 cutover put main
+  // on a generated mirror of upstream, so every tag cut before it is reachable
+  // only from main-legacy.
   const previousTag =
-    git('tag', '--list', 'v*', '--sort=-v:refname').split('\n').find(Boolean) ?? null
+    (await newestPublishedTag()) ??
+    git('tag', '--list', 'v*', '--sort=-v:refname').split('\n').find(Boolean) ??
+    null
   const notesPath = path.join(root, 'docs', 'release-notes', `${version}.md`)
   const notesExist = existsSync(notesPath)
 
