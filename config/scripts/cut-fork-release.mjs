@@ -212,7 +212,18 @@ async function main() {
   if (git('status', '--porcelain', '--untracked-files=no')) {
     fail('working tree is not clean')
   }
-  git('fetch', '--quiet', 'origin', 'main')
+  // The release tags as well as main: auto-release.yml creates them now, so a
+  // clone that has only ever pulled branches has none of them, and
+  // highestRcForBase reads the local list — the cut recomputed an rc that had
+  // already shipped, caught by the origin check below but only after the work.
+  //
+  // This refspec and not --tags: this clone also fetches upstream, whose mobile
+  // tags share their names with the fork's, so --tags aborts the whole fetch on
+  // "would clobber existing tag". `v*` reaches only the desktop release tags,
+  // and every one origin holds is a `-rc.N` this fork cut — upstream's plain
+  // `vX.Y.Z` tags live in this clone but were never pushed here, so none is in
+  // range. (A refspec allows one `*` per side, so `v*-rc.*` is not expressible.)
+  git('fetch', '--quiet', 'origin', 'main', '+refs/tags/v*:refs/tags/v*')
   // Cutting from a branch that is behind main would compute the version from a
   // stale upstream base and write notes missing whatever landed in between.
   try {
