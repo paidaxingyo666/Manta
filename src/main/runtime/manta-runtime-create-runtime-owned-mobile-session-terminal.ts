@@ -139,7 +139,7 @@ export class MantaRuntimeWithCreateRuntimeOwnedMobileSessionTerminal extends Man
       ...(existing?.tabGroupLayout ? { tabGroupLayout: existing.tabGroupLayout } : {}),
       tabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, next)
+    this.storeMobileSessionSnapshot(worktreeId, next)
     const result = this.toMobileSessionTabsResult(next)
     const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {

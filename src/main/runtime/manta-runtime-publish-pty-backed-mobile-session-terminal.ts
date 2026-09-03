@@ -142,7 +142,7 @@ export class MantaRuntimeWithPublishPtyBackedMobileSessionTerminal extends Manta
       ...(existing?.tabGroupLayout ? { tabGroupLayout: existing.tabGroupLayout } : {}),
       tabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, next)
+    this.storeMobileSessionSnapshot(worktreeId, next)
     if (args.notify !== false) {
       this.notifyMobileSessionTabsChanged(worktreeId)
     }

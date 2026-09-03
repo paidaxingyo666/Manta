@@ -107,7 +107,7 @@ export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntime
         : {}),
       tabs: nextTabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
   }
 

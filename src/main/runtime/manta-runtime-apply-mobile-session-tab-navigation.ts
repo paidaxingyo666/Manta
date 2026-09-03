@@ -142,7 +142,7 @@ export class MantaRuntimeWithApplyMobileSessionTabNavigation extends MantaRuntim
       tabs
     }
     this.persistHeadlessTerminalActiveLeaf(worktreeId, activeTab)
-    this.mobileSessionTabsByWorktree.set(worktreeId, nextSnapshot)
+    this.storeMobileSessionSnapshot(worktreeId, nextSnapshot)
     this.emitMobileSessionTabsSnapshot(nextSnapshot)
   }
 

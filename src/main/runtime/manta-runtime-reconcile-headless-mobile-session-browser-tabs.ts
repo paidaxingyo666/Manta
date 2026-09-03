@@ -47,7 +47,7 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
     const active = activeStillPresent
       ? null
       : (nextTabs.find((tab) => tab.isActive) ?? nextTabs[0] ?? null)
-    this.mobileSessionTabsByWorktree.set(worktreeId, {
+    this.storeMobileSessionSnapshot(worktreeId, {
       ...existing,
       publicationEpoch: `headless-hydrated:${Date.now().toString(36)}`,
       snapshotVersion: existing.snapshotVersion + 1,
