@@ -15,7 +15,7 @@ echo "== patched dependency hashes"
 # --frozen-lockfile refuses the tree. Recompute from the files on disk rather
 # than re-resolving: re-resolution can fail for reasons that have nothing to do
 # with this sync (an unpublished pin, a policy gate), and nothing here needs it.
-python3 "$HERE/refresh-patch-hashes.py" | sed 's/^/   /'
+node "$HERE/refresh-patch-hashes.mjs" | sed 's/^/   /'
 
 echo "== lockfiles: upstream's, with the fork's package.json folded back in"
 pnpm install --lockfile-only >/dev/null 2>&1 && echo "   root ok" || echo "   root: pnpm install --lockfile-only failed"
