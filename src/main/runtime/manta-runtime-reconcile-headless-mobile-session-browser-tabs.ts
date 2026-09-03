@@ -11,6 +11,7 @@ import { appendBrowserTabOrder } from './mobile-session-browser-group-projection
 import { parseAppSshPtyId, toComparableRelaySshPtyId } from '../../shared/ssh-pty-id'
 import { toSshExecutionHostId } from '../../shared/execution-host'
 import { parsePaneKey } from '../../shared/stable-pane-id'
+import { sshRemotePtyLeaseAllowsReattach } from '../../shared/ssh-types'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import type { RuntimeStore } from './runtime-store-contract'
 import { SSH_PANE_RECOVERY_GRACE_MS } from './manta-runtime-core'
@@ -137,6 +138,16 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
     return (
       this.store?.getSshRemotePtyLeases?.().find((lease) => {
         if (lease.state !== 'expired' || lease.worktreeId !== worktreeId) {
+          return false
+        }
+        // Why eligibility belongs in the selection, not after it: a pane accumulates leases as it
+        // re-leases under new relay ids, so `(worktreeId, tabId, leafId)` names several. A
+        // superseded or relay-id-recycled predecessor is `expired` for a reason that already names
+        // its successor, and the unqualified callers use this answer to decide a pane is still
+        // recoverable — reporting one would offer paired viewers a recovery `recoverTerminalPane`
+        // then refuses. Picking the first ELIGIBLE orphan also keeps a predecessor from shadowing
+        // the successor that is genuinely reattachable.
+        if (!sshRemotePtyLeaseAllowsReattach(lease)) {
           return false
         }
         // Leaf is the pane's identity; the frozen tabId is only trustworthy while nothing else can

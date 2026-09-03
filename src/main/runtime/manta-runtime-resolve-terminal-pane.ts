@@ -7,7 +7,6 @@ import type {
 } from '../../shared/runtime-types'
 import type { RuntimeProviderSnapshotReadOptions } from './runtime-terminal-contracts'
 import { parsePaneKey } from '../../shared/stable-pane-id'
-import { sshRemotePtyLeaseAllowsReattach } from '../../shared/ssh-types'
 import {
   buildVisibleSnapshotReadFallback,
   labelTerminalReadSource,
@@ -85,13 +84,11 @@ export class MantaRuntimeWithResolveTerminalPane extends MantaRuntimeWithGetTerm
       pty.ptyId
     )
     if (!expiredLease) {
-      // Why: an explicit close leaves a terminated lease; only relay expiry authorizes shell recreation.
-      throw new Error('terminal_not_recoverable')
-    }
-    // Why: a superseded or relay-id-recycled lease is `expired` for a reason that already names the
-    // successor — the pane's id no longer routes to the shell this lease describes, so recovering
-    // through it would adopt a stranger's process or re-race a pane that already moved on.
-    if (!sshRemotePtyLeaseAllowsReattach(expiredLease)) {
+      // Why: an explicit close leaves a terminated lease; only relay expiry authorizes shell
+      // recreation. `getRecentExpiredSshLease` also refuses a superseded or relay-id-recycled
+      // lease, which is `expired` for a reason that already names the successor — the pane's id no
+      // longer routes to the shell it describes, so recovering through it would adopt a stranger's
+      // process or re-race a pane that already moved on.
       throw new Error('terminal_not_recoverable')
     }
     // Why an `expired` lease is not on its own authority to spawn a replacement: every writer of
