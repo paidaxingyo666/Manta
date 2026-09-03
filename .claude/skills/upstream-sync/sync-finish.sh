@@ -41,4 +41,10 @@ EOF
 fi
 
 echo "== verify"
-exec "$HERE/sync-verify.sh" "$MIRROR"
+"$HERE/sync-verify.sh" "$MIRROR" || exit $?
+
+echo "== cut the release"
+# A sync that lands and never ships is upstream's fixes sitting in a branch. The
+# release rides in this same PR: merging it is what publishes, because
+# auto-release.yml tags whatever version arrives on main.
+node "$ROOT/config/scripts/cut-fork-release.mjs" 2>&1 | sed 's/^/   /'

@@ -1,0 +1,98 @@
+name: Auto Release
+
+run-name: Auto Release ${{ github.sha }}
+
+# Turns a merged release commit into pushed tags, which is what makes a release
+# happen: `fork-release.yml` triggers on `v*`, the two mobile workflows on
+# `mobile-ios-v*` / `mobile-android-v*`.
+#
+# Why the tags are not pushed by this job's own GITHUB_TOKEN: a push made with it
+# deliberately creates no events, so the tag would land and nothing would build.
+# The push goes over SSH with a write deploy key instead — a separate credential,
+# so its push is a real push event. The alternative was worse: the macOS leg runs
+# in the `apple-signing` environment, which admits `v*` tags and nothing else, so
+# calling `fork-release.yml` as a reusable workflow from a run on main would
+# build for forty minutes and then die at the environment gate having published
+# nothing.
+#
+# Why the tags are not pushed by whoever cuts the release: main requires `verify`
+# and `Mobile Checks`, so the release commit travels through a PR anyway. Tagging
+# on arrival means a tag always points at a commit those checks passed.
+#
+# Set up once (see docs/reference/fork-release-automation.md):
+#   ssh-keygen -t ed25519 -N '' -C manta-release-tagger -f ./release_key
+#   gh api repos/$REPO/keys -f title='release-tagger (auto-release.yml)' \
+#     -f key="$(cat ./release_key.pub)" -F read_only=false
+#   gh secret set RELEASE_TAGGER_KEY --repo $REPO < ./release_key
+#   rm ./release_key ./release_key.pub
+#
+# Without the secret this job says what it would have tagged and stops green: a
+# missing credential is a setup gap, not a broken build.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    if: github.repository == 'paidaxingyo666/Manta'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Decide which tags this commit is missing
+        id: decide
+        env:
+          # Zeroes on a dispatch or a first push; the script reads that as
+          # "compare against the parent", not as "release everything".
+          BEFORE: ${{ github.event.before }}
+        run: node config/scripts/pending-release-tags.mjs
+
+      # The secrets context is not dependable inside a step `if`, so the presence
+      # of the credential is established by a step that can read it.
+      - name: Look for the tagging credential
+        id: credential
+        if: steps.decide.outputs.tags != ''
+        env:
+          DEPLOY_KEY: ${{ secrets.RELEASE_TAGGER_KEY }}
+        run: |
+          if [ -n "$DEPLOY_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Would tag ${{ steps.decide.outputs.tags }}, but RELEASE_TAGGER_KEY is not set."
+            echo "::warning::See docs/reference/fork-release-automation.md to set it up."
+          fi
+
+      - name: Push the tags
+        if: steps.credential.outputs.present == 'true'
+        env:
+          DEPLOY_KEY: ${{ secrets.RELEASE_TAGGER_KEY }}
+          TAGS: ${{ steps.decide.outputs.tags }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/release_key
+          chmod 600 ~/.ssh/release_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND='ssh -i ~/.ssh/release_key -o IdentitiesOnly=yes'
+          git remote set-url --push origin "git@github.com:${GITHUB_REPOSITORY}.git"
+          for tag in $TAGS; do
+            git tag "$tag" "$GITHUB_SHA"
+          done
+          # One push, but GitHub raises a create event per ref, so each tag starts
+          # its own build.
+          git push origin $TAGS
+          echo "::notice::Tagged $TAGS — the release workflows are building."
