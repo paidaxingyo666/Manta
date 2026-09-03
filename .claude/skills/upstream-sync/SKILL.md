@@ -169,11 +169,13 @@ known and each is a migration decision, not a rename: `orca.web.onboarding.v1`
 ## Releasing
 
 A sync that lands and never ships is upstream's fixes sitting in a branch. The
-fork was three upstream releases behind when this step did not exist.
+fork was three upstream releases behind when this step did not exist, so
+`sync-finish.sh` now cuts the release itself and the release rides in the sync
+PR. **Merging that PR is what publishes** — `auto-release.yml` tags whatever
+version arrives on main, and each tag starts its build.
 
 ```bash
 node config/scripts/cut-fork-release.mjs --dry-run   # what it would cut
-node config/scripts/cut-fork-release.mjs             # commit + tag, no push
 ```
 
 It reads upstream's newest **stable** release — their line is what this fork's
@@ -181,19 +183,24 @@ version follows, so upstream at `1.4.196` means this fork ships `1.4.196-rc.N`
 once it has merged that work — takes the rc after the highest already cut
 (from tags and release subjects, not from `package.json`, which is a working
 file and lies after a revert), never moves the base backwards, seals the skill
-bundle manifest for the version, drafts release notes from the commit subjects
-and refuses to proceed if they carry a personal identifier.
+bundle manifest for the version, drafts release notes and refuses to proceed if
+they carry a personal identifier. It stops at the commit: main requires `verify`
+and `Mobile Checks`, so tagging happens on arrival, which is what makes every
+tag point at a commit those checks passed.
 
-**Read the drafted notes and trim them.** The draft is a changelog; a release
-note is a line of title, a sentence, and three to five bullets. Nothing about
-rationale, tradeoffs or implementation — those live in the commits.
+Mobile moves in the same commit when upstream's newest `mobile-android-v*` is
+ahead of `mobile/app.json`. Both platforms read that one marketing version, and
+`prepare-android-release.mjs` rejects a tag that disagrees with the committed
+one, so the bump has to be committed rather than passed at release time.
 
-Pushing the tag is what publishes: `fork-release.yml` triggers on `v*`, builds
-all three desktop platforms, and installed copies auto-update to the result.
-The script stops before that and prints the command; `--push` does it.
+**Read the drafted notes and trim them.** The draft groups upstream's commits by
+scope into a handful of bullets; it is built only from commits carrying the
+mirror's `Mirror-Of:` trailer, because without that split the fork's own sync
+plumbing gets announced as release news. A release note is a title, a sentence,
+and three to five bullets — rationale and implementation live in the commits.
 
-Mobile is a separate line (`mobile-ios-v*`, `mobile-android-v*`) and its own
-decision — a desktop sync does not imply a phone build.
+Full picture, including the one credential the automation needs:
+[`docs/reference/fork-release-automation.md`](../../../docs/reference/fork-release-automation.md).
 
 ## Landing it
 

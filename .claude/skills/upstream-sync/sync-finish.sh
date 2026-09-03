@@ -43,6 +43,8 @@ fi
 echo "== verify"
 "$HERE/sync-verify.sh" "$MIRROR" || exit $?
 
-# A sync that lands and never ships is upstream's fixes sitting in a branch.
-node "$ROOT/config/scripts/cut-fork-release.mjs" --dry-run 2>/dev/null | sed 's/^/   /' || true
-echo "   after the PR merges:  node config/scripts/cut-fork-release.mjs"
+echo "== cut the release"
+# A sync that lands and never ships is upstream's fixes sitting in a branch. The
+# release rides in this same PR: merging it is what publishes, because
+# auto-release.yml tags whatever version arrives on main.
+node "$ROOT/config/scripts/cut-fork-release.mjs" 2>&1 | sed 's/^/   /'

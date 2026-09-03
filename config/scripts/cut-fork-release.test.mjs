@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 
 import { highestRcForBase } from './release-rc-history.mjs'
 import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
+import { upstreamMobileVersion } from './cut-fork-release.mjs'
+import { draftReleaseNotes } from './release-notes-draft.mjs'
 
 /**
  * The version rule the cut applies, stated once so a change to it fails here
@@ -73,5 +75,84 @@ describe('fork release version', () => {
       { tag_name: 'v1.4.195' }
     ]
     expect(latestStableDesktopReleaseTag(releases)).toBe('v1.4.196')
+  })
+})
+
+describe('mobile release version', () => {
+  it('takes upstream’s newest mobile release, not the newest listed', () => {
+    const releases = [
+      { tag_name: 'v1.4.196' },
+      { tag_name: 'mobile-android-v0.0.9' },
+      { tag_name: 'mobile-android-v0.0.47' },
+      { tag_name: 'mobile-android-v0.0.46' },
+      { tag_name: 'mobile-ios-v0.0.48' }
+    ]
+    // 0.0.9 sorts above 0.0.47 as a string, and iOS ships to TestFlight without
+    // a GitHub release, so only the Android tags name a version that has shipped.
+    expect(upstreamMobileVersion(releases)).toBe('0.0.47')
+  })
+
+  it('is null when upstream has published no mobile release', () => {
+    expect(upstreamMobileVersion([{ tag_name: 'v1.4.196' }])).toBe(null)
+  })
+})
+
+describe('release notes', () => {
+  const up = (subject) => ({ subject, upstream: true })
+  const fork = (subject) => ({ subject, upstream: false })
+  const subjects = [
+    up('fix(ssh): reconnect after the relay drops (#101)'),
+    up('fix(ssh): keep the host verdict when contact is lost'),
+    up('fix(terminal): stop eating the last line'),
+    up('feat(browser): open links in the built-in browser'),
+    fork('sync: 120 upstream commits (#14)'),
+    fork('chore(release): cut 1.4.195-rc.0'),
+    fork('feat(sync): refresh patch hashes in finish'),
+    up('docs: tidy the readme'),
+    up('not a conventional commit')
+  ]
+
+  it('names the biggest subsystems and lists features', () => {
+    expect(draftReleaseNotes(subjects, '1.4.196-rc.0', '1.4.196')).toBe(
+      [
+        '# 1.4.196-rc.0',
+        '',
+        "Picks up upstream's work through v1.4.196.",
+        '',
+        '- SSH and remote hosts — 2 fixes',
+        '- Terminal — 1 fix',
+        '- New: open links in the built-in browser',
+        ''
+      ].join('\n')
+    )
+  })
+
+  it('carries no personal identifiers from commit subjects it drops', () => {
+    const notes = draftReleaseNotes(subjects, '1.4.196-rc.0', '1.4.196')
+    expect(notes).not.toMatch(/#\d+/)
+    expect(notes.split('\n').filter((line) => line.startsWith('- ')).length).toBeLessThanOrEqual(8)
+  })
+
+  it('leaves the fork’s own sync plumbing out of the news', () => {
+    // `feat(sync): …` is this fork's tooling. Announcing it as a feature of the
+    // release tells a user about work that changed nothing they can see.
+    const notes = draftReleaseNotes(subjects, '1.4.196-rc.0', '1.4.196')
+    expect(notes).not.toContain('patch hashes')
+    expect(notes).not.toContain('120 upstream commits')
+  })
+
+  it('falls back to a count when nothing is scoped', () => {
+    expect(
+      draftReleaseNotes([up('fix: something'), up('chore: other')], '1.0.0-rc.0', '1.0.0')
+    ).toContain('- 2 changes')
+  })
+
+  it('says so when a release carries no upstream work', () => {
+    const notes = draftReleaseNotes(
+      [fork('fix(ci): the stub CLI must name the packaged skill')],
+      '1.4.196-rc.1',
+      '1.4.196'
+    )
+    expect(notes).toContain('Fork-only changes; upstream is unchanged')
   })
 })
