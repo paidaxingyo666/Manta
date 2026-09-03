@@ -13,24 +13,60 @@ on:
       - 'src/shared/terminal-file-link-conformance.ts'
       - '.github/workflows/mobile.yml'
       - '.github/workflows/mobile-ios-release.yml'
+  # Why no `paths:` here, unlike the push trigger: `Mobile Checks` is a required
+  # status check on main. A workflow skipped by a path filter creates no check at
+  # all, so every pull request that does not touch mobile waits forever on a
+  # context that will never appear — which blocked one. A job skipped by its own
+  # `if:` does create the check, and branch protection counts it as passing, so
+  # the filtering moves from the trigger down to the job below.
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
-    paths:
-      - 'mobile/**'
-      # Why: the mobile terminal link parsers are conformance-tested against
-      # these shared fixtures; desktop-side fixture edits must re-run this suite.
-      - 'src/shared/terminal-file-link-conformance.ts'
-      # Why: this job holds the only checks that load the Fastfile, so edits to
-      # it or to the release workflow it guards must re-run them.
-      - '.github/workflows/mobile.yml'
-      - '.github/workflows/mobile-ios-release.yml'
 
 jobs:
+  changes:
+    name: detect mobile changes
+    runs-on: ubuntu-latest
+    outputs:
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # blob:none: the merge-base diff needs full history but no old blobs.
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+
+      - name: Classify changed paths
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "mobile=true" | tee -a "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # --no-renames: a rename reported name-only can hide the source path.
+          CHANGED="$(git diff --name-only --no-renames --diff-filter=ACDMR --merge-base "$BASE_SHA" "$HEAD_SHA")"
+          printf '%s\n' "$CHANGED"
+          # The same four patterns the push trigger filters on: mobile itself,
+          # the shared fixtures its terminal link parsers are conformance-tested
+          # against, and the two workflows whose Fastfile nothing else loads.
+          if printf '%s\n' "$CHANGED" | grep -Eq '^(mobile/|src/shared/terminal-file-link-conformance\.ts$|\.github/workflows/mobile(\.yml|-ios-release\.yml)$)'; then
+            echo "mobile=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "mobile=false" | tee -a "$GITHUB_OUTPUT"
+          fi
+
   verify:
+    needs: [changes]
+    if: github.event_name != 'pull_request' || needs.changes.outputs.mobile == 'true'
     # Why a display name: pr.yml's gate job is also `verify`, and two jobs with
     # one context name are one required check to branch protection — a red
     # mobile run hid behind a green desktop one.
