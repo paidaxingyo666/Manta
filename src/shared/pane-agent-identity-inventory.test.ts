@@ -161,7 +161,7 @@ const INVENTORY: readonly InventoryGroup[] = [
     helper: 'resolveCommittedTitleAgentType',
     classification: 'action-consumer',
     paths: [
-      ['src/renderer/src/components/native-chat/use-native-chat-toggle-shortcut.ts', 3],
+      ['src/renderer/src/components/tab-bar/native-chat-tab-agent-evidence.ts', 3],
       ['src/renderer/src/components/terminal-pane/pty-connection/connect-pane-pty.ts', 2],
       ['src/renderer/src/components/terminal-pane/terminal-ctrl-enter.ts', 2],
       ['src/renderer/src/components/terminal-pane/terminal-windows-shift-enter.ts', 2],
