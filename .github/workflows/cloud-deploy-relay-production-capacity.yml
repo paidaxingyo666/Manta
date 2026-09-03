@@ -136,8 +136,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-          cache-dependency-path: cloud/pnpm-lock.yaml
 
       - run: pnpm install --frozen-lockfile
 
