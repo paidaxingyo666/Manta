@@ -962,7 +962,6 @@
         "58c73cb0d8": "No se pudo actualizar la descripción.",
         "5221548274": "Descripción actualizada.",
         "06c06e58ba": "Mostrar más líneas abajo",
-        "307c98e8e3": "Mostrar {{value0}} más líneas arriba",
         "5664681624": "Mostrar más líneas arriba",
         "b1574e8ac2": "Restablecer contexto de código",
         "d43736d09c": "Controles de contexto de código",
@@ -2397,7 +2396,6 @@
               "ee3d2caabd": "Issues",
               "5f79bc76b0": "Volver a proyectos",
               "aac9a4afc6": "Abrir en Linear",
-              "7616c986c6": "Abrir issues de {{value0}}",
               "93e1f6bfca": "Cargando",
               "98730088a6": ". Busca o abre Linear para ver el conjunto completo.",
               "06b887d622": "Mostrando primero",
@@ -2820,7 +2818,6 @@
               "handler": {
                 "1e072f611e": "No se pudo subir {{value0}} {{value1}}.",
                 "53f015fd85": "Se omitió {{value0}} symlink{{value1}}.",
-                "29c031b49a": "Subiendo {{value0}} archivo{{value1}} al host…",
                 "0c77693641": "El worktree no está listo; inténtalo de nuevo en un momento.",
                 "ce8248b835": "Ruta del worktree no disponible.",
                 "internalTooManyPaths": "El drop contiene demasiadas rutas para pegarlas de forma segura en el terminal.",
@@ -3332,7 +3329,6 @@
             "2837dc7c72": "cancelando",
             "0583c806ac": "No se ha escaneado el uso de disco del espacio de trabajo.",
             "39786e3b73": "Escaneando tamaños de espacios de trabajo.",
-            "bef4dc0457": "{{value0}} recuperable · {{value1}} no disponible",
             "3d8d47ce77": "{{value0}} · último resultado mantenido"
           },
           "WorkspaceSpaceManagerPanel": {
@@ -4487,7 +4483,6 @@
           "7bada3b1ab": "Ordenar por",
           "dc0bb670bc": "Agrupar por",
           "9919ae1082": "Opciones de espacio de trabajo",
-          "bc96dbd041": "Opciones de espacio de trabajo ({{value0}})",
           "af9249c505": "Actividad más reciente en el espacio de trabajo",
           "b451c8b162": "Reciente",
           "6664282a7b": "Arrastra proyectos para organizarlos",
@@ -4554,7 +4549,6 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "Agregar estado",
           "054cb50df7": "Quitar {{value0}}",
-          "b45b350eb0": "Mover {{value0}} a la izquierda",
           "8ce44af9a8": "Cambiar nombre {{value0}}",
           "395e541d5d": "Estados",
           "34f03eb0de": "Ajustes del tablero",
@@ -4568,7 +4562,6 @@
           "2df01a03ff": "No hay coincidencias"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "Establecer color de {{value0}} en {{value1}}",
           "8be427206b": "Icono",
           "2ac106f6b2": "Color",
           "74b1413279": "Apariencia",
@@ -6683,7 +6676,6 @@
           "waitForSetupBeforeAgentHelp": "Activa esto cuando la configuración instale dependencias, servidores MCP o archivos de configuración que el agente necesite durante el inicio."
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "Usar {{value0}} como color del repositorio",
           "fde066a63b": "Las cargas PNG deben tener un tamaño de 256 KB o menos.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
@@ -6748,7 +6740,6 @@
           "cloneDestinationPlaceholder": "/destino/en/host",
           "setupKindGit": "Repositorio Git",
           "setupKindFolder": "Carpeta",
-          "settingUpHost": "Importando...",
           "setupHost": "Importar",
           "cloningHost": "Clonando...",
           "cloneHost": "Clonar",

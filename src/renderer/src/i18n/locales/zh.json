@@ -965,7 +965,6 @@
         "58c73cb0d8": "无法更新描述。",
         "5221548274": "描述已更新。",
         "06c06e58ba": "显示下面更多行",
-        "307c98e8e3": "在上面显示 {{value0}} 更多行",
         "5664681624": "显示上面的更多行",
         "b1574e8ac2": "重置代码上下文",
         "d43736d09c": "代码上下文控制",
@@ -2400,7 +2399,6 @@
               "ee3d2caabd": "议题",
               "5f79bc76b0": "返回项目",
               "aac9a4afc6": "在 Linear 中打开",
-              "7616c986c6": "打开 {{value0}} 议题",
               "93e1f6bfca": "加载中",
               "98730088a6": "。在 Linear 中搜索或打开以查看完整列表。",
               "06b887d622": "首先显示",
@@ -2835,7 +2833,6 @@
               "handler": {
                 "1e072f611e": "无法上传 {{value0}} {{value1}}。",
                 "53f015fd85": "跳过 {{value0}} 符号链接 {{value1}}。",
-                "29c031b49a": "正在上传 {{value0}} 文件{{value1}} 到运行时...",
                 "0c77693641": "工作树尚未准备好 - 请稍后再试。",
                 "ce8248b835": "工作树路径不可用。",
                 "internalTooManyPaths": "拖放的路径过多，无法安全粘贴到终端。",
@@ -3347,7 +3344,6 @@
             "2837dc7c72": "取消",
             "0583c806ac": "不扫描工作区磁盘使用情况。",
             "39786e3b73": "扫描工作区大小。",
-            "bef4dc0457": "{{value0}} 可回收 · {{value1}} 不可用",
             "3d8d47ce77": "{{value0}} · 保留最后的结果"
           },
           "WorkspaceSpaceManagerPanel": {
@@ -4516,7 +4512,6 @@
           "7bada3b1ab": "排序方式",
           "dc0bb670bc": "分组依据",
           "9919ae1082": "工作区选项",
-          "bc96dbd041": "工作区选项 ({{value0}})",
           "af9249c505": "最近的工作区活动",
           "b451c8b162": "最近的",
           "6664282a7b": "拖动项目进行排列",
@@ -4583,7 +4578,6 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "添加状态",
           "054cb50df7": "删除 {{value0}}",
-          "b45b350eb0": "向左手机 {{value0}}",
           "8ce44af9a8": "重命名 {{value0}}",
           "395e541d5d": "状态",
           "34f03eb0de": "董事会设置",
@@ -4597,7 +4591,6 @@
           "2df01a03ff": "没有匹配项"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "将 {{value0}} 颜色设置为 {{value1}}",
           "8be427206b": "图标",
           "2ac106f6b2": "颜色",
           "74b1413279": "外观",
@@ -6716,7 +6709,6 @@
           "waitForSetupBeforeAgentHelp": "如果设置会安装依赖、MCP 服务器或智能体启动时需要的配置文件，请开启此选项。"
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "使用 {{value0}} 仓库颜色",
           "fde066a63b": "PNG 上传必须为 256KB 或更小。",
           "cc1286e263": "网站图标",
           "03ca1a4e9b": "example.com",
@@ -6781,7 +6773,6 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git 仓库",
           "setupKindFolder": "文件夹",
-          "settingUpHost": "导入中...",
           "setupHost": "导入",
           "cloningHost": "克隆中...",
           "cloneHost": "克隆",

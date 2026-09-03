@@ -529,6 +529,10 @@
               }
             }
           }
+        },
+        "mantaRelayHosts": {
+          "forgotten": "Machine removed from relay",
+          "forgetFailed": "Could not remove that machine"
         }
       }
     },
@@ -1266,7 +1270,10 @@
         "58c73cb0d8": "Failed to update description.",
         "5221548274": "Description updated.",
         "06c06e58ba": "Show more lines below",
-        "307c98e8e3": "Show {{value0}} more lines above",
+        "307c98e8e3": {
+          "752457": "Show {{value0}} more lines below",
+          "24fdee": "Show {{value0}} more lines above"
+        },
         "5664681624": "Show more lines above",
         "b1574e8ac2": "Reset code context",
         "d43736d09c": "Code context controls",
@@ -2729,7 +2736,10 @@
               "ee3d2caabd": "Issues",
               "5f79bc76b0": "Back to projects",
               "aac9a4afc6": "Open in Linear",
-              "7616c986c6": "Open {{value0}} issues",
+              "7616c986c6": {
+                "5eb5e9": "Open {{value0}} in Linear",
+                "ac1f4e": "Open {{value0}} issues"
+              },
               "93e1f6bfca": "Loading",
               "98730088a6": ". Search or open Linear for the full set.",
               "06b887d622": "Showing first",
@@ -3199,7 +3209,10 @@
               "handler": {
                 "1e072f611e": "Failed to upload {{value0}} {{value1}}.",
                 "53f015fd85": "Skipped {{value0}} symlink{{value1}}.",
-                "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…",
+                "29c031b49a": {
+                  "e09913": "Uploading {{value0}} file{{value1}} to runtime…",
+                  "ac0575": "Uploading {{value0}} file{{value1}} to remote…"
+                },
                 "0c77693641": "Worktree not ready — try again in a moment.",
                 "ce8248b835": "Worktree path not available.",
                 "internalTooManyPaths": "Drop contains too many paths for a safe terminal paste.",
@@ -3267,6 +3280,10 @@
           "TerminalQuickCommandsSubmenu": {
             "3ccc7981bb": "Host unavailable",
             "54f29b7c0d": "Loading host…"
+          },
+          "SessionRestoredBanner": {
+            "f4d06c346b": "--- session restored ---",
+            "139e3d1083": "--- previous session unavailable, started fresh ---"
           }
         }
       },
@@ -3329,7 +3346,10 @@
             "1d04b1630b": "Split Down",
             "6b3efb106e": "Split Up",
             "fdd29eb669": "Pin Tab",
-            "8e9d603a09": "Unpin Tab"
+            "8e9d603a09": "Unpin Tab",
+            "6ffb7f7bce": "Reveal in Finder",
+            "fe23001e60": "Open Containing Folder",
+            "3da91e073d": "Reveal in File Explorer"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent settings…",
@@ -3733,7 +3753,10 @@
             "2837dc7c72": "cancelling",
             "0583c806ac": "Workspace disk usage is not scanned.",
             "39786e3b73": "Scanning workspace sizes.",
-            "bef4dc0457": "{{value0}} reclaimable · {{value1}} unavailable",
+            "bef4dc0457": {
+              "02d421": "{{value0}} reclaimable · {{value1}} unavailable",
+              "db101b": "{{value0}} reclaimable · {{value1}} workspaces"
+            },
             "3d8d47ce77": "{{value0}} · last result kept"
           },
           "WorkspaceSpaceManagerPanel": {
@@ -5220,7 +5243,9 @@
           "69969ba364": "Sending…",
           "imageReadFailed": "Could not read the attached images. Try attaching them again.",
           "attachWhileSending": "Wait for the current feedback to finish sending before attaching more images.",
-          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed."
+          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed.",
+          "selfHostedNotice": "This self-hosted build has no feedback server. What you type here — plus the version details below — is carried into a GitHub issue instead. Screenshots can be dropped onto the GitHub page.",
+          "openGitHubIssue": "Open a GitHub issue"
         },
         "SidebarFilter": {
           "e3b3898218": "Add project",
@@ -5347,7 +5372,10 @@
           "dc0bb670bc": "Group by",
           "631b97eea9": "Host scope",
           "9919ae1082": "Workspace options",
-          "bc96dbd041": "Workspace options ({{value0}})",
+          "bc96dbd041": {
+            "d8404d": "Workspace options ({{value0}} active)",
+            "5de9a9": "Workspace options ({{value0}})"
+          },
           "af9249c505": "Most recent workspace activity",
           "b451c8b162": "Recent",
           "6664282a7b": "Drag projects to arrange them",
@@ -5407,7 +5435,10 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "Add status",
           "054cb50df7": "Remove {{value0}}",
-          "b45b350eb0": "Move {{value0}} left",
+          "b45b350eb0": {
+            "9bb3fd": "Move {{value0}} left",
+            "a4b8c6": "Move {{value0}} right"
+          },
           "8ce44af9a8": "Rename {{value0}}",
           "395e541d5d": "Statuses",
           "34f03eb0de": "Board settings",
@@ -5421,7 +5452,10 @@
           "2df01a03ff": "No matches"
         },
         "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "Set {{value0}} color to {{value1}}",
+          "514be2f569": {
+            "a9ca01": "Set {{value0}} color to {{value1}}",
+            "dd358d": "Set {{value0}} icon to {{value1}}"
+          },
           "8be427206b": "Icon",
           "2ac106f6b2": "Color",
           "74b1413279": "Appearance",
@@ -6429,7 +6463,9 @@
           "8b7a8df299": "Low-level workarounds for support troubleshooting.",
           "8d8d8ac599": "Compatibility",
           "network": "Network",
-          "networkDescription": "App-level network routing for proxies and corporate environments."
+          "networkDescription": "App-level network routing for proxies and corporate environments.",
+          "mantaCloud": "Manta Cloud",
+          "mantaCloudDescription": "Use a self-hosted sign-in and relay server instead of the official one."
         },
         "AgentLocationSetting": {
           "92f4238f1a": "WSL default",
@@ -7748,7 +7784,10 @@
           "waitForSetupBeforeAgentHelp": "Turn this on when setup installs dependencies, MCP servers, or config files the agent needs during startup."
         },
         "RepositoryIconPicker": {
-          "2b7d27b93c": "Use {{value0}} repo color",
+          "2b7d27b93c": {
+            "cd676f": "Use {{value0}} repo color",
+            "59fda8": "Use {{value0}} repo icon"
+          },
           "fde066a63b": "PNG uploads must be 256KB or smaller.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
@@ -7812,7 +7851,10 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git repo",
           "setupKindFolder": "Folder",
-          "settingUpHost": "Importing...",
+          "settingUpHost": {
+            "b7353a": "Importing...",
+            "268c06": "Adding..."
+          },
           "setupHost": "Import",
           "cloningHost": "Cloning...",
           "cloneHost": "Clone",
@@ -11449,7 +11491,30 @@
           "relayTitle": "Manta Relay",
           "relayDescription": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
           "skillsTitle": "Skill sharing",
-          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use."
+          "skillsDescription": "Share one skill or a whole set behind an unlisted link, and install them on any machine you use.",
+          "switchTitle": "Use another account",
+          "signInTitle": "Sign in",
+          "switchAccount": "Use another account",
+          "signInFailed": "Could not reach the relay.",
+          "emailLabel": "Email",
+          "emailPlaceholder": "you@example.com",
+          "passwordLabel": "Password",
+          "displayNameLabel": "Display name",
+          "displayNameOptional": "Optional",
+          "createAccount": "Create account",
+          "haveAccount": "I have an account",
+          "needAccount": "Create one on this relay",
+          "errorInvalidCredentials": "That email and password did not match an account on this relay.",
+          "errorEmailTaken": "An account already uses that email on this relay. Sign in instead.",
+          "errorWeakPassword": "Choose a password of at least 8 characters.",
+          "errorInvalidEmail": "Enter a valid email address.",
+          "errorRegistrationDisabled": "This relay does not accept new accounts. Ask its operator to create one for you.",
+          "errorEnrollmentSecret": "This relay needs its enrolment secret to create an account. Set it in Settings → Advanced → Manta Cloud endpoints.",
+          "errorTooManyAccounts": "This relay has reached its account limit.",
+          "errorTooManyHosts": "This account already has as many machines as the relay allows.",
+          "errorRelayTooOldRegister": "This relay is too old to create accounts. Update it, or connect with its relay credential instead.",
+          "errorRelayTooOldSignIn": "This relay is too old for password sign-in. Update it, or connect with its relay credential instead.",
+          "errorRateLimited": "Too many attempts. Wait a moment and try again."
         },
         "automations": {
           "showButton": "Show Automations Button",
@@ -11577,6 +11642,37 @@
         },
         "NativeChatSupportedAgents": {
           "label": "Supported agents:"
+        },
+        "MantaCloudEndpointsSection": {
+          "pairRequired": "Set the sign-in server and the relay address together, or leave both empty.",
+          "applyFailed": "Could not apply the endpoints. Check the values and try again.",
+          "title": "Self-hosted server",
+          "description": "Point sign-in and the mobile relay at your own server instead of the official one.",
+          "configure": "Configure endpoints",
+          "apiLabel": "Sign-in server",
+          "relayLabel": "Relay address",
+          "clientIdLabel": "OAuth client ID",
+          "enrollmentLabel": "Enrolment secret",
+          "enrollmentSaved": "Saved — type to replace",
+          "enrollmentPlaceholder": "Only if your relay requires one",
+          "warning": "Both addresses must use https with a certificate your phone trusts. The relay only forwards end-to-end encrypted data, but its operator can see who connects and when. Applying signs you out and restarts Manta.",
+          "applying": "Restarting…",
+          "apply": "Apply and restart"
+        },
+        "relayMachines": {
+          "unnamed": "Unnamed machine",
+          "online": "Online now",
+          "neverSeen": "Not connected yet",
+          "lastSeen": "Last seen {{when}}",
+          "unsupported": "This relay is too old to list machines. Update it to see every computer on your account.",
+          "signedOut": "Sign in to see the machines on your account.",
+          "unconfigured": "No relay is configured, so there are no machines to list.",
+          "failed": "Could not read the machine list from the relay.",
+          "empty": "No machines yet. Sign in to the same relay on another computer and it will appear here.",
+          "title": "Your machines",
+          "refresh": "Refresh",
+          "thisMachine": "This machine",
+          "onlineBadge": "Online"
         }
       },
       "right": {
@@ -14599,7 +14695,8 @@
           "2aaf7d9678": "Showing",
           "63ced7cb9b": "No documents found",
           "0e8489bc11": "Markdown document links",
-          "142a7d51cd": "document"
+          "142a7d51cd": "document",
+          "b0f0efcfce": "↑↓ navigate  ↵ select  esc dismiss"
         },
         "RichMarkdownErrorBoundary": {
           "aad0998127": "Retry",
@@ -15038,7 +15135,9 @@
               "notSent": "Crash report wasn't sent",
               "copyDetails": "Copy Details",
               "sentWithoutDiagnostics": "Crash report sent without diagnostic logs",
-              "diagnosticsReason": "Diagnostic logs were not attached: {{value0}}"
+              "diagnosticsReason": "Diagnostic logs were not attached: {{value0}}",
+              "noEndpointTitle": "This build has nowhere to send crash reports",
+              "noEndpointBody": "Manta runs no crash-report service. Copy the details and open a GitHub issue at github.com/paidaxingyo666/Manta/issues."
             }
           },
           "copy": {
@@ -16557,7 +16656,10 @@
         },
         "expiredCompact": "Expired",
         "typeMarkdown": "Markdown",
-        "typeHtml": "HTML"
+        "typeHtml": "HTML",
+        "ArtifactsSelfHostNotice": {
+          "body": "This self-hosted build ships no artifact service. Publishing uploads to whatever MANTA_ARTIFACTS_API_URL points at; leave it unset and links are created against a host this fork does not run, so the upload fails. Run your own and set the variable, or keep sharing off."
+        }
       },
       "BrowserCookieImportMachineNotice": {
         "clientLabel": "Browsers on this device",

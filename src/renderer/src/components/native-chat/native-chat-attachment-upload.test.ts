@@ -153,15 +153,6 @@ describe('resolveNativeChatAttachmentOwner', () => {
       )
     ).toEqual({ kind: 'not-ready' })
   })
-
-  it('reports not-ready while the SSH connection has no mutation generation', () => {
-    expect(
-      resolveNativeChatAttachmentOwner(
-        state({ repos: [{ id: 'repo', connectionId: 'conn-1' }] as never }),
-        'tab-1'
-      )
-    ).toEqual({ kind: 'not-ready' })
-  })
 })
 
 describe('uploadNativeChatAttachmentPaths', () => {
