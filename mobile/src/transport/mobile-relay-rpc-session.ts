@@ -9,6 +9,7 @@ import { MobileE2EEAuthenticationError } from './mobile-e2ee-v2-physical-channel
 import { markRpcDeliveryUnknown } from './rpc-delivery-ambiguity'
 import { openRpcRequestBudget, resolvePostConnectRequestTimeout } from './rpc-request-budget'
 import { isRpcResponse } from './rpc-response-shape'
+import { RelayDialStageTracker, type RelayDialStageSource } from './relay-dial-stage'
 import { RpcSessionLivenessWatchdog } from './rpc-session-liveness-watchdog'
 import type { RpcClient } from './rpc-client'
 import type { ConnectionLogSink, ConnectionState, RpcResponse } from './types'
@@ -24,14 +25,15 @@ type PendingRequest = {
   timer: ReturnType<typeof setTimeout>
 }
 
-export type MobileRelayRpcSession = RpcClient & {
-  // The cell's attach-reservation deadline (~10s). Diagnostics only — never
-  // schedule anything from it; rotation keys off getResumeExpiresAt().
-  getAttachDeadlineAt(): number | null
-  getResumeExpiresAt(): number | null
-  getResumeConfirmation(): DeviceResumeConfirmed | null
-  getFailure(): Error | null
-}
+export type MobileRelayRpcSession = RpcClient &
+  RelayDialStageSource & {
+    // The cell's attach-reservation deadline (~10s). Diagnostics only — never
+    // schedule anything from it; rotation keys off getResumeExpiresAt().
+    getAttachDeadlineAt(): number | null
+    getResumeExpiresAt(): number | null
+    getResumeConfirmation(): DeviceResumeConfirmed | null
+    getFailure(): Error | null
+  }
 
 export function connectMobileRelayRpcSession(args: {
   relay: MobileRelayEndpoint
@@ -58,6 +60,7 @@ export function connectMobileRelayRpcSession(args: {
   let logSequence = 0
   const logSessionId = `${Date.now().toString(36)}-${(++relayRpcSessionSequence).toString(36)}`
   const livenessIdentity = {}
+  const dialStage = new RelayDialStageTracker()
   const streams = new MobileRelayRpcStreams({
     nextId,
     sendFrame,
@@ -71,6 +74,7 @@ export function connectMobileRelayRpcSession(args: {
     deviceToken: args.deviceToken,
     desktopPublicKeyB64: args.desktopPublicKeyB64,
     createSocket: args.createSocket,
+    onOpen: () => dialStage.advance('awaiting-hello'),
     onHello: (hello) => {
       if (
         hello.credentialKind !== 'resume' ||
@@ -81,6 +85,7 @@ export function connectMobileRelayRpcSession(args: {
       }
       attachDeadlineAt = hello.leaseExpiresAt
       resumeExpiresAt = hello.resumeExpiresAt
+      dialStage.advance('handshaking')
       publishState('handshaking')
     },
     onAuthenticated: () => void confirmResume(),
@@ -136,6 +141,8 @@ export function connectMobileRelayRpcSession(args: {
       streams.clear()
       publishState('disconnected')
     },
+    getDialStage: () => dialStage.getDialStage(),
+    onDialStageChange: (listener) => dialStage.onDialStageChange(listener),
     getAttachDeadlineAt: () => attachDeadlineAt,
     getResumeExpiresAt: () => resumeExpiresAt,
     getResumeConfirmation: () => resumeConfirmation,
@@ -165,6 +172,7 @@ export function connectMobileRelayRpcSession(args: {
   return client
 
   async function confirmResume(): Promise<void> {
+    dialStage.advance('confirming')
     try {
       const response = await sendRpc(
         'pairing.getEndpoints',
