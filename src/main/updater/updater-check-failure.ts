@@ -32,7 +32,7 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
       // Why: a failed pinned jump must hand the feed back before surfacing the error, or the pin blocks background checks for the process lifetime.
       this.clearAvailableUpdateContext()
       this.restoreReleaseUpdateSource()
-      this.sendStatus({ state: 'error', message, userInitiated })
+      this.sendSettledCheckStatus({ state: 'error', message, userInitiated })
       return
     }
     const failureKey = this.getCheckFailureKey(message, userInitiated)
@@ -78,18 +78,19 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
         this.scheduleAutomaticUpdateCheck(this.getAutomaticRetryInterval())
         if (userInitiated) {
           // Why: a user click needs visible feedback (idle looks broken); distinguish incomplete releases from transport failures.
-          this.sendErrorStatus(
-            this.isReleaseNotReadyFailure(sourceError)
+          this.sendSettledCheckStatus({
+            state: 'error',
+            message: this.isReleaseNotReadyFailure(sourceError)
               ? "A newer release isn't available for this device yet. Check again later."
               : "Couldn't reach the update server. Try again in a few minutes.",
-            true
-          )
+            userInitiated: true
+          })
         } else {
           if (this.isRetryableReleaseFeedPreflightFailure(sourceError)) {
             // Why: release probes can fail transiently; keep the campaign pending so the short retry can still show it.
             this.deferPendingUpdateNudgeUntilRetry()
           }
-          this.sendStatus({ state: 'idle' })
+          this.sendSettledCheckStatus({ state: 'idle' })
         }
         return
       }
@@ -98,7 +99,7 @@ export abstract class UpdaterCheckFailure extends UpdaterReleaseFeed {
       if (!userInitiated) {
         this.scheduleAutomaticUpdateCheck(this.getAutomaticRetryInterval())
       }
-      this.sendErrorStatus(message, userInitiated)
+      this.sendSettledCheckStatus({ state: 'error', message, userInitiated })
     }
 
     this.pendingCheckFailureKey = failureKey

@@ -13,12 +13,14 @@ import {
   SERVE_REPLACEMENT_READY_TIMEOUT_MS
 } from './serve-update-supervisor'
 
-const { spawnMock } = vi.hoisted(() => ({
-  spawnMock: vi.fn()
+const { spawnMock, spawnSyncMock } = vi.hoisted(() => ({
+  spawnMock: vi.fn(),
+  spawnSyncMock: vi.fn()
 }))
 
 vi.mock('child_process', () => ({
-  spawn: spawnMock
+  spawn: spawnMock,
+  spawnSync: spawnSyncMock
 }))
 
 import { launchMantaApp, serveMantaApp } from './launch'
@@ -86,6 +88,7 @@ describe('serveMantaApp', () => {
 
   beforeEach(() => {
     spawnMock.mockReset()
+    spawnSyncMock.mockReset()
     process.env.MANTA_APP_EXECUTABLE = '/Applications/Manta.app/Contents/MacOS/Manta'
   })
 
@@ -93,7 +96,6 @@ describe('serveMantaApp', () => {
     vi.restoreAllMocks()
     delete process.env.MANTA_APP_EXECUTABLE
     delete process.env.MANTA_APP_EXECUTABLE_NEEDS_APP_ROOT
-    delete process.env.MANTA_APPIMAGE_NO_SANDBOX
     delete process.env.MANTA_USER_DATA_PATH
     return Promise.all(
       temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true }))
@@ -391,32 +393,6 @@ describe('serveMantaApp', () => {
     )
   })
 
-  it('preserves an AppImage no-sandbox launch for the server child', async () => {
-    process.env.MANTA_APPIMAGE_NO_SANDBOX = '1'
-    const child = {
-      kill: vi.fn(),
-      once: vi.fn(
-        (event: string, handler: (code: number | null, signal: string | null) => void) => {
-          if (event === 'exit') {
-            queueMicrotask(() => handler(0, null))
-          }
-          return child
-        }
-      )
-    }
-    spawnMock.mockReturnValue(child)
-
-    await expect(serveMantaApp({ json: true })).resolves.toBe(0)
-
-    expect(spawnMock).toHaveBeenCalledWith(
-      '/Applications/Manta.app/Contents/MacOS/Manta',
-      ['--no-sandbox', '--serve', '--serve-json'],
-      expect.any(Object)
-    )
-    const spawnOptions = spawnMock.mock.calls[0]?.[2] as { env?: NodeJS.ProcessEnv }
-    expect(spawnOptions.env).not.toHaveProperty('MANTA_APPIMAGE_NO_SANDBOX')
-  })
-
   it('passes the app root before serve flags for dev Electron executables', async () => {
     process.env.MANTA_APP_EXECUTABLE = '/repo/node_modules/.bin/electron'
     process.env.MANTA_APP_EXECUTABLE_NEEDS_APP_ROOT = '1'
@@ -443,6 +419,66 @@ describe('serveMantaApp', () => {
       })
     )
   })
+
+  it.each([
+    { probe: 'exits nonzero', result: { status: 1 }, expectedPrefix: ['--no-sandbox'] },
+    { probe: 'succeeds', result: { status: 0 }, expectedPrefix: [] },
+    {
+      probe: 'times out',
+      result: {
+        status: null,
+        error: Object.assign(new Error('timed out'), { code: 'ETIMEDOUT' })
+      },
+      expectedPrefix: ['--no-sandbox']
+    },
+    {
+      probe: 'cannot start',
+      result: { status: null, error: Object.assign(new Error('missing'), { code: 'ENOENT' }) },
+      expectedPrefix: ['--no-sandbox']
+    }
+  ])(
+    'uses the extracted AppImage sandbox fallback when the userns probe $probe',
+    async ({ result: userNamespaceResult, expectedPrefix }) => {
+      const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')
+      const getuidDescriptor = Object.getOwnPropertyDescriptor(process, 'getuid')
+      const root = await mkdtemp(join(tmpdir(), 'orca-extracted-appimage-'))
+      temporaryDirectories.push(root)
+      const executable = join(root, 'manta-ide')
+      await writeFile(join(root, 'AppRun'), '', { mode: 0o755 })
+      process.env.MANTA_APP_EXECUTABLE = executable
+      Object.defineProperty(process, 'platform', { value: 'linux' })
+      Object.defineProperty(process, 'getuid', { configurable: true, value: () => 1000 })
+      spawnSyncMock.mockReturnValue(userNamespaceResult)
+      const child = new FakeChildProcess()
+      spawnMock.mockReturnValue(child)
+
+      try {
+        const result = serveMantaApp({ json: true })
+        queueMicrotask(() => child.emit('exit', 0, null))
+        await expect(result).resolves.toBe(0)
+        expect(spawnSyncMock).toHaveBeenCalledWith(
+          'unshare',
+          ['-Ur', 'true'],
+          expect.objectContaining({ stdio: 'ignore', timeout: 2_000 })
+        )
+        expect(spawnMock).toHaveBeenCalledWith(
+          executable,
+          [...expectedPrefix, '--serve', '--serve-json'],
+          // Foreground serve must share POSIX job-control signals with its CLI supervisor.
+          expect.objectContaining({ detached: false })
+        )
+      } finally {
+        if (platformDescriptor) {
+          Object.defineProperty(process, 'platform', platformDescriptor)
+        }
+        if (getuidDescriptor) {
+          Object.defineProperty(process, 'getuid', getuidDescriptor)
+        } else {
+          Reflect.deleteProperty(process, 'getuid')
+        }
+      }
+    }
+  )
 
   it('prints recipe JSON from a detached server child and exits', async () => {
     const child = new FakeChildProcess()
@@ -599,6 +635,7 @@ describe('serveMantaApp', () => {
 describe('launchMantaApp', () => {
   beforeEach(() => {
     spawnMock.mockReset()
+    spawnSyncMock.mockReset()
   })
 
   afterEach(() => {
@@ -617,5 +654,52 @@ describe('launchMantaApp', () => {
     await Promise.resolve()
 
     expect(child.unref).toHaveBeenCalled()
+  })
+
+  it('adds the extracted-AppImage sandbox fallback for open launches', async () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')
+    const getuidDescriptor = Object.getOwnPropertyDescriptor(process, 'getuid')
+    const root = await mkdtemp(join(tmpdir(), 'orca-open-extracted-appimage-'))
+    const executable = join(root, 'manta-ide')
+
+    try {
+      await writeFile(join(root, 'AppRun'), '')
+      process.env.MANTA_APP_EXECUTABLE = executable
+      process.env.ELECTRON_RUN_AS_NODE = '1'
+      Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
+      Object.defineProperty(process, 'getuid', { configurable: true, value: () => 1000 })
+      spawnSyncMock.mockReturnValue({ status: 1 })
+      const child = new FakeChildProcess()
+      spawnMock.mockReturnValue(child)
+
+      launchMantaApp()
+
+      expect(spawnSyncMock).toHaveBeenCalledWith(
+        'unshare',
+        ['-Ur', 'true'],
+        expect.objectContaining({ stdio: 'ignore', timeout: 2_000 })
+      )
+      expect(spawnMock).toHaveBeenCalledWith(
+        executable,
+        ['--no-sandbox'],
+        expect.objectContaining({
+          detached: true,
+          stdio: 'ignore',
+          env: expect.not.objectContaining({ ELECTRON_RUN_AS_NODE: '1' })
+        })
+      )
+      expect(child.unref).toHaveBeenCalledOnce()
+    } finally {
+      await rm(root, { recursive: true, force: true })
+      delete process.env.ELECTRON_RUN_AS_NODE
+      if (platformDescriptor) {
+        Object.defineProperty(process, 'platform', platformDescriptor)
+      }
+      if (getuidDescriptor) {
+        Object.defineProperty(process, 'getuid', getuidDescriptor)
+      } else {
+        Reflect.deleteProperty(process, 'getuid')
+      }
+    }
   })
 })

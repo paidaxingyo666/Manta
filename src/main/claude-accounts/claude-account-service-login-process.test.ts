@@ -219,7 +219,7 @@ describe('ClaudeAccountService credential capture', () => {
           '--exec',
           'bash',
           '-lc',
-          "export CLAUDE_CONFIG_DIR='/home/user/.config/manta auth'; exec claude 'auth' 'status' '--json'"
+          "export CLAUDE_CONFIG_DIR='/home/user/.config/manta auth'; export CLAUDE_SECURESTORAGE_CONFIG_DIR='/home/user/.config/manta auth'; exec claude 'auth' 'status' '--json'"
         ],
         expect.objectContaining({ shell: false, windowsVerbatimArguments: false })
       )

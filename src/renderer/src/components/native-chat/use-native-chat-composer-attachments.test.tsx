@@ -4,20 +4,14 @@ import { act, createElement, useEffect, useRef, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
   clearNativeChatAttachmentCacheForTests,
-  NATIVE_CHAT_IMAGE_ATTACHMENT_MAX_COUNT,
   readNativeChatAttachmentCache,
   useNativeChatComposerAttachments
 } from './use-native-chat-composer-attachments'
 import type { NativeChatResolvedTarget } from './native-chat-composer-target'
 import { NATIVE_FILE_DROP_MAX_PATHS } from '../../../../shared/native-file-drop'
-import {
-  getNativeChatAttachmentOwnerIdentity,
-  type NativeChatAttachmentOwner
-} from './native-chat-attachment-upload'
 
 vi.mock('@/i18n/i18n', () => ({
-  translate: (_key: string, fallback: string, values?: Record<string, string | number>) =>
-    fallback.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => String(values?.[key] ?? ''))
+  translate: (_key: string, fallback: string) => fallback
 }))
 vi.mock('@/runtime/runtime-terminal-inspection', () => ({
   isRemoteRuntimePtyId: () => false
@@ -31,26 +25,14 @@ const target: NativeChatResolvedTarget = {
   settings: { activeRuntimeEnvironmentId: null }
 }
 
-const sshOwner: NativeChatAttachmentOwner = {
-  kind: 'ssh',
-  connectionId: 'conn-1',
-  worktreePath: '/remote/wt',
-  expectedExecutionHostId: 'ssh:conn-1',
-  expectedSshTargetId: 'target-1',
-  expectedSshConnectionGeneration: 4
-}
-const sshOwnerIdentity = getNativeChatAttachmentOwnerIdentity(sshOwner) as string
-
 function Probe({
   scopeKey,
-  ownerIdentity = 'local',
   structured = false,
   disabled = false,
   isComposing,
   onReady
 }: {
   scopeKey: string
-  ownerIdentity?: string | null
   structured?: boolean
   disabled?: boolean
   isComposing: () => boolean
@@ -62,7 +44,6 @@ function Probe({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const api = useNativeChatComposerAttachments({
     attachmentScopeKey: scopeKey,
-    attachmentOwnerIdentity: ownerIdentity,
     allowWithoutTarget: structured,
     caret,
     disabled,
@@ -88,16 +69,12 @@ function Probe({
 async function renderProbe(
   scopeKey: string,
   structured = false,
-  options: {
-    disabled?: boolean
-    isComposing?: () => boolean
-    ownerIdentity?: string | null
-  } = {}
+  options: { disabled?: boolean; isComposing?: () => boolean } = {}
 ): Promise<{
   draft: () => string
   latest: () => ProbeApi
   notice: () => string
-  rerender: (scopeKey: string, disabled?: boolean, ownerIdentity?: string | null) => Promise<void>
+  rerender: (scopeKey: string, disabled?: boolean) => Promise<void>
   root: Root
   textarea: () => HTMLTextAreaElement
 }> {
@@ -111,16 +88,11 @@ async function renderProbe(
     api = next
   }
   const isComposing = options.isComposing ?? (() => false)
-  const render = async (
-    nextScopeKey: string,
-    disabled: boolean,
-    ownerIdentity: string | null = 'local'
-  ): Promise<void> => {
+  const render = async (nextScopeKey: string, disabled: boolean): Promise<void> => {
     await act(async () => {
       root.render(
         createElement(Probe, {
           scopeKey: nextScopeKey,
-          ownerIdentity,
           structured,
           disabled,
           isComposing,
@@ -129,7 +101,7 @@ async function renderProbe(
       )
     })
   }
-  await render(scopeKey, options.disabled ?? false, options.ownerIdentity ?? 'local')
+  await render(scopeKey, options.disabled ?? false)
   if (!api) {
     throw new Error('Probe did not render')
   }
@@ -143,11 +115,8 @@ async function renderProbe(
       return api
     },
     notice: () => container.querySelector('[data-notice]')?.textContent ?? '',
-    rerender: (
-      nextScopeKey: string,
-      disabled = options.disabled ?? false,
-      ownerIdentity: string | null = options.ownerIdentity ?? 'local'
-    ) => render(nextScopeKey, disabled, ownerIdentity),
+    rerender: (nextScopeKey: string, disabled = options.disabled ?? false) =>
+      render(nextScopeKey, disabled),
     textarea: () => {
       const textarea = container.querySelector('textarea')
       if (!textarea) {
@@ -200,72 +169,6 @@ describe('useNativeChatComposerAttachments', () => {
     act(() => probe.root.unmount())
   })
 
-  it('preserves SSH image provenance through the pane cache', async () => {
-    const first = await renderProbe('pty-ssh', false, { ownerIdentity: sshOwnerIdentity })
-
-    await act(async () => {
-      first.latest().attachResolvedPaths(['/remote/wt/.manta/drops/image.png'], sshOwner)
-    })
-
-    expect(first.latest().imageAttachments).toMatchObject([
-      {
-        path: '/remote/wt/.manta/drops/image.png',
-        connectionId: 'conn-1',
-        ownerIdentity: sshOwnerIdentity
-      }
-    ])
-    act(() => first.root.unmount())
-
-    const second = await renderProbe('pty-ssh', false, { ownerIdentity: sshOwnerIdentity })
-    expect(second.latest().imageAttachments).toMatchObject([
-      {
-        path: '/remote/wt/.manta/drops/image.png',
-        connectionId: 'conn-1',
-        ownerIdentity: sshOwnerIdentity
-      }
-    ])
-    act(() => second.root.unmount())
-  })
-
-  it('retires cached images when a pane changes SSH owner', async () => {
-    const probe = await renderProbe('pty-ssh', false, { ownerIdentity: sshOwnerIdentity })
-    await act(async () => {
-      probe.latest().attachResolvedPaths(['/remote/wt/.manta/drops/image.png'], sshOwner)
-    })
-    const nextOwnerIdentity = getNativeChatAttachmentOwnerIdentity({
-      ...sshOwner,
-      connectionId: 'conn-2',
-      expectedExecutionHostId: 'ssh:conn-2',
-      expectedSshTargetId: 'target-2'
-    })
-
-    await probe.rerender('pty-ssh', false, nextOwnerIdentity)
-
-    expect(probe.latest().imageAttachments).toEqual([])
-    expect(readNativeChatAttachmentCache('pty-ssh')).toEqual([])
-    act(() => probe.root.unmount())
-  })
-
-  it('keeps SSH provenance while an image waits for IME composition', async () => {
-    let composing = true
-    const probe = await renderProbe('pty-ssh', false, {
-      isComposing: () => composing,
-      ownerIdentity: sshOwnerIdentity
-    })
-
-    act(() => {
-      probe.latest().attachResolvedPaths(['/remote/wt/.manta/drops/image.png'], sshOwner)
-    })
-    expect(probe.latest().imageAttachments).toEqual([])
-    composing = false
-    act(() => probe.latest().flushPendingAttachments())
-
-    expect(probe.latest().imageAttachments).toMatchObject([
-      { connectionId: 'conn-1', ownerIdentity: sshOwnerIdentity }
-    ])
-    act(() => probe.root.unmount())
-  })
-
   it('removes an attached image chip cleanly', async () => {
     const probe = await renderProbe('pty-1')
     await act(async () => {
@@ -278,28 +181,6 @@ describe('useNativeChatComposerAttachments', () => {
     })
     expect(probe.latest().imageAttachments).toMatchObject([])
     expect(readNativeChatAttachmentCache('pty-1')).toMatchObject([])
-    act(() => probe.root.unmount())
-  })
-
-  it('rescopes attachments when the scope key changes (composer reused for another pane)', async () => {
-    const probe = await renderProbe('pty-1')
-    await act(async () => {
-      probe.latest().attachResolvedPaths(['/tmp/manta-native-chat-pane-1.png'])
-    })
-    expect(probe.latest().imageAttachments).toMatchObject([
-      { path: '/tmp/manta-native-chat-pane-1.png' }
-    ])
-
-    // Reused for a different pane: pane-1's chip must not stay live (it would
-    // otherwise be submitted to pane-2's target now that images defer to submit).
-    await probe.rerender('pty-2')
-    expect(probe.latest().imageAttachments).toMatchObject([])
-
-    // Switching back restores pane-1's still-cached chip.
-    await probe.rerender('pty-1')
-    expect(probe.latest().imageAttachments).toMatchObject([
-      { path: '/tmp/manta-native-chat-pane-1.png' }
-    ])
     act(() => probe.root.unmount())
   })
 
@@ -351,45 +232,6 @@ describe('useNativeChatComposerAttachments', () => {
     act(() => probe.root.unmount())
   })
 
-  it('drops IME-queued paths when the composer changes scope', async () => {
-    let composing = true
-    const probe = await renderProbe('pty-1', false, { isComposing: () => composing })
-
-    act(() => probe.latest().attachResolvedPaths(['/remote/old-pane.txt']))
-    await probe.rerender('pty-2')
-    composing = false
-    act(() => probe.latest().flushPendingAttachments())
-
-    expect(probe.draft()).toBe('')
-    act(() => probe.root.unmount())
-  })
-
-  it('drops IME-queued images when the SSH owner changes', async () => {
-    let composing = true
-    const probe = await renderProbe('pty-ssh', false, {
-      isComposing: () => composing,
-      ownerIdentity: sshOwnerIdentity
-    })
-    const nextOwner = {
-      ...sshOwner,
-      connectionId: 'conn-2',
-      expectedExecutionHostId: 'ssh:conn-2' as const,
-      expectedSshTargetId: 'target-2'
-    }
-    const nextOwnerIdentity = getNativeChatAttachmentOwnerIdentity(nextOwner)
-
-    act(() => {
-      probe.latest().attachResolvedPaths(['/remote/wt/.manta/drops/old.png'], sshOwner)
-    })
-    await probe.rerender('pty-ssh', false, nextOwnerIdentity)
-    composing = false
-    act(() => probe.latest().flushPendingAttachments())
-
-    expect(probe.latest().imageAttachments).toEqual([])
-    expect(readNativeChatAttachmentCache('pty-ssh')).toEqual([])
-    act(() => probe.root.unmount())
-  })
-
   it('caps paths queued during composition and keeps overflow visible after flush', async () => {
     let composing = true
     const probe = await renderProbe('pty-1', false, { isComposing: () => composing })
@@ -419,25 +261,88 @@ describe('useNativeChatComposerAttachments', () => {
     act(() => probe.root.unmount())
   })
 
-  it('rejects an image batch that would exceed the pending-image limit', async () => {
+  it('settles a pending image attachment in place', async () => {
     const probe = await renderProbe('pty-1')
-    const acceptedPaths = Array.from(
-      { length: NATIVE_CHAT_IMAGE_ATTACHMENT_MAX_COUNT },
-      (_, index) => `/tmp/accepted-${index}.png`
-    )
+    let id: string | null = null
+    act(() => {
+      id = probe.latest().beginPendingImageAttachment('blob:preview-1')
+    })
+    expect(id).toBeTruthy()
+    expect(probe.latest().imageAttachments).toMatchObject([
+      { id, path: '', previewUrl: 'blob:preview-1', pending: true }
+    ])
 
     act(() => {
-      probe.latest().attachResolvedPaths(acceptedPaths)
-      probe.latest().attachResolvedPaths(['/tmp/rejected.png'])
+      probe.latest().resolvePendingImageAttachment(id as string, '/tmp/resolved.png', 'conn-1')
     })
 
-    expect(probe.latest().imageAttachments).toHaveLength(NATIVE_CHAT_IMAGE_ATTACHMENT_MAX_COUNT)
-    expect(probe.latest().imageAttachments.some(({ path }) => path.endsWith('rejected.png'))).toBe(
-      false
-    )
-    expect(probe.notice()).toBe(
-      `You can attach up to ${NATIVE_CHAT_IMAGE_ATTACHMENT_MAX_COUNT} images.`
-    )
+    expect(probe.latest().imageAttachments).toMatchObject([
+      { id, path: '/tmp/resolved.png', previewUrl: 'blob:preview-1', connectionId: 'conn-1' }
+    ])
+    expect(probe.latest().imageAttachments[0]?.pending).toBeUndefined()
+    act(() => probe.root.unmount())
+  })
+
+  it('drops just the targeted pending chip', async () => {
+    const probe = await renderProbe('pty-1')
+    let firstId: string | null = null
+    let secondId: string | null = null
+    act(() => {
+      firstId = probe.latest().beginPendingImageAttachment('blob:preview-1')
+    })
+    act(() => {
+      secondId = probe.latest().beginPendingImageAttachment('blob:preview-2')
+    })
+
+    act(() => {
+      probe.latest().dropPendingImageAttachment(firstId as string)
+    })
+
+    expect(probe.latest().imageAttachments).toMatchObject([
+      { id: secondId, previewUrl: 'blob:preview-2', pending: true }
+    ])
+    act(() => probe.root.unmount())
+  })
+
+  it('excludes a pending chip from the scope cache while a settled chip persists', async () => {
+    const probe = await renderProbe('pty-1')
+    let pendingId: string | null = null
+    act(() => {
+      pendingId = probe.latest().beginPendingImageAttachment('blob:preview-1')
+    })
+    await act(async () => {
+      probe.latest().attachResolvedPaths(['/tmp/settled.png'])
+    })
+
+    const cached = readNativeChatAttachmentCache('pty-1')
+    expect(cached.some((attachment) => attachment.id === pendingId)).toBe(false)
+    expect(cached).toMatchObject([{ path: '/tmp/settled.png' }])
+    expect(cached[0]?.previewUrl).toBeUndefined()
+    act(() => probe.root.unmount())
+  })
+
+  it('revokes a blob: preview URL on removal but not a data: preview URL', async () => {
+    const probe = await renderProbe('pty-1')
+    const revoke = vi.spyOn(URL, 'revokeObjectURL')
+    let blobId: string | null = null
+    act(() => {
+      blobId = probe.latest().beginPendingImageAttachment('blob:preview-1')
+    })
+    act(() => {
+      probe.latest().beginPendingImageAttachment('data:image/png;base64,AAAA')
+    })
+
+    act(() => {
+      probe.latest().dropPendingImageAttachment(blobId as string)
+    })
+    expect(revoke).toHaveBeenCalledWith('blob:preview-1')
+
+    // Only the remaining data: chip is left to clear; revoke must not fire again.
+    revoke.mockClear()
+    act(() => {
+      probe.latest().clearImageAttachments()
+    })
+    expect(revoke).not.toHaveBeenCalled()
     act(() => probe.root.unmount())
   })
 })

@@ -47,8 +47,10 @@ const WINDOWS_SHIM_SPAWN_ALLOWLIST = [
   'config/scripts/ensure-native-runtime.test.mjs',
   'config/scripts/live-remote-freeze-rpc.mjs',
   'config/scripts/remote-agent-session-authority-repro.mjs',
-  // macOS-only build path; the win32 branch is dead code there.
+  // Platform-local build paths; the win32 branch is dead code on both.
   'config/scripts/build-mac-local.mjs',
+  'config/scripts/build-linux-local.mjs',
+  'config/scripts/build-linux-local.test.mjs',
   // Benchmarks, repros and e2e drivers — developer-invoked or Linux-only in CI.
   'config/scripts/build-mantad-prebuilds.mjs',
   'config/scripts/run-ai-vault-typing-bench.mjs',

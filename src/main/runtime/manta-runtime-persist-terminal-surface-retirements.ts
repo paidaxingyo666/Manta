@@ -173,7 +173,7 @@ export class MantaRuntimeWithPersistTerminalSurfaceRetirements extends MantaRunt
           : {})
       })
       if (retired) {
-        this.mobileSessionTabsByWorktree.set(worktreeId, retired.snapshot)
+        this.storeMobileSessionSnapshot(worktreeId, retired.snapshot)
         this.notifyMobileSessionTabsChanged(worktreeId)
       }
     }

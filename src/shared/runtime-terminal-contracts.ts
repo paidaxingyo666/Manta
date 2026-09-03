@@ -250,6 +250,8 @@ export type RuntimeTerminalCreateRequestPayload =
 
 export type RuntimeTerminalCreate = {
   handle: string
+  /** Host-owned PTY incarnation used to fence remote identity observations. */
+  incarnationId?: string | null
   tabId?: string
   paneKey?: string | null
   ptyId?: string | null
@@ -275,6 +277,8 @@ export type RuntimeTerminalSplit = {
 
 export type RuntimeTerminalResolvePane = {
   handle: string
+  /** Host-owned PTY incarnation used to fence remote identity observations. */
+  incarnationId?: string | null
   tabId: string
   leafId: string
   ptyId: string | null

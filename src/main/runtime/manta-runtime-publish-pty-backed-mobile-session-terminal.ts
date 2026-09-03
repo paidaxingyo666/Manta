@@ -87,6 +87,7 @@ export class MantaRuntimeWithPublishPtyBackedMobileSessionTerminal extends Manta
       parentTabId: args.tabId,
       leafId: args.leafId,
       ptyId: pty.ptyId,
+      incarnationId: pty.incarnationId,
       title,
       ...(pty.launchAgent ? { launchAgent: pty.launchAgent } : {}),
       ...(args.startupCwd ? { startupCwd: args.startupCwd } : {}),
@@ -142,7 +143,7 @@ export class MantaRuntimeWithPublishPtyBackedMobileSessionTerminal extends Manta
       ...(existing?.tabGroupLayout ? { tabGroupLayout: existing.tabGroupLayout } : {}),
       tabs
     }
-    this.mobileSessionTabsByWorktree.set(worktreeId, next)
+    this.storeMobileSessionSnapshot(worktreeId, next)
     if (args.notify !== false) {
       this.notifyMobileSessionTabsChanged(worktreeId)
     }

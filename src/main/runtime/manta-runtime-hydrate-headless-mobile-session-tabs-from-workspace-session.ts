@@ -236,7 +236,7 @@ export class MantaRuntimeWithHydrateHeadlessMobileSessionTabsFromWorkspaceSessio
       if (existing && headlessMobileSnapshotContentUnchanged(existing, nextSnapshot)) {
         continue
       }
-      this.mobileSessionTabsByWorktree.set(entryWorktreeId, nextSnapshot)
+      this.storeMobileSessionSnapshot(entryWorktreeId, nextSnapshot)
     }
     return reconciledWorktreeIds
   }

@@ -85,6 +85,7 @@ import {
   RELAY_DEPLOY_TIMEOUT_MS
 } from './ssh-relay-deploy-timing'
 import { parseUnameToRelayPlatform } from './relay-protocol'
+import { decodeRemotePowerShellScript } from './ssh-remote-powershell'
 import {
   abandonInstall,
   finalizeInstall,
@@ -104,6 +105,9 @@ const RELAY_SUFFIX = '.manta-remote/relay-0.1.0+testhash'
 const SHELL_RELAY_DIR = `${SHELL_HOME}/${RELAY_SUFFIX}`
 const SFTP_RELAY_DIR = `${SFTP_HOME}/${RELAY_SUFFIX}`
 const MARKER_PATTERN = /\.sftp-namespace-[0-9a-f]{32}/
+// Stdout of the relay-side pty-master cloexec patch, which runs on Linux hosts once a
+// freshly installed node-pty loads (#17915).
+const NPTY_CLOEXEC_PATCHED = 'ORCA-NPTY-CLOEXEC:patched\n'
 const STAGE_OWNER = '.sftp-namespace-00000000000000000000000000000000'
 const STAGE_RESERVED = `__MANTA_UPLOAD_STAGE_SLOT__${STAGE_OWNER}:slot-0`
 const STAGE_PROMOTED = `__MANTA_UPLOAD_STAGE_PROMOTION__${STAGE_OWNER}:PROMOTED`
@@ -155,8 +159,7 @@ function issuedMarkerNames(): string[] {
 }
 
 function decodeCommand(command: string): string {
-  const match = command.match(/-EncodedCommand\s+([A-Za-z0-9+/=]+)/)
-  return match ? Buffer.from(match[1], 'base64').toString('utf16le') : command
+  return decodeRemotePowerShellScript(command)
 }
 
 function execCommands(): string[] {
@@ -256,6 +259,7 @@ const POSIX_FIRST_INSTALL = [
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  NPTY_CLOEXEC_PATCHED,
   '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
@@ -275,6 +279,7 @@ const POSIX_SYSTEM_SSH_FIRST_INSTALL = [
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  NPTY_CLOEXEC_PATCHED,
   '', // promote into the shared native-deps cache
   '', // clean stage root
   'DEAD',
@@ -293,6 +298,7 @@ const POSIX_REPAIR = [
   '', // chmod prebuilds
   'MANTA-NPTY-PROBE-OK\n',
   '', // rm probe stderr
+  NPTY_CLOEXEC_PATCHED,
   'DEAD',
   '', // publish the per-launch credential
   'READY'
@@ -703,6 +709,7 @@ describe('relay repair writes on a split SFTP namespace', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // remote credential generation
       'READY'
@@ -733,6 +740,7 @@ describe('relay repair writes on a split SFTP namespace', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // remote credential generation
       'READY'

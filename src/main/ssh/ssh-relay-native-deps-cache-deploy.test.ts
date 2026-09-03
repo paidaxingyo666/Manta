@@ -85,6 +85,9 @@ import {
 } from './ssh-relay-native-deps-cache-commands'
 
 // Everything after the probe on a healthy install: stderr cleanup, stage cleanup, launch.
+// Stdout of the relay-side pty-master cloexec patch, which runs on Linux hosts once a
+// freshly installed node-pty loads (#17915).
+const NPTY_CLOEXEC_PATCHED = 'ORCA-NPTY-CLOEXEC:patched\n'
 const LAUNCH_TAIL: ExecResponse[] = ['', 'DEAD', '', 'READY']
 
 describe('relay native-deps cache on the deploy path', () => {
@@ -165,6 +168,7 @@ describe('relay native-deps cache on the deploy path', () => {
         '', // chmod prebuilds
         'MANTA-NPTY-PROBE-OK\n',
         '', // rm probe stderr
+        NPTY_CLOEXEC_PATCHED,
         RELAY_NATIVE_CACHE_PROMOTED,
         ...LAUNCH_TAIL
       ])
@@ -214,6 +218,7 @@ describe('relay native-deps cache on the deploy path', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       '', // publication is attempted and answers nothing
       ...LAUNCH_TAIL
     ])
@@ -235,6 +240,7 @@ describe('relay native-deps cache on the deploy path', () => {
         '', // chmod prebuilds
         'MANTA-NPTY-PROBE-OK\n',
         '', // rm probe stderr
+        NPTY_CLOEXEC_PATCHED,
         '', // promotion attempt (the entry already exists, so it is declined)
         ...LAUNCH_TAIL
       ])
@@ -264,6 +270,7 @@ describe('relay native-deps cache on the deploy path', () => {
       '', // chmod prebuilds
       'MANTA-NPTY-PROBE-OK\n',
       '', // rm probe stderr
+      NPTY_CLOEXEC_PATCHED,
       'DEAD',
       '', // publish the per-launch credential
       'READY'
