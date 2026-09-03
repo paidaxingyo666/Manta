@@ -21,6 +21,7 @@ export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntime
       allowMissingPersistedTab?: boolean
       killPtys?: boolean
       authorizedPty?: RuntimePtyWorktreeRecord
+      force?: boolean
     } = {}
   ): void {
     const closedParentTabId = tab.parentTabId
@@ -38,7 +39,7 @@ export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntime
     const projectedPtyIds = this.commitHeadlessTerminalTabRetirement(
       worktreeId,
       closedParentTabId,
-      { allowMissing: options.allowMissingPersistedTab }
+      { allowMissing: options.allowMissingPersistedTab, force: options.force }
     )
     this.clearRuntimeSessionOwnershipForMobileTab(worktreeId, snapshot, closedParentTabId)
     if (options.authorizedPty) {

@@ -183,6 +183,8 @@ export const TerminalStop = z.object({
   worktree: requiredString('Missing worktree selector')
 })
 
+export const TerminalCloseAll = TerminalStop
+
 export const TerminalSleep = TerminalStop
 
 export const TerminalStopExact = TerminalStop.extend({

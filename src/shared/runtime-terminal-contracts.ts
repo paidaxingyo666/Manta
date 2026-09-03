@@ -159,6 +159,14 @@ export type RuntimeWorktreeTerminalSleepResult = {
     }
 )
 
+export type RuntimeWorktreeTerminalCloseResult = {
+  closed: number
+  stopped: number
+  retiredSurfaces: true
+  ptyStopVerdict?: 'live' | 'unverifiable'
+  ptyStopReason?: string
+}
+
 export type RuntimeTerminalInteractiveWaitSource = 'hook' | 'prompt-text' | 'title'
 
 export type RuntimeTerminalInteractiveWait = {
