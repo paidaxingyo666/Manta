@@ -12,10 +12,10 @@ import {
 import { projectIpcPtyConnectResult } from './ipc-pty-connect-result'
 import { waitAtTerminalPtyPreSpawnE2EBarrier } from './terminal-pty-pre-spawn-e2e-barrier'
 import type { IpcPtySessionHandlers } from './ipc-pty-session-handlers'
+import { isSshSessionGoneError } from './pty-connection/pty-connect-limits'
 import { spawnIpcPty } from './ipc-pty-spawn-request'
 import type { IpcPtyTransportOptions, PtyConnectResult, PtyTransport } from './pty-transport-types'
 
-const SSH_SESSION_EXPIRED_ERROR = 'SSH_SESSION_EXPIRED'
 const SSH_PTY_CONNECTION_MISMATCH_MARKER = 'belongs to SSH connection'
 
 type PtyConnectOptions = Parameters<PtyTransport['connect']>[0]
@@ -183,8 +183,7 @@ function handleConnectError(
   if (
     connectionId &&
     options.sessionId &&
-    (message.includes(SSH_SESSION_EXPIRED_ERROR) ||
-      message.includes(SSH_PTY_CONNECTION_MISMATCH_MARKER))
+    (isSshSessionGoneError(message) || message.includes(SSH_PTY_CONNECTION_MISMATCH_MARKER))
   ) {
     return { id: options.sessionId, sessionExpired: true }
   }
