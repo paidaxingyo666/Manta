@@ -65,6 +65,37 @@ function fail(message) {
 const MOBILE_TAG = /^mobile-android-v([0-9]+\.[0-9]+\.[0-9]+)$/
 
 /**
+ * mobile/app.json with the marketing version set and versionCode advanced by
+ * one, by substitution rather than by re-serializing.
+ *
+ * JSON.stringify reflows the file — its single-line
+ * NSPrivacyAccessedAPITypeReasons arrays become six lines each, nineteen lines
+ * of noise around a two-line change. app.json is a file upstream edits, so that
+ * noise comes back as a merge conflict on every sync.
+ */
+export function bumpMobileAppConfig(text, version) {
+  const replaceOnce = (source, pattern, replacement) => {
+    const all = source.match(new RegExp(pattern.source, 'g'))
+    if (all?.length !== 1) {
+      throw new Error(`mobile/app.json: ${pattern} matched ${all?.length ?? 0} times, expected 1`)
+    }
+    return source.replace(pattern, replacement)
+  }
+  const withVersion = replaceOnce(
+    text,
+    /("version":\s*")[0-9]+\.[0-9]+\.[0-9]+(")/,
+    `$1${version}$2`
+  )
+  // Android refuses to install an APK numbered below the one on the device, so
+  // this only ever counts up — never down, never reset by a version change.
+  return replaceOnce(
+    withVersion,
+    /("versionCode":\s*)([0-9]+)/,
+    (_, key, code) => `${key}${Number(code) + 1}`
+  )
+}
+
+/**
  * Upstream's newest mobile release. The phone app has its own version line
  * (0.0.x) and its own release cadence, but the same rule applies: this fork
  * ships what upstream shipped, once it has merged it. Android's tag is the
@@ -138,9 +169,7 @@ function bumpMobileVersion(upstreamMobile, { write }) {
     return null
   }
   if (write) {
-    config.expo.version = upstreamMobile
-    config.expo.android.versionCode = Number(config.expo.android.versionCode) + 1
-    writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`)
+    writeFileSync(configPath, bumpMobileAppConfig(readFileSync(configPath, 'utf8'), upstreamMobile))
   }
   return { version: upstreamMobile, from: current }
 }

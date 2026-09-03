@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { highestRcForBase } from './release-rc-history.mjs'
 import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
-import { upstreamMobileVersion } from './cut-fork-release.mjs'
+import { bumpMobileAppConfig, upstreamMobileVersion } from './cut-fork-release.mjs'
 import { draftReleaseNotes } from './release-notes-draft.mjs'
 
 /**
@@ -154,5 +154,50 @@ describe('release notes', () => {
       '1.4.196'
     )
     expect(notes).toContain('Fork-only changes; upstream is unchanged')
+  })
+})
+
+describe('mobile app config bump', () => {
+  // The shape that matters: a single-line array the repo's formatter keeps
+  // single-line. JSON.parse + JSON.stringify expands it to six lines, and
+  // app.json is a file upstream edits, so the noise returns as a sync conflict.
+  const config = [
+    '{',
+    '  "expo": {',
+    '    "name": "Manta",',
+    '    "version": "0.0.44",',
+    '    "ios": {',
+    '      "infoPlist": {',
+    '        "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]',
+    '      }',
+    '    },',
+    '    "android": {',
+    '      "versionCode": 13',
+    '    }',
+    '  }',
+    '}',
+    ''
+  ].join('\n')
+
+  it('changes two lines and nothing else', () => {
+    const bumped = bumpMobileAppConfig(config, '0.0.47')
+    const changed = bumped.split('\n').filter((line, i) => line !== config.split('\n')[i])
+    expect(changed).toEqual(['    "version": "0.0.47",', '      "versionCode": 14'])
+    expect(bumped).toContain('"NSPrivacyAccessedAPITypeReasons": ["CA92.1"]')
+  })
+
+  it('counts versionCode up, never resetting it for a new version', () => {
+    // Android refuses to install an APK numbered below the one on the device.
+    expect(bumpMobileAppConfig(config, '1.0.0')).toContain('"versionCode": 14')
+  })
+
+  it('refuses a file where the field is not unique', () => {
+    // A plugin block carrying its own pinned version would otherwise get the
+    // app's version written into it, silently.
+    const ambiguous = config.replace(
+      '"name": "Manta",',
+      '"plugins": [["expo-build-properties", { "version": "1.2.3" }]],'
+    )
+    expect(() => bumpMobileAppConfig(ambiguous, '0.0.47')).toThrow(/matched 2 times/)
   })
 })

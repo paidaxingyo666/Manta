@@ -87,7 +87,12 @@ function main() {
     previousMobile: atBaseline('mobile/app.json', mobileOf)
   }
 
-  const tags = pendingReleaseTags(versions, (name) => git('tag', '--list', name) !== '')
+  // origin, not the local tag list: a developer clone fetches upstream, so
+  // upstream's own mobile-android-v* tags live there — and this fork follows
+  // upstream's mobile version, so every mobile tag it cuts shares a name with
+  // one of them. What decides the question is whether the tag is published here.
+  const published = (name) => git('ls-remote', '--tags', 'origin', name) !== ''
+  const tags = pendingReleaseTags(versions, published)
   console.log(
     `desktop ${versions.previousDesktop ?? '?'} → ${versions.desktop} · ` +
       `mobile ${versions.previousMobile ?? '?'} → ${versions.mobile}`
