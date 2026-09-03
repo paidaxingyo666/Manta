@@ -144,6 +144,19 @@ repair. Each step is there because skipping it once let something through:
    load. `browser-route-tcp-egress` fails on any machine whose DNS answers
    `remote-browser.test`.
 
+**A KEEP entry is a decision the rule cannot make twice.** `orca-cli` is on
+the keep list because it is a backwards-compatible skill alias — renaming it
+makes installed skills unresolvable. But the same string appears in a stub CLI
+inside `electron-builder-runtime-resources.test.mjs`, where it stands for the
+skill the packaged build must list, and there it has to say `manta-cli`. No
+rule distinguishes those; only a test does. When a KEEP entry turns up in a
+fixture, read what it stands for in that spot.
+
+That one also shows why `pnpm test` on this machine is not the whole gate:
+the packaged-runtime probes skip on a cross-arch slice, so on an arm64 Mac the
+stub is never executed and the test passes for a reason CI does not share.
+Flip `arch:` in the case to the host's to reproduce a CI-only failure locally.
+
 **What the script cannot see** — the layer where identity is a machine-readable
 key rather than a word: `Symbol.for` slots, `localStorage`/`AsyncStorage` keys,
 HTTP header names, on-disk file names. `tsc` does not check them and the
