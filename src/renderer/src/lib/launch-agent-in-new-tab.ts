@@ -22,7 +22,6 @@ import {
 } from '../../../shared/tui-agent-launch-defaults'
 import { resolveLocalWindowsAgentStartupShell } from '../../../shared/windows-terminal-shell'
 import { TUI_AGENT_CONFIG } from '../../../shared/tui-agent-config'
-import { repoIsRemote } from '../../../shared/agent-launch-remote'
 import { seedCommandCodeSubmittedPromptStatus } from '@/lib/command-code-prompt-status-seed'
 import type { TuiAgent } from '../../../shared/tui-agent'
 import type { LaunchSource } from '../../../shared/telemetry-events'
@@ -96,16 +95,23 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
   const store = useAppStore.getState()
   const worktree = store.allWorktrees?.().find((entry: { id: string }) => entry.id === worktreeId)
   const repo = worktree ? store.repos?.find((entry) => entry.id === worktree.repoId) : null
+  // Why: `store.repos.find` is host-blind and the same repo id can exist on local, SSH and runtime
+  // hosts, so the row it returns can belong to a different host than the worktree names (#11163).
+  // The shared resolver answers from the worktree's own host; `undefined` (rival rows disagree) is
+  // not evidence of a remote, and main rejects that launch anyway.
+  const worktreeSshConnectionId = getConnectionIdFromState(store, worktreeId)
   const resolvedLaunchPlatform =
     launchPlatform ??
     (repo
       ? getAgentLaunchPlatformForRepo(
           repo,
-          repo.connectionId ? undefined : getLocalProjectExecutionRuntimeContext(store, worktreeId)
+          worktreeSshConnectionId
+            ? undefined
+            : getLocalProjectExecutionRuntimeContext(store, worktreeId)
         )
       : CLIENT_PLATFORM)
   // Why: SSH remotes deploy the shim as plain `manta`, so skip the Linux-only `manta-ide` rename for remote launches.
-  const isRemote = repo ? repoIsRemote(repo) : false
+  const isRemote = Boolean(worktreeSshConnectionId)
   const queuedShell = resolveLocalWindowsAgentStartupShell({
     platform: resolvedLaunchPlatform,
     isRemote,
@@ -127,9 +133,8 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
     agent,
     promptDelivery: viewModePromptDelivery,
     launchDraftText: trimmedPrompt,
-    nativeChatTranscriptIsLocalReadable: isNativeChatTranscriptLocalReadable(
-      getConnectionIdFromState(store, worktreeId)
-    )
+    nativeChatTranscriptIsLocalReadable:
+      isNativeChatTranscriptLocalReadable(worktreeSshConnectionId)
   }
   const initialViewModeProps = initialAgentTabViewModeProps(store.settings, initialViewModeOptions)
   const startupPlanBase = {
