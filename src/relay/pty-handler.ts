@@ -35,6 +35,7 @@ import {
   type RelaySpawnCwdResolution
 } from './pty-spawn-cwd'
 import { PhysicalExitTracker } from '../shared/physical-exit-tracker'
+import { PTY_ATTACH_PROVEN_EXITED_MARKER } from '../shared/pty-attach-absence-evidence'
 import { SHELL_READY_MARKER_PREFIX } from '../main/shell-ready-marker-scanner'
 import {
   createShellStartupOutputScanState,
@@ -2055,7 +2056,11 @@ export class PtyHandler {
 
     // Why: verify liveness because shells can exit without node-pty onExit.
     if (this.reapPtyProvenExited(managed)) {
-      throw new Error(`PTY "${id}" not found`)
+      // Why the marker: this is the ONLY not-found answer backed by a liveness check. The unmarked
+      // one above is also thrown for an id this session map never had — every id minted before a
+      // relay restart — so a client that cannot tell them apart certifies deaths it never observed
+      // (docs/reference/ssh-execution-boundary.md).
+      throw new Error(`PTY "${id}" not found (${PTY_ATTACH_PROVEN_EXITED_MARKER})`)
     }
 
     // Why: legacy `pty-N` ids repeated across relay generations; reject conflicting identities.
