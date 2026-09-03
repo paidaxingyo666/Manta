@@ -80,7 +80,8 @@ import {
   type DetectedPort,
   MAX_SSH_RELAY_GRACE_PERIOD_SECONDS,
   MIN_SSH_RELAY_GRACE_PERIOD_SECONDS,
-  SSH_RELAY_CONFIGURE_GRACE_TIME_METHOD
+  SSH_RELAY_CONFIGURE_GRACE_TIME_METHOD,
+  sshRemotePtyLeaseAllowsReattach
 } from '../../shared/ssh-types'
 import { normalizeRemoteArtifactInput } from '../../shared/artifact-cli-bridge'
 import type { Store } from '../persistence'
@@ -2034,10 +2035,7 @@ export class SshRelaySession {
     }
     const activeLease = this.store
       .getSshRemotePtyLeases(this.targetId)
-      .find(
-        (lease) =>
-          lease.ptyId === relayPtyId && lease.state !== 'terminated' && lease.state !== 'expired'
-      )
+      .find((lease) => lease.ptyId === relayPtyId && sshRemotePtyLeaseAllowsReattach(lease))
     const activeLeaseByPtyId = activeLease
       ? new Map<string, SshPtyLease>([[relayPtyId, activeLease]])
       : new Map<string, SshPtyLease>()
@@ -2324,9 +2322,12 @@ export class SshRelaySession {
     if (!shouldContinue()) {
       return
     }
+    // Why not `state !== 'expired'`: that state covers both a superseded sibling (re-adopting it is
+    // the 2 -> 19 -> 20 fan-out) and an orphan whose reattach merely lost contact. Only the first
+    // carries a retirement mark, and only it has to be skipped.
     const activeLeases = this.store
       .getSshRemotePtyLeases(this.targetId)
-      .filter((lease) => lease.state !== 'terminated' && lease.state !== 'expired')
+      .filter((lease) => sshRemotePtyLeaseAllowsReattach(lease))
     const activeLeaseByPtyId = new Map(activeLeases.map((lease) => [lease.ptyId, lease]))
     const leasedPtyIds = activeLeases.map((lease) => lease.ptyId)
     // Why: pass pane identity so the relay can reject cross-generation id collisions; tabId falls back for pre-leafId leases.

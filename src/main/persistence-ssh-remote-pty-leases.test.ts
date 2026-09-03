@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { rmSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { testState, createStore } from './persistence-test-harness'
+import { testState, createStore, writeDataFile } from './persistence-test-harness'
+import { getDefaultPersistedState } from '../shared/constants'
+import { sshRemotePtyLeaseAllowsReattach } from '../shared/ssh-types'
 import { TEST_LEAF_1, TEST_LEAF_2 } from './persistence-session-fixtures'
 
 // Stub the ~/.ssh/config parser so the SSH-import test drives the real Store with deterministic hosts, not the operator's actual ~/.ssh/config.
@@ -791,5 +793,90 @@ describe('Store', () => {
         expect.objectContaining({ ptyId: 'expired-pty', state: 'expired' })
       ])
     )
+  })
+})
+
+/**
+ * The lease loader is a strict whitelist, so a field it does not name is stripped on every launch
+ * and the mark that keeps a superseded predecessor out of the reattach set would silently stop
+ * working. Both skew directions are Rule 1 of docs/reference/remote-wire-compatibility.md: this
+ * build reads a row an older one wrote, and an older build ignores the keys it never heard of.
+ */
+describe('ssh remote pty lease route-retirement marks survive the disk round trip', () => {
+  beforeEach(() => {
+    testState.dir = mkdtempSync(join(tmpdir(), 'manta-test-'))
+  })
+  afterEach(() => {
+    rmSync(testState.dir, { recursive: true, force: true })
+  })
+
+  function persistLeases(leases: unknown[]): void {
+    const persisted = getDefaultPersistedState(testState.dir)
+    writeDataFile({ ...persisted, sshRemotePtyLeases: leases })
+  }
+
+  it('salvages both marks rather than stripping them', async () => {
+    persistLeases([
+      {
+        targetId: 'ssh-1',
+        ptyId: 'pty-1',
+        state: 'expired',
+        createdAt: 1,
+        updatedAt: 2,
+        supersededBy: 'pty-2'
+      },
+      {
+        targetId: 'ssh-1',
+        ptyId: 'pty-3',
+        state: 'expired',
+        createdAt: 1,
+        updatedAt: 2,
+        relayIdRecycled: true
+      }
+    ])
+
+    const store = await createStore()
+
+    expect(store.getSshRemotePtyLeases('ssh-1')).toEqual([
+      expect.objectContaining({ ptyId: 'pty-1', supersededBy: 'pty-2' }),
+      expect.objectContaining({ ptyId: 'pty-3', relayIdRecycled: true })
+    ])
+    expect(store.getSshRemotePtyLeases('ssh-1').filter(sshRemotePtyLeaseAllowsReattach)).toEqual([])
+  })
+
+  // A row an older build wrote carries neither mark. Absence must read as "orphan", which is the
+  // reattachable answer — the older build had no way to say otherwise.
+  it('reads a row written before the marks existed as a reattachable orphan', async () => {
+    persistLeases([
+      { targetId: 'ssh-1', ptyId: 'pty-1', state: 'expired', createdAt: 1, updatedAt: 2 }
+    ])
+
+    const store = await createStore()
+    const [lease] = store.getSshRemotePtyLeases('ssh-1')
+
+    expect(lease).toMatchObject({ ptyId: 'pty-1', state: 'expired' })
+    expect(lease.supersededBy).toBeUndefined()
+    expect(lease.relayIdRecycled).toBeUndefined()
+    expect(sshRemotePtyLeaseAllowsReattach(lease)).toBe(true)
+  })
+
+  it('drops a mistyped mark instead of trusting it', async () => {
+    persistLeases([
+      {
+        targetId: 'ssh-1',
+        ptyId: 'pty-1',
+        state: 'expired',
+        createdAt: 1,
+        updatedAt: 2,
+        supersededBy: 7,
+        relayIdRecycled: 'yes'
+      }
+    ])
+
+    const store = await createStore()
+    const [lease] = store.getSshRemotePtyLeases('ssh-1')
+
+    expect(lease.supersededBy).toBeUndefined()
+    expect(lease.relayIdRecycled).toBeUndefined()
   })
 })

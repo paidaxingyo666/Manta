@@ -45,7 +45,9 @@ function durablyBoundPtyIdForPane(
  * the next reattach fans out over both — the reported 2 -> 19 -> 20 across three reconnects.
  *
  * Superseded leases are marked `expired`, never `terminated`: losing a lease is not evidence the
- * shell died, so the remote process is deliberately left running.
+ * shell died, so the remote process is deliberately left running. They also carry `supersededBy`,
+ * which is what keeps them out of the bulk reattach set now that plain `expired` no longer does —
+ * the winner's ptyId is already in hand here, so recording it needs no relay-start identity.
  */
 function supersedeSiblingLeasesForPane(
   operations: SshPtyLeaseOperations,
@@ -74,12 +76,20 @@ function supersedeSiblingLeasesForPane(
       // Leaf only: a lease freezes its tabId, so a pane broken out into a new tab would otherwise
       // never compete with its own predecessor — which is the reported cardinality growth.
       lease.leafId !== winner.leafId ||
-      lease.state === 'terminated' ||
-      lease.state === 'expired'
+      lease.state === 'terminated'
     ) {
       continue
     }
+    if (lease.state === 'expired') {
+      // An already-expired predecessor is superseded by the same evidence, and marking it is what
+      // bounds the reattach set: without this, every past orphan for this pane stays reattachable
+      // forever. `updatedAt` stays put — bumping it would make a stale lease look recent to
+      // `getRecentExpiredSshLease`.
+      lease.supersededBy = winner.ptyId
+      continue
+    }
     lease.state = 'expired'
+    lease.supersededBy = winner.ptyId
     lease.updatedAt = now
     superseded.push(lease)
   }
@@ -147,6 +157,13 @@ export function upsertSshRemotePtyLease(
     ...definedLease,
     createdAt: existing?.createdAt ?? normalizedLease.createdAt ?? now,
     updatedAt: normalizedLease.updatedAt ?? now
+  }
+  // A relay renumbers from `pty-1` on every start, so `existing` can be a RECYCLED id. Route
+  // retirement belongs to the shell that lost, never to whatever claims the id next — drop both
+  // marks the moment this id is claimed live again, and let supersession re-derive them below.
+  if (next.state === 'attached' || next.state === 'detached') {
+    delete next.supersededBy
+    delete next.relayIdRecycled
   }
   if (existingIndex !== -1) {
     operations.state.sshRemotePtyLeases[existingIndex] = next
@@ -240,11 +257,17 @@ export async function markSshRemotePtyLeasesAttachedAsync(
   }
 }
 
+/** `relayIdRecycled` is the pending-stop replay's evidence that the host now lists this id under a
+ *  different incarnation. It is set here rather than inferred, because nothing downstream can
+ *  re-derive it, and it must land even when the lease is already `expired`. */
+export type MarkSshRemotePtyLeaseOptions = { relayIdRecycled?: true }
+
 export function markSshRemotePtyLease(
   operations: SshPtyLeaseOperations,
   targetId: string,
   ptyId: string,
-  state: SshRemotePtyLease['state']
+  state: SshRemotePtyLease['state'],
+  options?: MarkSshRemotePtyLeaseOptions
 ): void {
   const relayPtyId = operations.toStoredPtyId(targetId, ptyId)
   const lease = operations.state.sshRemotePtyLeases?.find(
@@ -253,9 +276,16 @@ export function markSshRemotePtyLease(
   if (!lease) {
     return
   }
+  const recycledChanged = options?.relayIdRecycled === true && lease.relayIdRecycled !== true
+  if (recycledChanged) {
+    lease.relayIdRecycled = true
+  }
   const shouldClearBindings = leaseStateWithdrawsBinding(state)
   if (lease.state === state) {
-    if (shouldClearBindings && operations.clearBindingsForLeases(targetId, [lease])) {
+    if (
+      (shouldClearBindings && operations.clearBindingsForLeases(targetId, [lease])) ||
+      recycledChanged
+    ) {
       operations.flush()
     }
     return
