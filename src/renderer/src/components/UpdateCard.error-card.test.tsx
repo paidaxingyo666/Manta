@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, type RenderResult } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { HOURLY_RELEASE_REPO, MAIN_RELEASE_REPO } from '../../../shared/release-channel'
 import type { LinuxPackageInstallRecovery, UpdateStatus } from '../../../shared/update-status-types'
 import { useAppStore } from '../store'
 import { UpdateCard } from './UpdateCard'
@@ -15,6 +16,9 @@ const showLinuxPackage = vi.fn()
 const writeClipboardText = vi.fn()
 const relaunch = vi.fn()
 const setSettings = vi.fn()
+
+const MAIN_RELEASES_URL = `https://github.com/${MAIN_RELEASE_REPO}/releases`
+const RELEASE_TAG_URL = `https://github.com/${MAIN_RELEASE_REPO}/releases/tag/v1.4.200`
 
 const PACKAGE_RECOVERY: LinuxPackageInstallRecovery = {
   kind: 'linux-package-install',
@@ -51,7 +55,7 @@ function mockReducedMotion(matches: boolean): void {
 
 beforeEach(() => {
   useAppStore.setState(useAppStore.getInitialState(), true)
-  openUrl.mockReset()
+  openUrl.mockReset().mockResolvedValue(undefined)
   download.mockReset()
   check.mockReset()
   quitAndInstall.mockReset().mockResolvedValue(undefined)
@@ -103,7 +107,7 @@ describe('UpdateCard Windows signature failures', () => {
     expect(screen.queryByText(message)).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Check official releases' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/paidaxingyo666/Manta/releases')
+    expect(openUrl).toHaveBeenCalledWith(MAIN_RELEASES_URL)
     expect(openUrl).not.toHaveBeenCalledWith(expect.stringContaining('/tag/'))
   })
 
@@ -160,7 +164,7 @@ describe('UpdateCard hourly builds', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Release notes' }))
     expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/paidaxingyo666/manta-hourly/releases/tag/v1.4.160-hourly.202607281400'
+      `https://github.com/${HOURLY_RELEASE_REPO}/releases/tag/v1.4.160-hourly.202607281400`
     )
   })
 })
@@ -243,7 +247,7 @@ describe('UpdateCard Linux package-install recovery', () => {
 
     expect(screen.getByText('Manual Install Required')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca/releases/tag/v1.4.200')
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
   })
 
   it('uses the recovery version when cached update state is stale', () => {
@@ -251,7 +255,7 @@ describe('UpdateCard Linux package-install recovery', () => {
     showPackageRecovery()
 
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca/releases/tag/v1.4.200')
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
   })
 
   it.each([
@@ -294,9 +298,7 @@ describe('UpdateCard Linux package-install recovery', () => {
     await flushActions()
 
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith(
-      'https://github.com/paidaxingyo666/Manta/releases/tag/v1.4.200'
-    )
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
   })
 
   it('resets command discovery when a newer package cycle replaces the recovery', async () => {
@@ -335,7 +337,7 @@ describe('UpdateCard Linux package-install recovery', () => {
     expect(screen.queryByText('Manual Install Required')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Retry Download' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Download Manually' }))
-    expect(openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca/releases/tag/v1.4.200')
+    expect(openUrl).toHaveBeenCalledWith(RELEASE_TAG_URL)
   })
 
   it('keeps generic errors on the generic card when no recovery is attached', () => {

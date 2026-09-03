@@ -141,10 +141,10 @@ describe('remote unix socket path limit', () => {
     const segment = shortRelayVersionSegment(RELAY_VERSION_DIR_NAME)
     expect(
       parseShortRelaySocketDir(
-        `Welcome to Ubuntu\nORCA-RELAY-SHORT-SOCKET-DIR /tmp/.orca-relay-1000/${segment}\n`,
+        `Welcome to Ubuntu\nORCA-RELAY-SHORT-SOCKET-DIR ${SHORT_RELAY_SOCKET_DIR_PREFIX}1000/${segment}\n`,
         segment
       )
-    ).toBe(`/tmp/.orca-relay-1000/${segment}`)
+    ).toBe(`${SHORT_RELAY_SOCKET_DIR_PREFIX}1000/${segment}`)
     expect(parseShortRelaySocketDir('mkdir: permission denied\n', segment)).toBeNull()
     expect(
       parseShortRelaySocketDir(`ORCA-RELAY-SHORT-SOCKET-DIR /etc/${segment}\n`, segment)
@@ -152,7 +152,7 @@ describe('remote unix socket path limit', () => {
     // A directory belonging to another build must not be adopted as this build's.
     expect(
       parseShortRelaySocketDir(
-        `ORCA-RELAY-SHORT-SOCKET-DIR /tmp/.orca-relay-1000/${shortRelayVersionSegment('relay-9.9.9+other')}\n`,
+        `ORCA-RELAY-SHORT-SOCKET-DIR ${SHORT_RELAY_SOCKET_DIR_PREFIX}1000/${shortRelayVersionSegment('relay-9.9.9+other')}\n`,
         segment
       )
     ).toBeNull()

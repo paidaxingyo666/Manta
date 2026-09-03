@@ -138,7 +138,7 @@ describe('getLinuxRootPackageType', () => {
 
   it('uses a legacy AppImage identity when its executable and resources are inside APPDIR', async () => {
     process.env.APPIMAGE = '/opt/manta/manta.AppImage'
-    process.env.APPDIR = '/tmp/.mount_orca'
+    process.env.APPDIR = '/tmp/.mount_manta'
     setExecPath('/tmp/.mount_manta/manta')
     setResourcesPath('/tmp/.mount_manta/resources')
     const module = await loadPackageType()
@@ -147,8 +147,8 @@ describe('getLinuxRootPackageType', () => {
   })
 
   it.each([
-    ['relative APPIMAGE', 'relative/manta.AppImage', '/tmp/.mount_orca'],
-    ['relative APPDIR', '/opt/manta/manta.AppImage', 'relative/.mount_orca']
+    ['relative APPIMAGE', 'relative/manta.AppImage', '/tmp/.mount_manta'],
+    ['relative APPDIR', '/opt/manta/manta.AppImage', 'relative/.mount_manta']
   ])('rejects a legacy identity with %s', async (_label, appImagePath, appDirPath) => {
     process.env.APPIMAGE = appImagePath
     process.env.APPDIR = appDirPath
@@ -166,7 +166,7 @@ describe('getLinuxRootPackageType', () => {
     'rejects a prefix-collision outside APPDIR for %s',
     async (_label, execPath, resourcesPath) => {
       process.env.APPIMAGE = '/opt/manta/manta.AppImage'
-      process.env.APPDIR = '/tmp/.mount_orca'
+      process.env.APPDIR = '/tmp/.mount_manta'
       setExecPath(execPath)
       setResourcesPath(resourcesPath)
       const module = await loadPackageType()
@@ -179,7 +179,7 @@ describe('getLinuxRootPackageType', () => {
     const { isLegacyAppImageRuntimeIdentity } = await loadPackageType()
     const identity = {
       appImagePath: '/opt/manta/manta.AppImage',
-      appDirPath: '/tmp/.mount_orca',
+      appDirPath: '/tmp/.mount_manta',
       execPath: '/tmp/.mount_manta/manta',
       resourcesPath: '/tmp/.mount_manta/resources'
     }
@@ -195,7 +195,7 @@ describe('getLinuxRootPackageType', () => {
     const { isLegacyAppImageRuntimeIdentity } = await loadPackageType()
     const identity = {
       appImagePath: '/opt/manta/manta.AppImage',
-      appDirPath: '/tmp/.mount_orca',
+      appDirPath: '/tmp/.mount_manta',
       execPath: '/tmp/.mount_manta/manta',
       resourcesPath: '/tmp/.mount_manta/resources'
     }
@@ -208,7 +208,7 @@ describe('getLinuxRootPackageType', () => {
   it('prefers a package marker over an invalid legacy AppImage identity', async () => {
     await writeMarker('deb')
     process.env.APPIMAGE = 'relative/manta.AppImage'
-    process.env.APPDIR = 'relative/.mount_orca'
+    process.env.APPDIR = 'relative/.mount_manta'
     const module = await loadPackageType()
     expect(module.getLinuxPackageType()).toBe('deb')
     expect(module.getLinuxRootPackageType()).toBe('deb')

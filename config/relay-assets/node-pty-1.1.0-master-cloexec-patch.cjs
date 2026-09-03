@@ -31,7 +31,8 @@ const { dirname, join, resolve } = require('node:path')
 
 const EXPECTED_NODE_PTY_VERSION = '1.1.0'
 const ORIGINAL_SOURCE_SHA256 = '5e1005d6bdcfbe97b486ee415419fe7adae99035047f07340fbad36419e0bae6'
-const PATCHED_SOURCE_SHA256 = '97dea52199216c01b62070758f0f38621ae53adc16c221271dd35ae2d8ee3482'
+// Diverges from upstream's pin: the comment the block below inserts is branded Manta.
+const PATCHED_SOURCE_SHA256 = '279d7a276107fa7bf3fd23cfb4ec6c76c0b2a60583500a4e46bc6ae746775841'
 
 const STATUS_PREFIX = 'ORCA-NPTY-CLOEXEC:'
 const SKIP_MARKER_FILENAME = '.node-pty-cloexec-skip'
