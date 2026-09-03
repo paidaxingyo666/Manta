@@ -124,6 +124,7 @@ describe('registerPtyHandlers', () => {
       flushOrThrow: vi.fn(),
       persistPtyBinding: vi.fn(),
       upsertSshRemotePtyLease: vi.fn(),
+      supersedeSshRemotePtyLeasesForBoundPane: vi.fn(),
       removeSshRemotePtyLease: vi.fn(),
       markSshRemotePtyLease: vi.fn(),
       clearSshRemotePtyKillIntent: vi.fn()
@@ -482,6 +483,7 @@ describe('registerPtyHandlers', () => {
     } as never)
     const store = {
       upsertSshRemotePtyLease: vi.fn(),
+      supersedeSshRemotePtyLeasesForBoundPane: vi.fn(),
       persistPtyBinding: vi.fn(),
       removeSshRemotePtyLease: vi.fn(),
       markSshRemotePtyLease: vi.fn(),
