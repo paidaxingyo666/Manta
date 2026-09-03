@@ -101,8 +101,15 @@ export class MantaRuntimeWithResolveTerminalPane extends MantaRuntimeWithGetTerm
     // above). `!pty.connected` is the same inference: one dropped relay clears it for every PTY it
     // owned. So the pair can hold over a remote shell that is still running, and createTerminal
     // would rebind the pane away from it, leaving the original orphaned and its agent duplicated.
-    // The runtime already grades this: a host-confirmed exit leaves no verdict, while lost contact
-    // is recorded `unverifiable` (docs/reference/ssh-execution-boundary.md, shared/pty-liveness-verdict.ts).
+    // The runtime grades that: `live` is the host proving the shell survived, `unverifiable` is the
+    // client losing contact, and both refuse. What this gate must NOT require is a positive
+    // `exited`: the only answer that ever reaches it is a reachable relay reporting it has no such
+    // id, and that is a union — pty.attach throws not-found for an unknown id with no liveness
+    // check, and a relay restart makes every previously minted id unknown. No writer of
+    // `exited` co-occurs with a reattachable `expired` lease either, since a host-delivered exit
+    // frame tombstones the lease `terminated`. Demanding one would close this gate permanently, and
+    // an unrecoverable pane is its own failure (docs/reference/ssh-execution-boundary.md,
+    // shared/pty-liveness-verdict.ts).
     const liveness = this.getPtyLivenessVerdict(pty.ptyId)
     if (liveness?.status === 'unverifiable' || liveness?.status === 'live') {
       throw new Error('terminal_not_recoverable')

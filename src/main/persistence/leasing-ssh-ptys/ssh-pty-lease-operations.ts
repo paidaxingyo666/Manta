@@ -189,19 +189,38 @@ function updateSshRemotePtyLeaseStates(
     if (lease.targetId !== targetId || (ptyIds && !ptyIds.has(lease.ptyId))) {
       continue
     }
-    if (state === 'attached' && (lease.state === 'terminated' || lease.state === 'expired')) {
+    if (state === 'attached' && lease.state === 'terminated') {
+      continue
+    }
+    // `expired` says the CLIENT lost its route, never that the shell died - and a reattach that
+    // named this exact pty and succeeded is the one thing that can settle which it was. Without
+    // this edge a lease that proved itself alive stayed `expired` for good, which silently exempted
+    // a running remote shell from `ssh:reset`, from the SSH_TERMINATE_RECONNECT_REQUIRED fence in
+    // `ssh:terminateSessions`, and from the quit-time `detached` sweep, and left it unable to win
+    // supersession so its own successors never retired their predecessors.
+    // Only the id-qualified caller (`markSshRemotePtyLeasesAttachedAsync`, fed by the relay's
+    // `attachedLeaseIds`) carries that proof; a bulk mark over a whole target does not.
+    if (state === 'attached' && lease.state === 'expired' && !ptyIds) {
       continue
     }
     if (state === 'detached' && lease.state !== 'attached') {
       continue
     }
     if (lease.state !== state) {
+      const reclaimed = state === 'attached' && lease.state === 'expired'
       lease.state = state
       lease.updatedAt = now
       if (state === 'attached') {
         lease.lastAttachedAt = now
       } else if (state === 'detached') {
         lease.lastDetachedAt = now
+      }
+      if (reclaimed) {
+        // Route retirement belongs to the shell that lost the pane. This lease just proved it is
+        // that shell, so `attached` may never carry a supersession mark - the same invariant
+        // `upsertSshRemotePtyLease` enforces when an id is claimed live again.
+        delete lease.supersededBy
+        delete lease.relayIdRecycled
       }
       changed = true
     }

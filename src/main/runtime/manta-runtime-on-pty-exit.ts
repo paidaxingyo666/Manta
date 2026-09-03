@@ -202,7 +202,10 @@ export class MantaRuntimeWithOnPtyExit extends MantaRuntimeWithOnClientDisconnec
       pty.lastExitCode = exitCode
       pty.lastExitCause = exitCause
       if (exitCode >= 0 || options.hostExitConfirmed === true) {
-        this.forgetPtyLivenessVerdict(ptyId)
+        // Record the certificate rather than merely dropping the doubt: a reader that has to
+        // authorize a respawn cannot distinguish "the host reported this process gone" from "this
+        // runtime has never asked" if both are absence.
+        this.rememberPtyLivenessVerdict(ptyId, { status: 'exited' })
       }
       // Why: the exited process's live frames say nothing about a replacement.
       // A same-id respawn makes the leaf writable again before any new title,

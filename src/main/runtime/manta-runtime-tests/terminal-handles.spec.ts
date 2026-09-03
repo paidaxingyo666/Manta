@@ -624,11 +624,14 @@ describe('MantaRuntimeService', () => {
   })
 
   it('does not recreate a shell for an expired lease whose PTY liveness is unverifiable', async () => {
-    // The production sequence this guards: a relay reattach fails, so ssh-relay-session marks the
-    // lease 'expired' AND sends a synthetic pty:exit code -1. Neither observed the process — every
-    // writer of 'expired' documents it as "the client lost its route", and code -1 with no host
-    // confirmation is recorded 'unverifiable'. Spawning a replacement there rebinds the pane away
-    // from a remote shell still running on the host and duplicates its agent.
+    // The production sequence this guards: the relay delivers an exit frame carrying code -1 for an
+    // SSH pane with no host confirmation (`preservesAbnormalSshSurface`), while the pane's lease is
+    // already 'expired'. Neither observed the process — every writer of 'expired' documents it as
+    // "the client lost its route", and code -1 with no host confirmation is recorded
+    // 'unverifiable'. Spawning a replacement there rebinds the pane away from a remote shell still
+    // running on the host and duplicates its agent. This is the `unverifiable` arm only; the
+    // relay's own absence branch (`handlePtyReattachFailure`) reaches the runtime with no verdict
+    // at all, and is covered by the relay-disowned case in terminal-handles-part-02.spec.ts.
     const tabId = 'tab-unverifiable'
     const ptyId = 'ssh:ssh-target@@pty-3'
     const runtime = createRuntimeWithSshLease(ptyId, tabId)

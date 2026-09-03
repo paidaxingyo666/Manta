@@ -9,9 +9,12 @@ import type {
 import { headlessBrowserTabsUnchanged } from './mobile-session-browser-equality'
 import { appendBrowserTabOrder } from './mobile-session-browser-group-projection'
 import { parseAppSshPtyId, toComparableRelaySshPtyId } from '../../shared/ssh-pty-id'
+import { toSshExecutionHostId } from '../../shared/execution-host'
+import { parsePaneKey } from '../../shared/stable-pane-id'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import type { RuntimeStore } from './runtime-store-contract'
 import { SSH_PANE_RECOVERY_GRACE_MS } from './manta-runtime-core'
+import { findTerminalTabIdForLeaf } from './workspace-session-terminal-membership-authority'
 
 export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends MantaRuntimeWithHydrateHeadlessMobileSessionTabsFromWorkspaceSession {
   // Why: keep an existing snapshot's browser tabs in sync with the live bridge
@@ -92,6 +95,38 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
     })
   }
 
+  /**
+   * The tab this leaf sits in NOW. Only the leaf half of a pane key is remint-stable: a lease
+   * freezes its tabId at write time and `detachTerminalPaneToTab` moves a live pane, so the stored
+   * tabId names the tab the pane LEFT. Matching a lease on it is wrong in both directions - it
+   * accepts the coordinates the pane abandoned (recovering a pane that already moved on, which
+   * binds one leaf in two tabs and orphans the PTY under the new one) and refuses the correct ones.
+   * Same resolution `restoreReattachedPtyRuntime` already does for its own reattach fence.
+   *
+   * Both workspace partitions are read because SSH spawns bind panes into `ssh:<target>` while
+   * reattach binds into `local`; consulting one would report "nowhere" for a pane the other holds.
+   */
+  protected findCurrentTerminalTabIdForLeaf(targetId: string, leafId: string): string | undefined {
+    for (const leaf of this.leaves.values()) {
+      if (leaf.leafId === leafId) {
+        return leaf.tabId
+      }
+    }
+    for (const pty of this.ptysById.values()) {
+      const parsed = parsePaneKey(pty.paneKey ?? '')
+      if (parsed?.leafId === leafId) {
+        return parsed.tabId
+      }
+    }
+    return (
+      findTerminalTabIdForLeaf(this.store?.getWorkspaceSession?.(), leafId) ??
+      findTerminalTabIdForLeaf(
+        this.store?.getWorkspaceSession?.(toSshExecutionHostId(targetId)),
+        leafId
+      )
+    )
+  }
+
   protected getRecentExpiredSshLease(
     worktreeId: string,
     tabId: string,
@@ -100,11 +135,17 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
   ): ReturnType<NonNullable<RuntimeStore['getSshRemotePtyLeases']>>[number] | null {
     const now = Date.now()
     return (
-      this.store?.getSshRemotePtyLeases?.().find(
-        (lease) =>
-          lease.state === 'expired' &&
-          lease.worktreeId === worktreeId &&
-          lease.tabId === tabId &&
+      this.store?.getSshRemotePtyLeases?.().find((lease) => {
+        if (lease.state !== 'expired' || lease.worktreeId !== worktreeId) {
+          return false
+        }
+        // Leaf is the pane's identity; the frozen tabId is only trustworthy while nothing else can
+        // say where the leaf actually lives.
+        const currentTabId = lease.leafId
+          ? this.findCurrentTerminalTabIdForLeaf(lease.targetId, lease.leafId)
+          : undefined
+        return (
+          (currentTabId ?? lease.tabId) === tabId &&
           // Leases store RELAY form (`toStoredPtyId` -> `toRelaySshPtyId`); the runtime hands us
           // the APP form (`ssh:<target>@@pty-3`). A raw `===` therefore never held for an SSH
           // pane, which is what kept this reader's only ptyId-qualified caller inert.
@@ -113,7 +154,8 @@ export class MantaRuntimeWithReconcileHeadlessMobileSessionBrowserTabs extends M
           (leafId === undefined || lease.leafId === undefined || lease.leafId === leafId) &&
           lease.updatedAt <= now &&
           now - lease.updatedAt <= SSH_PANE_RECOVERY_GRACE_MS
-      ) ?? null
+        )
+      }) ?? null
     )
   }
 

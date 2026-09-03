@@ -32,6 +32,7 @@ import type {
   PtyTransportRecoveryState
 } from './pty-transport-types'
 import { createPtyOutputProcessor } from './pty-transport'
+import { isSshSessionGoneError } from './pty-connection/pty-connect-limits'
 import { RuntimeRpcCallError, unwrapRuntimeRpcResult } from '../../runtime/runtime-rpc-client'
 import {
   getRemoteRuntimePtyEnvironmentId,
@@ -120,7 +121,6 @@ type RemoteAgentSessionLaunchResult =
   | RuntimeEnsureAgentSessionResult
   | RuntimeCreateAgentSessionResult
   | { terminal: RuntimeTerminalCreate; disposition?: undefined }
-const SSH_SESSION_EXPIRED_ERROR = 'SSH_SESSION_EXPIRED'
 
 function isRemoteTerminalStaleMessage(message: string): boolean {
   return message.includes('terminal_handle_stale')
@@ -1652,8 +1652,12 @@ export function createRemoteRuntimePtyTransport(
       retireRemoteTerminalId()
       return
     }
-    if (message.includes(SSH_SESSION_EXPIRED_ERROR)) {
-      // Why: only the HUB may replace its expired SSH pane; a paired viewer must never fall back to client-local SSH.
+    if (isSshSessionGoneError(message)) {
+      // Why: only the HUB may replace its expired SSH pane; a paired viewer must never fall back to
+      // client-local SSH. The identity-mismatch suffix is excluded because it means the opposite —
+      // the relay found a LIVE PTY under that id owned by another pane — and this is the one
+      // transport that actually calls terminal.recoverPane, so a bare substring test here spawned
+      // a second agent onto one transcript.
       recoverExpiredHostPane()
       return
     }

@@ -2900,6 +2900,12 @@ export class SshRelaySession {
     )
     clearProviderPtyState(appPtyId)
     deletePtyOwnership(appPtyId)
+    // Deliberately does NOT call runtime.onPtyExit: pty.attach answers not-found both when it
+    // verified the pid is dead and when its session map simply has no such id (no liveness check on
+    // that path at all) — which is every id after a relay restart, since ids carry a per-start
+    // `ptyIdMintEpoch`. This branch may release the id, but certifying a death from that union
+    // would orphan a live remote shell (docs/reference/ssh-execution-boundary.md). The renderer
+    // gets code -1, which every reader treats as unverified loss.
     this.store.markSshRemotePtyLease(this.targetId, ptyId, 'expired')
     const win = this.getMainWindow()
     if (win && !win.isDestroyed()) {
