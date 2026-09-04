@@ -26,8 +26,7 @@ import {
   type DetectedWorktreeSideEffectToken
 } from './detected-worktree-scan-cache'
 import { loggedWorktreeListFailures, warnOnce } from './worktree-listing-diagnostics'
-import { readAllWorktreeMetaForHost } from '../../../persistence/host-qualified-worktree-meta'
-import { getRepoExecutionHostId } from '../../../../shared/execution-host'
+import { readAllWorktreeMetaForRepo } from '../../../persistence/host-qualified-worktree-meta'
 
 export async function listDetectedWorktreesForCapturedRepo(
   store: Store,
@@ -40,9 +39,7 @@ export async function listDetectedWorktreesForCapturedRepo(
     providerAbort?.signal.aborted
       ? ({ providerAbortStatus: providerAbort.status() } as const)
       : undefined
-  const allMeta = isFolderRepo(repo)
-    ? undefined
-    : readAllWorktreeMetaForHost(store, getRepoExecutionHostId(repo))
+  const allMeta = isFolderRepo(repo) ? undefined : readAllWorktreeMetaForRepo(store, repo)
   // Why: only the disconnected fallbacks read this, so keep parseWorktreeId over the whole host snapshot
   // off the connected path entirely.
   let cachedSshWorktreeMetaIndex: SshWorktreeMetaIndex | undefined
