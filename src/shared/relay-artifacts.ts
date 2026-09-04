@@ -37,6 +37,12 @@ export type RelayArtifact = {
    * optional one would loop forever redeploying a relay that is already correct.
    */
   optional?: boolean
+  /**
+   * Forked by the relay daemon as a long-lived child of its own. These are relay
+   * infrastructure, never user work, and the reap gate subtracts them from a daemon's
+   * child census; see src/main/ssh/relay-daemon-service-children.ts.
+   */
+  daemonServiceChild?: boolean
 }
 
 /** The bare Windows process-table addon; see docs/reference/windows-process-enumeration.md. */
@@ -44,8 +50,8 @@ export const RELAY_WINDOWS_PROCESS_TREE_FILENAME = 'windows-process-tree.node'
 
 export const RELAY_ARTIFACTS: readonly RelayArtifact[] = [
   { filename: 'relay.js' },
-  { filename: 'relay-watcher.js' },
-  { filename: 'relay-ai-vault-service.js' },
+  { filename: 'relay-watcher.js', daemonServiceChild: true },
+  { filename: 'relay-ai-vault-service.js', daemonServiceChild: true },
   { filename: 'managed-hook-runtime.js' },
   // Forked by the AI Vault title reader; without it a relay answers every WSL
   // title request with no title and no error.
@@ -61,6 +67,14 @@ export const RELAY_ARTIFACTS: readonly RelayArtifact[] = [
   // but correct, so a relay built anywhere else is still shippable.
   { filename: RELAY_WINDOWS_PROCESS_TREE_FILENAME, windowsOnly: true, optional: true }
 ]
+
+/**
+ * The daemon's own service children, by entry filename. Anything else under a relay pid is
+ * either user work or unidentified, and both keep the relay unreapable.
+ */
+export const RELAY_DAEMON_SERVICE_ENTRY_FILENAMES: readonly string[] = RELAY_ARTIFACTS.filter(
+  (artifact) => artifact.daemonServiceChild
+).map((artifact) => artifact.filename)
 
 /** Written after the artifacts, so it is never an input to its own hash. */
 export const RELAY_VERSION_FILENAME = '.version'
