@@ -153,7 +153,7 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
 
   async inspectTerminalProcess(
     terminalSelector: string,
-    options?: { expectedIncarnationId?: string }
+    options?: { expectedIncarnationId?: string; scanChildProcesses?: boolean }
   ): Promise<PtyProcessInspection> {
     const leaf = this.resolveLiveLeafForHandle(terminalSelector)
     if (!leaf?.ptyId || !this.ptyController) {
