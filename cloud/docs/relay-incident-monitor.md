@@ -138,7 +138,9 @@ heartbeats, and matching live admission.
   `jsonPayload.event="manta_relay_postgres_transaction_retry"` in production
   logs: healthy-day bursts reach 234/5min with zero exhausted retries and 26%
   of five-minute windows over 20, while the 2026-08-23 lock-contention
-  incident ran roughly 2,200–3,000/5min.
+  incident ran roughly 2,200–3,000/5min by raw log-line count (the gate's
+  own `manta_relay_postgres_retries` metric read 1,510 for that window; see the
+  2026-09-04 entry).
 - Recalibrated the PostgreSQL-retry freeze from 300 to 2,000 per five minutes
   (2026-09-04). Basis: the global `relay_cells FOR UPDATE` lock made
   successful retries a steady-state rate. Measured fleet-wide (director +
