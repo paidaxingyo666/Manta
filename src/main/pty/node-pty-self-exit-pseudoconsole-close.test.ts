@@ -46,6 +46,35 @@ import { describe, expect, it } from 'vitest'
 
 const PATCH = readFileSync(join(__dirname, '../../../config/patches/node-pty@1.1.0.patch'), 'utf8')
 
+/**
+ * Just the `PtyKill` hunk. Several markers below also occur in the `PtyConnect`
+ * hunk above it, and a bare `indexOf` on the whole patch silently matched the
+ * wrong one — an assertion that then held regardless of what `PtyKill` did.
+ */
+const ptyKillHunk = (() => {
+  // Anchored on the hunk header's function context rather than its line
+  // numbers, which shift whenever anything above it in the patch changes.
+  const header = /^@@ .* @@ static Napi::Value PtyKill\(.*$/m.exec(PATCH)
+  if (!header) {
+    throw new Error('no PtyKill hunk in config/patches/node-pty@1.1.0.patch')
+  }
+  const from = header.index
+  const next = PATCH.indexOf('\n@@ ', from + 1)
+  return PATCH.slice(from, next === -1 ? undefined : next)
+})()
+
+/**
+ * `indexOf` that throws instead of returning -1. A missing marker must fail the
+ * assertion that depends on it, not quietly make a slice or comparison vacuous.
+ */
+function indexIn(haystack: string, marker: string): number {
+  const at = haystack.indexOf(marker)
+  if (at === -1) {
+    throw new Error(`marker not found in the PtyKill hunk: ${marker}`)
+  }
+  return at
+}
+
 describe('node-pty patch: pseudoconsole close on the self-exit path', () => {
   it('does not let the exit watcher free the baton while the close is still owed', () => {
     // Pinned as one block: the erase must stay INSIDE the consoleClosed guard.
@@ -73,10 +102,15 @@ describe('node-pty patch: pseudoconsole close on the self-exit path', () => {
     // LoadConptyDll throws when conpty.dll is missing. Throwing after
     // consoleClosed was set would strand the pseudoconsole for good: the retry
     // finds the work claimed and does nothing.
-    const dllResolve = PATCH.indexOf('+  HANDLE hLibrary = LoadConptyDll(info, useConptyDll);')
-    const claim = PATCH.indexOf('+      handle->consoleClosed = true;')
-    expect(dllResolve).toBeGreaterThan(-1)
-    expect(claim).toBeGreaterThan(-1)
+    //
+    // Anchored inside PtyKill, not by a bare indexOf: the identical line also
+    // appears in the PtyConnect hunk, earlier in the file, and matching that one
+    // made this assertion pass no matter where PtyKill resolved the DLL.
+    const dllResolve = indexIn(
+      ptyKillHunk,
+      '+  HANDLE hLibrary = LoadConptyDll(info, useConptyDll);'
+    )
+    const claim = indexIn(ptyKillHunk, '+      handle->consoleClosed = true;')
     expect(dllResolve).toBeLessThan(claim)
   })
 
@@ -84,11 +118,9 @@ describe('node-pty patch: pseudoconsole close on the self-exit path', () => {
     // Pinned as one block. The watcher nulls hShell on exit, and upstream
     // dereferenced it unconditionally; every remaining use — the duplication and
     // the failure fallback below it — must stay inside this guard.
-    const guarded = PATCH.slice(
-      PATCH.indexOf('+      if (useConptyDll && handle->hShell != nullptr) {'),
-      PATCH.indexOf('+      if (handle->shellExited) {')
-    )
-    expect(guarded).not.toBe('')
+    const start = indexIn(ptyKillHunk, '+      if (useConptyDll && handle->hShell != nullptr) {')
+    const end = indexIn(ptyKillHunk, '+      if (handle->shellExited) {')
+    const guarded = ptyKillHunk.slice(start, end)
     expect(guarded).toContain('DuplicateHandle(GetCurrentProcess(), handle->hShell')
     expect(guarded).toContain('TerminateProcess(handle->hShell, 1);')
     // No ADDED line outside that guard may terminate through hShell. Removed
@@ -97,6 +129,20 @@ describe('node-pty patch: pseudoconsole close on the self-exit path', () => {
       .split('\n')
       .filter((line) => line.startsWith('+') && line.includes('TerminateProcess(handle->hShell'))
     expect(strayAdds).toEqual([])
+  })
+
+  it('frees the baton from PtyKill when the shell has already exited', () => {
+    // The other half of the two-sided handshake. Without it a self-exit followed
+    // by kill() — the ordinary pane close — leaks one baton and one entry in the
+    // vector get_pty_baton scans linearly, forever.
+    expect(ptyKillHunk).toContain(
+      [
+        '+      if (handle->shellExited) {',
+        '+        const bool removed = remove_pty_baton(id);',
+        '+        assert(removed);',
+        '+        (void)removed;'
+      ].join('\n')
+    )
   })
 
   it('still kills the shell when DuplicateHandle fails', () => {
