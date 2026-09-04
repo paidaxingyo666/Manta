@@ -10,10 +10,14 @@ import { applyStructuredSessionTabSnapshots } from './snapshot-apply'
 export function restoreLocalStructuredSessionTabsOnce(
   expectedGeneration = localStructuredSessionGeneration()
 ): Promise<void> {
+  // Why concurrent: the capability refresh only seeds the module cache that later launch
+  // flows read; the inventory fetch never reads it, so chaining them only paid a second
+  // serial IPC round-trip on the startup gate.
   return latchLocalStructuredSessionRestore(() =>
-    refreshLocalRuntimeCapabilities()
-      .then(() => refreshLocalStructuredSessionTabs(expectedGeneration))
-      .then(() => undefined)
+    Promise.all([
+      refreshLocalRuntimeCapabilities(),
+      refreshLocalStructuredSessionTabs(expectedGeneration)
+    ]).then(() => undefined)
   )
 }
 
