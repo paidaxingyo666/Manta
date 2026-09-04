@@ -16957,8 +16957,8 @@
         "responding": "Agent is responding",
         "working": "Working…",
         "thinking": "Thinking",
-        "workingFor": "Working for {{value0}} seconds",
-        "workedFor": "Worked for {{value0}} seconds",
+        "workingFor": "Working for {{value0}}",
+        "workedFor": "Worked for {{value0}}",
         "toggleDetails": "Toggle turn details"
       },
       "jumpToLatest": "Jump to latest",
