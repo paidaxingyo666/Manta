@@ -10,6 +10,7 @@ import {
   hangDetectionMarkerPath
 } from '../hang-watchdog/hang-detection-marker'
 import { browserCertificateTrustController } from '../browser/browser-manager'
+import { setMantaCloudEndpointOverrideSource } from '../manta-profiles/profile-cloud-auth-config'
 import { ensureActiveMantaProfile } from '../manta-profiles/profile-index-store'
 import { Store, getCanonicalUserDataPath } from '../persistence'
 import { initializeBrowserClientHostId } from '../browser/browser-client-host-id'
@@ -177,6 +178,12 @@ export async function initializeReadyFoundation(): Promise<void> {
     }
   }
   wslHookRelayManager.setManagedHookSettingsResolver(() => state.store?.getSettings() ?? null)
+  // Why: lets packaged builds point sign-in/relay at a self-hosted server without
+  // shell env vars (macOS GUI launches never inherit them). Without this the
+  // override reader stays at its null default, getMantaCloudAuthConfig() reports
+  // "not configured", and main-process-runtime-launch skips the relay service
+  // entirely — the phone then finds no host and retries forever.
+  setMantaCloudEndpointOverrideSource(() => state.store?.getSettings().mantaCloudEndpoints ?? null)
   logStartupMilestone('store-loaded')
   // Why: apply initial fallback WSL distro from store settings for global git/CLI calls.
   setDefaultWslDistroOverride(store.getSettings().terminalWindowsWslDistro ?? null)
