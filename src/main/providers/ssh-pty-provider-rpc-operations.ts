@@ -50,6 +50,10 @@ export function createSshPtyProviderRpcOperations({ mux, toRelayPtyId }: SshPtyP
       const result = await mux.request('pty.getForegroundProcess', { id: toRelayPtyId(id) })
       return result as string | null
     },
+    // Do NOT in-flight coalesce this the way the sibling git reads are: the host mints one
+    // `observationEpoch` per request and the pane foreground reader commits it per read, so a
+    // shared reply reads as a stale replay and degrades a `live` identity read to `unverifiable`.
+    // Guarded by ssh-pty-inspect-observation-identity.test.ts; #17525 removes the poll.
     inspectProcess: async (
       id: string,
       options?: { expectedIncarnationId?: string }
