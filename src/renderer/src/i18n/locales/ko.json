@@ -10289,6 +10289,28 @@
           "updateServer": "소스 기본값을 구성하려면 이 서버를 업데이트하세요.",
           "updateServerDefaults": "표시 기본값을 구성하려면 이 서버를 업데이트하세요."
         },
+        "mantaAccount": {
+          "connected": "연결됨",
+          "reconnectRequired": "세션이 만료되었습니다. 클라우드 기능을 사용하려면 다시 로그인하세요.",
+          "unavailable": "이 빌드에서는 Manta 로그인을 사용할 수 없습니다.",
+          "signedOut": "로그인하여 아티팩트 및 Manta Relay를 비롯한 클라우드 기능으로 Manta를 확장하세요.",
+          "checking": "계정 상태 확인 중…",
+          "account": "Manta 계정",
+          "signOut": "로그아웃",
+          "signingIn": "로그인 중…",
+          "signInAgain": "다시 로그인",
+          "signIn": "Manta 로그인",
+          "title": "Manta 계정",
+          "description": "작업을 즉시 공유하고 어디서나 Manta Mobile로 데스크톱에 연결하세요.",
+          "searchDescription": "아티팩트 및 Manta Relay에서 사용하는 계정에 로그인하거나 로그아웃합니다.",
+          "benefitsTitle": "계정에 포함된 기능",
+          "artifactsTitle": "아티팩트 공유",
+          "artifactsDescription": "HTML 및 Markdown 파일을 게시하고 Manta에서 모든 공유 링크를 관리합니다.",
+          "relayTitle": "Manta Relay",
+          "relayDescription": "셀룰러 또는 모든 Wi-Fi 네트워크를 통해 Manta Mobile을 이 데스크톱에 연결합니다.",
+          "skillsTitle": "스킬 공유",
+          "skillsDescription": "단일 스킬 또는 전체 세트를 비공개 링크로 공유하고 사용하는 모든 기기에 설치하세요."
+        },
         "automations": {
           "title": "자동화",
           "description": "에이전트 작업을 예약하고 사이드바에 자동화 표시 여부를 선택합니다.",
