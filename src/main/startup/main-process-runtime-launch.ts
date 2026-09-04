@@ -1,7 +1,5 @@
-import { app, powerMonitor, type BrowserWindow } from 'electron'
+import { app, type BrowserWindow } from 'electron'
 import { is } from '@electron-toolkit/utils'
-import { getMantaCloudAuthConfig } from '../manta-profiles/profile-cloud-auth-config'
-import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import {
   getCanonicalUserDataPath,
   migrateMobilePairingDataToCanonicalUserDataPath
@@ -13,7 +11,6 @@ import { LocalPtyProvider } from '../providers/local-pty-provider'
 import { HEADLESS_RUNTIME_WINDOW_ID } from '../../shared/runtime-types'
 import { OffscreenBrowserBackend } from '../browser/offscreen-browser-backend'
 import { browserManager } from '../browser/browser-manager'
-import { DesktopRelayService } from '../runtime/relay/desktop-relay-service'
 import { getServeOptions, getBundledWebClientRoot, printServeReady } from './main-process-serve'
 import {
   bindTerminalRuntimeStartupServices,
@@ -34,6 +31,7 @@ import { CliInstaller } from '../cli/cli-installer'
 import { installLinuxBareMantaDispatcher } from '../cli/linux-bare-manta-dispatcher'
 import { scheduleAllPendingHistoryTreeRemovals } from '../terminal-history-deletion'
 import { triggerStartupNotificationRegistration } from '../ipc/startup-notification-registration'
+import { startDesktopRelay } from './desktop-relay-startup'
 import { mainProcessState as state } from './main-process-state'
 import { logStartupMilestone } from './startup-diagnostics'
 
@@ -228,38 +226,7 @@ async function launchDesktopMode(
   if (!runtimeRpcStartResult.ok) {
     void showRuntimeRpcStartupFailureDialog(win, runtimeRpcStartResult.error)
   }
-  const cloudAuth = getMantaCloudAuthConfig()
-  if (cloudAuth.configured) {
-    try {
-      const relayService = new DesktopRelayService({
-        authConfig: cloudAuth.config,
-        userDataPath: getProfileUserDataPath(),
-        appVersion: app.getVersion(),
-        runtimeRpc,
-        onStatus: (status) => {
-          state.desktopRelayStatus = status
-          state.mainWindow?.webContents.send('mobile:relayStatusChanged', status)
-        }
-      })
-      state.desktopRelayService = relayService
-      runtimeRpc.setMobileRelayPairingProvider({
-        createPairingRelay: (relayDeviceId) => relayService.createPairingRelay(relayDeviceId),
-        onDeviceRevokeQueued: (item) => relayService.onDeviceRevokeQueued(item),
-        onDemandStateChanged: () => relayService.demandStateChanged(),
-        getEndpoints: (context, params) => relayService.getEndpoints(context, params),
-        provisionRelay: (context, params) => relayService.provisionRelay(context, params)
-      })
-      relayService.start()
-      // Why: sleeping past relay-token expiry kills the broker with no retry
-      // timer; resume is the moment that state becomes recoverable.
-      powerMonitor.on('resume', () => state.desktopRelayService?.ensureLive())
-    } catch (error) {
-      console.warn(
-        '[relay] Desktop relay startup unavailable:',
-        error instanceof Error ? error.message : String(error)
-      )
-    }
-  }
+  startDesktopRelay(runtimeRpc)
   // Why: macOS notification permission dialog must fire after the window is shown, else it's hidden behind the maximized window.
   win.once('show', () => {
     // Why: store can be null if init failed earlier; bail rather than throw inside an Electron event listener.
