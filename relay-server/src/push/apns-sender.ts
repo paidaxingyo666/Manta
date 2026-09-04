@@ -57,7 +57,26 @@ export class ApnsSender {
       this.token.invalidate()
       return this.attempt(request)
     }
+    // status 0 is the transport failing before APNs answered at all, and between
+    // two pushes hours apart that is almost always the cached session: Apple
+    // closes an idle connection without telling the relay, so the next send
+    // writes into a dead socket and reads ECONNRESET. `closed` and `destroyed`
+    // are both still false at that point, so connectSession() hands the corpse
+    // back and the notification is lost. Drop it and try once on a fresh one.
+    //
+    // Every push this relay attempted failed this way for three days. The result
+    // even said `retryable: true` — produced here, read by nobody.
+    if (!first.ok && first.status === 0) {
+      this.discardSession()
+      return this.attempt(request)
+    }
     return first
+  }
+
+  /** Forget the cached session so the next attempt dials a new one. */
+  private discardSession(): void {
+    this.session?.destroy()
+    this.session = null
   }
 
   close(): void {
