@@ -29,6 +29,11 @@ services:
       # allowed to speak for a client. Without this every phone shares one
       # rate-limit bucket — the proxy's.
       MANTA_RELAY_TRUSTED_PROXIES: "private"
+      # Guards /metrics, which is not served at all without it. Worth setting:
+      # a push that succeeds logs nothing, so the counters are the only way to
+      # tell "no notifications were due" from "every one of them failed". Caddy
+      # 404s the path from outside, so this is reachable only on the host.
+      MANTA_RELAY_METRICS_TOKEN: "${MANTA_RELAY_METRICS_TOKEN:-}"
       # Push is opt-in. Set all four in .env to enable it, or none to leave it
       # off — the relay refuses to start on a partial set rather than running
       # quietly without push. The key is a PATH, never its contents: an env
