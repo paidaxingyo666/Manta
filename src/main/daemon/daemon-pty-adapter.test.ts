@@ -344,35 +344,32 @@ describe('DaemonPtyAdapter (IPtyProvider)', () => {
       }
     })
 
-    itOnPosix('keeps plain Codex startup on the short daemon shell-ready timeout', async () => {
-      await adapter.spawn({
-        cols: 80,
-        rows: 24,
-        command: 'codex',
-        env: { SHELL: '/bin/zsh' }
-      })
-
+    itOnPosix('preserves the existing fast-start timing for fish', async () => {
+      await adapter.spawn({ cols: 80, rows: 24, command: 'codex', env: { SHELL: '/usr/bin/fish' } })
       await waitFor(() => vi.mocked(lastSubprocess.write).mock.calls.length > 0)
-      expect(lastSubprocess.write).toHaveBeenCalledWith('codex\n')
+      expect(lastSubprocess.write).toHaveBeenCalledExactlyOnceWith('codex\n')
+      expect(lastSpawnOpts).not.toEqual(
+        expect.objectContaining({ startupCommandDelivery: 'shell-ready' })
+      )
     })
 
-    itOnPosix('waits for shell-ready for delivery-hinted Codex startup', async () => {
-      await adapter.spawn({
-        cols: 80,
-        rows: 24,
-        command: "codex 'linked issue context'",
-        startupCommandDelivery: 'shell-ready',
-        env: { SHELL: '/bin/zsh' }
-      })
+    itOnPosix.each([
+      { command: 'codex' },
+      { command: 'codex', startupCommandDelivery: 'fast' as const },
+      { command: "codex 'linked issue context'", startupCommandDelivery: 'shell-ready' as const }
+    ])('waits past 300ms and submits once after readiness: %j', async (startup) => {
+      await adapter.spawn({ cols: 80, rows: 24, ...startup, env: { SHELL: '/bin/zsh' } })
 
       await new Promise((resolve) => setTimeout(resolve, 350))
       expect(lastSubprocess.write).not.toHaveBeenCalled()
-
+      expect(lastSpawnOpts).toEqual(
+        expect.objectContaining({ startupCommandDelivery: 'shell-ready' })
+      )
       lastSubprocess._simulateData('\x1b]777;manta-shell-ready\x07')
       lastSubprocess._simulateData('\r\nuser@host $ ')
 
       await waitFor(() => vi.mocked(lastSubprocess.write).mock.calls.length > 0)
-      expect(lastSubprocess.write).toHaveBeenCalledWith("codex 'linked issue context'\n")
+      expect(lastSubprocess.write).toHaveBeenCalledExactlyOnceWith(`${startup.command}\n`)
     })
   })
 

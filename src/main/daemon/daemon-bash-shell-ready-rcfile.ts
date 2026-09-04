@@ -2,7 +2,6 @@ import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
 import { getPosixCodexShellLaunchPreflight } from '../pty/codex-shell-launch-preflight'
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
 import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
-import { SHELL_READY_MARKER } from './daemon-shell-ready-marker'
 
 export function getDaemonBashShellReadyRcfileContent(): string {
   return `# Manta daemon bash shell-ready wrapper
@@ -56,10 +55,6 @@ __manta_osc133_precmd() {
     unset __manta_in_command
   fi
   printf "\\033]133;A\\007"
-  # Why: emit the shell-ready marker here (not a trailing PROMPT_COMMAND entry)
-  # so a framework that must be last in PROMPT_COMMAND — bash-preexec — is not
-  # displaced by one of Manta's own hooks.
-  [[ -n "$__manta_ready_marker" ]] && printf "${SHELL_READY_MARKER}"
   return "$exit_code"
 }
 __manta_osc133_preexec() {
@@ -117,6 +112,11 @@ __manta_osc133_epilogue() {
   unset __manta_in_prompt_command
   __manta_adopt_outer_debug_trap
   trap '__manta_osc133_preexec' DEBUG
+  # Readline renders PS1 after entering raw mode; prompt hooks still run in cooked mode.
+  if [[ -n "$__manta_ready_marker" ]]; then
+    PS1="\${PS1-}"'\\[\\e]777;manta-shell-ready\\a\\]'
+    __manta_ready_marker=""
+  fi
 }
 ${BASH_PROMPT_COMMAND_COMPOSITION_BLOCK}
 __manta_prepend_prompt_command "__manta_osc133_precmd"

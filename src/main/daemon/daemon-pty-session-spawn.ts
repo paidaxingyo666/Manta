@@ -1,5 +1,6 @@
 import { recognizeAgentProcessFromCommandLine } from '../../shared/agent-process-recognition'
 import { shouldUseShellReadyStartupDelivery } from '../../shared/codex-startup-delivery'
+import { CODEX_SHELL_READY_TIMEOUT_MS } from './session-shell-ready-barrier'
 import type {
   HistoryRecoveryContext,
   PendingDaemonSpawnOperation
@@ -11,8 +12,11 @@ import { DaemonPtySpawnResult } from './daemon-pty-spawn-result'
 import type { DaemonPtySpawnContext } from './daemon-pty-spawn-request'
 import type { ColdRestoreInfo } from './history-reader'
 import { mintPtySessionId } from './pty-session-id'
-import { CODEX_SHELL_READY_TIMEOUT_MS } from './session-shell-ready-barrier'
-import { supportsPtyStartupBarrier } from './shell-ready'
+import {
+  supportsPtyStartupBarrier,
+  shellReadyMarkerComesFromLineEditor,
+  resolvePtyShellPath
+} from './shell-ready'
 import { getRecoveredHistorySeedSegments } from './terminal-history-seed-segments'
 import { AGENT_SESSION_CLAIM_DAEMON_PROTOCOL_VERSION, type CreateOrAttachResult } from './types'
 import { normalizeWslColdRestoreCwd } from './wsl-cold-restore-cwd'
@@ -213,21 +217,23 @@ export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
     let effectiveRows = restoreInfo?.rows ?? opts.rows
 
     const shellReadySupported = opts.command ? supportsPtyStartupBarrier(opts.env ?? {}) : false
-    const isCodexStartupCommand =
-      recognizeAgentProcessFromCommandLine(opts.command)?.agent === 'codex'
-    const shouldWaitForShellReady =
-      isCodexStartupCommand &&
-      shouldUseShellReadyStartupDelivery({
+    const immediateMarker =
+      process.platform !== 'win32' &&
+      shellReadyMarkerComesFromLineEditor(opts.shellOverride || resolvePtyShellPath(opts.env ?? {}))
+    const shellReadyTimeoutMs =
+      shellReadySupported &&
+      !immediateMarker &&
+      recognizeAgentProcessFromCommandLine(opts.command)?.agent === 'codex' &&
+      !shouldUseShellReadyStartupDelivery({
         command: opts.command,
         startupCommandDelivery: opts.startupCommandDelivery
       })
-    const shellReadyTimeoutMs =
-      shellReadySupported && isCodexStartupCommand && !shouldWaitForShellReady
         ? CODEX_SHELL_READY_TIMEOUT_MS
         : undefined
-
     const context: DaemonPtySpawnContext = {
-      opts,
+      // Older daemons also need the existing hint to enable their ready marker.
+      opts:
+        opts.command && immediateMarker ? { ...opts, startupCommandDelivery: 'shell-ready' } : opts,
       operation,
       historyRecovery,
       requestedSessionId,
