@@ -7,9 +7,9 @@
 cask "manta@rc" do
   arch arm: "arm64", intel: "x64"
 
-  version "1.4.196-rc.2"
-  sha256 arm:   "a50db498e1c761c6b7fc839c8a5a996360e58873225f6c1ea5c9856c625670a3",
-         intel: "2348b357c5fa29ad32f906bcd4befa37eaced46d818c62dadd6f2f2ce6540f34"
+  version "1.4.196-rc.3"
+  sha256 arm:   "1e15ade18dfa6a5ce6cece0f7fa7c3fc33ee252d750cdb392ac13a52c8212e71",
+         intel: "346ca069e5760df30540a08267e1380edbefc30c8e2b6ebfaa7fe3c7cf03dcb4"
 
   url "https://github.com/paidaxingyo666/Manta/releases/download/v#{version}/manta-macos-#{arch}.dmg",
       verified: "github.com/paidaxingyo666/Manta/"
