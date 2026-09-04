@@ -14998,5 +14998,12 @@
       "action": "试用智能体",
       "hiddenToast": "智能体标签页已隐藏。可在设置 → 实验性功能中重新启用。"
     }
+  },
+  "main": {
+    "push": {
+      "activityTitle": "Manta",
+      "activityBodyOne": "桌面端有新动态",
+      "activityBodyMany": "{{count}} 条新通知"
+    }
   }
 }
