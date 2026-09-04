@@ -78,6 +78,15 @@ type InstalledRuntime = {
 
 let installing: Promise<InstalledRuntime> | null = null
 
+/**
+ * Runtimes whose teardown did not finish. `installing` is cleared regardless so
+ * nothing new attaches, but dropping the runtime as well would strand every
+ * journal the host retained for a retry: `tearDownStructuredAgentSessionHost`
+ * deliberately keeps a failed close indexed, and only a later stop through this
+ * same runtime can reach those entries again.
+ */
+const pendingTeardown = new Set<InstalledRuntime>()
+
 export function ensureStructuredAgentSessionHost(
   deps: StructuredAgentSessionRuntimeDeps
 ): Promise<StructuredAgentSessionHost> {
@@ -90,19 +99,40 @@ export function ensureStructuredAgentSessionHost(
 }
 
 /** Drops the host and reaps every Codex child under it. Runtime teardown and
- *  test isolation take the same path, so neither can leave a live app-server. */
+ *  test isolation take the same path, so neither can leave a live app-server.
+ *
+ *  A teardown that fails is RETRIED by the next stop rather than forgotten: the
+ *  host keeps every journal whose close rejected, and this is the only handle
+ *  onto that host once the module slot is cleared. */
 export async function stopStructuredAgentSessionRuntime(): Promise<void> {
   const pending = installing
   installing = null
   setStructuredAgentSessionHost(null)
   agentSessionPtyWriteGate.detachRecordLookup()
-  if (!pending) {
-    return
+  const outstanding = [...pendingTeardown]
+  pendingTeardown.clear()
+  const installed = pending ? await pending.catch(() => null) : null
+  if (installed) {
+    outstanding.push(installed)
   }
-  const installed = await pending.catch(() => null)
-  if (!installed) {
-    return
+  const failures: unknown[] = []
+  for (const runtime of outstanding) {
+    try {
+      await tearDownRuntime(runtime)
+    } catch (error) {
+      pendingTeardown.add(runtime)
+      failures.push(error)
+    }
   }
+  if (failures.length === 1) {
+    throw failures[0]
+  }
+  if (failures.length > 1) {
+    throw new AggregateError(failures, 'structured agent-session runtime teardown failed')
+  }
+}
+
+async function tearDownRuntime(installed: InstalledRuntime): Promise<void> {
   // Drain an in-flight recovery before stopping children; recovery may still
   // be writing lifecycle rows or acquiring a replacement child.
   await installed.waitForRecovery()
