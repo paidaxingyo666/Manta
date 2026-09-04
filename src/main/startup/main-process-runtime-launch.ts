@@ -120,6 +120,9 @@ async function launchServeMode(
   runtimeRpc: MantaRuntimeRpcServer,
   serveOptions: NonNullable<ReturnType<typeof getServeOptions>>
 ): Promise<void> {
+  // Why here: headless serve has no window to unblock, so keep the persisted proxy strictly
+  // ahead of every fetcher this phase can reach (relay, CLI install, RPC clients).
+  await state.initialProxyApplicationReady
   // Why: give managed WSL launchers a brief chance to migrate before headless PTYs go live, without slow repairs withholding all RPC readiness.
   logStartupMilestone('wsl-cli-barrier-start')
   await state.managedWslCliStartupBarrierReady
@@ -226,8 +229,17 @@ async function launchDesktopMode(
       )
   ])
   if (!runtimeRpcStartResult.ok) {
-    void showRuntimeRpcStartupFailureDialog(win, runtimeRpcStartResult.error)
+    // Why gated: this dialog is the only launch-phase text read through translateMain, and i18n
+    // now settles alongside this phase — without the wait a non-English user could get the
+    // English defaultValue fallback. Still off the renderer's path (it is failure-only).
+    void state.mainProcessI18nReady.then(() =>
+      showRuntimeRpcStartupFailureDialog(win, runtimeRpcStartResult.error)
+    )
   }
+  // Why after the window and not before it: the default-session request guard already holds every
+  // fetcher until the persisted proxy lands, so this only has to keep the launch phase itself
+  // ordered ahead of the relay — it must not gate the renderer.
+  await state.initialProxyApplicationReady
   const cloudAuth = getMantaCloudAuthConfig()
   if (cloudAuth.configured) {
     try {

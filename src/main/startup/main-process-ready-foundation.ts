@@ -139,7 +139,22 @@ export async function initializeReadyFoundation(): Promise<void> {
   })
   state.store = store
   // Why: create pending readiness before the guard can observe the default session.
-  const initialProxyApplication = applyElectronProxySettings(store.getSettings())
+  // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell
+  // proxy env vars, so the persisted proxy must land before any app-owned network fetcher runs —
+  // but the guard below already holds every default-session request until this settles, so
+  // awaiting it inline only delayed window creation. Runtime launch awaits it before the first
+  // fetcher (the desktop relay / headless serve).
+  state.initialProxyApplicationReady = applyElectronProxySettings(store.getSettings()).then(
+    (result) => {
+      if (result.source === 'invalid-settings') {
+        // Why (STA-3442): a silent DIRECT fallback made a dead configured proxy undiagnosable.
+        console.warn('[proxy] persisted proxy settings are invalid; using direct networking')
+      }
+    },
+    () => {
+      console.warn('[proxy] Failed to apply network proxy settings')
+    }
+  )
   installElectronProxyRequestGuard(session.defaultSession)
   // Why armed here and not at install time: the report remembers what it last said, and
   // that state lives beside the profile data file, which does not exist until now.
@@ -234,16 +249,6 @@ export async function initializeReadyFoundation(): Promise<void> {
   applyAppIcon(store.getSettings().appIcon)
   if (shouldSuppressDevEducation({ isDev: is.dev })) {
     suppressDevEducationForStore(store)
-  }
-  try {
-    // Why: Dock/Launchpad launches don't inherit shell proxy env vars, so apply the persisted proxy before any app-owned network fetchers run.
-    const proxyApplyResult = await initialProxyApplication
-    if (proxyApplyResult.source === 'invalid-settings') {
-      // Why (STA-3442): a silent DIRECT fallback made a dead configured proxy undiagnosable.
-      console.warn('[proxy] persisted proxy settings are invalid; using direct networking')
-    }
-  } catch {
-    console.warn('[proxy] Failed to apply network proxy settings')
   }
   // Why: the partition installer reads the proxy through this resolver, so register it before sessions materialize.
   setBrowserNetworkProxySettingsResolver(() => state.store!.getSettings())
