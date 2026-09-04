@@ -380,7 +380,7 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
 
       # Why: the check rebuilds every package in the manifest from a pinned upstream
-      # commit — @xterm/xterm and the two addons, each built twice (once unmodified to
+      # commit — @xterm/xterm and its three addons, each built twice (once unmodified to
       # prove the toolchain still reproduces the published bundles, once patched). Caching
       # the npm metadata and the shallow clone keeps the repeated cost to the builds
       # themselves; the key is the manifest, so a commit, package or toolchain bump
