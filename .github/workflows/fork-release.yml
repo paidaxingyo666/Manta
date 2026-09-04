@@ -554,26 +554,35 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          DEPLOY_KEY: ${{ secrets.RELEASE_TAGGER_KEY }}
         run: |
           set -euo pipefail
           version="${RELEASE_TAG#v}"
           if [ "$PRERELEASE" = 'true' ]; then cask='manta@rc'; else cask='manta'; fi
 
-          mkdir -p dmgs
-          for arch in arm64 x64; do
-            gh release download "$RELEASE_TAG" \
-              --pattern "manta-macos-${arch}.dmg" --dir dmgs --clobber
+          # Why the API digest and not sha256sum: the release API already carries
+          # each asset's sha256, so downloading 400MB of disk images to compute
+          # what the server has already computed buys nothing but minutes.
+          digest() {
+            gh api "repos/${GH_REPO}/releases/tags/${RELEASE_TAG}" \
+              --jq ".assets[] | select(.name == \"manta-macos-$1.dmg\") | .digest" \
+              | sed 's/^sha256://'
+          }
+          arm=$(digest arm64)
+          intel=$(digest x64)
+          for value in "$arm" "$intel"; do
+            if ! [[ "$value" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::release asset digest missing or malformed: '$value'"
+              exit 1
+            fi
           done
-          arm=$(sha256sum "dmgs/manta-macos-arm64.dmg" | awk '{print $1}')
-          intel=$(sha256sum "dmgs/manta-macos-x64.dmg" | awk '{print $1}')
 
-          # Why the API and not git: this job checked out a tag, so main is not
-          # a local branch and the clone is shallow — fetch/checkout/push here
-          # is three ways to fail. The contents API needs neither.
+          # Read through the API: this job checked out a tag, so main is not a
+          # local branch here and the clone is shallow.
           path="Casks/${cask}.rb"
           gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
-            | base64 -d > current.rb
-          sha=$(gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.sha')
+            | base64 -d > original.rb
+          cp original.rb current.rb
 
           CASK=current.rb VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
           import os, pathlib, re
@@ -587,13 +596,37 @@ jobs:
           p.write_text(src)
           PY
 
-          if gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
-            | base64 -d | diff -q - current.rb >/dev/null; then
+          if diff -q original.rb current.rb >/dev/null; then
             echo "cask already at ${version}"
             exit 0
           fi
-          gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
-            -f message="chore(cask): ${cask} ${version}" \
-            -f branch=main \
-            -f sha="$sha" \
-            -f content="$(base64 -w0 < current.rb)"
+          # Why SSH with the deploy key and not the contents API: main requires
+          # `verify` and `Mobile Checks`, and a direct write has no pull request
+          # for them to run on, so the API answered 409 "2 of 2 required status
+          # checks are expected". main's ruleset names deploy keys as a bypass
+          # actor for exactly this — release bookkeeping that has no PR to attach
+          # checks to. GITHUB_TOKEN is not one, so it cannot be used here.
+          if [ -z "${DEPLOY_KEY:-}" ]; then
+            echo "::warning::${RELEASE_TAG} is published, but RELEASE_TAGGER_KEY is not set, so" \
+              "the cask was not updated. Land Casks/${cask}.rb (version ${version}," \
+              "arm ${arm}, intel ${intel}) by hand, or see" \
+              "docs/reference/fork-release-automation.md."
+            exit 0
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/release_key
+          chmod 600 ~/.ssh/release_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND='ssh -i ~/.ssh/release_key -o IdentitiesOnly=yes'
+
+          # A blobless, sparse, depth-1 clone: this job checked out a tag, so main
+          # is not a branch here, and the tap file is the only thing being changed.
+          git clone --quiet --depth=1 --filter=blob:none --sparse \
+            --branch main "git@github.com:${GH_REPO}.git" tap
+          git -C tap sparse-checkout set Casks
+          cp current.rb "tap/${path}"
+          git -C tap -c user.name='manta-release' \
+            -c user.email='manta-release@users.noreply.github.com' \
+            commit --quiet -m "chore(cask): ${cask} ${version}" -- "${path}"
+          git -C tap push --quiet origin main
+          echo "::notice::cask ${cask} updated to ${version}"
