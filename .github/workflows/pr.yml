@@ -816,6 +816,7 @@ jobs:
           src/main/cli/wsl-cli-powershell-boundary.test.ts
           src/main/cursor/hook-service.test.ts
           src/main/manta-profiles/profile-index-store.test.ts
+          src/main/startup/windows-install-dir-acl-repair.win32.test.ts
           src/main/runtime/repo-worktree-admin-fingerprint.test.ts
           src/main/runtime/worktree-scan-admin-fingerprint-gate.test.ts
           src/shared/secure-file-fsync-flags.test.ts
