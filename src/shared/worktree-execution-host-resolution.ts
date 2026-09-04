@@ -88,20 +88,37 @@ export function resolveWorktreeExecutionHost<T extends ExecutionHostOwnerRow>(
   }
 }
 
-/** Array-backed lookup for callers holding the whole repo list (main's store). */
+const EMPTY_ROWS: readonly never[] = []
+
+/**
+ * Array-backed lookup for callers holding the whole repo list (main's store). Grouped once at
+ * construction — a lookup is hit once per worktree key per target, so a per-call `filter` was an
+ * O(repos) rescan each time. Rows keep repo-list order, which `byId` depends on for `rows[0]`.
+ */
 export function createRepoRowExecutionHostLookup<T extends ExecutionHostOwnerRow>(
   repos: readonly T[]
 ): ExecutionHostOwnerLookup<T> {
-  const rowsFor = (repoId: string): T[] => repos.filter((repo) => repo.id === repoId)
+  const rowsById = new Map<string, T[]>()
+  for (const repo of repos) {
+    const rows = rowsById.get(repo.id)
+    if (rows) {
+      rows.push(repo)
+    } else {
+      rowsById.set(repo.id, [repo])
+    }
+  }
+  const rowsFor = (repoId: string): readonly T[] => rowsById.get(repoId) ?? EMPTY_ROWS
   return {
     byId: (repoId) => {
       const rows = rowsFor(repoId)
-      if (rows.length === 0) {
+      const owner = rows[0]
+      if (!owner) {
         return { kind: 'missing' }
       }
-      const hostIds = new Set(rows.map((repo) => getRepoExecutionHostId(repo)))
-      const owner = rows[0]
-      return hostIds.size > 1 || !owner ? { kind: 'ambiguous' } : { kind: 'resolved', owner }
+      const ownerHostId = getRepoExecutionHostId(owner)
+      return rows.some((repo) => getRepoExecutionHostId(repo) !== ownerHostId)
+        ? { kind: 'ambiguous' }
+        : { kind: 'resolved', owner }
     },
     byHost: (repoId, hostId) =>
       rowsFor(repoId).find((repo) => getRepoExecutionHostId(repo) === hostId) ?? null
