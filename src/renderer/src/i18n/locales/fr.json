@@ -2934,7 +2934,6 @@
             "a7e2fd2699": "signaler un problème",
             "5c8ce20be6": "Si le problème persiste, veuillez",
             "cc6d997c65": "Redémarrez le daemon de terminal depuis ici pour effacer un état de daemon obsolète.",
-            "7ee11bc0db": "Manta n'a pas pu confirmer si la session précédente de ce terminal tourne encore ; il a donc laissé la session intacte. Rouvrez ce volet pour réessayer.",
             "e16012e31e": "Le daemon de terminal propriétaire de cette session s'est arrêté ; la session et son historique de défilement n'ont pas pu être récupérés. Ouvrez un nouveau terminal pour continuer.",
             "sessionUnavailable": "Manta n'a pas pu se rattacher à la session de terminal de ce volet sur l'hôte. Ouvrez un nouveau terminal pour continuer."
           },
@@ -3228,7 +3227,6 @@
             "25dc1cd653": "Ouvrir le fichier",
             "7cdf8ee0c8": "Ouvrir une URL",
             "b27864279e": "Lancer un agent",
-            "0e5b7a3f16": "Rechercher parmi les onglets ouverts, fichiers, URL et agents…",
             "8f0a1c4d92": "Basculer vers l'onglet",
             "2c38630a01": "L'espace de travail n'existe plus",
             "4f0d9a71c2": "L'onglet n'existe plus",
@@ -3274,7 +3272,6 @@
                 "classifier": {
                   "42e6262ae9": "Aucune action disponible.",
                   "097a982ee0": "Chargement des fichiers...",
-                  "c41f8d20b7": "Rechercher parmi les onglets ouverts, fichiers, URL et agents…",
                   "90eb94dc48": "Saisissez une URL http:// ou https://.",
                   "5553b283ce": "Saisissez une URL ou un chemin de fichier.",
                   "queryTooLarge": "Le texte recherché est trop long.",
@@ -6998,12 +6995,6 @@
           "compareAgainstUpstreamDescription": "Choisissez la base que le contrôle de code source utilise par défaut pour comparer les changements commités. L'amont de la branche suit automatiquement la branche courante et revient à la branche par défaut du dépôt en l'absence d'amont. Vous pouvez toujours changer la base de comparaison d'un worktree depuis son panneau Git. Les cibles de pull request et de rebase ne changent pas.",
           "compareBaseRepositoryDefault": "Valeur par défaut du dépôt",
           "compareBaseBranchUpstream": "Amont de la branche"
-        },
-        "HiddenExperimentalGroup": {
-          "d0f914a528": "Bascule fictive",
-          "1014ddbfaf": "Sans effet aujourd'hui. Réservée comme premier emplacement pour les options expérimentales masquées.",
-          "232cf83de8": "Bascules non répertoriées pour les tests internes. Rien ici n'est pris en charge.",
-          "3e9e827ca5": "Expérimental masqué"
         },
         "InputPane": {
           "db15068196": "Activé par défaut sur Linux et macOS. Linux utilise le presse-papiers de sélection du système ; les autres plateformes utilisent un tampon privé.",
@@ -11832,10 +11823,6 @@
             "b3c8f1a902": "Filtrer les fichiers par nom",
             "d4f8c2a901": "Effacer et fermer le filtre",
             "e8a1c4b203": "vs",
-            "f9b2441bb6": "1 commit d'avance sur {{value0}}",
-            "b715ef615b": "{{value0}} commits d'avance sur {{value1}}",
-            "c1a8f3e204": "1 commit de retard sur {{value0}}",
-            "d2b9g4f315": "{{value0}} commits de retard sur {{value1}}",
             "4b4a7de138": "Ouvrir la page de revue dans le navigateur",
             "createPrIntentCommitBlockedSummary": "Commit bloqué : {{value0}} Corrigez le problème, puis réessayez Créer une PR.",
             "pushRecovery": {
@@ -11858,7 +11845,6 @@
             "a4e93c21d7": "Branche actuelle : {{value0}}",
             "c7d4e2f801": "Modifier la ref de base : {{value0}}",
             "f3a1b8c204": "upstream",
-            "createPrIntentEmptyGeneratedBody": "Les détails de revue générés n'incluent pas de description. Réessayez Créer une PR.",
             "createPrIntentGenerateDetailsFailed": "Impossible de générer les détails de revue. Réessayez Créer une PR."
           },
           "SourceControlAgentActionDialog": {
@@ -14038,8 +14024,6 @@
           "7e7ca60816": "fichiers modifiés",
           "b6c3b84476": "Afficher l'arborescence des fichiers",
           "39f8007549": "Examiner les conflits",
-          "39e73e7181": "ont été exclus de cette vue de diff.",
-          "689b99f8ad": "conflit non résolu",
           "820ec01f24": "Les fichiers en conflit sont examinés séparément",
           "fd8892b120": "Aucune modification à afficher",
           "eb5f40e49c": "Cette vue de diff exclut les conflits non résolus, car le pipeline de diff bidirectionnel habituel n'est pas conçu pour gérer les conflits.",
@@ -15793,7 +15777,6 @@
       },
       "LinuxPackageInstallRecoveryCard": {
         "e3de29c86a": "Afficher le paquet",
-        "3da99454c6": "Réessayer l'installation automatique",
         "55c86654b7": "Copier la commande d'installation",
         "53e1559f99": "Échec de l'installation automatique",
         "a7ac6ec78b": "Manta a téléchargé la mise à jour mais n'a pas pu installer le paquet système automatiquement.",
