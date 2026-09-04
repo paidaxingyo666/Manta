@@ -3,6 +3,7 @@ import {
   DEFAULT_LOCAL_MANTA_PROFILE_ID,
   createDefaultLocalMantaProfile
 } from '../../../../shared/manta-profiles'
+import { noopUnsubscribe } from './web-storage'
 
 export function createWebMantaProfilesApi(): Partial<PreloadApi> {
   const webMantaProfileAuthStatus = () =>
@@ -22,6 +23,7 @@ export function createWebMantaProfilesApi(): Partial<PreloadApi> {
           multiProfileUi: false
         }),
       authStatus: webMantaProfileAuthStatus,
+      onAuthStatusChanged: () => noopUnsubscribe,
       createLocal: () =>
         Promise.resolve({
           activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,
