@@ -38,6 +38,24 @@ const DESKTOP_HUNKS = {
         '                this._outSocket.readable = false;',
         ''
       ].join('\n')
+    ],
+    // The useConptyDll branch, which only the DESKTOP runs -- the relay takes the
+    // non-DLL branch above, where the dispose is already unconditional. Listed here
+    // so un-applying still yields published; the relay asset needs no counterpart.
+    [
+      [
+        '                // Manta: dispose unconditionally, as the non-DLL branch above does.',
+        "                // Waiting for another 'data' event leaks the conout worker on every",
+        '                // self-exiting shell, because no more data ever arrives (F24).',
+        '                this._conoutSocketWorker.dispose();',
+        ''
+      ].join('\n'),
+      [
+        "                this._outSocket.on('data', function () {",
+        '                    _this._conoutSocketWorker.dispose();',
+        '                });',
+        ''
+      ].join('\n')
     ]
   ],
   'windowsTerminal.js': [
