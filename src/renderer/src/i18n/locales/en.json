@@ -6231,6 +6231,11 @@
           "projectOnly": "Added in this project only.",
           "useGlobalFor": "Use global for {{value0}}",
           "useGlobal": "Use global"
+        },
+        "RepoScanUnavailableIndicator": {
+          "title": "Worktree scan failed for {{value0}}",
+          "retry": "Retry scan",
+          "retained": "Existing worktrees are kept until a scan succeeds. Click to retry."
         }
       },
       "shared": {
