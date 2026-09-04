@@ -32,11 +32,20 @@ export const INCIDENT_MONITOR_THRESHOLDS = {
   relayPoolWaiting: 800,
   relayPoolWaitMs: 2_500,
   // Why: successful lock retries are the contention machinery working, not harm.
-  // Healthy 2026-08-26 baseline bursts to 234/5min (26% of windows crossed the old
-  // bar of 20, set unmeasured at the monitor's 2026-07-28 birth); the 2026-08-23
-  // incident ran ~2,200-3,000/5min. 300 clears healthy bursts with ~10x incident
-  // margin; relayPostgresRetryExhausted below bounds the terminally failed share.
-  relayPostgresRetries: 300,
+  // Recalibrated 2026-09-04 from 300, which was set 2026-08-26 when healthy bursts
+  // reached 234/5min. The global relay_cells FOR UPDATE lock has since become the
+  // fleet's steady state: measured fleet-wide (director + cells, summed per five
+  // minutes) 2026-09-03T05Z..2026-09-04T05Z p50 430 / p90 924 / p99 1320 / max
+  // 1504, with 55% of windows over 300 and only 22% of 15-minute gates clean, so
+  // the bar blocked the very cell roll that carries the 500 ms lock wait (#18521)
+  // and the beginProof crash guard to the cells. The 2026-08-23 lock incident on
+  // this same metric peaked at 1510 in one window and 646 in the next, so it is
+  // not separable from today's contention by retries alone; it is caught by
+  // relayPostgresRetryExhausted (467 at the peak vs a 300 bar), director
+  // concurrency, and the pool bars. 2000 passes every healthy 15-minute window
+  // measured in the last 24 h and still fences unbounded growth. Re-tighten once
+  // the fleet is on the 500 ms lock wait and the baseline is re-measured.
+  relayPostgresRetries: 2000,
   // Why: 300 per five minutes, recalibrated 2026-09-04 from a bar of zero that no
   // production window has cleared since #18521 shipped to the director. That
   // change cut the request-path cell-inventory wait from the 1 s pool lock_timeout
@@ -48,7 +57,7 @@ export const INCIDENT_MONITOR_THRESHOLDS = {
   // quiet hours p50 2 / max 36; pre-#18521 daytime p50 10 / p90 25 / max 87;
   // post-#18521 p50 42 / p90 147 / max 220. The 2026-08-23 lock incident peaked
   // at 467. 300 clears every measured healthy window and still sits below the
-  // incident shape; relayPostgresRetries above stays the ~10x discriminator.
+  // incident shape; retries above fence only unbounded growth.
   // User-facing /v1/assign 503 share did not move with #18521 (13.9% old image
   // vs 12.3% new, same evening), so exhaustion is not a proxy for user harm.
   relayPostgresRetryExhausted: 300,

@@ -111,14 +111,19 @@ describe('incident monitor evaluator', () => {
     })
   })
 
-  it('freezes when postgres retries exceed the recalibrated ceiling', () => {
-    const sample = healthySample()
-    sample.sources['relay-logs']!.signals['relay.postgres_retries'] =
-      signal(INCIDENT_MONITOR_THRESHOLDS.relayPostgresRetries + 1)
-    expect(evaluateIncidentSample(sample, startedAt)).toMatchObject({
+  // Why: the global relay_cells lock made retries a steady-state rate (24 h p99
+  // 1320/5min on 2026-09-04); the bar fences only unbounded growth beyond that.
+  it('tolerates the measured healthy retry rate and freezes above the bar', () => {
+    const healthy = healthySample()
+    healthy.sources['relay-logs']!.signals['relay.postgres_retries'] = signal(1504)
+    expect(evaluateIncidentSample(healthy, startedAt).status).toBe('green')
+
+    const incident = healthySample()
+    incident.sources['relay-logs']!.signals['relay.postgres_retries'] = signal(2001)
+    expect(evaluateIncidentSample(incident, startedAt)).toMatchObject({
       status: 'freeze',
       failures: [
-        expect.objectContaining({ signal: 'relay.postgres_retries', threshold: 300 })
+        expect.objectContaining({ signal: 'relay.postgres_retries', threshold: 2000 })
       ]
     })
   })
