@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -441,6 +441,43 @@ describe('configureElectronNetworkCompatibility', () => {
         env: { MANTA_DISABLE_HTTP2: '0' },
         userDataPath: createUserDataDir({ electronHttp1CompatibilityMode: true })
       })
+    ).toBe(false)
+  })
+
+  it('answers from the marker without reading the settings file', async () => {
+    const { shouldDisableHttp2ForElectronNetworking } = await import('./configure-process')
+    const { writeHttp1CompatibilityMarker } = await import('./http1-compatibility-marker')
+    const userDataPath = createUserDataDir({ electronHttp1CompatibilityMode: false })
+    writeHttp1CompatibilityMarker(userDataPath, true)
+    rmSync(join(userDataPath, 'manta-data.json'), { force: true })
+
+    expect(shouldDisableHttp2ForElectronNetworking({ env: {}, userDataPath })).toBe(true)
+  })
+
+  it('falls back to the settings file when no marker has been written yet', async () => {
+    const { shouldDisableHttp2ForElectronNetworking } = await import('./configure-process')
+    const userDataPath = createUserDataDir({ electronHttp1CompatibilityMode: true })
+
+    expect(existsSync(join(userDataPath, 'http1-compatibility.json'))).toBe(false)
+    expect(shouldDisableHttp2ForElectronNetworking({ env: {}, userDataPath })).toBe(true)
+  })
+
+  it('falls back to the settings file when the marker is corrupt', async () => {
+    const { shouldDisableHttp2ForElectronNetworking } = await import('./configure-process')
+    const userDataPath = createUserDataDir({ electronHttp1CompatibilityMode: true })
+    writeFileSync(join(userDataPath, 'http1-compatibility.json'), '{ not json', 'utf-8')
+
+    expect(shouldDisableHttp2ForElectronNetworking({ env: {}, userDataPath })).toBe(true)
+  })
+
+  it('lets the environment override the marker', async () => {
+    const { shouldDisableHttp2ForElectronNetworking } = await import('./configure-process')
+    const { writeHttp1CompatibilityMarker } = await import('./http1-compatibility-marker')
+    const userDataPath = createUserDataDir({})
+    writeHttp1CompatibilityMarker(userDataPath, true)
+
+    expect(
+      shouldDisableHttp2ForElectronNetworking({ env: { MANTA_DISABLE_HTTP2: '0' }, userDataPath })
     ).toBe(false)
   })
 
