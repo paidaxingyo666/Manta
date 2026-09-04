@@ -68,6 +68,13 @@ was the obvious alternative and it does not work: its macOS leg runs in the
 else, so a run started from main would build for forty minutes and then die at
 the environment gate having published nothing.
 
+It is also what updates the Homebrew cask. This repository *is* the tap, so
+`Casks/manta@rc.rb` has to land on main after every release, carrying the version
+and the two disk-image hashes — and a direct write has no pull request for the
+required checks to run on, so the contents API answers 409. main's ruleset names
+deploy keys as a bypass actor for exactly this: release bookkeeping that has no
+PR to attach checks to. Pull requests are unaffected; they still need both checks.
+
 Set it up once:
 
 ```sh
@@ -88,7 +95,12 @@ git push origin v1.4.196-rc.0
 ```
 
 Revoke by deleting the deploy key (`gh api -X DELETE repos/$REPO/keys/<id>`) and
-the secret; nothing else depends on it.
+the secret. Tags then stop being pushed and the cask stops being updated — both
+say so and leave the run green — and nothing else depends on it.
+
+main is protected by a ruleset rather than classic branch protection, because
+classic protection has no bypass actors at all. The rules are the same ones it
+carried: `verify` and `Mobile Checks` required, no deletion, no force-push.
 
 ## Release notes
 

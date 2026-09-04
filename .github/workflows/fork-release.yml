@@ -554,6 +554,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          DEPLOY_KEY: ${{ secrets.RELEASE_TAGGER_KEY }}
         run: |
           set -euo pipefail
           version="${RELEASE_TAG#v}"
@@ -576,13 +577,12 @@ jobs:
             fi
           done
 
-          # Why the API and not git: this job checked out a tag, so main is not
-          # a local branch and the clone is shallow — fetch/checkout/push here
-          # is three ways to fail. The contents API needs neither.
+          # Read through the API: this job checked out a tag, so main is not a
+          # local branch here and the clone is shallow.
           path="Casks/${cask}.rb"
           gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
-            | base64 -d > current.rb
-          sha=$(gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.sha')
+            | base64 -d > original.rb
+          cp original.rb current.rb
 
           CASK=current.rb VERSION="$version" ARM="$arm" INTEL="$intel" python3 - <<'PY'
           import os, pathlib, re
@@ -596,28 +596,37 @@ jobs:
           p.write_text(src)
           PY
 
-          if gh api "repos/${GH_REPO}/contents/${path}?ref=main" --jq '.content' \
-            | base64 -d | diff -q - current.rb >/dev/null; then
+          if diff -q original.rb current.rb >/dev/null; then
             echo "cask already at ${version}"
             exit 0
           fi
-          # Why this may fail and why that is not a failed release: main requires
+          # Why SSH with the deploy key and not the contents API: main requires
           # `verify` and `Mobile Checks`, and a direct write has no pull request
-          # for them to run on, so protection answers 409 "N of N required status
-          # checks are expected". The release itself is already published by the
-          # step above — turning the whole run red over a tap file that trails by
-          # one version would hide that. Say what is missing and how to finish it.
-          if ! gh api -X PUT "repos/${GH_REPO}/contents/${path}" \
-            -f message="chore(cask): ${cask} ${version}" \
-            -f branch=main \
-            -f sha="$sha" \
-            -f content="$(base64 -w0 < current.rb)" 2>cask-error.txt; then
-            cat cask-error.txt
-            if grep -q 'required status checks' cask-error.txt; then
-              echo "::warning::${RELEASE_TAG} is published, but branch protection refused the cask" \
-                "update. Land Casks/${cask}.rb (version ${version}, arm ${arm}, intel ${intel})" \
-                "through a pull request, or see docs/reference/fork-release-automation.md."
-              exit 0
-            fi
-            exit 1
+          # for them to run on, so the API answered 409 "2 of 2 required status
+          # checks are expected". main's ruleset names deploy keys as a bypass
+          # actor for exactly this — release bookkeeping that has no PR to attach
+          # checks to. GITHUB_TOKEN is not one, so it cannot be used here.
+          if [ -z "${DEPLOY_KEY:-}" ]; then
+            echo "::warning::${RELEASE_TAG} is published, but RELEASE_TAGGER_KEY is not set, so" \
+              "the cask was not updated. Land Casks/${cask}.rb (version ${version}," \
+              "arm ${arm}, intel ${intel}) by hand, or see" \
+              "docs/reference/fork-release-automation.md."
+            exit 0
           fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/release_key
+          chmod 600 ~/.ssh/release_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND='ssh -i ~/.ssh/release_key -o IdentitiesOnly=yes'
+
+          # A blobless, sparse, depth-1 clone: this job checked out a tag, so main
+          # is not a branch here, and the tap file is the only thing being changed.
+          git clone --quiet --depth=1 --filter=blob:none --sparse \
+            --branch main "git@github.com:${GH_REPO}.git" tap
+          git -C tap sparse-checkout set Casks
+          cp current.rb "tap/${path}"
+          git -C tap -c user.name='manta-release' \
+            -c user.email='manta-release@users.noreply.github.com' \
+            commit --quiet -m "chore(cask): ${cask} ${version}" -- "${path}"
+          git -C tap push --quiet origin main
+          echo "::notice::cask ${cask} updated to ${version}"
