@@ -10,6 +10,7 @@ import {
   agentSessionFingerprintConflict,
   computeAgentSessionPayloadFingerprint
 } from '../../../../shared/agent-session-mutation-envelope'
+import type { z } from 'zod'
 import { defineMethod, defineStreamingMethod, type RpcAnyMethod, type RpcContext } from '../core'
 import {
   ensureStructuredHostInstalled as ensureHostInstalled,
@@ -18,6 +19,7 @@ import {
   structuredCallerFor as callerFor,
   supportsStructuredSessions
 } from './structured-agent-session-gate'
+import type { AgentSessionAttachParams } from '../../../native-chat/agent-session-wire/structured-agent-session-attach'
 import { STRUCTURED_AGENT_SESSION_HOLD_METHODS } from './structured-agent-session-hold'
 import {
   AttachParams,
@@ -25,6 +27,7 @@ import {
   CreateParams,
   CreateSupportParams,
   HistoryParams,
+  HandoffParams,
   HandoffStatusParams,
   OptionsParams,
   RespondParams,
@@ -41,6 +44,29 @@ function subscriptionIdFor(ctx: RpcContext, sessionId: string): string {
   // Shared control multiplexes several streams over one socket; the frame id
   // keeps one subscriber from evicting another on the same session.
   return ctx.requestId ? `${base}:${ctx.requestId}` : base
+}
+
+/**
+ * The attach-shaped entries take the location from the client instead of resolving it from a
+ * worktree, so they never reach the worktree-resolving create-support check. Ask the executing
+ * host the same question directly: the answer includes host-measured facts the client cannot see
+ * or forge, such as whether this machine can read a provider child's process start time.
+ */
+async function attachClientSuppliedLocation(
+  params: z.infer<typeof AttachParams>,
+  ctx: RpcContext
+): Promise<unknown> {
+  await ensureHostInstalled(ctx)
+  const host = requireHost(ctx)
+  if (!host.supportsCreate(params.location, params.agent)) {
+    throw new Error('structured_agent_session_unsupported')
+  }
+  const { agent: _attachAgent, provider: _attachProvider, ...attachWithoutAgent } = params
+  return host.attach(callerFor(ctx), {
+    ...attachWithoutAgent,
+    provider: params.provider as 'claude' | 'codex',
+    agent: params.agent as 'claude' | 'codex'
+  } as AgentSessionAttachParams)
 }
 
 export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
@@ -86,16 +112,20 @@ export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
           }
         })
         await ensureHostInstalled(ctx)
-        const result = await requireHost(ctx).attach(callerFor(ctx), {
-          ...resolved,
+        const { agent: _resolvedAgent, provider: _resolvedProvider, ...resolvedAttach } = resolved
+        const attachParams: AgentSessionAttachParams = {
+          ...resolvedAttach,
+          provider: resolved.provider as 'claude' | 'codex',
+          agent: resolved.agent as 'claude' | 'codex',
           envelope: { ...params.envelope, payloadFingerprint: hostFingerprint }
-        })
-        if (result.ok && resolved.agent === 'codex') {
+        }
+        const result = await requireHost(ctx).attach(callerFor(ctx), attachParams)
+        if (result.ok) {
           try {
             await ctx.runtime.publishStructuredAgentSessionTab({
               workspaceId: resolved.location.workspaceId,
               sessionId: result.value.sessionId,
-              agent: 'codex',
+              agent: resolved.agent as 'claude' | 'codex',
               activate: true
             })
           } catch (error) {
@@ -104,24 +134,20 @@ export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
               ok: false,
               refusal: {
                 code: 'agent_session_operation_unknown',
-                message: 'The Codex chat may have been created, but its tab could not be confirmed.'
+                message: 'The chat may have been created, but its tab could not be confirmed.'
               }
             }
           }
         }
         return result
       }
-      await ensureHostInstalled(ctx)
-      return requireHost(ctx).attach(callerFor(ctx), params)
+      return attachClientSuppliedLocation(params, ctx)
     }
   }),
   defineMethod({
     name: 'agentSession.ensure',
     params: AttachParams,
-    handler: async (params, ctx) => {
-      await ensureHostInstalled(ctx)
-      return requireHost(ctx).attach(callerFor(ctx), params)
-    }
+    handler: async (params, ctx) => attachClientSuppliedLocation(params, ctx)
   }),
   defineMethod({
     name: 'agentSession.send',
@@ -164,6 +190,11 @@ export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
     name: 'agentSession.setOption',
     params: SetOptionParams,
     handler: async (params, ctx) => requireHost(ctx).setOption(callerFor(ctx), params)
+  }),
+  defineMethod({
+    name: 'agentSession.requestHandoff',
+    params: HandoffParams,
+    handler: async (params, ctx) => requireHost(ctx).requestHandoff(callerFor(ctx), params)
   }),
   defineMethod({
     name: 'agentSession.handoffStatus',

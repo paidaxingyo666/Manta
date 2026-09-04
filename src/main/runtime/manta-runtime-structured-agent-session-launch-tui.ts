@@ -28,7 +28,12 @@ export class MantaRuntimeWithStructuredAgentSessionLaunchTui extends MantaRuntim
           presentation: 'background'
         },
         {},
-        { spawnToken, providerRoot: record.accountHome.path, sessionId: record.sessionId }
+        {
+          spawnToken,
+          providerRoot: record.accountHome.path,
+          sessionId: record.sessionId,
+          ...(record.launchArgs !== undefined ? { launchArgs: record.launchArgs } : {})
+        }
       )
       const terminal = launched.terminal
       let spawnedOwner: StructuredTuiOwner | null = null

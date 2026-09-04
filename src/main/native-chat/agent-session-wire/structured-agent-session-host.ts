@@ -6,6 +6,8 @@ import type {
   AgentSessionAttachResult,
   AgentSessionHistoryRequest,
   AgentSessionHistoryResult,
+  AgentSessionHandoffRequest,
+  AgentSessionHandoffResult,
   AgentSessionHandoffStatus,
   AgentSessionMutationResult,
   AgentSessionOptionsResult,
@@ -56,7 +58,6 @@ import type {
   StructuredAgentSessionHostSession
 } from './structured-agent-session-host-types'
 import { readStructuredAgentSessionHistoryResult } from './structured-agent-session-history-result'
-import { retryPendingStructuredAgentSessionSettlement } from './structured-agent-session-settlement-retry'
 import { StructuredAgentSessionEventRecovery } from './structured-agent-session-event-recovery'
 export type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
 export class StructuredAgentSessionHost {
@@ -181,14 +182,6 @@ export class StructuredAgentSessionHost {
       subscribers: this.subscribers,
       tasks: this.tasks,
       reconcileLeases: (sessionId) => this.reconcileLeases(sessionId),
-      retryPendingSettlement: (sessionId, params) =>
-        retryPendingStructuredAgentSessionSettlement({
-          deps: this.deps,
-          sessions: this.sessions,
-          sessionId,
-          params,
-          now: () => this.now()
-        }),
       serialize: (sessionId, task) => this.serialize(sessionId, task),
       now: () => this.now()
     }
@@ -298,6 +291,12 @@ export class StructuredAgentSessionHost {
     params: Parameters<typeof setStructuredAgentSessionOption>[2]
   ): ReturnType<typeof setStructuredAgentSessionOption> =>
     setStructuredAgentSessionOption(this.mutationContext(), caller, params)
+
+  requestHandoff = (
+    caller: StructuredAgentSessionCaller,
+    params: AgentSessionHandoffRequest
+  ): Promise<AgentSessionMutationResult<AgentSessionHandoffResult>> =>
+    this.handoffs.request(caller.callerKey, params)
 
   readOptions = (sessionId: string): Promise<AgentSessionOptionsResult> =>
     readStructuredAgentSessionOptions(this.mutationContext(), sessionId)

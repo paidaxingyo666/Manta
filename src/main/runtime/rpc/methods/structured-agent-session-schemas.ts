@@ -98,7 +98,7 @@ export const CreateIntentParams = z
   .object({
     envelope: MutationEnvelope,
     worktree: Identifier('Invalid worktree selector'),
-    agent: z.literal('codex')
+    agent: z.enum(['claude', 'codex'])
   })
   .strict()
 
@@ -107,7 +107,7 @@ export const CreateParams = z.union([AttachParams, CreateIntentParams])
 export const CreateSupportParams = z
   .object({
     worktree: Identifier('Invalid worktree selector'),
-    agent: z.literal('codex')
+    agent: z.enum(['claude', 'codex'])
   })
   .strict()
 
@@ -167,6 +167,15 @@ export const SetOptionParams = z
     envelope: MutationEnvelope,
     key: Identifier('Invalid option key'),
     value: z.string().max(MAX_OPTION_LABEL)
+  })
+  .strict()
+
+export const HandoffParams = z
+  .object({
+    envelope: MutationEnvelope,
+    direction: z.enum(['to-tui', 'to-native']),
+    mode: z.enum(['now', 'after-turn', 'stop-turn']),
+    action: z.enum(['start', 'cancel-queued', 'retry', 'recover']).optional()
   })
   .strict()
 
