@@ -46,10 +46,12 @@ function visibleRequest() {
   return useRunningTerminalCloseConfirmStore.getState().runningTerminalCloseConfirm
 }
 
+// Drains pending microtasks. The probe resolves through several await points (per-pty inspect,
+// the batch join, the deadline race), so this flushes generously rather than counting ticks.
 async function settleProbe(): Promise<void> {
-  await Promise.resolve()
-  await Promise.resolve()
-  await Promise.resolve()
+  for (let tick = 0; tick < 12; tick += 1) {
+    await Promise.resolve()
+  }
 }
 
 describe('shouldConfirmRunningTerminalClose', () => {
@@ -329,6 +331,7 @@ describe('guardRunningTerminalClose', () => {
 
     vi.advanceTimersByTime(RUNNING_CLOSE_PROBE_TIMEOUT_MS)
     vi.useRealTimers()
+    await settleProbe()
 
     expect(onClose).not.toHaveBeenCalled()
     expect(visibleRequest()).toMatchObject({ terminalTabId: 'tab-1', tabLabel: 'npm run dev' })
@@ -351,6 +354,7 @@ describe('guardRunningTerminalClose', () => {
     guard()
     vi.advanceTimersByTime(RUNNING_CLOSE_PROBE_TIMEOUT_MS)
     vi.useRealTimers()
+    await settleProbe()
 
     expect(visibleRequest()?.copyKind).toBe('agent')
   })
@@ -368,6 +372,7 @@ describe('guardRunningTerminalClose', () => {
     guard(onClose)
     vi.advanceTimersByTime(RUNNING_CLOSE_PROBE_TIMEOUT_MS)
     vi.useRealTimers()
+    await settleProbe()
     requestSpy.mockRestore()
 
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -384,6 +389,7 @@ describe('guardRunningTerminalClose', () => {
     guard(onClose)
     vi.advanceTimersByTime(RUNNING_CLOSE_PROBE_TIMEOUT_MS)
     vi.useRealTimers()
+    await settleProbe()
     await settleProbe()
 
     expect(onClose).not.toHaveBeenCalled()
