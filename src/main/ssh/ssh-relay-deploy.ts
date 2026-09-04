@@ -743,6 +743,7 @@ function uploadStageNamespaceIfSupported(
 
 const NODE_PTY_VERSION = '1.1.0'
 const NODE_PTY_CONSOLE_LIST_PATCH_FILENAME = 'node-pty-1.1.0-console-list-agent-patch.cjs'
+const NODE_PTY_WINDOWS_TEARDOWN_PATCH_FILENAME = 'node-pty-1.1.0-windows-pty-teardown-patch.cjs'
 const NODE_PTY_MASTER_CLOEXEC_PATCH_FILENAME = 'node-pty-1.1.0-master-cloexec-patch.cjs'
 const NODE_PTY_CLOEXEC_STATUS_PREFIX = 'ORCA-NPTY-CLOEXEC:'
 /**
@@ -791,7 +792,8 @@ function nativeDepsProbeJs(successToken: string): string {
   // Why: node-pty's Windows wrapper defers conpty.node until first spawn, so require("node-pty") alone can't prove the binding is healthy.
   const loadNodePty =
     'require("node-pty"); require("node-pty/lib/utils").loadNativeModule(process.platform==="win32"&&Number(require("os").release().split(".")[2])>=18309?"conpty":"pty");' +
-    `if(process.platform==="win32"){require("./${NODE_PTY_CONSOLE_LIST_PATCH_FILENAME}").assertPatchedNodePtyConsoleListAgent(process.cwd())}`
+    `if(process.platform==="win32"){require("./${NODE_PTY_CONSOLE_LIST_PATCH_FILENAME}").assertPatchedNodePtyConsoleListAgent(process.cwd());` +
+    `require("./${NODE_PTY_WINDOWS_TEARDOWN_PATCH_FILENAME}").assertPatchedNodePtyWindowsTeardown(process.cwd())}`
   return `(()=>{const missing=[];try{${loadNodePty}}catch{missing.push("node-pty")}try{require("@parcel/watcher")}catch{missing.push("@parcel/watcher")}if(missing.length){console.log("${NATIVE_DEPS_MISSING_PREFIX}"+missing.join(","));process.exitCode=1}else{console.log(${JSON.stringify(successToken)})}})()`
 }
 
@@ -1327,10 +1329,16 @@ async function applyNodePtyMasterCloexecPatch(
   nodePath: string,
   signal?: AbortSignal
 ): Promise<NodePtyMasterCloexecOutcome> {
-  // Both Unix relay platforms leak, by different bugs: Linux inherits the master through forkpty()'s
-  // no-O_CLOEXEC path, macOS orphans one throwaway /dev/ptmx fd per spawn in pty_posix_spawn. Only
-  // Windows, which has no fds, is short-circuited -- and answering 'fixed' from a gate that ran
-  // nothing is exactly how a leaking darwin tree got published to the shared cache.
+  // Both Unix relay platforms leak the pty master, by different bugs: Linux inherits it through
+  // forkpty()'s no-O_CLOEXEC path, macOS orphans one throwaway /dev/ptmx fd per spawn in
+  // pty_posix_spawn. Windows is short-circuited because it has no fds for a master to leak into --
+  // and answering 'fixed' from a gate that ran nothing is exactly how a leaking darwin tree got
+  // published to the shared cache.
+  //
+  // What 'fixed' means here is exactly "this tree does not leak the pty MASTER", which is the only
+  // thing the shared native-deps cache keys on. It is NOT a statement that a Windows relay leaks
+  // nothing: it leaked one Windows File handle per terminal until the ConPTY teardown patch above,
+  // by a mechanism that has nothing to do with fds. Read this gate as scoped to its own question.
   if (isWindowsRemoteHost(hostPlatform) || isWindowsRelayPlatform(platform)) {
     return 'fixed'
   }
@@ -1530,8 +1538,11 @@ async function rebuildNativeDeps(
 }
 
 function windowsNodePtyPatchCommand(nodePath: string): string {
-  // Why: pnpm patches do not cross the SSH boundary; apply the version-checked fallback to the remote npm package.
-  return `& ${powerShellLiteral(nodePath)} ${powerShellLiteral(NODE_PTY_CONSOLE_LIST_PATCH_FILENAME)}; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }`
+  // Why: pnpm patches do not cross the SSH boundary; apply the version-checked fallbacks to the remote npm package.
+  return [
+    `& ${powerShellLiteral(nodePath)} ${powerShellLiteral(NODE_PTY_CONSOLE_LIST_PATCH_FILENAME)}; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }`,
+    `& ${powerShellLiteral(nodePath)} ${powerShellLiteral(NODE_PTY_WINDOWS_TEARDOWN_PATCH_FILENAME)}; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }`
+  ].join('; ')
 }
 
 async function makeNodePtySpawnHelperExecutable(
