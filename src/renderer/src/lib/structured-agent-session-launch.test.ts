@@ -476,6 +476,32 @@ describe('startStructuredAgentLaunch', () => {
     expect(retryFallback).toHaveBeenCalledOnce()
   })
 
+  it('never starts a sibling fallback for a post-attach unknown refusal', async () => {
+    const worktreeId = 'wt-post-attach-unknown'
+    const intent = launchIntent(worktreeId)
+    const fallback = vi.fn()
+    mocks.createIntent.mockReturnValueOnce(intent)
+    mocks.launch.mockRejectedValue(
+      Object.assign(new Error('The chat may already exist.'), {
+        code: 'agent_session_operation_unknown'
+      })
+    )
+    vi.mocked(refreshLocalStructuredSessionTabs).mockResolvedValue([])
+
+    const launch = startStructuredAgentLaunch(worktreeId, 'codex')
+    const fallbackResult = launch.claimDefinitiveRefusalFallback(fallback)
+
+    await expect(launch.launchResult).rejects.toMatchObject({
+      code: 'agent_session_operation_unknown'
+    })
+    expect(launch.isVisibilityUnknown()).toBe(true)
+    expect(launch.releaseCallerAfterUnknownOutcome()).toBe(true)
+    await expect(fallbackResult).resolves.toBe(false)
+    expect(fallback).not.toHaveBeenCalled()
+    expect(mocks.createIntent).toHaveBeenCalledOnce()
+    expect(mocks.launch).toHaveBeenCalledTimes(2)
+  })
+
   it('releases a definitively refused intent so a new click can create a new identity', async () => {
     const worktreeId = 'wt-refused'
     const first = launchIntent(worktreeId, 'session-first')
