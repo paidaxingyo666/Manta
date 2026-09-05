@@ -102,7 +102,10 @@ const PATCH_TARGETS = [
   {
     relativePath: ['lib', 'windowsPtyAgent.js'],
     originalSha256: '8636d16b38266112204061a22b135734177c242837982fd3a4055be726efa64a',
-    patchedSha256: '1e23ef480569e73706e3ab4f5482c7e553c76f51414ae8e7b0bdcc2fd75f7280',
+    // Diverges from upstream's pin: the comment this patch inserts is branded
+    // Manta, so the patched bytes differ. Recompute after any upstream change
+    // to the hunk — the assertion below prints the actual digest when it fails.
+    patchedSha256: '8032632ea3365f98575687731a260e212cd72441d8cdc5c6a02c5ad33a7a27eb',
     replacements: [
       [
         '                this._ptyNative.kill(this._pty, this._useConptyDll);\n                this._conoutSocketWorker.dispose();\n',

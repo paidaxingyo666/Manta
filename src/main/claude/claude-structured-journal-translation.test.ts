@@ -722,7 +722,7 @@ describe('Claude structured journal translation', () => {
       options: expect.arrayContaining([{ id: 'allow', label: 'Allow' }])
     })
     expect(bindings[0]).toEqual([
-      'manta:claude-prompt%3Aorca-session%3Apermission-1',
+      'manta:claude-prompt%3Amanta-session%3Apermission-1',
       'permission-1'
     ])
 
@@ -750,7 +750,7 @@ describe('Claude structured journal translation', () => {
       ]
     })
     expect(bindings.at(-1)).toEqual([
-      'manta:claude-prompt%3Aorca-session%3Aquestions-1',
+      'manta:claude-prompt%3Amanta-session%3Aquestions-1',
       'questions-1'
     ])
 

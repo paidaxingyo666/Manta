@@ -113,7 +113,11 @@ describe('initial proxy application ordering', () => {
 
     const windowIndex = desktop.indexOf('openMainWindow()')
     const proxyIndex = desktop.indexOf('await state.initialProxyApplicationReady')
-    const relayIndex = desktop.indexOf('new DesktopRelayService(')
+    // startDesktopRelay, not the constructor: this fork moved the relay wiring
+    // into its own module so an upstream restructuring of this file cannot drop
+    // it again. The ordering the check is about is unchanged — the call site is
+    // still what must follow the proxy await.
+    const relayIndex = desktop.indexOf('startDesktopRelay(runtimeRpc)')
 
     expect(windowIndex).toBeGreaterThanOrEqual(0)
     expect(proxyIndex).toBeGreaterThan(windowIndex)

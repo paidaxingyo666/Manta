@@ -730,7 +730,7 @@ describe('spawnSystemSsh', () => {
     // finds it momentarily empty, so the bytes must not travel that way at all.
     const batch = String(spawned[0]!.stdin.end.mock.calls[0]?.[0] ?? '')
     expect(batch).toContain('put ')
-    expect(batch).toContain('/C:/Users/me/.manta-remote/relay/.version.manta-partial-')
+    expect(batch).toContain('/C:/Users/me/.manta-remote/relay/.version.orca-partial-')
     const sftpArgs = spawnMock.mock.calls[0][1] as string[]
     expect(sftpArgs).toContain('-b')
     // The rename that publishes it reads the staged file, never a pipe.
@@ -839,7 +839,7 @@ describe('spawnSystemSsh', () => {
     expect(mkdirBatch).toBe('-mkdir "/C:/Users/me/.manta-remote/relay"\n')
     const putBatch = String(spawned[1]!.stdin.end.mock.calls[0]?.[0] ?? '')
     expect(putBatch).toContain('put ')
-    expect(putBatch).toContain('/C:/Users/me/.manta-remote/relay/relay.js.manta-partial-')
+    expect(putBatch).toContain('/C:/Users/me/.manta-remote/relay/relay.js.orca-partial-')
     const commands = spawnMock.mock.calls.map((call) => (call[1] as string[]).at(-1) ?? '')
     expect(commands.every((command) => !command.includes('/bin/sh'))).toBe(true)
     expect(commands.join('\n')).not.toContain('tar -xzf')
