@@ -246,6 +246,15 @@
       },
       "onboarding": {
         "4c5336d71f": "Manta"
+      },
+      "structured": {
+        "agent": {
+          "session": {
+            "rpc": {
+              "faff3c7b42": "请求未发送"
+            }
+          }
+        }
       }
     },
     "workspace": {
@@ -1953,6 +1962,9 @@
     "MobileNativeChatToolRun": {
       "c0baad06d0": "更多工具调用",
       "f733f0f1d5": "结果"
+    },
+    "MobileSessionSheets": {
+      "80a42be441": "对话"
     }
   },
   "mobile": {
@@ -2010,7 +2022,5 @@
       "reconnect": "重新连接",
       "connect": "连接"
     }
-  },
-  "m.mobile.structured.agent.session.rpc.faff3c7b42": "请求未发送",
-  "m.MobileSessionSheets.80a42be441": "对话"
+  }
 }
