@@ -13,7 +13,7 @@ import type { DaemonPtySpawnContext } from './daemon-pty-spawn-request'
 import type { ColdRestoreInfo } from './history-reader'
 import { mintPtySessionId } from './pty-session-id'
 import {
-  supportsPtyStartupBarrier,
+  shellPathSupportsPtyStartupBarrier,
   shellReadyMarkerComesFromLineEditor,
   resolvePtyShellPath
 } from './shell-ready'
@@ -216,10 +216,12 @@ export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
     let effectiveCols = restoreInfo?.cols ?? opts.cols
     let effectiveRows = restoreInfo?.rows ?? opts.rows
 
-    const shellReadySupported = opts.command ? supportsPtyStartupBarrier(opts.env ?? {}) : false
-    const immediateMarker =
-      process.platform !== 'win32' &&
-      shellReadyMarkerComesFromLineEditor(opts.shellOverride || resolvePtyShellPath(opts.env ?? {}))
+    const effectiveShellPath =
+      process.platform !== 'win32' && opts.command
+        ? resolveUnixShellPath(opts.shellOverride || resolvePtyShellPath(opts.env ?? {}))
+        : ''
+    const shellReadySupported = shellPathSupportsPtyStartupBarrier(effectiveShellPath)
+    const immediateMarker = shellReadyMarkerComesFromLineEditor(effectiveShellPath)
     const shellReadyTimeoutMs =
       shellReadySupported &&
       !immediateMarker &&
