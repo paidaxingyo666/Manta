@@ -104,6 +104,47 @@ describe('production Relay capacity cell admission', () => {
       '--cell-id', 'production-gce-c7',
       '--mode', 'isolate'
     ]), /origin is not exact/)
+    assert.throws(() => parseProductionCapacityCellArguments([
+      '--director-origin', 'https://relay.manta.sh.cn',
+      '--cell-origin', 'https://c27.relay.manta.sh.cn',
+      '--cell-id', 'production-gce-c27',
+      '--mode', 'isolate'
+    ]), /not approved/)
+  })
+
+  it('admits the same-cap Asia cells only under the same-cap allowlist', () => {
+    for (const cellId of ['production-gce-c27', 'production-gce-c28', 'production-gce-c29']) {
+      const hostname = cellId.slice('production-gce-'.length)
+      assert.deepEqual(parseProductionCapacityCellArguments([
+        '--director-origin', 'https://relay.manta.sh.cn',
+        '--cell-origin', `https://${hostname}.relay.manta.sh.cn`,
+        '--cell-id', cellId,
+        '--approved-cells', 'same-cap',
+        '--mode', 'isolate'
+      ]), {
+        directorOrigin: 'https://relay.manta.sh.cn',
+        cellOrigin: `https://${hostname}.relay.manta.sh.cn`,
+        cellId,
+        mode: 'isolate'
+      })
+    }
+    for (const cellId of ['production-gce-c17', 'production-gce-c18', 'production-gce-c30']) {
+      const hostname = cellId.slice('production-gce-'.length)
+      assert.throws(() => parseProductionCapacityCellArguments([
+        '--director-origin', 'https://relay.manta.sh.cn',
+        '--cell-origin', `https://${hostname}.relay.manta.sh.cn`,
+        '--cell-id', cellId,
+        '--approved-cells', 'same-cap',
+        '--mode', 'isolate'
+      ]), /not approved/)
+    }
+    assert.throws(() => parseProductionCapacityCellArguments([
+      '--director-origin', 'https://relay.manta.sh.cn',
+      '--cell-origin', 'https://c27.relay.manta.sh.cn',
+      '--cell-id', 'production-gce-c27',
+      '--approved-cells', 'every-cell',
+      '--mode', 'isolate'
+    ]), /not a known allowlist/)
   })
 
   it('isolates only the selected cell without depending on its runtime', async () => {
