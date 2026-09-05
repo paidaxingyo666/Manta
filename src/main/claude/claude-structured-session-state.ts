@@ -9,6 +9,8 @@ import type { ClaudeJournalTranslator } from './claude-structured-journal-transl
 import type { ClaudePendingPrompt, ClaudePromptRegistry } from './claude-structured-prompt-replies'
 import { cancelProcessAcquisition } from '../../shared/child-process/cancel-process-acquisition'
 import { randomUUID } from 'node:crypto'
+import type { AgentSessionBackgroundTaskState } from '../../shared/agent-session-wire'
+import type { ClaudeBackgroundTaskTracker } from './claude-background-task-tracker'
 
 export type ClaudeAuthDiagnostic = {
   apiKeySourceConfigured: boolean
@@ -54,6 +56,10 @@ export type ClaudeStructuredSessionAdapterDeps = {
     identity: AgentSessionJournalIdentity
   }) => Promise<ClaudeStructuredLaunch>
   onEvent?: (event: ClaudeStructuredSessionEvent) => void
+  onBackgroundTasksChanged?: (
+    sessionId: string,
+    state: AgentSessionBackgroundTaskState | null
+  ) => void
   openConnection?: typeof openClaudeStreamJsonConnection
   readProcessStartTime?: (pid: number) => Promise<number | null>
   mintLinkId?: () => string
@@ -119,6 +125,7 @@ export type ClaudeSession = {
   capabilities: readonly string[]
   /** Provider uuid of the most recently admitted turn, if one is active. */
   activeTurnId?: string
+  backgroundTasks: ClaudeBackgroundTaskTracker
   /** Monotonic fence advanced when a dispatch starts, including unresolved dispatches. */
   dispatchSequence: number
   /** Dispatch sequence that admitted activeTurnId. */

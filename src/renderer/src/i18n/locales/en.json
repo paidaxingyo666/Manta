@@ -16986,6 +16986,17 @@
         "workedFor": "Worked for {{value0}}",
         "toggleDetails": "Toggle turn details"
       },
+      "backgroundTasks": {
+        "monitoring": "Monitoring background tasks",
+        "stop": "Stop",
+        "agent": "Background agent",
+        "workflow": "Background workflow",
+        "command": "Background command",
+        "monitor": "Background monitor",
+        "task": "Background task",
+        "runningList": "Running background tasks",
+        "detailsUnavailable": "Task details are unavailable for this session."
+      },
       "jumpToLatest": "Jump to latest",
       "toggle": {
         "showTerminal": "Show terminal",

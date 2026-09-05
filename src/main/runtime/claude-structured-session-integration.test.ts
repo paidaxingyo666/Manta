@@ -119,6 +119,9 @@ function fakeClaude() {
         return undefined
       },
       cancelAsyncMessage: async () => {},
+      stopTask: async (taskId) => {
+        connection.calls.push({ subtype: 'stop_task', params: { taskId } })
+      },
       send: async (message) => {
         connection.sent.push(message)
         if (message.type === 'user') {
