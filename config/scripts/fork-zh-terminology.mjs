@@ -63,7 +63,8 @@ function main() {
   const catalog = JSON.parse(readFileSync(zhPath, 'utf8'))
   const english = JSON.parse(readFileSync(path.join(dir, 'en.json'), 'utf8'))
 
-  const lookup = (parts) => parts.reduce((node, part) => (node == null ? node : node[part]), english)
+  const lookup = (parts) =>
+    parts.reduce((node, part) => (node == null ? node : node[part]), english)
   let changed = 0
   const visit = (node, trail) => {
     for (const [key, value] of Object.entries(node)) {
