@@ -963,6 +963,7 @@
         "58c73cb0d8": "説明の更新に失敗しました。",
         "5221548274": "説明が更新されました。",
         "06c06e58ba": "以下の行をさらに表示",
+        "307c98e8e3": "上に {{value0}} 行をさらに表示",
         "5664681624": "上の行をさらに表示",
         "b1574e8ac2": "コードコンテキストをリセットする",
         "d43736d09c": "コードコンテキストコントロール",
@@ -1542,8 +1543,8 @@
         "71a3c0f9d2": "ワークスペースを開始",
         "filesUnavailable": "変更されたファイルを読み込めませんでした。",
         "filesRetry": "再試行",
-        "77482513f8": "閉じる",
-        "2f5195c6a0": "再度開く",
+        "77482513f8": "クローズ",
+        "2f5195c6a0": "再オープン",
         "4b8ae7303f": "差分の読み込みに失敗しました。",
         "closePullRequestFailed": "PR のクローズに失敗しました",
         "reopenPullRequestFailed": "PR の再オープンに失敗しました",
@@ -2397,6 +2398,7 @@
               "ee3d2caabd": "Issue",
               "5f79bc76b0": "プロジェクトに戻る",
               "aac9a4afc6": "Linear で開く",
+              "7616c986c6": "{{value0}} Issue を開く",
               "93e1f6bfca": "読み込み中",
               "98730088a6": "。フルセットについては、Linear を検索するか開きます。",
               "06b887d622": "最初に表示しています",
@@ -2819,6 +2821,7 @@
               "handler": {
                 "1e072f611e": "{{value0}} {{value1}} のアップロードに失敗しました。",
                 "53f015fd85": "{{value0}} シンボリックリンク{{value1}} をスキップしました。",
+                "29c031b49a": "{{value0}} ファイル{{value1}} をランタイムにアップロードしています…",
                 "0c77693641": "ワークツリーが準備できていません — しばらくしてから再試行してください。",
                 "ce8248b835": "ワークツリーのパスが使用できません。",
                 "internalTooManyPaths": "安全にターミナルへ貼り付けるにはドロップされたパスが多すぎます。",
@@ -3018,7 +3021,7 @@
             "4f0d9a71c2": "タブは存在しません",
             "d7d496a451": "ブラウザページは存在しません",
             "7726ce9970": "モバイルエミュレータのタブは存在しません",
-            "chooseAction": "操作を選択してください。",
+            "chooseAction": "アクションを選択してください。",
             "searchProvider": "{{value0}} で検索"
           },
           "TabBarQuickCommandsButton": {
@@ -3330,6 +3333,7 @@
             "2837dc7c72": "キャンセル中",
             "0583c806ac": "ワークスペースのディスク使用量はスキャンされません。",
             "39786e3b73": "ワークスペースのサイズをスキャンしています。",
+            "bef4dc0457": "{{value0}} は回収可能ですが、{{value1}} は利用できません",
             "3d8d47ce77": "{{value0}} · 最後の結果が保持される"
           },
           "WorkspaceSpaceManagerPanel": {
@@ -3883,7 +3887,7 @@
           "9963dff6d3": "説明が見つかりません。",
           "995fde8337": "スキルファイルを表示できませんでした",
           "4acd6d68ec": "スキルが見つかりません",
-          "6a62a0168c": "一致なし",
+          "6a62a0168c": "一致する項目はありません",
           "08a321a984": "現在の検索条件とフィルターに一致するスキルはありません。",
           "cd7893fbc1": "スキルをスキャン中",
           "35b9a724a0": "利用可能",
@@ -3930,7 +3934,7 @@
         "sourceKind": {
           "home": "ホーム",
           "workspace": "ワークスペース",
-          "bundled": "同梱",
+          "bundled": "バンドル済み",
           "plugin": "プラグイン"
         },
         "count": {
@@ -3961,8 +3965,8 @@
           "deleteTitle": "削除するスキルを選択"
         },
         "SkillDetailDialog": {
-          "agents": "エージェント",
-          "updated": "更新済み",
+          "agents": "Agent",
+          "updated": "更新日",
           "copy": "コピー"
         },
         "SkillFreshnessNudge": {
@@ -4465,6 +4469,7 @@
           "7bada3b1ab": "並べ替え",
           "dc0bb670bc": "グループ化",
           "9919ae1082": "ワークスペースのオプション",
+          "bc96dbd041": "ワークスペースオプション ({{value0}})",
           "af9249c505": "最新のワークスペースアクティビティ",
           "b451c8b162": "最近の",
           "6664282a7b": "プロジェクトをドラッグして配置します",
@@ -4531,6 +4536,7 @@
         "WorkspaceKanbanSettingsMenu": {
           "79eb990aa4": "ステータスの追加",
           "054cb50df7": "{{value0}} を削除",
+          "b45b350eb0": "{{value0}} を左に移動",
           "8ce44af9a8": "{{value0}} の名前を変更",
           "395e541d5d": "ステータス",
           "34f03eb0de": "ボード設定",
@@ -4544,6 +4550,7 @@
           "2df01a03ff": "一致なし"
         },
         "WorkspaceStatusAppearancePopover": {
+          "514be2f569": "{{value0}} の色を {{value1}} に設定します",
           "8be427206b": "アイコン",
           "2ac106f6b2": "色",
           "74b1413279": "外観",
@@ -4805,7 +4812,7 @@
           "noneFound": "Manta 以外のワークツリーは見つかりませんでした",
           "tryDifferentSearch": "別の名前またはパスをお試しください。",
           "disableSource": "ソースを無効にするとワークツリーを個別に管理できます。",
-          "appearWhenDetected": "Manta が新規ワークツリーを検出すると、ここに表示されます。",
+          "appearWhenDetected": "Manta が新しいワークツリーを検出すると、ここに表示されます。",
           "openGlobalSettings": "グローバル設定で管理",
           "globalSettingsSources": "これらのソースにはグローバル設定があり、ここで上書きできます:"
         },
@@ -6699,6 +6706,7 @@
           "waitForSetupBeforeAgentHelp": "セットアップによって、起動時に Agent に必要な依存関係、MCP サーバー、または構成ファイルがインストールされるときに、これをオンにします。"
         },
         "RepositoryIconPicker": {
+          "2b7d27b93c": "{{value0}} リポジトリカラーを使用する",
           "fde066a63b": "PNG アップロードは 256KB 以下である必要があります。",
           "cc1286e263": "ファビコン",
           "03ca1a4e9b": "example.com",
@@ -6763,6 +6771,7 @@
           "cloneDestinationPlaceholder": "/destination/on/host",
           "setupKindGit": "Git リポジトリ",
           "setupKindFolder": "フォルダー",
+          "settingUpHost": "インポート中…",
           "setupHost": "インポート",
           "cloningHost": "クローン作成中…",
           "cloneHost": "クローン",
@@ -13718,7 +13727,7 @@
           "search": "実行を検索…",
           "filters": "フィルター",
           "host": "ホスト",
-          "status": "状態",
+          "status": "ステータス",
           "refresh": "実行を更新",
           "successful24h": "成功 · 24時間",
           "failed24h": "失敗 · 24時間",
@@ -13726,7 +13735,7 @@
           "failed7d": "失敗 · 7日間",
           "historyUnavailableOne": "1件の自動化で実行履歴を利用できません。カウントには利用可能な履歴のみが含まれます。",
           "historyUnavailableMany": "{{count}}件の自動化で実行履歴を利用できません。カウントには利用可能な履歴のみが含まれます。",
-          "automation": "オートメーション",
+          "automation": "自動化",
           "triggered": "トリガー済み",
           "trigger": "トリガー",
           "loading": "実行を読み込み中…",
@@ -13960,7 +13969,7 @@
           "createFromBaseRef": "{{baseRef}} から作成",
           "missingWorkspace": "ワークスペースがありません",
           "runUsageSummary": "約 {{cost}} · {{tokens}} tokens",
-          "usageUnavailable": "使用量を取得できません",
+          "usageUnavailable": "使用量を利用できません",
           "noRunUsageYet": "まだ実行の使用量がありません",
           "noWorkspace": "ワークスペースなし",
           "latestSavedOutput": "最新の保存済み出力",
@@ -13968,9 +13977,9 @@
           "tableName": "名前",
           "tableProject": "プロジェクト",
           "tableHost": "ホスト",
-          "tableStatus": "状態",
+          "tableStatus": "ステータス",
           "tableActions": "操作",
-          "newAutomation": "新規自動化",
+          "newAutomation": "新しい自動化",
           "rowActions": "自動化の操作"
         },
         "CreateFromPicker": {
@@ -14101,7 +14110,7 @@
         "AutomationListSearchField": {
           "tooLong": "検索テキストが長すぎます — リストは未フィルタです",
           "label": "自動化を検索",
-          "placeholder": "検索…",
+          "placeholder": "検索...",
           "tooLongShort": "長すぎます",
           "clear": "検索をクリア"
         },
@@ -14126,8 +14135,8 @@
           "placeholder": "ホストを選択",
           "storedOn": "{authority} が保存してスケジュールします。",
           "unselected": "この自動化を保存してスケジュールするホストを選択します。",
-          "orphan": "ホストのない自動化は新規自動化を保持できません。この自動化を作成するホストを選択してください。",
-          "unavailable": "そのホストはまだ新規自動化を保持できません。これを作成する別のホストを選択してください。",
+          "orphan": "ホストのない自動化は新しい自動化を保持できません。この自動化を作成するホストを選択してください。",
+          "unavailable": "そのホストはまだ新しい自動化を保持できません。これを作成する別のホストを選択してください。",
           "stale": "このフォームを開いている間に {host} が変更されました。保存する前にもう一度選択してください。",
           "projectMismatch": "そのプロジェクトは {host} にありません。そのホスト上のプロジェクト、または別のホストを選択してください。",
           "noProjects": "{host} にはプロジェクトが設定されていません。そこに追加するか、別のホストを選択してください。",
@@ -14489,7 +14498,7 @@
         "label": "親ワークツリー",
         "noParent": "親なし",
         "description": "このワークスペースをサイドバー内の別のワークスペースの配下にネストします。ベースブランチは変更されません。",
-        "searchPlaceholder": "ワークスペースを検索…",
+        "searchPlaceholder": "ワークスペースを検索...",
         "noMatches": "一致する項目がありません。"
       }
     },
@@ -14552,6 +14561,41 @@
     }
   },
   "components": {
+    "onboarding": {
+      "flow": {
+        "stepTooltip": {
+          "agent": "デフォルトの Agent",
+          "theme": "外観",
+          "windowsTerminal": "Windows ターミナル",
+          "notifications": "通知",
+          "integrations": "連携"
+        },
+        "actions": {
+          "addFirstProject": "最初のプロジェクトを追加",
+          "continue": "続行",
+          "openingAddProject": "[プロジェクトを追加] を開いています…"
+        }
+      },
+      "skipConfirmation": {
+        "skip": "スキップ",
+        "keepGoing": "いいえ、続ける"
+      },
+      "theme": {
+        "hints": {
+          "system": "OS に合わせる",
+          "dark": "目にやさしい",
+          "light": "明るく鮮明"
+        }
+      },
+      "integrations": {
+        "capabilities": {
+          "startWorkspaceFromIssue": "GitHub の Issue や PR から、タイトルとコンテキストがあらかじめ入力されたワークスペースを開始",
+          "browseIssues": "Manta から離れずに、「タスク」ページで GitHub の Issue と PR を閲覧",
+          "reviewStatus": "すべてのワークツリーで Issue の状態、レビュー状況、CI チェックを確認",
+          "managePullRequests": "Manta から離れずに、PR の閲覧、コメント、マージ"
+        }
+      }
+    },
     "native-chat": {
       "composer": {
         "imageUnsupported": "この Agent では画像の貼り付けはサポートされていません。",
@@ -14872,7 +14916,7 @@
     "migrated": {
       "title": "Agent が見つけやすくなりました",
       "description": "Agent ビューはサイドバーの専用タブになりました。アクティビティとフィルターはそのまま引き継がれます。",
-      "dismiss": "了解",
+      "dismiss": "OK",
       "action": "Agent を開く"
     },
     "new": {
