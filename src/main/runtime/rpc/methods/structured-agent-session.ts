@@ -2,9 +2,8 @@
 //
 // Every method here is gated on the client advertising
 // `agent-session.structured.v1`. A client that does not is told the surface does
-// not exist rather than being handed a session it cannot render or drive; that
-// is the whole visibility rule, because nothing else on the runtime publishes a
-// structured session.
+// not exist rather than receiving the journal or mutation surface. Session-tab
+// inventory may expose only a metadata placeholder for an incapable mobile client.
 
 import {
   agentSessionFingerprintConflict,
