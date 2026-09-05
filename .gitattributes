@@ -31,3 +31,6 @@ resources/skills/snapshot-registry.json merge=keepupstream
 resources/skills/release-mapping.json merge=keepupstream
 config/max-lines-baseline.txt merge=keepupstream
 src/renderer/src/i18n/locales/*.json merge=keepupstream
+# Generated runtime English subset: compared byte-for-byte by
+# verify:localization-runtime-catalog, so a CRLF checkout would fail the gate.
+/src/renderer/src/i18n/en-runtime-required.json linguist-generated=true text eol=lf

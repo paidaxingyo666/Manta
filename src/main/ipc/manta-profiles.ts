@@ -39,6 +39,8 @@ import { registerMantaProfileSessionHandlers } from './manta-profile-session-han
 import { registerMantaRelayHostHandlers } from './manta-relay-hosts-handlers'
 import { registerMantaProfileOrgMemberHandlers } from './manta-profile-org-members-handlers'
 import { registerMantaCloudEndpointHandler } from './manta-cloud-endpoints-handler'
+import { onOrcaCloudSessionInvalidated } from '../manta-profiles/profile-cloud-session-invalidation'
+import { broadcastOrcaProfileAuthStatusChanged } from './manta-profile-auth-status-broadcast'
 
 type RegisterMantaProfileHandlersOptions = {
   onBeforeRelaunch?: () => void | Promise<void>
@@ -160,6 +162,12 @@ export function registerMantaProfileHandlers(
   ipcMain.handle('mantaProfiles:authStatus', (): MantaProfileAuthStatus =>
     getCurrentMantaProfileAuthStatus(getProfileUserDataPath())
   )
+
+  // Why: a background refresh can revoke the session with no renderer request in
+  // flight, so push the change instead of waiting for the next pane to ask.
+  // Why not options.onAuthMutation: that hook drives the relay coordinator, which
+  // is the caller that just failed the refresh — re-entering it here would be a loop.
+  onOrcaCloudSessionInvalidated(broadcastOrcaProfileAuthStatusChanged)
 
   ipcMain.handle(
     'mantaProfiles:createLocal',

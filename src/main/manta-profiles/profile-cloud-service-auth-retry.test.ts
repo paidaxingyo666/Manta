@@ -53,6 +53,7 @@ vi.mock('./profile-cloud-pkce', () => ({
 
 vi.mock('./profile-cloud-client', () => ({
   MantaCloudRequestError: MantaCloudRequestErrorMock,
+  isAmbiguousCloudRequestFailure: (error: unknown) => !(error instanceof MantaCloudRequestErrorMock),
   createMantaCloudProfile: createMantaCloudProfileMock,
   exchangeMantaCloudAuthCode: exchangeMantaCloudAuthCodeMock,
   refreshMantaCloudCapabilities: refreshMantaCloudCapabilitiesMock,

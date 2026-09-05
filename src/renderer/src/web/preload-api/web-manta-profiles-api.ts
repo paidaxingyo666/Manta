@@ -3,6 +3,7 @@ import {
   DEFAULT_LOCAL_MANTA_PROFILE_ID,
   createDefaultLocalMantaProfile
 } from '../../../../shared/manta-profiles'
+import { noopUnsubscribe } from './web-storage'
 
 export function createWebMantaProfilesApi(): Partial<PreloadApi> {
   const webMantaProfileAuthStatus = () =>
@@ -38,6 +39,7 @@ export function createWebMantaProfilesApi(): Partial<PreloadApi> {
         // desktop-only setting.
         throw new Error('Self-hosted endpoints can only be changed in the desktop app.')
       },
+      onAuthStatusChanged: () => noopUnsubscribe,
       createLocal: () =>
         Promise.resolve({
           activeProfileId: DEFAULT_LOCAL_MANTA_PROFILE_ID,

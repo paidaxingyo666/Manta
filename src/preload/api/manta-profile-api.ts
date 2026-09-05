@@ -36,6 +36,8 @@ import type { MantaRelaySignInMethods } from '../../shared/manta-relay-sign-in-m
 export type MantaProfileApi = {
   list: () => Promise<MantaProfileListResult>
   authStatus: () => Promise<MantaProfileAuthStatus>
+  /** Fires when main changed the stored auth status on its own (e.g. a revoked session). */
+  onAuthStatusChanged: (callback: () => void) => () => void
   createLocal: (args?: CreateLocalMantaProfileArgs) => Promise<CreateLocalMantaProfileResult>
   createCloudLinked: (
     args?: CreateCloudLinkedMantaProfileArgs

@@ -9,9 +9,7 @@ Browser-use profiles let you run the Manta browser with a specific identity — 
 1. Open [Settings → Browser → Profiles](/docs/settings).
 1. Click **Add profile**, give it a name.
 1. Optionally seed it with cookies, a user-agent, and a viewport size.
-1. For sites that reject Manta's default Chrome-shaped UA (some Google sign-in flows), create a profile that keeps the **native Electron user agent** instead of spoofing. Default profiles still use the cleaned Chrome UA for broader Cloudflare compatibility.
-
-You can also create a no-spoof profile from the CLI with `manta tab profile create --no-ua-spoof` when you script browser setup.
+1. Every profile presents Electron's own user agent. Manta no longer rewrites it to look like Chrome, because Cloudflare Turnstile rejects a Chrome-shaped UA that sends no client hints and accepts a declared Electron client. The only exception is Google's sign-in hosts, where Manta presents a Firefox identity so Google issues cookies bound to the embedded browser. A **native user agent** profile (`manta tab profile create --no-ua-spoof`) also skips that Google exception.
 
 ## Cookie import and Google sign-in
 

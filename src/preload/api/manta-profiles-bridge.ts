@@ -1,9 +1,15 @@
 import { ipcRenderer } from 'electron'
 import type { PreloadApi } from '../api-types'
+import { ORCA_PROFILE_AUTH_STATUS_CHANGED_CHANNEL } from '../../shared/manta-profiles'
 
 export const mantaProfilesApi = {
   list: () => ipcRenderer.invoke('mantaProfiles:list'),
   authStatus: () => ipcRenderer.invoke('mantaProfiles:authStatus'),
+  onAuthStatusChanged: (callback: () => void): (() => void) => {
+    const listener = (): void => callback()
+    ipcRenderer.on(ORCA_PROFILE_AUTH_STATUS_CHANGED_CHANNEL, listener)
+    return () => ipcRenderer.removeListener(ORCA_PROFILE_AUTH_STATUS_CHANGED_CHANNEL, listener)
+  },
   createLocal: (args) => ipcRenderer.invoke('mantaProfiles:createLocal', args),
   createCloudLinked: (args) => ipcRenderer.invoke('mantaProfiles:createCloudLinked', args),
   switchProfile: (args) => ipcRenderer.invoke('mantaProfiles:switch', args),

@@ -12,6 +12,7 @@ export type RpcDispatchStreamingOptions = {
   setDevicePushToken?: (deviceId: string, token: DevicePushTokenRecord) => boolean
   clientKind?: 'mobile' | 'runtime'
   clientCapabilities?: readonly RuntimeCapability[]
+  updateClientCapabilities?: (capabilities: readonly RuntimeCapability[]) => void
   pairing?: PairingRpcContext
   sendBinary?: (bytes: Uint8Array<ArrayBufferLike>) => boolean | void
   registerBinaryStreamHandler?: (

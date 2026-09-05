@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
-import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import { MobileNativeChatView } from './MobileNativeChatView'
 
@@ -72,9 +72,9 @@ type Overrides = {
   inputLockReason?: 'disconnected' | 'waiting' | null
   onSend?: (text: string) => Promise<boolean>
   pending?: Parameters<typeof MobileNativeChatView>[0]['pending']
-  hasMore?: boolean
-  loadingEarlier?: boolean
-  onLoadEarlier?: () => void
+  structuredActivityUi?: boolean
+  agentWorking?: boolean
+  sendSurfaceId?: string
 }
 
 function assistantTurn(id: string, text: string): NativeChatMessage {
@@ -105,15 +105,9 @@ describe('MobileNativeChatView', () => {
     renderer = null
   })
 
-  /** Stands in for the FlatList the view holds a ref to, so scrolls are visible. */
-  let listMock: { scrollToOffset: Mock; scrollToEnd: Mock; scrollToIndex: Mock }
-
   async function render(overrides: Overrides = {}): Promise<void> {
-    listMock = { scrollToOffset: vi.fn(), scrollToEnd: vi.fn(), scrollToIndex: vi.fn() }
     await act(async () => {
-      renderer = create(chatViewElement(overrides), {
-        createNodeMock: (element) => (element.type === 'FlatList' ? listMock : null)
-      })
+      renderer = create(chatViewElement(overrides))
     })
   }
 
@@ -252,113 +246,111 @@ describe('MobileNativeChatView', () => {
       vi.useRealTimers()
     }
   })
-  describe('paging in older history', () => {
-    function list(): ReactTestInstance {
-      return renderer!.root.find((node) => node.type === 'FlatList')
+
+  describe('structured turn status wiring', () => {
+    const userTurn = (id: string, text: string): NativeChatMessage => ({
+      id,
+      role: 'user',
+      blocks: [{ type: 'text', text }],
+      timestamp: 0,
+      source: 'transcript'
+    })
+
+    function rowProps(id: string): Record<string, unknown> {
+      return (renderedRow(id) as { props: Record<string, unknown> }).props
     }
 
-    /** The jump-to-latest control; empty means the view is following the tail. */
-    function jumpToLatestButtons(): ReactTestInstance[] {
-      return renderer!.root.findAll((node) => node.props.accessibilityLabel === 'Scroll to latest')
+    function workingIndicators(): ReactTestInstance[] {
+      return renderer!.root.findAll((node) => node.type === 'WorkingIndicator')
     }
 
-    async function scrollTo(offsetY: number): Promise<void> {
-      await act(async () => {
-        list().props.onScroll({
-          nativeEvent: {
-            contentOffset: { y: offsetY },
-            contentSize: { height: 4000 },
-            layoutMeasurement: { height: 800 }
-          }
+    it('gives the live user turn a status row and drops the three-dot indicator', async () => {
+      const folded = [userTurn('u1', 'go')]
+      await render({ messages: folded, folded, structuredActivityUi: true, agentWorking: true })
+      const props = rowProps('u1')
+      expect(props.structuredActivityUi).toBe(true)
+      expect(props.turnStatus).toMatchObject({ thinking: true, workedSeconds: null })
+      expect(props.activeTurnIsWorking).toBe(true)
+      expect(workingIndicators()).toHaveLength(0)
+    })
+
+    it('keeps the bridge lane on the three-dot indicator with no turn status', async () => {
+      const folded = [userTurn('u1', 'go')]
+      await render({ messages: folded, folded, agentWorking: true })
+      const props = rowProps('u1')
+      expect(props.structuredActivityUi).toBe(false)
+      expect(props.turnStatus).toBeNull()
+      expect(props.activeTurnIsWorking).toBe(false)
+      expect(workingIndicators()).toHaveLength(1)
+    })
+
+    it('settles the finished turn to a tappable duration', async () => {
+      const folded = [userTurn('u1', 'go'), assistantTurn('a1', 'done')]
+      await render({ messages: folded, folded, structuredActivityUi: true, agentWorking: true })
+      expect(rowProps('u1').turnStatus).toMatchObject({ thinking: false, workedSeconds: null })
+      await update({ messages: folded, folded, structuredActivityUi: true, agentWorking: false })
+      const settled = rowProps('u1')
+      expect(settled.turnStatus).toMatchObject({ thinking: false })
+      expect((settled.turnStatus as { workedSeconds: number | null }).workedSeconds).toBeTypeOf(
+        'number'
+      )
+      expect(settled.onToggleTurn).toBeTypeOf('function')
+      expect(settled.activeTurnIsWorking).toBe(false)
+    })
+
+    it('hangs no status row on an assistant row', async () => {
+      const folded = [userTurn('u1', 'go'), assistantTurn('a1', 'done')]
+      await render({ messages: folded, folded, structuredActivityUi: true, agentWorking: true })
+      expect(rowProps('a1').turnStatus).toBeNull()
+      // The assistant row still belongs to the live turn, so its tool row stays visible.
+      expect(rowProps('a1').activeTurnIsWorking).toBe(true)
+    })
+
+    it('does not carry a running turn clock across chat surfaces', async () => {
+      vi.useFakeTimers()
+      try {
+        vi.setSystemTime(1_000)
+        const firstTab = [userTurn('u1', 'first')]
+        await render({
+          messages: firstTab,
+          folded: firstTab,
+          structuredActivityUi: true,
+          agentWorking: true,
+          sendSurfaceId: 'host\0worktree\0tab-a'
         })
+        expect(rowProps('u1').turnStatus).toMatchObject({ startedAt: 1_000 })
+
+        vi.setSystemTime(12_000)
+        const secondTab = [userTurn('u2', 'second')]
+        await update({
+          messages: secondTab,
+          folded: secondTab,
+          structuredActivityUi: true,
+          agentWorking: true,
+          sendSurfaceId: 'host\0worktree\0tab-b'
+        })
+
+        expect(rowProps('u2').turnStatus).toMatchObject({ startedAt: 12_000 })
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('does not treat pre-user history as part of the live turn', async () => {
+      const history = [
+        assistantTurn('a0', 'before the first prompt'),
+        userTurn('u1', 'go'),
+        assistantTurn('a1', 'working')
+      ]
+      await render({
+        messages: history,
+        folded: history,
+        structuredActivityUi: true,
+        agentWorking: true
       })
-    }
 
-    /**
-     * The view fires its own scrollToEnd on open, starting from offset 0. Its
-     * first throttled sample reads as "near the top", so a trigger that only
-     * looks at the offset pages in history nobody asked for — and because that
-     * prepends PAGE rows above the viewport, the reader lands mid-session.
-     */
-    it('does not page in history for a scroll the user did not start', async () => {
-      const onLoadEarlier = vi.fn()
-      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
-
-      await scrollTo(10)
-
-      expect(onLoadEarlier).not.toHaveBeenCalled()
-    })
-
-    it('pages in history once the user drags to the top', async () => {
-      const onLoadEarlier = vi.fn()
-      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
-
-      await act(async () => list().props.onScrollBeginDrag())
-      await scrollTo(10)
-
-      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
-    })
-
-    it('stops paging again once the list comes to rest', async () => {
-      const onLoadEarlier = vi.fn()
-      await render({ folded: [assistantTurn('a', 'one')], hasMore: true, onLoadEarlier })
-
-      await act(async () => list().props.onScrollBeginDrag())
-      await scrollTo(10)
-      await act(async () => list().props.onMomentumScrollEnd())
-      await scrollTo(10)
-
-      expect(onLoadEarlier).toHaveBeenCalledTimes(1)
-    })
-
-    /**
-     * `maintainVisibleContentPosition` looked like the right way to stop a
-     * prepend moving the reader, and it fought the scrollToEnd this view fires
-     * on every new message: each reply bounced the reader up the transcript.
-     * Paging is guarded by the drag flag above, so the anchor is not needed.
-     */
-    it('does not anchor content position', async () => {
-      await render({ folded: [assistantTurn('a', 'one')], hasMore: true })
-
-      expect(list().props.maintainVisibleContentPosition).toBeUndefined()
-    })
-
-    /**
-     * scrollToEnd emits samples on its way down. Reading those as "the user
-     * left the bottom" turns following off mid-flight, and then nothing re-pins
-     * — which is how the jump-to-latest button appeared on every reply.
-     */
-    it('keeps following the tail through its own scroll', async () => {
-      await render({ folded: [assistantTurn('a', 'one')] })
-
-      // A mid-animation sample: still far from the bottom, no drag in progress.
-      await scrollTo(0)
-
-      expect(jumpToLatestButtons()).toHaveLength(0)
-    })
-
-    /**
-     * scrollToEnd reads the list's cached scroll metrics, and a streaming reply
-     * changes height faster than those refresh — so the pin kept landing at a
-     * bottom that had already moved, and the reader drifted up mid-answer.
-     */
-    it('re-pins from the measured height, not the list cached metrics', async () => {
-      await render({ folded: [assistantTurn('a', 'one')] })
-
-      await act(async () => list().props.onLayout({ nativeEvent: { layout: { height: 800 } } }))
-      await act(async () => list().props.onContentSizeChange(400, 3000))
-
-      expect(listMock.scrollToEnd).not.toHaveBeenCalled()
-      expect(listMock.scrollToOffset).toHaveBeenCalledWith({ offset: 2200, animated: false })
-    })
-
-    it('stops following once the user drags away from the bottom', async () => {
-      await render({ folded: [assistantTurn('a', 'one')] })
-
-      await act(async () => list().props.onScrollBeginDrag())
-      await scrollTo(0)
-
-      expect(jumpToLatestButtons()).toHaveLength(1)
+      expect(rowProps('a0').activeTurnIsWorking).toBe(false)
+      expect(rowProps('a1').activeTurnIsWorking).toBe(true)
     })
   })
 })
