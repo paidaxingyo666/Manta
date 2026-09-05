@@ -529,6 +529,20 @@ describe('method routing', () => {
     ])
   })
 
+  it('routes an optional background task id through cancellation', async () => {
+    const params = {
+      envelope: envelope(),
+      turnId: 'background-tasks',
+      scope: 'background-tasks' as const,
+      taskId: 'task-2'
+    }
+
+    const response = await call('agentSession.cancel', params, STRUCTURED_CLIENT)
+
+    expect(response).toMatchObject({ ok: true })
+    expect(hostCalls.cancel).toHaveBeenCalledWith(expect.anything(), params)
+  })
+
   it('routes the structured handoff mutation through the host', async () => {
     const response = await call('agentSession.requestHandoff', {
       envelope: envelope(),
@@ -557,6 +571,21 @@ describe('parameter validation', () => {
       ...sendParams(),
       envelope: { ...envelope(), priority: 'high' }
     })
+  })
+
+  it('rejects invalid or unscoped background task ids', async () => {
+    await rejects('agentSession.cancel', {
+      envelope: envelope(),
+      turnId: 'background-tasks',
+      scope: 'background-tasks',
+      taskId: ' task-2'
+    })
+    await rejects('agentSession.cancel', {
+      envelope: envelope(),
+      turnId: 'turn-1',
+      taskId: 'task-2'
+    })
+    expect(hostCalls.cancel).not.toHaveBeenCalled()
   })
 
   it('refuses to let a client author anything but a user turn', async () => {
