@@ -14,47 +14,24 @@ import {
   summarizeToolRun,
   truncateToolDetail
 } from './native-chat-tool-summary'
+import {
+  describeActiveToolCall,
+  isCommandToolName,
+  NATIVE_CHAT_TOOL_ACTIVITY_COPY,
+  selectActiveToolCall
+} from '../../../../shared/native-chat-tool-activity'
 import { NativeChatDiffView } from './NativeChatDiffView'
 
-const COMMAND_TOOL_NAMES = new Set([
-  'bash',
-  'shell',
-  'powershell',
-  'terminal',
-  'execute',
-  'run_command',
-  'run_shell_command',
-  'shell_command',
-  'exec_command',
-  'run_terminal_cmd',
-  'run_terminal_command'
-])
-
-function normalizedToolName(name: string): string {
-  return name.trim().toLowerCase()
-}
-
 function activeToolLabel(call: Extract<NativeChatBlock, { type: 'tool-call' }>): string {
-  const preview = createToolInputDisplay(call.input).label
-  if (COMMAND_TOOL_NAMES.has(normalizedToolName(call.name))) {
-    return preview
-      ? translate('components.native-chat.tool.runningPreview', 'Running {{preview}}', {
-          preview
-        })
-      : translate('components.native-chat.tool.runningCommand', 'Running command')
-  }
-  return preview
-    ? translate(
-        'components.native-chat.tool.runningNamedPreview',
-        'Running {{toolName}} {{preview}}',
-        {
-          toolName: call.name,
-          preview
-        }
-      )
-    : translate('components.native-chat.tool.runningNamed', 'Running {{toolName}}', {
-        toolName: call.name
-      })
+  const { key, toolName, preview } = describeActiveToolCall(call)
+  const copy = NATIVE_CHAT_TOOL_ACTIVITY_COPY[key]
+  return key === 'runningPreview'
+    ? translate('components.native-chat.tool.runningPreview', copy, { preview })
+    : key === 'runningCommand'
+      ? translate('components.native-chat.tool.runningCommand', copy)
+      : key === 'runningNamedPreview'
+        ? translate('components.native-chat.tool.runningNamedPreview', copy, { toolName, preview })
+        : translate('components.native-chat.tool.runningNamed', copy, { toolName })
 }
 
 /** A single inline tool line — `▸ ToolName  preview` — that expands in place to
@@ -176,27 +153,19 @@ export function NativeChatToolRun({
 
   const callCount = countToolCalls(blocks) || blocks.length
   const summary = summarizeToolRun(blocks)
-  const calls = blocks.filter(isToolCallBlock)
-  const activeCalls = structuredActivityUi
-    ? calls.filter(
-        (call) =>
-          (call.state === 'running' || (call.state == null && activeTurnIsWorking === true)) &&
-          activeTurnIsWorking !== false
-      )
-    : []
-  const latestActiveCall = activeCalls.at(-1)
+  const latestActiveCall = structuredActivityUi
+    ? selectActiveToolCall(blocks, { activeTurnIsWorking })
+    : null
   const isSettled = latestActiveCall == null
   // The turn caret opens the activity group, while each child tool remains
   // collapsed. The global expand toolbar still opens child details together.
   const expandToolLines = expandOverride === undefined ? open : false
   const ActiveToolIcon =
-    latestActiveCall && COMMAND_TOOL_NAMES.has(normalizedToolName(latestActiveCall.name))
-      ? SquareTerminal
-      : Wrench
+    latestActiveCall && isCommandToolName(latestActiveCall.name) ? SquareTerminal : Wrench
   const fallbackLabel =
     callCount === 1
-      ? translate('components.native-chat.tool.countOne', '1 tool call')
-      : translate('components.native-chat.tool.countN', '{{value0}} tool calls', {
+      ? translate('components.native-chat.tool.countOne', NATIVE_CHAT_TOOL_ACTIVITY_COPY.countOne)
+      : translate('components.native-chat.tool.countN', NATIVE_CHAT_TOOL_ACTIVITY_COPY.countN, {
           value0: callCount
         })
 
