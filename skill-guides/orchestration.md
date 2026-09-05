@@ -3,8 +3,7 @@ name: orchestration
 description: >-
   Use Manta orchestration for structured multi-agent coordination: threaded
   messages, blocking ask/reply flows, task dispatch, worker_done/escalation
-  waits, task DAGs, decision gates, coordinator loops, or decomposing work
-  across agents. Use `manta-cli` instead for full ownership handoffs, including
+  waits, task DAGs, decision gates, coordinator loops. Use `manta-cli` instead for full ownership handoffs, including
   requests phrased as "hand off", "handoff", "handover", "give this to another
   agent", or "another worktree" when the user did not explicitly ask to
   supervise, monitor, wait for results, or coordinate a DAG. Use `manta-cli` for
@@ -13,8 +12,8 @@ description: >-
   browser embedded inside Manta. Use Computer Use for external browser windows,
   webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when
   the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots; for external pages themselves, use a page-automation
-  tool such as Playwright or CDP.
+  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
+  page-automation tool such as Playwright or CDP for external pages.
 ---
 
 # Manta Inter-Agent Orchestration

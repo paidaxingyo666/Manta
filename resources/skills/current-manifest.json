@@ -40,18 +40,18 @@
     {
       "name": "manta-cli",
       "sourcePath": "skills/manta-cli",
-      "releaseRevision": 38,
-      "packageDigest": "40d04f4abb55b95b0405fb5936952b656842bf9eb7fa87561c46a403fcd55011",
-      "gitTreeSha": "6cd8703e3c2514aaee3645a1fe5a759631523784",
+      "releaseRevision": 39,
+      "packageDigest": "74490f0cfc62901931ad718fd6c73a804c3e76a9a8a6cc6e8fad2f4f0850807c",
+      "gitTreeSha": "91d4330aecd8e6c22479258064604f1ec12989e9",
       "files": [
         {
           "path": "SKILL.md",
-          "size": 4142,
+          "size": 4123,
           "executable": false,
           "classification": "text",
-          "exactSha256": "b8e2188c52fc0c7dd43dcb0b8c05b99b9b28e12ba02898ec483199e33dad5516",
-          "textNormalizedSha256": "b8e2188c52fc0c7dd43dcb0b8c05b99b9b28e12ba02898ec483199e33dad5516",
-          "identitySha256": "b8e2188c52fc0c7dd43dcb0b8c05b99b9b28e12ba02898ec483199e33dad5516"
+          "exactSha256": "2e72f439989fbab7e169cce002fbb8491ff07f6dc97de379c23c2cc791a5fa1e",
+          "textNormalizedSha256": "2e72f439989fbab7e169cce002fbb8491ff07f6dc97de379c23c2cc791a5fa1e",
+          "identitySha256": "2e72f439989fbab7e169cce002fbb8491ff07f6dc97de379c23c2cc791a5fa1e"
         }
       ]
     },
@@ -130,18 +130,18 @@
     {
       "name": "orchestration",
       "sourcePath": "skills/orchestration",
-      "releaseRevision": 30,
-      "packageDigest": "784d6dd6bbf467499ff3a56b6e664fa7baaa4e939067c3dde5e44481c9170595",
-      "gitTreeSha": "74f3518b3e97e74f42d4dd5a39c916025d8e91dc",
+      "releaseRevision": 31,
+      "packageDigest": "5d73c76c2790ca5636146b490f3827e9921380948765903bc09e1e71d64d206c",
+      "gitTreeSha": "ea9cafdfbc4071e125c3b6aa9288f119ea311ad0",
       "files": [
         {
           "path": "SKILL.md",
-          "size": 4401,
+          "size": 4395,
           "executable": false,
           "classification": "text",
-          "exactSha256": "2c6c11fcf3b7391c0e3f9ed8fd451e83b26f8c423c7c24a7fbace54eb3855558",
-          "textNormalizedSha256": "2c6c11fcf3b7391c0e3f9ed8fd451e83b26f8c423c7c24a7fbace54eb3855558",
-          "identitySha256": "2c6c11fcf3b7391c0e3f9ed8fd451e83b26f8c423c7c24a7fbace54eb3855558"
+          "exactSha256": "c590714d4941377f370827807cdfb9debbf45c251aaf61afbdcd0af21304a0bd",
+          "textNormalizedSha256": "c590714d4941377f370827807cdfb9debbf45c251aaf61afbdcd0af21304a0bd",
+          "identitySha256": "c590714d4941377f370827807cdfb9debbf45c251aaf61afbdcd0af21304a0bd"
         }
       ]
     }
