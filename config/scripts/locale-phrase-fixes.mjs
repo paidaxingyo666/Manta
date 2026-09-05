@@ -131,15 +131,17 @@ export const LOCALE_PHRASE_FIXES = {
     ...KO_PHRASE_FIXES_ROUND4
   ],
   zh: [
-    { pattern: /客服人员/g, replacement: '代理', whenEnIncludes: 'agent' },
+    { pattern: /客服人员/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /会议/g, replacement: '会话', whenEnIncludes: 'session' },
     { pattern: /港口/g, replacement: '端口', whenEnIncludes: 'ort' },
     { pattern: /公关/g, replacement: 'PR', whenEnIncludes: 'PR' },
     { pattern: /虎鲸:\/\//g, replacement: 'manta://', whenEnIncludes: 'manta://' },
-    { pattern: /代理商/g, replacement: '代理', whenEnIncludes: 'agent' },
-    { pattern: /智能体/g, replacement: '代理', whenEnIncludes: 'agent' },
+    { pattern: /代理商/g, replacement: '智能体', whenEnIncludes: 'agent' },
+    // Reversed from upstream, who normalise toward 代理: this fork's word for an
+    // agent is 智能体, and 代理 also means proxy — see fork-zh-terminology.mjs.
+    { pattern: /代理/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /分支机构/g, replacement: '分支', whenEnIncludes: 'ranch' },
-    { pattern: /座席/g, replacement: '代理', whenEnIncludes: 'agent' },
+    { pattern: /座席/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /汽车/g, replacement: '自动', whenEnIncludes: 'Auto' },
     { pattern: /清爽/g, replacement: '刷新中', whenEnIncludes: 'Refreshing' },
     { pattern: /瓦斯尔/g, replacement: 'WSL', whenEnIncludes: 'wsl' },

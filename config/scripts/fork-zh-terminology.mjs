@@ -56,6 +56,55 @@ export function isAgentString(english) {
   return lower.includes('agent') && !lower.includes('proxy')
 }
 
+/**
+ * Catalog values also live in override modules, which the repair policy treats
+ * as canonical — so fixing zh.json alone loses the next time the repair runs,
+ * and `macos-tcc-prompt-localization` fails asserting the catalog survives it.
+ *
+ * Rewritten as source text rather than parsed: these are upstream's modules and
+ * a `zh: '…'` line is the whole shape that matters. Each candidate line is still
+ * decided by the English for its key, same as the catalog.
+ */
+const OVERRIDE_MODULES = [
+  'config/scripts/locale-macos-tcc-key-overrides.mjs',
+  'config/scripts/locale-zh-value-overrides.mjs',
+  'config/scripts/locale-key-overrides.mjs',
+  'config/scripts/locale-value-overrides.mjs'
+]
+
+function fixOverrideModule(file, english) {
+  let text
+  try {
+    text = readFileSync(file, 'utf8')
+  } catch {
+    return 0
+  }
+  const lines = text.split('\n')
+  let key = null
+  let changed = 0
+  for (let i = 0; i < lines.length; i += 1) {
+    const keyLine = /^\s*'([^']+)':\s*\{/.exec(lines[i])
+    if (keyLine) {
+      key = keyLine[1]
+      continue
+    }
+    const zhLine = /^(\s*zh:\s*')(.*)('[,]?)$/.exec(lines[i])
+    if (!zhLine || !key || !zhLine[2].includes(UPSTREAM_WORD)) {
+      continue
+    }
+    const en = key.split('.').reduce((node, part) => (node == null ? node : node[part]), english)
+    if (!isAgentString(en)) {
+      continue
+    }
+    lines[i] = zhLine[1] + zhLine[2].split(UPSTREAM_WORD).join(FORK_WORD) + zhLine[3]
+    changed += 1
+  }
+  if (changed > 0) {
+    writeFileSync(file, lines.join('\n'))
+  }
+  return changed
+}
+
 function main() {
   const check = process.argv.includes('--check')
   const dir = path.join('src', 'renderer', 'src', 'i18n', 'locales')
@@ -88,6 +137,9 @@ function main() {
     }
   }
   visit(catalog, [])
+  for (const file of OVERRIDE_MODULES) {
+    changed += fixOverrideModule(file, english)
+  }
 
   if (changed === 0) {
     console.log('zh.json already uses this fork\u2019s terminology')
