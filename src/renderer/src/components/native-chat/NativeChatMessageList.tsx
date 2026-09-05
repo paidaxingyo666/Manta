@@ -156,6 +156,7 @@ function MessageRow({
           className="text-sm"
           onLinkClick={onLinkClick}
           allowFileUriLinks={allowFileUriLinks}
+          linkifyFilePaths={onLinkClick !== undefined}
         />
       ) : null}
       {tools.length > 0 ? (
