@@ -95,18 +95,39 @@ export function useMobileNativeChatImageUpload(args: {
         const message = uploadError instanceof Error ? uploadError.message : String(uploadError)
         onError?.()
         if (connStateRef.current !== 'connected') {
-          showToast(translate("m.use.mobile.native.chat.image.upload.096043e69b", "Attach failed (disconnected)"), 1500)
+          showToast(
+            translate(
+              'm.use.mobile.native.chat.image.upload.096043e69b',
+              'Attach failed (disconnected)'
+            ),
+            1500
+          )
           return
         }
         if (uploadError instanceof ImageLibraryPermissionError) {
-          showToast(translate("m.use.mobile.native.chat.image.upload.1d6c66b149", "Photo permission denied"), 1500)
+          showToast(
+            translate(
+              'm.use.mobile.native.chat.image.upload.1d6c66b149',
+              'Photo permission denied'
+            ),
+            1500
+          )
           return
         }
         if (message === CLIPBOARD_IMAGE_TOO_LARGE_ERROR) {
-          showToast(translate("m.use.mobile.native.chat.image.upload.9e46aa3074", "Image too large to attach"), 1500)
+          showToast(
+            translate(
+              'm.use.mobile.native.chat.image.upload.9e46aa3074',
+              'Image too large to attach'
+            ),
+            1500
+          )
           return
         }
-        showToast(translate("m.use.mobile.native.chat.image.upload.2595d6cb1c", "Attach failed"), 1500)
+        showToast(
+          translate('m.use.mobile.native.chat.image.upload.2595d6cb1c', 'Attach failed'),
+          1500
+        )
       }
     },
     [

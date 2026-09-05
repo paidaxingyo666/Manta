@@ -6,7 +6,7 @@ import { useAppStore } from '../store'
  * store caches the startup value, so without this a session revoked since launch
  * still reads as connected. The cached value stays rendered while the fetch runs.
  */
-export function useOrcaProfileAuthStatusRefresh(): void {
+export function useMantaProfileAuthStatusRefresh(): void {
   const fetchAuthStatus = useAppStore((state) => state.fetchMantaProfileAuthStatus)
   useEffect(() => {
     void fetchAuthStatus()

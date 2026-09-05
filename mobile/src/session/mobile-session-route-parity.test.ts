@@ -48,7 +48,11 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionCommandDock',
   'MobileSessionSheets'
 ])
-const CONTENT_COMPONENT_NAMES = ['MarkdownReader', 'DiffLineRow', 'FileReader'] as const
+// MobileMarkdownReader, not upstream's MarkdownReader: this fork replaced that
+// component with a rich markdown editor and renamed it, leaving this check
+// looking for a function no longer defined — it has thrown since, unnoticed
+// because a red Mobile Checks does not block a merge.
+const CONTENT_COMPONENT_NAMES = ['MobileMarkdownReader', 'DiffLineRow', 'FileReader'] as const
 const HOST_COMPONENT_NAMES = new Set([
   'ActivityIndicator',
   'Animated.View',

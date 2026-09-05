@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
 import { showDeleteWorktreeFailureToast } from '../sidebar/delete-worktree-failure-toast'
 import { showLocalBaseRefUpdateSuggestionToast } from '../sidebar/local-base-ref-suggestion-toast'
-import { useOrcaProfileAuthStatusRefresh } from '@/hooks/use-orca-profile-auth-status-refresh'
+import { useMantaProfileAuthStatusRefresh } from '@/hooks/use-manta-profile-auth-status-refresh'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
@@ -138,7 +138,7 @@ function MantaCloudDevSubsection(): React.JSX.Element {
   const refresh = useAppStore((s) => s.fetchMantaProfileAuthStatus)
   const configured = authStatus?.configured === true
   const connected = authStatus?.state === 'connected'
-  useOrcaProfileAuthStatusRefresh()
+  useMantaProfileAuthStatusRefresh()
 
   return (
     <section className="space-y-3">

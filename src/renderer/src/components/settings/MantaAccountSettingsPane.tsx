@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BookOpen, Check, CircleUserRound, Files, Smartphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useOrcaProfileAuthStatusRefresh } from '@/hooks/use-orca-profile-auth-status-refresh'
+import { useMantaProfileAuthStatusRefresh } from '@/hooks/use-manta-profile-auth-status-refresh'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
@@ -76,7 +76,7 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
   // — a password form for credentials that may not exist is worse than a pause.
   const perUser = signInMethods?.accounts === 'per-user'
 
-  useOrcaProfileAuthStatusRefresh()
+  useMantaProfileAuthStatusRefresh()
 
   useEffect(() => {
     if (!signInMethods) {

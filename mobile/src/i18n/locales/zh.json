@@ -2010,5 +2010,7 @@
       "reconnect": "重新连接",
       "connect": "连接"
     }
-  }
+  },
+  "m.mobile.structured.agent.session.rpc.faff3c7b42": "请求未发送",
+  "m.MobileSessionSheets.80a42be441": "对话"
 }

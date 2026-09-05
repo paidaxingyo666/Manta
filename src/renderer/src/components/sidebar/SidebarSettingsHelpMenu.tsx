@@ -53,8 +53,6 @@ const SidebarFeedbackDialog = lazyWithRetry(
 const DOCS_URL = 'https://www.onorca.dev/docs'
 const CHANGELOG_URL = 'https://github.com/paidaxingyo666/Manta/releases'
 const GITHUB_URL = 'https://github.com/paidaxingyo666/Manta'
-const DISCORD_URL = 'https://discord.gg/fzjDKHxv8Q'
-const X_URL = 'https://x.com/orca_build'
 const NO_UPDATE_CHECK_MODIFIERS = {
   altKey: false,
   ctrlKey: false,

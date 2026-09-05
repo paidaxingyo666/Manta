@@ -147,7 +147,10 @@ export async function requestStructuredAgentSessionMutation<TValue>(args: {
     }
     return {
       status: 'failed',
-      message: error instanceof Error ? error.message : translate("m.mobile.structured.agent.session.rpc.faff3c7b42", "Request not sent")
+      message:
+        error instanceof Error
+          ? error.message
+          : translate('m.mobile.structured.agent.session.rpc.faff3c7b42', 'Request not sent')
     }
   }
 }

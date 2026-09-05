@@ -57,7 +57,11 @@ function Prose({
     }
     return (
       <Text style={[styles.imageRef, { fontSize: TEXT_SIZE * fontScale }]}>
-        🖼 {block.alt ?? block.path ?? block.url ?? translate("m.MobileNativeChatMessage.58bde2fc06", "image")}
+        🖼{' '}
+        {block.alt ??
+          block.path ??
+          block.url ??
+          translate('m.MobileNativeChatMessage.58bde2fc06', 'image')}
       </Text>
     )
   }
