@@ -200,7 +200,7 @@ export function NativeChatMessageList({
   onLinkClick?: CommentMarkdownLinkClickHandler
   allowFileUriLinks?: boolean
   failedDeliveryMessageIds?: ReadonlySet<string>
-  /** Turn timing/disclosure is available only on the structured Codex lane. */
+  /** Turn timing and disclosure are available on structured agent sessions. */
   showTurnStatus?: boolean
   runtimeContext?: RuntimeFileOperationArgs | null
 }): React.JSX.Element {
