@@ -17085,7 +17085,10 @@
         "retryProof": "Retry proof",
         "retry": "Retry",
         "details": "Details"
-      }
+      },
+      "structuredSessionFellBackToTerminal": "Structured chat isn't available",
+      "structuredSessionFellBackToTerminalDescription": "Manta tried to open a {{value0}} terminal instead.",
+      "structuredSessionLaunchFailedDescription": "Manta could not open a structured {{value0}} chat. See the logs for details."
     },
     "tab": {
       "bar": {
