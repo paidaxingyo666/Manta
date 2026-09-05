@@ -105,6 +105,14 @@ async function waitForHook(
   throw new Error(`Claude did not emit a ${source} SessionStart hook`)
 }
 
+/** The environment minus the keys Manta's agent hook reports a pane under. */
+function withoutMantaPaneIdentity(env: Record<string, string>): Record<string, string> {
+  const rest = { ...env }
+  delete rest.MANTA_PANE_KEY
+  delete rest.MANTA_AGENT_HOOK_ENDPOINT
+  return rest
+}
+
 type RunningTui = { proc: pty.IPty; exited: Promise<void> }
 
 function spawnResumeTui(args: string[], env: Record<string, string>): RunningTui {
@@ -241,7 +249,16 @@ describe.skipIf(!claudeAuthenticated)('real Claude TUI resume proof', () => {
         // which is the system-auth case: stripping it would sign the resume out.
         resolveAuthPolicy: () => ({ stripAuthEnv: false })
       })({ record, spawnToken: 'real-resume' })
-      resumed = spawnResumeTui([...launch.args, '--settings', settingsPath], launch.env)
+      // Why the pane identity is dropped: the developer's own environment is passed
+      // through so the real binary can authenticate, and it carries the keys Manta's
+      // global agent hook reports under. Without this, the session this test spawns
+      // announces "Claude finished" into whatever pane is running the suite — a
+      // lock-screen push, once a phone is paired. The hook already returns early
+      // with no pane key; this is how a session says it is not in one.
+      resumed = spawnResumeTui(
+        [...launch.args, '--settings', settingsPath],
+        withoutMantaPaneIdentity(launch.env)
+      )
       let resumedOutput = ''
       resumed.proc.onData((data) => {
         resumedOutput = `${resumedOutput}${data}`.slice(-4_000)

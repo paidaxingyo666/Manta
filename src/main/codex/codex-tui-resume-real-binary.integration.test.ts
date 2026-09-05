@@ -114,7 +114,14 @@ describe('real Codex structured-to-TUI resume', () => {
           ...process.env,
           CODEX_HOME: codexHome,
           MANTA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
-          TERM: 'xterm-256color'
+          TERM: 'xterm-256color',
+          // Why blanked: process.env carries the pane this suite runs in, and
+          // Manta's global agent hook reports under those keys — so the session
+          // spawned here announces itself as the developer's own agent finishing,
+          // which reaches a paired phone as a push. The hook returns early
+          // without a pane key; emptying them is how a session opts out.
+          MANTA_PANE_KEY: '',
+          MANTA_AGENT_HOOK_ENDPOINT: ''
         }
       })
       const tuiExit = new Promise<number>((resolve) =>
