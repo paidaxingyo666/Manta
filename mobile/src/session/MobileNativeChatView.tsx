@@ -32,6 +32,7 @@ import type { MobileChatQuestion } from './mobile-native-chat-question'
 import type { MobileNativeChatSessionOptionPickersProps } from './MobileNativeChatSessionOptionPickers'
 import { MobileNativeChatMessage } from './MobileNativeChatMessage'
 import type { MobileNativeChatStatus } from './use-mobile-native-chat-session'
+import { translate } from '../i18n/i18n'
 
 const INPUT_LOCK_SETTLE_MS = 600
 
@@ -348,7 +349,7 @@ export function MobileNativeChatView({
                     {loadingEarlier ? (
                       <ActivityIndicator size="small" color={colors.textMuted} />
                     ) : (
-                      <Text style={styles.loadEarlierText}>Load earlier messages</Text>
+                      <Text style={styles.loadEarlierText}>{translate("m.MobileNativeChatView.01ec655ba2", "Load earlier messages")}</Text>
                     )}
                   </Pressable>
                 ) : null
@@ -411,7 +412,7 @@ export function MobileNativeChatView({
             ) : (
               <ChevronsUpDown size={14} color={colors.textMuted} strokeWidth={2} />
             )}
-            <Text style={styles.chromeToggleLabel}>{toolsExpanded ? 'Collapse' : 'Tools'}</Text>
+            <Text style={styles.chromeToggleLabel}>{toolsExpanded ? translate("m.MobileNativeChatView.1e0304cc51", "Collapse") : translate("m.MobileNativeChatView.2779d38b74", "Tools")}</Text>
           </Pressable>
         </View>
         {agentWorking ? (
@@ -422,7 +423,7 @@ export function MobileNativeChatView({
             accessibilityLabel="Stop the agent"
           >
             <Square size={13} color={colors.statusRed} strokeWidth={2.4} fill={colors.statusRed} />
-            <Text style={styles.stopLabel}>Stop</Text>
+            <Text style={styles.stopLabel}>{translate("m.MobileNativeChatView.5fcfefb9aa", "Stop")}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -456,10 +457,10 @@ export function MobileNativeChatView({
         disabled={lockReason !== null}
         placeholder={
           lockReason === 'disconnected'
-            ? 'Reconnecting…'
+            ? translate("m.MobileNativeChatView.805480a4a1", "Reconnecting…")
             : lockReason === 'waiting'
-              ? 'Waiting for terminal…'
-              : 'Message, @files, /commands'
+              ? translate("m.MobileNativeChatView.017c833ec1", "Waiting for terminal…")
+              : translate("m.MobileNativeChatView.e79c8354d9", "Message, @files, /commands")
         }
         filePaths={filePaths}
         onNeedFiles={onNeedFiles}

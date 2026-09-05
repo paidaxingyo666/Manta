@@ -269,7 +269,7 @@ export function MobileSessionSheets({ controller }: { controller: MobileSessionC
       />
       <ActionSheetModal
         visible={agentSessionActionTarget != null}
-        title={agentSessionActionTarget?.title || 'Chat'}
+        title={agentSessionActionTarget?.title || translate("m.MobileSessionSheets.80a42be441", "Chat")}
         actions={closeWithBulkActions(agentSessionActionTarget, () =>
           setAgentSessionActionTarget(null)
         )}

@@ -11,6 +11,7 @@ import { isRpcDeliveryUnknown } from '../transport/rpc-delivery-ambiguity'
 import type { RpcClient } from '../transport/rpc-client'
 import { isLogicalClientCutoverError } from '../transport/stable-logical-rpc-client'
 import { MOBILE_NATIVE_CHAT_MIN_WRITE_TIMEOUT_MS } from './mobile-native-chat-send'
+import { translate } from '../i18n/i18n'
 
 export const STRUCTURED_SEND_TIMEOUT_MS = 15_000
 
@@ -146,7 +147,7 @@ export async function requestStructuredAgentSessionMutation<TValue>(args: {
     }
     return {
       status: 'failed',
-      message: error instanceof Error ? error.message : 'Request not sent'
+      message: error instanceof Error ? error.message : translate("m.mobile.structured.agent.session.rpc.faff3c7b42", "Request not sent")
     }
   }
 }

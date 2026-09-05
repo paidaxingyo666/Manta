@@ -14,6 +14,7 @@ import { colors } from '../theme/mobile-theme'
 import { isRenderableImageUri } from './mobile-native-chat-image-preview'
 import { styles, TEXT_SIZE } from './mobile-native-chat-message-styles'
 import { nativeChatMessageText } from './mobile-native-chat-message-text'
+import { translate } from '../i18n/i18n'
 
 function Prose({
   block,
@@ -56,7 +57,7 @@ function Prose({
     }
     return (
       <Text style={[styles.imageRef, { fontSize: TEXT_SIZE * fontScale }]}>
-        🖼 {block.alt ?? block.path ?? block.url ?? 'image'}
+        🖼 {block.alt ?? block.path ?? block.url ?? translate("m.MobileNativeChatMessage.58bde2fc06", "image")}
       </Text>
     )
   }

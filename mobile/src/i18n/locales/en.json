@@ -246,6 +246,15 @@
       },
       "onboarding": {
         "4c5336d71f": "Manta"
+      },
+      "structured": {
+        "agent": {
+          "session": {
+            "rpc": {
+              "faff3c7b42": "Request not sent"
+            }
+          }
+        }
       }
     },
     "workspace": {
@@ -449,6 +458,12 @@
                 "f988cd21c5": "Image too large to attach",
                 "8dd92621ac": "Photo permission denied",
                 "29cd4ef611": "Attach failed (disconnected)"
+              },
+              "upload": {
+                "2595d6cb1c": "Attach failed",
+                "9e46aa3074": "Image too large to attach",
+                "1d6c66b149": "Photo permission denied",
+                "096043e69b": "Attach failed (disconnected)"
               }
             }
           }
@@ -1943,6 +1958,13 @@
     "MobileSessionHeader": {
       "ff08ff24b1": "Checking desktop capabilities — try again in a moment",
       "6ccffdeccd": "Desktop update required for quick commands"
+    },
+    "MobileNativeChatToolRun": {
+      "c0baad06d0": "more tool calls",
+      "f733f0f1d5": "Result"
+    },
+    "MobileSessionSheets": {
+      "80a42be441": "Chat"
     }
   },
   "mobile": {

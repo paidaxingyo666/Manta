@@ -11,6 +11,7 @@ import {
   uploadMobileNativeChatImages,
   type PendingNativeChatImage
 } from './mobile-native-chat-image-attachment'
+import { translate } from '../i18n/i18n'
 
 type CurrentRef<T> = { readonly current: T }
 type UploadedNativeChatImage = Omit<PendingNativeChatImage, 'id'>
@@ -94,18 +95,18 @@ export function useMobileNativeChatImageUpload(args: {
         const message = uploadError instanceof Error ? uploadError.message : String(uploadError)
         onError?.()
         if (connStateRef.current !== 'connected') {
-          showToast('Attach failed (disconnected)', 1500)
+          showToast(translate("m.use.mobile.native.chat.image.upload.096043e69b", "Attach failed (disconnected)"), 1500)
           return
         }
         if (uploadError instanceof ImageLibraryPermissionError) {
-          showToast('Photo permission denied', 1500)
+          showToast(translate("m.use.mobile.native.chat.image.upload.1d6c66b149", "Photo permission denied"), 1500)
           return
         }
         if (message === CLIPBOARD_IMAGE_TOO_LARGE_ERROR) {
-          showToast('Image too large to attach', 1500)
+          showToast(translate("m.use.mobile.native.chat.image.upload.9e46aa3074", "Image too large to attach"), 1500)
           return
         }
-        showToast('Attach failed', 1500)
+        showToast(translate("m.use.mobile.native.chat.image.upload.2595d6cb1c", "Attach failed"), 1500)
       }
     },
     [

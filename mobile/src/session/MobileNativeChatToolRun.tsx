@@ -20,6 +20,7 @@ import {
 import type { NativeChatBlock } from '../../../src/shared/native-chat-types'
 import { colors } from '../theme/mobile-theme'
 import { styles } from './mobile-native-chat-message-styles'
+import { translate } from '../i18n/i18n'
 
 const MAX_VISIBLE_TOOL_PAIRS = 6
 const MAX_TOOL_RUN_DIFF_ROWS = 240
@@ -82,7 +83,7 @@ function ToolLine({
 }): React.JSX.Element {
   const [expanded, setExpanded] = useState(defaultExpanded)
   const { call, result } = pair
-  const name = call ? call.name : 'Result'
+  const name = call ? call.name : translate("m.MobileNativeChatToolRun.f733f0f1d5", "Result")
   const inputDisplay = call ? createToolInputDisplay(call.input) : null
   const preview = inputDisplay?.label ?? result?.output.split('\n')[0]?.slice(0, 80) ?? ''
   // Why: collapsed tool rows are the common path; defer bounded diff parsing
@@ -241,7 +242,7 @@ export function ToolRun({
             />
           ))}
           {callCount > pairs.length ? (
-            <Text style={styles.toolPreview}>… {callCount - pairs.length} more tool calls</Text>
+            <Text style={styles.toolPreview}>… {callCount - pairs.length} {translate("m.MobileNativeChatToolRun.c0baad06d0", "more tool calls")}</Text>
           ) : null}
         </View>
       ) : null}
