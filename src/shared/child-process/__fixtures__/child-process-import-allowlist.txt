@@ -176,7 +176,6 @@ src/relay/git-stdout-stream.ts
 src/relay/preflight-handler.ts
 src/relay/pty-shell-utils.ts
 src/relay/subprocess-tree-termination.ts
-src/relay/windows-port-scan.ts
 src/relay/workspace-space-scan.ts
 src/shared/ephemeral-vm-recipe-process.ts
 src/shared/ephemeral-vm-recipe-runner.ts
