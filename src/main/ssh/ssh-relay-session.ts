@@ -1118,11 +1118,18 @@ export class SshRelaySession {
     if (consumerOwnerState?.outputFlowControl) {
       this.sourceAckPublisherCleanup = installSshPtySourceAckPublisher(
         providerGeneration,
+        // ACK delivery is idempotent and re-derived from credit state, so it consumes
+        // the two-valued projection of the write settlement rather than the three arms.
         (batch, onSettled) =>
           mux.notifyWithSettlement(
             'pty.ackData',
             batch as unknown as Record<string, unknown>,
-            onSettled
+            (settlement) =>
+              onSettled(
+                settlement.outcome === 'accepted'
+                  ? { ok: true }
+                  : { ok: false, error: settlement.error }
+              )
           )
       )
       this.sourceCancellationPublisherCleanup = installSshPtySourceCancellationPublisher(

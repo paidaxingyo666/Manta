@@ -1,3 +1,4 @@
+import { settledWriteStub } from './settled-pty-write-stub'
 import { describe, expect, it, vi } from 'vitest'
 import { setPtyHostBindings } from '../ipc/pty-host-bindings'
 
@@ -101,6 +102,7 @@ describe('PTY provider dispatch', () => {
       spawn: vi.fn().mockResolvedValue({ id }),
       attach: vi.fn(),
       write: vi.fn(),
+      writeWithSettlement: vi.fn(settledWriteStub()),
       resize: vi.fn(),
       shutdown: vi.fn(),
       sendSignal: vi.fn(),
