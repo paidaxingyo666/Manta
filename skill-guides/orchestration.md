@@ -104,7 +104,7 @@ waiting. `worker-start --spec` creates the Task and its attempt in one call:
 MANTA status --json
 MANTA orchestration run-create --objective "<objective>" --json
 MANTA orchestration worker-start --spec "<worker A task>" --worktree current --agent codex --json
-MANTA orchestration worker-start --spec "<worker B task>" --worktree current --agent claude --model sonnet --json
+MANTA orchestration worker-start --spec "<worker B task>" --worktree current --agent claude --json
 MANTA orchestration check --wait --types "worker_done,escalation,question" --timeout-ms 900000 --json
 ```
 
