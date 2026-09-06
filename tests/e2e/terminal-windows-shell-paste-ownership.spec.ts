@@ -423,10 +423,6 @@ test.describe('Windows terminal shell paste ownership', () => {
     const wslDistro = await configureActiveProjectWslRuntime(mantaPage)
     test.skip(!wslDistro, 'No WSL distro is available on this Windows host')
     const tabId = await createWindowsProjectRuntimeTerminalTab(mantaPage, 'wsl.exe')
-    await updateWindowsDefaultShellSetting(mantaPage, 'cmd.exe')
-    await expect(
-      mantaPage.locator(`[data-testid="sortable-tab"][data-tab-id="${tabId}"] [data-shell-icon]`)
-    ).toHaveAttribute('data-shell-icon', 'wsl.exe')
     await waitForActiveTerminalManager(mantaPage, 30_000)
     await installTerminalPtyWriteSpy(electronApp)
 
@@ -453,6 +449,13 @@ test.describe('Windows terminal shell paste ownership', () => {
       )
       scriptStarted = true
       await waitForTerminalOutput(mantaPage, `PASTE_READY_${runId}`, 10_000)
+
+      // Exercise a live WSL process across the settings change.
+      await updateWindowsDefaultShellSetting(mantaPage, 'cmd.exe')
+      await expect(
+        mantaPage.locator(`[data-testid="sortable-tab"][data-tab-id="${tabId}"] [data-shell-icon]`)
+      ).toHaveAttribute('data-shell-icon', 'wsl.exe')
+      expect(await waitForActivePanePtyId(mantaPage)).toBe(ptyId)
 
       await clearTerminalPtyWriteLog(electronApp)
       await mantaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
