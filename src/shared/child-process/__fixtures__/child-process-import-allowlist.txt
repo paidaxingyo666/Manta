@@ -183,5 +183,4 @@ src/shared/fish-binary-requirement.ts
 src/shared/process-table-snapshot-reader.ts
 src/shared/pty-slave-line-discipline-echo.ts
 src/shared/ripgrep-process-availability.ts
-src/shared/secure-path-windows-acl.ts
 src/shared/shell-process-readiness.ts
