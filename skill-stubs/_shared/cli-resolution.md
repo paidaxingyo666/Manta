@@ -1,19 +1,9 @@
----
-name: orca-per-workspace-env
-description: >-
-  Set up, review, debug, or validate a Manta per-workspace environment recipe: the
-  on-demand, disposable runtime (cloud sandbox, VM, SSH host, or local container)
-  Manta creates fresh for each workspace. Use to stand up a new recipe end to end,
-  fix an `environmentRecipes` entry in `manta.yaml`, scaffold provider lifecycle
-  scripts, or resolve an `manta vm recipe doctor` failure. Use `orca-cli` for
-  ordinary worktree and workspace creation with no recipe involved.
----
+<!-- Single-authored blocks shared by every skill-stubs/<topic>.md projection.
+     Insert one with a line reading `<!-- shared: <id> -->`; every block below must be
+     inserted exactly once by every stub. `reflow` re-wraps the block after {{topic}}
+     substitution, because the substituted name changes where the lines break. -->
 
-# Per-Workspace Environments
-
-This file is a discovery stub, not the usage guide. The full, version-matched per-workspace
-environment reference is served by the `manta` binary itself — kept out of this file on
-purpose so it can never drift from the binary that will actually run your commands.
+<!-- block: resolver -->
 
 ## Resolve the CLI for this session
 
@@ -34,21 +24,14 @@ same way in POSIX shells, PowerShell, and cmd.exe.
 If the selected executable cannot run, report its exact error and stop. Do not fall through
 to another executable, which could silently target a different Manta build.
 
-## Load the full guide before running Manta commands
-
-```text
-MANTA skills get orca-per-workspace-env
-```
-
-That prints the complete, version-matched guide for the exact binary that will handle your
-next commands — provider setup, base and auth snapshots, `environmentRecipes` in
-`manta.yaml`, lifecycle scripts, and `manta vm recipe doctor`. Read it first, then run the
-specific command you need.
+<!-- block: no-guessing -->
 
 Don't guess subcommands or flags from memory or from a cached copy of this stub. They
 change between Manta releases, and this file deliberately no longer lists them. Confirm the
 app is up with `MANTA status --json` (start it with `MANTA open --json` if needed), and
 prefer `--json` for agent-driven calls.
+
+<!-- block: older-binary-intro -->
 
 ## If an older Manta does not recognize `skills get`
 
@@ -57,14 +40,8 @@ unknown command. Another failure is not proof of an older binary; report it rath
 guessing or changing executables. For a confirmed pre-guide binary, use only this bounded,
 read-only bootstrap to orient. Do not dead-end and do not invent commands:
 
-```text
-MANTA status --json
-MANTA vm recipe doctor <recipe-id> --repo-path <repo> --json
-```
-
-The doctor command above is the free static check. Never add `--provision` without the
-user's explicit approval: it creates provider resources and spends the user's cloud money.
+<!-- block: older-binary-outro reflow -->
 
 Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orca-per-workspace-env`. Beyond these commands, ask the user rather than
-guessing a command surface this older binary may not support.
+`MANTA skills get {{topic}}`. Beyond these commands, ask the user rather than guessing a
+command surface this older binary may not support.
