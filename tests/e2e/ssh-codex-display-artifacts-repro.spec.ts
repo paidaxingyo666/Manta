@@ -54,146 +54,151 @@ const CAPTURE_WHILE_REMOTE_TUI_RUNNING =
 const HIDE_UNTIL_REMOTE_TUI_DONE = process.env.MANTA_E2E_HIDE_UNTIL_REMOTE_TUI_DONE === '1'
 const CAPTURE_SCROLLBACK_ARTIFACT_REGION =
   process.env.MANTA_E2E_CAPTURE_SCROLLBACK_ARTIFACT_REGION === '1'
-const FORCE_SSH_RECONNECT_DURING_TUI = process.env.MANTA_E2E_FORCE_SSH_RECONNECT_DURING_TUI === '1'
+const reconnectOverride = process.env.MANTA_E2E_FORCE_SSH_RECONNECT_DURING_TUI
+const reconnectModes = reconnectOverride === undefined ? [false, true] : [reconnectOverride === '1']
 const KEEP_SSH_REPRO_TARGET = process.env.MANTA_E2E_KEEP_SSH_REPRO_TARGET === '1'
 
 test.describe('Remote SSH Codex display artifacts repro', () => {
   test.skip(!RUN_DOCKER_SSH, 'Set MANTA_E2E_SSH_DOCKER=1 to run Docker-backed SSH repro.')
   test.skip(process.platform === 'win32', 'Docker SSH repro uses POSIX ssh tooling.')
 
-  test('does not leave duplicated Codex status output after SSH replay', async ({
-    mantaPage
-  }, testInfo: TestInfo) => {
-    test.slow()
-    let target: DockerSshRelayTarget | null = null
-    try {
-      target = startDockerSshRelayTarget(testInfo)
-      installRemoteCodexArtifactTui(target)
-      if (RUN_REAL_REMOTE_CODEX) {
-        installRemoteRealCodex(target)
-      } else {
-        installRemoteCodexFixture(target)
-      }
-      await waitForSessionReady(mantaPage)
-      await waitForActiveWorktree(mantaPage)
-      const remote = await connectDockerRemote(mantaPage, target)
-      expect(remote.targetId).toBeTruthy()
-      expect(remote.worktreeId).toBeTruthy()
-      await ensureTerminalVisible(mantaPage, 45_000)
-      await waitForActiveTerminalManager(mantaPage, 60_000)
-      await enableRiskyTerminalRendererPath(mantaPage)
-      await installPtyReplayProbe(mantaPage)
+  for (const forceReconnect of reconnectModes) {
+    test(`does not leave duplicated Codex status output after SSH replay (${forceReconnect ? 'forced reconnect' : 'normal restore'})`, async ({
+      mantaPage,
+      electronApp
+    }, testInfo: TestInfo) => {
+      test.slow()
+      let target: DockerSshRelayTarget | null = null
+      try {
+        target = startDockerSshRelayTarget(testInfo)
+        installRemoteCodexArtifactTui(target)
+        if (RUN_REAL_REMOTE_CODEX) {
+          installRemoteRealCodex(target)
+        } else {
+          installRemoteCodexFixture(target)
+        }
+        await waitForSessionReady(mantaPage)
+        await waitForActiveWorktree(mantaPage)
+        const remote = await connectDockerRemote(mantaPage, target)
+        expect(remote.targetId).toBeTruthy()
+        expect(remote.worktreeId).toBeTruthy()
+        await ensureTerminalVisible(mantaPage, 45_000)
+        await waitForActiveTerminalManager(mantaPage, 60_000)
+        await enableRiskyTerminalRendererPath(mantaPage)
 
-      const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
-      const doneMarker = RUN_REAL_REMOTE_CODEX
-        ? `MANTA_REAL_REMOTE_CODEX_DONE_${Date.now()}`
-        : REMOTE_TUI_DONE
-      const cleanMarker = RUN_REAL_REMOTE_CODEX
-        ? `MANTA_REAL_REMOTE_CODEX_CLEAN_${Date.now()}`
-        : doneMarker
-      await execInTerminal(
-        mantaPage,
-        ptyId,
-        RUN_REAL_REMOTE_CODEX
-          ? realRemoteCodexCommand(doneMarker)
-          : `codex --no-alt-screen --dangerously-bypass-approvals-and-sandbox ${shellQuote(
-              doneMarker
-            )}`
-      )
-      await mantaPage.waitForTimeout(1_200)
-      if (FORCE_SSH_RECONNECT_DURING_TUI) {
-        dropDockerSshClientSessions(target)
-        await waitForDockerRemoteReconnected(mantaPage, remote.targetId)
-        await mantaPage.waitForTimeout(2_000)
-      }
-      await (RUN_REAL_REMOTE_CODEX
-        ? (async () => {
-            await stressRestoreRemoteTerminalDuringCodex(mantaPage, remote.worktreeId)
-            await waitForRealRemoteCodexCompletion(mantaPage, doneMarker)
-          })()
-        : (async () => {
-            if (CAPTURE_WHILE_REMOTE_TUI_RUNNING) {
-              await mantaPage.waitForTimeout(10_000)
-            } else {
-              await switchToNonRemoteWorktree(mantaPage, remote.worktreeId)
-              await (HIDE_UNTIL_REMOTE_TUI_DONE
-                ? waitForRemoteFixtureCleanFinalInHiddenPane(mantaPage, remote.worktreeId)
-                : mantaPage.waitForTimeout(10_000))
-            }
-            if (CAPTURE_WHILE_REMOTE_TUI_RUNNING) {
-              await mantaPage.waitForTimeout(900)
-              return
-            }
-            await switchToWorktree(mantaPage, remote.worktreeId)
-            await ensureTerminalVisible(mantaPage, 45_000)
-            await waitForActiveTerminalManager(mantaPage, 60_000)
-            await waitForTerminalOutput(
-              mantaPage,
-              REMOTE_CODEX_FIXTURE_CLEAN_FINAL_TEXT,
-              60_000,
-              120_000
-            )
-          })())
-      await mantaPage.waitForTimeout(600)
-      if (CAPTURE_SCROLLBACK_ARTIFACT_REGION) {
-        await scrollActiveTerminalToArtifactHistory(mantaPage)
-      }
-
-      const { analysis, screenshot } = await captureGraySlabAnalysis(mantaPage)
-      analysis.replayDebug = await readReplayProbeSnapshot(mantaPage)
-      analysis.duplicateStatusRows = await readDuplicateStatusRows(mantaPage)
-      const evidenceLabel = RUN_REAL_REMOTE_CODEX
-        ? 'real-remote-codex-reconnect-replay'
-        : 'fixture-codex-reconnect-replay'
-      persistReproEvidence(evidenceLabel, analysis, screenshot)
-      const resetEvidence = await resetWebglAndCaptureGraySlabAnalysis(mantaPage)
-      resetEvidence.analysis.replayDebug = await readReplayProbeSnapshot(mantaPage)
-      resetEvidence.analysis.duplicateStatusRows = await readDuplicateStatusRows(mantaPage)
-      persistReproEvidence(
-        `${evidenceLabel}-after-webgl-reset`,
-        resetEvidence.analysis,
-        resetEvidence.screenshot
-      )
-      await testInfo.attach('remote-codex-artifact-final-screen', {
-        body: screenshot,
-        contentType: 'image/png'
-      })
-      await testInfo.attach('remote-codex-artifact-after-webgl-reset', {
-        body: resetEvidence.screenshot,
-        contentType: 'image/png'
-      })
-      testInfo.annotations.push({
-        type: 'remote-codex-artifact-analysis',
-        description: JSON.stringify(analysis)
-      })
-      testInfo.annotations.push({
-        type: 'remote-codex-artifact-after-webgl-reset-analysis',
-        description: JSON.stringify(resetEvidence.analysis)
-      })
-
-      // Why: this spec supports both repro mode and strict regression mode so
-      // the same harness can prove a failure and lock the fixed behavior.
-      if (EXPECT_NO_ARTIFACTS) {
-        expect(analysis.slabCount).toBeLessThanOrEqual(MAX_FINAL_GRAY_SLABS)
-        expect(analysis.staleStatusGlyphRowCount).toBe(0)
-        expect(analysis.duplicateStatusRows ?? []).toEqual([])
-      } else {
-        expect(analysis.rawSlabCount + analysis.staleStatusGlyphRowCount).toBeGreaterThan(0)
-      }
-      if (FORCE_SSH_RECONNECT_DURING_TUI) {
-        expect(Number(analysis.replayDebug?.replayCount ?? 0)).toBeGreaterThan(0)
-      }
-      if (RUN_REAL_REMOTE_CODEX) {
-        await clearRemoteTerminalAfterCodex(mantaPage, ptyId, cleanMarker)
-      }
-    } finally {
-      if (KEEP_SSH_REPRO_TARGET && target) {
-        console.log(
-          `[ssh-codex-repro] keeping Docker SSH target ${target.containerName} on port ${target.port}`
+        const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
+        await installPtyReplayProbe(mantaPage, electronApp, ptyId)
+        const doneMarker = RUN_REAL_REMOTE_CODEX
+          ? `MANTA_REAL_REMOTE_CODEX_DONE_${Date.now()}`
+          : REMOTE_TUI_DONE
+        const cleanMarker = RUN_REAL_REMOTE_CODEX
+          ? `MANTA_REAL_REMOTE_CODEX_CLEAN_${Date.now()}`
+          : doneMarker
+        await execInTerminal(
+          mantaPage,
+          ptyId,
+          RUN_REAL_REMOTE_CODEX
+            ? realRemoteCodexCommand(doneMarker)
+            : `codex --no-alt-screen --dangerously-bypass-approvals-and-sandbox ${shellQuote(
+                doneMarker
+              )}`
         )
-      } else {
-        cleanupDockerSshRelayTarget(target)
+        await mantaPage.waitForTimeout(1_200)
+        if (forceReconnect) {
+          dropDockerSshClientSessions(target)
+          await waitForDockerRemoteReconnected(mantaPage, remote.targetId)
+          await mantaPage.waitForTimeout(2_000)
+        }
+        await (RUN_REAL_REMOTE_CODEX
+          ? (async () => {
+              await stressRestoreRemoteTerminalDuringCodex(mantaPage, remote.worktreeId)
+              await waitForRealRemoteCodexCompletion(mantaPage, doneMarker)
+            })()
+          : (async () => {
+              if (CAPTURE_WHILE_REMOTE_TUI_RUNNING) {
+                await mantaPage.waitForTimeout(10_000)
+              } else {
+                await switchToNonRemoteWorktree(mantaPage, remote.worktreeId)
+                await (HIDE_UNTIL_REMOTE_TUI_DONE
+                  ? waitForRemoteFixtureCleanFinalInHiddenPane(mantaPage, remote.worktreeId)
+                  : mantaPage.waitForTimeout(10_000))
+              }
+              if (CAPTURE_WHILE_REMOTE_TUI_RUNNING) {
+                await mantaPage.waitForTimeout(900)
+                return
+              }
+              await switchToWorktree(mantaPage, remote.worktreeId)
+              await ensureTerminalVisible(mantaPage, 45_000)
+              await waitForActiveTerminalManager(mantaPage, 60_000)
+              await waitForTerminalOutput(
+                mantaPage,
+                REMOTE_CODEX_FIXTURE_CLEAN_FINAL_TEXT,
+                60_000,
+                120_000
+              )
+            })())
+        await mantaPage.waitForTimeout(600)
+        if (CAPTURE_SCROLLBACK_ARTIFACT_REGION) {
+          await scrollActiveTerminalToArtifactHistory(mantaPage)
+        }
+
+        const { analysis, screenshot } = await captureGraySlabAnalysis(mantaPage)
+        analysis.replayDebug = await readReplayProbeSnapshot(mantaPage, electronApp)
+        analysis.duplicateStatusRows = await readDuplicateStatusRows(mantaPage)
+        const evidenceLabel = RUN_REAL_REMOTE_CODEX
+          ? 'real-remote-codex-reconnect-replay'
+          : 'fixture-codex-reconnect-replay'
+        persistReproEvidence(evidenceLabel, analysis, screenshot)
+        const resetEvidence = await resetWebglAndCaptureGraySlabAnalysis(mantaPage)
+        resetEvidence.analysis.replayDebug = await readReplayProbeSnapshot(mantaPage, electronApp)
+        resetEvidence.analysis.duplicateStatusRows = await readDuplicateStatusRows(mantaPage)
+        persistReproEvidence(
+          `${evidenceLabel}-after-webgl-reset`,
+          resetEvidence.analysis,
+          resetEvidence.screenshot
+        )
+        await testInfo.attach('remote-codex-artifact-final-screen', {
+          body: screenshot,
+          contentType: 'image/png'
+        })
+        await testInfo.attach('remote-codex-artifact-after-webgl-reset', {
+          body: resetEvidence.screenshot,
+          contentType: 'image/png'
+        })
+        testInfo.annotations.push({
+          type: 'remote-codex-artifact-analysis',
+          description: JSON.stringify(analysis)
+        })
+        testInfo.annotations.push({
+          type: 'remote-codex-artifact-after-webgl-reset-analysis',
+          description: JSON.stringify(resetEvidence.analysis)
+        })
+
+        // Why: this spec supports both repro mode and strict regression mode so
+        // the same harness can prove a failure and lock the fixed behavior.
+        if (EXPECT_NO_ARTIFACTS) {
+          expect(analysis.slabCount).toBeLessThanOrEqual(MAX_FINAL_GRAY_SLABS)
+          expect(analysis.staleStatusGlyphRowCount).toBe(0)
+          expect(analysis.duplicateStatusRows ?? []).toEqual([])
+        } else {
+          expect(analysis.rawSlabCount + analysis.staleStatusGlyphRowCount).toBeGreaterThan(0)
+        }
+        if (forceReconnect) {
+          expect(await waitForActivePanePtyId(mantaPage, 60_000)).toBe(ptyId)
+          expect(Number(analysis.replayDebug?.replayCount ?? 0)).toBeGreaterThan(0)
+        }
+        if (RUN_REAL_REMOTE_CODEX) {
+          await clearRemoteTerminalAfterCodex(mantaPage, ptyId, cleanMarker)
+        }
+      } finally {
+        if (KEEP_SSH_REPRO_TARGET && target) {
+          console.log(
+            `[ssh-codex-repro] keeping Docker SSH target ${target.containerName} on port ${target.port}`
+          )
+        } else {
+          cleanupDockerSshRelayTarget(target)
+        }
       }
-    }
-  })
+    })
+  }
 })
