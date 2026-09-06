@@ -71,11 +71,11 @@ export const browserPageInteractionAndSessionsApi = {
     return () => ipcRenderer.removeListener('browser:pane-focus', listener)
   },
   onOpenLinkInMantaTab: (
-    callback: (event: { browserPageId: string; url: string }) => void
+    callback: (event: { browserPageId: string; url: string; activate?: boolean }) => void
   ): (() => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      data: { browserPageId: string; url: string }
+      data: { browserPageId: string; url: string; activate?: boolean }
     ) => callback(data)
     ipcRenderer.on('browser:open-link-in-manta-tab', listener)
     return () => ipcRenderer.removeListener('browser:open-link-in-manta-tab', listener)
