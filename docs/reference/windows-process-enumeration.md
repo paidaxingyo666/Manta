@@ -16,38 +16,193 @@ table. It wraps a Toolhelp32 snapshot from `@vscode/windows-process-tree`.
 
 ```ts
 import {
+  readWindowsProcessIdentityTable,
+  readWindowsProcessIdentityTableFresh,
   readWindowsProcessTable,
   readWindowsProcessTableFresh
 } from '../windows/windows-process-table'
 ```
 
-- `readWindowsProcessTable()` — shared TTL cache. Use for anything periodic.
-- `readWindowsProcessTableFresh()` — a snapshot that starts after the call. Use
-  for teardown identity, where a cached row can predate the exit it is being
-  asked about.
+Each pair is a shared TTL cache plus a `Fresh` variant that starts its scan
+after the call. Use `Fresh` for teardown identity, where a cached row can
+predate the exit it is being asked about, and the cached one for anything
+periodic.
 
-Both **reject** when the table cannot be read. Do not convert that into an empty
-array. An empty table is a claim that nothing is running, and callers act on
-that claim by declaring a tree dead or a shell childless. "Unavailable" has to
-stay distinguishable from "empty" — collapsing the two is how a PTY tree
+All four **reject** when the table cannot be read. Do not convert that into an
+empty array. An empty table is a claim that nothing is running, and callers act
+on that claim by declaring a tree dead or a shell childless. "Unavailable" has
+to stay distinguishable from "empty" — collapsing the two is how a PTY tree
 survived its own teardown (#9045).
 
-Measured on Windows 11 with 1050 processes (p50 / p95):
+## Two flag sets: ask for a command line only if you read one
+
+Neither flag is a wider column on the same query. Each is a separate
+per-process syscall sequence, and they are not equally expensive to the EDR
+watching:
+
+- `CommandLine` (`process_commandline.cc`) —
+  `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`, then
+  `NtQueryInformationProcess(ProcessCommandLineInformation)` twice: once to size
+  the buffer, once to fill it. The kernel builds the string, so no address space
+  is opened or read. It used to walk the target's PEB with three chained
+  `ReadProcessMemory` calls; the patched addon no longer contains that primitive.
+- `Memory` (`process.cc`) — retired. It took a **second** `OpenProcess`, and that
+  one carried `PROCESS_VM_READ`, which it acquired and never used.
+
+Measured here (541 processes, 405 openable), per detailed scan, before → after
+dropping `Memory`: `OpenProcess` 1082 → 541. That halving is all the `Memory`
+drop bought on its own — both handles carried `PROCESS_VM_READ` at the time, so
+it moved the PEB traffic not at all. Replacing the PEB walk with the kernel
+query is what took `PROCESS_VM_READ` and `ReadProcessMemory` out of the addon
+altogether; the two changes compose, and neither substitutes for the other.
+
+So be precise about what these two flag sets buy now. A detailed scan is one
+`OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)` per process and no memory
+access at all. What the split buys on top of that is the handle itself: an
+identity scan opens nothing.
+
+So the module exposes two snapshots, and the row types differ so a cheap caller
+cannot read what its flag set did not pay for:
+
+| reader                                     | row type                     | flags                       | per-process handles |
+| ------------------------------------------ | ---------------------------- | --------------------------- | ------------------- |
+| `readWindowsProcessIdentityTable[Fresh]()` | `WindowsProcessIdentityRow`  | `None \| CreationTime`      | none                |
+| `readWindowsProcessTable[Fresh]()`         | `WindowsProcessRow`          | `+ CommandLine`             | one `OpenProcess`   |
+
+`Memory` is requested by neither. Nothing reads a working set off this table —
+`windows-process-resource-collector.ts` runs its own sweep because it needs
+commit and CPU counters in the same pass, and the addon stores `WorkingSetSize`
+into a `DWORD` so anything above 4 GB wraps anyway.
+
+Measured on Windows 11 with 492 processes (p50 / p95):
 
 |                                  | p50     | p95     |
 | -------------------------------- | ------- | ------- |
-| pid + ppid + name                | 15.9 ms | 17.5 ms |
-| + memory + command line          | 30.6 ms | 33.7 ms |
+| identity (pid + ppid + name)     | 6.3 ms  | 7.0 ms  |
+| detailed (+ command line)        | 12.3 ms | 13.4 ms |
+| _retired_ (+ memory)             | 13.1 ms | 14.1 ms |
 | `Get-CimInstance` via PowerShell | 706 ms  | 723 ms  |
 
-Those are the module's published figures. The flag set this module actually
-requests is `CommandLine | CreationTime` — **not** `Memory`, which cost a second
-`OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ)` plus
-`GetProcessMemoryInfo` per process (`src/process.cc:47-63`) for a value nothing
-read. Dropping it halves the handles a snapshot opens. The remaining set sits
-between the two rows above and has not been measured separately; on a real
-Windows host, `Get-Counter '\Process(Manta)\Handle Count'` sampled across a
-snapshot cadence is the check.
+There are exactly **two** caches, never one per caller. The fan-out this module
+exists to prevent is one scan per _caller_, and each reader still serves every
+caller wanting its flag set, so a 32-wide teardown still collapses into one scan
+of each. A third cache would need a third flag set, not a third caller.
+
+### Only one native read may be in flight, ever
+
+This is the price of having two flag sets, and it is not optional.
+
+The npm wrapper **coalesces rather than queues**. `getRawProcessList` pushes the
+callback onto one list and calls the addon only when no request is in progress,
+so a second concurrent caller's `flags` are **discarded** and it is handed the
+first caller's rows. Measured against the real addon: issue identity first, both
+callers get the same array, 0 of 541 rows carry a command line. A detailed read
+that overlaps an identity read therefore returns a table with **every command
+line empty**, and agent recognition reads that as "no agent" — silently, and
+only under concurrency.
+
+Nothing else in this module prevents that. Each snapshot cache single-flights
+only within itself (`inFlight` is a closure per reader), and the wedge set
+latches only *after* a read misses its 3 s deadline, so through the healthy
+~12 ms of a scan neither excludes the other. Overlap is the normal state rather
+than an edge case: other panes keep polling detailed at 750 ms while a teardown
+takes identity snapshots, and `codex-structured-turn-processes.ts` issues fresh
+detailed scans on turn stop.
+
+`nativeReadGate` serializes every native read across both flag sets. It is also
+what makes the relay's bare addon safe: `adaptAddon` has no queue at all, and
+two simultaneous `CreateToolhelp32Snapshot` calls are the crash the vendor's
+queue exists to prevent. Every link settles — a wedged read still rejects on its
+deadline — so a waiter is never stranded; it re-checks the wedge and rejects.
+
+Because only one native call is ever outstanding, the wedge gate and the 3 s
+deadline stay **shared** and retention stays bounded at exactly one callback,
+not one per reader. Read ids are module-global and monotonic, so a late callback
+can only clear its own wedge.
+
+`resetNativeReaderState` **chains** onto the gate rather than replacing it. A
+replacement would let a waiter still holding the old chain run beside a read
+queued on the new one; every link settles within the deadline, so chaining costs
+a bounded wait and keeps the exclusion whole. That path is test-only, which is
+exactly why it matters — it would otherwise hand a suite two concurrent calls
+into its own mock, the condition these tests exist to detect.
+
+### Testing this module: assert a positive property, on the right mock
+
+Three defects have now shipped in this file's tests, all the same shape — a case
+that passed for a reason other than the one it claimed to check:
+
+1. A loader that built a **fresh mock per call**, so the coalescing it was meant
+   to reproduce could never happen.
+2. An identity-side assertion of only `!('command' in row)`, which a correctly
+   flagged read and a coalesced one satisfy equally, so the test would go green
+   on the very regression it guards.
+3. A concurrency assertion placed on the **coalescing** mock, whose own
+   `requestInProgress` latch means it can never report more than one call in
+   flight — so it held whether or not this module excluded anything, and passed
+   against a read gate that had genuinely lost exclusion.
+
+The third arrived in the fix for the first two, which is the point: this is not a
+mistake you make once.
+
+So: assert what each flag set **did** get, not only what it lacks, and put those
+assertions in the helper both orderings run through, or the reverse order keeps
+the blind spot. The identity set is checked on `creationTimeMs` because that is
+the field it exists to carry. Keep both that check and the flags-array check —
+they catch **different** failures and neither is redundant. The flags array
+catches a read served another flag set's rows (the coalescing bug); the
+positional `creationTimeMs` check catches field shaping — identity dropping
+`CreationTime` from its flags, or `toIdentityRow` failing to forward it — which
+no flags assertion would notice.
+
+And pick the mock to match the claim. The coalescing mock models the npm
+wrapper's queue semantics and is the only place to assert those. Concurrency has
+to be measured against the bare-addon mock, which has no queue and so makes
+re-entry observable.
+
+With no native binding there is only one scan to run and it is the 1.4 s
+PowerShell one, so the identity view rides the detailed snapshot — projected
+through `toIdentityRow`, so an identity row carries no command line on any host.
+
+### Which callers need which
+
+| caller                                        | reads              | flag set |
+| --------------------------------------------- | ------------------ | -------- |
+| `windows-agent-foreground-process.ts`         | `command` (agent recognition) | detailed |
+| `local-workspace-platform-port-scanner.ts`    | `command` (port attribution)  | detailed |
+| `codex-structured-turn-processes.ts`          | `command` (turn-process identity) | detailed |
+| `structured-tui-process-identity.ts`          | `command` (child match)       | detailed |
+| `windows-pty-root-identity.ts`                | `pid` / `ppid` only           | identity |
+| `agent-session-process-identity-probe.ts`     | `creationTimeMs` only         | identity |
+| `relay/windows-port-scan.ts`                  | `name` (port owner label)     | detailed |
+
+`windows-port-scan.ts` is the one mismatch in the table: it reads only `pid` and
+`name`, which the identity set answers, but it calls the detailed reader. On a
+host with a live pane that costs nothing extra — the detailed snapshot is
+already cached — and on a headless relay it pays for a command line no caller
+reads. Left as-is deliberately, because moving it to identity would trade that
+for a second scan whenever a pane is polling; revisit if the relay ever scans
+ports without one.
+
+The per-pane foreground tracker is the hot one (750 ms / 2 s cadence) and it
+genuinely needs the command line, so the repeating per-process `OpenProcess` is
+not something the split removes. What the split removes is that handle from
+teardown identity and from the owner probe, which now open nothing.
+
+### `creationTimeMs` does not exist on any shipped build
+
+Nothing in the repo supplies a `CreationTime` flag. The package enum is
+`None`/`Memory`/`CommandLine`, `process_worker.cc` emits no `creationTimeMs`,
+the vendored patch adds none, and `adaptAddon`'s `PROCESS_DATA_FLAG` lacks the
+bit. So `creationTimeMs` is always `undefined` in production and
+`isWindowsProcessStartTimeAvailable()` is always `false` — a latent product gap
+that predates the split and needs its own owner.
+
+Two consequences. `IDENTITY_PROJECTION.flags` evaluates to `0` today, so the
+identity reader really does open zero handles. And
+`agent-session-process-identity-probe.ts` early-returns on
+`isWindowsProcessStartTimeAvailable()` rather than scanning the whole table to
+produce `null`. Do not build anything on Windows start time working.
 
 Those CIM numbers are from a 1050-process host. The scan scales with process
 count: on a 1486-process Windows SSH host it measured **1.36 s** and produced
@@ -345,9 +500,10 @@ ownership, and CPU accounting in the memory collector — still reads it through
 its own query. Those callers are not migrated.
 
 Committed private bytes have no equivalent either, and the one memory value the
-snapshot _can_ carry is unusable for the sizes Manta now sees: `process.cc` stores
-`pmc.WorkingSetSize` into a `DWORD`, so anything above 4 GB wraps. That is the
-second reason `windows-process-resource-collector.ts` still runs its own
+addon can produce is unusable for the sizes Manta now sees: `process.cc` stores
+`pmc.WorkingSetSize` into a `DWORD`, so anything above 4 GB wraps — which is why
+neither flag set asks for it. That is the second reason
+`windows-process-resource-collector.ts` still runs its own
 `Get-CimInstance` sweep — it needs `PageFileUsage` (commit) and the CPU-time
 counters in the same pass. Migrating it to the native table would cost both, and
 it is why this module no longer sets the `Memory` flag at all: the field had no

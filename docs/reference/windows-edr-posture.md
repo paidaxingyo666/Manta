@@ -84,10 +84,12 @@ embedded name for the old disk name to contradict.
 
 ### Every process gets a handle, on a timer
 
-`src/main/windows/windows-process-table.ts` takes a Toolhelp32 snapshot under
-**one** flag set, `CommandLine | CreationTime`, shared by every caller. pid, ppid
-and name come out of the snapshot itself and open nothing. `CommandLine` is what
-opens a handle: the addon calls `GetProcessCommandLine` per process, which opens
+`src/main/windows/windows-process-table.ts` takes a Toolhelp32 snapshot under one
+of **two** flag sets: identity (`None | CreationTime`) for callers that read only
+pid, ppid and name, and detailed (`+ CommandLine`) for callers that match on a
+command line. pid, ppid and name come out of the snapshot itself and open
+nothing, so an identity scan opens nothing at all. `CommandLine` is what opens a
+handle: the addon calls `GetProcessCommandLine` per process, which opens
 `PROCESS_QUERY_LIMITED_INFORMATION` — the same right Task Manager takes — and
 asks the kernel for the string. Upstream it opened
 `PROCESS_QUERY_INFORMATION | PROCESS_VM_READ` and walked the PEB with three
@@ -113,15 +115,15 @@ panes multiplied it (#15036). The native snapshot answers the same question in
 See
 [`windows-process-enumeration.md`](./windows-process-enumeration.md).
 
-Asking for fewer fields is cheaper, and the module now asks for the smallest set
-that still answers every caller. There is **no** per-flag-set cache split: one
-TTL-cached snapshot serves everyone, deliberately, because a split would restore
-the per-pane fan-out the cache exists to remove — a 32-wide teardown has to
-collapse into one scan. So the cheap identity-only read is not something any
-caller can select; every read pays for `CommandLine`. An earlier revision of this
-file described a two-cache design with 6.3 ms / 12.3 ms p50 figures at 492
-processes. That design is not in the tree and those numbers describe no code
-path here; the figures that do apply are the module's own, in
+Asking for fewer fields is cheaper, and each caller now asks for the smallest set
+that answers it. There are exactly **two** TTL-cached snapshots, one per flag
+set, never one per caller: the fan-out the cache exists to remove is one scan per
+_caller_, and each reader still serves every caller wanting its flag set, so a
+32-wide teardown still collapses into one scan of each. Teardown identity and the
+owner probe select the identity set and therefore open no handles; the per-pane
+foreground tracker genuinely needs a command line and still pays for one. A third
+cache would need a third flag set, not a third caller. Measured at 492 processes,
+p50: identity 6.3 ms, detailed 12.3 ms — see
 [`windows-process-enumeration.md`](./windows-process-enumeration.md).
 
 **How an EDR read it:** a cross-process handle plus a remote memory read against
@@ -150,11 +152,12 @@ unpatched source, so "it required cleanly" is not evidence.
 
 What to declare to administrators is now one
 `PROCESS_QUERY_LIMITED_INFORMATION` handle per process on a detailed snapshot and
-no remote memory access at all. What this does not narrow is _which_ processes
-are asked — a detailed scan still queries every pid, including `lsass.exe`.
-Restricting the command-line pass to Manta's own subtree needs job-object
-membership as its source of truth (a ppid-derived allowlist would miss the
-detached, reparented descendants of #9045 and #10475), and remains unclaimed work.
+no remote memory access at all; an identity snapshot opens nothing. What this
+does not narrow is _which_ processes are asked — a detailed scan still queries
+every pid, including `lsass.exe`. Restricting the command-line pass to Manta's own
+subtree needs job-object membership as its source of truth (a ppid-derived
+allowlist would miss the detached, reparented descendants of #9045 and #10475),
+and remains unclaimed work.
 
 ### Encoded, policy-bypassing PowerShell
 
