@@ -832,10 +832,13 @@ jobs:
             node_modules/.pnpm/@vscode+windows-process-tree@*/node_modules/@vscode/windows-process-tree/build
           key: native-modules-${{ runner.os }}-${{ steps.deps.outputs.native-cache-scope }}-${{ runner.arch }}-node-node${{ steps.deps.outputs.node-version }}-${{ hashFiles('pnpm-lock.yaml', '.github/actions/install-node-dependencies/action.yml', 'config/scripts/ensure-native-runtime.mjs', 'config/scripts/rebuild-native-deps.mjs', 'config/patches/node-pty@1.1.0.patch', 'config/patches/@vscode__windows-process-tree@0.8.0.patch') }}
 
+      # vitest runs here directly rather than through `pnpm test`, so the addon
+      # assertions only hold once install-node-dependencies has rebuilt natives.
       - name: Test Windows-specific boundaries
         run: >-
           pnpm exec vitest run --config config/vitest.config.ts
           config/scripts/rebuild-native-deps.test.mjs
+          config/scripts/rebuild-native-deps-windows-process-tree.test.mjs
           src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts
           src/main/browser/browser-route-tcp-egress.electron.test.ts
           src/main/browser/browser-route-webrtc-egress.electron.test.ts
@@ -848,6 +851,7 @@ jobs:
           src/main/agent-hooks/windows-direct-cmd-hook-command.test.ts
           src/main/windows/windows-pty-job.win32.test.ts
           src/main/windows/windows-host-job.win32.test.ts
+          src/main/windows/windows-process-tree-command-line-patch.test.ts
           src/main/windows-live-tree-kill.win32.test.ts
           src/main/wsl/wsl-runner.test.ts
           src/main/wsl/wsl-guest-environment.test.ts

@@ -13,7 +13,7 @@ two escalated to multi-stage incidents carrying ATT&CK tactic mappings
 The framing this document keeps throughout, because both halves matter:
 
 > **Defender is not malfunctioning. It is describing the code accurately.** Manta
-> really does copy its own signed image under a different name, really does read
+> really does copy its own signed image under a different name, really did read
 > every process's memory on a timer, really does run base64-encoded PowerShell
 > with the execution policy bypassed, and really does take screenshots and
 > synthesise input from a runtime-compiled assembly. Each of those is a
@@ -88,7 +88,9 @@ embedded name for the old disk name to contradict.
 **one** flag set, `CommandLine | CreationTime`, shared by every caller. pid, ppid
 and name come out of the snapshot itself and open nothing. `CommandLine` is what
 opens a handle: the addon calls `GetProcessCommandLine` per process, which opens
-`PROCESS_QUERY_INFORMATION | PROCESS_VM_READ` and walks the PEB with three
+`PROCESS_QUERY_LIMITED_INFORMATION` — the same right Task Manager takes — and
+asks the kernel for the string. Upstream it opened
+`PROCESS_QUERY_INFORMATION | PROCESS_VM_READ` and walked the PEB with three
 `ReadProcessMemory` calls (`src/process_commandline.cc:32,41-47` in the vendored
 `@vscode/windows-process-tree` 0.8.0 source that `config/patches/` patches).
 
@@ -96,8 +98,9 @@ opens a handle: the addon calls `GetProcessCommandLine` per process, which opens
 `GetProcessMemoryUsage` open a **second** `PROCESS_QUERY_INFORMATION |
 PROCESS_VM_READ` handle per process for a `GetProcessMemoryInfo` call whose
 result no caller read (`src/process.cc:47-63`). Dropping it halves the handles
-opened per snapshot. It does not remove the remote memory read, because the
-command line still performs one.
+opened per snapshot. On its own it removed no memory read — both handles carried
+`PROCESS_VM_READ` at the time — so it composes with the patch below rather than
+substituting for it.
 
 It exists because seven independent readers used to fork `powershell.exe` for a
 `Get-CimInstance Win32_Process` scan. That cost, measured: a PowerShell
@@ -121,30 +124,37 @@ processes. That design is not in the tree and those numbers describe no code
 path here; the figures that do apply are the module's own, in
 [`windows-process-enumeration.md`](./windows-process-enumeration.md).
 
-**How an EDR reads it:** a cross-process handle plus a remote memory read against
+**How an EDR read it:** a cross-process handle plus a remote memory read against
 every process on the box, repeating on a cadence, is the read half of the
 telemetry that credential dumping and process injection produce. MDE surfaced it
 as "suspicious memory activity".
 
-**That signal is still present.** An earlier revision of this file claimed the
-command line "now comes from the kernel" through `NtQueryInformationProcess`'s
-`ProcessCommandLineInformation` class, needing only
-`PROCESS_QUERY_LIMITED_INFORMATION`, and that `ReadProcessMemory` was absent from
-the compiled addon. None of that is true of the code we ship.
-`process_commandline.cc` calls `NtQueryInformationProcess` with
-`ProcessBasicInformation` only — to locate the PEB — and then issues three
-`ReadProcessMemory` calls against a `PROCESS_VM_READ` handle to read the PEB, the
-`RTL_USER_PROCESS_PARAMETERS`, and the command-line buffer. Nothing asserts an
-import table, and no such assertion would pass.
+**The memory read is gone.** A fourth hunk in
+`config/patches/@vscode__windows-process-tree@0.8.0.patch` has
+`GetProcessCommandLine` call `NtQueryInformationProcess` with
+`ProcessCommandLineInformation` (class 60, Windows 8.1+; Electron's floor is
+Windows 10), which returns a `UNICODE_STRING` the kernel builds and needs only
+`PROCESS_QUERY_LIMITED_INFORMATION`. Measured on ~540 processes, per detailed
+scan: `ReadProcessMemory` 1128 → **0**, desired access `0x0410` → `0x1000`, with
+byte-identical command lines on every process both readers recovered. There is no
+PEB fallback to reinstate it — a hooked `ntdll` answering
+`STATUS_INVALID_INFO_CLASS` for one target would have flipped a process-wide,
+one-way switch back to `PROCESS_VM_READ` on exactly the machines this exists for.
 
-What this change did remove is the `Memory` flag's second handle and its
-`GetProcessMemoryInfo` call, so the per-process handle count per snapshot halves.
-What remains to declare to administrators is unchanged in kind: one
-`PROCESS_QUERY_INFORMATION | PROCESS_VM_READ` handle and a PEB read against every
-process on the box, at the shared snapshot's cadence. Moving to
-`ProcessCommandLineInformation` (Windows 8.1+, `PROCESS_QUERY_LIMITED_INFORMATION`
-only) would genuinely retire the remote read, but it is an addon patch nobody has
-written; treat it as unclaimed work, not as shipped.
+Because the property is the *absence* of an import, it is checkable on the
+artifact rather than the source: `inspectWindowsProcessTreeAddon()` answers
+`clean` / `unpatched` / `missing`, and the rebuild, `ensure-native-runtime.mjs`,
+the relay build and `loadWindowsProcessTree()` all key on it. That check is load-
+bearing because the published tarball ships a *loadable* prebuilt built from
+unpatched source, so "it required cleanly" is not evidence.
+
+What to declare to administrators is now one
+`PROCESS_QUERY_LIMITED_INFORMATION` handle per process on a detailed snapshot and
+no remote memory access at all. What this does not narrow is _which_ processes
+are asked — a detailed scan still queries every pid, including `lsass.exe`.
+Restricting the command-line pass to Manta's own subtree needs job-object
+membership as its source of truth (a ppid-derived allowlist would miss the
+detached, reparented descendants of #9045 and #10475), and remains unclaimed work.
 
 ### Encoded, policy-bypassing PowerShell
 
