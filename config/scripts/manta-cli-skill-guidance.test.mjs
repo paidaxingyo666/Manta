@@ -93,7 +93,9 @@ describe('manta CLI skill guidance', () => {
     const skill = readSkill()
 
     expect(skill).toContain('MANTA skills get orca-cli --reference references/<file>.md')
-    expect(skill).toContain('If the CLI rejects `--reference`, run `MANTA skills get orca-cli --full`')
+    expect(skill).toContain(
+      'If the CLI rejects `--reference`, run `MANTA skills get orca-cli --full`'
+    )
     for (const reference of [
       'references/browser.md',
       'references/automations.md',

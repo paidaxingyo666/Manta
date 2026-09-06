@@ -264,7 +264,13 @@ describe('bundled skill guide generator', () => {
         expect(reference.markdown).toBe(
           normalizeMarkdown(
             await readFile(
-              path.join(projectDir, 'skill-guides', guide.name, 'references', `${reference.name}.md`),
+              path.join(
+                projectDir,
+                'skill-guides',
+                guide.name,
+                'references',
+                `${reference.name}.md`
+              ),
               'utf8'
             )
           )

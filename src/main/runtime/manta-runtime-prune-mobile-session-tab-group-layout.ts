@@ -204,7 +204,7 @@ export class MantaRuntimeWithPruneMobileSessionTabGroupLayout extends MantaRunti
     if (!handle) {
       return undefined
     }
-    return this.agentOrchestrationProjection.getForHandle(handle)
+    return this.agentOrchestrationProjection.getForHandle(handle, undefined, { paneKey })
   }
 
   getAgentStatusTerminalHandleForPaneKey(paneKey: string): string | undefined {
