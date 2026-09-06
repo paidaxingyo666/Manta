@@ -58,11 +58,34 @@ function currentSkill(name) {
   return skill
 }
 
+/**
+ * Whether a release exists in git yet.
+ *
+ * The newest mapping entry is written by the release cut, which commits the
+ * sealed manifest — the tag is pushed only when that commit reaches main. So on
+ * the pull request that carries a release, the entry names a version whose tree
+ * cannot be read, and this walk would try to materialise a package from it.
+ * Released history is what has a tag.
+ */
+function releaseIsTagged(tag) {
+  try {
+    execFileSync('git', ['rev-parse', '--verify', '--quiet', `${tag}^{commit}`], {
+      stdio: ['ignore', 'ignore', 'ignore']
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 function historicalRelease(name) {
   const current = currentSkill(name)
   for (const release of releaseMapping.releases.toReversed()) {
     const revision = release.skills[name]
     if (typeof revision !== 'number' || revision >= current.releaseRevision) {
+      continue
+    }
+    if (!releaseIsTagged(`v${release.appVersion}`)) {
       continue
     }
     const snapshot = registry.skills[name]?.find((entry) => entry.releaseRevision === revision)

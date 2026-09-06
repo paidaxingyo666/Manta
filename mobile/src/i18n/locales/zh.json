@@ -246,6 +246,15 @@
       },
       "onboarding": {
         "4c5336d71f": "Manta"
+      },
+      "structured": {
+        "agent": {
+          "session": {
+            "rpc": {
+              "faff3c7b42": "请求未发送"
+            }
+          }
+        }
       }
     },
     "workspace": {
@@ -454,6 +463,12 @@
                 "f988cd21c5": "图片过大,无法附加",
                 "8dd92621ac": "相册权限被拒绝",
                 "29cd4ef611": "附加失败(已断开)"
+              },
+              "upload": {
+                "2595d6cb1c": "附加失败",
+                "9e46aa3074": "图片过大,无法附加",
+                "1d6c66b149": "相册权限被拒绝",
+                "096043e69b": "附加失败(已断开)"
               }
             }
           }
@@ -1943,6 +1958,13 @@
     },
     "HostDiagnosticsLink": {
       "ceff9523b5": "查看网络诊断"
+    },
+    "MobileNativeChatToolRun": {
+      "c0baad06d0": "更多工具调用",
+      "f733f0f1d5": "结果"
+    },
+    "MobileSessionSheets": {
+      "80a42be441": "对话"
     }
   },
   "mobile": {

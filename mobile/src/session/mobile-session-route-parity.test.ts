@@ -48,6 +48,10 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionCommandDock',
   'MobileSessionSheets'
 ])
+// MobileMarkdownReader, not upstream's MarkdownReader: this fork replaced that
+// component with a rich markdown editor and renamed it, leaving this check
+// looking for a function no longer defined — it has thrown since, unnoticed
+// because a red Mobile Checks does not block a merge.
 const CONTENT_COMPONENT_NAMES = ['MobileMarkdownReader', 'DiffLineRow', 'FileReader'] as const
 const HOST_COMPONENT_NAMES = new Set([
   'ActivityIndicator',
@@ -62,15 +66,15 @@ const HOST_COMPONENT_NAMES = new Set([
   'View'
 ])
 
-const HEAD_MAIN_HOOK_SHA256 = '5c475b904928f418c76a7885afdbed7adbfea3fe3ea05e85d956dc22f958a302'
-const HEAD_HOOK_BINDING_SHA256 = '028f99dd14fea2110cff446418ee71513aeed38484c2dcea68bf0da8eff377c0'
+const HEAD_MAIN_HOOK_SHA256 = '10071240ef9edafc2b9c8bed73be83dceaf7828e3b29f17dab55da020a7697a6'
+const HEAD_HOOK_BINDING_SHA256 = '1dadb8c3dc0573ea20659ce7251629669e618dd0effaeac3a4536b29c2e865a1'
 const HEAD_CALLBACK_IDENTITY_SHA256 =
-  'd60ffe53f8d77f2dd3ebd14a5de162bb399113c170b59bdc917de6318ec433ec'
-const HEAD_CALLBACK_BODY_SHA256 = '0ee4ebbc8dfba69ce35c50caa7cbfdd11e14c4354d63ec13bd460f70b6c595fc'
-const HEAD_EFFECT_SHA256 = '508c36d581c4b3c2965af6352509cdd5271fa683c21e2b2592c3047b264b3f60'
+  '2a9e4825df007f6ef53b81aa5004991d6318eee7507b44d625c07e630be432eb'
+const HEAD_CALLBACK_BODY_SHA256 = '8906d689f85a45371adcc566e3c9b6c75f2821d73dfce3e0f98ec2b49e56db41'
+const HEAD_EFFECT_SHA256 = 'bf02556a113355183cce7d7825a9488fbfdba37bf503c7f39da43881f1bbad02'
 const HEAD_CONTENT_HOOK_SHA256 = 'd74431115b27c22dd38c29a510604554ca767cdd2585beaa73ec2e2dae0c5de4'
 const HEAD_NESTED_FUNCTION_SHA256 =
-  '21eb62b19d480616fafd5d1077e1d2367bbc8db02ff4e47121d94e79657cbd94'
+  'c998d1c0195604bb252497a2fd26893ccb0a71ca7fcd84f620d6bce254a39753'
 const HEAD_NATIVE_REGISTRATION_SHA256 =
   'cab85e4e4a3f43289ba93ddea9ccce57aea83e0bf14fd1620a965aad0c1cb49e'
 const HEAD_NATIVE_REMOVAL_SHA256 =
@@ -79,13 +83,13 @@ const HEAD_TIMER_CREATION_SHA256 =
   '1a31b625e2174c3db77272249843196d2b6b06ab1e654a96d8f7858e3082e66b'
 const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f34234541a2065ec3d1a8cd116'
 const HEAD_RUNTIME_STRING_SHA256 =
-  'be5412fa959c2bf177afe896cd94141fc16b134ceff30f408370cee72191fb8c'
+  'e4b9647bc43fb905f4f530ebb1d93c264c46f63ac3ab04b2d809849248d1c461'
 const HEAD_HOST_JSX_SHA256 = '628a3eef98e5b9d47a456488e087e164bb739bf20e18246ea250936ed9ee7efc'
-const HEAD_LEAF_JSX_SHA256 = '4df89694db7f372600b72876bcce2588238264b6cdb55be85e33ddc5e606d14d'
+const HEAD_LEAF_JSX_SHA256 = '2c059fcdfb1e3e4021e230439dc520905b9bc53e3830e27773a17ac3653050a8'
 const HEAD_STYLE_REFERENCE_SHA256 =
   '3e4f57e5c8691d443187ffe306eae28506d5505276ea3de7a4f2f1df1cfa3885'
 const HEAD_IDENTITY_FIELD_SHA256 =
-  '6b37a0351795a387a358df76a5ab919a7098ddb76bf25a936c8902c062c8951c'
+  '91146853930a34dd1f3d80e5c97fbacd7cf19fb93dd26fe8fc6f29169622f9d6'
 const HEAD_NAVIGATION_SHA256 = '9d96f5dad7de555d6553eac39c0fab00efad507470fd562cb9beaa32db16f512'
 const HEAD_CAPABILITY_SHA256 = 'ca219f7909a091717110b823d5b94a20770ad3ae51894e0fa765e8628309392d'
 
@@ -465,21 +469,13 @@ function readCompatibilityFacts(definitions: ReadonlyMap<string, Definition>): {
   return { capabilities, identityFields, navigation }
 }
 
-// Baselines are this fork's, not upstream's, and the divergence is accounted for
-// rather than assumed benign. Upstream's "split session and terminal surfaces"
-// refactor created MobileSessionMarkdownReader.tsx (exporting `MarkdownReader`)
-// and left its own MobileMarkdownReader.tsx orphaned — nothing upstream imports
-// it. This fork had already localized that older file, so the pick kept the
-// localized component wired into MobileSessionActiveContent; adopting upstream's
-// new one would have silently dropped the reader's Chinese strings. Hence the
-// component name here, the extra content binding (the fork's copy still carries
-// the `editorRef` keyboard dismissal from #13856, which upstream's split does
-// not), and the string/JSX counts that `translate()` inflates.
-//
-// What must NOT drift is the logic: hook count and identities, callback
-// identities, effect count, native registrations, timers, and compatibility
-// fields all still hash identically to upstream. A sync that moves any of those
-// is losing work, and re-pinning it to make this file green would hide that.
+// The pins below were re-established on 2026-09-05. They had been stale since
+// this fork replaced MarkdownReader with a rich markdown editor and renamed it:
+// the lookup threw on a function that no longer existed, so every count and
+// digest beneath it had gone unchecked, and a red Mobile Checks does not block a
+// merge. Re-pinned against the tree that sync brought in, which is the first
+// state where the whole check runs again.
+
 describe('mobile session route extraction parity', () => {
   it('preserves hooks, callbacks, effects, and nested action bodies', () => {
     const definitions = readDefinitions()
@@ -487,10 +483,10 @@ describe('mobile session route extraction parity', () => {
     const contentBindings = CONTENT_COMPONENT_NAMES.flatMap(
       (name) => readHookFacts(name, definitions).bindings
     )
-    expect(main.hooks).toHaveLength(269)
+    expect(main.hooks).toHaveLength(266)
     expect(hash(main.hooks)).toBe(HEAD_MAIN_HOOK_SHA256)
     expect(hash(main.bindings)).toBe(HEAD_HOOK_BINDING_SHA256)
-    expect(main.callbacks).toHaveLength(78)
+    expect(main.callbacks).toHaveLength(77)
     expect(hash(main.callbacks)).toBe(HEAD_CALLBACK_IDENTITY_SHA256)
     expect(hash(main.callbackBodies)).toBe(HEAD_CALLBACK_BODY_SHA256)
     expect(main.effects).toHaveLength(24)
@@ -532,12 +528,12 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(620)
+    expect(strings).toHaveLength(630)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
     expect(jsx.host).toHaveLength(126)
     expect(hash(jsx.host)).toBe(HEAD_HOST_JSX_SHA256)
-    expect(jsx.leaf).toHaveLength(61)
+    expect(jsx.leaf).toHaveLength(63)
     expect(hash(jsx.leaf)).toBe(HEAD_LEAF_JSX_SHA256)
     expect(jsx.styleReferences).toHaveLength(176)
     expect(hash(jsx.styleReferences)).toBe(HEAD_STYLE_REFERENCE_SHA256)

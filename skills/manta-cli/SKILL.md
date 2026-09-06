@@ -2,8 +2,7 @@
 name: manta-cli
 description: >-
   Use the public `manta` CLI to operate Manta-managed worktrees, folder contexts,
-  terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser
-  embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
+  terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
   "Manta worktree", "child worktree", "cardStatus", "spawn codex/claude in a worktree",
   "read/wait/send Manta terminal", "terminal send", "full handoff", "handover",
   "give this to another agent", "another worktree", "Manta browser", "manta artifacts",
@@ -12,8 +11,7 @@ description: >-
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
   Use Computer Use for external browser windows, webviews, or desktop UI only
   when the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
-  page-automation tool such as Playwright or CDP for external pages.
+  coordinates, or screenshots.
 ---
 
 # Manta CLI

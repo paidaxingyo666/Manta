@@ -94,7 +94,11 @@ describe('Bitbucket hosted review integration', () => {
       })
 
       await expect(
-        getHostedReviewForBranch({ repoPath, branch: 'refs/heads/feature/bitbucket' })
+        getHostedReviewForBranch({
+          executionHostId: 'local',
+          repoPath,
+          branch: 'refs/heads/feature/bitbucket'
+        })
       ).resolves.toEqual({
         provider: 'bitbucket',
         number: 12,
@@ -124,7 +128,12 @@ describe('Bitbucket hosted review integration', () => {
   })
 
   it('does not cache a transient API failure as a definitive no-review result', async () => {
-    vi.useFakeTimers({ now: Date.now() })
+    // Date only, not the whole timer set: this test makes real HTTP calls and
+    // shells out to git, and faking setTimeout freezes what those depend on —
+    // the test then hangs to its own deadline. The cache expiry it needs to
+    // cross is Date.now()-based (hosted-review-branch-cache.ts), so that is all
+    // that has to move.
+    vi.useFakeTimers({ now: Date.now(), toFake: ['Date'] })
     let pullRequestCalls = 0
     let buildStatusCalls = 0
     const server = createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -176,12 +185,20 @@ describe('Bitbucket hosted review integration', () => {
       })
 
       await expect(
-        getHostedReviewForBranch({ repoPath, branch: 'refs/heads/feature/recovery' })
+        getHostedReviewForBranch({
+          executionHostId: 'local',
+          repoPath,
+          branch: 'refs/heads/feature/recovery'
+        })
       ).rejects.toThrow('HTTP 503')
 
       vi.advanceTimersByTime(60_001)
       await expect(
-        getHostedReviewForBranch({ repoPath, branch: 'refs/heads/feature/recovery' })
+        getHostedReviewForBranch({
+          executionHostId: 'local',
+          repoPath,
+          branch: 'refs/heads/feature/recovery'
+        })
       ).resolves.toMatchObject({
         provider: 'bitbucket',
         number: 13,

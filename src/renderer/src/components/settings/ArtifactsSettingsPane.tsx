@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
 import { ArrowRight, Files } from 'lucide-react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { Button } from '@/components/ui/button'
 import { SettingsSwitchRow } from './SettingsFormControls'
 import { ArtifactsSelfHostNotice } from '../artifacts/ArtifactsSelfHostNotice'
+import { useMantaProfileAuthStatusRefresh } from '@/hooks/use-manta-profile-auth-status-refresh'
 import { useAppStore } from '@/store'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import { translate } from '@/i18n/i18n'
@@ -21,18 +21,13 @@ export function ArtifactsSettingsPane({
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
   const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
-  const fetchAuthStatus = useAppStore((state) => state.fetchMantaProfileAuthStatus)
   const signedIn = authStatus?.state === 'connected'
   // Why: the capability lives in the desktop host's store and is deliberately absent from the
   // settings.update allowlist, so a web client can only mirror it — never grant it.
   const isWebClient = isWebClientLocation()
   const sharingEnabled = settings.artifactSharingEnabled === true
 
-  useEffect(() => {
-    if (!authStatus) {
-      void fetchAuthStatus()
-    }
-  }, [authStatus, fetchAuthStatus])
+  useMantaProfileAuthStatusRefresh()
 
   const howToSteps: HowToStep[] = [
     ...(sharingEnabled

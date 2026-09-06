@@ -27,7 +27,15 @@ docs/readme/README.zh-CN.md merge=keepfork
 pnpm-lock.yaml merge=keepupstream
 mobile/pnpm-lock.yaml merge=keepupstream
 resources/skills/current-manifest.json merge=keepupstream
-resources/skills/snapshot-registry.json merge=keepupstream
-resources/skills/release-mapping.json merge=keepupstream
+# Not keepupstream, unlike current-manifest.json beside them: these two record
+# which snapshots THIS fork has released, and released history is append-only.
+# Taking upstream's replaced it with theirs — keyed by upstream's skill names and
+# one revision short — which regeneration then refuses to reconcile, and the
+# refusal only surfaces on a sync that also changes a skill.
+resources/skills/snapshot-registry.json merge=keepfork
+resources/skills/release-mapping.json merge=keepfork
 config/max-lines-baseline.txt merge=keepupstream
 src/renderer/src/i18n/locales/*.json merge=keepupstream
+# Generated runtime English subset: compared byte-for-byte by
+# verify:localization-runtime-catalog, so a CRLF checkout would fail the gate.
+/src/renderer/src/i18n/en-runtime-required.json linguist-generated=true text eol=lf

@@ -118,6 +118,13 @@ const bundledPluginResources = {
 // from package directories where pnpm's symlink farm is absent. Copy the exact
 // runtime dependency closure to Resources/node_modules so bare require() calls
 // do not fall through to a developer checkout's node_modules.
+// Why the single file rather than the package root: app.asar carries no node_modules, so main's
+// lazy require in deferred-emoji-shortcode-dataset.ts resolves only out of Resources/node_modules,
+// but emojibase-data is 49 MB of locale datasets and worktree naming reads exactly this 166 KB file.
+const emojiShortcodeDatasetResource = {
+  from: 'node_modules/emojibase-data/en/shortcodes/emojibase.json',
+  to: 'node_modules/emojibase-data/en/shortcodes/emojibase.json'
+}
 // Why: MIT requires the copyright notice and permission text to travel with
 // every distributed copy. Nothing else placed LICENSE in the packaged app, so
 // a downloaded build carried the code without its licence.
@@ -126,7 +133,8 @@ const commonExtraResources = [
   licenseResource,
   relayExtraResource,
   bundledPluginResources,
-  skillFreshnessResources
+  skillFreshnessResources,
+  emojiShortcodeDatasetResource
 ]
 // Why: native speech addons must be real files outside app.asar; copy only the
 // package matching the artifact target instead of every optional variant.

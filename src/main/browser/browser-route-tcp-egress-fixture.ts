@@ -82,6 +82,25 @@ export async function runBrowserRouteTcpEgressProbe(
   return result
 }
 
+/**
+ * Whether the probe's precondition holds on this machine.
+ *
+ * The proof that Chromium routed DNS through SOCKS is that the target has no
+ * local answer — if it resolves here, the browser could have reached it
+ * directly and the observation proves nothing. That is a fact about the
+ * resolver, not about the code: a VPN or corporate DNS that answers every name
+ * (fake-IP ranges do exactly this for `.test`) makes the probe unable to run,
+ * which is a skip, not a failure.
+ */
+export async function browserRouteTcpEgressProbeIsRunnable(): Promise<boolean> {
+  try {
+    await lookup(REMOTE_HOST)
+  } catch {
+    return true
+  }
+  return false
+}
+
 async function assertLocallyUnresolvable(host: string): Promise<void> {
   try {
     await lookup(host)

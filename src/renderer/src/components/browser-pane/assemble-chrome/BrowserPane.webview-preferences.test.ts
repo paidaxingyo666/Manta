@@ -56,7 +56,7 @@ describe('BrowserPane webview preferences', () => {
       'persist:manta-browser-session-profile-1'
     )
     expect(ensuredWebview?.webview.getAttribute('webpreferences')).toBe(
-      MANTA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE
+      `${MANTA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE},transparent=false`
     )
     expect(registryMocks.registerPersistentWebview).toHaveBeenCalledWith(
       'browser-page-1',

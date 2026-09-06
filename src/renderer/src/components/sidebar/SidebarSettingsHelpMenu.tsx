@@ -31,9 +31,21 @@ import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
 import { showOnboardingFromRenderer } from '../onboarding/show-onboarding-event'
 import { SetupGuideProgressRing } from '../setup-guide/SetupGuideProgressRing'
 import { useSetupGuideProgress } from '../setup-guide/use-setup-guide-progress'
-import { SidebarFeedbackDialog } from './SidebarFeedbackDialog'
+import { lazyWithRetry } from '@/lib/lazy-with-retry'
+import type * as SidebarFeedbackDialogModule from './SidebarFeedbackDialog'
 import { translate } from '@/i18n/i18n'
 import { getUpdateCheckClickOptions, getUpdateCheckHint } from '@/lib/update-check-click-options'
+
+// Why lazy: the feedback form is only reachable from this menu's own item, so it does not
+// belong on the renderer boot graph. Shared with the menu-open warm below so both hit the
+// same module-map entry.
+const loadSidebarFeedbackDialog = (): Promise<typeof SidebarFeedbackDialogModule> =>
+  import('./SidebarFeedbackDialog')
+
+const SidebarFeedbackDialog = lazyWithRetry(
+  () => loadSidebarFeedbackDialog().then((module) => ({ default: module.SidebarFeedbackDialog })),
+  { reloadKey: 'sidebar-feedback-dialog' }
+)
 
 // Docs stay on upstream's site: they describe upstream's features accurately and
 // this fork publishes none of its own. The changelog does not — releases are cut
@@ -80,6 +92,8 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
   const settingsShortcut = useShortcutKeyDetails('app.settings')
   const [menuOpen, setMenuOpen] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  // Why sticky: the dialog animates itself closed off `open`, so unmounting on close cuts that short.
+  const [feedbackDialogMounted, setFeedbackDialogMounted] = useState(false)
   const [isRestartingManta, setIsRestartingManta] = useState(false)
   const lastShowOnboardingAtRef = React.useRef(0)
   const updateCheckModifiersRef = React.useRef(NO_UPDATE_CHECK_MODIFIERS)
@@ -92,6 +106,16 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
   const handleMenuOpenChange = (open: boolean): void => {
     setMenuOpen(open)
     updateCheckModifiersRef.current = NO_UPDATE_CHECK_MODIFIERS
+    if (open) {
+      // Warm on the precursor: reading the menu and clicking Send Feedback takes hundreds of ms,
+      // so the chunk is already in the module map by the time the item is selected.
+      void loadSidebarFeedbackDialog().catch(() => {})
+    }
+  }
+
+  const handleOpenFeedback = (): void => {
+    setFeedbackDialogMounted(true)
+    setFeedbackOpen(true)
   }
 
   const handleShowOnboarding = (): void => {
@@ -214,7 +238,7 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
               )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => setFeedbackOpen(true)}>
+            <DropdownMenuItem onSelect={handleOpenFeedback}>
               <MessageSquareText className="size-3.5" />
               {translate(
                 'auto.components.sidebar.SidebarSettingsHelpMenu.4cf5b868d7',
@@ -305,7 +329,11 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <SidebarFeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+      {feedbackDialogMounted ? (
+        <React.Suspense fallback={null}>
+          <SidebarFeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+        </React.Suspense>
+      ) : null}
     </>
   )
 }

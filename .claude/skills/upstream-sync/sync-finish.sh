@@ -24,6 +24,11 @@ pnpm install --lockfile-only >/dev/null 2>&1 && echo "   root ok" || echo "   ro
 echo "== mobile localization: wrap what upstream added, translate from memory"
 python3 "$HERE/sync-i18n.py" | sed 's/^/   /'
 
+echo "== desktop Chinese: reapply this fork's wording"
+# The locale catalogs are on the keepupstream driver, so every sync reverts the
+# fork's terminology to upstream's — 490 entries on 2026-09-05, all one word.
+node "$ROOT/config/scripts/fork-zh-terminology.mjs" | sed 's/^/   /'
+
 echo "== record the new base"
 git update-ref refs/sync/base "$MIRROR"
 echo "   when the sync lands, publish it:  git push origin refs/sync/base refs/sync/mirror"

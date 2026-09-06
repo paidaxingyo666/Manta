@@ -1,11 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ActivityIndicator,
+  FlatList,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  Text,
+  View
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
-import { ArrowDown, ChevronsDownUp, ChevronsUpDown, Square } from 'lucide-react-native'
+import { ArrowDown } from 'lucide-react-native'
 import type { AskAnswerSelection, AskPrompt } from '../../../src/shared/native-chat-ask'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import { colors } from '../theme/mobile-theme'
+import { MobileNativeChatChromeRow } from './MobileNativeChatChromeRow'
 import { styles } from './mobile-native-chat-view-styles'
 import {
   buildMobileNativeChatTransientData,
@@ -13,17 +22,15 @@ import {
   type MobileNativeChatPendingItem
 } from './mobile-native-chat-render-data'
 import { useMobileNativeChatPinchGesture } from './use-mobile-native-chat-pinch-gesture'
-import { useMobileNativeChatScroll } from './use-mobile-native-chat-scroll'
-import { MobileAgentWorkingIndicator } from './MobileAgentWorkingIndicator'
+import { useMobileNativeChatTurnDisclosure } from './use-mobile-native-chat-turn-disclosure'
+import { MobileNativeChatTurnStatus } from './MobileNativeChatTurnStatus'
 import type { PendingNativeChatImage } from './mobile-native-chat-image-attachment'
 import { MobileNativeChatComposer } from './MobileNativeChatComposer'
+import { MobileNativeChatPromptCard } from './MobileNativeChatPromptCard'
+import type { MobileChatPermission } from './mobile-native-chat-permission'
+import type { MobileChatQuestion } from './mobile-native-chat-question'
 import type { MobileNativeChatSessionOptionPickersProps } from './MobileNativeChatSessionOptionPickers'
 import { MobileNativeChatMessage } from './MobileNativeChatMessage'
-import { MobileNativeChatAsk } from './MobileNativeChatAsk'
-import { MobileNativeChatPermission } from './MobileNativeChatPermission'
-import type { MobileChatPermission } from './mobile-native-chat-permission'
-import { MobileNativeChatQuestion } from './MobileNativeChatQuestion'
-import { mobileChatQuestionKey, type MobileChatQuestion } from './mobile-native-chat-question'
 import type { MobileNativeChatStatus } from './use-mobile-native-chat-session'
 import { translate } from '../i18n/i18n'
 
@@ -43,6 +50,9 @@ type Props = {
   /** Resolved agent for this chat; names the empty-state copy (desktop parity). */
   agent?: string | null
   agentWorking?: boolean
+  /** Structured lane: per-turn "Working for N" status plus live tool progress,
+   *  replacing the bridge lane's static three-dot working row (desktop parity). */
+  structuredActivityUi?: boolean
   /** Interrupt the agent mid-turn (shown as a Stop button on the working bar). */
   onStop?: () => void
   /** Live partial assistant text to show as an in-progress bubble, already gated
@@ -120,6 +130,7 @@ export function MobileNativeChatView({
   error,
   agent,
   agentWorking,
+  structuredActivityUi = false,
   onStop,
   streaming,
   hasMore,
@@ -161,11 +172,22 @@ export function MobileNativeChatView({
   keyboardInset = 0
 }: Props): React.JSX.Element {
   const insets = useSafeAreaInsets()
+  const listRef = useRef<FlatList<NativeChatMessage>>(null)
   const [toolsExpanded, setToolsExpanded] = useState(false)
   // Lift the composer clear of the keyboard, plus the bottom safe-area so it
   // never sits under the home indicator / nav bar (mirrors the terminal dock).
   const bottomPad = keyboardInset > 0 ? keyboardInset + insets.bottom : insets.bottom
+  const [atBottom, setAtBottom] = useState(true)
+  const sendScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { fontScale, pinchGesture } = useMobileNativeChatPinchGesture()
+  useEffect(
+    () => () => {
+      if (sendScrollTimerRef.current) {
+        clearTimeout(sendScrollTimerRef.current)
+      }
+    },
+    []
+  )
 
   // `data` is the list source: folded transcript + synthetic streaming bubble +
   // route-owned accepted echoes. Memoize on the same deps so the
@@ -182,13 +204,17 @@ export function MobileNativeChatView({
     [messages, folded, streaming, pending, imagePreviewsByMessageId]
   )
 
-  const scroll = useMobileNativeChatScroll({
-    messageCount: data.length,
-    keyboardInset,
-    hasMore,
-    loadingEarlier,
-    onLoadEarlier
-  })
+  // Follow the tail as the conversation grows and keep the newest message above
+  // the keyboard when it opens — but only when already pinned to the bottom, so
+  // we don't yank the user away while they read history. (Also fires on keyboard
+  // close, which is harmless while atBottom.)
+  useEffect(() => {
+    if (data.length === 0 || !atBottom) {
+      return
+    }
+    const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60)
+    return () => clearTimeout(t)
+  }, [data.length, atBottom, keyboardInset])
 
   const handleSend = useCallback(
     async (text: string): Promise<boolean> => {
@@ -200,11 +226,45 @@ export function MobileNativeChatView({
       // or a stale "Message not sent" sits above the delivered message.
       onClearSendError?.()
       // Always jump to the newest message when the user sends.
-      scroll.jumpToLatest()
+      setAtBottom(true)
+      if (sendScrollTimerRef.current) {
+        clearTimeout(sendScrollTimerRef.current)
+      }
+      sendScrollTimerRef.current = setTimeout(() => {
+        sendScrollTimerRef.current = null
+        listRef.current?.scrollToEnd({ animated: true })
+      }, 60)
       return true
     },
-    [onSend, onClearSendError, scroll]
+    [onSend, onClearSendError]
   )
+
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
+      const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height)
+      setAtBottom(distanceFromBottom < 80)
+      // Near the top — page in older history.
+      if (contentOffset.y < 60 && hasMore && !loadingEarlier) {
+        onLoadEarlier?.()
+      }
+    },
+    [hasMore, loadingEarlier, onLoadEarlier]
+  )
+
+  // Align a single message's top to the top of the viewport.
+  const onScrollToMessage = useCallback((index: number) => {
+    listRef.current?.scrollToIndex({ index, viewPosition: 0, animated: true })
+  }, [])
+
+  // Per-turn "Thinking / Working for N / Worked for N" rows. The structured lane
+  // owns them; the bridge lane keeps its three-dot indicator.
+  const turns = useMobileNativeChatTurnDisclosure({
+    messages: data,
+    enabled: structuredActivityUi,
+    isWorking: agentWorking === true,
+    scopeKey: sendSurfaceId
+  })
 
   const renderItem = useCallback(
     ({ item, index }: { item: NativeChatMessage; index: number }) => (
@@ -213,11 +273,14 @@ export function MobileNativeChatView({
         toolsExpanded={toolsExpanded}
         fontScale={fontScale}
         messageIndex={index}
-        onScrollToMessage={scroll.scrollToMessage}
+        onScrollToMessage={onScrollToMessage}
         onOpenFile={onOpenFile}
+        structuredActivityUi={structuredActivityUi}
+        onToggleTurn={turns.onToggleTurn}
+        {...turns.resolveRow(index, item)}
       />
     ),
-    [toolsExpanded, fontScale, scroll.scrollToMessage, onOpenFile]
+    [toolsExpanded, fontScale, onScrollToMessage, onOpenFile, structuredActivityUi, turns]
   )
 
   const emptyState = mobileNativeChatEmptyState(status, agent ?? null, error)
@@ -246,7 +309,7 @@ export function MobileNativeChatView({
         <GestureHandlerRootView style={styles.listWrap}>
           <GestureDetector gesture={pinchGesture}>
             <FlatList
-              ref={scroll.listRef}
+              ref={listRef}
               data={data}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
@@ -254,14 +317,28 @@ export function MobileNativeChatView({
               // Let link/file taps land while the composer keyboard is up
               // instead of being swallowed by the dismiss gesture.
               keyboardShouldPersistTaps="handled"
-              onScroll={scroll.onScroll}
+              onScroll={onScroll}
               scrollEventThrottle={32}
-              onScrollBeginDrag={scroll.onScrollBeginDrag}
-              onScrollEndDrag={scroll.onScrollEndDrag}
-              onMomentumScrollEnd={scroll.onMomentumScrollEnd}
-              onContentSizeChange={scroll.onContentSizeChange}
-              onLayout={scroll.onLayout}
-              onScrollToIndexFailed={scroll.onScrollToIndexFailed}
+              onContentSizeChange={() => {
+                if (data.length > 0 && atBottom) {
+                  listRef.current?.scrollToEnd({ animated: false })
+                }
+              }}
+              // scrollToIndex can fail before an off-screen row is measured —
+              // fall back to an estimated offset, then retry once it's laid out.
+              onScrollToIndexFailed={(info) => {
+                listRef.current?.scrollToOffset({
+                  offset: info.averageItemLength * info.index,
+                  animated: true
+                })
+                setTimeout(() => {
+                  listRef.current?.scrollToIndex({
+                    index: info.index,
+                    viewPosition: 0,
+                    animated: true
+                  })
+                }, 120)
+              }}
               ListHeaderComponent={
                 hasMore ? (
                   <Pressable
@@ -279,6 +356,15 @@ export function MobileNativeChatView({
                   </Pressable>
                 ) : null
               }
+              ListFooterComponent={
+                turns.activeTurnIsUnanchored && turns.active ? (
+                  <MobileNativeChatTurnStatus
+                    startedAt={turns.active.startedAt}
+                    thinking={turns.active.thinking}
+                    workedSeconds={turns.active.workedSeconds}
+                  />
+                ) : null
+              }
               ListEmptyComponent={
                 emptyState ? (
                   <View style={styles.center}>
@@ -291,89 +377,37 @@ export function MobileNativeChatView({
           </GestureDetector>
           {/* Jump-to-latest control. The scroll-to-top affordance now lives
               per-message (the up-arrow in each agent message's controls). */}
-          {!scroll.atBottom ? (
+          {!atBottom ? (
             <Pressable
               accessibilityLabel="Scroll to latest"
               style={[styles.fab, styles.fabBottom]}
-              onPress={scroll.jumpToLatest}
+              onPress={() => listRef.current?.scrollToEnd({ animated: true })}
             >
               <ArrowDown size={18} color={colors.textPrimary} strokeWidth={2.2} />
             </Pressable>
           ) : null}
         </GestureHandlerRootView>
       )}
-      {/* Pending agent prompt: a structured AskUserQuestion wins, then a
-          heuristic permission, then a heuristic question. The controller owns
-          dismissal (it must survive this subtree unmounting on a view toggle);
-          `ask` arrives already nulled while dismissed. */}
-      {ask ? (
-        <MobileNativeChatAsk
-          key={askKey ?? 'ask'}
-          prompt={ask}
-          onAnswer={async (selections) => {
-            const accepted = (await onAnswerAsk?.(ask, selections)) ?? false
-            if (accepted) {
-              onDismissAsk?.()
-            }
-            return accepted
-          }}
-          onCancel={async () => {
-            const accepted = (await onCancelAsk?.()) ?? false
-            if (accepted) {
-              onDismissAsk?.()
-            }
-            return accepted
-          }}
-        />
-      ) : permission ? (
-        <MobileNativeChatPermission
-          key={JSON.stringify(permission)}
-          permission={permission}
-          onRespond={async (send) => (await onRespondPermission?.(send)) ?? false}
-        />
-      ) : question ? (
-        <MobileNativeChatQuestion
-          key={mobileChatQuestionKey(question)}
-          question={question}
-          onAnswer={async (text) => (await onAnswerQuestion?.(text)) ?? false}
-        />
-      ) : null}
+      <MobileNativeChatPromptCard
+        ask={ask}
+        askKey={askKey}
+        onDismissAsk={onDismissAsk}
+        onAnswerAsk={onAnswerAsk}
+        onCancelAsk={onCancelAsk}
+        permission={permission}
+        onRespondPermission={onRespondPermission}
+        question={question}
+        onAnswerQuestion={onAnswerQuestion}
+      />
       {/* Chrome row above the composer: the working indicator and the global
           tool-calls expand/collapse toggle on the left, Stop in the far corner. */}
-      <View style={styles.chromeRow}>
-        <View style={styles.chromeLeft}>
-          {agentWorking ? <MobileAgentWorkingIndicator /> : null}
-          <Pressable
-            style={({ pressed }) => [styles.chromeToggle, pressed && styles.pressed]}
-            onPress={() => setToolsExpanded((v) => !v)}
-            hitSlop={8}
-          >
-            {toolsExpanded ? (
-              <ChevronsDownUp size={14} color={colors.textMuted} strokeWidth={2} />
-            ) : (
-              <ChevronsUpDown size={14} color={colors.textMuted} strokeWidth={2} />
-            )}
-            <Text style={styles.chromeToggleLabel}>
-              {toolsExpanded
-                ? translate('m.MobileNativeChatView.1e0304cc51', 'Collapse')
-                : translate('m.MobileNativeChatView.2779d38b74', 'Tools')}
-            </Text>
-          </Pressable>
-        </View>
-        {agentWorking ? (
-          <Pressable
-            style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}
-            onPress={onStop}
-            hitSlop={8}
-            accessibilityLabel="Stop the agent"
-          >
-            <Square size={13} color={colors.statusRed} strokeWidth={2.4} fill={colors.statusRed} />
-            <Text style={styles.stopLabel}>
-              {translate('m.MobileNativeChatView.5fcfefb9aa', 'Stop')}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
+      <MobileNativeChatChromeRow
+        agentWorking={agentWorking}
+        structuredActivityUi={structuredActivityUi}
+        toolsExpanded={toolsExpanded}
+        onToggleTools={() => setToolsExpanded((v) => !v)}
+        onStop={onStop}
+      />
       {sendErrorMessage ? (
         // This banner is the only channel for a send failure — announce it.
         <View

@@ -11,7 +11,12 @@ import { repairTranslatedValue } from './locale-translation-policy.mjs'
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
 const SKIP_PATH_PARTS = new Set(['.git', 'dist', 'node_modules', 'out', '__snapshots__', 'assets'])
-const LOCALIZATION_FUNCTION_NAMES = new Set(['t', 'translate', 'translateMain'])
+const LOCALIZATION_FUNCTION_NAMES = new Set([
+  't',
+  'translate',
+  'translateMain',
+  'translateSearchKeyword'
+])
 const PLACEHOLDER_RE = /\{\{[^}]+\}\}/g
 // Parameterised so the mobile app's catalog gets the same reference and
 // locale-parity checks; a second copy of this script would drift from the first.
@@ -25,6 +30,11 @@ const TARGETS = {
     sourceRoots: [path.join('mobile', 'src'), path.join('mobile', 'app')]
   }
 }
+
+// Exported for generate-runtime-required-english-catalog.mjs, which upstream
+// added against a single-target version of this script. Derived from TARGETS so
+// the two cannot drift.
+export const LOCALIZATION_SOURCE_ROOTS = TARGETS.renderer.sourceRoots
 
 function normalizePath(root, filePath) {
   return path.relative(root, filePath).split(path.sep).join('/')
@@ -43,7 +53,7 @@ function isSkippedFile(root, filePath) {
   return relative.split('/').some((part) => SKIP_PATH_PARTS.has(part))
 }
 
-async function collectSourceFiles(root, dir) {
+export async function collectSourceFiles(root, dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true })
   const files = []
 

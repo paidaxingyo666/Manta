@@ -2,8 +2,7 @@
 name: manta-cli
 description: >-
   Use the public `manta` CLI to operate Manta-managed worktrees, folder contexts,
-  terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser
-  embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
+  terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser embedded inside the Manta app. Use when the user says "$manta-cli", "use manta cli",
   "Manta worktree", "child worktree", "cardStatus", "spawn codex/claude in a worktree",
   "read/wait/send Manta terminal", "terminal send", "full handoff", "handover",
   "give this to another agent", "another worktree", "Manta browser", "manta artifacts",
@@ -12,8 +11,7 @@ description: >-
   PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
   Use Computer Use for external browser windows, webviews, or desktop UI only
   when the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
-  page-automation tool such as Playwright or CDP for external pages.
+  coordinates, or screenshots.
 ---
 
 # Manta CLI
@@ -184,7 +182,6 @@ MANTA terminal send --terminal <handle> --text "continue" --enter --json
 MANTA terminal send --text "echo hello" --enter --json
 MANTA terminal wait --terminal <handle> --for exit --timeout-ms 5000 --json
 MANTA terminal wait --terminal <handle> --for tui-idle --timeout-ms 300000 --json
-MANTA terminal stop --worktree id:<repoId>::<worktreePath> --json
 MANTA terminal create --json
 MANTA terminal create --title "Worker" --json
 MANTA terminal create --worktree active --command "codex" --json
@@ -193,11 +190,15 @@ MANTA terminal split --terminal <handle> --direction horizontal --command "npm t
 MANTA terminal rename --terminal <handle> --title "New Name" --json
 MANTA terminal switch --terminal <handle> --json
 MANTA terminal close --terminal <handle> --json
+MANTA terminal close --worktree id:<repoId>::<worktreePath> --all --json
 ```
 
 Terminal rules:
 
 - `--terminal` is optional for most commands; omitted means the active terminal in the current worktree.
+- Use `terminal close --terminal <handle>` to close one terminal. Use `terminal close --worktree <selector> --all` to stop every terminal process in exactly that workspace and durably remove its terminal tabs, layouts, and agent-resume records.
+- A bulk close fails when the execution host cannot confirm every PTY stopped. Treat that as `unverifiable`; do not report the processes as exited or retry against another host.
+- Use workspace Sleep, not close, when the terminals and agent sessions should resume later. `terminal stop` is legacy compatibility plumbing and should not be used in new agent workflows.
 - `terminal list --json` omits `visualLayouts` to keep the common agent payload bounded. Add `--include-visual-layouts` only when tab and pane topology is required.
 - Use `terminal read` before `terminal send` unless the next input is obvious.
 - Use `terminal send` only for direct terminal input or one-off prompts where no task state, inbox, or reply tracking is needed.

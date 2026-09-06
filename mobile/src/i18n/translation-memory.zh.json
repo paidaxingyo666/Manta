@@ -1157,5 +1157,7 @@
   "No connection paths configured": "未配置任何连接路径",
   "Connected via {{host}}": "已连接(经 {{host}})",
   "Unexpected response from {{host}}": "{{host}} 返回了异常响应",
-  "No connection": "无网络连接"
+  "No connection": "无网络连接",
+  "Request not sent": "请求未发送",
+  "Chat": "对话"
 }

@@ -10,8 +10,8 @@ import { tmpdir } from 'node:os'
 import { join, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
-import type { Page, TestInfo } from '@paidaxingyo666/playwright-test'
-import { expect, test } from '@paidaxingyo666/playwright-test'
+import type { Page, TestInfo } from '@stablyai/playwright-test'
+import { expect, test } from '@stablyai/playwright-test'
 import { createRestartSession } from './helpers/manta-restart'
 
 const execFileAsync = promisify(execFile)

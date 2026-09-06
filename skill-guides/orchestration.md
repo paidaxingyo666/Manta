@@ -3,8 +3,7 @@ name: orchestration
 description: >-
   Use Manta orchestration for structured multi-agent coordination: threaded
   messages, blocking ask/reply flows, task dispatch, worker_done/escalation
-  waits, task DAGs, decision gates, coordinator loops, or decomposing work
-  across agents. Use `manta-cli` instead for full ownership handoffs, including
+  waits, task DAGs, decision gates, coordinator loops. Use `manta-cli` instead for full ownership handoffs, including
   requests phrased as "hand off", "handoff", "handover", "give this to another
   agent", or "another worktree" when the user did not explicitly ask to
   supervise, monitor, wait for results, or coordinate a DAG. Use `manta-cli` for
