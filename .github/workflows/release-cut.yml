@@ -1653,9 +1653,12 @@ jobs:
       # no-op. Known quirk: the cache persists across releases via actions/cache,
       # so later runs may see elevate.exe as already signed and skip staging it —
       # that is fine (the signature is timestamped) and the evidence gate checks
-      # elevate.exe in the shipped installer unconditionally. If this ever causes
-      # trouble, delete this step; the only effect is elevate.exe shipping
-      # unsigned again, which the evidence gate will flag.
+      # elevate.exe in the shipped installer unconditionally.
+      #
+      # The cache lookup lives in a script because the inline path this step used
+      # (`<cache>\nsis`) matches no app-builder-lib layout, and `SilentlyContinue`
+      # plus `exit 0` turned that miss into a green step — v1.4.193 and v1.4.194
+      # shipped an unsigned elevate.exe that way. A miss now fails the step.
       - name: Replace cached elevate.exe with the signed copy
         id: sign-elevate-cache
         if: matrix.platform == 'win' && github.run_attempt == 1 && steps.restore-signed-inner.outcome == 'success'
@@ -1667,20 +1670,26 @@ jobs:
             Write-Host '::warning::No elevate.exe in win-unpacked resources; nothing to protect from the rebuild clobber.'
             exit 0
           }
+          # Why this guard stays: windows-signing-rehearsal.yml shares the
+          # electron-builder-win-<lockfile hash> cache key with this workflow, so a
+          # test-certificate elevate.exe must never be staged into a release cache.
           $signature = Get-AuthenticodeSignature -FilePath $signed
           $subject = if ($null -eq $signature.SignerCertificate) { '<none>' } else { $signature.SignerCertificate.Subject }
           if ($signature.Status -ne 'Valid' -or $subject -notlike '*CN=SignPath Foundation*') {
             Write-Host "::warning::win-unpacked elevate.exe is not SignPath-signed ($($signature.Status), $subject); skipping cache swap."
             exit 0
           }
-          $cached = @(Get-ChildItem "$env:LOCALAPPDATA\electron-builder\Cache\nsis" -Recurse -Filter elevate.exe -ErrorAction SilentlyContinue)
-          if ($cached.Count -eq 0) {
-            Write-Host '::warning::No cached elevate.exe found (electron-builder cache layout changed?); the rebuild will pack the unsigned copy and the evidence gate will flag it.'
-            exit 0
-          }
-          foreach ($file in $cached) {
-            Copy-Item -Path $signed -Destination $file.FullName -Force
-            Write-Host "Replaced $($file.FullName) with the SignPath-signed copy."
+          node config/scripts/replace-cached-nsis-elevate.mjs $signed
+          if ($LASTEXITCODE -ne 0) {
+            $message = 'Cached elevate.exe swap found nothing to replace; the rebuilt installer ships an unsigned UAC elevation helper (issue #7785).'
+            if ($env:GITHUB_STEP_SUMMARY) {
+              try {
+                Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "**Windows elevate.exe cache swap:** FAILED — $message" -ErrorAction Stop
+              } catch {
+                Write-Host "::warning::Could not write the elevate.exe swap verdict to the job summary: $_"
+              }
+            }
+            throw $message
           }
 
       - name: Rebuild NSIS installer from signed unpacked app
