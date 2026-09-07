@@ -1,5 +1,5 @@
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks'
-import type { RelayRegion } from '@manta-cloud/relay-contract'
+import { RELAY_REGION_METRIC_SEGMENTS, type RelayRegion } from '@manta-cloud/relay-contract'
 import type { ControlRenewalOutcome } from './assignment-store.js'
 import type { CellInventoryHoldCounts } from './cell-inventory-hold-samples.js'
 import type { PostgresPoolPressureCounts } from './postgres-pool-pressure.js'
@@ -363,6 +363,8 @@ export class RelayObservability implements RelayRuntimeObserver {
       placementRejectionsByReasonDelta: deltas.placementRejectionsByReason,
       requestedRegionsDelta: deltas.requestedRegions,
       selectedRegionsDelta: deltas.selectedRegions,
+      ...regionCounterFields('requestedRegion', deltas.requestedRegions),
+      ...regionCounterFields('selectedRegion', deltas.selectedRegions),
       regionFallbacksDelta: deltas.regionFallbacks,
       unavailableRegionsDelta: deltas.unavailableRegions,
       controlClosesByCodeDelta: deltas.controlClosesByCode,
@@ -411,6 +413,22 @@ export class RelayObservability implements RelayRuntimeObserver {
       eventLoopDelayMsP99: Number(p99.toFixed(3))
     })
   }
+}
+
+// Flat siblings of the nested region maps, always emitted for every region including zeros.
+// A log-based metric cannot reach `requestedRegionsDelta."asia-east2"` without a quoted field
+// path, and an absent key would drop a series out of the inner join the region-skew alert does.
+// The maps stay authoritative and keep carrying anything outside the catalog, such as `unhinted`.
+function regionCounterFields(
+  prefix: 'requestedRegion' | 'selectedRegion',
+  counts: Record<string, number>
+): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(RELAY_REGION_METRIC_SEGMENTS).map(([region, segment]) => [
+      `${prefix}${segment}Delta`,
+      counts[region] ?? 0
+    ])
+  )
 }
 
 function increment(counts: Record<string, number>, key: string): void {

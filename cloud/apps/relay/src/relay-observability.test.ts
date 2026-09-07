@@ -1,3 +1,4 @@
+import { RELAY_REGION_METRIC_SEGMENTS, RELAY_REGIONS } from '@manta-cloud/relay-contract'
 import { describe, expect, it, vi } from 'vitest'
 import type { RelayDatabase } from './database.js'
 import { observeRelayDatabase } from './observed-relay-database.js'
@@ -112,14 +113,31 @@ describe('relay observability', () => {
       requestedRegionsDelta: { 'asia-east2': 1, unhinted: 1 },
       selectedRegionsDelta: { 'us-central1': 1 },
       regionFallbacksDelta: { 'asia-east2': 1 },
-      unavailableRegionsDelta: { 'asia-east2': 1 }
+      unavailableRegionsDelta: { 'asia-east2': 1 },
+      // Flat per-region siblings the log-based metrics extract; `unhinted` stays map-only.
+      requestedRegionUsCentral1Delta: 0,
+      requestedRegionAsiaEast2Delta: 1,
+      selectedRegionUsCentral1Delta: 1,
+      selectedRegionAsiaEast2Delta: 0
     })
     expect(entries[1]).toMatchObject({
       requestedRegionsDelta: {},
       selectedRegionsDelta: {},
       regionFallbacksDelta: {},
-      unavailableRegionsDelta: {}
+      unavailableRegionsDelta: {},
+      // Zeros keep publishing so an idle window cannot drop a series out of the skew join.
+      requestedRegionUsCentral1Delta: 0,
+      requestedRegionAsiaEast2Delta: 0,
+      selectedRegionUsCentral1Delta: 0,
+      selectedRegionAsiaEast2Delta: 0
     })
+    // A region added to the contract has to reach the flat keys, or the skew alert's
+    // denominator silently misses it.
+    for (const segment of Object.values(RELAY_REGION_METRIC_SEGMENTS)) {
+      expect(entries[0]).toHaveProperty(`requestedRegion${segment}Delta`)
+      expect(entries[0]).toHaveProperty(`selectedRegion${segment}Delta`)
+    }
+    expect(Object.keys(RELAY_REGION_METRIC_SEGMENTS).sort()).toEqual([...RELAY_REGIONS].sort())
   })
 
   it('emits bounded aggregate runtime signals without identities or credentials', () => {
