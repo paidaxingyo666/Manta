@@ -3,7 +3,6 @@ import {
   type AgentLaunchRoutingInput
 } from '@/lib/agent-launch-routing'
 import { getLocalProjectExecutionRuntimeContext } from '@/lib/local-preflight-context'
-import { CLIENT_PLATFORM } from '@/lib/new-workspace'
 import { getExecutionHostIdForWorktree } from '@/lib/worktree-runtime-owner'
 import { readLocalRuntimeCapabilities } from '@/runtime/local-runtime-capabilities'
 import { useAppStore } from '@/store'
@@ -47,7 +46,6 @@ export function resolveAiVaultSessionResumeInChatForWorkspace(args: {
           useAppStore.getState(),
           targetWorkspaceId as string
         ),
-        platform: CLIENT_PLATFORM,
         hostCapabilities: readLocalRuntimeCapabilities(),
         workspaceKind: (targetWorkspaceId as string).startsWith('folder:')
           ? 'folder'

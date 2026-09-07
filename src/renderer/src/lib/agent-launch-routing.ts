@@ -30,7 +30,6 @@ export type AgentLaunchRoutingInput = {
     | null
     | undefined
   executionHostId: string
-  platform: NodeJS.Platform
   hostCapabilities: readonly string[]
   workspaceKind?: 'git-worktree' | 'folder' | 'floating'
   projectRuntime?: ProjectExecutionRuntimeResolution | null
@@ -68,7 +67,6 @@ export function structuredAgentLaunchSupported(
     resolveStructuredNativeChatSupport({
       agent: input.agent,
       executionHostId: input.executionHostId,
-      platform: input.platform,
       hostCapabilities: input.hostCapabilities,
       workspaceKind: input.workspaceKind,
       projectRuntime: input.projectRuntime,

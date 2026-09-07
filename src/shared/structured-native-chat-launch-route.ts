@@ -26,7 +26,6 @@ export type StructuredNativeChatBlocker =
   | 'floating-workspace'
   | 'tui-launch-customization'
   | 'remote-execution-host'
-  | 'codex-on-windows'
   | 'project-runtime'
   | 'runtime-capability'
 
@@ -37,7 +36,6 @@ export type StructuredNativeChatSupport =
 export type StructuredNativeChatSupportInput = {
   agent: TuiAgent
   executionHostId: string
-  platform: NodeJS.Platform
   hostCapabilities: readonly string[]
   workspaceKind?: 'git-worktree' | 'folder' | 'floating'
   projectRuntime?: ProjectExecutionRuntimeResolution | null
@@ -81,12 +79,6 @@ export function resolveStructuredNativeChatSupport(
   }
   if (input.executionHostId !== 'local') {
     return { supported: false, blocker: 'remote-execution-host' }
-  }
-  // Codex's Windows refusal is deliberate and settled elsewhere, so it stays a client-side answer.
-  // Claude's is measured by the executing host at create time (agentSession.createSupport) because
-  // only that host knows whether it can read a provider child's start time.
-  if (input.agent === 'codex' && input.platform === 'win32') {
-    return { supported: false, blocker: 'codex-on-windows' }
   }
   const projectRuntime = input.projectRuntime
   if (projectRuntime?.status === 'repair-required' || projectRuntime?.runtime.kind === 'wsl') {
