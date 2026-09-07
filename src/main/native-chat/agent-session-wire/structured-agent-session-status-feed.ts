@@ -46,6 +46,8 @@ function summariesEqual(a: AgentSessionStatusSummary, b: AgentSessionStatusSumma
     a.workspaceId === b.workspaceId &&
     a.agent === b.agent &&
     a.status === b.status &&
+    // Settled activity changes ranking; streaming active turns must stay quiet.
+    (a.status !== 'idle' || a.updatedAt === b.updatedAt) &&
     a.latestPrompt === b.latestPrompt &&
     a.model === b.model &&
     a.toolName === b.toolName &&
@@ -126,7 +128,7 @@ export class StructuredAgentSessionStatusFeed {
       ...projectStructuredAgentSessionStatusSummary(items),
       ...(model ? { model } : {}),
       ...(providerSession ? { providerSession } : {}),
-      updatedAt: this.deps.now()
+      updatedAt: journal.lastActivityAt() || this.deps.now()
     }
   }
 
