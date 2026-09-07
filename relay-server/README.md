@@ -398,6 +398,13 @@ blocked port will need the same steps in reverse:
    mount once nothing loads a certificate from a file; that variable only feeds
    the expiry metric, which exists for proxies that cannot renew themselves.
 
+   `./site` is **not** in this repository and has to be created on the host. The
+   page an operator has to serve carries their own filing numbers, and those
+   resolve on the registrars' sites back to the person who registered them, so
+   the page is theirs and stays out of a public tree. Any `index.html` will do —
+   the filing only checks that the registered domain answers and shows the
+   number. An absent directory mounts empty and the domain answers 404.
+
 4. `docker compose up -d`, then watch for `certificate obtained successfully`.
    Caddy serves the existing certificate until renewal, so a failure here is
    silent until it matters — do not skip the log check.
