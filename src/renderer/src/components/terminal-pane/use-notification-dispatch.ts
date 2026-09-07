@@ -174,7 +174,9 @@ export function dispatchTerminalNotification(
     }
   }
 
-  // Desktop settings are applied in main after independent mobile delivery.
+  if (event.suppressOsNotification) {
+    return
+  }
 
   // Why: prefer worktree.repoId over string-parsing the worktreeId. The
   // `${repoId}::${path}` format is an implementation detail of id

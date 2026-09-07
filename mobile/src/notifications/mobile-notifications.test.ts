@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import {
   getNotificationPermissionState,
+  setScheduledNotificationsMaxForTests,
   subscribeToDesktopNotifications
 } from './mobile-notifications'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -13,7 +14,6 @@ import { resetHostNotificationSessionsForTests } from './notification-reconnect-
 vi.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 'high' },
   setNotificationChannelAsync: vi.fn(),
-  getPresentedNotificationsAsync: vi.fn(async () => []),
   getPermissionsAsync: vi.fn(),
   requestPermissionsAsync: vi.fn(),
   scheduleNotificationAsync: vi.fn(),
@@ -21,14 +21,8 @@ vi.mock('expo-notifications', () => ({
 }))
 
 vi.mock('react-native', () => ({
-  AppState: { currentState: 'background' },
   Platform: { OS: 'ios', Version: 18 }
 }))
-
-// The reconnect catch-up reads the tray to learn which pushes the OS already showed,
-// and mapping those to this host needs the catalog, whose real module pulls the
-// native keychain. No push is presented in these tests, so an empty catalog is enough.
-vi.mock('../transport/host-store', () => ({ loadHostCatalog: vi.fn(async () => []) }))
 
 // Why: mobile-notifications now persists the catch-up watermark to
 // AsyncStorage. The package isn't resolvable in the node test env (other
@@ -41,7 +35,6 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 
 vi.mock('../storage/preferences', () => ({
-  loadRemotePushEnabled: vi.fn(async () => false),
   loadPushNotificationsEnabled: vi.fn()
 }))
 
@@ -73,6 +66,303 @@ describe('getNotificationPermissionState', () => {
       })
     }
   )
+})
+
+describe('subscribeToDesktopNotifications', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  // Why the macrotask and not N microtask ticks (#8591): deliveries now run through
+  // the per-host serialization queue, so a delivery is several more `await` hops deep
+  // than it used to be and a fixed tick count silently under-drains. Yielding to the
+  // macrotask queue drains whatever depth the chain happens to have.
+  function flushAsync(): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, 0)
+    })
+  }
+
+  function makeDeferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+    let resolve!: (value: T) => void
+    const promise = new Promise<T>((next) => {
+      resolve = next
+    })
+    return { promise, resolve }
+  }
+
+  it('drops the local stream when disposed before the desktop returns ready', () => {
+    const unsubscribeStream = vi.fn()
+    const client = {
+      subscribe: vi.fn(() => unsubscribeStream),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    const unsubscribe = subscribeToDesktopNotifications(client, 'host-1')
+    unsubscribe()
+
+    expect(unsubscribeStream).toHaveBeenCalledTimes(1)
+    expect(client.sendRequest).not.toHaveBeenCalled()
+  })
+
+  it('stores scheduled notification identifiers, replaces duplicates, and dismisses by id', async () => {
+    vi.mocked(loadPushNotificationsEnabled).mockResolvedValue(true)
+    vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
+      status: 'granted',
+      canAskAgain: true
+    } as never)
+    vi.mocked(Notifications.scheduleNotificationAsync)
+      .mockResolvedValueOnce('scheduled-1')
+      .mockResolvedValueOnce('scheduled-2')
+    vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
+    let onEvent: ((data: unknown) => void) | null = null
+    const client = {
+      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+        onEvent = callback
+        return vi.fn()
+      }),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    subscribeToDesktopNotifications(client, 'host-1')
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done',
+      body: 'Finished.',
+      worktreeId: 'repo::/tmp/worktree',
+      notificationId: 'agent:one'
+    })
+    await flushAsync()
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done again',
+      body: 'Finished again.',
+      notificationId: 'agent:one'
+    })
+    await flushAsync()
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2)
+    onEvent?.({ type: 'dismiss', notificationId: 'agent:one' })
+    await flushAsync()
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2)
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        content: expect.objectContaining({
+          data: expect.objectContaining({
+            hostId: 'host-1',
+            notificationId: 'agent:one',
+            worktreeId: 'repo::/tmp/worktree'
+          })
+        })
+      })
+    )
+    expect(Notifications.dismissNotificationAsync).toHaveBeenNthCalledWith(1, 'scheduled-1')
+    expect(Notifications.dismissNotificationAsync).toHaveBeenNthCalledWith(2, 'scheduled-2')
+  })
+
+  it('dedupes concurrent notification events with the same desktop notification id', async () => {
+    vi.mocked(loadPushNotificationsEnabled).mockResolvedValue(true)
+    vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
+      status: 'granted',
+      canAskAgain: true
+    } as never)
+    vi.mocked(Notifications.scheduleNotificationAsync).mockResolvedValue('scheduled-1')
+    let onEvent: ((data: unknown) => void) | null = null
+    const client = {
+      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+        onEvent = callback
+        return vi.fn()
+      }),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    subscribeToDesktopNotifications(client, 'host-concurrent')
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done',
+      body: 'Finished.',
+      notificationId: 'agent:concurrent'
+    })
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done',
+      body: 'Finished.',
+      notificationId: 'agent:concurrent'
+    })
+    await flushAsync()
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1)
+  })
+
+  it('dismisses a notification when dismiss arrives while scheduling is pending', async () => {
+    vi.mocked(loadPushNotificationsEnabled).mockResolvedValue(true)
+    vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
+      status: 'granted',
+      canAskAgain: true
+    } as never)
+    let resolveSchedule!: (identifier: string) => void
+    vi.mocked(Notifications.scheduleNotificationAsync).mockImplementation(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveSchedule = resolve
+        })
+    )
+    vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
+    let onEvent: ((data: unknown) => void) | null = null
+    const client = {
+      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+        onEvent = callback
+        return vi.fn()
+      }),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    subscribeToDesktopNotifications(client, 'host-dismiss-race')
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done',
+      body: 'Finished.',
+      notificationId: 'agent:pending'
+    })
+    await flushAsync()
+    onEvent?.({ type: 'dismiss', notificationId: 'agent:pending' })
+    resolveSchedule('scheduled-pending')
+    await flushAsync()
+
+    expect(Notifications.dismissNotificationAsync).toHaveBeenCalledWith('scheduled-pending')
+  })
+
+  it('does not carry a failed pending dismiss into a future schedule', async () => {
+    const secondEnabled = makeDeferred<boolean>()
+    vi.mocked(loadPushNotificationsEnabled)
+      .mockResolvedValueOnce(true)
+      .mockReturnValueOnce(secondEnabled.promise)
+      .mockResolvedValueOnce(true)
+    vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
+      status: 'granted',
+      canAskAgain: true
+    } as never)
+    vi.mocked(Notifications.scheduleNotificationAsync)
+      .mockResolvedValueOnce('scheduled-1')
+      .mockResolvedValueOnce('scheduled-2')
+    vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
+    let onEvent: ((data: unknown) => void) | null = null
+    const client = {
+      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+        onEvent = callback
+        return vi.fn()
+      }),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    subscribeToDesktopNotifications(client, 'host-dismiss-failed-replacement')
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done',
+      body: 'Finished.',
+      notificationId: 'agent:stale-dismiss'
+    })
+    await flushAsync()
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done again',
+      body: 'Finished again.',
+      notificationId: 'agent:stale-dismiss'
+    })
+    await flushAsync()
+    onEvent?.({ type: 'dismiss', notificationId: 'agent:stale-dismiss' })
+    secondEnabled.resolve(false)
+    await flushAsync()
+
+    onEvent?.({
+      type: 'notification',
+      source: 'agent-task-complete',
+      title: 'Done later',
+      body: 'Finished later.',
+      notificationId: 'agent:stale-dismiss'
+    })
+    await flushAsync()
+
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2)
+    expect(Notifications.dismissNotificationAsync).toHaveBeenCalledTimes(1)
+    expect(Notifications.dismissNotificationAsync).toHaveBeenCalledWith('scheduled-1')
+  })
+
+  it('treats unknown dismiss events as no-ops', async () => {
+    vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
+    let onEvent: ((data: unknown) => void) | null = null
+    const client = {
+      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+        onEvent = callback
+        return vi.fn()
+      }),
+      getState: vi.fn(() => 'connected'),
+      sendRequest: vi.fn()
+    } as unknown as RpcClient
+
+    subscribeToDesktopNotifications(client, 'host-unknown')
+    onEvent?.({ type: 'dismiss', notificationId: 'agent:missing' })
+    await flushAsync()
+
+    expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalled()
+  })
+
+  // Why: notificationId is unique per completion, so the map grew unbounded when
+  // the desktop never sent a dismiss (the remote-mobile case). It is now capped.
+  it('evicts the oldest scheduled entry once the cap is exceeded', async () => {
+    setScheduledNotificationsMaxForTests(1)
+    try {
+      vi.mocked(loadPushNotificationsEnabled).mockResolvedValue(true)
+      vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
+        status: 'granted',
+        canAskAgain: true
+      } as never)
+      vi.mocked(Notifications.scheduleNotificationAsync)
+        .mockResolvedValueOnce('scheduled-old')
+        .mockResolvedValueOnce('scheduled-new')
+      vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
+      let onEvent: ((data: unknown) => void) | null = null
+      const client = {
+        subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
+          onEvent = callback
+          return vi.fn()
+        }),
+        getState: vi.fn(() => 'connected'),
+        sendRequest: vi.fn()
+      } as unknown as RpcClient
+
+      subscribeToDesktopNotifications(client, 'host-1')
+      onEvent?.({ type: 'notification', title: 't', body: 'b', notificationId: 'agent:old' })
+      await flushAsync()
+      onEvent?.({ type: 'notification', title: 't', body: 'b', notificationId: 'agent:new' })
+      await flushAsync()
+
+      // The older entry was evicted by the cap: dismissing it is a no-op...
+      onEvent?.({ type: 'dismiss', notificationId: 'agent:old' })
+      await flushAsync()
+      expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalledWith('scheduled-old')
+
+      // ...while the most-recent entry is retained and still dismissable.
+      onEvent?.({ type: 'dismiss', notificationId: 'agent:new' })
+      await flushAsync()
+      expect(Notifications.dismissNotificationAsync).toHaveBeenCalledWith('scheduled-new')
+    } finally {
+      setScheduledNotificationsMaxForTests()
+    }
+  })
 })
 
 // Why: #8129 catch-up. On a reconnect the live stream re-emits `ready`; the
@@ -162,7 +452,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
             notifications: [
               {
                 type: 'notification',
-                source: 'agent-task-complete',
                 title: 'missed',
                 body: 'b',
                 notificationId: 'agent:missed',
@@ -182,7 +471,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     // Live stream already delivered agent:dup (seq 11) before reap.
     sub.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'dup',
       body: 'b',
       notificationId: 'agent:dup',
@@ -198,7 +486,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     const missedCall = vi
       .mocked(sub.client.sendRequest)
       .mock.calls.find((c: unknown[]) => c[0] === 'notifications.getMissedSince')
-    expect(missedCall?.[1]).toEqual({ includeDesktopSuppressed: true, lastSeenSeq: 11 })
+    expect(missedCall?.[1]).toEqual({ lastSeenSeq: 11 })
     // Only agent:missed was pushed; agent:dup appears exactly once (live only).
     const scheduledIds = vi
       .mocked(Notifications.scheduleNotificationAsync)
@@ -244,18 +532,10 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
       .mock.calls.filter((c: unknown[]) => c[0] === 'notifications.getMissedSince')
     // The cold open catches up from its stored watermark against the SAME counter —
     // 57 is meaningful there, so it is the correct cut (#8591 second pass).
-    expect(missedCalls[0]?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 57,
-      epoch: 'epoch-before-restart'
-    })
+    expect(missedCalls[0]?.[1]).toEqual({ lastSeenSeq: 57, epoch: 'epoch-before-restart' })
     // After the restart the watermark is reset to 0 and tagged with the live epoch —
     // not the stale 57, which would make `57 >= 2` true and kill catch-up silently.
-    expect(missedCalls.at(-1)?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 0,
-      epoch: 'epoch-after-restart'
-    })
+    expect(missedCalls.at(-1)?.[1]).toEqual({ lastSeenSeq: 0, epoch: 'epoch-after-restart' })
   })
 
   it('refuses to seed a stored watermark that lost the race to a newer live epoch', async () => {
@@ -299,11 +579,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     const missedCall = vi
       .mocked(sub.client.sendRequest)
       .mock.calls.find((c: unknown[]) => c[0] === 'notifications.getMissedSince')
-    expect(missedCall?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 0,
-      epoch: 'epoch-after-restart'
-    })
+    expect(missedCall?.[1]).toEqual({ lastSeenSeq: 0, epoch: 'epoch-after-restart' })
   })
 
   it('keeps the persisted watermark when the desktop epoch is unchanged', async () => {
@@ -333,11 +609,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     const missedCall = vi
       .mocked(sub.client.sendRequest)
       .mock.calls.find((c: unknown[]) => c[0] === 'notifications.getMissedSince')
-    expect(missedCall?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 57,
-      epoch: 'epoch-stable'
-    })
+    expect(missedCall?.[1]).toEqual({ lastSeenSeq: 57, epoch: 'epoch-stable' })
   })
 
   it('drops an already-seen id if a replay re-includes it (defense-in-depth)', async () => {
@@ -359,7 +631,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
             notifications: [
               {
                 type: 'notification',
-                source: 'agent-task-complete',
                 title: 'dup',
                 body: 'b',
                 notificationId: 'agent:dup',
@@ -367,7 +638,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
               },
               {
                 type: 'notification',
-                source: 'agent-task-complete',
                 title: 'new',
                 body: 'b',
                 notificationId: 'agent:new',
@@ -386,7 +656,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     // Live stream delivered agent:dup (seq 11) before reap.
     sub.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'dup',
       body: 'b',
       notificationId: 'agent:dup',
@@ -423,7 +692,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     // Live stream delivers seq 5.
     sub.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 't',
       body: 'b',
       notificationId: 'agent:live',
@@ -460,7 +728,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
             notifications: [
               {
                 type: 'notification',
-                source: 'agent-task-complete',
                 title: 'missed',
                 body: 'b',
                 notificationId: 'agent:missed',
@@ -493,7 +760,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     const missedCalls = vi
       .mocked(sub.client.sendRequest)
       .mock.calls.filter((c: unknown[]) => c[0] === 'notifications.getMissedSince')
-    expect(missedCalls.at(-1)?.[1]).toEqual({ includeDesktopSuppressed: true, lastSeenSeq: 8 })
+    expect(missedCalls.at(-1)?.[1]).toEqual({ lastSeenSeq: 8 })
   })
 
   it('replays a terminal bell at a seq the previous desktop counter already used', async () => {
@@ -518,15 +785,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
           ok: true,
           result: {
             epoch: 'epoch-B',
-            notifications: [
-              {
-                type: 'notification',
-                source: 'agent-task-complete',
-                title: 'bell',
-                body: 'B',
-                notificationSeq: 1
-              }
-            ]
+            notifications: [{ type: 'notification', title: 'bell', body: 'B', notificationSeq: 1 }]
           }
         } as never
       }
@@ -537,13 +796,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     sub.onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-A' })
     await flushAsync()
     // A live bell under epoch A — no notificationId, so its seen-key is `seq:1`.
-    sub.onData?.({
-      type: 'notification',
-      source: 'agent-task-complete',
-      title: 'bell',
-      body: 'A',
-      notificationSeq: 1
-    })
+    sub.onData?.({ type: 'notification', title: 'bell', body: 'A', notificationSeq: 1 })
     await flushAsync()
     expect(vi.mocked(Notifications.scheduleNotificationAsync).mock.calls.length).toBe(1)
 
@@ -588,11 +841,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
       .mocked(sub.client.sendRequest)
       .mock.calls.find((c: unknown[]) => c[0] === 'notifications.getMissedSince')
     // Must not be 57: that seq was never shown to belong to this counter.
-    expect(missedCall?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 0,
-      epoch: 'epoch-live'
-    })
+    expect(missedCall?.[1]).toEqual({ lastSeenSeq: 0, epoch: 'epoch-live' })
   })
 
   it('catches up on the FIRST connection after an upgrade, without a second ready', async () => {
@@ -626,7 +875,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
               notifications: [
                 {
                   type: 'notification',
-                  source: 'agent-task-complete',
                   notificationId: 'missed-58',
                   notificationSeq: 58,
                   notificationEpoch: 'epoch-live',
@@ -648,11 +896,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
       .mocked(sub.client.sendRequest)
       .mock.calls.find((c: unknown[]) => c[0] === 'notifications.getMissedSince')
     // The single 'ready' must replay from the stored watermark, not skip it.
-    expect(missedCall?.[1]).toEqual({
-      includeDesktopSuppressed: true,
-      lastSeenSeq: 57,
-      epoch: 'epoch-live'
-    })
+    expect(missedCall?.[1]).toEqual({ lastSeenSeq: 57, epoch: 'epoch-live' })
     // And the missed notification must actually reach the user.
     expect(vi.mocked(Notifications.scheduleNotificationAsync).mock.calls.length).toBe(1)
   })
@@ -700,7 +944,6 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     await flushAsync()
     sub.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 't',
       body: 'b',
       notificationId: 'agent:x',

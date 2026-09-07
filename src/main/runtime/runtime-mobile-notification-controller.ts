@@ -1,16 +1,9 @@
-import type { AgentStatusState } from '../../shared/agent-status-types'
-import type {
-  MobilePushRegisterInput,
-  MobilePushRegisterResult
-} from '../../shared/mobile-push-contract'
 import { MobileNotificationReplayBuffer } from './mobile-notification-replay'
 import { notifyRuntimeListeners } from './runtime-async-boundaries'
 import { getRuntimeDesktopSurface } from './runtime-desktop-surface'
 
 export type MobileNotificationDispatchEvent = {
   type: 'notification'
-  desktopAllowed?: boolean
-  emittedAt?: number
   source: 'agent-task-complete' | 'terminal-bell' | 'test' | 'plugin'
   title: string
   body: string
@@ -18,9 +11,6 @@ export type MobileNotificationDispatchEvent = {
   notificationId?: string
   notificationSeq?: number
   notificationEpoch?: string
-  // Why: background push must tell "needs input" from "finished" without re-deriving
-  // it from the title. Optional and additive — old clients ignore it.
-  agentState?: AgentStatusState
 }
 
 export type MobileNotificationDismissEvent = {
@@ -34,33 +24,9 @@ export type MobileNotificationEvent =
   | MobileNotificationDispatchEvent
   | MobileNotificationDismissEvent
 
-/** The desktop push service, once it exists; absent on hosts that never started one. */
-export type MobilePushRegistrar = {
-  register(input: MobilePushRegisterInput): Promise<MobilePushRegisterResult>
-  unregister(deviceId: string): Promise<{ unregistered: boolean }>
-}
-
 export class RuntimeMobileNotificationController {
   private readonly listeners = new Set<(event: MobileNotificationEvent) => void>()
   private readonly replay = new MobileNotificationReplayBuffer()
-  private pushRegistrar: MobilePushRegistrar | null = null
-
-  setPushRegistrar(registrar: MobilePushRegistrar | null): void {
-    this.pushRegistrar = registrar
-  }
-
-  async registerPushDevice(input: MobilePushRegisterInput): Promise<MobilePushRegisterResult> {
-    return (
-      (await this.pushRegistrar?.register(input)) ?? {
-        registered: false,
-        reason: 'gateway_unreachable'
-      }
-    )
-  }
-
-  async unregisterPushDevice(deviceId: string): Promise<{ unregistered: boolean }> {
-    return (await this.pushRegistrar?.unregister(deviceId)) ?? { unregistered: false }
-  }
 
   onDispatched(listener: (event: MobileNotificationEvent) => void): () => void {
     this.listeners.add(listener)

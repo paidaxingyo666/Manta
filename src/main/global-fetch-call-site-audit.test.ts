@@ -23,7 +23,6 @@ const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   ['main/manta-profiles/profile-cloud-client.ts', 1],
   ['main/manta-profiles/profile-cloud-org-members-client.ts', 1],
   ['main/rate-limits/codex-fetcher.ts', 3],
-  ['main/runtime/push/push-gateway-client.ts', 1],
   ['main/runtime/relay/relay-http-client.ts', 2],
   ['main/runtime/relay/relay-region-preference.ts', 3],
   ['main/source-control/hosted-review-api-request.ts', 1],

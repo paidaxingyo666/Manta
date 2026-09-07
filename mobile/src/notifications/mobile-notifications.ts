@@ -1,5 +1,5 @@
-import { waitForSocketPushHandoff } from './socket-push-delivery-handoff'
 import type { RpcClient } from '../transport/rpc-client'
+// Re-exported so the existing importers (and their vi.mock paths) keep working.
 export {
   ensureNotificationPermissions,
   getNotificationPermissionState,
@@ -7,12 +7,12 @@ export {
 } from './notification-permissions'
 export { setScheduledNotificationsMaxForTests } from './local-notification-scheduling'
 import {
+  configureNotificationChannel,
   dismissLocalNotification,
   showLocalNotification,
   type DismissNotificationEvent,
   type NotificationEvent
 } from './local-notification-scheduling'
-import { ensureDesktopNotificationChannel } from './desktop-notification-channel'
 import {
   adoptNotificationEpoch,
   catchUpWatermarkSeq,
@@ -26,7 +26,6 @@ import {
   seenKeyForEvent,
   shouldQueueShowForNotificationId
 } from './notification-reconnect-catchup'
-import { markPresentedPushesSeen, readPresentedPushSeenKeys } from './push-tray-seen-seed'
 
 type SubscribeResult = {
   type: 'ready'
@@ -35,13 +34,14 @@ type SubscribeResult = {
   epoch?: string
 }
 
+// Per-connection subscription; a reconnect `ready` triggers watermarked catch-up (#8129) so already-pushed events aren't re-sent.
 export function subscribeToDesktopNotifications(client: RpcClient, hostId: string): () => void {
-  ensureDesktopNotificationChannel()
+  configureNotificationChannel()
 
   let subscriptionId: string | null = null
   let disposed = false
-  const deliveryAbort = new AbortController()
-  // Preserve the watermark across socket reconnects.
+  // Why (#8591): survives the unsubscribe/resubscribe the app performs on every
+  // socket drop, so a reconnect still knows its watermark and that it reconnected.
   const session = getHostNotificationSession(hostId)
 
   /**
@@ -84,26 +84,23 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
     adoptNotificationEpoch(session, hostId, event.notificationEpoch)
     const epochAtDelivery = session.lastDeliveredEpoch
     if (type === 'notification') {
-      const show = await waitForSocketPushHandoff(
-        event as NotificationEvent,
-        hostId,
-        deliveryAbort.signal
-      )
-      if (disposed) {
-        throw new Error('notification_subscription_disposed')
-      }
-      if (show) {
-        await showLocalNotification(event as NotificationEvent, hostId)
-      }
+      await showLocalNotification(event as NotificationEvent, hostId)
     } else {
       await dismissLocalNotification(event as DismissNotificationEvent, hostId)
     }
-    // Claim only after local delivery or a matching presented push.
+    // Why after the await, exactly like the watermark below: `seen` asserts this event
+    // reached the user (#8129). Marked before, a rejected show leaves the key behind and
+    // every later replay is dropped as a duplicate — loss the quarantine cannot recover,
+    // since the first event to drain a batch lifts it past the one never shown.
     const key = seenKeyForEvent(event)
     // A mid-flight epoch adoption already cleared the counter lifetime this key indexes.
     if (key && session.lastDeliveredEpoch === epochAtDelivery) {
       session.seen.add(key)
     }
+    // Why after the await (#8591): the watermark is a promise that everything up
+    // to this seq has been shown. Advancing it before the local notification lands
+    // means a process death in between silently drops it — the next launch asks the
+    // desktop for seq greater than one the user never saw.
     if (event.notificationSeq != null && event.notificationSeq > session.lastDeliveredSeq) {
       session.lastDeliveredSeq = event.notificationSeq
       // Why clamped: while a failed catch-up's range is still unrecovered, persisting
@@ -116,9 +113,12 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
     }
   }
 
+  // Claimed inline rather than via queueDelivery: the batch is already one queue
+  // entry, and re-enqueueing per item is what let a live event cut in.
   async function deliverMissedEvent(
     event: NotificationEvent | DismissNotificationEvent
   ): Promise<void> {
+    // No pre-marking here either: deliverLive marks the key once the show lands.
     const key = seenKeyForEvent(event)
     if (key && session.seen.has(key)) {
       return
@@ -144,14 +144,12 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
     if (disposed) {
       return
     }
-    // Preserve the delivered floor if catch-up fails.
+    // Captured before the request: everything at or below it is known delivered, so
+    // it is the floor the watermark falls back to if this catch-up never completes.
     const askFrom = catchUpWatermarkSeq(session)
-    // Read concurrently; claim inside the queue after epoch adoption to avoid stale keys.
-    const presentedPushKeys = readPresentedPushSeenKeys(hostId)
     const missed = await client
       .sendRequest('notifications.getMissedSince', {
         lastSeenSeq: askFrom,
-        includeDesktopSuppressed: true,
         // Why: sending the epoch lets the desktop reject a watermark from a counter
         // it no longer has and return the whole retained buffer instead of nothing.
         ...(session.lastDeliveredEpoch != null ? { epoch: session.lastDeliveredEpoch } : {})
@@ -178,7 +176,8 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
     // request stays OUTSIDE the queue: sendRequest waits up to 30s, and holding the
     // chain for that would stall live delivery on a slow link.
     await enqueueHostDelivery(session, async () => {
-      markPresentedPushesSeen(session, await presentedPushKeys)
+      // Advances only past events this batch settled, so a teardown or a failing show
+      // quarantines the true contiguous point instead of the range it never reached.
       let contiguousSeq = askFrom
       let drained = false
       try {
@@ -214,8 +213,7 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
     }
   }
 
-  const params = { includeDesktopSuppressed: true }
-  const unsubscribeStream = client.subscribe('notifications.subscribe', params, (data: unknown) => {
+  const unsubscribeStream = client.subscribe('notifications.subscribe', {}, (data: unknown) => {
     const event = data as
       | NotificationEvent
       | DismissNotificationEvent
@@ -287,7 +285,6 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
 
   return () => {
     disposed = true
-    deliveryAbort.abort()
     // Why: drop the local stream first — readiness can race unmount; don't hold the callback while a subscription id is pending.
     unsubscribeStream()
     if (subscriptionId) {

@@ -57,25 +57,17 @@ function buildAgentTaskCompleteNotificationOptions(
 
   const agentLabel = formatNotificationAgentLabel(args.agentType)
   const worktreeContext = formatNotificationWorktreeContext(args)
-  const statusText = formatAgentNotificationStatusText(args)
+  const statusText =
+    args.agentState === 'blocked' || args.agentState === 'waiting'
+      ? 'needs input'
+      : args.agentState === 'done' && args.agentInterrupted
+        ? 'stopped'
+        : 'finished'
 
   return {
     title: `${worktreeContext} - ${agentLabel} ${statusText}`,
     body: buildAgentTaskCompleteRichBody(args) ?? `${agentLabel} ${statusText}.`
   }
-}
-
-// Why (#4375): a still-working agent must never be announced as finished. Only an
-// explicit terminal state, or no state at all (the hook snapshot expired and the
-// notification itself is the completion signal), may say "finished".
-function formatAgentNotificationStatusText(args: NotificationDispatchRequest): string {
-  if (args.agentState === 'blocked' || args.agentState === 'waiting') {
-    return 'needs input'
-  }
-  if (args.agentState === 'working') {
-    return 'working'
-  }
-  return args.agentState === 'done' && args.agentInterrupted ? 'stopped' : 'finished'
 }
 
 function formatNotificationWorktreeContext(args: NotificationDispatchRequest): string {

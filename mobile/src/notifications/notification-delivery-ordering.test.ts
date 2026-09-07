@@ -8,7 +8,6 @@ import { loadPushNotificationsEnabled } from '../storage/preferences'
 vi.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 'high' },
   setNotificationChannelAsync: vi.fn(),
-  getPresentedNotificationsAsync: vi.fn(async () => []),
   getPermissionsAsync: vi.fn(),
   requestPermissionsAsync: vi.fn(),
   scheduleNotificationAsync: vi.fn(),
@@ -16,14 +15,8 @@ vi.mock('expo-notifications', () => ({
 }))
 
 vi.mock('react-native', () => ({
-  AppState: { currentState: 'background' },
   Platform: { OS: 'ios', Version: 18 }
 }))
-
-// The reconnect catch-up reads the tray to learn which pushes the OS already showed,
-// and mapping those to this host needs the catalog, whose real module pulls the
-// native keychain. No push is presented in these tests, so an empty catalog is enough.
-vi.mock('../transport/host-store', () => ({ loadHostCatalog: vi.fn(async () => []) }))
 
 const WATERMARK_KEY = 'manta:mobileNotificationsWatermark:host-1'
 const storage = new Map<string, string>()
@@ -39,7 +32,6 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 
 vi.mock('../storage/preferences', () => ({
-  loadRemotePushEnabled: vi.fn(async () => false),
   loadPushNotificationsEnabled: vi.fn()
 }))
 
@@ -102,7 +94,6 @@ describe('#8591 per-host delivery ordering', () => {
               notifications: [
                 {
                   type: 'notification',
-                  source: 'agent-task-complete',
                   title: 'm6',
                   body: 'b',
                   notificationId: 'a:6',
@@ -110,7 +101,6 @@ describe('#8591 per-host delivery ordering', () => {
                 },
                 {
                   type: 'notification',
-                  source: 'agent-task-complete',
                   title: 'm7',
                   body: 'b',
                   notificationId: 'a:7',
@@ -132,7 +122,6 @@ describe('#8591 per-host delivery ordering', () => {
     // Live seq 11 arrives while the replay is wedged on seq 6.
     onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'live-11',
       body: 'b',
       notificationId: 'a:11',
@@ -185,7 +174,6 @@ describe('#8591 per-host delivery ordering', () => {
               notifications: [
                 {
                   type: 'notification',
-                  source: 'agent-task-complete',
                   title: 'dup',
                   body: 'b',
                   notificationId: 'agent:dup',
@@ -208,7 +196,6 @@ describe('#8591 per-host delivery ordering', () => {
     // seq, so the seen-set does not catch it — only the queued-show claim does.
     onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'dup',
       body: 'b',
       notificationId: 'agent:dup',
@@ -225,10 +212,7 @@ describe('#8591 per-host delivery ordering', () => {
   it('still delivers when the persisted watermark read never resolves', async () => {
     // Every delivery awaits the seed, so a wedged AsyncStorage read would disable
     // this host's notifications for the whole app lifetime — silently.
-    getItemImpl = (key) =>
-      key.startsWith('manta:mobileNotificationsWatermark:')
-        ? new Promise<string | null>(() => {})
-        : Promise.resolve(null)
+    getItemImpl = () => new Promise<string | null>(() => {})
 
     let onData: ((data: unknown) => void) | null = null
     const client = {
@@ -246,7 +230,6 @@ describe('#8591 per-host delivery ordering', () => {
       onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
       onData?.({
         type: 'notification',
-        source: 'agent-task-complete',
         title: 'live-1',
         body: 'b',
         notificationId: 'a:1',

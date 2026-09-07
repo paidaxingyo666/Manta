@@ -9,7 +9,6 @@ import { loadPushNotificationsEnabled } from '../storage/preferences'
 vi.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 'high' },
   setNotificationChannelAsync: vi.fn(),
-  getPresentedNotificationsAsync: vi.fn(async () => []),
   getPermissionsAsync: vi.fn(),
   requestPermissionsAsync: vi.fn(),
   scheduleNotificationAsync: vi.fn(),
@@ -17,14 +16,8 @@ vi.mock('expo-notifications', () => ({
 }))
 
 vi.mock('react-native', () => ({
-  AppState: { currentState: 'background' },
   Platform: { OS: 'ios', Version: 18 }
 }))
-
-// The reconnect catch-up reads the tray to learn which pushes the OS already showed,
-// and mapping those to this host needs the catalog, whose real module pulls the
-// native keychain. No push is presented in these tests, so an empty catalog is enough.
-vi.mock('../transport/host-store', () => ({ loadHostCatalog: vi.fn(async () => []) }))
 
 // In-memory AsyncStorage so the persisted watermark survives across the
 // subscribe/unsubscribe cycles this test exercises (the real device behaviour).
@@ -39,7 +32,6 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 
 vi.mock('../storage/preferences', () => ({
-  loadRemotePushEnabled: vi.fn(async () => false),
   loadPushNotificationsEnabled: vi.fn()
 }))
 
@@ -54,7 +46,7 @@ function flushAsync(): Promise<void> {
 // scratch on the next 'connected'.
 function makeHostClient() {
   let onData: ((data: unknown) => void) | null = null
-  const getMissedCalls: { includeDesktopSuppressed: true; lastSeenSeq: number }[] = []
+  const getMissedCalls: { lastSeenSeq: number }[] = []
   const client = {
     subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
       onData = cb
@@ -65,7 +57,7 @@ function makeHostClient() {
     getState: vi.fn(() => 'connected'),
     sendRequest: vi.fn(async (method: string, params: unknown = {}) => {
       if (method === 'notifications.getMissedSince') {
-        getMissedCalls.push(params as { includeDesktopSuppressed: true; lastSeenSeq: number })
+        getMissedCalls.push(params as { lastSeenSeq: number })
         return { ok: true, result: { notifications: missedQueue } } as never
       }
       return { ok: true, result: undefined } as never
@@ -108,7 +100,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
     await flushAsync()
     host.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'live',
       body: 'b',
       notificationId: 'agent:live',
@@ -126,7 +117,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
     host.setMissed([
       {
         type: 'notification',
-        source: 'agent-task-complete',
         title: 'missed-8',
         body: 'b',
         notificationId: 'agent:m8',
@@ -134,7 +124,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
       },
       {
         type: 'notification',
-        source: 'agent-task-complete',
         title: 'missed-9',
         body: 'b',
         notificationId: 'agent:m9',
@@ -150,7 +139,7 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
     // The user must be told about seq 8 and 9. Nothing else can deliver them:
     // the desktop only fans out live, so this catch-up is the only path.
     expect(host.getMissedCalls).toHaveLength(1)
-    expect(host.getMissedCalls[0]).toEqual({ includeDesktopSuppressed: true, lastSeenSeq: 7 })
+    expect(host.getMissedCalls[0]).toEqual({ lastSeenSeq: 7 })
     const titles = vi
       .mocked(Notifications.scheduleNotificationAsync)
       .mock.calls.map((c) => (c[0] as { content: { title: string } }).content.title)
@@ -171,7 +160,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
     await flushAsync()
     host.onData?.({
       type: 'notification',
-      source: 'agent-task-complete',
       title: 'live-7',
       body: 'b',
       notificationId: 'agent:seven',
@@ -186,7 +174,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
     host.setMissed([
       {
         type: 'notification',
-        source: 'agent-task-complete',
         title: 'live-7',
         body: 'b',
         notificationId: 'agent:seven',
@@ -194,7 +181,6 @@ describe('#8591 reconnect catch-up under the real app teardown lifecycle', () =>
       },
       {
         type: 'notification',
-        source: 'agent-task-complete',
         title: 'missed-8',
         body: 'b',
         notificationId: 'agent:m8',

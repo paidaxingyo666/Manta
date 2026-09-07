@@ -283,8 +283,6 @@ export const LEASED_WORKFLOWS = named([
     'operate-relay-production-rehome.yml',
     production({ leaseFiles: ['operate-relay-production-rehome-job.yml'] })
   ],
-  // The gateway applies its schema at startup, so its deploy revision is the schema step.
-  ['push-deploy.yml', production()],
   ['deploy-relay-asia-topology.yml', eitherEnvironment()],
   ['operate-relay-asia-admission.yml', eitherEnvironment()],
   ['deploy-relay-staging.yml', staging()],

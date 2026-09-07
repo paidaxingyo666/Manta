@@ -305,7 +305,7 @@ describe('startParkedTerminalByteWatcher', () => {
     dispose()
   })
 
-  it('keeps mobile completion detection active when desktop notifications and attention are off', async () => {
+  it('skips completion dispatch when tracking is fully disabled, keeping the cache timer', async () => {
     mockStoreState.settings = {
       ...mockStoreState.settings,
       experimentalTerminalAttention: false,
@@ -318,10 +318,7 @@ describe('startParkedTerminalByteWatcher', () => {
     flushSideEffects()
     vi.advanceTimersByTime(NOTIFICATION_GRACE_MS * 4)
 
-    expect(dispatchTerminalNotification).toHaveBeenCalledWith(
-      WORKTREE_ID,
-      expect.objectContaining({ source: 'agent-task-complete', suppressOsNotification: true })
-    )
+    expect(dispatchTerminalNotification).not.toHaveBeenCalled()
     expect(mockStoreState.setCacheTimerStartedAt).toHaveBeenLastCalledWith(
       PANE_KEY,
       expect.any(Number)

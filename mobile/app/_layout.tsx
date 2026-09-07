@@ -1,9 +1,6 @@
-import { readNativeNotificationData } from '../src/notifications/native-notification-data'
-import { loadNotificationDeliveryPreferences } from '../src/notifications/notification-delivery-preferences'
-import { setNotificationViewingWorkspace } from '../src/notifications/notification-viewing-policy'
 import { useCallback, useEffect, useRef } from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Stack, useRouter, useGlobalSearchParams, usePathname } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import * as SplashScreen from 'expo-splash-screen'
 import * as Notifications from 'expo-notifications'
@@ -13,13 +10,6 @@ import { MantaLogo } from '../src/components/MantaLogo'
 import { RpcClientProvider } from '../src/transport/client-context'
 import { getNotificationNavigationTarget } from '../src/notifications/notification-routing'
 import { useOpenNotificationRoute } from '../src/notifications/use-open-notification-route'
-import {
-  isRemotePushTrigger,
-  pushNotificationRouteData,
-  shouldSuppressForegroundPush
-} from '../src/notifications/push-receive'
-import { startPushTokenSync } from '../src/notifications/push-registration'
-import { ensureDesktopNotificationChannel } from '../src/notifications/desktop-notification-channel'
 import { loadHostCatalog } from '../src/transport/host-store'
 import { extractPairingCodeFromUrl } from '../src/transport/pairing'
 import { recoverMobileRelayPairing } from '../src/transport/mobile-relay-pairing-recovery'
@@ -29,44 +19,22 @@ import { recoverMobileRelayPairing } from '../src/transport/mobile-relay-pairing
 // between the native splash and the first React paint.
 SplashScreen.preventAutoHideAsync()
 
-// Why at boot and not only on subscribe: the gateway's FCM payload targets the
-// 'manta-desktop' channel, and a background push can land before any socket has
-// connected. Android drops a notification whose channel does not exist yet.
-ensureDesktopNotificationChannel()
-
 // Why: without this, expo-notifications silently drops notifications when
 // the app is in the foreground. Setting all three to true makes iOS/Android
 // display the banner, play the sound, and show the badge even while the
 // app is active. This runs once at module load time before any notification
 // is scheduled.
 Notifications.setNotificationHandler({
-  handleNotification: async (notification) => {
-    // Why the check: a gateway push can arrive for an event the socket already
-    // delivered, and only the handler can stop the OS drawing a second banner.
-    const suppressed = await shouldSuppressForegroundPush(
-      readNativeNotificationData(notification.request)
-    ).catch(() => false)
-    return {
-      shouldShowBanner: !suppressed,
-      shouldShowList: !suppressed,
-      shouldPlaySound: !suppressed && (await loadNotificationDeliveryPreferences()).sound,
-      shouldSetBadge: false
-    }
-  }
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false
+  })
 })
 
 export default function RootLayout() {
   const router = useRouter()
-  const pathname = usePathname()
-  const { hostId, worktreeId } = useGlobalSearchParams<{ hostId?: string; worktreeId?: string }>()
-  useEffect(() => {
-    setNotificationViewingWorkspace(
-      pathname.includes('/session/') && typeof hostId === 'string' && typeof worktreeId === 'string'
-        ? { hostId, worktreeId }
-        : null
-    )
-    return () => setNotificationViewingWorkspace(null)
-  }, [pathname, hostId, worktreeId])
   const openNotificationRoute = useOpenNotificationRoute()
   const handledNotificationIdsRef = useRef<Set<string>>(new Set())
 
@@ -75,10 +43,6 @@ export default function RootLayout() {
     // reconcile the server result before another scan can replace that journal.
     void recoverMobileRelayPairing()
   }, [])
-
-  // Why: a rolled APNs/FCM token stops delivering silently, so every paired host
-  // has to be re-registered with the new one as soon as the provider hands it over.
-  useEffect(() => startPushTokenSync(), [])
 
   // Why: route `manta://pair?...` deep links to the confirm screen so
   // the same pairing flow runs whether the link arrived via QR scan,
@@ -130,18 +94,9 @@ export default function RootLayout() {
       }
     }
 
-    async function getNavigationTarget(notification: Notifications.Notification) {
+    async function getNavigationTarget(data: unknown) {
       const hosts = await loadHostCatalog().catch(() => null)
-      const data = readNativeNotificationData(notification.request)
-      // A gateway push names its host by key fingerprint, not by this device's hostId.
-      // With no catalog to resolve against, such a push stays unrouted instead of
-      // falling back to whatever hostId its raw data carries.
-      const routeData = pushNotificationRouteData(
-        data,
-        hosts ?? [],
-        isRemotePushTrigger(notification.request.trigger)
-      )
-      return getNotificationNavigationTarget(routeData, {
+      return getNotificationNavigationTarget(data, {
         knownHostIds: hosts ? new Set(hosts.map((host) => host.id)) : undefined,
         credentialStatusByHostId: hosts
           ? new Map(hosts.map((host) => [host.id, host.credentialStatus]))
@@ -169,7 +124,7 @@ export default function RootLayout() {
         }
       }
 
-      const target = await getNavigationTarget(response.notification)
+      const target = await getNavigationTarget(response.notification.request.content.data)
       clearLastNotificationResponse()
       if (disposed) {
         return
