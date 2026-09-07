@@ -9,7 +9,7 @@ export type { NativeChatViewProps } from './native-chat-view-types'
 /** Resolves an agent terminal into its native conversation and composer UI. */
 export default function NativeChatView(props: NativeChatViewProps): React.JSX.Element {
   if (props.mode === 'structured') {
-    return <NativeChatStructuredSession {...props} />
+    return <NativeChatStructuredSession key={props.sessionId} {...props} />
   }
   return <NativeChatBridgeView {...props} />
 }

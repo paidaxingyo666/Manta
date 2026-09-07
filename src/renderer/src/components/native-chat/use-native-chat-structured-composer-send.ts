@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { emitNativeChatMessageSent } from '@/lib/native-chat-telemetry'
 import { reportStructuredSessionUserInput } from '@/lib/worker-terminal-takeover-report'
 import { isStructuredAgentSessionComposerCommand } from '../../../../shared/structured-agent-session-composer'
@@ -10,6 +10,7 @@ import type { NativeChatComposerImageAttachment } from './NativeChatComposerFiel
 
 export type UseNativeChatStructuredComposerSendArgs = {
   agent: AgentType
+  draft?: string
   imageAttachments: readonly NativeChatComposerImageAttachment[]
   structuredTransport?: NativeChatStructuredComposerTransport
   clearImageAttachments: () => void
@@ -23,6 +24,7 @@ export type UseNativeChatStructuredComposerSendArgs = {
  *  once the transport accepts (the PTY path has its own sibling hook). */
 export function useNativeChatStructuredComposerSend({
   agent,
+  draft,
   imageAttachments,
   structuredTransport,
   clearImageAttachments,
@@ -34,6 +36,10 @@ export function useNativeChatStructuredComposerSend({
   text: string,
   attachments?: readonly NativeChatComposerImageAttachment[]
 ) => void {
+  const composition = useRef({ draft, imageAttachments })
+  useLayoutEffect(() => {
+    composition.current = { draft, imageAttachments }
+  }, [draft, imageAttachments])
   return useCallback(
     (text: string, attachments = imageAttachments): void => {
       if (!structuredTransport) {
@@ -43,6 +49,7 @@ export function useNativeChatStructuredComposerSend({
         structuredTransport.onError('Remove attachments before using a chat-session command.')
         return
       }
+      const submitted = composition.current
       void dispatchNativeChatStructuredComposerText(structuredTransport, text, attachments)
         .then(({ accepted, error }) => {
           structuredTransport.onError(error)
@@ -58,6 +65,13 @@ export function useNativeChatStructuredComposerSend({
             structuredTransport.runtimeEnvironmentId
           )
           setHistory((previous) => pushHistory(previous, text))
+          if (
+            isStructuredAgentSessionComposerCommand(text, agent) &&
+            (composition.current.draft !== submitted.draft ||
+              composition.current.imageAttachments !== submitted.imageAttachments)
+          ) {
+            return
+          }
           setDraft('')
           setCaret(0)
           clearSkillOrigin()

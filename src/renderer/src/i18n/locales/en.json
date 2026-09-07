@@ -17140,7 +17140,11 @@
       },
       "structuredSessionFellBackToTerminal": "Structured chat isn't available",
       "structuredSessionFellBackToTerminalDescription": "Manta tried to open a {{value0}} terminal instead.",
-      "structuredSessionLaunchFailedDescription": "Manta could not open a structured {{value0}} chat. See the logs for details."
+      "structuredSessionLaunchFailedDescription": "Manta could not open a structured {{value0}} chat. See the logs for details.",
+      "conversationCommand": {
+        "pendingWork": "Wait for pending work and messages to finish before using this command.",
+        "unconfirmed": "Conversation operation was not confirmed."
+      }
     },
     "tab": {
       "bar": {

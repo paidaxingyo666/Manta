@@ -306,12 +306,12 @@ describe('NativeChatComposer', () => {
     expect(mocks.setDraft).toHaveBeenCalledWith('')
   })
 
-  // The structured slash menu must offer the running agent's own catalog. Offering
-  // another agent's tokens sends them past the command guard as literal prompt text.
+  // The structured menu offers only what the dispatcher can carry out. Listing the
+  // agent's TUI catalog here answered every pick with "not available in chat sessions".
   it.each([
-    ['claude', 'compact', 'vim'],
-    ['codex', 'vim', 'help']
-  ] as const)('offers %s its own structured slash commands', (agent, offered, withheld) => {
+    ['claude', 'compact'],
+    ['codex', 'vim']
+  ] as const)('offers %s only actionable structured slash commands', (agent, withheld) => {
     mocks.draft = '/'
     render(
       <NativeChatComposer
@@ -340,8 +340,7 @@ describe('NativeChatComposer', () => {
     const names = (mocks.fieldProps?.autocomplete?.items ?? [])
       .filter((item) => item.kind === 'command')
       .map((item) => item.name)
-    expect(names).toContain(offered)
-    expect(names).toContain('effort')
+    expect(names).toEqual(['model', 'effort'])
     expect(names).not.toContain(withheld)
   })
 

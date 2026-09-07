@@ -27,14 +27,15 @@ export function useNativeChatComposerCatalog(
 ): NativeChatComposerCatalog {
   const structured = Boolean(structuredTransport)
   const reported = structuredTransport?.sessionCommands
+  const conversationCommands = structuredTransport?.conversationCommands
   const agentCommands = useMemo(
     () =>
       !structured
         ? getVerifiedNativeChatCommands(agent)
         : reported !== undefined
           ? sessionSlashCommandSuggestions(agent, reported)
-          : structuredSlashCommands(agent),
-    [agent, reported, structured]
+          : structuredSlashCommands(conversationCommands),
+    [agent, conversationCommands, reported, structured]
   )
   const sessionSkillNames = useMemo(
     () => (reported !== undefined ? sessionReportedSkillNames(reported) : undefined),

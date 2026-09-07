@@ -68,6 +68,11 @@ const STRUCTURED_CALLS: {
     hostMethod: 'attach',
     result: { ok: true, replayed: false, value: { sessionId: SESSION } }
   },
+  {
+    method: 'agentSession.conversationCommand',
+    hostMethod: 'conversationCommand',
+    result: { ok: true, value: { command: 'compact', state: 'completed' } }
+  },
   { method: 'agentSession.send', hostMethod: 'send', result: { ok: true, replayed: false } },
   { method: 'agentSession.cancel', hostMethod: 'cancel', result: { ok: true, replayed: false } },
   { method: 'agentSession.close', hostMethod: 'close', result: { ok: true } },
@@ -215,6 +220,10 @@ function paramsFor(method: string): unknown {
       return createIntentParams()
     case 'agentSession.ensure':
       return attachParams(fence)
+    case 'agentSession.conversationCommand': {
+      const fields = { command: 'compact' }
+      return { envelope: envelope({ method, fields, fence }), ...fields }
+    }
     case 'agentSession.send':
       return sendParams('hi', fence)
     case 'agentSession.cancel':
@@ -328,6 +337,10 @@ function structuredHostStub(): Record<string, ReturnType<typeof vi.fn>> {
     // supports creating there. A real host always answers; leaving it unstubbed made every
     // `ensure` refuse for the harness's own reason rather than the location's.
     supportsCreate: vi.fn(() => true),
+    conversationCommand: vi.fn(async () => ({
+      ok: true,
+      value: { command: 'compact', state: 'completed' }
+    })),
     send: vi.fn(async () => ({ ok: true, replayed: false })),
     cancel: vi.fn(async () => ({ ok: true, replayed: false })),
     close: vi.fn(async () => undefined),

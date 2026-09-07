@@ -139,9 +139,12 @@ export function NativeChatStructuredSession(
             setOptionPickerRequest((current) => ({ id, sequence: (current?.sequence ?? 0) + 1 }))
             return true
           },
-          setOption: controller.setStructuredOption
+          setOption: controller.setStructuredOption,
+          conversationCommands: controller.conversationCommands,
+          runConversationCommand: controller.runConversationCommand
         }),
       optionsSurface: controller.optionSurface,
+      conversationCommands: controller.conversationCommands,
       optionSnapshot: controller.optionSnapshot,
       optionPickerRequest,
       sessionCommands: controller.sessionCommands,

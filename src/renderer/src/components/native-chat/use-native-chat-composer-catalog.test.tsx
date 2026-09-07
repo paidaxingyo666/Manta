@@ -19,8 +19,33 @@ describe('composer catalog authority', () => {
     expect(pty.result.current.agentCommands).toEqual(getVerifiedNativeChatCommands('claude'))
     expect(pty.result.current.sessionSkillNames).toBeUndefined()
     const oldHost = renderHook(() => useNativeChatComposerCatalog('claude', transport()))
-    expect(oldHost.result.current.agentCommands).toEqual(structuredSlashCommands('claude'))
+    expect(oldHost.result.current.agentCommands).toEqual(structuredSlashCommands())
     expect(oldHost.result.current.sessionSkillNames).toBeUndefined()
+  })
+  it('offers supported conversation commands when the host has no reported catalog', () => {
+    const { result, rerender } = renderHook(
+      ({ conversationCommands }) =>
+        useNativeChatComposerCatalog('claude', { ...transport(), conversationCommands }),
+      {
+        initialProps: {
+          conversationCommands: ['clear', 'compact'] as NonNullable<
+            NativeChatStructuredComposerTransport['conversationCommands']
+          >
+        }
+      }
+    )
+    expect(result.current.agentCommands.map(({ name }) => name)).toEqual([
+      'model',
+      'effort',
+      'clear',
+      'compact'
+    ])
+    rerender({ conversationCommands: ['clear'] })
+    expect(result.current.agentCommands.map(({ name }) => name)).toEqual([
+      'model',
+      'effort',
+      'clear'
+    ])
   })
   it('respects empty catalogs and command-only catalogs without reviving disk skills', () => {
     const { result, rerender } = renderHook(

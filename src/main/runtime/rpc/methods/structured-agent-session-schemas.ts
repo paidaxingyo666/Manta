@@ -191,6 +191,13 @@ export const HandoffParams = z
 
 export const OptionsParams = z.object({ sessionId: SessionId }).strict()
 
+export const ConversationCommandParams = z
+  .object({
+    envelope: MutationEnvelope,
+    command: z.enum(['clear', 'compact'])
+  })
+  .strict()
+
 /** One surface's claim on one session. The id names the surface, not the client: two chat views
  *  looking at the same session are two holders, and either leaving must not release
  *  the other's. */

@@ -243,6 +243,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
 
     const sendStructured = useNativeChatStructuredComposerSend({
       agent,
+      draft,
       imageAttachments,
       structuredTransport,
       clearImageAttachments,

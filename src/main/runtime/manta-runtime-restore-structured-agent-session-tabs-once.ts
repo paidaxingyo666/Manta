@@ -1,6 +1,8 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
 import { MantaRuntimeWithResolveRecoveredStructuredTuiTranscript } from './manta-runtime-resolve-recovered-structured-tui-transcript'
 import { getStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
+import { replaceConversationInSnapshot } from './structured-conversation-tab-replacement'
+import type { ConversationReplacement } from '../native-chat/agent-session-wire/structured-conversation-command'
 import { collectSavedStructuredAgentSessionIds } from './saved-structured-agent-session-restoration'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import type {
@@ -24,6 +26,25 @@ import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
 import type { PtyProcessInspection } from '../providers/pty-process-inspection'
 
 export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends MantaRuntimeWithResolveRecoveredStructuredTuiTranscript {
+  async replaceStructuredAgentSessionTab(replacement: ConversationReplacement): Promise<void> {
+    const prior = this.mobileSessionTabsByWorktree.get(replacement.workspaceId)
+    const next = prior ? replaceConversationInSnapshot(prior, replacement) : null
+    if (next && next !== prior) {
+      const stored = this.storeMobileSessionSnapshot(replacement.workspaceId, next)
+      this.emitMobileSessionTabsSnapshot(stored)
+    } else if (
+      !prior?.tabs.some(
+        (tab) => tab.type === 'agent-session' && tab.sessionId === replacement.sessionId
+      )
+    ) {
+      await this.publishStructuredAgentSessionTab({
+        ...replacement,
+        replacesSessionId: replacement.sourceSessionId,
+        activate: false
+      })
+    }
+  }
+
   protected async restoreStructuredAgentSessionTabsOnce(): Promise<void> {
     await this.prepareStructuredAgentSessionStartupRestoration()
     const host = getStructuredAgentSessionHost()
@@ -44,6 +65,9 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
       })
     }
     this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession()
+    for (const replacement of host?.conversationReplacements?.() ?? []) {
+      await this.replaceStructuredAgentSessionTab(replacement)
+    }
     for (const session of host?.listSessionTabs() ?? []) {
       if (session.agent !== 'codex' && session.agent !== 'claude') {
         continue
@@ -68,6 +92,7 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
     agent: 'claude' | 'codex'
     activate: boolean
     notify?: boolean
+    replacesSessionId?: string
   }): Promise<void> {
     const host = getStructuredAgentSessionHost()
     if (typeof host?.setSessionTabVisibility === 'function') {
@@ -109,6 +134,7 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
       id,
       title: input.agent === 'claude' ? 'Claude Chat' : 'Codex Chat',
       sessionId: input.sessionId,
+      ...(input.replacesSessionId ? { replacesSessionId: input.replacesSessionId } : {}),
       agent: input.agent,
       isActive: input.activate
     }

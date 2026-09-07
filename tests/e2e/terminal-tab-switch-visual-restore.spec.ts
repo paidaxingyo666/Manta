@@ -794,7 +794,9 @@ test.describe('Terminal tab switch visual restore', () => {
       .toContain(marker)
   })
 
-  test('@headful keeps returned tab glyphs intact across tab switches', async ({ mantaPage }, testInfo) => {
+  test('@headful keeps returned tab glyphs intact across tab switches', async ({
+    mantaPage
+  }, testInfo) => {
     // Why: screenshot equality catches WebGL atlas corruption on the tab being
     // resumed, not just stale cols/rows geometry checks.
     await waitForSessionReady(mantaPage)

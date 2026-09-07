@@ -1,3 +1,4 @@
+import { compactClaudeSession, observeClaudeCompaction } from './claude-structured-compaction'
 import type {
   AgentSessionAcquisition,
   StructuredAgentSessionAcquireInput,
@@ -10,6 +11,7 @@ import {
   stopClaudeBackgroundTasks
 } from './claude-structured-control-actions'
 import { dispatchClaudeTurn } from './claude-structured-dispatch'
+import { StructuredSessionCompaction } from '../native-chat/agent-session-wire/structured-session-compaction'
 import { releaseClaudeAcquisition } from './claude-structured-acquisition-release'
 import { acquireClaudeSession } from './claude-structured-session-acquisition'
 export { CLAUDE_STRUCTURED_INIT_TIMEOUT_MS } from './claude-structured-session-acquisition'
@@ -47,6 +49,7 @@ function backgroundTaskState(session: ClaudeSession): AgentSessionBackgroundTask
 }
 
 export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAdapter {
+  private readonly compactions = new StructuredSessionCompaction()
   private readonly sessions = new Map<string, ClaudeSession>()
   private readonly acquisitions = new ClaudeAcquisitionRegistry()
   private readonly exits = new Map<string, ClaudeSessionExit>()
@@ -198,7 +201,7 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
     if (event.type === 'message' && session?.commands.observe(event.message)) {
       session.events?.publish()
     }
-    session?.translator?.handle(event)
+    observeClaudeCompaction(this.compactions, event, session?.translator)
     this.deps.onEvent?.(event)
     if (backgroundTasksChanged) {
       this.deps.onBackgroundTasksChanged?.(
@@ -224,6 +227,14 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
       this.deps.dispatchAckTimeoutMs ?? DISPATCH_ACK_TIMEOUT_MS
     )
 
+  compact: NonNullable<StructuredAgentSessionAdapter['compact']> = (input) =>
+    compactClaudeSession(
+      this.session(input.sessionId),
+      this.compactions,
+      input,
+      this.deps.dispatchAckTimeoutMs ?? DISPATCH_ACK_TIMEOUT_MS
+    )
+
   cancelTurn: StructuredAgentSessionAdapter['cancelTurn'] = (input) => {
     const session = this.session(input.sessionId)
     const acquisitionGeneration = session.acquisitionGeneration
@@ -235,10 +246,11 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
         this.sessions.get(input.sessionId) === session &&
         session.fence === input.fence &&
         session.acquisitionGeneration === acquisitionGeneration &&
-        (session.activeTurnId === undefined
-          ? session.dispatchSequence === 0
-          : session.activeTurnId === input.turnId &&
-            session.activeTurnSequence === session.dispatchSequence)
+        (this.compactions.ownsTurn(input.sessionId, input.turnId) ||
+          (session.activeTurnId === undefined
+            ? session.dispatchSequence === 0
+            : session.activeTurnId === input.turnId &&
+              session.activeTurnSequence === session.dispatchSequence))
       )
     })
   }
