@@ -14,6 +14,7 @@ import {
   HostChallengeAckSchema,
   HostHelloSchema,
   InviteCreateSchema,
+  RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS,
   RELAY_PROTOCOL_LIMITS,
   RELAY_CLOSE_CODE,
   type RelayHostCloseReason,
@@ -178,6 +179,7 @@ export class HostSessionRegistry {
   // but a signed-out desktop never comes back, so the phone that asks minutes
   // later would otherwise find nothing to explain its rejection with.
   private readonly hostCloseReasons = new HostCloseReasonMemory(() => this.now())
+  private readonly hostCapabilities = new WeakMap<WebSocket, ReadonlySet<string>>()
   private draining = false
 
   constructor(
@@ -552,8 +554,12 @@ export class HostSessionRegistry {
   acceptControl(
     socket: WebSocket,
     identity: RelayTokenClaims,
-    connectionInclusionWatermark?: number
+    connectionInclusionWatermark?: number,
+    hostCapabilities?: ReadonlySet<string>
   ): void {
+    // Keyed by socket, not session: a rebind swaps the session's socket, and the
+    // successor's own advertisement is the only one that describes its decoder.
+    if (hostCapabilities?.size) this.hostCapabilities.set(socket, hostCapabilities)
     if (this.draining) {
       socket.close(RELAY_CLOSE_CODE.DRAINING, 'relay draining')
       return
@@ -1177,6 +1183,12 @@ export class HostSessionRegistry {
 
   private sendHelloAck(session: HostSession): void {
     if (!session.socket) return
+    // Without these a host that missed the conn-open cannot dial the pending
+    // connection: it would have to guess the pairing kind and the device the
+    // relay authorized. Only sent to a host that said it can read them.
+    const details = this.hostCapabilities
+      .get(session.socket)
+      ?.has(RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS)
     send(session.socket, 'host-hello-ack', {
       v: 1,
       generation: session.generation,
@@ -1185,7 +1197,13 @@ export class HostSessionRegistry {
       activeConnIds: [...session.activeConnIds],
       pendingConns: [...session.pendingConns.values()].map((pending) => ({
         connId: pending.connId,
-        connTicket: pending.connTicket
+        connTicket: pending.connTicket,
+        ...(details
+          ? {
+              kind: pending.reservation.credentialKind,
+              relayDeviceId: pending.reservation.relayDeviceId
+            }
+          : {})
       }))
     })
   }
