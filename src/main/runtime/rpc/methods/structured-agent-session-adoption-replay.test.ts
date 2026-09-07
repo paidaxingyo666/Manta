@@ -138,6 +138,11 @@ describe('committed adopting create RPC replay', () => {
       undefined,
       { prepareCodexStructuredLaunch: selectAccountHome }
     )
+    // The structured surface is settings-gated for every caller, not just mobile; this test
+    // probes durable-identity replay, which only runs once the gate admits the call.
+    vi.spyOn(runtime, 'getClientSettings').mockReturnValue({
+      experimentalStructuredNativeChat: true
+    } as ReturnType<MantaRuntimeService['getClientSettings']>)
     vi.spyOn(runtime, 'getStructuredAgentSessionCreateSupport').mockResolvedValue({
       supported: true
     })
