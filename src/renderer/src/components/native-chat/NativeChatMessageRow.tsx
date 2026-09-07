@@ -180,6 +180,7 @@ export const MessageRow = memo(function MessageRow({
       {tools.length > 0 || subagentGroups.length > 0 ? (
         <NativeChatToolRun
           blocks={tools}
+          onLinkClick={onLinkClick}
           subagentGroups={subagentGroups}
           expandSignal={expandSignal}
           expandOverride={activityExpandOverride}

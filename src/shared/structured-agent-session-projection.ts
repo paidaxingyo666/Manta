@@ -47,7 +47,18 @@ function itemBlocks(item: AgentJournalRenderItem): {
     return {
       role: 'assistant',
       blocks: [
-        { type: 'tool-call', name: body.name, input: body.input, state: body.state },
+        {
+          type: 'tool-call',
+          name: body.name,
+          input: body.input,
+          state: body.state,
+          ...(body.mcpIdentity !== undefined ? { mcpIdentity: body.mcpIdentity } : {}),
+          ...(body.exitCode !== undefined ? { exitCode: body.exitCode } : {}),
+          ...(body.durationMs !== undefined ? { durationMs: body.durationMs } : {}),
+          ...(body.webSearchResults !== undefined
+            ? { webSearchResults: body.webSearchResults }
+            : {})
+        },
         ...(body.output
           ? [
               {

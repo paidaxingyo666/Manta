@@ -8,6 +8,7 @@
 // journal rather than skipping or compacting past it.
 
 import type { AgentType } from './agent-status-types'
+import type { NativeChatToolMetadata } from './native-chat-tool-identity'
 import type { NativeChatBlock, NativeChatRole } from './native-chat-types'
 
 export { type AgentType }
@@ -81,7 +82,7 @@ export type AgentJournalMessageItem = {
 
 export type AgentJournalToolCallState = 'running' | 'completed' | 'failed'
 
-export type AgentJournalToolCallItem = {
+export type AgentJournalToolCallItem = NativeChatToolMetadata & {
   kind: 'tool-call'
   name: string
   input: unknown
