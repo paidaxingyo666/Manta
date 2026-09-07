@@ -1,21 +1,6 @@
----
-name: orca-emulator
-description: >-
-  iOS Simulator control from inside Manta, with the live device view in Manta's
-  emulator pane. Use when driving a booted Apple Simulator on macOS: taps,
-  gestures, typing, hardware buttons, rotation, and the accessibility tree, or
-  when an iOS change needs simulator evidence. For an Android device or emulator
-  use the Android emulator skill; build and install the app with xcodebuild or
-  simctl first.
-license: Apache-2.0
----
+<!-- Single-authored blocks shared by every skill stub. -->
 
-# Manta Emulator
-
-This discovery stub loads the version-matched guide from the Manta executable used for this session.
-
-Prefer Manta over raw `serve-sim` or direct `simctl` for simulator control inside Manta; it
-handles device scoping, helper lifecycle, and worktree context.
+<!-- block: resolver -->
 
 ## Resolve the CLI for this session
 
@@ -36,11 +21,7 @@ same way in POSIX shells, PowerShell, and cmd.exe.
 If the selected executable cannot run, report its exact error and stop. Do not fall through
 to another executable, which could silently target a different Manta build.
 
-## Load the version-matched guide before running Manta commands
-
-```text
-MANTA skills get orca-emulator
-```
+<!-- block: no-guessing -->
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
 not cover. If a command reports that Manta is not running, start it with `MANTA open --json`

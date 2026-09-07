@@ -1,33 +1,19 @@
 ---
 name: orca-cli
 description: >-
-  Use the public `manta` CLI to operate Manta-managed worktrees, folder contexts,
-  terminals, repos, automations, artifacts, skill sharing, worktree comments, and the browser
-  embedded inside the Manta app. Use when the user says "$orca-cli", "use manta cli",
-  "Manta worktree", "child worktree", "cardStatus", "spawn codex/claude in a worktree",
-  "read/wait/send Manta terminal", "terminal send", "full handoff", "handover",
-  "give this to another agent", "another worktree", "Manta browser", "manta artifacts",
-  "share HTML/Markdown", "public artifact link", "share skills", or "control the browser inside
-  Manta". Prefer this over raw `git worktree`, ad hoc
-  PTYs, Playwright, or Computer Use when the task touches Manta-managed state.
-  Use Computer Use for external browser windows, webviews, or desktop UI only
-  when the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `orca-cli` for Manta's embedded pages and a
-  page-automation tool such as Playwright or CDP for external pages.
+  Operate Manta-managed worktrees, folder contexts, terminals, repos, automations, artifacts,
+  skill sharing, worktree comments, and Manta's embedded browser through the `manta` CLI. Use
+  when the user says "$orca-cli", "Manta worktree", "child worktree", "spawn codex/claude in a
+  worktree", "read/wait/send Manta terminal", "handoff" / "handover" / "give this to another
+  agent", "Manta browser", "manta artifacts", or "share skills". Prefer it over raw git
+  worktree, ad hoc PTYs, or Computer Use when Manta state is involved. Use Computer Use only
+  for external windows or desktop UI that needs OS-level control, and Playwright or CDP for
+  external pages.
 ---
 
 # Manta CLI
 
-This file is a discovery stub, not the usage guide. The full, version-matched Manta CLI
-reference is served by the `manta` binary itself — kept out of this file on purpose so it
-can never drift from the binary that will actually run your commands.
-
-Engage Manta whenever its running editor/runtime is the source of truth: Manta-managed
-worktrees, folder contexts, terminals, repos, automations, worktree comments, and the
-browser embedded inside the Manta app. Triggers include "$orca-cli", "Manta worktree",
-"child worktree", "spawn codex/claude in a worktree", "read/wait/send Manta terminal",
-"full handoff" / "handover" / "give this to another agent", and "control the browser
-inside Manta". Use plain shell tools when Manta state does not matter.
+This discovery stub loads the version-matched guide from the Manta executable used for this session.
 
 ## Resolve the CLI for this session
 
@@ -48,34 +34,13 @@ same way in POSIX shells, PowerShell, and cmd.exe.
 If the selected executable cannot run, report its exact error and stop. Do not fall through
 to another executable, which could silently target a different Manta build.
 
-## Load the full guide before running Manta commands
+## Load the version-matched guide before running Manta commands
 
 ```text
 MANTA skills get orca-cli
 ```
 
-That prints the complete, version-matched guide for the exact binary that will handle your
-next commands — worktrees, handoffs, terminals, automations, and the built-in browser.
-Read it first, then run the specific command you need.
-
-Don't guess subcommands or flags from memory or from a cached copy of this stub. They
-change between Manta releases, and this file deliberately no longer lists them. Confirm the
-app is up with `MANTA status --json` (start it with `MANTA open --json` if needed), and
-prefer `--json` for agent-driven calls.
-
-## If an older Manta does not recognize `skills get`
-
-Use this fallback only when the selected binary explicitly reports that `skills get` is an
-unknown command. Another failure is not proof of an older binary; report it rather than
-guessing or changing executables. For a confirmed pre-guide binary, use only this bounded,
-read-only bootstrap to orient. Do not dead-end and do not invent commands:
-
-```text
-MANTA status --json
-MANTA worktree ps --json
-MANTA terminal list --json
-```
-
-Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orca-cli`. Beyond these commands, ask the user rather than guessing a
-command surface this older binary may not support.
+Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
+not cover. If a command reports that Manta is not running, start it with `MANTA open --json`
+and retry. If `skills get` is unknown, explain that updating Manta restores the guide; use
+`--help` for read-only discovery and do not guess unsupported commands.
