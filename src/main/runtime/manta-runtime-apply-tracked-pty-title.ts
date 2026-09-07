@@ -38,6 +38,9 @@ export class MantaRuntimeWithApplyTrackedPtyTitle extends MantaRuntimeWithGetUnp
       pty.lastOscTitleEpochMs = observedAtEpochMs
       pty.lastAgentStatus = agentStatus
       pty.lastAgentStatusObservedLive = true
+      if (prevStatus === 'working' && agentStatus === null) {
+        this.confirmPtyAgentExit(ptyId, true)
+      }
       if (prevStatus !== agentStatus) {
         pty.lastAgentStatusStartedAtEpochMs = observedAtEpochMs
       }
