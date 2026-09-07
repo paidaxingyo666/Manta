@@ -2,6 +2,20 @@ import { StyleSheet } from 'react-native'
 
 import { colors, spacing, radii, typography } from '../theme/mobile-theme'
 
+// Why one constant for the whole strip: the terminal frame is whatever the tab bar leaves behind,
+// and the engine pre-warm has to reserve exactly that much before the bar exists. Every row child
+// is pinned to this height so nothing can grow the bar without moving the reservation with it.
+//
+// The row deliberately has NO explicit height. React Native lays out border-box, so `height: 36`
+// with a 1 px top border would render a 36 px row over a 35 px content area and squeeze children
+// that are themselves 36 -- and it would leave this constant one pixel long, which is a whole row
+// of drift once a frame sits near a row boundary. Left to size itself the row takes its tallest
+// child and adds the border outside it, which is exactly the sum below.
+export const MOBILE_SESSION_TAB_BAR_CONTENT_HEIGHT = 36
+export const MOBILE_SESSION_TAB_BAR_BORDER_WIDTH = 1
+export const MOBILE_SESSION_TAB_BAR_HEIGHT =
+  MOBILE_SESSION_TAB_BAR_CONTENT_HEIGHT + MOBILE_SESSION_TAB_BAR_BORDER_WIDTH
+
 export const mobileSessionFrameStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -80,12 +94,12 @@ export const mobileSessionFrameStyles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
+    borderTopWidth: MOBILE_SESSION_TAB_BAR_BORDER_WIDTH,
     borderTopColor: colors.borderSubtle
   },
   tabScroll: {
     flex: 1,
-    maxHeight: 36
+    maxHeight: MOBILE_SESSION_TAB_BAR_CONTENT_HEIGHT
   },
   tabContent: {
     paddingLeft: spacing.sm,
@@ -94,7 +108,7 @@ export const mobileSessionFrameStyles = StyleSheet.create({
   tab: {
     width: 128,
     maxWidth: 128,
-    minHeight: 36,
+    minHeight: MOBILE_SESSION_TAB_BAR_CONTENT_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.sm,
@@ -123,7 +137,7 @@ export const mobileSessionFrameStyles = StyleSheet.create({
   },
   newTerminalButton: {
     width: 40,
-    height: 36,
+    height: MOBILE_SESSION_TAB_BAR_CONTENT_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 2,

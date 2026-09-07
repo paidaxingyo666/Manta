@@ -12,6 +12,7 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     isFloatingWorkspaceRoute,
     connState,
     client,
+    protocolVerified,
     setTerminals,
     terminalsRef,
     setSessionTabs,
@@ -95,6 +96,8 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     worktreeId
   ])
 
+  // Reads only. They carry no side effect on the host, so they do not wait on the compatibility
+  // verdict — that is the whole point of mounting this route while status.get is still in flight.
   // Every setTimeout goes through addTimer into `timers`, which the returned cleanup clears.
   // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
@@ -116,58 +119,81 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
       timers.push(setTimeout(fn, ms))
     }
     void (async () => {
-      const reportActivationOutcome = (response: RpcSuccess | null): void => {
-        if (!disposed && response && headlessActivationNeedsHostRenderer(response.result)) {
-          showToast('Open Manta on the host to wake sleeping agents.', 3000)
-        }
-      }
-      if (client && created !== '1' && !isFloatingWorkspaceRoute) {
-        // Why: hydrate host-owned tabs without pulling other paired clients (esp. desktop) into this worktree.
-        void client
-          .sendRequest('worktree.activate', {
-            worktree: `id:${worktreeId}`,
-            notifyClients: false,
-            navigation: 'caller'
-          })
-          .then((response) => reportActivationOutcome(response.ok ? response : null))
-          .catch(() => null)
-      }
-      if (disposed) {
-        return
-      }
-      await ensureSessionTabs().catch(() => null)
-      if (disposed) {
-        return
-      }
-      await fetchTerminals({ allowEmptyLoaded: false })
+      // Why: session.tabs.list and terminal.list are independent reads, so issue both now and
+      // wait for the pair. Serialising them cost a full extra round trip before the first
+      // terminal could paint, which on a far relay cell is seconds, not milliseconds. Each
+      // call keeps its own catch so one rejection cannot strand the other's follow-up refreshes.
+      await Promise.all([
+        ensureSessionTabs().catch(() => null),
+        fetchTerminals({ allowEmptyLoaded: false }).catch(() => false)
+      ])
       if (disposed) {
         return
       }
       addTimer(() => void fetchTerminals({ allowEmptyLoaded: false }), 750)
       addTimer(() => void fetchTerminals({ allowEmptyLoaded: true }), 1500)
-      if (client && created === '1' && !isFloatingWorkspaceRoute) {
-        addTimer(() => {
-          if (activeHandleRef.current) {
+    })()
+    return () => {
+      disposed = true
+      for (const t of timers) {
+        clearTimeout(t)
+      }
+    }
+    // Why no client/worktreeId here: both reads are useCallbacks that already list them, so a
+    // host or worktree change replaces their identity and re-runs this effect with them.
+  }, [connState, fetchTerminals, ensureSessionTabs])
+
+  // worktree.activate writes host state, so unlike the reads above it waits for the compatibility
+  // verdict. A missing protocolVersion reads as 0 and is blocked, so "pending" is not a formality:
+  // mounting early must not let this route mutate a host the gate is about to refuse.
+  // Every setTimeout goes through addTimer into `timers`, which the returned cleanup clears.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
+  useEffect(() => {
+    if (connState !== 'connected' || !client || !protocolVerified || isFloatingWorkspaceRoute) {
+      return
+    }
+    let disposed = false
+    const timers: ReturnType<typeof setTimeout>[] = []
+    function addTimer(fn: () => void, ms: number) {
+      if (disposed) {
+        return
+      }
+      timers.push(setTimeout(fn, ms))
+    }
+    const activateWorktree = () =>
+      client
+        .sendRequest('worktree.activate', {
+          worktree: `id:${worktreeId}`,
+          notifyClients: false,
+          navigation: 'caller'
+        })
+        .catch(() => null)
+    const reportActivationOutcome = (response: RpcSuccess | null): void => {
+      if (!disposed && response && headlessActivationNeedsHostRenderer(response.result)) {
+        showToast('Open Manta on the host to wake sleeping agents.', 3000)
+      }
+    }
+    if (created !== '1') {
+      // Why: hydrate host-owned tabs without pulling other paired clients (esp. desktop) into this worktree.
+      void activateWorktree().then((response) =>
+        reportActivationOutcome(response?.ok ? response : null)
+      )
+    } else {
+      addTimer(() => {
+        if (activeHandleRef.current) {
+          return
+        }
+        void (async () => {
+          const activationResponse = await activateWorktree()
+          reportActivationOutcome(activationResponse?.ok ? activationResponse : null)
+          if (disposed) {
             return
           }
-          void (async () => {
-            const activationResponse = await client
-              .sendRequest('worktree.activate', {
-                worktree: `id:${worktreeId}`,
-                notifyClients: false,
-                navigation: 'caller'
-              })
-              .catch(() => null)
-            reportActivationOutcome(activationResponse?.ok ? activationResponse : null)
-            if (disposed) {
-              return
-            }
-            await fetchTerminals({ allowEmptyLoaded: true })
-            addTimer(() => void fetchTerminals({ allowEmptyLoaded: true }), 750)
-          })()
-        }, 1800)
-      }
-    })()
+          await fetchTerminals({ allowEmptyLoaded: true })
+          addTimer(() => void fetchTerminals({ allowEmptyLoaded: true }), 750)
+        })()
+      }, 1800)
+    }
     return () => {
       disposed = true
       for (const t of timers) {
@@ -179,8 +205,8 @@ export function useMobileSessionStartup(scope: MobileSessionKeyboardStateModel) 
     connState,
     created,
     fetchTerminals,
-    ensureSessionTabs,
     isFloatingWorkspaceRoute,
+    protocolVerified,
     showToast,
     worktreeId
   ])
