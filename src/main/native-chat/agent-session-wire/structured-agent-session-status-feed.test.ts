@@ -4,8 +4,14 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import type { AgentSessionStatusEvent } from '../../../shared/agent-session-wire'
+import { createClaudeJournalTranslator } from '../../claude/claude-structured-journal-translation'
+import { publishCodexTurnLifecycle } from '../../codex/codex-structured-journal-translation-turns'
+import { createDeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
-import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
+import {
+  StructuredAgentSessionStatusFeed,
+  type StructuredAgentSessionStatusFeedDeps
+} from './structured-agent-session-status-feed'
 
 const SESSION = 'status-session'
 const TURN_IDENTITY = {
@@ -55,10 +61,12 @@ function indexed(session: { journal: Awaited<ReturnType<typeof openJournal>> }) 
 
 function feedFor(
   sessions: Map<string, { journal: Awaited<ReturnType<typeof openJournal>> }>,
-  record: Partial<AgentSessionRecord> | null = null
+  record: Partial<AgentSessionRecord> | null = null,
+  onStatusChanged?: StructuredAgentSessionStatusFeedDeps['onStatusChanged']
 ) {
   let now = 1_000
   const feed = new StructuredAgentSessionStatusFeed({
+    ...(onStatusChanged ? { onStatusChanged } : {}),
     sessions: {
       get: (sessionId: string) => {
         const session = sessions.get(sessionId)
@@ -278,6 +286,137 @@ describe('StructuredAgentSessionStatusFeed', () => {
     expect(others.at(-1)).toEqual({
       type: 'status',
       session: expect.objectContaining({ status: 'idle' })
+    })
+  })
+  it('reports each projection change to the host observer, marking re-projections as replay', async () => {
+    const journal = await openJournal()
+    const seen: { status: string | null; prompt: string; replay: boolean }[] = []
+    const { feed } = feedFor(new Map([[SESSION, { journal }]]), null, (summary, options) =>
+      seen.push({ status: summary.status, prompt: summary.latestPrompt, replay: options.replay })
+    )
+    await journal.appendItem(
+      USER_IDENTITY,
+      { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'fix the auth bug' }] },
+      { fence: 1 }
+    )
+    await journal.appendItem(
+      TURN_IDENTITY,
+      { kind: 'status', text: 'Working', turnLifecycle: { turnId: 'turn-1', state: 'running' } },
+      { fence: 1 }
+    )
+
+    feed.publish(SESSION, journal)
+    // A second identical publication is deduped, so the observer only ever sees changes.
+    feed.publish(SESSION, journal)
+    // seen[0] is the opening projection the harness's own subscriber triggered.
+    expect(seen.slice(1)).toEqual([
+      { status: 'working', prompt: 'fix the auth bug', replay: false }
+    ])
+
+    // An arriving subscriber re-projects state the host already knew.
+    await journal.appendTombstone(TURN_IDENTITY, { fence: 1 })
+    feed.subscribe({ id: 'list-2', emit: () => undefined })
+    expect(seen.at(-1)).toEqual({ status: 'idle', prompt: 'fix the auth bug', replay: true })
+  })
+
+  it.each(['claude', 'codex'] as const)(
+    'observes a fast %s turn even when start and finish queue before persistence',
+    async (agent) => {
+      const journal = await openJournal()
+      await journal.appendItem(
+        USER_IDENTITY,
+        {
+          kind: 'message',
+          role: 'user',
+          blocks: [{ type: 'text', text: 'Fix auth' }]
+        },
+        { fence: 1 }
+      )
+      const seen: (string | null)[] = []
+      const { feed } = feedFor(new Map([[SESSION, { journal }]]), null, (summary) =>
+        seen.push(summary.status)
+      )
+      const deferred = createDeferredStructuredAgentSessionEventSink()
+      if (agent === 'claude') {
+        const translator = createClaudeJournalTranslator({ sink: deferred.sink })
+        translator.handle({
+          type: 'message',
+          sessionId: SESSION,
+          startsTurn: true,
+          message: {
+            type: 'user',
+            uuid: 'prompt-1',
+            session_id: 'claude-session',
+            parent_tool_use_id: null,
+            message: { role: 'user', content: [{ type: 'text', text: 'Fix auth' }] }
+          }
+        })
+        translator.handle({
+          type: 'message',
+          sessionId: SESSION,
+          message: {
+            type: 'result',
+            subtype: 'success',
+            session_id: 'claude-session',
+            uuid: 'result-1',
+            result: 'Done'
+          }
+        })
+        translator.dispose()
+      } else {
+        for (const state of ['running', 'completed'] as const) {
+          publishCodexTurnLifecycle({
+            sink: deferred.sink,
+            primaryThreadId: 'thread-1',
+            sessionId: SESSION,
+            threadId: 'thread-1',
+            turnId: 'turn-1',
+            state
+          })
+        }
+      }
+      for (let index = 0; index < 100; index++) {
+        deferred.sink.publish()
+      }
+      // This queue is also reached while a previous asynchronous journal write is pending.
+      let publications = 0
+      let activityPublications = 0
+      deferred.bind({
+        journal,
+        fence: 1,
+        publish: (activity) => {
+          if (activity === undefined) {
+            publications += 1
+          } else {
+            activityPublications += 1
+          }
+          feed.publish(SESSION, journal)
+        }
+      })
+      expect(await deferred.drained()).toEqual({ ok: true })
+      expect(seen).toEqual(['idle', 'working', 'idle'])
+      expect(publications).toBe(2)
+      expect(activityPublications).toBe(agent === 'claude' ? 1 : 0)
+      expect(deferred.state()).toMatchObject({ queuedBytes: 0, queuedOperations: 0 })
+      deferred.close()
+    }
+  )
+
+  it('keeps publishing to subscribers when the host observer throws', async () => {
+    const journal = await openJournal()
+    const { feed, events } = feedFor(new Map([[SESSION, { journal }]]), null, () => {
+      throw new Error('observer exploded')
+    })
+    await journal.appendItem(
+      USER_IDENTITY,
+      { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'hello' }] },
+      { fence: 1 }
+    )
+
+    expect(() => feed.publish(SESSION, journal)).not.toThrow()
+    expect(events.at(-1)).toEqual({
+      type: 'status',
+      session: expect.objectContaining({ status: 'idle', latestPrompt: 'hello' })
     })
   })
 })

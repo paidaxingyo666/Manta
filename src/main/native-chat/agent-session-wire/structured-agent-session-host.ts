@@ -61,7 +61,8 @@ export class StructuredAgentSessionHost {
   private readonly statusFeed = new StructuredAgentSessionStatusFeed({
     sessions: this.sessions,
     getRecord: (sessionId) => this.deps.store.getRecord(sessionId),
-    now: () => this.now()
+    now: () => this.now(),
+    onStatusChanged: (summary, options) => this.deps.onSessionStatusChanged?.(summary, options)
   })
   private readonly subscribers = new AgentSessionSubscribers({
     onJournalPublished: (sessionId, journal) => this.statusFeed.publish(sessionId, journal)
@@ -129,7 +130,7 @@ export class StructuredAgentSessionHost {
       // `hasSession` inside the same serialized step as this `set`.
       onReadable: (sessionId, restored) => {
         this.sessions.set(sessionId, restored)
-        this.statusFeed.publish(sessionId)
+        this.statusFeed.publish(sessionId, undefined, { replay: true })
       },
       restoreHandoff: (sessionId) => this.handoffs.restore(sessionId)
     })
@@ -180,14 +181,11 @@ export class StructuredAgentSessionHost {
   /** The host's half of attaching, named so it cannot grow dependencies unnoticed. */
   private attachContext(): StructuredAgentSessionAttachContext {
     return {
-      deps: this.deps,
-      runtimeState: this.runtimeState,
-      sessions: this.sessions,
+      ...this.lifetimeContext(),
       subscribers: this.subscribers,
       tasks: this.tasks,
       reconcileLeases: (sessionId) => this.reconcileLeases(sessionId),
-      serialize: (sessionId, task) => this.serialize(sessionId, task),
-      now: () => this.now()
+      serialize: (sessionId, task) => this.serialize(sessionId, task)
     }
   }
   /** Releases a session's resources without ending the conversation: the record and journal stay
