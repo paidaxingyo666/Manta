@@ -311,10 +311,12 @@ export class PaneManager {
 
   suspendRendering(): void {
     this.renderingSuspended = true
-    suspendPaneRendering(this.panes.values(), {
-      owner: this,
-      livePanes: () => (this.destroyed ? [] : this.panes.values())
-    })
+    suspendPaneRendering(
+      this.panes.values(),
+      this.options.retainHiddenWebgl === false
+        ? undefined
+        : { owner: this, livePanes: () => (this.destroyed ? [] : this.panes.values()) }
+    )
   }
 
   resumeRendering(): void {
