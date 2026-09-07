@@ -37,6 +37,13 @@ package-lock.json
 # committed. Without this exception the image builds from an unpinned tree.
 !relay-server/package-lock.json
 
+# The registered domain's page. Not open source: it carries the operator's
+# filing numbers, and those resolve on the registrars' sites back to the person
+# who registered them — publishing them here ties this repository to a private
+# identity. The page lives only on the host that serves it; deploy/README says
+# what has to be there.
+relay-server/deploy/site/
+
 # Environment
 .env
 .env.local

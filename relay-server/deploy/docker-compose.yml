@@ -107,7 +107,11 @@ services:
       SITE_DOMAIN: "${SITE_DOMAIN:?set SITE_DOMAIN}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # The filing requires the domain to serve a page; this is it.
+      # The filing requires the domain to serve a page; this mounts it. The page
+      # itself is not in this repository — it carries the operator's filing
+      # numbers, which resolve back to whoever registered them. Create ./site
+      # with an index.html on the host before starting; an absent directory
+      # mounts empty and the domain answers 404 to the filing check.
       - ./site:/srv/site:ro
       - caddy-data:/data
       - caddy-config:/config
