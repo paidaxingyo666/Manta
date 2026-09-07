@@ -65,6 +65,9 @@ export type CodexSession = {
   acquisitionGeneration: string
   threadId: string
   historyPath: string | null
+  historyMode?: 'legacy' | 'paginated'
+  activeTurnIds?: Set<string>
+  dispatchPending?: boolean
   prompts: CodexAcquisitionWindow['prompts']
   options: Map<string, string>
   reportedOptions: { model?: string; effort?: string }

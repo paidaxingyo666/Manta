@@ -1,4 +1,5 @@
 import { isDeepStrictEqual } from 'node:util'
+import { claudeRewindAcquisitionProofs } from './structured-rewind-claude-proof'
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import {
   AgentSessionPreSpawnError,
@@ -15,6 +16,7 @@ export async function acquireOwner(
   input: AttachFlowInput,
   record: AgentSessionRecord
 ): Promise<{ record: AgentSessionRecord; acquisitionGeneration: string | null }> {
+  const { store, rewind, now } = input
   const fence = record.lease.runtimeFence
   const spawnToken = record.lease.reservedSpawnToken
   if (!spawnToken) {
@@ -36,6 +38,7 @@ export async function acquireOwner(
     }
     const acquired = await input.adapter.acquire({
       identity: journalIdentityFor(record, input.params),
+      ...claudeRewindAcquisitionProofs({ store, record, rewind, now }),
       fence,
       // Retries must recover the original reservation, not mint a second child.
       spawnToken,
