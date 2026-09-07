@@ -116,11 +116,16 @@ type RelayMetricDeltas = {
   clientAcceptTotalsMs: number[]
   clientAcceptStageSamplesMs: Record<RelayClientAcceptTimedStage, number[]>
   controlRttSamplesMs: number[]
+  controlRttObserved: number
   controlRenewalLatenciesMs: number[]
   controlRenewalsByOutcome: Record<string, number>
   controlActivityRecoveries: number
   controlActivityRecoveryFailures: number
 }
+
+// A host chooses how often it answers a ping, so the process-wide window is a
+// reservoir: the heap cost of a flood is capped and the percentiles stay unbiased.
+export const CONTROL_RTT_RESERVOIR_LIMIT = 1024
 
 type MetricWriter = (entry: Record<string, unknown>) => void
 
@@ -156,6 +161,7 @@ const emptyDeltas = (): RelayMetricDeltas => ({
     basis: []
   },
   controlRttSamplesMs: [],
+  controlRttObserved: 0,
   controlRenewalLatenciesMs: [],
   controlRenewalsByOutcome: {},
   controlActivityRecoveries: 0,
@@ -298,7 +304,15 @@ export class RelayObservability implements RelayRuntimeObserver {
   }
 
   recordControlRtt(rttMs: number): void {
-    this.deltas.controlRttSamplesMs.push(rttMs)
+    const samples = this.deltas.controlRttSamplesMs
+    const observedBefore = this.deltas.controlRttObserved++
+    if (samples.length < CONTROL_RTT_RESERVOIR_LIMIT) {
+      samples.push(rttMs)
+      return
+    }
+    // Algorithm R: every round trip in the window keeps an equal chance of being kept.
+    const slot = Math.floor(Math.random() * (observedBefore + 1))
+    if (slot < CONTROL_RTT_RESERVOIR_LIMIT) samples[slot] = rttMs
   }
 
   start(readCounts: () => RelayProcessCounts, intervalMs = 30_000): void {
@@ -386,7 +400,10 @@ export class RelayObservability implements RelayRuntimeObserver {
             clientAcceptAttachMsP95: acceptStageP95('attach'),
             clientAcceptBasisMsP95: acceptStageP95('basis')
           }),
-      controlRttSamplesDelta: deltas.controlRttSamplesMs.length,
+      // Every round trip observed in the window, including the ones the reservoir
+      // above declined to keep; the percentiles summarise only what it kept.
+      controlRttSamplesDelta: deltas.controlRttObserved,
+      controlRttSamplesDroppedDelta: deltas.controlRttObserved - deltas.controlRttSamplesMs.length,
       ...(deltas.controlRttSamplesMs.length === 0
         ? {}
         : {

@@ -413,6 +413,17 @@ describe('successful client accept timing', () => {
   })
 })
 
+// Fires one heartbeat and returns the `t` of the ping it sent, which is the only
+// echo the registry will time.
+async function advanceToPing(control: FakeSocket, clock: { now: number }): Promise<number> {
+  clock.now += RELAY_PROTOCOL_LIMITS.controlPingIntervalMs
+  await vi.advanceTimersByTimeAsync(RELAY_PROTOCOL_LIMITS.controlPingIntervalMs)
+  const ping = control.send.mock.calls
+    .filter((call) => String(call[0]).includes('"type":"ping"'))
+    .at(-1)!
+  return (JSON.parse(String(ping[0])) as { t: number }).t
+}
+
 describe('control round-trip sampling', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => {
@@ -421,8 +432,8 @@ describe('control round-trip sampling', () => {
   })
 
   it('logs a host once at the fourth sample and not again within the hour', async () => {
-    let now = 1_700_000_000_000
-    const h = harness({ now: () => now })
+    const clock = { now: 1_700_000_000_000 }
+    const h = harness({ now: () => clock.now })
     const control = await activeHost(h)
     const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
     const rttLines = (): string[] =>
@@ -431,17 +442,9 @@ describe('control round-trip sampling', () => {
         .filter((entry) => entry.includes('manta_relay_host_control_rtt'))
     // One heartbeat, then the desktop's echo of that ping's own `t` 40 ms later.
     const roundTrip = async (): Promise<void> => {
-      now += RELAY_PROTOCOL_LIMITS.controlPingIntervalMs
-      await vi.advanceTimersByTimeAsync(RELAY_PROTOCOL_LIMITS.controlPingIntervalMs)
-      const ping = JSON.parse(
-        String(
-          control.send.mock.calls
-            .filter((call) => String(call[0]).includes('"type":"ping"'))
-            .at(-1)![0]
-        )
-      ) as { t: number }
-      now += 40
-      control.emit('message', JSON.stringify({ type: 'pong', t: ping.t }), false)
+      const pingAt = await advanceToPing(control, clock)
+      clock.now += 40
+      control.emit('message', JSON.stringify({ type: 'pong', t: pingAt }), false)
     }
     try {
       for (let round = 0; round < 3; round++) await roundTrip()
@@ -466,8 +469,8 @@ describe('control round-trip sampling', () => {
       expect(h.observer.recordControlRtt).toHaveBeenCalledTimes(12)
       expect(rttLines()).toHaveLength(1)
 
-      const elapsedStart = now
-      while (now - elapsedStart < 60 * 60 * 1000) await roundTrip()
+      const elapsedStart = clock.now
+      while (clock.now - elapsedStart < 60 * 60 * 1000) await roundTrip()
       expect(rttLines()).toHaveLength(2)
     } finally {
       log.mockRestore()
@@ -476,21 +479,54 @@ describe('control round-trip sampling', () => {
     }
   })
 
-  it('ignores a pong whose echoed timestamp is missing or implausible', async () => {
-    let now = 1_700_000_000_000
-    const h = harness({ now: () => now })
+  it('ignores a pong that answers no outstanding ping', async () => {
+    const clock = { now: 1_700_000_000_000 }
+    const h = harness({ now: () => clock.now })
     const control = await activeHost(h)
     try {
+      // Nothing has been pinged yet, so even a plausible echo is not a round trip.
       control.emit('message', JSON.stringify({ type: 'pong' }), false)
       control.emit('message', JSON.stringify({ type: 'pong', t: 'later' }), false)
-      control.emit('message', JSON.stringify({ type: 'pong', t: now + 5_000 }), false)
-      control.emit('message', JSON.stringify({ type: 'pong', t: now - 600_000 }), false)
+      control.emit('message', JSON.stringify({ type: 'pong', t: clock.now }), false)
+      control.emit('message', JSON.stringify({ type: 'pong', t: clock.now - 10 }), false)
       expect(h.observer.recordControlRtt).not.toHaveBeenCalled()
-      // The silence watchdog still sees every one of them as proof of life.
-      now += 10
-      control.emit('message', JSON.stringify({ type: 'pong', t: now - 10 }), false)
+
+      const pingAt = await advanceToPing(control, clock)
+      // A guessed timestamp is not the outstanding ping's `t`, so it is dropped.
+      control.emit('message', JSON.stringify({ type: 'pong', t: pingAt - 1 }), false)
+      control.emit('message', JSON.stringify({ type: 'pong', t: pingAt + 1 }), false)
+      expect(h.observer.recordControlRtt).not.toHaveBeenCalled()
+
+      clock.now += 10
+      control.emit('message', JSON.stringify({ type: 'pong', t: pingAt }), false)
       expect(h.observer.recordControlRtt).toHaveBeenCalledWith(10)
     } finally {
+      h.registry.drain(0)
+      vi.advanceTimersByTime(0)
+    }
+  })
+
+  it('records one sample per ping however many pongs a host floods', async () => {
+    const clock = { now: 1_700_000_000_000 }
+    const h = harness({ now: () => clock.now })
+    const control = await activeHost(h)
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    try {
+      const pingAt = await advanceToPing(control, clock)
+      clock.now += 12
+      for (let flood = 0; flood < 5_000; flood++) {
+        control.emit('message', JSON.stringify({ type: 'pong', t: pingAt }), false)
+        control.emit('message', JSON.stringify({ type: 'pong', t: clock.now }), false)
+      }
+      // One answered ping is one process-wide sample and one per-session sample, so
+      // neither the metric window nor the hourly log line can be flooded.
+      expect(h.observer.recordControlRtt).toHaveBeenCalledTimes(1)
+      expect(h.observer.recordControlRtt).toHaveBeenCalledWith(12)
+      expect(
+        log.mock.calls.filter((call) => String(call[0]).includes('manta_relay_host_control_rtt'))
+      ).toHaveLength(0)
+    } finally {
+      log.mockRestore()
       h.registry.drain(0)
       vi.advanceTimersByTime(0)
     }

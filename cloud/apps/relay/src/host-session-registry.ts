@@ -90,6 +90,8 @@ export type HostSession = {
   orphanTimer: ReturnType<typeof setTimeout> | null
   heartbeatTimer: ReturnType<typeof setInterval> | null
   lastPongAt: number
+  // The `t` of the ping still waiting for its echo; null once one has answered it.
+  pendingPingAt: number | null
   controlRttSamplesMs: number[]
   controlRttLoggedAt: number | null
   activityRenewalDueAt: number
@@ -521,10 +523,13 @@ export class HostSessionRegistry {
     }
   }
 
-  // Every desktop build already echoes the ping's `t`; anything else is dropped
-  // rather than trusted, so no new wire field is required.
+  // Every desktop build already echoes the ping's `t`, so a pong is only timed when
+  // it answers the outstanding ping: at most one sample per ping this cell sent,
+  // however many a host floods. A pong that lost the race to the next ping is
+  // dropped here but still counts as proof of life for the silence watchdog.
   private recordControlRtt(session: HostSession, echoedPingAt: unknown): void {
-    if (typeof echoedPingAt !== 'number' || !Number.isFinite(echoedPingAt)) return
+    if (typeof echoedPingAt !== 'number' || echoedPingAt !== session.pendingPingAt) return
+    session.pendingPingAt = null
     const now = this.now()
     const rttMs = now - echoedPingAt
     if (rttMs < 0 || rttMs > CONTROL_RTT_MAX_PLAUSIBLE_MS) return
@@ -918,6 +923,7 @@ export class HostSessionRegistry {
       existing.appVersion = appVersion
       existing.leaseExpiresAt = this.controlLeaseExpiresAt()
       existing.lastPongAt = this.now()
+      existing.pendingPingAt = null
       existing.activityRenewalDueAt =
         this.now() + RELAY_PROTOCOL_LIMITS.controlPingIntervalMs
       this.wireActiveControl(existing)
@@ -971,6 +977,7 @@ export class HostSessionRegistry {
       orphanTimer: null,
       heartbeatTimer: null,
       lastPongAt: this.now(),
+      pendingPingAt: null,
       controlRttSamplesMs: [],
       controlRttLoggedAt: null,
       activityRenewalDueAt: this.now() + RELAY_PROTOCOL_LIMITS.controlPingIntervalMs,
@@ -1178,6 +1185,7 @@ export class HostSessionRegistry {
       session.socket.close(RELAY_CLOSE_CODE.DRAINING, 'control lease expired')
       return
     }
+    session.pendingPingAt = now
     send(session.socket, 'ping', { t: now })
   }
 

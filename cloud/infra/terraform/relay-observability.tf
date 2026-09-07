@@ -68,7 +68,8 @@ locals {
     control_rtt_ms_p50                 = { field = "controlRttMsP50", description = "Control-socket ping round trip p50 in the interval. The desktop echoes the pong on its main thread, so only the median reads as distance; the p95 and max below are dominated by desktop stalls." }
     control_rtt_ms_p95                 = { field = "controlRttMsP95", description = "Control-socket ping round trip p95 in the interval; a desktop-stall signal, not a distance one." }
     control_rtt_ms_max                 = { field = "controlRttMsMax", description = "Maximum control-socket ping round trip in the interval; a desktop-stall signal, not a distance one." }
-    control_rtt_samples                = { field = "controlRttSamplesDelta", description = "Control-socket round-trip samples in the interval; the percentiles above are omitted when this is zero." }
+    control_rtt_samples                = { field = "controlRttSamplesDelta", description = "Control-socket round trips observed in the interval, one per ping answered; the percentiles above are omitted when this is zero." }
+    control_rtt_samples_dropped        = { field = "controlRttSamplesDroppedDelta", description = "Observed round trips the bounded percentile reservoir did not keep; non-zero means the percentiles above summarise a uniform sample of the interval." }
     client_accepts_completed           = { field = "clientAcceptCompletedDelta", description = "Phone accepts that reached relay-hello in the interval; the percentiles below are omitted when this is zero." }
     client_accept_total_ms_p50         = { field = "clientAcceptTotalMsP50", description = "Successful phone-accept duration p50, dial to relay-hello." }
     client_accept_total_ms_p95         = { field = "clientAcceptTotalMsP95", description = "Successful phone-accept duration p95, dial to relay-hello." }

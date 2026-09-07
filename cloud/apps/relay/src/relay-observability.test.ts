@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { RelayDatabase } from './database.js'
 import { observeRelayDatabase } from './observed-relay-database.js'
 import {
+  CONTROL_RTT_RESERVOIR_LIMIT,
   observedRelayRequests,
   RelayObservability,
   type RelayProcessCounts
@@ -23,10 +24,35 @@ const counts: RelayProcessCounts = {
   databasePoolWaitMsMax: 1_250
 }
 
-// An accept stage is named `credential`, so the leak guard has to see past the
-// bucket name to the values it exists to police.
-function scrubStageNames(entries: Array<Record<string, unknown>>): string {
-  return JSON.stringify(entries).replaceAll('"credential":', '"stage":')
+// Two schema keys legitimately spell a policed word: the abandoned-accept bucket
+// is keyed by stage name and one stage is `credential`. Rename those exact keys in
+// a clone instead of rewriting the JSON, so a stray raw field or value anywhere
+// else still trips the guard below.
+const SCHEMA_KEY_ALIASES: Record<string, string> = {
+  clientAcceptCredentialMsP95: 'clientAcceptStageTwoMsP95'
+}
+
+function scrubSchemaKeys(entries: Array<Record<string, unknown>>): string {
+  return JSON.stringify(
+    entries.map((entry) =>
+      Object.fromEntries(
+        Object.entries(entry).map(([key, value]) => [
+          SCHEMA_KEY_ALIASES[key] ?? key,
+          key === 'clientAcceptsAbandonedByStageDelta' ? renameStageKeys(value) : value
+        ])
+      )
+    )
+  )
+}
+
+function renameStageKeys(bucket: unknown): unknown {
+  if (bucket === null || typeof bucket !== 'object') return bucket
+  return Object.fromEntries(
+    Object.entries(bucket).map(([stage, count]) => [
+      stage === 'credential' ? 'stageTwo' : stage,
+      count
+    ])
+  )
 }
 
 describe('relay observability', () => {
@@ -205,7 +231,7 @@ describe('relay observability', () => {
       controlActivityRecoveryFailuresDelta: 0,
       httpLatencyMsMax: 0
     })
-    expect(scrubStageNames(entries)).not.toMatch(/token|credential|userId|relayHostId/)
+    expect(scrubSchemaKeys(entries)).not.toMatch(/token|credential|userId|relayHostId/i)
   })
 
   it('aggregates control and splice closes as bounded per-reason deltas', () => {
@@ -300,7 +326,54 @@ describe('relay observability', () => {
       expect(entries[1]).not.toHaveProperty(omitted)
       expect(entries[0]).toHaveProperty(omitted)
     }
-    expect(scrubStageNames(entries)).not.toMatch(/token|credential|userId|relayHostId/)
+    expect(scrubSchemaKeys(entries)).not.toMatch(/token|credential|userId|relayHostId/i)
+  })
+
+  it('caps the control round-trip reservoir and reports what it dropped', () => {
+    const entries: Array<Record<string, unknown>> = []
+    const observability = new RelayObservability(
+      { role: 'cell', cellId: 'production-gce-c28', region: 'asia-east2' },
+      (entry) => entries.push(entry)
+    )
+    const flooded = CONTROL_RTT_RESERVOIR_LIMIT * 20
+    for (let sample = 0; sample < flooded; sample++) {
+      observability.recordControlRtt(10 + (sample % 40))
+    }
+    observability.flush(counts)
+
+    // Dropped is observed minus retained, so this pins the retained window at the cap.
+    expect(entries[0]).toMatchObject({
+      controlRttSamplesDelta: flooded,
+      controlRttSamplesDroppedDelta: flooded - CONTROL_RTT_RESERVOIR_LIMIT
+    })
+    // The kept samples are real observations, not a truncated or synthesised window.
+    expect(entries[0]!.controlRttMsP50 as number).toBeGreaterThanOrEqual(10)
+    expect(entries[0]!.controlRttMsMax as number).toBeLessThanOrEqual(49)
+
+    observability.flush(counts)
+    expect(entries[1]).toMatchObject({
+      controlRttSamplesDelta: 0,
+      controlRttSamplesDroppedDelta: 0
+    })
+    expect(entries[1]).not.toHaveProperty('controlRttMsP50')
+  })
+
+  it('samples the whole flooded window rather than its first samples', () => {
+    const entries: Array<Record<string, unknown>> = []
+    const observability = new RelayObservability(
+      { role: 'cell', cellId: 'production-gce-c28', region: 'asia-east2' },
+      (entry) => entries.push(entry)
+    )
+    const half = CONTROL_RTT_RESERVOIR_LIMIT * 10
+    for (let sample = 0; sample < half; sample++) observability.recordControlRtt(10)
+    for (let sample = 0; sample < half; sample++) observability.recordControlRtt(900)
+    observability.flush(counts)
+
+    // Keeping the first N instead would publish a window of nothing but 10s. Each
+    // reservoir slot ends up drawn from the late half with ~1/2 probability, so
+    // fewer than the 5% the p95 needs is out of reach of this suite.
+    expect(entries[0]!.controlRttMsP95).toBe(900)
+    expect(entries[0]!.controlRttMsMax).toBe(900)
   })
 
   it('observes successful and failed database calls including transactions', async () => {
