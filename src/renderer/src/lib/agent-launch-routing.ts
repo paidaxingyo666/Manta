@@ -56,16 +56,24 @@ export function resolveAgentLaunchRoute(input: AgentLaunchRoutingInput): AgentLa
   if (!prefersStructuredNativeChatByDefault(input.settings)) {
     return 'legacy-native-chat'
   }
-  return resolveStructuredNativeChatSupport({
-    agent: input.agent,
-    executionHostId: input.executionHostId,
-    platform: input.platform,
-    hostCapabilities: input.hostCapabilities,
-    workspaceKind: input.workspaceKind,
-    projectRuntime: input.projectRuntime,
-    isDraftPrompt: input.promptDelivery === 'draft',
-    requiresTuiLaunchCustomization: input.requiresTuiLaunchCustomization
-  }).supported
-    ? 'structured-native-chat'
-    : 'legacy-native-chat'
+  return structuredAgentLaunchSupported(input) ? 'structured-native-chat' : 'legacy-native-chat'
+}
+
+// Explicit chat requests do not depend on the default view mode for new tabs.
+export function structuredAgentLaunchSupported(
+  input: Omit<AgentLaunchRoutingInput, 'launchText'>
+): boolean {
+  return (
+    input.settings?.experimentalStructuredNativeChat === true &&
+    resolveStructuredNativeChatSupport({
+      agent: input.agent,
+      executionHostId: input.executionHostId,
+      platform: input.platform,
+      hostCapabilities: input.hostCapabilities,
+      workspaceKind: input.workspaceKind,
+      projectRuntime: input.projectRuntime,
+      isDraftPrompt: input.promptDelivery === 'draft',
+      requiresTuiLaunchCustomization: input.requiresTuiLaunchCustomization
+    }).supported
+  )
 }

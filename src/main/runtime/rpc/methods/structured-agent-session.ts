@@ -127,7 +127,14 @@ export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
           const intentFingerprint = computeAgentSessionPayloadFingerprint({
             method: 'agentSession.create',
             sessionId: params.envelope.sessionId,
-            fields: { worktree: params.worktree, agent: params.agent }
+            // `resumeFrom` is part of the intent, not a detail of it: without it here, a retry of
+            // "adopt this conversation" would replay as, or conflict with, a blank create. The
+            // canonicalizer drops `undefined`, so plain creates keep the digest they always had.
+            fields: {
+              worktree: params.worktree,
+              agent: params.agent,
+              resumeFrom: params.resumeFrom
+            }
           })
           const conflict = agentSessionFingerprintConflict(params.envelope, intentFingerprint)
           if (conflict) {
@@ -141,7 +148,9 @@ export const STRUCTURED_AGENT_SESSION_METHODS: RpcAnyMethod[] = [
             },
             envelope: params.envelope,
             worktree: params.worktree,
-            agent: params.agent as 'claude' | 'codex'
+            agent: params.agent as 'claude' | 'codex',
+            caller: callerFor(ctx),
+            ...(params.resumeFrom ? { resumeFrom: params.resumeFrom } : {})
           })
         }
         const { host, attachParams } = await resolveClientSuppliedAttach(params, ctx)

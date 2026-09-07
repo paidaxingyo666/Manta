@@ -483,7 +483,10 @@ describe('method routing', () => {
     }
     const created = await call('agentSession.create', params, STRUCTURED_CLIENT)
     expect(created).toMatchObject({ ok: true, result: { ok: true } })
-    expect(runtimeCalls.resolveStructuredAgentSessionCreateIntent).toHaveBeenCalledWith(params)
+    expect(runtimeCalls.resolveStructuredAgentSessionCreateIntent).toHaveBeenCalledWith({
+      ...params,
+      callerKey: 'trusted-local:runtime'
+    })
     expect(hostCalls.attach).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
@@ -496,6 +499,36 @@ describe('method routing', () => {
       expect.objectContaining({ sessionId: SESSION, activate: true })
     )
   })
+
+  it.each(['claude', 'codex'])(
+    'forwards a %s history resume through create preparation',
+    async (agent) => {
+      const fields = {
+        worktree: 'id:workspace-1',
+        agent,
+        resumeFrom: { providerSessionId: 'prior-session' }
+      }
+      const params = {
+        envelope: envelope({
+          expectedRuntimeFence: null,
+          payloadFingerprint: computeAgentSessionPayloadFingerprint({
+            method: 'agentSession.create',
+            sessionId: SESSION,
+            fields
+          })
+        }),
+        ...fields
+      }
+      expect(await call('agentSession.create', params, STRUCTURED_CLIENT)).toMatchObject({
+        ok: true,
+        result: { ok: true }
+      })
+      expect(runtimeCalls.resolveStructuredAgentSessionCreateIntent).toHaveBeenCalledWith({
+        ...params,
+        callerKey: 'trusted-local:runtime'
+      })
+    }
+  )
 
   it('routes Claude create support and create through the provider-aware runtime', async () => {
     const worktree = 'id:workspace-1'
@@ -524,7 +557,10 @@ describe('method routing', () => {
     }
     const created = await call('agentSession.create', params, STRUCTURED_CLIENT)
     expect(created).toMatchObject({ ok: true, result: { ok: true } })
-    expect(runtimeCalls.resolveStructuredAgentSessionCreateIntent).toHaveBeenCalledWith(params)
+    expect(runtimeCalls.resolveStructuredAgentSessionCreateIntent).toHaveBeenCalledWith({
+      ...params,
+      callerKey: 'trusted-local:runtime'
+    })
     expect(hostCalls.attach).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({

@@ -13006,7 +13006,10 @@
             "localSessionSshWorkspaceUnsupported": "This session's history is stored on this machine, so it can't resume in an SSH workspace. Open a local workspace instead.",
             "prepareSessionResumeFailed": "Could not prepare this session for resume.",
             "sessionDeleted": "Session deleted",
-            "sessionDeleteFailed": "Couldn't delete the session"
+            "sessionDeleteFailed": "Couldn't delete the session",
+            "resumeInChatConflict": "Another chat is already holding this conversation.",
+            "resumeInChatTranscriptMissing": "This conversation's history could not be loaded, so it cannot be resumed in chat.",
+            "resumeInChatFailed": "Could not resume this session in a new chat."
           },
           "AiVaultPanelControls": {
             "scanningSessions": "Scanning sessions",
@@ -13142,7 +13145,8 @@
             "delete": "Delete",
             "deleteReasonNonLocalHost": "Only sessions on this device can be deleted.",
             "deleteReasonSyntheticPath": "This session can't be deleted from Manta.",
-            "deleteReasonUnsupportedAgent": "{{value0}} sessions can't be deleted from Manta."
+            "deleteReasonUnsupportedAgent": "{{value0}} sessions can't be deleted from Manta.",
+            "resumeInNewChat": "Resume in New Chat"
           },
           "AiVaultSessionDeleteDialog": {
             "title": "Delete this session?",

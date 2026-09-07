@@ -24,6 +24,7 @@ import {
 } from '../../../native-chat/agent-session-wire/structured-agent-session-attach'
 import type { StructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-host'
 import type { StructuredAgentSessionCaller } from '../../../native-chat/agent-session-wire/structured-agent-session-host-types'
+import type { StructuredAgentSessionResumeSource } from '../../../../shared/structured-agent-session-create'
 import type { MantaRuntimeService } from '../../manta-runtime'
 import {
   resolveUncommittedStructuredCreate,
@@ -46,18 +47,24 @@ export async function prepareStructuredAgentSessionCreateForWorktree(args: {
   envelope: AgentSessionMutationEnvelope
   worktree: string
   agent: 'claude' | 'codex'
+  caller: StructuredAgentSessionCaller
+  resumeFrom?: StructuredAgentSessionResumeSource
 }): Promise<PreparedStructuredAgentSessionCreate> {
+  // Adoption replay may need the record loaded from disk before source discovery can be skipped.
+  let host = args.resumeFrom ? await args.ensureHost() : null
   const resolved = await args.runtime.resolveStructuredAgentSessionCreateIntent({
     envelope: args.envelope,
     worktree: args.worktree,
-    agent: args.agent
+    agent: args.agent,
+    callerKey: args.caller.callerKey,
+    ...(args.resumeFrom ? { resumeFrom: args.resumeFrom } : {})
   })
   const hostFingerprint = computeAgentSessionPayloadFingerprint({
     method: 'agentSession.attach',
     sessionId: args.envelope.sessionId,
     fields: attachFingerprintFields({ ...resolved, envelope: args.envelope })
   })
-  const host = await args.ensureHost()
+  host ??= await args.ensureHost()
   const { agent: _resolvedAgent, provider: _resolvedProvider, ...resolvedAttach } = resolved
   return {
     host,
