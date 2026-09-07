@@ -43,20 +43,20 @@ Manta reports a clear error when the host is missing macOS or the Xcode tools.
 Use `--json` for agent-driven calls. Unqualified commands target the worktree's active
 device.
 
-| Goal                     | Command                                                     | Constraint                                                                                                              |
-| ------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| List available / running | `MANTA emulator list --json`                                 | Manta-managed sessions plus raw serve-sim streams. Use its ids for `--device` / `--emulator`.                            |
-| List devices everywhere  | `MANTA emulator devices --json`                              | Every backend's devices with a platform column, booted and shutdown.                                                     |
-| Attach / make active     | `MANTA emulator attach "iPhone 16 Pro" --json`               | Starts the helper if needed and makes the device active for the worktree. `--focus` switches the UI; it does not by default. |
-| Single tap               | `MANTA emulator tap <x> <y> --json`                          | Normalized 0..1 coordinates.                                                                                             |
-| Multi-step gesture       | `MANTA emulator gesture '<json>' --json`                     | Begin/move/end points. Use `tap` for a single tap.                                                                       |
-| Type text                | `MANTA emulator type "text" --json`                          | US-ASCII only.                                                                                                           |
+| Goal                     | Command                                                     | Constraint                                                                                                                                                            |
+| ------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| List available / running | `MANTA emulator list --json`                                 | Manta-managed sessions plus raw serve-sim streams. Use its ids for `--device` / `--emulator`.                                                                          |
+| List devices everywhere  | `MANTA emulator devices --json`                              | Every backend's devices with a platform column, booted and shutdown.                                                                                                  |
+| Attach / make active     | `MANTA emulator attach "iPhone 16 Pro" --json`               | Starts the helper if needed and makes the device active for the worktree. `--focus` switches the UI; it does not by default.                                          |
+| Single tap               | `MANTA emulator tap <x> <y> --json`                          | Normalized 0..1 coordinates.                                                                                                                                          |
+| Multi-step gesture       | `MANTA emulator gesture '<json>' --json`                     | Begin/move/end points. Use `tap` for a single tap.                                                                                                                    |
+| Type text                | `MANTA emulator type "text" --json`                          | US-ASCII only.                                                                                                                                                        |
 | Hardware button          | `MANTA emulator button home --json`                          | `home` and `side_button` are documented by the CLI spec; other names such as `swipe_home`, `app_switcher`, `lock`, and `siri` are forwarded to serve-sim unvalidated. |
-| Rotate device            | `MANTA emulator rotate landscape_left --json`                | The orientation persists for subsequent gestures.                                                                        |
-| Accessibility tree       | `MANTA emulator ax --json`                                   | serve-sim node tree, capped at 500 nodes, frames normalized 0..1 with a top-left origin. Needs an active session.        |
-| Raw passthrough          | `MANTA emulator exec --command "ca-debug blended on" --json` | serve-sim subcommand string, without a `serve-sim` prefix.                                                                |
-| Stop the helper          | `MANTA emulator kill --json`                                 | Leaves the device booted.                                                                                                |
-| Stop and power off       | `MANTA emulator shutdown --json`                             | Stops the helper and shuts the simulator device down.                                                                    |
+| Rotate device            | `MANTA emulator rotate landscape_left --json`                | The orientation persists for subsequent gestures.                                                                                                                     |
+| Accessibility tree       | `MANTA emulator ax --json`                                   | serve-sim node tree, capped at 500 nodes, frames normalized 0..1 with a top-left origin. Needs an active session.                                                     |
+| Raw passthrough          | `MANTA emulator exec --command "ca-debug blended on" --json` | serve-sim subcommand string, without a `serve-sim` prefix.                                                                                                            |
+| Stop the helper          | `MANTA emulator kill --json`                                 | Leaves the device booted.                                                                                                                                             |
+| Stop and power off       | `MANTA emulator shutdown --json`                             | Stops the helper and shuts the simulator device down.                                                                                                                 |
 
 ## Targeting
 
@@ -65,8 +65,8 @@ commands target it. Pass a selector only to override that or reach a second devi
 active session an unqualified command fails with `emulator_no_active`; attach or open the pane
 and retry.
 
-- `--device "iPhone 16 Pro"` or `--device <udid>`, from `list` or `devices`. `--emulator
-  <id>` is an alternative spelling: the bridge resolves both through the same lookup. These
+- `--device "iPhone 16 Pro"` or `--device <udid>`, from `list` or `devices`.
+  `--emulator <id>` is an alternative spelling: the bridge resolves both through the same lookup. These
   selectors apply to the action verbs; `list` and `devices` take only `--worktree`, and
   `attach` names its device as a positional argument.
 - `--worktree id:<fullWorktreeId>` or `--worktree active`. The full id is the exact

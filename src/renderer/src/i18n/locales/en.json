@@ -16227,6 +16227,7 @@
           "showChildAgents": "Show child agents",
           "activityOptions": "Activity options",
           "threadListOptionsFiltered": "Thread list options, filters active",
+          "showSearch": "Show search",
           "interrupted": "Interrupted",
           "state": {
             "working": "Working",

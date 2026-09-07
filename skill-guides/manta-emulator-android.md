@@ -52,23 +52,23 @@ Manta returns a clear message when the SDK is missing
 Use `--json` for agent-driven calls. Unqualified commands target the worktree's active
 device.
 
-| Goal                | Command                                                              | Constraint                                                                    |
-| ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| List devices + AVDs | `MANTA emulator devices --json`                                       | Every backend's devices with a platform column, booted and shutdown.           |
-| Attach / make active | `MANTA emulator attach <avd-name-or-serial> --json`                   | Given an AVD name, boots it first. Makes the device active for the worktree.    |
-| Single tap          | `MANTA emulator tap <x> <y> --json`                                   | Normalized 0..1 coordinates.                                                   |
-| Swipe / gesture     | `MANTA emulator gesture '<json>' --json`                              | adb approximates the path by its endpoints, first point to last.               |
-| Type text           | `MANTA emulator type "user@example.com" --json`                       | US-ASCII, spaces handled, no newlines.                                         |
-| Hardware button     | `MANTA emulator button back --json`                                   | `home`, `back`, `recents`, `power`, `volume_up`, `volume_down`.                 |
-| Rotate              | `MANTA emulator rotate landscape_left --json`                         | Sets `user_rotation` and disables auto-rotate.                                  |
-| Install an APK      | `MANTA emulator install ./app-debug.apk --reinstall --json`           | `--reinstall` passes `-r`.                                                      |
-| Launch an app       | `MANTA emulator launch com.acme.app --activity .MainActivity --json`  | Omit `--activity` to launch the default LAUNCHER activity.                      |
-| Runtime permission  | `MANTA emulator permissions grant com.acme.app android.permission.CAMERA --json` | Positional order is `<grant\|revoke> <package> <permission>`; `reset` takes no positionals and clears all runtime grants. |
-| Accessibility tree  | `MANTA emulator ax --json`                                            | `uiautomator dump` parsed to a node tree.                                       |
-| Logcat (one-shot)   | `MANTA emulator logcat --lines 200 --json`                            | Dumps recent lines, parsed to entries.                                          |
-| Raw adb shell       | `MANTA emulator exec --command "getprop ro.build.version.sdk" --json` | Runs `adb -s <serial> shell <command>`.                                         |
-| Stop the helper     | `MANTA emulator kill --json`                                          | Leaves the device booted.                                                       |
-| Stop and power off  | `MANTA emulator shutdown --json`                                      | Stops the helper and shuts the device down.                                     |
+| Goal                 | Command                                                                         | Constraint                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| List devices + AVDs  | `MANTA emulator devices --json`                                                  | Every backend's devices with a platform column, booted and shutdown.                                                      |
+| Attach / make active | `MANTA emulator attach <avd-name-or-serial> --json`                              | Given an AVD name, boots it first. Makes the device active for the worktree.                                              |
+| Single tap           | `MANTA emulator tap <x> <y> --json`                                              | Normalized 0..1 coordinates.                                                                                              |
+| Swipe / gesture      | `MANTA emulator gesture '<json>' --json`                                         | adb approximates the path by its endpoints, first point to last.                                                          |
+| Type text            | `MANTA emulator type "user@example.com" --json`                                  | US-ASCII, spaces handled, no newlines.                                                                                    |
+| Hardware button      | `MANTA emulator button back --json`                                              | `home`, `back`, `recents`, `power`, `volume_up`, `volume_down`.                                                           |
+| Rotate               | `MANTA emulator rotate landscape_left --json`                                    | Sets `user_rotation` and disables auto-rotate.                                                                            |
+| Install an APK       | `MANTA emulator install ./app-debug.apk --reinstall --json`                      | `--reinstall` passes `-r`.                                                                                                |
+| Launch an app        | `MANTA emulator launch com.acme.app --activity .MainActivity --json`             | Omit `--activity` to launch the default LAUNCHER activity.                                                                |
+| Runtime permission   | `MANTA emulator permissions grant com.acme.app android.permission.CAMERA --json` | Positional order is `<grant\|revoke> <package> <permission>`; `reset` takes no positionals and clears all runtime grants. |
+| Accessibility tree   | `MANTA emulator ax --json`                                                       | `uiautomator dump` parsed to a node tree.                                                                                 |
+| Logcat (one-shot)    | `MANTA emulator logcat --lines 200 --json`                                       | Dumps recent lines, parsed to entries.                                                                                    |
+| Raw adb shell        | `MANTA emulator exec --command "getprop ro.build.version.sdk" --json`            | Runs `adb -s <serial> shell <command>`.                                                                                   |
+| Stop the helper      | `MANTA emulator kill --json`                                                     | Leaves the device booted.                                                                                                 |
+| Stop and power off   | `MANTA emulator shutdown --json`                                                 | Stops the helper and shuts the device down.                                                                               |
 
 ## Targeting
 
