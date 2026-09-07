@@ -1,13 +1,36 @@
+import { NotificationDeliverySection } from '../src/notifications/NotificationDeliverySection'
+import {
+  DEFAULT_NOTIFICATION_DELIVERY,
+  loadNotificationDeliveryPreferences,
+  type NotificationDeliveryPreferences
+} from '../src/notifications/notification-delivery-preferences'
 import { useState, useCallback, useEffect } from 'react'
-import { AppState, Linking, View, Text, StyleSheet, Pressable, Switch } from 'react-native'
+import {
+  AppState,
+  Linking,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Switch,
+  ScrollView,
+  Alert
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
 import { colors, spacing, typography } from '../src/theme/mobile-theme'
 import {
   loadPushNotificationsEnabled,
+  loadRemotePushEnabled,
   savePushNotificationsEnabled
 } from '../src/storage/preferences'
+import { BackgroundNotificationsSection } from '../src/notifications/BackgroundNotificationsSection'
+import {
+  setNotificationDeliveryPreferences,
+  setRemotePushEnabled
+} from '../src/notifications/push-registration'
+import { useRemotePushCapableHosts } from '../src/notifications/use-remote-push-capable-hosts'
 import {
   ensureNotificationPermissions,
   getNotificationPermissionState,
@@ -26,14 +49,22 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets()
   const [pushEnabled, setPushEnabled] = useState(false)
   const [permissionState, setPermissionState] = useState(DEFAULT_PERMISSION_STATE)
+  const [backgroundEnabled, setBackgroundEnabled] = useState(false)
+  const [delivery, setDelivery] = useState(DEFAULT_NOTIFICATION_DELIVERY)
+  const [saving, setSaving] = useState(false)
+  const remotePushSupport = useRemotePushCapableHosts()
 
   const refreshSettings = useCallback(async () => {
-    const [enabled, permission] = await Promise.all([
+    const [enabled, permission, background, states] = await Promise.all([
       loadPushNotificationsEnabled(),
-      getNotificationPermissionState()
+      getNotificationPermissionState(),
+      loadRemotePushEnabled(),
+      loadNotificationDeliveryPreferences()
     ])
     setPushEnabled(enabled)
     setPermissionState(permission)
+    setBackgroundEnabled(background)
+    setDelivery(states)
   }, [])
 
   useFocusEffect(
@@ -59,11 +90,45 @@ export default function NotificationsScreen() {
       if (!granted) {
         setPushEnabled(false)
         await savePushNotificationsEnabled(false)
+        await setRemotePushEnabled(false)
+        setBackgroundEnabled(false)
         return
       }
     }
     setPushEnabled(value)
     await savePushNotificationsEnabled(value)
+    if (!value) {
+      await setRemotePushEnabled(false)
+      setBackgroundEnabled(false)
+    }
+  }
+
+  const toggleBackground = async (value: boolean) => {
+    if (value) {
+      const granted = await ensureNotificationPermissions()
+      setPermissionState(await getNotificationPermissionState())
+      if (!granted) {
+        return
+      }
+    }
+    if (value) {
+      await savePushNotificationsEnabled(true)
+      setPushEnabled(true)
+    }
+    setBackgroundEnabled(value)
+    await setRemotePushEnabled(value)
+  }
+
+  const changeDelivery = async (value: NotificationDeliveryPreferences) => {
+    setSaving(true)
+    try {
+      await setNotificationDeliveryPreferences(value)
+      setDelivery(value)
+    } catch {
+      Alert.alert('Could not save notification settings', 'Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const switchEnabled = pushEnabled && permissionState.granted
@@ -73,7 +138,13 @@ export default function NotificationsScreen() {
     : 'Get notified on this device when an agent needs your input or finishes a task.'
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{
+        paddingTop: insets.top + spacing.sm,
+        paddingBottom: insets.bottom + spacing.xl
+      }}
+    >
       <View style={styles.topRow}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ChevronLeft size={22} color={colors.textSecondary} />
@@ -83,8 +154,9 @@ export default function NotificationsScreen() {
 
       <View style={styles.section}>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Agent notifications</Text>
+          <Text style={styles.rowLabel}>Enable notifications</Text>
           <Switch
+            accessibilityLabel="Enable notifications"
             value={switchEnabled}
             disabled={notificationsBlocked}
             onValueChange={(v) => void togglePush(v)}
@@ -105,7 +177,19 @@ export default function NotificationsScreen() {
           </Pressable>
         )}
       </View>
-    </View>
+
+      <NotificationDeliverySection
+        value={delivery}
+        disabled={saving}
+        onChange={(value) => void changeDelivery(value)}
+      />
+      <BackgroundNotificationsSection
+        supported={remotePushSupport.supported}
+        resolved={remotePushSupport.resolved}
+        enabled={backgroundEnabled}
+        onToggleEnabled={(value) => void toggleBackground(value)}
+      />
+    </ScrollView>
   )
 }
 

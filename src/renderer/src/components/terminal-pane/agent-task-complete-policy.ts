@@ -37,10 +37,8 @@ export function isTerminalAttentionEnabledFromState(state: NotificationSettingsS
 export function isAgentTaskCompleteTrackingEnabledFromState(
   state: NotificationSettingsState
 ): boolean {
-  return (
-    isAgentTaskCompleteOsNotificationEnabledFromState(state) ||
-    isTerminalAttentionEnabledFromState(state)
-  )
+  // Mobile delivery can remain enabled when desktop banners and attention are off.
+  return state.settings !== null
 }
 
 export function hasAgentNotificationDetail(entry: AgentStatusEntry | undefined): boolean {

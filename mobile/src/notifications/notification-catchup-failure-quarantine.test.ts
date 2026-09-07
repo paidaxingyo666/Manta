@@ -8,6 +8,7 @@ import { loadPushNotificationsEnabled } from '../storage/preferences'
 vi.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 'high' },
   setNotificationChannelAsync: vi.fn(),
+  getPresentedNotificationsAsync: vi.fn(async () => []),
   getPermissionsAsync: vi.fn(),
   requestPermissionsAsync: vi.fn(),
   scheduleNotificationAsync: vi.fn(),
@@ -15,8 +16,14 @@ vi.mock('expo-notifications', () => ({
 }))
 
 vi.mock('react-native', () => ({
+  AppState: { currentState: 'background' },
   Platform: { OS: 'ios', Version: 18 }
 }))
+
+// The reconnect catch-up reads the tray to learn which pushes the OS already showed,
+// and mapping those to this host needs the catalog, whose real module pulls the
+// native keychain. No push is presented in these tests, so an empty catalog is enough.
+vi.mock('../transport/host-store', () => ({ loadHostCatalog: vi.fn(async () => []) }))
 
 const WATERMARK_KEY = 'manta:mobileNotificationsWatermark:host-1'
 const storage = new Map<string, string>()
@@ -31,6 +38,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 
 vi.mock('../storage/preferences', () => ({
+  loadRemotePushEnabled: vi.fn(async () => false),
   loadPushNotificationsEnabled: vi.fn()
 }))
 
@@ -68,7 +76,9 @@ function makeHostClient() {
       if (method !== 'notifications.getMissedSince') {
         return { ok: true, result: undefined } as never
       }
-      askedFrom.push((params as { lastSeenSeq: number }).lastSeenSeq)
+      askedFrom.push(
+        (params as { includeDesktopSuppressed: true; lastSeenSeq: number }).lastSeenSeq
+      )
       if (outcome.kind === 'heldReject') {
         await new Promise<void>((resolve) => {
           releaseHeld = resolve
@@ -102,6 +112,7 @@ function makeHostClient() {
 function notification(seq: number) {
   return {
     type: 'notification',
+    source: 'agent-task-complete',
     title: `m${seq}`,
     body: 'b',
     notificationId: `agent:${seq}`,

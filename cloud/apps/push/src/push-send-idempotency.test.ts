@@ -1,0 +1,34 @@
+import { afterEach, expect, it } from 'vitest'
+import { createPushServerHarness, notification } from './push-server-harness.test-fixture.js'
+import { createPushHostKeypair } from './host-challenge-answering.test-fixture.js'
+const harnesses: Awaited<ReturnType<typeof createPushServerHarness>>[] = []
+afterEach(async () => {
+  await Promise.all(harnesses.splice(0).map((h) => h.close()))
+})
+
+it('returns queued for concurrent retries without double quota or a false summary', async () => {
+  const h = await createPushServerHarness()
+  harnesses.push(h)
+  const token = await h.signIn(createPushHostKeypair(2))
+  const registrationId = await h.registerAndroid(token)
+  const body = { v: 1, registrationIds: [registrationId], notification: notification() }
+  const responses = await Promise.all(
+    Array.from({ length: 10 }, () => h.post('/v1/send', body, token))
+  )
+  for (const response of responses)
+    expect(await response.json()).toEqual({ results: [{ registrationId, status: 'queued' }] })
+  expect(h.server.coalescer.pendingCount(registrationId)).toBe(1)
+  await h.server.coalescer.flushAll()
+  await h.post('/v1/send', body, token)
+  await h.server.coalescer.flushAll()
+  expect(h.fcmRequests).toHaveLength(1)
+  expect(JSON.parse(h.fcmRequests[0]!.body).message.data.coalescedCount).toBe('1')
+  expect((await h.database.query('SELECT COUNT(*) AS count FROM push_send_log'))[0]?.count).toBe(1)
+  await h.post(
+    '/v1/send',
+    { ...body, notification: notification({ notificationEpoch: 'new-epoch' }) },
+    token
+  )
+  await h.server.coalescer.flushAll()
+  expect(h.fcmRequests).toHaveLength(2)
+})

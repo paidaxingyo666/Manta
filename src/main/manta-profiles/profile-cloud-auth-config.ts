@@ -19,6 +19,7 @@ const DEFAULT_SCOPE = 'openid profile email offline_access'
 const PRODUCTION_API_BASE_URL = 'https://login.manta.sh.cn'
 const PRODUCTION_CLIENT_ID = 'manta-desktop'
 const PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.manta.sh.cn'
+const PRODUCTION_PUSH_GATEWAY_URL = 'https://push.manta.sh.cn'
 
 // Why: packaged main bundles never define NODE_ENV, so packaged-ness is the
 // only reliable production signal for gating dev-only auth escape hatches.
@@ -122,6 +123,18 @@ export function getMantaCloudAuthConfig(
       scope: env.MANTA_CLOUD_AUTH_SCOPE?.trim() || DEFAULT_SCOPE
     }
   }
+}
+
+/**
+ * Where the host registers phones for background push. Deliberately outside
+ * MantaCloudAuthConfig: the push gateway authenticates with the host keypair, so an
+ * accountless host reaches it on exactly the same path as a signed-in one.
+ */
+export function getOrcaPushGatewayUrl(
+  env: NodeJS.ProcessEnv = process.env,
+  packaged: boolean = isPackagedMantaBuild()
+): string {
+  return cleanOrigin(env.ORCA_PUSH_GATEWAY_URL, !packaged) ?? PRODUCTION_PUSH_GATEWAY_URL
 }
 
 export function allowsPlaintextMantaCloudSession(

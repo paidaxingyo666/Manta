@@ -15,6 +15,7 @@ import { loadPushNotificationsEnabled } from '../storage/preferences'
 vi.mock('expo-notifications', () => ({
   AndroidImportance: { HIGH: 'high' },
   setNotificationChannelAsync: vi.fn(),
+  getPresentedNotificationsAsync: vi.fn(async () => []),
   getPermissionsAsync: vi.fn(),
   requestPermissionsAsync: vi.fn(),
   scheduleNotificationAsync: vi.fn(),
@@ -22,8 +23,14 @@ vi.mock('expo-notifications', () => ({
 }))
 
 vi.mock('react-native', () => ({
+  AppState: { currentState: 'background' },
   Platform: { OS: 'ios', Version: 18 }
 }))
+
+// The reconnect catch-up reads the tray to learn which pushes the OS already showed,
+// and mapping those to this host needs the catalog, whose real module pulls the
+// native keychain. No push is presented in these tests, so an empty catalog is enough.
+vi.mock('../transport/host-store', () => ({ loadHostCatalog: vi.fn(async () => []) }))
 
 // A storage whose reads can be held open, so a live event can be injected into the
 // exact window a real cold open has: subscription up, persisted watermark not yet read.
@@ -51,6 +58,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 
 vi.mock('../storage/preferences', () => ({
+  loadRemotePushEnabled: vi.fn(async () => false),
   loadPushNotificationsEnabled: vi.fn()
 }))
 
@@ -70,7 +78,8 @@ function releaseReads(): void {
 
 function makeHostClient() {
   let onData: ((data: unknown) => void) | null = null
-  const getMissedCalls: { lastSeenSeq: number; epoch?: string }[] = []
+  const getMissedCalls: { includeDesktopSuppressed: true; lastSeenSeq: number; epoch?: string }[] =
+    []
   const client = {
     subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
       onData = cb
@@ -81,7 +90,9 @@ function makeHostClient() {
     getState: vi.fn(() => 'connected'),
     sendRequest: vi.fn(async (method: string, params: unknown = {}) => {
       if (method === 'notifications.getMissedSince') {
-        getMissedCalls.push(params as { lastSeenSeq: number; epoch?: string })
+        getMissedCalls.push(
+          params as { includeDesktopSuppressed: true; lastSeenSeq: number; epoch?: string }
+        )
         return { ok: true, result: { notifications: [] } } as never
       }
       return { ok: true, result: undefined } as never
@@ -128,6 +139,7 @@ describe('#8591 watermark seeding races a cold open', () => {
     host.onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-a' })
     host.onData?.({
       type: 'notification',
+      source: 'agent-task-complete',
       title: 'live-12',
       body: 'b',
       notificationId: 'agent:live',
@@ -142,7 +154,9 @@ describe('#8591 watermark seeding races a cold open', () => {
     releaseReads()
     await flushAsync()
 
-    expect(host.getMissedCalls).toEqual([{ lastSeenSeq: 5, epoch: 'epoch-a' }])
+    expect(host.getMissedCalls).toEqual([
+      { includeDesktopSuppressed: true, lastSeenSeq: 5, epoch: 'epoch-a' }
+    ])
   })
 
   it('treats a zeroed-but-present watermark as a returning device, not a first pairing', async () => {
@@ -156,7 +170,9 @@ describe('#8591 watermark seeding races a cold open', () => {
     host.onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-a' })
     await flushAsync()
 
-    expect(host.getMissedCalls).toEqual([{ lastSeenSeq: 0, epoch: 'epoch-a' }])
+    expect(host.getMissedCalls).toEqual([
+      { includeDesktopSuppressed: true, lastSeenSeq: 0, epoch: 'epoch-a' }
+    ])
   })
 
   it('does not catch up on a first-ever pairing', async () => {
