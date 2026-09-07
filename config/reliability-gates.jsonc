@@ -18472,6 +18472,107 @@
         "The new PR lane is outside verify until reliability is established."
       ],
       "demotionRule": "Keep experimental if provisioning or an execution flakes; never promote by skipping a case, raising timeouts, or retrying until green."
+    },
+    {
+      "id": "browser.packaged-mixed-version-placement",
+      "title": "Packaged browser placement across versions",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "browser-runtime",
+      "layer": "electron-packaged",
+      "surfaces": [
+        "paired browser placement"
+      ],
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "providers": [
+        "paired-runtime"
+      ],
+      "coveredPlatforms": [
+        "linux"
+      ],
+      "coveredProviders": [
+        "paired-runtime"
+      ],
+      "coverageNotes": "Published Linux 1.4.188 desktop against current source in both directions; scheduled weekly and manually runnable. No required PR check.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/actions/runs/34069063016"
+      ],
+      "invariant": "A paired client and host without client-hosted browser capabilities retain server-hosted browser placement across supported version skew.",
+      "oracle": "Require both existing named browser placement scenarios to pass three times with one attempt, zero skips, zero failures, and no report errors.",
+      "commands": [
+        "gh workflow run packaged-browser-e2e.yml",
+        "pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project=electron-headless --workers=1 --repeat-each=3 --retries=0",
+        "node_modules/.bin/vitest run --config config/vitest.config.ts config/scripts/packaged-browser-lane-contract.test.mjs config/scripts/verify-packaged-browser-participation.test.mjs",
+        "gh run view 34069063016 --log"
+      ],
+      "testFiles": [
+        "tests/e2e/packaged-mixed-version-browser-placement.spec.ts",
+        "config/scripts/packaged-browser-lane-contract.test.mjs",
+        "config/scripts/verify-packaged-browser-participation.test.mjs"
+      ],
+      "assertionRefs": [
+        {
+          "file": "tests/e2e/packaged-mixed-version-browser-placement.spec.ts",
+          "assertions": [
+            "old client and old host lack client-host and browser-tunnel capabilities",
+            "browser contents remain owned by the server and the expected snapshot marker is readable"
+          ]
+        },
+        {
+          "file": "config/scripts/verify-packaged-browser-participation.test.mjs",
+          "assertions": [
+            "reject missing, substituted, skipped and retried scenarios"
+          ]
+        },
+        {
+          "file": "config/scripts/packaged-browser-lane-contract.test.mjs",
+          "assertions": [
+            "verify pinned package checksum before extraction",
+            "require both directions three times and run report verification even on failure"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "ci",
+          "platform": "linux",
+          "result": "passed",
+          "command": "gh run view 34069063016 --log",
+          "durationSeconds": 120,
+          "summary": "Both unmodified compatibility cases passed three times at 5a99f935 with published1.4.188 and main f7d52160162; retries0. Final workflow34069429156 also passed6/6; its downloaded JSON passed the same participation verifier."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 1500,
+        "scope": "CI job timeout; not a measured p95"
+      },
+      "flakeHistory": {
+        "status": "soaking",
+        "evidence": "Initial executable discovery matched CLI and desktop and was corrected before any tests ran. Corrected baseline2/2 and repeat6/6 pass."
+      },
+      "redGreenEvidence": {
+        "status": "partial",
+        "evidence": "Participation unit tests reject missing and retried scenarios; no application mutation proof."
+      },
+      "performanceBudget": {
+        "required": false,
+        "evidence": "Compatibility assertions, not a performance benchmark."
+      },
+      "promotionCriteria": [
+        "Final workflow JSON report proves all six executions.",
+        "Collect repeated scheduled history before making this required."
+      ],
+      "knownGaps": [
+        "Linux1.4.188 only; no macOS or Windows packaged coverage.",
+        "No folder workspace, SSH execution host or live-service coverage.",
+        "Other released version pairs remain untested; not a required PR check."
+      ],
+      "demotionRule": "Keep experimental if any direction skips or fails; do not extend timeouts or retry to green."
     }
   ]
 }
