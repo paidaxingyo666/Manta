@@ -65,6 +65,19 @@ locals {
     control_renewal_lease_misses       = { field = "controlRenewalLeaseMissesDelta", description = "Control renewals that found their activity lease missing." }
     control_activity_recoveries        = { field = "controlActivityRecoveriesDelta", description = "Control activity leases recovered after a renewal miss." }
     control_activity_recovery_failures = { field = "controlActivityRecoveryFailuresDelta", description = "Control activity lease recovery attempts that failed." }
+    control_rtt_ms_p50                 = { field = "controlRttMsP50", description = "Control-socket ping round trip p50 in the interval. The desktop echoes the pong on its main thread, so only the median reads as distance; the p95 and max below are dominated by desktop stalls." }
+    control_rtt_ms_p95                 = { field = "controlRttMsP95", description = "Control-socket ping round trip p95 in the interval; a desktop-stall signal, not a distance one." }
+    control_rtt_ms_max                 = { field = "controlRttMsMax", description = "Maximum control-socket ping round trip in the interval; a desktop-stall signal, not a distance one." }
+    control_rtt_samples                = { field = "controlRttSamplesDelta", description = "Control-socket round-trip samples in the interval; the percentiles above are omitted when this is zero." }
+    client_accepts_completed           = { field = "clientAcceptCompletedDelta", description = "Phone accepts that reached relay-hello in the interval; the percentiles below are omitted when this is zero." }
+    client_accept_total_ms_p50         = { field = "clientAcceptTotalMsP50", description = "Successful phone-accept duration p50, dial to relay-hello." }
+    client_accept_total_ms_p95         = { field = "clientAcceptTotalMsP95", description = "Successful phone-accept duration p95, dial to relay-hello." }
+    client_accept_total_ms_max         = { field = "clientAcceptTotalMsMax", description = "Maximum successful phone-accept duration in the interval." }
+    client_accept_assignment_ms_p95    = { field = "clientAcceptAssignmentMsP95", description = "Accept stage p95: resume/invite lookup plus assignment resolve." }
+    client_accept_credential_ms_p95    = { field = "clientAcceptCredentialMsP95", description = "Accept stage p95: outer credential reservation." }
+    client_accept_activity_ms_p95      = { field = "clientAcceptActivityMsP95", description = "Accept stage p95: credential activity lease acquisition." }
+    client_accept_attach_ms_p95        = { field = "clientAcceptAttachMsP95", description = "Accept stage p95: conn-open sent until the desktop's data leg authenticated." }
+    client_accept_basis_ms_p95         = { field = "clientAcceptBasisMsP95", description = "Accept stage p95: splice lease and connection-basis writes between the data leg and relay-hello." }
     heap_used_bytes                    = { field = "heapUsedBytes", description = "Node.js heap bytes used by the relay process." }
     event_loop_ms_p99                  = { field = "eventLoopDelayMsP99", description = "Node.js event-loop delay p99 in milliseconds." }
     forwarded_bytes                    = { field = "forwardedBytesDelta", description = "Ciphertext bytes admitted for forwarding." }
@@ -211,14 +224,14 @@ resource "google_logging_metric" "relay_snapshot" {
   label_extractors = {
     role    = "EXTRACT(jsonPayload.role)"
     cell_id = "EXTRACT(jsonPayload.cellId)"
-    # No region label: adding one replaces all 21 live metrics (label change = delete+create),
+    # No region label: adding one replaces all 42 live metrics (label change = delete+create),
     # which resets history and blanks the relay alert policies during the swap.
   }
 
   metric_descriptor {
     metric_kind = "DELTA"
     value_type  = "DISTRIBUTION"
-    unit        = contains(["sql_latency_ms", "control_renewal_latency_ms_p50", "control_renewal_latency_ms_p95", "control_renewal_latency_ms_max", "http_latency_ms", "event_loop_ms_p99", "db_oldest_wait_ms", "db_wait_ms_max"], each.key) ? "ms" : each.key == "queued_bytes" || each.key == "heap_used_bytes" || each.key == "forwarded_bytes" ? "By" : "1"
+    unit        = contains(["sql_latency_ms", "control_rtt_ms_p50", "control_rtt_ms_p95", "control_rtt_ms_max", "client_accept_total_ms_p50", "client_accept_total_ms_p95", "client_accept_total_ms_max", "client_accept_assignment_ms_p95", "client_accept_credential_ms_p95", "client_accept_activity_ms_p95", "client_accept_attach_ms_p95", "client_accept_basis_ms_p95", "control_renewal_latency_ms_p50", "control_renewal_latency_ms_p95", "control_renewal_latency_ms_max", "http_latency_ms", "event_loop_ms_p99", "db_oldest_wait_ms", "db_wait_ms_max"], each.key) ? "ms" : each.key == "queued_bytes" || each.key == "heap_used_bytes" || each.key == "forwarded_bytes" ? "By" : "1"
 
     labels {
       key         = "role"

@@ -22,6 +22,12 @@ const counts: RelayProcessCounts = {
   databasePoolWaitMsMax: 1_250
 }
 
+// An accept stage is named `credential`, so the leak guard has to see past the
+// bucket name to the values it exists to police.
+function scrubStageNames(entries: Array<Record<string, unknown>>): string {
+  return JSON.stringify(entries).replaceAll('"credential":', '"stage":')
+}
+
 describe('relay observability', () => {
   it('emits safe readiness dependency outcomes', () => {
     const entries: Array<Record<string, unknown>> = []
@@ -181,7 +187,7 @@ describe('relay observability', () => {
       controlActivityRecoveryFailuresDelta: 0,
       httpLatencyMsMax: 0
     })
-    expect(JSON.stringify(entries)).not.toMatch(/token|credential|userId|relayHostId/)
+    expect(scrubStageNames(entries)).not.toMatch(/token|credential|userId|relayHostId/)
   })
 
   it('aggregates control and splice closes as bounded per-reason deltas', () => {
@@ -213,6 +219,70 @@ describe('relay observability', () => {
       clientAcceptsAbandonedByStageDelta: {},
       clientAcceptAbandonedMsMax: 0
     })
+  })
+
+  it('summarises completed client accepts and control round trips per window', () => {
+    const entries: Array<Record<string, unknown>> = []
+    const observability = new RelayObservability(
+      { role: 'cell', cellId: 'production-gce-c28', region: 'asia-east2' },
+      (entry) => entries.push(entry)
+    )
+    observability.recordClientAcceptCompleted({
+      totalMs: 812.4567,
+      stageMs: { assignment: 120, credential: 90, activity: 40, attach: 500, basis: 62 }
+    })
+    observability.recordClientAcceptCompleted({
+      totalMs: 6_400,
+      stageMs: { assignment: 4_100, credential: 95, activity: 60, attach: 2_000, basis: 145 }
+    })
+    observability.recordControlRtt(28)
+    observability.recordControlRtt(240)
+    observability.recordControlRtt(31)
+    observability.flush(counts)
+    observability.flush(counts)
+
+    expect(entries[0]).toMatchObject({
+      clientAcceptCompletedDelta: 2,
+      clientAcceptTotalMsP50: 812.457,
+      clientAcceptTotalMsP95: 6_400,
+      clientAcceptTotalMsMax: 6_400,
+      clientAcceptAssignmentMsP95: 4_100,
+      clientAcceptCredentialMsP95: 95,
+      clientAcceptActivityMsP95: 60,
+      clientAcceptAttachMsP95: 2_000,
+      clientAcceptBasisMsP95: 145,
+      controlRttSamplesDelta: 3,
+      controlRttMsP50: 31,
+      controlRttMsP95: 240,
+      controlRttMsMax: 240
+    })
+    // Only-add: the pre-existing fields still read the same after the extension.
+    expect(entries[0]).toMatchObject({
+      event: 'manta_relay_runtime_metrics',
+      metricVersion: 2,
+      clientAcceptsAbandonedByStageDelta: {},
+      clientAcceptAbandonedMsMax: 0
+    })
+    // An empty window publishes counts only: a zero percentile point is
+    // indistinguishable from a real zero once Cloud Logging aggregates it.
+    expect(entries[1]).toMatchObject({ clientAcceptCompletedDelta: 0, controlRttSamplesDelta: 0 })
+    for (const omitted of [
+      'clientAcceptTotalMsP50',
+      'clientAcceptTotalMsP95',
+      'clientAcceptTotalMsMax',
+      'clientAcceptAssignmentMsP95',
+      'clientAcceptCredentialMsP95',
+      'clientAcceptActivityMsP95',
+      'clientAcceptAttachMsP95',
+      'clientAcceptBasisMsP95',
+      'controlRttMsP50',
+      'controlRttMsP95',
+      'controlRttMsMax'
+    ]) {
+      expect(entries[1]).not.toHaveProperty(omitted)
+      expect(entries[0]).toHaveProperty(omitted)
+    }
+    expect(scrubStageNames(entries)).not.toMatch(/token|credential|userId|relayHostId/)
   })
 
   it('observes successful and failed database calls including transactions', async () => {
