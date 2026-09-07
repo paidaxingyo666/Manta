@@ -9,18 +9,17 @@ import { MobileE2EEAuthenticationError } from './mobile-e2ee-v2-physical-channel
 import { markRpcDeliveryUnknown } from './rpc-delivery-ambiguity'
 import { openRpcRequestBudget, resolvePostConnectRequestTimeout } from './rpc-request-budget'
 import { isRpcResponse } from './rpc-response-shape'
-import { RelayDialStageLog } from './relay-dial-stage-log'
 import { RelayDialStageTracker, type RelayDialStageSource } from './relay-dial-stage'
 import { RelayPendingRequests } from './relay-pending-requests'
-import { createRelaySessionLivenessWatchdog } from './relay-session-liveness-profile'
+import { RpcSessionLivenessWatchdog } from './rpc-session-liveness-watchdog'
 import { settleMobileRuntimeCapabilities } from './mobile-runtime-capability-negotiation'
 import type { RelayHostCloseReason } from '../../../src/shared/relay-host-close-reason'
 import type { RpcClient } from './rpc-client'
 import type { ConnectionLogSink, ConnectionState, RpcResponse } from './types'
 
-// Bounds the confirm exactly as migrateTo's own wait used to, so the supervisor's
-// mutex is never held for the full request timeout waiting on a silent cell.
-const RELAY_CONFIRM_TIMEOUT_MS = 12_000
+const RELAY_PROBE_TIMEOUT_MS = 4_000
+const RELAY_MISSED_PROBE_LIMIT = 2
+const RELAY_FOREGROUND_PROBE_MIN_INTERVAL_MS = 10_000
 let relayRpcSessionSequence = 0
 
 export type MobileRelayRpcSession = RpcClient &
@@ -30,10 +29,6 @@ export type MobileRelayRpcSession = RpcClient &
     getAttachDeadlineAt(): number | null
     getResumeExpiresAt(): number | null
     getResumeConfirmation(): DeviceResumeConfirmed | null
-    // Settles once the resume confirm has answered or failed the session. Never
-    // rejects. Anyone reading getResumeConfirmation()/getResumeExpiresAt() must
-    // await it: 'connected' is published at authentication, ahead of the confirm.
-    whenResumeConfirmed(): Promise<void>
     getFailure(): Error | null
   }
 
@@ -45,8 +40,6 @@ export function connectMobileRelayRpcSession(args: {
   deviceToken: string
   desktopPublicKeyB64: string
   requestTimeoutMs?: number
-  // Gates the idle liveness sweep; a backgrounded app must not spend probes.
-  isForeground?: () => boolean
   createSocket?: (url: string) => WebSocket
   onHostCloseReason?: (reason: RelayHostCloseReason) => void
   onLog?: ConnectionLogSink
@@ -64,16 +57,7 @@ export function connectMobileRelayRpcSession(args: {
   let logSequence = 0
   const logSessionId = `${Date.now().toString(36)}-${(++relayRpcSessionSequence).toString(36)}`
   const livenessIdentity = {}
-  // Why created here and not at authentication: handing a pre-auth caller an
-  // already-resolved promise would let it read getResumeConfirmation() as null and
-  // treat that as the answer. Every terminal path settles it — the confirm, fail(),
-  // and close() — so awaiting it can never outlive the session.
-  let settleResumeConfirmed!: () => void
-  const resumeConfirmed = new Promise<void>((resolve) => {
-    settleResumeConfirmed = resolve
-  })
   const dialStage = new RelayDialStageTracker()
-  const dialStageLog = new RelayDialStageLog(dialStage, logSessionId, args.onLog)
   const streams = new MobileRelayRpcStreams({
     nextId: () => pending.nextId(),
     sendFrame,
@@ -88,7 +72,7 @@ export function connectMobileRelayRpcSession(args: {
     desktopPublicKeyB64: args.desktopPublicKeyB64,
     createSocket: args.createSocket,
     onHostCloseReason: args.onHostCloseReason,
-    onOpen: () => dialStageLog.enter('awaiting-hello'),
+    onOpen: () => dialStage.advance('awaiting-hello'),
     onHello: (hello) => {
       if (
         hello.credentialKind !== 'resume' ||
@@ -99,10 +83,10 @@ export function connectMobileRelayRpcSession(args: {
       }
       attachDeadlineAt = hello.leaseExpiresAt
       resumeExpiresAt = hello.resumeExpiresAt
-      dialStageLog.enter('handshaking')
+      dialStage.advance('handshaking')
       publishState('handshaking')
     },
-    onAuthenticated: () => publishAuthenticated(),
+    onAuthenticated: () => void confirmResume(),
     onText: (plaintext) => {
       livenessWatchdog.noteAuthenticatedInbound(livenessIdentity)
       handleText(plaintext)
@@ -141,56 +125,58 @@ export function connectMobileRelayRpcSession(args: {
     },
     notifyForeground: (reason) => {
       if (state === 'connected' && reason !== 'network-change') {
-        livenessWatchdog.probeNow(livenessIdentity, reason === 'app-resume' ? 'resume' : 'nudge')
+        livenessWatchdog.probeNow(livenessIdentity)
       }
     },
-    close: () => terminate(new Error('Client closed')),
+    close() {
+      if (closed) {
+        return
+      }
+      closed = true
+      livenessWatchdog.stop(livenessIdentity)
+      link.close()
+      pending.rejectAll(new Error('Client closed'))
+      streams.clear()
+      publishState('disconnected')
+    },
     getDialStage: () => dialStage.getDialStage(),
     onDialStageChange: (listener) => dialStage.onDialStageChange(listener),
     getAttachDeadlineAt: () => attachDeadlineAt,
     getResumeExpiresAt: () => resumeExpiresAt,
     getResumeConfirmation: () => resumeConfirmation,
-    whenResumeConfirmed: () => resumeConfirmed,
     getFailure: () => failure
   }
-  const livenessWatchdog = createRelaySessionLivenessWatchdog({
-    isForeground: args.isForeground,
+  const livenessWatchdog = new RpcSessionLivenessWatchdog({
+    transport: 'relay',
+    idleProbeMs: null,
+    probeTimeoutMs: RELAY_PROBE_TIMEOUT_MS,
+    missedProbeLimit: RELAY_MISSED_PROBE_LIMIT,
+    voluntaryProbeMinIntervalMs: RELAY_FOREGROUND_PROBE_MIN_INTERVAL_MS,
     sendProbe: () =>
       state === 'connected' &&
       sendFrame({ id: pending.nextId(), method: 'status.get', params: undefined }),
-    terminate: () => fail(new Error('relay session liveness timeout')),
-    onLog: args.onLog,
-    nextLogId: () => `relay-liveness-${logSessionId}-${++logSequence}`
+    onTimeout: (evidence) => {
+      args.onLog?.({
+        id: `relay-liveness-${logSessionId}-${++logSequence}`,
+        ts: Date.now(),
+        level: 'error',
+        code: 'liveness-timeout',
+        path: 'relay',
+        message: 'Relay health check failed',
+        detail: `${evidence.reason}; ${evidence.missedProbes}/${evidence.missedProbeLimit} probes missed; last authenticated activity ${evidence.lastInboundAgeMs}ms ago`
+      })
+    },
+    terminate: () => fail(new Error('relay session liveness timeout'))
   })
   return client
 
-  // Why: the transport carries traffic the moment E2EE authenticates. The resume
-  // confirm and the capability advisory ride it concurrently instead of putting
-  // two serialized round trips in front of 'connected'.
-  function publishAuthenticated(): void {
-    if (closed) {
-      return
-    }
-    dialStageLog.enter('confirming')
-    void confirmResume().then(settleResumeConfirmed, settleResumeConfirmed)
-    // Why: an unanswered advisory says nothing, but a frame that never reached the
-    // wire proves the socket cannot carry traffic — that alone still fails.
-    void settleMobileRuntimeCapabilities((method, params) =>
-      sendRpc(method, params, requestTimeoutMs, true)
-    ).catch((error: unknown) => fail(asError(error)))
-    lastConnectedAt = Date.now()
-    livenessWatchdog.start(livenessIdentity)
-    publishState('connected')
-  }
-
-  // Off the critical path but never optional: a failed confirm or a relayHostId
-  // that is not ours still fails the session, only later than it used to.
   async function confirmResume(): Promise<void> {
+    dialStage.advance('confirming')
     try {
       const response = await sendRpc(
         'pairing.getEndpoints',
         { resumeConfirmReqId: args.resumeConfirmReqId },
-        Math.min(requestTimeoutMs, RELAY_CONFIRM_TIMEOUT_MS),
+        requestTimeoutMs,
         true
       )
       if (!response.ok) {
@@ -202,9 +188,13 @@ export function connectMobileRelayRpcSession(args: {
       }
       resumeConfirmation = result.resumeConfirmation
       resumeExpiresAt = result.resumeConfirmation.resumeExpiresAt
-      // The dial's last stage ends when the desktop has confirmed the resume, not when
-      // 'connected' was published at authentication ahead of it.
-      dialStageLog.settle(true)
+      lastConnectedAt = Date.now()
+      // Why: an unanswered advisory must not keep a slow relay from ever reaching connected.
+      await settleMobileRuntimeCapabilities((method, params) =>
+        sendRpc(method, params, requestTimeoutMs, true)
+      )
+      livenessWatchdog.start(livenessIdentity)
+      publishState('connected')
     } catch (error) {
       fail(asError(error))
     }
@@ -297,28 +287,17 @@ export function connectMobileRelayRpcSession(args: {
     }
   }
 
-  // One teardown for both endings; only whether the session is to blame differs, and
-  // recording a failure for a caller's close would make the establisher report a
-  // deliberate teardown as a dial error.
-  function terminate(error: Error): void {
+  function fail(error: Error): void {
     if (closed) {
       return
     }
     closed = true
-    settleResumeConfirmed()
-    dialStageLog.settle(false, error.message)
+    failure = error
     livenessWatchdog.stop(livenessIdentity)
     streams.clear()
     link.close()
     pending.rejectAll(error)
     publishState(error instanceof MobileE2EEAuthenticationError ? 'auth-failed' : 'disconnected')
-  }
-
-  function fail(error: Error): void {
-    if (!closed) {
-      failure = error
-    }
-    terminate(error)
   }
 }
 

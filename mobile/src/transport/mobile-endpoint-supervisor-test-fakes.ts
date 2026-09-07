@@ -65,7 +65,6 @@ export class FakeRelaySession extends FakeSession implements MobileRelayRpcSessi
     renewed: this.renewed,
     resumeExpiresAt: this.resumeExpiry
   })
-  whenResumeConfirmed = () => Promise.resolve()
   getFailure = () => this.failure
 }
 
@@ -202,15 +201,6 @@ export const bundle: MobileRelayCredentialBundle = {
     version: 2,
     expiresAt: Number.MAX_SAFE_INTEGER
   }
-}
-
-// Why: LAN unreachable. A throwing open beats a never-answering socket — the
-// direct dial resolves synchronously, so a relay-only test leaves no probe timer
-// behind and the reconnect race has exactly one runner.
-export function unreachableDirect(): MobileEndpointSupervisorDependencies['openDirect'] {
-  return vi.fn(() => {
-    throw new Error('direct endpoint unreachable')
-  })
 }
 
 export function dependencies(

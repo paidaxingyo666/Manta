@@ -2,8 +2,6 @@ import { Animated, View, Text, Pressable, ActivityIndicator } from 'react-native
 import { saveTerminalTextScale } from '../storage/preferences'
 import { MobileBrowserPane } from '../browser/MobileBrowserPane'
 import { TerminalPaneView } from './TerminalPaneView'
-import { TerminalEnginePrewarm } from './TerminalEnginePrewarm'
-import { MOBILE_SESSION_TAB_BAR_HEIGHT } from './mobile-session-frame-styles'
 import { MobileNativeChatOverlay } from './MobileNativeChatOverlay'
 import { colors } from '../theme/mobile-theme'
 import { styles } from './mobile-session-styles'
@@ -76,38 +74,16 @@ export function MobileSessionActiveContent({
     activePendingTerminalTab,
     isPendingTerminalRecoveryParked,
     retryPendingTerminalRecovery,
-    reconnectViewState,
-    tabStripRows,
     showLoadingState,
-    measurePrewarmViewport,
     showEmptyState,
     keyboardLift,
     activeTerminalKeyboardLift,
     toastAnimatedStyle,
     createTabBusy
   } = controller
-  // Why the same list the header gates on: an unmounted tab bar gives the content row its band
-  // back, so the pre-warm would measure a taller box than the pane ever gets. Reading the header's
-  // own rows (live or cached preview) keeps the two from drifting.
-  const prewarmReservedTabBarHeight = tabStripRows.length > 0 ? 0 : MOBILE_SESSION_TAB_BAR_HEIGHT
-  // Why: the cached strip in the header is the content during a reconnect; the terminal body
-  // cannot be, because replaying stored scrollback into the WebView would double-render once the
-  // live stream replays the same rows. See mobile-session-reconnect-view-state. The engine still
-  // boots inside the real terminal frame while the startup RPCs are in flight, so the first pane
-  // inherits a warm WebView and a measured viewport (see prewarm).
-  return reconnectViewState.kind === 'reconnecting-with-cache' || showLoadingState ? (
-    <View style={styles.terminalFrame}>
-      <View style={styles.emptyState}>
-        <ActivityIndicator size="small" color={colors.textSecondary} />
-        {reconnectViewState.kind === 'reconnecting-with-cache' ? (
-          <Text style={styles.emptyText}>{reconnectViewState.label}</Text>
-        ) : null}
-      </View>
-      <TerminalEnginePrewarm
-        reservedTabBarHeight={prewarmReservedTabBarHeight}
-        textScale={terminalTextScale}
-        onEngineMeasured={measurePrewarmViewport}
-      />
+  return showLoadingState ? (
+    <View style={styles.emptyState}>
+      <ActivityIndicator size="small" color={colors.textSecondary} />
     </View>
   ) : showEmptyState ? (
     <View style={styles.emptyState}>
@@ -195,35 +171,25 @@ export function MobileSessionActiveContent({
       )}
     </View>
   ) : activePendingTerminalTab ? (
-    <View style={styles.terminalFrame}>
-      <View style={styles.emptyState}>
-        {!isPendingTerminalRecoveryParked && (
-          <ActivityIndicator size="small" color={colors.textSecondary} />
-        )}
-        <Text style={styles.emptyText}>
-          {isPendingTerminalRecoveryParked
-            ? 'Terminal is taking longer than expected'
-            : activePendingTerminalTab.title || 'Loading terminal'}
-        </Text>
-        {isPendingTerminalRecoveryParked && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Retry loading terminal"
-            style={({ pressed }) => [
-              styles.createButton,
-              pressed && styles.newTerminalButtonPressed
-            ]}
-            onPress={() => void retryPendingTerminalRecovery()}
-          >
-            <Text style={styles.createButtonText}>Retry</Text>
-          </Pressable>
-        )}
-      </View>
-      <TerminalEnginePrewarm
-        reservedTabBarHeight={prewarmReservedTabBarHeight}
-        textScale={terminalTextScale}
-        onEngineMeasured={measurePrewarmViewport}
-      />
+    <View style={styles.emptyState}>
+      {!isPendingTerminalRecoveryParked && (
+        <ActivityIndicator size="small" color={colors.textSecondary} />
+      )}
+      <Text style={styles.emptyText}>
+        {isPendingTerminalRecoveryParked
+          ? 'Terminal is taking longer than expected'
+          : activePendingTerminalTab.title || 'Loading terminal'}
+      </Text>
+      {isPendingTerminalRecoveryParked && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading terminal"
+          style={({ pressed }) => [styles.createButton, pressed && styles.newTerminalButtonPressed]}
+          onPress={() => void retryPendingTerminalRecovery()}
+        >
+          <Text style={styles.createButtonText}>Retry</Text>
+        </Pressable>
+      )}
     </View>
   ) : (
     <View
