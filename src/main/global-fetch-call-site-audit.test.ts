@@ -25,6 +25,7 @@ const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   ['main/rate-limits/codex-fetcher.ts', 3],
   ['main/runtime/relay/relay-http-client.ts', 2],
   ['main/runtime/relay/relay-region-preference.ts', 3],
+  ['main/runtime/relay/relay-region-probe.ts', 1],
   ['main/source-control/hosted-review-api-request.ts', 1],
   ['main/speech/openai-transcription-client.ts', 1],
   // Main HTTP port: one type declaration plus the Node fallback call. The fallback

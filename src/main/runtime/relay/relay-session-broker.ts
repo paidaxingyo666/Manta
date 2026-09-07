@@ -293,8 +293,15 @@ export class RelaySessionBroker {
   }
 
   private publishStatus(status: RelayBrokerStatus): void {
-    if (this.isCurrent()) {
-      this.options.onStatus(status)
+    if (!this.isCurrent()) {
+      return
+    }
+    this.options.onStatus(status)
+    const cellUrl = this.originPool.activeAssignment?.cellUrl
+    if (status === 'registered' && cellUrl) {
+      // Fire-and-forget: the listener may probe this cell, and nothing about the
+      // live session is allowed to wait on that.
+      this.options.onAssignedCellActive?.(cellUrl)
     }
   }
 }

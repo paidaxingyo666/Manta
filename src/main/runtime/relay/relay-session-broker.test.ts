@@ -312,6 +312,40 @@ describe('RelaySessionBroker lifecycle ownership', () => {
     expect(fakes.controls[1]!.confirmResume).toHaveBeenCalledOnce()
   })
 
+  it('reports the assigned cell each time an origin registers', async () => {
+    fakes.controlConnect.mockResolvedValue({
+      type: 'host-hello-ack',
+      v: 1,
+      generation: 1,
+      controlResumeSecret: 'A'.repeat(43),
+      leaseExpiresAt: 1_000_000,
+      activeConnIds: [],
+      pendingConns: []
+    } satisfies RelayHostHelloAckMessage)
+    fakes.assign
+      .mockResolvedValueOnce({
+        cellUrl: 'https://cell-a.relay.example.test',
+        assignmentEpoch: 1,
+        leaseExpiresAt: 1_000_000
+      })
+      .mockResolvedValueOnce({
+        cellUrl: 'https://cell-b.relay.example.test',
+        assignmentEpoch: 2,
+        leaseExpiresAt: 2_000_000
+      })
+    const onAssignedCellActive = vi.fn()
+
+    await RelaySessionBroker.connect(brokerOptions({ onAssignedCellActive }))
+    expect(onAssignedCellActive.mock.calls).toEqual([['https://cell-a.relay.example.test']])
+    fakes.controls[0]!.options.onDrain({
+      type: 'drain',
+      graceMs: 5_000,
+      recovery: 'resolve-director'
+    })
+    await vi.waitFor(() => expect(onAssignedCellActive).toHaveBeenCalledTimes(2))
+    expect(onAssignedCellActive).toHaveBeenLastCalledWith('https://cell-b.relay.example.test')
+  })
+
   it('opens a fresh same-cell generation when process-local rebind state is lost', async () => {
     const ack: RelayHostHelloAckMessage = {
       type: 'host-hello-ack',
