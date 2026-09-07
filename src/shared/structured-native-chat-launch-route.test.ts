@@ -63,7 +63,8 @@ describe('per-launch structured feasibility', () => {
     ['a floating workspace', { workspaceKind: 'floating' }, 'floating-workspace'],
     ['a custom TUI launch', { requiresTuiLaunchCustomization: true }, 'tui-launch-customization'],
     ['an SSH host', { executionHostId: 'ssh:host-a' }, 'remote-execution-host'],
-    ['a missing capability', { hostCapabilities: [] }, 'runtime-capability']
+    ['a missing capability', { hostCapabilities: [] }, 'runtime-capability'],
+    ['an unanswered host', { hostCapabilities: null }, 'runtime-capability-unknown']
   ] as [string, Partial<StructuredNativeChatSupportInput>, string][])(
     'names %s as the blocker',
     (_name, overrides, blocker) => {

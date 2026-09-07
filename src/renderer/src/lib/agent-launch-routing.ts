@@ -30,7 +30,8 @@ export type AgentLaunchRoutingInput = {
     | null
     | undefined
   executionHostId: string
-  hostCapabilities: readonly string[]
+  /** Capabilities of the target host; `null` = not yet established. */
+  hostCapabilities: readonly string[] | null
   workspaceKind?: 'git-worktree' | 'folder' | 'floating'
   projectRuntime?: ProjectExecutionRuntimeResolution | null
   promptDelivery?: NativeChatLaunchPromptDelivery

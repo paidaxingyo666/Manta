@@ -23,7 +23,7 @@ import {
   hasExplicitTuiAgentArgs,
   resolveAgentLaunchRoute
 } from '@/lib/agent-launch-routing'
-import { readLocalRuntimeCapabilities } from '@/runtime/local-runtime-capabilities'
+import { readLocalRuntimeCapabilitiesOrUnknown } from '@/runtime/local-runtime-capabilities'
 import { startStructuredAgentLaunch } from '@/lib/structured-agent-session-launch'
 import { isAgentSessionHandleProvider } from '../../../../shared/agent-session-provider-handle'
 import { StructuredAgentSessionCreateRefusalError } from '@/lib/launch-structured-agent-session'
@@ -147,7 +147,7 @@ export async function submitFolderWorkspaceCreate({
         executionHostId: runtimeEnvironmentId
           ? `runtime:${encodeURIComponent(runtimeEnvironmentId)}`
           : (projectGroup.connectionId ?? 'local'),
-        hostCapabilities: readLocalRuntimeCapabilities(),
+        hostCapabilities: readLocalRuntimeCapabilitiesOrUnknown(),
         workspaceKind: 'folder',
         promptDelivery: launchDraftPrompt ? 'draft' : 'auto-submit',
         launchText: launchDraftPrompt ?? note,

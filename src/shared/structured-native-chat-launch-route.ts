@@ -28,6 +28,9 @@ export type StructuredNativeChatBlocker =
   | 'remote-execution-host'
   | 'project-runtime'
   | 'runtime-capability'
+  /** The owning host has not answered yet. Distinct from `runtime-capability`, which is the
+   *  host saying no: an unestablished answer must not read as a refusal. */
+  | 'runtime-capability-unknown'
 
 export type StructuredNativeChatSupport =
   | { supported: true }
@@ -36,7 +39,8 @@ export type StructuredNativeChatSupport =
 export type StructuredNativeChatSupportInput = {
   agent: TuiAgent
   executionHostId: string
-  hostCapabilities: readonly string[]
+  /** Capabilities of the host this launch would run on. `null` = not yet established. */
+  hostCapabilities: readonly string[] | null
   workspaceKind?: 'git-worktree' | 'folder' | 'floating'
   projectRuntime?: ProjectExecutionRuntimeResolution | null
   /** A draft stays terminal-backed: the composer, not a turn, owns unsent text. */
@@ -83,6 +87,9 @@ export function resolveStructuredNativeChatSupport(
   const projectRuntime = input.projectRuntime
   if (projectRuntime?.status === 'repair-required' || projectRuntime?.runtime.kind === 'wsl') {
     return { supported: false, blocker: 'project-runtime' }
+  }
+  if (input.hostCapabilities === null) {
+    return { supported: false, blocker: 'runtime-capability-unknown' }
   }
   if (!input.hostCapabilities.includes(STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY)) {
     return { supported: false, blocker: 'runtime-capability' }

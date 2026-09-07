@@ -88,7 +88,10 @@ const BLOCKER_REASON: Record<
   'tui-launch-customization': 'tui_launch_customization',
   'remote-execution-host': 'remote_execution_host',
   'project-runtime': 'wsl_execution_runtime',
-  'runtime-capability': 'structured_sessions_unavailable'
+  'runtime-capability': 'structured_sessions_unavailable',
+  // Orchestration passes its own host's list, so this is unreachable there; the map is
+  // exhaustive by type and must still name it.
+  'runtime-capability-unknown': 'structured_sessions_unavailable'
 }
 
 /** The host's own create-support verdict (`agentSession.createSupport`) in this vocabulary. */

@@ -42,7 +42,7 @@ import {
   hasExplicitTuiLaunchCustomization,
   resolveAgentLaunchRoute
 } from '@/lib/agent-launch-routing'
-import { readLocalRuntimeCapabilities } from '@/runtime/local-runtime-capabilities'
+import { readLocalRuntimeCapabilitiesOrUnknown } from '@/runtime/local-runtime-capabilities'
 import { settleFullCreationStructuredLaunch } from './full-creation-structured-launch'
 import { finalizeFullCreation } from './full-creation-finalization'
 import { buildFullCreationIssueCommand } from './full-creation-issue-command'
@@ -140,7 +140,7 @@ export function useFullCreationExecution(input: FullCreationExecutionInput) {
         agent: tuiAgent,
         settings,
         executionHostId: selectedRepoExecutionHostId ?? 'local',
-        hostCapabilities: readLocalRuntimeCapabilities(),
+        hostCapabilities: readLocalRuntimeCapabilitiesOrUnknown(),
         workspaceKind: selectedRepoIsGit ? 'git-worktree' : 'folder',
         promptDelivery: startupPlan?.draftPrompt ? 'draft' : 'auto-submit',
         launchText: startupPlan?.draftPrompt ?? submitStartupPrompt,

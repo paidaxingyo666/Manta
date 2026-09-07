@@ -50,7 +50,7 @@ import {
   hasExplicitTuiLaunchCustomization,
   resolveAgentLaunchRoute
 } from '@/lib/agent-launch-routing'
-import { readLocalRuntimeCapabilities } from '@/runtime/local-runtime-capabilities'
+import { readLocalRuntimeCapabilitiesOrUnknown } from '@/runtime/local-runtime-capabilities'
 
 export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
   const {
@@ -205,7 +205,7 @@ export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
             executionHostId: ephemeralVmRecipe
               ? 'runtime:pending-ephemeral-vm'
               : (workspaceRunContext?.hostId ?? selectedRepoExecutionHostId ?? 'local'),
-            hostCapabilities: readLocalRuntimeCapabilities(),
+            hostCapabilities: readLocalRuntimeCapabilitiesOrUnknown(),
             workspaceKind: selectedRepoIsGit ? 'git-worktree' : 'folder',
             promptDelivery: quickDraftPrompt ? 'draft' : 'auto-submit',
             launchText: quickDraftPrompt ?? quickPrompt,

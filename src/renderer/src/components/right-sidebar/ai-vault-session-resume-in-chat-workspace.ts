@@ -4,7 +4,10 @@ import {
 } from '@/lib/agent-launch-routing'
 import { getLocalProjectExecutionRuntimeContext } from '@/lib/local-preflight-context'
 import { getExecutionHostIdForWorktree } from '@/lib/worktree-runtime-owner'
-import { readLocalRuntimeCapabilities } from '@/runtime/local-runtime-capabilities'
+import {
+  readLocalRuntimeCapabilities,
+  readLocalRuntimeCapabilitiesOrUnknown
+} from '@/runtime/local-runtime-capabilities'
 import { useAppStore } from '@/store'
 import type { AiVaultSession } from '../../../../shared/ai-vault-types'
 import { isAgentSessionHandleProvider } from '../../../../shared/agent-session-provider-handle'
@@ -46,7 +49,7 @@ export function resolveAiVaultSessionResumeInChatForWorkspace(args: {
           useAppStore.getState(),
           targetWorkspaceId as string
         ),
-        hostCapabilities: readLocalRuntimeCapabilities(),
+        hostCapabilities: readLocalRuntimeCapabilitiesOrUnknown(),
         workspaceKind: (targetWorkspaceId as string).startsWith('folder:')
           ? 'folder'
           : 'git-worktree',
