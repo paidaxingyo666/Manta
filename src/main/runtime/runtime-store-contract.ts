@@ -117,6 +117,7 @@ export type RuntimeStore = {
     worktreeVisibilityDefaults?: GlobalSettings['worktreeVisibilityDefaults']
     hostSettingOverrides?: GlobalSettings['hostSettingOverrides']
     agentSkillSharingEnabled?: GlobalSettings['agentSkillSharingEnabled']
+    nativeChatSessionOptions?: GlobalSettings['nativeChatSessionOptions']
   }
   // Why: narrow to `unknown` return so test mocks can return void without
   // a cast. The runtime never reads the return value — the persisted value

@@ -226,6 +226,7 @@ export const MOBILE_RPC_METHOD_ALLOWLIST = new Set([
   'nativeChat.unsubscribe',
   'settings.get',
   'settings.getTerminalQuickCommands',
+  'settings.mutateNativeChatSessionOptions',
   'settings.update',
   'settings.updateTerminalQuickCommands',
   'ssh.connect',

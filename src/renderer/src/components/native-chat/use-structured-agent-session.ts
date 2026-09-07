@@ -16,6 +16,7 @@ import {
   canSetStructuredAgentSessionOption,
   commitStructuredAgentSessionOptionValues,
   createStructuredAgentSessionOptionState,
+  structuredAgentSessionOptionPicks,
   structuredAgentSessionOptionSnapshot
 } from '../../../../shared/structured-agent-session-options'
 import { activeStructuredAgentSessionTurnId } from '../../../../shared/structured-agent-session-projection'
@@ -29,6 +30,7 @@ import { useStructuredAgentSessionHold } from './use-structured-agent-session-ho
 import { useStructuredAgentSessionRead } from './use-structured-agent-session-read'
 import { projectStructuredAgentSessionMessages } from './structured-agent-session-message-projection'
 import { selectStructuredAgentTurnActivity } from './native-chat-turn-activity'
+import { enqueueSessionOptionSettingsWrite } from './native-chat-session-option-settings-write'
 
 export type StructuredPromptItem = AgentJournalRenderItem & {
   body: Extract<AgentJournalRenderItem['body'], { kind: 'approval' | 'question' }>
@@ -192,11 +194,20 @@ export function useStructuredAgentSession(args: {
           { key: id, value }
         )
         if (result && activeOptionRecordRef.current === targetRecord) {
+          const committed = result.options ?? { [id]: value }
           setOptionState((current) =>
             current.record === targetRecord
-              ? commitStructuredAgentSessionOptionValues(current, result.options ?? { [id]: value })
+              ? commitStructuredAgentSessionOptionValues(current, committed)
               : current
           )
+          const picks = structuredAgentSessionOptionPicks(optionState, committed)
+          if (picks.length > 0) {
+            void enqueueSessionOptionSettingsWrite(target, {
+              type: 'apply-picks',
+              agent,
+              picks
+            })
+          }
         }
         return Boolean(result)
       } finally {
@@ -207,7 +218,7 @@ export function useStructuredAgentSession(args: {
         )
       }
     },
-    [mutate, optionState]
+    [agent, mutate, optionState, target]
   )
   const setOption = useCallback(
     async (id: string, value: string | boolean) => {

@@ -10,6 +10,8 @@ import {
 } from '../../shared/terminal-quick-commands'
 import { haveSameDisabledTuiAgents } from '../../shared/tui-agent-selection'
 import type { GlobalSettings } from '../../shared/global-settings-types'
+import { applyNativeChatSessionOptionSettingsMutation } from '../../shared/native-chat-session-option-defaults'
+import type { NativeChatSessionOptionSettingsMutation } from '../../shared/native-chat-session-options'
 import { getHostDisplayLabelOverrides } from '../../shared/host-setting-overrides'
 import type { ExecutionHostId } from '../../shared/execution-host'
 import type { TerminalQuickCommand } from '../../shared/terminal-quick-command-types'
@@ -176,6 +178,19 @@ export class RuntimeClientSettingsController {
       { notifyListeners: true }
     )
     return this.get()
+  }
+
+  updateNativeChatSessionOptions(mutation: NativeChatSessionOptionSettingsMutation): void {
+    if (!this.store?.getSettings || !this.store.updateSettings) {
+      throw new Error('runtime_unavailable')
+    }
+    const next = applyNativeChatSessionOptionSettingsMutation(
+      this.store.getSettings().nativeChatSessionOptions,
+      mutation
+    )
+    if (next) {
+      this.store.updateSettings({ nativeChatSessionOptions: next }, { notifyListeners: true })
+    }
   }
 
   private reconcileManagedAgentHooks(): Promise<void> {

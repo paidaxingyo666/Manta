@@ -15,6 +15,7 @@ import {
   commitStructuredAgentSessionOption,
   commitStructuredAgentSessionOptionValues,
   createStructuredAgentSessionOptionState,
+  structuredAgentSessionOptionPicks,
   structuredAgentSessionOptionSnapshot
 } from '../../../src/shared/structured-agent-session-options'
 import type { RpcClient } from '../transport/rpc-client'
@@ -22,6 +23,7 @@ import {
   callAgentSession,
   type StructuredAgentSessionMutate
 } from './mobile-structured-agent-session-rpc'
+import { persistMobileStructuredOptionPicks } from './mobile-native-chat-session-option-persistence'
 
 type StructuredOptionsController = {
   optionSnapshot: SessionOptionDescriptor[]
@@ -101,14 +103,22 @@ export function useMobileStructuredAgentOptions(args: {
           return result.status !== 'rejected'
         }
         if (result.status === 'accepted') {
+          const committed = result.value.options ?? { [id]: value }
           setOptionState((current) =>
             current.record === targetRecord && result.sameFence
-              ? commitStructuredAgentSessionOptionValues(
-                  current,
-                  result.value.options ?? { [id]: value }
-                )
+              ? commitStructuredAgentSessionOptionValues(current, committed)
               : current
           )
+          // Only an accepted pick: an `unknown` outcome commits optimistically to the
+          // visible record, and remembering one the provider refused would seed a
+          // launch the user never chose.
+          if (agent === 'claude' || agent === 'codex') {
+            void persistMobileStructuredOptionPicks({
+              client,
+              agent,
+              picks: structuredAgentSessionOptionPicks(optionState, committed)
+            })
+          }
           return true
         }
         if (result.status === 'unknown') {
@@ -128,7 +138,7 @@ export function useMobileStructuredAgentOptions(args: {
         )
       }
     },
-    [mutate, optionState]
+    [agent, client, mutate, optionState]
   )
 
   const invokeStructuredOption = useCallback(async () => false, [])
