@@ -292,7 +292,7 @@ export class MantaRuntimeWithCloseMobileSessionTab extends MantaRuntimeWithRefus
           }
         }
       }
-      await this.closeStructuredAgentSessionTab(worktreeId, snapshot, tab)
+      await this.closeStructuredAgentSessionTab(tab)
     } else {
       if (!this.notifier?.closeSessionTab) {
         throw new Error('runtime_unavailable')
