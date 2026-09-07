@@ -7,6 +7,7 @@ import {
   DEFAULT_JOURNAL_PAYLOAD_LIMITS
 } from '../native-chat/agent-session-journal/journal-payload-bounds'
 import { unhandledProviderFrameJournalItem } from '../native-chat/agent-session-wire/unhandled-provider-frame'
+import { codexImageItemBody } from './codex-image-item-translation'
 import { commandActionFacts } from './codex-command-action-class'
 import {
   readFirstString,
@@ -250,6 +251,23 @@ export function codexJournalItem(item: CodexThreadItem): CodexJournalItem {
   if (item.type === 'webSearch') {
     return webSearchItem(item)
   }
+  if (item.type === 'imageView' || item.type === 'imageGeneration') {
+    return { body: codexImageItemBody(item), handled: true }
+  }
+  if (item.type === 'plan') {
+    const text = readTextContent(item, 'text')
+    return {
+      body:
+        text === null
+          ? null
+          : {
+              kind: 'status',
+              text: boundInlineText(text, DEFAULT_JOURNAL_PAYLOAD_LIMITS).text,
+              presentation: 'plan-document'
+            },
+      handled: true
+    }
+  }
   if (item.type === 'reasoning' || item.type === 'plan') {
     const text =
       readTextContent(item, 'text') ??
@@ -295,6 +313,16 @@ export function codexStreamingJournalItem(item: CodexThreadItem, text: string): 
     const bounded = boundInlineText(text, DEFAULT_JOURNAL_PAYLOAD_LIMITS).bounded
     return {
       body: { kind: 'diff', path: path ?? 'pending patch', patch: bounded },
+      handled: true
+    }
+  }
+  if (item.type === 'plan') {
+    return {
+      body: {
+        kind: 'status',
+        text: boundInlineText(text, DEFAULT_JOURNAL_PAYLOAD_LIMITS).text,
+        presentation: 'plan-document'
+      },
       handled: true
     }
   }

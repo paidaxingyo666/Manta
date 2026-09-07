@@ -148,6 +148,9 @@ export type AgentJournalQuestionItem = {
 export type AgentJournalStatusItem = {
   kind: 'status'
   text: string
+  /** Optional display hints; unknown values retain the ordinary text fallback. */
+  presentation?: string
+  tone?: string
   /** Durable root-turn lifecycle used by clients to expose cancellation only
    *  while the provider can still accept it. */
   turnLifecycle?: { turnId: string; state: 'running' | 'completed' }

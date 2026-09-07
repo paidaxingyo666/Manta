@@ -113,6 +113,8 @@ function itemBlocks(item: AgentJournalRenderItem): {
       {
         type: 'text',
         text: body.text,
+        ...(body.presentation !== undefined ? { presentation: body.presentation } : {}),
+        ...(body.tone !== undefined ? { tone: body.tone } : {}),
         ...(body.providerFrame ? { providerFrame: body.providerFrame } : {})
       }
     ]

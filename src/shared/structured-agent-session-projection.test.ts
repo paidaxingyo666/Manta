@@ -284,6 +284,29 @@ describe('structured agent session status projection', () => {
   })
 })
 
+describe('notice projection for desktop and mobile consumers', () => {
+  it.each([
+    { presentation: 'compaction' },
+    { presentation: 'plan-document' },
+    { tone: 'warning' },
+    { tone: 'error' },
+    { tone: 'notice' },
+    { presentation: 'future-presentation', tone: 'future-tone' }
+  ])('preserves readable text alongside optional metadata: %j', (metadata) => {
+    const projected = projectStructuredItemToNativeChat(
+      item('notice', 1, {
+        kind: 'status',
+        text: 'A readable document or notice',
+        ...metadata
+      })
+    )
+    expect(projected).toMatchObject({
+      role: 'system',
+      blocks: [{ type: 'text', text: 'A readable document or notice', ...metadata }]
+    })
+  })
+})
+
 it('preserves optional tool annotations for desktop and mobile projection', () => {
   const metadata = {
     exitCode: 127,

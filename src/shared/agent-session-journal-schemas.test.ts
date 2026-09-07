@@ -190,6 +190,34 @@ describe('forward tolerance', () => {
   })
 })
 
+describe('optional notice metadata', () => {
+  it.each([
+    {},
+    { presentation: 'compaction' },
+    { presentation: 'plan-document' },
+    { tone: 'warning' },
+    { tone: 'error' },
+    { tone: 'notice' },
+    { presentation: 'future-presentation', tone: 'future-tone' }
+  ])('admits existing status and text kinds with %j', (metadata) => {
+    expect(
+      isAdmissibleAgentJournalItemBody({ kind: 'status', text: 'Readable fallback', ...metadata })
+    ).toBe(true)
+    expect(
+      isAdmissibleAgentJournalItemBody({
+        kind: 'message',
+        role: 'system',
+        blocks: [{ type: 'text', text: 'Readable fallback', ...metadata }]
+      })
+    ).toBe(true)
+  })
+  it.each([{ tone: false }, { presentation: {} }])('rejects malformed metadata: %j', (metadata) => {
+    expect(isAdmissibleAgentJournalItemBody({ kind: 'status', text: 'Text', ...metadata })).toBe(
+      false
+    )
+  })
+})
+
 describe('optional tool annotations', () => {
   const body = { kind: 'tool-call', name: 'shell', input: null, state: 'completed' }
   it('admits old rows and rows with optional annotations without a new kind', () => {

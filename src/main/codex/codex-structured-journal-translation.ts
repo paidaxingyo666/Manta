@@ -6,6 +6,7 @@ import {
 import { CodexSubagentRoster } from './codex-subagent-roster'
 import { readCodexThreadItem } from './codex-structured-item-translation'
 import { CodexJournalGenericFrames } from './codex-structured-journal-generic-frames'
+import { CodexJournalCompactions } from './codex-structured-journal-compactions'
 import { CodexJournalItems } from './codex-structured-journal-items'
 import { CodexJournalPrompts } from './codex-structured-journal-prompts'
 import {
@@ -46,6 +47,9 @@ export function createCodexJournalTranslator(
   deps: CodexJournalTranslatorDeps
 ): CodexJournalTranslator {
   const activeTurns = new CodexJournalActiveTurns()
+  const compactions = new CodexJournalCompactions(deps.sink, (threadId) =>
+    activeTurns.current(threadId)
+  )
   const genericFrames = new CodexJournalGenericFrames(deps, (threadId) =>
     activeTurns.current(threadId)
   )
@@ -94,6 +98,10 @@ export function createCodexJournalTranslator(
         currentTurnIds: activeTurns.byThread,
         ordinals: items.ordinals,
         handleItem: (event) => {
+          const compaction = compactions.handle(event)
+          if (compaction) {
+            return compaction
+          }
           const translated = items.handle(event, 'history')
           return translated.handled
             ? translated.admission
@@ -135,6 +143,7 @@ export function createCodexJournalTranslator(
         items.activeItems.clear()
         prompts.pending.clear()
         activeTurns.clear()
+        compactions.clear()
         return CODEX_JOURNAL_ADMITTED
       }
       if (event.type === 'notification') {
@@ -167,6 +176,10 @@ export function createCodexJournalTranslator(
       }
       if (event.method === 'turn/started') {
         return startTurn(event)
+      }
+      const compaction = compactions.handle(event)
+      if (compaction) {
+        return publishActivity(event, compaction)
       }
       if (event.method === 'turn/completed') {
         return completeTurn(event)
@@ -223,17 +236,15 @@ export function createCodexJournalTranslator(
       genericFrames.dispose()
       subagents.dispose()
       activeTurns.clear()
+      compactions.clear()
     }
   }
 
   /** Settles the item a notification the transport refused to carry left
    *  mid-flight; null when the frame is not one. */
-  function settleOversizedNotification(event: {
-    sessionId: string
-    threadId: string
-    kind: string
-    payload: unknown
-  }): CodexJournalTranslationAdmission | null {
+  function settleOversizedNotification(
+    event: Extract<CodexStructuredSessionEvent, { type: 'provider-frame' }>
+  ): CodexJournalTranslationAdmission | null {
     return settleCodexOversizedNotificationFrame({
       ...event,
       sink: deps.sink,
@@ -242,11 +253,9 @@ export function createCodexJournalTranslator(
     })
   }
 
-  function startTurn(event: {
-    sessionId: string
-    threadId: string
-    params: unknown
-  }): CodexJournalTranslationAdmission {
+  function startTurn(
+    event: Extract<CodexStructuredSessionEvent, { type: 'notification' }>
+  ): CodexJournalTranslationAdmission {
     const turnId = readCodexTurnId(event.params)
     if (!turnId) {
       return CODEX_JOURNAL_ADMITTED

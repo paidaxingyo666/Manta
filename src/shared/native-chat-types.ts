@@ -32,6 +32,9 @@ export type NativeChatRole = (typeof NATIVE_CHAT_ROLES)[number]
 export type NativeChatTextBlock = {
   type: 'text'
   text: string
+  /** Optional journal display hints; readers narrow only the values they know. */
+  presentation?: string
+  tone?: string
   /** Optional structured detail for an otherwise ordinary fallback line. */
   providerFrame?: {
     provider: string

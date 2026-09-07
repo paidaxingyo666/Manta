@@ -66,7 +66,7 @@ export const PROVIDER_FRAME_CLASSIFICATIONS = {
     'item/reasoning/summaryTextDelta': 'stream-into-item',
     'item/reasoning/summaryPartAdded': 'stream-into-item',
     'item/reasoning/textDelta': 'stream-into-item',
-    'thread/compacted': 'status-chrome',
+    'thread/compacted': 'timeline-substantive',
     'model/rerouted': 'status-chrome',
     'model/verification': 'status-chrome',
     'turn/moderationMetadata': 'suppressed-benign',
@@ -196,9 +196,8 @@ function hasProviderError(payload: unknown): boolean {
  *  new item type cannot leak `codex · item:<type>` into the transcript. The
  *  notification catalog above is keyed by METHOD and never matches these. */
 const CODEX_ITEM_CLASSIFICATIONS: Record<string, ProviderFrameClassification> = {
-  // The `thread/compacted` notification is already chrome; its item form is the
-  // same event and must not read as a mysterious opcode row.
-  contextCompaction: 'status-chrome',
+  // The journal coalesces this canonical completion with the legacy notification.
+  contextCompaction: 'timeline-substantive',
   // Subagent lifecycle renders as the spawn-group roster row, so its raw items
   // must not print a gray `codex · item:<type>` row beside it. The live
   // notification path intercepts them before this catalog is reached;

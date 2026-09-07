@@ -16968,6 +16968,11 @@
       "empty": "No users found"
     },
     "native-chat": {
+      "notices": {
+        "compaction": "Context compacted",
+        "details": "Details",
+        "plan": "Plan"
+      },
       "composer": {
         "imageUnsupported": "Image paste is not supported for this agent.",
         "send": "Send",

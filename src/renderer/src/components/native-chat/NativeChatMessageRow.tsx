@@ -11,6 +11,7 @@ import {
 import { isSubagentGroupBlock, type NativeChatMessage } from '../../../../shared/native-chat-types'
 import { splitNativeChatBlocks } from './native-chat-tool-fold'
 import { NativeChatToolRun } from './NativeChatToolRun'
+import { NativeChatNoticeRow } from './NativeChatNoticeRow'
 import { NativeChatMessageTimestamp } from './NativeChatMessageTimestamp'
 import { nativeChatProseToMarkdown } from './native-chat-prose'
 import {
@@ -92,6 +93,24 @@ export const MessageRow = memo(function MessageRow({
   // After all hooks, so hook order stays unconditional.
   if (markdown.length === 0 && !hasImages && tools.length === 0 && subagentGroups.length === 0) {
     return null
+  }
+
+  const notice = isSystem
+    ? message.blocks.find(
+        (block) =>
+          block.type === 'text' && (block.presentation !== undefined || block.tone !== undefined)
+      )
+    : undefined
+  if (notice?.type === 'text') {
+    return (
+      <div ref={rowRef}>
+        <NativeChatNoticeRow
+          block={notice}
+          onLinkClick={onLinkClick}
+          allowFileUriLinks={allowFileUriLinks}
+        />
+      </div>
+    )
   }
 
   if (providerFrame) {
