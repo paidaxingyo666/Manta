@@ -298,12 +298,13 @@ describe('Relay region preference', () => {
       ).resolves.toBeUndefined()
     }
 
-    const unstable = sampledProbe({ [US]: [15, 10, 20, 400] })
+    // Two-region catalog so the only reason for no hint is the flapping US path.
+    const unstable = sampledProbe({ [US]: [15, 10, 20, 400], [ASIA]: [300, 200, 205, 210] })
     await expect(
       new RelayRegionPreferenceResolver({
         directorUrl: DIRECTOR,
         userDataPath: path,
-        fetch: catalogFetch([{ region: 'us-central1', probeOrigins: [US] }]),
+        fetch: catalogFetch(BOTH_REGIONS),
         probe: unstable.probe,
         now: () => 1_000
       }).resolve()
@@ -313,12 +314,12 @@ describe('Relay region preference', () => {
   it('recovers from corrupt cache and cancels an old directors error response', async () => {
     const path = userDataPath()
     writeFileSync(cachePath(path), '{not-json')
-    const healthy = sampledProbe({ [ASIA]: [90, 30, 32, 34] })
+    const healthy = sampledProbe({ [US]: [300, 95, 100, 105], [ASIA]: [90, 30, 32, 34] })
     await expect(
       new RelayRegionPreferenceResolver({
         directorUrl: DIRECTOR,
         userDataPath: path,
-        fetch: catalogFetch([{ region: 'asia-east2', probeOrigins: [ASIA] }]),
+        fetch: catalogFetch(BOTH_REGIONS),
         probe: healthy.probe,
         now: () => 1_000
       }).resolve()
@@ -345,8 +346,27 @@ describe('Relay region preference', () => {
   it('rejects a cache expiry beyond the 24-hour bound', async () => {
     const path = userDataPath()
     writeCache(path, 'us-central1', 10 * 24 * 60 * 60_000)
-    const healthy = sampledProbe({ [ASIA]: [90, 30, 32, 34] })
+    const healthy = sampledProbe({ [US]: [300, 95, 100, 105], [ASIA]: [90, 30, 32, 34] })
 
+    // The far-future cache is discarded, so Asia wins outright rather than being
+    // held back by an incumbent's switch margin.
+    await expect(
+      new RelayRegionPreferenceResolver({
+        directorUrl: DIRECTOR,
+        userDataPath: path,
+        fetch: catalogFetch(BOTH_REGIONS),
+        probe: healthy.probe,
+        now: () => 1_000
+      }).resolve()
+    ).resolves.toBe('asia-east2')
+  })
+
+  it('withholds the hint when the catalog lists fewer regions than the fleet serves', async () => {
+    // Why: the director lists only regions with a serving cell, so a roll wave
+    // shortens the catalog. A lone healthy region measured against nothing must
+    // not become a day-long hint pinning the desktop there.
+    const path = userDataPath()
+    const healthy = sampledProbe({ [ASIA]: [90, 30, 32, 34] })
     await expect(
       new RelayRegionPreferenceResolver({
         directorUrl: DIRECTOR,
@@ -355,7 +375,11 @@ describe('Relay region preference', () => {
         probe: healthy.probe,
         now: () => 1_000
       }).resolve()
-    ).resolves.toBe('asia-east2')
+    ).resolves.toBeUndefined()
+    expect(JSON.parse(readFileSync(cachePath(path), 'utf8'))).toMatchObject({
+      region: null,
+      expiresAt: 1_000 + 60 * 60_000
+    })
   })
 
   it('uses a valid diagnostic override without network or cache mutation', async () => {
