@@ -70,7 +70,8 @@ jobs:
           git fetch --no-tags origin "${SOURCE_SHA}"
           test "$(git rev-parse FETCH_HEAD)" = "${SOURCE_SHA}"
           mkdir -p "${RUNNER_TEMP}/push-source"
-          git archive "${SOURCE_SHA}" cloud | tar -x -C "${RUNNER_TEMP}/push-source"
+          git -C "${GITHUB_WORKSPACE}" archive "${SOURCE_SHA}" cloud \
+            | tar -x -C "${RUNNER_TEMP}/push-source"
 
       - uses: google-github-actions/auth@v2
         with:
