@@ -67,12 +67,19 @@
       footer {
         border-top: 1px solid var(--line);
         padding: 1.5rem;
-        text-align: center;
         font-size: 0.85rem;
         color: var(--muted);
+        /* Two filings, side by side on one line and stacked once they no longer fit. */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem 1.25rem;
       }
       footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
       footer a:hover { color: var(--fg); }
+      /* Why inline-flex: keeps the badge welded to its number, so a wrap moves both. */
+      footer .mps { display: inline-flex; align-items: center; gap: 0.35rem; }
+      footer .mps img { display: block; }
     </style>
   </head>
   <body>
@@ -109,6 +116,14 @@
 
     <footer>
       <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026033914号</a>
+      <a
+        class="mps"
+        href="https://beian.mps.gov.cn/#/query/webSearch?code=13072302000040"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img src="beian-mps.png" alt="" width="18" height="20" />冀公网安备13072302000040号
+      </a>
     </footer>
   </body>
 </html>
