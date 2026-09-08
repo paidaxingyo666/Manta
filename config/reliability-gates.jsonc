@@ -11,6 +11,79 @@
   },
   "gates": [
     {
+      "id": "agent-session.history-forward-read-budget",
+      "title": "Journal catch-up reads only the next page and one lookahead row",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "agent-session-runtime",
+      "layer": "runtime-unit",
+      "surfaces": ["structured agent history", "structured agent subscriptions"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "ssh", "remote-runtime"],
+      "coverageNotes": "The real SQLite journal and production subscriber delivery are exercised with a folder workspace and remote host identity. The SQL and pagination code is shared across execution hosts; live SSH transport and Linux/Windows runtime execution are not exercised. PTY, daemon, WSL execution, and mobile rendering are unaffected.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/main/native-chat/agent-session-wire/structured-agent-session-subscribers.ts"
+      ],
+      "invariant": "Forward catch-up preserves every item, revision, tombstone, sequence cursor, page byte bound, and reset behavior while reading at most the requested row count plus one from SQLite for each page.",
+      "oracle": "Reconnect a real subscriber to a 2,000-row journal and receive all 2,000 item identities in order through the live cursor; count the actual SQL rows returned and parsed as 2,009 instead of 11,000. Assert exact final-page hasNewer, unlimited reader compatibility, gap detection at the next page, and parse-stop behavior at the lookahead row. Existing history tests cover revisions, tombstones, byte-bound shrinking, epochs, and schema resets.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/native-chat/agent-session-wire/agent-session-history-forward-read-budget.test.ts src/main/native-chat/agent-session-wire/agent-session-history-page.test.ts src/main/native-chat/agent-session-wire/structured-agent-session-subscribers.test.ts src/main/native-chat/agent-session-journal"
+      ],
+      "testFiles": [
+        "src/main/native-chat/agent-session-wire/agent-session-history-forward-read-budget.test.ts",
+        "src/main/native-chat/agent-session-wire/agent-session-history-page.test.ts",
+        "src/main/native-chat/agent-session-wire/structured-agent-session-subscribers.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/main/native-chat/agent-session-wire/agent-session-history-forward-read-budget.test.ts",
+          "assertions": [
+            "reconnects through every page with one lookahead row per page",
+            "keeps an exact final page final and preserves unlimited journal readers",
+            "reports a sequence gap when the next page reaches it",
+            "preserves parse-stop behavior at lookahead: %s"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/native-chat/agent-session-wire/agent-session-history-forward-read-budget.test.ts src/main/native-chat/agent-session-wire/agent-session-history-page.test.ts src/main/native-chat/agent-session-wire/structured-agent-session-subscribers.test.ts src/main/native-chat/agent-session-journal",
+          "result": "passed",
+          "durationSeconds": 9.94,
+          "summary": "214 tests passed across 19 files, including actual SQLite row and JSON parse counts through production subscriber catch-up."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 30,
+        "scope": "Real SQLite journal unit and production subscriber tests; no launched app."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial deterministic local validation; CI soak has not started."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "Before the change, SQL returned 2,000, 1,800, 1,600 through 200 rows across ten pages, failing the count assertion. The bounded query returns nine pages of 201 rows and a final 200, with exactly 2,009 row parses and identical item delivery."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "Catch-up materialization and JSON parsing are linear in unseen journal rows plus page lookaheads. A cached parameterized LIMIT adds no polling, cache invalidation, output loss, protocol change, or provider calls."
+      },
+      "knownGaps": [
+        "Linux and Windows execution and live SSH transport have not been exercised.",
+        "The existing full reduced-state snapshot and batch projection cost are outside this SQL read budget."
+      ],
+      "promotionCriteria": [
+        "Complete CI soak requirements while preserving the deterministic row budget and pagination oracles."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate fidelity or count failures without relaxing the row budget."
+    },
+    {
       "id": "terminal-performance.padded-fullscreen-redraw",
       "title": "Fullscreen redraw padding does not stall terminal delivery",
       "maturity": "experimental",
