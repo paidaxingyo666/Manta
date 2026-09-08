@@ -19,8 +19,8 @@ import { RelayAuthServer } from './auth/server.js'
 import { AuthSessionStore } from './auth/store.js'
 import { AccountStore } from './auth/accounts.js'
 import { RelayDirector } from './director/server.js'
-import { ArtifactServer } from './artifacts/server.js'
-import { ArtifactStore } from './artifacts/store.js'
+import type { ArtifactStore } from './artifacts/store.js'
+import { createArtifactSurface } from './artifacts/wiring.js'
 import { RelayCell } from './cell/server.js'
 import { CellStore } from './cell/store.js'
 import { createRelayTokenVerifier } from './shared/relay-token.js'
@@ -126,31 +126,13 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
 
   // Null unless switched on: hosting artifacts turns a byte pipe into a content
   // host, which is the operator's call and not a default.
-  const artifacts = config.artifacts.enabled
-    ? new ArtifactStore(
-        config.dataDir,
-        (error) => logger.error('artifacts.persist_failed', { error }),
-        {
-          maxPerAccount: config.artifacts.maxPerAccount,
-          maxTotalBytesPerAccount: config.artifacts.maxTotalBytesPerAccount
-        },
-        config.relayTokenSecret
-      )
-    : null
-  const artifactServer = artifacts
-    ? new ArtifactServer({
-        store: artifacts,
-        // The same sessions the auth server mints: an artifact host that
-        // verified its own credential would be a second identity system.
-        sessions: authSessions,
-        publicUrl: config.artifacts.publicUrl,
-        maxBytes: config.artifacts.maxBytes,
-        ttlMs: config.artifacts.ttlMs,
-        logger,
-        metrics,
-        limiter: limiters.http
-      })
-    : null
+  const artifactSurface = createArtifactSurface(config, {
+    sessions: authSessions,
+    logger,
+    metrics,
+    limiter: limiters.http
+  })
+  const artifacts = artifactSurface?.store ?? null
 
   const director = new RelayDirector({
     cellUrl: config.publicUrl,
@@ -246,7 +228,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
         }
         // Last in the chain: its public surface is a bare `/a/{slug}`, and
         // ahead of the others that prefix would shadow any route they add.
-        if (artifactServer && (await artifactServer.handle(request, response, clientIp))) {
+        if (artifactSurface && (await artifactSurface.server.handle(request, response, clientIp))) {
           return
         }
         json(response, 404, { error: 'not_found' })

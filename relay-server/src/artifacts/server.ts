@@ -18,7 +18,9 @@ import type { RateLimiter } from '../shared/rate-limit.js'
 import { json } from '../shared/http-json.js'
 import { rateLimitKey } from '../shared/client-ip.js'
 import { renderMarkdown } from './markdown.js'
-import { type ArtifactContentType, type ArtifactRecord, ArtifactStore } from './store.js'
+import type { ArtifactRecord, ArtifactStore } from './store.js'
+import { servePublishedPage, wrapDocument } from './published-page.js'
+import { parseWrite, readLargeJson, REQUEST_OVERHEAD, type WriteBody } from './request-body.js'
 
 export type ArtifactServerOptions = {
   store: ArtifactStore
@@ -30,76 +32,6 @@ export type ArtifactServerOptions = {
   logger: Logger
   metrics: Metrics
   limiter: RateLimiter
-}
-
-/** Leaves room for JSON escaping over the byte ceiling the desktop enforces. */
-const REQUEST_OVERHEAD = 1024 * 1024
-
-type WriteBody = {
-  content: string
-  contentType: ArtifactContentType
-  fileName: string
-  title?: string
-}
-
-function isContentType(value: unknown): value is ArtifactContentType {
-  return value === 'text/html' || value === 'text/markdown'
-}
-
-/**
- * Reads a body up to the artifact ceiling.
- *
- * Not shared/http-json's reader: that one caps at 16 KiB, which is right for a
- * credential exchange and three orders of magnitude below an artifact.
- */
-async function readLargeJson(request: IncomingMessage, limit: number): Promise<unknown | null> {
-  const chunks: Buffer[] = []
-  let size = 0
-  try {
-    for await (const chunk of request) {
-      size += (chunk as Buffer).byteLength
-      if (size > limit) {
-        request.destroy()
-        return null
-      }
-      chunks.push(chunk as Buffer)
-    }
-  } catch {
-    return null
-  }
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown
-  } catch {
-    return null
-  }
-}
-
-function parseWrite(body: unknown, maxBytes: number): WriteBody | { error: string } {
-  if (!body || typeof body !== 'object') {
-    return { error: 'invalid_body' }
-  }
-  const source = body as Record<string, unknown>
-  if (typeof source.content !== 'string' || !isContentType(source.contentType)) {
-    return { error: 'invalid_body' }
-  }
-  if (typeof source.fileName !== 'string' || source.fileName.length > 512) {
-    return { error: 'invalid_body' }
-  }
-  if (
-    source.title !== undefined &&
-    (typeof source.title !== 'string' || source.title.length > 512)
-  ) {
-    return { error: 'invalid_body' }
-  }
-  if (Buffer.byteLength(source.content, 'utf8') > maxBytes) {
-    return { error: 'content_too_large' }
-  }
-  return {
-    content: source.content,
-    contentType: source.contentType,
-    fileName: source.fileName,
-    ...(typeof source.title === 'string' ? { title: source.title } : {})
-  }
 }
 
 export class ArtifactServer {
@@ -160,7 +92,7 @@ export class ArtifactServer {
     const url = new URL(request.url ?? '/', 'http://artifacts.local')
     const path = url.pathname
     if (path.startsWith('/a/')) {
-      this.serve(path.slice('/a/'.length), response)
+      servePublishedPage(this.options.store, path.slice('/a/'.length), response)
       return true
     }
     if (path !== '/v1/artifacts' && !path.startsWith('/v1/artifacts/')) {
@@ -383,74 +315,4 @@ export class ArtifactServer {
     response.writeHead(204, { 'cache-control': 'no-store' })
     response.end()
   }
-
-  /**
-   * The public link.
-   *
-   * Unauthenticated on purpose — that is what sharing means — and every header
-   * here is about the fact that the bytes below were written by a stranger.
-   */
-  private serve(rawSlug: string, response: ServerResponse): void {
-    const slug = decodeURIComponent(rawSlug)
-    const record = this.options.store.find(slug, Date.now())
-    const body = record ? this.options.store.readBody(slug) : null
-    if (!record || body === null) {
-      response.writeHead(404, {
-        'content-type': 'text/plain; charset=utf-8',
-        'cache-control': 'no-store',
-        'x-content-type-options': 'nosniff'
-      })
-      response.end('Not found\n')
-      return
-    }
-    response.writeHead(200, {
-      'content-type': 'text/html; charset=utf-8',
-      'content-length': Buffer.byteLength(body),
-      // No caching: an artifact is edited in place and its link does not change,
-      // so a cached copy is how a correction fails to reach anyone.
-      'cache-control': 'no-store',
-      'x-content-type-options': 'nosniff',
-      // Not this origin's to be framed by. An artifact framed inside another
-      // page is a clickjacking surface for whatever that page overlays.
-      'x-frame-options': 'DENY',
-      // Cuts the two escapes that survive origin isolation: a form posting the
-      // viewer's input somewhere, and a <base> silently retargeting every link.
-      'content-security-policy': "frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-      'referrer-policy': 'no-referrer'
-    })
-    response.end(body)
-  }
-}
-
-/** Chrome for a rendered markdown page. HTML artifacts are never wrapped. */
-function wrapDocument(title: string, html: string): string {
-  const safeTitle = title
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${safeTitle}</title>
-<style>
-:root { color-scheme: light dark; }
-body { margin: 0 auto; padding: 2rem 1.25rem 4rem; max-width: 44rem; line-height: 1.7;
-  font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; }
-pre { overflow-x: auto; padding: 0.75rem 1rem; border-radius: 6px; background: rgba(127,127,127,0.12); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
-pre code { font-size: 0.88em; }
-blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid rgba(127,127,127,0.35); }
-img { max-width: 100%; }
-table { border-collapse: collapse; }
-hr { border: 0; border-top: 1px solid rgba(127,127,127,0.3); margin: 2rem 0; }
-</style>
-</head>
-<body>
-${html}
-</body>
-</html>
-`
 }
