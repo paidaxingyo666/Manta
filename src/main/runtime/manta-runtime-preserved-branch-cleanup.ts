@@ -136,8 +136,7 @@ export class MantaRuntimeWithPreservedBranchCleanup extends MantaRuntimeWithTerm
     new RuntimeLegacyWorkerTerminalRecoveryPersistence(
       () => this.store,
       () => this.getOrchestrationDb(),
-      (worktreeId) => this.tryGetWorkspaceSessionHostIdForWorktree(worktreeId),
-      (paneKey, blocked) => this.notifier?.setLegacyWorkerTerminalResumeFence?.(paneKey, blocked)
+      (worktreeId) => this.tryGetWorkspaceSessionHostIdForWorktree(worktreeId)
     )
 
   protected readonly legacyWorkerRecovery = new RuntimeLegacyWorkerTerminalRecoveryController({

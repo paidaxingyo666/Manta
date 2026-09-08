@@ -12,7 +12,7 @@ describe('a Task whose supervised worker is stopping', () => {
   afterEach(() => db.close())
 
   function localWorker() {
-    const task = db.createTask({ spec: 'local work' })
+    const task = db.createTask({ runId: 'run_legacy_local', spec: 'local work' })
     const { dispatch } = db.createStartingWorkerDispatch({
       taskId: task.id,
       startOptions: {},
@@ -59,7 +59,7 @@ describe('a Task whose supervised worker is stopping', () => {
     })
 
     it('control: still accepts dispatched for an active Dispatch with no supervised worker', () => {
-      const task = db.createTask({ spec: 'unsupervised work' })
+      const task = db.createTask({ runId: 'run_legacy_local', spec: 'unsupervised work' })
       createRootDispatch(db, task.id, 'term_worker')
 
       expect(db.updateTaskStatus(task.id, 'dispatched')?.status).toBe('dispatched')

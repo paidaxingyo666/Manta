@@ -23,7 +23,7 @@ import type { LegacyWorkerTerminalRecoveryResult } from './runtime-legacy-worker
 import { makePaneKey } from '../../shared/stable-pane-id'
 import { runtimeWorktreeIdsEqual } from './runtime-worktree-path-identity'
 
-export class MantaRuntimeWithFenceAutomationOwner extends MantaRuntimeWithPtyForegroundProcessReads {
+export class MantaRuntimeWithAutomationOperations extends MantaRuntimeWithPtyForegroundProcessReads {
   protected fenceAutomationOwner(
     id: string,
     expectedOwner: AutomationOwnerPrecondition | undefined,
@@ -165,10 +165,6 @@ export class MantaRuntimeWithFenceAutomationOwner extends MantaRuntimeWithPtyFor
     this._orchestrationDb = db
     this.ensureOrchestrationFederationRelay()
     this.scheduleRestoredMessageRepoints()
-  }
-
-  prepareLegacyWorkerTerminalRecovery(): LegacyWorkerTerminalRecoveryPlan {
-    return this.legacyWorkerRecovery.prepare()
   }
 
   protected async flushWorkspaceSessionOrThrowAsync(): Promise<void> {

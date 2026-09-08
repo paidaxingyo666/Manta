@@ -1,5 +1,5 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
-import { MantaRuntimeWithFenceAutomationOwner } from './manta-runtime-fence-automation-owner'
+import { MantaRuntimeWithAutomationOperations } from './manta-runtime-automation-operations'
 import {
   resolveTerminalSessionWorktreeId,
   runtimeWorktreeIdsEqual
@@ -26,7 +26,7 @@ import type {
   ArtifactWriteRequest
 } from '../../shared/artifacts'
 
-export class MantaRuntimeWithHasExactPersistedTerminalSurfaceIdentity extends MantaRuntimeWithFenceAutomationOwner {
+export class MantaRuntimeWithHasExactPersistedTerminalSurfaceIdentity extends MantaRuntimeWithAutomationOperations {
   protected hasExactPersistedTerminalSurfaceIdentity(expected: {
     worktreeId: string
     tabId: string
