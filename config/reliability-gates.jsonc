@@ -5998,7 +5998,7 @@
       "invariant": "After a TUI exits or is killed, reveal, reattach, snapshot replay, or renderer remount must not deliver terminal-owned mouse or alternate-screen protocol bytes to the surviving shell. Recovery is an ordered output barrier in the daemon session data path: an OSC 133;D completing while the alternate screen is still active pauses the stream at that exact byte boundary, a fresh execution-host process inspection proves shell ownership, and on proof a mode reset is injected as in-stream output so every consumer converges by parsing the same bytes and the queued post-boundary shell output (the prompt) lands on the normal buffer. Snapshots are pure reads. Any failure — refuted proof, timeout, queue overflow, session death, disposal — flushes the queue unmodified, preserving incumbent behavior; later command or mode bytes revoke proof. Clean alternate-screen exits prove ownership asynchronously without pausing.",
       "oracle": "Run one fixed child-TUI journey for normal exit and cleanup-free SIGKILL. Assert renderer and host normal-buffer/non-mouse state, host snapshot terminalOwner metadata, exact PTY writes with no post-exit mouse report, unrelated-pane survival, post-boundary prompt output preserved (normal exit), ordered proof invalidation, bounded settlement and bail-out flush, one inspection per unclean episode with zero scans for ordinary output, split-escape safety at every chunk boundary, and old/new client-host fallback parity.",
       "commands": [
-        "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/terminal-shell-lifecycle-scanner.test.ts src/main/daemon/terminal-shell-recovery-barrier.test.ts src/main/daemon/session-shell-recovery.test.ts src/main/daemon/session.test.ts src/main/daemon/terminal-host-concurrent-create.test.ts src/main/daemon/daemon-pty-adapter.test.ts src/main/daemon/daemon-restore-scrollback-depth.test.ts src/main/daemon/terminal-checkpoint-serializer.test.ts src/main/providers/agent-foreground-process.test.ts src/main/runtime/manta-runtime.test.ts src/main/runtime/mobile-subscribe-integration.test.ts src/main/runtime/rpc/terminal-multiplex-escape-tail.test.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-codex-queries.test.ts src/renderer/src/components/terminal-pane/pty-connection-reattach-mode-reset.test.ts src/renderer/src/components/terminal-pane/pty-connection-daemon-snapshot-replay.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-snapshot-escape-tail.test.ts --reporter=dot",
+        "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/terminal-shell-lifecycle-scanner.test.ts src/main/daemon/terminal-shell-recovery-barrier.test.ts src/main/daemon/session-shell-recovery.test.ts src/main/daemon/session.test.ts src/main/daemon/terminal-host-concurrent-create.test.ts src/main/daemon/daemon-pty-adapter.test.ts src/main/daemon/daemon-restore-scrollback-depth.test.ts src/main/daemon/terminal-checkpoint-serializer.test.ts src/main/providers/agent-foreground-process.test.ts src/main/runtime/manta-runtime.test.ts src/main/runtime/mobile-subscribe-integration.test.ts src/main/runtime/rpc/terminal-multiplex-escape-tail.test.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-codex-queries.test.ts src/renderer/src/components/terminal-pane/pty-connection-reattach-mode-reset.test.ts src/renderer/src/components/terminal-pane/pty-connection-daemon-snapshot-replay.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-snapshot-escape-tail.test.ts src/shared/terminal-partial-escape-tail.test.ts src/shared/terminal-partial-escape-tail.fuzz.test.ts --reporter=dot",
         "pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/cross-version-terminal-wire.unit.test.ts --reporter=dot",
         "pnpm exec electron-vite build --mode e2e",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-hidden-child-tui-kill-mode-reset.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
@@ -6020,6 +6020,8 @@
         "src/renderer/src/components/terminal-pane/pty-connection-reattach-mode-reset.test.ts",
         "src/renderer/src/components/terminal-pane/pty-connection-daemon-snapshot-replay.test.ts",
         "src/renderer/src/components/terminal-pane/remote-runtime-pty-snapshot-escape-tail.test.ts",
+        "src/shared/terminal-partial-escape-tail.test.ts",
+        "src/shared/terminal-partial-escape-tail.fuzz.test.ts",
         "tests/e2e/cross-version-wire/cross-version-terminal-wire.unit.test.ts",
         "tests/e2e/terminal-hidden-child-tui-kill-mode-reset.spec.ts"
       ],
@@ -6039,6 +6041,13 @@
           "assertions": [
             "post-kill shell output survives into the normalized snapshot instead of the discarded alt buffer",
             "a snapshot taken during a split escape keeps the pending tail intact and stale proof is revoked by the completing bytes"
+          ]
+        },
+        {
+          "file": "src/shared/terminal-partial-escape-tail.fuzz.test.ts",
+          "assertions": [
+            "the pending tail this gate threads over the wire folds identically at every code-unit split of the combined stream, including boundaries landing inside oscEsc/stringEsc",
+            "the split sweep runs over an alphabet carrying CAN, SUB, doubled ESC inside OSC/DCS/SOS/PM/APC, BEL, C1 ST, NUL, DEL, intermediates, CJK, astral, and lone surrogates"
           ]
         },
         {
