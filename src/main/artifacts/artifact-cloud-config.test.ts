@@ -109,14 +109,22 @@ describe('resolveArtifactCloudApiUrl with a configured artifact host', () => {
     // started from the Dock inherits none, which is why the field outranks it.
     setMantaCloudEndpointOverrideSource(() => ({ artifactsBaseUrl: 'https://share.example.com' }))
     expect(
-      resolveArtifactCloudApiUrl(undefined, { MANTA_ARTIFACTS_API_URL: 'https://env.example' }, true)
+      resolveArtifactCloudApiUrl(
+        undefined,
+        { MANTA_ARTIFACTS_API_URL: 'https://env.example' },
+        true
+      )
     ).toBe('https://share.example.com')
   })
 
   it('falls back to the variable, then the built-in host, as the field empties', () => {
     setMantaCloudEndpointOverrideSource(() => ({}))
     expect(
-      resolveArtifactCloudApiUrl(undefined, { MANTA_ARTIFACTS_API_URL: 'https://env.example' }, true)
+      resolveArtifactCloudApiUrl(
+        undefined,
+        { MANTA_ARTIFACTS_API_URL: 'https://env.example' },
+        true
+      )
     ).toBe('https://env.example')
     expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.manta.sh.cn')
   })
@@ -139,5 +147,21 @@ describe('resolveArtifactCloudApiUrl with a configured artifact host', () => {
       throw new Error('settings unreadable')
     })
     expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.manta.sh.cn')
+  })
+})
+
+describe('where the artifact API is actually sent', () => {
+  afterEach(() => {
+    resetMantaCloudEndpointOverrideSourceForTests()
+  })
+
+  it('addresses the write API to the artifact host, not the relay', () => {
+    // Deployment-shaped, and the reason this is a test rather than a comment:
+    // a Caddy site that proxied only /a/* on the artifact origin 404'd every
+    // publish, because artifactRequest builds `${apiUrl}/v1/artifacts` from
+    // exactly this value. Anyone routing that origin has to serve both.
+    setMantaCloudEndpointOverrideSource(() => ({ artifactsBaseUrl: 'https://share.example.com' }))
+    const apiUrl = resolveArtifactCloudApiUrl(undefined, {}, true)
+    expect(`${apiUrl}/v1/artifacts`).toBe('https://share.example.com/v1/artifacts')
   })
 })

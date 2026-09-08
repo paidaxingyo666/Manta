@@ -338,9 +338,15 @@ viewer's browser. **The separate origin is the isolation.** Nothing else in this
 section substitutes for it: not the CSP, not the sandbox headers, not the
 markdown escaping.
 
-The write API stays on the relay's name. Only `GET /a/{slug}` is served on the
-artifact origin, so an access token never has a reason to be sent to the origin
-that serves the pages.
+Both artifact surfaces are served on the artifact origin: `GET /a/{slug}` and
+`/v1/artifacts`. The desktop builds every artifact URL from the host it is
+configured with, so the write API arrives on that name rather than the relay's.
+
+A published page is same-origin with that write API and can call it, but it has
+no credential to call it *with* — the bearer lives in the desktop app, nothing
+is stored in the browser, and an unauthenticated call gets a 401. What the
+separate origin prevents is the page reaching the relay's auth and cell
+endpoints as the signed-in desktop, and that is unaffected.
 
 ### What it does with what you publish
 
