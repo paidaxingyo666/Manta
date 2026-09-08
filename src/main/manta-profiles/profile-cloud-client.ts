@@ -6,7 +6,7 @@ import type {
 import type { MantaCloudAuthConfig } from './profile-cloud-auth-config'
 import type { MantaCloudSession } from './profile-cloud-session-store'
 import type { MantaCloudSessionExchangeResponse } from './profile-cloud-session-exchange'
-import { cancelUnreadResponseBody } from '../lib/unread-response-body'
+import { readCloudErrorCode } from './profile-cloud-error-body'
 
 type ExchangeCodeArgs = {
   code: string
@@ -195,8 +195,16 @@ async function postJson<T>(url: string, body: unknown, options?: PostJsonOptions
     signal: AbortSignal.timeout(options?.timeoutMs ?? CLOUD_REQUEST_TIMEOUT_MS)
   })
   if (!response.ok) {
-    await cancelUnreadResponseBody(response)
-    throw new MantaCloudRequestError(response.status)
+    // Why the body is read on the failure path: the relay names what went wrong
+    // here, and callers map some of those names to a sentence a person can act
+    // on — 'accounts_required' becomes "sign in from Settings → Manta Account".
+    // Discarding it made every one of those mappings unreachable, so the person
+    // who most needed the instruction got `manta_cloud_request_failed_409`.
+    //
+    // Bounded and best-effort: a failure body is small, and an unparseable one
+    // must still raise the status rather than the parse error.
+    const code = await readCloudErrorCode(response)
+    throw new MantaCloudRequestError(response.status, code)
   }
   return (await response.json()) as T
 }

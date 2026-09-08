@@ -354,3 +354,56 @@ describe('direct grant', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
+
+describe('failure bodies name what went wrong', () => {
+  it('carries the relay error code out of a 409 so callers can explain it', async () => {
+    // A per-user relay refuses the direct grant with 'accounts_required', and
+    // profile-cloud-service turns that into "sign in from Settings → Manta
+    // Account". Discarding the body made that mapping unreachable and left the
+    // person with `manta_cloud_request_failed_409`.
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'accounts_required' }), {
+        status: 409,
+        headers: { 'content-type': 'application/json' }
+      })
+    )
+    await expect(
+      grantMantaCloudSessionDirectly(
+        { ...config, enrollmentSecret: 'open-sesame' },
+        'local-default'
+      )
+    ).rejects.toMatchObject({ statusCode: 409, errorCode: 'accounts_required' })
+  })
+
+  it('reads `code` as well as `error`, whichever surface answered', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ code: 'artifact_not_found' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' }
+      })
+    )
+    await expect(
+      grantMantaCloudSessionDirectly(
+        { ...config, enrollmentSecret: 'open-sesame' },
+        'local-default'
+      )
+    ).rejects.toMatchObject({ statusCode: 404, errorCode: 'artifact_not_found' })
+  })
+
+  it('still raises the status when the body is not JSON', async () => {
+    // A proxy's HTML error page is a normal failure shape and must not become
+    // a parse error in place of the status the caller needs.
+    fetchMock.mockResolvedValueOnce(
+      new Response('<html>502 Bad Gateway</html>', {
+        status: 502,
+        headers: { 'content-type': 'text/html' }
+      })
+    )
+    await expect(
+      grantMantaCloudSessionDirectly(
+        { ...config, enrollmentSecret: 'open-sesame' },
+        'local-default'
+      )
+    ).rejects.toMatchObject({ statusCode: 502, errorCode: undefined })
+  })
+})
