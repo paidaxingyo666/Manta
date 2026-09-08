@@ -459,7 +459,7 @@ test.describe('Create Workspace', () => {
       // portaled outside the dialog element, so locate it page-wide.
       const suggestion = mantaPage.getByRole('option', { name: linkedWorkspacePattern })
       await expect(suggestion).toBeVisible()
-      await suggestion.click()
+      await mantaPage.keyboard.press('Enter')
 
       const createButton = dialog.getByRole('button', { name: /Create (Workspace|Worktree)/i })
       await expect(createButton).toBeEnabled()

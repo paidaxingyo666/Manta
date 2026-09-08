@@ -49,7 +49,9 @@ function SidebarCreateMenu({
   // Why: the tour highlights this trigger, so the handoff has to fire from the
   // menu item rather than the button that now only opens the menu.
   const handleCreateWorkspace = useCallback(() => {
-    openWorkspaceCreationComposerWithTourHandoff()
+    // Why: opening after Radix tears down the menu prevents its focus restoration
+    // from treating the new dialog as an outside interaction.
+    window.setTimeout(openWorkspaceCreationComposerWithTourHandoff, 0)
   }, [])
 
   return (
