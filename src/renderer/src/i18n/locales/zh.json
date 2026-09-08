@@ -10331,6 +10331,24 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "MantaCloudEndpointsSection": {
+          "title": "自建服务器",
+          "description": "把登录和手机中继指向你自己的服务器，而不是官方的。",
+          "configure": "配置端点",
+          "apiLabel": "登录服务器",
+          "relayLabel": "中继地址",
+          "artifactsLabel": "Artifact 主机",
+          "clientIdLabel": "OAuth 客户端 ID",
+          "enrollmentLabel": "注册密钥",
+          "enrollmentSaved": "已保存 — 输入即可替换",
+          "enrollmentPlaceholder": "仅当你的中继要求时填写",
+          "pairRequired": "登录服务器和中继地址要一起填，或者都留空。",
+          "artifactsOriginShared": "Artifact 主机必须与中继地址使用不同的源。",
+          "warning": "两个地址都必须使用 https，且证书须为你的手机所信任。中继只转发端到端加密的数据，但它的运营者能看到谁在何时连接。应用后会退出登录并重启 Manta。",
+          "applying": "正在重启…",
+          "apply": "应用并重启",
+          "applyFailed": "无法应用这些端点。请检查填写的值后重试。"
         }
       },
       "right": {
@@ -14539,6 +14557,9 @@
           "deleteTitle": "删除工件？",
           "deleteDescription": "“{{name}}” 将无法再通过其公共链接访问。",
           "delete": "删除"
+        },
+        "ArtifactsSelfHostNotice": {
+          "body": "此版本不自带 artifact 服务。发布会上传到「自建服务器 → 配置端点」中设置的 Artifact 主机；留空则链接指向一台无人提供服务的主机，上传会失败。自建中继可以提供该服务（见其 README），也可以就不用分享功能。"
         }
       },
       "ComposerParentWorktreePicker": {
