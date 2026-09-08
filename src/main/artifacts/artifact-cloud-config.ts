@@ -1,4 +1,5 @@
 import { app } from 'electron'
+import { getMantaCloudEndpointOverrides } from '../manta-profiles/profile-cloud-auth-config'
 
 const PRODUCTION_ARTIFACTS_API_URL = 'https://share.manta.sh.cn'
 
@@ -28,6 +29,22 @@ function validateArtifactOrigin(candidate: string, packaged: boolean): string {
 }
 
 /**
+ * The operator's artifact host, from settings.
+ *
+ * Swallows a failure on purpose: the reader runs against live settings, and a
+ * publish must not become unusable because the stored value is unreadable —
+ * the caller falls through to the variable and then the built-in default, and
+ * validateArtifactOrigin still has the last word over whatever it lands on.
+ */
+function settingsArtifactsOrigin(): string {
+  try {
+    return getMantaCloudEndpointOverrides()?.artifactsBaseUrl?.trim() ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/**
  * The one origin a Manta access token is allowed to reach.
  *
  * Upstream hardcoded its own domain here. This fork runs no artifact service,
@@ -39,10 +56,16 @@ function validateArtifactOrigin(candidate: string, packaged: boolean): string {
  * a prompt-injected session, a script in the repo — could send that token to a
  * host of its choosing without needing publish permission at all.
  *
- * So the allow-list stays; the operator just owns it now. MANTA_ARTIFACTS_API_URL
+ * So the allow-list stays; the operator just owns it now. The settings field
  * names the host, and a per-call override has to agree with it. Development
  * builds keep the free-form override, gated exactly like the authToken override
  * next to it.
+ *
+ * Why the setting outranks MANTA_ARTIFACTS_API_URL: the variable is only
+ * reachable by a build launched from a shell, and a packaged app started from
+ * the Dock or Explorer inherits no environment at all — so for the people this
+ * feature exists for it was never settable. The variable stays as the way to
+ * pin a host for a dev build or a headless server, which is where it works.
  */
 export function resolveArtifactCloudApiUrl(
   override?: string,
@@ -50,7 +73,7 @@ export function resolveArtifactCloudApiUrl(
   packaged = isPackaged()
 ): string {
   const configured = validateArtifactOrigin(
-    env.MANTA_ARTIFACTS_API_URL?.trim() || PRODUCTION_ARTIFACTS_API_URL,
+    settingsArtifactsOrigin() || env.MANTA_ARTIFACTS_API_URL?.trim() || PRODUCTION_ARTIFACTS_API_URL,
     packaged
   )
   const candidate = override?.trim()

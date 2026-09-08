@@ -33,6 +33,7 @@ export function hasConfiguredMantaCloudEndpoints(settings: GlobalSettings): bool
   return Boolean(
     endpoints?.apiBaseUrl ||
     endpoints?.relayDirectorUrl ||
+    endpoints?.artifactsBaseUrl ||
     endpoints?.clientId ||
     endpoints?.enrollmentSecret
   )
@@ -41,6 +42,7 @@ export function hasConfiguredMantaCloudEndpoints(settings: GlobalSettings): bool
 export type MantaCloudEndpointsDraft = {
   apiBaseUrl: string
   relayDirectorUrl: string
+  artifactsBaseUrl: string
   clientId: string
   enrollmentSecret: string
 }
@@ -51,6 +53,7 @@ export function createMantaCloudEndpointsDraft(
   return {
     apiBaseUrl: overrides?.apiBaseUrl ?? '',
     relayDirectorUrl: overrides?.relayDirectorUrl ?? '',
+    artifactsBaseUrl: overrides?.artifactsBaseUrl ?? '',
     clientId: overrides?.clientId ?? '',
     // Deliberately not prefilled: a stored secret would then sit in the DOM as
     // an input value on every settings render. Empty means "leave it alone".
@@ -82,6 +85,24 @@ export function validateMantaCloudEndpointsDraft(
   if (!relay.ok) {
     return { ok: false, message: relay.message }
   }
+  const artifacts = normalizeMantaCloudOrigin(draft.artifactsBaseUrl)
+  if (!artifacts.ok) {
+    return { ok: false, message: artifacts.message }
+  }
+  // Why refused rather than merely discouraged: a shared artifact is a page
+  // someone else wrote, and it runs on whatever origin serves it. Same origin
+  // as the relay and that page can call the relay's endpoints as the signed-in
+  // desktop. The relay refuses this too; catching it here means the person
+  // finds out while typing rather than from a publish that fails later.
+  if (artifacts.value && relay.value && artifacts.value === relay.value) {
+    return {
+      ok: false,
+      message: translate(
+        'auto.components.settings.MantaCloudEndpointsSection.artifactsOriginShared',
+        'The artifact host must be a different origin from the relay address.'
+      )
+    }
+  }
   const enrollmentSecret = normalizeMantaCloudEnrollmentSecret(draft.enrollmentSecret)
   if (!enrollmentSecret.ok) {
     return { ok: false, message: enrollmentSecret.message }
@@ -101,7 +122,13 @@ export function validateMantaCloudEndpointsDraft(
   }
   // Everything blank means "go back to the official endpoints" — including the
   // secret, which is why a saved one is not carried forward here.
-  if (!api.value && !relay.value && !clientId.value && !enrollmentSecret.value) {
+  if (
+    !api.value &&
+    !relay.value &&
+    !artifacts.value &&
+    !clientId.value &&
+    !enrollmentSecret.value
+  ) {
     return { ok: true, value: undefined }
   }
   const secret = enrollmentSecret.value || (savedSecret ?? '')
@@ -111,6 +138,9 @@ export function validateMantaCloudEndpointsDraft(
   }
   if (relay.value) {
     next.relayDirectorUrl = relay.value
+  }
+  if (artifacts.value) {
+    next.artifactsBaseUrl = artifacts.value
   }
   if (clientId.value) {
     next.clientId = clientId.value
@@ -240,6 +270,15 @@ export function MantaCloudEndpointsSection({
                 'Relay address'
               ),
               'https://relay.example.com'
+            )}
+            {field(
+              'artifactsBaseUrl',
+              'settings-manta-cloud-artifacts',
+              translate(
+                'auto.components.settings.MantaCloudEndpointsSection.artifactsLabel',
+                'Artifact host'
+              ),
+              'https://share.example.com'
             )}
             {field(
               'clientId',

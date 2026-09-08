@@ -17,6 +17,18 @@ export function resetMantaCloudEndpointOverrideSourceForTests(): void {
   readEndpointOverrides = () => null
 }
 
+/**
+ * The stored overrides, for the one consumer that is not an auth endpoint.
+ *
+ * Artifact publishing needs the operator's host and cannot read the store
+ * itself (store.ts already depends on manta-profiles), so it borrows the reader
+ * installed here rather than growing a second injection point that could drift
+ * out of step with this one.
+ */
+export function getMantaCloudEndpointOverrides(): MantaCloudEndpointOverrides | null {
+  return readEndpointOverrides()
+}
+
 export type MantaCloudAuthConfig = {
   apiBaseUrl: string
   authorizeEndpoint: string

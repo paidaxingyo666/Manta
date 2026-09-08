@@ -33,8 +33,19 @@ logger.info('relay.listening', {
   trustedProxies: config.trustedProxies || '(none)',
   metrics: config.metricsToken ? 'enabled' : 'disabled',
   // Deploy-time choice with no other visible signal until something 404s.
-  accounts: config.accountsMode
+  accounts: config.accountsMode,
+  artifacts: config.artifacts.enabled ? config.artifacts.publicUrl : 'disabled'
 })
+
+// Links are the whole point of the feature, and without a data directory they
+// live in memory: every restart 404s every link already handed out.
+if (config.artifacts.enabled && !config.dataDir) {
+  logger.warn('artifacts.no_data_dir', {
+    detail:
+      'artifact hosting is on but MANTA_RELAY_DATA_DIR is unset; published pages are held ' +
+      'in memory and every link breaks on restart. Set a data directory.'
+  })
+}
 
 // Misconfigurations that only show up as a silent pairing failure much later
 // are worth a loud line at startup.

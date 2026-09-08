@@ -82,6 +82,20 @@ function registrationMode(hasEnrollmentSecret: boolean): RegistrationMode {
   return 'disabled'
 }
 
+/**
+ * Artifact hosting: off unless an operator turns it on.
+ *
+ * Off by default because enabling it changes what this deployment is. The relay
+ * is a byte pipe that stores credentials and nothing else; artifacts make it a
+ * content host that serves pages, written by whoever publishes them, to anyone
+ * with the link. That is a decision about the operator's disk, their bandwidth,
+ * and their jurisdiction — not something a version bump should make for them.
+ */
+function artifactsEnabled(): boolean {
+  const raw = process.env.MANTA_RELAY_ARTIFACTS?.trim().toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes' || raw === 'on'
+}
+
 export type RelayConfig = ReturnType<typeof loadConfig>
 
 /**
@@ -195,6 +209,56 @@ function assertRanges(config: {
   }
 }
 
+/**
+ * Refuses to serve artifacts from the relay's own origin.
+ *
+ * A published artifact is a page its publisher wrote, and it runs with the
+ * privileges of the origin that serves it. Share the relay's origin and that
+ * page can call `/v1/desktop/auth/*` and the cell endpoints as the signed-in
+ * desktop — the isolation *is* the separate origin, so there is no configuration
+ * where reusing one is merely untidy.
+ *
+ * Fatal at startup rather than a warning: the failure it prevents is silent,
+ * and by the time anyone could notice, links have been shared.
+ */
+export function assertArtifactOrigins(config: {
+  artifacts: { enabled: boolean; publicUrl: string }
+  publicUrl: string
+}): void {
+  if (!config.artifacts.enabled) {
+    return
+  }
+  const problems: string[] = []
+  if (!config.artifacts.publicUrl) {
+    problems.push(
+      'MANTA_RELAY_ARTIFACTS_PUBLIC_URL is required when MANTA_RELAY_ARTIFACTS is on; ' +
+        'it is the origin published links point at'
+    )
+  } else {
+    let origin: URL | null = null
+    try {
+      origin = new URL(config.artifacts.publicUrl)
+    } catch {
+      problems.push('MANTA_RELAY_ARTIFACTS_PUBLIC_URL must be a valid URL')
+    }
+    if (origin && (origin.pathname !== '/' || origin.search || origin.hash)) {
+      problems.push(
+        'MANTA_RELAY_ARTIFACTS_PUBLIC_URL must be a bare origin, without a path or query'
+      )
+    }
+    if (origin && origin.origin === new URL(config.publicUrl).origin) {
+      problems.push(
+        'MANTA_RELAY_ARTIFACTS_PUBLIC_URL must not be the relay origin: a published ' +
+          'artifact runs on the origin that serves it and would be able to call the ' +
+          "relay's endpoints as the signed-in desktop"
+      )
+    }
+  }
+  if (problems.length > 0) {
+    throw new Error(`invalid relay configuration:\n  - ${problems.join('\n  - ')}`)
+  }
+}
+
 /** Parses the proxy list here so a typo fails at startup, not on first request. */
 function assertTrustedProxies(spec: string): void {
   try {
@@ -291,9 +355,28 @@ export function loadConfig() {
       controlPerSecond: number('MANTA_RELAY_CONTROL_RATE', 5)
     },
     /** How long connected peers get to migrate before the process exits. */
-    shutdownGraceMs: number('MANTA_RELAY_SHUTDOWN_GRACE_MS', 5_000)
+    shutdownGraceMs: number('MANTA_RELAY_SHUTDOWN_GRACE_MS', 5_000),
+    artifacts: {
+      enabled: artifactsEnabled(),
+      /**
+       * The origin published links point at, and the only origin that serves
+       * them. Must not be the relay's — see assertArtifactOrigins.
+       */
+      publicUrl: (process.env.MANTA_RELAY_ARTIFACTS_PUBLIC_URL?.trim() || '').replace(/\/$/, ''),
+      /** Matches the desktop's own per-artifact ceiling. */
+      maxBytes: number('MANTA_RELAY_ARTIFACTS_MAX_BYTES', 10 * 1024 * 1024),
+      // A link people are given has to outlive the conversation it was shared
+      // in, and the operator is the one paying for the storage until it does.
+      ttlMs: number('MANTA_RELAY_ARTIFACTS_TTL_MS', 30 * 24 * 60 * 60_000),
+      maxPerAccount: number('MANTA_RELAY_ARTIFACTS_MAX_PER_ACCOUNT', 100),
+      maxTotalBytesPerAccount: number(
+        'MANTA_RELAY_ARTIFACTS_MAX_TOTAL_BYTES',
+        256 * 1024 * 1024
+      )
+    }
   }
   assertRanges({ ...config, logLevel })
   assertTrustedProxies(config.trustedProxies)
+  assertArtifactOrigins(config)
   return config
 }

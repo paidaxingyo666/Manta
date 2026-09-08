@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import {
+  resetMantaCloudEndpointOverrideSourceForTests,
+  setMantaCloudEndpointOverrideSource
+} from '../manta-profiles/profile-cloud-auth-config'
 import {
   allowsArtifactCloudAuthOverride,
   resolveArtifactCloudApiUrl
@@ -92,5 +96,48 @@ describe('allowsArtifactCloudAuthOverride', () => {
     expect(allowsArtifactCloudAuthOverride({ NODE_ENV: 'production' }, false)).toBe(false)
     expect(allowsArtifactCloudAuthOverride(DEV, true)).toBe(false)
     expect(allowsArtifactCloudAuthOverride(DEV, false)).toBe(true)
+  })
+})
+
+describe('resolveArtifactCloudApiUrl with a configured artifact host', () => {
+  afterEach(() => {
+    resetMantaCloudEndpointOverrideSourceForTests()
+  })
+
+  it('prefers the settings field over the environment variable', () => {
+    // The variable only reaches a build launched from a shell; a packaged app
+    // started from the Dock inherits none, which is why the field outranks it.
+    setMantaCloudEndpointOverrideSource(() => ({ artifactsBaseUrl: 'https://share.example.com' }))
+    expect(
+      resolveArtifactCloudApiUrl(undefined, { MANTA_ARTIFACTS_API_URL: 'https://env.example' }, true)
+    ).toBe('https://share.example.com')
+  })
+
+  it('falls back to the variable, then the built-in host, as the field empties', () => {
+    setMantaCloudEndpointOverrideSource(() => ({}))
+    expect(
+      resolveArtifactCloudApiUrl(undefined, { MANTA_ARTIFACTS_API_URL: 'https://env.example' }, true)
+    ).toBe('https://env.example')
+    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.manta.sh.cn')
+  })
+
+  it('makes the configured host the allow-list a per-call override must match', () => {
+    // The point of the allow-list: apiUrl is a per-call parameter reachable from
+    // anything that can run one command, while the bearer comes from the stored
+    // session. A field-configured host must bind it just as the variable does.
+    setMantaCloudEndpointOverrideSource(() => ({ artifactsBaseUrl: 'https://share.example.com' }))
+    expect(resolveArtifactCloudApiUrl('https://share.example.com', {}, true)).toBe(
+      'https://share.example.com'
+    )
+    expect(() => resolveArtifactCloudApiUrl('https://evil.example', {}, true)).toThrow(
+      /only in development/
+    )
+  })
+
+  it('survives a reader that throws rather than making publishing unusable', () => {
+    setMantaCloudEndpointOverrideSource(() => {
+      throw new Error('settings unreadable')
+    })
+    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.manta.sh.cn')
   })
 })

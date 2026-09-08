@@ -6,9 +6,10 @@ import { translate } from '@/i18n/i18n'
  * user hits by default is a network error against a domain nobody serves, with
  * nothing on screen to explain why.
  *
- * Deliberately stated rather than derived: the API origin is chosen in the main
- * process from an env var with no IPC to the renderer, and the sentence below is
- * true whether or not that var is set.
+ * Deliberately stated rather than derived: the origin is resolved in the main
+ * process, and the sentence below is true whether or not it has been set. It
+ * names where to set it, because the answer used to be an environment variable
+ * a packaged app never sees.
  */
 export function ArtifactsSelfHostNotice({
   className = ''
@@ -21,7 +22,7 @@ export function ArtifactsSelfHostNotice({
     >
       {translate(
         'auto.components.artifacts.ArtifactsSelfHostNotice.body',
-        'This self-hosted build ships no artifact service. Publishing uploads to whatever MANTA_ARTIFACTS_API_URL points at; leave it unset and links are created against a host this fork does not run, so the upload fails. Run your own and set the variable, or keep sharing off.'
+        'This build ships no artifact service of its own. Publishing goes to the artifact host set under Manta Cloud → Configure endpoints; leave it empty and links are created against a host nobody runs, so the upload fails. A self-hosted relay can serve one — see its README — or keep sharing off.'
       )}
     </div>
   )

@@ -67,6 +67,7 @@ describe('MantaCloudEndpointsSection', () => {
     const draft = {
       apiBaseUrl: 'https://relay.example.com',
       relayDirectorUrl: 'https://relay.example.com',
+      artifactsBaseUrl: '',
       clientId: 'manta-desktop',
       enrollmentSecret: ''
     }
@@ -81,10 +82,47 @@ describe('MantaCloudEndpointsSection', () => {
 
     // Clearing every field is still a real "use the official endpoints" action.
     const cleared = validateMantaCloudEndpointsDraft(
-      { apiBaseUrl: '', relayDirectorUrl: '', clientId: '', enrollmentSecret: '' },
+      { apiBaseUrl: '', relayDirectorUrl: '', artifactsBaseUrl: '', clientId: '', enrollmentSecret: '' },
       'already-stored'
     )
     expect(cleared.ok && cleared.value).toBeUndefined()
+  })
+
+  it('refuses an artifact host that shares the relay origin', () => {
+    // A shared artifact is a page someone else wrote and it runs on whatever
+    // origin serves it, so the same origin as the relay lets that page call the
+    // relay as the signed-in desktop. Refused here as well as on the relay so
+    // the person finds out while typing.
+    const clash = validateMantaCloudEndpointsDraft({
+      apiBaseUrl: 'https://relay.example.com',
+      relayDirectorUrl: 'https://relay.example.com',
+      artifactsBaseUrl: 'https://relay.example.com',
+      clientId: '',
+      enrollmentSecret: ''
+    })
+    expect(clash.ok).toBe(false)
+
+    const separate = validateMantaCloudEndpointsDraft({
+      apiBaseUrl: 'https://relay.example.com',
+      relayDirectorUrl: 'https://relay.example.com',
+      artifactsBaseUrl: 'https://share.example.com',
+      clientId: '',
+      enrollmentSecret: ''
+    })
+    expect(separate.ok && separate.value?.artifactsBaseUrl).toBe('https://share.example.com')
+  })
+
+  it('lets an artifact host stand alone, without a self-hosted relay', () => {
+    // Pointing at someone else's artifact host is independent of where sign-in
+    // and the relay live, so it must not trip the api/relay pairing rule.
+    const alone = validateMantaCloudEndpointsDraft({
+      apiBaseUrl: '',
+      relayDirectorUrl: '',
+      artifactsBaseUrl: 'https://share.example.com',
+      clientId: '',
+      enrollmentSecret: ''
+    })
+    expect(alone.ok && alone.value?.artifactsBaseUrl).toBe('https://share.example.com')
   })
 
   it('reveals the section when any endpoint is already configured', () => {
