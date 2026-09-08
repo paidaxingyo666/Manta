@@ -114,13 +114,14 @@ describe('countActivityUnread source overlap', () => {
 })
 
 describe('countActivityUnread working turns', () => {
-  it('counts fresh working and monitoring, but not historical or retained working', () => {
+  it('counts fresh working, but not monitoring, historical, or retained working', () => {
     const entry = makeEntry({
       state: 'working',
       stateHistory: [{ state: 'working', prompt: 'old', startedAt: 1_000 }]
     })
     expect(countActivityUnread(makeSource(entry), 2_000)).toBe(1)
-    expect(countActivityUnread(makeSource({ ...entry, workingMode: 'monitoring' }), 2_000)).toBe(1)
+    // Monitoring emits no unread event in the list (4b2e3dded0), so the badge must not count it.
+    expect(countActivityUnread(makeSource({ ...entry, workingMode: 'monitoring' }), 2_000)).toBe(0)
     expect(
       countActivityUnread(
         {

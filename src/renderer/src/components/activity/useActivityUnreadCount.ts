@@ -39,9 +39,11 @@ export function countActivityUnread(source: ActivityUnreadCountSource, now = Dat
       }
     }
     // Why: a session-boundary done is an idle connect (STA-3386), not an event to read.
+    // Why 'working' only: a monitoring turn surfaces through the live snapshot, never as an
+    // unread event, so counting it here would light the badge with no unread row to clear.
     if (
       (isHistoricalActivityState(entry.state) ||
-        (live && freshActivityLiveAgentState(entry, now) !== null)) &&
+        (live && freshActivityLiveAgentState(entry, now) === 'working')) &&
       entry.sessionBoundary !== true &&
       mutedAt < entry.stateStartedAt
     ) {
