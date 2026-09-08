@@ -665,6 +665,19 @@
         "manta-per-workspace-env": 6,
         "orchestration": 30
       }
+    },
+    {
+      "appVersion": "1.4.197-rc.1",
+      "skills": {
+        "computer-use": 10,
+        "linear-tickets": 11,
+        "manta-cli": 39,
+        "manta-emulator": 8,
+        "manta-emulator-android": 6,
+        "manta-linear": 9,
+        "manta-per-workspace-env": 6,
+        "orchestration": 31
+      }
     }
   ]
 }
