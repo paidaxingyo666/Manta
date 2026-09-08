@@ -190,13 +190,13 @@ export function NativeChatMessageList({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="scrollbar-sleek h-full overflow-y-auto px-3 pt-10 pb-4 sm:px-4"
+        className="scrollbar-sleek h-full overflow-y-auto [scrollbar-gutter:stable_both-edges] px-3 pt-10 pb-4 sm:px-4"
       >
         <div
           ref={contentRef}
-          // Why: same max width as the composer column; horizontal inset comes
-          // from the scroll container so content aligns with the composer field.
-          className="mx-auto flex w-full max-w-4xl flex-col gap-5"
+          // Why: matches composer column (max-w-4xl) with 5px horizontal inset
+          // on each side so content is slightly narrower than the input box.
+          className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-[5px]"
           // Why: `zoom` scales the chat transcript's text and layout together,
           // scoped to this container so the rest of the app is untouched. It's
           // the desktop analog of the mobile pinch-zoom (Chromium/Electron only).
