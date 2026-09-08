@@ -17044,6 +17044,7 @@
         "result": "Result",
         "countOne": "1 tool call",
         "countN": "{{value0}} tool calls",
+        "moreCalls": "+{{value0}} more",
         "runningPreview": "Running {{preview}}",
         "runningCommand": "Running command",
         "runningNamedPreview": "Running {{toolName}} {{preview}}",
