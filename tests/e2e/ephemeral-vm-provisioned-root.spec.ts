@@ -1,3 +1,4 @@
+import { openSidebarWorkspaceComposer } from './helpers/sidebar-project-dialog'
 import { execFileSync } from 'node:child_process'
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
@@ -29,7 +30,7 @@ test('adopts a recipe-provisioned SSH root without creating a linked worktree', 
     await waitForSessionReady(mantaPage)
     const sourceRepoId = await addRecipeRepo(mantaPage, sourceRepo)
 
-    await mantaPage.getByRole('button', { name: 'New workspace', exact: true }).click()
+    await openSidebarWorkspaceComposer(mantaPage)
     const dialog = mantaPage.getByRole('dialog', { name: /Create (Workspace|Worktree)/i })
     await expect(dialog).toBeVisible()
     await dialog.getByRole('combobox', { name: 'Run on' }).click()
