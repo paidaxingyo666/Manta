@@ -51,11 +51,23 @@
 #{$ARTIFACTS_DOMAIN} {
 #	import hardened
 #
-#	# Only the public page. The write API stays on the relay's own name, so a
-#	# token never has a reason to be sent to the origin that serves the pages.
-#	@artifact path /a/*
-#	reverse_proxy @artifact relay:8787
-#	respond 404
+#	# Both artifact surfaces, and nothing else on this name. The desktop sends
+#	# the write API here too: the artifact host it is configured with is the
+#	# origin it builds every artifact URL from, so /v1/artifacts arrives on this
+#	# name rather than the relay's.
+#	#
+#	# handle blocks rather than a matcher beside a bare respond: Caddy reorders
+#	# directives by its own precedence, where the unmatched respond wins and
+#	# every request 404s — including the ones meant for the relay.
+#	@artifacts path /a/* /v1/artifacts /v1/artifacts/*
+#	handle @artifacts {
+#		reverse_proxy relay:8787 {
+#			flush_interval -1
+#		}
+#	}
+#	handle {
+#		respond 404
+#	}
 #}
 
 {$RELAY_DOMAIN} {
