@@ -170,12 +170,37 @@ export class ArtifactStore {
     return null
   }
 
+  /**
+   * A slug nothing else holds.
+   *
+   * Ninety-six bits makes a collision vanishingly unlikely, but not harmless:
+   * the body is a file named by slug, so a second record with the same one
+   * would overwrite the first account's page with this account's content and
+   * serve it under a link they had already given people. Cheap to make
+   * structurally impossible rather than argue about the odds.
+   *
+   * Checked against every record, not the live ones: an expired record still
+   * has its file on disk until the sweep runs, and that file is what a
+   * collision would clobber.
+   */
+  private freeSlug(): string {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const slug = randomBytes(12).toString('base64url')
+      if (!this.records.some((record) => record.slug === slug)) {
+        return slug
+      }
+    }
+    // Eight collisions in a row is not chance; it is a broken random source,
+    // and continuing would mean serving one account's page from another's link.
+    throw new Error('artifact_slug_unavailable')
+  }
+
   create(
     write: ArtifactWrite,
     now: number,
     idempotencyKey: string | null
   ): { record: ArtifactRecord; editToken: string } {
-    const slug = randomBytes(12).toString('base64url')
+    const slug = this.freeSlug()
     const editToken = this.editTokenFor(slug)
     const record: ArtifactRecord = {
       slug,
