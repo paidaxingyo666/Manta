@@ -41,6 +41,10 @@ import {
 } from './web-session-terminal-orphan-recovery-rpc-lane'
 import { isWebTerminalSurfaceTabId, toHostSessionTabId } from './web-terminal-surface-id'
 import { buildWebTerminalOrphanTopologyProposal } from './web-session-terminal-orphan-topology'
+import {
+  clearRetainedTerminalRetirementProofsForTests,
+  mergeRetainedTerminalRetirementProofs
+} from './web-session-terminal-retirement-proof-ledger'
 
 export type { TerminalOrphanRecoveryState } from './web-session-terminal-orphan-recovery-surface'
 
@@ -231,11 +235,14 @@ function normalizeOptions(
 
 export function recoverWebSessionTerminalOrphansBeforeApply(
   state: TerminalOrphanRecoveryState,
-  snapshot: RuntimeMobileSessionTabsResult,
+  frame: RuntimeMobileSessionTabsResult,
   environmentId: string,
   optionsOrCall?: TerminalOrphanRecoveryOptions | RuntimeCall
 ): Promise<RuntimeMobileSessionTabsResult | null> {
   const options = normalizeOptions(optionsOrCall)
+  // Why: every host frame enters recovery here, so this is where a delta frame regains the proofs
+  // the host already sent this client (see the ledger for the negotiated contract).
+  const snapshot = mergeRetainedTerminalRetirementProofs(environmentId, frame)
   const key = recoveryKey(
     environmentId,
     snapshot.worktree,
@@ -295,4 +302,5 @@ export function clearWebSessionTerminalOrphanRecoveryForTests(): void {
   clearTerminalRecoveryQueues()
   clearCachedSurfaceResolutions()
   clearTerminalRecoveryRpcLaneForTests()
+  clearRetainedTerminalRetirementProofsForTests()
 }
