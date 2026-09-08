@@ -27,11 +27,12 @@ function isContentType(value: unknown): value is ArtifactContentType {
  *
  * Not shared/http-json's reader: that one caps at 16 KiB, which is right for a
  * credential exchange and three orders of magnitude below an artifact.
+ *
+ * Returns null for a body that was malformed, cut short, or past the limit —
+ * which parseWrite rejects the same way it rejects any other shape it cannot
+ * use, so the caller has one refusal path rather than two.
  */
-export async function readLargeJson(
-  request: IncomingMessage,
-  limit: number
-): Promise<unknown | null> {
+export async function readLargeJson(request: IncomingMessage, limit: number): Promise<unknown> {
   const chunks: Buffer[] = []
   let size = 0
   try {
