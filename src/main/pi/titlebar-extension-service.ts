@@ -150,7 +150,7 @@ export class PiTitlebarExtensionService {
     if (kind !== 'prime-agent') {
       this.writeManagedExtension(
         join(extensionsDir, MANTA_PI_EXTENSION_FILE),
-        withMantaManagedExtensionMarker(getPiTitlebarExtensionSource())
+        withMantaManagedExtensionMarker(getPiTitlebarExtensionSource(kind))
       )
       this.writeManagedExtension(
         join(extensionsDir, MANTA_PI_PREFILL_EXTENSION_FILE),
