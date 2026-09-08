@@ -8627,6 +8627,15 @@
             "fastDescription": "Extra multiplier while scrolling with a modifier key.",
             "tui": "TUI",
             "tuiDescription": "Discrete wheel reports for full-screen terminal apps."
+          },
+          "minimumContrast": {
+            "title": "Minimum Contrast Ratio",
+            "description": "Lifts terminal foreground colors that sit too close to the background. Leave blank for automatic, or set 1 to render program colors exactly as sent.",
+            "automatic": "Automatic: {{light}} on light backgrounds, {{dark}} on dark.",
+            "disabled": "Correction off. Programs that rely on low contrast, like Powerline separators, render as sent.",
+            "pinned": "Targets {{ratio}}:1 contrast for foreground colors, where possible.",
+            "placeholder": "Auto",
+            "suffix": "blank = automatic, 1 = off"
           }
         },
         "TerminalSettingsPreview": {
@@ -10488,7 +10497,20 @@
             "agent": "agent",
             "process": "process",
             "prompt": "prompt",
-            "stop": "stop"
+            "stop": "stop",
+            "minimumContrast": {
+              "title": "Color Contrast",
+              "description": "Improve text readability or preserve the colors chosen by terminal programs.",
+              "contrast": "contrast",
+              "minimum": "minimum",
+              "ratio": "ratio",
+              "readability": "readability",
+              "wcag": "wcag",
+              "powerline": "powerline",
+              "statusline": "statusline",
+              "dim": "dim",
+              "colors": "colors"
+            }
           },
           "windows": {
             "search": {
@@ -11813,6 +11835,20 @@
         },
         "NativeChatSupportedAgents": {
           "label": "Supported agents:"
+        },
+        "contrast": {
+          "title": "Color Contrast",
+          "description": "Improve text readability or preserve the colors chosen by terminal programs.",
+          "ratio": "Contrast target",
+          "autoDescription": "Balances readability with your terminal theme. Recommended.",
+          "offDescription": "Keeps program colors unchanged, including dim text and Powerline separators.",
+          "customDescription": "Choose how much to increase contrast between text and its background.",
+          "auto": "Automatic",
+          "off": "Off",
+          "custom": "Custom",
+          "targetDescription": "Higher values increase contrast where possible. Background colors stay unchanged.",
+          "subtle": "Subtle",
+          "strong": "Strong"
         }
       },
       "right": {
