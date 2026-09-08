@@ -3,9 +3,7 @@ import { ArrowDown } from 'lucide-react'
 import type { CommentMarkdownLinkClickHandler } from '@/components/sidebar/CommentMarkdown'
 import { translate } from '@/i18n/i18n'
 import type { NativeChatLiveSession } from './use-native-chat-live-session'
-import { orderNativeChatMessages } from './native-chat-message-grouping'
-import { stripNoiseMessages } from './native-chat-noise'
-import { foldToolMessages } from './native-chat-tool-fold'
+import { createNativeChatMessageListProjection } from './native-chat-message-list-projection'
 import { isNearBottom, shouldShowJumpToLatest, type ScrollGeometry } from './native-chat-autoscroll'
 import { MessageRow } from './NativeChatMessageRow'
 import { shouldShowNativeChatTypingIndicator } from './native-chat-typing-indicator'
@@ -79,10 +77,15 @@ export function NativeChatMessageList({
   stuckToBottomRef.current = stuckToBottom
   const { hasMore, loadingEarlier, loadEarlier } = session
 
-  // Keep hidden harness turns as fold boundaries, then strip them before render.
+  const projectMessages = useMemo(
+    () => createNativeChatMessageListProjection(),
+    // Rebound sessions must release the previous transcript's cached rows.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [session.agent, session.sessionId]
+  )
   const messages = useMemo(
-    () => stripNoiseMessages(foldToolMessages(orderNativeChatMessages(session.messages))),
-    [session.messages]
+    () => projectMessages(session.messages),
+    [projectMessages, session.messages]
   )
   const showTypingIndicator = showTurnStatus
     ? isWorking
