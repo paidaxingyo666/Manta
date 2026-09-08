@@ -145,7 +145,7 @@ export class MantaRuntimeWithSubscribeToTerminalResize extends MantaRuntimeWithA
           exitCause: cause,
           handle
         }),
-        ...(recipient.runId ? { runId: recipient.runId } : {})
+        runId: dispatch.run_id
       })
       this.notifyMessageArrived(escalation.to_handle, escalation.type)
     } catch (error) {
