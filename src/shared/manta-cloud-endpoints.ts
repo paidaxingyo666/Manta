@@ -14,6 +14,15 @@ export type MantaCloudEndpointOverrides = {
   authBaseUrl?: string
   /** Relay director origin. Must be a bare origin (no path/query/hash). */
   relayDirectorUrl?: string
+  /**
+   * Artifact host origin. Bare origin, and deliberately not derived from the
+   * relay's: the pages it serves are authored by whoever publishes them and run
+   * on whatever origin serves them, so sharing one with the relay would let a
+   * published page script against the relay's endpoints as the signed-in user.
+   * Empty leaves sharing pointed at the built-in host, which a self-hosted
+   * build does not run.
+   */
+  artifactsBaseUrl?: string
   /** OAuth client id registered with the self-hosted auth server. */
   clientId?: string
   /**
@@ -170,6 +179,10 @@ export function normalizeMantaCloudEndpointOverrides(
   const relayDirectorUrl = normalizeMantaCloudOrigin(source.relayDirectorUrl, options)
   if (relayDirectorUrl.ok && relayDirectorUrl.value) {
     next.relayDirectorUrl = relayDirectorUrl.value
+  }
+  const artifactsBaseUrl = normalizeMantaCloudOrigin(source.artifactsBaseUrl, options)
+  if (artifactsBaseUrl.ok && artifactsBaseUrl.value) {
+    next.artifactsBaseUrl = artifactsBaseUrl.value
   }
   const enrollmentSecret = normalizeMantaCloudEnrollmentSecret(source.enrollmentSecret)
   if (enrollmentSecret.ok && enrollmentSecret.value) {

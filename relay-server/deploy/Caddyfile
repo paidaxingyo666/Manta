@@ -39,6 +39,25 @@
 	file_server
 }
 
+# Artifact hosting, if it is switched on. Its own name, and that is the point:
+# a published artifact is a page its author wrote and it runs on the origin that
+# serves it, so sharing the relay's would let one call the relay as the
+# signed-in desktop. The relay refuses to start if the two origins match.
+#
+# Commented out because the feature is off by default. To enable it, set
+# ARTIFACTS_DOMAIN, uncomment this block, and see MANTA_RELAY_ARTIFACTS in
+# .env.example.
+#
+#{$ARTIFACTS_DOMAIN} {
+#	import hardened
+#
+#	# Only the public page. The write API stays on the relay's own name, so a
+#	# token never has a reason to be sent to the origin that serves the pages.
+#	@artifact path /a/*
+#	reverse_proxy @artifact relay:8787
+#	respond 404
+#}
+
 {$RELAY_DOMAIN} {
 	import hardened
 

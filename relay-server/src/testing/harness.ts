@@ -81,9 +81,25 @@ export function testConfig(port: number, overrides: Partial<RelayConfig> = {}): 
       controlBurst: 1_000,
       controlPerSecond: 100
     },
-    shutdownGraceMs: 50
+    shutdownGraceMs: 50,
+    // Off by default here for the same reason it is off in production: every
+    // suite that does not ask for artifacts should exercise a relay without
+    // them, so the feature cannot quietly become load-bearing elsewhere.
+    artifacts: {
+      enabled: false,
+      publicUrl: '',
+      maxBytes: 10 * 1024 * 1024,
+      ttlMs: 30 * 24 * 60 * 60_000,
+      maxPerAccount: 100,
+      maxTotalBytesPerAccount: 256 * 1024 * 1024
+    }
   }
-  return { ...base, ...overrides, limits: { ...base.limits, ...overrides.limits } }
+  return {
+    ...base,
+    ...overrides,
+    limits: { ...base.limits, ...overrides.limits },
+    artifacts: { ...base.artifacts, ...overrides.artifacts }
+  }
 }
 
 export type TestRelay = {

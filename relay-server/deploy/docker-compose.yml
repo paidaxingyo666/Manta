@@ -105,6 +105,9 @@ services:
     environment:
       RELAY_DOMAIN: "${RELAY_DOMAIN:?set RELAY_DOMAIN}"
       SITE_DOMAIN: "${SITE_DOMAIN:?set SITE_DOMAIN}"
+      # Only used by the artifact block in the Caddyfile, which is commented out
+      # until an operator turns artifact hosting on. Empty is fine while it is.
+      ARTIFACTS_DOMAIN: "${ARTIFACTS_DOMAIN:-}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # The filing requires the domain to serve a page; this mounts it. The page

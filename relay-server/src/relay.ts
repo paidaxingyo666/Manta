@@ -19,6 +19,8 @@ import { RelayAuthServer } from './auth/server.js'
 import { AuthSessionStore } from './auth/store.js'
 import { AccountStore } from './auth/accounts.js'
 import { RelayDirector } from './director/server.js'
+import type { ArtifactStore } from './artifacts/store.js'
+import { createArtifactSurface } from './artifacts/wiring.js'
 import { RelayCell } from './cell/server.js'
 import { CellStore } from './cell/store.js'
 import { createRelayTokenVerifier } from './shared/relay-token.js'
@@ -39,6 +41,8 @@ export type Relay = {
   store: CellStore
   accounts: AccountStore
   authSessions: AuthSessionStore
+  /** Null unless artifact hosting is switched on. */
+  artifacts: ArtifactStore | null
   logger: Logger
   metrics: Metrics
   listen: () => Promise<number>
@@ -120,6 +124,16 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     ...(config.enrollmentSecret ? { enrollmentSecret: config.enrollmentSecret } : {})
   })
 
+  // Null unless switched on: hosting artifacts turns a byte pipe into a content
+  // host, which is the operator's call and not a default.
+  const artifactSurface = createArtifactSurface(config, {
+    sessions: authSessions,
+    logger,
+    metrics,
+    limiter: limiters.http
+  })
+  const artifacts = artifactSurface?.store ?? null
+
   const director = new RelayDirector({
     cellUrl: config.publicUrl,
     assignmentEpoch: config.assignmentEpoch,
@@ -187,6 +201,16 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
           )
           metrics.gauge('manta_relay_auth_sessions', 'Stored auth sessions.', authSessions.size)
           metrics.gauge('manta_relay_accounts', 'Registered accounts.', accounts.size)
+          if (artifacts) {
+            // The operator's disk is the thing at stake, so the byte total
+            // matters as much as the count.
+            metrics.gauge('manta_relay_artifacts', 'Stored artifacts.', artifacts.size)
+            metrics.gauge(
+              'manta_relay_artifact_bytes',
+              'Bytes of artifact content held.',
+              artifacts.totalBytes
+            )
+          }
           const body = metrics.render()
           response.writeHead(200, {
             'content-type': 'text/plain; version=0.0.4',
@@ -200,6 +224,11 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
           return
         }
         if (await director.handle(request, response, clientIp)) {
+          return
+        }
+        // Last in the chain: its public surface is a bare `/a/{slug}`, and
+        // ahead of the others that prefix would shadow any route they add.
+        if (artifactSurface && (await artifactSurface.server.handle(request, response, clientIp))) {
           return
         }
         json(response, 404, { error: 'not_found' })
@@ -293,6 +322,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     store,
     accounts,
     authSessions,
+    artifacts,
     logger,
     metrics,
     listen: () =>
@@ -319,6 +349,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       store.flush()
       authSessions.flush()
       accounts.flush()
+      artifacts?.flush()
       // Tell peers, then give them the grace window to migrate. Phones need an
       // explicit 4503; a bare socket close reaches them as 1006, which their
       // close-code table treats as a generic transport failure.
@@ -349,6 +380,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
       store.flush()
       authSessions.flush()
       accounts.flush()
+      artifacts?.flush()
       logger.info('relay.stopped', { reason })
     }
   }

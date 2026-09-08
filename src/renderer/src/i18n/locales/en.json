@@ -11835,7 +11835,9 @@
           "enrollmentPlaceholder": "Only if your relay requires one",
           "warning": "Both addresses must use https with a certificate your phone trusts. The relay only forwards end-to-end encrypted data, but its operator can see who connects and when. Applying signs you out and restarts Manta.",
           "applying": "Restarting…",
-          "apply": "Apply and restart"
+          "apply": "Apply and restart",
+          "artifactsOriginShared": "The artifact host must be a different origin from the relay address.",
+          "artifactsLabel": "Artifact host"
         },
         "relayMachines": {
           "unnamed": "Unnamed machine",
@@ -16859,7 +16861,7 @@
         "typeMarkdown": "Markdown",
         "typeHtml": "HTML",
         "ArtifactsSelfHostNotice": {
-          "body": "This self-hosted build ships no artifact service. Publishing uploads to whatever MANTA_ARTIFACTS_API_URL points at; leave it unset and links are created against a host this fork does not run, so the upload fails. Run your own and set the variable, or keep sharing off."
+          "body": "This build ships no artifact service of its own. Publishing goes to the artifact host set under Manta Cloud → Configure endpoints; leave it empty and links are created against a host nobody runs, so the upload fails. A self-hosted relay can serve one — see its README — or keep sharing off."
         }
       },
       "BrowserCookieImportMachineNotice": {

@@ -126,6 +126,8 @@ endpoints.
 | `MANTA_RELAY_MAX_SESSIONS` | `64` | Desktops on this cell. |
 | `MANTA_RELAY_MAX_CONNS_PER_HOST` | `8` | Concurrent phone connections per desktop. Cannot exceed 8 — see below. |
 | `MANTA_RELAY_SHUTDOWN_GRACE_MS` | `5000` | How long peers get to migrate on SIGTERM. |
+| `MANTA_RELAY_ARTIFACTS` | off | Serve published artifacts. See "Artifact hosting". |
+| `MANTA_RELAY_ARTIFACTS_PUBLIC_URL` | — | **Required when artifacts are on.** Origin links point at; must not be the relay's. |
 
 Rate limits are `MANTA_RELAY_{PHONE,HTTP,AUTH,CONTROL}_{BURST,RATE}`; the
 defaults are sized for a household, not a public service. Everything else is in
@@ -305,6 +307,86 @@ host proof, and a change is an undiagnosable 4401.
 `cell-state.json` in `MANTA_RELAY_DATA_DIR`, written 0600 with the same
 fsync-and-rename discipline. Passwords are stored as scrypt hashes.
 
+## Artifact hosting (optional, off)
+
+The desktop can publish a file as a page and hand out the link. Upstream runs
+the host that serves those pages; this relay can be that host instead, and does
+nothing of the sort unless you switch it on.
+
+**Turning it on changes what this deployment is.** Everywhere else, the relay is
+a byte pipe: it stores credentials, forwards frames it cannot read, and serves
+nothing to the public. Artifacts make it a content host that keeps pages —
+written by whoever publishes them — and serves them to anyone with the link.
+Your disk, your bandwidth, and whatever rules you operate under. That is why it
+is off by default and why enabling it takes two variables rather than one.
+
+```bash
+MANTA_RELAY_ARTIFACTS=1
+MANTA_RELAY_ARTIFACTS_PUBLIC_URL=https://share.example.com
+```
+
+Then point a second DNS record at the host, set `ARTIFACTS_DOMAIN`, and
+uncomment the artifact block in `deploy/Caddyfile`.
+
+### The artifact origin must not be the relay origin
+
+The relay refuses to start if they match, and this is the one setting here with
+no "but in my case" — a published artifact runs with the privileges of whatever
+origin serves it. On the relay's origin, a page someone shared could call
+`/v1/desktop/auth/*` and the cell endpoints as the signed-in desktop, using the
+viewer's browser. **The separate origin is the isolation.** Nothing else in this
+section substitutes for it: not the CSP, not the sandbox headers, not the
+markdown escaping.
+
+The write API stays on the relay's name. Only `GET /a/{slug}` is served on the
+artifact origin, so an access token never has a reason to be sent to the origin
+that serves the pages.
+
+### What it does with what you publish
+
+| Source | Stored as | Why |
+| --- | --- | --- |
+| `text/markdown` | HTML this relay rendered | Rendered by `src/artifacts/markdown.ts`, which escapes every byte first and then builds a small, fixed set of tags. Raw HTML in the source shows as text. There is no sanitizer to bypass because nothing is passed through. |
+| `text/html` | exactly what was sent | Rewriting someone's document is not this server's job, and a filter is not what contains it — the origin is. |
+
+So an HTML artifact **is** arbitrary script on the artifact origin, by design.
+That is the feature working, and it is the reason for every paragraph above.
+
+Published pages carry `X-Frame-Options: DENY`, `nosniff`, `no-referrer`,
+`no-store`, and a CSP of `frame-ancestors 'none'; base-uri 'none'; form-action
+'none'` — the escapes that survive origin isolation, closed.
+
+### Limits, and why they are not optional
+
+The relay cannot police what people publish. It can only bound how much, which
+is what stands between one enthusiastic user and a full disk:
+
+| Variable | Default | Bounds |
+| --- | --- | --- |
+| `MANTA_RELAY_ARTIFACTS_MAX_BYTES` | 10 MiB | One artifact. Matches the desktop's own ceiling. |
+| `MANTA_RELAY_ARTIFACTS_MAX_PER_ACCOUNT` | 100 | Artifacts one account may hold. |
+| `MANTA_RELAY_ARTIFACTS_MAX_TOTAL_BYTES` | 256 MiB | Bytes one account may hold. |
+| `MANTA_RELAY_ARTIFACTS_TTL_MS` | 30 days | How long a link lives; you pay for the storage until it expires. |
+
+Under `MANTA_RELAY_ACCOUNTS=shared` every desktop holding the enrolment secret
+is one account and shares one allowance. `per-user` is what gives each person
+their own, and their own artifacts.
+
+**State.** `artifacts/index.json` plus one file per page under
+`artifacts/bodies/` in `MANTA_RELAY_DATA_DIR`. Without a data directory the
+pages are held in memory and every link breaks on restart; startup says so.
+Expired records and their files are swept on the next request.
+
+**Authentication** is the session the auth server already minted — the same
+bearer, checked against the same store. Writes to an existing artifact also
+carry an edit token, derived from the slug rather than stored, so a create whose
+response was lost can be retried with the same idempotency key and get the same
+token back.
+
+**Point the desktop at it** under Settings → Advanced → Manta Cloud →
+Configure endpoints → **Artifact host**. It is deliberately not derived from the
+relay address, for the reason above.
+
 ## Observability
 
 - `GET /health` — unauthenticated, `{"ok":true}`, `503` while draining so a load
@@ -312,7 +394,9 @@ fsync-and-rename discipline. Passwords are stored as scrypt hashes.
 - `GET /metrics` — Prometheus text, behind `MANTA_RELAY_METRICS_TOKEN`. Counters
   for phone connects and rejections (by reason), host rejections (by reason),
   rate-limit refusals (by surface), credential installs, bytes forwarded;
-  gauges for live sessions, pairs, and stored hosts.
+  gauges for live sessions, pairs, and stored hosts. With artifacts on,
+  `manta_relay_artifacts_total` by operation and gauges for the stored count and
+  the bytes they occupy — the byte total is the one that fills a disk.
 - Logs are JSON lines. Credential-shaped fields are redacted by field name, so
   a debug-level log of a control message does not print a resume token.
 
