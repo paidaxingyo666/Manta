@@ -196,6 +196,8 @@ export type AgentSessionStatusSummary = {
   agent: AgentSessionRecord['provider']
   /** Null until the journal holds a persisted user or assistant message. */
   status: StructuredAgentSessionProjectedStatus | null
+  /** Present only while this host has the provider child executing the session. */
+  hostExecutionOwned?: true
   latestPrompt: string
   /** Provider model in force for the next turn; absent until the host has read the options. */
   model?: string
