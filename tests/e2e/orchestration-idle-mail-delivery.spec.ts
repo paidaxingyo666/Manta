@@ -35,6 +35,7 @@ import {
   waitForPaneIdentitySnapshot
 } from './helpers/terminal'
 import { RuntimeClient, type RuntimeRpcSuccess } from '../../src/cli/runtime-client'
+import { RuntimeRpcFailureError } from '../../src/cli/runtime/types'
 import type { RuntimeTerminalListResult } from '../../src/shared/runtime-types'
 import {
   CODEX_IDLE_TITLE,
@@ -350,7 +351,10 @@ test.describe('orchestration push-on-idle mail delivery', () => {
     await expectSubmitted(pane)
   })
 
-  test('keeps unbound direct mail durable without pointing to an unsafe check', async ({
+  // #19542 deleted the legacy-Run write fallback, so a sender in no Run has
+  // nowhere to file mail to a bare handle: the send is refused outright, which
+  // is what keeps an unsafe pointer out of the pane on the next idle frame.
+  test('refuses unbound direct mail from a sender in no Run instead of pushing it', async ({
     mantaPage,
     electronApp
   }) => {
@@ -360,17 +364,39 @@ test.describe('orchestration push-on-idle mail delivery', () => {
     await driveToLiveIdle(client, pane)
 
     const stdinBeforeScan = pane.agent.readStdin()
-    const messageId = await sendMail(client, pane.handle, { subject: 'Unbound direct mail' })
+    const refusal = await sendMail(client, pane.handle, { subject: 'Unbound direct mail' }).then(
+      () => undefined,
+      (error: unknown) => error
+    )
+    // Why runtime_error and not run_required: insertMessage throws a plain
+    // Error, which the dispatcher passes through with its message and no
+    // recovery data — the sibling no-recipient path is the one that adds it.
+    // The request-id suffix and stamp are the client's durable-mutation bookkeeping.
+    expect(refusal).toBeInstanceOf(RuntimeRpcFailureError)
+    expect(refusal).toMatchObject({
+      code: 'runtime_error',
+      message: expect.stringContaining('Run is required')
+    })
+    // Pins that the SERVER attached no orchestrationSkillRecoveryData, without
+    // freezing whatever else the client may stamp alongside its request id.
+    const refusalData = (refusal as RuntimeRpcFailureError).data
+    expect(refusalData).toMatchObject({ orchestrationRequestId: expect.any(String) })
+    expect(refusalData).not.toHaveProperty('effectsApplied')
+    expect(refusalData).not.toHaveProperty('guide')
+    expect(refusalData).not.toHaveProperty('nextCommandArgs')
+    expect(refusalData).not.toHaveProperty('nextSteps')
+    expect(readMailbox(userDataDir, pane.handle)).toEqual([])
+
+    // A busy→idle edge is the push trigger. Walking one proves the refusal left
+    // nothing behind for the scan to point at, not merely that the push was slow.
     pane.agent.setTitle(CODEX_WORKING_TITLE)
     await waitForObservedTitle(client, pane.handle, CODEX_WORKING_TITLE)
     pane.agent.setTitle(CODEX_IDLE_TITLE)
     await waitForObservedTitle(client, pane.handle, CODEX_IDLE_TITLE)
 
-    expect(readMailRow(userDataDir, messageId)).toMatchObject({
-      to_handle: pane.handle,
-      read: 0,
-      delivered_at: null
-    })
+    // The ledger only proves anything once the push window has fully elapsed.
+    await mantaPage.waitForTimeout(NO_DELIVERY_SETTLE_MS)
+    expect(readMailbox(userDataDir, pane.handle)).toEqual([])
     expect(pane.agent.readStdin()).toBe(stdinBeforeScan)
   })
 
