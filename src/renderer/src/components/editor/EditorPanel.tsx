@@ -324,12 +324,10 @@ function EditorPanelInner({
   const isMarkdownTableOfContentsVisible =
     markdownTableOfContentsVisible[markdownDocumentStateFileId] ?? false
   const createActiveMarkdownArtifactRequest = () =>
-    Promise.resolve(
-      createCurrentMarkdownArtifactRequest(
-        activeFile,
-        markdownDocumentStateFileId,
-        activeMarkdownContent ?? ''
-      )
+    createCurrentMarkdownArtifactRequest(
+      activeFile,
+      markdownDocumentStateFileId,
+      activeMarkdownContent ?? ''
     )
 
   return (

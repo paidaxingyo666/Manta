@@ -8,6 +8,7 @@
  * credential this module invented.
  */
 import { mkdtempSync, rmSync } from 'node:fs'
+import { request as httpRequest } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -81,6 +82,33 @@ function api(
   })
 }
 
+/**
+ * A request with a Host header of our choosing.
+ *
+ * Not fetch: undici treats Host as a forbidden header and drops it silently,
+ * so a test written with fetch would pass against a relay that ignored the
+ * origin entirely — it would never have sent the header being tested.
+ */
+function requestWithHost(
+  origin: string,
+  path: string,
+  host: string,
+  method = 'GET'
+): Promise<number> {
+  const target = new URL(origin)
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(
+      { host: target.hostname, port: target.port, path, method, headers: { host } },
+      (response) => {
+        response.resume()
+        response.on('end', () => resolve(response.statusCode ?? 0))
+      }
+    )
+    request.on('error', reject)
+    request.end()
+  })
+}
+
 const HTML_BODY = {
   content: '<h1>Report</h1>',
   contentType: 'text/html',
@@ -99,7 +127,7 @@ describe('artifact hosting is off unless asked for', () => {
     current = await startTestRelay(() => PER_USER)
     const token = await signIn(current.origin)
     expect((await api(current.origin, '', token)).status).toBe(404)
-    expect((await fetch(`${current.origin}/a/anything`)).status).toBe(404)
+    expect((await fetch(`${current.origin}/AAAAAAAAAAAAAAAA`)).status).toBe(404)
     expect(current.relay.artifacts).toBeNull()
   })
 })
@@ -153,7 +181,7 @@ describe('publishing', () => {
     const created = await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
     expect(created.status).toBe(201)
     const body = (await created.json()) as Created
-    expect(body.shareUrl).toBe(`${SHARE_ORIGIN}/a/${body.artifact.slug}`)
+    expect(body.shareUrl).toBe(`${SHARE_ORIGIN}/${body.artifact.slug}`)
     expect(body.editToken).toBeTruthy()
     expect(body.artifact.sourceContentType).toBe('text/html')
     expect(Date.parse(body.artifact.expiresAt)).toBeGreaterThan(Date.now())
@@ -169,7 +197,7 @@ describe('publishing', () => {
       body: { ...HTML_BODY, content: '<h1>Revised</h1>' }
     })
     expect(updated.status).toBe(200)
-    expect(await (await fetch(`${current.origin}/a/${body.artifact.slug}`)).text()).toContain(
+    expect(await (await fetch(`${current.origin}/${body.artifact.slug}`)).text()).toContain(
       'Revised'
     )
 
@@ -178,7 +206,7 @@ describe('publishing', () => {
       editToken: body.editToken
     })
     expect(deleted.status).toBe(204)
-    expect((await fetch(`${current.origin}/a/${body.artifact.slug}`)).status).toBe(404)
+    expect((await fetch(`${current.origin}/${body.artifact.slug}`)).status).toBe(404)
   })
 
   it('replays a create whose response was lost, with the same edit token', async () => {
@@ -223,7 +251,7 @@ describe('publishing', () => {
       })
     ).json()) as Created
 
-    const page = await fetch(`${current.origin}/a/${created.artifact.slug}`)
+    const page = await fetch(`${current.origin}/${created.artifact.slug}`)
     const html = await page.text()
     expect(html).toContain('<h1>Title</h1>')
     expect(html).not.toContain('<script>')
@@ -299,9 +327,9 @@ describe('limits', () => {
   it('refuses one more artifact than the account may hold', async () => {
     current = await startWithArtifacts({ maxPerAccount: 1 })
     const token = await signIn(current.origin)
-    expect(
-      (await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })).status
-    ).toBe(201)
+    expect((await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })).status).toBe(
+      201
+    )
     const second = await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
     expect(second.status).toBe(413)
     expect((await second.json()) as { code: string }).toMatchObject({ code: 'too_many' })
@@ -334,7 +362,7 @@ describe('the published page', () => {
     const created = (await (
       await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
     ).json()) as Created
-    const page = await fetch(`${current.origin}/a/${created.artifact.slug}`)
+    const page = await fetch(`${current.origin}/${created.artifact.slug}`)
     expect(page.headers.get('x-frame-options')).toBe('DENY')
     expect(page.headers.get('x-content-type-options')).toBe('nosniff')
     expect(page.headers.get('referrer-policy')).toBe('no-referrer')
@@ -356,7 +384,7 @@ describe('the published page', () => {
         body: { ...HTML_BODY, content: '<h1>Kept</h1><script>window.x=1</script>' }
       })
     ).json()) as Created
-    const html = await (await fetch(`${current.origin}/a/${created.artifact.slug}`)).text()
+    const html = await (await fetch(`${current.origin}/${created.artifact.slug}`)).text()
     expect(html).toBe('<h1>Kept</h1><script>window.x=1</script>')
   })
 })
@@ -372,7 +400,7 @@ describe('durability', () => {
 
     const { restartTestRelay } = await import('./testing/harness.js')
     current = await restartTestRelay(current)
-    const page = await fetch(`${current.origin}/a/${created.artifact.slug}`)
+    const page = await fetch(`${current.origin}/${created.artifact.slug}`)
     expect(page.status).toBe(200)
     expect(await page.text()).toContain('Report')
   })
@@ -384,9 +412,67 @@ describe('durability', () => {
       await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
     ).json()) as Created
     await new Promise((resolve) => setTimeout(resolve, 20))
-    expect((await fetch(`${current.origin}/a/${created.artifact.slug}`)).status).toBe(404)
+    expect((await fetch(`${current.origin}/${created.artifact.slug}`)).status).toBe(404)
     const page = (await (await api(current.origin, '', token)).json()) as { artifacts: unknown[] }
     expect(page.artifacts).toHaveLength(0)
     expect(current.relay.artifacts?.size).toBe(0)
+  })
+})
+
+describe('published links', () => {
+  it('serves at the root and keeps the old /a/ form working', async () => {
+    // The first release handed out /a/<slug>; a link someone already shared is
+    // not ours to break, so both resolve to the same page.
+    current = await startWithArtifacts()
+    const token = await signIn(current.origin)
+    const created = (await (
+      await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
+    ).json()) as Created
+
+    expect(created.shareUrl).toBe(`${SHARE_ORIGIN}/${created.artifact.slug}`)
+    for (const path of [`/${created.artifact.slug}`, `/a/${created.artifact.slug}`]) {
+      const page = await fetch(`${current.origin}${path}`)
+      expect(page.status).toBe(200)
+      expect(await page.text()).toContain('Report')
+    }
+  })
+
+  it('does not mistake another path for a slug', async () => {
+    // A slug is exactly sixteen base64url characters, which is what keeps the
+    // root namespace unambiguous next to the write API.
+    current = await startWithArtifacts()
+    for (const path of ['/v1/artifacts', '/short', '/.well-known/acme-challenge/x']) {
+      const response = await fetch(`${current.origin}${path}`)
+      expect(response.status).not.toBe(200)
+    }
+  })
+})
+
+describe('the artifact origin serves artifacts and nothing else', () => {
+  it('refuses auth, cell, and health routes arriving on the artifact host', async () => {
+    // Defence in depth against the proxy, not instead of it. A published page
+    // is same-origin with whatever answers on this name, so auth reachable
+    // here would undo the reason the origin is separate — and the proxy that
+    // is supposed to prevent it is a config file someone can write too loosely.
+    // I did exactly that, which is why this is a test rather than a comment.
+    current = await startWithArtifacts()
+    const host = new URL(SHARE_ORIGIN).host
+    for (const path of ['/v1/desktop/auth/methods', '/v1/assign', '/v1/resolve', '/health']) {
+      expect(await requestWithHost(current.origin, path, host)).toBe(404)
+    }
+  })
+
+  it('still answers those routes on the relay host', async () => {
+    current = await startWithArtifacts()
+    const host = new URL(current.origin).host
+    expect(await requestWithHost(current.origin, '/v1/desktop/auth/methods', host)).toBe(200)
+    expect(await requestWithHost(current.origin, '/health', host)).toBe(200)
+  })
+
+  it('serves the artifact surfaces on the artifact host', async () => {
+    current = await startWithArtifacts()
+    const host = new URL(SHARE_ORIGIN).host
+    expect(await requestWithHost(current.origin, '/v1/artifacts', host, 'POST')).toBe(401)
+    expect(await requestWithHost(current.origin, '/AAAAAAAAAAAAAAAA', host)).toBe(404)
   })
 })

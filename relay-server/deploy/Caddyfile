@@ -51,20 +51,29 @@
 #{$ARTIFACTS_DOMAIN} {
 #	import hardened
 #
-#	# Both artifact surfaces, and nothing else on this name. The desktop sends
-#	# the write API here too: the artifact host it is configured with is the
-#	# origin it builds every artifact URL from, so /v1/artifacts arrives on this
-#	# name rather than the relay's.
+#	# Only the artifact surfaces reach the relay on this name. Proxying
+#	# everything puts /v1/desktop/auth/* on the origin that serves pages written
+#	# by whoever published them, which is the exact thing a separate origin
+#	# exists to prevent. The relay refuses those on this name too, so a proxy
+#	# written more loosely than this one is a mistake rather than a breach.
 #	#
-#	# handle blocks rather than a matcher beside a bare respond: Caddy reorders
-#	# directives by its own precedence, where the unmatched respond wins and
-#	# every request 404s — including the ones meant for the relay.
-#	@artifacts path /a/* /v1/artifacts /v1/artifacts/*
-#	handle @artifacts {
+#	# A slug is sixteen base64url characters; path_regexp matches that shape and
+#	# nothing else, so the root namespace stays unambiguous. /a/ is the older
+#	# form of the same link.
+#	@published path_regexp ^/(a/)?[A-Za-z0-9_-]{16}$
+#	handle @published {
 #		reverse_proxy relay:8787 {
 #			flush_interval -1
 #		}
 #	}
+#
+#	@writes path /v1/artifacts /v1/artifacts/*
+#	handle @writes {
+#		reverse_proxy relay:8787 {
+#			flush_interval -1
+#		}
+#	}
+#
 #	handle {
 #		respond 404
 #	}

@@ -20,7 +20,7 @@ import { AuthSessionStore } from './auth/store.js'
 import { AccountStore } from './auth/accounts.js'
 import { RelayDirector } from './director/server.js'
 import type { ArtifactStore } from './artifacts/store.js'
-import { createArtifactSurface } from './artifacts/wiring.js'
+import { createArtifactSurface, isArtifactHost, recordArtifactGauges } from './artifacts/wiring.js'
 import { RelayCell } from './cell/server.js'
 import { CellStore } from './cell/store.js'
 import { createRelayTokenVerifier } from './shared/relay-token.js'
@@ -173,6 +173,13 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
     void (async () => {
       const clientIp = clientAddress(request, trustedProxies)
       try {
+        // Artifact routes and nothing else on that name; see isArtifactHost.
+        if (artifactSurface && isArtifactHost(request, config.artifacts.publicUrl)) {
+          if (!(await artifactSurface.server.handle(request, response, clientIp))) {
+            json(response, 404, { error: 'not_found' })
+          }
+          return
+        }
         // Health is the one unauthenticated endpoint and it says only whether
         // the process is up. Session counts belong on /metrics, behind a token.
         if (request.url === '/health' || request.url === '/healthz') {
@@ -201,16 +208,7 @@ export function createRelay(config: RelayConfig, logger = new Logger(config.logL
           )
           metrics.gauge('manta_relay_auth_sessions', 'Stored auth sessions.', authSessions.size)
           metrics.gauge('manta_relay_accounts', 'Registered accounts.', accounts.size)
-          if (artifacts) {
-            // The operator's disk is the thing at stake, so the byte total
-            // matters as much as the count.
-            metrics.gauge('manta_relay_artifacts', 'Stored artifacts.', artifacts.size)
-            metrics.gauge(
-              'manta_relay_artifact_bytes',
-              'Bytes of artifact content held.',
-              artifacts.totalBytes
-            )
-          }
+          recordArtifactGauges(metrics, artifacts)
           const body = metrics.render()
           response.writeHead(200, {
             'content-type': 'text/plain; version=0.0.4',

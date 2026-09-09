@@ -29,15 +29,30 @@ export function markdownArtifactSourceKey(file: OpenFile): string {
   return file.filePath
 }
 
-export function createMarkdownArtifactRequest(
+/**
+ * Uploads the rendered page, not the markdown.
+ *
+ * The relay can render markdown, but it renders it with a small hand-written
+ * renderer that escapes embedded HTML — so a README whose first lines are a
+ * centred title and a row of badges arrived as a paragraph of angle brackets.
+ * This app already renders that file correctly, through a pipeline that parses
+ * the embedded HTML and sanitizes it, and it is the rendering the author was
+ * looking at when they pressed share.
+ *
+ * So the client renders and the server stores. The relay keeps its renderer for
+ * clients that still send markdown; nothing about the wire contract changes.
+ */
+export async function createMarkdownArtifactRequest(
   file: OpenFile,
   content: string
-): ArtifactWriteRequest {
+): Promise<ArtifactWriteRequest> {
+  const fileName = basename(file.filePath)
+  const { renderMarkdownArtifactDocument } = await import('./markdown-artifact-document')
   return {
     sourceKey: markdownArtifactSourceKey(file),
-    content,
-    contentType: 'text/markdown',
-    fileName: basename(file.filePath)
+    content: await renderMarkdownArtifactDocument(content, fileName),
+    contentType: 'text/html',
+    fileName
   }
 }
 
@@ -45,7 +60,7 @@ export function createCurrentMarkdownArtifactRequest(
   file: OpenFile,
   contentFileId: string,
   fallbackContent: string
-): ArtifactWriteRequest {
+): Promise<ArtifactWriteRequest> {
   flushPendingEditorChange(contentFileId)
   const content = useAppStore.getState().editorDrafts[contentFileId] ?? fallbackContent
   return createMarkdownArtifactRequest(file, content)

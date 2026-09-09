@@ -110,3 +110,68 @@ describe('renderMarkdown structure', () => {
     expect(html).not.toContain(String.fromCharCode(0))
   })
 })
+
+describe('what real notes actually contain', () => {
+  it('drops YAML front matter instead of rendering it as content', () => {
+    // Note tools put title/tags/dates up there. Rendered, it came out as a rule
+    // plus a paragraph of YAML — a shared note looking broken before its first
+    // heading, which is what sent someone looking for a bug.
+    const html = renderMarkdown('---\ntitle: Note\ntags: [a, b]\n---\n\n# Body')
+    expect(html).toBe('<h1>Body</h1>')
+  })
+
+  it('treats unterminated dashes as a rule, not as front matter', () => {
+    const html = renderMarkdown('---\n\ntext')
+    expect(html).toContain('<hr>')
+    expect(html).toContain('<p>text</p>')
+  })
+
+  it('renders a pipe table with its alignments', () => {
+    const html = renderMarkdown(
+      ['| a | b | c |', '| :-- | :-: | --: |', '| 1 | 2 | 3 |', '| 4 | 5 | 6 |'].join('\n')
+    )
+    expect(html).toContain('<table>')
+    expect(html).toContain('<th style="text-align:left">a</th>')
+    expect(html).toContain('<th style="text-align:center">b</th>')
+    expect(html).toContain('<th style="text-align:right">c</th>')
+    expect(html.match(/<tr>/g)).toHaveLength(3)
+  })
+
+  it('leaves pipes alone without a separator row', () => {
+    const html = renderMarkdown('a | b | c')
+    expect(html).not.toContain('<table>')
+    expect(html).toContain('<p>a | b | c</p>')
+  })
+
+  it('renders task list items as disabled checkboxes', () => {
+    const html = renderMarkdown(['- [ ] todo', '- [x] done'].join('\n'))
+    expect(html).toContain('<input type="checkbox" disabled> todo')
+    expect(html).toContain('<input type="checkbox" disabled checked> done')
+  })
+
+  it('renders an image rather than a link with a stray bang', () => {
+    const html = renderMarkdown('![alt](https://a.example/x.png)')
+    expect(html).toContain('<img src="https://a.example/x.png" alt="alt"')
+    expect(html).not.toContain('!<a')
+  })
+
+  it('refuses an image source that is not http', () => {
+    // The viewer's browser fetches these, so a data: or javascript: source is
+    // not ours to hand it.
+    for (const src of ['javascript:alert(1)', 'data:image/svg+xml,<svg onload=alert(1)>']) {
+      const html = renderMarkdown(`![x](${src})`)
+      expect(html).not.toContain('<img')
+    }
+  })
+
+  it('renders strikethrough', () => {
+    expect(renderMarkdown('~~gone~~')).toContain('<del>gone</del>')
+  })
+
+  it('still escapes everything inside a table cell', () => {
+    // The invariant has to survive every new construct, not just the old ones.
+    const html = renderMarkdown(['| a |', '| --- |', '| <script>x</script> |'].join('\n'))
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+})

@@ -19,7 +19,7 @@ import { json } from '../shared/http-json.js'
 import { rateLimitKey } from '../shared/client-ip.js'
 import { renderMarkdown } from './markdown.js'
 import type { ArtifactRecord, ArtifactStore } from './store.js'
-import { servePublishedPage, wrapDocument } from './published-page.js'
+import { publishedSlug, servePublishedPage, wrapDocument } from './published-page.js'
 import { parseWrite, readLargeJson, REQUEST_OVERHEAD, type WriteBody } from './request-body.js'
 
 export type ArtifactServerOptions = {
@@ -38,7 +38,7 @@ export class ArtifactServer {
   constructor(private readonly options: ArtifactServerOptions) {}
 
   private shareUrl(slug: string): string {
-    return `${this.options.publicUrl}/a/${slug}`
+    return `${this.options.publicUrl}/${slug}`
   }
 
   /** The wire shape the desktop parses. Field names are its contract, not ours. */
@@ -91,8 +91,9 @@ export class ArtifactServer {
   ): Promise<boolean> {
     const url = new URL(request.url ?? '/', 'http://artifacts.local')
     const path = url.pathname
-    if (path.startsWith('/a/')) {
-      servePublishedPage(this.options.store, path.slice('/a/'.length), response)
+    const published = publishedSlug(path)
+    if (published) {
+      servePublishedPage(this.options.store, published, response)
       return true
     }
     if (path !== '/v1/artifacts' && !path.startsWith('/v1/artifacts/')) {

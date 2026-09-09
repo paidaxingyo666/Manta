@@ -369,10 +369,7 @@ export function loadConfig() {
       // in, and the operator is the one paying for the storage until it does.
       ttlMs: number('MANTA_RELAY_ARTIFACTS_TTL_MS', 30 * 24 * 60 * 60_000),
       maxPerAccount: number('MANTA_RELAY_ARTIFACTS_MAX_PER_ACCOUNT', 100),
-      maxTotalBytesPerAccount: number(
-        'MANTA_RELAY_ARTIFACTS_MAX_TOTAL_BYTES',
-        256 * 1024 * 1024
-      )
+      maxTotalBytesPerAccount: number('MANTA_RELAY_ARTIFACTS_MAX_TOTAL_BYTES', 256 * 1024 * 1024)
     }
   }
   assertRanges({ ...config, logLevel })

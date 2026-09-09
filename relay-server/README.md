@@ -338,8 +338,11 @@ viewer's browser. **The separate origin is the isolation.** Nothing else in this
 section substitutes for it: not the CSP, not the sandbox headers, not the
 markdown escaping.
 
-Both artifact surfaces are served on the artifact origin: `GET /a/{slug}` and
-`/v1/artifacts`. The desktop builds every artifact URL from the host it is
+Both artifact surfaces are served on the artifact origin: the published link
+at `GET /{slug}` and the write API at `/v1/artifacts`. A slug is sixteen
+base64url characters, which is what keeps the root namespace unambiguous beside
+the API without reserving anything. `/a/{slug}` still resolves — it is the form
+the first release handed out, and a shared link is not ours to break. The desktop builds every artifact URL from the host it is
 configured with, so the write API arrives on that name rather than the relay's.
 
 A published page is same-origin with that write API and can call it, but it has
@@ -352,11 +355,13 @@ endpoints as the signed-in desktop, and that is unaffected.
 
 | Source | Stored as | Why |
 | --- | --- | --- |
-| `text/markdown` | HTML this relay rendered | Rendered by `src/artifacts/markdown.ts`, which escapes every byte first and then builds a small, fixed set of tags. Raw HTML in the source shows as text. There is no sanitizer to bypass because nothing is passed through. |
+| `text/markdown` | HTML this relay rendered | Rendered by `src/artifacts/markdown.ts`, which escapes every byte first and then builds a fixed set of tags. There is no sanitizer to bypass because nothing is passed through — and so raw HTML in the source shows as text. Front matter is dropped; headings, lists, task lists, tables, code, quotes, images, links, emphasis and strikethrough render. |
 | `text/html` | exactly what was sent | Rewriting someone's document is not this server's job, and a filter is not what contains it — the origin is. |
 
 So an HTML artifact **is** arbitrary script on the artifact origin, by design.
 That is the feature working, and it is the reason for every paragraph above.
+
+Only Markdown and HTML can be published; those are the two the desktop sends.
 
 Published pages carry `X-Frame-Options: DENY`, `nosniff`, `no-referrer`,
 `no-store`, and a CSP of `frame-ancestors 'none'; base-uri 'none'; form-action

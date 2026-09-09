@@ -5,6 +5,7 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import type { Schema } from 'hast-util-sanitize'
 import rehypeSlug from 'rehype-slug'
 import remarkBreaks from 'remark-breaks'
 import remarkFrontmatter from 'remark-frontmatter'
@@ -13,7 +14,7 @@ import remarkMath from 'remark-math'
 import { remarkMarkdownDocLinks } from './markdown-doc-links'
 import { markdownPreviewUrlTransform } from './markdown-preview-url-transform'
 
-const markdownPreviewSanitizeSchema = {
+export const markdownPreviewSanitizeSchema: Schema = {
   ...defaultSchema,
   tagNames: [...(defaultSchema.tagNames ?? []), 'details', 'summary', 'kbd', 'sub', 'sup', 'ins'],
   protocols: {
@@ -52,8 +53,8 @@ const markdownPreviewSanitizeSchema = {
   }
 }
 
-type MarkdownPluginList = NonNullable<ReactMarkdownOptions['remarkPlugins']>
-const MARKDOWN_REMARK_PLUGINS: MarkdownPluginList = [
+export type MarkdownPluginList = NonNullable<ReactMarkdownOptions['remarkPlugins']>
+export const MARKDOWN_REMARK_PLUGINS: MarkdownPluginList = [
   remarkGfm,
   remarkBreaks,
   remarkFrontmatter,
@@ -61,7 +62,7 @@ const MARKDOWN_REMARK_PLUGINS: MarkdownPluginList = [
   remarkMarkdownDocLinks
 ]
 // Why: sanitize raw HTML before KaTeX/highlight expand it.
-const MARKDOWN_REHYPE_PLUGINS: MarkdownPluginList = [
+export const MARKDOWN_REHYPE_PLUGINS: MarkdownPluginList = [
   rehypeRaw,
   [rehypeSanitize, markdownPreviewSanitizeSchema],
   rehypeSlug,
