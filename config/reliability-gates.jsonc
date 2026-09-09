@@ -84,6 +84,88 @@
       "demotionRule": "Keep experimental until CI soak; investigate fidelity or count failures without relaxing the row budget."
     },
     {
+      "id": "terminal-performance.osc-status-scan-budget",
+      "title": "OSC 9999 status bursts reuse forward terminator searches",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "terminal-runtime",
+      "layer": "shared-unit-and-runtime-unit",
+      "surfaces": ["terminal output ingestion", "terminal agent-status side effects"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "daemon", "ssh", "remote-runtime"],
+      "coverageNotes": "Shared parser tests cover provider-independent bytes; main and renderer contract tests cover status and terminal-output delivery. Live Linux, Windows, WSL, SSH and remote-runtime processes are not launched. Execution, liveness, paths, wire formats and mobile UI are unchanged.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/shared/agent-status-osc.ts"
+      ],
+      "invariant": "Terminal status parsing preserves ordinary UTF-16 output, every valid payload in order, the last valid payload's clean-output offset, earliest BEL/ST termination, and incomplete-frame caps while searching each complete burst only forward.",
+      "oracle": "Two 5,000-frame bursts using exclusively BEL or ST produce every expected payload and ordinary output byte with at most twice the input length in native search ranges. Mixed terminators, every split through prefixes/JSON/ST, independent parser interleaving, malformed payloads, exact pending-cap boundaries and oversized complete frames retain their previous behavior. A one-character echo performs no terminator search. Parsed output chunks are not retained in legacy regular-expression state.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/shared/agent-status-osc.test.ts src/shared/agent-status-osc-scan-budget.test.ts src/shared/agent-status-types.test.ts src/main/runtime/manta-runtime-hook-agent-status-projection.test.ts src/renderer/src/components/terminal-pane/terminal-title-tracker-parity.test.ts src/renderer/src/components/terminal-pane/pty-connection-main-side-effect-authority.test.ts src/renderer/src/components/terminal-pane/pty-connection-hook-completion-side-effects.test.ts src/renderer/src/components/terminal-pane/pty-transport-eager-buffer-replay.test.ts"
+      ],
+      "testFiles": [
+        "src/shared/agent-status-osc.test.ts",
+        "src/shared/agent-status-osc-scan-budget.test.ts",
+        "src/main/runtime/manta-runtime-hook-agent-status-projection.test.ts",
+        "src/renderer/src/components/terminal-pane/terminal-title-tracker-parity.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/shared/agent-status-osc-scan-budget.test.ts",
+          "assertions": [
+            "reads each burst only forward with terminator %j",
+            "keeps a one-character input echo on the ordinary-output path",
+            "does not retain the output chunk in legacy regular-expression state"
+          ]
+        },
+        {
+          "file": "src/shared/agent-status-osc.test.ts",
+          "assertions": [
+            "uses the earliest mixed terminator and counts only parsed payload offsets",
+            "keeps a distant ST usable after many intervening BEL frames",
+            "preserves every split of prefixes, JSON, and both terminators across independent streams",
+            "applies the pending cap only to incomplete frames"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/shared/agent-status-osc.test.ts src/shared/agent-status-osc-scan-budget.test.ts src/shared/agent-status-types.test.ts src/main/runtime/manta-runtime-hook-agent-status-projection.test.ts src/renderer/src/components/terminal-pane/terminal-title-tracker-parity.test.ts src/renderer/src/components/terminal-pane/pty-connection-main-side-effect-authority.test.ts src/renderer/src/components/terminal-pane/pty-connection-hook-completion-side-effects.test.ts src/renderer/src/components/terminal-pane/pty-transport-eager-buffer-replay.test.ts",
+          "result": "passed",
+          "durationSeconds": 23.96,
+          "summary": "153 tests passed across eight files. Independent baseline differential review also matched 3,704 streams and 45,141 chunk results."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 30,
+        "scope": "Shared parser and main/renderer terminal contract tests; no launched app."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial deterministic local validation; CI soak has not started."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "The unchanged parser failed both search budgets: 618,560,785 searched characters for the 246,390-character BEL burst and 631,068,285 for the 251,390-character ST burst. Reusing forward match positions reduces those totals to 492,770 and 502,770 characters respectively, within twice the input length, with identical complete results."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "Warmed Node 24 macOS CPU medians: a 250 KB / 5,000-status burst fell from 100.240 ms to 1.903 ms; a 1 MB / 20,000-status burst fell from 1,588.492 ms to 7.369 ms. Wall-clock medians were 134.878 to 2.484 ms and 2,536.927 to 12.902 ms under concurrent machine load. These are adverse bursts, not typical callback sizes. The ordinary-output path is unchanged; one-character echo CPU was 2.173 versus 2.342 ms per 100,000 calls, and single-status BEL CPU was 10.835 versus 10.897 ms per 30,000 calls. Both native terminator searches advance monotonically within the current chunk; no regex state retains the input. No scheduling, polling, provider calls, pending limits, output filtering or payload parsing changed."
+      },
+      "knownGaps": [
+        "Live Electron input latency and Linux/Windows/WSL/SSH execution have not been measured for this parser-only change.",
+        "Fragmented unterminated payload accumulation and downstream processing of large status arrays remain outside this complete-burst search budget."
+      ],
+      "promotionCriteria": [
+        "Complete CI soak while preserving byte fidelity and deterministic search budgets."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate output, offset, carry or search-budget failures without relaxing the oracle."
+    },
+    {
       "id": "terminal-performance.padded-fullscreen-redraw",
       "title": "Fullscreen redraw padding does not stall terminal delivery",
       "maturity": "experimental",
