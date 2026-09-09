@@ -37,14 +37,43 @@ function openFile(overrides: Partial<OpenFile> = {}): OpenFile {
 }
 
 describe('Markdown artifact upload', () => {
-  it('uses the ordinary file path for local and folder workspaces', () => {
+  it('uses the ordinary file path for local and folder workspaces', async () => {
     expect(markdownArtifactSourceKey(openFile())).toBe('/repo/notes.md')
-    expect(createMarkdownArtifactRequest(openFile(), '# Draft')).toEqual({
+    const request = await createMarkdownArtifactRequest(openFile(), '# Draft')
+    expect(request).toMatchObject({
       sourceKey: '/repo/notes.md',
-      content: '# Draft',
-      contentType: 'text/markdown',
+      contentType: 'text/html',
       fileName: 'notes.md'
     })
+    // rehype-slug adds the anchor id, same as the preview does.
+    expect(request.content).toContain('>Draft</h1>')
+  })
+
+  it('renders the embedded HTML a README opens with, rather than escaping it', async () => {
+    // The relay's own renderer escapes raw HTML, so a centred title and a row
+    // of badges arrived as a paragraph of angle brackets. This app already
+    // parses and sanitizes that HTML for the preview; sharing now carries what
+    // the preview showed.
+    const readme = [
+      '<h1 align="center">',
+      '<a href="https://example.com"><img src="https://example.com/i.png" alt="Icon" /></a> Title',
+      '</h1>',
+      '',
+      '**Body text.**'
+    ].join('\n')
+    const request = await createMarkdownArtifactRequest(openFile(), readme)
+    expect(request.content).toContain('<h1')
+    expect(request.content).toContain('<img')
+    expect(request.content).toContain('<strong>Body text.</strong>')
+    expect(request.content).not.toContain('&lt;h1')
+  })
+
+  it('drops file: URLs, which would publish paths from the author machine', async () => {
+    const request = await createMarkdownArtifactRequest(
+      openFile(),
+      '[local](file:///Users/someone/secret/notes.md)'
+    )
+    expect(request.content).not.toContain('file:///Users/someone')
   })
 
   it('isolates source identity by runtime owner', () => {
@@ -78,14 +107,21 @@ describe('Markdown artifact upload', () => {
     ).toEqual(['ssh', 'build-box', '/repo/notes.md'])
   })
 
-  it('flushes and reads the latest unsaved editor buffer', () => {
+  it('flushes and reads the latest unsaved editor buffer', async () => {
     mocks.flush.mockImplementation((fileId: string) => {
       mocks.drafts[fileId] = '# Latest edit'
     })
 
-    expect(
-      createCurrentMarkdownArtifactRequest(openFile(), '/repo/notes.md', '# Stale content').content
-    ).toBe('# Latest edit')
+    // The upload carries the rendered page now, so the buffer is checked
+    // through what it rendered into rather than by comparing the source.
+    const request = await createCurrentMarkdownArtifactRequest(
+      openFile(),
+      '/repo/notes.md',
+      '# Stale content'
+    )
+    expect(request.contentType).toBe('text/html')
+    expect(request.content).toContain('Latest edit')
+    expect(request.content).not.toContain('Stale content')
     expect(mocks.flush).toHaveBeenCalledWith('/repo/notes.md')
   })
 })
