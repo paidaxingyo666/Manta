@@ -487,6 +487,120 @@
       "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity, liveness or resource-count assertions."
     },
     {
+      "id": "terminal-performance.pending-control-storage",
+      "title": "Pending terminal controls release consumed output backing storage",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "terminal-runtime",
+      "layer": "shared-and-renderer-unit",
+      "surfaces": [
+        "terminal output ingestion",
+        "pending agent status frames",
+        "terminal preview normalization",
+        "terminal title tracking"
+      ],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "daemon", "ssh", "remote-runtime"],
+      "coverageNotes": "Shared code-unit and production normalizer/parser tests cover provider-independent behavior on macOS; existing buffer contracts cover normalized output. Native execution, process ownership, wire formats and mobile UI are unchanged. Folder/git identity is not inspected by these string functions.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/shared/agent-status-osc.test.ts"
+      ],
+      "invariant": "Small incomplete status, ANSI and title controls must not retain the larger consumed output strings they were sliced from. Every retained control fragment is routed through ownRetainedString, which preserves exact UTF-16, current caps and trimming, payload order and clean-output offsets on both the Buffer and the code-unit fallback copier.",
+      "oracle": "One forced-GC fixture proves the primitive itself: 32 x 1 Mi parents pinned by 32 x 4 Ki slices retain over 16 MiB, and the same tails owned retain under 4 MiB and under an eighth of the sliced figure. Each retention site is then covered deterministically by spying on ownRetainedString: the retained value is routed through it on every chunk, including growing fragments. Large trimmed ANSI/title tails preserve their introducers and newest payload units; lone surrogates and split pairs survive BEL/ST completion; the Buffer-free fallback is byte-identical.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/shared/own-retained-string.test.ts src/shared/agent-status-osc.test.ts src/shared/agent-status-osc-pending-retention.test.ts src/shared/agent-status-types.test.ts src/main/runtime/terminal-ansi-pending-retention.test.ts src/shared/osc-title-scan-tail-retention.test.ts src/shared/osc-title-scan-tail.test.ts src/main/runtime/terminal-tail-buffer.test.ts src/main/runtime/terminal-tail-whitespace.test.ts"
+      ],
+      "testFiles": [
+        "src/shared/own-retained-string.test.ts",
+        "src/shared/agent-status-osc.test.ts",
+        "src/shared/agent-status-osc-pending-retention.test.ts",
+        "src/shared/agent-status-types.test.ts",
+        "src/main/runtime/terminal-ansi-pending-retention.test.ts",
+        "src/shared/osc-title-scan-tail-retention.test.ts",
+        "src/shared/osc-title-scan-tail.test.ts",
+        "src/main/runtime/terminal-tail-buffer.test.ts",
+        "src/main/runtime/terminal-tail-whitespace.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/shared/own-retained-string.test.ts",
+          "assertions": [
+            "releases the parent chunk that a retained tail was sliced from",
+            "round-trips %s exactly",
+            "leaves already-flat short strings alone",
+            "matches the block copier when Buffer is unavailable"
+          ]
+        },
+        {
+          "file": "src/shared/agent-status-osc-pending-retention.test.ts",
+          "assertions": [
+            "routes every retained pending frame through ownRetainedString",
+            "keeps %i-character chunks with %i incomplete statuses byte-exact",
+            "preserves raw UTF-16 across an owned suffix and %j",
+            "drops an owned frame that grows past the pending cap"
+          ]
+        },
+        {
+          "file": "src/main/runtime/terminal-ansi-pending-retention.test.ts",
+          "assertions": [
+            "routes every retained pending control through ownRetainedString",
+            "keeps %i-character chunks with %i incomplete statuses byte-exact",
+            "preserves trimming and code units for %j",
+            "preserves split UTF-16 through %j termination",
+            "keeps trimming an owned fragment that grows past the cap"
+          ]
+        },
+        {
+          "file": "src/shared/osc-title-scan-tail-retention.test.ts",
+          "assertions": [
+            "routes every retained title tail through ownRetainedString",
+            "keeps %i-character chunks with %i incomplete titles byte-exact",
+            "preserves title %s introducer and exact UTF-16 at the cap",
+            "keeps trimming an owned title that grows past the cap"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/shared/own-retained-string.test.ts src/shared/agent-status-osc.test.ts src/shared/agent-status-osc-pending-retention.test.ts src/shared/agent-status-types.test.ts src/main/runtime/terminal-ansi-pending-retention.test.ts src/shared/osc-title-scan-tail-retention.test.ts src/shared/osc-title-scan-tail.test.ts src/main/runtime/terminal-tail-buffer.test.ts src/main/runtime/terminal-tail-whitespace.test.ts",
+          "result": "passed",
+          "durationSeconds": 11.4,
+          "summary": "114 tests passed across nine primitive, parser, payload, normalization, title and terminal-buffer files."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 60,
+        "scope": "Focused unit/provider-contract suite; local runtime budget, not an established p95."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial local validation; no CI soak history. Only one fixture depends on forced GC; the three per-site retention checks are deterministic spy assertions."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "The primitive fixture measures 32.00 MB retained for plain slices against 1.13 MB owned, so its 16 MiB/4 MiB bounds fail without ownership. Removing ownRetainedString from terminal-ansi-normalization.ts reproducibly fails 'routes every retained pending control through ownRetainedString' while the ten fidelity cases still pass, confirming the spy assertions carry the retention contract rather than the fidelity ones. Exact-output equivalence against the pre-change parsers was re-checked in the differential fixtures: byte-exact clean output, trimmed tails, payload order and clean offsets are unchanged."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "ownRetainedString is a Buffer utf16le round trip, measured at 0.57 us for 4 Ki code units and 21.9 us for 64 Ki, against 10.0 us and 170.3 us for the code-unit block copier it replaces (min of 12 rounds x 500, isolated processes). Strings below V8 SlicedString::kMinLength (13) are returned unchanged. Interleaved min-of-15 comparisons against the un-owned parsers: 16 Ki-char ANSI chunks with a 4 Ki tail 48.7 to 50.1 us/chunk (+2.8%); 4 Ki-char ANSI chunks with a 2 Ki tail 14.7 to 12.9 us/chunk (-12.0%); 194 Ki-char status chunks with a 64 Ki pending frame 298.1 to 360.5 us/chunk (+21.0%). Ordinary streams with no pending control never call the primitive. Plain-output paths, scheduling, provider calls, limits and trimming are unchanged."
+      },
+      "knownGaps": [
+        "No live Electron input-latency or Linux/Windows/WSL/SSH execution measurement; exact string and tail behavior is covered on macOS.",
+        "The primitive's GC fixture is experimental with no CI soak. A provider input already sliced from an unseen larger ancestor can retain that ancestor; no universal heap cap or whole-process memory reduction is claimed.",
+        "The renderer and mobile fallback copier is covered by a Buffer-free equivalence test, not by a real renderer bundle run.",
+        "Tail-buffer row retention is a larger instance of the same pattern and is not covered by this gate."
+      ],
+      "promotionCriteria": [
+        "Complete CI soak with zero unexplained flakes and preserve the observable oracle."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity, liveness or resource-count assertions."
+    },
+    {
       "id": "terminal-performance.padded-fullscreen-redraw",
       "title": "Fullscreen redraw padding does not stall terminal delivery",
       "maturity": "experimental",

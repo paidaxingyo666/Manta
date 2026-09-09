@@ -1,4 +1,5 @@
 import { MAX_TAIL_PENDING_ANSI_CHARS } from './terminal-tail-limits'
+import { ownRetainedString } from '../../shared/own-retained-string'
 
 export function parseAnsiControlSequence(
   value: string,
@@ -105,7 +106,8 @@ export function normalizeTerminalChunk(
       if (!parsed) {
         return {
           text: parts.join(''),
-          pendingAnsi: trimPendingAnsiControl(combined.slice(index))
+          // Own the tail so it stops pinning the consumed chunk it was sliced from.
+          pendingAnsi: ownRetainedString(trimPendingAnsiControl(combined.slice(index)))
         }
       }
       if (parsed.kind === 'csi' && isTerminalPreviewLineControl(parsed)) {
