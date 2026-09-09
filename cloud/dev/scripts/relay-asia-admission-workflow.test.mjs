@@ -169,7 +169,7 @@ test('creates staging evidence only after the bounded launch-path load and rollb
   assert.match(stagingProof, /--relay-asia-load-principals 32/)
   assert.match(stagingProof, /ulimit -n/)
   assert.match(stagingProof, /--region-behavior-probes 1/)
-  assert.match(stagingProof, /--capacity-cell-origin https:\/\/c4\.relay-staging\.onorca\.dev/)
+  assert.match(stagingProof, /--capacity-cell-origin https:\/\/c4\.relay-staging\.manta\.sh\.cn/)
   assert.match(stagingProof, /--rebind-probes 2/)
   assert.match(stagingProof, /--skip-rebind-overflow-check/)
   assert.doesNotMatch(stagingProof, /--request-unit-invites|--regional-fallback-probes/)

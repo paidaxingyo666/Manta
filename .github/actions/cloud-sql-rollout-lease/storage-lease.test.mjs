@@ -188,7 +188,7 @@ test('takes over an expired lease and warns naming the stale holder', async () =
 
   assert.equal(claim.state, 'takeover')
   assert.equal(warnings.length, 1)
-  assert.match(warnings[0], /stablyai\/manta/)
+  assert.match(warnings[0], /stablyai\/orca/)
   assert.match(warnings[0], /Deploy Relay Production Capacity/)
   assert.match(warnings[0], /actions\/runs\/9001/)
   const upload = storage.state.requests.find((request) => request.path.startsWith('/upload/'))

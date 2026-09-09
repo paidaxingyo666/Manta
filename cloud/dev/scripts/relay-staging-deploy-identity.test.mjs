@@ -137,7 +137,9 @@ test('the rendered attribute condition stays inside the provider limit', () => {
     `(${workflowRefs.map((ref) => `assertion.workflow_ref == '${ref}'`).join(' || ')})`
   ].join(' && ')
   assert.ok(rendered.length < 4096, `rendered condition is ${rendered.length} characters`)
-  assert.equal(rendered.length, 791)
+  // Six longer than upstream's: the repository name appears once in the claims
+  // and once per workflow ref, and this fork's is one character longer.
+  assert.equal(rendered.length, 797)
 })
 
 // Why: the census is the point. A binding added here without a workflow step behind it, or one

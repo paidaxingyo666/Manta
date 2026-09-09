@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { prepareRelayAsiaTopologyInput } from './prepare-relay-asia-topology-input.mjs'
 
-const image = `us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay@sha256:${'a'.repeat(64)}`
+const image = `us-central1-docker.pkg.dev/onorca-cloud/manta-cloud/relay@sha256:${'a'.repeat(64)}`
 
 const additionalRegions = { 'asia-east2': '10.42.1.0/24' }
 

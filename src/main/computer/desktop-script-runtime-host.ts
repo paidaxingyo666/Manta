@@ -72,7 +72,7 @@ export class DesktopScriptRuntimeHost {
   /**
    * Set once any helper has announced itself, which proves the script on disk
    * speaks the ready protocol. Until then a mutating request is not replayed
-   * even on a clean start failure, because ORCA_COMPUTER_DESKTOP_SCRIPT_PROVIDER_PATH
+   * even on a clean start failure, because MANTA_COMPUTER_DESKTOP_SCRIPT_PROVIDER_PATH
    * can point at an older runtime.ps1 that simply never announces.
    */
   private readyProtocolConfirmed = false

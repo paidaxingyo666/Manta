@@ -226,7 +226,7 @@ describe('agent hook spool', () => {
     const endpoint = join(endpointDir, 'endpoint.env')
     writeFileSync(
       endpoint,
-      'MANTA_AGENT_HOOK_PORT=9\nMANTA_AGENT_HOOK_TOKEN=stale\nORCA_AGENT_HOOK_ENV=production\nORCA_AGENT_HOOK_VERSION=1\n'
+      'MANTA_AGENT_HOOK_PORT=9\nMANTA_AGENT_HOOK_TOKEN=stale\nMANTA_AGENT_HOOK_ENV=production\nMANTA_AGENT_HOOK_VERSION=1\n'
     )
     const script = join(dir, 'codex-hook.sh')
     writeFileSync(script, codexInternals.getManagedScript('posix'))

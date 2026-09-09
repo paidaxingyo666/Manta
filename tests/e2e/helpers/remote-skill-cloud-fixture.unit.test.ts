@@ -7,7 +7,7 @@ import {
 } from './remote-skill-cloud-fixture'
 
 it('serves concurrent skill fixtures from independent bound origins', async () => {
-  vi.stubEnv('ORCA_E2E_SKILL_CLOUD_PORT', undefined)
+  vi.stubEnv('MANTA_E2E_SKILL_CLOUD_PORT', undefined)
   const results = await Promise.allSettled([
     startRemoteSkillCloudFixture(),
     startRemoteSkillCloudFixture()

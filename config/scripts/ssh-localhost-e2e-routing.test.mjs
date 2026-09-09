@@ -20,7 +20,7 @@ it('gives the localhost SSH journey its same-filesystem server and agent prerequ
   expect(setup.run).toContain('PasswordAuthentication no')
   expect(setup.run).toContain('UsePAM yes')
   expect(setup.run).toContain('mkdir -p "$HOME/.pi/agent"')
-  for (const key of ['MANTA_E2E_SSH_PORT', 'ORCA_E2E_SSH_USER', 'ORCA_E2E_SSH_IDENTITY_FILE']) {
+  for (const key of ['MANTA_E2E_SSH_PORT', 'MANTA_E2E_SSH_USER', 'MANTA_E2E_SSH_IDENTITY_FILE']) {
     expect(setup.run).toContain(key)
   }
   const run = job.steps.find((step) => step.name === 'Run localhost SSH terminal and hook journey')
