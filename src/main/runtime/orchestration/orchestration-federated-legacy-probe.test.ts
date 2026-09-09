@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { LEGACY_RUN_ID, OrchestrationDb } from './db'
-import { federatedStubHomeRunId, SCHEMA_VERSION } from './db/contract-constants'
+import { federatedStubHomeRunId, SCHEMA_VERSION, UNBOUND_RUN_ID } from './db/contract-constants'
 import { resolveOrchestrationMigrationStartVersion } from './orchestration-schema-version-skew'
 
 describe('federated mailbox legacy-adoption probe', () => {
@@ -122,4 +122,19 @@ describe('federated mailbox legacy-adoption probe', () => {
       }
     }
   )
+
+  it('keeps mail from a terminal in no Run across a reopen without replaying adoption', () => {
+    directory = mkdtempSync(join(tmpdir(), 'orca-unbound-mail-probe-'))
+    const path = join(directory, 'orchestration.db')
+    db = new OrchestrationDb(path)
+    const sent = db.insertMessage({ from: 'term_a', to: 'term_b', subject: 'hi' })
+    expect(sent.run_id).toBe(UNBOUND_RUN_ID)
+    expect(resolveOrchestrationMigrationStartVersion(db.db, SCHEMA_VERSION, SCHEMA_VERSION)).toBe(
+      SCHEMA_VERSION
+    )
+    db.close()
+    db = new OrchestrationDb(path)
+    expect(db.getLegacyAdoption()).toBeUndefined()
+    expect(db.getUnreadMessages('term_b').map((row) => row.id)).toEqual([sent.id])
+  })
 })
