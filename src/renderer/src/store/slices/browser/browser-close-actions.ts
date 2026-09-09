@@ -138,16 +138,17 @@ export function createBrowserCloseActions(
         }
         delete nextRecentlyClosedBrowserPagesByWorkspace[tabId]
 
-        const nextPendingAddressBarFocusByPageId = Object.fromEntries(
-          Object.entries(s.pendingAddressBarFocusByPageId).filter(
-            ([pageId]) => !closedPages.some((page) => page.id === pageId)
-          )
+        // Why omit rather than rebuild: only the closed ids can match, so this touches the
+        // closed pages instead of every pending entry and keeps the record identity when none did.
+        const closedPageIds = closedPages.map((page) => page.id)
+        const nextPendingAddressBarFocusByPageId = omitRecordKeys(
+          s.pendingAddressBarFocusByPageId,
+          closedPageIds
         )
-        const nextPendingAddressBarFocusByTabId = Object.fromEntries(
-          Object.entries(s.pendingAddressBarFocusByTabId).filter(
-            ([focusId]) => focusId !== tabId && !closedPages.some((page) => page.id === focusId)
-          )
-        )
+        const nextPendingAddressBarFocusByTabId = omitRecordKeys(s.pendingAddressBarFocusByTabId, [
+          ...closedPageIds,
+          tabId
+        ])
 
         return {
           browserTabsByWorktree: nextBrowserTabsByWorktree,
