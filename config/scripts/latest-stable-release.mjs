@@ -19,14 +19,18 @@ export function parseDesktopStableTag(tag) {
   }
 }
 
-export function latestStableDesktopReleaseTag(releases) {
-  const stableTags = releases
+/** Every stable desktop release tag, newest first. */
+export function stableDesktopReleaseTags(releases) {
+  return releases
     .filter((release) => release?.draft !== true)
     .map((release) => parseDesktopStableTag(release?.tag_name ?? release?.tagName ?? ''))
     .filter(Boolean)
-    .sort((a, b) => a.major - b.major || a.minor - b.minor || a.patch - b.patch)
+    .sort((a, b) => b.major - a.major || b.minor - a.minor || b.patch - a.patch)
+    .map((entry) => entry.tag)
+}
 
-  return stableTags.at(-1)?.tag ?? ''
+export function latestStableDesktopReleaseTag(releases) {
+  return stableDesktopReleaseTags(releases).at(0) ?? ''
 }
 
 async function githubJson(fetchImpl, url, token) {
