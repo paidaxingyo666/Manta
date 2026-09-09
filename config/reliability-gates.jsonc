@@ -84,6 +84,91 @@
       "demotionRule": "Keep experimental until CI soak; investigate fidelity or count failures without relaxing the row budget."
     },
     {
+      "id": "agent-session.hibernation-runtime-inventory-budget",
+      "title": "Hibernation skips irrelevant remote inventories and preserves fresh host evidence",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "agent-session-runtime",
+      "layer": "shared-and-renderer-unit",
+      "surfaces": ["automatic agent hibernation", "remote terminal liveness"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "remote-runtime"],
+      "coverageNotes": "Local hibernation, remote inventory authority and folder-workspace identity are covered by coordinator/model contracts on macOS. Daemon, SSH, WSL, relay and native platform execution boundaries and existing RPC payloads are unchanged.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/renderer/src/lib/agent-hibernation-coordinator.test.ts"
+      ],
+      "invariant": "Automatic hibernation must retain two stable confirmations and fresh execution-host evidence before shutdown. Skipping a workspace with no completed agent must not authorize a newly completed pane using stale client PTYs.",
+      "oracle": "100 remote workspaces containing working/waiting agents issue zero runtime calls. A skipped workspace completing while another inventory awaits remains ineligible until two later host-confirmed passes, and so does a workspace that only becomes runtime-owned while an inventory is outstanding — a pass carrying no host evidence for a workspace never counts as one of its two confirmations. Folder and git workspaces hibernate the exact host PTY; rejected/truncated inventories and intervening input/output or state changes block shutdown.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/lib/agent-hibernation-coordinator.test.ts src/renderer/src/lib/agent-hibernation-planner.test.ts src/renderer/src/lib/agent-hibernation-confirmation.test.ts src/renderer/src/lib/agent-hibernation-pane-age.test.ts src/renderer/src/lib/agent-hibernation-output-activity.test.ts src/renderer/src/lib/agent-hibernation-visibility.test.ts src/renderer/src/lib/foreground-terminal-tabs.test.ts src/renderer/src/lib/agent-hibernation-runtime-liveness-race.test.ts"
+      ],
+      "testFiles": [
+        "src/renderer/src/lib/agent-hibernation-coordinator.test.ts",
+        "src/renderer/src/lib/agent-hibernation-planner.test.ts",
+        "src/renderer/src/lib/agent-hibernation-confirmation.test.ts",
+        "src/renderer/src/lib/agent-hibernation-pane-age.test.ts",
+        "src/renderer/src/lib/agent-hibernation-output-activity.test.ts",
+        "src/renderer/src/lib/agent-hibernation-visibility.test.ts",
+        "src/renderer/src/lib/foreground-terminal-tabs.test.ts",
+        "src/renderer/src/lib/agent-hibernation-runtime-liveness-race.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/renderer/src/lib/agent-hibernation-coordinator.test.ts",
+          "assertions": [
+            "does not request runtime inventories for 100 workspaces without completed agents",
+            "requires host evidence after a skipped workspace completes during another inventory request",
+            "hibernates a runtime-backed candidate in %s with fresh liveness and exact PTYs",
+            "fails closed on truncated runtime liveness samples",
+            "fails closed when fresh runtime liveness rejects after an earlier good sample"
+          ]
+        },
+        {
+          "file": "src/renderer/src/lib/agent-hibernation-runtime-liveness-race.test.ts",
+          "assertions": [
+            "requires host evidence when a workspace becomes runtime-owned during an inventory request"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/lib/agent-hibernation-coordinator.test.ts src/renderer/src/lib/agent-hibernation-planner.test.ts src/renderer/src/lib/agent-hibernation-confirmation.test.ts src/renderer/src/lib/agent-hibernation-pane-age.test.ts src/renderer/src/lib/agent-hibernation-output-activity.test.ts src/renderer/src/lib/agent-hibernation-visibility.test.ts src/renderer/src/lib/foreground-terminal-tabs.test.ts src/renderer/src/lib/agent-hibernation-runtime-liveness-race.test.ts",
+          "result": "passed",
+          "durationSeconds": 48.18,
+          "summary": "93 tests passed across eight coordinator, liveness-race, planner, confirmation, age, activity and visibility files."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 60,
+        "scope": "Focused unit/provider-contract suite; local runtime budget, not an established p95."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial local validation; no CI soak history."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "Baseline made 101 runtime calls in the new no-completed-agent fixture; candidate makes zero. Existing confirmation, final recheck and failure-path assertions continue to pass, including completion during an outstanding request. Separately, baseline hibernated a workspace that became runtime-owned mid-inventory one tick early, taking its first confirmation from a pass planned entirely from client PTYs; candidate withholds that pass and requires two host-confirmed ones."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "The 100-workspace fixture falls from 100 terminal.list calls plus one compatibility handshake to zero calls. Two-workspace confirmation/recheck fixture falls from five inventories to three. A single status scan and tab membership lookups precede existing requests. Recomputing the required-worktree set from the post-await state adds one in-memory owner resolution per workspace per tick and no RPC. No new timer, concurrency, subprocess or retry; only active when experimental automatic hibernation is enabled."
+      },
+      "knownGaps": [
+        "Remote contracts use mocked runtime replies; no live SSH/network-fault, Windows/Linux/WSL or relay run.",
+        "This improves the experimental automatic hibernation path only; it does not remove inventories for workspaces that contain completed agents."
+      ],
+      "promotionCriteria": [
+        "Complete CI soak with zero unexplained flakes and preserve the observable oracle."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity, liveness or resource-count assertions."
+    },
+    {
       "id": "terminal-performance.osc-status-scan-budget",
       "title": "OSC 9999 status bursts reuse forward terminator searches",
       "maturity": "experimental",
