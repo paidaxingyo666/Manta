@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { highestRcForBase } from './release-rc-history.mjs'
 import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
-import { bumpMobileAppConfig, upstreamMobileVersion } from './cut-fork-release.mjs'
+import { bumpMobileAppConfig, upstreamMobileVersion, releaseBase } from './cut-fork-release.mjs'
 import { draftReleaseNotes } from './release-notes-draft.mjs'
 
 /**
@@ -199,5 +199,27 @@ describe('mobile app config bump', () => {
       '"plugins": [["expo-build-properties", { "version": "1.2.3" }]],'
     )
     expect(() => bumpMobileAppConfig(ambiguous, '0.0.47')).toThrow(/matched 2 times/)
+  })
+})
+
+describe('releaseBase', () => {
+  it('names the release after what the fork merged, not what upstream published', () => {
+    // Upstream tagged 1.4.198 while this tree was 394 commits behind it. Taking
+    // the published version produced 1.4.198-rc.0 whose own notes said upstream
+    // was unchanged since the last release — the number claiming work the
+    // release did not contain.
+    expect(releaseBase('1.4.197', '1.4.198', '1.4.197')).toBe('1.4.197')
+  })
+
+  it('advances once a sync has actually merged the newer upstream', () => {
+    expect(releaseBase('1.4.198', '1.4.198', '1.4.197')).toBe('1.4.198')
+  })
+
+  it('falls back to the published version when nothing has ever been synced', () => {
+    expect(releaseBase(null, '1.4.198', '1.4.197')).toBe('1.4.198')
+  })
+
+  it('never moves backwards from a fork-only cut made ahead of upstream', () => {
+    expect(releaseBase('1.4.197', '1.4.197', '1.4.198')).toBe('1.4.198')
   })
 })
