@@ -139,7 +139,7 @@ for (const environment of Object.keys(EXPECTED_CONDITIONS)) {
     const rendered = await renderAttributeConditions(environment)
     for (const [provider, condition] of Object.entries(rendered.relay)) {
       assert.ok(condition.startsWith(`${claims} && `), `${provider} does not lead with the claims`)
-      assert.doesNotMatch(condition, /stablyai\/manta-cloud|1273841466/, `${provider} keeps an old arm`)
+      assert.doesNotMatch(condition, /stablyai\/orca-cloud|1273841466/, `${provider} keeps an old arm`)
       const refs = [...condition.matchAll(/(?:job_)?workflow_ref == '([^']+)'/g)].map(
         (match) => match[1]
       )

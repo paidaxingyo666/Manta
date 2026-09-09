@@ -27,7 +27,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
     }
   )
   assert.equal(result.owner.userId, 'usr_owner')
-  assert.match(requests[0].url, /audience=https%3A%2F%2Fauth-staging\.onorca\.dev/)
+  assert.match(requests[0].url, /audience=https%3A%2F%2Fauth-staging\.manta\.sh\.cn/)
   assert.equal(requests[0].init.headers.authorization, 'Bearer runner-request-token')
   assert.equal(requests[1].init.headers.authorization, `Bearer ${jwt('github')}`)
 })

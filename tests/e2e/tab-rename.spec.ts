@@ -126,7 +126,7 @@ test.describe('Tab Rename (Inline)', () => {
     expect(originalTitle.length).toBeGreaterThan(0)
 
     await tabLocatorByTitle(mantaPage, originalTitle).click({ button: 'right' })
-    await mantaPage.getByRole('menuitem', { name: 'Change Title', exact: true }).click()
+    await mantaPage.getByRole('menuitem', { name: /^Change Title(?:\s|$)/ }).click()
 
     const renameInput = mantaPage.getByRole('textbox', {
       name: `Rename tab ${originalTitle}`,

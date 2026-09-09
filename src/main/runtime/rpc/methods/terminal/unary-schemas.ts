@@ -38,7 +38,9 @@ export const TerminalListParams = z.object({
 })
 
 export const TerminalResolveActive = z.object({
-  worktree: OptionalString
+  worktree: OptionalString,
+  /** Refuse instead of guessing when several leaves could be the caller's own terminal. */
+  requireUnambiguous: z.boolean().optional()
 })
 
 export const TerminalResolvePane = z.object({
@@ -98,6 +100,8 @@ export const TerminalSend = TerminalHandle.extend({
   interrupt: z.unknown().optional(),
   // Why: older hosts strip this optional intent and retain their direct-send behavior.
   agentPrompt: z.literal(true).optional(),
+  // Why: waiting observes the same prompt receipt; it never authorizes a second write.
+  waitSubmitMs: z.number().int().min(0).max(3_600_000).optional(),
   resolvedLaunchDraft: z
     .object({
       text: z.string(),

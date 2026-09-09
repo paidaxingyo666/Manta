@@ -6,7 +6,12 @@ import { describe, expect, it } from 'vitest'
 
 import { highestRcForBase } from './release-rc-history.mjs'
 import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
-import { bumpMobileAppConfig, upstreamMobileVersion, releaseBase } from './cut-fork-release.mjs'
+import {
+  bumpMobileAppConfig,
+  mergedUpstreamBaseFrom,
+  releaseBase,
+  upstreamMobileVersion
+} from './cut-fork-release.mjs'
 import { draftReleaseNotes } from './release-notes-draft.mjs'
 
 /**
@@ -221,5 +226,47 @@ describe('releaseBase', () => {
 
   it('never moves backwards from a fork-only cut made ahead of upstream', () => {
     expect(releaseBase('1.4.197', '1.4.197', '1.4.198')).toBe('1.4.198')
+  })
+})
+
+describe('mergedUpstreamBaseFrom', () => {
+  // Upstream tags off a branch cut from main: `release` is the tag's commit and
+  // `branchPoint` is where it left main. A tree at or before that point is an
+  // ancestor of the release; past it, it is not.
+  const commits = {
+    'v1.4.198': 'release-198',
+    'v1.4.197': 'release-197'
+  }
+  const ancestryOf = (mergedAt) => (merged, release) =>
+    merged === mergedAt &&
+    (release === 'release-198' ? mergedAt === 'before-198' : mergedAt === 'before-197')
+  const tags = ['v1.4.198', 'v1.4.197']
+  const commitOf = (tag) => commits[tag] ?? null
+
+  it('names the newest release the tree has moved past', () => {
+    expect(mergedUpstreamBaseFrom(tags, 'after-198', commitOf, ancestryOf('after-198'))).toBe(
+      '1.4.198'
+    )
+  })
+
+  it('stays on the older line while the tree is still behind the newer branch point', () => {
+    expect(mergedUpstreamBaseFrom(tags, 'before-198', commitOf, ancestryOf('before-198'))).toBe(
+      '1.4.197'
+    )
+  })
+
+  it('is null for a clone that has never synced', () => {
+    expect(mergedUpstreamBaseFrom(tags, null, commitOf, ancestryOf('x'))).toBe(null)
+  })
+
+  it('skips a tag whose commit cannot be resolved', () => {
+    expect(
+      mergedUpstreamBaseFrom(
+        tags,
+        'after-198',
+        (tag) => (tag === 'v1.4.198' ? null : 'release-197'),
+        () => false
+      )
+    ).toBe('1.4.197')
   })
 })

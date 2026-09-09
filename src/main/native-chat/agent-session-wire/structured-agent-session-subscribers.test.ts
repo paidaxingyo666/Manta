@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AGENT_SESSION_JOURNAL_SCHEMA_VERSION } from '../../../shared/agent-session-journal-types'
 import type {
   AgentSessionHandoffStatus,
+  AgentSessionStatusEvent,
   AgentSessionSubscribeEvent
 } from '../../../shared/agent-session-wire'
 import {
@@ -16,6 +17,7 @@ import { journalDatabaseFile } from '../agent-session-journal/journal-paths'
 import { insertJournalRow } from '../agent-session-journal/journal-row-table'
 import type { JournalRow } from '../agent-session-journal/journal-row-schema'
 import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
 import { AgentSessionSubscribers } from './structured-agent-session-subscribers'
 
 const SESSION = 'subscriber-session'
@@ -65,9 +67,142 @@ describe('AgentSessionSubscribers', () => {
           removedItemIds: [],
           submissions: []
         },
-        fence: 7
+        fence: 7,
+        activity: null
       }
     ])
+  })
+
+  it('includes catalogs on reconnect and sends an idle checkpoint without journal work', async () => {
+    const journal = await journals.open({
+      identity: {
+        sessionId: SESSION,
+        workspaceId: 'workspace-1',
+        hostId: 'local',
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: 'thread-1' }
+      },
+      journalDir: join(root, 'catalog-journal')
+    })
+    let commands = [{ name: 'first', kind: 'skill' as const }]
+    const events: AgentSessionSubscribeEvent[] = []
+    const subscribers = new AgentSessionSubscribers({ readCommands: () => commands })
+    subscribers.open({
+      id: 'one',
+      sessionId: SESSION,
+      journal,
+      fence: 7,
+      emit: (event) => events.push(event)
+    })
+    expect(events[0]).toMatchObject({ type: 'snapshot', commands })
+    commands = [{ name: 'second', kind: 'skill' as const }]
+    subscribers.publish(SESSION, journal)
+    expect(events[1]).toEqual({
+      type: 'batch',
+      sessionId: SESSION,
+      fence: 7,
+      commands,
+      batch: { cursor: journal.cursor(), items: [], removedItemIds: [], submissions: [] }
+    })
+    subscribers.open({
+      id: 'two',
+      sessionId: SESSION,
+      journal,
+      cursor: journal.cursor(),
+      fence: 7,
+      emit: (event) => events.push(event)
+    })
+    expect(events[2]).toMatchObject({ type: 'batch', commands })
+  })
+
+  it('reports every content publication to the journal hook, subscribed or not', async () => {
+    const journal = await journals.open({
+      identity: {
+        sessionId: SESSION,
+        workspaceId: 'workspace-1',
+        hostId: 'local',
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: 'thread-1' }
+      },
+      journalDir: join(root, 'hook-journal')
+    })
+    const published: string[] = []
+    const subscribers = new AgentSessionSubscribers({
+      onJournalPublished: (sessionId, published_journal) => {
+        expect(published_journal).toBe(journal)
+        published.push(sessionId)
+      }
+    })
+
+    subscribers.publish(SESSION, journal)
+    subscribers.reset(SESSION, journal, 'epoch_changed', 1)
+    subscribers.snapshot(SESSION, journal, 1)
+    subscribers.handoff(SESSION, 1, {
+      owner: 'native',
+      direction: null,
+      phase: 'idle',
+      stage: null,
+      operationId: null
+    })
+
+    expect(published).toEqual([SESSION, SESSION, SESSION])
+  })
+
+  it('settles a session nobody is reading, from running to idle', async () => {
+    // The defect this whole feed exists for: status used to come from a transcript reader, so a
+    // session with no open pane had no reader and froze on whatever it last said. Nothing here
+    // ever calls `subscribers.open`.
+    const journal = await journals.open({
+      identity: {
+        sessionId: SESSION,
+        workspaceId: 'workspace-1',
+        hostId: 'local',
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: 'thread-1' }
+      },
+      journalDir: join(root, 'unread-journal')
+    })
+    const statusFeed = new StructuredAgentSessionStatusFeed({
+      sessions: new Map([
+        [
+          SESSION,
+          { journal, params: { location: { workspaceId: 'workspace-1' }, provider: 'codex' } }
+        ]
+      ]),
+      getRecord: () => null,
+      now: () => 1_000
+    })
+    const subscribers = new AgentSessionSubscribers({
+      onJournalPublished: (sessionId, published) => statusFeed.publish(sessionId, published)
+    })
+    const statuses: AgentSessionStatusEvent[] = []
+    statusFeed.subscribe({ id: 'session-list', emit: (event) => statuses.push(event) })
+    const turn = { provider: 'codex', threadId: 'thread-1', turnId: 'turn-1', ordinal: 0 } as const
+
+    await journal.appendItem(
+      { ...turn, ordinal: 1 },
+      { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'write a poem' }] },
+      { fence: 1 }
+    )
+    await journal.appendItem(
+      turn,
+      { kind: 'status', text: 'Working', turnLifecycle: { turnId: 'turn-1', state: 'running' } },
+      { fence: 1 }
+    )
+    subscribers.publish(SESSION, journal)
+
+    expect(statuses.at(-1)).toEqual({
+      type: 'status',
+      session: expect.objectContaining({ status: 'working', latestPrompt: 'write a poem' })
+    })
+
+    await journal.appendTombstone(turn, { fence: 1 })
+    subscribers.publish(SESSION, journal)
+
+    expect(statuses.at(-1)).toEqual({
+      type: 'status',
+      session: expect.objectContaining({ status: 'idle' })
+    })
   })
 
   it('publishes handoff-only changes without serializing a transcript snapshot', async () => {
@@ -160,6 +295,56 @@ describe('AgentSessionSubscribers', () => {
     subscribers.publish(SESSION, journal)
 
     expect(events.at(-1)).toMatchObject({ type: 'batch', fence: 2 })
+  })
+
+  it('publishes latest turn activity without advancing or adding journal rows', async () => {
+    const journal = await journals.open({
+      identity: {
+        sessionId: SESSION,
+        workspaceId: 'workspace-1',
+        hostId: 'local',
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: 'thread-1' }
+      },
+      journalDir: join(root, 'activity-journal')
+    })
+    const subscribers = new AgentSessionSubscribers()
+    const events: AgentSessionSubscribeEvent[] = []
+    subscribers.open({
+      id: 'subscriber-1',
+      sessionId: SESSION,
+      journal,
+      fence: 1,
+      emit: (event) => events.push(event)
+    })
+    const cursor = journal.cursor()
+
+    subscribers.publish(SESSION, journal, {
+      turnId: 'turn-1',
+      text: 'Inspecting the session wire'
+    })
+
+    expect(journal.cursor()).toEqual(cursor)
+    expect(events.at(-1)).toEqual({
+      type: 'batch',
+      sessionId: SESSION,
+      batch: { cursor, items: [], removedItemIds: [], submissions: [] },
+      fence: 1,
+      activity: { turnId: 'turn-1', text: 'Inspecting the session wire' }
+    })
+
+    subscribers.close(SESSION, 'subscriber-1')
+    subscribers.publish(SESSION, journal, null)
+    subscribers.open({
+      id: 'reconnected',
+      sessionId: SESSION,
+      journal,
+      fence: 1,
+      cursor,
+      emit: (event) => events.push(event)
+    })
+    expect(journal.cursor()).toEqual(cursor)
+    expect(events.at(-1)).toMatchObject({ activity: null })
   })
 
   it('catches a subscriber up past a pre-existing unsendable removal with a bounded reset', async () => {

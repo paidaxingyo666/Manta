@@ -194,4 +194,13 @@ describe('formatMessagePointer', () => {
   it('pluralizes a batched pointer', () => {
     expect(formatMessagePointer(3)).toContain('3 orchestration messages')
   })
+
+  it('uses the terminal-resolved CLI command', () => {
+    expect(formatMessagePointer(1, 'run:run_wsl', 'manta-ide')).toContain(
+      '`manta-ide orchestration check --run run_wsl`'
+    )
+    expect(formatMessagePointer(1, 'run:run_dev', 'manta-dev')).toContain(
+      '`manta-dev orchestration check --run run_dev`'
+    )
+  })
 })

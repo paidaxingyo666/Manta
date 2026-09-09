@@ -1,3 +1,6 @@
+import type { StructuredAgentSessionAcquireInput } from './structured-agent-session-adapter'
+import { recoverStructuredRewind } from './structured-rewind-recovery'
+import { recoverInterruptedCompaction } from './structured-compaction-recovery'
 // The host's attach, lifted out of the host class.
 //
 // Attach is the one operation that touches every collaborator the host owns — the lease
@@ -8,7 +11,8 @@
 import { randomUUID } from 'node:crypto'
 import type {
   AgentSessionAttachResult,
-  AgentSessionMutationResult
+  AgentSessionMutationResult,
+  AgentSessionTurnActivity
 } from '../../../shared/agent-session-wire'
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
 import { performAttach } from './structured-agent-session-attach-flow'
@@ -27,7 +31,8 @@ export function attachStructuredAgentSession(
   context: StructuredAgentSessionAttachContext,
   callerKey: string,
   params: AgentSessionAttachParams,
-  admitRecoveryTicket?: () => boolean
+  admitRecoveryTicket?: () => boolean,
+  rewind?: StructuredAgentSessionAcquireInput['rewind']
 ): Promise<AgentSessionMutationResult<AgentSessionAttachResult>> {
   const sessionId = params.envelope.sessionId
   const attaching = context.serialize(sessionId, async () => {
@@ -59,6 +64,7 @@ export function attachStructuredAgentSession(
     }
     const eventSink = context.runtimeState.eventSinkFor(sessionId)
     const attached = await performAttach({
+      rewind,
       store: context.deps.store,
       adapter: context.deps.adapter,
       journalRoot: context.deps.journalRoot,
@@ -96,8 +102,8 @@ export function attachStructuredAgentSession(
         // Site 8: the provisional journal has no owner until the map takes it,
         // and the barrier below throws by design.
         try {
-          await bindAndDrain(eventSink, attached.journal, fence, () =>
-            context.subscribers.publish(sessionId, attached.journal)
+          await bindAndDrain(eventSink, attached.journal, fence, (activity) =>
+            context.subscribers.publish(sessionId, attached.journal, activity)
           )
         } catch (error) {
           await agentSessionJournalCloseRetries.closeOrRetain(attached.journal)
@@ -122,6 +128,17 @@ export function attachStructuredAgentSession(
           hasProviderChild: true,
           acquisitionGeneration: acquisitionGeneration ?? previous?.acquisitionGeneration ?? null
         })
+        if (!rewind) {
+          await recoverStructuredRewind(
+            context.deps.store,
+            sessionId,
+            attached.journal,
+            fence,
+            context.deps.adapter,
+            context.now
+          )
+        }
+        await recoverInterruptedCompaction(context.deps.store, sessionId, attached.journal, fence)
         if (attached.recovery) {
           context.subscribers.reset(sessionId, attached.journal, attached.recovery.reset, fence)
         } else if (previousFence !== undefined && previousFence !== fence) {
@@ -148,7 +165,7 @@ async function bindAndDrain(
   eventSink: DeferredStructuredAgentSessionEventSink,
   journal: AgentSessionJournal,
   fence: number,
-  publish: () => void
+  publish: (activity?: AgentSessionTurnActivity | null) => void
 ): Promise<void> {
   eventSink.bind({ journal, fence, publish })
   const barrier = await eventSink.drained()

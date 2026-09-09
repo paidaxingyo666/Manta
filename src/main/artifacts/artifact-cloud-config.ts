@@ -73,7 +73,9 @@ export function resolveArtifactCloudApiUrl(
   packaged = isPackaged()
 ): string {
   const configured = validateArtifactOrigin(
-    settingsArtifactsOrigin() || env.MANTA_ARTIFACTS_API_URL?.trim() || PRODUCTION_ARTIFACTS_API_URL,
+    settingsArtifactsOrigin() ||
+      env.MANTA_ARTIFACTS_API_URL?.trim() ||
+      PRODUCTION_ARTIFACTS_API_URL,
     packaged
   )
   const candidate = override?.trim()

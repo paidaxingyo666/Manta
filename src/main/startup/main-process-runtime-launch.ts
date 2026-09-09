@@ -89,7 +89,10 @@ function installRuntimeRpc(
   })
   state.runtimeRpc = runtimeRpc
   registerMobileHandlers(runtimeRpc, {
-    getRelayStatus: () => state.desktopRelayStatus,
+    getRelayStatus: () => ({
+      status: state.desktopRelayStatus,
+      ...(state.desktopRelayCellUrl === undefined ? {} : { cellUrl: state.desktopRelayCellUrl })
+    }),
     consumePendingUnpairedDeviceAuthFailure: (webContentsId) => {
       if (
         !state.mainWindow ||

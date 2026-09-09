@@ -171,6 +171,14 @@ function makeStore(ui: Record<string, unknown> = {}): {
 
 const RENDERER_URL = 'http://localhost:5173'
 
+// These cases exercise foreground behavior against Electron mocks.
+beforeEach(() => {
+  vi.stubEnv('MANTA_BACKGROUND_LAUNCH', undefined)
+  vi.stubEnv('MANTA_E2E_HEADLESS', undefined)
+  vi.stubEnv('MANTA_E2E_HEADFUL', undefined)
+})
+afterEach(() => vi.unstubAllEnvs())
+
 describe('createOrFocusDashboardPopout', () => {
   beforeEach(() => {
     instances.length = 0

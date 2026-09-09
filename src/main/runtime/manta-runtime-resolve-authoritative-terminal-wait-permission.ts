@@ -1,5 +1,5 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
-import { MantaRuntimeWithSerializeAgentPromptSubmission } from './manta-runtime-serialize-agent-prompt-submission'
+import { MantaRuntimeWithAgentPromptRequestCorrelation } from './manta-runtime-agent-prompt-request-correlation'
 import type { RuntimeTerminalAgentStatusSnapshot } from './runtime-terminal-agent-status-query'
 import type { AgentStatus } from '../../shared/agent-detection'
 import type { RuntimeTerminalWaitBlockedReason } from '../../shared/runtime-types'
@@ -16,7 +16,7 @@ import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import type { TuiAgent } from '../../shared/tui-agent'
 import type { AgentPromptActivity } from './agent-prompt-submission-verification'
 
-export class MantaRuntimeWithResolveAuthoritativeTerminalWaitPermission extends MantaRuntimeWithSerializeAgentPromptSubmission {
+export class MantaRuntimeWithResolveAuthoritativeTerminalWaitPermission extends MantaRuntimeWithAgentPromptRequestCorrelation {
   protected resolveAuthoritativeTerminalWaitPermission(
     terminal: RuntimeTerminalAgentStatusSnapshot,
     explicitStatus: { status: AgentStatus; updatedAt: number } | null,

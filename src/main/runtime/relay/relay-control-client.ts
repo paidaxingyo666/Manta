@@ -8,6 +8,7 @@ import {
   RelayConnectionOpenMessageSchema,
   RelayDrainMessageSchema,
   RelayPingMessageSchema,
+  RELAY_HOST_CAPABILITY_HEADERS,
   encodeRelayHostHello,
   parseRelayControlMessage,
   type RelayConnectionOpenMessage,
@@ -72,7 +73,7 @@ export class RelayControlClient {
       options.createSocket ??
       ((url, token) =>
         new WebSocket(url, {
-          headers: { authorization: `Bearer ${token}` },
+          headers: { authorization: `Bearer ${token}`, ...RELAY_HOST_CAPABILITY_HEADERS },
           perMessageDeflate: false,
           maxPayload: 64 * 1024
         }))
@@ -213,7 +214,10 @@ export class RelayControlClient {
       return
     }
     const connection = RelayConnectionOpenMessageSchema.safeParse(message)
-    if (connection.success && this.state === 'active') {
+    if (connection.success) {
+      // Also while draining: a drain-only cell refuses new phones, so a conn-open
+      // arriving after drain was issued before it and only this cell holds that
+      // pending connection. Dropping it stranded the phone until its attach deadline.
       this.options.onConnectionOpen(connection.data)
       return
     }

@@ -82,7 +82,13 @@ describe('MantaCloudEndpointsSection', () => {
 
     // Clearing every field is still a real "use the official endpoints" action.
     const cleared = validateMantaCloudEndpointsDraft(
-      { apiBaseUrl: '', relayDirectorUrl: '', artifactsBaseUrl: '', clientId: '', enrollmentSecret: '' },
+      {
+        apiBaseUrl: '',
+        relayDirectorUrl: '',
+        artifactsBaseUrl: '',
+        clientId: '',
+        enrollmentSecret: ''
+      },
       'already-stored'
     )
     expect(cleared.ok && cleared.value).toBeUndefined()

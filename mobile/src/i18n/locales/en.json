@@ -254,6 +254,12 @@
               "faff3c7b42": "Request not sent"
             }
           }
+        },
+        "composer": {
+          "command": {
+            "1b2277ee53": "Conversation operation is unconfirmed; retry checks the same operation.",
+            "137e5d6e8e": "Wait for pending work to finish before using this command."
+          }
         }
       }
     },

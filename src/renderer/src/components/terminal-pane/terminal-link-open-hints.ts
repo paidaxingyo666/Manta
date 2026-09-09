@@ -1,5 +1,5 @@
+import { canSourceOwnerOpenInManta } from '@/lib/http-link-destinations'
 import type { HttpLinkSourceOwner } from '@/lib/http-link-routing'
-import type { TerminalHttpLinkActionDestinations } from './terminal-url-link-hit-testing'
 
 export function isMacPlatform(): boolean {
   return navigator.userAgent.includes('Mac')
@@ -35,30 +35,6 @@ export type TerminalUrlOpenHintOptions = {
   openLinksInApp?: boolean
   modifierInverts?: boolean
   showActions?: boolean
-}
-
-function canSourceOwnerOpenInManta(
-  sourceOwner: HttpLinkSourceOwner,
-  canOpenOwnedBrowser: boolean
-): boolean {
-  return (
-    sourceOwner.kind === 'local' ||
-    ((sourceOwner.kind === 'runtime' || sourceOwner.kind === 'ssh') && canOpenOwnedBrowser)
-  )
-}
-
-export function terminalHttpLinkActionDestinationsFor(
-  settings: { openLinksInApp?: boolean } | null | undefined,
-  sourceOwner: HttpLinkSourceOwner,
-  canOpenOwnedBrowser: boolean
-): TerminalHttpLinkActionDestinations {
-  const canOpenInManta = canSourceOwnerOpenInManta(sourceOwner, canOpenOwnedBrowser)
-  if (!canOpenInManta) {
-    return { primary: 'system' }
-  }
-  return settings?.openLinksInApp === true
-    ? { primary: 'manta', alternate: 'system' }
-    : { primary: 'system', alternate: 'manta' }
 }
 
 // Why: remote owners advertise Manta only when their existing browser route is eligible.

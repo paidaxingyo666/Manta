@@ -28,7 +28,11 @@ import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
-import { fetchReleases, latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
+import {
+  fetchReleases,
+  latestStableDesktopReleaseTag,
+  stableDesktopReleaseTags
+} from './latest-stable-release.mjs'
 import { draftReleaseNotes } from './release-notes-draft.mjs'
 import { highestRcForBase } from './release-rc-history.mjs'
 
@@ -171,20 +175,13 @@ async function upstreamStableBase() {
   if (!tag) {
     fail(`${UPSTREAM_REPO} has no stable vX.Y.Z release`)
   }
-  return { desktop: tag.replace(/^v/, ''), mobile: upstreamMobileVersion(releases) }
+  return {
+    desktop: tag.replace(/^v/, ''),
+    mobile: upstreamMobileVersion(releases),
+    stableTags: stableDesktopReleaseTags(releases)
+  }
 }
 
-/**
- * Upstream's version at the commit `refs/sync/base` mirrors.
- *
- * That ref is what the sync moves when a merge lands, and its `Mirror-Of`
- * trailer names the upstream commit it mirrors — so upstream's own manifest at
- * that commit is exactly the version this fork is built on.
- *
- * Null when the ref or the commit is missing, which is a clone that has never
- * synced; the caller falls back to upstream's published version rather than
- * refusing to cut.
- */
 /**
  * The upstream version this release is named after.
  *
@@ -204,31 +201,107 @@ export function releaseBase(merged, published, currentBase) {
   return compareBases(upstreamBase, currentBase) > 0 ? upstreamBase : currentBase
 }
 
-function mergedUpstreamBase() {
+/**
+ * The upstream commit `refs/sync/base` mirrors, from the mirror's own record.
+ *
+ * Null for a clone that has never synced; the caller then falls back to
+ * upstream's published version rather than refusing to cut.
+ */
+function mergedUpstreamCommit() {
   try {
-    const message = execFileSync('git', ['log', '-1', '--format=%B', 'refs/sync/base'], {
-      cwd: root,
-      encoding: 'utf8'
-    })
+    const message = git('log', '-1', '--format=%B', 'refs/sync/base')
     // The last trailer, not the first: a mirror commit carries its own
     // Mirror-Of and may quote earlier ones in the body above it.
-    const mirrorOf = message
-      .split('\n')
-      .toReversed()
-      .map((line) => /^Mirror-Of:\s*(\S+)/.exec(line)?.[1])
-      .find(Boolean)
-    if (!mirrorOf) {
-      return null
-    }
-    const manifest = execFileSync('git', ['show', `${mirrorOf}:package.json`], {
-      cwd: root,
-      encoding: 'utf8'
-    })
-    const version = JSON.parse(manifest).version
-    return typeof version === 'string' ? version.split('-')[0] : null
+    return (
+      message
+        .split('\n')
+        .toReversed()
+        .map((line) => /^Mirror-Of:\s*(\S+)/.exec(line)?.[1])
+        .find(Boolean) ?? null
+    )
   } catch {
     return null
   }
+}
+
+/** The fetch remote pointing at upstream, or its URL when none is configured. */
+function upstreamRemote() {
+  try {
+    const line = git('remote', '-v')
+      .split('\n')
+      .find((entry) => entry.includes(UPSTREAM_REPO) && entry.endsWith('(fetch)'))
+    return line?.split(/\s+/)[0] ?? `https://github.com/${UPSTREAM_REPO}.git`
+  } catch {
+    return `https://github.com/${UPSTREAM_REPO}.git`
+  }
+}
+
+/**
+ * The commit an upstream tag points at, present locally.
+ *
+ * `ls-remote` peels the annotated tag on the server, so reading it costs
+ * nothing locally; the object itself still has to be fetched to compare
+ * against, which a tag makes reachable. `--no-tags` keeps upstream's tag names
+ * out of a clone whose own release tags share them.
+ */
+function upstreamTagCommit(tag) {
+  try {
+    const sha = /^([0-9a-f]{40})\s/.exec(
+      git('ls-remote', '--tags', upstreamRemote(), `${tag}^{}`)
+    )?.[1]
+    if (!sha) {
+      return null
+    }
+    try {
+      git('cat-file', '-e', `${sha}^{commit}`)
+    } catch {
+      git('fetch', upstreamRemote(), '--no-tags', '--quiet', sha)
+    }
+    return sha
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The newest upstream stable release this tree contains.
+ *
+ * `stableTags` is newest first; `commitOf` resolves a tag and `isAncestor`
+ * answers whether its first argument is an ancestor of its second. Both are
+ * injected so the decision can be read without a network or a repository.
+ *
+ * The test runs merged-into-release, not the other way around. Upstream tags
+ * off a branch cut from main and lands a few `fix(release):` commits on it that
+ * never return, so a release commit is an ancestor of nothing here and asking
+ * that direction always says no. While the merged commit is still an ancestor
+ * of the release, this tree sits at or before where that release branched and
+ * does not contain it; once main has moved past that point it does.
+ *
+ * Upstream's own `package.json` cannot answer this at all — the bump lives on
+ * the release branch, so main reads 1.4.197 no matter how far it has run.
+ */
+export function mergedUpstreamBaseFrom(stableTags, mergedCommit, commitOf, isAncestor) {
+  if (!mergedCommit) {
+    return null
+  }
+  for (const tag of stableTags) {
+    const commit = commitOf(tag)
+    if (commit && !isAncestor(mergedCommit, commit)) {
+      return tag.replace(/^v/, '')
+    }
+  }
+  return null
+}
+
+function mergedUpstreamBase(stableTags) {
+  return mergedUpstreamBaseFrom(stableTags, mergedUpstreamCommit(), upstreamTagCommit, (a, b) => {
+    try {
+      git('merge-base', '--is-ancestor', a, b)
+      return true
+    } catch {
+      return false
+    }
+  })
 }
 
 function compareBases(a, b) {
@@ -331,13 +404,13 @@ async function main() {
   const currentBase = manifest.version.split('-')[0]
 
   const upstream = await upstreamStableBase()
-  // The upstream version this fork has actually merged, not the newest one
-  // upstream has published. Those differ for as long as a sync is outstanding,
-  // and taking the published one names a release after work it does not
-  // contain: upstream tagged 1.4.198 while this tree was 394 commits behind it,
-  // and the cut produced 1.4.198-rc.0 whose own notes said upstream was
-  // unchanged. The version can only move when a sync moves it.
-  const base = releaseBase(mergedUpstreamBase(), upstream.desktop, currentBase)
+  // The newest upstream release this fork has actually merged, not the newest
+  // one upstream has published. Those differ for as long as a sync is
+  // outstanding, and taking the published one names a release after work it
+  // does not contain: upstream tagged 1.4.198 while this tree was 394 commits
+  // behind it, and the cut produced 1.4.198-rc.0 whose own notes said upstream
+  // was unchanged. The version can only move when a sync moves it.
+  const base = releaseBase(mergedUpstreamBase(upstream.stableTags), upstream.desktop, currentBase)
   let version = value('--version')
   if (!version) {
     const highest = highestRcForBase(base, { cwd: root })

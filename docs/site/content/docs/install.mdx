@@ -30,8 +30,7 @@ import { Callout } from '@/components/docs/prose'
     [installer](https://github.com/stablyai/orca/releases/latest/download/orca-windows-setup.exe)
   </li>
   <li>
-    **Linux:**
-    AppImage
+    **Linux:** AppImage
     [x64](https://github.com/stablyai/orca/releases/latest/download/orca-linux.AppImage) ·
     [arm64](https://github.com/stablyai/orca/releases/latest/download/orca-linux-arm64.AppImage) ·
     [.deb](https://github.com/stablyai/orca/releases) ·
@@ -131,7 +130,7 @@ On Linux the [Manta CLI](/docs/cli/reference) installs as **`orca-ide`**, not `o
 - The `.deb` and `.rpm` put `manta-ide` on your `PATH` at install time, as `/usr/bin/manta-ide`.
 - With the AppImage, register the CLI from [Settings → General → Manta CLI](/docs/settings). That installs `~/.local/bin/manta-ide`.
 - Inside Manta's own terminals, bare `manta` works. Manta puts a shim on the `PATH` of the terminals it manages, so agents and scripts running there use the same command as on macOS and Windows.
-- On a headless host, a packaged `manta serve` writes a bare `manta` into `~/.local/bin` as it starts, unless a file it does not own already holds that name. It writes that *during* startup, so it is never what starts the server — the first launch is always [`manta-ide serve`](/docs/remote-servers).
+- On a headless host, a packaged `manta serve` writes a bare `manta` into `~/.local/bin` as it starts, unless a file it does not own already holds that name. It writes that _during_ startup, so it is never what starts the server — the first launch is always [`manta-ide serve`](/docs/remote-servers).
 
 Do not verify with `command -v manta`: on a GNOME desktop that succeeds and resolves to the screen reader. Use `manta-ide` in your own shell and `manta` inside Manta. If you want the short name everywhere and you do not use the screen reader, link it yourself:
 

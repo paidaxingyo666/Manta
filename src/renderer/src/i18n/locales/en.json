@@ -967,7 +967,9 @@
         }
       },
       "activateAiVaultStructuredSession": {
-        "unavailable": "The structured agent session is not available yet. Retry in a moment."
+        "unavailable": "The structured agent session is not available yet. Retry in a moment.",
+        "gone": "This chat is no longer on this host, so it cannot be reopened here.",
+        "hostCannotOpen": "This chat can't be reopened until Manta is updated."
       },
       "ephemeralVmWorktreeCreation": {
         "sparseCheckoutUnsupported": "Provisioned-root recipes do not support sparse checkout."
@@ -1494,7 +1496,7 @@
       "Landing": {
         "76a95f7f47": "Create",
         "f05d237049": "Add a project first",
-        "f9eaa9e12d": "Add Project",
+        "f9eaa9e12d": "Add project",
         "6ca6ff404e": "MANTA",
         "520304a067": "Manta logo",
         "ce44fad849": "Missing dependencies",
@@ -2566,6 +2568,30 @@
                 "7c302f8174": "Untitled"
               }
             }
+          },
+          "ProjectRoadmap": {
+            "be52f7b6db": "This roadmap view has no date or iteration field to place items on, so Manta is listing them instead.",
+            "6405e036e0": "Month",
+            "f2b1cabef7": "Quarter",
+            "b6afc6fe45": "Year",
+            "343888b143": "Placed by {{value0}}",
+            "6a088a5da1": "{{value0}} without dates",
+            "86eebd6020": "Today",
+            "0bb1c1bc07": "Timeline zoom",
+            "e304235879": "Item",
+            "e077c79083": "No dates"
+          },
+          "ProjectRoadmapBar": {
+            "cd68ccc17a": "{{value0}} — {{value1}}",
+            "7d1220d979": "Restricted item"
+          },
+          "ProjectPickerPanels": {
+            "04ec212ccb": "Roadmap",
+            "9fe1ac868c": "Unsupported"
+          },
+          "ProjectViewStates": {
+            "ac83c45672": "Switch to a Table or Roadmap view to work with this project in Manta.",
+            "e4cc8b14f2": "Manta renders table and roadmap project views. This view uses a layout it cannot render yet."
           }
         },
         "GitHubMarkdownComposer": {
@@ -3900,7 +3926,14 @@
             "e2c6a4f917": "Run Grok to refresh",
             "d1b7f509ac": "Run grok in a terminal on the computer running Manta and wait for it to start. If prompted, complete sign-in, then retry usage. You do not need to send a chat message.",
             "f90b3d7a16": "Run Kimi to refresh",
-            "a37e8c15d4": "Run kimi in a terminal on the computer running Manta and wait for it to start, then retry usage."
+            "a37e8c15d4": "Run kimi in a terminal on the computer running Manta and wait for it to start, then retry usage.",
+            "minimax": {
+              "expired": {
+                "label": "Sign-in expired",
+                "apiKey": "MiniMax API key expired. Replace it in Settings.",
+                "cookie": "MiniMax session cookie expired. Replace it in Settings."
+              }
+            }
           },
           "SshTargetStatusRow": {
             "sshHost": "SSH Host"
@@ -5285,14 +5318,13 @@
         "SidebarHeader": {
           "projects": "Projects",
           "spaces": "Spaces",
-          "25a95899c9": "Add Project",
           "92154beb7e": "New workspace",
           "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
-          "ca6f729da2": "New workspace ({{value0}})",
           "a30e34eb5c": "Close workspace board",
           "views": "Sidebar view",
-          "moreActions": "More workspace actions"
+          "createMenu": "Create",
+          "addProject": "Add project"
         },
         "SidebarNav": {
           "80611a8b10": "Search",
@@ -5788,7 +5820,8 @@
               "locked": "This workspace is locked by Git. Run git worktree unlock <worktree-path> from its repository, then retry deletion.",
               "lockedReason": "This workspace is locked by Git. Git reported: {{value0}}. Run git worktree unlock <worktree-path> from its repository, then retry deletion.",
               "unstoppedPty": "Manta could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.",
-              "unstoppedPtyLive": "This workspace still has running terminals, so Manta stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold."
+              "unstoppedPtyLive": "This workspace still has running terminals, so Manta stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.",
+              "runningAgentSession": "This workspace still has running agent sessions, so Manta stopped before deleting any files. Force Delete will close them and discard any work they hold."
             }
           }
         },
@@ -6422,7 +6455,6 @@
           "8d61637a77": "MiniMax cookie saved.",
           "b43e761fe5": "MiniMax cookie update failed.",
           "5d63bbfbec": "MiniMax",
-          "15e831350e": "Configure MiniMax usage tracking from platform.minimax.io.",
           "21d6eb141e": "MiniMax Session Cookie",
           "33bba5ad83": "Paste your MiniMax session cookie for local rate-limit fetching.",
           "73ea15f24b": "Saved",
@@ -6430,7 +6462,6 @@
           "566d9a99ab": "_token=…; minimax_group_id_v2=…",
           "f38b9cc4bd": "Replace",
           "590a3130f9": "Save",
-          "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
           "9dd50d3f75": "Advanced",
           "174fb408f9": "Leave these defaults alone unless MiniMax usage refresh points at the wrong workspace or model.",
           "bf160bb6c0": "Group ID override",
@@ -6441,14 +6472,11 @@
           "3c92b0d31c": "general",
           "0d8e77bc40": "Open console",
           "0b8c1c7e02": "Stored locally",
-          "1fd1b1b6b4": "Cookie not set",
-          "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
           "43d7a45b97": "How to copy",
           "b8a4f21c3e": "Paste the Cookie header from DevTools",
           "53f7b8c7a2": "Last refresh: {{value0}}",
           "31d24a4e87": "Cookie expires when you sign out in the browser.",
           "3a30aaf526": "just now",
-          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in.",
           "24560fe830": "Open DevTools.",
           "4cab0fa42d": "Go to the Network tab and enable Preserve log.",
           "bee4e63e1c": "Reload the page.",
@@ -6456,7 +6484,6 @@
           "435df0ee51": "Under Request Headers, copy the Cookie value.",
           "7492fb3bba": "Paste it here and click Save.",
           "9fec52de4b": "How to copy the cookie",
-          "4e32e030b2": "Stored locally. Manta sends it only to platform.minimax.io for usage refreshes.",
           "remoteServerFallback": "the remote server",
           "loadAccountsFailed": "Could not load provider accounts.",
           "remoteScopeAccounts": "Showing accounts managed by {{value0}}. Add or re-authenticate accounts on that server.",
@@ -6471,7 +6498,31 @@
           "codexConfigSyncMissingSource": "Codex is still using the settings it last synced because {{value0}} is missing. Restore that file to resume syncing.",
           "codexConfigSyncBlankSource": "Codex is still using the settings it last synced because {{value0}} is empty. That is expected while a synced folder finishes downloading.",
           "codexConfigSyncManagedHomeUnavailable": "Manta could not read this account’s Codex files just now, so settings may not be syncing. This usually clears on its own — antivirus or a backup tool briefly locks them.",
-          "codexConfigSyncUnreadableSource": "Codex is still using the settings it last synced because {{value0}} could not be read. Check that file's permissions."
+          "codexConfigSyncUnreadableSource": "Codex is still using the settings it last synced because {{value0}} could not be read. Check that file's permissions.",
+          "d6f1b9b6a2": "MiniMax API key is required.",
+          "7c5d8a4e1b": "MiniMax API key was not saved.",
+          "4d2c7b9e83": "MiniMax API key saved.",
+          "f8a4b9d210": "MiniMax endpoint",
+          "0b3a9f6c2e": "Pick the host that matches your account. Both overseas (platform.minimax.io) and China (platform.minimaxi.com) accept either a session cookie or an API key.",
+          "83b6a1f7c4": "MiniMax API key",
+          "4f2c8a7e1b": "Paste your MiniMax API key",
+          "a7b1e3c5d2": "Forget key",
+          "usageTracking": "Configure MiniMax usage tracking for your account.",
+          "credentialsNotSet": "Credentials not set",
+          "selectedEndpointStorage": "Stored locally and sent to the selected MiniMax endpoint for usage refreshes.",
+          "endpointOverseas": "Overseas (platform.minimax.io)",
+          "endpointChina": "China (platform.minimaxi.com)",
+          "openSelectedConsole": "Open {{url}} in your browser and sign in.",
+          "cookieSelectedEndpoint": "Stored locally and sent to the selected MiniMax endpoint for usage refreshes.",
+          "copySelectedConsoleCookie": "Open the selected console, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
+          "apiKeySelectedEndpoint": "Paste the API key from your MiniMax console → API keys. Stored locally and sent to the selected MiniMax endpoint for usage refreshes. The API key takes priority over the cookie.",
+          "apiKeyInstructions": "Copy the API key from your MiniMax console → API keys. A saved API key takes priority over the cookie; use Forget key to switch back to the cookie.",
+          "15e831350e": "Configure MiniMax usage tracking from platform.minimax.io.",
+          "1fd1b1b6b4": "Cookie not set",
+          "4e32e030b2": "Stored locally. Manta sends it only to platform.minimax.io for usage refreshes.",
+          "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
+          "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
+          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in."
         },
         "AdvancedPane": {
           "40b29e0bf3": "Restart",
@@ -8846,14 +8897,18 @@
             "b84a5b0c8a": "Choose whether provider accounts are inspected and added on this device or in WSL.",
             "d09fb5ca92": "Account Location",
             "733f9e2a93": "MiniMax Usage",
-            "f8374c3151": "Paste your platform.minimax.io session cookie for local rate-limit fetching.",
+            "f8374c3151": "Configure MiniMax usage tracking. Pick the overseas or China endpoint, then paste a session cookie or save an API key that works on either host.",
             "f4a8c2e1b7": "Grok (xAI) Usage",
             "e3b7d1f9a2": "OAuth sign-in via Grok CLI (grok login) for weekly credit usage.",
             "d2c6a0e8f1": "grok",
             "c1b5f9d7e0": "xai",
             "b0a4e8c6d9": "oauth",
             "a9f3d7b5c8": "login",
-            "d16378a88f": "minimax"
+            "d16378a88f": "minimax",
+            "b2c4e7f1a8": "endpoint",
+            "3a9b6d2c4e": "api key",
+            "5d8f1a3b7c": "china",
+            "7e2a4b8c1d": "overseas"
           }
         },
         "advanced": {
@@ -9164,6 +9219,7 @@
             },
             "terminalLinkActions": {
               "terminal": "terminal",
+              "chat": "chat",
               "click": "click",
               "actions": "actions",
               "popover": "popover",
@@ -10474,7 +10530,20 @@
             "agent": "agent",
             "process": "process",
             "prompt": "prompt",
-            "stop": "stop"
+            "stop": "stop",
+            "minimumContrast": {
+              "title": "Color Contrast",
+              "description": "Improve text readability or preserve the colors chosen by terminal programs.",
+              "contrast": "contrast",
+              "minimum": "minimum",
+              "ratio": "ratio",
+              "readability": "readability",
+              "wcag": "wcag",
+              "powerline": "powerline",
+              "statusline": "statusline",
+              "dim": "dim",
+              "colors": "colors"
+            }
           },
           "windows": {
             "search": {
@@ -11022,8 +11091,7 @@
                 "tickets": "tickets",
                 "issues": "issues",
                 "skill": "skill",
-                "orcaLinear": "orca-linear",
-                "mantaLinear": "manta-linear"
+                "mantaLinear": "orca-linear"
               }
             }
           }
@@ -11045,7 +11113,9 @@
           "e6dadc1e2b": "Monthly usage",
           "75e396bf42": "Included monthly usage for Grok unified-billing accounts.",
           "b36fa2c908": "Signed in. Manta reads the Grok CLI session stored on disk.",
-          "f08c41de73": "Session expired — run grok on the computer running Manta and wait for it to start. If prompted, complete sign-in, then click Refresh usage. No chat message is needed."
+          "f08c41de73": "Session expired — run grok on the computer running Manta and wait for it to start. If prompted, complete sign-in, then click Refresh usage. No chat message is needed.",
+          "0bb18642b7": "Usage",
+          "a8f4139350": "Grok reported no usage percentage for this account."
         },
         "AppearanceWindowSidebarSection": {
           "usagePercentageDisplayUsed": "Used",
@@ -11084,7 +11154,8 @@
           "signInAgain": "Sign in again for Relay",
           "localTitle": "LAN",
           "localDescription": "Phone must be on this Wi‑Fi or connected through Tailscale. No account needed.",
-          "retrying": "Retrying"
+          "retrying": "Retrying",
+          "relayCell": "Relay cell"
         },
         "MobilePairingSetupSection": {
           "title": "Pair a phone",
@@ -11193,8 +11264,8 @@
           "descriptionManta": "Links open in your system browser. When enabled, {{chord}}+click opens one in Manta's built-in browser instead."
         },
         "BrowserTerminalLinkActionsSetting": {
-          "title": "Show terminal link actions",
-          "description": "Show available actions when you click a terminal link. Turn this off to require {{modifier}}-click."
+          "title": "Show link actions",
+          "description": "Show available actions when you click a link in the terminal or a chat transcript. Turn this off to require {{modifier}}-click in the terminal."
         },
         "PluginConsentDialog": {
           "workerTrust": "Background worker — runs its own process",
@@ -11821,7 +11892,22 @@
         "NativeChatSupportedAgents": {
           "label": "Supported agents:"
         },
+        "contrast": {
+          "title": "Color Contrast",
+          "description": "Improve text readability or preserve the colors chosen by terminal programs.",
+          "ratio": "Contrast target",
+          "autoDescription": "Balances readability with your terminal theme. Recommended.",
+          "offDescription": "Keeps program colors unchanged, including dim text and Powerline separators.",
+          "customDescription": "Choose how much to increase contrast between text and its background.",
+          "auto": "Automatic",
+          "off": "Off",
+          "custom": "Custom",
+          "targetDescription": "Higher values increase contrast where possible. Background colors stay unchanged.",
+          "subtle": "Subtle",
+          "strong": "Strong"
+        },
         "MantaCloudEndpointsSection": {
+          "artifactsOriginShared": "The artifact host must be a different origin from the relay address.",
           "pairRequired": "Set the sign-in server and the relay address together, or leave both empty.",
           "applyFailed": "Could not apply the endpoints. Check the values and try again.",
           "title": "Self-hosted server",
@@ -11829,15 +11915,14 @@
           "configure": "Configure endpoints",
           "apiLabel": "Sign-in server",
           "relayLabel": "Relay address",
+          "artifactsLabel": "Artifact host",
           "clientIdLabel": "OAuth client ID",
           "enrollmentLabel": "Enrolment secret",
           "enrollmentSaved": "Saved — type to replace",
           "enrollmentPlaceholder": "Only if your relay requires one",
           "warning": "Both addresses must use https with a certificate your phone trusts. The relay only forwards end-to-end encrypted data, but its operator can see who connects and when. Applying signs you out and restarts Manta.",
           "applying": "Restarting…",
-          "apply": "Apply and restart",
-          "artifactsOriginShared": "The artifact host must be a different origin from the relay address.",
-          "artifactsLabel": "Artifact host"
+          "apply": "Apply and restart"
         },
         "relayMachines": {
           "unnamed": "Unnamed machine",
@@ -13064,7 +13149,10 @@
             "localSessionSshWorkspaceUnsupported": "This session's history is stored on this machine, so it can't resume in an SSH workspace. Open a local workspace instead.",
             "prepareSessionResumeFailed": "Could not prepare this session for resume.",
             "sessionDeleted": "Session deleted",
-            "sessionDeleteFailed": "Couldn't delete the session"
+            "sessionDeleteFailed": "Couldn't delete the session",
+            "resumeInChatConflict": "Another chat is already holding this conversation.",
+            "resumeInChatTranscriptMissing": "This conversation's history could not be loaded, so it cannot be resumed in chat.",
+            "resumeInChatFailed": "Could not resume this session in a new chat."
           },
           "AiVaultPanelControls": {
             "scanningSessions": "Scanning sessions",
@@ -13200,7 +13288,8 @@
             "delete": "Delete",
             "deleteReasonNonLocalHost": "Only sessions on this device can be deleted.",
             "deleteReasonSyntheticPath": "This session can't be deleted from Manta.",
-            "deleteReasonUnsupportedAgent": "{{value0}} sessions can't be deleted from Manta."
+            "deleteReasonUnsupportedAgent": "{{value0}} sessions can't be deleted from Manta.",
+            "resumeInNewChat": "Resume in New Chat"
           },
           "AiVaultSessionDeleteDialog": {
             "title": "Delete this session?",
@@ -13659,7 +13748,7 @@
           },
           "ProjectCombobox": {
             "empty": "No projects match your search.",
-            "addProject": "Add a new project",
+            "addProject": "Add project",
             "label": "Project",
             "browse": "Browse projects",
             "listLabel": "Projects",
@@ -16267,14 +16356,28 @@
           "5651b216c6": "Unknown project",
           "22b22034bc": "Standalone terminal unavailable in Activity.",
           "afdc2139a8": "Agent terminal closed. Open a new terminal in this workspace to continue.",
-          "compactModeDescription": "Shows shorter thread rows with one-line titles and two-line status messages.",
-          "unreadOnlyDescription": "Filters the activity list to show only threads with unread updates.",
           "clearCompleted": "Clear completed",
           "none": "None",
           "search": "Search",
           "showUnreadOnly": "Show unread only",
           "showChildAgents": "Show child agents",
-          "activityOptions": "Activity options"
+          "activityOptions": "Activity options",
+          "threadListOptionsFiltered": "Thread list options, filters active",
+          "showSearch": "Show search",
+          "interrupted": "Interrupted",
+          "state": {
+            "working": "Working",
+            "monitoring": "Monitoring background tasks",
+            "blocked": "Blocked",
+            "waiting": "Waiting for input",
+            "failed": "Failed",
+            "done": "Done",
+            "idle": "Idle",
+            "unverifiable": "No recent update",
+            "permission": "Needs attention"
+          },
+          "filtersSection": "Filters",
+          "viewSection": "View"
         },
         "clearCompleted": {
           "clearedOne": "Cleared 1 completed agent",
@@ -16291,9 +16394,8 @@
           "dc708f3eff": "Close agents"
         },
         "ActivityScopeFilterControls": {
-          "clearHostFilter": "Show all hosts",
-          "clearProjectFilter": "Show all projects",
-          "hiddenCount": "{{value0}} hidden"
+          "hiddenCount": "{{value0}} hidden",
+          "resetScope": "Show all hosts and projects"
         },
         "ActivityThreadHoverCard": {
           "pathCopied": "Path copied to clipboard",
@@ -16301,6 +16403,9 @@
           "workspace": "Workspace",
           "copyPath": "Copy path",
           "jumpToWorkspace": "Jump to workspace"
+        },
+        "ActivityThreadRow": {
+          "clearNotification": "Clear notification"
         }
       },
       "confirmation": {
@@ -17004,6 +17109,24 @@
       "empty": "No users found"
     },
     "native-chat": {
+      "turnDiff": {
+        "one": "1 changed file",
+        "many": "{{count}} changed files",
+        "partial": "Partial diff",
+        "recorded": "Totals from recorded edits in this turn."
+      },
+      "receipt": {
+        "unavailable": "Selected answer unavailable",
+        "cancelled": "Cancelled",
+        "resolved": "Resolved",
+        "resolver": "Answered on {{device}}",
+        "cancelledBy": "Cancelled on {{device}}"
+      },
+      "notices": {
+        "compaction": "Context compacted",
+        "details": "Details",
+        "plan": "Plan"
+      },
       "composer": {
         "imageUnsupported": "Image paste is not supported for this agent.",
         "send": "Send",
@@ -17069,10 +17192,13 @@
         "imagePreviewUnavailable": "Preview unavailable"
       },
       "tool": {
+        "exitCode": "exit {{value0}}",
+        "milliseconds": "{{value0}}ms",
         "running": "Running…",
         "result": "Result",
         "countOne": "1 tool call",
         "countN": "{{value0}} tool calls",
+        "moreCalls": "+{{value0}} more",
         "runningPreview": "Running {{preview}}",
         "runningCommand": "Running command",
         "runningNamedPreview": "Running {{toolName}} {{preview}}",
@@ -17105,6 +17231,8 @@
       "backgroundTasks": {
         "monitoring": "Monitoring background tasks",
         "stop": "Stop",
+        "stopTask": "Stop {{value0}}",
+        "stopAll": "Stop background tasks",
         "agent": "Background agent",
         "workflow": "Background workflow",
         "command": "Background command",
@@ -17161,11 +17289,6 @@
         "deny": "Deny"
       },
       "launchPromptNotDelivered": "Not delivered — check the terminal",
-      "orchestrationPaused": {
-        "label": "Orchestration paused",
-        "message": "Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Manta inbox with",
-        "command": "manta orchestration check"
-      },
       "structuredSessionCloseFailed": "Could not close this chat session",
       "structuredSessionLaunchFailed": "Could not open {{value0}} chat",
       "structuredSessionLaunchPending": "Starting {{value0}} chat…",
@@ -17204,7 +17327,31 @@
       },
       "structuredSessionFellBackToTerminal": "Structured chat isn't available",
       "structuredSessionFellBackToTerminalDescription": "Manta tried to open a {{value0}} terminal instead.",
-      "structuredSessionLaunchFailedDescription": "Manta could not open a structured {{value0}} chat. See the logs for details."
+      "structuredSessionLaunchFailedDescription": "Manta could not open a structured {{value0}} chat. See the logs for details.",
+      "subagents": {
+        "state": {
+          "completed": "completed",
+          "working": "working",
+          "idle": "idle",
+          "failed": "failed",
+          "stopped": "stopped",
+          "unverifiable": "unverifiable",
+          "workingCount": "{{value0}} working",
+          "idleCount": "{{value0}} idle",
+          "failedCount": "{{value0}} failed",
+          "stoppedCount": "{{value0}} stopped",
+          "unverifiableCount": "{{value0}} unverifiable"
+        },
+        "startedOne": "Kicked off 1 subagent",
+        "startedN": "Kicked off {{value0}} subagents",
+        "ranOne": "Ran 1 subagent",
+        "ranN": "Ran {{value0}} subagents",
+        "tokens": "{{value0}} tokens"
+      },
+      "conversationCommand": {
+        "pendingWork": "Wait for pending work and messages to finish before using this command.",
+        "unconfirmed": "Conversation operation was not confirmed."
+      }
     },
     "tab": {
       "bar": {
@@ -17666,7 +17813,9 @@
       "label": "Agents",
       "dashboardLabel": "Agent Dashboard",
       "openActivity": "View activity",
-      "closeActivity": "Turn off activity view"
+      "closeActivity": "Turn off activity view",
+      "projects": "Projects",
+      "workspaces": "Workspaces"
     }
   },
   "runtimeRpc": {

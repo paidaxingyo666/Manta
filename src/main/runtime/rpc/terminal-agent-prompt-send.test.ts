@@ -106,7 +106,7 @@ describe('terminal agent prompt send RPC', () => {
         terminal: 'terminal-1',
         text: 'echo x',
         enter: true,
-        client: { id: 'orca-cli', type: 'desktop' }
+        client: { id: 'manta-cli', type: 'desktop' }
       }),
       { signal: controller.signal }
     )

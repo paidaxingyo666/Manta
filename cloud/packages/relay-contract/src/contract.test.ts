@@ -6,7 +6,10 @@ import {
   HostChallengeSchema,
   HostDataAuthSchema,
   HostHelloAckSchema,
-  HostHelloSchema
+  HostHelloSchema,
+  parseRelayHostCapabilities,
+  RELAY_HOST_CAPABILITIES_HEADER,
+  RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS
 } from './control-messages.js'
 import {
   DeviceCredentialInstallSchema,
@@ -251,10 +254,14 @@ describe('relay protocol contract', () => {
     const proofInput = buildHostProofMacInput(transcript)
 
     expect(Buffer.from(transcript).toString('base64url')).toBe(
-      'AAAACHByb3RvY29sAAAAGG9yY2EtcmVsYXktaG9zdC1wcm9vZi92MQAAAAd2ZXJzaW9uAAAAAQEAAAALcmVsYXlPcmlnaW4AAAAYaHR0cHM6Ly9yZWxheS5vbm9yY2EuZGV2AAAAF3JlbGF5RXBoZW1lcmFsUHVibGljS2V5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAADmNoYWxsZW5nZU5vbmNlAAAAGAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAtjaGFsbGVuZ2VJZAAAAAtjaGFsbGVuZ2UtMQAAAAhpc3N1ZWRBdAAAAAgAAAGLz-VoAAAAAAlleHBpcmVzQXQAAAAIAAABi8_ljxAAAAAGdXNlcklkAAAABnVzZXItMQAAAAlwcm9maWxlSWQAAAAJcHJvZmlsZS0xAAAADm9yZ2FuaXphdGlvbklkAAAABW9yZy0xAAAAC3JlbGF5SG9zdElkAAAAEGFiY2RlZmdoaWprbG1ub3AAAAANaG9zdFB1YmxpY0tleQAAACACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAAA9hc3NpZ25tZW50RXBvY2gAAAAIAAAAAAAAAAcAAAAScHJldmlvdXNHZW5lcmF0aW9uAAAACAAAAAAAAAAGAAAAD3Jlc3VtZVJlcXVlc3RlZAAAAAEB'
+      // Base64 hides the brand from every rename rule, so this stayed upstream's bytes
+      // while the domain separator and the origin were already this fork's.
+      'AAAACHByb3RvY29sAAAAGW1hbnRhLXJlbGF5LWhvc3QtcHJvb2YvdjEAAAAHdmVyc2lvbgAAAAEBAAAAC3JlbGF5T3JpZ2luAAAAGWh0dHBzOi8vcmVsYXkubWFudGEuc2guY24AAAAXcmVsYXlFcGhlbWVyYWxQdWJsaWNLZXkAAAAgAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAAOY2hhbGxlbmdlTm9uY2UAAAAYBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAAC2NoYWxsZW5nZUlkAAAAC2NoYWxsZW5nZS0xAAAACGlzc3VlZEF0AAAACAAAAYvP5WgAAAAACWV4cGlyZXNBdAAAAAgAAAGLz-WPEAAAAAZ1c2VySWQAAAAGdXNlci0xAAAACXByb2ZpbGVJZAAAAAlwcm9maWxlLTEAAAAOb3JnYW5pemF0aW9uSWQAAAAFb3JnLTEAAAALcmVsYXlIb3N0SWQAAAAQYWJjZGVmZ2hpamtsbW5vcAAAAA1ob3N0UHVibGljS2V5AAAAIAICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAAAAD2Fzc2lnbm1lbnRFcG9jaAAAAAgAAAAAAAAABwAAABJwcmV2aW91c0dlbmVyYXRpb24AAAAIAAAAAAAAAAYAAAAPcmVzdW1lUmVxdWVzdGVkAAAAAQE'
     )
-    expect(challenge.byteLength).toBe(transcript.byteLength + 65)
-    expect(proofInput.byteLength).toBe(transcript.byteLength + 29)
+    // One over upstream's 65 and 29: each framing is its domain string plus fixed
+    // bytes, and both domain strings are a character longer in this fork.
+    expect(challenge.byteLength).toBe(transcript.byteLength + 66)
+    expect(proofInput.byteLength).toBe(transcript.byteLength + 30)
     expect(() => buildHostChallengePlaintext(transcript, new Uint8Array(31))).toThrow(
       'challengeSecret must be 32 bytes'
     )
@@ -343,5 +350,49 @@ describe('relay protocol contract', () => {
         acceptedCredentialVersion: 99
       }).success
     ).toBe(false)
+  })
+})
+
+describe('pending connection details capability', () => {
+  it('reads a pending entry with or without the stated kind and device', () => {
+    const ack = {
+      v: 1 as const,
+      generation: 3,
+      controlResumeSecret: 'R'.repeat(43),
+      leaseExpiresAt: 1_800_000_000_000,
+      activeConnIds: []
+    }
+    const identifiers = { connId: 'conn-1', connTicket: 'T'.repeat(43) }
+    expect(HostHelloAckSchema.safeParse({ ...ack, pendingConns: [identifiers] }).success).toBe(true)
+    expect(
+      HostHelloAckSchema.safeParse({
+        ...ack,
+        pendingConns: [{ ...identifiers, kind: 'resume', relayDeviceId: 'device-1' }]
+      }).success
+    ).toBe(true)
+    // Still strict otherwise: an unannounced key must not slip through as data.
+    expect(
+      HostHelloAckSchema.safeParse({
+        ...ack,
+        pendingConns: [{ ...identifiers, reservationId: 'injected' }]
+      }).success
+    ).toBe(false)
+  })
+
+  it('pins the header and token the desktop mirrors by hand', () => {
+    // The desktop cannot import this package; drift silently disables the
+    // feature, so both literals are asserted on each side.
+    expect(RELAY_HOST_CAPABILITIES_HEADER).toBe('x-orca-host-capabilities')
+    expect(RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS).toBe('pending-conn-details')
+  })
+
+  it('reads the advertised capabilities from a control upgrade header', () => {
+    expect(
+      parseRelayHostCapabilities(` ${RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS} , future-thing`)
+    ).toEqual(new Set([RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS, 'future-thing']))
+    // A host that predates the header sends nothing; absence is never capable.
+    expect(parseRelayHostCapabilities(undefined).size).toBe(0)
+    expect(parseRelayHostCapabilities('').size).toBe(0)
+    expect(parseRelayHostCapabilities('x'.repeat(65)).size).toBe(0)
   })
 })

@@ -225,10 +225,6 @@
         "AutomationEditorDialogHeader": {
           "4c8e1a72b9": "A recurring agent task"
         },
-        "AutomationListSortHeader": {
-          "sortedAscending": "{{value0}}, sorted ascending",
-          "sortedDescending": "{{value0}}, sorted descending"
-        },
         "AutomationRunHistory": {
           "fdb3caa8fb": "known"
         },
@@ -576,12 +572,16 @@
           },
           "ProjectPicker": {
             "43a88ae574": "BOARD_LAYOUT",
+            "ab1a2c357d": "Roadmap (unsupported)",
             "b787682111": "Browse all",
             "ba0ab9a117": "Browse all (loading…)",
             "cafb908f34": "TABLE_LAYOUT"
           },
           "ProjectRow": {
             "c3b81ddea2": "DRAFT_ISSUE"
+          },
+          "ProjectViewWrapper": {
+            "1bf8c01c8b": "Switch to a Table view to work with this project in Manta."
           }
         }
       },
@@ -1048,13 +1048,20 @@
       },
       "settings": {
         "AccountsPane": {
+          "15e831350e": "Configure MiniMax usage tracking from platform.minimax.io.",
+          "1fd1b1b6b4": "Cookie not set",
           "3455cf43fa": "Claude login.",
           "350b2a1aa7": "Use your current",
+          "4e32e030b2": "Stored locally. Manta sends it only to platform.minimax.io for usage refreshes.",
           "566d9a99ab": "_token=…; minimax_group_id_v2=…",
+          "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
+          "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
           "9107406589": "Could not load Claude accounts.",
           "b10cb4f696": "adding",
           "b11078a9c2": "wsl",
-          "b8c2905c2b": "Could not load Codex accounts."
+          "b43e761fe5": "MiniMax cookie update failed.",
+          "b8c2905c2b": "Could not load Codex accounts.",
+          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in."
         },
         "AdvancedNetworkSettingsSection": {
           "d93c7cd531": "Configure app-level network routing.",
@@ -1700,7 +1707,7 @@
           "agent": {
             "skill": {
               "search": {
-                "orcaLinear": "orca-linear"
+                "mantaLinear": "orca-linear"
               }
             }
           }
@@ -2652,12 +2659,12 @@
         "thinking": "Thinking",
         "toggleDetails": "Toggle turn details",
         "workedFor": "Worked for {{value0}}",
-        "working": "Working…",
         "workingFor": "Working for {{value0}}"
       },
       "tool": {
         "countN": "{{value0}} tool calls",
         "countOne": "1 tool call",
+        "moreCalls": "+{{value0}} more",
         "ranCommandManyToolsSummary": "Ran {{commandCount}} command and used {{toolCount}} tools",
         "ranCommandOneToolSummary": "Ran {{commandCount}} command and used {{toolCount}} tool",
         "ranCommandsManyToolsSummary": "Ran {{commandCount}} commands and used {{toolCount}} tools",

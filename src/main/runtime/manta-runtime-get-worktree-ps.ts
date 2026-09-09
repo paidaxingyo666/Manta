@@ -14,6 +14,8 @@ import type { AgentSessionRecord } from '../../shared/agent-session-record'
 import type { Repo } from '../../shared/repo-types'
 import { enrichMissingRepoGitRemoteIdentities } from '../repo-git-remote-identity-enrichment'
 import { ensureStructuredAgentSessionHost as installStructuredAgentSessionHost } from './structured-agent-session-runtime'
+import { maybeAutoRenameWorkspaceOnFirstStructuredTurn } from '../agent-hooks/first-work-structured-session-rename'
+import { firstWorkRenameDeps } from '../agent-hooks/first-work-rename-runtime'
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { buildWorktreeListingPage } from './worktree-listing-host-scope'
@@ -156,6 +158,15 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStructuredAge
         claudeStructuredAuthPolicyForSettings(this.requireStore().getSettings()),
       // Same gate and same settings as agentSession.createSupport, re-read on every acquisition.
       getClaudeManagedAccountGateSettings: () => this.requireStore().getSettings(),
+      // Structured chat has no agent CLI hooks, so this projection is what the first-work
+      // workspace rename listens to instead of `agentStatus:set`.
+      onSessionStatusChanged: (summary, options) => {
+        void maybeAutoRenameWorkspaceOnFirstStructuredTurn(
+          summary,
+          options,
+          firstWorkRenameDeps(this.requireStore(), this)
+        )
+      },
       handoffTransport: this.createStructuredAgentSessionHandoffTransport()
     })
   }

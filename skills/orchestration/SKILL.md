@@ -1,19 +1,18 @@
 ---
 name: orchestration
 description: >-
-  Use Manta orchestration for structured multi-agent coordination: threaded
-  messages, blocking ask/reply flows, task dispatch, worker_done/escalation
-  waits, task DAGs, decision gates, coordinator loops. Use `manta-cli` instead for full ownership handoffs, including
-  requests phrased as "hand off", "handoff", "handover", "give this to another
-  agent", or "another worktree" when the user did not explicitly ask to
-  supervise, monitor, wait for results, or coordinate a DAG. Use `manta-cli` for
-  terminal control, lightweight terminal prompts, shell commands, Manta
-  worktree management, reading or waiting on terminals, and automation of the
-  browser embedded inside Manta. Use Computer Use for external browser windows,
-  webviews, Manta app UI, or desktop UI outside Manta's embedded browser only when
-  the task requires OS/window-level control such as focus, menus, dialogs,
-  coordinates, or screenshots. Use `manta-cli` for Manta's embedded pages and a
-  page-automation tool such as Playwright or CDP for external pages.
+  Coordinate supervised Manta workers: threaded messages, blocking ask/reply,
+  task dispatch, worker_done/escalation waits, task DAGs, decision gates,
+  coordinator loops, and decomposing work across agents. Use `manta-cli` for full
+  ownership handoffs — "hand off", "handoff", "handover", "give this to another
+  agent", "another worktree" — unless asked to supervise, monitor, or coordinate
+  a DAG, and for terminal control, lightweight terminal prompts, shell commands,
+  Manta worktree management, and reading or waiting on terminals. Use Computer
+  Use for external browser windows, webviews, Manta app UI, or desktop UI outside
+  Manta's embedded browser only when the task requires OS/window-level control
+  such as focus, menus, dialogs, coordinates, or screenshots. Use `manta-cli` for
+  Manta's embedded pages and a page-automation tool such as Playwright or CDP for
+  external pages.
 ---
 
 # Manta Orchestration
@@ -38,8 +37,9 @@ Choose the executable once and reuse it for every later command:
 - If the `MANTA_CLI_COMMAND` environment variable is set, use its value. Manta exports this
   for managed WSL sessions.
 - Otherwise, in a dev checkout whose session exposes `MANTA_DEV_REPO_ROOT`, use `manta-dev`.
-- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. The Linux package installs the executable as `manta-ide`, so bare
-  `manta` is not on PATH outside Manta's terminals.
+- Otherwise, on Linux outside a Manta-managed terminal, use `manta-ide`. Never run bare
+  `manta` there — outside Manta's terminals it normally resolves to the
+  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
 - Otherwise, use `manta`.
 
 Below, `MANTA` is a placeholder for the executable you resolved. Substitute it before
@@ -49,35 +49,21 @@ same way in POSIX shells, PowerShell, and cmd.exe.
 If the selected executable cannot run, report its exact error and stop. Do not fall through
 to another executable, which could silently target a different Manta build.
 
-## Load the full guide before running Manta commands
+## Load the version-matched guide before running Manta commands
 
 ```text
 MANTA skills get orchestration
 ```
 
-That prints the complete, version-matched guide for the exact binary that will handle your
-next commands — task creation and dispatch, injected lifecycle preambles, worker_done
-authority, decision gates, and coordinator loops. Read it first, then run the specific
-command you need.
+That prints the compact, version-matched guide for the exact binary that will handle your
+next commands. It covers the normal local coordinator loop. For a conditional action gate
+such as remote placement, uncertain release recovery, or expanded DAG work, load only the
+reference that gate names with
+`MANTA skills get orchestration --reference references/<file>.md`
+(`--references` lists the names). If that binary rejects `--reference`, run
+`MANTA skills get orchestration --full` and read the named bundled reference before acting.
 
-Don't guess subcommands or flags from memory or from a cached copy of this stub. They
-change between Manta releases, and this file deliberately no longer lists them. Confirm the
-app is up with `MANTA status --json` (start it with `MANTA open --json` if needed), and
-prefer `--json` for agent-driven calls.
-
-## If an older Manta does not recognize `skills get`
-
-Use this fallback only when the selected binary explicitly reports that `skills get` is an
-unknown command. Another failure is not proof of an older binary; report it rather than
-guessing or changing executables. For a confirmed pre-guide binary, use only this bounded,
-read-only bootstrap to orient. Do not dead-end and do not invent commands:
-
-```text
-MANTA status --json
-MANTA orchestration task-list --json
-MANTA terminal list --json
-```
-
-Then tell the user that updating Manta restores the full, version-matched guide via
-`MANTA skills get orchestration`. Beyond these commands, ask the user rather than guessing a
-command surface this older binary may not support.
+Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
+not cover. If a command reports that Manta is not running, start it with `MANTA open --json`
+and retry. If `skills get` is unknown, explain that updating Manta restores the guide; use
+`--help` for read-only discovery and do not guess unsupported commands.

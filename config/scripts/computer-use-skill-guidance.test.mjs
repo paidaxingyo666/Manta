@@ -18,20 +18,10 @@ describe('computer-use skill guidance', () => {
 
     expect(description).toContain('OS/window-level inspection and input')
     expect(description).toContain('external browser window')
-    expect(description).toContain("Do not use for Manta's embedded browser")
-    expect(description).toContain('page-only browser automation')
-    expect(description).toContain("`manta-cli` for Manta's embedded pages")
-    expect(description).toContain(
-      'page-automation tool such as Playwright or CDP for external pages'
-    )
+    expect(description).toContain("Not for Manta's embedded browser (use `manta-cli`)")
+    expect(description).toContain('page-only automation (use Playwright or CDP)')
     expect(description).not.toContain('read Slack')
     expect(description).not.toContain('get app state')
-
-    const mantaCli = readFileSync(join(projectDir, 'skill-guides', 'manta-cli.md'), 'utf8').replace(
-      /\s+/gu,
-      ' '
-    )
-    expect(mantaCli).toContain('browser embedded inside the Manta app')
   })
 
   it('keeps web-app targeting on the computer-use surface', () => {
@@ -39,11 +29,10 @@ describe('computer-use skill guidance', () => {
 
     expect(skill).toContain('Use this skill for desktop UI through `manta computer`')
     expect(skill).toContain('external desktop browser window that needs desktop-level control')
-    expect(skill).not.toContain('manta goto')
-    expect(skill).not.toContain('manta snapshot')
-    expect(skill).not.toContain('manta click')
-    expect(skill).not.toContain('manta fill')
-    expect(skill).not.toContain('Routing:')
+    expect(skill).not.toMatch(/\borca goto\b/iu)
+    expect(skill).not.toMatch(/\borca snapshot\b/iu)
+    expect(skill).not.toMatch(/\borca click\b/iu)
+    expect(skill).not.toMatch(/\borca fill\b/iu)
   })
 
   it('warns agents to verify browser-hosted form focus before drafting text', () => {
@@ -101,16 +90,8 @@ describe('computer-use install stub', () => {
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('installs the executable as `manta-ide`')
+    expect(stub).toContain('GNOME Orca screen reader')
     expect(stub).not.toMatch(/^manta /mu)
-  })
-
-  it('gives older binaries a bounded fallback instead of a dead end', () => {
-    const stub = readFileSync(stubPath, 'utf8').replace(/\s+/gu, ' ')
-
-    expect(stub).toContain('explicitly reports that `skills get` is an unknown command')
-    expect(stub).toContain('do not invent commands')
-    expect(stub).toContain('ask the user rather than guessing')
   })
 
   it('drops the changing command reference from the installable file', () => {

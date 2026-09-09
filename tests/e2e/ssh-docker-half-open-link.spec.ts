@@ -68,7 +68,7 @@ test.describe('Docker SSH half-open link', () => {
       const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
 
       const runId = String(Date.now())
-      await execInTerminal(mantaPage, ptyId, `echo LIVE_${runId}`)
+      await execInTerminal(mantaPage, ptyId, `printf 'LIVE_%s\\n' ${runId}`)
       await waitForTerminalOutput(mantaPage, `LIVE_${runId}`, 60_000)
       expect(await readSshStatus(mantaPage, remote.targetId)).toBe('connected')
 
@@ -78,13 +78,15 @@ test.describe('Docker SSH half-open link', () => {
       const frozenAt = Date.now()
 
       let verdict: string | null = 'connected'
-      while (Date.now() - frozenAt < LOST_VERDICT_BUDGET_MS) {
-        verdict = await readSshStatus(mantaPage, remote.targetId)
-        if (verdict !== 'connected') {
-          break
-        }
-        await mantaPage.waitForTimeout(1_000)
-      }
+      await expect
+        .poll(
+          async () => {
+            verdict = await readSshStatus(mantaPage, remote.targetId)
+            return verdict
+          },
+          { timeout: LOST_VERDICT_BUDGET_MS, message: 'frozen host remained connected' }
+        )
+        .not.toBe('connected')
       const verdictMs = Date.now() - frozenAt
       console.log(
         `[half-open] ${JSON.stringify({ verdict, verdictMs, budgetMs: LOST_VERDICT_BUDGET_MS })}`
@@ -105,7 +107,7 @@ test.describe('Docker SSH half-open link', () => {
         .poll(() => readSshStatus(mantaPage, remote.targetId), { timeout: 120_000 })
         .toBe('connected')
       const recoveredPtyId = await waitForActivePanePtyId(mantaPage, 60_000)
-      await execInTerminal(mantaPage, recoveredPtyId, `echo RECOVERED_${runId}`)
+      await execInTerminal(mantaPage, recoveredPtyId, `printf 'RECOVERED_%s\\n' ${runId}`)
       await waitForTerminalOutput(mantaPage, `RECOVERED_${runId}`, 90_000)
     } finally {
       if (target && paused) {

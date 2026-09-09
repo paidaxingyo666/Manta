@@ -7,7 +7,7 @@ artifact_repository_id = "manta-cloud"
 
 # The relay source lives in the public stablyai/orca repository, where the workflows carry a
 # `cloud-` file prefix. github_owner and github_owner_id keep their defaults.
-github_repo                 = "manta"
+github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 

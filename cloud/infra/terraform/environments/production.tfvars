@@ -7,7 +7,7 @@ artifact_repository_id = "manta-cloud"
 
 # The relay source lives in the public stablyai/orca repository, where the workflows carry a
 # `cloud-` file prefix. github_owner and github_owner_id keep their defaults.
-github_repo                 = "manta"
+github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 
@@ -402,7 +402,11 @@ relay_region_rehome_source_cell_ids = [
   "production-gce-c23",
   "production-gce-c24",
   "production-gce-c25",
-  "production-gce-c26"
+  "production-gce-c26",
+  # Asia cells carry the same trust so mis-homed hosts can be drained back off them.
+  "production-gce-c27",
+  "production-gce-c28",
+  "production-gce-c29"
 ]
 
 # Slack #manta-relay-alerts, created out of band on 2026-08-05. Declared here because an apply

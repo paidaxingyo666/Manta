@@ -34,7 +34,7 @@ src/main/runtime/manta-runtime-create-terminal-side-effect-command-code-detector
 src/main/runtime/manta-runtime-create-terminal.ts
 src/main/runtime/manta-runtime-deliver-pending-messages.ts
 src/main/runtime/manta-runtime-emit-daemon-pty-transient-fact.ts
-src/main/runtime/manta-runtime-fence-automation-owner.ts
+src/main/runtime/manta-runtime-automation-operations.ts
 src/main/runtime/manta-runtime-file-commands.ts
 src/main/runtime/manta-runtime-fit-override-listeners.ts
 src/main/runtime/manta-runtime-focus-terminal.ts
