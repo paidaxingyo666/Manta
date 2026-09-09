@@ -601,6 +601,76 @@
       "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity, liveness or resource-count assertions."
     },
     {
+      "id": "terminal-performance.vertical-control-scan",
+      "title": "Main terminal preview scanning skips ordinary output between controls",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "terminal-runtime",
+      "layer": "main-runtime-unit",
+      "surfaces": ["terminal output ingestion", "terminal preview and read tails"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local"],
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/.agents/skills/perf/SKILL.md"
+      ],
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial local validation; no CI soak history."
+      },
+      "promotionCriteria": [
+        "Complete CI soak with zero unexplained flakes and preserve the observable oracle."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity or resource-count assertions.",
+      "coverageNotes": "Pure shared-host string semantics and main runtime tests cover the production scanner on macOS. Folder/git workspaces, local/daemon/SSH/remote-runtime authority, wire content and mobile/relay behavior are unchanged. No live native remote session was launched.",
+      "invariant": "Main terminal preview/read tails choose the same append/redraw path while ordinary text is skipped without a JavaScript code-unit walk. Complete string-control payloads are not interpreted as vertical controls; incomplete controls stop at the same point.",
+      "oracle": "Plain, colored and vertical-CSI output uses fewer than 16 code-unit inspections with the same recognition result. Canonical and noncanonical CSI, embedded CSI in OSC/DCS/SOS/PM/APC, ESC inside CSI parameter bytes, back-to-back controls and incomplete sequences preserve decisions. Production normalization and tail append retain exact cursor-up redraw rows.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/main/runtime/terminal-vertical-control-scan.test.ts"
+      ],
+      "testFiles": ["src/main/runtime/terminal-vertical-control-scan.test.ts"],
+      "assertionRefs": [
+        {
+          "file": "src/main/runtime/terminal-vertical-control-scan.test.ts",
+          "assertions": [
+            "bounds code-unit inspections on %s output",
+            "preserves numeric CSI A recognition for %j",
+            "skips embedded CSI and stops at an incomplete %s",
+            "resumes scanning after a parsed control for %j",
+            "preserves tail rows when ordinary output is followed by a cursor-up redraw"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/main/runtime/terminal-vertical-control-scan.test.ts",
+          "result": "passed",
+          "durationSeconds": 0.325,
+          "summary": "29 scanner work-budget, control recognition, scan-resumption and complete-tail integration tests passed."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 15,
+        "scope": "Focused scanner and tail-contract suite; local runtime budget, not an established p95."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "Baseline inspections 90,112/90,119/98,307 become 0/5/2. Frozen differential matched 204,925 predicate cases and 3,000 complete tail transitions. Broader integrated validation passed 1,308 tests with one existing skip across six files. Independent original-base normalizer with only this scanner change passed 1,298 tests with one existing skip across five files (20.55 seconds), using a temporary Vite source override; this confirms independence from the pending-storage PR."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "Actual normalize, append-tail, transcript and preview pipeline: 4 MiB/64 KiB-chunk CPU medians plain 43.418 to 37.932 ms, colored 49.321 to 42.570, wide 41.022 to 32.883, dense newlines 37.112 to 31.601, no-newline 32.009 to 25.100. 10,000 sequential single-character writes into a growing partial line 190.374 to 126.820 ms. Equal-bundle rotated controls show no material tiny-echo/redraw regression. Forward native ESC search skips only ground text; no new retained state, scheduling, timer or provider calls."
+      },
+      "knownGaps": [
+        "No live end-to-end input latency, many-pane frame measurement or launched Electron/SSH/WSL/Linux/Windows journey.",
+        "Existing preview fidelity and incomplete-control handling remain unchanged; broader runtime suite has one existing skipped case."
+      ]
+    },
+    {
       "id": "terminal-performance.padded-fullscreen-redraw",
       "title": "Fullscreen redraw padding does not stall terminal delivery",
       "maturity": "experimental",
