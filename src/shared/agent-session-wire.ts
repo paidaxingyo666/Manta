@@ -68,6 +68,11 @@ export type AgentSessionBackgroundTaskState = {
   tasks?: AgentSessionBackgroundTask[]
   /** Optional so clients only send targeted stops to hosts that accept them. */
   supportsTaskStop?: boolean
+  /** Whether an untargeted "stop everything" is available at all. Absent means
+   *  yes: every host that predates this field accepted one, and a client that
+   *  read absence as "no stop" would hide a working control on those hosts.
+   *  A host whose provider exposes no honest stop sends `false`. */
+  supportsStopAll?: boolean
 }
 
 export type AgentSessionTurnActivity = {
