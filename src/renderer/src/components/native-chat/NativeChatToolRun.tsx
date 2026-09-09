@@ -297,7 +297,7 @@ export function NativeChatToolRun({
             rowWord={latestActiveCall.name}
             className="text-muted-foreground"
           />
-          <span className="min-w-0 flex-1 animate-pulse truncate text-foreground/85 motion-reduce:animate-none">
+          <span className="min-w-0 animate-pulse truncate text-foreground/85 motion-reduce:animate-none">
             {nativeChatToolActivityLabel(latestActiveCall)}
           </span>
           {open ? <ChevronRight className="size-3.5 rotate-90 text-muted-foreground" /> : null}

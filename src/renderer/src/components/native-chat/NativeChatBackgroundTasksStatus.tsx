@@ -49,7 +49,7 @@ export function NativeChatBackgroundTasksStatus(props: {
             <span aria-hidden="true">
               <AgentStateDot state="monitoring" size="md" title={null} />
             </span>
-            <span className="min-w-0 flex-1 truncate">
+            <span className="min-w-0 truncate">
               {translate(
                 'components.native-chat.backgroundTasks.monitoring',
                 'Monitoring background tasks'

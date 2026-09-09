@@ -29,7 +29,7 @@ export function NativeChatTurnDiffRollup({
           ) : null}
           <ChevronRight
             aria-hidden
-            className="ml-auto size-3.5 shrink-0 transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+            className="size-3.5 shrink-0 transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
           />
         </Button>
       </CollapsibleTrigger>
