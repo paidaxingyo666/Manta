@@ -29,7 +29,6 @@
       },
       "GitHubItemDialog": {
         "04539beb48": "issue",
-        "307c98e8e3": "Show {{value0}} more lines above",
         "3853476a97": "GitHub item",
         "3ab6ac0fc8": "Preview and edit the selected GitHub issue or pull request.",
         "45af57999b": "Close preview",
@@ -405,7 +404,8 @@
           "edfcc64182": "Go"
         },
         "RichMarkdownDocLinkMenu": {
-          "142a7d51cd": "document"
+          "142a7d51cd": "document",
+          "e17b987473": "↑↓ navigate&nbsp;&nbsp;↵ select&nbsp;&nbsp;esc dismiss"
         },
         "RichMarkdownSlashMenu": {
           "e2e12b0e98": "component"
@@ -600,8 +600,7 @@
         "project": {
           "view": {
             "surfaces": {
-              "2c4b1c2c08": "number",
-              "7616c986c6": "Open {{value0}} issues"
+              "2c4b1c2c08": "number"
             }
           }
         }
@@ -1389,13 +1388,9 @@
           "b5e3e77e89": "action",
           "c90b858573": "text-amber-700 dark:text-amber-300"
         },
-        "RepositoryIconPicker": {
-          "2b7d27b93c": "Use {{value0}} repo color"
-        },
         "RepositoryPane": {
           "createPendingSetup": "Track setup",
           "creatingPendingSetup": "Creating...",
-          "settingUpHost": "Importing...",
           "setupExistingFolder": "Import existing folder",
           "setupExistingFolderHelp": "Make this project available on another host by linking a checkout that already exists there.",
           "setupHost": "Import",
@@ -1612,6 +1607,13 @@
             }
           }
         },
+        "browser": {
+          "use": {
+            "search": {
+              "f5b8fdddf5": "orca-cli"
+            }
+          }
+        },
         "computerUseSkillRuntime": {
           "thisDevice": "This device"
         },
@@ -1698,6 +1700,15 @@
               "eaffa454e9": "Update",
               "efaab83c5d": "Add site",
               "fb854902d9": "connecting"
+            }
+          }
+        },
+        "linear": {
+          "agent": {
+            "skill": {
+              "search": {
+                "mantaLinear": "orca-linear"
+              }
             }
           }
         },
@@ -1865,6 +1876,20 @@
         "SetupScriptPromptCard": {
           "dcaa645da5": "ok"
         },
+        "SidebarFeedbackDialog": {
+          "26108d3699": "Join Discord",
+          "3460258a54": "Follow on X",
+          "5b120b9634": "Submit anonymously",
+          "60b721e857": "Failed to submit feedback. Please try again.",
+          "69969ba364": "Sending…",
+          "7a46c228b8": "Thanks for the feedback.",
+          "8de03e23c5": "Submit with your typed feedback only, or connect `gh` to include GitHub identity.",
+          "a2fd890d9e": "Please enter feedback before submitting.",
+          "c9e5ea0791": "GitHub:",
+          "d20439c560": "Checking GitHub identity…",
+          "f2e42e1307": "Send",
+          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed."
+        },
         "SidebarHeader": {
           "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
@@ -1881,7 +1906,9 @@
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
-          "d396773ef0": "checking"
+          "c4f8e1b72a": "X",
+          "d396773ef0": "checking",
+          "eb9884e55b": "Discord"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "Open folder picker to add a project",
@@ -1891,14 +1918,7 @@
           "2d4f0eb933": "Default",
           "631b97eea9": "Host scope",
           "680043342f": "compact",
-          "bc96dbd041": "Workspace options ({{value0}})",
           "c7591b6014": "repo"
-        },
-        "WorkspaceKanbanSettingsMenu": {
-          "b45b350eb0": "Move {{value0}} left"
-        },
-        "WorkspaceStatusAppearancePopover": {
-          "514be2f569": "Set {{value0}} color to {{value1}}"
         },
         "WorktreeCard": {
           "01f45d3d8a": "sidebar",
@@ -2054,6 +2074,7 @@
         "SkillInstallReviewContent": {
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
           "3d8421ca2f": "executable",
+          "66cff7a804": "https://app.orca.dev/skills/share/…",
           "87137bcb8d": "scripts",
           "8f9833d509": "Immutable version",
           "98ed90e523": "A skill contains instructions and may include scripts. Treat it as code from its author.",
@@ -2189,6 +2210,13 @@
           "f6a2c8d019": "Model",
           "faf3444859": "Input"
         },
+        "share": {
+          "card": {
+            "utils": {
+              "19f4b4dc75": "github.com/stablyai/orca"
+            }
+          }
+        },
         "usage": {
           "overview": {
             "sections": {
@@ -2241,8 +2269,7 @@
             "grokUsageAria": "Open Grok usage details"
           },
           "WorkspaceSpaceCompactPanel": {
-            "2837dc7c72": "cancelling",
-            "bef4dc0457": "{{value0}} reclaimable · {{value1}} unavailable"
+            "2837dc7c72": "cancelling"
           },
           "WorkspaceSpaceManagerPanel": {
             "02b27c2230": "workspace",
@@ -2443,13 +2470,6 @@
           "TerminalSshReconnectOverlay": {
             "connectButton": "Connect",
             "connectingButton": "Connecting..."
-          },
-          "terminal": {
-            "drop": {
-              "handler": {
-                "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…"
-              }
-            }
           }
         },
         "quick": {

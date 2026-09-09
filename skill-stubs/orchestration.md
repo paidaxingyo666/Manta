@@ -6,7 +6,7 @@ purpose so it can never drift from the binary that will actually run your comman
 
 Engage Manta orchestration whenever you need structured multi-agent coordination: threaded
 messages, blocking ask/reply flows, task dispatch, worker_done/escalation waits, task DAGs,
-decision gates, coordinator loops, or decomposing work across agents. Use the orca-cli skill
+decision gates, coordinator loops, or decomposing work across agents. Use the manta-cli skill
 instead for full ownership handoffs ("hand off", "handoff", "handover", "give this to
 another agent", "another worktree") when the user did not ask to supervise, monitor, wait
 for results, or coordinate a DAG — and for ordinary terminal control, shell commands,

@@ -63,7 +63,10 @@ describe('hourly build preflight', () => {
       preflight.steps.find((step) => step.id === 'app_token').with['permission-contents']
     ).toBe('read')
     expect(build.needs).toBe('preflight')
-    expect(build.if).toBe("needs.preflight.outputs.should_build == 'true'")
+    // The freshness gate lives on preflight's own `if`, not on this job's: the
+    // credential-scope contract requires this one to be exactly the repository
+    // guard, so the gate is enforced by `needs` skipping the job instead.
+    expect(build.needs).toBe('preflight')
     expect(build.steps.find((step) => step.name === 'Checkout').with.ref).toBe(
       build.outputs.head_sha
     )

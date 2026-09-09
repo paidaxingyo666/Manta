@@ -1,5 +1,5 @@
 ---
-name: orca-emulator-android
+name: manta-emulator-android
 description: >-
   Android device and emulator control from inside Manta over adb, with the live
   device view in Manta's emulator pane. Use when driving an adb-connected emulator
@@ -36,7 +36,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator-android
+MANTA skills get manta-emulator-android
 ```
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does

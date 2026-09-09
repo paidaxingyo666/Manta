@@ -76,12 +76,12 @@ REMOTE_DEBUGGING_PORT=9222 \
 MANTA_CLOUD_API_URL=https://login.manta.sh.cn \
 MANTA_CLOUD_CLIENT_ID=manta-desktop \
 MANTA_DEV_USER_DATA_PATH=/tmp/orca-relay-bench-profile \
-ORCA_RELAY_REGION_OVERRIDE=us-central1 \
+MANTA_RELAY_REGION_OVERRIDE=us-central1 \
 pnpm run dev
 ```
 
 `MANTA_DEV_USER_DATA_PATH` keeps the bench pairing out of your real profile.
-`ORCA_RELAY_REGION_OVERRIDE` pins the cell region, which is what you want when comparing a change
+`MANTA_RELAY_REGION_OVERRIDE` pins the cell region, which is what you want when comparing a change
 rather than comparing regions. Both are optional.
 
 Sign in, then read the pairing offer out of the hidden renderer:

@@ -4,15 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { LINEAR_COMMAND_SPECS } from '../../src/cli/specs/linear'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-// Why: orca-linear and its legacy linear-tickets alias now ship hybrid discovery stubs, so
+// Why: manta-linear and its legacy linear-tickets alias now ship hybrid discovery stubs, so
 // their version-sensitive command guidance lives in the authoritative guide sources — assert
 // that content there. The installable stub projections are checked separately below.
 const canonicalGuidePath = join(projectDir, 'skill-guides', 'manta-linear.md')
 const legacyGuidePath = join(projectDir, 'skill-guides', 'linear-tickets.md')
-const canonicalStubPath = join(projectDir, 'skills', 'orca-linear', 'SKILL.md')
+const canonicalStubPath = join(projectDir, 'skills', 'manta-linear', 'SKILL.md')
 const legacyStubPath = join(projectDir, 'skills', 'linear-tickets', 'SKILL.md')
 const legacyIntro =
-  '`linear-tickets` is the legacy bundled name for `orca-linear`. This copy remains complete; its CLI commands are identical to `orca-linear` and always use `MANTA linear ...`.'
+  '`linear-tickets` is the legacy bundled name for `manta-linear`. This copy remains complete; its CLI commands are identical to `manta-linear` and always use `MANTA linear ...`.'
 
 function skillBody(skill) {
   return skill.replace(/^---\n[\s\S]*?\n---\n\n/, '')
@@ -25,12 +25,12 @@ function normalizeLegacyBody(skill) {
   )
 }
 
-describe('orca-linear skill guidance', () => {
+describe('manta-linear skill guidance', () => {
   it('keeps canonical and legacy Linear guide bodies from drifting', () => {
     const canonical = readFileSync(canonicalGuidePath, 'utf8')
     const legacy = readFileSync(legacyGuidePath, 'utf8')
 
-    expect(canonical).toContain('name: orca-linear')
+    expect(canonical).toContain('name: manta-linear')
     expect(legacy).toContain('name: linear-tickets')
     expect(legacy).toContain('Legacy bundled name for')
     expect(normalizeLegacyBody(legacy)).toBe(skillBody(canonical))
@@ -90,9 +90,9 @@ describe('orca-linear skill guidance', () => {
   })
 })
 
-describe('orca-linear install stubs', () => {
+describe('manta-linear install stubs', () => {
   const cases = [
-    { name: 'orca-linear', stubPath: canonicalStubPath, guidePath: canonicalGuidePath },
+    { name: 'manta-linear', stubPath: canonicalStubPath, guidePath: canonicalGuidePath },
     { name: 'linear-tickets', stubPath: legacyStubPath, guidePath: legacyGuidePath }
   ]
 

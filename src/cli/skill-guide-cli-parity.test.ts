@@ -42,7 +42,7 @@ function invocationSpans(contents: string, file: string): Invocation[] {
     }
     const spans = inFence ? [line] : [...line.matchAll(/`([^`]+)`/gu)].map((match) => match[1])
     for (const span of spans) {
-      const starts = [...span.matchAll(/\bORCA\b/gu)].map((match) => match.index)
+      const starts = [...span.matchAll(/\bMANTA\b/gu)].map((match) => match.index)
       starts.forEach((start, position) => {
         found.push({
           file,

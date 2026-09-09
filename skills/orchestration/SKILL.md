@@ -3,14 +3,14 @@ name: orchestration
 description: >-
   Coordinate supervised Manta workers: threaded messages, blocking ask/reply,
   task dispatch, worker_done/escalation waits, task DAGs, decision gates,
-  coordinator loops, and decomposing work across agents. Use `orca-cli` for full
+  coordinator loops, and decomposing work across agents. Use `manta-cli` for full
   ownership handoffs — "hand off", "handoff", "handover", "give this to another
   agent", "another worktree" — unless asked to supervise, monitor, or coordinate
   a DAG, and for terminal control, lightweight terminal prompts, shell commands,
   Manta worktree management, and reading or waiting on terminals. Use Computer
   Use for external browser windows, webviews, Manta app UI, or desktop UI outside
   Manta's embedded browser only when the task requires OS/window-level control
-  such as focus, menus, dialogs, coordinates, or screenshots. Use `orca-cli` for
+  such as focus, menus, dialogs, coordinates, or screenshots. Use `manta-cli` for
   Manta's embedded pages and a page-automation tool such as Playwright or CDP for
   external pages.
 ---
@@ -23,7 +23,7 @@ purpose so it can never drift from the binary that will actually run your comman
 
 Engage Manta orchestration whenever you need structured multi-agent coordination: threaded
 messages, blocking ask/reply flows, task dispatch, worker_done/escalation waits, task DAGs,
-decision gates, coordinator loops, or decomposing work across agents. Use the orca-cli skill
+decision gates, coordinator loops, or decomposing work across agents. Use the manta-cli skill
 instead for full ownership handoffs ("hand off", "handoff", "handover", "give this to
 another agent", "another worktree") when the user did not ask to supervise, monitor, wait
 for results, or coordinate a DAG — and for ordinary terminal control, shell commands,

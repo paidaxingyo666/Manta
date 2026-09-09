@@ -7,7 +7,7 @@ This discovery stub loads the version-matched guide from the Manta executable us
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator-android
+MANTA skills get manta-emulator-android
 ```
 
 <!-- shared: no-guessing -->

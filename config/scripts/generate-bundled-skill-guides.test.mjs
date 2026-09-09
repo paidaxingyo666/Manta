@@ -34,8 +34,8 @@ const GUIDE_REFERENCES = {
     'recovery-and-cleanup.md',
     'worker-contract.md'
   ],
-  'orca-cli': ['automations.md', 'browser.md', 'publishing.md'],
-  'orca-per-workspace-env': [
+  'manta-cli': ['automations.md', 'browser.md', 'publishing.md'],
+  'manta-per-workspace-env': [
     'docker-ssh.md',
     'failure-modes.md',
     'provider-vercel.md',
@@ -51,8 +51,8 @@ async function readPerWorkspaceEnvCorpus() {
   const guideRoot = path.join(projectDir, 'skill-guides')
   const files = [
     path.join(guideRoot, 'manta-per-workspace-env.md'),
-    ...GUIDE_REFERENCES['orca-per-workspace-env'].map((reference) =>
-      path.join(guideRoot, 'orca-per-workspace-env', 'references', reference)
+    ...GUIDE_REFERENCES['manta-per-workspace-env'].map((reference) =>
+      path.join(guideRoot, 'manta-per-workspace-env', 'references', reference)
     )
   ]
   return (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n')
@@ -105,7 +105,7 @@ describe('bundled skill guide generator', () => {
       path.join(
         projectDir,
         'skill-guides',
-        'orca-per-workspace-env',
+        'manta-per-workspace-env',
         'references',
         'provider-vercel.md'
       ),
@@ -115,7 +115,7 @@ describe('bundled skill guide generator', () => {
     expect(corpus).toContain('MANTA_RECIPE_ID')
     expect(corpus).not.toContain('MANTA_VM_RECIPE_ID')
     expect(vercelReference).toContain('recipe_id="${recipe_id//./-}"')
-    expect(vercelReference).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 6))')
+    expect(vercelReference).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 7))')
     expect(vercelReference).toContain(
       'name="manta-${recipe_id:0:max_recipe_id_length}-${instance_id}"'
     )
@@ -163,7 +163,7 @@ describe('bundled skill guide generator', () => {
         path.join(
           projectDir,
           'skill-guides',
-          'orca-per-workspace-env',
+          'manta-per-workspace-env',
           'references',
           'provider-vercel.md'
         ),
@@ -257,7 +257,7 @@ describe('bundled skill guide generator', () => {
   })
 
   it('keeps CLI guide examples safe across shells and Linux command names', async () => {
-    for (const name of ['orca-cli', 'computer-use', 'orca-emulator', 'orca-emulator-android']) {
+    for (const name of ['manta-cli', 'computer-use', 'manta-emulator', 'manta-emulator-android']) {
       const source = await readFile(path.join(projectDir, 'skill-guides', `${name}.md`), 'utf8')
 
       expect(source).toMatch(/^MANTA .+--json$/mu)
@@ -429,7 +429,7 @@ describe('bundled skill guide generator', () => {
 
   it('rejects non-Markdown and empty bundled references', async () => {
     const root = await createFixture()
-    const referenceRoot = path.join(root, 'skill-guides', 'orca-cli', 'references')
+    const referenceRoot = path.join(root, 'skill-guides', 'manta-cli', 'references')
 
     await writeFile(path.join(referenceRoot, 'notes.txt'), 'not a reference\n')
     await expect(buildArtifacts(root)).rejects.toThrow('Guide references must be Markdown files')
@@ -464,8 +464,8 @@ describe('guide reference routing', () => {
 
   it('routes every shipped reference from its own guide, in both directions', async () => {
     const owners = await guidesWithReferences()
-    // A vacuous loop would pass forever; orca-cli is a guide that owns references today.
-    expect(owners.map((owner) => owner.name)).toContain('orca-cli')
+    // A vacuous loop would pass forever; manta-cli is a guide that owns references today.
+    expect(owners.map((owner) => owner.name)).toContain('manta-cli')
 
     const mismatches = []
     for (const owner of owners) {

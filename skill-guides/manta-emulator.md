@@ -1,5 +1,5 @@
 ---
-name: orca-emulator
+name: manta-emulator
 description: >-
   iOS Simulator control from inside Manta, with the live device view in Manta's
   emulator pane. Use when driving a booted Apple Simulator on macOS: taps,
@@ -100,5 +100,5 @@ MANTA emulator exec --command "ca-debug blended on" --json
 MANTA emulator kill --device "iPhone 16 Pro" --json
 ```
 
-See also: `orca-emulator-android` for Android devices, `orca-cli` for terminals, worktrees,
+See also: `manta-emulator-android` for Android devices, `manta-cli` for terminals, worktrees,
 and the built-in browser, and `computer-use` for desktop UI outside the simulator.

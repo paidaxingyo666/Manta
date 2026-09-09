@@ -223,9 +223,9 @@ test.describe('Worktree jump-palette filters', () => {
     await palette(mantaPage).getByPlaceholder(SEARCH_PLACEHOLDER).fill('E2E Palette')
     await expect(filterTrigger(mantaPage)).toContainText('1')
     await expect(worktreeRow(mantaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(mantaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
-      0
-    )
+    await expect(
+      worktreeRow(mantaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
+    ).toHaveCount(0)
   })
 
   test('opens with the sidebar repository scope without widening it', async ({ mantaPage }) => {
@@ -240,9 +240,9 @@ test.describe('Worktree jump-palette filters', () => {
     await expect(filterTrigger(mantaPage)).toContainText('1')
     await expect(palette(mantaPage).getByLabel(`Remove filter ${LOCAL_PROJECT}`)).toBeVisible()
     await expect(worktreeRow(mantaPage, fixture.localWorktreeId)).toBeVisible()
-    await expect(worktreeRow(mantaPage, fixture.remoteWorktreeId, fixture.remoteHostId)).toHaveCount(
-      0
-    )
+    await expect(
+      worktreeRow(mantaPage, fixture.remoteWorktreeId, fixture.remoteHostId)
+    ).toHaveCount(0)
   })
 
   test('pressing Enter creates a worktree from a typed name', async ({ mantaPage }) => {

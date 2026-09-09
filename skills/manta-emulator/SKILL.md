@@ -1,5 +1,5 @@
 ---
-name: orca-emulator
+name: manta-emulator
 description: >-
   iOS Simulator control from inside Manta, with the live device view in Manta's
   emulator pane. Use when driving a booted Apple Simulator on macOS: taps,
@@ -39,7 +39,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator
+MANTA skills get manta-emulator
 ```
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does

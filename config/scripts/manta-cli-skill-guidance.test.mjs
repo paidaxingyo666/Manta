@@ -3,12 +3,12 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-// Why: orca-cli now ships a hybrid discovery stub, so its version-sensitive command
+// Why: manta-cli now ships a hybrid discovery stub, so its version-sensitive command
 // guidance lives in the authoritative guide source — assert that content there. The
 // installable stub projection is checked separately below.
 const guidePath = join(projectDir, 'skill-guides', 'manta-cli.md')
-const stubPath = join(projectDir, 'skills', 'orca-cli', 'SKILL.md')
-// Why: orchestration and orca-emulator also ship hybrid stubs now, so their version-sensitive
+const stubPath = join(projectDir, 'skills', 'manta-cli', 'SKILL.md')
+// Why: orchestration and manta-emulator also ship hybrid stubs now, so their version-sensitive
 // command guidance lives in the guide sources — read the cross-guide worktree-id contract there.
 // Why: the worktree-selector rule lives in the orchestration placement reference, not the kernel.
 const orchestrationPlacementPath = join(
@@ -36,7 +36,7 @@ describe('manta CLI skill guidance', () => {
       'For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control'
     )
     expect(skill).toContain(
-      "Use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
+      "Use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
     )
   })
 
@@ -84,14 +84,14 @@ describe('manta CLI skill guidance', () => {
   })
 
   // The always-loaded guide keeps the boundaries; the reconstructible command catalogs move
-  // behind `skills get orca-cli --reference` so they are not charged to every turn, with
+  // behind `skills get manta-cli --reference` so they are not charged to every turn, with
   // `--full` only as the fallback for a CLI that predates the per-reference selector.
   it('gates the reconstructible command catalogs behind bundled references', () => {
     const skill = readSkill()
 
-    expect(skill).toContain('MANTA skills get orca-cli --reference references/<file>.md')
+    expect(skill).toContain('MANTA skills get manta-cli --reference references/<file>.md')
     expect(skill).toContain(
-      'If the CLI rejects `--reference`, run `MANTA skills get orca-cli --full`'
+      'If the CLI rejects `--reference`, run `MANTA skills get manta-cli --full`'
     )
     for (const reference of [
       'references/browser.md',
@@ -99,7 +99,9 @@ describe('manta CLI skill guidance', () => {
       'references/publishing.md'
     ]) {
       expect(skill).toContain(reference)
-      expect(readSkill(join(projectDir, 'skill-guides', 'orca-cli', reference)).trim()).not.toBe('')
+      expect(readSkill(join(projectDir, 'skill-guides', 'manta-cli', reference)).trim()).not.toBe(
+        ''
+      )
     }
     expect(skill).not.toContain('MANTA automations create')
     expect(skill).not.toContain('MANTA artifacts share <file>')
@@ -181,7 +183,7 @@ describe('manta CLI install stub', () => {
     const stub = readSkill(stubPath)
 
     expect(stub).toContain('discovery stub')
-    expect(stub).toContain('MANTA skills get orca-cli')
+    expect(stub).toContain('MANTA skills get manta-cli')
     // The safe CLI-resolution contract must survive in the stub, never a bare `manta`.
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')

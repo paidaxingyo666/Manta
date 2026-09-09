@@ -3,7 +3,7 @@ name: computer-use
 description: >-
   OS/window-level inspection and input in visible local app windows through `manta computer`:
   native apps, external browser windows (Chrome, Edge, Safari), and app webviews. Not for
-  Manta's embedded browser (use `orca-cli`) or page-only automation (use Playwright or CDP).
+  Manta's embedded browser (use `manta-cli`) or page-only automation (use Playwright or CDP).
 ---
 
 # Computer Use

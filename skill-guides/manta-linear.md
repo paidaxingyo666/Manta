@@ -1,5 +1,5 @@
 ---
-name: orca-linear
+name: manta-linear
 description: >-
   Linear ticket work through Manta's CLI. Use when working from a linked Linear
   issue, finishing work with a PR/MR link and a completion comment, moving a
@@ -14,7 +14,7 @@ Use `MANTA linear` when Linear is the source of task context or ticket updates.
 
 `MANTA` is a placeholder for the executable you resolved in the stub; substitute it before running.
 
-`orca-linear` and `linear-tickets` are skill names, not CLI namespaces. Always run
+`manta-linear` and `linear-tickets` are skill names, not CLI namespaces. Always run
 `MANTA linear ...` commands.
 
 Prefer `--json` for agent-driven calls. Use plain chat updates when no Linear-linked task exists or when the user did not ask to touch Linear.

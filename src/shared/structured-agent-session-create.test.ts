@@ -68,6 +68,13 @@ describe('structured agent session create params', () => {
     // Pinned literal: a create with no `resumeFrom` must keep the digest older clients and hosts
     // already compute, so adding a field to the create fingerprint fails here rather than in the
     // field on a mixed-version pair.
+    //
+    // The value differs from upstream's by the rename and nothing else. The
+    // fixture worktree path carries the product name, so mirroring `/repo/orca`
+    // to `/repo/manta` changes the bytes being hashed while leaving the literal
+    // below untouched. What this pins is that the digest stops moving, not which
+    // digest it is — the wire compatibility it guards is between this fork's own
+    // clients and hosts.
     expect(createParams().envelope.payloadFingerprint).toBe(
       structuredAgentSessionPayloadFingerprint({
         method: 'agentSession.create',
@@ -76,7 +83,7 @@ describe('structured agent session create params', () => {
       })
     )
     expect(createParams().envelope.payloadFingerprint).toBe(
-      '56cb15e22414c0f62fd89d77d00d2d6a0a422f16e95edee154fb8b5bf53fbbc3'
+      'e7ac0b4ba2e094f8b0afe3ac21d8c0d9a8765fb761001510767d22ef5a84f330'
     )
   })
 })

@@ -1,5 +1,5 @@
 ---
-name: orca-linear
+name: manta-linear
 description: >-
   Linear ticket work through Manta's CLI. Use when working from a linked Linear
   issue, finishing work with a PR/MR link and a completion comment, moving a
@@ -34,7 +34,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-linear
+MANTA skills get manta-linear
 ```
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does

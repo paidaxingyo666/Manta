@@ -7,7 +7,7 @@ This discovery stub loads the version-matched guide from the Manta executable us
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-per-workspace-env
+MANTA skills get manta-per-workspace-env
 ```
 
 <!-- shared: no-guessing -->

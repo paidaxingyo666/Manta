@@ -399,7 +399,7 @@ describe('Relay region preference', () => {
   it('lets the environment override win and never self-heals its cache', async () => {
     const path = userDataPath()
     writeCache(path, 'us-central1', 50_000_000)
-    vi.stubEnv('ORCA_RELAY_REGION_OVERRIDE', 'asia-east2')
+    vi.stubEnv('MANTA_RELAY_REGION_OVERRIDE', 'asia-east2')
     const fetch = vi.fn<typeof globalThis.fetch>()
     const resolver = new RelayRegionPreferenceResolver({
       directorUrl: DIRECTOR,

@@ -22,7 +22,7 @@ process. The cache is deleted only when it names a region other than the best me
 assigned cell is more than three times slower than that region — a far cell under a cache that still
 names the best region means the director declined the hint, and re-measuring would return the same
 answer. Self-heal skips an absent, expired, or no-hint cache, and never runs under
-`ORCA_RELAY_REGION_OVERRIDE`.
+`MANTA_RELAY_REGION_OVERRIDE`.
 
 The assignment request sends only `preferredRegion`. It does not send latency, IP address, country,
 pairing data, or credentials. Catalog, probe, and cache failures fall back to an assignment without

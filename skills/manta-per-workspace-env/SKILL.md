@@ -1,11 +1,11 @@
 ---
-name: orca-per-workspace-env
+name: manta-per-workspace-env
 description: >-
   Set up, review, debug, or validate a Manta per-workspace environment recipe: the
   on-demand, disposable runtime (cloud sandbox, VM, SSH host, or local container)
   Manta creates fresh for each workspace. Use to stand up a new recipe end to end,
   fix an `environmentRecipes` entry in `manta.yaml`, scaffold provider lifecycle
-  scripts, or resolve an `manta vm recipe doctor` failure. Use `orca-cli` for
+  scripts, or resolve an `manta vm recipe doctor` failure. Use `manta-cli` for
   ordinary worktree and workspace creation with no recipe involved.
 ---
 
@@ -35,7 +35,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-per-workspace-env
+MANTA skills get manta-per-workspace-env
 ```
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does

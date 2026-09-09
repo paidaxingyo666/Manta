@@ -1159,5 +1159,7 @@
   "Unexpected response from {{host}}": "{{host}} 返回了异常响应",
   "No connection": "无网络连接",
   "Request not sent": "请求未发送",
-  "Chat": "对话"
+  "Chat": "对话",
+  "Conversation operation is unconfirmed; retry checks the same operation.": "会话操作未确认;重试将检查同一操作。",
+  "Wait for pending work to finish before using this command.": "请等待进行中的任务完成后再使用此命令。"
 }

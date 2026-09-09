@@ -18,7 +18,7 @@ describe('computer-use skill guidance', () => {
 
     expect(description).toContain('OS/window-level inspection and input')
     expect(description).toContain('external browser window')
-    expect(description).toContain("Not for Manta's embedded browser (use `orca-cli`)")
+    expect(description).toContain("Not for Manta's embedded browser (use `manta-cli`)")
     expect(description).toContain('page-only automation (use Playwright or CDP)')
     expect(description).not.toContain('read Slack')
     expect(description).not.toContain('get app state')

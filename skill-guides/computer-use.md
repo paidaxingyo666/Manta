@@ -3,12 +3,12 @@ name: computer-use
 description: >-
   OS/window-level inspection and input in visible local app windows through `manta computer`:
   native apps, external browser windows (Chrome, Edge, Safari), and app webviews. Not for
-  Manta's embedded browser (use `orca-cli`) or page-only automation (use Playwright or CDP).
+  Manta's embedded browser (use `manta-cli`) or page-only automation (use Playwright or CDP).
 ---
 
 # Computer Use
 
-Use this skill for desktop UI through `manta computer`. For a website or web app, use it only when the page is in an external desktop browser window that needs desktop-level control. Do not use it for page-only automation: use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages.
+Use this skill for desktop UI through `manta computer`. For a website or web app, use it only when the page is in an external desktop browser window that needs desktop-level control. Do not use it for page-only automation: use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages.
 
 ## Preconditions
 

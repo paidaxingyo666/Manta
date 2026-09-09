@@ -1,5 +1,5 @@
 ---
-name: orca-emulator-android
+name: manta-emulator-android
 description: >-
   Android device and emulator control from inside Manta over adb, with the live
   device view in Manta's emulator pane. Use when driving an adb-connected emulator
@@ -114,5 +114,5 @@ MANTA emulator logcat --lines 100 --json
 MANTA emulator kill --json
 ```
 
-See also: `orca-emulator` for iOS simulators, `orca-cli` for terminals, worktrees, and the
+See also: `manta-emulator` for iOS simulators, `manta-cli` for terminals, worktrees, and the
 built-in browser, and `computer-use` for desktop UI outside the emulator.

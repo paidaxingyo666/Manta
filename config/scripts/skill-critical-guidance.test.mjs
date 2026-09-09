@@ -10,7 +10,7 @@ function readGuide(name) {
 }
 
 it('preserves Linear completion and terminal-state exclusions', () => {
-  for (const name of ['orca-linear', 'linear-tickets']) {
+  for (const name of ['manta-linear', 'linear-tickets']) {
     const text = readGuide(name)
     expect(text).toContain('Post exactly one completion comment')
     expect(text).toContain('containing the PR/MR link')
@@ -27,13 +27,13 @@ it('preserves verification distinctions and emulator cleanup', () => {
   expect(text).toContain('unverified (accessibility action unasserted)')
   expect(text).toContain('unverified (synthetic input)')
   expect(text).toContain('Missing verification metadata is unverified')
-  for (const name of ['orca-emulator', 'orca-emulator-android']) {
+  for (const name of ['manta-emulator', 'manta-emulator-android']) {
     expect(readGuide(name)).toContain('Run `kill` when you are done')
   }
 })
 
 it('preserves paid approvals and provision retry authority', () => {
-  const text = readGuide('orca-per-workspace-env')
+  const text = readGuide('manta-per-workspace-env')
   expect(text).toContain(
     'Get an explicit OK before each paid step: the base snapshot, the auth snapshot, and `--provision`'
   )

@@ -10,7 +10,7 @@ handles device scoping, helper lifecycle, and worktree context.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-emulator
+MANTA skills get manta-emulator
 ```
 
 <!-- shared: no-guessing -->

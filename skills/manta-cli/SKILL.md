@@ -1,9 +1,9 @@
 ---
-name: orca-cli
+name: manta-cli
 description: >-
   Operate Manta-managed worktrees, folder contexts, terminals, repos, automations, artifacts,
   skill sharing, worktree comments, and Manta's embedded browser through the `manta` CLI. Use
-  when the user says "$orca-cli", "Manta worktree", "child worktree", "spawn codex/claude in a
+  when the user says "$manta-cli", "Manta worktree", "child worktree", "spawn codex/claude in a
   worktree", "read/wait/send Manta terminal", "handoff" / "handover" / "give this to another
   agent", "Manta browser", "manta artifacts", or "share skills". Prefer it over raw git
   worktree, ad hoc PTYs, or Computer Use when Manta state is involved. Use Computer Use only
@@ -37,7 +37,7 @@ to another executable, which could silently target a different Manta build.
 ## Load the version-matched guide before running Manta commands
 
 ```text
-MANTA skills get orca-cli
+MANTA skills get manta-cli
 ```
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
