@@ -19,6 +19,7 @@ import {
   NativeChatImageAttachments,
   ProviderFrameRow
 } from './NativeChatTranscriptChrome'
+import type { NativeChatDiffReveal } from './native-chat-turn-diffs'
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client'
 
 /** One message: its prose first, then a collapsible run folding all of the
@@ -28,6 +29,7 @@ import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client'
  *  keep their block identity, so only the changed row re-renders. */
 export const MessageRow = memo(function MessageRow({
   message,
+  revealedDiff,
   expandSignal,
   activeTurnIsWorking,
   onScrollMessageToTop,
@@ -39,6 +41,7 @@ export const MessageRow = memo(function MessageRow({
   runtimeContext
 }: {
   message: NativeChatMessage
+  revealedDiff?: NativeChatDiffReveal
   expandSignal: boolean
   activeTurnIsWorking?: boolean
   /** Align this message's top to the top of the scroll viewport. */
@@ -199,6 +202,8 @@ export const MessageRow = memo(function MessageRow({
       {tools.length > 0 || subagentGroups.length > 0 ? (
         <NativeChatToolRun
           blocks={tools}
+          revealedDiff={revealedDiff}
+          onRevealDiff={onScrollMessageToTop}
           onLinkClick={onLinkClick}
           subagentGroups={subagentGroups}
           expandSignal={expandSignal}

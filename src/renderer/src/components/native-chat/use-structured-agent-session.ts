@@ -51,17 +51,8 @@ export function useStructuredAgentSession(args: {
   const { agent, isVisible, sessionId, target } = args
   // Declared first: the hold is what gives a restored session its provider child back, and the
   // read below is useless for sending until it lands.
-  useStructuredAgentSessionHold({
-    sessionId,
-    target,
-    surface: 'desktop-chat',
-    enabled: isVisible
-  })
-  const { state, loadingOlder, loadOlder } = useStructuredAgentSessionRead({
-    sessionId,
-    target,
-    isVisible
-  })
+  useStructuredAgentSessionHold({ sessionId, target, surface: 'desktop-chat', enabled: isVisible })
+  const { state, loadingOlder, loadOlder } = useStructuredAgentSessionRead(args)
   const stateRef = useRef(state)
   const [writeError, setWriteError] = useState<string | null>(null)
   const operationIds = useRef(new Map<string, string>())
@@ -267,6 +258,7 @@ export function useStructuredAgentSession(args: {
             { command }
           )
       }),
+    journalItems: state.items,
     messages,
     status: state.status,
     error: state.error ?? writeError ?? outboxController.error,

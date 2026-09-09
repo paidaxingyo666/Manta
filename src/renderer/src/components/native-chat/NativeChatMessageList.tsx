@@ -14,6 +14,16 @@ import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client'
 import type { NativeChatTurnActivity } from './native-chat-turn-activity'
 import { NativeChatTurnActivityLine } from './NativeChatTurnActivityLine'
 
+import type { AgentJournalRenderItem } from '../../../../shared/agent-session-journal-types'
+import {
+  nativeChatTurnDiffs,
+  type NativeChatDiffReveal,
+  type NativeChatDiffTarget,
+  type NativeChatTurnDiff
+} from './native-chat-turn-diffs'
+import { NativeChatTurnDiffRollup } from './NativeChatTurnDiffRollup'
+import { NativeChatResolutionReceipt } from './NativeChatResolutionReceipt'
+
 export { ProviderFrameRow } from './NativeChatTranscriptChrome'
 
 function geometryOf(el: HTMLElement): ScrollGeometry {
@@ -24,6 +34,7 @@ const MAX_EXPANDED_TURNS = 128
 
 export function NativeChatMessageList({
   session,
+  journalItems,
   isWorking,
   expandSignal,
   fontScale,
@@ -36,6 +47,7 @@ export function NativeChatMessageList({
   runtimeContext
 }: {
   session: NativeChatLiveSession
+  journalItems?: readonly AgentJournalRenderItem[]
   isWorking: boolean
   /** Toolbar-driven desired open state for every tool run; each flip re-syncs. */
   expandSignal: boolean
@@ -50,6 +62,22 @@ export function NativeChatMessageList({
   turnActivity?: NativeChatTurnActivity | null
   runtimeContext?: RuntimeFileOperationArgs | null
 }): React.JSX.Element {
+  const [revealedDiff, setRevealedDiff] = useState<NativeChatDiffReveal | null>(null)
+  const revealDiff = useCallback((target: NativeChatDiffTarget) => {
+    setRevealedDiff((current) => ({ ...target, requestId: (current?.requestId ?? 0) + 1 }))
+  }, [])
+  const receipts = useMemo(
+    () =>
+      new Map(
+        journalItems?.flatMap((item) =>
+          (item.body.kind === 'approval' || item.body.kind === 'question') &&
+          item.body.resolution.state !== 'pending'
+            ? [[item.itemId, item.body] as const]
+            : []
+        )
+      ),
+    [journalItems]
+  )
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [stuckToBottom, setStuckToBottom] = useState(true)
@@ -104,6 +132,13 @@ export function NativeChatMessageList({
       return currentTurnKey
     })
   }, [messages])
+  const turnDiffs = useMemo(
+    () =>
+      journalItems
+        ? nativeChatTurnDiffs(messages, turnKeys)
+        : new Map<string, NativeChatTurnDiff>(),
+    [journalItems, messages, turnKeys]
+  )
   const turnStatuses = useNativeChatTurnStatus({
     messages,
     latestUserIndex,
@@ -230,27 +265,35 @@ export function NativeChatMessageList({
                 : message.role === 'user' && turnKey
                   ? turnStatuses.completedByTurn[turnKey]
                   : undefined
+            const receipt = receipts.get(message.id)
+            const turnDiff =
+              turnKey && turnKeys[index + 1] !== turnKey ? turnDiffs.get(turnKey) : undefined
             return (
               <Fragment key={message.id}>
-                <MessageRow
-                  message={message}
-                  expandSignal={expandSignal}
-                  // A missing transcript lifecycle is not evidence that the turn
-                  // ended. Structured sessions and legacy live hooks still expose
-                  // the authoritative session-level working state.
-                  activeTurnIsWorking={
-                    showTurnStatus &&
-                    isCurrentTurn &&
-                    (isWorking || session.transcriptLifecycle?.state === 'working')
-                  }
-                  onScrollMessageToTop={scrollMessageToTop}
-                  onLinkClick={onLinkClick}
-                  allowFileUriLinks={allowFileUriLinks}
-                  deliveryFailed={failedDeliveryMessageIds?.has(message.id) === true}
-                  structuredActivityUi={showTurnStatus}
-                  activityExpandOverride={turnKey ? expandedTurnIds.has(turnKey) : undefined}
-                  runtimeContext={runtimeContext}
-                />
+                {receipt ? (
+                  <NativeChatResolutionReceipt body={receipt} />
+                ) : (
+                  <MessageRow
+                    message={message}
+                    revealedDiff={revealedDiff?.messageId === message.id ? revealedDiff : undefined}
+                    expandSignal={expandSignal}
+                    // A missing transcript lifecycle is not evidence that the turn
+                    // ended. Structured sessions and legacy live hooks still expose
+                    // the authoritative session-level working state.
+                    activeTurnIsWorking={
+                      showTurnStatus &&
+                      isCurrentTurn &&
+                      (isWorking || session.transcriptLifecycle?.state === 'working')
+                    }
+                    onScrollMessageToTop={scrollMessageToTop}
+                    onLinkClick={onLinkClick}
+                    allowFileUriLinks={allowFileUriLinks}
+                    deliveryFailed={failedDeliveryMessageIds?.has(message.id) === true}
+                    structuredActivityUi={showTurnStatus}
+                    activityExpandOverride={turnKey ? expandedTurnIds.has(turnKey) : undefined}
+                    runtimeContext={runtimeContext}
+                  />
+                )}
                 {showTurnStatus &&
                 status &&
                 (index !== latestUserIndex || showTypingIndicator || !isWorking) ? (
@@ -265,6 +308,9 @@ export function NativeChatMessageList({
                         : undefined
                     }
                   />
+                ) : null}
+                {turnDiff ? (
+                  <NativeChatTurnDiffRollup diff={turnDiff} onReveal={revealDiff} />
                 ) : null}
               </Fragment>
             )
