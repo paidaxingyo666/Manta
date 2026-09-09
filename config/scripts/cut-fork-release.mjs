@@ -174,6 +174,63 @@ async function upstreamStableBase() {
   return { desktop: tag.replace(/^v/, ''), mobile: upstreamMobileVersion(releases) }
 }
 
+/**
+ * Upstream's version at the commit `refs/sync/base` mirrors.
+ *
+ * That ref is what the sync moves when a merge lands, and its `Mirror-Of`
+ * trailer names the upstream commit it mirrors — so upstream's own manifest at
+ * that commit is exactly the version this fork is built on.
+ *
+ * Null when the ref or the commit is missing, which is a clone that has never
+ * synced; the caller falls back to upstream's published version rather than
+ * refusing to cut.
+ */
+/**
+ * The upstream version this release is named after.
+ *
+ * `merged` is what the fork has actually taken from upstream; `published` is
+ * what upstream has released. They diverge for as long as a sync is
+ * outstanding, and naming a release after `published` names it after work it
+ * does not contain — upstream tagged 1.4.198 while this tree was 394 commits
+ * behind it, and the cut produced 1.4.198-rc.0 whose own notes said upstream
+ * was unchanged.
+ *
+ * `published` is only the fallback for a clone that has never synced and so
+ * has nothing better to go on. And never backwards: a fork-only fix cut ahead
+ * of upstream keeps the base it already had.
+ */
+export function releaseBase(merged, published, currentBase) {
+  const upstreamBase = merged ?? published
+  return compareBases(upstreamBase, currentBase) > 0 ? upstreamBase : currentBase
+}
+
+function mergedUpstreamBase() {
+  try {
+    const message = execFileSync('git', ['log', '-1', '--format=%B', 'refs/sync/base'], {
+      cwd: root,
+      encoding: 'utf8'
+    })
+    // The last trailer, not the first: a mirror commit carries its own
+    // Mirror-Of and may quote earlier ones in the body above it.
+    const mirrorOf = message
+      .split('\n')
+      .toReversed()
+      .map((line) => /^Mirror-Of:\s*(\S+)/.exec(line)?.[1])
+      .find(Boolean)
+    if (!mirrorOf) {
+      return null
+    }
+    const manifest = execFileSync('git', ['show', `${mirrorOf}:package.json`], {
+      cwd: root,
+      encoding: 'utf8'
+    })
+    const version = JSON.parse(manifest).version
+    return typeof version === 'string' ? version.split('-')[0] : null
+  } catch {
+    return null
+  }
+}
+
 function compareBases(a, b) {
   const left = a.split('.').map(Number)
   const right = b.split('.').map(Number)
@@ -274,8 +331,13 @@ async function main() {
   const currentBase = manifest.version.split('-')[0]
 
   const upstream = await upstreamStableBase()
-  // Never backwards: a fork-only fix cut ahead of upstream keeps its base.
-  const base = compareBases(upstream.desktop, currentBase) > 0 ? upstream.desktop : currentBase
+  // The upstream version this fork has actually merged, not the newest one
+  // upstream has published. Those differ for as long as a sync is outstanding,
+  // and taking the published one names a release after work it does not
+  // contain: upstream tagged 1.4.198 while this tree was 394 commits behind it,
+  // and the cut produced 1.4.198-rc.0 whose own notes said upstream was
+  // unchanged. The version can only move when a sync moves it.
+  const base = releaseBase(mergedUpstreamBase(), upstream.desktop, currentBase)
   let version = value('--version')
   if (!version) {
     const highest = highestRcForBase(base, { cwd: root })
