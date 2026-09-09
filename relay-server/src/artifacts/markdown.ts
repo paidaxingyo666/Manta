@@ -7,73 +7,19 @@
  * thing in it, and the sanitizer would be load-bearing — one bypass and a
  * shared note becomes script on the artifact origin.
  *
- * The order here removes that class of bug instead of filtering it: every byte
- * is escaped first, so the only tags in the output are ones this file wrote.
- * Raw HTML in the source is shown as text, which is a documented limitation
- * rather than a hole. Authors who need real HTML publish an HTML artifact,
- * which is served verbatim and is why the artifact origin must be its own.
+ * The order removes that class of bug instead of filtering it: every byte is
+ * escaped first, so the only tags in the output are ones this code wrote. Raw
+ * HTML in a markdown source is therefore shown as text. That is a real
+ * limitation, and the way around it is to publish an HTML artifact, which is
+ * served verbatim — and is why the artifact origin has to be its own.
  *
- * The supported subset is deliberately small: headings, paragraphs, fenced and
- * inline code, ordered and unordered lists, block quotes, horizontal rules,
- * emphasis, and links to http, https, and mailto.
+ * Covered: front matter (removed), headings, paragraphs, fenced and inline
+ * code, ordered and unordered lists, task lists, tables, block quotes,
+ * horizontal rules, emphasis, strikethrough, images, and links.
  */
+import { escapeHtml, inline, SENTINEL } from './markdown-inline.js'
 
-const SAFE_LINK = /^(https?:\/\/|mailto:)/i
-
-/**
- * Marks where a code span was lifted out.
- *
- * NUL, and stripped from the source before anything runs, because a printable
- * placeholder cannot work: whatever shape it took would eventually appear in
- * someone's prose and be substituted back out of it.
- */
-const SENTINEL = String.fromCharCode(0)
-const SENTINEL_PATTERN = new RegExp(`${SENTINEL}(\\d+)${SENTINEL}`, 'g')
-
-export function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-/**
- * Inline spans, over already-escaped text.
- *
- * Code spans are taken first and held aside, so a backtick span containing `**`
- * or a bracket is not then re-read as emphasis or a link.
- */
-function inline(escaped: string): string {
-  const codes: string[] = []
-  let text = escaped.replace(/`([^`]+)`/g, (_match, code: string) => {
-    codes.push(`<code>${code}</code>`)
-    return `${SENTINEL}${codes.length - 1}${SENTINEL}`
-  })
-
-  text = text.replace(/\[([^\]\n]*)\]\(([^)\s]+)\)/g, (match, label: string, href: string) => {
-    // The href arrives escaped, so the entities have to come back out for the
-    // scheme check and stay escaped in the attribute, where that form is right.
-    const raw = href
-      .replace(/&amp;/g, '&')
-      .replace(/&#39;/g, "'")
-      .replace(/&quot;/g, '"')
-    if (!SAFE_LINK.test(raw)) {
-      return match
-    }
-    // rel on every link: these pages are written by whoever published them, and
-    // an opener reference would hand one a handle on the page that linked it.
-    return `<a href="${href}" rel="noopener noreferrer nofollow" target="_blank">${label}</a>`
-  })
-
-  text = text
-    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/(^|[^*\w])\*([^*\n]+)\*(?![*\w])/g, '$1<em>$2</em>')
-    .replace(/(^|[^_\w])_([^_\n]+)_(?![_\w])/g, '$1<em>$2</em>')
-
-  return text.replace(SENTINEL_PATTERN, (_match, index: string) => codes[Number(index)] ?? '')
-}
+export { escapeHtml } from './markdown-inline.js'
 
 type ListState = { tag: 'ul' | 'ol'; open: boolean }
 
@@ -95,10 +41,99 @@ function openList(out: string[], list: ListState, tag: 'ul' | 'ol'): void {
   }
 }
 
+/**
+ * Drops a leading YAML front matter block.
+ *
+ * Note-taking tools put `title:`, `tags:` and dates up there, and it is
+ * metadata about the document rather than part of it. Rendered instead of
+ * removed, it came out as a horizontal rule followed by a paragraph of YAML —
+ * which is how a shared note looks broken before its first heading.
+ */
+function stripFrontMatter(lines: string[]): string[] {
+  if (lines[0]?.trim() !== '---') {
+    return lines
+  }
+  const end = lines.findIndex((line, index) => index > 0 && line.trim() === '---')
+  // No closing fence means those dashes were a horizontal rule, not metadata.
+  return end === -1 ? lines : lines.slice(end + 1)
+}
+
+/** A `| --- | :--: |` row, which is what makes the line above it a header. */
+function tableAlignments(line: string): string[] | null {
+  const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '')
+  if (!trimmed.includes('-')) {
+    return null
+  }
+  const alignments: string[] = []
+  for (const cell of trimmed.split('|')) {
+    const spec = cell.trim()
+    if (!/^:?-+:?$/.test(spec)) {
+      return null
+    }
+    const left = spec.startsWith(':')
+    const right = spec.endsWith(':')
+    alignments.push(left && right ? 'center' : right ? 'right' : left ? 'left' : '')
+  }
+  return alignments.length > 0 ? alignments : null
+}
+
+function splitRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function renderRow(cells: string[], alignments: string[], tag: 'th' | 'td'): string {
+  const rendered = cells.map((cell, index) => {
+    const align = alignments[index]
+    const style = align ? ` style="text-align:${align}"` : ''
+    return `<${tag}${style}>${inline(cell)}</${tag}>`
+  })
+  return `<tr>${rendered.join('')}</tr>`
+}
+
+/** Emits a whole table and returns the index of its last consumed line. */
+function renderTable(
+  lines: string[],
+  headerIndex: number,
+  alignments: string[],
+  out: string[]
+): number {
+  out.push('<table>')
+  out.push(`<thead>${renderRow(splitRow(lines[headerIndex] ?? ''), alignments, 'th')}</thead>`)
+  out.push('<tbody>')
+  let index = headerIndex + 1
+  while (index + 1 < lines.length && (lines[index + 1] ?? '').includes('|')) {
+    index += 1
+    out.push(renderRow(splitRow(lines[index] ?? ''), alignments, 'td'))
+  }
+  out.push('</tbody>')
+  out.push('</table>')
+  return index
+}
+
+/** Renders one list item, which may be a task. */
+function renderListItem(body: string, out: string[]): void {
+  const task = /^\[([ xX])\]\s+(.*)$/.exec(body)
+  if (!task) {
+    out.push(`<li>${inline(body)}</li>`)
+    return
+  }
+  const checked = (task[1] ?? ' ').toLowerCase() === 'x' ? ' checked' : ''
+  // Disabled: a shared page is a copy of a document, not a place to tick
+  // things off — nothing here could record the change.
+  out.push(
+    `<li class="task"><input type="checkbox" disabled${checked}> ${inline(task[2] ?? '')}</li>`
+  )
+}
+
 /** Renders the supported subset. Never emits a tag it did not construct. */
 export function renderMarkdown(source: string): string {
   const normalized = source.split(SENTINEL).join('').replace(/\r\n?/g, '\n')
-  const lines = escapeHtml(normalized).split('\n')
+  const lines = stripFrontMatter(escapeHtml(normalized).split('\n'))
   const out: string[] = []
   const list: ListState = { tag: 'ul', open: false }
   let paragraph: string[] = []
@@ -123,7 +158,8 @@ export function renderMarkdown(source: string): string {
     closeList(out, list)
   }
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] ?? ''
     if (fence) {
       // Only the same marker closes the fence, so ``` inside a ~~~ block stays
       // content rather than ending it early.
@@ -157,7 +193,15 @@ export function renderMarkdown(source: string): string {
       out.push('<hr>')
       continue
     }
-    // `>` is already escaped by the time this runs.
+    // A table only becomes one with its separator row. Without that, these are
+    // ordinary lines that happen to contain pipes.
+    const alignments = line.includes('|') ? tableAlignments(lines[index + 1] ?? '') : null
+    if (alignments) {
+      flushBlocks()
+      index = renderTable(lines, index, alignments, out)
+      continue
+    }
+    // `>` arrives escaped, which is why this matches the entity.
     const quoted = /^\s*&gt;\s?(.*)$/.exec(line)
     if (quoted) {
       flushParagraph()
@@ -170,7 +214,7 @@ export function renderMarkdown(source: string): string {
       flushParagraph()
       flushQuote()
       openList(out, list, 'ul')
-      out.push(`<li>${inline(bullet[1] ?? '')}</li>`)
+      renderListItem(bullet[1] ?? '', out)
       continue
     }
     const numbered = /^\s*\d+[.)]\s+(.*)$/.exec(line)

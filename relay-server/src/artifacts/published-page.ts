@@ -11,6 +11,26 @@ import type { ServerResponse } from 'node:http'
 import type { ArtifactStore } from './store.js'
 
 /**
+ * The slug a request is asking for, or null when it is asking for something
+ * else entirely.
+ *
+ * Links live at the root of the artifact origin — `share.example.com/<slug>` —
+ * because that origin serves nothing but artifacts, so the short form is both
+ * available and the one people will be pasting into chat windows.
+ *
+ * Matched by exact shape rather than by a prefix: a slug is sixteen base64url
+ * characters, which cannot collide with `/v1/artifacts` or an ACME challenge,
+ * so the root namespace stays unambiguous without reserving anything.
+ *
+ * `/a/<slug>` still resolves. It is what the first release handed out, and a
+ * link someone has already shared is not ours to break.
+ */
+export function publishedSlug(path: string): string | null {
+  const match = /^\/(?:a\/)?([A-Za-z0-9_-]{16})$/.exec(path)
+  return match?.[1] ?? null
+}
+
+/**
  * Serves a published artifact.
  *
  * Unauthenticated on purpose — that is what sharing means — and every header
@@ -74,8 +94,14 @@ pre { overflow-x: auto; padding: 0.75rem 1rem; border-radius: 6px; background: r
 code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
 pre code { font-size: 0.88em; }
 blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid rgba(127,127,127,0.35); }
-img { max-width: 100%; }
-table { border-collapse: collapse; }
+img { max-width: 100%; height: auto; }
+/* Wide tables scroll inside the page rather than making the page scroll. */
+table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid rgba(127,127,127,0.3); padding: 0.4rem 0.7rem; text-align: left; }
+th { background: rgba(127,127,127,0.1); font-weight: 600; }
+li.task { list-style: none; margin-left: -1.2rem; }
+li.task input { margin-right: 0.4rem; }
+del { opacity: 0.65; }
 hr { border: 0; border-top: 1px solid rgba(127,127,127,0.3); margin: 2rem 0; }
 </style>
 </head>
