@@ -108,7 +108,10 @@ export async function createWorkerWorktree(args: {
           : terminal.handle === setupTerminalHandle
             ? 'setup'
             : 'configured_tab',
-      action: terminal.handle === terminalHandle ? 'reused_agent_terminal' : 'created',
+      // Every terminal listed here — the agent terminal included — was created by this call's
+      // agent-first worktree creation. The old 'reused_agent_terminal' verb on the agent row
+      // conflated the role test with a lifecycle claim and misdiagnosed at least one incident.
+      action: 'created',
       id: terminal.handle,
       tabId: terminal.tabId,
       leafId: terminal.leafId

@@ -13289,7 +13289,7 @@
         "https://github.com/stablyai/orca/issues/13821",
         "https://github.com/stablyai/orca/issues/14347"
       ],
-      "invariant": "Injected orchestration task prompts for recognized agent CLIs must send the prompt body inside one bracketed-paste frame, sanitize embedded ESC bytes, preserve chunk boundaries without losing the frame, and submit exactly once only after the agent can accept Enter. A successful orchestration.workerStart must durably record exactly one accepted and started turn; a swallowed Enter must fail with agent_prompt_stalled and never trigger a blind rescue Enter. Claude and Codex must emit a post-paste composer marker and then settle, or reach the bounded fallback first; every other agent retains the platform delay.",
+      "invariant": "Injected orchestration task prompts for recognized agent CLIs must send the prompt body inside one bracketed-paste frame, sanitize embedded ESC bytes, preserve chunk boundaries without losing the frame, and submit exactly once only after the agent can accept Enter. Local worker-start with supported observation must preserve an unobserved turn as start_unknown without revoking authority, closing questions, or triggering a rescue Enter; a worker report during observation must settle normally. Claude and Codex must emit a post-paste composer marker and then settle, or reach the bounded fallback first; every other agent retains the platform delay.",
       "oracle": "Runtime tests assert the exact PTY write sequence, failure cleanup, Claude/Codex marker-gated multi-frame renders, and the legacy platform delay for every other configured agent. The candidate resets settlement on later frames, gives a late marker a fresh bounded window, and still submits once at the hard deadline if output never settles. The worker-start contract drives the production RPC through a delayed fake Codex composer and independently checks exact turn/Enter counts plus reopened SQLite Task, Dispatch, worker receipt, and mutation receipt state for accepted and swallowed outcomes. Other orchestration tests assert dispatch/coordinator use the agent prompt path; the live CLI harness covers long Codex-like framing.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/agent-prompt-injection.test.ts src/main/runtime/manta-runtime.test.ts src/main/runtime/rpc/methods/orchestration/runs/tasks-dispatch.test.ts src/main/runtime/orchestration/coordinator.test.ts",
@@ -13339,7 +13339,8 @@
           "file": "src/main/runtime/rpc/methods/orchestration/worker/worker-start-prompt-contract.test.ts",
           "assertions": [
             "delayed composer readiness produces exactly one submitted and started turn with no premature Enter and durable ready receipts",
-            "a swallowed Enter records agent_prompt_stalled across Task, Dispatch, worker, and mutation receipts without a rescue Enter"
+            "a swallowed Enter durably records start_unknown without a rescue Enter or capability revocation",
+            "early worker reports settle during observation, and outstanding questions survive observation uncertainty"
           ]
         },
         {
