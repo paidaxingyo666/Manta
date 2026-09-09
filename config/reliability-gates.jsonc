@@ -251,6 +251,157 @@
       "demotionRule": "Keep experimental until CI soak; investigate output, offset, carry or search-budget failures without relaxing the oracle."
     },
     {
+      "id": "workspace-performance.ai-vault-title-input-guard",
+      "title": "Title synchronization skips unchanged session collections on live heartbeats",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "terminal-runtime",
+      "layer": "renderer-unit",
+      "surfaces": ["workspace title synchronization", "terminal heartbeat store subscribers"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local"],
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/renderer/src/lib/ai-vault-tab-title-sync-inputs.ts"
+      ],
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial local validation; no CI soak history."
+      },
+      "promotionCriteria": [
+        "Complete CI soak with zero unexplained flakes and preserve the observable oracle."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity or resource-count assertions.",
+      "coverageNotes": "Actual title-sync subscriber and Zustand publications are covered on macOS. Existing fixtures include SSH/runtime owner invalidation and folder workspaces; no live remote transport was launched. The guard has no platform branches, remote execution, liveness verdict or wire change.",
+      "invariant": "Title-sync publications must not enumerate unchanged session collections, while title identity, provider availability, active pane, stored title and effective execution-host changes retain their previous invalidation decisions.",
+      "oracle": "Fifty live heartbeat publications with 500 retained and 500 sleeping records cause zero unchanged-map enumerations and no extra scheduled reconciliations. Provider identity, additions/removals, agent/pane ownership, effective host, active pane and stored title changes still invalidate.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/lib/ai-vault-tab-title-sync-inputs.test.ts src/renderer/src/lib/ai-vault-tab-title-sync.test.ts src/renderer/src/store/slices/agent-status-batch.test.ts src/renderer/src/store/slices/agent-status-provider-session.test.ts src/renderer/src/store/slices/agent-status-retained-leak.test.ts src/renderer/src/store/slices/agent-status-manual-sleep-capture.test.ts"
+      ],
+      "testFiles": [
+        "src/renderer/src/lib/ai-vault-tab-title-sync-inputs.test.ts",
+        "src/renderer/src/lib/ai-vault-tab-title-sync.test.ts",
+        "src/renderer/src/store/slices/agent-status-batch.test.ts",
+        "src/renderer/src/store/slices/agent-status-provider-session.test.ts",
+        "src/renderer/src/store/slices/agent-status-retained-leak.test.ts",
+        "src/renderer/src/store/slices/agent-status-manual-sleep-capture.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/renderer/src/lib/ai-vault-tab-title-sync-inputs.test.ts",
+          "assertions": [
+            "does not enumerate unchanged retained and sleeping maps during live status writes",
+            "still detects provider changes in %s with other maps reused",
+            "still checks workspace ownership after unchanged record collections",
+            "still checks active panes and stored titles after unchanged record collections"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/lib/ai-vault-tab-title-sync-inputs.test.ts src/renderer/src/lib/ai-vault-tab-title-sync.test.ts src/renderer/src/store/slices/agent-status-batch.test.ts src/renderer/src/store/slices/agent-status-provider-session.test.ts src/renderer/src/store/slices/agent-status-retained-leak.test.ts src/renderer/src/store/slices/agent-status-manual-sleep-capture.test.ts",
+          "result": "passed",
+          "durationSeconds": 5.35,
+          "summary": "69 tests passed across six files, including actual subscriber scheduling and producer identity contracts."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 30,
+        "scope": "Focused unit/subscriber suite; local runtime budget, not an established p95."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "The actual subscriber regression fails baseline with 200 unchanged-map enumerations and passes with zero. Frozen source differential matched 13,002 decisions over 6,501 transitions. Four actual producer checks passed against deeply frozen inputs."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "Actual bundled production title subscriber plus Zustand, CPU per 1,000 writes, baseline to candidate: 25 live/100 retained/100 sleeping 41.642 to 0.699 ms; 100/500/500 251.076 to 5.350 ms; 500/500/500 343.025 to 59.897 ms. Zero extra title reads or schedules. Only same-reference collections skip comparisons; no new allocation, cache, timer, IO or scheduling."
+      },
+      "knownGaps": [
+        "No launched Electron/native-focus latency test or live external title lookup.",
+        "No live SSH/WSL/Linux/Windows session; production heartbeat incidence and whole-renderer latency are not established by the fixture."
+      ]
+    },
+    {
+      "id": "terminal-performance.status-heartbeat-projection-budget",
+      "title": "Unchanged status heartbeats reuse the aggregate workspace projection",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "workspace-runtime",
+      "layer": "shared-and-renderer-unit",
+      "surfaces": ["desktop runtime graph subscriber", "terminal status heartbeat projection"],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local", "daemon", "ssh", "remote-runtime"],
+      "coverageNotes": "The always-mounted desktop subscriber is covered through pure projection/reference and graph-sync contracts. All providers use the same serialized fields. WSL, platform launch, liveness, transport and mobile rendering are unaffected.",
+      "motivatingLinks": [
+        "https://github.com/stablyai/orca/blob/main/src/renderer/src/runtime/sync-runtime-graph-agent-status-projection-join.test.ts"
+      ],
+      "invariant": "The desktop agent-status comparison projection remains identical for every serialized field, key membership and freshness bucket while avoiding a full aggregate join when per-entry serialized content is unchanged.",
+      "oracle": "500 statuses with accumulated assistant previews receive 50 same-bucket heartbeat replacements with zero aggregate joins. A bucket boundary and assistant-detail change invalidate the projection. Existing reference comparisons cover field content, ordering, insertion/removal and subscriber decisions.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/runtime/sync-runtime-graph-agent-status-projection-join.test.ts src/renderer/src/runtime/sync-runtime-graph-agent-status-projection.test.ts src/renderer/src/runtime/sync-runtime-graph-projection-hot-path.test.ts src/renderer/src/runtime/sync-runtime-graph.test.ts"
+      ],
+      "testFiles": [
+        "src/renderer/src/runtime/sync-runtime-graph-agent-status-projection-join.test.ts",
+        "src/renderer/src/runtime/sync-runtime-graph-agent-status-projection.test.ts",
+        "src/renderer/src/runtime/sync-runtime-graph-projection-hot-path.test.ts",
+        "src/renderer/src/runtime/sync-runtime-graph.test.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/renderer/src/runtime/sync-runtime-graph-agent-status-projection-join.test.ts",
+          "assertions": [
+            "does not rejoin accumulated previews for timestamp-only heartbeats",
+            "still rebuilds when an entry changes",
+            "still rebuilds when a pane is removed, even though every survivor is reused",
+            "still rebuilds when key membership swaps at a constant entry count",
+            "still rebuilds when a pane is added"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-09-07",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/renderer/src/runtime/sync-runtime-graph-agent-status-projection-join.test.ts src/renderer/src/runtime/sync-runtime-graph-agent-status-projection.test.ts src/renderer/src/runtime/sync-runtime-graph-projection-hot-path.test.ts src/renderer/src/runtime/sync-runtime-graph.test.ts",
+          "result": "passed",
+          "summary": "38 tests passed across four projection and graph-sync files; renderer typecheck passed.",
+          "durationSeconds": 2.7
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 60,
+        "scope": "Focused unit/provider-contract suite; local runtime budget, not an established p95."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Initial local validation; no CI soak history."
+      },
+      "redGreenEvidence": {
+        "status": "complete",
+        "evidence": "The new heartbeat fixture failed on baseline with 50 aggregate joins; candidate performs zero and still invalidates on the next freshness bucket and new assistant detail."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "50 redundant aggregate joins fall to zero. Paired production projection/equality benchmark: 500 agents with 8 KB previews improves 1.716 to 0.089 ms/update; 1000 improves 3.601 to 0.123 ms/update. Avoids rebuilding 5.06/10.11 million-character aggregate strings. Entry serialization and sorting remain bounded by the current status map; no new cache, polling or asynchronous work."
+      },
+      "knownGaps": [
+        "Measured production projection self-time excludes store updates and rendering; no whole-app input-latency claim.",
+        "Native platforms, live SSH/relay and older clients were not launched. This changes only equality-preserving cache reuse, with no wire or persisted schema change."
+      ],
+      "promotionCriteria": [
+        "Complete CI soak with zero unexplained flakes and preserve the observable oracle."
+      ],
+      "demotionRule": "Keep experimental until CI soak; investigate failures without relaxing fidelity, liveness or resource-count assertions."
+    },
+    {
       "id": "terminal-performance.padded-fullscreen-redraw",
       "title": "Fullscreen redraw padding does not stall terminal delivery",
       "maturity": "experimental",
