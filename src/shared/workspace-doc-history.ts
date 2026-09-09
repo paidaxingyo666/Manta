@@ -16,6 +16,21 @@ export type WorkspaceDocHistoryEntry = {
 
 export const MAX_WORKSPACE_DOC_HISTORY_ENTRIES = 100
 
+/**
+ * Shallow-equal over whatever keys an entry actually carries, rather than a hand-listed subset, so
+ * a field added to `WorkspaceDocHistoryEntry` later cannot slip past a skip-if-unchanged check.
+ */
+export function workspaceDocHistoryEntriesEqual(
+  left: WorkspaceDocHistoryEntry,
+  right: WorkspaceDocHistoryEntry
+): boolean {
+  const leftKeys = Object.keys(left) as (keyof WorkspaceDocHistoryEntry)[]
+  return (
+    leftKeys.length === Object.keys(right).length &&
+    leftKeys.every((key) => Object.is(left[key], right[key]))
+  )
+}
+
 /** The title fence the page store applies, for history rows: a url-as-title falls back to the file. */
 export function normalizeWorkspaceDocHistoryTitle(
   title: string | null | undefined,
