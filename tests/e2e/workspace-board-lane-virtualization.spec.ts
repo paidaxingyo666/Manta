@@ -18,9 +18,7 @@ test.describe('Workspace board lane virtualization', () => {
     await waitForActiveWorktree(mantaPage)
   })
 
-  test('mounts a window of cards for a large lane and keeps lane indexes', async ({
-    mantaPage
-  }) => {
+  test('mounts a window of cards for a large lane and keeps lane indexes', async ({ mantaPage }) => {
     await mantaPage.evaluate((count) => {
       const store = window.__store
       if (!store) {
@@ -289,10 +287,7 @@ test.describe('Workspace board lane virtualization', () => {
     if (!sourceId || !sourceBox || !targetBox) {
       throw new Error('Expected visible source card and final lane drop target')
     }
-    await mantaPage.mouse.move(
-      sourceBox.x + sourceBox.width / 2,
-      sourceBox.y + sourceBox.height / 2
-    )
+    await mantaPage.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2)
     await mantaPage.mouse.down()
     await mantaPage.mouse.move(
       targetBox.x + targetBox.width / 2,
@@ -312,7 +307,6 @@ test.describe('Workspace board lane virtualization', () => {
   })
 
   test('selects the full lane across a single large marquee scroll jump', async ({ mantaPage }) => {
-    test.skip(true, 'Quarantined by https://github.com/stablyai/manta/issues/12415')
     const statusId = 'virtual-marquee'
     const emptyStatusId = 'virtual-marquee-start'
     await mantaPage.evaluate(
@@ -385,32 +379,36 @@ test.describe('Workspace board lane virtualization', () => {
     }
 
     // Why: CI can overlay individual lane pixels, so choose a live board-owned point.
-    const startPoint = await emptyLaneScroll.evaluate((element) => {
-      const ignored = [
-        '[data-workspace-board-card-id]',
-        'a',
-        'button',
-        'input',
-        'select',
-        'textarea',
-        '[role="button"]',
-        '[role="menu"]',
-        '[role="menuitem"]'
-      ].join(',')
-      const rect = element.getBoundingClientRect()
-      for (let y = Math.ceil(rect.top) + 6; y <= Math.floor(rect.top) + 40; y += 6) {
-        for (let x = Math.ceil(rect.left) + 8; x <= Math.floor(rect.right) - 8; x += 8) {
-          const target = document.elementFromPoint(x, y)
-          if (
-            target?.closest('[data-workspace-board-selection-surface]') &&
-            !target.closest(ignored)
-          ) {
-            return { x, y }
+    const findStartPoint = () =>
+      emptyLaneScroll.evaluate((element) => {
+        const ignored = [
+          '[data-workspace-board-card-id]',
+          'a',
+          'button',
+          'input',
+          'select',
+          'textarea',
+          '[role="button"]',
+          '[role="menu"]',
+          '[role="menuitem"]'
+        ].join(',')
+        const rect = element.getBoundingClientRect()
+        for (let y = Math.ceil(rect.top) + 6; y <= Math.floor(rect.top) + 40; y += 6) {
+          for (let x = Math.ceil(rect.left) + 8; x <= Math.floor(rect.right) - 8; x += 8) {
+            const target = document.elementFromPoint(x, y)
+            if (
+              target?.closest('[data-workspace-board-selection-surface]') &&
+              !target.closest(ignored)
+            ) {
+              return { x, y }
+            }
           }
         }
-      }
-      return null
-    })
+        return null
+      })
+    // The board's clip animation can expose cards before the empty lane accepts pointer hits.
+    await expect.poll(findStartPoint).not.toBeNull()
+    const startPoint = await findStartPoint()
     expect(startPoint, 'the empty start lane must expose board-owned space').not.toBeNull()
     if (!startPoint) {
       throw new Error('Expected empty board space for the marquee start')

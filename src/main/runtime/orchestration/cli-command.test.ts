@@ -56,4 +56,23 @@ describe('resolveTerminalOrchestrationCliCommand', () => {
       })
     ).toBe('manta')
   })
+
+  it('uses the runtime-provided command locally but never leaks it to SSH', () => {
+    expect(
+      resolveTerminalOrchestrationCliCommand({
+        connectionId: null,
+        isWsl: true,
+        worktreeId: 'repo::C:\\repo',
+        runtimeCliCommand: 'manta-dev'
+      })
+    ).toBe('manta-dev')
+    expect(
+      resolveTerminalOrchestrationCliCommand({
+        connectionId: 'ssh-1',
+        isWsl: true,
+        worktreeId: 'repo::C:\\repo',
+        runtimeCliCommand: 'manta-dev'
+      })
+    ).toBe('manta')
+  })
 })

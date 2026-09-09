@@ -1,5 +1,7 @@
+import { reportWorkerTerminalUserInput } from '../terminal/worker-terminal-takeover-report'
 import { useCallback } from 'react'
 import { translate } from '../i18n/i18n'
+import { isTerminalSendRpcAccepted } from '../terminal/terminal-send-rpc-response'
 import {
   clearTerminalLiveInputFocusTimer,
   scheduleTerminalLiveInputFocus
@@ -111,7 +113,7 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
     terminalGestureInputInFlightRef.current.add(handle)
     try {
       // Why: gesture arrows parked across a reconnect would move a TUI long after the swipe.
-      await rpc.sendRequest(
+      const response = await rpc.sendRequest(
         'terminal.send',
         buildTerminalSendParams({
           terminal: handle,
@@ -121,6 +123,9 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
         }),
         TERMINAL_INPUT_SEND_OPTIONS
       )
+      if (isTerminalSendRpcAccepted(response)) {
+        reportWorkerTerminalUserInput(rpc, handle)
+      }
     } catch {
       // Transient failure
     } finally {

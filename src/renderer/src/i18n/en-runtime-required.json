@@ -29,6 +29,7 @@
       },
       "GitHubItemDialog": {
         "04539beb48": "issue",
+        "307c98e8e3": "Show {{value0}} more lines above",
         "3853476a97": "GitHub item",
         "3ab6ac0fc8": "Preview and edit the selected GitHub issue or pull request.",
         "45af57999b": "Close preview",
@@ -225,10 +226,6 @@
         "AutomationEditorDialogHeader": {
           "4c8e1a72b9": "A recurring agent task"
         },
-        "AutomationListSortHeader": {
-          "sortedAscending": "{{value0}}, sorted ascending",
-          "sortedDescending": "{{value0}}, sorted descending"
-        },
         "AutomationRunHistory": {
           "fdb3caa8fb": "known"
         },
@@ -408,8 +405,7 @@
           "edfcc64182": "Go"
         },
         "RichMarkdownDocLinkMenu": {
-          "142a7d51cd": "document",
-          "e17b987473": "↑↓ navigate&nbsp;&nbsp;↵ select&nbsp;&nbsp;esc dismiss"
+          "142a7d51cd": "document"
         },
         "RichMarkdownSlashMenu": {
           "e2e12b0e98": "component"
@@ -576,12 +572,16 @@
           },
           "ProjectPicker": {
             "43a88ae574": "BOARD_LAYOUT",
+            "ab1a2c357d": "Roadmap (unsupported)",
             "b787682111": "Browse all",
             "ba0ab9a117": "Browse all (loading…)",
             "cafb908f34": "TABLE_LAYOUT"
           },
           "ProjectRow": {
             "c3b81ddea2": "DRAFT_ISSUE"
+          },
+          "ProjectViewWrapper": {
+            "1bf8c01c8b": "Switch to a Table view to work with this project in Manta."
           }
         }
       },
@@ -600,7 +600,8 @@
         "project": {
           "view": {
             "surfaces": {
-              "2c4b1c2c08": "number"
+              "2c4b1c2c08": "number",
+              "7616c986c6": "Open {{value0}} issues"
             }
           }
         }
@@ -1048,13 +1049,20 @@
       },
       "settings": {
         "AccountsPane": {
+          "15e831350e": "Configure MiniMax usage tracking from platform.minimax.io.",
+          "1fd1b1b6b4": "Cookie not set",
           "3455cf43fa": "Claude login.",
           "350b2a1aa7": "Use your current",
+          "4e32e030b2": "Stored locally. Manta sends it only to platform.minimax.io for usage refreshes.",
           "566d9a99ab": "_token=…; minimax_group_id_v2=…",
+          "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
+          "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
           "9107406589": "Could not load Claude accounts.",
           "b10cb4f696": "adding",
           "b11078a9c2": "wsl",
-          "b8c2905c2b": "Could not load Codex accounts."
+          "b43e761fe5": "MiniMax cookie update failed.",
+          "b8c2905c2b": "Could not load Codex accounts.",
+          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in."
         },
         "AdvancedNetworkSettingsSection": {
           "d93c7cd531": "Configure app-level network routing.",
@@ -1381,9 +1389,13 @@
           "b5e3e77e89": "action",
           "c90b858573": "text-amber-700 dark:text-amber-300"
         },
+        "RepositoryIconPicker": {
+          "2b7d27b93c": "Use {{value0}} repo color"
+        },
         "RepositoryPane": {
           "createPendingSetup": "Track setup",
           "creatingPendingSetup": "Creating...",
+          "settingUpHost": "Importing...",
           "setupExistingFolder": "Import existing folder",
           "setupExistingFolderHelp": "Make this project available on another host by linking a checkout that already exists there.",
           "setupHost": "Import",
@@ -1600,13 +1612,6 @@
             }
           }
         },
-        "browser": {
-          "use": {
-            "search": {
-              "f5b8fdddf5": "orca-cli"
-            }
-          }
-        },
         "computerUseSkillRuntime": {
           "thisDevice": "This device"
         },
@@ -1693,15 +1698,6 @@
               "eaffa454e9": "Update",
               "efaab83c5d": "Add site",
               "fb854902d9": "connecting"
-            }
-          }
-        },
-        "linear": {
-          "agent": {
-            "skill": {
-              "search": {
-                "orcaLinear": "orca-linear"
-              }
             }
           }
         },
@@ -1869,20 +1865,6 @@
         "SetupScriptPromptCard": {
           "dcaa645da5": "ok"
         },
-        "SidebarFeedbackDialog": {
-          "26108d3699": "Join Discord",
-          "3460258a54": "Follow on X",
-          "5b120b9634": "Submit anonymously",
-          "60b721e857": "Failed to submit feedback. Please try again.",
-          "69969ba364": "Sending…",
-          "7a46c228b8": "Thanks for the feedback.",
-          "8de03e23c5": "Submit with your typed feedback only, or connect `gh` to include GitHub identity.",
-          "a2fd890d9e": "Please enter feedback before submitting.",
-          "c9e5ea0791": "GitHub:",
-          "d20439c560": "Checking GitHub identity…",
-          "f2e42e1307": "Send",
-          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed."
-        },
         "SidebarHeader": {
           "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
@@ -1899,9 +1881,7 @@
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
-          "c4f8e1b72a": "X",
-          "d396773ef0": "checking",
-          "eb9884e55b": "Discord"
+          "d396773ef0": "checking"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "Open folder picker to add a project",
@@ -1911,7 +1891,14 @@
           "2d4f0eb933": "Default",
           "631b97eea9": "Host scope",
           "680043342f": "compact",
+          "bc96dbd041": "Workspace options ({{value0}})",
           "c7591b6014": "repo"
+        },
+        "WorkspaceKanbanSettingsMenu": {
+          "b45b350eb0": "Move {{value0}} left"
+        },
+        "WorkspaceStatusAppearancePopover": {
+          "514be2f569": "Set {{value0}} color to {{value1}}"
         },
         "WorktreeCard": {
           "01f45d3d8a": "sidebar",
@@ -2067,7 +2054,6 @@
         "SkillInstallReviewContent": {
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
           "3d8421ca2f": "executable",
-          "66cff7a804": "https://app.orca.dev/skills/share/…",
           "87137bcb8d": "scripts",
           "8f9833d509": "Immutable version",
           "98ed90e523": "A skill contains instructions and may include scripts. Treat it as code from its author.",
@@ -2203,13 +2189,6 @@
           "f6a2c8d019": "Model",
           "faf3444859": "Input"
         },
-        "share": {
-          "card": {
-            "utils": {
-              "19f4b4dc75": "github.com/stablyai/orca"
-            }
-          }
-        },
         "usage": {
           "overview": {
             "sections": {
@@ -2262,7 +2241,8 @@
             "grokUsageAria": "Open Grok usage details"
           },
           "WorkspaceSpaceCompactPanel": {
-            "2837dc7c72": "cancelling"
+            "2837dc7c72": "cancelling",
+            "bef4dc0457": "{{value0}} reclaimable · {{value1}} unavailable"
           },
           "WorkspaceSpaceManagerPanel": {
             "02b27c2230": "workspace",
@@ -2463,6 +2443,13 @@
           "TerminalSshReconnectOverlay": {
             "connectButton": "Connect",
             "connectingButton": "Connecting..."
+          },
+          "terminal": {
+            "drop": {
+              "handler": {
+                "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…"
+              }
+            }
           }
         },
         "quick": {
@@ -2652,12 +2639,12 @@
         "thinking": "Thinking",
         "toggleDetails": "Toggle turn details",
         "workedFor": "Worked for {{value0}}",
-        "working": "Working…",
         "workingFor": "Working for {{value0}}"
       },
       "tool": {
         "countN": "{{value0}} tool calls",
         "countOne": "1 tool call",
+        "moreCalls": "+{{value0}} more",
         "ranCommandManyToolsSummary": "Ran {{commandCount}} command and used {{toolCount}} tools",
         "ranCommandOneToolSummary": "Ran {{commandCount}} command and used {{toolCount}} tool",
         "ranCommandsManyToolsSummary": "Ran {{commandCount}} commands and used {{toolCount}} tools",

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { runProcess } from '../shared/child-process/run-process'
 import {
   orchestrationMutationRecoveryError,
-  renderCommand
+  renderCommand,
+  renderResolvedOrchestrationCommand
 } from './orchestration-mutation-recovery'
 import { RuntimeClientError } from './runtime-client'
 
@@ -209,6 +210,19 @@ describe('orchestration mutation recovery', () => {
       )
     ).toBe(
       '"manta" "orchestration" "worker-start" "--comment" "literal ""quoted"" "^%"PATH"^%" & safe"'
+    )
+  })
+
+  it('shell-quotes a configured Windows executable when resolving portable recovery commands', () => {
+    expect(
+      renderResolvedOrchestrationCommand(
+        'manta orchestration worker-show --dispatch ctx_1 --json',
+        'C:\\Program Files\\Manta\\manta-ide.cmd',
+        'win32',
+        { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }
+      )
+    ).toBe(
+      '"C:\\Program Files\\Manta\\manta-ide.cmd" "orchestration" "worker-show" "--dispatch" "ctx_1" "--json"'
     )
   })
 

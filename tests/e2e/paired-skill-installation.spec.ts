@@ -14,7 +14,6 @@ import {
   type HeadlessPairedRuntimeHost
 } from './helpers/headless-paired-runtime-host'
 import {
-  REMOTE_SKILL_CLOUD_ORIGIN,
   REMOTE_SKILL_NAME,
   REMOTE_SKILL_PACKAGE_ID,
   REMOTE_SKILL_VERSION_ID,
@@ -119,13 +118,14 @@ test('installs on a headless serve runtime through the same contract', async ({
 })
 
 function cloudClientEnvironment(): Record<string, string> {
+  const { origin } = requireCloudFixture()
   return {
-    MANTA_ARTIFACTS_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
-    MANTA_CLOUD_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
+    MANTA_ARTIFACTS_API_URL: origin,
+    MANTA_CLOUD_API_URL: origin,
     MANTA_CLOUD_CLIENT_ID: 'skills-e2e-client',
     MANTA_CLOUD_DEV_AUTH: '1',
     MANTA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
-    MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: REMOTE_SKILL_CLOUD_ORIGIN
+    MANTA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: origin
   }
 }
 

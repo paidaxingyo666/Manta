@@ -1,4 +1,7 @@
-import type { AgentSessionJournalIdentity } from '../../shared/agent-session-journal-types'
+import type {
+  AgentJournalItemIdentity,
+  AgentSessionJournalIdentity
+} from '../../shared/agent-session-journal-types'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import type {
   ClaudeStreamJsonConnection,
@@ -11,6 +14,7 @@ import { cancelProcessAcquisition } from '../../shared/child-process/cancel-proc
 import { randomUUID } from 'node:crypto'
 import type { AgentSessionBackgroundTaskState } from '../../shared/agent-session-wire'
 import type { ClaudeBackgroundTaskTracker } from './claude-background-task-tracker'
+import type { ClaudeSlashCommandCatalog } from './claude-slash-command-catalog'
 
 export type ClaudeAuthDiagnostic = {
   apiKeySourceConfigured: boolean
@@ -56,6 +60,12 @@ export type ClaudeStructuredSessionAdapterDeps = {
     identity: AgentSessionJournalIdentity
   }) => Promise<ClaudeStructuredLaunch>
   onEvent?: (event: ClaudeStructuredSessionEvent) => void
+  /** A dispatch whose ack timed out, proven delivered by a later provider replay. */
+  onDispatchSettledLate?: (input: {
+    sessionId: string
+    clientMessageId: string
+    providerIdentity: AgentJournalItemIdentity
+  }) => void
   onBackgroundTasksChanged?: (
     sessionId: string,
     state: AgentSessionBackgroundTaskState | null
@@ -78,6 +88,7 @@ export type ClaudeStructuredSessionAdapterDeps = {
   readTranscriptLeaf?: (input: {
     providerSessionId: string
     previousLeafUuid: string | null
+    intentionalRewindUuid?: string
     /** Account-scoped Claude config root that owns this provider session. */
     claudeConfigDir: string
   }) => Promise<string | null>
@@ -87,6 +98,9 @@ export type ClaudeDispatchWaiter = {
   resolve: (uuid: string | null) => void
   timer: ReturnType<typeof setTimeout>
   acceptsResult: boolean
+  /** Carried so a replay that lands after the ack window can settle the journal
+   *  submission this dispatch came from, not just the in-memory turn identity. */
+  clientMessageId: string
   /** Client uuid echoed by Claude so a replay is tied to its own dispatch. */
   sentUuid: string
   /** Sequence used to fence a late identity from a newer dispatch. */
@@ -126,6 +140,9 @@ export type ClaudeSession = {
   /** Provider uuid of the most recently admitted turn, if one is active. */
   activeTurnId?: string
   backgroundTasks: ClaudeBackgroundTaskTracker
+  /** The `/` surface the CLI reports for itself; seeded from init, kept current
+   *  by later init and `commands_changed` frames. */
+  commands: ClaudeSlashCommandCatalog
   /** Monotonic fence advanced when a dispatch starts, including unresolved dispatches. */
   dispatchSequence: number
   /** Dispatch sequence that admitted activeTurnId. */

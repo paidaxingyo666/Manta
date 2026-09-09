@@ -3,14 +3,21 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-// Why: manta-cli now ships a hybrid discovery stub, so its version-sensitive command
+// Why: orca-cli now ships a hybrid discovery stub, so its version-sensitive command
 // guidance lives in the authoritative guide source — assert that content there. The
 // installable stub projection is checked separately below.
 const guidePath = join(projectDir, 'skill-guides', 'manta-cli.md')
-const stubPath = join(projectDir, 'skills', 'manta-cli', 'SKILL.md')
-// Why: orchestration and manta-emulator also ship hybrid stubs now, so their version-sensitive
+const stubPath = join(projectDir, 'skills', 'orca-cli', 'SKILL.md')
+// Why: orchestration and orca-emulator also ship hybrid stubs now, so their version-sensitive
 // command guidance lives in the guide sources — read the cross-guide worktree-id contract there.
-const orchestrationSkillPath = join(projectDir, 'skill-guides', 'orchestration.md')
+// Why: the worktree-selector rule lives in the orchestration placement reference, not the kernel.
+const orchestrationPlacementPath = join(
+  projectDir,
+  'skill-guides',
+  'orchestration',
+  'references',
+  'placement-and-remote.md'
+)
 const emulatorSkillPath = join(projectDir, 'skill-guides', 'manta-emulator.md')
 
 function readSkill(path = guidePath) {
@@ -23,16 +30,13 @@ describe('manta CLI skill guidance', () => {
     const description = skill.replace(/\s+/gu, ' ')
 
     expect(description).toContain(
-      'Use Computer Use for external browser windows, webviews, or desktop UI only when the task requires OS/window-level control such as focus, menus, dialogs, coordinates, or screenshots.'
-    )
-    expect(description).toContain(
-      "`manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages."
+      'Use Computer Use only for external windows or desktop UI that needs OS-level control, and Playwright or CDP for external pages.'
     )
     expect(skill).toContain(
       'For external Chrome/Safari/webviews or Manta app chrome/settings, use the Computer Use skill/tool only when the task requires OS/window-level control'
     )
     expect(skill).toContain(
-      "Use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
+      "Use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages"
     )
   })
 
@@ -66,9 +70,40 @@ describe('manta CLI skill guidance', () => {
     expect(skill).toContain(
       'MANTA worktree create --name <task-name> --no-parent --agent codex --prompt'
     )
-    expect(skill).toContain('codex --model gpt-5.5 -c model_reasoning_effort="xhigh"')
-    expect(skill).toContain('wait only for TUI readiness if needed to avoid losing input')
-    expect(skill).toContain('send the prompt, and stop')
+    expect(skill).toContain('codex --model gpt-6-astra -c model_reasoning_effort="xhigh"')
+    expect(skill).toContain('wait for TUI readiness')
+    expect(skill).toContain('stop after confirming the send was accepted')
+    // `terminal wait` prints an ordinary success envelope on timeout and only signals the
+    // unsatisfied wait through the exit code, so the gate and its failure direction have to
+    // sit beside the recipe or the brief gets typed into a half-started TUI.
+    expect(skill).toContain('Send only when the wait result reports `satisfied: true`')
+    expect(skill).toContain('report the handoff as not started and do not send')
+    expect(skill).toContain(
+      "A handoff is done when the new worktree id and agent handle have been reported and the prompt's send receipt reported `accepted: true`"
+    )
+  })
+
+  // The always-loaded guide keeps the boundaries; the reconstructible command catalogs move
+  // behind `skills get orca-cli --reference` so they are not charged to every turn, with
+  // `--full` only as the fallback for a CLI that predates the per-reference selector.
+  it('gates the reconstructible command catalogs behind bundled references', () => {
+    const skill = readSkill()
+
+    expect(skill).toContain('MANTA skills get orca-cli --reference references/<file>.md')
+    expect(skill).toContain(
+      'If the CLI rejects `--reference`, run `MANTA skills get orca-cli --full`'
+    )
+    for (const reference of [
+      'references/browser.md',
+      'references/automations.md',
+      'references/publishing.md'
+    ]) {
+      expect(skill).toContain(reference)
+      expect(readSkill(join(projectDir, 'skill-guides', 'orca-cli', reference)).trim()).not.toBe('')
+    }
+    expect(skill).not.toContain('MANTA automations create')
+    expect(skill).not.toContain('MANTA artifacts share <file>')
+    expect(skill).not.toContain('MANTA goto --url')
   })
 
   it('prefers agent-first workers without duplicating terminal delivery', () => {
@@ -95,7 +130,7 @@ describe('manta CLI skill guidance', () => {
 
   it('requires full worktree ids across bundled agent guidance', () => {
     const cliSkill = readSkill()
-    const orchestrationSkill = readSkill(orchestrationSkillPath)
+    const orchestrationSkill = readSkill(orchestrationPlacementPath)
     const emulatorSkill = readSkill(emulatorSkillPath)
 
     for (const skill of [cliSkill, orchestrationSkill, emulatorSkill]) {
@@ -146,30 +181,21 @@ describe('manta CLI install stub', () => {
     const stub = readSkill(stubPath)
 
     expect(stub).toContain('discovery stub')
-    expect(stub).toContain('MANTA skills get manta-cli')
+    expect(stub).toContain('MANTA skills get orca-cli')
     // The safe CLI-resolution contract must survive in the stub, never a bare `manta`.
     expect(stub).toContain('MANTA_CLI_COMMAND')
     expect(stub).toContain('manta-dev')
     expect(stub).toContain('manta-ide')
-    expect(stub).toContain('installs the executable as `manta-ide`')
+    expect(stub).toContain('GNOME Orca screen reader')
     expect(stub).not.toMatch(/^manta /mu)
   })
 
-  it('gives older binaries a bounded fallback instead of a dead end', () => {
-    const stub = readSkill(stubPath).replace(/\s+/gu, ' ')
-
-    expect(stub).toContain('explicitly reports that `skills get` is an unknown command')
-    expect(stub).toContain('do not invent commands')
-    expect(stub).toContain('ask the user rather than guessing')
-  })
-
-  it('does not mistake resolution or execution failures for an older binary', () => {
+  it('does not fall through to another executable on a resolution failure', () => {
     const stub = readSkill(stubPath).replace(/\s+/gu, ' ')
 
     // Falling through can silently pair a version-matched guide with the wrong Manta build.
     expect(stub).toContain('report its exact error and stop')
     expect(stub).toContain('Do not fall through to another executable')
-    expect(stub).toContain('Another failure is not proof of an older binary')
   })
 
   it('drops the changing command reference from the installable file', () => {

@@ -83,7 +83,7 @@ describe('browser notice formatting', () => {
         origin: 'https://example.com',
         action: 'opened-in-manta'
       })
-    ).toBe('https://example.com opened a new page in Manta.')
+    ).toBeNull()
 
     expect(
       formatPopupNotice({

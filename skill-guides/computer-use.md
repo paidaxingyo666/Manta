@@ -1,34 +1,23 @@
 ---
 name: computer-use
 description: >-
-  Use Manta's computer-use CLI for OS/window-level inspection and input in visible
-  local app windows. Use when a task must read or operate a native app or an
-  external browser window (for example, Chrome, Edge, or Safari) or an app
-  webview. Do not use for Manta's embedded browser or page-only browser
-  automation. Use `manta-cli` for Manta's embedded pages and a page-automation
-  tool such as Playwright or CDP for external pages.
+  OS/window-level inspection and input in visible local app windows through `manta computer`:
+  native apps, external browser windows (Chrome, Edge, Safari), and app webviews. Not for
+  Manta's embedded browser (use `orca-cli`) or page-only automation (use Playwright or CDP).
 ---
 
 # Computer Use
 
-Use this skill for desktop UI through `manta computer`. For a website or web app, use it only when the page is in an external desktop browser window that needs desktop-level control. Do not use it for page-only automation: use `manta-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages.
+Use this skill for desktop UI through `manta computer`. For a website or web app, use it only when the page is in an external desktop browser window that needs desktop-level control. Do not use it for page-only automation: use `orca-cli` for Manta's embedded pages and a page-automation tool such as Playwright or CDP for external pages.
 
 ## Preconditions
 
-- Choose the Manta executable once: use the `MANTA_CLI_COMMAND` environment value when set;
-  otherwise use `manta-dev` in a dev session exposing `MANTA_DEV_REPO_ROOT`, `manta-ide` on
-  Linux outside a Manta-managed terminal, and `manta` everywhere else. Never try bare
-  `manta` first on unmanaged Linux because it normally resolves to the GNOME screen reader.
-- In every command example, `MANTA` is a documentation placeholder — including examples that
-  name a specific shell. Replace it with that chosen executable before running the command;
-  do not create a shell variable or run `MANTA` literally. Blocks that name no shell are
-  intentionally shell-neutral for POSIX shells, PowerShell, and cmd.exe.
+- `MANTA` is a placeholder for the executable you resolved in the stub; substitute it before running.
 - Prefer `--json`; see Screenshots below for image output.
 - Do not push, submit forms, send messages, buy items, delete data, change account settings, or expose secrets unless the user explicitly asked for that action.
 - If an app contains sensitive content, read only what the user requested.
 
 ```text
-MANTA status --json
 MANTA computer capabilities --json
 ```
 
@@ -92,18 +81,18 @@ printf '%s' "$TEXT" | MANTA computer set-value --app <app> --element-index <inde
 
 ## Action Rules
 
-- Read every action's verification separately from whether its provider call succeeded:
+- An action's verification is separate from whether its provider call succeeded:
   - `verified` means the changed value was read back.
   - `unverified (accessibility action unasserted)` means the accessibility call succeeded but no post-state assertion was made.
   - `unverified (synthetic input)` means input was fired into the void and is unverifiable.
   - Missing verification metadata is unverified, including responses from older runtimes.
-- Prefer semantic actions: `set-value` for editable fields, `click` for controls, `perform-secondary-action` only for listed action names.
+  - Never report an unverified action as success. If it could have sent, submitted, bought, or deleted something, say the effect is unproven.
+- Prefer semantic actions: `set-value` for editable fields, `click` for controls, and `perform-secondary-action` only for listed action names.
 - After any UI-changing action, use the returned state or rerun `get-app-state` before choosing the next element index.
 - Use `type-text` only after focusing a field and confirming the app has a focused text receiver; synthetic keyboard delivery is reported as unverified, so inspect the returned state before assuming text landed.
 - Use `press-key` for single/navigation keys such as Return, Escape, Tab, and arrows. Use `hotkey` only for one modifier chord plus one key, such as `CmdOrCtrl+A` or `CmdOrCtrl+Shift+P`; prefer `CmdOrCtrl+...` for cross-platform combos.
 - Use `click --modifiers <chord>` for modifier-clicks. Never synthesize separate modifier-down and modifier-up commands around a click; interruption can leave a modifier logically held.
 - Some actions work in background apps, but this is app-dependent. If success does not change the UI, refresh state and choose a more semantic action or restore/focus the window.
-- Prefer `set-value` for text fields that expose values; it can report verified value writes when the provider can read the refreshed value.
 - Coordinates are window-local; use coordinates from the latest screenshot/state for the same target window.
 
 ## Screenshots
@@ -159,7 +148,3 @@ Slack: the accessibility tree may be shallow while the screenshot contains usefu
 - `accessibility_error`: run `MANTA computer capabilities --json`; if the message names Accessibility permission, run `MANTA computer permissions --id accessibility --json`.
 - Empty tree or no screenshot: app may have no visible window, be minimized, or need permissions.
 - Permission errors: run `MANTA computer permissions --json`, or `MANTA computer permissions --id accessibility --json` / `--id screenshots --json` when the message names one permission, use the setup UI, then retry.
-
-## Next Action
-
-Confirm Manta status unless already checked, then run `MANTA computer capabilities --json`. For external browser targets such as Gmail, identify the desktop browser app/window that contains the page, then get that target app state with `MANTA computer get-app-state --app <app> --json`.

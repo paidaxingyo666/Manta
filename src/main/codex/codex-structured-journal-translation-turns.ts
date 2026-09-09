@@ -56,9 +56,16 @@ export function publishCodexTurnLifecycle(input: {
       return admission
     }
   }
-  if (input.sink.tryPublish) {
-    return input.sink.tryPublish({ lifecycle: true })
+  // Preserve first-work evidence when completion arrives before the journal drains.
+  const publishOptions = {
+    lifecycle: true,
+    ...(input.state === 'running'
+      ? { coalescingKey: `turn-start:${input.sessionId}:${input.turnId}` }
+      : {})
   }
-  input.sink.publish({ lifecycle: true })
+  if (input.sink.tryPublish) {
+    return input.sink.tryPublish(publishOptions)
+  }
+  input.sink.publish(publishOptions)
   return ADMITTED
 }

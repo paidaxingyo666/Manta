@@ -1,3 +1,4 @@
+import { openSidebarWorkspaceComposer } from './helpers/sidebar-project-dialog'
 import type { ElectronApplication, Page } from '@stablyai/playwright-test'
 import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
@@ -118,7 +119,7 @@ test.describe('Linear URL workspace entry', () => {
     mantaPage
   }, testInfo) => {
     await installLinearFixture(mantaPage, LINEAR_ISSUE, null)
-    await mantaPage.getByRole('button', { name: 'New workspace', exact: true }).click()
+    await openSidebarWorkspaceComposer(mantaPage)
     const dialog = mantaPage.getByRole('dialog', { name: /Create (Workspace|Worktree)/i })
     const input = dialog.locator('[data-workspace-name-input="true"]')
     await expect(input).toBeVisible()
@@ -168,7 +169,7 @@ test.describe('Linear URL workspace entry', () => {
     mantaPage
   }) => {
     await installLinearFixture(mantaPage, null)
-    await mantaPage.getByRole('button', { name: 'New workspace', exact: true }).click()
+    await openSidebarWorkspaceComposer(mantaPage)
     const dialog = mantaPage.getByRole('dialog', { name: /Create (Workspace|Worktree)/i })
     const input = dialog.locator('[data-workspace-name-input="true"]')
 

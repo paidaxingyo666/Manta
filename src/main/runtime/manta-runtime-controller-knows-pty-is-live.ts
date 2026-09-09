@@ -2,6 +2,7 @@
 import { MantaRuntimeWithResolveTerminalPane } from './manta-runtime-resolve-terminal-pane'
 import { PROVEN_ABSENT_LEAF_PTY_TTL_MS } from './manta-runtime-core'
 import type { RuntimeTerminalSend } from '../../shared/runtime-types'
+import type { RuntimeAgentPromptWriteOptions } from './runtime-terminal-contracts'
 import {
   assertTerminalInputWithinLimitWithYield,
   buildTerminalSendPayload
@@ -124,11 +125,7 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
   async sendTerminalAgentPrompt(
     handle: string,
     prompt: string,
-    options: {
-      beforeWrite?: (ptyId: string) => void | Promise<void>
-      suffixFailureError?: string
-      signal?: AbortSignal
-    } = {}
+    options: RuntimeAgentPromptWriteOptions = {}
   ): Promise<RuntimeTerminalSend> {
     const payload = buildAgentPromptPasteBytes(prompt)
     const pty = this.getLivePtyForHandle(handle)
@@ -138,7 +135,7 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
       }
       await assertTerminalInputWithinLimitWithYield(payload)
       const generation = this.getPtyLifecycleGeneration(pty.pty.ptyId)
-      const submits = await this.serializeAgentPromptSubmission(
+      const delivery = await this.serializeAgentPromptSubmission(
         pty.pty.ptyId,
         generation,
         async () => {
@@ -153,8 +150,13 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
           )
         }
       )
-      const bytesWritten = Buffer.byteLength(payload, 'utf8') + submits
-      return { handle, accepted: true, bytesWritten }
+      const bytesWritten = Buffer.byteLength(payload, 'utf8') + delivery.submits
+      return {
+        handle,
+        accepted: true,
+        bytesWritten,
+        ...(delivery.prompt ? { prompt: delivery.prompt } : {})
+      }
     }
 
     const { leaf } = this.getLiveLeafForHandle(handle)
@@ -168,12 +170,17 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
       throw new Error('terminal_not_writable')
     }
     const generation = this.getPtyLifecycleGeneration(leaf.ptyId)
-    const submits = await this.serializeAgentPromptSubmission(leaf.ptyId, generation, async () => {
+    const delivery = await this.serializeAgentPromptSubmission(leaf.ptyId, generation, async () => {
       this.assertLiveTerminalHandleTargetsPty(handle, leaf.ptyId!)
       this.assertAgentPromptGeneration(leaf.ptyId!, generation)
       return await this.writeTerminalAgentPrompt(handle, leaf.ptyId!, generation, payload, options)
     })
-    const bytesWritten = Buffer.byteLength(payload, 'utf8') + submits
-    return { handle, accepted: true, bytesWritten }
+    const bytesWritten = Buffer.byteLength(payload, 'utf8') + delivery.submits
+    return {
+      handle,
+      accepted: true,
+      bytesWritten,
+      ...(delivery.prompt ? { prompt: delivery.prompt } : {})
+    }
   }
 }

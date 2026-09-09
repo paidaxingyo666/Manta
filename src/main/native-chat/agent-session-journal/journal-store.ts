@@ -162,6 +162,9 @@ export class AgentSessionJournal {
 
   snapshot = (): AgentJournalSnapshot => renderJournalState(this.state)
 
+  /** Includes revisions and completion tombstones, whose timestamps disappear from render items. */
+  lastActivityAt = (): number => this.state.lastActivityAt
+
   submissions = (): AgentJournalSubmission[] => [...this.state.submissions.values()]
 
   pendingSubmissions = (): AgentJournalSubmission[] =>
@@ -174,7 +177,7 @@ export class AgentSessionJournal {
 
   canonicalItemId = (itemId: string): string => resolveJournalItemId(this.state, itemId)
 
-  readSince(cursor: AgentJournalCursor): JournalReadSince {
+  readSince(cursor: AgentJournalCursor, limit?: number): JournalReadSince {
     return readJournalSince(
       {
         state: this.state,
@@ -183,7 +186,8 @@ export class AgentSessionJournal {
             this.requireDatabase().db,
             this.identity.sessionId,
             this.state.epoch,
-            afterSequence
+            afterSequence,
+            limit
           ),
         readOnly: this.readOnly
       },

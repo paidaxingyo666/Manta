@@ -97,6 +97,14 @@ function makeStore(enabled = true) {
   }
 }
 
+// These cases exercise foreground behavior against Electron mocks.
+beforeEach(() => {
+  vi.stubEnv('MANTA_BACKGROUND_LAUNCH', undefined)
+  vi.stubEnv('MANTA_E2E_HEADLESS', undefined)
+  vi.stubEnv('MANTA_E2E_HEADFUL', undefined)
+})
+afterEach(() => vi.unstubAllEnvs())
+
 describe('registerDashboardPopoutHandlers', () => {
   let store: ReturnType<typeof makeStore>
 

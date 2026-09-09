@@ -74,20 +74,37 @@ export const WINDOWS_HOOK_STDIN_DRAIN_LABEL = 'manta_agent_hook_drain_stdin'
 export const WINDOWS_HOOK_STDIN_READER = '"%SystemRoot%\\System32\\more.com"'
 export const WINDOWS_HOOK_STDIN_DRAIN_COMMAND = `${WINDOWS_HOOK_STDIN_READER} >nul 2>nul`
 
+// The Manta context a hook needs before it may own stdin; see the rule below.
+const WINDOWS_HOOK_ENVIRONMENT_VARS = [
+  'MANTA_AGENT_HOOK_PORT',
+  'MANTA_AGENT_HOOK_TOKEN',
+  'MANTA_PANE_KEY'
+] as const
+
 // Why (#11549): missing Manta context means the hook ran outside a Manta pane, where the caller
 // may abandon stdin rather than close it — a read-to-EOF then blocks forever and strands a
 // visible window per hook event. The Windows rule: a hook must check the Manta env before it
 // owns stdin, and exit without reading when the env is missing — the payload is discarded on
-// that path anyway. This applies to .cmd, the copilot .ps1, and the Git Bash kimi .sh alike.
+// that path anyway. This applies to .cmd, the copilot .ps1, and the Git Bash kimi .sh alike,
+// and to the launchers that own stdin themselves when the managed script is missing.
 // POSIX hooks keep capture-first: their callers close stdin, and exiting mid-write there
 // surfaces as EPIPE the agent can see (#8110).
 export function buildWindowsHookEnvironmentGuardLines(): string[] {
-  return [
-    'if "%MANTA_AGENT_HOOK_PORT%"=="" exit /b 0',
-    'if "%MANTA_AGENT_HOOK_TOKEN%"=="" exit /b 0',
-    'if "%MANTA_PANE_KEY%"=="" exit /b 0'
-  ]
+  return WINDOWS_HOOK_ENVIRONMENT_VARS.map((name) => `if "%${name}%"=="" exit /b 0`)
 }
+
+/** The same guard in sh, for the Git Bash hooks and launchers that run on Windows.
+ *  Default-formed because a static hook precheck (Grok) rejects a bare reference it
+ *  cannot resolve. POSIX hosts keep capture-first — this is the Windows rule only. */
+export const WINDOWS_GIT_BASH_HOOK_ENVIRONMENT_GUARD = `if ${WINDOWS_HOOK_ENVIRONMENT_VARS.map(
+  (name) => `[ -z "\${${name}-}" ]`
+).join(' || ')}; then exit 0; fi`
+
+/** The same guard for a PowerShell hook or launcher. Anything that reaches
+ *  `[Console]::In.ReadToEnd()` must run this first, or it inherits #11549. */
+export const WINDOWS_POWERSHELL_HOOK_ENVIRONMENT_GUARD = `if (${WINDOWS_HOOK_ENVIRONMENT_VARS.map(
+  (name) => `-not $env:${name}`
+).join(' -or ')}) { exit 0 }`
 
 export function buildWindowsHookStdinDrainEpilogue(): string[] {
   return [`:${WINDOWS_HOOK_STDIN_DRAIN_LABEL}`, WINDOWS_HOOK_STDIN_DRAIN_COMMAND, 'exit /b 0']

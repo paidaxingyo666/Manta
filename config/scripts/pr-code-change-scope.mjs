@@ -24,8 +24,6 @@ export const PR_CHECK_JOBS = [
   'shell_contracts',
   'test',
   'mantad_browser',
-  // This fork ships a self-hosted relay upstream has no counterpart for.
-  'relay',
   'cross-version-wire',
   'managed_hook_node18',
   'package',
@@ -141,6 +139,8 @@ const NATIVE_RUNTIME_PREFIXES = [
   'config/scripts/ensure-native-runtime',
   'config/scripts/rebuild-native-deps',
   'config/scripts/node-pty-job-ownership',
+  'config/scripts/windows-process-tree-creation-time',
+  'config/scripts/windows-process-tree-gyp-rebuild',
   'config/scripts/electron-builder-native-rebuild',
   'config/patches/node-pty@',
   'config/patches/@vscode__windows-process-tree'
@@ -214,12 +214,19 @@ const LINUX_PACKAGE_TESTS = [
 const WINDOWS_PACKAGE_TESTS = [
   ...LINUX_PACKAGE_TESTS,
   'config/scripts/rebuild-native-deps.test.mjs',
+  'config/scripts/rebuild-native-deps-windows-process-tree.test.mjs',
   'src/main/providers/windows-conpty-wide-char-duplication.node-pty.test.ts',
   'src/main/providers/pty-repaint-wide-char-buffer.node-pty.test.ts',
   'src/shared/child-process/windows-command-line.win32.test.ts',
+  'src/shared/child-process/windows-cmd-shim-resolution.test.ts',
+  'src/shared/child-process/windows-cmd-shim-resolution.win32.test.ts',
   'src/main/agent-hooks/windows-hook-payload-delivery.test.ts',
+  'src/main/agent-hooks/windows-direct-cmd-hook-command.test.ts',
   'src/main/windows/windows-pty-job.win32.test.ts',
+  'src/main/windows/windows-msys-job.win32.test.ts',
   'src/main/windows/windows-host-job.win32.test.ts',
+  'src/main/windows/windows-process-tree-command-line-patch.test.ts',
+  'src/main/windows/windows-process-table-native-addon.win32.test.ts',
   'src/main/windows-live-tree-kill.win32.test.ts',
   'src/main/wsl/wsl-runner.test.ts',
   'src/main/wsl/wsl-guest-environment.test.ts',
@@ -228,14 +235,18 @@ const WINDOWS_PACKAGE_TESTS = [
   'src/main/wsl/wsl-w1-w3-contract.test.ts',
   'src/shared/source-scan/source-tree-scan.test.ts',
   'src/main/cli/wsl-cli-powershell-boundary.test.ts',
+  'src/main/computer/desktop-script-runtime-host.win32.test.ts',
   'src/main/cursor/hook-service.test.ts',
   'src/main/manta-profiles/profile-index-store.test.ts',
   'src/main/startup/windows-install-dir-acl-repair.win32.test.ts',
   'src/main/runtime/repo-worktree-admin-fingerprint.test.ts',
   'src/main/runtime/worktree-scan-admin-fingerprint-gate.test.ts',
   'src/shared/secure-file-fsync-flags.test.ts',
+  'src/shared/secure-path-windows-acl.win32.test.ts',
+  'src/main/runtime/unreadable-secret-store-preservation.win32.test.ts',
   'src/main/ipc/pty-codex-account-attribution.test.ts',
-  'src/main/ipc/pty-spawn-env-codex-resume-provenance.test.ts'
+  'src/main/ipc/pty-spawn-env-codex-resume-provenance.test.ts',
+  'src/relay/windows-port-scan.win32.test.ts'
 ]
 
 const DESKTOP_IRRELEVANT_PREFIXES = [
@@ -292,21 +303,8 @@ export function classifyPrJobs(changedFiles) {
   }
 }
 
-// The two shared entries are the only desktop modules the relay imports;
-// `src/shared/` as a whole would fire this job on nearly every PR.
-const RELAY_PREFIXES = [
-  'relay-server/',
-  'src/relay/',
-  'src/shared/mobile-relay-phone-protocol',
-  'src/shared/host-proof'
-]
-
 function jobDetector(job) {
   switch (job) {
-    // Why src/shared too: most relay tests import the desktop's protocol
-    // implementation to prove the two agree byte for byte.
-    case 'relay':
-      return (files) => files.some((file) => matchesPrefix(file, RELAY_PREFIXES))
     case 'git_compatibility':
       return (files) => files.some((file) => matchesPrefix(file, GIT_COMPAT_PREFIXES))
     case 'codex_index_heal_contract':
@@ -369,25 +367,15 @@ function matchesPrefix(file, prefixes) {
   return prefixes.some((prefix) => file === prefix || file.startsWith(prefix))
 }
 
-/**
- * Reads stdin to EOF asynchronously.
- *
- * Not `readFileSync(0)`: on a pipe that exceeds the kernel buffer, the reader
- * has to wait, and a sync read throws EAGAIN instead. macOS masked it by
- * delivering the changed-path list in one write where Linux did not, so this
- * failed only on CI, and only once a PR touched enough files.
- */
-async function readStdin() {
-  let text = ''
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  // Why streamed, not readFileSync(0): a single read of fd 0 throws EAGAIN once the writer
+  // outgrows the 64 KB pipe buffer, which a stale PR base.sha reaches easily.
+  let input = ''
   process.stdin.setEncoding('utf8')
   for await (const chunk of process.stdin) {
-    text += chunk
+    input += chunk
   }
-  return text
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const files = (await readStdin()).split('\n').filter(Boolean)
+  const files = input.split(/\r?\n/).filter(Boolean)
   const classification = classifyPrJobs(files)
   for (const [name, value] of Object.entries(classification)) {
     process.stdout.write(`${name}=${value ? 'true' : 'false'}\n`)

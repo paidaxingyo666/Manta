@@ -80,6 +80,15 @@ export class MantaRuntimeWithRegisterPty extends MantaRuntimeWithInvalidateAllHa
       ...(binding && paneKey ? { tabId: binding.tabId, paneKey } : {}),
       ...(binding?.incarnationId ? { incarnationId: binding.incarnationId } : {})
     })
+    const hostScope = this.getOrchestrationCompatibilityHostScope(pty)
+    if (paneKey && binding?.incarnationId && hostScope) {
+      this._orchestrationDb?.retainReplacedWorkerTerminalResources({
+        paneKey,
+        worktreeId,
+        hostScope: JSON.stringify(hostScope),
+        processIncarnation: `${ptyId}:${binding.incarnationId}`
+      })
+    }
     const agentLaunchAuthority = binding?.agentLaunchAuthority
     if (
       agentLaunchAuthority &&

@@ -64,10 +64,10 @@ export function formatPermissionNotice(event: BrowserPermissionDeniedEvent): str
   return `${target} asked for ${humanizePermission(event.permission)}, and Manta denied it.`
 }
 
-export function formatPopupNotice(event: BrowserPopupEvent): string {
+export function formatPopupNotice(event: BrowserPopupEvent): string | null {
   const target = event.origin === 'unknown' ? 'A site' : event.origin
   if (event.action === 'opened-in-manta') {
-    return `${target} opened a new page in Manta.`
+    return null
   }
   if (event.action === 'opened-external') {
     return `${target} opened a new window in your default browser.`
