@@ -842,7 +842,7 @@
       },
       "useMacosTccPromptNotice": {
         "title": "看到“Manta 想要访问…”提示？",
-        "description": "当 Manta 中运行的代理或终端工具尝试访问受保护的文件时，macOS 可能会显示权限信息。请在“设置”中授予“完全磁盘访问权限”，以减少此类提示。",
+        "description": "当 Manta 中运行的智能体或终端工具尝试访问受保护的文件时，macOS 可能会显示权限信息。请在“设置”中授予“完全磁盘访问权限”，以减少此类提示。",
         "openSettings": "打开设置",
         "dismiss": "不再显示"
       }
@@ -3125,7 +3125,7 @@
             "splitTerminal": "拆分终端"
           },
           "TerminalTabLeadingIcon": {
-            "7ab2964bea": "未读的代理完成"
+            "7ab2964bea": "未读的智能体完成"
           }
         }
       },
@@ -5964,7 +5964,7 @@
           "e7bb06007c": "局域网",
           "4a73f5217a": "用于控制其他本地应用程序的脚本的 Apple 事件。",
           "e119f0d66b": "自动化",
-          "7ca17b62c8": "当 Manta 运行的代理读取其他应用的数据时，macOS 会显示 Manta，因为 Manta 是执行终端命令的进程。请为 Manta 授予此权限，以减少此类提示。然后退出并重新打开 Manta。",
+          "7ca17b62c8": "当 Manta 运行的智能体读取其他应用的数据时，macOS 会显示 Manta，因为 Manta 是执行终端命令的进程。请为 Manta 授予此权限，以减少此类提示。然后退出并重新打开 Manta。",
           "c566bca278": "完全磁盘访问权限",
           "9f35980756": "击键注入、窗口控制和 UI 自动化工具。",
           "5b2f22ca2d": "无障碍",
@@ -6469,7 +6469,7 @@
           "1b1b70279a": "尚未配对任何设备。",
           "1592afcc7a": "尚未配对任何设备。使用 Manta 手机应用程序扫描二维码。",
           "relayDegradedNotice": "无法连接 Relay — 此二维码仅在局域网或 Tailscale 内可用。请重新生成后再试。",
-          "pairingQrError": "无法将此配对码呈现为二维码。请改为将其复制到 Manta Mobile。"
+          "pairingQrError": "无法将此配对码呈现为二维码。请改为将其复制到 Manta 手机端。"
         },
         "MobileSettingsPane": {
           "9a3c280e49": "GitHub 发布",
@@ -6481,7 +6481,7 @@
           "1de96ec8a6": "显示 Manta 手机端按钮",
           "682293cadf": "在左侧边栏顶部显示 Manta 手机端按钮。",
           "d4f2b65f30": "在边栏中显示 Manta 手机端 快捷入口。",
-          "installIntro": "从以下应用商店安装 Manta Mobile",
+          "installIntro": "从以下应用商店安装 Manta 手机端",
           "installOutro": "，然后在下方配对。",
           "androidApkLabel": "Android APK"
         },
@@ -8705,8 +8705,8 @@
               "f213400800": "移动端",
               "671eb4173c": "通过手机控制终端和智能体。",
               "ffd52a96e4": "移动端",
-              "1de96ec8a6": "显示 Manta Mobile 按钮",
-              "682293cadf": "在左侧边栏顶部显示 Manta Mobile 按钮。",
+              "1de96ec8a6": "显示 Manta 手机端 按钮",
+              "682293cadf": "在左侧边栏顶部显示 Manta 手机端 按钮。",
               "e4f4daea0e": "中继",
               "5d5af8e041": "iPhone"
             }
@@ -9892,7 +9892,7 @@
           "regenerate": "重新生成",
           "generate": "生成二维码",
           "refresh": "刷新网络接口",
-          "overview": "生成二维码，然后在 Manta Mobile 的 Pair Desktop 中扫描。",
+          "overview": "生成二维码，然后在 Manta 手机端 的 Pair Desktop 中扫描。",
           "step1Title": "连接方式",
           "step2Title": "此电脑的地址",
           "step2LocalDescription": "手机必须能通过 Tailscale 或 Wi‑Fi 访问此地址。",
@@ -10813,7 +10813,7 @@
             "c06193ef57": "无法复制{{value0}}",
             "d172a4f068": "提交哈希",
             "e283b50179": "提交信息",
-            "f394c6128a": "没有可用于解释此提交的代理",
+            "f394c6128a": "没有可用于解释此提交的智能体",
             "04a5d7239b": "此仓库没有受支持的网页远程库",
             "15b6e834ac": "无法在浏览器中打开提交",
             "d37e68f61d": "正在准备分支以供评审…",
@@ -11800,7 +11800,7 @@
           "ac80d97e02": "更改自定义文件",
           "56b836215c": "正在检查通知权限…",
           "fd84d3e9b8": "通知已启用",
-          "4f7bce5644": "当代理完成或终端需要处理时，macOS 会提醒你。",
+          "4f7bce5644": "当智能体完成或终端需要处理时，macOS 会提醒你。",
           "95d99b52fa": "允许 Manta 发送通知",
           "94562ba367": "macOS 正在请求权限。在对话框中点按允许，此步骤会自动更新。",
           "4f6a1da718": "打开系统设置",
@@ -12032,7 +12032,7 @@
             "stable": "稳定版"
           },
           "relayDegradedNotice": "无法连接 Relay — 此二维码仅在局域网或 Tailscale 内可用。",
-          "pairingQrError": "无法将此配对码呈现为二维码。请改为将其复制到 Manta Mobile。",
+          "pairingQrError": "无法将此配对码呈现为二维码。请改为将其复制到 Manta 手机端。",
           "directAddressDisclosure": "也可使用更快的本地连接",
           "directAddressHint": "可选。选择手机在附近（同一 Wi‑Fi 或 Tailscale）时使用的地址，通常比 Relay 更快。外出时仍走 Relay。"
         },
@@ -12165,17 +12165,17 @@
           "add-custom": "添加自定义地址…"
         },
         "WindowsFirewallNotice": {
-          "repair-success": "Windows 防火墙现已允许 Manta Mobile 在专用网络上通信",
+          "repair-success": "Windows 防火墙现已允许 Manta 手机端 在专用网络上通信",
           "repair-failed": "无法更新 Windows 防火墙规则",
           "public-title": "Windows 将此网络标记为公用",
           "missing-title": "允许手机连接通过 Windows 防火墙",
-          "public-description": "请先将此受信任的 Wi-Fi 网络更改为专用网络，然后再允许 Manta Mobile 连接。",
+          "public-description": "请先将此受信任的 Wi-Fi 网络更改为专用网络，然后再允许 Manta 手机端 连接。",
           "missing-description": "Windows 可能会阻止配对服务器。请为此 Manta 应用和专用网络上的 TCP 端口 {{port}} 添加规则。",
           "open-settings": "打开网络设置",
           "waiting": "正在等待 Windows…",
           "allow": "允许手机连接",
           "repair-unverified": "无法验证 Windows 防火墙访问权限",
-          "blocked-title": "Windows 可能正在阻止 Manta Mobile",
+          "blocked-title": "Windows 可能正在阻止 Manta 手机端",
           "blocked-description": "现有的入站阻止规则可能会覆盖配对例外。修复将移除此 Manta 应用的冲突 TCP 规则，然后在专用网络上允许端口 {{port}}。",
           "repair": "修复防火墙访问权限",
           "relay-note": "配对仍可通过 Manta Relay 进行 — 允许后只是额外获得更快的本地连接。"
@@ -14287,7 +14287,6 @@
           "filtersSection": "筛选",
           "viewSection": "视图"
         },
-
         "ActivityScopeFilterControls": {
           "resetScope": "显示所有主机和项目"
         },
@@ -14837,7 +14836,7 @@
             "selectableOnly": "仅可删除",
             "kind": {
               "status": "状态",
-              "agent": "代理",
+              "agent": "智能体",
               "git": "Git",
               "review": "审查",
               "reviewState": "审查状态",
@@ -14856,7 +14855,7 @@
               "comment": "评论",
               "prunable": "可修剪",
               "locked": "已锁定",
-              "retainedAgents": "已完成的代理"
+              "retainedAgents": "已完成的智能体"
             }
           }
         },

@@ -3,6 +3,7 @@ import { app, powerMonitor } from 'electron'
 import { getMantaCloudAuthConfig } from '../manta-profiles/profile-cloud-auth-config'
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { MobilePushEscalation } from '../runtime/mobile-push-escalation'
+import type { MobileRelayStatusDetail } from '../../shared/mobile-relay-status'
 import { DesktopRelayService } from '../runtime/relay/desktop-relay-service'
 import {
   publishThisMachineToRelay,
@@ -33,9 +34,13 @@ export function startDesktopRelay(runtimeRpc: MantaRuntimeRpcServer): void {
         userDataPath: getProfileUserDataPath(),
         appVersion: app.getVersion(),
         runtimeRpc,
-        onStatus: (status) => {
+        onStatus: (status, cellUrl) => {
           state.desktopRelayStatus = status
-          state.mainWindow?.webContents.send('mobile:relayStatusChanged', status)
+          state.desktopRelayCellUrl = cellUrl
+          state.mainWindow?.webContents.send('mobile:relayStatusChanged', {
+            status,
+            ...(cellUrl === undefined ? {} : { cellUrl })
+          } satisfies MobileRelayStatusDetail)
         }
       })
       state.desktopRelayService = relayService

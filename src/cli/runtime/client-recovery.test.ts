@@ -182,7 +182,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
           enter: true,
           interrupt: false,
           agentPrompt: true,
-          client: { id: 'orca-cli', type: 'desktop' }
+          client: { id: 'manta-cli', type: 'desktop' }
         },
         {
           terminalPromptPreflight: { runtimeId: 'runtime-current' },
@@ -222,7 +222,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
           enter: true,
           interrupt: false,
           agentPrompt: true,
-          client: { id: 'orca-cli', type: 'desktop' }
+          client: { id: 'manta-cli', type: 'desktop' }
         },
         {
           terminalPromptPreflight: { runtimeId: 'runtime-current' },
@@ -275,7 +275,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
           enter: true,
           interrupt: false,
           agentPrompt: true,
-          client: { id: 'orca-cli', type: 'desktop' }
+          client: { id: 'manta-cli', type: 'desktop' }
         },
         {
           terminalPromptPreflight: { runtimeId: 'runtime-before-downgrade' },
@@ -315,7 +315,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
           enter: true,
           interrupt: false,
           agentPrompt: true,
-          client: { id: 'orca-cli', type: 'desktop' }
+          client: { id: 'manta-cli', type: 'desktop' }
         },
         {
           terminalPromptPreflight: { runtimeId: 'runtime-before-downgrade' },
@@ -356,7 +356,7 @@ describe('RuntimeClient orchestration recovery identity', () => {
           enter: true,
           interrupt: false,
           agentPrompt: true,
-          client: { id: 'orca-cli', type: 'desktop' }
+          client: { id: 'manta-cli', type: 'desktop' }
         },
         { legacyTerminalPrompt: true }
       )

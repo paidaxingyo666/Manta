@@ -10,6 +10,7 @@ import {
   requestStructuredAgentSessionMutation,
   retainStructuredSessionOperationId
 } from './mobile-structured-agent-session-rpc'
+import { translate } from '../i18n/i18n'
 
 export async function dispatchMobileStructuredCommand(input: {
   text: string
@@ -42,7 +43,7 @@ export async function dispatchMobileStructuredCommand(input: {
       if (!input.canRun()) {
         return {
           accepted: false,
-          error: 'Wait for pending work to finish before using this command.'
+          error: translate("m.mobile.structured.composer.command.137e5d6e8e", "Wait for pending work to finish before using this command.")
         }
       }
       input.pending.current = true
@@ -71,7 +72,7 @@ export async function dispatchMobileStructuredCommand(input: {
           unknown = true
           return {
             accepted: false,
-            error: 'Conversation operation is unconfirmed; retry checks the same operation.'
+            error: translate("m.mobile.structured.composer.command.1b2277ee53", "Conversation operation is unconfirmed; retry checks the same operation.")
           }
         }
         input.operationIds.delete(key)

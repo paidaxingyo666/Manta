@@ -10,7 +10,7 @@ const promptParams = {
   text: 'retry safely',
   enter: true,
   agentPrompt: true,
-  client: { id: 'orca-cli', type: 'desktop' }
+  client: { id: 'manta-cli', type: 'desktop' }
 } as const
 
 function promptRequest(requestId: string): RpcRequest {
