@@ -2,9 +2,13 @@ import type { ArtifactWriteRequest } from '../../../../shared/artifacts'
 import { sshArtifactSourceKey } from '../../../../shared/artifact-cli-bridge'
 import { parseExecutionHostId } from '../../../../shared/execution-host'
 import { basename } from '@/lib/path'
+import { getConnectionId } from '@/lib/connection-context'
+import { settingsForRuntimeOwner } from '@/runtime/runtime-rpc-client'
 import { useAppStore } from '@/store'
 import type { OpenFile } from '@/store/slices/editor'
 import { flushPendingEditorChange } from './editor-pending-flush'
+import { resolveRichMarkdownWorktreeRoot } from './useRichMarkdownSuperscriptLinkSetup'
+import type { MarkdownArtifactSource } from './markdown-artifact-document'
 
 export function markdownArtifactSourceKey(file: OpenFile): string {
   const route = file.operationProvenance?.generation.route
@@ -42,6 +46,37 @@ export function markdownArtifactSourceKey(file: OpenFile): string {
  * So the client renders and the server stores. The relay keeps its renderer for
  * clients that still send markdown; nothing about the wire contract changes.
  */
+/**
+ * Where the renderer should go looking for this file's images.
+ *
+ * The same shape the preview builds, from the store rather than from a hook, so
+ * an image that resolves in the preview resolves at share time too — including
+ * on an SSH target or inside a runtime environment, where reading it is an RPC
+ * and not a filesystem call. Without a worktree root there is nothing to
+ * resolve a relative path against, so it falls back to a plain local read.
+ */
+function markdownArtifactImageSource(file: OpenFile): MarkdownArtifactSource {
+  const state = useAppStore.getState()
+  const connectionId = getConnectionId(file.worktreeId)
+  const worktreePath = file.worktreeId
+    ? resolveRichMarkdownWorktreeRoot(state, file.worktreeId)
+    : null
+  if (!file.worktreeId || !worktreePath) {
+    return { filePath: file.filePath, connectionId }
+  }
+  return {
+    filePath: file.filePath,
+    connectionId,
+    runtimeContext: {
+      settings: settingsForRuntimeOwner(state.settings, file.runtimeEnvironmentId),
+      worktreeId: file.worktreeId,
+      worktreePath,
+      connectionId,
+      expectedExternalSshTargetId: file.externalSshTargetId
+    }
+  }
+}
+
 export async function createMarkdownArtifactRequest(
   file: OpenFile,
   content: string
@@ -50,7 +85,11 @@ export async function createMarkdownArtifactRequest(
   const { renderMarkdownArtifactDocument } = await import('./markdown-artifact-document')
   return {
     sourceKey: markdownArtifactSourceKey(file),
-    content: await renderMarkdownArtifactDocument(content, fileName),
+    content: await renderMarkdownArtifactDocument(
+      content,
+      fileName,
+      markdownArtifactImageSource(file)
+    ),
     contentType: 'text/html',
     fileName
   }

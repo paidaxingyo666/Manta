@@ -8,7 +8,7 @@ import { AgentSkillSetupPanel } from './AgentSkillSetupPanel'
 import { TooltipProvider } from '../ui/tooltip'
 
 const INSTALL_COMMAND =
-  'npx skills add https://github.com/stablyai/manta --skill manta-cli --global'
+  'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --global'
 const UPDATE_COMMAND = 'npx skills update manta-cli --global'
 
 const mocks = vi.hoisted(() => ({

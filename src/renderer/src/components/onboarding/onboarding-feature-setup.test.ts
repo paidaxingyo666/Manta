@@ -125,7 +125,7 @@ describe('onboarding feature setup runner', () => {
 
     expect(text).toBe(ALL_SKILL_INSTALL_COMMAND)
     expect(text).toBe(
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli --skill computer-use --skill orchestration --skill manta-linear --global'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --skill computer-use --skill orchestration --skill manta-linear --global'
     )
   })
 

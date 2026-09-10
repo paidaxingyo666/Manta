@@ -18,6 +18,15 @@ import {
   MARKDOWN_REMARK_PLUGINS,
   markdownPreviewSanitizeSchema
 } from './MarkdownPreviewBody'
+import {
+  buildArtifactImageDataUris,
+  collectArtifactImageSources,
+  rehypeInlineArtifactImages,
+  type ArtifactImageContext
+} from './markdown-artifact-image-inlining'
+
+/** What the page is being rendered from, so its images can travel with it. */
+export type MarkdownArtifactSource = ArtifactImageContext & { filePath: string }
 
 /**
  * The preview's schema, minus `file:`.
@@ -35,18 +44,36 @@ function shareSanitizeSchema(): typeof markdownPreviewSanitizeSchema {
     protocols: {
       ...markdownPreviewSanitizeSchema.protocols,
       href: withoutFile(markdownPreviewSanitizeSchema.protocols?.href as string[] | undefined),
-      src: withoutFile(markdownPreviewSanitizeSchema.protocols?.src as string[] | undefined)
+      // `data:` for what the inlining step just put there. `img` is the only
+      // element this schema gives a `src` to, and a data URI in one is rendered
+      // as an image and nothing else — an SVG loaded that way does not script.
+      src: [
+        ...withoutFile(markdownPreviewSanitizeSchema.protocols?.src as string[] | undefined),
+        'data'
+      ]
     }
   }
 }
 
-/** Swaps the preview's schema for the share one, leaving the order intact. */
-function shareRehypePlugins(): ReactMarkdownOptions['rehypePlugins'] {
+/**
+ * Swaps the preview's schema for the share one, leaving the order intact, and
+ * puts the image rewrite immediately before it.
+ *
+ * `null` renders with the preview's own schema instead: that pass exists only
+ * to find which images the document refers to, and it has to keep the `file:`
+ * URLs the share schema is there to remove.
+ */
+function shareRehypePlugins(
+  inlined: ReadonlyMap<string, string> | null
+): ReactMarkdownOptions['rehypePlugins'] {
+  if (!inlined) {
+    return MARKDOWN_REHYPE_PLUGINS as ReactMarkdownOptions['rehypePlugins']
+  }
   const schema = shareSanitizeSchema()
-  return MARKDOWN_REHYPE_PLUGINS.map((plugin) =>
+  return MARKDOWN_REHYPE_PLUGINS.flatMap((plugin) =>
     Array.isArray(plugin) && plugin[1] === markdownPreviewSanitizeSchema
-      ? [plugin[0], schema]
-      : plugin
+      ? [rehypeInlineArtifactImages(inlined), [plugin[0], schema]]
+      : [plugin]
   ) as ReactMarkdownOptions['rehypePlugins']
 }
 
@@ -65,17 +92,31 @@ function escapeHtml(value: string): string {
  * top so neither lands in the startup bundle; sharing is a deliberate action
  * and can wait a tick for them.
  */
-export async function renderMarkdownArtifactBody(markdown: string): Promise<string> {
+export async function renderMarkdownArtifactBody(
+  markdown: string,
+  source?: MarkdownArtifactSource
+): Promise<string> {
   const [{ renderToStaticMarkup }, { default: Markdown }] = await Promise.all([
     import('react-dom/server'),
     import('react-markdown')
   ])
-  const rendered = renderToStaticMarkup(
-    <Markdown remarkPlugins={MARKDOWN_REMARK_PLUGINS} rehypePlugins={shareRehypePlugins()}>
-      {markdown}
-    </Markdown>
-  )
-  return tidyServerMarkup(rendered)
+  const render = (inlined: ReadonlyMap<string, string> | null): string =>
+    renderToStaticMarkup(
+      <Markdown remarkPlugins={MARKDOWN_REMARK_PLUGINS} rehypePlugins={shareRehypePlugins(inlined)}>
+        {markdown}
+      </Markdown>
+    )
+  // Twice, because the images have to be read before the tree that carries them
+  // is built and there is no asynchronous step inside react-markdown's pipeline
+  // to read them from. The first pass is a discovery render whose output is
+  // thrown away; sharing is a deliberate action and can afford it.
+  const inlined = source
+    ? await buildArtifactImageDataUris(collectArtifactImageSources(render(null)), source.filePath, {
+        connectionId: source.connectionId,
+        runtimeContext: source.runtimeContext
+      })
+    : new Map<string, string>()
+  return tidyServerMarkup(render(inlined))
 }
 
 /**
@@ -107,9 +148,10 @@ function tidyServerMarkup(html: string): string {
  */
 export async function renderMarkdownArtifactDocument(
   markdown: string,
-  title: string
+  title: string,
+  source?: MarkdownArtifactSource
 ): Promise<string> {
-  const body = await renderMarkdownArtifactBody(markdown)
+  const body = await renderMarkdownArtifactBody(markdown, source)
   return `<!doctype html>
 <html lang="zh-CN">
 <head>

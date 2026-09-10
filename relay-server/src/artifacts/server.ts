@@ -19,6 +19,7 @@ import { json } from '../shared/http-json.js'
 import { rateLimitKey } from '../shared/client-ip.js'
 import { renderMarkdown } from './markdown.js'
 import type { ArtifactRecord, ArtifactStore } from './store.js'
+import { FAVICON_PATH, serveFavicon } from './favicon.js'
 import { publishedSlug, servePublishedPage, wrapDocument } from './published-page.js'
 import { parseWrite, readLargeJson, REQUEST_OVERHEAD, type WriteBody } from './request-body.js'
 
@@ -94,6 +95,13 @@ export class ArtifactServer {
     const published = publishedSlug(path)
     if (published) {
       servePublishedPage(this.options.store, published, response)
+      return true
+    }
+    // Before the rate limiter on purpose: a browser asks for this once per page
+    // it opens, and spending an artifact's budget on its own tab icon is how a
+    // reader who opened a few links gets a 429 on the next one.
+    if (path === FAVICON_PATH) {
+      serveFavicon(response)
       return true
     }
     if (path !== '/v1/artifacts' && !path.startsWith('/v1/artifacts/')) {

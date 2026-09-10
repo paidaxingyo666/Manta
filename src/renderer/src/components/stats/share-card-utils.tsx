@@ -215,7 +215,7 @@ export function CardFooter(props: {
         >
           {translate(
             'auto.components.stats.share.card.utils.19f4b4dc75',
-            'github.com/stablyai/manta'
+            'github.com/paidaxingyo666/Manta'
           )}
         </span>
       </div>
