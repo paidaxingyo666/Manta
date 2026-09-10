@@ -36,7 +36,7 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      DIRECTOR_ORIGIN: https://relay.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay.onorca.dev
       IMAGE_REPOSITORY: us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay
       TARGET_CELL_ID: ${{ inputs.target-cell-id }}
       DEPLOY_MODE: ${{ inputs.mode }}
@@ -165,7 +165,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -221,7 +221,7 @@ jobs:
             *) exit 1 ;;
           esac
           EXPECTED_UNOBSERVED_BOUND=60
-          CELL_ORIGIN="https://${TARGET_HOSTNAME}.relay.manta.sh.cn"
+          CELL_ORIGIN="https://${TARGET_HOSTNAME}.relay.onorca.dev"
           CELLS_JSON="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
             <<< 'jsonencode(var.relay_gce_cells)' | jq -er '.')"
@@ -237,7 +237,7 @@ jobs:
           test "$(jq -r '.connection_unobserved_bound' <<< "${CURRENT_SHAPE}")" = \
             "${EXPECTED_UNOBSERVED_BOUND}"
           TARGET_ZONE="$(jq -r '.zone' <<< "${CURRENT_SHAPE}")"
-          MIG_NAME="manta-cloud-relay-gce-${TARGET_HOSTNAME}"
+          MIG_NAME="orca-cloud-relay-gce-${TARGET_HOSTNAME}"
           if test "${DEPLOY_MODE}" = rollback; then
             DESIRED_IMAGE_DIGEST="${ROLLBACK_IMAGE_DIGEST}"
             CURRENT_IMAGE_DIGEST="${TARGET_IMAGE_DIGEST}"
@@ -500,7 +500,7 @@ jobs:
                 --image "${DESIRED_IMAGE}" \
                 --rollback-image "${DESIRED_IMAGE}" \
                 --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
-                --rehome-audience https://relay.manta.sh.cn/v1/admin/host-drain \
+                --rehome-audience https://relay.onorca.dev/v1/admin/host-drain \
                 --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}" \
               | jq -e '.changes == 2' >/dev/null
           fi
@@ -527,7 +527,7 @@ jobs:
               --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" --image "${DESIRED_IMAGE}" \
               --rollback-image "${IMAGE_REPOSITORY}@${CURRENT_IMAGE_DIGEST}" \
               --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
-              --rehome-audience https://relay.manta.sh.cn/v1/admin/host-drain \
+              --rehome-audience https://relay.onorca.dev/v1/admin/host-drain \
               --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}"
           terraform -chdir=infra/terraform apply -auto-approve \
             "${RUNNER_TEMP}/relay-same-cap.tfplan"
@@ -541,7 +541,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Verify new incarnation, exact image, protocol, and durable safety
@@ -642,7 +642,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Keep a failed cell isolated and rehome disabled

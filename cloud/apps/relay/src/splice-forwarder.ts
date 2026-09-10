@@ -1,4 +1,4 @@
-import { RELAY_ADMISSION_BUDGETS, RELAY_CLOSE_CODE } from '@manta-cloud/relay-contract'
+import { RELAY_ADMISSION_BUDGETS, RELAY_CLOSE_CODE } from '@orca-cloud/relay-contract'
 import type WebSocket from 'ws'
 import type { RawData } from 'ws'
 import { closeRelayWebSocket } from './relay-websocket-close.js'

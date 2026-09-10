@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url'
 import { fetchAdminOnceMore } from './relay-admin-transient-retry.mjs'
 import { inspectAdmissionSelector } from './relay-admission-selector.mjs'
 
-const DIRECTOR_ORIGIN = 'https://relay.manta.sh.cn'
+const DIRECTOR_ORIGIN = 'https://relay.onorca.dev'
 const MODES = new Set(['inspect', 'enable', 'pause', 'disable', 'recover-enable'])
 
 function canonicalCells(value) {

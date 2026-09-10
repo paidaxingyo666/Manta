@@ -3,7 +3,7 @@
 # renders byte-identically to the resource attribute it replaces; the partition test pins that.
 locals {
   relay_shared_labels = {
-    app         = "manta-cloud"
+    app         = "orca-cloud"
     environment = var.environment
     managed_by  = "terraform"
   }

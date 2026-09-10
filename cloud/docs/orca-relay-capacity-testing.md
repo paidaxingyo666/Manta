@@ -1,4 +1,4 @@
-# Manta Relay capacity testing
+# Orca Relay capacity testing
 
 This harness covers two different launch gates. The deterministic model proves that phase spreading produces the required aggregate heartbeat and auth-refresh rates without a synchronized cliff. The control harness opens real WebSockets, completes the host-key challenge, answers heartbeats, refreshes authorization, and reconnects with full jitter.
 
@@ -33,10 +33,10 @@ For staging, keep the signing key process-local and out of the filesystem:
 
 ```sh
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.manta.sh.cn \
-  --auth-origin https://auth-staging.manta.sh.cn \
+  --director-origin https://relay-staging.onorca.dev \
+  --auth-origin https://auth-staging.onorca.dev \
   --signing-key-file <(gcloud secrets versions access latest \
-    --secret=manta-cloud-auth-signing-key \
+    --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \
   --controls 840 \
   --ramp-seconds 210 \
@@ -59,8 +59,8 @@ Against the stable director and stamped cells:
 
 ```sh
 ORCA_RELAY_LOAD_ACCESS_TOKEN="$ACCESS_TOKEN" pnpm load:relay:controls -- \
-  --director-origin https://relay-staging.manta.sh.cn \
-  --auth-origin https://auth-staging.manta.sh.cn \
+  --director-origin https://relay-staging.onorca.dev \
+  --auth-origin https://auth-staging.onorca.dev \
   --controls 800 \
   --ramp-seconds 210 \
   --duration-seconds 900
@@ -74,8 +74,8 @@ Run one process per shard when the client machine becomes the bottleneck. Every 
 
 ```sh
 pnpm load:relay:controls -- \
-  --director-origin https://relay-staging.manta.sh.cn \
-  --auth-origin https://auth-staging.manta.sh.cn \
+  --director-origin https://relay-staging.onorca.dev \
+  --auth-origin https://auth-staging.onorca.dev \
   --controls 1000 \
   --shard-count 4 \
   --shard-index 0
@@ -112,10 +112,10 @@ fresh assignments and exposes the exact physical boundary:
 
 ```sh
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.manta.sh.cn \
-  --auth-origin https://auth-staging.manta.sh.cn \
+  --director-origin https://relay-staging.onorca.dev \
+  --auth-origin https://auth-staging.onorca.dev \
   --signing-key-file <(gcloud secrets versions access latest \
-    --secret=manta-cloud-auth-signing-key \
+    --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \
   --controls 900 \
   --rebind-probes 100 \
@@ -138,12 +138,12 @@ ORCA_RELAY_ADMIN_ID_TOKEN="$(gcloud auth print-identity-token \
   --impersonate-service-account="${CAPACITY_SA}" \
   --project=onorca-cloud-staging \
   --include-email \
-  --audiences=https://relay-staging.manta.sh.cn/v1/admin/drain)" \
+  --audiences=https://relay-staging.onorca.dev/v1/admin/drain)" \
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.manta.sh.cn \
-  --auth-origin https://auth-staging.manta.sh.cn \
+  --director-origin https://relay-staging.onorca.dev \
+  --auth-origin https://auth-staging.onorca.dev \
   --signing-key-file <(gcloud secrets versions access latest \
-    --secret=manta-cloud-auth-signing-key \
+    --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \
   --controls 840 \
   --placement-overflow-probes 1 \

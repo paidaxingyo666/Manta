@@ -249,7 +249,11 @@ All of them import one rule, `brand_rule.py`:
   workflows this fork must never run), the skill aliases, `/usr/bin/orca` and
   the phrase `GNOME Orca` (Ubuntu's screen reader — the reason the Linux binary
   is `manta-ide`), the App Store URL. **KEEP_PATH** — files that are *about*
-  upstream, or where Orca is the whale.
+  upstream, or where Orca is the whale, or that describe infrastructure only
+  upstream runs. The mirror honours it for both the path and the bytes, so a
+  kept file arrives exactly as upstream wrote it; the blob cache is keyed by
+  `(sha, kept)` because one tree can hold the same bytes at a kept path and an
+  ordinary one, and those want opposite answers.
 
 Before this module there were two copies with different rules, and the
 conflict-time one renamed blindly with an identity map pointing at a bundle id
@@ -283,6 +287,24 @@ edited. The cherry-pick path had produced 372 blind-rebranded picks, a 92-file
 repair commit and 24 failing tests for the same range.
 **`sweep-brand.py`** and **`rebrand-merge.py`** remain for reading and for
 the old cherry-pick path; neither is part of the sync now.
+
+## What upstream owns
+
+`cloud/`, the 26 `.github/workflows/cloud-*.yml`, and
+`.github/actions/cloud-sql-rollout-lease/` are upstream's hosted relay fleet and
+the GCP estate that runs it — their projects, their service accounts, their
+numeric repository ids. This fork operates none of it and imports none of it:
+the root workspace is `packages: []`, nothing under `src/`, `mobile/src/` or
+`relay-server/` references `@manta-cloud/relay-contract`, and the fork's own
+relay is `relay-server/`.
+
+They are on KEEP_PATH, so they track upstream byte for byte. Renaming inside
+them produced names that were neither upstream's nor this fork's and existed
+nowhere — `stablyai/manta` beside upstream's real repository id, a Cloud Run
+service pushed past the platform's own 46-character service-plus-tag bound, a
+MIG-name validator still spelling `orca-` while its fixtures had moved. None of
+it could fail visibly, because `Cloud Verify` only runs when `cloud/**` changes;
+it had never once passed here.
 
 ## What this fork owns
 

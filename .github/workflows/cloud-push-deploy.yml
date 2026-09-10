@@ -36,10 +36,10 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      SERVICE_NAME: manta-cloud-push
-      REPOSITORY_ID: manta-cloud
+      SERVICE_NAME: orca-cloud-push
+      REPOSITORY_ID: orca-cloud
       IMAGE_NAME: push
-      PUSH_ORIGIN: https://push.manta.sh.cn
+      PUSH_ORIGIN: https://push.onorca.dev
       PUSH_RUNTIME_SERVICE_ACCOUNT: orca-cloud-push@onorca-cloud.iam.gserviceaccount.com
       # Scaling the serving revision must already hold, matching push_min_instances and
       # push_max_instances. Terraform owns both, and the candidate inherits them from the
@@ -221,7 +221,7 @@ jobs:
             --impersonate-service-account "${PUSH_RUNTIME_SERVICE_ACCOUNT}")"
           test -n "${token}"
           echo "::add-mask::${token}"
-          body='{"validate_only":true,"message":{"token":"orca-push-deploy-probe-invalid-token","notification":{"title":"Manta","body":"deploy probe"}}}'
+          body='{"validate_only":true,"message":{"token":"orca-push-deploy-probe-invalid-token","notification":{"title":"Orca","body":"deploy probe"}}}'
           for attempt in $(seq 1 5); do
             code="$(curl -sS -o "${RUNNER_TEMP}/push-fcm.json" -w '%{http_code}' --max-time 20 \
               -X POST "https://fcm.googleapis.com/v1/projects/${GCP_PROJECT_ID}/messages:send" \

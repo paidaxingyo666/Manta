@@ -10,7 +10,7 @@ Three buckets. "Merged" means the code is on `main` and nothing in production ha
 
 **Deployed to production**
 - Roll 2 relay image `4916ed67` (stablyai/orca #18959 + #18722 + #18720 flag unset): director since 2026-09-06 01:02Z, all 19 general cells by 16:29Z. Control lease 6 h ± 30 min, accept abandonment, per-cell inventory locks, pool `statement_timeout`. Record: findings doc, "Roll 2" section.
-- Auth instance cap 20 + dead-family audit fix (manta-cloud #474) as revision `manta-cloud-auth-00031-tox`.
+- Auth instance cap 20 + dead-family audit fix (orca-cloud #474) as revision `orca-cloud-auth-00031-tox`.
 - Dynamic NAT ports in both regions (stablyai/orca #18693). Zero drops and zero proxy dial errors since.
 - Nine alert policies with log metrics: 4 auth (#475), 3 relay Cloud SQL/NAT (#18693), 1 cell process-exit (#18717), all on the relay Slack channel.
 
@@ -19,8 +19,8 @@ Three buckets. "Merged" means the code is on `main` and nothing in production ha
 - Phone shows a clear "sign in on the desktop again" state when the desktop is signed out (#18698).
 
 **Merged, ships with the next auth deploy**
-- Refresh rotation grace window (manta-cloud #478). Startup adds one nullable column (brief exclusive lock on `refresh_tokens`).
-- Pruning job code (manta-cloud #476) is in the image; the job itself is Terraform-disabled until 1.2.
+- Refresh rotation grace window (orca-cloud #478). Startup adds one nullable column (brief exclusive lock on `refresh_tokens`).
+- Pruning job code (orca-cloud #476) is in the image; the job itself is Terraform-disabled until 1.2.
 
 **Merged, ships with the next desktop release**
 - Never replay a refresh token after a timeout; ±10 % jitter on relay lease renewal (#18719).
@@ -33,7 +33,7 @@ Three buckets. "Merged" means the code is on `main` and nothing in production ha
 **Awaiting owner go (production mutations)**
 1. Roll 1 cell image roll (1.1): dry-run gate, then c8 canary, then batches.
 2. Auth deploy carrying #478 (3.1): quiet minute for the column add.
-3. manta-cloud #477 private IP (2.1): merge arms an instance restart and a one-way door. Recommendation: hold.
+3. orca-cloud #477 private IP (2.1): merge arms an instance restart and a one-way door. Recommendation: hold.
 4. Runtime-metric `region` label drift (5.x): intentional replacement of 21 metrics, or drop the label.
 5. Enable pruning (1.2): first budget 20k rows; needs a Terraform apply.
 6. Paging channel for auth alerts (5.2): needs the destination from you.
@@ -124,8 +124,8 @@ independent. (2.2 deferred; if revived, do it after 2.1 so the new instance is p
 - [x] Record image census in the findings doc. 2026-09-05 22:27Z: all 19 general cells on `519f4914` except c7 on `85bf6799`; existing-only c1–c6, c11, c12 and migration-only c17, c18 untouched on their older images by design. Selector at gen 148.
 
 ### 1.2 Enable pruning
-- [x] `auth_token_pruner_image` = digest of `manta-cloud-auth-00031-tox` (`343a0915…`; it contains the entrypoint). manta-cloud #479 merged.
-- [x] `auth_token_pruner_enabled = true`, `auth_token_pruner_max_rows_per_run = 20000` for the first day (manta-cloud #479).
+- [x] `auth_token_pruner_image` = digest of `orca-cloud-auth-00031-tox` (`343a0915…`; it contains the entrypoint). orca-cloud #479 merged.
+- [x] `auth_token_pruner_enabled = true`, `auth_token_pruner_max_rows_per_run = 20000` for the first day (orca-cloud #479).
 - [x] Targeted plan asserted 9 create / 0 change / 0 destroy. Applied 2026-09-05 02:06Z.
 - [x] Trigger one run by hand; read the summary event. 02:18Z: `time-budget`, 73 batches, 365k scanned, 1 040 deleted (1 021 revoked, 19 expired), no errors. Scan-bound.
 - [ ] Raise the budget to the default 200k after a clean day; watch Cloud SQL write MB/s and the checkpoint alert.
@@ -141,7 +141,7 @@ independent. (2.2 deferred; if revived, do it after 2.1 so the new instance is p
 - [ ] Plan shows exactly the four known drifts and **no traffic change** on `google_cloud_run_v2_service.auth`.
 - [ ] Apply; confirm `status.traffic` still pins `00031-tox` at 100 %.
 
-### 2.1 Private IP (PRs open: manta-cloud #477 foundation, stablyai/orca #18720 relay flag)
+### 2.1 Private IP (PRs open: orca-cloud #477 foundation, stablyai/orca #18720 relay flag)
 - [ ] **Owner decision**: the foundation apply restarts the instance and is irreversible on Google's side. Merging #477 arms the next foundation apply; hold the merge until the window is chosen.
 - [ ] Director is out of scope: it uses the Cloud Run built-in connector (managed Google path, not the relay VPC NAT), so it consumed none of the exhausted ports; moving it needs Direct VPC egress + a separate DSN secret. Own PR if ever wanted.
 - [ ] Step 7 (`ipv4_enabled=false`) is blocked until humans have IAP/bastion access and the director is moved; it breaks both today.
@@ -155,7 +155,7 @@ independent. (2.2 deferred; if revived, do it after 2.1 so the new instance is p
 - [ ] New `google_sql_database_instance.relay` (private IP from day one, its own size and flags). Staging first.
 - [ ] Relay schema applies cleanly to an empty instance (it does at startup).
 - [ ] Rehearsal on staging: drain → `pg_dump` relay tables → restore → flip `relay_database_url` secret → restart director + cells → phones/desktops reconnect. Time it.
-- [ ] Production: announce a window; same steps; verify `manta_relay_runtime_metrics` controls recover to pre-cutover count.
+- [ ] Production: announce a window; same steps; verify `orca_relay_runtime_metrics` controls recover to pre-cutover count.
 - [ ] Update `production-cloud-sql-app-consumers` budget test and both alert policies' `database_id`.
 
 ### 2.3 Relay pool statement timeout (deployed in Roll 2, 2026-09-06)
@@ -163,12 +163,12 @@ independent. (2.2 deferred; if revived, do it after 2.1 so the new instance is p
 - [x] Postgres test on 55440: a held lock fails the query fast and the bounded retry takes over.
 - [x] Deployed fleet-wide in Roll 2 (`4916ed67`), 2026-09-06.
 
-### 3.1 Refresh rotation grace window (manta-cloud #478 merged 2026-09-04; deploy pending owner go)
+### 3.1 Refresh rotation grace window (orca-cloud #478 merged 2026-09-04; deploy pending owner go)
 - [ ] Fix the deploy-script env strip for `ORCA_CLOUD_REFRESH_TOKEN_TTL_DAYS` (pre-existing; found by #478).
 - [x] `rotateRefreshToken`: if `rotated_at` within 60 s and not revoked, return the existing successor (idempotent), no revoke, no audit.
 - [x] Outside the window or a third presentation: unchanged (revoke + audit).
 - [x] Tests: replay inside window returns same successor; outside revokes; concurrent double-present yields one successor.
-- [x] Deploy via `deploy-auth-production` (candidate → smoke → promote). Deployed 2026-09-04 23:15Z as `manta-cloud-auth-00035-gos`, cap 20 kept, 0 5xx; `successor_material` column present; sealed successors being written. (candidate → smoke → promote).
+- [x] Deploy via `deploy-auth-production` (candidate → smoke → promote). Deployed 2026-09-04 23:15Z as `orca-cloud-auth-00035-gos`, cap 20 kept, 0 5xx; `successor_material` column present; sealed successors being written. (candidate → smoke → promote).
 
 ### 3.2 / 4.3 Desktop (merged stablyai/orca #18719; ships next desktop release; relay side of 4.3 deployed in Roll 2)
 - [x] 3.2: on refresh timeout, re-read stored session before retrying; do not re-send a token already rotated locally.
@@ -183,10 +183,10 @@ independent. (2.2 deferred; if revived, do it after 2.1 so the new instance is p
 
 ### 4.2 Region preference
 - [ ] Director: honor requested region when the preferred region has headroom, else sticky. Behind the existing flag.
-- [ ] Measure with `manta_relay_runtime_metrics` region counters before/after.
+- [ ] Measure with `orca_relay_runtime_metrics` region counters before/after.
 
 ### 5.x Observability
 - [x] **Relay-root runtime-metric drift**: resolved by dropping the `region` label to match live state (stablyai/orca #18734). Applied 2026-09-04 23:11Z: 8 never-applied `control_*` renewal metrics + the incident dashboard created, 0 destroyed, 21 live metrics untouched.
 - [x] 5.1 `container die` log metric per cell (`relay_cell_process_exit`, applied 2026-09-04 via #18717), > 3 / 15 min, relay channel.
 - [ ] 5.2 Add a paging channel (**needs owner input**: destination) to `auth_alert_notification_channels` for refresh rejections + latency.
-- [x] 5.4 One dashboard (applied 2026-09-04 23:11Z): `manta_relay_cloud_sql_wal_checkpoint`, NAT drops, `orca_auth_refresh_401`, summed `controls`.
+- [x] 5.4 One dashboard (applied 2026-09-04 23:11Z): `orca_relay_cloud_sql_wal_checkpoint`, NAT drops, `orca_auth_refresh_401`, summed `controls`.

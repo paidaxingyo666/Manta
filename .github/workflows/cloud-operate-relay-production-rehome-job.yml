@@ -41,9 +41,9 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      DIRECTOR_SERVICE: manta-cloud-relay
-      DIRECTOR_ORIGIN: https://relay.manta.sh.cn
-      REHOME_AUDIENCE: https://relay.manta.sh.cn/v1/admin/host-drain
+      DIRECTOR_SERVICE: orca-cloud-relay
+      DIRECTOR_ORIGIN: https://relay.onorca.dev
+      REHOME_AUDIENCE: https://relay.onorca.dev/v1/admin/host-drain
       MODE: ${{ inputs.mode }}
       DIRECTOR_IMAGE_DIGEST: ${{ inputs.director-image-digest }}
       ROLLBACK_IMAGE_DIGEST: ${{ inputs.rollback-image-digest }}
@@ -113,7 +113,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Apply emergency durable pause or disable before diagnostics
@@ -221,7 +221,7 @@ jobs:
           # 6 director instances x 120 samples/hour x 25h = 18000; a clipped
           # read empties the oldest hourly buckets and fails the seal.
           gcloud logging read \
-            'resource.type="cloud_run_revision" AND resource.labels.service_name="manta-cloud-relay" AND jsonPayload.event="manta_relay_runtime_metrics" AND jsonPayload.role="director"' \
+            'resource.type="cloud_run_revision" AND resource.labels.service_name="orca-cloud-relay" AND jsonPayload.event="orca_relay_runtime_metrics" AND jsonPayload.role="director"' \
             --project "${GCP_PROJECT_ID}" --freshness=25h --limit=30000 --format=json \
             | node dev/scripts/relay-region-observation-evidence.mjs create \
                 --commit-sha "${GITHUB_SHA}" \
@@ -309,7 +309,7 @@ jobs:
       - name: Read fresh aggregate completion and abort evidence
         run: |
           gcloud logging read \
-            'resource.type="cloud_run_revision" AND resource.labels.service_name="manta-cloud-relay" AND textPayload:"[manta-relay] regional rehome inventory"' \
+            'resource.type="cloud_run_revision" AND resource.labels.service_name="orca-cloud-relay" AND textPayload:"[orca-relay] regional rehome inventory"' \
             --project "${GCP_PROJECT_ID}" --freshness=15m --limit=20 --format=json \
             | node dev/scripts/relay-rehome-aggregate-evidence.mjs --max-age-ms 900000 \
             | tee "${RUNNER_TEMP}/relay-rehome-inventory.json"

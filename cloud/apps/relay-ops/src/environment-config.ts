@@ -95,28 +95,28 @@ export const RELAY_OPS_ENVIRONMENTS: Record<RelayOpsEnvironmentId, RelayOpsEnvir
     label: 'Production',
     project: 'onorca-cloud',
     region: 'us-central1',
-    directorOrigin: 'https://relay.manta.sh.cn',
-    authOrigin: 'https://login.manta.sh.cn',
-    directorService: 'manta-cloud-relay',
-    authService: 'manta-cloud-auth',
-    sqlInstance: 'manta-cloud-auth-db',
+    directorOrigin: 'https://relay.onorca.dev',
+    authOrigin: 'https://login.onorca.dev',
+    directorService: 'orca-cloud-relay',
+    authService: 'orca-cloud-auth',
+    sqlInstance: 'orca-cloud-auth-db',
     migPrefix: 'orca-cloud-relay-gce-',
-    certificateName: 'manta-cloud-relay-gce',
-    cells: durableCells('production', 'relay.manta.sh.cn')
+    certificateName: 'orca-cloud-relay-gce',
+    cells: durableCells('production', 'relay.onorca.dev')
   },
   staging: {
     id: 'staging',
     label: 'Staging',
     project: 'onorca-cloud-staging',
     region: 'us-central1',
-    directorOrigin: 'https://relay-staging.manta.sh.cn',
-    authOrigin: 'https://auth-staging.manta.sh.cn',
-    directorService: 'manta-cloud-relay-staging',
-    authService: 'manta-cloud-auth-staging',
-    sqlInstance: 'manta-cloud-staging-auth-db',
+    directorOrigin: 'https://relay-staging.onorca.dev',
+    authOrigin: 'https://auth-staging.onorca.dev',
+    directorService: 'orca-cloud-relay-staging',
+    authService: 'orca-cloud-auth-staging',
+    sqlInstance: 'orca-cloud-staging-auth-db',
     migPrefix: 'orca-cloud-staging-relay-gce-',
-    certificateName: 'manta-cloud-staging-relay-gce',
-    cells: durableCells('staging', 'relay-staging.manta.sh.cn')
+    certificateName: 'orca-cloud-staging-relay-gce',
+    cells: durableCells('staging', 'relay-staging.onorca.dev')
   }
 }
 

@@ -270,7 +270,7 @@ async function readMetric(
   )
   url.searchParams.set(
     'filter',
-    `metric.type="logging.googleapis.com/user/manta_relay_${definition.name}"`
+    `metric.type="logging.googleapis.com/user/orca_relay_${definition.name}"`
   )
   url.searchParams.set('interval.startTime', startAt)
   url.searchParams.set('interval.endTime', endAt)
@@ -310,10 +310,10 @@ async function readAlertPolicies(
     }>
   }
   return (body.alertPolicies ?? [])
-    .filter((policy) => policy.displayName?.startsWith('Manta Relay:'))
+    .filter((policy) => policy.displayName?.startsWith('Orca Relay:'))
     .map((policy) => ({
       id: policy.name ?? '',
-      displayName: policy.displayName ?? 'Manta Relay alert',
+      displayName: policy.displayName ?? 'Orca Relay alert',
       enabled: policy.enabled === true,
       documentation: policy.documentation?.content ?? null
     }))

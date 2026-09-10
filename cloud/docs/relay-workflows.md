@@ -111,7 +111,7 @@ closed; no dedicated operations identity falls back to the shared deploy identit
 
 The shared production identity is restricted to seven named direct Relay callers plus the exact
 regional-rehome and same-cap reusable wrapper/job pairs on `main` in the `production` environment.
-Its Artifact Registry and Cloud Run mutation permissions are scoped to the Manta repository, Relay
+Its Artifact Registry and Cloud Run mutation permissions are scoped to the Orca repository, Relay
 director, and Relay fence broker; it cannot mutate the API or auth services.
 
 Bootstrap the production capacity identity only after its reviewed commit is on

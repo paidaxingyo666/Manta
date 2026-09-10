@@ -15,9 +15,9 @@ const production = readFileSync(
 )
 const REHOME_SOURCE_CELLS = rehomeSourceCells()
 const DIRECTOR_IDENTITY = 'relay-director@onorca-cloud.iam.gserviceaccount.com'
-const AUDIENCE = 'https://relay.manta.sh.cn/v1/admin/host-drain'
-const ROLLBACK_IMAGE = `us-central1-docker.pkg.dev/p/manta-cloud/relay@sha256:${'d'.repeat(64)}`
-const TARGET_IMAGE = `us-central1-docker.pkg.dev/p/manta-cloud/relay@sha256:${'e'.repeat(64)}`
+const AUDIENCE = 'https://relay.onorca.dev/v1/admin/host-drain'
+const ROLLBACK_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'d'.repeat(64)}`
+const TARGET_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'e'.repeat(64)}`
 
 // The startup template emits rehome trust only for cells in this list, so it is what decides
 // whether a cell's plan may carry those lines at all.
@@ -42,7 +42,7 @@ function startupScript({ cap, image, trusted }) {
     `printf 'ORCA_RELAY_IMAGE_DIGEST=%s\\n' '${image.split('@')[1]}'`,
     `docker pull '${image}'`,
     'docker run --detach \\',
-    '  --name manta-relay \\',
+    '  --name orca-relay \\',
     `  '${image}'`
   ].join('\n')
 }
@@ -128,14 +128,14 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
     for (const cellId of SAME_CAP_CELLS) {
       for (const mode of ['isolate', 'drain', 'activate']) {
         assert.deepEqual(parseProductionCapacityCellArguments([
-          '--director-origin', 'https://relay.manta.sh.cn',
-          '--cell-origin', `https://${hostname(cellId)}.relay.manta.sh.cn`,
+          '--director-origin', 'https://relay.onorca.dev',
+          '--cell-origin', `https://${hostname(cellId)}.relay.onorca.dev`,
           '--cell-id', cellId,
           '--approved-cells', 'same-cap',
           '--mode', mode
         ]), {
-          directorOrigin: 'https://relay.manta.sh.cn',
-          cellOrigin: `https://${hostname(cellId)}.relay.manta.sh.cn`,
+          directorOrigin: 'https://relay.onorca.dev',
+          cellOrigin: `https://${hostname(cellId)}.relay.onorca.dev`,
           cellId,
           mode
         })

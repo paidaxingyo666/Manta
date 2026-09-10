@@ -1,4 +1,4 @@
-import { ASSIGNMENT_LIMITS } from '@manta-cloud/relay-contract'
+import { ASSIGNMENT_LIMITS } from '@orca-cloud/relay-contract'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   RelayAssignmentStore,

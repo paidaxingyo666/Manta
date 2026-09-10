@@ -51,7 +51,7 @@ describe('assignment cleanup steps', () => {
     ])
     expect(warn).toHaveBeenCalledTimes(1)
     expect(String(warn.mock.calls[0]![0])).toContain(
-      '[manta-relay] assignment cleanup failed: complete-ready-regional-rehomes'
+      '[orca-relay] assignment cleanup failed: complete-ready-regional-rehomes'
     )
   })
 

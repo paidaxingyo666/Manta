@@ -1,5 +1,5 @@
 {
-  "comment": "Production Cloud SQL consumers owned by the private manta-cloud application tree (auth and API services). The relay ships without them, so the values the connection budget needs are published here; the private repository binds every field back to its source in its own CI.",
+  "comment": "Production Cloud SQL consumers owned by the private orca-cloud application tree (auth and API services). The relay ships without them, so the values the connection budget needs are published here; the private repository binds every field back to its source in its own CI.",
   "authInstances": 2,
   "authPoolMax": 10,
   "apiInstances": 10,

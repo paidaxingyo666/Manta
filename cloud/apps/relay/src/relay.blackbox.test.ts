@@ -12,7 +12,7 @@ import {
   HOST_CHALLENGE_PLAINTEXT_DOMAIN,
   RELAY_HOST_CAPABILITIES_HEADER,
   RELAY_HOST_CAPABILITY_PENDING_CONN_DETAILS
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import nacl from 'tweetnacl'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import WebSocket from 'ws'
@@ -57,7 +57,7 @@ async function waitForRelay(child: ChildProcess): Promise<void> {
     let stderr = ''
     const timeout = setTimeout(() => reject(new Error('relay did not start')), 10_000)
     child.stdout?.on('data', (chunk: Buffer) => {
-      if (chunk.toString().includes('[manta-relay] listening')) {
+      if (chunk.toString().includes('[orca-relay] listening')) {
         clearTimeout(timeout)
         resolveReady()
       }
@@ -136,7 +136,7 @@ function spawnTopologyRelay(input: {
     env: {
       ...process.env,
       PORT: new URL(input.url).port,
-      MANTA_RELAY_PUBLIC_URL: input.url,
+      ORCA_RELAY_PUBLIC_URL: input.url,
       ORCA_RELAY_CELL_URL: input.url,
       ORCA_RELAY_CELL_ID: input.cellId,
       ORCA_RELAY_CELL_CAPACITY: '10',
@@ -145,7 +145,7 @@ function spawnTopologyRelay(input: {
       ORCA_RELAY_AUTH_ISSUER: issuer,
       ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
       ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-      MANTA_RELAY_DATA_DIR: input.dataDirectory,
+      ORCA_RELAY_DATA_DIR: input.dataDirectory,
       ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
       ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
       ORCA_RELAY_MONITOR_SERVICE_ACCOUNT: 'monitor@example.com',
@@ -290,7 +290,7 @@ async function openHostControl(input?: {
   const hostId = createHash('sha256').update(keyPair.publicKey).digest('base64url').slice(0, 16)
   const socket = new WebSocket(`${relayUrl.replace('http:', 'ws:')}/v1/host/control`, {
     headers: {
-      authorization: `Bearer ${await relayToken('manta-relay', hostId)}`,
+      authorization: `Bearer ${await relayToken('orca-relay', hostId)}`,
       ...(input?.capabilities
         ? { [RELAY_HOST_CAPABILITIES_HEADER]: input.capabilities }
         : {})
@@ -380,12 +380,12 @@ beforeAll(async () => {
     env: {
       ...process.env,
       PORT: String(relayPort),
-      MANTA_RELAY_PUBLIC_URL: relayUrl,
+      ORCA_RELAY_PUBLIC_URL: relayUrl,
       ORCA_RELAY_CELL_URL: relayUrl,
       ORCA_RELAY_AUTH_ISSUER: issuer,
       ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
       ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-      MANTA_RELAY_DATA_DIR: relayDataDirectory,
+      ORCA_RELAY_DATA_DIR: relayDataDirectory,
       ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
       ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
       ORCA_RELAY_MONITOR_SERVICE_ACCOUNT: 'monitor@example.com',
@@ -423,12 +423,12 @@ describe('served relay URL', () => {
       env: {
         ...process.env,
         PORT: String(port),
-        MANTA_RELAY_PUBLIC_URL: url,
+        ORCA_RELAY_PUBLIC_URL: url,
         ORCA_RELAY_CELL_URL: url,
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: 'http://127.0.0.1:1/jwks',
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-        MANTA_RELAY_DATA_DIR: dataDirectory,
+        ORCA_RELAY_DATA_DIR: dataDirectory,
         ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
         ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
         ORCA_RELAY_IMAGE_DIGEST: `sha256:${'a'.repeat(64)}`,
@@ -454,7 +454,7 @@ describe('served relay URL', () => {
       (
         await fetch(`${relayUrl}/v1/assign`, {
           method: 'POST',
-          headers: { authorization: `Bearer ${await relayToken('manta-cloud')}` },
+          headers: { authorization: `Bearer ${await relayToken('orca-cloud')}` },
           body
         })
       ).status
@@ -570,7 +570,7 @@ describe('served relay URL', () => {
     const response = await fetch(`${relayUrl}/v1/assign`, {
       method: 'POST',
       headers: {
-        authorization: `Bearer ${await relayToken('manta-relay')}`,
+        authorization: `Bearer ${await relayToken('orca-relay')}`,
         'content-type': 'application/json'
       },
       body: JSON.stringify({ v: 1, relayHostId: 'abcdefghijklmnop' })
@@ -585,7 +585,7 @@ describe('served relay URL', () => {
     expect(assignment).toMatchObject({ v: 1, cellUrl: relayUrl, assignmentEpoch: 1 })
     const verified = await jwtVerify(assignment.lease, new TextEncoder().encode(assignmentKey), {
       issuer: relayUrl,
-      audience: 'manta-relay-cell',
+      audience: 'orca-relay-cell',
       algorithms: ['HS256']
     })
     expect(verified.payload).toMatchObject({ relayHostId: 'abcdefghijklmnop' })
@@ -612,7 +612,7 @@ describe('served relay URL', () => {
     const wrongKey = nacl.box.keyPair()
     const hostId = createHash('sha256').update(claimedKey.publicKey).digest('base64url').slice(0, 16)
     const socket = new WebSocket(`${relayUrl.replace('http:', 'ws:')}/v1/host/control`, {
-      headers: { authorization: `Bearer ${await relayToken('manta-relay', hostId)}` }
+      headers: { authorization: `Bearer ${await relayToken('orca-relay', hostId)}` }
     })
     await new Promise<void>((resolveOpen) => socket.once('open', resolveOpen))
     const closed = new Promise<number>((resolveClose) =>
@@ -635,7 +635,7 @@ describe('served relay URL', () => {
     const keyPair = nacl.box.keyPair()
     const hostId = createHash('sha256').update(keyPair.publicKey).digest('base64url').slice(0, 16)
     const socket = new WebSocket(`${relayUrl.replace('http:', 'ws:')}/v1/host/control`, {
-      headers: { authorization: `Bearer ${await relayToken('manta-relay', hostId)}` }
+      headers: { authorization: `Bearer ${await relayToken('orca-relay', hostId)}` }
     })
     await new Promise<void>((resolveOpen, reject) => {
       socket.once('open', resolveOpen)
@@ -969,12 +969,12 @@ describe('served relay URL', () => {
           ...process.env,
           NODE_ENV: 'test',
           PORT: String(clockPort),
-          MANTA_RELAY_PUBLIC_URL: clockUrl,
+          ORCA_RELAY_PUBLIC_URL: clockUrl,
           ORCA_RELAY_CELL_URL: clockUrl,
           ORCA_RELAY_AUTH_ISSUER: issuer,
           ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
           ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-          MANTA_RELAY_DATA_DIR: clockData,
+          ORCA_RELAY_DATA_DIR: clockData,
           ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
           ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
           ORCA_RELAY_ADMIN_JWKS_URL: `${issuer}/jwks`,
@@ -1491,12 +1491,12 @@ describe('served relay URL', () => {
           ...process.env,
           NODE_ENV: 'test',
           PORT: String(faultPort),
-          MANTA_RELAY_PUBLIC_URL: faultUrl,
+          ORCA_RELAY_PUBLIC_URL: faultUrl,
           ORCA_RELAY_CELL_URL: faultUrl,
           ORCA_RELAY_AUTH_ISSUER: issuer,
           ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
           ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-          MANTA_RELAY_DATA_DIR: faultData,
+          ORCA_RELAY_DATA_DIR: faultData,
           ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
           ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
           ORCA_RELAY_ADMIN_JWKS_URL: `${issuer}/jwks`,
@@ -1583,12 +1583,12 @@ describe('served relay URL', () => {
           ...process.env,
           NODE_ENV: 'test',
           PORT: String(faultPort),
-          MANTA_RELAY_PUBLIC_URL: faultUrl,
+          ORCA_RELAY_PUBLIC_URL: faultUrl,
           ORCA_RELAY_CELL_URL: faultUrl,
           ORCA_RELAY_AUTH_ISSUER: issuer,
           ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
           ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-          MANTA_RELAY_DATA_DIR: faultData,
+          ORCA_RELAY_DATA_DIR: faultData,
           ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
           ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
           ORCA_RELAY_ADMIN_JWKS_URL: `${issuer}/jwks`,
@@ -1679,7 +1679,7 @@ describe('served relay URL', () => {
     const originalUrl = relayUrl
     const cellPort = await unusedPort()
     const cellUrl = `http://127.0.0.1:${cellPort}`
-    const cellData = mkdtempSync(resolve(tmpdir(), 'manta-relay-cell-'))
+    const cellData = mkdtempSync(resolve(tmpdir(), 'orca-relay-cell-'))
     const keyPair = nacl.box.keyPair()
     const hostId = createHash('sha256')
       .update(keyPair.publicKey)
@@ -1695,7 +1695,7 @@ describe('served relay URL', () => {
       env: {
         ...process.env,
         PORT: String(cellPort),
-        MANTA_RELAY_PUBLIC_URL: cellUrl,
+        ORCA_RELAY_PUBLIC_URL: cellUrl,
         ORCA_RELAY_CELL_URL: cellUrl,
         ORCA_RELAY_CELL_ID: 'cell-a',
         ORCA_RELAY_CELL_CAPACITY: '10',
@@ -1703,7 +1703,7 @@ describe('served relay URL', () => {
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-        MANTA_RELAY_DATA_DIR: cellData,
+        ORCA_RELAY_DATA_DIR: cellData,
         ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
         ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
         ORCA_RELAY_ADMIN_JWKS_URL: `${issuer}/jwks`
@@ -1713,7 +1713,7 @@ describe('served relay URL', () => {
     relayUrl = cellUrl
     try {
       await waitForRelay(cellProcess)
-      const token = await relayToken('manta-relay', hostId)
+      const token = await relayToken('orca-relay', hostId)
       const assignmentResponse = await fetch(`${cellUrl}/v1/assign`, {
         method: 'POST',
         headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
@@ -1876,10 +1876,10 @@ describe('served relay URL', () => {
             environment: 'production',
             cellId: 'cell-a',
             cellIncarnation: '11111111-1111-4111-8111-111111111111',
-            migName: 'manta-relay-c1',
-            instanceGroup: 'https://compute.example/instanceGroups/manta-relay-c1',
+            migName: 'orca-relay-c1',
+            instanceGroup: 'https://compute.example/instanceGroups/orca-relay-c1',
             generationIdentity:
-              'https://compute.example/instanceTemplates/manta-relay-c1-abc',
+              'https://compute.example/instanceTemplates/orca-relay-c1-abc',
             fenceCommit: 'a'.repeat(40),
             planSha256: 'b'.repeat(64),
             planObjectName:
@@ -1890,7 +1890,7 @@ describe('served relay URL', () => {
             terraformStateObjectGeneration: '987654321',
             terraformStateObjectSha256: 'd'.repeat(64),
             requestReason:
-              'manta-relay-fence/44444444-4444-4444-8444-444444444444'
+              'orca-relay-fence/44444444-4444-4444-8444-444444444444'
           },
           confirmation: 'PREPARE_TERRAFORM_CELL_FENCE',
           expected: { status: 409, body: { error: 'cell_fence_admission_enabled' } }
@@ -1903,10 +1903,10 @@ describe('served relay URL', () => {
             environment: 'production',
             cellId: 'cell-a',
             cellIncarnation: '11111111-1111-4111-8111-111111111111',
-            migName: 'manta-relay-c1',
-            instanceGroup: 'https://compute.example/instanceGroups/manta-relay-c1',
+            migName: 'orca-relay-c1',
+            instanceGroup: 'https://compute.example/instanceGroups/orca-relay-c1',
             generationIdentity:
-              'https://compute.example/instanceTemplates/manta-relay-c1-abc',
+              'https://compute.example/instanceTemplates/orca-relay-c1-abc',
             fenceCommit: 'a'.repeat(40),
             planSha256: 'b'.repeat(64),
             planObjectName:
@@ -1917,7 +1917,7 @@ describe('served relay URL', () => {
             terraformStateObjectGeneration: '987654321',
             terraformStateObjectSha256: 'd'.repeat(64),
             requestReason:
-              'manta-relay-fence/44444444-4444-4444-8444-444444444444'
+              'orca-relay-fence/44444444-4444-4444-8444-444444444444'
           },
           confirmation: 'ABORT_UNSTARTED_TERRAFORM_CELL_FENCE',
           expected: { status: 409, body: { error: 'cell_fence_attempt_not_found' } }
@@ -2352,17 +2352,17 @@ describe('served relay URL', () => {
       env: {
         ...process.env,
         PORT: String(directorPort),
-        MANTA_RELAY_PUBLIC_URL: relayUrl,
-        ORCA_RELAY_CELL_URL: 'https://relay-c2.manta.sh.cn',
+        ORCA_RELAY_PUBLIC_URL: relayUrl,
+        ORCA_RELAY_CELL_URL: 'https://relay-c2.onorca.dev',
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-        MANTA_RELAY_DATA_DIR: relayDataDirectory,
+        ORCA_RELAY_DATA_DIR: relayDataDirectory,
         ORCA_RELAY_ROLE: 'director',
         ORCA_RELAY_CELLS_JSON: JSON.stringify([
           {
             id: 'cell-c2',
-            url: 'https://relay-c2.manta.sh.cn',
+            url: 'https://relay-c2.onorca.dev',
             capacityRequests: 900
           }
         ]),
@@ -2376,7 +2376,7 @@ describe('served relay URL', () => {
     expect(
       await postCellHeartbeat(relayUrl, {
         id: 'cell-c2',
-        url: 'https://relay-c2.manta.sh.cn'
+        url: 'https://relay-c2.onorca.dev'
       })
     ).toMatchObject({ status: 200 })
 
@@ -2399,7 +2399,7 @@ describe('served relay URL', () => {
     expect(await movedPromise).toEqual({
       type: 'relay-moved',
       v: 1,
-      cellUrl: 'https://relay-c2.manta.sh.cn',
+      cellUrl: 'https://relay-c2.onorca.dev',
       assignmentEpoch: 1
     })
     expect(await closed).toBe(4503)
@@ -2412,12 +2412,12 @@ describe('served relay URL', () => {
       env: {
         ...process.env,
         PORT: new URL(combinedUrl).port,
-        MANTA_RELAY_PUBLIC_URL: combinedUrl,
+        ORCA_RELAY_PUBLIC_URL: combinedUrl,
         ORCA_RELAY_CELL_URL: combinedUrl,
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-        MANTA_RELAY_DATA_DIR: relayDataDirectory,
+        ORCA_RELAY_DATA_DIR: relayDataDirectory,
         ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
         ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
         ORCA_RELAY_CAPACITY_SERVICE_ACCOUNT: 'capacity@example.com',
@@ -2441,12 +2441,12 @@ describe('served relay URL', () => {
       env: {
         ...process.env,
         PORT: String(signalPort),
-        MANTA_RELAY_PUBLIC_URL: signalUrl,
+        ORCA_RELAY_PUBLIC_URL: signalUrl,
         ORCA_RELAY_CELL_URL: signalUrl,
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
-        MANTA_RELAY_DATA_DIR: signalData,
+        ORCA_RELAY_DATA_DIR: signalData,
         ORCA_RELAY_ADMIN_AUDIENCE: adminAudience,
         ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT: 'deploy@example.com',
         ORCA_RELAY_ADMIN_JWKS_URL: `${issuer}/jwks`

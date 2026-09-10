@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import {
   buildHostProofMacInput,
   HOST_CHALLENGE_PLAINTEXT_DOMAIN
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import nacl from 'tweetnacl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebSocket from 'ws'
@@ -154,7 +154,7 @@ describe('relay connection hard cap', () => {
       publicUrl: relayUrl,
       cellUrl: relayUrl,
       authIssuer: issuer,
-      authAudience: 'manta-relay',
+      authAudience: 'orca-relay',
       jwksUrl: `${issuer}/jwks`,
       assignmentSigningKey: new TextEncoder().encode('test-assignment-key-with-at-least-32-bytes'),
       role: 'combined',
@@ -244,7 +244,7 @@ describe('relay connection hard cap', () => {
     })
       .setProtectedHeader({ alg: 'ES256', kid: 'test-key' })
       .setIssuer(issuer)
-      .setAudience('manta-relay')
+      .setAudience('orca-relay')
       .setSubject('user-1')
       .setIssuedAt()
       .setExpirationTime('5m')
@@ -263,7 +263,7 @@ describe('relay connection hard cap', () => {
     })
       .setProtectedHeader({ alg: 'ES256', kid: 'test-key' })
       .setIssuer(issuer)
-      .setAudience('manta-relay')
+      .setAudience('orca-relay')
       .setSubject('user-2')
       .setIssuedAt()
       .setExpirationTime('5m')

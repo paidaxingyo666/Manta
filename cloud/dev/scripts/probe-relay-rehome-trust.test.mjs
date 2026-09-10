@@ -6,7 +6,7 @@ import {
 } from './probe-relay-rehome-trust.mjs'
 
 const argv = [
-  '--director-origin', 'https://relay.manta.sh.cn',
+  '--director-origin', 'https://relay.onorca.dev',
   '--cell-id', 'production-gce-c7',
   '--cell-incarnation', '11111111-1111-4111-8111-111111111111'
 ]
@@ -27,7 +27,7 @@ test('requires complete aggregate application-mediated trust proof', async () =>
   const config = parseRehomeTrustProbeArguments(argv, environment)
   const result = await probeRehomeTrust(config, {
     fetch: async (url, init) => {
-      assert.equal(url, 'https://relay.manta.sh.cn/v1/admin/regional-rehome-trust-probe')
+      assert.equal(url, 'https://relay.onorca.dev/v1/admin/regional-rehome-trust-probe')
       assert.deepEqual(JSON.parse(init.body), {
         v: 1,
         sourceCellId: 'production-gce-c7',

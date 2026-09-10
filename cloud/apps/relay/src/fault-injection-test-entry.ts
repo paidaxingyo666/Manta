@@ -47,7 +47,7 @@ const now = clockFile
 const { server, sessions, assignments } = createRelayServer(config, database, { now })
 await reconcileCellAdmissionAtStartup(config, assignments)
 server.listen(config.port, () => {
-  console.log(`[manta-relay] listening on ${config.publicUrl} (port ${config.port})`)
+  console.log(`[orca-relay] listening on ${config.publicUrl} (port ${config.port})`)
 })
 
 const shutdown = (): void => {

@@ -228,7 +228,7 @@ function topology() {
     instance_group: `https://compute.example/instanceGroups/relay-${hostname}`,
     backend_name: `relay-${hostname}`,
     backend_id: `https://compute.example/backendServices/relay-${hostname}`,
-    url_map_name: 'manta-relay',
+    url_map_name: 'orca-relay',
     generation_identity: `https://compute.example/instanceTemplates/relay-${hostname}-abc`,
     image: `us-central1-docker.pkg.dev/project/repo/relay@${digest(id)}`,
     capacity_requests: 4_000,
@@ -499,7 +499,7 @@ function harness({
         terraformStateObjectGeneration: '987654321',
         terraformStateObjectSha256: 'f'.repeat(64),
         requestReason:
-          'manta-relay-fence/44444444-4444-4444-8444-444444444444',
+          'orca-relay-fence/44444444-4444-4444-8444-444444444444',
         createdAt: Date.now(),
         expiresAt: Date.now() + 3_600_000,
         ...(completedFenceAttempt
@@ -509,7 +509,7 @@ function harness({
                 {
                   invocationId: '66666666-6666-4666-8666-666666666666',
                   requestReason:
-                    'manta-relay-fence/44444444-4444-4444-8444-444444444444/66666666-6666-4666-8666-666666666666',
+                    'orca-relay-fence/44444444-4444-4444-8444-444444444444/66666666-6666-4666-8666-666666666666',
                   startedAt: 101
                 }
               ]
@@ -650,32 +650,32 @@ function harness({
     }
     if (args.includes('target-https-proxies')) {
       return {
-        name: 'manta-relay',
+        name: 'orca-relay',
         selfLink:
-          'https://www.googleapis.com/compute/v1/projects/test-project/global/targetHttpsProxies/manta-relay',
+          'https://www.googleapis.com/compute/v1/projects/test-project/global/targetHttpsProxies/orca-relay',
         urlMap: frontendMisbound
           ? 'https://www.googleapis.com/compute/v1/projects/test-project/global/urlMaps/other'
-          : 'https://www.googleapis.com/compute/v1/projects/test-project/global/urlMaps/manta-relay'
+          : 'https://www.googleapis.com/compute/v1/projects/test-project/global/urlMaps/orca-relay'
       }
     }
     if (args.includes('forwarding-rules')) {
       return {
-        name: 'manta-relay',
+        name: 'orca-relay',
         target:
-          'https://www.googleapis.com/compute/v1/projects/test-project/global/targetHttpsProxies/manta-relay',
+          'https://www.googleapis.com/compute/v1/projects/test-project/global/targetHttpsProxies/orca-relay',
         IPAddress: '203.0.113.10',
         portRange: '443-443',
         loadBalancingScheme: 'EXTERNAL_MANAGED'
       }
     }
     if (args.includes('addresses')) {
-      return { name: 'manta-relay', address: '203.0.113.10' }
+      return { name: 'orca-relay', address: '203.0.113.10' }
     }
     if (args.includes('url-maps')) {
       return {
-        name: 'manta-relay',
+        name: 'orca-relay',
         selfLink:
-          'https://www.googleapis.com/compute/v1/projects/test-project/global/urlMaps/manta-relay',
+          'https://www.googleapis.com/compute/v1/projects/test-project/global/urlMaps/orca-relay',
         hostRules: Object.entries(topologyValue).map(([cellId, cell]) => ({
           hosts: [new URL(cell.origin).hostname],
           pathMatcher: cellId
@@ -1124,7 +1124,7 @@ function harness({
           terraformStateObjectGeneration: '987654321',
           terraformStateObjectSha256: 'f'.repeat(64),
           requestReason:
-            'manta-relay-fence/44444444-4444-4444-8444-444444444444'
+            'orca-relay-fence/44444444-4444-4444-8444-444444444444'
         }
         await callbacks.prepareAttempt(attempt)
         await callbacks.preApplyGuard()

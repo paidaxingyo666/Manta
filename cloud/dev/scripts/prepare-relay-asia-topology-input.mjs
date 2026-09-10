@@ -50,7 +50,7 @@ export function prepareRelayAsiaTopologyInput({
   if (new Set(requested).size !== requested.length || JSON.stringify(requested) !== JSON.stringify(expected)) {
     throw new Error('cell IDs do not match the reviewed Asia topology')
   }
-  const prefix = `us-central1-docker.pkg.dev/${shape.project}/manta-cloud/relay@sha256:`
+  const prefix = `us-central1-docker.pkg.dev/${shape.project}/orca-cloud/relay@sha256:`
   if (!image.startsWith(prefix) || !/sha256:[a-f0-9]{64}$/.test(image)) {
     throw new Error('image is not the environment Relay image pinned by digest')
   }

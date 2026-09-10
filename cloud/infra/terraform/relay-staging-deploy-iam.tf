@@ -34,7 +34,7 @@ resource "google_service_account" "github_staging_relay_deploy" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-relay"
-  display_name = "Manta Relay staging deploy"
+  display_name = "Orca Relay staging deploy"
   description  = "Runs the exact reviewed Relay staging deploy, candidate, power, and admission workflows."
 }
 
@@ -137,7 +137,7 @@ resource "google_cloud_run_v2_service_iam_member" "github_staging_relay_deploy_d
 # Power Relay Staging step "Inspect or change staging power state" scales both entries of
 # CLOUD_RUN_SERVICES in power-staging-relay.mjs to zero, and the second one is the shared staging
 # auth service. The same workflow already stops the shared staging database through
-# mantaRelayStagingPower, so this stays with the power operator rather than the apps root.
+# orcaRelayStagingPower, so this stays with the power operator rather than the apps root.
 resource "google_cloud_run_v2_service_iam_member" "github_staging_relay_deploy_auth_developer" {
   count = local.create_staging_relay_deploy_identity && var.relay_staging_power_auth_service_name != "" ? 1 : 0
 

@@ -9,7 +9,7 @@ resource "google_service_account" "relay_fence_broker" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-relay-fence"
-  display_name = "Manta Relay fence broker"
+  display_name = "Orca Relay fence broker"
   description  = "Owns exact reviewed Terraform cell fences behind an authenticated broker."
 }
 
@@ -17,8 +17,8 @@ resource "google_project_iam_custom_role" "relay_fence_broker_mutation" {
   count = local.create_relay_fence_broker ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayFenceBroker"
-  title       = "Manta Relay fence broker"
+  role_id     = "orcaRelayFenceBroker"
+  title       = "Orca Relay fence broker"
   description = "Updates only reviewed Relay MIG sizes and inspects their zone operations."
   permissions = [
     "compute.instanceGroupManagers.update"

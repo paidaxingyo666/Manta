@@ -11,7 +11,7 @@ function gcloud(policy, targetSizes) {
       ? policy
       : JSON.stringify(
           targetSizes.map((targetSize, index) => ({
-            name: `manta-cloud-staging-relay-gce-c${index + 1}`,
+            name: `orca-cloud-staging-relay-gce-c${index + 1}`,
             targetSize
           }))
         )

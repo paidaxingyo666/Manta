@@ -9,7 +9,7 @@ import {
   RELAY_DEFAULT_REGION,
   RELAY_PROTOCOL_LIMITS,
   RelayAuthSchema
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import type { IncomingMessage } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
@@ -59,7 +59,7 @@ function noDelay(socket: WebSocket): void {
 // emitting it, so logging is all that is left to do.
 function guardSocketErrors(socket: WebSocket, kind: string): void {
   socket.on('error', (error) => {
-    console.warn(`[manta-relay] ${kind} socket error: ${error.message}`)
+    console.warn(`[orca-relay] ${kind} socket error: ${error.message}`)
   })
 }
 
@@ -265,7 +265,7 @@ export function createRelayServer(
       }
       void callback(raw).catch((error: unknown) => {
         console.warn(
-          '[manta-relay] first frame handler failed',
+          '[orca-relay] first frame handler failed',
           error instanceof Error ? error.message : ''
         )
         closeRelayWebSocket(
@@ -500,7 +500,7 @@ export function createRelayServer(
     }).catch((error: unknown) => {
       // A throw in the upgrade handling above must cost this socket, not the process.
       console.warn(
-        `[manta-relay] control upgrade failed: ${error instanceof Error ? error.message : 'unknown'}`
+        `[orca-relay] control upgrade failed: ${error instanceof Error ? error.message : 'unknown'}`
       )
       socket.destroy()
     })

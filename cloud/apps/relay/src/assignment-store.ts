@@ -8,7 +8,7 @@ import {
   RELAY_REGIONS,
   RELAY_PROTOCOL_LIMITS,
   type RelayRegion
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import {
   cellAdmissionState,
   cellAdmissionStates,
@@ -5845,7 +5845,7 @@ export class RelayAssignmentStore {
     // the transaction commits so a rollback cannot fabricate the record.
     if (disabled.length > 0) {
       this.pendingRegionalRehomeDisableLog = {
-        event: 'manta_relay_regional_rehome_safety_disabled',
+        event: 'orca_relay_regional_rehome_safety_disabled',
         reason,
         controlGeneration: integer(disabled[0]!, 'generation'),
         now,
@@ -8118,7 +8118,7 @@ export function cellInventoryLockOptions(mode: CellInventoryLockMode): RelayLock
 function warnSweepCellInventoryBusy(sweep: string, skipped: number): void {
   if (skipped === 0) return
   console.warn(
-    JSON.stringify({ event: 'manta_relay_sweep_cell_inventory_busy', sweep, skipped })
+    JSON.stringify({ event: 'orca_relay_sweep_cell_inventory_busy', sweep, skipped })
   )
 }
 
@@ -8156,7 +8156,7 @@ function warnRegionalRehomeCandidateFailure(
   const message = error instanceof Error ? error.message : ''
   console.warn(
     JSON.stringify({
-      event: 'manta_relay_regional_rehome_candidate_failed',
+      event: 'orca_relay_regional_rehome_candidate_failed',
       operation,
       attemptId,
       reason: /^[a-z0-9_]{1,64}$/.test(message) ? message : 'redacted'
@@ -8168,7 +8168,7 @@ function warnRegionalRehomeCandidateFailure(
 function noteRegionalRehomeActivityCountsRepaired(attemptId: string): void {
   console.warn(
     JSON.stringify({
-      event: 'manta_relay_regional_rehome_activity_counts_repaired',
+      event: 'orca_relay_regional_rehome_activity_counts_repaired',
       attemptId
     })
   )
@@ -8350,7 +8350,7 @@ function aggregateRegionalRehomeCandidateSkips(
     else aggregated.set(key, { ...skip, candidates: 1 })
   }
   return {
-    event: 'manta_relay_regional_rehome_candidates_skipped',
+    event: 'orca_relay_regional_rehome_candidates_skipped',
     skips: [...aggregated.values()]
   }
 }

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { RELAY_CLOSE_CODE, RELAY_PROTOCOL_LIMITS } from '@manta-cloud/relay-contract'
+import { RELAY_CLOSE_CODE, RELAY_PROTOCOL_LIMITS } from '@orca-cloud/relay-contract'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type WebSocket from 'ws'
 import type { RelayAssignmentStore } from './assignment-store.js'
@@ -41,7 +41,7 @@ const config = {
   publicUrl: 'https://relay-c3.example.com',
   cellUrl: 'https://relay-c3.example.com',
   authIssuer: 'https://auth.example.com',
-  authAudience: 'manta-relay',
+  authAudience: 'orca-relay',
   jwksUrl: 'https://auth.example.com/jwks',
   assignmentSigningKey: new Uint8Array(32),
   role: 'cell',
@@ -194,7 +194,7 @@ describe('client accept abandoned mid-DB-phase', () => {
         expect.any(Number)
       )
       const line = warn.mock.calls.map((call) => String(call[0])).find((entry) =>
-        entry.includes('manta_relay_client_accept_abandoned')
+        entry.includes('orca_relay_client_accept_abandoned')
       )
       expect(line).toBeDefined()
       expect(JSON.parse(line!)).toMatchObject({ stage: 'activity' })
@@ -378,7 +378,7 @@ describe('successful client accept timing', () => {
       })
       const line = log.mock.calls
         .map((call) => String(call[0]))
-        .find((entry) => entry.includes('manta_relay_client_accept_completed'))
+        .find((entry) => entry.includes('orca_relay_client_accept_completed'))
       expect(line).toBeDefined()
       const event = JSON.parse(line!) as {
         role: string
@@ -439,7 +439,7 @@ describe('control round-trip sampling', () => {
     const rttLines = (): string[] =>
       log.mock.calls
         .map((call) => String(call[0]))
-        .filter((entry) => entry.includes('manta_relay_host_control_rtt'))
+        .filter((entry) => entry.includes('orca_relay_host_control_rtt'))
     // One heartbeat, then the desktop's echo of that ping's own `t` 40 ms later.
     const roundTrip = async (): Promise<void> => {
       const pingAt = await advanceToPing(control, clock)
@@ -455,7 +455,7 @@ describe('control round-trip sampling', () => {
       expect(h.observer.recordControlRtt).toHaveBeenLastCalledWith(40)
       expect(rttLines()).toHaveLength(1)
       expect(JSON.parse(rttLines()[0]!)).toMatchObject({
-        event: 'manta_relay_host_control_rtt',
+        event: 'orca_relay_host_control_rtt',
         role: 'cell',
         cellId: config.cellId,
         region: 'us-central1',
@@ -523,7 +523,7 @@ describe('control round-trip sampling', () => {
       expect(h.observer.recordControlRtt).toHaveBeenCalledTimes(1)
       expect(h.observer.recordControlRtt).toHaveBeenCalledWith(12)
       expect(
-        log.mock.calls.filter((call) => String(call[0]).includes('manta_relay_host_control_rtt'))
+        log.mock.calls.filter((call) => String(call[0]).includes('orca_relay_host_control_rtt'))
       ).toHaveLength(0)
     } finally {
       log.mockRestore()

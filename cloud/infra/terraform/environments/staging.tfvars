@@ -1,9 +1,9 @@
 project_id  = "onorca-cloud-staging"
 environment = "staging"
-name_prefix = "manta-cloud-staging"
+name_prefix = "orca-cloud-staging"
 region      = "us-central1"
 
-artifact_repository_id = "manta-cloud"
+artifact_repository_id = "orca-cloud"
 
 # The relay source lives in the public stablyai/orca repository, where the workflows carry a
 # `cloud-` file prefix. github_owner and github_owner_id keep their defaults.
@@ -11,11 +11,11 @@ github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 
-auth_base_url = "https://auth-staging.manta.sh.cn"
+auth_base_url = "https://auth-staging.onorca.dev"
 
-relay_cloud_run_service_name          = "manta-cloud-relay-staging"
-relay_staging_power_auth_service_name = "manta-cloud-auth-staging"
-relay_base_url                        = "https://relay-staging.manta.sh.cn"
+relay_cloud_run_service_name          = "orca-cloud-relay-staging"
+relay_staging_power_auth_service_name = "orca-cloud-auth-staging"
+relay_base_url                        = "https://relay-staging.onorca.dev"
 relay_min_instances                   = 0
 relay_max_instances                   = 2
 # Staging now exercises the production-shaped GCE data plane exclusively.
@@ -24,8 +24,8 @@ relay_cells = {}
 manage_relay_domain_mapping = true
 
 # GCE cells use exact hosts below this wildcard, for example
-# c1.relay-staging.manta.sh.cn. Cloudflare records remain out-of-band.
-relay_gce_domain          = "relay-staging.manta.sh.cn"
+# c1.relay-staging.onorca.dev. Cloudflare records remain out-of-band.
+relay_gce_domain          = "relay-staging.onorca.dev"
 relay_gce_subnetwork_cidr = "10.42.0.0/24"
 relay_gce_additional_region_subnetwork_cidrs = {
   "asia-east2" = "10.42.1.0/24"

@@ -8,7 +8,7 @@ const nacl = requireFromRelay('tweetnacl')
 const WebSocket = requireFromRelay('ws')
 const { SignJWT } = await import(requireFromRelay.resolve('jose'))
 const { buildHostProofMacInput, HOST_CHALLENGE_PLAINTEXT_DOMAIN } = await import(
-  requireFromRelay.resolve('@manta-cloud/relay-contract')
+  requireFromRelay.resolve('@orca-cloud/relay-contract')
 )
 
 const CAPACITY_ASSIGNMENT_ERRORS = [
@@ -513,7 +513,7 @@ export class RelayLoadControlPeer {
         throw new Error('relay changed host-to-client splice payload')
       }
 
-      const textPayload = `manta-relay-load:${this.index}:${sequence}:${payloadBytes}`
+      const textPayload = `orca-relay-load:${this.index}:${sequence}:${payloadBytes}`
       const dataFrame = nextFrame(data)
       phone.send(textPayload)
       const receivedByHost = await dataFrame
@@ -574,7 +574,7 @@ export class RelayLoadControlPeer {
 
   splicePayload(sequence, payloadBytes) {
     const seed = createHash('sha256')
-      .update(`manta-relay-load:${this.index}:${sequence}`)
+      .update(`orca-relay-load:${this.index}:${sequence}`)
       .digest()
     return Buffer.allocUnsafe(payloadBytes).map((_, index) => seed[index % seed.length])
   }
@@ -712,7 +712,7 @@ export class RelayLoadControlPeer {
     })
       .setProtectedHeader({ alg: 'ES256', kid: this.options.signingKeyId })
       .setIssuer(this.options.authOrigin)
-      .setAudience('manta-relay')
+      .setAudience('orca-relay')
       .setSubject(`load-user-${this.index}`)
       .setIssuedAt()
       .setExpirationTime('5m')

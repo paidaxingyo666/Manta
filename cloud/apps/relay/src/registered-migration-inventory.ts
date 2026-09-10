@@ -80,13 +80,13 @@ export function formatRegisteredMigrationInventory(
   inventory: RegisteredMigrationInventory
 ): string[] {
   const lines = [
-    `[manta-relay] migration inventory open=${inventory.open}` +
+    `[orca-relay] migration inventory open=${inventory.open}` +
       ` expiredRegisteredInactive=${inventory.inactive}` +
       ` abandonedRegistered=${inventory.abandoned}`
   ]
   for (const pair of inventory.pairs) {
     lines.push(
-      `[manta-relay] migration pair sourceCellId=${pair.sourceCellId}` +
+      `[orca-relay] migration pair sourceCellId=${pair.sourceCellId}` +
         ` targetCellId=${pair.targetCellId} open=${pair.open}` +
         ` expiredRegisteredInactive=${pair.inactive}` +
         ` abandoned=${pair.abandoned}`

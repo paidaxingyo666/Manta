@@ -89,7 +89,7 @@ export function startRegionalRehomeWorker(
       )
       console.warn(
         JSON.stringify({
-          event: 'manta_relay_regional_rehome_dispatched',
+          event: 'orca_relay_regional_rehome_dispatched',
           sourceCellId: attempt.sourceCellId,
           targetCellId: attempt.targetCellId,
           outcome: body.data.outcome,
@@ -103,7 +103,7 @@ export function startRegionalRehomeWorker(
       ).catch(() => undefined)
       console.warn(
         JSON.stringify({
-          event: 'manta_relay_regional_rehome_dispatch_failed',
+          event: 'orca_relay_regional_rehome_dispatch_failed',
           reason: error instanceof Error ? error.message : 'unknown'
         })
       )

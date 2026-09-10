@@ -207,7 +207,7 @@ function assertLoadReports(reports, expected) {
     const ownsReaderPressure = readerReports.includes(report)
     if (expected.slowReaders > 0 && ownsReaderPressure && (
       queue.length !== 1 ||
-      queue[0]?.origin !== 'https://c4.relay-staging.manta.sh.cn' ||
+      queue[0]?.origin !== 'https://c4.relay-staging.onorca.dev' ||
       number(queue[0]?.baselineBytes, 'reader queue baseline') >
         number(queue[0]?.peakBytes, 'reader queue peak') ||
       number(queue[0]?.increaseBytes, 'reader queue increase') <= 0 ||

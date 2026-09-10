@@ -259,7 +259,7 @@ function assertAttemptMatches(config, attempt, requirePlanGeneration = true) {
   ) {
     throw new Error('fence attempt has no valid Terraform state object binding')
   }
-  if (attempt.requestReason !== `manta-relay-fence/${attempt.attemptId}`) {
+  if (attempt.requestReason !== `orca-relay-fence/${attempt.attemptId}`) {
     throw new Error('fence attempt request-reason mismatch')
   }
 }
@@ -677,7 +677,7 @@ export async function runTerraformFenceApply(config, overrides = {}) {
       terraformStateSerial: stateBinding.serial,
       terraformStateObjectGeneration: stateBinding.generation,
       terraformStateObjectSha256: stateBinding.sha256,
-      requestReason: `manta-relay-fence/${attemptId}`
+      requestReason: `orca-relay-fence/${attemptId}`
     }
     const prepared = await deps.prepareAttempt(attempt)
     let durableAttempt = prepared?.attempt ?? prepared

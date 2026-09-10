@@ -33,9 +33,9 @@ export async function requestGitHubSmokeTokens(
       : {}),
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   })
-  const exchange = await readJson(exchangeResponse, 'Manta smoke identity exchange')
+  const exchange = await readJson(exchangeResponse, 'Orca smoke identity exchange')
   if (!exchangeResponse.ok) {
-    throw new Error(`Manta smoke identity exchange failed with ${exchangeResponse.status}`)
+    throw new Error(`Orca smoke identity exchange failed with ${exchangeResponse.status}`)
   }
   return {
     ...parseAccessTokens(exchange.accessTokens),
@@ -74,11 +74,11 @@ function validJwt(value) {
 
 function parseAccessTokens(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('Manta smoke identity response is malformed')
+    throw new Error('Orca smoke identity response is malformed')
   }
   const expected = ['outsider', 'owner', 'recipient']
   if (Object.keys(value).sort().join(',') !== expected.join(',')) {
-    throw new Error('Manta smoke identity response principals are invalid')
+    throw new Error('Orca smoke identity response principals are invalid')
   }
   return Object.fromEntries(
     expected.map((name) => {
@@ -94,7 +94,7 @@ function parseAccessTokens(value) {
         principal.expiresAt <= Date.now() ||
         principal.expiresAt > Date.now() + 610_000
       ) {
-        throw new Error('Manta smoke identity response principal is malformed')
+        throw new Error('Orca smoke identity response principal is malformed')
       }
       return [name, principal]
     })

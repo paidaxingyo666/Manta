@@ -7,8 +7,8 @@ import {
 } from './prepare-relay-production-capacity-canary.mjs'
 
 const config = {
-  directorOrigin: 'https://relay.manta.sh.cn',
-  cellOrigin: 'https://c26.relay.manta.sh.cn',
+  directorOrigin: 'https://relay.onorca.dev',
+  cellOrigin: 'https://c26.relay.onorca.dev',
   cellId: 'production-gce-c26'
 }
 
@@ -82,31 +82,31 @@ describe('production Relay capacity cell admission', () => {
       'production-gce-c26'
     ])
     assert.deepEqual(parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.manta.sh.cn',
-      '--cell-origin', 'https://c7.relay.manta.sh.cn',
+      '--director-origin', 'https://relay.onorca.dev',
+      '--cell-origin', 'https://c7.relay.onorca.dev',
       '--cell-id', 'production-gce-c7',
       '--mode', 'isolate'
     ]), {
-      directorOrigin: 'https://relay.manta.sh.cn',
-      cellOrigin: 'https://c7.relay.manta.sh.cn',
+      directorOrigin: 'https://relay.onorca.dev',
+      cellOrigin: 'https://c7.relay.onorca.dev',
       cellId: 'production-gce-c7',
       mode: 'isolate'
     })
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.manta.sh.cn',
-      '--cell-origin', 'https://c17.relay.manta.sh.cn',
+      '--director-origin', 'https://relay.onorca.dev',
+      '--cell-origin', 'https://c17.relay.onorca.dev',
       '--cell-id', 'production-gce-c17',
       '--mode', 'isolate'
     ]), /not approved/)
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.manta.sh.cn',
-      '--cell-origin', 'https://c8.relay.manta.sh.cn',
+      '--director-origin', 'https://relay.onorca.dev',
+      '--cell-origin', 'https://c8.relay.onorca.dev',
       '--cell-id', 'production-gce-c7',
       '--mode', 'isolate'
     ]), /origin is not exact/)
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.manta.sh.cn',
-      '--cell-origin', 'https://c27.relay.manta.sh.cn',
+      '--director-origin', 'https://relay.onorca.dev',
+      '--cell-origin', 'https://c27.relay.onorca.dev',
       '--cell-id', 'production-gce-c27',
       '--mode', 'isolate'
     ]), /not approved/)
@@ -116,14 +116,14 @@ describe('production Relay capacity cell admission', () => {
     for (const cellId of ['production-gce-c27', 'production-gce-c28', 'production-gce-c29']) {
       const hostname = cellId.slice('production-gce-'.length)
       assert.deepEqual(parseProductionCapacityCellArguments([
-        '--director-origin', 'https://relay.manta.sh.cn',
-        '--cell-origin', `https://${hostname}.relay.manta.sh.cn`,
+        '--director-origin', 'https://relay.onorca.dev',
+        '--cell-origin', `https://${hostname}.relay.onorca.dev`,
         '--cell-id', cellId,
         '--approved-cells', 'same-cap',
         '--mode', 'isolate'
       ]), {
-        directorOrigin: 'https://relay.manta.sh.cn',
-        cellOrigin: `https://${hostname}.relay.manta.sh.cn`,
+        directorOrigin: 'https://relay.onorca.dev',
+        cellOrigin: `https://${hostname}.relay.onorca.dev`,
         cellId,
         mode: 'isolate'
       })
@@ -131,16 +131,16 @@ describe('production Relay capacity cell admission', () => {
     for (const cellId of ['production-gce-c17', 'production-gce-c18', 'production-gce-c30']) {
       const hostname = cellId.slice('production-gce-'.length)
       assert.throws(() => parseProductionCapacityCellArguments([
-        '--director-origin', 'https://relay.manta.sh.cn',
-        '--cell-origin', `https://${hostname}.relay.manta.sh.cn`,
+        '--director-origin', 'https://relay.onorca.dev',
+        '--cell-origin', `https://${hostname}.relay.onorca.dev`,
         '--cell-id', cellId,
         '--approved-cells', 'same-cap',
         '--mode', 'isolate'
       ]), /not approved/)
     }
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.manta.sh.cn',
-      '--cell-origin', 'https://c27.relay.manta.sh.cn',
+      '--director-origin', 'https://relay.onorca.dev',
+      '--cell-origin', 'https://c27.relay.onorca.dev',
       '--cell-id', 'production-gce-c27',
       '--approved-cells', 'every-cell',
       '--mode', 'isolate'

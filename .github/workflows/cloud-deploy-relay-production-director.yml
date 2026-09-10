@@ -57,9 +57,9 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      DIRECTOR_SERVICE_NAME: manta-cloud-relay
+      DIRECTOR_SERVICE_NAME: orca-cloud-relay
       IMAGE_REPOSITORY: us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay
-      REGIONAL_PLACEMENT_SECRET: manta-cloud-relay-regional-placement-enabled
+      REGIONAL_PLACEMENT_SECRET: orca-cloud-relay-regional-placement-enabled
       IMAGE_DIGEST: ${{ inputs.image-digest }}
       REGIONAL_PLACEMENT_MODE: ${{ inputs.regional-placement-mode }}
       PRUNE_INCOMPATIBLE_REVISIONS: ${{ inputs.prune-incompatible-revisions }}
@@ -70,7 +70,7 @@ jobs:
       DIRECTOR_MAX_INSTANCES: 5
       DIRECTOR_RUNTIME_SERVICE_ACCOUNT: ${{ vars.PRODUCTION_GCP_RELAY_DIRECTOR_RUNTIME_SERVICE_ACCOUNT }}
       PREDECESSOR_RUNTIME_SERVICE_ACCOUNT: ${{ vars.PRODUCTION_GCP_RELAY_RUNTIME_SERVICE_ACCOUNT }}
-      REHOME_AUDIENCE: https://relay.manta.sh.cn/v1/admin/host-drain
+      REHOME_AUDIENCE: https://relay.onorca.dev/v1/admin/host-drain
       EXPECTED_REHOME_GENERATION: ${{ inputs.expected-rehome-generation }}
       BOOTSTRAP_RUNTIME_IDENTITY: ${{ inputs.bootstrap-runtime-identity }}
       PREDECESSOR_IMAGE_DIGEST: ${{ inputs.predecessor-image-digest }}
@@ -83,7 +83,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -212,8 +212,8 @@ jobs:
             --predecessor-image-digest "${PREDECESSOR_IMAGE_DIGEST}" \
             --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
             --rehome-audience "${REHOME_AUDIENCE}" \
-            --rehome-control-origin https://relay.manta.sh.cn \
-            --admin-audience https://relay.manta.sh.cn/v1/admin/drain \
+            --rehome-control-origin https://relay.onorca.dev \
+            --admin-audience https://relay.onorca.dev/v1/admin/drain \
             --expected-rehome-generation "${EXPECTED_REHOME_GENERATION}" \
             --max-instances "${DIRECTOR_MAX_INSTANCES}" \
             --prune-revisions "${PRUNE_INCOMPATIBLE_REVISIONS}" \

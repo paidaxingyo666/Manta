@@ -26,7 +26,7 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.17
         version: 1.19.17(hono@4.13.7)
-      '@manta-cloud/relay-contract':
+      '@orca-cloud/relay-contract':
         specifier: workspace:*
         version: link:../../packages/relay-contract
       hono:

@@ -196,7 +196,7 @@ test('the staging deploy identity declares exactly its enumerated grants', () =>
 // Why: the auth-plane grants are guarded on a variable, so an unset tfvars entry would drop them
 // silently and Power Relay Staging would fail only on the sleep path.
 test('staging pins the shared auth service the power workflow scales', () => {
-  assert.match(stagingTfvars, /relay_staging_power_auth_service_name\s*=\s*"manta-cloud-auth-staging"/)
+  assert.match(stagingTfvars, /relay_staging_power_auth_service_name\s*=\s*"orca-cloud-auth-staging"/)
   assert.match(variables, /variable "relay_staging_power_auth_service_name"/)
   for (const name of [
     'github_staging_relay_deploy_auth_developer',

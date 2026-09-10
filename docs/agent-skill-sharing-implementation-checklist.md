@@ -792,9 +792,9 @@ does not mean the surrounding phase is complete.
 ### Database and secret
 
 - [x] Declare database `manta_skills` on existing regional PostgreSQL 17 instance
-      `manta-cloud-auth-db`.
+      `orca-cloud-auth-db`.
 - [x] Declare dedicated principal `manta_skills_app` with access only to `manta_skills`.
-- [x] Store its connection URL in Secret Manager as `manta-cloud-skills-database-url`.
+- [x] Store its connection URL in Secret Manager as `orca-cloud-skills-database-url`.
 - [x] Attach the existing Cloud SQL instance to `manta-cloud-api` without replacing the service.
 - [x] Inject only the skill database secret into the API service.
 - [x] Verify backups and point-in-time recovery cover the new database. `manta_skills` shares the

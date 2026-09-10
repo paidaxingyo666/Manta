@@ -29,7 +29,7 @@ export async function reconcileCellAdmissionAtStartup(
       await assignments.reconcileCellsAtStartup(config.cells)
       if (attempt > 1) {
         console.warn(
-          JSON.stringify({ event: 'manta_relay_startup_reconcile_recovered', attempts: attempt })
+          JSON.stringify({ event: 'orca_relay_startup_reconcile_recovered', attempts: attempt })
         )
       }
       return
@@ -42,7 +42,7 @@ export async function reconcileCellAdmissionAtStartup(
       ) {
         if (isRelayDatabaseTransientError(error)) {
           console.warn(
-            JSON.stringify({ event: 'manta_relay_startup_reconcile_exhausted', attempts: attempt })
+            JSON.stringify({ event: 'orca_relay_startup_reconcile_exhausted', attempts: attempt })
           )
         }
         throw error

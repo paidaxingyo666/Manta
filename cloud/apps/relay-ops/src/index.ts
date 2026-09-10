@@ -103,6 +103,6 @@ app.get('/', async (context) => {
 
 serve({ fetch: app.fetch, hostname: '127.0.0.1', port }, () => {
   // Loopback is intentional; operators may add authenticated Tailscale Serve separately.
-  console.log(`Manta Relay Operations: http://127.0.0.1:${port}`)
+  console.log(`Orca Relay Operations: http://127.0.0.1:${port}`)
   console.log(`Staging controls: ${controlsEnabled ? 'enabled through GitHub workflow' : 'read-only'}`)
 })

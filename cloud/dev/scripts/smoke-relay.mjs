@@ -29,7 +29,7 @@ if (!authUrl || (!accessToken && !signingKeyFile)) {
 const nacl = requireFromRelay('tweetnacl')
 const WebSocket = requireFromRelay('ws')
 const { buildHostProofMacInput, HOST_CHALLENGE_PLAINTEXT_DOMAIN } = await import(
-  requireFromRelay.resolve('@manta-cloud/relay-contract')
+  requireFromRelay.resolve('@orca-cloud/relay-contract')
 )
 
 function nextMessage(socket) {
@@ -105,7 +105,7 @@ if (accessToken) {
   })
     .setProtectedHeader({ alg: 'ES256', kid: keyId })
     .setIssuer(authUrl)
-    .setAudience('manta-relay')
+    .setAudience('orca-relay')
     .setSubject('staging-smoke-user')
     .setIssuedAt()
     .setExpirationTime('5m')
@@ -199,9 +199,9 @@ const dataEcho = new Promise((resolve, reject) => {
   data.once('message', (bytes, binary) => resolve({ bytes: Buffer.from(bytes), binary }))
   data.once('error', reject)
 })
-phone.send('manta-relay-smoke')
+phone.send('orca-relay-smoke')
 const returned = await dataEcho
-if (returned.binary || returned.bytes.toString() !== 'manta-relay-smoke') {
+if (returned.binary || returned.bytes.toString() !== 'orca-relay-smoke') {
   throw new Error('relay splice changed text payload or opcode')
 }
 

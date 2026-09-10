@@ -117,7 +117,7 @@ resource "google_compute_firewall" "relay_gce_load_balancer" {
   network       = google_compute_network.relay_gce[0].name
   direction     = "INGRESS"
   source_ranges = ["35.191.0.0/16", "130.211.0.0/22"]
-  target_tags   = ["manta-relay-cell"]
+  target_tags   = ["orca-relay-cell"]
 
   allow {
     protocol = "tcp"
@@ -133,7 +133,7 @@ resource "google_compute_firewall" "relay_gce_iap_ssh" {
   network       = google_compute_network.relay_gce[0].name
   direction     = "INGRESS"
   source_ranges = ["35.235.240.0/20"]
-  target_tags   = ["manta-relay-cell"]
+  target_tags   = ["orca-relay-cell"]
 
   allow {
     protocol = "tcp"
@@ -174,7 +174,7 @@ resource "google_certificate_manager_dns_authorization" "relay_gce" {
   domain      = var.relay_gce_domain
   location    = "global"
   type        = "PER_PROJECT_RECORD"
-  description = "DNS authorization for Manta Relay wildcard cell certificates."
+  description = "DNS authorization for Orca Relay wildcard cell certificates."
   labels      = local.relay_shared_labels
 }
 
@@ -184,7 +184,7 @@ resource "google_certificate_manager_certificate" "relay_gce" {
   project     = var.project_id
   name        = local.relay_gce_name
   location    = "global"
-  description = "Wildcard certificate for exact-routed Manta Relay GCE cells."
+  description = "Wildcard certificate for exact-routed Orca Relay GCE cells."
   labels      = local.relay_shared_labels
 
   managed {
@@ -198,7 +198,7 @@ resource "google_certificate_manager_certificate_map" "relay_gce" {
 
   project     = var.project_id
   name        = local.relay_gce_name
-  description = "Certificate map for the shared Manta Relay HTTPS load balancer."
+  description = "Certificate map for the shared Orca Relay HTTPS load balancer."
 }
 
 resource "google_certificate_manager_certificate_map_entry" "relay_gce" {

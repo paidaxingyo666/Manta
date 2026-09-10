@@ -22,7 +22,7 @@ variable "github_owner" {
 variable "github_repo" {
   type        = string
   description = "GitHub repo allowed to deploy through Workload Identity Federation."
-  default     = "manta"
+  default     = "orca"
 }
 
 # Numeric IDs survive a rename or transfer of the repository; every provider pins them next to the name.
@@ -128,7 +128,7 @@ variable "relay_base_url" {
 
 variable "relay_cloud_run_service_name" {
   type        = string
-  description = "Cloud Run service name for Manta Relay."
+  description = "Cloud Run service name for Orca Relay."
 }
 
 variable "relay_staging_power_auth_service_name" {
@@ -158,7 +158,7 @@ variable "relay_cloud_run_memory" {
 variable "relay_fence_broker_service_name" {
   type        = string
   description = "Private Cloud Run service that owns reviewed Relay Terraform fences."
-  default     = "manta-cloud-relay-fence"
+  default     = "orca-cloud-relay-fence"
 }
 
 variable "relay_fence_broker_image" {
@@ -358,7 +358,7 @@ variable "relay_cells" {
 
 variable "relay_alert_notification_channels" {
   type        = list(string)
-  description = "Cloud Monitoring notification-channel resource names for Manta Relay alerts. Empty keeps policies visible without paging."
+  description = "Cloud Monitoring notification-channel resource names for Orca Relay alerts. Empty keeps policies visible without paging."
   default     = []
 }
 

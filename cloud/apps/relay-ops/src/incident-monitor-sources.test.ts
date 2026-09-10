@@ -84,11 +84,11 @@ describe('incident monitor sources', () => {
       fetchImpl
     )
     expect(filters[0]).toContain(
-      'resource.label."service_name"="manta-cloud-relay"'
+      'resource.label."service_name"="orca-cloud-relay"'
     )
     expect(filters[0]).toContain('metric.label."response_code"!="503"')
     expect(filters[1]).toContain(
-      'resource.label."database_id"="onorca-cloud:manta-cloud-auth-db"'
+      'resource.label."database_id"="onorca-cloud:orca-cloud-auth-db"'
     )
   })
 

@@ -3,7 +3,7 @@ import {
   CONTROL_CONTINUITY_LIMITS,
   RELAY_CLOSE_CODE,
   RELAY_HOST_CLOSE_REASON
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type WebSocket from 'ws'
 import type { RelayAssignmentStore } from './assignment-store.js'
@@ -34,7 +34,7 @@ const config = {
   publicUrl: 'https://relay-c3.example.com',
   cellUrl: 'https://relay-c3.example.com',
   authIssuer: 'https://auth.example.com',
-  authAudience: 'manta-relay',
+  authAudience: 'orca-relay',
   jwksUrl: 'https://auth.example.com/jwks',
   assignmentSigningKey: new Uint8Array(32),
   role: 'cell',

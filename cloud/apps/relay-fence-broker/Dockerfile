@@ -5,7 +5,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/relay-fence-broker/package.json apps/relay-fence-broker/package.json
 RUN pnpm install --frozen-lockfile
 COPY apps/relay-fence-broker apps/relay-fence-broker
-RUN pnpm --filter @manta-cloud/relay-fence-broker build
+RUN pnpm --filter @orca-cloud/relay-fence-broker build
 
 FROM hashicorp/terraform:1.15.8 AS terraform
 
@@ -25,7 +25,7 @@ COPY --from=build /workspace/apps/relay-fence-broker/dist apps/relay-fence-broke
 COPY dev/scripts dev/scripts
 COPY infra/terraform infra/terraform
 RUN corepack enable \
-  && pnpm install --prod --frozen-lockfile --filter @manta-cloud/relay-fence-broker... \
+  && pnpm install --prod --frozen-lockfile --filter @orca-cloud/relay-fence-broker... \
   && useradd --create-home --uid 10001 broker \
   && chown -R broker:broker /workspace
 USER broker

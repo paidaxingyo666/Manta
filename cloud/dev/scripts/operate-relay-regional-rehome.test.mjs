@@ -16,7 +16,7 @@ const membership = {
 function argumentsFor(mode, confirmation) {
   return [
     '--mode', mode,
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-selector-generation', '11',
     '--expected-existing-only-cells', membership.existingOnly.join(','),
     '--expected-migration-only-cells', membership.migrationOnly.join(','),
@@ -326,7 +326,7 @@ test('failed-enable recovery rejects an unchanged pre-existing enabled state', a
 test('parses recovery without depending on selector diagnostics', () => {
   const recoveryArguments = [
     '--mode', 'recover-enable',
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-control-generation', '4',
     '--confirmation', 'RECOVER_FAILED_REGIONAL_REHOME_ENABLE'
   ]
@@ -350,7 +350,7 @@ test('main executes recovery mode and emits verified disabled control', async ()
   let output = ''
   await main([
     '--mode', 'recover-enable',
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-control-generation', '4',
     '--confirmation', 'RECOVER_FAILED_REGIONAL_REHOME_ENABLE'
   ], { ORCA_RELAY_ADMIN_ID_TOKEN: 'token' }, {

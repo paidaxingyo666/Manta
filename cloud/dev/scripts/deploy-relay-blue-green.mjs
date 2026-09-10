@@ -7,7 +7,7 @@ const POLL_INTERVAL_MS = 5_000
 const MIGRATION_TIMEOUT_MS = 14 * 60 * 1000
 const CONNECTION_CAPACITY_PROTOCOL = 2
 export const DIRECTOR_REGIONAL_PLACEMENT_SECRET =
-  'manta-cloud-relay-regional-placement-enabled'
+  'orca-cloud-relay-regional-placement-enabled'
 export const DIRECTOR_REGIONAL_PLACEMENT_ENV =
   'ORCA_RELAY_REGIONAL_PLACEMENT_ENABLED'
 export const DIRECTOR_REHOME_IDENTITY_ENV =
@@ -1012,7 +1012,7 @@ async function deployCell(config, tag, oldTag, drainTag) {
   deployCandidate(config, tag, {
     ORCA_RELAY_CELL_ID: targetCellId,
     ORCA_RELAY_CELL_URL: candidateOrigin,
-    MANTA_RELAY_PUBLIC_URL: candidateOrigin
+    ORCA_RELAY_PUBLIC_URL: candidateOrigin
   })
   const candidate = taggedTraffic(describeService(config), tag)
   if (candidate.origin !== candidateOrigin) {
@@ -1025,7 +1025,7 @@ async function deployCell(config, tag, oldTag, drainTag) {
     {
       ORCA_RELAY_CELL_ID: sourceCellId,
       ORCA_RELAY_CELL_URL: previousOrigin,
-      MANTA_RELAY_PUBLIC_URL: previousOrigin
+      ORCA_RELAY_PUBLIC_URL: previousOrigin
     },
     currentImage
   )

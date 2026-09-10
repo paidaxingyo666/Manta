@@ -68,6 +68,16 @@ KEEP_PATH = (
     'config/scripts/react-doctor-upstream-line-attribution.mjs',  # detects upstream code by its spelling
     'src/shared/marine-creature-names-primary.ts',                # the whale
     '.claude/skills/upstream-sync/',    # this skill's prose is about upstream
+    # Upstream's hosted relay fleet and the GCP estate that runs it: their
+    # projects, their service accounts, their numeric repository ids. This fork
+    # operates none of it and imports none of it — its own relay is
+    # `relay-server/`, and nothing in the root workspace depends on `cloud/`.
+    # Renaming inside it produced names that are neither upstream's nor this
+    # fork's and exist nowhere, one of which pushed a Cloud Run service past the
+    # platform's own 46-character service-plus-tag bound.
+    'cloud/',
+    '.github/workflows/cloud-',
+    '.github/actions/cloud-sql-rollout-lease/',
 )
 # Phrases where the brand is a bare word with a space in front of it, so the
 # token scanner never sees them as one unit. GNOME Orca is Ubuntu's screen

@@ -1,4 +1,4 @@
-import { RELAY_REGION_METRIC_SEGMENTS, RELAY_REGIONS } from '@manta-cloud/relay-contract'
+import { RELAY_REGION_METRIC_SEGMENTS, RELAY_REGIONS } from '@orca-cloud/relay-contract'
 import { describe, expect, it, vi } from 'vitest'
 import type { RelayDatabase } from './database.js'
 import { observeRelayDatabase } from './observed-relay-database.js'
@@ -74,8 +74,8 @@ describe('relay observability', () => {
     expect(entries).toEqual([
       {
         severity: 'WARNING',
-        message: 'Manta Relay readiness check',
-        event: 'manta_relay_readiness_check',
+        message: 'Orca Relay readiness check',
+        event: 'orca_relay_readiness_check',
         metricVersion: 1,
         role: 'cell',
         cellId: 'production-gce-c28',
@@ -188,7 +188,7 @@ describe('relay observability', () => {
     observability.flush(counts)
 
     expect(entries[0]).toMatchObject({
-      event: 'manta_relay_runtime_metrics',
+      event: 'orca_relay_runtime_metrics',
       metricVersion: 2,
       role: 'cell',
       cellId: 'staging-c1',
@@ -302,7 +302,7 @@ describe('relay observability', () => {
     })
     // Only-add: the pre-existing fields still read the same after the extension.
     expect(entries[0]).toMatchObject({
-      event: 'manta_relay_runtime_metrics',
+      event: 'orca_relay_runtime_metrics',
       metricVersion: 2,
       clientAcceptsAbandonedByStageDelta: {},
       clientAcceptAbandonedMsMax: 0

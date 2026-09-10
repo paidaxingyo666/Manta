@@ -60,7 +60,7 @@ describe('cell admission startup authority', () => {
 
     expect(reconcileCellsAtStartup).toHaveBeenCalledTimes(3)
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_startup_reconcile_recovered')
+      expect.stringContaining('orca_relay_startup_reconcile_recovered')
     )
   })
 
@@ -91,7 +91,7 @@ describe('cell admission startup authority', () => {
 
     expect(reconcileCellsAtStartup).toHaveBeenCalledTimes(20)
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_startup_reconcile_exhausted')
+      expect.stringContaining('orca_relay_startup_reconcile_exhausted')
     )
   })
 

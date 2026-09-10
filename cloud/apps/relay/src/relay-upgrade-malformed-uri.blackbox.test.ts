@@ -59,7 +59,7 @@ describe('relay upgrade with a malformed request target', () => {
       publicUrl: relayUrl,
       cellUrl: relayUrl,
       authIssuer: 'https://auth.example.com',
-      authAudience: 'manta-relay',
+      authAudience: 'orca-relay',
       jwksUrl: 'https://auth.example.com/jwks',
       assignmentSigningKey: new Uint8Array(32),
       role: 'cell',

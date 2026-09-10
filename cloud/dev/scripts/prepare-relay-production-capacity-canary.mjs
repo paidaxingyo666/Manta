@@ -8,7 +8,7 @@ import {
 } from './relay-admission-selector.mjs'
 import { SAME_CAP_CELLS } from './relay-production-same-cap-wave.mjs'
 
-const DIRECTOR_ORIGIN = 'https://relay.manta.sh.cn'
+const DIRECTOR_ORIGIN = 'https://relay.onorca.dev'
 export const PRODUCTION_CAPACITY_CELL_IDS = [
   'production-gce-c7',
   'production-gce-c8',
@@ -29,7 +29,7 @@ export const PRODUCTION_CAPACITY_CELL_IDS = [
 ]
 
 function cellOrigin(cellId) {
-  return `https://${cellId.slice('production-gce-'.length)}.relay.manta.sh.cn`
+  return `https://${cellId.slice('production-gce-'.length)}.relay.onorca.dev`
 }
 
 // The same-cap roll covers the Asia cells the US-only capacity rollout never touches.

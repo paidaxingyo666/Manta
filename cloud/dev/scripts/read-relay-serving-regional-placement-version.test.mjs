@@ -8,7 +8,7 @@ import {
 const input = {
   project: 'onorca-cloud',
   region: 'us-central1',
-  service: 'manta-cloud-relay',
+  service: 'orca-cloud-relay',
   bootstrap_version: '7'
 }
 
@@ -20,7 +20,7 @@ function revision(version = '11') {
           name: 'ORCA_RELAY_REGIONAL_PLACEMENT_ENABLED',
           valueSource: {
             secretKeyRef: {
-              secret: 'manta-cloud-relay-regional-placement-enabled',
+              secret: 'orca-cloud-relay-regional-placement-enabled',
               version
             }
           }
@@ -73,8 +73,8 @@ test('reads the exact version from the sole traffic-serving revision', () => {
 
 test('reads the gcloud v1 secret reference shape by bare id and by full resource path', () => {
   for (const name of [
-    'manta-cloud-relay-regional-placement-enabled',
-    'projects/120364513935/secrets/manta-cloud-relay-regional-placement-enabled'
+    'orca-cloud-relay-regional-placement-enabled',
+    'projects/120364513935/secrets/orca-cloud-relay-regional-placement-enabled'
   ]) {
     assert.deepEqual(readRelayServingRegionalPlacementVersion(input, {
       run: (args) => args[1] === 'services' ? serving() : v1Revision(name, '1')
@@ -91,7 +91,7 @@ test('rejects a v1 reference that names another secret or a floating version', (
   assert.throws(() => readRelayServingRegionalPlacementVersion(input, {
     run: (args) => args[1] === 'services'
       ? serving()
-      : v1Revision('manta-cloud-relay-regional-placement-enabled', 'latest')
+      : v1Revision('orca-cloud-relay-regional-placement-enabled', 'latest')
   }), /secret reference is invalid/)
 })
 

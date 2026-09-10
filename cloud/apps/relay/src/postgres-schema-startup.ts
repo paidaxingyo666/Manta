@@ -95,7 +95,7 @@ export async function applyPostgresSchema(
           if (retryable) {
             console.warn(
               JSON.stringify({
-                event: 'manta_relay_postgres_schema_retry_exhausted',
+                event: 'orca_relay_postgres_schema_retry_exhausted',
                 code,
                 attempts: attempt
               })
@@ -106,7 +106,7 @@ export async function applyPostgresSchema(
         const delayMs = Math.min(remainingMs, retryDelayMs(attempt, random))
         console.warn(
           JSON.stringify({
-            event: 'manta_relay_postgres_schema_retry',
+            event: 'orca_relay_postgres_schema_retry',
             code,
             attempt,
             delayMs

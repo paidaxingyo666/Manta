@@ -69,11 +69,11 @@ jobs:
       cancel-in-progress: false
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
-      CELL_ORIGIN: https://c4.relay-staging.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      CELL_ORIGIN: https://c4.relay-staging.onorca.dev
       TARGET_CELL_ID: staging-gce-c4
       TARGET_ZONE: asia-east2-a
-      MIG_NAME: manta-cloud-staging-relay-gce-c4
+      MIG_NAME: orca-cloud-staging-relay-gce-c4
       PREDECESSOR_IMAGE_DIGEST: sha256:ce16d13ce6b633c6fbb1a2afdd6cdb8369645a329d42a8355efa7ad1e60a44f7
       TARGET_IMAGE_DIGEST: sha256:5aedbca5c86de24c8b4d4bf7e3b444b76c712f281ede916cb9d90f70cad1e563
     steps:
@@ -110,7 +110,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Inspect the exact C4 recovery state
@@ -158,7 +158,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          image_repository="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay"
+          image_repository="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay"
           predecessor_image="${image_repository}@${PREDECESSOR_IMAGE_DIGEST}"
           target_image="${image_repository}@${TARGET_IMAGE_DIGEST}"
           served_digest="$(gcloud artifacts docker images describe "${predecessor_image}" \
@@ -245,7 +245,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Fence C4 before predecessor recovery
@@ -332,7 +332,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          image_repository="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay"
+          image_repository="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay"
           recovery_image="${image_repository}@${RECOVERY_DIGEST}"
           other_image="${image_repository}@${TARGET_IMAGE_DIGEST}"
           if test "${RECOVERY_DIGEST}" = "${TARGET_IMAGE_DIGEST}"; then
@@ -367,7 +367,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Verify the recovered image and unchanged isolation

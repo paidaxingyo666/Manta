@@ -78,9 +78,9 @@ describePostgres('PostgreSQL legacy fence adoption', () => {
       environment: 'production' as const,
       cellId: cell.id,
       cellIncarnation: incarnation,
-      migName: 'manta-relay-c3',
-      instanceGroup: 'https://compute.example/instanceGroups/manta-relay-c3',
-      generationIdentity: 'https://compute.example/instanceTemplates/manta-relay-c3-abc',
+      migName: 'orca-relay-c3',
+      instanceGroup: 'https://compute.example/instanceGroups/orca-relay-c3',
+      generationIdentity: 'https://compute.example/instanceTemplates/orca-relay-c3-abc',
       fenceCommit: 'a'.repeat(40),
       planSha256: 'b'.repeat(64),
       planObjectName:
@@ -92,7 +92,7 @@ describePostgres('PostgreSQL legacy fence adoption', () => {
       terraformStateObjectGeneration: '987654321',
       terraformStateObjectSha256: 'd'.repeat(64),
       requestReason:
-        'manta-relay-fence/22222222-2222-4222-8222-222222222222'
+        'orca-relay-fence/22222222-2222-4222-8222-222222222222'
     }
 
     const results = await Promise.allSettled([

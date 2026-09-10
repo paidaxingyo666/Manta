@@ -54,7 +54,7 @@ test('accepts only the exact canary template replacement and MIG update', () => 
       '  --name cloud-sql-proxy \\',
       `  'us-docker.pkg.dev/project/proxy@sha256:${'c'.repeat(64)}'`,
       'docker run --detach \\',
-      '  --name manta-relay \\',
+      '  --name orca-relay \\',
       `  '${selectedImage}'`
     ].join('\n')
   const script = startupScript(1_000, 60, image)
@@ -439,7 +439,7 @@ test('same-cap mode preserves 1000/60 while adding only the reviewed trust confi
     `printf 'ORCA_RELAY_IMAGE_DIGEST=%s\\n' '${selectedImage.split('@')[1]}'`,
     `docker pull '${selectedImage}'`,
     'docker run --detach \\',
-    '  --name manta-relay \\',
+    '  --name orca-relay \\',
     `  '${selectedImage}'`
   ].join('\n')
   const template = {
@@ -665,7 +665,7 @@ test('protocol-0 same-cap cells roll without rehome trust lines', () => {
     `printf 'ORCA_RELAY_IMAGE_DIGEST=%s\\n' '${selectedImage.split('@')[1]}'`,
     `docker pull '${selectedImage}'`,
     'docker run --detach \\',
-    '  --name manta-relay \\',
+    '  --name orca-relay \\',
     `  '${selectedImage}'`
   ].join('\n')
   const template = {
@@ -748,7 +748,7 @@ test('the rehome protocol argument is required by same-cap-cell mode alone', () 
     '--image', image,
     '--rollback-image', rollbackImage,
     '--rehome-director-service-account', 'relay-director@project.iam.gserviceaccount.com',
-    '--rehome-audience', 'https://relay.manta.sh.cn/v1/admin/host-drain',
+    '--rehome-audience', 'https://relay.onorca.dev/v1/admin/host-drain',
     ...extra
   ]
   assert.equal(

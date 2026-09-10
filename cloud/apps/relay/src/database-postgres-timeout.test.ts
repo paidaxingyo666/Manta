@@ -43,7 +43,7 @@ import { applyPostgresSchema } from './postgres-schema-startup.js'
 
 const SCHEMA_POOL = {
   max: 1,
-  application_name: 'manta-relay/director/director/schema',
+  application_name: 'orca-relay/director/director/schema',
   connectionTimeoutMillis: 2_000,
   // Why: DDL must not inherit the request deadline.
   statement_timeout: 0,
@@ -70,14 +70,14 @@ describe('PostgreSQL relay deadlines', () => {
       databaseUrl: 'postgresql://relay:secret@127.0.0.1:5432/relay',
       dataDir: './unused',
       poolMax: 3,
-      applicationName: 'manta-relay/director/director'
+      applicationName: 'orca-relay/director/director'
     })
 
     expect(fakes.configs).toEqual([
       expect.objectContaining(SCHEMA_POOL),
       expect.objectContaining({
         max: 3,
-        application_name: 'manta-relay/director/director',
+        application_name: 'orca-relay/director/director',
         connectionTimeoutMillis: 2_000,
         statement_timeout: 5_000,
         lock_timeout: 1_000,
@@ -94,7 +94,7 @@ describe('PostgreSQL relay deadlines', () => {
       databaseUrl: 'postgresql://relay:secret@127.0.0.1:5432/relay',
       dataDir: './unused',
       poolMax: 3,
-      applicationName: 'manta-relay/director/director'
+      applicationName: 'orca-relay/director/director'
     })
 
     expect(fakes.lifecycle).toEqual([
@@ -187,7 +187,7 @@ describe('PostgreSQL relay deadlines', () => {
     expect(result).toBe('committed')
     expect(attempts).toBe(2)
     expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"manta_relay_postgres_transaction_retry"')
+      expect.stringContaining('"event":"orca_relay_postgres_transaction_retry"')
     )
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('"code":"57014"'))
     await database.close()
@@ -406,7 +406,7 @@ describe('PostgreSQL schema startup', () => {
     expect(delays).toEqual([100])
     expect(console.warn).toHaveBeenLastCalledWith(
       JSON.stringify({
-        event: 'manta_relay_postgres_schema_retry_exhausted',
+        event: 'orca_relay_postgres_schema_retry_exhausted',
         code: '55P03',
         attempts: 2
       })

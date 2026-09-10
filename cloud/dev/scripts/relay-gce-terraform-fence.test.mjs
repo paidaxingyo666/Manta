@@ -34,10 +34,10 @@ import {
 
 const cell = {
   cellId: 'production-gce-c1',
-  migName: 'manta-relay-c1',
+  migName: 'orca-relay-c1',
   zone: 'us-central1-a',
-  instanceGroup: 'https://compute.example/instanceGroups/manta-relay-c1',
-  generationIdentity: 'https://compute.example/instanceTemplates/manta-relay-c1-abc',
+  instanceGroup: 'https://compute.example/instanceGroups/orca-relay-c1',
+  generationIdentity: 'https://compute.example/instanceTemplates/orca-relay-c1-abc',
   fenced: true,
   desiredTargetSize: 0
 }
@@ -519,7 +519,7 @@ function applyHarness({
             {
               invocationId: '11111111-1111-4111-8111-111111111111',
               requestReason:
-                'manta-relay-fence/11111111-1111-4111-8111-111111111111/11111111-1111-4111-8111-111111111111',
+                'orca-relay-fence/11111111-1111-4111-8111-111111111111/11111111-1111-4111-8111-111111111111',
               startedAt: 101,
               gceOperation: 'operation-1',
               operationStatus: 'DONE',
@@ -609,7 +609,7 @@ function durableAttempt(config = applyConfig(), overrides = {}) {
     terraformStateObjectSha256: createHash('sha256')
       .update('pre-state object')
       .digest('hex'),
-    requestReason: `manta-relay-fence/${attemptId}`,
+    requestReason: `orca-relay-fence/${attemptId}`,
     createdAt: 100,
     expiresAt: 3_600_100,
     ...overrides
@@ -641,7 +641,7 @@ test('applies and attests the exact private saved plan', async () => {
     assert.equal(planArgs.includes('-refresh=false'), true)
     assert.equal(
       harness.applyEnvironments[0].GOOGLE_REQUEST_REASON,
-      'manta-relay-fence/11111111-1111-4111-8111-111111111111/11111111-1111-4111-8111-111111111111'
+      'orca-relay-fence/11111111-1111-4111-8111-111111111111/11111111-1111-4111-8111-111111111111'
     )
     assert.equal(harness.events[0].event, 'terraform_cell_fenced')
     assert.equal(existsSync(harness.planPath()), false)

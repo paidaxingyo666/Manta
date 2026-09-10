@@ -1,7 +1,7 @@
 # Relay Roll 2 and close-out plan (2026-09-05)
 
 Owner-approved scope 2026-09-05: finish the relay reliability work with one more cell image roll,
-deferring the Cloud SQL private-IP move (2.1, manta-cloud #477) to a separate owner decision. Roll 1
+deferring the Cloud SQL private-IP move (2.1, orca-cloud #477) to a separate owner decision. Roll 1
 is complete (see `relay-reconnect-2026-09-findings.md`, "Roll 1 complete"); every serving cell runs
 `519f4914` except c7 on `85bf6799`.
 
@@ -24,7 +24,7 @@ lands regardless of how the code review goes.
   - `src/main/runtime/relay/relay-origin-pool.ts`: **drop this branch's version**. #18719 already
     merged the desktop early-window jitter (1 to 6 min). Also drop
     `relay-session-broker.test.ts` additions that only exercise the dropped change.
-  - Keep: relay accept abandonment (`manta_relay_client_accept_abandoned` event), relay-side lease
+  - Keep: relay accept abandonment (`orca_relay_client_accept_abandoned` event), relay-side lease
     jitter, mobile direct-probe fail-fast, and their tests.
 
 ### 0b. Lengthen the control lease (same code PR)
@@ -71,13 +71,13 @@ Steps, in order (from the findings doc's post-merge dispatch plan):
    digest by tag, not from the log:
    `gcloud artifacts docker images describe us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay:sha-<merge-sha> --format='value(image_summary.digest)'`.
 2. Staging: `cloud-deploy-relay-staging.yml` with the new digest; paired phone plus desktop smoke
-   (connect, background, reconnect). Confirm `manta_relay_client_accept_abandoned` appears only when
+   (connect, background, reconnect). Confirm `orca_relay_client_accept_abandoned` appears only when
    a client closes early, and that `sqlLatencyMsMax` no longer pins at the lock timeout.
 3. Director: `cloud-deploy-relay-production-director.yml -f image-digest=<new>
    -f regional-placement-mode=preserve -f prune-incompatible-revisions=false
    -f expected-rehome-generation=12 -f bootstrap-runtime-identity=false
    -f predecessor-image-digest=<serving digest>`. Blue/green; prior revision stays as rollback.
-   Watch director `manta_relay_postgres_transaction_retry` per minute before and after. The director
+   Watch director `orca_relay_postgres_transaction_retry` per minute before and after. The director
    goes first so the per-cell locks are live before any cell restart burst.
 4. Same-cap `verify` mode against c7 with target=<new>, rollback=`519f4914`. Read-only.
 
@@ -122,7 +122,7 @@ Record every gate and wave in the findings doc as in Roll 1.
 
 ## Phase 3. After the roll (spread over the following week)
 
-- **4.4 Recalibrate the retries bar.** After one week of `manta_relay_postgres_transaction_retry`
+- **4.4 Recalibrate the retries bar.** After one week of `orca_relay_postgres_transaction_retry`
   on the new image, re-derive the `postgres_retries` monitor threshold from the new baseline
   (PR against `cloud/apps/relay-ops/src/incident-monitor.ts` thresholds). About 2 h.
 - **1.2 Pruner budget.** Raise `auth_token_pruner_max_rows_per_run` to the default 200k after a
@@ -142,7 +142,7 @@ Record every gate and wave in the findings doc as in Roll 1.
 
 ## Deferred, owner decision required
 
-- **2.1 Private IP** (manta-cloud #477). One-way door with a Cloud SQL restart. When chosen: apply the
+- **2.1 Private IP** (orca-cloud #477). One-way door with a Cloud SQL restart. When chosen: apply the
   foundation off-peak, then a template-only change that sets the `--private-ip` proxy flag. That is
   another cell roll unless bundled with a future image.
 - **5.2 Paging channel** for auth alerts: needs a destination.
