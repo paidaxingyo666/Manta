@@ -30,6 +30,9 @@ const EXPECTED_CONDITIONS = {
   },
   production: {
     relay: {
+      github_push:
+        "assertion.repository == 'stablyai/orca' && assertion.repository_id == '1183888342' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'production' && assertion.event_name == 'workflow_dispatch' && assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-push-deploy.yml@refs/heads/main' && assertion.job_workflow_ref == 'stablyai/orca/.github/workflows/cloud-push-deploy.yml@refs/heads/main'",
+
       github:
         "assertion.repository == 'stablyai/orca' && assertion.repository_id == '1183888342' && assertion.repository_owner_id == '127256420' && assertion.ref == 'refs/heads/main' && assertion.environment == 'production' && ((assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-fence-broker.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-capacity.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-director.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-multi-target.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-operate-relay-asia-admission.yml@refs/heads/main' || assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-publish-relay-production.yml@refs/heads/main') || (assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-operate-relay-production-rehome.yml@refs/heads/main' && assertion.job_workflow_ref == 'stablyai/orca/.github/workflows/cloud-operate-relay-production-rehome-job.yml@refs/heads/main') || (assertion.workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-same-cap.yml@refs/heads/main' && (assertion.job_workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-same-cap-job.yml@refs/heads/main' || assertion.job_workflow_ref == 'stablyai/orca/.github/workflows/cloud-deploy-relay-production-same-cap.yml@refs/heads/main')))",
       github_monitor:
@@ -139,7 +142,7 @@ for (const environment of Object.keys(EXPECTED_CONDITIONS)) {
     const rendered = await renderAttributeConditions(environment)
     for (const [provider, condition] of Object.entries(rendered.relay)) {
       assert.ok(condition.startsWith(`${claims} && `), `${provider} does not lead with the claims`)
-      assert.doesNotMatch(condition, /stablyai\/manta-cloud|1273841466/, `${provider} keeps an old arm`)
+      assert.doesNotMatch(condition, /stablyai\/orca-cloud|1273841466/, `${provider} keeps an old arm`)
       const refs = [...condition.matchAll(/(?:job_)?workflow_ref == '([^']+)'/g)].map(
         (match) => match[1]
       )

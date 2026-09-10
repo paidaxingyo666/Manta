@@ -1,12 +1,12 @@
-# Manta Relay
+# Orca Relay
 
-The relay that connects the Manta mobile app to a desktop host. Phones and
+The relay that connects the Orca mobile app to a desktop host. Phones and
 desktops never talk to each other directly: each opens an outbound WebSocket
 to a relay cell, the relay pairs the two sessions, and it splices frames
 between them. A director assigns hosts to cells and coordinates migrations;
 cells carry the user connections.
 
-This directory is an independent pnpm workspace inside the Manta monorepo. Run
+This directory is an independent pnpm workspace inside the Orca monorepo. Run
 its commands from `cloud/`, not the repository root. The source is covered by
 the repository's root [MIT license](../LICENSE).
 
@@ -24,6 +24,40 @@ the repository's root [MIT license](../LICENSE).
 - `apps/relay-ops`: the relay operations console and the incident monitor
   behind `pnpm ops:relay`, `pnpm incident:relay`, and
   `pnpm incident:relay-preflight`.
+- `apps/push` and `packages/push-contract`: the mobile push gateway that holds
+  the APNs key and sends to phones through APNs and FCM, and its wire contract.
+  It is deployed and operated from here but is not part of the relay data path;
+  see [docs/push-gateway.md](docs/push-gateway.md).
+
+## Mobile push gateway
+
+`apps/push` is a separate Cloud Run service from the relay. Phones never hold an
+Orca credential for it: the desktop host authenticates with the same X25519
+key it uses for the relay, answering an encrypted challenge to mint a 24 hour
+session, then registers each paired phone's native push token and asks the
+gateway to push. The gateway queues each event as its own notification,
+enforces per-host quotas and request limits, and retires a
+registration as soon as Apple or Google reports the token unregistered.
+Provider push is the only ordinary mobile OS-banner path. The notification
+socket is retained only for live dismissal and reconnect tray reconciliation;
+it never creates or recovers banners. Desktop notification categories remain
+authoritative.
+Each delivery is persisted as one notification event. Before deploying an
+incompatible queue format, stop all older push gateway revisions and clear only
+unpublished push delivery fixtures; no queue preservation or migration is required.
+FCM notification messages are inherently collapsible while offline and have a
+small concurrent collapse-key budget, so every pending alert is not guaranteed.
+
+Storage follows the relay pattern: PostgreSQL in production, SQLite for tests
+and local development. Configure it with `ORCA_PUSH_PUBLIC_URL`, `ORCA_PUSH_FCM_PROJECT_ID`,
+`ORCA_PUSH_DATABASE_URL`, the three APNs variables (`ORCA_PUSH_APNS_KEY`,
+`ORCA_PUSH_APNS_KEY_ID`, `ORCA_PUSH_APPLE_TEAM_ID`, all three or none), and
+optionally `ORCA_PUSH_APNS_TOPIC`. The FCM credential comes from
+the runtime service account, so no key material is configured for Android. See
+[push gateway operations](docs/push-gateway.md) for deployment and recovery.
+
+Logging is aggregate counters only. Tokens, notification titles, notification
+bodies, and full host fingerprints never reach a log line.
 
 ## Infrastructure and operations
 
@@ -38,16 +72,18 @@ the repository's root [MIT license](../LICENSE).
 - `dev/contracts` and `dev/fixtures`: the checked-in data those contract tests
   read, including the Terraform root partition.
 - `docs/`: the relay runbooks, capacity-testing guide, incident-monitor
-  reference, and the workflow variable reference in `docs/relay-workflows.md`.
+  reference, the workflow variable reference in `docs/relay-workflows.md`, and
+  the push gateway runbook in `docs/push-gateway.md`.
 
 ## Workflows
 
-The 24 `.github/workflows/cloud-*.yml` workflows are the relay's deploy and
-operate surface: publish and deploy the director, roll GCE cell capacity,
-operate Asia admission and regional rehoming, prove staging capacity, monitor
-production, and power staging up and down. `.github/actions/cloud-sql-rollout-lease`
-is the compare-and-swap lease that serializes every rollout against the shared
-Cloud SQL instance.
+The 25 `.github/workflows/cloud-*.yml` workflows are the deploy and operate
+surface: publish and deploy the director, roll GCE cell capacity, operate Asia
+admission and regional rehoming, prove staging capacity, monitor production,
+power staging up and down, and deploy the mobile push gateway.
+`.github/actions/cloud-sql-rollout-lease` is the compare-and-swap lease that
+serializes rollouts against the shared Cloud SQL instance. Push reuses that
+action with its own lease object and deployment concurrency group.
 
 Every one of them is inert. Each top-level job is gated on
 `vars.ORCA_CLOUD_OPERATIONS_ENABLED == 'true'`, a repository variable that is
@@ -80,11 +116,11 @@ when `ORCA_RELAY_TEST_POSTGRES_URL` points at a disposable PostgreSQL 16 or 17
 database, for example:
 
 ```sh
-docker run --rm -d --name manta-relay-pg -e POSTGRES_HOST_AUTH_METHOD=trust \
-  -e POSTGRES_DB=manta_relay_test -p 55440:5432 postgres:16-alpine
-ORCA_RELAY_TEST_POSTGRES_URL=postgres://postgres@127.0.0.1:55440/manta_relay_test \
-  pnpm --filter @manta-cloud/relay test
-docker rm -f manta-relay-pg
+docker run --rm -d --name orca-relay-pg -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_DB=orca_relay_test -p 55440:5432 postgres:16-alpine
+ORCA_RELAY_TEST_POSTGRES_URL=postgres://postgres@127.0.0.1:55440/orca_relay_test \
+  pnpm --filter @orca-cloud/relay test
+docker rm -f orca-relay-pg
 ```
 
 Configuration is read from environment variables validated in
