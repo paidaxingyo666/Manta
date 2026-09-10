@@ -49,7 +49,7 @@ describe('onboarding feature setup telemetry validation', () => {
         linear_tickets: false,
         orchestration: true,
         selected_count: 2,
-        command: 'npx skills add https://github.com/stablyai/manta --global'
+        command: 'npx skills add https://github.com/paidaxingyo666/Manta --global'
       } as never).ok
     ).toBe(false)
     expect(

@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 
-const MANTA_REPO_URL = 'https://github.com/stablyai/manta'
+const MANTA_REPO_URL = 'https://github.com/paidaxingyo666/Manta'
 type StarNagMode = 'gh' | 'web'
 type StarNagToastStatus = 'idle' | 'busy' | 'starred' | 'opened'
 

@@ -1,6 +1,6 @@
 import { isSkillsCliAgentKeyShaped } from './skills-cli-agent-keys'
 
-export const MANTA_SKILLS_REPOSITORY_URL = 'https://github.com/stablyai/manta'
+export const MANTA_SKILLS_REPOSITORY_URL = 'https://github.com/paidaxingyo666/Manta'
 
 export const MANTA_CLI_SKILL_NAME = 'manta-cli'
 export const COMPUTER_USE_SKILL_NAME = 'computer-use'

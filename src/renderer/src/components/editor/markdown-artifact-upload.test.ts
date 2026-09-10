@@ -8,11 +8,20 @@ import {
 
 const mocks = vi.hoisted(() => ({
   drafts: {} as Record<string, string>,
-  flush: vi.fn()
+  flush: vi.fn(),
+  settings: undefined as unknown,
+  worktreesByRepo: {} as Record<string, unknown[]>
 }))
 
 vi.mock('@/store', () => ({
-  useAppStore: { getState: () => ({ editorDrafts: mocks.drafts }) }
+  useAppStore: {
+    getState: () => ({
+      editorDrafts: mocks.drafts,
+      settings: mocks.settings,
+      folderWorkspaces: [],
+      worktreesByRepo: mocks.worktreesByRepo
+    })
+  }
 }))
 vi.mock('./editor-pending-flush', () => ({
   flushPendingEditorChange: mocks.flush
@@ -20,6 +29,7 @@ vi.mock('./editor-pending-flush', () => ({
 
 beforeEach(() => {
   mocks.drafts = {}
+  mocks.worktreesByRepo = {}
   mocks.flush.mockReset()
 })
 

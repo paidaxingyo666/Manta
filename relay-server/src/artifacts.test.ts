@@ -257,6 +257,41 @@ describe('publishing', () => {
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
   })
+
+  it('serves a tab icon on the artifact origin, for both page kinds', async () => {
+    current = await startWithArtifacts()
+    const token = await signIn(current.origin)
+    const icon = await fetch(`${current.origin}/favicon.ico`)
+    expect(icon.status).toBe(200)
+    expect(icon.headers.get('content-type')).toContain('image/svg+xml')
+    expect(await icon.text()).toContain('<svg')
+
+    // An HTML artifact is published verbatim, so the browser's own request for
+    // /favicon.ico is the only way it can get an icon at all.
+    const html = (await (
+      await api(current.origin, '', token, { method: 'POST', body: HTML_BODY })
+    ).json()) as Created
+    const served = await fetch(`${current.origin}/${html.artifact.slug}`)
+    expect(await served.text()).not.toContain('rel="icon"')
+
+    // A rendered markdown page is wrapped, so it says which icon to use rather
+    // than leaving the browser to guess at a path.
+    const note = (await (
+      await api(current.origin, '', token, {
+        method: 'POST',
+        body: { content: '# Note', contentType: 'text/markdown', fileName: 'note.md' }
+      })
+    ).json()) as Created
+    const page = await fetch(`${current.origin}/${note.artifact.slug}`)
+    expect(await page.text()).toContain('<link rel="icon" href="/favicon.ico"')
+  })
+
+  it('does not spend an artifact rate limit on the tab icon', async () => {
+    current = await startWithArtifacts()
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      expect((await fetch(`${current.origin}/favicon.ico`)).status).toBe(200)
+    }
+  })
 })
 
 describe('authorization', () => {

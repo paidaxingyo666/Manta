@@ -110,7 +110,7 @@ export function ShareUsageButton(props: ShareUsageButtonProps): React.JSX.Elemen
       '',
       `${fmtTokens(totalTokens)} tokens · ${costStr} est. cost`,
       '',
-      'github.com/stablyai/manta'
+      'github.com/paidaxingyo666/Manta'
     ]
     const url = `https://x.com/intent/post?text=${encodeURIComponent(lines.join('\n'))}`
     await window.api.shell.openUrl(url)

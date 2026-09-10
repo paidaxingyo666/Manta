@@ -157,7 +157,7 @@ export function writeGithubOutputs({ published, skipped }, outputPath = process.
 
 async function main() {
   const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN
-  const repo = process.env.GITHUB_REPOSITORY || 'stablyai/manta'
+  const repo = process.env.GITHUB_REPOSITORY || 'paidaxingyo666/Manta'
   const result = await publishCompleteDraftReleases({ repo, token })
   writeGithubOutputs(result)
 }

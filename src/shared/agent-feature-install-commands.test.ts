@@ -17,24 +17,24 @@ import {
 describe('agent feature skill commands', () => {
   it('builds a global install command by default', () => {
     expect(buildAgentFeatureSkillInstallCommand(['manta-cli'])).toBe(
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli --global'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --global'
     )
   })
 
   it('drops --global when installing locally', () => {
     expect(buildAgentFeatureSkillInstallCommand(['manta-cli'], { global: false })).toBe(
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli'
     )
   })
 
   it('repeats --skill per name for multi-skill installs', () => {
     expect(buildAgentFeatureSkillInstallCommand(['manta-cli', 'orchestration'])).toBe(
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli --skill orchestration --global'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --skill orchestration --global'
     )
     expect(buildAgentFeatureSkillInstallArgs(['manta-cli', 'orchestration'])).toEqual([
       'skills',
       'add',
-      'https://github.com/stablyai/manta',
+      'https://github.com/paidaxingyo666/Manta',
       '--skill',
       'manta-cli',
       '--skill',
@@ -76,7 +76,7 @@ describe('agent feature skill commands', () => {
     expect(
       buildAgentFeatureSkillInstallCommand(['manta-cli'], { yes: true, agents: ['universal'] })
     ).toBe(
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli --global --agent universal -y'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --global --agent universal -y'
     )
     expect(buildAgentFeatureSkillUpdateCommand(['manta-cli'], { global: false, yes: true })).toBe(
       'npx skills update manta-cli --project -y'

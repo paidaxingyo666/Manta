@@ -16,7 +16,7 @@ vi.mock('./AgentSkillSetupPanel', () => ({
 describe('BrowserUseSkillStep', () => {
   it('forwards a single-skill installed command even when setup installs a bundle', () => {
     const bundleInstallCommand =
-      'npx skills add https://github.com/stablyai/manta --skill manta-cli --skill orchestration --global'
+      'npx skills add https://github.com/paidaxingyo666/Manta --skill manta-cli --skill orchestration --global'
     const updateCommand = 'npx skills update manta-cli --global'
 
     renderToStaticMarkup(
