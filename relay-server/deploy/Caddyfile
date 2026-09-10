@@ -74,6 +74,17 @@
 #		}
 #	}
 #
+#	# The tab icon has to be named here too. An artifact published as HTML is
+#	# served verbatim and declares no icon, so the browser asks this origin for
+#	# /favicon.ico on its own — and an allowlist that ends in `respond 404`
+#	# answers that itself, however the relay is routed behind it.
+#	@icon path /favicon.ico
+#	handle @icon {
+#		reverse_proxy relay:8787 {
+#			flush_interval -1
+#		}
+#	}
+#
 #	handle {
 #		respond 404
 #	}
