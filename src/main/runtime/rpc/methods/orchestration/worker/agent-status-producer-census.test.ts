@@ -95,6 +95,11 @@ const CENSUS: readonly CensusRow[] = [
     role: 'binds the hook server snapshot into the runtime deps'
   },
   {
+    path: 'main/mantad/mantad-entry.ts',
+    kind: 'wiring',
+    role: 'binds the same snapshot and structured sink into the headless mantad runtime deps'
+  },
+  {
     path: 'main/runtime/manta-runtime-state-fields.ts',
     kind: 'wiring',
     role: 'stores the snapshot deps on the runtime'
