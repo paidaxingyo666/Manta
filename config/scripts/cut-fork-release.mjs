@@ -253,7 +253,10 @@ function upstreamTagCommit(tag) {
       return null
     }
     try {
-      git('cat-file', '-e', `${sha}^{commit}`)
+      // Silenced: execFileSync lets a child's stderr through to ours, and this
+      // is a probe whose failure is the normal path — the object is usually
+      // absent until the fetch below brings it.
+      execFileSync('git', ['cat-file', '-e', `${sha}^{commit}`], { cwd: root, stdio: 'ignore' })
     } catch {
       git('fetch', upstreamRemote(), '--no-tags', '--quiet', sha)
     }
