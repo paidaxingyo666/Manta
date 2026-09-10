@@ -31,7 +31,7 @@ function harness(initialSelector) {
     if (parsed.pathname === '/v1/admin/cell-status') {
       return {
         status: {
-          cellUrl: `https://${body.cellId.split('-').at(-1)}.relay.manta.sh.cn`,
+          cellUrl: `https://${body.cellId.split('-').at(-1)}.relay.onorca.dev`,
           runtime: { heartbeatFresh: true, ready: true }
         }
       }
@@ -83,14 +83,14 @@ function harness(initialSelector) {
     return new Response(null, { status: 200 })
   }
   const commitWithoutResponse = async (path, body) => {
-    await post(`https://relay.manta.sh.cn${path}`, body)
+    await post(`https://relay.onorca.dev${path}`, body)
     throw new Error('response lost after commit')
   }
   return {
     post, fetch, requests, commitWithoutResponse,
     failNextApplyAfterIntent: () => (failAfterIntent = true),
     apply: async (attemptId, membership) => await post(
-      'https://relay.manta.sh.cn/v1/admin/admission-selector/apply',
+      'https://relay.onorca.dev/v1/admin/admission-selector/apply',
       { attemptId, expectedGeneration: selector.generation, membership }
     ),
     fetchCount: () => fetches, selector: () => selector

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { ASSIGNMENT_LIMITS, RELAY_CLOSE_CODE } from '@manta-cloud/relay-contract'
+import { ASSIGNMENT_LIMITS, RELAY_CLOSE_CODE } from '@orca-cloud/relay-contract'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type WebSocket from 'ws'
 import { RelayAssignmentStore } from './assignment-store.js'

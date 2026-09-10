@@ -19,7 +19,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
     })
   }
   const result = await requestGitHubSmokeTokens(
-    'https://auth-staging.manta.sh.cn',
+    'https://auth-staging.onorca.dev',
     fetchImpl,
     {
       ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example.test/token?api-version=1',
@@ -27,7 +27,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
     }
   )
   assert.equal(result.owner.userId, 'usr_owner')
-  assert.match(requests[0].url, /audience=https%3A%2F%2Fauth-staging\.manta\.sh\.cn/)
+  assert.match(requests[0].url, /audience=https%3A%2F%2Fauth-staging\.onorca\.dev/)
   assert.equal(requests[0].init.headers.authorization, 'Bearer runner-request-token')
   assert.equal(requests[1].init.headers.authorization, `Bearer ${jwt('github')}`)
 })
@@ -35,7 +35,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
 test('fails with bounded errors and never includes credentials', async () => {
   await assert.rejects(
     requestGitHubSmokeTokens(
-      'https://auth-staging.manta.sh.cn',
+      'https://auth-staging.onorca.dev',
       async () => new Response('denied', { status: 403 }),
       {
         ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example.test/token',
@@ -62,7 +62,7 @@ test('requests and validates an exact Relay Asia principal batch', async () => {
     }
   })
   const result = await requestGitHubSmokeTokens(
-    'https://auth-staging.manta.sh.cn',
+    'https://auth-staging.onorca.dev',
     async (url, init) => {
       requests.push({ url: String(url), init })
       return requests.length === 1
@@ -95,7 +95,7 @@ test('rejects malformed or duplicate Relay Asia principal batches', async () => 
   }
   let request = 0
   await assert.rejects(requestGitHubSmokeTokens(
-    'https://auth-staging.manta.sh.cn',
+    'https://auth-staging.onorca.dev',
     async () => ++request === 1
       ? Response.json({ value: jwt('github') })
       : Response.json({

@@ -98,7 +98,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -114,7 +114,7 @@ jobs:
         env:
           ORCA_RELAY_ADMIN_ID_TOKEN: ${{ steps.google-auth.outputs.id_token }}
         run: |
-          pnpm --filter @manta-cloud/relay-ops incident:monitor \
+          pnpm --filter @orca-cloud/relay-ops incident:monitor \
             --environment production \
             --incident-id "${INCIDENT_ID}" \
             --expected-selector-generation "${EXPECTED_SELECTOR_GENERATION}" \
@@ -135,7 +135,7 @@ jobs:
         env:
           ORCA_RELAY_ADMIN_ID_TOKEN: ${{ steps.google-auth.outputs.id_token }}
         run: |
-          pnpm --filter @manta-cloud/relay-ops incident:monitor \
+          pnpm --filter @orca-cloud/relay-ops incident:monitor \
             --environment production \
             --incident-id "${INCIDENT_ID}" \
             --expected-selector-generation "${EXPECTED_SELECTOR_GENERATION}" \
@@ -158,7 +158,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Run remaining relay monitor window
@@ -167,7 +167,7 @@ jobs:
           ORCA_RELAY_ADMIN_ID_TOKEN: ${{ steps.google-auth-refresh.outputs.id_token }}
         run: |
           node -e "if (!/^[^.]+[.][^.]+[.][^.]+$/.test(process.env.ORCA_RELAY_ADMIN_ID_TOKEN ?? '')) process.exit(1)"
-          pnpm --filter @manta-cloud/relay-ops incident:monitor \
+          pnpm --filter @orca-cloud/relay-ops incident:monitor \
             --environment production \
             --incident-id "${INCIDENT_ID}" \
             --expected-selector-generation "${EXPECTED_SELECTOR_GENERATION}" \

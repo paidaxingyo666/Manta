@@ -1,5 +1,5 @@
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks'
-import { RELAY_REGION_METRIC_SEGMENTS, type RelayRegion } from '@manta-cloud/relay-contract'
+import { RELAY_REGION_METRIC_SEGMENTS, type RelayRegion } from '@orca-cloud/relay-contract'
 import type { ControlRenewalOutcome } from './assignment-store.js'
 import type { CellInventoryHoldCounts } from './cell-inventory-hold-samples.js'
 import type { PostgresPoolPressureCounts } from './postgres-pool-pressure.js'
@@ -270,8 +270,8 @@ export class RelayObservability implements RelayRuntimeObserver {
   recordReadiness(observation: RelayReadinessObservation): void {
     this.write({
       severity: observation.ready ? 'INFO' : 'WARNING',
-      message: 'Manta Relay readiness check',
-      event: 'manta_relay_readiness_check',
+      message: 'Orca Relay readiness check',
+      event: 'orca_relay_readiness_check',
       metricVersion: 1,
       ...this.identity,
       ...observation
@@ -358,8 +358,8 @@ export class RelayObservability implements RelayRuntimeObserver {
     this.eventLoop.reset()
     this.write({
       severity: 'INFO',
-      message: 'Manta Relay runtime metrics',
-      event: 'manta_relay_runtime_metrics',
+      message: 'Orca Relay runtime metrics',
+      event: 'orca_relay_runtime_metrics',
       metricVersion: 2,
       role: this.identity.role,
       cellId: this.identity.cellId,

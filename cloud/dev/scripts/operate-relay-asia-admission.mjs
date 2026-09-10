@@ -10,13 +10,13 @@ import {
 
 const SHAPES = {
   staging: {
-    directorOrigin: 'https://relay-staging.manta.sh.cn',
-    domain: 'relay-staging.manta.sh.cn',
+    directorOrigin: 'https://relay-staging.onorca.dev',
+    domain: 'relay-staging.onorca.dev',
     allCells: ['staging-gce-c4']
   },
   production: {
-    directorOrigin: 'https://relay.manta.sh.cn',
-    domain: 'relay.manta.sh.cn',
+    directorOrigin: 'https://relay.onorca.dev',
+    domain: 'relay.onorca.dev',
     allCells: ['production-gce-c27', 'production-gce-c28', 'production-gce-c29']
   }
 }

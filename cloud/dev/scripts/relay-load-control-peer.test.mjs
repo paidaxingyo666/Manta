@@ -11,7 +11,7 @@ import {
 const requireFromRelay = createRequire(new URL('../../apps/relay/package.json', import.meta.url))
 const nacl = requireFromRelay('tweetnacl')
 const { buildHostChallengePlaintext } = await import(
-  requireFromRelay.resolve('@manta-cloud/relay-contract')
+  requireFromRelay.resolve('@orca-cloud/relay-contract')
 )
 
 function deferred() {

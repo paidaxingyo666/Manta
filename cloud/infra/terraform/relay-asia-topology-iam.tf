@@ -44,7 +44,7 @@ resource "google_service_account" "github_relay_asia_topology" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-asia"
-  display_name = "Manta Relay Asia topology"
+  display_name = "Orca Relay Asia topology"
   description  = "Applies only validated additive Relay Asia topology plans."
 }
 
@@ -60,8 +60,8 @@ resource "google_project_iam_custom_role" "github_relay_asia_topology_mutation" 
   count = local.create_relay_asia_topology_identity ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayAsiaTopology"
-  title       = "Manta Relay Asia topology"
+  role_id     = "orcaRelayAsiaTopology"
+  title       = "Orca Relay Asia topology"
   description = "Creates additive Relay Asia network and cell topology and updates its shared URL map."
   permissions = [
     "compute.backendServices.create",
@@ -116,8 +116,8 @@ resource "google_project_iam_custom_role" "github_relay_asia_topology_read" {
   count = local.create_relay_asia_topology_identity ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayAsiaTopologyRead"
-  title       = "Manta Relay Asia topology read"
+  role_id     = "orcaRelayAsiaTopologyRead"
+  title       = "Orca Relay Asia topology read"
   description = "Refreshes only resource types required by validated Relay Asia topology plans."
   permissions = [
     "artifactregistry.repositories.get",
@@ -184,8 +184,8 @@ resource "google_project_iam_custom_role" "github_relay_asia_topology_state_list
   count = local.create_relay_asia_topology_identity ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayAsiaStateList"
-  title       = "Manta Relay Asia state list"
+  role_id     = "orcaRelayAsiaStateList"
+  title       = "Orca Relay Asia state list"
   description = "Lists the environment state bucket so Terraform can initialize its backend."
   permissions = ["storage.objects.list"]
 }

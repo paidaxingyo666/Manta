@@ -126,8 +126,8 @@ jobs:
     environment: production
     env:
       GCP_PROJECT_ID: onorca-cloud
-      DIRECTOR_ORIGIN: https://relay.manta.sh.cn
-      ADMIN_AUDIENCE: https://relay.manta.sh.cn/v1/admin/drain
+      DIRECTOR_ORIGIN: https://relay.onorca.dev
+      ADMIN_AUDIENCE: https://relay.onorca.dev/v1/admin/drain
       SOURCE_CELL_ID: ${{ inputs.source-cell-id }}
       TARGET_CELL_IDS: ${{ inputs.target-cell-ids }}
       GENERAL_CELL_IDS: ${{ inputs.general-cell-ids }}
@@ -229,7 +229,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -482,7 +482,7 @@ jobs:
             --general-cell-ids "${GENERAL_CELL_IDS}" \
             --unobserved-connection-bound "${UNOBSERVED_CONNECTION_BOUND}" \
             --director-region "${{ vars.PRODUCTION_GCP_REGION }}" \
-            --director-service "manta-cloud-relay" \
+            --director-service "orca-cloud-relay" \
             --director-min-instances "${DIRECTOR_MIN_INSTANCES}" \
             --selector-attempt-id "${SELECTOR_ATTEMPT_ID}" \
             --failed-target-cell-id "${FAILED_TARGET_CELL_ID}" \

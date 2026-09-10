@@ -38,7 +38,7 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      REPOSITORY_ID: manta-cloud
+      REPOSITORY_ID: orca-cloud
       IMAGE_NAME: relay
       PUBLISH_MODE: ${{ inputs.mode }}
       MIRROR_DIGEST: ${{ inputs.image-digest }}

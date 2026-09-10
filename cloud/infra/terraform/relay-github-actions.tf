@@ -217,8 +217,8 @@ resource "google_service_account" "github_deploy" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-deploy"
-  display_name = "Manta Cloud GitHub deploy"
-  description  = "Deploys Manta Cloud from GitHub Actions."
+  display_name = "Orca Cloud GitHub deploy"
+  description  = "Deploys Orca Cloud from GitHub Actions."
 }
 
 resource "google_service_account" "github_monitor" {
@@ -226,7 +226,7 @@ resource "google_service_account" "github_monitor" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-monitor"
-  display_name = "Manta Relay production monitor"
+  display_name = "Orca Relay production monitor"
   description  = "Reads aggregate Relay production telemetry."
 }
 
@@ -235,7 +235,7 @@ resource "google_service_account" "github_fence" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-fence"
-  display_name = "Manta Relay production fence requester"
+  display_name = "Orca Relay production fence requester"
   description  = "Requests exact reviewed Relay cell fences through the private broker."
 }
 
@@ -244,7 +244,7 @@ resource "google_service_account" "github_staging_relay_capacity" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-cap"
-  display_name = "Manta Relay staging capacity transition"
+  display_name = "Orca Relay staging capacity transition"
   description  = "Runs the exact reviewed Relay staging capacity workflow."
 }
 
@@ -253,7 +253,7 @@ resource "google_service_account" "github_production_relay_capacity" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-cap"
-  display_name = "Manta Relay production capacity transition"
+  display_name = "Orca Relay production capacity transition"
   description  = "Runs the exact reviewed Relay production capacity workflow."
 }
 
@@ -456,8 +456,8 @@ resource "google_project_iam_custom_role" "github_staging_relay_power" {
   count = local.create_staging_relay_power_role ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayStagingPower"
-  title       = "Manta Relay staging power operator"
+  role_id     = "orcaRelayStagingPower"
+  title       = "Orca Relay staging power operator"
   description = "Scales staging Relay MIGs and starts or stops its shared staging database."
   permissions = [
     "cloudsql.instances.get",
@@ -481,8 +481,8 @@ resource "google_project_iam_custom_role" "github_staging_relay_capacity_mutatio
   count = local.create_staging_relay_capacity_identity ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayStagingCapacity"
-  title       = "Manta Relay staging capacity transition"
+  role_id     = "orcaRelayStagingCapacity"
+  title       = "Orca Relay staging capacity transition"
   description = "Replaces one staging Relay template and restarts its managed instance group."
   permissions = [
     "compute.disks.create",
@@ -567,8 +567,8 @@ resource "google_project_iam_custom_role" "github_production_relay_capacity_muta
   count = local.create_production_relay_capacity_identity ? 1 : 0
 
   project     = var.project_id
-  role_id     = "mantaRelayProductionCapacity"
-  title       = "Manta Relay production capacity transition"
+  role_id     = "orcaRelayProductionCapacity"
+  title       = "Orca Relay production capacity transition"
   description = "Replaces exactly one production Relay template and its managed instance."
   permissions = [
     "compute.disks.create",

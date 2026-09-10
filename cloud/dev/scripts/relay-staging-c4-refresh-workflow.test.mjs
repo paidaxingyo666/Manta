@@ -159,5 +159,5 @@ test('keeps cell-only plans independent from service-account description drift',
     cells,
     /rehome_director_service_account\s+= local\.relay_director_runtime_service_account_email/
   )
-  assert.match(relay, /var\.environment == "staging" \? "Manta Relay"/)
+  assert.match(relay, /var\.environment == "staging" \? "Orca Relay"/)
 })

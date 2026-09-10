@@ -1,4 +1,4 @@
-// Mirror of src/shared/relay-host-close-reason.ts in the Manta app repo half.
+// Mirror of src/shared/relay-host-close-reason.ts in the Orca app repo half.
 // A host control socket may close with one of these as its WebSocket close
 // reason; the cell records it so a later phone rejection can name the cause.
 // Anything else (including the empty reason of an abrupt 1006) means "unknown",

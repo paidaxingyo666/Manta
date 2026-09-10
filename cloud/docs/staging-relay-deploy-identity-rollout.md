@@ -2,13 +2,13 @@
 
 Moves the five staging Relay workflows off the apps-owned `github_deploy`
 account and onto the relay-owned `github_staging_relay_deploy` account
-(`manta-cloud-staging-gha-relay`). This is a **rollout**, not state surgery, so
+(`orca-cloud-staging-gha-relay`). This is a **rollout**, not state surgery, so
 it lives beside [`terraform-root-split-runbook.md`](./terraform-root-split-runbook.md)
 rather than inside it: that runbook is state-only and runs no apply, and every
 step below applies.
 
 Production is untouched. `local.relay_github_deploy_service_account_email`
-still renders `manta-cloud-gha-deploy` there, and the production relay plan slice
+still renders `orca-cloud-gha-deploy` there, and the production relay plan slice
 is byte-identical to the pre-split single-root baseline.
 
 ## What moves, and what it costs
@@ -97,7 +97,7 @@ on the director runtime account.
 The director's `ORCA_RELAY_DEPLOY_SERVICE_ACCOUNT` changes only through
 `google_cloud_run_v2_service.relay`, and applying that address in staging also
 carries the whole staging director backlog: the identity swap to
-`manta-cloud-staging-relay-dir`, `timeout` 3600s to 30s, concurrency 1000 to 80,
+`orca-cloud-staging-relay-dir`, `timeout` 3600s to 30s, concurrency 1000 to 80,
 the four-cell topology, and roughly twenty new env entries. Do it as part of
 the staging identity remediation in the drift plan, in this same window, with
 that plan reviewed on its own terms.
@@ -137,7 +137,7 @@ Wait for each MIG to report stable before starting the next cell.
 Dispatch **Power Relay Staging** in `status` mode. It exercises the new
 credential end to end: Workload Identity exchange on the new provider, the
 state read, `gcloud sql instances describe` and the MIG reads through
-`mantaRelayStagingPower`, `run services describe` on both the director and the
+`orcaRelayStagingPower`, `run services describe` on both the director and the
 shared staging auth service, and an admin `cell-status` call that only succeeds
 if the director allowlists the new account. Then run a `sleep` and a `wake` to
 exercise the mutation paths.
@@ -169,7 +169,7 @@ Before (c): revert the two variables, or unset them. The job gates skip while
 they are empty, and the old account still holds every grant.
 
 After (c) but before the cells are rolled: re-apply the six bindings from the
-previous commit, which points them back at `manta-cloud-staging-gha-deploy`, and
+previous commit, which points them back at `orca-cloud-staging-gha-deploy`, and
 revert the workflow repoint. The new account and its provider can stay; they
 grant nothing the old path needs.
 

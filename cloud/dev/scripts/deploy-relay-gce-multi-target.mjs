@@ -860,7 +860,7 @@ function processCounts(config, deps, status, cellId) {
   if (status.process) return validatedProcessCounts(status.process, cellId)
   const filter = [
     'resource.type="gce_instance"',
-    'jsonPayload.event="manta_relay_runtime_metrics"',
+    'jsonPayload.event="orca_relay_runtime_metrics"',
     `jsonPayload.cellId="${cellId}"`
   ].join(' AND ')
   const entries = deps.commandJson([

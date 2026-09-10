@@ -49,7 +49,7 @@ unavailable telemetry fails closed.
 ## Local use
 
 The active `gcloud` identity must be a service account that can mint an ID token for the exact
-audience `https://relay.manta.sh.cn/v1/admin/drain`, and it needs read access to the monitored GCP
+audience `https://relay.onorca.dev/v1/admin/drain`, and it needs read access to the monitored GCP
 resources. A user account normally needs Token Creator on an approved service account.
 
 For a short run, an already minted JWT may instead be supplied through
@@ -131,9 +131,9 @@ with every existing bar green.
 
 | Alert policy | Condition |
 | --- | ---: |
-| Manta Relay: far-cell phone accept latency | per cell, median 30-second `clientAcceptTotalMsP95` over 15 minutes above 2,000 ms with at least 20 completed accepts |
-| Manta Relay: cell control round trip | per cell, median `controlRttMsP50` over one hour above 150 ms with at least 500 samples |
-| Manta Relay: region hint skew | fleet-wide, asia-east2 share of hinted requests over one hour more than 2x and more than 15 points above its share of actual placements, with at least 500 hinted requests |
+| Orca Relay: far-cell phone accept latency | per cell, median 30-second `clientAcceptTotalMsP95` over 15 minutes above 2,000 ms with at least 20 completed accepts |
+| Orca Relay: cell control round trip | per cell, median `controlRttMsP50` over one hour above 150 ms with at least 500 samples |
+| Orca Relay: region hint skew | fleet-wide, asia-east2 share of hinted requests over one hour more than 2x and more than 15 points above its share of actual placements, with at least 500 hinted requests |
 
 Threshold basis:
 
@@ -198,7 +198,7 @@ without its segment is a compile error in relay-contract, not a silent gap.
 
 - Recalibrated the relay pool freezes from 30 waiters / 1,000 ms to
   800 waiters / 2,500 ms (2026-08-27). Basis, measured from
-  `manta_relay_runtime_metrics` (`databasePoolWaitersMax`,
+  `orca_relay_runtime_metrics` (`databasePoolWaitersMax`,
   `databasePoolWaitMsMax`): healthy fleet-wide bursts reach 43 waiters and
   2.03 s several times an hour (52 burst-minutes over three days), a cell
   roll's reconnect surge peaks at 676 waiters, and the 2026-08-23 incident
@@ -216,16 +216,16 @@ without its segment is a compile error in relay-contract, not a silent gap.
   pool waiters and pool wait latency keep their strict thresholds.
 - Recalibrated the PostgreSQL-retry freeze from 20 to 300 per five minutes
   (2026-08-26). Basis, measured from
-  `jsonPayload.event="manta_relay_postgres_transaction_retry"` in production
+  `jsonPayload.event="orca_relay_postgres_transaction_retry"` in production
   logs: healthy-day bursts reach 234/5min with zero exhausted retries and 26%
   of five-minute windows over 20, while the 2026-08-23 lock-contention
   incident ran roughly 2,200–3,000/5min by raw log-line count (the gate's
-  own `manta_relay_postgres_retries` metric read 1,510 for that window; see the
+  own `orca_relay_postgres_retries` metric read 1,510 for that window; see the
   2026-09-04 entry).
 - Recalibrated the PostgreSQL-retry freeze from 300 to 2,000 per five minutes
   (2026-09-04). Basis: the global `relay_cells FOR UPDATE` lock made
   successful retries a steady-state rate. Measured fleet-wide (director +
-  cells, summed per five minutes from the `manta_relay_postgres_retries`
+  cells, summed per five minutes from the `orca_relay_postgres_retries`
   log metric) over 2026-09-03T05Z..2026-09-04T05Z: p50 430 / p90 924 /
   p99 1,320 / max 1,504; 55% of windows over 300; only 22% of 15-minute gates
   clean at 300 versus 100% at 2,000. Three read-only dry-runs on 2026-09-04
@@ -259,7 +259,7 @@ without its segment is a compile error in relay-contract, not a silent gap.
   minutes (2026-09-04). Basis: #18521 cut the request-path cell-inventory
   lock wait from the 1 s pool `lock_timeout` to 500 ms, so contended waiters
   now fail fast (one `/v1/assign` 503 with `Retry-After`) instead of
-  succeeding slowly, and `manta_relay_postgres_transaction_exhausted` became
+  succeeding slowly, and `orca_relay_postgres_transaction_exhausted` became
   a steady contention rate. Measured fleet-wide per five minutes over
   2026-09-03T03Z..2026-09-04T02Z: 236 of 236 windows non-zero; quiet hours
   p50 2 / max 36; pre-#18521 daytime p50 10 / p90 25 / max 87; post-#18521

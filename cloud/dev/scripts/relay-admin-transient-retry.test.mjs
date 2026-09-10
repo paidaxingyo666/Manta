@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fetchAdminOnceMore } from './relay-admin-transient-retry.mjs'
 
-const url = 'https://relay.manta.sh.cn/v1/admin/cell-status'
+const url = 'https://relay.onorca.dev/v1/admin/cell-status'
 const init = { method: 'POST', body: '{"v":1}' }
 
 function recordingWait(waits) {

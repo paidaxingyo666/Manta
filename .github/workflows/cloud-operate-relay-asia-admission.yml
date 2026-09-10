@@ -71,10 +71,10 @@ jobs:
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
     env:
-      DIRECTOR_ORIGIN: ${{ inputs.environment == 'production' && 'https://relay.manta.sh.cn' || 'https://relay-staging.manta.sh.cn' }}
-      AUTH_ORIGIN: ${{ inputs.environment == 'production' && 'https://login.manta.sh.cn' || 'https://auth-staging.manta.sh.cn' }}
-      DIRECTOR_SERVICE: ${{ inputs.environment == 'production' && 'manta-cloud-relay' || 'manta-cloud-relay-staging' }}
-      REGIONAL_PLACEMENT_SECRET: manta-cloud-relay-regional-placement-enabled
+      DIRECTOR_ORIGIN: ${{ inputs.environment == 'production' && 'https://relay.onorca.dev' || 'https://relay-staging.onorca.dev' }}
+      AUTH_ORIGIN: ${{ inputs.environment == 'production' && 'https://login.onorca.dev' || 'https://auth-staging.onorca.dev' }}
+      DIRECTOR_SERVICE: ${{ inputs.environment == 'production' && 'orca-cloud-relay' || 'orca-cloud-relay-staging' }}
+      REGIONAL_PLACEMENT_SECRET: orca-cloud-relay-regional-placement-enabled
       GCP_PROJECT_ID: ${{ inputs.environment == 'production' && 'onorca-cloud' || 'onorca-cloud-staging' }}
       GCP_REGION: ${{ inputs.environment == 'production' && vars.PRODUCTION_GCP_REGION || vars.STAGING_GCP_REGION }}
       DIRECTOR_MAX_INSTANCES: ${{ inputs.environment == 'production' && '5' || '2' }}
@@ -182,7 +182,7 @@ jobs:
 
       - name: Build the C27 canary Relay contract
         if: ${{ inputs.environment == 'production' && inputs.mode == 'promote' && inputs.cell-ids == 'production-gce-c27' }}
-        run: pnpm --filter @manta-cloud/relay-contract build
+        run: pnpm --filter @orca-cloud/relay-contract build
 
       - name: Download immutable rollout evidence
         if: ${{ steps.inputs.outputs.evidence_kind != 'none' }}
@@ -355,7 +355,7 @@ jobs:
           logs="${RUNNER_TEMP}/relay-asia-c27-runtime-metrics.json"
           mkdir -p "${output}"
           gcloud logging read \
-            "timestamp>=\"${CANARY_STARTED_AT}\" AND timestamp<=\"${ended_at}\" AND jsonPayload.event=\"manta_relay_runtime_metrics\"" \
+            "timestamp>=\"${CANARY_STARTED_AT}\" AND timestamp<=\"${ended_at}\" AND jsonPayload.event=\"orca_relay_runtime_metrics\"" \
             --project "${GCP_PROJECT_ID}" \
             --limit 20000 \
             --format json > "${logs}"
@@ -467,7 +467,7 @@ jobs:
           current="$(gcloud secrets versions access latest \
             --project "${GCP_PROJECT_ID}" --secret "${REGIONAL_PLACEMENT_SECRET}")"
           [[ "${current}" =~ ^(true|false)$ ]]
-          image="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay@${DIRECTOR_IMAGE_DIGEST}"
+          image="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay@${DIRECTOR_IMAGE_DIGEST}"
           release_id="asia-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_SHA:0:8}"
           node dev/scripts/deploy-relay-blue-green.mjs \
             --project "${GCP_PROJECT_ID}" \
@@ -498,7 +498,7 @@ jobs:
               if length == 1 and .[0].percent == 100 then .[0].revisionName else error("split traffic") end')"
           revision_json="$(gcloud run revisions describe "${revision}" \
             --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format=json)"
-          jq -e --arg image "us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay@${DIRECTOR_IMAGE_DIGEST}" \
+          jq -e --arg image "us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay@${DIRECTOR_IMAGE_DIGEST}" \
             '.spec.containers[0].image == $image' <<< "${revision_json}" > /dev/null
           jq -er --arg secret "${REGIONAL_PLACEMENT_SECRET}" \
               '[.spec.containers[0].env[] |

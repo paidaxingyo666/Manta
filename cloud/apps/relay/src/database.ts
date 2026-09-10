@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import pg from 'pg'
-import { RELAY_REGIONS } from '@manta-cloud/relay-contract'
+import { RELAY_REGIONS } from '@orca-cloud/relay-contract'
 import {
   emptyPostgresPoolPressureCounts,
   PostgresPoolPressure,
@@ -936,7 +936,7 @@ class PostgresDatabase implements RelayDatabase {
           if (retryablePostgresTransactionError(error) && options.reportRetries !== false) {
             console.warn(
               JSON.stringify({
-                event: 'manta_relay_postgres_transaction_exhausted',
+                event: 'orca_relay_postgres_transaction_exhausted',
                 code: String((error as { code?: unknown }).code),
                 attempts: attempt,
                 phase: postgresTransactionErrorPhase(error)
@@ -948,7 +948,7 @@ class PostgresDatabase implements RelayDatabase {
         if (options.reportRetries !== false) {
           console.warn(
             JSON.stringify({
-              event: 'manta_relay_postgres_transaction_retry',
+              event: 'orca_relay_postgres_transaction_retry',
               code: String((error as { code?: unknown }).code),
               attempt,
               phase: postgresTransactionErrorPhase(error)
@@ -1005,7 +1005,7 @@ export function absorbPostgresIdleClientErrors(pool: Pick<pg.Pool, 'on'>): void 
   pool.on('error', () => {
     // Why: node-postgres removes failed idle clients itself; leaving `error`
     // unhandled would crash the cell and turn a SQL outage into autoheal churn.
-    console.warn('[manta-relay] idle PostgreSQL client failed')
+    console.warn('[orca-relay] idle PostgreSQL client failed')
   })
 }
 
@@ -1081,7 +1081,7 @@ export async function openRelayDatabase(input: {
     database = new PostgresDatabase(pool)
   } else {
     mkdirSync(input.dataDir, { recursive: true })
-    const sqlite = new DatabaseSync(join(input.dataDir, 'manta-relay.sqlite'))
+    const sqlite = new DatabaseSync(join(input.dataDir, 'orca-relay.sqlite'))
     sqlite.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')
     database = new SqliteDatabase(sqlite)
   }

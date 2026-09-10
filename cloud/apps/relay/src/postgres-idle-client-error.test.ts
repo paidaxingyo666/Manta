@@ -14,7 +14,7 @@ describe('PostgreSQL idle-client failure handling', () => {
 
     absorbPostgresIdleClientErrors(pool as never)
     expect(() => listener?.(new Error('postgres://user:secret@database'))).not.toThrow()
-    expect(warning).toHaveBeenCalledWith('[manta-relay] idle PostgreSQL client failed')
+    expect(warning).toHaveBeenCalledWith('[orca-relay] idle PostgreSQL client failed')
     expect(JSON.stringify(warning.mock.calls)).not.toContain('secret')
 
     warning.mockRestore()

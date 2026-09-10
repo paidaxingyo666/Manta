@@ -4,7 +4,7 @@ import {
   RELAY_PROTOCOL_LIMITS,
   type DeviceCredentialInstalled,
   type DeviceResumeConfirmed
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import type { RelayDatabase, SqlRow } from './database.js'
 
 const CREDENTIAL_GRACE_MS = 24 * 60 * 60 * 1000

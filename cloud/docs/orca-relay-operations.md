@@ -1,4 +1,4 @@
-# Manta Relay operations runbook
+# Orca Relay operations runbook
 
 This runbook applies to the stable Cloud Run director and the production-shaped GCE cells in both environments. It does not authorize a full Terraform apply: staging and production contain unrelated drift, so inspect a saved targeted plan and its destroy count before every apply.
 
@@ -22,7 +22,7 @@ Set environment-specific values without printing the resulting token:
 ```sh
 export PROJECT_ID=onorca-cloud-staging
 export REGION=us-central1
-export DIRECTOR_ORIGIN=https://relay-staging.manta.sh.cn
+export DIRECTOR_ORIGIN=https://relay-staging.onorca.dev
 export DEPLOY_SERVICE_ACCOUNT=orca-cloud-staging-gha-deploy@onorca-cloud-staging.iam.gserviceaccount.com
 export ADMIN_AUDIENCE="${DIRECTOR_ORIGIN}/v1/admin/drain"
 ADMIN_TOKEN="$(gcloud auth print-identity-token \

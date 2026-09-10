@@ -102,7 +102,7 @@ describe('relay protocol contract', () => {
     expect(
       AssignmentResponseSchema.safeParse({
         v: 1,
-        cellUrl: 'https://relay-c1.manta.sh.cn',
+        cellUrl: 'https://relay-c1.onorca.dev',
         assignmentEpoch: 3,
         lease: 'signed-lease'
       }).success
@@ -161,20 +161,20 @@ describe('relay protocol contract', () => {
   it('accepts moves only from the configured director at a strictly newer epoch', () => {
     const move = RelayMovedSchema.parse({
       v: 1,
-      cellUrl: 'https://relay-c2.manta.sh.cn',
+      cellUrl: 'https://relay-c2.onorca.dev',
       assignmentEpoch: 4
     })
     const base = {
-      configuredDirectorOrigin: 'https://relay.manta.sh.cn',
+      configuredDirectorOrigin: 'https://relay.onorca.dev',
       currentAssignmentEpoch: 3,
       move
     }
-    expect(isTrustedNewerMove({ ...base, sourceOrigin: 'https://relay.manta.sh.cn' })).toBe(true)
+    expect(isTrustedNewerMove({ ...base, sourceOrigin: 'https://relay.onorca.dev' })).toBe(true)
     expect(isTrustedNewerMove({ ...base, sourceOrigin: move.cellUrl })).toBe(false)
     expect(
       isTrustedNewerMove({
         ...base,
-        sourceOrigin: 'https://relay.manta.sh.cn',
+        sourceOrigin: 'https://relay.onorca.dev',
         currentAssignmentEpoch: 4
       })
     ).toBe(false)
@@ -235,7 +235,7 @@ describe('relay protocol contract', () => {
 
   it('locks the complete host key-possession transcript', () => {
     const transcript = buildHostProofTranscript({
-      relayOrigin: 'https://relay.manta.sh.cn',
+      relayOrigin: 'https://relay.onorca.dev',
       relayEphemeralPublicKey: new Uint8Array(32).fill(1),
       challengeNonce: new Uint8Array(24).fill(4),
       challengeId: 'challenge-1',
@@ -254,20 +254,16 @@ describe('relay protocol contract', () => {
     const proofInput = buildHostProofMacInput(transcript)
 
     expect(Buffer.from(transcript).toString('base64url')).toBe(
-      // Base64 hides the brand from every rename rule, so this stayed upstream's bytes
-      // while the domain separator and the origin were already this fork's.
-      'AAAACHByb3RvY29sAAAAGW1hbnRhLXJlbGF5LWhvc3QtcHJvb2YvdjEAAAAHdmVyc2lvbgAAAAEBAAAAC3JlbGF5T3JpZ2luAAAAGWh0dHBzOi8vcmVsYXkubWFudGEuc2guY24AAAAXcmVsYXlFcGhlbWVyYWxQdWJsaWNLZXkAAAAgAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAAOY2hhbGxlbmdlTm9uY2UAAAAYBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAAAC2NoYWxsZW5nZUlkAAAAC2NoYWxsZW5nZS0xAAAACGlzc3VlZEF0AAAACAAAAYvP5WgAAAAACWV4cGlyZXNBdAAAAAgAAAGLz-WPEAAAAAZ1c2VySWQAAAAGdXNlci0xAAAACXByb2ZpbGVJZAAAAAlwcm9maWxlLTEAAAAOb3JnYW5pemF0aW9uSWQAAAAFb3JnLTEAAAALcmVsYXlIb3N0SWQAAAAQYWJjZGVmZ2hpamtsbW5vcAAAAA1ob3N0UHVibGljS2V5AAAAIAICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAAAAD2Fzc2lnbm1lbnRFcG9jaAAAAAgAAAAAAAAABwAAABJwcmV2aW91c0dlbmVyYXRpb24AAAAIAAAAAAAAAAYAAAAPcmVzdW1lUmVxdWVzdGVkAAAAAQE'
+      'AAAACHByb3RvY29sAAAAGG9yY2EtcmVsYXktaG9zdC1wcm9vZi92MQAAAAd2ZXJzaW9uAAAAAQEAAAALcmVsYXlPcmlnaW4AAAAYaHR0cHM6Ly9yZWxheS5vbm9yY2EuZGV2AAAAF3JlbGF5RXBoZW1lcmFsUHVibGljS2V5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAADmNoYWxsZW5nZU5vbmNlAAAAGAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAtjaGFsbGVuZ2VJZAAAAAtjaGFsbGVuZ2UtMQAAAAhpc3N1ZWRBdAAAAAgAAAGLz-VoAAAAAAlleHBpcmVzQXQAAAAIAAABi8_ljxAAAAAGdXNlcklkAAAABnVzZXItMQAAAAlwcm9maWxlSWQAAAAJcHJvZmlsZS0xAAAADm9yZ2FuaXphdGlvbklkAAAABW9yZy0xAAAAC3JlbGF5SG9zdElkAAAAEGFiY2RlZmdoaWprbG1ub3AAAAANaG9zdFB1YmxpY0tleQAAACACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAAA9hc3NpZ25tZW50RXBvY2gAAAAIAAAAAAAAAAcAAAAScHJldmlvdXNHZW5lcmF0aW9uAAAACAAAAAAAAAAGAAAAD3Jlc3VtZVJlcXVlc3RlZAAAAAEB'
     )
-    // One over upstream's 65 and 29: each framing is its domain string plus fixed
-    // bytes, and both domain strings are a character longer in this fork.
-    expect(challenge.byteLength).toBe(transcript.byteLength + 66)
-    expect(proofInput.byteLength).toBe(transcript.byteLength + 30)
+    expect(challenge.byteLength).toBe(transcript.byteLength + 65)
+    expect(proofInput.byteLength).toBe(transcript.byteLength + 29)
     expect(() => buildHostChallengePlaintext(transcript, new Uint8Array(31))).toThrow(
       'challengeSecret must be 32 bytes'
     )
     expect(() =>
       buildHostProofTranscript({
-        relayOrigin: 'https://relay.manta.sh.cn',
+        relayOrigin: 'https://relay.onorca.dev',
         relayEphemeralPublicKey: new Uint8Array(32),
         challengeNonce: new Uint8Array(32),
         challengeId: 'challenge-1',

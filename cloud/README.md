@@ -1,12 +1,12 @@
-# Manta Relay
+# Orca Relay
 
-The relay that connects the Manta mobile app to a desktop host. Phones and
+The relay that connects the Orca mobile app to a desktop host. Phones and
 desktops never talk to each other directly: each opens an outbound WebSocket
 to a relay cell, the relay pairs the two sessions, and it splices frames
 between them. A director assigns hosts to cells and coordinates migrations;
 cells carry the user connections.
 
-This directory is an independent pnpm workspace inside the Manta monorepo. Run
+This directory is an independent pnpm workspace inside the Orca monorepo. Run
 its commands from `cloud/`, not the repository root. The source is covered by
 the repository's root [MIT license](../LICENSE).
 
@@ -80,11 +80,11 @@ when `ORCA_RELAY_TEST_POSTGRES_URL` points at a disposable PostgreSQL 16 or 17
 database, for example:
 
 ```sh
-docker run --rm -d --name manta-relay-pg -e POSTGRES_HOST_AUTH_METHOD=trust \
-  -e POSTGRES_DB=manta_relay_test -p 55440:5432 postgres:16-alpine
-ORCA_RELAY_TEST_POSTGRES_URL=postgres://postgres@127.0.0.1:55440/manta_relay_test \
-  pnpm --filter @manta-cloud/relay test
-docker rm -f manta-relay-pg
+docker run --rm -d --name orca-relay-pg -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -e POSTGRES_DB=orca_relay_test -p 55440:5432 postgres:16-alpine
+ORCA_RELAY_TEST_POSTGRES_URL=postgres://postgres@127.0.0.1:55440/orca_relay_test \
+  pnpm --filter @orca-cloud/relay test
+docker rm -f orca-relay-pg
 ```
 
 Configuration is read from environment variables validated in

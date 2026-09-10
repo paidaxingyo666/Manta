@@ -17,7 +17,7 @@ function entries() {
   return Array.from({ length: 24 }, (_, index) => ({
     timestamp: new Date(now - (index * 60 + 30) * 60_000).toISOString(),
     jsonPayload: {
-      event: 'manta_relay_runtime_metrics',
+      event: 'orca_relay_runtime_metrics',
       role: 'director',
       requestedRegionsDelta: { 'asia-east2': index === 0 ? 2 : 0 },
       selectedRegionsDelta: { 'asia-east2': index === 0 ? 1 : 0 },

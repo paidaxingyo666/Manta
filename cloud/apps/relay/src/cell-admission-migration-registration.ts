@@ -5,7 +5,7 @@ import {
   relayCellAdmissionBounds,
   type RelayCellConnectionHardCap,
   type RelayRegion
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import {
   decodeMembership,
   encodeMembership,

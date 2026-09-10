@@ -1,17 +1,17 @@
 resource "google_service_account" "relay_runtime" {
   project      = var.project_id
   account_id   = "${var.name_prefix}-relay"
-  display_name = var.environment == "staging" ? "Manta Relay" : "Manta Relay cells"
+  display_name = var.environment == "staging" ? "Orca Relay" : "Orca Relay cells"
   description = var.environment == "staging" ? (
-    "Runtime identity for the Manta Relay director and stamped cells."
-  ) : "Runtime identity for stamped Manta Relay cells."
+    "Runtime identity for the Orca Relay director and stamped cells."
+  ) : "Runtime identity for stamped Orca Relay cells."
 }
 
 resource "google_service_account" "relay_director_runtime" {
   project      = var.project_id
   account_id   = "${var.name_prefix}-relay-dir"
-  display_name = "Manta Relay director"
-  description  = "Runtime and regional rehoming caller identity for the Manta Relay director."
+  display_name = "Orca Relay director"
+  description  = "Runtime and regional rehoming caller identity for the Orca Relay director."
 }
 
 resource "google_project_iam_member" "relay_runtime_cloudsql_client" {
@@ -33,7 +33,7 @@ resource "random_password" "relay_assignment_signing_key" {
 
 resource "google_secret_manager_secret" "relay_assignment_signing_key" {
   project   = var.project_id
-  secret_id = "manta-cloud-relay-assignment-signing-key"
+  secret_id = "orca-cloud-relay-assignment-signing-key"
   labels    = local.relay_shared_labels
 
   replication {
@@ -62,7 +62,7 @@ resource "google_secret_manager_secret_iam_member" "relay_assignment_signing_key
 
 resource "google_secret_manager_secret" "relay_regional_placement_enabled" {
   project   = var.project_id
-  secret_id = "manta-cloud-relay-regional-placement-enabled"
+  secret_id = "orca-cloud-relay-regional-placement-enabled"
   labels    = local.relay_shared_labels
 
   replication {
@@ -201,7 +201,7 @@ resource "google_cloud_run_v2_service" "relay" {
       }
 
       env {
-        name  = "MANTA_RELAY_PUBLIC_URL"
+        name  = "ORCA_RELAY_PUBLIC_URL"
         value = var.relay_base_url
       }
 
@@ -217,7 +217,7 @@ resource "google_cloud_run_v2_service" "relay" {
 
       env {
         name  = "ORCA_RELAY_AUTH_AUDIENCE"
-        value = "manta-relay"
+        value = "orca-relay"
       }
 
       env {
@@ -401,8 +401,8 @@ resource "google_cloud_run_v2_service" "relay_cell" {
   # Require an explicit configuration change before a stamped cell can be decommissioned.
   deletion_protection = each.value.deletion_protection
   labels = merge(local.relay_shared_labels, {
-    "manta-relay-role" = "cell"
-    "manta-relay-cell" = each.key
+    "orca-relay-role" = "cell"
+    "orca-relay-cell" = each.key
   })
 
   template {
@@ -458,7 +458,7 @@ resource "google_cloud_run_v2_service" "relay_cell" {
       }
 
       env {
-        name  = "MANTA_RELAY_PUBLIC_URL"
+        name  = "ORCA_RELAY_PUBLIC_URL"
         value = each.value.url
       }
 
@@ -474,7 +474,7 @@ resource "google_cloud_run_v2_service" "relay_cell" {
 
       env {
         name  = "ORCA_RELAY_AUTH_AUDIENCE"
-        value = "manta-relay"
+        value = "orca-relay"
       }
 
       env {

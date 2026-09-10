@@ -77,7 +77,7 @@ describePostgres('PostgreSQL director startup reconciliation', () => {
       { cell_id: cell.id }
     ])
     const warnings = warn.mock.calls.flat().join('\n')
-    expect(warnings).toContain('manta_relay_startup_reconcile_recovered')
-    expect(warnings).not.toContain('manta_relay_postgres_transaction_exhausted')
+    expect(warnings).toContain('orca_relay_startup_reconcile_recovered')
+    expect(warnings).not.toContain('orca_relay_postgres_transaction_exhausted')
   }, 10_000)
 })

@@ -11,7 +11,7 @@ import {
 
 function cellEnvironment(capacity: number): NodeJS.ProcessEnv {
   return {
-    MANTA_RELAY_PUBLIC_URL: 'https://c1.relay.example.com',
+    ORCA_RELAY_PUBLIC_URL: 'https://c1.relay.example.com',
     ORCA_RELAY_CELL_URL: 'https://c1.relay.example.com',
     ORCA_RELAY_AUTH_ISSUER: 'https://auth.example.com',
     ORCA_RELAY_JWKS_URL: 'https://auth.example.com/.well-known/jwks.json',
@@ -118,7 +118,7 @@ describe('GCE relay capacity configuration', () => {
   it('accepts hard-cap metadata in director cell inventory', () => {
     const env = cellEnvironment(4_000)
     env.ORCA_RELAY_ROLE = 'director'
-    env.MANTA_RELAY_PUBLIC_URL = 'https://relay.example.com'
+    env.ORCA_RELAY_PUBLIC_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELL_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELLS_JSON = JSON.stringify([
       {
@@ -139,7 +139,7 @@ describe('GCE relay capacity configuration', () => {
   it('accepts mixed 600- and 1000-cap director inventory', () => {
     const env = cellEnvironment(4_000)
     env.ORCA_RELAY_ROLE = 'director'
-    env.MANTA_RELAY_PUBLIC_URL = 'https://relay.example.com'
+    env.ORCA_RELAY_PUBLIC_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELL_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELLS_JSON = JSON.stringify([
       {
@@ -174,7 +174,7 @@ describe('GCE relay capacity configuration', () => {
   it('accepts a statically declared candidate that starts disabled', () => {
     const env = cellEnvironment(4_000)
     env.ORCA_RELAY_ROLE = 'director'
-    env.MANTA_RELAY_PUBLIC_URL = 'https://relay.example.com'
+    env.ORCA_RELAY_PUBLIC_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELL_URL = 'https://relay.example.com'
     env.ORCA_RELAY_CELLS_JSON = JSON.stringify([
       {

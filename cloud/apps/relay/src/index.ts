@@ -31,7 +31,7 @@ const database = await openRelayDatabase({
   databaseUrl: config.databaseUrl,
   dataDir: config.dataDir,
   poolMax: config.databasePoolMax,
-  applicationName: `manta-relay/${config.role}/${config.cellId}`
+  applicationName: `orca-relay/${config.role}/${config.cellId}`
 })
 await reconcileCellAdmissionAtStartup(config, new RelayAssignmentStore(database))
 const {
@@ -49,7 +49,7 @@ const cleanupTimer = setInterval(
   () =>
     void runRelayBackgroundOperation(
       () => store.cleanup(),
-      '[manta-relay] credential cleanup failed'
+      '[orca-relay] credential cleanup failed'
     ),
   30_000
 )
@@ -63,7 +63,7 @@ const inventorySnapshotTimer = roleOwnsAssignmentMaintenance(config.role)
       void runRelayBackgroundOperation(async () => {
         const snapshot = await readAssignmentInventorySnapshot(database, Date.now())
         for (const line of formatAssignmentInventorySnapshot(snapshot)) console.warn(line)
-      }, '[manta-relay] inventory snapshot failed')
+      }, '[orca-relay] inventory snapshot failed')
     }, 60_000)
   : null
 const migrationInventoryTimer = roleOwnsAssignmentMaintenance(config.role)
@@ -71,7 +71,7 @@ const migrationInventoryTimer = roleOwnsAssignmentMaintenance(config.role)
       void runRelayBackgroundOperation(async () => {
         const inventory = await readRegisteredMigrationInventory(database, Date.now())
         for (const line of formatRegisteredMigrationInventory(inventory)) console.warn(line)
-      }, '[manta-relay] migration inventory failed')
+      }, '[orca-relay] migration inventory failed')
     }, 5 * 60_000)
   : null
 cleanupTimer.unref()
@@ -116,7 +116,7 @@ const heartbeat = startCellHeartbeat(config, {
 })
 
 server.listen(config.port, () => {
-  console.log(`[manta-relay] listening on ${config.publicUrl} (port ${config.port})`)
+  console.log(`[orca-relay] listening on ${config.publicUrl} (port ${config.port})`)
 })
 
 const shutdown = (): void => {

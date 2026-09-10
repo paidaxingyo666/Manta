@@ -1,5 +1,5 @@
 import { createServer as createNetServer } from 'node:net'
-import { RELAY_CLOSE_CODE } from '@manta-cloud/relay-contract'
+import { RELAY_CLOSE_CODE } from '@orca-cloud/relay-contract'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebSocket from 'ws'
 import type { RelayConfig } from './config.js'
@@ -50,7 +50,7 @@ describe('relay first-frame failures', () => {
       publicUrl: relayUrl,
       cellUrl: relayUrl,
       authIssuer: 'https://auth.example.com',
-      authAudience: 'manta-relay',
+      authAudience: 'orca-relay',
       jwksUrl: 'https://auth.example.com/jwks',
       assignmentSigningKey: new Uint8Array(32),
       role: 'cell',

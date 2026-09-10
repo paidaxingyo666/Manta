@@ -1,7 +1,7 @@
 const textEncoder = new TextEncoder()
 
-export const HOST_PROOF_TRANSCRIPT_DOMAIN = 'manta-relay-host-proof/v1'
-export const HOST_CHALLENGE_PLAINTEXT_DOMAIN = 'manta-relay-host-challenge/v1'
+export const HOST_PROOF_TRANSCRIPT_DOMAIN = 'orca-relay-host-proof/v1'
+export const HOST_CHALLENGE_PLAINTEXT_DOMAIN = 'orca-relay-host-challenge/v1'
 export const HOST_CHALLENGE_BOX_ALGORITHM = 'Curve25519-XSalsa20-Poly1305'
 export const HOST_PROOF_ALGORITHM = 'HMAC-SHA-256'
 

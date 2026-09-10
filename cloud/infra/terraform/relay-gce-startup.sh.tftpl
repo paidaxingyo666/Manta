@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly metadata_url="http://metadata.google.internal/computeMetadata/v1"
-readonly state_dir="/var/lib/manta-relay"
+readonly state_dir="/var/lib/orca-relay"
 readonly cloudsql_dir="$${state_dir}/cloudsql"
 readonly docker_config_dir="$${state_dir}/docker"
 readonly env_file="$${state_dir}/relay.env"
@@ -54,10 +54,10 @@ umask 077
 {
   printf 'DATABASE_URL=%s\n' "$${database_url}"
   printf 'ORCA_RELAY_ASSIGNMENT_SIGNING_KEY=%s\n' "$${assignment_key}"
-  printf 'MANTA_RELAY_PUBLIC_URL=%s\n' '${cell_url}'
+  printf 'ORCA_RELAY_PUBLIC_URL=%s\n' '${cell_url}'
   printf 'ORCA_RELAY_CELL_URL=%s\n' '${cell_url}'
   printf 'ORCA_RELAY_AUTH_ISSUER=%s\n' '${auth_issuer}'
-  printf 'ORCA_RELAY_AUTH_AUDIENCE=manta-relay\n'
+  printf 'ORCA_RELAY_AUTH_AUDIENCE=orca-relay\n'
   printf 'ORCA_RELAY_JWKS_URL=%s/.well-known/jwks.json\n' '${auth_issuer}'
   printf 'ORCA_RELAY_ROLE=cell\n'
   printf 'ORCA_RELAY_CELL_ID=%s\n' '${cell_id}'
@@ -98,7 +98,7 @@ docker logout '${artifact_registry_host}' >/dev/null 2>&1 || true
 unset access_token
 docker pull '${cloud_sql_proxy_image}'
 
-docker rm --force manta-relay cloud-sql-proxy >/dev/null 2>&1 || true
+docker rm --force orca-relay cloud-sql-proxy >/dev/null 2>&1 || true
 # The persistent COS state directory can retain a dead proxy's socket across VM reboots.
 find "$${cloudsql_dir}" -type s -name '.s.PGSQL.5432' -delete
 docker run --detach \
@@ -125,7 +125,7 @@ done
 find "$${cloudsql_dir}" -type s -name '.s.PGSQL.5432' -print -quit | grep -q .
 
 docker run --detach \
-  --name manta-relay \
+  --name orca-relay \
   --restart always \
   --stop-timeout 300 \
   --security-opt no-new-privileges \

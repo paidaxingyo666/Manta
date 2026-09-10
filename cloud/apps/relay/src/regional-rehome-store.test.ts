@@ -387,7 +387,7 @@ describe('regional rehome assignment state', () => {
       target.id
     ])
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -419,7 +419,7 @@ describe('regional rehome assignment state', () => {
       relayHostId: 'abcdefghijklmnop'
     })
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -446,7 +446,7 @@ describe('regional rehome assignment state', () => {
     // The desktop's region probe now says us-central1 again.
     await context.store.assign(identity, 'us-central1')
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -502,7 +502,7 @@ describe('regional rehome assignment state', () => {
     })
     await activatePreferredSource(context, identity)
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -525,7 +525,7 @@ describe('regional rehome assignment state', () => {
       relayHostId: 'abcdefghijklmnop'
     })
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -558,7 +558,7 @@ describe('regional rehome assignment state', () => {
       [target.id]
     )
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -596,7 +596,7 @@ describe('regional rehome assignment state', () => {
   it('does not throttle or log an idle tick with no candidates', async () => {
     const context = await setup()
 
-    const warnings = collectEventWarnings('manta_relay_regional_rehome_candidates_skipped')
+    const warnings = collectEventWarnings('orca_relay_regional_rehome_candidates_skipped')
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
     } finally {
@@ -786,7 +786,7 @@ describe('regional rehome assignment state', () => {
     await activatePreferredSource(context, identity)
     probe.reset()
     probe.failNoWait = true
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let attempt: unknown
     try {
@@ -800,7 +800,7 @@ describe('regional rehome assignment state', () => {
     expect(probe.locks.every((options) => options?.failIfUnavailable === true)).toBe(true)
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'claim-regional-rehome',
         skipped: 1
       }
@@ -845,7 +845,7 @@ describe('regional rehome assignment state', () => {
     }
     probe.reset()
     probe.failNoWaitTimes = 1
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let completed: number
     try {
@@ -857,7 +857,7 @@ describe('regional rehome assignment state', () => {
     expect(completed).toBe(1)
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'complete-ready-regional-rehomes',
         skipped: 1
       }
@@ -896,7 +896,7 @@ describe('regional rehome assignment state', () => {
     }
     probe.reset()
     probe.failNoWaitTimes = 2
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let completed: number
     try {
@@ -908,7 +908,7 @@ describe('regional rehome assignment state', () => {
     expect(completed).toBe(1)
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'complete-ready-regional-rehomes',
         skipped: 2
       }
@@ -924,7 +924,7 @@ describe('regional rehome assignment state', () => {
     await activatePreferredSource(context, { userId: 'user-1', relayHostId: 'abcdefghijklmnop' })
     probe.reset()
     probe.failWith = new Error('relay_capacity_exhausted')
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     try {
       await expect(context.store.claimRegionalRehome()).rejects.toThrow(
@@ -948,7 +948,7 @@ describe('regional rehome assignment state', () => {
     await activatePreferredSource(context, { userId: 'user-3', relayHostId: 'aaaabbbbccccdddd' })
     probe.reset()
     probe.failNoWait = true
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     try {
       expect(await context.store.claimRegionalRehome()).toBeNull()
@@ -958,7 +958,7 @@ describe('regional rehome assignment state', () => {
 
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'claim-regional-rehome',
         skipped: 3
       }
@@ -986,7 +986,7 @@ describe('regional rehome assignment state', () => {
     await freshHeartbeats(context)
     probe.reset()
     probe.failNoWait = true
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let redrain: unknown
     try {
@@ -1000,7 +1000,7 @@ describe('regional rehome assignment state', () => {
     expect(probe.locks.every((options) => options?.failIfUnavailable === true)).toBe(true)
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'claim-regional-rehome',
         skipped: 1
       }
@@ -1033,7 +1033,7 @@ describe('regional rehome assignment state', () => {
     await context.store.releaseActivity(identity, sourceControl)
     probe.reset()
     probe.failNoWait = true
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
     const failures = collectCandidateFailureWarnings()
 
     let completed: number
@@ -1050,7 +1050,7 @@ describe('regional rehome assignment state', () => {
     expect(failures.entries).toEqual([])
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'complete-ready-regional-rehomes',
         skipped: 1
       }
@@ -1086,7 +1086,7 @@ describe('regional rehome assignment state', () => {
     await heartbeat(context.store, source, sourceIncarnation, 1, 2)
     probe.reset()
     probe.failNoWait = true
-    const busy = collectEventWarnings('manta_relay_sweep_cell_inventory_busy')
+    const busy = collectEventWarnings('orca_relay_sweep_cell_inventory_busy')
     const failures = collectCandidateFailureWarnings()
 
     let aborted: number
@@ -1103,7 +1103,7 @@ describe('regional rehome assignment state', () => {
     expect(failures.entries).toEqual([])
     expect(busy.entries).toEqual([
       {
-        event: 'manta_relay_sweep_cell_inventory_busy',
+        event: 'orca_relay_sweep_cell_inventory_busy',
         sweep: 'abort-expired-regional-rehomes',
         skipped: 1
       }
@@ -1314,7 +1314,7 @@ describe('regional rehome assignment state', () => {
     }
     expect(warnings.entries).toEqual([
       {
-        event: 'manta_relay_regional_rehome_candidate_failed',
+        event: 'orca_relay_regional_rehome_candidate_failed',
         operation: 'complete',
         attemptId: first!.attemptId,
         reason: 'regional_rehome_assignment_mismatch'
@@ -1428,7 +1428,7 @@ describe('regional rehome assignment state', () => {
     }
     expect(warnings.entries).toEqual([
       {
-        event: 'manta_relay_regional_rehome_candidate_failed',
+        event: 'orca_relay_regional_rehome_candidate_failed',
         operation: 'abort',
         attemptId: first!.attemptId,
         reason: 'regional_rehome_assignment_mismatch'
@@ -1579,7 +1579,7 @@ describe('regional rehome assignment state', () => {
     )
 
     const warnings = collectCandidateFailureWarnings([
-      'manta_relay_regional_rehome_activity_counts_repaired'
+      'orca_relay_regional_rehome_activity_counts_repaired'
     ])
     try {
       expect(await context.store.completeReadyRegionalRehomes()).toBe(2)
@@ -1588,7 +1588,7 @@ describe('regional rehome assignment state', () => {
     }
     expect(warnings.entries).toEqual([
       {
-        event: 'manta_relay_regional_rehome_activity_counts_repaired',
+        event: 'orca_relay_regional_rehome_activity_counts_repaired',
         attemptId: first!.attemptId
       }
     ])
@@ -1629,7 +1629,7 @@ describe('regional rehome assignment state', () => {
     }
     expect(warnings.entries).toEqual([
       {
-        event: 'manta_relay_regional_rehome_candidate_failed',
+        event: 'orca_relay_regional_rehome_candidate_failed',
         operation: 'complete',
         attemptId: attempt!.attemptId,
         reason: 'migration_activity_lease_shape_mismatch'
@@ -1666,8 +1666,8 @@ describe('regional rehome assignment state', () => {
     )
 
     const warnings = collectCandidateFailureWarnings([
-      'manta_relay_regional_rehome_candidate_failed',
-      'manta_relay_regional_rehome_activity_counts_repaired'
+      'orca_relay_regional_rehome_candidate_failed',
+      'orca_relay_regional_rehome_activity_counts_repaired'
     ])
     try {
       expect(await context.store.completeReadyRegionalRehomes()).toBe(0)
@@ -1676,7 +1676,7 @@ describe('regional rehome assignment state', () => {
     }
     expect(warnings.entries).toEqual([
       {
-        event: 'manta_relay_regional_rehome_candidate_failed',
+        event: 'orca_relay_regional_rehome_candidate_failed',
         operation: 'complete',
         attemptId: attempt!.attemptId,
         reason: 'migration_activity_accounting_mismatch'
@@ -1749,7 +1749,7 @@ function collectDisableWarnings() {
   console.warn = (line: unknown, ...rest: unknown[]) => {
     try {
       const parsed = JSON.parse(line as string) as Record<string, unknown>
-      if (parsed.event === 'manta_relay_regional_rehome_safety_disabled') {
+      if (parsed.event === 'orca_relay_regional_rehome_safety_disabled') {
         entries.push(parsed)
         return
       }
@@ -1829,7 +1829,7 @@ function collectEventWarnings(event: string) {
 }
 
 function collectCandidateFailureWarnings(
-  events: string[] = ['manta_relay_regional_rehome_candidate_failed']
+  events: string[] = ['orca_relay_regional_rehome_candidate_failed']
 ) {
   const entries: Record<string, unknown>[] = []
   const original = console.warn

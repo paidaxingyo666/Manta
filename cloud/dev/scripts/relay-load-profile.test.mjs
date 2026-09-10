@@ -95,17 +95,17 @@ test('allows one coordinating shard to prove regional fallback', () => {
     '--shard-count', '4', '--shard-index', '0',
     '--aggregate-controls', '2840', '--aggregate-splices', '0',
     '--regional-fallback-probes', '1', '--capacity-cell-id', 'staging-gce-c4',
-    '--capacity-cell-origin', 'https://c4.relay-staging.manta.sh.cn',
+    '--capacity-cell-origin', 'https://c4.relay-staging.onorca.dev',
     '--capacity-unobserved-bound', '60', '--rebind-probes', '160'
   ])
   assert.equal(config.regionalFallbackProbes, 1)
-  assert.equal(config.capacityCellOrigin, 'https://c4.relay-staging.manta.sh.cn')
+  assert.equal(config.capacityCellOrigin, 'https://c4.relay-staging.onorca.dev')
   assert.throws(() => parseRelayLoadArguments([
     ...required, '--controls', '710', '--capacity-hard-cap', '3000',
     '--shard-count', '4', '--shard-index', '1',
     '--aggregate-controls', '2840', '--aggregate-splices', '0',
     '--regional-fallback-probes', '1', '--capacity-cell-id', 'staging-gce-c4',
-    '--capacity-cell-origin', 'https://c4.relay-staging.manta.sh.cn',
+    '--capacity-cell-origin', 'https://c4.relay-staging.onorca.dev',
     '--capacity-unobserved-bound', '60'
   ]), /coordinating capacity shard/)
 })
@@ -117,7 +117,7 @@ test('accepts the exact sharded request-unit and region behavior proof', () => {
     '--shard-count', '4', '--shard-index', '0',
     '--aggregate-controls', '2840', '--aggregate-splices', '0',
     '--capacity-cell-id', 'staging-gce-c4',
-    '--capacity-cell-origin', 'https://c4.relay-staging.manta.sh.cn',
+    '--capacity-cell-origin', 'https://c4.relay-staging.onorca.dev',
     '--request-unit-invites', '790', '--request-unit-invites-per-second', '2',
     '--request-unit-principals', '32',
     '--aggregate-request-unit-invites', '3160',

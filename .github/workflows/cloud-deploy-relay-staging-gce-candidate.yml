@@ -44,8 +44,8 @@ jobs:
     environment: staging
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
-      ADMIN_AUDIENCE: https://relay-staging.manta.sh.cn/v1/admin/drain
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      ADMIN_AUDIENCE: https://relay-staging.onorca.dev/v1/admin/drain
       SOURCE_CELL_ID: ${{ inputs.source-cell-id }}
       TARGET_CELL_ID: ${{ inputs.target-cell-id }}
       DEPLOY_MODE: ${{ inputs.mode }}
@@ -58,7 +58,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2

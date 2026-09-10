@@ -162,7 +162,7 @@ function renderServices(snapshot) {
 
 function renderAlerts(snapshot) {
   const policies = snapshot.monitoring.alertPolicies
-  $('#alerts').innerHTML = policies.length ? policies.map((policy) => `<div class="list-row"><div><div class="row-title">${escapeHtml(policy.displayName.replace('Manta Relay: ', ''))}</div><div class="row-caption">Cloud Monitoring policy</div></div>${badge(policy.enabled ? 'Enabled' : 'Disabled', policy.enabled)}</div>`).join('') : '<p class="muted">No Relay alert policies returned.</p>'
+  $('#alerts').innerHTML = policies.length ? policies.map((policy) => `<div class="list-row"><div><div class="row-title">${escapeHtml(policy.displayName.replace('Orca Relay: ', ''))}</div><div class="row-caption">Cloud Monitoring policy</div></div>${badge(policy.enabled ? 'Enabled' : 'Disabled', policy.enabled)}</div>`).join('') : '<p class="muted">No Relay alert policies returned.</p>'
 }
 
 function renderWorkflows(snapshot) {

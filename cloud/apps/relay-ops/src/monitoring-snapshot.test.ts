@@ -22,7 +22,7 @@ describe('readMonitoringSnapshot', () => {
         return Response.json({ alertPolicies: [] })
       }
       const filter = url.searchParams.get('filter') ?? ''
-      if (filter.includes('manta_relay_controls')) {
+      if (filter.includes('orca_relay_controls')) {
         return Response.json({ timeSeries: [
           {
             metric: { labels: { cell_id: 'production-gce-c1' } },
@@ -44,7 +44,7 @@ describe('readMonitoringSnapshot', () => {
           }
         ] })
       }
-      if (filter.includes('manta_relay_forwarded_bytes')) {
+      if (filter.includes('orca_relay_forwarded_bytes')) {
         return Response.json({ timeSeries: [{
           metric: { labels: { cell_id: 'production-gce-c1' } },
           resource: { type: 'gce_instance', labels: { instance_id: 'one' } },

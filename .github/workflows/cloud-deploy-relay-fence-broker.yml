@@ -30,7 +30,7 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud
       GCP_REGION: ${{ vars.PRODUCTION_GCP_REGION }}
-      SERVICE_NAME: manta-cloud-relay-fence
+      SERVICE_NAME: orca-cloud-relay-fence
       IMAGE_REPOSITORY: us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay-fence-broker
       IMAGE_DIGEST: ${{ inputs.image-digest }}
     steps:

@@ -90,7 +90,7 @@ function loadReport({
     readerQueuedBytesPeak: slow > 0 ? 1_024 : 0,
     generatorCpuPercent: 25, generatorEventLoopP99Ms: 20, generatorRssGrowthMiB: 10,
     readerQueueEvidence: slow > 0 ? [{
-      origin: 'https://c4.relay-staging.manta.sh.cn',
+      origin: 'https://c4.relay-staging.onorca.dev',
       baselineBytes: 128,
       peakBytes: 1_152,
       increaseBytes: 1_024
@@ -271,7 +271,7 @@ for (const [label, mutate, message] of [
 }
 
 test('rejects staging evidence from a non-canonical repository', () => {
-  assert.throws(() => buildStagingEvidence(stagingInput({ repository: 'fork/manta-cloud' })), /repository/)
+  assert.throws(() => buildStagingEvidence(stagingInput({ repository: 'fork/orca-cloud' })), /repository/)
 })
 
 test('rejects mismatched staging provenance, digest, topology, or age', () => {

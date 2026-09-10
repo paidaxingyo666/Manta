@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url'
 
-const INVENTORY = /^\[manta-relay\] regional rehome inventory active=(\d+) awaitingReceipt=(\d+) targetRegistered=(\d+) completedLast24Hours=(\d+) abortedLast24Hours=(\d+) oldestActiveAgeMs=(none|\d+)$/
+const INVENTORY = /^\[orca-relay\] regional rehome inventory active=(\d+) awaitingReceipt=(\d+) targetRegistered=(\d+) completedLast24Hours=(\d+) abortedLast24Hours=(\d+) oldestActiveAgeMs=(none|\d+)$/
 
 function count(value, name) {
   const parsed = Number(value)

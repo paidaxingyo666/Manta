@@ -1,4 +1,4 @@
-import { ASSIGNMENT_LIMITS } from '@manta-cloud/relay-contract'
+import { ASSIGNMENT_LIMITS } from '@orca-cloud/relay-contract'
 import { afterEach, describe, expect, it } from 'vitest'
 import { RelayAssignmentStore } from './assignment-store.js'
 import type { RelayCellConfig } from './config.js'

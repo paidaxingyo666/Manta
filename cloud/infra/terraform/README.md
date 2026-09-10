@@ -1,11 +1,11 @@
 # Terraform
 
-This root manages the Manta Cloud relay and nothing else. It requires Terraform >= 1.7
+This root manages the Orca Cloud relay and nothing else. It requires Terraform >= 1.7
 (`removed` blocks); OpenTofu at that floor works too.
 
 ## Three roots
 
-Manta Cloud is three Terraform roots sharing one project and one state bucket per environment,
+Orca Cloud is three Terraform roots sharing one project and one state bucket per environment,
 with a different prefix each. They are separate so the relay can be extracted into a public
 repository without carrying the app plane, its database passwords, or its Cloudflare credential
 with it.
@@ -299,7 +299,7 @@ activation policy. Terraform does not create that role in production.
 
 `relay_gce_domain` creates the shared private network/NAT, LB address, and Certificate Manager
 wildcard authorization used by fixed-one GCE cell MIGs. Cells use exact hosts one label below the
-domain, such as `c1.relay-staging.manta.sh.cn`; future cells therefore reuse one DNS-only wildcard
+domain, such as `c1.relay-staging.onorca.dev`; future cells therefore reuse one DNS-only wildcard
 A record while the HTTPS URL map still admits only Terraform-configured exact hosts.
 
 After the foundation apply, publish both Terraform outputs and leave them in place for renewal:

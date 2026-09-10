@@ -36,7 +36,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from brand_rule import Evidence, rebrand_text, TOKEN  # noqa: E402
+from brand_rule import Evidence, keep_whole_file, rebrand_text, TOKEN  # noqa: E402
 
 BRAND = re.compile(rb'orca', re.IGNORECASE)
 
@@ -101,7 +101,7 @@ class Mirror:
     def __init__(self, evidence_ref, upstream):
         self.upstream = upstream
         self.evidence_ref = evidence_ref
-        self.blob_out = {}      # upstream blob sha -> (mark or sha, changed?)
+        self.blob_out = {}      # (upstream blob sha, kept?) -> mark or sha
         self.path_out = {}      # upstream path -> mirror path
         self.marks = 0
         self.declined = {}
@@ -139,32 +139,39 @@ class Mirror:
     # ---- transform ------------------------------------------------------
     def out_path(self, path):
         if path not in self.path_out:
-            new = self.evidence.path_twin(path)
+            new = path if keep_whole_file(path) else self.evidence.path_twin(path)
             self.path_out[path] = new
             if new != path:
                 self.stats['paths_renamed'] += 1
         return self.path_out[path]
 
-    def emit_blob(self, w, sha, data):
+    def emit_blob(self, w, sha, data, keep=False):
         """Return the dataref for this blob in the mirror: its own sha if untouched,
-        a mark if transformed."""
-        if sha in self.blob_out:
-            return self.blob_out[sha]
+        a mark if transformed.
+
+        Keyed by (blob, kept) rather than by blob alone: the same bytes can sit at
+        a KEEP_PATH and at an ordinary path in one tree, and those two want
+        opposite answers.
+        """
+        key = (sha, keep)
+        if key in self.blob_out:
+            return self.blob_out[key]
         self.stats['blobs_seen'] += 1
-        if sha not in self.brand_blobs:
-            self.blob_out[sha] = sha
+        # A kept path is upstream's file about upstream; it goes through verbatim.
+        if keep or sha not in self.brand_blobs:
+            self.blob_out[key] = sha
             return sha
         try:
             text = data.decode('utf-8')
         except UnicodeDecodeError:
-            self.blob_out[sha] = sha
+            self.blob_out[key] = sha
             return sha
         new, renamed, declined = rebrand_text(text, evidence=self.evidence)
         self.renamed_tokens.update(renamed)
         for tok in declined:
             self.declined[tok] = self.declined.get(tok, 0) + 1
         if new == text:
-            self.blob_out[sha] = sha
+            self.blob_out[key] = sha
             return sha
         self.marks += 1
         mark = f':{self.marks}'
@@ -172,7 +179,7 @@ class Mirror:
         w.write(f'blob\nmark {mark}\ndata {len(payload)}\n'.encode())
         w.write(payload)
         w.write(b'\n')
-        self.blob_out[sha] = mark
+        self.blob_out[key] = mark
         self.stats['blobs_transformed'] += 1
         return mark
 
@@ -228,15 +235,23 @@ class Mirror:
             # not re-decided under newer evidence.
             mirrored = {p: (mode, sha) for mode, sha, p in ls_tree(self.resume_from)}
             for mode, sha, path in ls_tree(self.resume_rev):
+                # Not kept paths: what the mirror holds for those is the renamed
+                # form from before they were kept, and seeding it would carry that
+                # forward for as long as upstream keeps touching the file.
+                if keep_whole_file(path):
+                    continue
                 out_p = self.out_path(path)
                 if out_p in mirrored:
-                    self.blob_out[sha] = mirrored[out_p][1]
+                    self.blob_out[(sha, False)] = mirrored[out_p][1]
         for n, rev in enumerate(revs, 1):
             if prev_rev is None:
                 changes = [('A', mode, sha, path) for mode, sha, path in ls_tree(rev)]
             else:
                 changes = diff_tree(prev_rev, rev)
-            need = [sha for st, _m, sha, _p in changes if st != 'D' and sha in self.brand_blobs and sha not in self.blob_out]
+            # A kept path is emitted verbatim, so its bytes are never read.
+            need = [sha for st, _m, sha, p in changes
+                    if st != 'D' and sha in self.brand_blobs
+                    and not keep_whole_file(p) and (sha, False) not in self.blob_out]
             blobs = read_blobs(need)
 
             lines = []
@@ -249,7 +264,7 @@ class Mirror:
                 if mode in ('120000', '160000'):      # symlink, submodule: as-is
                     ref_ = sha
                 else:
-                    ref_ = self.emit_blob(w, sha, blobs.get(sha, b''))
+                    ref_ = self.emit_blob(w, sha, blobs.get(sha, b''), keep_whole_file(path))
                 if out_p in seen_out and seen_out[out_p] != path:
                     sys.exit(f'path collision in {rev[:10]}: {seen_out[out_p]} and {path} both map to {out_p}')
                 seen_out[out_p] = path

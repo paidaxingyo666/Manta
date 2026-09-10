@@ -28,7 +28,7 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
       GCP_REGION: us-central1
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
       CAPACITY_SERVICE_ACCOUNT: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
       LEGACY_C3_IMAGE_DIGEST: sha256:2d0f6e6db2b0eb9d6aba188698de8330f8c30b4e76badfcf0fac3f3eb9508a87
     steps:
@@ -40,7 +40,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - id: capacity-auth
@@ -118,7 +118,7 @@ jobs:
              }) | from_entries' \
             "${RUNNER_TEMP}/relay-gce-state.json" \
             > "${RUNNER_TEMP}/relay-gce-topology.json"
-          ACTIVE_REVISION="$(gcloud run services describe manta-cloud-relay-staging \
+          ACTIVE_REVISION="$(gcloud run services describe orca-cloud-relay-staging \
             --project "${GCP_PROJECT_ID}" \
             --region us-central1 \
             --format=json \
@@ -199,7 +199,7 @@ jobs:
             gcloud logging read \
               "resource.type=\"gce_instance\" AND
                resource.labels.instance_id=\"${instance_id}\" AND
-               jsonPayload.event=\"manta_relay_runtime_metrics\" AND
+               jsonPayload.event=\"orca_relay_runtime_metrics\" AND
                jsonPayload.cellId=\"${cell_id}\" AND
                timestamp>=\"${after}\"" \
               --project "${GCP_PROJECT_ID}" \
@@ -348,7 +348,7 @@ jobs:
               staging-gce-c3 general \
               "${legacy_c3_metrics_boundary}" "${legacy_c3_instance_id}"
             node dev/scripts/probe-relay-legacy-admission.mjs \
-              --cell-origin https://c3.relay-staging.manta.sh.cn
+              --cell-origin https://c3.relay-staging.onorca.dev
             legacy_c3_restart_started_after=
             legacy_c3_old_incarnation=
           }
@@ -362,7 +362,7 @@ jobs:
           verify_legacy_cell \
             staging-gce-c2 general "${legacy_pre_boundary}" "${legacy_c2_instance_id}"
           node dev/scripts/probe-relay-legacy-admission.mjs \
-            --cell-origin https://c2.relay-staging.manta.sh.cn
+            --cell-origin https://c2.relay-staging.onorca.dev
 
           legacy_c3_isolated=false
           restore_legacy_c3_fallback() {
@@ -381,7 +381,7 @@ jobs:
           legacy_c3_isolated=true
           node dev/scripts/prepare-relay-capacity-canary.mjs \
             --director-origin "${DIRECTOR_ORIGIN}" \
-            --cell-origin https://c3.relay-staging.manta.sh.cn \
+            --cell-origin https://c3.relay-staging.onorca.dev \
             --cell-id staging-gce-c3 \
             --mode isolate
           legacy_c3_drain_boundary="$(node -e \
@@ -398,13 +398,13 @@ jobs:
           legacy_c3_restart_started_after="$(node -e \
             'process.stdout.write(new Date().toISOString())')"
           gcloud compute instance-groups managed recreate-instances \
-            manta-cloud-staging-relay-gce-c3 \
+            orca-cloud-staging-relay-gce-c3 \
             --instances "${legacy_c3_instance}" \
             --project "${GCP_PROJECT_ID}" \
             --zone us-central1-a \
             --quiet
           gcloud compute instance-groups managed wait-until \
-            manta-cloud-staging-relay-gce-c3 \
+            orca-cloud-staging-relay-gce-c3 \
             --stable \
             --project "${GCP_PROJECT_ID}" \
             --zone us-central1-a \
@@ -511,7 +511,7 @@ jobs:
                 --activity quiescent
             fi
 
-            active_revision="$(gcloud run services describe manta-cloud-relay-staging \
+            active_revision="$(gcloud run services describe orca-cloud-relay-staging \
               --project "${GCP_PROJECT_ID}" \
               --region "${GCP_REGION}" \
               --format=json \
@@ -538,7 +538,7 @@ jobs:
             director_result="$(node dev/scripts/deploy-relay-blue-green.mjs \
               --project "${GCP_PROJECT_ID}" \
               --region "${GCP_REGION}" \
-              --service manta-cloud-relay-staging \
+              --service orca-cloud-relay-staging \
               --image "${image}" \
               --role director \
               --capacity-service-account "${CAPACITY_SERVICE_ACCOUNT}" \
@@ -665,7 +665,7 @@ jobs:
           for number in 2 3; do
             node dev/scripts/verify-relay-capacity-transition.mjs \
               --director-origin "${DIRECTOR_ORIGIN}" \
-              --cell-origin "https://c${number}.relay-staging.manta.sh.cn" \
+              --cell-origin "https://c${number}.relay-staging.onorca.dev" \
               --cell-id "staging-gce-c${number}" \
               --hard-cap 600 \
               --unobserved-bound 60 \

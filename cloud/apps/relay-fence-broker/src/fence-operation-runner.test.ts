@@ -7,8 +7,8 @@ import {
 
 const config = {
   project: 'onorca-cloud',
-  directorOrigin: 'https://relay.manta.sh.cn',
-  adminAudience: 'https://relay.manta.sh.cn/v1/admin/drain',
+  directorOrigin: 'https://relay.onorca.dev',
+  adminAudience: 'https://relay.onorca.dev/v1/admin/drain',
   sourceCellId: 'production-gce-c3',
   runtimeServiceAccount: 'runtime@example.com',
   imageCommit: 'a'.repeat(40),

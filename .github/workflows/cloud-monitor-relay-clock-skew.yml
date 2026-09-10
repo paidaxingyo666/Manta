@@ -40,8 +40,8 @@ jobs:
           # environments/production.tfvars; unlisted cells are silently unmonitored.
           for n in $(seq 1 22); do
             cell="c${n}"
-            url="https://${cell}.relay.manta.sh.cn/health"
-            # Why: *.relay.manta.sh.cn is a wildcard, so the load balancer answers with its own
+            url="https://${cell}.relay.onorca.dev/health"
+            # Why: *.relay.onorca.dev is a wildcard, so the load balancer answers with its own
             # accurate Date for a fenced, dead, or never-provisioned cell. Timing that reads as
             # perfect sync. Only an HTTP 200 is the relay process itself answering, so only a
             # 200 carries a clock worth judging.

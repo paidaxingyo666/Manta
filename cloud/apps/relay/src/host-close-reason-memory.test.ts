@@ -1,4 +1,4 @@
-import { ASSIGNMENT_LIMITS, RELAY_HOST_CLOSE_REASON } from '@manta-cloud/relay-contract'
+import { ASSIGNMENT_LIMITS, RELAY_HOST_CLOSE_REASON } from '@orca-cloud/relay-contract'
 import { describe, expect, it } from 'vitest'
 import { HostCloseReasonMemory } from './host-close-reason-memory.js'
 

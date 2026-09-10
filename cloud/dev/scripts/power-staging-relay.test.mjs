@@ -13,27 +13,27 @@ function topologyFile(overrides = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'staging-relay-power-'))
   const topology = {
     'staging-gce-c1': {
-      mig_name: 'manta-cloud-staging-relay-gce-c1',
+      mig_name: 'orca-cloud-staging-relay-gce-c1',
       zone: 'us-central1-b',
-      origin: 'https://c1.relay-staging.manta.sh.cn',
+      origin: 'https://c1.relay-staging.onorca.dev',
       initially_enabled: true
     },
     'staging-gce-c2': {
-      mig_name: 'manta-cloud-staging-relay-gce-c2',
+      mig_name: 'orca-cloud-staging-relay-gce-c2',
       zone: 'us-central1-c',
-      origin: 'https://c2.relay-staging.manta.sh.cn',
+      origin: 'https://c2.relay-staging.onorca.dev',
       initially_enabled: true
     },
     'staging-gce-c3': {
-      mig_name: 'manta-cloud-staging-relay-gce-c3',
+      mig_name: 'orca-cloud-staging-relay-gce-c3',
       zone: 'us-central1-a',
-      origin: 'https://c3.relay-staging.manta.sh.cn',
+      origin: 'https://c3.relay-staging.onorca.dev',
       initially_enabled: false
     },
     'staging-gce-c4': {
-      mig_name: 'manta-cloud-staging-relay-gce-c4',
+      mig_name: 'orca-cloud-staging-relay-gce-c4',
       zone: 'asia-east2-a',
-      origin: 'https://c4.relay-staging.manta.sh.cn',
+      origin: 'https://c4.relay-staging.onorca.dev',
       initially_enabled: false
     },
     ...overrides
@@ -79,8 +79,8 @@ function harness({
     ])
   )
   const revisions = new Map([
-    ['manta-cloud-relay-staging', { active: 'relay-00001', latest: 'relay-00001', min: 1 }],
-    ['manta-cloud-auth-staging', { active: 'auth-00001', latest: 'auth-00001', min: 1 }]
+    ['orca-cloud-relay-staging', { active: 'relay-00001', latest: 'relay-00001', min: 1 }],
+    ['orca-cloud-auth-staging', { active: 'auth-00001', latest: 'auth-00001', min: 1 }]
   ])
   const revisionMinimums = new Map([
     ['relay-00001', 1],
@@ -249,9 +249,9 @@ test('accepts only explicit staging power arguments and topology', () => {
 
   const unsafe = topologyFile({
     'staging-gce-c1': {
-      mig_name: 'manta-cloud-relay-gce-c1',
+      mig_name: 'orca-cloud-relay-gce-c1',
       zone: 'us-central1-a',
-      origin: 'https://c1.relay.manta.sh.cn',
+      origin: 'https://c1.relay.onorca.dev',
       initially_enabled: true
     }
   })
@@ -259,9 +259,9 @@ test('accepts only explicit staging power arguments and topology', () => {
 
   const unreviewedRegion = topologyFile({
     'staging-gce-c4': {
-      mig_name: 'manta-cloud-staging-relay-gce-c4',
+      mig_name: 'orca-cloud-staging-relay-gce-c4',
       zone: 'europe-west1-b',
-      origin: 'https://c4.relay-staging.manta.sh.cn',
+      origin: 'https://c4.relay-staging.onorca.dev',
       initially_enabled: false
     }
   })

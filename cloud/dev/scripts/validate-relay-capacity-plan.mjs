@@ -170,7 +170,7 @@ function relayImage(script) {
     return end < 0 ? [] : lines.slice(start, end + 1)
   })
   const relayCommands = commands.filter((command) =>
-    command.filter((line) => line === '  --name manta-relay \\').length === 1)
+    command.filter((line) => line === '  --name orca-relay \\').length === 1)
   if (relayCommands.length !== 1) return null
   const command = relayCommands[0]
   const image = /^  '([^'\n]+@sha256:[a-f0-9]{64})'$/.exec(command.at(-1))?.[1]

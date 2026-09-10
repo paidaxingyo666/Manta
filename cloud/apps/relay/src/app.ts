@@ -11,7 +11,7 @@ import {
   relayCellAdmissionBounds,
   type RelayCellConnectionHardCap,
   type RelayRegion
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import { Hono, type Context } from 'hono'
 import { SignJWT } from 'jose'
 import { z } from 'zod'
@@ -331,7 +331,7 @@ export function createRelayApp(
     // enough to log and make "which cell is this host on" answerable.
     if (lane === 'sticky') {
       console.warn(
-        `[manta-relay] assignment granted lane=sticky host=${relayHostLogDigest(claims.relayHostId)}` +
+        `[orca-relay] assignment granted lane=sticky host=${relayHostLogDigest(claims.relayHostId)}` +
           ` cell=${assignment.cellId}`
       )
     }
@@ -344,7 +344,7 @@ export function createRelayApp(
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuer(config.publicUrl)
-      .setAudience('manta-relay-cell')
+      .setAudience('orca-relay-cell')
       .setSubject(claims.sub)
       .setIssuedAt()
       .setExpirationTime('5m')
@@ -1648,7 +1648,7 @@ const CellFenceAttemptBaseShape = {
   terraformStateObjectSha256: z.string().regex(/^[a-f0-9]{64}$/),
   requestReason: z
     .string()
-    .regex(/^manta-relay-fence\/[0-9a-f]{8}-[0-9a-f-]{27}$/)
+    .regex(/^orca-relay-fence\/[0-9a-f]{8}-[0-9a-f-]{27}$/)
 } as const
 const CellFenceAttemptEvidenceShape = {
   ...CellFenceAttemptBaseShape,
@@ -1825,7 +1825,7 @@ function logAssignmentRejection(input: {
   suppressed?: number
 }): void {
   console.warn(
-    `[manta-relay] assignment rejected route=${input.route} lane=${input.lane}` +
+    `[orca-relay] assignment rejected route=${input.route} lane=${input.lane}` +
       ` hinted=${input.hinted} reason=${input.reason}` +
       ` host=${relayHostLogDigest(input.relayHostId)}` +
       (input.suppressed === undefined ? '' : ` suppressed=${input.suppressed}`)

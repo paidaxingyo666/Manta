@@ -44,8 +44,8 @@ jobs:
     environment: staging
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
-      AUTH_ORIGIN: https://auth-staging.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      AUTH_ORIGIN: https://auth-staging.onorca.dev
       IMAGE_DIGEST: ${{ inputs.image-digest }}
       INITIAL_SELECTOR_GENERATION: ${{ inputs.selector-generation }}
       PROMOTE_ATTEMPT_ID: ${{ inputs.promote-attempt-id }}
@@ -72,7 +72,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -107,7 +107,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build the Relay load-harness contract
-        run: pnpm --filter @manta-cloud/relay-contract build
+        run: pnpm --filter @orca-cloud/relay-contract build
 
       - name: Promote only staging C4
         id: promote
@@ -164,7 +164,7 @@ jobs:
                 boundary_args=(
                   --region-behavior-probes 1
                   --capacity-cell-id staging-gce-c4
-                  --capacity-cell-origin https://c4.relay-staging.manta.sh.cn
+                  --capacity-cell-origin https://c4.relay-staging.onorca.dev
                   --capacity-unobserved-bound 60
                   --rebind-probes 2
                   --skip-rebind-overflow-check
@@ -231,7 +231,7 @@ jobs:
           ended_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           sleep 60
           gcloud logging read \
-            "timestamp>=\"${PROOF_STARTED_AT}\" AND timestamp<=\"${ended_at}\" AND jsonPayload.event=\"manta_relay_runtime_metrics\"" \
+            "timestamp>=\"${PROOF_STARTED_AT}\" AND timestamp<=\"${ended_at}\" AND jsonPayload.event=\"orca_relay_runtime_metrics\"" \
             --project "${GCP_PROJECT_ID}" --limit 20000 --format json \
             > "${proof_dir}/runtime-metrics.json"
           node dev/scripts/relay-asia-rollout-evidence.mjs create-staging \
@@ -301,7 +301,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: actions/setup-node@v4

@@ -29,13 +29,13 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
       GCP_REGION: ${{ vars.STAGING_GCP_REGION }}
-      DIRECTOR_SERVICE_NAME: manta-cloud-relay-staging
-      REPOSITORY_ID: manta-cloud
+      DIRECTOR_SERVICE_NAME: orca-cloud-relay-staging
+      REPOSITORY_ID: orca-cloud
       IMAGE_NAME: relay
       EXPECTED_IMAGE_DIGEST: ${{ inputs.expected-image-digest }}
       CAPACITY_SERVICE_ACCOUNT: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
       ASIA_PROOF_SERVICE_ACCOUNT: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_SERVICE_ACCOUNT }}
-      REGIONAL_PLACEMENT_SECRET: manta-cloud-relay-regional-placement-enabled
+      REGIONAL_PLACEMENT_SECRET: orca-cloud-relay-regional-placement-enabled
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +53,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Bind the request to the checked-in staging C4 image

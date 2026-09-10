@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 const REGION = 'asia-east2'
 const CELL_SHAPES = {
   production: {
-    domain: 'relay.manta.sh.cn',
+    domain: 'relay.onorca.dev',
     project: 'onorca-cloud',
     cells: {
       'production-gce-c27': 'asia-east2-a',
@@ -13,7 +13,7 @@ const CELL_SHAPES = {
     }
   },
   staging: {
-    domain: 'relay-staging.manta.sh.cn',
+    domain: 'relay-staging.onorca.dev',
     project: 'onorca-cloud-staging',
     cells: { 'staging-gce-c4': 'asia-east2-a' }
   }
@@ -37,7 +37,7 @@ function parseArguments(argv) {
     throw new Error('--cell-ids must be the exact reviewed Asia topology set')
   }
   if (values.region !== REGION) throw new Error('--region must be asia-east2')
-  const expectedImagePrefix = `us-central1-docker.pkg.dev/${CELL_SHAPES[values.environment].project}/manta-cloud/relay@sha256:`
+  const expectedImagePrefix = `us-central1-docker.pkg.dev/${CELL_SHAPES[values.environment].project}/orca-cloud/relay@sha256:`
   if (!values.image.startsWith(expectedImagePrefix) || !/sha256:[a-f0-9]{64}$/.test(values.image)) {
     throw new Error('--image must be the environment Relay image pinned by digest')
   }
@@ -61,7 +61,7 @@ function startupValue(script, name) {
 }
 
 function relayGceName(environment) {
-  return environment === 'production' ? 'manta-cloud-relay-gce' : 'manta-cloud-staging-relay-gce'
+  return environment === 'production' ? 'orca-cloud-relay-gce' : 'orca-cloud-staging-relay-gce'
 }
 
 function unknownOrMatches(value, predicate) {
@@ -73,8 +73,8 @@ function requireCellTemplate(change, config, cellId) {
   const script = after?.metadata_startup_script ?? ''
   if (
     after?.machine_type !== 'e2-standard-4' ||
-    after?.labels?.['manta-relay-cell'] !== cellId ||
-    after?.labels?.['manta-relay-region'] !== REGION ||
+    after?.labels?.['orca-relay-cell'] !== cellId ||
+    after?.labels?.['orca-relay-region'] !== REGION ||
     !unknownOrMatches(
       after?.network_interface?.[0]?.subnetwork,
       (value) => value.includes(`/regions/${REGION}/subnetworks/`)

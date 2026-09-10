@@ -1,4 +1,4 @@
-import { RELAY_DEFAULT_REGION } from '@manta-cloud/relay-contract'
+import { RELAY_DEFAULT_REGION } from '@orca-cloud/relay-contract'
 import type { RelayDatabase, SqlRow } from './database.js'
 
 export type CellInventorySnapshotRow = {
@@ -127,7 +127,7 @@ export function formatAssignmentInventorySnapshot(
 ): string[] {
   const lines = snapshot.cells.map(
     (cell) =>
-      `[manta-relay] cell inventory cellId=${cell.cellId}` +
+      `[orca-relay] cell inventory cellId=${cell.cellId}` +
       ` region=${cell.region}` +
       ` admission=${cell.admissionState} enabled=${cell.enabled}` +
       ` capacity=${cell.capacityRequests} reserved=${cell.reservedRequests}` +
@@ -135,14 +135,14 @@ export function formatAssignmentInventorySnapshot(
       ` heartbeatAgeMs=${cell.heartbeatAgeMs ?? 'none'}`
   )
   lines.push(
-    `[manta-relay] lease inventory leases=${snapshot.activityLeases.total}` +
+    `[orca-relay] lease inventory leases=${snapshot.activityLeases.total}` +
       ` expiredLeases=${snapshot.activityLeases.expired}` +
       ` leaseRequestUnits=${snapshot.activityLeases.requestUnits}` +
       ` outstandingReservations=${snapshot.connectionReservations.outstanding}` +
       ` lateArrivalDebt=${snapshot.connectionReservations.lateArrivalDebt}`
   )
   lines.push(
-    `[manta-relay] regional rehome inventory active=${snapshot.regionalRehomes.active}` +
+    `[orca-relay] regional rehome inventory active=${snapshot.regionalRehomes.active}` +
       ` awaitingReceipt=${snapshot.regionalRehomes.awaitingReceipt}` +
       ` targetRegistered=${snapshot.regionalRehomes.targetRegistered}` +
       ` completedLast24Hours=${snapshot.regionalRehomes.completedLast24Hours}` +

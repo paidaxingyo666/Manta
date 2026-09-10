@@ -58,7 +58,7 @@ export function createRegionObservationEvidence(entries, bindings, now = Date.no
       !Number.isFinite(timestamp) ||
       timestamp < start ||
       timestamp > now + 60_000 ||
-      payload?.event !== 'manta_relay_runtime_metrics' ||
+      payload?.event !== 'orca_relay_runtime_metrics' ||
       payload.role !== 'director'
     ) continue
     const bucket = Math.min(23, Math.floor((timestamp - start) / BUCKET_MS))

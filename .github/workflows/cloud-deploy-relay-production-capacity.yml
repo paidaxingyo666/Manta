@@ -110,7 +110,7 @@ jobs:
     outputs:
       cells: ${{ steps.wave.outputs.cells }}
     env:
-      DIRECTOR_ORIGIN: https://relay.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay.onorca.dev
       MONITOR_RUN_ID: ${{ inputs.monitor-run-id }}
       MONITOR_RUN_ATTEMPT: ${{ inputs.monitor-run-attempt }}
       OUTPUT_DIRECTORY: ${{ github.workspace }}/relay-monitor-evidence
@@ -188,7 +188,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -231,7 +231,7 @@ jobs:
             [[ "${HOSTNAME}" =~ ^c(7|8|9|10|13|14|15|16|19|20|21|22|23|24|25|26)$ ]]
             node dev/scripts/verify-relay-capacity-transition.mjs \
               --director-origin "${DIRECTOR_ORIGIN}" \
-              --cell-origin "https://${HOSTNAME}.relay.manta.sh.cn" \
+              --cell-origin "https://${HOSTNAME}.relay.onorca.dev" \
               --cell-id "${CELL_ID}" \
               --hard-cap 600 \
               --unobserved-bound 60 \

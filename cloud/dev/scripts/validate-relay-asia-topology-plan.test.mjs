@@ -19,22 +19,22 @@ const resources = [
   create('google_compute_subnetwork.relay_gce_additional["asia-east2"]', {
     region: 'asia-east2', ip_cidr_range: '10.42.1.0/24', private_ip_google_access: true,
     stack_type: 'IPV4_ONLY',
-    network: 'projects/p/global/networks/manta-cloud-staging-relay-gce'
+    network: 'projects/p/global/networks/orca-cloud-staging-relay-gce'
   }),
   create('google_compute_router.relay_gce_additional["asia-east2"]', {
-    region: 'asia-east2', network: 'projects/p/global/networks/manta-cloud-staging-relay-gce'
+    region: 'asia-east2', network: 'projects/p/global/networks/orca-cloud-staging-relay-gce'
   }),
   create('google_compute_router_nat.relay_gce_additional["asia-east2"]', {
     region: 'asia-east2', nat_ip_allocate_option: 'AUTO_ONLY',
     source_subnetwork_ip_ranges_to_nat: 'LIST_OF_SUBNETWORKS',
     subnetwork: [{
-      name: 'projects/p/regions/asia-east2/subnetworks/manta-cloud-staging-relay-gce-asia-east2',
+      name: 'projects/p/regions/asia-east2/subnetworks/orca-cloud-staging-relay-gce-asia-east2',
       source_ip_ranges_to_nat: ['ALL_IP_RANGES']
     }]
   }),
   create('google_compute_instance_template.relay_gce_cell["staging-gce-c4"]', {
     machine_type: 'e2-standard-4',
-    labels: { 'manta-relay-cell': 'staging-gce-c4', 'manta-relay-region': 'asia-east2' },
+    labels: { 'orca-relay-cell': 'staging-gce-c4', 'orca-relay-region': 'asia-east2' },
     network_interface: [{
       subnetwork: 'projects/p/regions/asia-east2/subnetworks/relay', access_config: []
     }],
@@ -44,7 +44,7 @@ const resources = [
     zone: 'asia-east2-a', target_size: 1,
     version: [{
       name: 'primary',
-      instance_template: 'projects/p/global/instanceTemplates/manta-cloud-staging-relay-gce-c4-abc'
+      instance_template: 'projects/p/global/instanceTemplates/orca-cloud-staging-relay-gce-c4-abc'
     }],
     update_policy: [{ replacement_method: 'RECREATE', max_surge_fixed: 0, max_unavailable_fixed: 1 }]
   }),
@@ -52,10 +52,10 @@ const resources = [
     timeout_sec: 86_400, connection_draining_timeout_sec: 300,
     load_balancing_scheme: 'EXTERNAL_MANAGED', protocol: 'HTTP', port_name: 'relay',
     session_affinity: 'NONE',
-    health_checks: ['projects/p/global/healthChecks/manta-cloud-staging-relay-gce-ready'],
+    health_checks: ['projects/p/global/healthChecks/orca-cloud-staging-relay-gce-ready'],
     backend: [{
       balancing_mode: 'UTILIZATION', max_utilization: 0.8, capacity_scaler: 1,
-      group: 'projects/p/zones/asia-east2-a/instanceGroups/manta-cloud-staging-relay-gce-c4'
+      group: 'projects/p/zones/asia-east2-a/instanceGroups/orca-cloud-staging-relay-gce-c4'
     }]
   }),
   {
@@ -65,11 +65,11 @@ const resources = [
       before: { host_rule: [], path_matcher: [], fingerprint: 'old' },
       after: {
         host_rule: [{
-          hosts: ['c4.relay-staging.manta.sh.cn'], path_matcher: 'cell-c4'
+          hosts: ['c4.relay-staging.onorca.dev'], path_matcher: 'cell-c4'
         }],
         path_matcher: [{
           name: 'cell-c4',
-          default_service: 'projects/p/global/backendServices/manta-cloud-staging-relay-gce-c4'
+          default_service: 'projects/p/global/backendServices/orca-cloud-staging-relay-gce-c4'
         }],
         fingerprint: null
       }
@@ -142,7 +142,7 @@ test('rejects shared URL-map changes outside exact host routing', () => {
 
 test('rejects removal of an existing exact route', () => {
   const plan = structuredClone(resources)
-  plan[6].change.before.host_rule = [{ hosts: ['c1.relay-staging.manta.sh.cn'] }]
+  plan[6].change.before.host_rule = [{ hosts: ['c1.relay-staging.onorca.dev'] }]
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: plan }, config),
     /preserve every existing exact route/
@@ -155,19 +155,19 @@ test('accepts provider normalization of preserved route descriptions', () => {
     name: 'cell-c1',
     description: '',
     default_service:
-      'https://www.googleapis.com/compute/v1/projects/p/global/backendServices/manta-cloud-staging-relay-gce-c1'
+      'https://www.googleapis.com/compute/v1/projects/p/global/backendServices/orca-cloud-staging-relay-gce-c1'
   }
   plan[6].change.before.host_rule = [{
-    description: '', hosts: ['c1.relay-staging.manta.sh.cn'], path_matcher: 'cell-c1'
+    description: '', hosts: ['c1.relay-staging.onorca.dev'], path_matcher: 'cell-c1'
   }]
   plan[6].change.before.path_matcher = [matcher]
   plan[6].change.after.host_rule.unshift({
-    description: null, hosts: ['c1.relay-staging.manta.sh.cn'], path_matcher: 'cell-c1'
+    description: null, hosts: ['c1.relay-staging.onorca.dev'], path_matcher: 'cell-c1'
   })
   plan[6].change.after.path_matcher.unshift({
     ...matcher,
     description: null,
-    default_service: 'projects/p/global/backendServices/manta-cloud-staging-relay-gce-c1'
+    default_service: 'projects/p/global/backendServices/orca-cloud-staging-relay-gce-c1'
   })
   assert.equal(validateRelayAsiaTopologyPlan({ resource_changes: plan }, config).changes, 7)
 })
@@ -177,11 +177,11 @@ test('rejects a changed preserved route backend', () => {
   plan[6].change.before.path_matcher = [{
     name: 'cell-c1',
     default_service:
-      'https://www.googleapis.com/compute/v1/projects/p/global/backendServices/manta-cloud-staging-relay-gce-c1'
+      'https://www.googleapis.com/compute/v1/projects/p/global/backendServices/orca-cloud-staging-relay-gce-c1'
   }]
   plan[6].change.after.path_matcher.unshift({
     name: 'cell-c1',
-    default_service: 'projects/p/global/backendServices/manta-cloud-staging-relay-gce-c2'
+    default_service: 'projects/p/global/backendServices/orca-cloud-staging-relay-gce-c2'
   })
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: plan }, config),

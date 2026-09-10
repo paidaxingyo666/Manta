@@ -19,7 +19,7 @@ import {
   RELAY_CLOSE_CODE,
   type RelayHostCloseReason,
   type RelayRegion
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import nacl from 'tweetnacl'
 import type WebSocket from 'ws'
 import type { RawData } from 'ws'
@@ -224,7 +224,7 @@ export class HostSessionRegistry {
       const elapsedMs = this.now() - acceptStartedAt
       this.observer.recordClientAcceptAbandoned?.(stage, elapsedMs)
       console.warn(
-        JSON.stringify({ event: 'manta_relay_client_accept_abandoned', stage, elapsedMs })
+        JSON.stringify({ event: 'orca_relay_client_accept_abandoned', stage, elapsedMs })
       )
       return true
     }
@@ -451,7 +451,7 @@ export class HostSessionRegistry {
           closeInfo.trigger.includes('oversize')
         ) {
           console.warn(
-            `[manta-relay] splice closed host=${relayHostLogDigest(session.relayHostId)}` +
+            `[orca-relay] splice closed host=${relayHostLogDigest(session.relayHostId)}` +
               ` trigger=${closeInfo.trigger} code=${closeInfo.code}` +
               ` reason=${JSON.stringify(closeInfo.reason)}`
           )
@@ -503,7 +503,7 @@ export class HostSessionRegistry {
     this.observer.recordClientAcceptCompleted?.({ totalMs, stageMs })
     console.log(
       JSON.stringify({
-        event: 'manta_relay_client_accept_completed',
+        event: 'orca_relay_client_accept_completed',
         ...this.logIdentity(),
         credentialKind: pending.reservation.credentialKind,
         stageMs,
@@ -547,7 +547,7 @@ export class HostSessionRegistry {
     session.controlRttLoggedAt = now
     console.log(
       JSON.stringify({
-        event: 'manta_relay_host_control_rtt',
+        event: 'orca_relay_host_control_rtt',
         ...this.logIdentity(),
         relayHostIdDigest: relayHostLogDigest(session.relayHostId),
         rttMsMedian: percentile(samples, 0.5),
@@ -609,7 +609,7 @@ export class HostSessionRegistry {
           // Untruncated, unlike peer-supplied close reasons: this is the
           // primary diagnostic for the next rejection class.
           .replace(/[^\x20-\x7e]/g, '')
-        console.warn(`[manta-relay] ${context} failed: ${message}`)
+        console.warn(`[orca-relay] ${context} failed: ${message}`)
         socket?.close(RELAY_CLOSE_CODE.LIMIT_EXCEEDED, 'relay temporarily unavailable')
       })
       // Terminal: a throw in the handler above must not itself crash the process.
@@ -1022,7 +1022,7 @@ export class HostSessionRegistry {
       // One line per control close makes reconnect churners attributable by
       // host digest without exposing the raw relay host id.
       console.warn(
-        `[manta-relay] control closed host=${relayHostLogDigest(session.relayHostId)}` +
+        `[orca-relay] control closed host=${relayHostLogDigest(session.relayHostId)}` +
           ` gen=${session.generation} state=${session.state} ageMs=${this.now() - wiredAt}` +
           ` app=${JSON.stringify(printableCloseReason(appVersion))}` +
           ` splices=${session.closingCounts?.splices ?? session.activeSplices.size}` +
@@ -1154,7 +1154,7 @@ export class HostSessionRegistry {
                 session.socket?.close(RELAY_CLOSE_CODE.DRAINING, 'control migration completed')
                 return
               }
-              console.warn('[manta-relay] control activity recovery failed')
+              console.warn('[orca-relay] control activity recovery failed')
             }
             return
           }
@@ -1162,12 +1162,12 @@ export class HostSessionRegistry {
             session.socket?.close(RELAY_CLOSE_CODE.DRAINING, 'control activity moved')
             return
           }
-          console.warn('[manta-relay] control activity renewal failed')
+          console.warn('[orca-relay] control activity renewal failed')
         })
         // Terminal handler: a throw inside the async catch above (e.g. a
         // future await) must not become a process-killing rejection.
         .catch(() => {
-          console.warn('[manta-relay] control activity renewal handling failed')
+          console.warn('[orca-relay] control activity renewal handling failed')
         })
     }
     if (now - session.lastPongAt > 75_000) {
@@ -1431,7 +1431,7 @@ export class HostSessionRegistry {
     void this.assignments.releaseActivity(identity, activityId).catch(() => {
       // Why: expiry cleanup is the durable fallback; a transient SQL failure while
       // closing a socket must not become an unhandled rejection that kills the cell.
-      console.warn('[manta-relay] activity release deferred to lease cleanup')
+      console.warn('[orca-relay] activity release deferred to lease cleanup')
     })
   }
 
@@ -1439,13 +1439,13 @@ export class HostSessionRegistry {
     // Why: reservation deadlines and basis cleanup are durable recovery paths;
     // transient SQL errors during socket callbacks must stay process-contained.
     void this.store.failReservation(reservation).catch(() => {
-      console.warn('[manta-relay] reservation release deferred to credential cleanup')
+      console.warn('[orca-relay] reservation release deferred to credential cleanup')
     })
   }
 
   private deactivateBasisBestEffort(connId: string): void {
     void this.store.deactivateBasis(connId).catch(() => {
-      console.warn('[manta-relay] basis deactivation deferred to credential cleanup')
+      console.warn('[orca-relay] basis deactivation deferred to credential cleanup')
     })
   }
 }

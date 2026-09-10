@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const SECRET = 'manta-cloud-relay-regional-placement-enabled'
+const SECRET = 'orca-cloud-relay-regional-placement-enabled'
 
 function validate(input) {
   for (const key of ['project', 'region', 'service', 'bootstrap_version']) {

@@ -1,9 +1,9 @@
 project_id  = "onorca-cloud"
 environment = "production"
-name_prefix = "manta-cloud"
+name_prefix = "orca-cloud"
 region      = "us-central1"
 
-artifact_repository_id = "manta-cloud"
+artifact_repository_id = "orca-cloud"
 
 # The relay source lives in the public stablyai/orca repository, where the workflows carry a
 # `cloud-` file prefix. github_owner and github_owner_id keep their defaults.
@@ -11,12 +11,12 @@ github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 
-# Our first-party auth service. auth.manta.sh.cn is PropelAuth's prod domain, so
-# our service lives at login.manta.sh.cn (desktop points MANTA_CLOUD_API_URL here).
-auth_base_url = "https://login.manta.sh.cn"
+# Our first-party auth service. auth.onorca.dev is PropelAuth's prod domain, so
+# our service lives at login.onorca.dev (desktop points ORCA_CLOUD_API_URL here).
+auth_base_url = "https://login.onorca.dev"
 
-relay_cloud_run_service_name = "manta-cloud-relay"
-relay_base_url               = "https://relay.manta.sh.cn"
+relay_cloud_run_service_name = "orca-cloud-relay"
+relay_base_url               = "https://relay.onorca.dev"
 # Why: public admission is a per-instance semaphore, so fleet assignment capacity is
 # concurrency x instances. Scaling to 2 instances took placement failures 35% -> 70%.
 relay_min_instances = 5
@@ -25,9 +25,9 @@ relay_max_instances = 5
 relay_cells                 = {}
 manage_relay_domain_mapping = true
 
-# Production GCE cells use exact hosts such as c1.relay.manta.sh.cn.
+# Production GCE cells use exact hosts such as c1.relay.onorca.dev.
 # The wildcard only handles DNS/TLS; the load balancer rejects unknown hosts.
-relay_gce_domain          = "relay.manta.sh.cn"
+relay_gce_domain          = "relay.onorca.dev"
 relay_gce_subnetwork_cidr = "10.42.0.0/24"
 relay_gce_additional_region_subnetwork_cidrs = {
   "asia-east2" = "10.42.1.0/24"
@@ -409,6 +409,6 @@ relay_region_rehome_source_cell_ids = [
   "production-gce-c29"
 ]
 
-# Slack #manta-relay-alerts, created out of band on 2026-08-05. Declared here because an apply
+# Slack #orca-relay-alerts, created out of band on 2026-08-05. Declared here because an apply
 # was otherwise going to strip it from every policy, leaving the alerts firing at nobody.
 relay_alert_notification_channels = ["projects/onorca-cloud/notificationChannels/4879431412695417284"]

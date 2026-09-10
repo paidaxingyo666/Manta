@@ -14,13 +14,13 @@ function peer(origin, reassigned = origin) {
 }
 
 test('proves unhinted US-first placement and sticky Asia preservation', async () => {
-  const oldClientPeer = peer('https://c3.relay-staging.manta.sh.cn')
-  const stickyPeer = peer('https://c4.relay-staging.manta.sh.cn')
+  const oldClientPeer = peer('https://c3.relay-staging.onorca.dev')
+  const stickyPeer = peer('https://c4.relay-staging.onorca.dev')
   let retryDelayMs = 0
   assert.deepEqual(await proveRelayLoadRegionBehavior({
     oldClientPeer,
     stickyPeer,
-    asiaOrigin: 'https://c4.relay-staging.manta.sh.cn',
+    asiaOrigin: 'https://c4.relay-staging.onorca.dev',
     scheduleAssignmentRetry: (resolve, delayMs) => {
       retryDelayMs = delayMs
       resolve()
@@ -33,15 +33,15 @@ test('proves unhinted US-first placement and sticky Asia preservation', async ()
 
 test('rejects Asia placement for an unhinted client or a moved sticky assignment', async () => {
   await assert.rejects(proveRelayLoadRegionBehavior({
-    oldClientPeer: peer('https://c4.relay-staging.manta.sh.cn'),
-    stickyPeer: peer('https://c4.relay-staging.manta.sh.cn'),
-    asiaOrigin: 'https://c4.relay-staging.manta.sh.cn',
+    oldClientPeer: peer('https://c4.relay-staging.onorca.dev'),
+    stickyPeer: peer('https://c4.relay-staging.onorca.dev'),
+    asiaOrigin: 'https://c4.relay-staging.onorca.dev',
     scheduleAssignmentRetry: (resolve) => resolve()
   }), /US-first/)
   await assert.rejects(proveRelayLoadRegionBehavior({
-    oldClientPeer: peer('https://c3.relay-staging.manta.sh.cn'),
-    stickyPeer: peer('https://c4.relay-staging.manta.sh.cn', 'https://c3.relay-staging.manta.sh.cn'),
-    asiaOrigin: 'https://c4.relay-staging.manta.sh.cn',
+    oldClientPeer: peer('https://c3.relay-staging.onorca.dev'),
+    stickyPeer: peer('https://c4.relay-staging.onorca.dev', 'https://c3.relay-staging.onorca.dev'),
+    asiaOrigin: 'https://c4.relay-staging.onorca.dev',
     scheduleAssignmentRetry: (resolve) => resolve()
   }), /sticky assignment moved/)
 })

@@ -2,7 +2,7 @@
 # with auth, but use an isolated database and principal.
 resource "google_sql_database" "relay" {
   project  = var.project_id
-  name     = "manta_relay"
+  name     = "orca_relay"
   instance = local.relay_database_instance_name
 }
 
@@ -13,14 +13,14 @@ resource "random_password" "relay_database" {
 
 resource "google_sql_user" "relay" {
   project  = var.project_id
-  name     = "manta_relay"
+  name     = "orca_relay"
   instance = local.relay_database_instance_name
   password = random_password.relay_database.result
 }
 
 resource "google_secret_manager_secret" "relay_database_url" {
   project   = var.project_id
-  secret_id = "manta-cloud-relay-database-url"
+  secret_id = "orca-cloud-relay-database-url"
   labels    = local.relay_shared_labels
 
   replication {

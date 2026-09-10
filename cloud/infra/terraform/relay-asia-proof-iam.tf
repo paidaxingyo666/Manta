@@ -50,7 +50,7 @@ resource "google_service_account" "github_relay_asia_proof" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-aproof"
-  display_name = "Manta Relay Asia staging proof"
+  display_name = "Orca Relay Asia staging proof"
   description  = "Reads staging telemetry and performs only Relay's bounded Asia proof operations."
 }
 
