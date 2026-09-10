@@ -50,7 +50,9 @@ describe('provider frame activity', () => {
       expect(claudeProviderFrameActivity(kind, payload)).toBeNull()
     }
     // `requesting` holds for nearly the whole turn and says no more than the fallback.
-    expect(claudeProviderFrameActivity('message:system:status', { status: 'requesting' })).toBeNull()
+    expect(
+      claudeProviderFrameActivity('message:system:status', { status: 'requesting' })
+    ).toBeNull()
     expect(claudeProviderFrameActivity('message:system:status', { status: 'compacting' })).toBe(
       'Compacting the conversation'
     )
