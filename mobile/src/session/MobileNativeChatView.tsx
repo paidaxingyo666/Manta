@@ -49,10 +49,11 @@ type Props = {
   /** Resolved agent for this chat; names the empty-state copy (desktop parity). */
   agent?: string | null
   agentWorking?: boolean
+  canStop?: boolean
   /** Structured lane: per-turn "Working for N" status plus live tool progress,
    *  replacing the bridge lane's static three-dot working row (desktop parity). */
   structuredActivityUi?: boolean
-  /** Interrupt the agent mid-turn (shown as a Stop button on the working bar). */
+  /** Interrupt a provider turn. */
   onStop?: () => void
   /** Live partial assistant text to show as an in-progress bubble, already gated
    *  by the overlay against the transcript catching up. */
@@ -129,6 +130,7 @@ export function MobileNativeChatView({
   error,
   agent,
   agentWorking,
+  canStop = agentWorking,
   structuredActivityUi = false,
   onStop,
   streaming,
@@ -396,8 +398,6 @@ export function MobileNativeChatView({
         question={question}
         onAnswerQuestion={onAnswerQuestion}
       />
-      {/* Chrome row above the composer: the working indicator and the global
-          tool-calls expand/collapse toggle on the left, Stop in the far corner. */}
       <View style={styles.chromeRow}>
         <View style={styles.chromeLeft}>
           {agentWorking && !structuredActivityUi ? <MobileAgentWorkingIndicator /> : null}
@@ -414,7 +414,7 @@ export function MobileNativeChatView({
             <Text style={styles.chromeToggleLabel}>{toolsExpanded ? 'Collapse' : 'Tools'}</Text>
           </Pressable>
         </View>
-        {agentWorking ? (
+        {canStop ? (
           <Pressable
             style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}
             onPress={onStop}
