@@ -12,7 +12,7 @@
  * drift, and the promise being made is that the page someone opens is the page
  * the author was looking at.
  */
-import type { Options as ReactMarkdownOptions } from 'react-markdown'
+import { defaultUrlTransform, type Options as ReactMarkdownOptions } from 'react-markdown'
 import {
   MARKDOWN_REHYPE_PLUGINS,
   MARKDOWN_REMARK_PLUGINS,
@@ -86,6 +86,27 @@ function escapeHtml(value: string): string {
 }
 
 /**
+ * The last gate on a URL, and the one that nearly made this pointless.
+ *
+ * react-markdown applies `urlTransform` when it turns the tree into elements —
+ * after every rehype plugin, including the sanitizer — and its default empties
+ * anything that is not http, https, mailto or relative. So a `data:` URI the
+ * inlining step had just written was erased on the way out, and a `file:` src
+ * never survived the discovery pass long enough to be read at all.
+ *
+ * Widening it does not widen what may be published: the share schema has
+ * already removed `file:` by the time this runs, so only a `data:image/` this
+ * code produced can still be here. The discovery pass keeps `file:` because
+ * that pass is thrown away and exists only to find what to read.
+ */
+function shareUrlTransform(value: string, key: string): string {
+  if (key === 'src' && /^(?:data:image\/|file:)/i.test(value)) {
+    return value
+  }
+  return defaultUrlTransform(value)
+}
+
+/**
  * The body, as HTML.
  *
  * `react-dom/server` and `react-markdown` are imported here rather than at the
@@ -102,7 +123,11 @@ export async function renderMarkdownArtifactBody(
   ])
   const render = (inlined: ReadonlyMap<string, string> | null): string =>
     renderToStaticMarkup(
-      <Markdown remarkPlugins={MARKDOWN_REMARK_PLUGINS} rehypePlugins={shareRehypePlugins(inlined)}>
+      <Markdown
+        remarkPlugins={MARKDOWN_REMARK_PLUGINS}
+        rehypePlugins={shareRehypePlugins(inlined)}
+        urlTransform={shareUrlTransform}
+      >
         {markdown}
       </Markdown>
     )
