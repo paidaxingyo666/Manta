@@ -8,7 +8,7 @@ import {
   relayCellAdmissionBounds,
   type RelayCellConnectionHardCap,
   type RelayRegion
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 
 export const RELAY_MAX_CELL_CAPACITY_REQUESTS = 100_000
 export const RELAY_DATABASE_POOL_MAX = 10
@@ -33,10 +33,10 @@ const OptionalServiceAccountSchema = z.preprocess(
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(8080),
-  MANTA_RELAY_PUBLIC_URL: z.string().url(),
+  ORCA_RELAY_PUBLIC_URL: z.string().url(),
   ORCA_RELAY_CELL_URL: z.string().url(),
   ORCA_RELAY_AUTH_ISSUER: z.string().url(),
-  ORCA_RELAY_AUTH_AUDIENCE: z.literal('manta-relay').default('manta-relay'),
+  ORCA_RELAY_AUTH_AUDIENCE: z.literal('orca-relay').default('orca-relay'),
   ORCA_RELAY_JWKS_URL: z.string().url(),
   ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: z.string().min(32),
   ORCA_RELAY_ROLE: z.enum(['combined', 'director', 'cell']).default('combined'),
@@ -75,11 +75,15 @@ const EnvSchema = z.object({
   ORCA_RELAY_RUNTIME_SERVICE_ACCOUNT: z.string().email().optional(),
   ORCA_RELAY_DIRECTOR_URL: z.string().url().optional(),
   ORCA_RELAY_HEARTBEAT_AUDIENCE: z.string().url().optional(),
-  ORCA_RELAY_IMAGE_DIGEST: z.string().regex(/^sha256:[a-f0-9]{64}$/).optional(),
+  ORCA_RELAY_IMAGE_DIGEST: z
+    .string()
+    .regex(/^sha256:[a-f0-9]{64}$/)
+    .optional(),
   ORCA_RELAY_ADMIN_JWKS_URL: z.string().url().default('https://www.googleapis.com/oauth2/v3/certs'),
   ORCA_RELAY_DATABASE_POOL_MAX: z.coerce.number().int().positive().max(100).optional(),
   ORCA_RELAY_PUBLIC_ASSIGNMENTS_ENABLED: EnvironmentBooleanSchema,
   ORCA_RELAY_REGIONAL_PLACEMENT_ENABLED: EnvironmentBooleanSchema,
+  ORCA_RELAY_REGION_CORRECTION_COHORT_PERCENT: z.coerce.number().int().min(0).max(100).default(0),
   ORCA_RELAY_PUBLIC_ASSIGNMENT_CONCURRENCY: z.coerce.number().int().positive().max(100).default(2),
   ORCA_RELAY_PUBLIC_STICKY_CONCURRENCY: z.coerce.number().int().positive().max(100).default(1),
   ORCA_RELAY_PUBLIC_STICKY_QUEUE_MAX: z.coerce.number().int().positive().max(4_096).default(64),
@@ -109,7 +113,7 @@ const EnvSchema = z.object({
     .max(300)
     .default(5),
   DATABASE_URL: z.string().optional(),
-  MANTA_RELAY_DATA_DIR: z.string().default('./data/relay')
+  ORCA_RELAY_DATA_DIR: z.string().default('./data/relay')
 })
 
 const RelayCellConfigSchema = z
@@ -159,7 +163,7 @@ export type RelayConfig = {
   publicUrl: string
   cellUrl: string
   authIssuer: string
-  authAudience: 'manta-relay'
+  authAudience: 'orca-relay'
   jwksUrl: string
   assignmentSigningKey: Uint8Array
   role: 'combined' | 'director' | 'cell'
@@ -185,6 +189,7 @@ export type RelayConfig = {
   databasePoolMax: number
   publicAssignmentsEnabled: boolean
   regionalPlacementEnabled?: boolean
+  regionCorrectionCohortPercent?: number
   publicAssignmentConcurrency: number
   publicAssignmentQueueMax: number
   publicAssignmentWaitMs: number
@@ -245,7 +250,7 @@ export function loadRelayConfig(env: NodeJS.ProcessEnv = process.env): RelayConf
   const directorUrl = parsed.ORCA_RELAY_DIRECTOR_URL
     ? canonicalOrigin(parsed.ORCA_RELAY_DIRECTOR_URL, 'ORCA_RELAY_DIRECTOR_URL')
     : undefined
-  const publicUrl = canonicalOrigin(parsed.MANTA_RELAY_PUBLIC_URL, 'MANTA_RELAY_PUBLIC_URL')
+  const publicUrl = canonicalOrigin(parsed.ORCA_RELAY_PUBLIC_URL, 'ORCA_RELAY_PUBLIC_URL')
   const configuredCells = z
     .array(RelayCellConfigSchema)
     .max(128)
@@ -332,6 +337,7 @@ export function loadRelayConfig(env: NodeJS.ProcessEnv = process.env): RelayConf
     databasePoolMax,
     publicAssignmentsEnabled: parsed.ORCA_RELAY_PUBLIC_ASSIGNMENTS_ENABLED,
     regionalPlacementEnabled: parsed.ORCA_RELAY_REGIONAL_PLACEMENT_ENABLED,
+    regionCorrectionCohortPercent: parsed.ORCA_RELAY_REGION_CORRECTION_COHORT_PERCENT,
     publicAssignmentConcurrency: parsed.ORCA_RELAY_PUBLIC_ASSIGNMENT_CONCURRENCY,
     publicAssignmentQueueMax: parsed.ORCA_RELAY_PUBLIC_ASSIGNMENT_QUEUE_MAX,
     publicAssignmentWaitMs: parsed.ORCA_RELAY_PUBLIC_ASSIGNMENT_WAIT_MS,
@@ -343,6 +349,6 @@ export function loadRelayConfig(env: NodeJS.ProcessEnv = process.env): RelayConf
     publicStickyWaitMs: parsed.ORCA_RELAY_PUBLIC_STICKY_WAIT_MS,
     publicStickyRetryAfterSeconds: parsed.ORCA_RELAY_PUBLIC_STICKY_RETRY_AFTER_SECONDS,
     databaseUrl: parsed.DATABASE_URL,
-    dataDir: parsed.MANTA_RELAY_DATA_DIR
+    dataDir: parsed.ORCA_RELAY_DATA_DIR
   }
 }

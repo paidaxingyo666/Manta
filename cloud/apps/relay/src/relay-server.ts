@@ -9,7 +9,7 @@ import {
   RELAY_DEFAULT_REGION,
   RELAY_PROTOCOL_LIMITS,
   RelayAuthSchema
-} from '@manta-cloud/relay-contract'
+} from '@orca-cloud/relay-contract'
 import type { IncomingMessage } from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
@@ -20,14 +20,12 @@ import { createRelayApp } from './app.js'
 import { RelayAssignmentStore } from './assignment-store.js'
 import type { RelayConfig } from './config.js'
 import { RelayCredentialStore } from './credential-store.js'
-import type { RelayDatabase } from './database.js'
+import { readRelayDatabasePoolPressure, type RelayDatabase } from './database.js'
 import { HostSessionRegistry } from './host-session-registry.js'
 import { observeRelayDatabase } from './observed-relay-database.js'
 import { RelayObservability } from './relay-observability.js'
-import {
-  RelayConnectionLedger,
-  type RelayConnectionUpgrade
-} from './relay-connection-ledger.js'
+import { combineRegionalRehomeSafety } from './regional-rehome-safety.js'
+import { RelayConnectionLedger, type RelayConnectionUpgrade } from './relay-connection-ledger.js'
 import { createRelayReadiness } from './relay-readiness.js'
 import { createRelayTokenVerifier, readBearer } from './relay-token-verifier.js'
 import { closeRelayWebSocket } from './relay-websocket-close.js'
@@ -59,13 +57,13 @@ function noDelay(socket: WebSocket): void {
 // emitting it, so logging is all that is left to do.
 function guardSocketErrors(socket: WebSocket, kind: string): void {
   socket.on('error', (error) => {
-    console.warn(`[manta-relay] ${kind} socket error: ${error.message}`)
+    console.warn(`[orca-relay] ${kind} socket error: ${error.message}`)
   })
 }
 
 function admissionSource(request: IncomingMessage): string {
   const forwarded = request.headers['x-forwarded-for']
-  const chain = (Array.isArray(forwarded) ? forwarded.join(',') : forwarded ?? '')
+  const chain = (Array.isArray(forwarded) ? forwarded.join(',') : (forwarded ?? ''))
     .split(',')
     .map((entry) => entry.trim())
     .filter(Boolean)
@@ -112,6 +110,7 @@ export function createRelayServer(
   const store = new RelayCredentialStore(observedDatabase, options.now)
   const assignments = new RelayAssignmentStore(observedDatabase, options.now, {
     requireLiveCells: config.role === 'director',
+    regionalRehomeCohortPercent: config.regionCorrectionCohortPercent ?? 0,
     recordControlRenewal: (durationMs, outcome) =>
       observability.recordControlRenewal?.(durationMs, outcome)
   })
@@ -127,17 +126,35 @@ export function createRelayServer(
     queuedBytes,
     observability,
     options.now,
-    options.random
+    options.random,
+    cellIncarnation
   )
   const app = createRelayApp(config, {
     store,
     assignments,
     drain: (graceMs) => sessions.drain(graceMs),
     drainHost: (input) => sessions.drainHost(input),
+    idleRehome: (input) => {
+      const now = (options.now ?? Date.now)()
+      if (input.directorSafety.observedAt > now || now - input.directorSafety.observedAt > 60_000) {
+        return Promise.resolve({ outcome: 'deferred' })
+      }
+      return sessions.idleRehome(input,
+        () => assignments.commitIdleRegionalRehome(input, combineRegionalRehomeSafety(
+          input.directorSafety,
+          { ...observability.regionalRehomeRuntimeSafety(), ...readRelayDatabasePoolPressure(database) }
+        ), input.cohortPercent),
+        () => assignments.reconcileIdleRegionalRehome(input)
+      )
+    },
     regionalRehomeTrustProbeHostExists: (input) => sessions.get(input) !== null,
     cellIncarnation,
     isDraining: () => sessions.isDraining(),
     runtimeCounts: () => runtimeCounts(),
+    regionalRehomeSafetySnapshot: () => ({
+      ...observability.regionalRehomeRuntimeSafety(),
+      ...readRelayDatabasePoolPressure(database)
+    }),
     ready,
     recordAssignmentAdmission: (outcome) => observability.recordAssignmentAdmission?.(outcome),
     recordAssignmentRejectionReason: (lane, reason) =>
@@ -265,7 +282,7 @@ export function createRelayServer(
       }
       void callback(raw).catch((error: unknown) => {
         console.warn(
-          '[manta-relay] first frame handler failed',
+          '[orca-relay] first frame handler failed',
           error instanceof Error ? error.message : ''
         )
         closeRelayWebSocket(
@@ -339,7 +356,7 @@ export function createRelayServer(
               const identity = invite ? { userId: invite.userId, relayHostId: hostId } : null
               // Released combined-service invites gain their first durable cell assignment here.
               const assignment = identity
-                ? (await assignments.resolve(identity)) ?? (await assignments.assign(identity))
+                ? ((await assignments.resolve(identity)) ?? (await assignments.assign(identity)))
                 : null
               if (!invite || !assignment) {
                 phoneAdmission?.hostData.release()
@@ -500,7 +517,7 @@ export function createRelayServer(
     }).catch((error: unknown) => {
       // A throw in the upgrade handling above must cost this socket, not the process.
       console.warn(
-        `[manta-relay] control upgrade failed: ${error instanceof Error ? error.message : 'unknown'}`
+        `[orca-relay] control upgrade failed: ${error instanceof Error ? error.message : 'unknown'}`
       )
       socket.destroy()
     })

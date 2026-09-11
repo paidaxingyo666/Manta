@@ -2,6 +2,7 @@ import {
   formatAssignmentInventorySnapshot,
   readAssignmentInventorySnapshot
 } from './assignment-inventory-snapshot.js'
+import { readRegionCorrectionOutcomes } from './region-correction-outcomes.js'
 import { RelayAssignmentStore } from './assignment-store.js'
 import { loadRelayConfig } from './config.js'
 import { startCellHeartbeat } from './cell-heartbeat-client.js'
@@ -31,7 +32,7 @@ const database = await openRelayDatabase({
   databaseUrl: config.databaseUrl,
   dataDir: config.dataDir,
   poolMax: config.databasePoolMax,
-  applicationName: `manta-relay/${config.role}/${config.cellId}`
+  applicationName: `orca-relay/${config.role}/${config.cellId}`
 })
 await reconcileCellAdmissionAtStartup(config, new RelayAssignmentStore(database))
 const {
@@ -49,7 +50,7 @@ const cleanupTimer = setInterval(
   () =>
     void runRelayBackgroundOperation(
       () => store.cleanup(),
-      '[manta-relay] credential cleanup failed'
+      '[orca-relay] credential cleanup failed'
     ),
   30_000
 )
@@ -63,7 +64,7 @@ const inventorySnapshotTimer = roleOwnsAssignmentMaintenance(config.role)
       void runRelayBackgroundOperation(async () => {
         const snapshot = await readAssignmentInventorySnapshot(database, Date.now())
         for (const line of formatAssignmentInventorySnapshot(snapshot)) console.warn(line)
-      }, '[manta-relay] inventory snapshot failed')
+      }, '[orca-relay] inventory snapshot failed')
     }, 60_000)
   : null
 const migrationInventoryTimer = roleOwnsAssignmentMaintenance(config.role)
@@ -71,7 +72,14 @@ const migrationInventoryTimer = roleOwnsAssignmentMaintenance(config.role)
       void runRelayBackgroundOperation(async () => {
         const inventory = await readRegisteredMigrationInventory(database, Date.now())
         for (const line of formatRegisteredMigrationInventory(inventory)) console.warn(line)
-      }, '[manta-relay] migration inventory failed')
+        console.log(
+          JSON.stringify({
+            event: 'orca_relay_region_correction_outcomes',
+            observedAt: Date.now(),
+            outcomes: await readRegionCorrectionOutcomes(database, Date.now())
+          })
+        )
+      }, '[orca-relay] migration inventory failed')
     }, 5 * 60_000)
   : null
 cleanupTimer.unref()
@@ -116,7 +124,7 @@ const heartbeat = startCellHeartbeat(config, {
 })
 
 server.listen(config.port, () => {
-  console.log(`[manta-relay] listening on ${config.publicUrl} (port ${config.port})`)
+  console.log(`[orca-relay] listening on ${config.publicUrl} (port ${config.port})`)
 })
 
 const shutdown = (): void => {

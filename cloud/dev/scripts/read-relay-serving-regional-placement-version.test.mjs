@@ -8,7 +8,7 @@ import {
 const input = {
   project: 'onorca-cloud',
   region: 'us-central1',
-  service: 'manta-cloud-relay',
+  service: 'orca-cloud-relay',
   bootstrap_version: '7'
 }
 
@@ -20,7 +20,7 @@ function revision(version = '11') {
           name: 'ORCA_RELAY_REGIONAL_PLACEMENT_ENABLED',
           valueSource: {
             secretKeyRef: {
-              secret: 'manta-cloud-relay-regional-placement-enabled',
+              secret: 'orca-cloud-relay-regional-placement-enabled',
               version
             }
           }
@@ -67,18 +67,18 @@ test('reads the exact version from the sole traffic-serving revision', () => {
     }
   })
 
-  assert.deepEqual(result, { version: '11' })
+  assert.deepEqual(result, { version: '11', cohort_percent: '0' })
   assert.equal(calls[1][3], 'relay-serving')
 })
 
 test('reads the gcloud v1 secret reference shape by bare id and by full resource path', () => {
   for (const name of [
-    'manta-cloud-relay-regional-placement-enabled',
-    'projects/120364513935/secrets/manta-cloud-relay-regional-placement-enabled'
+    'orca-cloud-relay-regional-placement-enabled',
+    'projects/120364513935/secrets/orca-cloud-relay-regional-placement-enabled'
   ]) {
     assert.deepEqual(readRelayServingRegionalPlacementVersion(input, {
       run: (args) => args[1] === 'services' ? serving() : v1Revision(name, '1')
-    }), { version: '1' })
+    }), { version: '1', cohort_percent: '0' })
   }
 })
 
@@ -91,7 +91,7 @@ test('rejects a v1 reference that names another secret or a floating version', (
   assert.throws(() => readRelayServingRegionalPlacementVersion(input, {
     run: (args) => args[1] === 'services'
       ? serving()
-      : v1Revision('manta-cloud-relay-regional-placement-enabled', 'latest')
+      : v1Revision('orca-cloud-relay-regional-placement-enabled', 'latest')
   }), /secret reference is invalid/)
 })
 
@@ -100,12 +100,12 @@ test('falls back only when the service or setting is absent', () => {
   notFound.code = 'NOT_FOUND'
   assert.deepEqual(readRelayServingRegionalPlacementVersion(input, {
     run: () => { throw notFound }
-  }), { version: '7' })
+  }), { version: '7', cohort_percent: '0' })
   assert.deepEqual(readRelayServingRegionalPlacementVersion(input, {
     run: (args) => args[1] === 'services'
       ? { status: { traffic: [{ revisionName: 'relay-serving', percent: 100 }] } }
       : { spec: { containers: [{ env: [] }] } }
-  }), { version: '7' })
+  }), { version: '7', cohort_percent: '0' })
 })
 
 test('classifies real absent-service stderr without weakening revision failures', () => {
@@ -135,4 +135,32 @@ test('rejects ambiguous traffic, malformed references, and read failures', () =>
   assert.throws(() => readRelayServingRegionalPlacementVersion(input, {
     run: () => { throw denied }
   }), denied)
+})
+
+
+test('preserves the serving cohort including explicit disable across later Terraform plans', () => {
+  for (const value of ['0', '1', '17', '100']) {
+    const servingRevision = revision()
+    servingRevision.spec.containers[0].env.push({ name: 'ORCA_RELAY_REGION_CORRECTION_COHORT_PERCENT', value })
+    assert.deepEqual(readRelayServingRegionalPlacementVersion(input, {
+      run: (args) => args[1] === 'services' ? serving() : servingRevision
+    }), { version: '11', cohort_percent: value })
+  }
+})
+
+test('fails closed on malformed, secret-backed or duplicate cohorts rather than resetting them', () => {
+  const name = 'ORCA_RELAY_REGION_CORRECTION_COHORT_PERCENT'
+  const cases = [
+    [{ name, value: '101' }], [{ name, value: '-1' }], [{ name, value: '1.5' }],
+    [{ name, value: '' }], [{ name, value: '01' }], [{ name, value: 1 }],
+    [{ name, valueFrom: { secretKeyRef: { name: 'unexpected', key: '1' } } }],
+    [{ name, value: '1' }, { name, value: '2' }]
+  ]
+  for (const settings of cases) {
+    const servingRevision = revision()
+    servingRevision.spec.containers[0].env.push(...settings)
+    assert.throws(() => readRelayServingRegionalPlacementVersion(input, {
+      run: (args) => args[1] === 'services' ? serving() : servingRevision
+    }), /cohort is invalid/)
+  }
 })

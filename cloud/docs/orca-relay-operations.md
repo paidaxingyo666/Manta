@@ -1,4 +1,4 @@
-# Manta Relay operations runbook
+# Orca Relay operations runbook
 
 This runbook applies to the stable Cloud Run director and the production-shaped GCE cells in both environments. It does not authorize a full Terraform apply: staging and production contain unrelated drift, so inspect a saved targeted plan and its destroy count before every apply.
 
@@ -22,7 +22,7 @@ Set environment-specific values without printing the resulting token:
 ```sh
 export PROJECT_ID=onorca-cloud-staging
 export REGION=us-central1
-export DIRECTOR_ORIGIN=https://relay-staging.manta.sh.cn
+export DIRECTOR_ORIGIN=https://relay-staging.onorca.dev
 export DEPLOY_SERVICE_ACCOUNT=orca-cloud-staging-gha-deploy@onorca-cloud-staging.iam.gserviceaccount.com
 export ADMIN_AUDIENCE="${DIRECTOR_ORIGIN}/v1/admin/drain"
 ADMIN_TOKEN="$(gcloud auth print-identity-token \
@@ -464,6 +464,18 @@ Once a target control is registered, do not force the pre-registration rollback.
 
 After a deployment traffic shift, preserve the old revision/tag until metrics and live reconnect checks pass. If the new revision is unhealthy, shift traffic back only while old controls are still valid, then issue a strictly newer director migration rather than reusing a prior epoch.
 
+## Regional rehoming
+
+Rehoming moves a host to a general cell in the region its desktop last reported, in either
+direction. Both roles need the drain protocol: a cell without it can be neither a source nor a
+target, and it is not part of the fleet whose telemetry gates the worker. Until the asia-east2
+cells run `regionalRehomeProtocol` 1 they are none of the three, so no host is moved into or out
+of Asia and an Asia cell in distress does not pause the worker.
+
+`host-cooldown-ms` is the minimum gap between two rehomes of one host. It bounds the damage from
+a desktop whose region probe flips: without it the host would be dragged back across the ocean on
+every flip, since the preference age never expires while the host keeps reconnecting.
+
 ## Game-day matrix
 
 Run and record each scenario in staging before launch:
@@ -479,3 +491,64 @@ Run and record each scenario in staging before launch:
 - return a dormant host, overload a cell, kill a cell, evacuate active work, and exercise pre-registration rollback.
 
 The served black-box relay suite validates the protocol/state transitions used by these procedures. The physical-device and real-GFE canaries remain separate launch gates; unit/black-box success cannot replace them.
+
+## Optional measured region correction (deployment gated)
+
+New optimization claims require both the durable regional-rehome control and
+`ORCA_RELAY_REGION_CORRECTION_COHORT_PERCENT` (integer 0–100, default **0**).
+Turning either gate off stops new optional moves; ordinary migration cleanup and
+recovery continue. Legacy preferred-region hints do not certify a correction. Both
+cells must advertise regional protocol3 and the authenticated desktop control must
+advertise idle-regional-rehome-v1. The source must have no actual client sockets or
+pending admission/control work; a live control socket alone does not prevent a move.
+
+The monitor/deploy identity can read **GET `/v1/admin/regional-rehome-preview`**.
+It returns full-population eligibility/exclusion counts, open-migration capacity,
+process-safety gating and aggregate migration outcomes; it never claims a
+host or changes the failure budget. This is advisory, with separately read state:
+concurrent assignments, capacity changes, rate pauses and control changes can make
+the next claim differ. Inspect the durable control separately before enabling.
+Do not treat an unavailable/failed preview as zero eligible hosts.
+
+`orca_relay_region_correction_outcomes` reports attempts by source/target,
+registration/completion/abort state, oldest open age and target
+reservation units every five minutes. `orca_relay_region_comparison` samples a
+stable 10% of accepted reports (including unchanged hosts), keyed by host digest,
+assignment epoch and decision generation. Existing control RTT and client-accept
+logs include assignment epoch, control generation and drain mode; join those for
+matched before/after and unchanged-cohort comparisons. Client accept latency is
+connection setup, not application command round trip. No application-latency
+improvement has been demonstrated by probe differences alone.
+
+Quiet live connections count as work and defer optional correction indefinitely.
+A returning client may race with the short admission gate and retry normally. No
+optimization timer may close an established client. Investigate failed registration,
+ambiguous authority, stuck reservations and reconnect/failure rates against agreed
+limits. A database outage can keep the source fenced until locked reconciliation
+establishes its authority; timeout alone is not permission to reopen admissions.
+
+All directors must run the reviewed idle worker before enabling. Record the tested
+immutable source and rollback revisions, then verify the ordinary migration recovery
+path before rollout. There is no retained-source table or renewal protocol. Deploying
+supporting cells/desktops and enabling a cohort require separate rollout authorization
+and explicit numerical stop criteria; this change enables neither.
+
+### Setting the correction cohort during a reviewed director rollout
+
+The existing **Deploy Relay Production Director** workflow accepts
+`region-correction-cohort-percent`: `preserve` (default) or an integer0–100.
+It carries the cohort onto both candidate and compatible rollback revisions and
+verifies the environment before promotion. If the predecessor has no setting,
+`preserve` stamps zero. An explicit change requires the exact disabled durable
+rehome generation; configuring a nonzero cohort does not itself enable the sweep.
+The usual image, identity, health and traffic checks remain in force. No workflow
+was dispatched as part of implementation.
+
+Terraform reads the cohort from the same traffic-serving revision used to preserve
+regional placement. A later apply therefore preserves a workflow-set cohort,
+including explicit zero; only an absent service/setting bootstraps to0. Malformed
+or ambiguous live settings fail the plan instead of silently resetting the cohort.
+The audited director workflow owns subsequent changes.
+Before the first nonzero cohort, verify compatible protocol2 cells, updated
+cleanup workers, preview eligibility, both serving/rollback images and the
+explicitly approved observation/stop criteria.

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { RELAY_DEFAULT_REGION } from '@manta-cloud/relay-contract'
+import { RELAY_DEFAULT_REGION } from '@orca-cloud/relay-contract'
 import type { RelayConfig } from './config.js'
 import { googleMetadataIdentityToken } from './google-metadata-identity-token.js'
 import type { RegionalRehomeSafetySnapshot } from './relay-observability.js'
@@ -70,8 +70,7 @@ export function startCellHeartbeat(
                   inFlightConnections: connectionCounts!.inFlightConnections,
                   reservedConnectionUnits: connectionCounts!.reservedConnectionUnits,
                   enforcedConnectionUnits: connectionCounts!.enforcedConnectionUnits,
-                  connectionInclusionWatermark:
-                    connectionCounts!.inclusionWatermark,
+                  connectionInclusionWatermark: connectionCounts!.inclusionWatermark,
                   connectionHardCap: config.connectionHardCap,
                   connectionUnobservedBound: config.connectionUnobservedBound
                 })
@@ -94,7 +93,7 @@ export function startCellHeartbeat(
               cellId: config.cellId,
               cellIncarnation,
               regionalRehomeProtocol:
-                config.rehomeAudience && config.rehomeDirectorServiceAccount ? 1 : 0,
+                config.rehomeAudience && config.rehomeDirectorServiceAccount ? 3 : 0,
               safety: options.regionalRehomeSafety()
             }),
             signal: AbortSignal.timeout(10_000)
@@ -106,7 +105,10 @@ export function startCellHeartbeat(
       }
     } catch (error) {
       // A heartbeat must fail closed without ever logging its bearer token.
-      console.warn('[manta-relay] cell heartbeat failed', error instanceof Error ? error.message : '')
+      console.warn(
+        '[orca-relay] cell heartbeat failed',
+        error instanceof Error ? error.message : ''
+      )
     } finally {
       inFlight = false
     }
