@@ -78,13 +78,20 @@ export async function buildArtifactImageDataUris(
   context: ArtifactImageContext = {}
 ): Promise<Map<string, string>> {
   const inlined = new Map<string, string>()
+  // By absolute path, not by the src as written: `./a.png` and its `file:` form
+  // are the same file, and a document that shows one image four times should
+  // read it once.
+  const byPath = new Map<string, string | null>()
   let budget = MAX_INLINE_BYTES
   for (const src of sources) {
     const absolutePath = resolveImageAbsolutePath(src, filePath)
     if (!absolutePath) {
       continue
     }
-    const dataUri = await readAsDataUri(absolutePath, context)
+    if (!byPath.has(absolutePath)) {
+      byPath.set(absolutePath, await readAsDataUri(absolutePath, context))
+    }
+    const dataUri = byPath.get(absolutePath)
     if (!dataUri || dataUri.length > budget) {
       continue
     }
@@ -120,6 +127,11 @@ export function rehypeInlineArtifactImages(inlined: ReadonlyMap<string, string>)
             const dataUri = inlined.get(src)
             if (dataUri) {
               node.properties.src = dataUri
+            } else if (!isPortable(src)) {
+              // Nothing but artifacts is stored on that origin, so a local path
+              // left here resolves to a 404 and a broken-image icon. Removing it
+              // leaves the alt text, which at least says what is missing.
+              delete node.properties.src
             }
           }
         }
