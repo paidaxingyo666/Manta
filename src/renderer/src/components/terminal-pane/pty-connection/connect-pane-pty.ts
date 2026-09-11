@@ -2,10 +2,8 @@ import type { PaneManager, ManagedPane } from '@/lib/pane-manager/pane-manager'
 import { useAppStore } from '@/store'
 import { TerminalKittyKeyboardModeTracker } from '../../../../../shared/terminal-kitty-keyboard-mode-tracker'
 import type { PtyConnectionDeps } from '../pty-connection-types'
-import {
-  captureTerminalPaneRecoveryGeneration,
-  registerTerminalPaneRecoveryInstance
-} from '../terminal-pane-recovery'
+import { registerTerminalPaneRecoveryInstance } from '../terminal-pane-recovery'
+import { captureTabRecoveryGeneration } from '@/store/terminals/terminal-tab-recovery-ledger'
 import { RESET_TERMINAL_CURSOR_STYLE } from '../../../../../shared/terminal-mode-reset-profiles'
 import { writeTerminalOutput } from '@/lib/pane-manager/pane-terminal-output-scheduler'
 import { createTerminalStructuralReplayCoordinator } from '@/lib/pane-manager/terminal-structural-replay-coordinator'
@@ -50,11 +48,14 @@ export function connectPanePty(
   const session = { pane, manager, deps } as ConnectPanePtySession
   session.shouldRefreshForegroundSynchronously = (): boolean =>
     !session.manager.hasWebglRenderer(session.pane.id)
-  session.tabGeneration =
-    findTerminalTabForPane(useAppStore.getState(), deps.worktreeId, deps.tabId)?.generation ?? 0
+  // One lookup for both epochs: the remount generation and the recovery
+  // ledger's both live on this row, so resolving it twice would put a second
+  // scan of tabsByWorktree on the connect path.
+  const terminalTab = findTerminalTabForPane(useAppStore.getState(), deps.worktreeId, deps.tabId)
+  session.tabGeneration = terminalTab?.generation ?? 0
   // Why: recovery ownership belongs to this xterm instance. A request that
   // settles after remount must not remount its already-replaced successor.
-  session.terminalRecoveryGeneration = captureTerminalPaneRecoveryGeneration(session.deps.tabId)
+  session.terminalRecoveryGeneration = captureTabRecoveryGeneration(terminalTab)
   session.terminalRecoveryInstance = registerTerminalPaneRecoveryInstance(session.deps.tabId)
   session.mountFollowsTerminalPark = session.deps.mountFollowsTerminalPark
   session.authoritativeReattachGeneration = 0
