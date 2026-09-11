@@ -832,7 +832,9 @@
         "linearDescription": "Linear 在 Manta 中的工作方式、设置清单、智能体技能和提示词示例。",
         "pluginsTitle": "插件",
         "pluginsDescription": "安装和管理实验性 Manta 插件。",
-        "tasksDescription": "连接提供商、安装 Linear 技能并选择要在任务中显示的内容。"
+        "tasksDescription": "连接提供商、安装 Linear 技能并选择要在任务中显示的内容。",
+        "artifactsTitle": "工件",
+        "artifactsDescription": "与团队共享 HTML 和 Markdown 文件，并管理它们的公共链接。"
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "粘贴内容过大。"
@@ -4464,7 +4466,8 @@
           "196c1b5362": "打开 GitLab 任务",
           "0ccba862b8": "打开 GitHub 任务",
           "fee535205b": "任务",
-          "d599269755": "从侧边栏隐藏"
+          "d599269755": "从侧边栏隐藏",
+          "artifacts": "工件"
         },
         "SidebarRepositoryFilterSection": {
           "d3a9c4cea1": "清除",
@@ -10380,6 +10383,57 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "artifacts": {
+          "enable": "启用工件",
+          "enableDescription": "在侧边栏中加入工件，以便打开和删除已共享的文件。",
+          "account": "Manta 账户",
+          "connected": "已连接",
+          "signInRequired": "上传和管理工件需要先登录。",
+          "signingIn": "正在登录…",
+          "signIn": "登录 Manta",
+          "title": "工件",
+          "description": "与团队共享 HTML 和 Markdown 文件，并管理它们的公共链接。",
+          "howToTitle": "如何使用工件",
+          "howToDescription": "把 HTML 或 Markdown 文件发布为公共链接，再分享给团队。",
+          "shareStepTitle": "选择要分享的文件",
+          "shareStepDescription": "打开一个 HTML 或 Markdown 文件并选择「分享为工件」，也可以让代理代为分享。",
+          "linkStepTitle": "复制公共链接",
+          "linkStepDescription": "发布完成后，复制链接发给团队。",
+          "manageStepTitle": "在 Manta 中管理",
+          "manageStepDescription": "从侧边栏打开工件，即可预览或移除链接。",
+          "openArtifacts": "打开工件",
+          "openArtifactsDescription": "查看并删除通过你的账户分享的链接。",
+          "showButton": "显示工件按钮",
+          "showButtonDescription": "在侧边栏中显示工件快捷入口。",
+          "openArtifactsDescriptionV2": "预览、复制并管理通过你的账户分享的链接。",
+          "signInTitle": "登录后即可分享工件",
+          "signInDescription": "使用你的 Manta 账户上传工件并管理它们的公共链接。",
+          "signInAgain": "重新登录",
+          "enableStepTitle": "启用工件分享",
+          "enableStepWebDescription": "在宿主设备的 Manta 桌面端打开设置 → 工件，并启用发布。",
+          "enableStepDescription": "打开上方的「允许发布公共工件链接」。",
+          "allowPublishing": "允许发布公共工件链接",
+          "allowPublishingWebDescription": "仅限桌面端。请在宿主设备上打开设置 → 工件来更改此项。",
+          "allowPublishingDescription": "把 HTML 和 Markdown 文件发布为链接，任何拿到该网址的人都能打开。已有链接会一直有效，直到你在工件中删除它们。",
+          "howToDescriptionDisabled": "先在上方启用工件分享，才能把 HTML 或 Markdown 文件发布为公共链接。",
+          "allowPublishingSearchDescription": "允许 Manta 把 HTML 和 Markdown 文件发布为公共链接。",
+          "keywordArtifacts": "工件",
+          "keywordShare": "分享",
+          "keywordPublish": "发布",
+          "keywordPublic": "公开",
+          "keywordPermission": "权限",
+          "keywordHtml": "HTML",
+          "keywordMarkdown": "Markdown",
+          "keywordUpload": "上传"
+        },
+        "mantaAccount": {
+          "artifactsTitle": "工件分享",
+          "artifactsDescription": "发布 HTML 和 Markdown 文件，并在 Manta 中管理每一条已分享的链接。"
+        },
+        "MantaCloudEndpointsSection": {
+          "artifactsOriginShared": "工件主机必须与中继地址使用不同的源。",
+          "artifactsLabel": "工件主机"
         }
       },
       "right": {
@@ -14615,7 +14669,119 @@
         "ArtifactsPage": {
           "deleteTitle": "删除工件？",
           "deleteDescription": "“{{name}}” 将无法再通过其公共链接访问。",
-          "delete": "删除"
+          "delete": "删除",
+          "signInAgain": "请重新登录 Manta 以加载工件。",
+          "loadFailed": "无法加载工件。",
+          "deleteFailed": "无法删除该工件。",
+          "title": "工件",
+          "refresh": "刷新",
+          "signInHeading": "登录 Manta",
+          "signInCopy": "登录后即可查看和管理通过你的账户分享的工件。",
+          "signingIn": "正在登录…",
+          "signIn": "登录 Manta",
+          "empty": "暂无已分享的工件",
+          "emptyCopy": "打开一个 HTML 或 Markdown 文件并选择「分享为工件」，也可以让代理代为分享。",
+          "openArtifact": "打开工件",
+          "deleteArtifact": "删除工件",
+          "moreAvailable": "还有更多工件",
+          "moreAvailableCopy": "加载下一页以继续查看。",
+          "loadMoreFailed": "无法加载更多工件。",
+          "publishingOff": "发布功能已关闭",
+          "publishingOffCopy": "此设备上暂时无法创建公共工件链接。请在设置 → 工件中允许发布，然后从已打开的 HTML 或 Markdown 文件分享，或让代理代为分享。",
+          "openArtifactsSettings": "打开设置 → 工件",
+          "retry": "重试",
+          "reconnectHeading": "请重新登录 Manta",
+          "reconnectCopy": "重新登录后即可查看和管理通过你的账户分享的工件。",
+          "signInAgainAction": "重新登录",
+          "unconfiguredCopy": "此设备尚未配置 Manta 账户登录。",
+          "openAccountSettings": "打开账户设置"
+        },
+        "copySuccess": "已复制工件链接",
+        "copyFailed": "无法复制工件链接",
+        "copyLink": "复制链接",
+        "openInBrowser": "在浏览器中打开",
+        "preview": "工件预览",
+        "previewUnavailable": "无法预览",
+        "previewUnavailableDescription": "请在浏览器中打开此工件以查看。",
+        "actions": "工件操作",
+        "ArtifactActions": {
+          "more": "更多工件操作"
+        },
+        "ArtifactCollection": {
+          "loadMore": "加载更多",
+          "noMatches": "无匹配项"
+        },
+        "ArtifactDetailHeader": {
+          "publicLink": "任何拿到此链接的人都能查看",
+          "close": "关闭"
+        },
+        "updatedAt": "更新于 {{when}}",
+        "updatedRecently": "刚刚",
+        "expiryUnknown": "有效期未知",
+        "expired": "链接已过期",
+        "expires": "链接将于 {{when}} 过期",
+        "ArtifactPublishButton": {
+          "a4a49da6af": "分享为工件",
+          "confirmTitle": "分享为工件",
+          "confirmDescription": "这会把当前文件发布为一个链接，任何拿到该网址的人都能查看。",
+          "accountTitle": "Manta 账户",
+          "accountDescription": "登录后才能创建和管理此链接。",
+          "signingIn": "正在登录…",
+          "signInAgain": "重新登录",
+          "signIn": "登录",
+          "publishingOffTitle": "工件分享已关闭",
+          "publishingOffDescription": "在设置中了解公共链接并启用分享。",
+          "openSettings": "打开工件设置",
+          "sharing": "正在分享…",
+          "sharePublicLink": "生成链接",
+          "publishedDescription": "任何拿到此链接的人都能查看已分享的文件。",
+          "checkingLink": "正在检查是否已有链接…",
+          "checkFailed": "无法检查是否已有链接。",
+          "tryAgain": "重试"
+        },
+        "artifact-publish-flow": {
+          "9a078a0c65": "工件分享不可用",
+          "bba20daa6d": "请登录 Manta 后重试。",
+          "54b1805328": "无法分享工件",
+          "430019efd0": "工件已分享",
+          "2fc727c831": "工件已更新",
+          "5cb4f5ec36": "复制链接",
+          "fbb5018602": "此文件为空。",
+          "6112db5a1c": "此工件过大，无法分享。",
+          "e2ed5acd8c": "Manta 无法读取此文件。请从工作区打开后重试。",
+          "6d475e9b25": "只有本地的 HTML 和 Markdown 文件才能分享为工件。",
+          "29a406be09": "工件必须包含文本。"
+        },
+        "ArtifactPublishedLinkPanel": {
+          "copyLink": "复制链接",
+          "openLink": "打开链接",
+          "updating": "正在更新…",
+          "update": "更新已分享的内容"
+        },
+        "ArtifactDetailDrawer": {
+          "description": "预览并管理这个已分享的工件。"
+        },
+        "ArtifactListSearchField": {
+          "label": "搜索工件",
+          "placeholder": "搜索…",
+          "clear": "清除搜索"
+        },
+        "ArtifactListTableHeader": {
+          "name": "名称",
+          "type": "类型",
+          "size": "大小",
+          "updated": "更新时间",
+          "expires": "过期时间",
+          "actions": "操作"
+        },
+        "ArtifactsPageSkeleton": {
+          "loading": "正在加载工件"
+        },
+        "expiredCompact": "已过期",
+        "typeMarkdown": "Markdown",
+        "typeHtml": "HTML",
+        "ArtifactsSelfHostNotice": {
+          "body": "此构建自身不附带工件服务。发布会发往 Manta Cloud → 配置端点中设置的工件主机；若留空，链接会指向一个无人运行的主机，上传必然失败。自建中继可以提供该服务，详见其 README，也可以保持分享关闭。"
         }
       },
       "ComposerParentWorktreePicker": {
