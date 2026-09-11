@@ -203,6 +203,9 @@ jobs:
       - name: Boot mantad and round-trip a terminal
         run: pnpm run smoke:mantad-terminal
 
+      - name: Verify the generated RPC params catalog
+        run: pnpm run verify:rpc-params-catalog
+
       - name: Verify bundled skill guides
         run: pnpm run verify:bundled-skill-guides
 
