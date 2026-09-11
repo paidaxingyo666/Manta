@@ -206,7 +206,10 @@ describe('MantaRuntimeRpcServer', () => {
 
   it('shares one socket close listener across concurrent WebSocket dispatches', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
-    const runtime = { getRuntimeId: () => 'test-runtime' } as unknown as MantaRuntimeService
+    const runtime = {
+      configureNotificationDismissalStore: () => {},
+      getRuntimeId: () => 'test-runtime'
+    } as unknown as MantaRuntimeService
     const server = new MantaRuntimeRpcServer({ runtime, userDataPath, enableWebSocket: false })
     server['deviceRegistry'] = new DeviceRegistry(userDataPath)
     const entry = server['deviceRegistry']!.addDevice('runtime-test', 'runtime')
