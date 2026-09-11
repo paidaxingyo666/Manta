@@ -21,6 +21,7 @@ export class MantaRuntimeWithTouchMobileSessionTabsForWorktree extends MantaRunt
     if (!snapshot) {
       return
     }
+    this.mobileSessionTabsAgentStatusHeartbeat.observeWorktreeRefresh(worktreeId)
     this.storeMobileSessionSnapshot(worktreeId, {
       ...snapshot,
       snapshotVersion: snapshot.snapshotVersion + 1
@@ -34,6 +35,13 @@ export class MantaRuntimeWithTouchMobileSessionTabsForWorktree extends MantaRunt
     // Why: title/status flips several times a second under spinner-in-title
     // agents. Coalesce the emit instead of fanning out every version.
     this.scheduleMobileSessionTabsChanged(worktreeId)
+  }
+
+  scheduleMobileSessionTabsAgentStatusHeartbeatForWorktree(worktreeId: string): void {
+    if (this.mobileSessionTabListeners.size === 0) {
+      return
+    }
+    this.mobileSessionTabsAgentStatusHeartbeat.scheduleWorktreeHeartbeat(worktreeId)
   }
 
   /** Republish the workspace snapshot after a pane's hook status changed.

@@ -173,8 +173,8 @@ export class MantaRuntimeWithApplyTrackedPtyTitle extends MantaRuntimeWithGetUnp
       leaf.waitBlockedAt = null
       leaf.tailWaitState = undefined
     }
+    this.reconcileAgentStatusForEndedProcessFn?.(this.collectAgentStatusPaneKeysForPty(ptyId))
     this.primeWaitBlockedBaselineFromSeededTail(ptyId)
-    this.clearAgentRowSnapshotsForPty(ptyId)
   }
 
   protected setTerminalSideEffectConsumerAvailable(available: boolean): void {

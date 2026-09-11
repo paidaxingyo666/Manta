@@ -16,18 +16,15 @@ import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environ
 import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
-import { resolveMantadBrowserProvider, type MantadBrowserProvider } from './mantad-browser-provider'
+import { resolveMantadBrowserProvider } from './mantad-browser-provider'
 import { resolveMantadInstallRoot, resolveMantadPath, resolveUserDataPath } from './mantad-app-paths'
 import {
   describeMantadBindExposure,
   MantadBindAddressError,
   resolveMantadBindHost
 } from './mantad-bind-address'
-import {
-  acquireMantadInstanceLock,
-  MantadInstanceLockError,
-  type MantadInstanceLock
-} from './mantad-instance-lock'
+import { acquireMantadInstanceLock, MantadInstanceLockError } from './mantad-instance-lock'
+import { startOrcadWithLifecycle } from './orcad-lifecycle'
 
 let runMantadQuitHandlers = (): void => {}
 
@@ -116,22 +113,24 @@ export async function startMantad(options: MantadOptions = {}): Promise<MantadHa
     headless: browserProvider !== null,
     ...(browserProvider ? { isAvailable: () => browserProvider.isAvailable() } : {})
   })
-  try {
-    return await startMantadRuntime(options, browserProvider, instanceLock)
-  } catch (error) {
-    await browserProvider?.stop()
-    setRuntimeBrowserCommandsFactory(null)
-    runMantadQuitHandlers()
-    instanceLock.release()
-    throw error
-  }
+  return startOrcadWithLifecycle(
+    (registerCleanup) => startMantadRuntime(options, registerCleanup),
+    async () => {
+      try {
+        await browserProvider?.stop()
+      } finally {
+        setRuntimeBrowserCommandsFactory(null)
+        runMantadQuitHandlers()
+        instanceLock.release()
+      }
+    }
+  )
 }
 
 async function startMantadRuntime(
   options: MantadOptions,
-  browserProvider: MantadBrowserProvider | null,
-  instanceLock: MantadInstanceLock
-): Promise<MantadHandle> {
+  registerCleanup: (cleanup: () => Promise<void>) => void
+): Promise<Pick<MantadHandle, 'readiness'>> {
   const { MantaRuntimeService } = await import('../runtime/manta-runtime')
   const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
@@ -146,15 +145,41 @@ async function startMantadRuntime(
   const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
   const { collectMantadHealth } = await import('./mantad-health')
-  // Why importable here: the store is an in-memory singleton whose module tree never reaches
-  // Electron, and its file paths come from `start()`, which mantad never calls.
+  // Why importable here: the singleton's module tree never reaches Electron, and mantad supplies
+  // its persistence and endpoint paths explicitly below.
   const { agentHookServer } = await import('../agent-hooks/server')
+  const { isAgentStatusHooksEnabled } = await import('../agent-hooks/managed-agent-hook-controls')
+  const { installHookStatusSessionTabsRepublish } =
+    await import('../agent-hooks/hook-status-session-tabs-republish')
+  const { AgentStatusObservedPaneIdentities, AgentStatusObservedPaneIdentityCapture } =
+    await import('../runtime/agent-status-observed-pane-identity')
+
+  let rpc: InstanceType<typeof MantaRuntimeRpcServer> | null = null
+  let uninstallHookStatusRepublish = (): void => {}
+  let uninstallObservedStatusIdentity = (): void => {}
+  registerCleanup(async () => {
+    try {
+      await rpc?.stop()
+    } finally {
+      try {
+        // Why disconnect and not shut down: the daemon must outlive this process, or an
+        // mantad restart goes back to killing every running terminal.
+        await stopMantadDaemon()
+      } finally {
+        uninstallObservedStatusIdentity()
+        uninstallHookStatusRepublish()
+        agentHookServer.stop()
+      }
+    }
+  })
   const { DesktopPushService } = await import('../runtime/push/desktop-push-service')
   const { resolvePushGatewayOrigin } = await import('../runtime/push/push-gateway-origin')
 
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
   initMantaProfilePaths()
   const profile = ensureActiveMantaProfile(runtimeUserDataPath)
+  const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
+  const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
   // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
   // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
   // a server that pairs and lists nothing looks healthy and is not.
@@ -164,6 +189,13 @@ async function startMantadRuntime(
   // Why: every SSH connect consults this sidecar. Left unbound it reports nothing trusted,
   // which is safe but silently discards accept records on every launch.
   initSshHostKeyStoreFile(profile.dataFile)
+
+  uninstallObservedStatusIdentity = agentHookServer.subscribeEnrichedStatus((enriched) =>
+    observedStatusCapture.observe(enriched)
+  )
+  if (isAgentStatusHooksEnabled(store.getSettings())) {
+    await agentHookServer.start({ env: 'production', userDataPath: runtimeUserDataPath })
+  }
 
   // Why before the runtime and the PTY handlers: `setLocalPtyProvider` installs the daemon
   // adapter as THE local provider, and the registry's contract is that it lands before
@@ -186,15 +218,36 @@ async function startMantadRuntime(
     // what powers serve→desktop promotion. A Node host can never do that, and the
     // constructor's default would advertise it.
     getDesktopWindowStatus: () => 'blocked',
+    // Why here too and not only on the desktop: main's OSC parse is the only producer for a
+    // PTY agent on this host, and the store is the only place `worktree.ps` and the mobile
+    // projection read from — unwired, mantad lists no PTY agents at all.
+    onTerminalAgentStatus: (event) => agentHookServer.ingestTerminalStatus(event),
     // Why here too and not only on the desktop: mantad serves `worktree.ps` and `agentSession.*`,
     // so without these a headless host publishes its structured chats nowhere and lists no agents.
     getAgentStatusSnapshot: () =>
       agentHookServer.getStatusSnapshot().filter((entry) => entry.providerSessionOnly !== true),
+    getAgentProviderSessionSnapshot: () => agentHookServer.getStatusSnapshot(),
+    getAgentProviderSessionRowsForPane: (paneKey) =>
+      agentHookServer.getStatusSnapshotForPane(paneKey),
+    // Why captured rather than resolved at read: the fleet snapshot remints cached rows on every
+    // read, so a row observed under one process otherwise acquires whatever process owns the pane now.
+    readObservedAgentStatusPaneIdentity: (paneKey) => observedPaneIdentities.read(paneKey),
     structuredAgentStatusSink: {
       publish: (summary) => agentHookServer.ingestStructuredStatus(summary),
       forget: (sessionId) => agentHookServer.dropStructuredStatus(sessionId)
-    }
+    },
+    reconcileAgentStatusForEndedProcess: (paneKeys) =>
+      agentHookServer.reconcileEndedProcessForPaneKeys(paneKeys),
+    buildAgentHookPtyEnv: () =>
+      isAgentStatusHooksEnabled(store.getSettings()) ? agentHookServer.buildPtyEnv() : {}
   })
+
+  // Why here too and not only on the desktop: nothing else republishes `session.tabs` when a
+  // pane's status row changes, and mantad's whole job is serving paired clients.
+  uninstallHookStatusRepublish = installHookStatusSessionTabsRepublish(
+    agentHookServer,
+    () => runtime
+  )
 
   // Why the headless entry point rather than registerPtyHandlers directly: this is the
   // same call `--serve` makes, and it threads the store through. Without the store the
@@ -213,8 +266,11 @@ async function startMantadRuntime(
   await runtime.refreshRestoredOrchestrationAuthority()
   await runtime.reconcileLegacyWorkerTerminals()
 
+  // Recovery binds terminal and dispatch identities; only now can startup observations be fenced.
+  observedStatusCapture.attach(runtime)
+
   const bindHost = resolveMantadBindHost(options.bind)
-  const rpc = new MantaRuntimeRpcServer({
+  rpc = new MantaRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,
@@ -279,23 +335,7 @@ async function startMantadRuntime(
     mode: options.json ? 'json' : 'human'
   })
 
-  return {
-    readiness,
-    stop: async () => {
-      try {
-        await rpc.stop()
-      } finally {
-        // Why disconnect and not shut down: the daemon must outlive this process, or an
-        // mantad restart goes back to killing every running terminal. See
-        // mantad-daemon-supervision.ts.
-        await stopMantadDaemon()
-        await browserProvider?.stop()
-        setRuntimeBrowserCommandsFactory(null)
-        runMantadQuitHandlers()
-        instanceLock.release()
-      }
-    }
-  }
+  return { readiness }
 }
 
 export function parseArgs(argv: string[]): MantadOptions {

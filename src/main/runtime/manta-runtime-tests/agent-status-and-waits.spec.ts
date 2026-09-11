@@ -41,6 +41,8 @@ describe('MantaRuntimeService', () => {
         tabId: spawnedEnv.MANTA_TAB_ID,
         worktreeId: TEST_WORKTREE_ID,
         connectionId: null,
+        // The pane's handle rides the event so the store's row can rejoin its terminal.
+        terminalHandle: expect.stringMatching(/^term_/),
         payload: {
           state: 'done',
           prompt: 'ok'

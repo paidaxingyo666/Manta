@@ -19,9 +19,10 @@ export type TranscriptPaneOptions = {
 }
 
 export async function createTranscriptPane(
-  options: TranscriptPaneOptions
+  options: TranscriptPaneOptions,
+  runtimeDeps?: ConstructorParameters<typeof MantaRuntimeService>[2]
 ): Promise<{ runtime: MantaRuntimeService; handle: string }> {
-  const runtime = new MantaRuntimeService(null)
+  const runtime = new MantaRuntimeService(null, undefined, runtimeDeps)
   const internals = runtime as unknown as {
     resolveTerminalWorkspaceLaunchScope: (selector: string) => Promise<unknown>
   }
