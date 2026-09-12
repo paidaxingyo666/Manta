@@ -15,9 +15,9 @@ const production = readFileSync(
 )
 const REHOME_SOURCE_CELLS = rehomeSourceCells()
 const DIRECTOR_IDENTITY = 'relay-director@onorca-cloud.iam.gserviceaccount.com'
-const AUDIENCE = 'https://relay.manta.sh.cn/v1/admin/host-drain'
-const ROLLBACK_IMAGE = `us-central1-docker.pkg.dev/p/manta-cloud/relay@sha256:${'d'.repeat(64)}`
-const TARGET_IMAGE = `us-central1-docker.pkg.dev/p/manta-cloud/relay@sha256:${'e'.repeat(64)}`
+const AUDIENCE = 'https://relay.onorca.dev/v1/admin/host-drain'
+const ROLLBACK_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'d'.repeat(64)}`
+const TARGET_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'e'.repeat(64)}`
 
 // The startup template emits rehome trust only for cells in this list, so it is what decides
 // whether a cell's plan may carry those lines at all.
@@ -42,7 +42,7 @@ function startupScript({ cap, image, trusted }) {
     `printf 'ORCA_RELAY_IMAGE_DIGEST=%s\\n' '${image.split('@')[1]}'`,
     `docker pull '${image}'`,
     'docker run --detach \\',
-    '  --name manta-relay \\',
+    '  --name orca-relay \\',
     `  '${image}'`
   ].join('\n')
 }
@@ -77,14 +77,14 @@ function rollPlan({ cellId, cap, protocol }) {
             metadata_startup_script: startupScript({
               cap,
               image: ROLLBACK_IMAGE,
-              trusted: protocol === 1
+              trusted: protocol >= 1
             })
           },
           after: {
             metadata_startup_script: startupScript({
               cap,
               image: TARGET_IMAGE,
-              trusted: protocol === 1
+              trusted: protocol >= 1
             }),
             self_link: null
           },
@@ -128,14 +128,14 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
     for (const cellId of SAME_CAP_CELLS) {
       for (const mode of ['isolate', 'drain', 'activate']) {
         assert.deepEqual(parseProductionCapacityCellArguments([
-          '--director-origin', 'https://relay.manta.sh.cn',
-          '--cell-origin', `https://${hostname(cellId)}.relay.manta.sh.cn`,
+          '--director-origin', 'https://relay.onorca.dev',
+          '--cell-origin', `https://${hostname(cellId)}.relay.onorca.dev`,
           '--cell-id', cellId,
           '--approved-cells', 'same-cap',
           '--mode', mode
         ]), {
-          directorOrigin: 'https://relay.manta.sh.cn',
-          cellOrigin: `https://${hostname(cellId)}.relay.manta.sh.cn`,
+          directorOrigin: 'https://relay.onorca.dev',
+          cellOrigin: `https://${hostname(cellId)}.relay.onorca.dev`,
           cellId,
           mode
         })
@@ -178,11 +178,9 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
   })
 
   it('validates a correct plan for every wave cell at that cell\'s rehome protocol', () => {
-    for (const cellId of SAME_CAP_CELLS) {
+    for (const [cellId, protocol] of SAME_CAP_CELLS.flatMap((cell) => [[cell, 1], [cell, 3]])) {
       const [, cap] = resolveCellShape(cellId).stdout.trim().split(' ')
-      const protocol = REHOME_SOURCE_CELLS.has(cellId) ? 1 : 0
-      // Every reviewed serving cell carries rehome trust now, in either region.
-      assert.equal(protocol, 1, cellId)
+      assert.equal(REHOME_SOURCE_CELLS.has(cellId), true, cellId)
       const config = {
         mode: 'same-cap-cell',
         cellId,
@@ -204,7 +202,7 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       assert.throws(
         () => validateCapacityPlan(plan, {
           ...config,
-          regionalRehomeProtocol: String(1 - protocol)
+          regionalRehomeProtocol: '0'
         }),
         /reviewed image and capacity/,
         cellId
@@ -238,4 +236,12 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
   it('leaves the US-only capacity job on the default allowlist', () => {
     assert.doesNotMatch(capacityWorkflow, /--approved-cells/)
   })
+})
+
+// Both trusted versions must prove the same authenticated drain boundary.
+it('proves rehome trust for protocol 3 on forward and rollback rolls', () => {
+  const step = workflow.split('name: Prove exact per-host trust and idempotent no-neighbor behavior')[1].split('\n      - name:')[0]
+  assert.match(step, /inputs\.rollback-rehome-protocol != '0'/)
+  assert.match(step, /inputs\.target-rehome-protocol != '0'/)
+  assert.match(step, /probe-relay-rehome-trust\.mjs/)
 })
