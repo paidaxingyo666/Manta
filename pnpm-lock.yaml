@@ -137,6 +137,9 @@ importers:
       '@parcel/watcher':
         specifier: ^2.5.6
         version: 2.5.6
+      '@streamparser/json':
+        specifier: 0.0.26
+        version: 0.0.26
       '@xterm/addon-serialize':
         specifier: 0.15.0-beta.300
         version: 0.15.0-beta.300(patch_hash=851eac3d75e6d8c013b9f4c053e61d824b23965cb19ecc28e335e05059f3a294)(@xterm/xterm@6.1.0-beta.303(patch_hash=1f36ce689bc50c703ae09aeda0e064f107e18e4a5ecba19e746fa5edc4b02ef4))
@@ -2674,6 +2677,9 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@streamparser/json@0.0.26':
+    resolution: {integrity: sha512-46597LNFI+MFdUnzX2QJWwmdTRdq0XVD+vVNJTtGVzIrnCuhG9pFo1OAzbNBqci8UJgk/X5KJZ6LcV+y7PTuDQ==}
 
   '@swc/core-darwin-arm64@1.15.46':
     resolution: {integrity: sha512-IsISIT22EfktVJrlvIpnAxG2u/A9aob9l99HMlx80x72WlFmFPk1V3UhkEzx86eJP8hw049KTFv/RISho2cq2Q==}
@@ -9009,6 +9015,8 @@ snapshots:
       - zod
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@streamparser/json@0.0.26': {}
 
   '@swc/core-darwin-arm64@1.15.46':
     optional: true

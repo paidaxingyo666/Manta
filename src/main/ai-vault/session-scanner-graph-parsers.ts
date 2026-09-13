@@ -1,4 +1,7 @@
-import { remoteSessionContentLines } from './remote-session-content-lines'
+import {
+  remoteSessionContentLines,
+  type RemoteSessionContent
+} from './remote-session-content-lines'
 import { openTranscriptReadStream, wslGatedReadFile } from '../native-chat/wsl-transcript-fs-access'
 import { basename, dirname, join } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -195,7 +198,7 @@ export async function parseMessageGraphSessionFile(
 export async function parseMessageGraphSessionContent(
   agent: MessageGraphAgent,
   file: FileWithMtime,
-  content: string,
+  content: RemoteSessionContent,
   platform: NodeJS.Platform = process.platform,
   options: ParserSessionOptions = {},
   signal?: AbortSignal

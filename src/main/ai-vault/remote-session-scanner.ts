@@ -1,3 +1,5 @@
+import { parseRemoteSessionTranscript } from './remote-session-transcript-read'
+import { BinarySessionTranscriptError } from './remote-session-content-lines'
 import type {
   AiVaultListResult,
   AiVaultScanIssue,
@@ -239,14 +241,7 @@ async function parseRemoteSessionCandidate(
     const session = await parseRemoteSessionFileCached({
       candidate,
       hostKey: remoteSessionParseHostKey(context),
-      parse: async () => {
-        const read = await context.provider.readFile(candidate.file.path)
-        throwIfAiVaultScanCancelled(context.signal)
-        if (read.isBinary) {
-          return null
-        }
-        return await candidate.source.parse(candidate.file, read.content, context)
-      },
+      parse: () => parseRemoteSessionTranscript(candidate, context),
       refreshReusedSession: reusedCodexTitleRefresh(candidate, context)
     })
     throwIfAiVaultScanCancelled(context.signal)
@@ -260,6 +255,9 @@ async function parseRemoteSessionCandidate(
     return session
   } catch (err) {
     throwIfAiVaultScanCancelled(context.signal)
+    if (err instanceof BinarySessionTranscriptError) {
+      return null
+    }
     recordSessionScanIssue(issues, {
       executionHostId: context.executionHostId,
       agent: candidate.source.agent,
