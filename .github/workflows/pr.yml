@@ -847,6 +847,10 @@ jobs:
           config/scripts/rebuild-native-deps.test.mjs
           config/scripts/rebuild-native-deps-windows-process-tree.test.mjs
           src/main/windows-registry-addon.test.ts
+          config/scripts/windows-process-tree-gyp-path.test.mjs
+          config/scripts/windows-process-tree-gyp-rebuild.test.mjs
+          config/scripts/package-electron-runtime-contract.test.mjs
+          config/scripts/electron-builder-runtime-resources.test.mjs
           src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts
           src/main/browser/browser-route-tcp-egress.electron.test.ts
           src/main/browser/browser-route-webrtc-egress.electron.test.ts

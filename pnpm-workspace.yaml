@@ -33,16 +33,13 @@ ignoredOptionalDependencies:
   - '@anthropic-ai/claude-agent-sdk-win32-arm64'
   - '@anthropic-ai/claude-agent-sdk-win32-x64'
 
+# Development and test jobs need only their host. Cross-target packaging opts in
+# with pnpm install:release (or explicit pnpm install --os / --cpu targets).
 supportedArchitectures:
   os:
     - current
-    - darwin
-    - linux
-    - win32
   cpu:
     - current
-    - x64
-    - arm64
 
 allowBuilds:
   '@parcel/watcher': true

@@ -328,10 +328,8 @@ describe('PR workflow parallelism', () => {
     expect(dependencyInstall.run).toContain('--ignore-scripts')
     expect(dependencyInstall.run).not.toContain('--os=')
     expect(dependencyInstall.run).not.toContain('--cpu=')
-    expect(pnpmWorkspace.supportedArchitectures.os).toEqual(
-      expect.arrayContaining(['current', 'win32'])
-    )
-    expect(pnpmWorkspace.supportedArchitectures.cpu).toContain('current')
+    expect(pnpmWorkspace.supportedArchitectures.os).toEqual(['current'])
+    expect(pnpmWorkspace.supportedArchitectures.cpu).toEqual(['current'])
     const prepareRuntime = dependencyAction.runs.steps.find(
       (step) => step.name === 'Prepare native runtime'
     )

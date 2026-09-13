@@ -116,6 +116,7 @@ docs/**
 !docs/reference/linux-glibc-compatibility.md
 !docs/reference/macos-press-and-hold.md
 !docs/reference/mantad-operations.md
+!docs/reference/pnpm-install-policy.md
 !docs/reference/relay-grace-time-reconfiguration.md
 !docs/reference/windows-cmd-shim-resolution.md
 !docs/reference/windows-daemon-host-relocation.md
