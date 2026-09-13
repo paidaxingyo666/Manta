@@ -511,6 +511,8 @@ export class HostSessionRegistry {
     connTicket: string,
     generation: number
   ): Promise<boolean> {
+    // First insertion-order owner, and the only scan the attach makes: the
+    // unfenced leg reuses this result instead of repeating the search.
     let owner: HostSession | undefined
     for (const candidate of this.sessions.values()) {
       if (candidate.pendingConns.has(connId)) {

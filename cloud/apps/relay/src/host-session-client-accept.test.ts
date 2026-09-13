@@ -488,6 +488,80 @@ async function advanceToPing(control: FakeSocket, clock: { now: number }): Promi
   return (JSON.parse(String(ping[0])) as { t: number }).t
 }
 
+// The attach resolves its owning session once and hands it to the unfenced leg;
+// these hold the session it must be and the order the client hears about it.
+describe('host data attach ownership', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+
+  const bystander = { ...identity, sub: 'user-2', relayHostId: 'qponmlkjihgfedcb' }
+
+  async function pendingAttach(h: ReturnType<typeof harness>) {
+    const client = new FakeSocket()
+    await h.registry.acceptClient(
+      client as unknown as WebSocket,
+      identity.relayHostId,
+      'credential'
+    )
+    const session = h.registry.get({ userId: identity.sub, relayHostId: identity.relayHostId })!
+    return { client, session, pending: [...session.pendingConns.values()][0]! }
+  }
+
+  it('attaches the session that owns the connection, not the first one registered', async () => {
+    const h = harness()
+    const idle = new FakeSocket()
+    await h.activate(idle as unknown as WebSocket, bystander, null, 1, false, 1, '1.4.197')
+    await activeHost(h)
+    const { client, session, pending } = await pendingAttach(h)
+    const idleSession = h.registry.get({
+      userId: bystander.sub,
+      relayHostId: bystander.relayHostId
+    })!
+    const host = new FakeSocket()
+    expect(
+      await h.registry.acceptHostData(
+        host as unknown as WebSocket,
+        pending.connId,
+        pending.connTicket,
+        1
+      )
+    ).toBe(true)
+    expect(client.send).toHaveBeenCalledWith(expect.stringContaining('"type":"relay-hello"'))
+    expect(session.activeSplices.has(pending.connId)).toBe(true)
+    expect(idleSession.activeSplices.size).toBe(0)
+    expect(idleSession.activeConnIds.size).toBe(0)
+    h.registry.drain(0)
+    vi.advanceTimersByTime(0)
+  })
+
+  it('acknowledges the client only after the connection basis is persisted', async () => {
+    const h = harness()
+    await activeHost(h)
+    const { client, session, pending } = await pendingAttach(h)
+    const basis = deferred<void>()
+    h.store.recordConnectionBasis.mockReturnValueOnce(basis.promise)
+    const host = new FakeSocket()
+    const attaching = h.registry.acceptHostData(
+      host as unknown as WebSocket,
+      pending.connId,
+      pending.connTicket,
+      1
+    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(h.store.recordConnectionBasis).toHaveBeenCalledOnce()
+    expect(client.send).not.toHaveBeenCalledWith(expect.stringContaining('relay-hello'))
+    basis.resolve()
+    expect(await attaching).toBe(true)
+    expect(client.send).toHaveBeenCalledWith(expect.stringContaining('"type":"relay-hello"'))
+    expect(session.activeSplices.has(pending.connId)).toBe(true)
+    h.registry.drain(0)
+    vi.advanceTimersByTime(0)
+  })
+})
+
 describe('control round-trip sampling', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => {

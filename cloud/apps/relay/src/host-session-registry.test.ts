@@ -111,6 +111,7 @@ function createRegistry(
   renewControlActivity: ReturnType<typeof vi.fn>
   releaseActivity: ReturnType<typeof vi.fn>
   observer: {
+    recordAuth: ReturnType<typeof vi.fn>
     recordControlClose: ReturnType<typeof vi.fn>
     recordSpliceClose: ReturnType<typeof vi.fn>
   }
@@ -1396,6 +1397,57 @@ describe('source-owned idle cutover', () => {
     cleanup.resolve()
     await attached
   })
+  it('rejects an attach mid-cutover before its ticket is ever examined', async () => {
+    const h = await source({ failReservation: vi.fn().mockResolvedValue(undefined) })
+    const result = deferred<{ outcome: 'deferred' }>()
+    // The cutover must already be in flight: an idle host is what it claims.
+    const moving = h.registry.idleRehome(request, () => result.promise, vi.fn())
+    const client = new FakeSocket()
+    h.session.pendingConns.set('conn', {
+      connId: 'conn',
+      connTicket: 'ticket',
+      client: client as unknown as WebSocket,
+      reservation: {
+        userId: identity.sub,
+        relayHostId: identity.relayHostId,
+        credentialKind: 'invite',
+        leaseExpiresAt: Date.now() + 1000
+      },
+      attachTimer: setTimeout(() => {}, 1000),
+      credentialActivityId: null
+    } as never)
+    const host = new FakeSocket()
+    // The ticket below is the live one: only the cutover fence may reject it.
+    expect(
+      await h.registry.acceptHostData(host as unknown as WebSocket, 'conn', 'ticket', 1)
+    ).toBe(false)
+    expect(host.close).toHaveBeenCalledWith(RELAY_CLOSE_CODE.WRONG_CELL, expect.any(String))
+    expect(h.observer.recordAuth).not.toHaveBeenCalled()
+    expect(h.session.pendingConns.has('conn')).toBe(true)
+    expect(h.session.activeConnIds.size).toBe(0)
+    result.resolve({ outcome: 'deferred' })
+    await moving
+  })
+  it('holds no attach ownership when no session owns the connection', async () => {
+    const h = await source()
+    const host = new FakeSocket()
+    expect(
+      await h.registry.acceptHostData(host as unknown as WebSocket, 'stranger', 'ticket', 1)
+    ).toBe(false)
+    expect(h.observer.recordAuth).toHaveBeenCalledWith(false)
+    expect(host.close).toHaveBeenCalledWith(
+      RELAY_CLOSE_CODE.BAD_OUTER_CREDENTIAL,
+      expect.any(String)
+    )
+    // A leaked idle-work hold from the unowned attach would report `busy` here.
+    expect(
+      await h.registry.idleRehome(
+        request,
+        vi.fn().mockResolvedValue({ outcome: 'committed' }),
+        vi.fn()
+      )
+    ).toEqual({ outcome: 'committed' })
+  })
   it('returns the durable operation outcome after source retirement', async () => {
     const h = await source()
     const commit = vi.fn().mockResolvedValue({ outcome: 'committed' })
@@ -1419,5 +1471,228 @@ describe('source-owned idle cutover', () => {
     await moving
     expect(h.session.state).toBe('closed')
     expect(h.registry.get(request)).toBeNull()
+  })
+})
+
+// The host data leg's owner lookup is the registry's only whole-inventory scan on
+// an attach. These count what that scan touches, not how long it takes.
+describe('host data attach owner lookup', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+
+  const SESSION_COUNT = 1000
+  const CONN_ID = 'conn-owned'
+  const OWNER_INDEX = { first: 0, middle: 499, last: 999 } as const
+  type Placement = keyof typeof OWNER_INDEX | 'absent'
+  type LookupCounts = { visits: number; membership: number }
+
+  function bindOwn<K, V>(map: Map<K, V>, property: string | symbol): unknown {
+    const value: unknown = Reflect.get(map, property, map)
+    return typeof value === 'function' ? value.bind(map) : value
+  }
+
+  // One visit per session the scan pulls off the map iterator; answers unchanged.
+  function countingValues<K, V>(map: Map<K, V>, counts: LookupCounts): Map<K, V> {
+    return new Proxy(map, {
+      get(target, property) {
+        if (property !== 'values') return bindOwn(target, property)
+        return function* (): Generator<V> {
+          for (const value of target.values()) {
+            counts.visits += 1
+            yield value
+          }
+        }
+      }
+    })
+  }
+
+  // One membership check per `pendingConns.has`; answers unchanged.
+  function countingHas<K, V>(map: Map<K, V>, counts: LookupCounts): Map<K, V> {
+    return new Proxy(map, {
+      get(target, property) {
+        if (property !== 'has') return bindOwn(target, property)
+        return (key: K) => {
+          counts.membership += 1
+          return target.has(key)
+        }
+      }
+    })
+  }
+
+  // The pre-change implementation, kept inline as the oracle the new counts are
+  // differenced against: two inventory arrays, two independent finds.
+  function legacyOwnerLookup(
+    sessions: Map<string, HostSession>,
+    connId: string
+  ): { owner: HostSession | undefined; session: HostSession | undefined } {
+    const owner = [...sessions.values()].find((candidate) => candidate.pendingConns.has(connId))
+    const session = [...sessions.values()].find((candidate) => candidate.pendingConns.has(connId))
+    return { owner, session }
+  }
+
+  function pendingConn(client: FakeSocket, connTicket: string) {
+    return {
+      connId: CONN_ID,
+      connTicket,
+      client: client as unknown as WebSocket,
+      reservation: {
+        userId: identity.sub,
+        relayHostId: identity.relayHostId,
+        credentialKind: 'invite',
+        leaseExpiresAt: Date.now() + 1000
+      },
+      attachTimer: setTimeout(() => {}, 1000),
+      credentialActivityId: null
+    } as never
+  }
+
+  // Every decoy holds a pending conn of its own, so each membership check the
+  // scan makes is real work rather than a lookup in an empty map.
+  function decoySession(index: number, counts: LookupCounts): HostSession {
+    const pendingConns = new Map<string, unknown>([[`conn-decoy-${index}`, { connId: 'decoy' }]])
+    return {
+      relayHostId: `decoy-host-${index}`,
+      generation: 1,
+      state: 'active',
+      activeConnIds: new Set<string>(),
+      pendingConns: countingHas(pendingConns, counts)
+    } as unknown as HostSession
+  }
+
+  async function attachRegistry(placement: Placement, store: Partial<RelayCredentialStore> = {}) {
+    const h = createRegistry(vi.fn().mockResolvedValue('control:1'), {
+      failReservation: vi.fn().mockResolvedValue(undefined),
+      recordConnectionBasis: vi.fn().mockResolvedValue(undefined),
+      deactivateBasis: vi.fn().mockResolvedValue(undefined),
+      ...store
+    })
+    const control = new FakeSocket()
+    await h.activate(control as unknown as WebSocket, identity, null, 1, false, 1)
+    const internals = h.registry as unknown as { sessions: Map<string, HostSession> }
+    const [ownerKey, owner] = [...internals.sessions.entries()][0]!
+    const counts: LookupCounts = { visits: 0, membership: 0 }
+    const client = new FakeSocket()
+    if (placement !== 'absent') owner.pendingConns.set(CONN_ID, pendingConn(client, 'ticket'))
+    owner.pendingConns = countingHas(owner.pendingConns, counts)
+    const ordered: HostSession[] = []
+    const sessions = new Map<string, HostSession>()
+    const ownerIndex = placement === 'absent' ? 0 : OWNER_INDEX[placement]
+    for (let index = 0; index < SESSION_COUNT; index += 1) {
+      const session = index === ownerIndex ? owner : decoySession(index, counts)
+      ordered.push(session)
+      sessions.set(index === ownerIndex ? ownerKey : `decoy-${index}`, session)
+    }
+    internals.sessions = countingValues(sessions, counts)
+    return { ...h, owner, ordered, counts, client, control, sessions: internals.sessions }
+  }
+
+  it.each([
+    {
+      placement: 'first',
+      before: { visits: 2000, membership: 2 },
+      after: { visits: 1, membership: 1 }
+    },
+    {
+      placement: 'middle',
+      before: { visits: 2000, membership: 1000 },
+      after: { visits: 500, membership: 500 }
+    },
+    {
+      placement: 'last',
+      before: { visits: 2000, membership: 2000 },
+      after: { visits: 1000, membership: 1000 }
+    },
+    {
+      placement: 'absent',
+      before: { visits: 2000, membership: 2000 },
+      after: { visits: 1000, membership: 1000 }
+    }
+  ] as const)(
+    'visits the inventory once, not twice, for a $placement owner',
+    async ({ placement, before, after }) => {
+      const h = await attachRegistry(placement)
+      expect(h.sessions.size).toBe(SESSION_COUNT)
+      const oracle = legacyOwnerLookup(h.sessions, CONN_ID)
+      const legacy = { ...h.counts }
+      h.counts.visits = 0
+      h.counts.membership = 0
+      const host = new FakeSocket()
+      // An unusable ticket stops the attach immediately after the lookup, so the
+      // counts below belong to the lookup alone.
+      expect(
+        await h.registry.acceptHostData(host as unknown as WebSocket, CONN_ID, 'wrong', 1)
+      ).toBe(false)
+      expect(h.observer.recordAuth).toHaveBeenCalledExactlyOnceWith(false)
+      expect(host.close).toHaveBeenCalledWith(
+        RELAY_CLOSE_CODE.BAD_OUTER_CREDENTIAL,
+        'invalid host data ticket'
+      )
+      expect(legacy).toEqual(before)
+      expect({ ...h.counts }).toEqual(after)
+      expect(oracle.owner).toBe(placement === 'absent' ? undefined : h.owner)
+      expect(oracle.owner).toBe(oracle.session)
+    }
+  )
+
+  it.each([
+    { reason: 'ticket', ticket: 'wrong', generation: 1, state: 'active' },
+    { reason: 'generation', ticket: 'ticket', generation: 2, state: 'active' },
+    { reason: 'state', ticket: 'ticket', generation: 1, state: 'orphaned' }
+  ] as const)('fails an attach whose $reason does not match the owner', async (input) => {
+    const h = await attachRegistry('middle')
+    h.owner.state = input.state
+    const host = new FakeSocket()
+    expect(
+      await h.registry.acceptHostData(
+        host as unknown as WebSocket,
+        CONN_ID,
+        input.ticket,
+        input.generation
+      )
+    ).toBe(false)
+    expect(h.observer.recordAuth).toHaveBeenCalledExactlyOnceWith(false)
+    expect(host.close).toHaveBeenCalledWith(
+      RELAY_CLOSE_CODE.BAD_OUTER_CREDENTIAL,
+      'invalid host data ticket'
+    )
+    expect(h.owner.pendingConns.has(CONN_ID)).toBe(true)
+    expect(h.owner.activeConnIds.size).toBe(0)
+  })
+
+  it('rejects on the earlier duplicate owner rather than the later live one', async () => {
+    const h = await attachRegistry('middle')
+    h.ordered[0]!.pendingConns.set(CONN_ID, pendingConn(new FakeSocket(), 'stale-ticket') as never)
+    expect(legacyOwnerLookup(h.sessions, CONN_ID).owner).toBe(h.ordered[0])
+    h.counts.visits = 0
+    h.counts.membership = 0
+    const host = new FakeSocket()
+    expect(
+      await h.registry.acceptHostData(host as unknown as WebSocket, CONN_ID, 'ticket', 1)
+    ).toBe(false)
+    expect({ ...h.counts }).toEqual({ visits: 1, membership: 1 })
+    expect(h.owner.pendingConns.has(CONN_ID)).toBe(true)
+  })
+
+  it('splices the earlier duplicate owner and leaves the later one untouched', async () => {
+    const basis = vi.fn().mockRejectedValue(new Error('basis failed'))
+    const h = await attachRegistry('first', { recordConnectionBasis: basis })
+    const duplicate = h.ordered[3]!
+    duplicate.pendingConns.set(CONN_ID, pendingConn(new FakeSocket(), 'ticket') as never)
+    h.counts.visits = 0
+    h.counts.membership = 0
+    const host = new FakeSocket()
+    expect(
+      await h.registry.acceptHostData(host as unknown as WebSocket, CONN_ID, 'ticket', 1)
+    ).toBe(false)
+    expect({ ...h.counts }).toEqual({ visits: 1, membership: 1 })
+    expect(h.observer.recordAuth).toHaveBeenCalledWith(true)
+    expect(basis).toHaveBeenCalledOnce()
+    // The first owner's entry was consumed; the later duplicate never was.
+    expect(h.owner.pendingConns.has(CONN_ID)).toBe(false)
+    expect(duplicate.pendingConns.has(CONN_ID)).toBe(true)
+    expect(h.owner.activeConnIds.size).toBe(0)
   })
 })
