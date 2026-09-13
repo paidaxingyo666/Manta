@@ -28,6 +28,9 @@ out/
 /build/
 release/
 native/**/.build/
+# node-gyp output for the vendored Windows registry addon; generated per host and ABI.
+native/windows-registry/build/
+native/windows-registry/bin/
 
 # pnpm
 .pnpm-store/

@@ -504,7 +504,7 @@ miss exactly the detached, reparented descendants the trackers exist to find
 ## Packaging
 
 The addon is Windows-only, so it follows the same contract as
-`windows-native-registry` (asserted by
+`@manta/windows-registry` (asserted by
 `config/scripts/package-electron-runtime-contract.test.mjs`):
 
 - an `optionalDependency`, so a macOS/Linux install tolerates its absence;

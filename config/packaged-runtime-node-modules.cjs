@@ -35,7 +35,7 @@ const PACKAGED_RUNTIME_PACKAGE_ROOTS = [
 ]
 const WINDOWS_PACKAGED_RUNTIME_PACKAGE_ROOTS = [
   '@vscode/windows-process-tree',
-  'windows-native-registry'
+  '@manta/windows-registry'
 ]
 
 const NODE_PTY_PREBUILD_PREFIX_BY_PLATFORM = {

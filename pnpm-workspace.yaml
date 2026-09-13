@@ -2,7 +2,13 @@
 # with its own pnpm-workspace.yaml and lockfile, so keep it out of the root
 # package graph. Without this file `pnpm -r` auto-discovers mobile/ and its
 # nested package, and the root's patchedDependencies fail as ERR_PNPM_UNUSED_PATCH.
-packages: []
+#
+# native/windows-registry is listed explicitly rather than reached by a glob: as a `file:`
+# dependency pnpm re-linked it on every install (including --frozen-lockfile), and that
+# virtual-store churn raced node-gyp reading the same tree, which lost @vscode/windows-process-tree's
+# binding.gyp mid-rebuild on Windows CI. A workspace link is resolved once instead.
+packages:
+  - native/windows-registry
 
 minimumReleaseAge: 4320
 # 6.3.289 was published 2026-08-29T12:48Z; it clears the 3-day gate on 2026-09-01T12:48Z.
@@ -50,7 +56,7 @@ allowBuilds:
   node-pty: true
   sherpa-onnx: true
   ssh2: false
-  windows-native-registry: false
+  "@manta/windows-registry": false
 
 overrides:
   monaco-editor>dompurify: 3.4.14

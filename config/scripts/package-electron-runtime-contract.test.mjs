@@ -19,24 +19,18 @@ describe('Electron runtime package contract', () => {
   })
 
   it('keeps the native Windows registry addon optional and platform-gated', () => {
-    const rebuildScript = readFileSync(
-      join(projectDir, 'config/scripts/rebuild-native-deps.mjs'),
-      'utf8'
-    )
-    const ensureScript = readFileSync(
-      join(projectDir, 'config/scripts/ensure-native-runtime.mjs'),
-      'utf8'
-    )
-    expect(packageJson.optionalDependencies['windows-native-registry']).toBe('3.2.2')
+    const rebuildScript = readProject('config/scripts/rebuild-native-deps.mjs')
+    const ensureScript = readProject('config/scripts/ensure-native-runtime.mjs')
+    expect(packageJson.optionalDependencies['@manta/windows-registry']).toBe('workspace:*')
     // Why: pnpm installs optional target architectures on every host; the root
     // Windows-only rebuild owns this addon so macOS/Linux never run node-gyp for it.
-    expect(pnpmWorkspace.allowBuilds['windows-native-registry']).toBe(false)
+    expect(pnpmWorkspace.allowBuilds['@manta/windows-registry']).toBe(false)
     // Why assert the guard and the member separately: the list now carries more
     // than one addon, so pinning the whole literal only tested its formatting.
     expect(rebuildScript).toContain("rebuildPlatform === 'win32'")
-    expect(rebuildScript).toContain("'windows-native-registry'")
+    expect(rebuildScript).toContain("'@manta/windows-registry'")
     expect(ensureScript).toContain("process.platform === 'win32'")
-    expect(ensureScript).toContain("'windows-native-registry'")
+    expect(ensureScript).toContain("'@manta/windows-registry'")
     const packageTargets = {
       win32: createPackagedRuntimeNodeModuleResources('win32'),
       darwin: createPackagedRuntimeNodeModuleResources('darwin'),
@@ -44,14 +38,14 @@ describe('Electron runtime package contract', () => {
     }
     expect(packageTargets.win32).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ to: join('node_modules', 'windows-native-registry') }),
+        expect.objectContaining({ to: join('node_modules', '@manta', 'windows-registry') }),
         expect.objectContaining({ to: join('node_modules', 'node-addon-api') })
       ])
     )
     for (const platform of ['darwin', 'linux']) {
       expect(packageTargets[platform]).not.toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ to: join('node_modules', 'windows-native-registry') })
+          expect.objectContaining({ to: join('node_modules', '@manta', 'windows-registry') })
         ])
       )
     }
