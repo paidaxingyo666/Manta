@@ -1007,7 +1007,9 @@
         "nativeDropTooManyPaths": "Drop contains too many files.",
         "nativeDropPathsTooLargeDescription": "Drop fewer files or use a shorter path list.",
         "nativeDropPathsTooLarge": "Drop path list is too large.",
-        "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects."
+        "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects.",
+        "nativeDropUnresolvedPathsDescription": "Save them to disk first, then drop the saved files.",
+        "nativeDropUnresolvedPaths": "Manta couldn't read a path for the dropped files."
       },
       "useIpcEvents": {
         "0e3cf53060": "Browser tab {{value0}} not found",
@@ -17112,7 +17114,10 @@
         "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more.",
         "viewAttachment": "View image",
         "imagePreview": "Full-size image preview",
-        "imagePreviewUnavailable": "Preview unavailable"
+        "imagePreviewUnavailable": "Preview unavailable",
+        "workspaceAttachmentMismatch": "Files can only be attached to their source workspace.",
+        "attachmentOwnerChanged": "This workspace changed hosts while attaching — drop the files again.",
+        "attachmentUnreadable": "Couldn't read the dropped files."
       },
       "tool": {
         "exitCode": "exit {{value0}}",

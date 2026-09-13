@@ -1,6 +1,11 @@
 import { NativeChatPromptEditor } from './NativeChatPromptEditor'
 import type { NativeChatComposerInput } from './native-chat-composer-input'
-import type { ClipboardEventHandler, KeyboardEventHandler, RefObject } from 'react'
+import type {
+  ClipboardEventHandler,
+  DragEventHandler,
+  KeyboardEventHandler,
+  RefObject
+} from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import { ImageOff } from 'lucide-react'
 import type { useImeEnterGestureOwnership } from '@/lib/ime-composition-keyboard-event'
@@ -48,6 +53,10 @@ export type NativeChatComposerFieldProps = {
   onAcceptMention: () => void
   onRemoveImageAttachment: (id: string) => void
   onAttach: () => void
+  workspaceFileDropHandlers?: {
+    onDragOverCapture: DragEventHandler<HTMLDivElement>
+    onDropCapture: DragEventHandler<HTMLDivElement>
+  }
   onDictationToggle: () => void
   onDictationHoldStart: () => void
   onDictationHoldEnd: () => void
@@ -120,6 +129,7 @@ export function NativeChatComposerField({
   onAcceptMention,
   onRemoveImageAttachment,
   onAttach,
+  workspaceFileDropHandlers,
   onDictationToggle,
   onDictationHoldStart,
   onDictationHoldEnd,
@@ -185,6 +195,7 @@ export function NativeChatComposerField({
             </div>
           ) : null}
           <div
+            {...workspaceFileDropHandlers}
             data-native-file-drop-target={NATIVE_FILE_DROP_TARGET.composer}
             data-composer-scope-key={composerScopeKey}
             className={cn(
