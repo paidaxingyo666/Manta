@@ -32,6 +32,19 @@ export type RpcClient = UnvalidatedRpcRequestPort & {
   getLastInboundAt?: () => number | null
   onStateChange: (listener: (state: ConnectionState) => void) => () => void
   notifyForeground: (reason?: ForegroundNudgeReason) => void
+  /**
+   * Must settle every pending `sendRequest` promise before returning.
+   *
+   * `StableLogicalRpcClient.migrateTo` no longer rejects pendings itself — the physical
+   * sender is the only layer that knows whether a request reached the wire, so
+   * `previous.close()` is the sole settlement path for the retiring generation. An
+   * implementation that leaves a request pending strands its caller for good.
+   *
+   * Requests that did reach the wire must reject with a delivery-unknown error
+   * (`markRpcDeliveryUnknown`), since the host may already have executed them. Pinned
+   * against the real clients in `rpc-client-delivery-ambiguity.test.ts` (direct) and
+   * `mobile-relay-rpc-session.test.ts` (relay) — a new implementation needs its own case.
+   */
   close: () => void
 }
 
