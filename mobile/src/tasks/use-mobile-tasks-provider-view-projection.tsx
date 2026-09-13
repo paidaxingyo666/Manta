@@ -150,14 +150,14 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
       ),
     [linearGroupBy, linearIssueSections]
   )
+  // Why: every grouping but `none` produces the same sections as the list, so the
+  // board reuses them; `none` still needs its own status split for columns.
   const linearBoardSections = useMemo(
     () =>
-      groupLinearIssues(
-        linearIssuesForView,
-        linearGroupBy === 'none' ? 'status' : linearGroupBy,
-        linearOrderBy
-      ),
-    [linearGroupBy, linearIssuesForView, linearOrderBy]
+      linearGroupBy === 'none'
+        ? groupLinearIssues(linearIssuesForView, 'status', linearOrderBy)
+        : linearIssueSections,
+    [linearGroupBy, linearIssueSections, linearIssuesForView, linearOrderBy]
   )
   const githubModeLabel =
     githubMode === 'project' ? 'Projects' : githubKind === 'prs' ? 'PRs' : 'Issues'
