@@ -390,7 +390,7 @@ describe('PR workflow parallelism', () => {
       expect(cacheStep.with.key).toContain('config/scripts/rebuild-native-deps.mjs')
       expect(cacheStep.with.path).toContain('node-pty@*/node_modules/node-pty/build')
       expect(cacheStep.with.path).toContain('native/windows-registry/build')
-      expect(cacheStep.with.path).toContain('@vscode+windows-process-tree@')
+      expect(cacheStep.with.path).toContain('@vscode+windows-process-tre*')
       expect(cacheStep.with['restore-keys']).toBeUndefined()
     }
     expect(steps[cacheIndex].id).toBe('native-cache-restore')
