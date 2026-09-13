@@ -1,5 +1,5 @@
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks'
-import { RELAY_REGION_METRIC_SEGMENTS, type RelayRegion } from '@manta-cloud/relay-contract'
+import { RELAY_REGION_METRIC_SEGMENTS, type RelayRegion } from '@orca-cloud/relay-contract'
 import type { ControlRenewalOutcome } from './assignment-store.js'
 import type { CellInventoryHoldCounts } from './cell-inventory-hold-samples.js'
 import type { PostgresPoolPressureCounts } from './postgres-pool-pressure.js'
@@ -168,10 +168,18 @@ const emptyDeltas = (): RelayMetricDeltas => ({
   controlActivityRecoveryFailures: 0
 })
 
+function ascending(values: number[]): number[] {
+  return [...values].sort((left, right) => left - right)
+}
+
+// Holes and NaN land past the requested rank, so the fallback still applies.
+function nearestRank(sorted: number[], percentileRank: number): number {
+  return sorted[Math.ceil(percentileRank * sorted.length) - 1] ?? 0
+}
+
 export function percentile(values: number[], percentileRank: number): number {
   if (values.length === 0) return 0
-  const sorted = [...values].sort((left, right) => left - right)
-  return sorted[Math.ceil(percentileRank * sorted.length) - 1] ?? 0
+  return nearestRank(ascending(values), percentileRank)
 }
 
 function roundMs(value: number): number {
@@ -179,11 +187,15 @@ function roundMs(value: number): number {
 }
 
 // Spreading a window into Math.max blows the stack once a busy cell samples
-// enough of it, so the maximum is folded instead.
+// enough of it, so the maximum is folded instead. The fold is also not
+// interchangeable with the sorted last element: it is seeded with zero, so an
+// all-negative or NaN window reads differently.
 function latencySummary(samples: number[]): { p50: number; p95: number; max: number } {
+  // One sorted copy serves both ranks.
+  const sorted = samples.length === 0 ? samples : ascending(samples)
   return {
-    p50: roundMs(percentile(samples, 0.5)),
-    p95: roundMs(percentile(samples, 0.95)),
+    p50: roundMs(nearestRank(sorted, 0.5)),
+    p95: roundMs(nearestRank(sorted, 0.95)),
     max: roundMs(samples.reduce((highest, sample) => Math.max(highest, sample), 0))
   }
 }
@@ -270,8 +282,8 @@ export class RelayObservability implements RelayRuntimeObserver {
   recordReadiness(observation: RelayReadinessObservation): void {
     this.write({
       severity: observation.ready ? 'INFO' : 'WARNING',
-      message: 'Manta Relay readiness check',
-      event: 'manta_relay_readiness_check',
+      message: 'Orca Relay readiness check',
+      event: 'orca_relay_readiness_check',
       metricVersion: 1,
       ...this.identity,
       ...observation
@@ -358,8 +370,8 @@ export class RelayObservability implements RelayRuntimeObserver {
     this.eventLoop.reset()
     this.write({
       severity: 'INFO',
-      message: 'Manta Relay runtime metrics',
-      event: 'manta_relay_runtime_metrics',
+      message: 'Orca Relay runtime metrics',
+      event: 'orca_relay_runtime_metrics',
       metricVersion: 2,
       role: this.identity.role,
       cellId: this.identity.cellId,
