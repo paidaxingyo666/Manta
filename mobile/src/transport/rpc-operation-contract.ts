@@ -12,9 +12,11 @@ export type RpcAcceptanceName =
   | 'object-result-or-null'
   | 'method-not-found-refusal'
   | 'streaming-opener'
+  | 'success-result-or-skip'
+  | 'require-result-or-throw-message'
 
 /** Where a settled reply may become a value or a throw. */
-export type RpcInterpretationBarrier = 'on-settle' | 'after-all-requests'
+export type RpcInterpretationBarrier = 'on-settle' | 'after-all-requests' | 'after-caller-barrier'
 
 export type RpcDecodeIssue = { readonly path: string; readonly message: string }
 
@@ -76,7 +78,7 @@ export type RpcOperation<
 } & {
   [Policy in RpcAcceptanceName]: {
     readonly acceptance: Policy
-    readonly read: Policy extends 'require-result-or-throw' | 'object-result-or-null'
+    readonly read: Policy extends RpcReaderAcceptance
       ? RpcCompatibleReader<unknown, Variant, Value>
       : undefined
   }
@@ -89,18 +91,19 @@ export type AnyRpcOperation = Pick<
 > & { readonly read: RpcCompatibleReader<unknown, string, unknown> | undefined }
 
 /** The verdict the declared policy yields. Not a per-call choice. */
-export type RpcVerdict<
-  Acceptance extends RpcAcceptanceName,
-  Value
-> = Acceptance extends 'require-result-or-throw'
+export type RpcVerdict<Acceptance extends RpcAcceptanceName, Value> = Acceptance extends
+  | 'require-result-or-throw'
+  | 'require-result-or-throw-message'
   ? Value
-  : Acceptance extends 'object-result-or-null'
-    ? Value | null
-    : Acceptance extends 'method-not-found-refusal'
-      ? boolean
-      : Acceptance extends 'streaming-opener'
-        ? RpcStreamOpenerReply | null
-        : never
+  : Acceptance extends 'success-result-or-skip'
+    ? RpcAcceptedResult<Value>
+    : Acceptance extends 'object-result-or-null'
+      ? Value | null
+      : Acceptance extends 'method-not-found-refusal'
+        ? boolean
+        : Acceptance extends 'streaming-opener'
+          ? RpcStreamOpenerReply | null
+          : never
 
 export type RpcOperationSettlement<Variant extends string, Value> =
   | { readonly status: 'fulfilled'; readonly outcome: RpcRequestOutcome<Variant, Value> }
@@ -152,4 +155,26 @@ export type StreamOpenerRpcDefinition<
   acceptance: 'streaming-opener'
   /** The opener's value is the reply itself; frames arrive on the subscription, not here. */
   read?: never
+}
+
+/** Refusal is distinct from an accepted null/undefined payload. */
+export type RpcAcceptedResult<Value> =
+  | { readonly accepted: false }
+  | { readonly accepted: true; readonly value: Value }
+
+export type RpcReaderAcceptance =
+  | 'require-result-or-throw'
+  | 'object-result-or-null'
+  | 'success-result-or-skip'
+  | 'require-result-or-throw-message'
+
+export type LegacyResultRpcDefinition<
+  Method extends RpcMethodName,
+  Acceptance extends 'success-result-or-skip' | 'require-result-or-throw-message',
+  Variant extends string,
+  Value,
+  Barrier extends RpcInterpretationBarrier
+> = RpcOperationDefinition<Method, Barrier> & {
+  acceptance: Acceptance
+  read: RpcCompatibleReader<unknown, Variant, Value>
 }

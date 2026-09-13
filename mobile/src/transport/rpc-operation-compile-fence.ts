@@ -1,6 +1,12 @@
 import type { RpcClient } from './rpc-client'
 import type { RpcMethodName, RpcParams, RpcSendParams } from './rpc-params-contract'
-import { defineRpcOperation, runRpcOperation, startRpcOperation } from './rpc-operation'
+import {
+  bindDeferredRpcOperation,
+  captureRpcOperationSettlement,
+  defineRpcOperation,
+  runRpcOperation,
+  startRpcOperation
+} from './rpc-operation'
 import { rpcResultVariants } from './rpc-operation-result-reader'
 import {
   workspaceListAtBarrier,
@@ -51,7 +57,7 @@ export const fenceDecodingWithoutReader: RequireResultRpcDefinition<
   barrier: 'on-settle'
 }
 
-// @ts-expect-error the four policies in rpc-acceptance-policies.ts are the whole vocabulary
+// @ts-expect-error only the named policies in rpc-acceptance-policies.ts are allowed
 export const fenceInventedPolicy: RpcAcceptanceName = 'no-error-means-fine'
 
 // A reader for a payload no acceptance policy here admits, i.e. one belonging to some other
@@ -83,7 +89,6 @@ export const fenceDefineRejectsMismatch = defineRpcOperation({
   // @ts-expect-error no overload of defineRpcOperation pairs a probe with a payload reader
   acceptance: 'method-not-found-refusal',
   barrier: 'on-settle',
-  // @ts-expect-error ... and the reader it would need is exactly what the probe overload bans
   read: workspaceRowsReader
 })
 
@@ -188,4 +193,31 @@ export const fenceObjectWithoutReader: RpcOperation<
   method: 'worktree.ps',
   acceptance: 'object-result-or-null',
   barrier: 'on-settle'
+}
+
+const fenceDeferred = bindDeferredRpcOperation(
+  defineRpcOperation({
+    name: 'fence.deferred',
+    method: 'files.searchPaths',
+    acceptance: 'success-result-or-skip',
+    barrier: 'after-caller-barrier',
+    read: workspaceRowsReader
+  })
+)
+
+export function fenceDeferredArguments(): void {
+  // @ts-expect-error required params must not be omitted
+  fenceDeferred.request(client)
+  // @ts-expect-error request params are method-keyed, including deferred requests
+  fenceDeferred.request(client, { worktree: 3 })
+  // @ts-expect-error single-flight operations also require their method's params
+  fenceDeferred.requestSingleFlight(client, 'host')
+  // @ts-expect-error on-settle operations cannot defer interpretation behind a caller guard
+  bindDeferredRpcOperation(workspaceListOrNull)
+  // @ts-expect-error caller-barrier operations cannot interpret as each request settles
+  runRpcOperation(client, fenceDeferred.operation, { worktree: 'w' })
+  // @ts-expect-error a caller-barrier operation cannot acquire all-settled behavior implicitly
+  startRpcOperation(client, fenceDeferred.operation, { worktree: 'w' })
+  // @ts-expect-error capturing must not decode a caller-barrier operation before its guard
+  captureRpcOperationSettlement(client, fenceDeferred.operation, { worktree: 'w' })
 }

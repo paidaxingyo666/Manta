@@ -35,7 +35,7 @@ export const UNVALIDATED_RPC_REQUEST_PORT_OWNERS: readonly UnvalidatedRpcRequest
   // Composes the port into RpcClient, which is why every holder of a client still carries it.
   { file: 'src/transport/rpc-client.ts', references: 2 },
   // The typed boundary itself — the one module that turns a reply into a declared type.
-  { file: 'src/transport/rpc-operation.ts', references: 2 },
+  { file: 'src/transport/rpc-operation.ts', references: 5 },
   // Forwards the port across a physical-client cutover.
   { file: 'src/transport/stable-logical-rpc-client.ts', references: 2 }
 ]
@@ -49,7 +49,7 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'app/terminal-settings.tsx', references: 3 },
 
   // src/agent-history/ — agent history loads
-  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 7 },
+  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 6 },
   { file: 'src/agent-history/use-mobile-agent-history-state.ts', references: 2 },
 
   // src/browser/ — hosted browser control
@@ -59,10 +59,9 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // src/components/ — shared widgets that fetch their own data
   { file: 'src/components/codex-reset-credit-capability.ts', references: 2 },
   { file: 'src/components/codex-reset-credit.ts', references: 3 },
-  { file: 'src/components/use-new-workspace-create-submit.ts', references: 1 },
   { file: 'src/components/use-new-workspace-execution-target.ts', references: 4 },
   { file: 'src/components/use-new-workspace-repositories.ts', references: 1 },
-  { file: 'src/components/use-new-workspace-runtime-context.ts', references: 4 },
+  { file: 'src/components/use-new-workspace-runtime-context.ts', references: 3 },
   { file: 'src/components/use-new-workspace-setup-script.ts', references: 1 },
 
   // src/dictation/ — dictation session control
@@ -76,7 +75,7 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/files/MobileFileExplorerPanel.tsx', references: 2 },
 
   // src/home/ — home screen host reads
-  { file: 'src/home/mobile-home-host-requests.ts', references: 6 },
+  { file: 'src/home/mobile-home-host-requests.ts', references: 5 },
 
   // src/hooks/ — cross-screen data hooks
   { file: 'src/hooks/mobile-dictation-audio-chunk.ts', references: 1 },
@@ -85,7 +84,7 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
 
   // src/host-screen/ — host screen catalog and actions
   { file: 'src/host-screen/host-screen-overlays.tsx', references: 1 },
-  { file: 'src/host-screen/use-host-repo-metadata.ts', references: 2 },
+  { file: 'src/host-screen/use-host-repo-metadata.ts', references: 1 },
   { file: 'src/host-screen/use-host-view-settings.ts', references: 2 },
   { file: 'src/host-screen/use-host-worktree-actions.ts', references: 3 },
 
@@ -108,7 +107,7 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/session/mobile-native-chat-send.ts', references: 2 },
   { file: 'src/session/mobile-native-chat-session-option-persistence.ts', references: 1 },
   { file: 'src/session/mobile-native-chat-stale-input.ts', references: 1 },
-  { file: 'src/session/mobile-new-tab-agent-loader.ts', references: 5 },
+  { file: 'src/session/mobile-new-tab-agent-loader.ts', references: 4 },
   { file: 'src/session/mobile-session-tab-activation.ts', references: 3 },
   { file: 'src/session/mobile-session-tabs-stream-health.ts', references: 1 },
   { file: 'src/session/mobile-structured-agent-session-launch.ts', references: 3 },
@@ -141,7 +140,6 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/session/use-mobile-session-terminal-send-actions.ts', references: 2 },
   { file: 'src/session/use-mobile-session-terminal-stream-display.ts', references: 1 },
   { file: 'src/session/use-mobile-terminal-paste.ts', references: 1 },
-  { file: 'src/session/use-pr-bot-author-overrides.ts', references: 1 },
   { file: 'src/session/use-quick-commands.ts', references: 2 },
 
   // src/settings/ — settings screen actions
@@ -194,11 +192,11 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/tasks/use-mobile-tasks-project-workspace-comment-actions.tsx', references: 3 },
   { file: 'src/tasks/use-mobile-tasks-provider-load-actions.tsx', references: 5 },
   { file: 'src/tasks/use-mobile-tasks-route-and-item-state.tsx', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-runtime-hydration.tsx', references: 5 },
+  { file: 'src/tasks/use-mobile-tasks-runtime-hydration.tsx', references: 4 },
   { file: 'src/tasks/use-mobile-tasks-task-create-actions.tsx', references: 3 },
   { file: 'src/tasks/use-mobile-tasks-task-list-loading.tsx', references: 4 },
   { file: 'src/tasks/use-mobile-tasks-task-pagination-actions.tsx', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-workspace-create-actions.tsx', references: 4 },
+  { file: 'src/tasks/use-mobile-tasks-workspace-create-actions.tsx', references: 3 },
   { file: 'src/tasks/use-mobile-tasks-workspace-source-effects.tsx', references: 2 },
   { file: 'src/tasks/use-mobile-tasks-workspace-sparse-actions.tsx', references: 2 },
   { file: 'src/tasks/use-mobile-tasks-workspace-ssh-state.tsx', references: 5 },
