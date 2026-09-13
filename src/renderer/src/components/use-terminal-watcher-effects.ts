@@ -17,11 +17,42 @@ import { getStructuredAgentLaunchStatus } from '@/lib/structured-agent-session-l
 import { AGENT_SESSION_PROVIDER_HANDLE_PROVIDERS } from '../../../shared/agent-session-provider-handle'
 import type { TerminalColdActivationController } from './terminal-cold-activation'
 
-// Why shared: only a mounted workspace can park a tab, and the watcher sync only reads
-// this set, so every other surface would otherwise allocate its own empty one per fire.
+// Why shared: surfaces without watchable live tabs need no per-pass allocation.
 const NO_PARKED_TAB_IDS: ReadonlySet<string> = new Set()
 
-export function useTerminalWatcherEffects(controller: TerminalColdActivationController): void {
+type TerminalWatcherController = Pick<
+  TerminalColdActivationController,
+  | 'activationDeferredMountTabIdsByWorktreeRef'
+  | 'activeTabId'
+  | 'activeTabIdByWorktree'
+  | 'activeView'
+  | 'activeWorktreeId'
+  | 'activityTerminalPortals'
+  | 'anyMountedWorktreeHasLayout'
+  | 'backgroundMountRevision'
+  | 'createTab'
+  | 'effectiveParkedTerminalWorktreeIds'
+  | 'evictionExemptTerminalTabIds'
+  | 'getEffectiveLayoutForWorktree'
+  | 'groupsByWorktree'
+  | 'hydrationSucceeded'
+  | 'measurableBackgroundWorktreeIdsRef'
+  | 'mountedWorktreeIdsRef'
+  | 'pairedRuntimeParkingEnvironmentIds'
+  | 'pendingStartupByTabId'
+  | 'reconcileWorktreeTabModel'
+  | 'renderedActiveWorktreeId'
+  | 'tabsByWorktree'
+  | 'terminalParkingEnabled'
+  | 'terminalProviderSnapshotCapabilityRevision'
+  | 'terminalSshParkingEnabled'
+  | 'terminalStartupRestorationReady'
+  | 'terminalTitleSnapshotAuthorityEnabled'
+  | 'workspaceSessionReady'
+  | 'workspaceSurfaceIds'
+>
+
+export function useTerminalWatcherEffects(controller: TerminalWatcherController): void {
   const {
     activationDeferredMountTabIdsByWorktreeRef,
     activeTabId,
@@ -39,11 +70,14 @@ export function useTerminalWatcherEffects(controller: TerminalColdActivationCont
     hydrationSucceeded,
     measurableBackgroundWorktreeIdsRef,
     mountedWorktreeIdsRef,
+    pairedRuntimeParkingEnvironmentIds,
     pendingStartupByTabId,
     reconcileWorktreeTabModel,
     renderedActiveWorktreeId,
     tabsByWorktree,
     terminalParkingEnabled,
+    terminalProviderSnapshotCapabilityRevision,
+    terminalSshParkingEnabled,
     terminalStartupRestorationReady,
     terminalTitleSnapshotAuthorityEnabled,
     workspaceSessionReady,
@@ -100,6 +134,23 @@ export function useTerminalWatcherEffects(controller: TerminalColdActivationCont
           }
         }
       }
+      if (tabs.length > 0 && !mountedWorktreeIdsRef.current.has(workspaceId)) {
+        const backgroundTabIds = tabs
+          .filter(
+            (tab) =>
+              canWatcherCoverParkedTerminalTab(workspaceId, tab) &&
+              !findActivityTerminalPortal(activityTerminalPortals, {
+                worktreeId: workspaceId,
+                tabId: tab.id
+              })
+          )
+          .map((tab) => tab.id)
+        if (backgroundTabIds.length > 0) {
+          // CLI-created live terminals have never mounted a pane to consume host title facts.
+          parkedTabIds = new Set(backgroundTabIds)
+          deferredTabIds = parkedTabIds
+        }
+      }
       syncEntriesByWorktreeId.set(workspaceId, {
         tabs,
         parkedTabIds,
@@ -119,10 +170,13 @@ export function useTerminalWatcherEffects(controller: TerminalColdActivationCont
     getEffectiveLayoutForWorktree,
     groupsByWorktree,
     effectiveParkedTerminalWorktreeIds,
+    pairedRuntimeParkingEnvironmentIds,
     pendingStartupByTabId,
     renderedActiveWorktreeId,
     tabsByWorktree,
     terminalParkingEnabled,
+    terminalProviderSnapshotCapabilityRevision,
+    terminalSshParkingEnabled,
     terminalTitleSnapshotAuthorityEnabled,
     workspaceSessionReady,
     workspaceSurfaceIds
