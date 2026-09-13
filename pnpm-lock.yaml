@@ -171,7 +171,7 @@ importers:
         specifier: 17.0.13
         version: 17.0.13(i18next@26.3.1(typescript@7.0.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2)
       serve-sim:
-        specifier: ^0.1.40
+        specifier: 0.1.40
         version: 0.1.40(typescript@7.0.2)
       sherpa-onnx:
         specifier: 1.12.37
