@@ -38,6 +38,10 @@ vi.mock('./mobile-tasks-legacy-foundation', async () => {
     groupLinearIssues: (issues: LinearIssue[], groupBy: LinearGroupBy, orderBy: LinearOrderBy) => {
       groupingInputSizes.push(issues.length)
       return linear.groupLinearIssues(issues, groupBy, orderBy)
+    },
+    groupSortedLinearIssues: (issues: readonly LinearIssue[], groupBy: LinearGroupBy) => {
+      groupingInputSizes.push(issues.length)
+      return linear.groupSortedLinearIssues(issues, groupBy)
     }
   }
 })
@@ -392,11 +396,12 @@ describe('useMobileTasksProviderViewProjection grouping work', () => {
     expect(after.groupingCalls).toBe(1)
     expect(before.issueVisits).toBe(100)
     expect(after.issueVisits).toBe(50)
-    // The dropped grouping re-sorted an already sorted 50-issue array: n-1 comparisons.
-    expect(before.comparisons - after.comparisons).toBe(input.items.length - 1)
+    // Both legacy groupings re-sorted an already sorted 50-issue array (n-1 comparisons
+    // each); one call is gone and the other groups without re-sorting.
+    expect(before.comparisons - after.comparisons).toBe(2 * (input.items.length - 1))
   })
 
-  it('leaves the none grouping work untouched', () => {
+  it('keeps both none grouping calls but drops their re-sorts', () => {
     const input = { ...DEFAULT_INPUT, linearGroupBy: 'none' as const }
     const before = countLinearWork(() => {
       legacyProjection(input)
@@ -406,7 +411,7 @@ describe('useMobileTasksProviderViewProjection grouping work', () => {
     })
     expect([before.groupingCalls, after.groupingCalls]).toEqual([2, 2])
     expect([before.issueVisits, after.issueVisits]).toEqual([100, 100])
-    expect(after.comparisons).toBe(before.comparisons)
+    expect(before.comparisons - after.comparisons).toBe(2 * (input.items.length - 1))
   })
 
   it('does no grouping work on an unrelated rerender', () => {

@@ -16,7 +16,7 @@ import {
   PR_PRESETS,
   type TaskItem,
   sortLinearIssues,
-  groupLinearIssues
+  groupSortedLinearIssues
 } from './mobile-tasks-legacy-foundation'
 
 export function useMobileTasksProviderViewProjection(model: PickerProjectionModel) {
@@ -133,8 +133,8 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
     [items, linearOrderBy]
   )
   const linearIssueSections = useMemo(
-    () => groupLinearIssues(linearIssuesForView, linearGroupBy, linearOrderBy),
-    [linearGroupBy, linearIssuesForView, linearOrderBy]
+    () => groupSortedLinearIssues(linearIssuesForView, linearGroupBy),
+    [linearGroupBy, linearIssuesForView]
   )
   // Why: FlatList treats data identity as meaningful; unrelated renders should
   // not rebuild the section/item wrapper array.
@@ -155,9 +155,9 @@ export function useMobileTasksProviderViewProjection(model: PickerProjectionMode
   const linearBoardSections = useMemo(
     () =>
       linearGroupBy === 'none'
-        ? groupLinearIssues(linearIssuesForView, 'status', linearOrderBy)
+        ? groupSortedLinearIssues(linearIssuesForView, 'status')
         : linearIssueSections,
-    [linearGroupBy, linearIssueSections, linearIssuesForView, linearOrderBy]
+    [linearGroupBy, linearIssueSections, linearIssuesForView]
   )
   const githubModeLabel =
     githubMode === 'project' ? 'Projects' : githubKind === 'prs' ? 'PRs' : 'Issues'
