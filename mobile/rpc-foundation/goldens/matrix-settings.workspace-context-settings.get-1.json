@@ -1,24 +1,16 @@
 {
   "operation": "settings.workspace-context",
   "family": "settings.workspace-context",
-  "namedDeltas": ["new-workspace-runtime-context-null-settings-typeerror"],
+  "namedDeltas": ["new-workspace-runtime-context-null-results-degrade-to-absent"],
   "runnerVersion": 1,
-  "baseline": "16d1ab81d3fd08e342b2f0ac0cc6f9e4aea4aaee",
+  "baseline": "5ec0b2698fbb74574650d21f96ccef8d4cb33d4f",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "6a12160a87ceab04e74198f6dd35b8cf9125794222ee95cf6ca1872f29849960",
+  "recorderSha256": "70aa6f59e01f8195ab8512a6fb4834315f54b64fa8009d377a45d271422bcf6b",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 3,
   "values": {
-    "045f11564884": {
-      "name": "unhandled-rejection",
-      "value": {
-        "category": "TypeError",
-        "isRpcDeliveryUnknown": false,
-        "message": "Cannot read properties of null (reading 'settings')"
-      }
-    },
     "090c88478661": {
       "name": "settings.get#1",
       "args": [
@@ -291,14 +283,6 @@
             "ui": {}
           }
         }
-      }
-    },
-    "4fdb20ad5654": {
-      "name": "unhandled-rejection",
-      "value": {
-        "category": "TypeError",
-        "isRpcDeliveryUnknown": false,
-        "message": "Cannot read properties of undefined (reading 'settings')"
       }
     },
     "563e4c82b345": {
@@ -682,8 +666,8 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f6a09f8c5b85",
-          "effects": ["4fdb20ad5654"]
+          "state": "3a834cb85dd8",
+          "effects": []
         }
       },
       {
@@ -694,8 +678,8 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f6a09f8c5b85",
-          "effects": ["045f11564884"]
+          "state": "3a834cb85dd8",
+          "effects": []
         }
       },
       {

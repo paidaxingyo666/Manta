@@ -3,9 +3,9 @@
   "family": "hostedReview.create-intent",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "16d1ab81d3fd08e342b2f0ac0cc6f9e4aea4aaee",
+  "baseline": "5ec0b2698fbb74574650d21f96ccef8d4cb33d4f",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "6a12160a87ceab04e74198f6dd35b8cf9125794222ee95cf6ca1872f29849960",
+  "recorderSha256": "70aa6f59e01f8195ab8512a6fb4834315f54b64fa8009d377a45d271422bcf6b",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -535,60 +535,6 @@
     "319e2b2ccc22": {
       "name": "git.bulkStage#1",
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"git.bulkStage\",\"params\":{\"worktree\":\"id:repo42::/p\",\"filePaths\":[\"src/new.ts\"]}}"
-    },
-    "33282210f096": {
-      "outcome": {
-        "commitMessage": "feat: recorded",
-        "committed": false,
-        "error": {
-          "message": "inner refused"
-        },
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [
-            {
-              "added": {
-                "$rpc": "undefined"
-              },
-              "area": "staged",
-              "conflictKind": {
-                "$rpc": "undefined"
-              },
-              "conflictStatus": {
-                "$rpc": "undefined"
-              },
-              "conflictStatusSource": {
-                "$rpc": "undefined"
-              },
-              "oldPath": {
-                "$rpc": "undefined"
-              },
-              "path": "src/app.ts",
-              "removed": {
-                "$rpc": "undefined"
-              },
-              "status": "modified"
-            }
-          ],
-          "head": "abc1234",
-          "upstreamStatus": {
-            "ahead": 1,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
     },
     "368b0b9ce80a": {
       "name": "progress",
@@ -1275,63 +1221,6 @@
         "commitMessage": "feat: recorded",
         "committed": false,
         "error": "refused",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [
-            {
-              "added": {
-                "$rpc": "undefined"
-              },
-              "area": "staged",
-              "conflictKind": {
-                "$rpc": "undefined"
-              },
-              "conflictStatus": {
-                "$rpc": "undefined"
-              },
-              "conflictStatusSource": {
-                "$rpc": "undefined"
-              },
-              "oldPath": {
-                "$rpc": "undefined"
-              },
-              "path": "src/app.ts",
-              "removed": {
-                "$rpc": "undefined"
-              },
-              "status": "modified"
-            }
-          ],
-          "head": "abc1234",
-          "upstreamStatus": {
-            "ahead": 1,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
-    "85e126c40505": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "commitMessage": "feat: recorded",
-        "committed": false,
-        "error": {
-          "message": "inner refused"
-        },
         "ok": false,
         "status": {
           "branch": "feature",
@@ -2691,9 +2580,9 @@
             "2af3debae21a"
           ],
           "settlements": {
-            "run": "85e126c40505"
+            "run": "2e35579e2fc7"
           },
-          "state": "33282210f096",
+          "state": "2c921c059023",
           "effects": ["368b0b9ce80a", "6a5c9570c542", "7778d4c43a58"]
         }
       },
@@ -2715,9 +2604,9 @@
             "2af3debae21a"
           ],
           "settlements": {
-            "run": "85e126c40505"
+            "run": "2e35579e2fc7"
           },
-          "state": "33282210f096",
+          "state": "2c921c059023",
           "effects": ["368b0b9ce80a", "6a5c9570c542", "7778d4c43a58"]
         }
       },
@@ -2739,9 +2628,9 @@
             "2af3debae21a"
           ],
           "settlements": {
-            "run": "85e126c40505"
+            "run": "2e35579e2fc7"
           },
-          "state": "33282210f096",
+          "state": "2c921c059023",
           "effects": ["368b0b9ce80a", "6a5c9570c542", "7778d4c43a58"]
         }
       },
@@ -2763,9 +2652,9 @@
             "2af3debae21a"
           ],
           "settlements": {
-            "run": "85e126c40505"
+            "run": "2e35579e2fc7"
           },
-          "state": "33282210f096",
+          "state": "2c921c059023",
           "effects": ["368b0b9ce80a", "6a5c9570c542", "7778d4c43a58"]
         }
       },
