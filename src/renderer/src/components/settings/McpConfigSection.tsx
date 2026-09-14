@@ -300,9 +300,17 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
           <span>
             {detectedCount}{' '}
             {translate('auto.components.settings.McpConfigSection.251b96564a', 'detected ·')}{' '}
-            {serverCount}{' '}
-            {translate('auto.components.settings.McpConfigSection.3b224167ff', 'server')}
-            {serverCount === 1 ? '' : 's'}
+            {serverCount === 1
+              ? translate(
+                  'auto.components.settings.McpConfigSection.3b224167ff_one',
+                  '{{value0}} server',
+                  { value0: serverCount }
+                )
+              : translate(
+                  'auto.components.settings.McpConfigSection.3b224167ff_other',
+                  '{{value0}} servers',
+                  { value0: serverCount }
+                )}
           </span>
           {loading ? <LoaderCircle className="size-3.5 animate-spin" /> : null}
         </div>

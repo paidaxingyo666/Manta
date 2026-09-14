@@ -31,9 +31,17 @@ export function ConflictingFilesSection({ pr }: { pr: ConflictReview }): React.J
   return (
     <div className="border-b border-border px-3 py-3">
       <div className="text-[11px] text-muted-foreground">
-        {pr.conflictSummary!.commitsBehind}{' '}
-        {translate('auto.components.right.sidebar.checks.panel.content.6fa7f8723f', 'commit')}
-        {pr.conflictSummary!.commitsBehind === 1 ? '' : 's'}{' '}
+        {pr.conflictSummary!.commitsBehind === 1
+          ? translate(
+              'auto.components.right.sidebar.checks.panel.content.6fa7f8723f_one',
+              '{{value0}} commit',
+              { value0: pr.conflictSummary!.commitsBehind }
+            )
+          : translate(
+              'auto.components.right.sidebar.checks.panel.content.6fa7f8723f_other',
+              '{{value0}} commits',
+              { value0: pr.conflictSummary!.commitsBehind }
+            )}{' '}
         {translate(
           'auto.components.right.sidebar.checks.panel.content.3916814392',
           'behind (base commit:'

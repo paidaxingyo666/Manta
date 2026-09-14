@@ -170,8 +170,13 @@ export function PRChecksSection({ checks, client, worktreeId, prRepo, actions, t
         <View style={triageStyles.triageStrip}>
           <View style={triageStyles.triageStripText}>
             <Text style={triageStyles.triageStripTitle} numberOfLines={1}>
-              {summary.failed} {translate('m.PRChecksSection.df5a325c3c', 'failing check')}
-              {summary.failed === 1 ? '' : 's'}
+              {summary.failed === 1
+                ? translate('m.PRChecksSection.df5a325c3c_one', '{{value0}} failing check', {
+                    value0: summary.failed
+                  })
+                : translate('m.PRChecksSection.df5a325c3c_other', '{{value0}} failing checks', {
+                    value0: summary.failed
+                  })}
             </Text>
             <Text style={triageStyles.triageStripSubtitle} numberOfLines={1}>
               {translate(

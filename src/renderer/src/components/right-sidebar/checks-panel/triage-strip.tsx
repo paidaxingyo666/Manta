@@ -68,12 +68,17 @@ export function PRTriageStrip({
           <CircleX className="size-3.5 shrink-0 text-rose-500" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-medium text-foreground">
-              {failingCount}{' '}
-              {translate(
-                'auto.components.right.sidebar.checks.panel.content.b652f38caf',
-                'failing check'
-              )}
-              {failingCount === 1 ? '' : 's'}
+              {failingCount === 1
+                ? translate(
+                    'auto.components.right.sidebar.checks.panel.content.b652f38caf_one',
+                    '{{value0}} failing check',
+                    { value0: failingCount }
+                  )
+                : translate(
+                    'auto.components.right.sidebar.checks.panel.content.b652f38caf_other',
+                    '{{value0}} failing checks',
+                    { value0: failingCount }
+                  )}
             </div>
             <div className="truncate text-[10px] text-muted-foreground">
               {translate(
@@ -109,9 +114,17 @@ export function PRTriageStrip({
           <LoaderCircle className="size-3.5 shrink-0 animate-spin text-amber-500" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-medium text-foreground">
-              {pendingCount}{' '}
-              {translate('auto.components.right.sidebar.checks.panel.content.5341023167', 'check')}
-              {pendingCount === 1 ? '' : 's'}{' '}
+              {pendingCount === 1
+                ? translate(
+                    'auto.components.right.sidebar.checks.panel.content.5341023167_one',
+                    '{{value0}} check',
+                    { value0: pendingCount }
+                  )
+                : translate(
+                    'auto.components.right.sidebar.checks.panel.content.5341023167_other',
+                    '{{value0}} checks',
+                    { value0: pendingCount }
+                  )}{' '}
               {translate(
                 'auto.components.right.sidebar.checks.panel.content.9ad98f2a17',
                 'pending'
@@ -138,9 +151,17 @@ export function PRTriageStrip({
           <CircleDashed className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-medium text-foreground">
-              {summary.neutral}{' '}
-              {translate('auto.components.right.sidebar.checks.panel.content.5341023167', 'check')}
-              {summary.neutral === 1 ? '' : 's'}{' '}
+              {summary.neutral === 1
+                ? translate(
+                    'auto.components.right.sidebar.checks.panel.content.5341023167_one',
+                    '{{value0}} check',
+                    { value0: summary.neutral }
+                  )
+                : translate(
+                    'auto.components.right.sidebar.checks.panel.content.5341023167_other',
+                    '{{value0}} checks',
+                    { value0: summary.neutral }
+                  )}{' '}
               {translate(
                 'auto.components.right.sidebar.checks.panel.content.checksUnresolvedChip',
                 'unresolved'

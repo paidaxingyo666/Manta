@@ -193,11 +193,17 @@ export async function addAllSshConfigHostsToManta({
       return { kind: 'already-synced' }
     }
     toast.success(
-      translate(
-        'auto.components.sidebar.AddRemoteHostDialog.sshImportSynced',
-        'Added {{value0}} host{{value1}} to Manta.',
-        { value0: result.targets.length, value1: result.targets.length > 1 ? 's' : '' }
-      )
+      result.targets.length > 1
+        ? translate(
+            'auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_other',
+            'Added {{value0}} hosts to Manta.',
+            { value0: result.targets.length }
+          )
+        : translate(
+            'auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_one',
+            'Added {{value0}} host to Manta.',
+            { value0: result.targets.length }
+          )
     )
     return { kind: 'added', count: result.targets.length }
   } catch (error) {

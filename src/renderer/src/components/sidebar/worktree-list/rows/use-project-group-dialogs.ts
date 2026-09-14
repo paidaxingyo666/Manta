@@ -41,21 +41,25 @@ function reportProjectGroupDeleteFailures(result: {
   }
   if (result.status === 'deleted-group' && result.failedProjectRemovals.length > 0) {
     const requestedCount = result.requestedProjectIds.length
+    const counts = { value0: result.failedProjectRemovals.length, value1: requestedCount }
     toast.error(
       translate(
         'auto.components.sidebar.WorktreeList.b667b59632',
         'Some projects could not be removed from Manta'
       ),
       {
-        description: translate(
-          'auto.components.sidebar.WorktreeList.f94466bc39',
-          '{{value0}} of {{value1}} contained project{{value2}} remained after deleting the group.',
-          {
-            value0: result.failedProjectRemovals.length,
-            value1: requestedCount,
-            value2: requestedCount === 1 ? '' : 's'
-          }
-        )
+        description:
+          requestedCount === 1
+            ? translate(
+                'auto.components.sidebar.WorktreeList.f94466bc39_one',
+                '{{value0}} of {{value1}} contained project remained after deleting the group.',
+                counts
+              )
+            : translate(
+                'auto.components.sidebar.WorktreeList.f94466bc39_other',
+                '{{value0}} of {{value1}} contained projects remained after deleting the group.',
+                counts
+              )
       }
     )
   }
