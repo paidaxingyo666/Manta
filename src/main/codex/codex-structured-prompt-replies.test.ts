@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { AGENT_SESSION_ID_MAX_LENGTH } from '../../shared/agent-session-wire'
 import {
   applyCodexPromptAnswer,
   CodexPromptRegistry,
@@ -122,7 +123,7 @@ describe('CodexPromptRegistry', () => {
     expect(registry.find('other-thread-item')?.requestId).toBe(3)
   })
 
-  it('bounds an oversized backfilled turn id and still clears its prompt', () => {
+  it('retains a bounded cleanup identity for an unaddressable backfilled turn id', () => {
     const registry = new CodexPromptRegistry()
     const turnId = 'turn-'.padEnd(MAX_CODEX_PROMPT_REGISTRY_BYTES + 1, 'x')
     registry.register({
@@ -136,6 +137,36 @@ describe('CodexPromptRegistry', () => {
     expect(registry.bytes).toBeLessThanOrEqual(MAX_CODEX_PROMPT_REGISTRY_BYTES)
     registry.clearTurn('thread-1', turnId)
     expect(registry.find('journal-root')).toBeNull()
+  })
+
+  it('reserves enough bytes for a wire-valid multibyte backfilled turn id', () => {
+    const registry = new CodexPromptRegistry()
+    registry.register({
+      id: 1,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'root-item', threadId: 'thread-1' }
+    })
+    const reservedBytes = registry.bytes
+    const turnId = '界'.repeat(AGENT_SESSION_ID_MAX_LENGTH)
+
+    registry.bindJournalItemId('journal-root', 'thread-1', 'root-item', turnId)
+
+    expect(registry.find('journal-root')?.turnId).toBe(turnId)
+    expect(registry.bytes).toBe(reservedBytes)
+    expect(registry.bytes).toBeLessThanOrEqual(MAX_CODEX_PROMPT_REGISTRY_BYTES)
+  })
+
+  it('rejects a request turn id beyond the wire identity bound', () => {
+    const registry = new CodexPromptRegistry()
+    const turnId = 'x'.repeat(AGENT_SESSION_ID_MAX_LENGTH + 1)
+    const prompt = registry.register({
+      id: 1,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'root-item', threadId: 'thread-1', turnId }
+    })
+
+    expect(prompt).toBeNull()
+    expect(registry.bytes).toBe(0)
   })
 
   it('addresses a prompt by its journal item id once bound, and forgets both', () => {

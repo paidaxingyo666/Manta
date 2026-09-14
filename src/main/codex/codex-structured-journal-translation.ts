@@ -273,6 +273,7 @@ export function createCodexJournalTranslator(
         genericFrames.appendUnhandled(`notification:${event.method}`, event.params, event.threadId)
       )
     },
+    cancelPrompt: (journalItemId) => prompts.cancel(journalItemId),
     resolvePrompt: (journalItemId) => prompts.resolve(journalItemId),
     flush: () => {
       items.streams.flush()

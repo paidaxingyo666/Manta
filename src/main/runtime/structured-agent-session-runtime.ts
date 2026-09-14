@@ -7,7 +7,6 @@
 // reads is module-level for the same reason the registry is — the runtime
 // service is already far past its size budget.
 
-import type { AgentJournalItemIdentity } from '../../shared/agent-session-journal-types'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
@@ -247,11 +246,9 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
   try {
     let host: StructuredAgentSessionHost | null = null
     let recoveryChain = Promise.resolve()
-    const onDispatchSettledLate = (settlement: {
-      sessionId: string
-      clientMessageId: string
-      providerIdentity: AgentJournalItemIdentity
-    }): void => {
+    const onDispatchSettledLate = (
+      settlement: Parameters<StructuredAgentSessionHost['settleLateDispatch']>[0]
+    ): void => {
       void host?.settleLateDispatch(settlement).catch((error) =>
         deps.onError?.({
           scope: `structured-agent-session-late-settlement:${settlement.sessionId}`,

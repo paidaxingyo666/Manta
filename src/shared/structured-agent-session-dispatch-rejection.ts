@@ -26,6 +26,9 @@ export const DISPATCH_REJECTED_WRITE_FAILED = 'provider_write_failed'
 export const DISPATCH_REJECTED_QUEUE_FULL = 'claude structured dispatch queue is full'
 export const DISPATCH_REJECTED_CODEX_QUEUE_FULL = 'codex structured dispatch queue is full'
 
+/** The provider confirmed a queued frame was withdrawn before execution. */
+export const DISPATCH_REJECTED_CANCELLED = 'provider_cancelled_before_start'
+
 export function dispatchWriteFailureReason(error: unknown): string {
   const detail = error instanceof Error ? error.message : String(error)
   return `${DISPATCH_REJECTED_WRITE_FAILED}: ${detail}`
@@ -50,6 +53,7 @@ export function dispatchRejectionReasonIsInternal(reason: string | null | undefi
   return (
     dispatchRejectionWasTransportWriteFailure(reason) ||
     reason === DISPATCH_REJECTED_QUEUE_FULL ||
-    reason === DISPATCH_REJECTED_CODEX_QUEUE_FULL
+    reason === DISPATCH_REJECTED_CODEX_QUEUE_FULL ||
+    reason === DISPATCH_REJECTED_CANCELLED
   )
 }

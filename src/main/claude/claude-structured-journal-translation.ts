@@ -1,4 +1,3 @@
-import type { AgentJournalItemIdentity } from '../../shared/agent-session-journal-types'
 import { agentJournalItemKey } from '../../shared/agent-session-journal-item-key'
 import type { AgentSessionDeltaCoalescerDeps } from '../native-chat/agent-session-wire/agent-session-delta-coalescer'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
@@ -21,7 +20,6 @@ import {
   readClaudeMessageEnvelope,
   type ClaudeToolUse
 } from './claude-structured-item-translation'
-import { journalClaudePrompt } from './claude-prompt-journaling'
 import type { ClaudePromptRegistry } from './claude-structured-prompt-replies'
 import { claudeProviderFrameActivity } from '../native-chat/agent-session-wire/provider-frame-activity'
 import {
@@ -48,6 +46,7 @@ import {
   type ClaudeCurrentTurn,
   type ClaudeTurnEnd
 } from './claude-turn-lifecycle-item'
+import { ClaudeJournalPrompts } from './claude-structured-journal-prompts'
 
 export type ClaudeJournalTranslatorDeps = {
   sink: StructuredAgentSessionEventSink
@@ -59,6 +58,7 @@ export type ClaudeJournalTranslatorDeps = {
 
 export type ClaudeJournalTranslator = {
   handle: (event: ClaudeStructuredSessionEvent) => void
+  journalPrompts: Pick<ClaudeJournalPrompts, 'cancel' | 'resolve'>
   flush: () => void
   /** Streamed blocks still awaiting a final frame. A settled turn leaves none. */
   readonly pendingStreamedBlocks: number
@@ -84,7 +84,7 @@ export function createClaudeJournalTranslator(
   deps: ClaudeJournalTranslatorDeps
 ): ClaudeJournalTranslator {
   const tools = new Map<string, ClaudeToolUse>()
-  const promptItems = new Map<string, AgentJournalItemIdentity[]>()
+  const prompts = new ClaudeJournalPrompts(deps)
   const streamedBlocks = createClaudeStreamedBlockRegistry()
   let currentTurn: ClaudeCurrentTurn | null = null
   /** Provider output may not reopen a turn after the session ended or a turn
@@ -256,6 +256,7 @@ export function createClaudeJournalTranslator(
   return {
     handle: (event) => {
       if (event.type === 'ended') {
+        prompts.retryPendingCancellations()
         streamedText.flush()
         // No event will ever settle a child once the provider is gone.
         subagents.settleSession()
@@ -278,13 +279,10 @@ export function createClaudeJournalTranslator(
       }
       streamedText.flush()
       if (event.type === 'prompt') {
-        journalClaudePrompt({ ...deps, promptItems }, event)
+        prompts.handle(event)
       } else if (event.type === 'prompt-cancelled') {
-        for (const identity of promptItems.get(event.promptKey) ?? []) {
-          deps.sink.appendTombstone(identity)
-        }
-        promptItems.delete(event.promptKey)
-        deps.sink.publish()
+        prompts.retryPendingCancellations()
+        prompts.cancel(event.promptKey)
       } else if (event.type === 'message' && event.message.type === 'result') {
         // Every turn this translator opens is root by construction, so a nested
         // result settles the child that produced it and never the turn. The
@@ -292,6 +290,7 @@ export function createClaudeJournalTranslator(
         // it ends no turn.
         const settlesTurn = isRootClaudeFrame(event.message)
         if (settlesTurn) {
+          prompts.retryPendingCancellations()
           // The turn is over however it ended, so a foreground child still
           // reported as working will never be settled by an event.
           // A turn that failed, or that the user stopped, is not resumed by
@@ -335,6 +334,7 @@ export function createClaudeJournalTranslator(
         publishActivity(event.kind, event.payload)
       }
     },
+    journalPrompts: prompts,
     flush: streamedText.flush,
     get pendingStreamedBlocks() {
       return streamedText.pending
@@ -342,7 +342,7 @@ export function createClaudeJournalTranslator(
     dispose: () => {
       streamedText.dispose()
       tools.clear()
-      promptItems.clear()
+      prompts.clear()
       streamedBlocks.clear()
       subagents.dispose()
     }
