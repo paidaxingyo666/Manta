@@ -1,26 +1,51 @@
 import { useEffect, useState } from 'react'
 import type React from 'react'
-import { Bot, FileJson } from 'lucide-react'
+import { Bot, FileJson, Play } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AgentStateDot, type AgentDotState } from '@/components/AgentStateDot'
-import type { AiVaultSession, AiVaultSubagentRunStatus } from '../../../../shared/ai-vault-types'
+import {
+  isAiVaultSessionResumableContent,
+  type AiVaultSession,
+  type AiVaultSubagentRunStatus
+} from '../../../../shared/ai-vault-types'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
 import { canOpenAiVaultSessionLogInManta } from './ai-vault-session-path-actions'
 import { openAiVaultSessionLogInManta } from './ai-vault-session-log-open'
 import { translate } from '@/i18n/i18n'
+import {
+  aiVaultSessionResumeLabel,
+  type AiVaultSessionResumeState
+} from './ai-vault-session-resume'
+
+export type AiVaultSubagentResumeActions = {
+  getState: (session: AiVaultSession) => AiVaultSessionResumeState
+  onResume: (session: AiVaultSession, worktreeId: string) => void
+}
+
+function isIndependentlyResumableSubagent(session: AiVaultSession): boolean {
+  return (
+    session.agent === 'omp' &&
+    Boolean(session.subagent) &&
+    Boolean(session.sessionId.trim()) &&
+    session.sessionId !== session.subagent?.parentSessionId &&
+    Boolean(session.filePath.trim()) &&
+    isAiVaultSessionResumableContent(session)
+  )
+}
 
 type SubagentListState = { status: 'loading' } | { status: 'loaded'; sessions: AiVaultSession[] }
 
 /**
  * Lists the Task subagent transcripts spawned by one session, fetched on
- * demand when the parent's details expand. Subagents share the parent's
- * sessionId and aren't independently resumable, so rows are view-only.
+ * demand when the parent's details expand. OMP children own resumable sessions.
  */
 export function SessionSubagentsSection({
-  session
+  session,
+  resume
 }: {
   session: AiVaultSession
+  resume?: AiVaultSubagentResumeActions
 }): React.JSX.Element | null {
   const subagents = useSubagentSessions(session)
 
@@ -44,7 +69,7 @@ export function SessionSubagentsSection({
       </div>
       <div className="space-y-1.5">
         {subagents.sessions.map((subagentSession) => (
-          <SubagentSessionLine key={subagentSession.id} session={subagentSession} />
+          <SubagentSessionLine key={subagentSession.id} session={subagentSession} resume={resume} />
         ))}
       </div>
     </section>
@@ -112,7 +137,15 @@ const SUBAGENT_DOT_STATES: Record<AiVaultSubagentRunStatus, AgentDotState> = {
   stopped: 'interrupted'
 }
 
-function SubagentSessionLine({ session }: { session: AiVaultSession }): React.JSX.Element {
+function SubagentSessionLine({
+  session,
+  resume
+}: {
+  session: AiVaultSession
+  resume?: AiVaultSubagentResumeActions
+}): React.JSX.Element {
+  const resumeState =
+    resume && isIndependentlyResumableSubagent(session) ? resume.getState(session) : null
   const dotState = session.subagent?.status ? SUBAGENT_DOT_STATES[session.subagent.status] : null
 
   return (
@@ -145,6 +178,26 @@ function SubagentSessionLine({ session }: { session: AiVaultSession }): React.JS
           { value0: session.messageCount }
         )}
       </span>
+      {resumeState ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          draggable={false}
+          disabled={resumeState.blocked || !resumeState.worktreeId}
+          title={aiVaultSessionResumeLabel(resumeState)}
+          aria-label={aiVaultSessionResumeLabel(resumeState)}
+          onClick={(event) => {
+            event.stopPropagation()
+            if (resumeState.worktreeId && !resumeState.blocked) {
+              resume?.onResume(session, resumeState.worktreeId)
+            }
+          }}
+          className="shrink-0 text-muted-foreground"
+        >
+          <Play className="size-3.5" />
+        </Button>
+      ) : null}
       {canOpenAiVaultSessionLogInManta(session) ? (
         <Button
           type="button"

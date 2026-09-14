@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import type { ComponentProps, JSX } from 'react'
-import { act, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { AiVaultSession, AiVaultSubagentListResult } from '../../../../shared/ai-vault-types'
@@ -123,5 +123,64 @@ describe('SessionSubagentsSection', () => {
     await act(async () => {})
     expect(listSubagentSessions).not.toHaveBeenCalled()
     expect(container.firstChild).toBeNull()
+  })
+})
+
+describe('independent child resume', () => {
+  const child = makeSession({
+    agent: 'omp',
+    sessionId: 'child-id',
+    filePath: '/repo/session/tasks/worker.jsonl',
+    subagent: { parentSessionId: 'parent-session', agentType: 'worker', status: 'completed' },
+    subagentTranscriptCount: 0
+  })
+  it('passes the complete child and its resolved folder target to resume', async () => {
+    listSubagentSessions.mockResolvedValue({ sessions: [child], issues: [] })
+    const resume = {
+      getState: vi.fn(() => ({
+        blocked: false,
+        worktreeId: 'folder:repo',
+        usesSessionWorktree: true
+      })),
+      onResume: vi.fn()
+    }
+    const { getByRole } = render(
+      <SessionSubagentsSection session={makeSession({ agent: 'omp' })} resume={resume} />
+    )
+    await act(async () => {})
+    fireEvent.click(getByRole('button', { name: 'Resume in Worktree' }))
+    expect(resume.getState).toHaveBeenCalledWith(child)
+    expect(resume.onResume).toHaveBeenCalledExactlyOnceWith(child, 'folder:repo')
+  })
+  it.each([
+    { agent: 'claude' as const },
+    { sessionId: 'parent-session' },
+    { sessionId: '' },
+    { filePath: '' },
+    { messageCount: 0, previewMessages: [] }
+  ])('withholds resume for a non-independent or empty child %j', async (overrides) => {
+    listSubagentSessions.mockResolvedValue({ sessions: [{ ...child, ...overrides }], issues: [] })
+    const resume = { getState: vi.fn(), onResume: vi.fn() }
+    const { queryByRole } = render(
+      <SessionSubagentsSection session={makeSession()} resume={resume} />
+    )
+    await act(async () => {})
+    expect(queryByRole('button', { name: /Resume/ })).toBeNull()
+    expect(resume.getState).not.toHaveBeenCalled()
+  })
+  it('disables resume when the existing target resolver blocks the child host', async () => {
+    listSubagentSessions.mockResolvedValue({ sessions: [child], issues: [] })
+    const resume = {
+      getState: vi.fn(() => ({ blocked: true, worktreeId: null, usesSessionWorktree: false })),
+      onResume: vi.fn()
+    }
+    const { getByRole } = render(
+      <SessionSubagentsSection session={makeSession()} resume={resume} />
+    )
+    await act(async () => {})
+    const button = getByRole('button', { name: 'Resume in New Tab' })
+    expect(button.hasAttribute('disabled')).toBe(true)
+    fireEvent.click(button)
+    expect(resume.onResume).not.toHaveBeenCalled()
   })
 })
