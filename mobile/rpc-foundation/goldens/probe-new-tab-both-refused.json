@@ -1,0 +1,244 @@
+{
+  "operation": "settings.new-tab-agents",
+  "family": "settings-agent-read",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
+  "recorderSha256": "70e4ea4590f92a02dd93cf9212d0160f9bc194fbd59eee746c917e9dc42c5718",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 2,
+  "values": {
+    "155ff7f445b7": [
+      {
+        "name": "repo.list#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "repo.list"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "pending",
+          "startedAt": 0
+        }
+      },
+      {
+        "name": "settings.get#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "settings.get"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "pending",
+          "startedAt": 0
+        }
+      }
+    ],
+    "227b6af1aa2d": [
+      {
+        "name": "repo.list#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "repo.list"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 0,
+          "settledAt": 0,
+          "value": {
+            "id": "frame-1",
+            "ok": true,
+            "result": {
+              "repos": [
+                {
+                  "connectionId": "ssh-1",
+                  "id": "repo-1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "settings.get#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "settings.get"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 0,
+          "settledAt": 0,
+          "value": {
+            "error": {
+              "code": "refused",
+              "message": "settings refused"
+            },
+            "id": "frame-2",
+            "ok": false
+          }
+        }
+      },
+      {
+        "name": "preflight.detectRemoteAgents#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "preflight.detectRemoteAgents"
+          },
+          {
+            "name": "params",
+            "value": {
+              "connectionId": "ssh-1"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 0,
+          "settledAt": 0,
+          "value": {
+            "error": {
+              "code": "refused",
+              "message": "agents refused"
+            },
+            "id": "frame-3",
+            "ok": false
+          }
+        }
+      }
+    ],
+    "274355646d54": {
+      "load": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "settings refused",
+          "isRpcDeliveryUnknown": false
+        }
+      }
+    },
+    "3076d0a13ab4": [
+      {
+        "name": "repo.list#1",
+        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
+      },
+      {
+        "name": "settings.get#1",
+        "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
+      }
+    ],
+    "44136fa355b3": {},
+    "4f53cda18c2b": [],
+    "503a535a0cd0": [
+      {
+        "name": "repo.list#1",
+        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
+      },
+      {
+        "name": "settings.get#1",
+        "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
+      },
+      {
+        "name": "preflight.detectRemoteAgents#1",
+        "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"preflight.detectRemoteAgents\",\"params\":{\"connectionId\":\"ssh-1\"}}"
+      }
+    ],
+    "b11c8efab170": {
+      "load": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    }
+  },
+  "recording": {
+    "scenario": "probe-new-tab-both-refused",
+    "checkpoints": [
+      {
+        "id": "pending",
+        "observation": {
+          "sender": "155ff7f445b7",
+          "payloads": "3076d0a13ab4",
+          "settlements": "b11c8efab170",
+          "state": "44136fa355b3",
+          "effects": "4f53cda18c2b"
+        }
+      },
+      {
+        "id": "settled",
+        "observation": {
+          "sender": "227b6af1aa2d",
+          "payloads": "503a535a0cd0",
+          "settlements": "274355646d54",
+          "state": "44136fa355b3",
+          "effects": "4f53cda18c2b"
+        }
+      }
+    ]
+  }
+}

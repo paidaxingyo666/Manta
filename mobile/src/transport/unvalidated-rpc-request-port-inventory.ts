@@ -37,7 +37,11 @@ export const UNVALIDATED_RPC_REQUEST_PORT_OWNERS: readonly UnvalidatedRpcRequest
   // The typed boundary itself — the one module that turns a reply into a declared type.
   { file: 'src/transport/rpc-operation.ts', references: 5 },
   // Forwards the port across a physical-client cutover.
-  { file: 'src/transport/stable-logical-rpc-client.ts', references: 2 }
+  { file: 'src/transport/stable-logical-rpc-client.ts', references: 2 },
+  // Names the port as the recording oracle's sender contract; a non-test file for the same reason.
+  { file: 'src/test-support/rpc-recording/recording-scenario.ts', references: 1 },
+  // Scripts the port for the recording oracle, over the real tracker and logical client.
+  { file: 'src/test-support/rpc-recording/scripted-rpc-transport.ts', references: 5 }
 ]
 
 /** Call sites awaiting migration to a typed operation. Grouped by the feature area that owns them. */
