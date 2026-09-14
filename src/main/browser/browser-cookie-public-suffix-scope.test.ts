@@ -59,14 +59,14 @@ describe('registrable family across public-suffix sections', () => {
 // The widening is deliberate, so it is pinned here rather than left to the next library bump.
 describe('unlisted .local suffix', () => {
   it('stops at the two-label boundary', () => {
-    expect(registrableFamily('app.orca.local')).toBe('manta.local')
+    expect(registrableFamily('app.manta.local')).toBe('manta.local')
     expect(registrableFamily('manta.local')).toBe('manta.local')
   })
 
   // The consequence of the boundary move: a replace-mode import of one host now also clears
   // non-host-only cookies scoped to `.manta.local`, which every sibling `*.manta.local` host shares.
   it('pulls the shared parent into the removal scope', () => {
-    const scope = importedDomainScope(['app.orca.local'])
+    const scope = importedDomainScope(['app.manta.local'])
 
     expect(domainIsInImportedScope(scope, 'manta.local', false)).toBe(true)
     expect(domainIsInImportedScope(scope, 'manta.local', true)).toBe(false)

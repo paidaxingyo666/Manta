@@ -2303,9 +2303,12 @@
           },
           "EditorFileTabContextMenu": {
             "1d04b1630b": "Split Down",
+            "3da91e073d": "Reveal in File Explorer",
             "6b3efb106e": "Split Up",
+            "6ffb7f7bce": "Reveal in Finder",
             "e3ff145b98": "Split Left",
-            "f7c3d7d5af": "Split Right"
+            "f7c3d7d5af": "Split Right",
+            "fe23001e60": "Open Containing Folder"
           },
           "SortableTabContextMenu": {
             "0ce4bae39d": "Split Left",

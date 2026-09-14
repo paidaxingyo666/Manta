@@ -39,6 +39,12 @@
       }
     },
     {
+      "files": ["**/test-support/rpc-recording/*.test.ts"],
+      "rules": {
+        "vitest/no-conditional-tests": "off"
+      }
+    },
+    {
       "files": ["mobile/**/*.{ts,tsx}"],
       "rules": {
         "react-hooks/exhaustive-deps": "warn"

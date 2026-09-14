@@ -12,7 +12,7 @@ describe('push host proof vector', () => {
     const secret = Buffer.from(vector.challengeSecretB64, 'base64')
     const transcript = Buffer.from(vector.transcriptB64, 'base64')
     const expected = createHmac('sha256', secret)
-      .update(Buffer.from('manta-push-host-proof/v1\0ack\0'))
+      .update(Buffer.from('orca-push-host-proof/v1\0ack\0'))
       .update(transcript)
       .digest('base64')
     const reasons: string[] = []

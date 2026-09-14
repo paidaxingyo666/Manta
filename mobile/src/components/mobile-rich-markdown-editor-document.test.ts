@@ -5,7 +5,7 @@ import { buildMobileRichMarkdownEditorHtml } from './mobile-rich-markdown-editor
 // Digest of main's document at e80fae0c4d, captured before the body/script split. Splitting the
 // constants must not move a single byte of what the WebView loads. A hash rather than a
 // checked-in HTML file, because the formatter would rewrite the file and defeat the check.
-// This fork's values: `__mantaRichMarkdown` is one byte longer than upstream's `__orcaRichMarkdown`.
+// This fork's values: the mirror renames one global in the document, and "manta" is a byte longer.
 const PRE_SPLIT_DOCUMENT_SHA256 = 'dfc1091f6ad3f98c12401a7abd550b670d61354ad975dc343f1efe2da3dcb209'
 const PRE_SPLIT_DOCUMENT_BYTES = 29_853
 

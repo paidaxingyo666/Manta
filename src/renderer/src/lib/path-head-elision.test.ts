@@ -3,13 +3,13 @@ import { splitPathHeadForElision } from './path-head-elision'
 
 describe('splitPathHeadForElision', () => {
   it('keeps the last two segments as the tail', () => {
-    expect(splitPathHeadForElision('/Users/me/projects/manta/proposals/create-button.html')).toEqual(
-      {
-        head: '/Users/me/projects/manta',
-        tail: '/proposals/create-button.html',
-        tailRanges: []
-      }
-    )
+    expect(
+      splitPathHeadForElision('/Users/me/projects/manta/proposals/create-button.html')
+    ).toEqual({
+      head: '/Users/me/projects/manta',
+      tail: '/proposals/create-button.html',
+      tailRanges: []
+    })
   })
 
   it('supports Windows paths without changing their separators', () => {

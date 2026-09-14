@@ -11,6 +11,7 @@ import type { RelayHostCloseReason } from '../../../shared/relay-host-close-reas
 import { readRelayAuthContext } from './relay-auth-context'
 import { RelayAuthCoordinator } from './relay-auth-coordinator'
 import { RelaySessionBroker, type RelayBrokerStatus } from './relay-session-broker'
+import { pushWakeThroughBroker, type RelayPushWakeInput } from './relay-push-wake'
 import type { PairingRelay } from '../../../shared/mobile-relay-pairing-offer'
 import type {
   RelayRevokeOutbox,
@@ -239,16 +240,12 @@ export class DesktopRelayService {
    * caller treats that as "not delivered" and the reconnect catch-up still has
    * the notification.
    */
-  async pushWake(input: {
-    deviceToken: string
-    payload: Record<string, unknown>
-    collapseId?: string
-  }): Promise<{ ok: boolean; discardToken: boolean }> {
+  async pushWake(input: RelayPushWakeInput): Promise<{ ok: boolean; discardToken: boolean }> {
     // withTransientDemand keeps the broker alive for the call: a desktop with no
     // phone connected holds no broker, and that is exactly when push matters.
     return await this.withTransientDemand('push-wake', async () => {
       const broker = await this.requireActiveBroker()
-      return broker.pushWake(input)
+      return pushWakeThroughBroker(broker, input)
     })
   }
 

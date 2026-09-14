@@ -11,8 +11,8 @@ import {
   readTranscriptUint64
 } from '../host-challenge-envelope'
 
-const PUSH_HOST_PROOF_TRANSCRIPT_DOMAIN = 'manta-push-host-proof/v1'
-const PUSH_HOST_CHALLENGE_PLAINTEXT_DOMAIN = 'manta-push-host-challenge/v1'
+const PUSH_HOST_PROOF_TRANSCRIPT_DOMAIN = 'orca-push-host-proof/v1'
+const PUSH_HOST_CHALLENGE_PLAINTEXT_DOMAIN = 'orca-push-host-challenge/v1'
 const PUSH_HOST_PROOF_CLOCK_SKEW_MS = 30_000
 const MAX_PUSH_HOST_PROOF_CHALLENGE_WINDOW_MS = 10_000
 const PUSH_HOST_PROOF_TRANSCRIPT_FIELD_COUNT = 10
