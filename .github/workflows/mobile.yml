@@ -60,7 +60,10 @@ jobs:
           # shared fixtures its terminal link parsers are conformance-tested
           # against, the two workflows whose Fastfile nothing else loads, and the
           # install action this job runs.
-          if printf '%s\n' "$CHANGED" | grep -Eq '^(mobile/|src/shared/terminal-file-link-conformance\.ts$|\.github/workflows/mobile(\.yml|-ios-release\.yml)$|\.github/actions/install-node-dependencies/)'; then
+          # Why a here-string: `printf | grep -q` under pipefail fails once the list
+          # outgrows the pipe buffer (grep exits, printf gets SIGPIPE), so a large
+          # sync read as mobile=false and skipped the checks.
+          if grep -Eq '^(mobile/|src/shared/terminal-file-link-conformance\.ts$|\.github/workflows/mobile(\.yml|-ios-release\.yml)$|\.github/actions/install-node-dependencies/)' <<<"$CHANGED"; then
             echo "mobile=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "mobile=false" | tee -a "$GITHUB_OUTPUT"
