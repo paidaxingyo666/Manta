@@ -8,7 +8,8 @@ import {
   settingsRead,
   optionalSettingsRead,
   botOverridesRead,
-  newTabSettingsRead
+  newTabSettingsRead,
+  terminalCopyTrimsGutterRead
 } from './settings-read-operations'
 import type { RpcResponse } from './types'
 
@@ -89,6 +90,24 @@ describe('settings historical acceptance', () => {
     expect(botOverridesRead.interpret(refused)).toEqual({ accepted: false })
     const empty = await botOverridesRead.request(replyWith(success(null)))
     expect(botOverridesRead.interpret(empty)).toEqual({ accepted: true, value: [] })
+  })
+
+  it('reads the gutter-trim preference, treating an older host as opted in', async () => {
+    const off = await terminalCopyTrimsGutterRead.request(
+      replyWith(success({ settings: { terminalCopyTrimsGutter: false } }))
+    )
+    expect(terminalCopyTrimsGutterRead.interpret(off)).toEqual({ accepted: true, value: false })
+    const on = await terminalCopyTrimsGutterRead.request(
+      replyWith(success({ settings: { terminalCopyTrimsGutter: true } }))
+    )
+    expect(terminalCopyTrimsGutterRead.interpret(on)).toEqual({ accepted: true, value: true })
+    // A host predating the setting sends no key; the desktop default is on.
+    const absent = await terminalCopyTrimsGutterRead.request(replyWith(success({ settings: {} })))
+    expect(terminalCopyTrimsGutterRead.interpret(absent)).toEqual({ accepted: true, value: true })
+    const empty = await terminalCopyTrimsGutterRead.request(replyWith(success(null)))
+    expect(terminalCopyTrimsGutterRead.interpret(empty)).toEqual({ accepted: true, value: true })
+    const refused = await terminalCopyTrimsGutterRead.request(replyWith(refusal()))
+    expect(terminalCopyTrimsGutterRead.interpret(refused)).toEqual({ accepted: false })
   })
 
   it('does not read a stale payload until its caller permits interpretation', async () => {

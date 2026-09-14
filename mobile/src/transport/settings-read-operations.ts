@@ -82,6 +82,30 @@ export const newTabSettingsRead = bindDeferredRpcOperation(
   })
 )
 
+const copyTrimsGutterReader: RpcCompatibleReader<unknown, 'copy-trims-gutter', boolean> = (raw) => {
+  const settings = raw == null ? undefined : settingsMember(raw)
+  const trims: unknown =
+    settings == null ? undefined : Reflect.get(Object(settings), 'terminalCopyTrimsGutter')
+  return {
+    compatible: true,
+    variant: 'copy-trims-gutter',
+    // Why `!== false`: a host predating the setting sends no key, and the
+    // desktop default is on, so absence must read as on.
+    value: trims !== false,
+    salvage: { droppedPaths: [], droppedCount: 0 }
+  }
+}
+
+export const terminalCopyTrimsGutterRead = bindDeferredRpcOperation(
+  defineRpcOperation({
+    name: 'settings.terminal-copy-trims-gutter-or-skip',
+    method: 'settings.get',
+    acceptance: 'success-result-or-skip',
+    barrier: 'after-caller-barrier',
+    read: copyTrimsGutterReader
+  })
+)
+
 export const botOverridesRead = bindDeferredRpcOperation(
   defineRpcOperation({
     name: 'settings.bot-logins-or-skip',
