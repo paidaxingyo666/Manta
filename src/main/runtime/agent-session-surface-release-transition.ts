@@ -9,6 +9,7 @@
 // against the dead generation land on the next one.
 
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
+import { nextAgentSessionFence } from '../../shared/agent-session-next-fence'
 import { assertFence, withLease } from './agent-session-lease-transitions'
 import type { AgentSessionRecordStore } from './agent-session-record-store'
 
@@ -40,7 +41,7 @@ export function releaseAgentSessionOwnerAfterSurfaceClose(args: {
   }
   return withLease(record, {
     ...record.lease,
-    runtimeFence: record.lease.runtimeFence + 1,
+    runtimeFence: nextAgentSessionFence(record.lease),
     ownerProcess: null,
     reservedSpawnToken: null,
     processlessAt: null,
