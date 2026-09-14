@@ -198,9 +198,12 @@ export class SessionSearchStore {
    */
   files(): SessionSearchFileRow[] {
     return (
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: The files schema and SELECT aliases define this row; REAL casts return numeric IDs or null.
       this.db
         .prepare(
-          `SELECT path, dev, ino, mtime_ms AS mtimeMs, size_bytes AS sizeBytes,
+          // Numeric stat IDs may exceed SQLite's safe INTEGER-to-number read range.
+          `SELECT path, CAST(dev AS REAL) AS dev, CAST(ino AS REAL) AS ino,
+                  mtime_ms AS mtimeMs, size_bytes AS sizeBytes,
                   state, fail_count AS failCount, failed_mtime_ms AS failedMtimeMs
            FROM files`
         )
