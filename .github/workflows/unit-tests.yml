@@ -50,6 +50,9 @@ jobs:
           MANTA_BACKGROUND_LAUNCH: '1'
         run: |
           export ORCA_SHARD_SOURCE_SHA="$(git rev-parse HEAD)"
+          # relay-region-correction pairs this desktop with cloud/'s relay. The desktop
+          # signs host proofs as manta-relay-host-*, which this fork's relay-server/
+          # requires; cloud/ stays upstream's and expects orca-relay-host-*.
           pnpm exec vitest run --config config/vitest.config.ts \
             --exclude=src/main/daemon/repro-13767-shell-ready-marker-lost-to-exec.test.ts \
             --exclude=src/main/daemon/shell-ready.test.ts \
@@ -68,6 +71,7 @@ jobs:
             --exclude=src/shared/startup-shell-portability.live-shell.test.ts \
             --exclude=src/shared/posix-command-path-lookup.test.ts \
             --exclude=tests/e2e/cross-version-wire/** \
+            --exclude=tests/e2e/relay-region-correction.unit.test.ts \
             --shard=${{ matrix.shard }}/${{ matrix.shard_total }}
 
       - name: Upload unit shard assignment
