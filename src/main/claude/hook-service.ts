@@ -47,6 +47,10 @@ type ClaudeHookServiceOptions = {
   settings: ClaudeCompatibleHookSettings
 }
 
+type ClaudeHookInstallOptions = {
+  claudeVersion?: string
+}
+
 const DEFAULT_CLAUDE_HOOK_SERVICE_OPTIONS: ClaudeHookServiceOptions = {
   agent: 'claude',
   displayName: 'Claude',
@@ -122,7 +126,7 @@ export class ClaudeHookService {
     )
   }
 
-  install(): AgentHookInstallStatus {
+  install(options: ClaudeHookInstallOptions = {}): AgentHookInstallStatus {
     const configPath = getConfigPath(this.options.settings)
     const scriptPath = getManagedScriptPath(this.options.settings)
     const config = readHooksJson(configPath)
@@ -140,7 +144,8 @@ export class ClaudeHookService {
     let nextConfig = applyManagedHooks(
       config,
       hook,
-      getManagedScriptFileName(this.options.settings)
+      getManagedScriptFileName(this.options.settings),
+      this.options.agent === 'claude' ? options : undefined
     )
     writeManagedScript(
       scriptPath,
@@ -182,7 +187,11 @@ export class ClaudeHookService {
   }
 
   // Why: install the Claude hook on the remote box (via SFTP); POSIX-only by design (Windows-remote deferred).
-  async installRemote(sftp: SFTPWrapper, remoteHome: string): Promise<AgentHookInstallStatus> {
+  async installRemote(
+    sftp: SFTPWrapper,
+    remoteHome: string,
+    options: ClaudeHookInstallOptions = {}
+  ): Promise<AgentHookInstallStatus> {
     // Why: remote Windows is unsupported; local process.platform cannot identify the remote OS.
     const remoteConfigPath = getRemoteConfigPath(remoteHome, this.options.settings)
     const remoteScriptFileName = getPosixManagedScriptFileName(this.options.settings)
@@ -202,7 +211,12 @@ export class ClaudeHookService {
 
       // Why: settings resolve HOME at runtime while SFTP still targets the discovered remote home.
       const hook = buildManagedCommandHook(getRemoteManagedCommand(remoteScriptPath))
-      const nextConfig = applyManagedHooks(config, hook, remoteScriptFileName)
+      const nextConfig = applyManagedHooks(
+        config,
+        hook,
+        remoteScriptFileName,
+        this.options.agent === 'claude' ? options : undefined
+      )
 
       // Why: write scripts before settings to avoid settings pointing to missing scripts.
       // Why: SSH scripts always use POSIX .sh paths, regardless of the local OS.

@@ -217,6 +217,8 @@ export type AgentHookInstallManagedHooksParams = {
   hostKeyFingerprint?: string
   /** Positively detected and enabled agents allowed to mutate remote config. */
   agents: readonly AgentHookTarget[]
+  /** Execution-host Claude version; absent means retain the legacy hook set. */
+  claudeVersion?: string
 }
 
 /** Feature-flag env var. Read once at process start by Manta and the relay.

@@ -26,7 +26,7 @@ import { agentHookServer } from '../agent-hooks/server'
 import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
 import {
   buildManagedHookDetectionCommands,
-  detectedManagedHookAgents
+  readManagedHookDetectionResult
 } from '../agent-hooks/managed-hook-detection-commands'
 import {
   AGENT_HOOK_INSTALL_MANAGED_HOOKS_METHOD,
@@ -1378,17 +1378,20 @@ export class SshRelaySession {
 
     try {
       const store = this.store as { getSettings?: Store['getSettings'] }
-      const detected = (await mux.request('preflight.detectAgents', {
-        commands: buildManagedHookDetectionCommands(store.getSettings?.() ?? null, 'linux')
-      })) as { agents?: unknown }
-      const agents = detectedManagedHookAgents(detected?.agents)
+      const detected = readManagedHookDetectionResult(
+        await mux.request('preflight.detectAgents', {
+          commands: buildManagedHookDetectionCommands(store.getSettings?.() ?? null, 'linux')
+        })
+      )
+      const agents = detected.agents
       if (agents.length === 0 || (shouldContinue && !shouldContinue())) {
         return
       }
       const hostKeyFingerprint = this.requireReadyConnection().getHostKeyFingerprint?.()
       const params = {
         ...(hostKeyFingerprint ? { hostKeyFingerprint } : {}),
-        agents
+        agents,
+        ...(detected.claudeVersion ? { claudeVersion: detected.claudeVersion } : {})
       }
       const result = (await mux.request(AGENT_HOOK_INSTALL_MANAGED_HOOKS_METHOD, params)) as {
         errors?: unknown
