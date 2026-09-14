@@ -12,6 +12,8 @@ import type { AgentSessionRecord } from '../../shared/agent-session-record'
 import { assertFence, withLease } from './agent-session-lease-transitions'
 import type { AgentSessionRecordStore } from './agent-session-record-store'
 
+export type AgentSessionRecordTransitionStore = Pick<AgentSessionRecordStore, 'transitionHandoff'>
+
 /** Whether this record is one THIS host may release on its own proof. A TUI owner, a session
  *  mid-handoff, and a lease nobody holds are all somebody else's transition. */
 export function isSurfaceReleasableAgentSessionRecord(record: AgentSessionRecord): boolean {
@@ -57,7 +59,7 @@ export function releaseAgentSessionOwnerAfterSurfaceClose(args: {
 
 /** Applied through the store's generic transition, the same way handoff records move. */
 export function releaseStoredAgentSessionOwnerAfterSurfaceClose(
-  store: AgentSessionRecordStore,
+  store: AgentSessionRecordTransitionStore,
   args: {
     sessionId: string
     expectedFence: number

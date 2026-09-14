@@ -9,10 +9,7 @@ import type {
   StructuredAgentSessionEventSink,
   StructuredAgentSessionSinkAdmission
 } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
-import {
-  boundJournalStatusText,
-  cancelledJournalPromptBody
-} from '../native-chat/agent-session-journal/journal-prompt-body-bounds'
+import { cancelledJournalPromptBody } from '../native-chat/agent-session-journal/journal-prompt-body-bounds'
 import {
   codexJournalItem,
   codexStreamingJournalItem,
@@ -74,16 +71,6 @@ export function settleCodexJournalSession(input: {
         body
       })
     }
-  }
-  if (!('cause' in input.event) || input.event.cause === 'unexpected-exit') {
-    mutations.push({
-      kind: 'item',
-      identity: { provider: 'manta', clientMessageId: exitSettlementId(input.event) },
-      body: {
-        kind: 'status',
-        text: boundJournalStatusText(`Provider exited: ${input.event.reason}`)
-      }
-    })
   }
   for (const [threadId, turnIds] of input.currentTurnIds) {
     if (input.primaryThreadId !== threadId) {
