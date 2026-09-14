@@ -89,6 +89,7 @@ describe('Codex structured session close lifecycle', () => {
       handle: vi.fn().mockReturnValueOnce({ accepted: false, reason: 'backpressure' as const }),
       dispose: vi.fn()
     } as unknown as NonNullable<CodexSession['translator']>
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the literal supplies every CodexSession field the close path reads; the rest are unused by it.
     const session = {
       connection,
       backgroundTasks: new CodexBackgroundTaskTracker('thread-1'),
@@ -101,6 +102,7 @@ describe('Codex structured session close lifecycle', () => {
       prompts,
       options: new Map(),
       reportedOptions: {},
+      fastModeTierByModel: new Map(),
       turnIdWaiters: [],
       translator
     } as CodexSession

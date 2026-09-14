@@ -86,7 +86,14 @@ export type CodexSession = {
   dispatchPending?: boolean
   prompts: CodexAcquisitionWindow['prompts']
   options: Map<string, string>
-  reportedOptions: { model?: string; effort?: string }
+  reportedOptions: {
+    model?: string
+    effort?: string
+    serviceTier?: string | null
+    serviceTierKnown?: true
+  }
+  /** Exact provider-advertised Fast request value for each discovered model. */
+  fastModeTierByModel: Map<string, string>
   turnIdWaiters: ((turnId: string) => void)[]
   translator: CodexJournalTranslator | null
   /** Ephemeral roster behind the background-tasks strip; never durable state. */

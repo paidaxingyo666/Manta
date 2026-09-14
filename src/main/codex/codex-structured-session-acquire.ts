@@ -20,9 +20,13 @@ import {
   handleCodexSessionExit
 } from './codex-structured-session-close'
 import {
-  reportedCodexThreadOptions,
+  readCodexStructuredSessionOptionCatalog,
   restoredCodexSessionOptions
 } from './codex-structured-session-options'
+import {
+  reconcileCodexFastModeOption,
+  reportedCodexThreadOptions
+} from './codex-structured-fast-mode'
 import {
   codexSessionLifecycle,
   mintCodexAcquisitionGeneration,
@@ -196,6 +200,23 @@ export async function acquireCodexStructuredSession(input: {
       throw new Error(`codex app-server for session ${sessionId} exited while being acquired`)
     }
     acquisitions.assertCurrent(sessionId, attempt)
+    const options = restoredCodexSessionOptions(acquireInput.options)
+    const fastModeCatalog =
+      options.get('fastMode') === 'true' || options.has('serviceTier')
+        ? await readCodexStructuredSessionOptionCatalog({
+            connection,
+            current: {
+              ...(opened.model ? { model: opened.model } : {}),
+              ...(opened.effort ? { effort: opened.effort } : {}),
+              fastMode: true
+            },
+            timeoutMs: deps.requestTimeoutMs
+          }).catch(() => null)
+        : null
+    acquisitions.assertCurrent(sessionId, attempt)
+    if (connection.closed) {
+      throw new Error(`codex app-server for session ${sessionId} exited while being acquired`)
+    }
     acquisitions.deleteIfCurrent(sessionId, attempt)
     const session: CodexSession = {
       connection,
@@ -205,8 +226,9 @@ export async function acquireCodexStructuredSession(input: {
       historyMode: opened.historyMode,
       activeTurnIds: new Set(),
       prompts: acquisition.prompts,
-      options: restoredCodexSessionOptions(acquireInput.options),
+      options,
       reportedOptions: reportedCodexThreadOptions(opened),
+      fastModeTierByModel: fastModeCatalog?.fastModeTierByModel ?? new Map(),
       turnIdWaiters: [],
       translator,
       backgroundTasks: new CodexBackgroundTaskTracker(opened.threadId, subagentExecutions),
@@ -218,6 +240,16 @@ export async function acquireCodexStructuredSession(input: {
           reason
         ),
       ...(unbindReadingControl ? { unbindReadingControl } : {})
+    }
+    if (fastModeCatalog) {
+      const model = opened.model ?? fastModeCatalog.result.current.model
+      reconcileCodexFastModeOption(session, {
+        fastModeTierByModel: fastModeCatalog.fastModeTierByModel,
+        currentFastMode: true,
+        model,
+        modelFastModeSupport: fastModeCatalog.result.models.find((entry) => entry.id === model)
+          ?.supportsFastMode
+      })
     }
     turnCancellation.register(session)
     sessions.set(sessionId, session)

@@ -96,6 +96,95 @@ describe('ClaudeStructuredSessionAdapter.acquire', () => {
     })
   })
 
+  it('restores an encoded Fast preference through the absolute flag setting', async () => {
+    const claude = fakeClaude({
+      settings: { effective: { fastMode: false, fastModePerSessionOptIn: false } },
+      routes: {
+        list_models: () => [{ value: 'opus', displayName: 'Opus', supportsFastMode: true }]
+      }
+    })
+    const adapter = adapterFor(claude)
+
+    await adapter.acquire({
+      identity: identityFor(),
+      fence: 7,
+      spawnToken: 'spawn-9',
+      options: { model: 'opus', fastMode: 'true' }
+    })
+
+    expect(claude.connections[0].calls).toContainEqual({
+      subtype: 'apply_flag_settings',
+      params: { settings: { fastMode: true } }
+    })
+  })
+
+  it('does not carry a saved opt-in into a new per-session-opt-in child', async () => {
+    const claude = fakeClaude({
+      settings: { effective: { fastMode: false, fastModePerSessionOptIn: true } },
+      routes: {
+        list_models: () => [{ value: 'opus', displayName: 'Opus', supportsFastMode: true }]
+      }
+    })
+    const adapter = adapterFor(claude)
+
+    await adapter.acquire({
+      identity: identityFor(),
+      fence: 7,
+      spawnToken: 'spawn-9',
+      options: { model: 'opus', fastMode: 'true' }
+    })
+
+    expect(
+      claude.connections[0].calls.filter((call) => call.subtype === 'apply_flag_settings')
+    ).toEqual([])
+  })
+
+  it('restores Fast when reacquiring the same per-session-opt-in conversation', async () => {
+    const claude = fakeClaude({
+      settings: { effective: { fastMode: false, fastModePerSessionOptIn: true } },
+      routes: {
+        list_models: () => [{ value: 'opus', displayName: 'Opus', supportsFastMode: true }]
+      }
+    })
+    const adapter = adapterFor(claude, { resumed: true })
+
+    await adapter.acquire({
+      identity: identityFor(),
+      fence: 7,
+      spawnToken: 'spawn-9',
+      options: { model: 'opus', fastMode: 'true' }
+    })
+
+    expect(claude.connections[0].calls).toContainEqual({
+      subtype: 'apply_flag_settings',
+      params: { settings: { fastMode: true } }
+    })
+  })
+
+  it('self-heals a Fast preference the running model no longer supports', async () => {
+    const claude = fakeClaude({
+      settings: { effective: { fastMode: false } },
+      routes: {
+        list_models: () => [{ value: 'opus', displayName: 'Opus', supportsFastMode: false }]
+      }
+    })
+    const adapter = adapterFor(claude)
+
+    await expect(
+      adapter.acquire({
+        identity: identityFor(),
+        fence: 7,
+        spawnToken: 'spawn-9',
+        options: { model: 'opus', fastMode: 'true' }
+      })
+    ).resolves.toBeDefined()
+
+    expect(adapter.readOptionRestoreFailures('session-1')).toContain('fastMode')
+    expect(
+      claude.connections[0].calls.filter((call) => call.subtype === 'apply_flag_settings')
+    ).toEqual([])
+  })
+
   it.each([
     ['model', 'set_model', { model: 'retired-model' }],
     ['effort', 'apply_flag_settings', { effort: 'retired-effort' }],
