@@ -152,21 +152,12 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // src/settings/ — notification display probe
   { file: 'src/settings/notification-display-test.tsx', references: 1 },
 
-  // src/source-control/ — source control: review, commit, branch
-  { file: 'src/source-control/mobile-branch-base-ref.ts', references: 3 },
-  { file: 'src/source-control/mobile-commit-message-ai.ts', references: 4 },
-  { file: 'src/source-control/mobile-git-history.ts', references: 2 },
-  { file: 'src/source-control/mobile-hosted-review-create-intent-runner.ts', references: 1 },
-  { file: 'src/source-control/mobile-hosted-review-create-intent.ts', references: 3 },
-  { file: 'src/source-control/mobile-hosted-review-git-preparation.ts', references: 6 },
-  { file: 'src/source-control/mobile-hosted-review-remote-prerequisite.ts', references: 1 },
-  { file: 'src/source-control/mobile-hosted-review-service.ts', references: 8 },
-  { file: 'src/source-control/mobile-pr-link.ts', references: 8 },
-  { file: 'src/source-control/MobileGitHistoryList.tsx', references: 1 },
-  { file: 'src/source-control/reveal-mobile-source-control-session-diff.ts', references: 2 },
+  // src/source-control/ — one dynamic dispatcher left; the other 13 files migrated in step 4.
+  // Its single reference multiplexes git.commit, git.status, git.upstreamStatus, git.fetch,
+  // git.pull, git.push and every `{ method, params }` action step five other hooks hand it, so
+  // it cannot drop below one until that step model is typed. See mobile-git-read-operations.ts
+  // and mobile-git-mutation-operations.ts for the operations the rest of the domain now sends.
   { file: 'src/source-control/use-mobile-git-requests.ts', references: 1 },
-  { file: 'src/source-control/use-mobile-source-control-loaders.ts', references: 2 },
-  { file: 'src/source-control/use-mobile-source-control-openers.ts', references: 3 },
 
   // src/tasks/ — task lists, filters and mutations
   { file: 'src/tasks/composer-source-base-resolve.ts', references: 2 },

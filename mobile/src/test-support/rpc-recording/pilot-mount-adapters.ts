@@ -1,5 +1,7 @@
 import { observableModel } from './observable-model'
+import { hostedReviewMountAdapters } from './hosted-review-mount-adapters'
 import { settingsMountAdapters } from './settings-mount-adapters'
+import { sourceControlMountAdapters } from './source-control-mount-adapters'
 import { workspaceSettingsMounts } from './workspace-settings-mounts'
 import type { MountAdapter } from './recording-scenario'
 import { hookMount, performHookAction } from './hook-mount'
@@ -13,6 +15,8 @@ export function pilotMountAdapters(
   const adapters: Record<string, MountAdapter> = {
     ...settingsMountAdapters(modules),
     ...workspaceSettingsMounts(modules),
+    ...sourceControlMountAdapters(modules),
+    ...hostedReviewMountAdapters(modules),
     'workspace.file-inventory': ({ client }) => {
       const useSearch = modules.load<
         typeof import('../../session/use-mobile-native-chat-file-search')

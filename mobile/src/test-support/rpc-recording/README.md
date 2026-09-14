@@ -75,13 +75,31 @@ Platform is provenance; candidate comparison does not require the same operating
 
 ### Value pool
 
-Format version 2 stores each distinct observation field value once under `values`, keyed by the
-first 12 hex of sha256 over the value's sorted-key, whitespace-free JSON. A checkpoint holds five
-hashes (`sender`, `payloads`, `settlements`, `state`, `effects`). Files stay pretty-printed so a
-diff is reviewable; compact printing, element-level interning of list fields and delta encoding
-against the previous checkpoint were measured and rejected. `readGolden` refuses any other
-`goldenFormatVersion`, resolves hashes back to values, and `compareGolden` reports the scenario,
-the checkpoint id, the field, the JSON path inside it, and both resolved values.
+Format version 3 stores each distinct observation _entry_ once under `values`, keyed by the first
+12 hex of sha256 over the entry's sorted-key, whitespace-free JSON. `golden-value-pool.ts` declares
+how each field interns rather than sniffing it from the value: `sender`, `payloads` and `effects`
+are lists of pool hashes, `settlements` is a map from action id to a pool hash, and `state` is one
+hash. A field recorded in a container its declaration does not name fails, so a projection change
+cannot silently flip a field's encoding. Files stay pretty-printed; compact printing and recursive
+interning of nested sub-values were measured and rejected.
+
+Version 2 pooled each field _whole_, which stored the shared prefix of these append-only histories
+once per checkpoint — and once per reply partition in a matrix golden. Interning per entry is a
+pure re-encoding: the resolved `Recording` is unchanged, which is why the version bump moved no
+observation. Over the 153 goldens it is 5.35 MB → 2.78 MB raw, and the pathological family
+(`hostedReview.create-intent`, 12 sites over a 12-request chain) 2.0 MB → 792 KB.
+
+It also makes a real diff smaller rather than larger, which is the opposite of what version 2's
+note predicted. Adding a `timeoutMs` to the first `git.status` of the create-intent chain — an
+early request every downstream checkpoint re-states — touches the same 16 files either way, but
+under version 2 that is ±17,100 lines and 1.03 MB of diff, and under version 3 ±3,764 lines and
+0.20 MB, because a moved entry no longer rewrites every field value that contains it.
+
+`readGolden` refuses any other `goldenFormatVersion`, checks that every pooled entry hashes to its
+own key and that no entry sits in the pool unreferenced — content addressing is what keeps an entry
+shared across checkpoints honest, and an unread entry would be content in the file that nothing
+compares. It then resolves hashes back to values, and `compareGolden` reports the scenario, the
+checkpoint id, the field, the JSON path inside it, and both resolved values.
 
 ### Prelude checkpoints
 
@@ -93,19 +111,56 @@ lifecycle schedules use it. Checkpoints that merely happen to be equal are never
 the same state through different inputs is evidence. Sibling schedules already drop their shared
 prefix, so they are unchanged.
 
+Nothing about a shared prelude is unverified. The `.prelude` scenario's checkpoints live in the same
+golden as the variants that start after them, and `compareGolden` walks every checkpoint in the
+file, so changing the prelude fails the golden it belongs to. The value pool does not weaken that:
+it is per-file and content-addressed, so a prelude entry a later checkpoint re-states is stored once
+and any change to it moves the hash in every checkpoint that reads it.
+
 Family matrices and schedule recordings retain both boundaries. Matrices execute
 raw reply partitions at the scripted sender port; they do not claim malformed-frame coverage
 through direct/relay frame validation. Caches
 are tested by follow-up requests; no private cache maps are inspected.
 
-Each family runs the nine partitions in `reply-matrix.ts` once, and nothing is crossed against
-consumed fields. The partitions are the reply shapes a host can send: a normal result, an absent
-result, `null`, an inner `{ok: false}` envelope with a string or object error, an inner envelope
-missing `ok`, an outer refusal, `method_not_found`, and a transport rejection. Shapes that were
-recorded before and are gone were unreachable: `successResponse` always sets `result`, so JSON
-carries no explicit-undefined slot, and no mounted method's handler returns a number, a string, an
-array, a bare `{}`, or a boolean. `null` stays because `linear.getIssue` returns it for a missing
+Every family runs the eleven partitions in `reply-matrix.ts` at **every reply its base scenario
+scripts**, one golden per site, and nothing is crossed against consumed fields. The partitions are
+the reply shapes a host can send: a normal result, an absent result, `null`, an inner `{ok: false}`
+envelope with a string or object error, an inner envelope missing `ok`, an outer refusal with and
+without a message, `method_not_found`, and a transport rejection with and without a message. Shapes
+that were recorded before and are gone were unreachable: `successResponse` always sets `result`, so
+JSON carries no explicit-undefined slot, and no mounted method's handler returns a number, a string,
+an array, a bare `{}`, or a boolean. `null` stays because `linear.getIssue` returns it for a missing
 issue and the b2 seed is a shipped null-result bug.
+
+The message-less refusal and rejection are what separate the two failure paths a migrated call site
+must keep apart: a refusal with no message falls back to the screen's copy, a transport drop with no
+message surfaces its empty message verbatim. With only the message-carrying shapes both produce the
+same text, so collapsing the two catches is invisible. Every source-control family used to carry a
+hand-written `*-empty-message` scenario for exactly that; the partition carries it now.
+
+### Which request a matrix drives
+
+All of them. Selecting one per family was a hardcoded prefix list, and it silently `continue`d past
+any family it did not name — ten of twenty-three, every family the source-control migration added,
+which is why that migration's mutation evidence came down to single hand-written scenarios.
+`replyMatrixSites` takes every completion step in the family's base scenario instead: no judgement
+about which request is the "real" one, and no edit when a domain is added. A family that scripts no
+reply at all throws, and a repeated request name throws, because the divergence would be ambiguous.
+
+A variant answers its own site differently, so the replies scripted after it may never be asked
+for. Those steps are marked `optional` and are answered only if the request is outstanding; the
+sender list in each checkpoint records which ones the operation actually sent.
+
+The `normal` partition replays a result the family already records for that request — the first
+fulfilled reply in scenario order, base first — so no migrator invents a plausible payload per
+domain. `null` and absent do not count, because each is already a partition of its own and
+replaying one would leave the site with no success control. A site whose family records no other
+success fails the suite until it is given a fulfilled scenario or a line in
+`REPLY_MATRIX_NORMAL_RESULT_INVENTORY`, which carries the reply and the reason; an entry whose
+family has since recorded a success fails too, so the list only shrinks. Four sites are on it: both
+legs of the b3 seed, whose single scenario exists to record the defect; the b2 seed, whose only
+recorded success is the shipped null result; and `settings.update`, a best-effort write whose reply
+body no call site reads.
 
 Detached unhandled rejections are captured as effects in a sequential process-scoped window,
 with prior process listeners restored afterward. This preserves the known main bug recorded
@@ -142,11 +197,11 @@ families because no reference states are defined for them.
 
 ## What this oracle does and does not see
 
-It replays 46 scenarios against frozen goldens and fails on any divergence: 73 goldens over 118
+It replays 78 scenarios against frozen goldens and fails on any divergence: 153 goldens over 200
 tests, all inside `pnpm --dir mobile test`. For a migration it answers one question — does the
 rewritten call site produce the same sender calls, settlements, state and effects as main did?
 
-It is not a substitute for reading the diff. Two facts bound it, both learned the hard way:
+It is not a substitute for reading the diff. Three facts bound it, all learned the hard way:
 
 - **It was blind to refusal ordering.** Reordering the settings and sibling refusal checks in
   `mobile-new-tab-agent-loader.ts` survives every golden except `probe-new-tab-both-refused` —
@@ -160,8 +215,14 @@ It is not a substitute for reading the diff. Two facts bound it, both learned th
   `use-new-workspace-runtime-context.ts` is caught by the refuse-after-data probe _and_ by
   `matrix-settings.workspace-context`, because a refusal from cold publishes `null` over a non-null
   initial value. Claim the recorded behaviour, not blindness.
+- **It was blind to whatever the matrix skipped.** While the driven request came from a hardcoded
+  prefix list, moving `readMobileHostedReviewGitStatus`'s `interpret` into the request chain — which
+  turns a transport rejection into an `{ok: false}` result instead of letting it propagate — survived
+  all 163 tests, because no scenario rejected `git.status` for that family. Driving every scripted
+  reply kills it on five matrix goldens. The lesson is about the skip, not about that call site: a
+  generator that opts a family out without failing is indistinguishable from coverage.
 
-`probe-hole-witness.test.ts` closes both and keeps them closed. It asserts the hole and the closure
+`probe-hole-witness.test.ts` closes the first two and keeps them closed. It asserts the hole and the closure
 together: each probe must kill its mutation _and_ every pre-probe scenario of the same operation
 must still survive it. A probe that stops being load-bearing fails instead of lingering.
 
@@ -181,7 +242,7 @@ publishes `{}`, so a refused refresh wipes the runtime task settings. That diver
 not repaired — `settings-task-hydration-refuse-after-data.json` is the observation, and changing
 the behaviour is a product change with its own re-record.
 
-## Running it for a step-4 migration
+### Running it for a step-4 migration
 
 ```sh
 # 1. Before touching the call site, confirm the oracle is green on your branch.
@@ -198,6 +259,15 @@ MANTA_BACKGROUND_LAUNCH=1 RPC_FOUNDATION_RECORD=1 \
 
 A re-record is a claim about behaviour. State the cause in the commit; every golden the refresh
 moves should have one.
+
+Editing the recorder itself on a migration branch is the awkward case: `recorderSha256` moves, so
+every golden needs rewriting, but the product tree no longer matches `baseline`, and bumping
+`baseline` to the branch would record the migrated source and make the parity claim circular. Record
+from the pinned commit instead, with this branch's recorder laid over it — a detached checkout or a
+`git archive` extraction of `baseline`, this tree's `rpc-recording/` and `pilot-scenarios.json`
+copied in, `node_modules` symlinked, `RPC_FOUNDATION_GOLDENS` pointed at a scratch directory — then
+copy the result back and run the candidate suite here. Format the recorder before recording: an
+`oxfmt` pass afterwards moves `recorderSha256` again.
 
 If your call site carries a mutation anchor in `operation-mutations.ts`, rewriting it will make the
 anchor match zero sites. Re-anchor the same defect at its new home rather than deleting the mutant:
