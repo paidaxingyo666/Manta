@@ -15,6 +15,11 @@ const TRANSPORT_BODY_PATTERN =
   /^MANTA_RICH_MD:[a-f0-9]{32}:(?:literal|inline-html|block-html|document-link|html-superscript-link):/
 const LEGACY_PREFIXES = ['MANTA_RAW_HTML_INLINE:', 'MANTA_RAW_HTML_BLOCK:', 'MANTA_DOC_LINK:'] as const
 
+export function skipInlineTransportStartScan(): number {
+  // Marked already stops text at `[`, so inline envelopes need no suffix scan.
+  return -1
+}
+
 export type RichMarkdownSourceTransport = {
   readonly key: string
   readonly authoredPrefix: string
