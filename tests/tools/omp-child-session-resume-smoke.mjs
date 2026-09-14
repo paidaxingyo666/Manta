@@ -41,26 +41,34 @@ try {
   child.appendMessage({ role: 'user', content: 'child task', timestamp: Date.now() })
   await child.ensureOnDisk()
   await child.flush()
-  const command = buildAiVaultResumeCommand({
-    agent: 'omp',
-    sessionId: child.getSessionId(),
-    resumeFilePath: child.getSessionFile(),
-    cwd: null,
-    platform: process.platform,
-    shell: 'posix'
-  })
-  const tokens = tokenizeStartupCommand(command, 'posix')
-  assert.ok(tokens.ok)
-  const args = parseArgs(tokens.tokens.slice(1))
-  assert.equal(args.resume, child.getSessionFile())
-  const settings = await Settings.init({ cwd })
-  const resumed = await createSessionManager(args, cwd, settings)
-  managers.push(resumed)
-  assert.equal(resumed.getSessionId(), child.getSessionId())
-  assert.notEqual(resumed.getSessionId(), parent.getSessionId())
+  const grandchild = SessionManager.create(cwd, child.getSessionFile().replace(/\.jsonl$/, ''))
+  managers.push(grandchild)
+  grandchild.appendMessage({ role: 'user', content: 'grandchild research', timestamp: Date.now() })
+  await grandchild.ensureOnDisk()
+  await grandchild.flush()
+  for (const target of [child, grandchild]) {
+    const command = buildAiVaultResumeCommand({
+      agent: 'omp',
+      sessionId: target.getSessionId(),
+      resumeFilePath: target.getSessionFile(),
+      cwd: null,
+      platform: process.platform,
+      shell: 'posix'
+    })
+    const tokens = tokenizeStartupCommand(command, 'posix')
+    assert.ok(tokens.ok)
+    const args = parseArgs(tokens.tokens.slice(1))
+    assert.equal(args.resume, target.getSessionFile())
+    const settings = await Settings.init({ cwd })
+    const resumed = await createSessionManager(args, cwd, settings)
+    managers.push(resumed)
+    assert.equal(resumed.getSessionId(), target.getSessionId())
+    assert.notEqual(resumed.getSessionId(), parent.getSessionId())
+  }
   console.log(
     JSON.stringify({
       childPathResumed: true,
+      grandchildPathResumed: true,
       distinctFromParent: true,
       folderWorkspace: true,
       modelCalls: 0

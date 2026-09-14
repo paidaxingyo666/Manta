@@ -17881,5 +17881,15 @@
       "stopped": "stopped",
       "finished": "finished"
     }
+  },
+  "aiVault": {
+    "subagents": {
+      "loading": "Loading subagents…",
+      "loadError": "Could not load all subagents.",
+      "empty": "No subagents found."
+    }
+  },
+  "common": {
+    "retry": "Retry"
   }
 }
