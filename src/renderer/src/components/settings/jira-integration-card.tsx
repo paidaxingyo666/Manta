@@ -82,11 +82,17 @@ export function JiraIntegrationCard(): React.JSX.Element {
       name="Jira"
       description={
         connected
-          ? translate(
-              'auto.components.settings.task.tracker.integration.cards.9fa04a032e',
-              '{{value0}} site{{value1}} connected',
-              { value0: siteCount, value1: siteCount === 1 ? '' : 's' }
-            )
+          ? siteCount === 1
+            ? translate(
+                'auto.components.settings.task.tracker.integration.cards.9fa04a032e_one',
+                '{{value0}} site connected',
+                { value0: siteCount }
+              )
+            : translate(
+                'auto.components.settings.task.tracker.integration.cards.9fa04a032e_other',
+                '{{value0}} sites connected',
+                { value0: siteCount }
+              )
           : checking
             ? translate(
                 'auto.components.settings.task.tracker.integration.cards.a1093a06c7',

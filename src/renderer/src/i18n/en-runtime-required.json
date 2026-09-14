@@ -36,6 +36,8 @@
         "68796dafa0": "pr",
         "88fd82474d": "page",
         "924c2fe05e": "destructive",
+        "a18f669c7a_one": "{{value0}} {{value1}} reaction",
+        "a18f669c7a_other": "{{value0}} {{value1}} reactions",
         "b0b7344684": "Request up to 15 reviewers",
         "b1157c78ff": "sheet",
         "ce8a85d209": "default",
@@ -46,6 +48,8 @@
       },
       "GitLabItemDialog": {
         "11384f99aa": "number",
+        "40c56b95e2_one": "{{value0}} approval remaining",
+        "40c56b95e2_other": "{{value0}} approvals remaining",
         "4186685c78": "reopen",
         "881e522e04": "merge",
         "cae2712a23": "close"
@@ -154,6 +158,8 @@
         "6459faa8b3": "error",
         "68df347677": "you@example.com",
         "6edf402e11": "overview",
+        "7719d8daa9_one": "{{value0}} member",
+        "7719d8daa9_other": "{{value0}} members",
         "7799ad9ab6": "draft",
         "887efe9140": "Connect",
         "937b29fa35": "items",
@@ -175,6 +181,8 @@
         "d0e3c8f933": "No matching GitHub work",
         "d6d08c1650": "Select a project to see GitLab work items.",
         "duplicateIssueNumberPlaceholder": "Issue number",
+        "eff9800d4b_one": "{{value0}} label",
+        "eff9800d4b_other": "{{value0}} labels",
         "f294c500ef": "No GitLab work matches this filter.",
         "fe28c9821f": "view"
       },
@@ -359,6 +367,10 @@
           "8368d256ec": "combined-branch",
           "skippedConflictsExcluded_one": "{{count}} unresolved conflict was excluded from this diff view.",
           "skippedConflictsExcluded_other": "{{count}} unresolved conflicts were excluded from this diff view."
+        },
+        "ConflictComponents": {
+          "4be41eaafc_one": "{{value0}} unresolved conflict",
+          "4be41eaafc_other": "{{value0}} unresolved conflicts"
         },
         "DiffSectionBody": {
           "bdbf02d5df": "binary"
@@ -647,7 +659,9 @@
         "IntegrationsStep": {
           "93f0c49ad1": "not-authenticated",
           "a3bcf13694": "connected",
-          "a74c6d6b18": "not-installed"
+          "a74c6d6b18": "not-installed",
+          "b08a6ac93c_one": "{{value0}} workspace linked. Add another workspace or replace a restricted key any time.",
+          "b08a6ac93c_other": "{{value0}} workspaces linked. Add another workspace or replace a restricted key any time."
         },
         "NotificationStep": {
           "2c47f5465f": "Turn on Allow notifications for Manta in System Settings. This step updates automatically once enabled.",
@@ -803,7 +817,11 @@
             "c57eda6822": "edit"
           },
           "Search": {
-            "1ec640c9c7": "match"
+            "0b8104eaf2_one": "{{value0}} file",
+            "0b8104eaf2_other": "{{value0}} files",
+            "1ec640c9c7": "match",
+            "6aeda362ed_one": "{{value0}} result",
+            "6aeda362ed_other": "{{value0}} results"
           },
           "SourceControl": {
             "03d238218c": "Details",
@@ -815,12 +833,18 @@
             "3636d0f686": "ready",
             "383cf92c73": "tree",
             "3a231c845b": "unknown",
+            "413a3ba113_one": "{{value0}} conflict",
+            "413a3ba113_other": "{{value0}} conflicts",
             "424ee0e5bf": "error",
             "48a003c1b1": "Staged Changes",
             "522f44dce5": "Untracked Files",
+            "657e0c90ad_one": "{{value0}} note",
+            "657e0c90ad_other": "{{value0}} notes",
             "77afaa8152": "All",
             "783a808870": "Close",
             "7a09d7f9d2": "base",
+            "8eb3782a0c_one": "Failed to discard {{value0}} file",
+            "8eb3782a0c_other": "Failed to discard {{value0}} files",
             "901140f47d": "Review the prompt before starting an agent.",
             "9bb062a886": "uncommitted",
             "9febd8ab5f": "create_pr",
@@ -856,12 +880,18 @@
                 "07eccfa397": "No details are available for this check.",
                 "0fc6f743b3": "by",
                 "49ea0937e4": "Add comment to resolve list",
+                "5341023167_one": "{{value0}} check",
+                "5341023167_other": "{{value0}} checks",
+                "6fa7f8723f_one": "{{value0}} commit",
+                "6fa7f8723f_other": "{{value0}} commits",
                 "7c1f0a2b11": "Open",
                 "90206b6353": "comment",
                 "95ad090b01": "thread",
                 "9fecebb29d": "Add",
                 "a916648574": "Open details",
                 "actionRequiredHint": "This check needs a manual action on GitHub (for example, approving the workflow run) before merging is unblocked.",
+                "b652f38caf_one": "{{value0}} failing check",
+                "b652f38caf_other": "{{value0}} failing checks",
                 "d098e5529a": "Output"
               },
               "empty": {
@@ -1011,6 +1041,12 @@
                       "f2b47026e8": "Push failure prompt is empty. Update Source Control AI settings."
                     }
                   }
+                }
+              },
+              "compare": {
+                "summary": {
+                  "dd72a6fd37_one": "{{value0}} commit ahead of {{value2}}",
+                  "dd72a6fd37_other": "{{value0}} commits ahead of {{value2}}"
                 }
               },
               "discard": {
@@ -1295,6 +1331,10 @@
         "McpConfigFileRow": {
           "845ae248e8": "valid"
         },
+        "McpConfigSection": {
+          "3b224167ff_one": "{{value0}} server",
+          "3b224167ff_other": "{{value0}} servers"
+        },
         "MobileEmulatorAgentControlRow": {
           "1861982430": "Failed to load CLI status.",
           "cdeaed9e37": "Registered the Manta CLI in PATH."
@@ -1458,7 +1498,9 @@
         },
         "SshPane": {
           "94c5284560": "Targets",
-          "a7d28dff81": "Add a remote host to connect to it in Manta."
+          "a7d28dff81": "Add a remote host to connect to it in Manta.",
+          "f8050f6307_one": "Synced 1 server",
+          "f8050f6307_other": "Synced {{value0}} servers"
         },
         "SshTargetCard": {
           "47e94bd6ba": "connected",
@@ -1754,6 +1796,18 @@
             "74c6d90d78": "Manage remote SSH targets."
           }
         },
+        "task": {
+          "tracker": {
+            "integration": {
+              "cards": {
+                "9fa04a032e_one": "{{value0}} site connected",
+                "9fa04a032e_other": "{{value0}} sites connected",
+                "e1f5e6424c_one": "{{value0}} workspace connected",
+                "e1f5e6424c_other": "{{value0}} workspaces connected"
+              }
+            }
+          }
+        },
         "terminal": {
           "windows": {
             "search": {
@@ -1819,6 +1873,8 @@
           "serverName": "Server name",
           "sshConfigPickerBulkHint": "Bulk sync stays in Settings → SSH",
           "sshConfigPickerDescription": "Pick a host to fill the form. Nothing is saved until you click Save.",
+          "sshImportSynced_one": "Added {{value0}} host to Manta.",
+          "sshImportSynced_other": "Added {{value0}} hosts to Manta.",
           "sshPersistenceDefault": "Remote terminals on this host stay alive until you end them or reset the relay."
         },
         "AddRepoHostSelector": {
@@ -1947,7 +2003,9 @@
           "5fc9d1891b": "Deleting…",
           "84a2238242": "Show child workspaces",
           "ebadb7eadb": "{{value0}} {{value1}} child {{value2}}",
-          "ebc5c7dcef": "Hide child workspaces"
+          "ebc5c7dcef": "Hide child workspaces",
+          "f94466bc39_one": "{{value0}} of {{value1}} contained project remained after deleting the group.",
+          "f94466bc39_other": "{{value0}} of {{value1}} contained projects remained after deleting the group."
         },
         "WorktreeMetaDialog": {
           "029ea5ec57": "Open GitHub issue",
@@ -2072,8 +2130,11 @@
           "installAnotherMachine": "Install on another machine"
         },
         "SkillInstallReviewContent": {
+          "1b6ad2ca5c": "checked.",
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
           "3d8421ca2f": "executable",
+          "3fc62a61eb_one": "{{value0}} placement checked.",
+          "3fc62a61eb_other": "{{value0}} placements checked.",
           "66cff7a804": "https://app.orca.dev/skills/share/…",
           "87137bcb8d": "scripts",
           "8f9833d509": "Immutable version",
@@ -2209,13 +2270,6 @@
           "e0b988599d": "Total",
           "f6a2c8d019": "Model",
           "faf3444859": "Input"
-        },
-        "share": {
-          "card": {
-            "utils": {
-              "19f4b4dc75": "github.com/stablyai/orca"
-            }
-          }
         },
         "usage": {
           "overview": {
@@ -2473,6 +2527,24 @@
           "TerminalSshReconnectOverlay": {
             "connectButton": "Connect",
             "connectingButton": "Connecting..."
+          },
+          "terminal": {
+            "drop": {
+              "handler": {
+                "1e072f611e_one": "Failed to upload {{value0}} file.",
+                "1e072f611e_other": "Failed to upload {{value0}} files.",
+                "29c031b49a": {
+                  "ac0575_one": "Uploading {{value0}} file to remote…",
+                  "ac0575_other": "Uploading {{value0}} files to remote…",
+                  "e09913_one": "Uploading {{value0}} file to runtime…",
+                  "e09913_other": "Uploading {{value0}} files to runtime…"
+                },
+                "53f015fd85_one": "Skipped {{value0}} symlink.",
+                "53f015fd85_other": "Skipped {{value0}} symlinks.",
+                "b4cf68e889_one": "Skipped {{value0}} item.",
+                "b4cf68e889_other": "Skipped {{value0}} items."
+              }
+            }
           }
         },
         "quick": {

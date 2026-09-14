@@ -187,14 +187,13 @@ export function TaskPageLinearProjectFields({
               <span>
                 {newLinearProjectMemberIds.length === 0
                   ? translate('auto.components.TaskPage.d6cda23ef1', 'Members')
-                  : translate(
-                      'auto.components.TaskPage.7719d8daa9',
-                      '{{value0}} member{{value1}}',
-                      {
-                        value0: newLinearProjectMemberIds.length,
-                        value1: newLinearProjectMemberIds.length > 1 ? 's' : ''
-                      }
-                    )}
+                  : newLinearProjectMemberIds.length > 1
+                    ? translate('auto.components.TaskPage.7719d8daa9_other', '{{value0}} members', {
+                        value0: newLinearProjectMemberIds.length
+                      })
+                    : translate('auto.components.TaskPage.7719d8daa9_one', '{{value0}} member', {
+                        value0: newLinearProjectMemberIds.length
+                      })}
               </span>
               <ChevronDown className="size-3 text-muted-foreground/70" />
             </button>
@@ -259,10 +258,13 @@ export function TaskPageLinearProjectFields({
               <span>
                 {newLinearProjectLabelIds.length === 0
                   ? translate('auto.components.TaskPage.d0ca4aa1d0', 'Labels')
-                  : translate('auto.components.TaskPage.eff9800d4b', '{{value0}} label{{value1}}', {
-                      value0: newLinearProjectLabelIds.length,
-                      value1: newLinearProjectLabelIds.length > 1 ? 's' : ''
-                    })}
+                  : newLinearProjectLabelIds.length > 1
+                    ? translate('auto.components.TaskPage.eff9800d4b_other', '{{value0}} labels', {
+                        value0: newLinearProjectLabelIds.length
+                      })
+                    : translate('auto.components.TaskPage.eff9800d4b_one', '{{value0}} label', {
+                        value0: newLinearProjectLabelIds.length
+                      })}
               </span>
               <ChevronDown className="size-3 text-muted-foreground/70" />
             </button>

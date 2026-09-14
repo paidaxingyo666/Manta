@@ -111,11 +111,17 @@ export function CompareSummary({
   const commitsAhead = summary.commitsAhead
   const showCommitsAhead = typeof commitsAhead === 'number' && commitsAhead > 0
   const commitsAheadTitle = showCommitsAhead
-    ? translate(
-        'auto.components.right.sidebar.source.control.compare.summary.dd72a6fd37',
-        '{{value0}} commit{{value1}} ahead of {{value2}}',
-        { value0: commitsAhead, value1: commitsAhead === 1 ? '' : 's', value2: summary.baseRef }
-      )
+    ? commitsAhead === 1
+      ? translate(
+          'auto.components.right.sidebar.source.control.compare.summary.dd72a6fd37_one',
+          '{{value0}} commit ahead of {{value2}}',
+          { value0: commitsAhead, value2: summary.baseRef }
+        )
+      : translate(
+          'auto.components.right.sidebar.source.control.compare.summary.dd72a6fd37_other',
+          '{{value0}} commits ahead of {{value2}}',
+          { value0: commitsAhead, value2: summary.baseRef }
+        )
     : undefined
 
   if (!showCommitsAhead) {

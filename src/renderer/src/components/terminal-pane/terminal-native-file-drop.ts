@@ -11,7 +11,10 @@ import { isWindowsAbsolutePathLike } from '../../../../shared/cross-platform-pat
 import { isWslUncPath, parseWslUncPath } from '../../../../shared/wsl-paths'
 import type { PtyTransport } from './pty-transport'
 import { recordTerminalUserInputForLeaf } from './terminal-input-activity'
-import { reportTerminalDropUploadSkipsAndFailures } from './terminal-drop-upload-report'
+import {
+  formatTerminalDropUploadingMessage,
+  reportTerminalDropUploadSkipsAndFailures
+} from './terminal-drop-upload-report'
 import { captureTerminalDropTarget, getCurrentTerminalDropTransport } from './terminal-drop-target'
 import {
   getTerminalTargetShellForWorktreePath,
@@ -179,11 +182,7 @@ async function uploadRuntimeDropPaths(
   const targetShell = getTerminalTargetShellForWorktreePath(args.worktreePath)
   const destinationDir = joinRuntimeTerminalDropDir(args.worktreePath)
   const pending = toast.loading(
-    translate(
-      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a.e09913',
-      'Uploading {{value0}} file{{value1}} to runtime…',
-      { value0: args.dataPaths.length, value1: args.dataPaths.length === 1 ? '' : 's' }
-    )
+    formatTerminalDropUploadingMessage(args.dataPaths.length, 'runtime')
   )
   try {
     const { results } = await importExternalPathsToRuntime(
@@ -250,13 +249,7 @@ async function pasteLocalDropPaths(
 async function uploadRemoteDropPaths(
   args: NativeDropFlowArgs & { connectionId: string; targetShell: 'posix' | 'windows' }
 ): Promise<void> {
-  const pending = toast.loading(
-    translate(
-      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a.ac0575',
-      'Uploading {{value0}} file{{value1}} to remote…',
-      { value0: args.dataPaths.length, value1: args.dataPaths.length === 1 ? '' : 's' }
-    )
-  )
+  const pending = toast.loading(formatTerminalDropUploadingMessage(args.dataPaths.length, 'remote'))
   try {
     const { resolvedPaths, skipped, failed } = await window.api.fs.resolveDroppedPathsForAgent({
       paths: args.dataPaths,

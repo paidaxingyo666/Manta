@@ -89,14 +89,17 @@ export function PendingCredentialCleanupCard() {
                   "Cleanup still couldn't be confirmed. Try again later."
                 )
               : pendingCredentialCount > 0
-                ? translate(
-                    'm.pending.credential.cleanup.card.492b6b5a01',
-                    "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
-                    {
-                      value0: pendingCredentialCount,
-                      value1: pendingCredentialCount === 1 ? '' : 's'
-                    }
-                  )
+                ? pendingCredentialCount === 1
+                  ? translate(
+                      'm.pending.credential.cleanup.card.492b6b5a01_one',
+                      "Couldn't confirm cleanup for {{value0}} credential on this device.",
+                      { value0: pendingCredentialCount }
+                    )
+                  : translate(
+                      'm.pending.credential.cleanup.card.492b6b5a01_other',
+                      "Couldn't confirm cleanup for {{value0}} credentials on this device.",
+                      { value0: pendingCredentialCount }
+                    )
                 : translate(
                     'm.pending.credential.cleanup.card.76771939c1',
                     "Couldn't check cleanup status on this device. Retry to be safe."

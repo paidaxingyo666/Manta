@@ -79,9 +79,17 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
     <PRSection title={translate('m.PRConflictingFilesSection.0e748c1c6d', 'Conflicts')}>
       {conflict.commitsBehind !== null && conflict.baseCommit !== null ? (
         <Text style={styles.meta}>
-          {conflict.commitsBehind} {translate('m.PRConflictingFilesSection.9936c08744', 'commit')}
-          {conflict.commitsBehind === 1 ? '' : 's'}{' '}
-          {translate('m.PRConflictingFilesSection.f77b02610a', 'behind (base commit:')}{' '}
+          {conflict.commitsBehind === 1
+            ? translate(
+                'm.PRConflictingFilesSection.9936c08744_one',
+                '{{value0}} commit behind (base commit:',
+                { value0: conflict.commitsBehind }
+              )
+            : translate(
+                'm.PRConflictingFilesSection.9936c08744_other',
+                '{{value0}} commits behind (base commit:',
+                { value0: conflict.commitsBehind }
+              )}{' '}
           <Text style={styles.metaMono}>{conflict.baseCommit}</Text>)
         </Text>
       ) : null}

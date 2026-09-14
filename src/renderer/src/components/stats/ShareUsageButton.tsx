@@ -105,12 +105,11 @@ export function ShareUsageButton(props: ShareUsageButtonProps): React.JSX.Elemen
       return v.toLocaleString()
     }
 
+    // No @-mention or repository link: the post goes out under the user's name.
     const lines = [
-      `My ${rangeLabel} ${providerName} usage via @orca_build`,
+      `My ${rangeLabel} ${providerName} usage via Manta`,
       '',
-      `${fmtTokens(totalTokens)} tokens · ${costStr} est. cost`,
-      '',
-      'github.com/paidaxingyo666/Manta'
+      `${fmtTokens(totalTokens)} tokens · ${costStr} est. cost`
     ]
     const url = `https://x.com/intent/post?text=${encodeURIComponent(lines.join('\n'))}`
     await window.api.shell.openUrl(url)

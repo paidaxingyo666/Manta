@@ -315,10 +315,13 @@ export function TaskPageLinearIssueAttributes({
             <span>
               {newLinearIssueLabelIds.length === 0
                 ? translate('auto.components.TaskPage.d0ca4aa1d0', 'Labels')
-                : translate('auto.components.TaskPage.eff9800d4b', '{{value0}} label{{value1}}', {
-                    value0: newLinearIssueLabelIds.length,
-                    value1: newLinearIssueLabelIds.length > 1 ? 's' : ''
-                  })}
+                : newLinearIssueLabelIds.length > 1
+                  ? translate('auto.components.TaskPage.eff9800d4b_other', '{{value0}} labels', {
+                      value0: newLinearIssueLabelIds.length
+                    })
+                  : translate('auto.components.TaskPage.eff9800d4b_one', '{{value0}} label', {
+                      value0: newLinearIssueLabelIds.length
+                    })}
             </span>
             <ChevronDown className="size-3 text-muted-foreground/70" />
           </button>

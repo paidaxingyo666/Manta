@@ -302,18 +302,19 @@ export function SshPane({ addTargetIntentSignal }: SshPaneProps): React.JSX.Elem
       const result = await window.api.ssh.importConfig({ reAdopt: true })
       useAppStore.getState().recordSshRepoReadoptions(result.repoReadoptions)
       recordFeatureInteraction('ssh')
-      if (mountedRef.current) {
-        if (result.targets.length === 0) {
-          toast('~/.ssh/config already in sync')
-        } else {
-          toast.success(
-            translate(
-              'auto.components.settings.SshPane.f8050f6307',
-              'Synced {{value0}} server{{value1}}',
-              { value0: result.targets.length, value1: result.targets.length > 1 ? 's' : '' }
-            )
-          )
-        }
+      if (mountedRef.current && result.targets.length === 0) {
+        toast('~/.ssh/config already in sync')
+      } else if (mountedRef.current) {
+        // Why: the zero case is handled above, so the singular branch is always exactly 1.
+        toast.success(
+          result.targets.length > 1
+            ? translate(
+                'auto.components.settings.SshPane.f8050f6307_other',
+                'Synced {{value0}} servers',
+                { value0: result.targets.length }
+              )
+            : translate('auto.components.settings.SshPane.f8050f6307_one', 'Synced 1 server')
+        )
       }
       await loadTargets()
     } catch (err) {
