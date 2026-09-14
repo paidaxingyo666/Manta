@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyCodexPromptAnswer,
   CodexPromptRegistry,
+  MAX_CODEX_PROMPT_REGISTRY_BYTES,
   MAX_CODEX_PROMPT_REGISTRY_ENTRIES,
   codexJournalPromptIdPart,
   decodeCodexQuestionOptionId,
@@ -92,6 +93,49 @@ describe('CodexPromptRegistry', () => {
     expect(registry.find('approval-b')?.requestId).toBe(2)
     // Nothing addresses the shared item id, because it names two live prompts.
     expect(registry.find('codex-item-1')).toBeNull()
+  })
+
+  it('clears only prompts belonging to a settled turn', () => {
+    const registry = new CodexPromptRegistry()
+    registry.register({
+      id: 1,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'root-item', threadId: 'thread-1' }
+    })
+    registry.register({
+      id: 2,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'other-item', threadId: 'thread-1', turnId: 'turn-2' }
+    })
+    registry.register({
+      id: 3,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'other-thread-item', threadId: 'thread-2', turnId: 'turn-1' }
+    })
+    registry.bindJournalItemId('journal-root', 'thread-1', 'root-item', 'turn-1')
+
+    registry.clearTurn('thread-1', 'turn-1')
+
+    expect(registry.find('root-item')).toBeNull()
+    expect(registry.find('journal-root')).toBeNull()
+    expect(registry.find('other-item')?.requestId).toBe(2)
+    expect(registry.find('other-thread-item')?.requestId).toBe(3)
+  })
+
+  it('bounds an oversized backfilled turn id and still clears its prompt', () => {
+    const registry = new CodexPromptRegistry()
+    const turnId = 'turn-'.padEnd(MAX_CODEX_PROMPT_REGISTRY_BYTES + 1, 'x')
+    registry.register({
+      id: 1,
+      method: 'item/commandExecution/requestApproval',
+      params: { itemId: 'root-item', threadId: 'thread-1' }
+    })
+
+    registry.bindJournalItemId('journal-root', 'thread-1', 'root-item', turnId)
+
+    expect(registry.bytes).toBeLessThanOrEqual(MAX_CODEX_PROMPT_REGISTRY_BYTES)
+    registry.clearTurn('thread-1', turnId)
+    expect(registry.find('journal-root')).toBeNull()
   })
 
   it('addresses a prompt by its journal item id once bound, and forgets both', () => {

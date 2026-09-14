@@ -88,8 +88,9 @@ export async function acquireCodexStructuredSession(input: {
         ...(deps.now ? { now: deps.now } : {}),
         primaryThreadId: () => primaryThreadId,
         subagentExecutions,
-        bindPromptItemId: (journalItemId, threadId, promptKey) =>
-          acquisition.prompts.bindJournalItemId(journalItemId, threadId, promptKey)
+        bindPromptItemId: (journalItemId, threadId, promptKey, turnId) =>
+          acquisition.prompts.bindJournalItemId(journalItemId, threadId, promptKey, turnId),
+        clearPromptTurn: (threadId, turnId) => acquisition.prompts.clearTurn(threadId, turnId)
       })
     : null
   const open = deps.openConnection ?? openCodexAppServerConnection

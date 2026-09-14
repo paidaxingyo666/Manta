@@ -4,6 +4,9 @@ import {
   MAX_CODEX_PROMPT_JOURNAL_BINDINGS,
   MAX_CODEX_PROMPT_REGISTRY_BYTES,
   MAX_CODEX_PROMPT_REGISTRY_ENTRIES,
+  codexPromptMatchesTurn,
+  codexPromptRegistryEntryBytes,
+  codexPromptTurnIdentity,
   codexJournalPromptIdPart,
   readQuestionIds,
   readQuestionOptionAnswers
@@ -35,6 +38,8 @@ export type CodexPendingPrompt = {
   method: string
   threadId: string
   turnId: string | null
+  /** Oversized compatibility turn ids stay comparable without escaping the registry byte cap. */
+  turnIdDigest?: string
   codexItemId: string
   /** What addresses this prompt. One tool item can ask more than once — a shell
    *  bridge re-asks per command under the same `itemId` — so the request's own
@@ -109,25 +114,7 @@ export class CodexPromptRegistry {
   }
 
   private promptBytes(prompt: CodexPendingPrompt): number {
-    let bytes = 0
-    for (const value of [
-      prompt.threadId,
-      prompt.turnId ?? '',
-      prompt.codexItemId,
-      prompt.promptKey
-    ]) {
-      bytes += Buffer.byteLength(value, 'utf8')
-    }
-    for (const id of prompt.questionIds) {
-      bytes += Buffer.byteLength(id, 'utf8')
-    }
-    for (const entry of prompt.optionAnswers.values()) {
-      bytes += Buffer.byteLength(entry.questionId, 'utf8') + Buffer.byteLength(entry.answer, 'utf8')
-    }
-    for (const value of prompt.answers.values()) {
-      bytes += Buffer.byteLength(value, 'utf8')
-    }
-    return bytes
+    return codexPromptRegistryEntryBytes(prompt)
   }
 
   private retainedPromptBytes(): number {
@@ -222,7 +209,12 @@ export class CodexPromptRegistry {
   }
 
   /** Called by the translation module once the prompt has a journal id. */
-  bindJournalItemId(journalItemId: string, threadId: string, promptKey: string): void {
+  bindJournalItemId(
+    journalItemId: string,
+    threadId: string,
+    promptKey: string,
+    turnId?: string | null
+  ): void {
     const existing = this.journalItemIds.get(journalItemId)
     if (existing) {
       this.boundPrompts.delete(journalItemId)
@@ -232,6 +224,9 @@ export class CodexPromptRegistry {
     const prompt = this.byAddress.get(address)
     if (!prompt) {
       return
+    }
+    if (prompt.turnId === null && prompt.turnIdDigest === undefined && turnId) {
+      Object.assign(prompt, codexPromptTurnIdentity(turnId))
     }
     this.journalItemIds.set(journalItemId, address)
     this.boundPrompts.set(journalItemId, prompt)
@@ -261,6 +256,18 @@ export class CodexPromptRegistry {
         this.journalItemIds.delete(journalItemId)
         this.boundPrompts.delete(journalItemId)
       }
+    }
+  }
+
+  /** Drops requests that belonged to a turn which the provider has settled. */
+  clearTurn(threadId: string, turnId: string): void {
+    const prompts = new Set(
+      [...this.byAddress.values(), ...this.boundPrompts.values()].filter(
+        (prompt) => prompt.threadId === threadId && codexPromptMatchesTurn(prompt, turnId)
+      )
+    )
+    for (const prompt of prompts) {
+      this.forget(prompt)
     }
   }
 

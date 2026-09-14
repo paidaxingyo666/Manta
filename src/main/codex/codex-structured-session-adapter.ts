@@ -179,10 +179,20 @@ export class CodexStructuredSessionAdapter implements StructuredAgentSessionAdap
     sessionId
   ) => this.sessions.get(sessionId)?.backgroundTasks.state
 
-  bindPromptItemId = (sessionId: string, journalItemId: string, promptKey: string): void =>
+  bindPromptItemId = (
+    sessionId: string,
+    journalItemId: string,
+    promptKey: string,
+    turnId?: string | null
+  ): void =>
     this.sessions
       .get(sessionId)
-      ?.prompts.bindJournalItemId(journalItemId, this.session(sessionId).threadId, promptKey)
+      ?.prompts.bindJournalItemId(
+        journalItemId,
+        this.session(sessionId).threadId,
+        promptKey,
+        turnId
+      )
 
   async dispatch(input: {
     sessionId: string

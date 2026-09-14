@@ -18,13 +18,15 @@ import {
   publishCodexLifecycle
 } from './codex-structured-journal-sink'
 import type { CodexPendingJournalPrompt } from './codex-structured-journal-settlement'
+import { readCodexTurnId } from './codex-structured-thread-facts'
 
 export class CodexJournalPrompts {
   readonly pending = new Map<string, CodexPendingJournalPrompt>()
 
   constructor(
     private readonly deps: Pick<CodexJournalTranslatorDeps, 'sink' | 'bindPromptItemId'>,
-    private readonly detailFor: (threadId: string, itemId: string) => string | null
+    private readonly detailFor: (threadId: string, itemId: string) => string | null,
+    private readonly activeTurn: (threadId: string) => string | null
   ) {}
 
   handle(event: {
@@ -34,6 +36,7 @@ export class CodexJournalPrompts {
     codexItemId: string
     promptKey: string
   }): CodexJournalTranslationAdmission {
+    const turnId = readCodexTurnId(event.params) ?? this.activeTurn(event.threadId)
     if (event.method === CODEX_USER_INPUT_METHOD) {
       const questions = codexQuestionItems({
         threadId: event.threadId,
@@ -47,12 +50,17 @@ export class CodexJournalPrompts {
       }
       for (const question of promptItems) {
         const itemId = agentJournalItemKey(question.identity)
-        this.pending.set(itemId, { identity: question.identity, body: question.body })
+        this.pending.set(itemId, {
+          threadId: event.threadId,
+          turnId,
+          identity: question.identity,
+          body: question.body
+        })
         const trimAdmission = this.trim()
         if (!trimAdmission.accepted) {
           return trimAdmission
         }
-        this.deps.bindPromptItemId?.(itemId, event.threadId, event.promptKey)
+        this.deps.bindPromptItemId?.(itemId, event.threadId, event.promptKey, turnId)
       }
       return CODEX_JOURNAL_ADMITTED
     }
@@ -70,12 +78,17 @@ export class CodexJournalPrompts {
       return admission
     }
     const itemId = agentJournalItemKey(identity)
-    this.pending.set(itemId, { identity, body })
+    this.pending.set(itemId, {
+      threadId: event.threadId,
+      turnId,
+      identity,
+      body
+    })
     const trimAdmission = this.trim()
     if (!trimAdmission.accepted) {
       return trimAdmission
     }
-    this.deps.bindPromptItemId?.(itemId, event.threadId, event.promptKey)
+    this.deps.bindPromptItemId?.(itemId, event.threadId, event.promptKey, turnId)
     return CODEX_JOURNAL_ADMITTED
   }
 
@@ -89,7 +102,7 @@ export class CodexJournalPrompts {
 
   private admit(
     event: { method: string; threadId: string; promptKey: string },
-    items: readonly CodexPendingJournalPrompt[]
+    items: readonly Pick<CodexPendingJournalPrompt, 'identity' | 'body'>[]
   ): CodexJournalTranslationAdmission {
     return admitCodexLifecycleItems(
       this.deps.sink,
