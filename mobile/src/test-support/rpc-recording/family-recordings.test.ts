@@ -123,11 +123,12 @@ describe('family reply partitions and owned schedules', () => {
       step.complete.startsWith(id === 'b3' ? 'linear.getIssue' : 'settings.get')
     )!
     const second = replies[replies.indexOf(first) + 1]
-    if (second) {
-      it(`${id}: completion orders and correlated faults`, async () => {
-        await certify(`schedules-${id}`, siblingSchedules(base, first, second))
-      })
+    if (!second) {
+      continue
     }
+    it(`${id}: completion orders and correlated faults`, async () => {
+      await certify(`schedules-${id}`, siblingSchedules(base, first, second))
+    })
   }
   for (const id of ['inventory-lifecycle', 'settings-bot-overrides-fulfilled']) {
     const base = input.scenarios.find((scenario) => scenario.id === id)!

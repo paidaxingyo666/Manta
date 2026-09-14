@@ -104,37 +104,39 @@ describe('RPC main recordings', () => {
       }
     })
     const mutation = mutants[scenario.id]
-    if (mutation) {
-      it(`${scenario.id}: kills ${mutation}`, async () => {
-        const { adapters, assertMutationApplied } = pilotMountAdapters(root, { mutation })
-        const result = await runRecordingMutant(
+    if (!mutation) {
+      continue
+    }
+    it(`${scenario.id}: kills ${mutation}`, async () => {
+      const { adapters, assertMutationApplied } = pilotMountAdapters(root, { mutation })
+      const result = await runRecordingMutant(
+        scenario,
+        adapters[scenario.operation],
+        vitestRecordingScheduler(),
+        readGolden(goldens, scenario.id).recording,
+        visibleState
+      )
+      assertMutationApplied()
+      expect(result.verdict).toBe('killed')
+    })
+    const reference = referenceStates[scenario.id]
+    if (!reference) {
+      continue
+    }
+    it.skipIf(!process.env.RPC_FOUNDATION_REFERENCE_ROOT)(
+      `${scenario.id}: rejects bcba08b3e4`,
+      async () => {
+        const { adapters } = pilotMountAdapters(process.env.RPC_FOUNDATION_REFERENCE_ROOT!, {
+          reference: true
+        })
+        const result = await runRecording(
           scenario,
           adapters[scenario.operation],
-          vitestRecordingScheduler(),
-          readGolden(goldens, scenario.id).recording,
-          visibleState
+          vitestRecordingScheduler()
         )
-        assertMutationApplied()
-        expect(result.verdict).toBe('killed')
-      })
-      const reference = referenceStates[scenario.id]
-      if (reference) {
-        it.skipIf(!process.env.RPC_FOUNDATION_REFERENCE_ROOT)(
-          `${scenario.id}: rejects bcba08b3e4`,
-          async () => {
-            const { adapters } = pilotMountAdapters(process.env.RPC_FOUNDATION_REFERENCE_ROOT!, {
-              reference: true
-            })
-            const result = await runRecording(
-              scenario,
-              adapters[scenario.operation],
-              vitestRecordingScheduler()
-            )
-            expect(visibleState(result)).toEqual(reference)
-            expect(reference).not.toEqual(visibleState(readGolden(goldens, scenario.id).recording))
-          }
-        )
+        expect(visibleState(result)).toEqual(reference)
+        expect(reference).not.toEqual(visibleState(readGolden(goldens, scenario.id).recording))
       }
-    }
+    )
   }
 })
