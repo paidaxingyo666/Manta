@@ -54,7 +54,9 @@ resources/skills/current-manifest.json merge=keepupstream
 resources/skills/snapshot-registry.json merge=keepfork
 resources/skills/release-mapping.json merge=keepfork
 config/max-lines-baseline.txt merge=keepupstream
-src/renderer/src/i18n/locales/*.json merge=keepupstream
+# Key by key, not keepupstream: taking upstream's whole file on a two-sided change
+# deleted every translation the fork had added (603 zh entries on 2026-09-14).
+src/renderer/src/i18n/locales/*.json merge=localecatalog
 # Generated runtime English subset: compared byte-for-byte by
 # verify:localization-runtime-catalog, so a CRLF checkout would fail the gate.
 /src/renderer/src/i18n/en-runtime-required.json linguist-generated=true text eol=lf
