@@ -85,8 +85,10 @@ export type AgentHookRelayEnvelope = {
   promptInteractionKey?: string
   /** Hook discriminator preserved for main-process transition rules. */
   hookEventName?: string
-  /** Claude's provider-owned user-prompt UUID. */
+  /** Provider-owned turn identity (Claude UUID or opaque Grok prompt id). */
   providerPromptId?: string
+  /** The row belongs to an observed Grok prompt boundary whose opaque id may be absent. */
+  grokPromptBoundary?: true
   /** Active Claude compact generation, keyed by provider prompt identity. */
   compactTrigger?: 'manual' | 'auto'
   /** Claude tool execution id, when the source hook provides one. */

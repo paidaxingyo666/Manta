@@ -16,6 +16,7 @@ import {
   invalidateClaudeChildOnlyBoundary,
   shouldKeepClaudePermissionVisible
 } from './server-claude-status-rules'
+import { isStaleGrokTurnEnd } from './server-grok-status-rules'
 import { isToolProgressWorkingAfterInterrupt } from './server-status-identity'
 import { AgentHookServerStatusApplication } from './server-status-application'
 
@@ -42,6 +43,11 @@ export abstract class AgentHookServerStatusUpdate extends AgentHookServerStatusA
         : undefined)
     const terminalOwnedPayload =
       terminalHandle === payload.terminalHandle ? payload : { ...payload, terminalHandle }
+    if (previous && isStaleGrokTurnEnd(previous, terminalOwnedPayload)) {
+      // Why: Grok turn-end hooks may arrive after the next prompt, including across relay restart.
+      this.commitStatusRowMutation(rowBefore, previous)
+      return previous
+    }
     const connectionClearWatermark = terminalOwnedPayload.connectionId
       ? this.connectionTimestampWatermarkById.get(terminalOwnedPayload.connectionId)
       : undefined

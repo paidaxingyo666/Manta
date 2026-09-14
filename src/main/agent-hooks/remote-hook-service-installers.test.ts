@@ -410,6 +410,7 @@ describe('remote hook service installers', () => {
       'SessionStart',
       'UserPromptSubmit',
       'Stop',
+      'StopCancelled',
       'StopFailure',
       'SessionEnd',
       'PreToolUse',

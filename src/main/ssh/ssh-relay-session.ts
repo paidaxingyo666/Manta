@@ -1564,30 +1564,7 @@ export class SshRelaySession {
       if (method !== AGENT_HOOK_NOTIFICATION_METHOD) {
         return
       }
-      const envelope = params as {
-        paneKey?: unknown
-        launchToken?: unknown
-        tabId?: unknown
-        worktreeId?: unknown
-        env?: unknown
-        version?: unknown
-        hasExplicitPrompt?: unknown
-        promptInteractionKey?: unknown
-        hookEventName?: unknown
-        source?: unknown
-        providerPromptId?: unknown
-        compactTrigger?: unknown
-        toolUseId?: unknown
-        toolAgentId?: unknown
-        teammateName?: unknown
-        toolAgentType?: unknown
-        isReplay?: unknown
-        providerSession?: unknown
-        providerSessionOnly?: unknown
-        shedFields?: unknown
-        claudeRunningNonAgentTask?: unknown
-        payload?: unknown
-      }
+      const envelope = params
       if (typeof envelope.paneKey !== 'string') {
         return
       }
@@ -1609,6 +1586,7 @@ export class SshRelaySession {
             typeof envelope.hookEventName === 'string' ? envelope.hookEventName : undefined,
           source: envelope.source,
           providerPromptId: envelope.providerPromptId,
+          grokPromptBoundary: envelope.grokPromptBoundary === true ? true : undefined,
           compactTrigger: envelope.compactTrigger,
           toolUseId: typeof envelope.toolUseId === 'string' ? envelope.toolUseId : undefined,
           toolAgentId: typeof envelope.toolAgentId === 'string' ? envelope.toolAgentId : undefined,
