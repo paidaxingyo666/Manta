@@ -131,4 +131,19 @@ describe('fork release workflow contract', () => {
       expect(worst).toBeLessThanOrEqual(job['timeout-minutes'])
     }
   })
+
+  // GitHub's generated notes list every PR "by @<account>" with links; this
+  // fork's release notes carry no personal identifier. Every release that went
+  // out before this used them anyway, because nothing read the trimmed file.
+  it('publishes the committed release notes, never generated ones', () => {
+    const prepare = workflow()
+      .jobs.prepare.steps.map((step) => String(step.run ?? ''))
+      .join('\n')
+    expect(prepare).toContain('docs/release-notes/${RELEASE_TAG#v}.md')
+    expect(prepare).toContain('--notes-file')
+    for (const file of ['fork-release.yml', 'mobile-android-release.yml']) {
+      const text = readFileSync(join(projectDir, '.github/workflows', file), 'utf8')
+      expect(text, file).not.toMatch(/generate-notes|generate_release_notes/)
+    }
+  })
 })

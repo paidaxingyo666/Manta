@@ -121,12 +121,14 @@ jobs:
             echo "Draft for $RELEASE_TAG already exists; reusing it."
             exit 0
           fi
-          # Generated notes need a previous release to diff against. With none,
-          # GitHub produces a bare "Full Changelog" link and nothing else, which
-          # is a poor thing for a first release to say.
-          notes=(--generate-notes)
-          if [[ -z "$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[].tagName')" ]]; then
-            notes=(--notes "First Manta release.")
+          # The notes cut-fork-release.mjs drafted and a person trimmed, never
+          # GitHub's generated ones: those list every PR "by @<account>" with
+          # links, and release notes must carry no personal identifier.
+          notes_file="docs/release-notes/${RELEASE_TAG#v}.md"
+          if [[ -f "$notes_file" ]]; then
+            notes=(--notes-file "$notes_file")
+          else
+            notes=(--notes "Manta $RELEASE_TAG")
           fi
           # Draft, always: electron-builder uploads asset by asset, and a
           # visible release with three of five files is worse than no release.
