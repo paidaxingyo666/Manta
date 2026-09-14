@@ -2584,7 +2584,9 @@
           },
           "ProjectViewStates": {
             "ac83c45672": "Switch to a Table or Roadmap view to work with this project in Manta.",
-            "e4cc8b14f2": "Manta renders table and roadmap project views. This view uses a layout it cannot render yet."
+            "e4cc8b14f2": "Manta renders table and roadmap project views. This view uses a layout it cannot render yet.",
+            "3b9c1d5e47": "This view has no items yet.",
+            "7e4a2f80c6": "Recently added items can take a while to appear."
           }
         },
         "GitHubMarkdownComposer": {
