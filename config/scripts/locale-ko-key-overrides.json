@@ -4110,10 +4110,10 @@
     "ko": "세션 {{value1}}개 중 {{value0}}개를 종료했습니다. {{value2}}개가 종료를 거부했습니다."
   },
   "auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_one": {
-    "ko": "{{value0}} 호스트을(를) Manta에 추가했습니다."
+    "ko": "호스트 {{value0}}개를 Manta에 추가했습니다."
   },
   "auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_other": {
-    "ko": "{{value0}} 호스트을(를) Manta에 추가했습니다."
+    "ko": "호스트 {{value0}}개를 Manta에 추가했습니다."
   },
   "auto.components.sidebar.AddRepoCreateStep.0ae45b8238": {
     "ko": "my-project"

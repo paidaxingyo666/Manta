@@ -22,9 +22,9 @@ const correctedValues = {
   'auto.components.settings.DeveloperPermissionsPane.f903bf20b5':
     '터미널과 개발 도구가 로컬 네트워크의 서비스에 연결할 수 있도록 허용합니다. macOS는 이 권한의 현재 상태를 Manta에 보고하지 않습니다.',
   'auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_one':
-    '{{value0}} 호스트을(를) Manta에 추가했습니다.',
+    '호스트 {{value0}}개를 Manta에 추가했습니다.',
   'auto.components.sidebar.AddRemoteHostDialog.sshImportSynced_other':
-    '{{value0}} 호스트을(를) Manta에 추가했습니다.',
+    '호스트 {{value0}}개를 Manta에 추가했습니다.',
   'auto.components.editor.CheckRunJobs.1c0a4d7e02': '성공',
   'components.native-chat.approval.allow': '허용',
   'components.native-chat.approval.deny': '거부'
