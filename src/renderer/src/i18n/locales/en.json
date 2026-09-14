@@ -17316,7 +17316,8 @@
       "drop": {
         "title": "Drop to attach to this chat",
         "subtitle": "Files are added to your message as paths the agent can read."
-      }
+      },
+      "copyCode": "Copy code"
     },
     "tab": {
       "bar": {
