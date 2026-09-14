@@ -1,3 +1,8 @@
+import type {
+  StagedRuntimeUploadEntry,
+  StagedRuntimeUploadSource
+} from '../../shared/runtime-upload-staging-contract'
+
 export type ImportSkipReason = 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
 
 export type ResolveDroppedPathsResult = {
@@ -27,25 +32,7 @@ export type ImportItemResult =
       reason: string
     }
 
-export type StagedExternalImportSource =
-  | {
-      sourcePath: string
-      status: 'staged'
-      name: string
-      kind: 'file' | 'directory'
-      entries: StagedExternalImportEntry[]
-    }
-  | {
-      sourcePath: string
-      status: 'skipped'
-      reason: ImportSkipReason
-    }
-  | {
-      sourcePath: string
-      status: 'failed'
-      reason: string
-    }
-
-export type StagedExternalImportEntry =
-  | { relativePath: string; kind: 'directory' }
-  | { relativePath: string; kind: 'file'; contentBase64: string }
+// Why: staging crosses IPC to the renderer and back into the streamer, so the
+// shape lives in shared and every layer names the same type.
+export type StagedExternalImportSource = StagedRuntimeUploadSource
+export type StagedExternalImportEntry = StagedRuntimeUploadEntry

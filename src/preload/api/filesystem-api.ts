@@ -12,6 +12,10 @@ import type {
   LocalLogTailWatchArgs
 } from '../../shared/local-log-tail-types'
 import type { SshMutationExpectation } from '../../shared/ssh-types'
+import type {
+  RuntimeUploadFileStreamRequest,
+  StageRuntimeUploadResult
+} from '../../shared/runtime-upload-staging-contract'
 
 export type ExportApi = {
   htmlToPdf: (args: {
@@ -155,30 +159,12 @@ export type FilesystemApi = {
           }
       )[]
     }>
-    stageExternalPathsForRuntimeUpload: (args: { sourcePaths: string[] }) => Promise<{
-      sources: (
-        | {
-            sourcePath: string
-            status: 'staged'
-            name: string
-            kind: 'file' | 'directory'
-            entries: (
-              | { relativePath: string; kind: 'directory' }
-              | { relativePath: string; kind: 'file'; contentBase64: string }
-            )[]
-          }
-        | {
-            sourcePath: string
-            status: 'skipped'
-            reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-          }
-        | {
-            sourcePath: string
-            status: 'failed'
-            reason: string
-          }
-      )[]
-    }>
+    stageExternalPathsForRuntimeUpload: (args: {
+      sourcePaths: string[]
+    }) => Promise<StageRuntimeUploadResult>
+    uploadExternalFileToRuntime: (
+      args: RuntimeUploadFileStreamRequest
+    ) => Promise<{ byteLength: number }>
     resolveDroppedPathsForAgent: (
       args: {
         paths: string[]

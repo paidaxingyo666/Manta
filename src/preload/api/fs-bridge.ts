@@ -1,6 +1,10 @@
 import type { PathExistenceResult } from '../../shared/path-existence-batch'
 import { ipcRenderer } from 'electron'
 import type { SshMutationExpectation } from '../../shared/ssh-types'
+import type {
+  RuntimeUploadFileStreamRequest,
+  StageRuntimeUploadResult
+} from '../../shared/runtime-upload-staging-contract'
 import type { SearchResult } from '../../shared/code-search-types'
 import type { FsChangedPayload } from '../../shared/filesystem-entry-types'
 import type {
@@ -174,30 +178,11 @@ export const fsApi = {
   }> => ipcRenderer.invoke('fs:importExternalPaths', args),
   stageExternalPathsForRuntimeUpload: (args: {
     sourcePaths: string[]
-  }): Promise<{
-    sources: (
-      | {
-          sourcePath: string
-          status: 'staged'
-          name: string
-          kind: 'file' | 'directory'
-          entries: (
-            | { relativePath: string; kind: 'directory' }
-            | { relativePath: string; kind: 'file'; contentBase64: string }
-          )[]
-        }
-      | {
-          sourcePath: string
-          status: 'skipped'
-          reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-        }
-      | {
-          sourcePath: string
-          status: 'failed'
-          reason: string
-        }
-    )[]
-  }> => ipcRenderer.invoke('fs:stageExternalPathsForRuntimeUpload', args),
+  }): Promise<StageRuntimeUploadResult> =>
+    ipcRenderer.invoke('fs:stageExternalPathsForRuntimeUpload', args),
+  uploadExternalFileToRuntime: (
+    args: RuntimeUploadFileStreamRequest
+  ): Promise<{ byteLength: number }> => ipcRenderer.invoke('fs:uploadExternalFileToRuntime', args),
   resolveDroppedPathsForAgent: (
     args: {
       paths: string[]

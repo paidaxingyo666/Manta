@@ -21,25 +21,6 @@ import {
 import { getActiveRuntimeTarget } from './runtime-rpc-client'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 
-type StagedRuntimeImportSource =
-  | {
-      sourcePath: string
-      status: 'staged'
-      name: string
-      kind: 'file' | 'directory'
-      entries: StagedRuntimeImportEntry[]
-    }
-  | {
-      sourcePath: string
-      status: 'skipped'
-      reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-    }
-  | { sourcePath: string; status: 'failed'; reason: string }
-
-type StagedRuntimeImportEntry =
-  | { relativePath: string; kind: 'directory' }
-  | { relativePath: string; kind: 'file'; contentBase64: string }
-
 type RuntimeImportResult =
   | {
       sourcePath: string
@@ -113,7 +94,7 @@ export async function importExternalPathsToRuntime(
 
   await ensureRuntimeDirectory(context, destinationDir, importSession)
 
-  for (const source of staged.sources as StagedRuntimeImportSource[]) {
+  for (const source of staged.sources) {
     if (source.status !== 'staged') {
       results.push(source)
       continue
@@ -150,7 +131,16 @@ export async function importExternalPathsToRuntime(
           importSession,
           context.worktreeId,
           entryRelativePath,
-          entry.contentBase64,
+          {
+            sourceRootPath: source.sourcePath,
+            entryRelativePath: entry.relativePath,
+            expected: {
+              byteLength: entry.byteLength,
+              inode: entry.inode,
+              deviceId: entry.deviceId,
+              modifiedAtMs: entry.modifiedAtMs
+            }
+          },
           context.expectedSshConnectionGeneration,
           context.expectedSshTargetId,
           context.expectedExecutionHostId ??
