@@ -64,9 +64,28 @@ What conflicts look like, and what to do:
 | --- | --- | --- |
 | `mobile/**` | the fork's `translate()` wrapper against an upstream edit to the same line | `git checkout --theirs -- <file>` (take upstream), `git add`; `sync-finish.sh` re-localizes |
 | modify/delete | upstream deleted a file the fork edited | if the edit was a fix upstream absorbed, `git rm` it; if it is fork feature, move it to where upstream put that code, then `git rm` the old path |
-| `README.md`, `docs/readme/README.zh-CN.md` | never — `.gitattributes` keeps the fork's | — |
+| `/README.md`, `docs/readme/README.zh-CN.md` | never — `.gitattributes` keeps the fork's | — |
 | lockfiles, skill manifests | never — `.gitattributes` keeps upstream's; `sync-finish.sh` regenerates | — |
+| `src/renderer/src/i18n/locales/*.json` | never — merged key by key (`config/scripts/merge-locale-catalog.mjs`); `sync-finish.sh` retires translations of keys `en.json` dropped | — |
 | anything else | a genuine two-sided change | read both, resolve by hand |
+
+**Anchor a `merge=` pattern that names a basename.** `.gitattributes` matches a
+pattern without a slash at every depth, so `README.md merge=keepfork` also kept
+the fork's side of `cloud/README.md`, `mobile/README.md` and every other one —
+on 2026-09-14 it dropped upstream's new push-gateway section from
+`cloud/README.md` without a conflict. It is `/README.md` now.
+
+**The locale catalogues used to be `keepupstream`, and it cost every
+translation the fork wrote.** On any two-sided change it took upstream's whole
+file; upstream edits `zh.json` most weeks, so the 2026-09-14 sync deleted 603 of
+the fork's Chinese entries and 95 English fallbacks for fork-only features, and
+the only tell was a lower coverage count. `fork-zh-terminology.mjs` had been
+patching the visible half of that since 2026-09-05. The key-by-key driver keeps
+both sides' keys; when both translated one key differently the fork's wins, and
+English follows upstream's code. One case it cannot see from inside a
+translation file — a key upstream never translated, the fork did, and upstream
+then retired from `en.json` — so `sync-finish.sh` prunes those against the merged
+English afterwards.
 
 **A cluster resolves as one revision.** The fork's cherry-pick era left
 half-landed versions of upstream features — #17517's image attachments spans
@@ -293,10 +312,12 @@ the old cherry-pick path; neither is part of the sync now.
 `cloud/`, the 26 `.github/workflows/cloud-*.yml`, and
 `.github/actions/cloud-sql-rollout-lease/` are upstream's hosted relay fleet and
 the GCP estate that runs it — their projects, their service accounts, their
-numeric repository ids. This fork operates none of it and imports none of it:
-the root workspace is `packages: []`, nothing under `src/`, `mobile/src/` or
-`relay-server/` references `@manta-cloud/relay-contract`, and the fork's own
-relay is `relay-server/`.
+numeric repository ids. This fork operates none of it, and its own relay is
+`relay-server/`. It is not import-free, though: root unit tests
+(`tests/e2e/relay-region-*.unit.test.ts`) load `cloud/apps/relay` source, and
+`unit-tests.yml` installs its deps with `--filter '@orca-cloud/relay...'`. That
+scope, like the push proof domain separators signed against it, is on
+KEEP_SUBSTRING: renamed, the filter matched nothing and CI could not find `pg`.
 
 They are on KEEP_PATH, so they track upstream byte for byte. Renaming inside
 them produced names that were neither upstream's nor this fork's and existed
@@ -336,6 +357,17 @@ mechanical. Publish the sync refs so a fresh clone can pick up where this one
 left off: `git push origin refs/sync/base refs/sync/mirror`. `sync-run.sh`
 fetches them from origin before it starts, and `sync-finish.sh` says when to
 push them again.
+
+**Forgetting that push used to be destructive.** `sync-run.sh` force-fetched
+origin's `refs/sync/*` over the local ones. The 2026-09-09 sync never pushed
+them, so on 2026-09-14 a correct local base (`2fd8efbcac`) was replaced by a
+stale one, the mirror was extended from the wrong commit into a second lineage
+for work `main` already had, and the merge came back with 418 conflicts — 127 of
+them add/add — that were the previous sync over again. Resolving them would
+have merged the same upstream changes twice. It now takes origin's refs only
+when they are ahead of the local ones, treats the second parent of `main`'s
+latest `sync: merge upstream` commit as the base that cannot go stale, and
+refuses to merge when `main` and the mirror meet before the base.
 
 ## How it got here
 

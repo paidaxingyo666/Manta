@@ -50,7 +50,7 @@ export function MobileOnboardingPage({
         <Text style={styles.title}>
           {isSessionView
             ? translate('m.MobileOnboardingPage.a3d2f11cf8', 'How should sessions open?')
-            : translate('m.MobileOnboardingPage.3a676018db', 'Stay updated while away')}
+            : translate('m.MobileOnboardingPage.40cf41e250', 'Enable notifications')}
         </Text>
         <Text style={styles.body}>
           {isSessionView
@@ -59,13 +59,21 @@ export function MobileOnboardingPage({
                 'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
               )
             : translate(
-                'm.MobileOnboardingPage.def1eabfa5',
-                'Get notified on this device when an agent needs your input or finishes a task.'
+                'm.MobileOnboardingPage.f849206cff',
+                'Get notified when an agent finishes a task or needs your input.'
               )}
         </Text>
       </View>
 
       <View style={styles.footer}>
+        {!isSessionView ? (
+          <Text style={styles.disclosure}>
+            {translate(
+              'm.MobileOnboardingPage.ae7a310662',
+              'Delivered through Manta’s push service. Change this anytime in Settings.'
+            )}
+          </Text>
+        ) : null}
         {error ? (
           <Text style={styles.error} accessibilityRole="alert">
             {error}

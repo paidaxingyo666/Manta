@@ -30,9 +30,12 @@ import { translate } from '../i18n/i18n'
 import { localizedConstant } from '../i18n/localized-constant'
 import {
   createMobileAiVaultResumeMutationId,
-  loadMobileResumeMetadata
+  loadMobileResumeMetadata as loadResumeMetadataFromHost
 } from './mobile-resume-metadata'
 import { useNow } from '../hooks/use-now'
+
+// Local binding: the rpc-recording harness exposes loadMobileResumeMetadata from this file.
+const loadMobileResumeMetadata = loadResumeMetadataFromHost
 
 export type MobileAgentSessionHistoryPanelProps = {
   hostId: string

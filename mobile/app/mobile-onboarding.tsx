@@ -22,7 +22,7 @@ import {
   saveDefaultSessionView,
   type MobileSessionView
 } from '../src/storage/session-view-preferences'
-import { savePushNotificationsEnabled } from '../src/storage/preferences'
+import { setRemotePushEnabled } from '../src/notifications/push-registration'
 import { translate } from '../src/i18n/i18n'
 
 const SLIDE_DURATION_MS = 280
@@ -128,7 +128,7 @@ function MobileOnboardingFlow({
       setError(null)
       try {
         const enabled = choice === 'enable' ? await ensureNotificationPermissions() : false
-        await savePushNotificationsEnabled(enabled)
+        await setRemotePushEnabled(enabled)
         advanceOrContinue()
       } catch {
         setError('Notification settings could not be updated. Try again.')

@@ -24,9 +24,19 @@ pnpm install --lockfile-only >/dev/null 2>&1 && echo "   root ok" || echo "   ro
 echo "== mobile localization: wrap what upstream added, translate from memory"
 python3 "$HERE/sync-i18n.py" | sed 's/^/   /'
 
+echo "== desktop catalogs: retire translations of keys English dropped"
+# The catalogs merge key by key now (merge-locale-catalog.mjs), which keeps the
+# fork's translations — but a key upstream retired from en.json, that the fork
+# had translated and upstream never had, looks like a fork addition from inside
+# zh.json. Only the merged en.json can tell, so this runs after the merge.
+LOCALES="$ROOT/src/renderer/src/i18n/locales"
+node "$ROOT/config/scripts/merge-locale-catalog.mjs" --retire-against "$LOCALES/en.json" \
+  $(ls "$LOCALES"/*.json | grep -v '/en\.json$') | sed 's/^/   /'
+
 echo "== desktop Chinese: reapply this fork's wording"
-# The locale catalogs are on the keepupstream driver, so every sync reverts the
-# fork's terminology to upstream's — 490 entries on 2026-09-05, all one word.
+# Upstream's new zh strings still arrive in upstream's wording. Until the catalogs
+# merged key by key this also had to undo keepupstream reverting the fork's
+# existing entries — 490 on 2026-09-05, all one word.
 node "$ROOT/config/scripts/fork-zh-terminology.mjs" | sed 's/^/   /'
 
 echo "== record the new base"

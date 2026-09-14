@@ -1,8 +1,43 @@
 import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import { loadPushNotificationsEnabled } from '../storage/preferences'
-import { buildLocalNotificationData, type DesktopNotificationSource } from './notification-routing'
+import { DESKTOP_NOTIFICATION_CHANNEL_ID } from './desktop-notification-channel'
+import type { DismissNotificationEvent } from './desktop-notification-events'
 import { ensureNotificationPermissions } from './notification-permissions'
+
+export type { DismissNotificationEvent }
+
+export type DesktopNotificationSource = 'agent-task-complete' | 'terminal-bell' | 'test'
+
+export type DesktopNotificationEvent = {
+  source: DesktopNotificationSource
+  worktreeId?: string
+  notificationId?: string
+}
+
+export type LocalNotificationData = {
+  source: DesktopNotificationSource
+  hostId: string
+  worktreeId?: string
+  notificationId?: string
+}
+
+export function buildLocalNotificationData(
+  event: DesktopNotificationEvent,
+  hostId: string
+): LocalNotificationData {
+  const data: LocalNotificationData = {
+    source: event.source,
+    hostId
+  }
+  if (event.worktreeId) {
+    data.worktreeId = event.worktreeId
+  }
+  if (event.notificationId) {
+    data.notificationId = event.notificationId
+  }
+  return data
+}
 
 export type NotificationEvent = {
   type: 'notification'
@@ -14,13 +49,6 @@ export type NotificationEvent = {
   // Desktop-assigned seq for reconnect catch-up (#8129); optional since older runtimes may omit it.
   notificationSeq?: number
   // Counter lifetime the seq belongs to (#8591); absent on older runtimes.
-  notificationEpoch?: string
-}
-
-export type DismissNotificationEvent = {
-  type: 'dismiss'
-  notificationId: string
-  notificationSeq?: number
   notificationEpoch?: string
 }
 
@@ -62,17 +90,6 @@ export function setScheduledNotificationsMaxForTests(max?: number): void {
   maxScheduledNotifications = max ?? MAX_SCHEDULED_NOTIFICATIONS
 }
 
-export function configureNotificationChannel(): void {
-  if (Platform.OS === 'android') {
-    void Notifications.setNotificationChannelAsync('manta-desktop', {
-      name: 'Desktop Notifications',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250],
-      lightColor: '#6366f1'
-    })
-  }
-}
-
 export async function showLocalNotification(
   event: NotificationEvent,
   hostId: string
@@ -97,7 +114,7 @@ export async function showLocalNotification(
         title: event.title,
         body: event.body,
         data: buildLocalNotificationData(event, hostId),
-        ...(Platform.OS === 'android' ? { channelId: 'manta-desktop' } : {})
+        ...(Platform.OS === 'android' ? { channelId: DESKTOP_NOTIFICATION_CHANNEL_ID } : {})
       },
       trigger: null
     })
@@ -135,7 +152,7 @@ export async function showLocalNotification(
         title: event.title,
         body: event.body,
         data: buildLocalNotificationData(event, hostId),
-        ...(Platform.OS === 'android' ? { channelId: 'manta-desktop' } : {})
+        ...(Platform.OS === 'android' ? { channelId: DESKTOP_NOTIFICATION_CHANNEL_ID } : {})
       },
       trigger: null
     })

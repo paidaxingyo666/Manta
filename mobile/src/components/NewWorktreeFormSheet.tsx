@@ -44,6 +44,7 @@ export function NewWorktreeFormSheet(props: {
   creating: boolean
   canCreate: boolean
   onClose: () => void
+  onOpenExternalUrl: (url: string) => Promise<unknown>
   onOpenProject: () => void
   onOpenRunTarget: () => void
   onOpenSource: () => void
@@ -93,6 +94,7 @@ export function NewWorktreeFormSheet(props: {
             }
             disabled={props.sshGate.requiresConnection}
             interactive={props.interactive}
+            onOpenExternalUrl={props.onOpenExternalUrl}
             onBeforeOpen={props.onClearError}
             onOpenDrawer={props.onOpenSource}
           />

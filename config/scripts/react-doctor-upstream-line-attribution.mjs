@@ -37,18 +37,80 @@ function normalizeBrand(text) {
   return out.trim()
 }
 
+/**
+ * A multi-line finding reports its first line, which is often too generic to
+ * identify (`return {`, `db`). Such a line is attributed together with the lines
+ * after it, up to the first identifying one, as a block upstream must contain
+ * contiguously. 86 casts in upstream's own tests failed the 2026-09-14 sync
+ * because only the opening line was compared.
+ */
+const MAX_BLOCK_LINES = 12
+
+/** The upstream spelling of a path the mirror renamed (`manta-runtime-tests/`). */
+function upstreamPathCandidates(filePath) {
+  const renamed = normalizeBrand(filePath)
+    .split('Manta')
+    .join('Orca')
+    .split('manta')
+    .join('orca')
+    .split('MANTA')
+    .join('ORCA')
+  return renamed === filePath ? [filePath] : [filePath, renamed]
+}
+
 function upstreamFileLines(ref, filePath, cache) {
   if (!cache.has(filePath)) {
-    const shown = spawnSync('git', ['show', `${ref}:${filePath}`], { encoding: 'utf8' })
-    cache.set(
-      filePath,
-      shown.status === 0 ? new Set(shown.stdout.split('\n').map(normalizeBrand)) : null
-    )
+    let lines = null
+    for (const candidate of upstreamPathCandidates(filePath)) {
+      const shown = spawnSync('git', ['show', `${ref}:${candidate}`], {
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024
+      })
+      if (shown.status === 0) {
+        lines = shown.stdout.split('\n').map(normalizeBrand)
+        break
+      }
+    }
+    cache.set(filePath, lines && { lines, set: new Set(lines) })
   }
   return cache.get(filePath)
 }
 
-function sourceLine(filePath, line, cache) {
+/**
+ * True when the finding at `index` (0-based) is upstream's: its line, or the
+ * block from it through the next identifying line, appears in upstream's copy.
+ */
+export function isUpstreamAuthored(sourceLines, index, upstream) {
+  if (index < 0 || index >= sourceLines.length) {
+    return false
+  }
+  const block = []
+  for (
+    let cursor = index;
+    cursor < sourceLines.length && block.length < MAX_BLOCK_LINES;
+    cursor++
+  ) {
+    const line = normalizeBrand(sourceLines[cursor])
+    block.push(line)
+    if (line.length >= MIN_ATTRIBUTABLE_LENGTH) {
+      break
+    }
+  }
+  if (block.at(-1).length < MIN_ATTRIBUTABLE_LENGTH) {
+    return false
+  }
+  if (block.length === 1) {
+    return upstream.set.has(block[0])
+  }
+  for (let start = 0; start + block.length <= upstream.lines.length; start++) {
+    if (block.every((line, offset) => upstream.lines[start + offset] === line)) {
+      return true
+    }
+  }
+  return false
+}
+
+function sourceLines(filePath, cache) {
   if (!cache.has(filePath)) {
     try {
       cache.set(filePath, readFileSync(filePath, 'utf8').split('\n'))
@@ -56,8 +118,7 @@ function sourceLine(filePath, line, cache) {
       cache.set(filePath, null)
     }
   }
-  const lines = cache.get(filePath)
-  return lines && line >= 1 && line <= lines.length ? lines[line - 1] : null
+  return cache.get(filePath)
 }
 
 export function upstreamRefIsAvailable(ref) {
@@ -79,9 +140,8 @@ export function partitionByAuthor(diagnostics, upstreamRef) {
   for (const diagnostic of diagnostics) {
     const filePath = diagnostic.filePath
     const known = upstreamFileLines(upstreamRef, filePath, upstreamCache)
-    const line = sourceLine(filePath, diagnostic.line, sourceCache)
-    const attributable = line !== null && normalizeBrand(line).length >= MIN_ATTRIBUTABLE_LENGTH
-    if (known && attributable && known.has(normalizeBrand(line))) {
+    const lines = sourceLines(filePath, sourceCache)
+    if (known && lines && isUpstreamAuthored(lines, diagnostic.line - 1, known)) {
       upstream.push(diagnostic)
     } else {
       ours.push(diagnostic)

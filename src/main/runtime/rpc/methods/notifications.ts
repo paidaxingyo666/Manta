@@ -1,69 +1,30 @@
-import { z } from 'zod'
-import { defineStreamingMethod, defineMethod, type RpcAnyMethod } from '../core'
+import { createNotificationStreamFilter } from './notification-stream-policy'
+import { defineStreamingMethod, defineMethod } from '../core'
+import {
+  NotificationGetMissedSinceParams,
+  NotificationRegisterPushParams,
+  NotificationRegisterPushTokenParams,
+  NotificationUnsubscribeParams,
+  NotificationsSubscribeParams
+} from '../../../../shared/rpc-contract/notifications-params'
 
 // Why: monotonically increasing per-process counter eliminates the
 // Date.now() collision that could fire when two near-simultaneous
 // notifications.subscribe calls landed on the same millisecond.
 let notificationsSubscriptionSeq = 0
 
-/**
- * The phone reports its APNs token so the desktop can reach it while its socket
- * is gone — which is every time the phone is asleep, and the reason a
- * notification used to wait for the app to be opened.
- *
- * Hex, bounded: this value becomes a URL path segment on the way to Apple.
- */
-const RegisterPushTokenParams = z.object({
-  deviceToken: z.string().regex(/^[0-9a-f]{64,200}$/, 'APNs device tokens are lowercase hex'),
-  platform: z.literal('ios'),
-  /**
-   * base64 of the 32-byte key this device will open a sealed push body with.
-   * Optional: a build without the notification service extension has nowhere to
-   * keep one, and its pushes stay generic rather than failing.
-   */
-  encryptionKeyB64: z
-    .string()
-    .regex(/^[A-Za-z0-9+/]{43}=$/, 'expected base64 of 32 bytes')
-    .optional(),
-  /** Set instead of the key when the phone could not produce one, naming the step that failed. */
-  keyUnavailableReason: z.string().max(200).optional()
-})
-
-const NotificationUnsubscribeParams = z.object({
-  subscriptionId: z
-    .unknown()
-    .transform((value) => (typeof value === 'string' && value.length > 0 ? value : ''))
-    .pipe(z.string().min(1, 'Missing subscriptionId'))
-})
-
-// Why: notifications.getMissedSince is the catch-up RPC for mobile reconnect
-// (#8129). The client passes the highest seq it has already delivered; the
-// runtime returns only notifications dispatched after that seq. Because the
-// desktop assigns a monotonic seq to every dispatched notification, the cut is
-// exact and idempotent — re-requesting with the same watermark can never
-// return an already-delivered event, so reconnects never duplicate local
-// pushes (the adversarial-review gate for #8129).
-// `epoch` names the counter lifetime lastSeenSeq came from (#8591). The desktop's
-// seq restarts at 0 on every launch while the client's watermark is persisted, so
-// without it a post-restart watermark silently cuts away everything. Optional: a
-// client that predates the field keeps the seq-only cut.
-const NotificationGetMissedSinceParams = z.object({
-  lastSeenSeq: z.number().int().min(0, 'lastSeenSeq must be a non-negative integer'),
-  epoch: z.string().optional()
-})
-
-// Why: notifications.subscribe streams desktop notification events to mobile
-// clients over WebSocket. The mobile client shows a local push notification
-// for each event. This avoids requiring Firebase/APNs — the existing
-// persistent WebSocket connection doubles as the push channel.
-export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
+// Legacy callers retain filtered socket alerts; push clients opt into the full event stream.
+export const NOTIFICATION_METHODS = [
   defineStreamingMethod({
     name: 'notifications.subscribe',
-    params: null,
-    handler: async (_params, { runtime, connectionId }, emit) => {
+    params: NotificationsSubscribeParams,
+    handler: async (params, { runtime, connectionId }, emit) => {
+      const shouldEmit = createNotificationStreamFilter(params?.includeDesktopSuppressed)
       await new Promise<void>((resolve) => {
         const unsubscribe = runtime.onNotificationDispatched((event) => {
-          emit(event)
+          if (shouldEmit(event)) {
+            emit(event)
+          }
         })
 
         // Why: scope by per-ws connectionId + per-process counter so
@@ -96,7 +57,7 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
   }),
   defineMethod({
     name: 'notifications.registerPushToken',
-    params: RegisterPushTokenParams,
+    params: NotificationRegisterPushTokenParams,
     // Why keyed by pairedDeviceId and not the socket: the token has to outlive
     // the connection to be worth anything, and pairedDeviceId is the revocable
     // identity that unpairing actually removes.
@@ -136,7 +97,51 @@ export const NOTIFICATION_METHODS: readonly RpcAnyMethod[] = [
     // client missed while its socket was reaped.
     handler: async (params, { runtime }) => {
       const missed = runtime.getMissedNotificationsSince(params.lastSeenSeq, params.epoch)
-      return { notifications: missed, epoch: runtime.getMobileNotificationEpoch() }
+      return {
+        notifications: missed.filter(
+          createNotificationStreamFilter(params.includeDesktopSuppressed)
+        ),
+        epoch: runtime.getMobileNotificationEpoch(),
+        ...(params.deliveredPushes
+          ? { dismissedPushes: runtime.reconcileDismissedPushes(params.deliveredPushes) }
+          : {})
+      }
+    }
+  }),
+  defineMethod({
+    name: 'notifications.registerPush',
+    params: NotificationRegisterPushParams,
+    // Why: the registration is keyed by the revocable paired device identity, never
+    // by anything the caller can assert, so an in-process or CLI caller has no device
+    // to register and is refused outright.
+    handler: async (params, { runtime, clientKind, pairedDeviceId }) => {
+      if (clientKind !== 'mobile' || !pairedDeviceId) {
+        return { registered: false, reason: 'not_mobile' }
+      }
+      // The paired identity is spread last so no parameter can ever override it.
+      return await runtime.registerMobilePushDevice({ ...params, deviceId: pairedDeviceId })
+    }
+  }),
+  defineMethod({
+    name: 'notifications.testPush',
+    params: null,
+    handler: async (_params, { runtime, clientKind, pairedDeviceId }) => {
+      if (clientKind !== 'mobile' || !pairedDeviceId) {
+        return { accepted: false, reason: 'not_registered' }
+      }
+      return await runtime.testMobilePushDevice(pairedDeviceId)
+    }
+  }),
+  defineMethod({
+    name: 'notifications.unregisterPush',
+    params: null,
+    // Deleting the gateway token is durable (outbox), so an offline gateway still
+    // reports success to the phone that asked to stop being pushed to.
+    handler: async (_params, { runtime, clientKind, pairedDeviceId }) => {
+      if (clientKind !== 'mobile' || !pairedDeviceId) {
+        return { unregistered: false }
+      }
+      return await runtime.unregisterMobilePushDevice(pairedDeviceId)
     }
   })
 ]

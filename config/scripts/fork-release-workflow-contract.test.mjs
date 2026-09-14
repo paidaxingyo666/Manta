@@ -94,6 +94,30 @@ describe('fork release workflow contract', () => {
     expect(linux).toContain('--linux AppImage deb rpm')
   })
 
+  // The workspace installs only the host CPU's natives, and beforePack refuses a
+  // slice whose natives are missing. macOS packages both arches on one runner;
+  // Windows and each Linux leg package only their own host's.
+  it('installs every CPU the fork release packages, and only those', () => {
+    const release = workflow()
+    const installs = (job) =>
+      release.jobs[job].steps
+        .map((step) => step.with?.command ?? step.run)
+        .filter((command) => typeof command === 'string' && command.includes('pnpm install '))
+
+    const mac = installs('macos')
+    expect(mac.length).toBeGreaterThan(0)
+    for (const command of mac) {
+      expect(command).toContain('--cpu=current,x64,arm64')
+    }
+    for (const job of ['windows', 'linux']) {
+      const host = installs(job)
+      expect(host.length).toBeGreaterThan(0)
+      for (const command of host) {
+        expect(command).not.toContain('--cpu=')
+      }
+    }
+  })
+
   // A retry budget larger than the job it runs in is not a retry budget: the
   // last attempt is cut off partway and the failure reads as a job timeout
   // rather than as whatever actually stalled.

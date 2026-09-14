@@ -1011,7 +1011,9 @@
         "nativeDropTooManyPaths": "Drop contains too many files.",
         "nativeDropPathsTooLargeDescription": "Drop fewer files or use a shorter path list.",
         "nativeDropPathsTooLarge": "Drop path list is too large.",
-        "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects."
+        "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects.",
+        "nativeDropUnresolvedPathsDescription": "Save them to disk first, then drop the saved files.",
+        "nativeDropUnresolvedPaths": "Manta couldn't read a path for the dropped files."
       },
       "useIpcEvents": {
         "0e3cf53060": "Browser tab {{value0}} not found",
@@ -2385,8 +2387,6 @@
         "recentChatsTerminalsHeader": "Recent Chats & Terminals",
         "27f10cca63": "Search chats, terminals, worktrees, settings, and actions...",
         "2770f02910": "Search chats, terminals, worktrees, settings, and actions",
-        "paletteOpenTabBranch": "Branch name",
-        "paletteOpenTabWorkspace": "Workspace name",
         "lastActiveTime": "Last active {{value0}} ago"
       },
       "github": {
@@ -3390,7 +3390,10 @@
             "8e9d603a09": "Unpin Tab",
             "6ffb7f7bce": "Reveal in Finder",
             "fe23001e60": "Open Containing Folder",
-            "3da91e073d": "Reveal in File Explorer"
+            "3da91e073d": "Reveal in File Explorer",
+            "revealInFinder": "Reveal in Finder",
+            "openContainingFolder": "Open Containing Folder",
+            "revealInFileExplorer": "Reveal in File Explorer"
           },
           "QuickLaunchButton": {
             "348a04c1ad": "Agent settings…",
@@ -5323,7 +5326,6 @@
           "5c9c7c16aa": "Add a project to create workspaces",
           "a30e34eb5c": "Close workspace board",
           "views": "Sidebar view",
-          "createMenu": "Create",
           "addProject": "Add project"
         },
         "SidebarNav": {
@@ -5821,7 +5823,8 @@
               "lockedReason": "This workspace is locked by Git. Git reported: {{value0}}. Run git worktree unlock <worktree-path> from its repository, then retry deletion.",
               "unstoppedPty": "Manta could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.",
               "unstoppedPtyLive": "This workspace still has running terminals, so Manta stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.",
-              "runningAgentSession": "This workspace still has running agent sessions, so Manta stopped before deleting any files. Force Delete will close them and discard any work they hold."
+              "runningAgentSession": "Manta could not confirm every agent session in this workspace has closed, so it stopped before deleting any files. Use Force Delete to remove it anyway.",
+              "runningAgentSessionLive": "This workspace still has running agent sessions that Manta could not close, so it stopped before deleting any files. Force Delete will discard any work they hold."
             }
           }
         },
@@ -12088,7 +12091,10 @@
             "3161c4e425": "folder",
             "e887fa4b2e": "Open in Terminal",
             "1d8e182c32": "View File",
-            "clipboardStagingUnavailable": "Could not copy the file because Manta's temporary storage is unavailable"
+            "clipboardStagingUnavailable": "Could not copy the file because Manta's temporary storage is unavailable",
+            "revealInFinder": "Reveal in Finder",
+            "openContainingFolder": "Open Containing Folder",
+            "revealInFileExplorer": "Reveal in File Explorer"
           },
           "FileExplorerToolbar": {
             "d238264654": "Show Git Ignored Files",
@@ -14788,7 +14794,10 @@
           "f0fd4174b5": "Open file tab to use rich markdown editing",
           "a10d9b8337": "Open file",
           "2076ecfc9c": "Previous change",
-          "631dab0df3": "Next change"
+          "631dab0df3": "Next change",
+          "revealInFinder": "Reveal in Finder",
+          "openContainingFolder": "Open Containing Folder",
+          "revealInFileExplorer": "Reveal in File Explorer"
         },
         "EditorPanelMarkdownActionsMenu": {
           "3e0ce48c24": "Export as PDF",
@@ -17001,6 +17010,21 @@
       "HostedReviewUnlinkMenuItem": {
         "label": "Unlink {{value0}} from workspace",
         "description": "Manta will hide {{value0}} {{value1}} details for this workspace. The {{value0}} and branch on {{value2}} won’t be changed."
+      },
+      "UnexpectedSignoutCard": {
+        "9f2c1a4b7d": "You've been signed out",
+        "3e8f5c2a91": "Dismiss",
+        "7b4d9e1f2a": "Sign in again as {{value0}} to restore Artifact sharing, Manta Relay, and skill sharing.",
+        "5a1c8d3e6f": "Sign in again to restore Artifact sharing, Manta Relay, and skill sharing.",
+        "1f6b2c9d4e": "What you get back",
+        "8d2e4f7a1b": "Artifact sharing",
+        "2c9a5b6e8d": "Publish HTML and Markdown files and manage every shared link from Manta.",
+        "6e3f1a9c5b": "Manta Relay",
+        "4b7d2e8f1a": "Connect Manta Mobile to this desktop across cellular or any Wi-Fi.",
+        "9a4c6b2d7e": "Skill sharing",
+        "3d8e5f1b9c": "Share skills behind an unlisted link and install them on any machine you use.",
+        "7e1a9c4d2f": "Signing in…",
+        "c5b3e8a17d": "Sign in to Manta"
       }
     },
     "i18n": {
@@ -17109,6 +17133,22 @@
       "empty": "No users found"
     },
     "native-chat": {
+      "taskList": {
+        "title": "Tasks",
+        "completed": "Completed",
+        "inProgress": "In progress",
+        "pending": "Pending",
+        "empty": "No tasks",
+        "progress": "{{completed}} of {{total}} tasks completed",
+        "added": "Added {{task}}",
+        "removed": "Removed {{task}}",
+        "started": "Started {{task}}",
+        "finished": "Completed {{task}}",
+        "reset": "Marked pending: {{task}}",
+        "updated": "Updated {{task}}",
+        "unchanged": "Tasks unchanged",
+        "showAll": "Full task list"
+      },
       "turnDiff": {
         "one": "1 changed file",
         "many": "{{count}} changed files",
@@ -17189,7 +17229,10 @@
         "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more.",
         "viewAttachment": "View image",
         "imagePreview": "Full-size image preview",
-        "imagePreviewUnavailable": "Preview unavailable"
+        "imagePreviewUnavailable": "Preview unavailable",
+        "workspaceAttachmentMismatch": "Files can only be attached to their source workspace.",
+        "attachmentOwnerChanged": "This workspace changed hosts while attaching — drop the files again.",
+        "attachmentUnreadable": "Couldn't read the dropped files."
       },
       "tool": {
         "exitCode": "exit {{value0}}",
@@ -17238,8 +17281,34 @@
         "command": "Background command",
         "monitor": "Background monitor",
         "task": "Background task",
-        "runningList": "Running background tasks",
-        "detailsUnavailable": "Task details are unavailable for this session."
+        "detailsUnavailable": "Task details are unavailable for this session.",
+        "countAgentsOne": "1 agent",
+        "countAgentsMany": "{{value0}} agents",
+        "countShellOne": "1 shell",
+        "countShellMany": "{{value0}} shells",
+        "countShellCommandOne": "1 shell command",
+        "countMonitorsOne": "1 monitor",
+        "countMonitorsMany": "{{value0}} monitors",
+        "countWorkflowsOne": "1 workflow",
+        "countWorkflowsMany": "{{value0}} workflows",
+        "countTasksOne": "1 task",
+        "countTasksMany": "{{value0}} tasks",
+        "headerTotal": "{{value0}} background tasks",
+        "stateWorking": "working",
+        "stateMonitoring": "monitoring",
+        "stateWaiting": "waiting",
+        "stateBlocked": "blocked",
+        "stateDone": "done",
+        "stateIdle": "stopped",
+        "stateUnverifiable": "unverifiable",
+        "reasonWaiting": "needs approval",
+        "reasonUnverifiable": "no contact",
+        "reasonBlocked": "failed",
+        "groupAgents": "Agents",
+        "groupShell": "Shell",
+        "groupMonitors": "Monitors",
+        "groupWorkflows": "Workflows",
+        "groupTasks": "Tasks"
       },
       "jumpToLatest": "Jump to latest",
       "toggle": {
@@ -17895,6 +17964,14 @@
       "activityTitle": "Manta",
       "activityBodyOne": "New activity on your desktop",
       "activityBodyMany": "{{count}} new notifications"
+    }
+  },
+  "notifications": {
+    "agentStatus": {
+      "needsInput": "needs input",
+      "working": "working",
+      "stopped": "stopped",
+      "finished": "finished"
     }
   }
 }

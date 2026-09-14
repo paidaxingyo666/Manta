@@ -33,6 +33,7 @@ import { useNativeChatPtyComposerSend } from './use-native-chat-pty-composer-sen
 import { useNativeChatStructuredComposerSend } from './use-native-chat-structured-composer-send'
 import { useImeEnterGestureOwnership } from '@/lib/ime-composition-keyboard-event'
 import { useNativeChatComposerAppMenuSelection } from './use-native-chat-composer-app-menu-selection'
+import { useNativeChatWorkspaceFileDrop } from './use-native-chat-workspace-file-drop'
 
 export type {
   NativeChatComposerHandle,
@@ -173,6 +174,13 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
       resolvePendingImageAttachment,
       dropPendingImageAttachment
     } = attachments
+    const workspaceFileDropHandlers = useNativeChatWorkspaceFileDrop({
+      terminalTabId,
+      structuredWorktreeId: structuredTransport?.worktreeId,
+      disabled,
+      attachResolvedPaths,
+      setNotice
+    })
     // A pasted image has no agent-readable path until its save lands; sending
     // mid-save would ship the message without the image the chip promises.
     const hasPendingAttachment = imageAttachments.some((attachment) => attachment.pending)
@@ -413,6 +421,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
         }}
         onRemoveImageAttachment={(id) => removeImageAttachment(id)}
         onAttach={pickAttachment}
+        workspaceFileDropHandlers={workspaceFileDropHandlers}
         onDictationToggle={toggleDictation}
         onDictationHoldStart={startHoldDictation}
         onDictationHoldEnd={stopHoldDictation}

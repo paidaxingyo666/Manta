@@ -2,6 +2,10 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import {
+  NOTIFICATIONS_REMOTE_PUSH_RUNTIME_CAPABILITY,
+  RUNTIME_CAPABILITIES
+} from '../../shared/protocol-version'
 
 /**
  * The fork's relay integration is a set of injection points: something upstream
@@ -27,12 +31,21 @@ const projectDir = resolve(import.meta.dirname, '../../..')
 
 /** Files under src/ that call `symbol`, excluding tests and its own definition. */
 function productionCallers(symbol: string, definedIn: string): string[] {
-  // --untracked: a wiring file added but not yet committed still counts, or the
-  // check passes on the very change that would have broken it.
-  const out = execFileSync('git', ['grep', '-l', '--untracked', `${symbol}(`, '--', 'src/'], {
-    cwd: projectDir,
-    encoding: 'utf8'
-  }).trim()
+  let out: string
+  try {
+    // --untracked: a wiring file added but not yet committed still counts, or the
+    // check passes on the very change that would have broken it.
+    out = execFileSync('git', ['grep', '-l', '-F', '--untracked', `${symbol}(`, '--', 'src/'], {
+      cwd: projectDir,
+      encoding: 'utf8'
+    }).trim()
+  } catch (error) {
+    // git grep exits 1 when nothing matches.
+    if (error instanceof Error && 'status' in error && error.status === 1) {
+      return []
+    }
+    throw error
+  }
   return out
     .split('\n')
     .filter(Boolean)
@@ -84,5 +97,37 @@ describe('fork relay wiring', () => {
     )
     expect(startup).toContain('relayService.pushWake(input)')
     expect(startup).toContain('new DesktopRelayService(')
+  })
+})
+
+/**
+ * The opposite failure: a sync that re-attaches upstream's hosted push gateway.
+ * DesktopPushService registers a standing onNotificationDispatched listener, and
+ * MobilePushEscalation reads "any listener" as "a phone is subscribed live", so
+ * once that service runs the relay push is skipped every time — silently.
+ */
+const HOSTED_GATEWAY_REATTACHED =
+  'DesktopPushService registers a standing onNotificationDispatched listener, which makes the ' +
+  "fork's live-subscriber check always true and silently stops every relay push."
+
+describe('hosted push gateway stays detached', () => {
+  it('nothing starts DesktopPushService', () => {
+    const wrapper = 'src/main/startup/main-process-push-startup.ts'
+    expect(
+      productionCallers('startDesktopPushService', wrapper),
+      HOSTED_GATEWAY_REATTACHED
+    ).toEqual([])
+    const creators = productionCallers('DesktopPushService.create', wrapper).filter(
+      (file) => !file.startsWith('src/main/runtime/push/')
+    )
+    expect(creators, HOSTED_GATEWAY_REATTACHED).toEqual([])
+  })
+
+  it('does not advertise remote push to phones', () => {
+    // A phone that sees this capability calls notifications.registerPush, the hosted gateway's registration.
+    expect(
+      RUNTIME_CAPABILITIES,
+      `Manta pushes through its self-hosted relay; advertising this capability sends phones to the hosted gateway. ${HOSTED_GATEWAY_REATTACHED}`
+    ).not.toContain(NOTIFICATIONS_REMOTE_PUSH_RUNTIME_CAPABILITY)
   })
 })

@@ -1,3 +1,4 @@
+import { ensureDesktopNotificationChannel } from './desktop-notification-channel'
 import { reportPushToken } from './push-token-reporting'
 import type { RpcClient } from '../transport/rpc-client'
 // Re-exported so the existing importers (and their vi.mock paths) keep working.
@@ -8,7 +9,6 @@ export {
 } from './notification-permissions'
 export { setScheduledNotificationsMaxForTests } from './local-notification-scheduling'
 import {
-  configureNotificationChannel,
   dismissLocalNotification,
   showLocalNotification,
   type DismissNotificationEvent,
@@ -37,7 +37,7 @@ type SubscribeResult = {
 
 // Per-connection subscription; a reconnect `ready` triggers watermarked catch-up (#8129) so already-pushed events aren't re-sent.
 export function subscribeToDesktopNotifications(client: RpcClient, hostId: string): () => void {
-  configureNotificationChannel()
+  void ensureDesktopNotificationChannel().catch(() => {})
 
   let subscriptionId: string | null = null
   let disposed = false

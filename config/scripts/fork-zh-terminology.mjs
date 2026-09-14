@@ -2,10 +2,10 @@
 /**
  * This fork's Chinese wording, reapplied after a sync.
  *
- * `.gitattributes` keeps the locale catalogs on the keepupstream driver, because
- * en.json is regenerated from source and taking upstream's is right for it. The
- * translated catalogs ride along, and every sync therefore reverts the fork's
- * terminology to upstream's — 477 entries on 2026-09-05, all of them one word.
+ * The catalogs merge key by key (merge-locale-catalog.mjs), so the fork's own
+ * entries survive a sync — but every string upstream adds still arrives in
+ * upstream's wording. Until 2026-09-14 they were on keepupstream and this also
+ * undid the fork's existing entries being reverted: 477 on 2026-09-05, one word.
  *
  * A term list rather than a diff of the whole file: upstream also improves these
  * translations, and their improvements should survive. Only the words this fork

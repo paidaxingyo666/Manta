@@ -1,4 +1,4 @@
-import { WifiOff, Shield, Monitor, Clock, Globe } from 'lucide-react-native'
+import { WifiOff, Shield, Monitor, Clock, Globe, Bell } from 'lucide-react-native'
 import { colors } from '../theme/mobile-theme'
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
@@ -11,6 +11,22 @@ export type TroubleshootSection = {
 }
 
 export const troubleshootCommonIssues = localizedConstant((): TroubleshootSection[] => [
+  {
+    id: 'notifications',
+    icon: <Bell size={16} color={colors.textSecondary} />,
+    title: translate('m.troubleshoot.common.issues.b298bcd66a', 'Push Notifications'),
+    steps: [
+      translate(
+        'm.troubleshoot.common.issues.fb642e8fe3',
+        'Check that system settings allow Manta notifications and that Focus or Do Not Disturb is off.'
+      ),
+      translate(
+        'm.troubleshoot.common.issues.aa285306c6',
+        'Try cellular or another Wi-Fi network. If alerts arrive after switching, your network may be delaying delivery.'
+      )
+    ]
+  },
+
   {
     id: 'wifi',
     icon: <WifiOff size={16} color={colors.textSecondary} />,

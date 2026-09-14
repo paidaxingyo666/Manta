@@ -330,8 +330,17 @@ async function collectCandidateFiles(root, relativeSourceRoot) {
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name)
       if (entry.isDirectory()) {
+        // Why test-support: rpc-recording goldens hash those modules' literal replies.
         if (
-          !['.git', 'assets', 'dist', 'node_modules', 'out', '__snapshots__'].includes(entry.name)
+          ![
+            '.git',
+            'assets',
+            'dist',
+            'node_modules',
+            'out',
+            '__snapshots__',
+            'test-support'
+          ].includes(entry.name)
         ) {
           stack.push(fullPath)
         }

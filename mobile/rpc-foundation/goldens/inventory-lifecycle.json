@@ -1,0 +1,137 @@
+{
+  "operation": "workspace.file-inventory",
+  "family": "legacy-inventory",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
+  "recorderSha256": "ad6659e70aba7a0df391067209aeec4db36c467764d062d408c362b956ab916a",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 2,
+  "values": {
+    "305c86832cd8": {
+      "mount": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "$rpc": "undefined"
+        }
+      },
+      "old": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "$rpc": "undefined"
+        }
+      }
+    },
+    "4f53cda18c2b": [],
+    "6713de8f80d3": [
+      {
+        "name": "files.searchPaths#1",
+        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"files.searchPaths\",\"params\":{\"worktree\":\"id:A\",\"query\":\"old\",\"limit\":16}}"
+      },
+      {
+        "name": "files.list#1",
+        "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"files.list\",\"params\":{\"worktree\":\"id:A\"}}"
+      }
+    ],
+    "ab2510585ba0": [
+      {
+        "name": "files.searchPaths#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "files.searchPaths"
+          },
+          {
+            "name": "params",
+            "value": {
+              "limit": 16,
+              "query": "old",
+              "worktree": "id:A"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 120,
+          "settledAt": 120,
+          "value": {
+            "error": {
+              "code": "method_not_found",
+              "message": "Unknown method"
+            },
+            "id": "frame-1",
+            "ok": false
+          }
+        }
+      },
+      {
+        "name": "files.list#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "files.list"
+          },
+          {
+            "name": "params",
+            "value": {
+              "worktree": "id:A"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 120,
+          "settledAt": 120,
+          "value": {
+            "id": "frame-2",
+            "ok": true,
+            "result": {
+              "files": [
+                {
+                  "relativePath": "old.ts"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "fe1aebea954c": {
+      "files": ["old.ts"]
+    }
+  },
+  "recording": {
+    "scenario": "inventory-lifecycle",
+    "checkpoints": [
+      {
+        "id": "settled",
+        "observation": {
+          "sender": "ab2510585ba0",
+          "payloads": "6713de8f80d3",
+          "settlements": "305c86832cd8",
+          "state": "fe1aebea954c",
+          "effects": "4f53cda18c2b"
+        }
+      }
+    ]
+  }
+}

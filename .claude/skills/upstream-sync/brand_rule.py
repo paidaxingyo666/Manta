@@ -58,6 +58,12 @@ KEEP_SUBSTRING = (
     # is a lie, and this fork ships through TestFlight. Where it should point is
     # a product decision, not a rename.
     'apps.apple.com/app/orca-ide',
+    # Domain separators signed by upstream's push gateway, which lives in cloud/
+    # and keeps upstream's spelling; a renamed desktop side proves nothing.
+    'orca-push-host-',
+    # cloud/'s package scope, named from outside it (unit-tests.yml installs the
+    # relay by filter); a renamed filter matches nothing and installs nothing.
+    '@orca-cloud',
 )
 # Files that are ABOUT upstream, or where "Orca" is not the product at all.
 # The evidence rule sees a Manta twin and would rewrite them into nonsense.

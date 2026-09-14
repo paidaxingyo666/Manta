@@ -1,0 +1,120 @@
+{
+  "operation": "settings.bot-overrides",
+  "family": "settings.bot-overrides",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
+  "recorderSha256": "ad6659e70aba7a0df391067209aeec4db36c467764d062d408c362b956ab916a",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 2,
+  "values": {
+    "0131611322e3": {
+      "mount": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "$rpc": "undefined"
+        }
+      }
+    },
+    "16043f76be6c": [
+      {
+        "name": "settings.get#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "settings.get"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 0,
+          "settledAt": 0,
+          "value": {
+            "error": {
+              "code": "refused",
+              "message": "settings refused"
+            },
+            "id": "frame-1",
+            "ok": false
+          }
+        }
+      }
+    ],
+    "1f2f2a0a5737": [
+      {
+        "name": "settings.get#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "settings.get"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "pending",
+          "startedAt": 0
+        }
+      }
+    ],
+    "4f53cda18c2b": [],
+    "9e493785145e": [
+      {
+        "name": "settings.get#1",
+        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
+      }
+    ]
+  },
+  "recording": {
+    "scenario": "settings-bot-overrides-refused",
+    "checkpoints": [
+      {
+        "id": "settings-pending",
+        "observation": {
+          "sender": "1f2f2a0a5737",
+          "payloads": "9e493785145e",
+          "settlements": "0131611322e3",
+          "state": "4f53cda18c2b",
+          "effects": "4f53cda18c2b"
+        }
+      },
+      {
+        "id": "settled",
+        "observation": {
+          "sender": "16043f76be6c",
+          "payloads": "9e493785145e",
+          "settlements": "0131611322e3",
+          "state": "4f53cda18c2b",
+          "effects": "4f53cda18c2b"
+        }
+      }
+    ]
+  }
+}

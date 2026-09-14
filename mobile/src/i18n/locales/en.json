@@ -260,6 +260,25 @@
             "1b2277ee53": "Conversation operation is unconfirmed; retry checks the same operation.",
             "137e5d6e8e": "Wait for pending work to finish before using this command."
           }
+        },
+        "send": {
+          "delivery": {
+            "1e36008a95": "Message not sent"
+          }
+        }
+      },
+      "settings": {
+        "menu": {
+          "items": {
+            "c284d1656b": "About",
+            "27da65e31a": "Troubleshooting",
+            "a28c864340": "Notifications",
+            "7b6816cf92": "Voice",
+            "a3bf36eb8f": "Browser",
+            "82ea5ffe60": "Chat UI",
+            "fda4c3d2d0": "Terminal"
+          },
+          "512809da09": "Settings"
         }
       }
     },
@@ -319,6 +338,20 @@
           "3712ed6691": "request failed",
           "519897e0d5": "request timed out",
           "d28cec3768": "status {{value0}}"
+        },
+        "view": {
+          "e8d2358112": "No paired hosts.",
+          "d37c974971": "No connection events yet. Events appear as the app dials this host.",
+          "c093e73602": "Send diagnostics to Manta",
+          "c5d80cbf5b": "Retry sending",
+          "79d02552ab": "Diagnostics sent",
+          "05c9c29a8d": "Sending…",
+          "1941af1d5f": "Sends a size-limited redacted report including host name, endpoint, versions, connection state, and events—never terminal contents or credentials.",
+          "316cb8c8c8": "What this suggests",
+          "ef7a8c4b20": "Copy report",
+          "8ade5b948b": "Copied",
+          "8ee8017127": " · attempt {{value0}}",
+          "6a757b5242": "Network diagnostics"
         }
       }
     },
@@ -506,6 +539,14 @@
               "e034060288": "Reset details changed"
             }
           }
+        }
+      },
+      "troubleshoot": {
+        "diagnostics": {
+          "3882870670": "Platform",
+          "b634cefbb9": "Hosts",
+          "799b75f17e": "Internet",
+          "c13e221cc4": "Paired hosts"
         }
       }
     },
@@ -727,7 +768,9 @@
       "def1eabfa5": "Get notified on this device when an agent needs your input or finishes a task.",
       "755f145478": "Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.",
       "3a676018db": "Stay updated while away",
-      "a3d2f11cf8": "How should sessions open?"
+      "a3d2f11cf8": "How should sessions open?",
+      "f849206cff": "Get notified when an agent finishes a task or needs your input.",
+      "ae7a310662": "Delivered through Manta’s push service. Change this anytime in Settings."
     },
     "MobileFileExplorerPanel": {
       "09a641d5f9": "No files found",
@@ -1284,7 +1327,10 @@
           "82218b4673": "macOS: System Settings → Network → Firewall — allow Manta.",
           "8c42fc3507": "Try reconnecting WiFi on both devices.",
           "87abb70237": "Ethernet and WiFi must share the same subnet.",
-          "0c558ad505": "Both devices must be on the same LAN (unless connected through Tailscale)."
+          "0c558ad505": "Both devices must be on the same LAN (unless connected through Tailscale).",
+          "aa285306c6": "Try cellular or another Wi-Fi network. If alerts arrive after switching, your network may be delaying delivery.",
+          "fb642e8fe3": "Check that system settings allow Manta notifications and that Focus or Do Not Disturb is off.",
+          "b298bcd66a": "Push Notifications"
         }
       },
       "d89f2f9bbd": "Common issues",
@@ -1297,7 +1343,15 @@
       "21ef75f0f3": "Hosts",
       "de003da9ea": "Internet",
       "fc87d4676b": "Paired hosts",
-      "ac0976ca35": "View network diagnostics"
+      "ac0976ca35": "View network diagnostics",
+      "view": {
+        "30b44edebf": "Common issues",
+        "3e7b766bf7": "View network diagnostics",
+        "ff33ee2e34": "Run diagnostics",
+        "7fe72d6cf5": "Run again",
+        "3b29a2c889": "Running…",
+        "92c4563048": "Troubleshooting"
+      }
     },
     "mock": {
       "server": {
@@ -1351,7 +1405,13 @@
         "5a3e904671": "Open in Safari, Chrome, or another browser on this phone.",
         "848a3a5e01": "Phone browser",
         "678f6766a4": "Open in the streamed browser from your paired desktop.",
-        "2307073d4f": "Manta browser on desktop"
+        "2307073d4f": "Manta browser on desktop",
+        "screen": {
+          "48d50513f0": "Open terminal links",
+          "99c11d474b": "Choose where HTTP(S) links tapped in terminal output open.",
+          "3b8994a699": "LINKS",
+          "6250a84558": "Browser"
+        }
       }
     },
     "index": {
@@ -1416,7 +1476,22 @@
           "2eeb654168": "Open sessions in Chat UI",
           "b16ffa3c6e": "Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.",
           "47b9a4b22a": "DEFAULT VIEW",
-          "6a8d3d4f8f": "Chat UI"
+          "6a8d3d4f8f": "Chat UI",
+          "screen": {
+            "eef9642695": "Off",
+            "12f2d1880e": "On",
+            "c2547c12af": "Open sessions in Chat UI",
+            "57a068dd53": "Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.",
+            "a472b89f79": "DEFAULT VIEW",
+            "3301eaa13d": "Chat UI"
+          }
+        }
+      },
+      "notification": {
+        "delivery": {
+          "settings": {
+            "0413b72d9e": "Pair an updated desktop to receive notifications on this phone."
+          }
         }
       }
     },
@@ -1475,7 +1550,13 @@
       "b6d00cec3b": "Browser",
       "f9a07be163": "Chat UI",
       "425c962726": "Terminal",
-      "d1c3a08e29": "Settings"
+      "d1c3a08e29": "Settings",
+      "menu": {
+        "screen": {
+          "62e60fabc8": "Support",
+          "b85b3aed73": "Privacy Policy"
+        }
+      }
     },
     "voice": {
       "settings": {
@@ -1491,7 +1572,20 @@
         "a529906cda": "Voice",
         "858525ff0d": "Hold",
         "cb11e9d147": "Toggle",
-        "274e79be5b": "None selected"
+        "274e79be5b": "None selected",
+        "screen": {
+          "075ba22e20": "Speech Model",
+          "507f56779b": "SPEECH MODEL",
+          "63fc1b1ff8": "Toggle: press once to start, again to stop. Hold: dictate while held.",
+          "7bd89184c8": "Dictation Mode",
+          "0d9e2ef97d": "Dictate text into any focused pane on your desktop.",
+          "a261b74160": "Enable Voice Dictation",
+          "680db0cdb2": "DICTATION",
+          "4cee2463f9": "Failed to load voice settings.",
+          "94921afad1": "Connect to a desktop to manage voice settings.",
+          "a1cbf7814a": "Voice",
+          "0400b20444": "None selected"
+        }
       }
     },
     "layout": {
@@ -1971,6 +2065,42 @@
     },
     "MobileSessionSheets": {
       "80a42be441": "Chat"
+    },
+    "notification": {
+      "display": {
+        "test": {
+          "f94d7c9b05": "Troubleshooting",
+          "9daaa86e7d": "Send test notification",
+          "02b9878c20": "Sending…",
+          "3a59a75b24": "Send a test through Manta’s push service.",
+          "640e7facdf": "Having trouble receiving alerts?"
+        }
+      },
+      "settings": {
+        "screen": {
+          "0560f24a97": "Open Settings",
+          "c446c4394f": "Enable notifications",
+          "265298efb8": "Notifications",
+          "7457824e30": "Get notified on this device when an agent needs your input or finishes a task.",
+          "6524226015": "Notifications are disabled in system settings."
+        }
+      }
+    },
+    "pending": {
+      "credential": {
+        "cleanup": {
+          "card": {
+            "d080c49342": "Retry",
+            "76771939c1": "Couldn't check cleanup status on this device. Retry to be safe.",
+            "492b6b5a01": "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
+            "ef5c61f547": "Cleanup still couldn't be confirmed. Try again later.",
+            "f3f9724f81": "Pairing credential cleanup"
+          }
+        }
+      }
+    },
+    "NotificationDeliverySection": {
+      "73d6d0eb7b": "Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume."
     }
   },
   "mobile": {

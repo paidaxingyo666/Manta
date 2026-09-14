@@ -287,6 +287,13 @@ const MantaDetails = Details.extend({
   }
 })
 
+const MantaDetailsSummary = DetailsSummary.extend({
+  // Why: the summary parser runs parseInline, which emits image/math nodes that
+  // upstream's text*-only summary rejects, so the doc is schema-invalid until the
+  // first edit reassembles the summary and ProseMirror throws.
+  content: 'inline*'
+})
+
 const MantaDetailsContent = DetailsContent.extend({
   // Why: detailsContent's double-Enter escape must run before StarterKit's
   // generic paragraph split, otherwise users can get stuck inside a toggle.
@@ -315,7 +322,7 @@ export function createMantaDetailsExtensions(): AnyExtension[] {
         class: 'manta-details'
       }
     }),
-    DetailsSummary,
+    MantaDetailsSummary,
     MantaDetailsContent
   ]
 }

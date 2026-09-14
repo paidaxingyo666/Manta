@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MantaRuntimeService } from '../../src/main/runtime/manta-runtime'
+import { makeAgentStatusStoreWiring } from '../../src/main/runtime/agent-status-store-wiring.test-fixture'
 import type {
   RuntimeMobileSessionTabsResult,
   RuntimeMobileSessionTabsSnapshot
@@ -27,7 +28,9 @@ type Harness = {
 }
 
 function createHarness(): Harness {
-  const runtime = new MantaRuntimeService()
+  const statusWiring = makeAgentStatusStoreWiring()
+  const runtime = new MantaRuntimeService(null, undefined, statusWiring.deps)
+  const uninstallStatusRepublish = statusWiring.attach(runtime)
   runtime.registerPty(PTY_ID, WORKTREE_ID)
   const tab: TerminalTab = {
     type: 'terminal',
@@ -58,7 +61,17 @@ function createHarness(): Harness {
   const unsubscribe = runtime.onMobileSessionTabsChanged((snapshot) => {
     publications.push(structuredClone(snapshot))
   })
-  return { internals, publications, runtime, tab, unsubscribe }
+  return {
+    internals,
+    publications,
+    runtime,
+    tab,
+    unsubscribe: () => {
+      unsubscribe()
+      uninstallStatusRepublish()
+      statusWiring.statusStore.stop()
+    }
+  }
 }
 
 function setRichStatus(

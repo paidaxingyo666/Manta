@@ -15,6 +15,10 @@ import { DEVICE_REGISTRY_FILENAME } from './mobile-pairing-files'
 import type { RelayDeviceBinding } from './relay/relay-revoke-outbox'
 import type { MobilePairingConnectionMode } from '../../shared/mobile-pairing-connection-mode'
 import type { RuntimePairingReach } from '../../shared/runtime-pairing-reach'
+import {
+  parseMobilePushRegistration,
+  type MobilePushRegistration
+} from '../../shared/mobile-push-contract'
 
 export type { DeviceScope }
 
@@ -35,6 +39,9 @@ export type DeviceEntry = {
   // desktop restart even though the phone is asleep and cannot re-register —
   // and removeDevice takes it away on unpair without a second cleanup path.
   pushToken?: DevicePushTokenRecord
+  // Why: survives a desktop restart so the host can keep pushing without the phone
+  // re-registering. Absent on every registry written before background push existed.
+  pushRegistration?: MobilePushRegistration
 }
 
 export type DevicePushTokenRecord = {
@@ -228,6 +235,16 @@ export class DeviceRegistry {
     return this.updateDevice(deviceId, ({ pushToken: _dropped, ...device }) => device)
   }
 
+  /** Passing null clears the registration (unregister, or a token the gateway reported dead). */
+  setPushRegistration(deviceId: string, registration: MobilePushRegistration | null): boolean {
+    if (this.getDevice(deviceId)?.scope !== 'mobile') {
+      return false
+    }
+    return this.updateDevice(deviceId, ({ pushRegistration: _dropped, ...rest }) =>
+      registration ? { ...rest, pushRegistration: registration } : rest
+    )
+  }
+
   private updateDevice(deviceId: string, apply: (device: DeviceEntry) => DeviceEntry): boolean {
     const index = this.devices.findIndex((candidate) => candidate.deviceId === deviceId)
     if (index === -1) {
@@ -361,7 +378,10 @@ export class DeviceRegistry {
           device.mobilePairingConnectionMode === 'local-only' ? 'local-only' : 'automatic',
         // Why: registries written before this field existed only ever held network-reach grants (phones and
         // LAN links), so a missing value must keep binding every interface on reconnect.
-        pairingReach: device.pairingReach === 'this-computer' ? 'this-computer' : 'network'
+        pairingReach: device.pairingReach === 'this-computer' ? 'this-computer' : 'network',
+        // Why: a malformed row must degrade to "no background push", never fail the load
+        // and strand every paired device.
+        pushRegistration: parseMobilePushRegistration(device.pushRegistration)
       }))
       this.registryUnreadable = false
     } catch (error) {

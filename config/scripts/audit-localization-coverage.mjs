@@ -21,7 +21,15 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts']
 // Why: test-only modules live beside their spec as `*-test-harness.ts` / `*-fixtures.ts` here, not under `__tests__/`.
 const TEST_SUPPORT_FILE_PATTERN =
   /[.-](?:test-harness|test-fixtures?|test-state|test-support|fixtures?)\.[cm]?[jt]sx?$/
-const SKIP_PATH_PARTS = new Set(['.git', 'dist', 'node_modules', 'out', '__snapshots__', 'assets'])
+const SKIP_PATH_PARTS = new Set([
+  '.git',
+  'dist',
+  'node_modules',
+  'out',
+  '__snapshots__',
+  'assets',
+  'test-support'
+])
 
 async function collectSourceFiles(root, dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true })

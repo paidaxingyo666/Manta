@@ -113,7 +113,9 @@ function readUserDataDir(electronApp: ElectronApplication): Promise<string> {
 test.describe('SSH transport drop recovery', () => {
   test.skip(!RUN_DOCKER_SSH, 'Set MANTA_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
 
-  test('recovers a live pane after the transport dies under it', async ({ mantaPage }, testInfo) => {
+  test('recovers a live pane after the transport dies under it', async ({
+    mantaPage
+  }, testInfo) => {
     test.slow()
     let target: DockerSshRelayTarget | null = null
     try {
@@ -163,7 +165,9 @@ test.describe('SSH transport drop recovery', () => {
     }
   })
 
-  test('stays bounded when a disconnected shell floods its pty', async ({ mantaPage }, testInfo) => {
+  test('stays bounded when a disconnected shell floods its pty', async ({
+    mantaPage
+  }, testInfo) => {
     test.slow()
     // Timeouts here are deliberately generous: this guards memory, not latency. A 48MB flood plus a
     // reconnect lands near 60s wall-clock end to end, so a 60s bind timeout was marginal and made
@@ -205,7 +209,7 @@ test.describe('SSH transport drop recovery', () => {
         ptyId,
         `yes "$(printf 'MANTA_%s' FLOOD_LINE)" | head -c 48000000; printf 'FLOO%s\\n' DED`
       )
-      await waitForTerminalOutput(mantaPage, 'ORCA_FLOOD_LINE', 30_000, 20_000)
+      await waitForTerminalOutput(mantaPage, 'MANTA_FLOOD_LINE', 30_000, 20_000)
       await recoverDockerSshRelayAfterFault(mantaPage, remote.targetId, () => {
         expect(dropDockerSshRelayTransport(target!)).toBeGreaterThan(0)
       })

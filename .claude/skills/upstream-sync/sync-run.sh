@@ -32,13 +32,54 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "working tree not clean" >&2; exit 1; }
-BASE="$(git rev-parse --verify refs/sync/base 2>/dev/null)" || { echo "refs/sync/base missing — run sync-bootstrap.sh first" >&2; exit 1; }
 
 echo "== 1/4 fetch $UPSTREAM"
 git fetch -q upstream
 # refs/sync/* live on origin too, so a fresh clone can sync without rebuilding
-# the base it started from. sync-finish.sh says when to push them back.
-git fetch -q origin '+refs/sync/*:refs/sync/*' 2>/dev/null || true
+# the base it started from. Origin's are adopted only when they are ahead: a
+# force-fetch once replaced a correct local base with a stale remote one that
+# nobody had pushed past, the mirror was extended from the wrong commit, and
+# the merge came back with 418 conflicts that were all the previous sync again.
+git fetch -q origin '+refs/sync/*:refs/sync-origin/*' 2>/dev/null || true
+for name in base mirror; do
+  here="$(git rev-parse -q --verify "refs/sync/$name" || true)"
+  there="$(git rev-parse -q --verify "refs/sync-origin/$name" || true)"
+  [ -n "$there" ] && [ "$here" != "$there" ] || continue
+  if [ -z "$here" ] || git merge-base --is-ancestor "$here" "$there"; then
+    git update-ref "refs/sync/$name" "$there"
+    echo "   refs/sync/$name: took origin's ${there:0:12}"
+  elif git merge-base --is-ancestor "$there" "$here"; then
+    echo "   refs/sync/$name: origin is behind at ${there:0:12}; push when this sync lands"
+  else
+    echo "refs/sync/$name (${here:0:12}) and origin's (${there:0:12}) have diverged — resolve by hand" >&2
+    exit 1
+  fi
+done
+# The fork's own history is the record that cannot go stale: a sync merge's
+# second parent is the mirror commit it merged. A base behind that is a push
+# that never happened, and building from it re-mirrors work main already has.
+LAST_SYNC="$(git log --merges --format=%H -1 --grep='^sync: merge upstream ' "$FORK")"
+if [ -n "$LAST_SYNC" ]; then
+  MERGED="$(git rev-parse "$LAST_SYNC^2")"
+  BASE_REF="$(git rev-parse -q --verify refs/sync/base || true)"
+  if [ -z "$BASE_REF" ] || git merge-base --is-ancestor "$BASE_REF" "$MERGED"; then
+    [ "$BASE_REF" = "$MERGED" ] || echo "   refs/sync/base moved to ${MERGED:0:12}, the mirror $FORK last merged"
+    git update-ref refs/sync/base "$MERGED"
+  elif ! git merge-base --is-ancestor "$MERGED" "$BASE_REF"; then
+    echo "refs/sync/base (${BASE_REF:0:12}) is unrelated to the mirror $FORK last merged (${MERGED:0:12})" >&2
+    exit 1
+  fi
+fi
+BASE="$(git rev-parse --verify refs/sync/base 2>/dev/null)" || { echo "refs/sync/base missing — run sync-bootstrap.sh first" >&2; exit 1; }
+# Extension starts from the mirror's tip, so it must contain the base.
+if ! git merge-base --is-ancestor "$BASE" refs/sync/mirror 2>/dev/null; then
+  if git merge-base --is-ancestor refs/sync/mirror "$BASE" 2>/dev/null; then
+    git update-ref refs/sync/mirror "$BASE"
+  else
+    echo "refs/sync/mirror does not contain refs/sync/base (${BASE:0:12}) — resolve by hand" >&2
+    exit 1
+  fi
+fi
 UP="$(git rev-parse "$UPSTREAM")"
 BASE_UP="$(git log -1 --format=%B "$BASE" | sed -n 's/^Mirror-Of: //p' | tail -1)"
 if [ "$UP" = "$BASE_UP" ]; then
@@ -49,6 +90,14 @@ echo "   base mirrors ${BASE_UP:0:12}; upstream is at ${UP:0:12} ($(git rev-list
 echo "== 2/4 build mirror (evidence = $FORK)"
 python3 "$HERE/build-mirror.py" --upstream "$UPSTREAM" --evidence "$FORK" --ref refs/sync/mirror 2>&1 | grep -vE '^\s+[0-9]+/[0-9]+ commits' | sed 's/^/  /'
 MIRROR="$(git rev-parse refs/sync/mirror)"
+# Last line of defence: the fork and the mirror must meet at the base, or later.
+# A meeting point older than the base means the mirror is a different lineage
+# for commits main already merged, and every one of them would conflict again.
+MEET="$(git merge-base "$FORK" "$MIRROR" || true)"
+if [ -z "$MEET" ] || ! git merge-base --is-ancestor "$BASE" "$MEET"; then
+  echo "$FORK and the mirror meet at ${MEET:0:12}, before refs/sync/base ${BASE:0:12}: not merging a re-mirrored history" >&2
+  exit 1
+fi
 
 echo "== 3/4 merge mirror ${MIRROR:0:12} into $BRANCH (from $FORK)"
 # Merge drivers for the files that must not be merged line by line. The driver
@@ -58,6 +107,8 @@ git config merge.keepfork.name "keep the fork's version"
 git config merge.keepfork.driver 'true'
 git config merge.keepupstream.name "keep upstream's version, regenerate afterwards"
 git config merge.keepupstream.driver 'cp %B %A'
+git config merge.localecatalog.name "merge a locale catalogue key by key"
+git config merge.localecatalog.driver "node \"$ROOT/config/scripts/merge-locale-catalog.mjs\" %O %A %B %P"
 git branch -f "$BRANCH" "$FORK"
 git checkout -q "$BRANCH"
 if git -c core.hooksPath=/dev/null -c merge.directoryRenames=false merge -q --no-ff --no-edit \

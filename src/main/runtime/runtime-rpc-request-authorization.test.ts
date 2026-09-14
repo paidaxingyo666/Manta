@@ -30,6 +30,7 @@ describe('MantaRuntimeRpcServer', () => {
   it('rejects WebSocket requests whose request token differs from the authenticated channel token', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
     const runtime = {
+      configureNotificationDismissalStore: () => {},
       getRuntimeId: () => 'test-runtime',
       getStatus: vi.fn().mockResolvedValue({ graphStatus: 'ok' })
     } as unknown as MantaRuntimeService
@@ -184,6 +185,7 @@ describe('MantaRuntimeRpcServer', () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
     const createMobileSessionTerminal = vi.fn()
     const runtime = {
+      configureNotificationDismissalStore: () => {},
       getRuntimeId: () => 'test-runtime',
       createMobileSessionTerminal
     } as unknown as MantaRuntimeService
@@ -225,6 +227,7 @@ describe('MantaRuntimeRpcServer', () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'manta-runtime-rpc-'))
     const pushRuntimeGit = vi.fn().mockResolvedValue({ ok: true })
     const runtime = {
+      configureNotificationDismissalStore: () => {},
       getRuntimeId: () => 'test-runtime',
       pushRuntimeGit
     } as unknown as MantaRuntimeService

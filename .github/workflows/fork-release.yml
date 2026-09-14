@@ -181,13 +181,15 @@ jobs:
 
       # electron's postinstall pulls its binary from GitHub release assets, and
       # that CDN returns the occasional 504. Retrying beats failing a release.
+      # Both CPUs: the workspace installs only the host's natives, and this one
+      # runner packages x64 and arm64, whose beforePack fails on a missing slice.
       - name: Install dependencies
         uses: nick-fields/retry@v4
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: pnpm install --frozen-lockfile
+          command: pnpm install --frozen-lockfile --cpu=current,x64,arm64
 
       # Fails before the twenty minutes of packaging rather than after, and
       # before an unsigned app can look like a successful release.
