@@ -33,6 +33,7 @@ import {
 import { isMobileMermaidLanguage } from './mobile-mermaid-language'
 import { parseMobileMarkdown } from './mobile-markdown-parser'
 import { MermaidDiagram } from './pr-sidebar/MermaidDiagram'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   content?: string
@@ -139,7 +140,7 @@ function renderInline(text: string, onOpenFile?: (pathText: string) => void): Re
           style={styles.link}
           onPress={() => openMarkdownHref(image[2]!, onOpenFile)}
         >
-          {image[1] || 'image'}
+          {image[1] || translate('m.MobileMarkdown.a22b42f760', 'image')}
         </MarkdownText>
       )
     } else if (link) {
@@ -293,7 +294,9 @@ function MobileMarkdownContent({
               style={styles.imageFrame}
               onPress={() => openMarkdownHref(block.url, onOpenFile)}
             >
-              <NativeText style={styles.link}>{block.alt || 'Open image'}</NativeText>
+              <NativeText style={styles.link}>
+                {block.alt || translate('m.MobileMarkdown.7d36e16e08', 'Open image')}
+              </NativeText>
               <NativeText style={styles.imageCaption} numberOfLines={1}>
                 {block.url}
               </NativeText>
@@ -330,9 +333,17 @@ function MobileMarkdownContent({
                 ))}
                 {hiddenRows > 0 || hiddenColumns > 0 ? (
                   <NativeText style={styles.tableTruncated}>
-                    {hiddenRows > 0 ? `${hiddenRows} more rows` : ''}
+                    {hiddenRows > 0
+                      ? translate('m.MobileMarkdown.26687ede29', '{{value0}} more rows', {
+                          value0: hiddenRows
+                        })
+                      : ''}
                     {hiddenRows > 0 && hiddenColumns > 0 ? ' · ' : ''}
-                    {hiddenColumns > 0 ? `${hiddenColumns} more columns` : ''}
+                    {hiddenColumns > 0
+                      ? translate('m.MobileMarkdown.9228cc8353', '{{value0}} more columns', {
+                          value0: hiddenColumns
+                        })
+                      : ''}
                   </NativeText>
                 ) : null}
               </View>
@@ -350,7 +361,7 @@ function MobileMarkdownContent({
                         ? `${itemIndex + 1}.`
                         : '-'
                       : item.checked
-                        ? '[x]'
+                        ? translate('m.MobileMarkdown.cb032ab166', '[x]')
                         : '[ ]'}
                   </NativeText>
                   <MarkdownText selectable style={[styles.listText, listScale]}>

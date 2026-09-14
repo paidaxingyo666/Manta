@@ -17,11 +17,11 @@ const hash = (parts: string[] | string): string =>
     .digest('hex')
 
 // Bound settings requests change source signatures; their behavior is covered by settings-read-operations.test.ts.
-const SETTINGS_RPC_SCREEN_HOOKS = 'fb2d873e06001fbae7cee78d079b3df9dc2eedb56ab2f03c7ffb431bc8666191'
+const SETTINGS_RPC_SCREEN_HOOKS = 'dd72f740a4511387ff161f8321979cfe7509ce46872f69f724540f02d5db226b'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
-const SETTINGS_RPC_STATEMENTS = '1c99d6382f74c37c0ff896dfa634fb503c9fe8062e2280328d0b82f79f658fdb'
-const MAIN_REBASED_DECLARATIONS = '6ad0397123e59fc1047a14049c86ff31d81723673a7a7f5c41677471aec58415'
-const SETTINGS_RPC_SEMANTICS = '2431b1c07dfe9a9c94f5d3f4e91415ed99bd9e1bce3794f8bd5f094a29134d77'
+const SETTINGS_RPC_STATEMENTS = 'e33ca78323b1dda333004c196ddd3481a981b18f4ab55e8841750e19fadfcd20'
+const MAIN_REBASED_DECLARATIONS = '985cf8f0e8d8bc0246268da30c5ce5c8e010eee05cba2e73c0dcdf9f94822737'
+const SETTINGS_RPC_SEMANTICS = 'baac1b990c23b9151bb8df5b7c6e902a548d5fbaba643e1aff817f41b688a04f'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
 const PRE_REFACTOR_RENDER_TREE = '642f7d7b88d7d4c9793da2ac5efb37c7d4fb2ab979cf472c719549a8cfe76fc7'
 
@@ -50,7 +50,7 @@ describe('Mobile Tasks refactor parity', () => {
 
   it('preserves RPC calls, runtime strings, and JSX host signatures', () => {
     const semantics = readMobileTasksSemanticSource()
-    expect(semantics.split('\n')).toHaveLength(3_496)
+    expect(semantics.split('\n')).toHaveLength(4_221)
     expect(hash(semantics)).toBe(SETTINGS_RPC_SEMANTICS)
   })
 

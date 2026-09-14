@@ -25,5 +25,6 @@ export async function removeHostAndCloseClient(
   // reconnects), so removal is the only thing that can retire it. Left behind, a
   // re-pair of the same host would inherit a watermark for a counter it never saw.
   forgetHostNotificationSession(hostId)
-  void clearWatermark(hostId)
+  // Best-effort: removal already committed, and a storage failure must not surface as unhandled.
+  void clearWatermark(hostId).catch(() => {})
 }

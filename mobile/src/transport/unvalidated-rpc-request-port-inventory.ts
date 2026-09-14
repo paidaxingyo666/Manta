@@ -53,7 +53,9 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'app/terminal-settings.tsx', references: 3 },
 
   // src/agent-history/ — agent history loads
-  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 6 },
+  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 1 },
+  // This fork split the panel's resume loader out; the references moved with it.
+  { file: 'src/agent-history/mobile-resume-metadata.ts', references: 5 },
   { file: 'src/agent-history/use-mobile-agent-history-state.ts', references: 2 },
 
   // src/browser/ — hosted browser control
@@ -93,9 +95,11 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/host-screen/use-host-worktree-actions.ts', references: 3 },
 
   // src/notifications/ — push registration and delivery
-  { file: 'src/notifications/mobile-notifications.ts', references: 1 },
+  // This fork's push path: reconnect catch-up and token reporting to the self-hosted relay.
+  { file: 'src/notifications/mobile-notifications.ts', references: 2 },
   { file: 'src/notifications/push-dismissal-reconciliation.ts', references: 2 },
   { file: 'src/notifications/push-registration.ts', references: 3 },
+  { file: 'src/notifications/push-token-reporting.ts', references: 2 },
 
   // src/session/ — session screen: chat, diff review, PR actions, tabs
   { file: 'src/session/ai-vault-resume-launch.ts', references: 3 },

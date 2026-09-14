@@ -8,6 +8,7 @@ import {
   subscribePendingHostCredentialCleanup
 } from '../transport/host-credential-cleanup'
 import { retryPendingHostCredentialCleanup } from '../transport/host-store'
+import { translate } from '../i18n/i18n'
 
 export function PendingCredentialCleanupCard() {
   const [pendingCredentialIds, setPendingCredentialIds] = useState<string[]>([])
@@ -75,13 +76,31 @@ export function PendingCredentialCleanupCard() {
       <View style={styles.credentialCleanupRow}>
         <KeyRound size={16} color={colors.statusAmber} />
         <View style={styles.credentialCleanupCopy}>
-          <Text style={styles.credentialCleanupTitle}>Pairing credential cleanup</Text>
+          <Text style={styles.credentialCleanupTitle}>
+            {translate(
+              'm.pending.credential.cleanup.card.f3f9724f81',
+              'Pairing credential cleanup'
+            )}
+          </Text>
           <Text accessibilityLiveRegion="polite" style={styles.rowHint}>
             {credentialRetryFailed
-              ? "Cleanup still couldn't be confirmed. Try again later."
+              ? translate(
+                  'm.pending.credential.cleanup.card.ef5c61f547',
+                  "Cleanup still couldn't be confirmed. Try again later."
+                )
               : pendingCredentialCount > 0
-                ? `Couldn't confirm cleanup for ${pendingCredentialCount} credential${pendingCredentialCount === 1 ? '' : 's'} on this device.`
-                : "Couldn't check cleanup status on this device. Retry to be safe."}
+                ? translate(
+                    'm.pending.credential.cleanup.card.492b6b5a01',
+                    "Couldn't confirm cleanup for {{value0}} credential{{value1}} on this device.",
+                    {
+                      value0: pendingCredentialCount,
+                      value1: pendingCredentialCount === 1 ? '' : 's'
+                    }
+                  )
+                : translate(
+                    'm.pending.credential.cleanup.card.76771939c1',
+                    "Couldn't check cleanup status on this device. Retry to be safe."
+                  )}
           </Text>
         </View>
         <Pressable
@@ -102,7 +121,9 @@ export function PendingCredentialCleanupCard() {
           {retryingCredentialCleanup ? (
             <ActivityIndicator size="small" color={colors.textSecondary} />
           ) : (
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>
+              {translate('m.pending.credential.cleanup.card.d080c49342', 'Retry')}
+            </Text>
           )}
         </Pressable>
       </View>

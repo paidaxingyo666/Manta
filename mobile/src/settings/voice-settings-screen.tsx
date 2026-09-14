@@ -13,13 +13,18 @@ import {
   type MobileSpeechModel,
   type MobileSpeechSetup
 } from '../dictation/mobile-dictation-setup'
+import { translate } from '../i18n/i18n'
+import { localizedConstant } from '../i18n/localized-constant'
 
 const POLL_INTERVAL_MS = 1500
 
-const DICTATION_MODES = [
-  { value: 'toggle', label: 'Toggle' },
-  { value: 'hold', label: 'Hold' }
-] as const
+const dictationModes = localizedConstant(
+  () =>
+    [
+      { value: 'toggle', label: translate('m.voice.settings.cb11e9d147', 'Toggle') },
+      { value: 'hold', label: translate('m.voice.settings.858525ff0d', 'Hold') }
+    ] as const
+)
 
 type ModelBusyAction = { modelId: string; type: 'download' | 'select' | 'delete' }
 
@@ -165,7 +170,8 @@ export default function VoiceSettingsScreen({
 
   const enabled = setup?.enabled ?? false
   const selectedModel = setup?.models.find((m) => m.id === setup.selectedModelId)
-  const selectedModelLabel = selectedModel?.label ?? 'None selected'
+  const selectedModelLabel =
+    selectedModel?.label ?? translate('m.voice.settings.screen.0400b20444', 'None selected')
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
@@ -178,12 +184,19 @@ export default function VoiceSettingsScreen({
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Voice</Text>
+        <Text style={styles.heading}>
+          {translate('m.voice.settings.screen.a1cbf7814a', 'Voice')}
+        </Text>
       </View>
 
       {!operations ? (
         <View style={[styles.section, styles.sectionTopGap]}>
-          <Text style={styles.emptyText}>Connect to a desktop to manage voice settings.</Text>
+          <Text style={styles.emptyText}>
+            {translate(
+              'm.voice.settings.screen.94921afad1',
+              'Connect to a desktop to manage voice settings.'
+            )}
+          </Text>
         </View>
       ) : loading && setup === null ? (
         <View style={styles.loading}>
@@ -191,20 +204,30 @@ export default function VoiceSettingsScreen({
         </View>
       ) : setup === null ? (
         <View style={[styles.section, styles.sectionTopGap]}>
-          <Text style={styles.errorText}>{error ?? 'Failed to load voice settings.'}</Text>
+          <Text style={styles.errorText}>
+            {error ??
+              translate('m.voice.settings.screen.4cee2463f9', 'Failed to load voice settings.')}
+          </Text>
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.groupHeading}>DICTATION</Text>
+          <Text style={styles.groupHeading}>
+            {translate('m.voice.settings.screen.680db0cdb2', 'DICTATION')}
+          </Text>
           <View style={[styles.section, styles.sectionTopGap]}>
             <View style={styles.row}>
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Enable Voice Dictation</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('m.voice.settings.screen.a261b74160', 'Enable Voice Dictation')}
+                </Text>
                 <Text style={styles.rowSublabel}>
-                  Dictate text into any focused pane on your desktop.
+                  {translate(
+                    'm.voice.settings.screen.0d9e2ef97d',
+                    'Dictate text into any focused pane on your desktop.'
+                  )}
                 </Text>
               </View>
               <Switch
@@ -224,13 +247,18 @@ export default function VoiceSettingsScreen({
               pointerEvents={enabled ? 'auto' : 'none'}
             >
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Dictation Mode</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('m.voice.settings.screen.7bd89184c8', 'Dictation Mode')}
+                </Text>
                 <Text style={styles.rowSublabel}>
-                  Toggle: press once to start, again to stop. Hold: dictate while held.
+                  {translate(
+                    'm.voice.settings.screen.63fc1b1ff8',
+                    'Toggle: press once to start, again to stop. Hold: dictate while held.'
+                  )}
                 </Text>
               </View>
               <View style={styles.segmented}>
-                {DICTATION_MODES.map((mode) => {
+                {dictationModes().map((mode) => {
                   const active = setup.dictationMode === mode.value
                   return (
                     <Pressable
@@ -251,7 +279,9 @@ export default function VoiceSettingsScreen({
             </View>
           </View>
 
-          <Text style={[styles.groupHeading, styles.inputGroupGap]}>SPEECH MODEL</Text>
+          <Text style={[styles.groupHeading, styles.inputGroupGap]}>
+            {translate('m.voice.settings.screen.507f56779b', 'SPEECH MODEL')}
+          </Text>
           <View style={[styles.section, styles.sectionTopGap]}>
             <Pressable
               style={({ pressed }) => [
@@ -264,7 +294,9 @@ export default function VoiceSettingsScreen({
               onPress={() => setModelDrawerOpen(true)}
             >
               <View style={styles.rowContent}>
-                <Text style={styles.rowLabel}>Speech Model</Text>
+                <Text style={styles.rowLabel}>
+                  {translate('m.voice.settings.screen.075ba22e20', 'Speech Model')}
+                </Text>
                 <Text style={styles.rowSublabel} numberOfLines={1}>
                   {selectedModelLabel}
                 </Text>
@@ -278,7 +310,9 @@ export default function VoiceSettingsScreen({
       )}
 
       <BottomDrawer visible={modelDrawerOpen} onClose={() => setModelDrawerOpen(false)}>
-        <Text style={styles.drawerTitle}>Speech Model</Text>
+        <Text style={styles.drawerTitle}>
+          {translate('m.voice.settings.screen.075ba22e20', 'Speech Model')}
+        </Text>
         {setup ? (
           <VoiceModelList
             setup={setup}

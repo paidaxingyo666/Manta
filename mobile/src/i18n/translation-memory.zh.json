@@ -771,7 +771,7 @@
   "DICTATION": "语音输入",
   "Failed to load voice settings.": "加载语音设置失败。",
   "Connect to a desktop to manage voice settings.": "连接桌面端后可管理语音设置。",
-  "Hold": "抓住",
+  "Hold": "按住",
   "Toggle": "切换",
   "None selected": "未选择",
   "Pull Request": "PR",
@@ -1161,5 +1161,16 @@
   "Request not sent": "请求未发送",
   "Chat": "对话",
   "Conversation operation is unconfirmed; retry checks the same operation.": "会话操作未确认;重试将检查同一操作。",
-  "Wait for pending work to finish before using this command.": "请等待进行中的任务完成后再使用此命令。"
+  "Wait for pending work to finish before using this command.": "请等待进行中的任务完成后再使用此命令。",
+  "Message not sent": "消息未发送",
+  "Get notified when an agent finishes a task or needs your input.": "智能体完成任务或需要你输入时收到通知。",
+  "Delivered through Manta’s push service. Change this anytime in Settings.": "通过 Manta 推送服务送达。可随时在设置中更改。",
+  "Try cellular or another Wi-Fi network. If alerts arrive after switching, your network may be delaying delivery.": "试试蜂窝网络或其他 Wi-Fi 网络。如果切换后能收到提醒，可能是当前网络延迟了推送。",
+  "Check that system settings allow Manta notifications and that Focus or Do Not Disturb is off.": "检查系统设置是否允许 Manta 发送通知，并确认专注模式或勿扰模式已关闭。",
+  "Push Notifications": "推送通知",
+  "Pair an updated desktop to receive notifications on this phone.": "配对新版桌面端后，才能在这台手机上接收通知。",
+  "Send test notification": "发送测试通知",
+  "Send a test through Manta’s push service.": "通过 Manta 推送服务发送一条测试通知。",
+  "Having trouble receiving alerts?": "收不到提醒？",
+  "Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume.": "提醒类型遵循各台已配对桌面端的通知设置。超过 7 天未使用此应用，通知会暂停；打开应用并重新连接即可恢复。"
 }

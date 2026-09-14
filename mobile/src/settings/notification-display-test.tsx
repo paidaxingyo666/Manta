@@ -4,6 +4,7 @@ import { useAllHostClients } from '../transport/use-all-host-clients'
 import { loadHostCatalog } from '../transport/host-store'
 import type { MobilePushTestResult } from '../../../src/shared/mobile-push-contract'
 import { colors, spacing, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 export function NotificationDisplayTest({ onTroubleshoot }: { onTroubleshoot: () => void }) {
   const busy = useRef(false)
@@ -69,8 +70,15 @@ export function NotificationDisplayTest({ onTroubleshoot }: { onTroubleshoot: ()
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Having trouble receiving alerts?</Text>
-      <Text style={styles.detail}>Send a test through Manta’s push service.</Text>
+      <Text style={styles.label}>
+        {translate('m.notification.display.test.640e7facdf', 'Having trouble receiving alerts?')}
+      </Text>
+      <Text style={styles.detail}>
+        {translate(
+          'm.notification.display.test.3a59a75b24',
+          'Send a test through Manta’s push service.'
+        )}
+      </Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={sending ? 'Sending…' : 'Send test notification'}
@@ -81,17 +89,21 @@ export function NotificationDisplayTest({ onTroubleshoot }: { onTroubleshoot: ()
       >
         <View>
           <Text accessible={false} style={[styles.buttonText, styles.sizingLabel]}>
-            Send test notification
+            {translate('m.notification.display.test.9daaa86e7d', 'Send test notification')}
           </Text>
           <View pointerEvents="none" style={styles.buttonLabel}>
             <Text accessible={false} style={styles.buttonText}>
-              {sending ? 'Sending…' : 'Send test notification'}
+              {sending
+                ? translate('m.notification.display.test.02b9878c20', 'Sending…')
+                : translate('m.notification.display.test.9daaa86e7d', 'Send test notification')}
             </Text>
           </View>
         </View>
       </Pressable>
       <Pressable accessibilityRole="link" onPress={onTroubleshoot} style={styles.troubleshootLink}>
-        <Text style={styles.linkText}>Troubleshooting</Text>
+        <Text style={styles.linkText}>
+          {translate('m.notification.display.test.f94d7c9b05', 'Troubleshooting')}
+        </Text>
       </Pressable>
       {message && (
         <Text accessibilityRole="alert" style={styles.detail}>

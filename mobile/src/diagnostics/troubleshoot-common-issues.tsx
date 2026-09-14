@@ -14,10 +14,16 @@ export const troubleshootCommonIssues = localizedConstant((): TroubleshootSectio
   {
     id: 'notifications',
     icon: <Bell size={16} color={colors.textSecondary} />,
-    title: 'Push Notifications',
+    title: translate('m.troubleshoot.common.issues.b298bcd66a', 'Push Notifications'),
     steps: [
-      'Check that system settings allow Manta notifications and that Focus or Do Not Disturb is off.',
-      'Try cellular or another Wi-Fi network. If alerts arrive after switching, your network may be delaying delivery.'
+      translate(
+        'm.troubleshoot.common.issues.fb642e8fe3',
+        'Check that system settings allow Manta notifications and that Focus or Do Not Disturb is off.'
+      ),
+      translate(
+        'm.troubleshoot.common.issues.aa285306c6',
+        'Try cellular or another Wi-Fi network. If alerts arrive after switching, your network may be delaying delivery.'
+      )
     ]
   },
 

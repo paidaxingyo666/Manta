@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { ChevronLeft } from 'lucide-react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { useMobileDefaultSessionViewPreference } from '../session/use-mobile-default-session-view-preference'
+import { translate } from '../i18n/i18n'
 
 export default function NativeChatSettingsScreen({ onBack }: { onBack?: () => void }) {
   const router = useRouter()
@@ -23,24 +24,35 @@ export default function NativeChatSettingsScreen({ onBack }: { onBack?: () => vo
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Chat UI</Text>
+        <Text style={styles.heading}>
+          {translate('m.native.chat.settings.screen.3301eaa13d', 'Chat UI')}
+        </Text>
       </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + spacing.lg }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.groupHeading}>DEFAULT VIEW</Text>
+        <Text style={styles.groupHeading}>
+          {translate('m.native.chat.settings.screen.a472b89f79', 'DEFAULT VIEW')}
+        </Text>
         <Text style={styles.groupDescription}>
-          Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on
-          this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop
-          app. You can still switch any individual session from its long-press menu.
+          {translate(
+            'm.native.chat.settings.screen.57a068dd53',
+            'Choose how supported agent sessions (Claude, Codex, and other chat-capable agents) open on this device. Terminal shows the raw CLI; Chat UI shows a chat interface like the desktop app. You can still switch any individual session from its long-press menu.'
+          )}
         </Text>
         <View style={[styles.section, styles.sectionTopGap]}>
           <View style={styles.row}>
             <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Open sessions in Chat UI</Text>
-              <Text style={styles.rowSublabel}>{chatDefault ? 'On' : 'Off'}</Text>
+              <Text style={styles.rowLabel}>
+                {translate('m.native.chat.settings.screen.c2547c12af', 'Open sessions in Chat UI')}
+              </Text>
+              <Text style={styles.rowSublabel}>
+                {chatDefault
+                  ? translate('m.native.chat.settings.screen.12f2d1880e', 'On')
+                  : translate('m.native.chat.settings.screen.eef9642695', 'Off')}
+              </Text>
             </View>
             <Switch
               accessibilityLabel="Open sessions in Chat UI"

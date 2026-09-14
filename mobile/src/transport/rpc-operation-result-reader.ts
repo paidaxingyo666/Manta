@@ -70,6 +70,7 @@ function decodeIssues(error: z.ZodError): RpcDecodeIssue[] {
 
 // Why: a hostile or very foreign reply can issue per element; report a bounded sample and
 // say how many were dropped rather than letting the diagnostic grow with the payload.
+// i18n-exempt: decode issues are diagnostics, never shown as copy.
 function boundIssues(issues: readonly RpcDecodeIssue[]): RpcDecodeIssue[] {
   if (issues.length <= MAX_REPORTED_DECODE_ISSUES) {
     return [...issues]

@@ -26,6 +26,7 @@ import { agentSessionRefusalOperationState } from '../../../src/shared/agent-ses
 import { structuredAgentSessionRejectionNotice } from '../../../src/shared/structured-agent-session-send-disposition'
 import type { MobileNativeChatSendOutcome } from './mobile-native-chat-send'
 import type { StructuredAgentSessionMutationCallResult } from './mobile-structured-agent-session-rpc'
+import { translate } from '../i18n/i18n'
 
 export type MobileStructuredSendDelivery = {
   outcome: MobileNativeChatSendOutcome
@@ -57,7 +58,10 @@ export function mobileStructuredSendDelivery(
     return {
       outcome: 'rejected',
       operationIdSpent: !retained,
-      error: result.message === 'Request not sent' ? 'Message not sent' : result.message
+      error:
+        result.message === 'Request not sent'
+          ? translate('m.mobile.structured.send.delivery.1e36008a95', 'Message not sent')
+          : result.message
     }
   }
   const submission = result.value.submission as AgentSessionSendResult['submission'] | undefined

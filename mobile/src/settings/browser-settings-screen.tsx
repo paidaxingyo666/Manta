@@ -10,23 +10,31 @@ import {
   type MobileTerminalLinkOpenMode
 } from '../storage/preferences'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
+import { localizedConstant } from '../i18n/localized-constant'
 
-const LINK_MODE_OPTIONS: PickerOption<MobileTerminalLinkOpenMode>[] = [
+const linkModeOptions = localizedConstant((): PickerOption<MobileTerminalLinkOpenMode>[] => [
   {
     value: 'manta-browser',
-    label: 'Manta browser on desktop',
-    subtitle: 'Open in the streamed browser from your paired desktop.'
+    label: translate('m.browser.settings.2307073d4f', 'Manta browser on desktop'),
+    subtitle: translate(
+      'm.browser.settings.678f6766a4',
+      'Open in the streamed browser from your paired desktop.'
+    )
   },
   {
     value: 'phone-browser',
-    label: 'Phone browser',
-    subtitle: 'Open in Safari, Chrome, or another browser on this phone.'
+    label: translate('m.browser.settings.848a3a5e01', 'Phone browser'),
+    subtitle: translate(
+      'm.browser.settings.5a3e904671',
+      'Open in Safari, Chrome, or another browser on this phone.'
+    )
   }
-]
+])
 
 function linkModeLabel(mode: MobileTerminalLinkOpenMode): string {
   return (
-    LINK_MODE_OPTIONS.find((option) => option.value === mode)?.label ?? LINK_MODE_OPTIONS[0]!.label
+    linkModeOptions().find((option) => option.value === mode)?.label ?? linkModeOptions()[0]!.label
   )
 }
 
@@ -80,13 +88,20 @@ export default function BrowserSettingsScreen({
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Browser</Text>
+        <Text style={styles.heading}>
+          {translate('m.browser.settings.screen.6250a84558', 'Browser')}
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.groupHeading}>LINKS</Text>
+        <Text style={styles.groupHeading}>
+          {translate('m.browser.settings.screen.3b8994a699', 'LINKS')}
+        </Text>
         <Text style={styles.groupDescription}>
-          Choose where HTTP(S) links tapped in terminal output open.
+          {translate(
+            'm.browser.settings.screen.99c11d474b',
+            'Choose where HTTP(S) links tapped in terminal output open.'
+          )}
         </Text>
         {error && (
           <Text accessibilityRole="alert" style={styles.groupDescription}>
@@ -102,7 +117,9 @@ export default function BrowserSettingsScreen({
           >
             <Globe size={16} color={colors.textSecondary} />
             <View style={styles.rowContent}>
-              <Text style={styles.rowLabel}>Open terminal links</Text>
+              <Text style={styles.rowLabel}>
+                {translate('m.browser.settings.screen.48d50513f0', 'Open terminal links')}
+              </Text>
               <Text style={styles.rowSublabel}>{linkModeLabel(linkMode)}</Text>
             </View>
             <ChevronRight size={16} color={colors.textMuted} />
@@ -112,8 +129,8 @@ export default function BrowserSettingsScreen({
 
       <PickerModal<MobileTerminalLinkOpenMode>
         visible={pickerOpen}
-        title="Open terminal links"
-        options={LINK_MODE_OPTIONS}
+        title={translate('m.browser.settings.screen.48d50513f0', 'Open terminal links')}
+        options={linkModeOptions()}
         selected={linkMode}
         onSelect={selectLinkMode}
         onClose={() => setPickerOpen(false)}

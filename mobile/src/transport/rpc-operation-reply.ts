@@ -18,6 +18,7 @@ type AdmittedPayload =
   | { readonly admitted: false; readonly issues: readonly RpcDecodeIssue[] }
 
 // The payload the operation's own acceptance policy admits from a fulfilled success.
+// i18n-exempt: decode issues are diagnostics, never shown as copy.
 function admitPayload(operation: AnyRpcOperation, response: RpcResponse): AdmittedPayload {
   switch (operation.acceptance) {
     case 'object-result-or-null': {

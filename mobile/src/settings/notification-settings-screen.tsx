@@ -6,6 +6,7 @@ import type { NotificationSettingsOperations } from './notification-settings-ope
 import { ChevronLeft } from 'lucide-react-native'
 import { colors, spacing, typography } from '../theme/mobile-theme'
 import type { NotificationPermissionState } from '../notifications/notification-permissions'
+import { translate } from '../i18n/i18n'
 
 const DEFAULT_PERMISSION_STATE: NotificationPermissionState = {
   granted: false,
@@ -78,9 +79,15 @@ export default function NotificationsScreen({
   const switchEnabled = pushEnabled && permissionState.granted
   const notificationsBlocked = permissionState.status === 'denied'
   const hint = notificationsBlocked
-    ? 'Notifications are disabled in system settings.'
+    ? translate(
+        'm.notification.settings.screen.6524226015',
+        'Notifications are disabled in system settings.'
+      )
     : (description ??
-      'Get notified on this device when an agent needs your input or finishes a task.')
+      translate(
+        'm.notification.settings.screen.7457824e30',
+        'Get notified on this device when an agent needs your input or finishes a task.'
+      ))
 
   return (
     <ScrollView
@@ -99,7 +106,9 @@ export default function NotificationsScreen({
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Notifications</Text>
+        <Text style={styles.heading}>
+          {translate('m.notification.settings.screen.265298efb8', 'Notifications')}
+        </Text>
       </View>
 
       {error && (
@@ -109,7 +118,9 @@ export default function NotificationsScreen({
       )}
       <View style={styles.section}>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Enable notifications</Text>
+          <Text style={styles.rowLabel}>
+            {translate('m.notification.settings.screen.c446c4394f', 'Enable notifications')}
+          </Text>
           <Switch
             value={switchEnabled}
             testID="notification-enabled"
@@ -134,7 +145,9 @@ export default function NotificationsScreen({
                 .catch(() => setError('Could not open system settings. Try again.'))
             }
           >
-            <Text style={styles.settingsButtonText}>Open Settings</Text>
+            <Text style={styles.settingsButtonText}>
+              {translate('m.notification.settings.screen.0560f24a97', 'Open Settings')}
+            </Text>
           </Pressable>
         )}
       </View>

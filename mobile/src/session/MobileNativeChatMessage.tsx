@@ -11,6 +11,7 @@ import { ToolRun } from './MobileNativeChatToolRun'
 import type { NativeChatTurnStatus } from './use-mobile-native-chat-turn-status'
 import { isRenderableImageUri } from './mobile-native-chat-image-preview'
 import { styles, TEXT_SIZE } from './mobile-native-chat-message-styles'
+import { translate } from '../i18n/i18n'
 
 function Prose({
   block,
@@ -58,7 +59,11 @@ function Prose({
     }
     return (
       <NativeText style={[styles.imageRef, { fontSize: TEXT_SIZE * fontScale }]}>
-        🖼 {block.alt ?? block.path ?? block.url ?? 'image'}
+        🖼{' '}
+        {block.alt ??
+          block.path ??
+          block.url ??
+          translate('m.MobileNativeChatMessage.58bde2fc06', 'image')}
       </NativeText>
     )
   }

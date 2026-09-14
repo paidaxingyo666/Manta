@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Shield, LifeBuoy } from 'lucide-react-native'
 import { MobileSettingsFrame, MobileSettingsSection } from './mobile-settings-menu'
 import { mobileSettingsMenuItems } from './mobile-settings-menu-items'
+import { translate } from '../i18n/i18n'
 
 export default function SettingsMenuScreen({
   push,
@@ -24,13 +25,13 @@ export default function SettingsMenuScreen({
         spaced
         items={[
           {
-            label: 'Privacy Policy',
+            label: translate('m.settings.menu.screen.b85b3aed73', 'Privacy Policy'),
             icon: Shield,
             external: true,
             onPress: () => void openExternal('https://www.manta.sh.cn/privacy')
           },
           {
-            label: 'Support',
+            label: translate('m.settings.menu.screen.62e60fabc8', 'Support'),
             icon: LifeBuoy,
             external: true,
             onPress: () => void openExternal('https://github.com/paidaxingyo666/Manta/issues')

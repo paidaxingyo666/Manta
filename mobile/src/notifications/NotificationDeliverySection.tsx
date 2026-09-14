@@ -1,6 +1,7 @@
 import { StyleSheet, Switch, Text, View } from 'react-native'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { NotificationDeliveryPreferences } from './notification-delivery-preferences'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   value: NotificationDeliveryPreferences
@@ -44,8 +45,10 @@ export function NotificationDeliverySection({ value, disabled, onChange }: Props
         )}
       </View>
       <Text style={styles.footer}>
-        Alert types follow each paired desktop’s notification settings. Notifications pause after 7
-        days without using this app; open it and reconnect to resume.
+        {translate(
+          'm.NotificationDeliverySection.73d6d0eb7b',
+          'Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume.'
+        )}
       </Text>
     </>
   )

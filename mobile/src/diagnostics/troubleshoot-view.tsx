@@ -14,6 +14,7 @@ import {
 import { colors, spacing } from '../theme/mobile-theme'
 import { troubleshootCommonIssues } from './troubleshoot-common-issues'
 import { troubleshootScreenStyles as styles } from './troubleshoot-screen-styles'
+import { translate } from '../i18n/i18n'
 export type DiagnosticStatus = 'idle' | 'running' | 'done'
 
 export type CheckResult = {
@@ -65,7 +66,9 @@ export function TroubleshootView({
         >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
-        <Text style={styles.heading}>Troubleshooting</Text>
+        <Text style={styles.heading}>
+          {translate('m.troubleshoot.view.92c4563048', 'Troubleshooting')}
+        </Text>
       </View>
 
       <ScrollView
@@ -90,10 +93,10 @@ export function TroubleshootView({
           )}
           <Text style={styles.diagnosticButtonLabel}>
             {diagnosticStatus === 'running'
-              ? 'Running…'
+              ? translate('m.troubleshoot.view.3b29a2c889', 'Running…')
               : diagnosticStatus === 'done'
-                ? 'Run again'
-                : 'Run diagnostics'}
+                ? translate('m.troubleshoot.view.7fe72d6cf5', 'Run again')
+                : translate('m.troubleshoot.view.ff33ee2e34', 'Run diagnostics')}
           </Text>
         </Pressable>
 
@@ -105,7 +108,9 @@ export function TroubleshootView({
           onPress={onConnectionLog}
         >
           <ScrollText size={16} color={colors.textPrimary} />
-          <Text style={styles.diagnosticButtonLabel}>View network diagnostics</Text>
+          <Text style={styles.diagnosticButtonLabel}>
+            {translate('m.troubleshoot.view.3e7b766bf7', 'View network diagnostics')}
+          </Text>
         </Pressable>
 
         {checks.length > 0 && (
@@ -127,7 +132,9 @@ export function TroubleshootView({
           </View>
         )}
 
-        <Text style={styles.sectionHeading}>Common issues</Text>
+        <Text style={styles.sectionHeading}>
+          {translate('m.troubleshoot.view.30b44edebf', 'Common issues')}
+        </Text>
 
         <View style={styles.section}>
           {troubleshootCommonIssues().map((section, i) => (

@@ -10,6 +10,7 @@ import {
 import { setNotificationDeliveryPreferences } from '../notifications/push-registration'
 import { useRemotePushCapableHosts } from '../notifications/use-remote-push-capable-hosts'
 import { colors, spacing, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 export function NativeNotificationDeliverySettings({ enabled }: { enabled: boolean }) {
   const [delivery, setDelivery] = useState(DEFAULT_NOTIFICATION_DELIVERY)
@@ -89,7 +90,10 @@ export function NativeNotificationDeliverySettings({ enabled }: { enabled: boole
       )}
       {support.resolved && !support.supported && (
         <Text style={hintStyle}>
-          Pair an updated desktop to receive notifications on this phone.
+          {translate(
+            'm.native.notification.delivery.settings.0413b72d9e',
+            'Pair an updated desktop to receive notifications on this phone.'
+          )}
         </Text>
       )}
     </>
