@@ -49,6 +49,7 @@ describe('showLocalNotification', () => {
   it('posts Android notifications on the channel the boot path creates', async () => {
     Object.assign(Platform, { OS: 'android', Version: 34 })
     vi.mocked(loadPushNotificationsEnabled).mockResolvedValue(true)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the code under test reads only `status`; the rest of the permission shape is irrelevant.
     vi.mocked(Notifications.getPermissionsAsync).mockResolvedValue({
       status: 'granted',
       canAskAgain: true
