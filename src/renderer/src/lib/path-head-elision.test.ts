@@ -34,7 +34,7 @@ describe('splitPathHeadForElision', () => {
   it('leaves short or shallow paths whole', () => {
     expect(splitPathHeadForElision('src/app.ts')).toBeNull()
     expect(splitPathHeadForElision('a/b/c')).toBeNull()
-    expect(splitPathHeadForElision('/tmp/orca-create-button/create-button.html')).toEqual({
+    expect(splitPathHeadForElision('/tmp/manta-create-button/create-button.html')).toEqual({
       head: '/tmp',
       tail: '/manta-create-button/create-button.html',
       tailRanges: []

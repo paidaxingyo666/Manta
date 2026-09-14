@@ -33,7 +33,7 @@ export default function SettingsMenuScreen({
             label: 'Support',
             icon: LifeBuoy,
             external: true,
-            onPress: () => void openExternal('https://github.com/stablyai/orca/issues')
+            onPress: () => void openExternal('https://github.com/paidaxingyo666/Manta/issues')
           }
         ]}
       />

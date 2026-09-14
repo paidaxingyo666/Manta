@@ -9,7 +9,7 @@ import {
   parseArgs,
   resolveMantadExitCode
 } from './mantad-entry'
-import { startOrcadWithLifecycle } from './orcad-lifecycle'
+import { startOrcadWithLifecycle } from './mantad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 

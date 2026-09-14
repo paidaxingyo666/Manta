@@ -52,7 +52,7 @@ beforeEach(() => {
   AppState.currentState = 'background'
   setNotificationViewingWorkspace(null)
   storage.clear()
-  storage.set('manta:pushServiceNotificationsEnabled', 'true')
+  storage.set('manta:pushNotificationsEnabled', 'true')
   resetForegroundPushClaimsForTests()
   vi.mocked(loadHostCatalog).mockResolvedValue([
     ...hosts,

@@ -132,7 +132,7 @@ async function choose(entry: string) {
   })
 }
 function expectChoiceComplete(entry: string) {
-  expect(mocks.storage.get('manta:pushServiceNotificationsEnabled')).toBe('true')
+  expect(mocks.storage.get('manta:pushNotificationsEnabled')).toBe('true')
   if (entry === 'settings') {
     expect(renderer!.root.findByType('Switch').props).toMatchObject({
       value: true,
@@ -159,26 +159,24 @@ afterEach(async () => {
   vi.useRealTimers()
 })
 
+// Fork decision: local notifications gate on this same choice, so a re-consent key
+// would silently switch notifications off for every user who already chose.
 it.each(['true', 'false'])(
-  'requires consent before registering a legacy %s user',
-  async (legacy) => {
-    mocks.storage.set('manta:pushNotificationsEnabled', legacy)
-    const client = await connectedHost()
-    await expect(shouldPresentNotificationOptIn()).resolves.toBe(true)
-    await drain()
-    expect(getDevicePushToken).not.toHaveBeenCalled()
-    expect(client.sendRequest).not.toHaveBeenCalled()
-    await choose('onboarding')
+  'carries an existing %s choice over without asking again',
+  async (existing) => {
+    mocks.storage.set('manta:pushNotificationsEnabled', existing)
+    const client = connection()
+    attachPushRegistration('host', client as never)
     await drain()
     await expect(shouldPresentNotificationOptIn()).resolves.toBe(false)
-    expect(client.sendRequest.mock.calls.map(([method]) => method)).toEqual([
-      'notifications.registerPush'
-    ])
+    expect(
+      client.sendRequest.mock.calls.some(([method]) => method === 'notifications.registerPush')
+    ).toBe(existing === 'true')
+    expect(getDevicePushToken).toHaveBeenCalledTimes(existing === 'true' ? 1 : 0)
   }
 )
 
 it('remembers Not now without registering and does not ask again', async () => {
-  mocks.storage.set('manta:pushNotificationsEnabled', 'true')
   const client = await connectedHost()
   await act(async () => {
     renderer = create(createElement(MobileOnboardingScreen))
@@ -188,7 +186,7 @@ it('remembers Not now without registering and does not ask again', async () => {
   })
   await drain()
   await expect(shouldPresentNotificationOptIn()).resolves.toBe(false)
-  expect(mocks.storage.get('manta:pushServiceNotificationsEnabled')).toBe('false')
+  expect(mocks.storage.get('manta:pushNotificationsEnabled')).toBe('false')
   expect(getDevicePushToken).not.toHaveBeenCalled()
   expect(
     client.sendRequest.mock.calls.some(([method]) => method === 'notifications.registerPush')
@@ -286,7 +284,7 @@ it('exposes a failed consent write without scheduling or changing durable consen
   vi.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error('consent write failed'))
   await expect(setRemotePushEnabled(true)).rejects.toThrow('consent write failed')
   await drain()
-  expect(mocks.storage.has('manta:pushServiceNotificationsEnabled')).toBe(false)
+  expect(mocks.storage.has('manta:pushNotificationsEnabled')).toBe(false)
   expect(client.sendRequest).not.toHaveBeenCalled()
 })
 
@@ -302,7 +300,7 @@ it('exposes a failed records write and still schedules exactly one cleanup', asy
     .mockRejectedValueOnce(new Error('records write failed'))
   await expect(setRemotePushEnabled(false)).rejects.toThrow('records write failed')
   await drain()
-  expect(mocks.storage.get('manta:pushServiceNotificationsEnabled')).toBe('false')
+  expect(mocks.storage.get('manta:pushNotificationsEnabled')).toBe('false')
   expect(client.sendRequest.mock.calls.map(([method]) => method)).toEqual([
     'notifications.unregisterPush'
   ])

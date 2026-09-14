@@ -63,7 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   resetPushRegistrationForTests()
   storage.clear()
-  storage.set('manta:pushServiceNotificationsEnabled', 'true')
+  storage.set('manta:pushNotificationsEnabled', 'true')
   vi.mocked(getDevicePushToken).mockResolvedValue(token)
   vi.mocked(addPushTokenListener).mockReturnValue(() => {})
   vi.mocked(removeHost).mockReset()
@@ -166,7 +166,7 @@ it('completes disable while native token acquisition remains unresolved, and rej
     'notifications.unregisterPush'
   )
   await vi.advanceTimersByTimeAsync(2_000)
-  expect(storage.get('manta:pushServiceNotificationsEnabled')).toBe('false')
+  expect(storage.get('manta:pushNotificationsEnabled')).toBe('false')
   expect(records()).toEqual({ registeredHostIds: [], pendingUnregisterHostIds: [] })
   expect(connection.sendRequest.mock.calls.map(([method]) => method)).toContain(
     'notifications.unregisterPush'

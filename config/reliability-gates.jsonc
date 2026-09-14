@@ -159,37 +159,30 @@
     },
     {
       "id": "mobile-push.headless-startup-and-policy",
-      "title": "Headless push lifecycle and mobile delivery policy",
+      "title": "Push service lifecycle and mobile delivery policy",
       "maturity": "experimental",
       "protection": "partial",
       "owner": "runtime",
       "layer": "service-integration",
-      "surfaces": ["headless startup", "push registration", "native push delivery policy"],
+      "surfaces": ["push registration", "native push delivery policy"],
       "platforms": ["macos", "linux", "windows"],
       "providers": ["local", "remote-runtime"],
       "coveredPlatforms": ["macos"],
       "coveredProviders": ["local", "remote-runtime"],
-      "coverageNotes": "Actual startMantad entry with mocked daemon/RPC startup boundaries; real controller, push service, and persisted device registry. Gateway send is stubbed.",
+      "coverageNotes": "Real controller, push service, and persisted device registry with the gateway send stubbed. Manta does not start the hosted gateway push service, so headless startup wiring is not covered.",
       "motivatingLinks": ["https://github.com/stablyai/orca/pull/19204"],
-      "invariant": "Headless startup installs and disposes push delivery; desktop notification categories remain authoritative, the three-minute away policy is preserved, and host activity cannot extend the seven-day mobile lease.",
-      "oracle": "Require registration after RPC identity initialization and shutdown cleanup; idle 179/180/0 yields false/true/false in retained event metadata and exactly one gateway push. Legacy socket subscriptions preserve notification filtering, while opted-in push clients can request dismissal reconciliation. Desktop categories remain authoritative. Persisted lease expires exactly at seven days and only explicit registration renews it.",
+      "invariant": "Desktop notification categories remain authoritative, the three-minute away policy is preserved, and host activity cannot extend the seven-day mobile lease.",
+      "oracle": "Idle 179/180/0 yields false/true/false in retained event metadata and exactly one gateway push. Legacy socket subscriptions preserve notification filtering, while opted-in push clients can request dismissal reconciliation. Desktop categories remain authoritative. Persisted lease expires exactly at seven days and only explicit registration renews it.",
       "commands": [
         "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/mobile-notification-dismissal-store.test.ts src/renderer/src/hooks/useAutoAckViewedAgent.away.test.ts",
-        "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/mantad/mantad-push-startup.test.ts src/main/runtime/push/push-policy-pipeline.integration.test.ts"
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/push/push-policy-pipeline.integration.test.ts"
       ],
       "testFiles": [
-        "src/main/mantad/mantad-push-startup.test.ts",
         "src/main/runtime/push/push-policy-pipeline.integration.test.ts",
         "src/main/runtime/mobile-notification-dismissal-store.test.ts",
         "src/renderer/src/hooks/useAutoAckViewedAgent.away.test.ts"
       ],
       "assertionRefs": [
-        {
-          "file": "src/main/mantad/mantad-push-startup.test.ts",
-          "assertions": [
-            "starts push after RPC identity is available and stops dispatch on shutdown"
-          ]
-        },
         {
           "file": "src/main/runtime/push/push-policy-pipeline.integration.test.ts",
           "assertions": [
@@ -200,13 +193,13 @@
       ],
       "evidenceRuns": [
         {
-          "date": "2026-09-07",
+          "date": "2026-09-14",
           "runner": "local",
           "platform": "macos",
-          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/mantad/mantad-push-startup.test.ts src/main/runtime/push/push-policy-pipeline.integration.test.ts",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/push/push-policy-pipeline.integration.test.ts",
           "result": "passed",
-          "summary": "Four tests passed across two files.",
-          "durationSeconds": 0.407
+          "summary": "Three tests passed in one file.",
+          "durationSeconds": 0.243
         }
       ],
       "runtimeBudget": {
@@ -219,7 +212,7 @@
       },
       "redGreenEvidence": {
         "status": "partial",
-        "evidence": "Headless startup oracle reproduced missing registrar before the startup fix and passed afterward. Policy tests cover candidate behavior."
+        "evidence": "Policy tests cover candidate behavior; the headless startup red/green oracle is not part of Manta."
       },
       "performanceBudget": {
         "required": false,
@@ -230,6 +223,7 @@
         "Does not prove APNs silent background wakeup or actual operating-system idle transitions.",
         "Rendererless agent/bell event generation remains outside the documented feature contract.",
         "No live Windows or Linux policy evidence.",
+        "Manta pushes through its self-hosted relay; headless startup of the hosted gateway push service is intentionally absent and untested.",
         "Mobile native presentation and dismissal integration belongs to the subsequent mobile PR."
       ],
       "demotionRule": "Keep experimental if lifecycle or policy assertions fail; do not weaken them to bypass platform delivery gaps."

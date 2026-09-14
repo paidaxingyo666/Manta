@@ -1,8 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const PINS_PREFIX = 'manta:pins:'
-// Consent to the push service is separate from the old socket notification choice.
-const NOTIF_KEY = 'manta:pushServiceNotificationsEnabled'
+const NOTIF_KEY = 'manta:pushNotificationsEnabled'
 
 export type PushNotificationsPreference = {
   readonly value: boolean | null

@@ -54,11 +54,6 @@ export function MobileOnboardingPage({
             ? 'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
             : 'Get notified when an agent finishes a task or needs your input.'}
         </Text>
-        {!isSessionView ? (
-          <Text style={styles.body}>
-            By default, notifications arrive after your desktop has been idle for 3 minutes.
-          </Text>
-        ) : null}
       </View>
 
       <View style={styles.footer}>

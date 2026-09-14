@@ -130,7 +130,7 @@ export function TroubleshootView({
         <Text style={styles.sectionHeading}>Common issues</Text>
 
         <View style={styles.section}>
-          {troubleshootCommonIssues.map((section, i) => (
+          {troubleshootCommonIssues().map((section, i) => (
             <View key={section.id}>
               {i > 0 && <View style={styles.separator} />}
               <Pressable

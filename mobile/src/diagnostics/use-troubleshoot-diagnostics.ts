@@ -6,7 +6,12 @@ import {
   startDiagnosticFetchTimeout,
   type DiagnosticFetchTimeout
 } from './diagnostic-fetch-timeout'
-import { formatEndpoint, testHostReachability, unreachableHostDetail } from './host-reachability'
+import { testHostReachability } from './host-reachability'
+import {
+  hostConnectionPathTargets,
+  summarizeHostConnectionPaths,
+  type HostConnectionPathProbe
+} from './host-connection-path-probe'
 import type { CheckResult, DiagnosticStatus } from './troubleshoot-view'
 
 export function useTroubleshootDiagnostics() {
@@ -93,17 +98,17 @@ export function useTroubleshootDiagnostics() {
         if (!isCurrentRun()) {
           return
         }
-        const reachable = await testHostReachability(host.endpoint)
+        const probes: HostConnectionPathProbe[] = []
+        for (const target of hostConnectionPathTargets(host)) {
+          if (!isCurrentRun()) {
+            return
+          }
+          probes.push({ ...target, reachable: await testHostReachability(target.url) })
+        }
         if (!isCurrentRun()) {
           return
         }
-        results.push({
-          label: host.name,
-          status: reachable ? 'pass' : 'fail',
-          detail: reachable
-            ? `Reachable at ${formatEndpoint(host.endpoint)}`
-            : unreachableHostDetail(host.endpoint)
-        })
+        results.push({ label: host.name, ...summarizeHostConnectionPaths(probes) })
         setChecks([...results])
       }
     } catch {

@@ -278,12 +278,20 @@ describe('push notification preference', () => {
     vi.mocked(AsyncStorage.setItem).mockReset()
   })
 
-  it.each(['true', 'false'])('requires fresh consent for legacy choice %s', async (legacy) => {
+  // Upstream moved consent to a new key so its hosted push service asks again.
+  // The fork delivers through its own relay, so a choice already made stands.
+  it.each([
+    ['true', true],
+    ['false', false]
+  ])('keeps the choice %s already stored', async (stored, enabled) => {
     vi.mocked(AsyncStorage.getItem).mockImplementation(async (key) =>
-      key === 'manta:pushNotificationsEnabled' ? legacy : null
+      key === 'manta:pushNotificationsEnabled' ? stored : null
     )
-    await expect(readPushNotificationsPreference()).resolves.toEqual({ value: null, loaded: true })
-    await expect(loadPushNotificationsEnabled()).resolves.toBe(false)
+    await expect(readPushNotificationsPreference()).resolves.toEqual({
+      value: enabled,
+      loaded: true
+    })
+    await expect(loadPushNotificationsEnabled()).resolves.toBe(enabled)
   })
 
   it('distinguishes an unset preference from an explicit disabled choice', async () => {
@@ -323,7 +331,7 @@ describe('push notification preference', () => {
       await savePushNotificationsEnabled(enabled)
       await expect(loadPushNotificationsEnabled()).resolves.toBe(enabled)
     }
-    expect([...storage]).toEqual([['manta:pushServiceNotificationsEnabled', 'false']])
+    expect([...storage]).toEqual([['manta:pushNotificationsEnabled', 'false']])
   })
 })
 

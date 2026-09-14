@@ -4,6 +4,7 @@
  * resumed into. Split from the panel, which is already at its line budget.
  */
 import type { RpcClient } from '../transport/rpc-client'
+import { optionalSettingsRead } from '../transport/settings-read-operations'
 import type { Worktree } from '../worktree/workspace-list-types'
 import { RESUME_RPC_TIMEOUT_MS } from '../session/ai-vault-resume-preparation'
 import type { MobileAiVaultResumeSettings } from '../session/ai-vault-resume-launch'
@@ -38,8 +39,8 @@ export async function loadMobileResumeMetadata(client: Pick<RpcClient, 'sendRequ
     client
       .sendRequest('projectGroup.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
       .catch(() => null),
-    client
-      .sendRequest('settings.get', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
+    optionalSettingsRead
+      .request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
       .catch(() => null),
     client
       .sendRequest('worktree.ps', { limit: 10000 }, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
@@ -59,17 +60,18 @@ export async function loadMobileResumeMetadata(client: Pick<RpcClient, 'sendRequ
     projectGroupResponse?.ok === true
       ? (projectGroupResponse.result as { groups?: MobileAiVaultResumeProjectGroup[] })
       : null
-  const settingsResult =
-    settingsResponse?.ok === true
-      ? (settingsResponse.result as { settings?: MobileAiVaultResumeSettings })
-      : null
+  const settingsResult = settingsResponse ? optionalSettingsRead.interpret(settingsResponse) : null
+  const settings = settingsResult?.accepted
+    ? // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
+      (settingsResult.value as MobileAiVaultResumeSettings | null | undefined)
+    : null
   const worktreeResult =
     worktreeResponse?.ok === true ? (worktreeResponse.result as { worktrees?: Worktree[] }) : null
   return {
     repos: repoResult.repos ?? [],
     folderWorkspaces: folderWorkspaceResult?.folderWorkspaces ?? [],
     projectGroups: projectGroupResult?.groups ?? [],
-    settings: settingsResult?.settings ?? null,
+    settings: settings ?? null,
     worktrees: worktreeResult?.worktrees ?? null
   }
 }

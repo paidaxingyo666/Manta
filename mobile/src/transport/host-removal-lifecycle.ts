@@ -1,3 +1,7 @@
+import {
+  clearWatermark,
+  forgetHostNotificationSession
+} from '../notifications/notification-reconnect-catchup'
 import { unregisterPushForRemovedHost } from '../notifications/push-registration'
 import { removeHost } from './host-store'
 
@@ -17,4 +21,9 @@ export async function removeHostAndCloseClient(
     throw error
   }
   forgetHostClient(hostId)
+  // Why: the notification session outlives the socket by design (it must survive
+  // reconnects), so removal is the only thing that can retire it. Left behind, a
+  // re-pair of the same host would inherit a watermark for a counter it never saw.
+  forgetHostNotificationSession(hostId)
+  void clearWatermark(hostId)
 }

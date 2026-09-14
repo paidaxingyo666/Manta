@@ -7,20 +7,22 @@ import { styles } from './mobile-native-chat-view-styles'
 
 /**
  * The strip between the transcript and the composer: the tool-disclosure toggle
- * and, while an agent is running, the stop button.
+ * and, while the agent can be stopped, the stop button.
  *
  * Split out of MobileNativeChatView because localizing its three labels pushed
  * that file past max-lines, and this row is the piece with the fewest ties to
- * the rest of the view — it reads two booleans and calls back.
+ * the rest of the view — it reads a few booleans and calls back.
  */
 export function MobileNativeChatChromeRow({
   agentWorking,
+  canStop,
   structuredActivityUi,
   toolsExpanded,
   onToggleTools,
   onStop
 }: {
   agentWorking: boolean | undefined
+  canStop: boolean | undefined
   structuredActivityUi: boolean | undefined
   toolsExpanded: boolean
   onToggleTools: () => void
@@ -47,7 +49,7 @@ export function MobileNativeChatChromeRow({
           </Text>
         </Pressable>
       </View>
-      {agentWorking ? (
+      {canStop ? (
         <Pressable
           style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}
           onPress={onStop}

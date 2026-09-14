@@ -26,7 +26,7 @@ describe('ref-mirroring vet steps', () => {
     expect(checkout.with['fetch-depth']).toBe(1)
     expect(job.steps.some((step) => step.run?.includes('gh release list'))).toBe(true)
     expect(
-      job.steps.some((step) => step.run?.includes('ORCA_PUBLISHED_VERSIONS="$published"'))
+      job.steps.some((step) => step.run?.includes('MANTA_PUBLISHED_VERSIONS="$published"'))
     ).toBe(true)
   })
 
