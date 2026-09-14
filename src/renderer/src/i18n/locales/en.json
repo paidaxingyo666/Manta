@@ -11816,7 +11816,9 @@
               "storedAuthFailed": "The saved Bitbucket credential could not authenticate. Edit it, or check that the token still has pull request access.",
               "storedCredential": "Saved in Manta on this machine. MANTA_BITBUCKET_* environment variables take precedence when set.",
               "notConfigured": "Connect a Bitbucket Cloud account with an Atlassian API token or an access token. MANTA_BITBUCKET_* environment variables work too and take precedence.",
-              "disconnectFailed": "Could not remove the saved Bitbucket credential."
+              "disconnectFailed": "Could not remove the saved Bitbucket credential.",
+              "statusLoadFailed": "Could not check for a saved Bitbucket credential.",
+              "replaceCredentials": "Add or replace credentials"
             }
           }
         },
@@ -14309,7 +14311,8 @@
                 "4e71d72912": "Claude sign-in failed.",
                 "9ddeb558f9": "Claude account added.",
                 "29d0653961": "Sign in",
-                "945865332e": "Signing in"
+                "945865332e": "Signing in",
+                "accountStatusUnknown": "Account status unknown"
               },
               "UsagePage": {
                 "64265cb295": "29% used 5h",
