@@ -312,10 +312,12 @@ the old cherry-pick path; neither is part of the sync now.
 `cloud/`, the 26 `.github/workflows/cloud-*.yml`, and
 `.github/actions/cloud-sql-rollout-lease/` are upstream's hosted relay fleet and
 the GCP estate that runs it — their projects, their service accounts, their
-numeric repository ids. This fork operates none of it and imports none of it:
-the root workspace is `packages: []`, nothing under `src/`, `mobile/src/` or
-`relay-server/` references `@manta-cloud/relay-contract`, and the fork's own
-relay is `relay-server/`.
+numeric repository ids. This fork operates none of it, and its own relay is
+`relay-server/`. It is not import-free, though: root unit tests
+(`tests/e2e/relay-region-*.unit.test.ts`) load `cloud/apps/relay` source, and
+`unit-tests.yml` installs its deps with `--filter '@orca-cloud/relay...'`. That
+scope, like the push proof domain separators signed against it, is on
+KEEP_SUBSTRING: renamed, the filter matched nothing and CI could not find `pg`.
 
 They are on KEEP_PATH, so they track upstream byte for byte. Renaming inside
 them produced names that were neither upstream's nor this fork's and existed

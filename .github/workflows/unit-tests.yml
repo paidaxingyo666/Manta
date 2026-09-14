@@ -41,8 +41,8 @@ jobs:
       - name: Install relay integration dependencies
         working-directory: cloud
         run: |
-          npx --yes pnpm@10.24.0 --filter '@manta-cloud/relay...' install --frozen-lockfile --ignore-scripts
-          npx --yes pnpm@10.24.0 --filter '@manta-cloud/relay^...' build
+          npx --yes pnpm@10.24.0 --filter '@orca-cloud/relay...' install --frozen-lockfile --ignore-scripts
+          npx --yes pnpm@10.24.0 --filter '@orca-cloud/relay^...' build
 
       - name: Test shard
         env:
