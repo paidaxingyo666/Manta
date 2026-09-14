@@ -17304,6 +17304,10 @@
       "conversationCommand": {
         "pendingWork": "Wait for pending work and messages to finish before using this command.",
         "unconfirmed": "Conversation operation was not confirmed."
+      },
+      "drop": {
+        "title": "Drop to attach to this chat",
+        "subtitle": "Files are added to your message as paths the agent can read."
       }
     },
     "tab": {
