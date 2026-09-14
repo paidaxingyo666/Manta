@@ -15,9 +15,9 @@ export function prepareStartingWorkerAuthority(
     effects: unknown[]
     setupState: string
     hostScope?: string | null
-    // 'created': this worker-start operation created the agent terminal (including agent-first
-    // worktree creation, whose effects receipt says 'reused_agent_terminal'). 'external': an
-    // explicit --terminal reuse; ownership transfers only from an exact owned settled resource.
+    // 'created': this worker-start operation created the agent terminal (agent-first worktree
+    // creation included; its pre-rename effects rows said 'reused_agent_terminal'). 'external':
+    // an explicit --terminal reuse; ownership transfers only from an exact owned settled resource.
     terminalOwnership?: 'created' | 'external'
   }
 ): string {

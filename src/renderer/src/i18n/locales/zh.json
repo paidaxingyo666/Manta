@@ -2086,9 +2086,7 @@
         "pluginCommandFailed": "无法运行插件命令。",
         "27f10cca63": "搜索聊天、终端、工作树、设置和操作...",
         "2770f02910": "搜索聊天、终端、工作树、设置和操作",
-        "recentChatsTerminalsHeader": "最近的聊天和终端",
-        "paletteOpenTabBranch": "分支名称",
-        "paletteOpenTabWorkspace": "工作区名称"
+        "recentChatsTerminalsHeader": "最近的聊天和终端"
       },
       "github": {
         "pr": {
@@ -4625,7 +4623,6 @@
           "a30e34eb5c": "关闭工作区板",
           "spaces": "空间",
           "views": "侧边栏视图",
-          "createMenu": "创建",
           "addProject": "添加项目"
         },
         "SidebarNav": {
@@ -16004,5 +16001,13 @@
   "rendererRecovery": {
     "reload": "重新加载",
     "quit": "退出"
+  },
+  "notifications": {
+    "agentStatus": {
+      "needsInput": "需要输入",
+      "working": "处理中",
+      "stopped": "已停止",
+      "finished": "已完成"
+    }
   }
 }

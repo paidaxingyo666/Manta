@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { View, Text, StyleSheet, Pressable, Linking, Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -29,14 +30,25 @@ function GithubIcon({ size = 16, color = colors.textSecondary }) {
   )
 }
 
+// Why self-contained: upstream's src/settings/about-screen hardcodes orca's hosted links.
 export default function AboutScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const [error, setError] = useState<string | null>(null)
+  const openLink = (url: string) => {
+    setError(null)
+    void Linking.openURL(url).catch(() => setError('Could not open the link. Try again.'))
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.topRow}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          onPress={() => router.back()}
+        >
           <ChevronLeft size={22} color={colors.textSecondary} />
         </Pressable>
         <Text style={styles.heading}>{translate('m.about.a81a8e76d8', 'About')}</Text>
@@ -53,7 +65,9 @@ export default function AboutScreen() {
       <View style={styles.section}>
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          onPress={() => void Linking.openURL('https://github.com/paidaxingyo666/Manta')}
+          accessibilityRole="button"
+          accessibilityLabel="Manta source code"
+          onPress={() => openLink('https://github.com/paidaxingyo666/Manta')}
         >
           <GithubIcon />
           <Text style={styles.rowValue}>
@@ -63,6 +77,11 @@ export default function AboutScreen() {
       </View>
 
       <Text style={styles.versionText}>{getVersionLabel()}</Text>
+      {error && (
+        <Text accessibilityRole="alert" style={styles.errorText}>
+          {error}
+        </Text>
+      )}
     </View>
   )
 }
@@ -144,5 +163,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: typography.metaSize,
     color: colors.textMuted
+  },
+  errorText: {
+    marginTop: spacing.sm,
+    textAlign: 'center',
+    fontSize: typography.metaSize,
+    color: colors.statusRed
   }
 })

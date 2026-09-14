@@ -1,0 +1,142 @@
+{
+  "operation": "settings.repo-metadata",
+  "family": "settings.repo-metadata",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
+  "recorderSha256": "70e4ea4590f92a02dd93cf9212d0160f9bc194fbd59eee746c917e9dc42c5718",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 2,
+  "values": {
+    "2bd489a9fa29": {
+      "repoColorsByName": [
+        ["Remote", "#f97316"],
+        ["Remote folder", "#ec4899"]
+      ],
+      "repoHostIdByRepoId": [
+        ["repo-1", "ssh:ssh-1"],
+        ["repo-2", "ssh:ssh-1"]
+      ],
+      "repoIconsByName": [],
+      "repoIdsByName": [
+        ["Remote", "repo-1"],
+        ["Remote folder", "repo-2"]
+      ]
+    },
+    "2bf0f26c9185": {
+      "mount": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "$rpc": "undefined"
+        }
+      },
+      "load": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "$rpc": "undefined"
+        }
+      }
+    },
+    "3af5a7c8dbf8": [
+      {
+        "name": "repo.list#1",
+        "args": [
+          {
+            "name": "method",
+            "value": "repo.list"
+          },
+          {
+            "name": "params",
+            "value": {
+              "$rpc": "absent"
+            }
+          },
+          {
+            "name": "options",
+            "value": {
+              "$rpc": "absent"
+            }
+          }
+        ],
+        "settlement": {
+          "status": "fulfilled",
+          "startedAt": 0,
+          "settledAt": 0,
+          "value": {
+            "id": "frame-1",
+            "ok": true,
+            "result": {
+              "repos": [
+                {
+                  "connectionId": "ssh-1",
+                  "displayName": "Remote",
+                  "id": "repo-1"
+                },
+                {
+                  "connectionId": "ssh-1",
+                  "displayName": "Remote folder",
+                  "id": "repo-2"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "5e0c4a6ec80d": [
+      {
+        "name": "repoColorsByName",
+        "value": [
+          ["Remote", "#f97316"],
+          ["Remote folder", "#ec4899"]
+        ]
+      },
+      {
+        "name": "repoIconsByName",
+        "value": []
+      },
+      {
+        "name": "repoIdsByName",
+        "value": [
+          ["Remote", "repo-1"],
+          ["Remote folder", "repo-2"]
+        ]
+      },
+      {
+        "name": "repoHostIdByRepoId",
+        "value": [
+          ["repo-1", "ssh:ssh-1"],
+          ["repo-2", "ssh:ssh-1"]
+        ]
+      }
+    ],
+    "8442ee22b3fc": [
+      {
+        "name": "repo.list#1",
+        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
+      }
+    ]
+  },
+  "recording": {
+    "scenario": "settings-repo-metadata-single-host",
+    "checkpoints": [
+      {
+        "id": "single-host-without-label-lookups",
+        "observation": {
+          "sender": "3af5a7c8dbf8",
+          "payloads": "8442ee22b3fc",
+          "settlements": "2bf0f26c9185",
+          "state": "2bd489a9fa29",
+          "effects": "5e0c4a6ec80d"
+        }
+      }
+    ]
+  }
+}

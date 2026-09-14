@@ -31,11 +31,17 @@
 # the reviewable change, and pin LF because they are compared byte-for-byte.
 # Not -diff: the shell diff is the review surface when a wrapper does change.
 /src/main/__fixtures__/shell-wrapper-snapshots/*.txt linguist-generated=true text eol=lf
+# Captured agent PTY transcripts. -text, not `text eol=lf` like the wrapper snapshots above:
+# these carry real CR and CRLF bytes as the terminal emitted them, and line-ending
+# normalisation on a Windows checkout would rewrite the evidence the fixture exists to be.
+/src/main/runtime/__fixtures__/*.txt -text
 
 # Sync merge drivers (drivers are configured by sync-run.sh; names live here).
 # keepfork: the fork rewrote these; upstream's edits are about upstream's product.
 # keepupstream: generated — take upstream's, sync-finish.sh regenerates.
-README.md merge=keepfork
+# Anchored: an unanchored basename matches at any depth, which kept the fork's
+# side of cloud/README.md and dropped upstream's new section with it.
+/README.md merge=keepfork
 docs/readme/README.zh-CN.md merge=keepfork
 pnpm-lock.yaml merge=keepupstream
 mobile/pnpm-lock.yaml merge=keepupstream
@@ -52,3 +58,6 @@ src/renderer/src/i18n/locales/*.json merge=keepupstream
 # Generated runtime English subset: compared byte-for-byte by
 # verify:localization-runtime-catalog, so a CRLF checkout would fail the gate.
 /src/renderer/src/i18n/en-runtime-required.json linguist-generated=true text eol=lf
+# Generated method->params catalog: compared byte-for-byte by
+# verify:rpc-params-catalog, so a CRLF checkout would fail the gate.
+/src/shared/rpc-contract/rpc-params-catalog.generated.ts linguist-generated=true text eol=lf

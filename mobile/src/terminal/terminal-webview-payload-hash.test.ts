@@ -9,8 +9,8 @@ import { XTERM_HTML } from './terminal-webview-html'
 // This fork's values, not upstream's: the document names the product twice, and
 // "manta" is one byte longer than "orca". A sync that moves these by exactly
 // the brand delta is the rename; anything else is a real change to the WebView.
-const EXPECTED_SHA256 = 'd5a892607421a1ba6f0ea04ae4bf77e03eb6cb98326aa51a52420295e81decb2'
-const EXPECTED_LENGTH = 730430
+const EXPECTED_SHA256 = '25b800f342c972f0b8eaba54367bd8b02b7518e9ea6a25e04ab89b3a2ad7d21b'
+const EXPECTED_LENGTH = 730472
 
 describe('terminal WebView payload', () => {
   it('composes the expected document', () => {

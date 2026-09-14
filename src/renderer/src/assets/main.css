@@ -1919,7 +1919,8 @@ html.native-shell .app-layout {
   overflow: visible;
   border-radius: var(--radius);
   opacity: 0.96;
-  filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--foreground) 18%, transparent));
+  background: var(--worktree-sidebar);
+  box-shadow: var(--shadow-floating);
   will-change: transform;
 }
 

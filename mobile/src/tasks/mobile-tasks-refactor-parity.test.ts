@@ -16,11 +16,12 @@ const hash = (parts: string[] | string): string =>
     .update(Array.isArray(parts) ? parts.join('\n') : parts)
     .digest('hex')
 
-const PRE_REFACTOR_SCREEN_HOOKS = 'b265fe7229e464ed9ad0b33cfd6b8bff7c97aa5623340f1061311fcc93bab41f'
+// Bound settings requests change source signatures; their behavior is covered by settings-read-operations.test.ts.
+const SETTINGS_RPC_SCREEN_HOOKS = 'fb2d873e06001fbae7cee78d079b3df9dc2eedb56ab2f03c7ffb431bc8666191'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
-const PRE_REFACTOR_STATEMENTS = '4d605fb77d880894d20dcd95d2498fc36ef4e168826e40fbd196200ab7c7c1d7'
-const PRE_REFACTOR_DECLARATIONS = '52e653c7bd29d73afa4265116c3ec590f3e091ceba31a9c6e37522437532e150'
-const PRE_REFACTOR_SEMANTICS = 'f99c16761d54127786d6a827e5459cc1daa2584fb4eae0daebce5e2260aecbb9'
+const SETTINGS_RPC_STATEMENTS = '1c99d6382f74c37c0ff896dfa634fb503c9fe8062e2280328d0b82f79f658fdb'
+const MAIN_REBASED_DECLARATIONS = '6ad0397123e59fc1047a14049c86ff31d81723673a7a7f5c41677471aec58415'
+const SETTINGS_RPC_SEMANTICS = '2431b1c07dfe9a9c94f5d3f4e91415ed99bd9e1bce3794f8bd5f094a29134d77'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
 const PRE_REFACTOR_RENDER_TREE = '642f7d7b88d7d4c9793da2ac5efb37c7d4fb2ab979cf472c719549a8cfe76fc7'
 
@@ -28,7 +29,7 @@ describe('Mobile Tasks refactor parity', () => {
   it('preserves recursively flattened hook and dependency order', () => {
     const screenHooks = readFlattenedMobileTasksHookSignatures('MobileTasksScreen')
     expect(screenHooks).toHaveLength(350)
-    expect(hash(screenHooks)).toBe(PRE_REFACTOR_SCREEN_HOOKS)
+    expect(hash(screenHooks)).toBe(SETTINGS_RPC_SCREEN_HOOKS)
 
     const diffHooks = readFlattenedMobileTasksHookSignatures('GitHubPrFileDiff')
     expect(diffHooks).toHaveLength(3)
@@ -38,19 +39,19 @@ describe('Mobile Tasks refactor parity', () => {
   it('preserves every screen statement in execution order', () => {
     const statements = readFlattenedMobileTasksCoreStatements()
     expect(statements).toHaveLength(417)
-    expect(hash(statements)).toBe(PRE_REFACTOR_STATEMENTS)
+    expect(hash(statements)).toBe(SETTINGS_RPC_STATEMENTS)
   })
 
   it('preserves every moved top-level declaration', () => {
     const declarations = readMobileTasksDeclarationSignatures()
-    expect(declarations).toHaveLength(193)
-    expect(hash(declarations)).toBe(PRE_REFACTOR_DECLARATIONS)
+    expect(declarations).toHaveLength(194)
+    expect(hash(declarations)).toBe(MAIN_REBASED_DECLARATIONS)
   })
 
   it('preserves RPC calls, runtime strings, and JSX host signatures', () => {
     const semantics = readMobileTasksSemanticSource()
-    expect(semantics.split('\n')).toHaveLength(4_224)
-    expect(hash(semantics)).toBe(PRE_REFACTOR_SEMANTICS)
+    expect(semantics.split('\n')).toHaveLength(3_496)
+    expect(hash(semantics)).toBe(SETTINGS_RPC_SEMANTICS)
   })
 
   it('preserves render expressions and event handlers in tree order', () => {

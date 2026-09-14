@@ -1,9 +1,25 @@
+import { reserveNotificationCooldown } from '../../shared/notification-burst-cooldown'
+import type { AgentStatusState } from '../../shared/agent-status-types'
+import type {
+  MobilePushTestResult,
+  MobilePushRegisterInput,
+  MobilePushRegisterResult
+} from '../../shared/mobile-push-contract'
 import { MobileNotificationReplayBuffer } from './mobile-notification-replay'
+import { createNotificationStreamFilter } from './rpc/methods/notification-stream-policy'
 import { notifyRuntimeListeners } from './runtime-async-boundaries'
 import { getRuntimeDesktopSurface } from './runtime-desktop-surface'
+import {
+  MobileNotificationDismissalStore,
+  type DeliveredNotificationIdentity
+} from './mobile-notification-dismissal-store'
 
 export type MobileNotificationDispatchEvent = {
   type: 'notification'
+  legacySocketAllowed?: boolean
+  desktopAllowed?: boolean
+  desktopAway?: boolean
+  emittedAt?: number
   source: 'agent-task-complete' | 'terminal-bell' | 'test' | 'plugin'
   title: string
   body: string
@@ -11,6 +27,9 @@ export type MobileNotificationDispatchEvent = {
   notificationId?: string
   notificationSeq?: number
   notificationEpoch?: string
+  // Why: background push must tell "needs input" from "finished" without re-deriving
+  // it from the title. Optional and additive — old clients ignore it.
+  agentState?: AgentStatusState
 }
 
 export type MobileNotificationDismissEvent = {
@@ -24,13 +43,54 @@ export type MobileNotificationEvent =
   | MobileNotificationDispatchEvent
   | MobileNotificationDismissEvent
 
+/** The desktop push service, once it exists; absent on hosts that never started one. */
+export type MobilePushRegistrar = {
+  test(deviceId: string): Promise<MobilePushTestResult>
+  register(input: MobilePushRegisterInput): Promise<MobilePushRegisterResult>
+  unregister(deviceId: string): Promise<{ unregistered: boolean }>
+}
+
 export class RuntimeMobileNotificationController {
   private readonly listeners = new Set<(event: MobileNotificationEvent) => void>()
+  private readonly legacyCooldown = new Map<string, number>()
   private readonly replay = new MobileNotificationReplayBuffer()
   private pushEscalation: { schedule: (event: MobileNotificationEvent) => void } | null = null
+  private pushRegistrar: MobilePushRegistrar | null = null
+  private dismissalStore: MobileNotificationDismissalStore | null = null
 
   setPushEscalation(escalation: { schedule: (event: MobileNotificationEvent) => void }): void {
     this.pushEscalation = escalation
+  }
+
+  configureDismissalStore(userDataPath: string): void {
+    this.dismissalStore = new MobileNotificationDismissalStore(userDataPath)
+  }
+
+  reconcileDismissedPushes(
+    delivered: readonly DeliveredNotificationIdentity[]
+  ): DeliveredNotificationIdentity[] {
+    return this.dismissalStore?.reconcile(delivered) ?? []
+  }
+
+  setPushRegistrar(registrar: MobilePushRegistrar | null): void {
+    this.pushRegistrar = registrar
+  }
+
+  async registerPushDevice(input: MobilePushRegisterInput): Promise<MobilePushRegisterResult> {
+    return (
+      (await this.pushRegistrar?.register(input)) ?? {
+        registered: false,
+        reason: 'gateway_unreachable'
+      }
+    )
+  }
+
+  async testPushDevice(deviceId: string): Promise<MobilePushTestResult> {
+    return (await this.pushRegistrar?.test(deviceId)) ?? { accepted: false, reason: 'unavailable' }
+  }
+
+  async unregisterPushDevice(deviceId: string): Promise<{ unregistered: boolean }> {
+    return (await this.pushRegistrar?.unregister(deviceId)) ?? { unregistered: false }
   }
 
   onDispatched(listener: (event: MobileNotificationEvent) => void): () => void {
@@ -43,14 +103,34 @@ export class RuntimeMobileNotificationController {
   }
 
   dispatch(event: MobileNotificationEvent): void {
-    const seq = this.replay.record(event)
-    const sequenced = {
-      ...event,
-      notificationSeq: seq,
-      notificationEpoch: this.replay.epoch
+    if (event.type === 'notification') {
+      // Decide once before recording so reconnect and buffer eviction cannot reset cooldown.
+      const legacySocketAllowed =
+        event.desktopAllowed !== false &&
+        (event.emittedAt === undefined ||
+          reserveNotificationCooldown(
+            this.legacyCooldown,
+            event.worktreeId ?? 'global',
+            event.emittedAt
+          ))
+      event = {
+        ...event,
+        legacySocketAllowed,
+        desktopAway: getRuntimeDesktopSurface().isAwayForMobileNotifications?.()
+      }
     }
-    // Scheduling must not delay or throw into live delivery.
-    this.pushEscalation?.schedule(sequenced)
+    const seq = this.replay.record(event)
+    const sequenced = { ...event, notificationSeq: seq, notificationEpoch: this.replay.epoch }
+    try {
+      this.dismissalStore?.record(sequenced)
+    } catch {
+      console.warn('[notifications] Could not persist dismissal recovery state')
+    }
+    // Why: this fork's phones subscribe as legacy clients, so a push carries only what their socket would show.
+    if (createNotificationStreamFilter()(sequenced)) {
+      // Scheduling must not delay or throw into live delivery.
+      this.pushEscalation?.schedule(sequenced)
+    }
     notifyRuntimeListeners(this.listeners, (listener) => listener(sequenced), 'mobile-notification')
   }
 

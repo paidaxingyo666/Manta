@@ -4,7 +4,6 @@ import type { MobileOnboardingStep } from './mobile-onboarding-plan'
 import { mobileOnboardingStyles as styles } from './mobile-onboarding-styles'
 import type { MobileSessionView } from '../storage/session-view-preferences'
 import { colors } from '../theme/mobile-theme'
-import { translate } from '../i18n/i18n'
 
 export type NotificationOnboardingChoice = 'enable' | 'skip'
 export type MobileOnboardingBusyChoice = MobileSessionView | NotificationOnboardingChoice | null
@@ -48,24 +47,26 @@ export function MobileOnboardingPage({
           )}
         </View>
         <Text style={styles.title}>
-          {isSessionView
-            ? translate('m.MobileOnboardingPage.a3d2f11cf8', 'How should sessions open?')
-            : translate('m.MobileOnboardingPage.3a676018db', 'Stay updated while away')}
+          {isSessionView ? 'How should sessions open?' : 'Enable notifications'}
         </Text>
         <Text style={styles.body}>
           {isSessionView
-            ? translate(
-                'm.MobileOnboardingPage.755f145478',
-                'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
-              )
-            : translate(
-                'm.MobileOnboardingPage.def1eabfa5',
-                'Get notified on this device when an agent needs your input or finishes a task.'
-              )}
+            ? 'Choose whether supported agent sessions open in the terminal or Chat UI on this device. Press and hold a session tab to switch its view, or change the default later in Settings.'
+            : 'Get notified when an agent finishes a task or needs your input.'}
         </Text>
+        {!isSessionView ? (
+          <Text style={styles.body}>
+            By default, notifications arrive after your desktop has been idle for 3 minutes.
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.footer}>
+        {!isSessionView ? (
+          <Text style={styles.disclosure}>
+            Delivered through Manta’s push service. Change this anytime in Settings.
+          </Text>
+        ) : null}
         {error ? (
           <Text style={styles.error} accessibilityRole="alert">
             {error}
@@ -97,7 +98,7 @@ function SessionViewChoices({
   return (
     <>
       <ChoiceButton
-        label={translate('m.MobileOnboardingPage.2a882f4986', 'Use Chat UI')}
+        label="Use Chat UI"
         accessibilityLabel="Open sessions in Chat UI"
         primary
         busy={busyChoice === 'chat'}
@@ -105,7 +106,7 @@ function SessionViewChoices({
         onPress={() => onChoice('chat')}
       />
       <ChoiceButton
-        label={translate('m.MobileOnboardingPage.f5b1768ae4', 'Keep terminal')}
+        label="Keep terminal"
         accessibilityLabel="Open sessions in the terminal"
         busy={busyChoice === 'terminal'}
         disabled={disabled}
@@ -127,7 +128,7 @@ function NotificationChoices({
   return (
     <>
       <ChoiceButton
-        label={translate('m.MobileOnboardingPage.40cf41e250', 'Enable notifications')}
+        label="Enable notifications"
         accessibilityLabel="Enable agent notifications"
         primary
         busy={busyChoice === 'enable'}
@@ -135,7 +136,7 @@ function NotificationChoices({
         onPress={() => onChoice('enable')}
       />
       <ChoiceButton
-        label={translate('m.MobileOnboardingPage.28fdd43cf6', 'Not now')}
+        label="Not now"
         accessibilityLabel="Skip notifications for now"
         busy={busyChoice === 'skip'}
         disabled={disabled}

@@ -82,6 +82,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       "./plugins/android-respect-rotation-lock.js",
       [
         "expo-splash-screen",
@@ -115,7 +116,6 @@
           }
         }
       ],
-      "expo-notifications",
       "./plugins/notification-service"
     ]
   }

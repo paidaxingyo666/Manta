@@ -2,13 +2,14 @@
  * The two things a supervisor reads off a launch: what the arguments mean, and what an exit
  * code means. Both are part of the ops contract in docs/reference/mantad-operations.md.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   MANTAD_EXIT_CONFIGURATION,
   MANTAD_EXIT_FAILED,
   parseArgs,
   resolveMantadExitCode
 } from './mantad-entry'
+import { startOrcadWithLifecycle } from './orcad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 
@@ -39,5 +40,60 @@ describe('resolveMantadExitCode', () => {
     expect(resolveMantadExitCode(new MantadBindAddressError('bad'))).toBe(MANTAD_EXIT_CONFIGURATION)
     expect(resolveMantadExitCode(new Error('port in use'))).toBe(MANTAD_EXIT_FAILED)
     expect(MANTAD_EXIT_CONFIGURATION).not.toBe(MANTAD_EXIT_FAILED)
+  })
+})
+
+describe('mantad lifecycle cleanup', () => {
+  it('uninstalls registered runtime resources when startup fails', async () => {
+    const cleanupRuntime = vi.fn(async () => {})
+    const cleanupHost = vi.fn(async () => {})
+
+    await expect(
+      startOrcadWithLifecycle(async (registerCleanup) => {
+        registerCleanup(cleanupRuntime)
+        await Promise.resolve()
+        throw new Error('startup failed')
+      }, cleanupHost)
+    ).rejects.toThrow('startup failed')
+
+    expect(cleanupRuntime).toHaveBeenCalledOnce()
+    expect(cleanupHost).toHaveBeenCalledOnce()
+  })
+
+  it('preserves the startup error when rollback also fails', async () => {
+    const startupError = new Error('bind failed')
+    const cleanupError = new Error('daemon stop failed')
+    const cleanupRuntime = vi.fn(async () => {})
+    const cleanupHost = vi.fn(async () => {
+      throw cleanupError
+    })
+    const report = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    try {
+      await expect(
+        startOrcadWithLifecycle(async (registerCleanup) => {
+          registerCleanup(cleanupRuntime)
+          throw startupError
+        }, cleanupHost)
+      ).rejects.toBe(startupError)
+      expect(report).toHaveBeenCalledWith('[mantad] startup cleanup failed:', cleanupError)
+    } finally {
+      report.mockRestore()
+    }
+  })
+
+  it('coalesces concurrent and repeated normal stops', async () => {
+    const cleanupRuntime = vi.fn(async () => {})
+    const cleanupHost = vi.fn(async () => {})
+    const handle = await startOrcadWithLifecycle(async (registerCleanup) => {
+      registerCleanup(cleanupRuntime)
+      return { readiness: 'ready' }
+    }, cleanupHost)
+
+    await Promise.all([handle.stop(), handle.stop()])
+    await handle.stop()
+
+    expect(cleanupRuntime).toHaveBeenCalledOnce()
+    expect(cleanupHost).toHaveBeenCalledOnce()
   })
 })
