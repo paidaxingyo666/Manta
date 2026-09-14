@@ -4,13 +4,20 @@ import { dirname, resolve } from 'node:path'
 import * as React from 'react'
 import ts from 'typescript'
 import { OPERATION_EXPOSURES, OPERATION_MUTATIONS, type Mutation } from './operation-mutations'
+import * as deliveryAmbiguity from '../../transport/rpc-delivery-ambiguity'
 
 export type { Mutation }
 export type OperationModule = Record<string, (...args: any[]) => unknown>
 
+// Why shared rather than evaluated: the delivery-unknown mark is a WeakSet keyed on the rejection
+// object, so a second copy of the module has a second, empty registry and every marked rejection
+// reads as a definite failure inside the mounted operation. Same reason React is shared.
+const SHARED_MODULE = 'mobile/src/transport/rpc-delivery-ambiguity.ts'
+
 // Only mounting boundaries are substituted; every operation and projection is loaded from source.
 export function operationModuleLoader(root: string, mutation?: Mutation) {
   const cache = new Map<string, OperationModule>()
+  const sharedModulePath = resolve(root, SHARED_MODULE)
   let mutationCount = 0
   function pathFor(base: string): string {
     const file = ['', '.ts', '.tsx', '/index.ts']
@@ -24,6 +31,9 @@ export function operationModuleLoader(root: string, mutation?: Mutation) {
   function imported(base: string, name: string): unknown {
     if (name === 'react') {
       return React
+    }
+    if (name.startsWith('.') && pathFor(resolve(dirname(base), name)) === sharedModulePath) {
+      return deliveryAmbiguity
     }
     if (!name.startsWith('.')) {
       return new Proxy(

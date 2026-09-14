@@ -70,22 +70,19 @@ export const OPERATION_MUTATIONS = {
     before: '((settingsResult.value ?? {}) as RuntimeTaskSettings)',
     after: '((settingsResponse.result ?? {}) as RuntimeTaskSettings)'
   },
-  // Applies the preset only after the write settles, dropping the optimistic update.
+  // Moves the optimistic preset write behind the guard that only an unusable client takes, so the
+  // preset the screen shows never follows the tap. Anchored above the send so the step-4 migration
+  // of this file does not move it; the projection it proves load-bearing is the same one.
   'task-preferences-optimistic': {
     file: 'use-mobile-tasks-client-settings-actions.tsx',
     before: `      setDefaultGitHubPreset(preset)
       if (!client || !taskUiReady) {
         return
-      }
-      void client.sendRequest('settings.update', { defaultTaskViewPreset: preset }).catch(() => {`,
+      }`,
     after: `      if (!client || !taskUiReady) {
         setDefaultGitHubPreset(preset)
         return
-      }
-      void client
-        .sendRequest('settings.update', { defaultTaskViewPreset: preset })
-        .then(() => setDefaultGitHubPreset(preset))
-        .catch(() => {`
+      }`
   },
   // Publishes the settings envelope as the refreshed workspace runtime settings.
   'workspace-submit-envelope': {

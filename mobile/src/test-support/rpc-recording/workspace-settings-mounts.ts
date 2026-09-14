@@ -6,6 +6,75 @@ import { operationModuleLoader } from './operation-module-loader'
 export function workspaceSettingsMounts(
   modules: ReturnType<typeof operationModuleLoader>
 ): Record<string, MountAdapter> {
+  // `settings.task-workspace` stops at the setup prompt, which is the branch that scenario set
+  // exercises. A second registration resolves setup instead, so createWorkspace runs to
+  // worktree.create and the reply matrix reaches that call's acceptance policy.
+  function taskWorkspaceAdapter(setupResolution: {
+    kind: string
+    command?: string
+    source?: string
+    decision?: string
+  }): MountAdapter {
+    return (context) => {
+      const useCreate = modules.load<
+        typeof import('../../tasks/use-mobile-tasks-workspace-create-actions')
+      >(
+        'mobile/src/tasks/use-mobile-tasks-workspace-create-actions.tsx'
+      ).useMobileTasksWorkspaceCreateActions
+      const model = observableModel(context, {
+        client: context.client,
+        hostId: 'host-1',
+        tasksSupported: true,
+        taskStateHydrated: true,
+        runtimeTaskSettings: { disabledTuiAgents: ['claude'] },
+        trustedMantaHooks: {},
+        workspaceDetectedAgentIds: new Set(['codex']),
+        workspaceLastAutoName: '',
+        ensureWorkspaceSshReady: async () => {},
+        getWorkspaceTargetRepo: () => ({
+          id: 'repo-1',
+          displayName: 'Repo',
+          connectionId: 'ssh-1'
+        }),
+        resolveCreateSetupDecision: async () => setupResolution,
+        router: { push: (value: unknown) => context.effect('navigation', value) }
+      })
+      let actions: ReturnType<typeof useCreate>
+      const hook = hookMount(() => {
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the recorder supplies only the members the hook reads.
+        actions = useCreate(model as unknown as Parameters<typeof useCreate>[0])
+      })
+      return {
+        action(name, args) {
+          if (name === 'mount') {
+            return hook.mount()
+          }
+          if (name === 'submit') {
+            return actions.createWorkspace(
+              // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the scenario supplies the action item as JSON, not as a typed model.
+              (args.item ?? {
+                key: 'linear:1',
+                provider: 'linear',
+                source: { id: 'issue-1' }
+              }) as Parameters<typeof actions.createWorkspace>[0],
+              undefined,
+              undefined,
+              'claude'
+            )
+          }
+          throw new Error(`Unknown task workspace action: ${name}`)
+        },
+        state: () =>
+          projectObservable({
+            settings: model.runtimeTaskSettings,
+            error: model.error,
+            creating: model.creatingKey
+          }),
+        dispose: hook.unmount
+      }
+    }
+  }
+
   return {
     'settings.workspace-submit': (context) => {
       const useSubmit = modules.load<
@@ -56,65 +125,14 @@ export function workspaceSettingsMounts(
         dispose: hook.unmount
       }
     },
-    'settings.task-workspace': (context) => {
-      const useCreate = modules.load<
-        typeof import('../../tasks/use-mobile-tasks-workspace-create-actions')
-      >(
-        'mobile/src/tasks/use-mobile-tasks-workspace-create-actions.tsx'
-      ).useMobileTasksWorkspaceCreateActions
-      const model = observableModel(context, {
-        client: context.client,
-        hostId: 'host-1',
-        tasksSupported: true,
-        taskStateHydrated: true,
-        runtimeTaskSettings: { disabledTuiAgents: ['claude'] },
-        trustedMantaHooks: {},
-        workspaceDetectedAgentIds: new Set(['codex']),
-        workspaceLastAutoName: '',
-        ensureWorkspaceSshReady: async () => {},
-        getWorkspaceTargetRepo: () => ({
-          id: 'repo-1',
-          displayName: 'Repo',
-          connectionId: 'ssh-1'
-        }),
-        resolveCreateSetupDecision: async () => ({
-          kind: 'prompt',
-          command: 'setup',
-          source: 'repo'
-        }),
-        router: { push: (value: unknown) => context.effect('navigation', value) }
-      })
-      let actions: ReturnType<typeof useCreate>
-      const hook = hookMount(() => {
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the recorder supplies only the members the hook reads.
-        actions = useCreate(model as unknown as Parameters<typeof useCreate>[0])
-      })
-      return {
-        action(name) {
-          if (name === 'mount') {
-            return hook.mount()
-          }
-          if (name === 'submit') {
-            return actions.createWorkspace(
-              // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the scenario supplies the action item as JSON, not as a typed model.
-              { key: 'linear:1', provider: 'linear', source: { id: 'issue-1' } } as Parameters<
-                typeof actions.createWorkspace
-              >[0],
-              undefined,
-              undefined,
-              'claude'
-            )
-          }
-          throw new Error(`Unknown task workspace action: ${name}`)
-        },
-        state: () =>
-          projectObservable({
-            settings: model.runtimeTaskSettings,
-            error: model.error,
-            creating: model.creatingKey
-          }),
-        dispose: hook.unmount
-      }
-    }
+    'settings.task-workspace': taskWorkspaceAdapter({
+      kind: 'prompt',
+      command: 'setup',
+      source: 'repo'
+    }),
+    'settings.task-workspace-create': taskWorkspaceAdapter({
+      kind: 'decision',
+      decision: 'inherit'
+    })
   }
 }

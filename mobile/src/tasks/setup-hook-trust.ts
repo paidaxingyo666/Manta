@@ -1,5 +1,6 @@
 import type { PersistedTrustedMantaHooks } from '../../../src/shared/manta-yaml-hook-types'
 import type { RpcClient } from '../transport/rpc-client'
+import { taskUiStateWrite } from './mobile-task-runtime-operations'
 
 export type SetupHookTrust = {
   contentHash: string
@@ -45,10 +46,9 @@ export async function persistSetupHookTrustApproval(args: {
   alwaysTrust: boolean
 }): Promise<PersistedTrustedMantaHooks> {
   const next = trustedMantaHooksWithSetupApproval(args)
-  const response = await args.client.sendRequest('ui.set', { trustedMantaHooks: next })
-  if (!response.ok) {
-    throw new Error(response.error.message)
-  }
+  taskUiStateWrite.interpret(
+    await taskUiStateWrite.request(args.client, { trustedMantaHooks: next })
+  )
   return next
 }
 
