@@ -16,7 +16,7 @@ import type {
   ImportSkipReason,
   ResolveDroppedPathsResult,
   StagedExternalImportSource
-} from './filesystem-import-result-types'
+} from '../../shared/filesystem-import-result-types'
 import { importOneSource } from './filesystem-import-local'
 import {
   stagedRuntimeUploadByteLength,

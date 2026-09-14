@@ -1,7 +1,7 @@
 import type {
   StagedRuntimeUploadEntry,
   StagedRuntimeUploadSource
-} from '../../shared/runtime-upload-staging-contract'
+} from './runtime-upload-staging-contract'
 
 export type ImportSkipReason = 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
 
@@ -10,8 +10,6 @@ export type ResolveDroppedPathsResult = {
   skipped: { sourcePath: string; reason: ImportSkipReason }[]
   failed: { sourcePath: string; reason: string }[]
 }
-
-// ─── External Import Types ──────────────────────────────────────────
 
 export type ImportItemResult =
   | {

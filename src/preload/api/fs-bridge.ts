@@ -1,12 +1,14 @@
 import type { PathExistenceResult } from '../../shared/path-existence-batch'
 import { ipcRenderer } from 'electron'
 import type { SshMutationExpectation } from '../../shared/ssh-types'
-import type {
-  RuntimeUploadFileStreamRequest,
-  StageRuntimeUploadResult
-} from '../../shared/runtime-upload-staging-contract'
+import type { RuntimeUploadFileStreamRequest } from '../../shared/runtime-upload-staging-contract'
 import type { SearchResult } from '../../shared/code-search-types'
 import type { FsChangedPayload } from '../../shared/filesystem-entry-types'
+import type {
+  ImportItemResult,
+  ResolveDroppedPathsResult,
+  StagedExternalImportSource
+} from '../../shared/filesystem-import-result-types'
 import type {
   LocalLogTailChangedPayload,
   LocalLogTailReadArgs,
@@ -155,30 +157,10 @@ export const fsApi = {
       connectionId?: string
       ensureDir?: boolean
     } & SshMutationExpectation
-  ): Promise<{
-    results: (
-      | {
-          sourcePath: string
-          status: 'imported'
-          destPath: string
-          kind: 'file' | 'directory'
-          renamed: boolean
-        }
-      | {
-          sourcePath: string
-          status: 'skipped'
-          reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-        }
-      | {
-          sourcePath: string
-          status: 'failed'
-          reason: string
-        }
-    )[]
-  }> => ipcRenderer.invoke('fs:importExternalPaths', args),
+  ): Promise<{ results: ImportItemResult[] }> => ipcRenderer.invoke('fs:importExternalPaths', args),
   stageExternalPathsForRuntimeUpload: (args: {
     sourcePaths: string[]
-  }): Promise<StageRuntimeUploadResult> =>
+  }): Promise<{ sources: StagedExternalImportSource[] }> =>
     ipcRenderer.invoke('fs:stageExternalPathsForRuntimeUpload', args),
   uploadExternalFileToRuntime: (
     args: RuntimeUploadFileStreamRequest
@@ -189,14 +171,8 @@ export const fsApi = {
       worktreePath: string
       connectionId?: string
     } & SshMutationExpectation
-  ): Promise<{
-    resolvedPaths: string[]
-    skipped: {
-      sourcePath: string
-      reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-    }[]
-    failed: { sourcePath: string; reason: string }[]
-  }> => ipcRenderer.invoke('fs:resolveDroppedPathsForAgent', args),
+  ): Promise<ResolveDroppedPathsResult> =>
+    ipcRenderer.invoke('fs:resolveDroppedPathsForAgent', args),
   watchWorktree: (args: { worktreePath: string; connectionId?: string }): Promise<void> =>
     ipcRenderer.invoke('fs:watchWorktree', args),
   unwatchWorktree: (args: { worktreePath: string; connectionId?: string }): Promise<void> =>

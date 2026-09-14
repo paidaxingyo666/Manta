@@ -11,7 +11,7 @@ import { isENOENT } from './filesystem-path-containment'
 import type {
   StagedExternalImportEntry,
   StagedExternalImportSource
-} from './filesystem-import-result-types'
+} from '../../shared/filesystem-import-result-types'
 
 class RuntimeUploadSymlinkError extends Error {}
 

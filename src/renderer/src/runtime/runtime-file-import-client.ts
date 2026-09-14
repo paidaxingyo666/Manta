@@ -1,4 +1,5 @@
 import { basename, joinPath } from '@/lib/path'
+import type { ImportItemResult } from '../../../shared/filesystem-import-result-types'
 import { getRuntimeEnvironmentConnectionGeneration } from '@/store/slices/runtime-status'
 import type { RuntimeFileOperationArgs } from './runtime-file-client-types'
 import { captureRuntimeEnvironmentRequestRevision } from './runtime-environment-revision'
@@ -21,31 +22,12 @@ import {
 import { getActiveRuntimeTarget } from './runtime-rpc-client'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 
-type RuntimeImportResult =
-  | {
-      sourcePath: string
-      status: 'imported'
-      destPath: string
-      kind: 'file' | 'directory'
-      renamed: boolean
-    }
-  | {
-      sourcePath: string
-      status: 'skipped'
-      reason: 'missing' | 'symlink' | 'permission-denied' | 'unsupported'
-    }
-  | {
-      sourcePath: string
-      status: 'failed'
-      reason: string
-    }
-
 export async function importExternalPathsToRuntime(
   context: RuntimeFileOperationArgs,
   sourcePaths: string[],
   destinationDir: string,
   options?: { ensureDestinationDir?: boolean; assertCurrent?: () => void }
-): Promise<{ results: RuntimeImportResult[] }> {
+): Promise<{ results: ImportItemResult[] }> {
   const target = getActiveRuntimeTarget(context.settings)
   if (target.kind !== 'environment' || !context.worktreeId || !context.worktreePath) {
     return window.api.fs.importExternalPaths(
@@ -89,7 +71,7 @@ export async function importExternalPathsToRuntime(
   importSession.assertCurrent()
   const staged = await window.api.fs.stageExternalPathsForRuntimeUpload({ sourcePaths })
   importSession.assertCurrent()
-  const results: RuntimeImportResult[] = []
+  const results: ImportItemResult[] = []
   const reservedNames = new Set<string>()
 
   await ensureRuntimeDirectory(context, destinationDir, importSession)
