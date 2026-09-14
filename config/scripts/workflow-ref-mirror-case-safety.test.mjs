@@ -26,9 +26,28 @@ describe('ref-mirroring vet steps', () => {
     expect(checkout.with['fetch-depth']).toBe(1)
     expect(job.steps.some((step) => step.run?.includes('gh release list'))).toBe(true)
     expect(
-      job.steps.some((step) => step.run?.includes('ORCA_PUBLISHED_VERSIONS="$published"'))
+      job.steps.some((step) => step.run?.includes('MANTA_PUBLISHED_VERSIONS="$published"'))
     ).toBe(true)
   })
+
+  // Why matching-refs rather than `gh release list` on the main repo: a tagged
+  // stable still owns its number after its GitHub release is unpublished for a
+  // bug, and that unpublish must not drag the channel backwards.
+  it.each(['daily', 'hourly', 'adhoc'])(
+    '%s versions from git tags, not main GitHub releases',
+    (channel) => {
+      const step = readWorkflow(`.github/workflows/${channel}-mac-build.yml`).jobs[
+        `build-${channel}-mac`
+      ].steps.find((candidate) => candidate.name === `Compute ${channel} version`)
+      expect(step.run).toContain('git/matching-refs/tags/v')
+      expect(step.run).not.toMatch(
+        /gh release list[\s\S]*--repo "\$GITHUB_REPOSITORY"[\s\S]*--json tagName/
+      )
+      if (channel !== 'adhoc') {
+        expect(step.run).toContain('channel_tags=')
+      }
+    }
+  )
 
   it('retains release-cut history for version reservation and retry ancestry', () => {
     const checkout = readWorkflow('.github/workflows/release-cut.yml').jobs.cut.steps.find(
