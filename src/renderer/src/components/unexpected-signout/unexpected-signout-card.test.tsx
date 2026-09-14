@@ -51,6 +51,27 @@ async function showCard(): Promise<void> {
 }
 
 describe('unexpected signout lifecycle', () => {
+  it('records first display and stays hidden after restart and update without X', async () => {
+    await showCard()
+    expect(persist).toHaveBeenCalledExactlyOnceWith({
+      dismissedUnexpectedSignoutVersion: '1.4.197'
+    })
+    expect(screen.queryByRole('complementary')).not.toBeNull()
+    cleanup()
+    useAppStore.setState(useAppStore.getInitialState(), true)
+    useAppStore.setState({
+      mantaProfileAuthStatus: status,
+      persistedUIReady: true,
+      dismissedUnexpectedSignoutVersion: '1.4.197',
+      fetchMantaProfileAuthStatus: vi.fn().mockResolvedValue(status)
+    })
+    vi.mocked(window.api.updater.getVersion).mockResolvedValue('1.4.999')
+    render(<UnexpectedSignoutCard />)
+    await act(async () => {})
+    expect(screen.queryByRole('complementary')).toBeNull()
+    expect(persist).toHaveBeenCalledTimes(1)
+  })
+
   it('stamps successful sign-in and never re-arms in the same version', async () => {
     await showCard()
     act(() => useAppStore.setState({ mantaProfileAuthStatus: { ...status, state: 'connected' } }))
@@ -66,33 +87,55 @@ describe('unexpected signout lifecycle', () => {
     expect(persist).toHaveBeenCalledTimes(1)
   })
 
-  it('does not treat a cached connected status as a successful re-sign-in', async () => {
+  it('records nothing for connected users until the card actually appears', async () => {
     useAppStore.setState({ mantaProfileAuthStatus: { ...status, state: 'connected' } })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
+    expect(persist).not.toHaveBeenCalled()
     act(() => useAppStore.setState({ mantaProfileAuthStatus: status }))
     expect(screen.queryByRole('complementary')).not.toBeNull()
-    expect(persist).not.toHaveBeenCalled()
+    expect(persist).toHaveBeenCalledTimes(1)
   })
 
-  it('waits for hydration before stamping an already recovered session', async () => {
+  it('does not consume the notice if auth recovers before hydration finishes', async () => {
     useAppStore.setState({ persistedUIReady: false })
     render(<UnexpectedSignoutCard />)
     await act(async () => {})
     act(() => useAppStore.setState({ mantaProfileAuthStatus: { ...status, state: 'connected' } }))
-    expect(persist).not.toHaveBeenCalled()
     act(() => useAppStore.setState({ persistedUIReady: true }))
-    await waitFor(() => expect(persist).toHaveBeenCalledTimes(1))
-    act(() => useAppStore.setState({ mantaProfileAuthStatus: { ...status, state: 'connected' } }))
-    expect(persist).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('complementary')).toBeNull()
+    expect(persist).not.toHaveBeenCalled()
   })
 
-  it('keeps a failed sign-in available without stamping dismissal', async () => {
+  it('keeps a failed sign-in available without recording another appearance', async () => {
     useAppStore.setState({ connectCurrentMantaProfile: vi.fn().mockResolvedValue(undefined) })
     await showCard()
     fireEvent.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
     await act(async () => {})
     expect(screen.queryByRole('complementary')).not.toBeNull()
+    expect(persist).toHaveBeenCalledTimes(1)
+  })
+
+  it('never shows or consumes a stale card while the auth read is pending', async () => {
+    let finish!: (value: typeof status) => void
+    useAppStore.setState({
+      fetchMantaProfileAuthStatus: vi.fn(
+        () =>
+          new Promise<MantaProfileAuthStatus>((resolve) => {
+            finish = resolve
+          })
+      )
+    })
+    render(<UnexpectedSignoutCard />)
+    await act(async () => {})
+    expect(screen.queryByRole('complementary')).toBeNull()
+    expect(persist).not.toHaveBeenCalled()
+    await act(async () => {
+      const connected = { ...status, state: 'connected' as const }
+      useAppStore.setState({ mantaProfileAuthStatus: connected })
+      finish(connected)
+    })
+    expect(screen.queryByRole('complementary')).toBeNull()
     expect(persist).not.toHaveBeenCalled()
   })
 

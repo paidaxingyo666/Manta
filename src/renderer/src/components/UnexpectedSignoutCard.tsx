@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BookOpen, ChevronDown, CircleUserRound, Files, Smartphone, X } from 'lucide-react'
 import { useAppStore } from '../store'
 import { translate } from '@/i18n/i18n'
@@ -55,7 +55,7 @@ export function UnexpectedSignoutCard(): React.JSX.Element | null {
   const [expanded, setExpanded] = useState(false)
   const [preview] = useState(readPreviewFlag)
   const [previewDismissed, setPreviewDismissed] = useState(false)
-  const reconnectingProfile = useRef<string | null>(null)
+  const [appearance, setAppearance] = useState<'unseen' | 'visible' | 'closed'>('unseen')
 
   useEffect(() => {
     let cancelled = false
@@ -101,47 +101,29 @@ export function UnexpectedSignoutCard(): React.JSX.Element | null {
     }
   }, [])
 
-  const dismissedVersion =
-    appVersion && dismissedVersions.includes(appVersion) ? appVersion : persistedDismissedVersion
+  const dismissedVersion = dismissedVersions[0] ?? persistedDismissedVersion
   const eligible = shouldShowUnexpectedSignoutCard({
     authStatus,
     persistedUIReady,
     appVersion,
-    dismissedVersion
+    dismissedVersion: appearance === 'visible' ? null : dismissedVersion
   })
+  const visible = preview
+    ? persistedUIReady && !previewDismissed
+    : authRefreshReady && appearance !== 'closed' && eligible
 
-  const visible = preview ? persistedUIReady && !previewDismissed : authRefreshReady && eligible
-
-  // Observe recovery independently of visibility and asynchronous version/hydration reads.
+  // Record the first appearance without closing the card currently being read.
   useEffect(() => {
-    if (preview || !authRefreshReady) {
+    if (preview) {
       return
     }
-    if (authStatus?.state === 'reconnect-required' && authStatus.configured && authStatus.cloud) {
-      reconnectingProfile.current = authStatus.activeProfileId
-    } else if (authStatus?.state === 'connected') {
-      if (
-        reconnectingProfile.current === authStatus.activeProfileId &&
-        persistedUIReady &&
-        appVersion
-      ) {
-        reconnectingProfile.current = null
-        if (dismissedVersion !== appVersion) {
-          dismissForVersion(appVersion)
-        }
-      }
-    } else {
-      reconnectingProfile.current = null
+    if (visible && appearance === 'unseen' && appVersion) {
+      setAppearance('visible')
+      dismissForVersion(appVersion)
+    } else if (!visible && appearance === 'visible') {
+      setAppearance('closed')
     }
-  }, [
-    preview,
-    authRefreshReady,
-    authStatus,
-    persistedUIReady,
-    appVersion,
-    dismissedVersion,
-    dismissForVersion
-  ])
+  }, [preview, visible, appearance, appVersion, dismissForVersion])
 
   if (!visible) {
     return null
@@ -153,8 +135,8 @@ export function UnexpectedSignoutCard(): React.JSX.Element | null {
   const handleDismiss = (): void => {
     if (preview) {
       setPreviewDismissed(true)
-    } else if (appVersion) {
-      dismissForVersion(appVersion)
+    } else {
+      setAppearance('closed')
     }
   }
 
