@@ -390,8 +390,6 @@ describe('recording boundaries', () => {
     try {
       const directory = join(root, RECORDER_DIRECTORY)
       mkdirSync(directory, { recursive: true })
-      mkdirSync(join(root, 'mobile/rpc-foundation'), { recursive: true })
-      writeFileSync(join(root, 'mobile/rpc-foundation/pilot-scenarios.json'), '{}')
       writeFileSync(join(directory, 'runner.ts'), 'export const runner = 1')
       const original = recorderSha256(root)
       writeFileSync(join(directory, 'README.md'), 'prose')
@@ -466,6 +464,7 @@ function sampleGolden(id: string): GoldenRecording {
     baseline: 'a'.repeat(40),
     lockfileSha256: 'b'.repeat(64),
     recorderSha256: 'c'.repeat(64),
+    scenarioSha256: 'd'.repeat(64),
     platform: process.platform,
     scenarioVersion: 1,
     projectionVersion: PROJECTION_VERSION,

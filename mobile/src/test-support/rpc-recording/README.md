@@ -58,20 +58,38 @@ visible, it does not make the reduction itself observable.
 ## Golden schema
 
 Each file records `runnerVersion`, `baseline`, `lockfileSha256` (mobile's lockfile),
-`recorderSha256`, `platform`, `scenarioVersion`, `projectionVersion`, `goldenFormatVersion`,
-`operation`, `family`, and `namedDeltas`. `platform` and `lockfileSha256` are provenance and are
-not compared: a dependency or OS that changes behaviour changes the trace itself, so comparing
-them would only fail candidates on unrelated bumps. The rest are pinned. `recorderSha256` covers every non-markdown file under
-this directory plus `pilot-scenarios.json`, so the runner that produced a golden is as pinned as
-the product baseline: editing an adapter projection, a fixture or a scenario fails candidate mode
-on the header and forces a deliberate re-record. Checkpoints
-contain ordered sender calls and serialized physical application payloads, action and request
-settlements, projected state, and ordered external effects. Sender args have three positional
-slots; absent, undefined and null are distinct `$rpc` tags. Literal objects containing `$rpc`
-are escaped. Only object keys are sorted; array/effect order, options, budgets, settlement times
-and errors stay observable. Errors contain category, message and `isRpcDeliveryUnknown`, never
+`recorderSha256`, `scenarioSha256`, `platform`, `scenarioVersion`, `projectionVersion`,
+`goldenFormatVersion`, `operation`, `family`, and `namedDeltas`. `platform` and `lockfileSha256`
+are provenance and are not compared: a dependency or OS that changes behaviour changes the trace
+itself, so comparing them would only fail candidates on unrelated bumps. The rest are pinned.
+
+`recorderSha256` covers every non-markdown file under this directory, so the runner that produced a
+golden is as pinned as the product baseline: editing an adapter projection or a fixture fails
+candidate mode on the header and forces a deliberate re-record of everything.
+
+`scenarioSha256` covers the scenario input _that golden_ was recorded from — one manifest scenario
+for a pilot golden, the generated variants and any hoisted prelude for a matrix or schedule golden,
+canonicalised by `captureValue` so an explicit-undefined param stays distinct from an absent one.
+Editing a scenario still fails candidate mode on the header, but only for the goldens derived from
+it. The manifest used to be an input to `recorderSha256` instead, which made every golden's header
+a function of every other family's scenarios: adding one domain's family re-digested all 153 files
+and put a conflict on that line in every domain branch in flight. Which goldens a manifest derives
+lives in `derived-goldens.ts`, so the digest is a function of the same derivation that records the
+file rather than of a restatement of it; `golden-header-digest.test.ts` pins the four properties
+that separation buys.
+
+Checkpoints contain ordered sender calls and serialized physical application payloads, action and
+request settlements, projected state, and ordered external effects. Sender args have three
+positional slots; absent, undefined and null are distinct `$rpc` tags. Literal objects containing
+`$rpc` are escaped. Only object keys are sorted; array/effect order, options, budgets, settlement
+times and errors stay observable. Errors contain category, message and `isRpcDeliveryUnknown`, never
 stack paths, plus `code` and a recursively captured `cause` when the thrown error carries them.
 Platform is provenance; candidate comparison does not require the same operating system.
+
+Format version 4 adds `scenarioSha256`. A version-3 golden would already fail this reader's byte
+compare, so the bump buys the diagnosis rather than the rejection: `readGolden` names the stale
+format and says to re-record, instead of reporting an opaque `(encoding)` difference. The bump moved
+no observation.
 
 ### Value pool
 
@@ -201,7 +219,7 @@ families because no reference states are defined for them.
 
 ## What this oracle does and does not see
 
-It replays 78 scenarios against frozen goldens and fails on any divergence: 153 goldens over 200
+It replays 78 scenarios against frozen goldens and fails on any divergence: 153 goldens over 210
 tests, all inside `pnpm --dir mobile test`. For a migration it answers one question — does the
 rewritten call site produce the same sender calls, settlements, state and effects as main did?
 

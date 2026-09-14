@@ -1,4 +1,5 @@
 import { readScenarios } from './scenario-input'
+import { pilotGoldens } from './derived-goldens'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runRecording, runRecordingMutant } from './run-recording'
@@ -66,8 +67,9 @@ function visibleState(recording: Recording): RecordedValue {
 }
 
 describe('RPC main recordings', () => {
-  for (const scenario of input.scenarios) {
-    it(`${scenario.id}: frozen main parity and determinism`, async () => {
+  for (const pilot of pilotGoldens(input.scenarios)) {
+    const { id, scenario } = pilot
+    it(pilot.title, async () => {
       let first = ''
       for (let run = 0; run < determinismRuns(); run++) {
         const { adapters } = pilotMountAdapters(root)
@@ -76,21 +78,21 @@ describe('RPC main recordings', () => {
           adapters[scenario.operation],
           vitestRecordingScheduler()
         )
-        if (scenario.id === 'b1') {
+        if (id === 'b1') {
           expect(visibleState(recording)).toEqual({ files: ['third.ts'] })
         }
-        if (scenario.id === 'b2') {
+        if (id === 'b2') {
           expect(visibleState(recording)).toMatchObject({
             error: "Cannot read properties of null (reading 'ok')"
           })
         }
-        if (scenario.id === 'b3') {
+        if (id === 'b3') {
           expect(visibleState(recording)).toMatchObject({
             error: 'comments transport error',
             loading: false
           })
         }
-        const golden = goldenRecording(root, input.baseline, scenario, recording)
+        const golden = goldenRecording(root, input.baseline, pilot.scenarios(), recording)
         const bytes = goldenBytes(golden)
         if (run) {
           expect(bytes).toBe(first)
@@ -99,44 +101,41 @@ describe('RPC main recordings', () => {
         if (process.env.RPC_FOUNDATION_MODE === '--record') {
           await writeGolden(goldens, golden, '--record')
         } else {
-          compareGolden(readGolden(goldens, scenario.id), golden)
+          compareGolden(readGolden(goldens, id), golden)
         }
       }
     })
-    const mutation = mutants[scenario.id]
+    const mutation = mutants[id]
     if (!mutation) {
       continue
     }
-    it(`${scenario.id}: kills ${mutation}`, async () => {
+    it(`${id}: kills ${mutation}`, async () => {
       const { adapters, assertMutationApplied } = pilotMountAdapters(root, { mutation })
       const result = await runRecordingMutant(
         scenario,
         adapters[scenario.operation],
         vitestRecordingScheduler(),
-        readGolden(goldens, scenario.id).recording,
+        readGolden(goldens, id).recording,
         visibleState
       )
       assertMutationApplied()
       expect(result.verdict).toBe('killed')
     })
-    const reference = referenceStates[scenario.id]
+    const reference = referenceStates[id]
     if (!reference) {
       continue
     }
-    it.skipIf(!process.env.RPC_FOUNDATION_REFERENCE_ROOT)(
-      `${scenario.id}: rejects bcba08b3e4`,
-      async () => {
-        const { adapters } = pilotMountAdapters(process.env.RPC_FOUNDATION_REFERENCE_ROOT!, {
-          reference: true
-        })
-        const result = await runRecording(
-          scenario,
-          adapters[scenario.operation],
-          vitestRecordingScheduler()
-        )
-        expect(visibleState(result)).toEqual(reference)
-        expect(reference).not.toEqual(visibleState(readGolden(goldens, scenario.id).recording))
-      }
-    )
+    it.skipIf(!process.env.RPC_FOUNDATION_REFERENCE_ROOT)(`${id}: rejects bcba08b3e4`, async () => {
+      const { adapters } = pilotMountAdapters(process.env.RPC_FOUNDATION_REFERENCE_ROOT!, {
+        reference: true
+      })
+      const result = await runRecording(
+        scenario,
+        adapters[scenario.operation],
+        vitestRecordingScheduler()
+      )
+      expect(visibleState(result)).toEqual(reference)
+      expect(reference).not.toEqual(visibleState(readGolden(goldens, id).recording))
+    })
   }
 })

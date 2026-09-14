@@ -3,7 +3,6 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join, posix } from 'node:path'
 
 export const RECORDER_DIRECTORY = 'mobile/src/test-support/rpc-recording'
-export const RECORDER_SCENARIO_INPUT = 'mobile/rpc-foundation/pilot-scenarios.json'
 const digests = new Map<string, string>()
 
 function collect(root: string, relative: string, files: string[]): void {
@@ -20,9 +19,14 @@ function collect(root: string, relative: string, files: string[]): void {
 }
 
 /**
- * Every executable recorder input, so a golden is attributable to one runner and one scenario file.
- * Prose is excluded because it cannot change a recording; a candidate run recomputes this and
- * `compareGolden` fails the header, which forces a recorder edit to re-record deliberately.
+ * Every executable recorder input, so a golden is attributable to one runner. Prose is excluded
+ * because it cannot change a recording; a candidate run recomputes this and `compareGolden` fails
+ * the header, which forces a recorder edit to re-record deliberately.
+ *
+ * The scenario manifest is deliberately not an input. It used to be, which made every golden's
+ * header a function of every other family's scenarios: adding one family re-digested all 153 files
+ * and put a conflict on that line in every domain branch. `scenarioSha256` pins each golden to the
+ * scenarios it was actually recorded from instead.
  */
 export function recorderSha256(root: string): string {
   const cached = digests.get(root)
@@ -31,7 +35,6 @@ export function recorderSha256(root: string): string {
   }
   const files: string[] = []
   collect(root, RECORDER_DIRECTORY, files)
-  files.push(RECORDER_SCENARIO_INPUT)
   const digest = createHash('sha256')
     .update(
       files

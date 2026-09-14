@@ -3,13 +3,14 @@
   "family": "settings.repo-metadata",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "5ec0b2698fbb74574650d21f96ccef8d4cb33d4f",
+  "baseline": "e53f1557e1b5a6e26e85cfca390b34f7f8a7d26c",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "70aa6f59e01f8195ab8512a6fb4834315f54b64fa8009d377a45d271422bcf6b",
+  "recorderSha256": "58a461dbc99f5ce803aaec650e72eaa2934fccd405e56b77932286f05742ec6b",
+  "scenarioSha256": "adebd553e2648278d719a1d7299cb36683fce714682a1ab7b49d4c9027eea34e",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
-  "goldenFormatVersion": 3,
+  "goldenFormatVersion": 4,
   "values": {
     "02449e890487": {
       "name": "host.platform#1",

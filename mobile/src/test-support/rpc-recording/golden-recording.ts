@@ -11,14 +11,16 @@ import {
   type ValuePool
 } from './golden-value-pool'
 import { recorderSha256 } from './recorder-digest'
+import { scenarioSha256 } from './scenario-digest'
 import type { Recording, RecordingScenario } from './recording-scenario'
 import type { RecordedValue } from './recording-values'
 
 export const RUNNER_VERSION = 1
 // 2 stamps every settlement with startedAt/settledAt on the pinned virtual clock.
 export const PROJECTION_VERSION = 2
-// 3 interns each entry of a list or map field, not the whole field; an older file is not comparable.
-export const GOLDEN_FORMAT_VERSION = 3
+// 4 pins scenarioSha256 per golden. The byte compare would fail a version-3 golden anyway; the bump
+// buys the diagnosis, reporting the stale format instead of an opaque `(encoding)` difference.
+export const GOLDEN_FORMAT_VERSION = 4
 export type GoldenRecording = {
   operation: string
   family: string
@@ -27,6 +29,7 @@ export type GoldenRecording = {
   baseline: string
   lockfileSha256: string
   recorderSha256: string
+  scenarioSha256: string
   platform: string
   scenarioVersion: number
   projectionVersion: number
@@ -40,9 +43,13 @@ type GoldenFile = Omit<GoldenRecording, 'recording'> & {
 export function goldenRecording(
   root: string,
   baseline: string,
-  scenario: RecordingScenario,
+  scenarios: readonly RecordingScenario[],
   recording: Recording
 ): GoldenRecording {
+  const [scenario] = scenarios
+  if (!scenario) {
+    throw new Error('A golden records at least one scenario')
+  }
   return {
     operation: scenario.operation,
     family: scenario.family,
@@ -53,6 +60,7 @@ export function goldenRecording(
       .update(readFileSync(join(root, 'mobile/pnpm-lock.yaml')))
       .digest('hex'),
     recorderSha256: recorderSha256(root),
+    scenarioSha256: scenarioSha256(scenarios),
     platform: process.platform,
     scenarioVersion: scenario.version,
     projectionVersion: PROJECTION_VERSION,
