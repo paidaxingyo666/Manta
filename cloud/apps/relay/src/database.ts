@@ -10,6 +10,7 @@ import {
   type PostgresPoolPressureCounts
 } from './postgres-pool-pressure.js'
 import { applyPostgresSchema } from './postgres-schema-startup.js'
+import { POSTGRES_STATEMENT_STATS_MIGRATION } from './postgres-statement-stats.js'
 import {
   CellInventoryHoldSamples,
   emptyCellInventoryHoldCounts,
@@ -619,6 +620,7 @@ CREATE INDEX IF NOT EXISTS relay_audit_events_at ON relay_audit_events(at);
 // auto-named; the replacement is named, so both statements are no-ops on a
 // database the current schema created and neither can drop the other.
 export const POSTGRES_SCHEMA_MIGRATIONS = [
+  POSTGRES_STATEMENT_STATS_MIGRATION,
   `ALTER TABLE relay_region_decisions ADD COLUMN IF NOT EXISTS last_considered_at BIGINT NOT NULL DEFAULT 0`,
   `ALTER TABLE relay_region_decisions ADD COLUMN IF NOT EXISTS cohort_bucket BIGINT NOT NULL DEFAULT 0`,
   `ALTER TABLE relay_region_rehome_attempts
