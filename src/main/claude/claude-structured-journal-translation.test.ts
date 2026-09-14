@@ -220,10 +220,15 @@ describe('Claude structured journal translation', () => {
     for (const event of turn.start) {
       translator.handle(event)
     }
+    expect(lifecycleAppends(state.items)).toEqual([
+      ['turn-lifecycle:msg_01-message-start', 'running']
+    ])
+    expect(assistantMessages(state.items)).toEqual([])
+
     for (const delta of turn.deltas) {
       translator.handle(delta)
     }
-    expect(state.items).toEqual([])
+    expect(assistantMessages(state.items)).toEqual([])
 
     const run = scheduled as (() => void) | null
     run?.()
@@ -568,7 +573,11 @@ describe('Claude structured journal translation', () => {
 
     translator.handle(message('assistant', 'assistant-thinking', [{ type: 'thinking', thinking }]))
 
-    expect(state.items.at(-1)?.body).toEqual({
+    // The frame also opens the turn it produced in, so pick the reasoning row itself.
+    const reasoning = state.items.find(
+      (item) => item.body.kind === 'message' && item.body.role === 'reasoning'
+    )
+    expect(reasoning?.body).toEqual({
       kind: 'message',
       role: 'reasoning',
       blocks: [
