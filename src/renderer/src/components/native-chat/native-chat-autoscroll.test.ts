@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   distanceFromBottom,
   isNearBottom,
+  nextFollowingEnd,
   shouldLoadEarlier,
   shouldShowJumpToLatest,
   NATIVE_CHAT_BOTTOM_THRESHOLD_PX
@@ -41,6 +42,31 @@ describe('shouldShowJumpToLatest', () => {
   })
   it('hides when there is nothing to scroll', () => {
     expect(shouldShowJumpToLatest(false, noOverflow)).toBe(false)
+  })
+})
+
+// The browser reports application writes as ordinary scroll events. Explicit
+// marks distinguish their delayed echoes from reader movement after growth.
+describe('nextFollowingEnd', () => {
+  const following = { following: true, programmatic: false, atEnd: true }
+
+  it('follows when the reader reaches the end', () => {
+    expect(nextFollowingEnd(following)).toBe(true)
+  })
+
+  // The resume bug: history pages in and rows settle their measured heights, so
+  // the end runs away from an offset the transcript itself pinned. That is not a
+  // reader leaving, and treating it as one strands them mid-transcript.
+  it('keeps following when a delayed application scroll arrives after growth', () => {
+    expect(nextFollowingEnd({ ...following, programmatic: true, atEnd: false })).toBe(true)
+  })
+
+  it('treats an unmarked offset away from the end as the reader leaving', () => {
+    expect(nextFollowingEnd({ ...following, atEnd: false })).toBe(false)
+  })
+
+  it('does not re-attach a detached reader from an application write', () => {
+    expect(nextFollowingEnd({ following: false, programmatic: true, atEnd: false })).toBe(false)
   })
 })
 

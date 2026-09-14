@@ -30,6 +30,7 @@ const TRANSCRIPT_LENGTH = 200
  *  a pin computed from the virtualizer's totals and one computed from the
  *  document disagree. */
 const BELOW_TRANSCRIPT_PX = 24
+let belowTranscriptPx = BELOW_TRANSCRIPT_PX
 
 /** Heights the stubbed layout reports per row index, when a case wants a row to
  *  measure as something other than its estimate. Empty means "every row at its
@@ -109,7 +110,7 @@ function stubLayout({
         // The transcript column: as tall as the window it wraps, plus what sits
         // under it. This is the element the list observes for streamed growth.
         return this.classList.contains('max-w-4xl')
-          ? reservedTranscriptHeight(this) + BELOW_TRANSCRIPT_PX
+          ? reservedTranscriptHeight(this) + belowTranscriptPx
           : 0
       }
     })
@@ -124,7 +125,7 @@ function stubLayout({
       overrideLayoutProperty('scrollHeight', {
         get(this: HTMLElement): number {
           return this.hasAttribute('data-native-chat-scroll')
-            ? reservedTranscriptHeight(this) + BELOW_TRANSCRIPT_PX
+            ? reservedTranscriptHeight(this) + belowTranscriptPx
             : 0
         }
       }),
@@ -566,12 +567,15 @@ describe('a row growing in place while the view is pinned to the bottom', () => 
   beforeEach(() => {
     restoreLayout = stubLayout({ scrollGeometry: true })
     restoreResizeObserver = stubResizeObserver()
+    belowTranscriptPx = BELOW_TRANSCRIPT_PX
     setMeasuredTail(0)
   })
   afterEach(() => {
     restoreResizeObserver()
     restoreLayout()
     measuredRowHeights = []
+    belowTranscriptPx = BELOW_TRANSCRIPT_PX
+    vi.restoreAllMocks()
   })
 
   it('holds the pin, the mount and the reserved total at every frame of the growth', () => {
@@ -635,6 +639,55 @@ describe('a row growing in place while the view is pinned to the bottom', () => 
       expect(totalSize).toBe(BASE_TOTAL_PX + tailHeightAt(step))
     }
 
+    expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
+  })
+
+  it('keeps following when a pin echo arrives after the document grows', () => {
+    setMeasuredTail(0)
+    const { container } = render(streamingList(0))
+    paint(container)
+    const scroller = scrollRoot(container)
+
+    setMeasuredTail(1)
+    expect(deliverResizes()).toBe(true)
+    const pinnedAt = scroller.scrollTop
+    belowTranscriptPx += 2_000
+
+    fireEvent.scroll(scroller)
+
+    expect(scroller.scrollTop).toBe(pinnedAt)
+    expect(screen.queryByRole('button', { name: /jump to latest/i })).toBeNull()
+  })
+
+  it('settles a pending end reconcile after the reader keeps scrolling away', async () => {
+    setMeasuredTail(0)
+    const { container } = render(streamingList(0))
+    const scroller = scrollRoot(container)
+    // Trigger a pin outside React's act wrapper so its TanStack rAF reconcile is
+    // still pending when the reader moves away.
+    setMeasuredTail(1)
+    expect(deliverResizes()).toBe(true)
+    const scheduleSpy = vi.spyOn(window, 'requestAnimationFrame')
+    const scrollToSpy = vi.spyOn(scroller, 'scrollTo')
+    const readingAt = 2000
+    scroller.scrollTop = readingAt
+    fireEvent.scroll(scroller)
+    expect(scrollToSpy).toHaveBeenLastCalledWith({ behavior: 'auto', top: readingAt })
+    scroller.scrollTop = 1800
+    fireEvent.scroll(scroller)
+    expect(scrollToSpy).toHaveBeenLastCalledWith({ behavior: 'auto', top: 1800 })
+
+    await act(async () => {
+      for (let frame = 0; frame < 6; frame += 1) {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+      }
+    })
+
+    const scheduledFrames = scheduleSpy.mock.calls.length
+    scheduleSpy.mockRestore()
+    scrollToSpy.mockRestore()
+    expect(scheduledFrames).toBeLessThanOrEqual(8)
+    expect(scroller.scrollTop).toBe(1800)
     expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
   })
 })

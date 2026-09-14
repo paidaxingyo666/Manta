@@ -43,6 +43,24 @@ export function shouldShowJumpToLatest(
   return distanceFromBottom(geometry) > threshold
 }
 
+export type FollowIntent = {
+  following: boolean
+  /** Whether the scroll event matches an offset the application registered. */
+  programmatic: boolean
+  atEnd: boolean
+}
+
+/** Whether the transcript should still follow the end after this offset.
+ *
+ *  Application writes preserve intent even when their delayed events arrive
+ *  after the end moved. Reader events detach away from the end and reattach at it. */
+export function nextFollowingEnd(intent: FollowIntent): boolean {
+  if (intent.programmatic) {
+    return intent.following
+  }
+  return intent.atEnd
+}
+
 /** Distance from the top within which the transcript pages in older history. */
 export const NATIVE_CHAT_LOAD_EARLIER_THRESHOLD_PX = 80
 
