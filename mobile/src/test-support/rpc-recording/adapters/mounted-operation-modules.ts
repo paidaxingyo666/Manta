@@ -1,5 +1,7 @@
+import { diffReviewMountAdapters } from './diff-review-mount-adapters'
 import { fileInventoryMountAdapters } from './file-inventory-mount-adapters'
 import { fileRequestMountAdapters } from './file-request-mount-adapters'
+import { githubPrMountAdapters } from './github-pr-mount-adapters'
 import { hostScreenMountAdapters } from './host-screen-mount-adapters'
 import { hostWorktreeActionMountAdapters } from './host-worktree-action-mount-adapters'
 import { hostedReviewMountAdapters } from './hosted-review-mount-adapters'
@@ -20,8 +22,10 @@ import type { MountedOperationModule } from '../mounted-operation-module'
  * `adapter-seam.test.ts` checks each pairing names the file that declares it.
  */
 export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
+  { source: 'diff-review-mount-adapters.ts', mounts: diffReviewMountAdapters },
   { source: 'file-inventory-mount-adapters.ts', mounts: fileInventoryMountAdapters },
   { source: 'file-request-mount-adapters.ts', mounts: fileRequestMountAdapters },
+  { source: 'github-pr-mount-adapters.ts', mounts: githubPrMountAdapters },
   { source: 'host-screen-mount-adapters.ts', mounts: hostScreenMountAdapters },
   {
     source: 'host-worktree-action-mount-adapters.ts',
