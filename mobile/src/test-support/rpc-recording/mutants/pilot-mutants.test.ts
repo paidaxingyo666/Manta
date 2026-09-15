@@ -59,30 +59,35 @@ function visibleState(recording: Recording): RecordedValue {
   return recording.checkpoints.at(-1)!.observation.state
 }
 
+// Pair pilots with their pinned mutant/reference up front so each loop below defines exactly one test.
+const pilots = pilotGoldens(input.scenarios)
+const mutantPilots = pilots.flatMap((pilot) => {
+  const mutation = mutants[pilot.id]
+  return mutation ? [{ ...pilot, mutation }] : []
+})
+const referencePilots = pilots.flatMap((pilot) => {
+  const reference = referenceStates[pilot.id]
+  return reference ? [{ ...pilot, reference }] : []
+})
+
 describe('RPC main recording mutants', () => {
-  for (const pilot of pilotGoldens(input.scenarios)) {
-    const { id, scenario } = pilot
-    const mutation = mutants[id]
-    if (mutation) {
-      it(`${id}: kills ${mutation}`, async () => {
-        const { adapters, assertMutationApplied } = pilotMountAdapters(root, {
-          mutation: operationMutation(mutation)
-        })
-        const result = await runRecordingMutant(
-          scenario,
-          adapters[scenario.operation],
-          vitestRecordingScheduler(),
-          readGolden(goldens, id).recording,
-          visibleState
-        )
-        assertMutationApplied()
-        expect(result.verdict).toBe('killed')
+  for (const { id, scenario, mutation } of mutantPilots) {
+    it(`${id}: kills ${mutation}`, async () => {
+      const { adapters, assertMutationApplied } = pilotMountAdapters(root, {
+        mutation: operationMutation(mutation)
       })
-    }
-    const reference = referenceStates[id]
-    if (!reference) {
-      continue
-    }
+      const result = await runRecordingMutant(
+        scenario,
+        adapters[scenario.operation],
+        vitestRecordingScheduler(),
+        readGolden(goldens, id).recording,
+        visibleState
+      )
+      assertMutationApplied()
+      expect(result.verdict).toBe('killed')
+    })
+  }
+  for (const { id, scenario, reference } of referencePilots) {
     it.skipIf(!process.env.RPC_FOUNDATION_REFERENCE_ROOT)(`${id}: rejects bcba08b3e4`, async () => {
       const { adapters } = pilotMountAdapters(process.env.RPC_FOUNDATION_REFERENCE_ROOT!, {
         reference: true
