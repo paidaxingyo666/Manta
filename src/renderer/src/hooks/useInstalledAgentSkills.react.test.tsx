@@ -305,8 +305,16 @@ describe('useInstalledAgentSkill', () => {
     })
 
     expect(latestState?.installed).toBe(false)
-    expect(discover).toHaveBeenNthCalledWith(1, undefined)
-    expect(discover).toHaveBeenNthCalledWith(2, { runtime: 'wsl', wslDistro: 'Fedora' })
+    expect(discover).toHaveBeenNthCalledWith(1, {
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
+    })
+    expect(discover).toHaveBeenNthCalledWith(2, {
+      runtime: 'wsl',
+      wslDistro: 'Fedora',
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
+    })
   })
 
   it('ignores same-target background discovery results when a forced refresh is waiting', async () => {
@@ -340,9 +348,16 @@ describe('useInstalledAgentSkill', () => {
     })
 
     expect(latestState?.installed).toBe(false)
-    expect(discover).toHaveBeenNthCalledWith(1, undefined)
+    expect(discover).toHaveBeenNthCalledWith(1, {
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
+    })
     // A forced refresh must also bypass the host's shared scans, not just this cache.
-    expect(discover).toHaveBeenNthCalledWith(2, { refresh: true })
+    expect(discover).toHaveBeenNthCalledWith(2, {
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home'],
+      refresh: true
+    })
   })
 
   it('returns installed from refresh when a legacy Linear skill is discovered', async () => {
@@ -390,7 +405,12 @@ describe('useInstalledAgentSkill', () => {
     })
 
     expect(latestState?.installed).toBe(true)
-    expect(discover).toHaveBeenCalledWith({ runtime: 'wsl', wslDistro: 'Ubuntu' })
+    expect(discover).toHaveBeenCalledWith({
+      runtime: 'wsl',
+      wslDistro: 'Ubuntu',
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
+    })
   })
 
   it('detects a legacy Linear install through project-runtime skill discovery', async () => {
@@ -411,7 +431,9 @@ describe('useInstalledAgentSkill', () => {
     expect(discover).toHaveBeenCalledWith({
       runtime: 'wsl',
       wslDistro: 'Ubuntu',
-      projectRuntime: projectWslRuntime
+      projectRuntime: projectWslRuntime,
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
     })
   })
 
@@ -479,7 +501,10 @@ describe('useInstalledAgentSkill', () => {
 
     // The freshness window is what bounds the storm; past it, focus still reads disk.
     expect(discover).toHaveBeenCalledTimes(2)
-    expect(discover).toHaveBeenLastCalledWith(undefined)
+    expect(discover).toHaveBeenLastCalledWith({
+      names: ['orca-linear', 'linear-tickets'],
+      sourceKinds: ['home']
+    })
   })
 
   it('reuses cached discovery when another surface finishes re-checking', async () => {

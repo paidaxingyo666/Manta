@@ -19,6 +19,11 @@ const LEGACY_PREFIXES = [
   'MANTA_DOC_LINK:'
 ] as const
 
+export function skipInlineTransportStartScan(): number {
+  // Marked already stops text at `[`, so inline envelopes need no suffix scan.
+  return -1
+}
+
 export type RichMarkdownSourceTransport = {
   readonly key: string
   readonly authoredPrefix: string

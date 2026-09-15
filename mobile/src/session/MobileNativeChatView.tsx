@@ -123,6 +123,8 @@ type Props = {
    *  into selector keystrokes (Claude) or pasted label text (other agents). */
   onAnswerAsk?: (prompt: AskPrompt, selections: AskAnswerSelection[]) => Promise<boolean>
   onCancelAsk?: () => Promise<boolean>
+  /** Cancel a structured approval/question with exact item identity when supported. */
+  onCancelPrompt?: (prompt?: { itemId: string; expectedRevision: number }) => Promise<boolean>
   question?: MobileChatQuestion | null
   onAnswerQuestion?: (text: string) => Promise<boolean>
   permission?: MobileChatPermission | null
@@ -179,6 +181,7 @@ export function MobileNativeChatView({
   onDismissAsk,
   onAnswerAsk,
   onCancelAsk,
+  onCancelPrompt,
   question,
   onAnswerQuestion,
   permission,
@@ -267,6 +270,8 @@ export function MobileNativeChatView({
     activityText: turnIndicator?.activityText ?? null,
     scopeKey: sendSurfaceId
   })
+  const hasPendingStructuredInteraction =
+    structuredActivityUi && (ask != null || permission != null || question != null)
 
   const renderItem = useCallback(
     ({ item, index }: { item: NativeChatMessage; index: number }) => (
@@ -332,7 +337,10 @@ export function MobileNativeChatView({
                 ) : null
               }
               ListFooterComponent={
-                structuredActivityUi && agentWorking && turns.active ? (
+                structuredActivityUi &&
+                agentWorking &&
+                !hasPendingStructuredInteraction &&
+                turns.active ? (
                   <MobileNativeChatTurnStatus
                     startedAt={turns.active.startedAt}
                     thinking={turns.active.thinking}
@@ -369,6 +377,7 @@ export function MobileNativeChatView({
         onDismissAsk={onDismissAsk}
         onAnswerAsk={onAnswerAsk}
         onCancelAsk={onCancelAsk}
+        onCancelPrompt={onCancelPrompt}
         permission={permission}
         onRespondPermission={onRespondPermission}
         question={question}

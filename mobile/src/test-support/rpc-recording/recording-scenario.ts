@@ -7,10 +7,15 @@ export type Rejection = {
   category?: 'Error' | 'TypeError'
   deliveryUnknown?: boolean
 }
+/**
+ * `optional` belongs to generated steps only: a matrix variant answers one request differently, so
+ * the requests scripted after it may never be sent. Skipping one that was not sent records what the
+ * operation actually did; a scripted step the manifest declares is never optional.
+ */
 export type ScenarioStep =
   | { action: string; id: string; args?: Record<string, unknown> }
-  | { complete: string; params: unknown; reply?: unknown; reject?: Rejection }
-  | { bind: string; request: string; params: unknown }
+  | { complete: string; params: unknown; reply?: unknown; reject?: Rejection; optional?: true }
+  | { bind: string; request: string; params: unknown; optional?: true }
   | { advance: number }
   | { checkpoint: string }
 export type RecordingScenario = {

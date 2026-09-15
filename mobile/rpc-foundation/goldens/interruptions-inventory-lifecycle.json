@@ -3,310 +3,177 @@
   "family": "legacy-inventory",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "ad6659e70aba7a0df391067209aeec4db36c467764d062d408c362b956ab916a",
+  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
+  "adapterSha256": "262eaad263a45aa13ec5b27c12b59946b12c202474229fff7a5727dba6d702ca",
+  "scenarioSha256": "d6c57a5153d915f0a0c0fd9e305cac70b41b7eb8be226fc865227ebf1821e5d1",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
-  "goldenFormatVersion": 2,
+  "goldenFormatVersion": 5,
   "values": {
-    "09d53cd763b1": [
-      {
-        "name": "files.searchPaths#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.searchPaths"
-          },
-          {
-            "name": "params",
-            "value": {
-              "limit": 16,
-              "query": "old",
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 120,
-          "settledAt": 120,
-          "value": {
-            "error": {
-              "code": "method_not_found",
-              "message": "Unknown method"
-            },
-            "id": "frame-1",
-            "ok": false
-          }
-        }
-      },
-      {
-        "name": "files.list#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.list"
-          },
-          {
-            "name": "params",
-            "value": {
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 120,
-          "settledAt": 120,
-          "error": {
-            "category": "LogicalClientCutoverError",
-            "message": "RPC interrupted by connection migration",
-            "isRpcDeliveryUnknown": true,
-            "cause": {
-              "category": "Error",
-              "message": "Connection closed",
-              "isRpcDeliveryUnknown": true
-            }
-          }
-        }
-      }
-    ],
-    "305c86832cd8": {
-      "mount": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "old": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      }
+    "2837f481a843": {
+      "name": "files.list#1",
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"files.list\",\"params\":{\"worktree\":\"id:A\"}}"
     },
-    "44517661da0d": {
-      "mount": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "old": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "cutover": {
-        "status": "fulfilled",
-        "startedAt": 120,
-        "settledAt": 120,
-        "value": {
-          "$rpc": "undefined"
-        }
-      }
-    },
-    "4f53cda18c2b": [],
     "602e35a92eec": {
       "files": []
     },
-    "6713de8f80d3": [
-      {
-        "name": "files.searchPaths#1",
-        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"files.searchPaths\",\"params\":{\"worktree\":\"id:A\",\"query\":\"old\",\"limit\":16}}"
-      },
-      {
-        "name": "files.list#1",
-        "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"files.list\",\"params\":{\"worktree\":\"id:A\"}}"
+    "9dea95bddfe5": {
+      "name": "files.searchPaths#1",
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"files.searchPaths\",\"params\":{\"worktree\":\"id:A\",\"query\":\"old\",\"limit\":16}}"
+    },
+    "b5b30ad54c76": {
+      "name": "files.list#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "files.list"
+        },
+        {
+          "name": "params",
+          "value": {
+            "worktree": "id:A"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 120,
+        "settledAt": 120,
+        "error": {
+          "category": "Error",
+          "message": "Connection lost",
+          "isRpcDeliveryUnknown": true
+        }
       }
-    ],
-    "8c70b1eb7a30": {
-      "mount": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
+    },
+    "c0821dc354d7": {
+      "name": "files.searchPaths#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "files.searchPaths"
+        },
+        {
+          "name": "params",
+          "value": {
+            "limit": 16,
+            "query": "old",
+            "worktree": "id:A"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      "old": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "disconnect": {
+      ],
+      "settlement": {
         "status": "fulfilled",
         "startedAt": 120,
         "settledAt": 120,
         "value": {
-          "$rpc": "undefined"
+          "error": {
+            "code": "method_not_found",
+            "message": "Unknown method"
+          },
+          "id": "frame-1",
+          "ok": false
         }
       }
     },
-    "8d7ff0ac3500": [
-      {
-        "name": "files.searchPaths#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.searchPaths"
-          },
-          {
-            "name": "params",
-            "value": {
-              "limit": 16,
-              "query": "old",
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 120,
-          "settledAt": 120,
+    "ccb16672d904": {
+      "name": "files.list#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "files.list"
+        },
+        {
+          "name": "params",
           "value": {
-            "error": {
-              "code": "method_not_found",
-              "message": "Unknown method"
-            },
-            "id": "frame-1",
-            "ok": false
+            "worktree": "id:A"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "files.list#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.list"
-          },
-          {
-            "name": "params",
-            "value": {
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 120,
-          "settledAt": 30120,
-          "error": {
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 120,
+        "settledAt": 120,
+        "error": {
+          "category": "LogicalClientCutoverError",
+          "message": "RPC interrupted by connection migration",
+          "isRpcDeliveryUnknown": true,
+          "cause": {
             "category": "Error",
-            "message": "Request timed out: files.list",
+            "message": "Connection closed",
             "isRpcDeliveryUnknown": true
           }
         }
       }
-    ],
-    "e01595c0caa4": [
-      {
-        "name": "files.searchPaths#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.searchPaths"
-          },
-          {
-            "name": "params",
-            "value": {
-              "limit": 16,
-              "query": "old",
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 120,
-          "settledAt": 120,
+    },
+    "d2ad71e601c4": {
+      "status": "fulfilled",
+      "startedAt": 120,
+      "settledAt": 120,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "ee88659ed950": {
+      "name": "files.list#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "files.list"
+        },
+        {
+          "name": "params",
           "value": {
-            "error": {
-              "code": "method_not_found",
-              "message": "Unknown method"
-            },
-            "id": "frame-1",
-            "ok": false
+            "worktree": "id:A"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "files.list#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "files.list"
-          },
-          {
-            "name": "params",
-            "value": {
-              "worktree": "id:A"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 120,
-          "settledAt": 120,
-          "error": {
-            "category": "Error",
-            "message": "Connection lost",
-            "isRpcDeliveryUnknown": true
-          }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 120,
+        "settledAt": 30120,
+        "error": {
+          "category": "Error",
+          "message": "Request timed out: files.list",
+          "isRpcDeliveryUnknown": true
         }
       }
-    ]
+    }
   },
   "recording": {
     "scenario": "interruptions-inventory-lifecycle",
@@ -314,61 +181,83 @@
       {
         "id": "inventory-lifecycle.timeout:interrupted",
         "observation": {
-          "sender": "8d7ff0ac3500",
-          "payloads": "6713de8f80d3",
-          "settlements": "305c86832cd8",
+          "sender": ["c0821dc354d7", "ee88659ed950"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       },
       {
         "id": "inventory-lifecycle.timeout:settled",
         "observation": {
-          "sender": "8d7ff0ac3500",
-          "payloads": "6713de8f80d3",
-          "settlements": "305c86832cd8",
+          "sender": ["c0821dc354d7", "ee88659ed950"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       },
       {
         "id": "inventory-lifecycle.disconnect:interrupted",
         "observation": {
-          "sender": "e01595c0caa4",
-          "payloads": "6713de8f80d3",
-          "settlements": "8c70b1eb7a30",
+          "sender": ["c0821dc354d7", "b5b30ad54c76"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a",
+            "disconnect": "d2ad71e601c4"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       },
       {
         "id": "inventory-lifecycle.disconnect:settled",
         "observation": {
-          "sender": "e01595c0caa4",
-          "payloads": "6713de8f80d3",
-          "settlements": "8c70b1eb7a30",
+          "sender": ["c0821dc354d7", "b5b30ad54c76"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a",
+            "disconnect": "d2ad71e601c4"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       },
       {
         "id": "inventory-lifecycle.cutover:interrupted",
         "observation": {
-          "sender": "09d53cd763b1",
-          "payloads": "6713de8f80d3",
-          "settlements": "44517661da0d",
+          "sender": ["c0821dc354d7", "ccb16672d904"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a",
+            "cutover": "d2ad71e601c4"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       },
       {
         "id": "inventory-lifecycle.cutover:settled",
         "observation": {
-          "sender": "09d53cd763b1",
-          "payloads": "6713de8f80d3",
-          "settlements": "44517661da0d",
+          "sender": ["c0821dc354d7", "ccb16672d904"],
+          "payloads": ["9dea95bddfe5", "2837f481a843"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "old": "eb79a9b3682a",
+            "cutover": "d2ad71e601c4"
+          },
           "state": "602e35a92eec",
-          "effects": "4f53cda18c2b"
+          "effects": []
         }
       }
     ]

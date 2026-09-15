@@ -1,4 +1,5 @@
 import type {
+  ClaudeAcquisitionAttempt,
   ClaudeAcquisitionRegistry,
   ClaudeSession,
   ClaudeSessionExit,
@@ -11,6 +12,8 @@ import {
   AgentSessionPreSpawnError
 } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import type { ClaudeStreamJsonConnection } from './claude-stream-json-connection'
+import type { ClaudeJournalTranslator } from './claude-structured-journal-translation'
+import type { ClaudePromptRegistry } from './claude-structured-prompt-replies'
 import type { AgentSessionBackgroundTaskState } from '../../shared/agent-session-wire'
 import { closeProcessRegistry } from '../../shared/child-process/close-process-registry'
 import { retireClaudeDispatchWaiters } from './claude-structured-dispatch'
@@ -27,6 +30,30 @@ export function claudeAcquisitionCleanupError(
   return verdict?.root === 'exited' && verdict.tree === 'unverifiable'
     ? new AgentSessionAcquisitionRootExitObservedError(cause)
     : new AgentSessionAcquisitionExitUnprovenError(cause)
+}
+
+export async function resolveClaudeAcquisitionError(input: {
+  error: unknown
+  sessionId: string
+  sessions: Map<string, ClaudeSession>
+  attempt: ClaudeAcquisitionAttempt
+  translator: ClaudeJournalTranslator | null
+  prompts: ClaudePromptRegistry
+}): Promise<unknown> {
+  let acquisitionError = input.error
+  if (input.sessions.get(input.sessionId)?.connection !== input.attempt.connection) {
+    input.translator?.dispose()
+    for (const prompt of input.prompts.clear()) {
+      prompt.settle(null)
+    }
+    const closed = (await input.attempt.connection?.close()) ?? true
+    if (input.attempt.connection?.exitVerdict.root === 'processless') {
+      acquisitionError = new AgentSessionPreSpawnError(input.error)
+    } else if (!closed) {
+      acquisitionError = claudeAcquisitionCleanupError(input.attempt.connection, input.error)
+    }
+  }
+  return acquisitionError
 }
 
 export function settleClaudeExitedSession(session: ClaudeSession): void {

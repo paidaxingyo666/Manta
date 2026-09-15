@@ -283,6 +283,7 @@ export class MantaRuntimeWithSyncWindowGraph extends MantaRuntimeWithAttachWindo
         this._orchestrationDb &&
         leaf.lastAgentStatus === 'idle' &&
         leaf.lastAgentStatusObservedLive &&
+        this.checkDeliverySettledAndArmRecheck(leaf) &&
         leaf.writable &&
         (!graphWasReady ||
           previousLeaf?.ptyId !== leaf.ptyId ||

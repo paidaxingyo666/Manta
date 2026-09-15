@@ -194,3 +194,13 @@ export function normalizeMantaCloudEndpointOverrides(
   }
   return Object.keys(next).length > 0 ? next : undefined
 }
+
+/** Normalizes an endpoint update in place; settings.ts is upstream's and at its line budget. */
+export function sanitizeMantaCloudEndpointsUpdate(
+  args: { mantaCloudEndpoints?: unknown },
+  sanitized: { mantaCloudEndpoints?: MantaCloudEndpointOverrides }
+): void {
+  if ('mantaCloudEndpoints' in args) {
+    sanitized.mantaCloudEndpoints = normalizeMantaCloudEndpointOverrides(args.mantaCloudEndpoints)
+  }
+}

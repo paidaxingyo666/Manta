@@ -17,7 +17,7 @@ import { applyElectronProxySettings } from '../network/proxy-settings'
 import { applyBrowserSessionProxies } from '../browser/browser-session-proxy'
 import { browserSessionRegistry } from '../browser/browser-session-registry'
 import { normalizeProxyBypassRules, normalizeProxyUrl } from '../../shared/network-proxy'
-import { normalizeMantaCloudEndpointOverrides } from '../../shared/manta-cloud-endpoints'
+import { sanitizeMantaCloudEndpointsUpdate } from '../../shared/manta-cloud-endpoints'
 import { normalizeAppIconId } from '../../shared/app-icon'
 import { normalizeUiLanguage } from '../../shared/ui-language'
 import { applyAppIcon } from '../app-icon'
@@ -37,6 +37,8 @@ import {
   computerAwakeSettingsForMode,
   normalizeComputerAwakeMode
 } from '../../shared/computer-awake-mode'
+import { resolveAiVaultSearchSettings } from '../../shared/ai-vault-search-settings'
+import { applySessionSearchSettingsChange } from '../ai-vault-search/session-search-enablement'
 
 // Why: the whitelist is the source-of-truth for which keys we emit on. Casting
 // to a Set once at module load lets the IPC handler's per-key membership
@@ -161,13 +163,12 @@ export function registerSettingsHandlers(
     // Why: sanitizeRendererSettingsUpdate is a denylist, so any new field would
     // otherwise reach disk unvalidated. This is the single trust boundary for
     // self-hosted endpoints regardless of which write path delivered them.
-    if ('mantaCloudEndpoints' in args) {
-      sanitizedArgs.mantaCloudEndpoints = normalizeMantaCloudEndpointOverrides(
-        args.mantaCloudEndpoints
-      )
-    }
+    sanitizeMantaCloudEndpointsUpdate(args, sanitizedArgs)
     if ('appIcon' in args) {
       sanitizedArgs.appIcon = normalizeAppIconId(args.appIcon)
+    }
+    if ('aiVaultSearch' in args) {
+      sanitizedArgs.aiVaultSearch = resolveAiVaultSearchSettings(args)
     }
     if ('terminalCustomThemes' in args) {
       sanitizedArgs.terminalCustomThemes = normalizeTerminalCustomThemes(args.terminalCustomThemes)
@@ -274,6 +275,9 @@ export function registerSettingsHandlers(
     }
     if ('appIcon' in sanitizedArgs && before.appIcon !== result.appIcon) {
       applyAppIcon(result.appIcon)
+    }
+    if ('aiVaultSearch' in sanitizedArgs) {
+      applySessionSearchSettingsChange(before, result)
     }
 
     // Why: telemetry-plan.md§Settings — fire `settings_changed` only for

@@ -108,6 +108,12 @@ export class ScriptedRpcTransport {
     }
   }
 
+  /** Whether a scripted name names a request that was sent and is still waiting for its reply. */
+  outstanding(name: string): boolean {
+    const binding = this.bindings.get(this.aliases.get(name) ?? name)
+    return binding !== undefined && !binding.completed
+  }
+
   bind(alias: string, name: string, params: unknown): void {
     name = this.aliases.get(name) ?? name
     const binding = this.bindings.get(name)

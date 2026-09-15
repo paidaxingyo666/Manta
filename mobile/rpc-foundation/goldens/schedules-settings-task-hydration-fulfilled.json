@@ -3,731 +3,332 @@
   "family": "settings.task-hydration",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "aba77d5babfeb3988a8ad39a16a1bc5af86ebf80",
+  "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "ad6659e70aba7a0df391067209aeec4db36c467764d062d408c362b956ab916a",
+  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
+  "adapterSha256": "fc73116d95985606fe32f22d3f14f434a6d5cd49219416c9fa0f47f971fa6ff0",
+  "scenarioSha256": "02e3ca10296704b5478185e9d3dc0136596a2ee57580d7f9268672568dab4cd4",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
-  "goldenFormatVersion": 2,
+  "goldenFormatVersion": 5,
   "values": {
-    "0131611322e3": {
-      "mount": {
+    "002ad269dd44": {
+      "name": "showLinearConnect",
+      "value": false
+    },
+    "02d5832df83d": {
+      "name": "query",
+      "value": "is:issue is:open"
+    },
+    "03f32b62aa80": {
+      "name": "showGitHubProjectViewPicker",
+      "value": false
+    },
+    "068f4fd0ad0c": {
+      "name": "showRepoPicker",
+      "value": false
+    },
+    "06eff8247d02": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "LogicalClientCutoverError",
+          "message": "RPC interrupted by connection migration",
+          "isRpcDeliveryUnknown": true,
+          "cause": {
+            "category": "Error",
+            "message": "Connection closed",
+            "isRpcDeliveryUnknown": true
+          }
+        }
+      }
+    },
+    "090c88478661": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "12388aa75326": {
+      "name": "projectRowItem",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "1410db92f7e5": {
+      "name": "linearTeams",
+      "value": []
+    },
+    "149b4ddbd6c6": {
+      "name": "error",
+      "value": "RPC interrupted by connection migration"
+    },
+    "16f398d67267": {
+      "name": "linearConnected",
+      "value": false
+    },
+    "1b3fd2de141f": {
+      "name": "showLinearOrderPicker",
+      "value": false
+    },
+    "1e5b32902af7": {
+      "name": "status.get#1",
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
+    },
+    "1f7d21cec906": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
         "status": "fulfilled",
         "startedAt": 0,
         "settledAt": 0,
         "value": {
-          "$rpc": "undefined"
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "ui": {}
+          }
         }
       }
     },
-    "029687777f22": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    "1f96a2f943c0": {
+      "name": "showGitLabViewPicker",
+      "value": false
+    },
+    "234fabe27913": {
+      "name": "preflight.check#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "preflight.check"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
           }
-        }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "settings.get#1 rejected",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+        },
+        {
+          "name": "options",
           "value": {
-            "id": "frame-4",
-            "ok": true,
-            "result": {
-              "glab": {
-                "installed": false
-              }
-            }
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-5",
-            "ok": true,
-            "result": {
-              "connected": false
-            }
-          }
-        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
       }
-    ],
-    "21a036777905": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
-          }
-        }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "settings.get#1 rejected",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "ui.get#1 rejected",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-4",
-            "ok": true,
-            "result": {
-              "glab": {
-                "installed": false
-              }
-            }
-          }
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-5",
-            "ok": true,
-            "result": {
-              "connected": false
-            }
-          }
-        }
+    },
+    "321a59c40cce": {
+      "name": "showProviderPicker",
+      "value": false
+    },
+    "326e3f8f7e0b": {
+      "name": "runtimeTaskSettings",
+      "value": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": ["claude"],
+        "hostSettingOverrides": {},
+        "prBotAuthorOverrides": ["bot-user"],
+        "visibleTaskProviders": ["github", "linear"]
       }
-    ],
-    "3a9fc3afc213": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    },
+    "347cc433c473": {
+      "name": "projectRowDetail",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "367b8fc27ba4": {
+      "name": "showLinearViewPicker",
+      "value": false
+    },
+    "38721e31cbb4": {
+      "name": "showGitHubProjectSortPicker",
+      "value": false
+    },
+    "3e610f908f29": {
+      "name": "showCreateTask",
+      "value": false
+    },
+    "3e9fac4d6c32": {
+      "name": "showLinearTeamPicker",
+      "value": false
+    },
+    "42d2e0167dad": {
+      "name": "pendingGitHubProjectViewSelection",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "45d50e768fcc": {
+      "name": "githubPreset",
+      "value": "issues"
+    },
+    "47d40c6fb90c": {
+      "name": "preflight.check#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "preflight.check"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 30000,
-          "error": {
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "LogicalClientCutoverError",
+          "message": "RPC interrupted by connection migration",
+          "isRpcDeliveryUnknown": true,
+          "cause": {
             "category": "Error",
-            "message": "Request timed out: settings.get",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 30000,
-          "error": {
-            "category": "Error",
-            "message": "Request timed out: ui.get",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 30000,
-          "error": {
-            "category": "Error",
-            "message": "Request timed out: preflight.check",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 30000,
-          "error": {
-            "category": "Error",
-            "message": "Request timed out: linear.status",
+            "message": "Connection closed",
             "isRpcDeliveryUnknown": true
           }
         }
       }
-    ],
-    "4345d70c756e": [
-      {
-        "name": "status.get#1",
-        "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
-      },
-      {
-        "name": "settings.get#1",
-        "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
-      },
-      {
-        "name": "ui.get#1",
-        "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"ui.get\"}"
-      },
-      {
-        "name": "preflight.check#1",
-        "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"preflight.check\"}"
-      },
-      {
-        "name": "linear.status#1",
-        "json": "{\"id\":\"frame-5\",\"deviceToken\":\"recording-device\",\"method\":\"linear.status\"}"
+    },
+    "4a435aea04b4": {
+      "name": "showLinearFilterPicker",
+      "value": false
+    },
+    "4cc1535f7ccf": {
+      "name": "githubProjectHiddenFieldIdsByView",
+      "value": {}
+    },
+    "4efedb5c24f1": {
+      "name": "selectedLinearWorkspaceId",
+      "value": {
+        "$rpc": "null"
       }
-    ],
-    "4403aed122f0": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
+    },
+    "5093ceeca936": {
+      "name": "showGitHubPagePicker",
+      "value": false
+    },
+    "52bdddbac50f": {
+      "name": "trustedMantaHooks",
+      "value": {}
+    },
+    "54ea1a00a461": {
+      "name": "showGitHubProjectFieldsPicker",
+      "value": false
+    },
+    "5731a23b16cd": {
+      "name": "selectedLinearTeamIds",
+      "value": []
+    },
+    "57da83afd125": {
+      "name": "taskStateHydrated",
+      "value": true
+    },
+    "5851c3d3d9e0": {
+      "name": "error",
+      "value": "ui.get#1 rejected"
+    },
+    "586159bf259e": {
+      "name": "preflight.check#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "preflight.check"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "Connection lost",
+          "isRpcDeliveryUnknown": true
         }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "error",
-        "value": "settings.get#1 rejected"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": false
       }
-    ],
+    },
     "58c52d8b7c76": {
       "hydrated": true,
       "settings": {
@@ -738,2420 +339,752 @@
         "visibleTaskProviders": ["github", "linear"]
       }
     },
-    "5a9cc1957824": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
-          }
-        }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-2",
-            "ok": true,
-            "result": {
-              "settings": {
-                "defaultTuiAgent": "codex",
-                "disabledTuiAgents": ["claude"],
-                "hostSettingOverrides": {},
-                "prBotAuthorOverrides": ["bot-user"],
-                "visibleTaskProviders": ["github", "linear"]
-              }
-            }
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-3",
-            "ok": true,
-            "result": {
-              "ui": {}
-            }
-          }
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-4",
-            "ok": true,
-            "result": {
-              "glab": {
-                "installed": false
-              }
-            }
-          }
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
-          "value": {
-            "id": "frame-5",
-            "ok": true,
-            "result": {
-              "connected": false
-            }
-          }
-        }
+    "5b1145eb3832": {
+      "name": "tasksSupportState",
+      "value": {
+        "client": "logical-client",
+        "kind": "supported"
       }
-    ],
-    "6bb5a0040cbb": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    },
+    "5fbdd64c75bc": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "Connection lost",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "Connection lost",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "Connection lost",
-            "isRpcDeliveryUnknown": true
-          }
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "Error",
-            "message": "Connection lost",
-            "isRpcDeliveryUnknown": true
-          }
-        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
       }
-    ],
-    "77571e1166d2": {
-      "mount": {
-        "status": "fulfilled",
+    },
+    "68aa55411b15": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
         "startedAt": 0,
         "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "disconnect": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
+        "error": {
+          "category": "Error",
+          "message": "Connection lost",
+          "isRpcDeliveryUnknown": true
         }
       }
     },
-    "7fd922790267": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
+    "6f30f8b6f3d7": {
+      "name": "status.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "status.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "error",
-        "value": "Connection lost"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      }
-    ],
-    "8574a5791dce": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
-        }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "runtimeTaskSettings",
-        "value": {
-          "defaultTuiAgent": "codex",
-          "disabledTuiAgents": ["claude"],
-          "hostSettingOverrides": {},
-          "prBotAuthorOverrides": ["bot-user"],
-          "visibleTaskProviders": ["github", "linear"]
-        }
-      },
-      {
-        "name": "trustedMantaHooks",
-        "value": {}
-      },
-      {
-        "name": "githubProjectHiddenFieldIdsByView",
-        "value": {}
-      },
-      {
-        "name": "linearConnected",
-        "value": false
-      },
-      {
-        "name": "linearWorkspaces",
-        "value": []
-      },
-      {
-        "name": "linearTeams",
-        "value": []
-      },
-      {
-        "name": "selectedLinearTeamIds",
-        "value": []
-      },
-      {
-        "name": "selectedLinearWorkspaceId",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "visibleProviders",
-        "value": ["github", "linear"]
-      },
-      {
-        "name": "provider",
-        "value": "github"
-      },
-      {
-        "name": "githubMode",
-        "value": "items"
-      },
-      {
-        "name": "defaultGitHubPreset",
-        "value": "issues"
-      },
-      {
-        "name": "githubPreset",
-        "value": "issues"
-      },
-      {
-        "name": "githubKind",
-        "value": "issues"
-      },
-      {
-        "name": "linearFilter",
-        "value": "all"
-      },
-      {
-        "name": "githubProjectSettings",
-        "value": {
-          "activeProject": {
-            "$rpc": "null"
-          },
-          "lastViewByProject": {},
-          "pinned": [],
-          "recent": []
-        }
-      },
-      {
-        "name": "query",
-        "value": "is:issue is:open"
-      },
-      {
-        "name": "appliedQuery",
-        "value": "is:issue is:open"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": true
-      }
-    ],
-    "8df6a469391c": {
-      "mount": {
+      ],
+      "settlement": {
         "status": "fulfilled",
         "startedAt": 0,
         "settledAt": 0,
         "value": {
-          "$rpc": "undefined"
-        }
-      },
-      "cutover": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "$rpc": "undefined"
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "capabilities": ["mobile.tasks.v1"]
+          }
         }
       }
     },
-    "ad1a6c26758a": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    "70c65c0f7a8e": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 30000,
+        "error": {
+          "category": "Error",
+          "message": "Request timed out: ui.get",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "740d91a30846": {
+      "name": "pendingHostedStateChange",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "74a4162f39f8": {
+      "name": "githubKind",
+      "value": "issues"
+    },
+    "7d341b2cb946": {
+      "name": "detailPayload",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "7f2e001f13e7": {
+      "name": "projectRepoNotInManta",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "7fc945a92540": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
           }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 30000,
+        "error": {
+          "category": "Error",
+          "message": "Request timed out: settings.get",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "82cd71d524c8": {
+      "name": "error",
+      "value": ""
+    },
+    "8372342e5a51": {
+      "name": "linearFilter",
+      "value": "all"
+    },
+    "888c93f6f346": {
+      "name": "appliedQuery",
+      "value": "is:issue is:open"
+    },
+    "8f287f21cfc4": {
+      "name": "defaultGitHubPreset",
+      "value": "issues"
+    },
+    "8f30512a5135": {
+      "name": "error",
+      "value": "Request timed out: settings.get"
+    },
+    "977e1de1ac2f": {
+      "name": "mergeMethodTaskItem",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "991081048cc2": {
+      "name": "reset-workspace",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "9a0f810232ef": {
+      "name": "provider",
+      "value": "github"
+    },
+    "a1b99265507f": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "LogicalClientCutoverError",
+          "message": "RPC interrupted by connection migration",
+          "isRpcDeliveryUnknown": true,
+          "cause": {
             "category": "Error",
-            "message": "settings.get#1 rejected",
+            "message": "Connection closed",
             "isRpcDeliveryUnknown": true
           }
         }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
+      }
+    },
+    "a211e64f0900": {
+      "name": "showLinearGroupPicker",
+      "value": false
+    },
+    "a4760ef5a9f4": {
+      "name": "linear.status#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "linear.status"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
           }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "a67d16a13986": {
+      "name": "githubMode",
+      "value": "items"
+    },
+    "aa624b10c314": {
+      "name": "linear.status#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "linear.status"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
           }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-5",
+          "ok": true,
+          "result": {
+            "connected": false
           }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
         }
       }
-    ],
-    "b3e738cd15c7": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
-        }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "error",
-        "value": "ui.get#1 rejected"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": false
+    },
+    "aba4413b55bb": {
+      "name": "linear.status#1",
+      "json": "{\"id\":\"frame-5\",\"deviceToken\":\"recording-device\",\"method\":\"linear.status\"}"
+    },
+    "ac9996319e05": {
+      "name": "actionItem",
+      "value": {
+        "$rpc": "null"
       }
-    ],
-    "c3f33d88e338": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
+    },
+    "ae1d901c204f": {
+      "name": "linear.status#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "linear.status"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "Connection lost",
+          "isRpcDeliveryUnknown": true
         }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
       }
-    ],
+    },
+    "af6903aed166": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "Connection lost",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "afdf1ac21a92": {
+      "name": "showCreateTargetPicker",
+      "value": false
+    },
+    "b66eccd2062e": {
+      "name": "linearWorkspaces",
+      "value": []
+    },
+    "b7c9b524edd4": {
+      "name": "pendingHostedMerge",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "b80be68cd059": {
+      "name": "showGitHubKindPicker",
+      "value": false
+    },
+    "b82f9e80bd6a": {
+      "name": "showGitHubPresetPicker",
+      "value": false
+    },
+    "b8ca6ac0e3ec": {
+      "name": "showLinearWorkspacePicker",
+      "value": false
+    },
+    "ba4739591371": {
+      "name": "linear.status#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "linear.status"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 30000,
+        "error": {
+          "category": "Error",
+          "message": "Request timed out: linear.status",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "baafd23158c8": {
+      "name": "preflight.check#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "preflight.check"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 30000,
+        "error": {
+          "category": "Error",
+          "message": "Request timed out: preflight.check",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "bbbd4bc0a4ef": {
+      "name": "taskStateHydrated",
+      "value": false
+    },
+    "bc6d9aaa835c": {
+      "name": "showLinearDisplayPicker",
+      "value": false
+    },
+    "bfd6af371d88": {
+      "name": "githubProjectSettings",
+      "value": {
+        "activeProject": {
+          "$rpc": "null"
+        },
+        "lastViewByProject": {},
+        "pinned": [],
+        "recent": []
+      }
+    },
     "c6178e6a0f4e": {
       "hydrated": false,
       "settings": {}
     },
-    "ca2e38e02916": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    "c78894b47bfd": {
+      "name": "mergeMethodProjectRow",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "cdeb94d60934": {
+      "name": "linear.status#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "linear.status"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "LogicalClientCutoverError",
+          "message": "RPC interrupted by connection migration",
+          "isRpcDeliveryUnknown": true,
+          "cause": {
             "category": "Error",
-            "message": "ui.get#1 rejected",
+            "message": "Connection closed",
             "isRpcDeliveryUnknown": true
           }
         }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
       }
-    ],
-    "e8fb43dbd296": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+    },
+    "ce5f2125a8c4": {
+      "name": "tasksSupportState",
+      "value": {
+        "client": "logical-client",
+        "kind": "unknown"
+      }
+    },
+    "d041d5155ed5": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
           }
-        }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "LogicalClientCutoverError",
-            "message": "RPC interrupted by connection migration",
-            "isRpcDeliveryUnknown": true,
-            "cause": {
-              "category": "Error",
-              "message": "Connection closed",
-              "isRpcDeliveryUnknown": true
-            }
-          }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "LogicalClientCutoverError",
-            "message": "RPC interrupted by connection migration",
-            "isRpcDeliveryUnknown": true,
-            "cause": {
-              "category": "Error",
-              "message": "Connection closed",
-              "isRpcDeliveryUnknown": true
-            }
-          }
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "LogicalClientCutoverError",
-            "message": "RPC interrupted by connection migration",
-            "isRpcDeliveryUnknown": true,
-            "cause": {
-              "category": "Error",
-              "message": "Connection closed",
-              "isRpcDeliveryUnknown": true
-            }
-          }
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "rejected",
-          "startedAt": 0,
-          "settledAt": 0,
-          "error": {
-            "category": "LogicalClientCutoverError",
-            "message": "RPC interrupted by connection migration",
-            "isRpcDeliveryUnknown": true,
-            "cause": {
-              "category": "Error",
-              "message": "Connection closed",
-              "isRpcDeliveryUnknown": true
-            }
-          }
-        }
-      }
-    ],
-    "ece0e400ef82": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+        },
+        {
+          "name": "options",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "settings.get#1 rejected",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "d36257ed8dd7": {
+      "name": "error",
+      "value": "settings.get#1 rejected"
+    },
+    "d42b1a5610cf": {
+      "name": "ui.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.get"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-2",
-            "ok": true,
-            "result": {
-              "settings": {
-                "defaultTuiAgent": "codex",
-                "disabledTuiAgents": ["claude"],
-                "hostSettingOverrides": {},
-                "prBotAuthorOverrides": ["bot-user"],
-                "visibleTaskProviders": ["github", "linear"]
-              }
-            }
+            "$rpc": "absent"
           }
-        }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      }
-    ],
-    "f0b7ab6c41c5": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
-        }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "error",
-        "value": "Request timed out: settings.get"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      }
-    ],
-    "f7ab8f398a84": [
-      {
-        "name": "status.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "status.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+        },
+        {
+          "name": "options",
           "value": {
-            "id": "frame-1",
-            "ok": true,
-            "result": {
-              "capabilities": ["mobile.tasks.v1"]
-            }
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "settings.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "settings.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "ui.get#1 rejected",
+          "isRpcDeliveryUnknown": true
         }
-      },
-      {
-        "name": "ui.get#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "ui.get"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "fulfilled",
-          "startedAt": 0,
-          "settledAt": 0,
+      }
+    },
+    "d47b67d8f357": {
+      "name": "showGitHubIssueSourcePicker",
+      "value": false
+    },
+    "d705fce957e8": {
+      "name": "settings.get#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
           "value": {
-            "id": "frame-3",
-            "ok": true,
-            "result": {
-              "ui": {}
-            }
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
           }
         }
-      },
-      {
-        "name": "preflight.check#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "preflight.check"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "settings": {
+              "defaultTuiAgent": "codex",
+              "disabledTuiAgents": ["claude"],
+              "hostSettingOverrides": {},
+              "prBotAuthorOverrides": ["bot-user"],
+              "visibleTaskProviders": ["github", "linear"]
             }
           }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
-        }
-      },
-      {
-        "name": "linear.status#1",
-        "args": [
-          {
-            "name": "method",
-            "value": "linear.status"
-          },
-          {
-            "name": "params",
-            "value": {
-              "$rpc": "absent"
-            }
-          },
-          {
-            "name": "options",
-            "value": {
-              "$rpc": "absent"
-            }
-          }
-        ],
-        "settlement": {
-          "status": "pending",
-          "startedAt": 0
         }
       }
-    ],
-    "f8958c854fa5": [
-      {
-        "name": "taskStateHydrated",
-        "value": false
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "unknown"
+    },
+    "e23c248f269a": {
+      "name": "showSortPicker",
+      "value": false
+    },
+    "e542d7c9af9f": {
+      "name": "showGitHubProjectPicker",
+      "value": false
+    },
+    "e5662efa8968": {
+      "name": "preflight.check#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "preflight.check"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
         }
-      },
-      {
-        "name": "showLinearWorkspacePicker",
-        "value": false
-      },
-      {
-        "name": "showLinearTeamPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearViewPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearGroupPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearOrderPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearDisplayPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearConnect",
-        "value": false
-      },
-      {
-        "name": "showProviderPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubKindPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPresetPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitLabFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showLinearFilterPicker",
-        "value": false
-      },
-      {
-        "name": "showSortPicker",
-        "value": false
-      },
-      {
-        "name": "showRepoPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubIssueSourcePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubPagePicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectViewPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectSortPicker",
-        "value": false
-      },
-      {
-        "name": "showGitHubProjectFieldsPicker",
-        "value": false
-      },
-      {
-        "name": "pendingGitHubProjectViewSelection",
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
         "value": {
-          "$rpc": "null"
+          "id": "frame-4",
+          "ok": true,
+          "result": {
+            "glab": {
+              "installed": false
+            }
+          }
         }
-      },
-      {
-        "name": "actionItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRepoNotInManta",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "detailPayload",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "projectRowDetail",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "showCreateTask",
-        "value": false
-      },
-      {
-        "name": "showCreateTargetPicker",
-        "value": false
-      },
-      {
-        "name": "linearStatusPickerItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingProjectGitHubMerge",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "pendingHostedStateChange",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodTaskItem",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "mergeMethodProjectRow",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "reset-workspace",
-        "value": {
-          "$rpc": "null"
-        }
-      },
-      {
-        "name": "tasksSupportState",
-        "value": {
-          "client": "logical-client",
-          "kind": "supported"
-        }
-      },
-      {
-        "name": "error",
-        "value": ""
-      },
-      {
-        "name": "error",
-        "value": "RPC interrupted by connection migration"
-      },
-      {
-        "name": "taskStateHydrated",
-        "value": false
       }
-    ]
+    },
+    "e60346521f80": {
+      "name": "ui.get#1",
+      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"ui.get\"}"
+    },
+    "eac54552d8bc": {
+      "name": "settings.get#1",
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
+    },
+    "eafaa34ddedb": {
+      "name": "visibleProviders",
+      "value": ["github", "linear"]
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "ee444fb637a3": {
+      "name": "preflight.check#1",
+      "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"preflight.check\"}"
+    },
+    "f19db62f49cd": {
+      "name": "showGitLabFilterPicker",
+      "value": false
+    },
+    "f7c5ddb715d7": {
+      "name": "pendingProjectGitHubMerge",
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "fa7ce9018e50": {
+      "name": "error",
+      "value": "Connection lost"
+    },
+    "fb70d4271ae2": {
+      "name": "linearStatusPickerItem",
+      "value": {
+        "$rpc": "null"
+      }
+    }
   },
   "recording": {
     "scenario": "schedules-settings-task-hydration-fulfilled",
@@ -3159,131 +1092,904 @@
       {
         "id": "settings-task-hydration-fulfilled.forward:sibling-pending",
         "observation": {
-          "sender": "ece0e400ef82",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d705fce957e8",
+            "5fbdd64c75bc",
+            "234fabe27913",
+            "a4760ef5a9f4"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "c3f33d88e338"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.forward:settled",
         "observation": {
-          "sender": "5a9cc1957824",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d705fce957e8",
+            "1f7d21cec906",
+            "e5662efa8968",
+            "aa624b10c314"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "58c52d8b7c76",
-          "effects": "8574a5791dce"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "326e3f8f7e0b",
+            "52bdddbac50f",
+            "4cc1535f7ccf",
+            "16f398d67267",
+            "b66eccd2062e",
+            "1410db92f7e5",
+            "5731a23b16cd",
+            "4efedb5c24f1",
+            "eafaa34ddedb",
+            "9a0f810232ef",
+            "a67d16a13986",
+            "8f287f21cfc4",
+            "45d50e768fcc",
+            "74a4162f39f8",
+            "8372342e5a51",
+            "bfd6af371d88",
+            "02d5832df83d",
+            "888c93f6f346",
+            "57da83afd125"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.reverse:sibling-pending",
         "observation": {
-          "sender": "f7ab8f398a84",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "090c88478661",
+            "1f7d21cec906",
+            "234fabe27913",
+            "a4760ef5a9f4"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "c3f33d88e338"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.reverse:settled",
         "observation": {
-          "sender": "5a9cc1957824",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d705fce957e8",
+            "1f7d21cec906",
+            "e5662efa8968",
+            "aa624b10c314"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "58c52d8b7c76",
-          "effects": "8574a5791dce"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "326e3f8f7e0b",
+            "52bdddbac50f",
+            "4cc1535f7ccf",
+            "16f398d67267",
+            "b66eccd2062e",
+            "1410db92f7e5",
+            "5731a23b16cd",
+            "4efedb5c24f1",
+            "eafaa34ddedb",
+            "9a0f810232ef",
+            "a67d16a13986",
+            "8f287f21cfc4",
+            "45d50e768fcc",
+            "74a4162f39f8",
+            "8372342e5a51",
+            "bfd6af371d88",
+            "02d5832df83d",
+            "888c93f6f346",
+            "57da83afd125"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.both-reject-forward:sibling-pending",
         "observation": {
-          "sender": "ad1a6c26758a",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d041d5155ed5",
+            "5fbdd64c75bc",
+            "234fabe27913",
+            "a4760ef5a9f4"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "4403aed122f0"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "d36257ed8dd7",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.both-reject-forward:settled",
         "observation": {
-          "sender": "21a036777905",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d041d5155ed5",
+            "d42b1a5610cf",
+            "e5662efa8968",
+            "aa624b10c314"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "4403aed122f0"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "d36257ed8dd7",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.both-reject-reverse:sibling-pending",
         "observation": {
-          "sender": "ca2e38e02916",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "090c88478661",
+            "d42b1a5610cf",
+            "234fabe27913",
+            "a4760ef5a9f4"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "b3e738cd15c7"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "5851c3d3d9e0",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.both-reject-reverse:settled",
         "observation": {
-          "sender": "21a036777905",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d041d5155ed5",
+            "d42b1a5610cf",
+            "e5662efa8968",
+            "aa624b10c314"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "b3e738cd15c7"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "5851c3d3d9e0",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.reject-peer-pending:sibling-pending",
         "observation": {
-          "sender": "ad1a6c26758a",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d041d5155ed5",
+            "5fbdd64c75bc",
+            "234fabe27913",
+            "a4760ef5a9f4"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "4403aed122f0"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "d36257ed8dd7",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.reject-peer-pending:settled",
         "observation": {
-          "sender": "029687777f22",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "d041d5155ed5",
+            "5fbdd64c75bc",
+            "e5662efa8968",
+            "aa624b10c314"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "4403aed122f0"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "d36257ed8dd7",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.timeout:settled",
         "observation": {
-          "sender": "3a9fc3afc213",
-          "payloads": "4345d70c756e",
-          "settlements": "0131611322e3",
+          "sender": [
+            "6f30f8b6f3d7",
+            "7fc945a92540",
+            "70c65c0f7a8e",
+            "baafd23158c8",
+            "ba4739591371"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "f0b7ab6c41c5"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "8f30512a5135",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.disconnect:settled",
         "observation": {
-          "sender": "6bb5a0040cbb",
-          "payloads": "4345d70c756e",
-          "settlements": "77571e1166d2",
+          "sender": [
+            "6f30f8b6f3d7",
+            "af6903aed166",
+            "68aa55411b15",
+            "586159bf259e",
+            "ae1d901c204f"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "disconnect": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "7fd922790267"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "fa7ce9018e50",
+            "bbbd4bc0a4ef"
+          ]
         }
       },
       {
         "id": "settings-task-hydration-fulfilled.client-cutover:settled",
         "observation": {
-          "sender": "e8fb43dbd296",
-          "payloads": "4345d70c756e",
-          "settlements": "8df6a469391c",
+          "sender": [
+            "6f30f8b6f3d7",
+            "06eff8247d02",
+            "a1b99265507f",
+            "47d40c6fb90c",
+            "cdeb94d60934"
+          ],
+          "payloads": [
+            "1e5b32902af7",
+            "eac54552d8bc",
+            "e60346521f80",
+            "ee444fb637a3",
+            "aba4413b55bb"
+          ],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "cutover": "eb79a9b3682a"
+          },
           "state": "c6178e6a0f4e",
-          "effects": "f8958c854fa5"
+          "effects": [
+            "bbbd4bc0a4ef",
+            "ce5f2125a8c4",
+            "b8ca6ac0e3ec",
+            "3e9fac4d6c32",
+            "367b8fc27ba4",
+            "a211e64f0900",
+            "1b3fd2de141f",
+            "bc6d9aaa835c",
+            "002ad269dd44",
+            "321a59c40cce",
+            "b80be68cd059",
+            "b82f9e80bd6a",
+            "1f96a2f943c0",
+            "f19db62f49cd",
+            "4a435aea04b4",
+            "e23c248f269a",
+            "068f4fd0ad0c",
+            "d47b67d8f357",
+            "5093ceeca936",
+            "e542d7c9af9f",
+            "03f32b62aa80",
+            "38721e31cbb4",
+            "54ea1a00a461",
+            "42d2e0167dad",
+            "ac9996319e05",
+            "12388aa75326",
+            "7f2e001f13e7",
+            "7d341b2cb946",
+            "347cc433c473",
+            "3e610f908f29",
+            "afdf1ac21a92",
+            "fb70d4271ae2",
+            "b7c9b524edd4",
+            "f7c5ddb715d7",
+            "740d91a30846",
+            "977e1de1ac2f",
+            "c78894b47bfd",
+            "991081048cc2",
+            "5b1145eb3832",
+            "82cd71d524c8",
+            "149b4ddbd6c6",
+            "bbbd4bc0a4ef"
+          ]
         }
       }
     ]

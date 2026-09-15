@@ -10,6 +10,7 @@ import {
 } from './codex-structured-acquisition-lifecycle'
 import { CodexBackgroundTaskTracker } from './codex-background-task-tracker'
 import { CodexSubagentExecutions } from './codex-subagent-executions'
+import { createCodexDispatchEchoes } from './codex-structured-dispatch-echo'
 import { createCodexJournalTranslator } from './codex-structured-journal-translation'
 import { openCodexAppServerConnection } from './codex-app-server-connection'
 import { codexProcessIdentity, codexProviderHandleLink } from './codex-structured-owner-identity'
@@ -20,9 +21,13 @@ import {
   handleCodexSessionExit
 } from './codex-structured-session-close'
 import {
-  reportedCodexThreadOptions,
+  readCodexStructuredSessionOptionCatalog,
   restoredCodexSessionOptions
 } from './codex-structured-session-options'
+import {
+  reconcileCodexFastModeOption,
+  reportedCodexThreadOptions
+} from './codex-structured-fast-mode'
 import {
   codexSessionLifecycle,
   mintCodexAcquisitionGeneration,
@@ -77,6 +82,7 @@ export async function acquireCodexStructuredSession(input: {
       ? acquireInput.identity.providerHandle.threadId
       : null
   const subagentExecutions = new CodexSubagentExecutions()
+  const dispatchEchoes = createCodexDispatchEchoes()
   const translator = acquireInput.events
     ? createCodexJournalTranslator({
         sink: acquireInput.events,
@@ -84,8 +90,16 @@ export async function acquireCodexStructuredSession(input: {
         ...(deps.now ? { now: deps.now } : {}),
         primaryThreadId: () => primaryThreadId,
         subagentExecutions,
-        bindPromptItemId: (journalItemId, threadId, promptKey) =>
-          acquisition.prompts.bindJournalItemId(journalItemId, threadId, promptKey)
+        bindPromptItemId: (journalItemId, threadId, promptKey, turnId) =>
+          acquisition.prompts.bindJournalItemId(journalItemId, threadId, promptKey, turnId),
+        clearPromptTurn: (threadId, turnId) => acquisition.prompts.clearTurn(threadId, turnId),
+        onUserMessageEcho: (clientMessageId, providerIdentity) => {
+          // Only a send THIS session admitted; an echo from history restore or
+          // another client names no submission of ours to settle.
+          if (dispatchEchoes.settle(clientMessageId)) {
+            deps.onDispatchSettledLate?.({ sessionId, clientMessageId, providerIdentity })
+          }
+        }
       })
     : null
   const open = deps.openConnection ?? openCodexAppServerConnection
@@ -196,6 +210,23 @@ export async function acquireCodexStructuredSession(input: {
       throw new Error(`codex app-server for session ${sessionId} exited while being acquired`)
     }
     acquisitions.assertCurrent(sessionId, attempt)
+    const options = restoredCodexSessionOptions(acquireInput.options)
+    const fastModeCatalog =
+      options.get('fastMode') === 'true' || options.has('serviceTier')
+        ? await readCodexStructuredSessionOptionCatalog({
+            connection,
+            current: {
+              ...(opened.model ? { model: opened.model } : {}),
+              ...(opened.effort ? { effort: opened.effort } : {}),
+              fastMode: true
+            },
+            timeoutMs: deps.requestTimeoutMs
+          }).catch(() => null)
+        : null
+    acquisitions.assertCurrent(sessionId, attempt)
+    if (connection.closed) {
+      throw new Error(`codex app-server for session ${sessionId} exited while being acquired`)
+    }
     acquisitions.deleteIfCurrent(sessionId, attempt)
     const session: CodexSession = {
       connection,
@@ -205,9 +236,10 @@ export async function acquireCodexStructuredSession(input: {
       historyMode: opened.historyMode,
       activeTurnIds: new Set(),
       prompts: acquisition.prompts,
-      options: restoredCodexSessionOptions(acquireInput.options),
+      options,
       reportedOptions: reportedCodexThreadOptions(opened),
-      turnIdWaiters: [],
+      fastModeTierByModel: fastModeCatalog?.fastModeTierByModel ?? new Map(),
+      dispatchEchoes,
       translator,
       backgroundTasks: new CodexBackgroundTaskTracker(opened.threadId, subagentExecutions),
       forceCloseUnexpected: (reason) =>
@@ -218,6 +250,16 @@ export async function acquireCodexStructuredSession(input: {
           reason
         ),
       ...(unbindReadingControl ? { unbindReadingControl } : {})
+    }
+    if (fastModeCatalog) {
+      const model = opened.model ?? fastModeCatalog.result.current.model
+      reconcileCodexFastModeOption(session, {
+        fastModeTierByModel: fastModeCatalog.fastModeTierByModel,
+        currentFastMode: true,
+        model,
+        modelFastModeSupport: fastModeCatalog.result.models.find((entry) => entry.id === model)
+          ?.supportsFastMode
+      })
     }
     turnCancellation.register(session)
     sessions.set(sessionId, session)

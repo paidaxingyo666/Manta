@@ -994,14 +994,20 @@
       "useComposerState": {
         "7eb3f44ff7": "Selected agent is disabled. Choose an enabled agent before creating.",
         "b2ead86962": "Failed to resolve PR base.",
-        "a9ff236145": "Some attachments could not be uploaded.",
         "3db83fc58a": "No project path is available on this host for attachments.",
         "ba6cb77082": "Failed to connect to project.",
         "chooseOrAddProjectBeforeWorkspace": "Choose or add a project before creating a workspace.",
         "folderWorkspaceCreateFailedTitle": "Folder workspace creation failed",
         "folderWorkspaceCreateFailedMessage": "The folder workspace could not be created. Check the error details above, then try again.",
         "setupAgentStartupPolicySaveFailed": "Failed to save setup startup behavior.",
-        "5f3d2c8a1b": "Failed to resolve MR base."
+        "5f3d2c8a1b": "Failed to resolve MR base.",
+        "dropPartiallyAttached": "{{failureCount}} of {{count}} items could not be attached.",
+        "dropPartiallyAttached_one": "{{failureCount}} of {{count}} item could not be attached.",
+        "dropPartiallyAttached_other": "{{failureCount}} of {{count}} items could not be attached.",
+        "attachSkipMissing": "No longer at its original path.",
+        "attachSkipSymlink": "Symbolic links cannot be attached.",
+        "attachSkipPermissionDenied": "Permission denied.",
+        "attachSkipUnsupported": "Unsupported file type."
       },
       "useGlobalFileDrop": {
         "38c9f034ff": "Failed to upload dropped files.",
@@ -2595,7 +2601,9 @@
           },
           "ProjectViewStates": {
             "ac83c45672": "Switch to a Table or Roadmap view to work with this project in Manta.",
-            "e4cc8b14f2": "Manta renders table and roadmap project views. This view uses a layout it cannot render yet."
+            "e4cc8b14f2": "Manta renders table and roadmap project views. This view uses a layout it cannot render yet.",
+            "3b9c1d5e47": "This view has no items yet.",
+            "7e4a2f80c6": "Recently added items can take a while to appear."
           }
         },
         "GitHubMarkdownComposer": {
@@ -11888,7 +11896,9 @@
               "storedAuthFailed": "The saved Bitbucket credential could not authenticate. Edit it, or check that the token still has pull request access.",
               "storedCredential": "Saved in Manta on this machine. MANTA_BITBUCKET_* environment variables take precedence when set.",
               "notConfigured": "Connect a Bitbucket Cloud account with an Atlassian API token or an access token. MANTA_BITBUCKET_* environment variables work too and take precedence.",
-              "disconnectFailed": "Could not remove the saved Bitbucket credential."
+              "disconnectFailed": "Could not remove the saved Bitbucket credential.",
+              "statusLoadFailed": "Could not check for a saved Bitbucket credential.",
+              "replaceCredentials": "Add or replace credentials"
             }
           }
         },
@@ -12499,7 +12509,12 @@
             "f3a1b8c204": "upstream",
             "createPrIntentGenerateDetailsFailed": "Could not generate review details. Retry Create PR.",
             "657e0c90ad_one": "{{value0}} note",
-            "657e0c90ad_other": "{{value0}} notes"
+            "657e0c90ad_other": "{{value0}} notes",
+            "entryStageFailed": "Failed to stage “{{value0}}”",
+            "entryUnstageFailed": "Failed to unstage “{{value0}}”",
+            "entryDiscardFailed": "Failed to discard “{{value0}}”",
+            "entryDeleteFailed": "Failed to delete “{{value0}}”",
+            "entryFailedInWorkspace": "{{value0}} in {{value1}}"
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
@@ -14430,7 +14445,8 @@
                 "4e71d72912": "Claude sign-in failed.",
                 "9ddeb558f9": "Claude account added.",
                 "29d0653961": "Sign in",
-                "945865332e": "Signing in"
+                "945865332e": "Signing in",
+                "accountStatusUnknown": "Account status unknown"
               },
               "UsagePage": {
                 "64265cb295": "29% used 5h",
@@ -17235,7 +17251,8 @@
         "chooseInAgentPicker": "Choose in agent picker…",
         "toggleOption": "Toggle {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "Current value unknown — pick On or Off",
+        "valueIsDefault": "Default",
+        "valueNotReported": "Not reported",
         "sentNotConfirmed": "Sent to the agent — not confirmed",
         "setWhenSessionStarts": "Set when the session starts.",
         "availableAfterSessionStarts": "Available after the session starts.",
@@ -17248,9 +17265,7 @@
           "high": "High",
           "xhigh": "Extra high",
           "max": "Max",
-          "ultra": "Ultra",
-          "on": "On",
-          "off": "Off"
+          "ultra": "Ultra"
         },
         "pendingAttachmentLimit": "Too many attachments are waiting. Finish composing before attaching more.",
         "viewAttachment": "View image",
@@ -17381,7 +17396,8 @@
       "approval": {
         "title": "Allow {{value0}}?",
         "allow": "Allow",
-        "deny": "Deny"
+        "deny": "Deny",
+        "cancel": "Cancel"
       },
       "launchPromptNotDelivered": "Not delivered — check the terminal",
       "structuredSessionCloseFailed": "Could not close this chat session",
@@ -17446,7 +17462,12 @@
       "conversationCommand": {
         "pendingWork": "Wait for pending work and messages to finish before using this command.",
         "unconfirmed": "Conversation operation was not confirmed."
-      }
+      },
+      "drop": {
+        "title": "Drop to attach to this chat",
+        "subtitle": "Files are added to your message as paths the agent can read."
+      },
+      "copyCode": "Copy code"
     },
     "tab": {
       "bar": {
@@ -17749,6 +17770,24 @@
         "copySessionIdSuccess": "Session ID copied",
         "copySessionIdError": "Unable to copy session ID"
       }
+    },
+    "settings": {
+      "TerminalInteraction": {
+        "copyTrimsGutter": "Trim Gutter on Copy",
+        "copyTrimsGutterDescription": "Drop the left gutter agent output is painted behind, so copied text is not indented. Only the indent every selected line shares is removed."
+      },
+      "terminal": {
+        "clipboard": {
+          "search": {
+            "gutter": "gutter",
+            "indent": "indent",
+            "margin": "margin",
+            "leading": "leading",
+            "whitespace": "whitespace",
+            "spaces": "spaces"
+          }
+        }
+      }
     }
   },
   "dashboardPopout": {
@@ -17999,5 +18038,15 @@
       "stopped": "stopped",
       "finished": "finished"
     }
+  },
+  "aiVault": {
+    "subagents": {
+      "loading": "Loading subagents…",
+      "loadError": "Could not load all subagents.",
+      "empty": "No subagents found."
+    }
+  },
+  "common": {
+    "retry": "Retry"
   }
 }

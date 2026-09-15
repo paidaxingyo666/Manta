@@ -53,6 +53,7 @@ export function NativeChatMessageList({
   settledTurns,
   failedDeliveryMessageIds,
   showTurnStatus = true,
+  showLiveTurnActivity = true,
   turnActivity,
   runtimeContext
 }: {
@@ -71,6 +72,8 @@ export function NativeChatMessageList({
   failedDeliveryMessageIds?: ReadonlySet<string>
   /** Turn timing and disclosure are available on structured agent sessions. */
   showTurnStatus?: boolean
+  /** Whether the active turn's foreground activity row should be visible. */
+  showLiveTurnActivity?: boolean
   turnActivity?: NativeChatTurnActivity | null
   runtimeContext?: RuntimeFileOperationArgs | null
 }): React.JSX.Element {
@@ -206,7 +209,10 @@ export function NativeChatMessageList({
     hasMore,
     loadingEarlier,
     loadEarlier,
-    alignToViewportTop: transcriptWindow.alignToViewportTop
+    alignToViewportTop: transcriptWindow.alignToViewportTop,
+    scrollToEnd: transcriptWindow.scrollToEnd,
+    consumeProgrammaticScroll: transcriptWindow.consumeProgrammaticScroll,
+    reconcileReaderScroll: transcriptWindow.reconcileReaderScroll
   })
 
   const rowContext = useMemo<NativeChatTranscriptRowContext>(
@@ -250,7 +256,8 @@ export function NativeChatMessageList({
             // Named so measurement can find the scroll root without depending on
             // which utility class happens to make it scroll.
             data-native-chat-scroll
-            className="scrollbar-sleek relative h-full overflow-y-auto [scrollbar-gutter:stable_both-edges]"
+            // Browser anchoring would add unattributed movement beside the virtualizer's anchor.
+            className="scrollbar-sleek relative h-full overflow-y-auto [overflow-anchor:none] [scrollbar-gutter:stable_both-edges]"
             // Why: `zoom` scales the chat transcript's text and layout together,
             // scoped to this pane so the rest of the app is untouched. It sits on
             // the scroll container rather than the content inside it so that
@@ -285,7 +292,7 @@ export function NativeChatMessageList({
                   context={rowContext}
                   window={transcriptWindow}
                 />
-                {showTurnStatus && isWorking ? (
+                {showTurnStatus && showLiveTurnActivity && isWorking ? (
                   <NativeChatTurnActivityLine
                     activity={turnActivity}
                     status={turnStatuses.active}

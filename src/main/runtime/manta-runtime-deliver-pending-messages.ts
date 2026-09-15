@@ -111,7 +111,8 @@ export class MantaRuntimeWithDeliverPendingMessages extends MantaRuntimeWithReso
               if (
                 currentLeaf?.ptyId === probedPtyId &&
                 currentLeaf.lastAgentStatus === 'idle' &&
-                currentLeaf.lastAgentStatusObservedLive
+                currentLeaf.lastAgentStatusObservedLive &&
+                this.checkDeliverySettledAndArmRecheck(currentLeaf)
               ) {
                 this.deliverPendingMessages(currentLeaf, {
                   mailboxHandle,
