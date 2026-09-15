@@ -1,13 +1,13 @@
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { readScenarios } from './scenario-input'
-import { readGolden } from './golden-recording'
-import { runRecordingMutant } from './run-recording'
-import { pilotMountAdapters } from './pilot-mount-adapters'
-import { vitestRecordingScheduler } from './vitest-recording-scheduler'
-import type { Mutation } from './operation-mutations'
+import { readScenarios } from '../scenario-input'
+import { readGolden } from '../golden-recording'
+import { runRecordingMutant } from '../run-recording'
+import { pilotMountAdapters } from '../pilot-mount-adapters'
+import { vitestRecordingScheduler } from '../vitest-recording-scheduler'
+import { operationMutation, type Mutation } from './operation-mutations'
 
-const root = resolve(import.meta.dirname, '../../../..')
+const root = resolve(import.meta.dirname, '../../../../..')
 const input = readScenarios(
   process.env.RPC_FOUNDATION_SCENARIOS ??
     resolve(root, 'mobile/rpc-foundation/pilot-scenarios.json')
@@ -39,7 +39,9 @@ const HOLES: readonly { mutation: Mutation; operation: string; closedBy: readonl
 
 async function verdict(id: string, mutation: Mutation): Promise<string> {
   const scenario = input.scenarios.find((candidate) => candidate.id === id)!
-  const { adapters, assertMutationApplied } = pilotMountAdapters(root, { mutation })
+  const { adapters, assertMutationApplied } = pilotMountAdapters(root, {
+    mutation: operationMutation(mutation)
+  })
   const result = await runRecordingMutant(
     scenario,
     adapters[scenario.operation],

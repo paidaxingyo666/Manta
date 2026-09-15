@@ -1,7 +1,7 @@
-import type { MountAdapter } from './recording-scenario'
-import { hookMount, performHookAction } from './hook-mount'
-import { observableModel, projectObservable } from './observable-model'
-import type { operationModuleLoader } from './operation-module-loader'
+import type { MountAdapter } from '../recording-scenario'
+import { hookMount, performHookAction } from '../hook-mount'
+import { observableModel, projectObservable } from '../observable-model'
+import type { operationModuleLoader } from '../operation-module-loader'
 
 const REPO = 'repo-1'
 
@@ -18,7 +18,7 @@ export function taskWorkspaceHookMountAdapters(
   function sshStateAdapter(connectionId: string | undefined): MountAdapter {
     return (context) => {
       const useSsh = modules.load<
-        typeof import('../../tasks/use-mobile-tasks-workspace-ssh-state')
+        typeof import('../../../tasks/use-mobile-tasks-workspace-ssh-state')
       >('mobile/src/tasks/use-mobile-tasks-workspace-ssh-state.tsx').useMobileTasksWorkspaceSshState
       const repo = { id: REPO, displayName: 'Repo', connectionId }
       const model = observableModel(context, {
@@ -85,7 +85,7 @@ export function taskWorkspaceHookMountAdapters(
   return {
     'tasks.workspace-source': (context) => {
       const useEffects = modules.load<
-        typeof import('../../tasks/use-mobile-tasks-workspace-source-effects')
+        typeof import('../../../tasks/use-mobile-tasks-workspace-source-effects')
       >(
         'mobile/src/tasks/use-mobile-tasks-workspace-source-effects.tsx'
       ).useMobileTasksWorkspaceSourceEffects
@@ -136,7 +136,7 @@ export function taskWorkspaceHookMountAdapters(
     },
     'tasks.workspace-sparse': (context) => {
       const useSparse = modules.load<
-        typeof import('../../tasks/use-mobile-tasks-workspace-sparse-actions')
+        typeof import('../../../tasks/use-mobile-tasks-workspace-sparse-actions')
       >(
         'mobile/src/tasks/use-mobile-tasks-workspace-sparse-actions.tsx'
       ).useMobileTasksWorkspaceSparseActions

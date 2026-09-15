@@ -1,5 +1,5 @@
-import type { MountAdapter } from './recording-scenario'
-import type { operationModuleLoader } from './operation-module-loader'
+import type { MountAdapter } from '../recording-scenario'
+import type { operationModuleLoader } from '../operation-module-loader'
 
 const REPO = 'repo-1'
 const REPO_SELECTOR = `id:${REPO}`
@@ -15,7 +15,7 @@ export function taskWorkspaceSenderMountAdapters(
 ): Record<string, MountAdapter> {
   return {
     'tasks.worktree-create-retry': ({ client }) => {
-      const create = modules.load<typeof import('../../tasks/worktree-create-retry')>(
+      const create = modules.load<typeof import('../../../tasks/worktree-create-retry')>(
         'mobile/src/tasks/worktree-create-retry.ts'
       ).createWorktreeWithNameRetry
       let outcome: unknown = 'uncreated'
@@ -41,7 +41,7 @@ export function taskWorkspaceSenderMountAdapters(
       }
     },
     'tasks.worktree-capabilities': ({ client }) => {
-      const read = modules.load<typeof import('../../tasks/worktree-create-capability')>(
+      const read = modules.load<typeof import('../../../tasks/worktree-create-capability')>(
         'mobile/src/tasks/worktree-create-capability.ts'
       ).readNewWorktreeRuntimeCapabilities
       let capabilities: unknown = 'unprobed'
@@ -56,7 +56,7 @@ export function taskWorkspaceSenderMountAdapters(
       }
     },
     'tasks.composer-hosted-base': ({ client }) => {
-      const resolve = modules.load<typeof import('../../tasks/composer-source-base-resolve')>(
+      const resolve = modules.load<typeof import('../../../tasks/composer-source-base-resolve')>(
         'mobile/src/tasks/composer-source-base-resolve.ts'
       )
       let prBase: unknown = 'unresolved'
@@ -83,7 +83,7 @@ export function taskWorkspaceSenderMountAdapters(
       }
     },
     'tasks.setup-hook-trust': ({ client }) => {
-      const persist = modules.load<typeof import('../../tasks/setup-hook-trust')>(
+      const persist = modules.load<typeof import('../../../tasks/setup-hook-trust')>(
         'mobile/src/tasks/setup-hook-trust.ts'
       ).persistSetupHookTrustApproval
       let trust: unknown = 'unapproved'
@@ -104,7 +104,7 @@ export function taskWorkspaceSenderMountAdapters(
       }
     },
     'tasks.smart-source-search': ({ client }) => {
-      const search = modules.load<typeof import('../../tasks/smart-source-search-requests')>(
+      const search = modules.load<typeof import('../../../tasks/smart-source-search-requests')>(
         'mobile/src/tasks/smart-source-search-requests.ts'
       )
       const results: Record<string, unknown> = {}
@@ -133,7 +133,7 @@ export function taskWorkspaceSenderMountAdapters(
       }
     },
     'tasks.paste-lookup': ({ client }) => {
-      const paste = modules.load<typeof import('../../tasks/smart-source-paste-intent')>(
+      const paste = modules.load<typeof import('../../../tasks/smart-source-paste-intent')>(
         'mobile/src/tasks/smart-source-paste-intent.ts'
       )
       const slugCache = new Map<string, { owner: string; repo: string; host?: string } | null>()

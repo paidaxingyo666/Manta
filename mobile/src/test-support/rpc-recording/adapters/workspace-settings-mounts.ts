@@ -1,7 +1,7 @@
-import type { MountAdapter } from './recording-scenario'
-import { hookMount, performHookAction } from './hook-mount'
-import { observableModel, projectObservable } from './observable-model'
-import { operationModuleLoader } from './operation-module-loader'
+import type { MountAdapter } from '../recording-scenario'
+import { hookMount, performHookAction } from '../hook-mount'
+import { observableModel, projectObservable } from '../observable-model'
+import { operationModuleLoader } from '../operation-module-loader'
 
 export function workspaceSettingsMounts(
   modules: ReturnType<typeof operationModuleLoader>
@@ -17,7 +17,7 @@ export function workspaceSettingsMounts(
   }): MountAdapter {
     return (context) => {
       const useCreate = modules.load<
-        typeof import('../../tasks/use-mobile-tasks-workspace-create-actions')
+        typeof import('../../../tasks/use-mobile-tasks-workspace-create-actions')
       >(
         'mobile/src/tasks/use-mobile-tasks-workspace-create-actions.tsx'
       ).useMobileTasksWorkspaceCreateActions
@@ -78,7 +78,7 @@ export function workspaceSettingsMounts(
   return {
     'settings.workspace-submit': (context) => {
       const useSubmit = modules.load<
-        typeof import('../../components/use-new-workspace-create-submit')
+        typeof import('../../../components/use-new-workspace-create-submit')
       >('mobile/src/components/use-new-workspace-create-submit.ts').useNewWorkspaceCreateSubmit
       const model = observableModel(context, {
         client: context.client,

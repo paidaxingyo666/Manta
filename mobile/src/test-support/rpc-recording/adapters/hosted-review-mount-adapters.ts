@@ -1,5 +1,5 @@
-import type { MountAdapter } from './recording-scenario'
-import { operationModuleLoader } from './operation-module-loader'
+import type { MountAdapter } from '../recording-scenario'
+import { operationModuleLoader } from '../operation-module-loader'
 
 const WORKTREE = 'repo42::/p'
 
@@ -17,7 +17,7 @@ export function hostedReviewMountAdapters(
   return {
     'source-control.review-git-preparation': ({ client }) => {
       const preparation = modules.load<
-        typeof import('../../source-control/mobile-hosted-review-git-preparation')
+        typeof import('../../../source-control/mobile-hosted-review-git-preparation')
       >('mobile/src/source-control/mobile-hosted-review-git-preparation.ts')
       let status: unknown = 'unread'
       let committed: unknown = 'uncommitted'
@@ -42,7 +42,7 @@ export function hostedReviewMountAdapters(
     },
     'source-control.remote-prerequisite': (context) => {
       const apply = modules.load<
-        typeof import('../../source-control/mobile-hosted-review-remote-prerequisite')
+        typeof import('../../../source-control/mobile-hosted-review-remote-prerequisite')
       >(
         'mobile/src/source-control/mobile-hosted-review-remote-prerequisite.ts'
       ).applyMobileHostedReviewRemotePrerequisite
@@ -74,7 +74,7 @@ export function hostedReviewMountAdapters(
     },
     'source-control.hosted-review-eligibility': ({ client }) => {
       const service = modules.load<
-        typeof import('../../source-control/mobile-hosted-review-service')
+        typeof import('../../../source-control/mobile-hosted-review-service')
       >('mobile/src/source-control/mobile-hosted-review-service.ts')
       let eligibility: unknown = 'unfetched'
       let prefill: unknown = 'unresolved'
@@ -104,7 +104,7 @@ export function hostedReviewMountAdapters(
     },
     'source-control.hosted-review-create': ({ client }) => {
       const create = modules.load<
-        typeof import('../../source-control/mobile-hosted-review-service')
+        typeof import('../../../source-control/mobile-hosted-review-service')
       >('mobile/src/source-control/mobile-hosted-review-service.ts').createMobileHostedReview
       let outcome: unknown = 'uncreated'
       return {
@@ -127,7 +127,7 @@ export function hostedReviewMountAdapters(
     },
     'source-control.create-intent': (context) => {
       const run = modules.load<
-        typeof import('../../source-control/mobile-hosted-review-create-intent-runner')
+        typeof import('../../../source-control/mobile-hosted-review-create-intent-runner')
       >(
         'mobile/src/source-control/mobile-hosted-review-create-intent-runner.ts'
       ).runMobileHostedReviewCreateIntent

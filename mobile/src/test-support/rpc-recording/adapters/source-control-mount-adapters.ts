@@ -1,5 +1,5 @@
-import type { MountAdapter } from './recording-scenario'
-import { operationModuleLoader } from './operation-module-loader'
+import type { MountAdapter } from '../recording-scenario'
+import { operationModuleLoader } from '../operation-module-loader'
 
 const WORKTREE = 'repo42::/p'
 
@@ -12,7 +12,7 @@ export function sourceControlMountAdapters(
 ): Record<string, MountAdapter> {
   return {
     'source-control.branch-base-ref': ({ client }) => {
-      const resolve = modules.load<typeof import('../../source-control/mobile-branch-base-ref')>(
+      const resolve = modules.load<typeof import('../../../source-control/mobile-branch-base-ref')>(
         'mobile/src/source-control/mobile-branch-base-ref.ts'
       ).resolveMobileBranchCompareBaseRef
       let baseRef: unknown = 'unresolved'
@@ -27,7 +27,7 @@ export function sourceControlMountAdapters(
       }
     },
     'source-control.git-history': ({ client }) => {
-      const history = modules.load<typeof import('../../source-control/mobile-git-history')>(
+      const history = modules.load<typeof import('../../../source-control/mobile-git-history')>(
         'mobile/src/source-control/mobile-git-history.ts'
       )
       let rows: unknown = 'unloaded'
@@ -42,7 +42,7 @@ export function sourceControlMountAdapters(
       }
     },
     'source-control.commit-message': ({ client }) => {
-      const ai = modules.load<typeof import('../../source-control/mobile-commit-message-ai')>(
+      const ai = modules.load<typeof import('../../../source-control/mobile-commit-message-ai')>(
         'mobile/src/source-control/mobile-commit-message-ai.ts'
       )
       let generated: unknown = 'ungenerated'
@@ -61,7 +61,7 @@ export function sourceControlMountAdapters(
       }
     },
     'source-control.pr-link': ({ client }) => {
-      const link = modules.load<typeof import('../../source-control/mobile-pr-link')>(
+      const link = modules.load<typeof import('../../../source-control/mobile-pr-link')>(
         'mobile/src/source-control/mobile-pr-link.ts'
       )
       let outcome: unknown = 'unlinked'
@@ -93,7 +93,7 @@ export function sourceControlMountAdapters(
     },
     'source-control.session-diff-reveal': ({ client }) => {
       const reveal = modules.load<
-        typeof import('../../source-control/reveal-mobile-source-control-session-diff')
+        typeof import('../../../source-control/reveal-mobile-source-control-session-diff')
       >(
         'mobile/src/source-control/reveal-mobile-source-control-session-diff.ts'
       ).revealMobileSourceControlSessionDiff
