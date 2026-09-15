@@ -160,10 +160,11 @@ export function useNativeChatTranscriptWindow({
       }
     }
   })
-
-  // Growing a row that spans the viewport changes content below the reader's anchor.
+  // Preserve rows above the reader, never compensate growth within the visible
+  // row — including its first measurement, which may follow an exact estimate.
   virtualizer.shouldAdjustScrollPositionOnItemSizeChange = (item, _delta, instance) =>
-    item.end <= (instance.scrollOffset ?? 0)
+    item.end <= (instance.scrollOffset ?? 0) &&
+    (instance.scrollDirection !== 'backward' || !instance.itemSizeCache.has(item.key))
 
   const finishReaderTakeover = useCallback(() => {
     if (readerTakeoverFrameRef.current !== null) {
