@@ -1311,6 +1311,20 @@ jobs:
           echo "identity=$identity" >>"$GITHUB_OUTPUT"
           echo "Classified $TAG as $identity"
 
+      # Why here and not in build:relay: only a Windows runner can compile it, and
+      # arm64 cross-compiles from this same x64 agent. Mirrors dev-channel-win-build.yml,
+      # which had it while release-cut did not — so every stable installer through
+      # v1.4.203 shipped Windows relays with no windows-process-tree.node, silently
+      # falling back to the PowerShell scan on every Windows SSH host.
+      # Why no run_attempt guard, unlike the artifact steps below: Build app is ungated,
+      # so a rerun would reach the required-addon check with nothing staged and fail.
+      - name: Build Windows process-table addon for the relay
+        if: matrix.platform == 'win'
+        shell: bash
+        run: |
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=x64
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=arm64
+
       # Why MANTA_POSTHOG_WRITE_KEY here: this is the only build that
       # produces a published binary, so this is the only place the secret
       # needs to be in scope. The key is a PostHog *project* API key, not
@@ -1333,6 +1347,9 @@ jobs:
           MANTA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
           MANTA_POSTHOG_WRITE_KEY: ${{ secrets.MANTA_POSTHOG_WRITE_KEY }}
+          # Fail the release rather than ship a relay that silently falls back to
+          # the PowerShell scan on every Windows SSH host.
+          MANTA_REQUIRE_RELAY_NATIVE_ADDONS: ${{ matrix.platform == 'win' && 'x64,arm64' || '' }}
 
       - name: Gate runtime file-watcher process isolation
         if: runner.os == 'Linux'
