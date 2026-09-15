@@ -11,7 +11,18 @@ import { pairingJournalMountAdapters } from './pairing-journal-mount-adapters'
 import { relayCredentialMountAdapters } from './relay-credential-mount-adapters'
 import { settingsMountAdapters, settingsMountExposures } from './settings-mount-adapters'
 import { sourceControlMountAdapters } from './source-control-mount-adapters'
+import { taskItemChecksStatusMountAdapters } from './task-item-checks-status-mount-adapters'
+import { taskItemConversationMountAdapters } from './task-item-conversation-mount-adapters'
+import { taskItemDetailMountAdapters } from './task-item-detail-mount-adapters'
+import { taskItemHostedMetadataMountAdapters } from './task-item-hosted-metadata-mount-adapters'
+import { taskItemMetadataMountAdapters } from './task-item-metadata-mount-adapters'
+import { taskListMountAdapters } from './task-list-mount-adapters'
 import { taskMountAdapters } from './task-mount-adapters'
+import { taskProjectBoardLoadMountAdapters } from './task-project-board-load-mount-adapters'
+import { taskProjectRowCommentMountAdapters } from './task-project-row-comment-mount-adapters'
+import { taskProjectRowFieldMountAdapters } from './task-project-row-field-mount-adapters'
+import { taskProjectRowMergeMountAdapters } from './task-project-row-merge-mount-adapters'
+import { taskProjectRowReadMountAdapters } from './task-project-row-read-mount-adapters'
 import { taskWorkspaceHookMountAdapters } from './task-workspace-hook-mount-adapters'
 import { taskWorkspaceSenderMountAdapters } from './task-workspace-sender-mount-adapters'
 import { transportStatusMountAdapters } from './transport-status-mount-adapters'
@@ -45,15 +56,32 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
     exposes: settingsMountExposures
   },
   { source: 'source-control-mount-adapters.ts', mounts: sourceControlMountAdapters },
+  {
+    source: 'task-item-checks-status-mount-adapters.ts',
+    mounts: taskItemChecksStatusMountAdapters
+  },
+  { source: 'task-item-conversation-mount-adapters.ts', mounts: taskItemConversationMountAdapters },
+  { source: 'task-item-detail-mount-adapters.ts', mounts: taskItemDetailMountAdapters },
+  {
+    source: 'task-item-hosted-metadata-mount-adapters.ts',
+    mounts: taskItemHostedMetadataMountAdapters
+  },
+  { source: 'task-item-metadata-mount-adapters.ts', mounts: taskItemMetadataMountAdapters },
+  { source: 'task-list-mount-adapters.ts', mounts: taskListMountAdapters },
   { source: 'task-mount-adapters.ts', mounts: taskMountAdapters },
   {
-    source: 'task-workspace-hook-mount-adapters.ts',
-    mounts: taskWorkspaceHookMountAdapters
+    source: 'task-project-board-load-mount-adapters.ts',
+    mounts: taskProjectBoardLoadMountAdapters
   },
   {
-    source: 'task-workspace-sender-mount-adapters.ts',
-    mounts: taskWorkspaceSenderMountAdapters
+    source: 'task-project-row-comment-mount-adapters.ts',
+    mounts: taskProjectRowCommentMountAdapters
   },
+  { source: 'task-project-row-field-mount-adapters.ts', mounts: taskProjectRowFieldMountAdapters },
+  { source: 'task-project-row-merge-mount-adapters.ts', mounts: taskProjectRowMergeMountAdapters },
+  { source: 'task-project-row-read-mount-adapters.ts', mounts: taskProjectRowReadMountAdapters },
+  { source: 'task-workspace-hook-mount-adapters.ts', mounts: taskWorkspaceHookMountAdapters },
+  { source: 'task-workspace-sender-mount-adapters.ts', mounts: taskWorkspaceSenderMountAdapters },
   { source: 'transport-status-mount-adapters.ts', mounts: transportStatusMountAdapters },
   { source: 'workspace-settings-mounts.ts', mounts: workspaceSettingsMounts },
   { source: 'worktree-catalog-mount-adapters.ts', mounts: worktreeCatalogMountAdapters }

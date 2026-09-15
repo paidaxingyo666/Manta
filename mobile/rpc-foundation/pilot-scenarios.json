@@ -10663,6 +10663,2516 @@
           "checkpoint": "published-after-cutover-reask"
         }
       ]
+    },
+    {
+      "id": "tk-item-detail-github",
+      "operation": "tasks.item-detail-github",
+      "version": 1,
+      "family": "tasks.item-detail-github",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-item-detail-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "github.workItemDetails#1",
+          "params": {
+            "number": 12,
+            "repo": "id:repo-1",
+            "type": "pr"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "body": "body",
+              "comments": [],
+              "item": {
+                "labels": ["bug"],
+                "reviewDecision": "APPROVED",
+                "reviewRequests": [],
+                "latestReviews": []
+              },
+              "assignees": ["octocat"],
+              "headSha": "head-sha",
+              "baseSha": "base-sha",
+              "pullRequestId": "PR_kwDO",
+              "checks": [],
+              "files": []
+            }
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-detail-gitlab",
+      "operation": "tasks.item-detail-gitlab",
+      "version": 1,
+      "family": "tasks.item-detail-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-item-detail-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "gitlab.workItemDetails#1",
+          "params": {
+            "iid": 4,
+            "projectRef": "group/project",
+            "repo": "id:repo-1",
+            "type": "issue"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "body": "body",
+              "comments": [],
+              "item": {
+                "labels": ["bug"],
+                "mergeable": "MERGEABLE"
+              },
+              "assignees": [],
+              "pipelineJobs": [],
+              "reviewers": [],
+              "approvalState": {
+                "approvalsRequired": 1,
+                "approvalsLeft": 0
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-detail-linear",
+      "operation": "tasks.item-detail-linear",
+      "version": 1,
+      "family": "tasks.item-detail-linear",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-item-detail-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "linear.getIssue#1",
+          "params": {
+            "id": "issue-1",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "id": "issue-2",
+              "identifier": "ENG-2",
+              "title": "A sub-issue",
+              "url": "",
+              "description": "a description",
+              "state": {
+                "name": "Todo",
+                "type": "unstarted",
+                "color": "#000"
+              },
+              "team": {
+                "id": "team-1",
+                "key": "ENG",
+                "name": "Engineering"
+              },
+              "labels": [],
+              "priority": 0,
+              "updatedAt": "2020-01-01T00:00:00.000Z",
+              "workspaceId": "linear-workspace",
+              "subIssues": []
+            }
+          }
+        },
+        {
+          "complete": "linear.issueComments#1",
+          "params": {
+            "issueId": "issue-1",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": "comment-1",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z",
+                "user": {
+                  "displayName": "Octo"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-detail-metadata",
+      "operation": "tasks.item-detail-metadata",
+      "version": 1,
+      "family": "tasks.item-detail-metadata",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-item-detail-metadata-effects.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "github.listLabels#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": ["bug", "chore"]
+          }
+        },
+        {
+          "complete": "github.listAssignableUsers#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "login": "octocat",
+                "name": "Octo",
+                "avatarUrl": null
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-linear-team-context",
+      "operation": "tasks.linear-team-context",
+      "version": 1,
+      "family": "tasks.linear-team-context",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-list-and-detail-effects.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "open-composer",
+          "id": "open-composer-0"
+        },
+        {
+          "complete": "linear.listTeams#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": "team-1",
+                "key": "ENG",
+                "name": "Engineering",
+                "workspaceId": "linear-workspace"
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "open-composer-settled"
+        },
+        {
+          "action": "select-metadata-item",
+          "id": "select-metadata-item-1"
+        },
+        {
+          "complete": "linear.teamStates#1",
+          "params": {
+            "teamId": "team-1",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": "state-1",
+                "name": "Todo",
+                "type": "unstarted",
+                "color": "#000000"
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "select-metadata-item-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-provider-load",
+      "operation": "tasks.provider-load",
+      "version": 1,
+      "family": "tasks.provider-load",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-provider-load-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "linear-context",
+          "id": "linear-context-0"
+        },
+        {
+          "complete": "linear.status#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "connected": true,
+              "workspaces": [
+                {
+                  "id": "linear-workspace",
+                  "name": "Workspace"
+                }
+              ],
+              "selectedWorkspaceId": "linear-workspace"
+            }
+          }
+        },
+        {
+          "complete": "linear.listTeams#1",
+          "params": {
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": "team-1",
+                "key": "ENG",
+                "name": "Engineering",
+                "workspaceId": "linear-workspace"
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "linear-context-settled"
+        },
+        {
+          "action": "persist-teams",
+          "id": "persist-teams-1"
+        },
+        {
+          "complete": "settings.update#1",
+          "params": {
+            "defaultLinearTeamSelection": ["team-1"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "persist-teams-settled"
+        },
+        {
+          "action": "github-page",
+          "id": "github-page-2"
+        },
+        {
+          "complete": "github.listWorkItems#1",
+          "params": {
+            "before": {
+              "$undefined": true
+            },
+            "limit": 36,
+            "query": "is:issue bug",
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "items": [
+                {
+                  "id": "issue:9",
+                  "type": "issue",
+                  "number": 9,
+                  "title": "An issue",
+                  "state": "open",
+                  "url": "",
+                  "labels": [],
+                  "updatedAt": "2020-01-01T00:00:00.000Z",
+                  "author": null
+                }
+              ],
+              "sources": {
+                "issues": "upstream"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "github-page-settled"
+        },
+        {
+          "action": "github-count",
+          "id": "github-count-3"
+        },
+        {
+          "complete": "github.countWorkItems#1",
+          "params": {
+            "query": "is:issue bug",
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": 4
+          }
+        },
+        {
+          "checkpoint": "github-count-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-list-gitlab-todos",
+      "operation": "tasks.task-list-gitlab-todos",
+      "version": 1,
+      "family": "tasks.task-list-gitlab-todos",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-list-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "load",
+          "id": "load-0"
+        },
+        {
+          "complete": "gitlab.todos#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": 1,
+                "targetType": "Issue",
+                "target": {
+                  "id": "gid://1",
+                  "iid": 4,
+                  "title": "A GitLab todo",
+                  "webUrl": "",
+                  "state": "opened",
+                  "updatedAt": "2020-01-01T00:00:00.000Z"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "load-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-list-gitlab-items",
+      "operation": "tasks.task-list-gitlab-items",
+      "version": 1,
+      "family": "tasks.task-list-gitlab-items",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-list-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "load",
+          "id": "load-0"
+        },
+        {
+          "complete": "gitlab.listWorkItems#1",
+          "params": {
+            "page": 1,
+            "perPage": 50,
+            "query": {
+              "$undefined": true
+            },
+            "repo": "id:repo-1",
+            "state": "opened"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "items": [
+                {
+                  "id": "issue:4",
+                  "type": "issue",
+                  "number": 4,
+                  "title": "A GitLab issue",
+                  "state": "opened",
+                  "url": "",
+                  "labels": [],
+                  "updatedAt": "2020-01-01T00:00:00.000Z",
+                  "author": null
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "load-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-list-linear",
+      "operation": "tasks.task-list-linear",
+      "version": 1,
+      "family": "tasks.task-list-linear",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-list-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "load",
+          "id": "load-0"
+        },
+        {
+          "complete": "linear.listIssues#1",
+          "params": {
+            "filter": "all",
+            "limit": 50,
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "items": [
+                {
+                  "id": "issue-1",
+                  "identifier": "ENG-1",
+                  "title": "A Linear issue",
+                  "url": "",
+                  "description": "",
+                  "state": {
+                    "name": "Todo",
+                    "type": "unstarted",
+                    "color": "#000"
+                  },
+                  "team": {
+                    "id": "team-1",
+                    "key": "ENG",
+                    "name": "Engineering"
+                  },
+                  "labels": [],
+                  "priority": 0,
+                  "updatedAt": "2020-01-01T00:00:00.000Z",
+                  "workspaceId": "linear-workspace"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "load-settled"
+        },
+        {
+          "action": "set-query",
+          "id": "set-query-1",
+          "args": {
+            "query": "bug"
+          }
+        },
+        {
+          "checkpoint": "set-query-done"
+        },
+        {
+          "action": "load",
+          "id": "load-2"
+        },
+        {
+          "complete": "linear.searchIssues#1",
+          "params": {
+            "limit": 50,
+            "query": "bug",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "id": "issue-2",
+                "identifier": "ENG-2",
+                "title": "A found issue",
+                "url": "",
+                "description": "",
+                "state": {
+                  "name": "Todo",
+                  "type": "unstarted",
+                  "color": "#000"
+                },
+                "team": {
+                  "id": "team-1",
+                  "key": "ENG",
+                  "name": "Engineering"
+                },
+                "labels": [],
+                "priority": 0,
+                "updatedAt": "2020-01-01T00:00:00.000Z",
+                "workspaceId": "linear-workspace"
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "load-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-linear-connect",
+      "operation": "tasks.linear-connect",
+      "version": 1,
+      "family": "tasks.linear-connect",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-pagination-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "connect",
+          "id": "connect-0"
+        },
+        {
+          "complete": "linear.connect#1",
+          "params": {
+            "apiKey": "lin_api_key"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "connect-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-create-github",
+      "operation": "tasks.task-create-github",
+      "version": 1,
+      "family": "tasks.task-create-github",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-create-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "create",
+          "id": "create-0"
+        },
+        {
+          "complete": "github.createIssue#1",
+          "params": {
+            "body": "a body",
+            "repo": "id:repo-1",
+            "title": "A new task"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "number": 11,
+              "url": "https://github.com/owner/repo/issues/11"
+            }
+          }
+        },
+        {
+          "checkpoint": "create-settled"
+        },
+        {
+          "action": "issue-source",
+          "id": "issue-source-1"
+        },
+        {
+          "complete": "repo.update#1",
+          "params": {
+            "repo": "id:repo-1",
+            "updates": {
+              "issueSourcePreference": "upstream"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "issue-source-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-create-gitlab",
+      "operation": "tasks.task-create-gitlab",
+      "version": 1,
+      "family": "tasks.task-create-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-create-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "create",
+          "id": "create-0"
+        },
+        {
+          "complete": "gitlab.createIssue#1",
+          "params": {
+            "body": "a body",
+            "repo": "id:repo-1",
+            "title": "A new task"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "number": 6,
+              "url": "https://gitlab.com/group/project/-/issues/6"
+            }
+          }
+        },
+        {
+          "checkpoint": "create-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-create-linear",
+      "operation": "tasks.task-create-linear",
+      "version": 1,
+      "family": "tasks.task-create-linear",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-task-create-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "create",
+          "id": "create-0"
+        },
+        {
+          "complete": "linear.createIssue#1",
+          "params": {
+            "description": "a body",
+            "teamId": "team-1",
+            "title": "A new task",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "id": "issue-3",
+              "identifier": "ENG-3",
+              "title": "A sub-issue",
+              "url": ""
+            }
+          }
+        },
+        {
+          "checkpoint": "create-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-comment-github",
+      "operation": "tasks.item-comment-github",
+      "version": 1,
+      "family": "tasks.item-comment-github",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-comment-review-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "comment",
+          "id": "comment-0"
+        },
+        {
+          "complete": "github.addIssueComment#1",
+          "params": {
+            "body": "a comment",
+            "number": 9,
+            "repo": "id:repo-1",
+            "type": "issue"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 902,
+                "author": "You",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "comment-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-review-github",
+      "operation": "tasks.item-review-github",
+      "version": 1,
+      "family": "tasks.item-review-github",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-comment-review-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "reviewers",
+          "id": "reviewers-0"
+        },
+        {
+          "complete": "github.requestPRReviewers#1",
+          "params": {
+            "prNumber": 12,
+            "repo": "id:repo-1",
+            "reviewers": ["octocat"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "reviewers-settled"
+        },
+        {
+          "action": "checks",
+          "id": "checks-1"
+        },
+        {
+          "complete": "github.prChecks#1",
+          "params": {
+            "headSha": "head-sha",
+            "noCache": true,
+            "prNumber": 12,
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "name": "build",
+                "status": "COMPLETED",
+                "conclusion": "SUCCESS",
+                "url": ""
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "checks-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-comment-gitlab",
+      "operation": "tasks.item-comment-gitlab",
+      "version": 1,
+      "family": "tasks.item-comment-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-comment-review-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "comment",
+          "id": "comment-0"
+        },
+        {
+          "complete": "gitlab.addIssueComment#1",
+          "params": {
+            "body": "a comment",
+            "number": 4,
+            "projectRef": "group/project",
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 904,
+                "author": "You",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "comment-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-comment-gitlab-mr",
+      "operation": "tasks.item-comment-gitlab-mr",
+      "version": 1,
+      "family": "tasks.item-comment-gitlab-mr",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-comment-review-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "comment",
+          "id": "comment-0"
+        },
+        {
+          "complete": "gitlab.addMRComment#1",
+          "params": {
+            "body": "a comment",
+            "iid": 7,
+            "projectRef": "group/project",
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 905,
+                "author": "You",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "comment-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-checks-files",
+      "operation": "tasks.item-checks-files-github",
+      "version": 1,
+      "family": "tasks.item-checks-files",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-github-check-file-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "rerun",
+          "id": "rerun-0"
+        },
+        {
+          "complete": "github.rerunPRChecks#1",
+          "params": {
+            "failedOnly": true,
+            "headSha": "head-sha",
+            "prNumber": 12,
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "rerun-settled"
+        },
+        {
+          "action": "viewed",
+          "id": "viewed-1"
+        },
+        {
+          "complete": "github.setPRFileViewed#1",
+          "params": {
+            "path": "src/index.ts",
+            "pullRequestId": "PR_kwDO",
+            "repo": "id:repo-1",
+            "viewed": true
+          },
+          "reply": {
+            "ok": true,
+            "result": true
+          }
+        },
+        {
+          "checkpoint": "viewed-settled"
+        },
+        {
+          "action": "thread",
+          "id": "thread-2"
+        },
+        {
+          "complete": "github.resolveReviewThread#1",
+          "params": {
+            "repo": "id:repo-1",
+            "resolve": true,
+            "threadId": "thread-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": true
+          }
+        },
+        {
+          "checkpoint": "thread-settled"
+        },
+        {
+          "action": "expand",
+          "id": "expand-3"
+        },
+        {
+          "complete": "github.prFileContents#1",
+          "params": {
+            "baseSha": "base-sha",
+            "headSha": "head-sha",
+            "oldPath": {
+              "$undefined": true
+            },
+            "path": "src/index.ts",
+            "prNumber": 12,
+            "repo": "id:repo-1",
+            "status": "modified"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "oldContent": "a",
+              "newContent": "b",
+              "truncated": false
+            }
+          }
+        },
+        {
+          "checkpoint": "expand-settled"
+        },
+        {
+          "action": "file-comment",
+          "id": "file-comment-4"
+        },
+        {
+          "complete": "github.addPRReviewComment#1",
+          "params": {
+            "body": "a review comment",
+            "commitId": "head-sha",
+            "line": 12,
+            "path": "src/index.ts",
+            "prNumber": 12,
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 901,
+                "author": "You",
+                "body": "a review comment",
+                "createdAt": "2020-01-01T00:00:00.000Z",
+                "path": "src/index.ts",
+                "line": 12
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "file-comment-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-reply-merge",
+      "operation": "tasks.item-reply-merge-github",
+      "version": 1,
+      "family": "tasks.item-reply-merge",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-github-reply-merge-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "review-reply",
+          "id": "review-reply-0"
+        },
+        {
+          "complete": "github.addPRReviewCommentReply#1",
+          "params": {
+            "body": "a reply",
+            "commentId": 501,
+            "line": 12,
+            "path": "src/index.ts",
+            "prNumber": 12,
+            "repo": "id:repo-1",
+            "threadId": "thread-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 903,
+                "author": "You",
+                "body": "a reply",
+                "createdAt": "2020-01-01T00:00:00.000Z",
+                "path": "src/index.ts",
+                "line": 12,
+                "threadId": "thread-1"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "review-reply-settled"
+        },
+        {
+          "action": "issue-reply",
+          "id": "issue-reply-1"
+        },
+        {
+          "complete": "github.addIssueComment#1",
+          "params": {
+            "body": "@octocat a reply",
+            "number": 12,
+            "repo": "id:repo-1",
+            "type": "pr"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 902,
+                "author": "You",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "issue-reply-settled"
+        },
+        {
+          "action": "merge",
+          "id": "merge-2"
+        },
+        {
+          "complete": "github.mergePR#1",
+          "params": {
+            "method": "squash",
+            "prNumber": 12,
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "merge-settled"
+        },
+        {
+          "action": "linear-status",
+          "id": "linear-status-3"
+        },
+        {
+          "complete": "linear.updateIssue#1",
+          "params": {
+            "id": "issue-1",
+            "updates": {
+              "stateId": "state-2"
+            },
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "linear-status-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-merge-gitlab",
+      "operation": "tasks.item-merge-gitlab",
+      "version": 1,
+      "family": "tasks.item-merge-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-github-reply-merge-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "merge",
+          "id": "merge-0"
+        },
+        {
+          "complete": "gitlab.mergeMR#1",
+          "params": {
+            "iid": 7,
+            "method": "squash",
+            "projectRef": "group/project",
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "merge-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-status-gitlab",
+      "operation": "tasks.item-status-gitlab",
+      "version": 1,
+      "family": "tasks.item-status-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-gitlab-github-status-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "gitlab-status",
+          "id": "gitlab-status-0"
+        },
+        {
+          "complete": "gitlab.updateIssue#1",
+          "params": {
+            "number": 4,
+            "projectRef": "group/project",
+            "repo": "id:repo-1",
+            "updates": {
+              "state": "closed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "gitlab-status-settled"
+        },
+        {
+          "action": "github-metadata",
+          "id": "github-metadata-1"
+        },
+        {
+          "complete": "github.updateIssue#1",
+          "params": {
+            "number": 9,
+            "repo": "id:repo-1",
+            "updates": {
+              "addLabels": ["triage"],
+              "removeLabels": ["bug"],
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "github-metadata-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-status-gitlab-mr",
+      "operation": "tasks.item-status-gitlab-mr",
+      "version": 1,
+      "family": "tasks.item-status-gitlab-mr",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-gitlab-github-status-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "gitlab-status",
+          "id": "gitlab-status-0"
+        },
+        {
+          "complete": "gitlab.updateMRState#1",
+          "params": {
+            "iid": 7,
+            "projectRef": "group/project",
+            "repo": "id:repo-1",
+            "state": "closed"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "gitlab-status-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-metadata-github",
+      "operation": "tasks.item-metadata-github",
+      "version": 1,
+      "family": "tasks.item-metadata-github",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-metadata-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "update-pr",
+          "id": "update-pr-0"
+        },
+        {
+          "complete": "github.updatePR#1",
+          "params": {
+            "prNumber": 12,
+            "repo": "id:repo-1",
+            "updates": {
+              "body": "new body",
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-pr-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-metadata-gitlab",
+      "operation": "tasks.item-metadata-gitlab",
+      "version": 1,
+      "family": "tasks.item-metadata-gitlab",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-metadata-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "update-gitlab",
+          "id": "update-gitlab-0"
+        },
+        {
+          "complete": "gitlab.updateIssue#1",
+          "params": {
+            "number": 4,
+            "projectRef": "group/project",
+            "repo": "id:repo-1",
+            "updates": {
+              "addLabels": ["triage"],
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-gitlab-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-item-metadata-gitlab-mr",
+      "operation": "tasks.item-metadata-gitlab-mr",
+      "version": 1,
+      "family": "tasks.item-metadata-gitlab-mr",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-hosted-metadata-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "update-gitlab",
+          "id": "update-gitlab-0"
+        },
+        {
+          "complete": "gitlab.updateMR#1",
+          "params": {
+            "iid": 7,
+            "projectRef": "group/project",
+            "repo": "id:repo-1",
+            "updates": {
+              "addLabels": ["triage"],
+              "body": {
+                "$undefined": true
+              },
+              "removeLabels": {
+                "$undefined": true
+              },
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-gitlab-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-linear-item",
+      "operation": "tasks.linear-item-actions",
+      "version": 1,
+      "family": "tasks.linear-item",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-linear-item-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "comment",
+          "id": "comment-0"
+        },
+        {
+          "complete": "linear.addIssueComment#1",
+          "params": {
+            "body": "a linear comment",
+            "issueId": "issue-1",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "id": "comment-9"
+            }
+          }
+        },
+        {
+          "checkpoint": "comment-settled"
+        },
+        {
+          "action": "sub-issue-open",
+          "id": "sub-issue-open-1"
+        },
+        {
+          "complete": "linear.getIssue#1",
+          "params": {
+            "id": "issue-2",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "id": "issue-2",
+              "identifier": "ENG-2",
+              "title": "A sub-issue",
+              "url": "",
+              "description": "a description",
+              "state": {
+                "name": "Todo",
+                "type": "unstarted",
+                "color": "#000"
+              },
+              "team": {
+                "id": "team-1",
+                "key": "ENG",
+                "name": "Engineering"
+              },
+              "labels": [],
+              "priority": 0,
+              "updatedAt": "2020-01-01T00:00:00.000Z",
+              "workspaceId": "linear-workspace",
+              "subIssues": []
+            }
+          }
+        },
+        {
+          "checkpoint": "sub-issue-open-settled"
+        },
+        {
+          "action": "sub-issue-create",
+          "id": "sub-issue-create-2"
+        },
+        {
+          "complete": "linear.createIssue#1",
+          "params": {
+            "parentIssueId": "issue-1",
+            "projectId": null,
+            "teamId": "team-1",
+            "title": "A sub-issue",
+            "workspaceId": "linear-workspace"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "id": "issue-3",
+              "identifier": "ENG-3",
+              "title": "A sub-issue",
+              "url": ""
+            }
+          }
+        },
+        {
+          "checkpoint": "sub-issue-create-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-repo-slugs",
+      "operation": "tasks.project-repo-slugs",
+      "version": 1,
+      "family": "tasks.project-repo-slugs",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-repository-resolution.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "github.repoSlug#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "owner": "owner",
+              "repo": "repo",
+              "host": "github.com"
+            }
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-board-load",
+      "operation": "tasks.project-board-load",
+      "version": 1,
+      "family": "tasks.project-board-load",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-loading-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "projects",
+          "id": "projects-0"
+        },
+        {
+          "complete": "github.project.listAccessible#1",
+          "params": {
+            "host": "github.com"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "projects": [
+                {
+                  "owner": "owner",
+                  "ownerType": "organization",
+                  "number": 3,
+                  "title": "Board",
+                  "host": "github.com"
+                }
+              ],
+              "partialFailures": []
+            }
+          }
+        },
+        {
+          "checkpoint": "projects-settled"
+        },
+        {
+          "action": "views",
+          "id": "views-1"
+        },
+        {
+          "complete": "github.project.listViews#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "ownerType": "organization",
+            "projectNumber": 3
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "views": [
+                {
+                  "id": "view-1",
+                  "number": 1,
+                  "name": "Table",
+                  "layout": "TABLE_LAYOUT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "views-settled"
+        },
+        {
+          "action": "table",
+          "id": "table-2"
+        },
+        {
+          "complete": "github.project.viewTable#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "ownerType": "organization",
+            "projectNumber": 3,
+            "viewId": "view-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "data": {
+                "project": {
+                  "id": "project-1",
+                  "title": "Board",
+                  "number": 3
+                },
+                "selectedView": {
+                  "id": "view-1",
+                  "number": 1,
+                  "name": "Table",
+                  "filter": "is:open",
+                  "layout": "TABLE_LAYOUT"
+                },
+                "fields": [],
+                "rows": []
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "table-settled"
+        },
+        {
+          "action": "paste",
+          "id": "paste-3"
+        },
+        {
+          "complete": "github.project.resolveRef#1",
+          "params": {
+            "host": "github.com",
+            "input": "https://github.com/orgs/owner/projects/3"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "owner": "owner",
+              "ownerType": "organization",
+              "number": 3,
+              "title": "Board",
+              "host": "github.com",
+              "viewNumber": 1
+            }
+          }
+        },
+        {
+          "complete": "github.project.listViews#2",
+          "params": {
+            "host": "github.com",
+            "owner": "owner",
+            "ownerType": "organization",
+            "projectNumber": 3
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "views": [
+                {
+                  "id": "view-1",
+                  "number": 1,
+                  "name": "Table",
+                  "layout": "TABLE_LAYOUT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "paste-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-detail",
+      "operation": "tasks.project-row-detail",
+      "version": 1,
+      "family": "tasks.project-row-detail",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-detail-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "github.project.workItemDetailsBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "number": 1,
+            "owner": "owner",
+            "repo": "repo",
+            "type": "issue"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "details": {
+                "body": "body",
+                "comments": [],
+                "item": {
+                  "labels": []
+                },
+                "assignees": [],
+                "headSha": "head-sha",
+                "baseSha": "base-sha",
+                "pullRequestId": "PR_kwDO",
+                "checks": [],
+                "files": []
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-metadata-load",
+      "operation": "tasks.project-row-metadata-load",
+      "version": 1,
+      "family": "tasks.project-row-metadata-load",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-metadata-loading.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "github.project.listLabelsBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "labels": ["bug"]
+            }
+          }
+        },
+        {
+          "complete": "github.project.listAssignableUsersBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "repo": "repo",
+            "seedLogins": ["octocat"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "users": [
+                {
+                  "login": "octocat",
+                  "name": "Octo"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "complete": "github.project.listIssueTypesBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "types": [
+                {
+                  "id": "type-1",
+                  "name": "Bug"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "mounted"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-fields",
+      "operation": "tasks.project-row-fields",
+      "version": 1,
+      "family": "tasks.project-row-fields",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-metadata-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "set-field",
+          "id": "set-field-0"
+        },
+        {
+          "complete": "github.project.updateItemField#1",
+          "params": {
+            "fieldId": "field-1",
+            "host": "github.enterprise.test",
+            "itemId": "item-1",
+            "projectId": "project-1",
+            "value": {
+              "kind": "single-select",
+              "optionId": "option-1"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "set-field-settled"
+        },
+        {
+          "action": "clear-field",
+          "id": "clear-field-1"
+        },
+        {
+          "complete": "github.project.clearItemField#1",
+          "params": {
+            "fieldId": "field-1",
+            "host": "github.enterprise.test",
+            "itemId": "item-1",
+            "projectId": "project-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "clear-field-settled"
+        },
+        {
+          "action": "issue-type",
+          "id": "issue-type-2"
+        },
+        {
+          "complete": "github.project.updateIssueTypeBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "issueTypeId": "type-1",
+            "number": 1,
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "issue-type-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-review-checks",
+      "operation": "tasks.project-row-review-checks",
+      "version": 1,
+      "family": "tasks.project-row-review-checks",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-review-check-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "reviewers",
+          "id": "reviewers-0"
+        },
+        {
+          "complete": "github.requestPRReviewers#1",
+          "params": {
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1",
+            "reviewers": ["octocat"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "reviewers-settled"
+        },
+        {
+          "action": "checks",
+          "id": "checks-1"
+        },
+        {
+          "complete": "github.prChecks#1",
+          "params": {
+            "headSha": "head-sha",
+            "noCache": true,
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": [
+              {
+                "name": "build",
+                "status": "COMPLETED",
+                "conclusion": "SUCCESS",
+                "url": ""
+              }
+            ]
+          }
+        },
+        {
+          "checkpoint": "checks-settled"
+        },
+        {
+          "action": "rerun",
+          "id": "rerun-2"
+        },
+        {
+          "complete": "github.rerunPRChecks#1",
+          "params": {
+            "failedOnly": true,
+            "headSha": "head-sha",
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "rerun-settled"
+        },
+        {
+          "action": "viewed",
+          "id": "viewed-3"
+        },
+        {
+          "complete": "github.setPRFileViewed#1",
+          "params": {
+            "path": "src/index.ts",
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "pullRequestId": "PR_kwDO",
+            "repo": "id:repo-1",
+            "viewed": true
+          },
+          "reply": {
+            "ok": true,
+            "result": true
+          }
+        },
+        {
+          "checkpoint": "viewed-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-threads",
+      "operation": "tasks.project-row-threads",
+      "version": 1,
+      "family": "tasks.project-row-threads",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-thread-reply-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "delete-comment",
+          "id": "delete-comment-0"
+        },
+        {
+          "complete": "github.project.deleteIssueCommentBySlug#1",
+          "params": {
+            "commentId": 501,
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "delete-comment-settled"
+        },
+        {
+          "action": "thread",
+          "id": "thread-1"
+        },
+        {
+          "complete": "github.resolveReviewThread#1",
+          "params": {
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1",
+            "resolve": true,
+            "threadId": "thread-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": true
+          }
+        },
+        {
+          "checkpoint": "thread-settled"
+        },
+        {
+          "action": "review-reply",
+          "id": "review-reply-2"
+        },
+        {
+          "complete": "github.addPRReviewCommentReply#1",
+          "params": {
+            "body": "a reply",
+            "commentId": 501,
+            "line": 12,
+            "path": "src/index.ts",
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1",
+            "threadId": "thread-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 903,
+                "author": "You",
+                "body": "a reply",
+                "createdAt": "2020-01-01T00:00:00.000Z",
+                "path": "src/index.ts",
+                "line": 12,
+                "threadId": "thread-1"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "review-reply-settled"
+        },
+        {
+          "action": "issue-reply",
+          "id": "issue-reply-3"
+        },
+        {
+          "complete": "github.addIssueComment#1",
+          "params": {
+            "body": "@octocat a reply",
+            "number": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1",
+            "type": "pr"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 902,
+                "author": "You",
+                "body": "a comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "issue-reply-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-comments-issue",
+      "operation": "tasks.project-row-comments-issue",
+      "version": 1,
+      "family": "tasks.project-row-comments-issue",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-workspace-comment-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "update-item",
+          "id": "update-item-0"
+        },
+        {
+          "complete": "github.project.updateIssueBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "number": 1,
+            "owner": "owner",
+            "repo": "repo",
+            "updates": {
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-item-settled"
+        },
+        {
+          "action": "add-comment",
+          "id": "add-comment-1"
+        },
+        {
+          "complete": "github.project.addIssueCommentBySlug#1",
+          "params": {
+            "body": "a project comment",
+            "host": "github.enterprise.test",
+            "number": 1,
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 906,
+                "author": "You",
+                "body": "a project comment",
+                "createdAt": "2020-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "add-comment-settled"
+        },
+        {
+          "action": "update-comment",
+          "id": "update-comment-2"
+        },
+        {
+          "complete": "github.project.updateIssueCommentBySlug#1",
+          "params": {
+            "body": "an edited comment",
+            "commentId": 501,
+            "host": "github.enterprise.test",
+            "owner": "owner",
+            "repo": "repo"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-comment-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-comments-pr",
+      "operation": "tasks.project-row-comments-pr",
+      "version": 1,
+      "family": "tasks.project-row-comments-pr",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-workspace-comment-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "update-item",
+          "id": "update-item-0"
+        },
+        {
+          "complete": "github.project.updatePullRequestBySlug#1",
+          "params": {
+            "host": "github.enterprise.test",
+            "number": 2,
+            "owner": "owner",
+            "repo": "repo",
+            "updates": {
+              "title": "Renamed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "update-item-settled"
+        }
+      ]
+    },
+    {
+      "id": "tk-project-row-files-merge",
+      "operation": "tasks.project-row-files-merge",
+      "version": 1,
+      "family": "tasks.project-row-files-merge",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-project-file-merge-actions.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "expand",
+          "id": "expand-0"
+        },
+        {
+          "complete": "github.prFileContents#1",
+          "params": {
+            "baseSha": "base-sha",
+            "headSha": "head-sha",
+            "oldPath": {
+              "$undefined": true
+            },
+            "path": "src/index.ts",
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1",
+            "status": "modified"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "oldContent": "a",
+              "newContent": "b",
+              "truncated": false
+            }
+          }
+        },
+        {
+          "checkpoint": "expand-settled"
+        },
+        {
+          "action": "file-comment",
+          "id": "file-comment-1"
+        },
+        {
+          "complete": "github.addPRReviewComment#1",
+          "params": {
+            "body": "a review comment",
+            "commitId": "head-sha",
+            "line": 12,
+            "path": "src/index.ts",
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true,
+              "comment": {
+                "id": 901,
+                "author": "You",
+                "body": "a review comment",
+                "createdAt": "2020-01-01T00:00:00.000Z",
+                "path": "src/index.ts",
+                "line": 12
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "file-comment-settled"
+        },
+        {
+          "action": "merge",
+          "id": "merge-2"
+        },
+        {
+          "complete": "github.mergePR#1",
+          "params": {
+            "method": "squash",
+            "prNumber": 2,
+            "prRepo": {
+              "host": "github.enterprise.test",
+              "owner": "owner",
+              "repo": "repo"
+            },
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "merge-settled"
+        },
+        {
+          "action": "issue-state",
+          "id": "issue-state-3"
+        },
+        {
+          "complete": "github.updateIssue#1",
+          "params": {
+            "number": 9,
+            "repo": "id:repo-1",
+            "updates": {
+              "state": "closed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "issue-state-settled"
+        },
+        {
+          "action": "pr-state",
+          "id": "pr-state-4"
+        },
+        {
+          "complete": "github.updatePRState#1",
+          "params": {
+            "prNumber": 12,
+            "repo": "id:repo-1",
+            "updates": {
+              "state": "closed"
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "pr-state-settled"
+        }
+      ]
     }
   ]
 }

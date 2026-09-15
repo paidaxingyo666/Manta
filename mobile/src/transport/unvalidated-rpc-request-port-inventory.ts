@@ -164,40 +164,27 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/source-control/use-mobile-git-requests.ts', references: 1 },
 
   // src/tasks/ — task lists, filters and mutations. The workspace-creation half migrated in
-  // step 4: create, hosted-base resolution, SSH/agent preflight, sparse presets, the Smart
-  // source picker's provider reads and the screen's own preference writes. See
-  // mobile-workspace-create-operations.ts, mobile-workspace-source-operations.ts,
-  // mobile-task-runtime-operations.ts and mobile-task-source-search-operations.ts. What is left
-  // is the provider item/detail/mutation half, plus two files that cannot reach zero:
-  // mobile-tasks-source-family.test-support.ts matches the literal in a source scanner rather
-  // than sending anything, and use-mobile-tasks-project-file-merge-actions.tsx and
-  // use-mobile-tasks-hosted-metadata-actions.tsx each multiplex a `{ method, params }` step the
-  // pickers hand them at runtime.
+  // step 4; the provider item, detail, list and GitHub Projects board half followed, taking 70
+  // references across 22 files to zero. See mobile-task-item-detail-operations.ts,
+  // mobile-task-list-operations.ts, mobile-task-item-comment-operations.ts,
+  // mobile-task-item-state-operations.ts and mobile-task-project-board-operations.ts, alongside
+  // the workspace-creation modules. Three files cannot reach zero, and none of them for the
+  // reason the previous note gave — both `{ method, params }` sites turned out to be local
+  // two-literal ternaries over the item type, and both migrated:
+  //
+  //   - mobile-tasks-source-family.test-support.ts matches the literal `'sendRequest'` in a
+  //     source scanner rather than sending anything.
+  //   - mobile-tasks-filter-pickers.tsx sends linear.selectWorkspace from an `onSelect` prop of
+  //     a native PickerModal. Migrating it needs a recorded wire, and the recorder cannot mount
+  //     a module that renders react-native views.
+  //   - use-mobile-tasks-route-and-item-state.tsx reads repo.list from a closure inside the
+  //     screen-root hook, which calls useLocalSearchParams, useRouter, useHostClient and
+  //     useSafeAreaInsets. The recorder has no substitute for any of them.
+  //
+  // All three need new recorder capability, not another scenario.
   { file: 'src/tasks/mobile-tasks-filter-pickers.tsx', references: 1 },
   { file: 'src/tasks/mobile-tasks-source-family.test-support.ts', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-github-check-file-actions.tsx', references: 5 },
-  { file: 'src/tasks/use-mobile-tasks-github-reply-merge-actions.tsx', references: 5 },
-  { file: 'src/tasks/use-mobile-tasks-gitlab-github-status-actions.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-hosted-comment-review-actions.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-hosted-metadata-actions.tsx', references: 2 },
-  { file: 'src/tasks/use-mobile-tasks-item-detail-loading.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-item-detail-metadata-effects.tsx', references: 2 },
-  { file: 'src/tasks/use-mobile-tasks-linear-item-actions.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-list-and-detail-effects.tsx', references: 2 },
-  { file: 'src/tasks/use-mobile-tasks-project-detail-loading.tsx', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-project-file-merge-actions.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-project-loading-actions.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-project-metadata-actions.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-project-metadata-loading.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-project-repository-resolution.tsx', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-project-review-check-actions.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-project-thread-reply-actions.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-project-workspace-comment-actions.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-provider-load-actions.tsx', references: 5 },
   { file: 'src/tasks/use-mobile-tasks-route-and-item-state.tsx', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-task-create-actions.tsx', references: 3 },
-  { file: 'src/tasks/use-mobile-tasks-task-list-loading.tsx', references: 4 },
-  { file: 'src/tasks/use-mobile-tasks-task-pagination-actions.tsx', references: 1 },
 
   // src/terminal/ — terminal input, viewport and queries
   { file: 'src/terminal/mobile-terminal-query-reply.ts', references: 2 },
