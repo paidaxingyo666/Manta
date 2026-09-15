@@ -52,7 +52,7 @@ export const ROOT_HELP_TEXT_SECONDARY = [
   '  manta worktree show --worktree <selector> [--json]',
   '  manta worktree current [--json]',
   '  manta worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--linear-issue <identifier-or-url|null>] [--comment <text>] [--workspace-status <id>] [--parent-worktree <selector>|--no-parent] [--json]',
-  '  manta worktree rm --worktree <selector> [--force] [--run-hooks] [--json]',
+  '  manta worktree rm --worktree <selector> [--force] [--run-hooks] [--allow-failed-archive-hook] [--json]',
   '  manta worktree ps [--limit <n>] [--json]',
   '  manta file open <path> [--worktree <selector>] [--json]',
   '  manta file diff <path> [--staged] [--worktree <selector>] [--json]',

@@ -5802,6 +5802,11 @@
               "unstoppedPtyLive": "This workspace still has running terminals, so Manta stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.",
               "runningAgentSession": "Manta could not confirm every agent session in this workspace has closed, so it stopped before deleting any files. Use Force Delete to remove it anyway.",
               "runningAgentSessionLive": "This workspace still has running agent sessions that Manta could not close, so it stopped before deleting any files. Force Delete will discard any work they hold."
+            },
+            "failure": {
+              "archive": {
+                "waiver": "Delete Anyway"
+              }
             }
           }
         },
@@ -10953,7 +10958,8 @@
           "mantaCloudSignOut": "Sign out",
           "mantaCloudConnect": "Connect profile",
           "mantaCloudRefresh": "Refresh status",
-          "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build."
+          "mantaCloudNotConfigured": "Set MANTA_CLOUD_API_URL and MANTA_CLOUD_CLIENT_ID to preview Manta Cloud sign-in in this dev build.",
+          "deleteAnywayClicked": "Delete Anyway clicked"
         },
         "EphemeralVmRecipeRow": {
           "useInWorkspace": "Use in workspace"

@@ -7,7 +7,10 @@ import {
 import type { RemoveWorktreeResult } from '../../shared/worktree/create-types'
 import { getRepoExecutionHostId, parseExecutionHostId } from '../../shared/execution-host'
 import { preservedBranchCleanupScopeKey } from '../../shared/preserved-branch-cleanup'
-import { getRuntimeWorktreeRemovalOptionsKey } from './runtime-worktree-selection'
+import {
+  getRuntimeWorktreeRemovalOptionsKey,
+  type RemoveManagedWorktreeOptions
+} from './runtime-worktree-selection'
 import { withWorktreeSpan } from '../observability/instrumentation'
 import { invalidateAuthorizedRootsCache } from '../ipc/filesystem-auth'
 import { resolveWorktreeRemovalRoute } from '../worktree-removal-execution-host-route'
@@ -30,11 +33,15 @@ import { deleteRemoteWorktreeHistory } from '../remote-worktree-history-cleanup'
 export class MantaRuntimeWithRemoveManagedWorktree extends MantaRuntimeWithCreateManagedRemoteWorktree {
   async removeManagedWorktree(
     worktreeSelector: string,
-    force = false,
-    runHooks = false,
-    allowUnverifiedPtyStop = false,
-    hostId?: string
+    options: RemoveManagedWorktreeOptions = {}
   ): Promise<RemoveWorktreeResult & { warning?: string }> {
+    const {
+      force = false,
+      runHooks = false,
+      allowUnverifiedPtyStop = false,
+      allowFailedArchiveHook = false,
+      hostId
+    } = options
     if (!this.store) {
       throw new Error('runtime_unavailable')
     }
@@ -45,7 +52,12 @@ export class MantaRuntimeWithRemoveManagedWorktree extends MantaRuntimeWithCreat
       worktreeId: removalTarget.id,
       hostId: cleanupHostId
     })
-    const optionsKey = getRuntimeWorktreeRemovalOptionsKey(force, runHooks, allowUnverifiedPtyStop)
+    const optionsKey = getRuntimeWorktreeRemovalOptionsKey({
+      force,
+      runHooks,
+      allowUnverifiedPtyStop,
+      allowFailedArchiveHook
+    })
     const inFlightRemoval = this.removeManagedWorktreeInFlight.get(
       cleanupScopeKey,
       removalTarget.id,
@@ -190,6 +202,8 @@ export class MantaRuntimeWithRemoveManagedWorktree extends MantaRuntimeWithCreat
         }
         if (route.kind === 'ssh') {
           return removeRuntimeRegisteredRemoteWorktree({
+            runHooks,
+            allowFailedArchiveHook,
             repo,
             target: removalTarget,
             registeredWorktree,
@@ -240,6 +254,7 @@ export class MantaRuntimeWithRemoveManagedWorktree extends MantaRuntimeWithCreat
           hasLocalOptions: hasLocalWorktreeGitOptions,
           force,
           runHooks,
+          allowFailedArchiveHook,
           allowUnverifiedPtyStop,
           deleteBranch,
           acquireWatcherRemoval: this.acquireFileWatcherRemoval,
