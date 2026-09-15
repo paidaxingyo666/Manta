@@ -211,7 +211,9 @@ describe('registerWorktreeHandlers', () => {
       'origin/main',
       { wslDistro: 'Ubuntu' }
     )
-    expect(listWorktreesMock).toHaveBeenCalledWith('/workspace/repo', { wslDistro: 'Ubuntu' })
+    expect(listWorktreesMock).toHaveBeenCalledWith('/workspace/repo', {
+      wslDistro: 'Ubuntu'
+    })
     expectEveryGitCallRoutedTo('Ubuntu')
   })
 
@@ -346,7 +348,7 @@ describe('registerWorktreeHandlers', () => {
       wslRoutingOptions
     )
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(
-      ['config', 'remote.pr-contributor-orca.orca-created', 'true'],
+      ['config', 'remote.pr-contributor-manta.manta-created', 'true'],
       wslRoutingOptions
     )
     // Why: the mint's fetch is the one call in this sequence that talks to the network --
