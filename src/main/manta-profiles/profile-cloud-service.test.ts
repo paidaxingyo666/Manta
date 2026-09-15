@@ -209,6 +209,17 @@ describe('Manta cloud profile service', () => {
     })
   })
 
+  it('reports callback failures as failed instead of cancelled', async () => {
+    configureCloudEnv()
+    beginMantaCloudPkceFlowMock.mockRejectedValue(new Error('manta_cloud_auth_callback_failed'))
+
+    const result = await connectCurrentMantaProfile(userDataPath)
+
+    expect(result).toMatchObject({ status: 'failed', error: 'manta_cloud_auth_callback_failed' })
+    expect(exchangeMantaCloudAuthCodeMock).not.toHaveBeenCalled()
+    expect(getCurrentMantaProfileAuthStatus(userDataPath)).toMatchObject({ state: 'local' })
+  })
+
   it('does not report a saved cloud session as connected when cloud config is unavailable', async () => {
     configureCloudEnv()
     mockSuccessfulConnect()

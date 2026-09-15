@@ -713,7 +713,6 @@
       "useComposerState": {
         "7eb3f44ff7": "El agente seleccionado está deshabilitado. Elige un agente habilitado antes de crear.",
         "b2ead86962": "No se pudo resolver la base del PR.",
-        "a9ff236145": "Algunos archivos adjuntos no se pudieron cargar.",
         "3db83fc58a": "No hay ninguna ruta de proyecto remoto disponible para los archivos adjuntos.",
         "ba6cb77082": "No se pudo conectar al proyecto.",
         "chooseOrAddProjectBeforeWorkspace": "Elige o agrega un proyecto antes de crear un espacio de trabajo.",
@@ -2224,6 +2223,10 @@
                 "7c302f8174": "Sin título"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "Esta vista aún no tiene elementos.",
+            "7e4a2f80c6": "Los elementos añadidos recientemente pueden tardar un poco en aparecer."
           }
         },
         "GitHubMarkdownComposer": {
@@ -14656,7 +14659,8 @@
         "chooseInAgentPicker": "Elegir en el selector del agente…",
         "toggleOption": "Alternar {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "Valor actual desconocido — elige Activado o Desactivado",
+        "valueIsDefault": "Predeterminado",
+        "valueNotReported": "No informado",
         "sentNotConfirmed": "Enviado al agente — sin confirmar",
         "setWhenSessionStarts": "Configúralo al iniciar la sesión.",
         "availableAfterSessionStarts": "Disponible después de iniciar la sesión.",
@@ -14669,9 +14673,7 @@
           "high": "Alto",
           "xhigh": "Muy alto",
           "max": "Máximo",
-          "ultra": "Supremo",
-          "on": "Activado",
-          "off": "Desactivado"
+          "ultra": "Supremo"
         },
         "noCommandsOrSkills": "No hay comandos o habilidades coincidentes",
         "commands": "Comandos",

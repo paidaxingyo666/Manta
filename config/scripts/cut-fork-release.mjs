@@ -345,6 +345,66 @@ function bumpMobileVersion(upstreamMobile, { write }) {
 }
 
 /**
+ * The phone app release a sync carried in without a cut.
+ *
+ * A sync can bring upstream's marketing version forward before upstream tags a
+ * mobile release — #20661 moved app.json to 0.0.50 while Android stayed at
+ * 0.0.48 — and auto-release tags whatever version lands on main regardless.
+ * versionCode came along unchanged, and Android refuses an update numbered no
+ * higher than the APK already installed, so the release must still advance it.
+ *
+ * Returns null when the committed version is not ahead of the newest one shipped.
+ */
+export function carriedMobileRelease(committed, shipped) {
+  if (!shipped || compareBases(committed.version, shipped.version) <= 0) {
+    return null
+  }
+  return {
+    version: committed.version,
+    from: shipped.version,
+    carried: true,
+    advanceVersionCode: committed.versionCode <= shipped.versionCode
+  }
+}
+
+/** The newest mobile release this fork published, read from its tag on origin. */
+function newestShippedMobile() {
+  const refs = execFileSync('git', ['ls-remote', '--tags', 'origin', 'mobile-android-v*'], {
+    cwd: root,
+    encoding: 'utf8'
+  })
+  const byTag = new Map()
+  for (const line of refs.split('\n').filter(Boolean)) {
+    const [sha, ref] = line.split('\t')
+    const name = ref.replace('refs/tags/', '').replace(/\^\{\}$/, '')
+    // A peeled `^{}` line names the commit; prefer it over the tag object.
+    if (ref.endsWith('^{}') || !byTag.has(name)) {
+      byTag.set(name, sha)
+    }
+  }
+  const newest = upstreamMobileVersion([...byTag.keys()].map((tag_name) => ({ tag_name })))
+  if (!newest) {
+    return null
+  }
+  try {
+    const config = JSON.parse(
+      git('show', `${byTag.get(`mobile-android-v${newest}`)}:mobile/app.json`)
+    )
+    return { version: newest, versionCode: Number(config.expo.android.versionCode) }
+  } catch {
+    return null
+  }
+}
+
+function committedMobile() {
+  const config = JSON.parse(readFileSync(path.join(root, 'mobile', 'app.json'), 'utf8'))
+  return {
+    version: String(config.expo.version),
+    versionCode: Number(config.expo.android.versionCode)
+  }
+}
+
+/**
  * Commits since the previous release, each flagged with whether it came from
  * upstream. The `Mirror-Of:` trailer is the mirror's own record of which
  * upstream commit a replayed commit is; a commit without one is the fork's.
@@ -453,7 +513,9 @@ async function main() {
   const notesPath = path.join(root, 'docs', 'release-notes', `${version}.md`)
   const notesExist = existsSync(notesPath)
 
-  const mobile = bumpMobileVersion(upstream.mobile, { write: false })
+  const mobile =
+    bumpMobileVersion(upstream.mobile, { write: false }) ??
+    carriedMobileRelease(committedMobile(), newestShippedMobile())
   if (mobile) {
     assertTagIsFree(`mobile-ios-v${mobile.version}`)
     assertTagIsFree(`mobile-android-v${mobile.version}`)
@@ -465,7 +527,7 @@ async function main() {
     console.log(
       `  mobile: ${
         mobile
-          ? `${mobile.from} → ${mobile.version} (mobile-ios-v${mobile.version}, mobile-android-v${mobile.version})`
+          ? `${mobile.from} → ${mobile.version}${mobile.carried ? ` (carried in by the sync${mobile.advanceVersionCode ? ', versionCode advanced' : ''})` : ''} (mobile-ios-v${mobile.version}, mobile-android-v${mobile.version})`
           : `unchanged, upstream is not ahead of ${JSON.parse(readFileSync(path.join(root, 'mobile', 'app.json'), 'utf8')).expo.version}`
       }`
     )
@@ -506,7 +568,15 @@ async function main() {
 
   const toStage = ['package.json', 'resources/skills', path.relative(root, notesPath)]
   if (mobile) {
-    bumpMobileVersion(upstream.mobile, { write: true })
+    const configPath = path.join(root, 'mobile', 'app.json')
+    if (!mobile.carried) {
+      bumpMobileVersion(upstream.mobile, { write: true })
+    } else if (mobile.advanceVersionCode) {
+      writeFileSync(
+        configPath,
+        bumpMobileAppConfig(readFileSync(configPath, 'utf8'), mobile.version)
+      )
+    }
     toStage.push('mobile/app.json')
   }
   git('add', ...toStage)

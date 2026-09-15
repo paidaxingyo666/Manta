@@ -61,9 +61,13 @@ export async function runRecording(
           settlements[step.id] = rejectedSettlement(error, scheduler.elapsed())
         }
       } else if ('complete' in step) {
-        transport.complete(step.complete, step.params, step.reply, step.reject)
+        if (!step.optional || transport.outstanding(step.complete)) {
+          transport.complete(step.complete, step.params, step.reply, step.reject)
+        }
       } else if ('bind' in step) {
-        transport.bind(step.bind, step.request, step.params)
+        if (!step.optional || transport.outstanding(step.request)) {
+          transport.bind(step.bind, step.request, step.params)
+        }
       } else if ('advance' in step) {
         advanced += step.advance
         await scheduler.advance(step.advance)

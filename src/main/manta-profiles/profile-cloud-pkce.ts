@@ -97,9 +97,16 @@ export function beginMantaCloudPkceFlow(
           return
         }
         if (url.searchParams.has('error')) {
+          const cancelled = url.searchParams.get('error') === 'access_denied'
           response.writeHead(400)
-          response.end('Manta sign-in was cancelled.')
-          rejectFlow(new Error('manta_cloud_auth_denied'))
+          response.end(
+            cancelled
+              ? 'Manta sign-in was cancelled.'
+              : 'Manta sign-in failed. Return to Manta and try again.'
+          )
+          rejectFlow(
+            new Error(cancelled ? 'manta_cloud_auth_denied' : 'manta_cloud_auth_callback_failed')
+          )
           return
         }
         if (!code) {

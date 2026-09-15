@@ -895,7 +895,6 @@
       "useComposerState": {
         "7eb3f44ff7": "所选智能体已禁用。创建之前选择启用的智能体。",
         "b2ead86962": "无法解析 PR 基础引用。",
-        "a9ff236145": "部分附件无法上传。",
         "3db83fc58a": "没有可用于附件的远程项目路径。",
         "ba6cb77082": "无法连接到项目。",
         "chooseOrAddProjectBeforeWorkspace": "创建工作区前，请选择或添加项目。",
@@ -2496,7 +2495,9 @@
           },
           "ProjectViewStates": {
             "ac83c45672": "请切换到表格或路线图视图，以便在 Manta 中处理此项目。",
-            "e4cc8b14f2": "Manta 支持呈现表格和路线图类型的项目视图。此视图使用的布局暂时无法呈现。"
+            "e4cc8b14f2": "Manta 支持呈现表格和路线图类型的项目视图。此视图使用的布局暂时无法呈现。",
+            "3b9c1d5e47": "此视图暂无任何项目。",
+            "7e4a2f80c6": "最近添加的项目可能需要一段时间才会显示。"
           }
         },
         "GitHubMarkdownComposer": {
@@ -17056,7 +17057,8 @@
         "chooseInAgentPicker": "在智能体选择器中选择…",
         "toggleOption": "切换{{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "当前值未知 — 请选择开或关",
+        "valueIsDefault": "默认",
+        "valueNotReported": "未报告",
         "sentNotConfirmed": "已发送给智能体 — 尚未确认",
         "setWhenSessionStarts": "请在会话开始时设置。",
         "availableAfterSessionStarts": "会话开始后可用。",
@@ -17069,9 +17071,7 @@
           "high": "高",
           "xhigh": "极高",
           "max": "最大",
-          "ultra": "极致",
-          "on": "开",
-          "off": "关"
+          "ultra": "极致"
         },
         "pendingAttachmentLimit": "待添加的附件过多。请先完成输入法输入，再添加更多附件。",
         "viewAttachment": "查看图片",

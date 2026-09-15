@@ -15,6 +15,8 @@ import type {
 } from '../terminal/terminal-webview-contract'
 import type { createTerminalLiveAccessoryInput } from '../terminal/terminal-live-accessory-input'
 import { clearTerminalLiveInputFocusTimer } from '../terminal/terminal-live-input'
+import { stripTerminalSelectionGutter } from '../../../src/shared/terminal-selection-gutter'
+import { useTerminalCopyTrimsGutter } from '../terminal/terminal-copy-gutter-preference'
 import { getRepoIdFromMobileWorktreeId } from './mobile-session-route-helpers'
 import type { RuntimeRepoSummary } from './mobile-session-route-types'
 import type { MobileSessionTerminalInputModel } from './use-mobile-session-terminal-input'
@@ -24,6 +26,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
     worktreeId,
     isFloatingWorkspaceRoute,
     client,
+    connState,
     setTerminalKeyboardMetrics,
     setSelectModeActive,
     setCanPaste,
@@ -42,6 +45,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
     handleAccessoryKey,
     clearSessionTabActionSheetKeyboardListener
   } = scope
+  const trimsGutterRef = useTerminalCopyTrimsGutter(client, connState)
   // Why: hold-to-repeat matches iOS cadence (400ms then 45ms); non-repeatable keys fire once (holding is destructive).
   const repeatTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const repeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -116,7 +120,9 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
         return
       }
       try {
-        await Clipboard.setStringAsync(text)
+        await Clipboard.setStringAsync(
+          trimsGutterRef.current ? stripTerminalSelectionGutter(text) : text
+        )
         triggerSuccess()
         // Why: Android 13+ shows its own system copy toast; iOS shows none, so only iOS needs our in-app toast.
         if (Platform.OS === 'ios') {

@@ -6,10 +6,16 @@ import type {
   HostedReviewLookupOutcome,
   HostedReviewProvider
 } from '../../../src/shared/hosted-review'
-import type { RpcClient } from '../transport/rpc-client'
-import type { RpcSuccess } from '../transport/types'
+import type { RpcSendParams } from '../transport/rpc-params-contract'
+import { refusedRpcMessageOrFallback } from '../transport/rpc-refusal-message'
 import { hostedReviewCopy } from './hosted-review-copy'
+import {
+  hostedReviewCreateRun,
+  hostedReviewEligibilityRead
+} from './mobile-hosted-review-operations'
+import { pushMobileHostedReviewBranch } from './mobile-hosted-review-git-preparation'
 import { linkMobileHostedReview } from './mobile-pr-link'
+import type { MobileSourceControlRpcSender } from './mobile-source-control-rpc-sender'
 import { translate } from '../i18n/i18n'
 
 // The mobile worktree id is `${repoId}::${path}`; hosted-review RPCs expect the
@@ -32,11 +38,11 @@ export type MobileHostedReviewEligibilityInput = {
 }
 
 export async function fetchMobileHostedReviewEligibility(
-  client: Pick<RpcClient, 'sendRequest'>,
+  client: MobileSourceControlRpcSender,
   worktreeId: string,
   input: MobileHostedReviewEligibilityInput
 ): Promise<HostedReviewCreationEligibility | null> {
-  const response = await client.sendRequest('hostedReview.getCreationEligibility', {
+  const reply = await hostedReviewEligibilityRead.request(client, {
     repo: mobileRepoSelectorFromWorktreeId(worktreeId),
     worktree: `id:${worktreeId}`,
     branch: input.branch,
@@ -50,10 +56,9 @@ export async function fetchMobileHostedReviewEligibility(
     linkedGitHubPR: input.linkedGitHubPR ?? null,
     linkedGitLabMR: input.linkedGitLabMR ?? null
   })
-  if (!response.ok) {
-    return null
-  }
-  return (response as RpcSuccess).result as HostedReviewCreationEligibility
+  const eligibility = hostedReviewEligibilityRead.interpret(reply)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
+  return eligibility.accepted ? (eligibility.value as HostedReviewCreationEligibility) : null
 }
 
 export type MobileHostedReviewPrefill = {
@@ -74,7 +79,7 @@ export type MobileHostedReviewPrefill = {
 // service desktop uses. If eligibility is unavailable, return a blocked prefill
 // instead of inventing a provider/base locally.
 export async function resolveMobileHostedReviewPrefill(
-  client: Pick<RpcClient, 'sendRequest'>,
+  client: MobileSourceControlRpcSender,
   worktreeId: string,
   args: {
     branch: string | undefined
@@ -155,7 +160,7 @@ export type MobileHostedReviewCreateInput = {
 export function buildMobileHostedReviewCreateParams(
   worktreeId: string,
   input: MobileHostedReviewCreateInput
-): Record<string, unknown> {
+): RpcSendParams<'hostedReview.create'> {
   return {
     repo: mobileRepoSelectorFromWorktreeId(worktreeId),
     worktree: `id:${worktreeId}`,
@@ -173,31 +178,20 @@ export type MobileHostedReviewCreateOutcome =
   | { ok: true; url: string; number?: number; existing?: boolean; linkError?: string }
   | { ok: false; error: string }
 
+const PUSH_BEFORE_CREATE_ERROR = 'Push failed. Resolve the push error, then try again.'
+
+// Why the host's own message is discarded here: the compose form shows one actionable line for
+// every push failure, refusal and transport drop alike.
 async function pushMobileBranchBeforeCreate(
-  client: Pick<RpcClient, 'sendRequest'>,
+  client: MobileSourceControlRpcSender,
   worktreeId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  try {
-    const response = await client.sendRequest('git.push', { worktree: `id:${worktreeId}` })
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: translate(
-          'm.mobile.hosted.review.service.41ec824f11',
-          'Push failed. Resolve the push error, then try again.'
-        )
-      }
-    }
-    return { ok: true }
-  } catch {
-    return {
-      ok: false,
-      error: translate(
-        'm.mobile.hosted.review.service.41ec824f11',
-        'Push failed. Resolve the push error, then try again.'
-      )
-    }
-  }
+  const pushed = await pushMobileHostedReviewBranch(
+    client,
+    { worktree: `id:${worktreeId}` },
+    PUSH_BEFORE_CREATE_ERROR
+  )
+  return pushed.ok ? { ok: true } : { ok: false, error: PUSH_BEFORE_CREATE_ERROR }
 }
 
 function formatMobileHostedReviewCreateError(
@@ -216,7 +210,7 @@ function formatMobileHostedReviewCreateError(
 }
 
 async function finishMobileHostedReviewCreateSuccess(
-  client: Pick<RpcClient, 'sendRequest'>,
+  client: MobileSourceControlRpcSender,
   worktreeId: string,
   input: MobileHostedReviewCreateInput,
   result: { number: number; url: string },
@@ -238,7 +232,7 @@ async function finishMobileHostedReviewCreateSuccess(
 }
 
 export async function createMobileHostedReview(
-  client: Pick<RpcClient, 'sendRequest'>,
+  client: MobileSourceControlRpcSender,
   worktreeId: string,
   input: MobileHostedReviewCreateInput
 ): Promise<MobileHostedReviewCreateOutcome> {
@@ -251,14 +245,20 @@ export async function createMobileHostedReview(
       }
       pushed = true
     }
-    const response = await client.sendRequest(
-      'hostedReview.create',
+    const reply = await hostedReviewCreateRun.request(
+      client,
       buildMobileHostedReviewCreateParams(worktreeId, input)
     )
-    if (!response.ok) {
-      return { ok: false, error: response.error?.message || 'Failed to create pull request' }
+    let result: CreateHostedReviewResult
+    try {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
+      result = hostedReviewCreateRun.interpret(reply) as CreateHostedReviewResult
+    } catch (error) {
+      return {
+        ok: false,
+        error: refusedRpcMessageOrFallback(error, 'Failed to create pull request')
+      }
     }
-    const result = (response as RpcSuccess).result as CreateHostedReviewResult
     if (result.ok) {
       return finishMobileHostedReviewCreateSuccess(client, worktreeId, input, result)
     }

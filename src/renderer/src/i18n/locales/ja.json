@@ -713,7 +713,6 @@
       "useComposerState": {
         "7eb3f44ff7": "選択した Agent は無効です。作成する前に、有効な Agent を選択してください。",
         "b2ead86962": "PR ベースを解決できませんでした。",
-        "a9ff236145": "一部の添付ファイルをアップロードできませんでした。",
         "3db83fc58a": "このホスト上に、添付に使用できるプロジェクトパスがありません。",
         "ba6cb77082": "プロジェクトへの接続に失敗しました。",
         "chooseOrAddProjectBeforeWorkspace": "ワークスペースを作成する前に、プロジェクトを選択または追加してください。",
@@ -2224,6 +2223,10 @@
                 "7c302f8174": "無題"
               }
             }
+          },
+          "ProjectViewStates": {
+            "3b9c1d5e47": "このビューにはまだ項目がありません。",
+            "7e4a2f80c6": "最近追加した項目は、表示されるまで少し時間がかかることがあります。"
           }
         },
         "GitHubMarkdownComposer": {
@@ -14691,7 +14694,8 @@
         "chooseInAgentPicker": "Agent の選択画面で選ぶ…",
         "toggleOption": "{{value0}}を切り替える",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueUnknown": "現在の値が不明です — オンまたはオフを選んでください",
+        "valueIsDefault": "既定",
+        "valueNotReported": "未報告",
         "sentNotConfirmed": "Agent に送信済み — 未確認",
         "setWhenSessionStarts": "セッション開始時に設定してください。",
         "availableAfterSessionStarts": "セッション開始後に利用できます。",
@@ -14704,9 +14708,7 @@
           "high": "高",
           "xhigh": "最高",
           "max": "最大",
-          "ultra": "ウルトラ",
-          "on": "オン",
-          "off": "オフ"
+          "ultra": "ウルトラ"
         },
         "noCommandsOrSkills": "一致するコマンドやスキルがありません",
         "commands": "コマンド",

@@ -17,6 +17,7 @@ minimumReleaseAgeExclude:
   - pdfjs-dist@6.3.289
   - zod@4.5.4
   - electron@43.7.0
+  - '@shadcn/lint@0.1.0'
   # Unpublished from npm after we pinned it: the registry manifest no longer
   # lists 1.12.37, so the age gate cannot evaluate it and rejects the entry
   # outright. The lockfile still carries its integrity hash, so what installs is
