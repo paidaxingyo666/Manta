@@ -9528,6 +9528,1141 @@
           "checkpoint": "settled"
         }
       ]
+    },
+    {
+      "id": "transport-host-status-gates-ready",
+      "operation": "transport.host-status-gates",
+      "version": 1,
+      "family": "transport.host-status-gates",
+      "sites": ["mobile/src/transport/host-status-gates.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "protocolVersion": 5,
+              "minCompatibleMobileVersion": 1,
+              "appVersion": "1.4.200",
+              "capabilities": ["mobile.tasks.v1", "push.v1"],
+              "floatingWorkspaceEnabled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "gates-proven"
+        }
+      ]
+    },
+    {
+      "id": "transport-host-status-gates-refused-degrades",
+      "operation": "transport.host-status-gates",
+      "version": 1,
+      "family": "transport.host-status-gates",
+      "sites": ["mobile/src/transport/host-status-gates.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "status_unavailable",
+              "message": "no status"
+            }
+          }
+        },
+        {
+          "checkpoint": "gates-degraded"
+        }
+      ]
+    },
+    {
+      "id": "transport-host-status-gates-drop-keeps-capabilities",
+      "operation": "transport.host-status-gates",
+      "version": 1,
+      "family": "transport.host-status-gates",
+      "sites": ["mobile/src/transport/host-status-gates.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "protocolVersion": 5,
+              "minCompatibleMobileVersion": 1,
+              "appVersion": "1.4.200",
+              "capabilities": ["mobile.tasks.v1", "push.v1"],
+              "floatingWorkspaceEnabled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "gates-proven"
+        },
+        {
+          "action": "state",
+          "id": "drop",
+          "args": {
+            "connState": "connecting"
+          }
+        },
+        {
+          "checkpoint": "gates-unverified"
+        }
+      ]
+    },
+    {
+      "id": "transport-capability-probe-publishes",
+      "operation": "transport.capability-probe",
+      "version": 1,
+      "family": "transport.capability-probe",
+      "sites": ["mobile/src/transport/runtime-capability-probe.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["push.v1", "codex.reset-credit"]
+            }
+          }
+        },
+        {
+          "checkpoint": "capabilities-published"
+        }
+      ]
+    },
+    {
+      "id": "transport-capability-probe-refused-backs-off",
+      "operation": "transport.capability-probe",
+      "version": 1,
+      "family": "transport.capability-probe",
+      "sites": ["mobile/src/transport/runtime-capability-probe.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "status_unavailable",
+              "message": "no status"
+            }
+          }
+        },
+        {
+          "checkpoint": "backing-off"
+        },
+        {
+          "advance": 1000
+        },
+        {
+          "complete": "status.get#2",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["push.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "published-after-backoff"
+        }
+      ]
+    },
+    {
+      "id": "transport-capability-probe-non-string-capabilities-drop",
+      "operation": "transport.capability-probe",
+      "version": 1,
+      "family": "transport.capability-probe",
+      "sites": ["mobile/src/transport/runtime-capability-probe.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["push.v1", 7]
+            }
+          }
+        },
+        {
+          "checkpoint": "capabilities-rejected"
+        },
+        {
+          "action": "stop",
+          "id": "stop"
+        },
+        {
+          "checkpoint": "stopped"
+        }
+      ]
+    },
+    {
+      "id": "transport-pairing-race-relay-completes-first",
+      "operation": "transport.pairing-race",
+      "version": 1,
+      "family": "transport.pairing-race",
+      "sites": ["mobile/src/transport/pairing-candidate-race.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "race",
+          "id": "race"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "checkpoint": "relay-wins-when-it-completes-first"
+        }
+      ]
+    },
+    {
+      "id": "transport-pairing-race-direct-completes-first",
+      "operation": "transport.pairing-race",
+      "version": 1,
+      "family": "transport.pairing-race",
+      "sites": ["mobile/src/transport/pairing-candidate-race.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "race",
+          "id": "race"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "checkpoint": "direct-wins-when-it-completes-first"
+        }
+      ]
+    },
+    {
+      "id": "transport-pairing-race-relay-wins-when-direct-refused",
+      "operation": "transport.pairing-race",
+      "version": 1,
+      "family": "transport.pairing-race",
+      "sites": ["mobile/src/transport/pairing-candidate-race.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "race",
+          "id": "race"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "unauthorized",
+              "message": "direct refused"
+            }
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "checkpoint": "relay-wins"
+        }
+      ]
+    },
+    {
+      "id": "transport-pairing-race-both-refused",
+      "operation": "transport.pairing-race",
+      "version": 1,
+      "family": "transport.pairing-race",
+      "sites": ["mobile/src/transport/pairing-candidate-race.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "race",
+          "id": "race"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "unauthorized",
+              "message": "direct refused"
+            }
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "unauthorized",
+              "message": "relay refused"
+            }
+          }
+        },
+        {
+          "checkpoint": "both-paths-failed"
+        }
+      ]
+    },
+    {
+      "id": "relay-rotation-installs-and-commits",
+      "operation": "relay.credential-rotation",
+      "version": 1,
+      "family": "relay.credential-rotation",
+      "sites": ["mobile/src/transport/mobile-relay-credential-rotation.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "rotate",
+          "id": "rotate"
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA",
+                "state": "not-found"
+              }
+            }
+          }
+        },
+        {
+          "complete": "pairing.provisionRelay#1",
+          "params": {
+            "reqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA",
+            "newResumeTokenHash": "yrnYzw4B0YZ_R6Tcm4arO3oysaG7lsPjvyp4uWmdBtU",
+            "expectedCurrentHash": "r_9byaBlTZTXS3aLLlWTKwss-nmx4vGRrjKskxWyP30"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "reqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA",
+              "authorizationMode": "authenticated-direct",
+              "currentVersion": 4,
+              "resumeExpiresAt": 1767830400000
+            }
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#2",
+          "params": {
+            "installReqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "rotate-VftjjHf-4Lb1-Sdfryl-LA",
+                  "authorizationMode": "authenticated-direct",
+                  "currentVersion": 4,
+                  "resumeExpiresAt": 1767830400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "credential-rotated"
+        }
+      ]
+    },
+    {
+      "id": "relay-rotation-resumes-committed-pending",
+      "operation": "relay.credential-rotation",
+      "version": 1,
+      "family": "relay.credential-rotation",
+      "sites": ["mobile/src/transport/mobile-relay-credential-rotation.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "rotate",
+          "id": "rotate",
+          "args": {
+            "pending": true
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "install-fixture-1",
+                  "authorizationMode": "authenticated-direct",
+                  "currentVersion": 5,
+                  "resumeExpiresAt": 1767830400000,
+                  "graceExpiresAt": 1767398400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "pending-install-adopted"
+        }
+      ]
+    },
+    {
+      "id": "relay-direct-upgrade-commits",
+      "operation": "relay.direct-upgrade",
+      "version": 1,
+      "family": "relay.direct-upgrade",
+      "sites": ["mobile/src/transport/mobile-relay-direct-upgrade.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "upgrade",
+          "id": "upgrade",
+          "args": {
+            "journal": true
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "not-found"
+              }
+            }
+          }
+        },
+        {
+          "complete": "pairing.provisionRelay#1",
+          "params": {
+            "reqId": "install-fixture-1",
+            "newResumeTokenHash": "7ehR_WuQWkxwOFJdkHfI5jEg4DeVYWImtDuip60LHK4"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "reqId": "install-fixture-1",
+              "authorizationMode": "authenticated-direct",
+              "currentVersion": 4,
+              "resumeExpiresAt": 1767830400000
+            }
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#2",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "install-fixture-1",
+                  "authorizationMode": "authenticated-direct",
+                  "currentVersion": 4,
+                  "resumeExpiresAt": 1767830400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "direct-upgrade-committed"
+        }
+      ]
+    },
+    {
+      "id": "relay-direct-upgrade-unsupported-host-declines",
+      "operation": "relay.direct-upgrade",
+      "version": 1,
+      "family": "relay.direct-upgrade",
+      "sites": ["mobile/src/transport/mobile-relay-direct-upgrade.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "upgrade",
+          "id": "upgrade",
+          "args": {
+            "journal": true
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "method_not_found",
+              "message": "Unknown method"
+            }
+          }
+        },
+        {
+          "checkpoint": "upgrade-declined"
+        }
+      ]
+    },
+    {
+      "id": "relay-pairing-recovery-resume-committed",
+      "operation": "relay.pairing-recovery",
+      "version": 1,
+      "family": "relay.pairing-recovery",
+      "sites": ["mobile/src/transport/mobile-relay-pairing-recovery.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "recover",
+          "id": "recover"
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-fixture-1",
+            "resumeConfirmReqId": "confirm-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "install-fixture-1",
+                  "authorizationMode": "relay-basis",
+                  "currentVersion": 4,
+                  "resumeExpiresAt": 1767830400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "recovered-on-resume"
+        }
+      ]
+    },
+    {
+      "id": "relay-pairing-recovery-invite-authorizes",
+      "operation": "relay.pairing-recovery",
+      "version": 1,
+      "family": "relay.pairing-recovery",
+      "sites": ["mobile/src/transport/mobile-relay-pairing-recovery.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "recover",
+          "id": "recover"
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-fixture-1",
+            "resumeConfirmReqId": "confirm-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "not-found"
+              }
+            }
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#2",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "not-found"
+              }
+            }
+          }
+        },
+        {
+          "complete": "pairing.provisionRelay#1",
+          "params": {
+            "reqId": "install-fixture-1",
+            "newResumeTokenHash": "7ehR_WuQWkxwOFJdkHfI5jEg4DeVYWImtDuip60LHK4"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "reqId": "install-fixture-1",
+              "authorizationMode": "relay-basis",
+              "currentVersion": 4,
+              "resumeExpiresAt": 1767830400000
+            }
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#3",
+          "params": {
+            "installReqId": "install-fixture-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-fixture-1",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "install-fixture-1",
+                  "authorizationMode": "relay-basis",
+                  "currentVersion": 4,
+                  "resumeExpiresAt": 1767830400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "recovered-through-invite"
+        }
+      ]
+    },
+    {
+      "id": "pairing-pre-profile-direct-wins-and-provisions",
+      "operation": "pairing.pre-profile",
+      "version": 1,
+      "family": "pairing.pre-profile",
+      "sites": [
+        "mobile/src/transport/pre-profile-pairing-coordinator.ts",
+        "mobile/src/transport/pairing-candidate-race.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "pair",
+          "id": "pair"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "pairing.provisionRelay#1",
+          "params": {
+            "reqId": "install-l99UBPM71AZiC1ghz2glnA",
+            "newResumeTokenHash": "yrnYzw4B0YZ_R6Tcm4arO3oysaG7lsPjvyp4uWmdBtU"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "reqId": "install-l99UBPM71AZiC1ghz2glnA",
+              "authorizationMode": "authenticated-direct",
+              "currentVersion": 4,
+              "resumeExpiresAt": 1767830400000
+            }
+          }
+        },
+        {
+          "complete": "pairing.getEndpoints#1",
+          "params": {
+            "installReqId": "install-l99UBPM71AZiC1ghz2glnA"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "v": 1,
+              "relay": {
+                "v": 1,
+                "directorUrl": "https://director.example",
+                "cellUrl": "https://cell.example",
+                "assignmentEpoch": 1,
+                "relayHostId": "relay-host-0001x",
+                "e2eeFraming": 2
+              },
+              "installStatus": {
+                "v": 1,
+                "reqId": "install-l99UBPM71AZiC1ghz2glnA",
+                "state": "committed",
+                "result": {
+                  "v": 1,
+                  "reqId": "install-l99UBPM71AZiC1ghz2glnA",
+                  "authorizationMode": "authenticated-direct",
+                  "currentVersion": 4,
+                  "resumeExpiresAt": 1767830400000
+                }
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "paired-over-direct"
+        }
+      ]
+    },
+    {
+      "id": "pairing-pre-profile-provision-unsupported-saves-direct-host",
+      "operation": "pairing.pre-profile",
+      "version": 1,
+      "family": "pairing.pre-profile",
+      "sites": [
+        "mobile/src/transport/pre-profile-pairing-coordinator.ts",
+        "mobile/src/transport/pairing-candidate-race.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "pair",
+          "id": "pair"
+        },
+        {
+          "bind": "direct-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "bind": "relay-status",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "direct-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "relay-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": []
+            }
+          }
+        },
+        {
+          "complete": "pairing.provisionRelay#1",
+          "params": {
+            "reqId": "install-l99UBPM71AZiC1ghz2glnA",
+            "newResumeTokenHash": "yrnYzw4B0YZ_R6Tcm4arO3oysaG7lsPjvyp4uWmdBtU"
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "method_not_found",
+              "message": "Unknown method"
+            }
+          }
+        },
+        {
+          "checkpoint": "direct-host-saved"
+        }
+      ]
+    },
+    {
+      "id": "pairing-pre-profile-times-out",
+      "operation": "pairing.pre-profile",
+      "version": 1,
+      "family": "pairing.pre-profile",
+      "sites": [
+        "mobile/src/transport/pre-profile-pairing-coordinator.ts",
+        "mobile/src/transport/pairing-candidate-race.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "pair",
+          "id": "pair",
+          "args": {
+            "timeoutMs": 5000
+          }
+        },
+        {
+          "checkpoint": "racing"
+        },
+        {
+          "advance": 5000
+        },
+        {
+          "checkpoint": "timed-out"
+        }
+      ]
+    },
+    {
+      "id": "transport-capability-probe-cutover-reasks-fast",
+      "operation": "transport.capability-probe",
+      "version": 1,
+      "family": "transport.capability-probe",
+      "sites": ["mobile/src/transport/runtime-capability-probe.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "action": "cutover",
+          "id": "migrate"
+        },
+        {
+          "checkpoint": "cutover-rejected-the-probe"
+        },
+        {
+          "advance": 250
+        },
+        {
+          "bind": "status-after-cutover",
+          "request": "status.get#2",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "complete": "status-after-cutover",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["push.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "published-after-cutover-reask"
+        }
+      ]
     }
   ]
 }

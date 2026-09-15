@@ -7,11 +7,14 @@ import { hostWorktreeActionMountAdapters } from './host-worktree-action-mount-ad
 import { hostedReviewMountAdapters } from './hosted-review-mount-adapters'
 import { newTabAgentMountAdapters } from './new-tab-agent-mount-adapters'
 import { newWorkspaceMountAdapters } from './new-workspace-mount-adapters'
+import { pairingJournalMountAdapters } from './pairing-journal-mount-adapters'
+import { relayCredentialMountAdapters } from './relay-credential-mount-adapters'
 import { settingsMountAdapters, settingsMountExposures } from './settings-mount-adapters'
 import { sourceControlMountAdapters } from './source-control-mount-adapters'
 import { taskMountAdapters } from './task-mount-adapters'
 import { taskWorkspaceHookMountAdapters } from './task-workspace-hook-mount-adapters'
 import { taskWorkspaceSenderMountAdapters } from './task-workspace-sender-mount-adapters'
+import { transportStatusMountAdapters } from './transport-status-mount-adapters'
 import { workspaceSettingsMounts } from './workspace-settings-mounts'
 import { worktreeCatalogMountAdapters } from './worktree-catalog-mount-adapters'
 import type { MountedOperationModule } from '../mounted-operation-module'
@@ -34,6 +37,8 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
   { source: 'hosted-review-mount-adapters.ts', mounts: hostedReviewMountAdapters },
   { source: 'new-tab-agent-mount-adapters.ts', mounts: newTabAgentMountAdapters },
   { source: 'new-workspace-mount-adapters.ts', mounts: newWorkspaceMountAdapters },
+  { source: 'pairing-journal-mount-adapters.ts', mounts: pairingJournalMountAdapters },
+  { source: 'relay-credential-mount-adapters.ts', mounts: relayCredentialMountAdapters },
   {
     source: 'settings-mount-adapters.ts',
     mounts: settingsMountAdapters,
@@ -49,6 +54,7 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
     source: 'task-workspace-sender-mount-adapters.ts',
     mounts: taskWorkspaceSenderMountAdapters
   },
+  { source: 'transport-status-mount-adapters.ts', mounts: transportStatusMountAdapters },
   { source: 'workspace-settings-mounts.ts', mounts: workspaceSettingsMounts },
   { source: 'worktree-catalog-mount-adapters.ts', mounts: worktreeCatalogMountAdapters }
 ]

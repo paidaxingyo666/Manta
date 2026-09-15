@@ -205,14 +205,22 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/terminal/terminal-viewport-refit.ts', references: 1 },
   { file: 'src/terminal/worker-terminal-takeover-report.ts', references: 2 },
 
-  // src/transport/ — pairing, endpoint probing and capability reads
-  { file: 'src/transport/host-status-gates.ts', references: 1 },
-  { file: 'src/transport/mobile-relay-credential-rotation.ts', references: 2 },
-  { file: 'src/transport/mobile-relay-direct-upgrade.ts', references: 2 },
-  { file: 'src/transport/mobile-relay-pairing-recovery.ts', references: 2 },
-  { file: 'src/transport/mobile-runtime-capability-negotiation.ts', references: 2 },
-  { file: 'src/transport/pairing-candidate-race.ts', references: 1 },
+  // src/transport/ — what is left of pairing, probing and capability reads after step 4. The
+  // protocol gate, the retrying capability probe, the candidate race, credential rotation, the
+  // direct-to-relay upgrade, startup pairing recovery and first pairing all send through
+  // host-status-probe-operations.ts and mobile-relay-pairing-operations.ts now. Neither file below
+  // shares the pending list's stated reason, so each carries its own:
+  //
+  // Decorates one PairingCandidateClient with director recovery, forwarding whatever method it is
+  // handed. It IS the port for the candidate it wraps, so it cannot send through an operation; the
+  // one method string it did choose now comes from hostStatusProbe.
   { file: 'src/transport/pairing-relay-candidate.ts', references: 4 },
-  { file: 'src/transport/pre-profile-pairing-coordinator.ts', references: 2 },
-  { file: 'src/transport/runtime-capability-probe.ts', references: 2 }
+  // Its sender is the two physical clients' authenticated-but-not-yet-`connected` path, which is
+  // not an RpcClient and is unreachable from the recording oracle, so a migration here could not
+  // be shown to preserve behaviour. Its method and params are already shared constants.
+  { file: 'src/transport/mobile-runtime-capability-negotiation.ts', references: 2 },
+  // Sends through hostStatusProbe; the one reference left is its parameter type. Its callers do
+  // not share a client type — push-registration.ts holds only the sender — so the parameter names
+  // the port itself. It reaches zero when the last such caller migrates.
+  { file: 'src/transport/runtime-capability-probe.ts', references: 1 }
 ]
