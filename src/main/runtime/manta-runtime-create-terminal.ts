@@ -146,6 +146,7 @@ export class MantaRuntimeWithCreateTerminal extends MantaRuntimeWithTerminalCrea
             preAllocatedHandle,
             tabId,
             leafId,
+            ...(launchOpts.shellOverride ? { shellOverride: launchOpts.shellOverride } : {}),
             ...(terminalColorQueryReplies ? { terminalColorQueryReplies } : {}),
             ...(launchOpts.agentSessionClaim
               ? {

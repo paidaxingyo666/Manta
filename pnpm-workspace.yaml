@@ -54,7 +54,7 @@ allowBuilds:
   node-pty: true
   sherpa-onnx: true
   ssh2: false
-  "@manta/windows-registry": false
+  '@manta/windows-registry': false
 
 overrides:
   monaco-editor>dompurify: 3.4.14

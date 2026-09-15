@@ -62,7 +62,7 @@ export const ROOT_HELP_TEXT_SECONDARY = [
   '  manta terminal read [--terminal <handle>] [--cursor <n>] [--limit <n>] [--json]',
   '  manta terminal send [--terminal <handle>] [--text <text>] [--enter] [--interrupt] [--wait-submit <seconds>] [--retry-request <id>] [--json]',
   '  manta terminal wait [--terminal <handle>] --for exit|tui-idle [--timeout-ms <ms>] [--json]',
-  '  manta terminal create [--worktree <selector>] [--title <name>] [--command <text>] [--focus] [--json]',
+  '  manta terminal create [--worktree <selector>] [--title <name>] [--command <text>] [--shell <shell>] [--focus] [--json]',
   '  manta terminal split [--terminal <handle>] [--direction horizontal|vertical] [--json]',
   '  manta terminal switch [--terminal <handle>] [--json]',
   '  manta terminal close ([--terminal <handle>] [--tab] | --worktree <selector> --all) [--json]',
