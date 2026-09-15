@@ -11,6 +11,7 @@ import {
 } from './postgres-pool-pressure.js'
 import { applyPostgresSchema } from './postgres-schema-startup.js'
 import { POSTGRES_STATEMENT_STATS_MIGRATION } from './postgres-statement-stats.js'
+import { reportPostgresQueryFailure } from './postgres-query-failure.js'
 import {
   CellInventoryHoldSamples,
   emptyCellInventoryHoldCounts,
@@ -910,12 +911,25 @@ class PostgresDatabase implements RelayDatabase {
   }
 
   async query(sql: string, params: unknown[] = []): Promise<SqlRow[]> {
-    const client = await this.pressure.connect()
+    const startedAt = performance.now()
+    let phase: 'acquire' | 'execute' = 'acquire'
+    let client: pg.PoolClient | undefined
     try {
+      client = await this.pressure.connect()
+      phase = 'execute'
       const result = await client.query(postgresSql(sql), params)
       return returnsRows(sql) ? (result.rows as SqlRow[]) : [{ changes: result.rowCount ?? 0 }]
+    } catch (error) {
+      reportPostgresQueryFailure({
+        error,
+        phase,
+        sql,
+        elapsedMs: performance.now() - startedAt,
+        pool: this.pool
+      })
+      throw error
     } finally {
-      client.release()
+      client?.release()
     }
   }
 
