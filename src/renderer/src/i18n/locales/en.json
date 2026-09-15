@@ -977,6 +977,9 @@
         "preview": {
           "pairedOutsideWorktree": "Files outside the workspace can't be previewed on a paired server yet."
         }
+      },
+      "clipboardWriteFailure": {
+        "tooLarge": "The text is too large to copy."
       }
     },
     "hooks": {
@@ -12390,7 +12393,8 @@
             "entryUnstageFailed": "Failed to unstage “{{value0}}”",
             "entryDiscardFailed": "Failed to discard “{{value0}}”",
             "entryDeleteFailed": "Failed to delete “{{value0}}”",
-            "entryFailedInWorkspace": "{{value0}} in {{value1}}"
+            "entryFailedInWorkspace": "{{value0}} in {{value1}}",
+            "diffCommentNotesCopyFailed": "Failed to copy notes"
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
