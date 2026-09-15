@@ -118,7 +118,7 @@ function ToggleRow({
         <Text style={styles.rowLabel}>{label}</Text>
       </View>
       {marker ? (
-        <Text style={styles.rowMarker}>{marker === 'default' ? 'Default' : 'Not reported'}</Text>
+        <Text style={styles.rowMarker}>{marker === 'default' ? translate("m.MobileNativeChatSessionOptionRows.d0db0dadc2", "Default") : translate("m.MobileNativeChatSessionOptionRows.80b99f2284", "Not reported")}</Text>
       ) : null}
       <Switch
         accessibilityLabel={label}

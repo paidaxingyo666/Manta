@@ -681,7 +681,9 @@
       "c2d79886a9": "On",
       "5c67474f2f": "Current value unknown — pick On or Off",
       "60862cacc1": "Choose in agent picker…",
-      "7b2744302b": "Toggle {{value0}}"
+      "7b2744302b": "Toggle {{value0}}",
+      "80b99f2284": "Not reported",
+      "d0db0dadc2": "Default"
     },
     "MobileNativeChatView": {
       "e79c8354d9": "Message, @files, /commands",

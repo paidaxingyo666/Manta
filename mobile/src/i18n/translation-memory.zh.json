@@ -1172,5 +1172,11 @@
   "Send test notification": "发送测试通知",
   "Send a test through Manta’s push service.": "通过 Manta 推送服务发送一条测试通知。",
   "Having trouble receiving alerts?": "收不到提醒？",
-  "Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume.": "提醒类型遵循各台已配对桌面端的通知设置。超过 7 天未使用此应用，通知会暂停；打开应用并重新连接即可恢复。"
+  "Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume.": "提醒类型遵循各台已配对桌面端的通知设置。超过 7 天未使用此应用，通知会暂停；打开应用并重新连接即可恢复。",
+  "{{value0}} failing checks": "{{value0}} 项检查失败",
+  "{{value0}} failing check": "{{value0}} 项检查失败",
+  "{{value0}} commits behind (base commit:": "落后 {{value0}} 个提交（基础提交：",
+  "{{value0}} commit behind (base commit:": "落后 {{value0}} 个提交（基础提交：",
+  "Couldn't confirm cleanup for {{value0}} credentials on this device.": "无法确认此设备上 {{value0}} 个凭据的清理结果。",
+  "Couldn't confirm cleanup for {{value0}} credential on this device.": "无法确认此设备上 {{value0}} 个凭据的清理结果。"
 }
