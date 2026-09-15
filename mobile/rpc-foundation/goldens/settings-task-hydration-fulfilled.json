@@ -5,8 +5,8 @@
   "runnerVersion": 1,
   "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
-  "adapterSha256": "fc73116d95985606fe32f22d3f14f434a6d5cd49219416c9fa0f47f971fa6ff0",
+  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
+  "adapterSha256": "59e14a669103f2182737dedeed218795ffbadaf06a3a48a322cd8d20141a3e04",
   "scenarioSha256": "c08cce5d1f71761dbf504863b736e5546abb42b9ff4ab8ced65c7c42e3d66c0e",
   "platform": "darwin",
   "scenarioVersion": 1,
@@ -202,7 +202,7 @@
       "name": "showGitHubPagePicker",
       "value": false
     },
-    "52bdddbac50f": {
+    "38fa40388041": {
       "name": "trustedMantaHooks",
       "value": {}
     },
@@ -309,7 +309,7 @@
         "$rpc": "null"
       }
     },
-    "7f2e001f13e7": {
+    "95cf44f796f0": {
       "name": "projectRepoNotInManta",
       "value": {
         "$rpc": "null"
@@ -663,7 +663,7 @@
             "42d2e0167dad",
             "ac9996319e05",
             "12388aa75326",
-            "7f2e001f13e7",
+            "95cf44f796f0",
             "7d341b2cb946",
             "347cc433c473",
             "3e610f908f29",
@@ -728,7 +728,7 @@
             "42d2e0167dad",
             "ac9996319e05",
             "12388aa75326",
-            "7f2e001f13e7",
+            "95cf44f796f0",
             "7d341b2cb946",
             "347cc433c473",
             "3e610f908f29",
@@ -743,7 +743,7 @@
             "5b1145eb3832",
             "82cd71d524c8",
             "326e3f8f7e0b",
-            "52bdddbac50f",
+            "38fa40388041",
             "4cc1535f7ccf",
             "16f398d67267",
             "b66eccd2062e",

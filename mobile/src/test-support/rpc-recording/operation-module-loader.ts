@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path'
 import * as React from 'react'
 import ts from 'typescript'
 import * as deliveryAmbiguity from '../../transport/rpc-delivery-ambiguity'
+import * as mobileI18n from '../../i18n/i18n'
 
 export type OperationModule = Record<string, (...args: any[]) => unknown>
 /** One anchored in-memory source edit, resolved by the caller so the loader needs no mutant table. */
@@ -21,6 +22,9 @@ export type OperationExposure = readonly [suffix: string, source: string]
 // object, so a second copy of the module has a second, empty registry and every marked rejection
 // reads as a definite failure inside the mounted operation. Same reason React is shared.
 const SHARED_MODULE = 'mobile/src/transport/rpc-delivery-ambiguity.ts'
+// Why: this fork wraps copy in translate(); evaluated from source, i18n.ts reaches i18next, a native
+// boundary. The app's own module renders the English fallback the goldens record.
+const SHARED_I18N_MODULE = 'mobile/src/i18n/i18n.ts'
 
 // Only mounting boundaries are substituted; every operation and projection is loaded from source.
 export function operationModuleLoader(
@@ -30,6 +34,7 @@ export function operationModuleLoader(
 ) {
   const cache = new Map<string, OperationModule>()
   const sharedModulePath = resolve(root, SHARED_MODULE)
+  const sharedI18nPath = resolve(root, SHARED_I18N_MODULE)
   let mutationCount = 0
   function pathFor(base: string): string {
     const file = ['', '.ts', '.tsx', '/index.ts']
@@ -46,6 +51,9 @@ export function operationModuleLoader(
     }
     if (name.startsWith('.') && pathFor(resolve(dirname(base), name)) === sharedModulePath) {
       return deliveryAmbiguity
+    }
+    if (name.startsWith('.') && pathFor(resolve(dirname(base), name)) === sharedI18nPath) {
+      return mobileI18n
     }
     if (!name.startsWith('.')) {
       return new Proxy(

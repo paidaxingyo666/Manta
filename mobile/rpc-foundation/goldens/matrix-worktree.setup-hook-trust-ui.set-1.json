@@ -5,22 +5,22 @@
   "runnerVersion": 1,
   "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
+  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
   "adapterSha256": "343b97826782820b7aecaddd13a4c8cdbbbca057c83021863d577a677934f3a3",
-  "scenarioSha256": "8487fd14ed779708415b264e2b80b26b0d5094e379a04f4f32c2cd75ec469182",
+  "scenarioSha256": "3ba2fe85b30ba7dd3f99d5d6843cae8fc40e48c557ce0457473af968149ab1e3",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "0f68ccbfb8e9": {
+    "f145f67f5fa6": {
       "name": "ui.set#1",
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"setup\":{\"contentHash\":\"hash-1\",\"approvedAt\":1767225600000}}}}}"
     },
     "229c35d1a4ba": {
       "trust": "unapproved"
     },
-    "255cdc090b8a": {
+    "b60333d06673": {
       "name": "ui.set#1",
       "args": [
         {
@@ -61,7 +61,7 @@
         }
       }
     },
-    "2905cce95e1c": {
+    "17a3b7424185": {
       "name": "ui.set#1",
       "args": [
         {
@@ -104,7 +104,7 @@
         }
       }
     },
-    "29fc0c5de3b0": {
+    "0819b7f73b75": {
       "name": "ui.set#1",
       "args": [
         {
@@ -152,7 +152,7 @@
         "isRpcDeliveryUnknown": false
       }
     },
-    "32af950a57cc": {
+    "0b2204f559c7": {
       "name": "ui.set#1",
       "args": [
         {
@@ -193,7 +193,7 @@
         }
       }
     },
-    "6f009f61d89f": {
+    "9c4255124389": {
       "name": "ui.set#1",
       "args": [
         {
@@ -233,7 +233,7 @@
         }
       }
     },
-    "9deb505f7915": {
+    "c991d1f2e418": {
       "name": "ui.set#1",
       "args": [
         {
@@ -296,7 +296,7 @@
         "isRpcDeliveryUnknown": true
       }
     },
-    "abd752b10f76": {
+    "0d41ba7285c2": {
       "name": "ui.set#1",
       "args": [
         {
@@ -334,7 +334,7 @@
         }
       }
     },
-    "ac7d2d4aa85c": {
+    "4f45aa4ee1f2": {
       "name": "ui.set#1",
       "args": [
         {
@@ -404,7 +404,7 @@
         "isRpcDeliveryUnknown": true
       }
     },
-    "d1113bd291a2": {
+    "db59fa600f0e": {
       "name": "ui.set#1",
       "args": [
         {
@@ -445,7 +445,7 @@
         }
       }
     },
-    "e3e6506e1ed0": {
+    "2bc8ee8a0a5a": {
       "name": "ui.set#1",
       "args": [
         {
@@ -486,7 +486,7 @@
         }
       }
     },
-    "e9c010ad58d3": {
+    "2cee35a4cf1d": {
       "name": "ui.set#1",
       "args": [
         {
@@ -540,8 +540,8 @@
       {
         "id": "tw-setup-hook-trust-approved.normal:approved",
         "observation": {
-          "sender": ["6f009f61d89f"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["9c4255124389"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -552,8 +552,8 @@
       {
         "id": "tw-setup-hook-trust-approved.result-absent:approved",
         "observation": {
-          "sender": ["e9c010ad58d3"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["2cee35a4cf1d"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -564,8 +564,8 @@
       {
         "id": "tw-setup-hook-trust-approved.result-null:approved",
         "observation": {
-          "sender": ["9deb505f7915"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["c991d1f2e418"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -576,8 +576,8 @@
       {
         "id": "tw-setup-hook-trust-approved.inner-ok-missing:approved",
         "observation": {
-          "sender": ["ac7d2d4aa85c"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["4f45aa4ee1f2"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -588,8 +588,8 @@
       {
         "id": "tw-setup-hook-trust-approved.inner-false-string-error:approved",
         "observation": {
-          "sender": ["d1113bd291a2"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["db59fa600f0e"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -600,8 +600,8 @@
       {
         "id": "tw-setup-hook-trust-approved.inner-false-object-error:approved",
         "observation": {
-          "sender": ["2905cce95e1c"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["17a3b7424185"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a406b068aeca"
           },
@@ -612,8 +612,8 @@
       {
         "id": "tw-setup-hook-trust-approved.outer-refused:approved",
         "observation": {
-          "sender": ["e3e6506e1ed0"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["2bc8ee8a0a5a"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "32a7c0ae7918"
           },
@@ -624,8 +624,8 @@
       {
         "id": "tw-setup-hook-trust-approved.outer-refused-no-message:approved",
         "observation": {
-          "sender": ["32af950a57cc"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["0b2204f559c7"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "f3b516f62081"
           },
@@ -636,8 +636,8 @@
       {
         "id": "tw-setup-hook-trust-approved.method-not-found:approved",
         "observation": {
-          "sender": ["255cdc090b8a"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["b60333d06673"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "b948e8307e81"
           },
@@ -648,8 +648,8 @@
       {
         "id": "tw-setup-hook-trust-approved.transport-rejection:approved",
         "observation": {
-          "sender": ["29fc0c5de3b0"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["0819b7f73b75"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "a947768bc0ed"
           },
@@ -660,8 +660,8 @@
       {
         "id": "tw-setup-hook-trust-approved.transport-rejection-no-message:approved",
         "observation": {
-          "sender": ["abd752b10f76"],
-          "payloads": ["0f68ccbfb8e9"],
+          "sender": ["0d41ba7285c2"],
+          "payloads": ["f145f67f5fa6"],
           "settlements": {
             "approve": "c7584e82c72f"
           },

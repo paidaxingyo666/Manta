@@ -5,15 +5,15 @@
   "runnerVersion": 1,
   "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
-  "adapterSha256": "d3b7f33d810e1fa420ac41a628cde9fe4a9e65fd57f89fbca0a40fc7d74951ab",
-  "scenarioSha256": "31bfa49f888b0eb3f72873bf4a3af26129e78c23126e8fc8fe45b952caa60904",
+  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
+  "adapterSha256": "ce720e10c3069e9d9ee5d3226f8a037feb68ed4176fb388aa8f63740e058f749",
+  "scenarioSha256": "0cb1e808314d74e6e16719d8ea5757f46cd83ff4c3b9c1a948eb58effcb7630a",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "43a97b36b849": {
+    "a0443e599518": {
       "name": "ui.set#2",
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"setup\":{\"contentHash\":\"hash-1\",\"approvedAt\":1767225600000}}}}}"
     },
@@ -60,7 +60,7 @@
     "ae0c8e22f430": {
       "preset": "all"
     },
-    "bea815de84ac": {
+    "f84ee4dbc67d": {
       "name": "ui.set#2",
       "args": [
         {
@@ -139,8 +139,8 @@
       {
         "id": "awaited-trust-write-refused",
         "observation": {
-          "sender": ["a569eb8ebbdd", "bea815de84ac"],
-          "payloads": ["8214f29cee6d", "43a97b36b849"],
+          "sender": ["a569eb8ebbdd", "f84ee4dbc67d"],
+          "payloads": ["8214f29cee6d", "a0443e599518"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "resume": "eb79a9b3682a",

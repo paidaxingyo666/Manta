@@ -5,9 +5,9 @@
   "runnerVersion": 1,
   "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "2e90933db32efc17d752cf5d506ecdd9ec54ce53ea30ba55021ea3d1bc1d3fb2",
-  "adapterSha256": "411f2288f09b7940ceb46304c7fc3325e248bf009ff3a7cc12839d521cfad599",
-  "scenarioSha256": "7e4c5bb29e0f630cda8a09233575b9295e485f3d3e315ebdc0458c69515fcfc7",
+  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
+  "adapterSha256": "ec04f434d3da733ea8eeb1c706fb1e51f86a11ce4422a32b88e9bb8a10211ff5",
+  "scenarioSha256": "3f7bce022cb628b6f235466394a135247d34126c3aabfb97057d4d2b71a7bcb5",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -45,7 +45,7 @@
         "startedAt": 0
       }
     },
-    "0f72e7ee78c9": {
+    "776aa2203bbd": {
       "name": "worktree.create#1",
       "args": [
         {
@@ -428,7 +428,7 @@
         }
       }
     },
-    "baa74a0ec378": {
+    "15c314736113": {
       "name": "worktree.create#1",
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.create\",\"params\":{\"repo\":\"id:repo-1\",\"name\":\"orc-1\",\"displayName\":\"ORC-1 Recorded issue\",\"displayNameKind\":\"generated\",\"linkedLinearIssue\":\"ORC-1\",\"setupDecision\":\"inherit\",\"activate\":true,\"startupDraft\":\"https://linear.app/manta/issue/ORC-1\",\"createdWithAgent\":\"claude\"}}"
     },
@@ -631,8 +631,8 @@
       {
         "id": "settings-task-workspace-create-linear.normal:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "0f72e7ee78c9"],
-          "payloads": ["7ddcb1852b39", "baa74a0ec378"],
+          "sender": ["2473f12c7cdd", "776aa2203bbd"],
+          "payloads": ["7ddcb1852b39", "15c314736113"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
@@ -693,8 +693,8 @@
       {
         "id": "settings-task-workspace-create-linear.inner-ok-missing:created",
         "observation": {
-          "sender": ["0fc3e204e7ba", "0f72e7ee78c9"],
-          "payloads": ["7ddcb1852b39", "baa74a0ec378"],
+          "sender": ["0fc3e204e7ba", "776aa2203bbd"],
+          "payloads": ["7ddcb1852b39", "15c314736113"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
@@ -715,8 +715,8 @@
       {
         "id": "settings-task-workspace-create-linear.inner-false-string-error:created",
         "observation": {
-          "sender": ["d27ce798af34", "0f72e7ee78c9"],
-          "payloads": ["7ddcb1852b39", "baa74a0ec378"],
+          "sender": ["d27ce798af34", "776aa2203bbd"],
+          "payloads": ["7ddcb1852b39", "15c314736113"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
@@ -737,8 +737,8 @@
       {
         "id": "settings-task-workspace-create-linear.inner-false-object-error:created",
         "observation": {
-          "sender": ["127ad2bdc042", "0f72e7ee78c9"],
-          "payloads": ["7ddcb1852b39", "baa74a0ec378"],
+          "sender": ["127ad2bdc042", "776aa2203bbd"],
+          "payloads": ["7ddcb1852b39", "15c314736113"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"

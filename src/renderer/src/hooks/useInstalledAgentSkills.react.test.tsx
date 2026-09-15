@@ -306,13 +306,13 @@ describe('useInstalledAgentSkill', () => {
 
     expect(latestState?.installed).toBe(false)
     expect(discover).toHaveBeenNthCalledWith(1, {
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
     expect(discover).toHaveBeenNthCalledWith(2, {
       runtime: 'wsl',
       wslDistro: 'Fedora',
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
   })
@@ -349,12 +349,12 @@ describe('useInstalledAgentSkill', () => {
 
     expect(latestState?.installed).toBe(false)
     expect(discover).toHaveBeenNthCalledWith(1, {
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
     // A forced refresh must also bypass the host's shared scans, not just this cache.
     expect(discover).toHaveBeenNthCalledWith(2, {
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home'],
       refresh: true
     })
@@ -408,7 +408,7 @@ describe('useInstalledAgentSkill', () => {
     expect(discover).toHaveBeenCalledWith({
       runtime: 'wsl',
       wslDistro: 'Ubuntu',
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
   })
@@ -432,7 +432,7 @@ describe('useInstalledAgentSkill', () => {
       runtime: 'wsl',
       wslDistro: 'Ubuntu',
       projectRuntime: projectWslRuntime,
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
   })
@@ -502,7 +502,7 @@ describe('useInstalledAgentSkill', () => {
     // The freshness window is what bounds the storm; past it, focus still reads disk.
     expect(discover).toHaveBeenCalledTimes(2)
     expect(discover).toHaveBeenLastCalledWith({
-      names: ['orca-linear', 'linear-tickets'],
+      names: ['manta-linear', 'linear-tickets'],
       sourceKinds: ['home']
     })
   })
