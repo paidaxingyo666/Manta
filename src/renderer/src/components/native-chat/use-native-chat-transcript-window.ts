@@ -1,11 +1,8 @@
 // DOM windowing for the transcript: only the rows near the viewport are mounted,
 // the rest are reserved as estimated height.
 //
-// Anchoring is the library's, not ours. `anchorTo: 'end'` captures the row at the
-// current offset before a count change and re-resolves its position afterwards,
-// which is what keeps a "load earlier" prepend from yanking the view;
-// `followOnAppend` + `scrollEndThreshold` keep a reader who is already at the
-// bottom pinned there as a turn streams.
+// The virtualizer owns visible-row anchoring; the transcript scroll hook owns
+// end-follow intent. Geometry alone must never reattach a parked reader.
 //
 // Every measurement here ends up in the scroll container's own coordinate space,
 // which means `offsetTop` / `offsetHeight` rather than a bounding rect. The
@@ -16,7 +13,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { elementScroll, useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import { createProgrammaticScrollMarks } from '@/hooks/programmatic-scroll-marks'
-import { NATIVE_CHAT_BOTTOM_THRESHOLD_PX } from './native-chat-autoscroll'
 import { NATIVE_CHAT_ROW_GAP_PX } from './native-chat-row-height-estimate'
 import { nativeChatPinnedRowIndexes, nativeChatTranscriptRange } from './native-chat-pinned-rows'
 import type { NativeChatTranscriptSlot } from './native-chat-transcript-slots'
@@ -135,8 +131,9 @@ export function useNativeChatTranscriptWindow({
     gap: NATIVE_CHAT_ROW_GAP_PX,
     scrollMargin,
     anchorTo: 'end',
-    followOnAppend: true,
-    scrollEndThreshold: NATIVE_CHAT_BOTTOM_THRESHOLD_PX,
+    followOnAppend: false,
+    // Distances are nonnegative: disable geometry-only resize pinning, retaining prepend anchoring.
+    scrollEndThreshold: -1,
     // Every virtualizer write uses this public adapter, including measurement
     // adjustments and prepend anchoring, so scroll events have one provenance.
     scrollToFn: (offset, options, instance) => {
@@ -163,6 +160,10 @@ export function useNativeChatTranscriptWindow({
       }
     }
   })
+
+  // Growing a row that spans the viewport changes content below the reader's anchor.
+  virtualizer.shouldAdjustScrollPositionOnItemSizeChange = (item, _delta, instance) =>
+    item.end <= (instance.scrollOffset ?? 0)
 
   const finishReaderTakeover = useCallback(() => {
     if (readerTakeoverFrameRef.current !== null) {

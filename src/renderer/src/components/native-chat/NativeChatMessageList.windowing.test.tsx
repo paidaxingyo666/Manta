@@ -12,7 +12,10 @@ import { projectStructuredItemsToNativeChat } from '../../../../shared/structure
 import type { NativeChatMessage } from '../../../../shared/native-chat-types'
 import type { NativeChatLiveSession } from './use-native-chat-live-session'
 import { NativeChatMessageList } from './NativeChatMessageList'
-import { NATIVE_CHAT_BOTTOM_THRESHOLD_PX } from './native-chat-autoscroll'
+import {
+  NATIVE_CHAT_BOTTOM_THRESHOLD_PX,
+  NATIVE_CHAT_FOLLOW_REARM_PX
+} from './native-chat-autoscroll'
 import {
   estimateNativeChatRowHeight,
   NATIVE_CHAT_ROW_GAP_PX,
@@ -469,11 +472,8 @@ describe('transcript with a hidden scroll root', () => {
 // arrive at their final height and are a different case; this is the one where
 // the row the reader is looking at keeps changing size underneath them.
 //
-// Two mechanisms are supposed to hold the pin, and both are exercised here: the
-// list's own resize observer on the transcript column (which re-runs
-// `scrollToBottom` against the document) and the virtualizer's end anchor (which
-// compensates `scrollTop` by the growth when the view was already at the end).
-describe('a row growing in place while the view is pinned to the bottom', () => {
+// Exercise the real virtualizer together with the transcript's follow owner.
+describe('transcript follow ownership across growth and appends', () => {
   const TAIL_INDEX = TRANSCRIPT_LENGTH - 1
   const GROWTH_STEPS = 24
   const LINES_PER_STEP = 12
@@ -489,6 +489,13 @@ describe('a row growing in place while the view is pinned to the bottom', () => 
   const TURN_STARTED_AT = Date.now()
 
   const transcript = Array.from({ length: TRANSCRIPT_LENGTH }, (_, index) => marker(index))
+
+  function appendedTranscript(count: number): NativeChatMessage[] {
+    return [
+      ...transcript,
+      ...Array.from({ length: count }, (_, index) => marker(TRANSCRIPT_LENGTH + index))
+    ]
+  }
 
   function tailHeightAt(step: number): number {
     return Math.max(ROW_PX, (1 + step * LINES_PER_STEP) * STREAM_LINE_PX)
@@ -642,6 +649,170 @@ describe('a row growing in place while the view is pinned to the bottom', () => 
     expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
   })
 
+  it.each([0, 100])(
+    'keeps a reader parked above a growing row with a %i px initial measurement delta',
+    (measurementDelta) => {
+      setMeasuredTail(4)
+      measuredRowHeights = measuredRowHeights.map((height, index) =>
+        index === TAIL_INDEX ? height + measurementDelta : height
+      )
+      const { container, rerender } = render(streamingList(4))
+      paint(container)
+      const scroller = scrollRoot(container)
+
+      const parkGapPx = NATIVE_CHAT_BOTTOM_THRESHOLD_PX - 8
+      const parkedAt = scroller.scrollHeight - scroller.clientHeight - parkGapPx
+      scrollTranscript(container, parkedAt)
+      expect(distanceFromBottom(container)).toBe(parkGapPx)
+      // Not the "scrolled far away" case above: the latest message is still on
+      // screen, so there is nothing to offer a way back to yet.
+      expect(screen.queryByRole('button', { name: /jump to latest/i })).toBeNull()
+
+      setMeasuredTail(5)
+      rerender(streamingList(5))
+      paint(container)
+      expect(scroller.scrollTop).toBe(parkedAt)
+
+      let previousDistance = distanceFromBottom(container)
+      for (let step = 6; step <= GROWTH_STEPS; step += 1) {
+        setMeasuredTail(step)
+        rerender(streamingList(step))
+        paint(container)
+
+        // The offset stops moving at all...
+        expect(scroller.scrollTop).toBe(parkedAt)
+        // ...so the end runs away from the reader instead of carrying them along.
+        const distance = distanceFromBottom(container)
+        expect(distance).toBeGreaterThan(previousDistance)
+        previousDistance = distance
+      }
+
+      expect(previousDistance).toBeGreaterThan(VIEWPORT_PX)
+      expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
+    }
+  )
+
+  it('leaves a parked reader in place through repeated appends', () => {
+    const { container, rerender } = render(list(transcript))
+    paint(container)
+    const scroller = scrollRoot(container)
+    const parkedAt = scroller.scrollHeight - scroller.clientHeight - 40
+    scrollTranscript(container, parkedAt)
+
+    for (let count = 1; count <= 8; count += 1) {
+      rerender(list(appendedTranscript(count)))
+      paint(container)
+      expect(scroller.scrollTop).toBe(parkedAt)
+      expect(windowState(container).indexes.length).toBeLessThan(TRANSCRIPT_LENGTH / 4)
+    }
+    expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
+  })
+
+  it('follows repeated appends until the reader detaches', () => {
+    const { container, rerender } = render(list(transcript))
+    paint(container)
+    const scroller = scrollRoot(container)
+    for (let count = 1; count <= 8; count += 1) {
+      rerender(list(appendedTranscript(count)))
+      paint(container)
+      expect(distanceFromBottom(container)).toBeLessThanOrEqual(NATIVE_CHAT_FOLLOW_REARM_PX)
+      fireEvent.scroll(scroller)
+    }
+
+    const parkedAt = scroller.scrollTop - 22
+    scrollTranscript(container, parkedAt)
+    rerender(list(appendedTranscript(9)))
+    paint(container)
+    expect(scroller.scrollTop).toBe(parkedAt)
+  })
+
+  it('follows an empty transcript through underflow into scrollable output', () => {
+    const { container, rerender } = render(list([]))
+    paint(container)
+    expect(scrollRoot(container).scrollTop).toBe(0)
+    rerender(list(transcript.slice(0, 1)))
+    paint(container)
+    expect(scrollRoot(container).scrollTop).toBe(0)
+    fireEvent.scroll(scrollRoot(container))
+    rerender(list(transcript))
+    paint(container)
+    expect(distanceFromBottom(container)).toBeLessThanOrEqual(NATIVE_CHAT_FOLLOW_REARM_PX)
+    expect(windowState(container).indexes.length).toBeLessThan(TRANSCRIPT_LENGTH / 4)
+  })
+
+  it.each(['reader', 'jump'] as const)('rearms growth and append following via %s', (rearm) => {
+    setMeasuredTail(4)
+    const { container, rerender } = render(streamingList(4))
+    paint(container)
+    const scroller = scrollRoot(container)
+    fireEvent.scroll(scroller)
+    const parkedAt = scroller.scrollTop - 22
+    scrollTranscript(container, parkedAt)
+    setMeasuredTail(5)
+    rerender(streamingList(5))
+    paint(container)
+    expect(scroller.scrollTop).toBe(parkedAt)
+
+    if (rearm === 'reader') {
+      scrollTranscript(
+        container,
+        scroller.scrollHeight - scroller.clientHeight - NATIVE_CHAT_FOLLOW_REARM_PX
+      )
+    } else {
+      fireEvent.click(screen.getByRole('button', { name: /jump to latest/i }))
+    }
+    paint(container)
+    expect(screen.queryByRole('button', { name: /jump to latest/i })).toBeNull()
+    for (let step = 6; step <= 8; step += 1) {
+      setMeasuredTail(step)
+      rerender(streamingList(step))
+      paint(container)
+      expect(distanceFromBottom(container)).toBeLessThanOrEqual(NATIVE_CHAT_FOLLOW_REARM_PX)
+      expect(windowState(container).indexes.length).toBeLessThan(TRANSCRIPT_LENGTH / 4)
+    }
+    rerender(list([...transcriptAt(8), marker(TRANSCRIPT_LENGTH)]))
+    paint(container)
+    expect(distanceFromBottom(container)).toBeLessThanOrEqual(NATIVE_CHAT_FOLLOW_REARM_PX)
+  })
+
+  it('preserves the visible row anchor across prepends while detached', () => {
+    const { container, rerender } = render(list(transcript))
+    paint(container)
+    const readingAt = 2000
+    scrollTranscript(container, readingAt)
+    paint(container)
+
+    const earlier = Array.from({ length: 10 }, (_, index) => marker(index - 10))
+    rerender(list([...earlier, ...transcript]))
+    paint(container)
+    expect(scrollRoot(container).scrollTop).toBe(readingAt + earlier.length * ROW_PITCH_PX)
+    expect(windowState(container).indexes.length).toBeLessThan(TRANSCRIPT_LENGTH / 4)
+    expect(screen.getByRole('button', { name: /jump to latest/i })).toBeInTheDocument()
+  })
+
+  it('compensates a measurement entirely above the viewport without reattaching', () => {
+    const { container, rerender } = render(list(transcript))
+    paint(container)
+    const scroller = scrollRoot(container)
+    fireEvent.scroll(scroller)
+    const readingAt = 2000
+    scrollTranscript(container, readingAt)
+    paint(container)
+    const aboveIndex = windowState(container).indexes[0]!
+    expect((aboveIndex + 1) * ROW_PITCH_PX).toBeLessThan(readingAt)
+    for (const growth of [100, 200]) {
+      measuredRowHeights = Array.from({ length: TRANSCRIPT_LENGTH }, (_, index) =>
+        index === aboveIndex ? ROW_PX + growth : ROW_PX
+      )
+      paint(container)
+      expect(scroller.scrollTop).toBe(readingAt + growth)
+    }
+    rerender(list(appendedTranscript(1)))
+    paint(container)
+    expect(scroller.scrollTop).toBe(readingAt + 200)
+    expect(windowState(container).indexes.length).toBeLessThan(TRANSCRIPT_LENGTH / 4)
+  })
+
   it('keeps following when a pin echo arrives after the document grows', () => {
     setMeasuredTail(0)
     const { container } = render(streamingList(0))
@@ -657,6 +828,8 @@ describe('a row growing in place while the view is pinned to the bottom', () => 
 
     expect(scroller.scrollTop).toBe(pinnedAt)
     expect(screen.queryByRole('button', { name: /jump to latest/i })).toBeNull()
+    paint(container)
+    expect(distanceFromBottom(container)).toBeLessThanOrEqual(NATIVE_CHAT_FOLLOW_REARM_PX)
   })
 
   it('settles a pending end reconcile after the reader keeps scrolling away', async () => {

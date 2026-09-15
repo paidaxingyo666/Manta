@@ -21,7 +21,6 @@ import {
   type UIEventHandler
 } from 'react'
 import {
-  isNearBottom,
   nextFollowingEnd,
   shouldLoadEarlier,
   shouldShowJumpToLatest,
@@ -89,7 +88,7 @@ export function useNativeChatTranscriptScroll({
         const following = nextFollowingEnd({
           following: followingRef.current,
           programmatic,
-          atEnd: isNearBottom(geometry)
+          geometry
         })
         followingRef.current = following
         if (!programmatic) {

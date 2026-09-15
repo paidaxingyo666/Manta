@@ -67,7 +67,7 @@ afterEach(() => {
 })
 
 describe('native chat transcript virtualizer contract', () => {
-  it('configures prepend anchoring and matching bottom-follow behavior', () => {
+  it('retains prepend anchoring without independently following the end', () => {
     renderHook(() =>
       useNativeChatTranscriptWindow({
         scrollRef: { current: null },
@@ -78,8 +78,8 @@ describe('native chat transcript virtualizer contract', () => {
 
     expect(virtualizerMock.options.current).toMatchObject({
       anchorTo: 'end',
-      followOnAppend: true,
-      scrollEndThreshold: 48
+      followOnAppend: false,
+      scrollEndThreshold: -1
     })
   })
 
