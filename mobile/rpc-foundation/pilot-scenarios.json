@@ -13173,6 +13173,1267 @@
           "checkpoint": "pr-state-settled"
         }
       ]
+    },
+    {
+      "id": "speech-setup-sheet-fulfilled",
+      "operation": "speech.setup-sheet",
+      "version": 1,
+      "family": "speech.setup-sheet",
+      "sites": ["mobile/src/dictation/mobile-dictation-setup.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "list",
+          "id": "list"
+        },
+        {
+          "complete": "speech.models.list#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "enabled": true,
+              "selectedModelId": "whisper-small",
+              "models": [
+                {
+                  "id": "whisper-small",
+                  "name": "Small",
+                  "status": "ready"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "action": "download",
+          "id": "download"
+        },
+        {
+          "complete": "speech.models.download#1",
+          "params": {
+            "modelId": "whisper-small"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "action": "delete",
+          "id": "delete"
+        },
+        {
+          "complete": "speech.models.delete#1",
+          "params": {
+            "modelId": "whisper-small"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "enabled": true,
+              "selectedModelId": "whisper-small",
+              "models": []
+            }
+          }
+        },
+        {
+          "action": "configure",
+          "id": "configure"
+        },
+        {
+          "complete": "speech.dictation.setup#1",
+          "params": {
+            "enabled": true,
+            "modelId": "whisper-small"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "enabled": true,
+              "selectedModelId": "whisper-small",
+              "models": [
+                {
+                  "id": "whisper-small",
+                  "name": "Small",
+                  "status": "ready"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "speech-setup-sheet-legacy-desktop",
+      "operation": "speech.setup-sheet",
+      "version": 1,
+      "family": "speech.setup-sheet",
+      "sites": ["mobile/src/dictation/mobile-dictation-setup.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "list",
+          "id": "list"
+        },
+        {
+          "complete": "speech.models.list#1",
+          "params": null,
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "method_not_found",
+              "message": "Unknown method: speech.models.list"
+            }
+          }
+        },
+        {
+          "checkpoint": "legacy-desktop"
+        }
+      ]
+    },
+    {
+      "id": "speech-setup-sheet-denied-to-mobile",
+      "operation": "speech.setup-sheet",
+      "version": 1,
+      "family": "speech.setup-sheet",
+      "sites": ["mobile/src/dictation/mobile-dictation-setup.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "list",
+          "id": "list"
+        },
+        {
+          "complete": "speech.models.list#1",
+          "params": null,
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "forbidden",
+              "message": "speech.models.list is not available to mobile clients"
+            }
+          }
+        },
+        {
+          "checkpoint": "denied"
+        }
+      ]
+    },
+    {
+      "id": "speech-desktop-start-superseded",
+      "operation": "speech.desktop-start",
+      "version": 1,
+      "family": "speech.dictation-start",
+      "sites": ["mobile/src/hooks/mobile-dictation-desktop-start.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "supersede",
+          "id": "supersede"
+        },
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "speech.dictation.start#1",
+          "params": {
+            "dictationId": "dictation-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "complete": "speech.dictation.cancel#1",
+          "params": {
+            "dictationId": "dictation-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "cancelled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "stale-start-cancelled"
+        }
+      ]
+    },
+    {
+      "id": "speech-desktop-start-fulfilled",
+      "operation": "speech.desktop-start",
+      "version": 1,
+      "family": "speech.dictation-start",
+      "sites": ["mobile/src/hooks/mobile-dictation-desktop-start.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "speech.dictation.start#1",
+          "params": {
+            "dictationId": "dictation-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "checkpoint": "recording"
+        }
+      ]
+    },
+    {
+      "id": "speech-desktop-start-recording-failed",
+      "operation": "speech.desktop-start",
+      "version": 1,
+      "family": "speech.dictation-start",
+      "sites": ["mobile/src/hooks/mobile-dictation-desktop-start.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "start",
+          "id": "start",
+          "args": {
+            "recording": false
+          }
+        },
+        {
+          "complete": "speech.dictation.start#1",
+          "params": {
+            "dictationId": "dictation-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "complete": "speech.dictation.cancel#1",
+          "params": {
+            "dictationId": "dictation-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "cancelled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "rolled-back"
+        }
+      ]
+    },
+    {
+      "id": "speech-audio-chunk-acknowledged",
+      "operation": "speech.audio-chunk",
+      "version": 1,
+      "family": "speech.dictation-chunk",
+      "sites": ["mobile/src/hooks/mobile-dictation-audio-chunk.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "chunk",
+          "id": "chunk"
+        },
+        {
+          "complete": "speech.dictation.chunk#1",
+          "params": {
+            "audioBase64": "ACVKb5S53gM=",
+            "dictationId": "dictation-1",
+            "sampleRate": 16000
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "received": true
+            }
+          }
+        },
+        {
+          "checkpoint": "acknowledged"
+        }
+      ]
+    },
+    {
+      "id": "speech-dictation-session-transcript",
+      "operation": "speech.dictation-session",
+      "version": 1,
+      "family": "speech.dictation-session",
+      "sites": ["mobile/src/hooks/use-mobile-dictation.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "speech.dictation.start#1",
+          "params": {
+            "dictationId": "mobile-dictation-1767225600000-dakoxjr8wun"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "action": "stop",
+          "id": "stop"
+        },
+        {
+          "complete": "speech.dictation.finish#1",
+          "params": {
+            "dictationId": "mobile-dictation-1767225600000-dakoxjr8wun"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "text": "  hello world  "
+            }
+          }
+        },
+        {
+          "checkpoint": "transcribed"
+        }
+      ]
+    },
+    {
+      "id": "speech-dictation-session-cancelled",
+      "operation": "speech.dictation-session",
+      "version": 1,
+      "family": "speech.dictation-session",
+      "sites": ["mobile/src/hooks/use-mobile-dictation.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "start",
+          "id": "start"
+        },
+        {
+          "complete": "speech.dictation.start#1",
+          "params": {
+            "dictationId": "mobile-dictation-1767225600000-dakoxjr8wun"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "started": true
+            }
+          }
+        },
+        {
+          "action": "cancel",
+          "id": "cancel"
+        },
+        {
+          "complete": "speech.dictation.cancel#1",
+          "params": {
+            "dictationId": "mobile-dictation-1767225600000-dakoxjr8wun"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "cancelled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "cancelled"
+        }
+      ]
+    },
+    {
+      "id": "aivault-history-scan-fulfilled",
+      "operation": "aiVault.history-scan",
+      "version": 1,
+      "family": "aiVault.history",
+      "sites": ["mobile/src/agent-history/use-mobile-agent-history-state.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "complete": "aiVault.listSessions#1",
+          "params": {
+            "force": false,
+            "limit": 500,
+            "scopePaths": ["/repo/feature"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "sessions": [
+                {
+                  "id": "s1",
+                  "agent": "claude",
+                  "cwd": "/repo/feature"
+                }
+              ],
+              "issues": []
+            }
+          }
+        },
+        {
+          "checkpoint": "ready"
+        }
+      ]
+    },
+    {
+      "id": "aivault-history-scan-unsupported",
+      "operation": "aiVault.history-scan",
+      "version": 1,
+      "family": "aiVault.history",
+      "sites": ["mobile/src/agent-history/use-mobile-agent-history-state.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["mobile.tasks.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "unsupported"
+        }
+      ]
+    },
+    {
+      "id": "aivault-history-scan-worktrees-late",
+      "operation": "aiVault.history-scan",
+      "version": 1,
+      "family": "aiVault.history",
+      "sites": ["mobile/src/agent-history/use-mobile-agent-history-state.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount",
+          "args": {
+            "worktreesLoaded": false
+          }
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "held"
+        },
+        {
+          "action": "worktrees-loaded",
+          "id": "worktrees-loaded"
+        },
+        {
+          "complete": "status.get#2",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "complete": "aiVault.listSessions#1",
+          "params": {
+            "force": false,
+            "limit": 500,
+            "scopePaths": ["/repo/feature"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "sessions": [
+                {
+                  "id": "s1",
+                  "agent": "claude",
+                  "cwd": "/repo/feature"
+                }
+              ],
+              "issues": []
+            }
+          }
+        },
+        {
+          "checkpoint": "ready"
+        }
+      ]
+    },
+    {
+      "id": "terminal-query-reply-accepted",
+      "operation": "terminal.query-reply",
+      "version": 1,
+      "family": "terminal.query-reply",
+      "sites": ["mobile/src/terminal/mobile-terminal-query-reply.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "send",
+          "id": "send"
+        },
+        {
+          "complete": "terminal.send#1",
+          "params": {
+            "client": {
+              "id": "device-token-1",
+              "type": "mobile"
+            },
+            "enter": false,
+            "inputKind": "query-reply",
+            "terminal": "terminal-1",
+            "text": "\u001b[0n"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "send": {
+                "accepted": true
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "terminal-query-reply-unsubscribed",
+      "operation": "terminal.query-reply",
+      "version": 1,
+      "family": "terminal.query-reply",
+      "sites": ["mobile/src/terminal/mobile-terminal-query-reply.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "send",
+          "id": "send",
+          "args": {
+            "handle": "terminal-9"
+          }
+        },
+        {
+          "checkpoint": "dropped"
+        }
+      ]
+    },
+    {
+      "id": "terminal-raw-input-reported",
+      "operation": "terminal.accessory-raw-send",
+      "version": 1,
+      "family": "terminal.raw-input",
+      "sites": [
+        "mobile/src/terminal/terminal-live-accessory-raw-send.ts",
+        "mobile/src/terminal/worker-terminal-takeover-report.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "send",
+          "id": "send"
+        },
+        {
+          "complete": "terminal.send#1",
+          "params": {
+            "client": {
+              "id": "device-token-1",
+              "type": "mobile"
+            },
+            "enter": false,
+            "terminal": "terminal-1",
+            "text": "ls"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "send": {
+                "accepted": true
+              }
+            }
+          }
+        },
+        {
+          "complete": "orchestration.workerTerminalUserInput#1",
+          "params": {
+            "terminal": "terminal-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "changed": 1
+            }
+          }
+        },
+        {
+          "checkpoint": "reported"
+        }
+      ]
+    },
+    {
+      "id": "terminal-raw-input-refused",
+      "operation": "terminal.accessory-raw-send",
+      "version": 1,
+      "family": "terminal.raw-input",
+      "sites": [
+        "mobile/src/terminal/terminal-live-accessory-raw-send.ts",
+        "mobile/src/terminal/worker-terminal-takeover-report.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "send",
+          "id": "send"
+        },
+        {
+          "complete": "terminal.send#1",
+          "params": {
+            "client": {
+              "id": "device-token-1",
+              "type": "mobile"
+            },
+            "enter": false,
+            "terminal": "terminal-1",
+            "text": "ls"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "send": {
+                "accepted": false
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "not-reported"
+        }
+      ]
+    },
+    {
+      "id": "terminal-takeover-report-retried",
+      "operation": "terminal.takeover-report",
+      "version": 1,
+      "family": "terminal.takeover-report",
+      "sites": ["mobile/src/terminal/worker-terminal-takeover-report.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "report",
+          "id": "report"
+        },
+        {
+          "complete": "orchestration.workerTerminalUserInput#1",
+          "params": {
+            "terminal": "terminal-1"
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "refused",
+              "message": "busy"
+            }
+          }
+        },
+        {
+          "advance": 250
+        },
+        {
+          "complete": "orchestration.workerTerminalUserInput#2",
+          "params": {
+            "terminal": "terminal-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "changed": 1
+            }
+          }
+        },
+        {
+          "checkpoint": "reported-on-retry"
+        }
+      ]
+    },
+    {
+      "id": "terminal-takeover-report-accepted",
+      "operation": "terminal.takeover-report",
+      "version": 1,
+      "family": "terminal.takeover-report",
+      "sites": ["mobile/src/terminal/worker-terminal-takeover-report.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "report",
+          "id": "report"
+        },
+        {
+          "complete": "orchestration.workerTerminalUserInput#1",
+          "params": {
+            "terminal": "terminal-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "changed": 1
+            }
+          }
+        },
+        {
+          "checkpoint": "reported"
+        }
+      ]
+    },
+    {
+      "id": "terminal-viewport-refit-applied",
+      "operation": "terminal.viewport-refit",
+      "version": 1,
+      "family": "terminal.viewport-refit",
+      "sites": ["mobile/src/terminal/terminal-viewport-refit.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "height",
+          "id": "height"
+        },
+        {
+          "advance": 150
+        },
+        {
+          "complete": "terminal.updateViewport#1",
+          "params": {
+            "client": {
+              "id": "device-token-1",
+              "type": "mobile"
+            },
+            "terminal": "terminal-1",
+            "viewport": {
+              "cols": 100,
+              "rows": 30
+            }
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "updated": true,
+              "applied": true
+            }
+          }
+        },
+        {
+          "checkpoint": "reflowed"
+        }
+      ]
+    },
+    {
+      "id": "terminal-viewport-refit-legacy-desktop",
+      "operation": "terminal.viewport-refit",
+      "version": 1,
+      "family": "terminal.viewport-refit",
+      "sites": ["mobile/src/terminal/terminal-viewport-refit.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "height",
+          "id": "height"
+        },
+        {
+          "advance": 150
+        },
+        {
+          "complete": "terminal.updateViewport#1",
+          "params": {
+            "client": {
+              "id": "device-token-1",
+              "type": "mobile"
+            },
+            "terminal": "terminal-1",
+            "viewport": {
+              "cols": 100,
+              "rows": 30
+            }
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "method_not_found",
+              "message": "Unknown method: terminal.updateViewport"
+            }
+          }
+        },
+        {
+          "checkpoint": "resubscribed"
+        }
+      ]
+    },
+    {
+      "id": "notifications-push-registered",
+      "operation": "notifications.push-registration",
+      "version": 1,
+      "family": "notifications.push-registration",
+      "sites": ["mobile/src/notifications/push-registration.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "register",
+          "id": "register"
+        },
+        {
+          "complete": "notifications.registerPush#1",
+          "params": {
+            "filter": {
+              "onlyWhenDesktopAway": true,
+              "sound": true
+            },
+            "platform": "ios",
+            "token": "apns-token-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "registered": true,
+              "registrationId": "registration-1"
+            }
+          }
+        },
+        {
+          "action": "unregister",
+          "id": "unregister"
+        },
+        {
+          "complete": "notifications.unregisterPush#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "unregistered": true
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "notifications-push-gateway-rejected",
+      "operation": "notifications.push-registration",
+      "version": 1,
+      "family": "notifications.push-registration",
+      "sites": ["mobile/src/notifications/push-registration.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "register",
+          "id": "register"
+        },
+        {
+          "complete": "notifications.registerPush#1",
+          "params": {
+            "filter": {
+              "onlyWhenDesktopAway": true,
+              "sound": true
+            },
+            "platform": "ios",
+            "token": "apns-token-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "registered": false,
+              "reason": "gateway_rejected"
+            }
+          }
+        },
+        {
+          "checkpoint": "not-registered"
+        }
+      ]
+    },
+    {
+      "id": "browser-pointer-click-fallback",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.pointer-click",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "click",
+          "id": "click"
+        },
+        {
+          "complete": "browser.mouseClick#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "button": "left",
+            "modifiers": [],
+            "radius": 14,
+            "x": 40,
+            "y": 80
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "refused",
+              "message": "selector_not_found"
+            }
+          }
+        },
+        {
+          "complete": "browser.mouseMove#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "x": 40,
+            "y": 80
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "moved": true
+            }
+          }
+        },
+        {
+          "complete": "browser.mouseDown#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "button": "left"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "down": true
+            }
+          }
+        },
+        {
+          "complete": "browser.mouseUp#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "button": "left"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "up": true
+            }
+          }
+        },
+        {
+          "checkpoint": "clicked-by-fallback"
+        }
+      ]
+    },
+    {
+      "id": "browser-pointer-click-accepted",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.pointer-click",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "click",
+          "id": "click"
+        },
+        {
+          "complete": "browser.mouseClick#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "button": "left",
+            "modifiers": [],
+            "radius": 14,
+            "x": 40,
+            "y": 80
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "clicked": true
+            }
+          }
+        },
+        {
+          "checkpoint": "clicked"
+        }
+      ]
+    },
+    {
+      "id": "browser-wheel-scrolled",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.wheel",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "wheel",
+          "id": "wheel"
+        },
+        {
+          "complete": "browser.mouseMove#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "x": 40,
+            "y": 80
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "moved": true
+            }
+          }
+        },
+        {
+          "complete": "browser.mouseWheel#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "dx": 0,
+            "dy": -120
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "scrolled": true
+            }
+          }
+        },
+        {
+          "checkpoint": "scrolled"
+        }
+      ]
+    },
+    {
+      "id": "browser-keyboard-input",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.keyboard",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "keyboard-text",
+          "id": "text"
+        },
+        {
+          "complete": "browser.keyboardInsertText#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "text": "hello"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "inserted": true
+            }
+          }
+        },
+        {
+          "action": "keypress",
+          "id": "keypress"
+        },
+        {
+          "complete": "browser.keypress#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1",
+            "key": "Enter"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "pressed": true
+            }
+          }
+        },
+        {
+          "checkpoint": "typed"
+        }
+      ]
+    },
+    {
+      "id": "browser-dialog-accepted",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.dialog",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "dialog",
+          "id": "dialog"
+        },
+        {
+          "complete": "browser.dialogAccept#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "accepted": true
+            }
+          }
+        },
+        {
+          "checkpoint": "dismissed"
+        }
+      ]
+    },
+    {
+      "id": "browser-dialog-dismissed",
+      "operation": "browser.page-commands",
+      "version": 1,
+      "family": "browser.dialog",
+      "sites": [
+        "mobile/src/browser/use-mobile-browser-request.ts",
+        "mobile/src/browser/use-mobile-browser-commands.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "dialog",
+          "id": "dialog",
+          "args": {
+            "accept": false
+          }
+        },
+        {
+          "complete": "browser.dialogDismiss#1",
+          "params": {
+            "page": "page-1",
+            "worktree": "id:worktree-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "dismissed": true
+            }
+          }
+        },
+        {
+          "checkpoint": "dismissed"
+        }
+      ]
     }
   ]
 }

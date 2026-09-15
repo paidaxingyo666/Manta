@@ -1,3 +1,9 @@
+import {
+  agentHistoryMountAdapters,
+  agentHistoryMountExposures
+} from './agent-history-mount-adapters'
+import { browserMountAdapters } from './browser-mount-adapters'
+import { dictationMountAdapters } from './dictation-mount-adapters'
 import { diffReviewMountAdapters } from './diff-review-mount-adapters'
 import { fileInventoryMountAdapters } from './file-inventory-mount-adapters'
 import { fileRequestMountAdapters } from './file-request-mount-adapters'
@@ -8,6 +14,10 @@ import { hostedReviewMountAdapters } from './hosted-review-mount-adapters'
 import { newTabAgentMountAdapters } from './new-tab-agent-mount-adapters'
 import { newWorkspaceMountAdapters } from './new-workspace-mount-adapters'
 import { pairingJournalMountAdapters } from './pairing-journal-mount-adapters'
+import {
+  pushRegistrationMountAdapters,
+  pushRegistrationMountExposures
+} from './push-registration-mount-adapters'
 import { relayCredentialMountAdapters } from './relay-credential-mount-adapters'
 import { settingsMountAdapters, settingsMountExposures } from './settings-mount-adapters'
 import { sourceControlMountAdapters } from './source-control-mount-adapters'
@@ -25,6 +35,7 @@ import { taskProjectRowMergeMountAdapters } from './task-project-row-merge-mount
 import { taskProjectRowReadMountAdapters } from './task-project-row-read-mount-adapters'
 import { taskWorkspaceHookMountAdapters } from './task-workspace-hook-mount-adapters'
 import { taskWorkspaceSenderMountAdapters } from './task-workspace-sender-mount-adapters'
+import { terminalMountAdapters } from './terminal-mount-adapters'
 import { transportStatusMountAdapters } from './transport-status-mount-adapters'
 import { workspaceSettingsMounts } from './workspace-settings-mounts'
 import { worktreeCatalogMountAdapters } from './worktree-catalog-mount-adapters'
@@ -36,6 +47,13 @@ import type { MountedOperationModule } from '../mounted-operation-module'
  * `adapter-seam.test.ts` checks each pairing names the file that declares it.
  */
 export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
+  {
+    source: 'agent-history-mount-adapters.ts',
+    mounts: agentHistoryMountAdapters,
+    exposes: agentHistoryMountExposures
+  },
+  { source: 'browser-mount-adapters.ts', mounts: browserMountAdapters },
+  { source: 'dictation-mount-adapters.ts', mounts: dictationMountAdapters },
   { source: 'diff-review-mount-adapters.ts', mounts: diffReviewMountAdapters },
   { source: 'file-inventory-mount-adapters.ts', mounts: fileInventoryMountAdapters },
   { source: 'file-request-mount-adapters.ts', mounts: fileRequestMountAdapters },
@@ -49,6 +67,11 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
   { source: 'new-tab-agent-mount-adapters.ts', mounts: newTabAgentMountAdapters },
   { source: 'new-workspace-mount-adapters.ts', mounts: newWorkspaceMountAdapters },
   { source: 'pairing-journal-mount-adapters.ts', mounts: pairingJournalMountAdapters },
+  {
+    source: 'push-registration-mount-adapters.ts',
+    mounts: pushRegistrationMountAdapters,
+    exposes: pushRegistrationMountExposures
+  },
   { source: 'relay-credential-mount-adapters.ts', mounts: relayCredentialMountAdapters },
   {
     source: 'settings-mount-adapters.ts',
@@ -82,6 +105,7 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
   { source: 'task-project-row-read-mount-adapters.ts', mounts: taskProjectRowReadMountAdapters },
   { source: 'task-workspace-hook-mount-adapters.ts', mounts: taskWorkspaceHookMountAdapters },
   { source: 'task-workspace-sender-mount-adapters.ts', mounts: taskWorkspaceSenderMountAdapters },
+  { source: 'terminal-mount-adapters.ts', mounts: terminalMountAdapters },
   { source: 'transport-status-mount-adapters.ts', mounts: transportStatusMountAdapters },
   { source: 'workspace-settings-mounts.ts', mounts: workspaceSettingsMounts },
   { source: 'worktree-catalog-mount-adapters.ts', mounts: worktreeCatalogMountAdapters }

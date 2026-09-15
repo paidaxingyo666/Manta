@@ -262,11 +262,19 @@ type RpcParamsOmittable<Method extends RpcMethodName> =
       ? true
       : false
 
-/** Preserves omitted sender arguments as well as explicit undefined. */
+/**
+ * Preserves omitted sender arguments as well as explicit undefined and explicit null.
+ *
+ * `null` is admitted only where the catalog declares no params at all: several shipped senders put
+ * an explicit `null` on the wire for those methods, and a JSON frame carrying `params: null` is not
+ * the frame that omits the key. Narrowing them to omission would silently rewrite those bytes.
+ */
 type RpcSendArguments<Method extends RpcMethodName> =
-  RpcParamsOmittable<Method> extends true
-    ? [params?: RpcSendParams<Method>, options?: SendRequestOptions]
-    : [params: RpcSendParams<Method>, options?: SendRequestOptions]
+  void extends RpcSendParams<Method>
+    ? [params?: RpcSendParams<Method> | null, options?: SendRequestOptions]
+    : RpcParamsOmittable<Method> extends true
+      ? [params?: RpcSendParams<Method>, options?: SendRequestOptions]
+      : [params: RpcSendParams<Method>, options?: SendRequestOptions]
 
 /** Binds sending and interpretation while preserving the transport promise identity. */
 export function bindDeferredRpcOperation<

@@ -57,13 +57,11 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // app/ — Expo route screens
   { file: 'app/terminal-settings.tsx', references: 3 },
 
-  // src/agent-history/ — agent history loads
-  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 6 },
-  { file: 'src/agent-history/use-mobile-agent-history-state.ts', references: 2 },
-
-  // src/browser/ — hosted browser control
-  { file: 'src/browser/use-mobile-browser-commands.ts', references: 5 },
-  { file: 'src/browser/use-mobile-browser-request.ts', references: 1 },
+  // src/agent-history/ — agent history loads. The history scan and its resume metadata migrated in
+  // step 4; see mobile-agent-history-operations.ts.
+  // Holdout: the last reach is a worktree.ps inside the screen component's own effect, which no
+  // recording can mount without a fabricated react-native view tree.
+  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 1 },
 
   // src/components/ — shared widgets that fetch their own data. The New Workspace drawer's
   // execution target, setup hook, runtime context and Codex capability probe migrated in step 4:
@@ -75,9 +73,6 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // import of async-storage is a property read the loader's proxy refuses.
   { file: 'src/components/codex-reset-credit.ts', references: 3 },
   { file: 'src/components/use-new-workspace-repositories.ts', references: 1 },
-
-  // src/dictation/ — dictation session control
-  { file: 'src/dictation/mobile-dictation-setup.ts', references: 10 },
 
   // src/files/ — file read, write and preview. The preview loader, the terminal-artifact grant
   // refresh and save, the session file tab and the mutation-ownership capture migrated in step 4:
@@ -92,21 +87,20 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // through a React Native screen module, which no recording can load.
   { file: 'src/home/mobile-home-host-requests.ts', references: 2 },
 
-  // src/hooks/ — cross-screen data hooks
-  { file: 'src/hooks/mobile-dictation-audio-chunk.ts', references: 1 },
-  { file: 'src/hooks/mobile-dictation-desktop-start.ts', references: 4 },
-  { file: 'src/hooks/use-mobile-dictation.ts', references: 4 },
-
   // src/host-screen/ — host screen catalog and actions. The repo and label metadata reads, the
   // desktop view-settings mirror and the list's pin, remove and activate mutations migrated in
   // step 4; see host-screen-operations.ts. What is left sends from inside a React Native screen,
   // which the recorder cannot mount.
   { file: 'src/host-screen/host-screen-overlays.tsx', references: 1 },
 
-  // src/notifications/ — push registration and delivery
+  // src/notifications/ — push registration and delivery. Registration and unregistration migrated
+  // in step 4; see mobile-push-registration-operations.ts.
+  // Holdout: the unsubscribe is a closure inside a `subscribe` callback, and subscriptions are a
+  // later step; the request-only recording runner refuses to open one.
   { file: 'src/notifications/mobile-notifications.ts', references: 1 },
+  // Holdout: the send is gated behind the OS notification tray and the keychain host catalog, and
+  // faking either would record a fiction of device state rather than of the wire.
   { file: 'src/notifications/push-dismissal-reconciliation.ts', references: 2 },
-  { file: 'src/notifications/push-registration.ts', references: 3 },
 
   // src/session/ — session screen: chat, diff review, PR actions, tabs
   { file: 'src/session/ai-vault-resume-launch.ts', references: 3 },
@@ -149,10 +143,6 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/session/use-mobile-terminal-paste.ts', references: 1 },
   { file: 'src/session/use-quick-commands.ts', references: 2 },
 
-  // src/settings/ — settings screen actions. Its one reference is the client parameter it forwards
-  // to dictation/mobile-dictation-setup.ts, so it can only drop when that file migrates.
-  { file: 'src/settings/native-voice-settings-operations.ts', references: 1 },
-
   // src/settings/ — notification display probe
   { file: 'src/settings/notification-display-test.tsx', references: 1 },
 
@@ -185,12 +175,6 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   { file: 'src/tasks/mobile-tasks-filter-pickers.tsx', references: 1 },
   { file: 'src/tasks/mobile-tasks-source-family.test-support.ts', references: 1 },
   { file: 'src/tasks/use-mobile-tasks-route-and-item-state.tsx', references: 1 },
-
-  // src/terminal/ — terminal input, viewport and queries
-  { file: 'src/terminal/mobile-terminal-query-reply.ts', references: 2 },
-  { file: 'src/terminal/terminal-live-accessory-raw-send.ts', references: 2 },
-  { file: 'src/terminal/terminal-viewport-refit.ts', references: 1 },
-  { file: 'src/terminal/worker-terminal-takeover-report.ts', references: 2 },
 
   // src/transport/ — what is left of pairing, probing and capability reads after step 4. The
   // protocol gate, the retrying capability probe, the candidate race, credential rotation, the

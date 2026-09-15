@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import * as React from 'react'
 import { sha256 } from '@noble/hashes/sha256'
 import * as zod from 'zod'
@@ -27,6 +28,13 @@ import * as zod from 'zod'
  * Both traps leave `__esModule` undefined. It is the module system's interop marker rather than a
  * native API, and answering it truthfully binds a transpiled `import X from` to the trap's own
  * answer instead of the module object, leaving every consumer holding a member-less stand-in.
+ *
+ * `AppState`, `useWindowDimensions`, the two-way audio module and `expo-keep-awake` are the same
+ * kind of boundary as the scripted socket: a screen-lock tag, a window size and a microphone are
+ * inputs the recording pins rather than reads. Each is inert — no listener is ever fired and no
+ * audio is produced — because every send the dictation and terminal hooks make is driven through
+ * the operation's own API instead. A recording that needed a native event would have to say so by
+ * adding an emitter here.
  */
 function partialNativeModule(module: string, members: Record<string, unknown>): unknown {
   return new Proxy(members, {
@@ -37,6 +45,11 @@ function partialNativeModule(module: string, members: Record<string, unknown>): 
       return Reflect.get(target, key)
     }
   })
+}
+
+/** A device event source with no events: registration succeeds, nothing is ever delivered. */
+function silentNativeSubscription(): { remove: () => void } {
+  return { remove: () => {} }
 }
 
 function unusableNativeStore(module: string): unknown {
@@ -68,11 +81,38 @@ export function nativeMountingSubstitutes(): Map<string, unknown> {
           globalThis.crypto.getRandomValues(new Uint8Array(length))
       })
     ],
+    // The RN polyfill mobile bundles is this same pure implementation of the same encoding.
+    ['buffer', partialNativeModule('buffer', { Buffer })],
     // One pinned platform per recording; `platform` is golden provenance, not a compared field.
-    ['react-native', partialNativeModule('react-native', { Platform: { OS: 'ios' } })],
+    [
+      'react-native',
+      partialNativeModule('react-native', {
+        Platform: { OS: 'ios' },
+        AppState: { currentState: 'active', addEventListener: silentNativeSubscription },
+        useWindowDimensions: () => ({ width: 390, height: 844 })
+      })
+    ],
+    [
+      '@manta/expo-two-way-audio',
+      partialNativeModule('@manta/expo-two-way-audio', {
+        addExpoTwoWayAudioEventListener: silentNativeSubscription,
+        initialize: () => Promise.resolve(true),
+        requestMicrophonePermissionsAsync: () => Promise.resolve({ granted: true }),
+        tearDown: () => Promise.resolve(),
+        toggleRecording: () => true
+      })
+    ],
+    [
+      'expo-keep-awake',
+      partialNativeModule('expo-keep-awake', {
+        activateKeepAwakeAsync: () => Promise.resolve(),
+        deactivateKeepAwake: () => {}
+      })
+    ],
     [
       '@react-native-async-storage/async-storage',
       unusableNativeStore('@react-native-async-storage/async-storage')
-    ]
+    ],
+    ['expo-secure-store', unusableNativeStore('expo-secure-store')]
   ])
 }
