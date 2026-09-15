@@ -248,18 +248,25 @@ export async function interpretAtRpcBarrier<
 }
 
 /**
- * Preserves omitted sender arguments as well as explicit undefined.
+ * Whether a sender may omit the params argument entirely.
  *
- * A params type with no required field may be omitted too, because the raw port always allowed it
- * and several hosts' schemas are entirely optional (`preflight.check`). Forcing `{}` there would
- * put a new object on the wire where main sent no params at all.
+ * A params type with no required field may be omitted as well as `void`, because the raw port
+ * always allowed it and several hosts' schemas are entirely optional (`preflight.check`). Forcing
+ * `{}` there would put a new object on the wire where main sent no params at all. Shared by both
+ * send helpers, so single-flight and direct sends cannot disagree about which methods that covers.
  */
-type RpcSendArguments<Method extends RpcMethodName> =
+type RpcParamsOmittable<Method extends RpcMethodName> =
   void extends RpcSendParams<Method>
-    ? [params?: RpcSendParams<Method>, options?: SendRequestOptions]
+    ? true
     : Record<never, never> extends RpcSendParams<Method>
-      ? [params?: RpcSendParams<Method>, options?: SendRequestOptions]
-      : [params: RpcSendParams<Method>, options?: SendRequestOptions]
+      ? true
+      : false
+
+/** Preserves omitted sender arguments as well as explicit undefined. */
+type RpcSendArguments<Method extends RpcMethodName> =
+  RpcParamsOmittable<Method> extends true
+    ? [params?: RpcSendParams<Method>, options?: SendRequestOptions]
+    : [params: RpcSendParams<Method>, options?: SendRequestOptions]
 
 /** Binds sending and interpretation while preserving the transport promise identity. */
 export function bindDeferredRpcOperation<
@@ -277,7 +284,7 @@ export function bindDeferredRpcOperation<
     requestSingleFlight(
       client: RpcClient,
       hostId: string,
-      ...args: void extends RpcSendParams<Method>
+      ...args: RpcParamsOmittable<Method> extends true
         ? [params?: RpcSendParams<Method>]
         : [params: RpcSendParams<Method>]
     ) {

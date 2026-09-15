@@ -6753,6 +6753,981 @@
           "checkpoint": "awaited-trust-write-refused"
         }
       ]
+    },
+    {
+      "id": "files-ownership-ssh",
+      "operation": "files.mutation-ownership",
+      "version": 1,
+      "family": "files.mutation-ownership",
+      "sites": ["mobile/src/files/mobile-file-mutation-ownership.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "capture",
+          "id": "capture"
+        },
+        {
+          "checkpoint": "status-pending"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["files.mutation-ownership.v1"]
+            }
+          }
+        },
+        {
+          "complete": "worktree.show#1",
+          "params": {
+            "worktree": "id:workspace-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "worktree": {
+                "hostId": "ssh:target-1"
+              }
+            }
+          }
+        },
+        {
+          "complete": "ssh.getState#1",
+          "params": {
+            "targetId": "target-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "state": {
+                "targetId": "target-1",
+                "status": "connected",
+                "error": null,
+                "reconnectAttempt": 0,
+                "connectionGeneration": 3
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-ownership-local",
+      "operation": "files.mutation-ownership",
+      "version": 1,
+      "family": "files.mutation-ownership",
+      "sites": ["mobile/src/files/mobile-file-mutation-ownership.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "capture",
+          "id": "capture"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["files.mutation-ownership.v1"]
+            }
+          }
+        },
+        {
+          "complete": "worktree.show#1",
+          "params": {
+            "worktree": "id:workspace-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "worktree": {
+                "hostId": "local"
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-grant-refresh",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-load",
+      "sites": [
+        "mobile/src/files/mobile-file-preview-request.ts",
+        "mobile/src/files/mobile-terminal-artifact-grant-refresh.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "artifact",
+          "id": "load"
+        },
+        {
+          "checkpoint": "read-pending"
+        },
+        {
+          "complete": "files.readTerminalArtifact#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-1"
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "terminal_file_grant_expired",
+              "message": "Grant expired"
+            }
+          }
+        },
+        {
+          "complete": "files.resolveTerminalPath#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "pathText": "run.txt",
+            "cwd": "/logs",
+            "terminal": "terminal-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "exists": true,
+              "isDirectory": false,
+              "openTarget": {
+                "kind": "absolute-file",
+                "absolutePath": "/logs/run.txt",
+                "grantId": "grant-2"
+              }
+            }
+          }
+        },
+        {
+          "complete": "files.readTerminalArtifact#2",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-2"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "hello",
+              "truncated": false,
+              "byteLength": 5
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-artifact-direct",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-load",
+      "sites": [
+        "mobile/src/files/mobile-file-preview-request.ts",
+        "mobile/src/files/mobile-terminal-artifact-grant-refresh.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "artifact",
+          "id": "load"
+        },
+        {
+          "complete": "files.readTerminalArtifact#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "hello",
+              "truncated": false,
+              "byteLength": 5
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-worktree",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-load",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "worktree",
+          "id": "load"
+        },
+        {
+          "complete": "files.read#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/readme.md"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "# readme",
+              "truncated": false,
+              "byteLength": 8
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-worktree-image",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-load",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "worktree",
+          "id": "load",
+          "args": {
+            "path": "docs/logo.png"
+          }
+        },
+        {
+          "complete": "files.readPreview#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/logo.png"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "aGk=",
+              "isBinary": true,
+              "isImage": true,
+              "mimeType": "image/png"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-artifact-image",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-load",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "artifact",
+          "id": "load",
+          "args": {
+            "path": "/logs/shot.png"
+          }
+        },
+        {
+          "complete": "files.readTerminalArtifactPreview#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/shot.png",
+            "grantId": "grant-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "aGk=",
+              "isBinary": true,
+              "isImage": true,
+              "mimeType": "image/png"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-save-verified",
+      "operation": "files.preview-save",
+      "version": 1,
+      "family": "files.preview-save",
+      "sites": [
+        "mobile/src/files/mobile-file-preview-request.ts",
+        "mobile/src/files/mobile-terminal-artifact-grant-refresh.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "verified",
+          "id": "save"
+        },
+        {
+          "checkpoint": "verify-pending"
+        },
+        {
+          "complete": "files.readTerminalArtifact#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "base",
+              "truncated": false,
+              "byteLength": 4
+            }
+          }
+        },
+        {
+          "complete": "files.writeTerminalArtifact#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-1",
+            "content": "next"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-save-blind",
+      "operation": "files.preview-save",
+      "version": 1,
+      "family": "files.preview-save",
+      "sites": [
+        "mobile/src/files/mobile-file-preview-request.ts",
+        "mobile/src/files/mobile-terminal-artifact-grant-refresh.ts"
+      ],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "blind",
+          "id": "save"
+        },
+        {
+          "complete": "files.writeTerminalArtifact#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/run.txt",
+            "grantId": "grant-1",
+            "content": "next"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-tab-doc-shapes",
+      "operation": "files.tab-doc",
+      "version": 1,
+      "family": "files.tab-doc",
+      "sites": ["mobile/src/files/mobile-file-tab-doc.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "text",
+          "id": "text"
+        },
+        {
+          "complete": "files.read#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/readme.md"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "# readme",
+              "truncated": false,
+              "byteLength": 8
+            }
+          }
+        },
+        {
+          "action": "image",
+          "id": "image"
+        },
+        {
+          "complete": "files.readPreview#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/logo.png"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "aGk=",
+              "isImage": true,
+              "mimeType": "image/png"
+            }
+          }
+        },
+        {
+          "action": "diff",
+          "id": "diff"
+        },
+        {
+          "complete": "git.diff#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "filePath": "docs/readme.md",
+            "staged": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "kind": "text",
+              "originalContent": "a\n",
+              "modifiedContent": "b\n"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "components-target-ssh",
+      "operation": "components.execution-target",
+      "version": 1,
+      "family": "components.execution-target",
+      "sites": ["mobile/src/components/use-new-workspace-execution-target.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "state-pending"
+        },
+        {
+          "complete": "ssh.getState#1",
+          "params": {
+            "targetId": "ssh-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "state": {
+                "targetId": "ssh-1",
+                "status": "connected",
+                "error": null,
+                "reconnectAttempt": 0
+              }
+            }
+          }
+        },
+        {
+          "complete": "preflight.detectRemoteAgents#1",
+          "params": {
+            "connectionId": "ssh-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": ["codex"]
+          }
+        },
+        {
+          "action": "connect",
+          "id": "connect"
+        },
+        {
+          "complete": "ssh.connect#1",
+          "params": {
+            "targetId": "ssh-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "state": {
+                "targetId": "ssh-1",
+                "status": "connected",
+                "error": null,
+                "reconnectAttempt": 0
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "components-target-local",
+      "operation": "components.execution-target-local",
+      "version": 1,
+      "family": "components.execution-target-local",
+      "sites": ["mobile/src/components/use-new-workspace-execution-target.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "detect-pending"
+        },
+        {
+          "complete": "preflight.detectAgents#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": ["claude"]
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "components-setup-ask",
+      "operation": "components.setup-script",
+      "version": 1,
+      "family": "components.setup-script",
+      "sites": ["mobile/src/components/use-new-workspace-setup-script.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "hooks-pending"
+        },
+        {
+          "complete": "repo.hooks#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "hooks": {
+                "scripts": {
+                  "setup": "pnpm install"
+                }
+              },
+              "source": "repo",
+              "setupRunPolicy": "ask",
+              "setupTrust": null
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "components-codex-capability",
+      "operation": "components.codex-reset-capability",
+      "version": 1,
+      "family": "components.codex-reset-capability",
+      "sites": ["mobile/src/components/codex-reset-credit-capability.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "probe",
+          "id": "probe"
+        },
+        {
+          "complete": "status.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["accounts.codex-reset-credit.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "host-view-settings-sync",
+      "operation": "host.view-settings",
+      "version": 1,
+      "family": "host.view-settings",
+      "sites": ["mobile/src/host-screen/use-host-view-settings.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "sync",
+          "id": "sync"
+        },
+        {
+          "checkpoint": "ui-pending"
+        },
+        {
+          "complete": "ui.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ui": {
+                "sortBy": "name",
+                "groupBy": "repo",
+                "hideSleepingWorkspaces": true
+              }
+            }
+          }
+        },
+        {
+          "action": "sort",
+          "id": "sort"
+        },
+        {
+          "complete": "ui.set#1",
+          "params": {
+            "sortBy": "name"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "home-host-stats",
+      "operation": "home.host-stats",
+      "version": 1,
+      "family": "home.host-stats",
+      "sites": ["mobile/src/home/mobile-home-host-requests.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "load",
+          "id": "load"
+        },
+        {
+          "checkpoint": "stats-pending"
+        },
+        {
+          "complete": "stats.summary#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "totalWorktrees": 3,
+              "activeWorktrees": 1
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "worktree-home-catalog",
+      "operation": "worktree.home-catalog",
+      "version": 1,
+      "family": "worktree.home-catalog",
+      "sites": ["mobile/src/worktree/home-host-worktree-fetch.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "load",
+          "id": "load"
+        },
+        {
+          "checkpoint": "catalog-pending"
+        },
+        {
+          "complete": "worktree.ps#1",
+          "params": {
+            "limit": 10000,
+            "supportsWorktreeVisibilitySourceDefaults": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "worktrees": [
+                {
+                  "worktreeId": "w-1",
+                  "displayName": "One",
+                  "repo": "Repo",
+                  "status": "working"
+                },
+                {
+                  "worktreeId": "w-2",
+                  "displayName": "Two",
+                  "repo": "Repo",
+                  "status": "idle"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "worktree-catalog-snapshot",
+      "operation": "worktree.catalog-snapshot",
+      "version": 1,
+      "family": "worktree.catalog-snapshot",
+      "sites": ["mobile/src/worktree/worktree-catalog-snapshot-client.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "fetch",
+          "id": "fetch"
+        },
+        {
+          "checkpoint": "catalog-pending"
+        },
+        {
+          "complete": "worktree.ps#1",
+          "params": {
+            "limit": 10000,
+            "supportsWorktreeVisibilitySourceDefaults": true,
+            "afterSnapshotId": null
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "snapshotId": "snapshot-1",
+              "worktrees": [
+                {
+                  "worktreeId": "w-1",
+                  "displayName": "One",
+                  "repo": "Repo"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "worktree-retired-names",
+      "operation": "worktree.retired-names",
+      "version": 1,
+      "family": "worktree.retired-names",
+      "sites": ["mobile/src/worktree/use-retired-worktree-names.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "names-pending"
+        },
+        {
+          "complete": "worktree.listRetiredNames#1",
+          "params": {
+            "repo": "id:repo-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "retiredNamesByRepo": {
+                "repo-1": ["marlin", "manta"]
+              },
+              "retiredNameTiersByRepo": {
+                "repo-1": 2
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "host-worktree-actions-pin-open-delete",
+      "operation": "host.worktree-actions",
+      "version": 1,
+      "family": "host.worktree-actions",
+      "sites": ["mobile/src/host-screen/use-host-worktree-actions.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "toggle-pin",
+          "id": "toggle-pin"
+        },
+        {
+          "checkpoint": "pin-optimistic"
+        },
+        {
+          "complete": "worktree.set#1",
+          "params": {
+            "worktree": "id:wt-1",
+            "isPinned": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "action": "open-session",
+          "id": "open-session"
+        },
+        {
+          "complete": "worktree.activate#1",
+          "params": {
+            "worktree": "id:wt-1",
+            "notifyClients": false,
+            "navigation": "caller"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "action": "delete",
+          "id": "delete"
+        },
+        {
+          "checkpoint": "delete-optimistic"
+        },
+        {
+          "complete": "worktree.rm#1",
+          "params": {
+            "worktree": "id:wt-1",
+            "force": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "host-worktree-delete-refused",
+      "operation": "host.worktree-actions",
+      "version": 1,
+      "family": "host.worktree-actions",
+      "sites": ["mobile/src/host-screen/use-host-worktree-actions.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "delete",
+          "id": "delete"
+        },
+        {
+          "checkpoint": "delete-optimistic"
+        },
+        {
+          "complete": "worktree.rm#1",
+          "params": {
+            "worktree": "id:wt-1",
+            "force": true
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "worktree_busy",
+              "message": "Worktree is busy"
+            }
+          }
+        },
+        {
+          "checkpoint": "restored"
+        }
+      ]
     }
   ]
 }
