@@ -17242,6 +17242,9 @@
       "scrollMessageToTop": "Scroll this message to top",
       "loadingEarlier": "Loading…",
       "loadEarlier": "Load earlier messages",
+      "railLabel": "Your messages",
+      "railImageMessage": "Image attachment",
+      "railEmptyMessage": "Message",
       "question": {
         "step": "Step {{value0}}",
         "other": "Other…",
