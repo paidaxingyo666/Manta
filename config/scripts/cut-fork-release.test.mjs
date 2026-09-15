@@ -8,6 +8,7 @@ import { highestRcForBase } from './release-rc-history.mjs'
 import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
 import {
   bumpMobileAppConfig,
+  carriedMobileRelease,
   mergedUpstreamBaseFrom,
   releaseBase,
   upstreamMobileVersion
@@ -268,5 +269,36 @@ describe('mergedUpstreamBaseFrom', () => {
         () => false
       )
     ).toBe('1.4.197')
+  })
+})
+
+describe('mobile release a sync carried in', () => {
+  it('advances versionCode when the version moved but the code did not', () => {
+    // #20661: upstream moved app.json to 0.0.50 while its Android tag stayed at 0.0.48.
+    expect(
+      carriedMobileRelease(
+        { version: '0.0.50', versionCode: 16 },
+        { version: '0.0.48', versionCode: 16 }
+      )
+    ).toEqual({ version: '0.0.50', from: '0.0.48', carried: true, advanceVersionCode: true })
+  })
+
+  it('still reports the release but leaves a code that already moved alone', () => {
+    expect(
+      carriedMobileRelease(
+        { version: '0.0.50', versionCode: 17 },
+        { version: '0.0.48', versionCode: 16 }
+      )
+    ).toMatchObject({ advanceVersionCode: false })
+  })
+
+  it('is null when the committed version is what already shipped', () => {
+    expect(
+      carriedMobileRelease(
+        { version: '0.0.48', versionCode: 16 },
+        { version: '0.0.48', versionCode: 16 }
+      )
+    ).toBeNull()
+    expect(carriedMobileRelease({ version: '0.0.48', versionCode: 16 }, null)).toBeNull()
   })
 })
