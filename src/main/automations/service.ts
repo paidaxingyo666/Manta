@@ -28,6 +28,8 @@ import { createAutomationRunWriter, type AutomationRunWriter } from './automatio
 import { reportAutomationScheduleDrift } from './schedule-drift-report'
 import {
   describeScheduledRefusal,
+  missedBeyondGrace,
+  recordMissedRun,
   recordRefusedAutomationRun,
   recordUnevaluableAutomation,
   sendRendererDispatch,
@@ -251,15 +253,8 @@ export class AutomationService {
       this.store.advanceAutomationNextRun(automation.id, now)
       return
     }
-    const graceMs = automation.missedRunGraceMinutes * 60 * 1000
-    if (now - scheduledFor > graceMs) {
-      const missed = this.runs.createRun(automation, scheduledFor)
-      this.runs.updateRun({
-        runId: missed.id,
-        status: 'skipped_missed',
-        workspaceId: automation.workspaceId,
-        error: 'Manta was unavailable during the missed-run grace window.'
-      })
+    if (missedBeyondGrace({ automation, scheduledFor, now, tickMs: this.tickMs })) {
+      recordMissedRun({ runs: this.runs, automation, scheduledFor })
       this.store.advanceAutomationNextRun(automation.id, now)
       return
     }
