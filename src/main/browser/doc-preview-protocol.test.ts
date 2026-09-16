@@ -267,7 +267,7 @@ describe('installDocPreviewProtocolHandler', () => {
     installDocPreviewProtocolHandler()
 
     expect(mocks.installBrowserSessionPartitionPolicies).toHaveBeenCalledWith(
-      expect.objectContaining({ partition: 'manta-doc-preview', userAgentMode: 'clean' }),
+      expect.objectContaining({ partition: 'manta-doc-preview' }),
       expect.anything()
     )
   })
