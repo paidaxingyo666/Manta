@@ -17857,7 +17857,7 @@
       "noMatches": "No matching sessions in the indexed history. Try another query or scope.",
       "loadMore": "Load more matches",
       "indexedHistory": "Indexed history · best matches",
-      "chooseHost": "Choose one computer to search its sessions.",
+      "hostsSkipped": "Not searched: {{value0}}",
       "consent": "Enable full-text search? Manta builds an index on this computer from local agent transcripts, including full conversations and up to 3,072 characters per tool output. Content is not redacted. Authenticated paired clients can search it.",
       "remoteDisabled": "Search is disabled on this computer. Enable transcript indexing on that computer to search its sessions.",
       "notReady": "The search index is not ready yet. Try again shortly.",

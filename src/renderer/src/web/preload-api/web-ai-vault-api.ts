@@ -18,7 +18,7 @@ import {
   normalizeExecutionHostScope,
   toRuntimeExecutionHostId
 } from '../../../../shared/execution-host'
-import type { ExecutionHostId } from '../../../../shared/execution-host'
+import type { ExecutionHostId, ExecutionHostScope } from '../../../../shared/execution-host'
 import { callRuntimeResult } from './web-runtime-calls'
 import { requireActiveEnvironment } from './web-runtime-session'
 import { noopUnsubscribe } from './web-storage'
@@ -95,7 +95,8 @@ export function createWebAiVaultApi(): NonNullable<Partial<PreloadApi>['aiVault'
 }
 
 // An unparseable id must not normalize into the everything-scope and answer anyway.
-function addressesOwnRuntime(executionHostScope: ExecutionHostId | undefined): boolean {
+// `all` is a desktop-side merge; it never normalizes to this runtime, so a browser reports no-service.
+function addressesOwnRuntime(executionHostScope: ExecutionHostScope | undefined): boolean {
   const ownRuntimeId = toRuntimeExecutionHostId(requireActiveEnvironment().id)
   return (
     executionHostScope === undefined ||
