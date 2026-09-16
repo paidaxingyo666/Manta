@@ -207,6 +207,10 @@ export type StructuredAgentSessionAdapter = {
     prompt?: { itemId: string }
     /** Latest journal submission for this fence, when the host has one. */
     dispatchStatus?: { state: AgentJournalDispatchState; recovered: boolean } | null
+    /** Re-reads the turn the published journal says is running — the only turn a client
+     *  could have named. A function, not a value, because the guard re-checks after the
+     *  delivery fence may have waited. Absent for direct callers with no journal. */
+    resolveLiveTurnId?: () => string | null
   }): Promise<{ cancelled: boolean }>
   stopBackgroundTasks?(input: {
     sessionId: string

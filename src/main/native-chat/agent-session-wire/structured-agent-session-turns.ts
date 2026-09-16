@@ -216,6 +216,8 @@ export async function performCancel(
             sessionId: ctx.sessionId,
             turnId: input.turnId,
             fence: ctx.fence,
+            // The journal is what the client read to name a turn, so it is what judges the request.
+            resolveLiveTurnId: () => ctx.journal.activeTurnId(),
             ...(dispatchStatus ? { dispatchStatus } : {}),
             ...(input.prompt ? { prompt: { itemId: input.prompt.itemId } } : {})
           })

@@ -5,7 +5,8 @@
 
 import type {
   AgentJournalRenderItem,
-  AgentJournalToolCallItem
+  AgentJournalToolCallItem,
+  AgentJournalTurnLifecycle
 } from './agent-session-journal-types'
 import { readAgentJournalTurn } from './agent-session-turn-record'
 
@@ -19,6 +20,27 @@ export function activeStructuredAgentSessionTurnId(
     }
   }
   return null
+}
+
+/** The same verdict for reduced items a caller holds unordered, so a reader that already has them
+ *  need not render and sort a whole snapshot to ask. Sequence is the ordering key the render pass
+ *  sorts on, and ties resolve to the later-reduced item exactly as that stable sort would. */
+export function activeStructuredAgentSessionTurnIdBySequence(
+  items: Iterable<AgentJournalRenderItem>
+): string | null {
+  let newestSequence = 0
+  let newest: AgentJournalTurnLifecycle | null = null
+  for (const item of items) {
+    if (item.sequence < newestSequence) {
+      continue
+    }
+    const turn = readAgentJournalTurn(item.body)
+    if (turn) {
+      newestSequence = item.sequence
+      newest = turn
+    }
+  }
+  return newest?.state === 'running' ? newest.turnId : null
 }
 
 /**

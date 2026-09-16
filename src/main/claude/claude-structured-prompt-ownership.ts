@@ -110,17 +110,14 @@ export async function cancelClaudeStructuredTurn(input: {
     session.prompts.releaseClaim(claim)
     return { cancelled: false }
   }
-  // The translator owns turn identity. A session with no journal has published no
-  // turn row for a client to name, so it holds no identity this request can contradict.
+  // Judge against the published journal, because that is the only turn a client could have been
+  // shown — but only while it HAS an answer. The journal drains through a serialized async queue,
+  // so a null read means the row has not landed yet, not that nothing is running; falling back to
+  // the in-memory turn there keeps Stop from being gated on bookkeeping. No live turn either way
+  // means nothing has published an identity this request can contradict.
   const ownsRequestedTurn = (): boolean => {
-    const translator = session.translator
-    if (!translator) {
-      return session.dispatchSequence === 0
-    }
-    const currentTurnId = translator.currentTurnId
-    return currentTurnId === null
-      ? session.dispatchSequence === 0
-      : currentTurnId === request.turnId
+    const liveTurnId = request.resolveLiveTurnId?.() ?? session.translator?.currentTurnId ?? null
+    return liveTurnId === null ? session.dispatchSequence === 0 : liveTurnId === request.turnId
   }
   // The host supplies the durable latest submission; direct adapter callers fall back to
   // the current in-memory waiter so an unknown dispatch remains fenced without a latch.

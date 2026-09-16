@@ -4,7 +4,10 @@ import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import type { LegacyImportOptions } from '../agent-session-journal/journal-legacy-import'
 import { importLegacyTranscriptIntoJournal } from '../agent-session-journal/journal-legacy-import'
 import { journalIdentityFor } from './structured-agent-session-attach'
-import { rethrowAfterAgentSessionAcquisitionCleanup } from './structured-agent-session-adapter'
+import {
+  rethrowAfterAgentSessionAcquisitionCleanup,
+  type StructuredAgentSessionAdapter
+} from './structured-agent-session-adapter'
 import { canRestoreLiveTuiOwner } from './structured-agent-session-handoff-restart'
 import type { DeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionHostDeps } from './structured-agent-session-host'
@@ -102,18 +105,8 @@ export function createStructuredAgentSessionHostHandoff(
     },
     acknowledgeNativeRelease: (sessionId) => deps.adapter.acknowledgeSessionRelease?.(sessionId),
     acquireNative: (input) => acquireNativeHandoffOwner(deps, host, input),
-    acquireNativeStop: async (sessionId, turnId, fence) => {
-      const session = host.session(sessionId)
-      const dispatchStatus = latestJournalDispatchObservation(session.journal, fence)
-      return (
-        await deps.adapter.cancelTurn({
-          sessionId,
-          turnId,
-          fence,
-          ...(dispatchStatus ? { dispatchStatus } : {})
-        })
-      ).cancelled
-    },
+    acquireNativeStop: (sessionId, turnId, fence) =>
+      stopNativeHandoffTurn(deps.adapter, host.session(sessionId), { sessionId, turnId, fence }),
     importTuiHistory: (input) => importTuiHistory(deps, host, input),
     retryPendingSettlement: (sessionId) =>
       retryLoadedStructuredAgentSessionSettlement({
@@ -166,6 +159,24 @@ export function createStructuredAgentSessionHostHandoff(
       }
     }
   })
+}
+
+/** Handoff's own Stop, which never passes through `performCancel` and so has to carry the
+ *  journal reads that judge a cancellation itself. */
+export async function stopNativeHandoffTurn(
+  adapter: Pick<StructuredAgentSessionAdapter, 'cancelTurn'>,
+  session: Pick<StructuredAgentSessionHostSession, 'journal'>,
+  input: { sessionId: string; turnId: string; fence: number }
+): Promise<boolean> {
+  const dispatchStatus = latestJournalDispatchObservation(session.journal, input.fence)
+  return (
+    await adapter.cancelTurn({
+      ...input,
+      // The journal is what the client read to name a turn, so it is what judges the request.
+      resolveLiveTurnId: () => session.journal.activeTurnId(),
+      ...(dispatchStatus ? { dispatchStatus } : {})
+    })
+  ).cancelled
 }
 
 async function importTuiHistory(

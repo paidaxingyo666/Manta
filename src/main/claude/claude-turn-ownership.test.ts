@@ -90,6 +90,33 @@ function providerOutput(connection: FakeConnection, uuid: string): void {
   })
 }
 
+/** A session whose in-memory turn is `turnId`, standing in for the adapter's own read. */
+function sessionHoldingTurn(turnId: string | null): ReturnType<typeof sessionFor> {
+  const session = sessionFor()
+  session.dispatchSequence = 1
+  session.translator = {
+    handle: vi.fn(),
+    journalPrompts: { cancel: vi.fn(), resolve: vi.fn() },
+    currentTurnId: turnId,
+    flush: vi.fn(),
+    pendingStreamedBlocks: 0,
+    dispose: vi.fn()
+  }
+  return session
+}
+
+function cancellationOf(
+  session: ReturnType<typeof sessionFor>,
+  request: Parameters<typeof cancelClaudeStructuredTurn>[0]['request']
+): Promise<{ cancelled: boolean }> {
+  return cancelClaudeStructuredTurn({
+    request,
+    sessions: new Map([['session-1', session]]),
+    compactions: new StructuredSessionCompaction(),
+    admitPromptCancellation: () => true
+  })
+}
+
 describe('Claude turn ownership', () => {
   it('stops a turn the provider opened after the session already dispatched once', async () => {
     const claude = fakeClaude({ replayUuid: 'echo-turn' })
@@ -347,6 +374,87 @@ describe('Claude turn ownership', () => {
       adapter.cancelTurn({ sessionId: 'session-1', turnId: 'echo-turn', fence: 7 })
     ).resolves.toEqual({ cancelled: true })
     expect(connection.calls.some((call) => call.subtype === 'interrupt')).toBe(true)
+  })
+
+  // The sink drains asynchronously, so the adapter's own turn can already name a row no client
+  // has been shown. The published journal is what a Stop is derived from, so it is what judges it.
+  it('admits a Stop for the published turn while the adapter already holds an undrained one', async () => {
+    const session = sessionHoldingTurn('turn-undrained')
+    const interrupt = vi.fn().mockResolvedValue(undefined)
+    session.connection.interrupt = interrupt
+
+    await expect(
+      cancellationOf(session, {
+        sessionId: 'session-1',
+        turnId: 'turn-shown',
+        fence: 1,
+        resolveLiveTurnId: () => 'turn-shown'
+      })
+    ).resolves.toEqual({ cancelled: true })
+    expect(interrupt).toHaveBeenCalledOnce()
+  })
+
+  // The journal drains through a serialized async queue, so a live turn routinely has no published
+  // row yet. Refusing there would gate a user's Stop on bookkeeping, so the in-memory turn covers
+  // the lag — the journal is authoritative only while it has an answer.
+  it('admits a Stop for the live turn while the journal has not drained its row', async () => {
+    const session = sessionHoldingTurn('turn-live')
+    const interrupt = vi.fn().mockResolvedValue(undefined)
+    session.connection.interrupt = interrupt
+
+    await expect(
+      cancellationOf(session, {
+        sessionId: 'session-1',
+        turnId: 'turn-live',
+        fence: 1,
+        resolveLiveTurnId: () => null
+      })
+    ).resolves.toEqual({ cancelled: true })
+    expect(interrupt).toHaveBeenCalledOnce()
+  })
+
+  it('refuses a Stop the adapter still holds once the journal published a newer turn', async () => {
+    const session = sessionHoldingTurn('turn-stale')
+    const interrupt = vi.fn().mockResolvedValue(undefined)
+    session.connection.interrupt = interrupt
+
+    await expect(
+      cancellationOf(session, {
+        sessionId: 'session-1',
+        turnId: 'turn-stale',
+        fence: 1,
+        resolveLiveTurnId: () => 'turn-newer'
+      })
+    ).resolves.toEqual({ cancelled: false })
+    expect(interrupt).not.toHaveBeenCalled()
+  })
+
+  // The guard re-checks after the delivery fence may have waited seconds, so the journal read
+  // has to happen then — a value captured at request time would interrupt whatever ran next.
+  it('re-reads the published turn after the delivery fence waits', async () => {
+    vi.useFakeTimers()
+    try {
+      let publishedTurnId = 'turn-shown'
+      const session = sessionHoldingTurn('turn-shown')
+      const interrupt = vi.fn().mockResolvedValue(undefined)
+      session.connection.interrupt = interrupt
+
+      const cancellation = cancellationOf(session, {
+        sessionId: 'session-1',
+        turnId: 'turn-shown',
+        fence: 1,
+        dispatchStatus: { state: 'unknown', recovered: false },
+        resolveLiveTurnId: () => publishedTurnId
+      })
+      await vi.advanceTimersByTimeAsync(CLAUDE_DISPATCH_ADMISSION_TIMEOUT_MS - 1)
+      publishedTurnId = 'turn-next'
+      await vi.advanceTimersByTimeAsync(1)
+
+      await expect(cancellation).resolves.toEqual({ cancelled: false })
+      expect(interrupt).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('refuses a stale turn id once the provider opened a newer turn', async () => {

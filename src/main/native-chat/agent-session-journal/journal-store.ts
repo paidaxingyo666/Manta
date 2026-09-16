@@ -11,6 +11,7 @@ import type {
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
+import { activeStructuredAgentSessionTurnIdBySequence } from '../../../shared/structured-agent-session-live-turn'
 import { agentSessionJournalCloseRetries } from './journal-close-retry'
 import { openJournalDatabase, type OpenJournalDatabase } from './journal-database'
 import type { JournalReplacementItem } from './journal-epoch-replacement'
@@ -168,6 +169,11 @@ export class AgentSessionJournal {
       visit(item.itemId, item.sequence)
     }
   }
+
+  /** The turn this journal has published as running — the same read a client's snapshot gives,
+   *  without materialising one. */
+  activeTurnId = (): string | null =>
+    activeStructuredAgentSessionTurnIdBySequence(this.state.items.values())
 
   /** Includes revisions and completion tombstones, whose timestamps disappear from render items. */
   lastActivityAt = (): number => this.state.lastActivityAt
