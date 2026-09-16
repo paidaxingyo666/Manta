@@ -29,7 +29,9 @@ const mutants: Record<string, Mutation> = {
   'settings-task-write': 'task-preferences-optimistic',
   'settings-workspace-submit-fulfilled': 'workspace-submit-envelope',
   'settings-task-workspace-fulfilled': 'task-workspace-envelope',
-  'native-chat-write-delivery-unknown': 'native-chat-send-delivery-unknown'
+  'native-chat-write-delivery-unknown': 'native-chat-send-delivery-unknown',
+  'terminal-input-send-refused': 'terminal-send-refusal-restores-draft',
+  'terminal-worktree-connection-resolved': 'worktree-connection-first-repo'
 }
 /**
  * The archived tree's visible state, pinned per seed: b1 serves the poisoned empty inventory, b2
