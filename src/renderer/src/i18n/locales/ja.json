@@ -14804,27 +14804,6 @@
     }
   },
   "dashboardPopout": {
-    "view": {
-      "label": "ダッシュボード表示",
-      "board": "ダッシュボード",
-      "map": "Agent マップ"
-    },
-    "map": {
-      "host": {
-        "local": "ローカル",
-        "ssh": "SSH",
-        "wsl": "WSL",
-        "remote": "リモート"
-      },
-      "liveContainmentMap": "ライブ包含マップ",
-      "empty": "現在のフィルターに一致する Agent はありません。",
-      "canvasLabel": "プロジェクト、ワークスペース、Agent の入れ子マップ",
-      "zoomOut": "ズームアウト",
-      "zoomIn": "ズームイン",
-      "fit": "全体表示",
-      "projectCount": "{{agents}}件の Agent · {{workspaces}}件のワークスペース",
-      "agentCount": "{{count}}件の Agent"
-    },
     "placeholder": {
       "title": "Agent ダッシュボード",
       "description": "ここに、すべての Agent が一覧で表示されます。ボードは近日公開です。"

@@ -14943,27 +14943,6 @@
     }
   },
   "dashboardPopout": {
-    "view": {
-      "label": "대시보드 보기",
-      "board": "대시보드",
-      "map": "에이전트 맵"
-    },
-    "map": {
-      "host": {
-        "local": "로컬",
-        "ssh": "SSH",
-        "wsl": "WSL",
-        "remote": "원격"
-      },
-      "liveContainmentMap": "실시간 포함 관계 맵",
-      "empty": "현재 필터와 일치하는 에이전트가 없습니다.",
-      "canvasLabel": "프로젝트, 작업 공간, 에이전트의 중첩 맵",
-      "zoomOut": "축소",
-      "zoomIn": "확대",
-      "fit": "맞춤",
-      "projectCount": "에이전트 {{agents}}개 · 작업 공간 {{workspaces}}개",
-      "agentCount": "에이전트 {{count}}개"
-    },
     "placeholder": {
       "title": "에이전트 대시보드",
       "description": "모든 에이전트를 한눈에 볼 수 있는 곳입니다. 보드는 곧 제공됩니다."

@@ -1,13 +1,11 @@
 import {
   AGENT_STATUS_STORE_LIMITS,
-  AGENT_STATUS_STORE_SNAPSHOT_VERSION
+  AGENT_STATUS_STORE_SNAPSHOT_VERSION,
+  type AgentStatusFactRecord,
+  type AgentStatusTombstoneRecord
 } from './agent-status-store-contract'
 import type { AgentChildWorkAliasRecord } from './agent-status-child-work-alias'
 import type { AgentChildWorkRecord } from './agent-status-child-work'
-import type {
-  AgentStatusFactRecord,
-  AgentStatusTombstoneRecord
-} from './agent-status-store-contract'
 import type { AgentStatusParentRecord } from './agent-status-store-parent'
 import type { AgentStatusStoreState } from './agent-status-store-state'
 import { getUtf8ByteLength } from './utf8-byte-limits'

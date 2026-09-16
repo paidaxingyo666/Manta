@@ -14769,27 +14769,6 @@
     }
   },
   "dashboardPopout": {
-    "view": {
-      "label": "Vista del panel",
-      "board": "Panel",
-      "map": "Mapa de agentes"
-    },
-    "map": {
-      "host": {
-        "local": "Local",
-        "ssh": "SSH",
-        "wsl": "WSL",
-        "remote": "Remoto"
-      },
-      "liveContainmentMap": "Mapa de contención en vivo",
-      "empty": "Ningún agente coincide con los filtros actuales.",
-      "canvasLabel": "Mapa anidado de proyectos, espacios de trabajo y agentes",
-      "zoomOut": "Alejar",
-      "zoomIn": "Acercar",
-      "fit": "Ajustar",
-      "projectCount": "{{agents}} agentes · {{workspaces}} espacios de trabajo",
-      "agentCount": "{{count}} agentes"
-    },
     "placeholder": {
       "title": "Agent dashboard",
       "description": "This is where all your agents will show up at a glance. The board is coming soon."
