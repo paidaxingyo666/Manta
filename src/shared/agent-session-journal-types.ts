@@ -140,9 +140,20 @@ export type AgentJournalQuestion = {
   freeTextQuestionId?: string
 }
 
+export type AgentJournalApprovalMatchedAskRule = {
+  source: string
+  toolName: string
+  ruleContent?: string
+}
+
 export type AgentJournalApprovalItem = {
   kind: 'approval'
   title: string
+  displayName?: string
+  description?: string
+  decisionReason?: string
+  blockedPath?: string
+  matchedAskRule?: AgentJournalApprovalMatchedAskRule
   detail: string | null
   options: AgentJournalPromptOption[]
   resolution: AgentJournalResolution
