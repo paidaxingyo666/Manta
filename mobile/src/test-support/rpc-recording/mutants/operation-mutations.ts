@@ -15,12 +15,16 @@ export const OPERATION_MUTATIONS = {
       : 'rejected'`,
     after: `    return isLogicalClientCutoverError(error) ? 'unknown' : 'rejected'`
   },
-  // Re-anchored where the operation migration moved the acceptance read; the defect it injects —
-  // a stale workspace response poisoning the search cache — is unchanged.
+  // Re-anchored where the lifecycle migration moved the guard: the hand-rolled generation compare
+  // became the owner's, so the anchor is the owner's compare. The defect it injects — a stale
+  // workspace response poisoning the search cache — is unchanged.
   race: {
-    file: 'use-mobile-native-chat-file-search.ts',
-    before: '!accepted.accepted || generationRef.current !== generation',
-    after: '!accepted.accepted'
+    file: 'generation-scoped-request-owner.ts',
+    before: `    if (state.generation !== this.currentGeneration) {
+      return 'retired-generation'
+    }
+`,
+    after: ''
   },
   // Accepts a null result envelope instead of rejecting it. The guard is repeated for three
   // mutations in this file; the anchor carries the message so only the recorded one is edited.
