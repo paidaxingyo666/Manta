@@ -26,7 +26,7 @@ import {
   type GoldenRecording
 } from './golden-recording'
 import { hoistPreludeCheckpoints } from './prelude-checkpoints'
-import { replyMatrixGoldenId, replyMatrixSites } from './reply-matrix'
+import { driveReplyMatrix, replyMatrixGoldenId, replyMatrixSites } from './reply-matrix'
 import {
   REPLY_MATRIX_NORMAL_RESULT_INVENTORY,
   replyMatrixNormalResult
@@ -441,6 +441,190 @@ describe('recording boundaries', () => {
     expect({ missing, imported }).toEqual({ missing: [], imported: [] })
   })
 
+  it('delivers each frame through the session that published its subscribe', async () => {
+    const clock = vitestRecordingScheduler()
+    clock.start()
+    const transport = new ScriptedRpcTransport(clock.elapsed)
+    const events: unknown[] = []
+    try {
+      const dispose = transport.client.subscribe(CLIENT_EVENTS, null, (result) =>
+        events.push(result)
+      )
+      // Cut over before the stream is ready. The retiring registry keeps the cancelled subscribe
+      // precisely so it can unsubscribe once the id arrives, which is the behaviour a transport
+      // that routed every frame through the current session would drop on the floor.
+      await transport.cutover()
+      await clock.flush()
+      transport.frame(`${CLIENT_EVENTS}#1`, null, readyFrame('sub-1'))
+      transport.frame(`${CLIENT_EVENTS}#2`, null, readyFrame('sub-2'))
+      dispose()
+      expect(
+        transport.payloads.map((payload) => [payload.name, JSON.parse(payload.json).id])
+      ).toEqual([
+        [`${CLIENT_EVENTS}#1`, 'frame-1'],
+        [`${CLIENT_EVENTS}#2`, 'frame-2'],
+        ['runtime.clientEvents.unsubscribe#1', 'frame-3'],
+        ['runtime.clientEvents.unsubscribe#2', 'frame-4']
+      ])
+      expect(transport.payloads.map((payload) => JSON.parse(payload.json).params)).toEqual([
+        null,
+        null,
+        { subscriptionId: 'sub-1' },
+        { subscriptionId: 'sub-2' }
+      ])
+      // Only the live generation reaches the listener; the retiring one is fenced by the client.
+      expect(events).toEqual([readyFrame('sub-2').result])
+    } finally {
+      transport.dispose()
+      await clock.flush()
+      clock.stop()
+    }
+  })
+
+  it('routes a whole host response at a stream id, and asserts the subscribe params', async () => {
+    const clock = vitestRecordingScheduler()
+    clock.start()
+    const transport = new ScriptedRpcTransport(clock.elapsed)
+    const events: unknown[] = []
+    const changed = { ok: true, streaming: true, result: { type: 'worktreesChanged' } }
+    try {
+      const dispose = transport.client.subscribe(CLIENT_EVENTS, null, (result) =>
+        events.push(result)
+      )
+      transport.frame(`${CLIENT_EVENTS}#1`, null, readyFrame('sub-1'))
+      transport.frame(`${CLIENT_EVENTS}#1`, null, changed)
+      expect(() => transport.frame(`${CLIENT_EVENTS}#1`, { asserted: 1 }, changed)).toThrow(
+        'Subscribe params mismatch'
+      )
+      expect(() => transport.frame(`${CLIENT_EVENTS}#2`, null, changed)).toThrow(
+        'Missing subscription payload'
+      )
+      // The host's own end of stream, in the two responses it really sends: the `end` event as a
+      // streaming frame, then the unary reply the dispatcher sends once the handler returns. The
+      // second is what closes the stream here, and the registry reports it to the listener as an
+      // error — so the disposer below has no subscription left and publishes no unsubscribe.
+      transport.frame(`${CLIENT_EVENTS}#1`, null, {
+        ok: true,
+        streaming: true,
+        result: { type: 'end' }
+      })
+      transport.frame(`${CLIENT_EVENTS}#1`, null, { ok: true })
+      expect(() =>
+        transport.frame(`${CLIENT_EVENTS}#1`, null, {
+          ok: false,
+          error: { code: 'refused', message: 'gone' }
+        })
+      ).toThrow('No open stream for frame')
+      dispose()
+      expect(transport.payloads.map((payload) => payload.name)).toEqual([`${CLIENT_EVENTS}#1`])
+      expect(events).toEqual([
+        readyFrame('sub-1').result,
+        changed.result,
+        { type: 'end' },
+        { type: 'error', message: 'Streaming request ended before it was ready.', error: undefined }
+      ])
+    } finally {
+      transport.dispose()
+      await clock.flush()
+      clock.stop()
+    }
+  })
+
+  it('files only a subscribe as an open stream, not the unsubscribe it publishes later', async () => {
+    const clock = vitestRecordingScheduler()
+    clock.start()
+    const transport = new ScriptedRpcTransport(clock.elapsed)
+    try {
+      const dispose = transport.client.subscribe(CLIENT_EVENTS, null, () => {})
+      transport.frame(`${CLIENT_EVENTS}#1`, null, readyFrame('sub-1'))
+      dispose()
+      // The unsubscribe is a published payload but never a stream. Filed as one, a frame aimed at it
+      // routed at its wire id, matched nothing, recorded nothing and reported success.
+      expect(transport.payloads.map((payload) => payload.name)).toEqual([
+        `${CLIENT_EVENTS}#1`,
+        'runtime.clientEvents.unsubscribe#1'
+      ])
+      expect(() =>
+        transport.frame('runtime.clientEvents.unsubscribe#1', null, readyFrame('sub-1'))
+      ).toThrow('Missing subscription payload')
+    } finally {
+      transport.dispose()
+      await clock.flush()
+      clock.stop()
+    }
+  })
+
+  it('stamps each payload with the request count, which is all a reordered subscribe moves', async () => {
+    const subscribeFirst = await payloadsFrom((client) => {
+      client.subscribe(CLIENT_EVENTS, null, () => {})
+      void client.sendRequest('worktree.show', {}).catch(() => {})
+    })
+    const sendFirst = await payloadsFrom((client) => {
+      void client.sendRequest('worktree.show', {}).catch(() => {})
+      client.subscribe(CLIENT_EVENTS, null, () => {})
+    })
+    // The published order is identical either way, because a subscribe publishes synchronously
+    // while a request first waits for connected. Without `sent` the swap moves no recorded byte.
+    expect(sendFirst.map((payload) => payload.name)).toEqual(
+      subscribeFirst.map((payload) => payload.name)
+    )
+    expect(subscribeFirst.map((payload) => payload.sent)).toEqual([0, 1])
+    expect(sendFirst.map((payload) => payload.sent)).toEqual([1, 1])
+  })
+
+  it('drives the reply matrix over frames, and matrixes a family that only subscribes', () => {
+    const changed = { ok: true, streaming: true, result: { type: 'worktreesChanged' } }
+    const base: RecordingScenario = {
+      id: 'stream',
+      operation: 'op',
+      version: 1,
+      family: 'op',
+      sites: [],
+      schedules: [],
+      steps: [
+        { action: 'mount', id: 'mount' },
+        { frame: `${CLIENT_EVENTS}#1`, params: null, reply: readyFrame('sub-1') },
+        { checkpoint: 'ready' },
+        { frame: `${CLIENT_EVENTS}#1`, params: null, reply: changed },
+        { checkpoint: 'changed' }
+      ]
+    }
+    // While the matrix read only completions this family threw its own named failure instead.
+    expect(replyMatrixSites(base)).toEqual([`${CLIENT_EVENTS}#1@1`, `${CLIENT_EVENTS}#1@2`])
+    expect(replyMatrixGoldenId('op', `${CLIENT_EVENTS}#1@2`)).toBe(
+      'matrix-op-runtime.clientevents.subscribe-1-2'
+    )
+    expect(replyMatrixNormalResult('op', [base], `${CLIENT_EVENTS}#1@2`)).toEqual(changed.result)
+    const variants = driveReplyMatrix(base, `${CLIENT_EVENTS}#1@1`, readyFrame('sub-1').result)
+    const partitions = variants.map((variant) => variant.id.replace('stream.', ''))
+    // Nine of eleven: a frame holds no promise, so neither transport rejection applies to one.
+    expect(partitions).toEqual([
+      'normal',
+      'result-absent',
+      'result-null',
+      'inner-ok-missing',
+      'inner-false-string-error',
+      'inner-false-object-error',
+      'outer-refused',
+      'outer-refused-no-message',
+      'method-not-found'
+    ])
+    const replies = new Map(variants.map((variant) => [variant.id, variant.steps[1]]))
+    // The success shapes keep the flag that routes them to the stream; a refusal never had one.
+    expect(replies.get('stream.normal')).toEqual(base.steps[1])
+    expect(replies.get('stream.result-absent')).toEqual({
+      frame: `${CLIENT_EVENTS}#1`,
+      params: null,
+      reply: { ok: true, streaming: true }
+    })
+    expect(replies.get('stream.outer-refused')).toMatchObject({
+      reply: { ok: false, error: { code: 'refused' } }
+    })
+    // No `optional` on a downstream frame: the registry routes a streaming response to the id that
+    // opened the stream whatever the divergence did, so every scripted frame still lands.
+    expect(variants[0]!.steps[3]).toEqual(base.steps[3])
+  })
+
   it('refuses a mutation anchor that matches more than once', () => {
     const root = mkdtempSync(join(tmpdir(), 'rpc-mutant-'))
     try {
@@ -467,6 +651,30 @@ describe('recording boundaries', () => {
     }
   })
 })
+
+const CLIENT_EVENTS = 'runtime.clientEvents.subscribe'
+
+function readyFrame(subscriptionId: string) {
+  return { ok: true, streaming: true, result: { type: 'ready', subscriptionId } }
+}
+
+/** The payloads one scripted client publishes, with the transport torn down either way. */
+async function payloadsFrom(
+  drive: (client: ScriptedRpcTransport['client']) => void
+): Promise<ScriptedRpcTransport['payloads']> {
+  const clock = vitestRecordingScheduler()
+  clock.start()
+  const transport = new ScriptedRpcTransport(clock.elapsed)
+  try {
+    drive(transport.client)
+    await clock.flush()
+    return [...transport.payloads]
+  } finally {
+    transport.dispose()
+    await clock.flush()
+    clock.stop()
+  }
+}
 
 function entryHash(name: string): string {
   return valueHash({ name })

@@ -8,6 +8,7 @@ import {
   agentHistoryScreenMountExposures
 } from './agent-history-screen-mount-adapters'
 import { browserMountAdapters } from './browser-mount-adapters'
+import { clientEventStreamMountAdapters } from './client-event-stream-mount-adapters'
 import { clipboardImageMountAdapters } from './clipboard-image-mount-adapters'
 import { codexResetCreditMountAdapters } from './codex-reset-credit-mount-adapters'
 import { dictationMountAdapters } from './dictation-mount-adapters'
@@ -91,6 +92,7 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
   },
   { source: 'ai-vault-resume-mount-adapters.ts', mounts: aiVaultResumeMountAdapters },
   { source: 'browser-mount-adapters.ts', mounts: browserMountAdapters },
+  { source: 'client-event-stream-mount-adapters.ts', mounts: clientEventStreamMountAdapters },
   { source: 'clipboard-image-mount-adapters.ts', mounts: clipboardImageMountAdapters },
   { source: 'codex-reset-credit-mount-adapters.ts', mounts: codexResetCreditMountAdapters },
   { source: 'dictation-mount-adapters.ts', mounts: dictationMountAdapters },

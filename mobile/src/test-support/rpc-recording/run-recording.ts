@@ -67,6 +67,8 @@ export async function runRecording(
         if (!step.optional || transport.outstanding(step.complete)) {
           transport.complete(step.complete, step.params, step.reply, step.reject)
         }
+      } else if ('frame' in step) {
+        transport.frame(step.frame, step.params, step.reply)
       } else if ('bind' in step) {
         if (!step.optional || transport.outstanding(step.request)) {
           transport.bind(step.bind, step.request, step.params)

@@ -1,6 +1,7 @@
 import type { ConnectionState, RpcResponse } from '../../transport/types'
 import type { RpcClient } from '../../transport/rpc-client'
 import { RpcClientRequestTracker } from '../../transport/rpc-client-request-tracker'
+import { RpcClientStreamRegistry } from '../../transport/rpc-client-stream-registry'
 import { createStableLogicalRpcClient } from '../../transport/stable-logical-rpc-client'
 import { markRpcDeliveryUnknown } from '../../transport/rpc-delivery-ambiguity'
 import {
@@ -11,32 +12,40 @@ import {
 } from './recording-values'
 import type { Rejection } from './recording-scenario'
 
+/** The one device identity every recorded frame carries; nothing here reads a keychain. */
+const DEVICE_TOKEN = 'recording-device'
+
 export class ScriptedRpcTransport {
   readonly requests: {
     name: string
     args: ReturnType<typeof captureArguments>
     settlement: Settlement
   }[] = []
-  readonly payloads: { name: string; json: string }[] = []
+  readonly payloads: { name: string; json: string; sent: number }[] = []
   readonly client: RpcClient
   readonly logical
   private counts = new Map<string, number>()
   private bindings = new Map<string, { id: string; params: unknown; completed: boolean }>()
   private aliases = new Map<string, string>()
+  private openStreams = new Map<
+    string,
+    { id: string; params: unknown; deliver: (response: RpcResponse) => boolean }
+  >()
   private activeName = ''
+  private opening = false
   private frameCount = 0
   private state: ConnectionState = 'connected'
   private listeners = new Set<(state: ConnectionState) => void>()
   private rejects = new Map<string, (error: Error) => void>()
   private tracker = new RpcClientRequestTracker({
-    nextId: () => `frame-${++this.frameCount}`,
+    nextId: () => this.nextFrameId(),
     getState: () => this.state,
     waitForConnected: async () => {
       if (this.state !== 'connected') {
         throw new Error('Scripted transport disconnected')
       }
     },
-    deviceToken: 'recording-device',
+    deviceToken: DEVICE_TOKEN,
     sendEncrypted: (value) => {
       // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the physical client publishes the frame this transport just serialized.
       const payload = value as { id: string; method: string; params: unknown }
@@ -45,7 +54,7 @@ export class ScriptedRpcTransport {
         throw new Error('Unbound physical request')
       }
       this.bindings.set(name, { id: payload.id, params: payload.params, completed: false })
-      this.payloads.push({ name, json: JSON.stringify(value) })
+      this.publish(name, value)
       return true
     }
   })
@@ -58,9 +67,7 @@ export class ScriptedRpcTransport {
     this.client = {
       ...this.logical,
       sendRequest: (...args: Parameters<RpcClient['sendRequest']>) => {
-        const occurrence = (this.counts.get(args[0]) ?? 0) + 1
-        this.counts.set(args[0], occurrence)
-        const name = `${args[0]}#${occurrence}`
+        const name = this.occurrence(args[0])
         this.activeName = name
         const request = {
           name,
@@ -79,6 +86,32 @@ export class ScriptedRpcTransport {
   }
 
   private session(): RpcClient {
+    // One registry per physical session, the way `DirectRpcClient` builds one: the tracker is shared
+    // because a logical request outlives a cutover, a stream does not. Byte-neutral either way — the
+    // re-send after a cutover comes from the logical client's own replay — but it keeps a frame
+    // routed through the session that published its subscribe.
+    const streams = new RpcClientStreamRegistry({
+      nextId: () => this.nextFrameId(),
+      deviceToken: DEVICE_TOKEN,
+      getState: () => this.state,
+      sendEncrypted: (value) => {
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the stream registry publishes the frame it just built.
+        const payload = value as { id: string; method: string; params: unknown }
+        const name = this.occurrence(payload.method)
+        // Only a subscribe opens a stream. The registry sends its unsubscribes through this same
+        // hook, and filing one under `openStreams` made a frame aimed at an unsubscribe name route
+        // at that id, find nothing, record nothing and not throw.
+        if (this.opening) {
+          this.openStreams.set(name, {
+            id: payload.id,
+            params: payload.params,
+            deliver: (response) => streams.handleResponse(response)
+          })
+        }
+        this.publish(name, value)
+        return true
+      }
+    })
     return {
       sendRequest: (...args) => {
         const name = this.activeName
@@ -88,10 +121,16 @@ export class ScriptedRpcTransport {
           this.tracker.sendRequest(...args).then(resolve, reject)
         })
       },
-      subscribe: () => {
-        throw new Error('Subscriptions are outside this request-only runner')
+      subscribe: (method, params, onData, options) => {
+        this.opening = true
+        try {
+          return streams.subscribe(method, params, onData, options)
+        } finally {
+          this.opening = false
+        }
       },
-      updateTerminalSubscriptionViewport: () => {},
+      updateTerminalSubscriptionViewport: (terminal, viewport) =>
+        streams.updateTerminalViewport(terminal, viewport),
       getState: () => this.state,
       getReconnectAttempt: () => 0,
       getLastConnectedAt: () => 0,
@@ -105,6 +144,46 @@ export class ScriptedRpcTransport {
       close: () => {
         this.tracker.rejectAll('Connection closed', { deliveryUnknown: true })
       }
+    }
+  }
+
+  private nextFrameId(): string {
+    return `frame-${++this.frameCount}`
+  }
+
+  /** One occurrence counter per method, so a subscribe payload is named the way a request is. */
+  private occurrence(method: string): string {
+    const next = (this.counts.get(method) ?? 0) + 1
+    this.counts.set(method, next)
+    return `${method}#${next}`
+  }
+
+  private publish(name: string, value: unknown): void {
+    // Why the send count: `payloads` and `requests` are independent lists, and a subscribe publishes
+    // synchronously while a request first waits for connected — so swapping the two in product
+    // source moves neither list. Stamping the count at write time makes that swap a golden diff.
+    this.payloads.push({ name, json: JSON.stringify(value), sent: this.requests.length })
+  }
+
+  /**
+   * A whole host response delivered at a subscribe payload's wire id, through the real registry, so
+   * `ready`, a data event, `end` and a refusal are one step kind rather than four.
+   */
+  frame(name: string, params: unknown, reply: unknown): void {
+    const stream = this.openStreams.get(name)
+    if (!stream) {
+      throw new Error(`Missing subscription payload: ${name}`)
+    }
+    if (JSON.stringify(captureValue(stream.params)) !== JSON.stringify(captureValue(params))) {
+      throw new Error(`Subscribe params mismatch: ${name}`)
+    }
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the scenario supplies the response as JSON; the wire id is the transport’s.
+    const routed = stream.deliver({ ...(reply as object), id: stream.id } as RpcResponse)
+    if (!routed) {
+      // Only a non-streaming reply lands here: the registry routes every streaming response to the
+      // id that opened the stream, retired or not. A scenario that has stopped matching, not a
+      // stream that closed early.
+      throw new Error(`No open stream for frame: ${name}`)
     }
   }
 

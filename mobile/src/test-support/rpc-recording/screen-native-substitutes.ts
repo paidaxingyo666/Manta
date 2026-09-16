@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { inertIconModule, inertNativeElements } from './inert-native-elements'
 import { partialNativeModule } from './native-module-traps'
 
@@ -32,6 +33,7 @@ export function screenNativeSubstitutes(): Map<string, unknown> {
       // One router per recording, so a screen that closes over it keeps a stable callback.
       partialNativeModule('expo-router', {
         useRouter: constantRouter,
+        useFocusEffect,
         useLocalSearchParams: constantRoute
       })
     ],
@@ -42,6 +44,16 @@ export function screenNativeSubstitutes(): Map<string, unknown> {
 const ROUTER = { push: () => {}, replace: () => {}, back: () => {}, dismiss: () => {} }
 function constantRouter(): typeof ROUTER {
   return ROUTER
+}
+
+/**
+ * Focus as mount. The real hook runs its effect on focus and re-runs it when the callback identity
+ * changes, which is what a mounted-and-focused screen does here — so a route's focus cleanup is
+ * recorded at unmount. Blur is not: nothing drives this substitute, so an unsubscribe that only a
+ * blur would reach stays unrecorded, and the README says so rather than a listener implying it.
+ */
+function useFocusEffect(effect: () => (() => void) | void): void {
+  useEffect(effect, [effect])
 }
 
 /**
