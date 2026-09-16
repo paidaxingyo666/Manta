@@ -11519,7 +11519,8 @@
           "noteKeysBody": "API keys and workspaces are stored for the active runtime.",
           "noteVisibilityTitle": "Hiding ≠ disconnect",
           "noteVisibilityBody": "Hiding Linear in Task Sources only removes it from the picker. It does not remove your key or skill.",
-          "setupChecking": "Checking…"
+          "setupChecking": "Checking…",
+          "setupUnverified": "Cannot verify"
         },
         "TaskSourceLinearSetup": {
           "connectTitle": "Connect Linear",
@@ -11545,7 +11546,8 @@
           "statusHidden": "Hidden from Tasks",
           "statusIncomplete": "Needs setup",
           "collapseSetup": "Collapse {{provider}} setup steps",
-          "expandSetup": "Show {{provider}} setup steps"
+          "expandSetup": "Show {{provider}} setup steps",
+          "statusUnverified": "Cannot verify"
         },
         "TaskSourceShowInTasksStep": {
           "shown": "Shown",

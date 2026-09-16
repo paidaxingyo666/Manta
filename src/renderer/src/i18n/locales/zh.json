@@ -10269,7 +10269,8 @@
           "noteKeysBody": "API 密钥和工作区存储在当前运行环境中。",
           "noteVisibilityTitle": "隐藏不等于断开连接",
           "noteVisibilityBody": "在任务来源中隐藏 Linear 只会将其从选择器中移除，不会删除密钥或技能。",
-          "setupChecking": "检查中…"
+          "setupChecking": "检查中…",
+          "setupUnverified": "无法验证"
         },
         "TaskSourceLinearSetup": {
           "connectTitle": "连接 Linear",
@@ -10291,6 +10292,7 @@
           "statusReady": "已就绪",
           "statusConnectRequired": "需要连接",
           "statusSkillRequired": "需要技能",
+          "statusUnverified": "无法验证",
           "statusUnavailable": "状态不可用",
           "statusHidden": "已从任务中隐藏",
           "statusIncomplete": "需要设置",
