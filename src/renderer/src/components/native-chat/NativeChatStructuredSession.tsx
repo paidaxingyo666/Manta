@@ -18,21 +18,11 @@ import { useStructuredAgentSession } from './use-structured-agent-session'
 import { useNativeChatImageRuntimeContext } from './native-chat-image-runtime-context'
 import { useStructuredNativeChatPaneCommands } from './use-structured-native-chat-pane-commands'
 import type { NativeChatStructuredViewProps } from './native-chat-view-types'
-import { NativeChatBackgroundTasksStatus } from './NativeChatBackgroundTasksStatus'
+import { NativeChatStructuredSessionStatus } from './NativeChatStructuredSessionStatus'
 import { useNativeChatLaunchDraftSignal } from './use-native-chat-launch-draft-adoption'
 import { NativeChatLaunchRetry } from './NativeChatLaunchRetry'
 import { useNativeChatProvisionalLaunch } from './use-native-chat-provisional-launch'
 import { NativeChatDeliveryRetry } from './NativeChatDeliveryRetry'
-
-type StoppingBackgroundTasks = {
-  sessionId: string
-  taskIds: ReadonlySet<string>
-  all: boolean
-}
-
-const NO_STOPPING_TASKS: ReadonlySet<string> = new Set()
-
-type ExpandedBackgroundTasks = { sessionId: string; expanded: boolean }
 
 function encodeQuestionAnswer(questionId: string, answer: string): string {
   return `${encodeURIComponent(questionId)}:${encodeURIComponent(answer)}`
@@ -59,12 +49,6 @@ export function NativeChatStructuredSession(
     transcriptLoading: controller.status === 'idle' || controller.status === 'loading'
   })
   const [composerError, setComposerError] = useState<string | null>(null)
-  const [stoppingBackgroundTasks, setStoppingBackgroundTasks] =
-    useState<StoppingBackgroundTasks | null>(null)
-  // Held here, not in the strip: the strip unmounts whenever live work briefly
-  // drops to nothing, and its own state would collapse the list each time.
-  const [expandedBackgroundTasks, setExpandedBackgroundTasks] =
-    useState<ExpandedBackgroundTasks | null>(null)
   const [optionPickerRequest, setOptionPickerRequest] = useState<{
     id: string
     sequence: number
@@ -119,8 +103,6 @@ export function NativeChatStructuredSession(
     rootRef,
     { sessionId: props.sessionId, isVisible: props.isVisible }
   )
-  const activeStoppingBackgroundTasks =
-    stoppingBackgroundTasks?.sessionId === props.sessionId ? stoppingBackgroundTasks : null
   const prompt = controller.prompts[0] ?? null
   const cancelPrompt = () => {
     if (controller.turnId && prompt) {
@@ -225,6 +207,7 @@ export function NativeChatStructuredSession(
           <NativeChatMessageList
             session={session}
             journalItems={controller.journalItems}
+            isVisible={props.isVisible}
             isWorking={controller.isWorking}
             expandSignal={false}
             fontScale={fontScale.scale}
@@ -312,61 +295,14 @@ export function NativeChatStructuredSession(
         lifecycle={provisionalLaunch.lifecycle}
         onRetry={provisionalLaunch.retry}
       />
-      {controller.error || composerError ? (
-        <p className="mx-auto w-full max-w-4xl px-4 py-1 text-xs text-destructive">
-          {controller.error ?? composerError}
-        </p>
-      ) : null}
-      {controller.backgroundTasks.show ? (
-        <NativeChatBackgroundTasksStatus
-          isVisible={props.isVisible}
-          tasks={controller.backgroundTasks.tasks}
-          settledTasks={controller.backgroundTasks.settledTasks}
-          indicatorActive={controller.backgroundTasks.isMonitoring}
-          supportsTaskStop={controller.backgroundTasks.supportsStop}
-          supportsStopAll={controller.backgroundTasks.supportsStopAll}
-          stoppingTaskIds={activeStoppingBackgroundTasks?.taskIds ?? NO_STOPPING_TASKS}
-          stoppingAll={activeStoppingBackgroundTasks?.all ?? false}
-          expanded={
-            expandedBackgroundTasks?.sessionId === props.sessionId &&
-            expandedBackgroundTasks.expanded
-          }
-          onExpandedChange={(expanded) =>
-            setExpandedBackgroundTasks({ sessionId: props.sessionId, expanded })
-          }
-          onStop={(taskId) => {
-            const targetSessionId = props.sessionId
-            setStoppingBackgroundTasks((current) => {
-              const taskIds = new Set(
-                current?.sessionId === targetSessionId ? current.taskIds : NO_STOPPING_TASKS
-              )
-              if (taskId) {
-                taskIds.add(taskId)
-              }
-              return {
-                sessionId: targetSessionId,
-                taskIds,
-                all: taskId ? current?.sessionId === targetSessionId && current.all : true
-              }
-            })
-            void controller.stopBackgroundTask(taskId).finally(() => {
-              setStoppingBackgroundTasks((current) => {
-                if (current?.sessionId !== targetSessionId) {
-                  return current
-                }
-                const taskIds = new Set(current.taskIds)
-                if (taskId) {
-                  taskIds.delete(taskId)
-                }
-                const all = taskId ? current.all : false
-                return taskIds.size === 0 && !all
-                  ? null
-                  : { sessionId: targetSessionId, taskIds, all }
-              })
-            })
-          }}
-        />
-      ) : null}
+      <NativeChatStructuredSessionStatus
+        sessionId={props.sessionId}
+        error={controller.error}
+        composerError={composerError}
+        isVisible={props.isVisible}
+        backgroundTasks={controller.backgroundTasks}
+        stopBackgroundTask={controller.stopBackgroundTask}
+      />
       {prompt ? null : (
         <NativeChatComposer
           ref={composerRef}

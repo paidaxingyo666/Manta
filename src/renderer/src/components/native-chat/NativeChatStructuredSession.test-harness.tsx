@@ -19,6 +19,7 @@ function nullable<T>(): T | null {
 
 type StructuredSessionMessageListProps = {
   allowFileUriLinks?: boolean
+  isVisible?: boolean
   onLinkClick?: (...args: unknown[]) => void
   showTurnStatus?: boolean
   showLiveTurnActivity?: boolean
