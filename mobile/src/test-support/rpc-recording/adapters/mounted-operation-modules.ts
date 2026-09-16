@@ -51,6 +51,10 @@ import { sessionTerminalGestureMountAdapters } from './session-terminal-gesture-
 import { sessionTerminalInputMountAdapters } from './session-terminal-input-mount-adapters'
 import { settingsMountAdapters, settingsMountExposures } from './settings-mount-adapters'
 import { sourceControlMountAdapters } from './source-control-mount-adapters'
+import {
+  sourceControlScreenReadMountAdapters,
+  sourceControlScreenReadMountExposures
+} from './source-control-screen-read-mount-adapters'
 import { structuredAgentLaunchMountAdapters } from './structured-agent-launch-mount-adapters'
 import { taskItemChecksStatusMountAdapters } from './task-item-checks-status-mount-adapters'
 import { taskItemConversationMountAdapters } from './task-item-conversation-mount-adapters'
@@ -163,6 +167,11 @@ export const MOUNTED_OPERATION_MODULES: readonly MountedOperationModule[] = [
     exposes: settingsMountExposures
   },
   { source: 'source-control-mount-adapters.ts', mounts: sourceControlMountAdapters },
+  {
+    source: 'source-control-screen-read-mount-adapters.ts',
+    mounts: sourceControlScreenReadMountAdapters,
+    exposes: sourceControlScreenReadMountExposures
+  },
   {
     source: 'structured-agent-launch-mount-adapters.ts',
     mounts: structuredAgentLaunchMountAdapters

@@ -3,9 +3,9 @@
   "family": "hostedReview.eligibility",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e7206f62a827f4fe0a2badf3eecd2167b8ac4285",
+  "baseline": "9e01c50e6dc919de3c0129e755f1ea9ec335dc59",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "b5f4b14e07fc7281b954ff5f16d5803e2dfb1bc2a97dcbe6a0991697a5980c49",
+  "recorderSha256": "d08bf9cd596ee449531f079c9f4f83efcb03fbc5e8d8658d15e0407d3464ec0e",
   "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
   "scenarioSha256": "6c4de90e2617d204e82ca5e65eb17fc397acbcbb9dc0ec18594d2a7739e3528b",
   "platform": "darwin",
@@ -13,6 +13,17 @@
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
+    "067b33e5b1a9": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (hostedReview.getCreationEligibility)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
+      }
+    },
     "099a55e691ed": {
       "name": "hostedReview.getCreationEligibility#1",
       "args": [
@@ -224,14 +235,6 @@
       },
       "prefill": "unresolved"
     },
-    "301151228fa3": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "error": "refused"
-      }
-    },
     "349d5045a996": {
       "name": "hostedReview.getCreationEligibility#1",
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"hostedReview.getCreationEligibility\",\"params\":{\"repo\":\"id:repo42\",\"worktree\":\"id:repo42::/p\",\"branch\":\"feature\",\"base\":null,\"linkedGitHubPR\":null,\"linkedGitLabMR\":null}}",
@@ -244,13 +247,6 @@
     "4dfe4f2ad75c": {
       "eligibility": {
         "$rpc": "null"
-      },
-      "prefill": "unresolved"
-    },
-    "5f12cd4867ce": {
-      "eligibility": {
-        "error": "inner refused",
-        "ok": false
       },
       "prefill": "unresolved"
     },
@@ -386,12 +382,6 @@
         }
       }
     },
-    "7bf63f31c702": {
-      "eligibility": {
-        "$rpc": "undefined"
-      },
-      "prefill": "unresolved"
-    },
     "7fb1231fd64d": {
       "name": "hostedReview.getCreationEligibility#1",
       "args": [
@@ -433,15 +423,6 @@
           "isRpcDeliveryUnknown": true
         }
       }
-    },
-    "87a2ebdbec89": {
-      "eligibility": {
-        "error": {
-          "message": "inner refused"
-        },
-        "ok": false
-      },
-      "prefill": "unresolved"
     },
     "899a024357b9": {
       "name": "hostedReview.getCreationEligibility#1",
@@ -546,15 +527,6 @@
       "status": "pending",
       "startedAt": 0
     },
-    "9f00dd54ba64": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "error": "inner refused",
-        "ok": false
-      }
-    },
     "a947768bc0ed": {
       "status": "rejected",
       "startedAt": 0,
@@ -564,23 +536,6 @@
         "message": "transport failure",
         "isRpcDeliveryUnknown": true
       }
-    },
-    "ad8a954e879d": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "error": {
-          "message": "inner refused"
-        },
-        "ok": false
-      }
-    },
-    "b925156655c6": {
-      "eligibility": {
-        "error": "refused"
-      },
-      "prefill": "unresolved"
     },
     "c7584e82c72f": {
       "status": "rejected",
@@ -626,14 +581,6 @@
       "settlement": {
         "status": "pending",
         "startedAt": 0
-      }
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
       }
     },
     "ee20a1dc39e7": {
@@ -725,9 +672,9 @@
           "sender": ["099a55e691ed"],
           "payloads": ["349d5045a996"],
           "settlements": {
-            "fetch": "eb79a9b3682a"
+            "fetch": "067b33e5b1a9"
           },
-          "state": "7bf63f31c702",
+          "state": "485a0942bda3",
           "effects": []
         }
       },
@@ -737,9 +684,9 @@
           "sender": ["1c4e890f9aaf"],
           "payloads": ["349d5045a996"],
           "settlements": {
-            "fetch": "ee20a1dc39e7"
+            "fetch": "067b33e5b1a9"
           },
-          "state": "4dfe4f2ad75c",
+          "state": "485a0942bda3",
           "effects": []
         }
       },
@@ -749,9 +696,9 @@
           "sender": ["8cef4aaa067c"],
           "payloads": ["349d5045a996"],
           "settlements": {
-            "fetch": "301151228fa3"
+            "fetch": "067b33e5b1a9"
           },
-          "state": "b925156655c6",
+          "state": "485a0942bda3",
           "effects": []
         }
       },
@@ -761,9 +708,9 @@
           "sender": ["6c52d90237b7"],
           "payloads": ["349d5045a996"],
           "settlements": {
-            "fetch": "9f00dd54ba64"
+            "fetch": "067b33e5b1a9"
           },
-          "state": "5f12cd4867ce",
+          "state": "485a0942bda3",
           "effects": []
         }
       },
@@ -773,9 +720,9 @@
           "sender": ["fed21873c57f"],
           "payloads": ["349d5045a996"],
           "settlements": {
-            "fetch": "ad8a954e879d"
+            "fetch": "067b33e5b1a9"
           },
-          "state": "87a2ebdbec89",
+          "state": "485a0942bda3",
           "effects": []
         }
       },

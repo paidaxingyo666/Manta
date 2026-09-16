@@ -3,9 +3,9 @@
   "family": "hostedReview.create-intent",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e7206f62a827f4fe0a2badf3eecd2167b8ac4285",
+  "baseline": "9e01c50e6dc919de3c0129e755f1ea9ec335dc59",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "b5f4b14e07fc7281b954ff5f16d5803e2dfb1bc2a97dcbe6a0991697a5980c49",
+  "recorderSha256": "d08bf9cd596ee449531f079c9f4f83efcb03fbc5e8d8658d15e0407d3464ec0e",
   "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
   "scenarioSha256": "0ca08d5e70e1780a6ee5c919491dcddb062a22623f803e9960a329825f274cbe",
   "platform": "darwin",
@@ -13,33 +13,6 @@
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "000efa3053f3": {
-      "outcome": {
-        "committed": true,
-        "error": "Cannot read properties of null (reading 'ok')",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "0215b92c4449": {
       "outcome": {
         "committed": true,
@@ -503,38 +476,6 @@
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"git.status\",\"params\":{\"worktree\":\"id:repo42::/p\"}}",
       "sent": 3
     },
-    "4a4639fa3798": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": {
-          "message": "inner refused"
-        },
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "4b12390e509a": {
       "name": "hostedReview.create#1",
       "args": [
@@ -728,33 +669,6 @@
       "name": "git.push#1",
       "json": "{\"id\":\"frame-8\",\"deviceToken\":\"recording-device\",\"method\":\"git.push\",\"params\":{\"worktree\":\"id:repo42::/p\"}}",
       "sent": 8
-    },
-    "6d9570b41a8b": {
-      "outcome": {
-        "committed": true,
-        "error": "Cannot read properties of undefined (reading 'ok')",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
     },
     "6df8e4961ee3": {
       "name": "git.generateCommitMessage#1",
@@ -1227,6 +1141,36 @@
         }
       }
     },
+    "a60029c6316a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "committed": true,
+        "error": "The host sent a reply this app could not read (hostedReview.create)",
+        "ok": false,
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
+            }
+          }
+        }
+      }
+    },
     "a6f6cd5af9d1": {
       "name": "git.status#2",
       "args": [
@@ -1379,36 +1323,6 @@
         }
       }
     },
-    "b2814f99b696": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": "refused",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "b7a56d89f615": {
       "name": "git.push#1",
       "args": [
@@ -1520,35 +1434,6 @@
       "value": {
         "committed": true,
         "error": "inner refused",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
-    "c955a0980eb4": {
-      "outcome": {
-        "committed": true,
-        "error": {
-          "message": "inner refused"
-        },
         "ok": false,
         "status": {
           "branch": "feature",
@@ -1760,33 +1645,6 @@
         "startedAt": 0
       }
     },
-    "e19dc901cb36": {
-      "outcome": {
-        "committed": true,
-        "error": "refused",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "e6d858bcb05d": {
       "outcome": {
         "committed": true,
@@ -1814,43 +1672,10 @@
         }
       }
     },
-    "f2d31538d6f8": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
+    "f86f448044b9": {
+      "outcome": {
         "committed": true,
-        "error": "Cannot read properties of undefined (reading 'ok')",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
-    "f7a1885f58b2": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": "Cannot read properties of null (reading 'ok')",
+        "error": "The host sent a reply this app could not read (hostedReview.create)",
         "ok": false,
         "status": {
           "branch": "feature",
@@ -2112,9 +1937,9 @@
             "1a22d237c89c"
           ],
           "settlements": {
-            "run": "f2d31538d6f8"
+            "run": "a60029c6316a"
           },
-          "state": "6d9570b41a8b",
+          "state": "f86f448044b9",
           "effects": [
             "3a3a688f828b",
             "0b80f2766914",
@@ -2154,9 +1979,9 @@
             "1a22d237c89c"
           ],
           "settlements": {
-            "run": "f7a1885f58b2"
+            "run": "a60029c6316a"
           },
-          "state": "000efa3053f3",
+          "state": "f86f448044b9",
           "effects": [
             "3a3a688f828b",
             "0b80f2766914",
@@ -2196,9 +2021,9 @@
             "1a22d237c89c"
           ],
           "settlements": {
-            "run": "b2814f99b696"
+            "run": "a60029c6316a"
           },
-          "state": "e19dc901cb36",
+          "state": "f86f448044b9",
           "effects": [
             "3a3a688f828b",
             "0b80f2766914",
@@ -2280,9 +2105,9 @@
             "1a22d237c89c"
           ],
           "settlements": {
-            "run": "4a4639fa3798"
+            "run": "a60029c6316a"
           },
-          "state": "c955a0980eb4",
+          "state": "f86f448044b9",
           "effects": [
             "3a3a688f828b",
             "0b80f2766914",

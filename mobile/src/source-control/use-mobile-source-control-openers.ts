@@ -23,10 +23,10 @@ import { sourceFileDiffOpenRun, sourceFileOpenRun } from './mobile-source-file-o
 import { buildMobileReviewFileRoute } from './mobile-review-route'
 import { revealMobileSourceControlSessionDiff } from './reveal-mobile-source-control-session-diff'
 import type {
-  GitDiffTextResult,
   MobileBranchCompareState,
   MobileBranchDiffPreviewState
 } from './mobile-source-control-screen-state'
+import type { MobileGitDiffReply } from './git-compare-reply-schema'
 
 type Params = {
   client: RpcClient | null
@@ -80,7 +80,8 @@ export function useMobileSourceControlOpeners(params: Params) {
     async (entry: MobileGitStatusEntry) => {
       // Deletions are openable (pre-delete text/image via git.diff); only block
       // unresolved conflicts, matching canOpenMobileGitStatusEntry / row UI.
-      if (!canOpenMobileGitStatusEntry(entry)) {
+      // An entry with no area is in no section, so no row can reach this anyway.
+      if (!canOpenMobileGitStatusEntry(entry) || entry.area === undefined) {
         return
       }
       if (openingPathRef.current || busyActionRef.current) {
@@ -253,14 +254,12 @@ export function useMobileSourceControlOpeners(params: Params) {
             mergeBase: summary.mergeBase
           }
         })
-        let interpreted: unknown
+        let result: MobileGitDiffReply
         try {
-          interpreted = gitBranchDiffRead.interpret(reply)
+          result = gitBranchDiffRead.interpret(reply)
         } catch (error) {
           throw new Error(refusedRpcMessageOrFallback(error, 'Unable to load committed diff'))
         }
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
-        const result = interpreted as GitDiffTextResult | { kind: 'binary' }
         if (result.kind !== 'text') {
           throw new Error('Binary branch diff preview unavailable on mobile')
         }

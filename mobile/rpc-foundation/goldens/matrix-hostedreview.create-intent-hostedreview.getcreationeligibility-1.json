@@ -3,9 +3,9 @@
   "family": "hostedReview.create-intent",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e7206f62a827f4fe0a2badf3eecd2167b8ac4285",
+  "baseline": "9e01c50e6dc919de3c0129e755f1ea9ec335dc59",
   "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "b5f4b14e07fc7281b954ff5f16d5803e2dfb1bc2a97dcbe6a0991697a5980c49",
+  "recorderSha256": "d08bf9cd596ee449531f079c9f4f83efcb03fbc5e8d8658d15e0407d3464ec0e",
   "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
   "scenarioSha256": "658eb7bbf63b3a4b38eca0b1733e523962b6b6943644d65aab6f5c7e62534d6a",
   "platform": "darwin",
@@ -188,33 +188,6 @@
       "name": "hostedReview.create#1",
       "json": "{\"id\":\"frame-11\",\"deviceToken\":\"recording-device\",\"method\":\"hostedReview.create\",\"params\":{\"repo\":\"id:repo42\",\"worktree\":\"id:repo42::/p\",\"provider\":\"github\",\"base\":\"main\",\"head\":\"feature\",\"title\":\"Host title\",\"body\":\"Host body\",\"draft\":false}}",
       "sent": 11
-    },
-    "1bfbb544c337": {
-      "outcome": {
-        "committed": true,
-        "error": "This branch is not ready for a pull request yet.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 1,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
     },
     "21c1956cb4f7": {
       "name": "git.bulkStage#1",
@@ -1368,36 +1341,6 @@
         "startedAt": 0
       }
     },
-    "e6f94c399ee4": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": "This branch is not ready for a pull request yet.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 1,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "fe917cde11e2": {
       "name": "hostedReview.getCreationEligibility#1",
       "args": [
@@ -1724,9 +1667,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -1752,9 +1695,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -1780,9 +1723,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -1808,9 +1751,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -1836,9 +1779,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -1864,9 +1807,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2144,9 +2087,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2172,9 +2115,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2200,9 +2143,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2228,9 +2171,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2256,9 +2199,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2284,9 +2227,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2312,9 +2255,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2340,9 +2283,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2368,9 +2311,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2396,9 +2339,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2424,9 +2367,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2452,9 +2395,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2480,9 +2423,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2508,9 +2451,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       },
@@ -2536,9 +2479,9 @@
             "5b120b8ef19c"
           ],
           "settlements": {
-            "run": "e6f94c399ee4"
+            "run": "83e80c98d259"
           },
-          "state": "1bfbb544c337",
+          "state": "dd5d9b4070b7",
           "effects": ["3a3a688f828b", "0b80f2766914", "7349acf3d5b8"]
         }
       }

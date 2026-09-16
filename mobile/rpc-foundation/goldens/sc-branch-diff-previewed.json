@@ -1,0 +1,151 @@
+{
+  "operation": "source-control.branch-diff-preview",
+  "family": "git.branch-diff-preview",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "9e01c50e6dc919de3c0129e755f1ea9ec335dc59",
+  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
+  "recorderSha256": "d08bf9cd596ee449531f079c9f4f83efcb03fbc5e8d8658d15e0407d3464ec0e",
+  "adapterSha256": "57147be5ea5d7c74e8fd0d2473c7001dd91008cf53128d5e60fd6d3d607183e6",
+  "scenarioSha256": "819d010b9a8bb2741b09f104415f648e0e65d797882a2152ccfa4fb8a107cafc",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 5,
+  "values": {
+    "009bc53fab97": {
+      "preview": {
+        "kind": "ready",
+        "lines": 3,
+        "truncated": false
+      }
+    },
+    "2465956f5415": {
+      "name": "git.branchDiff#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "git.branchDiff"
+        },
+        {
+          "name": "params",
+          "value": {
+            "compare": {
+              "baseOid": "base-oid",
+              "baseRef": "origin/main",
+              "headOid": "head-oid",
+              "mergeBase": "merge-base"
+            },
+            "filePath": "src/app.ts",
+            "worktree": "id:repo42::/p"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "kind": "text",
+            "modifiedContent": "const a = 2\nexport { a }\n",
+            "originalContent": "const a = 1\nexport { a }\n"
+          }
+        }
+      }
+    },
+    "91c37bcd04c9": {
+      "name": "git.branchDiff#1",
+      "args": [
+        {
+          "name": "method",
+          "value": "git.branchDiff"
+        },
+        {
+          "name": "params",
+          "value": {
+            "compare": {
+              "baseOid": "base-oid",
+              "baseRef": "origin/main",
+              "headOid": "head-oid",
+              "mergeBase": "merge-base"
+            },
+            "filePath": "src/app.ts",
+            "worktree": "id:repo42::/p"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "a13b63650ed2": {
+      "name": "git.branchDiff#1",
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"git.branchDiff\",\"params\":{\"worktree\":\"id:repo42::/p\",\"filePath\":\"src/app.ts\",\"compare\":{\"baseRef\":\"origin/main\",\"baseOid\":\"base-oid\",\"headOid\":\"head-oid\",\"mergeBase\":\"merge-base\"}}}",
+      "sent": 1
+    },
+    "e5400edc0fdd": {
+      "preview": {
+        "kind": "loading"
+      }
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    }
+  },
+  "recording": {
+    "scenario": "sc-branch-diff-previewed",
+    "checkpoints": [
+      {
+        "id": "diff-pending",
+        "observation": {
+          "sender": ["91c37bcd04c9"],
+          "payloads": ["a13b63650ed2"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "open": "9270aeb7d9c6"
+          },
+          "state": "e5400edc0fdd",
+          "effects": []
+        }
+      },
+      {
+        "id": "settled",
+        "observation": {
+          "sender": ["2465956f5415"],
+          "payloads": ["a13b63650ed2"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "open": "eb79a9b3682a"
+          },
+          "state": "009bc53fab97",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

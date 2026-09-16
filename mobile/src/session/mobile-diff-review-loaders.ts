@@ -122,7 +122,7 @@ export async function loadMobileDiffReviewSnapshot(
   const normalizedReviewState = normalizeMobileDiffReviewState(metadata.mobileDiffReview)
   const branchEntries =
     branch.result && canOpenMobileBranchCompareDiff(branch.result.summary)
-      ? branch.result.entries
+      ? (branch.result.entries ?? [])
       : []
   const queue = buildMobileDiffReviewQueue({
     worktreeId,

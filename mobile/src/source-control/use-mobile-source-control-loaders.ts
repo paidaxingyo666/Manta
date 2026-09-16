@@ -8,10 +8,9 @@ import { gitBranchCompareRead, gitStatusHostPayloadRead } from './mobile-git-rea
 import {
   isMobileGitTransientRefreshError,
   isMobileGitUnavailableReply,
-  readMobileGitRefusal,
-  type MobileGitStatusResult
+  readMobileGitRefusal
 } from './mobile-git-status'
-import type { MobileGitBranchCompareResult } from './mobile-branch-compare'
+import type { MobileGitBranchCompareReply } from './git-compare-reply-schema'
 import {
   SELECTOR_RETRY_COUNT,
   SELECTOR_RETRY_DELAY_MS,
@@ -138,17 +137,13 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
           })
           return false
         }
-        let compared: unknown
+        let compared: MobileGitBranchCompareReply
         try {
           compared = gitBranchCompareRead.interpret(reply)
         } catch (error) {
           throw new Error(refusedRpcMessageOrFallback(error, 'Unable to load committed changes'))
         }
-        setBranchCompareState({
-          kind: 'ready',
-          // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
-          result: compared as MobileGitBranchCompareResult
-        })
+        setBranchCompareState({ kind: 'ready', result: compared })
         return true
       } catch (err) {
         if (!isCurrentLoad()) {
@@ -214,8 +209,7 @@ export function useMobileSourceControlLoaders(params: Params): MobileSourceContr
             // refusal's code, which no acceptance policy carries through.
             const refusal = readMobileGitRefusal(reply)
             if (!refusal) {
-              // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
-              const result = gitStatusHostPayloadRead.interpret(reply) as MobileGitStatusResult
+              const result = gitStatusHostPayloadRead.interpret(reply)
               setScreenState({ kind: 'ready', status: result })
               void loadBranchCompare({ preserveReadyOnFailure: true })
               if (options?.clearActionErrorOnSuccess !== false) {

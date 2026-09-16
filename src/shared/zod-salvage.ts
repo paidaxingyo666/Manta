@@ -81,6 +81,18 @@ function recordEntryKeys(raw: unknown): string[] | null {
   return Object.keys(raw)
 }
 
+/**
+ * Enum whose arm set is a wire surface: an arm this build does not know degrades to `fallback`
+ * instead of rejecting the reply. A non-string stays fatal, so this widens the vocabulary without
+ * also accepting the wrong type. Not `.catch()`, which would swallow absence too.
+ */
+export function openEnum<T extends readonly [string, ...string[]], F extends T[number] | undefined>(
+  values: T,
+  fallback: F
+): z.ZodType<T[number] | F, unknown> {
+  return z.enum(values).or(z.string().transform(() => fallback))
+}
+
 /** Array that drops the elements it cannot parse instead of failing.
  *  Absence stays fatal on its own: both containers issue on `undefined` and, being bare transforms,
  *  set neither optin nor optout, and zod only swallows an absent key's issues when a field is both.
