@@ -130,6 +130,14 @@ export function updateExistingAgentChildWork(
   aliases: AgentChildWorkAliasInput[],
   removeAliases: string[] = []
 ): AgentChildWorkAdmissionResult {
+  if (
+    child.membership === 'settled' &&
+    (request.membership !== 'settled' ||
+      request.state !== child.state ||
+      request.outcome !== child.outcome)
+  ) {
+    return rejectAgentChildWorkAdmission('stale-invocation')
+  }
   const updated = buildAgentChildWork(
     request,
     child.childWorkId,
@@ -146,10 +154,7 @@ export function resolveAgentChildWorkAliasRecords(
   store: AgentStatusStore,
   aliases: AgentChildWorkAliasInput[]
 ): AgentChildWorkAliasRecord[] {
-  return aliases.flatMap((alias) => {
-    const found = store.getAlias(alias)
-    return found ? [found] : []
-  })
+  return store.resolveChildAliases(aliases)
 }
 
 export function validateExistingAgentChildWork(

@@ -25,7 +25,7 @@ import {
 } from './mantad-bind-address'
 import { acquireMantadInstanceLock, MantadInstanceLockError } from './mantad-instance-lock'
 import { startOrcadWithLifecycle } from './mantad-lifecycle'
-import { parseArgs } from './orcad-command-arguments'
+import { parseArgs } from './mantad-command-arguments'
 
 export { parseArgs }
 
@@ -236,8 +236,8 @@ async function startMantadRuntime(
     // read, so a row observed under one process otherwise acquires whatever process owns the pane now.
     readObservedAgentStatusPaneIdentity: (paneKey) => observedPaneIdentities.read(paneKey),
     structuredAgentStatusSink: {
-      publish: (summary) => agentHookServer.ingestStructuredStatus(summary),
-      forget: (sessionId) => agentHookServer.dropStructuredStatus(sessionId)
+      publish: (summary, subject) => agentHookServer.ingestStructuredStatus(summary, subject),
+      forget: (subject) => agentHookServer.dropStructuredStatus(subject)
     },
     reconcileAgentStatusForEndedProcess: (paneKeys) =>
       agentHookServer.reconcileEndedProcessForPaneKeys(paneKeys),
@@ -245,7 +245,7 @@ async function startMantadRuntime(
       isAgentStatusHooksEnabled(store.getSettings()) ? agentHookServer.buildPtyEnv() : {}
   })
 
-  const { installOrcadSessionSearchService } = await import('./orcad-session-search')
+  const { installOrcadSessionSearchService } = await import('./mantad-session-search')
   const sessionSearch = await installOrcadSessionSearchService({
     userDataPath: runtimeUserDataPath,
     getSettings: () => store.getSettings()

@@ -1,8 +1,8 @@
+import { parseAgentChildWorkAliasRecord } from './agent-status-child-work-alias'
 import {
-  deserializeAgentChildWorkAliasKey,
-  parseAgentChildWorkAliasRecord,
-  serializeAgentChildWorkAliasKey
-} from './agent-status-child-work-alias'
+  deserializeAgentChildWorkBindingKey,
+  serializeAgentChildWorkBindingKey
+} from './agent-status-child-work-binding'
 import { parseAgentChildWorkRecord } from './agent-status-child-work-codec'
 import type {
   AgentStatusStoreMutation,
@@ -124,7 +124,7 @@ function applyExplicitTombstone(
   if (tombstone.entity === 'child') {
     removeChild(state, tombstone.key, revision, removedChildWorkIds)
   } else if (tombstone.entity === 'alias') {
-    if (!deserializeAgentChildWorkAliasKey(tombstone.key)) {
+    if (!deserializeAgentChildWorkBindingKey(tombstone.key)) {
       return false
     }
     removeAlias(state, tombstone.key, revision)
@@ -195,7 +195,7 @@ function upsertAliases(
       return false
     }
     state.aliases.set(
-      serializeAgentChildWorkAliasKey(record),
+      serializeAgentChildWorkBindingKey(record),
       deepFreezeAgentStatusStoreValue(record)
     )
   }
@@ -232,7 +232,7 @@ export function applyAgentStatusStoreMutation(
     removeChild(next, childWorkId, revision, removedChildWorkIds)
   }
   for (const key of mutation.removeAliases ?? []) {
-    if (!deserializeAgentChildWorkAliasKey(key)) {
+    if (!deserializeAgentChildWorkBindingKey(key)) {
       return null
     }
     removeAlias(next, key, revision)

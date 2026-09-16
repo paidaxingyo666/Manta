@@ -2,9 +2,11 @@ import { agentChildWorkBelongsTo, type AgentChildWorkRecord } from './agent-stat
 import {
   serializeAgentChildWorkAliasKey,
   type AgentChildWorkAliasIdentity,
+  type AgentChildWorkAliasInput,
   type AgentChildWorkAliasRecord
 } from './agent-status-child-work-alias'
 import { parseAgentChildWorkRecord } from './agent-status-child-work-codec'
+import { resolveAgentStatusChildBindings } from './agent-status-store-child-queries'
 import type { AgentStatusStoreSnapshot } from './agent-status-store-contract'
 import {
   isAgentStatusStoreEpoch,
@@ -43,6 +45,7 @@ export type AgentStatusStore = {
   getAlias(identity: AgentChildWorkAliasIdentity): AgentChildWorkAliasRecord | null
   getAliasesForChild(childWorkId: string): AgentChildWorkAliasRecord[]
   getRunAliasIndex(): AgentStatusRunAliasIndex
+  resolveChildAliases(aliases: AgentChildWorkAliasInput[]): AgentChildWorkAliasRecord[]
   getSnapshot(): AgentStatusStoreSnapshot
   applyMutation(mutation: unknown): AgentStatusMutationEnvelope | null
   applySnapshot(snapshot: unknown): boolean
@@ -62,6 +65,9 @@ export function createAgentStatusStore(options: CreateAgentStatusStoreOptions): 
   let snapshotApplied = options.mode === 'authority'
 
   const store: AgentStatusStore = {
+    resolveChildAliases(aliases) {
+      return resolveAgentStatusChildBindings(state, aliases)
+    },
     getParent(subject) {
       const parsed = parseAgentStatusSubject(subject)
       if (!parsed) {
