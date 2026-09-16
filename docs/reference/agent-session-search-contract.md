@@ -119,6 +119,13 @@ empty, current index. A registered service may report disabled or not-ready.
 
 - Desktop: `aiVault:searchSessions` and `aiVault:searchStatus`, via preload.
 - Runtime and relay: `aiVault.searchSessions` and `aiVault.searchStatus`.
+- CLI: `manta search` calls both over the runtime RPC, against the host that
+  `--environment` / `--pairing-code` selects and no other. It reuses
+  `createSessionSearchClient`, so an old host's refusal reaches the caller as
+  `unavailable/no-service` rather than an error, and needs no new capability.
+  In a Manta SSH terminal, the forwarded CLI defaults to the controlling Manta
+  runtime's index. `--path` filters that index; it does not select the SSH host.
+  `--environment` / `--pairing-code` can explicitly select a paired runtime.
 - Desktop preload optionally accepts an execution host scope as a separate
   routing argument. It addresses exactly that host; missing connections never
   fall back to the local index. The web preload addresses its own paired runtime,
