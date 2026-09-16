@@ -111,6 +111,8 @@ export const AiVaultSearchStatusSchema = z.object({
   filesIndexed: z.number().int().nonnegative(),
   filesDue: z.number().int().nonnegative(),
   filesFailed: z.number().int().nonnegative(),
+  // Optional: a host that predates this field degrades to a session count only.
+  messagesIndexed: z.number().int().nonnegative().optional(),
   // `root` is a host path, withheld over the relay; the array length is the count.
   degradedRoots: z.array(z.object({ root: z.string().optional(), reason: z.string() })),
   lastReconcileAt: z.number().nullable(),

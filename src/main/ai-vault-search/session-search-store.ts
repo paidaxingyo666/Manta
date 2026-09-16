@@ -42,7 +42,7 @@ export type SessionSearchFileRow = {
   failedMtimeMs: number | null
 }
 
-/** How many rows are in each state; the whole of the indexer's progress report. */
+/** How many rows are in each state, sessions per agent, and the indexed message total; the whole of the indexer's progress report. */
 export type SessionSearchStateCounts = {
   current: number
   due: number
@@ -56,6 +56,7 @@ export type SessionSearchStateCounts = {
    * file-state count could show it.
    */
   sessionsByAgent: Record<string, number>
+  messages: number
 }
 
 /**
@@ -280,7 +281,7 @@ export class SessionSearchStore {
     }
   }
 
-  /** Rows per state. The status is this query and the pass's own degraded roots. */
+  /** Rows per state and indexed messages. The status is these queries and the pass's own degraded roots. */
   stateCounts(): SessionSearchStateCounts {
     const rows = this.db.prepare('SELECT state, count(*) AS n FROM files GROUP BY state').all() as {
       state: SessionSearchFileState
@@ -290,11 +291,13 @@ export class SessionSearchStore {
       current: 0,
       due: 0,
       failed: 0,
-      sessionsByAgent: this.sessionsByAgent()
+      sessionsByAgent: this.sessionsByAgent(),
+      messages: 0
     }
     for (const row of rows) {
       counts[row.state] = Number(row.n)
     }
+    counts.messages = this.messageCount()
     return counts
   }
 
@@ -312,6 +315,15 @@ export class SessionSearchStore {
       }
     }
     return counts
+  }
+
+  /** Messages the index holds. Read with the file states so both describe one moment. */
+  private messageCount(): number {
+    const row: unknown = this.db.prepare('SELECT count(*) AS n FROM messages').get()
+    if (row && typeof row === 'object' && 'n' in row && typeof row.n === 'number') {
+      return row.n
+    }
+    return 0
   }
 
   /**

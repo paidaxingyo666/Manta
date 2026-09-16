@@ -48,6 +48,7 @@ import {
   buildRuntimeAiVaultHostScopeOptions,
   useAiVaultExecutionHostScope
 } from './ai-vault-host-scope'
+import { useAiVaultSearchFocusRequest } from './use-ai-vault-search-focus-request'
 import { usePersistedAiVaultViewOptions } from './use-persisted-ai-vault-view-options'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
 import { AiVaultScanIssueBanners } from './AiVaultScanIssueBanners'
@@ -298,6 +299,11 @@ export default function AiVaultPanel(): React.JSX.Element {
     setScope(nextScope)
   }, [])
 
+  // Settings asks for "everything, ready to type".
+  const focusSearchRequestId = useAiVaultSearchFocusRequest(
+    useCallback(() => handleScopeChange('all'), [handleScopeChange])
+  )
+
   const toggleGroup = useCallback((key: string) => {
     setCollapsedGroups((current) => {
       const next = new Set(current)
@@ -332,6 +338,7 @@ export default function AiVaultPanel(): React.JSX.Element {
         hideEmptySessions={hideEmptySessions}
         sessionLimit={sessionLimit}
         adjustmentCount={viewAdjustmentCount}
+        focusSearchRequestId={focusSearchRequestId}
         onQueryChange={setQuery}
         onScopeChange={handleScopeChange}
         onExecutionHostScopeChange={onExecutionHostScopeChange}

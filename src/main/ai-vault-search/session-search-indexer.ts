@@ -40,6 +40,8 @@ export type SessionSearchIndexStatus = {
   filesDue: number
   /** Rows whose last read did not commit. */
   filesFailed: number
+  /** Messages the index holds across every indexed row. */
+  messagesIndexed: number
   degradedRoots: SessionSearchDegradedRoot[]
   lastReconcileAt: number | null
   /** When a whole-machine sweep last finished; null until one has. */
@@ -198,13 +200,15 @@ export class SessionSearchIndexer {
       current: 0,
       due: 0,
       failed: 0,
-      sessionsByAgent: {}
+      sessionsByAgent: {},
+      messages: 0
     }
     return {
       phase: this.phase(settled),
       filesIndexed: settled.current,
       filesDue: settled.due + this.left,
       filesFailed: settled.failed,
+      messagesIndexed: settled.messages,
       degradedRoots: this.degradedRoots.map((root) => ({ ...root })),
       lastReconcileAt: this.lastReconcileAt,
       lastSweepCompletedAt: this.lastSweepCompletedAt,

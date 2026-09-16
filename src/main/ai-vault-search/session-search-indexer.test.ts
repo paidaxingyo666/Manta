@@ -61,6 +61,14 @@ function newIndexer(
   return indexer
 }
 
+/** What the index holds, counted the way `status()` counts it. */
+function indexedMessageCount(): number {
+  const row = harness.read((db: SyncDatabase) =>
+    db.prepare('SELECT count(*) AS n FROM messages').get()
+  )
+  return row && typeof row === 'object' && 'n' in row && typeof row.n === 'number' ? row.n : -1
+}
+
 /** Sessions a published-view read returns for one term, the only legal shape. */
 function sessionsMatching(term: string): string[] {
   return harness.read((db: SyncDatabase) =>
@@ -256,6 +264,9 @@ it('resumes after close and reopen without re-reading what it already indexed', 
   // `filesIndexed` is the count of rows the index holds at their current stat,
   // so it stays 2. That nothing was opened again is the read loop's own test.
   expect(reopened.status()).toMatchObject({ filesIndexed: 2, filesDue: 0 })
+  // The same number the pane shows as "messages searchable", read from the rows rather than counted as they land.
+  expect(indexedMessageCount()).toBeGreaterThan(0)
+  expect(reopened.status().messagesIndexed).toBe(indexedMessageCount())
   expect(
     harness.read((db: SyncDatabase) => db.prepare('SELECT count(*) AS n FROM messages').get())
   ).toEqual(indexedRows)
