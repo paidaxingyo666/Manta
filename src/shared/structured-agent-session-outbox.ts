@@ -124,6 +124,36 @@ export function reconcileStructuredAgentSessionOutbox(
   })
 }
 
+export type StructuredAgentSessionOutboxAdmission =
+  | { state: 'dispatch'; entry: StructuredAgentSessionOutboxEntry }
+  | { state: 'blocked'; entry: StructuredAgentSessionOutboxEntry }
+  | { state: 'idle'; entry: null }
+
+/**
+ * What the queue does next. The drain and the Retry affordance both read it, so neither can
+ * disagree with the other about which entry is holding the queue.
+ *
+ * A `dispatching` entry is not a barrier: the host appended its journal row inside the
+ * per-session serialize chain before dispatching, so nothing behind it can overtake it, and
+ * waiting for its echo costs delivery of everything queued behind it. An `unconfirmed` entry,
+ * or one the user must act on, is a barrier — sending past either would reorder around a
+ * message that may yet land.
+ */
+export function admitStructuredAgentSessionOutboxEntry(
+  entries: readonly StructuredAgentSessionOutboxEntry[],
+  blockedClientMessageId: string | null
+): StructuredAgentSessionOutboxAdmission {
+  for (const entry of entries) {
+    if (entry.state === 'unconfirmed' || entry.clientMessageId === blockedClientMessageId) {
+      return { state: 'blocked', entry }
+    }
+    if (entry.state === 'queued') {
+      return { state: 'dispatch', entry }
+    }
+  }
+  return { state: 'idle', entry: null }
+}
+
 export function parseStructuredAgentSessionOutboxEntry(
   value: unknown,
   sessionId: string
