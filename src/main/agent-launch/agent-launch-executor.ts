@@ -3,10 +3,9 @@
  * `agent.launch` alone. Orchestration dispatch, mobile create, CLI create and the desktop agent
  * tab each still start agents their own way; moving them here is later stack work.
  *
- * The mode decision is duplicated rather than shared: `agent-launch-mode` is a surface-neutral
- * second copy of orchestration's `orchestration-worker-start-mode`, which is unchanged and still
- * the one orchestration uses, with nothing enforcing agreement between them. That cutover is later
- * stack work too. What this module adds is the *sequencing*, and the sequencing is where the bug
+ * The mode decision is shared, not copied: `agent-launch-mode` owns it, and
+ * `orchestration-worker-start-mode` is a thin adapter over it supplying orchestration's receipt
+ * vocabulary. What this module adds is the *sequencing*, and the sequencing is where the bug
  * was:
  *
  *   create the worktree agent-first  ->  its startup terminal IS the agent
