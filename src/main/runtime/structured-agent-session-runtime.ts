@@ -7,6 +7,7 @@
 // reads is module-level for the same reason the registry is — the runtime
 // service is already far past its size budget.
 
+import type { PermissionMode } from '@anthropic-ai/claude-agent-sdk'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
@@ -74,6 +75,10 @@ export type StructuredAgentSessionRuntimeDeps = {
   resolveClaudeLaunchEnv?: () => Promise<Record<string, string>> | Record<string, string>
   /** Required, and asserted at install time — an absent policy must not degrade to a guess. */
   resolveClaudeAuthPolicy: () => Promise<ClaudeStructuredAuthPolicy> | ClaudeStructuredAuthPolicy
+  /** The user's Agent Permissions setting for Claude; absent means prompting. */
+  resolveClaudePermissionMode?: () => Promise<PermissionMode> | PermissionMode
+  /** The same setting for Codex, as app-server argv; absent means its approval prompts stay on. */
+  resolveCodexPermissionArgs?: () => string[]
   /** Raw settings getter; the reader that fails closed around it is built here, in checked code. */
   getClaudeManagedAccountGateSettings?: () => ClaudeManagedAccountGateSettings
   resolveEnvironment?: () => Promise<NodeJS.ProcessEnv>
@@ -261,6 +266,9 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
         store,
         resolveWorkspacePath: deps.resolveWorkspacePath,
         resolveEnvironment: resolveCodexEnvironment,
+        ...(deps.resolveCodexPermissionArgs
+          ? { resolvePermissionArgs: deps.resolveCodexPermissionArgs }
+          : {}),
         ...(deps.resolveCodexCommand ? { resolveCommand: deps.resolveCodexCommand } : {})
       }),
       ...(deps.openCodexConnection ? { openConnection: deps.openCodexConnection } : {}),
@@ -292,6 +300,9 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
         ? { resolveClaudeLaunchEnv: deps.resolveClaudeLaunchEnv }
         : {}),
       resolveClaudeAuthPolicy: deps.resolveClaudeAuthPolicy,
+      ...(deps.resolveClaudePermissionMode
+        ? { resolveClaudePermissionMode: deps.resolveClaudePermissionMode }
+        : {}),
       ...(deps.getClaudeManagedAccountGateSettings
         ? {
             readClaudeManagedAccountGate: () =>

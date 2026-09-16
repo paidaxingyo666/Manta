@@ -10,11 +10,7 @@ import {
   type NativeChatLaunchPromptDelivery
 } from '@/lib/native-chat-initial-view-mode'
 
-export {
-  hasExplicitTuiAgentArgs,
-  hasExplicitTuiLaunchCustomization,
-  hasSemanticallyNonEmptyAgentArgs
-} from '../../../shared/tui-agent-launch-customization'
+export { hasExplicitTuiLaunchCommand } from '../../../shared/tui-agent-launch-command-override'
 
 export type AgentLaunchRoute = 'structured-native-chat' | 'legacy-native-chat' | 'terminal-tui'
 
@@ -37,7 +33,7 @@ export type AgentLaunchRoutingInput = {
   promptDelivery?: NativeChatLaunchPromptDelivery
   launchText?: string
   nativeChatTranscriptIsLocalReadable?: boolean
-  requiresTuiLaunchCustomization?: boolean
+  requiresTuiLaunchCommand?: boolean
   initialSessionOptions?: Readonly<Record<string, unknown>>
 }
 
@@ -77,7 +73,7 @@ export function structuredAgentLaunchSupported(
       hostCapabilities: input.hostCapabilities,
       workspaceKind: input.workspaceKind,
       projectRuntime: input.projectRuntime,
-      requiresTuiLaunchCustomization: input.requiresTuiLaunchCustomization
+      requiresTuiLaunchCommand: input.requiresTuiLaunchCommand
     }).supported
   )
 }

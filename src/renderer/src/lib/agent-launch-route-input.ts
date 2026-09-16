@@ -7,8 +7,7 @@ import {
 import type { TuiAgent } from '../../../shared/tui-agent'
 import { parseWorkspaceKey } from '../../../shared/workspace-scope'
 import {
-  hasExplicitTuiAgentArgs,
-  hasExplicitTuiLaunchCustomization,
+  hasExplicitTuiLaunchCommand,
   type AgentLaunchRoutingInput
 } from '@/lib/agent-launch-routing'
 // Why: the `connection-context` facade imports the store root; the resolver's own module keeps
@@ -53,8 +52,8 @@ export type AgentLaunchRouteArgs = {
   workspace: ProspectiveWorkspace
   prompt?: string
   promptDelivery?: NativeChatLaunchPromptDelivery
-  /** A cwd or explicit CLI args only a terminal can apply. */
-  tuiCustomization?: { cwd?: string | null; agentArgs?: string | null }
+  /** A working directory only a terminal can apply; a structured session runs in its workspace. */
+  tuiCustomization?: { cwd?: string | null }
   initialSessionOptions?: Readonly<Record<string, unknown>>
 }
 
@@ -130,10 +129,8 @@ export function buildAgentLaunchRouteInput(
       workspace,
       executionHostId
     ),
-    requiresTuiLaunchCustomization:
-      Boolean(tuiCustomization?.cwd?.trim()) ||
-      hasExplicitTuiAgentArgs(agent, tuiCustomization?.agentArgs) ||
-      hasExplicitTuiLaunchCustomization(store.settings, agent),
+    requiresTuiLaunchCommand:
+      Boolean(tuiCustomization?.cwd?.trim()) || hasExplicitTuiLaunchCommand(store.settings, agent),
     initialSessionOptions: args.initialSessionOptions
   }
 }

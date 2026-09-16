@@ -141,7 +141,6 @@ export async function submitFolderWorkspaceCreate({
         },
         prompt: launchDraftPrompt ?? note,
         promptDelivery: launchDraftPrompt ? 'draft' : 'auto-submit',
-        tuiCustomization: { agentArgs },
         initialSessionOptions: startupPlan?.sessionOptions
       })
     : null

@@ -87,19 +87,17 @@ describe('worker-start mode receipt wording', () => {
     })
   })
 
-  it('names a custom TUI launch as the downgrade', () => {
+  it('names a custom TUI launch command as the downgrade', () => {
     expect(
       decideWorkerStartMode({
         params: { agent: 'claude' },
-        settings: { ...STRUCTURED_PREFERENCE, agentDefaultArgs: { claude: '--custom' } }
+        settings: { ...STRUCTURED_PREFERENCE, agentCmdOverrides: { claude: 'claude-wrapper' } }
       })
     ).toEqual({
       mode: 'terminal',
       preferred: 'structured',
-      reason: 'tui_launch_customization',
-      detail: downgradeSentence(
-        'this agent has a custom launch command, arguments or environment that only a terminal applies'
-      )
+      reason: 'tui_launch_command',
+      detail: downgradeSentence('this agent has a custom launch command that only a terminal runs')
     })
   })
 
