@@ -6,9 +6,6 @@ import { GLOBAL_FLAGS, type CommandSpec } from '../args'
 export const SEARCH_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['search'],
-    // Why hidden: the command dispatches, but stays off every discovery surface
-    // until the settings PR ships the toggle that enables the feature.
-    hidden: true,
     summary: 'Search the full text of agent sessions indexed on the selected Manta host',
     usage:
       'manta search <query> [--scope conversation|all] [--fresh] [--limit <n>] [--cursor <c>] [--agent <id>] [--path <p>] [--since <iso>] [--sort relevance|newest] [--debug] [--json]\n  manta search --index-status [--json]',

@@ -40,6 +40,8 @@ export const ROOT_HELP_TEXT_SECONDARY = [
   '  manta status [--json]',
   '  manta diagnostics memory [--json]',
   '  manta agent-context [--json]',
+  '  manta search <query> [--scope conversation|all] [--fresh] [--limit <n>] [--cursor <c>] [--agent <id>] [--path <p>] [--since <iso>] [--sort relevance|newest] [--debug] [--json]',
+  '  manta search --index-status [--json]',
   '  manta account add [--agent claude|codex] [--json]',
   '  manta account list [--json]',
   '  manta host list [--json]',
