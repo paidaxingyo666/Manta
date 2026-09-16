@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { BookOpen, Check, CircleUserRound, Files, Smartphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useOrcaProfileAuthStatusRefresh } from '@/hooks/use-orca-profile-auth-status-refresh'
+import { useMantaProfileAuthStatusRefresh } from '@/hooks/use-manta-profile-auth-status-refresh'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
@@ -60,7 +60,6 @@ function AccountBenefit({
 
 export function MantaAccountSettingsPane(): React.JSX.Element {
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const signOut = useAppStore((state) => state.signOutCurrentMantaProfile)
   const [signOutOpen, setSignOutOpen] = useState(false)
@@ -68,7 +67,7 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
   const connected = authStatus?.state === 'connected'
   const canConnect = authStatus?.configured === true
 
-  useOrcaProfileAuthStatusRefresh()
+  useMantaProfileAuthStatusRefresh()
 
   const confirmSignOut = async (): Promise<void> => {
     if (signingOut) {
@@ -117,17 +116,10 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
               {translate('auto.components.settings.mantaAccount.signOut', 'Sign out')}
             </Button>
           ) : (
-            <Button
-              type="button"
-              size="sm"
-              disabled={!canConnect || connecting}
-              onClick={() => void connect()}
-            >
-              {connecting
-                ? translate('auto.components.settings.mantaAccount.signingIn', 'Signing in…')
-                : authStatus?.state === 'reconnect-required'
-                  ? translate('auto.components.settings.mantaAccount.signInAgain', 'Sign in again')
-                  : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
+            <Button type="button" size="sm" disabled={!canConnect} onClick={() => void connect()}>
+              {authStatus?.state === 'reconnect-required'
+                ? translate('auto.components.settings.mantaAccount.signInAgain', 'Sign in again')
+                : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
             </Button>
           )}
         </div>

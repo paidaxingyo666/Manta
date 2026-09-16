@@ -12,7 +12,6 @@ import { MobilePairingConnectionOptions } from './MobilePairingConnectionOptions
 
 type MobileRelayStoreState = {
   mantaProfileAuthStatus: MantaProfileAuthStatus | null
-  mantaProfileConnecting: boolean
   connectCurrentMantaProfile: () => Promise<null>
   fetchMantaProfileAuthStatus: () => Promise<MantaProfileAuthStatus | null>
 }
@@ -73,7 +72,6 @@ describe('MobilePairingConnectionOptions', () => {
         state: 'local',
         persistence: 'none'
       },
-      mantaProfileConnecting: false,
       connectCurrentMantaProfile: connect,
       fetchMantaProfileAuthStatus: fetchAuthStatus
     }
@@ -222,7 +220,6 @@ describe('MobilePairingConnectionOptions', () => {
         state: 'connected',
         persistence: 'encrypted'
       },
-      mantaProfileConnecting: false,
       connectCurrentMantaProfile: connect,
       fetchMantaProfileAuthStatus: fetchAuthStatus
     }

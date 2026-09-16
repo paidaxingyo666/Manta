@@ -21,7 +21,6 @@ export type MantaProfilesSlice = MantaProfilesAuthActions & {
   mantaProfilesMultiProfileUi: boolean
   mantaProfilesLoading: boolean
   mantaProfileSwitching: boolean
-  mantaProfileConnecting: boolean
   fetchMantaProfiles: () => Promise<void>
   fetchMantaProfileAuthStatus: () => Promise<MantaProfileAuthStatus | null>
   createLocalMantaProfile: (name?: string) => Promise<MantaProfileSummary | null>
@@ -42,7 +41,6 @@ export const createMantaProfilesSlice: StateCreator<AppState, [], [], MantaProfi
   mantaProfilesMultiProfileUi: false,
   mantaProfilesLoading: false,
   mantaProfileSwitching: false,
-  mantaProfileConnecting: false,
 
   fetchMantaProfiles: async () => {
     set({ mantaProfilesLoading: true })

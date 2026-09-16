@@ -2,7 +2,7 @@ import { ArrowRight, Files } from 'lucide-react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { Button } from '@/components/ui/button'
 import { SettingsSwitchRow } from './SettingsFormControls'
-import { useOrcaProfileAuthStatusRefresh } from '@/hooks/use-orca-profile-auth-status-refresh'
+import { useMantaProfileAuthStatusRefresh } from '@/hooks/use-manta-profile-auth-status-refresh'
 import { useAppStore } from '@/store'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import { translate } from '@/i18n/i18n'
@@ -18,7 +18,6 @@ export function ArtifactsSettingsPane({
 }): React.JSX.Element {
   const openArtifactsPage = useAppStore((state) => state.openArtifactsPage)
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const signedIn = authStatus?.state === 'connected'
   // Why: the capability lives in the desktop host's store and is deliberately absent from the
@@ -26,7 +25,7 @@ export function ArtifactsSettingsPane({
   const isWebClient = isWebClientLocation()
   const sharingEnabled = settings.artifactSharingEnabled === true
 
-  useOrcaProfileAuthStatusRefresh()
+  useMantaProfileAuthStatusRefresh()
 
   const howToSteps: HowToStep[] = [
     ...(sharingEnabled
@@ -128,14 +127,12 @@ export function ArtifactsSettingsPane({
           <Button
             type="button"
             size="sm"
-            disabled={connecting || authStatus?.configured !== true}
+            disabled={authStatus?.configured !== true}
             onClick={() => void connect()}
           >
-            {connecting
-              ? translate('auto.components.settings.artifacts.signingIn', 'Signing in…')
-              : authStatus?.state === 'reconnect-required'
-                ? translate('auto.components.settings.artifacts.signInAgain', 'Sign in again')
-                : translate('auto.components.settings.artifacts.signIn', 'Sign in to Manta')}
+            {authStatus?.state === 'reconnect-required'
+              ? translate('auto.components.settings.artifacts.signInAgain', 'Sign in again')
+              : translate('auto.components.settings.artifacts.signIn', 'Sign in to Manta')}
           </Button>
         </section>
       ) : null}

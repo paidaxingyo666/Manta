@@ -6,19 +6,27 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({
-  connect: vi.fn(),
-  fetchAuthStatus: vi.fn(),
-  signOut: vi.fn(),
-  state: {
+type MockAuthStatus = {
+  configured: boolean
+  state: string
+  cloud?: { displayName: string; email: string }
+} | null
+
+const mocks = vi.hoisted(() => {
+  const state: { mantaProfileAuthStatus: MockAuthStatus } = {
     mantaProfileAuthStatus: {
       configured: true,
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
-    } as Record<string, unknown> | null,
-    mantaProfileConnecting: false
+    }
   }
-}))
+  return {
+    connect: vi.fn(),
+    fetchAuthStatus: vi.fn(),
+    signOut: vi.fn(),
+    state
+  }
+})
 
 vi.mock('@/i18n/i18n', () => ({
   translate: (_key: string, fallback: string) => fallback
@@ -58,7 +66,6 @@ describe('MantaAccountSettingsPane', () => {
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
     }
-    mocks.state.mantaProfileConnecting = false
   })
 
   afterEach(cleanup)
@@ -80,6 +87,7 @@ describe('MantaAccountSettingsPane', () => {
   it('offers sign in for a local profile', async () => {
     const user = userEvent.setup()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
+    mocks.connect.mockReturnValue(new Promise(() => {}))
     render(<MantaAccountSettingsPane />)
 
     expect(
@@ -89,6 +97,9 @@ describe('MantaAccountSettingsPane', () => {
     ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
     expect(mocks.connect).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Sign in to Manta' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
+    expect(mocks.connect).toHaveBeenCalledTimes(2)
   })
 
   it('loads account status when it is not hydrated yet', () => {

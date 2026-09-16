@@ -63,7 +63,6 @@ function storeState(): Record<string, unknown> {
     closeArtifactsPage: mocks.closePage,
     connectCurrentMantaProfile: mocks.connect,
     mantaProfileAuthStatus: mocks.authStatus,
-    mantaProfileConnecting: false,
     refreshCurrentMantaProfileAuth: mocks.refreshAuth,
     settings: mocks.settings,
     updateSettings: mocks.updateSettings,
