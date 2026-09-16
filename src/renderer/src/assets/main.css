@@ -856,6 +856,14 @@ html.native-shell .app-layout {
   flex-shrink: 0;
 }
 
+/* Why: a viewport preset is a window-DIP size that CDP emulates on the guest, but
+   UI zoom redefines this renderer's CSS px. Dividing by the live zoom factor keeps
+   the host box exactly as wide as the emulated page (STA-7568). */
+.browser-page-preset-viewport {
+  width: calc(var(--browser-page-viewport-width) / var(--ui-zoom-factor, 1));
+  height: calc(var(--browser-page-viewport-height) / var(--ui-zoom-factor, 1));
+}
+
 /* Why: small identity anchor on desktop custom titlebars where native window
    chrome is hidden. Sized to sit comfortably in the 36px titlebar with a
    little horizontal breathing room. The SVG fill is white; light mode inverts
