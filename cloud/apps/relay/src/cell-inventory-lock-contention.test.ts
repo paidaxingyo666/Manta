@@ -260,6 +260,64 @@ describe('bounded cell-inventory lock wait', () => {
     await database.close()
   })
 
+  // Why: the 55P03 rolls the transaction back, so a drain on the commit path
+  // alone would report zero for exactly the windows that were contended.
+  it('reports a NOWAIT deferral that rolled its transaction back', async () => {
+    const database = await openFakePostgres()
+    fakes.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('FOR UPDATE NOWAIT')) {
+        throw Object.assign(new Error('could not obtain lock'), { code: '55P03' })
+      }
+      return { rows: [], rowCount: 0 }
+    })
+
+    await expect(
+      database.transaction(async (transaction) => {
+        await transaction.queryLocked(CELL_INVENTORY_SQL, [], {
+          failIfUnavailable: true,
+          measureHoldMs: true
+        })
+      })
+    ).rejects.toThrow('database_lock_unavailable')
+
+    const counts = consumeRelayCellInventoryHold(database)
+    expect(counts.cellInventoryLockUnavailable).toBe(1)
+    expect(counts.cellInventoryLockTimeouts).toBe(0)
+    await database.close()
+  })
+
+  // Why: a bounded request-path wait raises the same 55P03 without NOWAIT. Folding
+  // it into the deferral counter would hide user-visible stalls among by-design
+  // sweep skips, which outnumber them by roughly an order of magnitude.
+  it('counts an expired bounded wait apart from a NOWAIT deferral', async () => {
+    const database = await openFakePostgres()
+    fakes.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('FOR UPDATE') && !sql.includes('NOWAIT')) {
+        throw Object.assign(new Error('canceling statement due to lock timeout'), {
+          code: '55P03'
+        })
+      }
+      return { rows: [], rowCount: 0 }
+    })
+
+    await expect(
+      database.transaction(async (transaction) => {
+        await transaction.queryLocked(CELL_INVENTORY_SQL, [], {
+          lockTimeoutMs: 500,
+          measureHoldMs: true
+        })
+      })
+    ).rejects.toThrow()
+
+    const counts = consumeRelayCellInventoryHold(database)
+    // One per attempt, not per request: 55P03 is retryable, so an exhausted
+    // request contributes POSTGRES_TRANSACTION_ATTEMPTS timeouts. Reading the
+    // metric as affected-requests would overstate it threefold.
+    expect(counts.cellInventoryLockTimeouts).toBe(3)
+    expect(counts.cellInventoryLockUnavailable).toBe(0)
+    await database.close()
+  })
+
   it('records no hold for a PostgreSQL transaction that took no measured lock', async () => {
     const database = await openFakePostgres()
 
@@ -331,8 +389,8 @@ describe('sweep lock skips stay off the transaction retry counters', () => {
       warn.mockRestore()
     }
 
-    expect(events).not.toContain('manta_relay_postgres_transaction_retry')
-    expect(events).not.toContain('manta_relay_postgres_transaction_exhausted')
+    expect(events).not.toContain('orca_relay_postgres_transaction_retry')
+    expect(events).not.toContain('orca_relay_postgres_transaction_exhausted')
     expect(fakes.statements.filter((sql) => sql === 'BEGIN')).toHaveLength(1)
     await database.close()
   })
@@ -355,7 +413,7 @@ describe('background sweeps skip a contended cell inventory', () => {
     now += 24 * 60 * 60_000
     probe.inventoryLocks.length = 0
     probe.failNoWait = true
-    const warnings = collectWarnings('manta_relay_sweep_cell_inventory_busy')
+    const warnings = collectWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let aborted: number
     try {
@@ -370,7 +428,7 @@ describe('background sweeps skip a contended cell inventory', () => {
       true
     )
     expect(warnings.entries).toEqual([
-      { event: 'manta_relay_sweep_cell_inventory_busy', sweep: 'abort-expired-evacuations', skipped: 1 }
+      { event: 'orca_relay_sweep_cell_inventory_busy', sweep: 'abort-expired-evacuations', skipped: 1 }
     ])
     await database.close()
   })
@@ -389,7 +447,7 @@ describe('background sweeps skip a contended cell inventory', () => {
     })
     await store.startEvacuation(identity, 'cell-b')
     now += 24 * 60 * 60_000
-    const warnings = collectWarnings('manta_relay_sweep_cell_inventory_busy')
+    const warnings = collectWarnings('orca_relay_sweep_cell_inventory_busy')
 
     let aborted: number
     try {
