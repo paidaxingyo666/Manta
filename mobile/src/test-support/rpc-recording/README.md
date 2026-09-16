@@ -97,6 +97,17 @@ and which the registry reports to the listener as an error. A streaming frame ar
 is accepted and observes nothing, because the opener path answers for an id it no longer holds; a
 non-streaming one names the scenario that has stopped matching.
 
+A listener that throws on a frame is recorded as a `stream-listener-crash` effect rather than
+failing the suite, the same rule the crash boundary holds for a screen and the unhandled-rejection
+window holds for a detached effect. Only three listeners check the payload is an object before
+reading its `type` — the two `runtime.clientEvents` ones and the structured agent session's, which
+guards with `isSubscribeEvent` in `use-mobile-structured-agent-state.ts` — so without this every
+other subscribing family died on the matrix's `result-absent` and `result-null` partitions — the
+two shapes a stream listener is most likely to be wrong about were the only ones the oracle could
+not record. The scenario's own faults
+stay loud: a missing subscribe payload, a params mismatch and a closed stream are all raised before
+or after the listener runs, and none of them is caught.
+
 ### Recorded time
 
 Every settlement carries `startedAt` and `settledAt` in virtual milliseconds since the pinned epoch,
@@ -350,13 +361,13 @@ families because no reference states are defined for them.
 
 ## What this oracle does and does not see
 
-It replays 342 manifest scenarios against frozen goldens and fails on any divergence: 679 goldens
-over 796 tests, all inside `pnpm --dir mobile test`. Counts quoted further down are measurements of
+It replays 347 manifest scenarios against frozen goldens and fails on any divergence: 694 goldens
+over 811 tests, all inside `pnpm --dir mobile test`. Counts quoted further down are measurements of
 the change they describe and are not restatements of this one. For a migration it answers one
 question — does the rewritten call site produce the same sender calls, settlements, state and
 effects as main did?
 
-It is not a substitute for reading the diff. Three facts bound it, all learned the hard way:
+It is not a substitute for reading the diff. Four facts bound it, all learned the hard way:
 
 - **It was blind to refusal ordering.** Reordering the settings and sibling refusal checks in
   `mobile-new-tab-agent-loader.ts` survives every golden except `probe-new-tab-both-refused` —
@@ -376,6 +387,15 @@ It is not a substitute for reading the diff. Three facts bound it, all learned t
   all 163 tests, because no scenario rejected `git.status` for that family. Driving every scripted
   reply kills it on five matrix goldens. The lesson is about the skip, not about that call site: a
   generator that opts a family out without failing is indistinguishable from coverage.
+- **It was blind to a stream close with no frame behind it.** Deleting `unsubscribeStream()` from
+  `mobile-notifications.ts`'s cleanup — the local close, not the `notifications.unsubscribe` RPC
+  beside it — survived all 810 tests. Neither unsubscribe builder in `rpc-client-stream-registry.ts`
+  knows `notifications.subscribe`, so closing that stream writes nothing to the wire: what the
+  mutant leaks is a live subscription record, and the leak stays invisible until a cutover replays
+  it. `notifications-desktop-stream-closed` stops the stream and then cuts over, where the leak
+  becomes a second `notifications.subscribe` payload. A family whose method does build an
+  unsubscribe (`nativeChat.subscribe`, `runtime.clientEvents.subscribe`) is pinned by that payload
+  at unmount and needs no such scenario.
 
 `mutants/probe-hole-witness.test.ts` closes the first two and keeps them closed. It asserts the
 hole and the closure together: each probe must kill its mutation _and_ every pre-probe scenario of
@@ -384,21 +404,22 @@ lingering.
 
 What is still not covered: what the count-based raw-port inventory covers instead (which files
 reach `sendRequest`, and how often), native storage, transport skew, and the two mutations under
-_Known-open holes_ below. The `subscribe` / `sendUnsubscribe` ports are covered for
-`runtime.clientEvents.subscribe` only — the two client-event families are the whole of it. Nine
-product call sites call `client.subscribe`; those two are recorded and seven are not, and no golden
-mentions any of their methods: `notifications.subscribe`, `agentSession.subscribe`,
-`session.tabs.subscribe`, `nativeChat.subscribe`, `terminal.subscribe`, `browser.screencast` and
-`accounts.subscribe`. The frame plumbing is method-agnostic, so what stops each of the seven is its
-consumer, not the runner. `terminal.subscribe` and `browser.screencast` write to a webview terminal
-ref this runner has no substitute for. `accounts.subscribe` is wired on a per-host client from
-`useAllHostClients`, and the runner hands an adapter one client rather than the multi-host context
-that hook reads. Its snapshot decoder is not the wall: the loader reaches
-`decodeAccountsSnapshot` and it throws its own domain error on a bad snapshot. The remaining four are unwritten scenarios, not walls. Blur is
-unrecorded across all of them: `useFocusEffect` is substituted as `useEffect`, so a route's focus
-cleanup is recorded at unmount and an unsubscribe only a blur would reach is not — driving focus
-needs a substitute, and no recording reads one yet. Four of the nine
-probes pin behaviour with no demonstrated mutation — the two mixed reject/refusal new-tab orders
+_Known-open holes_ below.
+
+Which subscriptions are covered is no longer stated here. It is held as data in
+`mobile/src/transport/rpc-subscription-inventory.ts`, where every product `client.subscribe` is
+classified as recorded, an unwritten scenario, or walled with the wall named, and
+`rpc-subscription-boundary.test.ts` fails on a new site, a stale entry, a wrong method and a
+`recorded` entry naming a family this manifest does not have. This paragraph is why: it said nine
+sites when there were ten — the count was taken over `mobile/src`, and the host screen's
+`accounts.subscribe` lives under `app/`. A count in prose cannot fail. Today four of the ten are
+recorded, two are unwritten scenarios and four are walled, and the list is what says so.
+
+The frame plumbing is method-agnostic, so what stops a site is its consumer rather than the runner.
+Blur is unrecorded across all ten subscribing sites: `useFocusEffect` is substituted as `useEffect`,
+so a route's focus cleanup is recorded at unmount and an unsubscribe only a blur would reach is not
+— driving focus needs a substitute, and no recording reads one yet. Four of the nine probes pin
+behaviour with no demonstrated mutation — the two mixed reject/refusal new-tab orders
 and the home-providers and resume-metadata refresh refusals; they are frozen observations, not
 proven defect detectors. `settings.resume-metadata` projects `{}` as its state, so its probe
 observes only sender calls and settlements.

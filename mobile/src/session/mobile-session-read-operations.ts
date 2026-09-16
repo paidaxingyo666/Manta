@@ -5,8 +5,9 @@ import {
 } from '../transport/rpc-reader-payload'
 
 // What the session screen reads: the terminal inventory, the repo list two screens resolve a
-// workspace's connection through, the session tab snapshot, the quick-command list, the
-// worktree-stored review notes and a markdown tab's document.
+// workspace's connection through, the session tab snapshot, native chat's workspace paths and
+// older-history page, the quick-command list, the whole `worktree.show` record and a markdown
+// tab's document.
 
 /**
  * The terminal inventory. A refused list leaves the strip exactly as it was — the screen treats it
@@ -127,6 +128,27 @@ export const nativeChatFileInventoryRead = bindDeferredRpcOperation(
   })
 )
 
+/**
+ * The older-history page native chat asks for when the transcript is scrolled back.
+ *
+ * A skip rather than a throw: a refused page leaves the window the subscription already delivered
+ * and the scroll simply does not grow, which is what the call site's `if (!response.ok) return`
+ * did. There is no screen to raise a host message on — the pane is already showing history.
+ *
+ * The payload stays whole rather than being narrowed to `messages`, because the reply is a union:
+ * an older runtime answers `{ error }` in place of a window, and the caller discriminates on that
+ * before it reads a message list. A member reader would have to pick one arm.
+ */
+export const nativeChatSessionPageRead = bindDeferredRpcOperation(
+  defineRpcOperation({
+    name: 'nativeChat.read-session-page-or-skip',
+    method: 'nativeChat.readSession',
+    acceptance: 'success-result-or-skip',
+    barrier: 'after-caller-barrier',
+    read: rpcUncheckedPayloadReader('native-chat-session-page')
+  })
+)
+
 /** Shared with the save leg in the write module: one list read, so neither leg can adopt `[]`. */
 export const quickCommandsReader = rpcUncheckedPayloadReader('terminal-quick-commands')
 
@@ -146,21 +168,26 @@ export const quickCommandsRead = bindDeferredRpcOperation(
 )
 
 /**
- * The review notes as they sit on the worktree record, and the fourth reader on `worktree.show`.
- * Two of the other three project a narrower value and would answer this screen with no notes: the
- * summary keeps `{ baseRef, linkedPR }`, the review screen keeps `{ diffComments, mobileDiffReview }`.
- * The third, `fileOwnershipWorktreeRead`, reads the same `worktree` member whole with the same
- * reader shape, so acceptance is the only thing separating them: a file mutation throws the host's
- * message rather than write to the wrong host, where a session screen missing its notes just shows
- * none and keeps working.
+ * The worktree record as the host holds it, and the fourth reader on `worktree.show`. Two consumers
+ * share it and project their own field off the member: the diff-comment loader reads
+ * `diffComments`, and the session header's live title reads `displayName` through
+ * `getLiveWorktreeDisplayName`. Widening either into its own family would be a second name for the
+ * same wire, so the member is read whole here and narrowed at each call site.
+ *
+ * Two of the other three readers project a narrower value and would answer both consumers with
+ * nothing: the summary keeps `{ baseRef, linkedPR }`, the review screen keeps
+ * `{ diffComments, mobileDiffReview }`. The third, `fileOwnershipWorktreeRead`, reads the same
+ * `worktree` member whole with the same reader shape, so acceptance is the only thing separating
+ * them: a file mutation throws the host's message rather than write to the wrong host, where a
+ * session screen missing its notes shows none, and a header missing a name keeps the route hint.
  */
-export const sessionWorktreeNotesRead = bindDeferredRpcOperation(
+export const sessionWorktreeRecordRead = bindDeferredRpcOperation(
   defineRpcOperation({
-    name: 'worktree.show-review-notes',
+    name: 'worktree.show-record-or-skip',
     method: 'worktree.show',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedMemberReader('worktree-review-notes', 'worktree')
+    read: rpcUncheckedMemberReader('worktree-record', 'worktree')
   })
 )
 

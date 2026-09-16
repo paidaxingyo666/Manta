@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest'
 import { captureArguments, captureError, captureValue } from './recording-values'
 import { RECORDER_DIRECTORY, recorderSha256 } from './recorder-digest'
 import { RECORDING_DRIVERS } from './recording-drivers'
+import { RpcClientStreamRegistry } from '../../transport/rpc-client-stream-registry'
 import { ScriptedRpcTransport } from './scripted-rpc-transport'
 import { vitestRecordingScheduler } from './vitest-recording-scheduler'
 import {
@@ -34,6 +35,7 @@ import {
 import { runRecording } from './run-recording'
 import { valueHash, type InternedObservation } from './golden-value-pool'
 import type { Observation, RecordingScenario } from './recording-scenario'
+import type { RpcClient } from '../../transport/rpc-client'
 import type { RecordedValue } from './recording-values'
 
 describe('recording boundaries', () => {
@@ -527,6 +529,83 @@ describe('recording boundaries', () => {
       transport.dispose()
       await clock.flush()
       clock.stop()
+    }
+  })
+
+  it('separates a stream listener that dies from a registry that dies before it', async () => {
+    const listened: unknown[] = []
+    const mount = (client: RpcClient) => {
+      const dispose = client.subscribe(CLIENT_EVENTS, null, (result) => {
+        listened.push(result)
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the assertion is the behaviour under test — a product listener asserts the frame shape and dies when a reply partition breaks it.
+        void (result as { type: string }).type
+      })
+      return { action: () => {}, state: () => ({}), dispose }
+    }
+    const scenario = (reply: unknown): RecordingScenario => ({
+      id: 'stream-crash',
+      operation: 'op',
+      version: 1,
+      family: 'op',
+      sites: [],
+      schedules: [],
+      steps: [{ frame: `${CLIENT_EVENTS}#1`, params: null, reply }, { checkpoint: 'delivered' }]
+    })
+    const recording = await runRecording(
+      scenario({ ok: true, streaming: true, result: null }),
+      ({ client }) => mount(client),
+      vitestRecordingScheduler()
+    )
+    expect(recording.checkpoints[0]!.observation.effects).toMatchObject([
+      { name: 'stream-listener-crash', value: { frame: `${CLIENT_EVENTS}#1` } }
+    ])
+    expect(listened).toEqual([null])
+
+    // A reply the registry cannot read at all: it throws reaching for `error.message` on its way to
+    // the listener, so nothing was delivered and there is no recording to keep.
+    listened.length = 0
+    await expect(
+      runRecording(
+        scenario({ ok: false }),
+        ({ client }) => mount(client),
+        vitestRecordingScheduler()
+      )
+    ).rejects.toThrow("Cannot read properties of undefined (reading 'message')")
+    expect(listened).toEqual([])
+  })
+
+  it('aborts when the registry throws with nothing stashed, including a thrown undefined', async () => {
+    // `throw undefined` is the one registry failure that cannot be told from an empty stash by
+    // value alone, so the compare has to ask whether a listener crashed at all.
+    const handleResponse = RpcClientStreamRegistry.prototype.handleResponse
+    RpcClientStreamRegistry.prototype.handleResponse = () => {
+      throw undefined
+    }
+    try {
+      await expect(
+        runRecording(
+          {
+            id: 'registry-throws-undefined',
+            operation: 'op',
+            version: 1,
+            family: 'op',
+            sites: [],
+            schedules: [],
+            steps: [
+              { frame: `${CLIENT_EVENTS}#1`, params: null, reply: { ok: true, streaming: true } },
+              { checkpoint: 'delivered' }
+            ]
+          },
+          ({ client }) => ({
+            action: () => {},
+            state: () => ({}),
+            dispose: client.subscribe(CLIENT_EVENTS, null, () => {})
+          }),
+          vitestRecordingScheduler()
+        )
+      ).rejects.toBeUndefined()
+    } finally {
+      RpcClientStreamRegistry.prototype.handleResponse = handleResponse
     }
   })
 
