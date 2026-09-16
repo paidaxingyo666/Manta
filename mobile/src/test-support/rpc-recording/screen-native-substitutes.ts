@@ -22,12 +22,18 @@ export function screenNativeSubstitutes(): Map<string, unknown> {
   return new Map<string, unknown>([
     [
       'react-native-safe-area-context',
-      partialNativeModule('react-native-safe-area-context', inertNativeElements(['SafeAreaView']))
+      partialNativeModule('react-native-safe-area-context', {
+        ...inertNativeElements(['SafeAreaView']),
+        useSafeAreaInsets: () => SAFE_AREA_INSETS
+      })
     ],
     [
       'expo-router',
       // One router per recording, so a screen that closes over it keeps a stable callback.
-      partialNativeModule('expo-router', { useRouter: constantRouter })
+      partialNativeModule('expo-router', {
+        useRouter: constantRouter,
+        useLocalSearchParams: constantRoute
+      })
     ],
     ['lucide-react-native', inertIconModule()]
   ])
@@ -37,6 +43,20 @@ const ROUTER = { push: () => {}, replace: () => {}, back: () => {}, dismiss: () 
 function constantRouter(): typeof ROUTER {
   return ROUTER
 }
+
+/**
+ * The route one recording runs on, pinned for the same reason the window size is: a screen's own
+ * address is not a device reading, and for a route screen it is what the props are for a panel an
+ * adapter mounts directly. It shapes no recorded parameter — the one screen that reads it sends
+ * `repo.list`, which takes none (`tasks.route-repo-list`).
+ */
+const ROUTE = { hostId: 'host-1' }
+function constantRoute(): typeof ROUTE {
+  return ROUTE
+}
+
+/** A phone's insets, fixed the way the window size is. Nothing here is measured. */
+const SAFE_AREA_INSETS = { top: 47, right: 0, bottom: 34, left: 0 }
 
 const ABSOLUTE_FILL = { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }
 
@@ -51,7 +71,16 @@ function flattenStyle(style: unknown): unknown {
 /** The react-native primitives and module members a mounted screen reads. */
 export function reactNativeScreenMembers(): Record<string, unknown> {
   return {
-    ...inertNativeElements(['ActivityIndicator', 'FlatList', 'Pressable', 'Text', 'View']),
+    ...inertNativeElements([
+      'ActivityIndicator',
+      'FlatList',
+      'Pressable',
+      'RefreshControl',
+      'SectionList',
+      'Text',
+      'TextInput',
+      'View'
+    ]),
     StyleSheet: {
       create: (sheet: unknown) => sheet,
       flatten: flattenStyle,

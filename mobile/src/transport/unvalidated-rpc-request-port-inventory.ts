@@ -52,16 +52,26 @@ export const UNVALIDATED_RPC_REQUEST_PORT_OWNERS: readonly UnvalidatedRpcRequest
 /** Call sites awaiting migration to a typed operation. Grouped by the feature area that owns them. */
 export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcRequestPortEntry[] = [
   // app/h/[hostId]/ — Expo route screens
+  // Holdout behind two gates. The first is the mount: the screen reads
+  // `expo-router.useFocusEffect` and `react-native.ScrollView`, neither is a substituted member, so
+  // the trap refuses before any effect runs. Substituting exactly those two clears it and exposes
+  // the second gate — the mount effect that opens `accounts.subscribe`, which the request-only
+  // runner refuses, leaving `status.get` as the only send and taking the tree with it. So the
+  // refresh control and the account rows carrying `accounts.list` and the three `accounts.select*`
+  // methods never exist to be driven. Subscriptions are a later step, and the two members are left
+  // out here because the engine gains `useFocusEffect` on its own track.
   { file: 'app/h/[hostId]/accounts.tsx', references: 2 },
 
   // app/ — Expo route screens
+  // Holdout: not the screen. It renders to completion under inert reanimated and gesture-handler
+  // substitutes, and then sends nothing: its host list comes from `loadHosts()`, which joins a
+  // device token held in the keychain through expo-secure-store. A scenario can declare the async
+  // store and the notification tray, not a credential, so `loadHosts()` answers with an empty list
+  // and the screen has no client. `notifications.testPush` migrated because its screen reads
+  // `loadHostCatalog()`, which keeps a credential-less entry. Line ~193 also reads `ms` off the
+  // reply envelope instead of off its result, so the value is always undefined; that is a product
+  // defect with its own fix and re-record, not something this migration may quietly repair.
   { file: 'app/terminal-settings.tsx', references: 3 },
-
-  // src/agent-history/ — agent history loads. The history scan and its resume metadata migrated in
-  // step 4; see mobile-agent-history-operations.ts.
-  // Holdout: the last reach is a worktree.ps inside the screen component's own effect, which no
-  // recording can mount without a fabricated react-native view tree.
-  { file: 'src/agent-history/MobileAgentSessionHistoryPanel.tsx', references: 1 },
 
   // src/components/ — shared widgets that fetch their own data. Nothing is left here: the New
   // Workspace drawer's execution target, setup hook, runtime context and Codex capability probe
@@ -71,23 +81,15 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // in tasks/mobile-workspace-source-operations.ts, and the repo.list readers the dialog now shares
   // in session/mobile-session-read-operations.ts.
 
-  // src/files/ — file read, write and preview. The preview loader, the terminal-artifact grant
-  // refresh and save, the session file tab and the mutation-ownership capture migrated in step 4:
-  // see mobile-file-preview-operations.ts, mobile-file-tab-doc-operations.ts and
-  // mobile-file-ownership-operations.ts. The explorer panel's two sends sit inline in a React
-  // Native screen, which the recorder cannot mount and so cannot record.
-  { file: 'src/files/MobileFileExplorerPanel.tsx', references: 2 },
-
-  // src/home/ — home screen host reads. The stats card and both task-provider probes migrated in
-  // step 4 (mobile-home-host-operations.ts, plus the shared task-tooling reads in
-  // tasks/mobile-task-runtime-operations.ts). The accounts read stays: its decoder is re-exported
-  // through a React Native screen module, which no recording can load.
-  { file: 'src/home/mobile-home-host-requests.ts', references: 2 },
-
   // src/host-screen/ — host screen catalog and actions. The repo and label metadata reads, the
   // desktop view-settings mirror and the list's pin, remove and activate mutations migrated in
-  // step 4; see host-screen-operations.ts. What is left sends from inside a React Native screen,
-  // which the recorder cannot mount.
+  // step 4; see host-screen-operations.ts.
+  // Holdout: the last `worktree.sleep` is an `onPress` this file builds for `ActionSheetContent`,
+  // which renders only inside an open `BottomDrawer`. Nothing gates those children — the drawer
+  // mounts on `visible || mounted` and `MountedBottomDrawer` renders them unconditionally inside
+  // its `Modal`. The block is that module's imports: reanimated and gesture-handler, neither of
+  // which has a substitute, so reaching this send means standing in for both engines rather than
+  // pinning a device input.
   { file: 'src/host-screen/host-screen-overlays.tsx', references: 1 },
 
   // src/notifications/ — push registration and delivery. Registration and unregistration migrated
@@ -134,9 +136,6 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // terminal subscription, which is a later step.
   { file: 'src/session/use-mobile-session-terminal-stream-display.ts', references: 1 },
 
-  // src/settings/ — notification display probe
-  { file: 'src/settings/notification-display-test.tsx', references: 1 },
-
   // src/source-control/ — one dynamic dispatcher left; the other 13 files migrated in step 4.
   // Its single reference multiplexes git.commit, git.status, git.upstreamStatus, git.fetch,
   // git.pull, git.push and every `{ method, params }` action step five other hooks hand it, so
@@ -149,23 +148,16 @@ export const UNVALIDATED_RPC_REQUEST_PORT_PENDING: readonly UnvalidatedRpcReques
   // references across 22 files to zero. See mobile-task-item-detail-operations.ts,
   // mobile-task-list-operations.ts, mobile-task-item-comment-operations.ts,
   // mobile-task-item-state-operations.ts and mobile-task-project-board-operations.ts, alongside
-  // the workspace-creation modules. Three files cannot reach zero, and none of them for the
-  // reason the previous note gave — both `{ method, params }` sites turned out to be local
-  // two-literal ternaries over the item type, and both migrated:
+  // the workspace-creation modules.
+  // One is left, and it is not a call site:
   //
   //   - mobile-tasks-source-family.test-support.ts matches the literal `'sendRequest'` in a
   //     source scanner rather than sending anything.
-  //   - mobile-tasks-filter-pickers.tsx sends linear.selectWorkspace from an `onSelect` prop of
-  //     a native PickerModal. Migrating it needs a recorded wire, and the recorder cannot mount
-  //     a module that renders react-native views.
-  //   - use-mobile-tasks-route-and-item-state.tsx reads repo.list from a closure inside the
-  //     screen-root hook, which calls useLocalSearchParams, useRouter, useHostClient and
-  //     useSafeAreaInsets. The recorder has no substitute for any of them.
   //
-  // All three need new recorder capability, not another scenario.
-  { file: 'src/tasks/mobile-tasks-filter-pickers.tsx', references: 1 },
+  // The other two migrated on screen mounting: the filter sheet's linear.selectWorkspace is driven
+  // through the render helper's own element, and the screen-root hook's repo.list through the hook
+  // mounted over substitutes for its route and its insets.
   { file: 'src/tasks/mobile-tasks-source-family.test-support.ts', references: 1 },
-  { file: 'src/tasks/use-mobile-tasks-route-and-item-state.tsx', references: 1 },
 
   // src/transport/ — what is left of pairing, probing and capability reads after step 4. The
   // protocol gate, the retrying capability probe, the candidate race, credential rotation, the

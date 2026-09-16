@@ -19065,6 +19065,373 @@
           "checkpoint": "live-sent"
         }
       ]
+    },
+    {
+      "id": "home-host-accounts",
+      "operation": "home.host-accounts",
+      "version": 1,
+      "family": "home.host-accounts",
+      "sites": ["mobile/src/home/mobile-home-host-requests.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "load",
+          "id": "load"
+        },
+        {
+          "checkpoint": "accounts-pending"
+        },
+        {
+          "complete": "accounts.list#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "claude": {
+                "accounts": [
+                  {
+                    "id": "claude-1",
+                    "email": "claude@example.test",
+                    "updatedAt": 1700000000000
+                  }
+                ],
+                "activeAccountId": "claude-1"
+              },
+              "codex": {
+                "accounts": [],
+                "activeAccountId": null
+              },
+              "rateLimits": {
+                "claude": null,
+                "codex": null,
+                "inactiveClaudeAccounts": [],
+                "inactiveCodexAccounts": []
+              }
+            }
+          }
+        },
+        {
+          "checkpoint": "accounts-published"
+        }
+      ]
+    },
+    {
+      "id": "notifications-display-test-accepted",
+      "operation": "notifications.display-test-screen",
+      "version": 1,
+      "family": "notifications.display-test-screen",
+      "sites": ["mobile/src/settings/notification-display-test.tsx"],
+      "schedules": [],
+      "deviceStore": {
+        "manta:hosts": "[{\"id\":\"host-1\",\"name\":\"Desk\",\"endpoint\":\"ws://desk.local:7777\",\"publicKeyB64\":\"AAAA\",\"lastConnected\":1700000000000}]"
+      },
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "mounted"
+        },
+        {
+          "action": "send-test",
+          "id": "press"
+        },
+        {
+          "checkpoint": "sending"
+        },
+        {
+          "complete": "notifications.testPush#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "accepted": true
+            }
+          }
+        },
+        {
+          "checkpoint": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "aivault-history-screen-worktrees",
+      "operation": "aiVault.history-screen",
+      "version": 1,
+      "family": "aiVault.history-screen",
+      "sites": ["mobile/src/agent-history/MobileAgentSessionHistoryPanel.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "bind": "platform-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "checkpoint": "worktrees-pending"
+        },
+        {
+          "complete": "worktree.ps#1",
+          "params": {
+            "limit": 10000,
+            "supportsWorktreeVisibilitySourceDefaults": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "worktrees": [
+                {
+                  "worktreeId": "wt-history",
+                  "path": "/repo/feature",
+                  "repoId": "repo-1"
+                },
+                {
+                  "worktreeId": "wt-2",
+                  "path": "/repo/sibling",
+                  "repoId": "repo-1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "complete": "platform-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "complete": "status.get#2",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "worktrees-listed"
+        }
+      ]
+    },
+    {
+      "id": "aivault-history-screen-listed",
+      "operation": "aiVault.history-screen",
+      "version": 1,
+      "family": "aiVault.history-screen",
+      "sites": ["mobile/src/agent-history/MobileAgentSessionHistoryPanel.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "bind": "platform-status",
+          "request": "status.get#1",
+          "params": {
+            "$undefined": true
+          }
+        },
+        {
+          "checkpoint": "worktrees-pending"
+        },
+        {
+          "complete": "worktree.ps#1",
+          "params": {
+            "limit": 10000,
+            "supportsWorktreeVisibilitySourceDefaults": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "worktrees": [
+                {
+                  "worktreeId": "wt-history",
+                  "path": "/repo/feature",
+                  "repoId": "repo-1"
+                },
+                {
+                  "worktreeId": "wt-2",
+                  "path": "/repo/sibling",
+                  "repoId": "repo-1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "complete": "platform-status",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "complete": "status.get#2",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "capabilities": ["aiVault.v1"]
+            }
+          }
+        },
+        {
+          "checkpoint": "worktrees-listed"
+        },
+        {
+          "complete": "aiVault.listSessions#1",
+          "params": {
+            "force": false,
+            "limit": 500,
+            "scopePaths": ["/repo/feature"]
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "sessions": [
+                {
+                  "id": "s1",
+                  "executionHostId": "local",
+                  "agent": "claude",
+                  "sessionId": "sess-1",
+                  "title": "Fix the explorer",
+                  "cwd": "/repo/feature",
+                  "branch": "feature",
+                  "model": "opus",
+                  "filePath": "/repo/feature/.claude/sess-1.jsonl",
+                  "codexHome": null,
+                  "createdAt": "2025-12-31T23:00:00.000Z",
+                  "updatedAt": "2025-12-31T23:30:00.000Z",
+                  "modifiedAt": "2025-12-31T23:30:00.000Z",
+                  "messageCount": 4,
+                  "totalTokens": 1200,
+                  "previewMessages": [
+                    {
+                      "role": "user",
+                      "text": "fix it",
+                      "timestamp": "2025-12-31T23:00:00.000Z"
+                    }
+                  ]
+                }
+              ],
+              "issues": []
+            }
+          }
+        },
+        {
+          "checkpoint": "ready"
+        }
+      ]
+    },
+    {
+      "id": "tasks-route-repo-list",
+      "operation": "tasks.route-repo-list",
+      "version": 1,
+      "family": "tasks.route-repo-list",
+      "sites": ["mobile/src/tasks/use-mobile-tasks-route-and-item-state.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "idle"
+        },
+        {
+          "action": "ensure-repos",
+          "id": "ensure"
+        },
+        {
+          "checkpoint": "repos-pending"
+        },
+        {
+          "complete": "repo.list#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "repos": [
+                {
+                  "id": "repo-1",
+                  "name": "manta"
+                },
+                {
+                  "id": "repo-2",
+                  "name": "relay"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "repos-loaded"
+        }
+      ]
+    },
+    {
+      "id": "linear-select-workspace",
+      "operation": "linear.select-workspace-picker",
+      "version": 1,
+      "family": "linear.select-workspace-picker",
+      "sites": ["mobile/src/tasks/mobile-tasks-filter-pickers.tsx"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "select-workspace",
+          "id": "select-b",
+          "args": {
+            "workspace": "workspace-b"
+          }
+        },
+        {
+          "checkpoint": "selected"
+        },
+        {
+          "complete": "linear.selectWorkspace#1",
+          "params": {
+            "workspaceId": "workspace-b"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "ok": true
+            }
+          }
+        },
+        {
+          "checkpoint": "switched"
+        }
+      ]
     }
   ]
 }

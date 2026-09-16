@@ -28,12 +28,13 @@ export type MobileRuntimeRepoSummary = { id: string; connectionId?: string | nul
 const repoListReader = rpcUncheckedMemberReader('runtime-repo-list', 'repos')
 
 /**
- * The repo list, read for one workspace's connection id. Call sites disagree about a refusal, so
- * each of the two operations below declares its own policy over the same reader rather than
- * sharing one, and every consumer joins whichever policy it already had.
+ * The repo list. Call sites disagree about a refusal, so each of the two operations below declares
+ * its own policy over the same reader rather than sharing one, and every consumer joins whichever
+ * policy it already had.
  *
- * Throw-message: the new-tab agent loader has nothing to show without the list, and the terminal
- * accessory's connection lookup raised the host's message the same way.
+ * Throw-message: the new-tab agent loader and the terminal accessory's connection lookup both
+ * resolve one workspace's connection id and raise the host's message without the list, and the
+ * tasks route keeps the whole list for its repo pickers.
  *
  * Skip: the native-chat readability probe answers "not readable" and lets the screen render, and
  * the new-workspace dialog's repo refresh leaves the list it already has.

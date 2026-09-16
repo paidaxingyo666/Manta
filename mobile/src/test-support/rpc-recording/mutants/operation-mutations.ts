@@ -62,6 +62,36 @@ export const OPERATION_MUTATIONS = {
             return response
           }),`
   },
+  // Decodes the reply envelope instead of the accepted snapshot, so the Home card publishes nothing
+  // where a host answered.
+  'home-accounts-envelope': {
+    file: 'mobile-home-host-requests.ts',
+    before: 'const snapshot = decodeAccountsSnapshot(accounts.value)',
+    after: 'const snapshot = decodeAccountsSnapshot(reply)'
+  },
+  // Reads the push test result one level above the envelope, so an accepted test reports failure.
+  'push-test-envelope': {
+    file: 'notification-display-test.tsx',
+    before: 'const result = delivered.value as MobilePushTestResult',
+    after: 'const result = reply as unknown as MobilePushTestResult'
+  },
+  // Publishes the repo reply's payload instead of the member the reader took off it.
+  'task-screen-repo-envelope': {
+    file: 'use-mobile-tasks-route-and-item-state.tsx',
+    before: 'return newTabRepoListRead.interpret(reply) as RepoSummary[]',
+    after: 'return (reply as { result?: unknown }).result as RepoSummary[]'
+  },
+  // Drops the context reload the workspace switch chains off its send, so the sheet keeps showing
+  // the previous workspace's teams after the host accepted the change.
+  'linear-workspace-context-reload': {
+    file: 'mobile-tasks-filter-pickers.tsx',
+    before: `          void linearWorkspaceSelect
+            .request(client, { workspaceId })
+            .then(() => loadLinearContext())`,
+    after: `          void linearWorkspaceSelect
+            .request(client, { workspaceId })
+            .then(() => undefined)`
+  },
   // Reads the overrides one level above the settings envelope.
   'bot-overrides-envelope': {
     file: 'settings-read-operations.ts',
