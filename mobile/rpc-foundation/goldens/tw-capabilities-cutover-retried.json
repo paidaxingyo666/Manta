@@ -16,35 +16,24 @@
     "32354557bece": {
       "capabilities": "unprobed"
     },
-    "4e6e53404f59": {
-      "capabilities": {
-        "hostPlatform": {
-          "$rpc": "null"
-        },
-        "tasksSupported": true,
-        "worktreeCreateIdempotency": false
-      }
-    },
     "852980e2efc0": {
       "name": "status.get#1",
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}",
       "sent": 1
     },
-    "9270aeb7d9c6": {
-      "status": "pending",
-      "startedAt": 0
-    },
-    "a8bcef1e95ed": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
+    "8a8da145ef52": {
+      "capabilities": {
+        "agentLaunch": false,
         "hostPlatform": {
           "$rpc": "null"
         },
         "tasksSupported": true,
         "worktreeCreateIdempotency": false
       }
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
     },
     "ae9ff6b74ec1": {
       "name": "status.get#2",
@@ -83,6 +72,19 @@
       "name": "status.get#2",
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}",
       "sent": 2
+    },
+    "c7a06214cf1f": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "agentLaunch": false,
+        "hostPlatform": {
+          "$rpc": "null"
+        },
+        "tasksSupported": true,
+        "worktreeCreateIdempotency": false
+      }
     },
     "c9c0513fdcb9": {
       "name": "status.get#2",
@@ -176,10 +178,10 @@
           "sender": ["edf54746317d", "ae9ff6b74ec1"],
           "payloads": ["852980e2efc0", "b33a14df0df6"],
           "settlements": {
-            "probe": "a8bcef1e95ed",
+            "probe": "c7a06214cf1f",
             "migrate": "eb79a9b3682a"
           },
-          "state": "4e6e53404f59",
+          "state": "8a8da145ef52",
           "effects": []
         }
       }
