@@ -36,10 +36,26 @@ export type RuntimeEnvironmentStatus = {
  * The last status the host actually answered with. The snapshot retains it across an
  * unverifiable probe, so this survives a loss of contact; the entry's own `status` does not.
  */
-export function lastVerifiedRuntimeStatus(
-  entry: { status?: RuntimeStatus | null; snapshot?: RuntimeHostStatusSnapshot } | null | undefined
-): RuntimeStatus | null {
+export function lastVerifiedRuntimeStatus<Status = RuntimeStatus>(
+  entry: { status?: Status | null; snapshot?: { status: Status | null } | null } | null | undefined
+): Status | null {
   return entry?.snapshot?.status ?? entry?.status ?? null
+}
+
+/**
+ * The host's own verdict that this pairing is over: retired by an explicit disconnect, or
+ * refused — auth rejected or protocol mismatch, which stops every retry for good. Positive
+ * evidence, unlike a lost transport, so this is the only state that may withdraw a fact the
+ * host already gave us (docs/reference/ssh-execution-boundary.md).
+ */
+export function isRuntimeHostContactRevoked(
+  entry:
+    | { snapshot?: Pick<RuntimeHostStatusSnapshot, 'verification' | 'retired'> | null }
+    | null
+    | undefined
+): boolean {
+  const snapshot = entry?.snapshot
+  return Boolean(snapshot && (snapshot.retired || snapshot.verification === 'blocked'))
 }
 
 export type RuntimeHostStatusResponse = RuntimeRpcResponse<RuntimeStatus>
