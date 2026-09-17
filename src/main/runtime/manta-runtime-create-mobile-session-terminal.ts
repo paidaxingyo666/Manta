@@ -29,6 +29,9 @@ export class MantaRuntimeWithCreateMobileSessionTerminal extends MantaRuntimeWit
       clientNavigationId?: string
       navigation?: RuntimeNavigationTarget
       clientMutationId?: string
+      // Older mobile clients optimistically append; preserve that placement until they advertise
+      // split-group ordering support.
+      supportsSplitGroupPlacement?: boolean
       signal?: AbortSignal
     } = {}
   ): Promise<RuntimeMobileSessionCreateTerminalResult> {
