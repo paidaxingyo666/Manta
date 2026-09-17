@@ -70,9 +70,11 @@ const HEAD_CALLBACK_IDENTITY_SHA256 =
 // and repo reads inside them now name their `RpcOperation` instead of the raw `sendRequest` port.
 // Refreshed in step 6 for the gesture flush, whose `terminal.send` became `terminalInputSend` and
 // whose accepted-check became that operation's own verdict, then again when that check was spelled
-// `=== true` to match the other four sites reading the same verdict. Refreshed once more for the
-// display-mode toggle, whose send became `terminalDisplayModeSet`.
-const HEAD_CALLBACK_BODY_SHA256 = '02fae7c4072064af7595eb42dc20565af568553946e26fa0a1dc835eb78f92a8'
+// `=== true` to match the other four sites reading the same verdict. Refreshed in step 7 for the
+// reply casts the checked readers made unnecessary — the markdown tab doc, the worktree record's
+// `diffComments` and the browser tab's page id are typed by their schemas now. Refreshed once more
+// on the merge, for the display-mode toggle whose send became `terminalDisplayModeSet`.
+const HEAD_CALLBACK_BODY_SHA256 = 'e3b41d4ab755be2ac2b8c268f3b94a5ec91f620233b5761707bbd1791d106f95'
 // Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
 // the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
 // again when the reporter took the reply and interpreted it itself, retiring the hand-built
@@ -81,11 +83,12 @@ const HEAD_EFFECT_SHA256 = '812aaa9f5abf25dd5229f65231900825b2fd38d5d238b511f3fc
 const HEAD_CONTENT_HOOK_SHA256 = '9c3b612fef3f370d66873aefdbe1d701f20cb64ded31fef5cc45fde6f8189581'
 // Same pin for the 12 bodies that sit in nested functions rather than callbacks, moved by the same
 // rewrite of those send and read expressions. Count unchanged. Refreshed again in step 6 for
-// `handleClearTerminal`, whose send became `terminalBufferClear`, and once more for
+// `handleClearTerminal`, whose send became `terminalBufferClear`, in step 7 for the browser tab
+// create, whose `{ browserPageId?: string }` cast its schema now carries, and once more for
 // `handleCreateTerminal`, whose send became `sessionTabCreateTerminal` and whose `response.ok`
 // branch became that operation's own throw-the-host-message acceptance.
 const HEAD_NESTED_FUNCTION_SHA256 =
-  '21931099ef59af0f748ccc69c9adac4f9ae397b39e03e7ca4f4901c40b33e4ec'
+  'e77614fd8ae98cce4009636520f0f3acb17e583d7395f954385a779b1decb7d1'
 const HEAD_NATIVE_REGISTRATION_SHA256 =
   'cab85e4e4a3f43289ba93ddea9ccce57aea83e0bf14fd1620a965aad0c1cb49e'
 const HEAD_NATIVE_REMOVAL_SHA256 =

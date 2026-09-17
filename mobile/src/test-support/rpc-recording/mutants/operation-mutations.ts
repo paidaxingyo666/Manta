@@ -189,6 +189,17 @@ export const OPERATION_MUTATIONS = {
     before: 'return repos.find((repo) => repo.id === repoId)?.connectionId?.trim() || null',
     after: 'return repos[0]?.connectionId?.trim() || null'
   },
+  // Routes a refused checks reply back through the sidebar's failure classifier, so a checks leg
+  // the reader could not read takes the whole sidebar to `error` and the PR the user opened it for
+  // disappears behind a retry.
+  'pr-sidebar-checks-failure-state': {
+    file: 'mobile-pr-sidebar-state.ts',
+    before: `      return {
+        kind: 'ready',
+        data: { pr, details: null, checks: [], checksError: checksOutcome.error }
+      }`,
+    after: '      return failureState(checksOutcome.error)'
+  },
   // Sends the presence-lock `client` member whether or not this phone holds a device token, so a
   // tokenless phone claims the floor under an empty id instead of asking for the mode alone.
   'display-mode-unconditional-client': {

@@ -1,10 +1,11 @@
 import { bindDeferredRpcOperation, defineRpcOperation } from '../transport/rpc-operation'
+import { rpcResultVariant } from '../transport/rpc-operation-result-reader'
+import { markdownTabDocumentSchema } from './session-read-reply-schema'
 import {
-  rpcReadUnchecked,
-  rpcUncheckedMemberReader,
-  rpcUncheckedPayloadReader
-} from '../transport/rpc-reader-payload'
-import { isTerminalSendResultAccepted } from '../terminal/terminal-send-rpc-response'
+  sessionCreatedTerminalTabSchema,
+  sessionWriteUnreadReplySchema,
+  terminalSendAcceptedSchema
+} from './session-write-reply-schema'
 import { quickCommandsReader } from './mobile-session-read-operations'
 
 // The session screen's writes: terminal input from native chat and the image surfaces, the tab
@@ -30,19 +31,18 @@ export const nativeChatTerminalWrite = bindDeferredRpcOperation(
     method: 'terminal.send',
     acceptance: 'object-result-or-null',
     barrier: 'after-caller-barrier',
-    read: (raw) => rpcReadUnchecked('terminal-send-accepted', isTerminalSendResultAccepted(raw))
+    read: rpcResultVariant('terminal-send-accepted', terminalSendAcceptedSchema)
   })
 )
 
 /**
  * Creating a terminal tab from New Tab or a quick command.
  *
- * The reader is the unguarded member read the call site did, kept unguarded on purpose: a null or
- * absent result still raises its property-read exception on `tab`, and a reply carrying no `tab`
- * still reaches the screen as `undefined` and fails on the next property.
- * `require-result-or-throw-message` is what keeps both where they were, because that policy rethrows
- * a reader's exception rather than turning it into an incompatible verdict, so the create's own
- * `catch` reports it as the same failure copy.
+ * The reader is checked, unlike the member read #21083 landed with: `tab` and its `id` are what the
+ * strip keys the new tab on, and main reached the screen with `undefined` there and failed on the
+ * next property. `require-result-or-throw-message` carries a refused reply to the create's own
+ * `catch` as one `RpcIncompatibleReplyError` naming the method, which `reportCreateFailure` shows
+ * in place of main's raw property-read exception.
  *
  * Throws the host's message rather than a skip because the host names the real cause — pty
  * exhaustion, a disabled agent, an unresolved worktree — and the screen shows it verbatim.
@@ -59,7 +59,7 @@ export const sessionTabCreateTerminal = bindDeferredRpcOperation(
     method: 'session.tabs.createTerminal',
     acceptance: 'require-result-or-throw-message',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedMemberReader('created-terminal-tab', 'tab')
+    read: rpcResultVariant('created-terminal-tab', sessionCreatedTerminalTabSchema)
   })
 )
 
@@ -83,7 +83,7 @@ export const terminalDisplayModeSet = bindDeferredRpcOperation(
     method: 'terminal.setDisplayMode',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('terminal-display-mode-set')
+    read: rpcResultVariant('terminal-display-mode-set', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -95,7 +95,7 @@ export const sessionTerminalRename = bindDeferredRpcOperation(
     method: 'terminal.rename',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('terminal-renamed')
+    read: rpcResultVariant('terminal-renamed', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -107,7 +107,7 @@ export const sessionTerminalClose = bindDeferredRpcOperation(
     method: 'terminal.close',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('terminal-closed')
+    read: rpcResultVariant('terminal-closed', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -118,7 +118,7 @@ export const sessionTabClose = bindDeferredRpcOperation(
     method: 'session.tabs.close',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('session-tab-closed')
+    read: rpcResultVariant('session-tab-closed', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -134,7 +134,7 @@ export const sessionTerminalFocus = bindDeferredRpcOperation(
     method: 'terminal.focus',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('terminal-focused')
+    read: rpcResultVariant('terminal-focused', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -144,7 +144,7 @@ export const sessionTabActivate = bindDeferredRpcOperation(
     method: 'session.tabs.activate',
     acceptance: 'success-result-or-skip',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('session-tab-activated')
+    read: rpcResultVariant('session-tab-activated', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -164,7 +164,7 @@ export const sessionWorktreeNotesWrite = bindDeferredRpcOperation(
     method: 'worktree.set',
     acceptance: 'require-result-or-throw-message',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('worktree-notes-written')
+    read: rpcResultVariant('worktree-notes-written', sessionWriteUnreadReplySchema)
   })
 )
 
@@ -175,7 +175,7 @@ export const markdownTabSave = bindDeferredRpcOperation(
     method: 'markdown.saveTab',
     acceptance: 'require-result-or-throw-message',
     barrier: 'after-caller-barrier',
-    read: rpcUncheckedPayloadReader('markdown-tab-doc')
+    read: rpcResultVariant('markdown-tab-doc', markdownTabDocumentSchema)
   })
 )
 
