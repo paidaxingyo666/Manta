@@ -6,6 +6,14 @@ type WorktreeRecordGeneration<TValue> = {
   byWorktreeId: Map<string, TValue>
 }
 
+/** Why not `Object.keys`: a `Set`/`Map` value has none, so the default check
+ *  would collapse every non-empty one onto the shared empty identity. */
+function isEmptyValue<TValue extends object>(value: TValue): boolean {
+  return value instanceof Set || value instanceof Map
+    ? value.size === 0
+    : Object.keys(value).length === 0
+}
+
 function sameSources(previous: readonly unknown[], next: readonly unknown[]): boolean {
   if (previous.length !== next.length) {
     return false
@@ -52,7 +60,7 @@ export function createWorktreeRecordSelector<TState, TValue extends object>(opti
     const built = options.build(state, worktreeId)
     const carried = generation.carried?.get(worktreeId)
     let value = built
-    if (Object.keys(built).length === 0) {
+    if (isEmptyValue(built)) {
       value = options.empty
     } else if (carried && shallow(carried, built)) {
       value = carried
