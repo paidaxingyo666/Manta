@@ -32,6 +32,16 @@ export type RuntimeEnvironmentStatus = {
   connectionGeneration?: number
 }
 
+/**
+ * The last status the host actually answered with. The snapshot retains it across an
+ * unverifiable probe, so this survives a loss of contact; the entry's own `status` does not.
+ */
+export function lastVerifiedRuntimeStatus(
+  entry: { status?: RuntimeStatus | null; snapshot?: RuntimeHostStatusSnapshot } | null | undefined
+): RuntimeStatus | null {
+  return entry?.snapshot?.status ?? entry?.status ?? null
+}
+
 export type RuntimeHostStatusResponse = RuntimeRpcResponse<RuntimeStatus>
 
 export function runtimeHostStatusFailure(code: string, message: string): RuntimeRpcFailure {
