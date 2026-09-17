@@ -27,7 +27,8 @@ type CodexRolloutResumePlan = {
 
 export async function scanCodexUsageFiles(
   worktrees: CodexUsageWorktreeRef[],
-  previousProcessedFiles: CodexUsagePersistedFile[]
+  previousProcessedFiles: CodexUsagePersistedFile[],
+  onFilesScanned?: (count: number) => void
 ): Promise<{
   processedFiles: CodexUsagePersistedFile[]
   sessions: CodexUsageSession[]
@@ -82,6 +83,7 @@ export async function scanCodexUsageFiles(
       }
       pathsToParse.push(filePath)
     }
+    onFilesScanned?.(1)
     if ((index + 1) % YIELD_EVERY_FILES === 0) {
       await yieldToEventLoop()
     }
@@ -123,6 +125,7 @@ export async function scanCodexUsageFiles(
     // Why: Codex session history can grow large, and scans run on the Electron
     // main process. Yield regularly so opening Settings does not stall while
     // a background refresh walks old JSONL files.
+    onFilesScanned?.(1)
     if ((index + 1) % YIELD_EVERY_FILES === 0) {
       await yieldToEventLoop()
     }

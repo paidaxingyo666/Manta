@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, vi } from 'vitest'
 import type { Mock } from 'vitest'
-import { scanCodexUsageFiles } from './scanner'
+import { scanCodexUsageFilesViaWorker } from '../usage/usage-scan-worker-spawn'
 import { CodexUsageStore, initCodexUsagePath } from './store'
 import type { CodexUsagePersistedState } from './types'
 
@@ -96,8 +96,8 @@ export function setupCodexUsageStoreEnv(getPathMock: Mock): { tempUserData: stri
     env.tempUserData = mkdtempSync(join(tmpdir(), 'manta-codex-usage-store-'))
     getPathMock.mockReturnValue(env.tempUserData)
     initCodexUsagePath()
-    vi.mocked(scanCodexUsageFiles).mockReset()
-    vi.mocked(scanCodexUsageFiles).mockResolvedValue(createEmptyScanResult())
+    vi.mocked(scanCodexUsageFilesViaWorker).mockReset()
+    vi.mocked(scanCodexUsageFilesViaWorker).mockResolvedValue(createEmptyScanResult())
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-04-10T12:00:00.000-04:00'))
   })

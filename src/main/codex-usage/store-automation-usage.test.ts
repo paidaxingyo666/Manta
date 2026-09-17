@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { CodexUsagePersistedState } from './types'
-import { scanCodexUsageFiles } from './scanner'
+import { scanCodexUsageFilesViaWorker } from '../usage/usage-scan-worker-spawn'
 import {
   createStoreWithState,
   createWorktreeUsageSession,
@@ -17,8 +17,8 @@ vi.mock('electron', () => ({
   }
 }))
 
-vi.mock('./scanner', () => ({
-  scanCodexUsageFiles: vi.fn()
+vi.mock('../usage/usage-scan-worker-spawn', () => ({
+  scanCodexUsageFilesViaWorker: vi.fn()
 }))
 
 describe('CodexUsageStore', () => {
@@ -134,7 +134,7 @@ describe('CodexUsageStore', () => {
     const scanFinished = new Promise<void>((resolve) => {
       finishScan = resolve
     })
-    vi.mocked(scanCodexUsageFiles).mockImplementationOnce(async () => {
+    vi.mocked(scanCodexUsageFilesViaWorker).mockImplementationOnce(async () => {
       startScan()
       await scanFinished
       return {
