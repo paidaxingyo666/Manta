@@ -1,6 +1,9 @@
 import type { AgentJournalMessageItem, AgentJournalSubmission } from './agent-session-journal-types'
 import { agentSessionRefusalOperationState } from './agent-session-refusal-retry'
-import type { AgentSessionWireRefusalCode } from './agent-session-wire'
+import type {
+  AgentSessionMutationEnvelope,
+  AgentSessionWireRefusalCode
+} from './agent-session-wire'
 import { structuredAgentSessionPayloadFingerprint } from './structured-agent-session-mutation'
 import { DISPATCH_REJECTED_CANCELLED } from './structured-agent-session-dispatch-rejection'
 
@@ -193,10 +196,17 @@ export function parseStructuredAgentSessionOutboxEntry(
   }
 }
 
-export function structuredAgentSessionSendRequest(
+export type StructuredAgentSessionSendMutation = {
+  envelope: AgentSessionMutationEnvelope
+  body: AgentJournalMessageItem
+}
+
+/** The `agentSession.send` arguments an entry stands for. Typed rather than wire-shaped so a host
+ *  calling its own send path builds the same envelope a client would, fingerprint included. */
+export function structuredAgentSessionSendMutation(
   entry: StructuredAgentSessionOutboxEntry,
   expectedRuntimeFence: number
-): Record<string, unknown> {
+): StructuredAgentSessionSendMutation {
   const fields = { body: entry.body }
   return {
     envelope: {
@@ -211,6 +221,13 @@ export function structuredAgentSessionSendRequest(
     },
     ...fields
   }
+}
+
+export function structuredAgentSessionSendRequest(
+  entry: StructuredAgentSessionOutboxEntry,
+  expectedRuntimeFence: number
+): Record<string, unknown> {
+  return structuredAgentSessionSendMutation(entry, expectedRuntimeFence)
 }
 
 export type StructuredAgentSessionSendFailure = 'delivery-unknown' | 'failed'

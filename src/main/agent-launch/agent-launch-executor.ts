@@ -27,6 +27,7 @@
 
 import type {
   AgentLaunchIntent,
+  AgentLaunchPrompt,
   AgentLaunchResult,
   AgentLaunchTarget
 } from '../../shared/agent-launch-intent'
@@ -55,12 +56,32 @@ export type AgentLaunchSurfaceFactory = {
     worktreeId: string
     agent: 'claude' | 'codex'
     options?: Readonly<Record<string, unknown>>
-  }): Promise<{ sessionId: string; handle: string }>
+  }): Promise<AgentLaunchStructuredSurface>
   createTerminalAgent(args: {
     worktreeId: string
     agent: TuiAgent
     options?: Readonly<Record<string, unknown>>
   }): Promise<{ handle: string; warning?: string }>
+  /**
+   * Commits the launch text as the session's first turn, answering with the transcript row's id.
+   *
+   * `null` means nothing was committed, and is the answer for every failure — a refused send, an
+   * unreachable host, a throw. Delivery must not fail a launch whose agent is already running: the
+   * caller can resend under `not-delivered`, but it cannot un-create a workspace.
+   */
+  deliverStructuredPrompt?(args: {
+    sessionId: string
+    fence: number
+    prompt: AgentLaunchPrompt
+  }): Promise<string | null>
+}
+
+/** `fence` is carried out of the create because a send must name the lease it was admitted against,
+ *  and re-reading it later would read whatever fence the session has by then. */
+export type AgentLaunchStructuredSurface = {
+  sessionId: string
+  handle: string
+  fence: number
 }
 
 /** A structured create refusal that proves no session was committed, so the launch may downgrade. */
@@ -124,7 +145,7 @@ export async function executeAgentLaunch(
       outcome: { kind: 'terminal', handle: intent.reuseTerminal.handle },
       worktreeId: existingWorktreeId(intent.target),
       receipt: preflight,
-      ...promptReceipt(intent)
+      ...promptReceipt(intent, null)
     }
   }
 
@@ -136,7 +157,7 @@ export async function executeAgentLaunch(
       worktreeId: placed.worktreeId,
       receipt: preflight,
       ...(placed.warning ? { warning: placed.warning } : {}),
-      ...promptReceipt(intent)
+      ...promptReceipt(intent, null)
     }
   }
 
@@ -150,7 +171,7 @@ export async function executeAgentLaunch(
   )
 
   execution.onStage?.('surface_create')
-  let created: { outcome: AgentLaunchResult['outcome']; warning?: string }
+  let created: CreatedSurface
   try {
     created = await createSurface(execution, placed.worktreeId, settled)
   } catch (error) {
@@ -192,8 +213,30 @@ export async function executeAgentLaunch(
     worktreeId: placed.worktreeId,
     receipt: settled,
     ...(warning ? { warning } : {}),
-    ...promptReceipt(intent)
+    ...promptReceipt(intent, await deliverLaunchPrompt(execution, created.structured))
   }
+}
+
+/**
+ * Hands the launch text to the surface that can commit it, which is a structured session and only
+ * a structured session: a terminal's paste is observed by whoever owns the pane, and a `draft` has
+ * no host-side home — the composer holds one, and the host has no composer.
+ */
+async function deliverLaunchPrompt(
+  execution: AgentLaunchExecution,
+  structured: AgentLaunchStructuredSurface | undefined
+): Promise<string | null> {
+  const { intent, surfaces } = execution
+  if (!intent.prompt || intent.prompt.delivery !== 'submit' || !structured) {
+    return null
+  }
+  return (
+    (await surfaces.deliverStructuredPrompt?.({
+      sessionId: structured.sessionId,
+      fence: structured.fence,
+      prompt: intent.prompt
+    })) ?? null
+  )
 }
 
 function downgradeAgentLaunchModeForStructuredRefusal(
@@ -234,11 +277,19 @@ async function resolveWorkspace(
   })
 }
 
+/** `structured` is the same surface `outcome` names, kept typed so prompt delivery reads the create's
+ *  own fence rather than branching on `outcome.kind` and re-deriving it. */
+type CreatedSurface = {
+  outcome: AgentLaunchResult['outcome']
+  warning?: string
+  structured?: AgentLaunchStructuredSurface
+}
+
 async function createSurface(
   execution: AgentLaunchExecution,
   worktreeId: string,
   settled: AgentLaunchModeReceipt
-): Promise<{ outcome: AgentLaunchResult['outcome']; warning?: string }> {
+): Promise<CreatedSurface> {
   const { intent, surfaces } = execution
   if (settled.mode === 'structured' && isStructuredProvider(intent.agent)) {
     const session = await surfaces.createStructuredSession({
@@ -246,7 +297,10 @@ async function createSurface(
       agent: intent.agent,
       ...(intent.sessionOptions ? { options: intent.sessionOptions } : {})
     })
-    return { outcome: { kind: 'structured', sessionId: session.sessionId, handle: session.handle } }
+    return {
+      outcome: { kind: 'structured', sessionId: session.sessionId, handle: session.handle },
+      structured: session
+    }
   }
   const terminal = await surfaces.createTerminalAgent({
     worktreeId,
@@ -293,12 +347,26 @@ function launchWorkspaceKind(target: AgentLaunchTarget): WorkspaceLaunchKind {
   return target.kind === 'existing' ? workspaceKindForWorktreeId(target.worktree) : 'git-worktree'
 }
 
-/** Prompt delivery is the caller's, not the executor's: a PTY paste is observed by whoever owns
- *  the pane, and a structured first turn is sent through the session. The executor reports the
- *  requested delivery back as not delivered so a caller cannot mistake silence for delivery. */
-function promptReceipt(intent: AgentLaunchIntent): Pick<AgentLaunchResult, 'prompt'> {
+/**
+ * The one place a disposal is constructed, so the three arms cannot drift apart.
+ *
+ * `journaled` is reachable only from a committed message id, and that id exists only because the
+ * host appended the transcript row first — the receipt is a consequence of the commit, never a
+ * write-ahead of it. Everything else under-claims as `not-delivered`, which costs a resend; there
+ * is deliberately no arm for "maybe", because a caller holding one could neither resend nor drop
+ * the text. Dispatch doubt is not this tier's to report: the submission row carries it.
+ */
+function promptReceipt(
+  intent: AgentLaunchIntent,
+  messageId: string | null
+): Pick<AgentLaunchResult, 'prompt'> {
   if (!intent.prompt) {
     return {}
   }
-  return { prompt: { delivery: intent.prompt.delivery, outcome: 'not-delivered' } }
+  const delivery = intent.prompt.delivery
+  return {
+    prompt: messageId
+      ? { delivery, outcome: 'journaled', messageId }
+      : { delivery, outcome: 'not-delivered' }
+  }
 }

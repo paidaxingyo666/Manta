@@ -28,6 +28,7 @@ function harness(options: {
   createSupport?: { supported: boolean; reason?: 'agent' | 'remote' | 'wsl' }
   createSupportThrows?: boolean
   structuredCreateError?: Error
+  deliveredMessageId?: string | null
 }) {
   const calls: string[] = []
   const createWorktree = vi.fn(
@@ -51,11 +52,15 @@ function harness(options: {
     if (options.structuredCreateError) {
       throw options.structuredCreateError
     }
-    return { sessionId: 'sess-1', handle: 'handle_structured' }
+    return { sessionId: 'sess-1', handle: 'handle_structured', fence: 4 }
   })
   const createTerminalAgent = vi.fn(async () => {
     calls.push('createTerminalAgent')
     return { handle: 'term_1' }
+  })
+  const deliverStructuredPrompt = vi.fn(async () => {
+    calls.push('deliverStructuredPrompt')
+    return options.deliveredMessageId === undefined ? 'msg-1' : options.deliveredMessageId
   })
   const runtime = {
     getClientSettings: () =>
@@ -67,12 +72,13 @@ function harness(options: {
     createWorktree,
     createStructuredSession,
     createTerminalAgent,
+    deliverStructuredPrompt,
     run: (intent: AgentLaunchIntent) =>
       executeAgentLaunch({
         // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the stub implements only the two runtime methods the executor reaches, and each test asserts the calls made, so an omitted method throws rather than reading a wrong value.
         runtime: runtime as unknown as AgentLaunchExecution['runtime'],
         intent,
-        surfaces: { createStructuredSession, createTerminalAgent },
+        surfaces: { createStructuredSession, createTerminalAgent, deliverStructuredPrompt },
         workspaces: { createWorktree }
       })
   }
@@ -233,14 +239,63 @@ describe('an agent with no structured session', () => {
 })
 
 describe('the prompt receipt', () => {
-  it('reports a requested prompt as not delivered rather than omitting it', async () => {
+  const SUBMIT = { text: 'do the thing', delivery: 'submit' } as const
+
+  it('commits a submitted prompt to the session the launch created and names the row', async () => {
+    const h = harness({})
+    const result = await h.run({ ...CREATE_INTENT, prompt: SUBMIT })
+
+    expect(result.prompt).toEqual({ delivery: 'submit', outcome: 'journaled', messageId: 'msg-1' })
+    // Delivery is sequenced after the surface exists; there is nothing to send into before that.
+    expect(h.calls).toEqual([
+      'createWorktree(startupAgent=undefined)',
+      'createSupport',
+      'createStructuredSession',
+      'deliverStructuredPrompt'
+    ])
+    // The send must name the lease the create was admitted under, not one re-read later.
+    expect(h.deliverStructuredPrompt).toHaveBeenCalledWith({
+      sessionId: 'sess-1',
+      fence: 4,
+      prompt: SUBMIT
+    })
+  })
+
+  it('under-claims as not delivered when nothing was committed', async () => {
+    const h = harness({ deliveredMessageId: null })
+    const result = await h.run({ ...CREATE_INTENT, prompt: SUBMIT })
+    // A resend costs a duplicate; claiming a row that does not exist loses the text silently.
+    expect(result.prompt).toEqual({ delivery: 'submit', outcome: 'not-delivered' })
+  })
+
+  it('leaves a draft with the caller, because the host has no composer to hold one', async () => {
     const h = harness({})
     const result = await h.run({
       ...CREATE_INTENT,
       prompt: { text: 'do the thing', delivery: 'draft' }
     })
-    // The executor delivers nothing, so the only honest outcome is the one that under-claims.
     expect(result.prompt).toEqual({ delivery: 'draft', outcome: 'not-delivered' })
+    expect(h.deliverStructuredPrompt).not.toHaveBeenCalled()
+  })
+
+  it('leaves a terminal launch to the pane owner', async () => {
+    const h = harness({ createSupport: { supported: false, reason: 'wsl' } })
+    const result = await h.run({ ...CREATE_INTENT, prompt: SUBMIT })
+    expect(result.outcome.kind).toBe('terminal')
+    expect(result.prompt).toEqual({ delivery: 'submit', outcome: 'not-delivered' })
+    expect(h.deliverStructuredPrompt).not.toHaveBeenCalled()
+  })
+
+  it('leaves a reused terminal to the pane owner', async () => {
+    const h = harness({})
+    const result = await h.run({
+      agent: 'claude',
+      target: { kind: 'existing', worktree: 'wt-7' },
+      reuseTerminal: { handle: 'term_existing' },
+      prompt: SUBMIT
+    })
+    expect(result.prompt).toEqual({ delivery: 'submit', outcome: 'not-delivered' })
+    expect(h.deliverStructuredPrompt).not.toHaveBeenCalled()
   })
 
   it('omits the receipt when no prompt was requested', async () => {
