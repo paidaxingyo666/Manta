@@ -29,12 +29,6 @@ const GOLDEN_LOCK_TAKING: SchemaLockTarget[] = [
   { kind: 'index', table: 'relay_connection_bases', name: 'relay_connection_bases_active_deadline', skipWhen: 'present' },
   {
     kind: 'index',
-    table: 'relay_connection_bases',
-    name: 'relay_connection_bases_live_deadline',
-    skipWhen: 'present'
-  },
-  {
-    kind: 'index',
     table: 'relay_direct_authorizations',
     name: 'relay_direct_authorizations_pending_deadline',
     skipWhen: 'present'
@@ -251,7 +245,6 @@ describe('relay boot-time lock targets', () => {
     expect(deferrable.map((statement) => sqlWithoutComments(statement).replace(/\s+/g, ' '))).toEqual([
       "CREATE INDEX IF NOT EXISTS relay_invites_sweep_expiry ON relay_invites(expires_at) WHERE state IN ('available', 'reserved', 'cooldown')",
       "CREATE INDEX IF NOT EXISTS relay_invites_sweep_reservation ON relay_invites(reservation_expires_at) WHERE state = 'reserved'",
-      'CREATE INDEX IF NOT EXISTS relay_connection_bases_live_deadline ON relay_connection_bases(deadline) WHERE active = 1',
       'CREATE INDEX IF NOT EXISTS relay_direct_authorizations_pending_deadline ON relay_direct_authorizations(deadline) WHERE consumed_at IS NULL',
       'CREATE INDEX IF NOT EXISTS relay_rate_windows_started ON relay_rate_windows(window_started_at)',
       'DROP INDEX IF EXISTS relay_assignment_activity_expiry',
@@ -272,12 +265,6 @@ describe('relay boot-time lock targets', () => {
         kind: 'index',
         table: 'relay_invites',
         name: 'relay_invites_sweep_reservation',
-        skipWhen: 'present'
-      },
-      {
-        kind: 'index',
-        table: 'relay_connection_bases',
-        name: 'relay_connection_bases_live_deadline',
         skipWhen: 'present'
       },
       {

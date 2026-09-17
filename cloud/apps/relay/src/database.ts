@@ -172,15 +172,13 @@ CREATE TABLE IF NOT EXISTS relay_connection_bases (
 -- accumulate unboundedly. Unindexed it seq-scans millions of rows every cycle
 -- and holds the maintenance transaction open long enough to time out
 -- assignment lock waits.
+-- Why not a partial index on active = 1: a basis is inserted active and flipped to 0, so each
+-- deactivation leaves a dead entry in that index too. Measured on production-shaped history it
+-- carries the same dead entries as this one, the planner picks this one in every state, and it
+-- costs ~65 bytes of WAL per insert. Bloat here is cured by reaping and vacuum, not by a narrower
+-- index.
 CREATE INDEX IF NOT EXISTS relay_connection_bases_active_deadline
   ON relay_connection_bases(active, deadline);
-
--- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
--- Why: the index above spans every row, and inactive bases outnumber live ones by ~6.6M to a few
--- hundred, so the sweep still walked ~283 MB of index to find them. This one holds only the rows
--- the sweep can act on. Keeping both: the composite is also what makes the reaper an index range.
-CREATE INDEX IF NOT EXISTS relay_connection_bases_live_deadline
-  ON relay_connection_bases(deadline) WHERE active = 1;
 
 CREATE TABLE IF NOT EXISTS relay_direct_authorizations (
   direct_auth_id TEXT PRIMARY KEY,
