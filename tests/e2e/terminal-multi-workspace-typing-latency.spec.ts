@@ -83,6 +83,13 @@ import {
   startAccumulatedTitleTraffic,
   stopAccumulatedTitleTraffic
 } from './accumulated-workspace-title-fixture'
+import {
+  injectRendererLongTaskSelfTest,
+  startRuntimeGraphPublicationProbe,
+  stopRuntimeGraphPublicationProbe,
+  type RendererLongTaskSelfTestWindow,
+  type RuntimeGraphPublicationProbeSnapshot
+} from './runtime-graph-publication-probe'
 
 const BENCH_ENABLED = process.env.MANTA_TYPING_BENCH === '1'
 
@@ -101,6 +108,12 @@ const PTY_METADATA = process.env.ORCA_TYPING_BENCH_PTY_METADATA === '1'
 const BENCH_LABEL = process.env.MANTA_TYPING_BENCH_LABEL ?? 'dev'
 // Request optional probes by default; the report records when the build does not install them.
 const BENCH_INSTRUMENTATION_REQUESTED = process.env.ORCA_TYPING_BENCH_INSTRUMENTATION !== '0'
+// Diagnostic only: patching main's invoke handler is observer overhead, so keep it out of acceptance runs.
+const GRAPH_PROBE_REQUESTED = process.env.ORCA_TYPING_BENCH_GRAPH_PROBE === '1'
+const GRAPH_PROBE_SELF_TEST_MS = readPositiveInt('ORCA_TYPING_BENCH_GRAPH_PROBE_SELFTEST_MS', 0)
+// Estimates a slower single core. Applied only around the typing window: throttling setup would
+// change what the fixture manages to build, not just how fast the measured window runs.
+const CPU_THROTTLE_RATE = readPositiveInt('ORCA_TYPING_BENCH_CPU_THROTTLE', 1)
 
 // Load must outlive setup (pane splits, worktree switches) plus the typing
 // window; generously padded because setup time varies with pane count.
@@ -156,10 +169,55 @@ function spawnCpuPressureWorkers(): ChildProcess[] {
   )
 }
 
+/** Rate 1 is a no-op, so an unthrottled run opens no CDP session at all. */
+async function withRendererCpuThrottle<T>(
+  page: Page,
+  rate: number,
+  run: () => Promise<T>
+): Promise<{ result: T; appliedRate: number }> {
+  if (rate <= 1) {
+    return { result: await run(), appliedRate: 1 }
+  }
+  const session = await page.context().newCDPSession(page)
+  try {
+    await session.send('Emulation.setCPUThrottlingRate', { rate })
+    return { result: await run(), appliedRate: rate }
+  } finally {
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 1 }).catch(() => {})
+    await session.detach().catch(() => {})
+  }
+}
+
+/** Carries the conditions the window ran under, so the report cannot invent them. */
+type TypingWindowMeasurement = {
+  measurement: PacedTypingMeasurement
+  appliedCpuThrottleRate: number
+}
+
+/**
+ * The only way to obtain a measurement writeBenchReport will accept: a scenario
+ * that skips the throttle cannot then report one.
+ */
+async function measureTypingWindow(
+  page: Page,
+  runId: string,
+  sidecarPath: string
+): Promise<TypingWindowMeasurement> {
+  const { result, appliedRate } = await withRendererCpuThrottle(page, CPU_THROTTLE_RATE, () =>
+    withTypingRendererCpuProfile(page, process.env.ORCA_TYPING_BENCH_CPU_PROFILE, () =>
+      measurePacedTyping(page, runId, sidecarPath, {
+        keyCount: KEY_COUNT,
+        keyCadenceMs: KEY_CADENCE_MS
+      })
+    )
+  )
+  return { measurement: result, appliedCpuThrottleRate: appliedRate }
+}
+
 function writeBenchReport(
   testInfo: TestInfo,
   scenario: string,
-  measurement: PacedTypingMeasurement,
+  measured: TypingWindowMeasurement,
   scheduler: SchedulerDebugSnapshot | null,
   mainDelivery: MainDeliveryDebugSnapshot | null,
   instrumentation?: unknown,
@@ -168,8 +226,10 @@ function writeBenchReport(
   statusIngressValidation?: AccumulatedStatusIngressValidation | null,
   scaleCensus?: unknown,
   accumulatedFixture?: unknown,
-  ptyWorkload?: unknown
+  ptyWorkload?: unknown,
+  graphProbe?: RuntimeGraphPublicationProbeSnapshot | null
 ): void {
+  const { measurement, appliedCpuThrottleRate } = measured
   const report = {
     benchmark: 'multi-workspace-typing-latency',
     label: BENCH_LABEL,
@@ -208,6 +268,9 @@ function writeBenchReport(
         100
       ),
       instrumentationRequested: BENCH_INSTRUMENTATION_REQUESTED,
+      graphProbeRequested: GRAPH_PROBE_REQUESTED,
+      // What this scenario actually ran under, not what the flag requested.
+      cpuThrottleRate: appliedCpuThrottleRate,
       statusTrafficModel: PTY_METADATA
         ? 'pty-osc-through-runtime-and-ipc-bridge'
         : 'electron-ipc-burst-through-production-bridge'
@@ -221,7 +284,8 @@ function writeBenchReport(
     statusIngressValidation: statusIngressValidation ?? null,
     scaleCensus: scaleCensus ?? null,
     accumulatedFixture: accumulatedFixture ?? null,
-    ptyWorkload: ptyWorkload ?? null
+    ptyWorkload: ptyWorkload ?? null,
+    graphProbe: graphProbe ?? null
   }
   mkdirSync(RESULTS_DIR, { recursive: true })
   const stamp = report.timestamp.replace(/[:.]/g, '-')
@@ -320,19 +384,12 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
     try {
       await resetDeliveryDebug(mantaPage)
       await startTypingProbe(mantaPage, typingPtyId, probePath, runId)
-      const measurement = await withTypingRendererCpuProfile(
-        mantaPage,
-        process.env.ORCA_TYPING_BENCH_CPU_PROFILE,
-        () =>
-          measurePacedTyping(mantaPage, runId, sidecarPath, {
-            keyCount: KEY_COUNT,
-            keyCadenceMs: KEY_CADENCE_MS
-          })
-      )
+      const measured = await measureTypingWindow(mantaPage, runId, sidecarPath)
+      const { measurement } = measured
       writeBenchReport(
         testInfo,
         'baseline',
-        measurement,
+        measured,
         await readSchedulerDebug(mantaPage),
         await readMainDeliveryDebug(mantaPage)
       )
@@ -372,6 +429,8 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
     let titleWorkload: { registeredTabs: number; registeredPanes: number } | null = null
     let statusTrafficStarted = false
     let instrumentationAvailable = false
+    let graphProbeStart: { main: string; renderer: string } | null = null
+    let graphProbeSelfTest: RendererLongTaskSelfTestWindow | null = null
     let statusIngressValidation: AccumulatedStatusIngressValidation | null = null
     try {
       await switchToWorktree(mantaPage, loadWorktreeId)
@@ -425,6 +484,16 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
       if (BENCH_INSTRUMENTATION_REQUESTED) {
         instrumentationAvailable = await startAccumulatedBenchmarkInstrumentation(mantaPage)
       }
+      if (GRAPH_PROBE_REQUESTED) {
+        graphProbeStart = await startRuntimeGraphPublicationProbe(electronApp, mantaPage)
+        if (GRAPH_PROBE_SELF_TEST_MS > 0) {
+          graphProbeSelfTest = await injectRendererLongTaskSelfTest(
+            mantaPage,
+            GRAPH_PROBE_SELF_TEST_MS
+          )
+        }
+        console.log(`[multi-workspace-typing] graph probe: ${JSON.stringify(graphProbeStart)}`)
+      }
       if (statusTrafficEnabled) {
         const statusTraffic = await startAccumulatedStatusTraffic(
           electronApp,
@@ -466,15 +535,8 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
           .toBe(LOAD_PANES)
       }
       await startTypingProbe(mantaPage, typingPtyId, probePath, runId)
-      const measurement = await withTypingRendererCpuProfile(
-        mantaPage,
-        process.env.ORCA_TYPING_BENCH_CPU_PROFILE,
-        () =>
-          measurePacedTyping(mantaPage, runId, sidecarPath, {
-            keyCount: KEY_COUNT,
-            keyCadenceMs: KEY_CADENCE_MS
-          })
-      )
+      const measured = await measureTypingWindow(mantaPage, runId, sidecarPath)
+      const { measurement } = measured
       const statusWorkload = statusTrafficStarted
         ? await stopAccumulatedStatusTraffic(electronApp, mantaPage)
         : null
@@ -491,10 +553,19 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
         ? await stopAccumulatedBenchmarkInstrumentation(mantaPage)
         : { available: false as const, reason: 'disabled' as const, snapshot: null }
       instrumentationAvailable = false
+      const graphProbe = graphProbeStart
+        ? await stopRuntimeGraphPublicationProbe(
+            electronApp,
+            mantaPage,
+            graphProbeStart,
+            graphProbeSelfTest
+          )
+        : null
+      graphProbeStart = null
       writeBenchReport(
         testInfo,
         `hidden-load-${LOAD_PANES}x${LOAD_RATE_KBPS}kbps-cpu${CPU_WORKERS}`,
-        measurement,
+        measured,
         await readSchedulerDebug(mantaPage),
         await readMainDeliveryDebug(mantaPage),
         instrumentation,
@@ -527,7 +598,8 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
               ).length
             }
           })
-        }
+        },
+        graphProbe
       )
       const screenDirectory = path.resolve('.tmp', 'typing-reproduction')
       mkdirSync(screenDirectory, { recursive: true })
@@ -541,6 +613,14 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
     } finally {
       if (instrumentationAvailable) {
         await stopAccumulatedBenchmarkInstrumentation(mantaPage).catch(() => undefined)
+      }
+      if (graphProbeStart) {
+        await stopRuntimeGraphPublicationProbe(
+          electronApp,
+          mantaPage,
+          graphProbeStart,
+          graphProbeSelfTest
+        ).catch(() => undefined)
       }
       if (statusTrafficStarted) {
         await stopAccumulatedStatusTraffic(electronApp, mantaPage)
@@ -593,19 +673,12 @@ test.describe('Multi-workspace sustained typing latency bench', () => {
 
       await resetDeliveryDebug(mantaPage)
       await startTypingProbe(mantaPage, typingPane.ptyId, probePath, runId)
-      const measurement = await withTypingRendererCpuProfile(
-        mantaPage,
-        process.env.ORCA_TYPING_BENCH_CPU_PROFILE,
-        () =>
-          measurePacedTyping(mantaPage, runId, sidecarPath, {
-            keyCount: KEY_COUNT,
-            keyCadenceMs: KEY_CADENCE_MS
-          })
-      )
+      const measured = await measureTypingWindow(mantaPage, runId, sidecarPath)
+      const { measurement } = measured
       writeBenchReport(
         testInfo,
         `visible-split-${LOAD_RATE_KBPS}kbps-cpu${CPU_WORKERS}`,
-        measurement,
+        measured,
         await readSchedulerDebug(mantaPage),
         await readMainDeliveryDebug(mantaPage)
       )
