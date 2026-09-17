@@ -134,6 +134,77 @@ export type AgentLaunchModeReceipt = {
   detail: string
 }
 
+/**
+ * Narrows a launch result read back from durable storage.
+ *
+ * Lives beside the type rather than in the store so the two cannot drift: a field added above and
+ * not checked here is a field a replay can hand back unvalidated. Every optional field is checked
+ * when present and ignored when absent, so a row written by an older host still reads.
+ */
+export function isAgentLaunchResult(value: unknown): value is AgentLaunchResult {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: narrowing an unknown for field-by-field validation; every field read below is checked before use.
+  const result = value as Partial<AgentLaunchResult>
+  return (
+    isAgentLaunchOutcome(result.outcome) &&
+    typeof result.worktreeId === 'string' &&
+    isAgentLaunchModeReceipt(result.receipt) &&
+    (result.warning === undefined || typeof result.warning === 'string') &&
+    (result.prompt === undefined || isAgentLaunchPromptReceipt(result.prompt))
+  )
+}
+
+function isAgentLaunchPromptReceipt(value: unknown): value is AgentLaunchPromptReceipt {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  if (!('delivery' in value) || !isAgentLaunchPromptDelivery(value.delivery)) {
+    return false
+  }
+  if (!('outcome' in value)) {
+    return false
+  }
+  return value.outcome === 'journaled'
+    ? 'messageId' in value && typeof value.messageId === 'string'
+    : value.outcome === 'handed-to-terminal' || value.outcome === 'not-delivered'
+}
+
+function isAgentLaunchOutcome(value: unknown): value is AgentLaunchOutcome {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the assertion claims only that the keys may be present and unknown, which is true of any object.
+  const outcome = value as { kind?: unknown; handle?: unknown; sessionId?: unknown }
+  if (typeof outcome.handle !== 'string' || outcome.handle.length === 0) {
+    return false
+  }
+  return outcome.kind === 'terminal'
+    ? true
+    : outcome.kind === 'structured' &&
+        typeof outcome.sessionId === 'string' &&
+        outcome.sessionId.length > 0
+}
+
+function isAgentLaunchModeReceipt(value: unknown): value is AgentLaunchModeReceipt {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: narrowing an unknown for field-by-field validation; every field read below is checked before use.
+  const receipt = value as Partial<AgentLaunchModeReceipt>
+  return (
+    (receipt.mode === 'structured' || receipt.mode === 'terminal') &&
+    (receipt.preferred === 'structured' || receipt.preferred === 'terminal') &&
+    typeof receipt.reason === 'string' &&
+    typeof receipt.detail === 'string'
+  )
+}
+
+function isAgentLaunchPromptDelivery(value: unknown): value is AgentLaunchPromptDelivery {
+  return value === 'submit' || value === 'draft'
+}
+
 export function agentLaunchTargetIsCreate(
   target: AgentLaunchTarget
 ): target is Extract<AgentLaunchTarget, { kind: 'create-worktree' }> {
