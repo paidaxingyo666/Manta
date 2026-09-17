@@ -60,6 +60,10 @@ locals {
     control_renewal_latency_ms_p50     = { field = "controlRenewalLatencyMsP50", description = "Control renewal latency p50 in the interval." }
     control_renewal_latency_ms_p95     = { field = "controlRenewalLatencyMsP95", description = "Control renewal latency p95 in the interval." }
     control_renewal_latency_ms_max     = { field = "controlRenewalLatencyMsMax", description = "Maximum control renewal latency in the interval." }
+    control_renewal_flushes            = { field = "controlRenewalFlushesDelta", description = "Batched control-renewal statements issued in the interval, one per cell per flush window." }
+    control_renewal_flush_rows_max     = { field = "controlRenewalFlushRowsMax", description = "Largest number of hosts renewed by a single statement in the interval; the row ceiling is what bounds how long one flush holds its row locks." }
+    control_renewal_flush_ms_p95       = { field = "controlRenewalFlushLatencyMsP95", description = "Batched control-renewal statement duration p95 in the interval. Row locks live until the statement commits, so this is the lock hold." }
+    control_renewal_flush_ms_max       = { field = "controlRenewalFlushLatencyMsMax", description = "Maximum batched control-renewal statement duration in the interval." }
     control_renewals                   = { field = "controlRenewalsDelta", description = "Control renewal attempts in the interval." }
     control_renewal_successes          = { field = "controlRenewalSuccessesDelta", description = "Successful control renewals in the interval." }
     control_renewal_lease_misses       = { field = "controlRenewalLeaseMissesDelta", description = "Control renewals that found their activity lease missing." }
