@@ -138,7 +138,8 @@ export const INCIDENT_MONITOR_THRESHOLDS = {
   // worst two, so a cell's probe must fail more than this many consecutive samples
   // before it freezes the run. The streak is per cell, not per signal, so a cell
   // that alternates between slow and unanswered still accumulates one. This applies
-  // only to per-cell probes; the director and auth probes stay at zero tolerance.
+  // to per-cell probes and the director instance count; the director and auth health
+  // probes stay at zero tolerance.
   cellProbeToleranceSamples: 2
 } as const
 
@@ -247,8 +248,9 @@ export type IncidentMonitorState = {
   }[]
   frozenAt: string | null
   failures: IncidentFailure[]
-  // Consecutive samples each cell's probe has currently been failing for, keyed by
-  // cell so its health, ready and latency readings share one streak.
+  // Consecutive samples each tolerated reading has currently been failing for,
+  // keyed by cell so its health, ready and latency readings share one streak, and
+  // by signal for the director instance count.
   probeStreaks: Record<string, number>
   // Cell-probe breaches absorbed by the tolerance, kept so a green artifact still
   // shows what the gate chose not to freeze on.
@@ -743,6 +745,26 @@ export function cellProbeStreakKey(failure: IncidentFailure): string | null {
   return `${failure.source}/${signal.slice(0, lastDot)}`
 }
 
+// Cloud Run replaces director instances in place rather than holding the count,
+// so the reading leaves [min, max] for about one sample roughly twice a day, and a
+// deploy that briefly serves two revisions raises it the same way. Neither is an
+// unhealthy fleet, and on 2026-09-17 this was one of the signals freezing the
+// pre-drain gate on a condition the roll exists to fix. Min and max share one
+// streak on purpose: a count that alternates above and below the band would
+// otherwise hold each individual streak at one and never reach the tolerance.
+export function directorInstancesStreakKey(failure: IncidentFailure): string | null {
+  if (failure.source !== 'cloud-monitoring' || failure.signal !== 'director.instances') {
+    return null
+  }
+  return `${failure.source}/${failure.signal}`
+}
+
+// The streak key for any reading subject to cellProbeToleranceSamples, or null
+// for a reading that freezes the run on its first bad sample.
+export function toleratedStreakKey(failure: IncidentFailure): string | null {
+  return cellProbeStreakKey(failure) ?? directorInstancesStreakKey(failure)
+}
+
 // Rebuild the per-signal tolerated streak from the trailing continuity events so a
 // resumed monitor cannot hand a signal a fresh budget.
 function resumeFreshnessStreaks(
@@ -911,7 +933,7 @@ export async function runIncidentMonitor(
     }
     const probeFailures = new Map<string, IncidentFailure[]>()
     for (const failure of thresholdFailures) {
-      const key = cellProbeStreakKey(failure)
+      const key = toleratedStreakKey(failure)
       if (key === null) continue
       probeFailures.set(key, [...(probeFailures.get(key) ?? []), failure])
     }
@@ -937,7 +959,7 @@ export async function runIncidentMonitor(
       })
     }
     const freezingFailures = [
-      ...thresholdFailures.filter((failure) => cellProbeStreakKey(failure) === null),
+      ...thresholdFailures.filter((failure) => toleratedStreakKey(failure) === null),
       ...sustainedProbeFailures
     ]
     if (freezingFailures.length > 0) {

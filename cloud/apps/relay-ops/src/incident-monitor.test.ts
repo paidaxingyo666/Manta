@@ -1460,3 +1460,176 @@ describe('incident monitor cell probe tolerance', () => {
     )
   })
 })
+
+// Why: Cloud Run replaces director instances in place, so the count leaves the
+// [5, 6] band for about one sample roughly twice a day, and a deploy overlap
+// raises it the same way. Neither is an unhealthy fleet, and freezing on it
+// blocks the roll that fixes the measured condition.
+describe('incident monitor director instance tolerance', () => {
+  const dryRunState = () =>
+    initialIncidentMonitorState({
+      incidentId: 'incident-1',
+      environment: 'production',
+      expectedSelector: selector,
+      preDrainDryRun: true,
+      migrationPolicy: 'strict',
+      recoverySourceCellId: null,
+      capacityCellId: null,
+      startedAt: new Date(startedAt).toISOString(),
+      durationMinutes: 15,
+      intervalMs: 60_000
+    })
+
+  // Finished state of a 15-minute dry run whose director instance count reads
+  // `counts[index]` on the sample indexes that map has, and 5 everywhere else.
+  const runWithInstanceCounts = async (
+    counts: Map<number, number>,
+    state = dryRunState()
+  ) => {
+    let now = startedAt
+    let index = -1
+    return await runIncidentMonitor(state, {
+      now: () => now,
+      wait: async (ms) => {
+        now += ms
+      },
+      collect: async () => {
+        index++
+        const sample = healthySample(now)
+        const count = counts.get(index)
+        if (count !== undefined) {
+          sample.sources['cloud-monitoring']!.signals['director.instances'] =
+            signal(count, now)
+        }
+        return sample
+      },
+      persist: async () => {},
+      checkpoint: async () => {}
+    })
+  }
+
+  it('passes a dry run through an instance dip no longer than the tolerance', async () => {
+    const tolerance = INCIDENT_MONITOR_THRESHOLDS.cellProbeToleranceSamples
+    const result = await runWithInstanceCounts(
+      new Map(Array.from({ length: tolerance }, (_, offset) => [3 + offset, 2]))
+    )
+    expect(result.frozenAt).toBeNull()
+    expect(result.failures).toEqual([])
+    expect(preDrainDryRunPassed(result)).toBe(true)
+    // Absorbed, not hidden: the sealed state still carries the dip.
+    expect(result.toleratedProbeEvents).toHaveLength(tolerance)
+    expect(result.toleratedProbeEvents[0]!.failures).toContainEqual(
+      expect.objectContaining({
+        code: 'threshold_min',
+        source: 'cloud-monitoring',
+        signal: 'director.instances',
+        observed: 2,
+        threshold: INCIDENT_MONITOR_THRESHOLDS.directorInstancesMin
+      })
+    )
+    expect(result.probeStreaks).toEqual({})
+  })
+
+  it('passes a dry run through a deploy-overlap overshoot within the tolerance', async () => {
+    const tolerance = INCIDENT_MONITOR_THRESHOLDS.cellProbeToleranceSamples
+    const result = await runWithInstanceCounts(
+      new Map(Array.from({ length: tolerance }, (_, offset) => [3 + offset, 9]))
+    )
+    expect(result.frozenAt).toBeNull()
+    expect(preDrainDryRunPassed(result)).toBe(true)
+    expect(result.toleratedProbeEvents[0]!.failures).toContainEqual(
+      expect.objectContaining({
+        code: 'threshold_max',
+        signal: 'director.instances',
+        observed: 9,
+        threshold: INCIDENT_MONITOR_THRESHOLDS.directorInstancesMax
+      })
+    )
+  })
+
+  it('freezes once the instance count stays out of band past the tolerance', async () => {
+    const tolerance = INCIDENT_MONITOR_THRESHOLDS.cellProbeToleranceSamples
+    const result = await runWithInstanceCounts(
+      new Map(Array.from({ length: tolerance + 1 }, (_, offset) => [3 + offset, 2]))
+    )
+    expect(result.frozenAt).not.toBeNull()
+    expect(preDrainDryRunPassed(result)).toBe(false)
+    expect(result.failures).toContainEqual(
+      expect.objectContaining({
+        code: 'threshold_min',
+        source: 'cloud-monitoring',
+        signal: 'director.instances',
+        observed: 2
+      })
+    )
+    expect(result.toleratedProbeEvents).toHaveLength(tolerance)
+  })
+
+  it('does not accumulate a streak across a recovered sample', async () => {
+    const spaced = new Map([2, 4, 6, 8, 10].map((index) => [index, 2] as const))
+    expect(spaced.size).toBeGreaterThan(
+      INCIDENT_MONITOR_THRESHOLDS.cellProbeToleranceSamples
+    )
+    const result = await runWithInstanceCounts(new Map(spaced))
+    expect(result.frozenAt).toBeNull()
+    expect(preDrainDryRunPassed(result)).toBe(true)
+  })
+
+  // Why min and max share one streak: a count that alternates above and below
+  // the band would otherwise hold each streak at one and never freeze, yet the
+  // director is never at its configured size.
+  it('freezes on a count that alternates above and below the band', async () => {
+    const counts = new Map<number, number>()
+    for (let index = 2; index < 12; index += 1) {
+      counts.set(index, index % 2 === 0 ? 2 : 9)
+    }
+    const result = await runWithInstanceCounts(counts)
+    expect(result.frozenAt).not.toBeNull()
+    expect(preDrainDryRunPassed(result)).toBe(false)
+  })
+
+  // Why: the streak lives in the state file, so a resumed run must not hand a
+  // director that was already out of band a fresh budget.
+  it('freezes immediately when a resumed state carries a full streak', async () => {
+    const result = await runWithInstanceCounts(new Map([[0, 2]]), {
+      ...dryRunState(),
+      lastSampleAt: new Date(startedAt).toISOString(),
+      probeStreaks: {
+        'cloud-monitoring/director.instances':
+          INCIDENT_MONITOR_THRESHOLDS.cellProbeToleranceSamples
+      }
+    })
+    expect(result.frozenAt).toBe(new Date(startedAt).toISOString())
+    expect(result.toleratedProbeEvents).toEqual([])
+    expect(result.failures).toContainEqual(
+      expect.objectContaining({ signal: 'director.instances' })
+    )
+  })
+
+  it('keeps every other cloud-monitoring signal at zero tolerance', async () => {
+    let now = startedAt
+    let index = -1
+    const result = await runIncidentMonitor(dryRunState(), {
+      now: () => now,
+      wait: async (ms) => {
+        now += ms
+      },
+      collect: async () => {
+        index++
+        const sample = healthySample(now)
+        if (index === 3) {
+          sample.sources['cloud-monitoring']!.signals['cloud_sql.cpu'] = signal(0.99, now)
+        }
+        return sample
+      },
+      persist: async () => {},
+      checkpoint: async () => {}
+    })
+    expect(result.frozenAt).not.toBeNull()
+    expect(result.toleratedProbeEvents).toEqual([])
+    expect(result.failures).toContainEqual(
+      expect.objectContaining({ source: 'cloud-monitoring', signal: 'cloud_sql.cpu' })
+    )
+  })
+})
+
