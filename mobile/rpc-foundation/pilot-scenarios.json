@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "01a1b6b024f6664c110e9ae50717ef4880fd8d82",
+  "baseline": "8931fa5f9fd7608d3e0a42a2c458bd08baee91f3",
   "scenarios": [
     {
       "id": "b1",
@@ -7848,6 +7848,37 @@
                 }
               ]
             }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "worktree-catalog-snapshot-unreadable",
+      "operation": "worktree.catalog-snapshot",
+      "version": 1,
+      "family": "worktree.catalog-snapshot",
+      "sites": ["mobile/src/worktree/worktree-catalog-snapshot-client.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "fetch",
+          "id": "fetch"
+        },
+        {
+          "checkpoint": "catalog-pending"
+        },
+        {
+          "complete": "worktree.ps#1",
+          "params": {
+            "limit": 10000,
+            "supportsWorktreeVisibilitySourceDefaults": true,
+            "afterSnapshotId": null
+          },
+          "reply": {
+            "ok": true
           }
         },
         {
@@ -19750,6 +19781,129 @@
         },
         {
           "checkpoint": "accepted"
+        }
+      ]
+    },
+    {
+      "id": "notifications-display-test-not-registered",
+      "operation": "notifications.display-test-screen",
+      "version": 1,
+      "family": "notifications.display-test-screen",
+      "sites": ["mobile/src/settings/notification-display-test.tsx"],
+      "schedules": [],
+      "deviceStore": {
+        "manta:hosts": "[{\"id\":\"host-1\",\"name\":\"Desk\",\"endpoint\":\"ws://desk.local:7777\",\"publicKeyB64\":\"AAAA\",\"lastConnected\":1700000000000}]"
+      },
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "mounted"
+        },
+        {
+          "action": "send-test",
+          "id": "press"
+        },
+        {
+          "checkpoint": "sending"
+        },
+        {
+          "complete": "notifications.testPush#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "accepted": false,
+              "reason": "not_registered"
+            }
+          }
+        },
+        {
+          "checkpoint": "not-registered"
+        }
+      ]
+    },
+    {
+      "id": "notifications-display-test-rate-limited",
+      "operation": "notifications.display-test-screen",
+      "version": 1,
+      "family": "notifications.display-test-screen",
+      "sites": ["mobile/src/settings/notification-display-test.tsx"],
+      "schedules": [],
+      "deviceStore": {
+        "manta:hosts": "[{\"id\":\"host-1\",\"name\":\"Desk\",\"endpoint\":\"ws://desk.local:7777\",\"publicKeyB64\":\"AAAA\",\"lastConnected\":1700000000000}]"
+      },
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "mounted"
+        },
+        {
+          "action": "send-test",
+          "id": "press"
+        },
+        {
+          "checkpoint": "sending"
+        },
+        {
+          "complete": "notifications.testPush#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "accepted": false,
+              "reason": "rate_limited"
+            }
+          }
+        },
+        {
+          "checkpoint": "rate-limited"
+        }
+      ]
+    },
+    {
+      "id": "notifications-display-test-unknown-reason",
+      "operation": "notifications.display-test-screen",
+      "version": 1,
+      "family": "notifications.display-test-screen",
+      "sites": ["mobile/src/settings/notification-display-test.tsx"],
+      "schedules": [],
+      "deviceStore": {
+        "manta:hosts": "[{\"id\":\"host-1\",\"name\":\"Desk\",\"endpoint\":\"ws://desk.local:7777\",\"publicKeyB64\":\"AAAA\",\"lastConnected\":1700000000000}]"
+      },
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "checkpoint": "mounted"
+        },
+        {
+          "action": "send-test",
+          "id": "press"
+        },
+        {
+          "checkpoint": "sending"
+        },
+        {
+          "complete": "notifications.testPush#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "accepted": false,
+              "reason": "quota_exceeded"
+            }
+          }
+        },
+        {
+          "checkpoint": "unknown-reason"
         }
       ]
     },

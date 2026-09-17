@@ -131,9 +131,11 @@ describe('unchecked RPC reader boundary', () => {
 
   it('scans a plausible number of files', () => {
     // A broken root or extension filter would make every check below vacuously pass. The floor on
-    // the offender count comes down with the list, so a successful migration step does not fail it.
+    // the offender count comes down with the list, so a successful migration step does not fail it:
+    // step 7's notifications/components/terminal/transport/home/worktree/browser batch took the
+    // list from 29 files to 16 and this floor from 20 to 10.
     expect(scanned.length).toBeGreaterThan(400)
-    expect(observed.size).toBeGreaterThan(20)
+    expect(observed.size).toBeGreaterThan(10)
   })
 
   it('lists each file once', () => {

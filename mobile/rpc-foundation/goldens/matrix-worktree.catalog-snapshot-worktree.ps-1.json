@@ -3,7 +3,7 @@
   "family": "worktree.catalog-snapshot",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "01a1b6b024f6664c110e9ae50717ef4880fd8d82",
+  "baseline": "8931fa5f9fd7608d3e0a42a2c458bd08baee91f3",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "d4fa125899cd863c03dbf96657d46b8c7d6c0ccf522b342bc4f164ed1e3becfe",
   "adapterSha256": "4e942ddfbaa0ba6bfc2993969276987f6528ac53765d125e99a830e261f93a8e",
@@ -249,6 +249,17 @@
           "client": "logical-client",
           "hostId": "host-1"
         }
+      }
+    },
+    "7fb1c6f9f3ae": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (worktree.ps)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
       }
     },
     "8e2c2fbe7e94": {
@@ -639,9 +650,9 @@
           "sender": ["bb43258baffa"],
           "payloads": ["b63e233c7e15"],
           "settlements": {
-            "fetch": "3ef9b57ea9ad"
+            "fetch": "7fb1c6f9f3ae"
           },
-          "state": "50c4271e912d",
+          "state": "253b98015b8d",
           "effects": []
         }
       },
@@ -651,9 +662,9 @@
           "sender": ["b2f5e4b6fd8b"],
           "payloads": ["b63e233c7e15"],
           "settlements": {
-            "fetch": "3ef9b57ea9ad"
+            "fetch": "7fb1c6f9f3ae"
           },
-          "state": "50c4271e912d",
+          "state": "253b98015b8d",
           "effects": []
         }
       },
