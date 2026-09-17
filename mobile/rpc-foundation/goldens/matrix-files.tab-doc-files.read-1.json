@@ -3,7 +3,7 @@
   "family": "files.tab-doc",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "1d8cf6624653d15b5b32bd2871d4d93739d4092a06f10dab24a795702422bb31",
   "adapterSha256": "b93fc8b6f1ece041acaa8cc5699852085e67d7e2f39db13145e483f854ea3309",
@@ -232,24 +232,6 @@
         }
       }
     },
-    "5a33eeedb90f": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "byteLength": {
-          "$rpc": "undefined"
-        },
-        "content": {
-          "$rpc": "undefined"
-        },
-        "kind": "file",
-        "status": "ready",
-        "truncated": {
-          "$rpc": "undefined"
-        }
-      }
-    },
     "786a079aa332": {
       "name": "files.read#1",
       "ordinal": 1,
@@ -394,16 +376,6 @@
         }
       }
     },
-    "a7c7f43265d5": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of null (reading 'content')",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "a947768bc0ed": {
       "status": "rejected",
       "startedAt": 0,
@@ -433,16 +405,6 @@
       "error": {
         "category": "Error",
         "message": "Unknown method",
-        "isRpcDeliveryUnknown": false
-      }
-    },
-    "ba9332ae7bb1": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of undefined (reading 'content')",
         "isRpcDeliveryUnknown": false
       }
     },
@@ -620,43 +582,6 @@
         "isRpcDeliveryUnknown": false
       }
     },
-    "fb58498a8798": {
-      "diff": {
-        "kind": "diff",
-        "lines": [
-          {
-            "kind": "delete",
-            "oldLineNumber": 1,
-            "text": "a"
-          },
-          {
-            "kind": "add",
-            "newLineNumber": 1,
-            "text": "b"
-          }
-        ],
-        "status": "ready",
-        "truncated": false
-      },
-      "image": {
-        "dataUri": "data:image/png;base64,aGk=",
-        "kind": "image",
-        "status": "ready"
-      },
-      "text": {
-        "byteLength": {
-          "$rpc": "undefined"
-        },
-        "content": {
-          "$rpc": "undefined"
-        },
-        "kind": "file",
-        "status": "ready",
-        "truncated": {
-          "$rpc": "undefined"
-        }
-      }
-    },
     "fcbcdb353528": {
       "name": "files.read#1",
       "ordinal": 1,
@@ -690,6 +615,17 @@
             "error": "refused"
           }
         }
+      }
+    },
+    "fed544a8befe": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (files.read)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
       }
     },
     "ffe1c534d459": {
@@ -738,7 +674,7 @@
           "sender": ["43e3786742e9", "96b863d005b1", "096b0c48dd10"],
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
-            "text": "ba9332ae7bb1",
+            "text": "fed544a8befe",
             "image": "eee847a9d90d",
             "diff": "ffe1c534d459"
           },
@@ -752,7 +688,7 @@
           "sender": ["10dde7cd8f0e", "96b863d005b1", "096b0c48dd10"],
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
-            "text": "a7c7f43265d5",
+            "text": "fed544a8befe",
             "image": "eee847a9d90d",
             "diff": "ffe1c534d459"
           },
@@ -766,11 +702,11 @@
           "sender": ["fcbcdb353528", "96b863d005b1", "096b0c48dd10"],
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
-            "text": "5a33eeedb90f",
+            "text": "fed544a8befe",
             "image": "eee847a9d90d",
             "diff": "ffe1c534d459"
           },
-          "state": "fb58498a8798",
+          "state": "3073ceba86bd",
           "effects": []
         }
       },
@@ -780,11 +716,11 @@
           "sender": ["d7d97e5dac06", "96b863d005b1", "096b0c48dd10"],
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
-            "text": "5a33eeedb90f",
+            "text": "fed544a8befe",
             "image": "eee847a9d90d",
             "diff": "ffe1c534d459"
           },
-          "state": "fb58498a8798",
+          "state": "3073ceba86bd",
           "effects": []
         }
       },
@@ -794,11 +730,11 @@
           "sender": ["072647254b82", "96b863d005b1", "096b0c48dd10"],
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
-            "text": "5a33eeedb90f",
+            "text": "fed544a8befe",
             "image": "eee847a9d90d",
             "diff": "ffe1c534d459"
           },
-          "state": "fb58498a8798",
+          "state": "3073ceba86bd",
           "effects": []
         }
       },

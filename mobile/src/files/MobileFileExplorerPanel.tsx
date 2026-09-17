@@ -16,8 +16,7 @@ import {
   flattenDirectoryCache,
   getDirectoryCacheState,
   type DirectoryCache,
-  type FileExplorerRow,
-  type MobileDirEntry
+  type FileExplorerRow
 } from './file-tree'
 import type { RpcFailure } from '../transport/types'
 import { colors } from '../theme/mobile-theme'
@@ -28,11 +27,7 @@ import {
   resetDirectoryLoadRevisions,
   type DirectoryLoadRevisions
 } from './directory-load-revisions'
-import {
-  directoryCacheFromFileList,
-  isMobileMethodUnavailableError,
-  type LegacyFilesListResult
-} from './file-list-fallback'
+import { directoryCacheFromFileList, isMobileMethodUnavailableError } from './file-list-fallback'
 import { fileDirectoryRead, legacyFileListRead } from './mobile-file-explorer-operations'
 import { fileExplorerStyles as styles } from './mobile-file-explorer-styles'
 import { MobileFileExplorerRow } from './mobile-file-explorer-row'
@@ -134,8 +129,7 @@ export function MobileFileExplorerPanel(props: {
               ) {
                 return
               }
-              // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
-              const legacyResult = legacy.value as LegacyFilesListResult
+              const legacyResult = legacy.value
               setDirectoryCache(directoryCacheFromFileList(legacyResult.files))
               // Why: the capped list silently omits files past the cap — keep
               // the legacy explorer's "Showing first 5000" note.
@@ -156,8 +150,7 @@ export function MobileFileExplorerPanel(props: {
         ) {
           return
         }
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
-        const entries = directory.value as MobileDirEntry[]
+        const entries = directory.value
         if (rootLoad) {
           setLegacyListTruncated(false)
         }

@@ -52,12 +52,7 @@ export function useMobileSessionDocumentReaders(scope: MobileSessionTabApplicati
         if (!fallback.accepted) {
           throw new Error('Unable to read markdown')
         }
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: main cast this payload unread; the shared preview reader hands it back whole.
-        const fileResult = fallback.value as {
-          content: string
-          truncated: boolean
-          byteLength: number
-        }
+        const fileResult = fallback.value
         setMarkdownDocs((prev) =>
           new Map(prev).set(
             tab.id,

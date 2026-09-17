@@ -127,11 +127,19 @@ export const OPERATION_MUTATIONS = {
     before: 'linearConnected: linear?.connected === true',
     after: 'linearConnected: linear !== null'
   },
-  // Reads the host platform from the wrong field of the host.platform result.
+  // Reads the host platform from the wrong field of the host.platform result. Re-anchored where
+  // step 7 moved the read: the hand-rolled `readHostPlatform` became the reply schema's own
+  // projection, so the anchor is that projection. The defect it injects — rows labelled with a
+  // platform the host never reported — is unchanged.
   'repo-metadata-platform': {
-    file: 'use-host-repo-metadata.ts',
-    before: 'const platform = (result as { platform?: unknown } | null)?.platform',
-    after: 'const platform = (result as { hostPlatform?: unknown } | null)?.hostPlatform'
+    file: 'host-screen-reply-schema.ts',
+    before: `  .looseObject({ platform: salvagedOptional('platform', z.enum(NODE_PLATFORM_NAMES)) })
+  .transform((reply) => reply.platform ?? null)`,
+    after: `  .looseObject({
+    platform: salvagedOptional('platform', z.enum(NODE_PLATFORM_NAMES)),
+    hostPlatform: salvagedOptional('hostPlatform', z.enum(NODE_PLATFORM_NAMES))
+  })
+  .transform((reply) => reply.hostPlatform ?? null)`
   },
   // Hydrates the runtime task settings from the envelope rather than the accepted value.
   'task-hydration-envelope': {

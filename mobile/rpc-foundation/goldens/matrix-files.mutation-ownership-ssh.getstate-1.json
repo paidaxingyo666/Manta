@@ -3,7 +3,7 @@
   "family": "files.mutation-ownership",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "1d8cf6624653d15b5b32bd2871d4d93739d4092a06f10dab24a795702422bb31",
   "adapterSha256": "b93fc8b6f1ece041acaa8cc5699852085e67d7e2f39db13145e483f854ea3309",
@@ -353,6 +353,17 @@
         }
       }
     },
+    "c4c200b5bf69": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (ssh.getState)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
+      }
+    },
     "c7584e82c72f": {
       "status": "rejected",
       "startedAt": 0,
@@ -400,16 +411,6 @@
       "ordinal": 4,
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.show\",\"params\":{\"worktree\":\"id:workspace-1\"}}"
     },
-    "ce2b29907ae3": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of null (reading 'state')",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "d08f74d65ee6": {
       "name": "status.get#1",
       "ordinal": 2,
@@ -450,16 +451,6 @@
             "ok": false
           }
         }
-      }
-    },
-    "d954a0a142a5": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of undefined (reading 'state')",
-        "isRpcDeliveryUnknown": false
       }
     },
     "e6c4b2665e65": {
@@ -644,7 +635,7 @@
           "sender": ["e81d3a627ac2", "3cf4416a7928", "0622950ee1c9"],
           "payloads": ["d08f74d65ee6", "c924e7a5a7da", "088efd8ff3f7"],
           "settlements": {
-            "capture": "d954a0a142a5"
+            "capture": "c4c200b5bf69"
           },
           "state": "518ec57c381a",
           "effects": []
@@ -656,7 +647,7 @@
           "sender": ["e81d3a627ac2", "3cf4416a7928", "7fb21c6984cd"],
           "payloads": ["d08f74d65ee6", "c924e7a5a7da", "088efd8ff3f7"],
           "settlements": {
-            "capture": "ce2b29907ae3"
+            "capture": "c4c200b5bf69"
           },
           "state": "518ec57c381a",
           "effects": []

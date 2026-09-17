@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "scenarios": [
     {
       "id": "b1",
@@ -1170,6 +1170,118 @@
             "ok": true,
             "result": {
               "platform": "linux"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "settings-repo-metadata-icons",
+      "operation": "settings.repo-metadata",
+      "version": 1,
+      "family": "settings.repo-metadata",
+      "sites": ["mobile/src/host-screen/use-host-repo-metadata.ts"],
+      "schedules": ["settings-first"],
+      "steps": [
+        {
+          "action": "mount",
+          "id": "mount"
+        },
+        {
+          "action": "load",
+          "id": "load"
+        },
+        {
+          "complete": "repo.list#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "repos": [
+                {
+                  "id": "repo-1",
+                  "displayName": "Lucide",
+                  "badgeColor": "#123456",
+                  "repoIcon": {
+                    "type": "lucide",
+                    "name": "Rocket"
+                  },
+                  "connectionId": null
+                },
+                {
+                  "id": "repo-2",
+                  "displayName": "Emoji",
+                  "repoIcon": {
+                    "type": "emoji",
+                    "emoji": "🐳"
+                  },
+                  "connectionId": "ssh-1"
+                },
+                {
+                  "id": "repo-3",
+                  "displayName": "Avatar",
+                  "repoIcon": {
+                    "type": "image",
+                    "src": "https://github.com/acme.png?size=64",
+                    "source": "github",
+                    "label": "acme/manta"
+                  },
+                  "executionHostId": "ssh:ssh-1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "complete": "ssh.listTargetSummaries#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "targets": [
+                {
+                  "id": "ssh-1",
+                  "label": "SSH"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "settings-pending"
+        },
+        {
+          "complete": "settings.get#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "settings": {
+                "defaultTuiAgent": "codex",
+                "disabledTuiAgents": [],
+                "hostSettingOverrides": {}
+              }
+            }
+          }
+        },
+        {
+          "complete": "host.platform#1",
+          "params": {
+            "$undefined": true
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "platform": "darwin"
             }
           }
         },
@@ -14040,6 +14152,55 @@
       ]
     },
     {
+      "id": "speech-setup-sheet-model-vocabulary",
+      "operation": "speech.setup-sheet",
+      "version": 1,
+      "family": "speech.setup-sheet",
+      "sites": ["mobile/src/dictation/mobile-dictation-setup.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "list",
+          "id": "list"
+        },
+        {
+          "complete": "speech.models.list#1",
+          "params": null,
+          "reply": {
+            "ok": true,
+            "result": {
+              "enabled": true,
+              "selectedModelId": "gpt-4o-transcribe",
+              "dictationMode": "hold",
+              "models": [
+                {
+                  "id": "whisper-small",
+                  "label": "Small",
+                  "provider": "local",
+                  "status": "downloading",
+                  "sizeBytes": 466862080,
+                  "progress": 0.42,
+                  "recommended": true
+                },
+                {
+                  "id": "gpt-4o-transcribe",
+                  "label": "OpenAI",
+                  "provider": "openai",
+                  "status": "ready",
+                  "sizeBytes": null,
+                  "progress": null,
+                  "recommended": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
       "id": "speech-setup-sheet-legacy-desktop",
       "operation": "speech.setup-sheet",
       "version": 1,
@@ -22933,6 +23094,190 @@
         },
         {
           "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-worktree-text-read",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-worktree-text",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "worktree",
+          "id": "load"
+        },
+        {
+          "complete": "files.read#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/readme.md"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "# readme",
+              "truncated": false,
+              "byteLength": 8
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-worktree-image-read",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-worktree-image",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "worktree",
+          "id": "load",
+          "args": {
+            "path": "docs/logo.png"
+          }
+        },
+        {
+          "complete": "files.readPreview#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "relativePath": "docs/logo.png"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "aGk=",
+              "isBinary": true,
+              "isImage": true,
+              "mimeType": "image/png"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "files-preview-artifact-image-read",
+      "operation": "files.preview-load",
+      "version": 1,
+      "family": "files.preview-artifact-image",
+      "sites": ["mobile/src/files/mobile-file-preview-request.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "artifact",
+          "id": "load",
+          "args": {
+            "path": "/logs/shot.png"
+          }
+        },
+        {
+          "complete": "files.readTerminalArtifactPreview#1",
+          "params": {
+            "worktree": "id:workspace-1",
+            "absolutePath": "/logs/shot.png",
+            "grantId": "grant-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "aGk=",
+              "isBinary": true,
+              "isImage": true,
+              "mimeType": "image/png"
+            }
+          }
+        },
+        {
+          "checkpoint": "settled"
+        }
+      ]
+    },
+    {
+      "id": "session-markdown-disk-read",
+      "operation": "session.tab-documents",
+      "version": 1,
+      "family": "session.markdown-disk-fallback",
+      "sites": ["mobile/src/session/use-mobile-session-document-readers.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "markdown",
+          "id": "markdown"
+        },
+        {
+          "complete": "markdown.readTab#1",
+          "params": {
+            "tabId": "tab-md",
+            "worktree": "id:workspace-1"
+          },
+          "reply": {
+            "ok": false,
+            "error": {
+              "code": "renderer_unavailable",
+              "message": "Renderer unavailable"
+            }
+          }
+        },
+        {
+          "complete": "files.read#1",
+          "params": {
+            "relativePath": "docs/readme.md",
+            "worktree": "id:workspace-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "# disk",
+              "truncated": false,
+              "byteLength": 6
+            }
+          }
+        },
+        {
+          "checkpoint": "fell-back"
+        }
+      ]
+    },
+    {
+      "id": "session-markdown-disk-served",
+      "operation": "session.tab-documents",
+      "version": 1,
+      "family": "session.markdown-disk-fallback",
+      "sites": ["mobile/src/session/use-mobile-session-document-readers.ts"],
+      "schedules": [],
+      "steps": [
+        {
+          "action": "markdown",
+          "id": "markdown"
+        },
+        {
+          "complete": "markdown.readTab#1",
+          "params": {
+            "tabId": "tab-md",
+            "worktree": "id:workspace-1"
+          },
+          "reply": {
+            "ok": true,
+            "result": {
+              "content": "# served",
+              "version": "v1",
+              "isDirty": false,
+              "editable": true
+            }
+          }
+        },
+        {
+          "checkpoint": "served"
         }
       ]
     }

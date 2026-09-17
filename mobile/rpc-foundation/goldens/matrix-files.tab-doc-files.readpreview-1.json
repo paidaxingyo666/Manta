@@ -3,7 +3,7 @@
   "family": "files.tab-doc",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "1d8cf6624653d15b5b32bd2871d4d93739d4092a06f10dab24a795702422bb31",
   "adapterSha256": "b93fc8b6f1ece041acaa8cc5699852085e67d7e2f39db13145e483f854ea3309",
@@ -92,16 +92,6 @@
       "name": "files.readPreview#1",
       "ordinal": 4,
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"files.readPreview\",\"params\":{\"worktree\":\"id:workspace-1\",\"relativePath\":\"docs/logo.png\"}}"
-    },
-    "2e3bb1c16607": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of undefined (reading 'isImage')",
-        "isRpcDeliveryUnknown": false
-      }
     },
     "32a7c0ae7918": {
       "status": "rejected",
@@ -279,6 +269,17 @@
         }
       }
     },
+    "79a49cf80ecf": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (files.readPreview)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
+      }
+    },
     "8423ff93fda2": {
       "name": "files.read#1",
       "ordinal": 2,
@@ -453,16 +454,6 @@
         }
       }
     },
-    "c38abcaf69dd": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "binary_file",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "c7584e82c72f": {
       "status": "rejected",
       "startedAt": 0,
@@ -512,16 +503,6 @@
           "id": "frame-2",
           "ok": false
         }
-      }
-    },
-    "d6234620430f": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of null (reading 'isImage')",
-        "isRpcDeliveryUnknown": false
       }
     },
     "ddb0f42d762d": {
@@ -696,7 +677,7 @@
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
             "text": "b5c68b76c498",
-            "image": "2e3bb1c16607",
+            "image": "79a49cf80ecf",
             "diff": "ffe1c534d459"
           },
           "state": "5521ad94c331",
@@ -710,7 +691,7 @@
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
             "text": "b5c68b76c498",
-            "image": "d6234620430f",
+            "image": "79a49cf80ecf",
             "diff": "ffe1c534d459"
           },
           "state": "5521ad94c331",
@@ -724,7 +705,7 @@
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
             "text": "b5c68b76c498",
-            "image": "c38abcaf69dd",
+            "image": "79a49cf80ecf",
             "diff": "ffe1c534d459"
           },
           "state": "5521ad94c331",
@@ -738,7 +719,7 @@
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
             "text": "b5c68b76c498",
-            "image": "c38abcaf69dd",
+            "image": "79a49cf80ecf",
             "diff": "ffe1c534d459"
           },
           "state": "5521ad94c331",
@@ -752,7 +733,7 @@
           "payloads": ["8423ff93fda2", "1f1a0d8f6723", "ca069263339b"],
           "settlements": {
             "text": "b5c68b76c498",
-            "image": "c38abcaf69dd",
+            "image": "79a49cf80ecf",
             "diff": "ffe1c534d459"
           },
           "state": "5521ad94c331",

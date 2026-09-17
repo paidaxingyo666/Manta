@@ -3,7 +3,7 @@
   "family": "settings.resume-metadata",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "1d8cf6624653d15b5b32bd2871d4d93739d4092a06f10dab24a795702422bb31",
   "adapterSha256": "fc73116d95985606fe32f22d3f14f434a6d5cd49219416c9fa0f47f971fa6ff0",
@@ -590,6 +590,17 @@
         }
       }
     },
+    "c884ec49315c": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (projectGroup.list)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
+      }
+    },
     "cabca99619ed": {
       "name": "repo.list#1",
       "ordinal": 6,
@@ -723,7 +734,7 @@
             "1bfeba989b20"
           ],
           "settlements": {
-            "load": "3c70da5d6d8e"
+            "load": "c884ec49315c"
           },
           "state": "44136fa355b3",
           "effects": []
@@ -771,7 +782,7 @@
             "1bfeba989b20"
           ],
           "settlements": {
-            "load": "3c70da5d6d8e"
+            "load": "c884ec49315c"
           },
           "state": "44136fa355b3",
           "effects": []

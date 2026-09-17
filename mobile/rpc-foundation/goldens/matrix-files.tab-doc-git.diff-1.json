@@ -3,7 +3,7 @@
   "family": "files.tab-doc",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "6142657d7ad4af81cb4449176048edadef10db45",
+  "baseline": "5052501588f2878224b6dfef58ac3d9eb8c8a285",
   "lockfileSha256": "4568633356187895ccda8e2ff83245c37d5621832c69e268733733b6947971e3",
   "recorderSha256": "1d8cf6624653d15b5b32bd2871d4d93739d4092a06f10dab24a795702422bb31",
   "adapterSha256": "b93fc8b6f1ece041acaa8cc5699852085e67d7e2f39db13145e483f854ea3309",
@@ -177,26 +177,6 @@
         "isRpcDeliveryUnknown": false
       }
     },
-    "3a9e5c87d18b": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of undefined (reading 'kind')",
-        "isRpcDeliveryUnknown": false
-      }
-    },
-    "559c313a79f9": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "TypeError",
-        "message": "Cannot read properties of null (reading 'kind')",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "6b721f327587": {
       "name": "git.diff#1",
       "ordinal": 5,
@@ -234,6 +214,17 @@
       "name": "files.read#1",
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"files.read\",\"params\":{\"worktree\":\"id:workspace-1\",\"relativePath\":\"docs/readme.md\"}}"
+    },
+    "8692c1e96521": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "RpcIncompatibleReplyError",
+        "message": "The host sent a reply this app could not read (git.diff)",
+        "isRpcDeliveryUnknown": false,
+        "code": "incompatible_reply"
+      }
     },
     "96b863d005b1": {
       "name": "files.readPreview#1",
@@ -374,16 +365,6 @@
       "error": {
         "category": "Error",
         "message": "Unknown method",
-        "isRpcDeliveryUnknown": false
-      }
-    },
-    "c38abcaf69dd": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "binary_file",
         "isRpcDeliveryUnknown": false
       }
     },
@@ -695,7 +676,7 @@
           "settlements": {
             "text": "b5c68b76c498",
             "image": "eee847a9d90d",
-            "diff": "3a9e5c87d18b"
+            "diff": "8692c1e96521"
           },
           "state": "e3995cc146f1",
           "effects": []
@@ -709,7 +690,7 @@
           "settlements": {
             "text": "b5c68b76c498",
             "image": "eee847a9d90d",
-            "diff": "559c313a79f9"
+            "diff": "8692c1e96521"
           },
           "state": "e3995cc146f1",
           "effects": []
@@ -723,7 +704,7 @@
           "settlements": {
             "text": "b5c68b76c498",
             "image": "eee847a9d90d",
-            "diff": "c38abcaf69dd"
+            "diff": "8692c1e96521"
           },
           "state": "e3995cc146f1",
           "effects": []
@@ -737,7 +718,7 @@
           "settlements": {
             "text": "b5c68b76c498",
             "image": "eee847a9d90d",
-            "diff": "c38abcaf69dd"
+            "diff": "8692c1e96521"
           },
           "state": "e3995cc146f1",
           "effects": []
@@ -751,7 +732,7 @@
           "settlements": {
             "text": "b5c68b76c498",
             "image": "eee847a9d90d",
-            "diff": "c38abcaf69dd"
+            "diff": "8692c1e96521"
           },
           "state": "e3995cc146f1",
           "effects": []

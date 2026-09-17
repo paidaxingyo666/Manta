@@ -73,8 +73,12 @@ const HEAD_CALLBACK_IDENTITY_SHA256 =
 // `=== true` to match the other four sites reading the same verdict. Refreshed in step 7 for the
 // reply casts the checked readers made unnecessary — the markdown tab doc, the worktree record's
 // `diffComments` and the browser tab's page id are typed by their schemas now. Refreshed once more
-// on the merge, for the display-mode toggle whose send became `terminalDisplayModeSet`.
-const HEAD_CALLBACK_BODY_SHA256 = 'e3b41d4ab755be2ac2b8c268f3b94a5ec91f620233b5761707bbd1791d106f95'
+// on the merge, for the display-mode toggle whose send became `terminalDisplayModeSet`. Refreshed
+// for the files domain's step 7, which retired the markdown disk fallback's `{ content, truncated,
+// byteLength }` cast: the preview reader checks the content and salvages the flag, so `readMarkdownTab`
+// reads `fallback.value` directly. The dictation-mode refresh is main's own body again — it forwards
+// whatever mode the reply carried, so an absent one leaves the mic as inert as main left it.
+const HEAD_CALLBACK_BODY_SHA256 = 'ceba525103ccac47df766063d58593ba083d59785f86257d849e355669ed47ae'
 // Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
 // the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
 // again when the reporter took the reply and interpreted it itself, retiring the hand-built
