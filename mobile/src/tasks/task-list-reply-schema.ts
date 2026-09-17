@@ -100,7 +100,7 @@ export const gitlabTodoListSchema = salvagingArray(gitlabTodoSchema).nullish()
 /**
  * Connecting a Linear account with a pasted API key, and the repository issue-source write.
  *
- * The connect reply is the standard envelope: use-mobile-tasks-task-pagination-actions.tsx:54
+ * The connect reply is the standard envelope: use-mobile-tasks-task-pagination-actions.tsx:55
  * reads `ok === false` and raises `error` or its own copy, and nothing else in the reply.
  */
 export const linearAccountConnectedSchema = taskMutationEnvelopeSchema

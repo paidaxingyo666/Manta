@@ -26,7 +26,7 @@ import {
  * A GitHub work item's detail pane.
  *
  * Object or `null`, and nothing inside is required: `if (!details) throw` at
- * use-mobile-tasks-item-detail-loading.tsx:51 is the whole identity test, and :58-69 reads every
+ * use-mobile-tasks-item-detail-loading.tsx:52 is the whole identity test, and :58-69 reads every
  * member behind `??` or `?.`. What the schema adds is the container — main read `details.body` off
  * a string reply and published an empty sheet as if the host had answered, and off `null` it threw
  * a property-read TypeError the sheet showed verbatim.
@@ -117,49 +117,53 @@ export const gitlabWorkItemDetailSchema = z
  * `estimate` keeps an explicit `null`: the host writes `issue.estimate ?? null`
  * (src/main/linear/mappers.ts:112), so `null` is the value "no estimate" and absence is a host
  * that did not report one.
+ *
+ * The row is shared: the smart picker's search and list readers decode the same `LinearIssue` out
+ * of `linear.searchIssues` and `linear.listIssues`, so they import `linearIssueRowSchema` rather
+ * than declaring a second one.
  */
-export const linearIssueSchema = z
-  .looseObject({
-    id: z.string(),
-    identifier: z.string(),
-    title: z.string(),
-    url: z.string(),
-    updatedAt: z.string(),
-    priority: z.number().finite(),
-    labels: salvagingArray(z.string()),
-    state: z.looseObject({ name: z.string(), type: z.string(), color: z.string() }),
-    team: z.looseObject({ id: z.string(), name: z.string(), key: z.string() }),
-    workspaceId: prText('workspaceId'),
-    workspaceName: prText('workspaceName'),
-    description: prText('description'),
-    labelIds: prStringList('labelIds'),
-    estimate: salvagedOptional('estimate', z.number().finite().nullable()),
-    assignee: salvagedOptional(
-      'assignee',
-      z.looseObject({ id: prText('id'), displayName: z.string() })
-    ),
-    project: salvagedOptional(
-      'project',
+export const linearIssueRowSchema = z.looseObject({
+  id: z.string(),
+  identifier: z.string(),
+  title: z.string(),
+  url: z.string(),
+  updatedAt: z.string(),
+  priority: z.number().finite(),
+  labels: salvagingArray(z.string()),
+  state: z.looseObject({ name: z.string(), type: z.string(), color: z.string() }),
+  team: z.looseObject({ id: z.string(), name: z.string(), key: z.string() }),
+  workspaceId: prText('workspaceId'),
+  workspaceName: prText('workspaceName'),
+  description: prText('description'),
+  labelIds: prStringList('labelIds'),
+  estimate: salvagedOptional('estimate', z.number().finite().nullable()),
+  assignee: salvagedOptional(
+    'assignee',
+    z.looseObject({ id: prText('id'), displayName: z.string() })
+  ),
+  project: salvagedOptional(
+    'project',
+    z.looseObject({
+      id: z.string(),
+      name: z.string(),
+      url: prText('url'),
+      color: prText('color')
+    })
+  ),
+  subIssues: salvagedOptional(
+    'subIssues',
+    salvagingArray(
       z.looseObject({
         id: z.string(),
-        name: z.string(),
-        url: prText('url'),
-        color: prText('color')
+        identifier: z.string(),
+        title: z.string(),
+        url: z.string()
       })
-    ),
-    subIssues: salvagedOptional(
-      'subIssues',
-      salvagingArray(
-        z.looseObject({
-          id: z.string(),
-          identifier: z.string(),
-          title: z.string(),
-          url: z.string()
-        })
-      )
     )
-  })
-  .nullable()
+  )
+})
+
+export const linearIssueSchema = linearIssueRowSchema.nullable()
 
 /**
  * The comment list beside a Linear issue.

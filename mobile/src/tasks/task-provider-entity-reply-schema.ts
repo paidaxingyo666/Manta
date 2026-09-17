@@ -130,7 +130,7 @@ export const detailCheckListSchema = salvagingArray(
  *
  * `status` stays closed, and the arms are not mobile's invention: the host validates this same
  * seven-arm set on the way back in, as a zod enum on `github.prFileContents`' own params
- * (src/shared/rpc-contract/github-pull-request-params.ts:62, matching `GitHubPRFile.status` at
+ * (src/shared/rpc-contract/github-pull-request-params.ts:63, matching `GitHubPRFile.status` at
  * github/pull-request-types.ts:133). Its only consumer is that request
  * (use-mobile-tasks-github-check-file-actions.tsx:196,
  * use-mobile-tasks-project-file-merge-actions.tsx:78), so a forwarded eighth arm could not reach
