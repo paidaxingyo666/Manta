@@ -15,6 +15,7 @@ import type { CodexBackgroundTaskTracker } from './codex-background-task-tracker
 import type { CodexJournalTranslator } from './codex-structured-journal-translation'
 import type { CodexTurnProcessSnapshot } from './codex-structured-turn-processes'
 import type { StructuredAgentSessionLifecycleEvent } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
+import type { CodexStructuredPermissionPolicy } from './codex-structured-permission-policy'
 
 export type CodexStructuredLaunch = {
   command: string
@@ -23,6 +24,7 @@ export type CodexStructuredLaunch = {
   codexHome: string | null
   resumeThreadId: string | null
   resumePath?: string | null
+  permissionPolicy?: CodexStructuredPermissionPolicy
   env?: Record<string, string>
 }
 

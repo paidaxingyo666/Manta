@@ -18,11 +18,11 @@ import { decodeStructuredAgentSessionOptionValue } from '../../shared/structured
 // admission and nothing about identity, which the echo settles later.
 
 /** Keys Codex accepts as per-turn overrides. An unlisted key would otherwise
- *  become an arbitrary client-controlled `turn/start` parameter. */
+ *  become an arbitrary client-controlled `turn/start` parameter. Permission posture is owned by
+ *  Agent Permissions and applied when the thread opens. */
 const CODEX_TURN_OPTION_KEYS = new Set([
   'model',
   'effort',
-  'approvalPolicy',
   'approvalsReviewer',
   'personality',
   'serviceTier',
