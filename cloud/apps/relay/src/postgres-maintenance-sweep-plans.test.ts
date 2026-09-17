@@ -56,6 +56,9 @@ describePostgres('PostgreSQL maintenance sweep plans', () => {
     const plan = result.rows.map((row) => String(row['QUERY PLAN'])).join('\n')
 
     expect(plan).not.toMatch(/Seq Scan on relay_connection_bases/)
-    expect(plan).toMatch(/relay_connection_bases_active_deadline/)
+    // Either index keeps the sweep off the table. It used to be the composite one; the partial
+    // relay_connection_bases_live_deadline now wins on cost, because it spans only the live rows
+    // rather than all ~6.6M, and that is the improvement, not a regression in this invariant.
+    expect(plan).toMatch(/relay_connection_bases_(active|live)_deadline/)
   })
 })

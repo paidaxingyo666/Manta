@@ -100,6 +100,18 @@ CREATE TABLE IF NOT EXISTS relay_invites (
 CREATE INDEX IF NOT EXISTS relay_invites_device
   ON relay_invites(user_id, relay_host_id, relay_device_id);
 
+-- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
+-- Why: the credential sweep matches (state, expires_at) every cycle while invites in a terminal
+-- state accumulate for the life of the database. Unindexed it seq-scans the whole table inside the
+-- maintenance transaction. Partial, so the index holds only the states the sweep can act on.
+CREATE INDEX IF NOT EXISTS relay_invites_sweep_expiry
+  ON relay_invites(expires_at) WHERE state IN ('available', 'reserved', 'cooldown');
+
+-- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
+-- Why: the second sweep pass matches (state, reservation_expires_at) over the same table.
+CREATE INDEX IF NOT EXISTS relay_invites_sweep_reservation
+  ON relay_invites(reservation_expires_at) WHERE state = 'reserved';
+
 CREATE TABLE IF NOT EXISTS relay_devices (
   user_id TEXT NOT NULL,
   relay_host_id TEXT NOT NULL,
@@ -163,6 +175,13 @@ CREATE TABLE IF NOT EXISTS relay_connection_bases (
 CREATE INDEX IF NOT EXISTS relay_connection_bases_active_deadline
   ON relay_connection_bases(active, deadline);
 
+-- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
+-- Why: the index above spans every row, and inactive bases outnumber live ones by ~6.6M to a few
+-- hundred, so the sweep still walked ~283 MB of index to find them. This one holds only the rows
+-- the sweep can act on. Keeping both: the composite is also what makes the reaper an index range.
+CREATE INDEX IF NOT EXISTS relay_connection_bases_live_deadline
+  ON relay_connection_bases(deadline) WHERE active = 1;
+
 CREATE TABLE IF NOT EXISTS relay_direct_authorizations (
   direct_auth_id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -172,6 +191,12 @@ CREATE TABLE IF NOT EXISTS relay_direct_authorizations (
   deadline BIGINT NOT NULL,
   consumed_at BIGINT
 );
+
+-- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
+-- Why: the sweep expires pending authorizations by (consumed_at IS NULL, deadline), and consumed
+-- rows are never deleted. Partial, so the index stays the size of the pending set.
+CREATE INDEX IF NOT EXISTS relay_direct_authorizations_pending_deadline
+  ON relay_direct_authorizations(deadline) WHERE consumed_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS relay_confirm_results (
   user_id TEXT NOT NULL,
@@ -559,6 +584,12 @@ CREATE TABLE IF NOT EXISTS relay_rate_windows (
   count BIGINT NOT NULL,
   PRIMARY KEY (scope_key, window_kind, window_started_at)
 );
+
+-- schema-deferrable: created out of band, so a boot that cannot take the lock must retry
+-- Why: window_started_at is the PRIMARY KEY's last column, so the sweep's 24h retention delete
+-- cannot use it and seq-scans instead.
+CREATE INDEX IF NOT EXISTS relay_rate_windows_started
+  ON relay_rate_windows(window_started_at);
 
 CREATE TABLE IF NOT EXISTS relay_migration_leases (
   user_id TEXT NOT NULL,

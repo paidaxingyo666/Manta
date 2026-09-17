@@ -17,9 +17,28 @@ import { relayPostgresSchemaStatements } from './database.js'
 // CREATE INDEX CONCURRENTLY first, then add it to SCHEMA and update this list.
 const GOLDEN_LOCK_TAKING: SchemaLockTarget[] = [
   { kind: 'index', table: 'relay_invites', name: 'relay_invites_device', skipWhen: 'present' },
+  { kind: 'index', table: 'relay_invites', name: 'relay_invites_sweep_expiry', skipWhen: 'present' },
+  {
+    kind: 'index',
+    table: 'relay_invites',
+    name: 'relay_invites_sweep_reservation',
+    skipWhen: 'present'
+  },
   { kind: 'index', table: 'relay_devices', name: 'relay_devices_current_hash', skipWhen: 'present' },
   { kind: 'index', table: 'relay_devices', name: 'relay_devices_grace_hash', skipWhen: 'present' },
   { kind: 'index', table: 'relay_connection_bases', name: 'relay_connection_bases_active_deadline', skipWhen: 'present' },
+  {
+    kind: 'index',
+    table: 'relay_connection_bases',
+    name: 'relay_connection_bases_live_deadline',
+    skipWhen: 'present'
+  },
+  {
+    kind: 'index',
+    table: 'relay_direct_authorizations',
+    name: 'relay_direct_authorizations_pending_deadline',
+    skipWhen: 'present'
+  },
   {
     kind: 'index',
     table: 'relay_assignment_region_preferences',
@@ -85,6 +104,7 @@ const GOLDEN_LOCK_TAKING: SchemaLockTarget[] = [
     name: 'relay_control_connection_reservation_assignment',
     skipWhen: 'present'
   },
+  { kind: 'index', table: 'relay_rate_windows', name: 'relay_rate_windows_started', skipWhen: 'present' },
   { kind: 'index', table: 'relay_assignment_migrations', name: 'relay_assignment_migrations_active', skipWhen: 'present' },
   {
     kind: 'index',
@@ -224,13 +244,48 @@ describe('relay boot-time lock targets', () => {
     }
   })
 
-  it('marks both activity-lease migrations deferrable, and nothing else', () => {
-    // The two statements a lock timeout must not turn into a crash loop, and the only two: every
+  it('marks the out-of-band sweep indexes and the activity-lease migrations deferrable, and nothing else', () => {
+    // The statements a lock timeout must not turn into a crash loop, and the only ones: every
     // other statement still fails the boot loudly, which is what keeps the marker meaningful.
     const deferrable = relayPostgresSchemaStatements().filter(schemaDeferrable)
-    expect(deferrable.map(sqlWithoutComments)).toEqual([
+    expect(deferrable.map((statement) => sqlWithoutComments(statement).replace(/\s+/g, ' '))).toEqual([
+      "CREATE INDEX IF NOT EXISTS relay_invites_sweep_expiry ON relay_invites(expires_at) WHERE state IN ('available', 'reserved', 'cooldown')",
+      "CREATE INDEX IF NOT EXISTS relay_invites_sweep_reservation ON relay_invites(reservation_expires_at) WHERE state = 'reserved'",
+      'CREATE INDEX IF NOT EXISTS relay_connection_bases_live_deadline ON relay_connection_bases(deadline) WHERE active = 1',
+      'CREATE INDEX IF NOT EXISTS relay_direct_authorizations_pending_deadline ON relay_direct_authorizations(deadline) WHERE consumed_at IS NULL',
+      'CREATE INDEX IF NOT EXISTS relay_rate_windows_started ON relay_rate_windows(window_started_at)',
       'DROP INDEX IF EXISTS relay_assignment_activity_expiry',
       'ALTER TABLE relay_assignment_activity_leases SET (fillfactor = 70)'
+    ])
+  })
+
+  it('derives a target for a partial index, WHERE clause and all', () => {
+    // The pre-check reads the index name and table from the head of the statement, so a trailing
+    // WHERE is invisible to it. Asserted because the sweep indexes depend on that: a parser that
+    // gave a partial index no target would send it unchecked on every boot.
+    const partial = relayPostgresSchemaStatements().filter((statement) =>
+      /^CREATE\s+INDEX\b[\s\S]*\bWHERE\b/i.test(sqlWithoutComments(statement))
+    )
+    expect(partial.map(schemaLockTarget)).toEqual([
+      { kind: 'index', table: 'relay_invites', name: 'relay_invites_sweep_expiry', skipWhen: 'present' },
+      {
+        kind: 'index',
+        table: 'relay_invites',
+        name: 'relay_invites_sweep_reservation',
+        skipWhen: 'present'
+      },
+      {
+        kind: 'index',
+        table: 'relay_connection_bases',
+        name: 'relay_connection_bases_live_deadline',
+        skipWhen: 'present'
+      },
+      {
+        kind: 'index',
+        table: 'relay_direct_authorizations',
+        name: 'relay_direct_authorizations_pending_deadline',
+        skipWhen: 'present'
+      }
     ])
   })
 
