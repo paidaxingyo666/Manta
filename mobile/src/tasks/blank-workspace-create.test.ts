@@ -146,7 +146,7 @@ describe('createBlankWorkspace', () => {
       setupDecision: 'run',
       nameWasGenerated: false,
       worktreeCreateIdempotency: IDEMPOTENT_CREATE_SUPPORT,
-      agentLaunchSupported: true
+      agentLaunchSupported: { replay: false }
     })
 
     expect(result).toEqual({ worktreeId: 'wt-9', name: 'manatee' })
@@ -205,7 +205,7 @@ describe('createBlankWorkspace', () => {
       setupDecision: 'inherit',
       nameWasGenerated: false,
       worktreeCreateIdempotency: IDEMPOTENT_CREATE_SUPPORT,
-      agentLaunchSupported: true
+      agentLaunchSupported: { replay: false }
     })
 
     expect(calls[0]?.method).toBe('worktree.create')
@@ -230,7 +230,7 @@ describe('createBlankWorkspace', () => {
       setupDecision: 'inherit',
       nameWasGenerated: false,
       worktreeCreateIdempotency: IDEMPOTENT_CREATE_SUPPORT,
-      agentLaunchSupported: true
+      agentLaunchSupported: { replay: false }
     })
 
     expect(result).toEqual({ worktreeId: 'wt-12', name: 'octopus-2' })
@@ -260,7 +260,7 @@ describe('createBlankWorkspace', () => {
       setupDecision: 'inherit',
       nameWasGenerated: false,
       worktreeCreateIdempotency: IDEMPOTENT_CREATE_SUPPORT,
-      agentLaunchSupported: true
+      agentLaunchSupported: { replay: false }
     })
 
     expect(result).toEqual({ worktreeId: 'wt-13', name: 'octopus' })
@@ -347,7 +347,7 @@ describe('createBlankWorkspace', () => {
     { label: 'worktree.create', supported: false, agent: undefined, reply: { worktree: {} } },
     {
       label: 'agent.launch',
-      supported: true,
+      supported: { replay: false },
       agent: 'codex' as const,
       reply: { outcome: { kind: 'structured', sessionId: 's-1' } }
     }
