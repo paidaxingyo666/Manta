@@ -22,11 +22,25 @@ function hostSkipReason(outcome: AiVaultSearchHostOutcome['outcome']): string | 
       return 'unavailable'
     case 'unreachable':
       return 'unreachable'
+    case 'scope-unknown':
+      return 'scope not found there'
   }
 }
 
+// Neither reached the scope, so neither is evidence that some computer did.
+const UNSETTLED_SCOPE_OUTCOMES = new Set<AiVaultSearchHostOutcome['outcome']>([
+  'scope-unknown',
+  'unreachable'
+])
+
+// A computer that simply lacks this project is the ordinary case, worth naming
+// only when it is what explains an empty result.
 function describeSkippedHosts(hosts: readonly AiVaultSearchHostOutcome[]): string | null {
+  const anyResolved = hosts.some((entry) => !UNSETTLED_SCOPE_OUTCOMES.has(entry.outcome))
   const skipped = hosts.flatMap((entry) => {
+    if (entry.outcome === 'scope-unknown' && anyResolved) {
+      return []
+    }
     const reason = hostSkipReason(entry.outcome)
     const label = getExecutionHostLabel(parseExecutionHostId(entry.executionHostId)?.id ?? null)
     return reason ? [`${label} (${reason})`] : []
@@ -93,6 +107,11 @@ export function AiVaultPanelSearch({
     message = translate(
       'sessionSearch.panel.noService',
       'Search is unavailable on this computer. It may need a Manta update or a runtime with search support.'
+    )
+  } else if (unavailable === 'scope-unknown') {
+    message = translate(
+      'sessionSearch.panel.scopeUnknown',
+      'This computer does not have this workspace or project. Switch the scope to All to search everything on it.'
     )
   } else if (error) {
     message = translate(

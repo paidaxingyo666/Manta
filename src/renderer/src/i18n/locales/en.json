@@ -17958,7 +17958,8 @@
       "enableFailed": "Could not enable search. Try again.",
       "enable": "Enable",
       "notNow": "Not now",
-      "retry": "Try again"
+      "retry": "Try again",
+      "scopeUnknown": "This computer does not have this workspace or project. Switch the scope to All to search everything on it."
     }
   },
   "sessionHistory": {

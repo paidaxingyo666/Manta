@@ -51,7 +51,10 @@ describe('session search runtime RPC', () => {
       const text = JSON.stringify(response.result)
       expect(text.includes('/host/transcript.jsonl')).toBe(clientKind === undefined)
       expect(text.includes('resumeCommand')).toBe(clientKind === undefined)
-      expect(service.search).toHaveBeenCalledExactlyOnceWith({ query: 'needle', limit: 20 })
+      expect(service.search).toHaveBeenCalledExactlyOnceWith(
+        { query: 'needle', limit: 20 },
+        undefined
+      )
       const status = await rpc.dispatch(
         { ...request({}), method: 'aiVault.searchStatus' },
         { clientKind }

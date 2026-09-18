@@ -66,6 +66,56 @@ describe('AiVaultPanelSearch', () => {
     )
   })
 
+  it('says a computer does not have this workspace or project rather than blaming the search', () => {
+    renderPanel(panelSearch({ response: { kind: 'unavailable', reason: 'scope-unknown' } }))
+
+    expect(screen.getByRole('status').textContent).toContain(
+      'does not have this workspace or project'
+    )
+  })
+
+  it('stays quiet about computers that simply lack the scope while another searched it', () => {
+    const response = searchResults()
+    renderPanel(
+      panelSearch({
+        hits: response.hits,
+        response: {
+          ...response,
+          hosts: [
+            // Stale: it resolved the scope and searched, then the index moved.
+            { executionHostId: 'local', outcome: 'stale' },
+            { executionHostId: 'ssh:box', outcome: 'scope-unknown' }
+          ]
+        }
+      })
+    )
+
+    expect(screen.getByRole('status').textContent).toBe(
+      `Not searched: ${getExecutionHostLabel('local')} (index changed)`
+    )
+  })
+
+  it('names the scope when it explains an empty result, because no computer had it', () => {
+    const response = searchResults()
+    renderPanel(
+      panelSearch({
+        hits: [],
+        response: {
+          ...response,
+          hits: [],
+          hosts: [
+            { executionHostId: 'local', outcome: 'scope-unknown' },
+            { executionHostId: 'ssh:box', outcome: 'scope-unknown' },
+            // Unreachable explains nothing about the scope, so it does not silence it.
+            { executionHostId: 'runtime:gone', outcome: 'unreachable' }
+          ]
+        }
+      })
+    )
+
+    expect(screen.getByRole('status').textContent).toContain('box (scope not found there)')
+  })
+
   it('stays silent when every computer answered', () => {
     const response = searchResults()
     renderPanel(
