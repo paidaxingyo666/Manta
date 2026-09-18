@@ -206,6 +206,12 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toBe('MANTA_TERMINAL_HANDLE/u:MANTA_SHELL_READY_ROOT/p')
   })
 
+  it('crosses the inline-image protocol hint into the guest untranslated (/u)', () => {
+    const env: Record<string, string> = { ORCA_IMAGE_PROTOCOL: 'kitty' }
+    addMantaWslInteropEnv(env)
+    expect(env.WSLENV).toContain('MANTA_IMAGE_PROTOCOL/u')
+  })
+
   it('marks the WSL hook relay version for import on relay spawn envs', () => {
     const env: Record<string, string> = {
       MANTA_WSL_HOOK_RELAY_VERSION: '0.1.0+abc'

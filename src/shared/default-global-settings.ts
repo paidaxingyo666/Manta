@@ -72,6 +72,9 @@ export function buildDefaultSettings(args: {
     terminalGpuAcceleration: 'auto',
     // Why 'auto': enable ligatures only for known ligature fonts, never forced. Resolver in shared/terminal-ligatures.ts.
     terminalLigatures: 'auto',
+    // Why on: the addon is lazy-loaded off the critical path and only creates
+    // canvas layers once a pane receives an image; parser/decoder setup still has overhead.
+    terminalInlineImages: true,
     terminalCursorStyle: 'block',
     terminalCursorStyleDefaultedToBlock: true,
     terminalCursorBlink: true,
