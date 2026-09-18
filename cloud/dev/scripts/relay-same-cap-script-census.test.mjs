@@ -3,7 +3,12 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 import { parseProductionCapacityCellArguments } from './prepare-relay-production-capacity-canary.mjs'
-import { SAME_CAP_CELLS } from './relay-production-same-cap-wave.mjs'
+import {
+  SAME_CAP_CELLS,
+  SAME_CAP_MIGRATION_ONLY_CELLS,
+  entryAdmission,
+  selectorWaveDelta
+} from './relay-production-same-cap-wave.mjs'
 import { readRelayWorkflow } from './relay-repository.mjs'
 import { validateCapacityPlan } from './validate-relay-capacity-plan.mjs'
 
@@ -33,10 +38,19 @@ function rehomeSourceCells() {
 
 // The job cross-checks its pinned pool against the committed map; model the same read.
 function tfvarsDatabasePoolMax(cellId) {
+  return tfvarsCellBlock(cellId).match(/database_pool_max\s*=\s*(\d+)/)?.[1] ?? '10'
+}
+
+function tfvarsHardCap(cellId) {
+  const cap = /connection_hard_cap\s*=\s*(\d+)/.exec(tfvarsCellBlock(cellId))?.[1]
+  assert.notEqual(cap, undefined, `${cellId} has no connection_hard_cap`)
+  return cap
+}
+
+function tfvarsCellBlock(cellId) {
   const start = production.indexOf(`"${cellId}" = {`)
   assert.notEqual(start, -1, `${cellId} is missing from production.tfvars`)
-  const block = production.slice(start, production.indexOf('\n  }', start))
-  return /database_pool_max\s*=\s*(\d+)/.exec(block)?.[1] ?? '10'
+  return production.slice(start, production.indexOf('\n  }', start))
 }
 
 function startupScript({ cap, image, trusted, pool }) {
@@ -145,6 +159,50 @@ function cellShape(cellId) {
   return { cap: Number(cap), pool: pool.slice('pool='.length) || undefined }
 }
 
+// The class block runs before checkout-independent work and decides the whole wave shape.
+function resolveCellClass(cellId) {
+  return spawnSync('bash', [
+    '-euo',
+    'pipefail',
+    '-c',
+    `${jobBlock(
+      '          CELL_CLASS="$(node dev/scripts/relay-production-same-cap-wave.mjs cell-class \\',
+      '          SELECTOR_WAVE_DELTA="$(jq -er \'.selectorWaveDelta\' <<< "${CELL_CLASS}")"'
+    )}\necho "\${ENTRY_ADMISSION} \${SELECTOR_WAVE_DELTA}"`
+  ], { cwd: new URL('../..', import.meta.url), env: { ...process.env, TARGET_CELL_ID: cellId }, encoding: 'utf8' })
+}
+
+function generationBlock() {
+  return `${jobBlock(
+    '          if test "${DEPLOY_MODE}" = verify; then',
+    '          fi'
+  )}\necho "\${EFFECTIVE_SELECTOR_GENERATION}"`
+}
+
+// The job derives both memberships in one block; run that block alone for each class.
+function membership(env) {
+  const script = `${jobBlock(
+    '          RESTORED_MIGRATION_CELLS="$(jq -rn \\',
+    '          fi'
+  )}\njq -cn --arg a "\${ISOLATED_MIGRATION_CELLS}" --arg b "\${ISOLATED_GENERAL_CELLS}" \\
+  --arg c "\${RESTORED_MIGRATION_CELLS}" --arg d "\${RESTORED_GENERAL_CELLS}" \\
+  '{isolatedMigration:$a,isolatedGeneral:$b,restoredMigration:$c,restoredGeneral:$d}'`
+  const resolved = spawnSync('bash', ['-euo', 'pipefail', '-c', script], {
+    env: { ...process.env, ...env },
+    encoding: 'utf8'
+  })
+  assert.equal(resolved.status, 0, resolved.stderr)
+  return JSON.parse(resolved.stdout)
+}
+
+function jobBlock(firstLine, lastLine) {
+  const start = workflow.indexOf(`${firstLine}\n`)
+  assert.notEqual(start, -1, `the job has no ${firstLine.trim()}`)
+  const end = workflow.indexOf(`\n${lastLine}\n`, start)
+  assert.notEqual(end, -1, `that block has no ${lastLine.trim()}`)
+  return workflow.slice(start, end + lastLine.length + 1).replace(/^ {10}/gm, '')
+}
+
 describe('same-cap roll scripts accept every same-cap cell', () => {
   it('parses every wave cell through the same-cap canary allowlist', () => {
     for (const cellId of SAME_CAP_CELLS) {
@@ -172,12 +230,13 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       assert.equal(resolved.status, 0, `${cellId}: ${resolved.stderr}`)
       assert.match(
         resolved.stdout.trim(),
-        /^(us-central1 1000 pool=|asia-east2 3000 pool=16)$/,
+        /^(us-central1 1000 pool=|us-central1 600 pool=|asia-east2 3000 pool=16)$/,
         cellId
       )
       assert.equal(tfvarsDatabasePoolMax(cellId), cellShape(cellId).pool ?? '10', cellId)
+      assert.equal(String(cellShape(cellId).cap), tfvarsHardCap(cellId), cellId)
     }
-    assert.equal(resolveCellShape('production-gce-c17').status, 1)
+    assert.equal(resolveCellShape('production-gce-c12').status, 1)
     assert.equal(resolveCellShape('production-gce-c30').status, 1)
   })
 
@@ -189,7 +248,8 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       const end = lines.findIndex((line) => !line.endsWith('\\'))
       const call = lines.slice(0, end + 1).join(' ')
       assert.match(call, /--approved-cells same-cap/)
-      assert.match(call, /--mode (isolate|drain|activate)/)
+      // The restore call picks its mode from the cell's entry admission class.
+      assert.match(call, /--mode (isolate|drain|activate|"\$\{RESTORE_MODE\}")/)
     }
   })
 
@@ -222,9 +282,15 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
   })
 
   it('validates a correct plan for every wave cell at that cell\'s rehome protocol', () => {
-    for (const [cellId, protocol] of SAME_CAP_CELLS.flatMap((cell) => [[cell, 1], [cell, 3]])) {
+    const trusted = SAME_CAP_CELLS.filter((cell) => REHOME_SOURCE_CELLS.has(cell))
+    // Only a declared rehome source may roll at a trusted protocol at all; the job refuses
+    // the rest before it plans, and the next test covers them at protocol 0.
+    assert.deepEqual(
+      SAME_CAP_CELLS.filter((cell) => !REHOME_SOURCE_CELLS.has(cell)),
+      SAME_CAP_MIGRATION_ONLY_CELLS
+    )
+    for (const [cellId, protocol] of trusted.flatMap((cell) => [[cell, 1], [cell, 3]])) {
       const { cap, pool } = cellShape(cellId)
-      assert.equal(REHOME_SOURCE_CELLS.has(cellId), true, cellId)
       const config = {
         mode: 'same-cap-cell',
         cellId,
@@ -270,7 +336,7 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
     const config = {
       mode: 'same-cap-cell',
       cellId,
-      hardCap: 1000,
+      hardCap: 600,
       unobservedBound: 60,
       image: TARGET_IMAGE,
       rollbackImage: ROLLBACK_IMAGE,
@@ -278,12 +344,102 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       rehomeAudience: AUDIENCE,
       regionalRehomeProtocol: '0'
     }
-    const plan = rollPlan({ cellId, cap: 1000, protocol: 0 })
+    const plan = rollPlan({ cellId, cap: 600, protocol: 0 })
     assert.deepEqual(validateCapacityPlan(plan, config), { mode: 'same-cap-cell', changes: 2 })
     // Protocol 1 must reject a plan with no rehome lines, or the absent-line rule decides nothing.
     assert.throws(
       () => validateCapacityPlan(plan, { ...config, regionalRehomeProtocol: '1' }),
       /reviewed image and capacity/
+    )
+  })
+
+  it('resolves the class and selector delta the wave validator declares', () => {
+    for (const cellId of SAME_CAP_CELLS) {
+      const resolved = resolveCellClass(cellId)
+      assert.equal(resolved.status, 0, `${cellId}: ${resolved.stderr}`)
+      assert.equal(
+        resolved.stdout.trim(),
+        `${entryAdmission(cellId)} ${selectorWaveDelta(cellId)}`,
+        cellId
+      )
+    }
+    assert.equal(resolveCellClass('production-gce-c12').status, 1)
+  })
+
+  it('offsets a later wave by this cell class\'s own selector delta', () => {
+    for (const [waveIndex, delta] of [['0', 2], ['3', 2], ['0', 0], ['3', 0]]) {
+      const resolved = spawnSync('bash', ['-euo', 'pipefail', '-c', generationBlock()], {
+        env: {
+          ...process.env,
+          DEPLOY_MODE: 'apply',
+          EXPECTED_SELECTOR_GENERATION: '40',
+          WAVE_INDEX: waveIndex,
+          SELECTOR_WAVE_DELTA: String(delta)
+        },
+        encoding: 'utf8'
+      })
+      assert.equal(resolved.status, 0, resolved.stderr)
+      assert.equal(resolved.stdout.trim(), String(40 + delta * Number(waveIndex)))
+    }
+  })
+
+  it('hands a migration-only cell back the exact membership it entered with', () => {
+    const entry = {
+      EXPECTED_MIGRATION_ONLY_CELLS: 'production-gce-c17,production-gce-c18',
+      EXPECTED_GENERAL_CELLS: 'production-gce-c7,production-gce-c8'
+    }
+    const isolated = membership({
+      ...entry,
+      TARGET_CELL_ID: 'production-gce-c17',
+      ENTRY_ADMISSION: 'migration-only'
+    })
+    assert.deepEqual(isolated, {
+      isolatedMigration: 'production-gce-c17,production-gce-c18',
+      isolatedGeneral: 'production-gce-c7,production-gce-c8',
+      restoredMigration: 'production-gce-c17,production-gce-c18',
+      restoredGeneral: 'production-gce-c7,production-gce-c8'
+    })
+    // A general cell still leaves migration-only and returns to general.
+    assert.deepEqual(
+      membership({
+        ...entry,
+        TARGET_CELL_ID: 'production-gce-c7',
+        ENTRY_ADMISSION: 'general'
+      }),
+      {
+        isolatedMigration: 'production-gce-c17,production-gce-c18,production-gce-c7',
+        isolatedGeneral: 'production-gce-c8',
+        restoredMigration: 'production-gce-c17,production-gce-c18',
+        restoredGeneral: 'production-gce-c7,production-gce-c8'
+      }
+    )
+  })
+
+  it('never activates a migration-only cell and proves its isolate changed nothing', () => {
+    const restore = workflow
+      .split('name: Restore only the verified selected cell to its entry admission')[1]
+      .split('\n      - id:')[0]
+    assert.match(restore, /if test "\$\{ENTRY_ADMISSION\}" = migration-only; then\n\s+RESTORE_MODE=isolate/)
+    assert.match(restore, /--admission "\$\{ENTRY_ADMISSION\}"/)
+    // The pre-mutation check must demand the class the cell is declared to serve in.
+    assert.match(workflow, /PRECHECK_ADMISSION="\$\{ENTRY_ADMISSION\}"/)
+    const isolate = workflow
+      .split('name: Reversibly isolate and drain only the selected cell')[1]
+      .split('\n      - id:')[0]
+    assert.match(isolate, /migration-only; then\n\s+jq -e '\.changed == false'/)
+  })
+
+  it('requires rehome source membership exactly when a roll carries trust lines', () => {
+    const step = workflow
+      .split('name: Resolve immutable same-cap cell configuration')[1]
+      .split('\n      - name:')[0]
+    const guard = step.indexOf('jq -e --arg cell "${TARGET_CELL_ID}" \'index($cell) != null\'')
+    assert.notEqual(guard, -1)
+    // The guard reads both protocols, so it has to sit after they are resolved.
+    assert.ok(step.indexOf('DESIRED_REHOME_PROTOCOL="${TARGET_REHOME_PROTOCOL}"') < guard)
+    assert.match(
+      step.slice(0, guard),
+      /test "\$\{DESIRED_REHOME_PROTOCOL\}" != 0 \|\| test "\$\{CURRENT_REHOME_PROTOCOL\}" != 0\n\s+\}; then\s+$/
     )
   })
 

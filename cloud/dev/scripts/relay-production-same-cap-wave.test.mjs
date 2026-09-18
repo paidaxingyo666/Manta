@@ -5,7 +5,11 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { test } from 'node:test'
 import {
+  SAME_CAP_CELLS,
+  SAME_CAP_MIGRATION_ONLY_CELLS,
   canaryAuthority,
+  entryAdmission,
+  main,
   validateSameCapWave,
   verifyCanaryAuthority
 } from './relay-production-same-cap-wave.mjs'
@@ -50,6 +54,81 @@ test('requires one canary or a bounded reviewed batch', () => {
     rollbackDigest,
     confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c30`
   }), /cells/)
+})
+
+test('rolls the migration-only cells but never mixes the two classes in one wave', () => {
+  for (const cellId of SAME_CAP_MIGRATION_ONLY_CELLS) {
+    assert.equal(SAME_CAP_CELLS.includes(cellId), true, cellId)
+    assert.equal(entryAdmission(cellId), 'migration-only', cellId)
+    assert.deepEqual(validateSameCapWave({
+      mode: 'canary-apply',
+      cellIds: cellId,
+      targetDigest,
+      rollbackDigest,
+      confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${cellId}`
+    }).cells, [cellId])
+  }
+  const cellIds = 'production-gce-c17,production-gce-c18'
+  assert.deepEqual(validateSameCapWave({
+    mode: 'batch-apply',
+    cellIds,
+    targetDigest,
+    rollbackDigest,
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${cellIds}`,
+    canaryRunId: '42'
+  }).cells, ['production-gce-c17', 'production-gce-c18'])
+  // A mixed wave has no single selector delta for its later cells to offset from.
+  const mixed = 'production-gce-c7,production-gce-c17'
+  assert.throws(() => validateSameCapWave({
+    mode: 'batch-apply',
+    cellIds: mixed,
+    targetDigest,
+    rollbackDigest,
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${mixed}`,
+    canaryRunId: '42'
+  }), /all general or all migration-only/)
+})
+
+test('seals a migration-only canary at the generation its wave leaves behind', () => {
+  const seal = (cellId) => canaryAuthority({
+    cellIds: cellId,
+    targetDigest,
+    rollbackDigest,
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${cellId}`,
+    commitSha: 'c'.repeat(40),
+    runId: '42',
+    selectorGeneration: '11',
+    rehomeGeneration: '4'
+  })
+  // Isolate and restore are both no-ops on a migration-only cell, so nothing advances.
+  assert.equal(seal('production-gce-c17').selectorGeneration, 11)
+  assert.equal(seal('production-gce-c7').selectorGeneration, 13)
+  // That canary still authorizes a later general batch; it is evidence about the image.
+  assert.equal(verifyCanaryAuthority(seal('production-gce-c17'), {
+    commitSha: 'c'.repeat(40),
+    runId: '42',
+    targetDigest,
+    rollbackDigest,
+    selectorGeneration: '11',
+    rehomeGeneration: '4'
+  }).cellId, 'production-gce-c17')
+})
+
+test('reports each approved cell\'s class and selector delta', () => {
+  const printed = []
+  const write = process.stdout.write.bind(process.stdout)
+  process.stdout.write = (chunk) => printed.push(String(chunk))
+  try {
+    main(['cell-class', '--cell-id', 'production-gce-c17'])
+    main(['cell-class', '--cell-id', 'production-gce-c7'])
+  } finally {
+    process.stdout.write = write
+  }
+  assert.deepEqual(printed.map((line) => JSON.parse(line)), [
+    { entryAdmission: 'migration-only', selectorWaveDelta: 0 },
+    { entryAdmission: 'general', selectorWaveDelta: 2 }
+  ])
+  assert.throws(() => main(['cell-class', '--cell-id', 'production-gce-c12']), /cells are invalid/)
 })
 
 test('binds rollback confirmation to the exact digest and ordered cells', () => {

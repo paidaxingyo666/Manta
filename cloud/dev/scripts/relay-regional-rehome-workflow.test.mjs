@@ -87,7 +87,7 @@ test('same-cap wrapper is reusable, canary-bound, and sequential', () => {
   assert.match(job, /SELECTOR_GENERATION_AFTER_ISOLATE=\$\{EFFECTIVE_SELECTOR_GENERATION\}/)
   assert.match(job, /SELECTOR_GENERATION_AFTER_ISOLATE=\$\{ISOLATE_GENERATION\}/)
   assert.match(job, /--expected-selector-generation "\$\{SELECTOR_GENERATION_AFTER_ISOLATE\}"/)
-  assert.match(job, /--expected-selector-generation "\$\{SELECTOR_GENERATION_AFTER_ACTIVATE\}"/)
+  assert.match(job, /--expected-selector-generation "\$\{SELECTOR_GENERATION_AFTER_RESTORE\}"/)
   assert.match(job, /--expected-migration-only-cells "\$\{RESTORED_MIGRATION_CELLS\}"/)
   assert.match(job, /--expected-general-cells "\$\{RESTORED_GENERAL_CELLS\}"/)
   assert.match(job, /FAILSAFE_GENERATION/)
@@ -98,14 +98,17 @@ test('same-cap wrapper is reusable, canary-bound, and sequential', () => {
   // Wave 0 must retry freshness-only failures too: one Cloud Monitoring publish
   // lag at the sample instant is not health evidence, and single-shot wave 0
   // failed a whole batch on a series that was fresh again a minute later.
-  assert.match(job, /dry-run\.state\.json" \\\n {14}--wave-index "\$\{WAVE_INDEX\}" --retry-freshness/)
+  assert.match(
+    job,
+    /dry-run\.state\.json" \\\n {14}--wave-index "\$\{WAVE_INDEX\}" \\\n {14}--selector-wave-delta "\$\{SELECTOR_WAVE_DELTA\}" --retry-freshness/
+  )
   assert.doesNotMatch(job, /RETRY_ARGS/)
   // Break-glass: the override skips the aggregate 15-minute monitor evidence and
   // nothing else. The live per-wave recheck still runs on the override path, off
   // the dispatch inputs the rehome inspect below verifies against the director.
   assert.match(
     job,
-    /if test -n "\$\{GATE_OVERRIDE_CONFIRMATION\}"; then[\s\S]{0,700}?--no-monitor-state \\\n {14}--expected-selector-generation "\$\{EXPECTED_SELECTOR_GENERATION\}" \\\n {14}--selector-membership-file[\s\S]{0,120}?--wave-index "\$\{WAVE_INDEX\}" --retry-freshness/
+    /if test -n "\$\{GATE_OVERRIDE_CONFIRMATION\}"; then[\s\S]{0,700}?--no-monitor-state \\\n {14}--expected-selector-generation "\$\{EXPECTED_SELECTOR_GENERATION\}" \\\n {14}--selector-membership-file[\s\S]{0,160}?--wave-index "\$\{WAVE_INDEX\}" \\\n {14}--selector-wave-delta "\$\{SELECTOR_WAVE_DELTA\}" --retry-freshness/
   )
   // The override is re-validated here, not trusted from the caller, and it is
   // bound to the digest this wave installs.

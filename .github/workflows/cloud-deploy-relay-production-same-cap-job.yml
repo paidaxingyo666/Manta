@@ -87,12 +87,6 @@ jobs:
               "SKIP_RELAY_MONITOR_GATE ${TARGET_IMAGE_DIGEST}"
             [[ "${GATE_OVERRIDE_REASON}" =~ ^[[:print:]]{12,500}$ ]]
           fi
-          if test "${DEPLOY_MODE}" = verify; then
-            EFFECTIVE_SELECTOR_GENERATION="${EXPECTED_SELECTOR_GENERATION}"
-          else
-            EFFECTIVE_SELECTOR_GENERATION="$((EXPECTED_SELECTOR_GENERATION + (2 * WAVE_INDEX)))"
-          fi
-          echo "EFFECTIVE_SELECTOR_GENERATION=${EFFECTIVE_SELECTOR_GENERATION}" >> "${GITHUB_ENV}"
           if test "${DEPLOY_MODE}" != verify && test "${GITHUB_RUN_ATTEMPT}" != 1; then
             echo "mutations are single-dispatch: re-runs replay aged evidence," >&2
             echo "so recover each remaining cell with its own fresh monitor" >&2
@@ -123,6 +117,26 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v3
         with: { terraform_wrapper: false }
+
+      # One approved-cell table, in the wave validator the dispatch gate already uses, so
+      # a cell's class and its wave's selector delta cannot drift apart between the two.
+      - name: Resolve this cell's admission class and wave selector delta
+        run: |
+          CELL_CLASS="$(node dev/scripts/relay-production-same-cap-wave.mjs cell-class \
+            --cell-id "${TARGET_CELL_ID}")"
+          ENTRY_ADMISSION="$(jq -er '.entryAdmission' <<< "${CELL_CLASS}")"
+          SELECTOR_WAVE_DELTA="$(jq -er '.selectorWaveDelta' <<< "${CELL_CLASS}")"
+          if test "${DEPLOY_MODE}" = verify; then
+            EFFECTIVE_SELECTOR_GENERATION="${EXPECTED_SELECTOR_GENERATION}"
+          else
+            EFFECTIVE_SELECTOR_GENERATION="$((EXPECTED_SELECTOR_GENERATION \
+              + (SELECTOR_WAVE_DELTA * WAVE_INDEX)))"
+          fi
+          {
+            echo "ENTRY_ADMISSION=${ENTRY_ADMISSION}"
+            echo "SELECTOR_WAVE_DELTA=${SELECTOR_WAVE_DELTA}"
+            echo "EFFECTIVE_SELECTOR_GENERATION=${EFFECTIVE_SELECTOR_GENERATION}"
+          } >> "${GITHUB_ENV}"
 
       - name: Require fresh aggregate monitor evidence reference
         if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
@@ -217,11 +231,13 @@ jobs:
               --no-monitor-state \
               --expected-selector-generation "${EXPECTED_SELECTOR_GENERATION}" \
               --selector-membership-file "${RUNNER_TEMP}/relay-same-cap-selector.json" \
-              --wave-index "${WAVE_INDEX}" --retry-freshness
+              --wave-index "${WAVE_INDEX}" \
+              --selector-wave-delta "${SELECTOR_WAVE_DELTA}" --retry-freshness
           else
             pnpm incident:relay-preflight -- \
               --state-file "${OUTPUT_DIRECTORY}/relay-${MONITOR_RUN_ID}-dry-run.state.json" \
-              --wave-index "${WAVE_INDEX}" --retry-freshness
+              --wave-index "${WAVE_INDEX}" \
+              --selector-wave-delta "${SELECTOR_WAVE_DELTA}" --retry-freshness
           fi
 
       - name: Require durable rehome disabled and exact selector
@@ -251,6 +267,11 @@ jobs:
               EXPECTED_REGION=us-central1
               EXPECTED_DATABASE_POOL_MAX=
               ;;
+            c17|c18)
+              EXPECTED_HARD_CAP=600
+              EXPECTED_REGION=us-central1
+              EXPECTED_DATABASE_POOL_MAX=
+              ;;
             c27|c28|c29)
               EXPECTED_HARD_CAP=3000
               EXPECTED_REGION=asia-east2
@@ -266,10 +287,6 @@ jobs:
           SOURCE_CELLS="$(terraform -chdir=infra/terraform console \
             -var-file=environments/production.tfvars \
             <<< 'jsonencode(var.relay_region_rehome_source_cell_ids)' | jq -er '.')"
-          if test "${EXPECTED_REGION}" = us-central1; then
-            jq -e --arg cell "${TARGET_CELL_ID}" 'index($cell) != null' \
-              <<< "${SOURCE_CELLS}" >/dev/null
-          fi
           CURRENT_SHAPE="$(jq -cer --arg cell "${TARGET_CELL_ID}" '.[$cell]' <<< "${CELLS_JSON}")"
           test "$(jq -r '.connection_hard_cap' <<< "${CURRENT_SHAPE}")" = "${EXPECTED_HARD_CAP}"
           test "$(jq -r '.connection_unobserved_bound' <<< "${CURRENT_SHAPE}")" = \
@@ -290,6 +307,14 @@ jobs:
             CURRENT_IMAGE_DIGEST="${ROLLBACK_IMAGE_DIGEST}"
             DESIRED_REHOME_PROTOCOL="${TARGET_REHOME_PROTOCOL}"
             CURRENT_REHOME_PROTOCOL="${ROLLBACK_REHOME_PROTOCOL}"
+          fi
+          # The startup template emits rehome trust lines only for a declared source cell, so
+          # require membership exactly when either side of this roll expects those lines.
+          if test "${EXPECTED_REGION}" = us-central1 && {
+            test "${DESIRED_REHOME_PROTOCOL}" != 0 || test "${CURRENT_REHOME_PROTOCOL}" != 0
+          }; then
+            jq -e --arg cell "${TARGET_CELL_ID}" 'index($cell) != null' \
+              <<< "${SOURCE_CELLS}" >/dev/null
           fi
           DESIRED_IMAGE="${IMAGE_REPOSITORY}@${DESIRED_IMAGE_DIGEST}"
           OVERRIDE_CELLS_JSON="$(jq -ce --arg cell "${TARGET_CELL_ID}" \
@@ -369,6 +394,12 @@ jobs:
             '$value | split(",") | map(select(length > 0 and . != $target)) | unique | join(",")')"
           test -n "${ISOLATED_MIGRATION_CELLS}" || ISOLATED_MIGRATION_CELLS=none
           test -n "${ISOLATED_GENERAL_CELLS}" || ISOLATED_GENERAL_CELLS=none
+          # A migration-only cell is already isolated and is handed back isolated, so both
+          # halves of its wave see exactly the membership it entered with.
+          if test "${ENTRY_ADMISSION}" = migration-only; then
+            RESTORED_MIGRATION_CELLS="${ISOLATED_MIGRATION_CELLS}"
+            RESTORED_GENERAL_CELLS="${ISOLATED_GENERAL_CELLS}"
+          fi
           {
             echo "ROLLBACK_RESUME=${ROLLBACK_RESUME}"
             # The failsafe consumes these; deriving them here keeps them
@@ -445,12 +476,13 @@ jobs:
           echo "SOURCE_INCARNATION=${SOURCE_INCARNATION}" >> "${GITHUB_ENV}"
           # Rollback is the documented recovery from a failed canary, which
           # leaves the cell migration-only (and possibly still marked
-          # draining); apply and verify still require a pristine general cell.
+          # draining); apply and verify still require the cell pristine in the
+          # class it is declared to serve in.
           if test "${DEPLOY_MODE}" = rollback; then
             PRECHECK_ADMISSION=general-or-migration-only
             PRECHECK_DRAINING=either
           else
-            PRECHECK_ADMISSION=general
+            PRECHECK_ADMISSION="${ENTRY_ADMISSION}"
             PRECHECK_DRAINING=forbidden
           fi
           node dev/scripts/verify-relay-capacity-transition.mjs \
@@ -478,6 +510,11 @@ jobs:
             --director-origin "${DIRECTOR_ORIGIN}" --cell-origin "${CELL_ORIGIN}" \
             --cell-id "${TARGET_CELL_ID}" --approved-cells same-cap --mode isolate)"
           echo "${ISOLATE_RESULT}"
+          # Isolating a migration-only cell must be a read-only no-op; a change here would
+          # mean the live class is not the one this wave planned around.
+          if test "${ENTRY_ADMISSION}" = migration-only; then
+            jq -e '.changed == false' <<< "${ISOLATE_RESULT}" >/dev/null
+          fi
           ISOLATE_GENERATION="$(jq -er '.generation' <<< "${ISOLATE_RESULT}")"
           echo "SELECTOR_GENERATION_AFTER_ISOLATE=${ISOLATE_GENERATION}" >> "${GITHUB_ENV}"
           node dev/scripts/prepare-relay-production-capacity-canary.mjs \
@@ -664,28 +701,36 @@ jobs:
             --director-origin "${DIRECTOR_ORIGIN}" --cell-id "${TARGET_CELL_ID}" \
             --cell-incarnation "${TARGET_INCARNATION}"
 
-      - name: Restore only the verified selected cell to general admission
+      - name: Restore only the verified selected cell to its entry admission
         if: ${{ inputs.mode != 'verify' }}
         env:
           ORCA_RELAY_ADMIN_ID_TOKEN: ${{ steps.post-auth.outputs.id_token }}
         run: |
           echo "MUTATION_STARTED=true" >> "${GITHUB_ENV}"
-          ACTIVATE_RESULT="$(node dev/scripts/prepare-relay-production-capacity-canary.mjs \
+          # Activating a migration-only cell would promote it to a serving cell for good, so
+          # restore it with the idempotent isolate that reports the authoritative generation.
+          if test "${ENTRY_ADMISSION}" = migration-only; then
+            RESTORE_MODE=isolate
+          else
+            RESTORE_MODE=activate
+          fi
+          RESTORE_RESULT="$(node dev/scripts/prepare-relay-production-capacity-canary.mjs \
             --director-origin "${DIRECTOR_ORIGIN}" --cell-origin "${CELL_ORIGIN}" \
-            --cell-id "${TARGET_CELL_ID}" --approved-cells same-cap --mode activate)"
-          echo "${ACTIVATE_RESULT}"
-          SELECTOR_GENERATION_AFTER_ACTIVATE="$(jq -er '.generation' \
-            <<< "${ACTIVATE_RESULT}")"
+            --cell-id "${TARGET_CELL_ID}" --approved-cells same-cap --mode "${RESTORE_MODE}")"
+          echo "${RESTORE_RESULT}"
+          SELECTOR_GENERATION_AFTER_RESTORE="$(jq -er '.generation' \
+            <<< "${RESTORE_RESULT}")"
           node dev/scripts/verify-relay-capacity-transition.mjs \
             --director-origin "${DIRECTOR_ORIGIN}" --cell-origin "${CELL_ORIGIN}" \
             --cell-id "${TARGET_CELL_ID}" --hard-cap "${EXPECTED_HARD_CAP}" \
             --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" \
-            --heartbeat fresh --admission general --draining forbidden --activity allowed \
+            --heartbeat fresh --admission "${ENTRY_ADMISSION}" \
+            --draining forbidden --activity allowed \
             --expected-image-digests "${DESIRED_IMAGE_DIGEST}" \
             --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}"
           node dev/scripts/operate-relay-regional-rehome.mjs \
             --mode inspect --director-origin "${DIRECTOR_ORIGIN}" \
-            --expected-selector-generation "${SELECTOR_GENERATION_AFTER_ACTIVATE}" \
+            --expected-selector-generation "${SELECTOR_GENERATION_AFTER_RESTORE}" \
             --expected-existing-only-cells "${EXPECTED_EXISTING_ONLY_CELLS}" \
             --expected-migration-only-cells "${RESTORED_MIGRATION_CELLS}" \
             --expected-general-cells "${RESTORED_GENERAL_CELLS}" \

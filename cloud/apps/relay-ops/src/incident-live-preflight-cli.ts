@@ -31,6 +31,8 @@ const MONITOR_EVIDENCE_MAX_AGE_MS = 10 * 60_000
 // Matches the same-cap cell job timeout-minutes; bounds each predecessor wave.
 const WAVE_PREDECESSOR_TIMEOUT_MS = 75 * 60_000
 const WAVE_INDEX_PATTERN = /^[0-3]$/
+// 2 for a general cell's isolate-and-restore wave, 0 for a migration-only cell's no-op pair.
+const SELECTOR_WAVE_DELTA_PATTERN = /^[02]$/
 
 export function livePreflightGcloud(
   gcloud: ReturnType<typeof createGcloudClient>,
@@ -93,13 +95,16 @@ function describeFailure(failure: IncidentFailure): string {
 }
 
 const PREFLIGHT_USAGE =
-  'usage: --state-file <verified-monitor-state> [--wave-index <0-3>] [--retry-freshness]' +
+  'usage: --state-file <verified-monitor-state> [--wave-index <0-3>]' +
+  ' [--selector-wave-delta <0|2>] [--retry-freshness]' +
   ' | --no-monitor-state --expected-selector-generation <n>' +
-  ' --selector-membership-file <json> [--wave-index <0-3>]'
+  ' --selector-membership-file <json> [--wave-index <0-3>]' +
+  ' [--selector-wave-delta <0|2>]'
 
 const VALUE_OPTIONS = new Set([
   '--state-file',
   '--wave-index',
+  '--selector-wave-delta',
   '--expected-selector-generation',
   '--selector-membership-file'
 ])
@@ -241,6 +246,8 @@ export async function runIncidentLivePreflight(
   const parsed = parsePreflightArgs(argv)
   const waveIndex = parsed.options.get('--wave-index') ?? '0'
   if (!WAVE_INDEX_PATTERN.test(waveIndex)) throw new Error(PREFLIGHT_USAGE)
+  const selectorWaveDelta = parsed.options.get('--selector-wave-delta') ?? '2'
+  if (!SELECTOR_WAVE_DELTA_PATTERN.test(selectorWaveDelta)) throw new Error(PREFLIGHT_USAGE)
   const now = dependencies.now ?? Date.now
   const plan = parsed.flags.has('--no-monitor-state')
     ? await overridePreflightPlan(parsed.options, now())
@@ -252,14 +259,16 @@ export async function runIncidentLivePreflight(
     dependencies.environment
   )
   // Each predecessor same-cap apply wave reversibly isolates and restores its
-  // cell, advancing the selector generation by exactly 2 with membership
-  // unchanged (rollback is single-cell, so it never reaches a later wave), so
-  // the live selector comparison must expect the wave-adjusted generation.
+  // cell with membership unchanged (rollback is single-cell, so it never reaches
+  // a later wave), so the live selector comparison must expect the wave-adjusted
+  // generation. A general cell advances it by 2; a migration-only cell is already
+  // isolated and stays that way, so its wave advances it by 0. A wave is never
+  // mixed, so one delta covers every predecessor.
   const collectOptions = {
     environment: plan.environment,
     expectedSelector: {
       ...plan.expectedSelector,
-      generation: plan.expectedSelector.generation + 2 * Number(waveIndex)
+      generation: plan.expectedSelector.generation + Number(selectorWaveDelta) * Number(waveIndex)
     },
     ...(dependencies.now ? { now: dependencies.now } : {})
   }

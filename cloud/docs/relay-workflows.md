@@ -374,7 +374,8 @@ remain general at 1,000/60. The workflow lock, single-use evidence marker, exact
 targeted Terraform plan, and per-cell heartbeat/admission oracle are unchanged.
 
 `Deploy Relay Production Same-Cap` rolls only the reviewed US 1,000/60 and Asia 3,000/60 serving
-sets without changing a cell's connection shape. Use `canary-apply` for exactly one cell. A successful canary
+sets and the two migration-only US 600/60 cells, C17 and C18, without changing a cell's connection
+shape. Use `canary-apply` for exactly one cell. A successful canary
 seals its commit, target and rollback digests, selector generation, and durable rehome generation;
 `batch-apply` accepts only that same authority and rolls two to four cells sequentially. Each cell is
 isolated, drained to two restart-safe samples, replaced from a targeted saved plan, and restored only
@@ -383,6 +384,14 @@ worker must remain disabled throughout. The post-restart trust check is applicat
 director; the workflow never receives or mints a director or stamped-cell runtime token. A failure
 keeps only the selected cell migration-only, while the exact rollback digest remains dispatchable via
 the same workflow's `rollback` mode.
+
+C17 and C18 hold no hosts and are not general, so rolling one displaces nobody: they are the
+zero-displacement canary for a new image. Their wave enters and leaves migration-only, so its
+isolate and its restore are both no-ops and the selector generation does not move; a general
+cell's wave still advances it by two. One wave may not mix the two classes, because every cell
+after the first offsets from a single per-wave delta. Neither cell is a declared regional-rehome
+source, so its template carries no rehome trust lines and it may roll only at rehome protocol `0`;
+the job refuses a trusted protocol for it before it plans anything.
 
 ### Gate override (break-glass)
 

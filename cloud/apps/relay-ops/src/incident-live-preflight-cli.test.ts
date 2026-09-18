@@ -738,6 +738,42 @@ describe('relay incident live preflight', () => {
       expect(seen[0]!.generation).toBe(5)
     })
 
+    it('offsets by the wave delta the cell class declares', async () => {
+      const generationFor = async (args: string[]) => {
+        const seen: AdmissionSelector[] = []
+        await expect(runIncidentLivePreflight(args, {
+          now: () => now,
+          collect: async (expected) => {
+            seen.push(expected)
+            const next = canonicalSample(expected.generation)
+            next.expectedSelector = expected
+            return next
+          }
+        })).resolves.toBeUndefined()
+        return seen[0]!.generation
+      }
+      // A migration-only cell's wave isolates and restores nothing, so no predecessor moved it.
+      expect(await generationFor(
+        overrideArgs(['--wave-index', '2', '--selector-wave-delta', '0'])
+      )).toBe(1)
+      expect(await generationFor(
+        overrideArgs(['--wave-index', '2', '--selector-wave-delta', '2'])
+      )).toBe(5)
+    })
+
+    it('rejects a selector wave delta no cell class produces', async () => {
+      for (const delta of ['1', '3', '4', '', '-0', '02']) {
+        await expect(runIncidentLivePreflight(
+          overrideArgs(['--selector-wave-delta', delta]),
+          { now: () => now }
+        )).rejects.toThrow('usage:')
+      }
+      await expect(runIncidentLivePreflight(
+        overrideArgs(['--selector-wave-delta', '0', '--selector-wave-delta', '0']),
+        { now: () => now }
+      )).rejects.toThrow('usage:')
+    })
+
     it('pins the strictest migration policy', async () => {
       // An inactive migration target is tolerable only under recover-forward,
       // and an override cannot elect that policy, so this must still fail.
