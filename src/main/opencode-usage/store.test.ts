@@ -23,6 +23,7 @@ vi.mock('../usage/usage-scan-worker-spawn', () => ({
 }))
 
 import { OpenCodeUsageStore, initOpenCodeUsagePath } from './store'
+import { OPENCODE_USAGE_SCHEMA_VERSION } from './opencode-usage-provider'
 import { normalizePersistedState } from './persisted-state-normalization'
 import { scanOpenCodeUsageDatabasesViaWorker } from '../usage/usage-scan-worker-spawn'
 
@@ -36,7 +37,7 @@ function createEmptyScanResult() {
 
 function getDefaultState(): OpenCodeUsagePersistedState {
   return {
-    schemaVersion: 2,
+    schemaVersion: OPENCODE_USAGE_SCHEMA_VERSION,
     worktreeFingerprint: null,
     processedDatabases: [],
     sessions: [],
@@ -312,6 +313,20 @@ describe('OpenCodeUsageStore', () => {
         totalTokens: 1350
       }
     ])
+  })
+
+  it.each([true, false])('rebuilds v2 caches without changing enabled=%s', (enabled) => {
+    const oldState = {
+      ...getDefaultState(),
+      schemaVersion: 2,
+      sessions: [makeSession()],
+      dailyAggregates: [makeDaily()],
+      scanState: { ...getDefaultState().scanState, enabled, lastScanCompletedAt: 123 }
+    }
+    expect(normalizePersistedState(oldState)).toEqual({
+      ...getDefaultState(),
+      scanState: { ...getDefaultState().scanState, enabled }
+    })
   })
 
   it('normalizes persisted OpenCode state by schema version', () => {

@@ -129,7 +129,45 @@ describe('parseOpenCodeUsageRow', () => {
       cachedInputTokens: 400,
       outputTokens: 250,
       reasoningOutputTokens: 100,
-      totalTokens: 1350
+      totalTokens: 1750
+    })
+  })
+
+  it.each([
+    [undefined, 10_125],
+    [125, 10_125],
+    [10_125, 10_125],
+    [20_000, 20_000]
+  ])('counts cache reads once with reported total %s', (total, expectedTotal) => {
+    const parsed = parseOpenCodeUsageRow({
+      id: 'message-cache-heavy',
+      session_id: 'session-cache-heavy',
+      time_created: 1_777_777_700_000,
+      time_updated: null,
+      directory: WORKTREE,
+      title: null,
+      worktree: null,
+      session_model: null,
+      data: JSON.stringify({
+        modelID: 'deepseek-v4.1-flash',
+        providerID: 'opencode-go',
+        tokens: {
+          input: 100,
+          output: 20,
+          reasoning: 5,
+          total,
+          cache: { read: 10_000, write: 0 }
+        },
+        time: { completed: 1_777_777_800_000 }
+      })
+    })
+
+    expect(parsed).toMatchObject({
+      inputTokens: 100,
+      cachedInputTokens: 10_000,
+      outputTokens: 20,
+      reasoningOutputTokens: 5,
+      totalTokens: expectedTotal
     })
   })
 })
@@ -236,7 +274,7 @@ describe('parseOpenCodeUsageDatabase', () => {
       totalCachedInputTokens: 250,
       totalOutputTokens: 500,
       totalReasoningOutputTokens: 100,
-      totalTokens: 1600,
+      totalTokens: 1850,
       estimatedCostUsd: 0.06
     })
     expect(parsed.dailyAggregates).toEqual([
@@ -246,7 +284,7 @@ describe('parseOpenCodeUsageDatabase', () => {
         cachedInputTokens: 250,
         outputTokens: 500,
         reasoningOutputTokens: 100,
-        totalTokens: 1600,
+        totalTokens: 1850,
         estimatedCostUsd: 0.06
       })
     ])
@@ -299,7 +337,7 @@ describe('parseOpenCodeUsageDatabase', () => {
     expect(parsed.sessions[0]).toMatchObject({
       primaryModel: 'openai/gpt-5.5',
       primaryProjectLabel: 'Repo',
-      totalTokens: 1050,
+      totalTokens: 1150,
       estimatedCostUsd: 0.03
     })
   })
@@ -376,7 +414,7 @@ describe('parseOpenCodeUsageDatabase', () => {
 
     const parsed = await parseOpenCodeUsageDatabase(path, await resolveWorktree())
 
-    expect(parsed.sessions[0]?.totalTokens).toBe(120)
+    expect(parsed.sessions[0]?.totalTokens).toBe(130)
     expect(parsed.sessions[0]?.eventCount).toBe(1)
   })
 })
