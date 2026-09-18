@@ -55,6 +55,9 @@ jobs:
         with:
           node-version-file: package.json
           cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -100,6 +103,12 @@ jobs:
           key: crash-survival-electron-builder-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             crash-survival-electron-builder-
+
+      # Why here: electron-builder's beforePack requires out/mobile-web, and the bundle
+      # build resolves React Native and Expo from mobile/node_modules. Gated with the
+      # build it feeds, so a cache hit does not pay for an install nothing consumes.
+      - uses: ./.github/actions/install-mobile-dependencies
+        if: steps.cache-installer.outputs.cache-hit != 'true'
 
       - name: Build Windows installer (unsigned)
         if: steps.cache-installer.outputs.cache-hit != 'true'
