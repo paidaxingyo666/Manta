@@ -131,8 +131,9 @@ export function AiVaultVirtualRow({
   const searchHit = row.type === 'session' ? searchHits?.get(row.session.id) : undefined
   const searchResumeAllowed = searchHit ? canResumeAiVaultSearchHit(searchHit) : true
   const searchPathAllowed = searchHit ? hasAiVaultSearchHitPath(searchHit) : true
+  const usesLegacyResumeCommand = row.type === 'session' && !row.session.structuredSession
   const resumeStartup =
-    row.type === 'session' && searchResumeAllowed
+    row.type === 'session' && searchResumeAllowed && usesLegacyResumeCommand
       ? buildResumeStartup(row.session, resumeState?.worktreeId)
       : { command: '' }
   const visibleResumeActions =
@@ -166,7 +167,7 @@ export function AiVaultVirtualRow({
           liveState={getSessionLiveState(row.session)}
           resumeStartup={resumeStartup}
           realHomeResumeStartup={
-            searchResumeAllowed
+            searchResumeAllowed && usesLegacyResumeCommand
               ? buildResumeStartup({ ...row.session, codexHome: null }, resumeState?.worktreeId)
               : resumeStartup
           }
