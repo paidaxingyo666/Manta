@@ -14,6 +14,10 @@ const {
 } = require('./packaged-runtime-node-modules.cjs')
 const { verifyLinuxGlibcFloor } = require('./scripts/verify-linux-glibc-floor.cjs')
 const { writeMacBuildCompatibility } = require('./scripts/mac-build-compatibility.cjs')
+const {
+  MOBILE_WEB_BUNDLE_DIR,
+  assertMobileWebBundleBuilt
+} = require('./scripts/verify-packaged-mobile-web-bundle.cjs')
 const { verifyPackagedPluginResources } = require('./scripts/verify-packaged-plugin-resources.cjs')
 const {
   verifyPackagedWindowsNodePty
@@ -177,6 +181,9 @@ module.exports = {
     // Why: these repo-only inputs are either bundled into out/ or copied via
     // extraResources. Shipping them in app.asar bloats the desktop bundle.
     '!src{,/**/*}',
+    // Redundant under !src above, kept explicit: the built bundle ships from out/mobile-web via the
+    // out rules exactly as out/web does, and the source tree must never be mistaken for it.
+    '!src/mobile-web{,/**/*}',
     '!config{,/**/*}',
     '!docs{,/**/*}',
     '!mobile{,/**/*}',
@@ -289,8 +296,11 @@ module.exports = {
       verifyStaticAppImagePackage(file, arch)
     }
   },
-  beforePack: (context) => {
+  // electron-builder calls this with the context alone. The second parameter is the bundle root,
+  // so a test can point the guard at a scratch bundle instead of needing the repo's out/ built.
+  beforePack: (context, mobileWebBundleDir = MOBILE_WEB_BUNDLE_DIR) => {
     assertPackagedNativeVariantsInstalled(context.electronPlatformName, context.arch)
+    assertMobileWebBundleBuilt(mobileWebBundleDir)
   },
   afterPack: async (context) => {
     const resourcesDir =
