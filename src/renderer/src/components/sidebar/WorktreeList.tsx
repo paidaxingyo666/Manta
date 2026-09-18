@@ -104,7 +104,8 @@ const WorktreeList = React.memo(function WorktreeList({
   )
 
   const agentSendTargetWorktreeId = useAgentSendTargetWorktreeId()
-  const { filterState, hasFilters, clearFilters } = useSidebarWorktreeFilters()
+  const { filterState, hasFilters, clearFilters, revealWorkspaceFilters } =
+    useSidebarWorktreeFilters()
   const sortedIds = useSidebarWorktreeSortOrder({ allWorktrees, repoMap, sortBy })
   const manualOrderCatalog = useMemo(
     () => buildWorktreeManualOrderCatalog({ worktrees: allWorktrees, folderWorkspaces }),
@@ -244,7 +245,8 @@ const WorktreeList = React.memo(function WorktreeList({
     worktrees: allWorktrees,
     folderWorkspaces,
     hasFilters,
-    clearFilters
+    clearFilters,
+    revealWorkspaceFilters
   })
 
   const filtersHideAllRows = shouldFiltersHideAllRows({
