@@ -392,6 +392,12 @@ and the plan validator pins the exact reviewed identity instead of comparing tha
 roll can never drop or rewrite it. Any other stale line still fails closed and needs a
 convergence apply first.
 
+A drained cell is refused before a roll, because draining means something is already
+shedding its connections. A migration-only cell has none to shed, so the flag decides nothing
+there and is accepted on entry; the replacement VM is still required not to be draining, and
+the incarnation check still proves it was replaced. That also unwedges the state a failed
+canary leaves behind, where the wave's own drain set the flag and no restart followed.
+
 C17 and C18 hold no hosts and are not general, so rolling one displaces nobody: they are the
 zero-displacement canary for a new image. Their wave enters and leaves migration-only, so its
 isolate and its restore are both no-ops and the selector generation does not move; a general

@@ -182,6 +182,13 @@ function resolveCellClass(cellId) {
   ], { cwd: new URL('../..', import.meta.url), env: { ...process.env, TARGET_CELL_ID: cellId }, encoding: 'utf8' })
 }
 
+function drainingBlock() {
+  return `${jobBlock(
+    '          # Rollback is the documented recovery from a failed canary, which',
+    '            PREDECESSOR_DRAINING_OK=false\n          fi'
+  )}\necho "\${PRECHECK_ADMISSION} \${PRECHECK_DRAINING} \${PREDECESSOR_DRAINING_OK}"`
+}
+
 function generationBlock() {
   return `${jobBlock(
     '          if test "${DEPLOY_MODE}" = verify; then',
@@ -514,6 +521,58 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       ).length,
       4
     )
+  })
+
+  it('decides the predecessor draining rule from the real block, for both classes', () => {
+    // A zero-host cell sheds nothing, and a failed canary's own drain leaves the flag set
+    // with no restart behind it; run 35292335415 stopped on exactly that residue.
+    const cases = [
+      // mode, entry class, resume, expected [precheck admission, precheck draining, jq ok]
+      ['apply', 'migration-only', 'false', ['migration-only', 'either', 'true']],
+      ['apply', 'general', 'false', ['general', 'forbidden', 'false']],
+      ['verify', 'migration-only', 'false', ['migration-only', 'either', 'true']],
+      ['verify', 'general', 'false', ['general', 'forbidden', 'false']],
+      // Every rollback path keeps exactly the behaviour it had.
+      ['rollback', 'general', 'false', ['general-or-migration-only', 'either', 'true']],
+      ['rollback', 'general', 'true', ['general-or-migration-only', 'either', 'false']],
+      ['rollback', 'migration-only', 'false', ['general-or-migration-only', 'either', 'true']],
+      ['rollback', 'migration-only', 'true', ['general-or-migration-only', 'either', 'false']]
+    ]
+    for (const [mode, entry, resume, expected] of cases) {
+      const resolved = spawnSync('bash', ['-euo', 'pipefail', '-c', drainingBlock()], {
+        env: {
+          ...process.env,
+          DEPLOY_MODE: mode,
+          ENTRY_ADMISSION: entry,
+          ROLLBACK_RESUME: resume
+        },
+        encoding: 'utf8'
+      })
+      assert.equal(resolved.status, 0, `${mode}/${entry}/${resume}: ${resolved.stderr}`)
+      assert.deepEqual(
+        resolved.stdout.trim().split(' '),
+        expected,
+        `${mode}/${entry}/${resume}`
+      )
+    }
+  })
+
+  it('reads one draining decision in both predecessor checks', () => {
+    const step = workflow
+      .split('name: Verify exact current generation, digest, cap, and rollback point')[1]
+      .split('\n      - name:')[0]
+    // The jq assertion and its diagnostic must not be able to disagree.
+    assert.equal(step.split('--argjson drainingOk "${PREDECESSOR_DRAINING_OK}"').length, 3)
+    assert.doesNotMatch(step, /drainingOk "\$\(test/)
+    // The fresh VM is still required not to be draining, on every path.
+    const after = workflow
+      .split('name: Verify new incarnation, exact image, protocol, and durable safety')[1]
+      .split('\n      - name:')[0]
+    assert.match(after, /--admission migration-only --draining forbidden/)
+    const restore = workflow
+      .split('name: Restore only the verified selected cell to its entry admission')[1]
+      .split('\n      - id:')[0]
+    assert.match(restore, /--draining forbidden --activity allowed/)
   })
 
   it('leaves the US-only capacity job on the default allowlist', () => {

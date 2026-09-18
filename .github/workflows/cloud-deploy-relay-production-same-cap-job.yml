@@ -374,6 +374,31 @@ jobs:
             PREDECESSOR_IMAGE_DIGEST="${CURRENT_IMAGE_DIGEST}"
             PREDECESSOR_REHOME_PROTOCOL="${CURRENT_REHOME_PROTOCOL}"
           fi
+          # Rollback is the documented recovery from a failed canary, which
+          # leaves the cell migration-only (and possibly still marked
+          # draining); apply and verify still require the cell pristine in the
+          # class it is declared to serve in.
+          if test "${DEPLOY_MODE}" = rollback; then
+            PRECHECK_ADMISSION=general-or-migration-only
+          else
+            PRECHECK_ADMISSION="${ENTRY_ADMISSION}"
+          fi
+          # Draining sheds connections, and a migration-only cell holds none, so the flag
+          # carries no precondition there. It also outlives a failed wave, because the drain
+          # that set it is followed by no restart, which is the state a failed canary leaves.
+          if test "${DEPLOY_MODE}" = rollback \
+            || test "${ENTRY_ADMISSION}" = migration-only; then
+            PRECHECK_DRAINING=either
+          else
+            PRECHECK_DRAINING=forbidden
+          fi
+          # A resumed rollback already restarted, so its cell has to come back not draining;
+          # that is what separates it from a wave that stopped before its template apply.
+          if test "${PRECHECK_DRAINING}" = either && test "${ROLLBACK_RESUME}" != true; then
+            PREDECESSOR_DRAINING_OK=true
+          else
+            PREDECESSOR_DRAINING_OK=false
+          fi
           RESTORED_MIGRATION_CELLS="$(jq -rn \
             --arg value "${EXPECTED_MIGRATION_ONLY_CELLS/none/}" \
             --arg target "${TARGET_CELL_ID}" \
@@ -420,8 +445,7 @@ jobs:
             --argjson hardCap "${EXPECTED_HARD_CAP}" \
             --argjson unobservedBound "${EXPECTED_UNOBSERVED_BOUND}" \
             --argjson protocol "${PREDECESSOR_REHOME_PROTOCOL}" \
-            --argjson drainingOk "$(test "${DEPLOY_MODE}" = rollback \
-              && test "${ROLLBACK_RESUME}" != true && echo true || echo false)" \
+            --argjson drainingOk "${PREDECESSOR_DRAINING_OK}" \
             '.role == "cell" and .cellId == $cell and .cellUrl == $origin and
              (.region == $region or
               ($region == "us-central1" and $protocol == 0 and .region == null)) and
@@ -437,8 +461,7 @@ jobs:
               --argjson hardCap "${EXPECTED_HARD_CAP}" \
               --argjson unobservedBound "${EXPECTED_UNOBSERVED_BOUND}" \
               --argjson protocol "${PREDECESSOR_REHOME_PROTOCOL}" \
-              --argjson drainingOk "$(test "${DEPLOY_MODE}" = rollback \
-              && test "${ROLLBACK_RESUME}" != true && echo true || echo false)" \
+              --argjson drainingOk "${PREDECESSOR_DRAINING_OK}" \
               '[
                 if .role != "cell" then "role" else empty end,
                 if .cellId != $cell then "cellId" else empty end,
@@ -474,17 +497,6 @@ jobs:
           fi
           [[ "${SOURCE_INCARNATION}" =~ ^[0-9a-f-]{36}$ ]]
           echo "SOURCE_INCARNATION=${SOURCE_INCARNATION}" >> "${GITHUB_ENV}"
-          # Rollback is the documented recovery from a failed canary, which
-          # leaves the cell migration-only (and possibly still marked
-          # draining); apply and verify still require the cell pristine in the
-          # class it is declared to serve in.
-          if test "${DEPLOY_MODE}" = rollback; then
-            PRECHECK_ADMISSION=general-or-migration-only
-            PRECHECK_DRAINING=either
-          else
-            PRECHECK_ADMISSION="${ENTRY_ADMISSION}"
-            PRECHECK_DRAINING=forbidden
-          fi
           node dev/scripts/verify-relay-capacity-transition.mjs \
             --director-origin "${DIRECTOR_ORIGIN}" --cell-origin "${CELL_ORIGIN}" \
             --cell-id "${TARGET_CELL_ID}" --hard-cap "${EXPECTED_HARD_CAP}" \
