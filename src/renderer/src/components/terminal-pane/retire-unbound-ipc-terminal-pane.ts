@@ -1,21 +1,16 @@
-import type { AppState } from '@/store/types'
 import {
   buildTerminalTabRetirementPlan,
-  getTerminalPtyOwnershipIdentity,
-  hasTerminalPtyOwnerOutsidePane
+  getTerminalPtyOwnershipIdentity
 } from '@/store/slices/terminal-tab-retirement'
 import { startTerminalTabProviderRetirement } from '@/store/terminals/terminal-tab-close-providers'
-import type { PtyTransport } from './pty-transport-types'
+import {
+  terminalPaneHasOtherOwner,
+  type UnboundTerminalPaneRetirement
+} from './terminal-pane-retirement-ownership'
 
 /** Capture explicit split-close intent before the durable leaf binding is removed. */
-export function retireUnboundIpcTerminalPane(args: {
-  getState: () => AppState
-  tabId: string
-  leafId: string
-  transport: PtyTransport | undefined
-  getTransports: () => ReadonlyMap<number, PtyTransport>
-}): void {
-  const { getState, tabId, leafId, transport, getTransports } = args
+export function retireUnboundIpcTerminalPane(args: UnboundTerminalPaneRetirement): void {
+  const { getState, tabId, leafId, transport } = args
   if (!transport || transport.getPtyId()) {
     return
   }
@@ -33,19 +28,8 @@ export function retireUnboundIpcTerminalPane(args: {
   if (!ptyId) {
     return
   }
-  const hasOtherOwner = (excludedLeafId?: string): boolean => {
-    const current = getState()
-    return (
-      hasTerminalPtyOwnerOutsidePane(current, identity, tabId, excludedLeafId) ||
-      [...getTransports().values()].some((candidate) => {
-        const boundId = candidate.getPtyId()
-        return (
-          boundId !== null &&
-          getTerminalPtyOwnershipIdentity(current, boundId, plan.worktreeId) === identity
-        )
-      })
-    )
-  }
+  const hasOtherOwner = (excludedLeafId?: string): boolean =>
+    terminalPaneHasOtherOwner(args, identity, plan.worktreeId, excludedLeafId)
   if (hasOtherOwner(leafId)) {
     return
   }

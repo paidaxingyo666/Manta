@@ -30,7 +30,15 @@ export function capturePendingTerminalPaneClose(
   const identity = getTerminalPtyOwnershipIdentity(state, ptyId, plan.worktreeId)
   const isIdentity = (id: string): boolean =>
     getTerminalPtyOwnershipIdentity(state, id, plan.worktreeId) === identity
-  if (!plan.localOrSshPtyIds.some(isIdentity)) {
+  if (
+    !plan.localOrSshPtyIds.some(isIdentity) &&
+    !(
+      environmentId &&
+      owner.kind === 'runtime' &&
+      owner.runtimeEnvironmentId === environmentId &&
+      plan.runtimeTerminals.some((terminal) => isIdentity(terminal.ptyId))
+    )
+  ) {
     return undefined
   }
   const originalTab = locateTerminalTab(state.tabsByWorktree, tabId)?.tab
