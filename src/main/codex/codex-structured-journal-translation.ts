@@ -162,13 +162,13 @@ export function createCodexJournalTranslator(
           currentTurnIds: activeTurns.byThread,
           primaryThreadId: deps.primaryThreadId?.() ?? null,
           ordinals: items.ordinals,
+          // The host saw the child go, not what Codex made of the turn, so the row
+          // carries no outcome: the end is observed, the verdict is unknown.
           settledTurnLifecycle: (threadId, turnId) =>
-            turnBoundaries.settled(
-              threadId,
-              turnId,
-              'interrupted',
-              event.observedAt ?? deps.now?.() ?? Date.now()
-            )
+            turnBoundaries.settled(threadId, turnId, {
+              state: 'interrupted',
+              completedAt: event.observedAt ?? deps.now?.() ?? Date.now()
+            })
         })
         if (!admission.accepted) {
           return admission

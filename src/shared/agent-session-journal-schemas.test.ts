@@ -84,6 +84,19 @@ const CANONICAL_BODIES: AgentJournalItemBody[] = [
     kind: 'status',
     text: 'turn',
     turnLifecycle: { turnId: 'turn-3', state: 'unverifiable', startedAt: 1_000 }
+  },
+  {
+    kind: 'status',
+    text: 'turn',
+    turnLifecycle: { turnId: 'turn-4', state: 'completed', outcome: 'failure', startedAt: 1_000 }
+  },
+  {
+    kind: 'turn',
+    turnId: 'turn-5',
+    state: 'interrupted',
+    outcome: 'cancellation',
+    startedAt: 1_000,
+    completedAt: 2_000
   }
 ]
 
@@ -247,6 +260,30 @@ describe('forward tolerance', () => {
         resolvedAt: null
       })
     ).toBe(true)
+  })
+
+  it('admits a turn outcome from a later vocabulary but rejects a non-string one', () => {
+    // Open like `state`: a verdict a newer build writes keeps the row readable,
+    // and `readAgentJournalTurnOutcome` is what stops it being acted on. A
+    // non-string stays fatal — the row is structurally wrong, not just newer.
+    const turn = { kind: 'turn', turnId: 'turn-1', state: 'completed' }
+    expect(isAdmissibleAgentJournalItemBody({ ...turn, outcome: 'partially-refused' })).toBe(true)
+    expect(isAdmissibleAgentJournalItemBody({ ...turn, outcome: 7 })).toBe(false)
+    expect(isAdmissibleAgentJournalItemBody({ ...turn, outcome: '' })).toBe(false)
+    expect(
+      isAdmissibleAgentJournalItemBody({
+        kind: 'status',
+        text: 'turn',
+        turnLifecycle: { turnId: 'turn-1', state: 'completed', outcome: 'partially-refused' }
+      })
+    ).toBe(true)
+    expect(
+      isAdmissibleAgentJournalItemBody({
+        kind: 'status',
+        text: 'turn',
+        turnLifecycle: { turnId: 'turn-1', state: 'completed', outcome: 7 }
+      })
+    ).toBe(false)
   })
 })
 

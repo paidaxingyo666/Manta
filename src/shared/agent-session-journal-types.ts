@@ -184,9 +184,22 @@ export const AGENT_JOURNAL_TURN_LIFECYCLE_STATES = [
 ] as const
 export type AgentJournalTurnLifecycleState = (typeof AGENT_JOURNAL_TURN_LIFECYCLE_STATES)[number]
 
+/** What the PROVIDER said became of a turn, kept separate from the lifecycle
+ *  state so the four arms above stay a report on what the HOST observed.
+ *  `cancellation` is a stop somebody asked for, `failure` is the provider's own
+ *  error, and the two are never interchangeable: only `failure` is a fault. */
+export const AGENT_JOURNAL_TURN_OUTCOMES = ['success', 'failure', 'cancellation'] as const
+export type AgentJournalTurnOutcome = (typeof AGENT_JOURNAL_TURN_OUTCOMES)[number]
+
 export type AgentJournalTurnLifecycle = {
   turnId: string
   state: AgentJournalTurnLifecycleState
+  /** The provider's own verdict, when it gave one. ABSENT MEANS UNKNOWN and must
+   *  never be read as success: a row from a host that predates the field, an end
+   *  the host inferred rather than heard, and a verdict vocabulary this build
+   *  cannot place all land here. `completed` alone proves nothing — the provider
+   *  reports an API error as a finished turn. */
+  outcome?: AgentJournalTurnOutcome
   /** Journal key of the user item that opened the turn. A lifecycle row may key
    *  itself when provider output opened a turn with no user item; absent means
    *  an older host. */
@@ -224,7 +237,8 @@ export type AgentJournalStatusItem = {
  *  never tombstoned, so the endpoints survive. Timestamps are the execution
  *  host's clock at provider-event receipt; `durationMs` is the provider's own
  *  measurement. `unverifiable` carries no end: the host lost the child without
- *  observing its exit. */
+ *  observing its exit. `outcome` is the provider's separate verdict and is
+ *  absent whenever nothing told the host one. */
 export type AgentJournalTurnItem = { kind: 'turn' } & AgentJournalTurnLifecycle
 
 export type AgentJournalItemBody =

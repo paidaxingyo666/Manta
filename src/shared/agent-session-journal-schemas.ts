@@ -211,6 +211,7 @@ export const AgentJournalItemBodySchema = z.discriminatedUnion('kind', [
       .object({
         turnId: z.string(),
         state: z.string().min(1),
+        outcome: z.string().min(1).optional(),
         userItemId: z.string().min(1).optional(),
         startedAt: z.number().finite().positive().optional(),
         requestedAt: z.number().finite().positive().optional(),
@@ -224,6 +225,10 @@ export const AgentJournalItemBodySchema = z.discriminatedUnion('kind', [
     kind: z.literal('turn'),
     turnId: z.string(),
     state: z.string().min(1),
+    // Open like `state`: a verdict a newer build writes must not turn the row
+    // malformed. `readAgentJournalTurnOutcome` is where an unplaceable one
+    // becomes unknown rather than an arm a caller would act on.
+    outcome: z.string().min(1).optional(),
     userItemId: z.string().min(1).optional(),
     startedAt: z.number().finite().positive().optional(),
     requestedAt: z.number().finite().positive().optional(),

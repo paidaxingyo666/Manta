@@ -14,6 +14,7 @@ import {
   claudeText,
   type ClaudeMessageEnvelope
 } from './claude-structured-item-translation'
+import { claudeResultOutcome } from './claude-result-outcome'
 
 export function claudeProviderFrameKind(message: Record<string, unknown>): string {
   const type = claudeText(message.type) ?? 'unknown'
@@ -45,11 +46,9 @@ export function isSettledClaudeResultKind(kind: string): boolean {
 export function claudeResultFailure(
   message: Record<string, unknown>
 ): { text: string | null } | null {
-  if (message.is_error !== true) {
-    return null
-  }
-  const terminalReason = claudeText(message.terminal_reason)
-  if (terminalReason === 'aborted_streaming' || terminalReason === 'aborted_tools') {
+  // A cancellation is not a fault and earns no error row; the outcome classifier
+  // owns that distinction so this reader cannot drift from the turn's verdict.
+  if (claudeResultOutcome(message) !== 'failure') {
     return null
   }
   const result = claudeText(message.result)?.trim()
