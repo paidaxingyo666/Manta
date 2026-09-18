@@ -14,6 +14,8 @@ const MOUNT_STATE_ATTRIBUTE = 'orcaWebEntry'
 
 // The route tree starts at app/h, below the native root layout that owns the provider, so the
 // page supplies it here through ExpoRoot's own wrapper rather than mounting the native shell.
+// No suspense boundary: expo-router wraps every screen in its own, which is what catches the
+// route chunks the manifest defers.
 function RootProviders({ children }: PropsWithChildren) {
   useEffect(() => {
     document.documentElement.dataset[MOUNT_STATE_ATTRIBUTE] = 'mounted'
