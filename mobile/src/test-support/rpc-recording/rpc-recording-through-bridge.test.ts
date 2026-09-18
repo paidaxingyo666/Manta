@@ -8,14 +8,21 @@ import {
 import type { RpcClient } from '../../transport/rpc-client'
 import {
   bridgedParityMembershipDrift,
-  BRIDGED_PARITY_BASELINE,
+  bridgedParityTallyDrift,
   BRIDGED_PARITY_EXCLUSIONS,
   BRIDGED_PARITY_FLAG,
   BRIDGED_PARITY_NAMEABLE,
+  BRIDGED_PARITY_OFF,
   classifyBridgedParity,
   type BridgedParityClass,
   type BridgedParityEvidence
 } from '../bridged-parity/divergence-classes'
+import {
+  c1PageClosureDrift,
+  C1_PAGE_CLOSURE,
+  type BridgedParityVerdict,
+  type C1PageClosureObservation
+} from '../bridged-parity/c1-page-closure'
 import {
   divergingFields,
   paramsMismatchEvidence,
@@ -44,21 +51,28 @@ import { vitestRecordingScheduler } from './vitest-recording-scheduler'
  * run. This suite writes nothing, and it is not in `RECORDING_DRIVERS`, so `recorderSha256` does
  * not pin it — a suite that cannot put an observation in a recorded file is not provenance for one.
  *
+ * It runs by default, in `pnpm test` and so in CI, and `RPC_FOUNDATION_BRIDGE=0` is what skips it
+ * for a local run that does not want the three minutes. Vitest gives the file a worker of its own
+ * beside the rest of the suite, so the gate costs much less in wall time than it does in test time.
+ *
  * ## What it asserts today
  *
  * Byte-identical replay where it holds, and the named shape of every divergence where it does not.
  * A golden that matches is compared in full; one that does not is classified by
  * `classifyBridgedParity`, which reads the frames and the scenario rather than the failure's text.
- * The run fails if any class grows past `BRIDGED_PARITY_BASELINE`, if a single golden lands in
- * `unclassified`, or if one diverges in a class `BRIDGED_PARITY_EXCLUSIONS` does not name. The
- * corpus is a fixed size, so those together pin every count exactly, and for a class small enough
- * to name `BRIDGED_PARITY_MEMBERS` pins which goldens are in it — a count alone cannot see one
- * golden leaving a class as another arrives.
+ * The run fails if any count is not exactly its number in `BRIDGED_PARITY_BASELINE` — `identical`
+ * among them, which is the only check that sees a golden that stopped diverging as well as one that
+ * started — if a single golden lands in `unclassified`, or if one diverges in a class
+ * `BRIDGED_PARITY_EXCLUSIONS` does not name. For a class small enough to name,
+ * `BRIDGED_PARITY_MEMBERS` pins which goldens are in it — a count alone cannot see one golden
+ * leaving a class as another arrives.
  *
  * 396 of the 787 replay byte for byte. The other 391 fall in five classes, 341 / 3 / 6 / 33 / 8,
- * and none of them is a reason to re-record anything.
+ * and none of them is a reason to re-record anything. `c1-page-closure.ts` then pins, golden by
+ * golden, the 103 recorded at a call site the C1 page owns, because a count over 787 cannot tell a
+ * domain's regression from another domain's improvement.
  *
- * 1. **result-absent-settlement, 341** and **2. result-absent-observation, 7.**
+ * 1. **result-absent-settlement, 341** and **2. result-absent-observation, 3.**
  *    `{ ok: true }` with no `result` key is refused by the page's reader and by `isRpcResponse`
  *    alike, so this one is not a bridge defect: the recorder injects that partition at the scripted
  *    sender port, below the frame validation both sides do, which is what the README means by not
@@ -134,6 +148,8 @@ const counts: Record<BridgedParityClass, number> = {
 let identical = 0
 const members = new Map<BridgedParityClass, string[]>()
 const samples = new Map<BridgedParityClass, string>()
+/** Every golden's own verdict, which is what the C1 closure is pinned against golden by golden. */
+const observed = new Map<string, C1PageClosureObservation>()
 
 /**
  * The page's client over the shared port pair, holding the recorder's scripted client shell-side.
@@ -235,15 +251,20 @@ function describeParamsMismatch(evidence: BridgedParityEvidence): string {
  */
 async function verdict(
   id: string,
+  family: string,
   scenarios: readonly RecordingScenario[],
   run: Replay
 ): Promise<void> {
+  const record = (name: BridgedParityVerdict): void => {
+    observed.set(id, { family, verdict: name })
+  }
   const expected = readGolden(directory, id)
   const fields = run.recording === null ? [] : divergingFields(expected.recording, run.recording)
   if (run.recording !== null && fields.length === 0) {
     // Not redundant with the field walk: this one also pins the encoding and the header.
     compareGolden(expected, { ...expected, recording: run.recording })
     identical += 1
+    record('identical')
     return
   }
   const asIf = await replay(id, scenarios, withReplyMeta)
@@ -263,6 +284,7 @@ async function verdict(
   }
   const name = classifyBridgedParity(evidence)
   counts[name] += 1
+  record(name)
   if (name === 'unclassified') {
     throw new Error(
       `Unclassified bridged divergence: ${id}\n${explain(fields, run)}\n${describeParamsMismatch(evidence)}with \`_meta\` supplied:\n${explain(asIfFields, asIf)}`
@@ -274,12 +296,17 @@ async function verdict(
   }
 }
 
-describe.runIf(process.env[BRIDGED_PARITY_FLAG] === '1')(
+describe.skipIf(process.env[BRIDGED_PARITY_FLAG] === BRIDGED_PARITY_OFF)(
   'every golden replays through the page bridge, byte-identically or in a named class',
   () => {
     for (const pilot of pilotGoldens(input.scenarios)) {
       it(`${pilot.id}: bridged parity`, async () => {
-        await verdict(pilot.id, [pilot.scenario], await replay(pilot.id, [pilot.scenario]))
+        await verdict(
+          pilot.id,
+          pilot.family,
+          [pilot.scenario],
+          await replay(pilot.id, [pilot.scenario])
+        )
       })
     }
     for (const golden of familyGoldens(input.scenarios)) {
@@ -287,7 +314,7 @@ describe.runIf(process.env[BRIDGED_PARITY_FLAG] === '1')(
         `${golden.id}: bridged parity`,
         async () => {
           const scenarios = [...golden.scenarios()]
-          await verdict(golden.id, scenarios, await replay(golden.id, scenarios))
+          await verdict(golden.id, golden.family, scenarios, await replay(golden.id, scenarios))
         },
         golden.timeoutMs
       )
@@ -324,12 +351,26 @@ describe.runIf(process.env[BRIDGED_PARITY_FLAG] === '1')(
       expect({ divergedOutsideAnExcludedClass: total(counts) - excludedCount }).toEqual({
         divergedOutsideAnExcludedClass: 0
       })
-      for (const [name, count] of Object.entries(counts)) {
-        expect({ [name]: count }).toEqual({
-          [name]: Math.min(count, BRIDGED_PARITY_BASELINE[asClass(name)])
-        })
+      // Every count exactly, `identical` included, which is the direction the three checks above
+      // cannot see: a golden reported `identical` rather than the excluded class it belongs to
+      // leaves all three holding. The size of the corpus follows, being the total of these.
+      expect({ tally: bridgedParityTallyDrift({ identical, counts }) }).toEqual({ tally: [] })
+    })
+
+    it('gives every golden the C1 page closure records the verdict it is pinned to', () => {
+      const closure = [...observed].filter(([, seen]) => seen.family in C1_PAGE_CLOSURE)
+      const diverged = closure.filter(([, seen]) => seen.verdict !== 'identical')
+      process.stdout.write(
+        `\nC1 page closure: ${closure.length} goldens in ${
+          Object.keys(C1_PAGE_CLOSURE).length
+        } families, ${closure.length - diverged.length} byte-identical\n`
+      )
+      for (const [id, seen] of diverged) {
+        process.stdout.write(`  ${id}: ${seen.verdict}\n`)
       }
-      expect(identical).toBeGreaterThanOrEqual(BRIDGED_PARITY_BASELINE.identical)
+      // Each by id, because the counts above cannot see this domain: a closure golden that stopped
+      // replaying identically is paid for by any of the other 684 that started.
+      expect({ closure: c1PageClosureDrift(observed) }).toEqual({ closure: [] })
     })
   }
 )
