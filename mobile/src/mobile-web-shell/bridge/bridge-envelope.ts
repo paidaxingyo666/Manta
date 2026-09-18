@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { isRpcResponse } from '../../transport/rpc-response-shape'
+import type { RpcResponse } from '../../transport/types'
 import { BridgeErrorCaptureSchema } from './bridge-error-capture'
 import {
   BRIDGE_MAX_METHOD_CHARS,
@@ -89,32 +91,18 @@ export const BridgeSendRequestOptionsSchema = z.object({
   failWhenDisconnected: z.boolean().optional()
 })
 
-const rpcMetaSchema = z.looseObject({ runtimeId: z.string() })
-
 /**
  * A host `RpcFailure` is data, not a rejection: it rides in `reply` exactly as it arrived, `_meta`
- * and `error.data` included, because the page reads it and the goldens record it. Loose objects all
- * the way down for the same reason — a field a newer host adds must reach the page unaltered.
+ * and `error.data` included, because the page reads it and the goldens record it. Nothing is
+ * stripped for the same reason — a field a newer host adds must reach the page unaltered.
+ *
+ * The predicate is the native client's own, imported rather than restated. A page reader narrower
+ * than the transport it stands in for refuses replies the phone accepts today: `_meta` is required
+ * on neither arm off the wire, and `src/shared/runtime-rpc-envelope.ts` makes it optional on a
+ * failure with a nullable `runtimeId`. Widening a reader is safe in both directions; keeping a
+ * second copy of one is what drifts.
  */
-export const BridgeReplyPayloadSchema = z.union([
-  z.looseObject({
-    id: z.string(),
-    ok: z.literal(true),
-    result: z.unknown(),
-    streaming: z.literal(true).optional(),
-    _meta: rpcMetaSchema
-  }),
-  z.looseObject({
-    id: z.string(),
-    ok: z.literal(false),
-    error: z.looseObject({
-      code: z.string(),
-      message: z.string(),
-      data: z.unknown().optional()
-    }),
-    _meta: rpcMetaSchema
-  })
-])
+export const BridgeReplyPayloadSchema = z.custom<RpcResponse>(isRpcResponse)
 
 /**
  * `BrowserScreencastFrameMetadata` field for field, loose so a field a newer host adds still reaches
@@ -262,6 +250,33 @@ const BridgeHostMessageSchema = z.union([
 export type BridgeHostMessage = z.infer<typeof BridgeHostMessageSchema>
 export type BridgeReplyMessage = Extract<BridgeHostMessage, { type: 'reply' }>
 export type BridgeReplyPayload = z.infer<typeof BridgeReplyPayloadSchema>
+
+/**
+ * The exchange a frame the page's reader refused was answering, when it named one.
+ *
+ * A refused frame is dropped, and a dropped `reply` or `error` would otherwise leave the request it
+ * answered pending for the life of the document. The id is salvaged through the same caps the
+ * reader applies, never trusted: the caller settles only an exchange it already holds, so a frame
+ * naming anything else still changes nothing.
+ *
+ * Two refusals are decided before an id can exist: `oversized`, on the raw string, and
+ * `malformed-json`, on a parse that did not finish. Nothing is salvageable from either, so an
+ * exchange one of those frames was answering is settled by `close` or by a shell replacement and by
+ * nothing else. Neither arises from a host that is behaving: it chunks at the frame cap and refuses
+ * a body over `BRIDGE_MAX_REPLY_BYTES` on its own side, answering with an `error` frame instead.
+ */
+export function readRefusedBridgeFrameId(raw: string): string | null {
+  const framed = parseBridgeMessage(raw, 'shell-to-page')
+  if (!framed.ok) {
+    return null
+  }
+  const frame = framed.message
+  if (typeof frame !== 'object' || frame === null || !('id' in frame)) {
+    return null
+  }
+  const { id } = frame
+  return typeof id === 'string' && BRIDGE_ID_PATTERN.test(id) ? id : null
+}
 
 /** What the RN host accepts from the page. */
 export function readBridgeClientMessage(raw: string): BridgeRead<BridgeClientMessage> {
