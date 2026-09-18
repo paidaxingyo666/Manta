@@ -10,11 +10,13 @@ import {
   isSleepingSweepExemptWorkspace
 } from '../../visible-worktrees'
 import type { Worktree } from '../../../../../../shared/worktree/types'
+import { parseWorkspaceKey } from '../../../../../../shared/workspace-scope'
 import {
   getWorktreeExecutionHostId,
   getSettingsFocusedExecutionHostId
 } from '../../../../../../shared/execution-host'
 import { isDefaultBranchWorkspace } from '../../default-branch-workspace'
+import { getFolderWorkspaceExecutionHostIdForRows } from './host-filtering'
 import {
   getPairedDeviceIdsByEnvironment,
   isWorkspaceFromOtherDevice
@@ -58,13 +60,33 @@ export function useSidebarWorktreeFilters() {
   const revealWorkspaceFilters = useCallback((worktree: Worktree) => {
     const state = useAppStore.getState()
     const repo = state.repos.find((candidate) => candidate.id === worktree.repoId)
-    const targetHostId = getWorktreeExecutionHostId(
+    let targetHostId = getWorktreeExecutionHostId(
       worktree,
       repo,
       getSettingsFocusedExecutionHostId(state.settings)
     )
+    const workspaceScope = parseWorkspaceKey(worktree.id)
+    if (workspaceScope?.type === 'folder') {
+      const folderWorkspace = state.folderWorkspaces.find(
+        (candidate) => candidate.id === workspaceScope.folderWorkspaceId
+      )
+      const projectGroup = folderWorkspace
+        ? state.projectGroups.find((candidate) => candidate.id === folderWorkspace.projectGroupId)
+        : undefined
+      if (folderWorkspace) {
+        targetHostId = getFolderWorkspaceExecutionHostIdForRows({
+          folderWorkspace,
+          projectGroup,
+          defaultHostId: getSettingsFocusedExecutionHostId(state.settings)
+        })
+      }
+    }
 
-    if (state.filterRepoIds.length > 0 && !state.filterRepoIds.includes(worktree.repoId)) {
+    if (
+      !worktree.id.startsWith('folder:') &&
+      state.filterRepoIds.length > 0 &&
+      !state.filterRepoIds.includes(worktree.repoId)
+    ) {
       state.setFilterRepoIds([...state.filterRepoIds, worktree.repoId])
     }
     const visibleHostIds = state.visibleWorkspaceHostIds

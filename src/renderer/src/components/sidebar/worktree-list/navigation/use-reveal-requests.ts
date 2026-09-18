@@ -40,7 +40,6 @@ export function useSidebarRevealRequests(args: {
   worktrees: readonly Worktree[]
   folderWorkspaces: readonly FolderWorkspace[]
   hasFilters: boolean
-  clearFilters: () => void
   revealWorkspaceFilters: (worktree: Worktree) => void
 }): void {
   const {
@@ -54,7 +53,6 @@ export function useSidebarRevealRequests(args: {
     worktrees,
     folderWorkspaces,
     hasFilters,
-    clearFilters,
     revealWorkspaceFilters
   } = args
   const setGroupBy = useAppStore((s) => s.setGroupBy)
@@ -94,7 +92,6 @@ export function useSidebarRevealRequests(args: {
       }
     }
   }, [
-    clearFilters,
     groupBy,
     hasFilters,
     currentSidebarExecutionHostId,
