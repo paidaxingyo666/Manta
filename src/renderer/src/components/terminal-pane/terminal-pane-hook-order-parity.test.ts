@@ -20,8 +20,10 @@ const TERMINAL_PANE_HOOK_SOURCE_PATTERN =
 // (last host layout leaf set, retired leaf set) (209 hooks, still 8 useMemo).
 // Then search match count + Cmd+F focus parity (#9035) added a `useRef` and a `useCallback` in
 // foundation (search input ref, focus-search-input) (211 hooks, still 8 useMemo).
+// Then the pending split-close admission added one `useRef` in close-actions
+// (the confirmed-close continuation) (212 hooks, still 8 useMemo).
 const PRE_REFACTOR_HOOK_ORDER_SHA256 =
-  'ed41829b57f0723c155af1b0339513f5191e4485cd2e7b3fa2c062039afdc4e3'
+  'a3ec9b9faac724605fbf8ebe6647f65b185ed0e2b2e763282159b289f0d199c6'
 
 const sourceFiles = readdirSync(__dirname)
   .filter((name) => TERMINAL_PANE_HOOK_SOURCE_PATTERN.test(name))
@@ -86,7 +88,7 @@ function readFlattenedHookOrder(): string[] {
 describe('TerminalPane refactor hook parity', () => {
   it('preserves the recursively flattened render hook order', () => {
     const hooks = readFlattenedHookOrder()
-    expect(hooks).toHaveLength(211)
+    expect(hooks).toHaveLength(212)
     expect(hooks.filter((hook) => hook === 'useMemo')).toHaveLength(8)
     expect(createHash('sha256').update(hooks.join('\n')).digest('hex')).toBe(
       PRE_REFACTOR_HOOK_ORDER_SHA256
