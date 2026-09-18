@@ -37,8 +37,12 @@ const assetSchema = z.looseObject({
  *  `schemaVersion` is read as a number, not pinned to the one this shell knows: refusing it here
  *  would fail the parse before `evaluateMobileWebBundleCompat` could name the shell as too old, and
  *  an unreadable schema is a wall to show, not a shape to guess at. The manifest stays closed in
- *  both directions on the host's side, where it is written. */
-const manifestSchema = z
+ *  both directions on the host's side, where it is written.
+ *
+ *  Exported because the generation store re-parses the manifest it cached, and reading it back
+ *  strictly after accepting it loosely would make a host's added field a forced redownload on every
+ *  launch. */
+export const MobileWebBundleManifestReadSchema = z
   .looseObject({
     schemaVersion: z.number().int(),
     buildId: z.string().regex(SHA256_PATTERN),
@@ -63,7 +67,7 @@ const manifestSchema = z
 /** `chunkBytes` is read, never assumed: the host may shrink it without a client release. Capped at
  *  the constant because a larger value would overshoot `dataBase64` above. */
 export const MobileWebBundleManifestReplySchema = z.looseObject({
-  manifest: manifestSchema,
+  manifest: MobileWebBundleManifestReadSchema,
   chunkBytes: z.number().int().positive().max(MOBILE_WEB_BUNDLE_CHUNK_BYTES)
 })
 
