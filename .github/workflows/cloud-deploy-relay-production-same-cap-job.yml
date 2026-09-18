@@ -541,6 +541,7 @@ jobs:
         if: ${{ inputs.mode != 'verify' && env.ROLLBACK_RESUME == 'true' }}
         shell: bash
         env:
+          CAPACITY_SERVICE_ACCOUNT: ${{ vars.PRODUCTION_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           DIRECTOR_RUNTIME_SERVICE_ACCOUNT: ${{ vars.PRODUCTION_GCP_RELAY_DIRECTOR_RUNTIME_SERVICE_ACCOUNT }}
         run: |
           # A cell on the root pool default emits no pool line, so pin one only where it exists.
@@ -586,6 +587,7 @@ jobs:
                 --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" \
                 --image "${DESIRED_IMAGE}" \
                 --rollback-image "${DESIRED_IMAGE}" \
+                --capacity-service-account "${CAPACITY_SERVICE_ACCOUNT}" \
                 --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
                 --rehome-audience https://relay.onorca.dev/v1/admin/host-drain \
                 --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}" \
@@ -619,6 +621,7 @@ jobs:
               --hard-cap "${EXPECTED_HARD_CAP}" \
               --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" --image "${DESIRED_IMAGE}" \
               --rollback-image "${IMAGE_REPOSITORY}@${CURRENT_IMAGE_DIGEST}" \
+              --capacity-service-account "${CAPACITY_SERVICE_ACCOUNT}" \
               --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
               --rehome-audience https://relay.onorca.dev/v1/admin/host-drain \
               --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}" \

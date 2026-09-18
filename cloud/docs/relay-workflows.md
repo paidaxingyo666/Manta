@@ -385,6 +385,13 @@ director; the workflow never receives or mints a director or stamped-cell runtim
 keeps only the selected cell migration-only, while the exact rollback digest remains dispatchable via
 the same workflow's `rollback` mode.
 
+A roll holds the whole startup script identical before and after except the image, so a
+template stale enough to predate a pinned line fails closed rather than absorbing the drift.
+The one exception is the capacity identity: a cell that predates it gains it on its next roll,
+and the plan validator pins the exact reviewed identity instead of comparing that line, so a
+roll can never drop or rewrite it. Any other stale line still fails closed and needs a
+convergence apply first.
+
 C17 and C18 hold no hosts and are not general, so rolling one displaces nobody: they are the
 zero-displacement canary for a new image. Their wave enters and leaves migration-only, so its
 isolate and its restore are both no-ops and the selector generation does not move; a general

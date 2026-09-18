@@ -67,11 +67,11 @@ test('same-cap wrapper is reusable, canary-bound, and sequential', () => {
   )
   assert.match(
     job,
-    /Require converged Terraform state and a stable MIG on resume[\s\S]{0,200}DIRECTOR_RUNTIME_SERVICE_ACCOUNT: \$\{\{ vars\.PRODUCTION_GCP_RELAY_DIRECTOR_RUNTIME_SERVICE_ACCOUNT \}\}/
+    /Require converged Terraform state and a stable MIG on resume[\s\S]{0,300}CAPACITY_SERVICE_ACCOUNT: \$\{\{ vars\.PRODUCTION_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT \}\}\n {10}DIRECTOR_RUNTIME_SERVICE_ACCOUNT: \$\{\{ vars\.PRODUCTION_GCP_RELAY_DIRECTOR_RUNTIME_SERVICE_ACCOUNT \}\}/
   )
   assert.match(
     job,
-    /--rollback-image "\$\{DESIRED_IMAGE\}" \\\n {16}--rehome-director-service-account "\$\{DIRECTOR_RUNTIME_SERVICE_ACCOUNT\}"/
+    /--rollback-image "\$\{DESIRED_IMAGE\}" \\\n {16}--capacity-service-account "\$\{CAPACITY_SERVICE_ACCOUNT\}" \\\n {16}--rehome-director-service-account "\$\{DIRECTOR_RUNTIME_SERVICE_ACCOUNT\}"/
   )
   assert.match(
     job,

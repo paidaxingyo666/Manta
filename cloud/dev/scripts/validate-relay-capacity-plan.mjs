@@ -47,7 +47,10 @@ export function parseCapacityPlanArguments(argv) {
     return value
   }
   if (!values.image) throw new Error('missing --image')
-  if (values.mode === 'bootstrap-cell' && !values['capacity-service-account']) {
+  if (
+    ['bootstrap-cell', 'same-cap-cell'].includes(values.mode) &&
+    !values['capacity-service-account']
+  ) {
     throw new Error('missing --capacity-service-account')
   }
   if (
@@ -239,7 +242,10 @@ function requireDesiredStartupScript(script, config) {
       `  printf 'ORCA_RELAY_CELL_CONNECTION_UNOBSERVED_BOUND=%s\\n' '${config.unobservedBound}'`
     ]
   ]
-  if (config.mode === 'bootstrap-cell') {
+  // A same-cap cell whose template predates this line gains it on its next roll, so the
+  // before/after comparison ignores it; pinning the exact identity here is what reviews it,
+  // and what stops a roll dropping or rewriting the line it lets through.
+  if (['bootstrap-cell', 'same-cap-cell'].includes(config.mode)) {
     expected.push([
       /^  printf 'ORCA_RELAY_CAPACITY_SERVICE_ACCOUNT=%s\\n' '[a-z][a-z0-9-]{4,28}[a-z0-9]@[a-z0-9-]+\.iam\.gserviceaccount\.com'$/,
       `  printf 'ORCA_RELAY_CAPACITY_SERVICE_ACCOUNT=%s\\n' '${config.capacityServiceAccount}'`
@@ -454,18 +460,22 @@ function cellPlan(plan, changes, config) {
   const sameCap = ['same-cap-cell', 'same-cap-image'].includes(config.mode)
   // Only a pinned pool may move here; requireDesiredStartupScript holds the after value exactly.
   const stripPool = config.mode === 'same-cap-cell' && config.databasePoolMax !== undefined
+  // Only a template stale enough to predate the line may move it, and only by gaining it;
+  // requireDesiredStartupScript holds the after value to the exact reviewed identity.
+  const stripCapacityIdentity =
+    ['bootstrap-cell', 'same-cap-cell'].includes(config.mode)
   if (
     typeof beforeScript !== 'string' ||
     (sameCap && relayImage(beforeScript) !== config.rollbackImage) ||
     normalizedStartupScript(
       beforeScript,
-      config.mode === 'bootstrap-cell',
+      stripCapacityIdentity,
       config.mode === 'same-cap-cell',
       sameCap,
       stripPool
     ) !== normalizedStartupScript(
       script,
-      config.mode === 'bootstrap-cell',
+      stripCapacityIdentity,
       config.mode === 'same-cap-cell',
       sameCap,
       stripPool
@@ -501,7 +511,7 @@ export function validateCapacityPlan(plan, config) {
     throw new Error('capacity Terraform plans may change only a cell')
   }
   if (
-    config.mode === 'bootstrap-cell' &&
+    ['bootstrap-cell', 'same-cap-cell'].includes(config.mode) &&
     !SERVICE_ACCOUNT_EMAIL.test(config.capacityServiceAccount ?? '')
   ) {
     throw new Error('capacity Terraform plan has an invalid service account')

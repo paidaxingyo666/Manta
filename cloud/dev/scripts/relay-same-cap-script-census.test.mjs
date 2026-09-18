@@ -20,6 +20,7 @@ const production = readFileSync(
 )
 const REHOME_SOURCE_CELLS = rehomeSourceCells()
 const DIRECTOR_IDENTITY = 'relay-director@onorca-cloud.iam.gserviceaccount.com'
+const CAPACITY_IDENTITY = 'orca-cloud-gha-cap@onorca-cloud.iam.gserviceaccount.com'
 const AUDIENCE = 'https://relay.onorca.dev/v1/admin/host-drain'
 const ROLLBACK_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'d'.repeat(64)}`
 const TARGET_IMAGE = `us-central1-docker.pkg.dev/p/orca-cloud/relay@sha256:${'e'.repeat(64)}`
@@ -53,10 +54,13 @@ function tfvarsCellBlock(cellId) {
   return production.slice(start, production.indexOf('\n  }', start))
 }
 
-function startupScript({ cap, image, trusted, pool }) {
+function startupScript({ cap, image, trusted, pool, capacityIdentity = CAPACITY_IDENTITY }) {
   return [
     `  printf 'ORCA_RELAY_CELL_CONNECTION_HARD_CAP=%s\\n' '${cap}'`,
     `  printf 'ORCA_RELAY_CELL_CONNECTION_UNOBSERVED_BOUND=%s\\n' '60'`,
+    ...(capacityIdentity === null
+      ? []
+      : [`  printf 'ORCA_RELAY_CAPACITY_SERVICE_ACCOUNT=%s\\n' '${capacityIdentity}'`]),
     ...(pool === undefined
       ? []
       : [`  printf 'ORCA_RELAY_DATABASE_POOL_MAX=%s\\n' '${pool}'`]),
@@ -73,7 +77,11 @@ function startupScript({ cap, image, trusted, pool }) {
 }
 
 // The exact shape the apply step's plan has: template replaced, MIG rebound to it.
-function rollPlan({ cellId, cap, protocol, pool }) {
+function rollPlan({
+  cellId, cap, protocol, pool,
+  beforeCapacityIdentity = CAPACITY_IDENTITY,
+  afterCapacityIdentity = CAPACITY_IDENTITY
+}) {
   return {
     configuration: {
       root_module: {
@@ -104,7 +112,8 @@ function rollPlan({ cellId, cap, protocol, pool }) {
               image: ROLLBACK_IMAGE,
               trusted: protocol >= 1,
               // The live template predates the reviewed pool raise, as every asia cell's does.
-              pool: pool === undefined ? undefined : '10'
+              pool: pool === undefined ? undefined : '10',
+              capacityIdentity: beforeCapacityIdentity
             })
           },
           after: {
@@ -112,7 +121,8 @@ function rollPlan({ cellId, cap, protocol, pool }) {
               cap,
               image: TARGET_IMAGE,
               trusted: protocol >= 1,
-              pool
+              pool,
+              capacityIdentity: afterCapacityIdentity
             }),
             self_link: null
           },
@@ -298,6 +308,7 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
         unobservedBound: 60,
         image: TARGET_IMAGE,
         rollbackImage: ROLLBACK_IMAGE,
+        capacityServiceAccount: CAPACITY_IDENTITY,
         rehomeDirectorServiceAccount: DIRECTOR_IDENTITY,
         rehomeAudience: AUDIENCE,
         regionalRehomeProtocol: String(protocol),
@@ -340,6 +351,7 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       unobservedBound: 60,
       image: TARGET_IMAGE,
       rollbackImage: ROLLBACK_IMAGE,
+      capacityServiceAccount: CAPACITY_IDENTITY,
       rehomeDirectorServiceAccount: DIRECTOR_IDENTITY,
       rehomeAudience: AUDIENCE,
       regionalRehomeProtocol: '0'
@@ -440,6 +452,67 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
     assert.match(
       step.slice(0, guard),
       /test "\$\{DESIRED_REHOME_PROTOCOL\}" != 0 \|\| test "\$\{CURRENT_REHOME_PROTOCOL\}" != 0\n\s+\}; then\s+$/
+    )
+  })
+
+  it('rolls a template stale enough to predate the pinned capacity identity', () => {
+    // Exactly c17's shape on 2026-09-18: its live template is from 2026-08-07 and has no
+    // capacity identity line, so the roll adds one. Run 35290908836 failed closed here.
+    const cellId = 'production-gce-c17'
+    const config = {
+      mode: 'same-cap-cell',
+      cellId,
+      hardCap: 600,
+      unobservedBound: 60,
+      image: TARGET_IMAGE,
+      rollbackImage: ROLLBACK_IMAGE,
+      capacityServiceAccount: CAPACITY_IDENTITY,
+      rehomeDirectorServiceAccount: DIRECTOR_IDENTITY,
+      rehomeAudience: AUDIENCE,
+      regionalRehomeProtocol: '0'
+    }
+    const stale = rollPlan({ cellId, cap: 600, protocol: 0, beforeCapacityIdentity: null })
+    assert.deepEqual(validateCapacityPlan(stale, config), { mode: 'same-cap-cell', changes: 2 })
+    // The line may only be gained. A roll may not rewrite it,
+    assert.throws(
+      () => validateCapacityPlan(stale, {
+        ...config,
+        capacityServiceAccount: 'orca-cloud-gha-other@onorca-cloud.iam.gserviceaccount.com'
+      }),
+      /reviewed image and capacity/
+    )
+    // nor drop it from a template that already carries one.
+    assert.throws(
+      () => validateCapacityPlan(
+        rollPlan({ cellId, cap: 600, protocol: 0, afterCapacityIdentity: null }),
+        config
+      ),
+      /reviewed image and capacity/
+    )
+    // A same-cap roll cannot run without the identity pinned at all.
+    assert.throws(
+      () => validateCapacityPlan(stale, { ...config, capacityServiceAccount: undefined }),
+      /invalid service account/
+    )
+  })
+
+  it('pins the capacity identity on every plan validation the job runs', () => {
+    const invocations = workflow.split('validate-relay-capacity-plan.mjs').slice(1)
+    assert.equal(invocations.length, 2)
+    for (const invocation of invocations) {
+      const lines = invocation.split('\n')
+      const end = lines.findIndex((line) => !line.trimEnd().endsWith('\\'))
+      assert.match(
+        lines.slice(0, end + 1).join(' '),
+        /--capacity-service-account "\$\{CAPACITY_SERVICE_ACCOUNT\}"/
+      )
+    }
+    // Both steps must read it from the same repository variable the job already requires.
+    assert.equal(
+      workflow.split(
+        'CAPACITY_SERVICE_ACCOUNT: ${{ vars.PRODUCTION_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}'
+      ).length,
+      4
     )
   })
 
