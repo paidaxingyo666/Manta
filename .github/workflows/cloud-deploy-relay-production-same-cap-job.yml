@@ -360,19 +360,40 @@ jobs:
           }
           CURRENT_RUNTIME="$(admin_post current-runtime \
             "${CELL_ORIGIN}/v1/admin/runtime-status" '{"v":1}')"
-          # A rollback that failed between template apply and admission restore
-          # leaves the cell already on the rollback image; resume from that
-          # state instead of demanding the pre-rollback predecessor.
+          # Two different failures leave the cell on the rollback image, and the image
+          # alone cannot tell them apart. A rollback that failed between its template
+          # apply and its admission restore restarted the cell, so that cell is not
+          # draining and resumes. A wave that stopped after its drain and before its
+          # template apply never restarted anything, so its cell is still draining and
+          # is stranded: the drain flag only clears on a restart, so it has to be rolled.
           LIVE_IMAGE_DIGEST="$(jq -r '.imageDigest' <<< "${CURRENT_RUNTIME}")"
+          LIVE_DRAINING="$(jq -r '.draining' <<< "${CURRENT_RUNTIME}")"
           if test "${DEPLOY_MODE}" = rollback \
             && test "${LIVE_IMAGE_DIGEST}" = "${DESIRED_IMAGE_DIGEST}"; then
-            ROLLBACK_RESUME=true
+            if test "${LIVE_DRAINING}" = true; then
+              ROLLBACK_STAGE=stranded
+            else
+              ROLLBACK_STAGE=resume
+            fi
             PREDECESSOR_IMAGE_DIGEST="${DESIRED_IMAGE_DIGEST}"
             PREDECESSOR_REHOME_PROTOCOL="${DESIRED_REHOME_PROTOCOL}"
           else
-            ROLLBACK_RESUME=false
+            ROLLBACK_STAGE=roll
             PREDECESSOR_IMAGE_DIGEST="${CURRENT_IMAGE_DIGEST}"
             PREDECESSOR_REHOME_PROTOCOL="${CURRENT_REHOME_PROTOCOL}"
+          fi
+          if test "${ROLLBACK_STAGE}" = resume; then
+            ROLLBACK_RESUME=true
+          else
+            ROLLBACK_RESUME=false
+          fi
+          # A stranded cell's template still carries the image the cell is serving, so that
+          # is the predecessor its plan is reviewed against. A template already moved on to
+          # the target is refused here rather than rolled backwards under a stale review.
+          if test "${ROLLBACK_STAGE}" = stranded; then
+            PLAN_ROLLBACK_IMAGE="${DESIRED_IMAGE}"
+          else
+            PLAN_ROLLBACK_IMAGE="${IMAGE_REPOSITORY}@${CURRENT_IMAGE_DIGEST}"
           fi
           # Rollback is the documented recovery from a failed canary, which
           # leaves the cell migration-only (and possibly still marked
@@ -427,6 +448,11 @@ jobs:
           fi
           {
             echo "ROLLBACK_RESUME=${ROLLBACK_RESUME}"
+            echo "ROLLBACK_STAGE=${ROLLBACK_STAGE}"
+            echo "PLAN_ROLLBACK_IMAGE=${PLAN_ROLLBACK_IMAGE}"
+            # The drain wait and the plan review both read the image this cell actually
+            # serves, which is the rollback image on a stranded cell and not the current one.
+            echo "PREDECESSOR_IMAGE_DIGEST=${PREDECESSOR_IMAGE_DIGEST}"
             # The failsafe consumes these; deriving them here keeps them
             # defined for a failure in any later step.
             echo "ISOLATED_MIGRATION_CELLS=${ISOLATED_MIGRATION_CELLS}"
@@ -539,7 +565,7 @@ jobs:
             --cell-id "${TARGET_CELL_ID}" --hard-cap "${EXPECTED_HARD_CAP}" \
             --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" \
             --heartbeat either --admission migration-only --draining required \
-            --activity restart-safe --expected-image-digests "${CURRENT_IMAGE_DIGEST}" \
+            --activity restart-safe --expected-image-digests "${PREDECESSOR_IMAGE_DIGEST}" \
             --timeout-ms 1020000
 
       - id: capacity-auth
@@ -627,21 +653,37 @@ jobs:
             "-target=google_compute_instance_template.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             "-target=google_compute_instance_group_manager.relay_gce_cell[\"${TARGET_CELL_ID}\"]" \
             -out="${RUNNER_TEMP}/relay-same-cap.tfplan"
-          terraform -chdir=infra/terraform show -json "${RUNNER_TEMP}/relay-same-cap.tfplan" \
+          PLAN_REVIEW="$(terraform -chdir=infra/terraform show -json \
+            "${RUNNER_TEMP}/relay-same-cap.tfplan" \
             | node dev/scripts/validate-relay-capacity-plan.mjs \
               --mode same-cap-cell --cell-id "${TARGET_CELL_ID}" \
               --hard-cap "${EXPECTED_HARD_CAP}" \
               --unobserved-bound "${EXPECTED_UNOBSERVED_BOUND}" --image "${DESIRED_IMAGE}" \
-              --rollback-image "${IMAGE_REPOSITORY}@${CURRENT_IMAGE_DIGEST}" \
+              --rollback-image "${PLAN_ROLLBACK_IMAGE}" \
               --capacity-service-account "${CAPACITY_SERVICE_ACCOUNT}" \
               --rehome-director-service-account "${DIRECTOR_RUNTIME_SERVICE_ACCOUNT}" \
               --rehome-audience https://relay.onorca.dev/v1/admin/host-drain \
               --regional-rehome-protocol "${DESIRED_REHOME_PROTOCOL}" \
-              "${POOL_ARGUMENTS[@]}"
+              "${POOL_ARGUMENTS[@]}")"
+          echo "${PLAN_REVIEW}"
           terraform -chdir=infra/terraform apply -auto-approve \
             "${RUNNER_TEMP}/relay-same-cap.tfplan"
           gcloud compute instance-groups managed wait-until "${MIG_NAME}" --stable \
             --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" --timeout 900
+          # A stranded cell already runs the reviewed template, so the apply above replaces
+          # no instance and the drain flag, which only a restart clears, would survive the
+          # whole wave. Roll the MIG explicitly on exactly the policy a template change uses.
+          # Every field is passed: gcloud persists these into the MIG's update policy, and it
+          # defaults the method to substitute on a group with no stateful config, so omitting
+          # one drifts the policy off the reviewed one and fails every later targeted plan.
+          if test "${ROLLBACK_STAGE}" = stranded \
+            && test "$(jq -er '.changes' <<< "${PLAN_REVIEW}")" = 0; then
+            gcloud compute instance-groups managed rolling-action replace "${MIG_NAME}" \
+              --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" \
+              --replacement-method recreate --max-surge 0 --max-unavailable 1
+            gcloud compute instance-groups managed wait-until "${MIG_NAME}" --stable \
+              --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" --timeout 900
+          fi
 
       - id: post-auth
         if: ${{ inputs.mode != 'verify' }}

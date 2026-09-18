@@ -189,6 +189,44 @@ function drainingBlock() {
   )}\necho "\${PRECHECK_ADMISSION} \${PRECHECK_DRAINING} \${PREDECESSOR_DRAINING_OK}"`
 }
 
+// The three fields gcloud would otherwise default, as the MIG resource declares them.
+function migUpdatePolicy() {
+  const terraform = readFileSync(
+    new URL('../../infra/terraform/relay-gce-cells.tf', import.meta.url),
+    'utf8'
+  )
+  const policy = terraform.split('  update_policy {')[1]?.split('\n  }')[0] ?? ''
+  const method = /replacement_method\s+= "([A-Z]+)"/.exec(policy)?.[1]
+  assert.notEqual(method, undefined, 'the MIG declares no replacement method')
+  // Both fixed bounds come from the topology locals the MIG resource points at.
+  const surgeLocal = /max_surge_fixed\s+= local\.relay_gce_topology\.(\w+)/.exec(policy)?.[1]
+  const unavailableLocal =
+    /max_unavailable_fixed\s+= local\.relay_gce_topology\.(\w+)/.exec(policy)?.[1]
+  assert.notEqual(surgeLocal, undefined, 'the MIG pins no surge local')
+  assert.notEqual(unavailableLocal, undefined, 'the MIG pins no unavailable local')
+  const topology = terraform.split('  relay_gce_topology = {')[1]?.split('\n  }')[0] ?? ''
+  const local = (name) => {
+    const value = new RegExp(`${name}\\s+= (\\d+)`).exec(topology)?.[1]
+    assert.notEqual(value, undefined, `the topology locals pin no ${name}`)
+    return value
+  }
+  return {
+    replacementMethod: method.toLowerCase(),
+    maxSurge: local(surgeLocal),
+    maxUnavailable: local(unavailableLocal)
+  }
+}
+
+// The stage decides the predecessor, the plan's reviewed rollback image, and whether the
+// MIG is rolled explicitly, so run the real block rather than restating its rule.
+function stageBlock() {
+  return `${jobBlock(
+    '          # Two different failures leave the cell on the rollback image, and the image',
+    '            PLAN_ROLLBACK_IMAGE="${IMAGE_REPOSITORY}@${CURRENT_IMAGE_DIGEST}"\n          fi'
+  )}\necho "\${ROLLBACK_STAGE} \${ROLLBACK_RESUME} \${PREDECESSOR_IMAGE_DIGEST}` +
+    ` \${PREDECESSOR_REHOME_PROTOCOL} \${PLAN_ROLLBACK_IMAGE}"`
+}
+
 function generationBlock() {
   return `${jobBlock(
     '          if test "${DEPLOY_MODE}" = verify; then',
@@ -573,6 +611,101 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       .split('name: Restore only the verified selected cell to its entry admission')[1]
       .split('\n      - id:')[0]
     assert.match(restore, /--draining forbidden --activity allowed/)
+  })
+
+  it('classifies every rollback stage from the real block', () => {
+    const repository = 'us-central1-docker.pkg.dev/onorca-cloud/orca-cloud/relay'
+    const target = `sha256:${'7'.repeat(64)}`
+    const rollback = `sha256:${'0'.repeat(64)}`
+    const stage = (mode, live, draining) => {
+      // Exactly how the job assigns them: rollback swaps desired and current.
+      const desired = mode === 'rollback' ? rollback : target
+      const current = mode === 'rollback' ? target : rollback
+      const resolved = spawnSync('bash', ['-euo', 'pipefail', '-c', stageBlock()], {
+        env: {
+          ...process.env,
+          DEPLOY_MODE: mode,
+          CURRENT_RUNTIME: JSON.stringify({ imageDigest: live, draining }),
+          DESIRED_IMAGE_DIGEST: desired,
+          CURRENT_IMAGE_DIGEST: current,
+          DESIRED_IMAGE: `${repository}@${desired}`,
+          IMAGE_REPOSITORY: repository,
+          DESIRED_REHOME_PROTOCOL: '1',
+          CURRENT_REHOME_PROTOCOL: '0'
+        },
+        encoding: 'utf8'
+      })
+      assert.equal(resolved.status, 0, `${mode}/${live}/${draining}: ${resolved.stderr}`)
+      return resolved.stdout.trim().split(' ')
+    }
+    const roll = (current, protocol) =>
+      ['roll', 'false', current, protocol, `${repository}@${current}`]
+    // Only the last row differs from main: it used to read `resume` and wedge, because the
+    // resume path refuses a draining cell and never restarts one.
+    assert.deepEqual(stage('apply', rollback, false), roll(rollback, '0'))
+    assert.deepEqual(stage('apply', rollback, true), roll(rollback, '0'))
+    assert.deepEqual(stage('apply', target, false), roll(rollback, '0'))
+    assert.deepEqual(stage('verify', rollback, false), roll(rollback, '0'))
+    assert.deepEqual(stage('rollback', target, false), roll(target, '0'))
+    assert.deepEqual(stage('rollback', target, true), roll(target, '0'))
+    assert.deepEqual(
+      stage('rollback', rollback, false),
+      ['resume', 'true', rollback, '1', `${repository}@${target}`]
+    )
+    assert.deepEqual(
+      stage('rollback', rollback, true),
+      ['stranded', 'false', rollback, '1', `${repository}@${rollback}`]
+    )
+    // A runtime that reports no drain flag at all must never read as stranded.
+    const [missing] = stage('rollback', rollback, null)
+    assert.equal(missing, 'resume')
+  })
+
+  it('rolls the MIG itself when a stranded plan changes nothing', () => {
+    const apply = workflow
+      .split('name: Apply only the selected same-cap template and MIG')[1]
+      .split('\n      - id:')[0]
+    // The plan is reviewed against the image the cell serves, not an assumed predecessor.
+    assert.match(apply, /--rollback-image "\$\{PLAN_ROLLBACK_IMAGE\}"/)
+    assert.doesNotMatch(apply, /--rollback-image "\$\{IMAGE_REPOSITORY\}/)
+    assert.match(
+      apply,
+      /test "\$\{ROLLBACK_STAGE\}" = stranded \\\n\s+&& test "\$\(jq -er '\.changes' <<< "\$\{PLAN_REVIEW\}"\)" = 0/
+    )
+    // gcloud persists all three fields into the MIG's update policy and defaults the
+    // method to substitute here, so every one has to match what Terraform declares or the
+    // recovery drifts the policy and the next targeted plan is refused as an unreviewed
+    // MIG change. Read the declared values rather than restating them.
+    assert.match(apply, /rolling-action replace "\$\{MIG_NAME\}"/)
+    const declared = migUpdatePolicy()
+    assert.deepEqual(declared, {
+      replacementMethod: 'recreate',
+      maxSurge: '0',
+      maxUnavailable: '1'
+    })
+    assert.match(
+      apply,
+      new RegExp(
+        `--replacement-method ${declared.replacementMethod}` +
+          ` --max-surge ${declared.maxSurge} --max-unavailable ${declared.maxUnavailable}`
+      )
+    )
+    // Nothing else may reach the group, and the roll has to be waited on.
+    assert.equal(apply.split('rolling-action').length, 2)
+    assert.equal(apply.split('wait-until "${MIG_NAME}" --stable').length, 3)
+  })
+
+  it('waits on the image a stranded cell actually serves', () => {
+    const isolate = workflow
+      .split('name: Reversibly isolate and drain only the selected cell')[1]
+      .split('\n      - id:')[0]
+    assert.match(isolate, /--expected-image-digests "\$\{PREDECESSOR_IMAGE_DIGEST\}"/)
+    // A stranded cell has to come back on a new process, which is what clears the drain.
+    const after = workflow
+      .split('name: Verify new incarnation, exact image, protocol, and durable safety')[1]
+      .split('\n      - name:')[0]
+    assert.match(after, /test "\$\{TARGET_INCARNATION\}" != "\$\{SOURCE_INCARNATION\}"/)
+    assert.match(after, /if test "\$\{ROLLBACK_RESUME\}" = true; then/)
   })
 
   it('leaves the US-only capacity job on the default allowlist', () => {
