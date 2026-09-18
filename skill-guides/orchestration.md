@@ -132,6 +132,7 @@ After three consecutive empty waits, stop waiting blindly and enumerate with
 `MANTA orchestration worker-list --include-remote --json` (defaults to the bound
 Run; `--run <run_id>` overrides; the receipt's `scope` names which), acting on
 each row's `projection.attention` categories, `projection.attention.requiresAction`, and literal `projection.nextAction` argv.
+Rows come newest first and page at 100: while `page.hasMore`, follow `page.nextCursor` with `--cursor <value>`.
 A `none` `nextAction` has no argv to run: read `liveness.reason` and keep waiting
 with `check --wait`. Absence never earns an argv; settlement and pending work still do.
 Leave the wait only on positive proof the agent stopped: `exited` liveness, the
