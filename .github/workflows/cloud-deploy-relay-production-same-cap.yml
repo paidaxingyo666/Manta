@@ -181,14 +181,20 @@ jobs:
         if: ${{ inputs.mode == 'batch-apply' }}
         env:
           CANARY_RUN_ID: ${{ inputs.canary-run-id }}
+          CELL_IDS: ${{ inputs.cell-ids }}
+          TARGET_DIGEST: ${{ inputs.target-image-digest }}
+          ROLLBACK_DIGEST: ${{ inputs.rollback-image-digest }}
+          SELECTOR_GENERATION: ${{ inputs.expected-selector-generation }}
+          REHOME_GENERATION: ${{ inputs.expected-rehome-generation }}
         run: |
           node dev/scripts/relay-production-same-cap-wave.mjs verify-canary \
             --file "${RUNNER_TEMP}/relay-same-cap-canary/authority.json" \
             --commit-sha "${GITHUB_SHA}" --run-id "${CANARY_RUN_ID}" \
-            --target-digest "${{ inputs.target-image-digest }}" \
-            --rollback-digest "${{ inputs.rollback-image-digest }}" \
-            --selector-generation "${{ inputs.expected-selector-generation }}" \
-            --rehome-generation "${{ inputs.expected-rehome-generation }}"
+            --cell-ids "${CELL_IDS}" \
+            --target-digest "${TARGET_DIGEST}" \
+            --rollback-digest "${ROLLBACK_DIGEST}" \
+            --selector-generation "${SELECTOR_GENERATION}" \
+            --rehome-generation "${REHOME_GENERATION}"
 
       - name: Reject previously consumed aggregate safety evidence
         if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}

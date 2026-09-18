@@ -134,6 +134,8 @@ export function canaryAuthority(input) {
 
 export function verifyCanaryAuthority(authority, expected, repositoryRoot) {
   const selectorGeneration = Number(expected.selectorGeneration)
+  // A mixed wave is already rejected, so the batch's first cell names the whole batch's class.
+  const batchAdmission = entryAdmission(cells(expected.cellIds ?? '')[0])
   if (
     authority?.v !== 1 ||
     !/^[0-9a-f]{40}$/.test(authority.commitSha ?? '') ||
@@ -147,6 +149,14 @@ export function verifyCanaryAuthority(authority, expected, repositoryRoot) {
     authority.rehomeGeneration !== Number(expected.rehomeGeneration) ||
     !SAME_CAP_CELLS.includes(authority.cellId)
   ) throw new Error('canary authority does not match this batch')
+  // A migration-only cell carries no hosts and a different cap, so rolling it proves nothing
+  // about a general batch, and its wave advances a different selector delta.
+  if (entryAdmission(authority.cellId) !== batchAdmission) {
+    throw new Error(
+      `canary authority cell ${authority.cellId} is ${entryAdmission(authority.cellId)}, ` +
+      `but this batch is ${batchAdmission}`
+    )
+  }
   // Each cell checks exact live selector state; later batches may reuse this control epoch's canary.
   requireSameEvidenceCode({
     sealedSha: authority.commitSha,
@@ -215,6 +225,7 @@ export function main(argv = process.argv.slice(2)) {
     verifyCanaryAuthority(JSON.parse(readFileSync(input.file, 'utf8')), {
       commitSha: input['commit-sha'],
       runId: input['run-id'],
+      cellIds: input['cell-ids'],
       targetDigest: input['target-digest'],
       rollbackDigest: input['rollback-digest'],
       selectorGeneration: input['selector-generation'],
