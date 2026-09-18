@@ -116,7 +116,8 @@ export class MantaRuntimeWithOnPtyData extends MantaRuntimeWithPreparePtyExecuti
         lastOutputAt: pty?.lastOutputAt ?? at,
         preview: pty?.preview ?? leaf.preview,
         tabId: leaf.tabId,
-        paneKey: this.makeRuntimePaneKey(leaf)
+        paneKey: this.makeRuntimePaneKey(leaf),
+        surfaceRecordedAtGraphSequence: this.graphSequence
       })
       leaf.connected = true
       leaf.writable = this.graphStatus === 'ready'

@@ -4,10 +4,9 @@ import {
   latestReceivedSessionTabsSnapshotByWorktree,
   latestReceivedSessionTabsFrameByEnvironment,
   latestReceivedSessionTabsInventoryFrameByEnvironment,
-  latestSessionTabsRemovalFenceByWorktree,
   sessionTabsPublicationEpochHistoryByWorktree,
+  sessionTabsRemovalWatermarkByWorktree,
   sessionTabsRuntimeHistoryByEnvironment,
-  sessionTabsRecoveryStateByWorktree,
   trackedSessionTabsWorktreeIdsByEnvironment,
   sessionTabsEnvironmentsByWorktree,
   sessionTabsTrackingGenerationByEnvironment,
@@ -85,8 +84,7 @@ export function resetWebSessionTabsSnapshotFreshnessForTests(): void {
   sessionTabsPublicationEpochHistoryByWorktree.clear()
   latestReceivedSessionTabsFrameByEnvironment.clear()
   latestReceivedSessionTabsInventoryFrameByEnvironment.clear()
-  latestSessionTabsRemovalFenceByWorktree.clear()
-  sessionTabsRecoveryStateByWorktree.clear()
+  sessionTabsRemovalWatermarkByWorktree.clear()
   trackedSessionTabsWorktreeIdsByEnvironment.clear()
   sessionTabsEnvironmentsByWorktree.clear()
   resetReceivedSessionTabsFrameSequence()
@@ -115,13 +113,13 @@ export function _getWebSessionTabsTrackingCountsForTest(): {
   }
 }
 
-export function _getWebSessionTabsRecoveryTrackingCountsForTest(): {
-  pendingRecoveries: number
-  removalFrames: number
+export function _getWebSessionTabsReceiptTrackingCountsForTest(): {
+  receipts: number
+  removalWatermarks: number
 } {
   return {
-    pendingRecoveries: sessionTabsRecoveryStateByWorktree.size,
-    removalFrames: latestSessionTabsRemovalFenceByWorktree.size
+    receipts: latestReceivedSessionTabsSnapshotByWorktree.size,
+    removalWatermarks: sessionTabsRemovalWatermarkByWorktree.size
   }
 }
 
@@ -132,9 +130,9 @@ export function clearWebSessionTabsTrackingForWorktree(
   const key = sessionTabsFreshnessKey(environmentId, worktreeId)
   latestSessionTabsSnapshotByWorktree.delete(key)
   replayableSessionTabsSnapshotByWorktree.delete(key)
-  latestReceivedSessionTabsSnapshotByWorktree.delete(key)
-  // Keep the bounded epoch history as a tombstone fence. A sibling stream can
-  // still deliver an old frame after this removal has cleared the live view.
+  // The receipt ledger and removal watermark are deliberately kept: they order a delayed
+  // predecessor frame against the live publisher's next one, which is the whole point of a
+  // retraction. Clearing the live view is this function's job; forgetting what was received is not.
   untrackWebSessionTabsWorktree(environmentId, worktreeId)
   removeWebSessionTabsEnvironment(environmentId, worktreeId)
   lastHostTerminalTabCountByWorktree.delete(key)
@@ -181,14 +179,9 @@ export function clearWebSessionTabsTrackingForEnvironment(environmentId: string)
   }
   latestReceivedSessionTabsFrameByEnvironment.delete(trimmedEnvironmentId)
   latestReceivedSessionTabsInventoryFrameByEnvironment.delete(trimmedEnvironmentId)
-  for (const key of latestSessionTabsRemovalFenceByWorktree.keys()) {
+  for (const key of sessionTabsRemovalWatermarkByWorktree.keys()) {
     if (key.startsWith(keyPrefix)) {
-      latestSessionTabsRemovalFenceByWorktree.delete(key)
-    }
-  }
-  for (const key of sessionTabsRecoveryStateByWorktree.keys()) {
-    if (key.startsWith(keyPrefix)) {
-      sessionTabsRecoveryStateByWorktree.delete(key)
+      sessionTabsRemovalWatermarkByWorktree.delete(key)
     }
   }
   trackedSessionTabsWorktreeIdsByEnvironment.delete(trimmedEnvironmentId)

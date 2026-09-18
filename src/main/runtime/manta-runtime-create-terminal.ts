@@ -4,6 +4,7 @@ import * as dependencies from './manta-runtime-create-terminal-dependencies'
 import { createDesktopTerminal } from './manta-runtime-create-terminal-desktop'
 import { buildRuntimeAgentTeamsLaunchPlan } from './manta-runtime-agent-teams-launch-plan'
 import { createPtySpawnCommitReporter } from './manta-runtime-report-pty-spawn-commit'
+import { recordPtySurface, spawnSurfaceClaimSequence } from './pty-recorded-surface-topology'
 
 export class MantaRuntimeWithCreateTerminal extends MantaRuntimeWithTerminalCreateDeduplication {
   async createTerminal(
@@ -236,8 +237,7 @@ export class MantaRuntimeWithCreateTerminal extends MantaRuntimeWithTerminalCrea
             pty.launchIncarnationId = launchToken ? pty.incarnationId : null
             pty.launchAgent = launchOpts.launchAgent ?? null
           }
-          pty.tabId = tabId
-          pty.paneKey = paneKey
+          recordPtySurface(pty, tabId, paneKey, spawnSurfaceClaimSequence(this.graphSequence))
         }
         const handle = pty ? this.issuePtyHandle(pty) : preAllocatedHandle
         if (pty && !adoptedStablePane && launchOpts.deferMobileSessionPublish !== true) {

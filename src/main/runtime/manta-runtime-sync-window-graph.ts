@@ -84,6 +84,16 @@ export class MantaRuntimeWithSyncWindowGraph extends MantaRuntimeWithAttachWindo
     )
     const nextLeaves = new Map<string, RuntimeLeafRecord>()
     const graphSyncedAt = this.nextTitleObservationSequence()
+    // Bumped before the leaf loop so surfaces this statement records are stamped with it, and a
+    // surface recorded after it is immune until the next one (pty-recorded-surface-topology.ts).
+    // The headless placeholder is exempt: it is published once at launch so status clients see a
+    // ready server, names no renderer pane, and is never replaced. Counting it as a statement left
+    // every claim written without standing — a persisted replay, an inventory restore, a TUI-owner
+    // recovery — permanently orphaned on a headless host, with no graph that could ever re-stamp
+    // it (#18191).
+    if (windowId !== HEADLESS_RUNTIME_WINDOW_ID) {
+      this.graphSequence += 1
+    }
 
     // Why: renderer reloads can briefly republish the same leaf with no ptyId;
     // keep live CLI handles usable while the UI graph rebuilds.
@@ -146,7 +156,8 @@ export class MantaRuntimeWithSyncWindowGraph extends MantaRuntimeWithAttachWindo
           lastOutputAt: existing?.ptyId === leaf.ptyId ? existing.lastOutputAt : null,
           preview: existing?.ptyId === leaf.ptyId ? existing.preview : '',
           tabId: leaf.tabId,
-          paneKey: this.makeRuntimePaneKey(leaf)
+          paneKey: this.makeRuntimePaneKey(leaf),
+          surfaceRecordedAtGraphSequence: this.graphSequence
         })
       }
 
