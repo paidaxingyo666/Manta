@@ -1,3 +1,4 @@
+import type { RpcClient } from '../../transport/rpc-client'
 import { createBridgeHost, type BridgeHost, type BridgeHostDiagnostic } from '../bridge-host'
 import { createFakeRpcClient, type FakeRpcClient } from '../bridge-host-test-fakes'
 import {
@@ -16,15 +17,19 @@ import {
  * The page and the shell wired to each other through the weakest transport that is still a
  * transport, so a test of either one is a test of the pair.
  *
- * Two properties are the whole point. One FIFO per direction, because a `subscribe` that overtook a
- * `sendRequest` would move the recorder's shared ordinal, which is what `write-ordinal.ts` exists to
+ * Two properties are the whole point. One FIFO per direction, because the payloads a shell client
+ * publishes are published in delivery order, so a lane that let a `subscribe` pass a `sendRequest`
+ * would move the recorder's shared ordinal and manufacture the reorder `write-ordinal.ts` exists to
  * catch. And delivery on a microtask, the weakest async the golden runner's zero-time drains flush
  * and the only one that moves no virtual millisecond.
+ *
+ * The shell client is a type parameter because the golden recorder puts its own scripted client
+ * behind this pair; `createFakeBridgePortPair` is the shape every other test wants.
  */
-export type BridgePortPair = {
+export type BridgePortPair<TRpc extends RpcClient = FakeRpcClient> = {
   client: BridgeRpcClient
   host: BridgeHost
-  rpc: FakeRpcClient
+  rpc: TRpc
   /** Everything each side posted, in the order it was posted, raw. */
   toShell: string[]
   toPage: string[]
@@ -32,20 +37,36 @@ export type BridgePortPair = {
   hostDiagnostics: BridgeHostDiagnostic[]
   /** Runs both lanes until a full round moves nothing. */
   flush: () => Promise<void>
+  /**
+   * Delivers what is queued right now, in place, and returns how many frames moved.
+   *
+   * For the one exchange a caller cannot await: a page refuses every member until `init` lands, and
+   * a recorder that mounted a screen before then would record a different first render. Nothing
+   * else may use it — delivering in place is what the lanes exist not to do.
+   */
+  drainNow: () => number
   /** Read back through the reader on the receiving side, so a frame this returns is one that lands. */
   readToShell: () => BridgeClientMessage[]
   readToPage: () => BridgeHostMessage[]
 }
 
-export type BridgePortPairOptions = {
-  rpc?: FakeRpcClient
+export type BridgePortPairOptions<TRpc extends RpcClient> = {
+  rpc: TRpc
   sessionId?: string
   buildId?: string
+  /**
+   * Rewrites each frame on its way to the page, for asking the page a counterfactual it cannot be
+   * asked any other way: would this run have gone differently had the shell sent one more field?
+   * The golden recorder's bridged replay uses it to separate what a narrow reader costs from what
+   * the payload itself does. Nothing in the product rewrites a frame in flight.
+   */
+  rewriteToPage?: (json: string) => string
 }
 
 type Lane = {
   sent: string[]
   push: (json: string) => void
+  drainNow: () => number
   readonly depth: number
 }
 
@@ -76,6 +97,14 @@ function createLane(deliver: (json: string) => void): Lane {
       queue.push(json)
       schedule()
     },
+    drainNow(): number {
+      let moved = 0
+      for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+        deliver(next)
+        moved += 1
+      }
+      return moved
+    },
     get depth(): number {
       return queue.length
     }
@@ -95,14 +124,17 @@ function readAll<TMessage>(
   })
 }
 
-export function createBridgePortPair(options: BridgePortPairOptions = {}): BridgePortPair {
-  const rpc = options.rpc ?? createFakeRpcClient()
+export function createBridgePortPair<TRpc extends RpcClient>(
+  options: BridgePortPairOptions<TRpc>
+): BridgePortPair<TRpc> {
+  const rpc = options.rpc
   const diagnostics: BridgeRpcClientDiagnostic[] = []
   const hostDiagnostics: BridgeHostDiagnostic[] = []
   let receiveOnPage: ((json: string) => void) | null = null
 
+  const rewrite = options.rewriteToPage ?? ((json: string) => json)
   const toPage = createLane((json) => {
-    receiveOnPage?.(json)
+    receiveOnPage?.(rewrite(json))
   })
   const host = createBridgeHost({
     client: rpc,
@@ -154,7 +186,15 @@ export function createBridgePortPair(options: BridgePortPairOptions = {}): Bridg
       }
       throw new Error('the port pair never went quiet')
     },
+    drainNow: () => toShell.drainNow() + toPage.drainNow(),
     readToShell: () => readAll(toShell.sent, readBridgeClientMessage),
     readToPage: () => readAll(toPage.sent, readBridgeHostMessage)
   }
+}
+
+/** The pair every test that is not the golden recorder wants: a shell client that records calls. */
+export function createFakeBridgePortPair(
+  options: Omit<BridgePortPairOptions<FakeRpcClient>, 'rpc'> & { rpc?: FakeRpcClient } = {}
+): BridgePortPair<FakeRpcClient> {
+  return createBridgePortPair({ ...options, rpc: options.rpc ?? createFakeRpcClient() })
 }
