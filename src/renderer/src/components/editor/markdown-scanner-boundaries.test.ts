@@ -34,7 +34,7 @@ it.each(['\n', '\r\n', '\r'])('retains %j terminators while stripping code', (eo
   )
 })
 
-it.each(['```~~~', '      ```'])('matches the parser on the closer %j', (closer) => {
+it.each(['```~~~', '``` ~', '      ```'])('matches the parser on the closer %j', (closer) => {
   const source = `\`\`\`\ncode\n${closer}\n<div>after</div>\n`
   const code = marked.lexer(source)[0]
   expect(code.type).toBe('code')
