@@ -17971,7 +17971,6 @@
       "truncated": "Some results or matching text were limited. Narrow your search for more precise results.",
       "enableFailed": "Could not enable search. Try again.",
       "enable": "Enable",
-      "notNow": "Not now",
       "retry": "Try again",
       "scopeUnknown": "This computer does not have this workspace or project. Switch the scope to All to search everything on it."
     }
