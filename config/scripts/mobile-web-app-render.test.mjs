@@ -447,8 +447,14 @@ describeRender('the Route A page in a real browser', () => {
     // inside the page therefore pops the native stack without the unsaved-draft prompt, which lives
     // on the page's own Back control.
     expect(errors).toEqual([])
-    // The title is the last segment of the path param, so this is also the proof the param
-    // survived the round trip through `URLSearchParams` that `/` and the space go through.
+    // The title is the last segment of the path param, so this says the param reached the screen
+    // with its last segment intact; `readme.md` is what a truncated or re-split path would also
+    // end in. The url assertion below pins the outbound leg — what the page encoded into its own
+    // history, `/` and space included — and no more: a screen that mis-decoded the middle of the
+    // path would satisfy both lines. The decode leg is proved where it can be read directly, in
+    // `mobile/src/files/mobile-file-path-route-encoding.test.ts`, which takes each hazard shape
+    // back out of the href, and `mobile/src/files/mobile-file-preview-route.test.ts`, which drives
+    // the normalizer the screen reads its params through.
     expect(text).toContain('readme.md')
     expect(url).toBe(`${previewRoute}?relativePath=docs%2Fmy+notes%2Freadme.md&source=worktree`)
     expect(text).not.toContain(UNMATCHED)
