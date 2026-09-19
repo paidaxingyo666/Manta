@@ -194,6 +194,9 @@ export function buildPtyHostEnv(
       overlay: 'MANTA_OMP_CODING_AGENT_DIR',
       source: 'MANTA_OMP_SOURCE_AGENT_DIR'
     })
+    if (shouldPrepareOmpShadow) {
+      Object.assign(baseEnv, piTitlebarExtensionService.buildFreshOmpEnv())
+    }
     delete baseEnv.MANTA_OMP_STATUS_EXTENSION
     delete baseEnv.MANTA_PRIME_AGENT_SOURCE_AGENT_DIR
     delete baseEnv.MANTA_PRIME_AGENT_STATUS_EXTENSION
