@@ -15,6 +15,7 @@ export type HookContext = {
   sessionManager?: {
     getSessionId?: () => unknown
     getSessionFile?: () => unknown
+    getHeader?: () => unknown
   }
 }
 
