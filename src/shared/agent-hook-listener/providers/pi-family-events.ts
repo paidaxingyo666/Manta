@@ -49,6 +49,10 @@ export function normalizePiCompatibleEvent(
     ((agentType === 'pi' && isAskUserQuestionTool(toolName)) ||
       (agentType === 'omp' && toolName === 'ask')) &&
     (eventName === 'tool_call' || eventName === 'tool_execution_start')
+  // Why: unlike Codex's PermissionRequest, omp emits this only after its own policy engine already
+  // resolved to "prompt", so a human is always the decider. The forwarded approval_mode is the
+  // ambient mode, not the verdict -- it reads 'yolo' whenever tools.approval.<tool> prompts -- so
+  // no value of it can downgrade this to working without hiding a real prompt.
   const isOmpApprovalRequest = agentType === 'omp' && eventName === 'tool_approval_requested'
   const isOmpApprovalResolution = agentType === 'omp' && eventName === 'tool_approval_resolved'
   const isPiUiPrompt =
