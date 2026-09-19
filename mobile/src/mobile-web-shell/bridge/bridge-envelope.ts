@@ -4,12 +4,15 @@ import type { RpcResponse } from '../../transport/types'
 import { BridgeErrorCaptureSchema } from './bridge-error-capture'
 import {
   BRIDGE_MAX_METHOD_CHARS,
+  BRIDGE_MAX_PAGE_ROUTES,
   BRIDGE_MAX_REPLY_PARTS,
+  BRIDGE_MAX_ROUTE_HREF_CHARS,
   BRIDGE_MAX_ROUTE_PARAM_CHARS,
   BRIDGE_MAX_ROUTE_PARAMS,
   BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
   BRIDGE_MAX_VIEWPORT_COLS,
   BRIDGE_MAX_VIEWPORT_ROWS,
+  BRIDGE_ROUTE_HREF_PATTERN,
   BRIDGE_ROUTE_PATHNAME_PATTERN,
   parseBridgeMessage,
   type BridgeDirection,
@@ -210,6 +213,15 @@ const BridgeClientMessageSchema = z.discriminatedUnion('type', [
       name: z.literal('foreground'),
       reason: z.enum(BRIDGE_FOREGROUND_NUDGE_REASONS).optional()
     }),
+    // Behind the `navigate` grant, and that is not a convention: this union is closed, so an older
+    // shell refuses the whole frame as `unrecognised-message`. The page checks `grants.native`
+    // before it posts, which is what a grant is for.
+    z.object({
+      v: versionSchema,
+      type: z.literal('notify'),
+      name: z.literal('navigate'),
+      href: z.string().min(1).max(BRIDGE_MAX_ROUTE_HREF_CHARS).regex(BRIDGE_ROUTE_HREF_PATTERN)
+    }),
     z.object({
       v: versionSchema,
       type: z.literal('notify'),
@@ -294,7 +306,13 @@ const BridgeHostMessageSchema = z.union([
     buildId: z.string().min(1),
     connection: BridgeConnectionSnapshotSchema,
     grants: BridgeGrantsSchema,
-    route: BridgeInitRouteSchema.optional()
+    route: BridgeInitRouteSchema.optional(),
+    /** Every route pattern the shell would render from the page. The page keeps a navigation into
+     *  one of them and hands the rest back, which is the only thing that tells it which is which. */
+    pageRoutes: z
+      .array(z.string().min(1).max(BRIDGE_MAX_ROUTE_PATHNAME_CHARS))
+      .max(BRIDGE_MAX_PAGE_ROUTES)
+      .optional()
   })
 ])
 

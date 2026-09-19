@@ -23,6 +23,7 @@ import {
   reduceMobileWebShellSession
 } from './mobile-web-shell-session'
 import type {
+  CachedGeneration,
   MobileWebShellReadFailure,
   MobileWebShellSessionEffect,
   MobileWebShellSessionEvent,
@@ -31,6 +32,8 @@ import type {
 
 export type MobileWebShellSessionView = {
   readonly state: MobileWebShellSessionState
+  /** The route patterns this shell would render from the page, for the page to be told about. */
+  readonly pageRoutes: readonly string[]
   readonly retry: () => void
   /** B3's failure reasons, forwarded verbatim; the reducer owns what each one means. */
   readonly reportShellFailure: (reason: MobileWebShellFailureReason) => void
@@ -49,9 +52,11 @@ export type MobileWebShellSessionView = {
  */
 export function useMobileWebShellSession(args: {
   hostId: string
+  /** The route this mount stands for, matched against the page routes the bundle declares. */
+  routePathname: string
   runtime?: MobileWebShellRuntime
 }): MobileWebShellSessionView {
-  const { hostId } = args
+  const { hostId, routePathname } = args
   const gates = useHostProtocolGates()
   const { client, state: connState } = useHostClient(hostId)
 
@@ -61,7 +66,7 @@ export function useMobileWebShellSession(args: {
   const storeRef = useRef<GenerationStore | null>(null)
   storeRef.current ??= runtime.createStore()
 
-  const sessionRef = useRef(createMobileWebShellSession())
+  const sessionRef = useRef(createMobileWebShellSession(routePathname))
   const [state, setState] = useState(sessionRef.current.state)
   const hostKey = useMemo(() => deriveHostCacheKey(hostId), [hostId])
   const startedAtRef = useRef(runtime.now())
@@ -171,11 +176,11 @@ export function useMobileWebShellSession(args: {
   useEffect(() => {
     // A new host is a new session: the old one's latches, cache handle and in-flight work all go.
     invalidate()
-    sessionRef.current = createMobileWebShellSession()
+    sessionRef.current = createMobileWebShellSession(routePathname)
     startedAtRef.current = runtime.now()
     setState(sessionRef.current.state)
     return invalidate
-  }, [hostId, invalidate, runtime])
+  }, [hostId, invalidate, routePathname, runtime])
 
   const { statusPending, statusReadable, hostCapabilities, hostProtocolWindow } = gates
   const reachability = readMobileWebShellReachability(connState, client)
@@ -225,13 +230,20 @@ export function useMobileWebShellSession(args: {
     dispatch(epochRef.current, { type: 'page-ready' })
   }, [dispatch])
 
-  return { state, retry, reportShellFailure, reportDocumentLoaded, reportPageReady }
+  return {
+    state,
+    pageRoutes: sessionRef.current.pageRoutes,
+    retry,
+    reportShellFailure,
+    reportDocumentLoaded,
+    reportPageReady
+  }
 }
 
 async function openCache(
   store: GenerationStore,
   hostKey: string
-): Promise<{ buildId: string; directory: string; totalBytes: number } | null> {
+): Promise<CachedGeneration | null> {
   try {
     // Here and nowhere earlier: with the flag off no code path reaches this hook, so a store build
     // never sweeps a cache it never wrote.
@@ -242,7 +254,8 @@ async function openCache(
       : {
           buildId: active.buildId,
           directory: generationDirectoryPath(active.directory),
-          totalBytes: active.manifest.totalBytes
+          totalBytes: active.manifest.totalBytes,
+          routes: active.manifest.routes
         }
   } catch {
     // A cache that cannot be read is not a cache that is wrong: nothing is deleted, and the flow
@@ -279,7 +292,8 @@ async function readManifest(
         runtimeProtocolVersion: manifest.runtimeProtocolVersion,
         minCompatibleRuntimeProtocolVersion: manifest.minCompatibleRuntimeProtocolVersion,
         totalBytes: manifest.totalBytes,
-        totalAssets: manifest.assets.length
+        totalAssets: manifest.assets.length,
+        routes: manifest.routes
       }
     })
   } catch (error) {

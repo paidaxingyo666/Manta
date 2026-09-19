@@ -37,6 +37,8 @@ export type BridgePortPair<TRpc extends RpcClient = FakeRpcClient> = {
   toPage: string[]
   diagnostics: BridgeRpcClientDiagnostic[]
   hostDiagnostics: BridgeHostDiagnostic[]
+  /** Every screen the page asked the shell to open, in order. */
+  navigations: string[]
   /** Every fault the page reported, in order, as the shell received it. */
   pageFaults: BridgeErrorCapture[]
   /** How many times the page asked for a session; it re-asks on a backoff until one lands. */
@@ -63,6 +65,7 @@ export type BridgePortPairOptions<TRpc extends RpcClient> = {
   sessionId?: string
   buildId?: string
   route?: BridgeInitRoute
+  pageRoutes?: readonly string[]
   /**
    * Rewrites each frame on its way to the page, for asking the page a counterfactual it cannot be
    * asked any other way: would this run have gone differently had the shell sent one more field?
@@ -139,6 +142,7 @@ export function createBridgePortPair<TRpc extends RpcClient>(
   const rpc = options.rpc
   const diagnostics: BridgeRpcClientDiagnostic[] = []
   const hostDiagnostics: BridgeHostDiagnostic[] = []
+  const navigations: string[] = []
   const pageFaults: BridgeErrorCapture[] = []
   let pageReadies = 0
   const routeRefusals: string[] = []
@@ -157,6 +161,8 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     buildId: options.buildId ?? 'build-a',
     sessionId: options.sessionId ?? 'session-a',
     route: options.route ?? { pathname: '/h/host-a' },
+    pageRoutes: options.pageRoutes ?? ['/h/[hostId]'],
+    onNavigate: (href) => navigations.push(href),
     onPageFault: (error) => pageFaults.push(error),
     onPageReady: () => {
       pageReadies += 1
@@ -188,6 +194,7 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     toPage: toPage.sent,
     diagnostics,
     hostDiagnostics,
+    navigations,
     pageFaults,
     pageReadyCount: () => pageReadies,
     routeRefusals,

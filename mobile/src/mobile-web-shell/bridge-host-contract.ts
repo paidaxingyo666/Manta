@@ -42,6 +42,14 @@ export type BridgeHostOptions = {
    * reach.
    */
   route: BridgeInitRoute
+  /** Every route pattern the shell would render from the page, so the page knows what to keep. */
+  pageRoutes: readonly string[]
+  /**
+   * Opens a screen the page does not render. Required, because `init` grants `navigate` on the
+   * strength of this existing: a page told it may hand a route back and then handed one back into
+   * nothing is a dead tap, which is exactly what the grant is supposed to rule out.
+   */
+  onNavigate: (href: string) => void
   /**
    * The page could not render the generation it was handed. Required, because the page has no
    * recovery of its own: the generation is on disk and was hash-checked before the view loaded it,

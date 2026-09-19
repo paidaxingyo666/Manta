@@ -33,9 +33,10 @@ describe('the bridge port pair', () => {
       sessionId: 'session-a',
       buildId: 'build-a',
       grants: expect.anything(),
-      // The screen the shell says this page stands in for; the pair names one so the session it
-      // hands back is the shape a page on a route actually holds.
-      route: expect.objectContaining({ pathname: expect.any(String) })
+      // The screen the shell says this page stands in for, and the routes it keeps for itself; the
+      // pair names both so the session it hands back is the shape a page on a route actually holds.
+      route: expect.objectContaining({ pathname: expect.any(String) }),
+      pageRoutes: expect.any(Array)
     })
   })
 

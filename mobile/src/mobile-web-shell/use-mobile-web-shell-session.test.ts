@@ -45,7 +45,8 @@ const doubles = vi.hoisted((): Doubles => {
     totalBytes: 2048,
     assets: [
       { path: 'index.html', sha256: 'c'.repeat(64), byteLength: 2048, contentType: 'text/html' }
-    ]
+    ],
+    routes: [{ pathname: '/h/[hostId]', grants: ['navigate'] }]
   }
   return {
     connection: { client: {}, state: 'connected' },
@@ -217,6 +218,7 @@ async function mount(store: GenerationStore): Promise<Mounted> {
   function Probe() {
     const session = useMobileWebShellSession({
       hostId: HOST_ID,
+      routePathname: '/h/host-1',
       runtime: {
         createStore: () => store,
         mintSessionId: () => 'session-id',

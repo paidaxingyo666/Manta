@@ -6,44 +6,50 @@ import {
 } from './bridge-envelope'
 import { captureBridgeError } from './bridge-error-capture'
 
-/** Everything the page tells the shell without waiting for an answer. */
+/**
+ * Everything the page posts and hears nothing back about.
+ *
+ * Three of the four share one guard, and it is not the same guard `sendRequest` uses. A call before
+ * `init` is a mount-order bug and throws; a call after `close` is an unmounting screen posting one
+ * more nudge on its way out, which the native clients answer inertly rather than by throwing into a
+ * teardown path nobody wrote a catch for. Nothing here returns a promise, so nothing here can be
+ * awaited into a rejection either.
+ *
+ * `notifyPageFault` is the exception and reads the session instead of requiring it: its one caller
+ * is an error boundary, and a report that threw would replace the page's last word with an error
+ * nobody catches.
+ */
+export type BridgeClientNotificationDeps = {
+  /** False when the frame never left the page. */
+  send: (frame: BridgeClientMessage) => boolean
+  /** Throws when `init` has not landed. */
+  requireSession: () => void
+  isClosed: () => boolean
+  /** What `init.grants.native` named. A grant the shell did not give is a frame it would refuse. */
+  hasGrant: (name: string) => boolean
+}
+
 export type BridgeClientNotifications = {
   updateTerminalSubscriptionViewport: (
     terminal: string,
     viewport: { cols: number; rows: number }
   ) => void
   notifyForeground: (reason?: ForegroundNudgeReason) => void
+  notifyNavigate: (href: string) => boolean
   notifyPageFault: (error: unknown) => boolean
 }
 
-export type BridgeClientNotificationDeps = {
-  /** False when the frame never left the page. */
-  send: (frame: BridgeClientMessage) => boolean
-  /** Throws for a call that arrived before `init`, which is always a mount-order bug. */
-  requireSession: () => void
-  isClosed: () => boolean
-  /** What `init.grants.native` listed, which is the only thing that makes a name safe to post. */
-  hasGrant: (grant: string) => boolean
-}
-
-/**
- * The one-way half of the page's client.
- *
- * Two policies split them. The two the native contract declares answer nothing and throw before a
- * session, because a screen calling them early is a bug in this bundle. The fault report answers a
- * boolean and never throws, because its one caller is an error boundary and a report that threw
- * would replace the page's last word with an error nobody catches.
- */
 export function createBridgeClientNotifications(
   deps: BridgeClientNotificationDeps
 ): BridgeClientNotifications {
+  function post(frame: BridgeClientMessage): boolean {
+    deps.requireSession()
+    return deps.isClosed() ? false : deps.send(frame)
+  }
+
   return {
     updateTerminalSubscriptionViewport: (terminal, viewport) => {
-      deps.requireSession()
-      if (deps.isClosed()) {
-        return
-      }
-      deps.send({
+      post({
         v: BRIDGE_PROTOCOL_VERSION,
         type: 'notify',
         name: 'terminalViewport',
@@ -52,21 +58,20 @@ export function createBridgeClientNotifications(
         rows: viewport.rows
       })
     },
-    notifyForeground: (reason?: ForegroundNudgeReason) => {
-      deps.requireSession()
-      if (deps.isClosed()) {
-        return
-      }
-      deps.send({
+    notifyForeground: (reason) => {
+      post({
         v: BRIDGE_PROTOCOL_VERSION,
         type: 'notify',
         name: 'foreground',
         ...(reason === undefined ? {} : { reason })
       })
     },
-    notifyPageFault: (error: unknown) => {
-      // Read rather than required: `requireSession` throws, and this is called from a
-      // `componentDidCatch` where a throw is the second failure and the first one's grave.
+    // The one that answers: `notify` is closed, so a shell that granted no `navigate` would refuse
+    // the whole frame, and a tap handler needs to know that before it decides it has navigated.
+    notifyNavigate: (href) =>
+      deps.hasGrant('navigate') &&
+      post({ v: BRIDGE_PROTOCOL_VERSION, type: 'notify', name: 'navigate', href }),
+    notifyPageFault: (error) => {
       if (deps.isClosed() || !deps.hasGrant(BRIDGE_FAULT_GRANT)) {
         return false
       }

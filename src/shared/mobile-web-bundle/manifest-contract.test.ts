@@ -7,6 +7,7 @@ import {
   MOBILE_WEB_BUNDLE_ENTRYPOINT,
   MOBILE_WEB_BUNDLE_MAX_ASSETS,
   MOBILE_WEB_BUNDLE_MAX_ASSET_BYTES,
+  MOBILE_WEB_BUNDLE_MAX_ROUTES,
   MOBILE_WEB_BUNDLE_MAX_TOTAL_BYTES,
   MOBILE_WEB_BUNDLE_SCHEMA_VERSION,
   type MobileWebBundleAsset
@@ -43,6 +44,7 @@ function manifestOf(
     entrypoint: MOBILE_WEB_BUNDLE_ENTRYPOINT,
     totalBytes: sorted.reduce((sum, entry) => sum + entry.byteLength, 0),
     assets: sorted,
+    routes: [],
     ...overrides
   }
 }
@@ -98,6 +100,63 @@ describe('MobileWebBundleManifestSchema', () => {
     expect(
       MobileWebBundleManifestSchema.safeParse(manifestOf([ENTRY], { schemaVersion: 2 })).success
     ).toBe(false)
+  })
+})
+
+describe('the page routes a manifest declares', () => {
+  function withRoutes(routes: unknown): boolean {
+    return MobileWebBundleManifestSchema.safeParse(manifestOf([ENTRY], { routes })).success
+  }
+
+  it('accepts a route pattern with its grants, and one with none', () => {
+    expect(withRoutes([{ pathname: '/h/[hostId]', grants: ['navigate'] }])).toBe(true)
+    expect(withRoutes([{ pathname: '/h/[hostId]/tasks', grants: [] }])).toBe(true)
+  })
+
+  it('refuses a pathname a phone could not write into its own history', () => {
+    // Each of these reaches `history.replaceState` on the phone, where `//host` throws a
+    // cross-origin SecurityError and a query or a fragment is a second field pasted into the first.
+    for (const pathname of [
+      'h/[hostId]',
+      '//evil.example/h',
+      '/\\evil.example',
+      '/h?x=1',
+      '/h#t'
+    ]) {
+      expect(withRoutes([{ pathname, grants: [] }]), pathname).toBe(false)
+    }
+  })
+
+  it('refuses a grant name that is not one', () => {
+    expect(withRoutes([{ pathname: '/h', grants: ['native.navigate'] }])).toBe(false)
+    expect(withRoutes([{ pathname: '/h', grants: [''] }])).toBe(false)
+  })
+
+  it('refuses a route carrying a field the contract does not declare', () => {
+    expect(withRoutes([{ pathname: '/h', grants: [], screen: 'x' }])).toBe(false)
+  })
+
+  it('requires the field, so a bundle cannot leave the shell guessing', () => {
+    const manifest = manifestOf([ENTRY])
+    Reflect.deleteProperty(manifest, 'routes')
+    expect(MobileWebBundleManifestSchema.safeParse(manifest).success).toBe(false)
+  })
+
+  it('leaves the build id alone, because the assets already decide the routes', () => {
+    const withoutRoutes = MobileWebBundleManifestSchema.parse(manifestOf([ENTRY]))
+    const withOne = MobileWebBundleManifestSchema.parse(
+      manifestOf([ENTRY], { routes: [{ pathname: '/h/[hostId]', grants: ['navigate'] }] })
+    )
+    expect(withOne.buildId).toBe(withoutRoutes.buildId)
+  })
+
+  it('accepts the route ceiling and refuses one past it', () => {
+    const routes = Array.from({ length: MOBILE_WEB_BUNDLE_MAX_ROUTES }, (_value, index) => ({
+      pathname: `/h/${String(index)}`,
+      grants: []
+    }))
+    expect(withRoutes(routes)).toBe(true)
+    expect(withRoutes([...routes, { pathname: '/h/extra', grants: [] }])).toBe(false)
   })
 })
 

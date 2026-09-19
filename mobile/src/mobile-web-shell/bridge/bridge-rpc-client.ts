@@ -52,6 +52,12 @@ export type BridgeRpcClient = RpcClient & {
   onReady: (listener: () => void) => () => void
   getShellSession: () => BridgeShellSession | null
   /**
+   * Asks the shell to open a screen this page does not render. False when the shell granted no
+   * `navigate`, which is an older shell that would refuse the frame outright: the caller then has
+   * to do something else, and a thrown error in a tap handler is not that.
+   */
+  notifyNavigate: (href: string) => boolean
+  /**
    * Tells the shell this page cannot render what it was opened for. Never throws and never rejects:
    * the one caller is an error boundary, and a report that threw would be the second failure.
    *
@@ -270,7 +276,7 @@ export function createBridgeRpcClient(options: BridgeRpcClientOptions): BridgeRp
     send: sendFrame,
     requireSession,
     isClosed: () => closed,
-    hasGrant: (grant) => session?.grants.native.includes(grant) ?? false
+    hasGrant: (name) => session?.grants.native.includes(name) === true
   })
 
   const unsubscribeFromMessages = options.onMessage(receive)
@@ -279,7 +285,7 @@ export function createBridgeRpcClient(options: BridgeRpcClientOptions): BridgeRp
   return {
     sendRequest,
     subscribe,
-    ...notifications,
+    updateTerminalSubscriptionViewport: notifications.updateTerminalSubscriptionViewport,
     getState: (): ConnectionState => snapshot().state,
     getReconnectAttempt: () => snapshot().reconnectAttempt,
     getLastConnectedAt: () => snapshot().lastConnectedAt,
@@ -291,6 +297,9 @@ export function createBridgeRpcClient(options: BridgeRpcClientOptions): BridgeRp
     // Not gated on the session: it registers a listener and reads nothing, so it cannot answer
     // wrongly, and a provider that subscribes before `init` is how a screen hears the first change.
     onStateChange: (listener) => cache.onStateChange(listener),
+    notifyForeground: notifications.notifyForeground,
+    notifyNavigate: notifications.notifyNavigate,
+    notifyPageFault: notifications.notifyPageFault,
     close,
     onReady: (listener) => {
       if (session !== null) {

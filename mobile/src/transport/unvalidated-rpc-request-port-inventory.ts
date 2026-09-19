@@ -27,8 +27,9 @@ export type UnvalidatedRpcRequestPortEntry = {
 export const UNVALIDATED_RPC_REQUEST_PORT_OWNERS: readonly UnvalidatedRpcRequestPortEntry[] = [
   // Forwards raw requests as a transport, reads no reply. Not a call site: it picks no method and
   // decides no acceptance — the page names the method and runs the typed operation over it, exactly
-  // as a native screen does over a socket client.
-  { file: 'src/mobile-web-shell/bridge-host.ts', references: 3 },
+  // as a native screen does over a socket client. Split out of `bridge-host.ts`, which now holds
+  // none of them.
+  { file: 'src/mobile-web-shell/bridge-host-requests.ts', references: 3 },
   // The far end of that transport: it offers the port to the page and posts what it is handed,
   // reading neither the method nor the reply.
   { file: 'src/mobile-web-shell/bridge/bridge-rpc-client.ts', references: 1 },

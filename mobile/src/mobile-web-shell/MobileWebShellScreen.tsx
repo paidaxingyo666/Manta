@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   OrcaMobileWebShellView,
@@ -112,6 +113,12 @@ export type MobileWebShellScreenProps = {
   hostId: string
   /** The screen this shell stands in for, which the page cannot derive from a document served at `/`. */
   route: BridgeInitRoute
+  /**
+   * What to render when the bundle does not list this route, or lists it needing a grant this app
+   * does not implement. Required, because every caller has a native screen behind it: that is what
+   * the negotiation falls back to, and a shell with nothing behind it would paint a blank instead.
+   */
+  fallback: ReactNode
   runtime?: MobileWebShellRuntime
 }
 
@@ -122,13 +129,20 @@ export type MobileWebShellScreenProps = {
  * The native view is keyed on the session id, so a remount the reducer asks for is a new key and a
  * rebuilt WebView with every fence reinstalled — the view has no reload of its own by design.
  */
-export function MobileWebShellScreen({ hostId, route, runtime }: MobileWebShellScreenProps) {
+export function MobileWebShellScreen({
+  hostId,
+  route,
+  fallback,
+  runtime
+}: MobileWebShellScreenProps) {
   const insets = useSafeAreaInsets()
-  const { state, retry, reportShellFailure, reportDocumentLoaded, reportPageReady } =
-    useMobileWebShellSession({ hostId, runtime })
+  const router = useRouter()
+  const { state, pageRoutes, retry, reportShellFailure, reportDocumentLoaded, reportPageReady } =
+    useMobileWebShellSession({ hostId, routePathname: route.pathname, runtime })
   const bridge = useMobileWebShellBridge({
     hostId,
     route,
+    pageRoutes,
     session: state,
     // Reported as the document failing to load, which is what it is: the document loaded and never
     // produced a tree. That reason drops this generation and downloads once, so a page broken by
@@ -147,9 +161,17 @@ export function MobileWebShellScreen({ hostId, route, runtime }: MobileWebShellS
     onRouteRefused: (issue) => {
       console.warn('[web-shell] refused to open this screen', issue)
       reportShellFailure('document-load-failed')
+    },
+    // Pushed, never replaced: the page stays mounted underneath, so Back reveals it with no
+    // download and no second `init`.
+    onNavigate: (href: string) => {
+      router.push(href)
     }
   })
 
+  if (state.kind === 'native-route') {
+    return fallback
+  }
   if (state.kind === 'wall') {
     return <ProtocolBlockScreen verdict={state.verdict} />
   }

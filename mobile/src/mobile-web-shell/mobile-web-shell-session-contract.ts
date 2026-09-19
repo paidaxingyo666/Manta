@@ -1,4 +1,5 @@
 import type { MobileWebShellFailureReason } from '../../modules/manta-mobile-web-shell/src/load-state'
+import type { MobileWebPageRoute } from './page-route-policy'
 import type {
   MobileWebBundleCompatManifest,
   MobileWebBundleCompatVerdict,
@@ -34,6 +35,8 @@ export type MobileWebShellManifestFacts = MobileWebBundleCompatManifest & {
   readonly buildId: string
   readonly totalBytes: number
   readonly totalAssets: number
+  /** Undefined for a desktop older than the field, which is every route staying native. */
+  readonly routes: readonly MobileWebPageRoute[] | undefined
 }
 
 /** What `readActiveGeneration` found, reduced to what a transition reads. */
@@ -41,6 +44,8 @@ export type CachedGeneration = {
   readonly buildId: string
   readonly directory: string
   readonly totalBytes: number
+  /** The routes the cached bundle declared, which is what an unreachable host is judged by. */
+  readonly routes: readonly MobileWebPageRoute[] | undefined
 }
 
 export type MobileWebShellBlockedVerdict = Extract<
@@ -79,6 +84,14 @@ export type MobileWebShellSessionState =
       readonly totalBytes: number
       readonly elapsedMs: number
     }
+  /**
+   * This route is the native screen's, and the caller renders it.
+   *
+   * Either the bundle does not list the route, or it lists it needing a grant this shell does not
+   * implement, or the desktop ships no bundle at all. Not a failure and not a wall: every route
+   * starts native, and the negotiation saying no leaves it where it was.
+   */
+  | { readonly kind: 'native-route' }
   | { readonly kind: 'wall'; readonly verdict: MobileWebShellBlockedVerdict }
   | {
       readonly kind: 'failed'
@@ -168,6 +181,11 @@ export type MobileWebShellSessionEvent =
  *  spans the delete-and-refetch that puts the state back to `checking`, and `remountedOnce` spans a
  *  `ready` that is replaced by a `ready` under a new session id. */
 export type MobileWebShellSession = {
+  /** The concrete route this session was opened for, matched against what the bundle lists. */
+  readonly routePathname: string
+  /** Every route pattern this shell would render from the page, as the bundle in hand declares
+   *  them. The page is told, so it keeps a navigation into one of them instead of handing it back. */
+  readonly pageRoutes: readonly string[]
   readonly state: MobileWebShellSessionState
   readonly retriedOnce: boolean
   readonly remountedOnce: boolean

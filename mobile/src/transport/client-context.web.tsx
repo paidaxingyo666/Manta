@@ -16,6 +16,10 @@ export {
 } from './host-client-hooks'
 
 const Ctx = createContext<RpcClientContextValue | null>(null)
+/** The page's own client, which is more than an `RpcClient`: the route seam reads the session off
+ *  it to decide which screens are this document's. Separate from `Ctx` so the shared contract above
+ *  stays the one every screen sees, page or native. */
+const PageClientCtx = createContext<BridgeRpcClient | null>(null)
 
 /**
  * The client is injected rather than built here: the entry owns it, because it has to wait for
@@ -72,7 +76,20 @@ export function RpcClientProvider({
     }
   }, [client])
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+  return (
+    <PageClientCtx.Provider value={client}>
+      <Ctx.Provider value={value}>{children}</Ctx.Provider>
+    </PageClientCtx.Provider>
+  )
+}
+
+/** For the page-only seams that need the bridge itself rather than the client contract over it. */
+export function usePageBridgeClient(): BridgeRpcClient {
+  const client = useContext(PageClientCtx)
+  if (!client) {
+    throw new Error('usePageBridgeClient must be used within RpcClientProvider')
+  }
+  return client
 }
 
 export function useRpcClientContext(): RpcClientContextValue {

@@ -56,6 +56,10 @@ export function useMobileWebShellBridge(args: {
   session: MobileWebShellSessionState
   /** The screen the page is standing in for, which the document's own `/` cannot tell it. */
   route: BridgeInitRoute
+  /** The route patterns the page keeps for itself; everything else comes back as `navigate`. */
+  pageRoutes: readonly string[]
+  /** Opens a screen the page does not render, over the still-mounted view. */
+  onNavigate: (href: string) => void
   /** The page could not render the generation on screen. Reported, never recovered from here. */
   onPageFault: (error: BridgeErrorCapture) => void
   /** The page asked for a session. Reported so the screen can stop waiting for it. */
@@ -73,8 +77,10 @@ export function useMobileWebShellBridge(args: {
   // changed afterwards would have nothing left to change. Held in a ref for that reason — an inline
   // object in the deps would rebuild the host on every render and settle its pendings each time.
   const routeRef = useRef(args.route)
-  // Read through a ref for the same reason: a caller's fresh closure every render must not tear a
-  // host down and settle its pendings.
+  const pageRoutesRef = useRef(args.pageRoutes)
+  // Read through a ref for the same reason: the host is built once per session, and a caller's
+  // fresh closure every render must not tear one down and settle its pendings.
+  const navigateRef = useRef(args.onNavigate)
   const pageFaultRef = useRef(args.onPageFault)
   const pageReadyRef = useRef(args.onPageReady)
   const routeRefusedRef = useRef(args.onRouteRefused)
@@ -82,10 +88,19 @@ export function useMobileWebShellBridge(args: {
   // render passed: a native frame can land between a commit and a passive effect.
   useLayoutEffect(() => {
     routeRef.current = args.route
+    pageRoutesRef.current = args.pageRoutes
+    navigateRef.current = args.onNavigate
     pageFaultRef.current = args.onPageFault
     pageReadyRef.current = args.onPageReady
     routeRefusedRef.current = args.onRouteRefused
-  }, [args.onPageFault, args.onPageReady, args.onRouteRefused, args.route])
+  }, [
+    args.onNavigate,
+    args.onPageFault,
+    args.onPageReady,
+    args.onRouteRefused,
+    args.pageRoutes,
+    args.route
+  ])
 
   // Commit-phase, not passive: a native frame that arrives between the two carries the session id
   // the handler is fenced on, so only handing the host over here keeps it off the retired client.
@@ -98,6 +113,7 @@ export function useMobileWebShellBridge(args: {
       buildId,
       sessionId,
       route: routeRef.current,
+      pageRoutes: pageRoutesRef.current,
       onPageFault: (error) => {
         pageFaultRef.current(error)
       },
@@ -106,6 +122,9 @@ export function useMobileWebShellBridge(args: {
       },
       onRouteRefused: (issue) => {
         routeRefusedRef.current(issue)
+      },
+      onNavigate: (href) => {
+        navigateRef.current(href)
       },
       post: (json) => {
         const mounted = viewRef.current

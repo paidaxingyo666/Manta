@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { clientFrame, createFakeRpcClient } from './bridge-host-test-fakes'
-import { harness, ROUTE } from './bridge-host-test-harness'
+import { harness, PAGE_ROUTES, ROUTE } from './bridge-host-test-harness'
 import {
   BRIDGE_MAX_PENDING_REQUESTS,
   BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
@@ -9,7 +9,7 @@ import {
 import { BRIDGE_FAULT_GRANT } from './bridge/bridge-envelope'
 
 describe('init and state', () => {
-  it('answers ready with the getters, the caps it enforces, and the one native grant', () => {
+  it('answers ready with the getters, the caps it enforces, and the grants it honours', () => {
     const client = createFakeRpcClient({
       getState: () => 'reconnecting',
       getReconnectAttempt: () => 3,
@@ -36,9 +36,11 @@ describe('init and state', () => {
           maxPendingRequests: BRIDGE_MAX_PENDING_REQUESTS,
           maxSubscriptions: BRIDGE_MAX_SUBSCRIPTIONS
         },
-        native: [BRIDGE_FAULT_GRANT]
+        // What the shell will do for the page, and what makes its `navigate` frame acceptable.
+        native: [BRIDGE_FAULT_GRANT, 'navigate']
       },
-      route: ROUTE
+      route: ROUTE,
+      pageRoutes: PAGE_ROUTES
     })
   })
 
@@ -82,6 +84,60 @@ describe('init and state', () => {
       expect(bridge.last().type, pathname).toBe('init')
       expect(bridge.routeRefusals, pathname).toEqual([])
     }
+  })
+
+  it('opens the screen a page asks for, without routing it to the client', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'navigate', href: '/h/host-a/session/wt-1?name=a+b' })
+    )
+    expect(bridge.navigations).toEqual(['/h/host-a/session/wt-1?name=a+b'])
+    expect(bridge.client.requests).toEqual([])
+    // Nothing is owed to the page for a notify, so nothing is posted back either.
+    expect(bridge.frames().filter((frame) => frame.type === 'error')).toEqual([])
+  })
+
+  it('refuses a navigate frame that is not a path this app could open', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    // The last three are shapes `replaceState` and the native push both normalise: `/h/../../etc/x`
+    // resolves out of the `/h/` prefix entirely, and with no `+not-found` file expo-router's
+    // Unmatched then paints over the shell. Whether the target names a screen that exists is not
+    // something shape can answer; that check is C1.7's.
+    const refused = [
+      '//evil.example/h',
+      'h/host-a',
+      'https://evil.example',
+      '/h#top',
+      '/h/../../etc/x',
+      '/h/host-a/./tasks',
+      '/h/a\\b'
+    ]
+    for (const href of refused) {
+      bridge.host.receive(clientFrame({ type: 'notify', name: 'navigate', href }))
+    }
+    expect(bridge.navigations).toEqual([])
+    expect(bridge.diagnostics).toEqual(
+      refused.map(() => ({ kind: 'refused', refusal: 'unrecognised-message' }))
+    )
+  })
+
+  it('opens a target whose segments merely contain dots, which the refusals above must not', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'navigate', href: '/h/host-a/a..b?q=.' })
+    )
+    expect(bridge.navigations).toEqual(['/h/host-a/a..b?q=.'])
+  })
+
+  it('serves no navigate to a page that has said goodbye', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(clientFrame({ type: 'close' }))
+    bridge.host.receive(clientFrame({ type: 'notify', name: 'navigate', href: '/h/host-a/tasks' }))
+    expect(bridge.navigations).toEqual([])
   })
 
   it('reports a client without the optional getters as null rather than omitting the field', () => {

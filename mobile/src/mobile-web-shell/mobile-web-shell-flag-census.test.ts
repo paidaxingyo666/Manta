@@ -11,7 +11,10 @@ import { describe, expect, it } from 'vitest'
 const MOBILE_ROOT = join(import.meta.dirname, '..', '..')
 const FLAG_KEY = 'manta:mobileWebShellEnabled'
 const DEFINITION = 'src/storage/preferences.ts'
+/** The one product reader. Both routes ask it, so the two below stay the whole census. */
+const FLAG_HOOK = 'src/mobile-web-shell/use-mobile-web-shell-enabled.ts'
 const ROUTE = 'app/h/[hostId]/web.tsx'
+const HOST_ROUTE = 'app/h/[hostId]/index.tsx'
 const DEVELOPER_ROW = 'src/diagnostics/mobile-web-shell-dev-row.tsx'
 /** Every tree that ships in the app bundle, with the floor each must clear. `modules` is two files,
  *  but it is where the native view lives and so the easiest place for a second reader to hide. */
@@ -48,7 +51,9 @@ describe('who touches the hybrid shell flag', () => {
   it('reaches every shipped tree, so the absence assertions below cannot pass vacuously', () => {
     const paths = SOURCES.map((file) => file.path)
     expect(paths).toContain(DEFINITION)
+    expect(paths).toContain(FLAG_HOOK)
     expect(paths).toContain(ROUTE)
+    expect(paths).toContain(HOST_ROUTE)
     expect(paths).toContain(DEVELOPER_ROW)
     expect(paths).toContain(SHELL_VIEW)
     const trees = Object.keys(TREES)
@@ -62,9 +67,17 @@ describe('who touches the hybrid shell flag', () => {
     expect(filesContaining(FLAG_KEY)).toEqual([DEFINITION])
   })
 
-  it('is read by the route and by the developer row that writes it, and nowhere else', () => {
+  it('is read by one hook and by the developer row that writes it, and nowhere else', () => {
     expect(filesContaining('loadMobileWebShellEnabled')).toEqual(
-      [DEFINITION, DEVELOPER_ROW, ROUTE].sort()
+      [DEFINITION, DEVELOPER_ROW, FLAG_HOOK].sort()
+    )
+  })
+
+  it('reaches the two routes through that hook and no others', () => {
+    // The host route is the flip switch, so the flag now decides what the main screen renders. A
+    // third route here would be a third place a dark feature could turn itself on.
+    expect(filesContaining('useMobileWebShellEnabled')).toEqual(
+      [FLAG_HOOK, HOST_ROUTE, ROUTE].sort()
     )
   })
 

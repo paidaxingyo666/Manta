@@ -195,7 +195,10 @@ export async function writeMobileWebBundleTree({
   outDir,
   written,
   desktopVersion,
-  protocolWindow
+  protocolWindow,
+  // Empty for the Phase A bootstrap, which carries no route tree at all: a shell reading it finds
+  // no screen listed and renders every route natively, which is what it already does.
+  routes = []
 }) {
   const assets = written
     .map(({ path, sha256, byteLength, contentType }) => ({ path, sha256, byteLength, contentType }))
@@ -208,7 +211,8 @@ export async function writeMobileWebBundleTree({
     runtimeProtocolVersion: protocolWindow.runtimeProtocolVersion,
     entrypoint: MOBILE_WEB_BUNDLE_ENTRYPOINT,
     totalBytes: assets.reduce((total, asset) => total + asset.byteLength, 0),
-    assets
+    assets,
+    routes
   }
 
   // Why a full clear: a stale asset left from an earlier build would ship unreferenced inside asar.

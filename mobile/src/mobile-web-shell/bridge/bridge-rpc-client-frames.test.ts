@@ -124,7 +124,31 @@ describe('bridge client handshake', () => {
       buildId: 'build-a',
       grants: INIT.grants,
       // A shell too old to name a screen, which is a state the page has an answer for.
-      route: null
+      route: null,
+      // And one that names no page routes, so the page hands every navigation back.
+      pageRoutes: []
+    })
+  })
+
+  it('posts nothing, and says so, when the shell granted no navigate', () => {
+    // An older shell: `notify` is a closed union there, so the frame would be refused whole. The
+    // page has to learn that before it decides it has navigated, which is why this answers.
+    const page = createPageClient()
+    page.deliver({ ...INIT, grants: { ...INIT.grants, native: [] } })
+    const before = page.sent.length
+    expect(page.client.notifyNavigate('/h/host-a/tasks')).toBe(false)
+    expect(page.sent).toHaveLength(before)
+  })
+
+  it('posts the screen it was granted the right to ask for', () => {
+    const page = createPageClient()
+    page.deliver({ ...INIT, grants: { ...INIT.grants, native: ['navigate'] } })
+    expect(page.client.notifyNavigate('/h/host-a/tasks')).toBe(true)
+    expect(JSON.parse(page.sent.at(-1) ?? '{}')).toEqual({
+      v: BRIDGE_PROTOCOL_VERSION,
+      type: 'notify',
+      name: 'navigate',
+      href: '/h/host-a/tasks'
     })
   })
 

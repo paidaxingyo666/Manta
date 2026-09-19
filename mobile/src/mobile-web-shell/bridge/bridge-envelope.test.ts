@@ -17,7 +17,9 @@ import {
   BRIDGE_MAX_ROUTE_PARAMS,
   BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
   BRIDGE_MAX_VIEWPORT_COLS,
-  BRIDGE_MAX_VIEWPORT_ROWS
+  BRIDGE_MAX_VIEWPORT_ROWS,
+  BRIDGE_ROUTE_HREF_PATTERN,
+  BRIDGE_ROUTE_PATHNAME_PATTERN
 } from './bridge-caps'
 import {
   BRIDGE_BINARY_FORMATS,
@@ -660,5 +662,25 @@ describe('the readers bound their two directions differently', () => {
     })
     expect(raw.length).toBeGreaterThan(BRIDGE_MAX_MESSAGE_BYTES)
     expect(readBridgeHostMessage(raw)).toEqual({ ok: false, refusal: 'oversized' })
+  })
+})
+
+/**
+ * One rule, two patterns.
+ *
+ * The screen the shell names and the screen a page asks for are the same vocabulary, and a spelling
+ * one refuses while the other takes is a hole with a `notify` already pointed at it.
+ */
+describe('the segment rule both route patterns are built from', () => {
+  it('refuses a dot segment in either position, however it is spelled', () => {
+    for (const spelling of ['/h/../a', '/h/%2e%2e/a', '/h/%2E%2E/a', '/h/.%2e/a', '/h/%2e/a']) {
+      expect(BRIDGE_ROUTE_PATHNAME_PATTERN.test(spelling), spelling).toBe(false)
+      expect(BRIDGE_ROUTE_HREF_PATTERN.test(spelling), spelling).toBe(false)
+    }
+  })
+
+  it('takes an escape that is part of a name, in either position', () => {
+    expect(BRIDGE_ROUTE_PATHNAME_PATTERN.test('/h/a%20b/%2ex/a%2fb')).toBe(true)
+    expect(BRIDGE_ROUTE_HREF_PATTERN.test('/h/a%20b/%2ex?from=list')).toBe(true)
   })
 })

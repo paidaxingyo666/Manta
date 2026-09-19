@@ -10,13 +10,15 @@ import {
   entryStaticClosure,
   mobileWebAppBuildOptions,
   renameOutputsByContent,
+  resolveMobileWebPageRoutes,
   routeChunkNames
 } from './build-mobile-web-app-bundle.mjs'
 import {
   MOBILE_WEB_APP_ROUTE_ROOT,
   ROUTE_SOURCE_LOADERS,
   collectMobileWebAppRouteKeys,
-  collectMobileWebAppRoutes
+  collectMobileWebAppRoutes,
+  routePathnameFromKey
 } from './mobile-web-app-route-manifest.mjs'
 import {
   MOBILE_WEB_APP_BUNDLE_MAX_ENTRY_BYTES,
@@ -33,6 +35,7 @@ import {
   assertNoCarriageReturnsInSource
 } from './verify-mobile-web-bundle.mjs'
 import {
+  computeMobileWebBundleBuildId,
   hashedAsset,
   readDesktopVersion,
   readProtocolWindow,
@@ -67,6 +70,53 @@ async function withScratch(run) {
     await rm(scratch, { recursive: true, force: true })
   }
 }
+
+describe('the page routes the manifest declares', () => {
+  it('turns a route key into the URL pattern expo-router gives it', () => {
+    expect(routePathnameFromKey('./h/[hostId]/index.tsx')).toBe('/h/[hostId]')
+    expect(routePathnameFromKey('./h/[hostId]/tasks.tsx')).toBe('/h/[hostId]/tasks')
+    expect(routePathnameFromKey('./h/[hostId]/session/[worktreeId].tsx')).toBe(
+      '/h/[hostId]/session/[worktreeId]'
+    )
+  })
+
+  it('answers null for a layout, which is not a screen anyone navigates to', () => {
+    expect(routePathnameFromKey('./h/_layout.tsx')).toBeNull()
+    expect(routePathnameFromKey('./h/[hostId]/_layout.tsx')).toBeNull()
+  })
+
+  it('declares only routes the bundle has a module for', async () => {
+    const keys = await collectMobileWebAppRouteKeys(appDir)
+    expect(resolveMobileWebPageRoutes(keys)).toEqual([
+      { pathname: '/h/[hostId]', grants: ['navigate'] }
+    ])
+  })
+
+  it('fails the build on a declaration the bundle cannot render', () => {
+    // The mismatch reaches a phone as a route the shell opens the page for and the page then
+    // paints as Unmatched. This is the only place whoever wrote the declaration can see it.
+    expect(() =>
+      resolveMobileWebPageRoutes(
+        ['./h/[hostId]/index.tsx'],
+        [{ pathname: '/h/[hostId]/gone', grants: [] }]
+      )
+    ).toThrow('has no module in the bundle')
+  })
+
+  itBundling(
+    'reaches the built manifest, where the build id does not move for it',
+    async () => {
+      await withScratch(async (scratch) => {
+        const { manifest } = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
+        expect(manifest.routes).toEqual([{ pathname: '/h/[hostId]', grants: ['navigate'] }])
+        // The routes are derived from the same tree the script is built from, so the assets
+        // already decide them and the id has no reason to carry them as well.
+        expect(manifest.buildId).toBe(computeMobileWebBundleBuildId(manifest.assets))
+      })
+    },
+    240_000
+  )
+})
 
 describe('the CRLF pin', () => {
   it('exempts the same extensions in .gitattributes as the CRLF scan skips', async () => {
@@ -254,7 +304,12 @@ describeBundling('the app bundle', () => {
         // The whole point: the manifest the phone compares is the same document.
         const buildIdFrom = async ({ appDir }) =>
           withScratch(async (out) => {
-            const { manifest } = await buildMobileWebAppBundle({ appDir, outDir: join(out, 'x') })
+            const { manifest } = await buildMobileWebAppBundle({
+              appDir,
+              outDir: join(out, 'x'),
+              // A synthetic tree: the real declarations name screens it does not have.
+              pageRoutes: []
+            })
             return manifest.buildId
           })
         expect(await buildIdFrom(far)).toBe(await buildIdFrom(near))

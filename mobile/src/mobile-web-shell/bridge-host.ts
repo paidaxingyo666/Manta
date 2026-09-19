@@ -1,12 +1,8 @@
-import { markRpcDeliveryUnknown } from '../transport/rpc-delivery-ambiguity'
 import type { ConnectionState, RpcResponse } from '../transport/types'
-import {
-  BridgeCapExceededError,
-  BridgeHostDisposedError,
-  BridgeReplyUndeliverableError
-} from './bridge-host-errors'
+import { BridgeCapExceededError, BridgeReplyUndeliverableError } from './bridge-host-errors'
+import { BridgeHostRequests } from './bridge-host-requests'
 import { BridgeHostSubscriptions } from './bridge-host-subscriptions'
-import { BRIDGE_MAX_PENDING_REQUESTS, BRIDGE_MAX_SUBSCRIPTIONS } from './bridge/bridge-caps'
+import { BRIDGE_MAX_SUBSCRIPTIONS } from './bridge/bridge-caps'
 import {
   BRIDGE_FAULT_GRANT,
   BRIDGE_PROTOCOL_VERSION,
@@ -25,13 +21,8 @@ import type { BridgeHostOptions } from './bridge-host-contract'
 // Re-exported so a caller reaches the host and what it reports through one module.
 export type { BridgeHostDiagnostic, BridgeHostOptions } from './bridge-host-contract'
 
-type RequestMessage = Extract<BridgeClientMessage, { type: 'request' }>
 type SubscribeMessage = Extract<BridgeClientMessage, { type: 'subscribe' }>
 type NotifyMessage = Extract<BridgeClientMessage, { type: 'notify' }>
-
-/** Live until something settles it; the flag is what keeps a cancelled request's late answer from
- *  being posted under an id the page has moved on from. */
-type PendingRequest = { live: boolean }
 
 export type BridgeHost = {
   receive: (json: string) => void
@@ -47,19 +38,14 @@ export type BridgeHost = {
  * page is told about in `init` are enforced here and not trusted from there.
  */
 export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
-  const { client, buildId, sessionId } = options
+  const { client, buildId, sessionId, pageRoutes } = options
   // Parsed here, once, against the same schema the page reads it with. The producer interpolates a
   // host id into a pathname, so a host id carrying `?`, `#`, whitespace or a dot segment reaches
   // the wire as a route no page will accept; without this the page refuses the whole `init`, asks
   // again on its backoff forever, and the shell un-hides a WebView that will never paint.
   const parsedRoute = BridgeInitRouteSchema.safeParse(options.route)
   const route = parsedRoute.success ? parsedRoute.data : null
-  const pending = new Map<string, PendingRequest>()
   let closed = false
-  // Requests the client is still running. `pending` is the page's view and empties on a cancel or a
-  // `close`, but `sendRequest` has no cancel: the call keeps its slot on the wire until it settles,
-  // and a page that closed between batches would otherwise be handed the cap over again.
-  let inFlight = 0
   // One document's turn at the bridge. `close` ends it and the next `ready` begins the next one;
   // between the two the view belongs to no document, so nothing is served and nothing is posted.
   // No epoch rides along: one native listener delivers page frames in order, so a straggler from
@@ -131,27 +117,7 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
       return
     }
     initSent = true
-    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot(), route }))
-  }
-
-  function settle(id: string, record: PendingRequest): boolean {
-    if (!record.live) {
-      return false
-    }
-    record.live = false
-    pending.delete(id)
-    return true
-  }
-
-  /** The arity the page used, replayed exactly: `sendRequest(m)` and `sendRequest(m, undefined)`
-   *  are different calls to the golden recorder. */
-  function forwardRequest(message: RequestMessage): Promise<RpcResponse> {
-    if (message.options !== undefined) {
-      return client.sendRequest(message.method, message.params, message.options)
-    }
-    return 'params' in message
-      ? client.sendRequest(message.method, message.params)
-      : client.sendRequest(message.method)
+    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot(), route, pageRoutes }))
   }
 
   function sendReply(id: string, payload: RpcResponse): void {
@@ -165,54 +131,19 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
     }
   }
 
-  /** An id already in flight is a page bug; refusing the newcomer leaves the exchange it collided
-   *  with intact, which settling it would not. */
-  function idInFlight(id: string): boolean {
-    return pending.has(id) || subscriptions.has(id)
-  }
-
-  function handleRequest(message: RequestMessage): void {
-    const { id } = message
-    if (idInFlight(id)) {
-      sendError(id, new BridgeCapExceededError('that id is already in flight'))
-      return
-    }
-    if (inFlight >= BRIDGE_MAX_PENDING_REQUESTS) {
-      sendError(id, new BridgeCapExceededError(`over ${BRIDGE_MAX_PENDING_REQUESTS} requests`))
-      return
-    }
-    const record: PendingRequest = { live: true }
-    pending.set(id, record)
-    let answer: Promise<RpcResponse>
-    try {
-      answer = forwardRequest(message)
-    } catch (error) {
-      settle(id, record)
-      sendError(id, error)
-      return
-    }
-    inFlight += 1
-    void answer.then(
-      (payload) => {
-        inFlight -= 1
-        if (settle(id, record)) {
-          sendReply(id, payload)
-        }
-      },
-      (error: unknown) => {
-        inFlight -= 1
-        if (settle(id, record)) {
-          sendError(id, error)
-        }
-      }
-    )
-  }
+  const requests = new BridgeHostRequests({
+    client,
+    isIdTaken: (id) => subscriptions.has(id),
+    sendReply,
+    sendError,
+    capExceeded: (message) => new BridgeCapExceededError(message)
+  })
 
   // `wantsBinary` is read by the contract and acted on in C6, which owns the screencast encoder and
   // the measurement that earns it. Until then every stream crosses as JSON.
   function handleSubscribe(message: SubscribeMessage): void {
     const { id } = message
-    if (idInFlight(id)) {
+    if (requests.has(id) || subscriptions.has(id)) {
       sendError(id, new BridgeCapExceededError('that id is already in flight'))
       return
     }
@@ -254,6 +185,12 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
         }
         return
       }
+      if (message.name === 'navigate') {
+        // Not routed to the client: this one never leaves the phone. The page asked for a screen
+        // it does not render, and the caller pushes it over the still-mounted view.
+        options.onNavigate(message.href)
+        return
+      }
       client.updateTerminalSubscriptionViewport(message.terminal, {
         cols: message.cols,
         rows: message.rows
@@ -272,15 +209,7 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   /** Cancels everything the page had open. `notify` is false for the page's own `close`, which has
    *  already settled what it owned. */
   function settleAll(notify: boolean): void {
-    for (const [id, record] of pending) {
-      record.live = false
-      // In flight when the door shut: the desktop may already have run it, and a page told this was
-      // a definite send failure would offer to retry something that already happened.
-      if (notify) {
-        sendError(id, markRpcDeliveryUnknown(new BridgeHostDisposedError()))
-      }
-    }
-    pending.clear()
+    requests.closeAll(notify)
     subscriptions.closeAll(notify ? 'closed' : null)
   }
 
@@ -310,7 +239,7 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
     }
     switch (message.type) {
       case 'request':
-        handleRequest(message)
+        requests.open(message)
         return
       case 'subscribe':
         handleSubscribe(message)
@@ -320,12 +249,7 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
           subscriptions.cancel(message.id, 'unsubscribed')
           return
         }
-        // `sendRequest` has no cancel: the desktop still runs it, and this only stops the host from
-        // posting an answer under an id the page has stopped waiting on.
-        const record = pending.get(message.id)
-        if (record !== undefined) {
-          settle(message.id, record)
-        }
+        requests.cancel(message.id)
         return
       }
       case 'ack':

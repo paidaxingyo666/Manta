@@ -17,8 +17,10 @@ import {
   ROUTE_SOURCE_LOADERS,
   assertRoutesCarryNoSynchronousExports,
   collectMobileWebAppRoutes,
-  renderMobileWebAppRouteManifest
+  renderMobileWebAppRouteManifest,
+  routePathnameFromKey
 } from './mobile-web-app-route-manifest.mjs'
+import { MOBILE_WEB_PAGE_ROUTES } from './mobile-web-page-routes.mjs'
 
 const projectDir = fileURLToPath(new URL('../..', import.meta.url))
 const mobileDir = join(projectDir, 'mobile')
@@ -328,7 +330,34 @@ export async function bundleMobileWebApp({ appDir = defaultAppDir } = {}) {
   }
 }
 
-export async function buildMobileWebAppBundle({ appDir, outDir = defaultOutDir } = {}) {
+/**
+ * The declared page routes, checked against the tree that was actually bundled.
+ *
+ * A declaration naming a screen this bundle has no module for would reach a phone as a route the
+ * shell opens the page for and the page then paints as Unmatched. Failing the build is the only
+ * place that mismatch is visible to whoever wrote the declaration.
+ */
+export function resolveMobileWebPageRoutes(routeKeys, declared = MOBILE_WEB_PAGE_ROUTES) {
+  const bundled = new Set(routeKeys.map(routePathnameFromKey).filter((path) => path !== null))
+  for (const route of declared) {
+    if (!bundled.has(route.pathname)) {
+      throw new Error(
+        `[build-mobile-web-app-bundle] declared page route ${route.pathname} has no module in the bundle`
+      )
+    }
+  }
+  return declared.map((route) => ({ pathname: route.pathname, grants: [...route.grants] }))
+}
+
+/**
+ * `pageRoutes` rides with `appDir`: the declarations name screens in the real route tree, so a
+ * caller bundling some other tree has none to check against and says so by passing its own.
+ */
+export async function buildMobileWebAppBundle({
+  appDir,
+  outDir = defaultOutDir,
+  pageRoutes = MOBILE_WEB_PAGE_ROUTES
+} = {}) {
   const [
     desktopVersion,
     protocolWindow,
@@ -369,7 +398,8 @@ export async function buildMobileWebAppBundle({ appDir, outDir = defaultOutDir }
     outDir,
     written: [indexAsset, ...written],
     desktopVersion,
-    protocolWindow
+    protocolWindow,
+    routes: resolveMobileWebPageRoutes(routeKeys, pageRoutes)
   })
   return {
     manifest,

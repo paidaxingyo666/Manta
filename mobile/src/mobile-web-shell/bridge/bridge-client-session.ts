@@ -7,6 +7,9 @@ export type BridgeShellSession = {
   grants: BridgeGrants
   /** Null for a shell too old to name one. The page has no other way to know which screen to open. */
   route: BridgeInitRoute | null
+  /** The route patterns this page may keep for itself. Empty for a shell that names none, which
+   *  hands every navigation back and is what a shell with no `navigate` grant can honour. */
+  pageRoutes: readonly string[]
 }
 
 /**
@@ -22,6 +25,7 @@ export function readShellSession(
     sessionId: message.sessionId,
     buildId: message.buildId,
     grants: message.grants,
-    route: message.route ?? null
+    route: message.route ?? null,
+    pageRoutes: message.pageRoutes ?? []
   }
 }

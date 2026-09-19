@@ -22,6 +22,7 @@ export type Harness = {
   client: FakeRpcClient
   posted: string[]
   diagnostics: BridgeHostDiagnostic[]
+  navigations: string[]
   pageFaults: BridgeErrorCapture[]
   pageReadyCount: () => number
   routeRefusals: string[]
@@ -30,18 +31,21 @@ export type Harness = {
 }
 
 export const ROUTE = { pathname: '/h/host-a' }
+export const PAGE_ROUTES = ['/h/[hostId]']
 
 export function harness(
   options: {
     client?: FakeRpcClient
     post?: (json: string) => Promise<void>
     route?: BridgeInitRoute
+    onNavigate?: (href: string) => void
     onPageFault?: (error: BridgeErrorCapture) => void
   } = {}
 ): Harness {
   const client = options.client ?? createFakeRpcClient()
   const posted: string[] = []
   const diagnostics: BridgeHostDiagnostic[] = []
+  const navigations: string[] = []
   const pageFaults: BridgeErrorCapture[] = []
   let pageReadies = 0
   const routeRefusals: string[] = []
@@ -54,6 +58,8 @@ export function harness(
     buildId: 'build-a',
     sessionId: 'session-a',
     route: options.route ?? ROUTE,
+    pageRoutes: PAGE_ROUTES,
+    onNavigate: options.onNavigate ?? ((href) => navigations.push(href)),
     onPageFault: (error) => {
       pageFaults.push(error)
       options.onPageFault?.(error)
@@ -79,6 +85,7 @@ export function harness(
     client,
     posted,
     diagnostics,
+    navigations,
     pageFaults,
     pageReadyCount: () => pageReadies,
     routeRefusals,

@@ -200,6 +200,15 @@ describe('bridge round trip: notifications and state', () => {
     expect(pair.rpc.viewports).toEqual([{ terminal: 'terminal-a', cols: 120, rows: 40 }])
   })
 
+  it('asks the shell to open a screen the page does not render', async () => {
+    const pair = await ready(createFakeBridgePortPair())
+    expect(pair.client.notifyNavigate('/h/host-a/session/wt-1?name=a+b')).toBe(true)
+    await pair.flush()
+    expect(pair.navigations).toEqual(['/h/host-a/session/wt-1?name=a+b'])
+    // One way: the page hears nothing back, and nothing about it reaches the shell's client.
+    expect(pair.rpc.requests).toEqual([])
+  })
+
   it('reads the shell client through init and fans out every change after it', async () => {
     const rpc = createFakeRpcClient({
       getState: () => 'reconnecting',

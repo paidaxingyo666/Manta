@@ -11,7 +11,7 @@ import {
   saveHostSidebarWidth
 } from '../../src/storage/preferences'
 import { HostProtocolGate } from '../../src/components/HostProtocolGate'
-import { HostScreen } from './[hostId]/index'
+import { HostScreen } from '../../src/host-screen/HostScreen'
 
 // Keep at least this much room for the detail pane when resizing the sidebar.
 const MIN_DETAIL_WIDTH = 320

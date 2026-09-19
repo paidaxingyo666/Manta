@@ -16,6 +16,7 @@ import {
   BRIDGE_MAX_SUBSCRIPTIONS
 } from './bridge/bridge-caps'
 import { BRIDGE_FAULT_GRANT, type BridgeHostMessage } from './bridge/bridge-envelope'
+import { BRIDGE_NATIVE_GRANTS } from './bridge/bridge-init-frame'
 import { BridgeReplyAssembler } from './bridge/bridge-reply-chunking'
 
 describe('requests', () => {
@@ -567,7 +568,7 @@ describe('notifications, refusals and the fence', () => {
     const init = bridge.last()
     // The list on the wire is the list the check above reads; a host that offered one and enforced
     // another would pass every other test in this file.
-    expect(init.type === 'init' && init.grants.native).toEqual([BRIDGE_FAULT_GRANT])
+    expect(init.type === 'init' && init.grants.native).toEqual(BRIDGE_NATIVE_GRANTS)
     bridge.host.receive(
       clientFrame({
         type: 'notify',
