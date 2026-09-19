@@ -1,14 +1,19 @@
 import { createElement } from 'react'
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import type { FakeRpcClient } from './bridge-host-test-fakes'
 import type { MobileWebShellSessionState } from './mobile-web-shell-session-contract'
 
 type ScreenDependencies = {
   retry: Mock
   reportShellFailure: Mock
+  reportDocumentLoaded: Mock
+  reportPageReady: Mock
   openUrl: Mock
   lifecycle: string[]
   state: MobileWebShellSessionState
+  /** Null for every case but the bridge's: with no client the hook builds no host at all. */
+  client: FakeRpcClient | null
 }
 
 const dependencies = vi.hoisted((): ScreenDependencies => {
@@ -18,9 +23,12 @@ const dependencies = vi.hoisted((): ScreenDependencies => {
   return {
     retry: vi.fn(),
     reportShellFailure: vi.fn(),
+    reportDocumentLoaded: vi.fn(),
+    reportPageReady: vi.fn(),
     openUrl: vi.fn(),
     lifecycle: [],
-    state: { kind: 'checking' }
+    state: { kind: 'checking' },
+    client: null
   }
 })
 
@@ -57,15 +65,21 @@ vi.mock('../../modules/manta-mobile-web-shell/src', async () => {
 })
 // The real bridge hook runs, so the props it owns are the ones the view is handed here; only the
 // client lookup is stubbed, because reaching it imports the Expo runtime this test does not have.
-vi.mock('../transport/client-context', () => ({ useHostClient: () => ({ client: null }) }))
+vi.mock('../transport/client-context', () => ({
+  useHostClient: () => ({ client: dependencies.client })
+}))
 vi.mock('./use-mobile-web-shell-session', () => ({
   useMobileWebShellSession: () => ({
     state: dependencies.state,
     retry: dependencies.retry,
-    reportShellFailure: dependencies.reportShellFailure
+    reportShellFailure: dependencies.reportShellFailure,
+    reportDocumentLoaded: dependencies.reportDocumentLoaded,
+    reportPageReady: dependencies.reportPageReady
   })
 }))
 
+import { clientFrame, createFakeRpcClient } from './bridge-host-test-fakes'
+import { BRIDGE_FAULT_GRANT } from './bridge/bridge-envelope'
 import { MobileWebShellScreen } from './MobileWebShellScreen'
 
 const BUILD_ID = 'a1b2c3d4e5f6'.repeat(5) + 'abcd'
@@ -117,7 +131,10 @@ describe('the hybrid shell screen', () => {
   beforeEach(() => {
     dependencies.retry.mockReset()
     dependencies.reportShellFailure.mockReset()
+    dependencies.reportDocumentLoaded.mockReset()
+    dependencies.reportPageReady.mockReset()
     dependencies.lifecycle.length = 0
+    dependencies.client = null
   })
 
   it('renders the update wall for a bundle verdict, with no shell view', async () => {
@@ -233,6 +250,58 @@ describe('the hybrid shell screen', () => {
       view.props.onLoadState({ nativeEvent: { state: 'failed', reason: 'render-process-gone' } })
     })
     expect(dependencies.reportShellFailure.mock.calls).toEqual([['render-process-gone']])
+  })
+
+  it('starts the wait for the page when the native view says the document finished', async () => {
+    const tree = await render(readyState('session-one'))
+    const view = byName(tree, 'ShellViewProbe')[0]
+    await act(async () => {
+      view.props.onLoadState({ nativeEvent: { state: 'loading' } })
+      view.props.onLoadState({ nativeEvent: { state: 'ready' } })
+      view.props.onLoadState({ nativeEvent: { state: 'failed', reason: 'document-load-failed' } })
+    })
+    // Once, for the one finished document, and never for the failure: a view that reported a
+    // failure has nothing left to wait for.
+    expect(dependencies.reportDocumentLoaded).toHaveBeenCalledTimes(1)
+  })
+
+  it('ends that wait on the page asking for a session', async () => {
+    dependencies.client = createFakeRpcClient()
+    const tree = await render(readyState('session-one'))
+    await act(async () => {
+      byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
+        nativeEvent: { json: clientFrame({ type: 'ready' }) }
+      })
+    })
+    expect(dependencies.reportPageReady).toHaveBeenCalled()
+  })
+
+  it('fails the session on a page fault, so a blank page becomes the failure screen', async () => {
+    dependencies.client = createFakeRpcClient()
+    const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const tree = await render(readyState('session-one'))
+    await act(async () => {
+      // The page asks for its session first, which is what earns it the `fault` grant: a host that
+      // has told a page nothing refuses the name.
+      byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
+        nativeEvent: { json: clientFrame({ type: 'ready' }) }
+      })
+      byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
+        nativeEvent: {
+          json: clientFrame({
+            type: 'notify',
+            name: BRIDGE_FAULT_GRANT,
+            error: { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+          })
+        }
+      })
+    })
+    expect(dependencies.reportShellFailure.mock.calls).toEqual([['document-load-failed']])
+    warned.mockRestore()
+    // The reducer's answer to that reason, rendered: this is what the page's blank turns into.
+    expect(
+      textOf(await render({ kind: 'failed', reason: 'document-load-failed', retriedOnce: true }))
+    ).toContain('The downloaded workspace could not be opened.')
   })
 
   it('shows a build id prefix and never the whole one, the cache path, or the host id', async () => {

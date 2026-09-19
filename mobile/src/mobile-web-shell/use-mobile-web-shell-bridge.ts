@@ -4,43 +4,15 @@ import type {
   OrcaMobileWebShellViewHandle
 } from '../../modules/manta-mobile-web-shell/src'
 import { useHostClient } from '../transport/client-context'
-import { createBridgeHost, type BridgeHost, type BridgeHostDiagnostic } from './bridge-host'
+import { createBridgeDiagnosticReporter } from './bridge-diagnostic-log'
+import { createBridgeHost, type BridgeHost } from './bridge-host'
+import type { BridgeErrorCapture } from './bridge/bridge-error-capture'
 import type { MobileWebShellSessionState } from './mobile-web-shell-session-contract'
 
 class BridgeViewGoneError extends Error {
   constructor() {
     super('the shell view for this session is not mounted')
     this.name = 'BridgeViewGoneError'
-  }
-}
-
-/**
- * One line per kind, for the life of one host.
- *
- * A page that is failing frames fails all of them, and a line each buries the first — the one that
- * says why. The host already holds `post-failed` to one; this is the same bound for the kinds it
- * does not, and a new host starts the count over because a new page is new evidence.
- */
-function createBridgeDiagnosticReporter(): (diagnostic: BridgeHostDiagnostic) => void {
-  const reported = new Set<BridgeHostDiagnostic['kind']>()
-  return (diagnostic) => {
-    if (reported.has(diagnostic.kind)) {
-      return
-    }
-    reported.add(diagnostic.kind)
-    if (diagnostic.kind === 'refused') {
-      console.warn('[web-shell-bridge] refused a page frame', diagnostic.refusal)
-      return
-    }
-    if (diagnostic.kind === 'post-failed') {
-      console.warn('[web-shell-bridge] the page could not be posted to', diagnostic.error)
-      return
-    }
-    if (diagnostic.kind === 'notify-failed') {
-      console.warn('[web-shell-bridge] the client threw on a page notification', diagnostic.error)
-      return
-    }
-    console.warn('[web-shell-bridge] a view outlived its host and is still posting')
   }
 }
 
@@ -81,6 +53,10 @@ export type MobileWebShellBridgeView = {
 export function useMobileWebShellBridge(args: {
   hostId: string
   session: MobileWebShellSessionState
+  /** The page could not render the generation on screen. Reported, never recovered from here. */
+  onPageFault: (error: BridgeErrorCapture) => void
+  /** The page asked for a session. Reported so the screen can stop waiting for it. */
+  onPageReady: () => void
 }): MobileWebShellBridgeView {
   const { client } = useHostClient(args.hostId)
   const ready = args.session.kind === 'ready' ? args.session : null
@@ -88,6 +64,16 @@ export function useMobileWebShellBridge(args: {
   const buildId = ready?.buildId ?? null
   const viewRef = useRef<MountedView | null>(null)
   const hostRef = useRef<MountedHost | null>(null)
+  // Read through a ref: the host is built once per session, and a caller's fresh closure every
+  // render must not tear one down and settle its pendings.
+  const pageFaultRef = useRef(args.onPageFault)
+  const pageReadyRef = useRef(args.onPageReady)
+  // Commit-phase and declared above the host's effect, so the host is built against the callbacks
+  // this render passed: a native frame can land between a commit and a passive effect.
+  useLayoutEffect(() => {
+    pageFaultRef.current = args.onPageFault
+    pageReadyRef.current = args.onPageReady
+  }, [args.onPageFault, args.onPageReady])
 
   // Commit-phase, not passive: a native frame that arrives between the two carries the session id
   // the handler is fenced on, so only handing the host over here keeps it off the retired client.
@@ -99,6 +85,12 @@ export function useMobileWebShellBridge(args: {
       client,
       buildId,
       sessionId,
+      onPageFault: (error) => {
+        pageFaultRef.current(error)
+      },
+      onPageReady: () => {
+        pageReadyRef.current()
+      },
       post: (json) => {
         const mounted = viewRef.current
         return mounted === null || mounted.sessionId !== sessionId

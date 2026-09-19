@@ -104,6 +104,10 @@ export type MobileWebShellSessionEffect =
   | { readonly kind: 'delete-cache' }
   /** Mint a new session id for the generation already on screen, which is what remounts the view. */
   | { readonly kind: 'remount' }
+  /** Start the clock on the page's first word. Expiry arrives as `page-ready-deadline` for the flow
+   *  it was armed in, and nothing cancels it: a `ready` that lands first makes the expiry a no-op,
+   *  so the runner owns a timer and none of the decision. */
+  | { readonly kind: 'await-page-ready' }
 
 /**
  * Events, in two kinds.
@@ -153,6 +157,12 @@ export type MobileWebShellSessionEvent =
     }
   | { readonly type: 'shell-failed'; readonly reason: MobileWebShellFailureReason }
   | { readonly type: 'retry-pressed' }
+  /** The native view finished a document. Unstamped, like the view's failure and for the same
+   *  reason: the view exists only under the generation on screen. */
+  | { readonly type: 'document-loaded' }
+  /** The page said `ready` over the bridge, which is the only proof its code ran at all. */
+  | { readonly type: 'page-ready' }
+  | { readonly type: 'page-ready-deadline'; readonly flow: number }
 
 /** Latches live beside the state because both outlive the state they were set in: `retriedOnce`
  *  spans the delete-and-refetch that puts the state back to `checking`, and `remountedOnce` spans a
@@ -161,6 +171,9 @@ export type MobileWebShellSession = {
   readonly state: MobileWebShellSessionState
   readonly retriedOnce: boolean
   readonly remountedOnce: boolean
+  /** Whether the document on screen has spoken over the bridge. Cleared by every new document,
+   *  because each one has to prove itself: the last one's word says nothing about this one. */
+  readonly pageReady: boolean
   /** The gates the current step was taken on; null until the first one arrives. */
   readonly gates: MobileWebShellGates | null
   readonly cached: CachedGeneration | null

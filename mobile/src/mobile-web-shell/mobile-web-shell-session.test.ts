@@ -50,6 +50,8 @@ function stamp(flow: number, event: PendingEvent): MobileWebShellSessionEvent {
     case 'gates-changed':
     case 'shell-failed':
     case 'retry-pressed':
+    case 'document-loaded':
+    case 'page-ready':
       return event
     case 'cache-read':
     case 'manifest-read':
@@ -58,6 +60,7 @@ function stamp(flow: number, event: PendingEvent): MobileWebShellSessionEvent {
     case 'activated':
     case 'remounted':
     case 'download-failed':
+    case 'page-ready-deadline':
       return { ...event, flow: event.flow ?? flow }
   }
 }
@@ -713,5 +716,101 @@ describe('a gates change that says nothing new starts nothing', () => {
       kind: 'wall',
       verdict: { kind: 'blocked', reason: 'bundle-unavailable' }
     })
+  })
+})
+
+/**
+ * A document that commits and then says nothing.
+ *
+ * The WebView reports a finished load for a response it painted, which a bundle whose entry threw
+ * during evaluation still produces. Only the page's own first frame proves its code ran, so the
+ * wait between the two is where a blank screen would otherwise live forever.
+ */
+describe('the page has to speak for the document that loaded', () => {
+  it('arms one wait when the document finishes and the page has not spoken', () => {
+    const step = run(readySession().session, { type: 'document-loaded' })
+    expect(step.effects).toEqual([{ kind: 'await-page-ready' }])
+    expect(step.session.state.kind).toBe('ready')
+  })
+
+  it('arms nothing when the page spoke first, because there is nothing left to wait for', () => {
+    const step = run(readySession().session, { type: 'page-ready' }, { type: 'document-loaded' })
+    expect(step.effects).toEqual([])
+    expect(step.session.pageReady).toBe(true)
+  })
+
+  it('arms nothing outside ready, where no view exists to have loaded anything', () => {
+    const step = run(afterCacheRead(null).session, { type: 'document-loaded' })
+    expect(step.effects).toEqual([])
+  })
+
+  it('deletes the cache and runs the flow again when the wait expires', () => {
+    const ready = run(readySession().session, { type: 'document-loaded' })
+    const step = run(ready.session, { type: 'page-ready-deadline' })
+    // The same recovery `document-load-failed` gets from the view: the bytes on disk are suspect,
+    // so they go and the host is asked once more.
+    expect(step.effects).toEqual([{ kind: 'delete-cache' }, { kind: 'open-cache' }])
+    expect(step.session.retriedOnce).toBe(true)
+    expect(step.session.state.kind).toBe('checking')
+  })
+
+  it('does nothing when the wait expires after the page has spoken', () => {
+    const step = run(
+      readySession().session,
+      { type: 'document-loaded' },
+      { type: 'page-ready' },
+      { type: 'page-ready-deadline' }
+    )
+    expect(step.effects).toEqual([])
+    expect(step.session.state.kind).toBe('ready')
+  })
+
+  it('drops the expiry of a wait a restarted flow left behind', () => {
+    const ready = run(readySession().session, { type: 'document-loaded' })
+    const step = run(
+      ready.session,
+      { type: 'retry-pressed' },
+      { type: 'page-ready-deadline', flow: ready.session.flow }
+    )
+    expect(step.session.state.kind).toBe('checking')
+    expect(step.session.retriedOnce).toBe(false)
+  })
+
+  it('makes the second document prove itself, rather than riding the first one word', () => {
+    const spoken = run(readySession().session, { type: 'page-ready' })
+    const remounted = run(spoken.session, { type: 'remounted', sessionId: 'session-two' })
+    expect(remounted.session.pageReady).toBe(false)
+    expect(run(remounted.session, { type: 'document-loaded' }).effects).toEqual([
+      { kind: 'await-page-ready' }
+    ])
+  })
+
+  it('leaves a remounted document its own wait when the first one expires late', () => {
+    const first = run(readySession().session, { type: 'document-loaded' }, { type: 'page-ready' })
+    const armed = first.session.flow
+    const second = run(
+      first.session,
+      { type: 'shell-failed', reason: 'render-process-gone' },
+      { type: 'remounted', sessionId: 'session-two' },
+      { type: 'document-loaded' }
+    )
+    // The second document is inside its own wait and has not spoken yet, so the only thing that can
+    // keep the first document's expiry off it is the flow the remount started.
+    const step = run(second.session, { type: 'page-ready-deadline', flow: armed })
+    expect(step.effects).toEqual([])
+    expect(step.session.state).toMatchObject({ kind: 'ready', sessionId: 'session-two' })
+  })
+
+  it('makes a freshly activated generation prove itself too', () => {
+    const spoken = run(readySession().session, { type: 'page-ready' })
+    const reactivated = run(spoken.session, {
+      type: 'activated',
+      generationDirectory: CACHED.directory,
+      sessionId: 'session-three',
+      buildId: MANIFEST.buildId,
+      totalBytes: MANIFEST.totalBytes,
+      elapsedMs: 9
+    })
+    expect(reactivated.session.pageReady).toBe(false)
   })
 })

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import * as ExpoCrypto from 'expo-crypto'
 import type { MobileWebShellFailureReason } from '../../modules/manta-mobile-web-shell/src/load-state'
 import { useHostProtocolGates } from '../components/HostProtocolGate'
 import { useHostClient } from '../transport/client-context'
-import { encodeBase64Url } from '../transport/mobile-endpoint-supervisor-support'
 import { fetchMobileWebBundle } from '../transport/mobile-web-bundle-fetch'
 import {
   isMobileWebBundleTransportFailure,
@@ -11,12 +9,14 @@ import {
 } from '../transport/mobile-web-bundle-operations'
 import { runRpcOperation } from '../transport/rpc-operation'
 import type { RpcClient } from '../transport/rpc-client'
-import { createGenerationStore, type GenerationStore } from './generation-store'
-import {
-  createExpoGenerationFileSystem,
-  generationDirectoryPath
-} from './generation-store-file-system'
+import type { GenerationStore } from './generation-store'
+import { generationDirectoryPath } from './generation-store-file-system'
 import { deriveHostCacheKey } from './host-cache-key'
+import {
+  createMobileWebShellRuntime,
+  PAGE_READY_DEADLINE_MS,
+  type MobileWebShellRuntime
+} from './mobile-web-shell-runtime'
 import {
   createMobileWebShellSession,
   readMobileWebShellReachability,
@@ -29,30 +29,15 @@ import type {
   MobileWebShellSessionState
 } from './mobile-web-shell-session-contract'
 
-/** 32 bytes, base64url: the session id scopes the view's private origin, so two mounts must never
- *  share one and a remount must never reuse the one that was just on screen. */
-const SESSION_ID_BYTES = 32
-
-/** The impure edges, injectable so the wiring is testable without a simulator. */
-export type MobileWebShellRuntime = {
-  createStore(): GenerationStore
-  mintSessionId(): string
-  now(): number
-}
-
-function defaultRuntime(): MobileWebShellRuntime {
-  return {
-    createStore: () => createGenerationStore({ fileSystem: createExpoGenerationFileSystem() }),
-    mintSessionId: () => encodeBase64Url(ExpoCrypto.getRandomBytes(SESSION_ID_BYTES)),
-    now: Date.now
-  }
-}
-
 export type MobileWebShellSessionView = {
   readonly state: MobileWebShellSessionState
   readonly retry: () => void
   /** B3's failure reasons, forwarded verbatim; the reducer owns what each one means. */
   readonly reportShellFailure: (reason: MobileWebShellFailureReason) => void
+  /** The native view finished a document; starts the wait for the page's first word. */
+  readonly reportDocumentLoaded: () => void
+  /** The page spoke over the bridge; ends that wait, whichever of the two arrived first. */
+  readonly reportPageReady: () => void
 }
 
 /**
@@ -71,7 +56,7 @@ export function useMobileWebShellSession(args: {
   const { client, state: connState } = useHostClient(hostId)
 
   const runtimeRef = useRef<MobileWebShellRuntime | null>(null)
-  runtimeRef.current ??= args.runtime ?? defaultRuntime()
+  runtimeRef.current ??= args.runtime ?? createMobileWebShellRuntime()
   const runtime = runtimeRef.current
   const storeRef = useRef<GenerationStore | null>(null)
   storeRef.current ??= runtime.createStore()
@@ -84,6 +69,9 @@ export function useMobileWebShellSession(args: {
   const epochRef = useRef(0)
   // Aborted on the same bump: a download nobody will use still holds four of the host's read slots.
   const downloadsRef = useRef<Set<AbortController>>(new Set())
+  // Cancelled on the same bump, for the same reason: an armed deadline belongs to the generation it
+  // was armed under, and the epoch check alone would leave a real timer alive until it fired.
+  const timersRef = useRef<Set<() => void>>(new Set())
   const runEffectRef = useRef<
     ((epoch: number, flow: number, effect: MobileWebShellSessionEffect) => void) | null
   >(null)
@@ -108,6 +96,10 @@ export function useMobileWebShellSession(args: {
       controller.abort()
     }
     downloadsRef.current.clear()
+    for (const cancel of timersRef.current) {
+      cancel()
+    }
+    timersRef.current.clear()
   }, [])
 
   const runEffect = useCallback(
@@ -155,6 +147,14 @@ export function useMobileWebShellSession(args: {
         case 'remount':
           send({ type: 'remounted', flow, sessionId: runtime.mintSessionId() })
           return
+        case 'await-page-ready': {
+          const cancel = runtime.setTimer(() => {
+            timersRef.current.delete(cancel)
+            send({ type: 'page-ready-deadline', flow })
+          }, PAGE_READY_DEADLINE_MS)
+          timersRef.current.add(cancel)
+          return
+        }
       }
     },
     [client, dispatch, hostKey, runtime]
@@ -217,7 +217,15 @@ export function useMobileWebShellSession(args: {
     [dispatch]
   )
 
-  return { state, retry, reportShellFailure }
+  const reportDocumentLoaded = useCallback(() => {
+    dispatch(epochRef.current, { type: 'document-loaded' })
+  }, [dispatch])
+
+  const reportPageReady = useCallback(() => {
+    dispatch(epochRef.current, { type: 'page-ready' })
+  }, [dispatch])
+
+  return { state, retry, reportShellFailure, reportDocumentLoaded, reportPageReady }
 }
 
 async function openCache(

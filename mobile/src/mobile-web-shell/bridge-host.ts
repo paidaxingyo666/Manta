@@ -1,6 +1,11 @@
 import type { RpcClient } from '../transport/rpc-client'
 import { markRpcDeliveryUnknown } from '../transport/rpc-delivery-ambiguity'
 import type { ConnectionState, RpcResponse } from '../transport/types'
+import {
+  BridgeCapExceededError,
+  BridgeHostDisposedError,
+  BridgeReplyUndeliverableError
+} from './bridge-host-errors'
 import { BridgeHostSubscriptions } from './bridge-host-subscriptions'
 import {
   BRIDGE_MAX_PENDING_REQUESTS,
@@ -8,13 +13,16 @@ import {
   type BridgeRefusal
 } from './bridge/bridge-caps'
 import {
+  BRIDGE_FAULT_GRANT,
   BRIDGE_PROTOCOL_VERSION,
   readBridgeClientMessage,
   type BridgeClientMessage,
   type BridgeConnectionSnapshot,
   type BridgeHostMessage
 } from './bridge/bridge-envelope'
-import { captureBridgeError } from './bridge/bridge-error-capture'
+import { captureBridgeError, type BridgeErrorCapture } from './bridge/bridge-error-capture'
+import { BRIDGE_NATIVE_GRANTS, createBridgeInitFrame } from './bridge/bridge-init-frame'
+import { bridgeNotifyRefusal, type BridgeNotifyRefusal } from './bridge/bridge-notify-grants'
 import { splitBridgeReply } from './bridge/bridge-reply-chunking'
 
 type RequestMessage = Extract<BridgeClientMessage, { type: 'request' }>
@@ -32,12 +40,15 @@ export type BridgeHostDiagnostic =
   /** A page posting into a host that has already been disposed, which its own view is the only
    *  thing that can do. Dropping it silently is what hides a leaked view. */
   | { kind: 'frame-after-dispose' }
-  /** A client that threw where the bridge only forwards. Nothing is owed to the page for a notify,
-   *  so the throw is reported rather than answered. */
+  /** A listener that threw where the bridge only forwards. Nothing is owed to the page for a
+   *  notify, so the throw is reported rather than answered. */
   | { kind: 'notify-failed'; error: unknown }
   /** A frame that arrived between a page's `close` and the next document's `ready`. It belongs to
    *  the closed document, and serving it would answer into whatever loads in next. */
   | { kind: 'frame-after-close' }
+  /** A `notify` the host will not act on: a grant-gated name it never issued, or any name from a
+   *  page that has not asked for a session yet. Nothing is owed back, so it is logged and dropped. */
+  | { kind: 'notify-refused'; name: string; why: BridgeNotifyRefusal }
 
 export type BridgeHostOptions = {
   client: RpcClient
@@ -48,33 +59,24 @@ export type BridgeHostOptions = {
   post: (json: string) => Promise<void>
   buildId: string
   sessionId: string
+  /**
+   * The page could not render the generation it was handed. Required, because the page has no
+   * recovery of its own: the generation is on disk and was hash-checked before the view loaded it,
+   * so the same bytes throw again, and the only thing left is for the shell to stop showing them.
+   */
+  onPageFault: (error: BridgeErrorCapture) => void
+  /**
+   * The page asked for a session, which is the only proof its bundle evaluated at all. Required for
+   * the same reason as the fault: the shell bounds the wait for it, and a host built without this
+   * would leave a document that never spoke looking exactly like one still starting up.
+   */
+  onPageReady: () => void
   onDiagnostic?: (diagnostic: BridgeHostDiagnostic) => void
 }
 
 export type BridgeHost = {
   receive: (json: string) => void
   dispose: () => void
-}
-
-class BridgeHostDisposedError extends Error {
-  constructor() {
-    super('the page bridge was torn down before this request answered')
-    this.name = 'BridgeHostDisposedError'
-  }
-}
-
-class BridgeCapExceededError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'BridgeCapExceededError'
-  }
-}
-
-class BridgeReplyUndeliverableError extends Error {
-  constructor(refusal: BridgeRefusal) {
-    super(`the reply could not be delivered to the page (${refusal})`)
-    this.name = 'BridgeReplyUndeliverableError'
-  }
 }
 
 /**
@@ -98,6 +100,10 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   // No epoch rides along: one native listener delivers page frames in order, so a straggler from
   // the closed document is always behind it and ahead of the next document's `ready`.
   let serving = true
+  // Whether this host has ever answered a `ready`. Not the same as `serving`, which starts true so
+  // the first document's frames are not refused for arriving in the same batch as its `ready`: this
+  // one starts false, because a page that has been told no grants holds none.
+  let initSent = false
   let postFailureReported = false
   let notifyFailureReported = false
 
@@ -156,21 +162,8 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   // Answered every time it is asked: a page that saw a `state` older than the one it holds recovers
   // by asking again rather than by living with a cache it knows is wrong.
   function sendInit(): void {
-    send({
-      v: BRIDGE_PROTOCOL_VERSION,
-      type: 'init',
-      sessionId,
-      buildId,
-      connection: snapshot(),
-      grants: {
-        rpc: {
-          maxPendingRequests: BRIDGE_MAX_PENDING_REQUESTS,
-          maxSubscriptions: BRIDGE_MAX_SUBSCRIPTIONS
-        },
-        // Every native capability is out of C0. A name added here is never a version bump.
-        native: []
-      }
-    })
+    initSent = true
+    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot() }))
   }
 
   function settle(id: string, record: PendingRequest): boolean {
@@ -269,7 +262,22 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   /** The client's own work runs inside these calls, and a throw from one would otherwise escape into
    *  the native event handler that delivered the page's frame. Nothing is owed to the page here. */
   function forwardNotify(message: NotifyMessage): void {
+    const refusal = bridgeNotifyRefusal({
+      name: message.name,
+      initSent,
+      granted: BRIDGE_NATIVE_GRANTS
+    })
+    if (refusal !== null) {
+      options.onDiagnostic?.({ kind: 'notify-refused', name: message.name, why: refusal })
+      return
+    }
     try {
+      if (message.name === BRIDGE_FAULT_GRANT) {
+        // Not the client's: a page that threw is this session's problem, and the desktop on the
+        // other end of the client has nothing to do with it.
+        options.onPageFault(message.error)
+        return
+      }
       if (message.name === 'foreground') {
         if (message.reason === undefined) {
           client.notifyForeground()
@@ -283,8 +291,8 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
         rows: message.rows
       })
     } catch (error) {
-      // Once per session, for the reason a failing post is: a page nudging a broken client nudges it
-      // again on every foreground.
+      // Once per session, for the reason a failing post is: a page nudging a broken listener nudges
+      // it again on every foreground.
       if (notifyFailureReported) {
         return
       }
@@ -323,6 +331,9 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
     if (message.type === 'ready') {
       serving = true
       sendInit()
+      // Every time it is asked, not once: the page re-asks on a backoff, and the shell's wait ends
+      // on the first of those that lands rather than on a particular one.
+      options.onPageReady()
       return
     }
     if (!serving) {

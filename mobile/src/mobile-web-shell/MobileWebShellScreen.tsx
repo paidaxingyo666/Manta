@@ -12,10 +12,8 @@ import type {
   MobileWebShellSessionState
 } from './mobile-web-shell-session-contract'
 import { useMobileWebShellBridge } from './use-mobile-web-shell-bridge'
-import {
-  useMobileWebShellSession,
-  type MobileWebShellRuntime
-} from './use-mobile-web-shell-session'
+import type { MobileWebShellRuntime } from './mobile-web-shell-runtime'
+import { useMobileWebShellSession } from './use-mobile-web-shell-session'
 
 // Same guard as the Troubleshoot developer row: `__DEV__` is undefined outside the React Native
 // runtime, and the facts below are for whoever is bringing the shell up, not for a user.
@@ -123,8 +121,23 @@ export type MobileWebShellScreenProps = {
  */
 export function MobileWebShellScreen({ hostId, runtime }: MobileWebShellScreenProps) {
   const insets = useSafeAreaInsets()
-  const { state, retry, reportShellFailure } = useMobileWebShellSession({ hostId, runtime })
-  const bridge = useMobileWebShellBridge({ hostId, session: state })
+  const { state, retry, reportShellFailure, reportDocumentLoaded, reportPageReady } =
+    useMobileWebShellSession({ hostId, runtime })
+  const bridge = useMobileWebShellBridge({
+    hostId,
+    session: state,
+    // Reported as the document failing to load, which is what it is: the document loaded and never
+    // produced a tree. That reason drops this generation and downloads once, so a page broken by
+    // bytes this host has since replaced recovers, and a page broken by its own code stops at the
+    // failure screen instead of a blank one.
+    // Must not throw: it runs inside the page's own error boundary on one side and the native frame
+    // handler on the other, and neither has anywhere to put a throw.
+    onPageFault: (error) => {
+      console.warn('[web-shell] the page faulted', error)
+      reportShellFailure('document-load-failed')
+    },
+    onPageReady: reportPageReady
+  })
 
   if (state.kind === 'wall') {
     return <ProtocolBlockScreen verdict={state.verdict} />
@@ -164,6 +177,12 @@ export function MobileWebShellScreen({ hostId, runtime }: MobileWebShellScreenPr
           const parsed = parseMobileWebShellLoadState(event.nativeEvent)
           if (parsed?.state === 'failed') {
             reportShellFailure(parsed.reason)
+            return
+          }
+          // A finished document is not a working one. The WebView says the response committed; only
+          // the page's own first frame says its code ran, so this is where the wait for it starts.
+          if (parsed?.state === 'ready') {
+            reportDocumentLoaded()
           }
         }}
       />

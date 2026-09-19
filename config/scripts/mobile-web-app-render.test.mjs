@@ -14,6 +14,11 @@ const projectDir = fileURLToPath(new URL('../..', import.meta.url))
 // RequireContext. Nothing short of mounting it proves that object is the shape ExpoRoot reads.
 const HOST_ROUTE = '/h/render-check-host'
 
+// What the double answers `ready` with. Asserted on the document, so a page that mounted against
+// some other session, or against none, fails here rather than on a phone.
+const SHELL_SESSION_ID = 'render-check-session'
+const SHELL_BUILD_ID = 'render-check-build'
+
 // The sharded `test` job does not install mobile dependencies, so the page cannot be built there.
 // The CSP suite below needs none of them and still runs. pr.yml's mobile_web_app job runs both.
 const bundles = mobileWebAppDependenciesPresent()
@@ -25,6 +30,18 @@ let browser
 let origin
 let routeChunks = {}
 let cspHeader = null
+let bridgeVersion = null
+let faultGrant = null
+
+/**
+ * Chunk paths the server answers with a module that throws on evaluation.
+ *
+ * The one way to reproduce the failure the boundary exists for: a route chunk that never arrives
+ * intact. Building a second bundle around a throwing route would test a synthetic tree; poisoning
+ * one file of the real bundle keeps everything else exactly what ships.
+ */
+const poisonedChunks = new Set()
+const POISON_MESSAGE = 'render check poisoned this route chunk'
 
 /**
  * Both CSP constants are a list of quoted directives with `//` comments between them, and those
@@ -50,6 +67,99 @@ export function parseCspDirectives(source, startMarker, endMarker) {
 }
 
 /**
+ * The envelope version the page speaks, read from the contract rather than written down twice. A
+ * bumped `v` would otherwise reach this file as a 30s timeout naming nothing.
+ */
+async function readBridgeProtocolVersion() {
+  const source = await readFile(
+    join(projectDir, 'mobile/src/mobile-web-shell/bridge/bridge-envelope.ts'),
+    'utf8'
+  )
+  const match = /BRIDGE_PROTOCOL_VERSION = (\d+)/.exec(source)
+  if (!match) {
+    throw new Error('could not read BRIDGE_PROTOCOL_VERSION')
+  }
+  return Number(match[1])
+}
+
+/** The grant the shell offers every page, read from the same source for the same reason. */
+async function readBridgeFaultGrant() {
+  const source = await readFile(
+    join(projectDir, 'mobile/src/mobile-web-shell/bridge/bridge-envelope.ts'),
+    'utf8'
+  )
+  const match = /BRIDGE_FAULT_GRANT = '([a-zA-Z]+)'/.exec(source)
+  if (!match) {
+    throw new Error('could not read BRIDGE_FAULT_GRANT')
+  }
+  return match[1]
+}
+
+/**
+ * The shell's half of the bridge, as the page's channel sees it.
+ *
+ * The entry mounts nothing until `init` lands, so a render check with no shell renders no route at
+ * all. This answers `ready` and refuses everything else: a real reply would make this file the
+ * place domain behaviour is decided, and every screen below already has a state for an RPC that
+ * failed. The one message that matters here is the one that lets the tree mount.
+ */
+function installShellDouble({ version, sessionId, buildId, faultGrant }) {
+  // Where the page's own fault reports land. Read back after the render, so a route that threw
+  // under the boundary names itself instead of timing out as a page that never mounted.
+  globalThis.__orcaRenderCheckFaults = []
+  const channel = {
+    postMessage: (json) => {
+      const frame = JSON.parse(json)
+      const answer = (message) => {
+        // A microtask, not a task: the page posts `ready` while its script is still running, and
+        // this keeps the answer behind it without moving a timer the page's backoff reads.
+        queueMicrotask(() => {
+          channel.onmessage?.({ data: JSON.stringify(message) })
+        })
+      }
+      if (frame.type === 'ready') {
+        answer({
+          v: version,
+          type: 'init',
+          sessionId,
+          buildId,
+          connection: {
+            state: 'connected',
+            reconnectAttempt: 0,
+            lastConnectedAt: 1,
+            lastInboundAt: 1,
+            generation: 0
+          },
+          grants: {
+            rpc: { maxPendingRequests: 64, maxSubscriptions: 32 },
+            native: [faultGrant]
+          }
+        })
+        return
+      }
+      if (frame.type === 'notify' && frame.name === faultGrant) {
+        globalThis.__orcaRenderCheckFaults.push(frame.error.message)
+        return
+      }
+      if (frame.type === 'request' || frame.type === 'subscribe') {
+        answer({
+          v: version,
+          type: 'error',
+          id: frame.id,
+          error: {
+            category: 'RenderCheckShellDouble',
+            message: 'the render check answers no RPC',
+            isRpcDeliveryUnknown: false
+          }
+        })
+      }
+    },
+    onmessage: null
+  }
+  globalThis.orcaBridge = channel
+}
+
+/**
  * The shipped policy, read from the Kotlin source so this test cannot drift from what the shell
  * actually sends. Parsed rather than imported: the constant lives in a JVM module.
  */
@@ -66,6 +176,8 @@ async function readShellCsp() {
 
 beforeAll(async () => {
   cspHeader = await readShellCsp()
+  bridgeVersion = await readBridgeProtocolVersion()
+  faultGrant = await readBridgeFaultGrant()
   if (!bundles) {
     return
   }
@@ -89,7 +201,13 @@ beforeAll(async () => {
     const namesAFile = path.slice(path.lastIndexOf('/')).includes('.')
     const file = namesAFile ? path.slice(1) : 'index.html'
     readFile(join(outDir, file)).then(
-      (bytes) => {
+      (real) => {
+        // The real bytes with a throw in front: the module still links, so the importer resolves
+        // every export it asked for and then evaluation throws. A body replaced outright fails at
+        // link instead, which is a different failure from the one the boundary is here for.
+        const bytes = poisonedChunks.has(path)
+          ? `throw new Error(${JSON.stringify(POISON_MESSAGE)});\n${real.toString('utf8')}`
+          : real
         const headers = {
           'content-type': file.endsWith('.js') ? 'text/javascript' : 'text/html'
         }
@@ -132,8 +250,18 @@ const UNMATCHED = 'Unmatched Route'
  * paths the browser actually fetched. The last one is how a client-side navigation proves it
  * pulled the next route's chunk rather than painting out of what the entry already had.
  */
-async function openPage() {
+async function openPage({ shell = true } = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  if (shell) {
+    // At document start, where the native shell installs the real channel: the entry reads it
+    // while its own script runs, so a channel added after `load` would already be too late.
+    await page.addInitScript(installShellDouble, {
+      version: bridgeVersion,
+      sessionId: SHELL_SESSION_ID,
+      buildId: SHELL_BUILD_ID,
+      faultGrant
+    })
+  }
   const errors = []
   const scripts = []
   let reportUncaught = () => {}
@@ -204,6 +332,11 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
   if (paintCause) {
     throw named(paintCause, `mounted but never painted ${JSON.stringify(awaitText)}`)
   }
+  // Folded into the errors the caller already asserts empty: a throw the boundary caught paints
+  // nothing and logs nothing a `pageerror` listener hears, so this is the only place it shows up.
+  for (const fault of await page.evaluate(() => globalThis.__orcaRenderCheckFaults ?? [])) {
+    errors.push(`page fault: ${fault}`)
+  }
 }
 
 async function render(route, awaitText) {
@@ -211,14 +344,33 @@ async function render(route, awaitText) {
   await opened.page.goto(`${origin}${route}`, { waitUntil: 'load' })
   await waitForRoute(opened, route, awaitText)
   const text = await opened.page.evaluate(() => document.body.innerText)
+  // What the page believes it is: read off the document rather than off the double, so a tree that
+  // mounted without a session, or against a session it invented, is not a passing render.
+  const session = await opened.page.evaluate(() => ({
+    sessionId: document.documentElement.dataset.orcaWebSessionId ?? null,
+    buildId: document.documentElement.dataset.orcaWebBuildId ?? null
+  }))
   await opened.page.close()
   // A CSP refusal reaches the page as a console error, so the caller's empty-errors assertion is
   // also the policy assertion; name it here so a failure says which one broke.
   return {
     errors: opened.errors,
     cspErrors: opened.errors.filter((entry) => entry.includes('Content Security Policy')),
-    text
+    text,
+    session
   }
+}
+
+/** The entry's state and what it painted, for a page that is never going to mount. */
+async function renderUnbridged(route) {
+  const { page, errors } = await openPage({ shell: false })
+  // Read straight after `load` and not polled: the entry decides this synchronously, inside the
+  // script `load` waits for, so a state that is not settled by now is never going to settle.
+  await page.goto(`${origin}${route}`, { waitUntil: 'load' })
+  const entry = await page.evaluate(() => document.documentElement.dataset.orcaWebEntry ?? 'absent')
+  const rootChildren = await page.evaluate(() => document.getElementById('root').childElementCount)
+  await page.close()
+  return { entry, errors, rootChildren }
 }
 
 describe('the shell policy this page is tested under', () => {
@@ -284,19 +436,23 @@ describeRender('the page server this check runs against', () => {
 
 describeRender('the Route A page in a real browser', () => {
   it('mounts the worktree list route, not the unmatched screen', async () => {
-    const { errors, cspErrors, text } = await render(HOST_ROUTE, 'Host not found')
+    const { errors, cspErrors, text, session } = await render(HOST_ROUTE, 'Host not found')
     expect(cspErrors).toEqual([])
     expect(errors).toEqual([])
-    // app/h/[hostId]/index.tsx: the placeholder client knows no host, so the list paints its
-    // not-found state. Only that route's own component produces this string.
+    // The tree that mounted is the one the shell handed a session to, and it says which.
+    expect(session).toEqual({ sessionId: SHELL_SESSION_ID, buildId: SHELL_BUILD_ID })
+    // app/h/[hostId]/index.tsx: expo-secure-store is {} on web, so loadHosts() finds no profile
+    // and the list paints its not-found state. Only that route's own component produces this
+    // string, and C1.4's host-store.web.ts is what replaces it with a real row.
     expect(text).toContain('Host not found')
     expect(text).not.toContain(UNMATCHED)
   }, 60_000)
 
   it('routes a nested dynamic segment through the same context', async () => {
-    const { errors, cspErrors, text } = await render(`${HOST_ROUTE}/tasks`, 'Tasks')
+    const { errors, cspErrors, text, session } = await render(`${HOST_ROUTE}/tasks`, 'Tasks')
     expect(cspErrors).toEqual([])
     expect(errors).toEqual([])
+    expect(session.sessionId).toBe(SHELL_SESSION_ID)
     // app/h/[hostId]/tasks.tsx paints its header and its GitHub filter row.
     expect(text).toContain('Tasks')
     expect(text).toContain('Issues')
@@ -309,6 +465,45 @@ describeRender('the Route A page in a real browser', () => {
     expect(errors).toEqual([])
     // Asserted positively so the two negatives above are known to discriminate.
     expect(text).toContain(UNMATCHED)
+  }, 60_000)
+
+  it('mounts nothing at all when no shell answered, which is what makes the three above real', async () => {
+    const { entry, errors, rootChildren } = await renderUnbridged(HOST_ROUTE)
+    // Without this the checks above would pass against a page that ignores `init` entirely.
+    expect(entry).toBe('unbridged')
+    expect(rootChildren).toBe(0)
+    expect(errors).toEqual([])
+  }, 60_000)
+
+  it('tells the shell when a route chunk throws, rather than sitting on a blank page', async () => {
+    const chunk = routeChunks['./h/[hostId]/index.tsx']
+    expect(chunk, Object.keys(routeChunks).join(' ')).toBeTruthy()
+    poisonedChunks.add(`/assets/${chunk}`)
+    try {
+      const opened = await openPage()
+      await opened.page.goto(`${origin}${HOST_ROUTE}`, { waitUntil: 'load' })
+      const reported = await opened.page
+        .waitForFunction(
+          () => {
+            const faults = globalThis.__orcaRenderCheckFaults ?? []
+            return faults.length > 0 ? faults : null
+          },
+          { timeout: 30_000, polling: 250 }
+        )
+        .then((handle) => handle.jsonValue())
+      // The message the poisoned module threw, carried across the bridge as the shell sees it. A
+      // boundary that caught the throw and reported something else would pass an "any fault" check.
+      expect(reported.join(' | ')).toContain(POISON_MESSAGE)
+      // And the screen never painted. The router's own shell commits before the deferred chunk
+      // rejects, so the entry does reach `mounted`; what the boundary takes away is everything
+      // below it, which is the difference between a reported failure and a blank page nobody hears.
+      const text = await opened.page.evaluate(() => document.body.innerText)
+      expect(text).not.toContain('Host not found')
+      expect(text).not.toContain(UNMATCHED)
+      await opened.page.close()
+    } finally {
+      poisonedChunks.delete(`/assets/${chunk}`)
+    }
   }, 60_000)
 
   it("fetches the next route's chunks on a client-side navigation", async () => {

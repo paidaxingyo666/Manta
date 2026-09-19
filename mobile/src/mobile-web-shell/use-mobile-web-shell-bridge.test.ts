@@ -2,7 +2,12 @@ import { createElement, useImperativeHandle, useLayoutEffect, type ReactElement 
 import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import type { OrcaMobileWebShellViewHandle } from '../../modules/manta-mobile-web-shell/src'
-import { readBridgeHostMessage, type BridgeHostMessage } from './bridge/bridge-envelope'
+import {
+  BRIDGE_FAULT_GRANT,
+  readBridgeHostMessage,
+  type BridgeHostMessage
+} from './bridge/bridge-envelope'
+import type { BridgeErrorCapture } from './bridge/bridge-error-capture'
 import type { MobileWebShellSessionState } from './mobile-web-shell-session-contract'
 import type { FakeRpcClient } from './bridge-host-test-fakes'
 
@@ -69,6 +74,8 @@ function DeliverDuringCommit(props: {
   deliver: string | null
   posted: PostedFrame[]
   probe: Probe
+  faults: BridgeErrorCapture[]
+  readies: string[]
 }): ReactElement {
   const { deliver, probe } = props
   useLayoutEffect(() => {
@@ -79,7 +86,9 @@ function DeliverDuringCommit(props: {
   return createElement(Harness, {
     session: readyState('session-one'),
     posted: props.posted,
-    probe
+    probe,
+    faults: props.faults,
+    readies: props.readies
   })
 }
 
@@ -87,8 +96,21 @@ function Harness(props: {
   session: MobileWebShellSessionState
   posted: PostedFrame[]
   probe: Probe
+  faults: BridgeErrorCapture[]
+  readies: string[]
 }): ReactElement | null {
-  const view = useMobileWebShellBridge({ hostId: 'host-1', session: props.session })
+  const view = useMobileWebShellBridge({
+    hostId: 'host-1',
+    session: props.session,
+    // A fresh closure every render, which is the shape a screen passes and the one a ref must
+    // absorb: rebuilding the host here would settle every pending request on each render.
+    onPageFault: (error) => props.faults.push(error),
+    onPageReady: () => {
+      props.readies.push(
+        props.session.kind === 'ready' ? props.session.sessionId : props.session.kind
+      )
+    }
+  })
   props.probe.view = view
   return props.session.kind === 'ready'
     ? createElement(FakeShellView, {
@@ -115,6 +137,9 @@ type Mounted = {
   tree: ReactTestRenderer
   posted: PostedFrame[]
   probe: Probe
+  faults: BridgeErrorCapture[]
+  /** The session id of every `ready` the page asked for, in order. */
+  readies: string[]
   update: (session: MobileWebShellSessionState) => Promise<void>
   deliver: (json: string) => Promise<void>
   frames: (sessionId: string) => BridgeHostMessage[]
@@ -125,9 +150,11 @@ let warned: MockInstance<typeof console.warn>
 async function mount(session: MobileWebShellSessionState): Promise<Mounted> {
   const posted: PostedFrame[] = []
   const probe: Probe = { view: null }
+  const faults: BridgeErrorCapture[] = []
+  const readies: string[] = []
   const rendered: { tree: ReactTestRenderer | null } = { tree: null }
   const render = (next: MobileWebShellSessionState): ReactElement =>
-    createElement(Harness, { session: next, posted, probe })
+    createElement(Harness, { session: next, posted, probe, faults, readies })
   await act(async () => {
     rendered.tree = create(render(session))
   })
@@ -139,6 +166,8 @@ async function mount(session: MobileWebShellSessionState): Promise<Mounted> {
     tree,
     posted,
     probe,
+    faults,
+    readies,
     update: async (next) => {
       await act(async () => {
         tree.update(render(next))
@@ -184,6 +213,44 @@ describe('the bridge channel', () => {
     expect(mounted.frames('session-one')).toEqual([
       expect.objectContaining({ type: 'init', sessionId: 'session-one', buildId: 'build-a' })
     ])
+  })
+
+  it('hands a page fault to the screen and asks the client for nothing', async () => {
+    const mounted = await mount(readyState('session-one'))
+    // The grant comes with the session, so the page asks for one before it reports anything.
+    await mounted.deliver(clientFrame({ type: 'ready' }))
+    await mounted.deliver(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(mounted.faults).toEqual([
+      { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+    ])
+    expect(fakeClient().requests).toEqual([])
+  })
+
+  it('reports a fault from the page on screen, never from the one it replaced', async () => {
+    const mounted = await mount(readyState('session-one'))
+    const stale = mounted.probe.view
+    await mounted.update(readyState('session-two'))
+    // The live page asks first, so the host that hears the stale frame has issued its grants: what
+    // refuses the frame below is the session fence and not a page that had been told nothing.
+    await mounted.deliver(clientFrame({ type: 'ready' }))
+    await act(async () => {
+      stale?.onBridgeMessage({
+        nativeEvent: {
+          json: clientFrame({
+            type: 'notify',
+            name: BRIDGE_FAULT_GRANT,
+            error: { category: 'Error', message: 'a dead page', isRpcDeliveryUnknown: false }
+          })
+        }
+      })
+    })
+    expect(mounted.faults).toEqual([])
   })
 
   it('forwards to the client the hook was given', async () => {
@@ -267,12 +334,72 @@ describe('diagnostics', () => {
     expect(warned).toHaveBeenCalledTimes(1)
   })
 
+  it('names the notification it refused and why, rather than blaming the view', async () => {
+    const mounted = await mount(readyState('session-one'))
+    // No `ready` first, so the page holds nothing the host issued and the frame is refused for it.
+    await mounted.deliver(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'too early', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(mounted.faults).toEqual([])
+    expect(warned).toHaveBeenCalledWith(expect.stringContaining('refused a page notification'), {
+      name: BRIDGE_FAULT_GRANT,
+      why: 'before-ready'
+    })
+  })
+
   it('starts the count over for the next page', async () => {
     const mounted = await mount(readyState('session-one'))
     await mounted.deliver('{"v":1,"type":')
     await mounted.update(readyState('session-two'))
     await mounted.deliver('{"v":1,"type":')
     expect(warned).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('the callbacks a render passes', () => {
+  it('faults into the latest render, not into the closure the host was built with', async () => {
+    const first: BridgeErrorCapture[] = []
+    const second: BridgeErrorCapture[] = []
+    const posted: PostedFrame[] = []
+    const probe: Probe = { view: null }
+    // One session throughout, so the host is never rebuilt: only the ref refresh can carry the
+    // second render's callback to a frame that arrives after it.
+    const render = (faults: BridgeErrorCapture[]): ReactElement =>
+      createElement(Harness, {
+        session: readyState('session-one'),
+        posted,
+        probe,
+        faults,
+        readies: []
+      })
+    const rendered: { tree: ReactTestRenderer | null } = { tree: null }
+    await act(async () => {
+      rendered.tree = create(render(first))
+    })
+    await act(async () => {
+      rendered.tree?.update(render(second))
+    })
+    const deliver = async (json: string): Promise<void> => {
+      await act(async () => {
+        probe.view?.onBridgeMessage({ nativeEvent: { json } })
+      })
+    }
+    await deliver(clientFrame({ type: 'ready' }))
+    await deliver(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(first).toEqual([])
+    expect(second).toEqual([
+      { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+    ])
   })
 })
 
@@ -293,7 +420,7 @@ describe('client changes', () => {
     const posted: PostedFrame[] = []
     const probe: Probe = { view: null }
     const render = (deliver: string | null): ReactElement =>
-      createElement(DeliverDuringCommit, { deliver, posted, probe })
+      createElement(DeliverDuringCommit, { deliver, posted, probe, faults: [], readies: [] })
     const rendered: { tree: ReactTestRenderer | null } = { tree: null }
     await act(async () => {
       rendered.tree = create(render(null))

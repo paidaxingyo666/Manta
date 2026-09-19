@@ -19,6 +19,7 @@ import {
 import {
   BRIDGE_BINARY_FORMATS,
   BRIDGE_CONNECTION_STATES,
+  BRIDGE_FAULT_GRANT,
   BRIDGE_FOREGROUND_NUDGE_REASONS,
   BRIDGE_PROTOCOL_VERSION,
   readBridgeClientMessage,
@@ -114,6 +115,14 @@ describe('client messages', () => {
         rows: BRIDGE_MAX_VIEWPORT_ROWS
       }
     ],
+    [
+      'a page fault notify',
+      {
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'the route threw', isRpcDeliveryUnknown: false }
+      }
+    ],
     ['close', { type: 'close' }]
   ] as const
 
@@ -161,6 +170,11 @@ describe('client messages', () => {
         cols: 80,
         rows: BRIDGE_MAX_VIEWPORT_ROWS + 1
       })
+    ],
+    ['a page fault carrying no error', client({ type: 'notify', name: BRIDGE_FAULT_GRANT })],
+    [
+      'a page fault whose error is not a capture',
+      client({ type: 'notify', name: BRIDGE_FAULT_GRANT, error: 'the route threw' })
     ],
     ['a bare array', []],
     ['a bare string', 'ready']

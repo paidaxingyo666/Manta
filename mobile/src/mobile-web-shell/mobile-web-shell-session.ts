@@ -43,6 +43,7 @@ export function createMobileWebShellSession(): MobileWebShellSession {
     state: CHECKING,
     retriedOnce: false,
     remountedOnce: false,
+    pageReady: false,
     gates: null,
     cached: null,
     flow: 0
@@ -348,6 +349,7 @@ export function reduceMobileWebShellSession(
         : step(session, {})
     case 'activated':
       return step(session, {
+        pageReady: false,
         state: {
           kind: 'ready',
           generationDirectory: event.generationDirectory,
@@ -358,14 +360,33 @@ export function reduceMobileWebShellSession(
         }
       })
     case 'remounted':
-      // Only the session id changes, so the view remounts against the same verified bytes.
+      // Only the session id changes, so the view remounts against the same verified bytes. A new
+      // key is a new document, so whatever the last one said is no longer evidence about this one.
+      // The flow goes with it: the wait the retired document armed would otherwise expire onto a
+      // healthy page that is still inside its own, and take a working workspace off screen.
       return session.state.kind === 'ready'
-        ? step(session, { state: { ...session.state, sessionId: event.sessionId } })
+        ? step(session, {
+            pageReady: false,
+            flow: session.flow + 1,
+            state: { ...session.state, sessionId: event.sessionId }
+          })
         : step(session, {})
     case 'download-failed':
       return onDownloadFailed(session, event.failure)
     case 'shell-failed':
       return onShellFailed(session, event.reason)
+    case 'document-loaded':
+      // Nothing to wait on outside `ready`, and nothing to wait for once the page has spoken: the
+      // two orders this can arrive in are a race, and the latch is what makes either one fine.
+      return session.state.kind === 'ready' && !session.pageReady
+        ? step(session, {}, [{ kind: 'await-page-ready' }])
+        : step(session, {})
+    case 'page-ready':
+      return session.state.kind === 'ready' ? step(session, { pageReady: true }) : step(session, {})
+    case 'page-ready-deadline':
+      // A document that finished and never said a word is a document that did not load, whatever
+      // the WebView reported: `document-load-failed` is what drops the generation and fetches once.
+      return session.pageReady ? step(session, {}) : onShellFailed(session, 'document-load-failed')
     case 'retry-pressed':
       // Clears both latches, so the delete-and-refetch and the remount are each available again.
       // Only here: a reconnect is not a reason to grant a second remount of the same session.

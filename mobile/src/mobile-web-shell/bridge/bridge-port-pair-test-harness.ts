@@ -7,6 +7,7 @@ import {
   type BridgeClientMessage,
   type BridgeHostMessage
 } from './bridge-envelope'
+import type { BridgeErrorCapture } from './bridge-error-capture'
 import {
   createBridgeRpcClient,
   type BridgeRpcClient,
@@ -35,6 +36,10 @@ export type BridgePortPair<TRpc extends RpcClient = FakeRpcClient> = {
   toPage: string[]
   diagnostics: BridgeRpcClientDiagnostic[]
   hostDiagnostics: BridgeHostDiagnostic[]
+  /** Every fault the page reported, in order, as the shell received it. */
+  pageFaults: BridgeErrorCapture[]
+  /** How many times the page asked for a session; it re-asks on a backoff until one lands. */
+  readonly pageReadyCount: () => number
   /** Runs both lanes until a full round moves nothing. */
   flush: () => Promise<void>
   /**
@@ -130,6 +135,8 @@ export function createBridgePortPair<TRpc extends RpcClient>(
   const rpc = options.rpc
   const diagnostics: BridgeRpcClientDiagnostic[] = []
   const hostDiagnostics: BridgeHostDiagnostic[] = []
+  const pageFaults: BridgeErrorCapture[] = []
+  let pageReadies = 0
   let receiveOnPage: ((json: string) => void) | null = null
 
   const rewrite = options.rewriteToPage ?? ((json: string) => json)
@@ -144,6 +151,10 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     },
     buildId: options.buildId ?? 'build-a',
     sessionId: options.sessionId ?? 'session-a',
+    onPageFault: (error) => pageFaults.push(error),
+    onPageReady: () => {
+      pageReadies += 1
+    },
     onDiagnostic: (diagnostic) => hostDiagnostics.push(diagnostic)
   })
   const toShell = createLane((json) => {
@@ -170,6 +181,8 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     toPage: toPage.sent,
     diagnostics,
     hostDiagnostics,
+    pageFaults,
+    pageReadyCount: () => pageReadies,
     async flush(): Promise<void> {
       for (let round = 0; round < 64; round += 1) {
         const moved = toShell.sent.length + toPage.sent.length
