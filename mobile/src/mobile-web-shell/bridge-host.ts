@@ -16,6 +16,7 @@ import { captureBridgeError } from './bridge/bridge-error-capture'
 import { BRIDGE_NATIVE_GRANTS, createBridgeInitFrame } from './bridge/bridge-init-frame'
 import { bridgeNotifyRefusal } from './bridge/bridge-notify-grants'
 import { splitBridgeReply } from './bridge/bridge-reply-chunking'
+import { isPageStorageKeyForHost } from './page-storage-keys'
 import type { BridgeHostOptions } from './bridge-host-contract'
 
 // Re-exported so a caller reaches the host and what it reports through one module.
@@ -38,7 +39,7 @@ export type BridgeHost = {
  * page is told about in `init` are enforced here and not trusted from there.
  */
 export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
-  const { client, buildId, sessionId, pageRoutes } = options
+  const { client, buildId, sessionId, pageRoutes, host } = options
   // Parsed here, once, against the same schema the page reads it with. The producer interpolates a
   // host id into a pathname, so a host id carrying `?`, `#`, whitespace or a dot segment reaches
   // the wire as a route no page will accept; without this the page refuses the whole `init`, asks
@@ -110,14 +111,34 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
     }
   }
 
-  // Answered every time it is asked: a page that saw a `state` older than the one it holds recovers
-  // by asking again rather than by living with a cache it knows is wrong.
+  /**
+   * Answered every time it is asked, with the keys read every time it is answered.
+   *
+   * A page that saw a `state` older than the one it holds recovers by asking again rather than by
+   * living with a cache it knows is wrong, and the same is true of its storage: a document that
+   * reloads inside one mount — which the fault path produces — would otherwise be primed from
+   * before its own writes, and `publishPageStorage` clears the page's cache to match.
+   *
+   * Synchronously, because the page refuses every member until `init` lands and the golden
+   * recorder mounts its screen in the same turn it drains one; an `init` that waited on a promise
+   * would change what the first render of every replay sees. The caller keeps the map current.
+   */
   function sendInit(): void {
     if (route === null) {
       return
     }
     initSent = true
-    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot(), route, pageRoutes }))
+    send(
+      createBridgeInitFrame({
+        sessionId,
+        buildId,
+        connection: snapshot(),
+        route,
+        pageRoutes,
+        host,
+        storage: options.readStorage()
+      })
+    )
   }
 
   function sendReply(id: string, payload: RpcResponse): void {
@@ -189,6 +210,17 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
         // Not routed to the client: this one never leaves the phone. The page asked for a screen
         // it does not render, and the caller pushes it over the still-mounted view.
         options.onNavigate(message.href)
+        return
+      }
+      if (message.name === 'storage') {
+        // Also local, and held to this host's own keys. The envelope allowlists the shape before
+        // this runs, which lets `manta:pins:<any host>` through: a page opened for one host must
+        // not rewrite another's pinned list, and the keys it was handed are the ones it may write.
+        if (!isPageStorageKeyForHost(message.key, host.id)) {
+          options.onDiagnostic?.({ kind: 'storage-refused', key: message.key })
+          return
+        }
+        options.onStorageWrite(message.key, message.value)
         return
       }
       client.updateTerminalSubscriptionViewport(message.terminal, {

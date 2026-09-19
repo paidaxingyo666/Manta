@@ -18,6 +18,14 @@ const HOST_ROUTE = '/h/render-check-host'
 // some other session, or against none, fails here rather than on a phone.
 const SHELL_SESSION_ID = 'render-check-session'
 const SHELL_BUILD_ID = 'render-check-build'
+// The host the shell opened the page for. Without it `expo-secure-store` is {} on web and the list
+// paints "Host not found" over a host that is right there.
+const SHELL_HOST = {
+  id: 'render-check-host',
+  name: 'Render Check Host',
+  endpoint: 'ws://render-check',
+  lastConnected: 1
+}
 
 // The sharded `test` job does not install mobile dependencies, so the page cannot be built there.
 // The CSP suite below needs none of them and still runs. pr.yml's mobile_web_app job runs both.
@@ -103,7 +111,7 @@ async function readBridgeFaultGrant() {
  * place domain behaviour is decided, and every screen below already has a state for an RPC that
  * failed. The one message that matters here is the one that lets the tree mount.
  */
-function installShellDouble({ version, sessionId, buildId, route, faultGrant }) {
+function installShellDouble({ version, sessionId, buildId, route, host, storage, faultGrant }) {
   // Where the page's own fault reports land. Read back after the render, so a route that threw
   // under the boundary names itself instead of timing out as a page that never mounted.
   globalThis.__orcaRenderCheckFaults = []
@@ -135,7 +143,9 @@ function installShellDouble({ version, sessionId, buildId, route, faultGrant }) 
             native: [faultGrant]
           },
           // Omitted for a shell too old to name one, which is the case the page has a panel for.
-          ...(route === null ? {} : { route })
+          ...(route === null ? {} : { route }),
+          ...(host === null ? {} : { host }),
+          storage
         })
         return
       }
@@ -255,7 +265,7 @@ const UNMATCHED = 'Unmatched Route'
  * No `shellRoute` installs no double at all, which is the page that never mounts; a null one
  * installs a shell that named no screen.
  */
-async function openPage({ shellRoute } = {}) {
+async function openPage({ shellRoute, shellHost = SHELL_HOST, shellStorage = {} } = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
   if (shellRoute !== undefined) {
     // At document start, where the native shell installs the real channel: the entry reads it
@@ -265,6 +275,8 @@ async function openPage({ shellRoute } = {}) {
       sessionId: SHELL_SESSION_ID,
       buildId: SHELL_BUILD_ID,
       route: shellRoute,
+      host: shellHost,
+      storage: shellStorage,
       faultGrant
     })
   }
@@ -350,8 +362,8 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
  * route itself from what the double names. Navigating straight to the route would hide exactly the
  * step this check exists to prove.
  */
-async function render(route, awaitText, { shellRoute = { pathname: route } } = {}) {
-  const opened = await openPage({ shellRoute })
+async function render(route, awaitText, { shellRoute = { pathname: route }, ...shell } = {}) {
+  const opened = await openPage({ shellRoute, ...shell })
   await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
   await waitForRoute(opened, route, awaitText)
   const text = await opened.page.evaluate(() => document.body.innerText)
@@ -453,17 +465,17 @@ describeRender('the page server this check runs against', () => {
 
 describeRender('the Route A page in a real browser', () => {
   it('mounts the worktree list route, not the unmatched screen', async () => {
-    const { errors, cspErrors, text, session, url } = await render(HOST_ROUTE, 'Host not found')
+    const { errors, cspErrors, text, session, url } = await render(HOST_ROUTE, SHELL_HOST.name)
     expect(cspErrors).toEqual([])
     expect(errors).toEqual([])
     // The tree that mounted is the one the shell handed a session to, and it says which.
     expect(session).toEqual({ sessionId: SHELL_SESSION_ID, buildId: SHELL_BUILD_ID })
     // The document was served at `/`; the page put itself on the route the shell named.
     expect(url).toBe(HOST_ROUTE)
-    // app/h/[hostId]/index.tsx: expo-secure-store is {} on web, so loadHosts() finds no profile
-    // and the list paints its not-found state. Only that route's own component produces this
-    // string, and C1.4's host-store.web.ts is what replaces it with a real row.
-    expect(text).toContain('Host not found')
+    // The host the shell named, read through host-store.web.ts off `init.host`. Only that route's
+    // own component names the host; "Host not found" is what it paints without one.
+    expect(text).toContain(SHELL_HOST.name)
+    expect(text).not.toContain('Host not found')
     expect(text).not.toContain(UNMATCHED)
   }, 60_000)
 
@@ -487,11 +499,18 @@ describeRender('the Route A page in a real browser', () => {
   }, 60_000)
 
   it('carries the params the shell named into the url the screen reads', async () => {
-    const { errors, url } = await render(HOST_ROUTE, 'Host not found', {
+    const { errors, url } = await render(HOST_ROUTE, SHELL_HOST.name, {
       shellRoute: { pathname: HOST_ROUTE, params: { from: 'render check' } }
     })
     expect(errors).toEqual([])
     expect(url).toBe(`${HOST_ROUTE}?from=render+check`)
+  }, 60_000)
+
+  it('paints the not-found state when the shell named no host, which is what makes the row real', async () => {
+    const { errors, text } = await render(HOST_ROUTE, 'Host not found', { shellHost: null })
+    expect(errors).toEqual([])
+    expect(text).toContain('Host not found')
+    expect(text).not.toContain(SHELL_HOST.name)
   }, 60_000)
 
   it('mounts nothing at all when no shell answered, which is what makes the rest real', async () => {
@@ -547,7 +566,7 @@ describeRender('the Route A page in a real browser', () => {
     const opened = await openPage({ shellRoute: { pathname: HOST_ROUTE } })
     const { page, errors, scripts } = opened
     await page.goto(`${origin}/`, { waitUntil: 'load' })
-    await waitForRoute(opened, HOST_ROUTE, 'Host not found')
+    await waitForRoute(opened, HOST_ROUTE, SHELL_HOST.name)
     const loadedForFirstRoute = [...scripts]
     // What the shell will do in C1.2: the document is fetched once and every later route is a
     // history entry, so the tasks screen can only arrive as a chunk fetched now.

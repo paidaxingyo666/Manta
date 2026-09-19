@@ -15,5 +15,6 @@
  */
 export const MOBILE_WEB_PAGE_ROUTES = [
   // The worktree list. `navigate` because every row opens a session screen that is still native.
-  { pathname: '/h/[hostId]', grants: ['navigate'] }
+  // `storage` because its pins and its last-visited repo are the app's, not the document's.
+  { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] }
 ]

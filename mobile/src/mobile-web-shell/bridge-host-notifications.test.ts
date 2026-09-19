@@ -1,0 +1,191 @@
+import { describe, expect, it } from 'vitest'
+import { ID, harness } from './bridge-host-test-harness'
+import { clientFrame, createFakeRpcClient, flushBridge } from './bridge-host-test-fakes'
+import { BRIDGE_FAULT_GRANT } from './bridge/bridge-envelope'
+import { BRIDGE_NATIVE_GRANTS } from './bridge/bridge-init-frame'
+
+describe('notifications, refusals and the fence', () => {
+  it('forwards foreground with the arity the page used, and the viewport whole', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(clientFrame({ type: 'notify', name: 'foreground' }))
+    bridge.host.receive(clientFrame({ type: 'notify', name: 'foreground', reason: 'app-resume' }))
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'terminalViewport', terminal: 't1', cols: 80, rows: 24 })
+    )
+    expect(bridge.client.foregroundCalls).toEqual([[], ['app-resume']])
+    expect(bridge.client.viewports).toEqual([{ terminal: 't1', cols: 80, rows: 24 }])
+  })
+
+  it('hands a page fault to the session and asks the client for nothing', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'route threw', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(bridge.pageFaults).toEqual([
+      { category: 'Error', message: 'route threw', isRpcDeliveryUnknown: false }
+    ])
+    expect(bridge.client.requests).toHaveLength(0)
+    expect(bridge.client.foregroundCalls).toEqual([])
+    expect(bridge.diagnostics).toEqual([])
+  })
+
+  it('refuses a notify from a page it has told nothing, grant or no grant', () => {
+    const bridge = harness()
+    bridge.host.receive(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'route threw', isRpcDeliveryUnknown: false }
+      })
+    )
+    bridge.host.receive(clientFrame({ type: 'notify', name: 'foreground' }))
+    expect(bridge.pageFaults).toEqual([])
+    expect(bridge.client.foregroundCalls).toEqual([])
+    expect(bridge.diagnostics).toEqual([
+      { kind: 'notify-refused', name: BRIDGE_FAULT_GRANT, why: 'before-ready' },
+      { kind: 'notify-refused', name: 'foreground', why: 'before-ready' }
+    ])
+  })
+
+  it('serves the grant it issued once the page has asked for a session', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    const init = bridge.last()
+    // The list on the wire is the list the check above reads; a host that offered one and enforced
+    // another would pass every other test in this file.
+    expect(init.type === 'init' && init.grants.native).toEqual(BRIDGE_NATIVE_GRANTS)
+    bridge.host.receive(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'route threw', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(bridge.pageFaults).toHaveLength(1)
+    expect(bridge.diagnostics).toEqual([])
+  })
+
+  it('drops a page fault that arrives after the document said goodbye', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'close' }))
+    bridge.host.receive(
+      clientFrame({
+        type: 'notify',
+        name: BRIDGE_FAULT_GRANT,
+        error: { category: 'Error', message: 'late', isRpcDeliveryUnknown: false }
+      })
+    )
+    expect(bridge.pageFaults).toEqual([])
+    expect(bridge.diagnostics).toEqual([{ kind: 'frame-after-close' }])
+  })
+
+  it('reports a listener that throws on a page fault once, and keeps reading', () => {
+    const failure = new Error('the session is gone')
+    const bridge = harness({
+      onPageFault: () => {
+        throw failure
+      }
+    })
+    const fault = clientFrame({
+      type: 'notify',
+      name: BRIDGE_FAULT_GRANT,
+      error: { category: 'Error', message: 'route threw', isRpcDeliveryUnknown: false }
+    })
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    // The page's frame arrives on a native event handler, and a throw that escapes this arm takes
+    // that handler down with it.
+    bridge.host.receive(fault)
+    bridge.host.receive(fault)
+    expect(bridge.diagnostics).toEqual([{ kind: 'notify-failed', error: failure }])
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    expect(bridge.last().type).toBe('init')
+  })
+
+  it('reports a refused frame and forwards nothing from it', () => {
+    const bridge = harness()
+    bridge.host.receive('{"v":1,"type":')
+    bridge.host.receive(clientFrame({ type: 'request', id: 'short', method: 'x' }))
+    expect(bridge.diagnostics).toEqual([
+      { kind: 'refused', refusal: 'malformed-json' },
+      { kind: 'refused', refusal: 'unrecognised-message' }
+    ])
+    expect(bridge.client.requests).toHaveLength(0)
+  })
+
+  it('reports a client that throws on a notify once per session, and keeps reading', () => {
+    const client = createFakeRpcClient()
+    const failure = new Error('no client')
+    const bridge = harness({
+      client: {
+        ...client,
+        notifyForeground: () => {
+          throw failure
+        },
+        updateTerminalSubscriptionViewport: () => {
+          throw failure
+        }
+      }
+    })
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    // The page's frame arrives on a native event handler, and a throw that escapes this arm takes
+    // that handler down with it.
+    bridge.host.receive(clientFrame({ type: 'notify', name: 'foreground' }))
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'terminalViewport', terminal: 't1', cols: 80, rows: 24 })
+    )
+    expect(bridge.diagnostics).toEqual([{ kind: 'notify-failed', error: failure }])
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    expect(bridge.last().type).toBe('init')
+  })
+
+  it('reports a post that throws instead of rejecting, and does not take the sender down', () => {
+    const failure = new Error('the bridge module is gone')
+    const client = createFakeRpcClient()
+    const bridge = harness({
+      client,
+      post: () => {
+        throw failure
+      }
+    })
+    // The `state` frame is sent from inside the client's own fan-out, so a throw here would reach
+    // every other listener that client has.
+    expect(() => client.pushState('reconnecting')).not.toThrow()
+    expect(bridge.diagnostics).toEqual([{ kind: 'post-failed', error: failure }])
+  })
+
+  it('reports a failing post once per session', async () => {
+    const failure = new Error('nowhere to post')
+    const bridge = harness({ post: () => Promise.reject(failure) })
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    await flushBridge()
+    expect(bridge.diagnostics).toEqual([{ kind: 'post-failed', error: failure }])
+    expect(bridge.posted).toHaveLength(2)
+  })
+
+  it('forwards to the client it was built with, whatever the frame names', () => {
+    const mine = createFakeRpcClient()
+    const theirs = createFakeRpcClient()
+    const bridge = harness({ client: mine })
+    harness({ client: theirs })
+    bridge.host.receive(
+      clientFrame({ type: 'request', id: ID, method: 'status.get', hostId: 'other-host' })
+    )
+    expect(mine.requests.map((request) => request.method)).toEqual(['status.get'])
+    expect(theirs.requests).toHaveLength(0)
+  })
+
+  it('carries no host name into the client message it parsed', () => {
+    const bridge = harness()
+    bridge.host.receive(
+      clientFrame({ type: 'request', id: ID, method: 'status.get', hostId: 'other-host' })
+    )
+    expect(bridge.client.requests[0]?.args).toEqual(['status.get'])
+  })
+})

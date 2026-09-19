@@ -5,6 +5,7 @@ import {
   BRIDGE_PROTOCOL_VERSION,
   type BridgeConnectionSnapshot,
   type BridgeHostMessage,
+  type BridgeInitHost,
   type BridgeInitRoute
 } from './bridge-envelope'
 
@@ -30,6 +31,10 @@ export function createBridgeInitFrame(args: {
   route: BridgeInitRoute
   /** The route patterns the page keeps for itself; everything else comes back as `navigate`. */
   pageRoutes: readonly string[]
+  /** The host the page is showing, minus the credential the bridge already carries for it. */
+  host: BridgeInitHost
+  /** The allowlisted keys as the app holds them right now. */
+  storage: Readonly<Record<string, string>>
 }): Extract<BridgeHostMessage, { type: 'init' }> {
   return {
     v: BRIDGE_PROTOCOL_VERSION,
@@ -47,6 +52,10 @@ export function createBridgeInitFrame(args: {
       native: [...BRIDGE_NATIVE_GRANTS]
     },
     route: args.route,
-    pageRoutes: [...args.pageRoutes]
+    pageRoutes: [...args.pageRoutes],
+    host: args.host,
+    // Copied for the same reason the grants are: the frame is serialized straight after, and what
+    // the shell holds must not be reachable through what it hands out.
+    storage: { ...args.storage }
   }
 }

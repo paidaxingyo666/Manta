@@ -36,6 +36,7 @@ export type BridgeClientNotifications = {
   ) => void
   notifyForeground: (reason?: ForegroundNudgeReason) => void
   notifyNavigate: (href: string) => boolean
+  notifyStorageWrite: (key: string, value: string | null) => boolean
   notifyPageFault: (error: unknown) => boolean
 }
 
@@ -71,6 +72,11 @@ export function createBridgeClientNotifications(
     notifyNavigate: (href) =>
       deps.hasGrant('navigate') &&
       post({ v: BRIDGE_PROTOCOL_VERSION, type: 'notify', name: 'navigate', href }),
+    // The page's writes reach the app's own store, which is the only store it has: its `localStorage`
+    // is off on Android and per-session on iOS, so a pin kept there would forget itself on remount.
+    notifyStorageWrite: (key, value) =>
+      deps.hasGrant('storage') &&
+      post({ v: BRIDGE_PROTOCOL_VERSION, type: 'notify', name: 'storage', key, value }),
     notifyPageFault: (error) => {
       if (deps.isClosed() || !deps.hasGrant(BRIDGE_FAULT_GRANT)) {
         return false

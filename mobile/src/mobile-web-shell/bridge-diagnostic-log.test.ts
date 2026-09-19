@@ -45,6 +45,13 @@ describe('the bridge diagnostic log', () => {
     expect(lines()[2]).not.toContain('outlived')
   })
 
+  it('names the key a page was refused a write to', () => {
+    const report = createBridgeDiagnosticReporter()
+    report({ kind: 'storage-refused', key: 'manta:pins:another-host' })
+    expect(lines()[0]).toContain('manta:pins:another-host')
+    expect(lines()[0]).not.toContain('outlived')
+  })
+
   it('carries what was wrong with the screen the shell named', () => {
     const report = createBridgeDiagnosticReporter()
     report({ kind: 'route-refused', issue: 'the shell named no screen' })

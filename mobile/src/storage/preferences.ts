@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { noteMirroredWrite } from './mirrored-storage-keys'
 
 const PINS_PREFIX = 'manta:pins:'
 // Consent to the push service is separate from the old socket notification choice.
@@ -291,5 +292,10 @@ export async function loadPinnedIds(hostId: string): Promise<Set<string>> {
 }
 
 export async function savePinnedIds(hostId: string, ids: Set<string>): Promise<void> {
-  await AsyncStorage.setItem(PINS_PREFIX + hostId, JSON.stringify([...ids]))
+  const key = PINS_PREFIX + hostId
+  const value = JSON.stringify([...ids])
+  // Noted before it is persisted: the hybrid shell hands this key to the page on every `init`,
+  // built synchronously, so a write that only reached the store would be one `init` behind.
+  noteMirroredWrite(key, value)
+  await AsyncStorage.setItem(key, value)
 }

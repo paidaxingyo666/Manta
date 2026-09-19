@@ -126,7 +126,10 @@ describe('bridge client handshake', () => {
       // A shell too old to name a screen, which is a state the page has an answer for.
       route: null,
       // And one that names no page routes, so the page hands every navigation back.
-      pageRoutes: []
+      pageRoutes: [],
+      // And no host and no stored keys, which is what `host-store.web.ts` then answers with.
+      host: null,
+      storage: {}
     })
   })
 

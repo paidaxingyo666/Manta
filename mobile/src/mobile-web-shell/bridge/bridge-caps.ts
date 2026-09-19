@@ -73,6 +73,8 @@ export const BRIDGE_ROUTE_HREF_PATTERN = new RegExp(
 )
 export const BRIDGE_MAX_ROUTE_HREF_CHARS = 2048
 export const BRIDGE_MAX_PAGE_ROUTES = 64
+/** A host id, its name and its endpoint. Bounded because the page renders all three. */
+export const BRIDGE_MAX_HOST_FIELD_CHARS = 1024
 
 /**
  * In-flight bounds. The RN host is authoritative for both; the page holds the same numbers only to

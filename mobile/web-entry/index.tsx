@@ -10,7 +10,9 @@ import {
   stampPageMountState,
   type PageMountTarget
 } from '../src/mobile-web-shell/bridge/page-bootstrap'
+import { publishPageStorage } from '../src/mobile-web-shell/bridge/page-async-storage'
 import { PageFaultBoundary } from '../src/mobile-web-shell/bridge/page-fault-boundary'
+import { publishPageHostProfile } from '../src/mobile-web-shell/bridge/page-host-profile'
 // Named with its extension: this entry is the web build's and the provider it needs is the web
 // sibling's, which takes the page's client. The screens below still import `./client-context`
 // and reach the same module, because the builder resolves both specifiers to the same file.
@@ -72,7 +74,17 @@ bootstrapShellPage({
   replaceUrl: (href) => {
     history.replaceState(null, '', href)
   },
-  mount: (client) => {
+  mount: (client, session) => {
+    // Before the first render, because both are read from effects that run on it: the host store is
+    // a plain async function with no provider above it, and the first list paints its pins.
+    publishPageHostProfile(session.host)
+    // Scoped to the host `init` named: with none, no key is writable, which is the right answer
+    // for a shell too old to say whose list this is.
+    publishPageStorage(
+      session.storage,
+      (key, value) => client.notifyStorageWrite(key, value),
+      session.host?.id ?? ''
+    )
     createRoot(container).render(
       // Above `ExpoRoot`, not inside its wrapper: a route this bundle cannot resolve or import
       // throws where the router renders it, and a boundary below the router never sees that.

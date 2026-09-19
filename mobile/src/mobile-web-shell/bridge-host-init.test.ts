@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { clientFrame, createFakeRpcClient } from './bridge-host-test-fakes'
-import { harness, PAGE_ROUTES, ROUTE } from './bridge-host-test-harness'
+import { harness, HOST, PAGE_ROUTES, ROUTE } from './bridge-host-test-harness'
 import {
   BRIDGE_MAX_PENDING_REQUESTS,
   BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
@@ -37,10 +37,12 @@ describe('init and state', () => {
           maxSubscriptions: BRIDGE_MAX_SUBSCRIPTIONS
         },
         // What the shell will do for the page, and what makes its `navigate` frame acceptable.
-        native: [BRIDGE_FAULT_GRANT, 'navigate']
+        native: [BRIDGE_FAULT_GRANT, 'navigate', 'storage']
       },
       route: ROUTE,
-      pageRoutes: PAGE_ROUTES
+      pageRoutes: PAGE_ROUTES,
+      host: HOST,
+      storage: {}
     })
   })
 
@@ -138,6 +140,70 @@ describe('init and state', () => {
     bridge.host.receive(clientFrame({ type: 'close' }))
     bridge.host.receive(clientFrame({ type: 'notify', name: 'navigate', href: '/h/host-a/tasks' }))
     expect(bridge.navigations).toEqual([])
+  })
+
+  it('writes an allowlisted key into the app store, without routing it to the client', () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'storage', key: 'manta:pins:host-a', value: '["wt-1"]' })
+    )
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'storage', key: 'manta:pins:host-a', value: null })
+    )
+    expect(bridge.storageWrites).toEqual([
+      { key: 'manta:pins:host-a', value: '["wt-1"]' },
+      { key: 'manta:pins:host-a', value: null }
+    ])
+    expect(bridge.client.requests).toEqual([])
+  })
+
+  it('refuses a storage write for a key the page was never told about', () => {
+    // The whole app's preferences share one namespace, the hybrid shell flag included, so the
+    // allowlist is what stands between a page and a feature it could turn on for itself.
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    for (const key of ['manta:mobileWebShellEnabled', 'manta:pins:', 'manta:hosts']) {
+      bridge.host.receive(clientFrame({ type: 'notify', name: 'storage', key, value: 'x' }))
+    }
+    expect(bridge.storageWrites).toEqual([])
+    expect(bridge.diagnostics).toEqual(
+      Array.from({ length: 3 }, () => ({ kind: 'refused', refusal: 'unrecognised-message' }))
+    )
+  })
+
+  it("refuses a write for another host's pinned list, which the envelope lets through", () => {
+    const bridge = harness()
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    // `manta:pins:<any host>` is the right shape, so only the host knows this one is not the page's.
+    bridge.host.receive(
+      clientFrame({ type: 'notify', name: 'storage', key: 'manta:pins:other-host', value: '["x"]' })
+    )
+    expect(bridge.storageWrites).toEqual([])
+    expect(bridge.diagnostics).toEqual([{ kind: 'storage-refused', key: 'manta:pins:other-host' }])
+  })
+
+  it('reads the keys again for each init, rather than replaying what it started with', () => {
+    let pins = '["one"]'
+    const bridge = harness({ readStorage: () => ({ 'manta:pins:host-a': pins }) })
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    pins = '["one","two"]'
+    // The document that reloads inside one mount asks again, and has to be primed from after its
+    // own writes rather than from the map the mount started with.
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    const inits = bridge.frames().filter((frame) => frame.type === 'init')
+    expect(inits.map((frame) => (frame.type === 'init' ? frame.storage : null))).toEqual([
+      { 'manta:pins:host-a': '["one"]' },
+      { 'manta:pins:host-a': '["one","two"]' }
+    ])
+  })
+
+  it('hands the page what the app holds for the keys it may read', () => {
+    const bridge = harness({ storage: { 'manta:pins:host-a': '["wt-1"]' } })
+    bridge.host.receive(clientFrame({ type: 'ready' }))
+    const init = bridge.last()
+    expect(init.type === 'init' && init.storage).toEqual({ 'manta:pins:host-a': '["wt-1"]' })
+    expect(init.type === 'init' && init.host).toEqual(HOST)
   })
 
   it('reports a client without the optional getters as null rather than omitting the field', () => {

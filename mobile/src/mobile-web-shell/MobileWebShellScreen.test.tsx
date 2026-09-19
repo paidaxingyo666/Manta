@@ -9,6 +9,9 @@ type ScreenDependencies = {
   reportShellFailure: Mock
   reportDocumentLoaded: Mock
   reportPageReady: Mock
+  /** The profile read rejected, which is the one state that has no host to build against. */
+  snapshotUnreadable: boolean
+  storageRefreshes: number
   openUrl: Mock
   push: Mock
   pageRoutes: readonly string[]
@@ -27,6 +30,8 @@ const dependencies = vi.hoisted((): ScreenDependencies => {
     reportShellFailure: vi.fn(),
     reportDocumentLoaded: vi.fn(),
     reportPageReady: vi.fn(),
+    snapshotUnreadable: false,
+    storageRefreshes: 0,
     openUrl: vi.fn(),
     push: vi.fn(),
     pageRoutes: ['/h/[hostId]'],
@@ -74,6 +79,21 @@ vi.mock('../../modules/manta-mobile-web-shell/src', async () => {
 // client lookup is stubbed, because reaching it imports the Expo runtime this test does not have.
 vi.mock('../transport/client-context', () => ({
   useHostClient: () => ({ client: dependencies.client })
+}))
+// Reaching the real one imports the host store and expo-secure-store, whose module touches an Expo
+// global this test does not have. What it answers is the screen's input, not its behaviour.
+vi.mock('./use-page-host-snapshot', () => ({
+  usePageHostSnapshot: () => ({
+    snapshot: {
+      host: { id: 'host-1', name: 'Host One', endpoint: 'ws://host-1', lastConnected: 3 }
+    },
+    unreadable: dependencies.snapshotUnreadable,
+    readStorage: () => ({}),
+    refreshStorage: () => {
+      dependencies.storageRefreshes += 1
+    },
+    writeStorage: () => {}
+  })
 }))
 vi.mock('./use-mobile-web-shell-session', () => ({
   useMobileWebShellSession: () => ({
@@ -158,6 +178,8 @@ describe('the hybrid shell screen', () => {
     dependencies.reportShellFailure.mockReset()
     dependencies.reportDocumentLoaded.mockReset()
     dependencies.reportPageReady.mockReset()
+    dependencies.snapshotUnreadable = false
+    dependencies.storageRefreshes = 0
     dependencies.lifecycle.length = 0
     dependencies.client = null
   })
@@ -288,6 +310,29 @@ describe('the hybrid shell screen', () => {
     // Once, for the one finished document, and never for the failure: a view that reported a
     // failure has nothing left to wait for.
     expect(dependencies.reportDocumentLoaded).toHaveBeenCalledTimes(1)
+  })
+
+  it('fails the session when this host could not be read from the app store', async () => {
+    // Without this the session stays `ready` with the view un-hidden, no host behind it, and the
+    // page re-posting `ready` on its backoff for as long as the screen is open.
+    dependencies.snapshotUnreadable = true
+    const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    await render(readyState('session-one'))
+    expect(dependencies.reportShellFailure.mock.calls).toEqual([['document-load-failed']])
+    warned.mockRestore()
+  })
+
+  it('re-reads the app store on every ask, so the next init is not the first one again', async () => {
+    dependencies.client = createFakeRpcClient()
+    const tree = await render(readyState('session-one'))
+    const view = byName(tree, 'ShellViewProbe')[0]
+    await act(async () => {
+      view.props.onBridgeMessage({ nativeEvent: { json: clientFrame({ type: 'ready' }) } })
+      view.props.onBridgeMessage({ nativeEvent: { json: clientFrame({ type: 'ready' }) } })
+    })
+    // A document that reloads inside one mount asks again; a refresh per ask is what lets a key
+    // the app changed meanwhile reach the `init` after it.
+    expect(dependencies.storageRefreshes).toBe(2)
   })
 
   it('ends that wait on the page asking for a session', async () => {

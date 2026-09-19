@@ -23,15 +23,17 @@ export type Harness = {
   posted: string[]
   diagnostics: BridgeHostDiagnostic[]
   navigations: string[]
-  pageFaults: BridgeErrorCapture[]
+  storageWrites: { key: string; value: string | null }[]
   pageReadyCount: () => number
   routeRefusals: string[]
+  pageFaults: BridgeErrorCapture[]
   frames: () => BridgeHostMessage[]
   last: () => BridgeHostMessage
 }
 
 export const ROUTE = { pathname: '/h/host-a' }
 export const PAGE_ROUTES = ['/h/[hostId]']
+export const HOST = { id: 'host-a', name: 'Host A', endpoint: 'ws://host-a', lastConnected: 5 }
 
 export function harness(
   options: {
@@ -39,6 +41,9 @@ export function harness(
     post?: (json: string) => Promise<void>
     route?: BridgeInitRoute
     onNavigate?: (href: string) => void
+    storage?: Readonly<Record<string, string>>
+    /** For the suites that need the map to change between two `init` answers. */
+    readStorage?: () => Readonly<Record<string, string>>
     onPageFault?: (error: BridgeErrorCapture) => void
   } = {}
 ): Harness {
@@ -46,9 +51,10 @@ export function harness(
   const posted: string[] = []
   const diagnostics: BridgeHostDiagnostic[] = []
   const navigations: string[] = []
-  const pageFaults: BridgeErrorCapture[] = []
+  const storageWrites: { key: string; value: string | null }[] = []
   let pageReadies = 0
   const routeRefusals: string[] = []
+  const pageFaults: BridgeErrorCapture[] = []
   const host = createBridgeHost({
     client,
     post: (json) => {
@@ -59,15 +65,18 @@ export function harness(
     sessionId: 'session-a',
     route: options.route ?? ROUTE,
     pageRoutes: PAGE_ROUTES,
+    host: HOST,
+    readStorage: options.readStorage ?? (() => options.storage ?? {}),
+    onStorageWrite: (key, value) => storageWrites.push({ key, value }),
+    onPageReady: () => {
+      pageReadies += 1
+    },
+    onRouteRefused: (issue) => routeRefusals.push(issue),
     onNavigate: options.onNavigate ?? ((href) => navigations.push(href)),
     onPageFault: (error) => {
       pageFaults.push(error)
       options.onPageFault?.(error)
     },
-    onPageReady: () => {
-      pageReadies += 1
-    },
-    onRouteRefused: (issue) => routeRefusals.push(issue),
     onDiagnostic: (diagnostic) => diagnostics.push(diagnostic)
   })
   // Read back through the page's own reader: a frame the host sends that the page would refuse is
@@ -86,9 +95,10 @@ export function harness(
     posted,
     diagnostics,
     navigations,
-    pageFaults,
+    storageWrites,
     pageReadyCount: () => pageReadies,
     routeRefusals,
+    pageFaults,
     frames,
     last: () => {
       const all = frames()

@@ -3,6 +3,12 @@ import { isRpcResponse } from '../../transport/rpc-response-shape'
 import type { RpcResponse } from '../../transport/types'
 import { BridgeErrorCaptureSchema } from './bridge-error-capture'
 import {
+  isPageStorageKey,
+  PAGE_STORAGE_MAX_ENTRIES,
+  PAGE_STORAGE_MAX_KEY_CHARS,
+  PAGE_STORAGE_MAX_VALUE_CHARS
+} from '../page-storage-keys'
+import {
   BRIDGE_MAX_METHOD_CHARS,
   BRIDGE_MAX_PAGE_ROUTES,
   BRIDGE_MAX_REPLY_PARTS,
@@ -12,6 +18,7 @@ import {
   BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
   BRIDGE_MAX_VIEWPORT_COLS,
   BRIDGE_MAX_VIEWPORT_ROWS,
+  BRIDGE_MAX_HOST_FIELD_CHARS,
   BRIDGE_ROUTE_HREF_PATTERN,
   BRIDGE_ROUTE_PATHNAME_PATTERN,
   parseBridgeMessage,
@@ -120,6 +127,31 @@ export const BridgeInitRouteSchema = z.object({
 export type BridgeInitRoute = z.infer<typeof BridgeInitRouteSchema>
 
 /**
+ * The host the shell opened this page for, minus everything secret about it.
+ *
+ * `expo-secure-store` is `{}` on web, so the page's own `loadHosts()` answers with nothing and the
+ * list paints "Host not found" over a host that is right there. What crosses is the profile the
+ * screens read and not the credential they never touch: the bridge already carries the RPC, so a
+ * page that held a device token would be holding one it has no use for.
+ */
+export const BridgeInitHostSchema = z.object({
+  id: z.string().min(1).max(BRIDGE_MAX_HOST_FIELD_CHARS),
+  name: z.string().min(1).max(BRIDGE_MAX_HOST_FIELD_CHARS),
+  endpoint: z.string().min(1).max(BRIDGE_MAX_HOST_FIELD_CHARS),
+  lastConnected: z.number().finite()
+})
+
+export type BridgeInitHost = z.infer<typeof BridgeInitHostSchema>
+
+/** The allowlisted keys as the app holds them right now. Absent keys are absent, never empty. */
+export const BridgeInitStorageSchema = z
+  .record(
+    z.string().min(1).max(PAGE_STORAGE_MAX_KEY_CHARS).refine(isPageStorageKey),
+    z.string().max(PAGE_STORAGE_MAX_VALUE_CHARS)
+  )
+  .refine((entries) => Object.keys(entries).length <= PAGE_STORAGE_MAX_ENTRIES)
+
+/**
  * The one grant negotiated for the protocol itself rather than for a screen: the shell saying it
  * will act on a `fault` report.
  *
@@ -222,6 +254,15 @@ const BridgeClientMessageSchema = z.discriminatedUnion('type', [
       name: z.literal('navigate'),
       href: z.string().min(1).max(BRIDGE_MAX_ROUTE_HREF_CHARS).regex(BRIDGE_ROUTE_HREF_PATTERN)
     }),
+    // Behind the `storage` grant, for the same reason `navigate` is behind its own.
+    z.object({
+      v: versionSchema,
+      type: z.literal('notify'),
+      name: z.literal('storage'),
+      key: z.string().min(1).max(PAGE_STORAGE_MAX_KEY_CHARS).refine(isPageStorageKey),
+      /** Null removes it, which is what `AsyncStorage.removeItem` does. */
+      value: z.string().max(PAGE_STORAGE_MAX_VALUE_CHARS).nullable()
+    }),
     z.object({
       v: versionSchema,
       type: z.literal('notify'),
@@ -307,6 +348,8 @@ const BridgeHostMessageSchema = z.union([
     connection: BridgeConnectionSnapshotSchema,
     grants: BridgeGrantsSchema,
     route: BridgeInitRouteSchema.optional(),
+    host: BridgeInitHostSchema.optional(),
+    storage: BridgeInitStorageSchema.optional(),
     /** Every route pattern the shell would render from the page. The page keeps a navigation into
      *  one of them and hands the rest back, which is the only thing that tells it which is which. */
     pageRoutes: z

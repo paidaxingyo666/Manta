@@ -63,12 +63,29 @@ export const MOBILE_WEB_APP_SHIMS = [
       options.plugins?.some((plugin) => plugin.name === LUCIDE_PLUGIN_NAME) === true
   },
   {
+    // AsyncStorage's web build is window.localStorage, which the shell's page does not have:
+    // Android turns DOM storage off and on iOS the origin host is the session id, so anything
+    // written there is gone on the next remount. The page module holds the app's own values,
+    // primed by `init` and written back over the `storage` grant.
+    name: 'async-storage-over-the-bridge',
+    appliesTo: (options) =>
+      options.alias?.['@react-native-async-storage/async-storage'] === PAGE_ASYNC_STORAGE_MODULE
+  },
+  {
     // esbuild has no require.context, so the route tree is generated and injected.
     name: 'route-manifest',
     appliesTo: (options) =>
       options.plugins?.some((plugin) => plugin.name === ROUTE_MANIFEST_PLUGIN_NAME) === true
   }
 ]
+
+const PAGE_ASYNC_STORAGE_MODULE = join(
+  mobileDir,
+  'src',
+  'mobile-web-shell',
+  'bridge',
+  'page-async-storage.ts'
+)
 
 const ROUTE_MANIFEST_PLUGIN_NAME = 'orca-route-manifest'
 const LUCIDE_PLUGIN_NAME = 'orca-lucide-barrel-provider'
@@ -135,7 +152,10 @@ export function mobileWebAppBuildOptions(routes) {
     jsx: 'automatic',
     // One React: resolve everything from mobile/node_modules, which is where the entry lives.
     nodePaths: [join(mobileDir, 'node_modules')],
-    alias: { 'react-native': 'react-native-web' },
+    alias: {
+      'react-native': 'react-native-web',
+      '@react-native-async-storage/async-storage': PAGE_ASYNC_STORAGE_MODULE
+    },
     plugins: [routeManifestPlugin(renderMobileWebAppRouteManifest(routes)), lucideBarrelPlugin],
     resolveExtensions: [
       '.web.tsx',

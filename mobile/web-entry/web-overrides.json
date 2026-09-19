@@ -14,6 +14,10 @@
       "reason": "The page is one document standing in for one screen, so a route it does not render has to be handed to the app that does. The native file is the router; this one posts a navigate notify for a target outside the page's routes and pushes locally for one inside them."
     },
     {
+      "file": "src/transport/host-store.web.ts",
+      "reason": "expo-secure-store resolves to {} on web, so the real store answers loadHosts() with an empty array and every screen that looks this host up paints \"Host not found\" over the host the shell just opened. This one serves the profile init carried, without the credential the bridge already holds."
+    },
+    {
       "file": "src/transport/host-device-token-store.web.ts",
       "reason": "expo-secure-store resolves to {} on web, and the bridge carries the RPC, so the page holds no device token."
     },

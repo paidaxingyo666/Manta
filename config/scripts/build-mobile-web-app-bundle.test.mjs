@@ -88,7 +88,7 @@ describe('the page routes the manifest declares', () => {
   it('declares only routes the bundle has a module for', async () => {
     const keys = await collectMobileWebAppRouteKeys(appDir)
     expect(resolveMobileWebPageRoutes(keys)).toEqual([
-      { pathname: '/h/[hostId]', grants: ['navigate'] }
+      { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] }
     ])
   })
 
@@ -108,7 +108,9 @@ describe('the page routes the manifest declares', () => {
     async () => {
       await withScratch(async (scratch) => {
         const { manifest } = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
-        expect(manifest.routes).toEqual([{ pathname: '/h/[hostId]', grants: ['navigate'] }])
+        expect(manifest.routes).toEqual([
+          { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] }
+        ])
         // The routes are derived from the same tree the script is built from, so the assets
         // already decide them and the id has no reason to carry them as well.
         expect(manifest.buildId).toBe(computeMobileWebBundleBuildId(manifest.assets))
