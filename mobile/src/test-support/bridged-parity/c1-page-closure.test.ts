@@ -1,19 +1,20 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { C1_PAGE_CLOSURE } from './c1-page-closure'
 import {
-  c1PageClosureDrift,
-  c1PageClosureExclusions,
-  C1_PAGE_CLOSURE,
-  type C1PageClosureObservation
-} from './c1-page-closure'
+  pageClosureDrift,
+  pageClosureExclusions,
+  type PageClosureObservation
+} from './page-closure'
 import { BRIDGED_PARITY_EXCLUSIONS } from './divergence-classes'
+import { readGolden } from '../rpc-recording/golden-recording'
 
 const GOLDENS = resolve(import.meta.dirname, '../../../rpc-foundation/goldens')
 
 /** The run a corpus that diverged exactly as the pin says would hand the rule. */
-function asPinned(): Map<string, C1PageClosureObservation> {
-  const run = new Map<string, C1PageClosureObservation>()
+function asPinned(): Map<string, PageClosureObservation> {
+  const run = new Map<string, PageClosureObservation>()
   for (const [family, goldens] of Object.entries(C1_PAGE_CLOSURE)) {
     for (const [id, verdict] of Object.entries(goldens)) {
       run.set(id, { family, verdict })
@@ -35,10 +36,11 @@ describe('the C1 page closure', () => {
   it('pins goldens that exist, in the family the corpus records them under', () => {
     for (const [family, goldens] of Object.entries(C1_PAGE_CLOSURE)) {
       for (const id of Object.keys(goldens)) {
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: every golden carries `family`; a file that does not fails this read and the test.
-        const recorded = JSON.parse(readFileSync(`${GOLDENS}/${id}.json`, 'utf8')) as {
-          family: string
-        }
+        // Through the corpus's own reader, which checks the format version and the value pool and
+        // throws a named diagnostic otherwise. The assertion this file wants is about `family`, and
+        // asserting the shape in order to read one field made this test the second place that
+        // decides what a golden is.
+        const recorded = readGolden(GOLDENS, id)
         expect({ id, family: recorded.family }).toEqual({ id, family })
       }
     }
@@ -57,7 +59,7 @@ describe('the C1 page closure', () => {
   })
 
   it('excludes a closure golden only into a class that has a reason', () => {
-    const exclusions = c1PageClosureExclusions()
+    const exclusions = pageClosureExclusions(C1_PAGE_CLOSURE)
     expect(exclusions.length).toBeGreaterThan(0)
     expect(exclusions.filter(([, name]) => BRIDGED_PARITY_EXCLUSIONS[name] === undefined)).toEqual(
       []
@@ -67,7 +69,7 @@ describe('the C1 page closure', () => {
 
 describe('reading a run against the pin', () => {
   it('says nothing when the run is the pin', () => {
-    expect(c1PageClosureDrift(asPinned())).toEqual([])
+    expect(pageClosureDrift(C1_PAGE_CLOSURE, asPinned())).toEqual([])
   })
 
   it('names a closure golden that changed verdict', () => {
@@ -79,7 +81,7 @@ describe('reading a run against the pin', () => {
     }
     const [id, observation] = found
     run.set(id, { ...observation, verdict: 'params-undefined' })
-    const drift = c1PageClosureDrift(run)
+    const drift = pageClosureDrift(C1_PAGE_CLOSURE, run)
     expect(drift.length).toBe(1)
     expect(drift[0]).toContain(id)
     expect(drift[0]).toContain(`pinned ${observation.verdict}, ran params-undefined`)
@@ -92,7 +94,9 @@ describe('reading a run against the pin', () => {
       throw new Error('the pin is empty')
     }
     run.set('matrix-arrived-1', { family, verdict: 'identical' })
-    expect(c1PageClosureDrift(run)).toEqual([`${family}: arrived matrix-arrived-1; left (none)`])
+    expect(pageClosureDrift(C1_PAGE_CLOSURE, run)).toEqual([
+      `${family}: arrived matrix-arrived-1; left (none)`
+    ])
   })
 
   it('names a closure golden the run stopped producing', () => {
@@ -103,7 +107,9 @@ describe('reading a run against the pin', () => {
       throw new Error('the pin is empty')
     }
     run.delete(id)
-    expect(c1PageClosureDrift(run)).toEqual([`${family}: arrived (none); left ${id}`])
+    expect(pageClosureDrift(C1_PAGE_CLOSURE, run)).toEqual([
+      `${family}: arrived (none); left ${id}`
+    ])
   })
 
   it('ignores every golden outside the closure, which is most of the corpus', () => {
@@ -112,6 +118,6 @@ describe('reading a run against the pin', () => {
       family: 'session.diff-review',
       verdict: 'result-absent-settlement'
     })
-    expect(c1PageClosureDrift(run)).toEqual([])
+    expect(pageClosureDrift(C1_PAGE_CLOSURE, run)).toEqual([])
   })
 })
